@@ -1,17 +1,28 @@
-import aws from 'aws-sdk';
-import { ObjectList } from 'aws-sdk/clients/s3';
+import {
+  S3Client,
+  DeleteObjectCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  type _Object,
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
+export interface StoredObject {
+  Body: Buffer | undefined;
+}
 
 class StorageHandler {
-  s3: aws.S3;
+  s3: S3Client;
 
   constructor() {
-    // Set S3 endpoint to DigitalOcean Spaces. SPACES_ENDPOINT is a
-    // required production env var; asserting it matches how
+    // DigitalOcean Spaces endpoint. SPACES_ENDPOINT is a required
+    // production env var; the non-null assertion matches how
     // SPACES_DEFAULT_BUCKET_NAME is treated below.
     // NOSONAR — non-null assertion is intentional
-    const spacesEndpoint = new aws.Endpoint(process.env.SPACES_ENDPOINT!);
-    this.s3 = new aws.S3({
-      endpoint: spacesEndpoint,
+    this.s3 = new S3Client({
+      endpoint: process.env.SPACES_ENDPOINT!,
+      region: process.env.SPACES_REGION ?? 'us-east-1',
     });
   }
 
@@ -37,11 +48,13 @@ class StorageHandler {
   }
 
   async delete(key: string): Promise<boolean> {
-    const { s3 } = this;
     try {
-      await s3
-        .deleteObject({ Bucket: StorageHandler.DefaultBucketName(), Key: key })
-        .promise();
+      await this.s3.send(
+        new DeleteObjectCommand({
+          Bucket: StorageHandler.DefaultBucketName(),
+          Key: key,
+        })
+      );
       return true;
     } catch (err) {
       console.info('Delete file failed');
@@ -50,23 +63,26 @@ class StorageHandler {
     }
   }
 
-  async getContents(maxKeys: number = 1000): Promise<ObjectList | undefined> {
-    const { s3 } = this;
+  async getContents(maxKeys: number = 1000): Promise<_Object[] | undefined> {
     console.debug('getting max', maxKeys, 'keys');
-    const files = [];
+    const files: _Object[] = [];
     try {
+      let continuationToken: string | undefined;
       let hasMore = true;
       while (hasMore) {
-        const objects = await s3
-          .listObjects({
+        const objects = await this.s3.send(
+          new ListObjectsV2Command({
             Bucket: StorageHandler.DefaultBucketName(),
             MaxKeys: maxKeys,
+            ContinuationToken: continuationToken,
           })
-          .promise();
+        );
         if (objects.Contents) {
           files.push(...objects.Contents);
         }
-        hasMore = files.length < maxKeys && Boolean(objects.IsTruncated);
+        continuationToken = objects.NextContinuationToken;
+        hasMore =
+          files.length < maxKeys && Boolean(objects.IsTruncated) && continuationToken != null;
       }
     } catch (err) {
       console.info('Get contents failed');
@@ -77,56 +93,45 @@ class StorageHandler {
     return files;
   }
 
-  getFileContents(key: string): Promise<aws.S3.GetObjectOutput> {
-    const { s3 } = this;
-    return new Promise<aws.S3.GetObjectOutput>((resolve, reject) => {
-      s3.getObject(
-        { Bucket: StorageHandler.DefaultBucketName(), Key: key },
-        (err, data) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(data);
-          }
-        }
-      );
-    });
+  async getFileContents(key: string): Promise<StoredObject> {
+    const response = await this.s3.send(
+      new GetObjectCommand({
+        Bucket: StorageHandler.DefaultBucketName(),
+        Key: key,
+      })
+    );
+    if (response.Body == null) {
+      return { Body: undefined };
+    }
+    const bytes = await response.Body.transformToByteArray();
+    return { Body: Buffer.from(bytes) };
   }
 
-  uploadFile(
-    name: string,
-    data: Buffer | string
-  ): Promise<aws.S3.PutObjectOutput> {
-    const { s3 } = this;
-
-    return new Promise<aws.S3.PutObjectOutput>((resolve, reject) => {
-      s3.putObject(
-        {
+  async uploadFile(name: string, data: Buffer | string): Promise<void> {
+    try {
+      await this.s3.send(
+        new PutObjectCommand({
           Bucket: StorageHandler.DefaultBucketName(),
           Key: name,
           Body: data,
-        },
-        (err, response) => {
-          if (err) {
-            console.info('Upload file failed');
-            console.error(err);
-            reject(err);
-          } else {
-            resolve(response);
-          }
-        }
+        })
       );
-    });
+    } catch (err) {
+      console.info('Upload file failed');
+      console.error(err);
+      throw err;
+    }
   }
 
   getPresignedUrl(key: string, expiresSeconds = 3600): Promise<string> {
-    return new Promise((resolve, reject) => {
-      this.s3.getSignedUrl(
-        'getObject',
-        { Bucket: StorageHandler.DefaultBucketName(), Key: key, Expires: expiresSeconds },
-        (err, url) => (err ? reject(err) : resolve(url))
-      );
-    });
+    return getSignedUrl(
+      this.s3,
+      new GetObjectCommand({
+        Bucket: StorageHandler.DefaultBucketName(),
+        Key: key,
+      }),
+      { expiresIn: expiresSeconds }
+    );
   }
 }
 

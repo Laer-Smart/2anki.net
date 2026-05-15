@@ -1,5 +1,4 @@
 import { strFromU8, unzipSync } from 'fflate';
-import { Body } from 'aws-sdk/clients/s3';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getUploadLimits } from '../misc/getUploadLimits';
 import {
@@ -16,7 +15,7 @@ import { convertImageToHTML } from '../../infrastracture/adapters/fileConversion
 
 interface File {
   name: string;
-  contents?: Body | string;
+  contents?: Buffer | Uint8Array | string;
 }
 
 class ZipHandler {
