@@ -64,7 +64,7 @@
 .downloadButton {
   display: inline-block;
   padding: 0.75rem 2rem;
-  background: var(--color-blue-500, #3b82f6);
+  background: var(--color-blue-600, #2563eb);
   color: #fff;
   border-radius: var(--radius-md);
   text-decoration: none;
@@ -73,7 +73,7 @@
 }
 
 .downloadButton:hover {
-  background: var(--color-blue-600, #2563eb);
+  background: var(--color-blue-700, #1d4ed8);
 }
 
 .sentinel {

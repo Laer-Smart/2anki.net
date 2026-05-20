@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import DeckShares from '../data_layer/public/DeckShares';
 import { IShareRepository } from '../data_layer/ShareRepository';
 import { UsersId } from '../data_layer/public/Users';
