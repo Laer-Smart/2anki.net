@@ -36,11 +36,41 @@ test('newJWTToken includes an expiration claim', async () => {
   expect(decoded.exp! - decoded.iat!).toBe(86400);
 });
 
-test('isValidToken rejects an expired token', async () => {
-  const service = createService();
-  const token = jwt.sign({ userId: 1 }, SECRET, { expiresIn: '0s' });
+describe('isValidToken', () => {
+  it('resolves true for a freshly signed token', async () => {
+    const service = createService();
+    const token = jwt.sign({ userId: 1 }, SECRET, { expiresIn: '1h' });
 
-  await expect(service.isValidToken(token)).rejects.toThrow();
+    await expect(service.isValidToken(token)).resolves.toBe(true);
+  });
+
+  it('resolves false for an expired token (no throw)', async () => {
+    const service = createService();
+    const token = jwt.sign({ userId: 1 }, SECRET, { expiresIn: '0s' });
+
+    await expect(service.isValidToken(token)).resolves.toBe(false);
+  });
+
+  it('resolves false for a token signed with a different secret', async () => {
+    const service = createService();
+    const token = jwt.sign({ userId: 1 }, 'a-different-secret', {
+      expiresIn: '1h',
+    });
+
+    await expect(service.isValidToken(token)).resolves.toBe(false);
+  });
+
+  it('resolves false for a malformed token string', async () => {
+    const service = createService();
+
+    await expect(service.isValidToken('not-a-jwt')).resolves.toBe(false);
+  });
+
+  it('resolves false for an empty token', async () => {
+    const service = createService();
+
+    await expect(service.isValidToken('')).resolves.toBe(false);
+  });
 });
 
 describe('loginWithNotion', () => {
