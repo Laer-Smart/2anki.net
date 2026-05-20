@@ -745,3 +745,83 @@
 .drawerCancelBtn:hover {
   color: var(--color-text-primary);
 }
+
+.photoToDeck {
+  margin: 0 auto var(--space-lg, 1.5rem);
+  max-width: 720px;
+  padding: var(--space-md, 1.25rem);
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-md, 0.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 0.75rem);
+}
+
+.photoToDeckHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.photoToDeckTitle {
+  margin: 0;
+  font-size: var(--text-lg, 1.125rem);
+  font-weight: var(--font-medium, 500);
+  color: var(--color-text-primary, #111827);
+}
+
+.photoToDeckSubtitle {
+  margin: 0;
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.photoToDeckRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 0.75rem);
+}
+
+.photoDropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 160px;
+  padding: var(--space-md, 1.25rem);
+  border: 2px dashed var(--color-border, #d1d5db);
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--color-surface-muted, #f9fafb);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition-fast, 150ms);
+}
+
+.photoDropzone:hover {
+  border-color: var(--color-primary, #3b82f6);
+}
+
+.photoDropzoneTitle {
+  font-size: var(--text-base, 1rem);
+  color: var(--color-text-primary, #374151);
+}
+
+.photoDropzoneHint {
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.photoPreview {
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  border-radius: var(--radius-sm, 0.25rem);
+}
+
+.photoToDeckFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm, 0.75rem);
+}

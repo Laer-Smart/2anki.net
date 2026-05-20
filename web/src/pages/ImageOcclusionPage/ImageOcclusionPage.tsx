@@ -7,6 +7,7 @@ import { ImageEntry, OcclusionRect } from './types';
 import { OcclusionCanvas } from './components/OcclusionCanvas';
 import { ImageQueue } from './components/ImageQueue';
 import { NotionImportDrawer } from './components/NotionImportDrawer';
+import { PhotoToFlashcards } from './components/PhotoToFlashcards';
 import styles from '../../styles/shared.module.css';
 import pageStyles from './ImageOcclusionPage.module.css';
 
@@ -385,6 +386,7 @@ export function ImageOcclusionPage() {
           </button>
         </div>
       )}
+      <PhotoToFlashcards isPaying={isPaying} />
       <div className={`${pageStyles.pageLayout} ${drawerOpen ? pageStyles.pageLayoutDrawerOpen : ''}`}>
         <NotionImportDrawer
           isOpen={drawerOpen}
