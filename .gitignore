@@ -140,3 +140,10 @@ src/**/*.js
 src/**/*.js.map
 
 .idea
+
+# Aider — local chat / input history and repo-map cache. Config (.aider.conf.yml,
+# AIDER.md, .aiderignore) IS checked in; the artefacts below are per-user state.
+.aider.chat.history.md
+.aider.input.history
+.aider.llm.history
+.aider.tags.cache.v*/
