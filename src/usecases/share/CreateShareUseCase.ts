@@ -15,7 +15,7 @@ class CreateShareUseCase {
 
   async execute(owner: UsersId, uploadKey: string): Promise<CreateShareResult> {
     const upload = await this.uploadRepository.findByKey(owner, uploadKey);
-    if (upload == null || upload.owner !== owner) {
+    if (upload?.owner !== owner) {
       throw new Error('Upload not found');
     }
 

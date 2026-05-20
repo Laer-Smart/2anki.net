@@ -102,7 +102,11 @@ export function SharePopover({ uploadKey }: Readonly<SharePopoverProps>) {
   useEffect(() => {
     if (!open) return;
     const handleClick = (e: MouseEvent) => {
-      if (anchorRef.current && !anchorRef.current.contains(e.target as Node)) {
+      if (
+        anchorRef.current &&
+        e.target instanceof Node &&
+        !anchorRef.current.contains(e.target)
+      ) {
         setOpen(false);
         setShowConfirm(false);
       }
@@ -115,16 +119,11 @@ export function SharePopover({ uploadKey }: Readonly<SharePopoverProps>) {
     if (share == null) return;
     try {
       await navigator.clipboard.writeText(share.url);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2000);
     } catch {
-      const input = document.createElement('input');
-      input.value = share.url;
-      document.body.appendChild(input);
-      input.select();
-      document.execCommand('copy');
-      document.body.removeChild(input);
+      // Clipboard API unavailable — the URL is selectable in the input.
     }
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 2000);
   };
 
   const stopSharing = async () => {
@@ -154,7 +153,7 @@ export function SharePopover({ uploadKey }: Readonly<SharePopoverProps>) {
         </button>
 
         {open && (
-          <div className={styles.popover} role="dialog" aria-label="Share this deck">
+          <dialog open className={styles.popover} aria-label="Share this deck">
             <p className={styles.popoverTitle}>Share this deck</p>
             <PopoverBody
               loading={loading}
@@ -165,7 +164,7 @@ export function SharePopover({ uploadKey }: Readonly<SharePopoverProps>) {
               onStopConfirm={stopSharing}
               onKeepSharing={() => setShowConfirm(false)}
             />
-          </div>
+          </dialog>
         )}
       </div>
 

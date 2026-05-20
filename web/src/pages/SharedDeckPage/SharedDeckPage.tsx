@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 import { SkeletonList } from '../../components/Skeleton/Skeleton';
@@ -35,10 +35,9 @@ function DeletedPage() {
 export default function SharedDeckPage() {
   const { token } = useParams<{ token: string }>();
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const [deckId, setDeckId] = useState<number | null>(null);
 
   const meta = useSharedDeckMeta(token);
-  const stream = useSharedDeckStream(token, deckId);
+  const stream = useSharedDeckStream(token, null);
 
   const isRevoked =
     (meta.error?.message?.toLowerCase().includes('turned off') ||
