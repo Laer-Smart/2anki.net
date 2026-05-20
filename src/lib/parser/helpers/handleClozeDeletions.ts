@@ -36,6 +36,7 @@ export default function handleClozeDeletions(input: string) {
   const dom = cheerio.load(merged);
   const clozeDeletions = dom('code');
   let mangle = merged;
+  const totalCodeBlocks = (merged.match(/<code>/g) || []).length;
 
   clozeDeletions.each((_i, elem) => {
     const v = dom(elem).html();
@@ -44,7 +45,7 @@ export default function handleClozeDeletions(input: string) {
     const old = `<code>${v}</code>`;
 
     if (v.includes('KaTex')) {
-      const isStandalone = (mangle.match(/<code>/g) || []).length === 1;
+      const isStandalone = totalCodeBlocks === 1;
       mangle = replaceAll(
         mangle,
         old,
