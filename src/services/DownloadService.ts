@@ -1,4 +1,3 @@
-import { S3 } from 'aws-sdk';
 import StorageHandler from '../lib/storage/StorageHandler';
 import DownloadRepository from '../data_layer/DownloadRepository';
 
@@ -9,7 +8,7 @@ class DownloadService {
     owner: string,
     key: string,
     storage: StorageHandler
-  ): Promise<S3.Body | null | undefined> {
+  ): Promise<Buffer | null | undefined> {
     const fileEntry = await this.downloadRepository.getFile(owner, key);
     if (!fileEntry) {
       return null;
@@ -27,8 +26,8 @@ class DownloadService {
   }
 
   isMissingDownloadError(error: unknown) {
-    const errorName = (error as AWS.AWSError)?.name;
-    return errorName?.match(/NoSuchKey/);
+    const errorName = (error as { name?: string })?.name;
+    return errorName != null && errorName.includes('NoSuchKey');
   }
 
   deleteMissingFile(owner: string, key: string) {

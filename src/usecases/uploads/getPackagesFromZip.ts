@@ -1,4 +1,3 @@
-import { Body } from 'aws-sdk/clients/s3';
 import pLimit from 'p-limit';
 import CardOption from '../../lib/parser/Settings/CardOption';
 import { ZipHandler } from '../../lib/zip/zip';
@@ -175,7 +174,7 @@ async function buildAllInOneSlot(
 }
 
 export const getPackagesFromZip = async (
-  fileContents: Body | undefined,
+  fileContents: Buffer | Uint8Array | string | undefined,
   paying: boolean,
   settings: CardOption,
   workspace: Workspace,

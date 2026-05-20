@@ -1,4 +1,3 @@
-import { S3 } from 'aws-sdk';
 import Workspace from '../../../lib/parser/WorkSpace';
 import path from 'path';
 import fs from 'fs/promises';
@@ -6,7 +5,7 @@ import { spawn } from 'child_process';
 
 export function convertPPTToPDF(
   name: string,
-  contents: S3.Body,
+  contents: Buffer | Uint8Array | string,
   workspace: Workspace
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
