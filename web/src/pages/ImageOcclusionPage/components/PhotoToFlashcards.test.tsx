@@ -126,9 +126,8 @@ describe('PhotoToFlashcards', () => {
   });
 
   it('shows the card-count success state when the deck arrives', async () => {
-    const apkgBlob = new Blob(['fake-apkg-bytes'], { type: 'application/octet-stream' });
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(apkgBlob, {
+      new Response('fake-apkg-bytes', {
         status: 200,
         headers: { 'X-Card-Count': '12', 'Content-Type': 'application/octet-stream' },
       })
