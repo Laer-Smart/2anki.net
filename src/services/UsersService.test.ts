@@ -293,6 +293,122 @@ describe('UsersService.requestMagicLink', () => {
   });
 });
 
+describe('UsersService.requestMagicLink observability', () => {
+  let consoleInfoSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleInfoSpy.mockRestore();
+  });
+
+  it('emits a sent event with hashed user id on the happy path', async () => {
+    const getByEmail = jest
+      .fn()
+      .mockResolvedValue({ id: 7, email: 'al@example.com' });
+    const repository = { getByEmail } as unknown as UsersRepository;
+    const emailService = buildEmailService();
+    const magicTokenRepo = new InMemoryMagicTokenRepository();
+    const service = new UsersService(repository, emailService, magicTokenRepo);
+
+    await service.requestMagicLink('al@example.com', 'password_reset');
+
+    expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
+    expect(consoleInfoSpy).toHaveBeenCalledWith(
+      'password_reset.magic_link',
+      expect.objectContaining({
+        outcome: 'sent',
+        purpose: 'password_reset',
+        user_id_hash: expect.any(String),
+      })
+    );
+    const [, payload] = consoleInfoSpy.mock.calls[0];
+    expect(payload).not.toHaveProperty('email');
+  });
+
+  it('emits a rate_limited event before throwing MagicLinkRateLimitError', async () => {
+    const getByEmail = jest
+      .fn()
+      .mockResolvedValue({ id: 3, email: 'rate@example.com' });
+    const repository = { getByEmail } as unknown as UsersRepository;
+    const emailService = buildEmailService();
+    const magicTokenRepo = new InMemoryMagicTokenRepository();
+    const service = new UsersService(repository, emailService, magicTokenRepo);
+
+    for (let i = 0; i < 5; i++) {
+      await service.requestMagicLink('rate@example.com', 'password_reset');
+    }
+    consoleInfoSpy.mockClear();
+
+    await expect(
+      service.requestMagicLink('rate@example.com', 'password_reset')
+    ).rejects.toThrow(MagicLinkRateLimitError);
+
+    expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
+    expect(consoleInfoSpy).toHaveBeenCalledWith(
+      'password_reset.magic_link',
+      expect.objectContaining({
+        outcome: 'rate_limited',
+        purpose: 'password_reset',
+        user_id_hash: expect.any(String),
+      })
+    );
+  });
+
+  it('emits an unknown_email event when no user matches the email', async () => {
+    const getByEmail = jest.fn().mockResolvedValue(null);
+    const repository = { getByEmail } as unknown as UsersRepository;
+    const emailService = buildEmailService();
+    const magicTokenRepo = new InMemoryMagicTokenRepository();
+    const service = new UsersService(repository, emailService, magicTokenRepo);
+
+    await service.requestMagicLink('nobody@example.com', 'password_reset');
+
+    expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
+    expect(consoleInfoSpy).toHaveBeenCalledWith(
+      'password_reset.magic_link',
+      expect.objectContaining({
+        outcome: 'unknown_email',
+        purpose: 'password_reset',
+      })
+    );
+    const [, payload] = consoleInfoSpy.mock.calls[0];
+    expect(payload).not.toHaveProperty('email');
+    expect(payload).not.toHaveProperty('user_id_hash');
+  });
+
+  it('emits a send_failed event with error class name when sgMail throws', async () => {
+    const getByEmail = jest
+      .fn()
+      .mockResolvedValue({ id: 7, email: 'al@example.com' });
+    const repository = { getByEmail } as unknown as UsersRepository;
+    const sendError = new TypeError('network failure');
+    const emailService = buildEmailService({
+      sendMagicLinkEmail: jest.fn().mockRejectedValue(sendError),
+    });
+    const magicTokenRepo = new InMemoryMagicTokenRepository();
+    const service = new UsersService(repository, emailService, magicTokenRepo);
+
+    await expect(
+      service.requestMagicLink('al@example.com', 'password_reset')
+    ).rejects.toThrow(sendError);
+
+    expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
+    expect(consoleInfoSpy).toHaveBeenCalledWith(
+      'password_reset.magic_link',
+      expect.objectContaining({
+        outcome: 'send_failed',
+        purpose: 'password_reset',
+        error: 'TypeError',
+      })
+    );
+    const [, payload] = consoleInfoSpy.mock.calls[0];
+    expect(payload).not.toHaveProperty('email');
+  });
+});
+
 describe('UsersService.verifyMagicToken', () => {
   it('returns userId and purpose for a valid token', async () => {
     const getByEmail = jest
