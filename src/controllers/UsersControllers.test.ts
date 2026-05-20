@@ -398,6 +398,25 @@ describe('UsersController.verifyEmail', () => {
 
     expect(res.redirect).toHaveBeenCalledWith('/login?verify_error=expired');
   });
+
+  it('logs the error and forwards it to next() when verification throws', async () => {
+    const dbError = new Error('Database connection failed');
+    const verifyMagicToken = jest.fn().mockRejectedValue(dbError);
+    const { controller } = buildVerifyEmailController({ verifyMagicToken });
+    const req = { params: { token: 'valid-tok' }, cookies: {} } as unknown as express.Request;
+    const res = buildVerifyEmailRes();
+    const next = jest.fn();
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+    try {
+      await controller.verifyEmail(req, res, next);
+
+      expect(consoleError).toHaveBeenCalledWith('Email verification failed:', dbError);
+      expect(next).toHaveBeenCalledWith(dbError);
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
 });
 
 describe('UsersController.requestMagicLink', () => {
