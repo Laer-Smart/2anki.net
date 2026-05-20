@@ -48,11 +48,11 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 800px;
-  height: 450px;
+  width: 400px;
+  height: 225px;
   border: 0;
   transform-origin: top left;
-  transform: scale(calc(100cqw / 800px));
+  transform: scale(calc(100cqw / 400px));
   pointer-events: none;
 }
 
