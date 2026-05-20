@@ -94,7 +94,7 @@ function runDeckBridge(workspaceDir: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const proc = spawn(
       python,
-      [CREATE_DECK_SCRIPT_PATH, deckInfoPath, TEMPLATE_DIR],
+      [CREATE_DECK_SCRIPT_PATH, deckInfoPath, TEMPLATE_DIR + path.sep],
       { cwd: workspaceDir }
     );
     const stdoutChunks: string[] = [];
@@ -186,7 +186,7 @@ function buildDeckInfo(
   );
 
   return {
-    deck: deckName,
+    name: deckName,
     id: Math.abs(
       Array.from(deckName).reduce(
         (h, ch) => Math.trunc(Math.imul(31, h) + (ch.codePointAt(0) ?? 0)),
