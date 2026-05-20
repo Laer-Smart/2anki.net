@@ -2,9 +2,10 @@ import { AnkiNoteType } from '../../lib/backend/templates';
 
 type PreviewData = Record<string, string>;
 
-const CLOZE_FIELD_RE = /\{\{cloze:([\w-]+)\}\}/g;
+const CONDITIONAL_RE = /\{\{([#^])([^}]+?)\}\}([\s\S]*?)\{\{\/\2\}\}/g;
+const CLOZE_FIELD_RE = /\{\{cloze:([^}]+?)\}\}/g;
 const CLOZE_TOKEN_RE = /\{\{c\d+::([^}:]+)(?:::[^}]+)?\}\}/g;
-const FIELD_RE = /\{\{([\w-]+)\}\}/g;
+const FIELD_RE = /\{\{(?![#^/])([^}]+?)\}\}/g;
 
 function renderClozeContent(value: string, side: 'front' | 'back'): string {
   return value.replace(CLOZE_TOKEN_RE, (_match, answer) => {
@@ -13,15 +14,39 @@ function renderClozeContent(value: string, side: 'front' | 'back'): string {
   });
 }
 
+function resolveConditionals(format: string, data: PreviewData): string {
+  let previous = '';
+  let next = format;
+  while (next !== previous) {
+    previous = next;
+    next = next.replace(
+      CONDITIONAL_RE,
+      (_match, kind: string, fieldName: string, content: string) => {
+        const value = data[fieldName.trim()] ?? '';
+        const isPresent = value.length > 0;
+        const shouldShow = kind === '#' ? isPresent : !isPresent;
+        return shouldShow ? content : '';
+      }
+    );
+  }
+  return next;
+}
+
 function substituteFields(
   format: string,
   data: PreviewData,
   side: 'front' | 'back'
 ): string {
-  const withCloze = format.replace(CLOZE_FIELD_RE, (_match, fieldName) =>
-    renderClozeContent(data[fieldName] ?? '', side)
+  const withoutConditionals = resolveConditionals(format, data);
+  const withCloze = withoutConditionals.replace(
+    CLOZE_FIELD_RE,
+    (_match, fieldName: string) =>
+      renderClozeContent(data[fieldName.trim()] ?? '', side)
   );
-  return withCloze.replace(FIELD_RE, (_match, fieldName) => data[fieldName] ?? '');
+  return withCloze.replace(
+    FIELD_RE,
+    (_match, fieldName: string) => data[fieldName.trim()] ?? ''
+  );
 }
 
 export function renderCardSide(
