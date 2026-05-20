@@ -5,7 +5,7 @@ jest.mock('../../lib/claude/ClaudeService', () => ({
   getAnthropicClient: jest.fn(),
 }));
 
-const { extractJsonBlock, fingerprintStarter } = __test__;
+const { extractJsonBlock } = __test__;
 
 describe('extractJsonBlock', () => {
   it('returns the fenced JSON content when wrapped in ```json ... ```', () => {
@@ -127,43 +127,3 @@ describe('AINoteTypeUseCase.modify no-op detection', () => {
   });
 });
 
-describe('fingerprintStarter', () => {
-  it('treats two starters with identical user-visible fields as equal', () => {
-    const a = sampleStarter;
-    const b: NoteTypeStarterInput = {
-      ...sampleStarter,
-      id: 'different-id',
-      noteType: { ...sampleStarter.noteType, id: 99 },
-    };
-    expect(fingerprintStarter(a)).toBe(fingerprintStarter(b));
-  });
-
-  it('treats a css change as a different fingerprint', () => {
-    const changed: NoteTypeStarterInput = {
-      ...sampleStarter,
-      noteType: {
-        ...sampleStarter.noteType,
-        css: '.card { color: red; }',
-      },
-    };
-    expect(fingerprintStarter(sampleStarter)).not.toBe(
-      fingerprintStarter(changed)
-    );
-  });
-
-  it('treats an added field as a different fingerprint', () => {
-    const changed: NoteTypeStarterInput = {
-      ...sampleStarter,
-      noteType: {
-        ...sampleStarter.noteType,
-        flds: [
-          ...sampleStarter.noteType.flds,
-          { name: 'Hint', ord: 2 },
-        ],
-      },
-    };
-    expect(fingerprintStarter(sampleStarter)).not.toBe(
-      fingerprintStarter(changed)
-    );
-  });
-});

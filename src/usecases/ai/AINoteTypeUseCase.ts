@@ -222,24 +222,6 @@ function validateStarter(value: unknown): NoteTypeStarterInput {
   };
 }
 
-function fingerprintStarter(s: NoteTypeStarterInput): string {
-  const nt = s.noteType;
-  return JSON.stringify({
-    name: s.name,
-    description: s.description,
-    baseType: s.baseType,
-    css: nt.css,
-    type: nt.type,
-    flds: nt.flds.map((f) => ({ name: f.name, ord: f.ord })),
-    tmpls: nt.tmpls.map((t) => ({
-      name: t.name,
-      ord: t.ord,
-      qfmt: t.qfmt,
-      afmt: t.afmt,
-    })),
-  });
-}
-
 function parseResponse(text: string): ParsedResponse {
   const block = extractJsonBlock(text);
   if (!block) throw new Error('Claude did not return JSON');
@@ -333,7 +315,10 @@ export class AINoteTypeUseCase {
 
     const text = await askClaude(messages);
     const result = parseResponse(text);
-    if (fingerprintStarter(starter) === fingerprintStarter(result.starter)) {
+    if (
+      JSON.stringify(starter.noteType) ===
+      JSON.stringify(result.starter.noteType)
+    ) {
       console.warn('template_ai_modify.no_op', {
         instructionLength: instruction.length,
       });
@@ -346,6 +331,5 @@ export const __test__ = {
   extractJsonBlock,
   parseResponse,
   validateStarter,
-  fingerprintStarter,
   SYSTEM_PROMPT,
 };
