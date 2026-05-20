@@ -12,6 +12,30 @@ import json
 import sys
 import os
 
+_MAX_BASENAME_BYTES = 200
+
+
+def _clamp_output_path(path: str) -> str:
+    directory = os.path.dirname(path)
+    basename = os.path.basename(path)
+    encoded = basename.encode("utf-8")
+    if len(encoded) <= _MAX_BASENAME_BYTES:
+        return path
+    ext = b".apkg"
+    max_stem_bytes = _MAX_BASENAME_BYTES - len(ext)
+    stem_bytes = encoded[: -len(ext)] if basename.endswith(".apkg") else encoded
+    truncated = stem_bytes[:max_stem_bytes]
+    while truncated:
+        try:
+            stem_str = truncated.decode("utf-8")
+            break
+        except UnicodeDecodeError:
+            truncated = truncated[:-1]
+    else:
+        stem_str = ""
+    new_basename = stem_str + ".apkg"
+    return os.path.join(directory, new_basename)
+
 from genanki import Note
 from genanki.util import guid_for
 
@@ -198,7 +222,7 @@ def run_batch(manifest_path, template_dir):
 
     for entry in entries:
         input_path = entry["input"]
-        output_path = entry["output"]
+        output_path = _clamp_output_path(entry["output"])
         deck_dir = os.path.dirname(input_path)
 
         original_cwd = os.getcwd()

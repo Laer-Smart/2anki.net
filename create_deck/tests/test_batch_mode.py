@@ -6,6 +6,16 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+import importlib.util as _ilu
+
+_spec = _ilu.spec_from_file_location(
+    "create_deck_script",
+    Path(__file__).parents[1] / "create_deck.py",
+)
+_mod = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(_mod)
+_clamp_output_path = _mod._clamp_output_path
+
 REPO_ROOT = Path(__file__).parents[2]
 SCRIPT = REPO_ROOT / "create_deck" / "create_deck.py"
 TEMPLATE_DIR = str(REPO_ROOT / "src" / "templates") + os.sep
@@ -183,3 +193,64 @@ class TestBatchMode:
                 cwd=subdir,
             )
             assert result.returncode == 0
+
+
+class TestClampOutputPath:
+    def test_short_path_is_unchanged(self):
+        path = "/tmp/short.apkg"
+        assert _clamp_output_path(path) == path
+
+    def test_long_ascii_basename_is_truncated(self):
+        long_stem = "a" * 300
+        path = f"/tmp/{long_stem}.apkg"
+        result = _clamp_output_path(path)
+        assert result.endswith(".apkg")
+        assert len(os.path.basename(result).encode("utf-8")) <= 200
+
+    def test_long_german_basename_does_not_split_codepoint(self):
+        long_stem = "ä" * 150
+        path = f"/tmp/{long_stem}.apkg"
+        result = _clamp_output_path(path)
+        assert result.endswith(".apkg")
+        basename = os.path.basename(result)
+        assert len(basename.encode("utf-8")) <= 200
+        assert "ä" in basename
+        assert "�" not in basename
+
+    def test_directory_is_preserved_after_truncation(self):
+        long_stem = "x" * 300
+        path = f"/some/deep/dir/{long_stem}.apkg"
+        result = _clamp_output_path(path)
+        assert os.path.dirname(result) == "/some/deep/dir"
+
+    def test_exact_200_byte_basename_is_unchanged(self):
+        stem = "a" * 195
+        path = f"/tmp/{stem}.apkg"
+        assert len(os.path.basename(path).encode("utf-8")) == 200
+        assert _clamp_output_path(path) == path
+
+
+class TestBatchLongFilename:
+    def test_batch_succeeds_with_over_255_byte_output_path(self):
+        long_name = "Engramm" + ("ä" * 130)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            entry = _write_deck_workspace(tmpdir, "Engramm", "card.jpg")
+            long_output = os.path.join(tmpdir, f"{long_name}.apkg")
+            assert len(os.path.basename(long_output).encode("utf-8")) > 255
+
+            manifest_path = os.path.join(tmpdir, "manifest.json")
+            with open(manifest_path, "w") as f:
+                json.dump([{"input": entry["input"], "output": long_output}], f)
+
+            result = subprocess.run(
+                [PYTHON, str(SCRIPT), "--batch", manifest_path, str(TEMPLATE_DIR)],
+                capture_output=True,
+                text=True,
+                cwd=entry["subdir"],
+            )
+            assert result.returncode == 0, f"stderr: {result.stderr}"
+            lines = [l for l in result.stdout.strip().splitlines() if l.strip()]
+            assert len(lines) == 1
+            actual_path = lines[0]
+            assert os.path.exists(actual_path), f"apkg not found at {actual_path}"
+            assert len(os.path.basename(actual_path).encode("utf-8")) <= 200

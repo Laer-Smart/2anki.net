@@ -5,6 +5,7 @@ export interface ChangelogEntry {
 }
 
 export const changelog: ChangelogEntry[] = [
+  { type: 'fix', title: 'Long quiz questions and headings now convert to a deck instead of failing', date: '2026-05-20' },
   { type: 'feature', title: 'Send to my Anki on every finished deck — Auto Sync subscribers send instantly, everyone else lands on the upgrade page', date: '2026-05-20' },
   { type: 'fix', title: 'Preview your deck from My Decks before opening Anki — works for Notion conversions, not just direct uploads', date: '2026-05-20' },
   { type: 'feature', title: 'Share a converted deck with a link — recipient can preview the cards and download the .apkg without an account', date: '2026-05-20' },
