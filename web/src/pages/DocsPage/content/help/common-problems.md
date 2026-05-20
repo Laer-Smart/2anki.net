@@ -35,7 +35,7 @@ If you saw an error and want the fix, find the heading below that matches what y
 
 **Why it happened.** 2anki creates Anki decks; it doesn't read them. Uploading an existing `.apkg` isn't a flow we support.
 
-**How to fix it.** Upload the source you used to make the deck (HTML export, Markdown, PDF, CSV) — not the deck itself. To open an `.apkg` you already have, see [Open your deck in Anki](/documentation/start-here/open-in-anki).
+**How to fix it.** Upload the source you used to make the deck (HTML export, Markdown, PDF, CSV) — not the deck itself. To open an `.apkg` you already have, see [Open your deck in Anki](/documentation/start-here/open-in-anki). To print or share it as a PDF, use [Print Decks](/print).
 
 ## "PDF exceeds maximum page limit of 100 for free and anonymous users."
 

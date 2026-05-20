@@ -7,7 +7,7 @@ import { RenderedCard } from '../../services/ApkgPreviewService/types';
 
 const ZSTD_MAGIC = Buffer.from([0x28, 0xb5, 0x2f, 0xfd]);
 
-const MAX_CARDS = 500;
+const MAX_CARDS = 1000;
 
 const SOUND_TAG_REGEX = /\[sound:([^\]]+)\]/g;
 const AUDIO_EXTENSIONS = new Set([

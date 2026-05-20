@@ -91,16 +91,16 @@ describe('ExportApkgToPdfUseCase', () => {
     expect(htmlArg).toContain('Answer 3');
   });
 
-  it('throws CardLimitExceededError for decks over 500 cards', async () => {
-    const parsed = makeParsed(501);
+  it('throws CardLimitExceededError for decks over 1000 cards', async () => {
+    const parsed = makeParsed(1001);
     previewService.parse.mockResolvedValue(parsed);
-    previewService.getMeta.mockReturnValue(makeMeta(501));
+    previewService.getMeta.mockReturnValue(makeMeta(1001));
 
     await expect(useCase.execute(Buffer.from('fake-apkg'))).rejects.toThrow(
       CardLimitExceededError
     );
     await expect(useCase.execute(Buffer.from('fake-apkg'))).rejects.toThrow(
-      /501 cards/
+      /1001 cards/
     );
     expect(pdfRenderService.renderHtml).not.toHaveBeenCalled();
   });
