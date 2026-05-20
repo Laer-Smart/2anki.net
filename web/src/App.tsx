@@ -79,6 +79,7 @@ const ImageOcclusionPage = lazy(() =>
 const ChatPage = lazy(() => import('./pages/Chat/ChatPage'));
 const NotionLandingPage = lazy(() => import('./pages/NotionLandingPage/NotionLandingPage'));
 const LimitPage = lazy(() => import('./pages/LimitPage/LimitPage'));
+const SharedDeckPage = lazy(() => import('./pages/SharedDeckPage'));
 
 const queryClient = new QueryClient();
 
@@ -309,6 +310,7 @@ function AppContent({
               <ConvertLandingPage setErrorMessage={setErrorMessage} />
             }
           />
+          <Route path="/s/:token" element={<SharedDeckPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </AppShell>
