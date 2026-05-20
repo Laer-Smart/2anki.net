@@ -85,6 +85,95 @@ describe('renderCardSide', () => {
   });
 });
 
+describe('conditional blocks', () => {
+  const conditional: AnkiNoteType = {
+    ...basic,
+    tmpls: [
+      {
+        name: 'Card 1',
+        ord: 0,
+        qfmt: '{{#Header}}<h1>{{Header}}</h1>{{/Header}}{{Front}}',
+        afmt: '{{FrontSide}}{{#Back Extra}}<aside>{{Back Extra}}</aside>{{/Back Extra}}',
+      },
+    ],
+    flds: [
+      { name: 'Header', ord: 0 },
+      { name: 'Front', ord: 1 },
+      { name: 'Back Extra', ord: 2 },
+    ],
+  };
+
+  it('renders {{#Field}}...{{/Field}} content when the field is non-empty', () => {
+    const result = renderCardSide(
+      conditional,
+      { Header: 'Cell anatomy', Front: 'Q', 'Back Extra': '' },
+      'front'
+    );
+    expect(result).toContain('<h1>Cell anatomy</h1>');
+    expect(result).not.toContain('{{#Header}}');
+    expect(result).not.toContain('{{/Header}}');
+  });
+
+  it('removes {{#Field}}...{{/Field}} content when the field is empty', () => {
+    const result = renderCardSide(
+      conditional,
+      { Header: '', Front: 'Q', 'Back Extra': '' },
+      'front'
+    );
+    expect(result).not.toContain('<h1>');
+    expect(result).not.toContain('{{#Header}}');
+    expect(result).toBe('Q');
+  });
+
+  it('substitutes field names that contain spaces', () => {
+    const result = renderCardSide(
+      conditional,
+      { Header: '', Front: 'Q', 'Back Extra': 'Mitochondria' },
+      'back'
+    );
+    expect(result).toContain('<aside>Mitochondria</aside>');
+    expect(result).not.toContain('{{Back Extra}}');
+  });
+
+  it('handles {{^Field}}...{{/Field}} inverse — renders when empty, hides when present', () => {
+    const inverse: AnkiNoteType = {
+      ...basic,
+      tmpls: [
+        {
+          name: 'Card 1',
+          ord: 0,
+          qfmt: '{{^Hint}}<em>no hint</em>{{/Hint}}{{Front}}',
+          afmt: '{{Back}}',
+        },
+      ],
+      flds: [
+        { name: 'Front', ord: 0 },
+        { name: 'Back', ord: 1 },
+        { name: 'Hint', ord: 2 },
+      ],
+    };
+    const empty = renderCardSide(inverse, { Front: 'Q', Back: 'A', Hint: '' }, 'front');
+    expect(empty).toContain('<em>no hint</em>');
+    const filled = renderCardSide(
+      inverse,
+      { Front: 'Q', Back: 'A', Hint: 'something' },
+      'front'
+    );
+    expect(filled).not.toContain('<em>no hint</em>');
+  });
+
+  it('strips conditional tokens that reference unknown fields', () => {
+    const result = renderCardSide(
+      conditional,
+      { Front: 'Q' },
+      'front'
+    );
+    expect(result).not.toContain('{{#');
+    expect(result).not.toContain('{{/');
+    expect(result).toBe('Q');
+  });
+});
+
 describe('buildPreviewDocument', () => {
   it('wraps the rendered side in a sandbox-friendly HTML document', () => {
     const doc = buildPreviewDocument(basic, { Front: 'Q', Back: 'A' }, 'front');
