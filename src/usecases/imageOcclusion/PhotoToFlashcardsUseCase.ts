@@ -1,9 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import os from 'node:os';
+import os, { homedir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
-import { homedir } from 'node:os';
 
 import { getAnthropicClient } from '../../lib/claude/ClaudeService';
 import { countVisionTokens, VISION_TOKEN_CEILING, VisionMediaType } from '../../lib/claude/countVisionTokens';
@@ -36,8 +35,8 @@ Rules:
 - Preserve important formatting but keep cards concise
 - Use the image content as the deck name if no other name is obvious`;
 
-const INPUT_COST_PER_MILLION = 3.0;
-const OUTPUT_COST_PER_MILLION = 15.0;
+const INPUT_COST_PER_MILLION = 3;
+const OUTPUT_COST_PER_MILLION = 15;
 
 function findPython(): string {
   const envOverride = process.env.PYTHON ?? process.env.ANKI_PYTHON;
@@ -157,7 +156,10 @@ function buildDeckInfo(
   return {
     deck: deckName,
     id: Math.abs(
-      Array.from(deckName).reduce((h, ch) => (Math.imul(31, h) + ch.charCodeAt(0)) | 0, 0)
+      Array.from(deckName).reduce(
+        (h, ch) => Math.trunc(Math.imul(31, h) + (ch.codePointAt(0) ?? 0)),
+        0
+      )
     ),
     cards: allCards,
     style: null,
