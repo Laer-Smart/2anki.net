@@ -36,7 +36,7 @@
 /* ── Column ── */
 
 .column {
-  background: #f7f7f5;
+  background: var(--color-bg-secondary);
   border-radius: 8px;
   padding: 12px;
   min-height: 400px;
@@ -61,7 +61,7 @@
 }
 
 .columnCount {
-  color: #787774;
+  color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
@@ -78,7 +78,7 @@
 
 .card {
   background: var(--color-bg-primary);
-  border: 1px solid #e9e9e7;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 12px;
   display: flex;
@@ -88,14 +88,14 @@
 }
 
 .card:hover {
-  background: #fbfbfa;
+  background: var(--color-bg-tertiary);
 }
 
 .typeTag {
   font-size: 10px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #787774;
+  color: var(--color-text-secondary);
   margin-bottom: 2px;
 }
 
@@ -112,13 +112,13 @@
 
 .cardSecondary {
   font-size: 12px;
-  color: #787774;
+  color: var(--color-text-secondary);
   margin-top: 2px;
 }
 
 .trackedLink {
   font-size: 12px;
-  color: #787774;
+  color: var(--color-text-secondary);
   text-decoration: none;
   margin-top: 6px;
   align-self: flex-start;
@@ -133,7 +133,7 @@
 
 .emptyState {
   font-size: 13px;
-  color: #787774;
+  color: var(--color-text-secondary);
   margin: 0 0 8px;
 }
 
@@ -141,7 +141,7 @@
 
 .reportLink {
   font-size: 13px;
-  color: #787774;
+  color: var(--color-text-secondary);
   text-decoration: none;
 }
 
