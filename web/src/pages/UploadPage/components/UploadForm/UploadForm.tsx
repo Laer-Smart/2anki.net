@@ -1013,11 +1013,22 @@ function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
     const errorText = classified.detail
       ? `${classified.title} ${classified.detail}`
       : classified.title;
+    const isExistingApkg =
+      localError != null && /already an Anki deck/i.test(localError.message);
     return (
       <div className={formStyles.stateContent}>
         <WarningIcon className={formStyles.iconError} />
         <p className={formStyles.errorTitle}>Something went wrong</p>
-        <p className={formStyles.errorBody}>{errorText}</p>
+        <p className={formStyles.errorBody}>
+          {errorText}
+          {isExistingApkg && (
+            <>
+              {' '}
+              Want to print or share it as a PDF?{' '}
+              <Link to="/print">Try Print Decks</Link>.
+            </>
+          )}
+        </p>
         <button
           type="button"
           className={formStyles.actionButton}

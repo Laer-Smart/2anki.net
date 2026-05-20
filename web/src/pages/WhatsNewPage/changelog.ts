@@ -5,6 +5,8 @@ export interface ChangelogEntry {
 }
 
 export const changelog: ChangelogEntry[] = [
+  { type: 'fix', title: 'Print page handles bigger decks — free covers up to 1000 cards, and the error tells you the exact count and cap if you go over', date: '2026-05-20' },
+  { type: 'fix', title: 'Dropped an .apkg on the upload page by mistake? The error now points you to Print Decks instead of a dead end', date: '2026-05-20' },
   { type: 'feature', title: 'Print 1 PDF a month for free — drop your .apkg on the Print page and we make the PDF, no subscription needed for the first one', date: '2026-05-19' },
   { type: 'style', title: 'Upload page — quiet upsell appears under the form for free users explaining the 100-card monthly limit', date: '2026-05-19' },
   { type: 'fix', title: 'Sidebar — your free-plan card count stays on one line instead of wrapping over three rows', date: '2026-05-19' },

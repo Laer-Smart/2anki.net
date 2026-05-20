@@ -40,7 +40,7 @@ Uploaded `.apkg` files are removed within **2 hours** of the export. The PDF is 
 ## Common mistakes
 
 - **Wrong file type.** The print tool only accepts `.apkg`. If your source is a Notion export, a Markdown file, or a PDF, go to the [upload page](/documentation/start-here/upload-a-file) first to make the `.apkg`, then come back here.
-- **Very large decks.** The export has an upper size — decks with thousands of cards may return "This deck is too large to print right now." Split the deck in Anki (use a filtered deck or export a subdeck) and run each through the print tool.
+- **Very large decks.** Free print covers decks up to 1000 cards. Bigger decks return "PDF export supports up to 1000 cards." Upgrade for unlimited, or split the deck in Anki (use a filtered deck or export a subdeck) and run each through the print tool.
 - **Free plan trying to export.** The export returns the upgrade message instead of a PDF. See [pricing](/pricing) for plans, or use a short [Day or Week Pass](/documentation/reference/plans) if you need it once.
 
 ## Related

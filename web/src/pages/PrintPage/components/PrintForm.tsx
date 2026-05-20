@@ -12,10 +12,10 @@ const WRONG_TYPE_MESSAGE =
   'This tool works with Anki deck files (.apkg). To turn notes into an Anki deck, use the Upload page.';
 const CORRUPTED_MESSAGE =
   "Couldn't read this file. Make sure it's a valid Anki deck (.apkg) and try again.";
-const TOO_LARGE_MESSAGE =
-  'This deck is too large to print right now. Try a deck with fewer cards.';
 const GENERIC_ERROR_MESSAGE =
   'Something went wrong while generating the PDF. Try again.';
+
+const CARD_LIMIT_PATTERN = /PDF export supports up to/i;
 
 function isApkgFile(name: string): boolean {
   return /\.apkg$/i.test(name);
@@ -40,7 +40,6 @@ function toUserMessage(serverMessage: string, status: number): string {
   if (status === 401) return AUTH_MESSAGE;
   if (status === 402 || status === 403) return UPGRADE_MESSAGE;
   if (/Invalid .apkg/i.test(serverMessage)) return CORRUPTED_MESSAGE;
-  if (/PDF export supports up to/i.test(serverMessage)) return TOO_LARGE_MESSAGE;
   return serverMessage;
 }
 
@@ -256,6 +255,12 @@ export default function PrintForm() {
             <>
               {' '}
               <Link to="/login">Log in</Link>
+            </>
+          )}
+          {CARD_LIMIT_PATTERN.test(errorMessage) && (
+            <>
+              {' '}
+              <Link to="/pricing">Upgrade for unlimited</Link>
             </>
           )}
         </p>
