@@ -24,6 +24,7 @@ export const sidebar: SidebarGroup[] = [
         label: 'Import an Anki deck into Notion',
         slug: 'start-here/import-from-anki',
       },
+      { label: 'Share a deck with a link', slug: 'start-here/share-a-deck' },
     ],
   },
   {
