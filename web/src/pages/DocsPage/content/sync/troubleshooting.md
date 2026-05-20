@@ -18,15 +18,13 @@ You edited a Notion page. The deck in Anki didn't update. Try, in order:
 
 If the dashboard shows runs are succeeding but the deck still isn't updating, it's almost always AnkiConnect. Restart Anki, then trigger a manual sync from the dashboard.
 
-## I see a duplicate deck
+## Anki shows a "Duplicate" dialog on re-import
 
-Duplicates happen when card IDs change between runs. The usual cause is the **Use Notion ID** card option getting turned off — see [Card options](/documentation/cards/card-options).
+The first time you re-import an existing deck after this change, card IDs switch to a new stable format. Anki's built-in "Duplicate" dialog appears once — pick **Keep existing**. Your reviews stay intact, and future re-imports update silently without prompting.
 
-To fix:
+## I see a real duplicate deck
 
-1. In Anki, delete the duplicate deck (keep the one with your review history).
-2. In the Ankify dashboard, open the page's card options and turn **Use Notion ID** back on.
-3. Run a sync. The single deck refills with stable card IDs.
+If two copies of the same cards exist in Anki, the older copy was imported before the ID change. Delete the older deck in Anki — keep the one with your review history. Future re-imports of the same source update the remaining deck in place.
 
 If both decks have review history you care about, [contact us](/documentation/help/contact) before deleting either — we can sometimes merge.
 
