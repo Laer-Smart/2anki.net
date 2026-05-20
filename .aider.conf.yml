@@ -1,0 +1,71 @@
+# Aider config — translates the Claude Code (.claude/) setup into what aider
+# can actually express. The persona, voice, and rules are pre-loaded via `read:`
+# below; the behavioural contract lives in AIDER.md.
+#
+# What aider can NOT do that Claude Code does:
+#   - sub-agents / forks (pm, designer, engineer) — we fold the trio into a
+#     single voice inside AIDER.md and ask for the trio-check at end of replies
+#   - slash commands (/check, /review-pr, /spec, ...) — invoke manually via /run
+#   - hooks (secret scan, curl-pipe block, push-target guard) — be careful
+#   - mandatory worktrees for auth/payments/migrations — STOP and ask Al first
+#
+# Model choice: claude-sonnet-4-6 is the default workhorse. Override per-session
+# with `--model anthropic/claude-opus-4-7` for the heavy thinking work.
+model: anthropic/claude-sonnet-4-6
+weak-model: anthropic/claude-haiku-4-5
+editor-model: anthropic/claude-sonnet-4-6
+
+# Diff format is more reliable than whole-file edits for TS at this size.
+edit-format: diff
+
+# Repo map — this is a real codebase with two workspaces. Give it room.
+map-tokens: 4096
+map-refresh: auto
+
+# Every chat starts with the persona + the project rules in context.
+read:
+  - AIDER.md
+  - CLAUDE.md
+  - VOICE.md
+  - .claude/rules/security.md
+  - .claude/rules/testing.md
+  - .claude/rules/code-quality.md
+  - .claude/rules/dependencies.md
+  - .claude/rules/sonar.md
+  - .claude/rules/email-templates.md
+  - .claude/rules/parallel-pr-coordination.md
+
+# After every edit, do the cheap check. Full /check (web typecheck + vitest +
+# biome) is opt-in via `/run pnpm --filter ... ...` — running it on every edit
+# is too slow for the conversion path.
+lint-cmd:
+  - "typescript: pnpm --filter notion2anki-server exec tsc -p tsconfig.json --noEmit"
+auto-lint: true
+auto-test: false
+
+# Auto-commit is on, but use the project's conventional-commit shape. No AI
+# co-author lines — the repo's recent commits don't include them.
+auto-commits: true
+attribute-author: false
+attribute-committer: false
+attribute-commit-message-author: false
+attribute-commit-message-committer: false
+attribute-co-authored-by: false
+
+commit-prompt: |
+  Write a single-line conventional-commit message for the staged changes.
+  Format: <type>: <imperative summary>
+  Allowed types: feat, fix, chore, refactor, test, docs, perf, ci, build, style, revert.
+  Rules:
+    - Imperative mood ("add", not "added" or "adds").
+    - No trailing period.
+    - <= 72 characters.
+    - No "AI-generated", no "Co-authored-by", no sign-off lines.
+    - If the change is user-visible, the summary should describe what the user gets,
+      not what was refactored internally.
+
+# Don't surface model-pricing warnings on startup — Al has seen them.
+show-model-warnings: false
+
+# Don't auto-suggest shell commands; we /add deliberately.
+suggest-shell-commands: false

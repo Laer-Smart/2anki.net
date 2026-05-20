@@ -1,0 +1,23 @@
+# Aider must never edit these. Aider already respects .gitignore, so node_modules/,
+# dist/, and coverage/ are out of bounds by default — this file lists the extra
+# paths that ARE tracked in git but must not be touched.
+
+# Kanel-generated from the Postgres schema. Rerun `pnpm kanel` after a migration
+# to regenerate; never edit by hand. (See CLAUDE.md "Gotchas".)
+src/data_layer/public/
+
+# Generated frontend artifacts.
+web/src/generated/
+web/src/schemas/
+
+# Lockfile — let pnpm manage it.
+pnpm-lock.yaml
+
+# Database snapshots / fixtures we don't want to mutate.
+src/test/fixtures/
+
+# The aider chat history itself, just in case.
+.aider.chat.history.md
+.aider.input.history
+.aider.llm.history
+.aider.tags.cache.v*/
