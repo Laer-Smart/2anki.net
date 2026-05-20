@@ -89,7 +89,6 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
     label: 'Links & formatting',
     keys: [
       'add-notion-link',
-      'use-notion-id',
       'no-underline',
       'remove-mp3-links',
       'markdown-nested-bullet-points',

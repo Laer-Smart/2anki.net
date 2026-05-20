@@ -269,7 +269,7 @@ class BlockHandler {
       if (this.settings.addNotionLink && !ankiNote.mcq) {
         ankiNote.back += RenderNotionLink(ankiNote.notionLink!, this);
       }
-      ankiNote.notionId = this.settings.useNotionId ? block.id : undefined;
+      ankiNote.notionId = block.id;
       ankiNote.media = this.exporter.media;
       this.exporter.media = [];
 

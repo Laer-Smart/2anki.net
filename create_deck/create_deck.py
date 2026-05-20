@@ -189,16 +189,16 @@ def build_one_deck(data_file, template_dir):
             if card["number"] == -1 and "notionId" in card:
                 card["number"] = card["notionId"]
 
-            if mt.get("useNotionId") and "notionId" in card:
-                guid = guid_for(card["notionId"])
-                my_note = Note(model, fields=fields,
-                               sort_field=card["number"], tags=tags,
-                               guid=guid)
-                notes.append(my_note)
+            notion_id = card.get("notionId")
+            if notion_id:
+                guid = guid_for(notion_id)
             else:
-                my_note = Note(model, fields=fields,
-                               sort_field=card["number"], tags=tags)
-                notes.append(my_note)
+                card_type = "cloze" if card.get("cloze") else ("mcq" if card.get("mcq") else ("input" if card.get("enableInput") else "basic"))
+                guid = guid_for(deck["name"], fields[0], card_type)
+            my_note = Note(model, fields=fields,
+                           sort_field=card["number"], tags=tags,
+                           guid=guid)
+            notes.append(my_note)
             media_files = media_files + card["media"]
 
         decks.append(
