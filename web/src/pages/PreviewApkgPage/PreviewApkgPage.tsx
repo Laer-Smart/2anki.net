@@ -11,6 +11,7 @@ import {
   useApkgPreviewStream,
 } from './useApkgPreviewStream';
 import { CardFrame } from './CardFrame';
+import { SharePopover } from './SharePopover';
 
 function indent(depth: number): string {
   if (depth <= 0) return '';
@@ -95,9 +96,14 @@ export default function PreviewApkgPage({
   return (
     <div className={sharedStyles.page}>
       <header className={sharedStyles.pageHeader}>
-        <Link to="/downloads" className={styles.backLink}>
-          ← Back to downloads
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <Link to="/downloads" className={styles.backLink}>
+            ← Back to downloads
+          </Link>
+          {key?.endsWith('.apkg') && (
+            <SharePopover uploadKey={key} />
+          )}
+        </div>
         <h1 className={sharedStyles.title} data-hj-suppress>
           Deck preview
         </h1>

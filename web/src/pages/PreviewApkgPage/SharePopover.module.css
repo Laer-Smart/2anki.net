@@ -1,0 +1,159 @@
+.trigger {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.375rem 0.875rem;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.trigger:hover {
+  background: var(--color-bg-secondary);
+}
+
+.anchor {
+  position: relative;
+  display: inline-block;
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 340px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.1));
+  padding: 1.25rem;
+  z-index: 100;
+}
+
+.popoverTitle {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-base);
+  margin: 0 0 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.urlRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.urlInput {
+  flex: 1;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.375rem 0.625rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  min-width: 0;
+  cursor: default;
+}
+
+.copyButton {
+  flex-shrink: 0;
+  padding: 0.375rem 0.875rem;
+  background: var(--color-blue-500, #3b82f6);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  white-space: nowrap;
+}
+
+.copyButton:hover {
+  background: var(--color-blue-600, #2563eb);
+}
+
+.helperText {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  margin: 0 0 0.875rem;
+  line-height: 1.5;
+}
+
+.stopLink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.stopLink:hover {
+  color: var(--color-text-primary);
+}
+
+.confirmDialog {
+  margin-top: 0.875rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.875rem;
+}
+
+.confirmText {
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  margin: 0 0 0.75rem;
+}
+
+.confirmButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.stopButton {
+  padding: 0.375rem 0.875rem;
+  background: var(--color-red-500, #ef4444);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--text-sm);
+}
+
+.stopButton:hover {
+  background: var(--color-red-600, #dc2626);
+}
+
+.keepButton {
+  padding: 0.375rem 0.875rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+}
+
+.keepButton:hover {
+  background: var(--color-bg-secondary);
+}
+
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  z-index: 200;
+  pointer-events: none;
+}
+
+.loadingText {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
