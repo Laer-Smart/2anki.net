@@ -16,6 +16,7 @@ interface AutoSyncCardProps {
   isLifetime: boolean;
   isActive: boolean;
   capReached: boolean;
+  highlighted?: boolean;
   caption?: string;
   waitlistLabel: string;
   waitlistDisabled: boolean;
@@ -28,6 +29,7 @@ export function AutoSyncCard({
   isLifetime,
   isActive,
   capReached,
+  highlighted = false,
   caption,
   waitlistLabel,
   waitlistDisabled,
@@ -35,11 +37,14 @@ export function AutoSyncCard({
   onWaitlist,
 }: Readonly<AutoSyncCardProps>) {
   const newBadge = showNewBadge ? 'New — built for Notion' : undefined;
+  const cardClass = highlighted
+    ? `${styles.cardAutoSync} ${styles.cardAutoSyncUpsell}`
+    : styles.cardAutoSync;
 
   if (isLifetime) {
     return (
       <PricingCard
-        className={styles.cardAutoSync}
+        className={cardClass}
         title="Auto Sync"
         price={AUTO_SYNC_PRICE}
         priceSuffix={MONTHLY_SUFFIX}
@@ -54,7 +59,7 @@ export function AutoSyncCard({
   if (isActive) {
     return (
       <PricingCard
-        className={styles.cardAutoSync}
+        className={cardClass}
         title="Auto Sync"
         price={AUTO_SYNC_PRICE}
         priceSuffix={MONTHLY_SUFFIX}
@@ -72,7 +77,7 @@ export function AutoSyncCard({
   if (capReached) {
     return (
       <PricingCard
-        className={styles.cardAutoSync}
+        className={cardClass}
         title="Auto Sync"
         price={AUTO_SYNC_PRICE}
         priceSuffix={MONTHLY_SUFFIX}
@@ -90,7 +95,7 @@ export function AutoSyncCard({
 
   return (
     <PricingCard
-      className={styles.cardAutoSync}
+      className={cardClass}
       title="Auto Sync"
       price={AUTO_SYNC_PRICE}
       priceSuffix={MONTHLY_SUFFIX}

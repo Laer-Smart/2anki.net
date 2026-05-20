@@ -77,11 +77,19 @@ export default function PricingPage({
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
   const [dayPassState, setDayPassState] = useState<PassState>('idle');
   const [weekPassState, setWeekPassState] = useState<PassState>('idle');
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const fromPaywall = searchParams.get('source') === 'paywall-cancel';
   const fromContext = searchParams.get('from');
   const showContextBanner =
     fromContext != null && !isLoggedIn ? false : fromContext != null;
+  const isAutoSyncUpsell = searchParams.get('upsell') === 'auto-sync';
+
+  useEffect(() => {
+    if (!isAutoSyncUpsell) return;
+    const next = new URLSearchParams(searchParams);
+    next.delete('upsell');
+    setSearchParams(next, { replace: true });
+  }, [isAutoSyncUpsell, searchParams, setSearchParams]);
 
   const isLifetime = patreon === true;
   const showAutoSyncNew = isAutoSyncNewChipVisible();
@@ -263,6 +271,11 @@ export default function PricingPage({
             You're on the free plan — 100 cards per month.
           </div>
         )}
+        {isAutoSyncUpsell && (
+          <div className={styles.contextBanner} role="status">
+            Auto Sync sends any deck straight to your Anki — no downloading, no importing.
+          </div>
+        )}
         <p className={styles.intro}>
           {isUS
             ? 'Built for spaced repetition — MCAT, USMLE, bar exam, and language prep. 100 cards a month free, plus Anki → Notion imports up to 1,000 notes each.'
@@ -335,6 +348,7 @@ export default function PricingPage({
           isLifetime={isLifetime}
           isActive={autoSyncActive}
           capReached={showCapReached}
+          highlighted={isAutoSyncUpsell}
           caption={autoSyncCaptionText}
           waitlistLabel={waitlistLabel}
           waitlistDisabled={
