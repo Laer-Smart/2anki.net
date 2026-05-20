@@ -2,8 +2,10 @@ import express from 'express';
 import RequireAuthentication from './middleware/RequireAuthentication';
 import AutoSyncCheckoutController from '../controllers/AutoSyncCheckoutController';
 import PassCheckoutController from '../controllers/PassCheckoutController';
+import UnlimitedCheckoutController from '../controllers/UnlimitedCheckoutController';
 import { AutoSyncCheckoutUseCase } from '../usecases/checkout/AutoSyncCheckoutUseCase';
 import { CreatePassCheckoutUseCase } from '../usecases/checkout/CreatePassCheckoutUseCase';
+import { UnlimitedCheckoutUseCase } from '../usecases/checkout/UnlimitedCheckoutUseCase';
 import { getStripe } from '../lib/integrations/stripe';
 
 const DEFAULT_MAX_SUBSCRIBERS = 50;
@@ -25,6 +27,27 @@ const CheckoutRouter = () => {
       }
       const useCase = new AutoSyncCheckoutUseCase(getStripe(), priceId, productId, maxSubscribers);
       const controller = new AutoSyncCheckoutController(useCase);
+      return controller.createSession(req, res);
+    }
+  );
+
+  const unlimitedMonthlyPriceId = process.env.UNLIMITED_MONTHLY_PRICE_ID ?? '';
+  const unlimitedYearlyPriceId = process.env.UNLIMITED_YEARLY_PRICE_ID ?? '';
+
+  router.post(
+    '/api/checkout/unlimited',
+    RequireAuthentication,
+    express.json(),
+    (req, res) => {
+      if (unlimitedMonthlyPriceId === '') {
+        return res.status(503).json({ message: 'Unlimited checkout is not available' });
+      }
+      const useCase = new UnlimitedCheckoutUseCase(
+        getStripe(),
+        unlimitedMonthlyPriceId,
+        unlimitedYearlyPriceId
+      );
+      const controller = new UnlimitedCheckoutController(useCase);
       return controller.createSession(req, res);
     }
   );

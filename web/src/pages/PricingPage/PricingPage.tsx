@@ -9,13 +9,12 @@ import { getVisibleText } from '../../lib/text/getVisibleText';
 import { AutoSyncCard } from './components/AutoSyncCard';
 import { PassCards } from './components/PassCards';
 import { PricingCard } from './components/PricingCard';
+import { UnlimitedCard } from './components/UnlimitedCard';
 import styles from './PricingPage.module.css';
-import { getLifetimeLink, getSubscribeLink } from './payment.links';
+import { getLifetimeLink } from './payment.links';
 import {
   AUTO_SYNC_LAUNCH_DATE,
   AUTO_SYNC_NEW_CHIP_DAYS,
-  MONTHLY_PRICE,
-  MONTHLY_SUFFIX,
 } from './pricing.constants';
 
 interface PricingPageProps {
@@ -27,6 +26,7 @@ interface PricingPageProps {
   signupCountry?: string | null;
   autoSyncCapReached?: boolean;
   autoSyncActive?: boolean;
+  unlimitedYearlyAvailable?: boolean;
   onTrialStarted?: () => void;
 }
 
@@ -58,25 +58,25 @@ function autoSyncCaption(
 
 export default function PricingPage({
   isLoggedIn,
-  email,
+  email: _email,
   hostedAnkiRequested = false,
   trialStartedAt,
   patreon,
   signupCountry,
   autoSyncCapReached = false,
   autoSyncActive = false,
+  unlimitedYearlyAvailable = false,
   onTrialStarted,
 }: Readonly<PricingPageProps>) {
   const isUS = signupCountry === 'US';
-  const subcribeLink = isLoggedIn
-    ? getSubscribeLink(email)
-    : '/login?redirect=/pricing';
   const lifetimeLink = getLifetimeLink();
   const [waitlistState, setWaitlistState] = useState<RequestState>('idle');
   const [trialState, setTrialState] = useState<RequestState>('idle');
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
   const [dayPassState, setDayPassState] = useState<PassState>('idle');
   const [weekPassState, setWeekPassState] = useState<PassState>('idle');
+  const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('month');
+  const [unlimitedPending, setUnlimitedPending] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const fromPaywall = searchParams.get('source') === 'paywall-cancel';
   const fromContext = searchParams.get('from');
@@ -188,6 +188,21 @@ export default function PricingPage({
     } else {
       setWeekPassState('error');
     }
+  };
+
+  const handleUnlimitedUpgrade = async () => {
+    if (!isLoggedIn) {
+      globalThis.location.href = '/login?redirect=/pricing';
+      return;
+    }
+    track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'unlimited' });
+    setUnlimitedPending(true);
+    const result = await get2ankiApi().startUnlimitedCheckout(billingCycle);
+    if ('url' in result) {
+      globalThis.location.href = result.url;
+      return;
+    }
+    setUnlimitedPending(false);
   };
 
   const autoSyncCaptionText =
@@ -319,28 +334,13 @@ export default function PricingPage({
 
       <p className={styles.sectionLabel}>Monthly plans</p>
       <div className={styles.anchorGrid}>
-        <PricingCard
-          className={styles.cardPro}
-          badge="Most popular"
-          price={MONTHLY_PRICE}
-          priceSuffix={MONTHLY_SUFFIX}
-          title="Unlimited"
-          benefits={[
-            'Unlimited flashcards',
-            'Run multiple conversions at once',
-            'PDFs and large Notion exports',
-            'Unlimited Anki → Notion imports',
-            'Print decks to PDF',
-            'Cancel anytime',
-          ]}
-          link={subcribeLink}
-          linkText="Upgrade"
-          onLinkClick={() =>
-            track('paywall_upgrade_clicked', {
-              surface: 'pricing_page',
-              plan: 'unlimited',
-            })
-          }
+        <UnlimitedCard
+          isLoggedIn={isLoggedIn}
+          billingCycle={billingCycle}
+          onBillingCycleChange={setBillingCycle}
+          yearlyAvailable={unlimitedYearlyAvailable}
+          onUpgrade={handleUnlimitedUpgrade}
+          pending={unlimitedPending}
         />
 
         <AutoSyncCard

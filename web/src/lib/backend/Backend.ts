@@ -443,6 +443,29 @@ export class Backend {
     }
   }
 
+  async startUnlimitedCheckout(
+    interval: 'month' | 'year'
+  ): Promise<{ url: string } | { status: 'unavailable' | 'error' }> {
+    try {
+      const response = await post(`${this.baseURL}checkout/unlimited`, { interval });
+      if (response.status === 503) {
+        return { status: 'unavailable' };
+      }
+      if (!response.ok) {
+        return { status: 'error' };
+      }
+      const body = (await response.json().catch(() => null)) as
+        | { url?: string }
+        | null;
+      if (body?.url != null) {
+        return { url: body.url };
+      }
+      return { status: 'error' };
+    } catch {
+      return { status: 'error' };
+    }
+  }
+
   async startPassCheckout(
     kind: '24h' | '7d'
   ): Promise<{ url: string } | { status: 'unavailable' | 'error' }> {

@@ -5,6 +5,7 @@ export interface ChangelogEntry {
 }
 
 export const changelog: ChangelogEntry[] = [
+  { type: 'feature', title: 'Unlimited now offers yearly billing — $60 / yr, 2 months free', date: '2026-05-20' },
   { type: 'fix', title: 'Re-importing the same Notion page updates your existing Anki notes instead of adding duplicates', date: '2026-05-20' },
   { type: 'fix', title: "Password reset — the confirmation page now tells you what to do if the email doesn't arrive", date: '2026-05-20' },
   { type: 'fix', title: 'Sign-in page comes back to a clean form even if your last session expired', date: '2026-05-20' },
