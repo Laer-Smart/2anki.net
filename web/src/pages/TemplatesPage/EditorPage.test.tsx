@@ -203,3 +203,125 @@ describe('EditorPage (edit)', () => {
     ).toBeInTheDocument();
   });
 });
+
+describe('EditorPage chat (modify path)', () => {
+  beforeEach(() => {
+    vi.spyOn(templatesApi, 'getDefaultNoteTypes').mockResolvedValue([
+      sampleStarter,
+    ]);
+    vi.spyOn(templatesApi, 'getOfficialNoteTypes').mockResolvedValue([]);
+    vi.spyOn(templatesApi, 'getUserTemplates').mockResolvedValue({
+      templates: [sampleStarter],
+      hiddenIds: [],
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  async function openChatReady() {
+    renderEditor('edit', `/templates/edit/${sampleStarter.id}`);
+    await screen.findByDisplayValue('Clean Basic');
+    return screen.getByRole('textbox', { name: /ask claude/i }) as HTMLInputElement;
+  }
+
+  it('shows "Nothing changed" when Claude returns the same starter', async () => {
+    vi.spyOn(templatesApi, 'aiModifyNoteType').mockResolvedValue({
+      reply: 'Switched to a clean, minimal design with blue accents.',
+      starter: sampleStarter,
+    });
+
+    const input = await openChatReady();
+    fireEvent.change(input, { target: { value: 'make it look anking style' } });
+    fireEvent.click(screen.getByRole('button', { name: /^send$/i }));
+
+    expect(
+      await screen.findByText(/nothing changed\. try a more specific/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/switched to a clean, minimal design/i)
+    ).not.toBeInTheDocument();
+  });
+
+  it("uses Claude's reply when the starter actually changed", async () => {
+    const modified: NoteTypeStarter = {
+      ...sampleStarter,
+      noteType: {
+        ...sampleStarter.noteType,
+        css: '.card { color: midnightblue; }',
+      },
+    };
+    vi.spyOn(templatesApi, 'aiModifyNoteType').mockResolvedValue({
+      reply: 'Switched the body colour to midnight blue.',
+      starter: modified,
+    });
+
+    const input = await openChatReady();
+    fireEvent.change(input, { target: { value: 'use midnight blue' } });
+    fireEvent.click(screen.getByRole('button', { name: /^send$/i }));
+
+    expect(
+      await screen.findByText(/switched the body colour to midnight blue/i)
+    ).toBeInTheDocument();
+  });
+
+  it('shows a Try again button on error and retries with the same instruction', async () => {
+    const modifySpy = vi
+      .spyOn(templatesApi, 'aiModifyNoteType')
+      .mockRejectedValueOnce(
+        new Error('The AI is briefly unavailable — try again in a moment.')
+      )
+      .mockResolvedValueOnce({
+        reply: 'Added a Hint field.',
+        starter: {
+          ...sampleStarter,
+          noteType: {
+            ...sampleStarter.noteType,
+            flds: [
+              ...sampleStarter.noteType.flds,
+              { name: 'Hint', ord: 2 },
+            ],
+          },
+        },
+      });
+
+    const input = await openChatReady();
+    fireEvent.change(input, { target: { value: 'add a hint field' } });
+    fireEvent.click(screen.getByRole('button', { name: /^send$/i }));
+
+    const retry = await screen.findByRole('button', { name: /try again/i });
+    expect(retry).toBeInTheDocument();
+
+    fireEvent.click(retry);
+
+    expect(
+      await screen.findByText(/added a hint field/i)
+    ).toBeInTheDocument();
+    expect(modifySpy).toHaveBeenCalledTimes(2);
+    expect(modifySpy.mock.calls[0][1]).toBe('add a hint field');
+    expect(modifySpy.mock.calls[1][1]).toBe('add a hint field');
+  });
+
+  it('does not show Try again for quota errors', async () => {
+    vi.spyOn(templatesApi, 'aiModifyNoteType').mockRejectedValue(
+      new templatesApi.AiQuotaExceededError(
+        'AI modify quota exceeded',
+        'modify',
+        10,
+        10,
+        '/pricing'
+      )
+    );
+
+    const input = await openChatReady();
+    fireEvent.change(input, { target: { value: 'do something' } });
+    fireEvent.click(screen.getByRole('button', { name: /^send$/i }));
+
+    await screen.findByText(/ai modify quota exceeded/i);
+    expect(
+      screen.queryByRole('button', { name: /try again/i })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /see pricing/i })).toBeInTheDocument();
+  });
+});

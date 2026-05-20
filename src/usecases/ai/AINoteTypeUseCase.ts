@@ -49,7 +49,7 @@ const SYSTEM_PROMPT = `You design Anki note types for the 2anki.net app. 2anki t
 The user describes what they want. You respond with a single JSON object — nothing else — wrapped in a fenced \`\`\`json code block. The object has this shape:
 
 {
-  "reply": "A 1-2 sentence natural-language summary of what you produced or changed.",
+  "reply": "One short sentence naming what you changed (e.g. 'Switched the body font to serif.'). If you cannot apply the requested change, or you return the same starter unmodified, write exactly: 'No changes made.'",
   "starter": {
     "name": "Short user-facing name",
     "description": "One sentence describing when to use it",
@@ -314,7 +314,16 @@ export class AINoteTypeUseCase {
     ];
 
     const text = await askClaude(messages);
-    return parseResponse(text);
+    const result = parseResponse(text);
+    if (
+      JSON.stringify(starter.noteType) ===
+      JSON.stringify(result.starter.noteType)
+    ) {
+      console.warn('template_ai_modify.no_op', {
+        instructionLength: instruction.length,
+      });
+    }
+    return result;
   }
 }
 

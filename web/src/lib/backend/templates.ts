@@ -158,7 +158,7 @@ export async function aiGenerateNoteType(
   prompt: string
 ): Promise<AIGenerateResponse> {
   const response = await post('/api/templates/ai/generate', { prompt });
-  if (!response.ok) throw await aiError(response, 'AI generation failed');
+  if (!response.ok) throw await aiError(response);
   return response.json();
 }
 
@@ -172,7 +172,7 @@ export async function aiModifyNoteType(
     instruction,
     history,
   });
-  if (!response.ok) throw await aiError(response, 'AI modify failed');
+  if (!response.ok) throw await aiError(response);
   return response.json();
 }
 
@@ -184,7 +184,14 @@ interface AiErrorBody {
   upgradeUrl?: unknown;
 }
 
-async function aiError(response: Response, fallback: string): Promise<Error> {
+function fallbackMessageFor(status: number): string {
+  if (status >= 500) {
+    return 'The AI is briefly unavailable — try again in a moment.';
+  }
+  return "The change couldn't be applied. Try rephrasing your request.";
+}
+
+async function aiError(response: Response): Promise<Error> {
   let data: AiErrorBody = {};
   try {
     data = (await response.json()) as AiErrorBody;
@@ -194,7 +201,7 @@ async function aiError(response: Response, fallback: string): Promise<Error> {
   const message =
     typeof data.error === 'string'
       ? data.error
-      : `${fallback}: ${response.status} ${response.statusText}`;
+      : fallbackMessageFor(response.status);
   if (
     response.status === 429 &&
     (data.kind === 'generate' || data.kind === 'modify')
