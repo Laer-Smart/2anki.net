@@ -22,18 +22,18 @@ class AuthenticationService {
   ) {}
 
   isValidToken(token: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       if (!token) {
         resolve(false);
         return;
       }
-      jwt.verify(token, process.env.SECRET!, (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(true);
-        }
-      });
+      try {
+        jwt.verify(token, process.env.SECRET!, (error) => {
+          resolve(!error);
+        });
+      } catch {
+        resolve(false);
+      }
     });
   }
 

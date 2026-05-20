@@ -5,6 +5,7 @@ export interface ChangelogEntry {
 }
 
 export const changelog: ChangelogEntry[] = [
+  { type: 'fix', title: 'Sign-in page comes back to a clean form even if your last session expired', date: '2026-05-20' },
   { type: 'fix', title: 'Template chat — clearer message when the AI is briefly unavailable, and a "no changes" note when nothing actually changed', date: '2026-05-20' },
   { type: 'fix', title: 'Template chat — Try again button next to chat errors, so a quick upstream blip doesn\'t cost you the prompt you just typed', date: '2026-05-20' },
   { type: 'fix', title: 'Long quiz questions and headings now convert to a deck instead of failing', date: '2026-05-20' },
