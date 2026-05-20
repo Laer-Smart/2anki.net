@@ -36,6 +36,24 @@ function safeFilename(name: string): string {
   return trimmed.replace(/[^A-Za-z0-9\-_ ]/g, '_');
 }
 
+function fingerprintStarter(s: NoteTypeStarter): string {
+  const nt = s.noteType;
+  return JSON.stringify({
+    name: s.name,
+    description: s.description,
+    baseType: s.baseType,
+    css: nt.css,
+    type: nt.type,
+    flds: nt.flds.map((f) => ({ name: f.name, ord: f.ord })),
+    tmpls: nt.tmpls.map((t) => ({
+      name: t.name,
+      ord: t.ord,
+      qfmt: t.qfmt,
+      afmt: t.afmt,
+    })),
+  });
+}
+
 function getSaveLabel(saving: boolean, shouldFork: boolean): string {
   if (saving) return 'Saving…';
   return shouldFork ? 'Save as copy' : 'Save';
@@ -253,6 +271,10 @@ function EditorBody({
   const [chatBusy, setChatBusy] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const [chatUpgradeUrl, setChatUpgradeUrl] = useState<string | null>(null);
+  const [lastAttempt, setLastAttempt] = useState<{
+    instruction: string;
+    history: AIChatMessage[];
+  } | null>(null);
 
   useEffect(() => {
     setDraft(initialStarter);
@@ -317,20 +339,22 @@ function EditorBody({
     }
   };
 
-  const handleSendChat = async () => {
-    const instruction = chatInput.trim();
-    if (instruction.length === 0 || chatBusy) return;
+  const performModify = async (
+    instruction: string,
+    historyBeforeUser: AIChatMessage[]
+  ) => {
     setChatBusy(true);
     setChatError(null);
     setChatUpgradeUrl(null);
-    setChatInput('');
-    const nextHistory: AIChatMessage[] = [
-      ...chatHistory,
-      { role: 'user', content: instruction },
-    ];
-    setChatHistory(nextHistory);
+    setLastAttempt({ instruction, history: historyBeforeUser });
+    const before = fingerprintStarter(draft);
     try {
-      const result = await aiModifyNoteType(draft, instruction, chatHistory);
+      const result = await aiModifyNoteType(
+        draft,
+        instruction,
+        historyBeforeUser
+      );
+      const after = fingerprintStarter(result.starter);
       setDraft((current) => ({
         ...current,
         name: result.starter.name,
@@ -339,10 +363,16 @@ function EditorBody({
         noteType: result.starter.noteType,
         previewData: result.starter.previewData,
       }));
+      const reply =
+        before === after
+          ? 'Nothing changed. Try a more specific instruction.'
+          : result.reply || 'Updated.';
       setChatHistory([
-        ...nextHistory,
-        { role: 'assistant', content: result.reply || 'Updated.' },
+        ...historyBeforeUser,
+        { role: 'user', content: instruction },
+        { role: 'assistant', content: reply },
       ]);
+      setLastAttempt(null);
     } catch (error: unknown) {
       setChatError(
         error instanceof Error ? error.message : 'Claude could not respond'
@@ -353,6 +383,23 @@ function EditorBody({
     } finally {
       setChatBusy(false);
     }
+  };
+
+  const handleSendChat = async () => {
+    const instruction = chatInput.trim();
+    if (instruction.length === 0 || chatBusy) return;
+    const historyBeforeUser = chatHistory;
+    setChatInput('');
+    setChatHistory([
+      ...historyBeforeUser,
+      { role: 'user', content: instruction },
+    ]);
+    await performModify(instruction, historyBeforeUser);
+  };
+
+  const handleRetry = async () => {
+    if (!lastAttempt || chatBusy) return;
+    await performModify(lastAttempt.instruction, lastAttempt.history);
   };
 
   const handleDownload = async () => {
@@ -579,6 +626,19 @@ function EditorBody({
                     >
                       See pricing →
                     </Link>
+                  </>
+                )}
+                {!chatUpgradeUrl && lastAttempt && (
+                  <>
+                    {' '}
+                    <button
+                      type="button"
+                      className={editorStyles.aiRetryButton}
+                      onClick={handleRetry}
+                      disabled={chatBusy}
+                    >
+                      Try again
+                    </button>
                   </>
                 )}
               </p>

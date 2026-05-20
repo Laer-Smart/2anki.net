@@ -480,3 +480,27 @@
 .aiUpgradeLink:focus-visible {
   text-decoration: underline;
 }
+
+.aiRetryButton {
+  display: inline-block;
+  margin-left: 0.25rem;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--color-primary);
+  font-weight: var(--font-medium);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.aiRetryButton:hover,
+.aiRetryButton:focus-visible {
+  text-decoration: underline;
+}
+
+.aiRetryButton:disabled {
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  text-decoration: none;
+}

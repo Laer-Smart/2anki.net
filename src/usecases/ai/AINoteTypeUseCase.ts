@@ -49,7 +49,7 @@ const SYSTEM_PROMPT = `You design Anki note types for the 2anki.net app. 2anki t
 The user describes what they want. You respond with a single JSON object — nothing else — wrapped in a fenced \`\`\`json code block. The object has this shape:
 
 {
-  "reply": "A 1-2 sentence natural-language summary of what you produced or changed.",
+  "reply": "One short sentence naming what you changed (e.g. 'Switched the body font to serif.'). If you cannot apply the requested change, or you return the same starter unmodified, write exactly: 'No changes made.'",
   "starter": {
     "name": "Short user-facing name",
     "description": "One sentence describing when to use it",
@@ -222,6 +222,24 @@ function validateStarter(value: unknown): NoteTypeStarterInput {
   };
 }
 
+function fingerprintStarter(s: NoteTypeStarterInput): string {
+  const nt = s.noteType;
+  return JSON.stringify({
+    name: s.name,
+    description: s.description,
+    baseType: s.baseType,
+    css: nt.css,
+    type: nt.type,
+    flds: nt.flds.map((f) => ({ name: f.name, ord: f.ord })),
+    tmpls: nt.tmpls.map((t) => ({
+      name: t.name,
+      ord: t.ord,
+      qfmt: t.qfmt,
+      afmt: t.afmt,
+    })),
+  });
+}
+
 function parseResponse(text: string): ParsedResponse {
   const block = extractJsonBlock(text);
   if (!block) throw new Error('Claude did not return JSON');
@@ -314,7 +332,13 @@ export class AINoteTypeUseCase {
     ];
 
     const text = await askClaude(messages);
-    return parseResponse(text);
+    const result = parseResponse(text);
+    if (fingerprintStarter(starter) === fingerprintStarter(result.starter)) {
+      console.warn('template_ai_modify.no_op', {
+        instructionLength: instruction.length,
+      });
+    }
+    return result;
   }
 }
 
@@ -322,5 +346,6 @@ export const __test__ = {
   extractJsonBlock,
   parseResponse,
   validateStarter,
+  fingerprintStarter,
   SYSTEM_PROMPT,
 };
