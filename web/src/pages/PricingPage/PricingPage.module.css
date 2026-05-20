@@ -322,6 +322,11 @@
     0 18px 44px -18px var(--color-focus-ring);
 }
 
+.cardAutoSyncUpsell {
+  box-shadow: 0 0 0 3px var(--color-primary),
+    0 18px 44px -18px var(--color-focus-ring);
+}
+
 .cardAutoSync::before {
   content: '';
   position: absolute;

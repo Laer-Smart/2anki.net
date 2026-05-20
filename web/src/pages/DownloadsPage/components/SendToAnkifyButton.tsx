@@ -1,5 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 
+import { track } from '../../../lib/analytics/track';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import { useUserLocals } from '../../../lib/hooks/useUserLocals';
 
@@ -10,27 +12,35 @@ interface Props {
 
 export default function SendToAnkifyButton({ uploadId, filename }: Props) {
   const { data } = useUserLocals();
-  const isEnabled = data?.locals?.patreon === true;
+  const hasAccess =
+    data?.locals?.patreon === true || data?.autoSyncActive === true;
   const api = get2ankiApi();
+  const navigate = useNavigate();
 
   const { data: clients } = useQuery({
     queryKey: ['ankify-clients'],
     queryFn: () => api.listAnkifyClients(),
-    enabled: isEnabled,
+    enabled: hasAccess,
   });
 
   const dispatch = useMutation({
     mutationFn: () => api.dispatchUploadToAnkify(Number(uploadId)),
   });
 
-  if (!isEnabled) {
-    return null;
-  }
+  const handleClick = () => {
+    if (!hasAccess) {
+      track('paywall_upgrade_clicked', { surface: 'ankify_button', plan: 'auto_sync' });
+      navigate('/pricing?upsell=auto-sync');
+      return;
+    }
+    dispatch.mutate();
+  };
 
   const hasActive = (clients ?? []).some((c) => c.status === 'active');
-  const disabled = dispatch.isPending || !hasActive;
+  const disabled = hasAccess && (dispatch.isPending || !hasActive);
 
   const label = (() => {
+    if (!hasAccess) return 'Send to my Anki';
     if (dispatch.isPending) return 'Sending to your Anki…';
     if (dispatch.isSuccess) {
       const data = dispatch.data;
@@ -51,6 +61,7 @@ export default function SendToAnkifyButton({ uploadId, filename }: Props) {
   })();
 
   const title = (() => {
+    if (!hasAccess) return 'Auto Sync sends decks straight to your Anki — see plans';
     if (!hasActive) return 'Set up your Anki on the Ankify page first';
     if (dispatch.isError) return (dispatch.error as Error).message;
     if (dispatch.isSuccess && dispatch.data.anki_web_sync === 'failed') {
@@ -62,7 +73,7 @@ export default function SendToAnkifyButton({ uploadId, filename }: Props) {
   return (
     <button
       type="button"
-      onClick={() => dispatch.mutate()}
+      onClick={handleClick}
       disabled={disabled}
       title={title}
       style={{
