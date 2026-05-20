@@ -5,6 +5,7 @@ export interface ChangelogEntry {
 }
 
 export const changelog: ChangelogEntry[] = [
+  { type: 'feature', title: 'Share a converted deck with a link — recipient can preview the cards and download the .apkg without an account', date: '2026-05-20' },
   { type: 'fix', title: 'Print page handles bigger decks — free covers up to 1000 cards, and the error tells you the exact count and cap if you go over', date: '2026-05-20' },
   { type: 'fix', title: 'Dropped an .apkg on the upload page by mistake? The error now points you to Print Decks instead of a dead end', date: '2026-05-20' },
   { type: 'feature', title: 'Print 1 PDF a month for free — drop your .apkg on the Print page and we make the PDF, no subscription needed for the first one', date: '2026-05-19' },
