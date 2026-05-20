@@ -73,7 +73,7 @@ export function buildPreviewDocument(
   return `<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #fff; color: #111; }
 body { overflow: hidden; display: flex; }
-body > .card {
+:where(body > .card) {
   flex: 1;
   min-height: 100%;
   box-sizing: border-box;
@@ -81,8 +81,6 @@ body > .card {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  text-align: center;
 }
 input, button, select, textarea { pointer-events: none; }
 ${noteType.css ?? ''}
