@@ -11,6 +11,7 @@ import {
 } from '@notionhq/client/build/src/api-endpoints';
 
 import getDeckName from '../../../lib/anki/getDeckname';
+import { inferColumnMapping } from '../../../lib/notionDatabase/inferColumnMapping';
 import sanitizeTags from '../../../lib/anki/sanitizeTags';
 import { S3FileName, SuffixFrom } from '../../../lib/misc/file';
 import getUniqueFileName from '../../../lib/misc/getUniqueFileName';
@@ -52,6 +53,27 @@ interface Finder {
   rules: ParserRules;
   decks: Deck[];
   parentName: string;
+  frontField?: string;
+  backField?: string;
+}
+
+interface PlainTextItem {
+  plain_text?: string;
+}
+
+function joinPlainText(items: PlainTextItem[]): string {
+  return items
+    .map((t) => t.plain_text ?? '')
+    .filter((t) => t.length > 0)
+    .join('<br>');
+}
+
+function extractRowText(property: unknown): string {
+  if (property == null || typeof property !== 'object') return '';
+  const p = property as { type?: string; title?: PlainTextItem[]; rich_text?: PlainTextItem[] };
+  if (p.type === 'title' && Array.isArray(p.title)) return joinPlainText(p.title);
+  if (p.type === 'rich_text' && Array.isArray(p.rich_text)) return joinPlainText(p.rich_text);
+  return '';
 }
 
 class BlockHandler {
@@ -322,6 +344,8 @@ class BlockHandler {
     const { parentType, topLevelId, rules, decks } = locator;
     if (parentType === 'page') {
       return this.findFlashcardsFromPage(locator);
+    } else if (parentType === 'notion-database') {
+      return this.findFlashcardsFromDatabaseRows(locator);
     } else if (parentType === 'database') {
       const dbResult = await this.api.queryDatabase(topLevelId);
       const database = await this.api.getDatabase(topLevelId);
@@ -345,6 +369,70 @@ class BlockHandler {
         `
       );
     }
+    return decks;
+  }
+
+  async findFlashcardsFromDatabaseRows(locator: Finder): Promise<Deck[]> {
+    const { topLevelId, decks } = locator;
+    const dbResult = await this.api.queryDatabase(topLevelId, true);
+    const database = await this.api.getDatabase(topLevelId);
+    const dbName = await this.api.getDatabaseTitle(database, this.settings);
+
+    const firstRow = dbResult.results[0] as
+      | { properties?: Record<string, unknown> }
+      | undefined;
+    const columnNames =
+      firstRow?.properties != null ? Object.keys(firstRow.properties) : [];
+
+    let frontField = locator.frontField;
+    let backField = locator.backField;
+
+    if (frontField == null || backField == null) {
+      const inferred = inferColumnMapping(columnNames);
+      if (inferred.ambiguous) {
+        const err = new Error(
+          `Map columns manually: pick a front column and a back column. Available: ${columnNames.join(', ')}`
+        ) as Error & { code?: string; columns?: string[] };
+        err.code = 'NOTION_DATABASE_COLUMNS_AMBIGUOUS';
+        err.columns = columnNames;
+        throw err;
+      }
+      frontField = inferred.frontField ?? undefined;
+      backField = inferred.backField ?? undefined;
+    }
+
+    if (
+      frontField == null ||
+      backField == null ||
+      !columnNames.includes(frontField) ||
+      !columnNames.includes(backField)
+    ) {
+      throw new Error(
+        `Front or back column not found in database. Got: ${columnNames.join(', ')}`
+      );
+    }
+
+    const notes = dbResult.results
+      .map((row) => {
+        const properties = (row as { properties?: Record<string, unknown> })
+          .properties;
+        if (properties == null) return null;
+        const front = extractRowText(properties[frontField as string]);
+        const back = extractRowText(properties[backField as string]);
+        if (front === '' || back === '') return null;
+        return new Note(front, back);
+      })
+      .filter((note): note is Note => note != null);
+
+    const deck = new Deck(
+      dbName,
+      Deck.CleanCards(notes),
+      undefined,
+      withFontSize(NOTION_STYLE, this.settings.fontSize),
+      get16DigitRandomId(),
+      this.settings
+    );
+    decks.push(deck);
     return decks;
   }
 
