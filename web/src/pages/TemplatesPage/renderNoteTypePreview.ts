@@ -73,9 +73,30 @@ export function buildPreviewDocument(
   return `<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #fff; color: #111; }
 body { overflow: hidden; display: flex; }
-body > .card { flex: 1; min-height: 100%; box-sizing: border-box; }
+body > .card {
+  flex: 1;
+  min-height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  text-align: center;
+}
+input, button, select, textarea { pointer-events: none; }
 ${noteType.css ?? ''}
 html, body { margin: 0 !important; padding: 0 !important; max-width: none !important; width: 100% !important; height: 100% !important; }
 body { display: flex !important; }
+#image-occlusion-canvas, #image-occlusion-container > script { display: none !important; }
+#image-occlusion-container::after {
+  content: 'Image occlusion preview — install in Anki to see masks';
+  display: block;
+  padding: 12px;
+  color: #6b7280;
+  font-style: italic;
+  font-size: 14px;
+  text-align: center;
+}
 </style></head><body><div class="card">${body}</div></body></html>`;
 }
