@@ -183,7 +183,7 @@ describe('PhotoToFlashcardsUseCase', () => {
   });
 
   describe('deck builder invocation', () => {
-    it('spawns create_deck.py with deck_info.json and the template dir', async () => {
+    it('spawns create_deck.py with deck_info.json and a trailing-slashed template dir', async () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
       await useCase.execute({ ...BASE_INPUT, isPaying: true });
       expect(mockChild.spawn).toHaveBeenCalledTimes(1);
@@ -191,7 +191,22 @@ describe('PhotoToFlashcardsUseCase', () => {
       expect(argv).toHaveLength(3);
       expect(argv[0]).toMatch(/create_deck\.py$/);
       expect(argv[1]).toMatch(/deck_info\.json$/);
-      expect(argv[2]).toMatch(/templates$/);
+      expect(argv[2]).toMatch(/templates[\\/]$/);
+    });
+
+    it('writes a deck_info.json with deck.name (not deck.deck) so the Python script can read it', async () => {
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+        ([p]) => typeof p === 'string' && p.endsWith('deck_info.json')
+      );
+      expect(writeCall).toBeDefined();
+      const payload = JSON.parse(writeCall![1] as string) as Array<{
+        name?: string;
+        deck?: string;
+      }>;
+      expect(payload[0]).toHaveProperty('name');
+      expect(payload[0]).not.toHaveProperty('deck');
     });
   });
 });
