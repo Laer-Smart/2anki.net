@@ -1,0 +1,109 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.wordmark {
+  font-weight: var(--font-semibold);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.wordmark:hover {
+  color: var(--color-text-primary);
+}
+
+.deckName {
+  font-weight: 500;
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tagline {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.content {
+  padding: 2rem 1.5rem;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.downloadRow {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.downloadButton {
+  display: inline-block;
+  padding: 0.75rem 2rem;
+  background: var(--color-blue-500, #3b82f6);
+  color: #fff;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: var(--font-medium);
+  font-size: var(--text-base);
+}
+
+.downloadButton:hover {
+  background: var(--color-blue-600, #2563eb);
+}
+
+.sentinel {
+  height: 1px;
+}
+
+.loadingRow {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+}
+
+.errorPage {
+  max-width: 480px;
+  margin: 4rem auto;
+  padding: 0 1.5rem;
+  text-align: center;
+}
+
+.errorTitle {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.errorSub {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
