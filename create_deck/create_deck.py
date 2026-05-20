@@ -12,6 +12,17 @@ import json
 import sys
 import os
 
+from genanki import Note
+from genanki.util import guid_for
+
+from helpers.cards import get_safe_value
+from helpers.get_model import get_model
+from helpers.get_model_id import get_model_id
+from helpers.read_template import read_template
+from helpers.sanitize_tags import sanitize_tags
+from helpers.write_apkg import _write_new_apkg
+from backend.utils.email_error_alert import send_error_email
+
 _MAX_BASENAME_BYTES = 200
 
 
@@ -35,17 +46,6 @@ def _clamp_output_path(path: str) -> str:
         stem_str = ""
     new_basename = stem_str + ".apkg"
     return os.path.join(directory, new_basename)
-
-from genanki import Note
-from genanki.util import guid_for
-
-from helpers.cards import get_safe_value
-from helpers.get_model import get_model
-from helpers.get_model_id import get_model_id
-from helpers.read_template import read_template
-from helpers.sanitize_tags import sanitize_tags
-from helpers.write_apkg import _write_new_apkg
-from backend.utils.email_error_alert import send_error_email
 
 
 def build_one_deck(data_file, template_dir):
