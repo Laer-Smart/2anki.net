@@ -8,6 +8,8 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
+import { normalizeS3Endpoint } from './normalizeS3Endpoint';
+
 export interface StoredObject {
   Body: Buffer | undefined;
 }
@@ -16,12 +18,8 @@ class StorageHandler {
   s3: S3Client;
 
   constructor() {
-    // DigitalOcean Spaces endpoint. SPACES_ENDPOINT is a required
-    // production env var; the non-null assertion matches how
-    // SPACES_DEFAULT_BUCKET_NAME is treated below.
-    // NOSONAR — non-null assertion is intentional
     this.s3 = new S3Client({
-      endpoint: process.env.SPACES_ENDPOINT!,
+      endpoint: normalizeS3Endpoint(process.env.SPACES_ENDPOINT),
       region: process.env.SPACES_REGION ?? 'us-east-1',
     });
   }
