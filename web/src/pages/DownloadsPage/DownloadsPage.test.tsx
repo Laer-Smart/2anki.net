@@ -250,6 +250,52 @@ describe('DownloadsPage source labels', () => {
   });
 });
 
+describe('DownloadsPage preview button on done job rows', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-18T12:00:00Z'));
+    (globalThis as AnalyticsGlobals).hj = vi.fn();
+    (globalThis as AnalyticsGlobals).gtag = vi.fn();
+    mockUploads = [];
+    mockDropboxUploads = [];
+    mockGoogleDriveUploads = [];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    delete (globalThis as AnalyticsGlobals).hj;
+    delete (globalThis as AnalyticsGlobals).gtag;
+  });
+
+  it('renders the preview link when a done job has a .apkg download_key', () => {
+    mockJobs = [
+      buildJob({
+        status: 'done',
+        type: 'page',
+        title: 'Pharmacology Ch. 4',
+        download_key: 'deck-abc123.apkg',
+      }),
+    ];
+    renderAt('/downloads');
+    const previewLink = screen.getByLabelText('Preview Pharmacology Ch. 4');
+    expect(previewLink).toBeInTheDocument();
+    expect(previewLink.getAttribute('href')).toBe('/preview/apkg/deck-abc123.apkg');
+  });
+
+  it('does not render the preview link when download_key does not end with .apkg', () => {
+    mockJobs = [
+      buildJob({
+        status: 'done',
+        type: 'page',
+        title: 'Some deck',
+        download_key: 'deck-abc123.zip',
+      }),
+    ];
+    renderAt('/downloads');
+    expect(screen.queryByLabelText('Preview Some deck')).not.toBeInTheDocument();
+  });
+});
+
 describe('renderJobStatusCell — URL construction', () => {
   it('uses /api/download/u/<download_key> when download_key is present', () => {
     const job = buildJob({

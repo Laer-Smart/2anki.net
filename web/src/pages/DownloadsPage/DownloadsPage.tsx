@@ -359,6 +359,16 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                 </td>
                                 <td>
                                   <div className={styles.actions}>
+                                    {isDoneJob(row.job.status) && row.job.download_key != null && APKG_PATTERN.test(row.job.download_key) && (
+                                      <Link
+                                        to={`/preview/apkg/${encodeURIComponent(row.job.download_key)}`}
+                                        className={styles.iconButton}
+                                        aria-label={`Preview ${row.job.title ?? 'deck'}`}
+                                        title="Preview"
+                                      >
+                                        <EyeIcon width={18} height={18} />
+                                      </Link>
+                                    )}
                                     {isFailed ? (
                                       renderJobStatusWithToggle({
                                         job: row.job,
