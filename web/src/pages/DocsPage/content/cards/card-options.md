@@ -55,8 +55,7 @@ Card options change how 2anki turns your source into flashcards. Most are off-or
 
 | Option | Default | What it does |
 |---|---|---|
-| Add Notion Link | Off | Adds a link to the Notion page where the toggle was created. Use this with **Use Notion ID** to avoid duplicates. |
-| Use Notion ID | On | Uses Notion's ID to match cards across re-uploads instead of regenerating IDs from the field text. Reduces duplicates. |
+| Add Notion Link | Off | Adds a link to the Notion page where the toggle was created. |
 | Remove Underlines | Off | Drops underline formatting. Helps when Notion underlines clash with Anki's link styling. |
 | Remove the MP3 Links Created From Audio Files | On | Strips the auto-generated `.mp3` links left behind by some Notion exports. |
 
@@ -91,4 +90,4 @@ These only fire when **Enable MCQ** is on. See [Multiple choice questions](/docu
 
 ## Internal option keys
 
-The option keys 2anki uses internally (handy if you're filing a bug report): `add-notion-link`, `use-notion-id`, `all`, `paragraph`, `cherry`, `avocado`, `tags`, `cloze`, `enable-input`, `basic-reversed`, `reversed`, `no-underline`, `max-one-toggle-per-card`, `remove-mp3-links`, `perserve-newlines`, `process-pdfs`, `markdown-nested-bullet-points`, `vertex-ai-pdf-questions`, `disable-indented-bullets`, `image-quiz-html-to-anki`, `claude-ai-flashcards`, `share-files-for-debugging`, `mcq-enabled`, `mcq-show-choices`, `mcq-shuffle`, `mcq-tts-question`, `mcq-tts-correct-answer`, `mcq-tts-extra`, `font-size`, `toggle-mode`, `page-emoji`, `basic_model_name`, `cloze_model_name`, `input_model_name`, `user-instructions`.
+The option keys 2anki uses internally (handy if you're filing a bug report): `add-notion-link`, `all`, `paragraph`, `cherry`, `avocado`, `tags`, `cloze`, `enable-input`, `basic-reversed`, `reversed`, `no-underline`, `max-one-toggle-per-card`, `remove-mp3-links`, `perserve-newlines`, `process-pdfs`, `markdown-nested-bullet-points`, `vertex-ai-pdf-questions`, `disable-indented-bullets`, `image-quiz-html-to-anki`, `claude-ai-flashcards`, `share-files-for-debugging`, `mcq-enabled`, `mcq-show-choices`, `mcq-shuffle`, `mcq-tts-question`, `mcq-tts-correct-answer`, `mcq-tts-extra`, `font-size`, `toggle-mode`, `page-emoji`, `basic_model_name`, `cloze_model_name`, `input_model_name`, `user-instructions`.
