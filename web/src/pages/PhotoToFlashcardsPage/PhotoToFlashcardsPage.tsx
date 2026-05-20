@@ -1,16 +1,14 @@
 import { useRef, useState } from 'react';
 
-import styles from '../../../styles/shared.module.css';
-import pageStyles from '../ImageOcclusionPage.module.css';
+import { useUserLocals } from '../../lib/hooks/useUserLocals';
+import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
+import styles from '../../styles/shared.module.css';
+import pageStyles from './PhotoToFlashcardsPage.module.css';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 
 type Status = 'idle' | 'reading' | 'done';
-
-interface PhotoToFlashcardsProps {
-  isPaying: boolean;
-}
 
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -51,7 +49,10 @@ function downloadBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-export function PhotoToFlashcards({ isPaying }: PhotoToFlashcardsProps) {
+export function PhotoToFlashcardsPage() {
+  const { data } = useUserLocals();
+  const isPaying = isPayingUser(data?.locals);
+
   const [deckName, setDeckName] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -161,16 +162,16 @@ export function PhotoToFlashcards({ isPaying }: PhotoToFlashcardsProps) {
   };
 
   return (
-    <section className={pageStyles.photoToDeck} aria-label="Photo to deck">
-      <div className={pageStyles.photoToDeckHeader}>
-        <h2 className={pageStyles.photoToDeckTitle}>Snap a photo, get cards</h2>
-        <p className={pageStyles.photoToDeckSubtitle}>
+    <section className={pageStyles.page} aria-label="Photo to deck">
+      <header className={pageStyles.pageHeader}>
+        <h1 className={pageStyles.pageTitle}>Snap a photo, get cards</h1>
+        <p className={pageStyles.pageSubtitle}>
           Works on textbook pages, lecture slides, and handwritten notes.
           {!isPaying && ' Ankify access required.'}
         </p>
-      </div>
+      </header>
 
-      <div className={pageStyles.photoToDeckRow}>
+      <div className={pageStyles.row}>
         <label className={pageStyles.deckNameLabel} htmlFor="photo-deck-name">
           Deck name
         </label>
@@ -185,18 +186,18 @@ export function PhotoToFlashcards({ isPaying }: PhotoToFlashcardsProps) {
       </div>
 
       <label
-        className={pageStyles.photoDropzone}
+        className={pageStyles.dropzone}
         htmlFor="photo-file-input"
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
       >
         {previewUrl == null ? (
           <>
-            <span className={pageStyles.photoDropzoneTitle}>Drop a photo or click to select</span>
-            <span className={pageStyles.photoDropzoneHint}>JPEG, PNG, WebP, GIF — up to 10 MB</span>
+            <span className={pageStyles.dropzoneTitle}>Drop a photo or click to select</span>
+            <span className={pageStyles.dropzoneHint}>JPEG, PNG, WebP, GIF — up to 10 MB</span>
           </>
         ) : (
-          <img src={previewUrl} alt="Selected photo" className={pageStyles.photoPreview} />
+          <img src={previewUrl} alt="Selected photo" className={pageStyles.preview} />
         )}
         <input
           ref={fileInputRef}
@@ -216,7 +217,7 @@ export function PhotoToFlashcards({ isPaying }: PhotoToFlashcardsProps) {
         </div>
       )}
 
-      <div className={pageStyles.photoToDeckFooter}>
+      <div className={pageStyles.footer}>
         <button
           type="button"
           className={styles.btnSecondary}
