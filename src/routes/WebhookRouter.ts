@@ -16,6 +16,8 @@ import UsersService from '../services/UsersService';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { PersistStripeSessionUseCase } from '../usecases/checkout/PersistStripeSessionUseCase';
 import hashToken from '../lib/misc/hashToken';
+import AbandonedCheckoutRecoveryRepository from '../data_layer/AbandonedCheckoutRecoveryRepository';
+import { SendAbandonedCheckoutRecoveryOnExpiryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryOnExpiryUseCase';
 
 const DURATION_24H_MS = 24 * 60 * 60 * 1000;
 const DURATION_7D_MS = 7 * 24 * 60 * 60 * 1000;
@@ -34,6 +36,10 @@ const WebhooksRouter = () => {
     usersService,
     persistStripeSessionUseCase,
     stripe
+  );
+  const abandonedCheckoutRecoveryUseCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+    new AbandonedCheckoutRecoveryRepository(database),
+    getDefaultEmailService()
   );
 
   /**
@@ -65,6 +71,7 @@ const WebhooksRouter = () => {
    *       - customer.subscription.updated
    *       - customer.subscription.deleted
    *       - checkout.session.completed
+   *       - checkout.session.expired
    */
   router.post(
     '/webhook',
@@ -303,6 +310,22 @@ const WebhooksRouter = () => {
           }
 
           console.log('checkout.session.completed');
+          break;
+        }
+        case 'checkout.session.expired': {
+          const expiredSession = event.data.object as {
+            id: string;
+            customer_details?: { email?: string | null } | null;
+            customer_email?: string | null;
+          };
+          const sessionEmail =
+            expiredSession.customer_details?.email ??
+            expiredSession.customer_email ??
+            null;
+          await abandonedCheckoutRecoveryUseCase.execute(
+            expiredSession.id,
+            sessionEmail
+          );
           break;
         }
         default:

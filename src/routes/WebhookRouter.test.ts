@@ -23,6 +23,30 @@ jest.mock('../lib/integrations/stripe', () => ({
 
 jest.mock('../data_layer', () => ({ getDatabase: jest.fn() }));
 
+const mockClaimSession = jest.fn().mockResolvedValue(true);
+jest.mock('../data_layer/AbandonedCheckoutRecoveryRepository', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({ claimSession: mockClaimSession })),
+}));
+
+const mockSendAbandonedCheckoutRecoveryEmail = jest.fn().mockResolvedValue(undefined);
+jest.mock('../services/EmailService/EmailService', () => ({
+  getDefaultEmailService: jest.fn().mockReturnValue({
+    sendAbandonedCheckoutRecoveryEmail: mockSendAbandonedCheckoutRecoveryEmail,
+    sendResetEmail: jest.fn(),
+    sendConversionEmail: jest.fn(),
+    sendConversionLinkEmail: jest.fn(),
+    sendContactEmail: jest.fn(),
+    sendSubscriptionCancelledEmail: jest.fn(),
+    sendSubscriptionScheduledCancellationEmail: jest.fn(),
+    sendHostedAnkiAccessRequestEmail: jest.fn(),
+    sendMagicLinkEmail: jest.fn(),
+    sendReEngagementEmail: jest.fn(),
+    sendInactivityWarningEmail: jest.fn(),
+    sendParserCanaryAlert: jest.fn(),
+  }),
+}));
+
 jest.mock('../data_layer/UserPassRepository', () => {
   const { InMemoryUserPassRepository: Mem } = jest.requireActual('../data_layer/UserPassRepository');
   return {
@@ -280,5 +304,124 @@ describe('WebhookRouter — lifetime product-ID allowlist', () => {
     const res = await postWebhookLifetime();
     expect(res.status).toBe(200);
     expect(mockUpdatePatreonByEmail).toHaveBeenCalledWith('user@example.com', true);
+  });
+});
+
+describe('WebhookRouter — checkout.session.expired', () => {
+  let server: http.Server;
+  let url: string;
+
+  beforeAll(async () => {
+    ({ server, url } = await buildServer());
+  });
+
+  afterAll(() => server.close());
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockClaimSession.mockResolvedValue(true);
+  });
+
+  function postWebhook() {
+    return fetch(`${url}/webhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'stripe-signature': 'sig_test' },
+      body: JSON.stringify({}),
+    });
+  }
+
+  it('sends recovery email when session has customer_details.email and claim wins', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.expired',
+      data: {
+        object: {
+          id: 'cs_expired_abc',
+          customer_details: { email: 'buyer@example.com' },
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_abc', 'buyer@example.com');
+    expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('buyer@example.com');
+  });
+
+  it('does not send email when claim is a no-op (duplicate delivery)', async () => {
+    mockClaimSession.mockResolvedValue(false);
+    mockWebhookEvent = {
+      type: 'checkout.session.expired',
+      data: {
+        object: {
+          id: 'cs_expired_dup',
+          customer_details: { email: 'buyer@example.com' },
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_dup', 'buyer@example.com');
+    expect(mockSendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
+  });
+
+  it('skips with warn log when session has no email', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mockWebhookEvent = {
+      type: 'checkout.session.expired',
+      data: {
+        object: {
+          id: 'cs_expired_noemail',
+          customer_details: null,
+          customer_email: null,
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockClaimSession).not.toHaveBeenCalled();
+    expect(mockSendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
+    expect(warnSpy).toHaveBeenCalledWith(
+      'checkout.session.expired.no_email',
+      expect.objectContaining({ session_id_hash: expect.any(String) })
+    );
+    warnSpy.mockRestore();
+  });
+
+  it('returns 400 when Stripe signature verification fails', async () => {
+    const { getStripe } = jest.requireMock('../lib/integrations/stripe') as {
+      getStripe: jest.Mock;
+    };
+    getStripe.mockReturnValueOnce({
+      webhooks: {
+        constructEvent: jest.fn(() => {
+          throw new Error('No signatures found matching the expected signature for payload');
+        }),
+      },
+    });
+
+    const res = await postWebhook();
+    expect(res.status).toBe(400);
+    expect(mockClaimSession).not.toHaveBeenCalled();
+    expect(mockSendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
+  });
+
+  it('uses customer_email as fallback when customer_details.email is absent', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.expired',
+      data: {
+        object: {
+          id: 'cs_expired_fallback',
+          customer_details: null,
+          customer_email: 'fallback@example.com',
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_fallback', 'fallback@example.com');
+    expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('fallback@example.com');
   });
 });
