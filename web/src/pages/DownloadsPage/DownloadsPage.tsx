@@ -20,6 +20,7 @@ import { StatusTag, JobStatus } from './components/ListJobs/StatusTag';
 import { StepIndicator } from '../../components/StepIndicator/StepIndicator';
 import { jobStepFromStatus } from '../../components/StepIndicator/jobStepFromStatus';
 import SendToAnkifyButton from './components/SendToAnkifyButton';
+import { useActiveShares } from './hooks/useActiveShares';
 import { fireAnalyticsEvent } from '../../lib/analytics/fireAnalyticsEvent';
 import { track } from '../../lib/analytics/track';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
@@ -188,6 +189,8 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
   const { uploads: googleDriveUploads, deleteUpload: deleteGoogleDriveUpload } = useGoogleDriveUploads(backend);
   const { data } = useUserLocals();
   const showUpgradeFooter = !isPayingUser(data?.locals);
+  const activeShares = useActiveShares();
+  const sharedKeySet = new Set(activeShares.map((s) => s.upload_key));
 
   const [searchParams, setSearchParams] = useSearchParams();
   const showPaywall = searchParams.get('paywall') === '1';
@@ -411,12 +414,24 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
 
                         if (row.kind === 'file') {
                           const u = row.upload;
+                          const isShared = sharedKeySet.has(u.key);
+                          const sharePreviewUrl = `/preview/apkg/${encodeURIComponent(u.key)}`;
                           return (
                             <tr key={`upload-${u.key}`}>
                               <td>
                                 <span data-hj-suppress className={styles.fileName}>
                                   {u.filename}
                                 </span>
+                                {isShared && (
+                                  <Link
+                                    to={sharePreviewUrl}
+                                    className={sharedStyles.badge}
+                                    style={{ marginLeft: '0.5rem', textDecoration: 'none' }}
+                                    title="Shared — click to open preview"
+                                  >
+                                    Shared
+                                  </Link>
+                                )}
                               </td>
                               <td>
                                 <span className={sharedStyles.badge}>Upload</span>

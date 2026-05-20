@@ -59,6 +59,10 @@ vi.mock('./hooks/useGoogleDriveUploads', () => ({
   }),
 }));
 
+vi.mock('./hooks/useActiveShares', () => ({
+  useActiveShares: () => [],
+}));
+
 type AnalyticsGlobals = {
   hj?: ReturnType<typeof vi.fn>;
   gtag?: ReturnType<typeof vi.fn>;
