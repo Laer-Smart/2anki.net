@@ -355,8 +355,9 @@ describe('PricingPage Unlimited billing toggle', () => {
 
   it('shows $6 / mo by default', () => {
     renderAt('/pricing', { unlimitedYearlyAvailable: true });
-    expect(screen.getByText('$6')).toBeInTheDocument();
-    expect(screen.getByText('/ mo')).toBeInTheDocument();
+    const price = screen.getByText('$6');
+    expect(price).toBeInTheDocument();
+    expect(price.parentElement?.textContent ?? '').toContain('/ mo');
   });
 
   it('shows $60 / yr and 2 months free after selecting Yearly', () => {
