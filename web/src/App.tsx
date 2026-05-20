@@ -76,6 +76,11 @@ const ImageOcclusionPage = lazy(() =>
     default: m.ImageOcclusionPage,
   }))
 );
+const PhotoToFlashcardsPage = lazy(() =>
+  import('./pages/PhotoToFlashcardsPage').then((m) => ({
+    default: m.PhotoToFlashcardsPage,
+  }))
+);
 const ChatPage = lazy(() => import('./pages/Chat/ChatPage'));
 const NotionLandingPage = lazy(() => import('./pages/NotionLandingPage/NotionLandingPage'));
 const LimitPage = lazy(() => import('./pages/LimitPage/LimitPage'));
@@ -151,6 +156,7 @@ function AppContent({
           />
           <Route path="/print" element={<PrintPage />} />
           <Route path="/image-occlusion" element={<ImageOcclusionPage />} />
+          <Route path="/photo-to-deck" element={requireAuth(<PhotoToFlashcardsPage />)} />
           <Route path="/chat" element={requireAuth(<ChatPage />)} />
           <Route
             path="/register"

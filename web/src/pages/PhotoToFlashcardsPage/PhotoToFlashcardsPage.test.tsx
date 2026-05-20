@@ -1,8 +1,25 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { PhotoToFlashcards } from './PhotoToFlashcards';
+import { PhotoToFlashcardsPage } from './PhotoToFlashcardsPage';
 
 const FAKE_DATA_URL = 'data:image/jpeg;base64,YWJjMTIz';
+
+const mockUseUserLocals = vi.fn();
+vi.mock('../../lib/hooks/useUserLocals', () => ({
+  useUserLocals: () => mockUseUserLocals(),
+}));
+
+function setLocals(opts: { paying: boolean }) {
+  mockUseUserLocals.mockReturnValue({
+    data: {
+      locals: {
+        email: 'test@example.com',
+        patreon: opts.paying,
+        subscriptions: [],
+      },
+    },
+  });
+}
 
 function makePhoto(name = 'note.jpg', type = 'image/jpeg', sizeBytes = 1024): File {
   const blob = new Blob(['x'.repeat(sizeBytes)], { type });
@@ -43,8 +60,9 @@ function mockObjectUrl() {
   });
 }
 
-describe('PhotoToFlashcards', () => {
+describe('PhotoToFlashcardsPage', () => {
   beforeEach(() => {
+    setLocals({ paying: false });
     mockFileReader();
     mockImageDimensions();
     mockObjectUrl();
@@ -56,19 +74,21 @@ describe('PhotoToFlashcards', () => {
   });
 
   it('renders the title and audience hint', () => {
-    render(<PhotoToFlashcards isPaying={false} />);
+    render(<PhotoToFlashcardsPage />);
     expect(screen.getByText('Snap a photo, get cards')).toBeTruthy();
     expect(screen.getByText(/textbook pages, lecture slides, and handwritten notes/)).toBeTruthy();
     expect(screen.getByText(/Ankify access required/)).toBeTruthy();
   });
 
   it('omits the access notice for paying users', () => {
-    render(<PhotoToFlashcards isPaying={true} />);
+    setLocals({ paying: true });
+    render(<PhotoToFlashcardsPage />);
     expect(screen.queryByText(/Ankify access required/)).toBeNull();
   });
 
   it('rejects unsupported file types', () => {
-    render(<PhotoToFlashcards isPaying={true} />);
+    setLocals({ paying: true });
+    render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     const pdf = new File(['x'], 'doc.pdf', { type: 'application/pdf' });
     fireEvent.change(input, { target: { files: [pdf] } });
@@ -76,7 +96,8 @@ describe('PhotoToFlashcards', () => {
   });
 
   it('rejects photos over 10 MB', () => {
-    render(<PhotoToFlashcards isPaying={true} />);
+    setLocals({ paying: true });
+    render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     const oversized = makePhoto('big.jpg', 'image/jpeg', 11 * 1024 * 1024);
     fireEvent.change(input, { target: { files: [oversized] } });
@@ -84,10 +105,11 @@ describe('PhotoToFlashcards', () => {
   });
 
   it('shows the specific 404 message when the route is disabled', async () => {
+    setLocals({ paying: true });
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 404 }));
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<PhotoToFlashcards isPaying={true} />);
+    render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto()] } });
     fireEvent.click(screen.getByText('Get flashcards'));
@@ -98,10 +120,11 @@ describe('PhotoToFlashcards', () => {
   });
 
   it('shows the access-required message on 403', async () => {
+    setLocals({ paying: true });
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 403 }));
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<PhotoToFlashcards isPaying={true} />);
+    render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto()] } });
     fireEvent.click(screen.getByText('Get flashcards'));
@@ -112,10 +135,11 @@ describe('PhotoToFlashcards', () => {
   });
 
   it('shows the too-large message on 413', async () => {
+    setLocals({ paying: true });
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 413 }));
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<PhotoToFlashcards isPaying={true} />);
+    render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto()] } });
     fireEvent.click(screen.getByText('Get flashcards'));
@@ -126,6 +150,7 @@ describe('PhotoToFlashcards', () => {
   });
 
   it('shows the card-count success state when the deck arrives', async () => {
+    setLocals({ paying: true });
     const fetchMock = vi.fn().mockResolvedValue(
       new Response('fake-apkg-bytes', {
         status: 200,
@@ -137,7 +162,7 @@ describe('PhotoToFlashcards', () => {
     const clickSpy = vi.fn();
     HTMLAnchorElement.prototype.click = clickSpy;
 
-    render(<PhotoToFlashcards isPaying={true} />);
+    render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto('biology.jpg')] } });
     fireEvent.click(screen.getByText('Get flashcards'));

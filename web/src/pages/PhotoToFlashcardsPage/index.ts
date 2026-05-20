@@ -1,0 +1,1 @@
+export { PhotoToFlashcardsPage } from './PhotoToFlashcardsPage';

@@ -10,6 +10,7 @@ import ArrowRightOnRectangleIcon from '../icons/ArrowRightOnRectangleIcon';
 import ArrowUpTrayIcon from '../icons/ArrowUpTrayIcon';
 import BookOpenIcon from '../icons/BookOpenIcon';
 import ChatBubbleIcon from '../icons/ChatBubbleIcon';
+import CameraIcon from '../icons/CameraIcon';
 import RectangleGroupIcon from '../icons/RectangleGroupIcon';
 import SwatchIcon from '../icons/SwatchIcon';
 import LayersIcon from '../icons/LayersIcon';
@@ -268,6 +269,15 @@ export function Sidebar({
             icon={RectangleGroupIcon}
           >
             Image Occlusion
+          </SidebarRow>
+          <SidebarRow
+            href="/photo-to-deck"
+            pathname={pathname}
+            matchPrefix={false}
+            onClick={handleNavClick()}
+            icon={CameraIcon}
+          >
+            Photo to deck
           </SidebarRow>
           <SidebarRow
             href="/templates"
