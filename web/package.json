@@ -70,7 +70,6 @@
     "@vitest/coverage-v8": "^4.1.5",
     "@vitest/ui": "^4.1.6",
     "autoprefixer": "^10.5.0",
-    "babel-plugin-react-compiler": "^1.0.0",
     "concurrently": "^9.2.1",
     "cors": "^2.8.6",
     "cross-env": "^10.1.0",

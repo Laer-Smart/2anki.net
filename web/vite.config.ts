@@ -31,11 +31,7 @@ export default defineConfig(({ command, mode }) => {
 
   return {
     plugins: [
-      react({
-        babel: {
-          plugins: ['babel-plugin-react-compiler'],
-        },
-      }),
+      react(),
       svgr({
         // SVG as React components
         svgrOptions: {
