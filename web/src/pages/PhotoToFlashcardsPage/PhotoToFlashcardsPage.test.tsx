@@ -77,13 +77,13 @@ describe('PhotoToFlashcardsPage', () => {
     render(<PhotoToFlashcardsPage />);
     expect(screen.getByText('Snap a photo, get cards')).toBeTruthy();
     expect(screen.getByText(/textbook pages, lecture slides, and handwritten notes/)).toBeTruthy();
-    expect(screen.getByText(/Ankify access required/)).toBeTruthy();
+    expect(screen.getByText(/Free plan: 5 photos per month/)).toBeTruthy();
   });
 
-  it('omits the access notice for paying users', () => {
+  it('omits the free-plan notice for paying users', () => {
     setLocals({ paying: true });
     render(<PhotoToFlashcardsPage />);
-    expect(screen.queryByText(/Ankify access required/)).toBeNull();
+    expect(screen.queryByText(/Free plan: 5 photos per month/)).toBeNull();
   });
 
   it('rejects unsupported file types', () => {
@@ -119,9 +119,9 @@ describe('PhotoToFlashcardsPage', () => {
     });
   });
 
-  it('shows the access-required message on 403', async () => {
+  it('shows the sign-in message on 401/403', async () => {
     setLocals({ paying: true });
-    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 403 }));
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 401 }));
     vi.stubGlobal('fetch', fetchMock);
 
     render(<PhotoToFlashcardsPage />);
@@ -130,7 +130,31 @@ describe('PhotoToFlashcardsPage', () => {
     fireEvent.click(screen.getByText('Get flashcards'));
 
     await waitFor(() => {
-      expect(screen.getByText(/Ankify access is required for photo to deck/)).toBeTruthy();
+      expect(screen.getByText(/Sign in to use photo to deck/)).toBeTruthy();
+    });
+  });
+
+  it('shows the free-plan limit message on 429', async () => {
+    setLocals({ paying: false });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ used: 5, limit: 5 }), {
+          status: 429,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<PhotoToFlashcardsPage />);
+    const input = document.getElementById('photo-file-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [makePhoto()] } });
+    fireEvent.click(screen.getByText('Get flashcards'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Free plan is 5 photos per month\. Upgrade for unlimited\./)
+      ).toBeTruthy();
     });
   });
 

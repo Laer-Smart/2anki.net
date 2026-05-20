@@ -1,7 +1,6 @@
 import express from "express";
 import multer from "multer";
 import RequireAuthentication from "./middleware/RequireAuthentication";
-import RequireAnkifyAccess from "./middleware/RequireAnkifyAccess";
 import ImageOcclusionController from "../controllers/ImageOcclusionController";
 import { IoDraftController } from "../controllers/IoDraftController";
 import { PhotoToFlashcardsController } from "../controllers/PhotoToFlashcardsController";
@@ -9,10 +8,9 @@ import { CreateImageOcclusionDeckUseCase } from "../usecases/imageOcclusion/Crea
 import { PhotoToFlashcardsUseCase } from "../usecases/imageOcclusion/PhotoToFlashcardsUseCase";
 import { IoDraftRepository } from "../data_layer/IoDraftRepository";
 import NotionRepository from "../data_layer/NotionRespository";
+import { EventsRepository } from "../data_layer/EventsRepository";
 import { getDatabase } from "../data_layer";
 import StorageHandler from "../lib/storage/StorageHandler";
-
-const VISION_ENABLED = process.env.VISION_PHOTO_ENABLED === 'true';
 
 const ImageOcclusionRouter = () => {
   const router = express.Router();
@@ -20,7 +18,7 @@ const ImageOcclusionRouter = () => {
   const upload = multer({ dest:"/tmp", fileFilter:(_req,file,cb)=>{ cb(null,ALLOWED.includes(file.mimetype)); }, limits:{fileSize:10*1024*1024} });
   const oc = new ImageOcclusionController(new CreateImageOcclusionDeckUseCase());
   const dc = new IoDraftController(new IoDraftRepository(getDatabase()), new StorageHandler(), new NotionRepository(getDatabase()));
-  const ptf = new PhotoToFlashcardsController(new PhotoToFlashcardsUseCase());
+  const ptf = new PhotoToFlashcardsController(new PhotoToFlashcardsUseCase(new EventsRepository(getDatabase())));
 
   /**
    * @swagger
@@ -178,47 +176,45 @@ const ImageOcclusionRouter = () => {
    */
   router.delete("/api/image-occlusion/draft/:id", RequireAuthentication, (req,res)=>dc.remove(req,res));
 
-  if (VISION_ENABLED) {
-    /**
-     * @swagger
-     * /api/image-occlusion/photo-to-deck:
-     *   post:
-     *     summary: Generate an Anki deck from a photo via Claude Vision
-     *     tags: [ImageOcclusion]
-     *     security:
-     *       - bearerAuth: []
-     *       - cookieAuth: []
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               imageBase64:
-     *                 type: string
-     *               mediaType:
-     *                 type: string
-     *               deckName:
-     *                 type: string
-     *               width:
-     *                 type: number
-     *               height:
-     *                 type: number
-     *     responses:
-     *       200:
-     *         description: Anki deck generated
-     *       400:
-     *         description: Invalid input
-     *       401:
-     *         description: Authentication required
-     *       403:
-     *         description: Ankify access required
-     *       413:
-     *         description: Image too large
-     */
-    router.post("/api/image-occlusion/photo-to-deck", RequireAnkifyAccess, express.json({ limit: "20mb" }), (req,res)=>ptf.create(req,res));
-  }
+  /**
+   * @swagger
+   * /api/image-occlusion/photo-to-deck:
+   *   post:
+   *     summary: Generate an Anki deck from a photo via Claude Vision
+   *     tags: [ImageOcclusion]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               imageBase64:
+   *                 type: string
+   *               mediaType:
+   *                 type: string
+   *               deckName:
+   *                 type: string
+   *               width:
+   *                 type: number
+   *               height:
+   *                 type: number
+   *     responses:
+   *       200:
+   *         description: Anki deck generated
+   *       400:
+   *         description: Invalid input
+   *       401:
+   *         description: Authentication required
+   *       403:
+   *         description: Ankify access required
+   *       413:
+   *         description: Image too large
+   */
+  router.post("/api/image-occlusion/photo-to-deck", RequireAuthentication, express.json({ limit: "20mb" }), (req,res)=>ptf.create(req,res));
 
   /**
    * @swagger

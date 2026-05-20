@@ -7,12 +7,18 @@ import { spawn, execFileSync } from 'node:child_process';
 import { getAnthropicClient } from '../../lib/claude/ClaudeService';
 import { countVisionTokens, VISION_TOKEN_CEILING, VisionMediaType } from '../../lib/claude/countVisionTokens';
 import { CREATE_DECK_DIR } from '../../lib/constants';
+import { track } from '../../services/events/track';
+import type { IEventsRepository } from '../../data_layer/EventsRepository';
+
+export const FREE_PHOTO_QUOTA_PER_MONTH = 5;
+const VISION_PHOTO_EVENT = 'vision_photo_converted';
 
 export interface PhotoToFlashcardsInput {
   imageBase64: string;
   mediaType: VisionMediaType;
   deckName: string;
-  hasAccess: boolean;
+  owner: string;
+  isPaying: boolean;
   imageDimensions: { width: number; height: number };
   tokenCeilingOverride?: number;
 }
@@ -22,6 +28,15 @@ export interface PhotoToFlashcardsResult {
   cardCount: number;
   estimatedCostUsd: number;
   tileCount: number;
+}
+
+function ownerToUserId(owner: string): number | null {
+  const n = Number(owner);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function startOfMonth(now: Date = new Date()): Date {
+  return new Date(now.getFullYear(), now.getMonth(), 1);
 }
 
 const VISION_PROMPT = `Extract atomic question-and-answer flashcard pairs from this image.
@@ -115,6 +130,20 @@ function makePayloadTooLargeError(): Error & { status: number } {
   return err;
 }
 
+function makeFreeQuotaReachedError(used: number, limit: number): Error & {
+  status: number;
+  used: number;
+  limit: number;
+} {
+  const err = new Error(
+    `Free plan is ${limit} photos per month. You've used ${used}. Upgrade for unlimited.`
+  ) as Error & { status: number; used: number; limit: number };
+  err.status = 429;
+  err.used = used;
+  err.limit = limit;
+  return err;
+}
+
 interface CompactCard {
   q: string;
   a: string;
@@ -174,9 +203,21 @@ function buildDeckInfo(
 }
 
 export class PhotoToFlashcardsUseCase {
+  constructor(private readonly events?: IEventsRepository) {}
+
   async execute(input: PhotoToFlashcardsInput): Promise<PhotoToFlashcardsResult> {
-    if (!input.hasAccess) {
-      throw makeForbiddenError();
+    const userId = ownerToUserId(input.owner);
+
+    if (!input.isPaying && this.events != null) {
+      const used = await this.events.countByNameForUser(
+        VISION_PHOTO_EVENT,
+        startOfMonth(),
+        userId,
+        userId == null ? input.owner : null
+      );
+      if (used >= FREE_PHOTO_QUOTA_PER_MONTH) {
+        throw makeFreeQuotaReachedError(used, FREE_PHOTO_QUOTA_PER_MONTH);
+      }
     }
 
     const { tokens, tiles } = countVisionTokens({
@@ -259,6 +300,12 @@ export class PhotoToFlashcardsUseCase {
       input_tokens: inputTokens,
       output_tokens: outputTokens,
     }));
+
+    track(VISION_PHOTO_EVENT, {
+      userId: ownerToUserId(input.owner),
+      anonymousId: ownerToUserId(input.owner) == null ? input.owner : null,
+      props: { card_count: cardCount, tile_count: tiles },
+    });
 
     return { apkgPath, cardCount, estimatedCostUsd, tileCount: tiles };
   }

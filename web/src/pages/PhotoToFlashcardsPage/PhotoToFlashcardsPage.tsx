@@ -131,13 +131,23 @@ export function PhotoToFlashcardsPage() {
         setStatus('idle');
         return;
       }
-      if (res.status === 403) {
-        setError('Ankify access is required for photo to deck.');
+      if (res.status === 401 || res.status === 403) {
+        setError('Sign in to use photo to deck.');
         setStatus('idle');
         return;
       }
       if (res.status === 413) {
         setError('Photo is too large. Try a smaller or lower-resolution image.');
+        setStatus('idle');
+        return;
+      }
+      if (res.status === 429) {
+        const body = (await res.json().catch(() => ({}))) as {
+          used?: number;
+          limit?: number;
+        };
+        const limit = body.limit ?? 5;
+        setError(`Free plan is ${limit} photos per month. Upgrade for unlimited.`);
         setStatus('idle');
         return;
       }
@@ -167,7 +177,7 @@ export function PhotoToFlashcardsPage() {
         <h1 className={pageStyles.pageTitle}>Snap a photo, get cards</h1>
         <p className={pageStyles.pageSubtitle}>
           Works on textbook pages, lecture slides, and handwritten notes.
-          {!isPaying && ' Ankify access required.'}
+          {!isPaying && ' Free plan: 5 photos per month.'}
         </p>
       </header>
 

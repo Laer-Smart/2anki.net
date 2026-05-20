@@ -5,6 +5,7 @@ import express from 'express';
 import { PhotoToFlashcardsUseCase } from '../usecases/imageOcclusion/PhotoToFlashcardsUseCase';
 import type { VisionMediaType } from '../lib/claude/countVisionTokens';
 import { buildContentDisposition } from '../lib/buildContentDisposition';
+import { isPaying } from '../lib/isPaying';
 
 const ALLOWED_MEDIA_TYPES: VisionMediaType[] = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
@@ -48,7 +49,8 @@ export class PhotoToFlashcardsController {
     const width = typeof body.width === 'number' ? body.width : 512;
     const height = typeof body.height === 'number' ? body.height : 512;
 
-    const hasAccess = res.locals['email'] != null;
+    const owner = (res.locals['owner'] ?? '') as string;
+    const paying = isPaying(res.locals);
 
     let result: Awaited<ReturnType<PhotoToFlashcardsUseCase['execute']>>;
     try {
@@ -56,17 +58,30 @@ export class PhotoToFlashcardsController {
         imageBase64,
         mediaType,
         deckName,
-        hasAccess,
+        owner,
+        isPaying: paying,
         imageDimensions: { width, height },
       });
     } catch (err) {
-      const e = err as Error & { status?: number };
+      const e = err as Error & {
+        status?: number;
+        used?: number;
+        limit?: number;
+      };
       if (e.status === 403) {
         res.status(403).json({ message: e.message });
         return;
       }
       if (e.status === 413) {
         res.status(413).json({ message: e.message });
+        return;
+      }
+      if (e.status === 429) {
+        res.status(429).json({
+          message: e.message,
+          used: e.used,
+          limit: e.limit,
+        });
         return;
       }
       throw err;
