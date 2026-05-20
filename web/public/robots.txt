@@ -20,5 +20,6 @@ Disallow: /search
 Disallow: /uploads
 Disallow: /successful-checkout
 Disallow: /debug
+Disallow: /s/
 
 Sitemap: https://2anki.net/sitemap.xml

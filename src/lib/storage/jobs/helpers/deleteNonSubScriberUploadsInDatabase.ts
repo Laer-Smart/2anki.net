@@ -7,11 +7,15 @@ export const deleteNonSubScriberUploadsInDatabase = async (
   storage: StorageHandler
 ) => {
   const query = await db.raw(`
-    SELECT up.key 
-    FROM users u 
-    JOIN uploads up ON u.id = up.owner 
+    SELECT up.key
+    FROM users u
+    JOIN uploads up ON u.id = up.owner
     LEFT JOIN subscriptions s ON u.email = s.email OR u.email = s.linked_email
-    WHERE u.patreon = false AND (s.active IS NULL OR s.active = false);
+    WHERE u.patreon = false AND (s.active IS NULL OR s.active = false)
+      AND NOT EXISTS (
+        SELECT 1 FROM deck_shares ds
+        WHERE ds.upload_key = up.key AND ds.revoked_at IS NULL
+      );
   `);
   const nonSubScriberUploads: Uploads[] | undefined = query.rows;
   if (!nonSubScriberUploads) {
