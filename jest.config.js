@@ -5,6 +5,7 @@ module.exports = {
   testMatch: ['**/*.test.ts', '**/*.test.tsx'],
   testPathIgnorePatterns: ['/node_modules/', '<rootDir>/web/'],
   modulePathIgnorePatterns: ['<rootDir>/test/'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleNameMapper: {
     '^puppeteer$': '<rootDir>/src/test/mocks/puppeteer.ts',
   },

@@ -4,6 +4,8 @@ import type { IEmailService } from './EmailService/EmailService';
 import type AuthenticationService from './AuthenticationService';
 import { InMemoryMagicTokenRepository } from '../data_layer/MagicTokenRepository';
 
+jest.mock('../lib/misc/hashToken', () => (s: string) => `hashed:${s}`);
+
 function buildEmailService(
   overrides: Partial<IEmailService> = {}
 ): jest.Mocked<IEmailService> {

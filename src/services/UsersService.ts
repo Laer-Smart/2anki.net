@@ -5,6 +5,7 @@ import Users from '../data_layer/public/Users';
 import AuthenticationService from './AuthenticationService';
 import { IEmailService } from './EmailService/EmailService';
 import type { IMagicTokenRepository } from '../data_layer/MagicTokenRepository';
+import hashToken from '../lib/misc/hashToken';
 
 const MAGIC_LINK_RATE_LIMIT = 5;
 const MAGIC_LINK_RATE_WINDOW_MS = 60 * 60 * 1000;
@@ -154,20 +155,45 @@ class UsersService {
     }
     const user = await this.repository.getByEmail(email);
     if (user?.id == null) {
+      console.info('password_reset.magic_link', {
+        outcome: 'unknown_email',
+        purpose,
+      });
       return;
     }
+    const userIdHash = hashToken(String(user.id));
     const oneHourAgo = new Date(Date.now() - MAGIC_LINK_RATE_WINDOW_MS);
     const recentCount = await this.magicTokenRepository.countRecentByOwner(
       user.id,
       oneHourAgo
     );
     if (recentCount >= MAGIC_LINK_RATE_LIMIT) {
+      console.info('password_reset.magic_link', {
+        outcome: 'rate_limited',
+        purpose,
+        user_id_hash: userIdHash,
+      });
       throw new MagicLinkRateLimitError();
     }
     const token = crypto.randomBytes(64).toString('hex');
     const expiresAt = new Date(Date.now() + MAGIC_LINK_EXPIRY_MS);
     await this.magicTokenRepository.create(token, user.id, purpose, expiresAt);
-    await this.emailService.sendMagicLinkEmail(email, token, purpose);
+    try {
+      await this.emailService.sendMagicLinkEmail(email, token, purpose);
+    } catch (error) {
+      console.info('password_reset.magic_link', {
+        outcome: 'send_failed',
+        purpose,
+        user_id_hash: userIdHash,
+        error: error instanceof Error ? error.constructor.name : 'UnknownError',
+      });
+      throw error;
+    }
+    console.info('password_reset.magic_link', {
+      outcome: 'sent',
+      purpose,
+      user_id_hash: userIdHash,
+    });
   }
 
   async verifyMagicToken(
