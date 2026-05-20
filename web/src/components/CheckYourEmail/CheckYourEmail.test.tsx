@@ -143,4 +143,40 @@ describe('CheckYourEmail', () => {
     const link = screen.getByRole('link', { name: 'support@2anki.net' });
     expect(link).toHaveAttribute('href', 'mailto:support@2anki.net');
   });
+
+  it('shows resend error copy with spam and support hint when resend fails', async () => {
+    const onResend = vi.fn().mockRejectedValue(new Error('rate limited'));
+    render(
+      <CheckYourEmail
+        email="user@example.com"
+        onRetry={vi.fn()}
+        purpose="password_reset"
+        onResend={onResend}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Resend link' }));
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Couldn't send another link right now. Check your inbox and spam, or email support@2anki.net."
+        )
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('shows nuanced still-nothing copy at the bottom', () => {
+    render(
+      <CheckYourEmail
+        email="user@example.com"
+        onRetry={vi.fn()}
+        purpose="login"
+      />
+    );
+    expect(
+      screen.getByText(/Still nothing after checking spam\?/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/we'll get you in/)
+    ).toBeInTheDocument();
+  });
 });

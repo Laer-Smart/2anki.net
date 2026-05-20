@@ -116,14 +116,15 @@ function CheckYourEmail({
             )}
             {resendState === 'error' && (
               <p className={styles.helpDanger}>
-                Could not send — try again in a moment.
+                {"Couldn't send another link right now. Check your inbox and spam, or email support@2anki.net."}
               </p>
             )}
           </div>
         )}
         <p className={styles.helpMuted}>
-          {'Still nothing? Email '}
+          {'Still nothing after checking spam? Email '}
           <a href="mailto:support@2anki.net">support@2anki.net</a>
+          {' — we\'ll get you in.'}
         </p>
       </div>
     </div>
