@@ -15,6 +15,7 @@ export const KNOWN_EVENTS = new Set([
   'purchase',
   'email_clicked',
   'email_batch_sent',
+  'vision_photo_converted',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;
