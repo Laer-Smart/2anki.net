@@ -8,12 +8,14 @@ import PricingPage from './PricingPage';
 const mockStartAutoSyncCheckout = vi.fn();
 const mockRequestHostedAnkiAccess = vi.fn();
 const mockStartPassCheckout = vi.fn();
+const mockStartUnlimitedCheckout = vi.fn();
 
 vi.mock('../../lib/backend/get2ankiApi', () => ({
   get2ankiApi: () => ({
     requestHostedAnkiAccess: mockRequestHostedAnkiAccess,
     startAutoSyncCheckout: mockStartAutoSyncCheckout,
     startPassCheckout: mockStartPassCheckout,
+    startUnlimitedCheckout: mockStartUnlimitedCheckout,
   }),
 }));
 
@@ -318,18 +320,82 @@ describe('PricingPage internal event tracking', () => {
     });
   });
 
-  it('tracks paywall_upgrade_clicked with plan=unlimited when Upgrade link is clicked', async () => {
+  it('tracks paywall_upgrade_clicked with plan=unlimited when Upgrade button is clicked', async () => {
     const { track } = await import('../../lib/analytics/track');
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
+    mockStartUnlimitedCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/unlimited' });
+    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
 
     renderAt('/pricing', { isLoggedIn: true });
-    const upgradeLink = screen.getByRole('link', { name: 'Upgrade' });
-    fireEvent.click(upgradeLink);
+    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
 
-    expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
-      surface: 'pricing_page',
-      plan: 'unlimited',
+    await waitFor(() => {
+      expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
+        surface: 'pricing_page',
+        plan: 'unlimited',
+      });
     });
+  });
+});
+
+describe('PricingPage Unlimited billing toggle', () => {
+  it('does not render the billing toggle when yearlyAvailable is false', () => {
+    renderAt('/pricing', { unlimitedYearlyAvailable: false });
+    expect(screen.queryByRole('radiogroup', { name: 'Billing cycle' })).not.toBeInTheDocument();
+  });
+
+  it('renders Monthly and Yearly options when yearlyAvailable is true', () => {
+    renderAt('/pricing', { unlimitedYearlyAvailable: true });
+    const group = screen.getByRole('radiogroup', { name: 'Billing cycle' });
+    expect(group).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Monthly' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'Yearly' })).toBeInTheDocument();
+  });
+
+  it('shows $6 / mo by default', () => {
+    renderAt('/pricing', { unlimitedYearlyAvailable: true });
+    expect(screen.getByText('$6')).toBeInTheDocument();
+    expect(screen.getByText('/ mo')).toBeInTheDocument();
+  });
+
+  it('shows $60 / yr and 2 months free after selecting Yearly', () => {
+    renderAt('/pricing', { unlimitedYearlyAvailable: true });
+    fireEvent.click(screen.getByRole('radio', { name: 'Yearly' }));
+    expect(screen.getByText('$60')).toBeInTheDocument();
+    expect(screen.getByText('/ yr')).toBeInTheDocument();
+    expect(screen.getByText('2 months free')).toBeInTheDocument();
+  });
+
+  it('calls startUnlimitedCheckout with month when Monthly is selected', async () => {
+    mockStartUnlimitedCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/month' });
+    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
+
+    renderAt('/pricing', { isLoggedIn: true, unlimitedYearlyAvailable: true });
+    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
+
+    await waitFor(() => {
+      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('month');
+    });
+  });
+
+  it('calls startUnlimitedCheckout with year when Yearly is selected', async () => {
+    mockStartUnlimitedCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/year' });
+    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
+
+    renderAt('/pricing', { isLoggedIn: true, unlimitedYearlyAvailable: true });
+    fireEvent.click(screen.getByRole('radio', { name: 'Yearly' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
+
+    await waitFor(() => {
+      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('year');
+    });
+  });
+
+  it('redirects to login when logged-out user clicks Upgrade', () => {
+    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
+    renderAt('/pricing', { isLoggedIn: false, unlimitedYearlyAvailable: true });
+    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
+    expect(globalThis.location.href).toBe('/login?redirect=/pricing');
   });
 });
