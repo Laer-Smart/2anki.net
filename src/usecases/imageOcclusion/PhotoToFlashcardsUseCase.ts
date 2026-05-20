@@ -6,7 +6,7 @@ import { spawn, execFileSync } from 'node:child_process';
 
 import { getAnthropicClient } from '../../lib/claude/ClaudeService';
 import { countVisionTokens, VISION_TOKEN_CEILING, VisionMediaType } from '../../lib/claude/countVisionTokens';
-import { CREATE_DECK_DIR } from '../../lib/constants';
+import { CREATE_DECK_DIR, CREATE_DECK_SCRIPT_PATH, TEMPLATE_DIR } from '../../lib/constants';
 import { track } from '../../services/events/track';
 import type { IEventsRepository } from '../../data_layer/EventsRepository';
 
@@ -88,12 +88,15 @@ function findPython(): string {
   return 'python3';
 }
 
-const DECK_SCRIPT_PATH = path.join(CREATE_DECK_DIR, 'create_deck.py');
-
 function runDeckBridge(workspaceDir: string): Promise<string> {
   const python = findPython();
+  const deckInfoPath = path.join(workspaceDir, 'deck_info.json');
   return new Promise((resolve, reject) => {
-    const proc = spawn(python, [DECK_SCRIPT_PATH, workspaceDir], { cwd: workspaceDir });
+    const proc = spawn(
+      python,
+      [CREATE_DECK_SCRIPT_PATH, deckInfoPath, TEMPLATE_DIR],
+      { cwd: workspaceDir }
+    );
     const stdoutChunks: string[] = [];
     const stderrChunks: string[] = [];
     proc.stdout.on('data', (chunk) => stdoutChunks.push(chunk.toString()));

@@ -181,4 +181,17 @@ describe('PhotoToFlashcardsUseCase', () => {
       );
     });
   });
+
+  describe('deck builder invocation', () => {
+    it('spawns create_deck.py with deck_info.json and the template dir', async () => {
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      expect(mockChild.spawn).toHaveBeenCalledTimes(1);
+      const [, argv] = (mockChild.spawn as jest.Mock).mock.calls[0];
+      expect(argv).toHaveLength(3);
+      expect(argv[0]).toMatch(/create_deck\.py$/);
+      expect(argv[1]).toMatch(/deck_info\.json$/);
+      expect(argv[2]).toMatch(/templates$/);
+    });
+  });
 });
