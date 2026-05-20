@@ -71,6 +71,9 @@ export function buildPreviewDocument(
 ): string {
   const body = renderCardSide(noteType, previewData, side);
   return `<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>
+html { font-size: clamp(8px, 2.5vw, 16px); }
+:where(h1) { font-size: 1.4em; }
+:where(h2) { font-size: 1.25em; }
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #fff; color: #111; }
 body { overflow: hidden; display: flex; }
 :where(body > .card) {
