@@ -359,31 +359,6 @@ export function TemplatesPage() {
           </div>
         </section>
       )}
-      {officialStarters.length > 0 && (
-        <section
-          className={styles.section}
-          aria-labelledby="official-note-types-heading"
-        >
-          <h2
-            id="official-note-types-heading"
-            className={styles.sectionHeading}
-          >
-            Official 2anki templates
-          </h2>
-          <div className={styles.grid}>
-            {officialStarters.map((starter) => (
-              <NoteTypeCard
-                key={starter.id}
-                starter={starter}
-                ownedByUser={false}
-                busy={busyId === starter.id}
-                onDownload={handleDownload}
-                onPreview={setPreviewed}
-              />
-            ))}
-          </div>
-        </section>
-      )}
       {defaultStarters.length > 0 && (
         <section
           className={styles.section}
@@ -397,6 +372,31 @@ export function TemplatesPage() {
           </h2>
           <div className={styles.grid}>
             {defaultStarters.map((starter) => (
+              <NoteTypeCard
+                key={starter.id}
+                starter={starter}
+                ownedByUser={false}
+                busy={busyId === starter.id}
+                onDownload={handleDownload}
+                onPreview={setPreviewed}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+      {officialStarters.length > 0 && (
+        <section
+          className={styles.section}
+          aria-labelledby="official-note-types-heading"
+        >
+          <h2
+            id="official-note-types-heading"
+            className={styles.sectionHeading}
+          >
+            Official 2anki templates
+          </h2>
+          <div className={styles.grid}>
+            {officialStarters.map((starter) => (
               <NoteTypeCard
                 key={starter.id}
                 starter={starter}
