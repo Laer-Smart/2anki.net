@@ -179,6 +179,6 @@ Good vs bad:
 ## Slash commands (`.claude/commands/` and `.claude/skills/`)
 
 - `/trio` — force a trio review on any task.
-- `/triage-feedback`, `/spec`, `/implement`, `/review-pr`, `/changelog`, `/weekly-retro`, `/support-reply` — trio workflow.
+- `/triage-feedback`, `/spec-draft-pr`, `/implement`, `/review-pr`, `/changelog`, `/weekly-retro`, `/support-reply` — trio workflow.
 - `/check`, `/pr-checks`, `/deploy-status` — local + remote status.
 - `/tdd`, `/add-tests`, `/security-audit`, `/verify-completion`, `/simplify`, `/systematic-debugging`, `/revise-claude-md` — engineering aids.

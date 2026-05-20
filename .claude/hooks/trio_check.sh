@@ -9,8 +9,9 @@ prompt=$(cat | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get(
 # Exclusion: skip when the prompt is clearly about internal tooling, CI, deps, or .claude/ config.
 # These false-positive on the keyword regex below (e.g. "user-facing copy" appears in design rules)
 # and a wasted trio costs 3 forks (opus + opus + sonnet) per fire.
+# Match both `.claude/` (path form) and bare `.claude` / `claude folder` (prose form).
 if echo "$prompt" | grep -qiE \
-  '\.claude/|/hooks/|/rules/|/agents/|/commands/|/skills/|\bCI\b|dependabot|dependenc(y|ies)|tooling|claude setup|sub.?agent|prompt cache|model routing'; then
+  '(^|[^a-z])\.claude([/.]|\b)|\bclaude (folder|setup|config|housekeep)|/hooks/|/rules/|/agents/|/commands/|/skills/|\bCI\b|dependabot|dependenc(y|ies)|tooling|sub.?agent|prompt cache|model routing'; then
   exit 0
 fi
 
@@ -23,11 +24,12 @@ result = {
   "hookSpecificOutput": {
     "hookEventName": "UserPromptSubmit",
     "additionalContext": (
-      "<trio_required>This task touches user-facing or product behavior. "
-      "Per CLAUDE.md trio review policy: invoke pm, designer, and engineer subagents "
-      "in parallel via the Agent tool before writing any code. "
-      "Produce the synthesis block (each agent view, agreements, conflicts, resolution, plan) "
-      "before proceeding. Use /trio to force this explicitly.</trio_required>"
+      "<trio_required>User-facing change detected. "
+      "Spawn pm + designer + engineer in one parallel Agent call before any code — "
+      "each catches what a solo author misses. "
+      "Synthesize agreements, conflicts, plan; then proceed. "
+      "/trio forces it; the synthesis keeps every change traceable to "
+      "simpler/faster/more beautiful or scale.</trio_required>"
     )
   }
 }
