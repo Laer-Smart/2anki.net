@@ -10,6 +10,15 @@ import App from './App';
 import { SkeletonPage } from './components/Skeleton/Skeleton';
 import { RootErrorBoundary } from './components/RootErrorBoundary/RootErrorBoundary';
 import { initTheme } from './lib/theme';
+import { recoverFromChunkError } from './lib/chunkReload';
+
+window.addEventListener('error', (event) => {
+  recoverFromChunkError(event.error);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  recoverFromChunkError(event.reason);
+});
 
 function main() {
   initTheme();
