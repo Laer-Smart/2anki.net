@@ -280,4 +280,79 @@ describe('NotionController', () => {
       expect(res.status).toHaveBeenCalledWith(400);
     });
   });
+
+  describe('getNotionLink', () => {
+    it('returns the OAuth link with isConnected=false when the caller is anonymous', async () => {
+      service = {
+        getClientId: jest.fn().mockReturnValue('client-abc'),
+        getNotionLinkInfo: jest.fn().mockResolvedValue({
+          link: 'https://api.notion.com/v1/oauth/authorize?client_id=client-abc',
+          isConnected: false,
+          workspace: null,
+        }),
+      } as any;
+      controller = new NotionController(service);
+      res = {
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+        locals: {},
+      } as any;
+
+      await controller.getNotionLink(
+        req as express.Request,
+        res as express.Response
+      );
+
+      expect(service.getNotionLinkInfo).toHaveBeenCalledWith(undefined);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          link: 'https://api.notion.com/v1/oauth/authorize?client_id=client-abc',
+          isConnected: false,
+        })
+      );
+    });
+
+    it('returns isConnected=true with workspace when the caller has a Notion token', async () => {
+      service = {
+        getClientId: jest.fn().mockReturnValue('client-abc'),
+        getNotionLinkInfo: jest.fn().mockResolvedValue({
+          link: 'https://api.notion.com/v1/oauth/authorize?client_id=client-abc',
+          isConnected: true,
+          workspace: 'Pristine Shrestha’s Notion',
+        }),
+      } as any;
+      controller = new NotionController(service);
+
+      await controller.getNotionLink(
+        req as express.Request,
+        res as express.Response
+      );
+
+      expect(service.getNotionLinkInfo).toHaveBeenCalledWith('owner1');
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isConnected: true,
+          workspace: 'Pristine Shrestha’s Notion',
+        })
+      );
+    });
+
+    it('returns 400 when the client ID is not configured', async () => {
+      service = {
+        getClientId: jest.fn().mockReturnValue(undefined),
+        getNotionLinkInfo: jest.fn(),
+      } as any;
+      controller = new NotionController(service);
+
+      await controller.getNotionLink(
+        req as express.Request,
+        res as express.Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(service.getNotionLinkInfo).not.toHaveBeenCalled();
+    });
+  });
 });

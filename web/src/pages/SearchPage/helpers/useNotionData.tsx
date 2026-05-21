@@ -25,8 +25,8 @@ export default function useNotionData(
         const data = await backend.getNotionConnectionInfo();
         const newState = {
           loading: false,
-          connected: data.isConnected ?? true,
-          connectionLink: data.link,
+          connected: data.isConnected === true,
+          connectionLink: data.link ?? '',
           workSpace: data.workspace,
         };
         setState(newState);

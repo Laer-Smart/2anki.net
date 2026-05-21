@@ -113,11 +113,13 @@ const NotionRouter = () => {
    * /api/notion/get-notion-link:
    *   get:
    *     summary: Get Notion connection link
-   *     description: Get the OAuth link to connect to Notion
+   *     description: |
+   *       Returns the OAuth link to connect to Notion. The link itself is
+   *       public — anonymous and expired-session users still get back a
+   *       working URL so the "Connect to Notion" button never goes inert.
+   *       `isConnected` and `workspace` are only populated when the caller
+   *       has a valid session.
    *     tags: [Notion]
-   *     security:
-   *       - bearerAuth: []
-   *       - cookieAuth: []
    *     responses:
    *       200:
    *         description: Notion link retrieved successfully
@@ -137,15 +139,11 @@ const NotionRouter = () => {
    *                   type: string
    *                   nullable: true
    *                   description: Connected workspace name
-   *       401:
-   *         description: Authentication required
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
    */
-  router.get('/api/notion/get-notion-link', RequireAuthentication, (req, res) =>
-    controller.getNotionLink(req, res)
+  router.get(
+    '/api/notion/get-notion-link',
+    OptionalAuthentication,
+    (req, res) => controller.getNotionLink(req, res)
   );
 
   /**
