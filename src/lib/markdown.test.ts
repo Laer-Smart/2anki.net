@@ -80,6 +80,33 @@ describe('markdownToHTML', () => {
     });
   });
 
+  describe('Notion callout <aside> wrapper (regression: #2529)', () => {
+    it('strips opening <aside> tag from rendered HTML', () => {
+      const input =
+        '<aside>\n🩺 Jaundice is abnormal when:\n\n- It occurs within 24 hours of birth\n</aside>';
+      const html = markdownToHTML(input);
+      expect(html).not.toContain('&lt;aside');
+      expect(html).not.toContain('&lt;/aside');
+      expect(html).not.toContain('<aside');
+      expect(html).not.toContain('</aside>');
+    });
+
+    it('preserves callout content after stripping <aside> wrapper', () => {
+      const input =
+        '<aside>\n🩺 Jaundice is abnormal when:\n\n- It occurs within 24 hours of birth\n</aside>';
+      const html = markdownToHTML(input);
+      expect(html).toContain('Jaundice is abnormal');
+    });
+
+    it('preserves bullet list inside a callout block', () => {
+      const input =
+        '<aside>\n🩺 Jaundice is abnormal when:\n\n- It occurs within 24 hours of birth\n</aside>';
+      const html = markdownToHTML(input);
+      expect(html).toContain('<ul>');
+      expect(html).toContain('24 hours');
+    });
+  });
+
   describe('GFM table in bullet item (regression: user 10781)', () => {
     const galactosaemia = [
       '- **Galactosaemia** and other inborn errors of metabolism',
