@@ -13,7 +13,6 @@ import {
 } from '../../lib/data_layer/userPreferencesSync';
 import useQuery from '../../lib/hooks/useQuery';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
-import { getVisibleText } from '../../lib/text/getVisibleText';
 import styles from '../../styles/shared.module.css';
 import { OnboardingTour } from './components/OnboardingTour/OnboardingTour';
 import UploadForm from './components/UploadForm/UploadForm';
@@ -83,12 +82,6 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
 
   return (
     <div className={styles.page}>
-      <header className={styles.pageHeader}>
-        <h1 className={styles.title}>{getVisibleText('upload.page.title')}</h1>
-        <p className={styles.subtitle}>
-          Turn your notes into flashcards in seconds
-        </p>
-      </header>
       <OnboardingTour
         createdAt={userLocals?.user?.created_at ?? null}
         onboardedAt={userLocals?.user?.onboarded_at ?? null}
