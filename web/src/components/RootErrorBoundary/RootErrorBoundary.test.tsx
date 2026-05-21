@@ -8,17 +8,29 @@ function BrokenApp(): ReactElement {
   throw new Error('boom');
 }
 
+function ChunkBrokenApp(): ReactElement {
+  throw new TypeError(
+    'Failed to fetch dynamically imported module: https://2anki.net/assets/A.js'
+  );
+}
+
 describe('RootErrorBoundary', () => {
   let consoleError: ReturnType<typeof vi.spyOn>;
+  let reloadMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
+    reloadMock = vi.fn();
+    vi.stubGlobal('location', { reload: reloadMock });
     consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
     consoleError.mockRestore();
     localStorage.clear();
+    sessionStorage.clear();
+    vi.unstubAllGlobals();
   });
 
   it('renders children while the app is healthy', () => {
@@ -80,5 +92,41 @@ describe('RootErrorBoundary', () => {
 
     expect(localStorage.getItem('stale-key')).toBeNull();
     expect(reloadPage).toHaveBeenCalledOnce();
+  });
+
+  it('does not render the fallback UI on first chunk-load error — triggers silent reload', () => {
+    render(
+      <RootErrorBoundary>
+        <ChunkBrokenApp />
+      </RootErrorBoundary>
+    );
+
+    expect(reloadMock).toHaveBeenCalledOnce();
+    expect(
+      screen.queryByRole('heading', { name: /something went wrong/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /this page was updated/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows chunk-specific copy on second chunk-load error within the cooldown', () => {
+    sessionStorage.setItem('2anki:chunkReload:lastAt', String(Date.now()));
+
+    render(
+      <RootErrorBoundary>
+        <ChunkBrokenApp />
+      </RootErrorBoundary>
+    );
+
+    expect(reloadMock).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('heading', {
+        name: /this page was updated while you had it open/i,
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: /something went wrong loading 2anki/i })
+    ).not.toBeInTheDocument();
   });
 });
