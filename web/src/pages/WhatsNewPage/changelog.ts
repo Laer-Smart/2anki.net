@@ -5,6 +5,8 @@ export interface ChangelogEntry {
 }
 
 export const changelog: ChangelogEntry[] = [
+  { type: 'feature', title: 'Notion search — hitting the one-at-a-time cap now shows a link to Auto Sync alongside the upgrade option', date: '2026-05-21' },
+  { type: 'style', title: 'Home page walkthroughs slimmed to 10 videos, with non-Notion sources surfacing first', date: '2026-05-21' },
   { type: 'fix', title: 'Onboarding tour now renders correctly in dark mode (and the gold and purple themes)', date: '2026-05-21' },
   { type: 'style', title: 'Upload page — dropped the duplicated "Make flashcards" heading; the navbar identifies the page and the form is the focus', date: '2026-05-21' },
   { type: 'style', title: 'Home page walkthroughs slimmed to 10 videos, with non-Notion sources surfacing first', date: '2026-05-21' },
