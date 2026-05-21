@@ -194,7 +194,12 @@ export class DeckParser {
   }
 
   private embedImagesInHtml(html: string): { html: string; media: string[] } {
-    const dom = cheerio.load(html, { xmlMode: true });
+    // Fragment mode (isDocument=false). xmlMode would double-escape `&nbsp;`
+    // (and other named HTML entities) because xmlMode treats them as
+    // undefined-in-XML and re-escapes the `&`, producing visible `&nbsp;`
+    // text in the user's card. Default doc mode would wrap output in
+    // <html><body>...
+    const dom = cheerio.load(html, null, false);
     const media: string[] = [];
     dom('img').each((_i, elem) => {
       const src = dom(elem).attr('src');

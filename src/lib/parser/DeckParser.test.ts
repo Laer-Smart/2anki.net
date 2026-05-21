@@ -728,3 +728,55 @@ describe('MCQ detection via DeckParser', () => {
     }
   });
 });
+
+describe('heuristic markdown path — entity preservation', () => {
+  // Regression: markdown uploads with non-breaking spaces (U+00A0) were
+  // rendered with the literal text "&nbsp;" in the card. Showdown converts
+  // U+00A0 to the `&nbsp;` HTML entity, and `embedImagesInHtml` was running
+  // the result through cheerio in `xmlMode: true`. xmlMode does not know
+  // `&nbsp;` (it is not a valid XML entity) and re-escapes the `&` to
+  // `&amp;`, producing `&amp;nbsp;` in the .apkg which Anki renders as the
+  // visible text "&nbsp;". Locking in fragment mode so this can't regress.
+  const nbsp = String.fromCharCode(0xa0);
+
+  const buildHeuristicDeck = async (markdown: string) => {
+    const workspace = new Workspace(true, 'fs');
+    const parser = new DeckParser({
+      name: 'notes.md',
+      settings: new CardOption({ cherry: 'false' }),
+      files: [{ name: 'notes.md', contents: markdown }],
+      noLimits: true,
+      workspace,
+    });
+    parser.customExporter.save = jest.fn().mockResolvedValue('');
+    await parser.build(workspace);
+    return parser.payload[0];
+  };
+
+  it('does not double-escape &nbsp; into &amp;nbsp; in card backs', async () => {
+    const markdown = [
+      '## What is neonatal jaundice',
+      `Jaundice is a${nbsp}**yellow discolouration of the sclerae and skin**${nbsp}due to excess bilirubin.`,
+    ].join('\n');
+
+    const deck = await buildHeuristicDeck(markdown);
+
+    expect(deck.cards.length).toBeGreaterThan(0);
+    const allHtml = deck.cards.map((c) => `${c.name}\n${c.back}`).join('\n');
+    expect(allHtml).not.toContain('&amp;nbsp;');
+    expect(allHtml).not.toContain('&amp;amp;');
+  });
+
+  it('preserves &nbsp; entity (or U+00A0) so Anki renders a non-breaking space', async () => {
+    const markdown = [
+      '## Concept',
+      `prefix${nbsp}body content here`,
+    ].join('\n');
+
+    const deck = await buildHeuristicDeck(markdown);
+    const back = deck.cards[0]?.back ?? '';
+    const hasEntity = back.includes('&nbsp;');
+    const hasChar = back.includes(nbsp);
+    expect(hasEntity || hasChar).toBe(true);
+  });
+});
