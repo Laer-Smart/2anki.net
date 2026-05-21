@@ -11,6 +11,10 @@ vi.mock('./components/UploadForm/UploadForm', () => ({
   default: () => <div data-testid="upload-form-stub" />,
 }));
 
+vi.mock('./components/PhotoToDeckEntry/PhotoToDeckEntry', () => ({
+  PhotoToDeckEntry: () => <div data-testid="photo-to-deck-entry-stub" />,
+}));
+
 const renderPage = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -79,5 +83,16 @@ describe('UploadPage reattach banner', () => {
     await waitFor(() => {
       expect(screen.queryByRole('status')).not.toBeInTheDocument();
     });
+  });
+});
+
+describe('UploadPage photo-to-deck entry', () => {
+  beforeEach(() => {
+    globalThis.sessionStorage.clear();
+  });
+
+  it('renders the PhotoToDeckEntry strip below the upload form', () => {
+    renderPage();
+    expect(screen.getByTestId('photo-to-deck-entry-stub')).toBeInTheDocument();
   });
 });

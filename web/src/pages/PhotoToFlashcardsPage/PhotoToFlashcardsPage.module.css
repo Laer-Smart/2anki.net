@@ -99,3 +99,47 @@
   justify-content: flex-end;
   gap: var(--space-sm, 0.75rem);
 }
+
+.cameraButtonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cameraButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.25rem;
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: var(--font-medium, 500);
+  color: var(--color-bg-primary);
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-md, 0.5rem);
+  cursor: pointer;
+  transition: background var(--transition-fast, 150ms);
+}
+
+.cameraButton:hover {
+  background: var(--color-primary-hover);
+}
+
+.dropzoneLabel {
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text-tertiary);
+  margin: 0;
+  text-align: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cameraButtonContainer {
+    display: none;
+  }
+
+  .dropzoneLabel {
+    display: none;
+  }
+}

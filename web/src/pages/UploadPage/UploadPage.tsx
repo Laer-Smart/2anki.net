@@ -6,6 +6,7 @@ import useQuery from '../../lib/hooks/useQuery';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import styles from '../../styles/shared.module.css';
 import { OnboardingTour } from './components/OnboardingTour/OnboardingTour';
+import { PhotoToDeckEntry } from './components/PhotoToDeckEntry/PhotoToDeckEntry';
 import UploadForm from './components/UploadForm/UploadForm';
 import pageStyles from './UploadPage.module.css';
 
@@ -66,6 +67,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
         </div>
       )}
       <UploadForm setErrorMessage={setErrorMessage} />
+      <PhotoToDeckEntry />
       <details className={pageStyles.howItWorks}>
         <summary className={pageStyles.howItWorksSummary}>
           <h2 className={pageStyles.howItWorksHeading}>How it works</h2>
