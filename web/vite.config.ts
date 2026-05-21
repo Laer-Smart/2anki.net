@@ -48,6 +48,9 @@ export default defineConfig(({ command, mode }) => {
       environment: 'jsdom',
       setupFiles: ['./src/setupTests.ts'],
       css: true,
+      deps: {
+        inline: ['@exodus/bytes'],
+      },
       include: [
         'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
         'scripts/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts}',
