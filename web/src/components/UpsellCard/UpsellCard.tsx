@@ -7,10 +7,7 @@ import { isPayingUser } from '../NavigationBar/helpers/getPlanLabel';
 import { getSubscribeLink } from '../../pages/PricingPage/payment.links';
 import styles from './UpsellCard.module.css';
 
-type Surface =
-  | 'downloads_upsell'
-  | 'upload_success_upsell'
-  | 'upload_idle_upsell';
+type Surface = 'downloads_upsell' | 'upload_success_upsell';
 
 interface UpsellCardProps {
   readonly surface: Surface;
@@ -18,18 +15,15 @@ interface UpsellCardProps {
 }
 
 const HEADLINE: Record<Surface, string> = {
-  downloads_upsell: 'More decks to download?',
+  downloads_upsell: 'Converting more this month?',
   upload_success_upsell: 'More pages to convert?',
-  upload_idle_upsell: 'Whole stack to convert?',
 };
 
 const BODY: Record<Surface, string> = {
   downloads_upsell:
-    'A pass lifts the 100-card monthly cap. Day or week, no subscription.',
+    'A Day Pass lifts the 100-card limit for 24 hours — no subscription.',
   upload_success_upsell:
     'A pass lifts the 100-card monthly cap — for a day or a week, no subscription.',
-  upload_idle_upsell:
-    'A pass lifts the 100-card monthly cap. Day or week, no subscription.',
 };
 
 export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProps) {

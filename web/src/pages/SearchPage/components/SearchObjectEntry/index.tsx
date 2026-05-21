@@ -101,8 +101,7 @@ function SearchObjectEntry(props: Readonly<Props>) {
         {status === 'paywall' && (
           <span className={styles.convertStatus}>
             Free plan — one conversion at a time.{' '}
-            <Link to="/pricing">Upgrade</Link> or try{' '}
-            <Link to="/ankify">Auto Sync</Link>.
+            <Link to="/pricing">Upgrade</Link> or wait.
           </span>
         )}
         {status === 'conflict' && (

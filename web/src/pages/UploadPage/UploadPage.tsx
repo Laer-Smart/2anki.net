@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
-import { UpsellCard } from '../../components/UpsellCard';
 import useQuery from '../../lib/hooks/useQuery';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import styles from '../../styles/shared.module.css';
@@ -67,9 +66,6 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
         </div>
       )}
       <UploadForm setErrorMessage={setErrorMessage} />
-      <div className={pageStyles.upsellWrapper}>
-        <UpsellCard surface="upload_idle_upsell" hideForAnonymous />
-      </div>
       <details className={pageStyles.howItWorks}>
         <summary className={pageStyles.howItWorksSummary}>
           <h2 className={pageStyles.howItWorksHeading}>How it works</h2>

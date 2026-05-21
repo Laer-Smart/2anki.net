@@ -40,8 +40,8 @@ export function PaywallBanner({ inProgressJob }: PaywallBannerProps) {
         One conversion at a time on the free plan
       </h2>
       <p className={styles.body}>
-        We cancelled this new one so the conversion you already started can
-        finish. Upgrade to Unlimited to run several at once.
+        This conversion was paused so the one you already started can finish.
+        Upgrade to Unlimited to run several at once.
       </p>
       <div className={styles.actions}>
         <a
