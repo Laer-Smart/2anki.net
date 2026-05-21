@@ -69,6 +69,19 @@ jest.mock('../services/GA4Service', () => ({
   sendPurchaseEvent: jest.fn().mockResolvedValue(undefined),
 }));
 
+const mockRecordError = jest.fn().mockResolvedValue(undefined);
+jest.mock('../data_layer/UserVisibleErrorsRepository', () => ({
+  UserVisibleErrorsRepository: jest.fn().mockImplementation(() => ({
+    record: jest.fn().mockResolvedValue(undefined),
+    countBySurfaceAndCode: jest.fn().mockResolvedValue([]),
+  })),
+}));
+jest.mock('../usecases/observability/RecordUserVisibleErrorUseCase', () => ({
+  RecordUserVisibleErrorUseCase: jest.fn().mockImplementation(() => ({
+    execute: mockRecordError,
+  })),
+}));
+
 let mockWebhookEvent: { type: string; data: { object: Record<string, unknown> } };
 
 async function buildServer() {
@@ -423,5 +436,72 @@ describe('WebhookRouter — checkout.session.expired', () => {
     expect(res.status).toBe(200);
     expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_fallback', 'fallback@example.com');
     expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('fallback@example.com');
+  });
+});
+
+describe('WebhookRouter — stripe signature invalid error recording', () => {
+  let server: http.Server;
+  let url: string;
+
+  beforeAll(async () => {
+    ({ server, url } = await buildServer());
+  });
+
+  afterAll(() => server.close());
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('records stripe_webhook_signature_invalid when signature check fails', async () => {
+    const { getStripe } = jest.requireMock('../lib/integrations/stripe') as {
+      getStripe: jest.Mock;
+    };
+    getStripe.mockReturnValueOnce({
+      webhooks: {
+        constructEvent: jest.fn(() => {
+          throw new Error('No signatures found matching the expected signature for payload');
+        }),
+      },
+    });
+
+    const res = await fetch(`${url}/webhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'stripe-signature': 'bad_sig' },
+      body: JSON.stringify({}),
+    });
+
+    expect(res.status).toBe(400);
+    expect(mockRecordError).toHaveBeenCalledWith({
+      userId: null,
+      surface: 'stripe_webhook',
+      code: 'stripe_webhook_signature_invalid',
+      context: expect.objectContaining({ message: expect.any(String) }),
+    });
+  });
+
+  it('does not include raw signature header in the context', async () => {
+    const { getStripe } = jest.requireMock('../lib/integrations/stripe') as {
+      getStripe: jest.Mock;
+    };
+    getStripe.mockReturnValueOnce({
+      webhooks: {
+        constructEvent: jest.fn(() => {
+          throw new Error('Signature verification failed');
+        }),
+      },
+    });
+
+    await fetch(`${url}/webhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'stripe-signature': 'raw_secret_sig' },
+      body: JSON.stringify({}),
+    });
+
+    const callArgs = mockRecordError.mock.calls[0][0] as Record<string, unknown>;
+    const context = callArgs.context as Record<string, unknown>;
+    expect(context).not.toHaveProperty('raw_secret_sig');
+    expect(context).not.toHaveProperty('stripe-signature');
+    expect(Object.keys(context)).toEqual(['message']);
   });
 });

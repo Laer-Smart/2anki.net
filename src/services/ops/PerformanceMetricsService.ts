@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+import type { IUserVisibleErrorsRepository, ErrorSurfaceCount } from '../../data_layer/UserVisibleErrorsRepository';
 
 export interface JobDurationPercentiles {
   window: '24h' | '7d';
@@ -32,6 +33,8 @@ export interface PerformanceMetricsResponse {
   status_breakdown_24h: JobStatusBreakdown[];
   slowest_jobs_24h: SlowJob[];
   signup_countries_7d: SignupCountryBreakdownItem[];
+  user_visible_errors_24h: ErrorSurfaceCount[];
+  user_visible_errors_7d: ErrorSurfaceCount[];
 }
 
 const TERMINAL_STATUSES = ['done', 'failed', 'cancelled', 'interrupted'];
@@ -44,15 +47,20 @@ const DONE_JOBS_SINCE_SQL = `status = 'done'
   AND created_at IS NOT NULL`;
 
 export class PerformanceMetricsService {
-  constructor(private readonly db: Knex) {}
+  constructor(
+    private readonly db: Knex,
+    private readonly userVisibleErrorsRepository: IUserVisibleErrorsRepository | null = null
+  ) {}
 
   async getMetrics(): Promise<PerformanceMetricsResponse> {
-    const [d24, d7, statuses, slowest, countries] = await Promise.all([
+    const [d24, d7, statuses, slowest, countries, errors24h, errors7d] = await Promise.all([
       this.getDurationPercentiles(1),
       this.getDurationPercentiles(7),
       this.getStatusBreakdown(1),
       this.getSlowestJobs(1, 20),
       this.getSignupCountries(7),
+      this.getUserVisibleErrorCounts(1),
+      this.getUserVisibleErrorCounts(7),
     ]);
     return {
       generated_at: new Date().toISOString(),
@@ -63,7 +71,16 @@ export class PerformanceMetricsService {
       status_breakdown_24h: statuses,
       slowest_jobs_24h: slowest,
       signup_countries_7d: countries,
+      user_visible_errors_24h: errors24h,
+      user_visible_errors_7d: errors7d,
     };
+  }
+
+  async getUserVisibleErrorCounts(sinceDays: number): Promise<ErrorSurfaceCount[]> {
+    if (this.userVisibleErrorsRepository == null) {
+      return [];
+    }
+    return this.userVisibleErrorsRepository.countBySurfaceAndCode(sinceDays);
   }
 
   private async getDurationPercentiles(

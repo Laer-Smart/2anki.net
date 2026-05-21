@@ -18,6 +18,8 @@ import { PersistStripeSessionUseCase } from '../usecases/checkout/PersistStripeS
 import hashToken from '../lib/misc/hashToken';
 import AbandonedCheckoutRecoveryRepository from '../data_layer/AbandonedCheckoutRecoveryRepository';
 import { SendAbandonedCheckoutRecoveryOnExpiryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryOnExpiryUseCase';
+import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepository';
+import { RecordUserVisibleErrorUseCase } from '../usecases/observability/RecordUserVisibleErrorUseCase';
 
 const DURATION_24H_MS = 24 * 60 * 60 * 1000;
 const DURATION_7D_MS = 7 * 24 * 60 * 60 * 1000;
@@ -40,6 +42,9 @@ const WebhooksRouter = () => {
   const abandonedCheckoutRecoveryUseCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
     new AbandonedCheckoutRecoveryRepository(database),
     getDefaultEmailService()
+  );
+  const recordErrorUseCase = new RecordUserVisibleErrorUseCase(
+    new UserVisibleErrorsRepository(database)
   );
 
   /**
@@ -93,6 +98,14 @@ const WebhooksRouter = () => {
           process.env.STRIPE_ENDPOINT_SECRET
         );
       } catch (err) {
+        const rawMessage = err instanceof Error ? err.message : String(err);
+        const truncatedMessage = rawMessage.slice(0, 200);
+        await recordErrorUseCase.execute({
+          userId: null,
+          surface: 'stripe_webhook',
+          code: 'stripe_webhook_signature_invalid',
+          context: { message: truncatedMessage },
+        });
         // @ts-ignore
         response.status(400).send(`Webhook Error: ${err.message}`);
         console.error(err);

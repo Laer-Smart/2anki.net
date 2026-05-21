@@ -29,6 +29,7 @@ import RequireOpsAccess from './middleware/RequireOpsAccess';
 import InactivityEmailRepository from '../data_layer/InactivityEmailRepository';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
+import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepository';
 
 const OpsRouter = () => {
   const router = express.Router();
@@ -45,7 +46,10 @@ const OpsRouter = () => {
   });
 
   const conversionMetricsService = new ConversionMetricsService(database);
-  const performanceMetricsService = new PerformanceMetricsService(database);
+  const performanceMetricsService = new PerformanceMetricsService(
+    database,
+    new UserVisibleErrorsRepository(database)
+  );
 
   const showcaseRepo = new ShowcaseRepository(database);
   const populateShowcase = new PopulateShowcaseUseCase(
