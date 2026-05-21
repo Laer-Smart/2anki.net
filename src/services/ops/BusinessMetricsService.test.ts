@@ -490,6 +490,99 @@ describe('BusinessMetricsService', () => {
     });
   });
 
+  describe('source-data cache (stripe subs/invoices)', () => {
+    it('caches subs and invoices as source-data entries, not per-metric', async () => {
+      const stripe = buildFakeStripe({
+        allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
+        invoices: [
+          { id: 'inv_1', status: 'open', attempt_count: 1, created: daysAgoEpoch(1) },
+        ],
+      });
+      const cache = new InMemoryBusinessMetricsCacheRepository();
+      const service = new BusinessMetricsService({
+        stripeFactory: () => stripe as never,
+        cacheRepository: cache,
+      });
+
+      await service.getMetrics();
+
+      const cached = await cache.loadAll();
+      const keys = cached.map((e) => e.key).sort();
+      expect(keys).toEqual(
+        expect.arrayContaining(['_stripe_subs', '_stripe_invoices'])
+      );
+      // None of the Stripe-derived per-metric keys should be cached anymore
+      expect(keys).not.toContain('mrr_usd');
+      expect(keys).not.toContain('failed_payments_7d');
+    });
+
+    it('serves stale cache immediately and refreshes in the background', async () => {
+      const stripe = buildFakeStripe({
+        allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
+      });
+      const service = new BusinessMetricsService({
+        stripeFactory: () => stripe as never,
+      });
+
+      await service.getMetrics();
+      expect(stripe.subscriptions.list).toHaveBeenCalledTimes(1);
+
+      // Past TTL — second call should NOT block but should kick a background refresh
+      jest.advanceTimersByTime(16 * 60 * 1000);
+      const second = await service.getMetrics();
+      // Stale data returned immediately; cache_age_seconds reflects the staleness
+      expect(second.mrr_usd).toBeCloseTo(10, 5);
+      expect(second.cache_age_seconds).toBeGreaterThanOrEqual(16 * 60);
+
+      // The background refresh should have started (Stripe called a second time)
+      await service.waitForInflightRefresh();
+      expect(stripe.subscriptions.list).toHaveBeenCalledTimes(2);
+    });
+
+    it('single-flights concurrent refreshes (one Stripe pagination, not two)', async () => {
+      const stripe = buildFakeStripe({
+        allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
+      });
+      const service = new BusinessMetricsService({
+        stripeFactory: () => stripe as never,
+      });
+
+      const [a, b] = await Promise.all([
+        service.getMetrics(),
+        service.getMetrics(),
+      ]);
+
+      expect(stripe.subscriptions.list).toHaveBeenCalledTimes(1);
+      expect(stripe.invoices.list).toHaveBeenCalledTimes(1);
+      expect(a.mrr_usd).toBe(b.mrr_usd);
+    });
+
+    it('cold start with subs failing still returns invoice-derived metrics', async () => {
+      const stripe = buildFakeStripe({
+        invoices: [
+          { id: 'inv_1', status: 'open', attempt_count: 1, created: daysAgoEpoch(1) },
+        ],
+      });
+      (stripe.subscriptions.list as jest.Mock).mockRejectedValueOnce(
+        new Error('subs boom')
+      );
+      const service = new BusinessMetricsService({
+        stripeFactory: () => stripe as never,
+      });
+
+      const result = await service.getMetrics();
+
+      expect(result.mrr_usd).toBeNull();
+      expect(result.active_paying_subs).toBeNull();
+      expect(result.failed_payments_7d).toBe(1);
+      expect(result.errors).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ metric: 'mrr_usd', message: 'subs boom' }),
+        ])
+      );
+    });
+  });
+
   describe('cancellation feedback', () => {
     it('returns top reasons (last 90 days) and recent comments from the repo', async () => {
       const stripe = buildFakeStripe({});

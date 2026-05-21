@@ -30,6 +30,8 @@ export interface ConversionMetricsResponse {
 const SECONDS_PER_DAY = 24 * 60 * 60;
 const WEEKLY_HISTORY_WEEKS = 12;
 
+const NOTION_CONVERSION_TYPES: string[] = ['page', 'database', 'conversion'];
+
 export class ConversionMetricsService {
   constructor(private readonly database: Knex) {}
 
@@ -77,7 +79,7 @@ export class ConversionMetricsService {
       .join('users', 'jobs.owner', '=', 'users.id')
       .where('jobs.status', 'done')
       .where('jobs.created_at', '>=', sevenDaysAgo)
-      .where('jobs.type', 'conversion')
+      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
       .whereRaw(
         "users.stripe_customer_id IS NULL OR users.stripe_customer_id = ''"
       )
@@ -92,7 +94,7 @@ export class ConversionMetricsService {
       .join('users', 'jobs.owner', '=', 'users.id')
       .where('jobs.status', 'done')
       .where('jobs.created_at', '>=', sevenDaysAgo)
-      .where('jobs.type', 'conversion')
+      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
       .whereRaw("users.stripe_customer_id IS NOT NULL AND users.stripe_customer_id != ''")
       .count('jobs.id as count')
       .first();
@@ -104,7 +106,7 @@ export class ConversionMetricsService {
     const result = await this.database('jobs')
       .join('users', 'jobs.owner', '=', 'users.id')
       .where('jobs.created_at', '>=', sevenDaysAgo)
-      .where('jobs.type', 'conversion')
+      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
       .whereRaw(
         "users.stripe_customer_id IS NULL OR users.stripe_customer_id = ''"
       )
@@ -125,7 +127,7 @@ export class ConversionMetricsService {
     const result = await this.database('jobs')
       .join('users', 'jobs.owner', '=', 'users.id')
       .where('jobs.created_at', '>=', sevenDaysAgo)
-      .where('jobs.type', 'conversion')
+      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
       .whereRaw("users.stripe_customer_id IS NOT NULL AND users.stripe_customer_id != ''")
       .whereIn('jobs.status', ['done', 'failed'])
       .select(
@@ -146,7 +148,7 @@ export class ConversionMetricsService {
     const results = await this.database('jobs')
       .where('jobs.status', 'failed')
       .where('jobs.created_at', '>=', sevenDaysAgo)
-      .where('jobs.type', 'conversion')
+      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
       .whereNotNull('jobs.job_reason_failure')
       .select('jobs.job_reason_failure as reason')
       .count('jobs.id as count')
@@ -181,7 +183,7 @@ export class ConversionMetricsService {
       .where('jobs.status', 'failed')
       .where('jobs.created_at', '>=', new Date(earliestStart))
       .where('jobs.created_at', '<', new Date(weekEnd))
-      .where('jobs.type', 'conversion')
+      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
       .select(
         this.database.raw(
           `DATE_TRUNC('week', jobs.created_at) AS week_start`

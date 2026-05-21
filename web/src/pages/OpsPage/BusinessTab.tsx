@@ -39,7 +39,7 @@ const buildMrrFootnote = (
 };
 
 export default function BusinessTab() {
-  const { data, error, isLoading } = useBusinessMetrics();
+  const { data, error, isLoading, isFetching } = useBusinessMetrics();
   const [lastSnapshot, setLastSnapshot] =
     useState<BusinessMetricsResponse | null>(null);
 
@@ -68,6 +68,16 @@ export default function BusinessTab() {
           /api/ops/business/metrics failed: {error.message}. Last good data
           shown below.
         </div>
+      )}
+
+      {isFetching && !isLoading && visible != null && error == null && (
+        <p className={styles.refreshHint}>
+          Last updated{' '}
+          {visible.cache_age_seconds == null
+            ? 'just now'
+            : `${formatCacheAge(visible.cache_age_seconds)} ago`}
+          {' — refreshing'}
+        </p>
       )}
 
       <div className={styles.cardGrid}>

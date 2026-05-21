@@ -3,6 +3,7 @@ import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
 
 import { getStripe } from '../../lib/integrations/stripe';
 import {
+  BusinessCacheKey,
   BusinessMetricsCacheEntry,
   IBusinessMetricsCacheRepository,
   InMemoryBusinessMetricsCacheRepository,
@@ -146,6 +147,41 @@ interface NormalizedInvoice {
   createdMs: number;
 }
 
+const STRIPE_SUBS_CACHE_KEY: BusinessCacheKey = '_stripe_subs';
+const STRIPE_INVOICES_CACHE_KEY: BusinessCacheKey = '_stripe_invoices';
+
+const SUBS_DERIVED_METRICS: BusinessMetricKey[] = [
+  'mrr_usd',
+  'active_paying_subs',
+  'net_new_mrr_mtd_usd',
+  'new_paid_conversions_7d',
+  'churn_30d_pct',
+  'mrr_timeseries',
+  'active_subs_timeseries',
+  'conversions_vs_churn_weekly',
+];
+
+const INVOICES_DERIVED_METRICS: BusinessMetricKey[] = [
+  'failed_payments_7d',
+  'failed_payments_weekly',
+];
+
+interface SourceRefreshResult {
+  subs: NormalizedSubscription[] | null;
+  invoices: NormalizedInvoice[] | null;
+  subsError: string | null;
+  invoicesError: string | null;
+}
+
+interface ResolvedSources {
+  subs: NormalizedSubscription[] | null;
+  invoices: NormalizedInvoice[] | null;
+  subsError: string | null;
+  invoicesError: string | null;
+  subsEntry: BusinessMetricsCacheEntry | null;
+  invoicesEntry: BusinessMetricsCacheEntry | null;
+}
+
 export class BusinessMetricsService {
   private readonly stripeFactory: () => Stripe;
 
@@ -161,9 +197,7 @@ export class BusinessMetricsService {
 
   private readonly signupCountryRepository: ISignupCountryRepository | null;
 
-  private allSubsPromise: Promise<NormalizedSubscription[]> | null = null;
-
-  private invoicesPromise: Promise<NormalizedInvoice[]> | null = null;
+  private inflightSourceRefresh: Promise<SourceRefreshResult> | null = null;
 
   constructor(deps: BusinessMetricsServiceDeps = {}) {
     this.stripeFactory = deps.stripeFactory ?? (() => getStripe());
@@ -186,55 +220,134 @@ export class BusinessMetricsService {
     const now = new Date();
     const errors: BusinessMetricError[] = [];
 
-    this.allSubsPromise = null;
-    this.invoicesPromise = null;
-
     const cachedByKey = await this.loadCacheMap();
 
-    const subDerived = (computer: (subs: NormalizedSubscription[]) => unknown) =>
-      async () => computer(await this.loadAllSubs());
-    const invoiceDerived = (
-      computer: (invoices: NormalizedInvoice[]) => unknown
-    ) => async () => computer(await this.loadInvoices(now));
+    const sources = await this.resolveSources(cachedByKey, now);
 
+    const dbTasks = this.buildDbMetricTasks(now);
+    const usedEntries: BusinessMetricsCacheEntry[] = [];
+    const freshEntries: BusinessMetricsCacheEntry[] = [];
+
+    if (sources.subsEntry != null) usedEntries.push(sources.subsEntry);
+    if (sources.invoicesEntry != null) usedEntries.push(sources.invoicesEntry);
+
+    const dbSettled = await Promise.all(
+      dbTasks.map(({ key, fetch }) =>
+        this.resolveMetric(
+          key,
+          fetch,
+          now,
+          cachedByKey,
+          usedEntries,
+          freshEntries
+        ).catch((error: unknown) => {
+          const message = error instanceof Error ? error.message : String(error);
+          errors.push({ metric: key, message });
+          return null;
+        })
+      )
+    );
+
+    if (freshEntries.length > 0) {
+      try {
+        await this.cacheRepository.upsertMany(freshEntries);
+      } catch (error) {
+        console.error('[ops] business metrics cache upsert failed', error);
+      }
+    }
+
+    const dbValueByKey = new Map<BusinessMetricKey, unknown>();
+    dbTasks.forEach(({ key }, idx) => {
+      dbValueByKey.set(key, dbSettled[idx]);
+    });
+
+    const cacheAgeSeconds = computeCacheAgeSeconds(usedEntries, now);
+
+    const subs = sources.subs;
+    const invoices = sources.invoices;
+    const fromSubs = <T>(fn: (s: NormalizedSubscription[]) => T): T | null =>
+      subs != null ? fn(subs) : null;
+    const fromInvoices = <T>(fn: (i: NormalizedInvoice[]) => T): T | null =>
+      invoices != null ? fn(invoices) : null;
+
+    const response: BusinessMetricsResponse = {
+      mrr_usd: fromSubs((s) => computeMrrUsd(s, now)),
+      net_new_mrr_mtd_usd: fromSubs((s) => computeNetNewMrrMtdUsd(s, now)),
+      active_paying_subs: fromSubs((s) => computeActiveCount(s, now)),
+      churn_30d_pct: fromSubs((s) => computeChurn30dPct(s, now)),
+      failed_payments_7d: fromInvoices((i) => computeFailedPayments7d(i, now)),
+      new_paid_conversions_7d: fromSubs((s) => computeNewPaidConversions7d(s, now)),
+      mrr_timeseries: fromSubs((s) => computeMrrTimeseries(s, now)),
+      active_subs_timeseries: fromSubs((s) => computeActiveSubsTimeseries(s, now)),
+      conversions_vs_churn_weekly: fromSubs((s) =>
+        computeConversionsChurnWeekly(s, now)
+      ),
+      failed_payments_weekly: fromInvoices((i) =>
+        computeFailedPaymentsWeekly(i, now)
+      ),
+      cancellation_reasons_top: dbValueByKey.get('cancellation_reasons_top') as
+        | CancellationReasonCount[]
+        | null,
+      cancellation_comments_recent: dbValueByKey.get(
+        'cancellation_comments_recent'
+      ) as CancellationCommentEntry[] | null,
+      emoji_feedback_ratings: dbValueByKey.get(
+        'emoji_feedback_ratings'
+      ) as EmojiFeedbackRatingCount[] | null,
+      emoji_feedback_comments: dbValueByKey.get(
+        'emoji_feedback_comments'
+      ) as EmojiFeedbackCommentEntry[] | null,
+      reengagement_reasons_top: dbValueByKey.get(
+        'reengagement_reasons_top'
+      ) as ReEngagementReasonCount[] | null,
+      reengagement_comments_recent: dbValueByKey.get(
+        'reengagement_comments_recent'
+      ) as ReEngagementCommentEntry[] | null,
+      signup_countries_90d: dbValueByKey.has('signup_countries_90d')
+        ? (dbValueByKey.get('signup_countries_90d') as SignupCountryCount[] | null)
+        : null,
+      as_of: now.toISOString(),
+      cache_age_seconds: cacheAgeSeconds,
+    };
+
+    if (sources.subsError != null) {
+      for (const key of SUBS_DERIVED_METRICS) {
+        errors.push({ metric: key, message: sources.subsError });
+      }
+    }
+    if (sources.invoicesError != null) {
+      for (const key of INVOICES_DERIVED_METRICS) {
+        errors.push({ metric: key, message: sources.invoicesError });
+      }
+    }
+
+    if (errors.length > 0) {
+      response.errors = errors;
+    }
+
+    return response;
+  }
+
+  // Test helper: lets a test await a background SWR refresh.
+  // Production callers never need this; SWR is fire-and-forget by design.
+  async waitForInflightRefresh(): Promise<void> {
+    const inflight = this.inflightSourceRefresh;
+    if (inflight != null) {
+      try {
+        await inflight;
+      } catch {
+        // background refresh errors are surfaced on the next request's error array
+      }
+    }
+  }
+
+  private buildDbMetricTasks(
+    now: Date
+  ): Array<{ key: BusinessMetricKey; fetch: () => Promise<unknown> }> {
     const tasks: Array<{
       key: BusinessMetricKey;
       fetch: () => Promise<unknown>;
     }> = [
-      { key: 'mrr_usd', fetch: subDerived((s) => computeMrrUsd(s, now)) },
-      {
-        key: 'active_paying_subs',
-        fetch: subDerived((s) => computeActiveCount(s, now)),
-      },
-      {
-        key: 'net_new_mrr_mtd_usd',
-        fetch: subDerived((s) => computeNetNewMrrMtdUsd(s, now)),
-      },
-      {
-        key: 'new_paid_conversions_7d',
-        fetch: subDerived((s) => computeNewPaidConversions7d(s, now)),
-      },
-      { key: 'churn_30d_pct', fetch: subDerived((s) => computeChurn30dPct(s, now)) },
-      {
-        key: 'failed_payments_7d',
-        fetch: invoiceDerived((i) => computeFailedPayments7d(i, now)),
-      },
-      {
-        key: 'mrr_timeseries',
-        fetch: subDerived((s) => computeMrrTimeseries(s, now)),
-      },
-      {
-        key: 'active_subs_timeseries',
-        fetch: subDerived((s) => computeActiveSubsTimeseries(s, now)),
-      },
-      {
-        key: 'conversions_vs_churn_weekly',
-        fetch: subDerived((s) => computeConversionsChurnWeekly(s, now)),
-      },
-      {
-        key: 'failed_payments_weekly',
-        fetch: invoiceDerived((i) => computeFailedPaymentsWeekly(i, now)),
-      },
       {
         key: 'cancellation_reasons_top',
         fetch: () =>
@@ -286,107 +399,169 @@ export class BusinessMetricsService {
             REENGAGEMENT_COMMENTS_LIMIT
           ),
       },
-      ...(this.signupCountryRepository != null
-        ? [
-            {
-              key: 'signup_countries_90d' as BusinessMetricKey,
-              fetch: () =>
-                this.signupCountryRepository!.countBySignupCountry(
-                  new Date(
-                    now.getTime() -
-                      SIGNUP_COUNTRIES_LOOKBACK_DAYS * SECONDS_PER_DAY * 1000
-                  ),
-                  SIGNUP_COUNTRIES_LIMIT
-                ),
-            },
-          ]
-        : []),
     ];
 
-    const usedEntries: BusinessMetricsCacheEntry[] = [];
-    const freshEntries: BusinessMetricsCacheEntry[] = [];
+    if (this.signupCountryRepository != null) {
+      tasks.push({
+        key: 'signup_countries_90d',
+        fetch: () =>
+          this.signupCountryRepository!.countBySignupCountry(
+            new Date(
+              now.getTime() -
+                SIGNUP_COUNTRIES_LOOKBACK_DAYS * SECONDS_PER_DAY * 1000
+            ),
+            SIGNUP_COUNTRIES_LIMIT
+          ),
+      });
+    }
 
-    const settled = await Promise.all(
-      tasks.map(({ key, fetch }) =>
-        this.resolveMetric(key, fetch, now, cachedByKey, usedEntries, freshEntries).catch(
-          (error: unknown) => {
-            const message =
-              error instanceof Error ? error.message : String(error);
-            errors.push({ metric: key, message });
-            return null;
-          }
-        )
-      )
-    );
+    return tasks;
+  }
 
-    if (freshEntries.length > 0) {
+  private async resolveSources(
+    cachedByKey: Map<BusinessCacheKey, BusinessMetricsCacheEntry>,
+    now: Date
+  ): Promise<ResolvedSources> {
+    const cachedSubs = cachedByKey.get(STRIPE_SUBS_CACHE_KEY);
+    const cachedInvoices = cachedByKey.get(STRIPE_INVOICES_CACHE_KEY);
+    const subsFresh =
+      cachedSubs != null && cachedSubs.expiresAt.getTime() > now.getTime();
+    const invoicesFresh =
+      cachedInvoices != null &&
+      cachedInvoices.expiresAt.getTime() > now.getTime();
+
+    if (subsFresh && invoicesFresh) {
+      return {
+        subs: cachedSubs!.value as NormalizedSubscription[],
+        invoices: cachedInvoices!.value as NormalizedInvoice[],
+        subsError: null,
+        invoicesError: null,
+        subsEntry: cachedSubs!,
+        invoicesEntry: cachedInvoices!,
+      };
+    }
+
+    const hasBothCached = cachedSubs != null && cachedInvoices != null;
+    if (!hasBothCached) {
+      const refresh = await this.startOrJoinSourceRefresh(now);
+      return this.buildSourcesFromRefresh(refresh, now);
+    }
+
+    this.startOrJoinSourceRefresh(now).catch(() => undefined);
+    return {
+      subs: cachedSubs!.value as NormalizedSubscription[],
+      invoices: cachedInvoices!.value as NormalizedInvoice[],
+      subsError: null,
+      invoicesError: null,
+      subsEntry: cachedSubs!,
+      invoicesEntry: cachedInvoices!,
+    };
+  }
+
+  private buildSourcesFromRefresh(
+    refresh: SourceRefreshResult,
+    now: Date
+  ): ResolvedSources {
+    const expiresAt = new Date(now.getTime() + this.cacheTtlMs);
+    return {
+      subs: refresh.subs,
+      invoices: refresh.invoices,
+      subsError: refresh.subsError,
+      invoicesError: refresh.invoicesError,
+      subsEntry:
+        refresh.subs != null
+          ? {
+              key: STRIPE_SUBS_CACHE_KEY,
+              value: refresh.subs,
+              cachedAt: now,
+              expiresAt,
+            }
+          : null,
+      invoicesEntry:
+        refresh.invoices != null
+          ? {
+              key: STRIPE_INVOICES_CACHE_KEY,
+              value: refresh.invoices,
+              cachedAt: now,
+              expiresAt,
+            }
+          : null,
+    };
+  }
+
+  private startOrJoinSourceRefresh(
+    now: Date
+  ): Promise<SourceRefreshResult> {
+    if (this.inflightSourceRefresh != null) {
+      return this.inflightSourceRefresh;
+    }
+    const promise = this.runSourceRefresh(now);
+    this.inflightSourceRefresh = promise;
+    promise
+      .catch(() => undefined)
+      .finally(() => {
+        if (this.inflightSourceRefresh === promise) {
+          this.inflightSourceRefresh = null;
+        }
+      });
+    return promise;
+  }
+
+  private async runSourceRefresh(now: Date): Promise<SourceRefreshResult> {
+    const [subsResult, invoicesResult] = await Promise.allSettled([
+      this.fetchAllSubs(),
+      this.fetchInvoices(now),
+    ]);
+
+    const subs =
+      subsResult.status === 'fulfilled' ? subsResult.value : null;
+    const subsError =
+      subsResult.status === 'rejected'
+        ? messageOf(subsResult.reason)
+        : null;
+    const invoices =
+      invoicesResult.status === 'fulfilled' ? invoicesResult.value : null;
+    const invoicesError =
+      invoicesResult.status === 'rejected'
+        ? messageOf(invoicesResult.reason)
+        : null;
+
+    const expiresAt = new Date(now.getTime() + this.cacheTtlMs);
+    const toCache: BusinessMetricsCacheEntry[] = [];
+    if (subs != null) {
+      toCache.push({
+        key: STRIPE_SUBS_CACHE_KEY,
+        value: subs,
+        cachedAt: now,
+        expiresAt,
+      });
+    }
+    if (invoices != null) {
+      toCache.push({
+        key: STRIPE_INVOICES_CACHE_KEY,
+        value: invoices,
+        cachedAt: now,
+        expiresAt,
+      });
+    }
+    if (toCache.length > 0) {
       try {
-        await this.cacheRepository.upsertMany(freshEntries);
+        await this.cacheRepository.upsertMany(toCache);
       } catch (error) {
-        console.error('[ops] business metrics cache upsert failed', error);
+        console.error(
+          '[ops] business source cache upsert failed',
+          error
+        );
       }
     }
 
-    const valueByKey = new Map<BusinessMetricKey, unknown>();
-    tasks.forEach(({ key }, idx) => {
-      valueByKey.set(key, settled[idx]);
-    });
-
-    const cacheAgeSeconds = computeCacheAgeSeconds(usedEntries, now);
-
-    const response: BusinessMetricsResponse = {
-      mrr_usd: valueByKey.get('mrr_usd') as number | null,
-      net_new_mrr_mtd_usd: valueByKey.get('net_new_mrr_mtd_usd') as number | null,
-      active_paying_subs: valueByKey.get('active_paying_subs') as number | null,
-      churn_30d_pct: valueByKey.get('churn_30d_pct') as number | null,
-      failed_payments_7d: valueByKey.get('failed_payments_7d') as number | null,
-      new_paid_conversions_7d: valueByKey.get('new_paid_conversions_7d') as
-        | number
-        | null,
-      mrr_timeseries: valueByKey.get('mrr_timeseries') as
-        | MrrTimeseriesPoint[]
-        | null,
-      active_subs_timeseries: valueByKey.get('active_subs_timeseries') as
-        | ActiveSubsTimeseriesPoint[]
-        | null,
-      conversions_vs_churn_weekly: valueByKey.get('conversions_vs_churn_weekly') as
-        | ConversionsChurnWeekPoint[]
-        | null,
-      failed_payments_weekly: valueByKey.get('failed_payments_weekly') as
-        | FailedPaymentsWeekPoint[]
-        | null,
-      cancellation_reasons_top: valueByKey.get('cancellation_reasons_top') as
-        | CancellationReasonCount[]
-        | null,
-      cancellation_comments_recent: valueByKey.get(
-        'cancellation_comments_recent'
-      ) as CancellationCommentEntry[] | null,
-      emoji_feedback_ratings: valueByKey.get('emoji_feedback_ratings') as EmojiFeedbackRatingCount[] | null,
-      emoji_feedback_comments: valueByKey.get('emoji_feedback_comments') as EmojiFeedbackCommentEntry[] | null,
-      reengagement_reasons_top: valueByKey.get(
-        'reengagement_reasons_top'
-      ) as ReEngagementReasonCount[] | null,
-      reengagement_comments_recent: valueByKey.get(
-        'reengagement_comments_recent'
-      ) as ReEngagementCommentEntry[] | null,
-      signup_countries_90d: valueByKey.has('signup_countries_90d')
-        ? (valueByKey.get('signup_countries_90d') as SignupCountryCount[] | null)
-        : null,
-      as_of: now.toISOString(),
-      cache_age_seconds: cacheAgeSeconds,
-    };
-
-    if (errors.length > 0) {
-      response.errors = errors;
-    }
-
-    return response;
+    return { subs, invoices, subsError, invoicesError };
   }
 
   private async loadCacheMap(): Promise<
-    Map<BusinessMetricKey, BusinessMetricsCacheEntry>
+    Map<BusinessCacheKey, BusinessMetricsCacheEntry>
   > {
-    const map = new Map<BusinessMetricKey, BusinessMetricsCacheEntry>();
+    const map = new Map<BusinessCacheKey, BusinessMetricsCacheEntry>();
     try {
       const rows = await this.cacheRepository.loadAll();
       for (const row of rows) {
@@ -402,7 +577,7 @@ export class BusinessMetricsService {
     key: BusinessMetricKey,
     fetcher: () => Promise<unknown>,
     now: Date,
-    cachedByKey: Map<BusinessMetricKey, BusinessMetricsCacheEntry>,
+    cachedByKey: Map<BusinessCacheKey, BusinessMetricsCacheEntry>,
     usedEntries: BusinessMetricsCacheEntry[],
     freshEntries: BusinessMetricsCacheEntry[]
   ): Promise<unknown> {
@@ -421,13 +596,6 @@ export class BusinessMetricsService {
     usedEntries.push(entry);
     freshEntries.push(entry);
     return value;
-  }
-
-  private loadAllSubs(): Promise<NormalizedSubscription[]> {
-    if (this.allSubsPromise == null) {
-      this.allSubsPromise = this.fetchAllSubs();
-    }
-    return this.allSubsPromise;
   }
 
   private async fetchAllSubs(): Promise<NormalizedSubscription[]> {
@@ -449,13 +617,6 @@ export class BusinessMetricsService {
       startingAfter = hasMore ? page.data[page.data.length - 1].id : undefined;
     }
     return result;
-  }
-
-  private loadInvoices(now: Date): Promise<NormalizedInvoice[]> {
-    if (this.invoicesPromise == null) {
-      this.invoicesPromise = this.fetchInvoices(now);
-    }
-    return this.invoicesPromise;
   }
 
   private async fetchInvoices(now: Date): Promise<NormalizedInvoice[]> {
@@ -481,6 +642,9 @@ export class BusinessMetricsService {
     return result;
   }
 }
+
+const messageOf = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
 
 const computeCacheAgeSeconds = (
   entries: BusinessMetricsCacheEntry[],
