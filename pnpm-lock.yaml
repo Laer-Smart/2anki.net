@@ -175,9 +175,6 @@ importers:
       sanitize-html:
         specifier: ^2.17.4
         version: 2.17.4
-      showdown:
-        specifier: ^2.1.0
-        version: 2.1.0
       sql.js:
         specifier: ^1.13.0
         version: 1.14.1
@@ -272,9 +269,6 @@ importers:
       '@types/sanitize-html':
         specifier: ^2.16.1
         version: 2.16.1
-      '@types/showdown':
-        specifier: ^2.0.6
-        version: 2.0.6
       '@types/sql.js':
         specifier: ^1.4.9
         version: 1.4.11
@@ -2968,9 +2962,6 @@ packages:
 
   '@types/serve-static@2.2.0':
     resolution: {integrity: sha512-8mam4H1NHLtu7nmtalF7eyBH14QyOASmcxHhSfEoRyr0nP/YdoesEtU+uSRvMe96TW/HPTtkoKqQLl53N7UXMQ==}
-
-  '@types/showdown@2.0.6':
-    resolution: {integrity: sha512-pTvD/0CIeqe4x23+YJWlX2gArHa8G0J0Oh6GKaVXV7TAeickpkkZiNOgFcFcmLQ5lB/K0qBJL1FtRYltBfbGCQ==}
 
   '@types/sql.js@1.4.11':
     resolution: {integrity: sha512-QXIx38p2ZThJaK9vP5ZdqdlRe1FG9I8SmCZOS7FHfB/2qPAjZwkL7/vlfPg6N/oWHuuOaGg/P/IRwfP2W0kWVQ==}
@@ -6855,10 +6846,6 @@ packages:
 
   should@13.2.3:
     resolution: {integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==}
-
-  showdown@2.1.0:
-    resolution: {integrity: sha512-/6NVYu4U819R2pUIk79n67SYgJHWCce0a5xTP979WbNp0FL9MN1I1QK662IDU1b6JzKTvmhgI7T7JYIxBi3kMQ==}
-    hasBin: true
 
   side-channel-list@1.0.0:
     resolution: {integrity: sha512-FCLHtRD/gnpCiCHEiJLOwdmFP+wzCmDEkc9y7NsYxeF4u7Btsn1ZuwgwJGxImImHicJArLP4R0yX4c2KCrMrTA==}
@@ -10756,8 +10743,6 @@ snapshots:
       '@types/http-errors': 2.0.5
       '@types/node': 25.8.0
 
-  '@types/showdown@2.0.6': {}
-
   '@types/sql.js@1.4.11':
     dependencies:
       '@types/emscripten': 1.41.5
@@ -11551,7 +11536,8 @@ snapshots:
 
   commander@8.3.0: {}
 
-  commander@9.5.0: {}
+  commander@9.5.0:
+    optional: true
 
   compress-commons@6.0.2:
     dependencies:
@@ -15312,10 +15298,6 @@ snapshots:
       should-type: 1.4.0
       should-type-adaptors: 1.1.0
       should-util: 1.0.1
-
-  showdown@2.1.0:
-    dependencies:
-      commander: 9.5.0
 
   side-channel-list@1.0.0:
     dependencies:
