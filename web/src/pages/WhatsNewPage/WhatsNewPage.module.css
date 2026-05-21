@@ -260,3 +260,8 @@
   margin-top: 1rem;
   flex-wrap: wrap;
 }
+
+.ratingPrompt {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}

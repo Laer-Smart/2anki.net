@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-21-open-tabs-reload-themselves-after-a-deploy-instead-of-showin",
+  "date": "2026-05-21",
+  "type": "fix",
+  "title": "Open tabs reload themselves after a deploy instead of showing an error screen"
+}

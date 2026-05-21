@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-16-downloaded-note-types-land-in-their-own-deck-in-anki-grouped",
+  "date": "2026-05-16",
+  "type": "fix",
+  "title": "Downloaded note types land in their own deck in Anki, grouped under 2anki, instead of mixing into Default"
+}

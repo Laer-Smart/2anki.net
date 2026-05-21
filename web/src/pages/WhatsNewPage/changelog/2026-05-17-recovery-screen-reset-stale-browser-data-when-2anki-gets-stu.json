@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-17-recovery-screen-reset-stale-browser-data-when-2anki-gets-stu",
+  "date": "2026-05-17",
+  "type": "fix",
+  "title": "Recovery screen — reset stale browser data when 2anki gets stuck loading"
+}

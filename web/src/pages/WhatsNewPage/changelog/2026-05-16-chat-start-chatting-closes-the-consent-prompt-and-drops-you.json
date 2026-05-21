@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-16-chat-start-chatting-closes-the-consent-prompt-and-drops-you",
+  "date": "2026-05-16",
+  "type": "fix",
+  "title": "Chat — Start chatting closes the consent prompt and drops you straight into the conversation"
+}

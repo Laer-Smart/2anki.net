@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-14-chat-cards-render-in-place-while-the-answer-streams",
+  "date": "2026-05-14",
+  "type": "fix",
+  "title": "Chat: cards render in place while the answer streams"
+}

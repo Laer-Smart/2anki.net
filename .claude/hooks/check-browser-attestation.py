@@ -9,7 +9,7 @@ import sys
 CHECKBOX_GOLDEN_PATH = "- [x] Golden path on localhost:3000"
 CHECKBOX_CONSOLE_ERRORS = "- [x] No console errors at 375px"
 OUT_CLAUSE_PREFIX = "Browser check: not applicable —"
-CHANGELOG_ONLY_PATH = "web/src/pages/WhatsNewPage/changelog.ts"
+CHANGELOG_DIR_PREFIX = "web/src/pages/WhatsNewPage/changelog/"
 
 GH_PR_MERGE = re.compile(r"\bgh\s+pr\s+merge\b")
 PR_URL = re.compile(r"https?://github\.com/[^/]+/[^/]+/pull/(\d+)")
@@ -80,7 +80,9 @@ def web_src_files(files):
 
 
 def is_changelog_only(paths):
-    return paths == [CHANGELOG_ONLY_PATH]
+    if not paths:
+        return False
+    return all(p.startswith(CHANGELOG_DIR_PREFIX) for p in paths)
 
 
 def attestation_satisfied(body):

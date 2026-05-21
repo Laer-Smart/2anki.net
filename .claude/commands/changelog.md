@@ -5,10 +5,10 @@ argument-hint: optional date range, e.g. "last 14 days"
 
 Use the `pm` agent (with help from `designer` for tone).
 
-This is the **batch / backfill** tool — it builds blog and SEO copy from a window of merged PRs. Per-PR changelog entries belong in `web/src/pages/WhatsNewPage/changelog.ts` and are added in the PR that ships the change (see CLAUDE.md > Changelog). By the time `/changelog` runs, those entries should already exist; this command consolidates them into distribution copy.
+This is the **batch / backfill** tool — it builds blog and SEO copy from a window of merged PRs. Per-PR changelog entries belong in `web/src/pages/WhatsNewPage/changelog/` (one JSON file per entry) and are added in the PR that ships the change (see CLAUDE.md > Changelog). By the time `/changelog` runs, those entries should already exist; this command consolidates them into distribution copy.
 
 1. Pull merged PRs from the last $ARGUMENTS (default: 14 days). Use `gh pr list --state merged --search "merged:>=YYYY-MM-DD"`.
-2. Cross-reference `web/src/pages/WhatsNewPage/changelog.ts` for entries dated in that window — they are the curated user-voice source. Note any merged user-visible PR that does not have an entry and flag it explicitly so the gap can be backfilled.
+2. Cross-reference the JSON files in `web/src/pages/WhatsNewPage/changelog/` for entries dated in that window — they are the curated user-voice source. Note any merged user-visible PR that does not have an entry and flag it explicitly so the gap can be backfilled.
 3. Group by user-visible category:
    - **New** — net-new features
    - **Improved** — enhancements to existing features

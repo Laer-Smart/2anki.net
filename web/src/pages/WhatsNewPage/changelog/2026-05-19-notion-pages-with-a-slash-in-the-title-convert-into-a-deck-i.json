@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-19-notion-pages-with-a-slash-in-the-title-convert-into-a-deck-i",
+  "date": "2026-05-19",
+  "type": "fix",
+  "title": "Notion pages with a slash in the title convert into a deck instead of failing silently"
+}

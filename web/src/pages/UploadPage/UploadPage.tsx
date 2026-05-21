@@ -3,6 +3,7 @@ import {
   useQuery as useReactQuery,
 } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import { UpsellCard } from '../../components/UpsellCard';
@@ -82,6 +83,9 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
 
   return (
     <div className={styles.page}>
+      <Helmet>
+        <title>Upload — 2anki</title>
+      </Helmet>
       <OnboardingTour
         createdAt={userLocals?.user?.created_at ?? null}
         onboardedAt={userLocals?.user?.onboarded_at ?? null}

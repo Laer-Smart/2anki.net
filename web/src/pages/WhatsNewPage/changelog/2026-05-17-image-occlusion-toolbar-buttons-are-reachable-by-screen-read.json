@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-17-image-occlusion-toolbar-buttons-are-reachable-by-screen-read",
+  "date": "2026-05-17",
+  "type": "fix",
+  "title": "Image occlusion toolbar buttons are reachable by screen readers — each tool announces its name"
+}

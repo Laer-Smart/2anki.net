@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-16-picking-a-downloaded-2anki-note-type-in-anki-s-add-card-dial",
+  "date": "2026-05-16",
+  "type": "fix",
+  "title": "Picking a downloaded 2anki note type in Anki's Add Card dialog pre-selects its matching deck"
+}

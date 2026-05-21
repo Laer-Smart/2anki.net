@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-20-dropped-an-apkg-on-the-upload-page-by-mistake-the-error-now",
+  "date": "2026-05-20",
+  "type": "fix",
+  "title": "Dropped an .apkg on the upload page by mistake? The error now points you to Print Decks instead of a dead end"
+}

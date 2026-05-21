@@ -138,7 +138,7 @@ Do not open a separate implementation PR alongside a spec PR. Do not let `Docume
 
 ## Changelog
 
-User-visible changes ship with a changelog entry in the **same PR**. The entry lands in `web/src/pages/WhatsNewPage/changelog.ts` and renders in the in-app "What's New" page.
+User-visible changes ship with a changelog entry in the **same PR**. The entry lands as a new JSON file in `web/src/pages/WhatsNewPage/changelog/` and renders in the in-app "What's New" page. One entry = one file, so parallel PRs never conflict.
 
 **When to add an entry.** Add one if a real user would notice the change. Don't add one if they wouldn't.
 
@@ -154,7 +154,9 @@ User-visible changes ship with a changelog entry in the **same PR**. The entry l
 
 If you can't write the entry without referencing internal files, classes, or refactors, the PR probably doesn't warrant one. State that explicitly in the PR body ("no changelog entry — internal refactor, no user-visible behavior change") rather than going silent.
 
-**How to write the entry.** Follow `VOICE.md`. The reader is a busy learner skimming the What's New page — they want to know what they can do now that they couldn't before, or which bug stopped affecting them. The conventions below match the existing entries in `changelog.ts`; new lines must match the file, not drift from it.
+**How to write the entry.** Follow `VOICE.md`. The reader is a busy learner skimming the What's New page — they want to know what they can do now that they couldn't before, or which bug stopped affecting them. The conventions below match the existing entries in `web/src/pages/WhatsNewPage/changelog/`; new entries must match the existing files, not drift from them.
+
+**File shape.** Create `web/src/pages/WhatsNewPage/changelog/YYYY-MM-DD-short-slug.json` with `{ "id": "YYYY-MM-DD-short-slug", "date": "YYYY-MM-DD", "type": "feature" | "fix" | "style", "title": "Sentence-case one-liner" }`. The `id` must equal the filename without `.json` — the loader asserts uniqueness at startup. Sort order is `id` descending, so the date prefix drives ordering and the slug breaks ties.
 
 - User voice, not engineering voice. What changed *for the user*, not what we changed in the code.
 - Specific over generic. Name the surface, the file format, the count — whatever makes the entry useful. If you have a number, use the number; don't write "about twice as fast" when you don't.

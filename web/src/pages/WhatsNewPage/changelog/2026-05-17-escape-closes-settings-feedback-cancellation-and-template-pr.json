@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-17-escape-closes-settings-feedback-cancellation-and-template-pr",
+  "date": "2026-05-17",
+  "type": "fix",
+  "title": "Escape closes settings, feedback, cancellation, and template-preview modals — and returns focus to the button that opened them"
+}

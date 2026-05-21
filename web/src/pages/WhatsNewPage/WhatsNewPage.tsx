@@ -1,5 +1,5 @@
 import { FeedbackWidget } from '../../components/FeedbackWidget/FeedbackWidget';
-import { changelog, ChangelogEntry } from './changelog';
+import { changelog, ChangelogEntry } from './changelog/index';
 import { inProgress } from './inProgress';
 import { backlog } from './backlog';
 import sharedStyles from '../../styles/shared.module.css';
@@ -74,6 +74,7 @@ export default function WhatsNewPage() {
           What we've shipped, what we're working on, and what's next.
         </p>
         <div className={styles.inlineRating}>
+          <span className={styles.ratingPrompt}>How&apos;s 2anki working for you?</span>
           <FeedbackWidget page="/whats-new" compact />
           <a
             href="https://github.com/2anki/server/issues/new"

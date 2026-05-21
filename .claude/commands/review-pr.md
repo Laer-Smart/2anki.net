@@ -69,7 +69,7 @@ Check exclusively for:
 - Sentence case on buttons / headings
 - "my" in button labels ("Verify my email" → "Verify email")
 - Numbers using comma thousands separator (use thin space)
-- Trailing period on one-line entries in `web/src/pages/WhatsNewPage/changelog.ts`
+- Trailing period on one-line entries in `web/src/pages/WhatsNewPage/changelog/*.json`
 - Implementation-detail leaks in changelog entries (file names, class names)
 - Email template missing mascot header / dark-mode block / responsive block / footer tagline
 - Capitalized brand names (Anki, Notion, AnkiWeb) preserved
