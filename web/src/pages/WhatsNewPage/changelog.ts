@@ -5,6 +5,7 @@ export interface ChangelogEntry {
 }
 
 export const changelog: ChangelogEntry[] = [
+  { type: 'style', title: 'Upload page — "How it works" steps and file-retention note collapsed behind a single disclosure', date: '2026-05-21' },
   { type: 'style', title: 'Upgrade prompt — shorter, more honest copy about what a pass actually unlocks', date: '2026-05-21' },
   { type: 'style', title: 'Upload page — primer rewritten to cover PDF, Word, Markdown, HTML, and Notion; Notion-only walkthrough videos removed', date: '2026-05-21' },
   { type: 'style', title: 'Home page — community walkthroughs collapse to 3 by default; expand for all 14', date: '2026-05-21' },

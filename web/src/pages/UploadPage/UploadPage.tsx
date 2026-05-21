@@ -130,48 +130,51 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       <div className={pageStyles.upsellWrapper}>
         <UpsellCard surface="upload_idle_upsell" hideForAnonymous />
       </div>
-      <p className={pageStyles.footnote}>
-        Your uploaded files are deleted after 2 hours.
-      </p>
-      <p className={pageStyles.settingsHint}>
-        Change deck names, templates, and conversion defaults in{' '}
-        <Link to="/card-options?returnTo=/upload">Settings</Link>.
-      </p>
-      <div className={pageStyles.steps}>
-        <div className={pageStyles.step}>
-          <span className={pageStyles.stepNumber}>1</span>
-          <div>
-            <p className={pageStyles.stepTitle}>Drop or choose a file</p>
-            <p className={pageStyles.stepBody}>
-              Notion export, PDF, HTML, Markdown, Word, Excel, PowerPoint, or
-              CSV.{' '}
-              <a href="/documentation/start-here/upload-a-file">
-                How to export from Notion
-              </a>
-            </p>
+      <details className={pageStyles.howItWorks}>
+        <summary className={pageStyles.howItWorksSummary}>How it works</summary>
+        <p className={pageStyles.footnote}>
+          Your uploaded files are deleted after 2 hours.
+        </p>
+        <p className={pageStyles.settingsHint}>
+          Change deck names, templates, and conversion defaults in{' '}
+          <Link to="/card-options?returnTo=/upload">Settings</Link>.
+        </p>
+        <div className={pageStyles.steps}>
+          <div className={pageStyles.step}>
+            <span className={pageStyles.stepNumber}>1</span>
+            <div>
+              <p className={pageStyles.stepTitle}>Drop or choose a file</p>
+              <p className={pageStyles.stepBody}>
+                Notion export, PDF, HTML, Markdown, Word, Excel, PowerPoint, or
+                CSV.{' '}
+                <a href="/documentation/start-here/upload-a-file">
+                  How to export from Notion
+                </a>
+              </p>
+            </div>
+          </div>
+          <div className={pageStyles.step}>
+            <span className={pageStyles.stepNumber}>2</span>
+            <div>
+              <p className={pageStyles.stepTitle}>We build your deck</p>
+              <p className={pageStyles.stepBody}>
+                Images, code blocks, cloze deletions, and formatting all transfer.
+                Usually takes a few seconds.
+              </p>
+            </div>
+          </div>
+          <div className={pageStyles.step}>
+            <span className={pageStyles.stepNumber}>3</span>
+            <div>
+              <p className={pageStyles.stepTitle}>Open in Anki</p>
+              <p className={pageStyles.stepBody}>
+                Your .apkg downloads automatically. Import it into Anki or
+                AnkiDroid and start studying.
+              </p>
+            </div>
           </div>
         </div>
-        <div className={pageStyles.step}>
-          <span className={pageStyles.stepNumber}>2</span>
-          <div>
-            <p className={pageStyles.stepTitle}>We build your deck</p>
-            <p className={pageStyles.stepBody}>
-              Images, code blocks, cloze deletions, and formatting all transfer.
-              Usually takes a few seconds.
-            </p>
-          </div>
-        </div>
-        <div className={pageStyles.step}>
-          <span className={pageStyles.stepNumber}>3</span>
-          <div>
-            <p className={pageStyles.stepTitle}>Open in Anki</p>
-            <p className={pageStyles.stepBody}>
-              Your .apkg downloads automatically. Import it into Anki or
-              AnkiDroid and start studying.
-            </p>
-          </div>
-        </div>
-      </div>
+      </details>
     </div>
   );
 }
