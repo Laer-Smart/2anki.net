@@ -49,6 +49,41 @@ function makeClozeCollection(cardOrds: number[]): NormalizedCollection {
   };
 }
 
+function makeBadOrdClozeCollection(): NormalizedCollection {
+  const noteType = {
+    id: 1,
+    name: 'n2a-cloze',
+    type: 0 as const,
+    css: '',
+    fields: [{ name: 'Text', ord: 0 }],
+    templates: [
+      {
+        name: 'Cloze',
+        ord: 0,
+        qfmt: '{{cloze:Text}}',
+        afmt: '{{cloze:Text}}',
+      },
+    ],
+  };
+
+  const note = {
+    id: 10,
+    mid: 1,
+    tags: '',
+    fields: ['{{c1::Paris}} is the capital of {{c2::France}}'],
+  };
+
+  const validCard = { id: 100, nid: 10, did: 2, ord: 0 };
+  const badOrdCard = { id: 101, nid: 10, did: 2, ord: 1 };
+
+  return {
+    noteTypes: new Map([[1, noteType]]),
+    notes: new Map([[10, note]]),
+    decks: new Map([[2, { id: 2, name: 'Demo' }]]),
+    cards: [validCard, badOrdCard],
+  };
+}
+
 describe('ApkgPreviewService.getCardsPage', () => {
   const service = new ApkgPreviewService();
 
@@ -82,5 +117,43 @@ describe('ApkgPreviewService.getCardsPage', () => {
     warnSpy.mockRestore();
 
     expect(templateOrdWarnings).toHaveLength(0);
+  });
+
+  describe('ord-out-of-range fallback', () => {
+    it('emits a warn log when a card ord exceeds the noteType template count', () => {
+      const parsed = makeParsed(makeBadOrdClozeCollection());
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      service.getCardsPage(parsed, 0, 10, 'http://example.com');
+
+      const templateOrdWarnings = warnSpy.mock.calls.filter(([msg]) =>
+        String(msg).includes('template ord=')
+      );
+      warnSpy.mockRestore();
+
+      expect(templateOrdWarnings).toHaveLength(1);
+      expect(String(templateOrdWarnings[0][0])).toContain('n2a-cloze');
+    });
+
+    it('still renders the out-of-range card against ord=0 instead of dropping it', () => {
+      const parsed = makeParsed(makeBadOrdClozeCollection());
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = service.getCardsPage(parsed, 0, 10, 'http://example.com');
+      warnSpy.mockRestore();
+
+      expect(result.cards).toHaveLength(2);
+      expect(result.cards.every((c) => c.noteTypeName === 'n2a-cloze')).toBe(true);
+    });
+
+    it('does not throw when a card ord exceeds the noteType template count', () => {
+      const parsed = makeParsed(makeBadOrdClozeCollection());
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      expect(() =>
+        service.getCardsPage(parsed, 0, 10, 'http://example.com')
+      ).not.toThrow();
+      warnSpy.mockRestore();
+    });
   });
 });

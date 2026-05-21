@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-21-apkg-cloze-preview-mismatched-templates",
+  "date": "2026-05-21",
+  "type": "fix",
+  "title": ".apkg preview shows every card in cloze decks even with mismatched template numbering"
+}
