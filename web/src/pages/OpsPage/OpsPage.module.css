@@ -307,6 +307,13 @@
   margin-bottom: 1rem;
 }
 
+.refreshHint {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0 0 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .refreshButton {
   font-family: inherit;
 }

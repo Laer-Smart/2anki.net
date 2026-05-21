@@ -251,6 +251,54 @@ describe('BusinessTab', () => {
     expect(screen.getByText(/Last good data shown below/i)).toBeInTheDocument();
   });
 
+  test('shows a subtle refreshing hint during background refetch (not the red banner)', async () => {
+    let resolveSecondFetch!: () => void;
+    const secondFetchPromise = new Promise<void>((r) => {
+      resolveSecondFetch = r;
+    });
+    let callCount = 0;
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockImplementation(
+      async () => {
+        const idx = callCount++;
+        if (idx === 1) {
+          await secondFetchPromise;
+        }
+        return {
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: async () => buildSampleMetrics({ cache_age_seconds: 600 }),
+        };
+      }
+    );
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <BusinessTab />
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => expect(screen.getByText('$4,820')).toBeInTheDocument());
+    expect(screen.queryByText(/refreshing/i)).toBeNull();
+
+    queryClient.invalidateQueries({ queryKey: ['ops-business-metrics'] });
+
+    await waitFor(() =>
+      expect(screen.getByText(/refreshing/i)).toBeInTheDocument()
+    );
+    expect(
+      screen.queryByText(/\/api\/ops\/business\/metrics failed/i)
+    ).toBeNull();
+
+    resolveSecondFetch();
+    await waitFor(() => expect(screen.queryByText(/refreshing/i)).toBeNull());
+  });
+
   test('renders no <pre> JSON dump anywhere', async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,

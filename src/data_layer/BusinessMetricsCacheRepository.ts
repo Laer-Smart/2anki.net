@@ -2,8 +2,11 @@ import type { Knex } from 'knex';
 
 import type { BusinessMetricKey } from '../services/ops/BusinessMetricsService';
 
+export type StripeSourceCacheKey = '_stripe_subs' | '_stripe_invoices';
+export type BusinessCacheKey = BusinessMetricKey | StripeSourceCacheKey;
+
 export interface BusinessMetricsCacheEntry {
-  key: BusinessMetricKey;
+  key: BusinessCacheKey;
   value: unknown;
   cachedAt: Date;
   expiresAt: Date;
@@ -36,7 +39,7 @@ export class BusinessMetricsCacheRepository
       'expires_at'
     );
     return rows.map((row) => ({
-      key: row.metric_key as BusinessMetricKey,
+      key: row.metric_key as BusinessCacheKey,
       value: row.value,
       cachedAt: new Date(row.cached_at),
       expiresAt: new Date(row.expires_at),
@@ -61,7 +64,7 @@ export class BusinessMetricsCacheRepository
 export class InMemoryBusinessMetricsCacheRepository
   implements IBusinessMetricsCacheRepository
 {
-  private readonly entries = new Map<BusinessMetricKey, BusinessMetricsCacheEntry>();
+  private readonly entries = new Map<BusinessCacheKey, BusinessMetricsCacheEntry>();
 
   async loadAll(): Promise<BusinessMetricsCacheEntry[]> {
     return Array.from(this.entries.values()).map((entry) => ({ ...entry }));
