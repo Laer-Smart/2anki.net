@@ -111,7 +111,7 @@ export const handleNestedBulletPointsInMarkdown = (
 
   decks.push(deck);
 
-  const lines = contents?.split('\n') ?? [];
+  const lines = (contents ?? '').replace(/^<\/?aside[^>]*>\s*$/gim, '').split('\n');
   let isCreating = false;
   let currentFront = '';
   let currentBack = '';

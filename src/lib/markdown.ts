@@ -11,10 +11,13 @@ const md = new MarkdownIt({
   .use(multimdTable)
   .use(taskLists);
 
+const ASIDE_TAG_RE = /^<\/?aside[^>]*>\s*$/gim;
+
 export const markdownToHTML = (
   html: string,
   trimWhitespace: boolean = false
 ) => {
-  const input = trimWhitespace ? html.trim() : html;
+  const stripped = html.replace(ASIDE_TAG_RE, '');
+  const input = trimWhitespace ? stripped.trim() : stripped;
   return md.render(input);
 };
