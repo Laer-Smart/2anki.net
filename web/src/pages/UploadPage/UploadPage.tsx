@@ -131,7 +131,9 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
         <UpsellCard surface="upload_idle_upsell" hideForAnonymous />
       </div>
       <details className={pageStyles.howItWorks}>
-        <summary className={pageStyles.howItWorksSummary}>How it works</summary>
+        <summary className={pageStyles.howItWorksSummary}>
+          <h2 className={pageStyles.howItWorksHeading}>How it works</h2>
+        </summary>
         <p className={pageStyles.footnote}>
           Your uploaded files are deleted after 2 hours.
         </p>
