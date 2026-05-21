@@ -1,6 +1,8 @@
 """
 Load template file
 """
+import os
+
 from .get_path_start import _path_start
 
 
@@ -13,7 +15,7 @@ def read_template(template_dir, path, fmt, value):
     :param value: value to use for replacement
     :return:
     """
-    file_path = path if path.startswith(_path_start()) else template_dir + path
+    file_path = path if path.startswith(_path_start()) else os.path.join(template_dir, path)
     with open(file_path, "r", encoding="utf-8") as file:
         if fmt and value:
             return file.read().replace(fmt, value)
