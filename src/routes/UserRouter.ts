@@ -16,6 +16,8 @@ import { getDatabase } from '../data_layer';
 import UsersService from '../services/UsersService';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { MagicTokenRepository } from '../data_layer/MagicTokenRepository';
+import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepository';
+import { RecordUserVisibleErrorUseCase } from '../usecases/observability/RecordUserVisibleErrorUseCase';
 
 const UserRouter = () => {
   const router = express.Router();
@@ -27,10 +29,14 @@ const UserRouter = () => {
 
   const emailService = getDefaultEmailService();
   const magicTokenRepository = new MagicTokenRepository(database);
+  const recordErrorUseCase = new RecordUserVisibleErrorUseCase(
+    new UserVisibleErrorsRepository(database)
+  );
   const controller = new UsersController(
     new UsersService(new UsersRepository(database), emailService, magicTokenRepository),
     authService,
-    database
+    database,
+    recordErrorUseCase
   );
   const emailPreferencesController = new EmailPreferencesController(
     new EmailPreferencesRepository(database)

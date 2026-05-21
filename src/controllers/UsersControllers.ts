@@ -21,12 +21,14 @@ import type { UsersId } from '../data_layer/public/Users';
 import NotionRepository from '../data_layer/NotionRespository';
 import hashToken from '../lib/misc/hashToken';
 import { extractCountryFromRequest } from '../lib/http/extractCountryFromRequest';
+import { RecordUserVisibleErrorUseCase } from '../usecases/observability/RecordUserVisibleErrorUseCase';
 
 class UsersController {
   constructor(
     private readonly userService: UsersService,
     private readonly authService: AuthenticationService,
-    private readonly db: ReturnType<typeof import('../data_layer').getDatabase>
+    private readonly db: ReturnType<typeof import('../data_layer').getDatabase>,
+    private readonly recordError: RecordUserVisibleErrorUseCase | null = null
   ) {}
 
   async newPassword(
@@ -570,6 +572,7 @@ class UsersController {
     console.debug('Login with google');
     const { code } = req.query;
     if (!code) {
+      await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_cancelled' });
       return res.redirect('/login');
     }
 
@@ -578,6 +581,7 @@ class UsersController {
     if (loginRequest) {
       const { email, name } = loginRequest;
       if (email == null) {
+        await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_token_exchange_failed' });
         return res.redirect('/login');
       }
       let user = await this.userService.getUserFrom(email);
@@ -603,6 +607,7 @@ class UsersController {
 
       if (!user) {
         console.info('Failed to create user');
+        await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_user_creation_failed' });
         return res
           .status(400)
           .send('Unknown error. Please try again or register a new account.');
@@ -622,6 +627,7 @@ class UsersController {
       res.cookie('token', token);
       res.status(200).redirect(getRedirect(req));
     } else {
+      await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_token_exchange_failed' });
       res.redirect('/login');
     }
   }
@@ -629,11 +635,13 @@ class UsersController {
   async loginWithNotion(req: express.Request, res: express.Response) {
     const { code } = req.query;
     if (!code) {
+      await this.recordError?.execute({ userId: null, surface: 'oauth_notion', code: 'oauth_cancelled' });
       return res.redirect('/login?error=notion_cancelled');
     }
 
     const loginRequest = await this.authService.loginWithNotion(code as string);
     if (!loginRequest) {
+      await this.recordError?.execute({ userId: null, surface: 'oauth_notion', code: 'oauth_token_exchange_failed' });
       return res.redirect('/login?error=notion_cancelled');
     }
 
@@ -657,6 +665,7 @@ class UsersController {
 
     if (!user) {
       console.info('Failed to create user from Notion login');
+      await this.recordError?.execute({ userId: null, surface: 'oauth_notion', code: 'oauth_user_creation_failed' });
       return res.status(400).send('Unknown error. Please try again or register a new account.');
     }
 
