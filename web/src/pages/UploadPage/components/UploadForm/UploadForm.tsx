@@ -1,4 +1,4 @@
-import { type SyntheticEvent, useEffect, useRef, useState } from 'react';
+import { type SyntheticEvent, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ErrorHandlerType, classifyUploadError } from '../../../../components/errors/helpers/getErrorMessage';
@@ -10,6 +10,7 @@ import getHeadersFilename from '../../helpers/getHeadersFilename';
 import { getDownloadFileName } from '../../../DownloadsPage/helpers/getDownloadFileName';
 import { getEmptyDeckChatPrompt } from '../../helpers/getEmptyDeckChatPrompt';
 import { useDrag } from './hooks/useDrag';
+import { useUploadFormState } from './hooks/useUploadFormState';
 import { useFileValidation } from './hooks/useFileValidation';
 import { useDropboxChooser, type DropboxFile } from './hooks/useDropboxChooser';
 import {
@@ -27,25 +28,7 @@ import { UpsellCard } from '../../../../components/UpsellCard';
 import formStyles from './UploadForm.module.css';
 import sharedStyles from '../../../../styles/shared.module.css';
 
-type ZoneState =
-  | 'idle'
-  | 'converting'
-  | 'success'
-  | 'emptyDeck'
-  | 'limitReached'
-  | 'error'
-  | 'lockedPdf';
-
-interface LockedPdfInfo {
-  filename: string;
-  file: File;
-}
-
-interface LimitInfo {
-  filename: string | null;
-  fileSizeBytes: number | null;
-  kind: 'file_size' | 'card_count';
-}
+import type { ZoneState, LockedPdfInfo, LimitInfo } from './hooks/useUploadFormState';
 
 interface UploadFormProps {
   setErrorMessage: ErrorHandlerType;
@@ -225,36 +208,84 @@ function WarningIcon({ className }: Readonly<{ className?: string }>) {
 }
 
 function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
-  const [zoneState, setZoneState] = useState<ZoneState>('idle');
-  const [downloadLink, setDownloadLink] = useState<string | null>(null);
-  const [deckName, setDeckName] = useState('');
-  const [cardCount, setCardCount] = useState<number | null>(null);
-  const [mcqCount, setMcqCount] = useState<number>(0);
-  const [mcqSkippedCount, setMcqSkippedCount] = useState<number>(0);
-  const [mcqDrawerOpen, setMcqDrawerOpen] = useState(false);
-  const [mcqShowAnswer, setMcqShowAnswer] = useState(false);
-  const [warningMessage, setWarningMessage] = useState<string | null>(null);
-  const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null);
-  const [localError, setLocalError] = useState<UploadErrorBody | null>(null);
-  const [progressWidth, setProgressWidth] = useState(10);
-  const [progressSlow, setProgressSlow] = useState(false);
-  const [showFallback, setShowFallback] = useState(false);
-  const [trialPending, setTrialPending] = useState(false);
-  const [trialError, setTrialError] = useState<string | null>(null);
-  const [dropboxFilename, setDropboxFilename] = useState<string | null>(null);
-  const [dropboxPending, setDropboxPending] = useState(false);
-  const [dropboxError, setDropboxError] = useState<string | null>(null);
-  const [driveFilename, setDriveFilename] = useState<string | null>(null);
-  const [driveMimeType, setDriveMimeType] = useState<string | null>(null);
-  const [drivePending, setDrivePending] = useState(false);
-  const [driveError, setDriveError] = useState<string | null>(null);
-  const [source, setSource] = useState<UploadSource>('local');
-  const [showInlineChat, setShowInlineChat] = useState(false);
-  const [showErrorInlineChat, setShowErrorInlineChat] = useState(false);
-  const [lockedPdfInfo, setLockedPdfInfo] = useState<LockedPdfInfo | null>(null);
-  const [pdfCredential, setPdfCredential] = useState('');
-  const [pdfUnlockError, setPdfUnlockError] = useState<string | null>(null);
-  const [pdfAttemptCount, setPdfAttemptCount] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const convertRef = useRef<HTMLButtonElement>(null);
+  const downloadRef = useRef<HTMLAnchorElement>(null);
+  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const { validation, validate, reset: resetValidation } = useFileValidation();
+
+  const {
+    zoneState,
+    setZoneState,
+    downloadLink,
+    setDownloadLink,
+    deckName,
+    setDeckName,
+    cardCount,
+    setCardCount,
+    mcqCount,
+    setMcqCount,
+    mcqSkippedCount,
+    setMcqSkippedCount,
+    mcqDrawerOpen,
+    setMcqDrawerOpen,
+    mcqShowAnswer,
+    setMcqShowAnswer,
+    warningMessage,
+    setWarningMessage,
+    limitInfo,
+    setLimitInfo,
+    localError,
+    setLocalError,
+    progressWidth,
+    setProgressWidth,
+    progressSlow,
+    setProgressSlow,
+    showFallback,
+    setShowFallback,
+    trialPending,
+    setTrialPending,
+    trialError,
+    setTrialError,
+    dropboxFilename,
+    setDropboxFilename,
+    dropboxPending,
+    setDropboxPending,
+    dropboxError,
+    setDropboxError,
+    driveFilename,
+    setDriveFilename,
+    driveMimeType,
+    setDriveMimeType,
+    drivePending,
+    setDrivePending,
+    driveError,
+    setDriveError,
+    source,
+    setSource,
+    showInlineChat,
+    setShowInlineChat,
+    showErrorInlineChat,
+    setShowErrorInlineChat,
+    lockedPdfInfo,
+    setLockedPdfInfo,
+    pdfCredential,
+    setPdfCredential,
+    pdfUnlockError,
+    setPdfUnlockError,
+    pdfAttemptCount,
+    setPdfAttemptCount,
+    resetForm,
+  } = useUploadFormState(() => {
+    resetValidation();
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current);
+    }
+  });
+
   const { data: userLocals } = useUserLocals();
   const queryClient = useQueryClient();
   const autoSyncActive = userLocals?.autoSyncActive === true;
@@ -266,11 +297,6 @@ function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
     userLocals?.user?.trial_started_at == null &&
     userLocals?.locals?.patreon !== true;
   const showSignInPrompt = userLocals != null && !isAuthenticated;
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const convertRef = useRef<HTMLButtonElement>(null);
-  const downloadRef = useRef<HTMLAnchorElement>(null);
-  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
-  const { validation, validate, reset: resetValidation } = useFileValidation();
   const { openChooser, isConfigured: isDropboxConfigured } = useDropboxChooser(FORMATS);
   const { openPicker, isConfigured: isGoogleDriveConfigured } = useGooglePicker();
 
@@ -301,43 +327,6 @@ function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
 
   const submitFiles = () => {
     convertRef.current?.click();
-  };
-
-  const resetForm = () => {
-    setZoneState('idle');
-    setDownloadLink(null);
-    setDeckName('');
-    setCardCount(null);
-    setMcqCount(0);
-    setMcqSkippedCount(0);
-    setMcqDrawerOpen(false);
-    setMcqShowAnswer(false);
-    setWarningMessage(null);
-    setLimitInfo(null);
-    setTrialError(null);
-    setLocalError(null);
-    setProgressWidth(10);
-    setProgressSlow(false);
-    setShowFallback(false);
-    setDropboxFilename(null);
-    setDropboxError(null);
-    setDriveFilename(null);
-    setDriveMimeType(null);
-    setDriveError(null);
-    setSource('local');
-    setShowInlineChat(false);
-    setShowErrorInlineChat(false);
-    setLockedPdfInfo(null);
-    setPdfCredential('');
-    setPdfUnlockError(null);
-    setPdfAttemptCount(0);
-    resetValidation();
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    if (fallbackTimerRef.current) {
-      clearTimeout(fallbackTimerRef.current);
-    }
   };
 
   const { dropHover } = useDrag({
