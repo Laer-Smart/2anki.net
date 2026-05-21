@@ -46,19 +46,13 @@ const WALKTHROUGHS: ReadonlyArray<[string, string]> = [
   ['jpR_grXWTTw', 'PDF to Anki in Seconds — No Plugins, No Manual Work'],
   ['roQ3awaVa2E', 'Image Occlusion Comes to 2anki.net — Anatomy Flashcards in Seconds'],
   ['UnTo_fN1jpc', 'How I use Notion to Anki as a medical student'],
+  ['NLUfAWA2LJI', 'Turn any website into Anki flashcards'],
+  ['r9pPNl8Mx_Q', 'How to use cloze deletions'],
+  ['lpC7C9wJoTA', 'Use Notion to Anki for learning languages'],
+  ['vINpYLMW9AE', 'Best Notion hack for medical students'],
   ['E51yLIIS3bk', 'Notion2Anki — Perfekter Workflow fürs Lernen'],
   ['57dW_buqtGM', 'Notion to Anki — Tutorial en Español'],
-  ['NLUfAWA2LJI', 'Turn any website into Anki flashcards'],
   ['RHReYOKywZc', 'Créer des flashcards Anki avec Notion'],
-  ['r9pPNl8Mx_Q', 'How to use cloze deletions'],
-  ['vINpYLMW9AE', 'Best Notion hack for medical students'],
-  ['JrYdp18Hbs8', 'Notion to Anki — complete guide'],
-  ['lpC7C9wJoTA', 'Use Notion to Anki for learning languages'],
-  ['Ah-_wm2fgIk', 'Instantly turn your Notion notes into Anki flashcards'],
-  ['9V0_N-Ex1U0', 'Notion to Anki walkthrough'],
-  ['6CyurZC4Bf0', 'Turn your Notion notes into Anki flashcards'],
-  ['A9aqXH2jVwQ', 'Notion to Anki tutorial'],
-  ['PDdEGonPCNk', 'Notion to Anki — quick start'],
 ];
 
 function VideoCard({ embedId, title }: Readonly<{ embedId: string; title: string }>) {
@@ -198,7 +192,7 @@ export function HomePage({
             onClick={() => setShowAll(!showAll)}
             aria-expanded={showAll}
           >
-            {showAll ? '▴ Show fewer' : '▾ Show all 16 videos'}
+            {showAll ? '▴ Show fewer' : '▾ Show all 10 videos'}
           </button>
         </div>
       </section>
