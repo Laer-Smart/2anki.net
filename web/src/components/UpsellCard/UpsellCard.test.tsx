@@ -82,13 +82,13 @@ describe('UpsellCard', () => {
   it('uses the downloads surface headline on /downloads', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     render(<UpsellCard surface="downloads_upsell" />);
-    expect(screen.getByText('Converting more this month?')).toBeInTheDocument();
+    expect(screen.getByText('More decks to download?')).toBeInTheDocument();
   });
 
   it('uses the upload-success surface headline on upload success', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     render(<UpsellCard surface="upload_success_upsell" />);
-    expect(screen.getByText('More decks coming?')).toBeInTheDocument();
+    expect(screen.getByText('More pages to convert?')).toBeInTheDocument();
   });
 
   it('fires paywall_shown with the surface on mount for free users', () => {
