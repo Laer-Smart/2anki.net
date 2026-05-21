@@ -59,11 +59,11 @@ describe('HomePage (anonymous)', () => {
     expect(playButtons.length).toBe(3);
   });
 
-  it('renders all 16 walkthrough play buttons after clicking expand', () => {
+  it('renders all 10 walkthrough play buttons after clicking expand', () => {
     renderHome();
-    const expandButton = screen.getByRole('button', { name: /show all 16 videos/i });
+    const expandButton = screen.getByRole('button', { name: /show all 10 videos/i });
     fireEvent.click(expandButton);
     const playButtons = screen.getAllByRole('button', { name: /play:/i });
-    expect(playButtons.length).toBe(16);
+    expect(playButtons.length).toBe(10);
   });
 });
