@@ -21,60 +21,8 @@ import pageStyles from './UploadPage.module.css';
 
 const REATTACH_KEY = 'upload_pending_filename';
 
-const WALKTHROUGHS: ReadonlyArray<[string, string]> = [
-  ['UnTo_fN1jpc', 'How I use Notion to Anki as a medical student'],
-  ['JrYdp18Hbs8', 'Notion to Anki — complete guide'],
-  ['57dW_buqtGM', 'Cómo crear FLASHCARDS de ANKI usando NOTION'],
-];
-
 interface Props {
   setErrorMessage: ErrorHandlerType;
-}
-
-function VideoCard({
-  embedId,
-  title,
-}: Readonly<{ embedId: string; title: string }>) {
-  const [playing, setPlaying] = useState(false);
-
-  if (playing) {
-    return (
-      <div className={pageStyles.walkCard}>
-        <div className={pageStyles.walkVideo}>
-          <iframe
-            src={`https://www.youtube.com/embed/${embedId}?autoplay=1`}
-            title={title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allowFullScreen
-          />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      className={pageStyles.walkCard}
-      onClick={() => setPlaying(true)}
-      aria-label={`Play: ${title}`}
-    >
-      <div className={pageStyles.walkThumb}>
-        <img
-          src={`https://img.youtube.com/vi/${embedId}/hqdefault.jpg`}
-          alt={title}
-          loading="lazy"
-        />
-        <span className={pageStyles.walkPlayBtn} aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="28" height="28">
-            <path d="M8 5v14l11-7z" />
-          </svg>
-        </span>
-      </div>
-      <p className={pageStyles.walkCardTitle}>{title}</p>
-    </button>
-  );
 }
 
 export function UploadPage({ setErrorMessage }: Readonly<Props>) {
@@ -163,18 +111,18 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
             ✕
           </button>
           <p className={pageStyles.primerHeading}>
-            Make cards from your Notion toggles
+            How cards are made
           </p>
           <p className={pageStyles.primerBody}>
-            Each toggle becomes one card — the toggle title is the front, what's
-            inside is the back. Export your page from Notion as HTML and drop
-            the .zip below.
+            Drop a file — PDF, Word doc, Markdown, HTML, or a Notion export.
+            2anki finds the structure in your notes and builds one card per
+            question or toggle. Usually done in a few seconds.
           </p>
           <a
             href="/documentation/start-here/upload-a-file"
             className={pageStyles.primerLink}
           >
-            See a 30-second example
+            See what formats work
           </a>
         </section>
       )}
@@ -224,14 +172,6 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
           </div>
         </div>
       </div>
-      <section className={pageStyles.walkthroughSection}>
-        <p className={pageStyles.walkthroughHeading}>Walkthroughs</p>
-        <div className={pageStyles.walkthroughGrid}>
-          {WALKTHROUGHS.map(([embedId, title]) => (
-            <VideoCard key={embedId} embedId={embedId} title={title} />
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

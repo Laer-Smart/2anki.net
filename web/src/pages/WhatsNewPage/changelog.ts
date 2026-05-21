@@ -5,6 +5,7 @@ export interface ChangelogEntry {
 }
 
 export const changelog: ChangelogEntry[] = [
+  { type: 'style', title: 'Upload page — primer rewritten to cover PDF, Word, Markdown, HTML, and Notion; Notion-only walkthrough videos removed', date: '2026-05-21' },
   { type: 'style', title: 'Home page — community walkthroughs collapse to 3 by default; expand for all 14', date: '2026-05-21' },
   { type: 'fix', title: 'Notion callouts and nested toggle cards no longer show raw HTML tags in your cards', date: '2026-05-21' },
   { type: 'fix', title: 'Open tabs reload themselves after a deploy instead of showing an error screen', date: '2026-05-21' },
