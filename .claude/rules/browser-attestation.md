@@ -40,7 +40,7 @@ The line must start with `Browser check: not applicable —` (exact prefix, incl
 The hook exits 0 (allow) without checking the body when:
 
 - **Dependabot author** — `author.login == "dependabot[bot]"`.
-- **Changelog-only diff** — the only `web/src/` file is `web/src/pages/WhatsNewPage/changelog.ts`.
+- **Changelog-only diff** — every `web/src/` file in the diff lives under `web/src/pages/WhatsNewPage/changelog/`.
 - **No `web/src/` files** — the diff contains no files under `web/src/`.
 - **Tooling error** — `gh` is not on PATH, times out, or returns a non-zero exit code. The hook is fail-open to avoid blocking merges for tooling reasons unrelated to the spec.
 

@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-18-recovery-screen-reload-first-only-reset-local-data-if-that-d",
+  "date": "2026-05-18",
+  "type": "fix",
+  "title": "Recovery screen — reload first, only reset local data if that does not fix it"
+}

@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-21-upload-page-title",
+  "date": "2026-05-21",
+  "type": "fix",
+  "title": "Upload page has its own browser-tab title so it's easier to find in tabs and history"
+}

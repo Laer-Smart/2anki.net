@@ -7,6 +7,10 @@ vi.mock('../../components/FeedbackWidget/FeedbackWidget', () => ({
   FeedbackWidget: () => null,
 }));
 
+vi.mock('./changelog/index', () => ({
+  changelog: [],
+}));
+
 vi.mock('./inProgress', () => ({
   inProgress: [],
 }));

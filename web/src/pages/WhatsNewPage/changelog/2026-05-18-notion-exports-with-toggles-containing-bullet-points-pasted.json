@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-18-notion-exports-with-toggles-containing-bullet-points-pasted",
+  "date": "2026-05-18",
+  "type": "fix",
+  "title": "Notion exports with toggles containing bullet points, pasted screenshots, or mixed-format cloze spans convert into complete decks"
+}

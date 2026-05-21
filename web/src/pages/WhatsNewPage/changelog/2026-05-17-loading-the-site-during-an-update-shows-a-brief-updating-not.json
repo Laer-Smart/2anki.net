@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-17-loading-the-site-during-an-update-shows-a-brief-updating-not",
+  "date": "2026-05-17",
+  "type": "fix",
+  "title": "Loading the site during an update shows a brief \"updating\" notice instead of a server error"
+}

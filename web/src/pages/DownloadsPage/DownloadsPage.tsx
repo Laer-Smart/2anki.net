@@ -20,6 +20,7 @@ import { StatusTag, JobStatus } from './components/ListJobs/StatusTag';
 import { StepIndicator } from '../../components/StepIndicator/StepIndicator';
 import { jobStepFromStatus } from '../../components/StepIndicator/jobStepFromStatus';
 import SendToAnkifyButton from './components/SendToAnkifyButton';
+import { DeckFeedbackPrompt, isDeckFeedbackSuppressed } from './components/DeckFeedbackPrompt';
 import { useActiveShares } from './hooks/useActiveShares';
 import { fireAnalyticsEvent } from '../../lib/analytics/fireAnalyticsEvent';
 import { track } from '../../lib/analytics/track';
@@ -248,6 +249,8 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
   };
 
   const activeJobs = jobs.filter((j) => isActiveJob(j.status));
+  const hasDoneJob = jobs.some((j) => isDoneJob(j.status));
+  const showDeckFeedback = hasDoneJob && !isDeckFeedbackSuppressed();
 
   const handleDeleteJob = async (id: Parameters<typeof deleteJob>[0]) => {
     await deleteJob(id);
@@ -574,6 +577,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                     <UpsellCard surface="downloads_upsell" />
                   </div>
                 )}
+                {showDeckFeedback && <DeckFeedbackPrompt />}
               </div>
 
               <div style={{ textAlign: 'right', marginTop: '0.5rem', fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)' }}>

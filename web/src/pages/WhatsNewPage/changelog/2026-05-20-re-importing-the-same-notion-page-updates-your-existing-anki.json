@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-20-re-importing-the-same-notion-page-updates-your-existing-anki",
+  "date": "2026-05-20",
+  "type": "fix",
+  "title": "Re-importing the same Notion page updates your existing Anki notes instead of adding duplicates"
+}

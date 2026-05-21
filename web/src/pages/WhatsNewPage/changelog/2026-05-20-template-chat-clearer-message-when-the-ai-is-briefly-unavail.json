@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-20-template-chat-clearer-message-when-the-ai-is-briefly-unavail",
+  "date": "2026-05-20",
+  "type": "fix",
+  "title": "Template chat — clearer message when the AI is briefly unavailable, and a \"no changes\" note when nothing actually changed"
+}

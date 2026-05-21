@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-15-notion-mentions-people-dates-linked-pages-appear-as-text-in",
+  "date": "2026-05-15",
+  "type": "fix",
+  "title": "Notion mentions (people, dates, linked pages) appear as text in your cards instead of a JSON dump"
+}

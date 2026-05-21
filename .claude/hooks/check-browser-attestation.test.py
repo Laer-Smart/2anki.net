@@ -101,8 +101,24 @@ class TestNoWebSrcFiles(unittest.TestCase):
 
 
 class TestChangelogOnlyBypass(unittest.TestCase):
-    def test_only_changelog_file_allows(self):
-        stdout = make_pr_json("alex", "No browser check", ["web/src/pages/WhatsNewPage/changelog.ts"])
+    def test_only_changelog_entry_allows(self):
+        stdout = make_pr_json(
+            "alex",
+            "No browser check",
+            ["web/src/pages/WhatsNewPage/changelog/2026-05-21-new-feature.json"],
+        )
+        result = run_hook("gh pr merge 42", subprocess_result={"returncode": 0, "stdout": stdout})
+        self.assertEqual(result["result"], "allow")
+
+    def test_multiple_changelog_entries_allow(self):
+        stdout = make_pr_json(
+            "alex",
+            "No browser check",
+            [
+                "web/src/pages/WhatsNewPage/changelog/2026-05-21-new-feature.json",
+                "web/src/pages/WhatsNewPage/changelog/2026-05-21-fix.json",
+            ],
+        )
         result = run_hook("gh pr merge 42", subprocess_result={"returncode": 0, "stdout": stdout})
         self.assertEqual(result["result"], "allow")
 
@@ -111,7 +127,10 @@ class TestChangelogOnlyBypass(unittest.TestCase):
         stdout = make_pr_json(
             "alex",
             body,
-            ["web/src/pages/WhatsNewPage/changelog.ts", "web/src/components/Foo.tsx"],
+            [
+                "web/src/pages/WhatsNewPage/changelog/2026-05-21-new-feature.json",
+                "web/src/components/Foo.tsx",
+            ],
         )
         result = run_hook("gh pr merge 42", subprocess_result={"returncode": 0, "stdout": stdout})
         self.assertEqual(result["result"], "allow")

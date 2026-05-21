@@ -7,6 +7,13 @@ vi.mock('../../components/FeedbackWidget/FeedbackWidget', () => ({
   FeedbackWidget: () => null,
 }));
 
+vi.mock('./changelog/index', () => ({
+  changelog: [
+    { id: '2026-05-21-shipped-one', date: '2026-05-21', type: 'feature', title: 'Shipped one' },
+    { id: '2026-05-21-shipped-two', date: '2026-05-21', type: 'fix', title: 'Shipped two' },
+  ],
+}));
+
 vi.mock('./inProgress', () => ({
   inProgress: [
     { title: 'Seeded item 1', startedAt: '2026-05-01T00:00:00Z' },

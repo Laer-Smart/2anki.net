@@ -13,6 +13,7 @@ import DebugPage from './pages/DebugPage';
 import { ContactPage } from './pages/ContactPage/ContactPage';
 import FavoritesPage from './pages/FavoritesPage';
 import { AppShell } from './components/AppShell/AppShell';
+import { FloatingFeedback } from './components/FeedbackWidget/FloatingFeedback';
 import DeleteAccountPage from './pages/DeleteAccountPage';
 import { getErrorMessage } from './components/errors/helpers/getErrorMessage';
 import { sendError } from './lib/SendError';
@@ -319,6 +320,7 @@ function AppContent({
           <Route path="/s/:token" element={<SharedDeckPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        <FloatingFeedback />
       </AppShell>
     </BrowserRouter>
   );

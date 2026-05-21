@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-16-editing-an-official-note-type-opens-the-editor-instead-of-sh",
+  "date": "2026-05-16",
+  "type": "fix",
+  "title": "Editing an Official note type opens the editor instead of showing Template not found"
+}
