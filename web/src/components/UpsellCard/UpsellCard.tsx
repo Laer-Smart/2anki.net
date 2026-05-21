@@ -18,18 +18,18 @@ interface UpsellCardProps {
 }
 
 const HEADLINE: Record<Surface, string> = {
-  downloads_upsell: 'Converting more this month?',
-  upload_success_upsell: 'More decks coming?',
-  upload_idle_upsell: 'Converting more this month?',
+  downloads_upsell: 'More decks to download?',
+  upload_success_upsell: 'More pages to convert?',
+  upload_idle_upsell: 'Whole stack to convert?',
 };
 
 const BODY: Record<Surface, string> = {
   downloads_upsell:
-    'Free plan is 100 cards a month and one conversion at a time. A pass removes both limits without a subscription.',
+    'A pass lifts the 100-card monthly cap. Day or week, no subscription.',
   upload_success_upsell:
-    'Free plan caps at 100 cards a month and one job at a time. A pass removes both for the next day or week.',
+    'A pass lifts the 100-card monthly cap — for a day or a week, no subscription.',
   upload_idle_upsell:
-    'Free plan is 100 cards a month and one conversion at a time. A pass removes both limits without a subscription.',
+    'A pass lifts the 100-card monthly cap. Day or week, no subscription.',
 };
 
 export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProps) {
