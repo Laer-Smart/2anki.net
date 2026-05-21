@@ -1,3 +1,5 @@
+import Knex from 'knex';
+import KnexConfig from '../KnexConfig';
 import UsersRepository from './UsersRepository';
 
 function buildKnexMock() {
@@ -101,3 +103,56 @@ describe('UsersRepository.updatePatreonByEmail', () => {
     expect(rowsAffected).toBe(1);
   });
 });
+
+const RUN_INTEGRATION = process.env.DATABASE_URL != null;
+
+(RUN_INTEGRATION ? describe : describe.skip)(
+  'UsersRepository.deleteUser — FK cascade (integration)',
+  () => {
+    const db = Knex(KnexConfig);
+    let userId: number;
+
+    beforeEach(async () => {
+      const rows = await db('users')
+        .insert({
+          name: 'cascade-test',
+          email: `cascade-test-${Date.now()}@example.com`,
+          password: SAMPLE_HASH,
+        })
+        .returning('id');
+      userId = rows[0].id;
+
+      await db('inactivity_emails').insert({
+        user_id: userId,
+        token: `inactivity-tok-${userId}`,
+      });
+
+      await db('re_engagement_emails').insert({
+        user_id: userId,
+        token: `reengagement-tok-${userId}`,
+      });
+    });
+
+    afterEach(async () => {
+      await db('inactivity_emails').where({ user_id: userId }).del();
+      await db('re_engagement_emails').where({ user_id: userId }).del();
+      await db('users').where({ id: userId }).del();
+    });
+
+    afterAll(() => db.destroy());
+
+    it('removes the user and cascades to inactivity_emails and re_engagement_emails', async () => {
+      const repo = new UsersRepository(db);
+
+      await repo.deleteUser(String(userId));
+
+      const user = await db('users').where({ id: userId }).first();
+      const inactivity = await db('inactivity_emails').where({ user_id: userId }).first();
+      const reEngagement = await db('re_engagement_emails').where({ user_id: userId }).first();
+
+      expect(user).toBeUndefined();
+      expect(inactivity).toBeUndefined();
+      expect(reEngagement).toBeUndefined();
+    });
+  }
+);
