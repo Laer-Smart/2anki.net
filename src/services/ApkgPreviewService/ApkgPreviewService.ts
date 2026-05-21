@@ -127,9 +127,10 @@ export default class ApkgPreviewService {
       console.warn(`[apkg-preview] card ${cardId}: noteType ${note.mid} not found`);
       return null;
     }
-    const template = noteType.templates.find((t) => t.ord === card.ord);
+    const templateOrd = noteType.type === 1 ? 0 : card.ord;
+    const template = noteType.templates.find((t) => t.ord === templateOrd);
     if (!template) {
-      console.warn(`[apkg-preview] card ${cardId}: template ord=${card.ord} not found in noteType "${noteType.name}" (has ${noteType.templates.length} templates)`);
+      console.warn(`[apkg-preview] card ${cardId}: template ord=${templateOrd} not found in noteType "${noteType.name}" (has ${noteType.templates.length} templates)`);
       return null;
     }
     const deck = parsed.collection.decks.get(card.did);
