@@ -131,6 +131,22 @@ describe('SearchObjectEntry convert button', () => {
     expect(screen.getByRole('link', { name: 'Upgrade' })).toHaveAttribute('href', '/pricing');
   });
 
+  it('on 402: shows Auto Sync link to /ankify', async () => {
+    mockConvert.mockResolvedValue({
+      status: 402,
+      json: async () => ({ reason: 'free_plan_one_at_a_time' }),
+    });
+
+    renderEntry();
+    fireEvent.click(screen.getByRole('link', { name: 'Convert to Anki' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'Auto Sync' })).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('link', { name: 'Auto Sync' })).toHaveAttribute('href', '/ankify');
+  });
+
   it('on 409: shows already-converting copy', async () => {
     mockConvert.mockResolvedValue({
       status: 409,
