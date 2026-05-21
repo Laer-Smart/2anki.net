@@ -9,7 +9,7 @@ import BookOpenIcon from '../../components/icons/BookOpenIcon';
 import { ShowcaseSection } from './ShowcaseSection';
 import styles from './HomePage.module.css';
 
-const FEATURED_WALKTHROUGH_IDS = new Set(['UnTo_fN1jpc', 'r9pPNl8Mx_Q', 'lpC7C9wJoTA']);
+const FEATURED_WALKTHROUGH_IDS = new Set(['jpR_grXWTTw', 'roQ3awaVa2E', 'UnTo_fN1jpc']);
 
 const MASCOTS = [
   '/mascot/Notion 1.png',
@@ -43,6 +43,8 @@ const STEPS = [
 ];
 
 const WALKTHROUGHS: ReadonlyArray<[string, string]> = [
+  ['jpR_grXWTTw', 'PDF to Anki in Seconds — No Plugins, No Manual Work'],
+  ['roQ3awaVa2E', 'Image Occlusion Comes to 2anki.net — Anatomy Flashcards in Seconds'],
   ['UnTo_fN1jpc', 'How I use Notion to Anki as a medical student'],
   ['E51yLIIS3bk', 'Notion2Anki — Perfekter Workflow fürs Lernen'],
   ['57dW_buqtGM', 'Notion to Anki — Tutorial en Español'],
@@ -196,7 +198,7 @@ export function HomePage({
             onClick={() => setShowAll(!showAll)}
             aria-expanded={showAll}
           >
-            {showAll ? '▴ Show fewer' : '▾ Show all 14 videos'}
+            {showAll ? '▴ Show fewer' : '▾ Show all 16 videos'}
           </button>
         </div>
       </section>
