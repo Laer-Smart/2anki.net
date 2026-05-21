@@ -5,6 +5,7 @@ export interface ChangelogEntry {
 }
 
 export const changelog: ChangelogEntry[] = [
+  { type: 'fix', title: 'Onboarding tour now renders correctly in dark mode (and the gold and purple themes)', date: '2026-05-21' },
   { type: 'style', title: 'Upload page — dropped the duplicated "Make flashcards" heading; the navbar identifies the page and the form is the focus', date: '2026-05-21' },
   { type: 'fix', title: 'Photo-to-flashcards page now renders correctly in dark mode (and the gold and purple themes)', date: '2026-05-21' },
   { type: 'style', title: 'Upload page — explainer card moved below the upload form so the form is the unambiguous primary action', date: '2026-05-21' },

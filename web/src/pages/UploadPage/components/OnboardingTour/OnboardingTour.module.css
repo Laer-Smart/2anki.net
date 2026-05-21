@@ -1,6 +1,6 @@
 .tour {
-  background: var(--color-surface, #fff);
-  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 20px 24px;
   margin-bottom: 20px;
@@ -17,26 +17,26 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-border, #e5e7eb);
+  background: var(--color-border);
 }
 
 .dotActive {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-primary, #3b82f6);
+  background: var(--color-primary);
 }
 
 .title {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-text, #111827);
+  color: var(--color-text-primary);
   margin: 0 0 6px;
 }
 
 .hint {
   font-size: 0.875rem;
-  color: var(--color-text-muted, #6b7280);
+  color: var(--color-text-tertiary);
   margin: 0 0 18px;
 }
 
@@ -48,8 +48,8 @@
 
 .btnPrimary {
   padding: 6px 16px;
-  background: var(--color-primary, #3b82f6);
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-bg-primary);
   border: none;
   border-radius: 6px;
   font-size: 0.875rem;
@@ -57,27 +57,27 @@
 }
 
 .btnPrimary:hover {
-  background: #2563eb;
+  background: var(--color-primary-hover);
 }
 
 .btnSecondary {
   padding: 6px 16px;
   background: transparent;
-  color: var(--color-text, #374151);
-  border: 1px solid var(--color-border, #e5e7eb);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 0.875rem;
   cursor: pointer;
 }
 
 .btnSecondary:hover {
-  background: var(--color-surface-hover, #f9fafb);
+  background: var(--color-bg-secondary);
 }
 
 .btnSkip {
   padding: 6px 12px;
   background: transparent;
-  color: var(--color-text-muted, #6b7280);
+  color: var(--color-text-tertiary);
   border: none;
   font-size: 0.875rem;
   cursor: pointer;
@@ -85,5 +85,5 @@
 }
 
 .btnSkip:hover {
-  color: var(--color-text, #374151);
+  color: var(--color-text-primary);
 }
