@@ -1,17 +1,8 @@
-import {
-  useQueryClient,
-  useQuery as useReactQuery,
-} from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import { UpsellCard } from '../../components/UpsellCard';
-import {
-  dismissUploadPrimer,
-  fetchUserPreferences,
-  type ServerUserPreferences,
-} from '../../lib/data_layer/userPreferencesSync';
 import useQuery from '../../lib/hooks/useQuery';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import styles from '../../styles/shared.module.css';
@@ -30,25 +21,11 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
   const view = query.get('view');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const queryClient = useQueryClient();
   const [reattachFilename, setReattachFilename] = useState<string | null>(() => {
     const stored = globalThis.sessionStorage?.getItem(REATTACH_KEY) ?? null;
     return stored != null && stored.length > 0 ? stored : null;
   });
   const { data: userLocals } = useUserLocals();
-
-  const prefsQuery = useReactQuery({
-    queryKey: ['user-preferences'],
-    queryFn: fetchUserPreferences,
-    staleTime: 60_000,
-    retry: false,
-  });
-
-  // Server is the only source of truth. Until the query resolves, hide the primer rather
-  // than flash it — a brief delay before showing orientation copy is better than briefly
-  // showing it to someone who has already dismissed it.
-  const primerVisible =
-    prefsQuery.isFetched && prefsQuery.data?.uploadPrimerDismissedAt == null;
 
   useEffect(() => {
     if (searchParams.get('from') === 'pass') {
@@ -58,20 +35,6 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       navigate(qs ? `/upload?${qs}` : '/upload', { replace: true });
     }
   }, [searchParams, navigate]);
-
-  const handleDismissPrimer = () => {
-    const now = new Date().toISOString();
-    queryClient.setQueryData<ServerUserPreferences | null>(
-      ['user-preferences'],
-      (current) => ({
-        cardOptions: current?.cardOptions ?? null,
-        theme: current?.theme ?? null,
-        ankiWebAcknowledgedAt: current?.ankiWebAcknowledgedAt ?? null,
-        uploadPrimerDismissedAt: now,
-      })
-    );
-    void dismissUploadPrimer();
-  };
 
   if (
     view === 'template' ||
@@ -86,6 +49,12 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       <Helmet>
         <title>Upload — 2anki</title>
       </Helmet>
+      <header className={styles.pageHeader}>
+        <h1 className={styles.title}>Convert your notes</h1>
+        <p className={styles.subtitle}>
+          One deck per file — PDF, Notion export, Word, Markdown, HTML, Excel, CSV, or PowerPoint
+        </p>
+      </header>
       <OnboardingTour
         createdAt={userLocals?.user?.created_at ?? null}
         onboardedAt={userLocals?.user?.onboarded_at ?? null}
@@ -98,32 +67,6 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
         </div>
       )}
       <UploadForm setErrorMessage={setErrorMessage} />
-      {primerVisible && (
-        <section className={pageStyles.primer} aria-label="How 2anki works">
-          <button
-            type="button"
-            className={pageStyles.primerDismiss}
-            onClick={handleDismissPrimer}
-            aria-label="Dismiss tips"
-          >
-            ✕
-          </button>
-          <p className={pageStyles.primerHeading}>
-            How cards are made
-          </p>
-          <p className={pageStyles.primerBody}>
-            Drop a file — PDF, Word doc, Markdown, HTML, or a Notion export.
-            2anki finds the structure in your notes and builds one card per
-            question or toggle. Usually done in a few seconds.
-          </p>
-          <a
-            href="/documentation/start-here/upload-a-file"
-            className={pageStyles.primerLink}
-          >
-            See what formats work
-          </a>
-        </section>
-      )}
       <div className={pageStyles.upsellWrapper}>
         <UpsellCard surface="upload_idle_upsell" hideForAnonymous />
       </div>
