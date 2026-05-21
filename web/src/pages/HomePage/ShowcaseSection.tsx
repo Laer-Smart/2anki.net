@@ -53,9 +53,6 @@ export function ShowcaseSection() {
     <section className={styles.showcaseSection}>
       <div className={styles.showcaseInner}>
         <p className={styles.showcaseHeading}>See it in action</p>
-        <p className={styles.showcaseSubheading}>
-          This Notion page becomes these Anki flashcards
-        </p>
         <div className={styles.showcaseGrid}>
           <div className={styles.showcaseColumn}>
             <p className={styles.columnLabel}>Notion</p>

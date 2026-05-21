@@ -18,13 +18,6 @@
   text-align: center;
 }
 
-.showcaseSubheading {
-  font-size: var(--text-lg);
-  color: var(--color-text-secondary);
-  margin: 0 0 2rem;
-  text-align: center;
-}
-
 .showcaseGrid {
   display: grid;
   gap: 1.5rem;
@@ -176,9 +169,5 @@
 
   .showcaseHeading {
     font-size: var(--text-2xl);
-  }
-
-  .showcaseSubheading {
-    font-size: var(--text-base);
   }
 }
