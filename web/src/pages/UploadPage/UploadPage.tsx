@@ -100,6 +100,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
           <span> to convert</span>
         </div>
       )}
+      <UploadForm setErrorMessage={setErrorMessage} />
       {primerVisible && (
         <section className={pageStyles.primer} aria-label="How 2anki works">
           <button
@@ -126,7 +127,6 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
           </a>
         </section>
       )}
-      <UploadForm setErrorMessage={setErrorMessage} />
       <div className={pageStyles.upsellWrapper}>
         <UpsellCard surface="upload_idle_upsell" hideForAnonymous />
       </div>
