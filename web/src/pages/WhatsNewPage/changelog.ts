@@ -5,6 +5,7 @@ export interface ChangelogEntry {
 }
 
 export const changelog: ChangelogEntry[] = [
+  { type: 'fix', title: 'Markdown tables inside bullet points render as tables on your cards', date: '2026-05-21' },
   { type: 'feature', title: 'Photo to deck — drop a photo of your textbook page, lecture slide, or handwritten notes, get an Anki deck back. Free plan: 5 photos per month', date: '2026-05-20' },
   { type: 'fix', title: 'LaTeX cloze cards with multiple code blocks render with the right boundaries', date: '2026-05-20' },
   { type: 'feature', title: 'Unlimited now offers yearly billing — $60 / yr, 2 months free', date: '2026-05-20' },
