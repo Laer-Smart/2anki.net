@@ -94,7 +94,11 @@ Specific log, metric, or query that confirms this worked in production.
 
 ## Testing
 - Unit tests added: ...
-- Manually verified: ...
+
+## Browser check
+- [ ] Golden path on localhost:3000
+- [ ] No console errors at 375px
+Notes:
 
 ## Changelog
 The exact line added to `web/src/pages/WhatsNewPage/changelog.ts`, or "No entry — internal-only, no user-visible change."
