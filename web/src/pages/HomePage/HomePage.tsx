@@ -9,7 +9,7 @@ import BookOpenIcon from '../../components/icons/BookOpenIcon';
 import { ShowcaseSection } from './ShowcaseSection';
 import styles from './HomePage.module.css';
 
-const FEATURED_WALKTHROUGH_IDS = ['UnTo_fN1jpc', 'r9pPNl8Mx_Q', 'lpC7C9wJoTA'];
+const FEATURED_WALKTHROUGH_IDS = new Set(['UnTo_fN1jpc', 'r9pPNl8Mx_Q', 'lpC7C9wJoTA']);
 
 const MASCOTS = [
   '/mascot/Notion 1.png',
@@ -169,7 +169,7 @@ export function HomePage({
       <section id="walkthroughs" className={styles.bottomSection}>
         <p className={styles.walkHeading}>Walkthroughs</p>
         <div className={styles.walkGrid}>
-          {(showAll ? WALKTHROUGHS : WALKTHROUGHS.filter(([id]) => FEATURED_WALKTHROUGH_IDS.includes(id))).map(([embedId, title]) => (
+          {(showAll ? WALKTHROUGHS : WALKTHROUGHS.filter(([id]) => FEATURED_WALKTHROUGH_IDS.has(id))).map(([embedId, title]) => (
             <VideoCard
               key={embedId}
               embedId={embedId}
