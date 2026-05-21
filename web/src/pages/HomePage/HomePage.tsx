@@ -9,6 +9,8 @@ import BookOpenIcon from '../../components/icons/BookOpenIcon';
 import { ShowcaseSection } from './ShowcaseSection';
 import styles from './HomePage.module.css';
 
+const FEATURED_WALKTHROUGH_IDS = new Set(['UnTo_fN1jpc', 'r9pPNl8Mx_Q', 'lpC7C9wJoTA']);
+
 const MASCOTS = [
   '/mascot/Notion 1.png',
   '/mascot/Notion 2.png',
@@ -109,6 +111,7 @@ export function HomePage({
     () => MASCOTS[Math.floor(Math.random() * MASCOTS.length)],
     []
   );
+  const [showAll, setShowAll] = useState(false);
 
   if (isLoggedIn) {
     return <Navigate to="/upload" replace />;
@@ -122,19 +125,9 @@ export function HomePage({
           alt=""
           className={styles.mascot}
         />
-        <h1 className={styles.heroTitle}>Convert Notion to Anki</h1>
+        <h1 className={styles.heroTitle}>Your notes, ready to study in Anki</h1>
         <p className={styles.heroSubtitle}>
-          Turn your study notes into flashcards you can review in Anki.
-        </p>
-        <p className={styles.heroSubtitle}>
-          Drop a file to try it — no account needed.
-        </p>
-        <p className={styles.heroLinks}>
-          <a href="/documentation/start-here/upload-a-file">
-            Read the guide
-          </a>{' '}
-          or{' '}
-          <a href="#walkthroughs">watch a walkthrough</a>.
+          Upload a Notion export, PDF, Word doc, Markdown file, or Quizlet export. Drop a file to try it — no account needed.
         </p>
         <UploadForm setErrorMessage={setErrorMessage} />
         <div className={styles.heroFooter}>
@@ -176,23 +169,35 @@ export function HomePage({
       <section id="walkthroughs" className={styles.bottomSection}>
         <p className={styles.walkHeading}>Walkthroughs</p>
         <div className={styles.walkGrid}>
-          {WALKTHROUGHS.map(([embedId, title]) => (
+          {(showAll ? WALKTHROUGHS : WALKTHROUGHS.filter(([id]) => FEATURED_WALKTHROUGH_IDS.has(id))).map(([embedId, title]) => (
             <VideoCard
               key={embedId}
               embedId={embedId}
               title={title}
             />
           ))}
-          <a href="/contact" className={styles.walkCard}>
-            <div className={styles.walkCtaThumb}>
-              <span className={styles.walkCtaIcon}>+</span>
-              <p className={styles.walkCtaBody}>
-                Made a video about 2anki? Contact us and we will feature it
-                here for free.
-              </p>
-            </div>
-            <p className={styles.walkCardTitle}>Submit your video</p>
-          </a>
+          {showAll && (
+            <a href="/contact" className={styles.walkCard}>
+              <div className={styles.walkCtaThumb}>
+                <span className={styles.walkCtaIcon}>+</span>
+                <p className={styles.walkCtaBody}>
+                  Made a video about 2anki? Contact us and we will feature it
+                  here for free.
+                </p>
+              </div>
+              <p className={styles.walkCardTitle}>Submit your video</p>
+            </a>
+          )}
+        </div>
+        <div className={styles.walkToggleWrap}>
+          <button
+            type="button"
+            className={styles.walkToggle}
+            onClick={() => setShowAll(!showAll)}
+            aria-expanded={showAll}
+          >
+            {showAll ? '▴ Show fewer' : '▾ Show all 14 videos'}
+          </button>
         </div>
       </section>
     </div>

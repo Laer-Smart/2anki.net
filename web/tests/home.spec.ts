@@ -20,7 +20,6 @@ test('homepage has correct title and hero text', async ({ page }) => {
   // Check that the hero heading is present
   const heroHeading = page.locator('h1');
   await expect(heroHeading).toBeVisible();
-  await expect(heroHeading).toContainText('Convert');
-  await expect(heroHeading).toContainText('Notion');
-  await expect(heroHeading).toContainText('Anki');
+  await expect(heroHeading).toContainText('Your notes');
+  await expect(heroHeading).toContainText('study in Anki');
 });

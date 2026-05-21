@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
@@ -29,7 +29,7 @@ describe('HomePage (anonymous)', () => {
   it('renders the primary h1', () => {
     renderHome();
     expect(
-      screen.getByRole('heading', { level: 1, name: /convert notion to anki/i })
+      screen.getByRole('heading', { level: 1, name: /your notes, ready to study in anki/i })
     ).toBeInTheDocument();
   });
 
@@ -53,19 +53,16 @@ describe('HomePage (anonymous)', () => {
     expect(svgs.length).toBeGreaterThanOrEqual(3);
   });
 
-  it('links to the guide', () => {
+  it('renders 3 walkthrough play buttons by default', () => {
     renderHome();
-    const link = screen.getByRole('link', {
-      name: /read the guide/i,
-    });
-    expect(link).toHaveAttribute(
-      'href',
-      '/documentation/start-here/upload-a-file'
-    );
+    const playButtons = screen.getAllByRole('button', { name: /play:/i });
+    expect(playButtons.length).toBe(3);
   });
 
-  it('renders walkthrough thumbnails with play buttons', () => {
+  it('renders all 14 walkthrough play buttons after clicking expand', () => {
     renderHome();
+    const expandButton = screen.getByRole('button', { name: /show all 14 videos/i });
+    fireEvent.click(expandButton);
     const playButtons = screen.getAllByRole('button', { name: /play:/i });
     expect(playButtons.length).toBe(14);
   });
