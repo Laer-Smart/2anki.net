@@ -129,4 +129,27 @@ describe('guessMarkdownCards', () => {
       expect(result!.formatDetected).toBe('heading-body');
     });
   });
+
+  describe('heading-body with embedded GFM table', () => {
+    it('renders a table rather than pipe text when back contains a GFM table', () => {
+      const md = [
+        '## Causes of neonatal jaundice',
+        '',
+        '- **Galactosaemia** and other inborn errors of metabolism',
+        '| Category | Cause | Mechanism / Explanation |',
+        '| --- | --- | --- |',
+        '| Increased Production of Bilirubin | Haemolytic disease | Excessive breakdown |',
+      ].join('\n');
+
+      const result = guessMarkdownCards(md);
+      expect(result).not.toBeNull();
+      expect(result!.formatDetected).toBe('heading-body');
+      expect(result!.notes).toHaveLength(1);
+
+      const back = result!.notes[0].back;
+      expect(back).toContain('<table');
+      expect(back).toContain('Haemolytic disease');
+      expect(back).not.toContain('| --- | --- |');
+    });
+  });
 });

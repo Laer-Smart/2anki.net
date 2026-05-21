@@ -184,21 +184,21 @@ test('Markdown nested bullet points', async () => {
   expect(deck.name).toBe('Simple Deck');
 
   expect(deck.cards[0].name).toBe(
-    '<ul>\n<li>' + 'What is the capital of Kenya?' + '</li>\n</ul>'
+    '<ul>\n<li>' + 'What is the capital of Kenya?' + '</li>\n</ul>\n'
   );
-  expect(deck.cards[0].back).toBe('<p>Nairobi</p>');
+  expect(deck.cards[0].back).toBe('<p>Nairobi</p>\n');
   expect(deck.cards[1].name).toBe(
-    '<ul>\n<li>' + 'What is the capital of Norway' + '</li>\n</ul>'
+    '<ul>\n<li>' + 'What is the capital of Norway' + '</li>\n</ul>\n'
   );
-  expect(deck.cards[1].back).toBe('<p>Oslo</p>');
+  expect(deck.cards[1].back).toBe('<p>Oslo</p>\n');
   expect(deck.cards[2].name).toBe(
-    '<ul>\n<li>' + 'What is the capital of Sweden' + '</li>\n</ul>'
+    '<ul>\n<li>' + 'What is the capital of Sweden' + '</li>\n</ul>\n'
   );
-  expect(deck.cards[2].back).toBe('<p>Stockholm</p>');
+  expect(deck.cards[2].back).toBe('<p>Stockholm</p>\n');
   expect(deck.cards[3].name).toBe(
-    '<ul>\n<li>' + 'What is the capital of Finland' + '</li>\n</ul>'
+    '<ul>\n<li>' + 'What is the capital of Finland' + '</li>\n</ul>\n'
   );
-  expect(deck.cards[3].back).toBe('<p>Helsinki</p>');
+  expect(deck.cards[3].back).toBe('<p>Helsinki</p>\n');
   expect(deck.cards.length).toBe(4);
 });
 

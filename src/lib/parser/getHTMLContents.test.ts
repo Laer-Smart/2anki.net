@@ -9,7 +9,7 @@ describe('getHTMLContents', () => {
   });
   test('returns html for markdown', () => {
     expect(getFileContents({ contents: '# md', name: 'README.md' })).toBe(
-      '<h1>md</h1>'
+      '<h1>md</h1>\n'
     );
   });
 });
