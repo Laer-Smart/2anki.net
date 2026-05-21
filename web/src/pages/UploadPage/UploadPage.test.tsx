@@ -99,7 +99,7 @@ describe('UploadPage primer', () => {
       uploadPrimerDismissedAt: null,
     });
     renderPage();
-    expect(await screen.findByText('Make cards from your Notion toggles')).toBeInTheDocument();
+    expect(await screen.findByText('How cards are made')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Dismiss tips' })).toBeInTheDocument();
   });
 
@@ -112,7 +112,7 @@ describe('UploadPage primer', () => {
     });
     renderPage();
     await waitFor(() => expect(fetchUserPreferences).toHaveBeenCalled());
-    expect(screen.queryByText('Make cards from your Notion toggles')).not.toBeInTheDocument();
+    expect(screen.queryByText('How cards are made')).not.toBeInTheDocument();
   });
 
   it('hides the primer on dismiss and persists to the server', async () => {
@@ -133,6 +133,6 @@ describe('UploadPage primer', () => {
   it('does not show the primer while the preferences query is loading', () => {
     fetchUserPreferences.mockReturnValue(new Promise(() => {}));
     renderPage();
-    expect(screen.queryByText('Make cards from your Notion toggles')).not.toBeInTheDocument();
+    expect(screen.queryByText('How cards are made')).not.toBeInTheDocument();
   });
 });

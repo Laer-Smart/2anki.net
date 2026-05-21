@@ -1126,17 +1126,17 @@ function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
       </span>
       <div className={formStyles.lockedBadge}>Locked</div>
       <p className={formStyles.lockedFilename}>{lockedPdfInfo?.filename}</p>
-      <p className={formStyles.lockedHeadline}>Credential required to read this PDF</p>
+      <p className={formStyles.lockedHeadline}>This PDF is password-protected</p>
       <div className={formStyles.lockedInputRow}>
         <input
           type="password"
           className={formStyles.lockedInput}
-          placeholder="Enter credential"
+          placeholder="Enter password"
           value={pdfCredential}
           autoFocus
           onChange={(e) => setPdfCredential(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleUnlock(); }}
-          aria-label="PDF credential"
+          aria-label="PDF password"
         />
         <button
           type="button"
@@ -1196,7 +1196,7 @@ function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
       return "You've reached your monthly limit.";
     }
     if (zoneState === 'lockedPdf') {
-      return 'This PDF is password-protected. Enter the credential to continue.';
+      return 'This PDF is password-protected. Enter the password to continue.';
     }
     return '';
   };
