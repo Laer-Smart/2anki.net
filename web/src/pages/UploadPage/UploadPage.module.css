@@ -153,4 +153,51 @@
   color: var(--color-text-secondary);
 }
 
+.howItWorks {
+  max-width: 800px;
+  margin: 1.5rem auto 0;
+}
+
+.howItWorksSummary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-tertiary);
+  list-style: none;
+  padding: 0;
+  transition: color var(--transition-fast);
+}
+
+.howItWorksSummary::-webkit-details-marker {
+  display: none;
+}
+
+.howItWorksSummary::before {
+  content: '▾';
+  font-size: 0.875em;
+  display: inline-block;
+  transition: transform var(--transition-fast);
+}
+
+.howItWorks[open] .howItWorksSummary::before {
+  transform: rotate(180deg);
+}
+
+.howItWorks[open] .howItWorksSummary {
+  margin-bottom: 0.75rem;
+}
+
+.howItWorksSummary:hover {
+  color: var(--color-text-primary);
+}
+
+.howItWorksSummary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 
