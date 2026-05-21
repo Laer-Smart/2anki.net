@@ -1,0 +1,151 @@
+import { useState } from 'react';
+import type { UploadErrorBody } from '../../../../../types/UploadErrorBody';
+import type { UploadSource } from '../UploadSourceChips';
+
+export type ZoneState =
+  | 'idle'
+  | 'converting'
+  | 'success'
+  | 'emptyDeck'
+  | 'limitReached'
+  | 'error'
+  | 'lockedPdf';
+
+export interface LockedPdfInfo {
+  filename: string;
+  file: File;
+}
+
+export interface LimitInfo {
+  filename: string | null;
+  fileSizeBytes: number | null;
+  kind: 'file_size' | 'card_count';
+}
+
+export function useUploadFormState(onReset: () => void) {
+  const [zoneState, setZoneState] = useState<ZoneState>('idle');
+  const [downloadLink, setDownloadLink] = useState<string | null>(null);
+  const [deckName, setDeckName] = useState('');
+  const [cardCount, setCardCount] = useState<number | null>(null);
+  const [mcqCount, setMcqCount] = useState<number>(0);
+  const [mcqSkippedCount, setMcqSkippedCount] = useState<number>(0);
+  const [mcqDrawerOpen, setMcqDrawerOpen] = useState(false);
+  const [mcqShowAnswer, setMcqShowAnswer] = useState(false);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+  const [limitInfo, setLimitInfo] = useState<LimitInfo | null>(null);
+  const [localError, setLocalError] = useState<UploadErrorBody | null>(null);
+  const [progressWidth, setProgressWidth] = useState(10);
+  const [progressSlow, setProgressSlow] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
+  const [trialPending, setTrialPending] = useState(false);
+  const [trialError, setTrialError] = useState<string | null>(null);
+  const [dropboxFilename, setDropboxFilename] = useState<string | null>(null);
+  const [dropboxPending, setDropboxPending] = useState(false);
+  const [dropboxError, setDropboxError] = useState<string | null>(null);
+  const [driveFilename, setDriveFilename] = useState<string | null>(null);
+  const [driveMimeType, setDriveMimeType] = useState<string | null>(null);
+  const [drivePending, setDrivePending] = useState(false);
+  const [driveError, setDriveError] = useState<string | null>(null);
+  const [source, setSource] = useState<UploadSource>('local');
+  const [showInlineChat, setShowInlineChat] = useState(false);
+  const [showErrorInlineChat, setShowErrorInlineChat] = useState(false);
+  const [lockedPdfInfo, setLockedPdfInfo] = useState<LockedPdfInfo | null>(null);
+  const [pdfCredential, setPdfCredential] = useState('');
+  const [pdfUnlockError, setPdfUnlockError] = useState<string | null>(null);
+  const [pdfAttemptCount, setPdfAttemptCount] = useState(0);
+
+  const resetForm = () => {
+    setZoneState('idle');
+    setDownloadLink(null);
+    setDeckName('');
+    setCardCount(null);
+    setMcqCount(0);
+    setMcqSkippedCount(0);
+    setMcqDrawerOpen(false);
+    setMcqShowAnswer(false);
+    setWarningMessage(null);
+    setLimitInfo(null);
+    setTrialError(null);
+    setLocalError(null);
+    setProgressWidth(10);
+    setProgressSlow(false);
+    setShowFallback(false);
+    setDropboxFilename(null);
+    setDropboxError(null);
+    setDriveFilename(null);
+    setDriveMimeType(null);
+    setDriveError(null);
+    setSource('local');
+    setShowInlineChat(false);
+    setShowErrorInlineChat(false);
+    setLockedPdfInfo(null);
+    setPdfCredential('');
+    setPdfUnlockError(null);
+    setPdfAttemptCount(0);
+    onReset();
+  };
+
+  return {
+    zoneState,
+    setZoneState,
+    downloadLink,
+    setDownloadLink,
+    deckName,
+    setDeckName,
+    cardCount,
+    setCardCount,
+    mcqCount,
+    setMcqCount,
+    mcqSkippedCount,
+    setMcqSkippedCount,
+    mcqDrawerOpen,
+    setMcqDrawerOpen,
+    mcqShowAnswer,
+    setMcqShowAnswer,
+    warningMessage,
+    setWarningMessage,
+    limitInfo,
+    setLimitInfo,
+    localError,
+    setLocalError,
+    progressWidth,
+    setProgressWidth,
+    progressSlow,
+    setProgressSlow,
+    showFallback,
+    setShowFallback,
+    trialPending,
+    setTrialPending,
+    trialError,
+    setTrialError,
+    dropboxFilename,
+    setDropboxFilename,
+    dropboxPending,
+    setDropboxPending,
+    dropboxError,
+    setDropboxError,
+    driveFilename,
+    setDriveFilename,
+    driveMimeType,
+    setDriveMimeType,
+    drivePending,
+    setDrivePending,
+    driveError,
+    setDriveError,
+    source,
+    setSource,
+    showInlineChat,
+    setShowInlineChat,
+    showErrorInlineChat,
+    setShowErrorInlineChat,
+    lockedPdfInfo,
+    setLockedPdfInfo,
+    pdfCredential,
+    setPdfCredential,
+    pdfUnlockError,
+    setPdfUnlockError,
+    pdfAttemptCount,
+    setPdfAttemptCount,
+    resetForm,
+  };
+}
