@@ -71,7 +71,12 @@ function logNoPackageDiagnostics(uploadedFiles: UploadedFile[]) {
   for (const file of uploadedFiles ?? []) {
     console.info(`  name=${file.originalname} mimetype=${file.mimetype} size=${file.size}`);
     try {
-      const head = fs.readFileSync(file.path).slice(0, 1000).toString('utf8');
+      const contents = file.path ? fs.readFileSync(file.path) : file.buffer;
+      if (!contents) {
+        console.info('  no file contents available for diagnostics');
+        continue;
+      }
+      const head = contents.slice(0, 1000).toString('utf8');
       const hasDisplayContents = head.includes('display:contents');
       const hasToggleClass = head.includes('class="toggle"');
       const hasDetails = head.includes('<details');

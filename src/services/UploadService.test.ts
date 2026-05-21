@@ -165,6 +165,41 @@ describe('UploadService.handleUpload — error paths', () => {
     expect(body.message).not.toMatch(/<[a-z]/i);
   });
 
+  it('uses in-memory uploaded file contents for empty-deck diagnostics when no disk path exists', async () => {
+    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    try {
+      MockGeneratePackagesUseCase.mockImplementation(() => ({
+        execute: jest.fn().mockResolvedValue({ packages: [] }),
+      }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+
+      const service = new UploadService(buildRepository(), {} as JobRepository);
+      const req = buildRequest({
+        files: [
+          {
+            fieldname: 'files',
+            originalname: 'memory-upload.html',
+            encoding: '7bit',
+            mimetype: 'text/html',
+            size: 36,
+            buffer: Buffer.from('<details><summary>Q</summary>A</details>'),
+          } as Express.Multer.File,
+        ],
+      });
+      const { res, capturedStatus } = buildResponse();
+
+      await service.handleUpload(req, res);
+
+      expect(capturedStatus()).toBe(400);
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalledWith(expect.stringContaining('<details>'));
+    } finally {
+      infoSpy.mockRestore();
+      errorSpy.mockRestore();
+    }
+  });
+
   it('returns 400 JSON when deck serialization overflows (DeckTooLargeError path)', async () => {
     MockGeneratePackagesUseCase.mockImplementation(() => ({
       execute: jest.fn().mockRejectedValue(new DeckTooLargeError()),
