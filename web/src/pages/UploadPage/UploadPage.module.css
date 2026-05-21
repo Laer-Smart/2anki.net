@@ -1,10 +1,3 @@
-/* ── Upsell wrapper for free logged-in users (below upload form) ── */
-
-.upsellWrapper {
-  max-width: 800px;
-  margin: 1.5rem 0 0;
-}
-
 /* ── Re-attach banner (shown after trial-on-register redirect) ── */
 
 .reattachBanner {

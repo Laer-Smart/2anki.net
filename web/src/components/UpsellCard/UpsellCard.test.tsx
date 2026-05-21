@@ -68,21 +68,21 @@ describe('UpsellCard', () => {
   it('hides for anonymous users when hideForAnonymous is true', () => {
     mockUseUserLocals.mockReturnValue(anonymousUser);
     const { container } = render(
-      <UpsellCard surface="upload_idle_upsell" hideForAnonymous />
+      <UpsellCard surface="upload_success_upsell" hideForAnonymous />
     );
     expect(container).toBeEmptyDOMElement();
   });
 
   it('still shows for free logged-in users when hideForAnonymous is true', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
-    render(<UpsellCard surface="upload_idle_upsell" hideForAnonymous />);
+    render(<UpsellCard surface="upload_success_upsell" hideForAnonymous />);
     expect(screen.getByRole('button', { name: 'Day Pass' })).toBeInTheDocument();
   });
 
   it('uses the downloads surface headline on /downloads', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     render(<UpsellCard surface="downloads_upsell" />);
-    expect(screen.getByText('More decks to download?')).toBeInTheDocument();
+    expect(screen.getByText('Converting more this month?')).toBeInTheDocument();
   });
 
   it('uses the upload-success surface headline on upload success', () => {

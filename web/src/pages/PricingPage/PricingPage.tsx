@@ -379,6 +379,10 @@ export default function PricingPage({
         />
       </div>
 
+      <p className={styles.pricesNote}>
+        Prices in USD. Your card is charged in your local currency at checkout.
+      </p>
+
       <p className={styles.philosophy}>
         Free works forever. Paid plans support 2anki.net.
       </p>

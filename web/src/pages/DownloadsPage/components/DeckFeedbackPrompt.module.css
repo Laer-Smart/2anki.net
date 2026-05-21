@@ -93,3 +93,21 @@
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
+
+.offerBody {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.tertiary {
+  align-self: center;
+  padding: 0.5rem 0.5rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+}
+
+.tertiary:hover {
+  color: var(--color-text-primary);
+}

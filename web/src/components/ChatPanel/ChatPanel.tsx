@@ -576,12 +576,10 @@ export default function ChatPanel({
                 You've used all {FREE_MONTHLY_LIMIT} messages this month. Resets {formatResetDate(resetDate)}.
               </span>
               <a
-                href="https://www.patreon.com/alemayhu"
-                target="_blank"
-                rel="noreferrer"
+                href="/pricing"
                 className={styles.limitPanelLink}
               >
-                See Patreon plans
+                See plans
               </a>
             </div>
           )}
