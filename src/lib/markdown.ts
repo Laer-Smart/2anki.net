@@ -1,24 +1,20 @@
-import showdown from 'showdown';
+import MarkdownIt from 'markdown-it';
+import taskLists from 'markdown-it-task-lists';
+import multimdTable from 'markdown-it-multimd-table';
+
+const md = new MarkdownIt({
+  html: false,
+  breaks: true,
+  linkify: false,
+  xhtmlOut: true,
+})
+  .use(multimdTable)
+  .use(taskLists);
 
 export const markdownToHTML = (
   html: string,
   trimWhitespace: boolean = false
 ) => {
-  const converter = new showdown.Converter({
-    noHeaderId: true,
-    disableForced4SpacesIndentedSublists: true,
-    simpleLineBreaks: true,
-  });
-  converter.setFlavor('github');
-
-  let processedHtml = html;
-
-  if (trimWhitespace) {
-    processedHtml = html.trim();
-  }
-
-  const htmlWithoutPreTags = converter
-    .makeHtml(processedHtml)
-    .replace(/<pre><code>|<\/code><\/pre>/g, '');
-  return htmlWithoutPreTags;
+  const input = trimWhitespace ? html.trim() : html;
+  return md.render(input);
 };
