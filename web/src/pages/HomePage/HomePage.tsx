@@ -189,13 +189,16 @@ export function HomePage({
             </a>
           )}
         </div>
-        <button
-          type="button"
-          className="button is-light"
-          onClick={() => setShowAll(!showAll)}
-        >
-          {showAll ? 'Show fewer' : 'Show all 14 videos'}
-        </button>
+        <div className={styles.walkToggleWrap}>
+          <button
+            type="button"
+            className={styles.walkToggle}
+            onClick={() => setShowAll(!showAll)}
+            aria-expanded={showAll}
+          >
+            {showAll ? '▴ Show fewer' : '▾ Show all 14 videos'}
+          </button>
+        </div>
       </section>
     </div>
   );
