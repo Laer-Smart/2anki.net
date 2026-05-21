@@ -36,16 +36,6 @@
   color: var(--color-text-link);
 }
 
-.heroLinks {
-  font-size: var(--text-lg);
-  color: var(--color-text-tertiary);
-  margin: 0 auto 2.5rem;
-}
-
-.heroLinks a {
-  color: var(--color-text-link);
-}
-
 .heroFooter {
   display: flex;
   align-items: center;
@@ -352,10 +342,6 @@
 
   .heroSubtitle {
     font-size: var(--text-xl);
-  }
-
-  .heroLinks {
-    font-size: var(--text-base);
   }
 
   .heroFooter {
