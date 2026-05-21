@@ -9,6 +9,81 @@ describe('handleNestedBulletPointsInMarkdown', () => {
     process.env.WORKSPACE_BASE = os.tmpdir();
   });
 
+  function makeDecks(contents: string, settingsOverride: Record<string, string> = {}) {
+    const workspace = new Workspace(true, 'fs');
+    const exporter = new CustomExporter('test', workspace.location);
+    const settings = new CardOption(settingsOverride);
+    return handleNestedBulletPointsInMarkdown({
+      name: 'test.md',
+      contents,
+      deckName: 'Test',
+      decks: [],
+      settings,
+      exporter,
+      workspace,
+      files: [],
+    });
+  }
+
+  describe('Notion toggle cards wrapped in <aside> callout (regression: #2529)', () => {
+    const notionCalloutWrappingToggles = [
+      '<aside>',
+      '🩺 Study the following:',
+      '',
+      '- ▶ biliary atresia causes biliary obstruction with symptoms of (two) _',
+      '    - ▶ jaundice and progressive cirrhosis',
+      '- ▶ treatment for biliary atresia requires (surgical/medical) _ intervention',
+      '    - ▶ surgical',
+      '</aside>',
+    ].join('\n');
+
+    it('produces one card per top-level toggle row', () => {
+      const decks = makeDecks(notionCalloutWrappingToggles);
+      expect(decks[0].cards.length).toBe(2);
+    });
+
+    it('does not leak </aside> into any card back', () => {
+      const decks = makeDecks(notionCalloutWrappingToggles);
+      for (const card of decks[0].cards) {
+        expect(card.back).not.toContain('aside');
+        expect(card.back).not.toContain('&lt;/aside');
+      }
+    });
+
+    it('preserves the ▶ content on card fronts', () => {
+      const decks = makeDecks(notionCalloutWrappingToggles);
+      expect(decks[0].cards[0].name).toContain('biliary atresia');
+      expect(decks[0].cards[1].name).toContain('treatment');
+    });
+
+    it('preserves the ▶ content on card backs', () => {
+      const decks = makeDecks(notionCalloutWrappingToggles);
+      expect(decks[0].cards[0].back).toContain('jaundice');
+      expect(decks[0].cards[1].back).toContain('surgical');
+    });
+  });
+
+  describe('mcqEnabled card option with <aside>-wrapped content', () => {
+    it('classifies MCQ cards correctly when content is wrapped in <aside>', () => {
+      const contents = [
+        '<aside>',
+        '🩺 MCQ block:',
+        '',
+        '- Which treatment is first-line?',
+        '    - [x] Surgical correction',
+        '    - [ ] Medical management',
+        '    - [ ] Watchful waiting',
+        '</aside>',
+      ].join('\n');
+
+      const decks = makeDecks(contents, { 'mcq-enabled': 'true' });
+      const card = decks[0].cards[0];
+      expect(card.mcq).toBe(true);
+      expect(card.options).toHaveLength(3);
+      expect(card.correctIndices).toEqual([0]);
+    });
+  });
+
   it('embeds images referenced in markdown', () => {
     const workspace = new Workspace(true, 'fs');
     const exporter = new CustomExporter('test', workspace.location);
