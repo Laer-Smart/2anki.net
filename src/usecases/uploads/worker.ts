@@ -9,10 +9,13 @@ import {
   isCompressedFile,
   isPPTFile,
   isDocxFile,
+  isOpmlFile,
+  isBrainstormsJsonFile,
 } from '../../lib/storage/checks';
 import { getPackagesFromZip } from './getPackagesFromZip';
 import Workspace from '../../lib/parser/WorkSpace';
 import { isZipContentFileSupported } from './isZipContentFileSupported';
+import { convertMindmapFileToApkg } from './ConvertMindmapFileUseCase';
 
 interface GenerationData {
   paying: boolean;
@@ -60,6 +63,12 @@ async function processFile(
   const warnings: string[] = [];
   const filename = file.originalname;
   const key = file.key;
+
+  if (isOpmlFile(filename) || isBrainstormsJsonFile(filename)) {
+    const result = await convertMindmapFileToApkg(filename, fileContents, workspace.location);
+    packages.push(new Package(result.deckName, result.cardCount, 0, 0));
+    return { packages, warnings };
+  }
 
   const allowImageQuizHtmlToAnki =
     paying && settings.imageQuizHtmlToAnki && isImageFile(filename);

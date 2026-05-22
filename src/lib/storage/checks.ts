@@ -71,6 +71,11 @@ export const isImageFile = (name: string) =>
 
 export const isXLSXFile = (fileName: string) => /.xlsx$/i.test(fileName);
 
+export const isOpmlFile = (fileName: string) => /\.opml$/i.test(fileName);
+
+export const isBrainstormsJsonFile = (fileName: string) =>
+  /\.brainstorms\.json$/i.test(fileName);
+
 export const isHiddenFileOrDirectory = (fileName: string) =>
   fileName.startsWith('.') ||
   fileName.endsWith('/') ||

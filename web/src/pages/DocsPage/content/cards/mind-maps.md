@@ -84,11 +84,20 @@ You can add an image to any node. When exported, the image is embedded in the `.
 
 **Labels still work.** A node can have both an image and a text label. The label appears below the image in the editor and on the exported card.
 
+## Import from OPML or Brainstorms
+
+You can also convert existing outlines directly at [2anki.net/upload](https://2anki.net/upload) — no need to re-enter your content in the editor.
+
+- **OPML** (`.opml`) — exported from OmniOutliner, iThoughtsX, or any outliner that supports OPML. Drop the file on the upload page.
+- **Brainstorms JSON** (`.brainstorms.json`) — exported from Brainstorms (iOS/macOS) via the JSON export option. The filename must end in `.brainstorms.json`.
+
+Each parent→child connection becomes one Basic card, using the same rule as the editor.
+
 ## What this is not
 
 - The editor is desktop-only. On a phone or tablet, a banner explains this and no canvas loads.
 - Maps are private. There are no sharing, embedding, or collaboration features in v1.
-- There is no import from OPML, XMind, or Obsidian — maps are built in the editor.
+- XMind native `.xmind` format is not supported — export to OPML from XMind first.
 - AI generation (map from a topic, cards from a map) is not available in v1.
 
 ## Related
