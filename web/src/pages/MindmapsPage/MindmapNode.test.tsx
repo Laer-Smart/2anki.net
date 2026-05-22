@@ -4,7 +4,9 @@ import { MindmapNode } from './MindmapNode';
 
 vi.mock('@xyflow/react', () => ({
   Handle: () => null,
-  Position: { Left: 'left', Right: 'right' },
+  NodeToolbar: ({ children, isVisible }: { children: React.ReactNode; isVisible?: boolean }) =>
+    isVisible ? children : null,
+  Position: { Left: 'left', Right: 'right', Top: 'top', Bottom: 'bottom' },
 }));
 
 function makeProps(overrides: Partial<{
