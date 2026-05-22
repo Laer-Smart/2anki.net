@@ -66,7 +66,7 @@ interface ExportModalProps {
 
 function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, onClose, exporting }: Readonly<ExportModalProps>) {
   const [deckName, setDeckName] = useState(defaultName);
-  const [cardType, setCardType] = useState<MindmapCardType>('cloze');
+  const [cardType, setCardType] = useState<MindmapCardType>('basic');
 
   function cardCountLabel(): string {
     if (cardType === 'markmap') return '1 card';
@@ -141,21 +141,21 @@ function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, on
             <input
               type="radio"
               name="card-type"
-              value="cloze"
-              checked={cardType === 'cloze'}
-              onChange={() => setCardType('cloze')}
-            />
-            Cloze — one card per path, each node clozed in sequence
-          </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
-            <input
-              type="radio"
-              name="card-type"
               value="basic"
               checked={cardType === 'basic'}
               onChange={() => setCardType('basic')}
             />
             Basic — one card per edge (parent → child)
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+            <input
+              type="radio"
+              name="card-type"
+              value="cloze"
+              checked={cardType === 'cloze'}
+              onChange={() => setCardType('cloze')}
+            />
+            Cloze — one card per path, each node clozed in sequence
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
             <input
