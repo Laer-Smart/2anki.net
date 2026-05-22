@@ -20,7 +20,7 @@ Second-year med student studying anatomy. **Job:** "When I'm reviewing a system 
 - Autosave on edit. Last-write-wins; no realtime, no multi-tab merge.
 - **Download deck** button always visible at the bottom of the right panel. Clicking opens a modal: editable deck name (default = map name), card count, card-type selector (Basic | Cloze; default Basic), `[Cancel]` and `[Download deck]`.
 - v1 card rule: **each edge becomes one Basic card.** `front = parent node label`, `back = child node label`. Cloze variant: one card per root-to-leaf path with each intermediate node clozed out.
-- Free for all logged-in users. No gate in v1.
+- Free tier: up to **3 saved mind maps** at a time, **50 nodes per map**. Auto-Sync / Patreon: unlimited maps and unlimited nodes. Gate reuses `hasAnkifyAccess` from `src/lib/ankify/access.ts` — no new SKU.
 
 ## Out of scope (do not build)
 
@@ -43,6 +43,23 @@ Second-year med student studying anatomy. **Job:** "When I'm reviewing a system 
 
 Full copy strings and layout details are in the designer's notes — every string in this spec matches them.
 
+## Free-tier limits
+
+- **Free:** 3 saved mind maps at a time, 50 nodes per map. Counting unit is "currently saved" — deleting a map frees a slot. No lifetime ceiling, no per-month window.
+- **Auto-Sync ($30/mo) / Patreon-lifetime:** unlimited maps, unlimited nodes. Detected via `hasAnkifyAccess(user, subscriptions, AUTO_SYNC_PRODUCT_ID)`. No new SKU and no separate "unlimited mindmaps" product.
+- **Map limit enforcement:** server-side in `CreateMindmapUseCase`. If `!isUnlimited && currentCount >= 3`, throw `MindmapLimitError` — mirrors `MonthlyLimitError` in `src/usecases/users/CheckMonthlyCardLimitUseCase.ts`. Add the message string to `LIMIT_MESSAGES` in `src/lib/misc/isLimitError.ts` so the existing client error boundary catches it.
+- **Node limit enforcement:** server-side in `UpdateMindmapUseCase` — validate `data.nodes.length` against the cap before saving. Client also enforces optimistically (Tab/Enter that would exceed shows a toast and is rejected) so users get instant feedback; the server check is the source of truth.
+- **Access info ships with the list response.** `GET /mindmaps` returns `{ maps, access: { hasUnlimited, currentCount, freeMapLimit: 3, maxNodesPerMap: 50 } }`. The client uses these fields to render the inline banner, the modal, and the toast — no second roundtrip, no separate endpoint.
+- **UX surfaces (exact strings):**
+  - Inline banner on `/mindmaps` index when free and at-or-near cap (`notificationInfo`, hidden when paid): `Your monthly limit: 3 mind maps. Upgrade for unlimited.`
+  - Modal triggered by `New map` click at cap (clone `LimitPage.tsx` structure, never disable the CTA):
+    - Heading: `You've used all 3 maps this month`
+    - Body: `Free accounts can have 3 mind maps at a time. Upgrade to Auto-Sync to create as many as you need.`
+    - Primary CTA: `Upgrade` → `/pricing`
+    - Secondary CTA: `Not now`
+  - Toast on Tab/Enter at the node cap (`notificationWarning`, 4s self-dismiss): `50 nodes reached. Upgrade to add more.`
+- **Paid users see nothing.** No "unlimited" badge, no banner, no toast. The result speaks.
+
 ## Technical approach
 
 - **Library:** `@xyflow/react` v12 (MIT, ~280 KB gzipped). `dagre` for auto-layout. Both added under `web/`. Excalidraw is already a dep but is wrong shape for this — do not reuse it.
@@ -57,9 +74,11 @@ Full copy strings and layout details are in the designer's notes — every strin
 - **Web routes:** lazy-load `web/src/pages/MindmapsPage/` from `web/src/App.tsx`. Sidebar row added to `web/src/components/AppShell/Sidebar.tsx`. Import the React Flow stylesheet (`@xyflow/react/dist/style.css`) inside the page, not globally.
 - **Tests (minimum):**
   - `src/usecases/mindmaps/mindmapToNotes.test.ts` — pure unit tests covering star, tree, empty, disconnected.
-  - `src/data_layer/MindmapRepository.test.ts` — round-trip against the test DB.
-  - `src/routes/MindmapRouter.test.ts` — outside-in: create, list, delete, export returns `application/octet-stream`.
-  - `web/src/pages/MindmapsPage/useMindmap.test.ts` — Vitest + msw mock contract for CRUD.
+  - `src/usecases/mindmaps/CreateMindmapUseCase.test.ts` — free under cap (creates), free at cap (throws `MindmapLimitError`), paid at-or-above free cap (creates).
+  - `src/usecases/mindmaps/UpdateMindmapUseCase.test.ts` — free user node-cap enforcement (rejects > 50), paid user bypass.
+  - `src/data_layer/MindmapRepository.test.ts` — round-trip against the test DB, including `countByUserId`.
+  - `src/routes/MindmapRouter.test.ts` — outside-in: create, list (returns `access` block), delete, export returns `application/octet-stream`.
+  - `web/src/pages/MindmapsPage/useMindmap.test.ts` — Vitest + msw mock contract for CRUD + access-block rendering.
 
 ## Success metric
 
