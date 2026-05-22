@@ -15,7 +15,7 @@ import {
 import dagre from 'dagre';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useMindmapById, useUpdateMindmap, exportMindmap, type MindmapCardType } from './useMindmap';
+import { useMindmapById, useUpdateMindmap, exportMindmap, uploadMindmapImage, type MindmapCardType } from './useMindmap';
 import type { MindmapData } from './useMindmap';
 import styles from '../../styles/shared.module.css';
 import { MindmapNode } from './MindmapNode';
@@ -241,7 +241,7 @@ export function MindmapEditor() {
     const rfNodes: Node[] = map.data.nodes.map((n) => ({
       id: n.id,
       type: 'mindmap',
-      data: { label: n.label, color: n.color ?? null },
+      data: { label: n.label, color: n.color ?? null, image: n.image ?? null },
       position: n.position ?? { x: 0, y: 0 },
       width: n.width,
       height: n.height,
@@ -274,6 +274,7 @@ export function MindmapEditor() {
             width: n.width,
             height: n.height,
             color: (n.data as { color?: string | null }).color ?? null,
+            image: (n.data as { image?: MindmapData['nodes'][number]['image'] }).image ?? undefined,
           })),
           edges: es.map((e) => ({ source: e.source, target: e.target })),
         };
@@ -325,6 +326,44 @@ export function MindmapEditor() {
     });
   }, [setNodes, persistData, edges]);
 
+  const handleImageFile = useCallback(
+    async (file: File, position: { x: number; y: number }) => {
+      if (id == null) return;
+      const newId = crypto.randomUUID();
+      const placeholderNode: Node = {
+        id: newId,
+        type: 'mindmap',
+        data: { label: '', uploading: true },
+        position,
+        style: NODE_STYLE,
+      };
+      setNodes((ns) => {
+        const updated = [...ns, placeholderNode];
+        persistData(updated, edges);
+        return updated;
+      });
+      setSelectedNodeId(newId);
+
+      try {
+        const imageResult = await uploadMindmapImage(id, file);
+        setNodes((ns) => {
+          const updated = ns.map((n) =>
+            n.id === newId
+              ? { ...n, data: { ...n.data, uploading: false, image: imageResult } }
+              : n
+          );
+          persistData(updated, edges);
+          return updated;
+        });
+      } catch {
+        setNodes((ns) => ns.filter((n) => n.id !== newId));
+        setToast("Couldn't upload that image. Try again.");
+        setTimeout(() => setToast(null), 4000);
+      }
+    },
+    [id, setNodes, persistData, edges, setToast]
+  );
+
   useEffect(() => {
     function handlePaste(e: ClipboardEvent) {
       const target = e.target as HTMLElement | null;
@@ -332,9 +371,25 @@ export function MindmapEditor() {
         const tag = target.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || target.isContentEditable) return;
       }
+
+      const imageItem = Array.from(e.clipboardData?.items ?? []).find(
+        (item) => item.kind === 'file' && item.type.startsWith('image/')
+      );
+
+      if (imageItem != null) {
+        e.preventDefault();
+        const file = imageItem.getAsFile();
+        if (file == null) return;
+        const center = rfInstance == null
+          ? { x: 0, y: 0 }
+          : rfInstance.screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+        handleImageFile(file, center);
+        return;
+      }
+
+      if (rfInstance == null) return;
       const text = e.clipboardData?.getData('text/plain')?.trim();
       if (text == null || text.length === 0) return;
-      if (rfInstance == null) return;
       e.preventDefault();
       const center = rfInstance.screenToFlowPosition({
         x: window.innerWidth / 2,
@@ -357,7 +412,7 @@ export function MindmapEditor() {
     }
     document.addEventListener('paste', handlePaste);
     return () => document.removeEventListener('paste', handlePaste);
-  }, [rfInstance, setNodes, persistData, edges]);
+  }, [rfInstance, setNodes, persistData, edges, handleImageFile]);
 
   const setNodeSize = useCallback((nodeId: string, width: number, height: number) => {
     setNodes((ns) => {
@@ -686,6 +741,20 @@ export function MindmapEditor() {
           const position = rfInstance.screenToFlowPosition({ x: e.clientX, y: e.clientY });
           createNodeAt(position, null);
         }}
+        onDragOver={(e) => {
+          if (Array.from(e.dataTransfer.items).some((item) => item.type.startsWith('image/'))) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (rfInstance == null) return;
+          const file = Array.from(e.dataTransfer.files).find((f) => f.type.startsWith('image/'));
+          if (file == null) return;
+          const position = rfInstance.screenToFlowPosition({ x: e.clientX, y: e.clientY });
+          handleImageFile(file, position);
+        }}
       >
         <ReactFlow
           nodes={nodes}
@@ -860,6 +929,7 @@ export function MindmapEditor() {
           <p style={{ margin: '0 0 0.25rem' }}>Ctrl/Cmd+A — select all</p>
           <p style={{ margin: '0 0 0.25rem' }}>Esc — clear selection</p>
           <p style={{ margin: '0 0 0.25rem' }}>Paste text — drops a new node on canvas</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Paste or drop an image — drops a new image node</p>
           <p style={{ margin: '0 0 0.25rem' }}>Markdown supported in node labels</p>
           <p style={{ margin: '0 0 0.25rem' }}>Ctrl/Cmd+L — tidy layout</p>
         </div>

@@ -5,10 +5,18 @@ import PencilIcon from '../../components/icons/PencilIcon';
 import TrashIcon from '../../components/icons/TrashIcon';
 import SwatchIcon from '../../components/icons/SwatchIcon';
 
+export interface MindmapImageMeta {
+  url: string;
+  width: number;
+  height: number;
+}
+
 export interface MindmapNodeData {
   label: string;
   editing?: boolean;
   color?: string | null;
+  image?: MindmapImageMeta;
+  uploading?: boolean;
   onCommit?: (label: string) => void;
   onCancel?: () => void;
   onStartRename?: () => void;
@@ -187,6 +195,23 @@ export function MindmapNode({ data, selected }: NodeProps) {
       <Handle type="source" position={Position.Left} id="left" />
       <Handle type="source" position={Position.Top} id="top" />
       <Handle type="source" position={Position.Bottom} id="bottom" />
+      {nodeData.uploading === true && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(255,255,255,0.7)',
+            borderRadius: 'var(--radius-md)',
+            fontSize: 'var(--text-xs)',
+            color: 'var(--color-text-secondary)',
+          }}
+        >
+          Uploading…
+        </div>
+      )}
       {nodeData.editing ? (
         <textarea
           ref={inputRef}
@@ -221,7 +246,14 @@ export function MindmapNode({ data, selected }: NodeProps) {
             lineHeight: 1.4,
           }}
         >
-          <Markdown>{nodeData.label}</Markdown>
+          {nodeData.image != null && (
+            <img
+              src={nodeData.image.url}
+              alt={nodeData.label}
+              style={{ maxWidth: '100%', height: 'auto', display: 'block', marginBottom: nodeData.label.length > 0 ? '0.25rem' : 0 }}
+            />
+          )}
+          {nodeData.label.length > 0 && <Markdown>{nodeData.label}</Markdown>}
         </div>
       )}
       <Handle type="source" position={Position.Right} id="right" />
