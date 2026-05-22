@@ -5,6 +5,9 @@ import quizletCopy from '../src/pages/LandingPage/copy/quizlet';
 import markdownCopy from '../src/pages/LandingPage/copy/markdown';
 import pdfCopy from '../src/pages/LandingPage/copy/pdf';
 import ankiToNotionCopy from '../src/pages/LandingPage/copy/ankiToNotion';
+import usmleCopy from '../src/pages/LandingPage/copy/usmle';
+import nursingCopy from '../src/pages/LandingPage/copy/nursing';
+import medicalLectureSlidesCopy from '../src/pages/LandingPage/copy/medical-lecture-slides';
 import { CONVERT_LANDING_PAGES } from '../src/pages/ConvertLandingPage/convertLandingConfig';
 import { ANSWERS_PAGES } from '../src/pages/AnswersPage/answersConfig';
 import type { LandingCopy } from '../src/pages/LandingPage/types';
@@ -15,6 +18,9 @@ const LANDING_COPIES: LandingCopy[] = [
   markdownCopy,
   pdfCopy,
   ankiToNotionCopy,
+  usmleCopy,
+  nursingCopy,
+  medicalLectureSlidesCopy,
   ...Array.from(CONVERT_LANDING_PAGES.values()),
 ];
 

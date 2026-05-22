@@ -65,6 +65,13 @@ const MarkdownToAnki = lazy(
   () => import('./pages/LandingPage/MarkdownToAnki')
 );
 const PdfToAnki = lazy(() => import('./pages/LandingPage/PdfToAnki'));
+const UsmleAnki = lazy(() => import('./pages/LandingPage/UsmleAnki'));
+const NursingFlashcards = lazy(
+  () => import('./pages/LandingPage/NursingFlashcards')
+);
+const AnkiFromMedicalLectureSlides = lazy(
+  () => import('./pages/LandingPage/AnkiFromMedicalLectureSlides')
+);
 const ConvertLandingPage = lazy(
   () => import('./pages/ConvertLandingPage/ConvertLandingPage')
 );
@@ -312,6 +319,22 @@ function AppContent({
           <Route
             path="/pdf-to-anki"
             element={<PdfToAnki setErrorMessage={setErrorMessage} />}
+          />
+          <Route
+            path="/usmle-anki"
+            element={<UsmleAnki setErrorMessage={setErrorMessage} />}
+          />
+          <Route
+            path="/nursing-flashcards"
+            element={<NursingFlashcards setErrorMessage={setErrorMessage} />}
+          />
+          <Route
+            path="/anki-from-medical-lecture-slides"
+            element={
+              <AnkiFromMedicalLectureSlides
+                setErrorMessage={setErrorMessage}
+              />
+            }
           />
           <Route path="/notion-marketplace" element={<NotionLandingPage />} />
           <Route
