@@ -1308,6 +1308,14 @@ function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
           aria-hidden={!showDropboxPanel}
         >
           <div className={formStyles.stateContent}>
+            <button
+              type="button"
+              className={formStyles.changeSourceLink}
+              aria-label="Change upload source"
+              onClick={() => setSource('local')}
+            >
+              ← Change source
+            </button>
             <DropboxIcon className={formStyles.dropboxIconLarge} />
             <span className={formStyles.dropText}>
               Pick a file from your Dropbox to convert it into a deck
@@ -1343,6 +1351,14 @@ function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
           aria-hidden={!showGoogleDrivePanel}
         >
           <div className={formStyles.stateContent}>
+            <button
+              type="button"
+              className={formStyles.changeSourceLink}
+              aria-label="Change upload source"
+              onClick={() => setSource('local')}
+            >
+              ← Change source
+            </button>
             <GoogleDriveIcon className={formStyles.dropboxIconLarge} />
             <span className={formStyles.dropText}>
               Pick a Doc, Sheet, Slide, or file from your Google Drive.
