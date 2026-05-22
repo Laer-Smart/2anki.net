@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import styles from '../LimitPage/LimitPage.module.css';
+import sharedStyles from '../../styles/shared.module.css';
 
 interface MindmapLimitModalProps {
   onClose: () => void;
@@ -30,18 +31,7 @@ export function MindmapLimitModal({ onClose }: Readonly<MindmapLimitModalProps>)
         >
           Upgrade
         </Link>
-        <button
-          type="button"
-          onClick={onClose}
-          style={{
-            padding: '0.75rem 1.5rem',
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            cursor: 'pointer',
-            color: 'var(--color-text-secondary)',
-          }}
-        >
+        <button type="button" onClick={onClose} className={sharedStyles.btnSecondary}>
           Not now
         </button>
       </div>
