@@ -7,10 +7,8 @@ import styles from './FeedbackWidget.module.css';
 type WidgetStatus = 'idle' | 'sending' | 'sent' | 'error';
 
 const EMOJIS = [
-  { label: 'Angry', emoji: '\u{1F620}' },
-  { label: 'Confused', emoji: '\u{1F615}' },
-  { label: 'Neutral', emoji: '\u{1F610}' },
-  { label: 'Happy', emoji: '\u{1F642}' },
+  { label: 'Enraged', emoji: '\u{1F621}' },
+  { label: 'Skeptical', emoji: '\u{1F928}' },
   { label: 'Love it', emoji: '\u{1F60D}' },
 ] as const;
 
