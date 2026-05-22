@@ -48,6 +48,24 @@ describe('readSignupOrigin', () => {
     });
     expect(readSignupOrigin('', storage)).toBeNull();
   });
+
+  it.each([
+    '/usmle-anki',
+    '/nursing-flashcards',
+    '/anki-from-medical-lecture-slides',
+  ])('resolves %s from the source query param', (pathname) => {
+    const storage = buildStorage();
+    expect(readSignupOrigin(`?source=${pathname}`, storage)).toBe(pathname);
+  });
+
+  it.each([
+    '/usmle-anki',
+    '/nursing-flashcards',
+    '/anki-from-medical-lecture-slides',
+  ])('resolves %s from sessionStorage when query param is absent', (pathname) => {
+    const storage = buildStorage({ [SIGNUP_ORIGIN_KEY]: pathname });
+    expect(readSignupOrigin('', storage)).toBe(pathname);
+  });
 });
 
 describe('persistSignupOrigin', () => {
@@ -65,5 +83,18 @@ describe('persistSignupOrigin', () => {
 
   it('is a no-op when storage is unavailable', () => {
     expect(() => persistSignupOrigin('/pdf-to-anki', null)).not.toThrow();
+  });
+
+  it('persists each of the three medical landing paths', () => {
+    const medicalPaths = [
+      '/usmle-anki',
+      '/nursing-flashcards',
+      '/anki-from-medical-lecture-slides',
+    ];
+    for (const pathname of medicalPaths) {
+      const storage = buildStorage();
+      persistSignupOrigin(pathname, storage);
+      expect(storage.store[SIGNUP_ORIGIN_KEY]).toBe(pathname);
+    }
   });
 });

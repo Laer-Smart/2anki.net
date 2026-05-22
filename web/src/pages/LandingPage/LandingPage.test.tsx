@@ -7,6 +7,9 @@ import { MemoryRouter } from 'react-router-dom';
 
 import LandingPage from './LandingPage';
 import notionCopy from './copy/notion';
+import usmleCopy from './copy/usmle';
+import nursingCopy from './copy/nursing';
+import medicalLectureSlidesCopy from './copy/medical-lecture-slides';
 
 function renderLandingPage(children: React.ReactElement) {
   const queryClient = new QueryClient({
@@ -81,5 +84,47 @@ describe('LandingPage', () => {
     expect(screen.getByText('Notion')).toBeInTheDocument();
     expect(screen.getByText('PDF')).toBeInTheDocument();
     expect(screen.getByText('Markdown')).toBeInTheDocument();
+  });
+
+  it('renders the USMLE h1 and links CTA to the usmle-anki source', () => {
+    renderLandingPage(
+      <LandingPage copy={usmleCopy} setErrorMessage={vi.fn()} />
+    );
+    expect(
+      screen.getByRole('heading', { level: 1, name: usmleCopy.h1 })
+    ).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: /sign up free/i });
+    expect(link).toHaveAttribute(
+      'href',
+      `/register?source=${encodeURIComponent(usmleCopy.pathname)}`
+    );
+  });
+
+  it('renders the nursing h1 and links CTA to the nursing-flashcards source', () => {
+    renderLandingPage(
+      <LandingPage copy={nursingCopy} setErrorMessage={vi.fn()} />
+    );
+    expect(
+      screen.getByRole('heading', { level: 1, name: nursingCopy.h1 })
+    ).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: /sign up free/i });
+    expect(link).toHaveAttribute(
+      'href',
+      `/register?source=${encodeURIComponent(nursingCopy.pathname)}`
+    );
+  });
+
+  it('renders the medical lecture slides h1 and links CTA to the correct source', () => {
+    renderLandingPage(
+      <LandingPage copy={medicalLectureSlidesCopy} setErrorMessage={vi.fn()} />
+    );
+    expect(
+      screen.getByRole('heading', { level: 1, name: medicalLectureSlidesCopy.h1 })
+    ).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: /sign up free/i });
+    expect(link).toHaveAttribute(
+      'href',
+      `/register?source=${encodeURIComponent(medicalLectureSlidesCopy.pathname)}`
+    );
   });
 });
