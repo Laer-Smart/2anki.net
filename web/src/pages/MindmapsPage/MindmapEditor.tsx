@@ -8,6 +8,7 @@ import {
   type Node,
   type Edge,
   type Connection,
+  type ReactFlowInstance,
   Background,
 } from '@xyflow/react';
 import dagre from 'dagre';
@@ -17,6 +18,7 @@ import { useMindmapById, useUpdateMindmap, exportMindmap, type MindmapCardType }
 import type { MindmapData } from './useMindmap';
 import styles from '../../styles/shared.module.css';
 import { MindmapNode } from './MindmapNode';
+import PencilIcon from '../../components/icons/PencilIcon';
 
 const NODE_WIDTH = 172;
 const NODE_HEIGHT = 36;
@@ -206,7 +208,8 @@ export function MindmapEditor() {
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string | null; flowX?: number; flowY?: number; connectFrom?: string } | null>(null);
+  const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -419,6 +422,37 @@ export function MindmapEditor() {
     );
   }
 
+  function createNodeAt(position: { x: number; y: number }, parentId?: string | null) {
+    if (nodes.length >= FREE_NODE_LIMIT) {
+      showToast('50 nodes reached. Upgrade to add more.');
+      return;
+    }
+    const newId = crypto.randomUUID();
+    const newNode: Node = {
+      id: newId,
+      type: 'mindmap',
+      data: { label: 'New node', editing: true },
+      position,
+      style: NODE_STYLE,
+    };
+    const updatedNodes = [...nodes, newNode];
+    const updatedEdges = parentId == null
+      ? edges
+      : [
+          ...edges,
+          {
+            id: `${parentId}-${newId}`,
+            source: parentId,
+            target: newId,
+            style: { stroke: 'var(--color-border)' },
+          },
+        ];
+    setNodes(updatedNodes);
+    setEdges(updatedEdges);
+    setSelectedNodeId(newId);
+    persistData(updatedNodes, updatedEdges);
+  }
+
   useEffect(() => {
     if (contextMenu == null) return;
     function close() {
@@ -525,24 +559,56 @@ export function MindmapEditor() {
           if (target.closest('.react-flow__node') != null) return;
           if (target.closest('.react-flow__handle') != null) return;
           if (target.closest('.react-flow__controls') != null) return;
-          const parentId = selectedNodeId ?? nodes[0]?.id;
-          if (parentId == null) return;
-          addChildNode(parentId);
+          if (rfInstance == null) return;
+          const position = rfInstance.screenToFlowPosition({ x: e.clientX, y: e.clientY });
+          createNodeAt(position, selectedNodeId);
         }}
       >
         <ReactFlow
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
+          onInit={setRfInstance}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onConnectEnd={(e, connectionState) => {
+            if (connectionState.isValid !== false) return;
+            if (rfInstance == null) return;
+            const fromNodeId = connectionState.fromNode?.id;
+            if (fromNodeId == null) return;
+            const mouse = 'changedTouches' in e ? e.changedTouches[0] : (e as MouseEvent);
+            const flow = rfInstance.screenToFlowPosition({ x: mouse.clientX, y: mouse.clientY });
+            setContextMenu({
+              x: mouse.clientX,
+              y: mouse.clientY,
+              nodeId: null,
+              flowX: flow.x,
+              flowY: flow.y,
+              connectFrom: fromNodeId,
+            });
+          }}
           onNodeClick={(_e, node) => setSelectedNodeId(node.id)}
           onNodeDoubleClick={(_e, node) => startRename(node.id)}
           onNodeContextMenu={(e, node) => {
             e.preventDefault();
             setSelectedNodeId(node.id);
             setContextMenu({ x: e.clientX, y: e.clientY, nodeId: node.id });
+          }}
+          onPaneContextMenu={(e) => {
+            e.preventDefault();
+            if (rfInstance == null) return;
+            const flow = rfInstance.screenToFlowPosition({
+              x: (e as MouseEvent).clientX,
+              y: (e as MouseEvent).clientY,
+            });
+            setContextMenu({
+              x: (e as MouseEvent).clientX,
+              y: (e as MouseEvent).clientY,
+              nodeId: null,
+              flowX: flow.x,
+              flowY: flow.y,
+            });
           }}
           proOptions={{ hideAttribution: true }}
           fitView
@@ -562,6 +628,7 @@ export function MindmapEditor() {
           background: 'var(--color-bg-primary)',
         }}
       >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         <h2
           ref={titleRef}
           contentEditable
@@ -599,6 +666,33 @@ export function MindmapEditor() {
         >
           {map?.title ?? 'Untitled'}
         </h2>
+          <button
+            type="button"
+            aria-label="Rename map"
+            title="Rename map"
+            onClick={() => {
+              if (titleRef.current == null) return;
+              titleRef.current.focus();
+              const range = document.createRange();
+              range.selectNodeContents(titleRef.current);
+              const sel = window.getSelection();
+              sel?.removeAllRanges();
+              sel?.addRange(range);
+            }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--color-text-secondary)',
+              padding: '0.25rem',
+              borderRadius: 'var(--radius-sm)',
+              display: 'inline-flex',
+              alignItems: 'center',
+            }}
+          >
+            <PencilIcon width={16} height={16} />
+          </button>
+        </div>
         <p
           style={{
             fontSize: 'var(--text-sm)',
@@ -613,8 +707,9 @@ export function MindmapEditor() {
           <p style={{ margin: '0 0 0.25rem' }}>Enter — add sibling</p>
           <p style={{ margin: '0 0 0.25rem' }}>Backspace — delete</p>
           <p style={{ margin: '0 0 0.25rem' }}>Double-click / F2 — rename node</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Double-click canvas — add node</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Right-click — menu</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Double-click canvas — add node here</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Right-click — menu (node or canvas)</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Drag from a node — connect or branch</p>
         </div>
         <div style={{ marginTop: 'auto' }}>
           <button
@@ -676,39 +771,51 @@ export function MindmapEditor() {
             zIndex: 3000,
           }}
         >
-          <ContextMenuItem
-            label="Add child"
-            shortcut="Tab"
-            onSelect={() => {
-              addChildNode(contextMenu.nodeId);
-              setContextMenu(null);
-            }}
-          />
-          <ContextMenuItem
-            label="Add sibling"
-            shortcut="Enter"
-            onSelect={() => {
-              addSiblingNode(contextMenu.nodeId);
-              setContextMenu(null);
-            }}
-          />
-          <ContextMenuItem
-            label="Rename"
-            shortcut="F2"
-            onSelect={() => {
-              const nodeId = contextMenu.nodeId;
-              setContextMenu(null);
-              startRename(nodeId);
-            }}
-          />
-          <ContextMenuItem
-            label="Delete"
-            shortcut="Backspace"
-            onSelect={() => {
-              deleteNode(contextMenu.nodeId);
-              setContextMenu(null);
-            }}
-          />
+          {contextMenu.nodeId != null && (
+            <NodeContextMenu
+              nodeId={contextMenu.nodeId}
+              onAddChild={(id) => { addChildNode(id); setContextMenu(null); }}
+              onAddSibling={(id) => { addSiblingNode(id); setContextMenu(null); }}
+              onRename={(id) => { setContextMenu(null); startRename(id); }}
+              onDelete={(id) => { deleteNode(id); setContextMenu(null); }}
+            />
+          )}
+          {contextMenu.nodeId == null && contextMenu.connectFrom != null && (
+            <>
+              <ContextMenuItem
+                label="Add connected node"
+                shortcut=""
+                onSelect={() => {
+                  if (contextMenu.flowX != null && contextMenu.flowY != null) {
+                    createNodeAt({ x: contextMenu.flowX, y: contextMenu.flowY }, contextMenu.connectFrom ?? null);
+                  }
+                  setContextMenu(null);
+                }}
+              />
+              <ContextMenuItem
+                label="Add disconnected node"
+                shortcut=""
+                onSelect={() => {
+                  if (contextMenu.flowX != null && contextMenu.flowY != null) {
+                    createNodeAt({ x: contextMenu.flowX, y: contextMenu.flowY }, null);
+                  }
+                  setContextMenu(null);
+                }}
+              />
+            </>
+          )}
+          {contextMenu.nodeId == null && contextMenu.connectFrom == null && (
+            <ContextMenuItem
+              label="Add node here"
+              shortcut="Double-click"
+              onSelect={() => {
+                if (contextMenu.flowX != null && contextMenu.flowY != null) {
+                  createNodeAt({ x: contextMenu.flowX, y: contextMenu.flowY }, selectedNodeId);
+                }
+                setContextMenu(null);
+              }}
+            />
+          )}
         </div>
       )}
     </div>
@@ -753,5 +860,24 @@ function ContextMenuItem({ label, shortcut, onSelect }: Readonly<ContextMenuItem
         {shortcut}
       </span>
     </button>
+  );
+}
+
+interface NodeContextMenuProps {
+  nodeId: string;
+  onAddChild: (id: string) => void;
+  onAddSibling: (id: string) => void;
+  onRename: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+function NodeContextMenu({ nodeId, onAddChild, onAddSibling, onRename, onDelete }: Readonly<NodeContextMenuProps>) {
+  return (
+    <>
+      <ContextMenuItem label="Add child" shortcut="Tab" onSelect={() => onAddChild(nodeId)} />
+      <ContextMenuItem label="Add sibling" shortcut="Enter" onSelect={() => onAddSibling(nodeId)} />
+      <ContextMenuItem label="Rename" shortcut="F2" onSelect={() => onRename(nodeId)} />
+      <ContextMenuItem label="Delete" shortcut="Backspace" onSelect={() => onDelete(nodeId)} />
+    </>
   );
 }
