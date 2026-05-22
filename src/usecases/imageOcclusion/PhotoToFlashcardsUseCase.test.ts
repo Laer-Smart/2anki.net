@@ -247,6 +247,67 @@ describe('PhotoToFlashcardsUseCase', () => {
     });
   });
 
+  describe('source image media bundling', () => {
+    it('writes the source image bytes to workspaceDir', async () => {
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+
+      const imageWriteCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+        ([p]: [string]) => typeof p === 'string' && !p.endsWith('deck_info.json')
+      );
+      expect(imageWriteCall).toBeDefined();
+      const writtenBytes = imageWriteCall![1];
+      expect(Buffer.isBuffer(writtenBytes)).toBe(true);
+      expect(writtenBytes).toEqual(Buffer.from('abc123', 'base64'));
+    });
+
+    it('sets media on every card in deck_info.json', async () => {
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+
+      const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+        ([p]: [string]) => typeof p === 'string' && p.endsWith('deck_info.json')
+      );
+      expect(writeCall).toBeDefined();
+      const payload = JSON.parse(writeCall![1] as string) as Array<{
+        cards: Array<{ media: string[]; back: string }>;
+      }>;
+      for (const card of payload[0].cards) {
+        expect(card.media).toHaveLength(1);
+        expect(card.media[0]).toMatch(/^source-[0-9a-f-]+\.jpg$/);
+      }
+    });
+
+    it('appends the source image tag to each card back', async () => {
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+
+      const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+        ([p]: [string]) => typeof p === 'string' && p.endsWith('deck_info.json')
+      );
+      const payload = JSON.parse(writeCall![1] as string) as Array<{
+        cards: Array<{ media: string[]; back: string }>;
+      }>;
+      for (const card of payload[0].cards) {
+        expect(card.back).toContain('<img src="');
+        expect(card.back).toContain('style="max-width:100%;height:auto;"');
+      }
+    });
+
+    it('uses the correct extension for png media type', async () => {
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, mediaType: 'image/png', isPaying: true });
+
+      const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+        ([p]: [string]) => typeof p === 'string' && p.endsWith('deck_info.json')
+      );
+      const payload = JSON.parse(writeCall![1] as string) as Array<{
+        cards: Array<{ media: string[] }>;
+      }>;
+      expect(payload[0].cards[0].media[0]).toMatch(/\.png$/);
+    });
+  });
+
   describe('VISION_PROMPT', () => {
     it('requests 1–3 topic tags per card', () => {
       expect(VISION_PROMPT).toMatch(/tag/i);
