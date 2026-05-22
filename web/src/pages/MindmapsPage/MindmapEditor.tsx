@@ -561,7 +561,7 @@ export function MindmapEditor() {
           if (target.closest('.react-flow__controls') != null) return;
           if (rfInstance == null) return;
           const position = rfInstance.screenToFlowPosition({ x: e.clientX, y: e.clientY });
-          createNodeAt(position, selectedNodeId);
+          createNodeAt(position, null);
         }}
       >
         <ReactFlow
@@ -573,7 +573,7 @@ export function MindmapEditor() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onConnectEnd={(e, connectionState) => {
-            if (connectionState.isValid !== false) return;
+            if (connectionState.toNode != null) return;
             if (rfInstance == null) return;
             const fromNodeId = connectionState.fromNode?.id;
             if (fromNodeId == null) return;
