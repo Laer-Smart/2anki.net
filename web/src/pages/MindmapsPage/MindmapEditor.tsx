@@ -162,12 +162,7 @@ export function MindmapEditor() {
       fontSize: 'var(--text-sm)',
     };
 
-    const sourceNodes =
-      map.data.nodes.length > 0
-        ? map.data.nodes
-        : [{ id: crypto.randomUUID(), label: map.title || 'Untitled' }];
-
-    const rfNodes: Node[] = sourceNodes.map((n) => ({
+    const rfNodes: Node[] = map.data.nodes.map((n) => ({
       id: n.id,
       data: { label: n.label },
       position: { x: 0, y: 0 },

@@ -34,6 +34,11 @@ export class CreateMindmapUseCase {
       }
     }
 
-    return this.repo.create({ user_id: userId, title });
+    const rootNode = { id: crypto.randomUUID(), label: title || 'Untitled' };
+    return this.repo.create({
+      user_id: userId,
+      title,
+      data: { nodes: [rootNode], edges: [] },
+    });
   }
 }
