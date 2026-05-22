@@ -3,6 +3,7 @@ import {
   EMPTY_CONTENT_USER_MESSAGE,
   parseDeckResponse,
   rewriteAudioAnchors,
+  normalizeTag,
 } from './ClaudeService';
 
 describe('looksLikeEmptyContentExplanation', () => {
@@ -141,6 +142,50 @@ describe('rewriteAudioAnchors', () => {
     const { back, audioFilenames } = rewriteAudioAnchors(input);
     expect(audioFilenames).toEqual([]);
     expect(back).toBe(input);
+  });
+});
+
+describe('normalizeTag', () => {
+  it('lowercases an uppercase tag', () => {
+    expect(normalizeTag('Enzymes')).toBe('enzymes');
+  });
+
+  it('replaces spaces with underscores', () => {
+    expect(normalizeTag('michaelis menten')).toBe('michaelis_menten');
+  });
+
+  it('strips characters outside [a-z0-9_]', () => {
+    expect(normalizeTag('cell-biology!')).toBe('cellbiology');
+  });
+
+  it('caps the tag at 32 characters', () => {
+    const long = 'a'.repeat(40);
+    expect(normalizeTag(long)).toHaveLength(32);
+  });
+
+  it('converts a mixed-case tag with spaces into normalized form', () => {
+    expect(normalizeTag('Michaelis Menten Kinetics')).toBe('michaelis_menten_kinetics');
+  });
+
+  it('returns an empty string for a tag that is all punctuation', () => {
+    expect(normalizeTag('!!!')).toBe('');
+  });
+});
+
+describe('parseDeckResponse — tags', () => {
+  it('carries tags from a Claude response through to the parsed deck', () => {
+    const raw = JSON.stringify([
+      {
+        deck: 'Biochemistry',
+        cards: [
+          { q: 'What is an enzyme?', a: 'A biological catalyst', tags: ['enzymes', 'kinetics'] },
+          { q: 'What is ATP?', a: 'Adenosine triphosphate' },
+        ],
+      },
+    ]);
+    const parsed = parseDeckResponse(raw, raw, 0);
+    expect(parsed[0].cards[0].tags).toEqual(['enzymes', 'kinetics']);
+    expect(parsed[0].cards[1].tags).toBeUndefined();
   });
 });
 
