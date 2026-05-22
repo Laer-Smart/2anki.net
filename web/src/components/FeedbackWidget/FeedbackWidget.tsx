@@ -7,9 +7,9 @@ import styles from './FeedbackWidget.module.css';
 type WidgetStatus = 'idle' | 'sending' | 'sent' | 'error';
 
 const EMOJIS = [
-  { label: 'Enraged', emoji: '\u{1F621}' },
-  { label: 'Skeptical', emoji: '\u{1F928}' },
-  { label: 'Love it', emoji: '\u{1F60D}' },
+  { label: 'Enraged', emoji: '\u{1F621}', value: 1 },
+  { label: 'Skeptical', emoji: '\u{1F928}', value: 2 },
+  { label: 'Love it', emoji: '\u{1F60D}', value: 5 },
 ] as const;
 
 interface FeedbackWidgetProps {
@@ -55,20 +55,17 @@ export function FeedbackWidget({
     <div className={compact ? styles.widgetCompact : styles.widget}>
       {!compact && <p className={styles.prompt}>How's your experience?</p>}
       <div className={styles.emojiRow}>
-        {EMOJIS.map((item, index) => {
-          const rating = index + 1;
-          return (
-            <button
-              key={rating}
-              type="button"
-              aria-label={item.label}
-              className={`${styles.emojiButton} ${selectedRating === rating ? styles.emojiSelected : ''}`}
-              onClick={() => setSelectedRating(rating)}
-            >
-              {item.emoji}
-            </button>
-          );
-        })}
+        {EMOJIS.map((item) => (
+          <button
+            key={item.value}
+            type="button"
+            aria-label={item.label}
+            className={`${styles.emojiButton} ${selectedRating === item.value ? styles.emojiSelected : ''}`}
+            onClick={() => setSelectedRating(item.value)}
+          >
+            {item.emoji}
+          </button>
+        ))}
       </div>
       {selectedRating != null && selectedRating <= 2 && (
         <p className={styles.nudge}>

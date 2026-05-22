@@ -125,6 +125,44 @@ export default function BusinessTab() {
 
       <section
         className={styles.section}
+        aria-labelledby="biz-section-emoji"
+      >
+        <header className={styles.sectionHeader}>
+          <h2 id="biz-section-emoji" className={styles.sectionTitle}>
+            Emoji feedback
+          </h2>
+          <p className={styles.sectionHint}>
+            Ratings and comments from the in-app emoji widget
+          </p>
+        </header>
+        <div className={styles.grid}>
+          <ChartPanel
+            title="Emoji feedback, last 30 days"
+            isLoading={showInitialSkeleton}
+            isEmpty={(visible?.emoji_feedback_ratings?.length ?? 0) === 0}
+            emptyText="No emoji feedback yet."
+          >
+            <EmojiFeedbackChart
+              points={visible?.emoji_feedback_ratings ?? []}
+            />
+          </ChartPanel>
+
+          <ChartPanel
+            title="Recent feedback comments"
+            subtitle="Latest text feedback from the emoji widget"
+            isLoading={showInitialSkeleton}
+            isEmpty={(visible?.emoji_feedback_comments?.length ?? 0) === 0}
+            emptyText="No feedback comments yet."
+          >
+            <EmojiFeedbackCommentsList
+              points={visible?.emoji_feedback_comments ?? []}
+            />
+          </ChartPanel>
+        </div>
+      </section>
+
+      <section
+        className={styles.section}
         aria-labelledby="biz-section-revenue"
       >
         <header className={styles.sectionHeader}>
@@ -251,44 +289,6 @@ export default function BusinessTab() {
           >
             <ReEngagementCommentsList
               points={visible?.reengagement_comments_recent ?? []}
-            />
-          </ChartPanel>
-        </div>
-      </section>
-
-      <section
-        className={styles.section}
-        aria-labelledby="biz-section-emoji"
-      >
-        <header className={styles.sectionHeader}>
-          <h2 id="biz-section-emoji" className={styles.sectionTitle}>
-            Emoji feedback
-          </h2>
-          <p className={styles.sectionHint}>
-            Ratings and comments from the in-app emoji widget
-          </p>
-        </header>
-        <div className={styles.grid}>
-          <ChartPanel
-            title="Emoji feedback, last 30 days"
-            isLoading={showInitialSkeleton}
-            isEmpty={(visible?.emoji_feedback_ratings?.length ?? 0) === 0}
-            emptyText="No emoji feedback yet."
-          >
-            <EmojiFeedbackChart
-              points={visible?.emoji_feedback_ratings ?? []}
-            />
-          </ChartPanel>
-
-          <ChartPanel
-            title="Recent feedback comments"
-            subtitle="Latest text feedback from the emoji widget"
-            isLoading={showInitialSkeleton}
-            isEmpty={(visible?.emoji_feedback_comments?.length ?? 0) === 0}
-            emptyText="No feedback comments yet."
-          >
-            <EmojiFeedbackCommentsList
-              points={visible?.emoji_feedback_comments ?? []}
             />
           </ChartPanel>
         </div>
