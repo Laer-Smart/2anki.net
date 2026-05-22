@@ -3,6 +3,7 @@ import type { Message } from '@anthropic-ai/sdk/resources/messages';
 import * as cheerio from 'cheerio';
 import { createHash } from 'node:crypto';
 import { jsonrepair } from 'jsonrepair';
+import { splitOversizedCards } from './splitOversizedCards';
 
 const SYSTEM_PROMPT = `
 You are an Anki flashcard generator. Output ONLY a compact JSON array.
@@ -22,6 +23,14 @@ Extraction rules:
 - Inline <code> in q: rewrite as {{c1::code}} and set "cloze": true
 - Preserve HTML formatting in q and a
 - Never invent content — only use text present in the document
+
+Minimum-information rules (one fact per card):
+- Each card must hold one fact, definition, or concept — never multiple facts bundled together
+- Split a paragraph that states multiple facts into one card per fact
+- A table of N rows produces N cards (one row per card)
+- One definition with its example may stay on a single card
+- Cloze cards are already single-fact — do not split them
+- If the user's additional instructions explicitly ask for detailed or longer cards, defer to those instructions over these rules
 `.trim();
 
 export const EMPTY_CONTENT_USER_MESSAGE =
@@ -442,7 +451,40 @@ async function generateDeckInfoFromChunk(
 
   const tParse0 = Date.now();
   const parsed = parseDeckResponse(cleaned, raw, chunkIndex);
-  const deckInfo = expandCompactDeckInfo(parsed, availableMediaFiles, pageStyle || null);
+
+  const inputCardCount = parsed.reduce((sum, d) => sum + d.cards.length, 0);
+  const avgAnswerLenBefore =
+    inputCardCount > 0
+      ? Math.round(
+          parsed.reduce(
+            (sum, d) => sum + d.cards.reduce((s, c) => s + c.a.replace(/<[^>]*>/g, '').length, 0),
+            0
+          ) / inputCardCount
+        )
+      : 0;
+
+  const split = splitOversizedCards(parsed);
+
+  const outputCardCount = split.reduce((sum, d) => sum + d.cards.length, 0);
+  const avgAnswerLenAfter =
+    outputCardCount > 0
+      ? Math.round(
+          split.reduce(
+            (sum, d) => sum + d.cards.reduce((s, c) => s + c.a.replace(/<[^>]*>/g, '').length, 0),
+            0
+          ) / outputCardCount
+        )
+      : 0;
+
+  console.log('[Claude] splitOversizedCards', {
+    inputCardCount,
+    outputCardCount,
+    avgAnswerLenBefore,
+    avgAnswerLenAfter,
+    chunkIndex,
+  });
+
+  const deckInfo = expandCompactDeckInfo(split, availableMediaFiles, pageStyle || null);
   const parseMs = Date.now() - tParse0;
   console.log('[Claude] chunk done', {
     chunkIndex,
