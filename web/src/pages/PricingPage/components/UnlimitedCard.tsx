@@ -34,6 +34,7 @@ const BENEFITS = [
   'PDFs and large Notion exports',
   'Unlimited Anki → Notion imports',
   'Print decks to PDF',
+  'No ads',
   'Cancel anytime',
 ];
 
