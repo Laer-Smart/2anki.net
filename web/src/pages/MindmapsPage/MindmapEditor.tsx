@@ -192,6 +192,7 @@ export function MindmapEditor() {
   const [toast, setToast] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -200,6 +201,18 @@ export function MindmapEditor() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    if (titleRef.current != null && document.activeElement !== titleRef.current) {
+      titleRef.current.innerText = map?.title ?? 'Untitled';
+    }
+  }, [map?.title]);
+
+  function commitTitle(text: string) {
+    const trimmed = text.trim();
+    if (trimmed.length === 0 || trimmed === (map?.title ?? '')) return;
+    updateMindmap.mutate({ title: trimmed });
+  }
 
   useEffect(() => {
     if (map == null) return;
@@ -490,7 +503,18 @@ export function MindmapEditor() {
 
   return (
     <div style={{ display: 'flex', height: 'calc(100vh - 60px)' }}>
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div
+        style={{ flex: 1, position: 'relative' }}
+        onDoubleClick={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest('.react-flow__node') != null) return;
+          if (target.closest('.react-flow__handle') != null) return;
+          if (target.closest('.react-flow__controls') != null) return;
+          const parentId = selectedNodeId ?? nodes[0]?.id;
+          if (parentId == null) return;
+          addChildNode(parentId);
+        }}
+      >
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -524,10 +548,38 @@ export function MindmapEditor() {
         }}
       >
         <h2
+          ref={titleRef}
+          contentEditable
+          suppressContentEditableWarning
+          spellCheck={false}
+          title="Click to rename"
+          onBlur={(e) => {
+            const text = e.currentTarget.innerText;
+            if (text.trim().length === 0) {
+              e.currentTarget.innerText = map?.title ?? 'Untitled';
+              return;
+            }
+            commitTitle(text);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.currentTarget.blur();
+            } else if (e.key === 'Escape') {
+              e.preventDefault();
+              e.currentTarget.innerText = map?.title ?? 'Untitled';
+              e.currentTarget.blur();
+            }
+            e.stopPropagation();
+          }}
           style={{
             fontSize: 'var(--text-lg)',
             fontWeight: 'var(--font-semibold)',
-            margin: 0,
+            margin: '-0.125rem -0.25rem',
+            padding: '0.125rem 0.25rem',
+            borderRadius: 'var(--radius-sm)',
+            outline: 'none',
+            cursor: 'text',
           }}
         >
           {map?.title ?? 'Untitled'}
@@ -545,7 +597,8 @@ export function MindmapEditor() {
           <p style={{ margin: '0 0 0.25rem' }}>Tab — add child</p>
           <p style={{ margin: '0 0 0.25rem' }}>Enter — add sibling</p>
           <p style={{ margin: '0 0 0.25rem' }}>Backspace — delete</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Double-click / F2 — rename</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Double-click / F2 — rename node</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Double-click canvas — add node</p>
           <p style={{ margin: '0 0 0.25rem' }}>Right-click — menu</p>
         </div>
         <div style={{ marginTop: 'auto' }}>
