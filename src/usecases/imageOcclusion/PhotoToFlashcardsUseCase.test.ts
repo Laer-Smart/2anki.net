@@ -1,6 +1,7 @@
 import {
   PhotoToFlashcardsUseCase,
   FREE_PHOTO_QUOTA_PER_MONTH,
+  VISION_PROMPT,
 } from './PhotoToFlashcardsUseCase';
 import type { IEventsRepository } from '../../data_layer/EventsRepository';
 
@@ -15,6 +16,7 @@ const mockChild = jest.requireMock(
 const STUB_CLAUDE_RESPONSE = `[{"deck":"My Photo","cards":[{"q":"What is photosynthesis?","a":"The process by which plants convert light into energy"},{"q":"What do plants need?","a":"Water, sunlight, and CO2"}]}]`;
 
 jest.mock('../../lib/claude/ClaudeService', () => ({
+  ...jest.requireActual('../../lib/claude/ClaudeService'),
   getAnthropicClient: jest.fn(),
 }));
 
@@ -179,6 +181,75 @@ describe('PhotoToFlashcardsUseCase', () => {
           ]),
         })
       );
+    });
+  });
+
+  describe('tag plumbing', () => {
+    it('writes tags from Claude Vision response into deck_info.json', async () => {
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify([
+              {
+                deck: 'Tagged Photo',
+                cards: [
+                  { q: 'What is an enzyme?', a: 'A catalyst', tags: ['enzymes', 'biochemistry'] },
+                  { q: 'What is ATP?', a: 'Energy currency' },
+                ],
+              },
+            ]),
+          },
+        ],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+
+      const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+        ([p]) => typeof p === 'string' && p.endsWith('deck_info.json')
+      );
+      expect(writeCall).toBeDefined();
+      const payload = JSON.parse(writeCall![1] as string) as Array<{
+        cards: Array<{ tags: string[] }>;
+      }>;
+      expect(payload[0].cards[0].tags).toEqual(['enzymes', 'biochemistry']);
+      expect(payload[0].cards[1].tags).toEqual([]);
+    });
+
+    it('normalizes malformed tags from Claude Vision response', async () => {
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify([
+              {
+                deck: 'Tagged Photo',
+                cards: [{ q: 'Q', a: 'A', tags: ['Cell Biology', 'KINETICS!'] }],
+              },
+            ]),
+          },
+        ],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+
+      const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+        ([p]) => typeof p === 'string' && p.endsWith('deck_info.json')
+      );
+      const payload = JSON.parse(writeCall![1] as string) as Array<{
+        cards: Array<{ tags: string[] }>;
+      }>;
+      expect(payload[0].cards[0].tags).toEqual(['cell_biology', 'kinetics']);
+    });
+  });
+
+  describe('VISION_PROMPT', () => {
+    it('requests 1–3 topic tags per card', () => {
+      expect(VISION_PROMPT).toMatch(/tag/i);
     });
   });
 
