@@ -3,10 +3,12 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createElement, type ReactNode } from 'react';
 
-const mockGet = vi.fn();
-const mockPost = vi.fn();
-const mockPatch = vi.fn();
-const mockDel = vi.fn();
+const { mockGet, mockPost, mockPatch, mockDel } = vi.hoisted(() => ({
+  mockGet: vi.fn(),
+  mockPost: vi.fn(),
+  mockPatch: vi.fn(),
+  mockDel: vi.fn(),
+}));
 
 vi.mock('../../lib/backend/api', () => ({
   get: mockGet,
