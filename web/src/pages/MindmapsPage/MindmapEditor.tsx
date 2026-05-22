@@ -581,9 +581,16 @@ export function MindmapEditor() {
 
   function startRename(nodeId: string) {
     setNodes((ns) =>
-      ns.map((n) =>
-        n.id === nodeId ? { ...n, data: { ...n.data, editing: true } } : n
-      )
+      ns.map((n) => {
+        if (n.id !== nodeId) return n;
+        const measured = (n as Node & { measured?: { width?: number; height?: number } }).measured;
+        return {
+          ...n,
+          data: { ...n.data, editing: true },
+          width: n.width ?? measured?.width,
+          height: n.height ?? measured?.height,
+        };
+      })
     );
   }
 
