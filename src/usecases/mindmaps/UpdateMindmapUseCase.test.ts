@@ -1,6 +1,7 @@
 import { UpdateMindmapUseCase, MindmapLimitError } from './UpdateMindmapUseCase';
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
-import Mindmaps, { MindmapData, MindmapsId } from '../../data_layer/public/Mindmaps';
+import Mindmaps, { MindmapsId } from '../../data_layer/public/Mindmaps';
+import { MindmapData } from './MindmapData';
 import { UsersId } from '../../data_layer/public/Users';
 
 function makeMap(nodeCount: number): Mindmaps {
@@ -29,8 +30,8 @@ function makeRepo(updatedMap: Mindmaps | null = null): MindmapRepositoryInterfac
   };
 }
 
-const FREE_USER = { patreon: false as null };
-const PAID_USER = { patreon: true as null };
+const FREE_USER = { patreon: false };
+const PAID_USER = { patreon: true };
 
 describe('UpdateMindmapUseCase', () => {
   it('updates map for free user within node cap', async () => {
@@ -51,7 +52,7 @@ describe('UpdateMindmapUseCase', () => {
       subscriptions: [],
     });
 
-    expect(result?.data.nodes.length).toBe(10);
+    expect((result?.data as MindmapData).nodes.length).toBe(10);
     expect(repo.update).toHaveBeenCalled();
   });
 
@@ -94,7 +95,7 @@ describe('UpdateMindmapUseCase', () => {
       subscriptions: [],
     });
 
-    expect(result?.data.nodes.length).toBe(100);
+    expect((result?.data as MindmapData).nodes.length).toBe(100);
     expect(repo.update).toHaveBeenCalled();
   });
 
@@ -116,6 +117,6 @@ describe('UpdateMindmapUseCase', () => {
       subscriptions: [],
     });
 
-    expect(result?.data.nodes.length).toBe(50);
+    expect((result?.data as MindmapData).nodes.length).toBe(50);
   });
 });

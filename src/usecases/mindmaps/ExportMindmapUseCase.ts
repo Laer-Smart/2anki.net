@@ -7,6 +7,7 @@ import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import { MindmapsId } from '../../data_layer/public/Mindmaps';
 import { UsersId } from '../../data_layer/public/Users';
 import { mindmapToNotes } from './mindmapToNotes';
+import { MindmapData } from './MindmapData';
 import CustomExporter from '../../lib/parser/exporters/CustomExporter';
 
 export class MindmapNotFoundError extends Error {
@@ -38,7 +39,7 @@ export class ExportMindmapUseCase {
     }
 
     const resolvedDeckName = deckName ?? map.title;
-    const notes = mindmapToNotes(map.data);
+    const notes = mindmapToNotes(map.data as MindmapData);
 
     const workspaceDir = path.join(os.tmpdir(), `mindmap-export-${randomUUID()}`);
     fs.mkdirSync(workspaceDir, { recursive: true });

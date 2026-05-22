@@ -25,8 +25,8 @@ function makeRepo(count: number): MindmapRepositoryInterface {
   };
 }
 
-const FREE_USER = { patreon: false as null };
-const PAID_USER = { patreon: true as null };
+const FREE_USER = { patreon: false };
+const PAID_USER = { patreon: true };
 
 describe('CreateMindmapUseCase', () => {
   it('creates a map for a free user under the cap', async () => {

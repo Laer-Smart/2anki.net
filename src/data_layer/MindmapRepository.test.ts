@@ -1,6 +1,7 @@
 import { MindmapRepository } from './MindmapRepository';
-import { MindmapData, MindmapsId } from './public/Mindmaps';
+import { MindmapsId } from './public/Mindmaps';
 import { UsersId } from './public/Users';
+import { MindmapData } from '../usecases/mindmaps/MindmapData';
 
 function makeRow(overrides: Partial<{
   id: string;
@@ -97,7 +98,7 @@ function makeFakeKnex(initialRows: ReturnType<typeof makeRow>[] = []) {
   };
 
   db._store = store;
-  return db as unknown as Parameters<typeof MindmapRepository>[0] & { _store: typeof store };
+  return db as unknown as ConstructorParameters<typeof MindmapRepository>[0] & { _store: typeof store };
 }
 
 describe('MindmapRepository', () => {

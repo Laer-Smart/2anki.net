@@ -6,11 +6,6 @@ import type { UsersId } from './Users';
 /** Identifier type for public.mindmaps */
 export type MindmapsId = string & { __brand: 'public.mindmaps' };
 
-export interface MindmapData {
-  nodes: Array<{ id: string; label: string }>;
-  edges: Array<{ source: string; target: string }>;
-}
-
 /** Represents the table public.mindmaps */
 export default interface Mindmaps {
   id: MindmapsId;
@@ -19,7 +14,7 @@ export default interface Mindmaps {
 
   title: string;
 
-  data: MindmapData;
+  data: unknown;
 
   created_at: Date;
 
@@ -33,11 +28,11 @@ export interface MindmapsInitializer {
 
   user_id: UsersId;
 
-  /** Default value: 'Untitled' */
+  /** Default value: 'Untitled'::text */
   title?: string;
 
-  /** Default value: '{"nodes":[],"edges":[]}' */
-  data?: MindmapData;
+  /** Default value: '{"edges": [], "nodes": []}'::jsonb */
+  data?: unknown;
 
   /** Default value: CURRENT_TIMESTAMP */
   created_at?: Date;
@@ -54,7 +49,7 @@ export interface MindmapsMutator {
 
   title?: string;
 
-  data?: MindmapData;
+  data?: unknown;
 
   created_at?: Date;
 
