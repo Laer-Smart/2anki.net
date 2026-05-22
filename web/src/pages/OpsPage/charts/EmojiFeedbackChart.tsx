@@ -22,12 +22,12 @@ import {
 } from './timeSeriesChartHelpers';
 
 const EMOJI_LABELS: Record<number, string> = {
-  1: '\u{1F620}',
-  2: '\u{1F615}',
-  3: '\u{1F610}',
-  4: '\u{1F642}',
+  1: '\u{1F621}',
+  2: '\u{1F928}',
   5: '\u{1F60D}',
 };
+
+const VISIBLE_RATINGS = [1, 2, 5] as const;
 
 interface ChartRow {
   label: string;
@@ -36,7 +36,7 @@ interface ChartRow {
 
 const buildRows = (points: EmojiFeedbackRatingPoint[]): ChartRow[] => {
   const map = new Map(points.map((p) => [p.rating, p.count]));
-  return [1, 2, 3, 4, 5].map((r) => ({
+  return VISIBLE_RATINGS.map((r) => ({
     label: EMOJI_LABELS[r] ?? String(r),
     count: map.get(r) ?? 0,
   }));
