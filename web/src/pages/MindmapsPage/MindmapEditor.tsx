@@ -700,6 +700,9 @@ export function MindmapEditor() {
             e.preventDefault();
             setContextMenu({ x: e.clientX, y: e.clientY, nodeId: null, edgeId: edge.id });
           }}
+          onEdgeClick={(e, edge) => {
+            setContextMenu({ x: e.clientX, y: e.clientY, nodeId: null, edgeId: edge.id });
+          }}
           onConnectEnd={(e, connectionState) => {
             if (connectionState.toNode != null) return;
             if (rfInstance == null) return;
@@ -856,6 +859,7 @@ export function MindmapEditor() {
           <p style={{ margin: '0 0 0.25rem' }}>Double-click / F2 — rename node</p>
           <p style={{ margin: '0 0 0.25rem' }}>Double-click canvas — add node here</p>
           <p style={{ margin: '0 0 0.25rem' }}>Right-click — menu (node, edge, or canvas)</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Click an edge — open its menu</p>
           <p style={{ margin: '0 0 0.25rem' }}>Drag from a node — new connected node</p>
           <p style={{ margin: '0 0 0.25rem' }}>Ctrl/Cmd+A — select all</p>
           <p style={{ margin: '0 0 0.25rem' }}>Esc — clear selection</p>
