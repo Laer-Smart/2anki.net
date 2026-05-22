@@ -141,4 +141,88 @@ describe('ChatPanel', () => {
       expect(screen.getByText(/You've used all 20 messages this month/)).toBeInTheDocument();
     });
   });
+
+  it('shows "Claude" sender label and "Thinking" when loading with no streamed tokens yet', async () => {
+    let resolveStream!: () => void;
+    const neverEndingStream = new ReadableStream({
+      start(controller) {
+        resolveStream = () => controller.close();
+      },
+    });
+    mockPost.mockResolvedValueOnce({ ok: true, status: 200, body: neverEndingStream });
+
+    renderChatPanel();
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Message input' }), {
+      target: { value: 'What is spaced repetition?' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Claude')).toBeInTheDocument();
+      expect(screen.getByText('Thinking')).toBeInTheDocument();
+    });
+
+    expect(document.querySelector('[class*="messageSkeleton"]')).toBeNull();
+
+    resolveStream();
+  });
+
+  it('renders streaming caret while tokens arrive and removes it after done', async () => {
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([
+        { event: 'token', data: 'Hello' },
+        { event: 'token', data: ' there' },
+        { event: 'done', data: { content: 'Hello there.', conversationId: 42 } },
+      ])
+    );
+
+    renderChatPanel();
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Message input' }), {
+      target: { value: 'Tell me something' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Hello there.')).toBeInTheDocument();
+    });
+
+    const caret = document.querySelector('[aria-hidden="true"][class*="streamingCaret"]');
+    expect(caret).toBeNull();
+  });
+
+  it('Esc blurs the composer textarea without clearing its value', () => {
+    renderChatPanel();
+
+    const textarea = screen.getByRole('textbox', { name: 'Message input' }) as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: 'Draft message' } });
+    textarea.focus();
+    expect(document.activeElement).toBe(textarea);
+
+    fireEvent.keyDown(textarea, { key: 'Escape' });
+
+    expect(document.activeElement).not.toBe(textarea);
+    expect(textarea.value).toBe('Draft message');
+  });
+
+  it('Enter still sends the message after Esc handler is added', async () => {
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([
+        { event: 'done', data: { content: 'Reply text', conversationId: 10 } },
+      ])
+    );
+
+    renderChatPanel();
+
+    const textarea = screen.getByRole('textbox', { name: 'Message input' }) as HTMLTextAreaElement;
+    fireEvent.change(textarea, { target: { value: 'Press enter to send' } });
+    fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: false });
+
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith('/api/chat/message', expect.objectContaining({
+        content: 'Press enter to send',
+      }));
+    });
+  });
 });

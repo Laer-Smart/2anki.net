@@ -397,8 +397,34 @@
   85% { transform: translateY(0) scaleY(0.96); }
 }
 
+.streamingCaret {
+  display: inline-block;
+  margin-left: 1px;
+  font-weight: 400;
+  opacity: 1;
+  animation: caretBlink 1.06s steps(2, start) infinite;
+}
+
+@keyframes caretBlink {
+  50% { opacity: 0; }
+}
+
+.thinkingHint {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  padding: 0.25rem 0;
+  animation: thinkingPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes thinkingPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .buildingCardsMascot { animation: none; }
+  .streamingCaret { animation: none; }
+  .thinkingHint { animation: none; }
 }
 
 .userBubbleCollapsible {

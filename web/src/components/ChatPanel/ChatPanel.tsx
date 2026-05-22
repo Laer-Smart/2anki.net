@@ -417,6 +417,10 @@ export default function ChatPanel({
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Escape') {
+      e.currentTarget.blur();
+      return;
+    }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (canSend) {
@@ -546,6 +550,7 @@ export default function ChatPanel({
                         <AssistantMarkdown isStreaming={!isCardStreaming}>
                           {visibleStreamingText(streamingText)}
                         </AssistantMarkdown>
+                        <span className={styles.streamingCaret} aria-hidden="true">|</span>
                       </div>
                       {isCardStreaming && (
                         <span className={styles.buildingCards}>
@@ -560,7 +565,10 @@ export default function ChatPanel({
                       )}
                     </>
                   ) : (
-                    <div className={styles.messageSkeleton} />
+                    <>
+                      <span className={styles.messageSenderLabel}>Claude</span>
+                      <span className={styles.thinkingHint}>Thinking</span>
+                    </>
                   )}
                 </div>
               )}
