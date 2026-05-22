@@ -54,7 +54,7 @@ export class ExportMindmapUseCase {
   }
 
   async execute(input: ExportInput): Promise<Buffer> {
-    const { id, userId, deckName, cardType = 'cloze' } = input;
+    const { id, userId, deckName, cardType = 'basic' } = input;
     const map = await this.repo.findById(id, userId);
     if (map == null) {
       throw new MindmapNotFoundError();

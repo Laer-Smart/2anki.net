@@ -169,7 +169,7 @@ describe('MindmapRouter', () => {
       expect(res.headers.get('content-type')).toContain('application/octet-stream');
     });
 
-    it('defaults to cloze card type when card_type is omitted', async () => {
+    it('defaults to basic card type when card_type is omitted', async () => {
       mockGetById.mockResolvedValue(baseMap);
 
       const res = await fetch(`${url}/api/mindmaps/export-id/export`, {
@@ -207,7 +207,7 @@ describe('MindmapRouter', () => {
       expect(res.headers.get('content-type')).toContain('application/octet-stream');
     });
 
-    it('treats unknown card_type as cloze', async () => {
+    it('treats unknown card_type as basic', async () => {
       mockGetById.mockResolvedValue(baseMap);
 
       const res = await fetch(`${url}/api/mindmaps/export-id/export`, {

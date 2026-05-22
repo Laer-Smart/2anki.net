@@ -38,8 +38,12 @@ export function mindmapToMarkmapHtml(data: MindmapData, title: string): string {
 <meta charset="utf-8">
 <title>${title}</title>
 <style>
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #fff; }
-svg#mindmap { width: 100%; height: 100%; display: block; }
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: transparent; color: inherit; }
+svg#mindmap { width: 100%; height: 100%; display: block; color: inherit; }
+svg#mindmap text { fill: currentColor; }
+svg#mindmap path.markmap-link { stroke: currentColor; opacity: 0.6; }
+.night_mode svg#mindmap text { fill: #e9e9eb; }
+.night_mode svg#mindmap path.markmap-link { stroke: #9ba3af; opacity: 0.8; }
 </style>
 </head>
 <body>
@@ -50,7 +54,7 @@ svg#mindmap { width: 100%; height: 100%; display: block; }
 (function () {
   var data = ${treeJson};
   if (!data) {
-    document.body.innerHTML = '<p style="font-family:sans-serif;padding:1rem;color:#888">Empty mind map</p>';
+    document.body.innerHTML = '<p style="font-family:sans-serif;padding:1rem;color:inherit;opacity:0.7">Empty mind map</p>';
     return;
   }
   var mm = markmap.Markmap.create(document.getElementById('mindmap'), {}, data);

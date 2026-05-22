@@ -40,9 +40,9 @@ export class MindmapController {
   }
 
   private resolveCardType(raw: unknown): MindmapCardType {
-    if (raw === 'basic') return 'basic';
+    if (raw === 'cloze') return 'cloze';
     if (raw === 'markmap') return 'markmap';
-    return 'cloze';
+    return 'basic';
   }
 
   async list(_req: Request, res: Response) {
