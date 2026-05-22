@@ -31,8 +31,6 @@ const NODE_STYLE = {
   boxShadow: 'var(--shadow-sm)',
   padding: '0.5rem 1rem',
   fontSize: 'var(--text-sm)',
-  minWidth: '160px',
-  minHeight: '40px',
   boxSizing: 'border-box' as const,
 };
 
@@ -367,6 +365,20 @@ export function MindmapEditor() {
       const updated = ns.map((n) =>
         n.id === nodeId ? { ...n, width, height } : n
       );
+      persistData(updated, edges);
+      return updated;
+    });
+  }, [setNodes, persistData, edges]);
+
+  const autoSizeNode = useCallback((nodeId: string) => {
+    setNodes((ns) => {
+      const updated = ns.map((n) => {
+        if (n.id !== nodeId) return n;
+        const next = { ...n };
+        delete (next as { width?: number }).width;
+        delete (next as { height?: number }).height;
+        return next;
+      });
       persistData(updated, edges);
       return updated;
     });
@@ -716,7 +728,23 @@ export function MindmapEditor() {
             createNodeAt(flow, fromNodeId);
           }}
           onNodeClick={(_e, node) => setSelectedNodeId(node.id)}
-          onNodeDoubleClick={(_e, node) => startRename(node.id)}
+          onNodeDoubleClick={(e, node) => {
+            const wrapper = (e.target as HTMLElement).closest('.react-flow__node') as HTMLElement | null;
+            if (wrapper != null) {
+              const rect = wrapper.getBoundingClientRect();
+              const borderZone = 6;
+              const nearBorder =
+                e.clientX - rect.left < borderZone ||
+                rect.right - e.clientX < borderZone ||
+                e.clientY - rect.top < borderZone ||
+                rect.bottom - e.clientY < borderZone;
+              if (nearBorder) {
+                autoSizeNode(node.id);
+                return;
+              }
+            }
+            startRename(node.id);
+          }}
           onNodeDragStop={() => persistData(nodes, edges)}
           onNodeContextMenu={(e, node) => {
             e.preventDefault();
@@ -860,6 +888,7 @@ export function MindmapEditor() {
           <p style={{ margin: '0 0 0.25rem' }}>Enter — add sibling</p>
           <p style={{ margin: '0 0 0.25rem' }}>Backspace — delete</p>
           <p style={{ margin: '0 0 0.25rem' }}>Double-click / F2 — rename node</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Double-click node border — auto-size to content</p>
           <p style={{ margin: '0 0 0.25rem' }}>Double-click canvas — add node here</p>
           <p style={{ margin: '0 0 0.25rem' }}>Right-click — menu (node, edge, or canvas)</p>
           <p style={{ margin: '0 0 0.25rem' }}>Click an edge — open its menu</p>

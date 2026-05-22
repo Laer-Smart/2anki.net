@@ -193,7 +193,8 @@ export function MindmapNode({ data, selected }: NodeProps) {
           defaultValue={nodeData.label}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
-          rows={Math.max(1, nodeData.label.split('\n').length)}
+          cols={1}
+          rows={1}
           style={{
             border: 'none',
             outline: 'none',
@@ -201,6 +202,7 @@ export function MindmapNode({ data, selected }: NodeProps) {
             fontSize: 'var(--text-sm)',
             width: '100%',
             height: '100%',
+            minWidth: 0,
             color: 'var(--color-text-primary)',
             fontFamily: 'inherit',
             lineHeight: 1.4,
