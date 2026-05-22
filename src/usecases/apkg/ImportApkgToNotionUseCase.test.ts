@@ -7,6 +7,7 @@ import NotionAPIWrapper from '../../services/NotionService/NotionAPIWrapper';
 import JobRepository from '../../data_layer/JobRepository';
 import { NormalizedCollection } from '../../services/ApkgPreviewService/types';
 import { ParsedApkg } from '../../services/ApkgPreviewService/ApkgPreviewService';
+import { APIErrorCode, APIResponseError } from '@notionhq/client';
 
 function makeCollection(noteCount: number): NormalizedCollection {
   const noteTypes = new Map([
@@ -192,6 +193,100 @@ describe('ImportApkgToNotionUseCase', () => {
     );
     expect(failCall).toBeDefined();
     expect(failCall![3]).toBe('Import failed. Please try again or contact support.');
+  });
+
+  function makeNotionError(code: string, status: number): APIResponseError {
+    return new APIResponseError({
+      code: code as APIErrorCode,
+      message: `Notion error: ${code}`,
+      status,
+      headers: {},
+      rawBodyText: '',
+      additional_data: undefined,
+      request_id: undefined,
+    });
+  }
+
+  it('surfaces a reconnect message on Notion 401 unauthorized', async () => {
+    previewService.parse.mockResolvedValue(makeParsed(1));
+    notionApi.createPage.mockRejectedValue(
+      makeNotionError(APIErrorCode.Unauthorized, 401)
+    );
+
+    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+
+    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
+    expect(failCall![3]).toBe('Notion sign-in expired. Reconnect Notion and try again.');
+  });
+
+  it('surfaces a permissions message on Notion 403 restricted resource', async () => {
+    previewService.parse.mockResolvedValue(makeParsed(1));
+    notionApi.createPage.mockRejectedValue(
+      makeNotionError(APIErrorCode.RestrictedResource, 403)
+    );
+
+    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+
+    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
+    expect(failCall![3]).toBe("2anki can't write to this Notion page. Share it with the 2anki integration.");
+  });
+
+  it('surfaces a page-deleted message on Notion 404 object not found', async () => {
+    previewService.parse.mockResolvedValue(makeParsed(1));
+    notionApi.createPage.mockRejectedValue(
+      makeNotionError(APIErrorCode.ObjectNotFound, 404)
+    );
+
+    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+
+    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
+    expect(failCall![3]).toBe('The Notion page is gone. Pick a different destination page.');
+  });
+
+  it('surfaces a rate-limit message on Notion 429', async () => {
+    previewService.parse.mockResolvedValue(makeParsed(1));
+    notionApi.createPage.mockRejectedValue(
+      makeNotionError(APIErrorCode.RateLimited, 429)
+    );
+
+    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+
+    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
+    expect(failCall![3]).toBe('Notion is rate-limiting this account. Try again in a minute.');
+  });
+
+  it.each([
+    [APIErrorCode.InternalServerError, 500],
+    [APIErrorCode.ServiceUnavailable, 503],
+    [APIErrorCode.GatewayTimeout, 504],
+  ])('surfaces a Notion outage message on 5xx (%s)', async (code, status) => {
+    previewService.parse.mockResolvedValue(makeParsed(1));
+    notionApi.createPage.mockRejectedValue(makeNotionError(code, status));
+
+    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+
+    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
+    expect(failCall![3]).toBe('Notion is having issues. Try again in a few minutes.');
+  });
+
+  it('surfaces a parse-error message when previewService.parse throws a sqlite error', async () => {
+    const sqliteError = Object.assign(new Error('file is not a database'), { code: 'SQLITE_NOTADB' });
+    previewService.parse.mockRejectedValue(sqliteError);
+
+    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+
+    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
+    expect(failCall![3]).toBe("Couldn't read this .apkg file. Export it again from Anki.");
+  });
+
+  it('surfaces a parse-error message when previewService.parse throws a generic parse error', async () => {
+    const parseError = Object.assign(new Error('No Anki collection found in zip'), { code: 'SQLITE_CANTOPEN' });
+    previewService.parse.mockRejectedValue(parseError);
+
+    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+
+    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
+    expect(failCall![3]).toBe("Couldn't read this .apkg file. Export it again from Anki.");
   });
 
   it('handles sub-decks by creating nested pages', async () => {

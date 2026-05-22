@@ -143,6 +143,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
 
   if (isFailed) {
     const isUpgradeError = job.errorMessage?.includes('Upgrade') || job.errorMessage?.includes('Free plan');
+    const partialProgress = !isUpgradeError && job.progress.total_notes > 0 && job.errorMessage == null;
     return (
       <div className={sharedStyles.page}>
         <div className={styles.errorContainer}>
@@ -151,9 +152,9 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
           </h2>
           <p className={styles.errorBody}>
             {isUpgradeError && job.errorMessage}
-            {!isUpgradeError && job.progress.total_notes > 0 &&
+            {partialProgress &&
               `Imported ${job.progress.imported} of ${job.progress.total_notes} cards before something went wrong. The cards already created are still in your Notion page.`}
-            {!isUpgradeError && job.progress.total_notes === 0 &&
+            {!isUpgradeError && !partialProgress &&
               (job.errorMessage ?? 'Something went wrong.')}
           </p>
           <div className={styles.errorActions}>
