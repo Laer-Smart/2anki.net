@@ -152,6 +152,38 @@ describe('AnkifySetupPage', () => {
     tryAgain.click();
     await waitFor(() => expect(respin).toHaveBeenCalledTimes(1));
   });
+
+  test('provision 503 → infra-specific error copy', async () => {
+    const provisionError = Object.assign(new Error('Docker daemon is unavailable on this host'), { status: 503 });
+    const backend = makeBackend({
+      provisionAnkifyClient: vi.fn(async () => { throw provisionError; }),
+    });
+
+    renderAt('/ankify/setup', backend);
+
+    const btn = await screen.findByRole('button', { name: /start anki/i });
+    btn.click();
+
+    expect(
+      await screen.findByText(/anki couldn't start — usually a temporary infra issue/i)
+    ).toBeInTheDocument();
+  });
+
+  test('provision non-503 error → generic error copy', async () => {
+    const provisionError = Object.assign(new Error('Provision failed'), { status: 500 });
+    const backend = makeBackend({
+      provisionAnkifyClient: vi.fn(async () => { throw provisionError; }),
+    });
+
+    renderAt('/ankify/setup', backend);
+
+    const btn = await screen.findByRole('button', { name: /start anki/i });
+    btn.click();
+
+    expect(
+      await screen.findByText(/anki couldn't start\. try again, or email support@2anki\.net/i)
+    ).toBeInTheDocument();
+  });
 });
 
 describe('AnkifyPage workspace home', () => {
