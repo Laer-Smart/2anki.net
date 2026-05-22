@@ -29,6 +29,9 @@ function makeProps(overrides: Partial<{
     isConnectable: true,
     positionAbsoluteX: 0,
     positionAbsoluteY: 0,
+    draggable: true,
+    selectable: true,
+    deletable: true,
   } as Parameters<typeof MindmapNode>[0];
 }
 
