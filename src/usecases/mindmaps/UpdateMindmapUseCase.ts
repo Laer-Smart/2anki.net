@@ -1,6 +1,7 @@
 import { hasAnkifyAccess, AnkifyAccessUser, AnkifyAccessSubscription } from '../../lib/ankify/access';
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
-import Mindmaps, { MindmapData, MindmapsId } from '../../data_layer/public/Mindmaps';
+import Mindmaps, { MindmapsId } from '../../data_layer/public/Mindmaps';
+import { MindmapData } from './MindmapData';
 import { UsersId } from '../../data_layer/public/Users';
 
 import { MindmapLimitError } from './CreateMindmapUseCase';

@@ -1,5 +1,5 @@
 import Note from '../../lib/parser/Note';
-import { MindmapData } from '../../data_layer/public/Mindmaps';
+import { MindmapData } from './MindmapData';
 
 export function mindmapToNotes(data: MindmapData): Note[] {
   const nodeMap = new Map<string, string>(

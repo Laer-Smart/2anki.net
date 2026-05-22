@@ -1,7 +1,6 @@
 import { Knex } from 'knex';
 
 import Mindmaps, {
-  MindmapData,
   MindmapsId,
   MindmapsInitializer,
 } from './public/Mindmaps';
