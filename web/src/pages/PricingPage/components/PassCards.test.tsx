@@ -40,6 +40,18 @@ describe('PassCards', () => {
     expect(screen.getAllByText('No subscription').length).toBe(2);
   });
 
+  it('shows the No ads benefit on each card', () => {
+    render(
+      <PassCards
+        onDayPass={vi.fn()}
+        onWeekPass={vi.fn()}
+        dayPassPending={false}
+        weekPassPending={false}
+      />
+    );
+    expect(screen.getAllByText('No ads').length).toBe(2);
+  });
+
   it('calls onDayPass when Get Day Pass is clicked', () => {
     const onDayPass = vi.fn();
     render(
