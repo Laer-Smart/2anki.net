@@ -2,10 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { get, patch, post, postMultipart } from '../../lib/backend/api';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import ConsentModal from '../ConsentModal/ConsentModal';
+import AssistantMarkdown from '../../pages/Chat/AssistantMarkdown';
+import CardPreview from '../../pages/Chat/CardPreview';
 import styles from './ChatPanel.module.css';
-import ComposerArea from './ComposerArea';
-import MessageBubble from './MessageBubble';
-import StreamingBubble from './StreamingBubble';
 
 export interface ChatCard {
   front: string;
@@ -77,12 +76,6 @@ const MAX_FILE_COUNT = 5;
 
 const FREE_MONTHLY_LIMIT = 20;
 
-const STARTER_CHIPS = [
-  { label: 'Make cards from a topic', prefill: 'Help me make cards from ' },
-  { label: 'Explain this concept', prefill: 'Explain ' },
-  { label: 'Quiz me', prefill: 'Quiz me on ' },
-] as const;
-
 function formatResetDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString(undefined, {
@@ -135,6 +128,319 @@ async function downloadDeck(
   URL.revokeObjectURL(url);
 }
 
+function visibleStreamingText(text: string): string {
+  const fenceIndex = text.search(/(?:^|\n)```json/);
+  if (fenceIndex !== -1) return text.slice(0, fenceIndex);
+  const rawArrayIndex = text.search(/(?:^|\n)\s*\[\s*\{/);
+  return rawArrayIndex === -1 ? text : text.slice(0, rawArrayIndex);
+}
+
+function chipIcon(mimeType: string): string {
+  return mimeType === 'application/pdf' ? '📄' : '🖼';
+}
+
+function truncateName(name: string, max: number): string {
+  if (name.length <= max) return name;
+  const ext = name.lastIndexOf('.');
+  if (ext > 0 && name.length - ext <= 6) {
+    const truncated = name.slice(0, max - 3 - (name.length - ext));
+    return `${truncated}…${name.slice(ext)}`;
+  }
+  return `${name.slice(0, max - 1)}…`;
+}
+
+function UserMessage({
+  message,
+  expanded,
+  onToggleExpand,
+}: {
+  message: Message;
+  expanded: boolean;
+  onToggleExpand: () => void;
+}) {
+  const isLong =
+    message.content.length > 600 || message.content.split('\n').length > 12;
+  return (
+    <div className={styles.userRow} aria-label="User message">
+      <div
+        className={`${styles.userBubble} ${isLong && !expanded ? styles.userBubbleClamped : ''}`}
+      >
+        {message.content}
+      </div>
+      {isLong && (
+        <button
+          type="button"
+          className={styles.expandToggle}
+          onClick={onToggleExpand}
+          aria-expanded={expanded}
+        >
+          {expanded ? 'Show less' : 'Show full message'}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function AssistantMessage({
+  message,
+  onSave,
+}: {
+  message: Message;
+  onSave?: (cards: ChatCard[], deckName: string) => void;
+}) {
+  return (
+    <div className={styles.assistantRow}>
+      {message.contentBefore != null && (
+        <AssistantMarkdown>{message.contentBefore}</AssistantMarkdown>
+      )}
+      {message.cards != null && message.cards.length > 0 && onSave != null && (
+        <CardPreview
+          cards={message.cards}
+          onSave={(deckName) => onSave(message.cards!, deckName)}
+        />
+      )}
+      {message.contentAfter != null && (
+        <AssistantMarkdown>{message.contentAfter}</AssistantMarkdown>
+      )}
+      {message.cards == null && (
+        <AssistantMarkdown>{message.content}</AssistantMarkdown>
+      )}
+    </div>
+  );
+}
+
+function StreamingMessage({
+  streamingText,
+  isCardStreaming,
+}: {
+  streamingText: string;
+  isCardStreaming: boolean;
+}) {
+  if (streamingText.length > 0) {
+    return (
+      <div className={styles.assistantRow}>
+        <AssistantMarkdown isStreaming={!isCardStreaming}>
+          {visibleStreamingText(streamingText)}
+        </AssistantMarkdown>
+        {isCardStreaming && (
+          <span className={styles.makingCards}>Making your cards</span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.thinkingPill} aria-label="Thinking" role="status">
+      <span className={styles.srOnly}>Thinking</span>
+    </div>
+  );
+}
+
+interface ComposerProps {
+  inputValue: string;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
+  onAttach: (files: File[]) => void;
+  attachedFiles: AttachmentChip[];
+  onRemoveFile: (id: string) => void;
+  onRetryFile?: (id: string) => void;
+  disabled: boolean;
+  isDragging?: boolean;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDragLeave?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
+  textareaRef?: React.RefObject<HTMLTextAreaElement | null>;
+}
+
+function ComposerPill({
+  inputValue,
+  onChange,
+  onSubmit,
+  onAttach,
+  attachedFiles,
+  onRemoveFile,
+  onRetryFile,
+  disabled,
+  isDragging = false,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  textareaRef: externalTextareaRef,
+}: ComposerProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const internalRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = externalTextareaRef ?? internalRef;
+
+  const hasContent =
+    inputValue.trim().length > 0 ||
+    attachedFiles.filter((c) => c.state === 'idle').length > 0;
+  const canSend = hasContent && !disabled;
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === 'Escape') {
+      e.currentTarget.blur();
+      return;
+    }
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (canSend) {
+        onSubmit();
+      }
+    }
+  }
+
+  return (
+    <div
+      role="region"
+      aria-label="Chat composer with file drop zone"
+      className={`${styles.composerPill} ${isDragging ? styles.composerPillDragging : ''}`}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
+      {isDragging && (
+        <div className={styles.dropOverlay}>
+          <span className={styles.dropOverlayTitle}>Drop to attach</span>
+          <span className={styles.dropOverlaySub}>
+            PDF or image, up to 10 MB each
+          </span>
+        </div>
+      )}
+      {attachedFiles.length > 0 && (
+        <div className={styles.chipStrip}>
+          {attachedFiles.map((chip) => (
+            <div
+              key={chip.id}
+              className={`${styles.chip} ${chip.state === 'failed' ? styles.chipError : ''}`}
+            >
+              <span className={styles.chipIcon}>
+                {chipIcon(chip.file.type)}
+              </span>
+              <span className={styles.chipName} title={chip.file.name}>
+                {truncateName(chip.file.name, 32)}
+              </span>
+              <span className={styles.chipSeparator}> · </span>
+              {chip.state === 'uploading' && (
+                <>
+                  <span
+                    className={`${styles.chipSize} ${styles.chipSizeError}`}
+                  >
+                    <span className={styles.spinnerSmall} />
+                  </span>
+                  <span className={styles.chipSize}>Uploading</span>
+                </>
+              )}
+              {chip.state === 'failed' && (
+                <>
+                  <span
+                    className={`${styles.chipSize} ${styles.chipSizeError}`}
+                  >
+                    Upload failed
+                  </span>
+                  {onRetryFile != null && (
+                    <button
+                      type="button"
+                      className={styles.chipRetry}
+                      onClick={() => onRetryFile(chip.id)}
+                    >
+                      Retry
+                    </button>
+                  )}
+                </>
+              )}
+              {chip.state === 'idle' && (
+                <span className={styles.chipSize}>
+                  {formatFileSize(chip.file.size)}
+                </span>
+              )}
+              <button
+                type="button"
+                className={styles.chipRemove}
+                aria-label={`Remove ${chip.file.name}`}
+                onClick={() => onRemoveFile(chip.id)}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className={styles.composerRow}>
+        <button
+          type="button"
+          className={styles.attachBtn}
+          aria-label="Attach files"
+          disabled={disabled || attachedFiles.length >= MAX_FILE_COUNT}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
+        <textarea
+          ref={textareaRef}
+          className={styles.textarea}
+          value={inputValue}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="What are you studying?"
+          disabled={disabled}
+          rows={1}
+          aria-label="Message input"
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="application/pdf,image/png,image/jpeg,image/gif,image/webp"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            if (e.target.files != null && e.target.files.length > 0) {
+              onAttach(Array.from(e.target.files));
+            }
+            e.target.value = '';
+          }}
+          aria-hidden="true"
+          tabIndex={-1}
+        />
+        <button
+          type="button"
+          className={`${styles.sendBtn} ${canSend ? styles.sendBtnActive : ''}`}
+          onClick={onSubmit}
+          disabled={!canSend}
+          aria-label="Send message"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <line x1="12" y1="19" x2="12" y2="5" />
+            <polyline points="5 12 12 5 19 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function ChatPanel({
   initialPrompt,
   cameFromUpload,
@@ -172,6 +478,7 @@ export default function ChatPanel({
   const [messagesUsedThisMonth, setMessagesUsedThisMonth] = useState(0);
   const [chips, setChips] = useState<AttachmentChip[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [userScrolledAway, setUserScrolledAway] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -199,8 +506,24 @@ export default function ChatPanel({
       bottomRef.current?.scrollIntoView({
         behavior: streamingText.length > 0 ? 'auto' : 'smooth',
       });
+      setUserScrolledAway(false);
     }
   }, [messages, isLoading, streamingText]);
+
+  useEffect(() => {
+    const el = messageListRef.current;
+    if (el == null) return;
+
+    function handleScroll() {
+      if (el == null) return;
+      const distanceFromBottom =
+        el.scrollHeight - el.scrollTop - el.clientHeight;
+      setUserScrolledAway(distanceFromBottom > 80);
+    }
+
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (activeConversationId == null) return;
@@ -299,6 +622,7 @@ export default function ChatPanel({
     setNetworkError(null);
     setIsLoading(true);
     setStreamingText('');
+    setUserScrolledAway(false);
 
     const history = nextMessages
       .slice(-10)
@@ -455,19 +779,8 @@ export default function ChatPanel({
         addFiles(files);
       }
     },
-    [chips]
-  ); // eslint-disable-line react-hooks/exhaustive-deps
-
-  function handleChipClick(prefill: string) {
-    setInputValue(prefill);
-    setTimeout(() => {
-      if (composerTextareaRef.current != null) {
-        composerTextareaRef.current.focus();
-        const len = composerTextareaRef.current.value.length;
-        composerTextareaRef.current.setSelectionRange(len, len);
-      }
-    }, 0);
-  }
+    [chips] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   const isCardStreaming =
     /(?:^|\n)```json/.test(streamingText) ||
@@ -475,6 +788,31 @@ export default function ChatPanel({
 
   const hasMessages = messages.length > 0;
   const showEmptyState = !hasMessages && !isLoading;
+
+  const composerProps: ComposerProps = {
+    inputValue,
+    onChange: setInputValue,
+    onSubmit: () => {
+      if (canSend) sendMessage(inputValue);
+    },
+    onAttach: addFiles,
+    attachedFiles: chips,
+    onRemoveFile: removeChip,
+    onRetryFile: retryChip,
+    disabled: isLoading || limitReached,
+    isDragging,
+    onDragOver: handleDragOver,
+    onDragLeave: handleDragLeave,
+    onDrop: handleDrop,
+    textareaRef: composerTextareaRef,
+  };
+
+  function scrollToBottom() {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setUserScrolledAway(false);
+  }
+
+  const showScrollPill = userScrolledAway && isLoading;
 
   return (
     <>
@@ -490,101 +828,123 @@ export default function ChatPanel({
       <div className={styles.container} data-hj-suppress>
         {showEmptyState ? (
           <div className={styles.emptyState}>
-            <h1 className={styles.emptyHeading}>What are you studying?</h1>
-            <p className={styles.emptySubhead}>
+            <h1 className={styles.emptyHeading}>
               {cameFromUpload
-                ? "Tell me what's in your file — I'll help you get cards out of it."
-                : 'Ask a question, paste your notes, or attach a PDF — get flashcards back.'}
-            </p>
-            {!cameFromUpload && (
-              <div className={styles.starterChips}>
-                {STARTER_CHIPS.map((chip) => (
-                  <button
-                    key={chip.label}
-                    type="button"
-                    className={styles.starterChip}
-                    onClick={() => handleChipClick(chip.prefill)}
-                  >
-                    {chip.label}
-                  </button>
-                ))}
-              </div>
-            )}
+                ? 'What would you like to do with this file?'
+                : 'What are you studying?'}
+            </h1>
+            <div className={styles.emptyComposer}>
+              <ComposerPill {...composerProps} />
+              {networkError != null && (
+                <p className={styles.networkError}>{networkError}</p>
+              )}
+              {!isPatreon && !limitReached && messagesUsedThisMonth > 0 && (
+                <p className={styles.usageLine}>
+                  {remainingMessages === 1
+                    ? '1 message left this month — your next send uses it'
+                    : `${remainingMessages} of ${FREE_MONTHLY_LIMIT} messages left this month`}
+                </p>
+              )}
+            </div>
           </div>
         ) : (
-          <div className={styles.messageList} ref={messageListRef}>
-            <div className={styles.messageListInner} aria-live="polite">
-              {messages.map((m, i) => (
-                <MessageBubble
-                  key={i}
-                  message={m}
-                  expanded={expandedUserMessages.has(i)}
-                  onToggleExpand={() => {
-                    setExpandedUserMessages((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(i)) {
-                        next.delete(i);
-                      } else {
-                        next.add(i);
-                      }
-                      return next;
-                    });
-                  }}
-                  onSave={handleSaveAsDeck}
-                />
-              ))}
-              {isLoading && (
-                <StreamingBubble
-                  isLoading={isLoading}
-                  streamingText={streamingText}
-                  isCardStreaming={isCardStreaming}
-                />
-              )}
-              <div ref={bottomRef} />
+          <>
+            <div className={styles.messageList} ref={messageListRef}>
+              <div
+                className={styles.messageListInner}
+                aria-live="polite"
+              >
+                {messages.map((m, i) => {
+                  if (m.role === 'user') {
+                    return (
+                      <UserMessage
+                        key={i}
+                        message={m}
+                        expanded={expandedUserMessages.has(i)}
+                        onToggleExpand={() => {
+                          setExpandedUserMessages((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(i)) {
+                              next.delete(i);
+                            } else {
+                              next.add(i);
+                            }
+                            return next;
+                          });
+                        }}
+                      />
+                    );
+                  }
+                  return (
+                    <AssistantMessage
+                      key={i}
+                      message={m}
+                      onSave={handleSaveAsDeck}
+                    />
+                  );
+                })}
+                {isLoading && (
+                  <StreamingMessage
+                    streamingText={streamingText}
+                    isCardStreaming={isCardStreaming}
+                  />
+                )}
+                <div ref={bottomRef} />
+              </div>
             </div>
-          </div>
-        )}
 
-        <div className={styles.inputArea}>
-          {limitReached && resetDate != null && (
-            <div className={styles.limitPanel}>
-              <span>
-                You've used all {FREE_MONTHLY_LIMIT} messages this month. Resets{' '}
-                {formatResetDate(resetDate)}.
-              </span>
-              <a href="/pricing" className={styles.limitPanelLink}>
-                See plans
-              </a>
+            {showScrollPill && (
+              <div className={styles.scrollPillWrapper}>
+                <button
+                  type="button"
+                  className={styles.scrollPill}
+                  aria-label="Scroll to bottom"
+                  onClick={scrollToBottom}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <polyline points="19 12 12 19 5 12" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
+            <div className={styles.inputArea}>
+              {limitReached && resetDate != null && (
+                <div className={styles.limitPanel}>
+                  <span>
+                    You've used all {FREE_MONTHLY_LIMIT} messages this month.
+                    Resets {formatResetDate(resetDate)}.
+                  </span>
+                  <a href="/pricing" className={styles.limitPanelLink}>
+                    See plans
+                  </a>
+                </div>
+              )}
+              <ComposerPill {...composerProps} />
+              {!isPatreon && !limitReached && messagesUsedThisMonth > 0 && (
+                <p className={styles.usageLine}>
+                  {remainingMessages === 1
+                    ? '1 message left this month — your next send uses it'
+                    : `${remainingMessages} of ${FREE_MONTHLY_LIMIT} messages left this month`}
+                </p>
+              )}
+              {networkError != null && (
+                <p className={styles.networkError}>{networkError}</p>
+              )}
             </div>
-          )}
-          <ComposerArea
-            inputValue={inputValue}
-            onChange={setInputValue}
-            onSubmit={() => {
-              if (canSend) sendMessage(inputValue);
-            }}
-            onAttach={addFiles}
-            attachedFiles={chips}
-            onRemoveFile={removeChip}
-            onRetryFile={retryChip}
-            disabled={isLoading || limitReached}
-            isDragging={isDragging}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            textareaRef={composerTextareaRef}
-          />
-          {!isPatreon && !limitReached && messagesUsedThisMonth > 0 && (
-            <p className={styles.usageLine}>
-              {remainingMessages === 1
-                ? '1 message left this month — your next send uses it'
-                : `${remainingMessages} of ${FREE_MONTHLY_LIMIT} messages left this month`}
-            </p>
-          )}
-          {networkError != null && (
-            <p className={styles.networkError}>{networkError}</p>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </>
   );

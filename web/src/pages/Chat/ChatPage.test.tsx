@@ -392,24 +392,19 @@ describe('ChatPage — query-param handling', () => {
     });
   });
 
-  it('hides starter chips when from=upload', () => {
-    renderChatPage('/chat?from=upload&filename=Notes.pdf');
+  it('does not render starter chips', () => {
+    renderChatPage('/chat');
     expect(
       screen.queryByText('Make cards from a topic')
     ).not.toBeInTheDocument();
   });
 
-  it('shows starter chips when no from param', () => {
-    renderChatPage('/chat');
-    expect(screen.getByText('Make cards from a topic')).toBeInTheDocument();
-  });
-
-  it('renders the upload empty-state subhead when from=upload', () => {
+  it('renders the upload empty-state heading when from=upload', () => {
     renderChatPage('/chat?from=upload');
     expect(
-      screen.getByText(
-        "Tell me what's in your file — I'll help you get cards out of it."
-      )
+      screen.getByRole('heading', {
+        name: 'What would you like to do with this file?',
+      })
     ).toBeInTheDocument();
   });
 });
