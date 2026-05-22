@@ -68,6 +68,22 @@ The entire tree becomes a single card. The back of the card displays an interact
 - **3 saved maps.** Deleting a map frees a slot immediately; there is no monthly window.
 - **50 nodes per map.** The editor shows a toast when you reach the cap. Paid accounts have no node limit.
 
+## Images in nodes
+
+You can add an image to any node. When exported, the image is embedded in the `.apkg` so Anki shows it on the card — no internet connection required during review.
+
+**Paste an image (Cmd/Ctrl+V):** click anywhere on the canvas (not inside a text input), then paste. A new node appears at the center of the visible canvas with the image as its content.
+
+**Drop an image file:** drag a file from your file manager and drop it anywhere on the canvas. The new node appears where you dropped it.
+
+**Accepted formats:** PNG, JPEG, GIF, WebP. SVG is not accepted.
+
+**Size limit:** 5 MB per image. Larger files are rejected.
+
+**One image per node.** If you paste or drop a second image onto an existing node, the new image replaces the old one.
+
+**Labels still work.** A node can have both an image and a text label. The label appears below the image in the editor and on the exported card.
+
 ## What this is not
 
 - The editor is desktop-only. On a phone or tablet, a banner explains this and no canvas loads.
