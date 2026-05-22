@@ -141,6 +141,7 @@ export function MindmapEditor() {
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -320,6 +321,37 @@ export function MindmapEditor() {
     persistData(laidOut, updatedEdges);
   }
 
+  function renameNode(nodeId: string) {
+    const node = nodes.find((n) => n.id === nodeId);
+    if (node == null) return;
+    const current = String(node.data.label ?? '');
+    const next = window.prompt('Rename node', current);
+    if (next == null) return;
+    const trimmed = next.trim();
+    if (trimmed.length === 0 || trimmed === current) return;
+    const updatedNodes = nodes.map((n) =>
+      n.id === nodeId ? { ...n, data: { ...n.data, label: trimmed } } : n
+    );
+    setNodes(updatedNodes);
+    persistData(updatedNodes, edges);
+  }
+
+  useEffect(() => {
+    if (contextMenu == null) return;
+    function close() {
+      setContextMenu(null);
+    }
+    function handleEsc(e: KeyboardEvent) {
+      if (e.key === 'Escape') close();
+    }
+    document.addEventListener('click', close);
+    document.addEventListener('keydown', handleEsc);
+    return () => {
+      document.removeEventListener('click', close);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [contextMenu]);
+
   useEffect(() => {
     function isEditableTarget(target: EventTarget | null): boolean {
       if (!(target instanceof HTMLElement)) return false;
@@ -403,6 +435,12 @@ export function MindmapEditor() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={(_e, node) => setSelectedNodeId(node.id)}
+          onNodeDoubleClick={(_e, node) => renameNode(node.id)}
+          onNodeContextMenu={(e, node) => {
+            e.preventDefault();
+            setSelectedNodeId(node.id);
+            setContextMenu({ x: e.clientX, y: e.clientY, nodeId: node.id });
+          }}
           proOptions={{ hideAttribution: true }}
           fitView
         >
@@ -443,7 +481,8 @@ export function MindmapEditor() {
           <p style={{ margin: '0 0 0.25rem' }}>Tab — add child</p>
           <p style={{ margin: '0 0 0.25rem' }}>Enter — add sibling</p>
           <p style={{ margin: '0 0 0.25rem' }}>Backspace — delete</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Double-click — edit label</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Double-click — rename</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Right-click — menu</p>
         </div>
         <div style={{ marginTop: 'auto' }}>
           <button
@@ -486,6 +525,100 @@ export function MindmapEditor() {
           {toast}
         </div>
       )}
+
+      {contextMenu != null && (
+        <div
+          role="menu"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'fixed',
+            top: contextMenu.y,
+            left: contextMenu.x,
+            background: 'var(--color-bg-primary)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-md)',
+            padding: '0.25rem',
+            minWidth: '180px',
+            zIndex: 3000,
+          }}
+        >
+          <ContextMenuItem
+            label="Add child"
+            shortcut="Tab"
+            onSelect={() => {
+              addChildNode(contextMenu.nodeId);
+              setContextMenu(null);
+            }}
+          />
+          <ContextMenuItem
+            label="Add sibling"
+            shortcut="Enter"
+            onSelect={() => {
+              addSiblingNode(contextMenu.nodeId);
+              setContextMenu(null);
+            }}
+          />
+          <ContextMenuItem
+            label="Rename"
+            shortcut="Double-click"
+            onSelect={() => {
+              const nodeId = contextMenu.nodeId;
+              setContextMenu(null);
+              renameNode(nodeId);
+            }}
+          />
+          <ContextMenuItem
+            label="Delete"
+            shortcut="Backspace"
+            onSelect={() => {
+              deleteNode(contextMenu.nodeId);
+              setContextMenu(null);
+            }}
+          />
+        </div>
+      )}
     </div>
+  );
+}
+
+interface ContextMenuItemProps {
+  label: string;
+  shortcut: string;
+  onSelect: () => void;
+}
+
+function ContextMenuItem({ label, shortcut, onSelect }: Readonly<ContextMenuItemProps>) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onSelect}
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        width: '100%',
+        padding: '0.5rem 0.75rem',
+        background: 'transparent',
+        border: 'none',
+        borderRadius: 'var(--radius-sm)',
+        color: 'var(--color-text-primary)',
+        fontSize: 'var(--text-sm)',
+        textAlign: 'left',
+        cursor: 'pointer',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.background = 'var(--color-bg-secondary)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = 'transparent';
+      }}
+    >
+      <span>{label}</span>
+      <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', marginLeft: '1rem' }}>
+        {shortcut}
+      </span>
+    </button>
   );
 }
