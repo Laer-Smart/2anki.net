@@ -97,6 +97,7 @@ describe('mindmapToNotes', () => {
 
     expect(result[0].back).toContain('<img src="abc.png"');
     expect(result[0].back).toContain('Child with image');
+    expect(result[0].media).toEqual(['abc.png']);
   });
 
   it('node with image and no filename map falls back to label only', () => {

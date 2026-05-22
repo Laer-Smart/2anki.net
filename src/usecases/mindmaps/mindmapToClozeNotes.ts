@@ -74,6 +74,11 @@ export function mindmapToClozeNotes(
     });
     const note = new Note(parts.join(' → '), '');
     note.cloze = true;
+    const media = path
+      .map((id) => imageUrlMap.get(id))
+      .map((url) => (url == null ? null : filenameMap[url.split('/').pop() ?? '']))
+      .filter((m): m is string => m != null);
+    if (media.length > 0) note.media = media;
     return note;
   });
 }
