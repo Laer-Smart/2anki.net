@@ -86,6 +86,7 @@ const ChatPage = lazy(() => import('./pages/Chat/ChatPage'));
 const NotionLandingPage = lazy(() => import('./pages/NotionLandingPage/NotionLandingPage'));
 const LimitPage = lazy(() => import('./pages/LimitPage/LimitPage'));
 const SharedDeckPage = lazy(() => import('./pages/SharedDeckPage'));
+const MindmapsPage = lazy(() => import('./pages/MindmapsPage'));
 
 const queryClient = new QueryClient();
 
@@ -158,6 +159,8 @@ function AppContent({
           <Route path="/print" element={<PrintPage />} />
           <Route path="/image-occlusion" element={<ImageOcclusionPage />} />
           <Route path="/photo-to-deck" element={requireAuth(<PhotoToFlashcardsPage />)} />
+          <Route path="/mindmaps" element={requireAuth(<MindmapsPage />)} />
+          <Route path="/mindmaps/:id" element={requireAuth(<MindmapsPage />)} />
           <Route path="/chat" element={requireAuth(<ChatPage />)} />
           <Route
             path="/register"
