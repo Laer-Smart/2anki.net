@@ -107,6 +107,31 @@ export default class ApkgPreviewService {
     };
   }
 
+  private isImageOcclusionTemplate(qfmt: string): boolean {
+    return qfmt.includes('image-occlusion-canvas');
+  }
+
+  private buildIoFallback(
+    card: { id: number; ord: number },
+    noteType: { name: string; css: string; templates: { name: string }[] },
+    deck: { id: number; name: string } | undefined
+  ): RenderedCard {
+    const fallback =
+      '<div class="apkg-preview-fallback">Image Occlusion cards open with masks in Anki. Download the deck to study them.</div>';
+    const deckPath = deck?.name ? deck.name.split('::') : [];
+    return {
+      id: card.id,
+      ord: card.ord,
+      templateName: noteType.templates[0]?.name ?? '',
+      deckName: deck?.name ?? '',
+      deckPath,
+      noteTypeName: noteType.name,
+      css: sanitizeCss(noteType.css),
+      front: fallback,
+      back: fallback,
+    };
+  }
+
   private renderCard(
     parsed: ParsedApkg,
     cardId: number,
@@ -138,6 +163,10 @@ export default class ApkgPreviewService {
       console.warn(`[apkg-preview] card ${cardId}: template ord=${templateOrd} not found in noteType "${noteType.name}" (has ${noteType.templates.length} templates) — rendering against ord=0`);
     }
     const deck = parsed.collection.decks.get(card.did);
+
+    if (this.isImageOcclusionTemplate(template.qfmt)) {
+      return this.buildIoFallback(card, noteType, deck);
+    }
 
     const activeClozeNumber = noteType.type === 1 ? card.ord + 1 : null;
     const frontFields =

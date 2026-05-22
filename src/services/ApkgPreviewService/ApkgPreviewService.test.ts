@@ -1,6 +1,45 @@
 import ApkgPreviewService from './ApkgPreviewService';
 import { NormalizedCollection } from './types';
 
+const IO_TEMPLATE_QFMT =
+  '<div id="image-occlusion-container">{{Image}}<canvas id="image-occlusion-canvas"></canvas></div><script>anki.imageOcclusion.setup();</script>';
+
+function makeIoCollection(): NormalizedCollection {
+  const noteType = {
+    id: 1,
+    name: 'Image Occlusion',
+    type: 0 as const,
+    css: '.card { font-family: arial; }',
+    fields: [
+      { name: 'Occlusion', ord: 0 },
+      { name: 'Image', ord: 1 },
+      { name: 'Header', ord: 2 },
+    ],
+    templates: [
+      {
+        name: 'Image Occlusion',
+        ord: 0,
+        qfmt: IO_TEMPLATE_QFMT,
+        afmt: IO_TEMPLATE_QFMT,
+      },
+    ],
+  };
+
+  const note = {
+    id: 10,
+    mid: 1,
+    tags: '',
+    fields: ['[[oc1::shape]]', '<img src="study.png">', 'Chapter 1'],
+  };
+
+  return {
+    noteTypes: new Map([[1, noteType]]),
+    notes: new Map([[10, note]]),
+    decks: new Map([[2, { id: 2, name: 'Biology' }]]),
+    cards: [{ id: 100, nid: 10, did: 2, ord: 0 }],
+  };
+}
+
 function makeParsed(collection: NormalizedCollection) {
   return {
     collection,
@@ -154,6 +193,41 @@ describe('ApkgPreviewService.getCardsPage', () => {
         service.getCardsPage(parsed, 0, 10, 'http://example.com')
       ).not.toThrow();
       warnSpy.mockRestore();
+    });
+  });
+
+  describe('Image Occlusion fallback', () => {
+    it('renders a fallback block instead of raw canvas markup', () => {
+      const parsed = makeParsed(makeIoCollection());
+      const result = service.getCardsPage(parsed, 0, 10, 'http://example.com');
+
+      expect(result.cards).toHaveLength(1);
+      expect(result.cards[0].front).toContain('Image Occlusion cards open with masks in Anki');
+    });
+
+    it('does not include <canvas> in the rendered output', () => {
+      const parsed = makeParsed(makeIoCollection());
+      const result = service.getCardsPage(parsed, 0, 10, 'http://example.com');
+
+      expect(result.cards[0].front).not.toContain('<canvas');
+      expect(result.cards[0].back).not.toContain('<canvas');
+    });
+
+    it('does not include <script> in the rendered output', () => {
+      const parsed = makeParsed(makeIoCollection());
+      const result = service.getCardsPage(parsed, 0, 10, 'http://example.com');
+
+      expect(result.cards[0].front).not.toContain('<script');
+      expect(result.cards[0].back).not.toContain('<script');
+    });
+
+    it('still includes the IO card in the deck list — does not drop it', () => {
+      const parsed = makeParsed(makeIoCollection());
+      const result = service.getCardsPage(parsed, 0, 10, 'http://example.com');
+
+      expect(result.total).toBe(1);
+      expect(result.cards).toHaveLength(1);
+      expect(result.cards[0].noteTypeName).toBe('Image Occlusion');
     });
   });
 });
