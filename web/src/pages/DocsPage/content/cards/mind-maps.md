@@ -3,7 +3,7 @@ title: Mind maps
 description: Build a tree in your browser and download it as an Anki deck.
 ---
 
-The mind map editor at [2anki.net/mindmaps](https://2anki.net/mindmaps) lets you sketch a hierarchy in your browser — topics, sub-topics, nested concepts — and export it as a `.apkg` deck. The export modal lets you choose between two card types before downloading.
+The mind map editor at [2anki.net/mindmaps](https://2anki.net/mindmaps) lets you sketch a hierarchy in your browser — topics, sub-topics, nested concepts — and export it as a `.apkg` deck. The export modal lets you choose a card type before downloading.
 
 **Plan:** Free accounts can have 3 saved maps and 50 nodes per map. Auto-Sync ($30/mo) and Patreon lifetime give unlimited maps and nodes.
 
@@ -27,7 +27,7 @@ The mind map editor at [2anki.net/mindmaps](https://2anki.net/mindmaps) lets you
 
 ## How cards are generated
 
-The export modal offers two card types. **Cloze** is the default.
+The export modal offers three card types. **Cloze** is the default.
 
 ### Cloze (default)
 
@@ -58,6 +58,10 @@ A simple star map — one root with three children — produces three cards:
 A deeper tree produces one card per connection. The card count shown equals the number of edges.
 
 Nodes with no edges (isolated nodes) produce no cards in either mode.
+
+### Whole map
+
+The entire tree becomes a single card. The back of the card displays an interactive, collapsible mind map rendered directly in Anki — no internet connection required. Pan and zoom to explore the tree while studying.
 
 ## Free-tier limits
 

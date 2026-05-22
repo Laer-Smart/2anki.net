@@ -194,6 +194,19 @@ describe('MindmapRouter', () => {
       expect(res.headers.get('content-type')).toContain('application/octet-stream');
     });
 
+    it('accepts card_type markmap and returns a deck', async () => {
+      mockGetById.mockResolvedValue(baseMap);
+
+      const res = await fetch(`${url}/api/mindmaps/export-id/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deck_name: 'Test deck', card_type: 'markmap' }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toContain('application/octet-stream');
+    });
+
     it('treats unknown card_type as cloze', async () => {
       mockGetById.mockResolvedValue(baseMap);
 

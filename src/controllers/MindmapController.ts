@@ -39,6 +39,12 @@ export class MindmapController {
     };
   }
 
+  private resolveCardType(raw: unknown): MindmapCardType {
+    if (raw === 'basic') return 'basic';
+    if (raw === 'markmap') return 'markmap';
+    return 'cloze';
+  }
+
   async list(_req: Request, res: Response) {
     const { userId, user, subscriptions, autoSyncProductId } =
       this.resolveUserContext(res);
@@ -135,8 +141,7 @@ export class MindmapController {
       req.body.deck_name.trim().length > 0
         ? req.body.deck_name.trim()
         : undefined;
-    const cardType: MindmapCardType =
-      req.body?.card_type === 'basic' ? 'basic' : 'cloze';
+    const cardType = this.resolveCardType(req.body?.card_type);
 
     try {
       const buffer = await this.exportUseCase.execute({ id, userId, deckName, cardType });
