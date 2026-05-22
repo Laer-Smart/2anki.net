@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { MindmapLimitModal } from './MindmapLimitModal';
 import { useMindmapList, useCreateMindmap, useDeleteMindmap } from './useMindmap';
 import styles from '../../styles/shared.module.css';
@@ -118,8 +118,10 @@ export function MindmapList() {
       )}
 
       {(data?.maps ?? []).map((map) => (
-        <div
+        <button
           key={map.id}
+          type="button"
+          onClick={() => navigate(`/mindmaps/${map.id}`)}
           className={styles.card}
           style={{
             display: 'flex',
@@ -127,15 +129,18 @@ export function MindmapList() {
             justifyContent: 'space-between',
             marginBottom: '0.75rem',
             padding: '1rem 1.5rem',
+            width: '100%',
+            border: '1px solid var(--color-border)',
+            background: 'var(--color-bg-primary)',
+            cursor: 'pointer',
+            textAlign: 'left',
           }}
         >
-          <Link
-            to={`/mindmaps/${map.id}`}
+          <span
             title={map.title}
             style={{
               fontWeight: 'var(--font-medium)',
               color: 'var(--color-text-primary)',
-              textDecoration: 'none',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -143,16 +148,27 @@ export function MindmapList() {
             }}
           >
             {map.title.length === 0 ? 'Untitled' : map.title}
-          </Link>
-          <button
-            type="button"
-            onClick={() => deleteMindmap.mutate(map.id)}
+          </span>
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteMindmap.mutate(map.id);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                e.stopPropagation();
+                deleteMindmap.mutate(map.id);
+              }
+            }}
             className={styles.btnSecondary}
-            style={{ minHeight: 'auto', padding: '0.375rem 0.75rem', fontSize: 'var(--text-sm)' }}
+            style={{ minHeight: 'auto', padding: '0.375rem 0.75rem', fontSize: 'var(--text-sm)', cursor: 'pointer' }}
           >
             Delete
-          </button>
-        </div>
+          </span>
+        </button>
       ))}
     </div>
   );
