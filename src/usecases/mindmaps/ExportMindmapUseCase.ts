@@ -42,11 +42,13 @@ export class ExportMindmapUseCase {
     data: MindmapData,
     deckName: string,
     cardType: MindmapCardType,
-    filenameMap: Record<string, string>
+    filenameMap: Record<string, string>,
+    allMediaFilenames: string[]
   ): Note[] {
     if (cardType === 'markmap') {
       const html = mindmapToMarkmapHtml(data, deckName, filenameMap);
       const note = new Note(deckName, html);
+      if (allMediaFilenames.length > 0) note.media = allMediaFilenames;
       return [note];
     }
     if (cardType === 'basic') {
@@ -68,11 +70,19 @@ export class ExportMindmapUseCase {
     const collectedImages = collectMindmapImages(mapData, uploadBase);
 
     const filenameMap: Record<string, string> = {};
+    const allMediaFilenames: string[] = [];
     for (const img of collectedImages) {
       filenameMap[img.filename] = img.filename;
+      allMediaFilenames.push(img.filename);
     }
 
-    const notes = this.buildNotes(mapData, resolvedDeckName, cardType, filenameMap);
+    const notes = this.buildNotes(
+      mapData,
+      resolvedDeckName,
+      cardType,
+      filenameMap,
+      allMediaFilenames
+    );
 
     const workspaceDir = path.join(os.tmpdir(), `mindmap-export-${randomUUID()}`);
     fs.mkdirSync(workspaceDir, { recursive: true });

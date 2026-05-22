@@ -5,13 +5,16 @@ function buildNodeBack(
   label: string,
   imageUrl: string | undefined,
   filenameMap: Record<string, string>
-): string {
-  if (imageUrl == null) return label;
+): { html: string; media: string | null } {
+  if (imageUrl == null) return { html: label, media: null };
   const filename = imageUrl.split('/').pop() ?? '';
   const mapped = filenameMap[filename];
-  if (mapped == null) return label;
+  if (mapped == null) return { html: label, media: null };
   const imgTag = `<img src="${mapped}" alt="${label}" style="max-width:100%;height:auto;">`;
-  return label.length > 0 ? `${imgTag}<br>${label}` : imgTag;
+  return {
+    html: label.length > 0 ? `${imgTag}<br>${label}` : imgTag,
+    media: mapped,
+  };
 }
 
 export function mindmapToNotes(
@@ -29,7 +32,10 @@ export function mindmapToNotes(
     const front = buildNodeBack(parentNode.label, parentNode.image?.url, filenameMap);
     const back = buildNodeBack(childNode.label, childNode.image?.url, filenameMap);
 
-    notes.push(new Note(front, back));
+    const note = new Note(front.html, back.html);
+    const media = [front.media, back.media].filter((m): m is string => m != null);
+    if (media.length > 0) note.media = media;
+    notes.push(note);
   }
   return notes;
 }
