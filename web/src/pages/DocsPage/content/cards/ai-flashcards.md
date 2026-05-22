@@ -24,7 +24,7 @@ The general-purpose option. Sends your content to Anthropic's Claude and uses th
 3. (Optional) Open **User instructions** and write a sentence or two about the kind of cards you want.
 4. Upload your file. The job runs in the background — you can leave the page and come back to **My uploads** to download.
 
-The result is a normal `.apkg`. You can re-download it from **My uploads** for as long as your plan keeps it (see [Limits and quotas](/documentation/help/limits) for storage windows).
+The result is a normal `.apkg`. Cards arrive pre-tagged with 1–3 topic tags drawn from the content — you can filter or browse by tag in Anki's tag browser the moment the deck opens. You can re-download the deck from **My uploads** for as long as your plan keeps it (see [Limits and quotas](/documentation/help/limits) for storage windows).
 
 ### Writing good user instructions
 
