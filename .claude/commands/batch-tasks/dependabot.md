@@ -25,7 +25,7 @@ From the JSON:
   - `X != A` → `major`
   - If you cannot parse, treat as `unknown` and proceed as non-patch.
 - **Files** — list of changed paths.
-- **Labels** — surface any `snyk`-flagged or `security` labels.
+- **Labels** — surface any `security` label.
 
 ## Step 2 — belt-and-suspenders hard-block check
 
@@ -58,11 +58,11 @@ Invoke the `/check` skill — the existing parallel server tsc + web typecheck +
 
 Decision matrix:
 
-| bump | /check | snyk/security label | action |
+| bump | /check | security label | action |
 | --- | --- | --- | --- |
 | patch | green | none | `gh pr merge <n> --squash --delete-branch` → status `merged` |
 | patch | red | any | comment with the failure summary → status `needs-review` |
-| patch | green | snyk or security | comment "Snyk-flagged — needs eyes" → status `needs-review` |
+| patch | green | security | comment "Security-flagged — needs eyes" → status `needs-review` |
 | minor | any | any | comment with the bump level → status `needs-review` |
 | major | any | any | comment with the bump level → status `needs-review` |
 | unknown | any | any | comment "Could not parse bump level from title" → status `needs-review` |
@@ -73,7 +73,7 @@ Decision matrix:
 gh pr merge <n> --squash --delete-branch
 ```
 
-Only ever from the `patch + green + no snyk/security` row. Never from any other row.
+Only ever from the `patch + green + no security` row. Never from any other row.
 
 **Comment call (any `needs-review` exit):**
 
