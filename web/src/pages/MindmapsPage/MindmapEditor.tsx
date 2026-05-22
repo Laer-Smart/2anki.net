@@ -31,6 +31,9 @@ const NODE_STYLE = {
   boxShadow: 'var(--shadow-sm)',
   padding: '0.5rem 1rem',
   fontSize: 'var(--text-sm)',
+  minWidth: '160px',
+  minHeight: '40px',
+  boxSizing: 'border-box' as const,
 };
 
 function layoutGraph(nodes: Node[], edges: Edge[]): Node[] {
