@@ -1,6 +1,32 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AssistantMarkdown from './AssistantMarkdown';
+
+describe('AssistantMarkdown — code blocks', () => {
+  beforeEach(() => {
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    });
+  });
+
+  it('renders fenced code block with language label and copy button', () => {
+    render(
+      <AssistantMarkdown>{'```typescript\nconst x = 1;\n```'}</AssistantMarkdown>
+    );
+    expect(screen.getByText('typescript')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
+  });
+
+  it('copy button calls clipboard.writeText with the code', async () => {
+    render(
+      <AssistantMarkdown>{'```python\nprint("hello")\n```'}</AssistantMarkdown>
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Copy code' }));
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('print("hello")');
+  });
+});
 
 describe('AssistantMarkdown', () => {
   it('renders bold markdown as <strong>', () => {

@@ -69,7 +69,10 @@ export default function ComposerArea({
   const internalRef = useRef<HTMLTextAreaElement>(null);
   const textareaRef = externalTextareaRef ?? internalRef;
 
-  const canSend = inputValue.trim().length > 0 && !disabled;
+  const hasContent =
+    inputValue.trim().length > 0 ||
+    attachedFiles.filter((c) => c.state === 'idle').length > 0;
+  const canSend = hasContent && !disabled;
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === 'Escape') {
@@ -210,7 +213,7 @@ export default function ComposerArea({
         </button>
         <button
           type="button"
-          className={styles.sendBtn}
+          className={`${styles.sendBtn}${canSend ? ` ${styles.sendBtnActive}` : ''}`}
           onClick={onSubmit}
           disabled={!canSend}
           aria-label="Send message"

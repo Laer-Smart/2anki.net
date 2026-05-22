@@ -7,7 +7,8 @@
   border-radius: var(--radius-lg);
   padding: 0.625rem 0.875rem;
   background: var(--color-bg-primary);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+  margin-bottom: 1rem;
   transition:
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
@@ -217,19 +218,22 @@
   justify-content: center;
   width: 2.75rem;
   height: 2.75rem;
-  background: var(--color-primary);
-  color: var(--color-bg-primary);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-tertiary);
   border: none;
   border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.sendBtn:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-}
-
-.sendBtn:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.sendBtnActive {
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  cursor: pointer;
+}
+
+.sendBtnActive:hover {
+  opacity: 0.85;
 }

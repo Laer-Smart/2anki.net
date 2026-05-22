@@ -55,23 +55,6 @@
   border-radius: var(--radius-sm);
 }
 
-.prose pre {
-  margin: 0.375rem 0;
-  padding: 0.5rem 0.75rem;
-  background: var(--color-bg-tertiary);
-  border-radius: var(--radius-md);
-  overflow-x: auto;
-  overflow-y: hidden;
-  font-size: 0.8125rem;
-  line-height: var(--leading-normal);
-}
-
-.prose pre code {
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
-  font-size: inherit;
-}
 
 .prose hr {
   border: 0;

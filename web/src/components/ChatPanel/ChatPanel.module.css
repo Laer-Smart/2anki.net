@@ -11,6 +11,7 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
+  position: relative;
 }
 
 .messageList::-webkit-scrollbar {
@@ -36,8 +37,7 @@
 }
 
 .inputArea {
-  border-top: 1px solid var(--color-border-light);
-  padding: 1rem 1.5rem 1.5rem;
+  padding: 0 1.5rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -130,4 +130,31 @@
   background: var(--color-primary-light);
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+.scrollToBottomPill {
+  position: sticky;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+  z-index: 10;
+}
+
+.scrollToBottomPill:hover {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
 }

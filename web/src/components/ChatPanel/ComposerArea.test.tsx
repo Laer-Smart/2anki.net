@@ -83,3 +83,36 @@ describe('ComposerArea — composerCard styling', () => {
     expect(root.className).toMatch(/composerCard/i);
   });
 });
+
+describe('ComposerArea — send button conditional state', () => {
+  it('send button is disabled and has muted class when input is empty and no files attached', () => {
+    renderComposer({ inputValue: '' });
+    const btn = screen.getByRole('button', { name: 'Send message' });
+    expect(btn).toBeDisabled();
+    expect(btn.className).not.toMatch(/sendBtnActive/i);
+  });
+
+  it('send button is enabled and has active class when input has content', () => {
+    renderComposer({ inputValue: 'hello' });
+    const btn = screen.getByRole('button', { name: 'Send message' });
+    expect(btn).not.toBeDisabled();
+    expect(btn.className).toMatch(/sendBtnActive/i);
+  });
+
+  it('send button is enabled and has active class when idle files are attached', () => {
+    renderComposer({
+      inputValue: '',
+      attachedFiles: [
+        {
+          id: 'abc',
+          file: new File(['x'], 'doc.pdf', { type: 'application/pdf' }),
+          state: 'idle',
+          retryCount: 0,
+        },
+      ],
+    });
+    const btn = screen.getByRole('button', { name: 'Send message' });
+    expect(btn).not.toBeDisabled();
+    expect(btn.className).toMatch(/sendBtnActive/i);
+  });
+});

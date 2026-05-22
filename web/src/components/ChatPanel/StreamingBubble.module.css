@@ -40,7 +40,7 @@
   display: inline-flex;
   align-items: center;
   background: var(--color-primary-light);
-  color: var(--color-primary);
+  color: var(--color-text-secondary);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   border-radius: var(--radius-full);

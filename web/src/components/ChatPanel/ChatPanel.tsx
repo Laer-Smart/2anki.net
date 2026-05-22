@@ -173,10 +173,14 @@ export default function ChatPanel({
   const [chips, setChips] = useState<AttachmentChip[]>([]);
   const [isDragging, setIsDragging] = useState(false);
 
+  const [userScrolledAway, setUserScrolledAway] = useState(false);
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lastSavedDraftRef = useRef<string>('');
+
+  const hasMessages = messages.length > 0;
 
   useEffect(() => {
     get('/api/chat/usage', { redirect: false })
@@ -194,13 +198,32 @@ export default function ChatPanel({
   useEffect(() => {
     const el = messageListRef.current;
     if (el == null) return;
+    if (userScrolledAway) return;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
     if (distanceFromBottom < 120) {
       bottomRef.current?.scrollIntoView({
         behavior: streamingText.length > 0 ? 'auto' : 'smooth',
       });
     }
-  }, [messages, isLoading, streamingText]);
+  }, [messages, isLoading, streamingText, userScrolledAway]);
+
+  useEffect(() => {
+    const el = messageListRef.current;
+    if (el == null) return;
+    function handleScroll() {
+      const listEl = messageListRef.current;
+      if (listEl == null) return;
+      const distanceFromBottom =
+        listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight;
+      if (distanceFromBottom > 200) {
+        setUserScrolledAway(true);
+      } else {
+        setUserScrolledAway(false);
+      }
+    }
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [hasMessages]);
 
   useEffect(() => {
     if (activeConversationId == null) return;
@@ -473,7 +496,6 @@ export default function ChatPanel({
     /(?:^|\n)```json/.test(streamingText) ||
     /(?:^|\n)\s*\[\s*\{/.test(streamingText);
 
-  const hasMessages = messages.length > 0;
   const showEmptyState = !hasMessages && !isLoading;
 
   return (
@@ -542,6 +564,31 @@ export default function ChatPanel({
               )}
               <div ref={bottomRef} />
             </div>
+            {userScrolledAway && isLoading && (
+              <button
+                type="button"
+                className={styles.scrollToBottomPill}
+                aria-label="Scroll to bottom"
+                onClick={() => {
+                  setUserScrolledAway(false);
+                  bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 5v14M5 12l7 7 7-7" />
+                </svg>
+              </button>
+            )}
           </div>
         )}
 

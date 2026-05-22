@@ -1,7 +1,7 @@
 .cardPreview {
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-primary);
+  border-left: 3px solid var(--color-border);
   border-radius: var(--radius-lg);
   width: 100%;
   overflow: hidden;

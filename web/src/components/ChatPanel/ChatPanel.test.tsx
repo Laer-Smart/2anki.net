@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -309,6 +309,58 @@ describe('ChatPanel', () => {
 
     expect(document.activeElement).not.toBe(textarea);
     expect(textarea.value).toBe('Draft message');
+  });
+
+  it('scroll-to-bottom pill appears during streaming when user scrolled away', async () => {
+    let resolveStream!: () => void;
+    const neverEndingStream = new ReadableStream({
+      start(controller) {
+        resolveStream = () => controller.close();
+      },
+    });
+    mockPost.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      body: neverEndingStream,
+    });
+
+    renderChatPanel();
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Message input' }), {
+      target: { value: 'Tell me about spaced repetition' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: 'Thinking' })).toBeInTheDocument();
+    });
+
+    const messageList = document.querySelector('[class*="messageList"]') as HTMLElement;
+    if (messageList != null) {
+      Object.defineProperty(messageList, 'scrollHeight', {
+        get: () => 1000,
+        configurable: true,
+      });
+      Object.defineProperty(messageList, 'scrollTop', {
+        get: () => 0,
+        configurable: true,
+      });
+      Object.defineProperty(messageList, 'clientHeight', {
+        get: () => 400,
+        configurable: true,
+      });
+      act(() => {
+        messageList.dispatchEvent(new Event('scroll'));
+      });
+    }
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Scroll to bottom' })
+      ).toBeInTheDocument();
+    });
+
+    resolveStream();
   });
 
   it('Enter still sends the message after Esc handler is added', async () => {

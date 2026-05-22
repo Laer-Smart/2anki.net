@@ -1,5 +1,6 @@
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import CodeBlock from './CodeBlock';
 import styles from './AssistantMarkdown.module.css';
 
 const components: Components = {
@@ -19,6 +20,17 @@ const components: Components = {
         {children}
       </a>
     );
+  },
+  pre: ({ children }) => <>{children}</>,
+  code: ({ className, children }) => {
+    const match = /language-(\w+)/.exec(className ?? '');
+    const isBlock = className != null;
+    if (isBlock) {
+      const code = String(children).replace(/\n$/, '');
+      const lang = match == null ? '' : match[1];
+      return <CodeBlock language={lang} code={code} />;
+    }
+    return <code className={className}>{children}</code>;
   },
 };
 
