@@ -111,6 +111,9 @@ importers:
       http-proxy-middleware:
         specifier: ^4.0.0
         version: 4.0.0
+      image-size:
+        specifier: ^2.0.2
+        version: 2.0.2
       jsonrepair:
         specifier: ^3.14.0
         version: 3.14.0
@@ -4852,6 +4855,11 @@ packages:
   image-extensions@1.1.0:
     resolution: {integrity: sha512-P0t7ByhK8Jk9TU05ct/7+f7h8dNuXq5OY4m0IO/T+1aga/qHkpC0Wf472x3FLdq/zFDG17pgapCM3JDTxwZzow==}
     engines: {node: '>=0.10.0'}
+
+  image-size@2.0.2:
+    resolution: {integrity: sha512-IRqXKlaXwgSMAMtpNzZa1ZAe8m+Sa1770Dhk8VkSsP9LS+iHD62Zd8FQKs8fbPiagBE7BzoFX23cxFnwshpV6w==}
+    engines: {node: '>=16.x'}
+    hasBin: true
 
   immediate@3.0.6:
     resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
@@ -12752,6 +12760,8 @@ snapshots:
       pica: 7.1.1
 
   image-extensions@1.1.0: {}
+
+  image-size@2.0.2: {}
 
   immediate@3.0.6: {}
 
