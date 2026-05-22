@@ -291,8 +291,9 @@ export function MindmapEditor() {
 
     const updatedNodes = [...nodes, newNode];
     const updatedEdges =
-      parentId != null
-        ? [
+      parentId == null
+        ? [...edges]
+        : [
             ...edges,
             {
               id: `${parentId}-${newId}`,
@@ -300,8 +301,7 @@ export function MindmapEditor() {
               target: newId,
               style: { stroke: 'var(--color-border)' },
             },
-          ]
-        : [...edges];
+          ];
 
     const laidOut = layoutGraph(updatedNodes, updatedEdges);
     setNodes(laidOut);
