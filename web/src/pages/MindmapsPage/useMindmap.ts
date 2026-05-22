@@ -5,6 +5,8 @@ export interface MindmapNode {
   id: string;
   label: string;
   position?: { x: number; y: number };
+  width?: number;
+  height?: number;
   color?: string | null;
 }
 

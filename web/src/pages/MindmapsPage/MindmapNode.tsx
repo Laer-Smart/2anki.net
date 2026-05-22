@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Handle, NodeToolbar, Position, type NodeProps } from '@xyflow/react';
+import { Handle, NodeResizer, NodeToolbar, Position, type NodeProps } from '@xyflow/react';
+import Markdown from 'react-markdown';
 import PencilIcon from '../../components/icons/PencilIcon';
 import TrashIcon from '../../components/icons/TrashIcon';
 import SwatchIcon from '../../components/icons/SwatchIcon';
@@ -14,6 +15,7 @@ export interface MindmapNodeData {
   onCenter?: () => void;
   onSetColor?: (color: string | null) => void;
   onDelete?: () => void;
+  onResizeEnd?: (width: number, height: number) => void;
   [key: string]: unknown;
 }
 
@@ -60,7 +62,7 @@ function CenterIcon({ width = 16, height = 16 }: Readonly<{ width?: number; heig
 
 export function MindmapNode({ data, selected }: NodeProps) {
   const nodeData = data as MindmapNodeData;
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
   useEffect(() => {
@@ -74,12 +76,14 @@ export function MindmapNode({ data, selected }: NodeProps) {
     if (!selected) setColorPickerOpen(false);
   }, [selected]);
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     e.stopPropagation();
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
       const trimmed = inputRef.current?.value.trim() ?? '';
       nodeData.onCommit?.(trimmed.length > 0 ? trimmed : nodeData.label);
     } else if (e.key === 'Escape') {
+      e.preventDefault();
       nodeData.onCancel?.();
     }
   }
@@ -172,31 +176,53 @@ export function MindmapNode({ data, selected }: NodeProps) {
           )}
         </div>
       </NodeToolbar>
+      <NodeResizer
+        isVisible={selected === true && nodeData.editing !== true}
+        minWidth={120}
+        minHeight={36}
+        onResizeEnd={(_e, params) => nodeData.onResizeEnd?.(params.width, params.height)}
+        lineStyle={{ border: '1px dashed var(--color-primary)' }}
+        handleStyle={{ width: 8, height: 8, borderRadius: 2, background: 'var(--color-primary)' }}
+      />
       <Handle type="source" position={Position.Left} id="left" />
       <Handle type="source" position={Position.Top} id="top" />
       <Handle type="source" position={Position.Bottom} id="bottom" />
       {nodeData.editing ? (
-        <input
+        <textarea
           ref={inputRef}
-          type="text"
           defaultValue={nodeData.label}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
+          rows={Math.max(1, nodeData.label.split('\n').length)}
           style={{
             border: 'none',
             outline: 'none',
             background: 'transparent',
             fontSize: 'var(--text-sm)',
             width: '100%',
+            height: '100%',
             minWidth: '80px',
             color: 'var(--color-text-primary)',
             fontFamily: 'inherit',
+            resize: 'none',
+            padding: 0,
+            margin: 0,
+            overflow: 'auto',
           }}
         />
       ) : (
-        <span style={{ fontSize: 'var(--text-sm)', userSelect: 'none' }}>
-          {nodeData.label}
-        </span>
+        <div
+          style={{
+            fontSize: 'var(--text-sm)',
+            userSelect: 'none',
+            width: '100%',
+            height: '100%',
+            overflow: 'auto',
+            lineHeight: 1.4,
+          }}
+        >
+          <Markdown>{nodeData.label}</Markdown>
+        </div>
       )}
       <Handle type="source" position={Position.Right} id="right" />
     </>
