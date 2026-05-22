@@ -235,11 +235,13 @@ export function MindmapEditor() {
   useEffect(() => {
     if (map == null) return;
 
+    const someHasPosition = map.data.nodes.some((n) => n.position != null);
+
     const rfNodes: Node[] = map.data.nodes.map((n) => ({
       id: n.id,
       type: 'mindmap',
       data: { label: n.label },
-      position: { x: 0, y: 0 },
+      position: n.position ?? { x: 0, y: 0 },
       style: NODE_STYLE,
     }));
     const rfEdges: Edge[] = map.data.edges.map((e) => ({
@@ -249,11 +251,11 @@ export function MindmapEditor() {
       style: { stroke: 'var(--color-border)' },
     }));
 
-    const laidOut = layoutGraph(rfNodes, rfEdges);
-    setNodes(laidOut);
+    const initialNodes = someHasPosition ? rfNodes : layoutGraph(rfNodes, rfEdges);
+    setNodes(initialNodes);
     setEdges(rfEdges);
-    if (laidOut.length === 1) {
-      setSelectedNodeId(laidOut[0].id);
+    if (initialNodes.length === 1) {
+      setSelectedNodeId(initialNodes[0].id);
     }
   }, [map, setNodes, setEdges]);
 
@@ -262,7 +264,11 @@ export function MindmapEditor() {
       if (saveTimer.current != null) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
         const data: MindmapData = {
-          nodes: ns.map((n) => ({ id: n.id, label: String(n.data.label ?? '') })),
+          nodes: ns.map((n) => ({
+            id: n.id,
+            label: String(n.data.label ?? ''),
+            position: { x: n.position.x, y: n.position.y },
+          })),
           edges: es.map((e) => ({ source: e.source, target: e.target })),
         };
         updateMindmap.mutate({ data });
@@ -346,7 +352,7 @@ export function MindmapEditor() {
       target: newId,
       style: { stroke: 'var(--color-border)' },
     };
-    const updatedNodes = layoutGraph([...nodes, newNode], [...edges, newEdge]);
+    const updatedNodes = [...nodes, newNode];
     const updatedEdges = [...edges, newEdge];
     setNodes(updatedNodes);
     setEdges(updatedEdges);
@@ -388,11 +394,10 @@ export function MindmapEditor() {
             },
           ];
 
-    const laidOut = layoutGraph(updatedNodes, updatedEdges);
-    setNodes(laidOut);
+    setNodes(updatedNodes);
     setEdges(updatedEdges);
     setSelectedNodeId(newId);
-    persistData(laidOut, updatedEdges);
+    persistData(updatedNodes, updatedEdges);
   }
 
   function deleteNode(nodeId: string) {
@@ -407,11 +412,10 @@ export function MindmapEditor() {
     const updatedEdges = edges.filter(
       (e) => e.source !== nodeId && e.target !== nodeId
     );
-    const laidOut = layoutGraph(updatedNodes, updatedEdges);
-    setNodes(laidOut);
+    setNodes(updatedNodes);
     setEdges(updatedEdges);
     setSelectedNodeId(null);
-    persistData(laidOut, updatedEdges);
+    persistData(updatedNodes, updatedEdges);
   }
 
   function startRename(nodeId: string) {
@@ -420,6 +424,15 @@ export function MindmapEditor() {
         n.id === nodeId ? { ...n, data: { ...n.data, editing: true } } : n
       )
     );
+  }
+
+  function handleTidy() {
+    if (nodes.length === 0) return;
+    const laidOut = layoutGraph(nodes, edges);
+    setNodes(laidOut);
+    persistData(laidOut, edges);
+    rfInstance?.fitView({ duration: 300 });
+    showToast('Layout updated');
   }
 
   function createNodeAt(position: { x: number; y: number }, parentId?: string | null) {
@@ -482,8 +495,15 @@ export function MindmapEditor() {
     }
 
     function handleKeyDown(e: KeyboardEvent) {
-      if (selectedNodeId == null) return;
       if (isEditableTarget(e.target)) return;
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        handleTidy();
+        return;
+      }
+
+      if (selectedNodeId == null) return;
 
       if (e.key === 'Tab') {
         e.preventDefault();
@@ -590,6 +610,7 @@ export function MindmapEditor() {
           }}
           onNodeClick={(_e, node) => setSelectedNodeId(node.id)}
           onNodeDoubleClick={(_e, node) => startRename(node.id)}
+          onNodeDragStop={() => persistData(nodes, edges)}
           onNodeContextMenu={(e, node) => {
             e.preventDefault();
             setSelectedNodeId(node.id);
@@ -616,6 +637,28 @@ export function MindmapEditor() {
           <Controls />
           <Background />
         </ReactFlow>
+        <button
+          type="button"
+          onClick={handleTidy}
+          title="Tidy layout (Ctrl/Cmd+L)"
+          style={{
+            position: 'absolute',
+            right: '1rem',
+            bottom: '1rem',
+            zIndex: 4,
+            padding: '0.5rem 0.875rem',
+            background: 'var(--color-bg-primary)',
+            color: 'var(--color-text-primary)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: 'var(--shadow-sm)',
+            cursor: 'pointer',
+            fontSize: 'var(--text-sm)',
+            fontWeight: 'var(--font-medium)',
+          }}
+        >
+          Tidy layout
+        </button>
       </div>
       <div
         style={{
@@ -710,6 +753,7 @@ export function MindmapEditor() {
           <p style={{ margin: '0 0 0.25rem' }}>Double-click canvas — add node here</p>
           <p style={{ margin: '0 0 0.25rem' }}>Right-click — menu (node or canvas)</p>
           <p style={{ margin: '0 0 0.25rem' }}>Drag from a node — connect or branch</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Ctrl/Cmd+L — tidy layout</p>
         </div>
         <div style={{ marginTop: 'auto' }}>
           <button
