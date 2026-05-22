@@ -21,6 +21,7 @@ export interface PhotoToFlashcardsInput {
   isPaying: boolean;
   imageDimensions: { width: number; height: number };
   tokenCeilingOverride?: number;
+  includeSourceImage?: boolean;
 }
 
 export interface PhotoToFlashcardsResult {
@@ -294,7 +295,10 @@ export class PhotoToFlashcardsUseCase {
       (outputTokens / 1_000_000) * OUTPUT_COST_PER_MILLION;
 
     const deckName = input.deckName || (decks[0]?.deck ?? 'Photo deck');
-    const sourceFilename = `source-${randomUUID()}.${mediaTypeToExt(input.mediaType)}`;
+    const embedSourceImage = input.includeSourceImage ?? true;
+    const sourceFilename = embedSourceImage
+      ? `source-${randomUUID()}.${mediaTypeToExt(input.mediaType)}`
+      : null;
 
     const workspaceDir = path.join(os.tmpdir(), `vision-${randomUUID()}`);
     fs.mkdirSync(workspaceDir, { recursive: true });
@@ -303,10 +307,12 @@ export class PhotoToFlashcardsUseCase {
 
     let apkgPath: string;
     try {
-      fs.writeFileSync(
-        path.join(workspaceDir, sourceFilename),
-        Buffer.from(input.imageBase64, 'base64')
-      );
+      if (sourceFilename != null) {
+        fs.writeFileSync(
+          path.join(workspaceDir, sourceFilename),
+          Buffer.from(input.imageBase64, 'base64')
+        );
+      }
       fs.writeFileSync(
         path.join(workspaceDir, 'deck_info.json'),
         JSON.stringify([deckInfo]),

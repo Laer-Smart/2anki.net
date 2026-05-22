@@ -62,6 +62,7 @@ export function PhotoToFlashcardsPage() {
   const [cardCount, setCardCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [uploadSource, setUploadSource] = useState<UploadSource>('library');
+  const [includeSourceImage, setIncludeSourceImage] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -134,6 +135,7 @@ export function PhotoToFlashcardsPage() {
           deckName: name,
           width: dimensions.width,
           height: dimensions.height,
+          includeSourceImage,
         }),
       });
 
@@ -207,6 +209,15 @@ export function PhotoToFlashcardsPage() {
           placeholder={file?.name.replace(/\.[^.]+$/, '') || 'Photo deck'}
         />
       </div>
+
+      <label className={pageStyles.checkboxRow}>
+        <input
+          type="checkbox"
+          checked={includeSourceImage}
+          onChange={(e) => setIncludeSourceImage(e.target.checked)}
+        />
+        Show source image on the back of each card
+      </label>
 
       <div className={pageStyles.cameraButtonContainer}>
         <button
