@@ -697,6 +697,21 @@
   margin: 0.75rem auto 0;
 }
 
+.changeSourceLink {
+  align-self: flex-start;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.changeSourceLink:hover {
+  color: var(--color-text-primary);
+}
+
 .panelHidden {
   display: none !important;
 }

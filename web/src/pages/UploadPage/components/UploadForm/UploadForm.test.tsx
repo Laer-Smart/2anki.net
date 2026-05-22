@@ -327,6 +327,38 @@ describe('UploadForm analytics events', () => {
     process.env.REACT_APP_DROPBOX_APP_KEY = previousKey;
   });
 
+  it('shows a "Change source" button inside the Dropbox panel after selecting Dropbox', async () => {
+    const previousKey = process.env.REACT_APP_DROPBOX_APP_KEY;
+    process.env.REACT_APP_DROPBOX_APP_KEY = 'test-key';
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const dropboxChip = container.querySelector('button[aria-label="Dropbox"]') as HTMLButtonElement;
+    await act(async () => {
+      dropboxChip.click();
+    });
+    const changeBtn = container.querySelector('button[aria-label="Change upload source"]');
+    expect(changeBtn).not.toBeNull();
+    process.env.REACT_APP_DROPBOX_APP_KEY = previousKey;
+  });
+
+  it('clicking "Change source" in the Dropbox panel returns to the local panel', async () => {
+    const previousKey = process.env.REACT_APP_DROPBOX_APP_KEY;
+    process.env.REACT_APP_DROPBOX_APP_KEY = 'test-key';
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const dropboxChip = container.querySelector('button[aria-label="Dropbox"]') as HTMLButtonElement;
+    await act(async () => {
+      dropboxChip.click();
+    });
+    const changeBtn = container.querySelector('button[aria-label="Change upload source"]') as HTMLButtonElement;
+    await act(async () => {
+      changeBtn.click();
+    });
+    const localPanel = container.querySelector('#upload-panel-local')!;
+    const dropboxPanel = container.querySelector('#upload-panel-dropbox')!;
+    expect(localPanel.getAttribute('aria-hidden')).toBe('false');
+    expect(dropboxPanel.getAttribute('aria-hidden')).toBe('true');
+    process.env.REACT_APP_DROPBOX_APP_KEY = previousKey;
+  });
+
   it('does not fire conversion_success when the deck is empty', async () => {
     const gtag = (globalThis as AnalyticsGlobals).gtag!;
 
