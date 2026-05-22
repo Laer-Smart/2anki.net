@@ -10,6 +10,7 @@ import {
   type Connection,
   type ReactFlowInstance,
   Background,
+  ConnectionMode,
 } from '@xyflow/react';
 import dagre from 'dagre';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -208,7 +209,7 @@ export function MindmapEditor() {
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string | null; flowX?: number; flowY?: number; connectFrom?: string } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string | null; flowX?: number; flowY?: number } | null>(null);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -503,6 +504,18 @@ export function MindmapEditor() {
         return;
       }
 
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        setNodes((ns) => ns.map((n) => ({ ...n, selected: true })));
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        setNodes((ns) => ns.map((n) => ({ ...n, selected: false })));
+        setSelectedNodeId(null);
+        return;
+      }
+
       if (selectedNodeId == null) return;
 
       if (e.key === 'Tab') {
@@ -599,14 +612,7 @@ export function MindmapEditor() {
             if (fromNodeId == null) return;
             const mouse = 'changedTouches' in e ? e.changedTouches[0] : (e as MouseEvent);
             const flow = rfInstance.screenToFlowPosition({ x: mouse.clientX, y: mouse.clientY });
-            setContextMenu({
-              x: mouse.clientX,
-              y: mouse.clientY,
-              nodeId: null,
-              flowX: flow.x,
-              flowY: flow.y,
-              connectFrom: fromNodeId,
-            });
+            createNodeAt(flow, fromNodeId);
           }}
           onNodeClick={(_e, node) => setSelectedNodeId(node.id)}
           onNodeDoubleClick={(_e, node) => startRename(node.id)}
@@ -632,6 +638,9 @@ export function MindmapEditor() {
             });
           }}
           proOptions={{ hideAttribution: true }}
+          connectionMode={ConnectionMode.Loose}
+          snapToGrid
+          snapGrid={[20, 20]}
           fitView
         >
           <Controls />
@@ -752,7 +761,9 @@ export function MindmapEditor() {
           <p style={{ margin: '0 0 0.25rem' }}>Double-click / F2 — rename node</p>
           <p style={{ margin: '0 0 0.25rem' }}>Double-click canvas — add node here</p>
           <p style={{ margin: '0 0 0.25rem' }}>Right-click — menu (node or canvas)</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Drag from a node — connect or branch</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Drag from a node — new connected node</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Ctrl/Cmd+A — select all</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Esc — clear selection</p>
           <p style={{ margin: '0 0 0.25rem' }}>Ctrl/Cmd+L — tidy layout</p>
         </div>
         <div style={{ marginTop: 'auto' }}>
@@ -824,37 +835,13 @@ export function MindmapEditor() {
               onDelete={(id) => { deleteNode(id); setContextMenu(null); }}
             />
           )}
-          {contextMenu.nodeId == null && contextMenu.connectFrom != null && (
-            <>
-              <ContextMenuItem
-                label="Add connected node"
-                shortcut=""
-                onSelect={() => {
-                  if (contextMenu.flowX != null && contextMenu.flowY != null) {
-                    createNodeAt({ x: contextMenu.flowX, y: contextMenu.flowY }, contextMenu.connectFrom ?? null);
-                  }
-                  setContextMenu(null);
-                }}
-              />
-              <ContextMenuItem
-                label="Add disconnected node"
-                shortcut=""
-                onSelect={() => {
-                  if (contextMenu.flowX != null && contextMenu.flowY != null) {
-                    createNodeAt({ x: contextMenu.flowX, y: contextMenu.flowY }, null);
-                  }
-                  setContextMenu(null);
-                }}
-              />
-            </>
-          )}
-          {contextMenu.nodeId == null && contextMenu.connectFrom == null && (
+          {contextMenu.nodeId == null && (
             <ContextMenuItem
               label="Add node here"
               shortcut="Double-click"
               onSelect={() => {
                 if (contextMenu.flowX != null && contextMenu.flowY != null) {
-                  createNodeAt({ x: contextMenu.flowX, y: contextMenu.flowY }, selectedNodeId);
+                  createNodeAt({ x: contextMenu.flowX, y: contextMenu.flowY }, null);
                 }
                 setContextMenu(null);
               }}
