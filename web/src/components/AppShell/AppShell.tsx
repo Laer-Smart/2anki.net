@@ -1,9 +1,10 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageLayout } from '../Layout/PageLayout';
 import { SidebarLayout } from './SidebarLayout';
 import { SidebarFeatures, SidebarLocals } from './Sidebar';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
+import { removeAdSenseScript } from '../AdSense/AdSenseScript';
 
 const TOP_BAR_PATHS = new Set(['/login', '/register', '/forgot']);
 const TOP_BAR_PREFIXES = ['/users/r/'];
@@ -31,6 +32,14 @@ export function AppShell({
   children,
 }: Readonly<AppShellProps>) {
   const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (isLoggedIn == null) return;
+    const isPricingRoute = pathname === '/pricing';
+    if (isLoggedIn || isPricingRoute) {
+      removeAdSenseScript();
+    }
+  }, [isLoggedIn, pathname]);
 
   const onLogOut = (
     event: React.MouseEvent<HTMLAnchorElement, MouseEvent>

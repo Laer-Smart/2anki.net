@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#000000" />
   <meta http-equiv="Content-Security-Policy"
-    content="script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.hotjar.com https://script.hotjar.com https://www.dropbox.com https://apis.google.com https://accounts.google.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self';">
+    content="script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://static.hotjar.com https://script.hotjar.com https://www.dropbox.com https://apis.google.com https://accounts.google.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-src https://*.doubleclick.net https://*.googlesyndication.com https://*.google.com; img-src 'self' data: https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com;">
   <link rel="apple-touch-icon" href="/logo192.png" />
   <!--
       Notice the use of  in the tags above.
@@ -165,6 +165,7 @@
       document.head.appendChild(script);
     });
   </script>
+  <script id="adsense-script" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9593032741719801" crossorigin="anonymous"></script>
 </head>
 
 <body>
