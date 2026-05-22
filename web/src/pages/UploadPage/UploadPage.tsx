@@ -92,7 +92,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
                 </a>
               </p>
               <p className={pageStyles.stepBody}>
-                Doc and docx: use headings for the front of each card, body text for the back.
+                Doc and docx: use headings for the front of each card, body text for the back. Plain paragraphs become separate cards.
               </p>
             </div>
           </div>

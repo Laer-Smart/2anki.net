@@ -101,7 +101,7 @@ describe('UploadPage doc/docx hint', () => {
   it('renders the doc and docx heading rule hint', () => {
     renderPage();
     expect(
-      screen.getByText(/Doc and docx: use headings for the front of each card, body text for the back\./i)
+      screen.getByText(/Doc and docx: use headings for the front of each card, body text for the back\. Plain paragraphs become separate cards\./i)
     ).toBeInTheDocument();
   });
 });
