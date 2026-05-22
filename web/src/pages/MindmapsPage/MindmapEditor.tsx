@@ -153,8 +153,8 @@ export function MindmapEditor() {
   const { data: map } = useMindmapById(id ?? null);
   const updateMindmap = useUpdateMindmap(id ?? '');
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [showExport, setShowExport] = useState(false);
   const [exporting, setExporting] = useState(false);
