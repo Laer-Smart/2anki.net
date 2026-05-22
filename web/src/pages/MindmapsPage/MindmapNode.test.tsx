@@ -4,6 +4,7 @@ import { MindmapNode } from './MindmapNode';
 
 vi.mock('@xyflow/react', () => ({
   Handle: () => null,
+  NodeResizer: () => null,
   NodeToolbar: ({ children, isVisible }: { children: React.ReactNode; isVisible?: boolean }) =>
     isVisible ? children : null,
   Position: { Left: 'left', Right: 'right', Top: 'top', Bottom: 'bottom' },
@@ -56,7 +57,7 @@ describe('MindmapNode', () => {
     render(<MindmapNode {...makeProps({ editing: true, onCommit })} />);
     const input = screen.getByRole('textbox');
     fireEvent.change(input, { target: { value: '  Chemistry  ' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.keyDown(input, { key: 'Enter', ctrlKey: true });
     expect(onCommit).toHaveBeenCalledWith('Chemistry');
   });
 
@@ -73,7 +74,7 @@ describe('MindmapNode', () => {
     render(<MindmapNode {...makeProps({ label: 'Physics', editing: true, onCommit })} />);
     const input = screen.getByRole('textbox');
     fireEvent.change(input, { target: { value: '   ' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.keyDown(input, { key: 'Enter', ctrlKey: true });
     expect(onCommit).toHaveBeenCalledWith('Physics');
   });
 

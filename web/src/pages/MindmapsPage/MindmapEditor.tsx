@@ -243,6 +243,8 @@ export function MindmapEditor() {
       type: 'mindmap',
       data: { label: n.label, color: n.color ?? null },
       position: n.position ?? { x: 0, y: 0 },
+      width: n.width,
+      height: n.height,
       style: n.color == null ? NODE_STYLE : { ...NODE_STYLE, borderColor: n.color, boxShadow: `0 0 0 1px ${n.color}` },
     }));
     const rfEdges: Edge[] = map.data.edges.map((e) => ({
@@ -269,6 +271,8 @@ export function MindmapEditor() {
             id: n.id,
             label: String(n.data.label ?? ''),
             position: { x: n.position.x, y: n.position.y },
+            width: n.width,
+            height: n.height,
             color: (n.data as { color?: string | null }).color ?? null,
           })),
           edges: es.map((e) => ({ source: e.source, target: e.target })),
@@ -321,6 +325,50 @@ export function MindmapEditor() {
     });
   }, [setNodes, persistData, edges]);
 
+  useEffect(() => {
+    function handlePaste(e: ClipboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target instanceof HTMLElement) {
+        const tag = target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || target.isContentEditable) return;
+      }
+      const text = e.clipboardData?.getData('text/plain')?.trim();
+      if (text == null || text.length === 0) return;
+      if (rfInstance == null) return;
+      e.preventDefault();
+      const center = rfInstance.screenToFlowPosition({
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+      });
+      const newId = crypto.randomUUID();
+      const newNode: Node = {
+        id: newId,
+        type: 'mindmap',
+        data: { label: text },
+        position: center,
+        style: NODE_STYLE,
+      };
+      setNodes((ns) => {
+        const updated = [...ns, newNode];
+        persistData(updated, edges);
+        return updated;
+      });
+      setSelectedNodeId(newId);
+    }
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [rfInstance, setNodes, persistData, edges]);
+
+  const setNodeSize = useCallback((nodeId: string, width: number, height: number) => {
+    setNodes((ns) => {
+      const updated = ns.map((n) =>
+        n.id === nodeId ? { ...n, width, height } : n
+      );
+      persistData(updated, edges);
+      return updated;
+    });
+  }, [setNodes, persistData, edges]);
+
   const nodeTypes = useMemo(
     () => ({
       mindmap: (props: Parameters<typeof MindmapNode>[0]) => (
@@ -334,11 +382,12 @@ export function MindmapEditor() {
             onCenter: () => centerOnNode(props.id),
             onSetColor: (color: string | null) => setNodeColor(props.id, color),
             onDelete: () => deleteNode(props.id),
+            onResizeEnd: (width: number, height: number) => setNodeSize(props.id, width, height),
           }}
         />
       ),
     }),
-    [commitLabel, cancelEdit, centerOnNode, setNodeColor, startRename, deleteNode]
+    [commitLabel, cancelEdit, centerOnNode, setNodeColor, setNodeSize, startRename, deleteNode]
   );
 
   const onConnect = useCallback(
@@ -810,6 +859,8 @@ export function MindmapEditor() {
           <p style={{ margin: '0 0 0.25rem' }}>Drag from a node — new connected node</p>
           <p style={{ margin: '0 0 0.25rem' }}>Ctrl/Cmd+A — select all</p>
           <p style={{ margin: '0 0 0.25rem' }}>Esc — clear selection</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Paste text — drops a new node on canvas</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Markdown supported in node labels</p>
           <p style={{ margin: '0 0 0.25rem' }}>Ctrl/Cmd+L — tidy layout</p>
         </div>
         <div style={{ marginTop: 'auto' }}>
