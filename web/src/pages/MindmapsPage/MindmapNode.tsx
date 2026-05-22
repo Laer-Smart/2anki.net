@@ -37,7 +37,9 @@ export function MindmapNode({ data }: NodeProps) {
 
   return (
     <>
-      <Handle type="target" position={Position.Left} />
+      <Handle type="source" position={Position.Left} id="left" />
+      <Handle type="source" position={Position.Top} id="top" />
+      <Handle type="source" position={Position.Bottom} id="bottom" />
       {nodeData.editing ? (
         <input
           ref={inputRef}
@@ -61,7 +63,7 @@ export function MindmapNode({ data }: NodeProps) {
           {nodeData.label}
         </span>
       )}
-      <Handle type="source" position={Position.Right} />
+      <Handle type="source" position={Position.Right} id="right" />
     </>
   );
 }
