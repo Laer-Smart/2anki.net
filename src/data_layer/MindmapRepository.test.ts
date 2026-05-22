@@ -1,169 +1,144 @@
+import Knex from 'knex';
+import KnexConfig from '../KnexConfig';
 import { MindmapRepository } from './MindmapRepository';
 import { MindmapsId } from './public/Mindmaps';
 import { UsersId } from './public/Users';
 import { MindmapData } from '../usecases/mindmaps/MindmapData';
 
-function makeRow(overrides: Partial<{
-  id: string;
-  user_id: number;
-  title: string;
-  data: MindmapData;
-  created_at: Date;
-  updated_at: Date;
-}> = {}) {
-  return {
-    id: 'uuid-1' as MindmapsId,
-    user_id: 1 as UsersId,
-    title: 'Untitled',
-    data: { nodes: [], edges: [] } as MindmapData,
-    created_at: new Date('2026-01-01'),
-    updated_at: new Date('2026-01-01'),
-    ...overrides,
-  };
-}
+const SAMPLE_HASH = 'bcrypt-test-fixture';
 
-function makeFakeKnex(initialRows: ReturnType<typeof makeRow>[] = []) {
-  const store = { rows: [...initialRows] };
+const RUN_INTEGRATION = process.env.DATABASE_URL != null;
 
-  const buildChain = (filter?: (r: ReturnType<typeof makeRow>) => boolean) => {
-    const chain = {
-      where(cond: Record<string, unknown>) {
-        const prev = filter;
-        const newFilter = (r: ReturnType<typeof makeRow>) => {
-          const prevOk = prev ? prev(r) : true;
-          const condOk = Object.entries(cond).every(([k, v]) => (r as Record<string, unknown>)[k] === v);
-          return prevOk && condOk;
-        };
-        return buildChain(newFilter);
-      },
-      select(_cols: string) {
-        return this;
-      },
-      orderBy(_col: string, _dir: string) {
-        return this;
-      },
-      first() {
-        const filtered = filter ? store.rows.filter(filter) : store.rows;
-        return Promise.resolve(filtered[0] ?? undefined);
-      },
-      returning(_col: string) {
-        return this;
-      },
-      update(patch: Record<string, unknown>) {
-        store.rows = store.rows.map((r) => {
-          const match = filter ? filter(r) : false;
-          return match ? { ...r, ...patch } : r;
-        });
-        const filtered = filter ? store.rows.filter(filter) : [];
-        return Promise.resolve(filtered);
-      },
-      del() {
-        const before = store.rows.length;
-        store.rows = filter ? store.rows.filter((r) => !filter(r)) : [];
-        return Promise.resolve(before - store.rows.length);
-      },
-      count(_alias: string) {
-        const filtered = filter ? store.rows.filter(filter) : store.rows;
-        return Promise.resolve([{ count: String(filtered.length) }]);
-      },
-      then(resolve: (v: ReturnType<typeof makeRow>[]) => void) {
-        const filtered = filter ? store.rows.filter(filter) : store.rows;
-        return Promise.resolve(filtered).then(resolve);
-      },
-    };
-    return chain;
-  };
+(RUN_INTEGRATION ? describe : describe.skip)(
+  'MindmapRepository — integration',
+  () => {
+    const db = Knex(KnexConfig);
+    let userId: UsersId;
 
-  const db = (table: string) => {
-    void table;
-    return {
-      ...buildChain(),
-      insert(row: ReturnType<typeof makeRow>) {
-        const inserted = {
-          id: row.id ?? ('new-uuid' as MindmapsId),
-          user_id: row.user_id,
-          title: row.title ?? 'Untitled',
-          data: row.data ?? { nodes: [], edges: [] },
-          created_at: row.created_at ?? new Date(),
-          updated_at: row.updated_at ?? new Date(),
-        } as ReturnType<typeof makeRow>;
-        store.rows.push(inserted);
-        return {
-          returning(_col: string) {
-            return Promise.resolve([inserted]);
-          },
-        };
-      },
-    };
-  };
-
-  db._store = store;
-  return db as unknown as ConstructorParameters<typeof MindmapRepository>[0] & { _store: typeof store };
-}
-
-describe('MindmapRepository', () => {
-  it('creates a mindmap and returns it', async () => {
-    const db = makeFakeKnex();
-    const repo = new MindmapRepository(db);
-    const data: MindmapData = { nodes: [{ id: '1', label: 'Root' }], edges: [] };
-
-    const result = await repo.create({
-      user_id: 1 as UsersId,
-      title: 'Test map',
-      data,
+    beforeEach(async () => {
+      const rows = await db('users')
+        .insert({
+          name: 'mindmap-test-user',
+          email: `mindmap-test-${Date.now()}@example.com`,
+          password: SAMPLE_HASH,
+        })
+        .returning('id');
+      userId = rows[0].id as UsersId;
     });
 
-    expect(result.title).toBe('Test map');
-    expect(result.data).toEqual(data);
-  });
+    afterEach(async () => {
+      await db('mindmaps').where({ user_id: userId }).del();
+      await db('users').where({ id: userId }).del();
+    });
 
-  it('finds a mindmap by id and user', async () => {
-    const existing = makeRow({ id: 'abc', user_id: 42 as UsersId });
-    const db = makeFakeKnex([existing]);
-    const repo = new MindmapRepository(db);
+    afterAll(() => db.destroy());
 
-    const result = await repo.findById('abc' as MindmapsId, 42 as UsersId);
-    expect(result?.id).toBe('abc');
-  });
+    it('create returns a row with the supplied title and data', async () => {
+      const repo = new MindmapRepository(db);
+      const data: MindmapData = { nodes: [{ id: '1', label: 'Root' }], edges: [] };
 
-  it('returns null when mindmap not found', async () => {
-    const db = makeFakeKnex([]);
-    const repo = new MindmapRepository(db);
+      const result = await repo.create({ user_id: userId, title: 'Test map', data });
 
-    const result = await repo.findById('nope' as MindmapsId, 1 as UsersId);
-    expect(result).toBeNull();
-  });
+      expect(result.title).toBe('Test map');
+      expect(result.data).toMatchObject(data);
+      expect(typeof result.id).toBe('string');
+    });
 
-  it('lists mindmaps by user', async () => {
-    const db = makeFakeKnex([
-      makeRow({ id: 'a', user_id: 1 as UsersId }),
-      makeRow({ id: 'b', user_id: 2 as UsersId }),
-      makeRow({ id: 'c', user_id: 1 as UsersId }),
-    ]);
-    const repo = new MindmapRepository(db);
+    it('findById returns the row after create', async () => {
+      const repo = new MindmapRepository(db);
+      const created = await repo.create({ user_id: userId, title: 'Find me', data: { nodes: [], edges: [] } });
 
-    const result = await repo.findByUserId(1 as UsersId);
-    expect(result.length).toBe(2);
-  });
+      const found = await repo.findById(created.id, userId);
 
-  it('counts mindmaps by user', async () => {
-    const db = makeFakeKnex([
-      makeRow({ id: 'a', user_id: 5 as UsersId }),
-      makeRow({ id: 'b', user_id: 5 as UsersId }),
-      makeRow({ id: 'c', user_id: 9 as UsersId }),
-    ]);
-    const repo = new MindmapRepository(db);
+      expect(found?.id).toBe(created.id);
+      expect(found?.title).toBe('Find me');
+    });
 
-    const count = await repo.countByUserId(5 as UsersId);
-    expect(count).toBe(2);
-  });
+    it('findById returns null when the row does not exist', async () => {
+      const repo = new MindmapRepository(db);
 
-  it('deletes a mindmap', async () => {
-    const db = makeFakeKnex([makeRow({ id: 'del-me', user_id: 1 as UsersId })]);
-    const repo = new MindmapRepository(db);
+      const result = await repo.findById('00000000-0000-0000-0000-000000000000' as MindmapsId, userId);
 
-    await repo.delete('del-me' as MindmapsId, 1 as UsersId);
-    const found = await repo.findById('del-me' as MindmapsId, 1 as UsersId);
-    expect(found).toBeNull();
-  });
-});
+      expect(result).toBeNull();
+    });
+
+    it('findByUserId returns only rows belonging to the given user', async () => {
+      const repo = new MindmapRepository(db);
+      await repo.create({ user_id: userId, title: 'Map A', data: { nodes: [], edges: [] } });
+      await repo.create({ user_id: userId, title: 'Map B', data: { nodes: [], edges: [] } });
+
+      const rows = await repo.findByUserId(userId);
+
+      expect(rows.length).toBe(2);
+      expect(rows.every((r) => r.user_id === userId)).toBe(true);
+    });
+
+    it('update changes title and data, then findById reflects the change', async () => {
+      const repo = new MindmapRepository(db);
+      const created = await repo.create({ user_id: userId, title: 'Before', data: { nodes: [], edges: [] } });
+      const newData: MindmapData = { nodes: [{ id: 'n1', label: 'Updated' }], edges: [] };
+
+      const updated = await repo.update(created.id, userId, { title: 'After', data: newData });
+
+      expect(updated?.title).toBe('After');
+      expect(updated?.data).toMatchObject(newData);
+
+      const fetched = await repo.findById(created.id, userId);
+      expect(fetched?.title).toBe('After');
+    });
+
+    it('update with a non-existent id returns null', async () => {
+      const repo = new MindmapRepository(db);
+
+      const result = await repo.update(
+        '00000000-0000-0000-0000-000000000000' as MindmapsId,
+        userId,
+        { title: 'Ghost' }
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('delete removes the row so findById returns null', async () => {
+      const repo = new MindmapRepository(db);
+      const created = await repo.create({ user_id: userId, title: 'Delete me', data: { nodes: [], edges: [] } });
+
+      await repo.delete(created.id, userId);
+
+      expect(await repo.findById(created.id, userId)).toBeNull();
+    });
+
+    it('delete with a non-existent id does not throw', async () => {
+      const repo = new MindmapRepository(db);
+
+      await expect(
+        repo.delete('00000000-0000-0000-0000-000000000000' as MindmapsId, userId)
+      ).resolves.toBeUndefined();
+    });
+
+    it('countByUserId returns 1 after one create', async () => {
+      const repo = new MindmapRepository(db);
+      await repo.create({ user_id: userId, title: 'One', data: { nodes: [], edges: [] } });
+
+      expect(await repo.countByUserId(userId)).toBe(1);
+    });
+
+    it('countByUserId returns 2 after two creates', async () => {
+      const repo = new MindmapRepository(db);
+      await repo.create({ user_id: userId, title: 'One', data: { nodes: [], edges: [] } });
+      await repo.create({ user_id: userId, title: 'Two', data: { nodes: [], edges: [] } });
+
+      expect(await repo.countByUserId(userId)).toBe(2);
+    });
+
+    it('cascade: deleting the user removes their mindmaps', async () => {
+      const repo = new MindmapRepository(db);
+      const created = await repo.create({ user_id: userId, title: 'Cascade me', data: { nodes: [], edges: [] } });
+
+      await db('users').where({ id: userId }).del();
+
+      const found = await db('mindmaps').where({ id: created.id }).first();
+      expect(found).toBeUndefined();
+    });
+  }
+);
