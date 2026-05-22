@@ -7,6 +7,7 @@ const PASS_BENEFITS = [
   'All upload formats — Notion, .zip, .html, .md, .csv, .apkg',
   'Image occlusion',
   'Custom card templates',
+  'No ads',
 ];
 
 interface PassCardsProps {
