@@ -169,21 +169,38 @@ function parseClaudeVisionResponse(raw: string): CompactDeck[] {
   return parsed as CompactDeck[];
 }
 
+function mediaTypeToExt(mediaType: VisionMediaType): string {
+  const extMap: Record<VisionMediaType, string> = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/gif': 'gif',
+    'image/webp': 'webp',
+  };
+  return extMap[mediaType];
+}
+
 function buildDeckInfo(
   deckName: string,
-  decks: CompactDeck[]
+  decks: CompactDeck[],
+  sourceFilename: string | null
 ): Record<string, unknown> {
   const allCards = decks.flatMap((d) =>
-    d.cards.map((c, i) => ({
-      name: c.q,
-      back: c.a,
-      tags: (c.tags ?? []).map(normalizeTag).filter((t) => t.length > 0),
-      cloze: c.cloze ?? false,
-      number: i,
-      enableInput: false,
-      answer: '',
-      media: [],
-    }))
+    d.cards.map((c, i) => {
+      const back =
+        sourceFilename == null
+          ? c.a
+          : `${c.a}<br><img src="${sourceFilename}" style="max-width:100%;height:auto;">`;
+      return {
+        name: c.q,
+        back,
+        tags: (c.tags ?? []).map(normalizeTag).filter((t) => t.length > 0),
+        cloze: c.cloze ?? false,
+        number: i,
+        enableInput: false,
+        answer: '',
+        media: sourceFilename == null ? [] : [sourceFilename],
+      };
+    })
   );
 
   return {
@@ -277,13 +294,19 @@ export class PhotoToFlashcardsUseCase {
       (outputTokens / 1_000_000) * OUTPUT_COST_PER_MILLION;
 
     const deckName = input.deckName || (decks[0]?.deck ?? 'Photo deck');
-    const deckInfo = buildDeckInfo(deckName, decks);
+    const sourceFilename = `source-${randomUUID()}.${mediaTypeToExt(input.mediaType)}`;
 
     const workspaceDir = path.join(os.tmpdir(), `vision-${randomUUID()}`);
     fs.mkdirSync(workspaceDir, { recursive: true });
 
+    const deckInfo = buildDeckInfo(deckName, decks, sourceFilename);
+
     let apkgPath: string;
     try {
+      fs.writeFileSync(
+        path.join(workspaceDir, sourceFilename),
+        Buffer.from(input.imageBase64, 'base64')
+      );
       fs.writeFileSync(
         path.join(workspaceDir, 'deck_info.json'),
         JSON.stringify([deckInfo]),
