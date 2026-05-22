@@ -260,6 +260,10 @@ if __name__ == "__main__":
             run_batch(sys.argv[2], sys.argv[3])
             sys.exit(0)
 
+        if len(sys.argv) < 3:
+            print("usage: create_deck.py <deck_info.json> <template_dir>", file=sys.stderr)
+            sys.exit(1)
+
         DATA_FILE = sys.argv[1]
         TEMPLATE_DIR = sys.argv[2]
 
