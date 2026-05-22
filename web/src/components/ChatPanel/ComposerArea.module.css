@@ -225,7 +225,9 @@
   cursor: not-allowed;
   transition:
     background var(--transition-fast),
-    color var(--transition-fast);
+    color var(--transition-fast),
+    opacity var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .sendBtnActive {
@@ -236,4 +238,19 @@
 
 .sendBtnActive:hover {
   opacity: 0.85;
+}
+
+.sendBtnActive:active {
+  transform: scale(0.94);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .composerCard,
+  .sendBtn,
+  .sendBtnActive {
+    transition: none;
+  }
+  .sendBtnActive:active {
+    transform: none;
+  }
 }

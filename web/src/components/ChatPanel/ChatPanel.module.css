@@ -150,11 +150,25 @@
   color: var(--color-text-secondary);
   transition:
     background var(--transition-fast),
-    color var(--transition-fast);
+    color var(--transition-fast),
+    transform var(--transition-fast);
   z-index: 10;
 }
 
 .scrollToBottomPill:hover {
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);
+}
+
+.scrollToBottomPill:active {
+  transform: translateX(-50%) scale(0.92);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrollToBottomPill {
+    transition: none;
+  }
+  .scrollToBottomPill:active {
+    transform: translateX(-50%);
+  }
 }
