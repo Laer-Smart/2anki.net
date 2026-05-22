@@ -11,15 +11,24 @@ import {
   Background,
 } from '@xyflow/react';
 import dagre from 'dagre';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMindmapById, useUpdateMindmap, exportMindmap } from './useMindmap';
 import type { MindmapData } from './useMindmap';
 import styles from '../../styles/shared.module.css';
+import { MindmapNode } from './MindmapNode';
 
 const NODE_WIDTH = 172;
 const NODE_HEIGHT = 36;
 const FREE_NODE_LIMIT = 50;
+const NODE_STYLE = {
+  borderRadius: 'var(--radius-md)',
+  border: '1px solid var(--color-border)',
+  background: 'var(--color-bg-primary)',
+  boxShadow: 'var(--shadow-sm)',
+  padding: '0.5rem 1rem',
+  fontSize: 'var(--text-sm)',
+};
 
 function layoutGraph(nodes: Node[], edges: Edge[]): Node[] {
   const g = new dagre.graphlib.Graph();
@@ -153,14 +162,6 @@ export function MindmapEditor() {
 
   useEffect(() => {
     if (map == null) return;
-    const nodeStyle = {
-      borderRadius: 'var(--radius-md)',
-      border: '1px solid var(--color-border)',
-      background: 'var(--color-bg-primary)',
-      boxShadow: 'var(--shadow-sm)',
-      padding: '0.5rem 1rem',
-      fontSize: 'var(--text-sm)',
-    };
 
     const sourceNodes =
       map.data.nodes.length > 0
@@ -169,9 +170,10 @@ export function MindmapEditor() {
 
     const rfNodes: Node[] = sourceNodes.map((n) => ({
       id: n.id,
+      type: 'mindmap',
       data: { label: n.label },
       position: { x: 0, y: 0 },
-      style: nodeStyle,
+      style: NODE_STYLE,
     }));
     const rfEdges: Edge[] = map.data.edges.map((e) => ({
       id: `${e.source}-${e.target}`,
@@ -202,6 +204,42 @@ export function MindmapEditor() {
     [updateMindmap]
   );
 
+  const commitLabel = useCallback((nodeId: string, label: string) => {
+    setNodes((ns) => {
+      const updated = ns.map((n) =>
+        n.id === nodeId
+          ? { ...n, data: { ...n.data, label, editing: false } }
+          : n
+      );
+      persistData(updated, edges);
+      return updated;
+    });
+  }, [setNodes, persistData, edges]);
+
+  const cancelEdit = useCallback((nodeId: string) => {
+    setNodes((ns) =>
+      ns.map((n) =>
+        n.id === nodeId ? { ...n, data: { ...n.data, editing: false } } : n
+      )
+    );
+  }, [setNodes]);
+
+  const nodeTypes = useMemo(
+    () => ({
+      mindmap: (props: Parameters<typeof MindmapNode>[0]) => (
+        <MindmapNode
+          {...props}
+          data={{
+            ...props.data,
+            onCommit: (label: string) => commitLabel(props.id, label),
+            onCancel: () => cancelEdit(props.id),
+          }}
+        />
+      ),
+    }),
+    [commitLabel, cancelEdit]
+  );
+
   const onConnect = useCallback(
     (connection: Connection) => {
       setEdges((es) => {
@@ -227,19 +265,13 @@ export function MindmapEditor() {
     const parentNode = nodes.find((n) => n.id === parentId);
     const newNode: Node = {
       id: newId,
-      data: { label: 'New node' },
+      type: 'mindmap',
+      data: { label: 'New node', editing: true },
       position: {
         x: (parentNode?.position.x ?? 0) + 200,
         y: (parentNode?.position.y ?? 0) + 50,
       },
-      style: {
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--color-border)',
-        background: 'var(--color-bg-primary)',
-        boxShadow: 'var(--shadow-sm)',
-        padding: '0.5rem 1rem',
-        fontSize: 'var(--text-sm)',
-      },
+      style: NODE_STYLE,
     };
     const newEdge: Edge = {
       id: `${parentId}-${newId}`,
@@ -266,19 +298,13 @@ export function MindmapEditor() {
     const siblingNode = nodes.find((n) => n.id === siblingId);
     const newNode: Node = {
       id: newId,
-      data: { label: 'New node' },
+      type: 'mindmap',
+      data: { label: 'New node', editing: true },
       position: {
         x: siblingNode?.position.x ?? 0,
         y: (siblingNode?.position.y ?? 0) + NODE_HEIGHT + 20,
       },
-      style: {
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--color-border)',
-        background: 'var(--color-bg-primary)',
-        boxShadow: 'var(--shadow-sm)',
-        padding: '0.5rem 1rem',
-        fontSize: 'var(--text-sm)',
-      },
+      style: NODE_STYLE,
     };
 
     const updatedNodes = [...nodes, newNode];
@@ -321,19 +347,12 @@ export function MindmapEditor() {
     persistData(laidOut, updatedEdges);
   }
 
-  function renameNode(nodeId: string) {
-    const node = nodes.find((n) => n.id === nodeId);
-    if (node == null) return;
-    const current = String(node.data.label ?? '');
-    const next = window.prompt('Rename node', current);
-    if (next == null) return;
-    const trimmed = next.trim();
-    if (trimmed.length === 0 || trimmed === current) return;
-    const updatedNodes = nodes.map((n) =>
-      n.id === nodeId ? { ...n, data: { ...n.data, label: trimmed } } : n
+  function startRename(nodeId: string) {
+    setNodes((ns) =>
+      ns.map((n) =>
+        n.id === nodeId ? { ...n, data: { ...n.data, editing: true } } : n
+      )
     );
-    setNodes(updatedNodes);
-    persistData(updatedNodes, edges);
   }
 
   useEffect(() => {
@@ -377,6 +396,9 @@ export function MindmapEditor() {
       } else if (e.key === 'Backspace') {
         e.preventDefault();
         deleteNode(selectedNodeId);
+      } else if (e.key === 'F2') {
+        e.preventDefault();
+        startRename(selectedNodeId);
       }
     }
     document.addEventListener('keydown', handleKeyDown);
@@ -431,11 +453,12 @@ export function MindmapEditor() {
         <ReactFlow
           nodes={nodes}
           edges={edges}
+          nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={(_e, node) => setSelectedNodeId(node.id)}
-          onNodeDoubleClick={(_e, node) => renameNode(node.id)}
+          onNodeDoubleClick={(_e, node) => startRename(node.id)}
           onNodeContextMenu={(e, node) => {
             e.preventDefault();
             setSelectedNodeId(node.id);
@@ -481,7 +504,7 @@ export function MindmapEditor() {
           <p style={{ margin: '0 0 0.25rem' }}>Tab — add child</p>
           <p style={{ margin: '0 0 0.25rem' }}>Enter — add sibling</p>
           <p style={{ margin: '0 0 0.25rem' }}>Backspace — delete</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Double-click — rename</p>
+          <p style={{ margin: '0 0 0.25rem' }}>Double-click / F2 — rename</p>
           <p style={{ margin: '0 0 0.25rem' }}>Right-click — menu</p>
         </div>
         <div style={{ marginTop: 'auto' }}>
@@ -561,11 +584,11 @@ export function MindmapEditor() {
           />
           <ContextMenuItem
             label="Rename"
-            shortcut="Double-click"
+            shortcut="F2"
             onSelect={() => {
               const nodeId = contextMenu.nodeId;
               setContextMenu(null);
-              renameNode(nodeId);
+              startRename(nodeId);
             }}
           />
           <ContextMenuItem
