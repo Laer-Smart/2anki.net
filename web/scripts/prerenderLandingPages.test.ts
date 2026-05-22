@@ -50,7 +50,7 @@ beforeEach(() => {
 describe('emitLandingPages', () => {
   it('writes one HTML file per landing path', () => {
     const files = emitLandingPages(buildDir);
-    expect(files).toHaveLength(12);
+    expect(files).toHaveLength(15);
     expect(files.some((p) => p.endsWith('notion-to-anki/index.html'))).toBe(
       true
     );
@@ -64,6 +64,15 @@ describe('emitLandingPages', () => {
     expect(files.some((p) => p.endsWith('anki-to-notion/index.html'))).toBe(
       true
     );
+    expect(files.some((p) => p.endsWith('usmle-anki/index.html'))).toBe(true);
+    expect(
+      files.some((p) => p.endsWith('nursing-flashcards/index.html'))
+    ).toBe(true);
+    expect(
+      files.some((p) =>
+        p.endsWith('anki-from-medical-lecture-slides/index.html')
+      )
+    ).toBe(true);
     expect(
       files.some((p) => p.endsWith('convert/notion-to-anki/index.html'))
     ).toBe(true);
