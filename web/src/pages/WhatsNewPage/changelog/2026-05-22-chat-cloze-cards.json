@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-22-chat-cloze-cards",
+  "date": "2026-05-22",
+  "type": "fix",
+  "title": "Chat — fill-in-the-blank cards from chat now build as real Anki cloze cards"
+}

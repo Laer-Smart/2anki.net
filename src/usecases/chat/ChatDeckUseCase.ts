@@ -20,9 +20,21 @@ function randomDeckId(): number {
 }
 
 const CLOZE_PATTERN = /\{\{c\d+::/;
+const BLANK_PATTERN = /_{2,}/;
 
 export function looksLikeCloze(front: string): boolean {
   return CLOZE_PATTERN.test(front);
+}
+
+export function transformBlankToCloze(card: ChatDeckCard): ChatDeckCard {
+  if (CLOZE_PATTERN.test(card.front)) return card;
+  if (!BLANK_PATTERN.test(card.front)) return card;
+  const trimmedBack = card.back.trim();
+  if (trimmedBack.length === 0) return card;
+  return {
+    front: card.front.replace(BLANK_PATTERN, `{{c1::${trimmedBack}}}`),
+    back: '',
+  };
 }
 
 export class ChatDeckUseCase {
@@ -32,6 +44,7 @@ export class ChatDeckUseCase {
     fs.mkdirSync(workspaceDir, { recursive: true });
 
     try {
+      const normalizedCards = cards.map(transformBlankToCloze);
       const deckInfo = [
         {
           name: deckName,
@@ -45,7 +58,7 @@ export class ChatDeckUseCase {
             inputModelName: 'n2a-input',
             useNotionId: false,
           },
-          cards: cards.map((c, index) => ({
+          cards: normalizedCards.map((c, index) => ({
             name: c.front,
             back: c.back,
             tags: [],
