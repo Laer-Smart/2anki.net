@@ -88,7 +88,7 @@
     "multer": "^2.0.1",
     "nodemailer": "^8.0.1",
     "p-limit": "^3.1.0",
-    "pdf-parse": "1.1.1",
+    "pdf-parse": "2.4.5",
     "pg": "^8.11.3",
     "piscina": "^5.1.4",
     "puppeteer": "^25.0.2",
