@@ -1,4 +1,7 @@
 import express from 'express';
+import multer from 'multer';
+import os from 'node:os';
+import path from 'node:path';
 
 import { getDatabase } from '../data_layer';
 import { MindmapRepository } from '../data_layer/MindmapRepository';
@@ -10,6 +13,13 @@ import { ListMindmapsUseCase } from '../usecases/mindmaps/ListMindmapsUseCase';
 import { GetMindmapUseCase } from '../usecases/mindmaps/GetMindmapUseCase';
 import { ExportMindmapUseCase } from '../usecases/mindmaps/ExportMindmapUseCase';
 import RequireAuthentication from './middleware/RequireAuthentication';
+
+const ALLOWED_IMAGE_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
+]);
 
 const MindmapRouter = () => {
   const router = express.Router();
@@ -23,6 +33,20 @@ const MindmapRouter = () => {
     new ListMindmapsUseCase(repo),
     new GetMindmapUseCase(repo),
     new ExportMindmapUseCase(repo)
+  );
+
+  const uploadBase = process.env.UPLOAD_BASE ?? os.tmpdir();
+  const imageUpload = multer({
+    dest: os.tmpdir(),
+    fileFilter: (_req, file, cb) => {
+      cb(null, ALLOWED_IMAGE_TYPES.has(file.mimetype));
+    },
+    limits: { fileSize: 5 * 1024 * 1024 },
+  });
+
+  router.use(
+    '/api/mindmaps/images',
+    express.static(path.join(uploadBase, 'mindmaps'), { fallthrough: false })
   );
 
   /**
@@ -225,6 +249,50 @@ const MindmapRouter = () => {
    */
   router.post('/api/mindmaps/:id/export', RequireAuthentication, (req, res) =>
     controller.exportDeck(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/mindmaps/{id}/images:
+   *   post:
+   *     summary: Upload an image for a mind map node
+   *     tags: [Mind maps]
+   *     security:
+   *       - cookieAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         multipart/form-data:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               image:
+   *                 type: string
+   *                 format: binary
+   *     responses:
+   *       201:
+   *         description: Image uploaded, returns url, width, height
+   *       400:
+   *         description: No image provided
+   *       401:
+   *         description: Not authenticated
+   *       413:
+   *         description: File too large
+   *       415:
+   *         description: Unsupported image type
+   */
+  router.post(
+    '/api/mindmaps/:id/images',
+    RequireAuthentication,
+    imageUpload.single('image'),
+    (req, res) => controller.uploadImage(req, res)
   );
 
   return router;

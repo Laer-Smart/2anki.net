@@ -219,4 +219,36 @@ describe('MindmapRouter', () => {
       expect(res.status).toBe(200);
     });
   });
+
+  describe('POST /api/mindmaps/:id/images', () => {
+    const TINY_PNG = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      'base64'
+    );
+
+    it('returns 201 with url, width, height for a valid PNG', async () => {
+      const form = new FormData();
+      form.append('image', new Blob([TINY_PNG], { type: 'image/png' }), 'test.png');
+
+      const res = await fetch(`${url}/api/mindmaps/map-1/images`, {
+        method: 'POST',
+        body: form,
+      });
+
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.url).toMatch(/^\/api\/mindmaps\/images\//);
+      expect(typeof body.width).toBe('number');
+      expect(typeof body.height).toBe('number');
+    });
+
+    it('returns 400 when no file is provided', async () => {
+      const res = await fetch(`${url}/api/mindmaps/map-1/images`, {
+        method: 'POST',
+        body: new FormData(),
+      });
+
+      expect(res.status).toBe(400);
+    });
+  });
 });

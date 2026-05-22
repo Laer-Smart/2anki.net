@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import os from 'node:os';
 
 import { CreateMindmapUseCase, MindmapLimitError } from '../usecases/mindmaps/CreateMindmapUseCase';
 import { UpdateMindmapUseCase } from '../usecases/mindmaps/UpdateMindmapUseCase';
@@ -10,6 +11,11 @@ import {
   MindmapCardType,
   MindmapNotFoundError,
 } from '../usecases/mindmaps/ExportMindmapUseCase';
+import {
+  UploadMindmapImageUseCase,
+  MindmapImageTooLargeError,
+  MindmapImageTypeError,
+} from '../usecases/mindmaps/UploadMindmapImageUseCase';
 import { MindmapsId } from '../data_layer/public/Mindmaps';
 import { UsersId } from '../data_layer/public/Users';
 import { AnkifyAccessUser, AnkifyAccessSubscription } from '../lib/ankify/access';
@@ -155,6 +161,39 @@ export class MindmapController {
     } catch (error) {
       if (error instanceof MindmapNotFoundError) {
         res.status(404).json({ message: 'Mind map not found' });
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async uploadImage(req: Request, res: Response) {
+    const userId = String(res.locals.owner as UsersId);
+    const mapId = req.params.id;
+    const file = req.file;
+
+    if (file == null) {
+      res.status(400).json({ message: 'No image file provided' });
+      return;
+    }
+
+    const uploadBase = process.env.UPLOAD_BASE ?? os.tmpdir();
+    const useCase = new UploadMindmapImageUseCase(uploadBase);
+
+    try {
+      const result = await useCase.execute({
+        userId,
+        mapId,
+        file: { path: file.path, mimetype: file.mimetype, size: file.size },
+      });
+      res.status(201).json(result);
+    } catch (error) {
+      if (error instanceof MindmapImageTypeError) {
+        res.status(415).json({ message: error.message });
+        return;
+      }
+      if (error instanceof MindmapImageTooLargeError) {
+        res.status(413).json({ message: error.message });
         return;
       }
       throw error;
