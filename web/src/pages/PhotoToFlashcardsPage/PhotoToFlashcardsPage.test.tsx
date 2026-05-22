@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PhotoToFlashcardsPage } from './PhotoToFlashcardsPage';
 
+const mockTrack = vi.fn();
+vi.mock('../../lib/analytics/track', () => ({
+  track: (...args: unknown[]) => mockTrack(...args),
+}));
+
 const FAKE_DATA_URL = 'data:image/jpeg;base64,YWJjMTIz';
 
 const mockUseUserLocals = vi.fn();
@@ -66,6 +71,7 @@ describe('PhotoToFlashcardsPage', () => {
     mockFileReader();
     mockImageDimensions();
     mockObjectUrl();
+    mockTrack.mockClear();
   });
 
   afterEach(() => {
@@ -195,5 +201,65 @@ describe('PhotoToFlashcardsPage', () => {
       expect(screen.getByText(/12 cards from your photo\. Deck downloaded\./)).toBeTruthy();
     });
     expect(clickSpy).toHaveBeenCalled();
+  });
+
+  it('renders the "Take a photo" button', () => {
+    render(<PhotoToFlashcardsPage />);
+    expect(screen.getByRole('button', { name: 'Take a photo' })).toBeTruthy();
+  });
+
+  it('fires photo_upload_started with source: library when converting via dropzone input', async () => {
+    setLocals({ paying: true });
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 404 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<PhotoToFlashcardsPage />);
+    const input = document.getElementById('photo-file-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [makePhoto()] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+
+    await waitFor(() => {
+      expect(mockTrack).toHaveBeenCalledWith('photo_upload_started', { source: 'library' });
+    });
+  });
+
+  it('fires photo_upload_started with source: camera when converting via camera input', async () => {
+    setLocals({ paying: true });
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 404 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<PhotoToFlashcardsPage />);
+    const cameraInput = document.getElementById('photo-camera-input') as HTMLInputElement;
+    fireEvent.change(cameraInput, { target: { files: [makePhoto()] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+
+    await waitFor(() => {
+      expect(mockTrack).toHaveBeenCalledWith('photo_upload_started', { source: 'camera' });
+    });
+  });
+
+  it('fires photo_quota_reached with used and limit on 429', async () => {
+    setLocals({ paying: false });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ used: 5, limit: 5 }), {
+          status: 429,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<PhotoToFlashcardsPage />);
+    const input = document.getElementById('photo-file-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [makePhoto()] } });
+    fireEvent.click(screen.getByText('Get flashcards'));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Free plan is 5 photos per month\. Upgrade for unlimited\./)
+      ).toBeTruthy();
+    });
+    expect(mockTrack).toHaveBeenCalledWith('photo_quota_reached', { used: 5, limit: 5 });
   });
 });

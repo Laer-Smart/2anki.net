@@ -13,6 +13,10 @@ export const KNOWN_EVENTS = new Set([
   'paywall_shown',
   'paywall_upgrade_clicked',
   'purchase',
+  'photo_entry_point_viewed',
+  'photo_entry_point_clicked',
+  'photo_upload_started',
+  'photo_quota_reached',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;

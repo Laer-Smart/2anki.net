@@ -108,4 +108,16 @@ describe('EventsController', () => {
       expect.objectContaining({ anonymousId: null })
     );
   });
+
+  it.each([
+    'photo_entry_point_viewed',
+    'photo_entry_point_clicked',
+    'photo_upload_started',
+    'photo_quota_reached',
+  ])('returns 202 for new photo event: %s', (eventName) => {
+    const { controller, req, res } = buildMocks({ userId: 1 });
+    req.body = { name: eventName };
+    controller.track(req, res);
+    expect(res.status).toHaveBeenCalledWith(202);
+  });
 });

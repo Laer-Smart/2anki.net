@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
+import { track } from '../../lib/analytics/track';
 import styles from '../../styles/shared.module.css';
 import pageStyles from './PhotoToFlashcardsPage.module.css';
 
@@ -9,6 +10,7 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 
 type Status = 'idle' | 'reading' | 'done';
+type UploadSource = 'camera' | 'library';
 
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -59,7 +61,9 @@ export function PhotoToFlashcardsPage() {
   const [status, setStatus] = useState<Status>('idle');
   const [cardCount, setCardCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [uploadSource, setUploadSource] = useState<UploadSource>('library');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const reset = () => {
     setFile(null);
@@ -69,7 +73,7 @@ export function PhotoToFlashcardsPage() {
     setError(null);
   };
 
-  const handleFile = (next: File) => {
+  const handleFile = (next: File, source: UploadSource) => {
     setError(null);
     if (!ALLOWED_TYPES.includes(next.type)) {
       setError('Use JPEG, PNG, WebP, or GIF.');
@@ -79,6 +83,7 @@ export function PhotoToFlashcardsPage() {
       setError('Photo is over the 10 MB limit. Try a smaller image.');
       return;
     }
+    setUploadSource(source);
     setFile(next);
     setPreviewUrl(URL.createObjectURL(next));
     setStatus('idle');
@@ -87,13 +92,18 @@ export function PhotoToFlashcardsPage() {
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const next = e.target.files?.[0];
-    if (next != null) handleFile(next);
+    if (next != null) handleFile(next, 'library');
+  };
+
+  const handleCameraInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const next = e.target.files?.[0];
+    if (next != null) handleFile(next, 'camera');
   };
 
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
     const next = e.dataTransfer.files[0];
-    if (next != null) handleFile(next);
+    if (next != null) handleFile(next, 'library');
   };
 
   const handleConvert = async () => {
@@ -103,6 +113,7 @@ export function PhotoToFlashcardsPage() {
     }
     setError(null);
     setStatus('reading');
+    track('photo_upload_started', { source: uploadSource });
 
     try {
       const [imageBase64, dimensions] = await Promise.all([
@@ -147,6 +158,8 @@ export function PhotoToFlashcardsPage() {
           limit?: number;
         };
         const limit = body.limit ?? 5;
+        const used = body.used ?? limit;
+        track('photo_quota_reached', { used, limit });
         setError(`Free plan is ${limit} photos per month. Upgrade for unlimited.`);
         setStatus('idle');
         return;
@@ -194,6 +207,27 @@ export function PhotoToFlashcardsPage() {
           placeholder={file?.name.replace(/\.[^.]+$/, '') || 'Photo deck'}
         />
       </div>
+
+      <div className={pageStyles.cameraButtonContainer}>
+        <button
+          type="button"
+          className={pageStyles.cameraButton}
+          onClick={() => cameraInputRef.current?.click()}
+        >
+          Take a photo
+        </button>
+        <input
+          ref={cameraInputRef}
+          id="photo-camera-input"
+          type="file"
+          accept={ALLOWED_TYPES.join(',')}
+          capture="environment"
+          onChange={handleCameraInput}
+          hidden
+        />
+      </div>
+
+      <p className={pageStyles.dropzoneLabel}>or pick from your photos</p>
 
       <label
         className={pageStyles.dropzone}
