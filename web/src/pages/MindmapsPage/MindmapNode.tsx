@@ -188,6 +188,7 @@ export function MindmapNode({ data, selected }: NodeProps) {
         isVisible={selected === true && nodeData.editing !== true}
         minWidth={120}
         minHeight={36}
+        keepAspectRatio={nodeData.image != null}
         onResizeEnd={(_e, params) => nodeData.onResizeEnd?.(params.width, params.height)}
         lineStyle={{ border: '1px dashed var(--color-primary)' }}
         handleStyle={{ width: 8, height: 8, borderRadius: 2, background: 'var(--color-primary)' }}
@@ -218,7 +219,8 @@ export function MindmapNode({ data, selected }: NodeProps) {
           defaultValue={nodeData.label}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
-          rows={Math.max(1, nodeData.label.split('\n').length)}
+          cols={1}
+          rows={1}
           style={{
             border: 'none',
             outline: 'none',
@@ -226,13 +228,15 @@ export function MindmapNode({ data, selected }: NodeProps) {
             fontSize: 'var(--text-sm)',
             width: '100%',
             height: '100%',
-            minWidth: '80px',
+            minWidth: 0,
             color: 'var(--color-text-primary)',
             fontFamily: 'inherit',
+            lineHeight: 1.4,
             resize: 'none',
             padding: 0,
             margin: 0,
             overflow: 'auto',
+            boxSizing: 'border-box',
           }}
         />
       ) : (
@@ -244,6 +248,7 @@ export function MindmapNode({ data, selected }: NodeProps) {
             height: '100%',
             overflow: 'auto',
             lineHeight: 1.4,
+            boxSizing: 'border-box',
           }}
         >
           {nodeData.image != null && (
