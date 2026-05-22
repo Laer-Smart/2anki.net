@@ -15,6 +15,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMindmapById, useUpdateMindmap, exportMindmap } from './useMindmap';
 import type { MindmapData } from './useMindmap';
+import styles from '../../styles/shared.module.css';
 
 const NODE_WIDTH = 172;
 const NODE_HEIGHT = 36;
@@ -110,34 +111,14 @@ function ExportModal({ defaultName, cardCount, onExport, onClose, exporting }: R
           {cardCount} {cardCount === 1 ? 'card' : 'cards'}
         </p>
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              padding: '0.5rem 1rem',
-              background: 'transparent',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
+          <button type="button" onClick={onClose} className={styles.btnSecondary}>
             Cancel
           </button>
           <button
             type="button"
             disabled={exporting || deckName.trim().length === 0}
             onClick={() => onExport(deckName.trim())}
-            style={{
-              padding: '0.5rem 1rem',
-              background: 'var(--color-primary)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-              fontWeight: 'var(--font-medium)',
-              opacity: exporting ? 0.7 : 1,
-            }}
+            className={`${styles.btnPrimary} ${styles.btnInline}`}
           >
             Download deck
           </button>
@@ -171,18 +152,25 @@ export function MindmapEditor() {
 
   useEffect(() => {
     if (map == null) return;
-    const rfNodes: Node[] = map.data.nodes.map((n) => ({
+    const nodeStyle = {
+      borderRadius: 'var(--radius-md)',
+      border: '1px solid var(--color-border)',
+      background: 'var(--color-bg-primary)',
+      boxShadow: 'var(--shadow-sm)',
+      padding: '0.5rem 1rem',
+      fontSize: 'var(--text-sm)',
+    };
+
+    const sourceNodes =
+      map.data.nodes.length > 0
+        ? map.data.nodes
+        : [{ id: crypto.randomUUID(), label: map.title || 'Untitled' }];
+
+    const rfNodes: Node[] = sourceNodes.map((n) => ({
       id: n.id,
       data: { label: n.label },
       position: { x: 0, y: 0 },
-      style: {
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--color-border)',
-        background: 'var(--color-bg-primary)',
-        boxShadow: 'var(--shadow-sm)',
-        padding: '0.5rem 1rem',
-        fontSize: 'var(--text-sm)',
-      },
+      style: nodeStyle,
     }));
     const rfEdges: Edge[] = map.data.edges.map((e) => ({
       id: `${e.source}-${e.target}`,
@@ -194,6 +182,9 @@ export function MindmapEditor() {
     const laidOut = layoutGraph(rfNodes, rfEdges);
     setNodes(laidOut);
     setEdges(rfEdges);
+    if (laidOut.length === 1) {
+      setSelectedNodeId(laidOut[0].id);
+    }
   }, [map, setNodes, setEdges]);
 
   const persistData = useCallback(
@@ -330,9 +321,20 @@ export function MindmapEditor() {
   }
 
   useEffect(() => {
+    function isEditableTarget(target: EventTarget | null): boolean {
+      if (!(target instanceof HTMLElement)) return false;
+      const tag = target.tagName;
+      return (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        target.isContentEditable
+      );
+    }
+
     function handleKeyDown(e: KeyboardEvent) {
       if (selectedNodeId == null) return;
-      if (e.target !== document.body) return;
+      if (isEditableTarget(e.target)) return;
 
       if (e.key === 'Tab') {
         e.preventDefault();
@@ -341,6 +343,7 @@ export function MindmapEditor() {
         e.preventDefault();
         addSiblingNode(selectedNodeId);
       } else if (e.key === 'Backspace') {
+        e.preventDefault();
         deleteNode(selectedNodeId);
       }
     }
@@ -381,14 +384,8 @@ export function MindmapEditor() {
         <button
           type="button"
           onClick={() => navigate('/mindmaps')}
-          style={{
-            marginTop: '1rem',
-            padding: '0.5rem 1rem',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-sm)',
-            cursor: 'pointer',
-            background: 'transparent',
-          }}
+          className={styles.btnSecondary}
+          style={{ marginTop: '1rem' }}
         >
           Back to Mind maps
         </button>
@@ -406,6 +403,7 @@ export function MindmapEditor() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={(_e, node) => setSelectedNodeId(node.id)}
+          proOptions={{ hideAttribution: true }}
           fitView
         >
           <Controls />
@@ -451,16 +449,7 @@ export function MindmapEditor() {
           <button
             type="button"
             onClick={() => setShowExport(true)}
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              background: 'var(--color-primary)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--radius-md)',
-              cursor: 'pointer',
-              fontWeight: 'var(--font-medium)',
-            }}
+            className={styles.btnPrimary}
           >
             Download deck
           </button>
