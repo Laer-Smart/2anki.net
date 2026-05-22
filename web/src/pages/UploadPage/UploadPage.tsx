@@ -91,6 +91,9 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
                   How to export from Notion
                 </a>
               </p>
+              <p className={pageStyles.stepBody}>
+                Doc and docx: use headings for the front of each card, body text for the back.
+              </p>
             </div>
           </div>
           <div className={pageStyles.step}>

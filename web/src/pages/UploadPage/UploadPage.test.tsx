@@ -96,3 +96,12 @@ describe('UploadPage photo-to-deck entry', () => {
     expect(screen.getByTestId('photo-to-deck-entry-stub')).toBeInTheDocument();
   });
 });
+
+describe('UploadPage doc/docx hint', () => {
+  it('renders the doc and docx heading rule hint', () => {
+    renderPage();
+    expect(
+      screen.getByText(/Doc and docx: use headings for the front of each card, body text for the back\./i)
+    ).toBeInTheDocument();
+  });
+});
