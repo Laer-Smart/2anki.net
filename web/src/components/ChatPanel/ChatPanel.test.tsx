@@ -63,36 +63,168 @@ describe('ChatPanel — empty state', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders sub-line copy when no messages', () => {
+  it('renders the composer pill in the empty state', () => {
     renderChatPanel();
     expect(
-      screen.getByText(
+      screen.getByRole('textbox', { name: 'Message input' })
+    ).toBeInTheDocument();
+  });
+
+  it('does not render starter chip buttons', () => {
+    renderChatPanel();
+    expect(
+      screen.queryByRole('button', { name: 'Make cards from a topic' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Explain this concept' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Quiz me' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not render a descriptive sub-line below the heading', () => {
+    renderChatPanel();
+    expect(
+      screen.queryByText(
         'Ask a question, paste your notes, or attach a PDF — get flashcards back.'
       )
-    ).toBeInTheDocument();
+    ).not.toBeInTheDocument();
+  });
+});
+
+describe('ChatPanel — send button state', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+    mockGet.mockResolvedValue({ used: 0, limit: 20 });
   });
 
-  it('renders three starter chip buttons', () => {
+  it('send button is disabled when input is empty', () => {
     renderChatPanel();
-    expect(
-      screen.getByRole('button', { name: 'Make cards from a topic' })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Explain this concept' })
-    ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Quiz me' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled();
   });
 
-  it('clicking a chip prefills the textarea and does not autosubmit', async () => {
+  it('send button is enabled when input has content', () => {
     renderChatPanel();
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Make cards from a topic' })
+    const textarea = screen.getByRole('textbox', { name: 'Message input' });
+    fireEvent.change(textarea, { target: { value: 'Hello' } });
+    expect(screen.getByRole('button', { name: 'Send message' })).not.toBeDisabled();
+  });
+});
+
+describe('ChatPanel — user message layout', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+    mockGet.mockResolvedValue({ used: 0, limit: 20 });
+  });
+
+  it('renders user message with aria-label "User message"', async () => {
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([
+        { event: 'done', data: { content: 'Answer', conversationId: 1 } },
+      ])
     );
-    const textarea = screen.getByRole('textbox', {
-      name: 'Message input',
-    }) as HTMLTextAreaElement;
-    expect(textarea.value).toBe('Help me make cards from ');
-    expect(mockPost).not.toHaveBeenCalled();
+    renderChatPanel();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Message input' }), {
+      target: { value: 'My question' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
+    await waitFor(() => {
+      expect(screen.getByLabelText('User message')).toBeInTheDocument();
+    });
+  });
+});
+
+describe('ChatPanel — long user message collapse', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+    mockGet.mockResolvedValue({ used: 0, limit: 20 });
+  });
+
+  it('shows "Show full message" toggle for long messages', async () => {
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([
+        { event: 'done', data: { content: 'Short reply', conversationId: 1 } },
+      ])
+    );
+    const longMessage = 'A'.repeat(700);
+    renderChatPanel({ initialMessages: [{ role: 'user', content: longMessage }] });
+    expect(
+      screen.getByRole('button', { name: 'Show full message' })
+    ).toBeInTheDocument();
+  });
+
+  it('toggles to "Show less" after clicking "Show full message"', () => {
+    const longMessage = 'B'.repeat(700);
+    renderChatPanel({ initialMessages: [{ role: 'user', content: longMessage }] });
+    fireEvent.click(screen.getByRole('button', { name: 'Show full message' }));
+    expect(
+      screen.getByRole('button', { name: 'Show less' })
+    ).toBeInTheDocument();
+  });
+});
+
+describe('ChatPanel — assistant message layout', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+    mockGet.mockResolvedValue({ used: 0, limit: 20 });
+  });
+
+  it('renders assistant prose without a user-message aria-label', async () => {
+    renderChatPanel({
+      initialMessages: [
+        { role: 'assistant', content: 'The answer is 42.' },
+      ],
+    });
+    expect(screen.getByText('The answer is 42.')).toBeInTheDocument();
+    expect(screen.queryByLabelText('User message')).not.toBeInTheDocument();
+  });
+});
+
+describe('ChatPanel — CardPreview integration', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+    mockGet.mockResolvedValue({ used: 0, limit: 20 });
+    Object.assign(global, { URL: { createObjectURL: vi.fn(() => 'blob:test'), revokeObjectURL: vi.fn() } });
+  });
+
+  it('renders "Download deck" button when message has cards', () => {
+    renderChatPanel({
+      initialMessages: [
+        {
+          role: 'assistant',
+          content: '',
+          cards: [{ front: 'Q1', back: 'A1' }],
+        },
+      ],
+    });
+    expect(
+      screen.getByRole('button', { name: 'Download deck' })
+    ).toBeInTheDocument();
+  });
+
+  it('"Download deck" button calls the deck API', async () => {
+    mockPost.mockResolvedValueOnce({
+      ok: true,
+      blob: () => Promise.resolve(new Blob()),
+    });
+    renderChatPanel({
+      initialMessages: [
+        {
+          role: 'assistant',
+          content: '',
+          cards: [{ front: 'Q1', back: 'A1' }],
+        },
+      ],
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/chat/deck',
+        expect.objectContaining({ cards: [{ front: 'Q1', back: 'A1' }] })
+      );
+    });
   });
 });
 
