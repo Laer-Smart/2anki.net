@@ -4,6 +4,7 @@ import { get, post, patch, del } from '../../lib/backend/api';
 export interface MindmapNode {
   id: string;
   label: string;
+  position?: { x: number; y: number };
 }
 
 export interface MindmapEdge {
