@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { MindmapLimitModal } from './MindmapLimitModal';
-import { useMindmapList, useDeleteMindmap } from './useMindmap';
+import { useMindmapList, useCreateMindmap, useDeleteMindmap } from './useMindmap';
 import styles from '../../styles/shared.module.css';
 
 export function MindmapList() {
+  const navigate = useNavigate();
   const { data, isLoading } = useMindmapList();
+  const createMindmap = useCreateMindmap();
   const deleteMindmap = useDeleteMindmap();
   const [showLimitModal, setShowLimitModal] = useState(false);
 
@@ -19,12 +21,15 @@ export function MindmapList() {
     !data.access.hasUnlimited &&
     data.access.currentCount >= data.access.freeMapLimit - 1;
 
-  function handleNewMap() {
+  async function handleNewMap() {
     if (atCap) {
       setShowLimitModal(true);
       return;
     }
-    window.location.href = '/mindmaps/new';
+    const created = await createMindmap.mutateAsync('Untitled');
+    if (created?.id != null) {
+      navigate(`/mindmaps/${created.id}`);
+    }
   }
 
   if (showLimitModal) {
@@ -142,15 +147,8 @@ export function MindmapList() {
           <button
             type="button"
             onClick={() => deleteMindmap.mutate(map.id)}
-            style={{
-              padding: '0.375rem 0.75rem',
-              background: 'transparent',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-              color: 'var(--color-text-secondary)',
-              fontSize: 'var(--text-sm)',
-            }}
+            className={styles.btnSecondary}
+            style={{ minHeight: 'auto', padding: '0.375rem 0.75rem', fontSize: 'var(--text-sm)' }}
           >
             Delete
           </button>
