@@ -24,8 +24,12 @@ function readMarkmapViewBundle(): string {
   return fs.readFileSync(markmapBrowser, 'utf-8');
 }
 
-export function mindmapToMarkmapHtml(data: MindmapData, title: string): string {
-  const tree = mindmapToMarkmapTree(data);
+export function mindmapToMarkmapHtml(
+  data: MindmapData,
+  title: string,
+  filenameMap: Record<string, string> = {}
+): string {
+  const tree = mindmapToMarkmapTree(data, filenameMap);
 
   const d3Bundle = readD3Bundle();
   const markmapBundle = readMarkmapViewBundle();

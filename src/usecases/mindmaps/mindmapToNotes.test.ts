@@ -81,4 +81,36 @@ describe('mindmapToNotes', () => {
     });
     expect(result[0].isValidBasicNote()).toBe(true);
   });
+
+  it('node with image produces a card whose back contains an img tag with the filename', () => {
+    const result = mindmapToNotes({
+      nodes: [
+        { id: '1', label: 'Parent' },
+        {
+          id: '2',
+          label: 'Child with image',
+          image: { url: '/api/mindmaps/images/42/map-1/abc.png', width: 100, height: 80 },
+        },
+      ],
+      edges: [{ source: '1', target: '2' }],
+    }, { 'abc.png': 'abc.png' });
+
+    expect(result[0].back).toContain('<img src="abc.png"');
+    expect(result[0].back).toContain('Child with image');
+  });
+
+  it('node with image and no filename map falls back to label only', () => {
+    const result = mindmapToNotes({
+      nodes: [
+        { id: '1', label: 'Parent' },
+        {
+          id: '2',
+          label: 'No map',
+          image: { url: '/api/mindmaps/images/42/map-1/xyz.png', width: 100, height: 80 },
+        },
+      ],
+      edges: [{ source: '1', target: '2' }],
+    });
+    expect(result[0].back).toBe('No map');
+  });
 });

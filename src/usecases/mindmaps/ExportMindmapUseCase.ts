@@ -9,6 +9,7 @@ import { UsersId } from '../../data_layer/public/Users';
 import { mindmapToNotes } from './mindmapToNotes';
 import { mindmapToClozeNotes } from './mindmapToClozeNotes';
 import { mindmapToMarkmapHtml } from './mindmapToMarkmapHtml';
+import { collectMindmapImages } from './collectMindmapImages';
 import { MindmapData } from './MindmapData';
 import CustomExporter from '../../lib/parser/exporters/CustomExporter';
 import Note from '../../lib/parser/Note';
@@ -40,17 +41,18 @@ export class ExportMindmapUseCase {
   private buildNotes(
     data: MindmapData,
     deckName: string,
-    cardType: MindmapCardType
+    cardType: MindmapCardType,
+    filenameMap: Record<string, string>
   ): Note[] {
     if (cardType === 'markmap') {
-      const html = mindmapToMarkmapHtml(data, deckName);
+      const html = mindmapToMarkmapHtml(data, deckName, filenameMap);
       const note = new Note(deckName, html);
       return [note];
     }
     if (cardType === 'basic') {
-      return mindmapToNotes(data);
+      return mindmapToNotes(data, filenameMap);
     }
-    return mindmapToClozeNotes(data);
+    return mindmapToClozeNotes(data, filenameMap);
   }
 
   async execute(input: ExportInput): Promise<Buffer> {
@@ -61,7 +63,16 @@ export class ExportMindmapUseCase {
     }
 
     const resolvedDeckName = deckName ?? map.title;
-    const notes = this.buildNotes(map.data as MindmapData, resolvedDeckName, cardType);
+    const mapData = map.data as MindmapData;
+    const uploadBase = process.env.UPLOAD_BASE ?? os.tmpdir();
+    const collectedImages = collectMindmapImages(mapData, uploadBase);
+
+    const filenameMap: Record<string, string> = {};
+    for (const img of collectedImages) {
+      filenameMap[img.filename] = img.filename;
+    }
+
+    const notes = this.buildNotes(mapData, resolvedDeckName, cardType, filenameMap);
 
     const workspaceDir = path.join(os.tmpdir(), `mindmap-export-${randomUUID()}`);
     fs.mkdirSync(workspaceDir, { recursive: true });
@@ -95,6 +106,11 @@ export class ExportMindmapUseCase {
 
       const exporter = new CustomExporter(resolvedDeckName, workspaceDir);
       exporter.configure(deckInfo as never);
+
+      for (const img of collectedImages) {
+        exporter.addMedia(img.filename, img.buffer);
+      }
+
       return await exporter.save();
     } finally {
       fs.rmSync(workspaceDir, { recursive: true, force: true });
