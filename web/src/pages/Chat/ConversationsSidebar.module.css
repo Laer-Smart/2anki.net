@@ -21,7 +21,9 @@
   font-weight: var(--font-medium);
   cursor: pointer;
   text-align: left;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .newChatBtn:hover {
@@ -122,11 +124,13 @@
   border-radius: var(--radius-sm);
   font-size: var(--text-base);
   opacity: 0;
-  transition: opacity var(--transition-fast), background var(--transition-fast);
+  transition:
+    opacity var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .item:hover .menuTrigger,
-.menuTrigger[aria-expanded='true'] {
+.menuTrigger[aria-expanded="true"] {
   opacity: 1;
 }
 

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, expect, it, vi } from 'vitest';
 import CardPreview from './CardPreview';
@@ -41,7 +41,9 @@ describe('CardPreview', () => {
   describe('expand toggle', () => {
     it('shows expand button when cards exceed 5', () => {
       render(<CardPreview cards={makeCards(8)} onSave={vi.fn()} />);
-      expect(screen.getByRole('button', { name: 'Show all 8 cards' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Show all 8 cards' })
+      ).toBeInTheDocument();
     });
 
     it('shows all cards after clicking expand', () => {
@@ -53,7 +55,9 @@ describe('CardPreview', () => {
     it('shows "Show fewer" button after expanding', () => {
       render(<CardPreview cards={makeCards(8)} onSave={vi.fn()} />);
       fireEvent.click(screen.getByRole('button', { name: 'Show all 8 cards' }));
-      expect(screen.getByRole('button', { name: 'Show fewer' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Show fewer' })
+      ).toBeInTheDocument();
     });
 
     it('collapses back to 5 after clicking show fewer', () => {
@@ -65,29 +69,37 @@ describe('CardPreview', () => {
   });
 
   describe('save flow', () => {
-    it('starts in idle state with Save as deck button', () => {
+    it('starts in idle state with Download deck button', () => {
       render(<CardPreview cards={makeCards(3)} onSave={vi.fn()} />);
-      expect(screen.getByRole('button', { name: 'Save as deck' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Download deck' })
+      ).toBeInTheDocument();
     });
 
-    it('transitions to naming state when Save as deck is clicked', () => {
+    it('transitions to naming state when Download deck is clicked', () => {
       render(<CardPreview cards={makeCards(3)} onSave={vi.fn()} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Save as deck' }));
-      expect(screen.getByRole('textbox', { name: 'Deck name' })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
+      expect(
+        screen.getByRole('textbox', { name: 'Deck name' })
+      ).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Cancel' })
+      ).toBeInTheDocument();
     });
 
     it('input has default value of Untitled deck', () => {
       render(<CardPreview cards={makeCards(3)} onSave={vi.fn()} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Save as deck' }));
-      expect(screen.getByRole('textbox', { name: 'Deck name' })).toHaveValue('Untitled deck');
+      fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
+      expect(screen.getByRole('textbox', { name: 'Deck name' })).toHaveValue(
+        'Untitled deck'
+      );
     });
 
     it('calls onSave with the deck name when Save is clicked', () => {
       const onSave = vi.fn();
       render(<CardPreview cards={makeCards(3)} onSave={onSave} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Save as deck' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
       const input = screen.getByRole('textbox', { name: 'Deck name' });
       fireEvent.change(input, { target: { value: 'My Deck' } });
       fireEvent.click(screen.getByRole('button', { name: 'Save' }));
@@ -96,15 +108,17 @@ describe('CardPreview', () => {
 
     it('transitions to saved state after clicking Save', () => {
       render(<CardPreview cards={makeCards(3)} onSave={vi.fn()} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Save as deck' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
       fireEvent.click(screen.getByRole('button', { name: 'Save' }));
       expect(screen.getByText(/Saved as/)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Save again' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Save again' })
+      ).toBeInTheDocument();
     });
 
     it('shows saved file name with .apkg extension in saved state', () => {
       render(<CardPreview cards={makeCards(3)} onSave={vi.fn()} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Save as deck' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
       const input = screen.getByRole('textbox', { name: 'Deck name' });
       fireEvent.change(input, { target: { value: 'Biology' } });
       fireEvent.click(screen.getByRole('button', { name: 'Save' }));
@@ -113,22 +127,26 @@ describe('CardPreview', () => {
 
     it('returns to naming state when Save again is clicked', () => {
       render(<CardPreview cards={makeCards(3)} onSave={vi.fn()} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Save as deck' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
       fireEvent.click(screen.getByRole('button', { name: 'Save' }));
       fireEvent.click(screen.getByRole('button', { name: 'Save again' }));
-      expect(screen.getByRole('textbox', { name: 'Deck name' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('textbox', { name: 'Deck name' })
+      ).toBeInTheDocument();
     });
 
     it('returns to idle state when Cancel is clicked and never saved', () => {
       render(<CardPreview cards={makeCards(3)} onSave={vi.fn()} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Save as deck' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-      expect(screen.getByRole('button', { name: 'Save as deck' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Download deck' })
+      ).toBeInTheDocument();
     });
 
     it('Save button is disabled when deck name is empty', () => {
       render(<CardPreview cards={makeCards(3)} onSave={vi.fn()} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Save as deck' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
       const input = screen.getByRole('textbox', { name: 'Deck name' });
       fireEvent.change(input, { target: { value: '' } });
       expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
@@ -137,7 +155,7 @@ describe('CardPreview', () => {
     it('submits on Enter key press', () => {
       const onSave = vi.fn();
       render(<CardPreview cards={makeCards(3)} onSave={onSave} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Save as deck' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
       const input = screen.getByRole('textbox', { name: 'Deck name' });
       fireEvent.change(input, { target: { value: 'Chemistry' } });
       fireEvent.keyDown(input, { key: 'Enter' });
@@ -146,16 +164,18 @@ describe('CardPreview', () => {
 
     it('cancels on Escape key press', () => {
       render(<CardPreview cards={makeCards(3)} onSave={vi.fn()} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Save as deck' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
       const input = screen.getByRole('textbox', { name: 'Deck name' });
       fireEvent.keyDown(input, { key: 'Escape' });
-      expect(screen.getByRole('button', { name: 'Save as deck' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Download deck' })
+      ).toBeInTheDocument();
     });
 
     it('sanitizes forbidden characters in deck name', () => {
       const onSave = vi.fn();
       render(<CardPreview cards={makeCards(3)} onSave={onSave} />);
-      fireEvent.click(screen.getByRole('button', { name: 'Save as deck' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
       const input = screen.getByRole('textbox', { name: 'Deck name' });
       fireEvent.change(input, { target: { value: 'My/Deck:Name' } });
       fireEvent.click(screen.getByRole('button', { name: 'Save' }));

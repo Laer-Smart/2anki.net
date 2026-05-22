@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { get, patch, del } from '../../lib/backend/api';
 import ChatPanel, { type Message } from '../../components/ChatPanel/ChatPanel';
+import { del, get, patch } from '../../lib/backend/api';
+import styles from './ChatPage.module.css';
 import ConversationsSidebar, {
   ConversationSummary,
 } from './ConversationsSidebar';
-import styles from './ChatPage.module.css';
 
 interface ApiConversationsResponse {
   conversations: ConversationSummary[];
@@ -30,12 +30,6 @@ interface ApiConversationDetailResponse {
   messages: ApiConversationDetailMessage[];
 }
 
-const STARTER_PROMPTS = [
-  "Make 10 cards from notes I'll paste",
-  'Explain a concept, then make cards',
-  'Turn this into cloze cards: [paste]',
-];
-
 interface PanelSeed {
   key: string;
   conversationId: number | null;
@@ -52,7 +46,9 @@ export default function ChatPage() {
     : '';
 
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
-  const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
+  const [activeConversationId, setActiveConversationId] = useState<
+    number | null
+  >(null);
   const [panelSeed, setPanelSeed] = useState<PanelSeed>({
     key: 'new',
     conversationId: null,
@@ -60,7 +56,6 @@ export default function ChatPage() {
     draft: prefilledPrompt,
   });
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [showEmptyState, setShowEmptyState] = useState(true);
 
   useEffect(() => {
     get('/api/chat/conversations', { redirect: false })
@@ -69,8 +64,7 @@ export default function ChatPage() {
           setConversations(data.conversations);
         }
       })
-      .catch(() => {
-      });
+      .catch(() => {});
   }, []);
 
   function upsertConversation(id: number, title: string): void {
@@ -92,9 +86,9 @@ export default function ChatPage() {
     setLoadError(null);
     setActiveConversationId(id);
     try {
-      const data = (await get(`/api/chat/conversations/${id}`, { redirect: false })) as
-        | ApiConversationDetailResponse
-        | undefined;
+      const data = (await get(`/api/chat/conversations/${id}`, {
+        redirect: false,
+      })) as ApiConversationDetailResponse | undefined;
       if (data == null) return;
       const loaded: Message[] = data.messages.map((m) => ({
         role: m.role,
@@ -109,7 +103,6 @@ export default function ChatPage() {
         messages: loaded,
         draft: data.draft ?? '',
       });
-      setShowEmptyState(loaded.length === 0);
     } catch {
       setLoadError("Couldn't load this conversation.");
     }
@@ -117,8 +110,12 @@ export default function ChatPage() {
 
   function handleNewConversation() {
     setActiveConversationId(null);
-    setPanelSeed({ key: `new-${Date.now()}`, conversationId: null, messages: [], draft: '' });
-    setShowEmptyState(true);
+    setPanelSeed({
+      key: `new-${Date.now()}`,
+      conversationId: null,
+      messages: [],
+      draft: '',
+    });
     setLoadError(null);
   }
 
@@ -146,7 +143,9 @@ export default function ChatPage() {
       handleNewConversation();
     }
     try {
-      const response = await del(`/api/chat/conversations/${id}`, { redirect: false });
+      const response = await del(`/api/chat/conversations/${id}`, {
+        redirect: false,
+      });
       if (response == null) return;
       if (!response.ok) {
         setConversations(previous);
@@ -169,34 +168,14 @@ export default function ChatPage() {
         onDelete={handleDeleteConversation}
       />
       <div className={styles.container}>
-        {showEmptyState && (
-          <div className={styles.emptyState}>
-            <h1 className={styles.emptyHeading}>Chat</h1>
-            <p className={styles.emptySubhead}>
-              {cameFromUpload
-                ? "Tell me what's in your file — I'll help you get cards out of it."
-                : 'A study assistant. Paste your notes, ask for cards, or work through a concept.'}
-            </p>
-            {!cameFromUpload && (
-              <div className={styles.starterChips}>
-                {STARTER_PROMPTS.map((prompt) => (
-                  <button
-                    key={prompt}
-                    type="button"
-                    className={styles.starterChip}
-                    onClick={() =>
-                      setPanelSeed((prev) => ({ ...prev, draft: prompt }))
-                    }
-                  >
-                    {prompt}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
         {loadError != null && (
-          <p style={{ color: 'var(--color-danger)', padding: '0 1.5rem', fontSize: 'var(--text-sm)' }}>
+          <p
+            style={{
+              color: 'var(--color-danger)',
+              padding: '0 1.5rem',
+              fontSize: 'var(--text-sm)',
+            }}
+          >
             {loadError}
           </p>
         )}
@@ -209,11 +188,9 @@ export default function ChatPage() {
           onConversationCreated={(id, title) => {
             upsertConversation(id, title);
             setActiveConversationId(id);
-            setShowEmptyState(false);
           }}
           onConversationNotFound={() => {
             setActiveConversationId(null);
-            setShowEmptyState(true);
           }}
         />
       </div>

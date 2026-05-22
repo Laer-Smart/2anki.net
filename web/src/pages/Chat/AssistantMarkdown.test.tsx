@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import AssistantMarkdown from './AssistantMarkdown';
 
 describe('AssistantMarkdown', () => {
@@ -10,7 +10,9 @@ describe('AssistantMarkdown', () => {
 
   it('does not inject <script> tags from model output', () => {
     const { container } = render(
-      <AssistantMarkdown>{'hello <script>alert(1)</script> world'}</AssistantMarkdown>
+      <AssistantMarkdown>
+        {'hello <script>alert(1)</script> world'}
+      </AssistantMarkdown>
     );
     expect(container.querySelector('script')).toBeNull();
   });
@@ -24,7 +26,9 @@ describe('AssistantMarkdown', () => {
   });
 
   it('opens https links in a new tab with rel=noopener', () => {
-    render(<AssistantMarkdown>{'[2anki](https://2anki.net)'}</AssistantMarkdown>);
+    render(
+      <AssistantMarkdown>{'[2anki](https://2anki.net)'}</AssistantMarkdown>
+    );
     const link = screen.getByRole('link', { name: '2anki' });
     expect(link.getAttribute('href')).toBe('https://2anki.net');
     expect(link.getAttribute('target')).toBe('_blank');

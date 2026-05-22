@@ -1,7 +1,7 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ChatPage from './ChatPage';
 
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -18,7 +18,9 @@ function renderChatPage(path = '/chat') {
 
 vi.mock('../../lib/hooks/useUserLocals', () => ({
   useUserLocals: () => ({
-    data: { user: { patreon: false, chat_consent_at: '2026-01-01T00:00:00.000Z' } },
+    data: {
+      user: { patreon: false, chat_consent_at: '2026-01-01T00:00:00.000Z' },
+    },
     refetch: vi.fn(),
   }),
 }));
@@ -29,7 +31,7 @@ vi.mock('../../lib/backend/api', () => ({
   get: vi.fn().mockResolvedValue({ used: 0, limit: 20 }),
 }));
 
-import { post, get, postMultipart } from '../../lib/backend/api';
+import { get, post, postMultipart } from '../../lib/backend/api';
 
 const mockPost = post as ReturnType<typeof vi.fn>;
 const mockGet = get as ReturnType<typeof vi.fn>;
@@ -37,8 +39,8 @@ const mockPostMultipart = postMultipart as ReturnType<typeof vi.fn>;
 
 function makeSseResponse(events: Array<{ event: string; data: unknown }>) {
   const encoder = new TextEncoder();
-  const chunks = events.map(
-    ({ event, data }) => encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+  const chunks = events.map(({ event, data }) =>
+    encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
   );
   const stream = new ReadableStream({
     start(controller) {
@@ -54,16 +56,25 @@ describe('ChatPage', () => {
     mockPost.mockReset();
     mockPostMultipart.mockReset();
     mockGet.mockResolvedValue({ used: 0, limit: 20 });
-    mockPost.mockResolvedValue({ ok: false, status: 500, json: () => Promise.resolve({}) } as Response);
+    mockPost.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: () => Promise.resolve({}),
+    } as Response);
   });
 
   it('renders the empty state heading', () => {
     renderChatPage();
-    expect(screen.getByRole('heading', { name: 'Chat' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'What are you studying?' })
+    ).toBeInTheDocument();
   });
 
   it('renders CardPreview when assistant message has cards', async () => {
-    const cards = [{ front: 'Q1', back: 'A1' }, { front: 'Q2', back: 'A2' }];
+    const cards = [
+      { front: 'Q1', back: 'A1' },
+      { front: 'Q2', back: 'A2' },
+    ];
     mockPost.mockResolvedValueOnce(
       makeSseResponse([
         {
@@ -98,7 +109,10 @@ describe('ChatPage', () => {
   it('renders plain text for assistant message without cards', async () => {
     mockPost.mockResolvedValueOnce(
       makeSseResponse([
-        { event: 'done', data: { content: 'Photosynthesis is the process...' } },
+        {
+          event: 'done',
+          data: { content: 'Photosynthesis is the process...' },
+        },
       ])
     );
 
@@ -110,13 +124,15 @@ describe('ChatPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
 
     await waitFor(() => {
-      expect(screen.getByText('Photosynthesis is the process...')).toBeInTheDocument();
+      expect(
+        screen.getByText('Photosynthesis is the process...')
+      ).toBeInTheDocument();
     });
 
-    expect(screen.queryByText('Save as deck')).not.toBeInTheDocument();
+    expect(screen.queryByText('Download deck')).not.toBeInTheDocument();
   });
 
-  it('shows Building cards indicator and hides JSON while streaming cards', async () => {
+  it('shows Making your cards indicator and hides JSON while streaming cards', async () => {
     const cards = [{ front: 'Q1', back: 'A1' }];
     const encoder = new TextEncoder();
     let enqueue!: (chunk: Uint8Array) => void;
@@ -137,24 +153,33 @@ describe('ChatPage', () => {
 
     enqueue(encoder.encode('event: token\ndata: "Here are your cards:"\n\n'));
     enqueue(encoder.encode('event: token\ndata: "\\n```json"\n\n'));
-    enqueue(encoder.encode('event: token\ndata: "[{\\"front\\":\\"Q1\\",\\"back\\":\\"A1\\"}]"\n\n'));
+    enqueue(
+      encoder.encode(
+        'event: token\ndata: "[{\\"front\\":\\"Q1\\",\\"back\\":\\"A1\\"}]"\n\n'
+      )
+    );
 
     await waitFor(() => {
-      expect(screen.getByText('Building cards')).toBeInTheDocument();
+      expect(screen.getByText('Making your cards')).toBeInTheDocument();
     });
     expect(screen.queryByText(/```json/)).not.toBeInTheDocument();
 
-    enqueue(encoder.encode(`event: done\ndata: ${JSON.stringify({
-      content: 'Here are your cards:\n```json\n[{"front":"Q1","back":"A1"}]\n```',
-      contentBefore: 'Here are your cards:',
-      cards,
-    })}\n\n`));
+    enqueue(
+      encoder.encode(
+        `event: done\ndata: ${JSON.stringify({
+          content:
+            'Here are your cards:\n```json\n[{"front":"Q1","back":"A1"}]\n```',
+          contentBefore: 'Here are your cards:',
+          cards,
+        })}\n\n`
+      )
+    );
     close();
 
     await waitFor(() => {
       expect(screen.getByText('Q1')).toBeInTheDocument();
     });
-    expect(screen.queryByText('Building cards')).not.toBeInTheDocument();
+    expect(screen.queryByText('Making your cards')).not.toBeInTheDocument();
   });
 
   it('does not collapse short user messages', async () => {
@@ -163,7 +188,9 @@ describe('ChatPage', () => {
       target: { value: 'Short message' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
-    expect(screen.queryByRole('button', { name: 'Show full message' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Show full message' })
+    ).not.toBeInTheDocument();
   });
 
   it('collapses long user messages and shows expand toggle', () => {
@@ -173,7 +200,9 @@ describe('ChatPage', () => {
       target: { value: longContent },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
-    expect(screen.getByRole('button', { name: 'Show full message' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Show full message' })
+    ).toBeInTheDocument();
   });
 
   it('toggles long message between collapsed and expanded', () => {
@@ -185,9 +214,13 @@ describe('ChatPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
     const toggle = screen.getByRole('button', { name: 'Show full message' });
     fireEvent.click(toggle);
-    expect(screen.getByRole('button', { name: 'Show less' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Show less' })
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Show less' }));
-    expect(screen.getByRole('button', { name: 'Show full message' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Show full message' })
+    ).toBeInTheDocument();
   });
 
   it('hydrates usage counter from server on mount', async () => {
@@ -196,20 +229,31 @@ describe('ChatPage', () => {
     renderChatPage();
 
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/chat/usage', { redirect: false });
+      expect(mockGet).toHaveBeenCalledWith('/api/chat/usage', {
+        redirect: false,
+      });
     });
   });
 
   it('shows paperclip button in the composer', () => {
     renderChatPage();
-    expect(screen.getByRole('button', { name: 'Attach files' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Attach files' })
+    ).toBeInTheDocument();
   });
 
   it('shows chip when a valid file is attached via input', async () => {
     renderChatPage();
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['%PDF-1.4'], 'lecture.pdf', { type: 'application/pdf' });
-    Object.defineProperty(input, 'files', { value: [file], configurable: true });
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    const file = new File(['%PDF-1.4'], 'lecture.pdf', {
+      type: 'application/pdf',
+    });
+    Object.defineProperty(input, 'files', {
+      value: [file],
+      configurable: true,
+    });
     fireEvent.change(input);
 
     await waitFor(() => {
@@ -219,21 +263,37 @@ describe('ChatPage', () => {
 
   it('shows error when file type is not allowed', async () => {
     renderChatPage();
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['data'], 'document.docx', { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-    Object.defineProperty(input, 'files', { value: [file], configurable: true });
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    const file = new File(['data'], 'document.docx', {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
+    Object.defineProperty(input, 'files', {
+      value: [file],
+      configurable: true,
+    });
     fireEvent.change(input);
 
     await waitFor(() => {
-      expect(screen.getByText(/Can't attach document.docx/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Can't attach document.docx/)
+      ).toBeInTheDocument();
     });
   });
 
   it('removes chip when the remove button is clicked', async () => {
     renderChatPage();
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['%PDF-1.4'], 'notes.pdf', { type: 'application/pdf' });
-    Object.defineProperty(input, 'files', { value: [file], configurable: true });
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    const file = new File(['%PDF-1.4'], 'notes.pdf', {
+      type: 'application/pdf',
+    });
+    Object.defineProperty(input, 'files', {
+      value: [file],
+      configurable: true,
+    });
     fireEvent.change(input);
 
     await waitFor(() => {
@@ -256,9 +316,16 @@ describe('ChatPage', () => {
     );
 
     renderChatPage();
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['%PDF-1.4'], 'slides.pdf', { type: 'application/pdf' });
-    Object.defineProperty(input, 'files', { value: [file], configurable: true });
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    const file = new File(['%PDF-1.4'], 'slides.pdf', {
+      type: 'application/pdf',
+    });
+    Object.defineProperty(input, 'files', {
+      value: [file],
+      configurable: true,
+    });
     fireEvent.change(input);
 
     await waitFor(() => {
@@ -271,20 +338,26 @@ describe('ChatPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
 
     await waitFor(() => {
-      expect(mockPostMultipart).toHaveBeenCalledWith('/api/chat/message', expect.any(FormData));
+      expect(mockPostMultipart).toHaveBeenCalledWith(
+        '/api/chat/message',
+        expect.any(FormData)
+      );
     });
   });
 
   it('shows 1 message left special copy at limit minus one', async () => {
     mockGet.mockImplementation((url: string) => {
-      if (url === '/api/chat/usage') return Promise.resolve({ used: 19, limit: 20 });
+      if (url === '/api/chat/usage')
+        return Promise.resolve({ used: 19, limit: 20 });
       return Promise.resolve({ conversations: [] });
     });
 
     renderChatPage();
 
     await waitFor(() => {
-      expect(screen.getByText('1 message left this month — your next send uses it')).toBeInTheDocument();
+      expect(
+        screen.getByText('1 message left this month — your next send uses it')
+      ).toBeInTheDocument();
     });
   });
 });
@@ -298,31 +371,45 @@ describe('ChatPage — query-param handling', () => {
   it('pre-fills input with filename from query param when from=upload', async () => {
     renderChatPage('/chat?from=upload&filename=Biology.epub');
     await waitFor(() => {
-      const textarea = screen.getByRole('textbox', { name: 'Message input' }) as HTMLTextAreaElement;
-      expect(textarea.value).toBe('I tried to convert Biology.epub and got stuck. What can I do?');
+      const textarea = screen.getByRole('textbox', {
+        name: 'Message input',
+      }) as HTMLTextAreaElement;
+      expect(textarea.value).toBe(
+        'I tried to convert Biology.epub and got stuck. What can I do?'
+      );
     });
   });
 
   it('falls back to "this file" when filename param is absent', async () => {
     renderChatPage('/chat?from=upload');
     await waitFor(() => {
-      const textarea = screen.getByRole('textbox', { name: 'Message input' }) as HTMLTextAreaElement;
-      expect(textarea.value).toBe('I tried to convert this file and got stuck. What can I do?');
+      const textarea = screen.getByRole('textbox', {
+        name: 'Message input',
+      }) as HTMLTextAreaElement;
+      expect(textarea.value).toBe(
+        'I tried to convert this file and got stuck. What can I do?'
+      );
     });
   });
 
   it('hides starter chips when from=upload', () => {
     renderChatPage('/chat?from=upload&filename=Notes.pdf');
-    expect(screen.queryByText("Make 10 cards from notes I'll paste")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Make cards from a topic')
+    ).not.toBeInTheDocument();
   });
 
   it('shows starter chips when no from param', () => {
     renderChatPage('/chat');
-    expect(screen.getByText("Make 10 cards from notes I'll paste")).toBeInTheDocument();
+    expect(screen.getByText('Make cards from a topic')).toBeInTheDocument();
   });
 
   it('renders the upload empty-state subhead when from=upload', () => {
     renderChatPage('/chat?from=upload');
-    expect(screen.getByText("Tell me what's in your file — I'll help you get cards out of it.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Tell me what's in your file — I'll help you get cards out of it."
+      )
+    ).toBeInTheDocument();
   });
 });

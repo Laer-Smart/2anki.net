@@ -79,9 +79,14 @@ export default function CardPreview({ cards, onSave }: CardPreviewProps) {
         </span>
 
         {saveState === 'idle' && (
-          <button type="button" className={styles.cardPreviewSave} onClick={openNaming}>
+          <button
+            type="button"
+            className={styles.cardPreviewSave}
+            aria-label="Download deck"
+            onClick={openNaming}
+          >
             <DownloadIcon width={13} height={13} />
-            Save as deck
+            Download deck
           </button>
         )}
 
@@ -106,12 +111,18 @@ export default function CardPreview({ cards, onSave }: CardPreviewProps) {
             >
               Save
             </button>
-            <button type="button" className={styles.renameCancel} onClick={cancelNaming}>
+            <button
+              type="button"
+              className={styles.renameCancel}
+              onClick={cancelNaming}
+            >
               Cancel
             </button>
             {showHint && (
               <p className={styles.renameHint}>
-                {cards.length} {cardLabel}. Saves as {sanitizeFilename(deckNameDraft.trim()) || 'Untitled deck'}.apkg once you click Save.
+                {cards.length} {cardLabel}. Saves as{' '}
+                {sanitizeFilename(deckNameDraft.trim()) || 'Untitled deck'}.apkg
+                once you click Save.
               </p>
             )}
           </div>
@@ -120,7 +131,11 @@ export default function CardPreview({ cards, onSave }: CardPreviewProps) {
         {saveState === 'saved' && savedName != null && (
           <div className={styles.savedLine}>
             <span className={styles.savedFile}>Saved as {savedName}.apkg</span>
-            <button type="button" className={styles.savedAgainBtn} onClick={openNaming}>
+            <button
+              type="button"
+              className={styles.savedAgainBtn}
+              onClick={openNaming}
+            >
               Save again
             </button>
           </div>

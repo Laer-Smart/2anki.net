@@ -1,6 +1,7 @@
 .cardPreview {
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-primary);
   border-radius: var(--radius-lg);
   width: 100%;
   overflow: hidden;
@@ -28,19 +29,19 @@
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
+  padding: 0.375rem 0.875rem;
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  color: var(--color-primary);
-  background: var(--color-primary-light);
-  border: 1px solid var(--color-primary);
-  border-radius: var(--radius-md);
+  color: var(--color-bg-primary);
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-full);
   cursor: pointer;
   transition: background var(--transition-fast);
 }
 
 .cardPreviewSave:hover {
-  background: #dbeafe;
+  background: var(--color-primary-hover);
 }
 
 .renameRow {
