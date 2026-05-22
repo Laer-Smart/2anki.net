@@ -201,13 +201,14 @@ export function MindmapNode({ data, selected }: NodeProps) {
             fontSize: 'var(--text-sm)',
             width: '100%',
             height: '100%',
-            minWidth: '80px',
             color: 'var(--color-text-primary)',
             fontFamily: 'inherit',
+            lineHeight: 1.4,
             resize: 'none',
             padding: 0,
             margin: 0,
             overflow: 'auto',
+            boxSizing: 'border-box',
           }}
         />
       ) : (
@@ -219,6 +220,7 @@ export function MindmapNode({ data, selected }: NodeProps) {
             height: '100%',
             overflow: 'auto',
             lineHeight: 1.4,
+            boxSizing: 'border-box',
           }}
         >
           <Markdown>{nodeData.label}</Markdown>
