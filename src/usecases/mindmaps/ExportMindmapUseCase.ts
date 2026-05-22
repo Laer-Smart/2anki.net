@@ -7,6 +7,7 @@ import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import { MindmapsId } from '../../data_layer/public/Mindmaps';
 import { UsersId } from '../../data_layer/public/Users';
 import { mindmapToNotes } from './mindmapToNotes';
+import { mindmapToClozeNotes } from './mindmapToClozeNotes';
 import { MindmapData } from './MindmapData';
 import CustomExporter from '../../lib/parser/exporters/CustomExporter';
 
@@ -17,10 +18,13 @@ export class MindmapNotFoundError extends Error {
   }
 }
 
+export type MindmapCardType = 'basic' | 'cloze';
+
 interface ExportInput {
   id: MindmapsId;
   userId: UsersId;
   deckName?: string;
+  cardType?: MindmapCardType;
 }
 
 function randomDeckId(): number {
@@ -32,14 +36,17 @@ export class ExportMindmapUseCase {
   constructor(private readonly repo: MindmapRepositoryInterface) {}
 
   async execute(input: ExportInput): Promise<Buffer> {
-    const { id, userId, deckName } = input;
+    const { id, userId, deckName, cardType = 'cloze' } = input;
     const map = await this.repo.findById(id, userId);
     if (map == null) {
       throw new MindmapNotFoundError();
     }
 
     const resolvedDeckName = deckName ?? map.title;
-    const notes = mindmapToNotes(map.data as MindmapData);
+    const notes =
+      cardType === 'basic'
+        ? mindmapToNotes(map.data as MindmapData)
+        : mindmapToClozeNotes(map.data as MindmapData);
 
     const workspaceDir = path.join(os.tmpdir(), `mindmap-export-${randomUUID()}`);
     fs.mkdirSync(workspaceDir, { recursive: true });

@@ -141,22 +141,23 @@ describe('MindmapRouter', () => {
   });
 
   describe('POST /api/mindmaps/:id/export', () => {
+    const baseMap = {
+      id: 'export-id',
+      user_id: 42,
+      title: 'Test deck',
+      data: {
+        nodes: [
+          { id: '1', label: 'Parent' },
+          { id: '2', label: 'Child' },
+        ],
+        edges: [{ source: '1', target: '2' }],
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
     it('returns application/octet-stream', async () => {
-      const map = {
-        id: 'export-id',
-        user_id: 42,
-        title: 'Test deck',
-        data: {
-          nodes: [
-            { id: '1', label: 'Parent' },
-            { id: '2', label: 'Child' },
-          ],
-          edges: [{ source: '1', target: '2' }],
-        },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      mockGetById.mockResolvedValue(map);
+      mockGetById.mockResolvedValue(baseMap);
 
       const res = await fetch(`${url}/api/mindmaps/export-id/export`, {
         method: 'POST',
@@ -166,6 +167,43 @@ describe('MindmapRouter', () => {
 
       expect(res.status).toBe(200);
       expect(res.headers.get('content-type')).toContain('application/octet-stream');
+    });
+
+    it('defaults to cloze card type when card_type is omitted', async () => {
+      mockGetById.mockResolvedValue(baseMap);
+
+      const res = await fetch(`${url}/api/mindmaps/export-id/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deck_name: 'Test deck' }),
+      });
+
+      expect(res.status).toBe(200);
+    });
+
+    it('accepts card_type basic and returns a deck', async () => {
+      mockGetById.mockResolvedValue(baseMap);
+
+      const res = await fetch(`${url}/api/mindmaps/export-id/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deck_name: 'Test deck', card_type: 'basic' }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toContain('application/octet-stream');
+    });
+
+    it('treats unknown card_type as cloze', async () => {
+      mockGetById.mockResolvedValue(baseMap);
+
+      const res = await fetch(`${url}/api/mindmaps/export-id/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deck_name: 'Test deck', card_type: 'unknown' }),
+      });
+
+      expect(res.status).toBe(200);
     });
   });
 });

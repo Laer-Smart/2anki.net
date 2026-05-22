@@ -7,6 +7,7 @@ import { ListMindmapsUseCase } from '../usecases/mindmaps/ListMindmapsUseCase';
 import { GetMindmapUseCase } from '../usecases/mindmaps/GetMindmapUseCase';
 import {
   ExportMindmapUseCase,
+  MindmapCardType,
   MindmapNotFoundError,
 } from '../usecases/mindmaps/ExportMindmapUseCase';
 import { MindmapsId } from '../data_layer/public/Mindmaps';
@@ -134,9 +135,11 @@ export class MindmapController {
       req.body.deck_name.trim().length > 0
         ? req.body.deck_name.trim()
         : undefined;
+    const cardType: MindmapCardType =
+      req.body?.card_type === 'basic' ? 'basic' : 'cloze';
 
     try {
-      const buffer = await this.exportUseCase.execute({ id, userId, deckName });
+      const buffer = await this.exportUseCase.execute({ id, userId, deckName, cardType });
       const fileName = `${(deckName ?? id).replace(/[^a-zA-Z0-9._-]/g, '_')}.apkg`;
       res.setHeader('Content-Type', 'application/octet-stream');
       res.setHeader(
