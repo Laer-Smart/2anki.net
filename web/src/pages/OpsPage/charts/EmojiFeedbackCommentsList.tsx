@@ -2,10 +2,8 @@ import { EmojiFeedbackCommentPoint } from '../businessTypes';
 import styles from '../OpsPage.module.css';
 
 const EMOJI_LABELS: Record<number, string> = {
-  1: '\u{1F620}',
-  2: '\u{1F615}',
-  3: '\u{1F610}',
-  4: '\u{1F642}',
+  1: '\u{1F621}',
+  2: '\u{1F928}',
   5: '\u{1F60D}',
 };
 
