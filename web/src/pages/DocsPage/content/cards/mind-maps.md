@@ -3,7 +3,7 @@ title: Mind maps
 description: Build a tree in your browser and download it as an Anki deck.
 ---
 
-The mind map editor at [2anki.net/mindmaps](https://2anki.net/mindmaps) lets you sketch a hierarchy in your browser — topics, sub-topics, nested concepts — and export it as a `.apkg` deck. Each edge in the map becomes one flashcard: the parent node is the front, the child node is the back.
+The mind map editor at [2anki.net/mindmaps](https://2anki.net/mindmaps) lets you sketch a hierarchy in your browser — topics, sub-topics, nested concepts — and export it as a `.apkg` deck. The export modal lets you choose between two card types before downloading.
 
 **Plan:** Free accounts can have 3 saved maps and 50 nodes per map. Auto-Sync ($30/mo) and Patreon lifetime give unlimited maps and nodes.
 
@@ -27,6 +27,27 @@ The mind map editor at [2anki.net/mindmaps](https://2anki.net/mindmaps) lets you
 
 ## How cards are generated
 
+The export modal offers two card types. **Cloze** is the default.
+
+### Cloze (default)
+
+Each root-to-leaf path becomes one cloze card. Every node along the path — except the final leaf — is wrapped in a cloze deletion. The leaf is the context anchor that ties the path together.
+
+A map with root **Science → Biology → Genetics** produces one card:
+```
+{{c1::Science}} → {{c2::Biology}} → Genetics
+```
+
+A star map — **Anatomy → Bone** and **Anatomy → Muscle** — produces two cards:
+```
+{{c1::Anatomy}} → Bone
+{{c1::Anatomy}} → Muscle
+```
+
+The card count shown in the modal equals the number of leaf nodes (nodes with no children).
+
+### Basic
+
 Each **edge** (parent → child connection) becomes one Basic card: the parent label is the front, the child label is the back.
 
 A simple star map — one root with three children — produces three cards:
@@ -34,7 +55,9 @@ A simple star map — one root with three children — produces three cards:
 - Root → Child B
 - Root → Child C
 
-A deeper tree produces one card per connection. Nodes with no edges (isolated nodes) do not produce cards.
+A deeper tree produces one card per connection. The card count shown equals the number of edges.
+
+Nodes with no edges (isolated nodes) produce no cards in either mode.
 
 ## Free-tier limits
 

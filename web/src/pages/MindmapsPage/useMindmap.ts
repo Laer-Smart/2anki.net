@@ -87,12 +87,18 @@ export function useDeleteMindmap() {
   });
 }
 
-export async function exportMindmap(id: string, deckName: string): Promise<Blob> {
+export type MindmapCardType = 'basic' | 'cloze';
+
+export async function exportMindmap(
+  id: string,
+  deckName: string,
+  cardType: MindmapCardType = 'cloze'
+): Promise<Blob> {
   const response = await fetch(`/api/mindmaps/${id}/export`, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ deck_name: deckName }),
+    body: JSON.stringify({ deck_name: deckName, card_type: cardType }),
   });
   if (!response.ok) {
     throw new Error(`Export failed: ${response.statusText}`);

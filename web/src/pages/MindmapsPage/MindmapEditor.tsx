@@ -13,7 +13,7 @@ import {
 import dagre from 'dagre';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useMindmapById, useUpdateMindmap, exportMindmap } from './useMindmap';
+import { useMindmapById, useUpdateMindmap, exportMindmap, type MindmapCardType } from './useMindmap';
 import type { MindmapData } from './useMindmap';
 import styles from '../../styles/shared.module.css';
 
@@ -45,14 +45,17 @@ function layoutGraph(nodes: Node[], edges: Edge[]): Node[] {
 
 interface ExportModalProps {
   defaultName: string;
-  cardCount: number;
-  onExport: (deckName: string) => void;
+  basicCardCount: number;
+  clozeCardCount: number;
+  onExport: (deckName: string, cardType: MindmapCardType) => void;
   onClose: () => void;
   exporting: boolean;
 }
 
-function ExportModal({ defaultName, cardCount, onExport, onClose, exporting }: Readonly<ExportModalProps>) {
+function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, onClose, exporting }: Readonly<ExportModalProps>) {
   const [deckName, setDeckName] = useState(defaultName);
+  const [cardType, setCardType] = useState<MindmapCardType>('cloze');
+  const cardCount = cardType === 'basic' ? basicCardCount : clozeCardCount;
 
   return (
     <div
@@ -100,6 +103,44 @@ function ExportModal({ defaultName, cardCount, onExport, onClose, exporting }: R
             boxSizing: 'border-box',
           }}
         />
+        <fieldset
+          style={{
+            border: 'none',
+            padding: 0,
+            margin: '0 0 0.75rem',
+          }}
+        >
+          <legend
+            style={{
+              fontSize: 'var(--text-sm)',
+              color: 'var(--color-text-secondary)',
+              marginBottom: '0.5rem',
+              padding: 0,
+            }}
+          >
+            Card type
+          </legend>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+            <input
+              type="radio"
+              name="card-type"
+              value="cloze"
+              checked={cardType === 'cloze'}
+              onChange={() => setCardType('cloze')}
+            />
+            Cloze — one card per path, each node clozed in sequence
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+            <input
+              type="radio"
+              name="card-type"
+              value="basic"
+              checked={cardType === 'basic'}
+              onChange={() => setCardType('basic')}
+            />
+            Basic — one card per edge (parent → child)
+          </label>
+        </fieldset>
         <p
           style={{
             fontSize: 'var(--text-sm)',
@@ -117,7 +158,7 @@ function ExportModal({ defaultName, cardCount, onExport, onClose, exporting }: R
           <button
             type="button"
             disabled={exporting || deckName.trim().length === 0}
-            onClick={() => onExport(deckName.trim())}
+            onClick={() => onExport(deckName.trim(), cardType)}
             className={`${styles.btnPrimary} ${styles.btnInline}`}
           >
             Download deck
@@ -378,13 +419,18 @@ export function MindmapEditor() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   });
 
-  const cardCount = edges.length;
+  const basicCardCount = edges.length;
+  const leafNodeIds = new Set(nodes.map((n) => n.id));
+  for (const edge of edges) {
+    leafNodeIds.delete(edge.source);
+  }
+  const clozeCardCount = leafNodeIds.size;
 
-  async function handleExport(deckName: string) {
+  async function handleExport(deckName: string, cardType: MindmapCardType) {
     if (id == null) return;
     setExporting(true);
     try {
-      const blob = await exportMindmap(id, deckName);
+      const blob = await exportMindmap(id, deckName, cardType);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -493,7 +539,8 @@ export function MindmapEditor() {
       {showExport && (
         <ExportModal
           defaultName={map?.title ?? 'My deck'}
-          cardCount={cardCount}
+          basicCardCount={basicCardCount}
+          clozeCardCount={clozeCardCount}
           onExport={handleExport}
           onClose={() => setShowExport(false)}
           exporting={exporting}
