@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 
 import NotionSubscriptions from './NotionSubscriptions';
 import { Backend } from '../../../lib/backend/Backend';
@@ -51,9 +52,11 @@ const renderSubs = (
     defaultOptions: { queries: { retry: false } },
   });
   return render(
-    <QueryClientProvider client={queryClient}>
-      <NotionSubscriptions backend={backend} schedule={schedule} />
-    </QueryClientProvider>
+    <MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <NotionSubscriptions backend={backend} schedule={schedule} />
+      </QueryClientProvider>
+    </MemoryRouter>
   );
 };
 
@@ -493,5 +496,93 @@ describe('NotionSubscriptions sync copy', () => {
       ).toBeInTheDocument()
     );
     expect(screen.queryByText(/next export at/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('NotionSubscriptions subscribe error mapping', () => {
+  const makeSubscribeError = (message: string, status?: number) =>
+    Object.assign(new Error(message), { status });
+
+  it.each([
+    [401, 'Unauthorized', "Auto Sync isn't active on this account.", 'Manage subscription'],
+    [403, 'Forbidden', "Auto Sync isn't active on this account.", 'Manage subscription'],
+  ])('status %d → paywall copy with manage link', async (status, message, expectedText, expectedLink) => {
+    const backend = makeBackend({
+      subscribeAnkifyNotionPage: vi.fn(async () => {
+        throw makeSubscribeError(message, status);
+      }),
+    });
+    renderSubs(backend);
+
+    const input = await screen.findByPlaceholderText(/https:\/\/www\.notion\.so/i);
+    fireEvent.change(input, { target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) } });
+    fireEvent.submit(input.closest('form')!);
+
+    expect(await screen.findByText(expectedText)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: expectedLink })).toBeInTheDocument();
+  });
+
+  it('409 NotionNotConnected → Notion connect copy with link', async () => {
+    const backend = makeBackend({
+      subscribeAnkifyNotionPage: vi.fn(async () => {
+        throw makeSubscribeError('Notion is not connected', 409);
+      }),
+    });
+    renderSubs(backend);
+
+    const input = await screen.findByPlaceholderText(/https:\/\/www\.notion\.so/i);
+    fireEvent.change(input, { target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) } });
+    fireEvent.submit(input.closest('form')!);
+
+    expect(await screen.findByText("Notion isn't connected to 2anki.")).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Connect Notion' })).toBeInTheDocument();
+  });
+
+  it('409 NoActiveAnkifyClient → set up Anki copy with link', async () => {
+    const backend = makeBackend({
+      subscribeAnkifyNotionPage: vi.fn(async () => {
+        throw makeSubscribeError('No active Ankify client. Provision one before subscribing.', 409);
+      }),
+    });
+    renderSubs(backend);
+
+    const input = await screen.findByPlaceholderText(/https:\/\/www\.notion\.so/i);
+    fireEvent.change(input, { target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) } });
+    fireEvent.submit(input.closest('form')!);
+
+    expect(await screen.findByText("Your hosted Anki isn't set up yet.")).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Set up Anki' })).toBeInTheDocument();
+  });
+
+  it('503 → AnkiConnect unreachable copy (no link)', async () => {
+    const backend = makeBackend({
+      subscribeAnkifyNotionPage: vi.fn(async () => {
+        throw makeSubscribeError('AnkiConnect is unreachable.', 503);
+      }),
+    });
+    renderSubs(backend);
+
+    const input = await screen.findByPlaceholderText(/https:\/\/www\.notion\.so/i);
+    fireEvent.change(input, { target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) } });
+    fireEvent.submit(input.closest('form')!);
+
+    expect(await screen.findByText("Anki isn't responding right now. Try again in a moment.")).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('unknown error → fallback copy (no link)', async () => {
+    const backend = makeBackend({
+      subscribeAnkifyNotionPage: vi.fn(async () => {
+        throw makeSubscribeError('network failure');
+      }),
+    });
+    renderSubs(backend);
+
+    const input = await screen.findByPlaceholderText(/https:\/\/www\.notion\.so/i);
+    fireEvent.change(input, { target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) } });
+    fireEvent.submit(input.closest('form')!);
+
+    expect(await screen.findByText('Something broke on our end. Try again, or email support@2anki.net.')).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 });

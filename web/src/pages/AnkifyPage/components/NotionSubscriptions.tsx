@@ -1,5 +1,6 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 
 import sharedStyles from '../../../styles/shared.module.css';
@@ -9,6 +10,7 @@ import { Backend } from '../../../lib/backend/Backend';
 import NotionPagePicker from './NotionPagePicker';
 import DotsHorizontal from '../../../components/icons/DotsHorizontal';
 import { BlockIcon } from '../../SearchPage/components/BlockIcon';
+import { mapSubscribeError } from './mapSubscribeError';
 
 const formatRelativeTime = (iso: string | null | undefined): string | null => {
   if (iso == null || iso.length === 0) return null;
@@ -409,11 +411,20 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
             subscribedLabel="Already a deck"
           />
 
-          {subscribe.isError && (
-            <p role="alert" className={sharedStyles.helpDanger}>
-              {(subscribe.error as Error).message}
-            </p>
-          )}
+          {subscribe.isError && (() => {
+            const mapped = mapSubscribeError(subscribe.error as Error & { status?: number });
+            return (
+              <p role="alert" className={sharedStyles.helpDanger}>
+                {mapped.text}
+                {mapped.link != null && (
+                  <>
+                    {' '}
+                    <Link to={mapped.link.href}>{mapped.link.label}</Link>
+                  </>
+                )}
+              </p>
+            );
+          })()}
           {subscribe.isSuccess && (
             <>
               <p className={sharedStyles.helpSuccess}>

@@ -256,20 +256,17 @@ export default function AnkifySetupPage({ backend }: Props) {
           </button>
         </div>
       )}
-      {provision.error && (
-        <div className={styles.provisionErrorBlock} role="alert">
-          <p className={styles.provisionErrorTitle}>
-            Couldn't start your Anki.
-          </p>
-          <p className={styles.provisionErrorBody}>
-            {(provision.error as Error).message}
-          </p>
-          <p className={styles.provisionErrorHint}>
-            Try again — most starts work on the second go. If it keeps failing,
-            email support@2anki.net.
-          </p>
-        </div>
-      )}
+      {provision.error && (() => {
+        const err = provision.error as Error & { status?: number };
+        const body = err.status === 503
+          ? 'Anki couldn\'t start — usually a temporary infra issue. Try again in a moment. If it keeps failing, email support@2anki.net.'
+          : 'Anki couldn\'t start. Try again, or email support@2anki.net.';
+        return (
+          <div className={styles.provisionErrorBlock} role="alert">
+            <p className={styles.provisionErrorBody}>{body}</p>
+          </div>
+        );
+      })()}
     </section>
   );
 
@@ -304,7 +301,7 @@ export default function AnkifySetupPage({ backend }: Props) {
               role="alert"
               aria-live="polite"
             >
-              {(respin.error as Error).message}
+              Anki couldn&apos;t restart. Try again, or email support@2anki.net.
             </p>
           )}
         </>
@@ -384,8 +381,7 @@ export default function AnkifySetupPage({ backend }: Props) {
             role="alert"
             className={`${sharedStyles.alertDanger} ${styles.signInAlert}`}
           >
-            Couldn't check your sign-in.{' '}
-            {(verifySignIn.error as Error).message}
+            Couldn&apos;t check your sign-in. Try again in a moment.
           </div>
         )}
         {!verifySignIn.isSuccess && !verifySignIn.isError && (
@@ -409,7 +405,7 @@ export default function AnkifySetupPage({ backend }: Props) {
             role="alert"
             className={`${sharedStyles.alertDanger} ${styles.signInAlert}`}
           >
-            Couldn't restart Anki. {(respin.error as Error).message}
+            Couldn&apos;t restart Anki. Try again, or email support@2anki.net.
           </div>
         )}
       </section>
