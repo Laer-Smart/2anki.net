@@ -520,10 +520,14 @@ export class Backend {
   async provisionAnkifyClient(): Promise<AnkifyClient> {
     const response = await post(`${this.baseURL}ankify/clients`, {});
     if (!response.ok) {
-      const error = await response
+      const body = await response
         .json()
         .catch(() => ({ message: response.statusText }));
-      throw new Error(error.message ?? 'Failed to provision client');
+      const error = new Error(
+        body.message ?? 'Failed to provision client'
+      ) as Error & { status?: number };
+      error.status = response.status;
+      throw error;
     }
     return response.json();
   }
@@ -641,10 +645,14 @@ export class Backend {
       notion_page_icon: input.notionPageIcon,
     });
     if (!response.ok) {
-      const error = await response
+      const body = await response
         .json()
         .catch(() => ({ message: response.statusText }));
-      throw new Error(error.message ?? 'Failed to subscribe page');
+      const error = new Error(
+        body.message ?? 'Failed to subscribe page'
+      ) as Error & { status?: number };
+      error.status = response.status;
+      throw error;
     }
     return response.json();
   }
