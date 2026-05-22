@@ -7,6 +7,7 @@ import ApkgToNotionBlocksService, {
 import NotionAPIWrapper from '../../services/NotionService/NotionAPIWrapper';
 import JobRepository from '../../data_layer/JobRepository';
 import { BlockObjectRequest } from '@notionhq/client/build/src/api-endpoints';
+import { APIErrorCode, APIResponseError } from '@notionhq/client';
 
 const BATCH_SIZE = 50;
 const THROTTLE_MS = 350;
@@ -28,6 +29,43 @@ const MIME_TYPES: Record<string, string> = {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const SQLITE_ERROR_CODES = new Set(['SQLITE_NOTADB', 'SQLITE_CORRUPT', 'SQLITE_CANTOPEN']);
+
+function resolveFailureMessage(error: unknown): string {
+  if (error instanceof NoteTooLargeError) {
+    return error.message;
+  }
+  if (error instanceof Error && error.message.includes('Upgrade')) {
+    return error.message;
+  }
+  if (error instanceof APIResponseError) {
+    if (error.code === APIErrorCode.Unauthorized) {
+      return 'Notion sign-in expired. Reconnect Notion and try again.';
+    }
+    if (error.code === APIErrorCode.RestrictedResource) {
+      return "2anki can't write to this Notion page. Share it with the 2anki integration.";
+    }
+    if (error.code === APIErrorCode.ObjectNotFound) {
+      return 'The Notion page is gone. Pick a different destination page.';
+    }
+    if (error.code === APIErrorCode.RateLimited) {
+      return 'Notion is rate-limiting this account. Try again in a minute.';
+    }
+    if (
+      error.code === APIErrorCode.InternalServerError ||
+      error.code === APIErrorCode.ServiceUnavailable ||
+      error.code === APIErrorCode.GatewayTimeout
+    ) {
+      return 'Notion is having issues. Try again in a few minutes.';
+    }
+  }
+  const errorCode = (error as { code?: string })?.code;
+  if (typeof errorCode === 'string' && SQLITE_ERROR_CODES.has(errorCode)) {
+    return "Couldn't read this .apkg file. Export it again from Anki.";
+  }
+  return 'Import failed. Please try again or contact support.';
 }
 
 export default class ImportApkgToNotionUseCase {
@@ -115,14 +153,8 @@ export default class ImportApkgToNotionUseCase {
       );
     } catch (error) {
       console.error(`[apkg-import] job=${jobId} failed:`, error);
-      const isUserFacing =
-        error instanceof NoteTooLargeError ||
-        (error instanceof Error && error.message.includes('Upgrade'));
-      const message = isUserFacing
-        ? (error as Error).message
-        : 'Import failed. Please try again or contact support.';
       await this.jobRepository
-        .updateJobStatus(jobId, owner, 'failed', message)
+        .updateJobStatus(jobId, owner, 'failed', resolveFailureMessage(error))
         .catch(() => {});
     }
   }
