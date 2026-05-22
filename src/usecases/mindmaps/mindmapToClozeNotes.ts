@@ -33,12 +33,33 @@ function collectPaths(
   return children.flatMap((childId) => collectPaths(childId, childMap, path));
 }
 
-export function mindmapToClozeNotes(data: MindmapData): Note[] {
+function nodeLabel(
+  id: string,
+  labelMap: Map<string, string>,
+  imageUrlMap: Map<string, string | undefined>,
+  filenameMap: Record<string, string>
+): string {
+  const label = labelMap.get(id) ?? id;
+  const imageUrl = imageUrlMap.get(id);
+  if (imageUrl == null) return label;
+  const filename = imageUrl.split('/').pop() ?? '';
+  const mapped = filenameMap[filename];
+  if (mapped == null) return label;
+  return `<img src="${mapped}" alt="${label}" style="max-width:100%;height:auto;">${label.length > 0 ? `<br>${label}` : ''}`;
+}
+
+export function mindmapToClozeNotes(
+  data: MindmapData,
+  filenameMap: Record<string, string> = {}
+): Note[] {
   if (data.nodes.length === 0 || data.edges.length === 0) {
     return [];
   }
 
-  const nodeMap = new Map<string, string>(data.nodes.map((n) => [n.id, n.label]));
+  const labelMap = new Map<string, string>(data.nodes.map((n) => [n.id, n.label]));
+  const imageUrlMap = new Map<string, string | undefined>(
+    data.nodes.map((n) => [n.id, n.image?.url])
+  );
   const childMap = buildChildMap(data);
   const roots = findRoots(data);
 
@@ -47,7 +68,7 @@ export function mindmapToClozeNotes(data: MindmapData): Note[] {
 
   return leafPaths.map((path) => {
     const parts = path.map((id, index) => {
-      const label = nodeMap.get(id) ?? id;
+      const label = nodeLabel(id, labelMap, imageUrlMap, filenameMap);
       const isLeaf = index === path.length - 1;
       return isLeaf ? label : `{{c${index + 1}::${label}}}`;
     });
