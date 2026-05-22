@@ -18,14 +18,14 @@
 .messageBubbleUser {
   background: var(--color-bg-secondary);
   color: var(--color-text-primary);
-  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
   padding: 0.625rem 1rem;
   font-size: var(--text-sm);
   line-height: var(--leading-relaxed);
   font-weight: 400;
   white-space: pre-wrap;
   word-break: break-word;
-  border: none;
 }
 
 @media (max-width: 600px) {
@@ -52,7 +52,7 @@
   right: 0;
   bottom: 0;
   height: 3.5rem;
-  border-radius: 0 0 var(--radius-full) var(--radius-full);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   background: linear-gradient(
     to bottom,
     transparent 0%,

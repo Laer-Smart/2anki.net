@@ -70,7 +70,7 @@ describe('MessageBubble — assistant role', () => {
     expect(screen.queryByText('Claude')).not.toBeInTheDocument();
   });
 
-  it('does not have a bubble background class on the prose container', () => {
+  it('does not use the user pill class on the assistant container', () => {
     render(
       <MessageBubble
         message={{ role: 'assistant', content: 'A response' }}
@@ -78,7 +78,19 @@ describe('MessageBubble — assistant role', () => {
         onToggleExpand={vi.fn()}
       />
     );
-    const bubble = document.querySelector('[class*="messageBubbleUser"]');
-    expect(bubble).toBeNull();
+    const userPill = document.querySelector('[class*="messageBubbleUser"]');
+    expect(userPill).toBeNull();
+  });
+
+  it('renders the assistant container with the messageAssistant bubble class', () => {
+    render(
+      <MessageBubble
+        message={{ role: 'assistant', content: 'A response' }}
+        expanded={false}
+        onToggleExpand={vi.fn()}
+      />
+    );
+    const container = document.querySelector('[class*="messageAssistant"]');
+    expect(container).not.toBeNull();
   });
 });
