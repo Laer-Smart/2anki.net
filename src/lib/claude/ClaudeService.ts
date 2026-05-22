@@ -121,6 +121,14 @@ export interface CardInfo {
   media: string[];
 }
 
+export function normalizeTag(raw: string): string {
+  return raw
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '')
+    .slice(0, 32);
+}
+
 function resolveMediaPath(claudePath: string, availableMediaFiles: string[]): string {
   const normalized = claudePath.replaceAll('\\', '/');
   if (availableMediaFiles.includes(normalized)) return normalized;
@@ -213,7 +221,7 @@ function expandCompactDeckInfo(compact: CompactDeck[], availableMediaFiles: stri
       return {
         name: stripPathsFromCardHtml(c.q),
         back: rewrittenBack,
-        tags: c.tags ?? [],
+        tags: (c.tags ?? []).map(normalizeTag).filter((t) => t.length > 0),
         cloze: c.cloze ?? false,
         number: 0,
         enableInput: false,

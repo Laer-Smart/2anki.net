@@ -4,7 +4,7 @@ import os, { homedir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
 
-import { getAnthropicClient } from '../../lib/claude/ClaudeService';
+import { getAnthropicClient, normalizeTag } from '../../lib/claude/ClaudeService';
 import { countVisionTokens, VISION_TOKEN_CEILING, VisionMediaType } from '../../lib/claude/countVisionTokens';
 import { CREATE_DECK_DIR, CREATE_DECK_SCRIPT_PATH, TEMPLATE_DIR } from '../../lib/constants';
 import { track } from '../../services/events/track';
@@ -39,16 +39,17 @@ function startOfMonth(now: Date = new Date()): Date {
   return new Date(now.getFullYear(), now.getMonth(), 1);
 }
 
-const VISION_PROMPT = `Extract atomic question-and-answer flashcard pairs from this image.
+export const VISION_PROMPT = `Extract atomic question-and-answer flashcard pairs from this image.
 
 Output ONLY a compact JSON array. Format (nothing else — no markdown, no explanation):
-[{"deck":"Deck Name","cards":[{"q":"front text","a":"back text"}]}]
+[{"deck":"Deck Name","cards":[{"q":"front text","a":"back text","tags":["topic_tag"]}]}]
 
 Rules:
 - Each card tests one atomic fact
 - Q is the question or term, A is the answer or definition
 - Preserve important formatting but keep cards concise
-- Use the image content as the deck name if no other name is obvious`;
+- Use the image content as the deck name if no other name is obvious
+- Add 1–3 topic tags per card in the "tags" field: short, lowercase, snake_case, drawn from the actual content (e.g. "enzymes", "michaelis_menten") — not broad labels like "biology" or "chapter_4"`;
 
 const INPUT_COST_PER_MILLION = 3;
 const OUTPUT_COST_PER_MILLION = 15;
@@ -176,7 +177,7 @@ function buildDeckInfo(
     d.cards.map((c, i) => ({
       name: c.q,
       back: c.a,
-      tags: c.tags ?? [],
+      tags: (c.tags ?? []).map(normalizeTag).filter((t) => t.length > 0),
       cloze: c.cloze ?? false,
       number: i,
       enableInput: false,
