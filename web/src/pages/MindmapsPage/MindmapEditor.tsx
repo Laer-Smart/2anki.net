@@ -64,7 +64,12 @@ interface ExportModalProps {
 function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, onClose, exporting }: Readonly<ExportModalProps>) {
   const [deckName, setDeckName] = useState(defaultName);
   const [cardType, setCardType] = useState<MindmapCardType>('cloze');
-  const cardCount = cardType === 'basic' ? basicCardCount : clozeCardCount;
+
+  function cardCountLabel(): string {
+    if (cardType === 'markmap') return '1 card';
+    const count = cardType === 'basic' ? basicCardCount : clozeCardCount;
+    return `${count} ${count === 1 ? 'card' : 'cards'}`;
+  }
 
   return (
     <div
@@ -139,7 +144,7 @@ function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, on
             />
             Cloze — one card per path, each node clozed in sequence
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
             <input
               type="radio"
               name="card-type"
@@ -148,6 +153,16 @@ function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, on
               onChange={() => setCardType('basic')}
             />
             Basic — one card per edge (parent → child)
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+            <input
+              type="radio"
+              name="card-type"
+              value="markmap"
+              checked={cardType === 'markmap'}
+              onChange={() => setCardType('markmap')}
+            />
+            Whole map — entire tree as one interactive card
           </label>
         </fieldset>
         <p
@@ -158,7 +173,7 @@ function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, on
             fontVariantNumeric: 'tabular-nums',
           }}
         >
-          {cardCount} {cardCount === 1 ? 'card' : 'cards'}
+          {cardCountLabel()}
         </p>
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
           <button type="button" onClick={onClose} className={styles.btnSecondary}>

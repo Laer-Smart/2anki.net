@@ -87,7 +87,7 @@ export function useDeleteMindmap() {
   });
 }
 
-export type MindmapCardType = 'basic' | 'cloze';
+export type MindmapCardType = 'basic' | 'cloze' | 'markmap';
 
 export async function exportMindmap(
   id: string,
