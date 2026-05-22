@@ -188,6 +188,7 @@ export function MindmapNode({ data, selected }: NodeProps) {
         isVisible={selected === true && nodeData.editing !== true}
         minWidth={120}
         minHeight={36}
+        keepAspectRatio={nodeData.image != null}
         onResizeEnd={(_e, params) => nodeData.onResizeEnd?.(params.width, params.height)}
         lineStyle={{ border: '1px dashed var(--color-primary)' }}
         handleStyle={{ width: 8, height: 8, borderRadius: 2, background: 'var(--color-primary)' }}
