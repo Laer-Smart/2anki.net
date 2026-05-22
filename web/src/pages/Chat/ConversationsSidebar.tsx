@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './ConversationsSidebar.module.css';
 
 export interface ConversationSummary {
@@ -27,7 +27,10 @@ function formatRelativeTime(iso: string): string {
   if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d`;
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 export default function ConversationsSidebar({
@@ -47,7 +50,10 @@ export default function ConversationsSidebar({
   useEffect(() => {
     if (menuOpenFor == null) return;
     function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current != null && !menuRef.current.contains(e.target as Node)) {
+      if (
+        menuRef.current != null &&
+        !menuRef.current.contains(e.target as Node)
+      ) {
         setMenuOpenFor(null);
       }
     }
@@ -84,11 +90,7 @@ export default function ConversationsSidebar({
 
   return (
     <aside className={styles.sidebar} aria-label="Conversations">
-      <button
-        type="button"
-        className={styles.newChatBtn}
-        onClick={onNew}
-      >
+      <button type="button" className={styles.newChatBtn} onClick={onNew}>
         New chat
       </button>
 
@@ -131,12 +133,17 @@ export default function ConversationsSidebar({
                     title={c.title}
                   >
                     <span className={styles.itemTitle}>{c.title}</span>
-                    <span className={styles.itemMeta}>{formatRelativeTime(c.updatedAt)}</span>
+                    <span className={styles.itemMeta}>
+                      {formatRelativeTime(c.updatedAt)}
+                    </span>
                   </button>
                 )}
 
                 {!isRenaming && (
-                  <div className={styles.menuWrapper} ref={menuOpenFor === c.id ? menuRef : undefined}>
+                  <div
+                    className={styles.menuWrapper}
+                    ref={menuOpenFor === c.id ? menuRef : undefined}
+                  >
                     <button
                       type="button"
                       className={styles.menuTrigger}

@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { get, patch, post, postMultipart } from '../../lib/backend/api';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
-import { get, post, postMultipart, patch } from '../../lib/backend/api';
 import ConsentModal from '../ConsentModal/ConsentModal';
-import SendIcon from '../icons/SendIcon';
-import AssistantMarkdown from '../../pages/Chat/AssistantMarkdown';
-import CardPreview from '../../pages/Chat/CardPreview';
 import styles from './ChatPanel.module.css';
+import ComposerArea from './ComposerArea';
+import MessageBubble from './MessageBubble';
+import StreamingBubble from './StreamingBubble';
 
 export interface ChatCard {
   front: string;
@@ -29,7 +29,11 @@ interface ApiDonePayload {
 }
 
 interface ApiErrorPayload {
-  type: 'rate_limit' | 'server_error' | 'conversation_not_found' | 'consent_required';
+  type:
+    | 'rate_limit'
+    | 'server_error'
+    | 'conversation_not_found'
+    | 'consent_required';
   resetDate?: string;
 }
 
@@ -73,22 +77,33 @@ const MAX_FILE_COUNT = 5;
 
 const FREE_MONTHLY_LIMIT = 20;
 
+const STARTER_CHIPS = [
+  { label: 'Make cards from a topic', prefill: 'Help me make cards from ' },
+  { label: 'Explain this concept', prefill: 'Explain ' },
+  { label: 'Quiz me', prefill: 'Quiz me on ' },
+] as const;
+
 function formatResetDate(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
+    return new Date(iso).toLocaleDateString(undefined, {
+      month: 'long',
+      day: 'numeric',
+    });
   } catch {
     return iso;
   }
 }
 
-function visibleStreamingText(text: string): string {
-  const fenceIndex = text.search(/(?:^|\n)```json/);
-  if (fenceIndex !== -1) return text.slice(0, fenceIndex);
-  const rawArrayIndex = text.search(/(?:^|\n)\s*\[\s*\{/);
-  return rawArrayIndex === -1 ? text : text.slice(0, rawArrayIndex);
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024 * 1024) {
+    return `${Math.round(bytes / 1024)} KB`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function parseSseEvent(rawEvent: string): { eventType: string; data: string } | null {
+export function parseSseEvent(
+  rawEvent: string
+): { eventType: string; data: string } | null {
   if (!rawEvent.trim()) return null;
   let eventType = '';
   let data = '';
@@ -103,7 +118,10 @@ export function parseSseEvent(rawEvent: string): { eventType: string; data: stri
   return { eventType, data };
 }
 
-async function downloadDeck(cards: ChatCard[], deckName: string): Promise<void> {
+async function downloadDeck(
+  cards: ChatCard[],
+  deckName: string
+): Promise<void> {
   const response = await post('/api/chat/deck', { cards, deckName });
   if (!response.ok) {
     throw new Error('Failed to generate deck');
@@ -117,29 +135,9 @@ async function downloadDeck(cards: ChatCard[], deckName: string): Promise<void> 
   URL.revokeObjectURL(url);
 }
 
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024 * 1024) {
-    return `${Math.round(bytes / 1024)} KB`;
-  }
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function chipIcon(mimeType: string): string {
-  return mimeType === 'application/pdf' ? '📄' : '🖼';
-}
-
-function truncateName(name: string, max: number): string {
-  if (name.length <= max) return name;
-  const ext = name.lastIndexOf('.');
-  if (ext > 0 && name.length - ext <= 6) {
-    const truncated = name.slice(0, max - 3 - (name.length - ext));
-    return `${truncated}…${name.slice(ext)}`;
-  }
-  return `${name.slice(0, max - 1)}…`;
-}
-
 export default function ChatPanel({
   initialPrompt,
+  cameFromUpload,
   onCardsGenerated,
   initialConversationId,
   initialMessages,
@@ -151,11 +149,13 @@ export default function ChatPanel({
   const hasConsented = userLocals?.user?.chat_consent_at != null;
   const [showConsentModal, setShowConsentModal] = useState(false);
 
-  const [activeConversationId, setActiveConversationId] = useState<number | null>(
-    initialConversationId ?? null
-  );
+  const [activeConversationId, setActiveConversationId] = useState<
+    number | null
+  >(initialConversationId ?? null);
   const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
-  const [expandedUserMessages, setExpandedUserMessages] = useState<Set<number>>(new Set());
+  const [expandedUserMessages, setExpandedUserMessages] = useState<Set<number>>(
+    new Set()
+  );
   const [streamingText, setStreamingText] = useState('');
   const [inputValue, setInputValue] = useState(initialPrompt ?? '');
 
@@ -175,9 +175,8 @@ export default function ChatPanel({
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageListRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const composerTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lastSavedDraftRef = useRef<string>('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     get('/api/chat/usage', { redirect: false })
@@ -189,8 +188,7 @@ export default function ChatPanel({
           }
         }
       })
-      .catch(() => {
-      });
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -198,7 +196,9 @@ export default function ChatPanel({
     if (el == null) return;
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
     if (distanceFromBottom < 120) {
-      bottomRef.current?.scrollIntoView({ behavior: streamingText.length > 0 ? 'auto' : 'smooth' });
+      bottomRef.current?.scrollIntoView({
+        behavior: streamingText.length > 0 ? 'auto' : 'smooth',
+      });
     }
   }, [messages, isLoading, streamingText]);
 
@@ -214,8 +214,7 @@ export default function ChatPanel({
         .then(() => {
           lastSavedDraftRef.current = draft;
         })
-        .catch(() => {
-        });
+        .catch(() => {});
     }, DRAFT_DEBOUNCE_MS);
     return () => clearTimeout(handle);
   }, [inputValue, activeConversationId]);
@@ -223,7 +222,10 @@ export default function ChatPanel({
   const remainingMessages = FREE_MONTHLY_LIMIT - messagesUsedThisMonth;
 
   const readyChips = chips.filter((c) => c.state === 'idle');
-  const canSend = (inputValue.trim().length > 0 || readyChips.length > 0) && !isLoading && !limitReached;
+  const canSend =
+    (inputValue.trim().length > 0 || readyChips.length > 0) &&
+    !isLoading &&
+    !limitReached;
 
   function addFiles(files: File[]) {
     setNetworkError(null);
@@ -231,23 +233,31 @@ export default function ChatPanel({
     const disallowed = files.filter((f) => !ALLOWED_TYPES.has(f.type));
     if (disallowed.length > 0) {
       if (disallowed.length === 1) {
-        setNetworkError(`Can't attach ${disallowed[0].name}. Only PDF and image files work here.`);
+        setNetworkError(
+          `Can't attach ${disallowed[0].name}. Only PDF and image files work here.`
+        );
       } else {
-        setNetworkError(`Can't attach ${disallowed.length} files. Only PDF and image files work here.`);
+        setNetworkError(
+          `Can't attach ${disallowed.length} files. Only PDF and image files work here.`
+        );
       }
       return;
     }
 
     const oversized = files.find((f) => f.size > MAX_FILE_BYTES);
     if (oversized != null) {
-      setNetworkError(`${oversized.name} is ${formatFileSize(oversized.size)}. The per-file limit is 10 MB.`);
+      setNetworkError(
+        `${oversized.name} is ${formatFileSize(oversized.size)}. The per-file limit is 10 MB.`
+      );
       return;
     }
 
     const currentTotal = chips.reduce((s, c) => s + c.file.size, 0);
     const newTotal = files.reduce((s, f) => s + f.size, currentTotal);
     if (newTotal > MAX_TOTAL_BYTES) {
-      setNetworkError(`That's ${formatFileSize(newTotal)} total. A message can carry up to 25 MB across all files.`);
+      setNetworkError(
+        `That's ${formatFileSize(newTotal)} total. A message can carry up to 25 MB across all files.`
+      );
       return;
     }
 
@@ -290,7 +300,9 @@ export default function ChatPanel({
     setIsLoading(true);
     setStreamingText('');
 
-    const history = nextMessages.slice(-10).map((m) => ({ role: m.role, content: m.content }));
+    const history = nextMessages
+      .slice(-10)
+      .map((m) => ({ role: m.role, content: m.content }));
 
     let response: Response;
     if (readyChips.length > 0) {
@@ -325,7 +337,9 @@ export default function ChatPanel({
     }
 
     if (!response.ok) {
-      const data = await response.json().catch(() => ({})) as { error?: string };
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
       setNetworkError(data.error ?? "Couldn't send this message. Try again.");
       setIsLoading(false);
       return;
@@ -416,31 +430,6 @@ export default function ChatPanel({
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Escape') {
-      e.currentTarget.blur();
-      return;
-    }
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (canSend) {
-        sendMessage(inputValue);
-      }
-    }
-  }
-
-  function toggleUserMessage(index: number) {
-    setExpandedUserMessages((prev) => {
-      const next = new Set(prev);
-      if (next.has(index)) {
-        next.delete(index);
-      } else {
-        next.add(index);
-      }
-      return next;
-    });
-  }
-
   function handleSaveAsDeck(cards: ChatCard[], deckName: string) {
     downloadDeck(cards, deckName).catch(() => {
       setNetworkError("Couldn't generate the deck. Try again.");
@@ -457,18 +446,35 @@ export default function ChatPanel({
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      addFiles(files);
-    }
-  }, [chips]); // eslint-disable-line react-hooks/exhaustive-deps
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length > 0) {
+        addFiles(files);
+      }
+    },
+    [chips]
+  ); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const isCardStreaming = /(?:^|\n)```json/.test(streamingText) || /(?:^|\n)\s*\[\s*\{/.test(streamingText);
+  function handleChipClick(prefill: string) {
+    setInputValue(prefill);
+    setTimeout(() => {
+      if (composerTextareaRef.current != null) {
+        composerTextareaRef.current.focus();
+        const len = composerTextareaRef.current.value.length;
+        composerTextareaRef.current.setSelectionRange(len, len);
+      }
+    }, 0);
+  }
+
+  const isCardStreaming =
+    /(?:^|\n)```json/.test(streamingText) ||
+    /(?:^|\n)\s*\[\s*\{/.test(streamingText);
 
   const hasMessages = messages.length > 0;
+  const showEmptyState = !hasMessages && !isLoading;
 
   return (
     <>
@@ -482,228 +488,92 @@ export default function ChatPanel({
         />
       )}
       <div className={styles.container} data-hj-suppress>
-        {hasMessages || isLoading ? (
+        {showEmptyState ? (
+          <div className={styles.emptyState}>
+            <h1 className={styles.emptyHeading}>What are you studying?</h1>
+            <p className={styles.emptySubhead}>
+              {cameFromUpload
+                ? "Tell me what's in your file — I'll help you get cards out of it."
+                : 'Ask a question, paste your notes, or attach a PDF — get flashcards back.'}
+            </p>
+            {!cameFromUpload && (
+              <div className={styles.starterChips}>
+                {STARTER_CHIPS.map((chip) => (
+                  <button
+                    key={chip.label}
+                    type="button"
+                    className={styles.starterChip}
+                    onClick={() => handleChipClick(chip.prefill)}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
           <div className={styles.messageList} ref={messageListRef}>
-            <div className={styles.messageListInner}>
+            <div className={styles.messageListInner} aria-live="polite">
               {messages.map((m, i) => (
-                <div
+                <MessageBubble
                   key={i}
-                  className={`${styles.message} ${m.role === 'user' ? styles.messageUser : styles.messageAssistant} ${m.role === 'assistant' && m.cards != null && m.cards.length > 0 ? styles.messageAssistantWithCards : ''}`}
-                >
-                  {m.role === 'user' && (() => {
-                    const isLong = m.content.length > 600 || m.content.split('\n').length > 12;
-                    const isExpanded = expandedUserMessages.has(i);
-                    return (
-                      <>
-                        <div
-                          className={`${styles.messageBubble} ${styles.messageBubbleUser} ${isLong ? styles.userBubbleCollapsible : ''} ${isLong && !isExpanded ? styles.userBubbleClamped : ''}`}
-                        >
-                          {m.content}
-                        </div>
-                        {isLong && (
-                          <button
-                            type="button"
-                            className={styles.expandToggle}
-                            onClick={() => toggleUserMessage(i)}
-                            aria-expanded={isExpanded}
-                          >
-                            {isExpanded ? 'Show less' : 'Show full message'}
-                          </button>
-                        )}
-                      </>
-                    );
-                  })()}
-                  {m.role === 'assistant' && (
-                    <>
-                      <span className={styles.messageSenderLabel}>Claude</span>
-                      {m.contentBefore != null && (
-                        <div className={`${styles.messageBubble} ${styles.messageBubbleAssistant}`}>
-                          <AssistantMarkdown>{m.contentBefore}</AssistantMarkdown>
-                        </div>
-                      )}
-                      {m.cards != null && m.cards.length > 0 && (
-                        <CardPreview
-                          cards={m.cards}
-                          onSave={(deckName) => handleSaveAsDeck(m.cards!, deckName)}
-                        />
-                      )}
-                      {m.contentAfter != null && (
-                        <div className={`${styles.messageBubble} ${styles.messageBubbleAssistant}`}>
-                          <AssistantMarkdown>{m.contentAfter}</AssistantMarkdown>
-                        </div>
-                      )}
-                      {m.cards == null && (
-                        <div className={`${styles.messageBubble} ${styles.messageBubbleAssistant}`}>
-                          <AssistantMarkdown>{m.content}</AssistantMarkdown>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
+                  message={m}
+                  expanded={expandedUserMessages.has(i)}
+                  onToggleExpand={() => {
+                    setExpandedUserMessages((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(i)) {
+                        next.delete(i);
+                      } else {
+                        next.add(i);
+                      }
+                      return next;
+                    });
+                  }}
+                  onSave={handleSaveAsDeck}
+                />
               ))}
               {isLoading && (
-                <div className={`${styles.message} ${styles.messageAssistant}`}>
-                  {streamingText.length > 0 ? (
-                    <>
-                      <span className={styles.messageSenderLabel}>Claude</span>
-                      <div className={`${styles.messageBubble} ${styles.messageBubbleAssistant}`}>
-                        <AssistantMarkdown isStreaming={!isCardStreaming}>
-                          {visibleStreamingText(streamingText)}
-                        </AssistantMarkdown>
-                        <span className={styles.streamingCaret} aria-hidden="true">|</span>
-                      </div>
-                      {isCardStreaming && (
-                        <span className={styles.buildingCards}>
-                          <img
-                            src="/mascot/Notion%201.png"
-                            alt=""
-                            aria-hidden="true"
-                            className={styles.buildingCardsMascot}
-                          />
-                          Building cards
-                        </span>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <span className={styles.messageSenderLabel}>Claude</span>
-                      <span className={styles.thinkingHint}>Thinking</span>
-                    </>
-                  )}
-                </div>
+                <StreamingBubble
+                  isLoading={isLoading}
+                  streamingText={streamingText}
+                  isCardStreaming={isCardStreaming}
+                />
               )}
               <div ref={bottomRef} />
             </div>
           </div>
-        ) : null}
+        )}
 
         <div className={styles.inputArea}>
           {limitReached && resetDate != null && (
             <div className={styles.limitPanel}>
               <span>
-                You've used all {FREE_MONTHLY_LIMIT} messages this month. Resets {formatResetDate(resetDate)}.
+                You've used all {FREE_MONTHLY_LIMIT} messages this month. Resets{' '}
+                {formatResetDate(resetDate)}.
               </span>
-              <a
-                href="/pricing"
-                className={styles.limitPanelLink}
-              >
+              <a href="/pricing" className={styles.limitPanelLink}>
                 See plans
               </a>
             </div>
           )}
-          <div
-            role="region"
-            aria-label="Chat composer with file drop zone"
-            className={`${styles.composerCard} ${isDragging ? styles.composerCardDragging : ''}`}
+          <ComposerArea
+            inputValue={inputValue}
+            onChange={setInputValue}
+            onSubmit={() => {
+              if (canSend) sendMessage(inputValue);
+            }}
+            onAttach={addFiles}
+            attachedFiles={chips}
+            onRemoveFile={removeChip}
+            onRetryFile={retryChip}
+            disabled={isLoading || limitReached}
+            isDragging={isDragging}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-          >
-            {isDragging && (
-              <div className={styles.dropOverlay}>
-                <span className={styles.dropOverlayTitle}>Drop to attach</span>
-                <span className={styles.dropOverlaySub}>PDF or image, up to 10 MB each</span>
-              </div>
-            )}
-            {chips.length > 0 && (
-              <div className={styles.chipStrip}>
-                {chips.map((chip) => (
-                  <div
-                    key={chip.id}
-                    className={`${styles.chip} ${chip.state === 'failed' ? styles.chipError : ''}`}
-                  >
-                    <span className={styles.chipIcon}>{chipIcon(chip.file.type)}</span>
-                    <span
-                      className={styles.chipName}
-                      title={chip.file.name}
-                    >
-                      {truncateName(chip.file.name, 32)}
-                    </span>
-                    <span className={styles.chipSeparator}> · </span>
-                    {chip.state === 'uploading' && (
-                      <>
-                        <span className={`${styles.chipSize} ${styles.chipSizeError}`}>
-                          <span className={styles.spinnerSmall} />
-                        </span>
-                        <span className={styles.chipSize}>Uploading</span>
-                      </>
-                    )}
-                    {chip.state === 'failed' && (
-                      <>
-                        <span className={`${styles.chipSize} ${styles.chipSizeError}`}>Upload failed</span>
-                        <button
-                          type="button"
-                          className={styles.chipRetry}
-                          onClick={() => retryChip(chip.id)}
-                        >
-                          Retry
-                        </button>
-                      </>
-                    )}
-                    {chip.state === 'idle' && (
-                      <span className={styles.chipSize}>{formatFileSize(chip.file.size)}</span>
-                    )}
-                    <button
-                      type="button"
-                      className={styles.chipRemove}
-                      aria-label={`Remove ${chip.file.name}`}
-                      onClick={() => removeChip(chip.id)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className={styles.composerBottom}>
-              <textarea
-                ref={textareaRef}
-                className={styles.textarea}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask a study question, paste notes, or attach a PDF…"
-                disabled={isLoading || limitReached}
-                rows={1}
-                aria-label="Message input"
-              />
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="application/pdf,image/png,image/jpeg,image/gif,image/webp"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  if (e.target.files != null && e.target.files.length > 0) {
-                    addFiles(Array.from(e.target.files));
-                  }
-                  e.target.value = '';
-                }}
-                aria-hidden="true"
-                tabIndex={-1}
-              />
-              <button
-                type="button"
-                className={styles.paperclipBtn}
-                aria-label="Attach files"
-                disabled={isLoading || limitReached || chips.length >= MAX_FILE_COUNT}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className={styles.sendBtn}
-                onClick={() => sendMessage(inputValue)}
-                disabled={!canSend}
-                aria-label="Send message"
-              >
-                <SendIcon width={18} height={18} />
-              </button>
-            </div>
-          </div>
+            textareaRef={composerTextareaRef}
+          />
           {!isPatreon && !limitReached && messagesUsedThisMonth > 0 && (
             <p className={styles.usageLine}>
               {remainingMessages === 1

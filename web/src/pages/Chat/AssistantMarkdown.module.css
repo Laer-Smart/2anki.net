@@ -5,24 +5,38 @@
   word-break: break-word;
 }
 
-.prose > :first-child { margin-top: 0; }
-.prose > :last-child  { margin-bottom: 0; }
+.prose > :first-child {
+  margin-top: 0;
+}
+.prose > :last-child {
+  margin-bottom: 0;
+}
 
 .prose p {
   margin: 0 0 0.25rem;
 }
 
-.prose strong { font-weight: var(--font-semibold); }
-.prose em     { font-style: italic; }
+.prose strong {
+  font-weight: var(--font-semibold);
+}
+.prose em {
+  font-style: italic;
+}
 
 .prose ul,
 .prose ol {
   margin: 0.125rem 0 0.25rem;
   padding-left: 1.125rem;
 }
-.prose li { margin: 0; }
-.prose li > p { margin: 0; }
-.prose li + li { margin-top: 0.0625rem; }
+.prose li {
+  margin: 0;
+}
+.prose li > p {
+  margin: 0;
+}
+.prose li + li {
+  margin-top: 0.0625rem;
+}
 
 .prose h1,
 .prose h2,
@@ -82,8 +96,13 @@
 }
 
 @keyframes caretBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .prose blockquote {
