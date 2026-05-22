@@ -1,6 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { get, post, patch, del } from '../../lib/backend/api';
 
+export interface MindmapImageMeta {
+  url: string;
+  width: number;
+  height: number;
+}
+
 export interface MindmapNode {
   id: string;
   label: string;
@@ -8,6 +14,7 @@ export interface MindmapNode {
   width?: number;
   height?: number;
   color?: string | null;
+  image?: MindmapImageMeta;
 }
 
 export interface MindmapEdge {
@@ -92,6 +99,23 @@ export function useDeleteMindmap() {
 }
 
 export type MindmapCardType = 'basic' | 'cloze' | 'markmap';
+
+export async function uploadMindmapImage(
+  mapId: string,
+  file: File
+): Promise<MindmapImageMeta> {
+  const form = new FormData();
+  form.append('image', file);
+  const response = await fetch(`/api/mindmaps/${mapId}/images`, {
+    method: 'POST',
+    credentials: 'include',
+    body: form,
+  });
+  if (!response.ok) {
+    throw new Error(`Image upload failed: ${response.statusText}`);
+  }
+  return response.json();
+}
 
 export async function exportMindmap(
   id: string,
