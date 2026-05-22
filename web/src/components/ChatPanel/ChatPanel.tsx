@@ -128,10 +128,37 @@ async function downloadDeck(
   URL.revokeObjectURL(url);
 }
 
+function findRawArrayStart(text: string): number {
+  let lineStart = 0;
+  let isFirstLine = true;
+  while (lineStart <= text.length) {
+    let i = lineStart;
+    while (i < text.length && (text[i] === ' ' || text[i] === '\t')) i++;
+    if (text[i] === '[') {
+      let j = i + 1;
+      while (
+        j < text.length &&
+        (text[j] === ' ' ||
+          text[j] === '\t' ||
+          text[j] === '\n' ||
+          text[j] === '\r')
+      ) {
+        j++;
+      }
+      if (text[j] === '{') return isFirstLine ? 0 : lineStart - 1;
+    }
+    const next = text.indexOf('\n', lineStart);
+    if (next === -1) return -1;
+    lineStart = next + 1;
+    isFirstLine = false;
+  }
+  return -1;
+}
+
 function visibleStreamingText(text: string): string {
   const fenceIndex = text.search(/(?:^|\n)```json/);
   if (fenceIndex !== -1) return text.slice(0, fenceIndex);
-  const rawArrayIndex = text.search(/(?:^|\n)\s*\[\s*\{/);
+  const rawArrayIndex = findRawArrayStart(text);
   return rawArrayIndex === -1 ? text : text.slice(0, rawArrayIndex);
 }
 
