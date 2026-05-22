@@ -21,6 +21,7 @@ import SparklesIcon from '../icons/SparklesIcon';
 import UserCircleIcon from '../icons/UserCircleIcon';
 import SettingsIcon from '../icons/SettingsIcon';
 import WrenchIcon from '../icons/WrenchIcon';
+import ShareIcon from '../icons/ShareIcon';
 import { ThemeSwitcher } from '../ThemeSwitcher/ThemeSwitcher';
 import { ThemeToggle } from '../ThemeSwitcher/ThemeToggle';
 import styles from './AppShell.module.css';
@@ -278,6 +279,14 @@ export function Sidebar({
             icon={CameraIcon}
           >
             Photo to deck
+          </SidebarRow>
+          <SidebarRow
+            href="/mindmaps"
+            pathname={pathname}
+            onClick={handleNavClick()}
+            icon={ShareIcon}
+          >
+            Mind maps
           </SidebarRow>
           <SidebarRow
             href="/templates"
