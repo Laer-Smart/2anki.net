@@ -57,7 +57,7 @@ Each integration adds a feature. You can run 2anki without any of them — the f
 | Anthropic Claude | `ANTHROPIC_API_KEY` | AI flashcard generation from PDFs |
 | Stripe | `STRIPE_KEY`, `STRIPE_ENDPOINT_SECRET` | Paid plans (skip if you're running for yourself) |
 | SendGrid | `SENDGRID_API_KEY` | Transactional email (password reset, etc.) |
-| DigitalOcean Spaces (S3-compatible) | `SPACES_ENDPOINT`, `SPACES_DEFAULT_BUCKET_NAME`, plus standard `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Remote storage for converted decks (needed for "My uploads" history and sync) |
+| DigitalOcean Spaces (S3-compatible) | `SPACES_ENDPOINT`, `SPACES_DEFAULT_BUCKET_NAME`, plus standard `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Remote storage for converted decks (needed for "My Decks" history and sync) |
 
 ## Where to get help
 
