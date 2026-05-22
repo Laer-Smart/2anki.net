@@ -4,6 +4,7 @@ const LIMIT_MESSAGES = [
   'File too large',
   'You can only add 100 cards',
   'Your request has hit the limit',
+  'Mind map limit reached',
   PDF_EXCEEDS_MAX_PAGE_LIMIT,
 ];
 

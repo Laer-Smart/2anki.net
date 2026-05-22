@@ -52,6 +52,7 @@ import chatRouter from './routes/ChatRouter';
 import eventsRouter from './routes/EventsRouter';
 import checkoutRouter from './routes/CheckoutRouter';
 import shareRouter from './routes/ShareRouter';
+import mindmapRouter from './routes/MindmapRouter';
 import requestLoggingMiddleware from './routes/middleware/requestLoggingMiddleware';
 import { anonIdMiddleware } from './routes/middleware/anonIdMiddleware';
 import { getEventsSink } from './services/events/eventsSinkInstance';
@@ -152,6 +153,7 @@ const serve = async () => {
   app.use(eventsRouter());
   app.use(checkoutRouter());
   app.use(shareRouter());
+  app.use(mindmapRouter());
 
   app.use(rejectScannerProbes);
   // Note: this has to be the last router
