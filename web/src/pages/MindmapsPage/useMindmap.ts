@@ -5,6 +5,7 @@ export interface MindmapNode {
   id: string;
   label: string;
   position?: { x: number; y: number };
+  color?: string | null;
 }
 
 export interface MindmapEdge {

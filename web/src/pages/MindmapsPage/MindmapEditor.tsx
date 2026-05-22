@@ -241,9 +241,9 @@ export function MindmapEditor() {
     const rfNodes: Node[] = map.data.nodes.map((n) => ({
       id: n.id,
       type: 'mindmap',
-      data: { label: n.label },
+      data: { label: n.label, color: n.color ?? null },
       position: n.position ?? { x: 0, y: 0 },
-      style: NODE_STYLE,
+      style: n.color == null ? NODE_STYLE : { ...NODE_STYLE, borderColor: n.color, boxShadow: `0 0 0 1px ${n.color}` },
     }));
     const rfEdges: Edge[] = map.data.edges.map((e) => ({
       id: `${e.source}-${e.target}`,
@@ -269,6 +269,7 @@ export function MindmapEditor() {
             id: n.id,
             label: String(n.data.label ?? ''),
             position: { x: n.position.x, y: n.position.y },
+            color: (n.data as { color?: string | null }).color ?? null,
           })),
           edges: es.map((e) => ({ source: e.source, target: e.target })),
         };
@@ -298,6 +299,28 @@ export function MindmapEditor() {
     );
   }, [setNodes]);
 
+  const centerOnNode = useCallback((nodeId: string) => {
+    rfInstance?.fitView({ nodes: [{ id: nodeId }], duration: 300, maxZoom: 1.2 });
+  }, [rfInstance]);
+
+  const setNodeColor = useCallback((nodeId: string, color: string | null) => {
+    setNodes((ns) => {
+      const updated = ns.map((n) =>
+        n.id === nodeId
+          ? {
+              ...n,
+              data: { ...n.data, color },
+              style: color == null
+                ? NODE_STYLE
+                : { ...NODE_STYLE, borderColor: color, boxShadow: `0 0 0 1px ${color}` },
+            }
+          : n
+      );
+      persistData(updated, edges);
+      return updated;
+    });
+  }, [setNodes, persistData, edges]);
+
   const nodeTypes = useMemo(
     () => ({
       mindmap: (props: Parameters<typeof MindmapNode>[0]) => (
@@ -307,11 +330,15 @@ export function MindmapEditor() {
             ...props.data,
             onCommit: (label: string) => commitLabel(props.id, label),
             onCancel: () => cancelEdit(props.id),
+            onStartRename: () => startRename(props.id),
+            onCenter: () => centerOnNode(props.id),
+            onSetColor: (color: string | null) => setNodeColor(props.id, color),
+            onDelete: () => deleteNode(props.id),
           }}
         />
       ),
     }),
-    [commitLabel, cancelEdit]
+    [commitLabel, cancelEdit, centerOnNode, setNodeColor, startRename, deleteNode]
   );
 
   const onConnect = useCallback(
