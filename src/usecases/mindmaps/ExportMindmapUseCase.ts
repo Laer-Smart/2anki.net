@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { randomUUID, createHash } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import { MindmapsId } from '../../data_layer/public/Mindmaps';
@@ -24,7 +24,7 @@ interface ExportInput {
 }
 
 function randomDeckId(): number {
-  const hex = createHash('sha1').update(randomUUID()).digest('hex').slice(0, 13);
+  const hex = randomUUID().replace(/-/g, '').slice(0, 13);
   return Number.parseInt(hex, 16) % 1e13;
 }
 
