@@ -33,7 +33,7 @@ describe('LoginForm', () => {
   it('renders email step with email input and continue button', () => {
     renderLoginForm();
     expect(screen.getByText('Log in')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Email address')).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Email' })).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Continue with email' })
     ).toBeInTheDocument();
@@ -46,12 +46,12 @@ describe('LoginForm', () => {
 
   it('shows Google OAuth button on email step', () => {
     renderLoginForm();
-    expect(screen.getByText('Log in with Google')).toBeInTheDocument();
+    expect(screen.getByText('Sign in with Google')).toBeInTheDocument();
   });
 
   it('transitions to password step after clicking continue', () => {
     renderLoginForm();
-    const emailInput = screen.getByPlaceholderText('Email address');
+    const emailInput = screen.getByRole('textbox', { name: 'Email' });
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
     fireEvent.click(
       screen.getByRole('button', { name: 'Continue with email' })
@@ -63,7 +63,7 @@ describe('LoginForm', () => {
 
   it('shows change link and forgot password on password step', () => {
     renderLoginForm();
-    fireEvent.change(screen.getByPlaceholderText('Email address'), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
       target: { value: 'test@example.com' },
     });
     fireEvent.click(
@@ -76,7 +76,7 @@ describe('LoginForm', () => {
 
   it('returns to email step when change is clicked', () => {
     renderLoginForm();
-    fireEvent.change(screen.getByPlaceholderText('Email address'), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
       target: { value: 'test@example.com' },
     });
     fireEvent.click(
@@ -91,7 +91,7 @@ describe('LoginForm', () => {
 
   it('shows magic link option on password step', () => {
     renderLoginForm();
-    fireEvent.change(screen.getByPlaceholderText('Email address'), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
       target: { value: 'test@example.com' },
     });
     fireEvent.click(
@@ -105,7 +105,7 @@ describe('LoginForm', () => {
 
   it('transitions to check-email step after clicking magic link', async () => {
     renderLoginForm();
-    fireEvent.change(screen.getByPlaceholderText('Email address'), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
       target: { value: 'test@example.com' },
     });
     fireEvent.click(
@@ -138,7 +138,7 @@ describe('LoginForm', () => {
   it('shows email-me-a-sign-in-link when email is filled in on email step', async () => {
     renderLoginForm();
     expect(screen.queryByText('Email me a sign-in link')).toBeNull();
-    fireEvent.change(screen.getByPlaceholderText('Email address'), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
       target: { value: 'test@example.com' },
     });
     expect(screen.getByText('Email me a sign-in link')).toBeInTheDocument();
@@ -151,7 +151,7 @@ describe('LoginForm', () => {
 
   it('persists email to localStorage on blur when value looks like an email', () => {
     renderLoginForm();
-    const input = screen.getByPlaceholderText('Email address');
+    const input = screen.getByRole('textbox', { name: 'Email' });
     fireEvent.change(input, { target: { value: 'stored@example.com' } });
     fireEvent.blur(input);
     expect(localStorage.getItem('email')).toBe('stored@example.com');
@@ -159,7 +159,7 @@ describe('LoginForm', () => {
 
   it('does not persist to localStorage on blur when value has no @', () => {
     renderLoginForm();
-    const input = screen.getByPlaceholderText('Email address');
+    const input = screen.getByRole('textbox', { name: 'Email' });
     fireEvent.change(input, { target: { value: 'notanemail' } });
     fireEvent.blur(input);
     expect(localStorage.getItem('email')).toBeNull();
@@ -168,9 +168,7 @@ describe('LoginForm', () => {
   it('restores email from localStorage', () => {
     localStorage.setItem('email', 'saved@example.com');
     renderLoginForm();
-    const emailInput = screen.getByPlaceholderText(
-      'Email address'
-    ) as HTMLInputElement;
+    const emailInput = screen.getByRole('textbox', { name: 'Email' }) as HTMLInputElement;
     expect(emailInput.value).toBe('saved@example.com');
   });
 });
