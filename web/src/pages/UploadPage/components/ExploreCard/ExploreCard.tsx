@@ -101,6 +101,14 @@ export function ExploreCard() {
               Photo to deck and the AI chat can generate MCQ alongside standard cards — useful for exam-style review.
             </p>
           </div>
+          <div className={styles.rowAffordance}>
+            <Link
+              to="/card-options?returnTo=/upload#mcq"
+              className={styles.linkCta}
+            >
+              Turn on MCQ
+            </Link>
+          </div>
         </li>
         <li className={styles.row}>
           <div className={styles.rowIcon}>

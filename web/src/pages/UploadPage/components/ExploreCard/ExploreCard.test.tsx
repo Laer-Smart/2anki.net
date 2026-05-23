@@ -100,6 +100,12 @@ describe('ExploreCard', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('links Multiple choice to settings #mcq anchor', () => {
+    renderCard({ paying: false });
+    const link = screen.getByRole('link', { name: 'Turn on MCQ' });
+    expect(link).toHaveAttribute('href', '/card-options?returnTo=/upload#mcq');
+  });
+
   it('links Photo to deck to /photo-to-deck', () => {
     renderCard({ paying: false });
     const link = screen.getByRole('link', { name: 'Open photo to deck' });

@@ -636,7 +636,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 </div>
               </div>
               {isCardTypesGroup && (
-                <div className={fieldStyles.optionGroup}>
+                <div className={fieldStyles.optionGroup} id="mcq">
                   <div className={fieldStyles.groupHeader}>
                     <h3 className={fieldStyles.groupHeading}>Multiple choice</h3>
                     <div className={fieldStyles.segmented} role="group" aria-label="Enable multiple choice">

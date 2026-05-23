@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { CardOptionsForm } from '../../components/CardOptionsForm/CardOptionsForm';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
@@ -46,6 +46,7 @@ function formatUpdatedAt(value: string | null): string | null {
 
 export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
   const [params] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const [perPageItems, setPerPageItems] = useState<PerPageItem[]>([]);
   const [pendingResetIds, setPendingResetIds] = useState<Set<string>>(new Set());
@@ -77,6 +78,29 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
     if (pageId != null) return;
     loadSettings();
   }, [pageId]);
+
+  useEffect(() => {
+    const hash = location.hash;
+    if (!hash) return;
+    const id = hash.slice(1);
+    const tryScroll = () => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return true;
+      }
+      return false;
+    };
+    if (tryScroll()) return;
+    const interval = setInterval(() => {
+      if (tryScroll()) clearInterval(interval);
+    }, 100);
+    const timeout = setTimeout(() => clearInterval(interval), 3000);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [location.hash]);
 
   const handleRowReset = async (item: PerPageItem) => {
     setRowError(null);
