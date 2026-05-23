@@ -1,5 +1,5 @@
-import { GenerateContentRequest } from '@google-cloud/vertexai';
-import { generateContent } from './contentGenerationUtils';
+import { getAnthropicClient } from '../../../lib/claude/ClaudeService';
+import { convertWithClaude } from './claudeFileConversion';
 
 const SYSTEM_INSTRUCTIONS = `
 Create an HTML file with questions and answers formatted as follows:
@@ -21,7 +21,7 @@ Technical requirements:
 
 const DEFAULT_PDF_TO_HTML_INSTRUCTIONS = `
 Some extra rules and explanations:
-- Read the document from start to finish and identify any question and answers. 
+- Read the document from start to finish and identify any question and answers.
 - Use the same language as the document or infer the language based on what is mostly used.
 - Use the same text as in the document and do not make up any questions or answers.
 - Cite the document as source for the text.
@@ -35,27 +35,25 @@ export const convertPDFToHTML = (
   pdf: string,
   userInstructions?: string
 ): Promise<string> => {
-  const document1 = {
-    inlineData: {
-      mimeType: 'application/pdf',
-      data: pdf,
-    },
-  };
+  const client = getAnthropicClient();
+  const instructions = userInstructions ?? DEFAULT_PDF_TO_HTML_INSTRUCTIONS;
 
-  const req: GenerateContentRequest = {
-    contents: [
+  return convertWithClaude(
+    client,
+    SYSTEM_INSTRUCTIONS,
+    [
+      { type: 'text', text: instructions },
       {
-        role: 'user',
-        parts: [
-          { text: SYSTEM_INSTRUCTIONS },
-          { text: userInstructions ?? DEFAULT_PDF_TO_HTML_INSTRUCTIONS },
-          document1,
-        ],
+        type: 'document',
+        source: {
+          type: 'base64',
+          media_type: 'application/pdf',
+          data: pdf,
+        },
       },
     ],
-  };
-
-  return generateContent(req);
+    { pdf: true }
+  );
 };
 
 export const getDefaultUserInstructions = (): string => {
