@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { CardOptionsForm } from '../../components/CardOptionsForm/CardOptionsForm';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
@@ -46,6 +46,7 @@ function formatUpdatedAt(value: string | null): string | null {
 
 export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
   const [params] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const [perPageItems, setPerPageItems] = useState<PerPageItem[]>([]);
   const [pendingResetIds, setPendingResetIds] = useState<Set<string>>(new Set());
@@ -61,6 +62,8 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
   const returnToParam = params.get('returnTo');
   const returnTo = returnToParam ?? '/upload';
   const shouldReturnAfterSave = pageId != null || returnToParam != null;
+  const cameFromNotion = returnToParam?.startsWith('/notion') === true;
+  const showPagesSection = cameFromNotion || perPageItems.length > 0;
 
   const goBack = () => navigate(returnTo);
 
@@ -75,6 +78,29 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
     if (pageId != null) return;
     loadSettings();
   }, [pageId]);
+
+  useEffect(() => {
+    const hash = location.hash;
+    if (!hash) return;
+    const id = hash.slice(1);
+    const tryScroll = () => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return true;
+      }
+      return false;
+    };
+    if (tryScroll()) return;
+    const interval = setInterval(() => {
+      if (tryScroll()) clearInterval(interval);
+    }, 100);
+    const timeout = setTimeout(() => clearInterval(interval), 3000);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [location.hash]);
 
   const handleRowReset = async (item: PerPageItem) => {
     setRowError(null);
@@ -131,8 +157,10 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
             <p className={sharedStyles.subtitle}>
               Control how 2anki converts your content into Anki cards — deck
               names, templates, card types, and more. Changes here apply to
-              every new conversion. To adjust settings for a single Notion page,
-              open it from the list below.{' '}
+              every new conversion.
+              {cameFromNotion && (
+                <> To adjust settings for a single Notion page, open it from the list below.</>
+              )}{' '}
               <Link to="/documentation">Read the docs</Link> for a full
               explanation of each option.
             </p>
@@ -167,7 +195,7 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
           </div>
         )}
 
-        {pageId == null && (
+        {pageId == null && showPagesSection && (
           <section className={`${styles.pagesSection} ${styles.pagesCard}`}>
             <h2 className={styles.pagesHeading}>
               Pages with custom settings
@@ -277,8 +305,9 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
             <hr className={styles.divider} />
             <h2 className={styles.formHeading}>Default options</h2>
             <p className={sharedStyles.smallDescription}>
-              Used for every file upload and any Notion page without saved
-              overrides.
+              {cameFromNotion || perPageItems.length > 0
+                ? 'Used for every file upload and any Notion page without saved overrides.'
+                : 'Used for every file upload.'}
             </p>
           </div>
         )}

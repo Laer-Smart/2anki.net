@@ -1,0 +1,120 @@
+.wrapper {
+  max-width: 800px;
+  margin: 1.5rem auto 0;
+}
+
+.header {
+  margin: 0 0 0.75rem;
+  padding: 0 0.25rem;
+}
+
+.heading {
+  margin: 0 0 0.25rem;
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+.sub {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.card {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 1.5rem;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.row:first-child {
+  border-top: none;
+}
+
+.rowIcon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+}
+
+.rowText {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rowTitle {
+  margin: 0 0 0.125rem;
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+}
+
+.rowDescription {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.rowHint {
+  margin: 0.25rem 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+.rowAffordance {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.linkCta {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-link);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.linkCta:hover {
+  color: var(--color-text-link-hover);
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 0.25rem 1.25rem;
+  }
+
+  .row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .rowText {
+    flex: 1 1 calc(100% - 52px);
+  }
+
+  .rowAffordance {
+    width: 100%;
+    padding-left: 52px;
+  }
+}

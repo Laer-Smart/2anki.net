@@ -221,10 +221,12 @@ export async function PrepareDeck(
     console.log('[PrepareDeck] Claude branch: files written', { durationMs: Date.now() - tWrite });
 
     const userInstructions = input.settings.userInstructions;
+    const cardStyle = input.settings.cardStyle || undefined;
     console.log('[PrepareDeck] Claude branch: calling generateDeckInfo', {
       htmlFileCount: htmlFiles.length,
       mediaFilesCount: mediaFiles.length,
       hasUserInstructions: !!userInstructions?.trim(),
+      cardStyle,
     });
     const tClaude = Date.now();
     const deckInfoArrays: DeckInfo[][] = [];
@@ -232,7 +234,7 @@ export async function PrepareDeck(
       const batch = htmlFiles.slice(i, i + 3);
       const batchResults = await Promise.all(
         batch.map((f) =>
-          generateDeckInfo(f.contents!.toString(), mediaFilesForHtmlFile(f.name, mediaFiles), userInstructions, input.onProgress)
+          generateDeckInfo(f.contents!.toString(), mediaFilesForHtmlFile(f.name, mediaFiles), userInstructions, input.onProgress, cardStyle)
         )
       );
       deckInfoArrays.push(...batchResults);

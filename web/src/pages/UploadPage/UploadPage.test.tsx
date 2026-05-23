@@ -11,8 +11,8 @@ vi.mock('./components/UploadForm/UploadForm', () => ({
   default: () => <div data-testid="upload-form-stub" />,
 }));
 
-vi.mock('./components/PhotoToDeckEntry/PhotoToDeckEntry', () => ({
-  PhotoToDeckEntry: () => <div data-testid="photo-to-deck-entry-stub" />,
+vi.mock('./components/ExploreCard/ExploreCard', () => ({
+  ExploreCard: () => <div data-testid="explore-card-stub" />,
 }));
 
 const renderPage = () => {
@@ -86,14 +86,14 @@ describe('UploadPage reattach banner', () => {
   });
 });
 
-describe('UploadPage photo-to-deck entry', () => {
+describe('UploadPage explore card', () => {
   beforeEach(() => {
     globalThis.sessionStorage.clear();
   });
 
-  it('renders the PhotoToDeckEntry strip below the upload form', () => {
+  it('renders the ExploreCard below the upload form', () => {
     renderPage();
-    expect(screen.getByTestId('photo-to-deck-entry-stub')).toBeInTheDocument();
+    expect(screen.getByTestId('explore-card-stub')).toBeInTheDocument();
   });
 });
 

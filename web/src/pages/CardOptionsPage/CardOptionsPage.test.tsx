@@ -49,18 +49,49 @@ describe('CardOptionsPage per-page list', () => {
     mockApi.deleteAllUserSettings.mockResolvedValue(undefined);
   });
 
-  it('shows the pages section heading on the default view', async () => {
+  it('hides the pages section on the default view when no pages have custom options', async () => {
+    renderPage();
+    await waitFor(() => {
+      expect(screen.getByTestId('card-options-form')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Pages with custom settings')).not.toBeInTheDocument();
+  });
+
+  it('shows the pages section with empty state when arriving from /notion', async () => {
+    renderPage('?returnTo=/notion');
+    await waitFor(() => {
+      expect(screen.getByText('Pages with custom settings')).toBeInTheDocument();
+      expect(
+        screen.getByText(/When you save options for a specific Notion page/i)
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('shows the pages section when there are saved per-page items even without /notion referrer', async () => {
+    mockApi.listSettings.mockResolvedValue({
+      items: [{ pageId: 'abc-123', title: 'Page A', updatedAt: null }],
+    });
     renderPage();
     await waitFor(() => {
       expect(screen.getByText('Pages with custom settings')).toBeInTheDocument();
     });
   });
 
-  it('shows empty state when no pages have custom options', async () => {
+  it('omits the Notion-specific subtitle line when not coming from /notion', async () => {
     renderPage();
     await waitFor(() => {
+      expect(screen.getByTestId('card-options-form')).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByText(/To adjust settings for a single Notion page/i)
+    ).not.toBeInTheDocument();
+  });
+
+  it('includes the Notion-specific subtitle line when coming from /notion', async () => {
+    renderPage('?returnTo=/notion');
+    await waitFor(() => {
       expect(
-        screen.getByText(/When you save options for a specific Notion page/i)
+        screen.getByText(/To adjust settings for a single Notion page/i)
       ).toBeInTheDocument();
     });
   });
