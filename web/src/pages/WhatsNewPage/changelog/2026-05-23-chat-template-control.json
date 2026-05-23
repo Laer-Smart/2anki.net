@@ -2,5 +2,5 @@
   "id": "2026-05-23-chat-template-control",
   "date": "2026-05-23",
   "type": "feature",
-  "title": "Chat — pick Basic, Basic + Reverse, or Cloze before generating cards and your deck downloads in the right format"
+  "title": "Chat — pick a Note Type (Basic, Basic + Reverse, Cloze, or Multiple choice) before generating; changing the type regenerates your cards in place"
 }
