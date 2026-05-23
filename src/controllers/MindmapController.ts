@@ -19,6 +19,7 @@ import {
 import { MindmapsId } from '../data_layer/public/Mindmaps';
 import { UsersId } from '../data_layer/public/Users';
 import { AnkifyAccessUser, AnkifyAccessSubscription } from '../lib/ankify/access';
+import SubscriptionService from '../services/SubscriptionService';
 
 export class MindmapController {
   constructor(
@@ -30,17 +31,20 @@ export class MindmapController {
     private readonly exportUseCase: ExportMindmapUseCase
   ) {}
 
-  private resolveUserContext(res: Response): {
+  private async resolveUserContext(res: Response): Promise<{
     userId: UsersId;
     user: AnkifyAccessUser;
     subscriptions: AnkifyAccessSubscription[];
     autoSyncProductId: string;
-  } {
+  }> {
+    const email = res.locals.email as string | undefined;
+    const subscriptions = email
+      ? await SubscriptionService.getUserActiveSubscriptions(email)
+      : [];
     return {
       userId: res.locals.owner as UsersId,
       user: { patreon: (res.locals.patreon as boolean | null | undefined) ?? null },
-      subscriptions:
-        (res.locals.subscriptionInfo as AnkifyAccessSubscription[] | null) ?? [],
+      subscriptions,
       autoSyncProductId: process.env.AUTO_SYNC_PRODUCT_ID ?? '',
     };
   }
@@ -53,7 +57,7 @@ export class MindmapController {
 
   async list(_req: Request, res: Response) {
     const { userId, user, subscriptions, autoSyncProductId } =
-      this.resolveUserContext(res);
+      await this.resolveUserContext(res);
 
     const result = await this.listUseCase.execute({
       userId,
@@ -66,7 +70,7 @@ export class MindmapController {
 
   async create(req: Request, res: Response) {
     const { userId, user, subscriptions, autoSyncProductId } =
-      this.resolveUserContext(res);
+      await this.resolveUserContext(res);
     const rawTitle =
       typeof req.body?.title === 'string' ? req.body.title.trim() : '';
     const title = rawTitle.length > 0 ? rawTitle : 'Untitled';
@@ -102,7 +106,7 @@ export class MindmapController {
 
   async update(req: Request, res: Response) {
     const { userId, user, subscriptions, autoSyncProductId } =
-      this.resolveUserContext(res);
+      await this.resolveUserContext(res);
     const id = req.params.id as MindmapsId;
     const title =
       req.body?.title != null ? String(req.body.title).trim() : undefined;
