@@ -8,8 +8,7 @@ import type { ChatAttachment } from '../usecases/chat/buildAttachmentBlocks';
 import { detectFileMime } from '../lib/detectFileMime';
 import { getSafeFilename } from '../lib/getSafeFilename';
 
-const MAX_CONTENT_LENGTH = 4000;
-const MAX_CONTENT_LENGTH_PREMIUM = 100_000;
+const MAX_CONTENT_LENGTH = 100_000;
 const MAX_FILE_COUNT = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_TOTAL_SIZE = 25 * 1024 * 1024;
@@ -138,10 +137,11 @@ class ChatController {
     const patreon = (res.locals.patreon as boolean) ?? false;
     const subscriber = (res.locals.subscriber as boolean) ?? false;
     const isPremium = patreon || subscriber;
-    const contentLimit = isPremium ? MAX_CONTENT_LENGTH_PREMIUM : MAX_CONTENT_LENGTH;
 
-    if (content.length > contentLimit) {
-      res.status(400).json({ error: `content must be ${contentLimit} characters or fewer` });
+    if (content.length > MAX_CONTENT_LENGTH) {
+      res.status(400).json({
+        error: `content must be ${MAX_CONTENT_LENGTH} characters or fewer`,
+      });
       return;
     }
 
