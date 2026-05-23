@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import DownloadIcon from '../../components/icons/DownloadIcon';
+import { TemplateSelector } from '../../components/ChatPanel/TemplateSelector';
+import type { ChatCardTemplate } from '../../lib/chat/templates';
 import styles from './CardPreview.module.css';
 
 interface ChatCard {
@@ -9,8 +11,14 @@ interface ChatCard {
 
 interface CardPreviewProps {
   cards: ChatCard[];
-  onSave: (deckName: string) => void;
+  onSave?: (deckName: string) => void;
+  template?: ChatCardTemplate;
+  onTemplateChange?: (slug: ChatCardTemplate) => void;
+  templateDisabled?: boolean;
+  isRegenerating?: boolean;
 }
+
+const SKELETON_ROWS = 5;
 
 type SaveState = 'idle' | 'naming' | 'saved';
 
@@ -25,7 +33,14 @@ function sanitizeFilename(name: string): string {
     .slice(0, MAX_DECK_NAME_LENGTH);
 }
 
-export default function CardPreview({ cards, onSave }: CardPreviewProps) {
+export default function CardPreview({
+  cards,
+  onSave,
+  template,
+  onTemplateChange,
+  templateDisabled,
+  isRegenerating,
+}: CardPreviewProps) {
   const [expanded, setExpanded] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [deckNameDraft, setDeckNameDraft] = useState('Untitled deck');
@@ -53,6 +68,7 @@ export default function CardPreview({ cards, onSave }: CardPreviewProps) {
   }
 
   function commitSave() {
+    if (onSave == null) return;
     const sanitized = sanitizeFilename(deckNameDraft.trim());
     if (sanitized.length === 0) return;
     setSavedName(sanitized);
@@ -78,7 +94,15 @@ export default function CardPreview({ cards, onSave }: CardPreviewProps) {
           {cardLabel}
         </span>
 
-        {saveState === 'idle' && (
+        {template != null && onTemplateChange != null && (
+          <TemplateSelector
+            value={template}
+            onChange={onTemplateChange}
+            disabled={templateDisabled === true || isRegenerating === true}
+          />
+        )}
+
+        {saveState === 'idle' && !isRegenerating && onSave != null && (
           <button
             type="button"
             className={styles.cardPreviewSave}
@@ -147,29 +171,51 @@ export default function CardPreview({ cards, onSave }: CardPreviewProps) {
         <span>Back</span>
       </div>
 
-      <div className={styles.cardPreviewList}>
-        {visibleCards.map((card, i) => (
-          <div key={i} className={styles.cardPreviewRow}>
-            <div className={styles.cardPreviewFront}>
-              <span className={styles.cardPreviewMobileLabel}>Front</span>
-              {card.front}
-            </div>
-            <div className={styles.cardPreviewBack}>
-              <span className={styles.cardPreviewMobileLabel}>Back</span>
-              {card.back}
-            </div>
+      {isRegenerating ? (
+        <>
+          <div
+            className={styles.cardPreviewSkeletonList}
+            aria-label="Rebuilding your cards with the new template"
+            role="status"
+          >
+            {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+              <div key={i} className={styles.cardPreviewSkeletonRow}>
+                <span className={styles.cardPreviewSkeletonBlock} />
+                <span className={styles.cardPreviewSkeletonBlock} />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+          <p className={styles.cardPreviewSkeletonHint}>
+            Rebuilding your cards with the new template
+          </p>
+        </>
+      ) : (
+        <>
+          <div className={styles.cardPreviewList}>
+            {visibleCards.map((card, i) => (
+              <div key={i} className={styles.cardPreviewRow}>
+                <div className={styles.cardPreviewFront}>
+                  <span className={styles.cardPreviewMobileLabel}>Front</span>
+                  {card.front}
+                </div>
+                <div className={styles.cardPreviewBack}>
+                  <span className={styles.cardPreviewMobileLabel}>Back</span>
+                  {card.back}
+                </div>
+              </div>
+            ))}
+          </div>
 
-      {hasMore && (
-        <button
-          type="button"
-          className={styles.cardPreviewExpandBtn}
-          onClick={() => setExpanded((v) => !v)}
-        >
-          {expanded ? 'Show fewer' : `Show all ${cards.length} cards`}
-        </button>
+          {hasMore && (
+            <button
+              type="button"
+              className={styles.cardPreviewExpandBtn}
+              onClick={() => setExpanded((v) => !v)}
+            >
+              {expanded ? 'Show fewer' : `Show all ${cards.length} cards`}
+            </button>
+          )}
+        </>
       )}
     </div>
   );

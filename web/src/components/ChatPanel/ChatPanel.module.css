@@ -539,18 +539,6 @@
   }
 }
 
-.panelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0.5rem 1.5rem 0;
-  gap: 0.5rem;
-  max-width: 720px;
-  margin: 0 auto;
-  width: 100%;
-  box-sizing: border-box;
-}
-
 .templatePill {
   display: inline-flex;
   align-items: center;

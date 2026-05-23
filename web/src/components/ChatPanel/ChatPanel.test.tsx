@@ -570,15 +570,26 @@ describe('ChatPanel — consent modal dismissal', () => {
 });
 
 describe('ChatPanel — template selector', () => {
+  const assistantWithCards = [
+    { role: 'user' as const, content: '20 cards about Norway' },
+    {
+      role: 'assistant' as const,
+      content: 'Reply',
+      contentBefore: 'Here you go',
+      cards: [
+        { front: 'Capital?', back: 'Oslo' },
+        { front: 'Peninsula?', back: 'Scandinavian' },
+      ],
+    },
+  ];
+
   beforeEach(() => {
     mockPost.mockReset();
     mockGet.mockResolvedValue({ used: 0, limit: 20 });
   });
 
-  it('renders "Template: Basic" pill when messages are present', () => {
-    renderChatPanel({
-      initialMessages: [{ role: 'assistant', content: 'Hello' }],
-    });
+  it('renders "Template: Basic" pill alongside the cards', () => {
+    renderChatPanel({ initialMessages: assistantWithCards });
     expect(
       screen.getByRole('button', { name: 'Card template: Basic' })
     ).toBeInTheDocument();
@@ -591,10 +602,17 @@ describe('ChatPanel — template selector', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('opens the template dropdown on click', () => {
+  it('does not render the template selector when no assistant message has cards', () => {
     renderChatPanel({
       initialMessages: [{ role: 'assistant', content: 'Hello' }],
     });
+    expect(
+      screen.queryByRole('button', { name: /Card template/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('opens the template dropdown on click', () => {
+    renderChatPanel({ initialMessages: assistantWithCards });
     fireEvent.click(screen.getByRole('button', { name: 'Card template: Basic' }));
     expect(screen.getByRole('listbox', { name: 'Card template' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: /Basic \+/ })).toBeInTheDocument();
@@ -603,8 +621,13 @@ describe('ChatPanel — template selector', () => {
 
   it('changes template when a menu item is clicked', () => {
     const onTemplateChange = vi.fn();
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([
+        { event: 'done', data: { content: 'Reply', conversationId: 1, cards: [] } },
+      ])
+    );
     renderChatPanel({
-      initialMessages: [{ role: 'assistant', content: 'Hello' }],
+      initialMessages: assistantWithCards,
       onTemplateChange,
     });
     fireEvent.click(screen.getByRole('button', { name: 'Card template: Basic' }));
@@ -622,7 +645,7 @@ describe('ChatPanel — template selector', () => {
       ])
     );
     renderChatPanel({
-      initialMessages: [{ role: 'assistant', content: 'Hello' }],
+      initialMessages: assistantWithCards,
       initialTemplateSlug: 'cloze',
     });
     fireEvent.change(screen.getByRole('textbox', { name: 'Message input' }), {
@@ -634,6 +657,83 @@ describe('ChatPanel — template selector', () => {
         '/api/chat/message',
         expect.objectContaining({ templateSlug: 'cloze' })
       );
+    });
+  });
+
+  it('auto-regenerates the last turn when the template changes', async () => {
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([
+        {
+          event: 'done',
+          data: {
+            content: 'Reply',
+            conversationId: 1,
+            cards: [{ front: 'New', back: 'Card' }],
+          },
+        },
+      ])
+    );
+    renderChatPanel({ initialMessages: assistantWithCards });
+    fireEvent.click(screen.getByRole('button', { name: 'Card template: Basic' }));
+    fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/chat/message',
+        expect.objectContaining({
+          content: '20 cards about Norway',
+          templateSlug: 'cloze',
+        })
+      );
+    });
+  });
+
+  it('shows a skeleton while regenerating and hides the Download button', async () => {
+    let resolveSse: (v: ReturnType<typeof makeSseResponse>) => void = () => {};
+    const sseResponse = new Promise<ReturnType<typeof makeSseResponse>>(
+      (res) => {
+        resolveSse = res;
+      }
+    );
+    mockPost.mockReturnValueOnce(sseResponse);
+
+    renderChatPanel({ initialMessages: assistantWithCards });
+    expect(
+      screen.getByRole('button', { name: 'Download deck' })
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Card template: Basic' }));
+    fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('status', {
+          name: 'Rebuilding your cards with the new template',
+        })
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByRole('button', { name: 'Download deck' })
+    ).not.toBeInTheDocument();
+
+    resolveSse(
+      makeSseResponse([
+        {
+          event: 'done',
+          data: {
+            content: 'Reply',
+            conversationId: 1,
+            cards: [{ front: 'New', back: 'Card' }],
+          },
+        },
+      ])
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('status', {
+          name: 'Rebuilding your cards with the new template',
+        })
+      ).not.toBeInTheDocument();
     });
   });
 });
