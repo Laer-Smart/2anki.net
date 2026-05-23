@@ -397,11 +397,8 @@ export function ImageOcclusionPage() {
         );
       }
 
-      for (const entry of newEntries) {
-        runAutoSuggest(entry, entry.file as File);
-      }
     },
-    [isLoggedIn, runAutoSuggest]
+    [isLoggedIn]
   );
 
   useEffect(() => {
@@ -707,6 +704,14 @@ export function ImageOcclusionPage() {
                 entry={activeEntry}
                 onRectsChange={handleRectsChange}
                 suggestionCount={activeSuggestionCount}
+                onAutoSuggest={
+                  isPaying && activeEntry.file != null
+                    ? () =>
+                        runAutoSuggest(activeEntry, activeEntry.file as File)
+                    : undefined
+                }
+                canAutoSuggest={isPaying && activeEntry.file != null}
+                isAutoSuggesting={isDetecting}
               />
             </>
           )}

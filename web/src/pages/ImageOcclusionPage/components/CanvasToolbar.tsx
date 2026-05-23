@@ -20,6 +20,9 @@ interface Props {
   onFitZoom: () => void;
   suggestionCount: number;
   onClearSuggestions: () => void;
+  onAutoSuggest?: () => void;
+  canAutoSuggest?: boolean;
+  isAutoSuggesting?: boolean;
 }
 
 const ZOOM_OPTIONS = [
@@ -47,6 +50,9 @@ export function CanvasToolbar({
   onFitZoom,
   suggestionCount,
   onClearSuggestions,
+  onAutoSuggest,
+  canAutoSuggest,
+  isAutoSuggesting,
 }: Readonly<Props>) {
   const [zoomOpen, setZoomOpen] = useState(false);
   const zoomRef = useRef<HTMLDivElement>(null);
@@ -149,6 +155,22 @@ export function CanvasToolbar({
       >
         &#x1F5D1;
       </button>
+
+      {onAutoSuggest != null && (
+        <>
+          <div className={styles.divider} />
+          <button
+            type="button"
+            className={styles.autoSuggest}
+            title="Auto create occlusions from highlighted or bold terms"
+            aria-label="Auto create"
+            onClick={onAutoSuggest}
+            disabled={canAutoSuggest === false || isAutoSuggesting === true}
+          >
+            {isAutoSuggesting ? 'Detecting…' : 'Auto create'}
+          </button>
+        </>
+      )}
 
       {suggestionCount > 0 && (
         <>

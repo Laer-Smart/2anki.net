@@ -9,6 +9,9 @@ interface Props {
   entry: ImageEntry;
   onRectsChange: (rects: OcclusionRect[]) => void;
   suggestionCount?: number;
+  onAutoSuggest?: () => void;
+  canAutoSuggest?: boolean;
+  isAutoSuggesting?: boolean;
 }
 
 interface DraftRect {
@@ -100,6 +103,9 @@ export function OcclusionCanvas({
   entry,
   onRectsChange,
   suggestionCount,
+  onAutoSuggest,
+  canAutoSuggest,
+  isAutoSuggesting,
 }: Readonly<Props>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -728,6 +734,9 @@ export function OcclusionCanvas({
           entry.rects.filter((r) => r.source === 'auto').length
         }
         onClearSuggestions={handleClearSuggestions}
+        onAutoSuggest={onAutoSuggest}
+        canAutoSuggest={canAutoSuggest}
+        isAutoSuggesting={isAutoSuggesting}
       />
       <div
         ref={containerRef}
