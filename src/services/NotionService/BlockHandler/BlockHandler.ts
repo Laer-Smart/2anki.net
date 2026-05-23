@@ -31,6 +31,7 @@ import { tableRowsToCards } from '../blocks/lists/BlockTable';
 import { blockToStaticMarkup } from '../helpers/blockToStaticMarkup';
 import { getToggleSummaryRichText } from '../helpers/getToggleSummaryRichText';
 import { isToggleHeading } from '../helpers/isToggleHeading';
+import { classifyBlock } from '../../../lib/parser/intent/classifyBlock';
 import { downloadMediaOrSkip } from '../helpers/downloadMediaOrSkip';
 import { getAudioUrl } from '../helpers/getAudioUrl';
 import getClozeDeletionCard from '../helpers/getClozeDeletionCard';
@@ -469,13 +470,15 @@ class BlockHandler {
 
     // Depth-first traversal: process current page, then children
     if (rules.permitsDeckAsPage() && page) {
-      const toggleHeadingsEnabled = flashCardTypes.includes('toggle');
+      const classifyRules = { flashcardTypes: flashCardTypes };
       const cBlocks = blocks.filter((b: GetBlockResponse) => {
         if (!isFullBlock(b)) {
           return false;
         }
-        if (flashCardTypes.includes(b.type)) return true;
-        return toggleHeadingsEnabled && isToggleHeading(b);
+        return classifyBlock(
+          { type: b.type, hasToggleableHeading: isToggleHeading(b) },
+          classifyRules
+        ) === 'card';
       });
       this.settings.parentBlockId = page.id;
 
