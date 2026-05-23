@@ -674,6 +674,79 @@ describe('UploadForm analytics events', () => {
 
 });
 
+describe('card style picker integration', () => {
+  const localStorageMock = (() => {
+    let store: Record<string, string> = {};
+    return {
+      getItem: (key: string) => store[key] ?? null,
+      setItem: (key: string, value: string) => { store[key] = value; },
+      removeItem: (key: string) => { delete store[key]; },
+      clear: () => { store = {}; },
+      entries: function* () {
+        for (const [k, v] of Object.entries(store)) {
+          yield [k, v] as [string, string];
+        }
+      },
+      get length() { return Object.keys(store).length; },
+      key: (index: number) => Object.keys(store)[index] ?? null,
+    };
+  })();
+
+  beforeEach(() => {
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: localStorageMock,
+      writable: true,
+      configurable: true,
+    });
+    localStorageMock.clear();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('renders the card style picker in idle state', () => {
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const radioGroup = container.querySelector('[role="radiogroup"]');
+    expect(radioGroup).not.toBeNull();
+  });
+
+  it('defaults to Cloze as the initial selection', () => {
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const clozeBtn = container.querySelector('[role="radio"][aria-checked="true"]');
+    expect(clozeBtn?.textContent).toBe('Cloze');
+  });
+
+  it('switches to Q&A when Q&A segment is clicked', async () => {
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const qaBtn = Array.from(container.querySelectorAll('[role="radio"]')).find(
+      (el) => el.textContent === 'Q&A'
+    ) as HTMLElement;
+    await act(async () => { fireEvent.click(qaBtn); });
+    expect(qaBtn.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('stores card-style=qa in localStorage after switching to Q&A and before submit', async () => {
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+
+    const qaBtn = Array.from(container.querySelectorAll('[role="radio"]')).find(
+      (el) => el.textContent === 'Q&A'
+    ) as HTMLElement;
+    await act(async () => { fireEvent.click(qaBtn); });
+
+    expect(localStorageMock.getItem('card-style')).toBe('qa');
+  });
+
+  it('persists selection to localStorage when style changes', async () => {
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const qaBtn = Array.from(container.querySelectorAll('[role="radio"]')).find(
+      (el) => el.textContent === 'Q&A'
+    ) as HTMLElement;
+    await act(async () => { fireEvent.click(qaBtn); });
+    expect(localStorageMock.getItem('card-style')).toBe('qa');
+  });
+});
+
 describe('limit state — start trial button', () => {
   beforeEach(() => {
     mockGet2ankiApi.mockReturnValue({
