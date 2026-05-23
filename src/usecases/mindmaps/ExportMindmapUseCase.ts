@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 
+import StorageHandler from '../../lib/storage/StorageHandler';
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import { MindmapsId } from '../../data_layer/public/Mindmaps';
 import { UsersId } from '../../data_layer/public/Users';
@@ -32,7 +33,10 @@ interface ExportInput {
 }
 
 export class ExportMindmapUseCase {
-  constructor(private readonly repo: MindmapRepositoryInterface) {}
+  constructor(
+    private readonly repo: MindmapRepositoryInterface,
+    private readonly storage: StorageHandler
+  ) {}
 
   private buildNotes(
     data: MindmapData,
@@ -62,8 +66,7 @@ export class ExportMindmapUseCase {
 
     const resolvedDeckName = deckName ?? map.title;
     const mapData = map.data as MindmapData;
-    const uploadBase = process.env.UPLOAD_BASE ?? os.tmpdir();
-    const collectedImages = collectMindmapImages(mapData, uploadBase);
+    const collectedImages = await collectMindmapImages(mapData, this.storage);
 
     const filenameMap: Record<string, string> = {};
     const allMediaFilenames: string[] = [];

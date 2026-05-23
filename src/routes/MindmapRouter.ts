@@ -1,7 +1,5 @@
 import express from 'express';
 import multer from 'multer';
-import os from 'node:os';
-import path from 'node:path';
 
 import { getDatabase } from '../data_layer';
 import { MindmapRepository } from '../data_layer/MindmapRepository';
@@ -12,6 +10,7 @@ import { DeleteMindmapUseCase } from '../usecases/mindmaps/DeleteMindmapUseCase'
 import { ListMindmapsUseCase } from '../usecases/mindmaps/ListMindmapsUseCase';
 import { GetMindmapUseCase } from '../usecases/mindmaps/GetMindmapUseCase';
 import { ExportMindmapUseCase } from '../usecases/mindmaps/ExportMindmapUseCase';
+import StorageHandler from '../lib/storage/StorageHandler';
 import RequireAuthentication from './middleware/RequireAuthentication';
 
 const ALLOWED_IMAGE_TYPES = new Set([
@@ -25,29 +24,25 @@ const MindmapRouter = () => {
   const router = express.Router();
   const db = getDatabase();
   const repo = new MindmapRepository(db);
+  const storage = new StorageHandler();
 
   const controller = new MindmapController(
     new CreateMindmapUseCase(repo),
     new UpdateMindmapUseCase(repo),
-    new DeleteMindmapUseCase(repo),
+    new DeleteMindmapUseCase(repo, storage),
     new ListMindmapsUseCase(repo),
-    new GetMindmapUseCase(repo),
-    new ExportMindmapUseCase(repo)
+    new GetMindmapUseCase(repo, storage),
+    new ExportMindmapUseCase(repo, storage),
+    storage
   );
 
-  const uploadBase = process.env.UPLOAD_BASE ?? os.tmpdir();
   const imageUpload = multer({
-    dest: os.tmpdir(),
+    storage: multer.memoryStorage(),
     fileFilter: (_req, file, cb) => {
       cb(null, ALLOWED_IMAGE_TYPES.has(file.mimetype));
     },
     limits: { fileSize: 5 * 1024 * 1024 },
   });
-
-  router.use(
-    '/api/mindmaps/images',
-    express.static(path.join(uploadBase, 'mindmaps'), { fallthrough: false })
-  );
 
   /**
    * @swagger
@@ -278,7 +273,7 @@ const MindmapRouter = () => {
    *                 format: binary
    *     responses:
    *       201:
-   *         description: Image uploaded, returns url, width, height
+   *         description: Image uploaded, returns s3Key, presignedUrl, width, height
    *       400:
    *         description: No image provided
    *       401:
@@ -293,6 +288,38 @@ const MindmapRouter = () => {
     RequireAuthentication,
     imageUpload.single('image'),
     (req, res) => controller.uploadImage(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/mindmaps/images/{userId}/{mapId}/{file}:
+   *   get:
+   *     summary: Serve or redirect to a mindmap image
+   *     tags: [Mind maps]
+   *     parameters:
+   *       - in: path
+   *         name: userId
+   *         required: true
+   *         schema:
+   *           type: string
+   *       - in: path
+   *         name: mapId
+   *         required: true
+   *         schema:
+   *           type: string
+   *       - in: path
+   *         name: file
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       302:
+   *         description: Redirect to presigned URL
+   *       410:
+   *         description: Image no longer available
+   */
+  router.get('/api/mindmaps/images/:userId/:mapId/:file', (req, res) =>
+    controller.serveImage(req, res)
   );
 
   return router;

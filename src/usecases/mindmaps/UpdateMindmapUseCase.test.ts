@@ -119,4 +119,67 @@ describe('UpdateMindmapUseCase', () => {
 
     expect((result?.data as MindmapData).nodes.length).toBe(50);
   });
+
+  it('strips presigned URL back to s3Key before persisting', async () => {
+    const baseKey = 'mindmaps/1/map-1/uuid.png';
+    const presigned = `https://bucket.spaces.digitaloceanspaces.com/${baseKey}?X-Amz-Signature=abc`;
+    const repo = makeRepo(makeMap(1));
+    const useCase = new UpdateMindmapUseCase(repo);
+
+    await useCase.execute({
+      id: 'map-1' as MindmapsId,
+      userId: 1 as UsersId,
+      data: {
+        nodes: [{ id: 'a', label: 'n', image: { url: presigned, width: 10, height: 10 } }],
+        edges: [],
+      },
+      user: FREE_USER,
+      subscriptions: [],
+    });
+
+    const saved = (repo.update as jest.Mock).mock.calls[0][2] as { data: MindmapData };
+    const savedImage = saved.data.nodes[0].image!;
+    expect(savedImage.url).toBe(baseKey);
+  });
+
+  it('strips legacy /api/mindmaps/images/ URL and marks as missing', async () => {
+    const repo = makeRepo(makeMap(1));
+    const useCase = new UpdateMindmapUseCase(repo);
+
+    await useCase.execute({
+      id: 'map-1' as MindmapsId,
+      userId: 1 as UsersId,
+      data: {
+        nodes: [{ id: 'a', label: 'n', image: { url: '/api/mindmaps/images/1/map-1/old.png', width: 10, height: 10 } }],
+        edges: [],
+      },
+      user: FREE_USER,
+      subscriptions: [],
+    });
+
+    const saved = (repo.update as jest.Mock).mock.calls[0][2] as { data: MindmapData };
+    const savedImage = saved.data.nodes[0].image!;
+    expect(savedImage.url).toBeNull();
+    expect(savedImage.missing).toBe(true);
+  });
+
+  it('keeps a bare s3Key unchanged', async () => {
+    const repo = makeRepo(makeMap(1));
+    const useCase = new UpdateMindmapUseCase(repo);
+
+    await useCase.execute({
+      id: 'map-1' as MindmapsId,
+      userId: 1 as UsersId,
+      data: {
+        nodes: [{ id: 'a', label: 'n', image: { url: 'mindmaps/1/map-1/uuid.png', width: 10, height: 10 } }],
+        edges: [],
+      },
+      user: FREE_USER,
+      subscriptions: [],
+    });
+
+    const saved = (repo.update as jest.Mock).mock.calls[0][2] as { data: MindmapData };
+    const savedImage = saved.data.nodes[0].image!;
+    expect(savedImage.url).toBe('mindmaps/1/map-1/uuid.png');
+  });
 });

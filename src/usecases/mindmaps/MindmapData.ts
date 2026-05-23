@@ -1,7 +1,8 @@
 export interface MindmapImageMeta {
-  url: string;
+  url: string | null;
   width: number;
   height: number;
+  missing?: true;
 }
 
 export interface MindmapData {

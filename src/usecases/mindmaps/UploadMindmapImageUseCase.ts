@@ -1,8 +1,8 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 
 import imageSize from 'image-size';
+
+import StorageHandler from '../../lib/storage/StorageHandler';
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp']);
@@ -25,20 +25,21 @@ interface UploadInput {
   userId: string;
   mapId: string;
   file: {
-    path: string;
+    buffer: Buffer;
     mimetype: string;
     size: number;
   };
 }
 
 export interface MindmapImageResult {
-  url: string;
+  s3Key: string;
+  presignedUrl: string;
   width: number;
   height: number;
 }
 
 export class UploadMindmapImageUseCase {
-  constructor(private readonly uploadBase: string) {}
+  constructor(private readonly storage: StorageHandler) {}
 
   async execute(input: UploadInput): Promise<MindmapImageResult> {
     const { userId, mapId, file } = input;
@@ -52,25 +53,16 @@ export class UploadMindmapImageUseCase {
     }
 
     const ext = this.extensionFor(file.mimetype);
-    const filename = `${randomUUID()}${ext}`;
-    const destDir = path.join(this.uploadBase, 'mindmaps', userId, mapId);
-    fs.mkdirSync(destDir, { recursive: true });
+    const s3Key = `mindmaps/${userId}/${mapId}/${randomUUID()}${ext}`;
 
-    const destPath = path.join(destDir, filename);
-    const assertedPath = path.resolve(destPath);
-    const assertedBase = path.resolve(destDir);
-    if (!assertedPath.startsWith(assertedBase + path.sep)) {
-      throw new Error('Path escape detected');
-    }
+    await this.storage.uploadFile(s3Key, file.buffer);
 
-    fs.copyFileSync(file.path, destPath);
-    fs.unlinkSync(file.path);
-
-    const buf = fs.readFileSync(destPath);
-    const dims = imageSize(buf);
+    const dims = imageSize(file.buffer);
+    const presignedUrl = await this.storage.getPresignedUrl(s3Key);
 
     return {
-      url: `/api/mindmaps/images/${userId}/${mapId}/${filename}`,
+      s3Key,
+      presignedUrl,
       width: dims.width ?? 0,
       height: dims.height ?? 0,
     };

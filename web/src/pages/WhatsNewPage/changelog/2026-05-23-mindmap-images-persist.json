@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-23-mindmap-images-persist",
+  "date": "2026-05-23",
+  "type": "fix",
+  "title": "Mindmap images survive server restarts and deploys"
+}
