@@ -14,18 +14,25 @@ type UploadSource = 'camera' | 'library';
 type Density = 'sparse' | 'balanced' | 'dense';
 type PhotoMode = 'generative' | 'verbatim';
 
-const DENSITY_OPTIONS: ReadonlyArray<{ value: Density; label: string; range: string }> = [
-  { value: 'sparse', label: 'Sparse', range: '3–5' },
-  { value: 'balanced', label: 'Balanced', range: '6–10' },
-  { value: 'dense', label: 'Dense', range: '12–20' },
-];
+const MIN_CARDS = 1;
+const MAX_CARDS = 20;
+const DEFAULT_CARDS = 10;
 
-const DENSITY_STORAGE_KEY = 'photoToFlashcards.density';
+const CARD_COUNT_STORAGE_KEY = 'photoToFlashcards.cardCount';
 
-function readStoredDensity(): Density {
-  if (typeof window === 'undefined') return 'balanced';
-  const stored = window.localStorage.getItem(DENSITY_STORAGE_KEY);
-  return stored === 'sparse' || stored === 'dense' ? stored : 'balanced';
+function readStoredCardCount(): number {
+  if (typeof window === 'undefined') return DEFAULT_CARDS;
+  const stored = Number(window.localStorage.getItem(CARD_COUNT_STORAGE_KEY));
+  if (!Number.isFinite(stored) || stored < MIN_CARDS || stored > MAX_CARDS) {
+    return DEFAULT_CARDS;
+  }
+  return Math.round(stored);
+}
+
+function cardCountToDensity(count: number): Density {
+  if (count <= 5) return 'sparse';
+  if (count <= 10) return 'balanced';
+  return 'dense';
 }
 
 async function fileToBase64(file: File): Promise<string> {
@@ -79,7 +86,8 @@ export function PhotoToFlashcardsPage() {
   const [error, setError] = useState<string | null>(null);
   const [uploadSource, setUploadSource] = useState<UploadSource>('library');
   const [includeSourceImage, setIncludeSourceImage] = useState(true);
-  const [density, setDensity] = useState<Density>(readStoredDensity);
+  const [targetCardCount, setTargetCardCount] = useState<number>(readStoredCardCount);
+  const density: Density = cardCountToDensity(targetCardCount);
   const [mode, setMode] = useState<PhotoMode>('generative');
   const [verbatimEmptyState, setVerbatimEmptyState] = useState(false);
   const card1Ref = useRef<HTMLDivElement>(null);
@@ -122,10 +130,13 @@ export function PhotoToFlashcardsPage() {
     if (next != null) handleFile(next, 'camera');
   };
 
-  const handleDensitySelect = (next: Density) => {
-    setDensity(next);
+  const handleCardCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = Number(e.target.value);
+    if (!Number.isFinite(raw)) return;
+    const clamped = Math.min(MAX_CARDS, Math.max(MIN_CARDS, Math.round(raw)));
+    setTargetCardCount(clamped);
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem(DENSITY_STORAGE_KEY, next);
+      window.localStorage.setItem(CARD_COUNT_STORAGE_KEY, String(clamped));
     }
   };
 
@@ -229,16 +240,15 @@ export function PhotoToFlashcardsPage() {
 
   return (
     <section className={pageStyles.page} aria-label="Photo to deck">
-      <header className={pageStyles.pageHeader}>
-        <h1 className={pageStyles.pageTitle}>Snap a photo, get cards</h1>
-        <p className={pageStyles.pageSubtitle}>
-          Works on textbook pages, lecture slides, and handwritten notes.
+      <header className={styles.pageHeader}>
+        <h1 className={styles.title}>Photo to deck</h1>
+        <p className={styles.subtitle}>
+          Turn a photo of your notes, slides, or textbook into an Anki deck.
           {!isPaying && ' Free plan: 5 photos per month.'}
         </p>
       </header>
 
       <div ref={card1Ref} className={styles.sectionCard} data-section-card>
-        <p className={pageStyles.cardLabel}>Choose a mode</p>
         <div
           className={pageStyles.modeGroup}
           role="radiogroup"
@@ -253,11 +263,9 @@ export function PhotoToFlashcardsPage() {
             onClick={() => setMode('generative')}
           >
             <span className={pageStyles.modeCardTitle} aria-hidden>Generate cards</span>
-            {mode === 'generative' && (
-              <span className={pageStyles.modeCardHelper}>
-                Works on any notes, textbook pages, or slides — AI writes the questions.
-              </span>
-            )}
+            <span className={pageStyles.modeCardHelper}>
+              Works on any notes, textbook pages, or slides — AI writes the questions.
+            </span>
           </button>
           <button
             type="button"
@@ -268,18 +276,14 @@ export function PhotoToFlashcardsPage() {
             onClick={() => setMode('verbatim')}
           >
             <span className={pageStyles.modeCardTitle} aria-hidden>Copy existing questions</span>
-            {mode === 'verbatim' && (
-              <span className={pageStyles.modeCardHelper}>
-                Photo already has Q&amp;A or MCQs? Cards are copied exactly as written.
-              </span>
-            )}
+            <span className={pageStyles.modeCardHelper}>
+              Photo already has Q&amp;A or MCQs? Cards are copied exactly as written.
+            </span>
           </button>
         </div>
       </div>
 
       <div className={styles.sectionCard} data-section-card>
-        <p className={pageStyles.cardLabel}>Your photo</p>
-
         <div className={pageStyles.row}>
           <label className={pageStyles.deckNameLabel} htmlFor="photo-deck-name">
             Deck name
@@ -340,37 +344,29 @@ export function PhotoToFlashcardsPage() {
         </label>
       </div>
 
-      <div className={styles.sectionCard} data-section-card>
-        <p className={pageStyles.cardLabel}>Options</p>
-
-        {mode === 'generative' && (
-          <div className={pageStyles.densityRow}>
-            <div
-              className={pageStyles.densityGroup}
-              role="radiogroup"
-              aria-label="Card density"
-            >
-              {DENSITY_OPTIONS.map(({ value, label, range }) => {
-                const isActive = density === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    role="radio"
-                    aria-checked={isActive}
-                    className={`${pageStyles.densityChip} ${isActive ? pageStyles.densityChipActive : ''}`}
-                    onClick={() => handleDensitySelect(value)}
-                  >
-                    <span className={pageStyles.densityChipLabel}>{label}</span>
-                    <span className={pageStyles.densityChipRange}>{range}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <p className={pageStyles.densityHint}>How many cards per image.</p>
+      {mode === 'generative' && (
+        <div className={styles.sectionCard} data-section-card>
+          <div className={pageStyles.row}>
+            <label className={pageStyles.deckNameLabel} htmlFor="photo-card-count">
+              How many cards?
+            </label>
+            <input
+              id="photo-card-count"
+              type="number"
+              min={MIN_CARDS}
+              max={MAX_CARDS}
+              value={targetCardCount}
+              onChange={handleCardCountChange}
+              className={pageStyles.deckNameInput}
+            />
           </div>
-        )}
+          <p className={pageStyles.densityHint}>
+            3–5 for a quick pass, 6–10 for typical study, 11–20 for a dense page.
+          </p>
+        </div>
+      )}
 
+      <div className={styles.sectionCard} data-section-card>
         <label className={pageStyles.checkboxRow}>
           <input
             type="checkbox"
@@ -379,47 +375,50 @@ export function PhotoToFlashcardsPage() {
           />
           Show source image on the back of each card
         </label>
+        <p className={pageStyles.densityHint}>
+          Helpful for diagrams, charts, and handwritten notes.
+        </p>
+      </div>
 
-        {error != null && <div className={styles.notificationDanger}>{error}</div>}
+      {error != null && <div className={styles.notificationDanger}>{error}</div>}
 
-        {status === 'done' && !verbatimEmptyState && (
-          <div className={styles.notificationSuccess}>
-            {cardCount} {cardCount === 1 ? 'card' : 'cards'} from your photo. Deck downloaded.
-          </div>
-        )}
-
-        {verbatimEmptyState && (
-          <div className={styles.notificationWarning}>
-            No questions found in this photo.{' '}
-            <button
-              type="button"
-              className={pageStyles.switchModeLink}
-              onClick={switchToGenerative}
-            >
-              Switch to Generate cards
-            </button>{' '}
-            to have them written for you.
-          </div>
-        )}
-
-        <div className={pageStyles.footer}>
-          <button
-            type="button"
-            className={styles.btnSecondary}
-            onClick={reset}
-            disabled={file == null && status === 'idle'}
-          >
-            Clear
-          </button>
-          <button
-            type="button"
-            className={styles.btnPrimary}
-            onClick={handleConvert}
-            disabled={file == null || status === 'reading'}
-          >
-            {status === 'reading' ? 'Reading your photo' : 'Get cards'}
-          </button>
+      {status === 'done' && !verbatimEmptyState && (
+        <div className={styles.notificationSuccess}>
+          {cardCount} {cardCount === 1 ? 'card' : 'cards'} from your photo. Deck downloaded.
         </div>
+      )}
+
+      {verbatimEmptyState && (
+        <div className={styles.notificationWarning}>
+          No questions found in this photo.{' '}
+          <button
+            type="button"
+            className={pageStyles.switchModeLink}
+            onClick={switchToGenerative}
+          >
+            Switch to Generate cards
+          </button>{' '}
+          to have them written for you.
+        </div>
+      )}
+
+      <div className={pageStyles.footer}>
+        <button
+          type="button"
+          className={styles.btnSecondary}
+          onClick={reset}
+          disabled={file == null && status === 'idle'}
+        >
+          Clear
+        </button>
+        <button
+          type="button"
+          className={styles.btnPrimary}
+          onClick={handleConvert}
+          disabled={file == null || status === 'reading'}
+        >
+          {status === 'reading' ? 'Reading your photo' : 'Get cards'}
+        </button>
       </div>
     </section>
   );

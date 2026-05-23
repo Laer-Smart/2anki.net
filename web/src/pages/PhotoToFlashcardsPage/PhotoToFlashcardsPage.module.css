@@ -7,34 +7,6 @@
   gap: var(--space-md, 1.25rem);
 }
 
-.pageHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.pageTitle {
-  margin: 0;
-  font-size: var(--text-xl, 1.25rem);
-  font-weight: var(--font-medium, 500);
-  color: var(--color-text-primary);
-}
-
-.pageSubtitle {
-  margin: 0;
-  font-size: var(--text-sm, 0.875rem);
-  color: var(--color-text-secondary);
-}
-
-.cardLabel {
-  margin: 0 0 0.75rem;
-  font-size: var(--text-xs, 0.75rem);
-  font-weight: var(--font-medium, 500);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-tertiary);
-}
-
 .row {
   display: flex;
   align-items: center;
@@ -147,55 +119,6 @@
   font-size: var(--text-xs, 0.75rem);
   color: var(--color-text-tertiary);
   line-height: var(--leading-snug, 1.375);
-}
-
-.densityRow {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: var(--space-sm, 0.75rem);
-}
-
-.densityGroup {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-}
-
-.densityChip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.125rem;
-  padding: 0.5rem 0.5rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm, 0.375rem);
-  background: var(--color-bg-primary);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast, 150ms);
-}
-
-.densityChip:hover {
-  border-color: var(--color-primary);
-}
-
-.densityChipActive {
-  border-color: var(--color-primary);
-  background: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-}
-
-.densityChipLabel {
-  font-size: var(--text-sm, 0.875rem);
-  font-weight: var(--font-medium, 500);
-}
-
-.densityChipRange {
-  font-size: var(--text-xs, 0.75rem);
-  color: var(--color-text-tertiary);
-  font-variant-numeric: tabular-nums;
 }
 
 .densityHint {

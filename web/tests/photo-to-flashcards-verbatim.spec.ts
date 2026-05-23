@@ -40,17 +40,15 @@ test.describe('Photo to deck — verbatim mode toggle', () => {
     await expect(radiogroup.getByRole('radio', { name: 'Copy existing questions' })).toBeVisible();
   });
 
-  test('density control is visible in generative mode (default)', async ({ page }) => {
+  test('card-count input is visible in generative mode (default)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    const densityGroup = page.getByRole('radiogroup', { name: 'Card density' });
-    await expect(densityGroup).toBeVisible();
+    await expect(page.getByLabel('How many cards?')).toBeVisible();
   });
 
-  test('density control disappears when verbatim mode is selected', async ({ page }) => {
+  test('card-count input disappears when verbatim mode is selected', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.getByRole('radio', { name: 'Copy existing questions' }).click();
-    const densityGroup = page.getByRole('radiogroup', { name: 'Card density' });
-    await expect(densityGroup).not.toBeVisible();
+    await expect(page.getByLabel('How many cards?')).not.toBeVisible();
   });
 
   test('submit button remains enabled after switching to verbatim mode (no file)', async ({ page }) => {
@@ -68,18 +66,16 @@ test.describe('Photo to deck — verbatim mode toggle', () => {
     await expect(radiogroup.getByRole('radio', { name: 'Copy existing questions' })).toBeVisible();
   });
 
-  test('density control disappears at 375px when verbatim is selected', async ({ page }) => {
+  test('card-count input disappears at 375px when verbatim is selected', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.getByRole('radio', { name: 'Copy existing questions' }).click();
-    const densityGroup = page.getByRole('radiogroup', { name: 'Card density' });
-    await expect(densityGroup).not.toBeVisible();
+    await expect(page.getByLabel('How many cards?')).not.toBeVisible();
   });
 
-  test('switching back to generative mode restores density control', async ({ page }) => {
+  test('switching back to generative mode restores card-count input', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.getByRole('radio', { name: 'Copy existing questions' }).click();
     await page.getByRole('radio', { name: 'Generate cards' }).click();
-    const densityGroup = page.getByRole('radiogroup', { name: 'Card density' });
-    await expect(densityGroup).toBeVisible();
+    await expect(page.getByLabel('How many cards?')).toBeVisible();
   });
 });

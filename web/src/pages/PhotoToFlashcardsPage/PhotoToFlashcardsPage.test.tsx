@@ -83,8 +83,8 @@ describe('PhotoToFlashcardsPage', () => {
 
   it('renders the title and audience hint', () => {
     render(<PhotoToFlashcardsPage />);
-    expect(screen.getByText('Snap a photo, get cards')).toBeTruthy();
-    expect(screen.getByText(/textbook pages, lecture slides, and handwritten notes/)).toBeTruthy();
+    expect(screen.getByText('Photo to deck')).toBeTruthy();
+    expect(screen.getByText(/Turn a photo of your notes, slides, or textbook/)).toBeTruthy();
     expect(screen.getByText(/Free plan: 5 photos per month/)).toBeTruthy();
   });
 
@@ -240,23 +240,25 @@ describe('PhotoToFlashcardsPage', () => {
     });
   });
 
-  it('renders the density chip group with Balanced selected by default', () => {
+  it('renders the card-count input with 10 as the default', () => {
     render(<PhotoToFlashcardsPage />);
-    const group = screen.getByRole('radiogroup', { name: 'Card density' });
-    expect(group).toBeTruthy();
-    expect(screen.getByRole('radio', { name: /Sparse/ })).toHaveProperty('ariaChecked', 'false');
-    expect(screen.getByRole('radio', { name: /Balanced/ })).toHaveProperty('ariaChecked', 'true');
-    expect(screen.getByRole('radio', { name: /Dense/ })).toHaveProperty('ariaChecked', 'false');
-    expect(screen.getByText('How many cards per image.')).toBeTruthy();
+    const input = screen.getByLabelText('How many cards?') as HTMLInputElement;
+    expect(input.type).toBe('number');
+    expect(input.value).toBe('10');
+    expect(input.min).toBe('1');
+    expect(input.max).toBe('20');
+    expect(
+      screen.getByText('3–5 for a quick pass, 6–10 for typical study, 11–20 for a dense page.')
+    ).toBeTruthy();
   });
 
-  it('sends the selected density in the upload request body', async () => {
+  it('maps a high card count (16) to density "dense" in the upload request', async () => {
     setLocals({ paying: true });
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 404 }));
     vi.stubGlobal('fetch', fetchMock);
 
     render(<PhotoToFlashcardsPage />);
-    fireEvent.click(screen.getByRole('radio', { name: /Dense/ }));
+    fireEvent.change(screen.getByLabelText('How many cards?'), { target: { value: '16' } });
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto()] } });
     fireEvent.click(screen.getByRole('button', { name: 'Get cards' }));
@@ -268,16 +270,41 @@ describe('PhotoToFlashcardsPage', () => {
     expect(JSON.parse(init.body as string)).toMatchObject({ density: 'dense' });
   });
 
-  it('persists the selected density to localStorage', () => {
+  it('maps a low card count (3) to density "sparse" in the upload request', async () => {
+    setLocals({ paying: true });
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 404 }));
+    vi.stubGlobal('fetch', fetchMock);
+
     render(<PhotoToFlashcardsPage />);
-    fireEvent.click(screen.getByRole('radio', { name: /Sparse/ }));
-    expect(window.localStorage.getItem('photoToFlashcards.density')).toBe('sparse');
+    fireEvent.change(screen.getByLabelText('How many cards?'), { target: { value: '3' } });
+    const photoInput = document.getElementById('photo-file-input') as HTMLInputElement;
+    fireEvent.change(photoInput, { target: { files: [makePhoto()] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Get cards' }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toMatchObject({ density: 'sparse' });
   });
 
-  it('restores the previously selected density from localStorage', () => {
-    window.localStorage.setItem('photoToFlashcards.density', 'dense');
+  it('persists the chosen card count to localStorage', () => {
     render(<PhotoToFlashcardsPage />);
-    expect(screen.getByRole('radio', { name: /Dense/ })).toHaveProperty('ariaChecked', 'true');
+    fireEvent.change(screen.getByLabelText('How many cards?'), { target: { value: '4' } });
+    expect(window.localStorage.getItem('photoToFlashcards.cardCount')).toBe('4');
+  });
+
+  it('restores the previously chosen card count from localStorage', () => {
+    window.localStorage.setItem('photoToFlashcards.cardCount', '17');
+    render(<PhotoToFlashcardsPage />);
+    expect((screen.getByLabelText('How many cards?') as HTMLInputElement).value).toBe('17');
+  });
+
+  it('clamps card count to the 1..20 range', () => {
+    render(<PhotoToFlashcardsPage />);
+    const input = screen.getByLabelText('How many cards?') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '99' } });
+    expect(input.value).toBe('20');
+    fireEvent.change(input, { target: { value: '0' } });
+    expect(input.value).toBe('1');
   });
 
   it('fires photo_quota_reached with used and limit on 429', async () => {
@@ -329,15 +356,15 @@ describe('PhotoToFlashcardsPage', () => {
       ).toHaveProperty('ariaChecked', 'true');
     });
 
-    it('hides the density control when verbatim is selected', () => {
+    it('hides the card-count control when verbatim is selected', () => {
       render(<PhotoToFlashcardsPage />);
       fireEvent.click(screen.getByRole('radio', { name: 'Copy existing questions' }));
-      expect(screen.queryByRole('radiogroup', { name: 'Card density' })).toBeNull();
+      expect(screen.queryByLabelText('How many cards?')).toBeNull();
     });
 
-    it('shows the density control when generative is selected', () => {
+    it('shows the card-count control when generative is selected', () => {
       render(<PhotoToFlashcardsPage />);
-      expect(screen.getByRole('radiogroup', { name: 'Card density' })).toBeTruthy();
+      expect(screen.getByLabelText('How many cards?')).toBeTruthy();
     });
 
     it('sends mode: verbatim in the request body when verbatim is selected', async () => {
@@ -371,17 +398,10 @@ describe('PhotoToFlashcardsPage', () => {
       expect(JSON.parse(init.body as string)).toMatchObject({ mode: 'generative' });
     });
 
-    it('shows the generative helper by default and not the verbatim helper', () => {
+    it('shows both mode helpers regardless of selection', () => {
       render(<PhotoToFlashcardsPage />);
       expect(screen.getByText(/AI writes the questions/)).toBeTruthy();
-      expect(screen.queryByText(/Cards are copied exactly as written/)).toBeNull();
-    });
-
-    it('shows the verbatim helper when verbatim is selected', () => {
-      render(<PhotoToFlashcardsPage />);
-      fireEvent.click(screen.getByRole('radio', { name: 'Copy existing questions' }));
       expect(screen.getByText(/Cards are copied exactly as written/)).toBeTruthy();
-      expect(screen.queryByText(/AI writes the questions/)).toBeNull();
     });
 
     it('shows a warning and Switch to Generate cards button when verbatim returns zero cards', async () => {
@@ -431,15 +451,22 @@ describe('PhotoToFlashcardsPage', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Switch to Generate cards' }));
 
       await waitFor(() => {
-        expect(screen.getByRole('radiogroup', { name: 'Card density' })).toBeTruthy();
+        expect(screen.getByLabelText('How many cards?')).toBeTruthy();
       });
       expect(screen.queryByText(/No questions found in this photo/)).toBeNull();
     });
   });
 
-  describe('three section cards layout', () => {
-    it('renders three section cards', () => {
+  describe('section cards layout', () => {
+    it('renders four section cards in generative mode', () => {
       render(<PhotoToFlashcardsPage />);
+      const cards = document.querySelectorAll('[data-section-card]');
+      expect(cards).toHaveLength(4);
+    });
+
+    it('renders three section cards in verbatim mode', () => {
+      render(<PhotoToFlashcardsPage />);
+      fireEvent.click(screen.getByRole('radio', { name: 'Copy existing questions' }));
       const cards = document.querySelectorAll('[data-section-card]');
       expect(cards).toHaveLength(3);
     });
