@@ -305,6 +305,73 @@ describe('PhotoToFlashcardsPage', () => {
     expect(mockTrack).toHaveBeenCalledWith('photo_quota_reached', { used: 5, limit: 5 });
   });
 
+  describe('mode toggle', () => {
+    it('renders the mode radiogroup with Generate selected by default', () => {
+      render(<PhotoToFlashcardsPage />);
+      const group = screen.getByRole('radiogroup', { name: 'Conversion mode' });
+      expect(group).toBeTruthy();
+      expect(
+        screen.getByRole('radio', { name: 'Generate cards from this material' })
+      ).toHaveProperty('ariaChecked', 'true');
+      expect(
+        screen.getByRole('radio', { name: 'Transcribe questions verbatim' })
+      ).toHaveProperty('ariaChecked', 'false');
+    });
+
+    it('selecting Transcribe verbatim unchecks Generate', () => {
+      render(<PhotoToFlashcardsPage />);
+      fireEvent.click(screen.getByRole('radio', { name: 'Transcribe questions verbatim' }));
+      expect(
+        screen.getByRole('radio', { name: 'Generate cards from this material' })
+      ).toHaveProperty('ariaChecked', 'false');
+      expect(
+        screen.getByRole('radio', { name: 'Transcribe questions verbatim' })
+      ).toHaveProperty('ariaChecked', 'true');
+    });
+
+    it('hides the density control when verbatim is selected', () => {
+      render(<PhotoToFlashcardsPage />);
+      fireEvent.click(screen.getByRole('radio', { name: 'Transcribe questions verbatim' }));
+      expect(screen.queryByRole('radiogroup', { name: 'Card density' })).toBeNull();
+    });
+
+    it('shows the density control when generative is selected', () => {
+      render(<PhotoToFlashcardsPage />);
+      expect(screen.getByRole('radiogroup', { name: 'Card density' })).toBeTruthy();
+    });
+
+    it('sends mode: verbatim in the request body when verbatim is selected', async () => {
+      setLocals({ paying: true });
+      const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 404 }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      render(<PhotoToFlashcardsPage />);
+      fireEvent.click(screen.getByRole('radio', { name: 'Transcribe questions verbatim' }));
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [makePhoto()] } });
+      fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+      const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(JSON.parse(init.body as string)).toMatchObject({ mode: 'verbatim' });
+    });
+
+    it('sends mode: generative in the request body by default', async () => {
+      setLocals({ paying: true });
+      const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 404 }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [makePhoto()] } });
+      fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+      const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(JSON.parse(init.body as string)).toMatchObject({ mode: 'generative' });
+    });
+  });
+
   describe('source image toggle', () => {
     it('renders the source image checkbox checked by default', () => {
       render(<PhotoToFlashcardsPage />);

@@ -12,11 +12,17 @@ const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 type Status = 'idle' | 'reading' | 'done';
 type UploadSource = 'camera' | 'library';
 type Density = 'sparse' | 'balanced' | 'dense';
+type PhotoMode = 'generative' | 'verbatim';
 
 const DENSITY_OPTIONS: ReadonlyArray<{ value: Density; label: string; range: string }> = [
   { value: 'sparse', label: 'Sparse', range: '3–5' },
   { value: 'balanced', label: 'Balanced', range: '6–10' },
   { value: 'dense', label: 'Dense', range: '12–20' },
+];
+
+const MODE_OPTIONS: ReadonlyArray<{ value: PhotoMode; label: string }> = [
+  { value: 'generative', label: 'Generate cards from this material' },
+  { value: 'verbatim', label: 'Transcribe questions verbatim' },
 ];
 
 const DENSITY_STORAGE_KEY = 'photoToFlashcards.density';
@@ -79,6 +85,7 @@ export function PhotoToFlashcardsPage() {
   const [uploadSource, setUploadSource] = useState<UploadSource>('library');
   const [includeSourceImage, setIncludeSourceImage] = useState(true);
   const [density, setDensity] = useState<Density>(readStoredDensity);
+  const [mode, setMode] = useState<PhotoMode>('generative');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -160,6 +167,7 @@ export function PhotoToFlashcardsPage() {
           height: dimensions.height,
           includeSourceImage,
           density,
+          mode,
         }),
       });
 
@@ -220,6 +228,28 @@ export function PhotoToFlashcardsPage() {
         </p>
       </header>
 
+      <div
+        className={pageStyles.modeGroup}
+        role="radiogroup"
+        aria-label="Conversion mode"
+      >
+        {MODE_OPTIONS.map(({ value, label }) => {
+          const isActive = mode === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={isActive}
+              className={`${pageStyles.modeOption} ${isActive ? pageStyles.modeOptionActive : ''}`}
+              onClick={() => setMode(value)}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
       <div className={pageStyles.row}>
         <label className={pageStyles.deckNameLabel} htmlFor="photo-deck-name">
           Deck name
@@ -234,31 +264,33 @@ export function PhotoToFlashcardsPage() {
         />
       </div>
 
-      <div className={pageStyles.densityRow}>
-        <div
-          className={pageStyles.densityGroup}
-          role="radiogroup"
-          aria-label="Card density"
-        >
-          {DENSITY_OPTIONS.map(({ value, label, range }) => {
-            const isActive = density === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                role="radio"
-                aria-checked={isActive}
-                className={`${pageStyles.densityChip} ${isActive ? pageStyles.densityChipActive : ''}`}
-                onClick={() => handleDensitySelect(value)}
-              >
-                <span className={pageStyles.densityChipLabel}>{label}</span>
-                <span className={pageStyles.densityChipRange}>{range}</span>
-              </button>
-            );
-          })}
+      {mode === 'generative' && (
+        <div className={pageStyles.densityRow}>
+          <div
+            className={pageStyles.densityGroup}
+            role="radiogroup"
+            aria-label="Card density"
+          >
+            {DENSITY_OPTIONS.map(({ value, label, range }) => {
+              const isActive = density === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={isActive}
+                  className={`${pageStyles.densityChip} ${isActive ? pageStyles.densityChipActive : ''}`}
+                  onClick={() => handleDensitySelect(value)}
+                >
+                  <span className={pageStyles.densityChipLabel}>{label}</span>
+                  <span className={pageStyles.densityChipRange}>{range}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className={pageStyles.densityHint}>How many cards per image.</p>
         </div>
-        <p className={pageStyles.densityHint}>How many cards per image.</p>
-      </div>
+      )}
 
       <label className={pageStyles.checkboxRow}>
         <input

@@ -5,7 +5,9 @@ import express from 'express';
 import {
   PhotoToFlashcardsUseCase,
   DEFAULT_PHOTO_DENSITY,
+  DEFAULT_PHOTO_MODE,
   type PhotoDensity,
+  type PhotoMode,
 } from '../usecases/imageOcclusion/PhotoToFlashcardsUseCase';
 import type { VisionMediaType } from '../lib/claude/countVisionTokens';
 import { buildContentDisposition } from '../lib/buildContentDisposition';
@@ -13,6 +15,7 @@ import { isPaying } from '../lib/isPaying';
 
 const ALLOWED_MEDIA_TYPES: VisionMediaType[] = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const ALLOWED_DENSITIES: PhotoDensity[] = ['sparse', 'balanced', 'dense'];
+const ALLOWED_MODES: PhotoMode[] = ['generative', 'verbatim'];
 
 interface RawPhotoBody {
   imageBase64?: unknown;
@@ -22,6 +25,7 @@ interface RawPhotoBody {
   height?: unknown;
   includeSourceImage?: unknown;
   density?: unknown;
+  mode?: unknown;
 }
 
 function isAllowedMediaType(value: unknown): value is VisionMediaType {
@@ -32,6 +36,12 @@ function parseDensity(value: unknown): PhotoDensity {
   return typeof value === 'string' && (ALLOWED_DENSITIES as string[]).includes(value)
     ? (value as PhotoDensity)
     : DEFAULT_PHOTO_DENSITY;
+}
+
+function parseMode(value: unknown): PhotoMode {
+  return typeof value === 'string' && (ALLOWED_MODES as string[]).includes(value)
+    ? (value as PhotoMode)
+    : DEFAULT_PHOTO_MODE;
 }
 
 export class PhotoToFlashcardsController {
@@ -67,6 +77,8 @@ export class PhotoToFlashcardsController {
     const includeSourceImage =
       typeof body.includeSourceImage === 'boolean' ? body.includeSourceImage : true;
 
+    const mode = parseMode(body.mode);
+
     let result: Awaited<ReturnType<PhotoToFlashcardsUseCase['execute']>>;
     try {
       result = await this.useCase.execute({
@@ -78,6 +90,7 @@ export class PhotoToFlashcardsController {
         imageDimensions: { width, height },
         includeSourceImage,
         density: parseDensity(body.density),
+        mode,
       });
     } catch (err) {
       const e = err as Error & {

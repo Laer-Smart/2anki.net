@@ -14,8 +14,10 @@ export const FREE_PHOTO_QUOTA_PER_MONTH = 5;
 const VISION_PHOTO_EVENT = 'vision_photo_converted';
 
 export type PhotoDensity = 'sparse' | 'balanced' | 'dense';
+export type PhotoMode = 'generative' | 'verbatim';
 
 export const DEFAULT_PHOTO_DENSITY: PhotoDensity = 'balanced';
+export const DEFAULT_PHOTO_MODE: PhotoMode = 'generative';
 
 export interface PhotoToFlashcardsInput {
   imageBase64: string;
@@ -27,6 +29,7 @@ export interface PhotoToFlashcardsInput {
   tokenCeilingOverride?: number;
   includeSourceImage?: boolean;
   density?: PhotoDensity;
+  mode?: PhotoMode;
 }
 
 export interface PhotoToFlashcardsResult {
@@ -64,6 +67,21 @@ Rules:
 - ${DENSITY_RULE[density]}
 - Use the image content as the deck name if no other name is obvious
 - Add 1–3 topic tags per card in the "tags" field: short, lowercase, snake_case, drawn from the actual content (e.g. "enzymes", "michaelis_menten") — not broad labels like "biology" or "chapter_4"`;
+}
+
+export function buildVerbatimPrompt(): string {
+  return `Transcribe the questions and answers on this page exactly as written. Do not paraphrase. Do not invent questions. Do not add distractors. Do not expand abbreviations. If text is illegible, output the token [illegible] in place of that character or word. Preserve original ordering.
+
+Output ONLY a compact JSON array. Format (nothing else — no markdown, no explanation):
+[{"deck":"Deck Name","cards":[{"q":"question text","a":"answer text"}]}]
+
+Rules:
+- Copy each question and answer verbatim from the page — no rewording
+- If the page shows MCQ options and a correct answer, use: {"q":"question text","options":["A","B","C","D"],"correct_index":0}
+- If no correct answer is visible for an MCQ, omit "correct_index"
+- If text is illegible, write [illegible] in its place
+- Use the page title or subject as the deck name if visible; otherwise use "Verbatim deck"
+- Do not add tags`;
 }
 
 const INPUT_COST_PER_MILLION = 3;
@@ -287,7 +305,10 @@ export class PhotoToFlashcardsUseCase {
             },
             {
               type: 'text',
-              text: buildVisionPrompt(input.density ?? DEFAULT_PHOTO_DENSITY),
+              text:
+                (input.mode ?? DEFAULT_PHOTO_MODE) === 'verbatim'
+                  ? buildVerbatimPrompt()
+                  : buildVisionPrompt(input.density ?? DEFAULT_PHOTO_DENSITY),
             },
           ],
         },
@@ -351,7 +372,11 @@ export class PhotoToFlashcardsUseCase {
     track(VISION_PHOTO_EVENT, {
       userId: ownerToUserId(input.owner),
       anonymousId: ownerToUserId(input.owner) == null ? input.owner : null,
-      props: { card_count: cardCount, tile_count: tiles },
+      props: {
+        card_count: cardCount,
+        tile_count: tiles,
+        source_mode: input.mode ?? DEFAULT_PHOTO_MODE,
+      },
     });
 
     return { apkgPath, cardCount, estimatedCostUsd, tileCount: tiles };

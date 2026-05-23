@@ -2,6 +2,7 @@ import {
   PhotoToFlashcardsUseCase,
   FREE_PHOTO_QUOTA_PER_MONTH,
   buildVisionPrompt,
+  buildVerbatimPrompt,
 } from './PhotoToFlashcardsUseCase';
 import type { IEventsRepository } from '../../data_layer/EventsRepository';
 
@@ -379,6 +380,81 @@ describe('PhotoToFlashcardsUseCase', () => {
       expect(balanced).not.toEqual(dense);
       expect(sparse).toContain('3 to 5');
       expect(dense).toContain('12 to 20');
+    });
+  });
+
+  describe('verbatim mode', () => {
+    it('buildVerbatimPrompt contains the verbatim contract text', () => {
+      const prompt = buildVerbatimPrompt();
+      expect(prompt).toContain('exactly as written');
+      expect(prompt).toContain('Do not paraphrase');
+      expect(prompt).toContain('[illegible]');
+    });
+
+    it('buildVerbatimPrompt is distinct from buildVisionPrompt', () => {
+      expect(buildVerbatimPrompt()).not.toEqual(buildVisionPrompt('balanced'));
+    });
+
+    it('sends the verbatim prompt to Claude when mode is verbatim', async () => {
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true, mode: 'verbatim' });
+      const [callArgs] = mockMessageCreate.mock.calls[0];
+      const text = (
+        callArgs.messages[0].content as Array<{ type: string; text?: string }>
+      ).find((b) => b.type === 'text')?.text;
+      expect(text).toContain('exactly as written');
+      expect(text).not.toContain('6 to 10 cards');
+    });
+
+    it('sends the generative prompt when mode is generative', async () => {
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true, mode: 'generative' });
+      const [callArgs] = mockMessageCreate.mock.calls[0];
+      const text = (
+        callArgs.messages[0].content as Array<{ type: string; text?: string }>
+      ).find((b) => b.type === 'text')?.text;
+      expect(text).toContain('6 to 10 cards');
+      expect(text).not.toContain('exactly as written');
+    });
+
+    it('uses the generative prompt when mode is absent', async () => {
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      const [callArgs] = mockMessageCreate.mock.calls[0];
+      const text = (
+        callArgs.messages[0].content as Array<{ type: string; text?: string }>
+      ).find((b) => b.type === 'text')?.text;
+      expect(text).toContain('6 to 10 cards');
+    });
+
+    it('tracks source_mode: verbatim in the analytics event', async () => {
+      const events = makeEventsStub(0);
+      const useCase = new PhotoToFlashcardsUseCase(events);
+      await useCase.execute({ ...BASE_INPUT, isPaying: false, mode: 'verbatim' });
+      const { track } = jest.requireMock(
+        '../../services/events/track'
+      ) as { track: jest.Mock };
+      expect(track).toHaveBeenCalledWith(
+        'vision_photo_converted',
+        expect.objectContaining({
+          props: expect.objectContaining({ source_mode: 'verbatim' }),
+        })
+      );
+    });
+
+    it('tracks source_mode: generative when mode is absent', async () => {
+      const events = makeEventsStub(0);
+      const useCase = new PhotoToFlashcardsUseCase(events);
+      await useCase.execute({ ...BASE_INPUT, isPaying: false });
+      const { track } = jest.requireMock(
+        '../../services/events/track'
+      ) as { track: jest.Mock };
+      expect(track).toHaveBeenCalledWith(
+        'vision_photo_converted',
+        expect.objectContaining({
+          props: expect.objectContaining({ source_mode: 'generative' }),
+        })
+      );
     });
   });
 
