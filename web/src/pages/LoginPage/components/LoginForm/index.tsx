@@ -89,7 +89,6 @@ function LoginForm() {
                     type="email"
                     autoComplete="email"
                     inputMode="email"
-                    placeholder="Email address"
                     required
                   />
                 </label>

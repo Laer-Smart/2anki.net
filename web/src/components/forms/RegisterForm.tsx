@@ -117,7 +117,6 @@ function RegisterForm({ setErrorMessage, redirect, startTrial }: Props) {
                 type="email"
                 autoComplete="email"
                 inputMode="email"
-                placeholder="Email address"
                 required
                 name="email"
               />
