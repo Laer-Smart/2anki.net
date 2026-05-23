@@ -1,0 +1,22 @@
+[
+  {
+    "type": "child_page",
+    "hasToggleableHeading": false,
+    "expectedDecision": "recurse"
+  },
+  {
+    "type": "toggle",
+    "hasToggleableHeading": false,
+    "expectedDecision": "card"
+  },
+  {
+    "type": "heading_3",
+    "hasToggleableHeading": true,
+    "expectedDecision": "card"
+  },
+  {
+    "type": "bulleted_list_item",
+    "hasToggleableHeading": false,
+    "expectedDecision": "skip"
+  }
+]

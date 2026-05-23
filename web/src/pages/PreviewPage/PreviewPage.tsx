@@ -1,21 +1,35 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
 import { SkeletonList } from '../../components/Skeleton/Skeleton';
 import { ErrorPresenter } from '../../components/errors/ErrorPresenter';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
+import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './PreviewPage.module.css';
 import { usePreviewStream } from './usePreviewStream';
 import { BlockNode } from './BlockNode';
+import InfoIcon from '../../components/icons/InfoIcon';
+import ExternalLinkIcon from '../../components/icons/ExternalLinkIcon';
+import SettingsIcon from '../../components/icons/SettingsIcon';
 
 interface PreviewPageProps {
   setError: ErrorHandlerType;
 }
 
+interface LocationState {
+  parentTitle?: string;
+}
+
 export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const [converting, setConverting] = useState(false);
+
+  const locationState = location.state as LocationState | null;
+  const parentTitle = locationState?.parentTitle;
 
   const {
     data,
@@ -61,6 +75,36 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
     [data]
   );
 
+  const tally = useMemo(() => {
+    const hasDecisions = blocks.some((b) => b.decision != null);
+    if (!hasDecisions) return null;
+    return {
+      cards: blocks.filter((b) => b.decision === 'card').length,
+      skipped: blocks.filter((b) => b.decision === 'skip').length,
+      recurse: blocks.filter((b) => b.decision === 'recurse').length,
+    };
+  }, [blocks]);
+
+  const handleConvert = () => {
+    if (converting || id == null) return;
+    setConverting(true);
+    get2ankiApi()
+      .convert(id, 'page', pageTitle)
+      .then(async (response) => {
+        if (response.status === 202) {
+          navigate('/downloads');
+        } else {
+          const text = await response.text().catch(() => '');
+          if (text) setError(new Error(text));
+          setConverting(false);
+        }
+      })
+      .catch((err: unknown) => {
+        setError(err as Error);
+        setConverting(false);
+      });
+  };
+
   if (!id) {
     return (
       <div className={sharedStyles.page}>
@@ -102,43 +146,112 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
     );
   }
 
+  const backLabel = parentTitle ? `← Back to ${parentTitle}` : '← Back to Notion search';
+
   return (
     <div className={sharedStyles.page}>
-      <header className={sharedStyles.pageHeader}>
-        <Link to="/notion" className={styles.backLink}>
-          ← Back to Notion search
-        </Link>
-        <h1 className={sharedStyles.title} data-hj-suppress>
-          {pageTitle}
-        </h1>
-        {pageUrl && (
-          <p className={styles.pageLink}>
-            <a href={pageUrl} target="_blank" rel="noreferrer">
-              Open in Notion ↗
-            </a>
-          </p>
-        )}
-        <div className={styles.actionsRow}>
-          <Link to={rulesHref} className={sharedStyles.btnSecondary}>
-            Conversion rules
-          </Link>
-        </div>
-      </header>
+      <p className={styles.intro}>
+        <span className={styles.introIcon} aria-hidden="true">
+          <InfoIcon width={18} height={18} />
+        </span>
+        <span>
+          Showing how your page will be split into cards. Blocks marked in blue
+          become cards — adjust them with{' '}
+          <Link to={rulesHref}>Edit conversion rules</Link>.
+        </span>
+      </p>
 
       {isLoading && !data ? (
         <SkeletonList count={4} />
       ) : (
         <article className={styles.preview}>
-          {blocks.length === 0 && (
-            <EmptyState
-              icon="📄"
-              title="Nothing to preview"
-              description="This page has no blocks to preview."
-            />
-          )}
-          {blocks.map((block) => (
-            <BlockNode key={block.id} block={block} />
-          ))}
+          <div className={styles.backRow}>
+            {parentTitle ? (
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className={styles.backLink}
+              >
+                {backLabel}
+              </button>
+            ) : (
+              <Link to="/notion" className={styles.backLink}>
+                {backLabel}
+              </Link>
+            )}
+          </div>
+
+          <div className={styles.titleRow}>
+            <h1 className={sharedStyles.title} data-hj-suppress>
+              {pageTitle}
+            </h1>
+            <span className={styles.headerLinks}>
+              <button
+                type="button"
+                className={sharedStyles.btnPrimary}
+                onClick={handleConvert}
+                disabled={converting}
+              >
+                {converting ? 'Converting…' : 'Convert to Anki'}
+              </button>
+              {pageUrl && (
+                <a
+                  className={styles.pageLink}
+                  href={pageUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <ExternalLinkIcon width={16} height={16} />
+                  <span>Open in Notion</span>
+                </a>
+              )}
+              <Link to={rulesHref} className={styles.pageLink}>
+                <SettingsIcon />
+                <span>Edit conversion rules</span>
+              </Link>
+            </span>
+          </div>
+
+          <div className={styles.previewBody}>
+            {tally && (
+              <div className={styles.tally}>
+                <span className={styles.tallyItem}>
+                  <span
+                    className={`${styles.tallySwatch} ${styles.tallySwatchCard}`}
+                    aria-hidden="true"
+                  />
+                  {tally.cards} cards
+                </span>
+                <span className={styles.tallyItem}>
+                  <span
+                    className={`${styles.tallySwatch} ${styles.tallySwatchSkip}`}
+                    aria-hidden="true"
+                  />
+                  {tally.skipped} skipped
+                </span>
+                <span className={styles.tallyItem}>
+                  <span
+                    className={`${styles.tallySwatch} ${styles.tallySwatchRecurse}`}
+                    aria-hidden="true"
+                  />
+                  {tally.recurse} {tally.recurse === 1 ? 'sub-page' : 'sub-pages'}
+                </span>
+                {hasNextPage && (
+                  <span className={styles.tallyLoading}>+ loading more…</span>
+                )}
+              </div>
+            )}
+            {blocks.length === 0 && (
+              <EmptyState
+                icon="📄"
+                title="Nothing to preview"
+                description="This page has no blocks to preview."
+              />
+            )}
+            {blocks.map((block) => (
+              <BlockNode key={block.id} block={block} parentTitle={pageTitle} />
+            ))}
+          </div>
         </article>
       )}
 

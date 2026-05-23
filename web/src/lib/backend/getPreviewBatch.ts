@@ -1,5 +1,7 @@
 import { get } from './api';
 
+export type BlockDecision = 'card' | 'skip' | 'recurse';
+
 export interface PreviewBlock {
   id: string;
   type: string;
@@ -7,6 +9,9 @@ export interface PreviewBlock {
   canExpand: boolean;
   html: string;
   summaryHtml?: string;
+  decision?: BlockDecision;
+  childPageId?: string;
+  childPageTitle?: string;
 }
 
 export interface PreviewBatch {

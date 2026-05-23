@@ -251,7 +251,9 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
     }
   };
 
-  const backLabel = returnTo === '/notion' ? '← Back to Notion' : '← Back';
+  let backLabel = '← Back';
+  if (returnTo === '/notion') backLabel = '← Back to Notion';
+  else if (returnTo.startsWith('/preview/')) backLabel = '← Back to preview';
 
   return (
     <>

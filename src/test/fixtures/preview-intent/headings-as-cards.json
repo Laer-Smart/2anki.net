@@ -1,0 +1,22 @@
+[
+  {
+    "type": "heading_1",
+    "hasToggleableHeading": true,
+    "expectedDecision": "card"
+  },
+  {
+    "type": "heading_2",
+    "hasToggleableHeading": true,
+    "expectedDecision": "card"
+  },
+  {
+    "type": "heading_1",
+    "hasToggleableHeading": false,
+    "expectedDecision": "card"
+  },
+  {
+    "type": "heading_2",
+    "hasToggleableHeading": false,
+    "expectedDecision": "skip"
+  }
+]
