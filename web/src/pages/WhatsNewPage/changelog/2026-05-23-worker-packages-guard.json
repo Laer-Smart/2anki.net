@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-23-worker-packages-guard",
+  "date": "2026-05-23",
+  "type": "fix",
+  "title": "Uploads that produce no cards no longer cause a runtime crash downstream"
+}

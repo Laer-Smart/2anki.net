@@ -42,7 +42,7 @@ class GeneratePackagesUseCase {
         } else if (msg.type === 'error') {
           reject(new Error(msg.message));
         } else {
-          resolve({ packages: msg.packages, warnings: msg.warnings });
+          resolve({ packages: msg.packages ?? [], warnings: msg.warnings });
         }
       });
       worker.on('error', (error) => reject(error));
