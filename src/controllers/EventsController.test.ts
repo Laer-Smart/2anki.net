@@ -120,4 +120,15 @@ describe('EventsController', () => {
     controller.track(req, res);
     expect(res.status).toHaveBeenCalledWith(202);
   });
+
+  it.each([
+    'sidebar_auto_minimize_fired',
+    'sidebar_auto_minimize_reverted',
+    'card_size_selected',
+  ])('returns 202 for sidebar/card-size event: %s', (eventName) => {
+    const { controller, req, res } = buildMocks({ userId: 1 });
+    req.body = { name: eventName };
+    controller.track(req, res);
+    expect(res.status).toHaveBeenCalledWith(202);
+  });
 });
