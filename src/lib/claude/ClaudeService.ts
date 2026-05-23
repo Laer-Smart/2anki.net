@@ -4,6 +4,9 @@ import * as cheerio from 'cheerio';
 import { createHash } from 'node:crypto';
 import { jsonrepair } from 'jsonrepair';
 import { splitOversizedCards } from './splitOversizedCards';
+import { detect } from '../cardStyle/headingDriven/detect';
+import { splitByHeadings } from '../cardStyle/headingDriven/splitByHeadings';
+import { getCardStylePromptFragment } from './getCardStylePromptFragment';
 
 const SYSTEM_PROMPT = `
 You are an Anki flashcard generator. Output ONLY a compact JSON array.
@@ -292,7 +295,8 @@ function mergeDeckInfoArrays(decks: DeckInfo[]): DeckInfo[] {
 function buildUserMessage(
   strippedContent: string,
   availableMediaFiles: string[],
-  userInstructions: string | undefined
+  userInstructions: string | undefined,
+  cardStyleFragment: string
 ): string {
   const mediaFilesList =
     availableMediaFiles.length > 0
@@ -303,7 +307,11 @@ function buildUserMessage(
     ? `\n\nAdditional instructions:\n${userInstructions.trim()}`
     : '';
 
-  return `Convert this HTML content into the compact deck JSON:\n\n${strippedContent}${mediaFilesList}${instructionsSection}`;
+  const styleSection = cardStyleFragment.length > 0
+    ? `\n\nCard style: ${cardStyleFragment}`
+    : '';
+
+  return `Convert this HTML content into the compact deck JSON:\n\n${strippedContent}${mediaFilesList}${instructionsSection}${styleSection}`;
 }
 
 function tryRepairDeckArray(toParse: string): unknown[] | null {
@@ -376,12 +384,14 @@ async function generateDeckInfoFromChunk(
   userInstructions: string | undefined,
   chunkIndex: number,
   totalChunks: number,
-  onProgress?: (step: string) => void
+  onProgress?: (step: string) => void,
+  cardStyle?: string
 ): Promise<DeckInfo[]> {
   const tChunk0 = Date.now();
   const client = getAnthropicClient();
 
-  const userMessage = buildUserMessage(strippedContent, availableMediaFiles, userInstructions);
+  const cardStyleFragment = getCardStylePromptFragment(cardStyle);
+  const userMessage = buildUserMessage(strippedContent, availableMediaFiles, userInstructions, cardStyleFragment);
   const maxTokens = strippedContent.length > 20000 ? 16384 : 4096;
 
   onProgress?.(`claude:chunk:${chunkIndex + 1}:${totalChunks}`);
@@ -510,7 +520,8 @@ export async function generateDeckInfo(
   htmlContent: string,
   availableMediaFiles: string[],
   userInstructions?: string,
-  onProgress?: (step: string) => void
+  onProgress?: (step: string) => void,
+  cardStyle?: string
 ): Promise<DeckInfo[]> {
   const t0 = Date.now();
 
@@ -526,6 +537,36 @@ export async function generateDeckInfo(
       : 'N/A',
     durationMs: Date.now() - tStrip0,
   });
+
+  if (cardStyle === 'heading-driven') {
+    const headings = detect('html', strippedContent);
+    if (headings.length > 0) {
+      const chunks = splitByHeadings(headings);
+      console.log('[Claude] heading-driven chunks', { headingCount: headings.length, chunkCount: chunks.length });
+      const chunkResults = await Promise.all(
+        chunks.map((chunk, i) =>
+          generateDeckInfoFromChunk(
+            `<h1>${chunk.anchor}</h1>\n${chunk.bodyChunk}`,
+            pageStyle,
+            availableMediaFiles,
+            userInstructions,
+            i,
+            chunks.length,
+            onProgress,
+            cardStyle
+          )
+        )
+      );
+      const deckInfo = mergeDeckInfoArrays(chunkResults.flat());
+      console.log('[Claude] All heading-driven chunks done', {
+        totalDecks: deckInfo.length,
+        totalCards: deckInfo.reduce((sum, d) => sum + d.cards.length, 0),
+        totalMs: Date.now() - t0,
+      });
+      return deckInfo;
+    }
+    console.log('[Claude] heading-driven:fallback', { reason: 'no headings detected', strippedBytes: strippedContent.length });
+  }
 
   const chunks = chunkHtmlByDetails(strippedContent);
   console.log('[Claude] Chunked HTML', { chunks: chunks.length, strippedBytes: strippedContent.length });

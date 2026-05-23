@@ -1,4 +1,4 @@
-# Claude lib — min-info contract
+# Claude lib — card generation contracts
 
 The claude lib converts HTML content into Anki flashcards using the Anthropic API. Two mechanisms enforce the minimum-information principle:
 
@@ -16,3 +16,20 @@ The claude lib converts HTML content into Anki flashcards using the Anthropic AP
 **Override path:** `userInstructions` passed to `generateDeckInfo` flow into the prompt as an "Additional instructions" block. A user asking for "keep cards detailed" or similar will get the prompt's min-info rules deprioritised in Claude's output — the splitter ceiling still applies as a hard guard.
 
 **Tag normalization:** `normalizeTag(raw: string): string` (exported) converts a raw tag string from Claude's response into a safe Anki tag: lowercase, spaces→`_`, non-`[a-z0-9_]` characters stripped, capped at 32 characters. Called in `expandCompactDeckInfo` (Claude-text path) and in `buildDeckInfo` inside `PhotoToFlashcardsUseCase` (Photo-to-Deck path). Empty tags (e.g. all-punctuation input) are filtered out before the card is written. The `SYSTEM_PROMPT` already declares `"tags": string[]` in the schema; `expandCompactDeckInfo` now normalizes every tag the model emits and drops empty results.
+
+---
+
+## Heading-driven contract (`cardStyle: 'heading-driven'`)
+
+`generateDeckInfo` accepts an optional fifth argument `cardStyle?: string`. When `cardStyle === 'heading-driven'`:
+
+1. The stripped HTML is passed to `detect('html', strippedContent)` from `src/lib/cardStyle/headingDriven/detect.ts`, which returns a `Heading[]` — one entry per `h1`–`h6` tag.
+2. If headings are found, `splitByHeadings(headings)` from `src/lib/cardStyle/headingDriven/splitByHeadings.ts` produces one `ChunkPayload` per leaf heading (deepest level present; headings with empty bodies are skipped).
+3. Each chunk is sent to Claude as a separate `generateDeckInfoFromChunk` call with the card-style prompt fragment injected — "For each chunk, produce 2–6 cards. Each card's front references this chunk's heading; each card's back holds one fact." The fragment comes from `getCardStylePromptFragment.ts`.
+4. If zero headings are detected, the pipeline logs `[Claude] heading-driven:fallback` and falls through to the default `chunkHtmlByDetails` path unchanged. No error is thrown.
+
+**The mode is dormant until the picker UI (`#2616`) ships.** No caller currently passes `cardStyle: 'heading-driven'`; the default path is entirely unchanged when `cardStyle` is absent or any other value.
+
+**Format support:** The `detect` dispatcher handles `'markdown'` (regex on `^#` lines) and `'html'`/`'notion-html'` (cheerio `h1`–`h6` traversal) via `detectMarkdown.ts` and `detectHtml.ts` respectively. Docx and Notion exports are already converted to HTML before reaching `generateDeckInfo`, so the `'html'` detector covers them. Slide images are out of scope for V1.
+
+**Cost and latency:** Each detected heading becomes one Claude call. A document with 10 headings produces 10 parallel Claude calls instead of 1–2 default chunks. Latency is bounded by the slowest call (parallel dispatch). Token cost scales linearly with heading count. Prompt caching applies to the shared `SYSTEM_PROMPT` block.
