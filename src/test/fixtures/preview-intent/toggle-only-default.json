@@ -1,0 +1,17 @@
+[
+  {
+    "type": "toggle",
+    "hasToggleableHeading": false,
+    "expectedDecision": "card"
+  },
+  {
+    "type": "paragraph",
+    "hasToggleableHeading": false,
+    "expectedDecision": "skip"
+  },
+  {
+    "type": "child_page",
+    "hasToggleableHeading": false,
+    "expectedDecision": "recurse"
+  }
+]

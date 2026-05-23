@@ -57,6 +57,16 @@ Two entry points when enabled: `DeckParser.extractCards()` classifies a Notion t
 
 **Authoring guide:** `web/src/pages/DocsPage/content/cards/mcq.md` — user-facing guide rendered at `/documentation/cards/mcq`. Update both the body and the brief MCQ section in `card-types.md` when the detection contract changes.
 
+## Block-decision classifier (`intent/`)
+
+`intent/classifyBlock.ts` exports a pure function `classifyBlock(input, rules)` that mirrors the block-filtering predicate inside `BlockHandler.findFlashcardsFromPage`. It returns one of three decisions:
+
+- `'card'` — the block type is in `flashcardTypes`, or it is a toggleable heading and `'toggle'` is in `flashcardTypes`.
+- `'recurse'` — `type === 'child_page'` (BlockHandler will recurse into it).
+- `'skip'` — everything else.
+
+This is the single source of truth for "what will the parser do with this block?" Both `BlockHandler` and the preview endpoint use it — keeping them in sync by construction. `ClassifyInput` carries `type` and `hasToggleableHeading`; `ClassifyRules` carries `flashcardTypes` from `ParserRules.flaschardTypeNames()`. Pure function — no I/O, no SDK imports.
+
 ## Things to know before editing
 
 - `DeckParser.test.ts` is the integration safety net. Anything that changes the output shape needs a green run there.
