@@ -120,10 +120,10 @@ describe('PhotoToFlashcardsPage', () => {
     render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto()] } });
-    fireEvent.click(screen.getByText('Get flashcards'));
+    fireEvent.click(screen.getByText('Get cards'));
 
     await waitFor(() => {
-      expect(screen.getByText(/Photo to deck isn’t available yet/)).toBeTruthy();
+      expect(screen.getByText(/Photo to deck isn't available yet/)).toBeTruthy();
     });
   });
 
@@ -135,7 +135,7 @@ describe('PhotoToFlashcardsPage', () => {
     render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto()] } });
-    fireEvent.click(screen.getByText('Get flashcards'));
+    fireEvent.click(screen.getByText('Get cards'));
 
     await waitFor(() => {
       expect(screen.getByText(/Sign in to use photo to deck/)).toBeTruthy();
@@ -157,7 +157,7 @@ describe('PhotoToFlashcardsPage', () => {
     render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto()] } });
-    fireEvent.click(screen.getByText('Get flashcards'));
+    fireEvent.click(screen.getByText('Get cards'));
 
     await waitFor(() => {
       expect(
@@ -174,7 +174,7 @@ describe('PhotoToFlashcardsPage', () => {
     render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto()] } });
-    fireEvent.click(screen.getByText('Get flashcards'));
+    fireEvent.click(screen.getByText('Get cards'));
 
     await waitFor(() => {
       expect(screen.getByText(/Photo is too large/)).toBeTruthy();
@@ -197,7 +197,7 @@ describe('PhotoToFlashcardsPage', () => {
     render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto('biology.jpg')] } });
-    fireEvent.click(screen.getByText('Get flashcards'));
+    fireEvent.click(screen.getByText('Get cards'));
 
     await waitFor(() => {
       expect(screen.getByText(/12 cards from your photo\. Deck downloaded\./)).toBeTruthy();
@@ -218,7 +218,7 @@ describe('PhotoToFlashcardsPage', () => {
     render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto()] } });
-    fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get cards' }));
 
     await waitFor(() => {
       expect(mockTrack).toHaveBeenCalledWith('photo_upload_started', { source: 'library' });
@@ -233,7 +233,7 @@ describe('PhotoToFlashcardsPage', () => {
     render(<PhotoToFlashcardsPage />);
     const cameraInput = document.getElementById('photo-camera-input') as HTMLInputElement;
     fireEvent.change(cameraInput, { target: { files: [makePhoto()] } });
-    fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get cards' }));
 
     await waitFor(() => {
       expect(mockTrack).toHaveBeenCalledWith('photo_upload_started', { source: 'camera' });
@@ -259,7 +259,7 @@ describe('PhotoToFlashcardsPage', () => {
     fireEvent.click(screen.getByRole('radio', { name: /Dense/ }));
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto()] } });
-    fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get cards' }));
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalled();
@@ -295,7 +295,7 @@ describe('PhotoToFlashcardsPage', () => {
     render(<PhotoToFlashcardsPage />);
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makePhoto()] } });
-    fireEvent.click(screen.getByText('Get flashcards'));
+    fireEvent.click(screen.getByText('Get cards'));
 
     await waitFor(() => {
       expect(
@@ -311,27 +311,27 @@ describe('PhotoToFlashcardsPage', () => {
       const group = screen.getByRole('radiogroup', { name: 'Conversion mode' });
       expect(group).toBeTruthy();
       expect(
-        screen.getByRole('radio', { name: 'Generate cards from this material' })
+        screen.getByRole('radio', { name: 'Generate cards' })
       ).toHaveProperty('ariaChecked', 'true');
       expect(
-        screen.getByRole('radio', { name: 'Transcribe questions verbatim' })
+        screen.getByRole('radio', { name: 'Copy existing questions' })
       ).toHaveProperty('ariaChecked', 'false');
     });
 
-    it('selecting Transcribe verbatim unchecks Generate', () => {
+    it('selecting Copy existing questions unchecks Generate cards', () => {
       render(<PhotoToFlashcardsPage />);
-      fireEvent.click(screen.getByRole('radio', { name: 'Transcribe questions verbatim' }));
+      fireEvent.click(screen.getByRole('radio', { name: 'Copy existing questions' }));
       expect(
-        screen.getByRole('radio', { name: 'Generate cards from this material' })
+        screen.getByRole('radio', { name: 'Generate cards' })
       ).toHaveProperty('ariaChecked', 'false');
       expect(
-        screen.getByRole('radio', { name: 'Transcribe questions verbatim' })
+        screen.getByRole('radio', { name: 'Copy existing questions' })
       ).toHaveProperty('ariaChecked', 'true');
     });
 
     it('hides the density control when verbatim is selected', () => {
       render(<PhotoToFlashcardsPage />);
-      fireEvent.click(screen.getByRole('radio', { name: 'Transcribe questions verbatim' }));
+      fireEvent.click(screen.getByRole('radio', { name: 'Copy existing questions' }));
       expect(screen.queryByRole('radiogroup', { name: 'Card density' })).toBeNull();
     });
 
@@ -346,10 +346,10 @@ describe('PhotoToFlashcardsPage', () => {
       vi.stubGlobal('fetch', fetchMock);
 
       render(<PhotoToFlashcardsPage />);
-      fireEvent.click(screen.getByRole('radio', { name: 'Transcribe questions verbatim' }));
+      fireEvent.click(screen.getByRole('radio', { name: 'Copy existing questions' }));
       const input = document.getElementById('photo-file-input') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [makePhoto()] } });
-      fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Get cards' }));
 
       await waitFor(() => expect(fetchMock).toHaveBeenCalled());
       const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -364,11 +364,84 @@ describe('PhotoToFlashcardsPage', () => {
       render(<PhotoToFlashcardsPage />);
       const input = document.getElementById('photo-file-input') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [makePhoto()] } });
-      fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Get cards' }));
 
       await waitFor(() => expect(fetchMock).toHaveBeenCalled());
       const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
       expect(JSON.parse(init.body as string)).toMatchObject({ mode: 'generative' });
+    });
+
+    it('shows the generative helper by default and not the verbatim helper', () => {
+      render(<PhotoToFlashcardsPage />);
+      expect(screen.getByText(/AI writes the questions/)).toBeTruthy();
+      expect(screen.queryByText(/Cards are copied exactly as written/)).toBeNull();
+    });
+
+    it('shows the verbatim helper when verbatim is selected', () => {
+      render(<PhotoToFlashcardsPage />);
+      fireEvent.click(screen.getByRole('radio', { name: 'Copy existing questions' }));
+      expect(screen.getByText(/Cards are copied exactly as written/)).toBeTruthy();
+      expect(screen.queryByText(/AI writes the questions/)).toBeNull();
+    });
+
+    it('shows a warning and Switch to Generate cards button when verbatim returns zero cards', async () => {
+      setLocals({ paying: true });
+      const fetchMock = vi.fn().mockResolvedValue(
+        new Response('fake-apkg-bytes', {
+          status: 200,
+          headers: { 'X-Card-Count': '0', 'Content-Type': 'application/octet-stream' },
+        })
+      );
+      vi.stubGlobal('fetch', fetchMock);
+      HTMLAnchorElement.prototype.click = vi.fn();
+
+      render(<PhotoToFlashcardsPage />);
+      fireEvent.click(screen.getByRole('radio', { name: 'Copy existing questions' }));
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [makePhoto()] } });
+      fireEvent.click(screen.getByRole('button', { name: 'Get cards' }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/No questions found in this photo/)).toBeTruthy();
+      });
+      expect(screen.getByRole('button', { name: 'Switch to Generate cards' })).toBeTruthy();
+    });
+
+    it('switches to generative mode when the Switch button is clicked from empty state', async () => {
+      setLocals({ paying: true });
+      const fetchMock = vi.fn().mockResolvedValue(
+        new Response('fake-apkg-bytes', {
+          status: 200,
+          headers: { 'X-Card-Count': '0', 'Content-Type': 'application/octet-stream' },
+        })
+      );
+      vi.stubGlobal('fetch', fetchMock);
+      HTMLAnchorElement.prototype.click = vi.fn();
+
+      render(<PhotoToFlashcardsPage />);
+      fireEvent.click(screen.getByRole('radio', { name: 'Copy existing questions' }));
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [makePhoto()] } });
+      fireEvent.click(screen.getByRole('button', { name: 'Get cards' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Switch to Generate cards' })).toBeTruthy();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Switch to Generate cards' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('radiogroup', { name: 'Card density' })).toBeTruthy();
+      });
+      expect(screen.queryByText(/No questions found in this photo/)).toBeNull();
+    });
+  });
+
+  describe('three section cards layout', () => {
+    it('renders three section cards', () => {
+      render(<PhotoToFlashcardsPage />);
+      const cards = document.querySelectorAll('[data-section-card]');
+      expect(cards).toHaveLength(3);
     });
   });
 
@@ -389,7 +462,7 @@ describe('PhotoToFlashcardsPage', () => {
       render(<PhotoToFlashcardsPage />);
       const input = document.getElementById('photo-file-input') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [makePhoto()] } });
-      fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Get cards' }));
 
       await waitFor(() => expect(fetchMock).toHaveBeenCalled());
       const body = JSON.parse(
@@ -411,7 +484,7 @@ describe('PhotoToFlashcardsPage', () => {
 
       const input = document.getElementById('photo-file-input') as HTMLInputElement;
       fireEvent.change(input, { target: { files: [makePhoto()] } });
-      fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Get cards' }));
 
       await waitFor(() => expect(fetchMock).toHaveBeenCalled());
       const body = JSON.parse(

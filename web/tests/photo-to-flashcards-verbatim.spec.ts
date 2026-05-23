@@ -36,8 +36,8 @@ test.describe('Photo to deck — verbatim mode toggle', () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     const radiogroup = page.getByRole('radiogroup', { name: 'Conversion mode' });
     await expect(radiogroup).toBeVisible();
-    await expect(radiogroup.getByRole('radio', { name: 'Generate cards from this material' })).toBeVisible();
-    await expect(radiogroup.getByRole('radio', { name: 'Transcribe questions verbatim' })).toBeVisible();
+    await expect(radiogroup.getByRole('radio', { name: 'Generate cards' })).toBeVisible();
+    await expect(radiogroup.getByRole('radio', { name: 'Copy existing questions' })).toBeVisible();
   });
 
   test('density control is visible in generative mode (default)', async ({ page }) => {
@@ -48,15 +48,15 @@ test.describe('Photo to deck — verbatim mode toggle', () => {
 
   test('density control disappears when verbatim mode is selected', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.getByRole('radio', { name: 'Transcribe questions verbatim' }).click();
+    await page.getByRole('radio', { name: 'Copy existing questions' }).click();
     const densityGroup = page.getByRole('radiogroup', { name: 'Card density' });
     await expect(densityGroup).not.toBeVisible();
   });
 
   test('submit button remains enabled after switching to verbatim mode (no file)', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.getByRole('radio', { name: 'Transcribe questions verbatim' }).click();
-    const submitBtn = page.getByRole('button', { name: 'Get flashcards' });
+    await page.getByRole('radio', { name: 'Copy existing questions' }).click();
+    const submitBtn = page.getByRole('button', { name: 'Get cards' });
     await expect(submitBtn).toBeVisible();
   });
 
@@ -64,21 +64,21 @@ test.describe('Photo to deck — verbatim mode toggle', () => {
     await page.setViewportSize({ width: 375, height: 812 });
     const radiogroup = page.getByRole('radiogroup', { name: 'Conversion mode' });
     await expect(radiogroup).toBeVisible();
-    await expect(radiogroup.getByRole('radio', { name: 'Generate cards from this material' })).toBeVisible();
-    await expect(radiogroup.getByRole('radio', { name: 'Transcribe questions verbatim' })).toBeVisible();
+    await expect(radiogroup.getByRole('radio', { name: 'Generate cards' })).toBeVisible();
+    await expect(radiogroup.getByRole('radio', { name: 'Copy existing questions' })).toBeVisible();
   });
 
   test('density control disappears at 375px when verbatim is selected', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
-    await page.getByRole('radio', { name: 'Transcribe questions verbatim' }).click();
+    await page.getByRole('radio', { name: 'Copy existing questions' }).click();
     const densityGroup = page.getByRole('radiogroup', { name: 'Card density' });
     await expect(densityGroup).not.toBeVisible();
   });
 
   test('switching back to generative mode restores density control', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.getByRole('radio', { name: 'Transcribe questions verbatim' }).click();
-    await page.getByRole('radio', { name: 'Generate cards from this material' }).click();
+    await page.getByRole('radio', { name: 'Copy existing questions' }).click();
+    await page.getByRole('radio', { name: 'Generate cards' }).click();
     const densityGroup = page.getByRole('radiogroup', { name: 'Card density' });
     await expect(densityGroup).toBeVisible();
   });
