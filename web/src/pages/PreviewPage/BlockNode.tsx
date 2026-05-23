@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PreviewBlock } from '../../lib/backend/getPreviewBatch';
-import { BlockDecision } from '../../lib/preview/classifyBlock';
+import { BlockDecision, PreviewBlock } from '../../lib/backend/getPreviewBatch';
 import { useBlockChildren } from './useBlockChildren';
 import styles from './PreviewPage.module.css';
 
 interface BlockNodeProps {
   block: PreviewBlock;
+  parentTitle?: string;
 }
 
 const DECISION_TOOLTIPS: Record<BlockDecision, string> = {
@@ -22,7 +22,7 @@ function decisionClass(decision: BlockDecision | undefined): string {
   return styles.blockRow;
 }
 
-export function BlockNode({ block }: Readonly<BlockNodeProps>) {
+export function BlockNode({ block, parentTitle }: Readonly<BlockNodeProps>) {
   const [open, setOpen] = useState(false);
 
   const { data, isLoading, error, refetch } = useBlockChildren(
@@ -35,22 +35,19 @@ export function BlockNode({ block }: Readonly<BlockNodeProps>) {
 
   if (block.type === 'child_page' && block.childPageId != null) {
     return (
-      <div className={rowClass} title={tooltipText}>
-        <div className={styles.subPageRow}>
-          <Link
-            to={`/preview/${block.childPageId}`}
-            className={styles.subPageLink}
-            state={{ parentTitle: block.childPageTitle }}
-          >
+      <Link
+        to={`/preview/${block.childPageId}`}
+        className={`${rowClass} ${styles.subPageRow}`}
+        title={tooltipText}
+        state={{ parentTitle }}
+      >
             <span
               dangerouslySetInnerHTML={{ __html: block.html }}
             />
-          </Link>
-          <span className={styles.subPageLabel}>
-            Sub-page <span className={styles.subPageChevron}>&rsaquo;</span>
-          </span>
-        </div>
-      </div>
+        <span className={styles.subPageLabel}>
+          Sub-page <span className={styles.subPageChevron}>&rsaquo;</span>
+        </span>
+      </Link>
     );
   }
 
@@ -97,7 +94,7 @@ export function BlockNode({ block }: Readonly<BlockNodeProps>) {
             </p>
           )}
           {children.map((child) => (
-            <BlockNode key={child.id} block={child} />
+            <BlockNode key={child.id} block={child} parentTitle={parentTitle} />
           ))}
         </div>
       )}

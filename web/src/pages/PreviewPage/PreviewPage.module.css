@@ -1,25 +1,60 @@
+.backRow {
+  margin-bottom: 0.75rem;
+}
+
 .backLink {
-  background: transparent;
-  border: none;
-  color: var(--color-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
   cursor: pointer;
   font-size: var(--text-sm);
-  padding: 0;
-  margin-bottom: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  text-decoration: none;
 }
 
 .backLink:hover {
-  color: var(--color-text-primary);
-  text-decoration: underline;
+  background: var(--color-bg-tertiary, var(--color-bg-secondary));
+  border-color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.headerLinks {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-left: auto;
 }
 
 .pageLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
+  text-decoration: none;
 }
 
-.pageLink a {
-  color: inherit;
+.pageLink svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.pageLink:hover {
+  color: var(--color-text-primary);
+  text-decoration: underline;
 }
 
 .actionsRow {
@@ -30,17 +65,55 @@
   flex-wrap: wrap;
 }
 
+.intro {
+  background: var(--color-bg-secondary);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+}
+
+.introIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.5;
+}
+
+.intro a {
+  color: var(--color-text-primary);
+  font-weight: var(--font-medium);
+  text-decoration: underline;
+}
+
+.intro a:hover {
+  color: var(--color-primary);
+}
+
 .preview {
   background: var(--color-bg-primary);
   border-radius: var(--radius-lg);
   padding: 1.5rem 2rem;
-  margin-top: 1.5rem;
   line-height: 1.6;
   box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.preview > :global(*):not(:last-child) {
-  margin-bottom: 0.75rem;
+.previewBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
 }
 
 .preview :global(img) {
@@ -173,6 +246,21 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.subPageRow:hover {
+  background: var(--color-bg-secondary);
+}
+
+.subPageRow:hover .subPageTitle {
+  text-decoration: underline;
+}
+
+.subPageTitle {
+  flex: 1;
 }
 
 .subPageChevron {
@@ -189,87 +277,3 @@
   gap: 0.25rem;
 }
 
-.subPageLink {
-  color: inherit;
-  text-decoration: none;
-  flex: 1;
-}
-
-.subPageLink:hover {
-  text-decoration: underline;
-}
-
-.layoutShell {
-  display: flex;
-  gap: 1.5rem;
-  align-items: flex-start;
-}
-
-.settingsRail {
-  width: 260px;
-  flex-shrink: 0;
-  position: sticky;
-  top: 1.5rem;
-}
-
-.previewColumn {
-  flex: 1;
-  min-width: 0;
-}
-
-@media (max-width: 767px) {
-  .layoutShell {
-    flex-direction: column;
-  }
-
-  .settingsRail {
-    width: 100%;
-    position: static;
-  }
-}
-
-.mobileSettingsBtn {
-  display: none;
-  width: 100%;
-  margin-bottom: 1rem;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 0.5rem 1rem;
-  color: var(--color-text-primary);
-  cursor: pointer;
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-}
-
-@media (max-width: 767px) {
-  .mobileSettingsBtn {
-    display: block;
-  }
-
-  .settingsRail {
-    display: none;
-  }
-
-  .mobileOverlay {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    max-height: 50vh;
-    overflow-y: auto;
-    background: var(--color-bg-primary);
-    border-top: 1px solid var(--color-border);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    padding: 1rem;
-    z-index: 100;
-    box-shadow: var(--shadow-md);
-  }
-
-  .mobileOverlayHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-}

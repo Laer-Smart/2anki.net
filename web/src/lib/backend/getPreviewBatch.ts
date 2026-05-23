@@ -1,5 +1,6 @@
 import { get } from './api';
-import { BlockDecision } from '../preview/classifyBlock';
+
+export type BlockDecision = 'card' | 'skip' | 'recurse';
 
 export interface PreviewBlock {
   id: string;
@@ -8,7 +9,6 @@ export interface PreviewBlock {
   canExpand: boolean;
   html: string;
   summaryHtml?: string;
-  hasToggleableHeading?: boolean;
   decision?: BlockDecision;
   childPageId?: string;
   childPageTitle?: string;

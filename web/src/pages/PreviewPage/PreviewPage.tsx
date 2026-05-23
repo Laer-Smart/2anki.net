@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
 import { SkeletonList } from '../../components/Skeleton/Skeleton';
@@ -8,8 +8,9 @@ import sharedStyles from '../../styles/shared.module.css';
 import styles from './PreviewPage.module.css';
 import { usePreviewStream } from './usePreviewStream';
 import { BlockNode } from './BlockNode';
-import { PreviewSettings, classifyBlock } from '../../lib/preview/classifyBlock';
-import { PreviewSettingsRail } from './PreviewSettings';
+import InfoIcon from '../../components/icons/InfoIcon';
+import ExternalLinkIcon from '../../components/icons/ExternalLinkIcon';
+import SettingsIcon from '../../components/icons/SettingsIcon';
 
 interface PreviewPageProps {
   setError: ErrorHandlerType;
@@ -19,20 +20,11 @@ interface LocationState {
   parentTitle?: string;
 }
 
-const DEFAULT_SETTINGS: PreviewSettings = {
-  includeToggles: true,
-  includeHeadings: false,
-  recurseSubPages: true,
-  columnsAsCards: false,
-};
-
 export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const [settings, setSettings] = useState<PreviewSettings>(DEFAULT_SETTINGS);
-  const [mobileRailOpen, setMobileRailOpen] = useState(false);
 
   const locationState = location.state as LocationState | null;
   const parentTitle = locationState?.parentTitle;
@@ -75,20 +67,10 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
   const pageUrl = firstPage?.pageUrl;
   const returnTo = encodeURIComponent(`/preview/${id}`);
   const rulesHref = `/rules/${id}?returnTo=${returnTo}`;
-  const convertHref = rulesHref;
-
-  const rawBlocks = useMemo(
-    () => data?.pages.flatMap((page) => page.blocks) ?? [],
-    [data]
-  );
 
   const blocks = useMemo(
-    () =>
-      rawBlocks.map((block) => ({
-        ...block,
-        decision: block.decision ?? classifyBlock(block, settings),
-      })),
-    [rawBlocks, settings]
+    () => data?.pages.flatMap((page) => page.blocks) ?? [],
+    [data]
   );
 
   if (!id) {
@@ -136,92 +118,73 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
 
   return (
     <div className={sharedStyles.page}>
-      <header className={sharedStyles.pageHeader}>
-        {parentTitle ? (
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className={styles.backLink}
-          >
-            {backLabel}
-          </button>
-        ) : (
-          <Link to="/notion" className={styles.backLink}>
-            {backLabel}
-          </Link>
-        )}
-        <h1 className={sharedStyles.title} data-hj-suppress>
-          {pageTitle}
-        </h1>
-        {pageUrl && (
-          <p className={styles.pageLink}>
-            <a href={pageUrl} target="_blank" rel="noreferrer">
-              Open in Notion ↗
-            </a>
-          </p>
-        )}
-        <div className={styles.actionsRow}>
-          <Link to={rulesHref} className={sharedStyles.btnSecondary}>
-            Conversion rules
-          </Link>
-        </div>
-      </header>
-
-      <button
-        type="button"
-        className={styles.mobileSettingsBtn}
-        onClick={() => setMobileRailOpen(true)}
-      >
-        Settings
-      </button>
-
-      {mobileRailOpen && (
-        <div className={styles.mobileOverlay}>
-          <div className={styles.mobileOverlayHeader}>
-            <strong>Card settings</strong>
-            <button
-              type="button"
-              onClick={() => setMobileRailOpen(false)}
-              className={styles.backLink}
-            >
-              Done
-            </button>
-          </div>
-          <PreviewSettingsRail
-            settings={settings}
-            onChange={setSettings}
-            convertHref={convertHref}
-          />
-        </div>
-      )}
+      <p className={styles.intro}>
+        <span className={styles.introIcon} aria-hidden="true">
+          <InfoIcon width={18} height={18} />
+        </span>
+        <span>
+          This is the page as the converter reads it during conversion.{' '}
+          <Link to={rulesHref}>Edit conversion rules</Link> to change which
+          blocks become cards.
+        </span>
+      </p>
 
       {isLoading && !data ? (
         <SkeletonList count={4} />
       ) : (
-        <div className={styles.layoutShell}>
-          <div className={styles.settingsRail}>
-            <PreviewSettingsRail
-              settings={settings}
-              onChange={setSettings}
-              convertHref={convertHref}
-            />
+        <article className={styles.preview}>
+          <div className={styles.backRow}>
+            {parentTitle ? (
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className={styles.backLink}
+              >
+                {backLabel}
+              </button>
+            ) : (
+              <Link to="/notion" className={styles.backLink}>
+                {backLabel}
+              </Link>
+            )}
           </div>
 
-          <div className={styles.previewColumn}>
-            <article className={styles.preview}>
-              {blocks.length === 0 && (
-                <EmptyState
-                  icon="📄"
-                  title="Nothing to preview"
-                  description="This page has no blocks to preview."
-                />
+          <div className={styles.titleRow}>
+            <h1 className={sharedStyles.title} data-hj-suppress>
+              {pageTitle}
+            </h1>
+            <span className={styles.headerLinks}>
+              {pageUrl && (
+                <a
+                  className={styles.pageLink}
+                  href={pageUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <ExternalLinkIcon width={16} height={16} />
+                  <span>Open in Notion</span>
+                </a>
               )}
-              {blocks.map((block) => (
-                <BlockNode key={block.id} block={block} />
-              ))}
-            </article>
+              <Link to={rulesHref} className={styles.pageLink}>
+                <SettingsIcon />
+                <span>Edit conversion rules</span>
+              </Link>
+            </span>
           </div>
-        </div>
+
+          <div className={styles.previewBody}>
+            {blocks.length === 0 && (
+              <EmptyState
+                icon="📄"
+                title="Nothing to preview"
+                description="This page has no blocks to preview."
+              />
+            )}
+            {blocks.map((block) => (
+              <BlockNode key={block.id} block={block} parentTitle={pageTitle} />
+            ))}
+          </div>
+        </article>
       )}
 
       <div ref={sentinelRef} className={styles.sentinel} aria-hidden="true" />
