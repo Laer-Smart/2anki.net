@@ -1,4 +1,60 @@
-import { looksLikeCloze, transformBlankToCloze } from './ChatDeckUseCase';
+import { ChatDeckUseCase, looksLikeCloze, transformBlankToCloze } from './ChatDeckUseCase';
+import CustomExporter from '../../lib/parser/exporters/CustomExporter';
+
+jest.mock('../../lib/parser/exporters/CustomExporter');
+
+describe('ChatDeckUseCase.execute MCQ handling', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (CustomExporter as unknown as jest.Mock).mockImplementation(() => ({
+      configure: jest.fn(),
+      save: jest.fn().mockResolvedValue(Buffer.from('apkg')),
+    }));
+  });
+
+  it('passes mcq:true with options and correctIndices to the exporter for MCQ cards', async () => {
+    const useCase = new ChatDeckUseCase();
+    await useCase.execute({
+      deckName: 'Quiz',
+      cards: [
+        {
+          front: 'Which enzyme?',
+          back: '',
+          options: ['Lipase', 'Amylase', 'Protease', 'Lactase'],
+          correctIndex: 1,
+          rationale: 'Amylase hydrolyses starch.',
+        },
+      ],
+    });
+
+    const Mock = CustomExporter as unknown as jest.Mock;
+    const configure = Mock.mock.results[0].value.configure as jest.Mock;
+    const deckInfo = configure.mock.calls[0][0] as Array<{
+      cards: Array<{ mcq?: boolean; options?: string[]; correctIndices?: number[]; back: string }>;
+    }>;
+    expect(deckInfo[0].cards[0]).toMatchObject({
+      mcq: true,
+      options: ['Lipase', 'Amylase', 'Protease', 'Lactase'],
+      correctIndices: [1],
+      back: 'Amylase hydrolyses starch.',
+    });
+  });
+
+  it('keeps basic shape for cards without MCQ fields', async () => {
+    const useCase = new ChatDeckUseCase();
+    await useCase.execute({
+      deckName: 'Mix',
+      cards: [{ front: 'Q', back: 'A' }],
+    });
+    const Mock = CustomExporter as unknown as jest.Mock;
+    const configure = Mock.mock.results[0].value.configure as jest.Mock;
+    const deckInfo = configure.mock.calls[0][0] as Array<{
+      cards: Array<{ mcq?: boolean; back: string }>;
+    }>;
+    expect(deckInfo[0].cards[0].mcq).toBeUndefined();
+    expect(deckInfo[0].cards[0].back).toBe('A');
+  });
+});
 
 describe('looksLikeCloze', () => {
   it('returns true for a single cloze marker', () => {

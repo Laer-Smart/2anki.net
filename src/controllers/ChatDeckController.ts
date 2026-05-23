@@ -1,17 +1,41 @@
 import { Request, Response } from 'express';
-import { ChatDeckUseCase } from '../usecases/chat/ChatDeckUseCase';
+import { ChatDeckUseCase, type ChatDeckCard } from '../usecases/chat/ChatDeckUseCase';
 import { buildContentDisposition } from '../lib/buildContentDisposition';
 
 const MAX_DECK_NAME_LENGTH = 120;
 const MAX_CARDS = 200;
+const REQUIRED_MCQ_OPTION_COUNT = 4;
 
-function isValidCard(item: unknown): item is { front: string; back: string } {
-  return (
-    item != null &&
-    typeof item === 'object' &&
-    typeof (item as Record<string, unknown>).front === 'string' &&
-    typeof (item as Record<string, unknown>).back === 'string'
-  );
+function asMcqShape(record: Record<string, unknown>): ChatDeckCard | null {
+  if (typeof record.front !== 'string') return null;
+  const options = record.options;
+  if (!Array.isArray(options) || options.length !== REQUIRED_MCQ_OPTION_COUNT) return null;
+  if (!options.every((opt): opt is string => typeof opt === 'string' && opt.trim().length > 0)) {
+    return null;
+  }
+  const correctIndex = record.correctIndex;
+  if (typeof correctIndex !== 'number' || !Number.isInteger(correctIndex)) return null;
+  if (correctIndex < 0 || correctIndex >= options.length) return null;
+  const rationale = typeof record.rationale === 'string' ? record.rationale : '';
+  return {
+    front: record.front,
+    back: '',
+    options,
+    correctIndex,
+    ...(rationale.length > 0 ? { rationale } : {}),
+  };
+}
+
+function parseCard(item: unknown): ChatDeckCard | null {
+  if (item == null || typeof item !== 'object') return null;
+  const record = item as Record<string, unknown>;
+  if (record.options !== undefined || record.correctIndex !== undefined) {
+    return asMcqShape(record);
+  }
+  if (typeof record.front === 'string' && typeof record.back === 'string') {
+    return { front: record.front, back: record.back };
+  }
+  return null;
 }
 
 class ChatDeckController {
@@ -48,13 +72,14 @@ class ChatDeckController {
       return;
     }
 
-    if (!rawCards.every(isValidCard)) {
-      res.status(400).json({ error: 'each card must have string front and back fields' });
+    const parsedCards = rawCards.map(parseCard);
+    if (parsedCards.some((c) => c == null)) {
+      res.status(400).json({ error: 'each card must have string front and back fields, or a valid MCQ shape' });
       return;
     }
 
     const buffer = await this.useCase.execute({
-      cards: rawCards.map((c) => ({ front: c.front, back: c.back })),
+      cards: parsedCards as ChatDeckCard[],
       deckName,
     });
 

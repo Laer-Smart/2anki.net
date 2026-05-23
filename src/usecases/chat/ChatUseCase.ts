@@ -3,6 +3,16 @@ import type { IChatMessagesRepository } from '../../data_layer/ChatMessagesRepos
 import type { IConversationsRepository } from '../../data_layer/ConversationsRepository';
 import { buildAttachmentBlocks, type ChatAttachment } from './buildAttachmentBlocks';
 
+const REQUIRED_MCQ_OPTION_COUNT = 4;
+
+const MCQ_PROMPT_ADDITION = `For multiple-choice cards with one correct answer, wrap them in the same JSON code block using:
+
+\`\`\`json
+[{"front": "question stem", "options": ["A", "B", "C", "D"], "correct_index": 0, "rationale": "why the correct option is right (optional)"}]
+\`\`\`
+
+Use exactly four options. correct_index is the 0-based position of the right option. Omit "back" on MCQ cards.`;
+
 const FREE_MONTHLY_LIMIT = 20;
 const FREE_MODEL = 'claude-haiku-4-5-20251001';
 const PATREON_MODEL = 'claude-sonnet-4-6';
@@ -41,6 +51,9 @@ After any explanation, offer to turn it into flashcards if the user hasn't alrea
 export interface ChatCard {
   front: string;
   back: string;
+  options?: string[];
+  correctIndex?: number;
+  rationale?: string;
 }
 
 export interface ChatUser {
@@ -90,7 +103,42 @@ export interface ExtractCardsResult {
   contentAfter: string | undefined;
 }
 
-function parseCardArray(raw: string): ChatCard[] | undefined {
+function asMcqChatCard(item: Record<string, unknown>): ChatCard | null {
+  const front = item.front;
+  if (typeof front !== 'string') return null;
+  const options = item.options;
+  if (!Array.isArray(options)) return null;
+  if (options.length !== REQUIRED_MCQ_OPTION_COUNT) return null;
+  if (!options.every((opt): opt is string => typeof opt === 'string' && opt.trim().length > 0)) {
+    return null;
+  }
+  const correctIndex = item.correct_index;
+  if (typeof correctIndex !== 'number' || !Number.isInteger(correctIndex)) return null;
+  if (correctIndex < 0 || correctIndex >= options.length) return null;
+  const rationale = typeof item.rationale === 'string' ? item.rationale : '';
+  return {
+    front,
+    back: '',
+    options,
+    correctIndex,
+    ...(rationale.length > 0 ? { rationale } : {}),
+  };
+}
+
+function parseCardItem(item: unknown, mcqAllowed: boolean): ChatCard | null {
+  if (item == null || typeof item !== 'object') return null;
+  const record = item as Record<string, unknown>;
+  const looksLikeMcq = record.options !== undefined || record.correct_index !== undefined;
+  if (mcqAllowed && looksLikeMcq) {
+    return asMcqChatCard(record);
+  }
+  if (typeof record.front === 'string' && typeof record.back === 'string') {
+    return { front: record.front, back: record.back };
+  }
+  return null;
+}
+
+function parseCardArray(raw: string, mcqAllowed: boolean): ChatCard[] | undefined {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw.trim());
@@ -100,25 +148,16 @@ function parseCardArray(raw: string): ChatCard[] | undefined {
   if (!Array.isArray(parsed)) return undefined;
   const cards: ChatCard[] = [];
   for (const item of parsed) {
-    if (
-      item != null &&
-      typeof item === 'object' &&
-      typeof (item as Record<string, unknown>).front === 'string' &&
-      typeof (item as Record<string, unknown>).back === 'string'
-    ) {
-      cards.push({
-        front: (item as { front: string }).front,
-        back: (item as { back: string }).back,
-      });
-    }
+    const card = parseCardItem(item, mcqAllowed);
+    if (card != null) cards.push(card);
   }
   return cards.length > 0 ? cards : undefined;
 }
 
-export function extractCards(text: string): ExtractCardsResult {
+export function extractCards(text: string, mcqAllowed = false): ExtractCardsResult {
   const fencedMatch = /```json\s*([\s\S]*?)```/.exec(text);
   if (fencedMatch != null) {
-    const cards = parseCardArray(fencedMatch[1]);
+    const cards = parseCardArray(fencedMatch[1], mcqAllowed);
     if (cards != null) {
       const before = text.slice(0, fencedMatch.index).trim();
       const after = text.slice(fencedMatch.index + fencedMatch[0].length).trim();
@@ -130,10 +169,9 @@ export function extractCards(text: string): ExtractCardsResult {
     }
   }
 
-  // Fallback: detect a raw JSON array that starts with [{"front": ...}]
   const rawMatch = /((?:^|\n)\s*)(\[\s*\{[\s\S]*\}\s*\])/.exec(text);
   if (rawMatch != null) {
-    const cards = parseCardArray(rawMatch[2]);
+    const cards = parseCardArray(rawMatch[2], mcqAllowed);
     if (cards != null) {
       const before = text.slice(0, rawMatch.index).trim();
       const after = text.slice(rawMatch.index + rawMatch[0].length).trim();
@@ -198,6 +236,10 @@ export class ChatUseCase {
     }
 
     const model = user.patreon ? PATREON_MODEL : FREE_MODEL;
+    const mcqAllowed = user.patreon;
+    const systemPromptText = mcqAllowed
+      ? `${STUDY_ASSISTANT_SYSTEM_PROMPT}\n\n${MCQ_PROMPT_ADDITION}`
+      : STUDY_ASSISTANT_SYSTEM_PROMPT;
 
     const recentHistory = conversationHistory.slice(-MAX_HISTORY_TURNS);
     const attachmentBlocks = buildAttachmentBlocks(attachments);
@@ -220,7 +262,7 @@ export class ChatUseCase {
     const stream = this.anthropic.messages.stream({
       model,
       max_tokens: MAX_TOKENS,
-      system: [{ type: 'text', text: STUDY_ASSISTANT_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+      system: [{ type: 'text', text: systemPromptText, cache_control: { type: 'ephemeral' } }],
       messages,
     });
 
@@ -248,7 +290,7 @@ export class ChatUseCase {
       content: null,
     });
 
-    const { cards, contentBefore, contentAfter } = extractCards(assistantContent);
+    const { cards, contentBefore, contentAfter } = extractCards(assistantContent, mcqAllowed);
 
     return {
       content: assistantContent,

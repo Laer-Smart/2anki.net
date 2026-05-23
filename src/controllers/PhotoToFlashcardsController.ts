@@ -30,6 +30,7 @@ interface RawPhotoBody {
   density?: unknown;
   mode?: unknown;
   cardStyle?: unknown;
+  mcqEnabled?: unknown;
 }
 
 function isAllowedMediaType(value: unknown): value is VisionMediaType {
@@ -89,6 +90,7 @@ export class PhotoToFlashcardsController {
 
     const mode = parseMode(body.mode);
     const cardStyle = parseCardStyle(body.cardStyle);
+    const mcqEnabled = body.mcqEnabled === true;
 
     let result: Awaited<ReturnType<PhotoToFlashcardsUseCase['execute']>>;
     try {
@@ -103,6 +105,7 @@ export class PhotoToFlashcardsController {
         density: parseDensity(body.density),
         mode,
         cardStyle,
+        mcqEnabled,
       });
     } catch (err) {
       const e = err as Error & {
@@ -132,6 +135,8 @@ export class PhotoToFlashcardsController {
     res.setHeader('Content-Disposition', buildContentDisposition(path.basename(result.apkgPath)));
     res.setHeader('Content-Type', 'application/octet-stream');
     res.setHeader('X-Card-Count', String(result.cardCount));
+    res.setHeader('X-MCQ-Count', String(result.mcqCount));
+    res.setHeader('X-MCQ-Skipped-Count', String(result.mcqSkippedCount));
 
     const stream = fs.createReadStream(result.apkgPath);
     stream.on('end', () => fs.unlink(result.apkgPath, () => undefined));

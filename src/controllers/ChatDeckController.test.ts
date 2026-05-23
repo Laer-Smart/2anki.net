@@ -102,6 +102,67 @@ describe('ChatDeckController.generate', () => {
     expect(res.status).toHaveBeenCalledWith(400);
   });
 
+  it('accepts a valid MCQ-shaped card and forwards it to the use case', async () => {
+    const fakeBuffer = Buffer.from('fake-apkg-data');
+    const useCase = { execute: jest.fn().mockResolvedValue(fakeBuffer) };
+    const controller = new ChatDeckController(useCase as never);
+    const res = buildRes();
+    const mcqCard = {
+      front: 'Which enzyme breaks down starch?',
+      options: ['Lipase', 'Amylase', 'Protease', 'Lactase'],
+      correctIndex: 1,
+      rationale: 'Amylase.',
+    };
+
+    await controller.generate(buildReq({ cards: [mcqCard], deckName: 'Quiz' }), res);
+
+    expect(useCase.execute).toHaveBeenCalledWith({
+      cards: [
+        {
+          front: 'Which enzyme breaks down starch?',
+          back: '',
+          options: ['Lipase', 'Amylase', 'Protease', 'Lactase'],
+          correctIndex: 1,
+          rationale: 'Amylase.',
+        },
+      ],
+      deckName: 'Quiz',
+    });
+    expect(res.send).toHaveBeenCalledWith(fakeBuffer);
+  });
+
+  it('rejects an MCQ-shaped card with 3 options', async () => {
+    const useCase = { execute: jest.fn() };
+    const controller = new ChatDeckController(useCase as never);
+    const res = buildRes();
+    const badMcq = {
+      front: 'Q',
+      options: ['A', 'B', 'C'],
+      correctIndex: 0,
+    };
+
+    await controller.generate(buildReq({ cards: [badMcq], deckName: 'Quiz' }), res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(useCase.execute).not.toHaveBeenCalled();
+  });
+
+  it('rejects an MCQ-shaped card with an out-of-range correctIndex', async () => {
+    const useCase = { execute: jest.fn() };
+    const controller = new ChatDeckController(useCase as never);
+    const res = buildRes();
+    const badMcq = {
+      front: 'Q',
+      options: ['A', 'B', 'C', 'D'],
+      correctIndex: 9,
+    };
+
+    await controller.generate(buildReq({ cards: [badMcq], deckName: 'Quiz' }), res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(useCase.execute).not.toHaveBeenCalled();
+  });
+
   it('calls use case and sends buffer on valid input', async () => {
     const fakeBuffer = Buffer.from('fake-apkg-data');
     const useCase = { execute: jest.fn().mockResolvedValue(fakeBuffer) };
