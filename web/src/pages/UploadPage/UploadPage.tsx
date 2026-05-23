@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import useQuery from '../../lib/hooks/useQuery';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import styles from '../../styles/shared.module.css';
+import { ExploreCard } from './components/ExploreCard/ExploreCard';
 import { OnboardingTour } from './components/OnboardingTour/OnboardingTour';
-import { PhotoToDeckEntry } from './components/PhotoToDeckEntry/PhotoToDeckEntry';
 import UploadForm from './components/UploadForm/UploadForm';
 import pageStyles from './UploadPage.module.css';
 
@@ -67,17 +67,13 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
         </div>
       )}
       <UploadForm setErrorMessage={setErrorMessage} />
-      <PhotoToDeckEntry />
+      <ExploreCard />
       <details className={pageStyles.howItWorks}>
         <summary className={pageStyles.howItWorksSummary}>
           <h2 className={pageStyles.howItWorksHeading}>How it works</h2>
         </summary>
         <p className={pageStyles.footnote}>
           Your uploaded files are deleted after 2 hours.
-        </p>
-        <p className={pageStyles.settingsHint}>
-          Change deck names, templates, and conversion defaults in{' '}
-          <Link to="/card-options?returnTo=/upload">Settings</Link>.
         </p>
         <div className={pageStyles.steps}>
           <div className={pageStyles.step}>

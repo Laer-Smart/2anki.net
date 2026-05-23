@@ -25,7 +25,6 @@ function CardStylePicker({ value, onChange }: Readonly<CardStylePickerProps>) {
 
   return (
     <div className={styles.wrapper}>
-      <span className={styles.label}>Card style</span>
       <div role="radiogroup" aria-label="Card style" className={styles.segmentGroup}>
         {SEGMENTS.map((seg) => (
           <button

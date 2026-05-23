@@ -75,13 +75,6 @@
   color: var(--color-text-tertiary);
 }
 
-.settingsHint {
-  max-width: 800px;
-  margin: 0.75rem auto 0 0;
-  font-size: var(--text-base);
-  color: var(--color-text-secondary);
-}
-
 .howItWorks {
   max-width: 800px;
   margin: 1.5rem 0 0;

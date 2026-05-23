@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { UploadSourceChips, type UploadSource } from './UploadSourceChips';
 
 describe('UploadSourceChips', () => {
-  it('renders a fieldset with a legend introducing the chips', () => {
+  it('renders an "or" divider above the source chips', () => {
     const { container } = render(
       <UploadSourceChips
         active="local"
@@ -12,10 +12,9 @@ describe('UploadSourceChips', () => {
         googleDriveAvailable={true}
       />
     );
-    const fieldset = container.querySelector('fieldset');
-    expect(fieldset).not.toBeNull();
-    const legend = fieldset?.querySelector('legend');
-    expect(legend?.textContent).toBe('Or pick from:');
+    const group = container.querySelector('[role="group"][aria-label="Other upload sources"]');
+    expect(group).not.toBeNull();
+    expect(container.textContent).toContain('or');
   });
 
   it('renders the Dropbox chip when available', () => {

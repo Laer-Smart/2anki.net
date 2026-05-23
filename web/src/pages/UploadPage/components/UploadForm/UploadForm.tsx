@@ -25,7 +25,6 @@ import { fireAnalyticsEvent } from '../../../../lib/analytics/fireAnalyticsEvent
 import { track } from '../../../../lib/analytics/track';
 import ChatPanel from '../../../../components/ChatPanel/ChatPanel';
 import { UpsellCard } from '../../../../components/UpsellCard';
-import CardStylePicker, { CARD_STYLE_KEY, DEFAULT_CARD_STYLE } from './CardStylePicker';
 import formStyles from './UploadForm.module.css';
 import sharedStyles from '../../../../styles/shared.module.css';
 
@@ -286,15 +285,6 @@ function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
       clearTimeout(fallbackTimerRef.current);
     }
   });
-
-  const [cardStyle, setCardStyle] = useState<string>(
-    () => globalThis.localStorage?.getItem(CARD_STYLE_KEY) ?? DEFAULT_CARD_STYLE
-  );
-
-  const handleCardStyleChange = (value: string) => {
-    globalThis.localStorage?.setItem(CARD_STYLE_KEY, value);
-    setCardStyle(value);
-  };
 
   const { data: userLocals } = useUserLocals();
   const queryClient = useQueryClient();
@@ -1310,9 +1300,6 @@ function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
             </section>
           )}
         </div>
-      )}
-      {zoneState === 'idle' && !validation && (
-        <CardStylePicker value={cardStyle} onChange={handleCardStyleChange} />
       )}
       {showChips && (
         <div

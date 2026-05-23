@@ -61,6 +61,8 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
   const returnToParam = params.get('returnTo');
   const returnTo = returnToParam ?? '/upload';
   const shouldReturnAfterSave = pageId != null || returnToParam != null;
+  const cameFromNotion = returnToParam?.startsWith('/notion') === true;
+  const showPagesSection = cameFromNotion || perPageItems.length > 0;
 
   const goBack = () => navigate(returnTo);
 
@@ -131,8 +133,10 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
             <p className={sharedStyles.subtitle}>
               Control how 2anki converts your content into Anki cards — deck
               names, templates, card types, and more. Changes here apply to
-              every new conversion. To adjust settings for a single Notion page,
-              open it from the list below.{' '}
+              every new conversion.
+              {cameFromNotion && (
+                <> To adjust settings for a single Notion page, open it from the list below.</>
+              )}{' '}
               <Link to="/documentation">Read the docs</Link> for a full
               explanation of each option.
             </p>
@@ -167,7 +171,7 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
           </div>
         )}
 
-        {pageId == null && (
+        {pageId == null && showPagesSection && (
           <section className={`${styles.pagesSection} ${styles.pagesCard}`}>
             <h2 className={styles.pagesHeading}>
               Pages with custom settings
@@ -277,8 +281,9 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
             <hr className={styles.divider} />
             <h2 className={styles.formHeading}>Default options</h2>
             <p className={sharedStyles.smallDescription}>
-              Used for every file upload and any Notion page without saved
-              overrides.
+              {cameFromNotion || perPageItems.length > 0
+                ? 'Used for every file upload and any Notion page without saved overrides.'
+                : 'Used for every file upload.'}
             </p>
           </div>
         )}

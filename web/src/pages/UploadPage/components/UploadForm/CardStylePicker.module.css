@@ -1,15 +1,8 @@
 .wrapper {
-  max-width: 800px;
-  margin: 1rem auto 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.label {
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-primary);
+  align-items: flex-end;
+  gap: 0.375rem;
 }
 
 .segmentGroup {
@@ -56,21 +49,25 @@
   font-size: var(--text-xs);
   color: var(--color-text-secondary);
   margin: 0;
+  text-align: right;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
+  .wrapper {
+    align-items: flex-start;
+    width: 100%;
+  }
+
   .segmentGroup {
-    flex-direction: column;
     width: 100%;
   }
 
   .segment {
-    border-right: none;
-    border-bottom: 1px solid var(--color-border);
-    text-align: left;
+    flex: 1;
+    text-align: center;
   }
 
-  .segment:last-child {
-    border-bottom: none;
+  .helperText {
+    text-align: left;
   }
 }

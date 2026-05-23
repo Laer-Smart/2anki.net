@@ -61,12 +61,6 @@ describe('CardStylePicker', () => {
     expect(screen.getByRole('radio', { name: 'Cloze' })).toHaveAttribute('aria-checked', 'false');
   });
 
-  it('renders the "Card style" label', () => {
-    const onChange = vi.fn();
-    render(<CardStylePicker value="cloze" onChange={onChange} />);
-    expect(screen.getByText('Card style')).toBeInTheDocument();
-  });
-
   it('shows helper text for the selected style', () => {
     const onChange = vi.fn();
     render(<CardStylePicker value="cloze" onChange={onChange} />);
