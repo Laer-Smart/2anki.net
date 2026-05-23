@@ -143,8 +143,6 @@ def build_one_deck(data_file, template_dir):
     mcq_model_name = mt.get('mcqModelName', "n2a-mcq") or "n2a-mcq"
     mcq_model_id = mt.get('mcqModelId', get_model_id(mcq_model_name))
     mcq_settings = {
-        "mcqShowChoices": mt.get("mcqShowChoices", "button"),
-        "mcqShuffle": mt.get("mcqShuffle", True),
         "mcqTtsQuestion": mt.get("mcqTtsQuestion", ""),
         "mcqTtsCorrectAnswer": mt.get("mcqTtsCorrectAnswer", ""),
         "mcqTtsExtra": mt.get("mcqTtsExtra", ""),

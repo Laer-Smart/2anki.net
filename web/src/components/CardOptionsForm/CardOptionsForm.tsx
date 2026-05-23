@@ -48,8 +48,6 @@ const DEFAULT_TOGGLE_MODE = 'close_toggle';
 const DEFAULT_PAGE_EMOJI = 'first_emoji';
 const DEFAULT_FONT_SIZE = '20';
 const DEFAULT_MCQ_ENABLED = false;
-const DEFAULT_MCQ_SHOW_CHOICES = 'auto';
-const DEFAULT_MCQ_SHUFFLE = true;
 const DEFAULT_MCQ_TTS_LANG = '';
 
 const MCQ_TTS_LANGUAGE_OPTIONS = [
@@ -129,8 +127,6 @@ function computeSnapshot(values: {
   userInstructions: string;
   checkboxValues: Record<string, boolean>;
   mcqEnabled: boolean;
-  mcqShowChoices: string;
-  mcqShuffle: boolean;
   mcqTtsQuestion: string;
   mcqTtsCorrectAnswer: string;
   mcqTtsExtra: string;
@@ -203,12 +199,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     const [mcqEnabled, setMcqEnabled] = useState(
       getLocalStorageBooleanValue('mcq-enabled', DEFAULT_MCQ_ENABLED.toString(), settings)
     );
-    const [mcqShowChoices, setMcqShowChoices] = useState(
-      getLocalStorageValue('mcq-show-choices', DEFAULT_MCQ_SHOW_CHOICES, settings)
-    );
-    const [mcqShuffle, setMcqShuffle] = useState(
-      getLocalStorageBooleanValue('mcq-shuffle', DEFAULT_MCQ_SHUFFLE.toString(), settings)
-    );
     const [mcqTtsQuestion, setMcqTtsQuestion] = useState(
       getLocalStorageValue('mcq-tts-question', DEFAULT_MCQ_TTS_LANG, settings)
     );
@@ -252,8 +242,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         localStorage.getItem('user-instructions') ?? DEFAULT_USER_INSTRUCTIONS
       );
       setMcqEnabled((localStorage.getItem('mcq-enabled') ?? DEFAULT_MCQ_ENABLED.toString()) === 'true');
-      setMcqShowChoices(localStorage.getItem('mcq-show-choices') ?? DEFAULT_MCQ_SHOW_CHOICES);
-      setMcqShuffle((localStorage.getItem('mcq-shuffle') ?? DEFAULT_MCQ_SHUFFLE.toString()) === 'true');
       setMcqTtsQuestion(localStorage.getItem('mcq-tts-question') ?? DEFAULT_MCQ_TTS_LANG);
       setMcqTtsCorrectAnswer(localStorage.getItem('mcq-tts-correct-answer') ?? DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(localStorage.getItem('mcq-tts-extra') ?? DEFAULT_MCQ_TTS_LANG);
@@ -270,7 +258,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           ['cloze_model_name', setClozeName],
           ['input_model_name', setInputName],
           ['user-instructions', setUserInstructions],
-          ['mcq-show-choices', setMcqShowChoices],
           ['mcq-tts-question', setMcqTtsQuestion],
           ['mcq-tts-correct-answer', setMcqTtsCorrectAnswer],
           ['mcq-tts-extra', setMcqTtsExtra],
@@ -282,9 +269,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         });
         if (Object.hasOwn(payload, 'mcq-enabled')) {
           setMcqEnabled((payload['mcq-enabled'] ?? 'false') === 'true');
-        }
-        if (Object.hasOwn(payload, 'mcq-shuffle')) {
-          setMcqShuffle((payload['mcq-shuffle'] ?? 'true') === 'true');
         }
         setSettings(payload);
       };
@@ -321,8 +305,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           userInstructions,
           checkboxValues,
           mcqEnabled,
-          mcqShowChoices,
-          mcqShuffle,
           mcqTtsQuestion,
           mcqTtsCorrectAnswer,
           mcqTtsExtra,
@@ -339,8 +321,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         userInstructions,
         checkboxValues,
         mcqEnabled,
-        mcqShowChoices,
-        mcqShuffle,
         mcqTtsQuestion,
         mcqTtsCorrectAnswer,
         mcqTtsExtra,
@@ -391,8 +371,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setClozeName('');
       setInputName('');
       setUserInstructions(DEFAULT_USER_INSTRUCTIONS);
-      setMcqShowChoices(DEFAULT_MCQ_SHOW_CHOICES);
-      setMcqShuffle(DEFAULT_MCQ_SHUFFLE);
       setMcqTtsQuestion(DEFAULT_MCQ_TTS_LANG);
       setMcqTtsCorrectAnswer(DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(DEFAULT_MCQ_TTS_LANG);
@@ -423,8 +401,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       payload['page-emoji'] = pageEmoji;
       payload['user-instructions'] = userInstructions;
       payload['mcq-enabled'] = mcqEnabled.toString();
-      payload['mcq-show-choices'] = mcqShowChoices;
-      payload['mcq-shuffle'] = mcqShuffle.toString();
       payload['mcq-tts-question'] = mcqTtsQuestion;
       payload['mcq-tts-correct-answer'] = mcqTtsCorrectAnswer;
       payload['mcq-tts-extra'] = mcqTtsExtra;
@@ -694,43 +670,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
 
                   {mcqEnabled && (
                     <>
-                      <div className={fieldStyles.section}>
-                        <div className={fieldStyles.labelRow}>
-                          <label className={fieldStyles.sectionLabel}>Show choices</label>
-                          <FieldHint text="Show all choices up front, or hide them behind a button you click during review." />
-                        </div>
-                        <div className={fieldStyles.segmented}>
-                          {(
-                            [
-                              { label: 'Show up front', value: 'auto' },
-                              { label: 'Hide behind button', value: 'button' },
-                            ] as const
-                          ).map(({ label, value }) => (
-                            <button
-                              key={value}
-                              type="button"
-                              className={`${fieldStyles.segment} ${mcqShowChoices === value ? fieldStyles.segmentActive : ''}`}
-                              onClick={() => {
-                                setMcqShowChoices(value);
-                                saveValueInLocalStorage('mcq-show-choices', value, pageId);
-                              }}
-                            >
-                              {label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <LocalCheckbox
-                        defaultValue={mcqShuffle}
-                        label="Shuffle choices"
-                        description="Choices appear in a different order each review so position is not a hint."
-                        onChecked={(checked) => {
-                          setMcqShuffle(checked);
-                          saveValueInLocalStorage('mcq-shuffle', checked.toString(), pageId);
-                        }}
-                      />
-
                       <div className={fieldStyles.section}>
                         <p className={fieldStyles.sectionLabel}>Read aloud</p>
                         <p className={fieldStyles.sectionHint}>

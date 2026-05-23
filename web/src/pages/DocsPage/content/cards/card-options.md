@@ -76,8 +76,6 @@ These only fire when **Enable MCQ** is on. See [Multiple choice questions](/docu
 | Option | Default | What it does |
 |---|---|---|
 | Enable MCQ | Off | Detects multiple-choice toggles and produces interactive MCQ cards instead of basic ones. |
-| Show choices | Show up front | Whether the options appear on the front of the card, or behind a button you click to reveal. |
-| Shuffle options | On | Randomize the option order on every review so position can't be a hint. |
 | TTS for the question | Don't speak | Read the question aloud. Languages: English (US), Spanish, French, German, Japanese, Mandarin (Simplified), Portuguese (Brazil). |
 | TTS for the correct answer | Don't speak | Read the correct answer aloud. Same language list. |
 | TTS for extra | Don't speak | Read the explanation aloud. Same language list. |
@@ -90,4 +88,4 @@ These only fire when **Enable MCQ** is on. See [Multiple choice questions](/docu
 
 ## Internal option keys
 
-The option keys 2anki uses internally (handy if you're filing a bug report): `add-notion-link`, `all`, `paragraph`, `cherry`, `avocado`, `tags`, `cloze`, `enable-input`, `basic-reversed`, `reversed`, `no-underline`, `max-one-toggle-per-card`, `remove-mp3-links`, `perserve-newlines`, `process-pdfs`, `markdown-nested-bullet-points`, `vertex-ai-pdf-questions`, `disable-indented-bullets`, `image-quiz-html-to-anki`, `claude-ai-flashcards`, `share-files-for-debugging`, `mcq-enabled`, `mcq-show-choices`, `mcq-shuffle`, `mcq-tts-question`, `mcq-tts-correct-answer`, `mcq-tts-extra`, `font-size`, `toggle-mode`, `page-emoji`, `basic_model_name`, `cloze_model_name`, `input_model_name`, `user-instructions`.
+The option keys 2anki uses internally (handy if you're filing a bug report): `add-notion-link`, `all`, `paragraph`, `cherry`, `avocado`, `tags`, `cloze`, `enable-input`, `basic-reversed`, `reversed`, `no-underline`, `max-one-toggle-per-card`, `remove-mp3-links`, `perserve-newlines`, `process-pdfs`, `markdown-nested-bullet-points`, `vertex-ai-pdf-questions`, `disable-indented-bullets`, `image-quiz-html-to-anki`, `claude-ai-flashcards`, `share-files-for-debugging`, `mcq-enabled`, `mcq-tts-question`, `mcq-tts-correct-answer`, `mcq-tts-extra`, `font-size`, `toggle-mode`, `page-emoji`, `basic_model_name`, `cloze_model_name`, `input_model_name`, `user-instructions`.

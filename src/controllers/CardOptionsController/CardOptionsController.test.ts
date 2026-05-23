@@ -191,8 +191,6 @@ describe('SettingsController', () => {
       'markdown-nested-bullet-points': 'true',
       'share-files-for-debugging': 'false',
       'mcq-enabled': 'false',
-      'mcq-show-choices': 'auto',
-      'mcq-shuffle': 'true',
       'mcq-tts-question': '',
       'mcq-tts-correct-answer': '',
       'mcq-tts-extra': '',

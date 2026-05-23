@@ -10,8 +10,6 @@ export const CARD_OPTION_KEYS = [
   'user-instructions',
   'skip-defaults',
   'mcq-enabled',
-  'mcq-show-choices',
-  'mcq-shuffle',
   'mcq-tts-question',
   'mcq-tts-correct-answer',
   'mcq-tts-extra',
