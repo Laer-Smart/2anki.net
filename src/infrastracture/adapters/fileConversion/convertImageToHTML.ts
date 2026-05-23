@@ -1,25 +1,9 @@
-import { GenerateContentRequest } from '@google-cloud/vertexai';
-import { generateContent } from './contentGenerationUtils';
+import { getAnthropicClient } from '../../../lib/claude/ClaudeService';
+import { convertWithClaude } from './claudeFileConversion';
 
-/**
- * Google VertexAI is returning Markdown:
- * ```html
- * [...]
- * ```
- * So we need to remove the first and last line
- */
-export function removeFirstAndLastLine(content: string): string {
-  const lines = content.split('\n');
-  return lines.slice(1, -1).join('\n');
-}
+const IMAGE_TO_HTML_SYSTEM_PROMPT = `Convert the text in this image to the following format for (every question is their own ul):
 
-export const convertImageToHTML = async (
-  imageData: string
-): Promise<string> => {
-  const text1 = {
-    text: `Convert the text in this image to the following format for (every question is their own ul):
-
-        <ul class=\"toggle\">
+        <ul class="toggle">
           <li>
            <details>
             <summary>
@@ -27,7 +11,7 @@ export const convertImageToHTML = async (
             </summary>
         <p>A) ..., </p>
         <p>B)... </p>
-        etc. 
+        etc.
         <p>and finally Answer: D</p>
            </details>
           </li>
@@ -36,20 +20,26 @@ export const convertImageToHTML = async (
         —
         - Extra rules: n=is the number for the question, question=the question text
     - Add newline between the options
-    - If you are not able to detect the pattern above, try converting this into a question and answer format`,
-  };
+    - If you are not able to detect the pattern above, try converting this into a question and answer format`;
 
-  const image1 = {
-    inlineData: {
-      mimeType: 'image/png',
-      data: imageData,
+export function removeFirstAndLastLine(content: string): string {
+  const lines = content.split('\n');
+  return lines.slice(1, -1).join('\n');
+}
+
+export const convertImageToHTML = async (
+  imageData: string
+): Promise<string> => {
+  const client = getAnthropicClient();
+  const htmlContent = await convertWithClaude(client, IMAGE_TO_HTML_SYSTEM_PROMPT, [
+    {
+      type: 'image',
+      source: {
+        type: 'base64',
+        media_type: 'image/png',
+        data: imageData,
+      },
     },
-  };
-
-  const req: GenerateContentRequest = {
-    contents: [{ role: 'user', parts: [text1, image1] }],
-  };
-
-  const htmlContent = await generateContent(req);
+  ]);
   return removeFirstAndLastLine(htmlContent);
 };
