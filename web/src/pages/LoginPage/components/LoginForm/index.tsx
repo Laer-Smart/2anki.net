@@ -7,6 +7,7 @@ import { useHandleLoginSubmit } from './helpers/useHandleLoginSubmit';
 import { getVisibleText } from '../../../../lib/text/getVisibleText';
 import { WithGoogleLink } from '../../../../components/forms/WithGoogleLink';
 import { WithNotionLink } from '../../../../components/forms/WithNotionLink';
+import { WithMicrosoftLink } from '../../../../components/forms/WithMicrosoftLink';
 import { get2ankiApi } from '../../../../lib/backend/get2ankiApi';
 import styles from '../../../../styles/auth.module.css';
 
@@ -121,6 +122,9 @@ function LoginForm() {
               text={getVisibleText('navigation.login.google')}
             />
             <WithNotionLink text="Continue with Notion" />
+            <WithMicrosoftLink
+              text={getVisibleText('navigation.login.microsoft')}
+            />
             <div className={styles.divider} />
           </>
         ) : (

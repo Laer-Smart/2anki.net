@@ -66,6 +66,11 @@ describe('LoginForm', () => {
     expect(screen.getByText('Sign in with Google')).toBeInTheDocument();
   });
 
+  it('shows Microsoft OAuth button on email step', () => {
+    renderLoginForm();
+    expect(screen.getByText('Sign in with Microsoft')).toBeInTheDocument();
+  });
+
   it('shows Use password instead link on email step', () => {
     renderLoginForm();
     expect(screen.getByText('Use password instead')).toBeInTheDocument();

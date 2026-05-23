@@ -40,6 +40,7 @@ jest.mock('../data_layer/UsersRepository', () => {
 import UsersController from './UsersControllers';
 import UsersService, { MagicLinkRateLimitError } from '../services/UsersService';
 import AuthenticationService from '../services/AuthenticationService';
+import OauthIdentitiesRepository from '../data_layer/OauthIdentitiesRepository';
 
 const SAMPLE_PW = '12345678';
 
@@ -797,6 +798,197 @@ describe('UsersController.loginWithGoogle', () => {
     expect(register).not.toHaveBeenCalled();
   });
 
+});
+
+jest.mock('../data_layer/OauthIdentitiesRepository');
+
+describe('UsersController.loginWithMicrosoft', () => {
+  const MockedOauthIdentitiesRepo =
+    OauthIdentitiesRepository as jest.MockedClass<
+      typeof OauthIdentitiesRepository
+    >;
+
+  beforeEach(() => {
+    MockedOauthIdentitiesRepo.mockClear();
+    MockedOauthIdentitiesRepo.prototype.findByProviderAndSubject = jest
+      .fn()
+      .mockResolvedValue(null);
+    MockedOauthIdentitiesRepo.prototype.link = jest
+      .fn()
+      .mockResolvedValue(undefined);
+  });
+
+  const buildMicrosoftController = (overrides?: {
+    getUserFrom?: jest.Mock;
+    getUserById?: jest.Mock;
+    register?: jest.Mock;
+    markEmailVerified?: jest.Mock;
+    newJWTToken?: jest.Mock;
+    persistToken?: jest.Mock;
+    updateLastLoginAt?: jest.Mock;
+    loginWithMicrosoft?: jest.Mock;
+  }) => {
+    const mockUser = { id: 11, email: 'm@example.com' };
+    const userService = {
+      getUserFrom:
+        overrides?.getUserFrom ??
+        jest
+          .fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValue(mockUser),
+      getUserById: overrides?.getUserById ?? jest.fn().mockResolvedValue(mockUser),
+      register: overrides?.register ?? jest.fn().mockResolvedValue([{ id: 11 }]),
+      markEmailVerified:
+        overrides?.markEmailVerified ?? jest.fn().mockResolvedValue(1),
+      updateLastLoginAt:
+        overrides?.updateLastLoginAt ?? jest.fn().mockResolvedValue(undefined),
+    } as unknown as UsersService;
+    const authService = {
+      loginWithMicrosoft:
+        overrides?.loginWithMicrosoft ??
+        jest.fn().mockResolvedValue({
+          subject: 'ms-sub-001',
+          email: 'm@example.com',
+          name: 'Microsoft User',
+          emailVerified: true,
+        }),
+      getHashPassword: jest.fn().mockReturnValue('hashed'),
+      newJWTToken:
+        overrides?.newJWTToken ?? jest.fn().mockResolvedValue('microsoft-jwt'),
+      persistToken:
+        overrides?.persistToken ?? jest.fn().mockResolvedValue(undefined),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    return { controller, userService, authService };
+  };
+
+  const buildMicrosoftRes = () => {
+    const redirect = jest.fn();
+    const cookie = jest.fn();
+    const status = jest.fn().mockReturnThis();
+    return { redirect, cookie, status } as unknown as express.Response & {
+      redirect: jest.Mock;
+      cookie: jest.Mock;
+      status: jest.Mock;
+    };
+  };
+
+  const buildReq = (code: string | null = 'mauth-code') =>
+    ({
+      query: code == null ? {} : { code },
+      cookies: {},
+      headers: {},
+    }) as unknown as express.Request;
+
+  it("creates a new user, links the identity, and stamps signup_origin='microsoft' when the verified email has no existing account", async () => {
+    const register = jest.fn().mockResolvedValue([{ id: 11 }]);
+    const { controller } = buildMicrosoftController({ register });
+
+    await controller.loginWithMicrosoft(buildReq(), buildMicrosoftRes());
+
+    expect(register).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'm@example.com',
+      'microsoft'
+    );
+    expect(MockedOauthIdentitiesRepo.prototype.link).toHaveBeenCalledWith(
+      'microsoft',
+      'ms-sub-001',
+      11
+    );
+  });
+
+  it('signs in via subject lookup without calling register or re-linking when the identity already exists', async () => {
+    const register = jest.fn();
+    MockedOauthIdentitiesRepo.prototype.findByProviderAndSubject = jest
+      .fn()
+      .mockResolvedValue({ user_id: 42, provider: 'microsoft', subject: 'ms-sub-001' });
+    const getUserById = jest.fn().mockResolvedValue({ id: 42, email: 'returner@outlook.com' });
+
+    const { controller } = buildMicrosoftController({ register, getUserById });
+
+    await controller.loginWithMicrosoft(buildReq(), buildMicrosoftRes());
+
+    expect(getUserById).toHaveBeenCalledWith('42');
+    expect(register).not.toHaveBeenCalled();
+    expect(MockedOauthIdentitiesRepo.prototype.link).not.toHaveBeenCalled();
+  });
+
+  it('links the identity to the existing user when verified email matches but no identity row exists yet', async () => {
+    const existingUser = { id: 13, email: 'existing@outlook.com' };
+    const getUserFrom = jest.fn().mockResolvedValue(existingUser);
+    const register = jest.fn();
+
+    const { controller } = buildMicrosoftController({ getUserFrom, register });
+
+    await controller.loginWithMicrosoft(buildReq(), buildMicrosoftRes());
+
+    expect(register).not.toHaveBeenCalled();
+    expect(MockedOauthIdentitiesRepo.prototype.link).toHaveBeenCalledWith(
+      'microsoft',
+      'ms-sub-001',
+      13
+    );
+  });
+
+  it('redirects to /login and records the error when the email is not verified', async () => {
+    const register = jest.fn();
+    const loginWithMicrosoft = jest.fn().mockResolvedValue({
+      subject: 'ms-sub-002',
+      email: 'unverified@example.com',
+      name: 'Unverified',
+      emailVerified: false,
+    });
+    const { controller } = buildMicrosoftController({ loginWithMicrosoft, register });
+    const res = buildMicrosoftRes();
+
+    await controller.loginWithMicrosoft(buildReq(), res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(register).not.toHaveBeenCalled();
+    expect(MockedOauthIdentitiesRepo.prototype.link).not.toHaveBeenCalled();
+  });
+
+  it('redirects to /login when the email claim is missing and no identity exists', async () => {
+    const register = jest.fn();
+    const loginWithMicrosoft = jest.fn().mockResolvedValue({
+      subject: 'ms-sub-003',
+      email: undefined,
+      name: 'No Email',
+      emailVerified: true,
+    });
+    const { controller } = buildMicrosoftController({ loginWithMicrosoft, register });
+    const res = buildMicrosoftRes();
+
+    await controller.loginWithMicrosoft(buildReq(), res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(register).not.toHaveBeenCalled();
+  });
+
+  it('redirects to /login when the OAuth code is missing', async () => {
+    const { controller } = buildMicrosoftController();
+    const res = buildMicrosoftRes();
+
+    await controller.loginWithMicrosoft(buildReq(null), res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+  });
+
+  it('redirects to /login when the token exchange fails', async () => {
+    const loginWithMicrosoft = jest.fn().mockResolvedValue(undefined);
+    const { controller } = buildMicrosoftController({ loginWithMicrosoft });
+    const res = buildMicrosoftRes();
+
+    await controller.loginWithMicrosoft(buildReq('bad-code'), res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+  });
 });
 
 describe('UsersController.loginWithNotion', () => {

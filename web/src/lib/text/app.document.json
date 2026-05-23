@@ -20,6 +20,8 @@
   "favorites.empty": "No favorites yet.",
   "navigation.login.google": "Sign in with Google",
   "navigation.register.google": "Sign up with Google",
+  "navigation.login.microsoft": "Sign in with Microsoft",
+  "navigation.register.microsoft": "Sign up with Microsoft",
   "navigation.contact": "Contact",
   "navigation.documentation": "Documentation",
   "navigation.docs": "Docs",
