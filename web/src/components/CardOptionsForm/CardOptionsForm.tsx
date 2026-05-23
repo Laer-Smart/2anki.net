@@ -638,8 +638,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               {isCardTypesGroup && (
                 <div className={fieldStyles.optionGroup} id="mcq">
                   <div className={fieldStyles.groupHeader}>
-                    <h3 className={fieldStyles.groupHeading}>Multiple choice</h3>
-                    <div className={fieldStyles.segmented} role="group" aria-label="Enable multiple choice">
+                    <h3 className={fieldStyles.groupHeading}>Multiple choice questions (MCQ)</h3>
+                    <div className={fieldStyles.segmented} role="group" aria-label="Enable multiple choice questions">
                       {(
                         [
                           { label: 'Off', value: false },
@@ -661,7 +661,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                     </div>
                   </div>
                   <p className={fieldStyles.groupIntro}>
-                    Multiple choice cards generated from your notes. Learn the syntax in the{' '}
+                    Photo to deck and the AI chat generate MCQ when this is on. You can also write them yourself with the MCQ syntax — see the{' '}
                     <Link to="/documentation/cards/mcq" className={fieldStyles.groupIntroLink}>
                       docs
                     </Link>
@@ -705,6 +705,11 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
 
                         <p className={fieldStyles.sectionHint}>
                           If your Anki device has no installed voice for the picked language, the audio stays silent.
+                        </p>
+                        <p className={fieldStyles.sectionHint}>
+                          Missing a language? Email{' '}
+                          <a href="mailto:support@2anki.net">support@2anki.net</a>{' '}
+                          and we&apos;ll add it.
                         </p>
                       </div>
                     </>
