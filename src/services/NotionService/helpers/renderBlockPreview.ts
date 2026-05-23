@@ -179,10 +179,11 @@ export function renderBlockPreview(block: BlockObjectResponse): string {
       return `<p><a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">File: ${escapeHtml(url)}</a></p>`;
     }
     case 'link_to_page': {
-      const linkedId =
-        block.link_to_page.type === 'page_id'
-          ? block.link_to_page.page_id
-          : block.link_to_page.database_id;
+      const linked = block.link_to_page;
+      let linkedId: string | null = null;
+      if (linked.type === 'page_id') linkedId = linked.page_id;
+      else if (linked.type === 'database_id') linkedId = linked.database_id;
+      if (!linkedId) return '<p><em>(link to page)</em></p>';
       return `<p><a href="/notion/${escapeHtml(linkedId)}">Link to page</a></p>`;
     }
     case 'link_preview': {
