@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
 import { SkeletonList } from '../../components/Skeleton/Skeleton';
 import { ErrorPresenter } from '../../components/errors/ErrorPresenter';
@@ -8,14 +8,34 @@ import sharedStyles from '../../styles/shared.module.css';
 import styles from './PreviewPage.module.css';
 import { usePreviewStream } from './usePreviewStream';
 import { BlockNode } from './BlockNode';
+import { PreviewSettings, classifyBlock } from '../../lib/preview/classifyBlock';
+import { PreviewSettingsRail } from './PreviewSettings';
 
 interface PreviewPageProps {
   setError: ErrorHandlerType;
 }
 
+interface LocationState {
+  parentTitle?: string;
+}
+
+const DEFAULT_SETTINGS: PreviewSettings = {
+  includeToggles: true,
+  includeHeadings: false,
+  recurseSubPages: true,
+  columnsAsCards: false,
+};
+
 export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const [settings, setSettings] = useState<PreviewSettings>(DEFAULT_SETTINGS);
+  const [mobileRailOpen, setMobileRailOpen] = useState(false);
+
+  const locationState = location.state as LocationState | null;
+  const parentTitle = locationState?.parentTitle;
 
   const {
     data,
@@ -55,10 +75,20 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
   const pageUrl = firstPage?.pageUrl;
   const returnTo = encodeURIComponent(`/preview/${id}`);
   const rulesHref = `/rules/${id}?returnTo=${returnTo}`;
+  const convertHref = rulesHref;
 
-  const blocks = useMemo(
+  const rawBlocks = useMemo(
     () => data?.pages.flatMap((page) => page.blocks) ?? [],
     [data]
+  );
+
+  const blocks = useMemo(
+    () =>
+      rawBlocks.map((block) => ({
+        ...block,
+        decision: block.decision ?? classifyBlock(block, settings),
+      })),
+    [rawBlocks, settings]
   );
 
   if (!id) {
@@ -102,12 +132,24 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
     );
   }
 
+  const backLabel = parentTitle ? `← Back to ${parentTitle}` : '← Back to Notion search';
+
   return (
     <div className={sharedStyles.page}>
       <header className={sharedStyles.pageHeader}>
-        <Link to="/notion" className={styles.backLink}>
-          ← Back to Notion search
-        </Link>
+        {parentTitle ? (
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className={styles.backLink}
+          >
+            {backLabel}
+          </button>
+        ) : (
+          <Link to="/notion" className={styles.backLink}>
+            {backLabel}
+          </Link>
+        )}
         <h1 className={sharedStyles.title} data-hj-suppress>
           {pageTitle}
         </h1>
@@ -125,21 +167,61 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
         </div>
       </header>
 
+      <button
+        type="button"
+        className={styles.mobileSettingsBtn}
+        onClick={() => setMobileRailOpen(true)}
+      >
+        Settings
+      </button>
+
+      {mobileRailOpen && (
+        <div className={styles.mobileOverlay}>
+          <div className={styles.mobileOverlayHeader}>
+            <strong>Card settings</strong>
+            <button
+              type="button"
+              onClick={() => setMobileRailOpen(false)}
+              className={styles.backLink}
+            >
+              Done
+            </button>
+          </div>
+          <PreviewSettingsRail
+            settings={settings}
+            onChange={setSettings}
+            convertHref={convertHref}
+          />
+        </div>
+      )}
+
       {isLoading && !data ? (
         <SkeletonList count={4} />
       ) : (
-        <article className={styles.preview}>
-          {blocks.length === 0 && (
-            <EmptyState
-              icon="📄"
-              title="Nothing to preview"
-              description="This page has no blocks to preview."
+        <div className={styles.layoutShell}>
+          <div className={styles.settingsRail}>
+            <PreviewSettingsRail
+              settings={settings}
+              onChange={setSettings}
+              convertHref={convertHref}
             />
-          )}
-          {blocks.map((block) => (
-            <BlockNode key={block.id} block={block} />
-          ))}
-        </article>
+          </div>
+
+          <div className={styles.previewColumn}>
+            <article className={styles.preview}>
+              {blocks.length === 0 && (
+                <EmptyState
+                  icon="📄"
+                  title="Nothing to preview"
+                  description="This page has no blocks to preview."
+                />
+              )}
+              {blocks.map((block) => (
+                <BlockNode key={block.id} block={block} />
+              ))}
+            </article>
+          </div>
+        </div>
       )}
 
       <div ref={sentinelRef} className={styles.sentinel} aria-hidden="true" />

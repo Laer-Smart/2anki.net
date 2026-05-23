@@ -251,10 +251,6 @@
     display: none;
   }
 
-  .settingsRailOpen {
-    display: block;
-  }
-
   .mobileOverlay {
     position: fixed;
     bottom: 0;
