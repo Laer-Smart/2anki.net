@@ -65,3 +65,43 @@ describe('PhotoToFlashcardsController density forwarding', () => {
     );
   });
 });
+
+describe('PhotoToFlashcardsController mode forwarding', () => {
+  const baseBody = {
+    imageBase64: 'abc',
+    mediaType: 'image/jpeg',
+    deckName: 'X',
+    width: 100,
+    height: 100,
+  };
+
+  it.each(['generative', 'verbatim'] as const)(
+    'forwards a valid mode (%s) to the use case',
+    async (mode) => {
+      const useCase = makeUseCase();
+      const controller = new PhotoToFlashcardsController(useCase);
+      await controller.create(makeReq({ ...baseBody, mode }), makeRes());
+      expect(useCase.execute).toHaveBeenCalledWith(
+        expect.objectContaining({ mode })
+      );
+    }
+  );
+
+  it('defaults to generative when mode is missing', async () => {
+    const useCase = makeUseCase();
+    const controller = new PhotoToFlashcardsController(useCase);
+    await controller.create(makeReq(baseBody), makeRes());
+    expect(useCase.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ mode: 'generative' })
+    );
+  });
+
+  it('defaults to generative when mode is an unknown string', async () => {
+    const useCase = makeUseCase();
+    const controller = new PhotoToFlashcardsController(useCase);
+    await controller.create(makeReq({ ...baseBody, mode: 'hallucinate' }), makeRes());
+    expect(useCase.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ mode: 'generative' })
+    );
+  });
+});
