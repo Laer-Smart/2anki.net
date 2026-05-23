@@ -68,4 +68,20 @@ describe('hasAnkifyAccess', () => {
   test('returns false when subscriptions array is empty and patreon is false', () => {
     expect(hasAnkifyAccess({ patreon: false }, [], AUTO_SYNC_PRODUCT_ID)).toBe(false);
   });
+
+  test('returns false when subscriptions is undefined and patreon is false', () => {
+    expect(hasAnkifyAccess({ patreon: false }, undefined as unknown as never[], AUTO_SYNC_PRODUCT_ID)).toBe(false);
+  });
+
+  test('returns false when subscriptions is null and patreon is false', () => {
+    expect(hasAnkifyAccess({ patreon: false }, null as unknown as never[], AUTO_SYNC_PRODUCT_ID)).toBe(false);
+  });
+
+  test('returns true when subscriptions is undefined but patreon is true', () => {
+    expect(hasAnkifyAccess({ patreon: true }, undefined as unknown as never[], AUTO_SYNC_PRODUCT_ID)).toBe(true);
+  });
+
+  test('returns true when subscriptions is null but patreon is true', () => {
+    expect(hasAnkifyAccess({ patreon: true }, null as unknown as never[], AUTO_SYNC_PRODUCT_ID)).toBe(true);
+  });
 });
