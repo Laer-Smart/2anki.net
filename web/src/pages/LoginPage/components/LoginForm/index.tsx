@@ -126,10 +126,10 @@ function LoginForm() {
             <div className={styles.divider}>
               <span className={styles.dividerLabel}>or</span>
             </div>
-            <WithNotionLink text="Continue with Notion" />
             <WithGoogleLink
               text={getVisibleText('navigation.login.google')}
             />
+            <WithNotionLink text="Continue with Notion" />
             <div className={styles.divider} />
           </>
         ) : (
