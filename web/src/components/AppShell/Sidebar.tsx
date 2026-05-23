@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
@@ -25,32 +25,9 @@ import ShareIcon from '../icons/ShareIcon';
 import { ThemeSwitcher } from '../ThemeSwitcher/ThemeSwitcher';
 import { ThemeToggle } from '../ThemeSwitcher/ThemeToggle';
 import styles from './AppShell.module.css';
+import { useSidebarCollapseState } from './useSidebarCollapseState';
 
 const TRIAL_DURATION_MS = 60 * 60 * 1000;
-const COLLAPSED_STORAGE_KEY = 'sidebar.collapsed';
-
-function readCollapsedFromStorage(): boolean {
-  try {
-    return globalThis.localStorage?.getItem(COLLAPSED_STORAGE_KEY) === 'true';
-  } catch {
-    return false;
-  }
-}
-
-function useSidebarCollapsed(): [boolean, (next: boolean) => void] {
-  const [collapsed, setCollapsedState] = useState<boolean>(readCollapsedFromStorage);
-
-  const setCollapsed = useCallback((next: boolean) => {
-    setCollapsedState(next);
-    try {
-      globalThis.localStorage?.setItem(COLLAPSED_STORAGE_KEY, next ? 'true' : 'false');
-    } catch {
-      // localStorage unavailable (private mode, blocked) — state still updates in memory
-    }
-  }, []);
-
-  return [collapsed, setCollapsed];
-}
 
 interface CardUsageCounterProps {
   used: number;
@@ -183,7 +160,7 @@ export function Sidebar({
 }: Readonly<SidebarProps>) {
   const { pathname } = useLocation();
   const theme = useTheme();
-  const [collapsed, setCollapsed] = useSidebarCollapsed();
+  const { collapsed, onToggleClick, onSidebarInteraction } = useSidebarCollapseState(pathname);
   const logoSrc = theme === 'light' ? '/mascot/navbar-logo.png' : '/mascot/Notion 1.png';
   const showAnkify =
     locals?.patreon === true || locals?.autoSyncActive === true;
@@ -213,6 +190,8 @@ export function Sidebar({
       aria-label="primary"
       data-testid="app-sidebar"
       data-collapsed={collapsed ? 'true' : 'false'}
+      onMouseEnter={onSidebarInteraction}
+      onFocus={onSidebarInteraction}
     >
       <div className={styles.sidebarHeader}>
         <Link
@@ -225,7 +204,7 @@ export function Sidebar({
         </Link>
         <button
           type="button"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={onToggleClick}
           className={styles.sidebarCollapseToggle}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-pressed={collapsed}
