@@ -685,6 +685,11 @@ describe('ChatPanel — template selector', () => {
         })
       );
     });
+    const regenerateCall = mockPost.mock.calls.find(
+      (call) => call[0] === '/api/chat/message'
+    );
+    expect(regenerateCall).toBeDefined();
+    expect(regenerateCall?.[1].history).toEqual([]);
   });
 
   it('shows a skeleton while regenerating and hides the Download button', async () => {

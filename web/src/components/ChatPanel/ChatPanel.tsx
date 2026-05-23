@@ -918,7 +918,7 @@ export default function ChatPanel({
     setUserScrolledAway(false);
 
     const history = messages
-      .slice(0, targetIdx)
+      .slice(0, userIdx)
       .slice(-10)
       .map((m) => ({ role: m.role, content: m.content }));
 
