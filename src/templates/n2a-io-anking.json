@@ -1,0 +1,19 @@
+{
+  "name": "Image Occlusion Enhanced",
+  "fields": [
+    {"name": "ID"},
+    {"name": "Header"},
+    {"name": "Image"},
+    {"name": "Footer"},
+    {"name": "Remarks"},
+    {"name": "Sources"},
+    {"name": "Extra 1"},
+    {"name": "Extra 2"},
+    {"name": "Question Mask"},
+    {"name": "Answer Mask"},
+    {"name": "Original Mask"}
+  ],
+  "front": "{{#Header}}<div id=\"io-header\">{{Header}}</div>{{/Header}}\n<div id=\"io-wrapper\">\n<div id=\"io-overlay\">{{Question Mask}}</div>\n<div id=\"io-original\">{{Image}}</div>\n</div>\n{{#Footer}}<div id=\"io-footer\">{{Footer}}</div>{{/Footer}}",
+  "back": "{{#Header}}<div id=\"io-header\">{{Header}}</div>{{/Header}}\n<div id=\"io-wrapper\">\n<div id=\"io-overlay\">{{Answer Mask}}</div>\n<div id=\"io-original\">{{Image}}</div>\n</div>\n{{#Footer}}<div id=\"io-footer\">{{Footer}}</div>{{/Footer}}\n{{#Remarks}}<div id=\"io-remarks\">{{Remarks}}</div>{{/Remarks}}\n{{#Sources}}<div id=\"io-sources\">{{Sources}}</div>{{/Sources}}\n{{#Extra 1}}<div id=\"io-extra-1\">{{Extra 1}}</div>{{/Extra 1}}\n{{#Extra 2}}<div id=\"io-extra-2\">{{Extra 2}}</div>{{/Extra 2}}",
+  "styling": "#io-wrapper { position: relative; display: inline-block; }\n#io-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }\n#io-overlay svg { width: 100%; height: 100%; }\n#io-original img { max-width: 100%; display: block; }\n#io-header { font-size: 1.1em; font-weight: bold; margin-bottom: 0.5em; }\n#io-footer, #io-remarks, #io-sources, #io-extra-1, #io-extra-2 { margin-top: 0.5em; font-size: 0.9em; }\n.card { font-family: arial; font-size: 20px; text-align: center; color: black; background-color: white; }\n.io-mask-question { fill: var(--inactive-shape-color, #ffeba2); stroke: var(--inactive-shape-border-color, #212121); stroke-width: 1px; }\n.io-mask-answer { fill: var(--active-shape-color, #ff8e8e); stroke: var(--active-shape-border-color, #212121); stroke-width: 1px; }"
+}

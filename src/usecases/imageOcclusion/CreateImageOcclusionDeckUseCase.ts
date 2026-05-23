@@ -28,6 +28,7 @@ export interface ImageOcclusionImage {
 export interface CreateImageOcclusionDeckInput {
   deckName: string;
   mode: 'hide_all' | 'hide_one';
+  noteType: 'classic' | 'anking';
   images: ImageOcclusionImage[];
   imageFiles: { name: string; path: string }[];
   isPaying: boolean;
@@ -116,6 +117,7 @@ export class CreateImageOcclusionDeckUseCase {
       const deckInfo = {
         deckName: input.deckName,
         mode: input.mode,
+        noteType: input.noteType,
         images: input.images.map((img) => ({
           ...img,
           imageName: path.basename(img.imageName),

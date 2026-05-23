@@ -7,7 +7,7 @@ import { buildContentDisposition } from "../lib/buildContentDisposition";
 interface RawPoint { x: unknown; y: unknown; }
 interface RawRect { x: unknown; y: unknown; w: unknown; h: unknown; label?: unknown; shape?: unknown; points?: unknown; groupId?: unknown; }
 interface RawImageEntry { imageName?: unknown; header?: unknown; rects?: unknown; s3Key?: unknown; }
-interface RawData { deckName?: unknown; mode?: unknown; images?: unknown; }
+interface RawData { deckName?: unknown; mode?: unknown; noteType?: unknown; images?: unknown; }
 
 function parseRect(r: RawRect): OcclusionRect {
   const base: OcclusionRect = {
@@ -41,13 +41,14 @@ class ImageOcclusionController {
     catch { res.status(400).json({ message: "Invalid JSON in data field." }); return; }
     const deckName = typeof rawData.deckName === "string" && rawData.deckName.trim() ? rawData.deckName.trim() : "Image Occlusion";
     const mode = rawData.mode === "hide_one" ? "hide_one" : "hide_all";
+    const noteType: 'classic' | 'anking' = rawData.noteType === "classic" ? "classic" : "anking";
     const images: ImageOcclusionImage[] = Array.isArray(rawData.images) ? (rawData.images as RawImageEntry[]).map(parseImageEntry) : [];
     if (images.length === 0) { res.status(400).json({ message: "At least one image is required." }); return; }
     const uploadedFiles = (req.files as Express.Multer.File[] | undefined ?? []);
     const imageFiles = uploadedFiles.map((f) => ({ name: f.originalname, path: f.path }));
     const isPaying = res.locals["patreon"] === true || res.locals["subscriber"] === true;
     let apkgPath: string;
-    try { apkgPath = await this.useCase.execute({ deckName, mode, images, imageFiles, isPaying }); }
+    try { apkgPath = await this.useCase.execute({ deckName, mode, noteType, images, imageFiles, isPaying }); }
     catch (err) {
       const e = err as NodeJS.ErrnoException & { status?: number };
       if (e.status === 403) { res.status(403).json({ message: e.message }); return; }

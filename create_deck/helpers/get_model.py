@@ -22,6 +22,10 @@ MODEL_INFO = {
         "file_name": "n2a-io.json",
         "model_type": Model.CLOZE
     },
+    "io-anking": {
+        "file_name": "n2a-io-anking.json",
+        "model_type": Model.FRONT_BACK
+    },
     "mcq": {
         "file_name": "n2a-mcq.json",
         "model_type": Model.FRONT_BACK

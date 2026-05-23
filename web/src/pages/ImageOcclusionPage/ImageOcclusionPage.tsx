@@ -11,8 +11,9 @@ import styles from '../../styles/shared.module.css';
 import pageStyles from './ImageOcclusionPage.module.css';
 
 type Mode = 'hide_all' | 'hide_one';
+type NoteType = 'classic' | 'anking';
 
-async function buildDownloadFormData(deckName: string, mode: Mode, entries: ImageEntry[]): Promise<FormData> {
+async function buildDownloadFormData(deckName: string, mode: Mode, noteType: NoteType, entries: ImageEntry[]): Promise<FormData> {
   const form = new FormData();
 
   const images = entries.map((entry) => ({
@@ -26,7 +27,7 @@ async function buildDownloadFormData(deckName: string, mode: Mode, entries: Imag
     })),
   }));
 
-  form.append('data', JSON.stringify({ deckName, mode, images }));
+  form.append('data', JSON.stringify({ deckName, mode, noteType, images }));
 
   for (const entry of entries) {
     if (entry.file != null) {
@@ -104,6 +105,7 @@ export function ImageOcclusionPage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [deckName, setDeckName] = useState('My image deck');
   const [mode, setMode] = useState<Mode>('hide_all');
+  const [noteType, setNoteType] = useState<NoteType>('classic');
   const [draftId, setDraftId] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -331,7 +333,7 @@ export function ImageOcclusionPage() {
     setError(null);
     setIsDownloading(true);
     try {
-      const formData = await buildDownloadFormData(deckName, mode, entries);
+      const formData = await buildDownloadFormData(deckName, mode, noteType, entries);
       const response = await fetch('/api/image-occlusion', {
         method: 'POST',
         credentials: 'include',
@@ -406,6 +408,30 @@ export function ImageOcclusionPage() {
               className={pageStyles.deckNameInput}
               placeholder="My image deck"
             />
+            <label className={pageStyles.noteTypeLabel}>
+              Note type
+            </label>
+            <div className={pageStyles.noteTypeToggle}>
+              <button
+                type="button"
+                className={`${pageStyles.noteTypeBtn} ${noteType === 'classic' ? pageStyles.noteTypeBtnActive : ''}`}
+                onClick={() => setNoteType('classic')}
+              >
+                2anki classic
+              </button>
+              <button
+                type="button"
+                className={`${pageStyles.noteTypeBtn} ${noteType === 'anking' ? pageStyles.noteTypeBtnActive : ''}`}
+                onClick={() => setNoteType('anking')}
+              >
+                AnKing-compatible
+              </button>
+            </div>
+            <p className={pageStyles.noteTypeHelper}>
+              {noteType === 'anking'
+                ? 'AnKing-compatible matches the Image Occlusion Enhanced note type, so cards merge into AnKing decks.'
+                : 'Use 2anki classic if your existing 2anki cards already use it.'}
+            </p>
           </div>
           <ImageQueue
             entries={entries}

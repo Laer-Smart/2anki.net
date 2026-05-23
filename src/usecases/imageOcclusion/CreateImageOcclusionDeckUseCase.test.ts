@@ -13,6 +13,7 @@ function buildInput(overrides: Partial<CreateImageOcclusionDeckInput> = {}): Cre
   return {
     deckName: 'Test Deck',
     mode: 'hide_all',
+    noteType: 'classic',
     images: [
       {
         imageName: 'img1.jpg',
@@ -39,8 +40,73 @@ function buildFourImageInput(): CreateImageOcclusionDeckInput {
   return buildInput({ images, imageFiles, isPaying: false });
 }
 
+function setupMockFsAndSpawn() {
+  (mockFs.mkdirSync as jest.Mock).mockImplementation(() => undefined);
+  (mockFs.existsSync as jest.Mock).mockReturnValue(false);
+  (mockFs.copyFileSync as jest.Mock).mockImplementation(() => undefined);
+  (mockFs.writeFileSync as jest.Mock).mockImplementation(() => undefined);
+  (mockFs.rmSync as jest.Mock).mockImplementation(() => undefined);
+
+  const mockProcess = {
+    stdout: { on: jest.fn() },
+    stderr: { on: jest.fn() },
+    on: jest.fn(),
+  };
+  (mockChild.spawn as jest.Mock).mockReturnValue(mockProcess);
+  return mockProcess;
+}
+
+function resolveMockProcess(mockProcess: ReturnType<typeof setupMockFsAndSpawn>, apkgPath = '/tmp/deck.apkg') {
+  const closeHandler = mockProcess.on.mock.calls.find(([event]) => event === 'close')?.[1];
+  if (closeHandler) {
+    const stdoutHandler = mockProcess.stdout.on.mock.calls.find(([e]) => e === 'data')?.[1];
+    stdoutHandler?.(apkgPath);
+    closeHandler(0);
+  }
+}
+
 describe('CreateImageOcclusionDeckUseCase', () => {
+  describe('noteType forwarding', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('writes noteType classic into deck_info.json', async () => {
+      const mockProcess = setupMockFsAndSpawn();
+      const useCase = new CreateImageOcclusionDeckUseCase();
+      const promise = useCase.execute(buildInput({ noteType: 'classic' }));
+      resolveMockProcess(mockProcess);
+      await promise;
+
+      const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+        ([p]) => typeof p === 'string' && p.endsWith('deck_info.json')
+      );
+      expect(writeCall).toBeDefined();
+      const written = JSON.parse(writeCall[1] as string) as { noteType: string };
+      expect(written.noteType).toBe('classic');
+    });
+
+    it('writes noteType anking into deck_info.json', async () => {
+      const mockProcess = setupMockFsAndSpawn();
+      const useCase = new CreateImageOcclusionDeckUseCase();
+      const promise = useCase.execute(buildInput({ noteType: 'anking' }));
+      resolveMockProcess(mockProcess);
+      await promise;
+
+      const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+        ([p]) => typeof p === 'string' && p.endsWith('deck_info.json')
+      );
+      expect(writeCall).toBeDefined();
+      const written = JSON.parse(writeCall[1] as string) as { noteType: string };
+      expect(written.noteType).toBe('anking');
+    });
+  });
+
   describe('free tier limit enforcement', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('rejects when a free user submits more than 3 images', async () => {
       const useCase = new CreateImageOcclusionDeckUseCase();
       await expect(useCase.execute(buildFourImageInput())).rejects.toThrow(
@@ -65,36 +131,12 @@ describe('CreateImageOcclusionDeckUseCase', () => {
         path: `/tmp/img${i}.jpg`,
       }));
 
-      (mockFs.mkdirSync as jest.Mock).mockImplementation(() => undefined);
-      (mockFs.existsSync as jest.Mock).mockReturnValue(false);
-      (mockFs.copyFileSync as jest.Mock).mockImplementation(() => undefined);
-      (mockFs.writeFileSync as jest.Mock).mockImplementation(() => undefined);
-      (mockFs.rmSync as jest.Mock).mockImplementation(() => undefined);
-
-      const mockProcess = {
-        stdout: { on: jest.fn() },
-        stderr: { on: jest.fn() },
-        on: jest.fn(),
-      };
-      (mockChild.spawn as jest.Mock).mockReturnValue(mockProcess);
-
+      const mockProcess = setupMockFsAndSpawn();
       const useCase = new CreateImageOcclusionDeckUseCase();
       const promise = useCase.execute(
         buildInput({ images: threeImages, imageFiles: threeFiles, isPaying: false })
       );
-
-      const closeHandler = mockProcess.on.mock.calls.find(
-        ([event]) => event === 'close'
-      )?.[1];
-
-      if (closeHandler) {
-        const stdoutHandler = mockProcess.stdout.on.mock.calls.find(
-          ([e]) => e === 'data'
-        )?.[1];
-        stdoutHandler?.('/tmp/deck.apkg');
-        closeHandler(0);
-      }
-
+      resolveMockProcess(mockProcess);
       await expect(promise).resolves.toBe('/tmp/deck.apkg');
     });
 
@@ -109,36 +151,12 @@ describe('CreateImageOcclusionDeckUseCase', () => {
         path: `/tmp/img${i}.jpg`,
       }));
 
-      (mockFs.mkdirSync as jest.Mock).mockImplementation(() => undefined);
-      (mockFs.existsSync as jest.Mock).mockReturnValue(false);
-      (mockFs.copyFileSync as jest.Mock).mockImplementation(() => undefined);
-      (mockFs.writeFileSync as jest.Mock).mockImplementation(() => undefined);
-      (mockFs.rmSync as jest.Mock).mockImplementation(() => undefined);
-
-      const mockProcess = {
-        stdout: { on: jest.fn() },
-        stderr: { on: jest.fn() },
-        on: jest.fn(),
-      };
-      (mockChild.spawn as jest.Mock).mockReturnValue(mockProcess);
-
+      const mockProcess = setupMockFsAndSpawn();
       const useCase = new CreateImageOcclusionDeckUseCase();
       const promise = useCase.execute(
         buildInput({ images: manyImages, imageFiles: manyFiles, isPaying: true })
       );
-
-      const closeHandler = mockProcess.on.mock.calls.find(
-        ([event]) => event === 'close'
-      )?.[1];
-
-      if (closeHandler) {
-        const stdoutHandler = mockProcess.stdout.on.mock.calls.find(
-          ([e]) => e === 'data'
-        )?.[1];
-        stdoutHandler?.('/tmp/deck.apkg');
-        closeHandler(0);
-      }
-
+      resolveMockProcess(mockProcess);
       await expect(promise).resolves.toBe('/tmp/deck.apkg');
     });
   });

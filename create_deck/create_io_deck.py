@@ -8,6 +8,7 @@ deck_info.json shape:
 {
   "deckName": "My Deck",
   "mode": "hide_all" | "hide_one",
+  "noteType": "classic" | "anking",
   "images": [
     {
       "imageName": "image_0.jpg",
@@ -20,6 +21,7 @@ deck_info.json shape:
 }
 """
 
+import hashlib
 import json
 import os
 import sys
@@ -31,12 +33,20 @@ from genanki.util import guid_for
 from helpers.get_model import get_model
 from helpers.get_model_id import get_model_id
 from helpers.io_shapes import shapes_to_occlusion_field
+from helpers.io_shapes_to_svg import (
+    shapes_to_answer_mask_svg,
+    shapes_to_original_mask_svg,
+    shapes_to_question_mask_svg,
+)
 from helpers.write_apkg import _write_new_apkg
 from backend.utils.email_error_alert import send_error_email
 
 
 IO_MODEL_NAME = "Image Occlusion"
 IO_MODEL_ID = get_model_id(IO_MODEL_NAME)
+
+IO_ANKING_MODEL_NAME = "Image Occlusion Enhanced"
+IO_ANKING_MODEL_ID = get_model_id(IO_ANKING_MODEL_NAME)
 
 
 def build_io_notes(image_entry, occlude_inactive, media_files):
@@ -62,6 +72,51 @@ def build_io_notes(image_entry, occlude_inactive, media_files):
     return [note]
 
 
+def build_io_anking_notes(image_entry, media_files):
+    image_path = image_entry["imageName"]
+    image_basename = os.path.basename(image_path)
+    header = image_entry.get("header", "")
+    rects = image_entry.get("rects", [])
+
+    if not rects:
+        return []
+
+    image_html = f'<img src="{image_basename}">'
+    model = get_model(("io-anking", IO_ANKING_MODEL_ID, IO_ANKING_MODEL_NAME, None, None, None))
+    original_mask = shapes_to_original_mask_svg(rects)
+
+    notes = []
+    for i, rect in enumerate(rects):
+        question_mask = shapes_to_question_mask_svg(rects, i)
+        answer_mask = shapes_to_answer_mask_svg(rects, i)
+        note_id = _stable_note_id(image_basename, header, i)
+        fields = [
+            note_id,
+            header,
+            image_html,
+            "",
+            "",
+            "",
+            "",
+            "",
+            question_mask,
+            answer_mask,
+            original_mask,
+        ]
+        note_guid = guid_for(image_basename, header, str(i))
+        note = Note(model, fields=fields, guid=note_guid)
+        notes.append(note)
+
+    media_files.append(image_path)
+    return notes
+
+
+def _stable_note_id(image_basename: str, header: str, index: int) -> str:
+    raw = f"{image_basename}:{header}:{index}"
+    digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:12]
+    return f"io-{digest}"
+
+
 if __name__ == "__main__":
     workspace_dir = None
     try:
@@ -76,10 +131,10 @@ if __name__ == "__main__":
 
         deck_name = info.get("deckName", "Image Occlusion")
         mode = info.get("mode", "hide_all")
+        note_type = info.get("noteType", "classic")
         images = info.get("images", [])
         occlude_inactive = mode == "hide_all"
 
-        import hashlib
         deck_id = abs(int(hashlib.sha1(deck_name.encode("utf-8")).hexdigest(), 16) % (10 ** 10))
 
         media_files = []
@@ -92,7 +147,10 @@ if __name__ == "__main__":
             if not resolved.startswith(workspace_real + os.sep):
                 raise ValueError(f"imageName escapes workspace: {image_entry['imageName']}")
             full_entry = dict(image_entry, imageName=image_path)
-            image_notes = build_io_notes(full_entry, occlude_inactive, media_files)
+            if note_type == "anking":
+                image_notes = build_io_anking_notes(full_entry, media_files)
+            else:
+                image_notes = build_io_notes(full_entry, occlude_inactive, media_files)
             notes.extend(image_notes)
 
         if not notes:
