@@ -345,9 +345,11 @@ class BlockHandler {
     const { parentType, topLevelId, rules, decks } = locator;
     if (parentType === 'page') {
       return this.findFlashcardsFromPage(locator);
-    } else if (parentType === 'notion-database') {
+    }
+    if (parentType === 'notion-database') {
       return this.findFlashcardsFromDatabaseRows(locator);
-    } else if (parentType === 'database') {
+    }
+    if (parentType === 'database' || parentType === 'data_source') {
       const dbResult = await this.api.queryDatabase(topLevelId);
       const database = await this.api.getDatabase(topLevelId);
       const dbName = await this.api.getDatabaseTitle(database, this.settings);
@@ -362,15 +364,10 @@ class BlockHandler {
         });
         return dbDecks;
       }
-    } else {
-      throw new Error(
-        `
-        Unsupported '${parentType}'!
-        Please report a bug.
-        `
-      );
+      return decks;
     }
-    return decks;
+    console.error(`[notion] unsupported parentType: ${parentType}`);
+    return [];
   }
 
   async findFlashcardsFromDatabaseRows(locator: Finder): Promise<Deck[]> {
