@@ -1,4 +1,5 @@
 import { getAnthropicClient } from '../../lib/claude/ClaudeService';
+import { logClaudeUsage } from '../../lib/claude/logClaudeUsage';
 
 const MODEL = 'claude-sonnet-4-5';
 const MAX_TOKENS = 4096;
@@ -252,9 +253,12 @@ async function askClaude(messages: ClaudeMessage[]): Promise<string> {
   const response = await client.messages.create({
     model: MODEL,
     max_tokens: MAX_TOKENS,
-    system: SYSTEM_PROMPT,
+    system: [
+      { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+    ],
     messages: messages.map((m) => ({ role: m.role, content: m.content })),
   });
+  logClaudeUsage('AINoteTypeUseCase', response.usage);
   return response.content
     .filter((b) => b.type === 'text')
     .map((b) => ('text' in b ? b.text : ''))

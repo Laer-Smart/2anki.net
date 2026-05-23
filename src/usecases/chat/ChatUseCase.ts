@@ -1,6 +1,7 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { IChatMessagesRepository } from '../../data_layer/ChatMessagesRepository';
 import type { IConversationsRepository } from '../../data_layer/ConversationsRepository';
+import { logClaudeUsage } from '../../lib/claude/logClaudeUsage';
 import { buildAttachmentBlocks, type ChatAttachment } from './buildAttachmentBlocks';
 
 const REQUIRED_MCQ_OPTION_COUNT = 4;
@@ -271,6 +272,7 @@ export class ChatUseCase {
     }
 
     const finalMessage = await stream.finalMessage();
+    logClaudeUsage('ChatUseCase', finalMessage.usage);
 
     const assistantContent = finalMessage.content
       .filter((block): block is Anthropic.TextBlock => block.type === 'text')

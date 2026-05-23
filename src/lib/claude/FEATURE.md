@@ -19,6 +19,8 @@ The claude lib converts HTML content into Anki flashcards using the Anthropic AP
 
 **Math delimiter contract:** `ANKI_MATH_FRAGMENT` (exported from `ankiMathFragment.ts`) is a short instruction block injected into every Claude prompt that may produce math content. It instructs Claude to use `\(...\)` for inline math and `\[...\]` for display math, never `$...$` or `$$...$$`. Chemistry uses `\(\ce{...}\)` via mhchem. The fragment is shared across `SYSTEM_PROMPT` (exported from `ClaudeService.ts`), `buildVisionPrompt`, and `buildVerbatimPrompt` in `PhotoToFlashcardsUseCase.ts` to prevent the three copies from drifting.
 
+**Usage logging:** `logClaudeUsage(label, usage)` from `logClaudeUsage.ts` writes one `[claude-usage] label=… input=… output=… cache_create=… cache_read=…` line per Claude response to `console.info`. Every server-side Claude call site is responsible for calling it after the response (or `finalMessage` for streams) — labels: `ClaudeService`, `ChatUseCase`, `claudeFileConversion`, `AINoteTypeUseCase`, `OstController`. The helper is the single grep target for proving cache hit rate in prod. Missing or null cache fields render as `0`. Per `.claude/rules/security.md`, the log line carries no PII, secrets, or user content — just token counts.
+
 ---
 
 ## Heading-driven contract (`cardStyle: 'heading-driven'`)
