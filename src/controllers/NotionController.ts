@@ -31,6 +31,7 @@ import { getNotionId } from '../services/NotionService/getNotionId';
 import { getOwner } from '../lib/User/getOwner';
 import sendErrorResponse from '../lib/sendErrorResponse';
 import { isPaying } from '../lib/isPaying';
+import ParserRules from '../lib/parser/ParserRules';
 
 const DEFAULT_PREVIEW_PAGE_SIZE = 15;
 const MAX_PREVIEW_PAGE_SIZE = 50;
@@ -382,14 +383,15 @@ class NotionController {
 
     try {
       const api = await this.service.getNotionAPI(res.locals.owner);
-      const response = await api.listBlocksPage(id, {
-        pageSize,
-        startCursor,
-      });
+      const [response, rules] = await Promise.all([
+        api.listBlocksPage(id, { pageSize, startCursor }),
+        ParserRules.Load(res.locals.owner, id),
+      ]);
+      const classifyRules = { flashcardTypes: rules.flaschardTypeNames() };
 
       const blocks = response.results
         .filter((block): block is BlockObjectResponse => isFullBlock(block))
-        .map(toPreviewBlock);
+        .map((block) => toPreviewBlock(block, classifyRules));
 
       const payload: Record<string, unknown> = {
         blocks,
