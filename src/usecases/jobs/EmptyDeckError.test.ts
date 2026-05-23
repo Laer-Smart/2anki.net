@@ -9,6 +9,14 @@ describe('EmptyDeckError', () => {
     expect(error.name).toBe('EmptyDeckError');
   });
 
+  it('carries a non-empty message describing what went wrong and what to do', () => {
+    const error = new EmptyDeckError();
+
+    expect(error.message).toBe(
+      'No cards found in your upload. Use .zip, .html, .md, .csv, or .apkg.'
+    );
+  });
+
   it('survives an instanceof check after being thrown and caught', () => {
     let caught: unknown;
     try {

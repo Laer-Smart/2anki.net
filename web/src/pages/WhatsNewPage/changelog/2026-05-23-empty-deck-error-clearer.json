@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-23-empty-deck-error-clearer",
+  "date": "2026-05-23",
+  "type": "fix",
+  "title": "Upload errors tell you what file types are supported when no cards are found"
+}
