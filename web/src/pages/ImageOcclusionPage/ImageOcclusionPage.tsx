@@ -275,18 +275,27 @@ export function ImageOcclusionPage() {
   const isDetecting =
     detectingFor != null && entries[activeIndex]?.id === detectingFor;
 
-  const detectionStatus = (() => {
-    if (isDetecting) return 'Looking for highlights';
-    if (activeSuggestionCount > 0)
-      return `${activeSuggestionCount} ${activeSuggestionCount === 1 ? 'suggestion' : 'suggestions'} — tap to keep`;
-    return null;
-  })();
+  const detectionStatus =
+    activeSuggestionCount > 0
+      ? `${activeSuggestionCount} ${activeSuggestionCount === 1 ? 'suggestion' : 'suggestions'} — tap to keep`
+      : null;
 
   const runAutoSuggest = useCallback(
-    async (entry: ImageEntry, file: File) => {
+    async (entry: ImageEntry) => {
       if (!isLoggedIn) return;
       setDetectingFor(entry.id);
       try {
+        let blob: Blob;
+        if (entry.file != null) {
+          blob = entry.file;
+        } else if (entry.previewUrl != null && entry.previewUrl !== '') {
+          const r = await fetch(entry.previewUrl);
+          if (!r.ok) throw new Error('preview fetch failed');
+          blob = await r.blob();
+        } else {
+          return;
+        }
+
         const reader = new FileReader();
         const base64 = await new Promise<string>((resolve, reject) => {
           reader.onload = () => {
@@ -294,9 +303,10 @@ export function ImageOcclusionPage() {
             resolve(result.split(',')[1] ?? '');
           };
           reader.onerror = reject;
-          reader.readAsDataURL(file);
+          reader.readAsDataURL(blob);
         });
 
+        const objectUrl = URL.createObjectURL(blob);
         const img = new Image();
         const { width, height } = await new Promise<{
           width: number;
@@ -305,12 +315,14 @@ export function ImageOcclusionPage() {
           img.onload = () =>
             resolve({ width: img.naturalWidth, height: img.naturalHeight });
           img.onerror = () => resolve({ width: 512, height: 512 });
-          img.src = URL.createObjectURL(file);
+          img.src = objectUrl;
         });
+        URL.revokeObjectURL(objectUrl);
 
+        const mediaType = blob.type || 'image/png';
         const rects = await fetchAutoSuggestions(
           base64,
-          file.type,
+          mediaType,
           width,
           height
         );
@@ -324,7 +336,7 @@ export function ImageOcclusionPage() {
               y: r.y,
               w: r.w,
               h: r.h,
-              label: r.label,
+              label: '',
               shape: r.shape,
               source: 'auto' as const,
               confidence: r.confidence,
@@ -596,6 +608,11 @@ export function ImageOcclusionPage() {
           </button>
         </div>
       )}
+      {activeEntry != null && detectionStatus != null && (
+        <div className={pageStyles.detectionStatusBanner}>
+          {detectionStatus}
+        </div>
+      )}
       <div
         className={`${pageStyles.pageLayout} ${drawerOpen ? pageStyles.pageLayoutDrawerOpen : ''}`}
       >
@@ -671,19 +688,6 @@ export function ImageOcclusionPage() {
             </div>
           ) : (
             <>
-              {isLoggedIn && !isPaying && (
-                <div className={pageStyles.detectionStatus}>
-                  Auto-detect highlights — Auto Sync only.{' '}
-                  <a href="/pricing" className={pageStyles.autoUpgradeLink}>
-                    Upgrade
-                  </a>
-                </div>
-              )}
-              {isPaying && detectionStatus != null && (
-                <div className={pageStyles.detectionStatus}>
-                  {detectionStatus}
-                </div>
-              )}
               {isPaying && activeSuggestionCount > 0 && !tooltipDismissed && (
                 <div className={pageStyles.autoTooltip}>
                   Tap a dashed box to keep it. Drag to resize. Press delete to
@@ -705,12 +709,17 @@ export function ImageOcclusionPage() {
                 onRectsChange={handleRectsChange}
                 suggestionCount={activeSuggestionCount}
                 onAutoSuggest={
-                  isPaying && activeEntry.file != null
-                    ? () =>
-                        runAutoSuggest(activeEntry, activeEntry.file as File)
+                  isLoggedIn &&
+                  (activeEntry.file != null ||
+                    (activeEntry.previewUrl ?? '') !== '')
+                    ? () => runAutoSuggest(activeEntry)
                     : undefined
                 }
-                canAutoSuggest={isPaying && activeEntry.file != null}
+                canAutoSuggest={
+                  isLoggedIn &&
+                  (activeEntry.file != null ||
+                    (activeEntry.previewUrl ?? '') !== '')
+                }
                 isAutoSuggesting={isDetecting}
               />
             </>
