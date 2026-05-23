@@ -99,15 +99,15 @@ class TestApplyMcqSettings:
 
     def test_back_contains_correct_row_background_color(self):
         template = get_template("n2a-mcq.json")
-        assert "#A7F3D0" in template["styling"]
+        assert "#c7f1dc" in template["styling"]
 
-    def test_back_contains_incorrect_row_background_color(self):
+    def test_back_contains_incorrect_row_indicator_in_back(self):
         template = get_template("n2a-mcq.json")
-        assert "#FEF2F2" in template["styling"]
+        assert "FalseSVG" in template["back"]
 
-    def test_back_contains_missed_row_background_color(self):
+    def test_back_contains_correct_row_indicator_in_back(self):
         template = get_template("n2a-mcq.json")
-        assert "#FFFBEB" in template["styling"]
+        assert "TrueSVG" in template["back"]
 
 
 class TestGetModelMcqIntegration:
