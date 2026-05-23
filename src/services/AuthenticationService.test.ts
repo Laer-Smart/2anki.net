@@ -264,11 +264,13 @@ describe('loginWithMicrosoft', () => {
     });
   });
 
-  it('returns email and name when the ID token is valid', async () => {
+  it('returns subject, email, name, and emailVerified=true when xms_edov is true', async () => {
     const idToken = signIdToken({
       iss: 'https://login.microsoftonline.com/common/v2.0',
       aud: CLIENT_ID,
+      sub: 'ms-subject-001',
       email: 'user@outlook.com',
+      xms_edov: true,
       name: 'Microsoft User',
     });
     mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
@@ -277,16 +279,20 @@ describe('loginWithMicrosoft', () => {
     const result = await service.loginWithMicrosoft('auth-code');
 
     expect(result).toEqual({
+      subject: 'ms-subject-001',
       email: 'user@outlook.com',
       name: 'Microsoft User',
+      emailVerified: true,
     });
   });
 
-  it('falls back to preferred_username when email claim is absent and it looks like an email', async () => {
+  it('treats email_verified=true the same as xms_edov=true', async () => {
     const idToken = signIdToken({
       iss: 'https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0',
       aud: CLIENT_ID,
-      preferred_username: 'alice@contoso.com',
+      sub: 'ms-subject-002',
+      email: 'alice@contoso.com',
+      email_verified: true,
       name: 'Alice',
     });
     mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
@@ -294,22 +300,69 @@ describe('loginWithMicrosoft', () => {
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
 
-    expect(result).toEqual({ email: 'alice@contoso.com', name: 'Alice' });
+    expect(result).toEqual({
+      subject: 'ms-subject-002',
+      email: 'alice@contoso.com',
+      name: 'Alice',
+      emailVerified: true,
+    });
   });
 
-  it('returns email as undefined when neither email nor an email-shaped preferred_username is present', async () => {
+  it('returns emailVerified=false when neither xms_edov nor email_verified is true', async () => {
     const idToken = signIdToken({
       iss: 'https://login.microsoftonline.com/common/v2.0',
       aud: CLIENT_ID,
-      preferred_username: 'alice',
-      name: 'Alice',
+      sub: 'ms-subject-003',
+      email: 'maybe@example.com',
+      name: 'Bob',
     });
     mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
 
-    expect(result).toEqual({ email: undefined, name: 'Alice' });
+    expect(result).toEqual({
+      subject: 'ms-subject-003',
+      email: 'maybe@example.com',
+      name: 'Bob',
+      emailVerified: false,
+    });
+  });
+
+  it('returns email as undefined when the email claim is missing', async () => {
+    const idToken = signIdToken({
+      iss: 'https://login.microsoftonline.com/common/v2.0',
+      aud: CLIENT_ID,
+      sub: 'ms-subject-004',
+      xms_edov: true,
+      name: 'No Email User',
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithMicrosoft('auth-code');
+
+    expect(result).toEqual({
+      subject: 'ms-subject-004',
+      email: undefined,
+      name: 'No Email User',
+      emailVerified: true,
+    });
+  });
+
+  it('returns undefined when the sub claim is missing', async () => {
+    const idToken = signIdToken({
+      iss: 'https://login.microsoftonline.com/common/v2.0',
+      aud: CLIENT_ID,
+      email: 'user@outlook.com',
+      xms_edov: true,
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithMicrosoft('auth-code');
+
+    expect(result).toBeUndefined();
   });
 
   it('returns undefined when the iss claim is not a Microsoft issuer', async () => {

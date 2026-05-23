@@ -16,6 +16,7 @@ import { MagicLinkRateLimitError } from '../services/UsersService';
 import StartTrialUseCase from '../usecases/users/StartTrialUseCase';
 import { MONTHLY_CARD_LIMIT } from '../usecases/users/CheckMonthlyCardLimitUseCase';
 import UsersRepository from '../data_layer/UsersRepository';
+import OauthIdentitiesRepository from '../data_layer/OauthIdentitiesRepository';
 import { isPaying } from '../lib/isPaying';
 import type { UsersId } from '../data_layer/public/Users';
 import NotionRepository from '../data_layer/NotionRespository';
@@ -641,59 +642,82 @@ class UsersController {
     }
 
     const loginRequest = await this.authService.loginWithMicrosoft(code as string);
+    if (!loginRequest) {
+      await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_token_exchange_failed' });
+      return res.redirect('/login');
+    }
 
-    if (loginRequest) {
-      const { email, name } = loginRequest;
-      if (email == null) {
-        await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_token_exchange_failed' });
+    const { subject, email, name, emailVerified } = loginRequest;
+    const oauthIdentitiesRepo = new OauthIdentitiesRepository(this.db);
+    const existingIdentity = await oauthIdentitiesRepo.findByProviderAndSubject(
+      'microsoft',
+      subject
+    );
+
+    let user = existingIdentity
+      ? await this.userService.getUserById(existingIdentity.user_id.toString())
+      : null;
+    let isNewUser = false;
+
+    if (!user) {
+      if (!email) {
+        await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_email_missing' });
         return res.redirect('/login');
       }
-      let user = await this.userService.getUserFrom(email);
-      const isNewUser = !user;
-      if (!user) {
+      if (!emailVerified) {
+        await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_email_not_verified' });
+        return res.redirect('/login');
+      }
+      const existingByEmail = await this.userService.getUserFrom(email);
+      if (existingByEmail) {
+        await oauthIdentitiesRepo.link('microsoft', subject, existingByEmail.id);
+        user = existingByEmail;
+      } else {
         const hashedPassword = this.authService.getHashPassword(getRandomUUID());
         await this.userService.register(name ?? email, hashedPassword, email, 'microsoft');
         user = await this.userService.getUserFrom(email);
-      }
-      if (isNewUser && user) {
-        try {
-          const country = extractCountryFromRequest(req);
-          if (country != null) {
-            await new UsersRepository(this.db).setSignupCountryIfMissing(
-              user.id,
-              country
-            );
-          }
-        } catch {
-          // country capture is best-effort
+        isNewUser = true;
+        if (user) {
+          await oauthIdentitiesRepo.link('microsoft', subject, user.id);
         }
       }
-
-      if (!user) {
-        console.info('Failed to create user');
-        await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_user_creation_failed' });
-        return res
-          .status(400)
-          .send('Unknown error. Please try again or register a new account.');
-      }
-
-      await this.userService.markEmailVerified(user.id.toString());
-
-      const token = await this.authService.newJWTToken(user);
-      if (!token) {
-        console.info('Failed to create token');
-        return res
-          .status(400)
-          .send('Unknown error. Please try again or register a new account.');
-      }
-      await this.authService.persistToken(token, user.id.toString());
-      await this.userService.updateLastLoginAt(user.id.toString());
-      res.cookie('token', token);
-      res.status(200).redirect(getRedirect(req));
-    } else {
-      await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_token_exchange_failed' });
-      res.redirect('/login');
     }
+
+    if (!user) {
+      console.info('Failed to create user');
+      await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_user_creation_failed' });
+      return res
+        .status(400)
+        .send('Unknown error. Please try again or register a new account.');
+    }
+
+    if (isNewUser) {
+      try {
+        const country = extractCountryFromRequest(req);
+        if (country != null) {
+          await new UsersRepository(this.db).setSignupCountryIfMissing(
+            user.id,
+            country
+          );
+        }
+      } catch {
+        // country capture is best-effort
+      }
+    }
+
+    await this.userService.markEmailVerified(user.id.toString());
+
+    const token = await this.authService.newJWTToken(user.id);
+    if (!token) {
+      console.info('Failed to create token');
+      return res
+        .status(400)
+        .send('Unknown error. Please try again or register a new account.');
+    }
+    await this.authService.persistToken(token, user.id.toString());
+    await this.userService.updateLastLoginAt(user.id.toString());
+    res.cookie('token', token);
+    res.status(200).redirect(getRedirect(req));
   }
 
   async loginWithNotion(req: express.Request, res: express.Response) {

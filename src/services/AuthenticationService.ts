@@ -327,14 +327,20 @@ class AuthenticationService {
         console.info("Couldn't login with Microsoft: unexpected issuer");
         return;
       }
+      const subject = typeof payload.sub === 'string' ? payload.sub : undefined;
+      if (!subject) {
+        console.info("Couldn't login with Microsoft: missing sub claim");
+        return;
+      }
       const email =
-        (payload.email as string | undefined) ??
-        (typeof payload.preferred_username === 'string' &&
-        payload.preferred_username.includes('@')
-          ? payload.preferred_username
-          : undefined);
-      const name = payload.name as string | undefined;
-      return { email, name };
+        typeof payload.email === 'string' && payload.email.length > 0
+          ? payload.email
+          : undefined;
+      const emailVerified =
+        payload.email_verified === true ||
+        (payload as { xms_edov?: unknown }).xms_edov === true;
+      const name = typeof payload.name === 'string' ? payload.name : undefined;
+      return { subject, email, name, emailVerified };
     } catch (error) {
       console.info("Couldn't login with Microsoft");
       console.error(error);
