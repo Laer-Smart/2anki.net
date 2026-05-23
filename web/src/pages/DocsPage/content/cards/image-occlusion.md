@@ -3,6 +3,17 @@ title: Image occlusion
 description: Cover parts of an image and recall them — anatomy, diagrams, maps, screenshots.
 ---
 
+<figure>
+  <iframe
+    src="https://www.youtube.com/embed/roQ3awaVa2E"
+    title="2anki — build an image occlusion deck on the web canvas"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen
+    width="100%"
+    style="aspect-ratio: 16 / 9; border: 0; border-radius: var(--radius-md);"
+  ></iframe>
+</figure>
+
 Image occlusion cards show you a picture with bits hidden. You try to recall what's behind the cover, then flip the card to see if you got it right. The canvas tool at [2anki.net/image-occlusion](https://2anki.net/image-occlusion) lets you draw the covers yourself — no Anki add-on, no plugin install.
 
 **Plan:** Free for image upload. Importing images from Notion needs Subscription or Lifetime.
