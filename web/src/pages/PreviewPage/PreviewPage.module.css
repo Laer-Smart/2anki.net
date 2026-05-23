@@ -204,6 +204,66 @@
   margin-top: 0.25rem;
 }
 
+.tally {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tallyItem {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.tallySwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.tallySwatchCard {
+  background: var(--color-primary);
+}
+
+.tallySwatchSkip {
+  background: var(--color-border);
+}
+
+.tallySwatchRecurse {
+  background: transparent;
+  border: 2px dashed var(--color-text-secondary);
+}
+
+.tallyLoading {
+  font-style: italic;
+}
+
+.convertRow {
+  margin-bottom: 1rem;
+}
+
+.containerBlock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.containerLabel {
+  width: 100%;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: 0.25rem;
+}
+
 .sentinel {
   height: 1px;
 }

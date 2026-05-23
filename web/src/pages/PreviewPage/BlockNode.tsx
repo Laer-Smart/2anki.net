@@ -22,12 +22,18 @@ function decisionClass(decision: BlockDecision | undefined): string {
   return styles.blockRow;
 }
 
+function isAutoContainer(type: string): boolean {
+  return type === 'column_list' || type === 'column' || type === 'table';
+}
+
 export function BlockNode({ block, parentTitle }: Readonly<BlockNodeProps>) {
   const [open, setOpen] = useState(false);
 
+  const autoExpand = block.canExpand && isAutoContainer(block.type);
+
   const { data, isLoading, error, refetch } = useBlockChildren(
     block.id,
-    open && block.hasChildren
+    autoExpand || (open && block.hasChildren)
   );
 
   const rowClass = decisionClass(block.decision);
@@ -62,6 +68,36 @@ export function BlockNode({ block, parentTitle }: Readonly<BlockNodeProps>) {
   }
 
   const children = data?.pages.flatMap((page) => page.blocks) ?? [];
+
+  if (autoExpand) {
+    return (
+      <div className={styles.containerBlock}>
+        {block.summaryHtml && (
+          <span
+            className={styles.containerLabel}
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: block.summaryHtml }}
+          />
+        )}
+        {isLoading && <p className={styles.muted}>Loading…</p>}
+        {error && (
+          <p className={styles.muted}>
+            Couldn&apos;t load children.{' '}
+            <button
+              type="button"
+              className={styles.retryButton}
+              onClick={() => refetch()}
+            >
+              Try again
+            </button>
+          </p>
+        )}
+        {children.map((child) => (
+          <BlockNode key={child.id} block={child} parentTitle={parentTitle} />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <details

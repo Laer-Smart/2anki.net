@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
 import { SkeletonList } from '../../components/Skeleton/Skeleton';
 import { ErrorPresenter } from '../../components/errors/ErrorPresenter';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
+import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './PreviewPage.module.css';
 import { usePreviewStream } from './usePreviewStream';
@@ -25,6 +26,7 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
   const location = useLocation();
   const navigate = useNavigate();
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const [converting, setConverting] = useState(false);
 
   const locationState = location.state as LocationState | null;
   const parentTitle = locationState?.parentTitle;
@@ -72,6 +74,36 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
     () => data?.pages.flatMap((page) => page.blocks) ?? [],
     [data]
   );
+
+  const tally = useMemo(() => {
+    const hasDecisions = blocks.some((b) => b.decision != null);
+    if (!hasDecisions) return null;
+    return {
+      cards: blocks.filter((b) => b.decision === 'card').length,
+      skipped: blocks.filter((b) => b.decision === 'skip').length,
+      recurse: blocks.filter((b) => b.decision === 'recurse').length,
+    };
+  }, [blocks]);
+
+  const handleConvert = () => {
+    if (converting || id == null) return;
+    setConverting(true);
+    get2ankiApi()
+      .convert(id, 'page', pageTitle)
+      .then(async (response) => {
+        if (response.status === 202) {
+          navigate('/downloads');
+        } else {
+          const text = await response.text().catch(() => '');
+          if (text) setError(new Error(text));
+          setConverting(false);
+        }
+      })
+      .catch((err: unknown) => {
+        setError(err as Error);
+        setConverting(false);
+      });
+  };
 
   if (!id) {
     return (
@@ -123,9 +155,9 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
           <InfoIcon width={18} height={18} />
         </span>
         <span>
-          This is the page as the converter reads it during conversion.{' '}
-          <Link to={rulesHref}>Edit conversion rules</Link> to change which
-          blocks become cards.
+          Showing how your page will be split into cards. Blocks marked in blue
+          become cards — adjust them with{' '}
+          <Link to={rulesHref}>Edit conversion rules</Link>.
         </span>
       </p>
 
@@ -154,6 +186,14 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
               {pageTitle}
             </h1>
             <span className={styles.headerLinks}>
+              <button
+                type="button"
+                className={sharedStyles.btnPrimary}
+                onClick={handleConvert}
+                disabled={converting}
+              >
+                {converting ? 'Converting…' : 'Convert to Anki'}
+              </button>
               {pageUrl && (
                 <a
                   className={styles.pageLink}
@@ -173,6 +213,34 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
           </div>
 
           <div className={styles.previewBody}>
+            {tally && (
+              <div className={styles.tally}>
+                <span className={styles.tallyItem}>
+                  <span
+                    className={`${styles.tallySwatch} ${styles.tallySwatchCard}`}
+                    aria-hidden="true"
+                  />
+                  {tally.cards} cards
+                </span>
+                <span className={styles.tallyItem}>
+                  <span
+                    className={`${styles.tallySwatch} ${styles.tallySwatchSkip}`}
+                    aria-hidden="true"
+                  />
+                  {tally.skipped} skipped
+                </span>
+                <span className={styles.tallyItem}>
+                  <span
+                    className={`${styles.tallySwatch} ${styles.tallySwatchRecurse}`}
+                    aria-hidden="true"
+                  />
+                  {tally.recurse} {tally.recurse === 1 ? 'sub-page' : 'sub-pages'}
+                </span>
+                {hasNextPage && (
+                  <span className={styles.tallyLoading}>+ loading more…</span>
+                )}
+              </div>
+            )}
             {blocks.length === 0 && (
               <EmptyState
                 icon="📄"
