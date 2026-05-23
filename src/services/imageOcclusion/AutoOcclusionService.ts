@@ -29,7 +29,9 @@ export interface AutoOcclusionSuggestResult {
 
 const CONFIDENCE_THRESHOLD = 0.5;
 
-const AUTO_OCCLUSION_PROMPT = `Find text labels in this image that should become Anki flashcard occlusions. The reader will study by trying to recall each label after it is hidden.
+const AUTO_OCCLUSION_PROMPT = `Find EVERY text label in this image that should become an Anki flashcard occlusion. Be exhaustive — missing a label is worse than including a borderline one. The reader will study by trying to recall each label after it is hidden.
+
+Precision matters: each bounding box must hug the label text tightly. Do not pad with whitespace, do not extend over the leader line, do not include the feature the label points to. If a label spans two lines (e.g. "Right coronary\\nartery"), the box should cover both lines.
 
 Detect ALL of these label types:
 
@@ -55,11 +57,12 @@ Output ONLY a compact JSON object. Format (nothing else):
 {"rects":[{"x":0.1,"y":0.05,"w":0.3,"h":0.08,"label":"Aorta","confidence":0.95}]}
 
 Rules:
-- x, y are the top-left corner (normalized 0–1)
-- w, h are width and height (normalized 0–1) — keep the box tight around the label text
+- x, y are the top-left corner (normalized 0–1, i.e. fraction of total image dimensions)
+- w, h are width and height (normalized 0–1) — keep the box tight around the label text; err small rather than large
 - label is the exact text the user would need to recall (one term per rect)
 - confidence is 0.0–1.0
 - Only include rects with confidence >= 0.5
+- Scan the entire image: top, bottom, left, right, and any internal callouts. Do another pass before responding to confirm you haven't missed any visible label.
 - If no labels are found, return: {"rects":[]}`;
 
 interface RawRect {
@@ -109,7 +112,7 @@ export class AutoOcclusionService {
     const client = getAnthropicClient();
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-opus-4-7',
       max_tokens: 4096,
       messages: [
         {
