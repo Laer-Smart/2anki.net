@@ -4,6 +4,12 @@
   min-height: 100vh;
 }
 
+@media (min-width: 1024px) {
+  .shell:has(.sidebarCollapsed) {
+    grid-template-columns: 64px 1fr;
+  }
+}
+
 @media (max-width: 1023px) {
   .shell {
     grid-template-columns: 1fr;
