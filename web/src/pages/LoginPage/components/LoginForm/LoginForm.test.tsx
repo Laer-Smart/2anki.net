@@ -30,13 +30,30 @@ describe('LoginForm', () => {
     localStorage.clear();
   });
 
-  it('renders email step with email input and continue button', () => {
+  it('renders email step with email input and primary CTA', () => {
     renderLoginForm();
     expect(screen.getByText('Log in')).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Email' })).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Continue with email' })
+      screen.getByRole('button', { name: 'Email me a sign-in link' })
     ).toBeInTheDocument();
+  });
+
+  it('primary CTA is disabled when email is empty', () => {
+    renderLoginForm();
+    expect(
+      screen.getByRole('button', { name: 'Email me a sign-in link' })
+    ).toBeDisabled();
+  });
+
+  it('primary CTA is enabled when email is filled in', () => {
+    renderLoginForm();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
+      target: { value: 'test@example.com' },
+    });
+    expect(
+      screen.getByRole('button', { name: 'Email me a sign-in link' })
+    ).not.toBeDisabled();
   });
 
   it('does not show password field on email step', () => {
@@ -49,13 +66,14 @@ describe('LoginForm', () => {
     expect(screen.getByText('Sign in with Google')).toBeInTheDocument();
   });
 
-  it('transitions to password step after clicking continue', () => {
+  it('shows Use password instead link on email step', () => {
     renderLoginForm();
-    const emailInput = screen.getByRole('textbox', { name: 'Email' });
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Continue with email' })
-    );
+    expect(screen.getByText('Use password instead')).toBeInTheDocument();
+  });
+
+  it('transitions to password step after clicking Use password instead', () => {
+    renderLoginForm();
+    fireEvent.click(screen.getByText('Use password instead'));
 
     expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Log in' })).toBeInTheDocument();
@@ -63,12 +81,7 @@ describe('LoginForm', () => {
 
   it('shows change link and forgot password on password step', () => {
     renderLoginForm();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Continue with email' })
-    );
+    fireEvent.click(screen.getByText('Use password instead'));
 
     expect(screen.getByText('Change')).toBeInTheDocument();
     expect(screen.getByText('Forgot your password?')).toBeInTheDocument();
@@ -76,42 +89,43 @@ describe('LoginForm', () => {
 
   it('returns to email step when change is clicked', () => {
     renderLoginForm();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Continue with email' })
-    );
+    fireEvent.click(screen.getByText('Use password instead'));
 
     fireEvent.click(screen.getByText('Change'));
     expect(
-      screen.getByRole('button', { name: 'Continue with email' })
+      screen.getByRole('button', { name: 'Email me a sign-in link' })
     ).toBeInTheDocument();
   });
 
   it('shows magic link option on password step', () => {
     renderLoginForm();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Continue with email' })
-    );
+    fireEvent.click(screen.getByText('Use password instead'));
 
     expect(
       screen.getByText('Send a login link instead')
     ).toBeInTheDocument();
   });
 
-  it('transitions to check-email step after clicking magic link', async () => {
+  it('transitions to check-email step after clicking primary CTA', async () => {
     renderLoginForm();
     fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
       target: { value: 'test@example.com' },
     });
     fireEvent.click(
-      screen.getByRole('button', { name: 'Continue with email' })
+      screen.getByRole('button', { name: 'Email me a sign-in link' })
     );
 
+    await waitFor(() => {
+      expect(screen.getByText('Check your email')).toBeInTheDocument();
+    });
+  });
+
+  it('transitions to check-email step via magic link on password step', async () => {
+    renderLoginForm();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.click(screen.getByText('Use password instead'));
     fireEvent.click(screen.getByText('Send a login link instead'));
 
     await waitFor(() => {
@@ -133,15 +147,6 @@ describe('LoginForm', () => {
     const link = screen.getByRole('link', { name: 'Forgot your password?' });
     expect(link).toBeInTheDocument();
     expect(link).toHaveAttribute('href', '/forgot');
-  });
-
-  it('shows email-me-a-sign-in-link when email is filled in on email step', async () => {
-    renderLoginForm();
-    expect(screen.queryByText('Email me a sign-in link')).toBeNull();
-    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
-      target: { value: 'test@example.com' },
-    });
-    expect(screen.getByText('Email me a sign-in link')).toBeInTheDocument();
   });
 
   it('shows dont have an account copy on email step', () => {

@@ -1,4 +1,4 @@
-import { useState, SyntheticEvent } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import TopMessage from '../../../../components/TopMessage/TopMessage';
 import CheckYourEmail from '../../../../components/CheckYourEmail/CheckYourEmail';
@@ -24,12 +24,6 @@ function LoginForm() {
     searchParams.get('error') === 'upload_limit_exceeded'
       ? '/register?redirect=/pricing'
       : '/register';
-
-  const handleContinueWithEmail = (event: SyntheticEvent) => {
-    event.preventDefault();
-    setError(null);
-    setStep('password');
-  };
 
   const handleSendMagicLink = async () => {
     setMagicLinkLoading(true);
@@ -70,58 +64,56 @@ function LoginForm() {
         <h1 className={styles.formTitle}>Log in</h1>
         {isEmailStep ? (
           <>
-            <form onSubmit={handleContinueWithEmail}>
-              <div className={styles.field}>
-                <label htmlFor="email">
-                  <span>Email</span>
-                  <input
-                    id="email"
-                    name="email"
-                    min="3"
-                    max="255"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    onBlur={(event) => {
-                      if (event.target.value.includes('@')) {
-                        localStorage.setItem('email', event.target.value);
-                      }
-                    }}
-                    type="email"
-                    autoComplete="email"
-                    inputMode="email"
-                    required
-                  />
-                </label>
-              </div>
-              <div className={styles.field}>
-                <button
-                  type="submit"
-                  className={styles.submitButton}
-                  disabled={email.length === 0}
-                >
-                  Continue with email
-                </button>
-                {error && <p className={styles.helpDanger}>{error}</p>}
-              </div>
-            </form>
+            <div className={styles.field}>
+              <label htmlFor="email">
+                <span>Email</span>
+                <input
+                  id="email"
+                  name="email"
+                  min="3"
+                  max="255"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  onBlur={(event) => {
+                    if (event.target.value.includes('@')) {
+                      localStorage.setItem('email', event.target.value);
+                    }
+                  }}
+                  type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  required
+                />
+              </label>
+            </div>
+            <div className={styles.field}>
+              <button
+                type="button"
+                className={styles.submitButton}
+                disabled={email.length === 0 || magicLinkLoading}
+                onClick={handleSendMagicLink}
+              >
+                {magicLinkLoading ? 'Sending' : 'Email me a sign-in link'}
+              </button>
+              {error && <p className={styles.helpDanger}>{error}</p>}
+            </div>
+            <p className={styles.footerText}>
+              <a
+                href="#password"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setError(null);
+                  setStep('password');
+                }}
+              >
+                Use password instead
+              </a>
+            </p>
             <p className={styles.footerText}>
               <a rel="noreferrer" href="/forgot">
                 Forgot your password?
               </a>
             </p>
-            {email.length > 0 && (
-              <p className={styles.footerText}>
-                <a
-                  href="#magic-link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleSendMagicLink();
-                  }}
-                >
-                  {magicLinkLoading ? 'Sending…' : 'Email me a sign-in link'}
-                </a>
-              </p>
-            )}
             <div className={styles.divider}>
               <span className={styles.dividerLabel}>or</span>
             </div>
