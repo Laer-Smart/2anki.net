@@ -3,6 +3,7 @@ import type { IChatMessagesRepository } from '../../data_layer/ChatMessagesRepos
 import type { IConversationsRepository } from '../../data_layer/ConversationsRepository';
 import { logClaudeUsage } from '../../lib/claude/logClaudeUsage';
 import { buildAttachmentBlocks, type ChatAttachment } from './buildAttachmentBlocks';
+import { isChatCardTemplate, templatePromptSuffix, type ChatCardTemplate } from './chatTemplates';
 
 const REQUIRED_MCQ_OPTION_COUNT = 4;
 
@@ -208,6 +209,7 @@ export class ChatUseCase {
     conversationId?: number | null;
     onToken?: (text: string) => void;
     attachments?: ChatAttachment[];
+    templateSlug?: string | null;
   }): Promise<SendMessageResult> {
     const { user, content, conversationHistory, onToken } = input;
     const attachments = input.attachments ?? [];
@@ -238,9 +240,18 @@ export class ChatUseCase {
 
     const model = user.patreon ? PATREON_MODEL : FREE_MODEL;
     const mcqAllowed = user.patreon;
-    const systemPromptText = mcqAllowed
+
+    const resolvedTemplate: ChatCardTemplate = isChatCardTemplate(input.templateSlug)
+      ? input.templateSlug
+      : 'basic';
+
+    const templateSuffix = templatePromptSuffix(resolvedTemplate);
+    const baseSystemPrompt = mcqAllowed
       ? `${STUDY_ASSISTANT_SYSTEM_PROMPT}\n\n${MCQ_PROMPT_ADDITION}`
       : STUDY_ASSISTANT_SYSTEM_PROMPT;
+    const systemPromptText = templateSuffix.length > 0
+      ? `${baseSystemPrompt}\n\n${templateSuffix.trim()}`
+      : baseSystemPrompt;
 
     const recentHistory = conversationHistory.slice(-MAX_HISTORY_TURNS);
     const attachmentBlocks = buildAttachmentBlocks(attachments);

@@ -78,9 +78,13 @@ class ChatDeckController {
       return;
     }
 
+    const rawTemplateSlug = req.body?.templateSlug;
+    const templateSlug = typeof rawTemplateSlug === 'string' ? rawTemplateSlug : null;
+
     const buffer = await this.useCase.execute({
       cards: parsedCards as ChatDeckCard[],
       deckName,
+      templateSlug,
     });
 
     res.setHeader('Content-Type', 'application/octet-stream');

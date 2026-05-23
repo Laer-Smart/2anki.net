@@ -5,6 +5,11 @@ import ConsentModal from '../ConsentModal/ConsentModal';
 import AssistantMarkdown from '../../pages/Chat/AssistantMarkdown';
 import CardPreview from '../../pages/Chat/CardPreview';
 import styles from './ChatPanel.module.css';
+import {
+  CHAT_TEMPLATE_OPTIONS,
+  DEFAULT_TEMPLATE,
+  type ChatCardTemplate,
+} from '../../lib/chat/templates';
 
 export interface ChatCard {
   front: string;
@@ -47,8 +52,10 @@ export interface ChatPanelProps {
   onCardsGenerated?: (cards: ChatCard[]) => void;
   initialConversationId?: number | null;
   initialMessages?: Message[];
+  initialTemplateSlug?: ChatCardTemplate | null;
   onConversationCreated?: (id: number, title: string) => void;
   onConversationNotFound?: () => void;
+  onTemplateChange?: (slug: ChatCardTemplate) => void;
 }
 
 const DRAFT_DEBOUNCE_MS = 500;
@@ -113,9 +120,10 @@ export function parseSseEvent(
 
 async function downloadDeck(
   cards: ChatCard[],
-  deckName: string
+  deckName: string,
+  templateSlug: ChatCardTemplate
 ): Promise<void> {
-  const response = await post('/api/chat/deck', { cards, deckName });
+  const response = await post('/api/chat/deck', { cards, deckName, templateSlug });
   if (!response.ok) {
     throw new Error('Failed to generate deck');
   }
@@ -126,6 +134,83 @@ async function downloadDeck(
   a.download = `${deckName}.apkg`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function TemplateSelector({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: ChatCardTemplate;
+  onChange: (slug: ChatCardTemplate) => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current != null && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const activeOption = CHAT_TEMPLATE_OPTIONS.find((o) => o.slug === value) ?? CHAT_TEMPLATE_OPTIONS[0];
+
+  return (
+    <div className={styles.templateDropdown} ref={dropdownRef}>
+      <button
+        type="button"
+        className={styles.templatePill}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`Card template: ${activeOption.label}`}
+        disabled={disabled}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span>Template: {activeOption.label}</span>
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      {open && (
+        <ul
+          role="listbox"
+          aria-label="Card template"
+          className={styles.templateMenu}
+        >
+          {CHAT_TEMPLATE_OPTIONS.map((opt) => (
+            <li key={opt.slug} role="option" aria-selected={opt.slug === value}>
+              <button
+                type="button"
+                className={`${styles.templateMenuItem} ${opt.slug === value ? styles.templateMenuItemActive : ''}`}
+                onClick={() => {
+                  onChange(opt.slug);
+                  setOpen(false);
+                }}
+              >
+                {opt.label}
+                <span className={styles.templateMenuHint}>{opt.fieldHint}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 function findRawArrayStart(text: string): number {
@@ -474,8 +559,10 @@ export default function ChatPanel({
   onCardsGenerated,
   initialConversationId,
   initialMessages,
+  initialTemplateSlug,
   onConversationCreated,
   onConversationNotFound,
+  onTemplateChange,
 }: ChatPanelProps) {
   const { data: userLocals, refetch: refetchUserLocals } = useUserLocals();
   const isPatreon = userLocals?.user?.patreon === true;
@@ -487,6 +574,9 @@ export default function ChatPanel({
     number | null
   >(initialConversationId ?? null);
   const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
+  const [activeTemplate, setActiveTemplate] = useState<ChatCardTemplate>(
+    initialTemplateSlug ?? DEFAULT_TEMPLATE
+  );
   const [expandedUserMessages, setExpandedUserMessages] = useState<Set<number>>(
     new Set()
   );
@@ -661,6 +751,7 @@ export default function ChatPanel({
       const formData = new FormData();
       formData.append('content', content);
       formData.append('history', JSON.stringify(history));
+      formData.append('templateSlug', activeTemplate);
       if (activeConversationId != null) {
         formData.append('conversationId', String(activeConversationId));
       }
@@ -680,6 +771,7 @@ export default function ChatPanel({
           content,
           history,
           conversationId: activeConversationId,
+          templateSlug: activeTemplate,
         });
       } catch {
         setNetworkError("Couldn't send this message. Try again.");
@@ -783,9 +875,19 @@ export default function ChatPanel({
   }
 
   function handleSaveAsDeck(cards: ChatCard[], deckName: string) {
-    downloadDeck(cards, deckName).catch(() => {
+    downloadDeck(cards, deckName, activeTemplate).catch(() => {
       setNetworkError("Couldn't generate the deck. Try again.");
     });
+  }
+
+  function handleTemplateChange(slug: ChatCardTemplate) {
+    setActiveTemplate(slug);
+    onTemplateChange?.(slug);
+    if (activeConversationId != null) {
+      patch(`/api/chat/conversations/${activeConversationId}/template`, {
+        templateSlug: slug,
+      }).catch(() => {});
+    }
   }
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -880,6 +982,13 @@ export default function ChatPanel({
           </div>
         ) : (
           <>
+            <div className={styles.panelHeader}>
+              <TemplateSelector
+                value={activeTemplate}
+                onChange={handleTemplateChange}
+                disabled={isLoading}
+              />
+            </div>
             <div className={styles.messageList} ref={messageListRef}>
               <div
                 className={styles.messageListInner}

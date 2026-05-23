@@ -303,6 +303,43 @@ const ChatRouter = () => {
     conversationsController.saveDraft(req, res)
   );
 
+  /**
+   * @swagger
+   * /api/chat/conversations/{id}/template:
+   *   patch:
+   *     summary: Set the card template for a conversation
+   *     tags: [Chat]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema: { type: integer }
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [templateSlug]
+   *             properties:
+   *               templateSlug:
+   *                 type: string
+   *                 nullable: true
+   *                 enum: [basic, basic-and-reversed, cloze]
+   *     responses:
+   *       204:
+   *         description: Template saved
+   *       400:
+   *         description: Invalid input
+   *       404:
+   *         description: Conversation not found
+   */
+  router.patch('/api/chat/conversations/:id/template', RequireAuthentication, (req, res) =>
+    conversationsController.saveTemplate(req, res)
+  );
+
   return router;
 };
 

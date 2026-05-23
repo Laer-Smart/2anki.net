@@ -6,6 +6,8 @@ import styles from './ChatPage.module.css';
 import ConversationsSidebar, {
   ConversationSummary,
 } from './ConversationsSidebar';
+import type { ChatCardTemplate } from '../../lib/chat/templates';
+import { CHAT_TEMPLATE_OPTIONS } from '../../lib/chat/templates';
 
 interface ApiConversationsResponse {
   conversations: ConversationSummary[];
@@ -25,6 +27,7 @@ interface ApiConversationDetailResponse {
   id: number;
   title: string;
   draft: string | null;
+  templateSlug: string | null;
   createdAt: string;
   updatedAt: string;
   messages: ApiConversationDetailMessage[];
@@ -35,6 +38,7 @@ interface PanelSeed {
   conversationId: number | null;
   messages: Message[];
   draft: string;
+  templateSlug: ChatCardTemplate | null;
 }
 
 export default function ChatPage() {
@@ -54,6 +58,7 @@ export default function ChatPage() {
     conversationId: null,
     messages: [],
     draft: prefilledPrompt,
+    templateSlug: null,
   });
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -97,11 +102,13 @@ export default function ChatPage() {
         ...(m.contentBefore == null ? {} : { contentBefore: m.contentBefore }),
         ...(m.contentAfter == null ? {} : { contentAfter: m.contentAfter }),
       }));
+      const validSlug = CHAT_TEMPLATE_OPTIONS.find((o) => o.slug === data.templateSlug);
       setPanelSeed({
         key: `conv-${id}`,
         conversationId: id,
         messages: loaded,
         draft: data.draft ?? '',
+        templateSlug: validSlug == null ? null : (data.templateSlug as ChatCardTemplate),
       });
     } catch {
       setLoadError("Couldn't load this conversation.");
@@ -115,6 +122,7 @@ export default function ChatPage() {
       conversationId: null,
       messages: [],
       draft: '',
+      templateSlug: null,
     });
     setLoadError(null);
   }
@@ -185,6 +193,7 @@ export default function ChatPage() {
           cameFromUpload={cameFromUpload}
           initialConversationId={panelSeed.conversationId}
           initialMessages={panelSeed.messages}
+          initialTemplateSlug={panelSeed.templateSlug}
           onConversationCreated={(id, title) => {
             upsertConversation(id, title);
             setActiveConversationId(id);

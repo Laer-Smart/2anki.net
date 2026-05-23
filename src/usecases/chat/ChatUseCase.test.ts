@@ -487,6 +487,63 @@ describe('ChatUseCase', () => {
     });
   });
 
+  describe('template slug routing', () => {
+    it('adds cloze suffix to system prompt when templateSlug is cloze', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'question',
+        conversationHistory: [],
+        templateSlug: 'cloze',
+      });
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.system[0].text).toMatch(/cloze/i);
+      expect(callArg.system[0].text).toMatch(/\{\{c1::/);
+    });
+
+    it('adds basic-and-reversed suffix to system prompt when templateSlug is basic-and-reversed', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'question',
+        conversationHistory: [],
+        templateSlug: 'basic-and-reversed',
+      });
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.system[0].text).toMatch(/both directions/i);
+    });
+
+    it('does not add any suffix for basic template', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+      const baseLen = (await (() => {
+        const uc = buildUseCase('answer');
+        return uc.anthropic.messages.stream.mock.calls;
+      })()).length;
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'question',
+        conversationHistory: [],
+        templateSlug: 'basic',
+      });
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.system[0].text).not.toMatch(/both directions/i);
+      expect(callArg.system[0].text).not.toMatch(/cloze only/i);
+    });
+
+    it('falls back to basic when templateSlug is unknown', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'question',
+        conversationHistory: [],
+        templateSlug: 'image-occlusion',
+      });
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.system[0].text).not.toMatch(/both directions/i);
+      expect(callArg.system[0].text).not.toMatch(/cloze only/i);
+    });
+  });
+
   describe('ChatRateLimitError', () => {
     it('provides a resetDate as the first of next month', async () => {
       const { messagesRepo, useCase } = buildUseCase('');

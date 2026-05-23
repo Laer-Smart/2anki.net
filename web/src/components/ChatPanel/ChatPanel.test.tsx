@@ -568,3 +568,72 @@ describe('ChatPanel — consent modal dismissal', () => {
     });
   });
 });
+
+describe('ChatPanel — template selector', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+    mockGet.mockResolvedValue({ used: 0, limit: 20 });
+  });
+
+  it('renders "Template: Basic" pill when messages are present', () => {
+    renderChatPanel({
+      initialMessages: [{ role: 'assistant', content: 'Hello' }],
+    });
+    expect(
+      screen.getByRole('button', { name: 'Card template: Basic' })
+    ).toBeInTheDocument();
+  });
+
+  it('does not render the template selector in the empty state', () => {
+    renderChatPanel();
+    expect(
+      screen.queryByRole('button', { name: /Card template/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('opens the template dropdown on click', () => {
+    renderChatPanel({
+      initialMessages: [{ role: 'assistant', content: 'Hello' }],
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Card template: Basic' }));
+    expect(screen.getByRole('listbox', { name: 'Card template' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /Basic \+/ })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /Cloze/ })).toBeInTheDocument();
+  });
+
+  it('changes template when a menu item is clicked', () => {
+    const onTemplateChange = vi.fn();
+    renderChatPanel({
+      initialMessages: [{ role: 'assistant', content: 'Hello' }],
+      onTemplateChange,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Card template: Basic' }));
+    fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
+    expect(onTemplateChange).toHaveBeenCalledWith('cloze');
+    expect(
+      screen.getByRole('button', { name: 'Card template: Cloze' })
+    ).toBeInTheDocument();
+  });
+
+  it('includes templateSlug in the message API call', async () => {
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([
+        { event: 'done', data: { content: 'Reply', conversationId: 1 } },
+      ])
+    );
+    renderChatPanel({
+      initialMessages: [{ role: 'assistant', content: 'Hello' }],
+      initialTemplateSlug: 'cloze',
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Message input' }), {
+      target: { value: 'Make cloze cards' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/chat/message',
+        expect.objectContaining({ templateSlug: 'cloze' })
+      );
+    });
+  });
+});

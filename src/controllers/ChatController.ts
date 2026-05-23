@@ -154,6 +154,8 @@ class ChatController {
 
     const conversationId = parseConversationId(req.body?.conversationId);
     const conversationHistory = parseHistory(req.body?.history);
+    const rawTemplateSlug = req.body?.templateSlug;
+    const templateSlug = typeof rawTemplateSlug === 'string' ? rawTemplateSlug : null;
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -167,6 +169,7 @@ class ChatController {
         conversationHistory,
         conversationId,
         attachments: validation.attachments,
+        templateSlug,
         onToken: (text) => sseWrite(res, 'token', text),
       });
 

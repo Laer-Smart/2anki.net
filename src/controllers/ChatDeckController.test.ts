@@ -127,6 +127,7 @@ describe('ChatDeckController.generate', () => {
         },
       ],
       deckName: 'Quiz',
+      templateSlug: null,
     });
     expect(res.send).toHaveBeenCalledWith(fakeBuffer);
   });
@@ -171,7 +172,7 @@ describe('ChatDeckController.generate', () => {
 
     await controller.generate(buildReq({ cards: validCards, deckName: 'My Deck' }), res);
 
-    expect(useCase.execute).toHaveBeenCalledWith({ cards: validCards, deckName: 'My Deck' });
+    expect(useCase.execute).toHaveBeenCalledWith({ cards: validCards, deckName: 'My Deck', templateSlug: null });
     expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
     expect(res.setHeader).toHaveBeenCalledWith(
       'Content-Disposition',

@@ -1,4 +1,4 @@
-import { ChatDeckUseCase, looksLikeCloze, transformBlankToCloze } from './ChatDeckUseCase';
+import { ChatDeckUseCase, looksLikeCloze, transformBlankToCloze, type ChatDeckCard } from './ChatDeckUseCase';
 import CustomExporter from '../../lib/parser/exporters/CustomExporter';
 
 jest.mock('../../lib/parser/exporters/CustomExporter');
@@ -53,6 +53,63 @@ describe('ChatDeckUseCase.execute MCQ handling', () => {
     }>;
     expect(deckInfo[0].cards[0].mcq).toBeUndefined();
     expect(deckInfo[0].cards[0].back).toBe('A');
+  });
+});
+
+describe('ChatDeckUseCase.execute basic-and-reversed template', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (CustomExporter as unknown as jest.Mock).mockImplementation(() => ({
+      configure: jest.fn(),
+      save: jest.fn().mockResolvedValue(Buffer.from('apkg')),
+    }));
+  });
+
+  it('duplicates cards with swapped front/back when templateSlug is basic-and-reversed', async () => {
+    const useCase = new ChatDeckUseCase();
+    await useCase.execute({
+      deckName: 'Reversed',
+      templateSlug: 'basic-and-reversed',
+      cards: [{ front: 'Q', back: 'A' }],
+    });
+    const Mock = CustomExporter as unknown as jest.Mock;
+    const configure = Mock.mock.results[0].value.configure as jest.Mock;
+    const deckInfo = configure.mock.calls[0][0] as Array<{
+      cards: Array<ChatDeckCard & { name: string; back: string }>;
+    }>;
+    expect(deckInfo[0].cards).toHaveLength(2);
+    expect(deckInfo[0].cards[0]).toMatchObject({ name: 'Q', back: 'A' });
+    expect(deckInfo[0].cards[1]).toMatchObject({ name: 'A', back: 'Q' });
+  });
+
+  it('does not add reversed card when back is empty', async () => {
+    const useCase = new ChatDeckUseCase();
+    await useCase.execute({
+      deckName: 'Cloze set',
+      templateSlug: 'basic-and-reversed',
+      cards: [{ front: 'Capital of France is {{c1::Paris}}.', back: '' }],
+    });
+    const Mock = CustomExporter as unknown as jest.Mock;
+    const configure = Mock.mock.results[0].value.configure as jest.Mock;
+    const deckInfo = configure.mock.calls[0][0] as Array<{
+      cards: Array<{ name: string }>;
+    }>;
+    expect(deckInfo[0].cards).toHaveLength(1);
+  });
+
+  it('does not expand when templateSlug is basic', async () => {
+    const useCase = new ChatDeckUseCase();
+    await useCase.execute({
+      deckName: 'Basic set',
+      templateSlug: 'basic',
+      cards: [{ front: 'Q', back: 'A' }],
+    });
+    const Mock = CustomExporter as unknown as jest.Mock;
+    const configure = Mock.mock.results[0].value.configure as jest.Mock;
+    const deckInfo = configure.mock.calls[0][0] as Array<{
+      cards: Array<{ name: string }>;
+    }>;
+    expect(deckInfo[0].cards).toHaveLength(1);
   });
 });
 

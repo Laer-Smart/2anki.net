@@ -4,6 +4,7 @@ import type {
   ConversationWithMessages,
 } from '../../data_layer/ConversationsRepository';
 import { extractCards, ChatCard } from './ChatUseCase';
+import { isChatCardTemplate } from './chatTemplates';
 
 const MAX_TITLE_LENGTH = 120;
 
@@ -28,9 +29,17 @@ export interface ConversationView {
   id: number;
   title: string;
   draft: string | null;
+  templateSlug: string | null;
   created_at: Date;
   updated_at: Date;
   messages: ConversationMessageView[];
+}
+
+export class InvalidTemplateError extends Error {
+  constructor() {
+    super('Invalid template');
+    this.name = 'InvalidTemplateError';
+  }
 }
 
 const MAX_DRAFT_LENGTH = 100_000;
@@ -76,6 +85,7 @@ export class ConversationsUseCase {
       id: conv.id,
       title: conv.title,
       draft: conv.draft,
+      templateSlug: conv.templateSlug,
       created_at: conv.created_at,
       updated_at: conv.updated_at,
       messages: hydrateMessages(conv),
@@ -124,5 +134,20 @@ export class ConversationsUseCase {
 
   delete(input: { userId: number; conversationId: number }): Promise<boolean> {
     return this.repo.softDelete(input);
+  }
+
+  async saveTemplate(input: {
+    userId: number;
+    conversationId: number;
+    templateSlug: string | null;
+  }): Promise<boolean> {
+    if (input.templateSlug != null && !isChatCardTemplate(input.templateSlug)) {
+      throw new InvalidTemplateError();
+    }
+    return this.repo.saveTemplate({
+      userId: input.userId,
+      conversationId: input.conversationId,
+      templateSlug: input.templateSlug,
+    });
   }
 }
