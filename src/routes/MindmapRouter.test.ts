@@ -11,6 +11,27 @@ const mockUpdate = jest.fn();
 const mockCount = jest.fn();
 const mockGetUserActiveSubscriptions = jest.fn();
 
+const mockUploadFile = jest.fn().mockResolvedValue(undefined);
+const mockGetPresignedUrl = jest.fn().mockResolvedValue('https://spaces.example.com/presigned');
+const mockObjectExists = jest.fn().mockResolvedValue(false);
+const mockListByPrefix = jest.fn().mockResolvedValue([]);
+const mockDeleteObjects = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../lib/storage/StorageHandler', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({
+    uploadFile: mockUploadFile,
+    getPresignedUrl: mockGetPresignedUrl,
+    objectExists: mockObjectExists,
+    listByPrefix: mockListByPrefix,
+    deleteObjects: mockDeleteObjects,
+    getFileContents: jest.fn().mockResolvedValue({ Body: undefined }),
+    delete: jest.fn(),
+    getContents: jest.fn(),
+    uniqify: jest.fn(),
+  })),
+}));
+
 jest.mock('../data_layer', () => ({
   getDatabase: jest.fn().mockReturnValue({}),
 }));
@@ -74,6 +95,9 @@ describe('MindmapRouter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
+    mockGetPresignedUrl.mockResolvedValue('https://spaces.example.com/presigned');
+    mockObjectExists.mockResolvedValue(false);
+    mockListByPrefix.mockResolvedValue([]);
   });
 
   describe('POST /api/mindmaps', () => {
@@ -269,9 +293,13 @@ describe('MindmapRouter', () => {
 
       expect(res.status).toBe(201);
       const body = await res.json();
-      expect(body.url).toMatch(/^\/api\/mindmaps\/images\//);
+      expect(body.url).toBe('https://spaces.example.com/presigned');
       expect(typeof body.width).toBe('number');
       expect(typeof body.height).toBe('number');
+      expect(mockUploadFile).toHaveBeenCalledWith(
+        expect.stringMatching(/^mindmaps\/42\/map-1\/.+\.png$/),
+        TINY_PNG
+      );
     });
 
     it('returns 400 when no file is provided', async () => {
@@ -281,6 +309,30 @@ describe('MindmapRouter', () => {
       });
 
       expect(res.status).toBe(400);
+    });
+  });
+
+  describe('GET /api/mindmaps/images/:userId/:mapId/:file', () => {
+    it('returns 302 redirect when object exists in Spaces', async () => {
+      mockObjectExists.mockResolvedValue(true);
+      mockGetPresignedUrl.mockResolvedValue('https://spaces.example.com/presigned-img');
+
+      const res = await fetch(`${url}/api/mindmaps/images/42/map-1/img.png`, {
+        redirect: 'manual',
+      });
+
+      expect(res.status).toBe(302);
+      expect(res.headers.get('location')).toBe('https://spaces.example.com/presigned-img');
+    });
+
+    it('returns 410 when object does not exist', async () => {
+      mockObjectExists.mockResolvedValue(false);
+
+      const res = await fetch(`${url}/api/mindmaps/images/42/map-1/missing.png`);
+
+      expect(res.status).toBe(410);
+      const body = await res.json();
+      expect(body.code).toBe('image_missing');
     });
   });
 });

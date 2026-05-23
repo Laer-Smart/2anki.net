@@ -6,9 +6,10 @@ import TrashIcon from '../../components/icons/TrashIcon';
 import SwatchIcon from '../../components/icons/SwatchIcon';
 
 export interface MindmapImageMeta {
-  url: string;
+  url: string | null;
   width: number;
   height: number;
+  missing?: true;
 }
 
 export interface MindmapNodeData {
@@ -251,7 +252,26 @@ export function MindmapNode({ data, selected }: NodeProps) {
             boxSizing: 'border-box',
           }}
         >
-          {nodeData.image != null && (
+          {nodeData.image != null && nodeData.image.missing === true && (
+            <div
+              style={{
+                border: '1px dashed var(--color-border)',
+                borderRadius: 'var(--radius-sm)',
+                background: 'var(--color-bg-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.5rem',
+                marginBottom: nodeData.label.length > 0 ? '0.25rem' : 0,
+                fontSize: 'var(--text-xs)',
+                color: 'var(--color-text-tertiary)',
+                minHeight: '2rem',
+              }}
+            >
+              Image unavailable
+            </div>
+          )}
+          {nodeData.image != null && nodeData.image.missing !== true && nodeData.image.url != null && (
             <img
               src={nodeData.image.url}
               alt={nodeData.label}

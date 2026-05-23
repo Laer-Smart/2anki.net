@@ -1,73 +1,95 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-
 import { collectMindmapImages } from './collectMindmapImages';
 import { MindmapData } from './MindmapData';
+import StorageHandler from '../../lib/storage/StorageHandler';
+
+function makeStorage(files: Record<string, Buffer> = {}): StorageHandler {
+  return {
+    getFileContents: jest.fn().mockImplementation(async (key: string) => {
+      const body = files[key];
+      return { Body: body };
+    }),
+    uploadFile: jest.fn(),
+    getPresignedUrl: jest.fn(),
+    objectExists: jest.fn(),
+    listByPrefix: jest.fn(),
+    deleteObjects: jest.fn(),
+    delete: jest.fn(),
+    getContents: jest.fn(),
+    uniqify: jest.fn(),
+    s3: {} as never,
+  } as unknown as StorageHandler;
+}
+
+function nodeWithImage(id: string, url: string) {
+  return { id, label: '', image: { url, width: 10, height: 10 } };
+}
 
 describe('collectMindmapImages', () => {
-  let uploadBase: string;
-
-  beforeEach(() => {
-    uploadBase = fs.mkdtempSync(path.join(os.tmpdir(), 'mindmap-images-'));
+  it('returns an empty array when no nodes have images', async () => {
+    const data: MindmapData = { nodes: [{ id: 'a', label: 'plain' }], edges: [] };
+    const result = await collectMindmapImages(data, makeStorage());
+    expect(result).toEqual([]);
   });
 
-  afterEach(() => {
-    fs.rmSync(uploadBase, { recursive: true, force: true });
-  });
-
-  function writeImage(relPath: string, body: string) {
-    const full = path.join(uploadBase, 'mindmaps', relPath);
-    fs.mkdirSync(path.dirname(full), { recursive: true });
-    fs.writeFileSync(full, body);
-  }
-
-  function nodeWithImage(id: string, url: string) {
-    return {
-      id,
-      label: '',
-      image: { url, width: 10, height: 10 },
-    };
-  }
-
-  it('returns an empty array when no nodes have images', () => {
+  it('fetches each referenced s3Key and returns buffer with filename', async () => {
+    const fakePng = Buffer.from('fake-png');
+    const storage = makeStorage({ 'mindmaps/1/map-1/foo.png': fakePng });
     const data: MindmapData = {
-      nodes: [{ id: 'a', label: 'plain' }],
+      nodes: [nodeWithImage('a', 'mindmaps/1/map-1/foo.png')],
       edges: [],
     };
-    expect(collectMindmapImages(data, uploadBase)).toEqual([]);
-  });
 
-  it('reads each referenced image into a buffer', () => {
-    writeImage('user-1/map-1/foo.png', 'fake-png');
-    const data: MindmapData = {
-      nodes: [nodeWithImage('a', '/api/mindmaps/images/user-1/map-1/foo.png')],
-      edges: [],
-    };
-    const result = collectMindmapImages(data, uploadBase);
+    const result = await collectMindmapImages(data, storage);
     expect(result).toHaveLength(1);
     expect(result[0].filename).toBe('foo.png');
-    expect(result[0].buffer.toString()).toBe('fake-png');
+    expect(result[0].buffer).toEqual(fakePng);
   });
 
-  it('deduplicates nodes that share the same image url', () => {
-    writeImage('user-1/map-1/foo.png', 'fake-png');
-    const url = '/api/mindmaps/images/user-1/map-1/foo.png';
+  it('deduplicates nodes that share the same s3 key', async () => {
+    const fakePng = Buffer.from('fake-png');
+    const storage = makeStorage({ 'mindmaps/1/map-1/foo.png': fakePng });
+    const url = 'mindmaps/1/map-1/foo.png';
     const data: MindmapData = {
       nodes: [nodeWithImage('a', url), nodeWithImage('b', url)],
       edges: [],
     };
-    const result = collectMindmapImages(data, uploadBase);
+
+    const result = await collectMindmapImages(data, storage);
     expect(result).toHaveLength(1);
   });
 
-  it('skips images that no longer exist on disk', () => {
+  it('skips missing images (url null or missing flag)', async () => {
     const data: MindmapData = {
       nodes: [
-        nodeWithImage('a', '/api/mindmaps/images/user-1/map-1/missing.png'),
+        { id: 'a', label: '', image: { url: null, width: 10, height: 10, missing: true } },
       ],
       edges: [],
     };
-    expect(collectMindmapImages(data, uploadBase)).toEqual([]);
+
+    const result = await collectMindmapImages(data, makeStorage());
+    expect(result).toEqual([]);
+  });
+
+  it('skips images where S3 returns no body', async () => {
+    const storage = makeStorage({});
+    const data: MindmapData = {
+      nodes: [nodeWithImage('a', 'mindmaps/1/map-1/missing.png')],
+      edges: [],
+    };
+
+    const result = await collectMindmapImages(data, storage);
+    expect(result).toEqual([]);
+  });
+
+  it('skips images where getFileContents throws', async () => {
+    const storage = makeStorage();
+    (storage.getFileContents as jest.Mock).mockRejectedValue(new Error('S3 down'));
+    const data: MindmapData = {
+      nodes: [nodeWithImage('a', 'mindmaps/1/map-1/img.png')],
+      edges: [],
+    };
+
+    const result = await collectMindmapImages(data, storage);
+    expect(result).toEqual([]);
   });
 });

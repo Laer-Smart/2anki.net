@@ -1,6 +1,4 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
+import StorageHandler from '../../lib/storage/StorageHandler';
 import { MindmapData } from './MindmapData';
 
 export interface CollectedImage {
@@ -8,27 +6,31 @@ export interface CollectedImage {
   buffer: Buffer;
 }
 
-export function collectMindmapImages(
+export async function collectMindmapImages(
   data: MindmapData,
-  uploadBase: string
-): CollectedImage[] {
+  storage: StorageHandler
+): Promise<CollectedImage[]> {
   const seen = new Set<string>();
   const result: CollectedImage[] = [];
 
   for (const node of data.nodes) {
     const { image } = node;
     if (image == null) continue;
-    if (seen.has(image.url)) continue;
-    seen.add(image.url);
+    if (image.url == null || image.missing === true) continue;
 
-    const filename = image.url.split('/').pop() ?? '';
-    const relPath = image.url.replace('/api/mindmaps/images/', '');
-    const diskPath = path.join(uploadBase, 'mindmaps', relPath);
+    const s3Key = image.url;
+    if (seen.has(s3Key)) continue;
+    seen.add(s3Key);
 
-    if (!fs.existsSync(diskPath)) continue;
+    const filename = s3Key.split('/').pop() ?? '';
 
-    const buffer = fs.readFileSync(diskPath);
-    result.push({ filename, buffer });
+    try {
+      const stored = await storage.getFileContents(s3Key);
+      if (stored.Body == null) continue;
+      result.push({ filename, buffer: stored.Body });
+    } catch {
+      continue;
+    }
   }
 
   return result;

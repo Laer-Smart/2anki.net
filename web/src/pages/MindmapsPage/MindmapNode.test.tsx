@@ -87,6 +87,23 @@ describe('MindmapNode', () => {
     expect(onCommit).toHaveBeenCalledWith('Mathematics');
   });
 
+  it('renders image when url is present', () => {
+    const props = makeProps({ label: 'alt text' });
+    (props.data as Record<string, unknown>).image = { url: 'https://example.com/img.png', width: 10, height: 10 };
+    const { container } = render(<MindmapNode {...props} />);
+    const img = container.querySelector('img') as HTMLImageElement | null;
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute('src')).toBe('https://example.com/img.png');
+  });
+
+  it('renders placeholder when image is missing', () => {
+    const props = makeProps({ label: '' });
+    (props.data as Record<string, unknown>).image = { url: null, width: 10, height: 10, missing: true };
+    render(<MindmapNode {...props} />);
+    expect(screen.queryByRole('img')).toBeNull();
+    expect(screen.getByText('Image unavailable')).toBeDefined();
+  });
+
   it('stops key propagation while editing', () => {
     const handler = vi.fn();
     render(

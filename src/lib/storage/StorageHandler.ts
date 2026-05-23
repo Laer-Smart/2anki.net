@@ -1,7 +1,9 @@
 import {
   S3Client,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   ListObjectsV2Command,
   PutObjectCommand,
   type _Object,
@@ -129,6 +131,52 @@ class StorageHandler {
         Key: key,
       }),
       { expiresIn: expiresSeconds }
+    );
+  }
+
+  async objectExists(key: string): Promise<boolean> {
+    try {
+      await this.s3.send(
+        new HeadObjectCommand({
+          Bucket: StorageHandler.DefaultBucketName(),
+          Key: key,
+        })
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async listByPrefix(prefix: string): Promise<string[]> {
+    const keys: string[] = [];
+    let continuationToken: string | undefined;
+    let hasMore = true;
+    while (hasMore) {
+      const response = await this.s3.send(
+        new ListObjectsV2Command({
+          Bucket: StorageHandler.DefaultBucketName(),
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+        })
+      );
+      for (const obj of response.Contents ?? []) {
+        if (obj.Key != null) keys.push(obj.Key);
+      }
+      continuationToken = response.NextContinuationToken;
+      hasMore = Boolean(response.IsTruncated) && continuationToken != null;
+    }
+    return keys;
+  }
+
+  async deleteObjects(keys: string[]): Promise<void> {
+    if (keys.length === 0) return;
+    const objects = keys.map((Key) => ({ Key }));
+    await this.s3.send(
+      new DeleteObjectsCommand({
+        Bucket: StorageHandler.DefaultBucketName(),
+        Delete: { Objects: objects, Quiet: true },
+      })
     );
   }
 }

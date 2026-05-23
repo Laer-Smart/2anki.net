@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import os from 'node:os';
 
+import StorageHandler from '../lib/storage/StorageHandler';
 import { CreateMindmapUseCase, MindmapLimitError } from '../usecases/mindmaps/CreateMindmapUseCase';
 import { UpdateMindmapUseCase } from '../usecases/mindmaps/UpdateMindmapUseCase';
 import { DeleteMindmapUseCase } from '../usecases/mindmaps/DeleteMindmapUseCase';
@@ -28,7 +28,8 @@ export class MindmapController {
     private readonly deleteUseCase: DeleteMindmapUseCase,
     private readonly listUseCase: ListMindmapsUseCase,
     private readonly getUseCase: GetMindmapUseCase,
-    private readonly exportUseCase: ExportMindmapUseCase
+    private readonly exportUseCase: ExportMindmapUseCase,
+    private readonly storage: StorageHandler
   ) {}
 
   private async resolveUserContext(res: Response): Promise<{
@@ -181,16 +182,19 @@ export class MindmapController {
       return;
     }
 
-    const uploadBase = process.env.UPLOAD_BASE ?? os.tmpdir();
-    const useCase = new UploadMindmapImageUseCase(uploadBase);
+    const useCase = new UploadMindmapImageUseCase(this.storage);
 
     try {
       const result = await useCase.execute({
         userId,
         mapId,
-        file: { path: file.path, mimetype: file.mimetype, size: file.size },
+        file: { buffer: file.buffer, mimetype: file.mimetype, size: file.size },
       });
-      res.status(201).json(result);
+      res.status(201).json({
+        url: result.presignedUrl,
+        width: result.width,
+        height: result.height,
+      });
     } catch (error) {
       if (error instanceof MindmapImageTypeError) {
         res.status(415).json({ message: error.message });
@@ -202,5 +206,19 @@ export class MindmapController {
       }
       throw error;
     }
+  }
+
+  async serveImage(req: Request, res: Response): Promise<void> {
+    const { userId, mapId, file } = req.params;
+    const s3Key = `mindmaps/${userId}/${mapId}/${file}`;
+
+    const exists = await this.storage.objectExists(s3Key);
+    if (exists) {
+      const presignedUrl = await this.storage.getPresignedUrl(s3Key);
+      res.redirect(302, presignedUrl);
+      return;
+    }
+
+    res.status(410).json({ code: 'image_missing', message: 'Image no longer available' });
   }
 }

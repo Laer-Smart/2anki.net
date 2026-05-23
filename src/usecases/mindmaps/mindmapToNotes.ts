@@ -29,8 +29,8 @@ export function mindmapToNotes(
     const childNode = nodeMap.get(edge.target);
     if (parentNode == null || childNode == null) continue;
 
-    const front = buildNodeBack(parentNode.label, parentNode.image?.url, filenameMap);
-    const back = buildNodeBack(childNode.label, childNode.image?.url, filenameMap);
+    const front = buildNodeBack(parentNode.label, parentNode.image?.url ?? undefined, filenameMap);
+    const back = buildNodeBack(childNode.label, childNode.image?.url ?? undefined, filenameMap);
 
     const note = new Note(front.html, back.html);
     const media = [front.media, back.media].filter((m): m is string => m != null);

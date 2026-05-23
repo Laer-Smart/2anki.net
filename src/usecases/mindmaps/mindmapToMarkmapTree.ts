@@ -59,7 +59,7 @@ export function mindmapToMarkmapTree(
 
   const labelMap = new Map<string, string>(data.nodes.map((n) => [n.id, n.label]));
   const imageUrlMap = new Map<string, string | undefined>(
-    data.nodes.map((n) => [n.id, n.image?.url])
+    data.nodes.map((n) => [n.id, n.image?.url ?? undefined])
   );
   const childMap = new Map<string, string[]>(data.nodes.map((n) => [n.id, []]));
 
