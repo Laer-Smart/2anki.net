@@ -1,4 +1,5 @@
 import { getDefaultUserInstructions } from '../../../infrastracture/adapters/fileConversion/convertPDFToHTML';
+import { validateCardStylePicker } from '../../claude/getCardStylePromptFragment';
 import { parseTemplate } from './helpers/parseTemplate';
 
 import { UserSuppliedTemplateFile } from './types';
@@ -79,6 +80,8 @@ class CardOption {
 
   readonly userInstructions?: string;
 
+  readonly cardStyle: string;
+
   readonly mcqEnabled: boolean;
 
   readonly mcqTtsQuestion: string;
@@ -133,6 +136,7 @@ class CardOption {
     this.nestedBulletPoints = input['markdown-nested-bullet-points'] === 'true';
     this.userInstructions =
       input['user-instructions'] ?? getDefaultUserInstructions();
+    this.cardStyle = validateCardStylePicker(input['card-style']);
     this.mcqEnabled = input['mcq-enabled'] === 'true';
     this.mcqTtsQuestion = input['mcq-tts-question'] ?? '';
     this.mcqTtsCorrectAnswer = input['mcq-tts-correct-answer'] ?? '';

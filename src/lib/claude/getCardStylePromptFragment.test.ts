@@ -9,7 +9,23 @@ describe('getCardStylePromptFragment', () => {
     expect(fragment).toContain('6');
   });
 
+  it('returns a cloze fragment for cloze style', () => {
+    const fragment = getCardStylePromptFragment('cloze');
+    expect(fragment.length).toBeGreaterThan(0);
+    expect(fragment.toLowerCase()).toContain('cloze');
+  });
+
+  it('returns a qa fragment for qa style', () => {
+    const fragment = getCardStylePromptFragment('qa');
+    expect(fragment.length).toBeGreaterThan(0);
+    expect(fragment.toLowerCase()).toContain('question');
+  });
+
   it('returns an empty string for unknown / default style', () => {
     expect(getCardStylePromptFragment(undefined)).toBe('');
+  });
+
+  it('returns an empty string for an unrecognised style value', () => {
+    expect(getCardStylePromptFragment('concise')).toBe('');
   });
 });
