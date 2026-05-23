@@ -17,6 +17,8 @@ The claude lib converts HTML content into Anki flashcards using the Anthropic AP
 
 **Tag normalization:** `normalizeTag(raw: string): string` (exported) converts a raw tag string from Claude's response into a safe Anki tag: lowercase, spaces→`_`, non-`[a-z0-9_]` characters stripped, capped at 32 characters. Called in `expandCompactDeckInfo` (Claude-text path) and in `buildDeckInfo` inside `PhotoToFlashcardsUseCase` (Photo-to-Deck path). Empty tags (e.g. all-punctuation input) are filtered out before the card is written. The `SYSTEM_PROMPT` already declares `"tags": string[]` in the schema; `expandCompactDeckInfo` now normalizes every tag the model emits and drops empty results.
 
+**Math delimiter contract:** `ANKI_MATH_FRAGMENT` (exported from `ankiMathFragment.ts`) is a short instruction block injected into every Claude prompt that may produce math content. It instructs Claude to use `\(...\)` for inline math and `\[...\]` for display math, never `$...$` or `$$...$$`. Chemistry uses `\(\ce{...}\)` via mhchem. The fragment is shared across `SYSTEM_PROMPT` (exported from `ClaudeService.ts`), `buildVisionPrompt`, and `buildVerbatimPrompt` in `PhotoToFlashcardsUseCase.ts` to prevent the three copies from drifting.
+
 ---
 
 ## Heading-driven contract (`cardStyle: 'heading-driven'`)
