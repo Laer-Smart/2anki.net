@@ -2,7 +2,6 @@ import type Anthropic from '@anthropic-ai/sdk';
 import type { IChatMessagesRepository } from '../../data_layer/ChatMessagesRepository';
 import type { IConversationsRepository } from '../../data_layer/ConversationsRepository';
 import { buildAttachmentBlocks, type ChatAttachment } from './buildAttachmentBlocks';
-import { isAiMcqEnabled } from '../../lib/ai/aiMcqFlag';
 
 const REQUIRED_MCQ_OPTION_COUNT = 4;
 
@@ -237,7 +236,7 @@ export class ChatUseCase {
     }
 
     const model = user.patreon ? PATREON_MODEL : FREE_MODEL;
-    const mcqAllowed = isAiMcqEnabled({ isPaying: user.patreon });
+    const mcqAllowed = user.patreon;
     const systemPromptText = mcqAllowed
       ? `${STUDY_ASSISTANT_SYSTEM_PROMPT}\n\n${MCQ_PROMPT_ADDITION}`
       : STUDY_ASSISTANT_SYSTEM_PROMPT;

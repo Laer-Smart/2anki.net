@@ -427,23 +427,12 @@ describe('ChatUseCase', () => {
   });
 
   describe('MCQ emission', () => {
-    const ORIGINAL_FLAG = process.env.AI_MCQ_ENABLED;
-
-    afterEach(() => {
-      if (ORIGINAL_FLAG === undefined) {
-        delete process.env.AI_MCQ_ENABLED;
-      } else {
-        process.env.AI_MCQ_ENABLED = ORIGINAL_FLAG;
-      }
-    });
-
     const MCQ_RESPONSE_TEXT = `Here you go:
 \`\`\`json
 [{"front":"Which enzyme breaks down starch?","options":["Lipase","Amylase","Protease","Lactase"],"correct_index":1,"rationale":"Amylase hydrolyses starch."}]
 \`\`\``;
 
-    it('extracts an MCQ card for a paying user when the flag is on', async () => {
-      process.env.AI_MCQ_ENABLED = 'true';
+    it('extracts an MCQ card for a paying user', async () => {
       const { useCase } = buildUseCase(MCQ_RESPONSE_TEXT);
       const result = await useCase.execute({
         user: PATREON_USER,
@@ -459,8 +448,7 @@ describe('ChatUseCase', () => {
       });
     });
 
-    it('drops an MCQ card for a free user even when the flag is on', async () => {
-      process.env.AI_MCQ_ENABLED = 'true';
+    it('drops an MCQ card for a free user', async () => {
       const { useCase } = buildUseCase(MCQ_RESPONSE_TEXT);
       const result = await useCase.execute({
         user: FREE_USER,
@@ -470,19 +458,7 @@ describe('ChatUseCase', () => {
       expect(result.cards).toBeUndefined();
     });
 
-    it('drops an MCQ card for a paying user when the flag is off', async () => {
-      delete process.env.AI_MCQ_ENABLED;
-      const { useCase } = buildUseCase(MCQ_RESPONSE_TEXT);
-      const result = await useCase.execute({
-        user: PATREON_USER,
-        content: 'quiz me',
-        conversationHistory: [],
-      });
-      expect(result.cards).toBeUndefined();
-    });
-
     it('drops malformed MCQ (3 options) and keeps surrounding valid cards', async () => {
-      process.env.AI_MCQ_ENABLED = 'true';
       const mixed = `\`\`\`json
 [{"front":"valid q","back":"valid a"},{"front":"bad mcq","options":["A","B","C"],"correct_index":0}]
 \`\`\``;
@@ -496,8 +472,7 @@ describe('ChatUseCase', () => {
       expect(result.cards![0]).toMatchObject({ front: 'valid q', back: 'valid a' });
     });
 
-    it('adds MCQ instructions to the system prompt for paying users when the flag is on', async () => {
-      process.env.AI_MCQ_ENABLED = 'true';
+    it('adds MCQ instructions to the system prompt for paying users', async () => {
       const { anthropic, useCase } = buildUseCase('reply');
       await useCase.execute({ user: PATREON_USER, content: 'q', conversationHistory: [] });
       const callArg = anthropic.messages.stream.mock.calls[0][0];
@@ -505,17 +480,8 @@ describe('ChatUseCase', () => {
     });
 
     it('does not add MCQ instructions to the system prompt for free users', async () => {
-      process.env.AI_MCQ_ENABLED = 'true';
       const { anthropic, useCase } = buildUseCase('reply');
       await useCase.execute({ user: FREE_USER, content: 'q', conversationHistory: [] });
-      const callArg = anthropic.messages.stream.mock.calls[0][0];
-      expect(callArg.system[0].text).not.toMatch(/correct_index/);
-    });
-
-    it('does not add MCQ instructions when the flag is off', async () => {
-      delete process.env.AI_MCQ_ENABLED;
-      const { anthropic, useCase } = buildUseCase('reply');
-      await useCase.execute({ user: PATREON_USER, content: 'q', conversationHistory: [] });
       const callArg = anthropic.messages.stream.mock.calls[0][0];
       expect(callArg.system[0].text).not.toMatch(/correct_index/);
     });

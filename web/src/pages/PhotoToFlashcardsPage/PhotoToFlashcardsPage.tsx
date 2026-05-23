@@ -19,6 +19,7 @@ const MAX_CARDS = 20;
 const DEFAULT_CARDS = 10;
 
 const CARD_COUNT_STORAGE_KEY = 'photoToFlashcards.cardCount';
+const MCQ_ENABLED_STORAGE_KEY = 'photoToFlashcards.mcqEnabled';
 
 function readStoredCardCount(): number {
   if (typeof window === 'undefined') return DEFAULT_CARDS;
@@ -27,6 +28,11 @@ function readStoredCardCount(): number {
     return DEFAULT_CARDS;
   }
   return Math.round(stored);
+}
+
+function readStoredMcqEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.localStorage.getItem(MCQ_ENABLED_STORAGE_KEY) === 'true';
 }
 
 function cardCountToDensity(count: number): Density {
@@ -89,6 +95,7 @@ export function PhotoToFlashcardsPage() {
   const [targetCardCount, setTargetCardCount] = useState<number>(readStoredCardCount);
   const density: Density = cardCountToDensity(targetCardCount);
   const [mode, setMode] = useState<PhotoMode>('generative');
+  const [includeMcq, setIncludeMcq] = useState<boolean>(readStoredMcqEnabled);
   const [verbatimEmptyState, setVerbatimEmptyState] = useState(false);
   const card1Ref = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -184,6 +191,7 @@ export function PhotoToFlashcardsPage() {
           includeSourceImage,
           density,
           mode,
+          mcqEnabled: includeMcq && isPaying,
         }),
       });
 
@@ -381,6 +389,31 @@ export function PhotoToFlashcardsPage() {
         </label>
         <p className={pageStyles.densityHint}>
           Helpful for diagrams, charts, and handwritten notes.
+        </p>
+
+        <label className={pageStyles.checkboxRow}>
+          <span className={pageStyles.toggleSwitch}>
+            <input
+              type="checkbox"
+              role="switch"
+              checked={isPaying && includeMcq}
+              disabled={!isPaying}
+              onChange={(e) => {
+                const next = e.target.checked;
+                setIncludeMcq(next);
+                if (typeof window !== 'undefined') {
+                  window.localStorage.setItem(MCQ_ENABLED_STORAGE_KEY, String(next));
+                }
+              }}
+            />
+            <span className={pageStyles.toggleSwitchTrack} aria-hidden />
+          </span>
+          Include multiple-choice questions
+        </label>
+        <p className={pageStyles.densityHint}>
+          {isPaying
+            ? 'When the source looks like a quiz, the AI writes options A–D.'
+            : 'Upgrade for multiple-choice cards.'}
         </p>
       </div>
 

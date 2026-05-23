@@ -10,8 +10,6 @@ import { countVisionTokens, VISION_TOKEN_CEILING, VisionMediaType } from '../../
 import { CREATE_DECK_DIR, CREATE_DECK_SCRIPT_PATH, TEMPLATE_DIR } from '../../lib/constants';
 import { track } from '../../services/events/track';
 import type { IEventsRepository } from '../../data_layer/EventsRepository';
-import { isAiMcqEnabled } from '../../lib/ai/aiMcqFlag';
-
 const REQUIRED_MCQ_OPTION_COUNT = 4;
 
 const MCQ_PROMPT_RULES = `- If the page shows a multiple-choice question with four options and a single correct answer, use: {"q":"question stem","options":["A","B","C","D"],"correct_index":0,"rationale":"why the correct option is right (optional)"}
@@ -41,6 +39,7 @@ export interface PhotoToFlashcardsInput {
   density?: PhotoDensity;
   mode?: PhotoMode;
   cardStyle?: PhotoCardStyle;
+  mcqEnabled?: boolean;
 }
 
 export interface PhotoToFlashcardsResult {
@@ -401,7 +400,7 @@ export class PhotoToFlashcardsUseCase {
     }
 
     const client = getAnthropicClient();
-    const mcqEnabled = isAiMcqEnabled({ isPaying: input.isPaying });
+    const mcqEnabled = (input.mcqEnabled ?? false) && input.isPaying;
     const mode = input.mode ?? DEFAULT_PHOTO_MODE;
 
     const response = await client.messages.create({

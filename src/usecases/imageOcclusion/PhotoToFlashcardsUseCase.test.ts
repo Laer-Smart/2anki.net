@@ -648,16 +648,6 @@ describe('PhotoToFlashcardsUseCase', () => {
       },
     ]);
 
-    const ORIGINAL_FLAG = process.env.AI_MCQ_ENABLED;
-
-    afterEach(() => {
-      if (ORIGINAL_FLAG === undefined) {
-        delete process.env.AI_MCQ_ENABLED;
-      } else {
-        process.env.AI_MCQ_ENABLED = ORIGINAL_FLAG;
-      }
-    });
-
     function readDeckPayload(): Array<{
       cards: Array<{
         mcq?: boolean;
@@ -673,14 +663,13 @@ describe('PhotoToFlashcardsUseCase', () => {
       return JSON.parse(writeCall![1] as string);
     }
 
-    it('emits mcq:true with options and correctIndices when flag is on and user pays', async () => {
-      process.env.AI_MCQ_ENABLED = 'true';
+    it('emits mcq:true with options and correctIndices when mcqEnabled and user pays', async () => {
       mockMessageCreate.mockResolvedValueOnce({
         content: [{ type: 'text', text: MCQ_RESPONSE }],
         usage: { input_tokens: 100, output_tokens: 50 },
       });
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true, mcqEnabled: true });
       const payload = readDeckPayload();
       const mcqCard = payload[0].cards[0];
       expect(mcqCard.mcq).toBe(true);
@@ -693,13 +682,12 @@ describe('PhotoToFlashcardsUseCase', () => {
     });
 
     it('drops malformed MCQs to basic and increments mcqSkippedCount', async () => {
-      process.env.AI_MCQ_ENABLED = 'true';
       mockMessageCreate.mockResolvedValueOnce({
         content: [{ type: 'text', text: MALFORMED_MCQ_RESPONSE }],
         usage: { input_tokens: 100, output_tokens: 50 },
       });
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true, mcqEnabled: true });
       const payload = readDeckPayload();
       expect(payload[0].cards).toHaveLength(4);
       expect(payload[0].cards[0].mcq).toBeFalsy();
@@ -710,37 +698,44 @@ describe('PhotoToFlashcardsUseCase', () => {
       expect(result.mcqSkippedCount).toBe(3);
     });
 
-    it('does not emit MCQ when the flag is off, even for paying users', async () => {
-      delete process.env.AI_MCQ_ENABLED;
+    it('does not emit MCQ when mcqEnabled is false, even for paying users', async () => {
       mockMessageCreate.mockResolvedValueOnce({
         content: [{ type: 'text', text: MCQ_RESPONSE }],
         usage: { input_tokens: 100, output_tokens: 50 },
       });
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true, mcqEnabled: false });
       const payload = readDeckPayload();
       expect(payload[0].cards[0].mcq).toBeFalsy();
       expect(result.mcqCount).toBe(0);
       expect(result.mcqSkippedCount).toBe(0);
     });
 
-    it('does not emit MCQ for free users, even when the flag is on', async () => {
-      process.env.AI_MCQ_ENABLED = 'true';
+    it('does not emit MCQ when mcqEnabled is omitted', async () => {
       mockMessageCreate.mockResolvedValueOnce({
         content: [{ type: 'text', text: MCQ_RESPONSE }],
         usage: { input_tokens: 100, output_tokens: 50 },
       });
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      const result = await useCase.execute({ ...BASE_INPUT, isPaying: false });
+      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      expect(result.mcqCount).toBe(0);
+    });
+
+    it('does not emit MCQ for free users even when mcqEnabled is true (server-side gate)', async () => {
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [{ type: 'text', text: MCQ_RESPONSE }],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      const result = await useCase.execute({ ...BASE_INPUT, isPaying: false, mcqEnabled: true });
       const payload = readDeckPayload();
       expect(payload[0].cards[0].mcq).toBeFalsy();
       expect(result.mcqCount).toBe(0);
     });
 
-    it('adds MCQ instructions to the generative prompt when emission is enabled', async () => {
-      process.env.AI_MCQ_ENABLED = 'true';
+    it('adds MCQ instructions to the generative prompt when the gate is open', async () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      await useCase.execute({ ...BASE_INPUT, isPaying: true, mcqEnabled: true });
       const [callArgs] = mockMessageCreate.mock.calls[0];
       const text = (
         callArgs.messages[0].content as Array<{ type: string; text?: string }>
@@ -749,10 +744,9 @@ describe('PhotoToFlashcardsUseCase', () => {
       expect(text).toMatch(/correct_index/);
     });
 
-    it('omits MCQ instructions from the generative prompt when the gate is closed', async () => {
-      delete process.env.AI_MCQ_ENABLED;
+    it('omits MCQ instructions when mcqEnabled is false', async () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      await useCase.execute({ ...BASE_INPUT, isPaying: true, mcqEnabled: false });
       const [callArgs] = mockMessageCreate.mock.calls[0];
       const text = (
         callArgs.messages[0].content as Array<{ type: string; text?: string }>

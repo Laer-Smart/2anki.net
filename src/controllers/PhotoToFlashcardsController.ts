@@ -30,6 +30,7 @@ interface RawPhotoBody {
   density?: unknown;
   mode?: unknown;
   cardStyle?: unknown;
+  mcqEnabled?: unknown;
 }
 
 function isAllowedMediaType(value: unknown): value is VisionMediaType {
@@ -89,6 +90,7 @@ export class PhotoToFlashcardsController {
 
     const mode = parseMode(body.mode);
     const cardStyle = parseCardStyle(body.cardStyle);
+    const mcqEnabled = body.mcqEnabled === true;
 
     let result: Awaited<ReturnType<PhotoToFlashcardsUseCase['execute']>>;
     try {
@@ -103,6 +105,7 @@ export class PhotoToFlashcardsController {
         density: parseDensity(body.density),
         mode,
         cardStyle,
+        mcqEnabled,
       });
     } catch (err) {
       const e = err as Error & {
