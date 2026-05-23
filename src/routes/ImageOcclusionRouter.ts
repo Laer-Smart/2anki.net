@@ -1,11 +1,15 @@
 import express from "express";
 import multer from "multer";
 import RequireAuthentication from "./middleware/RequireAuthentication";
+import RequireAnkifyAccess from "./middleware/RequireAnkifyAccess";
 import ImageOcclusionController from "../controllers/ImageOcclusionController";
 import { IoDraftController } from "../controllers/IoDraftController";
 import { PhotoToFlashcardsController } from "../controllers/PhotoToFlashcardsController";
+import { AutoSuggestOcclusionsController } from "../controllers/AutoSuggestOcclusionsController";
 import { CreateImageOcclusionDeckUseCase } from "../usecases/imageOcclusion/CreateImageOcclusionDeckUseCase";
 import { PhotoToFlashcardsUseCase } from "../usecases/imageOcclusion/PhotoToFlashcardsUseCase";
+import { AutoSuggestOcclusionsUseCase } from "../usecases/imageOcclusion/AutoSuggestOcclusionsUseCase";
+import { AutoOcclusionService } from "../services/imageOcclusion/AutoOcclusionService";
 import { IoDraftRepository } from "../data_layer/IoDraftRepository";
 import NotionRepository from "../data_layer/NotionRespository";
 import { EventsRepository } from "../data_layer/EventsRepository";
@@ -19,6 +23,9 @@ const ImageOcclusionRouter = () => {
   const oc = new ImageOcclusionController(new CreateImageOcclusionDeckUseCase());
   const dc = new IoDraftController(new IoDraftRepository(getDatabase()), new StorageHandler(), new NotionRepository(getDatabase()));
   const ptf = new PhotoToFlashcardsController(new PhotoToFlashcardsUseCase(new EventsRepository(getDatabase())));
+  const autoSuggest = new AutoSuggestOcclusionsController(
+    new AutoSuggestOcclusionsUseCase(new AutoOcclusionService())
+  );
 
   /**
    * @swagger
@@ -245,6 +252,44 @@ const ImageOcclusionRouter = () => {
    *         description: Authentication required or Notion not connected
    */
   router.post("/api/image-occlusion/draft/notion-image", RequireAuthentication, express.json(), (req,res)=>dc.importFromNotion(req,res));
+
+  /**
+   * @swagger
+   * /api/image-occlusion/auto-suggest:
+   *   post:
+   *     summary: Auto-suggest occlusion rects for an uploaded image (Auto Sync subscribers only)
+   *     tags: [ImageOcclusion]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               imageBase64:
+   *                 type: string
+   *               mediaType:
+   *                 type: string
+   *               width:
+   *                 type: number
+   *               height:
+   *                 type: number
+   *     responses:
+   *       200:
+   *         description: Array of suggested occlusion rects
+   *       400:
+   *         description: Invalid input
+   *       401:
+   *         description: Authentication required
+   *       403:
+   *         description: Auto Sync access required
+   *       413:
+   *         description: Image too large
+   */
+  router.post("/api/image-occlusion/auto-suggest", RequireAnkifyAccess, express.json({ limit: "20mb" }), (req,res)=>autoSuggest.suggest(req,res));
 
   return router;
 };

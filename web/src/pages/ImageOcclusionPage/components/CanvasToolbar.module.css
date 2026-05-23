@@ -56,6 +56,50 @@
   cursor: not-allowed;
 }
 
+.clearSuggestions {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.clearSuggestions:hover {
+  color: var(--color-text-primary);
+}
+
+.autoSuggest {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.autoSuggest:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: var(--color-bg-primary);
+}
+
+.autoSuggest:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .zoomReadout {
   display: inline-flex;
   align-items: center;

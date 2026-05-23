@@ -1,13 +1,17 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { OcclusionRect, ImageEntry } from '../types';
-import { CanvasToolbar, ActiveTool } from './CanvasToolbar';
-import { useOcclusionHistory } from '../hooks/useOcclusionHistory';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useCanvasZoom } from '../hooks/useCanvasZoom';
+import { useOcclusionHistory } from '../hooks/useOcclusionHistory';
 import styles from '../ImageOcclusionPage.module.css';
+import { ImageEntry, OcclusionRect } from '../types';
+import { ActiveTool, CanvasToolbar } from './CanvasToolbar';
 
 interface Props {
   entry: ImageEntry;
   onRectsChange: (rects: OcclusionRect[]) => void;
+  suggestionCount?: number;
+  onAutoSuggest?: () => void;
+  canAutoSuggest?: boolean;
+  isAutoSuggesting?: boolean;
 }
 
 interface DraftRect {
@@ -78,7 +82,13 @@ function duplicateRects(rects: OcclusionRect[]): OcclusionRect[] {
       }));
       const xs = points.map((p) => p.x);
       const ys = points.map((p) => p.y);
-      return { ...r, id: newId, points, x: Math.min(...xs), y: Math.min(...ys) };
+      return {
+        ...r,
+        id: newId,
+        points,
+        x: Math.min(...xs),
+        y: Math.min(...ys),
+      };
     }
     return {
       ...r,
@@ -89,7 +99,14 @@ function duplicateRects(rects: OcclusionRect[]): OcclusionRect[] {
   });
 }
 
-export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
+export function OcclusionCanvas({
+  entry,
+  onRectsChange,
+  suggestionCount,
+  onAutoSuggest,
+  canAutoSuggest,
+  isAutoSuggesting,
+}: Readonly<Props>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -102,12 +119,17 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
   const [middleMousePanning, setMiddleMousePanning] = useState(false);
   const [activeTool, setActiveTool] = useState<ActiveTool>('rect');
   const [masksHidden, setMasksHidden] = useState(false);
-  const [pendingPolygon, setPendingPolygon] = useState<{ x: number; y: number }[]>([]);
-  const [cursorPt, setCursorPt] = useState<{ x: number; y: number } | null>(null);
+  const [pendingPolygon, setPendingPolygon] = useState<
+    { x: number; y: number }[]
+  >([]);
+  const [cursorPt, setCursorPt] = useState<{ x: number; y: number } | null>(
+    null
+  );
   const [labelInput, setLabelInput] = useState('');
 
   const history = useOcclusionHistory(entry.rects);
-  const { zoom, setZoom, panX, panY, setPan, handleWheel, fitZoom } = useCanvasZoom();
+  const { zoom, setZoom, panX, panY, setPan, handleWheel, fitZoom } =
+    useCanvasZoom();
 
   const entryId = entry.id;
   useEffect(() => {
@@ -140,7 +162,12 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
     const svg = svgRef.current;
     if (!svg) return { x: 0, y: 0, svgW: 1, svgH: 1 };
     const r = svg.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top, svgW: r.width, svgH: r.height };
+    return {
+      x: e.clientX - r.left,
+      y: e.clientY - r.top,
+      svgW: r.width,
+      svgH: r.height,
+    };
   }, []);
 
   const toNormPt = useCallback(
@@ -195,14 +222,32 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
       if (e.button === 1) {
         e.preventDefault();
         setMiddleMousePanning(true);
-        setPanState({ startPx: e.clientX, startPy: e.clientY, startPanX: panX, startPanY: panY });
-        try { (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId); } catch { /* jsdom */ }
+        setPanState({
+          startPx: e.clientX,
+          startPy: e.clientY,
+          startPanX: panX,
+          startPanY: panY,
+        });
+        try {
+          (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
+        } catch {
+          /* jsdom */
+        }
         return;
       }
 
       if (spaceHeld) {
-        setPanState({ startPx: e.clientX, startPy: e.clientY, startPanX: panX, startPanY: panY });
-        try { (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId); } catch { /* jsdom */ }
+        setPanState({
+          startPx: e.clientX,
+          startPy: e.clientY,
+          startPanX: panX,
+          startPanY: panY,
+        });
+        try {
+          (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
+        } catch {
+          /* jsdom */
+        }
         return;
       }
 
@@ -212,7 +257,9 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
 
       if (handleEl) {
         const dir = handleEl.getAttribute('data-handle') as HandleDir;
-        const rectId = handleEl.closest('[data-rect]')?.getAttribute('data-rect');
+        const rectId = handleEl
+          .closest('[data-rect]')
+          ?.getAttribute('data-rect');
         if (!rectId) return;
         const rect = entry.rects.find((r) => r.id === rectId);
         if (!rect) return;
@@ -226,7 +273,11 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
           startPy: y,
           startRects: [{ ...rect }],
         });
-        try { (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId); } catch { /* jsdom */ }
+        try {
+          (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
+        } catch {
+          /* jsdom */
+        }
         return;
       }
 
@@ -260,7 +311,11 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
           startPy: y,
           startRects: activeRects.map((r) => ({ ...r })),
         });
-        try { (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId); } catch { /* jsdom */ }
+        try {
+          (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
+        } catch {
+          /* jsdom */
+        }
         return;
       }
 
@@ -281,16 +336,35 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
 
         setPendingPolygon((prev) => [...prev, { x: nx, y: ny }]);
         setSelectedIds(new Set());
-        try { (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId); } catch { /* jsdom */ }
+        try {
+          (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
+        } catch {
+          /* jsdom */
+        }
         return;
       }
 
       const { x, y } = getSvgPt(e);
       setDraft({ startX: x, startY: y, currentX: x, currentY: y });
       setSelectedIds(new Set());
-      try { (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId); } catch { /* jsdom */ }
+      try {
+        (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
+      } catch {
+        /* jsdom */
+      }
     },
-    [entry.rects, getSvgPt, toNormPt, selectedIds, spaceHeld, panX, panY, activeTool, pendingPolygon, closePolygon]
+    [
+      entry.rects,
+      getSvgPt,
+      toNormPt,
+      selectedIds,
+      spaceHeld,
+      panX,
+      panY,
+      activeTool,
+      pendingPolygon,
+      closePolygon,
+    ]
   );
 
   const handleDoubleClick = useCallback(
@@ -330,22 +404,49 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
               }));
               const xs = newPoints.map((p) => p.x);
               const ys = newPoints.map((p) => p.y);
-              return { ...r, points: newPoints, x: Math.min(...xs), y: Math.min(...ys) };
+              return {
+                ...r,
+                points: newPoints,
+                x: Math.min(...xs),
+                y: Math.min(...ys),
+              };
             }
             const clamped = clampRect(sr.x + dx, sr.y + dy, sr.w, sr.h);
             return { ...r, ...clamped };
           }
 
           const h = drag.handle!;
-          let nx = sr.x, ny = sr.y, nw = sr.w, nh = sr.h;
-          if (h === 'nw') { nx = sr.x + dx; ny = sr.y + dy; nw = sr.w - dx; nh = sr.h - dy; }
-          else if (h === 'n') { ny = sr.y + dy; nh = sr.h - dy; }
-          else if (h === 'ne') { ny = sr.y + dy; nw = sr.w + dx; nh = sr.h - dy; }
-          else if (h === 'e') { nw = sr.w + dx; }
-          else if (h === 'se') { nw = sr.w + dx; nh = sr.h + dy; }
-          else if (h === 's') { nh = sr.h + dy; }
-          else if (h === 'sw') { nx = sr.x + dx; nw = sr.w - dx; nh = sr.h + dy; }
-          else if (h === 'w') { nx = sr.x + dx; nw = sr.w - dx; }
+          let nx = sr.x,
+            ny = sr.y,
+            nw = sr.w,
+            nh = sr.h;
+          if (h === 'nw') {
+            nx = sr.x + dx;
+            ny = sr.y + dy;
+            nw = sr.w - dx;
+            nh = sr.h - dy;
+          } else if (h === 'n') {
+            ny = sr.y + dy;
+            nh = sr.h - dy;
+          } else if (h === 'ne') {
+            ny = sr.y + dy;
+            nw = sr.w + dx;
+            nh = sr.h - dy;
+          } else if (h === 'e') {
+            nw = sr.w + dx;
+          } else if (h === 'se') {
+            nw = sr.w + dx;
+            nh = sr.h + dy;
+          } else if (h === 's') {
+            nh = sr.h + dy;
+          } else if (h === 'sw') {
+            nx = sr.x + dx;
+            nw = sr.w - dx;
+            nh = sr.h + dy;
+          } else if (h === 'w') {
+            nx = sr.x + dx;
+            nw = sr.w - dx;
+          }
           const clamped = clampRect(nx, ny, nw, nh);
           return { ...r, ...clamped };
         });
@@ -356,7 +457,9 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
 
       if (draft) {
         const { x, y } = getSvgPt(e);
-        setDraft((prev) => (prev ? { ...prev, currentX: x, currentY: y } : null));
+        setDraft((prev) =>
+          prev ? { ...prev, currentX: x, currentY: y } : null
+        );
       }
 
       if (activeTool === 'polygon' && pendingPolygon.length > 0) {
@@ -364,7 +467,18 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
         setCursorPt({ x, y });
       }
     },
-    [panState, drag, draft, getSvgPt, entry.rects, onRectsChange, zoom, setPan, activeTool, pendingPolygon.length]
+    [
+      panState,
+      drag,
+      draft,
+      getSvgPt,
+      entry.rects,
+      onRectsChange,
+      zoom,
+      setPan,
+      activeTool,
+      pendingPolygon.length,
+    ]
   );
 
   const handlePointerUp = useCallback(
@@ -376,7 +490,24 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
       }
 
       if (drag) {
-        pushAndNotify(entry.rects);
+        const { x, y } = getSvgPt(e);
+        const movedPx = Math.hypot(x - drag.startPx, y - drag.startPy);
+        const isTap = movedPx < 5;
+        const promoted = entry.rects.map((r) => {
+          const inDrag = drag.rectIds.includes(r.id);
+          if (
+            r.source === 'auto' &&
+            inDrag &&
+            (isTap || drag.type === 'resize')
+          ) {
+            return { ...r, source: 'manual' as const };
+          }
+          if (r.source === 'auto' && inDrag && drag.type === 'move' && !isTap) {
+            return { ...r, source: 'manual' as const };
+          }
+          return r;
+        });
+        pushAndNotify(promoted);
         setDrag(null);
         return;
       }
@@ -386,7 +517,12 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
       const wPx = Math.abs(x - draft.startX);
       const hPx = Math.abs(y - draft.startY);
       if (wPx >= 10 && hPx >= 10) {
-        const { nx: nx1, ny: ny1 } = toNormPt(draft.startX, draft.startY, svgW, svgH);
+        const { nx: nx1, ny: ny1 } = toNormPt(
+          draft.startX,
+          draft.startY,
+          svgW,
+          svgH
+        );
         const { nx: nx2, ny: ny2 } = toNormPt(x, y, svgW, svgH);
         const raw = clampRect(
           Math.min(nx1, nx2),
@@ -394,15 +530,30 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
           Math.abs(nx2 - nx1),
           Math.abs(ny2 - ny1)
         );
-        const shape: OcclusionRect['shape'] = activeTool === 'ellipse' ? 'ellipse' : 'rect';
-        const newRect: OcclusionRect = { id: generateId(), label: '', shape, ...raw };
+        const shape: OcclusionRect['shape'] =
+          activeTool === 'ellipse' ? 'ellipse' : 'rect';
+        const newRect: OcclusionRect = {
+          id: generateId(),
+          label: '',
+          shape,
+          ...raw,
+        };
         const next = [...entry.rects, newRect];
         pushAndNotify(next);
         setSelectedIds(new Set([newRect.id]));
       }
       setDraft(null);
     },
-    [panState, drag, draft, getSvgPt, toNormPt, entry.rects, pushAndNotify, activeTool]
+    [
+      panState,
+      drag,
+      draft,
+      getSvgPt,
+      toNormPt,
+      entry.rects,
+      pushAndNotify,
+      activeTool,
+    ]
   );
 
   const handleKeyDown = useCallback(
@@ -446,7 +597,10 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
         return;
       }
 
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.size > 0) {
+      if (
+        (e.key === 'Delete' || e.key === 'Backspace') &&
+        selectedIds.size > 0
+      ) {
         const next = entry.rects.filter((r) => !selectedIds.has(r.id));
         pushAndNotify(next);
         setSelectedIds(new Set());
@@ -466,7 +620,9 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
       setLabelInput(value);
       const [id] = Array.from(selectedIds);
       if (!id) return;
-      const next = entry.rects.map((r) => (r.id === id ? { ...r, label: value } : r));
+      const next = entry.rects.map((r) =>
+        r.id === id ? { ...r, label: value } : r
+      );
       onRectsChange(next);
     },
     [selectedIds, entry.rects, onRectsChange]
@@ -480,6 +636,17 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
     pushAndNotify(next);
     setSelectedIds(new Set(duped.map((r) => r.id)));
   }, [selectedIds, entry.rects, pushAndNotify]);
+
+  const handleClearSuggestions = useCallback(() => {
+    const next = entry.rects.filter((r) => r.source !== 'auto');
+    pushAndNotify(next);
+    setSelectedIds((prev) => {
+      const autoIds = new Set(
+        entry.rects.filter((r) => r.source === 'auto').map((r) => r.id)
+      );
+      return new Set(Array.from(prev).filter((id) => !autoIds.has(id)));
+    });
+  }, [entry.rects, pushAndNotify]);
 
   const handleDelete = useCallback(() => {
     if (selectedIds.size === 0) return;
@@ -502,7 +669,12 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
     const img = imgRef.current;
     const container = containerRef.current;
     if (!img || !container) return;
-    fitZoom(img.naturalWidth, img.naturalHeight, container.clientWidth, container.clientHeight);
+    fitZoom(
+      img.naturalWidth,
+      img.naturalHeight,
+      container.clientWidth,
+      container.clientHeight
+    );
   }, [fitZoom]);
 
   const draftDisplay = useMemo(
@@ -523,7 +695,10 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
     return 'crosshair';
   })();
 
-  const selectedOne = selectedIds.size === 1 ? entry.rects.find((r) => selectedIds.has(r.id)) ?? null : null;
+  const selectedOne =
+    selectedIds.size === 1
+      ? (entry.rects.find((r) => selectedIds.has(r.id)) ?? null)
+      : null;
 
   const [svgSize, setSvgSize] = useState({ w: 1, h: 1 });
   useEffect(() => {
@@ -554,6 +729,14 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
         zoom={zoom}
         onZoomChange={setZoom}
         onFitZoom={handleFitZoom}
+        suggestionCount={
+          suggestionCount ??
+          entry.rects.filter((r) => r.source === 'auto').length
+        }
+        onClearSuggestions={handleClearSuggestions}
+        onAutoSuggest={onAutoSuggest}
+        canAutoSuggest={canAutoSuggest}
+        isAutoSuggesting={isAutoSuggesting}
       />
       <div
         ref={containerRef}
@@ -590,12 +773,29 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
             {entry.rects.map((rect, i) => {
               const isSelected = selectedIds.has(rect.id);
               const isGrouped = rect.groupId != null;
-              const fillOpacity = masksHidden ? 0 : 0.7;
+              const isSuggested = rect.source === 'auto';
+              let fillOpacity: number;
+              if (masksHidden) {
+                fillOpacity = 0;
+              } else if (isSuggested) {
+                fillOpacity = 0.35;
+              } else {
+                fillOpacity = 0.7;
+              }
               const strokeOpacity = masksHidden ? 0.3 : 1;
-              const strokeDasharray = masksHidden ? '4 2' : undefined;
-              const fillColor = isSelected ? '#ff8e8e' : '#ffeba2';
+              const strokeDasharray =
+                masksHidden || isSuggested ? '6 3' : undefined;
+              let fillColor: string;
+              if (isSelected) {
+                fillColor = '#ff8e8e';
+              } else if (isSuggested) {
+                fillColor = '#b3d9ff';
+              } else {
+                fillColor = '#ffeba2';
+              }
               const strokeWidth = isGrouped ? 3 : 2;
-              const isDragging = drag?.rectIds.includes(rect.id) && drag.type === 'move';
+              const isDragging =
+                drag?.rectIds.includes(rect.id) && drag.type === 'move';
               const groupCursor = isDragging ? 'grabbing' : 'grab';
 
               const x = `${rect.x * 100}%`;
@@ -623,17 +823,32 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
                 <rect
                   key={dir}
                   data-handle={dir}
-                  x={hx} y={hy} width={hs} height={hs}
+                  x={hx}
+                  y={hy}
+                  width={hs}
+                  height={hs}
                   transform={`translate(-${hs / 2}, -${hs / 2})`}
-                  fill="#fff" stroke="#212121" strokeWidth={1.5}
+                  fill="#fff"
+                  stroke="#212121"
+                  strokeWidth={1.5}
                   style={{ cursor: cur }}
                 />
               ));
 
-              if (rect.shape === 'polygon' && rect.points && rect.points.length >= 3) {
-                const pointsAttr = rect.points.map((p) => `${p.x * svgSize.w},${p.y * svgSize.h}`).join(' ');
+              if (
+                rect.shape === 'polygon' &&
+                rect.points &&
+                rect.points.length >= 3
+              ) {
+                const pointsAttr = rect.points
+                  .map((p) => `${p.x * svgSize.w},${p.y * svgSize.h}`)
+                  .join(' ');
                 return (
-                  <g key={rect.id} data-rect={rect.id} style={{ cursor: groupCursor }}>
+                  <g
+                    key={rect.id}
+                    data-rect={rect.id}
+                    style={{ cursor: groupCursor }}
+                  >
                     <polygon
                       points={pointsAttr}
                       fill={fillColor}
@@ -644,21 +859,39 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
                       strokeDasharray={strokeDasharray}
                     />
                     {isGrouped && (
-                      <text x={x} y={y} dy="-0.3em" fontSize={10} fill="#212121"
-                        style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                      <text
+                        x={x}
+                        y={y}
+                        dy="-0.3em"
+                        fontSize={10}
+                        fill="#212121"
+                        style={{ pointerEvents: 'none', userSelect: 'none' }}
+                      >
                         G
                       </text>
                     )}
-                    <text x={mx} y={my} textAnchor="middle" dominantBaseline="middle"
-                      fontSize={11} fontWeight="bold" fill="#212121"
-                      style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                    <text
+                      x={mx}
+                      y={my}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fontSize={11}
+                      fontWeight="bold"
+                      fill="#212121"
+                      style={{ pointerEvents: 'none', userSelect: 'none' }}
+                    >
                       {i + 1}
                     </text>
                     {isSelected && (
                       <rect
-                        x={mx} y={my} width={hs} height={hs}
+                        x={mx}
+                        y={my}
+                        width={hs}
+                        height={hs}
                         transform={`translate(-${hs / 2}, -${hs / 2})`}
-                        fill="#fff" stroke="#212121" strokeWidth={1.5}
+                        fill="#fff"
+                        stroke="#212121"
+                        strokeWidth={1.5}
                         style={{ cursor: 'move' }}
                       />
                     )}
@@ -672,9 +905,16 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
                 const rx = `${(rect.w / 2) * 100}%`;
                 const ry = `${(rect.h / 2) * 100}%`;
                 return (
-                  <g key={rect.id} data-rect={rect.id} style={{ cursor: groupCursor }}>
+                  <g
+                    key={rect.id}
+                    data-rect={rect.id}
+                    style={{ cursor: groupCursor }}
+                  >
                     <ellipse
-                      cx={ecx} cy={ecy} rx={rx} ry={ry}
+                      cx={ecx}
+                      cy={ecy}
+                      rx={rx}
+                      ry={ry}
                       fill={fillColor}
                       fillOpacity={fillOpacity}
                       stroke="#212121"
@@ -683,20 +923,40 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
                       strokeDasharray={strokeDasharray}
                     />
                     {rect.label && (
-                      <text x={x} y={y} dy="1.2em" dx="0.3em" fontSize={12} fill="#212121"
-                        style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                      <text
+                        x={x}
+                        y={y}
+                        dy="1.2em"
+                        dx="0.3em"
+                        fontSize={12}
+                        fill="#212121"
+                        style={{ pointerEvents: 'none', userSelect: 'none' }}
+                      >
                         {rect.label}
                       </text>
                     )}
                     {isGrouped && (
-                      <text x={x} y={y} dy="-0.3em" fontSize={10} fill="#212121"
-                        style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                      <text
+                        x={x}
+                        y={y}
+                        dy="-0.3em"
+                        fontSize={10}
+                        fill="#212121"
+                        style={{ pointerEvents: 'none', userSelect: 'none' }}
+                      >
                         G
                       </text>
                     )}
-                    <text x={mx} y={my} textAnchor="middle" dominantBaseline="middle"
-                      fontSize={11} fontWeight="bold" fill="#212121"
-                      style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                    <text
+                      x={mx}
+                      y={my}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fontSize={11}
+                      fontWeight="bold"
+                      fill="#212121"
+                      style={{ pointerEvents: 'none', userSelect: 'none' }}
+                    >
                       {i + 1}
                     </text>
                     {isSelected && handles}
@@ -705,9 +965,16 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
               }
 
               return (
-                <g key={rect.id} data-rect={rect.id} style={{ cursor: groupCursor }}>
+                <g
+                  key={rect.id}
+                  data-rect={rect.id}
+                  style={{ cursor: groupCursor }}
+                >
                   <rect
-                    x={x} y={y} width={w} height={h}
+                    x={x}
+                    y={y}
+                    width={w}
+                    height={h}
                     fill={fillColor}
                     fillOpacity={fillOpacity}
                     stroke="#212121"
@@ -716,20 +983,40 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
                     strokeDasharray={strokeDasharray}
                   />
                   {rect.label && (
-                    <text x={x} y={y} dy="1.2em" dx="0.3em" fontSize={12} fill="#212121"
-                      style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                    <text
+                      x={x}
+                      y={y}
+                      dy="1.2em"
+                      dx="0.3em"
+                      fontSize={12}
+                      fill="#212121"
+                      style={{ pointerEvents: 'none', userSelect: 'none' }}
+                    >
                       {rect.label}
                     </text>
                   )}
                   {isGrouped && (
-                    <text x={x} y={y} dy="-0.3em" fontSize={10} fill="#212121"
-                      style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                    <text
+                      x={x}
+                      y={y}
+                      dy="-0.3em"
+                      fontSize={10}
+                      fill="#212121"
+                      style={{ pointerEvents: 'none', userSelect: 'none' }}
+                    >
                       G
                     </text>
                   )}
-                  <text x={mx} y={my} textAnchor="middle" dominantBaseline="middle"
-                    fontSize={11} fontWeight="bold" fill="#212121"
-                    style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                  <text
+                    x={mx}
+                    y={my}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize={11}
+                    fontWeight="bold"
+                    fill="#212121"
+                    style={{ pointerEvents: 'none', userSelect: 'none' }}
+                  >
                     {i + 1}
                   </text>
                   {isSelected && handles}
@@ -737,83 +1024,95 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
               );
             })}
 
-            {pendingPolygon.length > 0 && (() => {
-              const ptStr = pendingPolygon.map((p) => `${p.x * svgSize.w},${p.y * svgSize.h}`).join(' ');
-              const first = pendingPolygon[0];
-              const last = pendingPolygon[pendingPolygon.length - 1];
-              return (
-                <>
-                  <polyline
-                    points={ptStr}
-                    fill="none"
-                    stroke="#212121"
-                    strokeWidth={2}
-                    strokeDasharray="4 2"
-                    style={{ pointerEvents: 'none' }}
-                  />
-                  {cursorPt && (
-                    <line
-                      x1={last.x * svgSize.w}
-                      y1={last.y * svgSize.h}
-                      x2={cursorPt.x}
-                      y2={cursorPt.y}
+            {pendingPolygon.length > 0 &&
+              (() => {
+                const ptStr = pendingPolygon
+                  .map((p) => `${p.x * svgSize.w},${p.y * svgSize.h}`)
+                  .join(' ');
+                const first = pendingPolygon[0];
+                const last = pendingPolygon[pendingPolygon.length - 1];
+                return (
+                  <>
+                    <polyline
+                      points={ptStr}
+                      fill="none"
+                      stroke="#212121"
+                      strokeWidth={2}
+                      strokeDasharray="4 2"
+                      style={{ pointerEvents: 'none' }}
+                    />
+                    {cursorPt && (
+                      <line
+                        x1={last.x * svgSize.w}
+                        y1={last.y * svgSize.h}
+                        x2={cursorPt.x}
+                        y2={cursorPt.y}
+                        stroke="#4f46e5"
+                        strokeWidth={1.5}
+                        strokeDasharray="5 3"
+                        style={{ pointerEvents: 'none' }}
+                      />
+                    )}
+                    {pendingPolygon.length >= 2 && (
+                      <line
+                        x1={last.x * svgSize.w}
+                        y1={last.y * svgSize.h}
+                        x2={first.x * svgSize.w}
+                        y2={first.y * svgSize.h}
+                        stroke="#888"
+                        strokeWidth={1}
+                        strokeDasharray="3 3"
+                        style={{ pointerEvents: 'none' }}
+                      />
+                    )}
+                    <circle
+                      cx={first.x * svgSize.w}
+                      cy={first.y * svgSize.h}
+                      r={POLYGON_CLOSE_DIST / 2}
+                      fill="rgba(79,70,229,0.25)"
                       stroke="#4f46e5"
                       strokeWidth={1.5}
-                      strokeDasharray="5 3"
                       style={{ pointerEvents: 'none' }}
                     />
-                  )}
-                  {pendingPolygon.length >= 2 && (
-                    <line
-                      x1={last.x * svgSize.w}
-                      y1={last.y * svgSize.h}
-                      x2={first.x * svgSize.w}
-                      y2={first.y * svgSize.h}
-                      stroke="#888"
-                      strokeWidth={1}
-                      strokeDasharray="3 3"
-                      style={{ pointerEvents: 'none' }}
-                    />
-                  )}
-                  <circle
-                    cx={first.x * svgSize.w}
-                    cy={first.y * svgSize.h}
-                    r={POLYGON_CLOSE_DIST / 2}
-                    fill="rgba(79,70,229,0.25)"
-                    stroke="#4f46e5"
-                    strokeWidth={1.5}
-                    style={{ pointerEvents: 'none' }}
-                  />
-                </>
-              );
-            })()}
+                  </>
+                );
+              })()}
 
-            {draftDisplay != null && (
-              activeTool === 'ellipse' ? (
+            {draftDisplay != null &&
+              (activeTool === 'ellipse' ? (
                 <ellipse
                   cx={draftDisplay.x + draftDisplay.w / 2}
                   cy={draftDisplay.y + draftDisplay.h / 2}
                   rx={draftDisplay.w / 2}
                   ry={draftDisplay.h / 2}
-                  fill="#ffeba2" fillOpacity={0.5}
-                  stroke="#212121" strokeWidth={1} strokeDasharray="4 2"
+                  fill="#ffeba2"
+                  fillOpacity={0.5}
+                  stroke="#212121"
+                  strokeWidth={1}
+                  strokeDasharray="4 2"
                 />
               ) : (
                 <rect
-                  x={draftDisplay.x} y={draftDisplay.y}
-                  width={draftDisplay.w} height={draftDisplay.h}
-                  fill="#ffeba2" fillOpacity={0.5}
-                  stroke="#212121" strokeWidth={1} strokeDasharray="4 2"
+                  x={draftDisplay.x}
+                  y={draftDisplay.y}
+                  width={draftDisplay.w}
+                  height={draftDisplay.h}
+                  fill="#ffeba2"
+                  fillOpacity={0.5}
+                  stroke="#212121"
+                  strokeWidth={1}
+                  strokeDasharray="4 2"
                 />
-              )
-            )}
+              ))}
           </svg>
         </div>
-        {entry.rects.length === 0 && draft == null && pendingPolygon.length === 0 && (
-          <div className={styles.canvasEmptyHint}>
-            Drag a box over each area to hide.
-          </div>
-        )}
+        {entry.rects.length === 0 &&
+          draft == null &&
+          pendingPolygon.length === 0 && (
+            <div className={styles.canvasEmptyHint}>
+              Drag a box over each area to hide.
+            </div>
+          )}
         {selectedOne != null && (
           <div className={styles.labelInputWrapper}>
             <input

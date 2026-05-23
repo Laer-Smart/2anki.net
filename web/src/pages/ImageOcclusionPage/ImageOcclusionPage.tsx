@@ -1,18 +1,21 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-
-import { useUserLocals } from '../../lib/hooks/useUserLocals';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
-import { ImageEntry, OcclusionRect } from './types';
-import { OcclusionCanvas } from './components/OcclusionCanvas';
+import { useUserLocals } from '../../lib/hooks/useUserLocals';
+import styles from '../../styles/shared.module.css';
 import { ImageQueue } from './components/ImageQueue';
 import { NotionImportDrawer } from './components/NotionImportDrawer';
-import styles from '../../styles/shared.module.css';
+import { OcclusionCanvas } from './components/OcclusionCanvas';
 import pageStyles from './ImageOcclusionPage.module.css';
+import { ImageEntry, OcclusionRect } from './types';
 
 type Mode = 'hide_all' | 'hide_one';
 
-async function buildDownloadFormData(deckName: string, mode: Mode, entries: ImageEntry[]): Promise<FormData> {
+async function buildDownloadFormData(
+  deckName: string,
+  mode: Mode,
+  entries: ImageEntry[]
+): Promise<FormData> {
   const form = new FormData();
 
   const images = entries.map((entry) => ({
@@ -20,7 +23,12 @@ async function buildDownloadFormData(deckName: string, mode: Mode, entries: Imag
     header: entry.header,
     s3Key: entry.s3Key ?? undefined,
     rects: entry.rects.map((r) => ({
-      x: r.x, y: r.y, w: r.w, h: r.h, label: r.label, shape: r.shape,
+      x: r.x,
+      y: r.y,
+      w: r.w,
+      h: r.h,
+      label: r.label,
+      shape: r.shape,
       ...(r.points == null ? {} : { points: r.points }),
       ...(r.groupId == null ? {} : { groupId: r.groupId }),
     })),
@@ -37,7 +45,9 @@ async function buildDownloadFormData(deckName: string, mode: Mode, entries: Imag
   return form;
 }
 
-async function uploadImageToServer(file: File): Promise<{ s3Key: string; presignedUrl: string }> {
+async function uploadImageToServer(
+  file: File
+): Promise<{ s3Key: string; presignedUrl: string }> {
   const form = new FormData();
   form.append('image', file, file.name);
   const res = await fetch('/api/image-occlusion/draft/image', {
@@ -49,7 +59,11 @@ async function uploadImageToServer(file: File): Promise<{ s3Key: string; presign
   return res.json() as Promise<{ s3Key: string; presignedUrl: string }>;
 }
 
-async function createDraft(name: string, mode: Mode, images: unknown[]): Promise<string | null> {
+async function createDraft(
+  name: string,
+  mode: Mode,
+  images: unknown[]
+): Promise<string | null> {
   const res = await fetch('/api/image-occlusion/draft', {
     method: 'POST',
     credentials: 'include',
@@ -61,7 +75,12 @@ async function createDraft(name: string, mode: Mode, images: unknown[]): Promise
   return body.id;
 }
 
-async function updateDraft(id: string, name: string, mode: Mode, images: unknown[]): Promise<void> {
+async function updateDraft(
+  id: string,
+  name: string,
+  mode: Mode,
+  images: unknown[]
+): Promise<void> {
   await fetch(`/api/image-occlusion/draft/${id}`, {
     method: 'PUT',
     credentials: 'include',
@@ -74,24 +93,72 @@ async function loadLatestDraft(): Promise<{
   id: string;
   name: string;
   mode: Mode;
-  images: Array<{ s3Key: string; imageName: string; header: string; rects: OcclusionRect[]; presignedUrl: string }>;
+  images: Array<{
+    s3Key: string;
+    imageName: string;
+    header: string;
+    rects: OcclusionRect[];
+    presignedUrl: string;
+  }>;
 } | null> {
-  const listRes = await fetch('/api/image-occlusion/drafts', { credentials: 'include' });
+  const listRes = await fetch('/api/image-occlusion/drafts', {
+    credentials: 'include',
+  });
   if (!listRes.ok) return null;
   const list = (await listRes.json()) as Array<{ id: string }>;
   if (list.length === 0) return null;
-  const res = await fetch(`/api/image-occlusion/draft/${list[0].id}`, { credentials: 'include' });
+  const res = await fetch(`/api/image-occlusion/draft/${list[0].id}`, {
+    credentials: 'include',
+  });
   if (!res.ok) return null;
   return res.json() as Promise<{
     id: string;
     name: string;
     mode: Mode;
-    images: Array<{ s3Key: string; imageName: string; header: string; rects: OcclusionRect[]; presignedUrl: string }>;
+    images: Array<{
+      s3Key: string;
+      imageName: string;
+      header: string;
+      rects: OcclusionRect[];
+      presignedUrl: string;
+    }>;
   } | null>;
 }
 
 async function deleteDraft(id: string): Promise<void> {
-  await fetch(`/api/image-occlusion/draft/${id}`, { method: 'DELETE', credentials: 'include' });
+  await fetch(`/api/image-occlusion/draft/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+}
+
+interface SuggestedRectResponse {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  label: string;
+  shape: 'rect';
+  confidence: number;
+  source: 'auto';
+}
+
+async function fetchAutoSuggestions(
+  imageBase64: string,
+  mediaType: string,
+  width: number,
+  height: number
+): Promise<SuggestedRectResponse[]> {
+  const res = await fetch('/api/image-occlusion/auto-suggest', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageBase64, mediaType, width, height }),
+  });
+  if (!res.ok) return [];
+  const body = (await res.json()) as { rects: SuggestedRectResponse[] };
+  return body.rects ?? [];
 }
 
 export function ImageOcclusionPage() {
@@ -109,8 +176,17 @@ export function ImageOcclusionPage() {
   const [error, setError] = useState<string | null>(null);
   const [isNotionConnected, setIsNotionConnected] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [mobileDismissed, setMobileDismissed] = useState(() =>
-    typeof window !== 'undefined' && localStorage.getItem('io_mobile_dismissed') === '1'
+  const [mobileDismissed, setMobileDismissed] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      localStorage.getItem('io_mobile_dismissed') === '1'
+  );
+
+  const [detectingFor, setDetectingFor] = useState<string | null>(null);
+  const [tooltipDismissed, setTooltipDismissed] = useState(
+    () =>
+      typeof window !== 'undefined' &&
+      localStorage.getItem('io_auto_tooltip_dismissed') === '1'
   );
 
   useEffect(() => {
@@ -165,13 +241,22 @@ export function ImageOcclusionPage() {
     saveTimer.current = setTimeout(async () => {
       const images = entries
         .filter((e) => e.s3Key != null)
-        .map((e) => ({ s3Key: e.s3Key, imageName: e.imageName, header: e.header, rects: e.rects }));
+        .map((e) => ({
+          s3Key: e.s3Key,
+          imageName: e.imageName,
+          header: e.header,
+          rects: e.rects,
+        }));
       const currentId = draftIdRef.current;
       if (currentId == null) {
-        const newId = await createDraft(deckName, mode, images).catch(() => null);
+        const newId = await createDraft(deckName, mode, images).catch(
+          () => null
+        );
         if (newId != null) setDraftId(newId);
       } else {
-        await updateDraft(currentId, deckName, mode, images).catch(() => undefined);
+        await updateDraft(currentId, deckName, mode, images).catch(
+          () => undefined
+        );
       }
     }, 1000);
     return () => {
@@ -180,6 +265,81 @@ export function ImageOcclusionPage() {
   }, [deckName, mode, entries, hydrated, isLoggedIn]);
 
   const totalCards = entries.reduce((sum, e) => sum + e.rects.length, 0);
+
+  const activeSuggestionCount = useMemo(() => {
+    const active = entries[activeIndex] ?? null;
+    if (active == null) return 0;
+    return active.rects.filter((r) => r.source === 'auto').length;
+  }, [entries, activeIndex]);
+
+  const isDetecting =
+    detectingFor != null && entries[activeIndex]?.id === detectingFor;
+
+  const detectionStatus = (() => {
+    if (isDetecting) return 'Looking for highlights';
+    if (activeSuggestionCount > 0)
+      return `${activeSuggestionCount} ${activeSuggestionCount === 1 ? 'suggestion' : 'suggestions'} — tap to keep`;
+    return null;
+  })();
+
+  const runAutoSuggest = useCallback(
+    async (entry: ImageEntry, file: File) => {
+      if (!isPaying) return;
+      setDetectingFor(entry.id);
+      try {
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = () => {
+            const result = reader.result as string;
+            resolve(result.split(',')[1] ?? '');
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        const img = new Image();
+        const { width, height } = await new Promise<{
+          width: number;
+          height: number;
+        }>((resolve) => {
+          img.onload = () =>
+            resolve({ width: img.naturalWidth, height: img.naturalHeight });
+          img.onerror = () => resolve({ width: 512, height: 512 });
+          img.src = URL.createObjectURL(file);
+        });
+
+        const rects = await fetchAutoSuggestions(
+          base64,
+          file.type,
+          width,
+          height
+        );
+
+        setEntries((prev) =>
+          prev.map((e) => {
+            if (e.id !== entry.id) return e;
+            const newRects: OcclusionRect[] = rects.map((r) => ({
+              id: r.id,
+              x: r.x,
+              y: r.y,
+              w: r.w,
+              h: r.h,
+              label: r.label,
+              shape: r.shape,
+              source: 'auto' as const,
+              confidence: r.confidence,
+            }));
+            return { ...e, rects: newRects };
+          })
+        );
+      } catch {
+        // Auto-suggest failure is silent; user continues with empty canvas
+      } finally {
+        setDetectingFor((cur) => (cur === entry.id ? null : cur));
+      }
+    },
+    [isPaying]
+  );
 
   const handleAdd = useCallback(
     (files: File[]) => {
@@ -208,23 +368,35 @@ export function ImageOcclusionPage() {
             .then(({ s3Key, presignedUrl }) => {
               setEntries((prev) =>
                 prev.map((e) =>
-                  e.id === entry.id ? { ...e, s3Key, previewUrl: presignedUrl, uploading: false } : e
+                  e.id === entry.id
+                    ? {
+                        ...e,
+                        s3Key,
+                        previewUrl: presignedUrl,
+                        uploading: false,
+                      }
+                    : e
                 )
               );
             })
             .catch(() => {
               setEntries((prev) =>
-                prev.map((e) => (e.id === entry.id ? { ...e, uploading: false } : e))
+                prev.map((e) =>
+                  e.id === entry.id ? { ...e, uploading: false } : e
+                )
               );
             });
         }
       } else {
         setEntries((prev) =>
           prev.map((e) =>
-            newEntries.some((n) => n.id === e.id) ? { ...e, uploading: false } : e
+            newEntries.some((n) => n.id === e.id)
+              ? { ...e, uploading: false }
+              : e
           )
         );
       }
+
     },
     [isLoggedIn]
   );
@@ -234,7 +406,9 @@ export function ImageOcclusionPage() {
       const items = Array.from(e.clipboardData?.items ?? []);
       const imageItems = items.filter((item) => item.type.startsWith('image/'));
       if (imageItems.length === 0) return;
-      const files = imageItems.map((item) => item.getAsFile()).filter((f): f is File => f != null);
+      const files = imageItems
+        .map((item) => item.getAsFile())
+        .filter((f): f is File => f != null);
       if (files.length > 0) {
         e.preventDefault();
         handleAdd(files);
@@ -246,13 +420,17 @@ export function ImageOcclusionPage() {
 
   const handleRectsChange = useCallback(
     (rects: OcclusionRect[]) => {
-      setEntries((prev) => prev.map((e, i) => (i === activeIndex ? { ...e, rects } : e)));
+      setEntries((prev) =>
+        prev.map((e, i) => (i === activeIndex ? { ...e, rects } : e))
+      );
     },
     [activeIndex]
   );
 
   const handleHeaderChange = useCallback((i: number, header: string) => {
-    setEntries((prev) => prev.map((e, idx) => (idx === i ? { ...e, header } : e)));
+    setEntries((prev) =>
+      prev.map((e, idx) => (idx === i ? { ...e, header } : e))
+    );
   }, []);
 
   const handleRemove = useCallback((id: string) => {
@@ -264,17 +442,20 @@ export function ImageOcclusionPage() {
   }, []);
 
   const handleAddFromNotion = useCallback(async (blockIds: string[]) => {
-    const placeholders: ImageEntry[] = blockIds.map((id) => ({
-      id: crypto.randomUUID(),
-      file: null,
-      imageName: `notion-${id.slice(0, 8)}`,
-      header: '',
-      rects: [],
-      previewUrl: '',
-      s3Key: null,
-      uploading: true,
-      _notionBlockId: id,
-    } as ImageEntry & { _notionBlockId: string }));
+    const placeholders: ImageEntry[] = blockIds.map(
+      (id) =>
+        ({
+          id: crypto.randomUUID(),
+          file: null,
+          imageName: `notion-${id.slice(0, 8)}`,
+          header: '',
+          rects: [],
+          previewUrl: '',
+          s3Key: null,
+          uploading: true,
+          _notionBlockId: id,
+        }) as ImageEntry & { _notionBlockId: string }
+    );
 
     setEntries((prev) => {
       const next = [...prev, ...placeholders];
@@ -291,20 +472,29 @@ export function ImageOcclusionPage() {
       });
 
       if (res.status === 401) {
-        setEntries((prev) => prev.filter((e) => !placeholders.some((p) => p.id === e.id)));
+        setEntries((prev) =>
+          prev.filter((e) => !placeholders.some((p) => p.id === e.id))
+        );
         setError('Your Notion connection needs a refresh.');
         return;
       }
       if (!res.ok) {
-        setEntries((prev) => prev.filter((e) => !placeholders.some((p) => p.id === e.id)));
+        setEntries((prev) =>
+          prev.filter((e) => !placeholders.some((p) => p.id === e.id))
+        );
         setError("We couldn't reach Notion just now.");
         return;
       }
 
-      const imported = (await res.json()) as Array<{ s3Key: string; presignedUrl: string }>;
+      const imported = (await res.json()) as Array<{
+        s3Key: string;
+        presignedUrl: string;
+      }>;
 
       setEntries((prev) => {
-        const withoutPlaceholders = prev.filter((e) => !placeholders.some((p) => p.id === e.id));
+        const withoutPlaceholders = prev.filter(
+          (e) => !placeholders.some((p) => p.id === e.id)
+        );
         const resolved: ImageEntry[] = imported.map((item, i) => ({
           id: crypto.randomUUID(),
           file: null,
@@ -320,14 +510,22 @@ export function ImageOcclusionPage() {
         return next;
       });
     } catch {
-      setEntries((prev) => prev.filter((e) => !placeholders.some((p) => p.id === e.id)));
+      setEntries((prev) =>
+        prev.filter((e) => !placeholders.some((p) => p.id === e.id))
+      );
       setError("We couldn't reach Notion just now.");
     }
   }, []);
 
   const handleDownload = async () => {
-    if (entries.length === 0) { setError('Add at least one image first.'); return; }
-    if (totalCards === 0) { setError('Draw at least one mask on an image.'); return; }
+    if (entries.length === 0) {
+      setError('Add at least one image first.');
+      return;
+    }
+    if (totalCards === 0) {
+      setError('Draw at least one mask on an image.');
+      return;
+    }
     setError(null);
     setIsDownloading(true);
     try {
@@ -338,8 +536,12 @@ export function ImageOcclusionPage() {
         body: formData,
       });
       if (!response.ok) {
-        const body = await response.json().catch(() => ({ message: response.statusText }));
-        throw new Error((body as { message?: string }).message ?? 'Download failed');
+        const body = await response
+          .json()
+          .catch(() => ({ message: response.statusText }));
+        throw new Error(
+          (body as { message?: string }).message ?? 'Download failed'
+        );
       }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -348,7 +550,8 @@ export function ImageOcclusionPage() {
       a.download = `${deckName}.apkg`;
       a.click();
       URL.revokeObjectURL(url);
-      if (isLoggedIn && draftId != null) await deleteDraft(draftId).catch(() => undefined);
+      if (isLoggedIn && draftId != null)
+        await deleteDraft(draftId).catch(() => undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Download failed');
     } finally {
@@ -374,18 +577,28 @@ export function ImageOcclusionPage() {
   return (
     <>
       {!mobileDismissed && (
-        <div className={`${styles.notificationInfo} ${pageStyles.mobileBanner}`}>
+        <div
+          className={`${styles.notificationInfo} ${pageStyles.mobileBanner}`}
+        >
           Drawing is easier on a larger screen.{' '}
           <button
             type="button"
             onClick={() => setMobileDismissed(true)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              padding: 0,
+            }}
           >
             Continue on this screen anyway
           </button>
         </div>
       )}
-      <div className={`${pageStyles.pageLayout} ${drawerOpen ? pageStyles.pageLayoutDrawerOpen : ''}`}>
+      <div
+        className={`${pageStyles.pageLayout} ${drawerOpen ? pageStyles.pageLayoutDrawerOpen : ''}`}
+      >
         <NotionImportDrawer
           isOpen={drawerOpen}
           onClose={() => setDrawerOpen(false)}
@@ -457,7 +670,50 @@ export function ImageOcclusionPage() {
               <p>Each box you draw becomes one flashcard.</p>
             </div>
           ) : (
-            <OcclusionCanvas entry={activeEntry} onRectsChange={handleRectsChange} />
+            <>
+              {isLoggedIn && !isPaying && (
+                <div className={pageStyles.detectionStatus}>
+                  Auto-detect highlights — Auto Sync only.{' '}
+                  <a href="/pricing" className={pageStyles.autoUpgradeLink}>
+                    Upgrade
+                  </a>
+                </div>
+              )}
+              {isPaying && detectionStatus != null && (
+                <div className={pageStyles.detectionStatus}>
+                  {detectionStatus}
+                </div>
+              )}
+              {isPaying && activeSuggestionCount > 0 && !tooltipDismissed && (
+                <div className={pageStyles.autoTooltip}>
+                  Tap a dashed box to keep it. Drag to resize. Press delete to
+                  drop.{' '}
+                  <button
+                    type="button"
+                    className={pageStyles.autoTooltipDismiss}
+                    onClick={() => {
+                      setTooltipDismissed(true);
+                      localStorage.setItem('io_auto_tooltip_dismissed', '1');
+                    }}
+                  >
+                    Got it
+                  </button>
+                </div>
+              )}
+              <OcclusionCanvas
+                entry={activeEntry}
+                onRectsChange={handleRectsChange}
+                suggestionCount={activeSuggestionCount}
+                onAutoSuggest={
+                  isPaying && activeEntry.file != null
+                    ? () =>
+                        runAutoSuggest(activeEntry, activeEntry.file as File)
+                    : undefined
+                }
+                canAutoSuggest={isPaying && activeEntry.file != null}
+                isAutoSuggesting={isDetecting}
+              />
+            </>
           )}
         </div>
       </div>

@@ -745,3 +745,51 @@
 .drawerCancelBtn:hover {
   color: var(--color-text-primary);
 }
+
+.detectionStatus {
+  padding: 0.25rem 0.75rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary, #6b7280);
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.autoTooltip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: var(--color-primary-light, #eff6ff);
+  border-bottom: 1px solid var(--color-primary, #3b82f6);
+  flex-shrink: 0;
+}
+
+.autoTooltipDismiss {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  padding: 0;
+  white-space: nowrap;
+}
+
+.autoTooltipDismiss:hover {
+  text-decoration: underline;
+}
+
+.autoUpgradeLink {
+  color: var(--color-primary);
+  font-weight: var(--font-medium);
+  text-decoration: none;
+}
+
+.autoUpgradeLink:hover {
+  text-decoration: underline;
+}
+
