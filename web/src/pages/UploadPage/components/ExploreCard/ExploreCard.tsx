@@ -142,7 +142,7 @@ export function ExploreCard() {
           <div className={styles.rowText}>
             <p className={styles.rowTitle}>Deck defaults</p>
             <p className={styles.rowDescription}>
-              Change deck names, templates, card style (cloze or Q&amp;A), and conversion options.
+              Change deck names, templates, card style (cloze or Q&amp;A), card size (Short, Medium, Detailed), and conversion options.
             </p>
           </div>
           <div className={styles.rowAffordance}>

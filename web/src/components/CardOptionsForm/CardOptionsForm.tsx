@@ -49,6 +49,14 @@ const DEFAULT_PAGE_EMOJI = 'first_emoji';
 const DEFAULT_FONT_SIZE = '20';
 const DEFAULT_MCQ_ENABLED = false;
 const DEFAULT_MCQ_TTS_LANG = '';
+const DEFAULT_CARD_SIZE = 'medium';
+const CARD_SIZE_VALUES = ['short', 'medium', 'detailed'] as const;
+type CardSizeValue = (typeof CARD_SIZE_VALUES)[number];
+
+function normalizeCardSize(raw: string | null | undefined): CardSizeValue {
+  if (raw === 'short' || raw === 'medium' || raw === 'detailed') return raw;
+  return DEFAULT_CARD_SIZE;
+}
 
 const MCQ_TTS_LANGUAGE_OPTIONS = [
   { label: "Don't speak", value: '' },
@@ -130,6 +138,7 @@ function computeSnapshot(values: {
   mcqTtsQuestion: string;
   mcqTtsCorrectAnswer: string;
   mcqTtsExtra: string;
+  cardSize: CardSizeValue;
 }) {
   const sortedCheckboxes = Object.keys(values.checkboxValues)
     .sort((a, b) => a.localeCompare(b))
@@ -208,6 +217,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     const [mcqTtsExtra, setMcqTtsExtra] = useState(
       getLocalStorageValue('mcq-tts-extra', DEFAULT_MCQ_TTS_LANG, settings)
     );
+    const [cardSize, setCardSize] = useState<CardSizeValue>(() =>
+      normalizeCardSize(getLocalStorageValue('card-size', DEFAULT_CARD_SIZE, settings))
+    );
     const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
     useEffect(() => {
@@ -245,6 +257,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setMcqTtsQuestion(localStorage.getItem('mcq-tts-question') ?? DEFAULT_MCQ_TTS_LANG);
       setMcqTtsCorrectAnswer(localStorage.getItem('mcq-tts-correct-answer') ?? DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(localStorage.getItem('mcq-tts-extra') ?? DEFAULT_MCQ_TTS_LANG);
+      setCardSize(normalizeCardSize(localStorage.getItem('card-size')));
       setSettings({});
 
       const applyPayload = (payload: SettingsPayload) => {
@@ -269,6 +282,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         });
         if (Object.hasOwn(payload, 'mcq-enabled')) {
           setMcqEnabled((payload['mcq-enabled'] ?? 'false') === 'true');
+        }
+        if (Object.hasOwn(payload, 'card-size')) {
+          setCardSize(normalizeCardSize(payload['card-size']));
         }
         setSettings(payload);
       };
@@ -308,6 +324,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           mcqTtsQuestion,
           mcqTtsCorrectAnswer,
           mcqTtsExtra,
+          cardSize,
         }),
       [
         deckName,
@@ -324,6 +341,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         mcqTtsQuestion,
         mcqTtsCorrectAnswer,
         mcqTtsExtra,
+        cardSize,
       ]
     );
 
@@ -404,6 +422,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       payload['mcq-tts-question'] = mcqTtsQuestion;
       payload['mcq-tts-correct-answer'] = mcqTtsCorrectAnswer;
       payload['mcq-tts-extra'] = mcqTtsExtra;
+      payload['card-size'] = cardSize;
 
       try {
         await get2ankiApi().saveSettings({
@@ -635,6 +654,38 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                   {isPdfAiGroup && userInstructionsDisclosure}
                 </div>
               </div>
+              {isCardTypesGroup && (
+                <div className={fieldStyles.optionGroup} id="card-size">
+                  <div className={fieldStyles.groupHeader}>
+                    <h3 className={fieldStyles.groupHeading}>Card size</h3>
+                    <div className={fieldStyles.segmented} role="group" aria-label="Card size">
+                      {(
+                        [
+                          { label: 'Short', value: 'short' },
+                          { label: 'Medium', value: 'medium' },
+                          { label: 'Detailed', value: 'detailed' },
+                        ] as const
+                      ).map(({ label, value }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          className={`${fieldStyles.segment} ${cardSize === value ? fieldStyles.segmentActive : ''}`}
+                          aria-pressed={cardSize === value}
+                          onClick={() => {
+                            setCardSize(value);
+                            saveValueInLocalStorage('card-size', value, pageId);
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className={fieldStyles.groupIntro}>
+                    AI conversion uses this to decide how much fits on each card. Short keeps cards to one fact; Detailed packs three to four.
+                  </p>
+                </div>
+              )}
               {isCardTypesGroup && (
                 <div className={fieldStyles.optionGroup} id="mcq">
                   <div className={fieldStyles.groupHeader}>

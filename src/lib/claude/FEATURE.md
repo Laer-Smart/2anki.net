@@ -37,3 +37,13 @@ The claude lib converts HTML content into Anki flashcards using the Anthropic AP
 **Format support:** The `detect` dispatcher handles `'markdown'` (regex on `^#` lines) and `'html'`/`'notion-html'` (cheerio `h1`–`h6` traversal) via `detectMarkdown.ts` and `detectHtml.ts` respectively. Docx and Notion exports are already converted to HTML before reaching `generateDeckInfo`, so the `'html'` detector covers them. Slide images are out of scope for V1.
 
 **Cost and latency:** Each detected heading becomes one Claude call. A document with 10 headings produces 10 parallel Claude calls instead of 1–2 default chunks. Latency is bounded by the slowest call (parallel dispatch). Token cost scales linearly with heading count. Prompt caching applies to the shared `SYSTEM_PROMPT` block.
+
+---
+
+## Card-size suffix contract (`cardSize: 'short' | 'medium' | 'detailed'`)
+
+`generateDeckInfo` accepts an optional sixth argument `cardSize?: string`. The value is normalized inside `getCardSizePromptSuffix` (from `cardSize.ts`) to one of `'short'`, `'medium'`, or `'detailed'` — anything else falls back to `'medium'`. The helper returns a short prompt suffix (`Card size: N facts per card, target ~Nc characters per answer`) that is appended to the user message Claude receives, alongside `cardStyle` and `userInstructions` if present.
+
+**Where the value comes from:** the CardOptionsForm in `/card-options` exposes a Short/Medium/Detailed segmented control under "Card size" (`#card-size` anchor). The choice persists to localStorage under `card-size` and is sent to the server alongside the rest of the per-page or default settings payload. The CardOption parser reads `card-size` into `settings.cardSize`, which `PrepareDeck.ts` then threads into every `generateDeckInfo` call for the Claude branch.
+
+**What it does not change:** the post-parse splitter ceiling (600 plain-text chars per answer) still applies — `cardSize` is a steering signal for Claude, not a hard cap. Cloze cards stay exempt from splitting regardless of size.
