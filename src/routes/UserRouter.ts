@@ -657,6 +657,21 @@ const UserRouter = () => {
 
   /**
    * @swagger
+   * /api/users/auth/microsoft:
+   *   get:
+   *     summary: Microsoft OAuth authentication
+   *     description: Microsoft OAuth callback. Exchanges the authorization code for an id_token, verifies it against Microsoft's JWKS, then signs the user in (creating an account if needed).
+   *     tags: [Authentication]
+   *     responses:
+   *       302:
+   *         description: Redirect to the post-login destination
+   */
+  router.get('/api/users/auth/microsoft', (req, res) =>
+    controller.loginWithMicrosoft(req, res)
+  );
+
+  /**
+   * @swagger
    * /api/users/auth/notion/init:
    *   get:
    *     summary: Initiate Notion OAuth login

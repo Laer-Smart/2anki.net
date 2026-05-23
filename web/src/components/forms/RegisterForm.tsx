@@ -4,6 +4,7 @@ import { ErrorHandlerType } from '../errors/helpers/getErrorMessage';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { WithGoogleLink } from './WithGoogleLink';
 import { WithNotionLink } from './WithNotionLink';
+import { WithMicrosoftLink } from './WithMicrosoftLink';
 import { getVisibleText } from '../../lib/text/getVisibleText';
 import { readSignupOrigin } from '../../lib/signupOrigin';
 import styles from '../../styles/auth.module.css';
@@ -96,6 +97,9 @@ function RegisterForm({ setErrorMessage, redirect, startTrial }: Props) {
         </h1>
         <WithNotionLink text="Continue with Notion" />
         <WithGoogleLink text={getVisibleText('navigation.register.google')} />
+        <WithMicrosoftLink
+          text={getVisibleText('navigation.register.microsoft')}
+        />
         <div className={styles.divider}>
           <span className={styles.dividerLabel}>or sign up with email</span>
         </div>

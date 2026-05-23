@@ -1,6 +1,6 @@
 # observability — instrumented HTTP + sink
 
-The single egress point for every outbound third-party call (Notion, Anthropic, Dropbox, Google Drive, Patreon). Adds SSRF defence, latency/error metrics, and a query API for the ops dashboard.
+The single egress point for every outbound third-party call (Notion, Anthropic, Dropbox, Google Drive, Patreon, Microsoft login). Adds SSRF defence, latency/error metrics, and a query API for the ops dashboard.
 
 ## Why this exists
 

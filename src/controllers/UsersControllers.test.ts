@@ -799,6 +799,128 @@ describe('UsersController.loginWithGoogle', () => {
 
 });
 
+describe('UsersController.loginWithMicrosoft', () => {
+  const buildMicrosoftController = (overrides?: {
+    getUserFrom?: jest.Mock;
+    register?: jest.Mock;
+    markEmailVerified?: jest.Mock;
+    newJWTToken?: jest.Mock;
+    persistToken?: jest.Mock;
+    updateLastLoginAt?: jest.Mock;
+    loginWithMicrosoft?: jest.Mock;
+  }) => {
+    const mockUser = { id: 11, email: 'm@example.com' };
+    const userService = {
+      getUserFrom:
+        overrides?.getUserFrom ??
+        jest
+          .fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValue(mockUser),
+      register: overrides?.register ?? jest.fn().mockResolvedValue([{ id: 11 }]),
+      markEmailVerified:
+        overrides?.markEmailVerified ?? jest.fn().mockResolvedValue(1),
+      updateLastLoginAt:
+        overrides?.updateLastLoginAt ?? jest.fn().mockResolvedValue(undefined),
+    } as unknown as UsersService;
+    const authService = {
+      loginWithMicrosoft:
+        overrides?.loginWithMicrosoft ??
+        jest
+          .fn()
+          .mockResolvedValue({ email: 'm@example.com', name: 'Microsoft User' }),
+      getHashPassword: jest.fn().mockReturnValue('hashed'),
+      newJWTToken:
+        overrides?.newJWTToken ?? jest.fn().mockResolvedValue('microsoft-jwt'),
+      persistToken:
+        overrides?.persistToken ?? jest.fn().mockResolvedValue(undefined),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    return { controller, userService, authService };
+  };
+
+  const buildMicrosoftRes = () => {
+    const redirect = jest.fn();
+    const cookie = jest.fn();
+    const status = jest.fn().mockReturnThis();
+    return { redirect, cookie, status } as unknown as express.Response & {
+      redirect: jest.Mock;
+      cookie: jest.Mock;
+      status: jest.Mock;
+    };
+  };
+
+  it("registers new Microsoft users with signup_origin set to 'microsoft'", async () => {
+    const register = jest.fn().mockResolvedValue([{ id: 11 }]);
+    const { controller } = buildMicrosoftController({ register });
+    const req = {
+      query: { code: 'mauth-code' },
+      cookies: {},
+      headers: {},
+    } as unknown as express.Request;
+    const res = buildMicrosoftRes();
+
+    await controller.loginWithMicrosoft(req, res);
+
+    expect(register).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'm@example.com',
+      'microsoft'
+    );
+  });
+
+  it('does not call register for an existing Microsoft user', async () => {
+    const existingUser = { id: 13, email: 'existing@outlook.com' };
+    const getUserFrom = jest.fn().mockResolvedValue(existingUser);
+    const register = jest.fn();
+    const { controller } = buildMicrosoftController({ getUserFrom, register });
+    const req = {
+      query: { code: 'mauth-code' },
+      cookies: {},
+      headers: {},
+    } as unknown as express.Request;
+    const res = buildMicrosoftRes();
+
+    await controller.loginWithMicrosoft(req, res);
+
+    expect(register).not.toHaveBeenCalled();
+  });
+
+  it('redirects to /login when the OAuth code is missing', async () => {
+    const { controller } = buildMicrosoftController();
+    const req = {
+      query: {},
+      cookies: {},
+      headers: {},
+    } as unknown as express.Request;
+    const res = buildMicrosoftRes();
+
+    await controller.loginWithMicrosoft(req, res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+  });
+
+  it('redirects to /login when the token exchange fails', async () => {
+    const loginWithMicrosoft = jest.fn().mockResolvedValue(undefined);
+    const { controller } = buildMicrosoftController({ loginWithMicrosoft });
+    const req = {
+      query: { code: 'bad-code' },
+      cookies: {},
+      headers: {},
+    } as unknown as express.Request;
+    const res = buildMicrosoftRes();
+
+    await controller.loginWithMicrosoft(req, res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+  });
+});
+
 describe('UsersController.loginWithNotion', () => {
   const buildNotionDb = () => {
     const chainable: Record<string, jest.Mock> = {};

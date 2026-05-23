@@ -1,6 +1,10 @@
+import crypto from 'crypto';
+
 import jwt from 'jsonwebtoken';
 
-import AuthenticationService from './AuthenticationService';
+import AuthenticationService, {
+  __resetMicrosoftJwksCacheForTests,
+} from './AuthenticationService';
 import TokenRepository from '../data_layer/TokenRepository';
 import UsersRepository from '../data_layer/UsersRepository';
 import instrumentedAxios from './observability/instrumentedAxios';
@@ -216,6 +220,169 @@ describe('loginWithGoogle', () => {
 
     const service = createService();
     const result = await service.loginWithGoogle('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('loginWithMicrosoft', () => {
+  const KID = 'test-key-id';
+  const CLIENT_ID = 'test-microsoft-client-id';
+  let privateKey: crypto.KeyObject;
+  let publicJwk: { kid: string; kty: string; n: string; e: string; alg: string };
+
+  const signIdToken = (payload: Record<string, unknown>): string =>
+    jwt.sign(payload, privateKey.export({ type: 'pkcs8', format: 'pem' }), {
+      algorithm: 'RS256',
+      header: { alg: 'RS256', kid: KID },
+    });
+
+  beforeAll(() => {
+    const { privateKey: priv, publicKey } = crypto.generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+    });
+    privateKey = priv;
+    const jwk = publicKey.export({ format: 'jwk' });
+    publicJwk = {
+      kid: KID,
+      kty: jwk.kty as string,
+      n: jwk.n as string,
+      e: jwk.e as string,
+      alg: 'RS256',
+    };
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __resetMicrosoftJwksCacheForTests();
+    process.env.MICROSOFT_CLIENT_ID = CLIENT_ID;
+    process.env.MICROSOFT_CLIENT_SECRET = 'test-microsoft-client-secret';
+    process.env.MICROSOFT_REDIRECT_URI =
+      'http://localhost:2020/api/users/auth/microsoft';
+    mockedAxios.get = jest.fn().mockResolvedValue({
+      data: { keys: [publicJwk] },
+    });
+  });
+
+  it('returns email and name when the ID token is valid', async () => {
+    const idToken = signIdToken({
+      iss: 'https://login.microsoftonline.com/common/v2.0',
+      aud: CLIENT_ID,
+      email: 'user@outlook.com',
+      name: 'Microsoft User',
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithMicrosoft('auth-code');
+
+    expect(result).toEqual({
+      email: 'user@outlook.com',
+      name: 'Microsoft User',
+    });
+  });
+
+  it('falls back to preferred_username when email claim is absent and it looks like an email', async () => {
+    const idToken = signIdToken({
+      iss: 'https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0',
+      aud: CLIENT_ID,
+      preferred_username: 'alice@contoso.com',
+      name: 'Alice',
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithMicrosoft('auth-code');
+
+    expect(result).toEqual({ email: 'alice@contoso.com', name: 'Alice' });
+  });
+
+  it('returns email as undefined when neither email nor an email-shaped preferred_username is present', async () => {
+    const idToken = signIdToken({
+      iss: 'https://login.microsoftonline.com/common/v2.0',
+      aud: CLIENT_ID,
+      preferred_username: 'alice',
+      name: 'Alice',
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithMicrosoft('auth-code');
+
+    expect(result).toEqual({ email: undefined, name: 'Alice' });
+  });
+
+  it('returns undefined when the iss claim is not a Microsoft issuer', async () => {
+    const idToken = signIdToken({
+      iss: 'https://evil.example.com/v2.0',
+      aud: CLIENT_ID,
+      email: 'user@outlook.com',
+      name: 'User',
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithMicrosoft('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the ID token signature is invalid', async () => {
+    const otherKey = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+    const idToken = jwt.sign(
+      {
+        iss: 'https://login.microsoftonline.com/common/v2.0',
+        aud: CLIENT_ID,
+        email: 'user@outlook.com',
+      },
+      otherKey.privateKey.export({ type: 'pkcs8', format: 'pem' }),
+      { algorithm: 'RS256', header: { alg: 'RS256', kid: KID } }
+    );
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithMicrosoft('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the audience does not match the client id', async () => {
+    const idToken = signIdToken({
+      iss: 'https://login.microsoftonline.com/common/v2.0',
+      aud: 'a-different-app',
+      email: 'user@outlook.com',
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithMicrosoft('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the kid is not found in the JWKS', async () => {
+    const idToken = jwt.sign(
+      {
+        iss: 'https://login.microsoftonline.com/common/v2.0',
+        aud: CLIENT_ID,
+        email: 'user@outlook.com',
+      },
+      privateKey.export({ type: 'pkcs8', format: 'pem' }),
+      { algorithm: 'RS256', header: { alg: 'RS256', kid: 'unknown-kid' } }
+    );
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithMicrosoft('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the token exchange call fails', async () => {
+    mockedAxios.post = jest.fn().mockRejectedValue(new Error('network error'));
+
+    const service = createService();
+    const result = await service.loginWithMicrosoft('auth-code');
 
     expect(result).toBeUndefined();
   });

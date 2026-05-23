@@ -11,6 +11,43 @@ import Users from '../data_layer/public/Users';
 import { Knex } from 'knex';
 import instrumentedAxios from './observability/instrumentedAxios';
 
+const MICROSOFT_JWKS_URL =
+  'https://login.microsoftonline.com/common/discovery/v2.0/keys';
+const MICROSOFT_JWKS_TTL_MS = 60 * 60 * 1000;
+const MICROSOFT_ISSUER_REGEX =
+  /^https:\/\/login\.microsoftonline\.com\/[^/]+\/v2\.0$/;
+
+interface MicrosoftJwk {
+  kid: string;
+  kty: string;
+  n: string;
+  e: string;
+  alg?: string;
+  use?: string;
+}
+
+let cachedMicrosoftJwks: { keys: MicrosoftJwk[]; fetchedAt: number } | null = null;
+
+async function getMicrosoftJwks(): Promise<MicrosoftJwk[]> {
+  const now = Date.now();
+  if (
+    cachedMicrosoftJwks &&
+    now - cachedMicrosoftJwks.fetchedAt < MICROSOFT_JWKS_TTL_MS
+  ) {
+    return cachedMicrosoftJwks.keys;
+  }
+  const result = await instrumentedAxios.get<{ keys: MicrosoftJwk[] }>(
+    'microsoft_login',
+    MICROSOFT_JWKS_URL
+  );
+  cachedMicrosoftJwks = { keys: result.data.keys, fetchedAt: now };
+  return result.data.keys;
+}
+
+export const __resetMicrosoftJwksCacheForTests = () => {
+  cachedMicrosoftJwks = null;
+};
+
 export interface UserWithOwner extends Users {
   owner: number;
 }
@@ -235,6 +272,71 @@ class AuthenticationService {
       };
     } catch (error) {
       console.info("Couldn't login with Google");
+      console.error(error);
+    }
+  }
+
+  async loginWithMicrosoft(code: string) {
+    const url = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
+    const values = {
+      code,
+      client_id: process.env.MICROSOFT_CLIENT_ID,
+      client_secret: process.env.MICROSOFT_CLIENT_SECRET,
+      redirect_uri: process.env.MICROSOFT_REDIRECT_URI,
+      grant_type: 'authorization_code',
+      scope: 'openid profile email offline_access',
+    };
+    try {
+      const result = await instrumentedAxios.post<{ id_token: string }>(
+        'microsoft_login',
+        url,
+        qs.stringify(values),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
+      );
+      const idToken = result.data.id_token;
+      const decoded = jwt.decode(idToken, { complete: true });
+      if (!decoded || typeof decoded === 'string') {
+        return;
+      }
+      const kid = decoded.header.kid;
+      const alg = decoded.header.alg;
+      if (alg !== 'RS256' || typeof kid !== 'string') {
+        return;
+      }
+      const jwks = await getMicrosoftJwks();
+      const jwk = jwks.find((k) => k.kid === kid);
+      if (!jwk) {
+        return;
+      }
+      const publicKey = crypto.createPublicKey({ key: jwk, format: 'jwk' });
+      const payload = jwt.verify(idToken, publicKey, {
+        algorithms: ['RS256'],
+        audience: process.env.MICROSOFT_CLIENT_ID,
+      });
+      if (typeof payload === 'string') {
+        return;
+      }
+      if (
+        typeof payload.iss !== 'string' ||
+        !MICROSOFT_ISSUER_REGEX.test(payload.iss)
+      ) {
+        console.info("Couldn't login with Microsoft: unexpected issuer");
+        return;
+      }
+      const email =
+        (payload.email as string | undefined) ??
+        (typeof payload.preferred_username === 'string' &&
+        payload.preferred_username.includes('@')
+          ? payload.preferred_username
+          : undefined);
+      const name = payload.name as string | undefined;
+      return { email, name };
+    } catch (error) {
+      console.info("Couldn't login with Microsoft");
       console.error(error);
     }
   }

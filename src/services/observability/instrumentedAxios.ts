@@ -10,6 +10,7 @@ export const OBSERVABILITY_SERVICES = [
   'dropbox',
   'google_drive',
   'patreon',
+  'microsoft_login',
 ] as const;
 
 export type ObservabilityService = (typeof OBSERVABILITY_SERVICES)[number];
@@ -23,6 +24,7 @@ const FIXED_HOST_ALLOWLIST: Record<ObservabilityService, readonly string[] | nul
   dropbox: null,
   google_drive: ['www.googleapis.com', 'oauth2.googleapis.com'],
   patreon: ['www.patreon.com', 'api.patreon.com'],
+  microsoft_login: ['login.microsoftonline.com'],
 };
 
 const isHostOnFixedAllowlist = (
