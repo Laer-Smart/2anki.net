@@ -167,6 +167,11 @@
   color: var(--color-text-primary);
 }
 
+.sidebarRow:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
 .sidebarRowActive {
   color: var(--color-primary);
   font-weight: var(--font-medium);

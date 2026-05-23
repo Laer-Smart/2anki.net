@@ -13,7 +13,7 @@
   flex: 1;
   padding: 0.5rem 1rem;
   background: transparent;
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
   border: none;
   border-radius: var(--radius-full);
   font-size: var(--text-sm);
@@ -25,6 +25,12 @@
 
 .tab:hover {
   color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
 
 .tabActive {
