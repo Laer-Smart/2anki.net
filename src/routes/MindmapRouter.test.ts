@@ -282,7 +282,7 @@ describe('MindmapRouter', () => {
       'base64'
     );
 
-    it('returns 201 with s3Key, presignedUrl, width, height for a valid PNG', async () => {
+    it('returns 201 with url, width, height for a valid PNG', async () => {
       const form = new FormData();
       form.append('image', new Blob([TINY_PNG], { type: 'image/png' }), 'test.png');
 
@@ -293,11 +293,13 @@ describe('MindmapRouter', () => {
 
       expect(res.status).toBe(201);
       const body = await res.json();
-      expect(body.s3Key).toMatch(/^mindmaps\/42\/map-1\/.+\.png$/);
-      expect(body.presignedUrl).toBe('https://spaces.example.com/presigned');
+      expect(body.url).toBe('https://spaces.example.com/presigned');
       expect(typeof body.width).toBe('number');
       expect(typeof body.height).toBe('number');
-      expect(mockUploadFile).toHaveBeenCalledWith(body.s3Key, TINY_PNG);
+      expect(mockUploadFile).toHaveBeenCalledWith(
+        expect.stringMatching(/^mindmaps\/42\/map-1\/.+\.png$/),
+        TINY_PNG
+      );
     });
 
     it('returns 400 when no file is provided', async () => {

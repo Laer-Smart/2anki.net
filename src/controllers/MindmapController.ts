@@ -190,7 +190,11 @@ export class MindmapController {
         mapId,
         file: { buffer: file.buffer, mimetype: file.mimetype, size: file.size },
       });
-      res.status(201).json(result);
+      res.status(201).json({
+        url: result.presignedUrl,
+        width: result.width,
+        height: result.height,
+      });
     } catch (error) {
       if (error instanceof MindmapImageTypeError) {
         res.status(415).json({ message: error.message });

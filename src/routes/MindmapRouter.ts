@@ -273,7 +273,7 @@ const MindmapRouter = () => {
    *                 format: binary
    *     responses:
    *       201:
-   *         description: Image uploaded, returns s3Key, presignedUrl, width, height
+   *         description: Image uploaded, returns url, width, height
    *       400:
    *         description: No image provided
    *       401:
