@@ -35,11 +35,11 @@ export function TemplateSelector({ value, onChange, disabled }: TemplateSelector
         className={styles.templatePill}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={`Card template: ${activeOption.label}`}
+        aria-label={`Note type: ${activeOption.label}`}
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
       >
-        <span>Template: {activeOption.label}</span>
+        <span>Note Type: {activeOption.label}</span>
         <svg
           width="10"
           height="10"
@@ -55,7 +55,7 @@ export function TemplateSelector({ value, onChange, disabled }: TemplateSelector
         </svg>
       </button>
       {open && (
-        <ul role="listbox" aria-label="Card template" className={styles.templateMenu}>
+        <ul role="listbox" aria-label="Note type" className={styles.templateMenu}>
           {CHAT_TEMPLATE_OPTIONS.map((opt) => (
             <li key={opt.slug} role="option" aria-selected={opt.slug === value}>
               <button

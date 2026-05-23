@@ -83,8 +83,8 @@ export default function CardPreview({
   const hasMore = cards.length > VISIBLE_COUNT;
   const hideBackColumn =
     template === 'cloze' &&
-    cards.length > 0 &&
-    cards.every((c) => c.back.trim().length === 0);
+    (isRegenerating === true ||
+      (cards.length > 0 && cards.every((c) => c.back.trim().length === 0)));
   const hasTags =
     cards.some((c) => c.tags != null && c.tags.length > 0) ||
     isTagging === true;
@@ -225,9 +225,14 @@ export default function CardPreview({
             role="status"
           >
             {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
-              <div key={i} className={styles.cardPreviewSkeletonRow}>
+              <div
+                key={i}
+                className={`${styles.cardPreviewSkeletonRow} ${hideBackColumn ? styles.cardPreviewSkeletonRowSingle : ''}`}
+              >
                 <span className={styles.cardPreviewSkeletonBlock} />
-                <span className={styles.cardPreviewSkeletonBlock} />
+                {!hideBackColumn && (
+                  <span className={styles.cardPreviewSkeletonBlock} />
+                )}
               </div>
             ))}
           </div>

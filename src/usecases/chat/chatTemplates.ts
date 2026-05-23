@@ -34,6 +34,7 @@ Example output for the topic "capitals":
 \`\`\``,
 };
 
+
 export function templatePromptSuffix(slug: ChatCardTemplate): string {
   return TEMPLATE_PROMPT_SUFFIX[slug];
 }

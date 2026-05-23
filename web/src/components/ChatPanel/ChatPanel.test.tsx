@@ -591,14 +591,14 @@ describe('ChatPanel — template selector', () => {
   it('renders "Template: Basic" pill alongside the cards', () => {
     renderChatPanel({ initialMessages: assistantWithCards });
     expect(
-      screen.getByRole('button', { name: 'Card template: Basic' })
+      screen.getByRole('button', { name: 'Note type: Basic' })
     ).toBeInTheDocument();
   });
 
   it('does not render the template selector in the empty state', () => {
     renderChatPanel();
     expect(
-      screen.queryByRole('button', { name: /Card template/i })
+      screen.queryByRole('button', { name: /Note type/i })
     ).not.toBeInTheDocument();
   });
 
@@ -607,14 +607,14 @@ describe('ChatPanel — template selector', () => {
       initialMessages: [{ role: 'assistant', content: 'Hello' }],
     });
     expect(
-      screen.queryByRole('button', { name: /Card template/i })
+      screen.queryByRole('button', { name: /Note type/i })
     ).not.toBeInTheDocument();
   });
 
   it('opens the template dropdown on click', () => {
     renderChatPanel({ initialMessages: assistantWithCards });
-    fireEvent.click(screen.getByRole('button', { name: 'Card template: Basic' }));
-    expect(screen.getByRole('listbox', { name: 'Card template' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
+    expect(screen.getByRole('listbox', { name: 'Note type' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: /Basic \+/ })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: /Cloze/ })).toBeInTheDocument();
   });
@@ -630,11 +630,11 @@ describe('ChatPanel — template selector', () => {
       initialMessages: assistantWithCards,
       onTemplateChange,
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Card template: Basic' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
     fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
     expect(onTemplateChange).toHaveBeenCalledWith('cloze');
     expect(
-      screen.getByRole('button', { name: 'Card template: Cloze' })
+      screen.getByRole('button', { name: 'Note type: Cloze' })
     ).toBeInTheDocument();
   });
 
@@ -674,7 +674,7 @@ describe('ChatPanel — template selector', () => {
       ])
     );
     renderChatPanel({ initialMessages: assistantWithCards });
-    fireEvent.click(screen.getByRole('button', { name: 'Card template: Basic' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
     fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
     await waitFor(() => {
       expect(mockPost).toHaveBeenCalledWith(
@@ -706,7 +706,7 @@ describe('ChatPanel — template selector', () => {
       screen.getByRole('button', { name: 'Download deck' })
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Card template: Basic' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
     fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
 
     await waitFor(() => {
