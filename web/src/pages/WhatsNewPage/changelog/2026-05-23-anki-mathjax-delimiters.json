@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-23-anki-mathjax-delimiters",
+  "date": "2026-05-23",
+  "type": "fix",
+  "title": "Math formulas in AI-generated cards render in Anki instead of showing raw symbols"
+}

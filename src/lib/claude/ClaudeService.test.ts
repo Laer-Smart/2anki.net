@@ -4,6 +4,7 @@ import {
   parseDeckResponse,
   rewriteAudioAnchors,
   normalizeTag,
+  SYSTEM_PROMPT,
 } from './ClaudeService';
 
 describe('looksLikeEmptyContentExplanation', () => {
@@ -199,5 +200,27 @@ describe('EMPTY_CONTENT_USER_MESSAGE', () => {
     expect(EMPTY_CONTENT_USER_MESSAGE.toLowerCase()).toMatch(
       /empty|layout element/
     );
+  });
+});
+
+describe('SYSTEM_PROMPT — Anki math conventions', () => {
+  it('specifies \\(...\\) for inline math', () => {
+    expect(SYSTEM_PROMPT).toContain('\\(...\\)');
+  });
+
+  it('specifies \\[...\\] for display math', () => {
+    expect(SYSTEM_PROMPT).toContain('\\[...\\]');
+  });
+
+  it('forbids $...$ inline delimiter', () => {
+    expect(SYSTEM_PROMPT).toMatch(/NEVER\s+\$\.\.\.\$/);
+  });
+
+  it('forbids $$...$$ display delimiter', () => {
+    expect(SYSTEM_PROMPT).toMatch(/NEVER\s+\$\$\.\.\.\$\$/);
+  });
+
+  it('includes a chemistry example using \\ce{}', () => {
+    expect(SYSTEM_PROMPT).toContain('\\ce{');
   });
 });

@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
 
 import { getAnthropicClient, normalizeTag } from '../../lib/claude/ClaudeService';
+import { ANKI_MATH_FRAGMENT } from '../../lib/claude/ankiMathFragment';
 import { countVisionTokens, VISION_TOKEN_CEILING, VisionMediaType } from '../../lib/claude/countVisionTokens';
 import { CREATE_DECK_DIR, CREATE_DECK_SCRIPT_PATH, TEMPLATE_DIR } from '../../lib/constants';
 import { track } from '../../services/events/track';
@@ -66,7 +67,9 @@ Rules:
 - Preserve important formatting but keep cards concise
 - ${DENSITY_RULE[density]}
 - Use the image content as the deck name if no other name is obvious
-- Add 1–3 topic tags per card in the "tags" field: short, lowercase, snake_case, drawn from the actual content (e.g. "enzymes", "michaelis_menten") — not broad labels like "biology" or "chapter_4"`;
+- Add 1–3 topic tags per card in the "tags" field: short, lowercase, snake_case, drawn from the actual content (e.g. "enzymes", "michaelis_menten") — not broad labels like "biology" or "chapter_4"
+
+${ANKI_MATH_FRAGMENT}`;
 }
 
 export function buildVerbatimPrompt(): string {
@@ -81,7 +84,9 @@ Rules:
 - If no correct answer is visible for an MCQ, omit "correct_index"
 - If text is illegible, write [illegible] in its place
 - Use the page title or subject as the deck name if visible; otherwise use "Verbatim deck"
-- Do not add tags`;
+- Do not add tags
+
+${ANKI_MATH_FRAGMENT}`;
 }
 
 const INPUT_COST_PER_MILLION = 3;

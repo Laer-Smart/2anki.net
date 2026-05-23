@@ -7,8 +7,9 @@ import { splitOversizedCards } from './splitOversizedCards';
 import { detect } from '../cardStyle/headingDriven/detect';
 import { splitByHeadings } from '../cardStyle/headingDriven/splitByHeadings';
 import { getCardStylePromptFragment } from './getCardStylePromptFragment';
+import { ANKI_MATH_FRAGMENT } from './ankiMathFragment';
 
-const SYSTEM_PROMPT = `
+export const SYSTEM_PROMPT = `
 You are an Anki flashcard generator. Output ONLY a compact JSON array.
 
 Format (nothing else — no markdown, no explanation):
@@ -34,6 +35,8 @@ Minimum-information rules (one fact per card):
 - One definition with its example may stay on a single card
 - Cloze cards are already single-fact — do not split them
 - If the user's additional instructions explicitly ask for detailed or longer cards, defer to those instructions over these rules
+
+${ANKI_MATH_FRAGMENT}
 `.trim();
 
 export const EMPTY_CONTENT_USER_MESSAGE =

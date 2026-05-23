@@ -344,6 +344,48 @@ describe('PhotoToFlashcardsUseCase', () => {
     });
   });
 
+  describe('Anki math conventions in prompts', () => {
+    it('buildVisionPrompt contains the inline math delimiter \\(...\\)', () => {
+      expect(buildVisionPrompt('balanced')).toContain('\\(...\\)');
+    });
+
+    it('buildVisionPrompt contains the display math delimiter \\[...\\]', () => {
+      expect(buildVisionPrompt('balanced')).toContain('\\[...\\]');
+    });
+
+    it('buildVisionPrompt forbids $...$ delimiter', () => {
+      expect(buildVisionPrompt('balanced')).toMatch(/NEVER\s+\$\.\.\.\$/);
+    });
+
+    it('buildVisionPrompt forbids $$...$$ delimiter', () => {
+      expect(buildVisionPrompt('balanced')).toMatch(/NEVER\s+\$\$\.\.\.\$\$/);
+    });
+
+    it('buildVisionPrompt includes a chemistry example using \\ce{}', () => {
+      expect(buildVisionPrompt('balanced')).toContain('\\ce{');
+    });
+
+    it('buildVerbatimPrompt contains the inline math delimiter \\(...\\)', () => {
+      expect(buildVerbatimPrompt()).toContain('\\(...\\)');
+    });
+
+    it('buildVerbatimPrompt contains the display math delimiter \\[...\\]', () => {
+      expect(buildVerbatimPrompt()).toContain('\\[...\\]');
+    });
+
+    it('buildVerbatimPrompt forbids $...$ delimiter', () => {
+      expect(buildVerbatimPrompt()).toMatch(/NEVER\s+\$\.\.\.\$/);
+    });
+
+    it('buildVerbatimPrompt forbids $$...$$ delimiter', () => {
+      expect(buildVerbatimPrompt()).toMatch(/NEVER\s+\$\$\.\.\.\$\$/);
+    });
+
+    it('buildVerbatimPrompt includes a chemistry example using \\ce{}', () => {
+      expect(buildVerbatimPrompt()).toContain('\\ce{');
+    });
+  });
+
   describe('density control', () => {
     it('uses the balanced rule line when no density is provided', async () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
