@@ -95,6 +95,7 @@ describe('CardFrame postMessage height update', () => {
         new MessageEvent('message', {
           data: { source: '2anki-preview', cardId: '42', height: 480 },
           source: window,
+          origin: 'null',
         })
       );
     });
@@ -117,6 +118,7 @@ describe('CardFrame postMessage height update', () => {
         new MessageEvent('message', {
           data: { source: 'other', cardId: '7', height: 900 },
           source: window,
+          origin: 'null',
         })
       );
     });
@@ -139,11 +141,35 @@ describe('CardFrame postMessage height update', () => {
         new MessageEvent('message', {
           data: { source: '2anki-preview', cardId: '999', height: 700 },
           source: window,
+          origin: 'null',
         })
       );
     });
 
     expect(iframe.style.height).not.toBe('700px');
+  });
+
+  it('ignores messages whose origin is not the sandboxed null origin', async () => {
+    const card = buildCard({ id: 11 });
+    const { container } = render(<CardFrame card={card} />);
+    const iframe = getIframe(container);
+
+    Object.defineProperty(iframe, 'contentWindow', {
+      value: window,
+      writable: true,
+    });
+
+    await act(async () => {
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: { source: '2anki-preview', cardId: '11', height: 600 },
+          source: window,
+          origin: 'https://evil.example',
+        })
+      );
+    });
+
+    expect(iframe.style.height).not.toBe('600px');
   });
 
   it('clamps height to MAX_FRAME_HEIGHT when value is too large', async () => {
@@ -161,6 +187,7 @@ describe('CardFrame postMessage height update', () => {
         new MessageEvent('message', {
           data: { source: '2anki-preview', cardId: '3', height: 99999 },
           source: window,
+          origin: 'null',
         })
       );
     });

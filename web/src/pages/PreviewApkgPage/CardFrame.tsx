@@ -71,6 +71,7 @@ export function CardFrame({ card }: Readonly<CardFrameProps>) {
   useEffect(() => {
     const cardId = String(card.id);
     function handleMessage(event: MessageEvent) {
+      if (event.origin !== 'null') return;
       if (event.source !== iframeRef.current?.contentWindow) return;
       const data = event.data;
       if (
