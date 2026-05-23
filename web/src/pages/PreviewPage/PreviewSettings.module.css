@@ -1,0 +1,76 @@
+.rail {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.heading {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.toggleList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.toggleLabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  flex: 1;
+}
+
+.toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: var(--color-border);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+  padding: 0;
+}
+
+.toggleOn {
+  background: var(--color-primary);
+}
+
+.toggleThumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.15s ease;
+  display: block;
+}
+
+.toggleOn .toggleThumb {
+  transform: translateX(16px);
+}
+
+.convertBtn {
+  width: 100%;
+  text-align: center;
+  display: block;
+}
