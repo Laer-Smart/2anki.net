@@ -21,7 +21,9 @@ const SAMPLE_SNAPSHOT: InterviewSnapshot = {
   interviewDate: '2026-05-22',
   sessionLengthMinutes: 30,
   createdAt: '2026-05-22T12:00:00Z',
-  opportunities: [{ body: 'Wants faster upload', tag: 'speed' as never }],
+  opportunities: [
+    { id: 'opp-1', body: 'Wants faster upload', tag: 'opportunity' },
+  ],
 };
 
 const SAMPLE_TREE = JSON.stringify({
