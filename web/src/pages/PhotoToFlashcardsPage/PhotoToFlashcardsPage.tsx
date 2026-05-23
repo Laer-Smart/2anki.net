@@ -11,6 +11,21 @@ const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 
 type Status = 'idle' | 'reading' | 'done';
 type UploadSource = 'camera' | 'library';
+type Density = 'sparse' | 'balanced' | 'dense';
+
+const DENSITY_OPTIONS: ReadonlyArray<{ value: Density; label: string; range: string }> = [
+  { value: 'sparse', label: 'Sparse', range: '3–5' },
+  { value: 'balanced', label: 'Balanced', range: '6–10' },
+  { value: 'dense', label: 'Dense', range: '12–20' },
+];
+
+const DENSITY_STORAGE_KEY = 'photoToFlashcards.density';
+
+function readStoredDensity(): Density {
+  if (typeof window === 'undefined') return 'balanced';
+  const stored = window.localStorage.getItem(DENSITY_STORAGE_KEY);
+  return stored === 'sparse' || stored === 'dense' ? stored : 'balanced';
+}
 
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -63,6 +78,7 @@ export function PhotoToFlashcardsPage() {
   const [error, setError] = useState<string | null>(null);
   const [uploadSource, setUploadSource] = useState<UploadSource>('library');
   const [includeSourceImage, setIncludeSourceImage] = useState(true);
+  const [density, setDensity] = useState<Density>(readStoredDensity);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,6 +117,13 @@ export function PhotoToFlashcardsPage() {
     if (next != null) handleFile(next, 'camera');
   };
 
+  const handleDensitySelect = (next: Density) => {
+    setDensity(next);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(DENSITY_STORAGE_KEY, next);
+    }
+  };
+
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
     const next = e.dataTransfer.files[0];
@@ -136,6 +159,7 @@ export function PhotoToFlashcardsPage() {
           width: dimensions.width,
           height: dimensions.height,
           includeSourceImage,
+          density,
         }),
       });
 
@@ -208,6 +232,32 @@ export function PhotoToFlashcardsPage() {
           className={pageStyles.deckNameInput}
           placeholder={file?.name.replace(/\.[^.]+$/, '') || 'Photo deck'}
         />
+      </div>
+
+      <div className={pageStyles.densityRow}>
+        <div
+          className={pageStyles.densityGroup}
+          role="radiogroup"
+          aria-label="Card density"
+        >
+          {DENSITY_OPTIONS.map(({ value, label, range }) => {
+            const isActive = density === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={isActive}
+                className={`${pageStyles.densityChip} ${isActive ? pageStyles.densityChipActive : ''}`}
+                onClick={() => handleDensitySelect(value)}
+              >
+                <span className={pageStyles.densityChipLabel}>{label}</span>
+                <span className={pageStyles.densityChipRange}>{range}</span>
+              </button>
+            );
+          })}
+        </div>
+        <p className={pageStyles.densityHint}>How many cards per image.</p>
       </div>
 
       <label className={pageStyles.checkboxRow}>
