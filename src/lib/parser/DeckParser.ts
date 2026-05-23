@@ -68,7 +68,7 @@ export class DeckParser {
   customExporter: CustomExporter;
 
   public get name() {
-    return this.payload[0].name;
+    return this.payload[0]?.name ?? this.firstDeckName;
   }
 
   constructor(input: DeckParserInput) {

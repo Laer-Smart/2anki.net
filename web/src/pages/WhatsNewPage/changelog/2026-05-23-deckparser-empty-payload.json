@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-23-deckparser-empty-payload",
+  "date": "2026-05-23",
+  "type": "fix",
+  "title": "Zip uploads with pages that produce no cards no longer fail with a runtime error"
+}
