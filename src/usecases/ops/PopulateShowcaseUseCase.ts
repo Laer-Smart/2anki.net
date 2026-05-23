@@ -4,6 +4,7 @@ import { getNotionObjectTitle } from 'get-notion-object-title';
 
 import { IShowcaseRepository } from '../../data_layer/ShowcaseRepository';
 import { PreviewBlockPayload, toPreviewBlock } from '../../controllers/helpers/toPreviewBlock';
+import ParserRules from '../../lib/parser/ParserRules';
 import { renderBlockPreview } from '../../services/NotionService/helpers/renderBlockPreview';
 import instrumentedAxios from '../../services/observability/instrumentedAxios';
 import type { NotionService } from '../../services/NotionService/NotionService';
@@ -30,14 +31,16 @@ export class PopulateShowcaseUseCase {
   async execute(owner: string, pageId: string, apkgKey: string): Promise<void> {
     const api = await this.notionService.getNotionAPI(owner);
 
-    const [blocksResponse, pageData] = await Promise.all([
+    const [blocksResponse, pageData, rules] = await Promise.all([
       api.listBlocksPage(pageId, { pageSize: MAX_BLOCKS }),
       this.fetchPageTitle(api, pageId),
+      ParserRules.Load(owner, pageId),
     ]);
+    const classifyRules = { flashcardTypes: rules.flaschardTypeNames() };
 
     const baseBlocks = blocksResponse.results
       .filter((block): block is BlockObjectResponse => isFullBlock(block))
-      .map(toPreviewBlock);
+      .map((block) => toPreviewBlock(block, classifyRules));
 
     const notionBlocks: ShowcaseBlockPayload[] = await Promise.all(
       baseBlocks.map(async (block) => {
