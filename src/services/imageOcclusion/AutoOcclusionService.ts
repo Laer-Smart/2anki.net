@@ -27,26 +27,40 @@ export interface AutoOcclusionSuggestResult {
   outputTokens: number;
 }
 
-const CONFIDENCE_THRESHOLD = 0.6;
+const CONFIDENCE_THRESHOLD = 0.5;
 
-const AUTO_OCCLUSION_PROMPT = `Analyze this image for visually emphasized terms that should become Anki flashcard occlusions.
+const AUTO_OCCLUSION_PROMPT = `Find text labels in this image that should become Anki flashcard occlusions. The reader will study by trying to recall each label after it is hidden.
 
-Look for:
-1. Terms with a highlighted background (yellow, green, blue, pink marker overlay)
-2. Bold or heavy-weight text that stands out from surrounding body text
+Detect ALL of these label types:
 
-For each emphasized term or phrase, return its bounding box as a fraction of image dimensions (0.0 to 1.0).
+1. **Diagram labels with leader lines or arrows.** A line connects the label text to a specific feature (anatomy diagrams, parts diagrams, scientific figures, maps, exploded views). Each label should become its own occlusion. Example: "Aorta" connected by a line to a blood vessel in a heart diagram.
+
+2. **Callouts and annotations.** Text that names or points to a region of the image — typically near the edges, in a different style from the underlying art.
+
+3. **Highlighted terms.** Text with a yellow / green / blue / pink marker overlay.
+
+4. **Bold or emphasized terms.** Text that stands out by weight, color, or size from surrounding body text.
+
+5. **Table headers, axis labels, and named regions** in charts or maps.
+
+Do NOT occlude:
+- Image titles or captions describing the whole image
+- Body paragraphs of running text
+- Watermarks, copyright lines, or logos
+- The features themselves (anatomy parts, map regions) — occlude only the text labels that name them
+
+For each label, return its bounding box around the TEXT itself (not the feature it points to). Use normalized coordinates 0.0–1.0 of the full image.
 
 Output ONLY a compact JSON object. Format (nothing else):
-{"rects":[{"x":0.1,"y":0.05,"w":0.3,"h":0.08,"label":"term text","confidence":0.9}]}
+{"rects":[{"x":0.1,"y":0.05,"w":0.3,"h":0.08,"label":"Aorta","confidence":0.95}]}
 
 Rules:
 - x, y are the top-left corner (normalized 0–1)
-- w, h are width and height (normalized 0–1)
-- label is the exact text inside the emphasized region
-- confidence is 0.0–1.0 (how certain you are this is an emphasized term)
-- Only include terms with confidence >= 0.6
-- If no emphasized terms are found, return: {"rects":[]}`;
+- w, h are width and height (normalized 0–1) — keep the box tight around the label text
+- label is the exact text the user would need to recall (one term per rect)
+- confidence is 0.0–1.0
+- Only include rects with confidence >= 0.5
+- If no labels are found, return: {"rects":[]}`;
 
 interface RawRect {
   x?: unknown;
@@ -95,8 +109,8 @@ export class AutoOcclusionService {
     const client = getAnthropicClient();
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 2048,
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4096,
       messages: [
         {
           role: 'user',
