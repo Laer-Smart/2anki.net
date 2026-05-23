@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import useQuery from '../../lib/hooks/useQuery';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
@@ -49,7 +49,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       <Helmet>
         <title>Upload — 2anki</title>
       </Helmet>
-      <header className={styles.pageHeader}>
+      <header className={styles.pageHeaderCenter}>
         <h1 className={styles.title}>Convert your notes</h1>
         <p className={styles.subtitle}>
           One deck per file — PDF, Notion export, Word, Markdown, HTML, Excel, CSV, or PowerPoint
@@ -68,10 +68,8 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       )}
       <UploadForm setErrorMessage={setErrorMessage} />
       <ExploreCard />
-      <details className={pageStyles.howItWorks}>
-        <summary className={pageStyles.howItWorksSummary}>
-          <h2 className={pageStyles.howItWorksHeading}>How it works</h2>
-        </summary>
+      <section className={pageStyles.howItWorks}>
+        <h2 className={pageStyles.howItWorksHeading}>How it works</h2>
         <p className={pageStyles.footnote}>
           Your uploaded files are deleted after 2 hours.
         </p>
@@ -81,14 +79,16 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
             <div>
               <p className={pageStyles.stepTitle}>Drop or choose a file</p>
               <p className={pageStyles.stepBody}>
-                Notion export, PDF, HTML, Markdown, Word, Excel, PowerPoint, or
-                CSV.{' '}
-                <a href="/documentation/start-here/upload-a-file">
-                  How to export from Notion
-                </a>
+                PDF, Word, Markdown, HTML, Excel, PowerPoint, CSV — or a Notion export.
               </p>
               <p className={pageStyles.stepBody}>
                 Doc and docx: use headings for the front of each card, body text for the back. Plain paragraphs become separate cards.
+              </p>
+              <p className={pageStyles.stepBody}>
+                Coming from Notion?{' '}
+                <a href="/documentation/start-here/upload-a-file">
+                  How to export your pages.
+                </a>
               </p>
             </div>
           </div>
@@ -113,7 +113,14 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
             </div>
           </div>
         </div>
-      </details>
+      </section>
+      <section className={pageStyles.contactNudge} aria-label="Contact us">
+        <p>
+          Bug, feature request, or a file that won&apos;t convert?{' '}
+          <Link to="/contact">Tell us</Link> or email{' '}
+          <a href="mailto:support@2anki.net">support@2anki.net</a>.
+        </p>
+      </section>
     </div>
   );
 }

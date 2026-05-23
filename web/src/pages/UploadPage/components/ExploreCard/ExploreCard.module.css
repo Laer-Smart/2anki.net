@@ -1,6 +1,6 @@
 .wrapper {
   max-width: 800px;
-  margin: 1.5rem 0 0;
+  margin: 1.5rem auto 0;
 }
 
 .header {
@@ -33,14 +33,25 @@
 .row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1rem;
   padding: 1rem 0;
   border-top: 1px solid var(--color-border);
 }
 
 .row:first-child {
   border-top: none;
+}
+
+.rowIcon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
 }
 
 .rowText {
@@ -93,12 +104,17 @@
   }
 
   .row {
-    flex-direction: column;
+    flex-wrap: wrap;
     align-items: flex-start;
     gap: 0.75rem;
   }
 
+  .rowText {
+    flex: 1 1 calc(100% - 52px);
+  }
+
   .rowAffordance {
     width: 100%;
+    padding-left: 52px;
   }
 }

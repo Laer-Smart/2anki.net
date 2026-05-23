@@ -1,33 +1,81 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 
 import { track } from '../../../../lib/analytics/track';
 import { isPayingUser } from '../../../../components/NavigationBar/helpers/getPlanLabel';
 import { useUserLocals } from '../../../../lib/hooks/useUserLocals';
-import CardStylePicker, {
-  CARD_STYLE_KEY,
-  DEFAULT_CARD_STYLE,
-} from '../UploadForm/CardStylePicker';
 import styles from './ExploreCard.module.css';
+
+function MultipleChoiceIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="6" cy="6" r="2" />
+      <circle cx="6" cy="12" r="2" />
+      <circle cx="6" cy="18" r="2" />
+      <line x1="11" y1="6" x2="20" y2="6" />
+      <line x1="11" y1="12" x2="20" y2="12" />
+      <line x1="11" y1="18" x2="20" y2="18" />
+    </svg>
+  );
+}
+
+function CameraIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 7h3l2-3h8l2 3h3v12H3z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
+  );
+}
+
+function GearIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+    </svg>
+  );
+}
 
 export function ExploreCard() {
   const { data } = useUserLocals();
   const viewedRef = useRef(false);
-
-  const [cardStyle, setCardStyle] = useState<string>(
-    () => globalThis.localStorage?.getItem(CARD_STYLE_KEY) ?? DEFAULT_CARD_STYLE
-  );
 
   useEffect(() => {
     if (viewedRef.current) return;
     viewedRef.current = true;
     track('photo_entry_point_viewed', { surface: 'upload_page' });
   }, []);
-
-  const handleCardStyleChange = (value: string) => {
-    globalThis.localStorage?.setItem(CARD_STYLE_KEY, value);
-    setCardStyle(value);
-  };
 
   const isPaying = isPayingUser(data?.locals);
   const showFreePlanHint = data != null && !isPaying;
@@ -39,26 +87,29 @@ export function ExploreCard() {
           Beyond the defaults
         </h2>
         <p className={styles.sub}>
-          Three things most people miss on their first upload.
+          How serious Anki users build decks faster.
         </p>
       </header>
       <ul className={styles.card}>
         <li className={styles.row}>
-          <div className={styles.rowText}>
-            <p className={styles.rowTitle}>Card style</p>
-            <p className={styles.rowDescription}>
-              Cloze fills in the blank. Q&amp;A puts the question on the front.
-            </p>
+          <div className={styles.rowIcon}>
+            <MultipleChoiceIcon />
           </div>
-          <div className={styles.rowAffordance}>
-            <CardStylePicker value={cardStyle} onChange={handleCardStyleChange} />
+          <div className={styles.rowText}>
+            <p className={styles.rowTitle}>Multiple choice questions (MCQ)</p>
+            <p className={styles.rowDescription}>
+              Photo to deck and the AI chat can generate MCQ alongside standard cards — useful for exam-style review.
+            </p>
           </div>
         </li>
         <li className={styles.row}>
+          <div className={styles.rowIcon}>
+            <CameraIcon />
+          </div>
           <div className={styles.rowText}>
             <p className={styles.rowTitle}>Photo to deck</p>
             <p className={styles.rowDescription}>
-              Snap a textbook page, lecture slide, or handwritten notes — we&apos;ll make the cards.
+              Snap a textbook page, lecture slide, or handwritten notes — generate new cards or copy questions already on the page.
             </p>
             {showFreePlanHint && (
               <p className={styles.rowHint}>Free plan: 5 photos per month</p>
@@ -77,10 +128,13 @@ export function ExploreCard() {
           </div>
         </li>
         <li className={styles.row}>
+          <div className={styles.rowIcon}>
+            <GearIcon />
+          </div>
           <div className={styles.rowText}>
             <p className={styles.rowTitle}>Deck defaults</p>
             <p className={styles.rowDescription}>
-              Change deck names, templates, and conversion options.
+              Change deck names, templates, card style (cloze or Q&amp;A), and conversion options.
             </p>
           </div>
           <div className={styles.rowAffordance}>

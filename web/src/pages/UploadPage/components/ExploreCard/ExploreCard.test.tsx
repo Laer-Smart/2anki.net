@@ -15,22 +15,6 @@ vi.mock('../../../../lib/hooks/useUserLocals', () => ({
   useUserLocals: () => mockUseUserLocals(),
 }));
 
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] ?? null,
-    setItem: (key: string, value: string) => {
-      store[key] = value;
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      store = {};
-    },
-  };
-})();
-
 function renderCard(opts: { paying?: boolean; loading?: boolean }) {
   if (opts.loading) {
     mockUseUserLocals.mockReturnValue({ data: undefined });
@@ -54,11 +38,6 @@ function renderCard(opts: { paying?: boolean; loading?: boolean }) {
 
 describe('ExploreCard', () => {
   beforeEach(() => {
-    Object.defineProperty(globalThis, 'localStorage', {
-      value: localStorageMock,
-      writable: true,
-    });
-    localStorageMock.clear();
     mockTrack.mockClear();
   });
 
@@ -70,46 +49,36 @@ describe('ExploreCard', () => {
     renderCard({ paying: false });
     expect(screen.getByRole('heading', { name: 'Beyond the defaults' })).toBeInTheDocument();
     expect(
-      screen.getByText('Three things most people miss on their first upload.')
+      screen.getByText('How serious Anki users build decks faster.')
     ).toBeInTheDocument();
   });
 
   it('renders the three row titles', () => {
     renderCard({ paying: false });
-    expect(screen.getByText('Card style')).toBeInTheDocument();
+    expect(screen.getByText('Multiple choice questions (MCQ)')).toBeInTheDocument();
     expect(screen.getByText('Photo to deck')).toBeInTheDocument();
     expect(screen.getByText('Deck defaults')).toBeInTheDocument();
   });
 
-  it('renders the card-style picker defaulting to Cloze', () => {
+  it('describes MCQ as available via photo and chat', () => {
     renderCard({ paying: false });
-    expect(screen.getByRole('radio', { name: 'Cloze' })).toHaveAttribute(
-      'aria-checked',
-      'true'
-    );
-    expect(screen.getByRole('radio', { name: 'Q&A' })).toHaveAttribute(
-      'aria-checked',
-      'false'
-    );
+    expect(
+      screen.getByText(/MCQ alongside standard cards/i)
+    ).toBeInTheDocument();
   });
 
-  it('writes selected card-style to localStorage when Q&A is clicked', () => {
+  it('mentions generate-vs-copy modes in the Photo to deck row', () => {
     renderCard({ paying: false });
-    fireEvent.click(screen.getByRole('radio', { name: 'Q&A' }));
-    expect(localStorageMock.getItem('card-style')).toBe('qa');
-    expect(screen.getByRole('radio', { name: 'Q&A' })).toHaveAttribute(
-      'aria-checked',
-      'true'
-    );
+    expect(
+      screen.getByText(/generate new cards or copy questions already on the page/i)
+    ).toBeInTheDocument();
   });
 
-  it('reads the initial card-style from localStorage', () => {
-    localStorageMock.setItem('card-style', 'qa');
+  it('mentions cloze and Q&A in the Deck defaults row', () => {
     renderCard({ paying: false });
-    expect(screen.getByRole('radio', { name: 'Q&A' })).toHaveAttribute(
-      'aria-checked',
-      'true'
-    );
+    expect(
+      screen.getByText(/card style \(cloze or Q&A\)/i)
+    ).toBeInTheDocument();
   });
 
   it('shows the free-plan hint for non-paying users', () => {
