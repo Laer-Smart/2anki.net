@@ -21,11 +21,11 @@ interface GenerationData {
   workspace: Workspace;
 }
 
-/**
- * Get file contents from either path or buffer
- */
-function getFileContents(file: UploadedFile): Buffer {
+export function getFileContents(file: UploadedFile): Buffer {
   if (!file.path) {
+    if (file.buffer == null) {
+      throw new Error('Uploaded file has neither a path nor a buffer');
+    }
     return Buffer.from(file.buffer);
   }
 
@@ -33,17 +33,16 @@ function getFileContents(file: UploadedFile): Buffer {
     if (fs.existsSync(file.path)) {
       return fs.readFileSync(file.path);
     }
-    console.warn(`File not found at path: ${file.path}, using buffer instead`);
   } catch (error) {
-    console.error(`Error reading file at path: ${file.path}`, error);
+    throw new Error(`Error reading file at path: ${file.path}: ${String(error)}`);
   }
 
+  if (file.buffer == null) {
+    throw new Error('Uploaded file is no longer available on disk and has no buffer fallback');
+  }
   return Buffer.from(file.buffer);
 }
 
-/**
- * Process a single file and return packages
- */
 interface FileResult {
   packages: Package[];
   warnings: string[];
@@ -125,6 +124,8 @@ async function doGenerationWork(data: GenerationData) {
   return { type: 'result', packages, warnings };
 }
 
-doGenerationWork(workerData.data)
-  .then((result) => parentPort?.postMessage(result))
-  .catch((err) => parentPort?.postMessage({ type: 'error', message: err instanceof Error ? err.message : String(err) }));
+if (workerData != null) {
+  doGenerationWork(workerData.data)
+    .then((result) => parentPort?.postMessage(result))
+    .catch((err) => parentPort?.postMessage({ type: 'error', message: err instanceof Error ? err.message : String(err) }));
+}
