@@ -284,7 +284,7 @@ export function ImageOcclusionPage() {
 
   const runAutoSuggest = useCallback(
     async (entry: ImageEntry, file: File) => {
-      if (!isPaying) return;
+      if (!isLoggedIn) return;
       setDetectingFor(entry.id);
       try {
         const reader = new FileReader();

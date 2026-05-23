@@ -1,5 +1,9 @@
-import { AutoSuggestOcclusionsUseCase } from './AutoSuggestOcclusionsUseCase';
+import {
+  AutoSuggestOcclusionsUseCase,
+  FREE_AUTO_OCCLUSION_QUOTA_PER_MONTH,
+} from './AutoSuggestOcclusionsUseCase';
 import type { AutoOcclusionService } from '../../services/imageOcclusion/AutoOcclusionService';
+import type { IEventsRepository } from '../../data_layer/EventsRepository';
 
 function makeMockService(rects: unknown[] = []) {
   return {
@@ -11,24 +15,56 @@ function makeMockService(rects: unknown[] = []) {
   } as unknown as jest.Mocked<AutoOcclusionService>;
 }
 
+function makeMockEvents(usedCount = 0) {
+  return {
+    countByNameForUser: jest.fn().mockResolvedValue(usedCount),
+  } as unknown as jest.Mocked<IEventsRepository>;
+}
+
 const BASE_INPUT = {
   imageBase64: 'abc123',
   mediaType: 'image/jpeg' as const,
   width: 1080,
   height: 720,
-  hasAccess: true,
+  isPaying: true,
+  userId: 42,
 };
 
 describe('AutoSuggestOcclusionsUseCase', () => {
-  it('throws 403 when user does not have access', async () => {
+  it('throws 429 when a free user has hit the monthly quota', async () => {
     const service = makeMockService();
-    const useCase = new AutoSuggestOcclusionsUseCase(service);
+    const events = makeMockEvents(FREE_AUTO_OCCLUSION_QUOTA_PER_MONTH);
+    const useCase = new AutoSuggestOcclusionsUseCase(service, events);
 
     await expect(
-      useCase.execute({ ...BASE_INPUT, hasAccess: false })
-    ).rejects.toMatchObject({ status: 403 });
+      useCase.execute({ ...BASE_INPUT, isPaying: false })
+    ).rejects.toMatchObject({ status: 429 });
 
     expect(service.suggest).not.toHaveBeenCalled();
+  });
+
+  it('allows a free user when under the monthly quota', async () => {
+    const service = makeMockService([
+      { id: 'r1', x: 0.1, y: 0.1, w: 0.2, h: 0.05, label: 'A', shape: 'rect', confidence: 0.9, source: 'auto' },
+    ]);
+    const events = makeMockEvents(FREE_AUTO_OCCLUSION_QUOTA_PER_MONTH - 1);
+    const useCase = new AutoSuggestOcclusionsUseCase(service, events);
+
+    const result = await useCase.execute({ ...BASE_INPUT, isPaying: false });
+
+    expect(result.rects).toHaveLength(1);
+    expect(service.suggest).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips the quota check for paying users', async () => {
+    const service = makeMockService();
+    const events = makeMockEvents(FREE_AUTO_OCCLUSION_QUOTA_PER_MONTH * 10);
+    const useCase = new AutoSuggestOcclusionsUseCase(service, events);
+
+    await useCase.execute({ ...BASE_INPUT, isPaying: true });
+
+    expect(events.countByNameForUser).not.toHaveBeenCalled();
+    expect(service.suggest).toHaveBeenCalledTimes(1);
   });
 
   it('throws 413 when image exceeds the token ceiling', async () => {
