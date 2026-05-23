@@ -1,6 +1,7 @@
 import { getDefaultUserInstructions } from '../../../infrastracture/adapters/fileConversion/convertPDFToHTML';
 import { validateCardStylePicker } from '../../claude/getCardStylePromptFragment';
 import { parseTemplate } from './helpers/parseTemplate';
+import { validateCardSize } from '../../claude/cardSize';
 
 import { UserSuppliedTemplateFile } from './types';
 
@@ -90,6 +91,8 @@ class CardOption {
 
   readonly mcqTtsExtra: string;
 
+  readonly cardSize: 'short' | 'medium' | 'detailed';
+
   constructor(input: { [key: string]: string }) {
     this.deckName = input.deckName;
     if (this.deckName && !this.deckName.trim()) {
@@ -141,6 +144,7 @@ class CardOption {
     this.mcqTtsQuestion = input['mcq-tts-question'] ?? '';
     this.mcqTtsCorrectAnswer = input['mcq-tts-correct-answer'] ?? '';
     this.mcqTtsExtra = input['mcq-tts-extra'] ?? '';
+    this.cardSize = validateCardSize(input['card-size']);
     this.retrieveTemplates(input);
   }
 

@@ -81,6 +81,13 @@ describe('ExploreCard', () => {
     ).toBeInTheDocument();
   });
 
+  it('mentions card size in the Deck defaults row', () => {
+    renderCard({ paying: false });
+    expect(
+      screen.getByText(/card size \(Short, Medium, Detailed\)/i)
+    ).toBeInTheDocument();
+  });
+
   it('shows the free-plan hint for non-paying users', () => {
     renderCard({ paying: false });
     expect(screen.getByText('Free plan: 5 photos per month')).toBeInTheDocument();
