@@ -682,8 +682,13 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                     </div>
                   </div>
                   <p className={fieldStyles.groupIntro}>
-                    AI conversion uses this to decide how much fits on each card. Short keeps cards to one fact; Detailed packs three to four.
+                    AI conversion uses this to decide how much fits on each card.
                   </p>
+                  <ul className={fieldStyles.bulletList}>
+                    <li><strong>Short</strong> — 1 fact per card, ~80 characters per answer. Best for vocabulary, dates, formulas.</li>
+                    <li><strong>Medium</strong> — 1–2 facts per card, ~160 characters per answer. Good default for most notes.</li>
+                    <li><strong>Detailed</strong> — 3–4 facts per card, ~320 characters per answer. Better for tightly grouped concepts you want to review together.</li>
+                  </ul>
                 </div>
               )}
               {isCardTypesGroup && (

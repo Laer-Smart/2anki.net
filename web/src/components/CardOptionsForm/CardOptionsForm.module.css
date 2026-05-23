@@ -230,3 +230,24 @@
 .groupIntroLink:focus-visible {
   text-decoration: underline;
 }
+
+.bulletList {
+  margin: 0 0 var(--space-3);
+  padding-left: 1.25rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.bulletList li {
+  margin-bottom: 0.25rem;
+}
+
+.bulletList li:last-child {
+  margin-bottom: 0;
+}
+
+.bulletList strong {
+  color: var(--color-text-primary);
+  font-weight: var(--font-medium);
+}
