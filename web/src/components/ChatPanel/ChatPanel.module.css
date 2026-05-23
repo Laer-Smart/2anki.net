@@ -484,6 +484,10 @@
   field-sizing: content;
 }
 
+.textarea:focus {
+  box-shadow: none;
+}
+
 .textarea:disabled {
   opacity: 0.5;
   cursor: not-allowed;
