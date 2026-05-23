@@ -19,6 +19,15 @@ export interface ChatMessageInsert {
 export interface IChatMessagesRepository {
   insert(entry: ChatMessageInsert): Promise<void>;
   countThisMonth(userId: number): Promise<number>;
+  findLatestAssistantInConversation(input: {
+    userId: number;
+    conversationId: number;
+  }): Promise<{ id: number; content: string } | null>;
+  updateContent(input: {
+    userId: number;
+    messageId: number;
+    content: string;
+  }): Promise<boolean>;
 }
 
 export class ChatMessagesRepository implements IChatMessagesRepository {
@@ -47,6 +56,32 @@ export class ChatMessagesRepository implements IChatMessagesRepository {
       .first();
 
     return Number(result?.count ?? 0);
+  }
+
+  async findLatestAssistantInConversation(input: {
+    userId: number;
+    conversationId: number;
+  }): Promise<{ id: number; content: string } | null> {
+    const row = await this.database(this.table)
+      .where({
+        user_id: input.userId,
+        conversation_id: input.conversationId,
+        role: 'assistant',
+      })
+      .orderBy('created_at', 'desc')
+      .first<{ id: number; content: string } | undefined>('id', 'content');
+    return row ?? null;
+  }
+
+  async updateContent(input: {
+    userId: number;
+    messageId: number;
+    content: string;
+  }): Promise<boolean> {
+    const updated = await this.database(this.table)
+      .where({ id: input.messageId, user_id: input.userId })
+      .update({ content: input.content });
+    return updated > 0;
   }
 }
 
@@ -80,6 +115,34 @@ export class InMemoryChatMessagesRepository implements IChatMessagesRepository {
     return this.rows.filter(
       (r) => r.user_id === userId && r.created_at >= firstOfMonth
     ).length;
+  }
+
+  async findLatestAssistantInConversation(input: {
+    userId: number;
+    conversationId: number;
+  }): Promise<{ id: number; content: string } | null> {
+    const matching = this.rows.filter(
+      (r) =>
+        r.user_id === input.userId &&
+        r.conversation_id === input.conversationId &&
+        r.role === 'assistant'
+    );
+    if (matching.length === 0) return null;
+    matching.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
+    return { id: matching[0].id, content: matching[0].content };
+  }
+
+  async updateContent(input: {
+    userId: number;
+    messageId: number;
+    content: string;
+  }): Promise<boolean> {
+    const row = this.rows.find(
+      (r) => r.id === input.messageId && r.user_id === input.userId
+    );
+    if (row == null) return false;
+    row.content = input.content;
+    return true;
   }
 
   getAll(): typeof this.rows {

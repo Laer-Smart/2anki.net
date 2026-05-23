@@ -11,6 +11,7 @@ export interface ChatDeckCard {
   correctIndex?: number;
   rationale?: string;
   template?: string;
+  tags?: string[];
 }
 
 export interface ChatDeckInput {
@@ -52,7 +53,7 @@ function expandForTemplate(cards: ChatDeckCard[], templateSlug: string | null | 
   for (const card of cards) {
     expanded.push(card);
     if (!isMcqCard(card) && !looksLikeCloze(card.front) && card.back.trim().length > 0) {
-      expanded.push({ front: card.back, back: card.front });
+      expanded.push({ front: card.back, back: card.front, tags: card.tags });
     }
   }
   return expanded;
@@ -85,7 +86,7 @@ export class ChatDeckUseCase {
           cards: normalizedCards.map((c, index) => {
             const base = {
               name: c.front,
-              tags: [],
+              tags: c.tags ?? [],
               number: index,
               enableInput: false,
               answer: '',

@@ -56,6 +56,29 @@ export interface ChatCard {
   options?: string[];
   correctIndex?: number;
   rationale?: string;
+  tags?: string[];
+}
+
+const TAG_PATTERN = /^[a-z0-9][a-z0-9-]{0,23}$/;
+const MAX_TAGS_PER_CARD = 8;
+
+function parseTagsField(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    if (out.length >= MAX_TAGS_PER_CARD) break;
+    if (typeof item !== 'string') continue;
+    const cleaned = item
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+    if (!TAG_PATTERN.test(cleaned) || seen.has(cleaned)) continue;
+    seen.add(cleaned);
+    out.push(cleaned);
+  }
+  return out.length > 0 ? out : undefined;
 }
 
 export interface ChatUser {
@@ -132,12 +155,37 @@ function parseCardItem(item: unknown, mcqAllowed: boolean): ChatCard | null {
   const record = item as Record<string, unknown>;
   const looksLikeMcq = record.options !== undefined || record.correct_index !== undefined;
   if (mcqAllowed && looksLikeMcq) {
-    return asMcqChatCard(record);
+    const mcq = asMcqChatCard(record);
+    if (mcq == null) return null;
+    const tags = parseTagsField(record.tags);
+    return tags != null ? { ...mcq, tags } : mcq;
   }
   if (typeof record.front === 'string' && typeof record.back === 'string') {
-    return { front: record.front, back: record.back };
+    const tags = parseTagsField(record.tags);
+    return {
+      front: record.front,
+      back: record.back,
+      ...(tags != null ? { tags } : {}),
+    };
   }
   return null;
+}
+
+export function rewriteAssistantContentWithTaggedCards(
+  content: string,
+  taggedCards: ChatCard[]
+): string {
+  const fencedMatch = /```json\s*([\s\S]*?)```/.exec(content);
+  if (fencedMatch != null) {
+    const jsonArray = JSON.stringify(taggedCards);
+    return `${content.slice(0, fencedMatch.index)}\`\`\`json\n${jsonArray}\n\`\`\`${content.slice(fencedMatch.index + fencedMatch[0].length)}`;
+  }
+  const rawMatch = /((?:^|\n)\s*)(\[\s*\{[\s\S]*\}\s*\])/.exec(content);
+  if (rawMatch != null) {
+    const jsonArray = JSON.stringify(taggedCards);
+    return `${content.slice(0, rawMatch.index + rawMatch[1].length)}${jsonArray}${content.slice(rawMatch.index + rawMatch[0].length)}`;
+  }
+  return content;
 }
 
 function parseCardArray(raw: string, mcqAllowed: boolean): ChatCard[] | undefined {

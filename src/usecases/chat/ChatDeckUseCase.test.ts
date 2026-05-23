@@ -54,6 +54,24 @@ describe('ChatDeckUseCase.execute MCQ handling', () => {
     expect(deckInfo[0].cards[0].mcq).toBeUndefined();
     expect(deckInfo[0].cards[0].back).toBe('A');
   });
+
+  it('passes per-card tags through to the exporter', async () => {
+    const useCase = new ChatDeckUseCase();
+    await useCase.execute({
+      deckName: 'Tagged',
+      cards: [
+        { front: 'Capital?', back: 'Oslo', tags: ['geography', 'norway'] },
+        { front: '2+2', back: '4' },
+      ],
+    });
+    const Mock = CustomExporter as unknown as jest.Mock;
+    const configure = Mock.mock.results[0].value.configure as jest.Mock;
+    const deckInfo = configure.mock.calls[0][0] as Array<{
+      cards: Array<{ tags: string[] }>;
+    }>;
+    expect(deckInfo[0].cards[0].tags).toEqual(['geography', 'norway']);
+    expect(deckInfo[0].cards[1].tags).toEqual([]);
+  });
 });
 
 describe('ChatDeckUseCase.execute basic-and-reversed template', () => {

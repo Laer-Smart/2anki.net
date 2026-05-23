@@ -125,6 +125,22 @@ describe('ChatUseCase', () => {
       expect(result.cards).toEqual(cards);
     });
 
+    it('extracts tags from JSON cards when present (persisted-tag round trip)', async () => {
+      const cards = [
+        { front: 'Capital?', back: 'Oslo', tags: ['geography', 'norway'] },
+      ];
+      const responseText = `Here:\n\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
+      const { useCase } = buildUseCase(responseText);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: 'noop',
+        conversationHistory: [],
+      });
+
+      expect(result.cards?.[0].tags).toEqual(['geography', 'norway']);
+    });
+
     it('returns no cards when response has no JSON block', async () => {
       const { useCase } = buildUseCase('Photosynthesis is the process by which...');
 
@@ -541,6 +557,31 @@ describe('ChatUseCase', () => {
       const callArg = anthropic.messages.stream.mock.calls[0][0];
       expect(callArg.system[0].text).not.toMatch(/both directions/i);
       expect(callArg.system[0].text).not.toMatch(/cloze only/i);
+    });
+  });
+
+  describe('rewriteAssistantContentWithTaggedCards', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { rewriteAssistantContentWithTaggedCards } = require('./ChatUseCase') as {
+      rewriteAssistantContentWithTaggedCards: (content: string, taggedCards: unknown[]) => string;
+    };
+
+    it('replaces the JSON fence body while preserving surrounding prose', () => {
+      const before = 'Here you go:\n\n```json\n[{"front":"q","back":"a"}]\n```\n\nLet me know.';
+      const tagged = [{ front: 'q', back: 'a', tags: ['x', 'y'] }];
+      const after = rewriteAssistantContentWithTaggedCards(before, tagged);
+      expect(after).toContain('Here you go:');
+      expect(after).toContain('Let me know.');
+      expect(after).toContain('"tags":["x","y"]');
+      expect(after.indexOf('```json')).toBeGreaterThanOrEqual(0);
+    });
+
+    it('returns content unchanged when there is no JSON block', () => {
+      const before = 'No cards in this message.';
+      const after = rewriteAssistantContentWithTaggedCards(before, [
+        { front: 'q', back: 'a', tags: ['x'] },
+      ]);
+      expect(after).toBe(before);
     });
   });
 

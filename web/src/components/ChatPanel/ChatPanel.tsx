@@ -13,6 +13,7 @@ import {
 export interface ChatCard {
   front: string;
   back: string;
+  tags?: string[];
 }
 
 export interface Message {
@@ -239,6 +240,8 @@ function AssistantMessage({
   onTemplateChange,
   templateDisabled,
   isRegenerating,
+  onAddTags,
+  isTagging,
 }: {
   message: Message;
   onSave?: (cards: ChatCard[], deckName: string) => void;
@@ -246,6 +249,8 @@ function AssistantMessage({
   onTemplateChange?: (slug: ChatCardTemplate) => void;
   templateDisabled?: boolean;
   isRegenerating?: boolean;
+  onAddTags?: () => void;
+  isTagging?: boolean;
 }) {
   const showCardPreview =
     (message.cards != null && message.cards.length > 0 && onSave != null) ||
@@ -267,6 +272,8 @@ function AssistantMessage({
           onTemplateChange={onTemplateChange}
           templateDisabled={templateDisabled}
           isRegenerating={isRegenerating}
+          onAddTags={onAddTags}
+          isTagging={isTagging}
         />
       )}
       {message.contentAfter != null && (
@@ -549,6 +556,7 @@ export default function ChatPanel({
 
   const [isLoading, setIsLoading] = useState(false);
   const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null);
+  const [taggingIdx, setTaggingIdx] = useState<number | null>(null);
   const [networkError, setNetworkError] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
   const [resetDate, setResetDate] = useState<string | null>(null);
@@ -839,6 +847,47 @@ export default function ChatPanel({
     });
   }
 
+  async function handleAddTags(messageIdx: number) {
+    const target = messages[messageIdx];
+    if (target == null || target.role !== 'assistant') return;
+    if (target.cards == null || target.cards.length === 0) return;
+    if (taggingIdx != null) return;
+    const cardsToTag = target.cards;
+    setTaggingIdx(messageIdx);
+    setNetworkError(null);
+    try {
+      const response = await post('/api/chat/tag-cards', {
+        cards: cardsToTag.map((c) => ({ front: c.front, back: c.back })),
+        conversationId: activeConversationId,
+      });
+      if (!response.ok) {
+        setNetworkError("Couldn't add tags. Try again.");
+        return;
+      }
+      const result = (await response.json()) as { tags: string[][] };
+      if (!Array.isArray(result.tags)) {
+        setNetworkError("Couldn't add tags. Try again.");
+        return;
+      }
+      setMessages((prev) =>
+        prev.map((m, i) => {
+          if (i !== messageIdx || m.cards == null) return m;
+          return {
+            ...m,
+            cards: m.cards.map((c, j) => ({
+              ...c,
+              tags: result.tags[j] ?? [],
+            })),
+          };
+        })
+      );
+    } catch {
+      setNetworkError("Couldn't add tags. Try again.");
+    } finally {
+      setTaggingIdx(null);
+    }
+  }
+
   function handleTemplateChange(slug: ChatCardTemplate) {
     if (slug === activeTemplate) return;
     setActiveTemplate(slug);
@@ -1094,6 +1143,10 @@ export default function ChatPanel({
                         }
                         templateDisabled={isLoading}
                         isRegenerating={i === regeneratingIdx}
+                        onAddTags={
+                          i === lastCardsIdx ? () => handleAddTags(i) : undefined
+                        }
+                        isTagging={i === taggingIdx}
                       />
                     );
                   });

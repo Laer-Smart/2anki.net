@@ -7,6 +7,7 @@ import styles from './CardPreview.module.css';
 interface ChatCard {
   front: string;
   back: string;
+  tags?: string[];
 }
 
 interface CardPreviewProps {
@@ -16,9 +17,12 @@ interface CardPreviewProps {
   onTemplateChange?: (slug: ChatCardTemplate) => void;
   templateDisabled?: boolean;
   isRegenerating?: boolean;
+  onAddTags?: () => void;
+  isTagging?: boolean;
 }
 
 const SKELETON_ROWS = 5;
+const MAX_VISIBLE_TAGS = 3;
 
 type SaveState = 'idle' | 'naming' | 'saved';
 
@@ -33,6 +37,24 @@ function sanitizeFilename(name: string): string {
     .slice(0, MAX_DECK_NAME_LENGTH);
 }
 
+function TagChips({ tags }: { tags: string[] }) {
+  if (tags.length === 0) return null;
+  const visible = tags.slice(0, MAX_VISIBLE_TAGS);
+  const overflow = tags.length - visible.length;
+  return (
+    <span className={styles.cardPreviewTagList}>
+      {visible.map((tag) => (
+        <span key={tag} className={styles.cardPreviewTagChip}>
+          {tag}
+        </span>
+      ))}
+      {overflow > 0 && (
+        <span className={styles.cardPreviewTagOverflow}>+{overflow}</span>
+      )}
+    </span>
+  );
+}
+
 export default function CardPreview({
   cards,
   onSave,
@@ -40,6 +62,8 @@ export default function CardPreview({
   onTemplateChange,
   templateDisabled,
   isRegenerating,
+  onAddTags,
+  isTagging,
 }: CardPreviewProps) {
   const [expanded, setExpanded] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>('idle');
@@ -57,6 +81,15 @@ export default function CardPreview({
 
   const visibleCards = expanded ? cards : cards.slice(0, VISIBLE_COUNT);
   const hasMore = cards.length > VISIBLE_COUNT;
+  const hideBackColumn =
+    template === 'cloze' &&
+    cards.length > 0 &&
+    cards.every((c) => c.back.trim().length === 0);
+  const hasTags =
+    cards.some((c) => c.tags != null && c.tags.length > 0) ||
+    isTagging === true;
+  const showAddTagsButton =
+    onAddTags != null && !isRegenerating && !isTagging && !hasTags;
 
   function openNaming() {
     setSaveState('naming');
@@ -100,6 +133,16 @@ export default function CardPreview({
             onChange={onTemplateChange}
             disabled={templateDisabled === true || isRegenerating === true}
           />
+        )}
+
+        {showAddTagsButton && (
+          <button
+            type="button"
+            className={styles.cardPreviewAddTags}
+            onClick={onAddTags}
+          >
+            Add tags
+          </button>
         )}
 
         {saveState === 'idle' && !isRegenerating && onSave != null && (
@@ -166,9 +209,12 @@ export default function CardPreview({
         )}
       </div>
 
-      <div className={styles.cardPreviewColumnLabels}>
+      <div
+        className={`${styles.cardPreviewColumnLabels} ${hideBackColumn && !hasTags ? styles.cardPreviewColumnLabelsSingle : ''} ${!hideBackColumn && hasTags ? styles.cardPreviewColumnLabelsThree : ''}`}
+      >
         <span>Front</span>
-        <span>Back</span>
+        {!hideBackColumn && <span>Back</span>}
+        {hasTags && <span>Tags</span>}
       </div>
 
       {isRegenerating ? (
@@ -193,15 +239,36 @@ export default function CardPreview({
         <>
           <div className={styles.cardPreviewList}>
             {visibleCards.map((card, i) => (
-              <div key={i} className={styles.cardPreviewRow}>
+              <div
+                key={i}
+                className={`${styles.cardPreviewRow} ${hideBackColumn && !hasTags ? styles.cardPreviewRowSingle : ''} ${!hideBackColumn && hasTags ? styles.cardPreviewRowThree : ''}`}
+              >
                 <div className={styles.cardPreviewFront}>
-                  <span className={styles.cardPreviewMobileLabel}>Front</span>
+                  {(!hideBackColumn || hasTags) && (
+                    <span className={styles.cardPreviewMobileLabel}>Front</span>
+                  )}
                   {card.front}
                 </div>
-                <div className={styles.cardPreviewBack}>
-                  <span className={styles.cardPreviewMobileLabel}>Back</span>
-                  {card.back}
-                </div>
+                {!hideBackColumn && (
+                  <div className={styles.cardPreviewBack}>
+                    <span className={styles.cardPreviewMobileLabel}>Back</span>
+                    {card.back}
+                  </div>
+                )}
+                {hasTags && (
+                  <div className={styles.cardPreviewTags}>
+                    <span className={styles.cardPreviewMobileLabel}>Tags</span>
+                    {isTagging ? (
+                      <span
+                        className={styles.cardPreviewTagSkeleton}
+                        role="status"
+                        aria-label="Generating tags"
+                      />
+                    ) : (
+                      <TagChips tags={card.tags ?? []} />
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
