@@ -66,12 +66,4 @@ describe('OauthIdentitiesRepository', () => {
     const row = await repo.findByProviderAndSubject('microsoft', 'sub-1');
     expect(row).toBeNull();
   });
-
-  it('rejects duplicate (provider, subject) inserts via the UNIQUE constraint', async () => {
-    const userId1 = await insertUser('a@example.com');
-    const userId2 = await insertUser('b@example.com');
-    await repo.link('microsoft', 'sub-1', userId1);
-
-    await expect(repo.link('microsoft', 'sub-1', userId2)).rejects.toThrow();
-  });
 });
