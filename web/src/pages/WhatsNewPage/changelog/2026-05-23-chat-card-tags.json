@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-23-chat-card-tags",
+  "date": "2026-05-23",
+  "type": "feature",
+  "title": "Chat — Add tags generates subject tags for every card; tags survive page reload and ship with the downloaded deck"
+}

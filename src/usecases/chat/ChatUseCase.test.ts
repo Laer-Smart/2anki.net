@@ -125,6 +125,22 @@ describe('ChatUseCase', () => {
       expect(result.cards).toEqual(cards);
     });
 
+    it('extracts tags from JSON cards when present (persisted-tag round trip)', async () => {
+      const cards = [
+        { front: 'Capital?', back: 'Oslo', tags: ['geography', 'norway'] },
+      ];
+      const responseText = `Here:\n\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
+      const { useCase } = buildUseCase(responseText);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: 'noop',
+        conversationHistory: [],
+      });
+
+      expect(result.cards?.[0].tags).toEqual(['geography', 'norway']);
+    });
+
     it('returns no cards when response has no JSON block', async () => {
       const { useCase } = buildUseCase('Photosynthesis is the process by which...');
 
@@ -484,6 +500,88 @@ describe('ChatUseCase', () => {
       await useCase.execute({ user: FREE_USER, content: 'q', conversationHistory: [] });
       const callArg = anthropic.messages.stream.mock.calls[0][0];
       expect(callArg.system[0].text).not.toMatch(/correct_index/);
+    });
+  });
+
+  describe('template slug routing', () => {
+    it('adds cloze suffix to system prompt when templateSlug is cloze', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'question',
+        conversationHistory: [],
+        templateSlug: 'cloze',
+      });
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.system[0].text).toMatch(/cloze/i);
+      expect(callArg.system[0].text).toMatch(/\{\{c1::/);
+    });
+
+    it('adds basic-and-reversed suffix to system prompt when templateSlug is basic-and-reversed', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'question',
+        conversationHistory: [],
+        templateSlug: 'basic-and-reversed',
+      });
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.system[0].text).toMatch(/both directions/i);
+    });
+
+    it('does not add any suffix for basic template', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+      const baseLen = (await (() => {
+        const uc = buildUseCase('answer');
+        return uc.anthropic.messages.stream.mock.calls;
+      })()).length;
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'question',
+        conversationHistory: [],
+        templateSlug: 'basic',
+      });
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.system[0].text).not.toMatch(/both directions/i);
+      expect(callArg.system[0].text).not.toMatch(/cloze only/i);
+    });
+
+    it('falls back to basic when templateSlug is unknown', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'question',
+        conversationHistory: [],
+        templateSlug: 'image-occlusion',
+      });
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.system[0].text).not.toMatch(/both directions/i);
+      expect(callArg.system[0].text).not.toMatch(/cloze only/i);
+    });
+  });
+
+  describe('rewriteAssistantContentWithTaggedCards', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { rewriteAssistantContentWithTaggedCards } = require('./ChatUseCase') as {
+      rewriteAssistantContentWithTaggedCards: (content: string, taggedCards: unknown[]) => string;
+    };
+
+    it('replaces the JSON fence body while preserving surrounding prose', () => {
+      const before = 'Here you go:\n\n```json\n[{"front":"q","back":"a"}]\n```\n\nLet me know.';
+      const tagged = [{ front: 'q', back: 'a', tags: ['x', 'y'] }];
+      const after = rewriteAssistantContentWithTaggedCards(before, tagged);
+      expect(after).toContain('Here you go:');
+      expect(after).toContain('Let me know.');
+      expect(after).toContain('"tags":["x","y"]');
+      expect(after.indexOf('```json')).toBeGreaterThanOrEqual(0);
+    });
+
+    it('returns content unchanged when there is no JSON block', () => {
+      const before = 'No cards in this message.';
+      const after = rewriteAssistantContentWithTaggedCards(before, [
+        { front: 'q', back: 'a', tags: ['x'] },
+      ]);
+      expect(after).toBe(before);
     });
   });
 

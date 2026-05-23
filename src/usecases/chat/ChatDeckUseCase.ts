@@ -10,11 +10,14 @@ export interface ChatDeckCard {
   options?: string[];
   correctIndex?: number;
   rationale?: string;
+  template?: string;
+  tags?: string[];
 }
 
 export interface ChatDeckInput {
   cards: ChatDeckCard[];
   deckName: string;
+  templateSlug?: string | null;
 }
 
 function isMcqCard(card: ChatDeckCard): boolean {
@@ -44,14 +47,29 @@ export function transformBlankToCloze(card: ChatDeckCard): ChatDeckCard {
   };
 }
 
+function expandForTemplate(cards: ChatDeckCard[], templateSlug: string | null | undefined): ChatDeckCard[] {
+  if (templateSlug !== 'basic-and-reversed') return cards;
+  const expanded: ChatDeckCard[] = [];
+  for (const card of cards) {
+    expanded.push(card);
+    if (!isMcqCard(card) && !looksLikeCloze(card.front) && card.back.trim().length > 0) {
+      expanded.push({ front: card.back, back: card.front, tags: card.tags });
+    }
+  }
+  return expanded;
+}
+
 export class ChatDeckUseCase {
   async execute(input: ChatDeckInput): Promise<Buffer> {
-    const { cards, deckName } = input;
+    const { cards, deckName, templateSlug } = input;
     const workspaceDir = path.join(os.tmpdir(), `chat-deck-${randomUUID()}`);
     fs.mkdirSync(workspaceDir, { recursive: true });
 
     try {
-      const normalizedCards = cards.map((c) => (isMcqCard(c) ? c : transformBlankToCloze(c)));
+      const normalizedCards = expandForTemplate(
+        cards.map((c) => (isMcqCard(c) ? c : transformBlankToCloze(c))),
+        templateSlug
+      );
       const deckInfo = [
         {
           name: deckName,
@@ -68,7 +86,7 @@ export class ChatDeckUseCase {
           cards: normalizedCards.map((c, index) => {
             const base = {
               name: c.front,
-              tags: [],
+              tags: c.tags ?? [],
               number: index,
               enableInput: false,
               answer: '',

@@ -9,9 +9,16 @@
 .cardPreviewHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--color-border-light);
+  flex-wrap: wrap;
+}
+
+.cardPreviewSave,
+.savedLine,
+.renameRow {
+  margin-left: auto;
 }
 
 .cardPreviewCount {
@@ -41,6 +48,27 @@
 
 .cardPreviewSave:hover {
   background: var(--color-primary-hover);
+}
+
+.cardPreviewAddTags {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.875rem;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.cardPreviewAddTags:hover,
+.cardPreviewAddTags:focus-visible {
+  border-color: var(--color-primary);
+  color: var(--color-text-primary);
+  outline: none;
 }
 
 .renameRow {
@@ -157,6 +185,14 @@
     font-weight: var(--font-medium);
     border-bottom: 1px solid var(--color-border-light);
   }
+
+  .cardPreviewColumnLabelsSingle {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cardPreviewColumnLabelsThree {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.7fr);
+  }
 }
 
 .cardPreviewList {
@@ -176,6 +212,14 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 1.5rem;
+  }
+
+  .cardPreviewRowSingle {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cardPreviewRowThree {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.7fr);
   }
 }
 
@@ -228,4 +272,153 @@
 
 .cardPreviewExpandBtn:hover {
   color: var(--color-text-secondary);
+}
+
+.cardPreviewSkeletonList {
+  display: flex;
+  flex-direction: column;
+}
+
+.cardPreviewSkeletonRow {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--color-border-light);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+.cardPreviewSkeletonRowSingle {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.cardPreviewMcqRow {
+  padding: 0.875rem 1rem;
+  border-top: 1px solid var(--color-border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cardPreviewMcqStem {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+}
+
+.cardPreviewMcqOptions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cardPreviewMcqOption,
+.cardPreviewMcqOptionCorrect {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.cardPreviewMcqOptionCorrect {
+  color: var(--color-text-primary);
+  font-weight: var(--font-medium);
+}
+
+.cardPreviewMcqOptionLetter {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-tertiary);
+}
+
+.cardPreviewMcqOptionCheck {
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+.cardPreviewMcqRationale {
+  margin: 0.25rem 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
+.cardPreviewSkeletonBlock {
+  display: block;
+  height: 1rem;
+  border-radius: 4px;
+  background: var(--color-border);
+  animation: cardPreviewSkeletonPulse 1.4s ease-in-out infinite;
+}
+
+.cardPreviewSkeletonRow > .cardPreviewSkeletonBlock:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.cardPreviewSkeletonHint {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  border-top: 1px solid var(--color-border-light);
+  text-align: center;
+}
+
+@keyframes cardPreviewSkeletonPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cardPreviewSkeletonBlock,
+  .cardPreviewTagSkeleton {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+.cardPreviewTags {
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+}
+
+.cardPreviewTagList {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.cardPreviewTagChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.cardPreviewTagOverflow {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.cardPreviewTagSkeleton {
+  display: inline-block;
+  width: 60%;
+  height: 0.9rem;
+  border-radius: 4px;
+  background: var(--color-border);
+  animation: cardPreviewSkeletonPulse 1.4s ease-in-out infinite;
 }

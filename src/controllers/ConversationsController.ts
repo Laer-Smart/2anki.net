@@ -3,6 +3,7 @@ import {
   ConversationsUseCase,
   InvalidTitleError,
   InvalidDraftError,
+  InvalidTemplateError,
 } from '../usecases/chat/ConversationsUseCase';
 
 function parseConversationId(raw: unknown): number | null {
@@ -43,6 +44,7 @@ class ConversationsController {
       id: conv.id,
       title: conv.title,
       draft: conv.draft,
+      templateSlug: conv.templateSlug,
       createdAt: conv.created_at.toISOString(),
       updatedAt: conv.updated_at.toISOString(),
       messages: conv.messages.map((m) => ({
@@ -120,6 +122,39 @@ class ConversationsController {
     } catch (err) {
       if (err instanceof InvalidDraftError) {
         res.status(400).json({ error: 'draft is too long' });
+        return;
+      }
+      throw err;
+    }
+  }
+
+  async saveTemplate(req: Request, res: Response): Promise<void> {
+    const owner = res.locals.owner as number;
+    const id = parseConversationId(req.params.id);
+    if (id == null) {
+      res.status(400).json({ error: 'invalid conversation id' });
+      return;
+    }
+    const rawSlug = req.body?.templateSlug;
+    const templateSlug = rawSlug === null || rawSlug === undefined ? null : rawSlug;
+    if (templateSlug !== null && typeof templateSlug !== 'string') {
+      res.status(400).json({ error: 'templateSlug must be a string or null' });
+      return;
+    }
+    try {
+      const updated = await this.useCase.saveTemplate({
+        userId: owner,
+        conversationId: id,
+        templateSlug,
+      });
+      if (!updated) {
+        res.status(404).json({ error: 'conversation not found' });
+        return;
+      }
+      res.status(204).end();
+    } catch (err) {
+      if (err instanceof InvalidTemplateError) {
+        res.status(400).json({ error: 'templateSlug must be basic, basic-and-reversed, or cloze' });
         return;
       }
       throw err;

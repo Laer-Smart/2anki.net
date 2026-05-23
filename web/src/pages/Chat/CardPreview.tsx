@@ -1,15 +1,51 @@
 import { useEffect, useRef, useState } from 'react';
 import DownloadIcon from '../../components/icons/DownloadIcon';
+import { TemplateSelector } from '../../components/ChatPanel/TemplateSelector';
+import type { ChatCardTemplate } from '../../lib/chat/templates';
 import styles from './CardPreview.module.css';
 
 interface ChatCard {
   front: string;
   back: string;
+  tags?: string[];
+  options?: string[];
+  correctIndex?: number;
+  rationale?: string;
+}
+
+function isMcqCard(card: ChatCard): boolean {
+  return (
+    Array.isArray(card.options) && typeof card.correctIndex === 'number'
+  );
 }
 
 interface CardPreviewProps {
   cards: ChatCard[];
-  onSave: (deckName: string) => void;
+  onSave?: (deckName: string) => void;
+  template?: ChatCardTemplate;
+  onTemplateChange?: (slug: ChatCardTemplate) => void;
+  templateDisabled?: boolean;
+  isRegenerating?: boolean;
+  onAddTags?: () => void;
+  isTagging?: boolean;
+}
+
+const SKELETON_ROWS = 5;
+const MAX_VISIBLE_TAGS = 3;
+const CLOZE_PATTERN = /\{\{c\d+::/;
+
+function expandForReversed(cards: ChatCard[]): ChatCard[] {
+  const expanded: ChatCard[] = [];
+  for (const card of cards) {
+    expanded.push(card);
+    if (
+      card.back.trim().length > 0 &&
+      !CLOZE_PATTERN.test(card.front)
+    ) {
+      expanded.push({ front: card.back, back: card.front, tags: card.tags });
+    }
+  }
+  return expanded;
 }
 
 type SaveState = 'idle' | 'naming' | 'saved';
@@ -25,7 +61,72 @@ function sanitizeFilename(name: string): string {
     .slice(0, MAX_DECK_NAME_LENGTH);
 }
 
-export default function CardPreview({ cards, onSave }: CardPreviewProps) {
+function McqRow({ card }: { card: ChatCard }) {
+  const options = card.options ?? [];
+  const correctIndex = card.correctIndex ?? -1;
+  return (
+    <div className={styles.cardPreviewMcqRow}>
+      <p className={styles.cardPreviewMcqStem}>{card.front}</p>
+      <ol className={styles.cardPreviewMcqOptions}>
+        {options.map((opt, i) => (
+          <li
+            key={i}
+            className={
+              i === correctIndex
+                ? styles.cardPreviewMcqOptionCorrect
+                : styles.cardPreviewMcqOption
+            }
+          >
+            <span className={styles.cardPreviewMcqOptionLetter}>
+              {String.fromCharCode(65 + i)}.
+            </span>
+            <span>{opt}</span>
+            {i === correctIndex && (
+              <span
+                className={styles.cardPreviewMcqOptionCheck}
+                aria-label="Correct answer"
+              >
+                ✓
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+      {card.rationale != null && card.rationale.length > 0 && (
+        <p className={styles.cardPreviewMcqRationale}>{card.rationale}</p>
+      )}
+    </div>
+  );
+}
+
+function TagChips({ tags }: { tags: string[] }) {
+  if (tags.length === 0) return null;
+  const visible = tags.slice(0, MAX_VISIBLE_TAGS);
+  const overflow = tags.length - visible.length;
+  return (
+    <span className={styles.cardPreviewTagList}>
+      {visible.map((tag) => (
+        <span key={tag} className={styles.cardPreviewTagChip}>
+          {tag}
+        </span>
+      ))}
+      {overflow > 0 && (
+        <span className={styles.cardPreviewTagOverflow}>+{overflow}</span>
+      )}
+    </span>
+  );
+}
+
+export default function CardPreview({
+  cards,
+  onSave,
+  template,
+  onTemplateChange,
+  templateDisabled,
+  isRegenerating,
+  onAddTags,
+  isTagging,
+}: CardPreviewProps) {
   const [expanded, setExpanded] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [deckNameDraft, setDeckNameDraft] = useState('Untitled deck');
@@ -40,8 +141,22 @@ export default function CardPreview({ cards, onSave }: CardPreviewProps) {
     }
   }, [saveState]);
 
-  const visibleCards = expanded ? cards : cards.slice(0, VISIBLE_COUNT);
-  const hasMore = cards.length > VISIBLE_COUNT;
+  const isMcqTemplate = template === 'mcq';
+  const displayCards =
+    template === 'basic-and-reversed' ? expandForReversed(cards) : cards;
+  const visibleCards = expanded
+    ? displayCards
+    : displayCards.slice(0, VISIBLE_COUNT);
+  const hasMore = displayCards.length > VISIBLE_COUNT;
+  const hideBackColumn =
+    template === 'cloze' &&
+    (isRegenerating === true ||
+      (cards.length > 0 && cards.every((c) => c.back.trim().length === 0)));
+  const hasTags =
+    cards.some((c) => c.tags != null && c.tags.length > 0) ||
+    isTagging === true;
+  const showAddTagsButton =
+    onAddTags != null && !isRegenerating && !isTagging && !hasTags;
 
   function openNaming() {
     setSaveState('naming');
@@ -53,6 +168,7 @@ export default function CardPreview({ cards, onSave }: CardPreviewProps) {
   }
 
   function commitSave() {
+    if (onSave == null) return;
     const sanitized = sanitizeFilename(deckNameDraft.trim());
     if (sanitized.length === 0) return;
     setSavedName(sanitized);
@@ -68,17 +184,37 @@ export default function CardPreview({ cards, onSave }: CardPreviewProps) {
     }
   }
 
-  const cardLabel = cards.length === 1 ? 'card' : 'cards';
+  const cardLabel = displayCards.length === 1 ? 'card' : 'cards';
 
   return (
     <div className={styles.cardPreview}>
       <div className={styles.cardPreviewHeader}>
         <span className={styles.cardPreviewCount}>
-          <span className={styles.cardPreviewCountNumber}>{cards.length}</span>{' '}
+          <span className={styles.cardPreviewCountNumber}>
+            {displayCards.length}
+          </span>{' '}
           {cardLabel}
         </span>
 
-        {saveState === 'idle' && (
+        {template != null && onTemplateChange != null && (
+          <TemplateSelector
+            value={template}
+            onChange={onTemplateChange}
+            disabled={templateDisabled === true || isRegenerating === true}
+          />
+        )}
+
+        {showAddTagsButton && (
+          <button
+            type="button"
+            className={styles.cardPreviewAddTags}
+            onClick={onAddTags}
+          >
+            Add tags
+          </button>
+        )}
+
+        {saveState === 'idle' && !isRegenerating && onSave != null && (
           <button
             type="button"
             className={styles.cardPreviewSave}
@@ -142,34 +278,93 @@ export default function CardPreview({ cards, onSave }: CardPreviewProps) {
         )}
       </div>
 
-      <div className={styles.cardPreviewColumnLabels}>
-        <span>Front</span>
-        <span>Back</span>
-      </div>
-
-      <div className={styles.cardPreviewList}>
-        {visibleCards.map((card, i) => (
-          <div key={i} className={styles.cardPreviewRow}>
-            <div className={styles.cardPreviewFront}>
-              <span className={styles.cardPreviewMobileLabel}>Front</span>
-              {card.front}
-            </div>
-            <div className={styles.cardPreviewBack}>
-              <span className={styles.cardPreviewMobileLabel}>Back</span>
-              {card.back}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {hasMore && (
-        <button
-          type="button"
-          className={styles.cardPreviewExpandBtn}
-          onClick={() => setExpanded((v) => !v)}
+      {!isMcqTemplate && (
+        <div
+          className={`${styles.cardPreviewColumnLabels} ${hideBackColumn && !hasTags ? styles.cardPreviewColumnLabelsSingle : ''} ${!hideBackColumn && hasTags ? styles.cardPreviewColumnLabelsThree : ''}`}
         >
-          {expanded ? 'Show fewer' : `Show all ${cards.length} cards`}
-        </button>
+          <span>Front</span>
+          {!hideBackColumn && <span>Back</span>}
+          {hasTags && <span>Tags</span>}
+        </div>
+      )}
+
+      {isRegenerating ? (
+        <>
+          <div
+            className={styles.cardPreviewSkeletonList}
+            aria-label="Rebuilding your cards with the new template"
+            role="status"
+          >
+            {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+              <div
+                key={i}
+                className={`${styles.cardPreviewSkeletonRow} ${hideBackColumn ? styles.cardPreviewSkeletonRowSingle : ''}`}
+              >
+                <span className={styles.cardPreviewSkeletonBlock} />
+                {!hideBackColumn && (
+                  <span className={styles.cardPreviewSkeletonBlock} />
+                )}
+              </div>
+            ))}
+          </div>
+          <p className={styles.cardPreviewSkeletonHint}>
+            Rebuilding your cards with the new template
+          </p>
+        </>
+      ) : (
+        <>
+          <div className={styles.cardPreviewList}>
+            {visibleCards.map((card, i) =>
+              isMcqTemplate && isMcqCard(card) ? (
+                <McqRow key={i} card={card} />
+              ) : (
+                <div
+                  key={i}
+                  className={`${styles.cardPreviewRow} ${hideBackColumn && !hasTags ? styles.cardPreviewRowSingle : ''} ${!hideBackColumn && hasTags ? styles.cardPreviewRowThree : ''}`}
+                >
+                  <div className={styles.cardPreviewFront}>
+                    {(!hideBackColumn || hasTags) && (
+                      <span className={styles.cardPreviewMobileLabel}>Front</span>
+                    )}
+                    {card.front}
+                  </div>
+                  {!hideBackColumn && (
+                    <div className={styles.cardPreviewBack}>
+                      <span className={styles.cardPreviewMobileLabel}>Back</span>
+                      {card.back}
+                    </div>
+                  )}
+                  {hasTags && (
+                    <div className={styles.cardPreviewTags}>
+                      <span className={styles.cardPreviewMobileLabel}>Tags</span>
+                      {isTagging ? (
+                        <span
+                          className={styles.cardPreviewTagSkeleton}
+                          role="status"
+                          aria-label="Generating tags"
+                        />
+                      ) : (
+                        <TagChips tags={card.tags ?? []} />
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            )}
+          </div>
+
+          {hasMore && (
+            <button
+              type="button"
+              className={styles.cardPreviewExpandBtn}
+              onClick={() => setExpanded((v) => !v)}
+            >
+              {expanded
+                ? 'Show fewer'
+                : `Show all ${displayCards.length} cards`}
+            </button>
+          )}
+        </>
       )}
     </div>
   );

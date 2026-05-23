@@ -89,10 +89,12 @@ describe('ChatController.sendMessage', () => {
     expect(res.status).toHaveBeenCalledWith(400);
   });
 
-  it('returns 400 when content exceeds 4000 chars for free users', async () => {
-    const { controller, res } = buildMocks();
-    await controller.sendMessage(buildReq({ content: 'x'.repeat(4001) }), res);
-    expect(res.status).toHaveBeenCalledWith(400);
+  it('allows content up to 100 000 chars for free users', async () => {
+    const { execute, controller, res } = buildMocks();
+    execute.mockResolvedValueOnce({ content: 'ok' });
+    await controller.sendMessage(buildReq({ content: 'x'.repeat(100_000) }), res);
+    expect(res.status).not.toHaveBeenCalledWith(400);
+    expect(execute).toHaveBeenCalled();
   });
 
   it('allows content up to 100 000 chars for patreon users', async () => {
@@ -111,7 +113,7 @@ describe('ChatController.sendMessage', () => {
     expect(execute).toHaveBeenCalled();
   });
 
-  it('returns 400 when content exceeds 100 000 chars even for premium users', async () => {
+  it('returns 400 when content exceeds 100 000 chars for any tier', async () => {
     const { controller, res } = buildMocks(42, true, false);
     await controller.sendMessage(buildReq({ content: 'x'.repeat(100_001) }), res);
     expect(res.status).toHaveBeenCalledWith(400);

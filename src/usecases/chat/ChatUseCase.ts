@@ -3,6 +3,7 @@ import type { IChatMessagesRepository } from '../../data_layer/ChatMessagesRepos
 import type { IConversationsRepository } from '../../data_layer/ConversationsRepository';
 import { logClaudeUsage } from '../../lib/claude/logClaudeUsage';
 import { buildAttachmentBlocks, type ChatAttachment } from './buildAttachmentBlocks';
+import { isChatCardTemplate, templatePromptSuffix, type ChatCardTemplate } from './chatTemplates';
 
 const REQUIRED_MCQ_OPTION_COUNT = 4;
 
@@ -22,6 +23,14 @@ const MAX_TOKENS = 4096;
 const AUTO_TITLE_MAX_LENGTH = 60;
 
 const STUDY_ASSISTANT_SYSTEM_PROMPT = `You are a study assistant for 2anki, a tool that turns notes into Anki flashcards.
+
+Response style:
+- Be concise. Lead with the answer or the cards, not a preamble.
+- Do not restate the user's request. Do not say "Great question" or "I'd be happy to". Skip the wind-up.
+- Hard budget: at most 6 short bullets OR 3 short paragraphs per reply. If the topic needs more, end with one line offering specific follow-ups ("Want more on history, economy, or culture?") and let the user pull.
+- Skip section headings on short replies. Use them only when the user asks for a structured overview.
+- No emoji fanfare. A single emoji is fine if it adds information (a flag for a country, a check for completion). Never decorate.
+- When generating flashcards, the JSON code block is the answer. Keep any surrounding prose to one or two sentences max.
 
 Help users understand material, answer study questions, and generate flashcards. When generating flashcards, you MUST wrap them in a JSON code block using EXACTLY this format:
 
@@ -55,6 +64,29 @@ export interface ChatCard {
   options?: string[];
   correctIndex?: number;
   rationale?: string;
+  tags?: string[];
+}
+
+const TAG_PATTERN = /^[a-z0-9][a-z0-9-]{0,23}$/;
+const MAX_TAGS_PER_CARD = 8;
+
+function parseTagsField(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    if (out.length >= MAX_TAGS_PER_CARD) break;
+    if (typeof item !== 'string') continue;
+    const cleaned = item
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+    if (!TAG_PATTERN.test(cleaned) || seen.has(cleaned)) continue;
+    seen.add(cleaned);
+    out.push(cleaned);
+  }
+  return out.length > 0 ? out : undefined;
 }
 
 export interface ChatUser {
@@ -131,12 +163,37 @@ function parseCardItem(item: unknown, mcqAllowed: boolean): ChatCard | null {
   const record = item as Record<string, unknown>;
   const looksLikeMcq = record.options !== undefined || record.correct_index !== undefined;
   if (mcqAllowed && looksLikeMcq) {
-    return asMcqChatCard(record);
+    const mcq = asMcqChatCard(record);
+    if (mcq == null) return null;
+    const tags = parseTagsField(record.tags);
+    return tags != null ? { ...mcq, tags } : mcq;
   }
   if (typeof record.front === 'string' && typeof record.back === 'string') {
-    return { front: record.front, back: record.back };
+    const tags = parseTagsField(record.tags);
+    return {
+      front: record.front,
+      back: record.back,
+      ...(tags != null ? { tags } : {}),
+    };
   }
   return null;
+}
+
+export function rewriteAssistantContentWithTaggedCards(
+  content: string,
+  taggedCards: ChatCard[]
+): string {
+  const fencedMatch = /```json\s*([\s\S]*?)```/.exec(content);
+  if (fencedMatch != null) {
+    const jsonArray = JSON.stringify(taggedCards);
+    return `${content.slice(0, fencedMatch.index)}\`\`\`json\n${jsonArray}\n\`\`\`${content.slice(fencedMatch.index + fencedMatch[0].length)}`;
+  }
+  const rawMatch = /((?:^|\n)\s*)(\[\s*\{[\s\S]*\}\s*\])/.exec(content);
+  if (rawMatch != null) {
+    const jsonArray = JSON.stringify(taggedCards);
+    return `${content.slice(0, rawMatch.index + rawMatch[1].length)}${jsonArray}${content.slice(rawMatch.index + rawMatch[0].length)}`;
+  }
+  return content;
 }
 
 function parseCardArray(raw: string, mcqAllowed: boolean): ChatCard[] | undefined {
@@ -208,6 +265,7 @@ export class ChatUseCase {
     conversationId?: number | null;
     onToken?: (text: string) => void;
     attachments?: ChatAttachment[];
+    templateSlug?: string | null;
   }): Promise<SendMessageResult> {
     const { user, content, conversationHistory, onToken } = input;
     const attachments = input.attachments ?? [];
@@ -237,10 +295,19 @@ export class ChatUseCase {
     }
 
     const model = user.patreon ? PATREON_MODEL : FREE_MODEL;
-    const mcqAllowed = user.patreon;
-    const systemPromptText = mcqAllowed
+
+    const resolvedTemplate: ChatCardTemplate = isChatCardTemplate(input.templateSlug)
+      ? input.templateSlug
+      : 'basic';
+    const mcqAllowed = user.patreon || resolvedTemplate === 'mcq';
+
+    const templateSuffix = templatePromptSuffix(resolvedTemplate);
+    const baseSystemPrompt = mcqAllowed
       ? `${STUDY_ASSISTANT_SYSTEM_PROMPT}\n\n${MCQ_PROMPT_ADDITION}`
       : STUDY_ASSISTANT_SYSTEM_PROMPT;
+    const systemPromptText = templateSuffix.length > 0
+      ? `${baseSystemPrompt}\n\n${templateSuffix.trim()}`
+      : baseSystemPrompt;
 
     const recentHistory = conversationHistory.slice(-MAX_HISTORY_TURNS);
     const attachmentBlocks = buildAttachmentBlocks(attachments);

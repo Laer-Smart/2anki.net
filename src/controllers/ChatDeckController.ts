@@ -5,6 +5,27 @@ import { buildContentDisposition } from '../lib/buildContentDisposition';
 const MAX_DECK_NAME_LENGTH = 120;
 const MAX_CARDS = 200;
 const REQUIRED_MCQ_OPTION_COUNT = 4;
+const MAX_TAGS_PER_CARD = 8;
+const TAG_PATTERN = /^[a-z0-9][a-z0-9-]{0,23}$/;
+
+function parseTags(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    if (out.length >= MAX_TAGS_PER_CARD) break;
+    if (typeof item !== 'string') continue;
+    const cleaned = item
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+    if (!TAG_PATTERN.test(cleaned) || seen.has(cleaned)) continue;
+    seen.add(cleaned);
+    out.push(cleaned);
+  }
+  return out.length > 0 ? out : undefined;
+}
 
 function asMcqShape(record: Record<string, unknown>): ChatDeckCard | null {
   if (typeof record.front !== 'string') return null;
@@ -17,12 +38,14 @@ function asMcqShape(record: Record<string, unknown>): ChatDeckCard | null {
   if (typeof correctIndex !== 'number' || !Number.isInteger(correctIndex)) return null;
   if (correctIndex < 0 || correctIndex >= options.length) return null;
   const rationale = typeof record.rationale === 'string' ? record.rationale : '';
+  const tags = parseTags(record.tags);
   return {
     front: record.front,
     back: '',
     options,
     correctIndex,
     ...(rationale.length > 0 ? { rationale } : {}),
+    ...(tags != null ? { tags } : {}),
   };
 }
 
@@ -33,7 +56,12 @@ function parseCard(item: unknown): ChatDeckCard | null {
     return asMcqShape(record);
   }
   if (typeof record.front === 'string' && typeof record.back === 'string') {
-    return { front: record.front, back: record.back };
+    const tags = parseTags(record.tags);
+    return {
+      front: record.front,
+      back: record.back,
+      ...(tags != null ? { tags } : {}),
+    };
   }
   return null;
 }
@@ -78,9 +106,13 @@ class ChatDeckController {
       return;
     }
 
+    const rawTemplateSlug = req.body?.templateSlug;
+    const templateSlug = typeof rawTemplateSlug === 'string' ? rawTemplateSlug : null;
+
     const buffer = await this.useCase.execute({
       cards: parsedCards as ChatDeckCard[],
       deckName,
+      templateSlug,
     });
 
     res.setHeader('Content-Type', 'application/octet-stream');

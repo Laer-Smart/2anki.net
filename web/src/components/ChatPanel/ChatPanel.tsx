@@ -5,10 +5,18 @@ import ConsentModal from '../ConsentModal/ConsentModal';
 import AssistantMarkdown from '../../pages/Chat/AssistantMarkdown';
 import CardPreview from '../../pages/Chat/CardPreview';
 import styles from './ChatPanel.module.css';
+import {
+  DEFAULT_TEMPLATE,
+  type ChatCardTemplate,
+} from '../../lib/chat/templates';
 
 export interface ChatCard {
   front: string;
   back: string;
+  tags?: string[];
+  options?: string[];
+  correctIndex?: number;
+  rationale?: string;
 }
 
 export interface Message {
@@ -47,8 +55,10 @@ export interface ChatPanelProps {
   onCardsGenerated?: (cards: ChatCard[]) => void;
   initialConversationId?: number | null;
   initialMessages?: Message[];
+  initialTemplateSlug?: ChatCardTemplate | null;
   onConversationCreated?: (id: number, title: string) => void;
   onConversationNotFound?: () => void;
+  onTemplateChange?: (slug: ChatCardTemplate) => void;
 }
 
 const DRAFT_DEBOUNCE_MS = 500;
@@ -94,6 +104,23 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function findLastAssistantWithCardsIdx(messages: Message[]): number {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    if (m.role === 'assistant' && m.cards != null && m.cards.length > 0) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function findUserIdxBefore(messages: Message[], beforeIdx: number): number {
+  for (let i = beforeIdx - 1; i >= 0; i--) {
+    if (messages[i].role === 'user') return i;
+  }
+  return -1;
+}
+
 export function parseSseEvent(
   rawEvent: string
 ): { eventType: string; data: string } | null {
@@ -113,9 +140,10 @@ export function parseSseEvent(
 
 async function downloadDeck(
   cards: ChatCard[],
-  deckName: string
+  deckName: string,
+  templateSlug: ChatCardTemplate
 ): Promise<void> {
-  const response = await post('/api/chat/deck', { cards, deckName });
+  const response = await post('/api/chat/deck', { cards, deckName, templateSlug });
   if (!response.ok) {
     throw new Error('Failed to generate deck');
   }
@@ -211,25 +239,50 @@ function UserMessage({
 function AssistantMessage({
   message,
   onSave,
+  template,
+  onTemplateChange,
+  templateDisabled,
+  isRegenerating,
+  onAddTags,
+  isTagging,
 }: {
   message: Message;
   onSave?: (cards: ChatCard[], deckName: string) => void;
+  template?: ChatCardTemplate;
+  onTemplateChange?: (slug: ChatCardTemplate) => void;
+  templateDisabled?: boolean;
+  isRegenerating?: boolean;
+  onAddTags?: () => void;
+  isTagging?: boolean;
 }) {
+  const showCardPreview =
+    (message.cards != null && message.cards.length > 0 && onSave != null) ||
+    isRegenerating === true;
   return (
     <div className={styles.assistantRow}>
       {message.contentBefore != null && (
         <AssistantMarkdown>{message.contentBefore}</AssistantMarkdown>
       )}
-      {message.cards != null && message.cards.length > 0 && onSave != null && (
+      {showCardPreview && (
         <CardPreview
-          cards={message.cards}
-          onSave={(deckName) => onSave(message.cards!, deckName)}
+          cards={message.cards ?? []}
+          onSave={
+            onSave != null && message.cards != null
+              ? (deckName) => onSave(message.cards!, deckName)
+              : undefined
+          }
+          template={template}
+          onTemplateChange={onTemplateChange}
+          templateDisabled={templateDisabled}
+          isRegenerating={isRegenerating}
+          onAddTags={onAddTags}
+          isTagging={isTagging}
         />
       )}
       {message.contentAfter != null && (
         <AssistantMarkdown>{message.contentAfter}</AssistantMarkdown>
       )}
-      {message.cards == null && (
+      {message.cards == null && !isRegenerating && (
         <AssistantMarkdown>{message.content}</AssistantMarkdown>
       )}
     </div>
@@ -474,8 +527,10 @@ export default function ChatPanel({
   onCardsGenerated,
   initialConversationId,
   initialMessages,
+  initialTemplateSlug,
   onConversationCreated,
   onConversationNotFound,
+  onTemplateChange,
 }: ChatPanelProps) {
   const { data: userLocals, refetch: refetchUserLocals } = useUserLocals();
   const isPatreon = userLocals?.user?.patreon === true;
@@ -487,6 +542,9 @@ export default function ChatPanel({
     number | null
   >(initialConversationId ?? null);
   const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
+  const [activeTemplate, setActiveTemplate] = useState<ChatCardTemplate>(
+    initialTemplateSlug ?? DEFAULT_TEMPLATE
+  );
   const [expandedUserMessages, setExpandedUserMessages] = useState<Set<number>>(
     new Set()
   );
@@ -500,6 +558,8 @@ export default function ChatPanel({
   }, [initialPrompt]);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null);
+  const [taggingIdx, setTaggingIdx] = useState<number | null>(null);
   const [networkError, setNetworkError] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
   const [resetDate, setResetDate] = useState<string | null>(null);
@@ -661,6 +721,7 @@ export default function ChatPanel({
       const formData = new FormData();
       formData.append('content', content);
       formData.append('history', JSON.stringify(history));
+      formData.append('templateSlug', activeTemplate);
       if (activeConversationId != null) {
         formData.append('conversationId', String(activeConversationId));
       }
@@ -680,6 +741,7 @@ export default function ChatPanel({
           content,
           history,
           conversationId: activeConversationId,
+          templateSlug: activeTemplate,
         });
       } catch {
         setNetworkError("Couldn't send this message. Try again.");
@@ -783,9 +845,172 @@ export default function ChatPanel({
   }
 
   function handleSaveAsDeck(cards: ChatCard[], deckName: string) {
-    downloadDeck(cards, deckName).catch(() => {
+    downloadDeck(cards, deckName, activeTemplate).catch(() => {
       setNetworkError("Couldn't generate the deck. Try again.");
     });
+  }
+
+  async function handleAddTags(messageIdx: number) {
+    const target = messages[messageIdx];
+    if (target == null || target.role !== 'assistant') return;
+    if (target.cards == null || target.cards.length === 0) return;
+    if (taggingIdx != null) return;
+    const cardsToTag = target.cards;
+    setTaggingIdx(messageIdx);
+    setNetworkError(null);
+    try {
+      const response = await post('/api/chat/tag-cards', {
+        cards: cardsToTag.map((c) => ({ front: c.front, back: c.back })),
+        conversationId: activeConversationId,
+      });
+      if (!response.ok) {
+        setNetworkError("Couldn't add tags. Try again.");
+        return;
+      }
+      const result = (await response.json()) as { tags: string[][] };
+      if (!Array.isArray(result.tags)) {
+        setNetworkError("Couldn't add tags. Try again.");
+        return;
+      }
+      setMessages((prev) =>
+        prev.map((m, i) => {
+          if (i !== messageIdx || m.cards == null) return m;
+          return {
+            ...m,
+            cards: m.cards.map((c, j) => ({
+              ...c,
+              tags: result.tags[j] ?? [],
+            })),
+          };
+        })
+      );
+    } catch {
+      setNetworkError("Couldn't add tags. Try again.");
+    } finally {
+      setTaggingIdx(null);
+    }
+  }
+
+  function handleTemplateChange(slug: ChatCardTemplate) {
+    if (slug === activeTemplate) return;
+    setActiveTemplate(slug);
+    onTemplateChange?.(slug);
+    if (activeConversationId != null) {
+      patch(`/api/chat/conversations/${activeConversationId}/template`, {
+        templateSlug: slug,
+      }).catch(() => {});
+    }
+    const lastAssistantWithCards = findLastAssistantWithCardsIdx(messages);
+    if (lastAssistantWithCards !== -1 && !isLoading) {
+      regenerateLastTurn(slug, lastAssistantWithCards);
+    }
+  }
+
+  async function regenerateLastTurn(
+    newSlug: ChatCardTemplate,
+    targetIdx: number
+  ) {
+    const userIdx = findUserIdxBefore(messages, targetIdx);
+    if (userIdx === -1) return;
+    const userContent = messages[userIdx].content;
+
+    setRegeneratingIdx(targetIdx);
+    setIsLoading(true);
+    setNetworkError(null);
+    setStreamingText('');
+    setUserScrolledAway(false);
+
+    const history = messages
+      .slice(0, userIdx)
+      .slice(-10)
+      .map((m) => ({ role: m.role, content: m.content }));
+
+    let response: Response;
+    try {
+      response = await post('/api/chat/message', {
+        content: userContent,
+        history,
+        conversationId: activeConversationId,
+        templateSlug: newSlug,
+      });
+    } catch {
+      setNetworkError("Couldn't rebuild your cards. Try again.");
+      setIsLoading(false);
+      setRegeneratingIdx(null);
+      return;
+    }
+
+    if (!response.ok || response.body == null) {
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      setNetworkError(data.error ?? "Couldn't rebuild your cards. Try again.");
+      setIsLoading(false);
+      setRegeneratingIdx(null);
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split('\n\n');
+        buffer = events.pop() ?? '';
+        for (const rawEvent of events) {
+          const parsed = parseSseEvent(rawEvent);
+          if (parsed == null) continue;
+          if (parsed.eventType === 'token') {
+            const text = JSON.parse(parsed.data) as string;
+            setStreamingText((prev) => prev + text);
+          } else if (parsed.eventType === 'done') {
+            const result = JSON.parse(parsed.data) as ApiDonePayload;
+            setMessages((prev) =>
+              prev.map((m, i) =>
+                i === targetIdx
+                  ? {
+                      role: 'assistant',
+                      content: result.content,
+                      contentBefore: result.contentBefore,
+                      contentAfter: result.contentAfter,
+                      cards: result.cards,
+                    }
+                  : m
+              )
+            );
+            setMessagesUsedThisMonth((n) => n + 1);
+            setActiveConversationId(result.conversationId);
+            if (result.cards != null && result.cards.length > 0) {
+              onCardsGenerated?.(result.cards);
+            }
+          } else if (parsed.eventType === 'error') {
+            const err = JSON.parse(parsed.data) as ApiErrorPayload;
+            if (err.type === 'rate_limit') {
+              setLimitReached(true);
+              if (err.resetDate != null) setResetDate(err.resetDate);
+            } else if (err.type === 'conversation_not_found') {
+              setNetworkError('This conversation is gone. Start a new one.');
+              setActiveConversationId(null);
+              onConversationNotFound?.();
+            } else if (err.type === 'consent_required') {
+              setShowConsentModal(true);
+            } else {
+              setNetworkError("Couldn't rebuild your cards. Try again.");
+            }
+          }
+        }
+      }
+    } catch {
+      setNetworkError("Couldn't rebuild your cards. Try again.");
+    } finally {
+      setIsLoading(false);
+      setRegeneratingIdx(null);
+      setStreamingText('');
+    }
   }
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -885,36 +1110,51 @@ export default function ChatPanel({
                 className={styles.messageListInner}
                 aria-live="polite"
               >
-                {messages.map((m, i) => {
-                  if (m.role === 'user') {
+                {(() => {
+                  const lastCardsIdx = findLastAssistantWithCardsIdx(messages);
+                  return messages.map((m, i) => {
+                    if (m.role === 'user') {
+                      return (
+                        <UserMessage
+                          key={i}
+                          message={m}
+                          expanded={expandedUserMessages.has(i)}
+                          onToggleExpand={() => {
+                            setExpandedUserMessages((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(i)) {
+                                next.delete(i);
+                              } else {
+                                next.add(i);
+                              }
+                              return next;
+                            });
+                          }}
+                        />
+                      );
+                    }
+                    const showTemplateSelector =
+                      i === lastCardsIdx || i === regeneratingIdx;
                     return (
-                      <UserMessage
+                      <AssistantMessage
                         key={i}
                         message={m}
-                        expanded={expandedUserMessages.has(i)}
-                        onToggleExpand={() => {
-                          setExpandedUserMessages((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(i)) {
-                              next.delete(i);
-                            } else {
-                              next.add(i);
-                            }
-                            return next;
-                          });
-                        }}
+                        onSave={handleSaveAsDeck}
+                        template={showTemplateSelector ? activeTemplate : undefined}
+                        onTemplateChange={
+                          showTemplateSelector ? handleTemplateChange : undefined
+                        }
+                        templateDisabled={isLoading}
+                        isRegenerating={i === regeneratingIdx}
+                        onAddTags={
+                          i === lastCardsIdx ? () => handleAddTags(i) : undefined
+                        }
+                        isTagging={i === taggingIdx}
                       />
                     );
-                  }
-                  return (
-                    <AssistantMessage
-                      key={i}
-                      message={m}
-                      onSave={handleSaveAsDeck}
-                    />
-                  );
-                })}
-                {isLoading && (
+                  });
+                })()}
+                {isLoading && regeneratingIdx == null && (
                   <StreamingMessage
                     streamingText={streamingText}
                     isCardStreaming={isCardStreaming}

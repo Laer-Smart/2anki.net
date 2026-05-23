@@ -5,6 +5,7 @@ export interface ConversationRow {
   user_id: number;
   title: string;
   draft_content: string | null;
+  template_slug: string | null;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
@@ -20,6 +21,7 @@ export interface ConversationWithMessages {
   id: number;
   title: string;
   draft: string | null;
+  templateSlug: string | null;
   created_at: Date;
   updated_at: Date;
   messages: Array<{
@@ -41,6 +43,11 @@ export interface IConversationsRepository {
     userId: number;
     conversationId: number;
     content: string | null;
+  }): Promise<boolean>;
+  saveTemplate(input: {
+    userId: number;
+    conversationId: number;
+    templateSlug: string | null;
   }): Promise<boolean>;
 }
 
@@ -93,6 +100,7 @@ export class ConversationsRepository implements IConversationsRepository {
       id: conv.id,
       title: conv.title,
       draft: conv.draft_content ?? null,
+      templateSlug: conv.template_slug ?? null,
       created_at: conv.created_at,
       updated_at: conv.updated_at,
       messages,
@@ -108,6 +116,18 @@ export class ConversationsRepository implements IConversationsRepository {
       .where({ id: input.conversationId, user_id: input.userId })
       .whereNull('deleted_at')
       .update({ title: input.title, updated_at: this.database.fn.now() });
+    return updated > 0;
+  }
+
+  async saveTemplate(input: {
+    userId: number;
+    conversationId: number;
+    templateSlug: string | null;
+  }): Promise<boolean> {
+    const updated = await this.database(this.table)
+      .where({ id: input.conversationId, user_id: input.userId })
+      .whereNull('deleted_at')
+      .update({ template_slug: input.templateSlug });
     return updated > 0;
   }
 
@@ -163,6 +183,7 @@ export class InMemoryConversationsRepository implements IConversationsRepository
       user_id: input.userId,
       title: input.title,
       draft_content: null,
+      template_slug: null,
       created_at: now,
       updated_at: now,
       deleted_at: null,
@@ -196,6 +217,7 @@ export class InMemoryConversationsRepository implements IConversationsRepository
       id: conv.id,
       title: conv.title,
       draft: conv.draft_content ?? null,
+      templateSlug: conv.template_slug ?? null,
       created_at: conv.created_at,
       updated_at: conv.updated_at,
       messages,
@@ -245,6 +267,19 @@ export class InMemoryConversationsRepository implements IConversationsRepository
     );
     if (conv == null) return false;
     conv.draft_content = input.content;
+    return true;
+  }
+
+  async saveTemplate(input: {
+    userId: number;
+    conversationId: number;
+    templateSlug: string | null;
+  }): Promise<boolean> {
+    const conv = this.rows.find(
+      (r) => r.id === input.conversationId && r.user_id === input.userId && r.deleted_at == null
+    );
+    if (conv == null) return false;
+    conv.template_slug = input.templateSlug;
     return true;
   }
 
