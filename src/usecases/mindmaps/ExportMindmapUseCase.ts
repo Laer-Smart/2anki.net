@@ -11,6 +11,7 @@ import { mindmapToClozeNotes } from './mindmapToClozeNotes';
 import { mindmapToMarkmapHtml } from './mindmapToMarkmapHtml';
 import { collectMindmapImages } from './collectMindmapImages';
 import { MindmapData } from './MindmapData';
+import { buildMindmapDeckInfo } from './buildMindmapDeckInfo';
 import CustomExporter from '../../lib/parser/exporters/CustomExporter';
 import Note from '../../lib/parser/Note';
 
@@ -28,11 +29,6 @@ interface ExportInput {
   userId: UsersId;
   deckName?: string;
   cardType?: MindmapCardType;
-}
-
-function randomDeckId(): number {
-  const hex = randomUUID().replace(/-/g, '').slice(0, 13);
-  return Number.parseInt(hex, 16) % 1e13;
 }
 
 export class ExportMindmapUseCase {
@@ -88,31 +84,7 @@ export class ExportMindmapUseCase {
     fs.mkdirSync(workspaceDir, { recursive: true });
 
     try {
-      const deckInfo = [
-        {
-          name: resolvedDeckName,
-          image: '',
-          style: null,
-          id: randomDeckId(),
-          settings: {
-            template: 'specialstyle',
-            clozeModelName: 'n2a-cloze',
-            basicModelName: 'n2a-basic',
-            inputModelName: 'n2a-input',
-            useNotionId: false,
-          },
-          cards: notes.map((note, index) => ({
-            name: note.name,
-            back: note.back,
-            tags: note.tags,
-            cloze: note.cloze,
-            number: index,
-            enableInput: note.enableInput,
-            answer: note.answer,
-            media: note.media,
-          })),
-        },
-      ];
+      const deckInfo = buildMindmapDeckInfo(resolvedDeckName, notes);
 
       const exporter = new CustomExporter(resolvedDeckName, workspaceDir);
       exporter.configure(deckInfo as never);
