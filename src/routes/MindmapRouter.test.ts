@@ -9,6 +9,7 @@ const mockExport = jest.fn();
 const mockGetById = jest.fn();
 const mockUpdate = jest.fn();
 const mockCount = jest.fn();
+const mockGetUserActiveSubscriptions = jest.fn();
 
 jest.mock('../data_layer', () => ({
   getDatabase: jest.fn().mockReturnValue({}),
@@ -25,6 +26,14 @@ jest.mock('../data_layer/MindmapRepository', () => ({
   })),
 }));
 
+jest.mock('../services/SubscriptionService', () => ({
+  __esModule: true,
+  default: {
+    getUserActiveSubscriptions: (...args: unknown[]) =>
+      mockGetUserActiveSubscriptions(...args),
+  },
+}));
+
 jest.mock('./middleware/RequireAuthentication', () => {
   const middleware = (
     _req: express.Request,
@@ -32,8 +41,8 @@ jest.mock('./middleware/RequireAuthentication', () => {
     next: express.NextFunction
   ) => {
     res.locals.owner = 42;
+    res.locals.email = 'tester@example.com';
     res.locals.patreon = null;
-    res.locals.subscriptionInfo = [];
     next();
   };
   return middleware;
@@ -64,6 +73,7 @@ describe('MindmapRouter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetUserActiveSubscriptions.mockResolvedValue([]);
   });
 
   describe('POST /api/mindmaps', () => {
@@ -127,6 +137,28 @@ describe('MindmapRouter', () => {
         maxNodesPerMap: 50,
         currentCount: 1,
       });
+    });
+
+    it('reports hasUnlimited when the user has an active Auto Sync subscription', async () => {
+      const previousProductId = process.env.AUTO_SYNC_PRODUCT_ID;
+      process.env.AUTO_SYNC_PRODUCT_ID = 'prod_auto_sync_test';
+      mockList.mockResolvedValue([]);
+      mockCount.mockResolvedValue(0);
+      mockGetUserActiveSubscriptions.mockResolvedValue([
+        { active: true, stripe_product_id: 'prod_auto_sync_test' },
+      ]);
+
+      try {
+        const res = await fetch(`${url}/api/mindmaps`);
+        expect(res.status).toBe(200);
+        const body = await res.json();
+        expect(body.access.hasUnlimited).toBe(true);
+        expect(mockGetUserActiveSubscriptions).toHaveBeenCalledWith(
+          'tester@example.com'
+        );
+      } finally {
+        process.env.AUTO_SYNC_PRODUCT_ID = previousProductId;
+      }
     });
   });
 
