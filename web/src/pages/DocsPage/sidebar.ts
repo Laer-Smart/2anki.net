@@ -37,6 +37,7 @@ export const sidebar: SidebarGroup[] = [
       { label: 'Parser rules', slug: 'cards/parser-rules' },
       { label: 'AI flashcard generation', slug: 'cards/ai-flashcards' },
       { label: 'Image occlusion', slug: 'cards/image-occlusion' },
+      { label: 'Photo to deck', slug: 'cards/photo-to-deck' },
       { label: 'Mind maps', slug: 'cards/mind-maps' },
       { label: 'Note types and templates', slug: 'cards/templates' },
       { label: 'Markdown and Obsidian', slug: 'cards/markdown' },
