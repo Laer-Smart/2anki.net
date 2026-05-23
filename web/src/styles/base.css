@@ -360,3 +360,15 @@ button {
     transform: rotate(360deg);
   }
 }
+
+/* =====================================================================
+   REACT FLOW — bind library tokens to app design tokens so canvas
+   chrome (controls, etc.) follows the active theme.
+   ===================================================================== */
+.react-flow {
+  --xy-controls-button-background-color: var(--color-bg-secondary);
+  --xy-controls-button-background-color-hover: var(--color-bg-tertiary);
+  --xy-controls-button-color: var(--color-text-secondary);
+  --xy-controls-button-color-hover: var(--color-text-primary);
+  --xy-controls-button-border-color: var(--color-border);
+}
