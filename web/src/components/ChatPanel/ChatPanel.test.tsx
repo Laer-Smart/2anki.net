@@ -7,13 +7,44 @@ import ChatPanel from './ChatPanel';
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
 vi.mock('../../lib/hooks/useUserLocals', () => ({
-  useUserLocals: () => ({
-    data: {
-      user: { patreon: false, chat_consent_at: '2026-01-01T00:00:00.000Z' },
-    },
-    refetch: vi.fn(),
-  }),
+  useUserLocals: vi.fn(),
 }));
+
+import { useUserLocals } from '../../lib/hooks/useUserLocals';
+
+type UserLocalsReturn = ReturnType<typeof useUserLocals>;
+
+const mockUseUserLocals = vi.mocked(useUserLocals);
+
+const makeLocals = (chat_consent_at: string | null): UserLocalsReturn => ({
+  data: {
+    locals: {
+      owner: 1,
+      patreon: false,
+      subscriber: false,
+      subscriptionInfo: { active: false, email: '', linked_email: '' },
+    },
+    linked_email: '',
+    user: {
+      id: 1 as import('../../schemas/public/Users').UsersId,
+      name: 'Test User',
+      email: 'test@example.com',
+      password: '',
+      created_at: null,
+      updated_at: null,
+      reset_token: null,
+      patreon: false,
+      chat_consent_at,
+    },
+  },
+  isLoading: false,
+  error: null,
+  isError: false,
+  refetch: vi.fn(),
+});
+
+const consentedLocals = makeLocals('2026-01-01T00:00:00.000Z');
+const unconsentedLocals = makeLocals(null);
 
 vi.mock('../../lib/backend/api', () => ({
   post: vi.fn(),
@@ -27,6 +58,10 @@ import { get, post } from '../../lib/backend/api';
 
 const mockPost = post as ReturnType<typeof vi.fn>;
 const mockGet = get as ReturnType<typeof vi.fn>;
+
+beforeEach(() => {
+  mockUseUserLocals.mockReturnValue(consentedLocals);
+});
 
 function makeSseResponse(events: Array<{ event: string; data: unknown }>) {
   const encoder = new TextEncoder();
@@ -465,6 +500,71 @@ describe('ChatPanel', () => {
           content: 'Press enter to send',
         })
       );
+    });
+  });
+});
+
+describe('ChatPanel — consent modal dismissal', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+    mockGet.mockResolvedValue({ used: 0, limit: 20 });
+    mockUseUserLocals.mockReturnValue(unconsentedLocals);
+  });
+
+  it('hides the consent modal after Not now is clicked and does not auto-reopen on re-render', async () => {
+    const { rerender } = render(
+      <MemoryRouter>
+        <ChatPanel />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Chat sends your messages to Anthropic' })
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Not now' }));
+
+    expect(
+      screen.queryByRole('heading', { name: 'Chat sends your messages to Anthropic' })
+    ).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Message input' }), {
+      target: { value: 'some text' },
+    });
+
+    rerender(
+      <MemoryRouter>
+        <ChatPanel />
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.queryByRole('heading', { name: 'Chat sends your messages to Anthropic' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('re-shows the consent modal when send fails with consent_required even after Not now was clicked', async () => {
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([{ event: 'error', data: { type: 'consent_required' } }])
+    );
+
+    renderChatPanel();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Not now' }));
+
+    expect(
+      screen.queryByRole('heading', { name: 'Chat sends your messages to Anthropic' })
+    ).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Message input' }), {
+      target: { value: 'test message' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Send message' }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('heading', { name: 'Chat sends your messages to Anthropic' })
+      ).toBeInTheDocument();
     });
   });
 });

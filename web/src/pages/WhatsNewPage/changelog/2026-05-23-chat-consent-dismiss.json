@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-23-chat-consent-dismiss",
+  "date": "2026-05-23",
+  "type": "fix",
+  "title": "Chat consent modal closes when you click Not now"
+}
