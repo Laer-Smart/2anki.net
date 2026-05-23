@@ -15,6 +15,7 @@ The hot path. Every Notion page, HTML export, markdown file, or zip the user upl
 - `synthesizeCardsFromPdf.ts` — converts `PdfPage[]` into `PdfCard[]` using the slide-pair model: page N is the card front, page N+1 is the back. Blank pages in either slot are skipped. Pure function, no I/O.
 - `xlsx/` — spreadsheet → cards path.
 - `canary/scheduleParserCanary.ts` — daily job (03:00 UTC) that runs the fixture corpus through the live parser and emails `SUPPORT_EMAIL_ADDRESS` on any count divergence. Wired in `server.ts`.
+- `sourceUnits/` — deterministic pre-pass that normalises raw PPTX and free-form notes into a structured intermediate before any AI step. Exports `SourceUnit` (id, visibleText, speakerNotes, role), `extractPptxSourceUnits(buffer)` (async, uses `fflate` to unzip and regex to parse slide/notes XML), and `extractNotesSourceUnits(content, format)` (pure, splits markdown or HTML by heading sections). No HTTP, no SDK, no DB. The AI generation step reads this intermediate and cites `SourceUnit.id` per card to make coverage auditable.
 
 ## Flow
 
