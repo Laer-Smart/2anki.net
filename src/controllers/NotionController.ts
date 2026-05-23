@@ -184,7 +184,7 @@ class NotionController {
     // Auth check: throws when the owner has no Notion token, preserving the
     // pre-refactor 500 response shape. The worker re-fetches the token itself.
     await this.service.getNotionAPI(res.locals.owner);
-    const { id, title, type } = req.body;
+    const { id, title, type, frontField, backField } = req.body;
 
     if (!id) {
       return res.status(400).send({ error: 'id is required' });
@@ -226,6 +226,9 @@ class NotionController {
       const startJob = new StartJobUseCase(jobRepository);
       await startJob.execute({ id, owner });
 
+      const safeString = (v: unknown): string | undefined =>
+        typeof v === 'string' && v.length > 0 ? v : undefined;
+
       runConversion({
         id,
         type,
@@ -233,6 +236,8 @@ class NotionController {
         isPaying: paying,
         title: title ?? 'Untitled',
         jobDbId: job.id,
+        frontField: safeString(frontField),
+        backField: safeString(backField),
       }).catch((err: unknown) => {
         console.error('notion convert worker:', err);
       });

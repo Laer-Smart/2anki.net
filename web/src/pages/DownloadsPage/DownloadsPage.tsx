@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 
 import useUploads from './hooks/useUploads';
@@ -28,6 +28,8 @@ import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
 import { UpsellCard } from '../../components/UpsellCard';
 import JobResponse from '../../schemas/public/JobResponse';
+import { NotionColumnMappingModal } from '../../components/NotionColumnMappingModal/NotionColumnMappingModal';
+import { parseAmbiguousColumnsPayload, type FieldMapping } from '../../lib/fieldMapping/types';
 import styles from './DownloadsPage.module.css';
 import sharedStyles from '../../styles/shared.module.css';
 
@@ -199,6 +201,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
     searchParams.get('verified') === '1'
   );
   const [expandedFailureJobId, setExpandedFailureJobId] = useState<number | string | null>(null);
+  const [mappingModalJob, setMappingModalJob] = useState<JobResponse | null>(null);
 
   const rawFilter = searchParams.get('filter') ?? 'all';
   const activeFilter: FilterValue = VALID_FILTERS.has(rawFilter as FilterValue)
@@ -247,6 +250,22 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
     }
     setSearchParams(params, { replace: true });
   };
+
+  const handleMappingSubmit = useCallback(
+    async (mapping: FieldMapping) => {
+      if (mappingModalJob == null) return;
+      setMappingModalJob(null);
+      await backend.convert(
+        mappingModalJob.object_id,
+        mappingModalJob.type,
+        mappingModalJob.title,
+        mapping
+      );
+      track('notion_column_mapping_submitted');
+      await refreshJobs();
+    },
+    [mappingModalJob, backend, refreshJobs]
+  );
 
   const activeJobs = jobs.filter((j) => isActiveJob(j.status));
   const hasDoneJob = jobs.some((j) => isDoneJob(j.status));
@@ -410,12 +429,29 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                               {isFailed && isExpanded && row.job.job_reason_failure != null && (
                                 <tr key={`job-${row.job.id}-panel`}>
                                   <td colSpan={4} className={styles.failurePanel}>
-                                    {row.job.job_reason_failure}
-                                    {isEmptyDeckError(row.job.job_reason_failure) && (
+                                    {parseAmbiguousColumnsPayload(row.job.job_reason_failure) == null ? (
+                                      <>
+                                        {row.job.job_reason_failure}
+                                        {isEmptyDeckError(row.job.job_reason_failure) && (
+                                          <div>
+                                            <Link to="/documentation/help/common-problems" className={styles.failureLearnMore}>
+                                              Learn more →
+                                            </Link>
+                                          </div>
+                                        )}
+                                      </>
+                                    ) : (
                                       <div>
-                                        <Link to="/documentation/help/common-problems" className={styles.failureLearnMore}>
-                                          Learn more →
-                                        </Link>
+                                        <p>
+                                          This database has more than two columns. Pick which column should be the front and back of each card.
+                                        </p>
+                                        <button
+                                          type="button"
+                                          className={sharedStyles.btnPrimary}
+                                          onClick={() => setMappingModalJob(row.job)}
+                                        >
+                                          Map columns
+                                        </button>
                                       </div>
                                     )}
                                   </td>
@@ -587,6 +623,19 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
           )}
         </>
       )}
+      {mappingModalJob != null && (() => {
+        const payload = parseAmbiguousColumnsPayload(mappingModalJob.job_reason_failure);
+        if (payload == null) return null;
+        return (
+          <NotionColumnMappingModal
+            isOpen
+            columns={payload.columns}
+            suggested={payload.suggested}
+            onSubmit={handleMappingSubmit}
+            onCancel={() => setMappingModalJob(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

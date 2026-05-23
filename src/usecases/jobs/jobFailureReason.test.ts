@@ -1,6 +1,7 @@
 import { buildPythonExitError } from '../../lib/anki/buildPythonExitError';
 import { EmptyDeckError } from './EmptyDeckError';
 import {
+  COLUMNS_AMBIGUOUS_PREFIX,
   EMPTY_DECK_FAILURE_REASON,
   jobFailureReasonFromError,
 } from './jobFailureReason';
@@ -28,6 +29,36 @@ describe('jobFailureReasonFromError', () => {
     expect(reason).toBe(
       "Something went wrong on our end converting this page. Email support@2anki.net with job ID job-xyz and we'll take a look."
     );
+  });
+
+  it('encodes COLUMNS_AMBIGUOUS error with columns and suggested mapping', () => {
+    const err = new Error('ambiguous') as Error & { code?: string; columns?: string[] };
+    err.code = 'NOTION_DATABASE_COLUMNS_AMBIGUOUS';
+    err.columns = ['Term', 'Definition', 'Notes'];
+    const reason = jobFailureReasonFromError(err, 'job-amb');
+    expect(reason.startsWith(COLUMNS_AMBIGUOUS_PREFIX)).toBe(true);
+    const parsed = JSON.parse(reason.slice(COLUMNS_AMBIGUOUS_PREFIX.length)) as {
+      columns: string[];
+      suggested: { frontField: string | null; backField: string | null };
+    };
+    expect(parsed.columns).toEqual(['Term', 'Definition', 'Notes']);
+    expect(parsed.suggested.frontField).toBe('Term');
+    expect(parsed.suggested.backField).toBe('Definition');
+  });
+
+  it('encodes COLUMNS_AMBIGUOUS with null suggestions when no canonical match', () => {
+    const err = new Error('ambiguous') as Error & { code?: string; columns?: string[] };
+    err.code = 'NOTION_DATABASE_COLUMNS_AMBIGUOUS';
+    err.columns = ['Col1', 'Col2', 'Col3'];
+    const reason = jobFailureReasonFromError(err, 'job-no-suggest');
+    expect(reason.startsWith(COLUMNS_AMBIGUOUS_PREFIX)).toBe(true);
+    const parsed = JSON.parse(reason.slice(COLUMNS_AMBIGUOUS_PREFIX.length)) as {
+      columns: string[];
+      suggested: { frontField: string | null; backField: string | null };
+    };
+    expect(parsed.columns).toEqual(['Col1', 'Col2', 'Col3']);
+    expect(parsed.suggested.frontField).toBeNull();
+    expect(parsed.suggested.backField).toBeNull();
   });
 
   it('never produces a string starting with "Technical error"', () => {

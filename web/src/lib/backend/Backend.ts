@@ -308,9 +308,14 @@ export class Backend {
     return post(`${this.baseURL}upload/jobs/${jobId}/restart`, {});
   }
 
-  async convert(id: string, type: string | null, title: string | null): Promise<Response> {
+  async convert(
+    id: string,
+    type: string | null,
+    title: string | null,
+    fieldMapping?: { frontField: string; backField: string }
+  ): Promise<Response> {
     const link = `${this.baseURL}notion/convert`;
-    return post(link, { id, type, title });
+    return post(link, { id, type, title, ...fieldMapping });
   }
 
   async addFavorite(id: string, type: string | null): Promise<boolean> {
