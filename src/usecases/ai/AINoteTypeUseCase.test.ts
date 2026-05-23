@@ -86,10 +86,12 @@ describe('AINoteTypeUseCase.modify no-op detection', () => {
       messages: { create: mockCreate },
     });
     warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(console, 'info').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
     warnSpy.mockRestore();
+    jest.restoreAllMocks();
     jest.clearAllMocks();
   });
 
@@ -123,6 +125,54 @@ describe('AINoteTypeUseCase.modify no-op detection', () => {
     expect(warnSpy).not.toHaveBeenCalledWith(
       'template_ai_modify.no_op',
       expect.anything()
+    );
+  });
+});
+
+describe('AINoteTypeUseCase system prompt caching', () => {
+  let mockCreate: jest.Mock;
+  let infoSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    mockCreate = jest.fn().mockResolvedValue({
+      ...claudeReply(sampleStarter, 'No changes made.'),
+      usage: {
+        input_tokens: 12,
+        output_tokens: 34,
+        cache_creation_input_tokens: 0,
+        cache_read_input_tokens: 0,
+      },
+    });
+    (getAnthropicClient as jest.Mock).mockReturnValue({
+      messages: { create: mockCreate },
+    });
+    infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    infoSpy.mockRestore();
+    jest.clearAllMocks();
+  });
+
+  it('passes system as an array with a cache_control ephemeral block', async () => {
+    const useCase = new AINoteTypeUseCase();
+    await useCase.generate('a flashcard for the krebs cycle');
+
+    const callArg = mockCreate.mock.calls[0][0];
+    expect(Array.isArray(callArg.system)).toBe(true);
+    expect(callArg.system).toHaveLength(1);
+    expect(callArg.system[0]).toMatchObject({
+      type: 'text',
+      cache_control: { type: 'ephemeral' },
+    });
+  });
+
+  it('emits a [claude-usage] log line labelled AINoteTypeUseCase', async () => {
+    const useCase = new AINoteTypeUseCase();
+    await useCase.generate('a flashcard for the krebs cycle');
+
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[claude-usage] label=AINoteTypeUseCase')
     );
   });
 });

@@ -8,6 +8,7 @@ import { detect } from '../cardStyle/headingDriven/detect';
 import { splitByHeadings } from '../cardStyle/headingDriven/splitByHeadings';
 import { getCardStylePromptFragment } from './getCardStylePromptFragment';
 import { ANKI_MATH_FRAGMENT } from './ankiMathFragment';
+import { logClaudeUsage } from './logClaudeUsage';
 
 export const SYSTEM_PROMPT = `
 You are an Anki flashcard generator. Output ONLY a compact JSON array.
@@ -462,6 +463,7 @@ async function generateDeckInfoFromChunk(
     chunkIndex,
     totalChunks,
   });
+  logClaudeUsage('ClaudeService', response.usage);
 
   const raw = (response.content as Array<{ type: string; text?: string }>)
     .filter((block) => block.type === 'text')

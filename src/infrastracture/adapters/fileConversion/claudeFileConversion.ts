@@ -1,6 +1,8 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { BetaContentBlockParam } from '@anthropic-ai/sdk/resources/beta/messages/messages';
 
+import { logClaudeUsage } from '../../../lib/claude/logClaudeUsage';
+
 const DEFAULT_MODEL = 'claude-sonnet-4-6';
 const MAX_TOKENS = 8192;
 
@@ -44,6 +46,7 @@ export async function convertWithClaude(
         ],
         betas: ['pdfs-2024-09-25'],
       });
+      logClaudeUsage('claudeFileConversion', response.usage);
       const block = response.content[0];
       return block.type === 'text' ? block.text : '';
     }
@@ -54,6 +57,7 @@ export async function convertWithClaude(
       system: [systemBlock],
       messages: [{ role: 'user', content: userContent }],
     });
+    logClaudeUsage('claudeFileConversion', response.usage);
     const block = response.content[0];
     return block.type === 'text' ? block.text : '';
   } catch (error) {

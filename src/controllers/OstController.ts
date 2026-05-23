@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import express from 'express';
 
 import { getAnthropicClient } from '../lib/claude/ClaudeService';
+import { logClaudeUsage } from '../lib/claude/logClaudeUsage';
 import type { InterviewSnapshotsRepository } from '../data_layer/InterviewSnapshotsRepository';
 import type { OstRepository, NewNodeInput, NodeType } from '../data_layer/OstRepository';
 
@@ -136,9 +137,16 @@ export class OstController {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 4096,
-      system: OST_SYSTEM_PROMPT,
+      system: [
+        {
+          type: 'text',
+          text: OST_SYSTEM_PROMPT,
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
       messages: [{ role: 'user', content: userMessage }],
     });
+    logClaudeUsage('OstController', response.usage);
 
     const raw = response.content
       .filter((b) => b.type === 'text')
