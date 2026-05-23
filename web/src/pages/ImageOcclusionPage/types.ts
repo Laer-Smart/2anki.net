@@ -8,8 +8,6 @@ export interface OcclusionRect {
   shape: 'rect' | 'ellipse' | 'polygon';
   points?: { x: number; y: number }[];
   groupId?: string;
-  source?: 'auto' | 'manual';
-  confidence?: number;
 }
 
 export interface ImageEntry {

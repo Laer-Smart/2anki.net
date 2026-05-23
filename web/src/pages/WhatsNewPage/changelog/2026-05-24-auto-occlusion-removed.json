@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-24-auto-occlusion-removed",
+  "date": "2026-05-24",
+  "type": "fix",
+  "title": "Image occlusion — removed the Auto create button while we sort out misaligned bounding boxes"
+}

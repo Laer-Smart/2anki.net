@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
@@ -132,35 +132,6 @@ async function deleteDraft(id: string): Promise<void> {
   });
 }
 
-interface SuggestedRectResponse {
-  id: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  label: string;
-  shape: 'rect';
-  confidence: number;
-  source: 'auto';
-}
-
-async function fetchAutoSuggestions(
-  imageBase64: string,
-  mediaType: string,
-  width: number,
-  height: number
-): Promise<SuggestedRectResponse[]> {
-  const res = await fetch('/api/image-occlusion/auto-suggest', {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ imageBase64, mediaType, width, height }),
-  });
-  if (!res.ok) return [];
-  const body = (await res.json()) as { rects: SuggestedRectResponse[] };
-  return body.rects ?? [];
-}
-
 export function ImageOcclusionPage() {
   const { data } = useUserLocals();
   const isPaying = isPayingUser(data?.locals);
@@ -180,13 +151,6 @@ export function ImageOcclusionPage() {
     () =>
       typeof window !== 'undefined' &&
       localStorage.getItem('io_mobile_dismissed') === '1'
-  );
-
-  const [detectingFor, setDetectingFor] = useState<string | null>(null);
-  const [tooltipDismissed, setTooltipDismissed] = useState(
-    () =>
-      typeof window !== 'undefined' &&
-      localStorage.getItem('io_auto_tooltip_dismissed') === '1'
   );
 
   useEffect(() => {
@@ -265,93 +229,6 @@ export function ImageOcclusionPage() {
   }, [deckName, mode, entries, hydrated, isLoggedIn]);
 
   const totalCards = entries.reduce((sum, e) => sum + e.rects.length, 0);
-
-  const activeSuggestionCount = useMemo(() => {
-    const active = entries[activeIndex] ?? null;
-    if (active == null) return 0;
-    return active.rects.filter((r) => r.source === 'auto').length;
-  }, [entries, activeIndex]);
-
-  const isDetecting =
-    detectingFor != null && entries[activeIndex]?.id === detectingFor;
-
-  const detectionStatus =
-    activeSuggestionCount > 0
-      ? `${activeSuggestionCount} ${activeSuggestionCount === 1 ? 'suggestion' : 'suggestions'} — tap to keep`
-      : null;
-
-  const runAutoSuggest = useCallback(
-    async (entry: ImageEntry) => {
-      if (!isLoggedIn) return;
-      setDetectingFor(entry.id);
-      try {
-        let blob: Blob;
-        if (entry.file != null) {
-          blob = entry.file;
-        } else if (entry.previewUrl != null && entry.previewUrl !== '') {
-          const r = await fetch(entry.previewUrl);
-          if (!r.ok) throw new Error('preview fetch failed');
-          blob = await r.blob();
-        } else {
-          return;
-        }
-
-        const reader = new FileReader();
-        const base64 = await new Promise<string>((resolve, reject) => {
-          reader.onload = () => {
-            const result = reader.result as string;
-            resolve(result.split(',')[1] ?? '');
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-
-        const objectUrl = URL.createObjectURL(blob);
-        const img = new Image();
-        const { width, height } = await new Promise<{
-          width: number;
-          height: number;
-        }>((resolve) => {
-          img.onload = () =>
-            resolve({ width: img.naturalWidth, height: img.naturalHeight });
-          img.onerror = () => resolve({ width: 512, height: 512 });
-          img.src = objectUrl;
-        });
-        URL.revokeObjectURL(objectUrl);
-
-        const mediaType = blob.type || 'image/png';
-        const rects = await fetchAutoSuggestions(
-          base64,
-          mediaType,
-          width,
-          height
-        );
-
-        setEntries((prev) =>
-          prev.map((e) => {
-            if (e.id !== entry.id) return e;
-            const newRects: OcclusionRect[] = rects.map((r) => ({
-              id: r.id,
-              x: r.x,
-              y: r.y,
-              w: r.w,
-              h: r.h,
-              label: '',
-              shape: r.shape,
-              source: 'auto' as const,
-              confidence: r.confidence,
-            }));
-            return { ...e, rects: newRects };
-          })
-        );
-      } catch {
-        // Auto-suggest failure is silent; user continues with empty canvas
-      } finally {
-        setDetectingFor((cur) => (cur === entry.id ? null : cur));
-      }
-    },
-    [isPaying]
-  );
 
   const handleAdd = useCallback(
     (files: File[]) => {
@@ -608,11 +485,6 @@ export function ImageOcclusionPage() {
           </button>
         </div>
       )}
-      {activeEntry != null && detectionStatus != null && (
-        <div className={pageStyles.detectionStatusBanner}>
-          {detectionStatus}
-        </div>
-      )}
       <div
         className={`${pageStyles.pageLayout} ${drawerOpen ? pageStyles.pageLayoutDrawerOpen : ''}`}
       >
@@ -687,42 +559,10 @@ export function ImageOcclusionPage() {
               <p>Each box you draw becomes one flashcard.</p>
             </div>
           ) : (
-            <>
-              {isPaying && activeSuggestionCount > 0 && !tooltipDismissed && (
-                <div className={pageStyles.autoTooltip}>
-                  Tap a dashed box to keep it. Drag to resize. Press delete to
-                  drop.{' '}
-                  <button
-                    type="button"
-                    className={pageStyles.autoTooltipDismiss}
-                    onClick={() => {
-                      setTooltipDismissed(true);
-                      localStorage.setItem('io_auto_tooltip_dismissed', '1');
-                    }}
-                  >
-                    Got it
-                  </button>
-                </div>
-              )}
-              <OcclusionCanvas
-                entry={activeEntry}
-                onRectsChange={handleRectsChange}
-                suggestionCount={activeSuggestionCount}
-                onAutoSuggest={
-                  isLoggedIn &&
-                  (activeEntry.file != null ||
-                    (activeEntry.previewUrl ?? '') !== '')
-                    ? () => runAutoSuggest(activeEntry)
-                    : undefined
-                }
-                canAutoSuggest={
-                  isLoggedIn &&
-                  (activeEntry.file != null ||
-                    (activeEntry.previewUrl ?? '') !== '')
-                }
-                isAutoSuggesting={isDetecting}
-              />
-            </>
+            <OcclusionCanvas
+              entry={activeEntry}
+              onRectsChange={handleRectsChange}
+            />
           )}
         </div>
       </div>
