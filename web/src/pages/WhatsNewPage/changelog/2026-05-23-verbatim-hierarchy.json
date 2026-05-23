@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-23-verbatim-hierarchy",
+  "date": "2026-05-23",
+  "type": "fix",
+  "title": "Verbatim photo cards preserve nested outlines as indented lists, not flattened text"
+}

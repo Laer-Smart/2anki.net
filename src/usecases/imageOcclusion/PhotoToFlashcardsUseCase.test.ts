@@ -498,6 +498,37 @@ describe('PhotoToFlashcardsUseCase', () => {
         })
       );
     });
+
+    describe('hierarchy preservation', () => {
+      it('buildVerbatimPrompt instructs Claude to use nested ul/li HTML for hierarchical content', () => {
+        const prompt = buildVerbatimPrompt();
+        expect(prompt).toContain('<ul>');
+        expect(prompt).toContain('<li>');
+      });
+
+      it('buildVerbatimPrompt instructs Claude not to flatten nested items with > separators', () => {
+        const prompt = buildVerbatimPrompt();
+        expect(prompt).toContain('Do not flatten');
+        expect(prompt).toContain('hierarchy');
+      });
+
+      it('buildVerbatimPrompt instructs Claude to keep single-line sources as plain text', () => {
+        const prompt = buildVerbatimPrompt();
+        expect(prompt).toContain('no visible hierarchy');
+      });
+
+      it('sends verbatim prompt with hierarchy instructions to Claude when mode is verbatim', async () => {
+        const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+        await useCase.execute({ ...BASE_INPUT, isPaying: true, mode: 'verbatim' });
+        const [callArgs] = mockMessageCreate.mock.calls[0];
+        const text = (
+          callArgs.messages[0].content as Array<{ type: string; text?: string }>
+        ).find((b) => b.type === 'text')?.text;
+        expect(text).toContain('<ul>');
+        expect(text).toContain('<li>');
+        expect(text).toContain('hierarchy');
+      });
+    });
   });
 
   describe('deck builder invocation', () => {

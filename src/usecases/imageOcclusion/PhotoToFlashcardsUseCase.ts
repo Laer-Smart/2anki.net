@@ -85,6 +85,7 @@ Rules:
 - If text is illegible, write [illegible] in its place
 - Use the page title or subject as the deck name if visible; otherwise use "Verbatim deck"
 - Do not add tags
+- Preserve hierarchy: if the source has nested bullets, indented items, or nesting markers (→, >, -, •, *), emit the answer as nested HTML lists using <ul><li>…<ul><li>…</li></ul></li></ul>. Sibling items at the same level are separate <li> elements. Do not flatten a multi-level structure into a single line with > separators. If the source has no visible hierarchy (a single line or a flat list with no nesting), emit plain text — do not introduce spurious structure.
 
 ${ANKI_MATH_FRAGMENT}`;
 }
