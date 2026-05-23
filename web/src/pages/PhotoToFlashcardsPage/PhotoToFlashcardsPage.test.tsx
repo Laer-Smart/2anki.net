@@ -262,4 +262,53 @@ describe('PhotoToFlashcardsPage', () => {
     });
     expect(mockTrack).toHaveBeenCalledWith('photo_quota_reached', { used: 5, limit: 5 });
   });
+
+  describe('source image toggle', () => {
+    it('renders the source image checkbox checked by default', () => {
+      render(<PhotoToFlashcardsPage />);
+      const checkbox = screen.getByRole('checkbox', {
+        name: /Show source image on the back of each card/,
+      }) as HTMLInputElement;
+      expect(checkbox.checked).toBe(true);
+    });
+
+    it('sends includeSourceImage: true when checkbox is checked', async () => {
+      setLocals({ paying: true });
+      const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 404 }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [makePhoto()] } });
+      fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+      const body = JSON.parse(
+        (fetchMock.mock.calls[0][1] as RequestInit).body as string
+      ) as { includeSourceImage: boolean };
+      expect(body.includeSourceImage).toBe(true);
+    });
+
+    it('sends includeSourceImage: false when checkbox is unchecked', async () => {
+      setLocals({ paying: true });
+      const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 404 }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      render(<PhotoToFlashcardsPage />);
+      const checkbox = screen.getByRole('checkbox', {
+        name: /Show source image on the back of each card/,
+      });
+      fireEvent.click(checkbox);
+
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [makePhoto()] } });
+      fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+      const body = JSON.parse(
+        (fetchMock.mock.calls[0][1] as RequestInit).body as string
+      ) as { includeSourceImage: boolean };
+      expect(body.includeSourceImage).toBe(false);
+    });
+  });
 });

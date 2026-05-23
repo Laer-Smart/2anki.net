@@ -15,6 +15,7 @@ interface RawPhotoBody {
   deckName?: unknown;
   width?: unknown;
   height?: unknown;
+  includeSourceImage?: unknown;
 }
 
 function isAllowedMediaType(value: unknown): value is VisionMediaType {
@@ -51,6 +52,8 @@ export class PhotoToFlashcardsController {
 
     const owner = (res.locals['owner'] ?? '') as string;
     const paying = isPaying(res.locals);
+    const includeSourceImage =
+      typeof body.includeSourceImage === 'boolean' ? body.includeSourceImage : true;
 
     let result: Awaited<ReturnType<PhotoToFlashcardsUseCase['execute']>>;
     try {
@@ -61,6 +64,7 @@ export class PhotoToFlashcardsController {
         owner,
         isPaying: paying,
         imageDimensions: { width, height },
+        includeSourceImage,
       });
     } catch (err) {
       const e = err as Error & {

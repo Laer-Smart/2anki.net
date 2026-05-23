@@ -306,6 +306,35 @@ describe('PhotoToFlashcardsUseCase', () => {
       }>;
       expect(payload[0].cards[0].media[0]).toMatch(/\.png$/);
     });
+
+    describe('includeSourceImage: false', () => {
+      it('does not write the source image file to disk', async () => {
+        const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+        await useCase.execute({ ...BASE_INPUT, isPaying: true, includeSourceImage: false });
+
+        const imageWriteCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+          ([p]: [string]) => typeof p === 'string' && !p.endsWith('deck_info.json')
+        );
+        expect(imageWriteCall).toBeUndefined();
+      });
+
+      it('sets media to empty array on every card in deck_info.json', async () => {
+        const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+        await useCase.execute({ ...BASE_INPUT, isPaying: true, includeSourceImage: false });
+
+        const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+          ([p]: [string]) => typeof p === 'string' && p.endsWith('deck_info.json')
+        );
+        expect(writeCall).toBeDefined();
+        const payload = JSON.parse(writeCall![1] as string) as Array<{
+          cards: Array<{ media: string[]; back: string }>;
+        }>;
+        for (const card of payload[0].cards) {
+          expect(card.media).toEqual([]);
+          expect(card.back).not.toContain('<img src=');
+        }
+      });
+    });
   });
 
   describe('VISION_PROMPT', () => {

@@ -134,6 +134,14 @@
   text-align: center;
 }
 
+.checkboxRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text-secondary);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .cameraButtonContainer {
     display: none;
