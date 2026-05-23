@@ -124,16 +124,23 @@ describe('PhotoToFlashcardsController MCQ headers', () => {
     height: 100,
   };
 
-  function makeStreamMock() {
+  interface StreamMock {
+    on: jest.Mock;
+    pipe: jest.Mock;
+    handlers: Record<string, () => void>;
+  }
+
+  function makeStreamMock(): StreamMock {
     const handlers: Record<string, () => void> = {};
-    return {
+    const stream: StreamMock = {
       on: jest.fn((event: string, cb: () => void) => {
         handlers[event] = cb;
-        return this;
+        return stream;
       }),
       pipe: jest.fn(),
       handlers,
     };
+    return stream;
   }
 
   it('writes X-MCQ-Count and X-MCQ-Skipped-Count headers from the use case result', async () => {
