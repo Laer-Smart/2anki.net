@@ -8,6 +8,15 @@ interface ChatCard {
   front: string;
   back: string;
   tags?: string[];
+  options?: string[];
+  correctIndex?: number;
+  rationale?: string;
+}
+
+function isMcqCard(card: ChatCard): boolean {
+  return (
+    Array.isArray(card.options) && typeof card.correctIndex === 'number'
+  );
 }
 
 interface CardPreviewProps {
@@ -23,6 +32,21 @@ interface CardPreviewProps {
 
 const SKELETON_ROWS = 5;
 const MAX_VISIBLE_TAGS = 3;
+const CLOZE_PATTERN = /\{\{c\d+::/;
+
+function expandForReversed(cards: ChatCard[]): ChatCard[] {
+  const expanded: ChatCard[] = [];
+  for (const card of cards) {
+    expanded.push(card);
+    if (
+      card.back.trim().length > 0 &&
+      !CLOZE_PATTERN.test(card.front)
+    ) {
+      expanded.push({ front: card.back, back: card.front, tags: card.tags });
+    }
+  }
+  return expanded;
+}
 
 type SaveState = 'idle' | 'naming' | 'saved';
 
@@ -35,6 +59,44 @@ function sanitizeFilename(name: string): string {
     .replace(FILENAME_FORBIDDEN, '-')
     .replace(/^[.\s]+|[.\s]+$/g, '')
     .slice(0, MAX_DECK_NAME_LENGTH);
+}
+
+function McqRow({ card }: { card: ChatCard }) {
+  const options = card.options ?? [];
+  const correctIndex = card.correctIndex ?? -1;
+  return (
+    <div className={styles.cardPreviewMcqRow}>
+      <p className={styles.cardPreviewMcqStem}>{card.front}</p>
+      <ol className={styles.cardPreviewMcqOptions}>
+        {options.map((opt, i) => (
+          <li
+            key={i}
+            className={
+              i === correctIndex
+                ? styles.cardPreviewMcqOptionCorrect
+                : styles.cardPreviewMcqOption
+            }
+          >
+            <span className={styles.cardPreviewMcqOptionLetter}>
+              {String.fromCharCode(65 + i)}.
+            </span>
+            <span>{opt}</span>
+            {i === correctIndex && (
+              <span
+                className={styles.cardPreviewMcqOptionCheck}
+                aria-label="Correct answer"
+              >
+                ✓
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+      {card.rationale != null && card.rationale.length > 0 && (
+        <p className={styles.cardPreviewMcqRationale}>{card.rationale}</p>
+      )}
+    </div>
+  );
 }
 
 function TagChips({ tags }: { tags: string[] }) {
@@ -79,8 +141,13 @@ export default function CardPreview({
     }
   }, [saveState]);
 
-  const visibleCards = expanded ? cards : cards.slice(0, VISIBLE_COUNT);
-  const hasMore = cards.length > VISIBLE_COUNT;
+  const isMcqTemplate = template === 'mcq';
+  const displayCards =
+    template === 'basic-and-reversed' ? expandForReversed(cards) : cards;
+  const visibleCards = expanded
+    ? displayCards
+    : displayCards.slice(0, VISIBLE_COUNT);
+  const hasMore = displayCards.length > VISIBLE_COUNT;
   const hideBackColumn =
     template === 'cloze' &&
     (isRegenerating === true ||
@@ -117,13 +184,15 @@ export default function CardPreview({
     }
   }
 
-  const cardLabel = cards.length === 1 ? 'card' : 'cards';
+  const cardLabel = displayCards.length === 1 ? 'card' : 'cards';
 
   return (
     <div className={styles.cardPreview}>
       <div className={styles.cardPreviewHeader}>
         <span className={styles.cardPreviewCount}>
-          <span className={styles.cardPreviewCountNumber}>{cards.length}</span>{' '}
+          <span className={styles.cardPreviewCountNumber}>
+            {displayCards.length}
+          </span>{' '}
           {cardLabel}
         </span>
 
@@ -209,13 +278,15 @@ export default function CardPreview({
         )}
       </div>
 
-      <div
-        className={`${styles.cardPreviewColumnLabels} ${hideBackColumn && !hasTags ? styles.cardPreviewColumnLabelsSingle : ''} ${!hideBackColumn && hasTags ? styles.cardPreviewColumnLabelsThree : ''}`}
-      >
-        <span>Front</span>
-        {!hideBackColumn && <span>Back</span>}
-        {hasTags && <span>Tags</span>}
-      </div>
+      {!isMcqTemplate && (
+        <div
+          className={`${styles.cardPreviewColumnLabels} ${hideBackColumn && !hasTags ? styles.cardPreviewColumnLabelsSingle : ''} ${!hideBackColumn && hasTags ? styles.cardPreviewColumnLabelsThree : ''}`}
+        >
+          <span>Front</span>
+          {!hideBackColumn && <span>Back</span>}
+          {hasTags && <span>Tags</span>}
+        </div>
+      )}
 
       {isRegenerating ? (
         <>
@@ -243,39 +314,43 @@ export default function CardPreview({
       ) : (
         <>
           <div className={styles.cardPreviewList}>
-            {visibleCards.map((card, i) => (
-              <div
-                key={i}
-                className={`${styles.cardPreviewRow} ${hideBackColumn && !hasTags ? styles.cardPreviewRowSingle : ''} ${!hideBackColumn && hasTags ? styles.cardPreviewRowThree : ''}`}
-              >
-                <div className={styles.cardPreviewFront}>
-                  {(!hideBackColumn || hasTags) && (
-                    <span className={styles.cardPreviewMobileLabel}>Front</span>
-                  )}
-                  {card.front}
-                </div>
-                {!hideBackColumn && (
-                  <div className={styles.cardPreviewBack}>
-                    <span className={styles.cardPreviewMobileLabel}>Back</span>
-                    {card.back}
-                  </div>
-                )}
-                {hasTags && (
-                  <div className={styles.cardPreviewTags}>
-                    <span className={styles.cardPreviewMobileLabel}>Tags</span>
-                    {isTagging ? (
-                      <span
-                        className={styles.cardPreviewTagSkeleton}
-                        role="status"
-                        aria-label="Generating tags"
-                      />
-                    ) : (
-                      <TagChips tags={card.tags ?? []} />
+            {visibleCards.map((card, i) =>
+              isMcqTemplate && isMcqCard(card) ? (
+                <McqRow key={i} card={card} />
+              ) : (
+                <div
+                  key={i}
+                  className={`${styles.cardPreviewRow} ${hideBackColumn && !hasTags ? styles.cardPreviewRowSingle : ''} ${!hideBackColumn && hasTags ? styles.cardPreviewRowThree : ''}`}
+                >
+                  <div className={styles.cardPreviewFront}>
+                    {(!hideBackColumn || hasTags) && (
+                      <span className={styles.cardPreviewMobileLabel}>Front</span>
                     )}
+                    {card.front}
                   </div>
-                )}
-              </div>
-            ))}
+                  {!hideBackColumn && (
+                    <div className={styles.cardPreviewBack}>
+                      <span className={styles.cardPreviewMobileLabel}>Back</span>
+                      {card.back}
+                    </div>
+                  )}
+                  {hasTags && (
+                    <div className={styles.cardPreviewTags}>
+                      <span className={styles.cardPreviewMobileLabel}>Tags</span>
+                      {isTagging ? (
+                        <span
+                          className={styles.cardPreviewTagSkeleton}
+                          role="status"
+                          aria-label="Generating tags"
+                        />
+                      ) : (
+                        <TagChips tags={card.tags ?? []} />
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            )}
           </div>
 
           {hasMore && (
@@ -284,7 +359,9 @@ export default function CardPreview({
               className={styles.cardPreviewExpandBtn}
               onClick={() => setExpanded((v) => !v)}
             >
-              {expanded ? 'Show fewer' : `Show all ${cards.length} cards`}
+              {expanded
+                ? 'Show fewer'
+                : `Show all ${displayCards.length} cards`}
             </button>
           )}
         </>

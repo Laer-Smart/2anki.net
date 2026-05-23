@@ -287,11 +287,11 @@ export class ChatUseCase {
     }
 
     const model = user.patreon ? PATREON_MODEL : FREE_MODEL;
-    const mcqAllowed = user.patreon;
 
     const resolvedTemplate: ChatCardTemplate = isChatCardTemplate(input.templateSlug)
       ? input.templateSlug
       : 'basic';
+    const mcqAllowed = user.patreon || resolvedTemplate === 'mcq';
 
     const templateSuffix = templatePromptSuffix(resolvedTemplate);
     const baseSystemPrompt = mcqAllowed

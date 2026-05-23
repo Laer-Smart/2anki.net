@@ -1,14 +1,14 @@
 import { isChatCardTemplate, templatePromptSuffix } from './chatTemplates';
 
 describe('isChatCardTemplate', () => {
-  it.each(['basic', 'basic-and-reversed', 'cloze'] as const)(
+  it.each(['basic', 'basic-and-reversed', 'cloze', 'mcq'] as const)(
     'returns true for valid slug "%s"',
     (slug) => {
       expect(isChatCardTemplate(slug)).toBe(true);
     }
   );
 
-  it.each([null, undefined, '', 'mcq', 'image-occlusion', 123])(
+  it.each([null, undefined, '', 'image-occlusion', 123])(
     'returns false for invalid value %s',
     (value) => {
       expect(isChatCardTemplate(value)).toBe(false);
@@ -31,5 +31,12 @@ describe('templatePromptSuffix', () => {
     const suffix = templatePromptSuffix('cloze');
     expect(suffix).toMatch(/cloze/i);
     expect(suffix).toMatch(/\{\{c1::/);
+  });
+
+  it('returns an mcq-specific suffix for mcq template', () => {
+    const suffix = templatePromptSuffix('mcq');
+    expect(suffix).toMatch(/multiple.choice/i);
+    expect(suffix).toMatch(/correct_index/);
+    expect(suffix).toMatch(/four options/);
   });
 });

@@ -291,6 +291,63 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+.cardPreviewMcqRow {
+  padding: 0.875rem 1rem;
+  border-top: 1px solid var(--color-border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cardPreviewMcqStem {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+}
+
+.cardPreviewMcqOptions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cardPreviewMcqOption,
+.cardPreviewMcqOptionCorrect {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.cardPreviewMcqOptionCorrect {
+  color: var(--color-text-primary);
+  font-weight: var(--font-medium);
+}
+
+.cardPreviewMcqOptionLetter {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-tertiary);
+}
+
+.cardPreviewMcqOptionCheck {
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+}
+
+.cardPreviewMcqRationale {
+  margin: 0.25rem 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
 .cardPreviewSkeletonBlock {
   display: block;
   height: 1rem;

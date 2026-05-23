@@ -1,9 +1,14 @@
-export type ChatCardTemplate = 'basic' | 'basic-and-reversed' | 'cloze';
+export type ChatCardTemplate =
+  | 'basic'
+  | 'basic-and-reversed'
+  | 'cloze'
+  | 'mcq';
 
 export const VALID_TEMPLATE_SLUGS: ReadonlySet<ChatCardTemplate> = new Set([
   'basic',
   'basic-and-reversed',
   'cloze',
+  'mcq',
 ]);
 
 export function isChatCardTemplate(value: unknown): value is ChatCardTemplate {
@@ -32,6 +37,23 @@ Example output for the topic "capitals":
   {"front": "The capital of {{c1::France}} is Paris.", "back": ""}
 ]
 \`\`\``,
+  mcq: `
+TEMPLATE OVERRIDE — multiple choice (this overrides any earlier instruction about front/back cards):
+
+EVERY card you emit must be a multiple-choice question with exactly four options. Wrap them in a JSON code block using EXACTLY this format:
+
+\`\`\`json
+[
+  {"front": "What is the capital of Norway?", "options": ["Bergen", "Oslo", "Trondheim", "Stavanger"], "correct_index": 1, "rationale": "Oslo has been Norway's capital since 1814."}
+]
+\`\`\`
+
+Rules:
+- Use exactly four options
+- correct_index is the 0-based position of the right option (0, 1, 2, or 3)
+- rationale is a brief explanation of why the correct option is right
+- Do NOT include a "back" field
+- Do NOT emit any front/back Q&A pairs or cloze cards — only MCQ cards are valid in this conversation`,
 };
 
 

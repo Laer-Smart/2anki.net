@@ -14,6 +14,9 @@ export interface ChatCard {
   front: string;
   back: string;
   tags?: string[];
+  options?: string[];
+  correctIndex?: number;
+  rationale?: string;
 }
 
 export interface Message {
