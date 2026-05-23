@@ -473,12 +473,12 @@ describe('PhotoToFlashcardsPage', () => {
   });
 
   describe('source image toggle', () => {
-    it('renders the source image checkbox checked by default', () => {
+    it('renders the source image toggle on by default', () => {
       render(<PhotoToFlashcardsPage />);
-      const checkbox = screen.getByRole('checkbox', {
+      const toggle = screen.getByRole('switch', {
         name: /Show source image on the back of each card/,
       }) as HTMLInputElement;
-      expect(checkbox.checked).toBe(true);
+      expect(toggle.checked).toBe(true);
     });
 
     it('sends includeSourceImage: true when checkbox is checked', async () => {
@@ -504,7 +504,7 @@ describe('PhotoToFlashcardsPage', () => {
       vi.stubGlobal('fetch', fetchMock);
 
       render(<PhotoToFlashcardsPage />);
-      const checkbox = screen.getByRole('checkbox', {
+      const checkbox = screen.getByRole('switch', {
         name: /Show source image on the back of each card/,
       });
       fireEvent.click(checkbox);

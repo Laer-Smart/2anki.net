@@ -368,11 +368,15 @@ export function PhotoToFlashcardsPage() {
 
       <div className={styles.sectionCard} data-section-card>
         <label className={pageStyles.checkboxRow}>
-          <input
-            type="checkbox"
-            checked={includeSourceImage}
-            onChange={(e) => setIncludeSourceImage(e.target.checked)}
-          />
+          <span className={pageStyles.toggleSwitch}>
+            <input
+              type="checkbox"
+              role="switch"
+              checked={includeSourceImage}
+              onChange={(e) => setIncludeSourceImage(e.target.checked)}
+            />
+            <span className={pageStyles.toggleSwitchTrack} aria-hidden />
+          </span>
           Show source image on the back of each card
         </label>
         <p className={pageStyles.densityHint}>
