@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ApkgPreviewCard } from '../../lib/backend/getApkgPreview';
 import styles from './PreviewApkgPage.module.css';
 
@@ -6,28 +6,38 @@ interface CardFrameProps {
   card: ApkgPreviewCard;
 }
 
-function stripScripts(input: string): string {
-  return input
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
-}
-
 function buildSrcDoc(card: ApkgPreviewCard, side: 'front' | 'back'): string {
-  const html = stripScripts(side === 'front' ? card.front : card.back);
-  const css = stripScripts(card.css);
+  const html = side === 'front' ? card.front : card.back;
+  const cardId = String(card.id);
   return `<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
 <base target="_blank">
 <style>
-  html, body { margin: 0; padding: 1rem; background: #fff; color: #111; font-family: system-ui, sans-serif; }
+  html, body { margin: 0; padding: 1rem; font-family: system-ui, sans-serif; }
   img, video { max-width: 100%; height: auto; }
-${css}
+${card.css}
 </style>
 </head>
 <body>
 <div class="card">${html}</div>
+<script>
+(function () {
+  var cardId = ${JSON.stringify(cardId)};
+  function post() {
+    window.parent.postMessage(
+      { source: '2anki-preview', cardId: cardId, height: document.documentElement.scrollHeight },
+      '*'
+    );
+  }
+  window.addEventListener('load', post);
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(post).observe(document.documentElement);
+  }
+})();
+</script>
 </body>
 </html>`;
 }
@@ -40,13 +50,41 @@ function resolveDeckSegments(card: ApkgPreviewCard): string[] {
   return [];
 }
 
+const MAX_FRAME_HEIGHT = 2000;
+const DEFAULT_FRAME_HEIGHT = 320;
+
 export function CardFrame({ card }: Readonly<CardFrameProps>) {
   const [showBack, setShowBack] = useState(false);
+  const [frameHeight, setFrameHeight] = useState(DEFAULT_FRAME_HEIGHT);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
   const srcDoc = useMemo(
     () => buildSrcDoc(card, showBack ? 'back' : 'front'),
     [card, showBack]
   );
   const deckSegments = useMemo(() => resolveDeckSegments(card), [card]);
+
+  useEffect(() => {
+    setFrameHeight(DEFAULT_FRAME_HEIGHT);
+  }, [card.id, showBack]);
+
+  useEffect(() => {
+    const cardId = String(card.id);
+    function handleMessage(event: MessageEvent) {
+      if (event.origin !== 'null') return;
+      if (event.source !== iframeRef.current?.contentWindow) return;
+      const data = event.data;
+      if (
+        data?.source !== '2anki-preview' ||
+        data?.cardId !== cardId ||
+        typeof data?.height !== 'number'
+      )
+        return;
+      setFrameHeight(Math.min(data.height, MAX_FRAME_HEIGHT));
+    }
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [card.id]);
 
   return (
     <section className={styles.card}>
@@ -77,12 +115,14 @@ export function CardFrame({ card }: Readonly<CardFrameProps>) {
         </button>
       </header>
       <iframe
+        ref={iframeRef}
         className={styles.cardFrame}
         title={`${card.deckName} / ${card.templateName} (${
           showBack ? 'back' : 'front'
         })`}
-        sandbox="allow-same-origin"
+        sandbox="allow-scripts"
         srcDoc={srcDoc}
+        style={{ height: frameHeight }}
       />
     </section>
   );

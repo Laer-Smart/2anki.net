@@ -37,29 +37,15 @@ _TTS_FIELD_MAP = {
 
 def _apply_mcq_settings(qfmt, afmt, mcq_settings):
     """
-    Inject user-chosen MCQ settings into the front and back templates.
+    Inject user-chosen MCQ TTS settings into the front and back templates.
 
-    Three substitution points:
-    1. AUTO_SHOW_CHOICES constant in the front template — controlled by mcq-show-choices.
-    2. shuffleArray call in the front template — guarded by mcq-shuffle.
-    3. TTS tags — Anki's {{tts lang:Field}} is parsed at template-compile time, not at
-       card render, so we cannot use field substitution; we must embed the lang code
-       directly into the template string at build time.
+    TTS tags — Anki's {{tts lang:Field}} is parsed at template-compile time, not at
+    card render, so we cannot use field substitution; we must embed the lang code
+    directly into the template string at build time.
+
+    Shuffle and show-choices are now controlled by the in-card drawer at review time.
+    The AUTO_SHOW_CHOICES and shuffleArray anchor strings remain in the template verbatim.
     """
-    show_choices = mcq_settings.get("mcqShowChoices", "button")
-    auto_bool = "true" if show_choices == "auto" else "false"
-    qfmt = qfmt.replace(
-        "const AUTO_SHOW_CHOICES = false;",
-        f"const AUTO_SHOW_CHOICES = {auto_bool};"
-    )
-
-    shuffle_enabled = mcq_settings.get("mcqShuffle", True)
-    if not shuffle_enabled:
-        qfmt = qfmt.replace(
-            "shuffleArray(data.position);",
-            "/* shuffle disabled */"
-        )
-
     tts_lines_front = []
     tts_lines_back = []
     tts_key_to_setting = {

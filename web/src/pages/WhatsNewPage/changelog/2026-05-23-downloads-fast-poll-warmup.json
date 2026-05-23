@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-23-downloads-fast-poll-warmup",
+  "date": "2026-05-23",
+  "type": "fix",
+  "title": "Downloads page catches fast conversions in progress when you arrive right after starting one"
+}

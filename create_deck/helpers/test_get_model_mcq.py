@@ -23,49 +23,20 @@ def _base_descriptor(model_id=None):
 class TestApplyMcqSettings:
     """Apply-MCQ-settings substitution behaviour."""
 
-    def test_show_choices_auto_sets_true(self):
+    def test_anchor_auto_show_choices_present_in_template(self):
         template = get_template("n2a-mcq.json")
-        qfmt, _afmt = _apply_mcq_settings(
-            template["front"],
-            template["back"],
-            {"mcqShowChoices": "auto", "mcqShuffle": True, "mcqTtsQuestion": "", "mcqTtsCorrectAnswer": "", "mcqTtsExtra": ""},
-        )
-        assert "const AUTO_SHOW_CHOICES = true;" in qfmt
+        assert "const AUTO_SHOW_CHOICES = false;" in template["front"]
 
-    def test_show_choices_button_sets_false(self):
+    def test_anchor_shuffle_array_present_in_template(self):
         template = get_template("n2a-mcq.json")
-        qfmt, _ = _apply_mcq_settings(
-            template["front"],
-            template["back"],
-            {"mcqShowChoices": "button", "mcqShuffle": True, "mcqTtsQuestion": "", "mcqTtsCorrectAnswer": "", "mcqTtsExtra": ""},
-        )
-        assert "const AUTO_SHOW_CHOICES = false;" in qfmt
-
-    def test_shuffle_disabled_replaces_shuffle_call(self):
-        template = get_template("n2a-mcq.json")
-        qfmt, _ = _apply_mcq_settings(
-            template["front"],
-            template["back"],
-            {"mcqShowChoices": "button", "mcqShuffle": False, "mcqTtsQuestion": "", "mcqTtsCorrectAnswer": "", "mcqTtsExtra": ""},
-        )
-        assert "/* shuffle disabled */" in qfmt
-        assert "shuffleArray(data.position);" not in qfmt
-
-    def test_shuffle_enabled_keeps_shuffle_call(self):
-        template = get_template("n2a-mcq.json")
-        qfmt, _ = _apply_mcq_settings(
-            template["front"],
-            template["back"],
-            {"mcqShowChoices": "button", "mcqShuffle": True, "mcqTtsQuestion": "", "mcqTtsCorrectAnswer": "", "mcqTtsExtra": ""},
-        )
-        assert "shuffleArray(data.position);" in qfmt
+        assert "shuffleArray(data.position);" in template["front"]
 
     def test_tts_question_prepended_to_front(self):
         template = get_template("n2a-mcq.json")
         qfmt, _ = _apply_mcq_settings(
             template["front"],
             template["back"],
-            {"mcqShowChoices": "button", "mcqShuffle": True, "mcqTtsQuestion": "en_US", "mcqTtsCorrectAnswer": "", "mcqTtsExtra": ""},
+            {"mcqTtsQuestion": "en_US", "mcqTtsCorrectAnswer": "", "mcqTtsExtra": ""},
         )
         assert "{{tts en_US:Question}}" in qfmt
 
@@ -74,7 +45,7 @@ class TestApplyMcqSettings:
         _, afmt = _apply_mcq_settings(
             template["front"],
             template["back"],
-            {"mcqShowChoices": "button", "mcqShuffle": True, "mcqTtsQuestion": "", "mcqTtsCorrectAnswer": "es_ES", "mcqTtsExtra": ""},
+            {"mcqTtsQuestion": "", "mcqTtsCorrectAnswer": "es_ES", "mcqTtsExtra": ""},
         )
         assert "{{tts es_ES:Correct Answer}}" in afmt
 
@@ -83,7 +54,7 @@ class TestApplyMcqSettings:
         _, afmt = _apply_mcq_settings(
             template["front"],
             template["back"],
-            {"mcqShowChoices": "button", "mcqShuffle": True, "mcqTtsQuestion": "", "mcqTtsCorrectAnswer": "", "mcqTtsExtra": "fr_FR"},
+            {"mcqTtsQuestion": "", "mcqTtsCorrectAnswer": "", "mcqTtsExtra": "fr_FR"},
         )
         assert "{{tts fr_FR:Extra}}" in afmt
 
@@ -92,47 +63,52 @@ class TestApplyMcqSettings:
         qfmt, afmt = _apply_mcq_settings(
             template["front"],
             template["back"],
-            {"mcqShowChoices": "button", "mcqShuffle": True, "mcqTtsQuestion": "", "mcqTtsCorrectAnswer": "", "mcqTtsExtra": ""},
+            {"mcqTtsQuestion": "", "mcqTtsCorrectAnswer": "", "mcqTtsExtra": ""},
         )
         assert "{{tts" not in qfmt
         assert "{{tts" not in afmt
 
     def test_back_contains_correct_row_background_color(self):
         template = get_template("n2a-mcq.json")
-        assert "#A7F3D0" in template["styling"]
+        assert "#c7f1dc" in template["styling"]
 
-    def test_back_contains_incorrect_row_background_color(self):
+    def test_back_contains_incorrect_row_indicator_in_back(self):
         template = get_template("n2a-mcq.json")
-        assert "#FEF2F2" in template["styling"]
+        assert "FalseSVG" in template["back"]
 
-    def test_back_contains_missed_row_background_color(self):
+    def test_back_contains_correct_row_indicator_in_back(self):
         template = get_template("n2a-mcq.json")
-        assert "#FFFBEB" in template["styling"]
+        assert "TrueSVG" in template["back"]
 
 
 class TestGetModelMcqIntegration:
     """End-to-end behaviour of get_model when the mcq descriptor is passed."""
 
-    def test_happy_path_all_settings(self):
+    def test_happy_path_tts_settings(self):
         settings = {
-            "mcqShowChoices": "auto",
-            "mcqShuffle": False,
             "mcqTtsQuestion": "en_US",
             "mcqTtsCorrectAnswer": "en_US",
             "mcqTtsExtra": "",
         }
         model = get_model(_base_descriptor(), mcq_settings=settings)
         template = model.templates[0]
-        assert "const AUTO_SHOW_CHOICES = true;" in template["qfmt"]
-        assert "/* shuffle disabled */" in template["qfmt"]
         assert "{{tts en_US:Question}}" in template["qfmt"]
         assert "{{tts en_US:Correct Answer}}" in template["afmt"]
 
-    def test_default_empty_settings_uses_template_defaults(self):
+    def test_default_empty_tts_settings_produces_no_tts_tags(self):
         settings = {
-            "mcqShowChoices": "button",
-            "mcqShuffle": True,
             "mcqTtsQuestion": "",
+            "mcqTtsCorrectAnswer": "",
+            "mcqTtsExtra": "",
+        }
+        model = get_model(_base_descriptor(), mcq_settings=settings)
+        template = model.templates[0]
+        assert "{{tts" not in template["qfmt"]
+        assert "{{tts" not in template["afmt"]
+
+    def test_anchor_strings_preserved_when_tts_settings_applied(self):
+        settings = {
+            "mcqTtsQuestion": "en_US",
             "mcqTtsCorrectAnswer": "",
             "mcqTtsExtra": "",
         }
@@ -140,13 +116,11 @@ class TestGetModelMcqIntegration:
         template = model.templates[0]
         assert "const AUTO_SHOW_CHOICES = false;" in template["qfmt"]
         assert "shuffleArray(data.position);" in template["qfmt"]
-        assert "{{tts" not in template["qfmt"]
-        assert "{{tts" not in template["afmt"]
 
     def test_no_mcq_settings_leaves_template_unchanged(self):
         model_no_settings = get_model(_base_descriptor())
-        model_with_defaults = get_model(
+        model_with_no_tts = get_model(
             _base_descriptor(),
-            mcq_settings={"mcqShowChoices": "button", "mcqShuffle": True, "mcqTtsQuestion": "", "mcqTtsCorrectAnswer": "", "mcqTtsExtra": ""},
+            mcq_settings={"mcqTtsQuestion": "", "mcqTtsCorrectAnswer": "", "mcqTtsExtra": ""},
         )
-        assert model_no_settings.templates[0]["qfmt"] == model_with_defaults.templates[0]["qfmt"]
+        assert model_no_settings.templates[0]["qfmt"] == model_with_no_tts.templates[0]["qfmt"]

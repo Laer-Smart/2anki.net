@@ -117,7 +117,7 @@ export default function PreviewApkgPage({
             <>
               {decks.length > 1 ? `${decks.length} decks · ` : ''}
               {totalAll == null
-                ? 'Loading…'
+                ? 'Loading your deck'
                 : `${loadedCount} of ${totalAll} cards loaded`}
             </>
           )}
@@ -151,7 +151,6 @@ export default function PreviewApkgPage({
         <div className={styles.cards}>
           {cards.length === 0 && (
             <EmptyState
-              icon="🃏"
               title="Empty deck"
               description="This deck has no cards to preview."
             />
@@ -169,7 +168,7 @@ export default function PreviewApkgPage({
       />
 
       {stream.isFetchingNextPage && (
-        <div className={styles.loadingRow}>Loading more…</div>
+        <div className={styles.loadingRow}>Loading more cards</div>
       )}
     </div>
   );

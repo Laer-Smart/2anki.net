@@ -12,8 +12,6 @@ export type CardOptions = Partial<{
   'user-instructions': string;
   'skip-defaults': string;
   'mcq-enabled': string;
-  'mcq-show-choices': string;
-  'mcq-shuffle': string;
   'mcq-tts-question': string;
   'mcq-tts-correct-answer': string;
   'mcq-tts-extra': string;
@@ -45,8 +43,6 @@ const ALLOWED_CARD_OPTION_KEYS = new Set([
   'user-instructions',
   'skip-defaults',
   'mcq-enabled',
-  'mcq-show-choices',
-  'mcq-shuffle',
   'mcq-tts-question',
   'mcq-tts-correct-answer',
   'mcq-tts-extra',

@@ -110,8 +110,7 @@
 .cardFrame {
   border: 0;
   width: 100%;
-  min-height: 160px;
-  height: 260px;
+  min-height: 240px;
   background: var(--color-bg-primary);
 }
 
