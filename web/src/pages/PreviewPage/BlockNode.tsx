@@ -1,10 +1,25 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { PreviewBlock } from '../../lib/backend/getPreviewBatch';
+import { BlockDecision } from '../../lib/preview/classifyBlock';
 import { useBlockChildren } from './useBlockChildren';
 import styles from './PreviewPage.module.css';
 
 interface BlockNodeProps {
   block: PreviewBlock;
+}
+
+const DECISION_TOOLTIPS: Record<BlockDecision, string> = {
+  card: 'This block becomes a card',
+  skip: 'Skipped — not converted',
+  recurse: 'Opens as a sub-page — click to explore',
+};
+
+function decisionClass(decision: BlockDecision | undefined): string {
+  if (decision === 'card') return styles.blockCard;
+  if (decision === 'skip') return styles.blockSkip;
+  if (decision === 'recurse') return styles.blockRecurse;
+  return styles.blockRow;
 }
 
 export function BlockNode({ block }: Readonly<BlockNodeProps>) {
@@ -15,10 +30,35 @@ export function BlockNode({ block }: Readonly<BlockNodeProps>) {
     open && block.hasChildren
   );
 
+  const rowClass = decisionClass(block.decision);
+  const tooltipText = block.decision ? DECISION_TOOLTIPS[block.decision] : undefined;
+
+  if (block.type === 'child_page' && block.childPageId != null) {
+    return (
+      <div className={rowClass} title={tooltipText}>
+        <div className={styles.subPageRow}>
+          <Link
+            to={`/preview/${block.childPageId}`}
+            className={styles.subPageLink}
+            state={{ parentTitle: block.childPageTitle }}
+          >
+            <span
+              dangerouslySetInnerHTML={{ __html: block.html }}
+            />
+          </Link>
+          <span className={styles.subPageLabel}>
+            Sub-page <span className={styles.subPageChevron}>&rsaquo;</span>
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   if (!block.canExpand) {
     return (
       <div
-        // eslint-disable-next-line react/no-danger
+        className={rowClass}
+        title={tooltipText}
         dangerouslySetInnerHTML={{ __html: block.html }}
       />
     );
@@ -28,12 +68,12 @@ export function BlockNode({ block }: Readonly<BlockNodeProps>) {
 
   return (
     <details
-      className={styles.toggleBlock}
+      className={`${styles.toggleBlock} ${rowClass}`}
+      title={tooltipText}
       onToggle={(event) => setOpen((event.currentTarget as HTMLDetailsElement).open)}
     >
       <summary
         className={styles.toggleSummary}
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: block.summaryHtml ?? '' }}
       />
       {open && (
