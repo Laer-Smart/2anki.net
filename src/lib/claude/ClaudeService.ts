@@ -345,10 +345,19 @@ export function parseDeckResponse(
   raw: string,
   chunkIndex: number
 ): CompactDeck[] {
-  // Claude sometimes appends explanation prose after the closing fence/bracket.
-  // Truncate at the last ']' so trailing text doesn't break JSON.parse.
   const jsonEnd = cleaned.lastIndexOf(']');
   const toParse = jsonEnd >= 0 ? cleaned.slice(0, jsonEnd + 1) : cleaned;
+
+  if (jsonEnd >= 0) {
+    const trailing = cleaned.slice(jsonEnd + 1).trim();
+    if (trailing.length > 0) {
+      console.warn('[Claude] Trailing prose stripped', {
+        chunkIndex,
+        strippedBytes: trailing.length,
+        sample: trailing.slice(0, 80),
+      });
+    }
+  }
 
   let parsed: unknown;
   try {

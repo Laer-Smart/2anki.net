@@ -11,7 +11,7 @@ The claude lib converts HTML content into Anki flashcards using the Anthropic AP
 - Cards already under 600 plain-text chars — no change
 - Single-sentence answers over 600 chars — degenerate case, kept as-is
 
-**Observability:** After each chunk, a structured log line records `inputCardCount`, `outputCardCount`, `avgAnswerLenBefore`, `avgAnswerLenAfter`, and `chunkIndex` under the `[Claude] splitOversizedCards` key.
+**Observability:** After each chunk, a structured log line records `inputCardCount`, `outputCardCount`, `avgAnswerLenBefore`, `avgAnswerLenAfter`, and `chunkIndex` under the `[Claude] splitOversizedCards` key. `parseDeckResponse` truncates anything after the last `]` so trailing prose doesn't break `JSON.parse`; when non-whitespace bytes are stripped, it emits a `[Claude] Trailing prose stripped` warning with `chunkIndex`, `strippedBytes`, and an 80-char sample — grep this to track model drift.
 
 **Override path:** `userInstructions` passed to `generateDeckInfo` flow into the prompt as an "Additional instructions" block. A user asking for "keep cards detailed" or similar will get the prompt's min-info rules deprioritised in Claude's output — the splitter ceiling still applies as a hard guard.
 

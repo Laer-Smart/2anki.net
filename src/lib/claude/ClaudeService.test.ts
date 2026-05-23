@@ -84,6 +84,53 @@ describe('parseDeckResponse', () => {
       'Claude returned invalid JSON'
     );
   });
+
+  it('tolerates leading, interior, and trailing whitespace inside the JSON portion', () => {
+    const padded = `  \n\t${deckJson}   \n  `;
+    expect(parseDeckResponse(padded, padded, 0)).toEqual(deck);
+  });
+
+  it('preserves literal backticks inside card content (nested-fence robustness)', () => {
+    const withBackticks =
+      '[{"deck":"Shell","cards":[{"q":"List files","a":"Run `ls -la` to see hidden files"}]}]';
+    const parsed = parseDeckResponse(withBackticks, withBackticks, 0);
+    expect(parsed[0].cards[0].a).toBe('Run `ls -la` to see hidden files');
+  });
+
+  it('emits a structured warning when trailing prose is stripped (model-drift signal)', () => {
+    const warnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+    try {
+      const cleaned = `${deckJson}\n\nI've created flashcards for all key concepts.`;
+      parseDeckResponse(cleaned, cleaned, 7);
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[Claude] Trailing prose stripped',
+        expect.objectContaining({ chunkIndex: 7, strippedBytes: expect.any(Number) })
+      );
+      const callArg = warnSpy.mock.calls.find(
+        ([msg]) => msg === '[Claude] Trailing prose stripped'
+      )![1] as { strippedBytes: number };
+      expect(callArg.strippedBytes).toBeGreaterThan(0);
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  it('does not warn about trailing prose when JSON parses cleanly with no trailing content', () => {
+    const warnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+    try {
+      parseDeckResponse(deckJson, deckJson, 0);
+      expect(warnSpy).not.toHaveBeenCalledWith(
+        '[Claude] Trailing prose stripped',
+        expect.anything()
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
 });
 
 describe('rewriteAudioAnchors', () => {
