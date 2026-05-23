@@ -49,7 +49,7 @@ describe('ExploreCard', () => {
     renderCard({ paying: false });
     expect(screen.getByRole('heading', { name: 'Beyond the defaults' })).toBeInTheDocument();
     expect(
-      screen.getByText('How serious Anki users build decks faster.')
+      screen.getByText('How Anki power users build decks seriously fast.')
     ).toBeInTheDocument();
   });
 

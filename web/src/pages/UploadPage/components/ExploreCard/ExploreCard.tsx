@@ -87,7 +87,7 @@ export function ExploreCard() {
           Beyond the defaults
         </h2>
         <p className={styles.sub}>
-          How serious Anki users build decks faster.
+          How Anki power users build decks seriously fast.
         </p>
       </header>
       <ul className={styles.card}>
