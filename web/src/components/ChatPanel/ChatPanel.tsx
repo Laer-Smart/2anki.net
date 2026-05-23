@@ -481,6 +481,7 @@ export default function ChatPanel({
   const isPatreon = userLocals?.user?.patreon === true;
   const hasConsented = userLocals?.user?.chat_consent_at != null;
   const [showConsentModal, setShowConsentModal] = useState(false);
+  const [userDismissedConsent, setUserDismissedConsent] = useState(false);
 
   const [activeConversationId, setActiveConversationId] = useState<
     number | null
@@ -843,13 +844,16 @@ export default function ChatPanel({
 
   return (
     <>
-      {(showConsentModal || (!hasConsented && userLocals != null)) && (
+      {(showConsentModal || (!hasConsented && userLocals != null && !userDismissedConsent)) && (
         <ConsentModal
           onAccept={async () => {
             await refetchUserLocals();
             setShowConsentModal(false);
           }}
-          onDismiss={() => setShowConsentModal(false)}
+          onDismiss={() => {
+            setShowConsentModal(false);
+            setUserDismissedConsent(true);
+          }}
         />
       )}
       <div className={styles.container} data-hj-suppress>
