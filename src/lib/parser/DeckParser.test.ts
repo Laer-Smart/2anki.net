@@ -729,6 +729,19 @@ describe('MCQ detection via DeckParser', () => {
   });
 });
 
+test('name getter returns input name when payload is empty', () => {
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'Foo.html',
+    settings: new CardOption({ cherry: 'false' }),
+    files: [],
+    noLimits: false,
+    workspace,
+  });
+  parser.payload = [];
+  expect(parser.name).toBe('Foo.html');
+});
+
 describe('heuristic markdown path — entity preservation', () => {
   // Regression: markdown uploads with non-breaking spaces (U+00A0) were
   // rendered with the literal text "&nbsp;" in the card. Showdown converts
