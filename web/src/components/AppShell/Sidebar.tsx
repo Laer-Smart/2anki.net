@@ -149,6 +149,12 @@ function SidebarRow({
   );
 }
 
+function getLogoSrc(collapsed: boolean, theme: string): string {
+  if (collapsed) return '/mascot/Notion 1.png';
+  if (theme === 'light') return '/mascot/navbar-logo.png';
+  return '/mascot/Notion 1.png';
+}
+
 export function Sidebar({
   email,
   locals,
@@ -161,7 +167,7 @@ export function Sidebar({
   const { pathname } = useLocation();
   const theme = useTheme();
   const { collapsed, onToggleClick, onSidebarInteraction } = useSidebarCollapseState(pathname);
-  const logoSrc = theme === 'light' ? '/mascot/navbar-logo.png' : '/mascot/Notion 1.png';
+  const logoSrc = getLogoSrc(collapsed, theme);
   const showAnkify =
     locals?.patreon === true || locals?.autoSyncActive === true;
   const paying = isPayingUser(locals);
