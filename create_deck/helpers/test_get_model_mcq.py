@@ -25,7 +25,7 @@ class TestApplyMcqSettings:
 
     def test_anchor_auto_show_choices_present_in_template(self):
         template = get_template("n2a-mcq.json")
-        assert "const AUTO_SHOW_CHOICES = false;" in template["front"]
+        assert "var AUTO_SHOW_CHOICES = false;" in template["front"]
 
     def test_anchor_shuffle_array_present_in_template(self):
         template = get_template("n2a-mcq.json")
@@ -114,7 +114,7 @@ class TestGetModelMcqIntegration:
         }
         model = get_model(_base_descriptor(), mcq_settings=settings)
         template = model.templates[0]
-        assert "const AUTO_SHOW_CHOICES = false;" in template["qfmt"]
+        assert "var AUTO_SHOW_CHOICES = false;" in template["qfmt"]
         assert "shuffleArray(data.position);" in template["qfmt"]
 
     def test_no_mcq_settings_leaves_template_unchanged(self):

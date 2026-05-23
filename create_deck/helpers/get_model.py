@@ -44,7 +44,9 @@ def _apply_mcq_settings(qfmt, afmt, mcq_settings):
     directly into the template string at build time.
 
     Shuffle and show-choices are now controlled by the in-card drawer at review time.
-    The AUTO_SHOW_CHOICES and shuffleArray anchor strings remain in the template verbatim.
+    The AUTO_SHOW_CHOICES (declared with var, not const, so the script can re-execute
+    across cards without a SyntaxError redeclaration) and shuffleArray anchor strings
+    remain in the template verbatim.
     """
     tts_lines_front = []
     tts_lines_back = []
