@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-23-mindmap-access-crash",
+  "date": "2026-05-23",
+  "type": "fix",
+  "title": "Mind maps load reliably for accounts without an active subscription"
+}

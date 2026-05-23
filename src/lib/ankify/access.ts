@@ -15,6 +15,9 @@ export const hasAnkifyAccess = (
   if (user?.patreon === true) {
     return true;
   }
+  if (!Array.isArray(subscriptions)) {
+    return false;
+  }
   return subscriptions.some(
     (s) => s.active && s.stripe_product_id === autoSyncProductId
   );
