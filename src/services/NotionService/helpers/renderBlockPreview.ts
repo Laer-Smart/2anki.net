@@ -59,21 +59,14 @@ function isToggleableHeading(block: BlockObjectResponse): boolean {
   }
 }
 
-/**
- * A block the preview UI lets the user expand to fetch its children lazily.
- * For v1 only toggle + toggleable headings — the common cases where users
- * expect Notion-style click-to-reveal behaviour.
- */
 export function isExpandable(block: BlockObjectResponse): boolean {
   if (block.type === 'toggle') return true;
+  if (block.type === 'column_list') return true;
+  if (block.type === 'column') return true;
+  if (block.type === 'table') return true;
   return isToggleableHeading(block);
 }
 
-/**
- * Render the "summary" HTML for an expandable block — i.e. the content
- * the client will put inside a <summary> element. Intentionally does NOT
- * include the <details> wrapper; the client owns the open/close state.
- */
 export function renderBlockSummary(block: BlockObjectResponse): string {
   switch (block.type) {
     case 'toggle':
@@ -86,26 +79,24 @@ export function renderBlockSummary(block: BlockObjectResponse): string {
       return `<h3>${richText(block.heading_3.rich_text)}</h3>`;
     case 'heading_4':
       return `<h4>${richText(block.heading_4.rich_text)}</h4>`;
+    case 'column_list':
+      return '<p class="block-label">Columns</p>';
+    case 'column':
+      return '<p class="block-label">Column</p>';
+    case 'table':
+      return '<p class="block-label">Table</p>';
     default:
       return '';
   }
 }
 
-/**
- * Render a single Notion block as lightweight HTML for the preview page.
- * Intentionally does NOT:
- *  - recurse into children (toggle/sub-page content is fetched lazily
- *    by the client on expand — see isExpandable above)
- *  - download media (images point at Notion's signed URLs directly — fine
- *    for a short preview session)
- *  - apply any CardOption-aware formatting (preview is raw)
- *
- * For expandable blocks this returns an empty string; the client wraps
- * the summary HTML (from renderBlockSummary) in its own <details>.
- *
- * Unsupported block types render as an empty string so the stream still
- * returns the block id but nothing visible.
- */
+function fileOrExternalUrl(
+  block: { type: 'file'; file: { url: string } } | { type: 'external'; external: { url: string } }
+): string {
+  if (block.type === 'file') return block.file.url;
+  return block.external.url;
+}
+
 export function renderBlockPreview(block: BlockObjectResponse): string {
   if (isExpandable(block)) return '';
   switch (block.type) {
@@ -156,6 +147,59 @@ export function renderBlockPreview(block: BlockObjectResponse): string {
       return `<p><strong>📄 ${escapeHtml(block.child_page.title)}</strong> <em>(sub-page)</em></p>`;
     case 'child_database':
       return `<p><strong>🗃 ${escapeHtml(block.child_database.title)}</strong> <em>(database)</em></p>`;
+    case 'table_row': {
+      const cells = block.table_row.cells
+        .map((cell) => richText(cell))
+        .join(' | ');
+      return `<p>${cells}</p>`;
+    }
+    case 'embed': {
+      const url = block.embed.url;
+      if (!url) return '';
+      return `<p><a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">Embed: ${escapeHtml(url)}</a></p>`;
+    }
+    case 'video': {
+      const url = fileOrExternalUrl(block.video);
+      if (!url) return '';
+      return `<p><a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">Video: ${escapeHtml(url)}</a></p>`;
+    }
+    case 'pdf': {
+      const url = fileOrExternalUrl(block.pdf);
+      if (!url) return '';
+      return `<p><a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">PDF: ${escapeHtml(url)}</a></p>`;
+    }
+    case 'audio': {
+      const url = fileOrExternalUrl(block.audio);
+      if (!url) return '';
+      return `<p><a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">Audio: ${escapeHtml(url)}</a></p>`;
+    }
+    case 'file': {
+      const url = fileOrExternalUrl(block.file);
+      if (!url) return '';
+      return `<p><a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">File: ${escapeHtml(url)}</a></p>`;
+    }
+    case 'link_to_page': {
+      const linkedId =
+        block.link_to_page.type === 'page_id'
+          ? block.link_to_page.page_id
+          : block.link_to_page.database_id;
+      return `<p><a href="/notion/${escapeHtml(linkedId)}">Link to page</a></p>`;
+    }
+    case 'link_preview': {
+      const url = block.link_preview.url;
+      if (!url) return '';
+      return `<p><a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">Link preview: ${escapeHtml(url)}</a></p>`;
+    }
+    case 'breadcrumb':
+      return '<p><em>(breadcrumb)</em></p>';
+    case 'table_of_contents':
+      return '<p><em>(table of contents)</em></p>';
+    case 'synced_block':
+      return '<p><em>(synced block)</em></p>';
+    case 'template':
+      return '<p><em>(template)</em></p>';
+    case 'unsupported':
+      return '<p><em>(unsupported block)</em></p>';
     default:
       return '';
   }
