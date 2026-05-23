@@ -56,6 +56,24 @@
   cursor: not-allowed;
 }
 
+.clearSuggestions {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.clearSuggestions:hover {
+  color: var(--color-text-primary);
+}
+
 .zoomReadout {
   display: inline-flex;
   align-items: center;
