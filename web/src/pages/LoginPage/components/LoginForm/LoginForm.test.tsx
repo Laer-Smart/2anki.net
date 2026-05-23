@@ -46,7 +46,7 @@ describe('LoginForm', () => {
 
   it('shows Google OAuth button on email step', () => {
     renderLoginForm();
-    expect(screen.getByText('Log in with Google')).toBeInTheDocument();
+    expect(screen.getByText('Sign in with Google')).toBeInTheDocument();
   });
 
   it('transitions to password step after clicking continue', () => {
