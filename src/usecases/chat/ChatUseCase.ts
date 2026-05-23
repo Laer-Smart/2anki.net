@@ -126,6 +126,19 @@ function asMcqChatCard(item: Record<string, unknown>): ChatCard | null {
   };
 }
 
+function parseCardItem(item: unknown, mcqAllowed: boolean): ChatCard | null {
+  if (item == null || typeof item !== 'object') return null;
+  const record = item as Record<string, unknown>;
+  const looksLikeMcq = record.options !== undefined || record.correct_index !== undefined;
+  if (mcqAllowed && looksLikeMcq) {
+    return asMcqChatCard(record);
+  }
+  if (typeof record.front === 'string' && typeof record.back === 'string') {
+    return { front: record.front, back: record.back };
+  }
+  return null;
+}
+
 function parseCardArray(raw: string, mcqAllowed: boolean): ChatCard[] | undefined {
   let parsed: unknown;
   try {
@@ -136,18 +149,8 @@ function parseCardArray(raw: string, mcqAllowed: boolean): ChatCard[] | undefine
   if (!Array.isArray(parsed)) return undefined;
   const cards: ChatCard[] = [];
   for (const item of parsed) {
-    if (item == null || typeof item !== 'object') continue;
-    const record = item as Record<string, unknown>;
-    if (mcqAllowed && (record.options !== undefined || record.correct_index !== undefined)) {
-      const mcqCard = asMcqChatCard(record);
-      if (mcqCard != null) {
-        cards.push(mcqCard);
-      }
-      continue;
-    }
-    if (typeof record.front === 'string' && typeof record.back === 'string') {
-      cards.push({ front: record.front, back: record.back });
-    }
+    const card = parseCardItem(item, mcqAllowed);
+    if (card != null) cards.push(card);
   }
   return cards.length > 0 ? cards : undefined;
 }
