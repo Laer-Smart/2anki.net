@@ -109,6 +109,7 @@
   width: 100%;
   min-height: 2.75rem;
   padding: 0.625rem 1.25rem;
+  margin-top: 0.75rem;
   margin-bottom: 0.5rem;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
