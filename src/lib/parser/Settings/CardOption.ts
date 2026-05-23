@@ -2,6 +2,7 @@ import { getDefaultUserInstructions } from '../../../infrastracture/adapters/fil
 import { validateCardStylePicker } from '../../claude/getCardStylePromptFragment';
 import { parseTemplate } from './helpers/parseTemplate';
 import { validateCardSize } from '../../claude/cardSize';
+import type { FieldMapping } from '../../claude/ClaudeService';
 
 import { UserSuppliedTemplateFile } from './types';
 
@@ -93,6 +94,8 @@ class CardOption {
 
   readonly cardSize: 'short' | 'medium' | 'detailed';
 
+  readonly fieldMapping: FieldMapping | undefined;
+
   constructor(input: { [key: string]: string }) {
     this.deckName = input.deckName;
     if (this.deckName && !this.deckName.trim()) {
@@ -145,6 +148,7 @@ class CardOption {
     this.mcqTtsCorrectAnswer = input['mcq-tts-correct-answer'] ?? '';
     this.mcqTtsExtra = input['mcq-tts-extra'] ?? '';
     this.cardSize = validateCardSize(input['card-size']);
+    this.fieldMapping = parseFieldMapping(input['field-mapping']);
     this.retrieveTemplates(input);
   }
 
@@ -159,10 +163,6 @@ class CardOption {
     }
   }
 
-  /*
-   * The default options for Notion integration differ with the ones in the HTML form.
-   * To avoid regressions we have to keep the same defaults until a proper migration can be done.
-   */
   static LoadDefaultOptions(): { [key: string]: string } {
     return {
       'add-notion-link': 'false',
@@ -190,6 +190,34 @@ class CardOption {
       'mcq-tts-correct-answer': '',
       'mcq-tts-extra': '',
     };
+  }
+}
+
+function parseFieldMapping(raw: string | undefined): FieldMapping | undefined {
+  if (raw == null || raw.trim() === '') return undefined;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (
+      parsed == null ||
+      typeof parsed !== 'object' ||
+      Array.isArray(parsed) ||
+      typeof (parsed as { templateName?: unknown }).templateName !== 'string' ||
+      !Array.isArray((parsed as { fields?: unknown }).fields)
+    ) {
+      return undefined;
+    }
+    const candidate = parsed as { templateName: string; fields: unknown[] };
+    const fields = candidate.fields.filter(
+      (f): f is FieldMapping['fields'][number] =>
+        f != null &&
+        typeof f === 'object' &&
+        typeof (f as { name?: unknown }).name === 'string' &&
+        typeof (f as { instruction?: unknown }).instruction === 'string'
+    );
+    if (fields.length === 0) return undefined;
+    return { templateName: candidate.templateName, fields };
+  } catch {
+    return undefined;
   }
 }
 

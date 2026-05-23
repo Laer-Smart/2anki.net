@@ -11,6 +11,22 @@ import { ANKI_MATH_FRAGMENT } from './ankiMathFragment';
 import { logClaudeUsage } from './logClaudeUsage';
 import { getCardSizePromptSuffix } from './cardSize';
 
+export interface FieldMappingEntry {
+  name: string;
+  instruction: string;
+}
+
+export interface FieldMapping {
+  templateName: string;
+  fields: FieldMappingEntry[];
+}
+
+export function buildFieldMappingPromptFragment(fieldMapping: FieldMapping | undefined): string {
+  if (fieldMapping == null || fieldMapping.fields.length === 0) return '';
+  const lines = fieldMapping.fields.map((f) => `  - ${f.name}: ${f.instruction}`);
+  return `Target template: ${fieldMapping.templateName}\nField mapping (emit exactly these keys in each card's "fields" object):\n${lines.join('\n')}`;
+}
+
 export const SYSTEM_PROMPT = `
 You are an Anki flashcard generator. Output ONLY a compact JSON array.
 
@@ -302,7 +318,8 @@ export function buildUserMessage(
   availableMediaFiles: string[],
   userInstructions: string | undefined,
   cardStyleFragment: string,
-  cardSize?: string
+  cardSize?: string,
+  fieldMapping?: FieldMapping
 ): string {
   const mediaFilesList =
     availableMediaFiles.length > 0
@@ -313,6 +330,9 @@ export function buildUserMessage(
     ? `\n\nAdditional instructions:\n${userInstructions.trim()}`
     : '';
 
+  const fieldMappingFragment = buildFieldMappingPromptFragment(fieldMapping);
+  const fieldMappingSection = fieldMappingFragment.length > 0 ? `\n\nField mapping:\n${fieldMappingFragment}` : '';
+
   const styleSection = cardStyleFragment.length > 0
     ? `\n\nCard style: ${cardStyleFragment}`
     : '';
@@ -320,7 +340,7 @@ export function buildUserMessage(
   const sizeSuffix = getCardSizePromptSuffix(cardSize);
   const sizeSection = sizeSuffix.length > 0 ? `\n\n${sizeSuffix}` : '';
 
-  return `Convert this HTML content into the compact deck JSON:\n\n${strippedContent}${mediaFilesList}${instructionsSection}${styleSection}${sizeSection}`;
+  return `Convert this HTML content into the compact deck JSON:\n\n${strippedContent}${mediaFilesList}${instructionsSection}${fieldMappingSection}${styleSection}${sizeSection}`;
 }
 
 function tryRepairDeckArray(toParse: string): unknown[] | null {
@@ -404,13 +424,14 @@ async function generateDeckInfoFromChunk(
   totalChunks: number,
   onProgress?: (step: string) => void,
   cardStyle?: string,
-  cardSize?: string
+  cardSize?: string,
+  fieldMapping?: FieldMapping
 ): Promise<DeckInfo[]> {
   const tChunk0 = Date.now();
   const client = getAnthropicClient();
 
   const cardStyleFragment = getCardStylePromptFragment(cardStyle);
-  const userMessage = buildUserMessage(strippedContent, availableMediaFiles, userInstructions, cardStyleFragment, cardSize);
+  const userMessage = buildUserMessage(strippedContent, availableMediaFiles, userInstructions, cardStyleFragment, cardSize, fieldMapping);
   const maxTokens = strippedContent.length > 20000 ? 16384 : 4096;
 
   onProgress?.(`claude:chunk:${chunkIndex + 1}:${totalChunks}`);
@@ -542,7 +563,8 @@ export async function generateDeckInfo(
   userInstructions?: string,
   onProgress?: (step: string) => void,
   cardStyle?: string,
-  cardSize?: string
+  cardSize?: string,
+  fieldMapping?: FieldMapping
 ): Promise<DeckInfo[]> {
   const t0 = Date.now();
 
@@ -575,7 +597,8 @@ export async function generateDeckInfo(
             chunks.length,
             onProgress,
             cardStyle,
-            cardSize
+            cardSize,
+            fieldMapping
           )
         )
       );
@@ -595,7 +618,7 @@ export async function generateDeckInfo(
 
   const chunkResults = await Promise.all(
     chunks.map((chunk, i) =>
-      generateDeckInfoFromChunk(chunk, pageStyle, availableMediaFiles, userInstructions, i, chunks.length, onProgress, cardStyle, cardSize)
+      generateDeckInfoFromChunk(chunk, pageStyle, availableMediaFiles, userInstructions, i, chunks.length, onProgress, cardStyle, cardSize, fieldMapping)
     )
   );
 

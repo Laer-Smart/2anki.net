@@ -40,6 +40,20 @@ The claude lib converts HTML content into Anki flashcards using the Anthropic AP
 
 ---
 
+## Field-mapping contract (`fieldMapping?: FieldMapping`)
+
+`generateDeckInfo` accepts an optional seventh argument `fieldMapping?: FieldMapping` (exported type from `ClaudeService.ts`). When provided, `buildFieldMappingPromptFragment(fieldMapping)` produces a prompt section listing each field's name and the user's instruction for it. That section is appended to the user message Claude receives, after `userInstructions` and before `cardStyleFragment`. The model is asked to emit the named fields in each card's output.
+
+**Backward compatibility:** the argument is optional. All existing call sites that omit it continue to receive the default `{ front, back }` behaviour — no change to output shape or downstream card construction.
+
+**Type:** `FieldMapping = { templateName: string; fields: Array<{ name: string; instruction: string }> }`. Exported from `ClaudeService.ts`; the web client imports the same shape from `web/src/lib/cardFields/types.ts` (shared vocabulary so PR #2635 can converge without duplicating the definition).
+
+**Where the value comes from:** `CardOptionsForm` renders a `FieldMappingPanel` (collapsible `<details>`) in the Templates section after the template picker. When the user picks a template, the panel is pre-populated from `fieldMappingDefaults.ts` (keyed by template name). The user's edits persist to the form state. On save/submit the mapping is JSON-serialised into the `field-mapping` key of the settings payload. `CardOption` parses `input['field-mapping']` via `parseFieldMapping()` and exposes it as `settings.fieldMapping`. `PrepareDeck.ts` threads it into every `generateDeckInfo` call for the Claude branch.
+
+**Graceful degradation:** if `parseFieldMapping` receives malformed JSON or a structurally invalid object, it returns `undefined` and the conversion falls back to the default two-field shape. Missing or extra fields emitted by the model are logged as warnings by the caller (per spec open question 3); an extra field from the model is dropped, a missing field is left blank.
+
+---
+
 ## Card-size suffix contract (`cardSize: 'short' | 'medium' | 'detailed'`)
 
 `generateDeckInfo` accepts an optional sixth argument `cardSize?: string`. The value is normalized inside `getCardSizePromptSuffix` (from `cardSize.ts`) to one of `'short'`, `'medium'`, or `'detailed'` — anything else falls back to `'medium'`. The helper returns a short prompt suffix (`Card size: N facts per card, target ~Nc characters per answer`) that is appended to the user message Claude receives, alongside `cardStyle` and `userInstructions` if present.

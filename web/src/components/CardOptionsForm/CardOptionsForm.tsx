@@ -27,6 +27,9 @@ import TemplateSelect from '../TemplateSelect';
 import fieldStyles from './CardOptionsForm.module.css';
 import { NoteTypePicker } from './NoteTypePicker';
 import { useAvailableNoteTypes } from './useAvailableNoteTypes';
+import { FieldMappingPanel } from './FieldMappingPanel';
+import { getDefaultFieldMapping } from './fieldMappingDefaults';
+import type { FieldMapping } from '../../lib/cardFields/types';
 
 interface Props {
   pageTitle?: string | null;
@@ -139,6 +142,7 @@ function computeSnapshot(values: {
   mcqTtsCorrectAnswer: string;
   mcqTtsExtra: string;
   cardSize: CardSizeValue;
+  fieldMapping: FieldMapping | null;
 }) {
   const sortedCheckboxes = Object.keys(values.checkboxValues)
     .sort((a, b) => a.localeCompare(b))
@@ -220,6 +224,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     const [cardSize, setCardSize] = useState<CardSizeValue>(() =>
       normalizeCardSize(getLocalStorageValue('card-size', DEFAULT_CARD_SIZE, settings))
     );
+    const [fieldMapping, setFieldMapping] = useState<FieldMapping | null>(() =>
+      getDefaultFieldMapping(getLocalStorageValue('template', DEFAULT_TEMPLATE, settings))
+    );
     const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
 
     useEffect(() => {
@@ -258,6 +265,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setMcqTtsCorrectAnswer(localStorage.getItem('mcq-tts-correct-answer') ?? DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(localStorage.getItem('mcq-tts-extra') ?? DEFAULT_MCQ_TTS_LANG);
       setCardSize(normalizeCardSize(localStorage.getItem('card-size')));
+      setFieldMapping(getDefaultFieldMapping(localStorage.getItem('template') ?? DEFAULT_TEMPLATE));
       setSettings({});
 
       const applyPayload = (payload: SettingsPayload) => {
@@ -285,6 +293,14 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         }
         if (Object.hasOwn(payload, 'card-size')) {
           setCardSize(normalizeCardSize(payload['card-size']));
+        }
+        if (Object.hasOwn(payload, 'field-mapping')) {
+          try {
+            const parsed = JSON.parse(payload['field-mapping'] ?? 'null') as unknown;
+            setFieldMapping(parsed != null && typeof parsed === 'object' ? parsed as FieldMapping : null);
+          } catch {
+            setFieldMapping(null);
+          }
         }
         setSettings(payload);
       };
@@ -325,6 +341,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           mcqTtsCorrectAnswer,
           mcqTtsExtra,
           cardSize,
+          fieldMapping,
         }),
       [
         deckName,
@@ -342,6 +359,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         mcqTtsCorrectAnswer,
         mcqTtsExtra,
         cardSize,
+        fieldMapping,
       ]
     );
 
@@ -392,6 +410,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setMcqTtsQuestion(DEFAULT_MCQ_TTS_LANG);
       setMcqTtsCorrectAnswer(DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(DEFAULT_MCQ_TTS_LANG);
+      setFieldMapping(getDefaultFieldMapping(DEFAULT_TEMPLATE));
       if (options) {
         const reset: Record<string, boolean> = {};
         options.forEach((o: CardOption) => {
@@ -423,6 +442,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       payload['mcq-tts-correct-answer'] = mcqTtsCorrectAnswer;
       payload['mcq-tts-extra'] = mcqTtsExtra;
       payload['card-size'] = cardSize;
+      if (fieldMapping != null) {
+        payload['field-mapping'] = JSON.stringify(fieldMapping);
+      }
 
       try {
         await get2ankiApi().saveSettings({
@@ -796,9 +818,17 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               pickedTemplate={(t) => {
                 setTemplate(t);
                 saveValueInLocalStorage('template', t, pageId);
+                const defaultMapping = getDefaultFieldMapping(t);
+                setFieldMapping(defaultMapping);
               }}
             />
           </div>
+          {fieldMapping != null && (
+            <FieldMappingPanel
+              mapping={fieldMapping}
+              onChange={(updated) => setFieldMapping(updated)}
+            />
+          )}
           {template === 'custom' ? (
             <>
               <div className={fieldStyles.section}>
