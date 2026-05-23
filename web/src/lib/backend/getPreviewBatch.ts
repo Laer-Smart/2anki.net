@@ -7,6 +7,7 @@ export interface PreviewBlock {
   canExpand: boolean;
   html: string;
   summaryHtml?: string;
+  decision?: 'card' | 'skip' | 'recurse';
 }
 
 export interface PreviewBatch {
