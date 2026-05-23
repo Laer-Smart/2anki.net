@@ -19,6 +19,12 @@ export default function useJobs(
 ): UseJobsResult {
   const [jobs, setJobs] = useState<JobResponse[]>([]);
   const [lastFetchedAt, setLastFetchedAt] = useState<Date | null>(null);
+  const [isWarmup, setIsWarmup] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setIsWarmup(false), 15000);
+    return () => clearTimeout(t);
+  }, []);
 
   async function fetchJobs() {
     try {
@@ -62,10 +68,10 @@ export default function useJobs(
 
   useEffect(() => {
     fetchJobs();
-    const intervalMs = hasActiveJobs ? 3000 : 10000;
+    const intervalMs = (hasActiveJobs || isWarmup) ? 3000 : 10000;
     const intervalId = setInterval(fetchJobs, intervalMs);
     return () => clearInterval(intervalId);
-  }, [backend, hasActiveJobs]);
+  }, [backend, hasActiveJobs, isWarmup]);
 
   return { jobs, deleteJob, restartJob, refreshJobs: fetchJobs, lastFetchedAt };
 }
