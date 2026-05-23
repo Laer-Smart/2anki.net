@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 function beforeEachReset() {
   beforeEach(() => {
@@ -9,6 +9,11 @@ function beforeEachReset() {
 }
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { track } from '../../lib/analytics/track';
+
+vi.mock('../../lib/analytics/track', () => ({
+  track: vi.fn(),
+}));
 
 vi.mock('../../lib/backend/getCardUsage', () => ({
   getCardUsage: vi.fn().mockResolvedValue({
@@ -316,6 +321,88 @@ describe('Sidebar collapse toggle', () => {
     renderSidebar();
     const aside = screen.getByRole('complementary', { name: 'primary' });
     expect(aside).toHaveAttribute('data-collapsed', 'true');
+  });
+});
+
+describe('Sidebar auto-minimize', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.mocked(track).mockClear();
+    vi.useFakeTimers({ shouldAdvanceTime: false });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function advance(ms: number) {
+    act(() => {
+      vi.advanceTimersByTime(ms);
+    });
+  }
+
+  it('auto-minimizes on /upload after 20 seconds of sidebar inactivity', () => {
+    renderSidebar({ pathname: '/upload' });
+    const aside = screen.getByRole('complementary', { name: 'primary' });
+    expect(aside).toHaveAttribute('data-collapsed', 'false');
+    advance(20_000);
+    expect(aside).toHaveAttribute('data-collapsed', 'true');
+    expect(track).toHaveBeenCalledWith('sidebar_auto_minimize_fired');
+  });
+
+  it('does not auto-minimize on a non-workflow route', () => {
+    renderSidebar({ pathname: '/account' });
+    const aside = screen.getByRole('complementary', { name: 'primary' });
+    advance(60_000);
+    expect(aside).toHaveAttribute('data-collapsed', 'false');
+    expect(track).not.toHaveBeenCalled();
+  });
+
+  it('does not touch localStorage when auto-minimizing', () => {
+    renderSidebar({ pathname: '/upload' });
+    advance(20_000);
+    expect(localStorage.getItem('sidebar.collapsed')).toBeNull();
+  });
+
+  it('resets the timer when the user hovers the sidebar', () => {
+    renderSidebar({ pathname: '/upload' });
+    const aside = screen.getByRole('complementary', { name: 'primary' });
+    advance(15_000);
+    fireEvent.mouseEnter(aside);
+    advance(15_000);
+    expect(aside).toHaveAttribute('data-collapsed', 'false');
+    advance(10_000);
+    expect(aside).toHaveAttribute('data-collapsed', 'true');
+  });
+
+  it('pins the sidebar when the user manually expands after auto-minimize', () => {
+    renderSidebar({ pathname: '/upload' });
+    const aside = screen.getByRole('complementary', { name: 'primary' });
+    advance(20_000);
+    expect(aside).toHaveAttribute('data-collapsed', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Expand sidebar' }));
+    expect(aside).toHaveAttribute('data-collapsed', 'false');
+    expect(localStorage.getItem('sidebar.collapsed')).toBeNull();
+
+    advance(60_000);
+    expect(aside).toHaveAttribute('data-collapsed', 'false');
+  });
+
+  it('fires the reverted event when the user expands within 60s of auto-collapse', () => {
+    renderSidebar({ pathname: '/upload' });
+    advance(20_000);
+    vi.mocked(track).mockClear();
+    advance(5_000);
+    fireEvent.click(screen.getByRole('button', { name: 'Expand sidebar' }));
+    expect(track).toHaveBeenCalledWith('sidebar_auto_minimize_reverted');
+  });
+
+  it('does not auto-minimize when the user already has a persisted collapsed preference', () => {
+    localStorage.setItem('sidebar.collapsed', 'true');
+    renderSidebar({ pathname: '/upload' });
+    advance(20_000);
+    expect(track).not.toHaveBeenCalled();
   });
 });
 
