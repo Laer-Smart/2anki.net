@@ -234,7 +234,7 @@ export async function PrepareDeck(
       const batch = htmlFiles.slice(i, i + 3);
       const batchResults = await Promise.all(
         batch.map((f) =>
-          generateDeckInfo(f.contents!.toString(), mediaFilesForHtmlFile(f.name, mediaFiles), userInstructions, input.onProgress, cardStyle)
+          generateDeckInfo(f.contents!.toString(), mediaFilesForHtmlFile(f.name, mediaFiles), userInstructions, input.onProgress, cardStyle, input.settings.cardSize)
         )
       );
       deckInfoArrays.push(...batchResults);

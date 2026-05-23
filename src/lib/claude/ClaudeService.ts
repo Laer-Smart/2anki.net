@@ -9,6 +9,7 @@ import { splitByHeadings } from '../cardStyle/headingDriven/splitByHeadings';
 import { getCardStylePromptFragment } from './getCardStylePromptFragment';
 import { ANKI_MATH_FRAGMENT } from './ankiMathFragment';
 import { logClaudeUsage } from './logClaudeUsage';
+import { getCardSizePromptSuffix } from './cardSize';
 
 export const SYSTEM_PROMPT = `
 You are an Anki flashcard generator. Output ONLY a compact JSON array.
@@ -296,11 +297,12 @@ function mergeDeckInfoArrays(decks: DeckInfo[]): DeckInfo[] {
   return Array.from(byName.values());
 }
 
-function buildUserMessage(
+export function buildUserMessage(
   strippedContent: string,
   availableMediaFiles: string[],
   userInstructions: string | undefined,
-  cardStyleFragment: string
+  cardStyleFragment: string,
+  cardSize?: string
 ): string {
   const mediaFilesList =
     availableMediaFiles.length > 0
@@ -315,7 +317,10 @@ function buildUserMessage(
     ? `\n\nCard style: ${cardStyleFragment}`
     : '';
 
-  return `Convert this HTML content into the compact deck JSON:\n\n${strippedContent}${mediaFilesList}${instructionsSection}${styleSection}`;
+  const sizeSuffix = getCardSizePromptSuffix(cardSize);
+  const sizeSection = sizeSuffix.length > 0 ? `\n\n${sizeSuffix}` : '';
+
+  return `Convert this HTML content into the compact deck JSON:\n\n${strippedContent}${mediaFilesList}${instructionsSection}${styleSection}${sizeSection}`;
 }
 
 function tryRepairDeckArray(toParse: string): unknown[] | null {
@@ -398,13 +403,14 @@ async function generateDeckInfoFromChunk(
   chunkIndex: number,
   totalChunks: number,
   onProgress?: (step: string) => void,
-  cardStyle?: string
+  cardStyle?: string,
+  cardSize?: string
 ): Promise<DeckInfo[]> {
   const tChunk0 = Date.now();
   const client = getAnthropicClient();
 
   const cardStyleFragment = getCardStylePromptFragment(cardStyle);
-  const userMessage = buildUserMessage(strippedContent, availableMediaFiles, userInstructions, cardStyleFragment);
+  const userMessage = buildUserMessage(strippedContent, availableMediaFiles, userInstructions, cardStyleFragment, cardSize);
   const maxTokens = strippedContent.length > 20000 ? 16384 : 4096;
 
   onProgress?.(`claude:chunk:${chunkIndex + 1}:${totalChunks}`);
@@ -535,7 +541,8 @@ export async function generateDeckInfo(
   availableMediaFiles: string[],
   userInstructions?: string,
   onProgress?: (step: string) => void,
-  cardStyle?: string
+  cardStyle?: string,
+  cardSize?: string
 ): Promise<DeckInfo[]> {
   const t0 = Date.now();
 
@@ -567,7 +574,8 @@ export async function generateDeckInfo(
             i,
             chunks.length,
             onProgress,
-            cardStyle
+            cardStyle,
+            cardSize
           )
         )
       );
@@ -587,7 +595,7 @@ export async function generateDeckInfo(
 
   const chunkResults = await Promise.all(
     chunks.map((chunk, i) =>
-      generateDeckInfoFromChunk(chunk, pageStyle, availableMediaFiles, userInstructions, i, chunks.length, onProgress)
+      generateDeckInfoFromChunk(chunk, pageStyle, availableMediaFiles, userInstructions, i, chunks.length, onProgress, cardStyle, cardSize)
     )
   );
 

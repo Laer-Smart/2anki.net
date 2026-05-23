@@ -5,6 +5,7 @@ import {
   rewriteAudioAnchors,
   normalizeTag,
   SYSTEM_PROMPT,
+  buildUserMessage,
 } from './ClaudeService';
 
 describe('looksLikeEmptyContentExplanation', () => {
@@ -269,5 +270,41 @@ describe('SYSTEM_PROMPT — Anki math conventions', () => {
 
   it('includes a chemistry example using \\ce{}', () => {
     expect(SYSTEM_PROMPT).toContain('\\ce{');
+  });
+});
+
+describe('buildUserMessage — card size suffix', () => {
+  const content = '<p>Test</p>';
+  const noMedia: string[] = [];
+
+  it('appends short size instruction when cardSize is short', () => {
+    const msg = buildUserMessage(content, noMedia, undefined, '', 'short');
+    expect(msg).toContain('1 fact per card');
+    expect(msg).toContain('80 characters');
+  });
+
+  it('appends medium size instruction when cardSize is medium', () => {
+    const msg = buildUserMessage(content, noMedia, undefined, '', 'medium');
+    expect(msg).toContain('1-2 facts per card');
+    expect(msg).toContain('160 characters');
+  });
+
+  it('appends detailed size instruction when cardSize is detailed', () => {
+    const msg = buildUserMessage(content, noMedia, undefined, '', 'detailed');
+    expect(msg).toContain('3-4 facts per card');
+    expect(msg).toContain('320 characters');
+  });
+
+  it('omits size section when cardSize is undefined', () => {
+    const msg = buildUserMessage(content, noMedia, undefined, '', undefined);
+    expect(msg).not.toContain('Card size:');
+  });
+
+  it('includes size section after additional instructions', () => {
+    const msg = buildUserMessage(content, noMedia, 'Extra rule.', '', 'short');
+    const instrIdx = msg.indexOf('Additional instructions:');
+    const sizeIdx = msg.indexOf('Card size:');
+    expect(instrIdx).toBeGreaterThan(-1);
+    expect(sizeIdx).toBeGreaterThan(instrIdx);
   });
 });
