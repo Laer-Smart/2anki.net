@@ -1,7 +1,6 @@
 import express from "express";
 import multer from "multer";
 import RequireAuthentication from "./middleware/RequireAuthentication";
-import RequireAnkifyAccess from "./middleware/RequireAnkifyAccess";
 import ImageOcclusionController from "../controllers/ImageOcclusionController";
 import { IoDraftController } from "../controllers/IoDraftController";
 import { PhotoToFlashcardsController } from "../controllers/PhotoToFlashcardsController";
@@ -24,7 +23,10 @@ const ImageOcclusionRouter = () => {
   const dc = new IoDraftController(new IoDraftRepository(getDatabase()), new StorageHandler(), new NotionRepository(getDatabase()));
   const ptf = new PhotoToFlashcardsController(new PhotoToFlashcardsUseCase(new EventsRepository(getDatabase())));
   const autoSuggest = new AutoSuggestOcclusionsController(
-    new AutoSuggestOcclusionsUseCase(new AutoOcclusionService())
+    new AutoSuggestOcclusionsUseCase(
+      new AutoOcclusionService(),
+      new EventsRepository(getDatabase())
+    )
   );
 
   /**
@@ -289,7 +291,7 @@ const ImageOcclusionRouter = () => {
    *       413:
    *         description: Image too large
    */
-  router.post("/api/image-occlusion/auto-suggest", RequireAnkifyAccess, express.json({ limit: "20mb" }), (req,res)=>autoSuggest.suggest(req,res));
+  router.post("/api/image-occlusion/auto-suggest", RequireAuthentication, express.json({ limit: "20mb" }), (req,res)=>autoSuggest.suggest(req,res));
 
   return router;
 };

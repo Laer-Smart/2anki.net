@@ -288,9 +288,6 @@ function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
 
   const { data: userLocals } = useUserLocals();
   const queryClient = useQueryClient();
-  const autoSyncActive = userLocals?.autoSyncActive === true;
-  const successPromptShown = globalThis.document?.cookie?.includes('auto_sync_prompt_shown=true') === true;
-  const showAutoSyncPrompt = zoneState === 'success' && !autoSyncActive && !successPromptShown;
   const isAuthenticated = userLocals?.user?.id != null;
   const showTrialButton =
     isAuthenticated &&
@@ -718,12 +715,6 @@ function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
     );
   };
 
-  const handleSuccessPromptClick = () => {
-    const expires = new Date();
-    expires.setDate(expires.getDate() + 30);
-    globalThis.document.cookie = `auto_sync_prompt_shown=true; path=/; expires=${expires.toUTCString()}`;
-  };
-
   const renderMcqDrawer = () => (
     <div className={formStyles.mcqDrawer}>
       <p className={formStyles.mcqDrawerHeading}>Preview</p>
@@ -805,21 +796,7 @@ function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
           Didn't get the file? Download it here.
         </button>
       )}
-      {showAutoSyncPrompt && (
-        <p className={formStyles.autoSyncPrompt}>
-          Want this to update automatically?{' '}
-          <a
-            href="/pricing?ref=upload-success-prompt"
-            className={formStyles.autoSyncPromptLink}
-            onClick={handleSuccessPromptClick}
-          >
-            Try Auto Sync
-          </a>
-        </p>
-      )}
-      {!showAutoSyncPrompt && (
-        <UpsellCard surface="upload_success_upsell" />
-      )}
+      <UpsellCard surface="upload_success_upsell" />
       <button
         type="button"
         className={formStyles.actionButton}

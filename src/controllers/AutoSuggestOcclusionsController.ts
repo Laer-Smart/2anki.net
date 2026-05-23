@@ -41,7 +41,15 @@ export class AutoSuggestOcclusionsController {
 
     const width = typeof body.width === 'number' ? body.width : 512;
     const height = typeof body.height === 'number' ? body.height : 512;
-    const hasAccess = res.locals['patreon'] === true || res.locals['subscriber'] === true;
+    const isPaying =
+      res.locals['patreon'] === true || res.locals['subscriber'] === true;
+    const ownerRaw = res.locals['owner'];
+    const userId =
+      typeof ownerRaw === 'number'
+        ? ownerRaw
+        : typeof ownerRaw === 'string' && /^\d+$/.test(ownerRaw)
+          ? Number(ownerRaw)
+          : null;
 
     let result: Awaited<ReturnType<AutoSuggestOcclusionsUseCase['execute']>>;
     try {
@@ -50,12 +58,13 @@ export class AutoSuggestOcclusionsController {
         mediaType: body.mediaType,
         width,
         height,
-        hasAccess,
+        isPaying,
+        userId,
       });
     } catch (err) {
       const e = err as Error & { status?: number };
-      if (e.status === 403) {
-        res.status(403).json({ message: e.message });
+      if (e.status === 429) {
+        res.status(429).json({ message: e.message });
         return;
       }
       if (e.status === 413) {

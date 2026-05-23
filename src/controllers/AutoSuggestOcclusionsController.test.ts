@@ -58,8 +58,8 @@ describe('AutoSuggestOcclusionsController', () => {
     expect(res.json).toHaveBeenCalledWith({ rects });
   });
 
-  it('returns 403 when use case throws a 403 error', async () => {
-    const err = Object.assign(new Error('forbidden'), { status: 403 });
+  it('returns 429 when use case throws a quota-reached error', async () => {
+    const err = Object.assign(new Error('quota reached'), { status: 429 });
     const useCase = {
       execute: jest.fn().mockRejectedValue(err),
     } as unknown as jest.Mocked<AutoSuggestOcclusionsUseCase>;
@@ -68,7 +68,7 @@ describe('AutoSuggestOcclusionsController', () => {
 
     await controller.suggest(makeReq(VALID_BODY), res);
 
-    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.status).toHaveBeenCalledWith(429);
   });
 
   it('returns 413 when use case throws a 413 error', async () => {
