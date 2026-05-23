@@ -16,6 +16,8 @@ export default function getAcceptedContentTypes(): string {
     '.xlsx',
     '.doc',
     '.docx',
+    '.opml',
+    '.brainstorms.json',
   ];
   return acceptedTypes.join(',');
 }

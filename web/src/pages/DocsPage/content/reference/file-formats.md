@@ -18,6 +18,8 @@ This is the full list of inputs 2anki accepts. The hard limits live on [Limits a
 | **PDF** (`.pdf`) | Each page becomes an image. By default, page 1 is the front and page 2 is the back, page 3 the front of the next card, page 4 the back, and so on — useful for slide decks where each topic spans two slides. | 100 pages on free, no fixed cap on paid. | Turn on **Generate Flashcards with Claude AI** to have Claude read the PDF and write questions instead of pairing pages. Paid only. |
 | **PPT / PPTX** (`.pptx`, `.ppt`) | Converted to PDF via LibreOffice, then handled like a PDF (pair-of-pages cards or AI-generated). | Same as PDF. | Same as PDF behaviour after conversion — see PDF row. |
 | **Word** (`.docx`, `.doc`) | Converted to PDF via LibreOffice, then handled like a PDF. | Same as PDF. | Best with Claude AI for prose-heavy documents — the page-pair path works for documents you've structured like slides. |
+| **OPML** (`.opml`) | Each parent→child outline relationship becomes one Basic card: the parent text is the front, the child text is the back. | Same size limit as any upload. | Export from OmniOutliner, iThoughtsX, or any outliner that supports OPML. |
+| **Brainstorms JSON** (`.brainstorms.json`) | Same parent→child edge rule as OPML — each edge becomes one Basic card. | Same size limit as any upload. | Export from Brainstorms (iOS/macOS) using the JSON export option. The file must end in `.brainstorms.json`. |
 
 ## HTML and Markdown
 

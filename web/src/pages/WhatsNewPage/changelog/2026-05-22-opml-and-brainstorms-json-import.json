@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-22-opml-and-brainstorms-json-import",
+  "date": "2026-05-22",
+  "type": "feature",
+  "title": "Upload .opml and .brainstorms.json files to turn outlines into Anki decks"
+}
