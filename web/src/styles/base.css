@@ -40,8 +40,8 @@
     sans-serif;
 
   /* Type scale */
-  --text-xs: 0.9375rem;
-  --text-sm: 1.125rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
   --text-base: 1.125rem;
   --text-lg: 1.25rem;
   --text-xl: 1.375rem;
@@ -319,7 +319,7 @@ textarea,
 select {
   width: 100%;
   padding: 0.625rem 0.875rem;
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   font-family: var(--font-sans);
   color: var(--color-text-primary);
   background: var(--color-bg-primary);
