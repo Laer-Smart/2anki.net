@@ -3,6 +3,15 @@ import type express from 'express';
 import { PhotoToFlashcardsController } from './PhotoToFlashcardsController';
 import type { PhotoToFlashcardsUseCase } from '../usecases/imageOcclusion/PhotoToFlashcardsUseCase';
 
+jest.mock('node:fs', () => {
+  const actual = jest.requireActual('node:fs');
+  return {
+    ...actual,
+    createReadStream: jest.fn(),
+    unlink: jest.fn((_p, cb) => cb?.()),
+  };
+});
+
 function makeRes(): express.Response {
   const res = {
     locals: { owner: '42' },
@@ -103,5 +112,51 @@ describe('PhotoToFlashcardsController mode forwarding', () => {
     expect(useCase.execute).toHaveBeenCalledWith(
       expect.objectContaining({ mode: 'generative' })
     );
+  });
+});
+
+describe('PhotoToFlashcardsController MCQ headers', () => {
+  const baseBody = {
+    imageBase64: 'abc',
+    mediaType: 'image/jpeg',
+    deckName: 'X',
+    width: 100,
+    height: 100,
+  };
+
+  function makeStreamMock() {
+    const handlers: Record<string, () => void> = {};
+    return {
+      on: jest.fn((event: string, cb: () => void) => {
+        handlers[event] = cb;
+        return this;
+      }),
+      pipe: jest.fn(),
+      handlers,
+    };
+  }
+
+  it('writes X-MCQ-Count and X-MCQ-Skipped-Count headers from the use case result', async () => {
+    const fs = jest.requireMock('node:fs') as { createReadStream: jest.Mock };
+    fs.createReadStream.mockReturnValue(makeStreamMock());
+
+    const useCase = {
+      execute: jest.fn().mockResolvedValue({
+        apkgPath: '/tmp/out.apkg',
+        cardCount: 5,
+        estimatedCostUsd: 0.001,
+        tileCount: 1,
+        mcqCount: 3,
+        mcqSkippedCount: 1,
+      }),
+    } as unknown as PhotoToFlashcardsUseCase;
+    const controller = new PhotoToFlashcardsController(useCase);
+    const res = makeRes();
+
+    await controller.create(makeReq(baseBody), res);
+
+    expect(res.setHeader).toHaveBeenCalledWith('X-MCQ-Count', '3');
+    expect(res.setHeader).toHaveBeenCalledWith('X-MCQ-Skipped-Count', '1');
+    expect(res.setHeader).toHaveBeenCalledWith('X-Card-Count', '5');
   });
 });

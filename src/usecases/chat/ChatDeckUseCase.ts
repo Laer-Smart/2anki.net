@@ -7,11 +7,18 @@ import CustomExporter from '../../lib/parser/exporters/CustomExporter';
 export interface ChatDeckCard {
   front: string;
   back: string;
+  options?: string[];
+  correctIndex?: number;
+  rationale?: string;
 }
 
 export interface ChatDeckInput {
   cards: ChatDeckCard[];
   deckName: string;
+}
+
+function isMcqCard(card: ChatDeckCard): boolean {
+  return Array.isArray(card.options) && typeof card.correctIndex === 'number';
 }
 
 function randomDeckId(): number {
@@ -44,7 +51,7 @@ export class ChatDeckUseCase {
     fs.mkdirSync(workspaceDir, { recursive: true });
 
     try {
-      const normalizedCards = cards.map(transformBlankToCloze);
+      const normalizedCards = cards.map((c) => (isMcqCard(c) ? c : transformBlankToCloze(c)));
       const deckInfo = [
         {
           name: deckName,
@@ -58,16 +65,31 @@ export class ChatDeckUseCase {
             inputModelName: 'n2a-input',
             useNotionId: false,
           },
-          cards: normalizedCards.map((c, index) => ({
-            name: c.front,
-            back: c.back,
-            tags: [],
-            cloze: looksLikeCloze(c.front),
-            number: index,
-            enableInput: false,
-            answer: '',
-            media: [],
-          })),
+          cards: normalizedCards.map((c, index) => {
+            const base = {
+              name: c.front,
+              tags: [],
+              number: index,
+              enableInput: false,
+              answer: '',
+              media: [],
+            };
+            if (isMcqCard(c)) {
+              return {
+                ...base,
+                back: c.rationale ?? '',
+                cloze: false,
+                mcq: true,
+                options: c.options,
+                correctIndices: [c.correctIndex],
+              };
+            }
+            return {
+              ...base,
+              back: c.back,
+              cloze: looksLikeCloze(c.front),
+            };
+          }),
         },
       ];
 

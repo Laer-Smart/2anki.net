@@ -10,6 +10,13 @@ import { countVisionTokens, VISION_TOKEN_CEILING, VisionMediaType } from '../../
 import { CREATE_DECK_DIR, CREATE_DECK_SCRIPT_PATH, TEMPLATE_DIR } from '../../lib/constants';
 import { track } from '../../services/events/track';
 import type { IEventsRepository } from '../../data_layer/EventsRepository';
+import { isAiMcqEnabled } from '../../lib/ai/aiMcqFlag';
+
+const REQUIRED_MCQ_OPTION_COUNT = 4;
+
+const MCQ_PROMPT_RULES = `- If the page shows a multiple-choice question with four options and a single correct answer, use: {"q":"question stem","options":["A","B","C","D"],"correct_index":0,"rationale":"why the correct option is right (optional)"}
+- correct_index is the 0-based position of the right option; the options array must have exactly four entries
+- If the source is not multiple choice, use the plain {"q":"...","a":"..."} shape instead`;
 
 export const FREE_PHOTO_QUOTA_PER_MONTH = 5;
 const VISION_PHOTO_EVENT = 'vision_photo_converted';
@@ -41,6 +48,8 @@ export interface PhotoToFlashcardsResult {
   cardCount: number;
   estimatedCostUsd: number;
   tileCount: number;
+  mcqCount: number;
+  mcqSkippedCount: number;
 }
 
 function ownerToUserId(owner: string): number | null {
@@ -58,7 +67,11 @@ const DENSITY_RULE: Record<PhotoDensity, string> = {
   dense: 'Aim for 12 to 20 cards. Fan out every distinct fact on the image.',
 };
 
-export function buildVisionPrompt(density: PhotoDensity = DEFAULT_PHOTO_DENSITY): string {
+export function buildVisionPrompt(
+  density: PhotoDensity = DEFAULT_PHOTO_DENSITY,
+  options: { mcqEnabled?: boolean } = {}
+): string {
+  const mcqLines = options.mcqEnabled ? `\n${MCQ_PROMPT_RULES}` : '';
   return `Extract atomic question-and-answer flashcard pairs from this image.
 
 Output ONLY a compact JSON array. Format (nothing else — no markdown, no explanation):
@@ -70,7 +83,7 @@ Rules:
 - Preserve important formatting but keep cards concise
 - ${DENSITY_RULE[density]}
 - Use the image content as the deck name if no other name is obvious
-- Add 1–3 topic tags per card in the "tags" field: short, lowercase, snake_case, drawn from the actual content (e.g. "enzymes", "michaelis_menten") — not broad labels like "biology" or "chapter_4"
+- Add 1–3 topic tags per card in the "tags" field: short, lowercase, snake_case, drawn from the actual content (e.g. "enzymes", "michaelis_menten") — not broad labels like "biology" or "chapter_4"${mcqLines}
 
 ${ANKI_MATH_FRAGMENT}`;
 }
@@ -110,10 +123,15 @@ Rules:
 - If no distinct headings are visible, treat the full image as one section`;
 }
 
-function resolvePrompt(mode: PhotoMode, cardStyle: PhotoCardStyle, density: PhotoDensity): string {
+function resolvePrompt(
+  mode: PhotoMode,
+  cardStyle: PhotoCardStyle,
+  density: PhotoDensity,
+  mcqEnabled: boolean
+): string {
   if (mode === 'verbatim') return buildVerbatimPrompt();
   if (cardStyle === 'heading-driven') return buildHeadingDrivenVisionPrompt();
-  return buildVisionPrompt(density);
+  return buildVisionPrompt(density, { mcqEnabled });
 }
 
 const INPUT_COST_PER_MILLION = 3;
@@ -218,11 +236,38 @@ interface CompactCard {
   a: string;
   tags?: string[];
   cloze?: boolean;
+  options?: unknown;
+  correct_index?: unknown;
+  rationale?: unknown;
 }
 
 interface CompactDeck {
   deck: string;
   cards: CompactCard[];
+}
+
+interface ValidMcqShape {
+  options: string[];
+  correctIndex: number;
+  rationale: string;
+}
+
+function asValidMcq(card: CompactCard): ValidMcqShape | null {
+  if (!Array.isArray(card.options)) return null;
+  if (card.options.length !== REQUIRED_MCQ_OPTION_COUNT) return null;
+  if (!card.options.every((opt): opt is string => typeof opt === 'string' && opt.trim().length > 0)) {
+    return null;
+  }
+  if (typeof card.correct_index !== 'number' || !Number.isInteger(card.correct_index)) {
+    return null;
+  }
+  if (card.correct_index < 0 || card.correct_index >= card.options.length) return null;
+  const rationale = typeof card.rationale === 'string' ? card.rationale : '';
+  return { options: card.options, correctIndex: card.correct_index, rationale };
+}
+
+function looksLikeMcqAttempt(card: CompactCard): boolean {
+  return card.options !== undefined || card.correct_index !== undefined;
 }
 
 function parseClaudeVisionResponse(raw: string): CompactDeck[] {
@@ -244,47 +289,84 @@ function mediaTypeToExt(mediaType: VisionMediaType): string {
   return extMap[mediaType];
 }
 
+interface BuildDeckInfoResult {
+  deckInfo: Record<string, unknown>;
+  mcqCount: number;
+  mcqSkippedCount: number;
+}
+
 function buildDeckInfo(
   deckName: string,
   decks: CompactDeck[],
-  sourceFilename: string | null
-): Record<string, unknown> {
+  sourceFilename: string | null,
+  mcqEnabled: boolean
+): BuildDeckInfoResult {
+  let mcqCount = 0;
+  let mcqSkippedCount = 0;
+
   const allCards = decks.flatMap((d) =>
     d.cards.map((c, i) => {
-      const back =
-        sourceFilename == null
-          ? c.a
-          : `${c.a}<br><img src="${sourceFilename}" style="max-width:100%;height:auto;">`;
-      return {
-        name: c.q,
-        back,
-        tags: (c.tags ?? []).map(normalizeTag).filter((t) => t.length > 0),
-        cloze: c.cloze ?? false,
+      const sourceImageTag =
+        sourceFilename == null ? '' : `<br><img src="${sourceFilename}" style="max-width:100%;height:auto;">`;
+      const tags = (c.tags ?? []).map(normalizeTag).filter((t) => t.length > 0);
+      const baseFields = {
+        tags,
         number: i,
         enableInput: false,
         answer: '',
         media: sourceFilename == null ? [] : [sourceFilename],
       };
+
+      if (mcqEnabled) {
+        const validMcq = asValidMcq(c);
+        if (validMcq != null) {
+          mcqCount += 1;
+          const rationaleBack = validMcq.rationale.length > 0 ? validMcq.rationale : c.a;
+          return {
+            ...baseFields,
+            name: c.q,
+            back: `${rationaleBack}${sourceImageTag}`,
+            cloze: false,
+            mcq: true,
+            options: validMcq.options,
+            correctIndices: [validMcq.correctIndex],
+          };
+        }
+        if (looksLikeMcqAttempt(c)) {
+          mcqSkippedCount += 1;
+        }
+      }
+
+      return {
+        ...baseFields,
+        name: c.q,
+        back: `${c.a}${sourceImageTag}`,
+        cloze: c.cloze ?? false,
+      };
     })
   );
 
   return {
-    name: deckName,
-    id: Math.abs(
-      Array.from(deckName).reduce(
-        (h, ch) => Math.trunc(Math.imul(31, h) + (ch.codePointAt(0) ?? 0)),
-        0
-      )
-    ),
-    cards: allCards,
-    style: null,
-    settings: {
-      template: 'specialstyle',
-      clozeModelName: 'n2a-cloze',
-      basicModelName: 'n2a-basic',
-      inputModelName: 'n2a-input',
-      useNotionId: false,
+    deckInfo: {
+      name: deckName,
+      id: Math.abs(
+        Array.from(deckName).reduce(
+          (h, ch) => Math.trunc(Math.imul(31, h) + (ch.codePointAt(0) ?? 0)),
+          0
+        )
+      ),
+      cards: allCards,
+      style: null,
+      settings: {
+        template: 'specialstyle',
+        clozeModelName: 'n2a-cloze',
+        basicModelName: 'n2a-basic',
+        inputModelName: 'n2a-input',
+        useNotionId: false,
+      },
     },
+    mcqCount,
+    mcqSkippedCount,
   };
 }
 
@@ -319,6 +401,8 @@ export class PhotoToFlashcardsUseCase {
     }
 
     const client = getAnthropicClient();
+    const mcqEnabled = isAiMcqEnabled({ isPaying: input.isPaying });
+    const mode = input.mode ?? DEFAULT_PHOTO_MODE;
 
     const response = await client.messages.create({
       model: 'claude-sonnet-4-5',
@@ -338,9 +422,10 @@ export class PhotoToFlashcardsUseCase {
             {
               type: 'text',
               text: resolvePrompt(
-                input.mode ?? DEFAULT_PHOTO_MODE,
+                mode,
                 input.cardStyle ?? DEFAULT_PHOTO_CARD_STYLE,
-                input.density ?? DEFAULT_PHOTO_DENSITY
+                input.density ?? DEFAULT_PHOTO_DENSITY,
+                mcqEnabled
               ),
             },
           ],
@@ -371,7 +456,12 @@ export class PhotoToFlashcardsUseCase {
     const workspaceDir = path.join(os.tmpdir(), `vision-${randomUUID()}`);
     fs.mkdirSync(workspaceDir, { recursive: true });
 
-    const deckInfo = buildDeckInfo(deckName, decks, sourceFilename);
+    const { deckInfo, mcqCount, mcqSkippedCount } = buildDeckInfo(
+      deckName,
+      decks,
+      sourceFilename,
+      mcqEnabled
+    );
 
     let apkgPath: string;
     try {
@@ -400,6 +490,9 @@ export class PhotoToFlashcardsUseCase {
       card_count: cardCount,
       input_tokens: inputTokens,
       output_tokens: outputTokens,
+      mcq_count: mcqCount,
+      mcq_skipped_count: mcqSkippedCount,
+      source: 'photo',
     }));
 
     track(VISION_PHOTO_EVENT, {
@@ -408,11 +501,18 @@ export class PhotoToFlashcardsUseCase {
       props: {
         card_count: cardCount,
         tile_count: tiles,
-        source_mode: input.mode ?? DEFAULT_PHOTO_MODE,
+        source_mode: mode,
         card_style: input.cardStyle ?? DEFAULT_PHOTO_CARD_STYLE,
       },
     });
 
-    return { apkgPath, cardCount, estimatedCostUsd, tileCount: tiles };
+    return {
+      apkgPath,
+      cardCount,
+      estimatedCostUsd,
+      tileCount: tiles,
+      mcqCount,
+      mcqSkippedCount,
+    };
   }
 }

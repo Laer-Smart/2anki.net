@@ -132,6 +132,8 @@ export class PhotoToFlashcardsController {
     res.setHeader('Content-Disposition', buildContentDisposition(path.basename(result.apkgPath)));
     res.setHeader('Content-Type', 'application/octet-stream');
     res.setHeader('X-Card-Count', String(result.cardCount));
+    res.setHeader('X-MCQ-Count', String(result.mcqCount));
+    res.setHeader('X-MCQ-Skipped-Count', String(result.mcqSkippedCount));
 
     const stream = fs.createReadStream(result.apkgPath);
     stream.on('end', () => fs.unlink(result.apkgPath, () => undefined));

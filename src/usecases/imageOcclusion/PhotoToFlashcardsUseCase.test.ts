@@ -599,6 +599,168 @@ describe('PhotoToFlashcardsUseCase', () => {
     });
   });
 
+  describe('MCQ emission', () => {
+    const MCQ_RESPONSE = JSON.stringify([
+      {
+        deck: 'Quiz',
+        cards: [
+          {
+            q: 'Which enzyme breaks down starch?',
+            a: 'Amylase',
+            options: ['Lipase', 'Amylase', 'Protease', 'Lactase'],
+            correct_index: 1,
+            rationale: 'Amylase hydrolyses starch into maltose.',
+          },
+          { q: 'Plain question?', a: 'Plain answer' },
+        ],
+      },
+    ]);
+
+    const MALFORMED_MCQ_RESPONSE = JSON.stringify([
+      {
+        deck: 'Quiz',
+        cards: [
+          {
+            q: 'Three options?',
+            a: 'Wrong',
+            options: ['A', 'B', 'C'],
+            correct_index: 0,
+          },
+          {
+            q: 'Missing correct?',
+            a: 'Wrong',
+            options: ['A', 'B', 'C', 'D'],
+          },
+          {
+            q: 'Out of range?',
+            a: 'Wrong',
+            options: ['A', 'B', 'C', 'D'],
+            correct_index: 9,
+          },
+          {
+            q: 'Good one?',
+            a: 'Right',
+            options: ['A', 'B', 'C', 'D'],
+            correct_index: 2,
+            rationale: 'Because.',
+          },
+        ],
+      },
+    ]);
+
+    const ORIGINAL_FLAG = process.env.AI_MCQ_ENABLED;
+
+    afterEach(() => {
+      if (ORIGINAL_FLAG === undefined) {
+        delete process.env.AI_MCQ_ENABLED;
+      } else {
+        process.env.AI_MCQ_ENABLED = ORIGINAL_FLAG;
+      }
+    });
+
+    function readDeckPayload(): Array<{
+      cards: Array<{
+        mcq?: boolean;
+        options?: string[];
+        correctIndices?: number[];
+        back?: string;
+        name?: string;
+      }>;
+    }> {
+      const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+        ([p]) => typeof p === 'string' && (p as string).endsWith('deck_info.json')
+      );
+      return JSON.parse(writeCall![1] as string);
+    }
+
+    it('emits mcq:true with options and correctIndices when flag is on and user pays', async () => {
+      process.env.AI_MCQ_ENABLED = 'true';
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [{ type: 'text', text: MCQ_RESPONSE }],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      const payload = readDeckPayload();
+      const mcqCard = payload[0].cards[0];
+      expect(mcqCard.mcq).toBe(true);
+      expect(mcqCard.options).toEqual(['Lipase', 'Amylase', 'Protease', 'Lactase']);
+      expect(mcqCard.correctIndices).toEqual([1]);
+      expect(mcqCard.back).toContain('Amylase hydrolyses');
+      expect(payload[0].cards[1].mcq).toBeFalsy();
+      expect(result.mcqCount).toBe(1);
+      expect(result.mcqSkippedCount).toBe(0);
+    });
+
+    it('drops malformed MCQs to basic and increments mcqSkippedCount', async () => {
+      process.env.AI_MCQ_ENABLED = 'true';
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [{ type: 'text', text: MALFORMED_MCQ_RESPONSE }],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      const payload = readDeckPayload();
+      expect(payload[0].cards).toHaveLength(4);
+      expect(payload[0].cards[0].mcq).toBeFalsy();
+      expect(payload[0].cards[1].mcq).toBeFalsy();
+      expect(payload[0].cards[2].mcq).toBeFalsy();
+      expect(payload[0].cards[3].mcq).toBe(true);
+      expect(result.mcqCount).toBe(1);
+      expect(result.mcqSkippedCount).toBe(3);
+    });
+
+    it('does not emit MCQ when the flag is off, even for paying users', async () => {
+      delete process.env.AI_MCQ_ENABLED;
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [{ type: 'text', text: MCQ_RESPONSE }],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      const payload = readDeckPayload();
+      expect(payload[0].cards[0].mcq).toBeFalsy();
+      expect(result.mcqCount).toBe(0);
+      expect(result.mcqSkippedCount).toBe(0);
+    });
+
+    it('does not emit MCQ for free users, even when the flag is on', async () => {
+      process.env.AI_MCQ_ENABLED = 'true';
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [{ type: 'text', text: MCQ_RESPONSE }],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      const result = await useCase.execute({ ...BASE_INPUT, isPaying: false });
+      const payload = readDeckPayload();
+      expect(payload[0].cards[0].mcq).toBeFalsy();
+      expect(result.mcqCount).toBe(0);
+    });
+
+    it('adds MCQ instructions to the generative prompt when emission is enabled', async () => {
+      process.env.AI_MCQ_ENABLED = 'true';
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      const [callArgs] = mockMessageCreate.mock.calls[0];
+      const text = (
+        callArgs.messages[0].content as Array<{ type: string; text?: string }>
+      ).find((b) => b.type === 'text')?.text;
+      expect(text).toMatch(/options/i);
+      expect(text).toMatch(/correct_index/);
+    });
+
+    it('omits MCQ instructions from the generative prompt when the gate is closed', async () => {
+      delete process.env.AI_MCQ_ENABLED;
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      const [callArgs] = mockMessageCreate.mock.calls[0];
+      const text = (
+        callArgs.messages[0].content as Array<{ type: string; text?: string }>
+      ).find((b) => b.type === 'text')?.text;
+      expect(text).not.toMatch(/correct_index/);
+    });
+  });
+
   describe('deck builder invocation', () => {
     it('spawns create_deck.py with deck_info.json and a trailing-slashed template dir', async () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
