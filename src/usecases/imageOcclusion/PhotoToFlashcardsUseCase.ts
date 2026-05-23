@@ -16,9 +16,11 @@ const VISION_PHOTO_EVENT = 'vision_photo_converted';
 
 export type PhotoDensity = 'sparse' | 'balanced' | 'dense';
 export type PhotoMode = 'generative' | 'verbatim';
+export type PhotoCardStyle = 'generative' | 'heading-driven';
 
 export const DEFAULT_PHOTO_DENSITY: PhotoDensity = 'balanced';
 export const DEFAULT_PHOTO_MODE: PhotoMode = 'generative';
+export const DEFAULT_PHOTO_CARD_STYLE: PhotoCardStyle = 'generative';
 
 export interface PhotoToFlashcardsInput {
   imageBase64: string;
@@ -31,6 +33,7 @@ export interface PhotoToFlashcardsInput {
   includeSourceImage?: boolean;
   density?: PhotoDensity;
   mode?: PhotoMode;
+  cardStyle?: PhotoCardStyle;
 }
 
 export interface PhotoToFlashcardsResult {
@@ -88,6 +91,29 @@ Rules:
 - Preserve hierarchy: if the source has nested bullets, indented items, or nesting markers (→, >, -, •, *), emit the answer as nested HTML lists using <ul><li>…<ul><li>…</li></ul></li></ul>. Sibling items at the same level are separate <li> elements. Do not flatten a multi-level structure into a single line with > separators. If the source has no visible hierarchy (a single line or a flat list with no nesting), emit plain text — do not introduce spurious structure.
 
 ${ANKI_MATH_FRAGMENT}`;
+}
+
+export function buildHeadingDrivenVisionPrompt(): string {
+  return `Extract flashcard pairs from this image, grouping by slide title or section heading.
+
+Output ONLY a compact JSON array. Format (nothing else — no markdown, no explanation):
+[{"deck":"Deck Name","cards":[{"q":"front text","a":"back text","tags":["topic_tag"]}]}]
+
+Rules:
+- Detect slide titles, section headings, or chapter titles visible on the image
+- For each heading, produce 2–6 cards covering the key facts under that heading
+- Each card tests one atomic fact
+- Q is the question or term, A is the answer or definition
+- Use the detected heading as a tag on each card so slides stay traceable (short, lowercase, snake_case)
+- Add 1–3 content tags per card in addition to the heading tag
+- Use the overall topic as the deck name
+- If no distinct headings are visible, treat the full image as one section`;
+}
+
+function resolvePrompt(mode: PhotoMode, cardStyle: PhotoCardStyle, density: PhotoDensity): string {
+  if (mode === 'verbatim') return buildVerbatimPrompt();
+  if (cardStyle === 'heading-driven') return buildHeadingDrivenVisionPrompt();
+  return buildVisionPrompt(density);
 }
 
 const INPUT_COST_PER_MILLION = 3;
@@ -311,10 +337,11 @@ export class PhotoToFlashcardsUseCase {
             },
             {
               type: 'text',
-              text:
-                (input.mode ?? DEFAULT_PHOTO_MODE) === 'verbatim'
-                  ? buildVerbatimPrompt()
-                  : buildVisionPrompt(input.density ?? DEFAULT_PHOTO_DENSITY),
+              text: resolvePrompt(
+                input.mode ?? DEFAULT_PHOTO_MODE,
+                input.cardStyle ?? DEFAULT_PHOTO_CARD_STYLE,
+                input.density ?? DEFAULT_PHOTO_DENSITY
+              ),
             },
           ],
         },
@@ -382,6 +409,7 @@ export class PhotoToFlashcardsUseCase {
         card_count: cardCount,
         tile_count: tiles,
         source_mode: input.mode ?? DEFAULT_PHOTO_MODE,
+        card_style: input.cardStyle ?? DEFAULT_PHOTO_CARD_STYLE,
       },
     });
 

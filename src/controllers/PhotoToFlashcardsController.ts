@@ -6,8 +6,10 @@ import {
   PhotoToFlashcardsUseCase,
   DEFAULT_PHOTO_DENSITY,
   DEFAULT_PHOTO_MODE,
+  DEFAULT_PHOTO_CARD_STYLE,
   type PhotoDensity,
   type PhotoMode,
+  type PhotoCardStyle,
 } from '../usecases/imageOcclusion/PhotoToFlashcardsUseCase';
 import type { VisionMediaType } from '../lib/claude/countVisionTokens';
 import { buildContentDisposition } from '../lib/buildContentDisposition';
@@ -16,6 +18,7 @@ import { isPaying } from '../lib/isPaying';
 const ALLOWED_MEDIA_TYPES: VisionMediaType[] = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const ALLOWED_DENSITIES: PhotoDensity[] = ['sparse', 'balanced', 'dense'];
 const ALLOWED_MODES: PhotoMode[] = ['generative', 'verbatim'];
+const ALLOWED_CARD_STYLES: PhotoCardStyle[] = ['generative', 'heading-driven'];
 
 interface RawPhotoBody {
   imageBase64?: unknown;
@@ -26,6 +29,7 @@ interface RawPhotoBody {
   includeSourceImage?: unknown;
   density?: unknown;
   mode?: unknown;
+  cardStyle?: unknown;
 }
 
 function isAllowedMediaType(value: unknown): value is VisionMediaType {
@@ -42,6 +46,12 @@ function parseMode(value: unknown): PhotoMode {
   return typeof value === 'string' && (ALLOWED_MODES as string[]).includes(value)
     ? (value as PhotoMode)
     : DEFAULT_PHOTO_MODE;
+}
+
+function parseCardStyle(value: unknown): PhotoCardStyle {
+  return typeof value === 'string' && (ALLOWED_CARD_STYLES as string[]).includes(value)
+    ? (value as PhotoCardStyle)
+    : DEFAULT_PHOTO_CARD_STYLE;
 }
 
 export class PhotoToFlashcardsController {
@@ -78,6 +88,7 @@ export class PhotoToFlashcardsController {
       typeof body.includeSourceImage === 'boolean' ? body.includeSourceImage : true;
 
     const mode = parseMode(body.mode);
+    const cardStyle = parseCardStyle(body.cardStyle);
 
     let result: Awaited<ReturnType<PhotoToFlashcardsUseCase['execute']>>;
     try {
@@ -91,6 +102,7 @@ export class PhotoToFlashcardsController {
         includeSourceImage,
         density: parseDensity(body.density),
         mode,
+        cardStyle,
       });
     } catch (err) {
       const e = err as Error & {

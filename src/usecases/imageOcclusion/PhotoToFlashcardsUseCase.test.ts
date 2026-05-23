@@ -3,6 +3,7 @@ import {
   FREE_PHOTO_QUOTA_PER_MONTH,
   buildVisionPrompt,
   buildVerbatimPrompt,
+  buildHeadingDrivenVisionPrompt,
 } from './PhotoToFlashcardsUseCase';
 import type { IEventsRepository } from '../../data_layer/EventsRepository';
 
@@ -528,6 +529,73 @@ describe('PhotoToFlashcardsUseCase', () => {
         expect(text).toContain('<li>');
         expect(text).toContain('hierarchy');
       });
+    });
+  });
+
+  describe('heading-driven card style', () => {
+    it('buildHeadingDrivenVisionPrompt contains slide-title detection instruction', () => {
+      const prompt = buildHeadingDrivenVisionPrompt();
+      expect(prompt).toMatch(/slide|heading|title/i);
+    });
+
+    it('buildHeadingDrivenVisionPrompt is distinct from buildVisionPrompt', () => {
+      expect(buildHeadingDrivenVisionPrompt()).not.toEqual(buildVisionPrompt('balanced'));
+    });
+
+    it('buildHeadingDrivenVisionPrompt is distinct from buildVerbatimPrompt', () => {
+      expect(buildHeadingDrivenVisionPrompt()).not.toEqual(buildVerbatimPrompt());
+    });
+
+    it('sends the heading-driven prompt to Claude when cardStyle is heading-driven', async () => {
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true, cardStyle: 'heading-driven' });
+      const [callArgs] = mockMessageCreate.mock.calls[0];
+      const text = (
+        callArgs.messages[0].content as Array<{ type: string; text?: string }>
+      ).find((b) => b.type === 'text')?.text;
+      expect(text).toMatch(/slide|heading|title/i);
+      expect(text).not.toContain('6 to 10 cards');
+      expect(text).not.toContain('exactly as written');
+    });
+
+    it('sends the generative prompt (not heading-driven) when cardStyle is absent', async () => {
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      const [callArgs] = mockMessageCreate.mock.calls[0];
+      const text = (
+        callArgs.messages[0].content as Array<{ type: string; text?: string }>
+      ).find((b) => b.type === 'text')?.text;
+      expect(text).toContain('6 to 10 cards');
+    });
+
+    it('tracks card_style: heading-driven in the analytics event', async () => {
+      const events = makeEventsStub(0);
+      const useCase = new PhotoToFlashcardsUseCase(events);
+      await useCase.execute({ ...BASE_INPUT, isPaying: false, cardStyle: 'heading-driven' });
+      const { track } = jest.requireMock(
+        '../../services/events/track'
+      ) as { track: jest.Mock };
+      expect(track).toHaveBeenCalledWith(
+        'vision_photo_converted',
+        expect.objectContaining({
+          props: expect.objectContaining({ card_style: 'heading-driven' }),
+        })
+      );
+    });
+
+    it('tracks card_style: generative when cardStyle is absent', async () => {
+      const events = makeEventsStub(0);
+      const useCase = new PhotoToFlashcardsUseCase(events);
+      await useCase.execute({ ...BASE_INPUT, isPaying: false });
+      const { track } = jest.requireMock(
+        '../../services/events/track'
+      ) as { track: jest.Mock };
+      expect(track).toHaveBeenCalledWith(
+        'vision_photo_converted',
+        expect.objectContaining({
+          props: expect.objectContaining({ card_style: 'generative' }),
+        })
+      );
     });
   });
 
