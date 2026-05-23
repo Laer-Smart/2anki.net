@@ -18,8 +18,6 @@ function defaultProps() {
     zoom: 1,
     onZoomChange: vi.fn(),
     onFitZoom: vi.fn(),
-    suggestionCount: 0,
-    onClearSuggestions: vi.fn(),
   };
 }
 
@@ -114,22 +112,5 @@ describe('CanvasToolbar', () => {
     fireEvent.click(screen.getByTitle('Zoom level'));
     fireEvent.click(screen.getByText('Fit'));
     expect(props.onFitZoom).toHaveBeenCalled();
-  });
-
-  it('does not show Clear suggestions when suggestionCount is 0', () => {
-    render(<CanvasToolbar {...defaultProps()} suggestionCount={0} />);
-    expect(screen.queryByTitle('Clear all suggested rects')).toBeNull();
-  });
-
-  it('shows Clear suggestions button when suggestionCount > 0', () => {
-    render(<CanvasToolbar {...defaultProps()} suggestionCount={3} />);
-    expect(screen.getByTitle('Clear all suggested rects')).toBeInTheDocument();
-  });
-
-  it('calls onClearSuggestions when Clear suggestions is clicked', () => {
-    const props = defaultProps();
-    render(<CanvasToolbar {...props} suggestionCount={5} />);
-    fireEvent.click(screen.getByTitle('Clear all suggested rects'));
-    expect(props.onClearSuggestions).toHaveBeenCalled();
   });
 });

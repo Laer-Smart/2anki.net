@@ -8,10 +8,6 @@ import { ActiveTool, CanvasToolbar } from './CanvasToolbar';
 interface Props {
   entry: ImageEntry;
   onRectsChange: (rects: OcclusionRect[]) => void;
-  suggestionCount?: number;
-  onAutoSuggest?: () => void;
-  canAutoSuggest?: boolean;
-  isAutoSuggesting?: boolean;
 }
 
 interface DraftRect {
@@ -102,10 +98,6 @@ function duplicateRects(rects: OcclusionRect[]): OcclusionRect[] {
 export function OcclusionCanvas({
   entry,
   onRectsChange,
-  suggestionCount,
-  onAutoSuggest,
-  canAutoSuggest,
-  isAutoSuggesting,
 }: Readonly<Props>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -490,24 +482,7 @@ export function OcclusionCanvas({
       }
 
       if (drag) {
-        const { x, y } = getSvgPt(e);
-        const movedPx = Math.hypot(x - drag.startPx, y - drag.startPy);
-        const isTap = movedPx < 5;
-        const promoted = entry.rects.map((r) => {
-          const inDrag = drag.rectIds.includes(r.id);
-          if (
-            r.source === 'auto' &&
-            inDrag &&
-            (isTap || drag.type === 'resize')
-          ) {
-            return { ...r, source: 'manual' as const };
-          }
-          if (r.source === 'auto' && inDrag && drag.type === 'move' && !isTap) {
-            return { ...r, source: 'manual' as const };
-          }
-          return r;
-        });
-        pushAndNotify(promoted);
+        pushAndNotify(entry.rects);
         setDrag(null);
         return;
       }
@@ -637,17 +612,6 @@ export function OcclusionCanvas({
     setSelectedIds(new Set(duped.map((r) => r.id)));
   }, [selectedIds, entry.rects, pushAndNotify]);
 
-  const handleClearSuggestions = useCallback(() => {
-    const next = entry.rects.filter((r) => r.source !== 'auto');
-    pushAndNotify(next);
-    setSelectedIds((prev) => {
-      const autoIds = new Set(
-        entry.rects.filter((r) => r.source === 'auto').map((r) => r.id)
-      );
-      return new Set(Array.from(prev).filter((id) => !autoIds.has(id)));
-    });
-  }, [entry.rects, pushAndNotify]);
-
   const handleDelete = useCallback(() => {
     if (selectedIds.size === 0) return;
     const next = entry.rects.filter((r) => !selectedIds.has(r.id));
@@ -729,14 +693,6 @@ export function OcclusionCanvas({
         zoom={zoom}
         onZoomChange={setZoom}
         onFitZoom={handleFitZoom}
-        suggestionCount={
-          suggestionCount ??
-          entry.rects.filter((r) => r.source === 'auto').length
-        }
-        onClearSuggestions={handleClearSuggestions}
-        onAutoSuggest={onAutoSuggest}
-        canAutoSuggest={canAutoSuggest}
-        isAutoSuggesting={isAutoSuggesting}
       />
       <div
         ref={containerRef}
@@ -773,26 +729,10 @@ export function OcclusionCanvas({
             {entry.rects.map((rect, i) => {
               const isSelected = selectedIds.has(rect.id);
               const isGrouped = rect.groupId != null;
-              const isSuggested = rect.source === 'auto';
-              let fillOpacity: number;
-              if (masksHidden) {
-                fillOpacity = 0;
-              } else if (isSuggested) {
-                fillOpacity = 0.35;
-              } else {
-                fillOpacity = 0.7;
-              }
+              const fillOpacity = masksHidden ? 0 : 0.7;
               const strokeOpacity = masksHidden ? 0.3 : 1;
-              const strokeDasharray =
-                masksHidden || isSuggested ? '6 3' : undefined;
-              let fillColor: string;
-              if (isSelected) {
-                fillColor = '#ff8e8e';
-              } else if (isSuggested) {
-                fillColor = '#b3d9ff';
-              } else {
-                fillColor = '#ffeba2';
-              }
+              const strokeDasharray = masksHidden ? '6 3' : undefined;
+              const fillColor = isSelected ? '#ff8e8e' : '#ffeba2';
               const strokeWidth = isGrouped ? 3 : 2;
               const isDragging =
                 drag?.rectIds.includes(rect.id) && drag.type === 'move';
