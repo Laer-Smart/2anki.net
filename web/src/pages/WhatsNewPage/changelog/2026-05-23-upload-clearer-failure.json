@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-23-upload-clearer-failure",
+  "date": "2026-05-23",
+  "type": "fix",
+  "title": "Upload failures now report the actual problem when a temporary file goes missing"
+}
