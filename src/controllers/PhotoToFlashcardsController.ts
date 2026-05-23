@@ -2,12 +2,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import express from 'express';
 
-import { PhotoToFlashcardsUseCase } from '../usecases/imageOcclusion/PhotoToFlashcardsUseCase';
+import {
+  PhotoToFlashcardsUseCase,
+  DEFAULT_PHOTO_DENSITY,
+  type PhotoDensity,
+} from '../usecases/imageOcclusion/PhotoToFlashcardsUseCase';
 import type { VisionMediaType } from '../lib/claude/countVisionTokens';
 import { buildContentDisposition } from '../lib/buildContentDisposition';
 import { isPaying } from '../lib/isPaying';
 
 const ALLOWED_MEDIA_TYPES: VisionMediaType[] = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_DENSITIES: PhotoDensity[] = ['sparse', 'balanced', 'dense'];
 
 interface RawPhotoBody {
   imageBase64?: unknown;
@@ -16,10 +21,17 @@ interface RawPhotoBody {
   width?: unknown;
   height?: unknown;
   includeSourceImage?: unknown;
+  density?: unknown;
 }
 
 function isAllowedMediaType(value: unknown): value is VisionMediaType {
   return typeof value === 'string' && (ALLOWED_MEDIA_TYPES as string[]).includes(value);
+}
+
+function parseDensity(value: unknown): PhotoDensity {
+  return typeof value === 'string' && (ALLOWED_DENSITIES as string[]).includes(value)
+    ? (value as PhotoDensity)
+    : DEFAULT_PHOTO_DENSITY;
 }
 
 export class PhotoToFlashcardsController {
@@ -65,6 +77,7 @@ export class PhotoToFlashcardsController {
         isPaying: paying,
         imageDimensions: { width, height },
         includeSourceImage,
+        density: parseDensity(body.density),
       });
     } catch (err) {
       const e = err as Error & {

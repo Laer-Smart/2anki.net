@@ -1,7 +1,7 @@
 import {
   PhotoToFlashcardsUseCase,
   FREE_PHOTO_QUOTA_PER_MONTH,
-  VISION_PROMPT,
+  buildVisionPrompt,
 } from './PhotoToFlashcardsUseCase';
 import type { IEventsRepository } from '../../data_layer/EventsRepository';
 
@@ -337,9 +337,48 @@ describe('PhotoToFlashcardsUseCase', () => {
     });
   });
 
-  describe('VISION_PROMPT', () => {
+  describe('vision prompt', () => {
     it('requests 1–3 topic tags per card', () => {
-      expect(VISION_PROMPT).toMatch(/tag/i);
+      expect(buildVisionPrompt('balanced')).toMatch(/tag/i);
+    });
+  });
+
+  describe('density control', () => {
+    it('uses the balanced rule line when no density is provided', async () => {
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      const [callArgs] = mockMessageCreate.mock.calls[0];
+      const text = (
+        callArgs.messages[0].content as Array<{ type: string; text?: string }>
+      ).find((b) => b.type === 'text')?.text;
+      expect(text).toContain('6 to 10 cards');
+    });
+
+    it.each([
+      ['sparse', '3 to 5 cards'],
+      ['balanced', '6 to 10 cards'],
+      ['dense', '12 to 20 cards'],
+    ] as const)(
+      'passes the %s rule line to Claude',
+      async (density, expectedSnippet) => {
+        const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+        await useCase.execute({ ...BASE_INPUT, isPaying: true, density });
+        const [callArgs] = mockMessageCreate.mock.calls[0];
+        const text = (
+          callArgs.messages[0].content as Array<{ type: string; text?: string }>
+        ).find((b) => b.type === 'text')?.text;
+        expect(text).toContain(expectedSnippet);
+      }
+    );
+
+    it('buildVisionPrompt returns distinct text per tier', () => {
+      const sparse = buildVisionPrompt('sparse');
+      const balanced = buildVisionPrompt('balanced');
+      const dense = buildVisionPrompt('dense');
+      expect(sparse).not.toEqual(balanced);
+      expect(balanced).not.toEqual(dense);
+      expect(sparse).toContain('3 to 5');
+      expect(dense).toContain('12 to 20');
     });
   });
 

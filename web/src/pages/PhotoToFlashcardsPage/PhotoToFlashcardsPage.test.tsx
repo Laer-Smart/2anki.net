@@ -72,11 +72,13 @@ describe('PhotoToFlashcardsPage', () => {
     mockImageDimensions();
     mockObjectUrl();
     mockTrack.mockClear();
+    window.localStorage.clear();
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+    window.localStorage.clear();
   });
 
   it('renders the title and audience hint', () => {
@@ -236,6 +238,46 @@ describe('PhotoToFlashcardsPage', () => {
     await waitFor(() => {
       expect(mockTrack).toHaveBeenCalledWith('photo_upload_started', { source: 'camera' });
     });
+  });
+
+  it('renders the density chip group with Balanced selected by default', () => {
+    render(<PhotoToFlashcardsPage />);
+    const group = screen.getByRole('radiogroup', { name: 'Card density' });
+    expect(group).toBeTruthy();
+    expect(screen.getByRole('radio', { name: /Sparse/ })).toHaveProperty('ariaChecked', 'false');
+    expect(screen.getByRole('radio', { name: /Balanced/ })).toHaveProperty('ariaChecked', 'true');
+    expect(screen.getByRole('radio', { name: /Dense/ })).toHaveProperty('ariaChecked', 'false');
+    expect(screen.getByText('How many cards per image.')).toBeTruthy();
+  });
+
+  it('sends the selected density in the upload request body', async () => {
+    setLocals({ paying: true });
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 404 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<PhotoToFlashcardsPage />);
+    fireEvent.click(screen.getByRole('radio', { name: /Dense/ }));
+    const input = document.getElementById('photo-file-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [makePhoto()] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Get flashcards' }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
+    });
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toMatchObject({ density: 'dense' });
+  });
+
+  it('persists the selected density to localStorage', () => {
+    render(<PhotoToFlashcardsPage />);
+    fireEvent.click(screen.getByRole('radio', { name: /Sparse/ }));
+    expect(window.localStorage.getItem('photoToFlashcards.density')).toBe('sparse');
+  });
+
+  it('restores the previously selected density from localStorage', () => {
+    window.localStorage.setItem('photoToFlashcards.density', 'dense');
+    render(<PhotoToFlashcardsPage />);
+    expect(screen.getByRole('radio', { name: /Dense/ })).toHaveProperty('ariaChecked', 'true');
   });
 
   it('fires photo_quota_reached with used and limit on 429', async () => {

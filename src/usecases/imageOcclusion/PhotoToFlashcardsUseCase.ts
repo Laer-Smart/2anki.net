@@ -13,6 +13,10 @@ import type { IEventsRepository } from '../../data_layer/EventsRepository';
 export const FREE_PHOTO_QUOTA_PER_MONTH = 5;
 const VISION_PHOTO_EVENT = 'vision_photo_converted';
 
+export type PhotoDensity = 'sparse' | 'balanced' | 'dense';
+
+export const DEFAULT_PHOTO_DENSITY: PhotoDensity = 'balanced';
+
 export interface PhotoToFlashcardsInput {
   imageBase64: string;
   mediaType: VisionMediaType;
@@ -22,6 +26,7 @@ export interface PhotoToFlashcardsInput {
   imageDimensions: { width: number; height: number };
   tokenCeilingOverride?: number;
   includeSourceImage?: boolean;
+  density?: PhotoDensity;
 }
 
 export interface PhotoToFlashcardsResult {
@@ -40,7 +45,14 @@ function startOfMonth(now: Date = new Date()): Date {
   return new Date(now.getFullYear(), now.getMonth(), 1);
 }
 
-export const VISION_PROMPT = `Extract atomic question-and-answer flashcard pairs from this image.
+const DENSITY_RULE: Record<PhotoDensity, string> = {
+  sparse: 'Aim for 3 to 5 cards. Pick the highest-signal facts only.',
+  balanced: 'Aim for 6 to 10 cards covering the main facts.',
+  dense: 'Aim for 12 to 20 cards. Fan out every distinct fact on the image.',
+};
+
+export function buildVisionPrompt(density: PhotoDensity = DEFAULT_PHOTO_DENSITY): string {
+  return `Extract atomic question-and-answer flashcard pairs from this image.
 
 Output ONLY a compact JSON array. Format (nothing else — no markdown, no explanation):
 [{"deck":"Deck Name","cards":[{"q":"front text","a":"back text","tags":["topic_tag"]}]}]
@@ -49,8 +61,10 @@ Rules:
 - Each card tests one atomic fact
 - Q is the question or term, A is the answer or definition
 - Preserve important formatting but keep cards concise
+- ${DENSITY_RULE[density]}
 - Use the image content as the deck name if no other name is obvious
 - Add 1–3 topic tags per card in the "tags" field: short, lowercase, snake_case, drawn from the actual content (e.g. "enzymes", "michaelis_menten") — not broad labels like "biology" or "chapter_4"`;
+}
 
 const INPUT_COST_PER_MILLION = 3;
 const OUTPUT_COST_PER_MILLION = 15;
@@ -273,7 +287,7 @@ export class PhotoToFlashcardsUseCase {
             },
             {
               type: 'text',
-              text: VISION_PROMPT,
+              text: buildVisionPrompt(input.density ?? DEFAULT_PHOTO_DENSITY),
             },
           ],
         },

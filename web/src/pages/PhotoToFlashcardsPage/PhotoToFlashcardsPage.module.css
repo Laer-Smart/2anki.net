@@ -100,6 +100,60 @@
   gap: var(--space-sm, 0.75rem);
 }
 
+.densityRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.densityGroup {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.densityChip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.5rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm, 0.375rem);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: border-color var(--transition-fast, 150ms), background var(--transition-fast, 150ms);
+}
+
+.densityChip:hover {
+  border-color: var(--color-primary);
+}
+
+.densityChipActive {
+  border-color: var(--color-primary);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.densityChipLabel {
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: var(--font-medium, 500);
+}
+
+.densityChipRange {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.densityHint {
+  margin: 0;
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text-tertiary);
+}
+
 .cameraButtonContainer {
   display: flex;
   flex-direction: column;
