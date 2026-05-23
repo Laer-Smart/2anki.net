@@ -16,6 +16,7 @@ const MICROSOFT_JWKS_URL =
 const MICROSOFT_JWKS_TTL_MS = 60 * 60 * 1000;
 const MICROSOFT_ISSUER_REGEX =
   /^https:\/\/login\.microsoftonline\.com\/[^/]+\/v2\.0$/;
+const MICROSOFT_CONSUMER_TENANT_ID = '9188040d-6c67-4c5b-b112-36a304b66dad';
 
 interface MicrosoftJwk {
   kid: string;
@@ -336,7 +337,11 @@ class AuthenticationService {
         typeof payload.email === 'string' && payload.email.length > 0
           ? payload.email
           : undefined;
+      const isPersonalMsa =
+        typeof payload.tid === 'string' &&
+        payload.tid === MICROSOFT_CONSUMER_TENANT_ID;
       const emailVerified =
+        isPersonalMsa ||
         payload.email_verified === true ||
         (payload as { xms_edov?: unknown }).xms_edov === true;
       const name = typeof payload.name === 'string' ? payload.name : undefined;

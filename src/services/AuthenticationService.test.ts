@@ -308,11 +308,12 @@ describe('loginWithMicrosoft', () => {
     });
   });
 
-  it('returns emailVerified=false when neither xms_edov nor email_verified is true', async () => {
+  it('returns emailVerified=false when a work/school token carries neither xms_edov nor email_verified', async () => {
     const idToken = signIdToken({
       iss: 'https://login.microsoftonline.com/common/v2.0',
       aud: CLIENT_ID,
       sub: 'ms-subject-003',
+      tid: 'some-org-tenant-id',
       email: 'maybe@example.com',
       name: 'Bob',
     });
@@ -326,6 +327,28 @@ describe('loginWithMicrosoft', () => {
       email: 'maybe@example.com',
       name: 'Bob',
       emailVerified: false,
+    });
+  });
+
+  it('treats personal MSA tokens (consumer tenant id) as verified-by-default', async () => {
+    const idToken = signIdToken({
+      iss: 'https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0',
+      aud: CLIENT_ID,
+      sub: 'ms-subject-msa',
+      tid: '9188040d-6c67-4c5b-b112-36a304b66dad',
+      email: 'msa-user@hotmail.com',
+      name: 'MSA User',
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithMicrosoft('auth-code');
+
+    expect(result).toEqual({
+      subject: 'ms-subject-msa',
+      email: 'msa-user@hotmail.com',
+      name: 'MSA User',
+      emailVerified: true,
     });
   });
 
