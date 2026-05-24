@@ -61,11 +61,28 @@ export async function runConversion(
   await getConversionPool().run(request);
 }
 
-export async function shutdownConversionPool(): Promise<void> {
+export async function shutdownConversionPool(
+  options: { timeoutMs?: number } = {}
+): Promise<void> {
   if (!pool) return;
   const handle = pool;
   pool = null;
-  await handle.destroy();
+  const drain = handle.close();
+  if (options.timeoutMs == null) {
+    await drain;
+    return;
+  }
+  const timeout = new Promise<'timeout'>((resolve) => {
+    const t = setTimeout(() => resolve('timeout'), options.timeoutMs);
+    t.unref();
+  });
+  const winner = await Promise.race([drain.then(() => 'drained' as const), timeout]);
+  if (winner === 'timeout') {
+    console.error(
+      `Conversion pool did not drain within ${options.timeoutMs}ms — forcing destroy`
+    );
+    await handle.destroy();
+  }
 }
 
 let workerKnex: Knex | null = null;

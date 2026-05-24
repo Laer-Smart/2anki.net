@@ -6,6 +6,7 @@ import express, { RequestHandler } from 'express';
 import cookieParser from 'cookie-parser';
 import * as dotenv from 'dotenv';
 import morgan from 'morgan';
+import type { Knex } from 'knex';
 
 const localEnvFile = path.join(__dirname, '../.env');
 if (existsSync(localEnvFile)) {
@@ -73,12 +74,10 @@ import { scheduleInactivityWarnings } from './lib/inactivity/jobs/scheduleInacti
 import { scheduleParserCanary } from './lib/parser/canary/scheduleParserCanary';
 import { getDefaultEmailService } from './services/EmailService/EmailService';
 import { SendInactivityWarningsUseCase } from './usecases/ops/SendInactivityWarningsUseCase';
-import {
-  initConversionPool,
-  shutdownConversionPool,
-} from './lib/conversionPool';
+import { initConversionPool } from './lib/conversionPool';
+import { gracefulShutdown } from './lib/gracefulShutdown';
 
-function registerSignalHandlers(server: http.Server) {
+function registerSignalHandlers(server: http.Server, database: Knex) {
   process.on('uncaughtException', (error) => {
     writeFallbackError({
       source: 'server',
@@ -104,17 +103,14 @@ function registerSignalHandlers(server: http.Server) {
     process.exit(1);
   });
 
-  const drainAndClose = (signal: string) => {
-    console.debug(`${signal} signal received: closing HTTP server`);
-    server.close(() => {
-      console.debug('HTTP server closed');
-    });
-    shutdownConversionPool().catch((err) => {
-      console.error('Conversion pool shutdown failed:', err);
+  const handle = (signal: 'SIGTERM' | 'SIGINT') => {
+    gracefulShutdown(signal, server, database).catch((err) => {
+      console.error('gracefulShutdown threw, forcing exit:', err);
+      process.exit(1);
     });
   };
-  process.on('SIGTERM', () => drainAndClose('SIGTERM'));
-  process.on('SIGINT', () => drainAndClose('SIGINT'));
+  process.on('SIGTERM', () => handle('SIGTERM'));
+  process.on('SIGINT', () => handle('SIGINT'));
 }
 
 const serve = async () => {
@@ -215,7 +211,7 @@ const serve = async () => {
   server.listen(port, () => {
     console.info(`Running on http://localhost:${port}`);
   });
-  registerSignalHandlers(server);
+  registerSignalHandlers(server, database);
 
   await setupDatabase(database);
 
