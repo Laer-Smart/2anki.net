@@ -45,14 +45,7 @@ export function detectUploadIssues(
     f.name.toLowerCase().endsWith('.pdf')
   );
   if (allPdf) {
-    if (aiOn) {
-      return {
-        status: 'info',
-        title: 'Claude will generate cards from this PDF',
-        body: 'Cards are based on the content, not the page count. Set the card size in Settings to control how much fits on each card.',
-        continueLabel: 'Make cards from this PDF',
-      };
-    }
+    if (aiOn) return null;
     return {
       status: 'info',
       title: 'Each pair of pages becomes one card',
