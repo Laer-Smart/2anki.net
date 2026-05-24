@@ -1,10 +1,10 @@
 import { Request } from 'express';
 import { getRedirect } from './getRedirect';
 
-// Mock Request object factory
-const createMockRequest = (redirectParam?: string): Request => {
+const createMockRequest = (redirectParam?: string, bodyRedirect?: string): Request => {
   return {
     query: redirectParam ? { redirect: redirectParam } : {},
+    body: bodyRedirect ? { redirect: bodyRedirect } : {},
   } as Request;
 };
 
@@ -32,6 +32,7 @@ describe('getRedirect security tests', () => {
       '/pricing',
       '/settings',
       '/anki',
+      '/card-options',
       '/search/results',
       '/templates/new',
     ];
@@ -114,6 +115,28 @@ describe('getRedirect security tests', () => {
 
     it('should block non-HTTPS external URLs (except localhost)', () => {
       const req = createMockRequest('http://2anki.net');
+      expect(getRedirect(req)).toBe('/notion');
+    });
+  });
+
+  describe('should read redirect from request body as fallback', () => {
+    it('returns body redirect when query param is absent', () => {
+      const req = createMockRequest(undefined, '/card-options');
+      expect(getRedirect(req)).toBe('/card-options');
+    });
+
+    it('prefers query param over body when both present', () => {
+      const req = createMockRequest('/upload', '/card-options');
+      expect(getRedirect(req)).toBe('/upload');
+    });
+
+    it('blocks invalid body redirect', () => {
+      const req = createMockRequest(undefined, '//evil.com');
+      expect(getRedirect(req)).toBe('/notion');
+    });
+
+    it('blocks javascript: scheme in body redirect', () => {
+      const req = createMockRequest(undefined, 'javascript:alert(1)');
       expect(getRedirect(req)).toBe('/notion');
     });
   });

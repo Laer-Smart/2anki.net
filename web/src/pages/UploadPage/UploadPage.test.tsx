@@ -107,3 +107,11 @@ describe('UploadPage doc/docx hint', () => {
   });
 });
 
+describe('UploadPage AI badge anon link', () => {
+  it('links to /login?redirect=/card-options so user lands on card options after sign-in', () => {
+    renderPage();
+    const link = screen.getByRole('link', { name: /sign in to turn it on/i });
+    expect(link).toHaveAttribute('href', '/login?redirect=/card-options');
+  });
+});
+

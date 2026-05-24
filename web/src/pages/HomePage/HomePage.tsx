@@ -136,7 +136,7 @@ export function HomePage({
           <span className={sharedStyles.aiOffBadgeBody}>
             {' '}
             <Link
-              to="/register"
+              to="/register?redirect=/card-options"
               onClick={() => track('home_ai_anon_badge_clicked')}
             >
               Create an account to turn it on

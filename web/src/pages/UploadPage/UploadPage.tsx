@@ -133,7 +133,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
             <span className={styles.aiOffBadgeBody}>
               {' '}
               <Link
-                to="/login"
+                to="/login?redirect=/card-options"
                 onClick={() => track('upload_ai_anon_badge_clicked')}
               >
                 Sign in to turn it on
