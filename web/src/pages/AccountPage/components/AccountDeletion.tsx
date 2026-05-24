@@ -5,18 +5,13 @@ export function AccountDeletion() {
     <div className={styles.dangerSection}>
       <h4 className={styles.dangerTitle}>Delete account</h4>
       <div className={styles.dangerNotice}>
-        <strong>Warning:</strong> Deleting your account will permanently remove
-        all your data and cannot be undone.
+        All your data will be permanently deleted. This cannot be undone.
       </div>
       <a
         href="/delete-account"
         className={styles.dangerButton}
         onClick={(e) => {
-          if (
-            !confirm(
-              'Are you sure you want to delete your account? This action cannot be undone.'
-            )
-          ) {
+          if (!confirm('Delete your account? This cannot be undone.')) {
             e.preventDefault();
           }
         }}

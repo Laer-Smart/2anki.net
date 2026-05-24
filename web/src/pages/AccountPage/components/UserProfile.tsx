@@ -3,7 +3,6 @@ import styles from '../AccountPage.module.css';
 interface User {
   name: string;
   email: string;
-  email_verified?: boolean;
 }
 
 interface UserProfileProps {
@@ -11,19 +10,21 @@ interface UserProfileProps {
 }
 
 export function UserProfile({ user }: UserProfileProps) {
+  const isPrivateRelay = user.email.endsWith('@privaterelay.appleid.com');
+
   return (
-    <div className={styles.profileSection}>
-      <div className={styles.profileInfo}>
-        <p className={styles.profileName} data-hj-suppress>
-          {user.name}
+    <section className={styles.section}>
+      <p className={styles.name} data-hj-suppress>
+        {user.name}
+      </p>
+      <p className={styles.email} data-hj-suppress>
+        {user.email}
+      </p>
+      {isPrivateRelay && (
+        <p className={styles.privacyNote}>
+          Hide My Email — Apple forwards messages to your real inbox.
         </p>
-        <p className={styles.profileEmail} data-hj-suppress>
-          {user.email}
-        </p>
-        {user.email_verified && (
-          <p className={styles.profileVerified}>Email verified</p>
-        )}
-      </div>
-    </div>
+      )}
+    </section>
   );
 }

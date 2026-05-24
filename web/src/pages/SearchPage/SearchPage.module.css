@@ -119,6 +119,17 @@
   flex-shrink: 0;
 }
 
+.workspaceSwitch {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  text-decoration: underline;
+  margin-left: auto;
+}
+
+.workspaceSwitch:hover {
+  color: var(--color-text-primary);
+}
+
 @media (min-width: 480px) {
   .searchInput,
   .searchInput[type='text'] {

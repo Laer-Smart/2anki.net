@@ -28,6 +28,12 @@ const DownloadsPage = lazy(() => import('./pages/DownloadsPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
 const AccountPage = lazy(() => import('./pages/AccountPage/AccountPage'));
+const AccountPreviewPage = import.meta.env.DEV
+  ? lazy(() => import('./pages/AccountPreviewPage/AccountPreviewPage'))
+  : null;
+const NotionPreviewPage = import.meta.env.DEV
+  ? lazy(() => import('./pages/NotionPreviewPage/NotionPreviewPage'))
+  : null;
 const SuccessfulCheckoutPage = lazy(
   () => import('./pages/SuccessfulCheckout/SuccessfulCheckout')
 );
@@ -234,6 +240,18 @@ function AppContent({
           />
           <Route path="/limit" element={<LimitPage />} />
           <Route path="/account" element={requireAuth(<AccountPage />)} />
+          {AccountPreviewPage && (
+            <Route
+              path="/dev/account-preview"
+              element={<AccountPreviewPage />}
+            />
+          )}
+          {NotionPreviewPage && (
+            <Route
+              path="/dev/notion-preview"
+              element={<NotionPreviewPage />}
+            />
+          )}
           <Route
             path="/import"
             element={requireAuth(

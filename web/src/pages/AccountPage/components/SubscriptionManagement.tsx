@@ -95,7 +95,7 @@ export function SubscriptionManagement({
     locals?.subscriptionInfo?.linked_email === user.email ||
     locals?.subscriptionInfo?.email === user.email;
 
-  if (!hasActivePlan && !user) {
+  if (!locals?.subscriber) {
     return null;
   }
 
@@ -110,118 +110,80 @@ export function SubscriptionManagement({
         onClose={dismissSurvey}
       />
     )}
-    <div className={styles.managementCard}>
-      <h3 className={styles.managementTitle}>Subscription</h3>
+    <section className={styles.section}>
       {locals?.subscriber && (
-        <div className={sharedStyles.marginBottomMd}>
+        <div>
           {view.kind === 'active' && (
-            <div className={styles.activeBadge}>
-              Active — renews on{' '}
-              <strong>{formatDate(view.subscription.current_period_end)}</strong>
-              .
-              {formatPlan(view.subscription) && (
-                <p className={styles.planDetail}>
-                  {formatPlan(view.subscription)}
-                </p>
-              )}
-            </div>
+            <>
+              <p className={styles.statusLine}>
+                {formatPlan(view.subscription) ?? 'Premium'} · Renews{' '}
+                <strong>{formatDate(view.subscription.current_period_end)}</strong>
+              </p>
+              {view.subscription.plan?.amount != null &&
+                view.subscription.plan.amount < 600 && (
+                  <p className={styles.legacyNote}>
+                    Cancelling forfeits this legacy rate.
+                  </p>
+                )}
+              <div className={styles.actions}>
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={() => cancelUserSubscription('period_end')}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? 'Processing…' : 'Cancel at period end'}
+                </button>
+                <button
+                  type="button"
+                  className={styles.textButton}
+                  onClick={() => cancelUserSubscription('immediate')}
+                  disabled={isCancelling}
+                >
+                  or cancel now
+                </button>
+              </div>
+            </>
           )}
 
           {view.kind === 'scheduled' && (
-            <div className={styles.scheduledBadge}>
-              Scheduled to cancel on{' '}
-              <strong>{formatDate(view.subscription.cancel_at)}</strong>
-              . You will keep access until then.
-              {formatPlan(view.subscription) && (
-                <p className={styles.planDetail}>
-                  {formatPlan(view.subscription)}
-                </p>
-              )}
-            </div>
+            <>
+              <p className={styles.statusLine}>
+                Ends <strong>{formatDate(view.subscription.cancel_at)}</strong>.
+                Access continues until then.
+              </p>
+              <div className={styles.actions}>
+                <button
+                  type="button"
+                  className={styles.textButton}
+                  onClick={() => cancelUserSubscription('immediate')}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? 'Processing…' : 'Cancel now instead'}
+                </button>
+              </div>
+            </>
           )}
 
           {view.kind === 'cancelled' && (
-            <div className={styles.cancelledBadge}>
-              Cancelled on{' '}
-              <strong>{formatDate(view.subscription.canceled_at)}</strong>. Your
-              subscription is no longer active.
-              {formatPlan(view.subscription) && (
-                <p className={styles.planDetail}>
-                  Previous plan: {formatPlan(view.subscription)}
-                </p>
-              )}
-            </div>
+            <p className={styles.statusLineMuted}>
+              Ended{' '}
+              <strong>{formatDate(view.subscription.canceled_at)}</strong>.
+              {formatPlan(view.subscription) &&
+                ` Previous plan: ${formatPlan(view.subscription)}.`}
+            </p>
           )}
 
           {stripeStatus.isLoading && view.kind === 'none' && (
             <p className={sharedStyles.smallDescription}>
-              Loading subscription status…
+              Reading your subscription
             </p>
           )}
 
-          {view.kind === 'active' &&
-            view.subscription.plan?.amount != null &&
-            view.subscription.plan.amount < 600 && (
-              <div className={styles.infoBadge}>
-                You're on our legacy $2/mo plan. If you cancel, this rate won't
-                be available again — the current price is $6/mo.
-              </div>
-            )}
-
-          <div className={styles.buttonRow}>
-            {view.kind === 'active' && (
-              <>
-                <button
-                  type="button"
-                  className={styles.dangerButton}
-                  onClick={() => cancelUserSubscription('period_end')}
-                  disabled={isCancelling}
-                >
-                  {isCancelling
-                    ? 'Processing…'
-                    : 'Cancel at end of billing period'}
-                </button>
-                <button
-                  type="button"
-                  className={styles.dangerButton}
-                  onClick={() => cancelUserSubscription('immediate')}
-                  disabled={isCancelling}
-                >
-                  {isCancelling ? 'Processing…' : 'Cancel immediately'}
-                </button>
-              </>
-            )}
-            {view.kind === 'scheduled' && (
-              <button
-                type="button"
-                className={styles.dangerButton}
-                onClick={() => cancelUserSubscription('immediate')}
-                disabled={isCancelling}
-              >
-                {isCancelling ? 'Processing…' : 'Cancel immediately instead'}
-              </button>
-            )}
-          </div>
-
-          {cancelError && (
-            <p className={styles.helpDanger}>{cancelError}</p>
-          )}
-          {cancelSuccess && (
-            <p className={styles.helpSuccess}>{cancelSuccess}</p>
-          )}
+          {cancelError && <p className={styles.helpDanger}>{cancelError}</p>}
+          {cancelSuccess && <p className={styles.helpSuccess}>{cancelSuccess}</p>}
         </div>
       )}
-
-      <div className={sharedStyles.marginTopMd}>
-        <p className={sharedStyles.smallDescription}>
-          <strong>Need help?</strong>
-        </p>
-        <ul className={sharedStyles.featureList}>
-          <li>
-            Email us at <a href="mailto:support@2anki.net">support@2anki.net</a>
-          </li>
-        </ul>
-      </div>
 
       {locals?.subscriber && (
         <div className={sharedStyles.marginTopLg}>
@@ -262,13 +224,13 @@ export function SubscriptionManagement({
                 onClick={onLink}
                 disabled={isEmailLinked || !linkEmail.trim()}
               >
-                {isLinking ? 'Linking' : 'Link email'}
+                {isLinking ? 'Linking…' : 'Link email'}
               </button>
             </div>
           )}
         </div>
       )}
-    </div>
+    </section>
     </>
   );
 }
