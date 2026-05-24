@@ -22,6 +22,8 @@
   "navigation.register.google": "Sign up with Google",
   "navigation.login.microsoft": "Sign in with Microsoft",
   "navigation.register.microsoft": "Sign up with Microsoft",
+  "navigation.login.apple": "Sign in with Apple",
+  "navigation.register.apple": "Sign in with Apple",
   "navigation.contact": "Contact",
   "navigation.documentation": "Documentation",
   "navigation.docs": "Docs",
