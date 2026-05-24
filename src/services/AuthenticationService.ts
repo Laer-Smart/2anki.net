@@ -390,12 +390,13 @@ class AuthenticationService {
 
   mintAppleClientSecret(): string {
     const teamId = process.env.APPLE_TEAM_ID;
-    const servicesId = process.env.APPLE_SERVICES_ID;
+    const clientId = process.env.APPLE_CLIENT_ID;
     const keyId = process.env.APPLE_KEY_ID;
-    const privateKeyPem = process.env.APPLE_PRIVATE_KEY;
-    if (!teamId || !servicesId || !keyId || !privateKeyPem) {
+    const privateKeyB64 = process.env.APPLE_PRIVATE_KEY_B64;
+    if (!teamId || !clientId || !keyId || !privateKeyB64) {
       throw new Error('Apple OAuth env vars are not configured');
     }
+    const privateKeyPem = Buffer.from(privateKeyB64, 'base64').toString('utf8');
     const now = Math.floor(Date.now() / 1000);
     return jwt.sign(
       {
@@ -403,7 +404,7 @@ class AuthenticationService {
         iat: now,
         exp: now + 86400,
         aud: APPLE_ISSUER,
-        sub: servicesId,
+        sub: clientId,
       },
       privateKeyPem.replace(/\\n/g, '\n'),
       { algorithm: 'ES256', header: { alg: 'ES256', kid: keyId } }
@@ -411,18 +412,18 @@ class AuthenticationService {
   }
 
   async loginWithApple(code: string) {
-    const servicesId = process.env.APPLE_SERVICES_ID;
-    const redirectUri = process.env.APPLE_REDIRECT_URI;
-    if (!servicesId || !redirectUri) {
+    const clientId = process.env.APPLE_CLIENT_ID;
+    const APPLE_REDIRECT_URI = `${process.env.DOMAIN ?? 'https://2anki.net'}/auth/apple/callback`;
+    if (!clientId) {
       return undefined;
     }
     try {
       const clientSecret = this.mintAppleClientSecret();
       const values = {
         code,
-        client_id: servicesId,
+        client_id: clientId,
         client_secret: clientSecret,
-        redirect_uri: redirectUri,
+        redirect_uri: APPLE_REDIRECT_URI,
         grant_type: 'authorization_code',
       };
       const result = await instrumentedAxios.post<{ id_token: string }>(
@@ -451,7 +452,7 @@ class AuthenticationService {
       const publicKey = crypto.createPublicKey({ key: jwk, format: 'jwk' });
       const payload = jwt.verify(idToken, publicKey, {
         algorithms: ['RS256'],
-        audience: servicesId,
+        audience: clientId,
         issuer: APPLE_ISSUER,
       });
       if (typeof payload === 'string') {

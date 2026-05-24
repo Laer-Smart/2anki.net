@@ -682,9 +682,9 @@ const UserRouter = () => {
    *         description: Redirect to Apple OAuth
    */
   router.get('/api/users/auth/apple/init', (req, res) => {
-    const clientId = process.env.APPLE_SERVICES_ID;
-    const redirectUri = process.env.APPLE_REDIRECT_URI;
-    if (!clientId || !redirectUri) {
+    const clientId = process.env.APPLE_CLIENT_ID;
+    const redirectUri = `${process.env.DOMAIN ?? 'https://2anki.net'}/auth/apple/callback`;
+    if (!clientId) {
       return res.redirect('/login');
     }
     const state = crypto.randomBytes(32).toString('hex');
@@ -707,7 +707,7 @@ const UserRouter = () => {
 
   /**
    * @swagger
-   * /api/users/auth/apple:
+   * /auth/apple/callback:
    *   post:
    *     summary: Apple OAuth callback
    *     description: form_post callback from Apple. Verifies state, exchanges code for id_token, signs the user in.
@@ -717,7 +717,7 @@ const UserRouter = () => {
    *         description: Redirect to home on success or /login on failure
    */
   router.post(
-    '/api/users/auth/apple',
+    '/auth/apple/callback',
     express.urlencoded({ extended: false }),
     (req, res) => controller.loginWithApple(req, res)
   );
