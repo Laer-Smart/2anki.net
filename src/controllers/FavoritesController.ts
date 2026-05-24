@@ -1,11 +1,13 @@
 import { Request, Response } from 'express';
 
 import { getDatabase } from '../data_layer';
+import { FavoritesRepository } from '../data_layer/FavoritesRepository';
 import NotionRepository from '../data_layer/NotionRespository';
 import BlocksCacheRepository from '../data_layer/BlocksCacheRepository';
 import sendErrorResponse from '../lib/sendErrorResponse';
 import FavoriteService from '../services/FavoriteService';
 import NotionService from '../services/NotionService';
+import GetEnrichedFavoritesByOwnerUseCase from '../usecases/favorites/GetEnrichedFavoritesByOwnerUseCase';
 import { getReturnStatusCodeFromBoolean } from './helpers/getReturnStatusCodeFromBoolean';
 
 class FavoritesController {
@@ -43,16 +45,16 @@ class FavoritesController {
 
     try {
       const database = getDatabase();
-      const notionRepository = new NotionRepository(database);
       const notionService = new NotionService(
-        notionRepository,
+        new NotionRepository(database),
         undefined,
         new BlocksCacheRepository(database)
       );
-      const favorites = await this.service.getFavoritesByOwner(
-        owner,
-        notionService
+      const useCase = new GetEnrichedFavoritesByOwnerUseCase(
+        new FavoritesRepository(database),
+        (ownerId) => notionService.tryGetNotionAPI(ownerId)
       );
+      const favorites = await useCase.execute(owner);
       res.json(favorites);
     } catch (error) {
       console.error(error);
