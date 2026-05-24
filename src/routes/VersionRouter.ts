@@ -11,7 +11,9 @@ const VersionRouter = () => {
    * /api/version:
    *   get:
    *     summary: Get API version information
-   *     description: Returns the current version and build information of the API
+   *     description: Returns the running package version and the git SHA the
+   *       process was built from. Used by the deploy workflow to verify that
+   *       the new code is actually running (not a stale process).
    *     tags: [System]
    *     responses:
    *       200:
@@ -19,16 +21,16 @@ const VersionRouter = () => {
    *         content:
    *           application/json:
    *             schema:
-   *               $ref: '#/components/schemas/Version'
-   *             example:
-   *               version: "1.2.1"
-   *               build: "2024-08-04"
-   *       500:
-   *         description: Internal server error
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/Error'
+   *               type: object
+   *               properties:
+   *                 version:
+   *                   type: string
+   *                   example: "2.0.0"
+   *                 sha:
+   *                   type: string
+   *                   description: Git SHA (full 40-char) the build was created from,
+   *                     or "unknown" if GIT_SHA is unset in the runtime env.
+   *                   example: "9be7cb9bbcd7..."
    */
   router.get('/api/version', (req, res) => controller.getVersionInfo(req, res));
 

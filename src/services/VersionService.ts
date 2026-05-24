@@ -6,9 +6,17 @@ const appInfo = JSON.parse(
   fs.readFileSync(resolvePath(__dirname, '../../package.json')).toString()
 );
 
+export interface VersionInfo {
+  version: string;
+  sha: string;
+}
+
 class VersionService {
-  public getVersion(): string {
-    return `Notion to Anki v${appInfo.version}`;
+  public getVersion(): VersionInfo {
+    return {
+      version: appInfo.version,
+      sha: process.env.GIT_SHA ?? 'unknown',
+    };
   }
 }
 

@@ -12,6 +12,7 @@ module.exports = {
       node_args: '--max-old-space-size=16384',
       env: {
         NODE_ENV: 'production',
+        GIT_SHA: process.env.GIT_SHA,
       },
     },
   ],
