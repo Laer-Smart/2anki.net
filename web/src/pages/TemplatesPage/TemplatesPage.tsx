@@ -65,7 +65,7 @@ function NoteTypeCard({
         <iframe
           title={`${starter.name} preview`}
           className={styles.previewFrame}
-          sandbox=""
+          sandbox="allow-scripts"
           srcDoc={previewDoc}
         />
       </div>
@@ -166,7 +166,7 @@ function PreviewModal({ starter, onClose }: Readonly<PreviewModalProps>) {
               <iframe
                 title={`${starter.name} front preview`}
                 className={styles.modalFrame}
-                sandbox=""
+                sandbox="allow-scripts"
                 srcDoc={frontDoc}
               />
             </div>
@@ -177,7 +177,7 @@ function PreviewModal({ starter, onClose }: Readonly<PreviewModalProps>) {
               <iframe
                 title={`${starter.name} back preview`}
                 className={styles.modalFrame}
-                sandbox=""
+                sandbox="allow-scripts"
                 srcDoc={backDoc}
               />
             </div>

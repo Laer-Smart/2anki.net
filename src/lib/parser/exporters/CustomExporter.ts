@@ -2,8 +2,33 @@ import path from 'path';
 import fs, { PathLike } from 'fs';
 
 import CardGenerator from '../../anki/CardGenerator';
+import { detectFrontLanguage } from '../../anki/detectCardLanguage';
+import { track } from '../../../services/events/track';
 import Deck from '../Deck';
 import { DeckTooLargeError } from './DeckTooLargeError';
+
+const FRONT_SAMPLE_LIMIT = 25;
+
+function applyAutoDetectedLang(payload: Deck[]): void {
+  if (payload.length === 0) return;
+  const settings = payload[0].settings;
+  if (settings == null || !settings.ttsAutoDetect) return;
+
+  const samples: string[] = [];
+  for (const deck of payload) {
+    for (const card of deck.cards) {
+      if (samples.length >= FRONT_SAMPLE_LIMIT) break;
+      const front = card.name ?? '';
+      if (front) samples.push(front);
+    }
+    if (samples.length >= FRONT_SAMPLE_LIMIT) break;
+  }
+
+  const detected = detectFrontLanguage(samples);
+  if (!detected) return;
+  settings.frontLang = detected;
+  track('tts_lang_injected', { props: { lang: detected } });
+}
 
 class CustomExporter {
   firstDeckName: string;
@@ -27,6 +52,7 @@ class CustomExporter {
   }
 
   configure(payload: Deck[]) {
+    applyAutoDetectedLang(payload);
     let serialized: string;
     try {
       serialized = JSON.stringify(payload, null, 2);

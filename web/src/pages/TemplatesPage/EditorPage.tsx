@@ -580,7 +580,7 @@ function EditorBody({
             <iframe
               title={`${draft.name} ${previewSide} preview`}
               className={editorStyles.previewFrame}
-              sandbox=""
+              sandbox="allow-scripts"
               srcDoc={previewDoc}
             />
           </div>

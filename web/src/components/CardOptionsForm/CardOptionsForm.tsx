@@ -99,7 +99,6 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
     keys: [
       'add-notion-link',
       'no-underline',
-      'remove-mp3-links',
       'markdown-nested-bullet-points',
     ],
   },
@@ -120,7 +119,7 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
   },
 ];
 
-const HIDDEN_KEYS = ['vertex-ai-pdf-questions'];
+const HIDDEN_KEYS = ['vertex-ai-pdf-questions', 'remove-mp3-links'];
 const GROUPED_KEYS = new Set([
   ...OPTION_GROUPS.flatMap((g) => g.keys),
   ...HIDDEN_KEYS,
@@ -147,6 +146,7 @@ function computeSnapshot(values: {
   mcqTtsQuestion: string;
   mcqTtsCorrectAnswer: string;
   mcqTtsExtra: string;
+  ttsAutoDetect: boolean;
   cardSize: CardSizeValue;
   fieldMapping: FieldMapping | null;
 }) {
@@ -227,6 +227,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     const [mcqTtsExtra, setMcqTtsExtra] = useState(
       getLocalStorageValue('mcq-tts-extra', DEFAULT_MCQ_TTS_LANG, settings)
     );
+    const [ttsAutoDetect, setTtsAutoDetect] = useState(
+      getLocalStorageBooleanValue('tts-auto-detect', 'false', settings)
+    );
     const [cardSize, setCardSize] = useState<CardSizeValue>(() =>
       normalizeCardSize(getLocalStorageValue('card-size', DEFAULT_CARD_SIZE, settings))
     );
@@ -270,6 +273,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setMcqTtsQuestion(localStorage.getItem('mcq-tts-question') ?? DEFAULT_MCQ_TTS_LANG);
       setMcqTtsCorrectAnswer(localStorage.getItem('mcq-tts-correct-answer') ?? DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(localStorage.getItem('mcq-tts-extra') ?? DEFAULT_MCQ_TTS_LANG);
+      setTtsAutoDetect((localStorage.getItem('tts-auto-detect') ?? 'false') === 'true');
       setCardSize(normalizeCardSize(localStorage.getItem('card-size')));
       setFieldMapping(getDefaultFieldMapping(localStorage.getItem('template') ?? DEFAULT_TEMPLATE));
       setSettings({});
@@ -296,6 +300,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         });
         if (Object.hasOwn(payload, 'mcq-enabled')) {
           setMcqEnabled((payload['mcq-enabled'] ?? 'false') === 'true');
+        }
+        if (Object.hasOwn(payload, 'tts-auto-detect')) {
+          setTtsAutoDetect((payload['tts-auto-detect'] ?? 'false') === 'true');
         }
         if (Object.hasOwn(payload, 'card-size')) {
           setCardSize(normalizeCardSize(payload['card-size']));
@@ -346,6 +353,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           mcqTtsQuestion,
           mcqTtsCorrectAnswer,
           mcqTtsExtra,
+          ttsAutoDetect,
           cardSize,
           fieldMapping,
         }),
@@ -364,6 +372,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         mcqTtsQuestion,
         mcqTtsCorrectAnswer,
         mcqTtsExtra,
+        ttsAutoDetect,
         cardSize,
         fieldMapping,
       ]
@@ -416,11 +425,12 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setMcqTtsQuestion(DEFAULT_MCQ_TTS_LANG);
       setMcqTtsCorrectAnswer(DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(DEFAULT_MCQ_TTS_LANG);
+      setTtsAutoDetect(false);
       setFieldMapping(getDefaultFieldMapping(DEFAULT_TEMPLATE));
       if (options) {
         const reset: Record<string, boolean> = {};
         options.forEach((o: CardOption) => {
-          reset[o.key] = false;
+          reset[o.key] = o.value;
         });
         setCheckboxValues(reset);
       }
@@ -447,6 +457,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       payload['mcq-tts-question'] = mcqTtsQuestion;
       payload['mcq-tts-correct-answer'] = mcqTtsCorrectAnswer;
       payload['mcq-tts-extra'] = mcqTtsExtra;
+      payload['tts-auto-detect'] = ttsAutoDetect.toString();
       payload['card-size'] = cardSize;
       if (fieldMapping != null) {
         payload['field-mapping'] = JSON.stringify(fieldMapping);
@@ -800,6 +811,55 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                         </p>
                       </div>
                     </>
+                  )}
+                </div>
+              )}
+              {isCardTypesGroup && (
+                <div className={fieldStyles.optionGroup} id="audio">
+                  <h3 className={fieldStyles.groupHeading}>Audio</h3>
+                  <p className={fieldStyles.groupIntro}>
+                    Two settings, opposite effects. One adds Anki&apos;s built-in voice to your cards. The other hides raw MP3 URLs your source may carry.
+                  </p>
+
+                  <div className={fieldStyles.section}>
+                    <label className={fieldStyles.toggleRow}>
+                      <span className={fieldStyles.toggleSwitch}>
+                        <input
+                          type="checkbox"
+                          role="switch"
+                          checked={ttsAutoDetect}
+                          onChange={(e) => {
+                            setTtsAutoDetect(e.target.checked);
+                            saveValueInLocalStorage('tts-auto-detect', e.target.checked.toString(), pageId);
+                          }}
+                        />
+                        <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
+                      </span>
+                      <span className={fieldStyles.toggleLabel}>Read cards aloud</span>
+                    </label>
+                    <p className={fieldStyles.sectionHint}>
+                      Adds Anki&apos;s on-device voice to each card. Japanese, Korean, and Chinese are detected automatically; everything else reads in English. No audio file is added to your deck.
+                    </p>
+                  </div>
+
+                  {optionsByKey['remove-mp3-links'] && (
+                    <div className={fieldStyles.section}>
+                      <label className={fieldStyles.toggleRow}>
+                        <span className={fieldStyles.toggleSwitch}>
+                          <input
+                            type="checkbox"
+                            role="switch"
+                            checked={checkboxValues['remove-mp3-links'] ?? false}
+                            onChange={(e) => toggleCheckbox('remove-mp3-links', e.target.checked)}
+                          />
+                          <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
+                        </span>
+                        <span className={fieldStyles.toggleLabel}>Remove MP3 links from audio files</span>
+                      </label>
+                      <p className={fieldStyles.sectionHint}>
+                        Hides raw MP3 URLs that appear as visible text on cards. Embedded audio still plays — only the visible link is stripped.
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
