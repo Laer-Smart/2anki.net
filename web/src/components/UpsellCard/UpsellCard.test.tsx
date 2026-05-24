@@ -168,4 +168,24 @@ describe('UpsellCard', () => {
       expect(screen.getByRole('button', { name: 'Day Pass' })).toBeInTheDocument();
     });
   });
+
+  it('clears the Redirecting label when the page is restored from the back-forward cache', async () => {
+    mockUseUserLocals.mockReturnValue(freeUser);
+    mockStartPassCheckout.mockReturnValue(new Promise(() => {}));
+
+    render(<UpsellCard surface="downloads_upsell" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Day Pass' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Redirecting…' })).toBeDisabled();
+    });
+
+    const pageshow = new Event('pageshow');
+    Object.defineProperty(pageshow, 'persisted', { value: true });
+    fireEvent(globalThis.window, pageshow);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Day Pass' })).toBeEnabled();
+    });
+  });
 });

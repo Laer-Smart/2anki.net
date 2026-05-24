@@ -39,6 +39,16 @@ export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProp
     track('paywall_shown', { surface });
   }, [suppress, surface]);
 
+  useEffect(() => {
+    const resetOnRestore = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setPendingKind(null);
+      }
+    };
+    globalThis.addEventListener('pageshow', resetOnRestore);
+    return () => globalThis.removeEventListener('pageshow', resetOnRestore);
+  }, []);
+
   if (suppress) return null;
 
   const email = data?.user?.email;
