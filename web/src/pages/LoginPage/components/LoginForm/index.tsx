@@ -10,6 +10,7 @@ import { WithNotionLink } from '../../../../components/forms/WithNotionLink';
 import { WithMicrosoftLink } from '../../../../components/forms/WithMicrosoftLink';
 import { get2ankiApi } from '../../../../lib/backend/get2ankiApi';
 import styles from '../../../../styles/auth.module.css';
+import loginStyles from './LoginForm.module.css';
 
 type LoginStep = 'email' | 'password' | 'check-email';
 
@@ -60,9 +61,17 @@ function LoginForm() {
 
   return (
     <div className={styles.formPage}>
+      <img
+        src="/mascot/navbar-logo.png"
+        alt=""
+        className={loginStyles.mascot}
+      />
       <div className={styles.formCard}>
         <TopMessage />
-        <h1 className={styles.formTitle}>Log in</h1>
+        <h1 className={styles.formTitle}>Log in to 2anki</h1>
+        <p className={loginStyles.subtitle}>
+          Turn your notes into Anki cards.
+        </p>
         {isEmailStep ? (
           <>
             <div className={styles.field}>
@@ -86,6 +95,9 @@ function LoginForm() {
                   required
                 />
               </label>
+              <p className={styles.helpMuted}>
+                We&apos;ll email you a sign-in link — no password needed.
+              </p>
             </div>
             <div className={styles.field}>
               <button

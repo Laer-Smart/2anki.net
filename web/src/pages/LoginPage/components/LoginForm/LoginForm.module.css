@@ -1,0 +1,12 @@
+.mascot {
+  display: block;
+  width: 48px;
+  height: auto;
+  margin: 0 auto 1.5rem;
+}
+
+.subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: -1.25rem 0 1.75rem;
+}
