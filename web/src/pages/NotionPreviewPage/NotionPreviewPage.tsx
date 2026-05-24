@@ -2,6 +2,13 @@ import { ReactElement } from 'react';
 import sharedStyles from '../../styles/shared.module.css';
 import searchStyles from '../SearchPage/SearchPage.module.css';
 import previewStyles from '../AccountPreviewPage/AccountPreviewPage.module.css';
+import ConnectNotion from '../SearchPage/components/ConnectNotion';
+import SearchBar from '../SearchPage/components/SearchBar';
+import SearchObjectEntry from '../SearchPage/components/SearchObjectEntry';
+import { SkeletonList } from '../../components/Skeleton/Skeleton';
+
+const noopFavorites = () => {};
+const noopError = () => {};
 
 interface Variant {
   label: string;
@@ -12,7 +19,7 @@ interface Variant {
 const variants: Variant[] = [
   {
     label: 'Connected — Notion workspace linked',
-    note: 'Header reads "Notion". Workspace badge with green dot + Switch link on the right.',
+    note: 'Header + quiet workspace caption + search bar. Each row has one blue primary (Convert) and three dimmed secondary affordances that brighten on hover.',
     render: () => (
       <div className={sharedStyles.page}>
         <header className={sharedStyles.pageHeader}>
@@ -21,24 +28,90 @@ const variants: Variant[] = [
             Find a page and convert it into an Anki deck.
           </p>
         </header>
-        <div className={searchStyles.workspaceLabel}>
+        <div className={searchStyles.workspaceLine}>
           <span className={searchStyles.workspaceDot} />
-          Alexander&apos;s Workspace
+          <span className={searchStyles.workspaceName}>
+            Alexander&apos;s Workspace
+          </span>
           <a href="#preview" className={searchStyles.workspaceSwitch}>
             Switch
           </a>
         </div>
-        <div className={searchStyles.searchSurface}>
-          <div className={previewStyles.placeholder}>
-            Search input + page list renders here.
-          </div>
+        <div className={searchStyles.stickyBar}>
+          <SearchBar
+            value=""
+            inProgress={false}
+            onSearchClicked={() => {}}
+            onSearchQueryChanged={() => {}}
+          />
+        </div>
+        <SearchObjectEntry
+          isFavorite={false}
+          title="Organic Chemistry — Ch. 4"
+          icon={undefined}
+          url="https://notion.so/preview-1"
+          id="preview-1"
+          type="page"
+          setFavorites={noopFavorites}
+          setError={noopError}
+        />
+        <SearchObjectEntry
+          isFavorite={false}
+          title="Pharmacology Week 7"
+          icon={undefined}
+          url="https://notion.so/preview-2"
+          id="preview-2"
+          type="page"
+          setFavorites={noopFavorites}
+          setError={noopError}
+        />
+        <SearchObjectEntry
+          isFavorite={false}
+          title="Daily flashcards"
+          icon={undefined}
+          url="https://notion.so/preview-3"
+          id="preview-3"
+          type="database"
+          setFavorites={noopFavorites}
+          setError={noopError}
+        />
+      </div>
+    ),
+  },
+  {
+    label: 'Searching — input pulses on the border',
+    note: 'In-progress search shows a quiet border-pulse on the input, no separate text indicator.',
+    render: () => (
+      <div className={sharedStyles.page}>
+        <header className={sharedStyles.pageHeader}>
+          <h1 className={sharedStyles.title}>Notion</h1>
+          <p className={sharedStyles.subtitle}>
+            Find a page and convert it into an Anki deck.
+          </p>
+        </header>
+        <div className={searchStyles.workspaceLine}>
+          <span className={searchStyles.workspaceDot} />
+          <span className={searchStyles.workspaceName}>
+            Alexander&apos;s Workspace
+          </span>
+          <a href="#preview" className={searchStyles.workspaceSwitch}>
+            Switch
+          </a>
+        </div>
+        <div className={searchStyles.stickyBar}>
+          <SearchBar
+            value="organic"
+            inProgress
+            onSearchClicked={() => {}}
+            onSearchQueryChanged={() => {}}
+          />
         </div>
       </div>
     ),
   },
   {
     label: 'Not connected — empty state',
-    note: 'No workspace label. Header reads "Get started". ConnectNotion CTA is in place of the search list.',
+    note: 'One primary card. Upload is a quieter fallback row beneath, not a sibling card.',
     render: () => (
       <div className={sharedStyles.page}>
         <header className={sharedStyles.pageHeader}>
@@ -47,9 +120,7 @@ const variants: Variant[] = [
             Connect your Notion workspace or upload files to create Anki decks.
           </p>
         </header>
-        <div className={previewStyles.placeholder}>
-          ConnectNotion card renders here (Connect to Notion / Upload a file two-up).
-        </div>
+        <ConnectNotion ready connectionLink="#preview" />
       </div>
     ),
   },
@@ -64,11 +135,7 @@ const variants: Variant[] = [
             Connect your Notion workspace or upload files to create Anki decks.
           </p>
         </header>
-        <div className={searchStyles.searchSurface}>
-          <div className={previewStyles.placeholder}>
-            SkeletonList placeholder.
-          </div>
-        </div>
+        <SkeletonList count={5} />
       </div>
     ),
   },
