@@ -32,10 +32,28 @@ describe('LoginForm', () => {
 
   it('renders email step with email input and primary CTA', () => {
     renderLoginForm();
-    expect(screen.getByText('Log in')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Log in to 2anki' })
+    ).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: 'Email' })).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Email me a sign-in link' })
+    ).toBeInTheDocument();
+  });
+
+  it('shows the product subtitle on the email step', () => {
+    renderLoginForm();
+    expect(
+      screen.getByText('Turn your notes into Anki cards.')
+    ).toBeInTheDocument();
+  });
+
+  it('shows the magic-link helper text under the email input', () => {
+    renderLoginForm();
+    expect(
+      screen.getByText(
+        "We'll email you a sign-in link — no password needed."
+      )
     ).toBeInTheDocument();
   });
 
