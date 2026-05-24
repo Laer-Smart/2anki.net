@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-24-upload-error-messages",
+  "date": "2026-05-24",
+  "type": "fix",
+  "title": "Upload errors say what went wrong — file too large or unsupported type — instead of a generic message"
+}

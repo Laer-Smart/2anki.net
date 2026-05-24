@@ -1,4 +1,5 @@
 import express from 'express';
+import multer from 'multer';
 
 import ErrorHandler from './ErrorHandler';
 import { PythonExitError } from '../../lib/anki/buildPythonExitError';
@@ -134,6 +135,54 @@ describe('ErrorHandler', () => {
 
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ code: 'malformed_notion' })
+    );
+  });
+
+  test('emits code=too_large for multer LIMIT_FILE_SIZE', async () => {
+    const res = makeResponse(false);
+    const req = makeRequest();
+
+    const err = new multer.MulterError('LIMIT_FILE_SIZE');
+
+    await ErrorHandler(res as unknown as express.Response, req, err);
+
+    expect(res.statusCode).toBe(413);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: 'too_large',
+        message: expect.stringContaining('50 MB'),
+      })
+    );
+  });
+
+  test('emits code=unsupported_format for multer LIMIT_UNEXPECTED_FILE', async () => {
+    const res = makeResponse(false);
+    const req = makeRequest();
+
+    const err = new multer.MulterError('LIMIT_UNEXPECTED_FILE');
+
+    await ErrorHandler(res as unknown as express.Response, req, err);
+
+    expect(res.statusCode).toBe(415);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: 'unsupported_format',
+        message: expect.stringContaining('.zip'),
+      })
+    );
+  });
+
+  test('emits code=unknown with multer message for other MulterErrors', async () => {
+    const res = makeResponse(false);
+    const req = makeRequest();
+
+    const err = new multer.MulterError('LIMIT_PART_COUNT');
+
+    await ErrorHandler(res as unknown as express.Response, req, err);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'unknown' })
     );
   });
 

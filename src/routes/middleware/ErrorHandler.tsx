@@ -1,5 +1,6 @@
 import express from 'express';
 import fs from 'fs';
+import multer from 'multer';
 import nodemailer from 'nodemailer';
 import { UploadedFile } from '../../lib/storage/types';
 import { isLimitError } from '../../lib/misc/isLimitError';
@@ -100,8 +101,32 @@ export default async function ErrorHandler(
     return;
   }
 
+  if (err instanceof multer.MulterError) {
+    const multerBody = toMulterErrorBody(err);
+    res.status(multerBody.status).json({ code: multerBody.code, message: multerBody.message });
+    return;
+  }
+
   const code: UploadErrorCode =
     err instanceof PythonExitError ? toUploadErrorCode(err.kind) : 'unknown';
   const body: UploadErrorBody = { code, message: err.message };
   res.status(400).json(body);
+}
+
+function toMulterErrorBody(err: multer.MulterError): { status: number; code: UploadErrorCode; message: string } {
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return {
+      status: 413,
+      code: 'too_large',
+      message: 'Upload failed — file is over the 50 MB limit. Try splitting it.',
+    };
+  }
+  if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+    return {
+      status: 415,
+      code: 'unsupported_format',
+      message: 'This file type isn\'t supported. Use .zip, .html, .md, .csv, or .apkg.',
+    };
+  }
+  return { status: 400, code: 'unknown', message: err.message };
 }

@@ -31,6 +31,16 @@ describe('extractErrorMessage', () => {
     expect(result.code).toBe('unknown');
   });
 
+  test('extracts code=unsupported_format when server sends that code', async () => {
+    const response = jsonResponse({
+      code: 'unsupported_format',
+      message: "This file type isn't supported. Use .zip, .html, .md, .csv, or .apkg.",
+    });
+    const result = await extractErrorMessage(response);
+    expect(result.code).toBe('unsupported_format');
+    expect(result.message).toContain('.zip');
+  });
+
   test('strips HTML tags from plain-text error response', async () => {
     const response = textResponse(
       '<p>Could not create a deck using your file</p>'
