@@ -1,6 +1,5 @@
 import { PricingCard } from './PricingCard';
 import { AUTO_SYNC_PRICE, MONTHLY_SUFFIX } from '../pricing.constants';
-import styles from '../PricingPage.module.css';
 
 const AUTO_SYNC_BENEFITS = [
   'Everything in Unlimited',
@@ -16,7 +15,6 @@ interface AutoSyncCardProps {
   isLifetime: boolean;
   isActive: boolean;
   capReached: boolean;
-  highlighted?: boolean;
   caption?: string;
   waitlistLabel: string;
   waitlistDisabled: boolean;
@@ -29,7 +27,6 @@ export function AutoSyncCard({
   isLifetime,
   isActive,
   capReached,
-  highlighted = false,
   caption,
   waitlistLabel,
   waitlistDisabled,
@@ -37,14 +34,10 @@ export function AutoSyncCard({
   onWaitlist,
 }: Readonly<AutoSyncCardProps>) {
   const newBadge = showNewBadge ? 'New — built for Notion' : undefined;
-  const cardClass = highlighted
-    ? `${styles.cardAutoSync} ${styles.cardAutoSyncUpsell}`
-    : styles.cardAutoSync;
 
   if (isLifetime) {
     return (
       <PricingCard
-        className={cardClass}
         title="Auto Sync"
         price={AUTO_SYNC_PRICE}
         priceSuffix={MONTHLY_SUFFIX}
@@ -59,7 +52,6 @@ export function AutoSyncCard({
   if (isActive) {
     return (
       <PricingCard
-        className={cardClass}
         title="Auto Sync"
         price={AUTO_SYNC_PRICE}
         priceSuffix={MONTHLY_SUFFIX}
@@ -69,6 +61,7 @@ export function AutoSyncCard({
         onAction={() => undefined}
         actionLabel="Subscribed"
         actionDisabled
+        variant="outline"
         learnMoreHref={LEARN_MORE_HREF}
       />
     );
@@ -77,7 +70,6 @@ export function AutoSyncCard({
   if (capReached) {
     return (
       <PricingCard
-        className={cardClass}
         title="Auto Sync"
         price={AUTO_SYNC_PRICE}
         priceSuffix={MONTHLY_SUFFIX}
@@ -87,6 +79,7 @@ export function AutoSyncCard({
         onAction={onWaitlist}
         actionLabel={waitlistLabel}
         actionDisabled={waitlistDisabled}
+        variant="outline"
         caption={caption ?? "We're at capacity — we'll email you when a seat opens."}
         learnMoreHref={LEARN_MORE_HREF}
       />
@@ -95,7 +88,6 @@ export function AutoSyncCard({
 
   return (
     <PricingCard
-      className={cardClass}
       title="Auto Sync"
       price={AUTO_SYNC_PRICE}
       priceSuffix={MONTHLY_SUFFIX}
@@ -104,6 +96,7 @@ export function AutoSyncCard({
       benefits={AUTO_SYNC_BENEFITS}
       onAction={onSubscribe}
       actionLabel="Subscribe"
+      variant="outline"
       caption={caption}
       learnMoreHref={LEARN_MORE_HREF}
     />

@@ -324,14 +324,6 @@ export default function PricingPage({
         </div>
       )}
 
-      <p className={styles.sectionLabel}>Pay once — no subscription</p>
-      <PassCards
-        onDayPass={() => handlePassCheckout('24h')}
-        onWeekPass={() => handlePassCheckout('7d')}
-        dayPassPending={dayPassState === 'pending'}
-        weekPassPending={weekPassState === 'pending'}
-      />
-
       <p className={styles.sectionLabel}>Monthly plans</p>
       <div className={styles.anchorGrid}>
         <UnlimitedCard
@@ -348,7 +340,6 @@ export default function PricingPage({
           isLifetime={isLifetime}
           isActive={autoSyncActive}
           capReached={showCapReached}
-          highlighted={isAutoSyncUpsell}
           caption={autoSyncCaptionText}
           waitlistLabel={waitlistLabel}
           waitlistDisabled={
@@ -359,10 +350,17 @@ export default function PricingPage({
         />
       </div>
 
+      <p className={styles.sectionLabel}>Pay once — no subscription</p>
+      <PassCards
+        onDayPass={() => handlePassCheckout('24h')}
+        onWeekPass={() => handlePassCheckout('7d')}
+        dayPassPending={dayPassState === 'pending'}
+        weekPassPending={weekPassState === 'pending'}
+      />
+
       <p className={styles.sectionLabel}>One-time payment</p>
       <div className={styles.grid}>
         <PricingCard
-          className={styles.cardLifetime}
           badge="Pay once"
           badgeMuted
           price="From $345"
