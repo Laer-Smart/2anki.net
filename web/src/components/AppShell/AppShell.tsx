@@ -4,7 +4,10 @@ import { PageLayout } from '../Layout/PageLayout';
 import { SidebarLayout } from './SidebarLayout';
 import { SidebarFeatures, SidebarLocals } from './Sidebar';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
-import { removeAdSenseScript } from '../AdSense/AdSenseScript';
+import {
+  injectAdSenseScript,
+  removeAdSenseScript,
+} from '../AdSense/AdSenseScript';
 
 const TOP_BAR_PATHS = new Set(['/login', '/register', '/forgot']);
 const TOP_BAR_PREFIXES = ['/users/r/'];
@@ -36,7 +39,10 @@ export function AppShell({
   useEffect(() => {
     if (isLoggedIn == null) return;
     const isPricingRoute = pathname === '/pricing';
-    if (isLoggedIn || isPricingRoute) {
+    const shouldShowAds = !isLoggedIn && !isPricingRoute;
+    if (shouldShowAds) {
+      injectAdSenseScript();
+    } else {
       removeAdSenseScript();
     }
   }, [isLoggedIn, pathname]);
