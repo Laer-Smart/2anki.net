@@ -14,4 +14,12 @@ describe('WithNotionLink', () => {
     render(<WithNotionLink text="Sign in with Notion" />);
     expect(screen.getByText('Sign in with Notion')).toBeInTheDocument();
   });
+
+  it('card variant shows the short "Notion" label and keeps the full text as accessible name', () => {
+    render(<WithNotionLink text="Continue with Notion" variant="card" />);
+    expect(screen.getByText('Notion')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Continue with Notion' })
+    ).toBeInTheDocument();
+  });
 });

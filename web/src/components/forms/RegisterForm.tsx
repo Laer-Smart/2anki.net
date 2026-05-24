@@ -95,11 +95,17 @@ function RegisterForm({ setErrorMessage, redirect, startTrial }: Props) {
         <h1 className={styles.formTitle}>
           {getVisibleText('navigation.register.title')}
         </h1>
-        <WithNotionLink text="Continue with Notion" />
-        <WithGoogleLink text={getVisibleText('navigation.register.google')} />
-        <WithMicrosoftLink
-          text={getVisibleText('navigation.register.microsoft')}
-        />
+        <div className={styles.oauthGrid}>
+          <WithGoogleLink
+            variant="card"
+            text={getVisibleText('navigation.register.google')}
+          />
+          <WithNotionLink variant="card" text="Continue with Notion" />
+          <WithMicrosoftLink
+            variant="card"
+            text={getVisibleText('navigation.register.microsoft')}
+          />
+        </div>
         <div className={styles.divider}>
           <span className={styles.dividerLabel}>or sign up with email</span>
         </div>

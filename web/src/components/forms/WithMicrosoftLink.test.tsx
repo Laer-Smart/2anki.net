@@ -18,4 +18,14 @@ describe('WithMicrosoftLink', () => {
     render(<WithMicrosoftLink text="Sign up with Microsoft" />);
     expect(screen.getByText('Sign up with Microsoft')).toBeInTheDocument();
   });
+
+  it('card variant shows the short "Microsoft" label and keeps the full text as accessible name', () => {
+    render(
+      <WithMicrosoftLink text="Sign in with Microsoft" variant="card" />
+    );
+    expect(screen.getByText('Microsoft')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Sign in with Microsoft' })
+    ).toBeInTheDocument();
+  });
 });
