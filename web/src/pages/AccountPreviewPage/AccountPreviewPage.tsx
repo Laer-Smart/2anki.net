@@ -50,16 +50,15 @@ const variants: Variant[] = [
         <UserProfile user={{ name: 'Casey Pro', email: 'casey@example.com' }} />
         <PlanDetails subscriptionType="subscriber" />
         <section className={accountStyles.section}>
-          <div className={accountStyles.activeBadge}>
-            Active — renews on <strong>15 June 2026</strong>.
-            <p className={accountStyles.planDetail}>$6.00 / month</p>
-          </div>
-          <div className={accountStyles.buttonRow}>
-            <button type="button" className={accountStyles.dangerButton}>
-              Cancel at end of billing period
+          <p className={accountStyles.statusLine}>
+            $6.00 / month · Renews <strong>15 June 2026</strong>
+          </p>
+          <div className={accountStyles.actions}>
+            <button type="button" className={accountStyles.secondaryButton}>
+              Cancel at period end
             </button>
-            <button type="button" className={accountStyles.dangerButton}>
-              Cancel immediately
+            <button type="button" className={accountStyles.textButton}>
+              or cancel now
             </button>
           </div>
         </section>
@@ -75,20 +74,18 @@ const variants: Variant[] = [
         <UserProfile user={{ name: 'Dani Legacy', email: 'dani@example.com' }} />
         <PlanDetails subscriptionType="subscriber" />
         <section className={accountStyles.section}>
-          <div className={accountStyles.activeBadge}>
-            Active — renews on <strong>15 June 2026</strong>.
-            <p className={accountStyles.planDetail}>$2.00 / month</p>
-          </div>
-          <div className={accountStyles.infoBadge}>
-            You&apos;re on our legacy $2/mo plan. If you cancel, this rate won&apos;t
-            be available again — the current price is $6/mo.
-          </div>
-          <div className={accountStyles.buttonRow}>
-            <button type="button" className={accountStyles.dangerButton}>
-              Cancel at end of billing period
+          <p className={accountStyles.statusLine}>
+            $2.00 / month · Renews <strong>15 June 2026</strong>
+          </p>
+          <p className={accountStyles.legacyNote}>
+            Cancelling forfeits this legacy rate.
+          </p>
+          <div className={accountStyles.actions}>
+            <button type="button" className={accountStyles.secondaryButton}>
+              Cancel at period end
             </button>
-            <button type="button" className={accountStyles.dangerButton}>
-              Cancel immediately
+            <button type="button" className={accountStyles.textButton}>
+              or cancel now
             </button>
           </div>
         </section>
@@ -104,14 +101,12 @@ const variants: Variant[] = [
         <UserProfile user={{ name: 'Jamie Leaving', email: 'jamie@example.com' }} />
         <PlanDetails subscriptionType="subscriber" />
         <section className={accountStyles.section}>
-          <div className={accountStyles.scheduledBadge}>
-            Scheduled to cancel on <strong>15 June 2026</strong>. You will keep
-            access until then.
-            <p className={accountStyles.planDetail}>$6.00 / month</p>
-          </div>
-          <div className={accountStyles.buttonRow}>
-            <button type="button" className={accountStyles.dangerButton}>
-              Cancel immediately instead
+          <p className={accountStyles.statusLine}>
+            Ends <strong>15 June 2026</strong>. Access continues until then.
+          </p>
+          <div className={accountStyles.actions}>
+            <button type="button" className={accountStyles.textButton}>
+              Cancel now instead
             </button>
           </div>
         </section>
@@ -127,13 +122,9 @@ const variants: Variant[] = [
         <UserProfile user={{ name: 'Sam Past', email: 'sam@example.com' }} />
         <PlanDetails subscriptionType="free" />
         <section className={accountStyles.section}>
-          <div className={accountStyles.cancelledBadge}>
-            Cancelled on <strong>1 May 2026</strong>. Your subscription is no
-            longer active.
-            <p className={accountStyles.planDetail}>
-              Previous plan: $6.00 / month
-            </p>
-          </div>
+          <p className={accountStyles.statusLineMuted}>
+            Ended <strong>1 May 2026</strong>. Previous plan: $6.00 / month.
+          </p>
         </section>
         <AccountDeletion />
       </>
