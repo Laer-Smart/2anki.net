@@ -38,19 +38,23 @@ describe('HomePage (anonymous)', () => {
     expect(screen.getByText(/drop your files here/i)).toBeInTheDocument();
   });
 
-  it('shows free tier info and open source in the hero', () => {
+  it('shows the open source link in the hero footer', () => {
     renderHome();
-    expect(screen.getByText(/100 cards per month/i)).toBeInTheDocument();
     expect(screen.getByText(/open source/i)).toBeInTheDocument();
   });
 
-  it('shows the AI badge inviting anon visitors to create an account', () => {
+  it('does not anchor visitors to the free-tier card limit in the hero', () => {
     renderHome();
+    expect(screen.queryByText(/100 cards per month/i)).toBeNull();
+  });
+
+  it('shows the AI-off badge inviting anon visitors to create an account', () => {
+    renderHome();
+    expect(screen.getByText('AI is off')).toBeInTheDocument();
     const link = screen.getByRole('link', {
       name: /create an account to turn it on/i,
     });
     expect(link).toHaveAttribute('href', '/register');
-    expect(screen.getByText('AI')).toBeInTheDocument();
   });
 
   it('renders the three how-it-works steps with icons', () => {
