@@ -32,6 +32,7 @@ import type { ZoneState, LockedPdfInfo, LimitInfo } from './hooks/useUploadFormS
 
 interface UploadFormProps {
   setErrorMessage: ErrorHandlerType;
+  aiOn?: boolean;
 }
 
 const FORMATS = ['.zip', '.html', '.md', '.pdf', '.docx', '.xlsx', '.pptx', '.csv', '.opml', '.brainstorms.json'];
@@ -207,12 +208,12 @@ function WarningIcon({ className }: Readonly<{ className?: string }>) {
   );
 }
 
-function UploadForm({ setErrorMessage }: Readonly<UploadFormProps>) {
+function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const convertRef = useRef<HTMLButtonElement>(null);
   const downloadRef = useRef<HTMLAnchorElement>(null);
   const fallbackTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
-  const { validation, validate, reset: resetValidation } = useFileValidation();
+  const { validation, validate, reset: resetValidation } = useFileValidation(aiOn);
 
   const {
     zoneState,

@@ -10,7 +10,8 @@ export interface FileValidationResult {
 }
 
 export function detectUploadIssues(
-  files: FileList | File[]
+  files: FileList | File[],
+  aiOn = false
 ): FileValidationResult | null {
   const fileArray = Array.from(files);
   if (fileArray.length === 0) return null;
@@ -44,6 +45,14 @@ export function detectUploadIssues(
     f.name.toLowerCase().endsWith('.pdf')
   );
   if (allPdf) {
+    if (aiOn) {
+      return {
+        status: 'info',
+        title: 'Claude will generate cards from this PDF',
+        body: 'Cards are based on the content, not the page count. Set the card size in Settings to control how much fits on each card.',
+        continueLabel: 'Make cards from this PDF',
+      };
+    }
     return {
       status: 'info',
       title: 'Each pair of pages becomes one card',
@@ -64,7 +73,7 @@ export function detectUploadIssues(
   return null;
 }
 
-export function useFileValidation() {
+export function useFileValidation(aiOn = false) {
   const [validation, setValidation] = useState<FileValidationResult | null>(
     null
   );
@@ -72,7 +81,7 @@ export function useFileValidation() {
 
   const validate = useCallback(
     (files: FileList): boolean => {
-      const result = detectUploadIssues(files);
+      const result = detectUploadIssues(files, aiOn);
       if (result) {
         setValidation(result);
         setPendingFiles(files);
@@ -82,7 +91,7 @@ export function useFileValidation() {
       setPendingFiles(null);
       return true;
     },
-    []
+    [aiOn]
   );
 
   const reset = useCallback(() => {
