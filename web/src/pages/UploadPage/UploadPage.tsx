@@ -66,10 +66,10 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       <Helmet>
         <title>Upload — 2anki</title>
       </Helmet>
-      <header className={styles.pageHeaderCenter}>
+      <header className={styles.pageHeader}>
         <h1 className={styles.title}>Convert your notes</h1>
         <p className={styles.subtitle}>
-          PDF, Word, Notion export, Markdown, HTML, Excel, CSV, or PowerPoint — one deck per file
+          Drop a file and get a clean Anki deck in seconds
         </p>
       </header>
       <OnboardingTour

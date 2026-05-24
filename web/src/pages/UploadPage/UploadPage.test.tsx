@@ -56,10 +56,10 @@ describe('UploadPage header', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders the format-list subtitle', () => {
+  it('renders the page subtitle', () => {
     renderPage();
     expect(
-      screen.getAllByText(/PDF, Word, Notion export, Markdown, HTML, Excel, CSV, or PowerPoint/i)[0]
+      screen.getByText(/Drop a file and get a clean Anki deck in seconds/i)
     ).toBeInTheDocument();
   });
 });
