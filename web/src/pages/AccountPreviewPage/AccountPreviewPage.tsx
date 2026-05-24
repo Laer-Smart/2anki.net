@@ -141,7 +141,7 @@ const variants: Variant[] = [
   },
   {
     label: 'Lifetime',
-    note: 'Bought the $96 lifetime; nothing to manage.',
+    note: 'Bought the lifetime plan; nothing to manage.',
     render: () => (
       <>
         <UserProfile user={{ name: 'Robin Forever', email: 'robin@example.com' }} />
