@@ -73,7 +73,7 @@
 .workspaceSwitch {
   color: var(--color-text-tertiary);
   text-decoration: none;
-  margin-left: 0.5rem;
+  margin-left: auto;
 }
 
 .workspaceSwitch:hover {

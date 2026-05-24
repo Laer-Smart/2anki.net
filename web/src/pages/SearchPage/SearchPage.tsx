@@ -63,7 +63,7 @@ export function SearchPage({ setError }: Readonly<SearchPageProps>) {
             href={notionData.connectionLink}
             className={searchStyles.workspaceSwitch}
           >
-            Switch
+            Switch workspace
           </a>
         </div>
       )}

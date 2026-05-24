@@ -34,7 +34,7 @@ const variants: Variant[] = [
             Alexander&apos;s Workspace
           </span>
           <a href="#preview" className={searchStyles.workspaceSwitch}>
-            Switch
+            Switch workspace
           </a>
         </div>
         <div className={searchStyles.stickyBar}>
@@ -95,7 +95,7 @@ const variants: Variant[] = [
             Alexander&apos;s Workspace
           </span>
           <a href="#preview" className={searchStyles.workspaceSwitch}>
-            Switch
+            Switch workspace
           </a>
         </div>
         <div className={searchStyles.stickyBar}>
