@@ -47,10 +47,10 @@ jobs:
             pm2 startOrRestart ecosystem.config.js --update-env
             pm2 save
 
-            echo "Waiting for /api/version to respond..."
+            echo "Waiting for /api/version on :3000 to respond..."
             HEALTHY=0
             for i in $(seq 1 15); do
-              if curl -fsS http://localhost:2020/api/version >/dev/null 2>&1; then
+              if curl -fsS http://127.0.0.1:3000/api/version >/dev/null 2>&1; then
                 echo "Health check passed after ${i} attempts"
                 HEALTHY=1
                 break
