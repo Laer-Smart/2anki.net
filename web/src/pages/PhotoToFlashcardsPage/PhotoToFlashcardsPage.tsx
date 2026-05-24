@@ -53,7 +53,9 @@ async function fileToBase64(file: File): Promise<string> {
   });
 }
 
-async function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
+async function getImageDimensions(
+  file: File
+): Promise<{ width: number; height: number }> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
@@ -92,7 +94,8 @@ export function PhotoToFlashcardsPage() {
   const [error, setError] = useState<string | null>(null);
   const [uploadSource, setUploadSource] = useState<UploadSource>('library');
   const [includeSourceImage, setIncludeSourceImage] = useState(true);
-  const [targetCardCount, setTargetCardCount] = useState<number>(readStoredCardCount);
+  const [targetCardCount, setTargetCardCount] =
+    useState<number>(readStoredCardCount);
   const density: Density = cardCountToDensity(targetCardCount);
   const [mode, setMode] = useState<PhotoMode>('generative');
   const [includeMcq, setIncludeMcq] = useState<boolean>(readStoredMcqEnabled);
@@ -206,7 +209,9 @@ export function PhotoToFlashcardsPage() {
         return;
       }
       if (res.status === 413) {
-        setError('Photo is too large. Try a smaller or lower-resolution image.');
+        setError(
+          'Photo is too large. Try a smaller or lower-resolution image.'
+        );
         setStatus('idle');
         return;
       }
@@ -218,12 +223,16 @@ export function PhotoToFlashcardsPage() {
         const limit = body.limit ?? 5;
         const used = body.used ?? limit;
         track('photo_quota_reached', { used, limit });
-        setError(`Free plan is ${limit} photos per month. Upgrade for unlimited.`);
+        setError(
+          `Free plan is ${limit} photos per month. Upgrade for unlimited.`
+        );
         setStatus('idle');
         return;
       }
       if (!res.ok) {
-        const body = (await res.json().catch(() => ({ message: res.statusText }))) as {
+        const body = (await res
+          .json()
+          .catch(() => ({ message: res.statusText }))) as {
           message?: string;
         };
         setError(body.message ?? "Couldn't read this photo. Try again.");
@@ -247,7 +256,7 @@ export function PhotoToFlashcardsPage() {
   };
 
   return (
-    <section className={pageStyles.page} aria-label="Photo to deck">
+    <section className={styles.page} aria-label="Photo to deck">
       <header className={styles.pageHeader}>
         <h1 className={styles.title}>Photo to deck</h1>
         <p className={styles.subtitle}>
@@ -270,9 +279,12 @@ export function PhotoToFlashcardsPage() {
             className={`${pageStyles.modeCard} ${mode === 'generative' ? pageStyles.modeCardActive : ''}`}
             onClick={() => setMode('generative')}
           >
-            <span className={pageStyles.modeCardTitle} aria-hidden>Generate cards</span>
+            <span className={pageStyles.modeCardTitle} aria-hidden>
+              Generate cards
+            </span>
             <span className={pageStyles.modeCardHelper}>
-              Works on any notes, textbook pages, or slides — AI writes the questions.
+              Works on any notes, textbook pages, or slides — AI writes the
+              questions.
             </span>
           </button>
           <button
@@ -283,18 +295,18 @@ export function PhotoToFlashcardsPage() {
             className={`${pageStyles.modeCard} ${mode === 'verbatim' ? pageStyles.modeCardActive : ''}`}
             onClick={() => setMode('verbatim')}
           >
-            <span className={pageStyles.modeCardTitle} aria-hidden>Copy existing questions</span>
+            <span className={pageStyles.modeCardTitle} aria-hidden>
+              Copy existing questions
+            </span>
             <span className={pageStyles.modeCardHelper}>
-              Photo already has Q&amp;A or MCQs? Cards are copied exactly as written.
+              Photo already has Q&amp;A or MCQs? Cards are copied exactly as
+              written.
             </span>
           </button>
         </div>
       </div>
 
       <div className={styles.sectionCard} data-section-card>
-        <p className={styles.subtitle}>
-          Cards come from what's in your photo — nothing added, nothing removed.
-        </p>
         <div className={pageStyles.row}>
           <label className={pageStyles.deckNameLabel} htmlFor="photo-deck-name">
             Deck name
@@ -312,7 +324,7 @@ export function PhotoToFlashcardsPage() {
         <div className={pageStyles.cameraButtonContainer}>
           <button
             type="button"
-            className={pageStyles.cameraButton}
+            className={styles.btnPrimary}
             onClick={() => cameraInputRef.current?.click()}
           >
             Take a photo
@@ -338,11 +350,19 @@ export function PhotoToFlashcardsPage() {
         >
           {previewUrl == null ? (
             <>
-              <span className={pageStyles.dropzoneTitle}>Drop a photo or click to select</span>
-              <span className={pageStyles.dropzoneHint}>JPEG, PNG, WebP, GIF — up to 10 MB</span>
+              <span className={pageStyles.dropzoneTitle}>
+                Drop a photo or click to select
+              </span>
+              <span className={pageStyles.dropzoneHint}>
+                JPEG, PNG, WebP, GIF — up to 10 MB
+              </span>
             </>
           ) : (
-            <img src={previewUrl} alt="Selected photo" className={pageStyles.preview} />
+            <img
+              src={previewUrl}
+              alt="Selected photo"
+              className={pageStyles.preview}
+            />
           )}
           <input
             ref={fileInputRef}
@@ -358,7 +378,10 @@ export function PhotoToFlashcardsPage() {
       {mode === 'generative' && (
         <div className={styles.sectionCard} data-section-card>
           <div className={pageStyles.row}>
-            <label className={pageStyles.deckNameLabel} htmlFor="photo-card-count">
+            <label
+              className={pageStyles.deckNameLabel}
+              htmlFor="photo-card-count"
+            >
               How many cards?
             </label>
             <input
@@ -372,7 +395,8 @@ export function PhotoToFlashcardsPage() {
             />
           </div>
           <p className={pageStyles.densityHint}>
-            3–5 for a quick pass, 6–10 for typical study, 11–20 for a dense page.
+            3–5 for a quick pass, 6–10 for typical study, 11–20 for a dense
+            page.
           </p>
         </div>
       )}
@@ -405,7 +429,10 @@ export function PhotoToFlashcardsPage() {
                 const next = e.target.checked;
                 setIncludeMcq(next);
                 if (typeof window !== 'undefined') {
-                  window.localStorage.setItem(MCQ_ENABLED_STORAGE_KEY, String(next));
+                  window.localStorage.setItem(
+                    MCQ_ENABLED_STORAGE_KEY,
+                    String(next)
+                  );
                 }
               }}
             />
@@ -420,11 +447,14 @@ export function PhotoToFlashcardsPage() {
         </p>
       </div>
 
-      {error != null && <div className={styles.notificationDanger}>{error}</div>}
+      {error != null && (
+        <div className={styles.notificationDanger}>{error}</div>
+      )}
 
       {status === 'done' && !verbatimEmptyState && (
         <div className={styles.notificationSuccess}>
-          {cardCount} {cardCount === 1 ? 'card' : 'cards'} from your photo. Deck downloaded.
+          {cardCount} {cardCount === 1 ? 'card' : 'cards'} from your photo. Deck
+          downloaded.
         </div>
       )}
 
