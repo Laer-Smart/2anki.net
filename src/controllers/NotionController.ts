@@ -32,6 +32,7 @@ import { getOwner } from '../lib/User/getOwner';
 import sendErrorResponse from '../lib/sendErrorResponse';
 import { isPaying } from '../lib/isPaying';
 import ParserRules from '../lib/parser/ParserRules';
+import { GetDatabasePreviewUseCase } from '../usecases/notion/GetDatabasePreviewUseCase';
 
 const DEFAULT_PREVIEW_PAGE_SIZE = 15;
 const MAX_PREVIEW_PAGE_SIZE = 50;
@@ -369,6 +370,33 @@ class NotionController {
       console.info('Query database failed');
       console.error(error);
       sendErrorResponse(error, res);
+    }
+  }
+
+  async previewDatabase(req: Request, res: Response) {
+    const rawId = req.params.id;
+    if (!rawId) {
+      return res.status(400).json({ message: 'Missing database id.' });
+    }
+    const id = getNotionId(rawId) ?? rawId.replaceAll('-', '');
+
+    try {
+      const api = await this.service.getNotionAPI(res.locals.owner);
+      const useCase = new GetDatabasePreviewUseCase(api);
+      const preview = await useCase.execute(id, res.locals.owner);
+      return res.json(preview);
+    } catch (error) {
+      if (
+        error instanceof APIResponseError &&
+        error.code === APIErrorCode.ObjectNotFound
+      ) {
+        return res.status(404).json({
+          message:
+            'This database is no longer available. It may have been deleted or moved in Notion.',
+        });
+      }
+      console.info('Preview database failed');
+      return sendErrorResponse(error, res);
     }
   }
 

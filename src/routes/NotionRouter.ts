@@ -578,6 +578,33 @@ const NotionRouter = () => {
 
   /**
    * @swagger
+   * /api/notion/database/{id}/preview:
+   *   get:
+   *     summary: Read-only preview of a Notion database
+   *     description: Returns the database title, column names, server-inferred Front/Back mapping, and up to 10 sample rows. Used by the /preview/database/:id page so users can inspect a database before queueing a conversion.
+   *     tags: [Notion]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema: { type: string }
+   *     responses:
+   *       200:
+   *         description: Preview payload
+   *       404:
+   *         description: Database not found
+   */
+  router.get(
+    '/api/notion/database/:id/preview',
+    RequireAuthentication,
+    (req, res) => controller.previewDatabase(req, res)
+  );
+
+  /**
+   * @swagger
    * /api/notion/database/query/{id}:
    *   get:
    *     summary: Query Notion database
