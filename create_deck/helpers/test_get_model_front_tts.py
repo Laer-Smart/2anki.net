@@ -31,6 +31,8 @@ def _mcq_descriptor():
 
 
 class TestApplyFrontTts:
+    """Unit tests for `_apply_front_tts` over each model type."""
+
     def test_basic_injects_front_field(self):
         assert _apply_front_tts("X", "basic", "ja") == "{{tts ja:Front}}\nX"
 
@@ -48,6 +50,8 @@ class TestApplyFrontTts:
 
 
 class TestGetModelFrontLangIntegration:
+    """End-to-end checks that `get_model` threads `front_lang` into templates."""
+
     def test_basic_prepends_tts_when_lang_set(self):
         model = get_model(_basic_descriptor(), front_lang="ja")
         assert "{{tts ja:Front}}" in model.templates[0]["qfmt"]
