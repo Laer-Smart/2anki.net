@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 import { IErrorEventRepository, ErrorEventInsert } from '../../data_layer/ErrorEventRepository';
+import { FallbackErrorPayload } from '../../lib/errorFallback';
 
 function sha256(value: string): string {
   return crypto.createHash('sha256').update(value).digest('hex');
@@ -14,7 +15,12 @@ function resolveIp(req: Request): string {
   return req.socket?.remoteAddress ?? 'unknown';
 }
 
-export const makeErrorCaptureMiddleware = (repository: IErrorEventRepository) => {
+type FallbackWriter = (payload: FallbackErrorPayload) => void;
+
+export const makeErrorCaptureMiddleware = (
+  repository: IErrorEventRepository,
+  writeFallback?: FallbackWriter
+) => {
   return async (
     err: Error,
     req: Request,
@@ -46,7 +52,16 @@ export const makeErrorCaptureMiddleware = (repository: IErrorEventRepository) =>
         await repository.insert(row);
       }
     } catch {
-      // Never throw; ErrorHandler must still run
+      if (writeFallback != null) {
+        const message = err?.message ?? String(err);
+        writeFallback({
+          source: 'server',
+          message,
+          stack: err?.stack,
+          capturedAt: new Date().toISOString(),
+          phase: 'db-outage',
+        });
+      }
     }
     next(err);
   };

@@ -4,6 +4,7 @@ import {
   IErrorEventRepository,
   ErrorEventInsert,
 } from '../../data_layer/ErrorEventRepository';
+import { FallbackErrorPayload } from '../../lib/errorFallback';
 
 function makeRepository(existsResult = false): IErrorEventRepository & { inserts: ErrorEventInsert[] } {
   const inserts: ErrorEventInsert[] = [];
@@ -126,6 +127,27 @@ describe('makeErrorCaptureMiddleware', () => {
       middleware(testError, makeReq(), makeRes(), next)
     ).resolves.not.toThrow();
 
+    expect(next).toHaveBeenCalledWith(testError);
+  });
+
+  it('calls writeFallback with db-outage phase when the repository insert fails', async () => {
+    const brokenRepo: IErrorEventRepository = {
+      async insert() { throw new Error('DB down'); },
+      async existsWithinWindow() { throw new Error('DB down'); },
+      async listGroups() { return []; },
+      async countGroups() { return 0; },
+    };
+    const captured: FallbackErrorPayload[] = [];
+    const writeFallback = (payload: FallbackErrorPayload) => { captured.push(payload); };
+    const middleware = makeErrorCaptureMiddleware(brokenRepo, writeFallback);
+    const next = makeNext();
+
+    await middleware(testError, makeReq(), makeRes(), next);
+
+    expect(captured).toHaveLength(1);
+    expect(captured[0].phase).toBe('db-outage');
+    expect(captured[0].source).toBe('server');
+    expect(captured[0].message).toBe(testError.message);
     expect(next).toHaveBeenCalledWith(testError);
   });
 });
