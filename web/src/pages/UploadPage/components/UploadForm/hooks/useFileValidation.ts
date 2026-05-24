@@ -63,6 +63,21 @@ export function detectUploadIssues(
     };
   }
 
+  const isClippings = fileArray.some((f) =>
+    /(^|[/\\])my clippings\.txt$/i.test(f.name)
+  );
+  const isEpub = fileArray.some((f) =>
+    f.name.toLowerCase().endsWith('.epub')
+  );
+  if (isClippings || isEpub) {
+    return {
+      status: 'info',
+      title: 'Reading-format support',
+      body: 'Kindle highlights from My Clippings.txt and DRM-free EPUBs are supported. To export your Kindle highlights, connect your Kindle by USB and copy the My Clippings.txt file from the device’s documents folder.',
+      continueLabel: 'Make cards from these highlights',
+    };
+  }
+
   return null;
 }
 

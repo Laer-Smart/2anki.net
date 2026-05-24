@@ -18,6 +18,8 @@ export default function getAcceptedContentTypes(): string {
     '.docx',
     '.opml',
     '.brainstorms.json',
+    '.epub',
+    '.txt',
   ];
   return acceptedTypes.join(',');
 }
