@@ -256,6 +256,10 @@ export class Backend {
     };
   }
 
+  async getDatabasePreview(id: string): Promise<DatabasePreviewResponse> {
+    return get(`${this.baseURL}notion/database/${encodeURIComponent(id)}/preview`);
+  }
+
   async getUploads(): Promise<UserUpload[]> {
     return get(`${this.baseURL}upload/mine`);
   }
@@ -952,6 +956,27 @@ export interface GoogleDriveUpload {
   sizeBytes: string | null;
   url: string;
   last_converted_at: string | null;
+}
+
+export interface DatabasePreviewMapping {
+  frontField: string | null;
+  backField: string | null;
+  ambiguous: boolean;
+}
+
+export interface DatabasePreviewSample {
+  id: string;
+  values: Record<string, string>;
+}
+
+export interface DatabasePreviewResponse {
+  title: string;
+  url: string | null;
+  columns: string[];
+  mapping: DatabasePreviewMapping;
+  samples: DatabasePreviewSample[];
+  rowCount: number;
+  hasMore: boolean;
 }
 
 export interface ContactMessage {

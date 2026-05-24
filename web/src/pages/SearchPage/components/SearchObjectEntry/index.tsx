@@ -126,16 +126,18 @@ function SearchObjectEntry(props: Readonly<Props>) {
           image="/icons/Notion_app_logo.png"
           label={`Open ${title} in Notion`}
         />
-        {getType(type) !== 'database' && (
-          <Link
-            to={`/preview/${encodeURIComponent(id)}`}
-            className={styles.rulesButton}
-            aria-label={`Preview ${title}`}
-            title={`Preview ${title}`}
-          >
-            <EyeIcon width={32} height={32} />
-          </Link>
-        )}
+        <Link
+          to={
+            getType(type) === 'database'
+              ? `/preview/database/${encodeURIComponent(id)}`
+              : `/preview/${encodeURIComponent(id)}`
+          }
+          className={styles.rulesButton}
+          aria-label={`Preview ${title}`}
+          title={`Preview ${title}`}
+        >
+          <EyeIcon width={32} height={32} />
+        </Link>
         <button
           type="button"
           className={styles.rulesButton}

@@ -255,6 +255,41 @@ class NotionAPIWrapper {
     );
   }
 
+  async queryDatabasePreview(
+    id: string,
+    pageSize: number
+  ): Promise<{ results: unknown[]; hasMore: boolean }> {
+    const queryLabel = uniqueTimerLabel(`queryDatabasePreview:${id}`);
+    console.time(queryLabel);
+
+    const database = await withRetry(
+      () => this.notion.databases.retrieve({ database_id: id }),
+      { label: 'databases.retrieve:queryDatabasePreview' }
+    );
+    const dataSources = isFullDatabase(database) ? database.data_sources : [];
+
+    if (dataSources.length === 0) {
+      console.timeEnd(queryLabel);
+      return { results: [], hasMore: false };
+    }
+
+    const firstDataSource = dataSources[0];
+    const response = await withRetry(
+      () =>
+        this.notion.dataSources.query({
+          data_source_id: firstDataSource.id,
+          page_size: pageSize,
+        }),
+      { label: 'dataSources.query:preview' }
+    );
+
+    console.timeEnd(queryLabel);
+    return {
+      results: response.results,
+      hasMore: response.has_more,
+    };
+  }
+
   async queryDatabase(
     id: string,
     all?: boolean
