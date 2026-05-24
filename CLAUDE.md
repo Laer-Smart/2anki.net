@@ -124,7 +124,17 @@ For any task that changes user-facing behavior, invoke `pm`, `designer`, and `en
 - Where they conflict, and how the conflict was resolved
 - The resulting plan
 
-**When the trio disagrees on a visual direction, don't pick silently — ship a preview.** Build a `/dev/<surface>-preview` route that renders each candidate side by side with prefilled state for every variant the surface supports (free / paid / lifetime user, loading / error / empty, etc.). Use direct prop injection on the existing components — don't re-mock the data hooks. No auth gate, no nav link, no analytics. Push it as part of the draft PR so the user can open it locally with `pnpm dev` and choose from visuals. The preview route stays in the repo after merge as a regression check; remove only if the surface is deleted. Example: `/dev/account-preview` shipped with `style/account-redesign` to compare four subscriber states and a free + privaterelay variant at once.
+**When the trio disagrees on a visual direction, don't pick silently — ship a preview.** Build a `/dev/<surface>-preview` route that renders each candidate side by side with prefilled state for every variant the surface supports (free / paid / lifetime user, loading / error / empty, etc.). Use direct prop injection on the existing components — don't re-mock the data hooks. No auth gate, no nav link, no analytics. Push it as part of the draft PR so the user can open it locally with `pnpm dev` and choose from visuals. The preview route stays in the repo after merge as a regression check; remove only if the surface is deleted. Example: `/dev/account-preview` and `/dev/notion-preview` shipped with `style/account-redesign`.
+
+**Gate preview routes on `import.meta.env.DEV` so the chunks aren't emitted in prod.** Pattern:
+```ts
+const FooPreviewPage = import.meta.env.DEV
+  ? lazy(() => import('./pages/FooPreviewPage/FooPreviewPage'))
+  : null;
+// later, conditionally registered in the router:
+{FooPreviewPage && <Route path="/dev/foo-preview" element={<FooPreviewPage />} />}
+```
+Vite's tree-shaker drops the dead branch in production builds — the `import()` call becomes unreachable, so the chunk file never lands in `web/build/assets/`. Verify with `pnpm --filter 2anki-web build` and grep the chunk list.
 
 Use `/trio <task>` to force a trio review on any prompt regardless of the heuristic. See `.claude/commands/trio.md`.
 
