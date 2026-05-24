@@ -35,6 +35,7 @@ export function PassCards({
         onAction={onDayPass}
         actionLabel={dayPassPending ? 'Redirecting…' : 'Get Day Pass'}
         actionDisabled={dayPassPending}
+        variant="outline"
       />
       <PricingCard
         title="Week Pass"
@@ -46,6 +47,7 @@ export function PassCards({
         onAction={onWeekPass}
         actionLabel={weekPassPending ? 'Redirecting…' : 'Get Week Pass'}
         actionDisabled={weekPassPending}
+        variant="outline"
       />
     </div>
   );
