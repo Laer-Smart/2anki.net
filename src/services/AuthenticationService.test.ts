@@ -470,17 +470,19 @@ describe('mintAppleClientSecret', () => {
   const SERVICES_ID = 'com.example.2anki';
   const KEY_ID = 'KEYID56789';
   let privateKeyPem: string;
+  let privateKeyB64: string;
 
   beforeAll(() => {
     const { privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
     privateKeyPem = privateKey.export({ type: 'pkcs8', format: 'pem' }) as string;
+    privateKeyB64 = Buffer.from(privateKeyPem).toString('base64');
   });
 
   beforeEach(() => {
     process.env.APPLE_TEAM_ID = TEAM_ID;
-    process.env.APPLE_SERVICES_ID = SERVICES_ID;
+    process.env.APPLE_CLIENT_ID = SERVICES_ID;
     process.env.APPLE_KEY_ID = KEY_ID;
-    process.env.APPLE_PRIVATE_KEY = privateKeyPem;
+    process.env.APPLE_PRIVATE_KEY_B64 = privateKeyB64;
   });
 
   it('produces a JWT with alg=ES256 and the correct claims', () => {
@@ -497,6 +499,19 @@ describe('mintAppleClientSecret', () => {
     expect(typeof payload.iat).toBe('number');
     expect(typeof payload.exp).toBe('number');
     expect(payload.exp! - payload.iat!).toBeLessThanOrEqual(86400);
+  });
+
+  it('decodes APPLE_PRIVATE_KEY_B64 from base64 before signing', () => {
+    const service = createService();
+    const token = service.mintAppleClientSecret();
+    const decoded = jwt.decode(token, { complete: true }) as jwt.Jwt;
+    expect(decoded.header.alg).toBe('ES256');
+  });
+
+  it('throws when APPLE_PRIVATE_KEY_B64 is missing', () => {
+    delete process.env.APPLE_PRIVATE_KEY_B64;
+    const service = createService();
+    expect(() => service.mintAppleClientSecret()).toThrow('Apple OAuth env vars are not configured');
   });
 
   it('throws when any required env var is missing', () => {
@@ -530,12 +545,13 @@ describe('loginWithApple', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __resetAppleJwksCacheForTests();
-    process.env.APPLE_SERVICES_ID = SERVICES_ID;
-    process.env.APPLE_REDIRECT_URI = 'https://2anki.net/api/users/auth/apple';
+    process.env.APPLE_CLIENT_ID = SERVICES_ID;
     process.env.APPLE_TEAM_ID = 'TEAMID1234';
     process.env.APPLE_KEY_ID = 'KEYID56789';
     const { privateKey: sk } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
-    process.env.APPLE_PRIVATE_KEY = sk.export({ type: 'pkcs8', format: 'pem' }) as string;
+    process.env.APPLE_PRIVATE_KEY_B64 = Buffer.from(
+      sk.export({ type: 'pkcs8', format: 'pem' }) as string
+    ).toString('base64');
     mockedAxios.get = jest.fn().mockResolvedValue({ data: { keys: [publicJwk] } });
   });
 
