@@ -63,7 +63,7 @@ function LoginForm() {
   return (
     <div className={styles.formPage}>
       <img
-        src="/mascot/navbar-logo.png"
+        src="/mascot/Notion 1.png"
         alt=""
         className={loginStyles.mascot}
       />
@@ -137,13 +137,11 @@ function LoginForm() {
                 text={getVisibleText('navigation.login.google')}
               />
               <WithNotionLink variant="card" text="Continue with Notion" />
-              {searchParams.get('apple') === 'true' && (
-                <WithAppleLink variant="card" text="Sign in with Apple" />
-              )}
               <WithMicrosoftLink
                 variant="card"
                 text={getVisibleText('navigation.login.microsoft')}
               />
+              <WithAppleLink variant="card" text="Sign in with Apple" />
             </div>
           </>
         ) : (
