@@ -1,7 +1,7 @@
 import { SyntheticEvent, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import formStyles from '../../UploadPage/components/UploadForm/UploadForm.module.css';
-import styles from '../../../styles/shared.module.css';
+import styles from './PrintForm.module.css';
+import sharedStyles from '../../../styles/shared.module.css';
 
 type PrintState = 'idle' | 'uploading' | 'done' | 'error';
 type PaperSize = 'A4' | 'Letter' | 'Legal';
@@ -130,12 +130,12 @@ export default function PrintForm() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className={styles.field} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+      <div className={styles.optionsGrid}>
         <div>
-          <label htmlFor="print-paper-size" className={styles.fieldLabel}>Paper size</label>
+          <label htmlFor="print-paper-size" className={sharedStyles.fieldLabel}>Paper size</label>
           <select
             id="print-paper-size"
-            className={styles.select}
+            className={sharedStyles.select}
             value={paperSize}
             onChange={(e) => setPaperSize(e.target.value as PaperSize)}
           >
@@ -145,10 +145,10 @@ export default function PrintForm() {
           </select>
         </div>
         <div>
-          <label htmlFor="print-orientation" className={styles.fieldLabel}>Orientation</label>
+          <label htmlFor="print-orientation" className={sharedStyles.fieldLabel}>Orientation</label>
           <select
             id="print-orientation"
-            className={styles.select}
+            className={sharedStyles.select}
             value={orientation}
             onChange={(e) => setOrientation(e.target.value as Orientation)}
           >
@@ -157,10 +157,10 @@ export default function PrintForm() {
           </select>
         </div>
         <div>
-          <label htmlFor="print-margins" className={styles.fieldLabel}>Margins</label>
+          <label htmlFor="print-margins" className={sharedStyles.fieldLabel}>Margins</label>
           <select
             id="print-margins"
-            className={styles.select}
+            className={sharedStyles.select}
             value={margins}
             onChange={(e) => setMargins(e.target.value as Margins)}
           >
@@ -170,26 +170,25 @@ export default function PrintForm() {
           </select>
         </div>
         <div>
-          <label htmlFor="print-bg-color" className={styles.fieldLabel}>Page background</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', height: '2.375rem' }}>
+          <label htmlFor="print-bg-color" className={sharedStyles.fieldLabel}>Page background</label>
+          <div className={styles.colorField}>
             <input
               id="print-bg-color"
               type="color"
               value={backgroundColor}
               onChange={(e) => setBackgroundColor(e.target.value)}
-              style={{ width: '3rem', height: '2.375rem', padding: '0.125rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', cursor: 'pointer', background: 'var(--color-bg-primary)' }}
+              className={styles.colorInput}
             />
-            <span style={{ color: 'var(--color-text-secondary)', fontVariantNumeric: 'tabular-nums', fontSize: '0.875rem' }}>
+            <span className={styles.colorHex}>
               {backgroundColor.toUpperCase()}
             </span>
           </div>
         </div>
       </div>
+
       <label
         htmlFor="print-file"
-        className={`${formStyles.dropZone} ${
-          dropHover ? formStyles.dropZoneActive : ''
-        }`}
+        className={`${styles.dropZone} ${dropHover ? styles.dropZoneActive : ''}`}
         onDragOver={(e) => {
           e.preventDefault();
           setDropHover(true);
@@ -201,17 +200,16 @@ export default function PrintForm() {
         onDragLeave={() => setDropHover(false)}
         onDrop={handleDrop}
       >
-        <span className={formStyles.dropIcon}>🖨️</span>
-        <span className={formStyles.dropText}>
+        <span className={styles.dropLabel}>
           Drop an Anki deck (.apkg) here
         </span>
-        <span className={formStyles.dropHint}>or</span>
-        <span className={formStyles.convertButton}>
-          {isUploading ? 'Making your PDF...' : 'Click to select a file'}
+        <span className={styles.dropHint}>or</span>
+        <span className={styles.chooseButton}>
+          {isUploading ? 'Making your PDF' : 'Select file'}
         </span>
         <input
           ref={fileInputRef}
-          className={formStyles.fileInput}
+          className={styles.fileInput}
           id="print-file"
           type="file"
           accept=".apkg"
@@ -222,22 +220,22 @@ export default function PrintForm() {
 
       {isUploading && (
         <div
-          className={styles.notificationInfo}
+          className={sharedStyles.notificationInfo}
           style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1rem' }}
         >
-          <div className={styles.spinnerSmall} />
-          <span>Making your PDF — please keep this tab open until the download starts.</span>
+          <div className={sharedStyles.spinnerSmall} />
+          <span>Making your PDF — keep this tab open until the download starts.</span>
         </div>
       )}
 
       {state === 'done' && (
-        <p className={styles.notificationSuccess}>
+        <p className={sharedStyles.notificationSuccess}>
           Your flashcards as a PDF{cardCount == null ? '' : ` — ${cardCount} cards`}
         </p>
       )}
 
       {state === 'error' && errorMessage && (
-        <p className={styles.notificationDanger}>
+        <p className={sharedStyles.notificationDanger}>
           {errorMessage}
           {errorMessage === WRONG_TYPE_MESSAGE && (
             <>
@@ -267,10 +265,10 @@ export default function PrintForm() {
       )}
 
       {state === 'done' && (
-        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+        <div className={styles.doneActions}>
           <button
             type="button"
-            className={styles.btnSecondary}
+            className={sharedStyles.btnSecondary}
             onClick={resetForm}
           >
             Print another deck
@@ -278,7 +276,7 @@ export default function PrintForm() {
         </div>
       )}
 
-      <button ref={submitRef} type="submit" className={styles.hidden} />
+      <button ref={submitRef} type="submit" className={sharedStyles.hidden} />
     </form>
   );
 }
