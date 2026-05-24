@@ -15,7 +15,7 @@ import FavoritesPage from './pages/FavoritesPage';
 import { AppShell } from './components/AppShell/AppShell';
 import DeleteAccountPage from './pages/DeleteAccountPage';
 import { getErrorMessage } from './components/errors/helpers/getErrorMessage';
-import { sendError } from './lib/SendError';
+import { reportClientError } from './lib/reportClientError';
 import { useUserLocals } from './lib/hooks/useUserLocals';
 import { SkeletonPage } from './components/Skeleton/Skeleton';
 import NotFoundPage from './pages/NotFoundPage';
@@ -50,6 +50,7 @@ const AnkifyHistoryPage = lazy(
 );
 const OpsLayout = lazy(() => import('./pages/OpsPage/OpsLayout'));
 const EngineeringTab = lazy(() => import('./pages/OpsPage/EngineeringTab'));
+const ErrorsTab = lazy(() => import('./pages/OpsPage/ErrorsTab'));
 const PerformanceTab = lazy(() => import('./pages/OpsPage/PerformanceTab'));
 const ConversionsTab = lazy(() => import('./pages/OpsPage/ConversionsTab'));
 const BusinessTab = lazy(() => import('./pages/OpsPage/BusinessTab'));
@@ -249,6 +250,7 @@ function AppContent({
           />
           <Route path="/ops" element={requireAuth(<OpsLayout />)}>
             <Route index element={<EngineeringTab />} />
+            <Route path="errors" element={<ErrorsTab />} />
             <Route path="performance" element={<PerformanceTab />} />
             <Route path="conversions" element={<ConversionsTab />} />
             <Route path="business" element={<BusinessTab />} />
@@ -371,7 +373,7 @@ function AppWithCookies() {
    * */
   const handledError = (error: unknown) => {
     const errorMessage = getErrorMessage(error);
-    sendError(error);
+    reportClientError(error);
     setApiError(errorMessage);
   };
 
