@@ -2,7 +2,20 @@ import { Request, Response } from 'express';
 import AuthenticationService from '../../services/AuthenticationService';
 import { Knex } from 'knex';
 import UserPassRepository from '../../data_layer/UserPassRepository';
-import { IAnonymousPassRepository, AnonymousPassRepository } from '../../data_layer/AnonymousPassRepository';
+import {
+  IAnonymousPassRepository,
+  AnonymousPassRepository,
+} from '../../data_layer/AnonymousPassRepository';
+import { ValidateAnonymousPassUseCase } from '../../usecases/checkout/ValidateAnonymousPassUseCase';
+import { getStripe } from '../../lib/integrations/stripe';
+
+function resolveStripe() {
+  const key = process.env.STRIPE_KEY;
+  if (key == null || key === '') {
+    return undefined;
+  }
+  return getStripe();
+}
 
 export async function configureUserLocal(
   req: Request,
@@ -10,7 +23,8 @@ export async function configureUserLocal(
   authService: AuthenticationService,
   database: Knex,
   anonPassRepo?: IAnonymousPassRepository,
-  now?: Date
+  now?: Date,
+  validateAnonymousPass?: ValidateAnonymousPassUseCase
 ) {
   const user = await authService.getUserFrom(req.cookies.token);
   if (user) {
@@ -39,11 +53,13 @@ export async function configureUserLocal(
   const passToken = req.headers['x-pass-token'];
   if (typeof passToken === 'string' && passToken.length > 0) {
     const repo = anonPassRepo ?? new AnonymousPassRepository(database);
-    const activePass = await repo.findActive(passToken, now ?? new Date());
-    if (activePass != null) {
+    const validator =
+      validateAnonymousPass ?? new ValidateAnonymousPassUseCase(repo, resolveStripe());
+    const result = await validator.execute(passToken, now ?? new Date());
+    if (result.valid && result.pass != null) {
       res.locals.subscriber = true;
-      res.locals.passKind = activePass.kind;
-      res.locals.passExpiresAt = activePass.expires_at.toISOString();
+      res.locals.passKind = result.pass.kind;
+      res.locals.passExpiresAt = result.pass.expires_at.toISOString();
     }
   }
 }

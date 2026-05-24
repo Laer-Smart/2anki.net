@@ -38,4 +38,63 @@ describe('ValidateAnonymousPassUseCase', () => {
     const result = await useCase.execute('', now);
     expect(result.valid).toBe(false);
   });
+
+  describe('Stripe reconciliation when the webhook has not landed yet', () => {
+    const paidSession = {
+      payment_status: 'paid',
+      payment_intent: 'pi_live',
+      created: Math.floor(now.getTime() / 1000),
+      metadata: { pass_kind: '24h', pass_anonymous: '1' },
+    };
+
+    function useCaseWith(retrieve: jest.Mock) {
+      return new ValidateAnonymousPassUseCase(repo, {
+        checkout: { sessions: { retrieve } },
+      } as never);
+    }
+
+    it('reconciles a paid anonymous session and persists the pass when no record exists', async () => {
+      const retrieve = jest.fn().mockResolvedValue(paidSession);
+      const result = await useCaseWith(retrieve).execute('cs_new', now);
+
+      expect(retrieve).toHaveBeenCalledWith('cs_new');
+      expect(result.valid).toBe(true);
+      expect(result.pass).toMatchObject({ stripe_session_id: 'cs_new', kind: '24h' });
+      expect(await repo.findBySessionId('cs_new')).not.toBeNull();
+    });
+
+    it('returns valid=false for an unpaid session', async () => {
+      const retrieve = jest
+        .fn()
+        .mockResolvedValue({ ...paidSession, payment_status: 'unpaid' });
+      const result = await useCaseWith(retrieve).execute('cs_unpaid', now);
+
+      expect(result.valid).toBe(false);
+      expect(await repo.findBySessionId('cs_unpaid')).toBeNull();
+    });
+
+    it('returns valid=false when the session is not an anonymous pass', async () => {
+      const retrieve = jest
+        .fn()
+        .mockResolvedValue({ ...paidSession, metadata: { pass_kind: '24h' } });
+      const result = await useCaseWith(retrieve).execute('cs_notanon', now);
+
+      expect(result.valid).toBe(false);
+    });
+
+    it('does not call Stripe for tokens without the cs_ prefix', async () => {
+      const retrieve = jest.fn();
+      const result = await useCaseWith(retrieve).execute('not-a-session', now);
+
+      expect(retrieve).not.toHaveBeenCalled();
+      expect(result.valid).toBe(false);
+    });
+
+    it('returns valid=false when Stripe retrieval throws', async () => {
+      const retrieve = jest.fn().mockRejectedValue(new Error('no such session'));
+      const result = await useCaseWith(retrieve).execute('cs_boom', now);
+
+      expect(result.valid).toBe(false);
+    });
+  });
 });
