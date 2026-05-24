@@ -11,11 +11,17 @@ import {
   isDocxFile,
   isOpmlFile,
   isBrainstormsJsonFile,
+  isEpubFile,
+  isKindleClippingsFile,
 } from '../../lib/storage/checks';
 import { getPackagesFromZip } from './getPackagesFromZip';
 import Workspace from '../../lib/parser/WorkSpace';
 import { isZipContentFileSupported } from './isZipContentFileSupported';
 import { convertMindmapFileToApkg } from './ConvertMindmapFileUseCase';
+import {
+  buildVocabDeckFromEpub,
+  buildVocabDeckFromKindleClippings,
+} from './BuildVocabDeckUseCase';
 
 interface GenerationData {
   paying: boolean;
@@ -67,6 +73,26 @@ async function processFile(
   if (isOpmlFile(filename) || isBrainstormsJsonFile(filename)) {
     const result = await convertMindmapFileToApkg(filename, fileContents, workspace.location);
     packages.push(new Package(result.deckName, result.cardCount, 0, 0));
+    return { packages, warnings };
+  }
+
+  if (isKindleClippingsFile(filename)) {
+    const result = await buildVocabDeckFromKindleClippings({
+      file: { name: filename, contents: fileContents },
+      settings,
+      workspace,
+    });
+    packages.push(new Package(result.name, result.cardCount, 0, 0));
+    return { packages, warnings };
+  }
+
+  if (isEpubFile(filename)) {
+    const result = await buildVocabDeckFromEpub({
+      file: { name: filename, contents: fileContents },
+      settings,
+      workspace,
+    });
+    packages.push(new Package(result.name, result.cardCount, 0, 0));
     return { packages, warnings };
   }
 

@@ -35,7 +35,7 @@ interface UploadFormProps {
   aiOn?: boolean;
 }
 
-const FORMATS = ['.zip', '.html', '.md', '.pdf', '.docx', '.xlsx', '.pptx', '.csv', '.opml', '.brainstorms.json'];
+const FORMATS = ['.zip', '.html', '.md', '.pdf', '.epub', 'My Clippings.txt', '.docx', '.xlsx', '.pptx', '.csv', '.opml', '.brainstorms.json'];
 
 const REJECTED_FALLBACK =
   'The server rejected the upload. Try again or email support@2anki.net.';

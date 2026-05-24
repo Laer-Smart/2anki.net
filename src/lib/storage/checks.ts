@@ -76,6 +76,15 @@ export const isOpmlFile = (fileName: string) => /\.opml$/i.test(fileName);
 export const isBrainstormsJsonFile = (fileName: string) =>
   /\.brainstorms\.json$/i.test(fileName);
 
+export const isEpubFile = (fileName: string) => /\.epub$/i.test(fileName);
+
+export const isKindleClippingsFile = (fileName: string) => {
+  if (!fileName) return false;
+  const base = fileName.replace(/\\/g, '/').split('/').pop();
+  if (!base) return false;
+  return /^my clippings\.txt$/i.test(base);
+};
+
 export const isHiddenFileOrDirectory = (fileName: string) =>
   fileName.startsWith('.') ||
   fileName.endsWith('/') ||
