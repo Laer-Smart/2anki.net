@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-24-downloads-send-to-anki-ankify-only",
+  "date": "2026-05-24",
+  "type": "fix",
+  "title": "Downloads — Send to Anki button now only appears for Auto Sync subscribers"
+}
