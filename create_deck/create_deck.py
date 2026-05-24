@@ -147,6 +147,7 @@ def build_one_deck(data_file, template_dir):
         "mcqTtsCorrectAnswer": mt.get("mcqTtsCorrectAnswer", ""),
         "mcqTtsExtra": mt.get("mcqTtsExtra", ""),
     }
+    front_lang = mt.get("frontLang", "") or ""
 
     for deck in data:
         cards = deck.get("cards", [])
@@ -157,7 +158,8 @@ def build_one_deck(data_file, template_dir):
             back = card.get("back", "")
             fields = [front, back, ",".join(card["media"])]
             model = get_model(("basic", basic_model_id, basic_model_name,
-                               BASIC_STYLE, BASIC_FRONT, BASIC_BACK))
+                               BASIC_STYLE, BASIC_FRONT, BASIC_BACK),
+                              front_lang=front_lang)
             if card.get('mcq', False):
                 options = card.get('options', [])
                 correct_indices = card.get('correctIndices', [])
@@ -169,11 +171,13 @@ def build_one_deck(data_file, template_dir):
             elif card.get('cloze', False) and "{{c" in front:
                 model = get_model(
                     ("cloze", cloze_model_id, cloze_model_name,
-                     CLOZE_STYLE, CLOZE_FRONT, CLOZE_BACK))
+                     CLOZE_STYLE, CLOZE_FRONT, CLOZE_BACK),
+                    front_lang=front_lang)
             elif card.get('enableInput', False) and card.get('answer', False):
                 model = get_model(
                     ("input", input_model_id, input_model_name,
-                     INPUT_STYLE, INPUT_FRONT, INPUT_BACK))
+                     INPUT_STYLE, INPUT_FRONT, INPUT_BACK),
+                    front_lang=front_lang)
                 fields = [
                     front.replace("{{type:Input}}", ""),
                     back,

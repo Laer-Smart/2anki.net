@@ -15,6 +15,7 @@ export type CardOptions = Partial<{
   'mcq-tts-question': string;
   'mcq-tts-correct-answer': string;
   'mcq-tts-extra': string;
+  'tts-auto-detect': string;
 }>;
 
 export interface UserPreferences {
@@ -46,6 +47,7 @@ const ALLOWED_CARD_OPTION_KEYS = new Set([
   'mcq-tts-question',
   'mcq-tts-correct-answer',
   'mcq-tts-extra',
+  'tts-auto-detect',
 ]);
 
 function sanitizeCardOptions(raw: CardOptions): CardOptions {

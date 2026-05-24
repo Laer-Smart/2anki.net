@@ -5,6 +5,7 @@ import fs from 'fs';
 import CustomExporter from './CustomExporter';
 import { DeckTooLargeError } from './DeckTooLargeError';
 import Deck from '../Deck';
+import Note from '../Note';
 import CardOption from '../Settings';
 
 function tempDir(): string {
@@ -13,6 +14,15 @@ function tempDir(): string {
 
 function emptySettings(): CardOption {
   return new CardOption({});
+}
+
+function autoDetectSettings(): CardOption {
+  return new CardOption({ 'tts-auto-detect': 'true' });
+}
+
+function deckWithCards(name: string, fronts: string[], settings: CardOption): Deck {
+  const cards = fronts.map((front) => new Note(front, ''));
+  return new Deck(name, cards, '', '', 1, settings);
 }
 
 describe('CustomExporter.configure', () => {
@@ -59,5 +69,42 @@ describe('CustomExporter.configure', () => {
     const parsed = JSON.parse(written);
     expect(Array.isArray(parsed)).toBe(true);
     expect(parsed[0].name).toBe('My Deck');
+  });
+
+  it('leaves frontLang empty when auto-detect is off', () => {
+    const dir = tempDir();
+    const exporter = new CustomExporter('test-deck', dir);
+    const deck = deckWithCards('JP', ['こんにちは', 'ありがとう'], emptySettings());
+
+    exporter.configure([deck]);
+
+    const parsed = JSON.parse(fs.readFileSync(path.join(dir, 'deck_info.json'), 'utf8'));
+    expect(parsed[0].settings.frontLang).toBe('');
+  });
+
+  it('writes detected frontLang when auto-detect is on and CJK dominates', () => {
+    const dir = tempDir();
+    const exporter = new CustomExporter('test-deck', dir);
+    const deck = deckWithCards(
+      'JP',
+      ['こんにちは', 'ありがとう', 'すみません'],
+      autoDetectSettings()
+    );
+
+    exporter.configure([deck]);
+
+    const parsed = JSON.parse(fs.readFileSync(path.join(dir, 'deck_info.json'), 'utf8'));
+    expect(parsed[0].settings.frontLang).toBe('ja');
+  });
+
+  it('falls back to en when auto-detect is on and text is ASCII', () => {
+    const dir = tempDir();
+    const exporter = new CustomExporter('test-deck', dir);
+    const deck = deckWithCards('EN', ['hello', 'thanks'], autoDetectSettings());
+
+    exporter.configure([deck]);
+
+    const parsed = JSON.parse(fs.readFileSync(path.join(dir, 'deck_info.json'), 'utf8'));
+    expect(parsed[0].settings.frontLang).toBe('en');
   });
 });

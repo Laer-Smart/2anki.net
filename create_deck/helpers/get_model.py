@@ -72,11 +72,32 @@ def _apply_mcq_settings(qfmt, afmt, mcq_settings):
     return qfmt, afmt
 
 
-def get_model(descriptor, mcq_settings=None):
+_FRONT_FIELD_BY_MODEL = {
+    "basic": "Front",
+    "input": "Front",
+    "cloze": "Text",
+}
+
+
+def _apply_front_tts(qfmt, model_type, lang):
+    """
+    Prepend `{{tts <lang>:<Field>}}` to the front template for basic, input, and cloze
+    models. Anki parses TTS tags at template-compile time, so the lang code has to be
+    embedded directly into the template string at build time (same constraint as MCQ).
+    """
+    field = _FRONT_FIELD_BY_MODEL.get(model_type)
+    if not field or not lang:
+        return qfmt
+    return f"{{{{tts {lang}:{field}}}}}\n" + qfmt
+
+
+def get_model(descriptor, mcq_settings=None, front_lang=""):
     """
     load the correct model based on type
     :param descriptor:
     :param mcq_settings: optional dict of MCQ user settings (only used for mcq model type)
+    :param front_lang: optional Anki TTS lang code (e.g. 'ja', 'zh', 'ko', 'en') to inject
+        on the front of non-MCQ cards. Empty string means no injection.
     :return:
     """
     model_type, model_id, name, css, qfmt, afmt = descriptor
@@ -93,6 +114,8 @@ def get_model(descriptor, mcq_settings=None):
 
     if model_type == "mcq" and mcq_settings:
         qfmt, afmt = _apply_mcq_settings(qfmt, afmt, mcq_settings)
+    elif front_lang:
+        qfmt = _apply_front_tts(qfmt, model_type, front_lang)
 
     return Model(
         model_id, name,

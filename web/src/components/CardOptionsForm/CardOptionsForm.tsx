@@ -147,6 +147,7 @@ function computeSnapshot(values: {
   mcqTtsQuestion: string;
   mcqTtsCorrectAnswer: string;
   mcqTtsExtra: string;
+  ttsAutoDetect: boolean;
   cardSize: CardSizeValue;
   fieldMapping: FieldMapping | null;
 }) {
@@ -227,6 +228,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     const [mcqTtsExtra, setMcqTtsExtra] = useState(
       getLocalStorageValue('mcq-tts-extra', DEFAULT_MCQ_TTS_LANG, settings)
     );
+    const [ttsAutoDetect, setTtsAutoDetect] = useState(
+      getLocalStorageBooleanValue('tts-auto-detect', 'false', settings)
+    );
     const [cardSize, setCardSize] = useState<CardSizeValue>(() =>
       normalizeCardSize(getLocalStorageValue('card-size', DEFAULT_CARD_SIZE, settings))
     );
@@ -270,6 +274,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setMcqTtsQuestion(localStorage.getItem('mcq-tts-question') ?? DEFAULT_MCQ_TTS_LANG);
       setMcqTtsCorrectAnswer(localStorage.getItem('mcq-tts-correct-answer') ?? DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(localStorage.getItem('mcq-tts-extra') ?? DEFAULT_MCQ_TTS_LANG);
+      setTtsAutoDetect((localStorage.getItem('tts-auto-detect') ?? 'false') === 'true');
       setCardSize(normalizeCardSize(localStorage.getItem('card-size')));
       setFieldMapping(getDefaultFieldMapping(localStorage.getItem('template') ?? DEFAULT_TEMPLATE));
       setSettings({});
@@ -296,6 +301,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         });
         if (Object.hasOwn(payload, 'mcq-enabled')) {
           setMcqEnabled((payload['mcq-enabled'] ?? 'false') === 'true');
+        }
+        if (Object.hasOwn(payload, 'tts-auto-detect')) {
+          setTtsAutoDetect((payload['tts-auto-detect'] ?? 'false') === 'true');
         }
         if (Object.hasOwn(payload, 'card-size')) {
           setCardSize(normalizeCardSize(payload['card-size']));
@@ -346,6 +354,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           mcqTtsQuestion,
           mcqTtsCorrectAnswer,
           mcqTtsExtra,
+          ttsAutoDetect,
           cardSize,
           fieldMapping,
         }),
@@ -364,6 +373,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         mcqTtsQuestion,
         mcqTtsCorrectAnswer,
         mcqTtsExtra,
+        ttsAutoDetect,
         cardSize,
         fieldMapping,
       ]
@@ -416,6 +426,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setMcqTtsQuestion(DEFAULT_MCQ_TTS_LANG);
       setMcqTtsCorrectAnswer(DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(DEFAULT_MCQ_TTS_LANG);
+      setTtsAutoDetect(false);
       setFieldMapping(getDefaultFieldMapping(DEFAULT_TEMPLATE));
       if (options) {
         const reset: Record<string, boolean> = {};
@@ -447,6 +458,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       payload['mcq-tts-question'] = mcqTtsQuestion;
       payload['mcq-tts-correct-answer'] = mcqTtsCorrectAnswer;
       payload['mcq-tts-extra'] = mcqTtsExtra;
+      payload['tts-auto-detect'] = ttsAutoDetect.toString();
       payload['card-size'] = cardSize;
       if (fieldMapping != null) {
         payload['field-mapping'] = JSON.stringify(fieldMapping);
@@ -801,6 +813,36 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                       </div>
                     </>
                   )}
+                </div>
+              )}
+              {isCardTypesGroup && (
+                <div className={fieldStyles.optionGroup} id="audio">
+                  <div className={fieldStyles.groupHeader}>
+                    <h3 className={fieldStyles.groupHeading}>Audio</h3>
+                    <div className={fieldStyles.segmented} role="group" aria-label="Read cards aloud">
+                      {(
+                        [
+                          { label: 'Off', value: false },
+                          { label: 'On', value: true },
+                        ] as const
+                      ).map(({ label, value }) => (
+                        <button
+                          key={label}
+                          type="button"
+                          className={`${fieldStyles.segment} ${ttsAutoDetect === value ? fieldStyles.segmentActive : ''}`}
+                          onClick={() => {
+                            setTtsAutoDetect(value);
+                            saveValueInLocalStorage('tts-auto-detect', value.toString(), pageId);
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className={fieldStyles.groupIntro}>
+                    Anki will read your card aloud using the language we detect from the text. We use English when we can&apos;t tell.
+                  </p>
                 </div>
               )}
             </React.Fragment>

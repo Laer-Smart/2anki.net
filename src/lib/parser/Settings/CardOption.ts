@@ -92,6 +92,10 @@ class CardOption {
 
   readonly mcqTtsExtra: string;
 
+  readonly ttsAutoDetect: boolean;
+
+  frontLang: string;
+
   readonly cardSize: 'short' | 'medium' | 'detailed';
 
   readonly fieldMapping: FieldMapping | undefined;
@@ -147,6 +151,8 @@ class CardOption {
     this.mcqTtsQuestion = input['mcq-tts-question'] ?? '';
     this.mcqTtsCorrectAnswer = input['mcq-tts-correct-answer'] ?? '';
     this.mcqTtsExtra = input['mcq-tts-extra'] ?? '';
+    this.ttsAutoDetect = input['tts-auto-detect'] === 'true';
+    this.frontLang = '';
     this.cardSize = validateCardSize(input['card-size']);
     this.fieldMapping = parseFieldMapping(input['field-mapping']);
     this.retrieveTemplates(input);
@@ -189,6 +195,7 @@ class CardOption {
       'mcq-tts-question': '',
       'mcq-tts-correct-answer': '',
       'mcq-tts-extra': '',
+      'tts-auto-detect': 'false',
     };
   }
 }
