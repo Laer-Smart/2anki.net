@@ -77,17 +77,65 @@ function extractOpfMetadata(opfXml: string): {
 const ANNOTATION_TAG_PATTERN =
   /<(span|aside)\b[^>]*\bepub:type=["']annotation["'][^>]*>([\s\S]*?)<\/\1>/gi;
 
+function stripTags(input: string): string {
+  // Hand-rolled to avoid /<[^>]+>/g — Sonar typescript:S5852 flags any
+  // unbounded-greedy class repeat. Linear-time scan with no backtracking.
+  let out = '';
+  let inside = false;
+  for (let i = 0; i < input.length; i += 1) {
+    const ch = input[i];
+    if (ch === '<') {
+      inside = true;
+      continue;
+    }
+    if (ch === '>') {
+      inside = false;
+      out += ' ';
+      continue;
+    }
+    if (!inside) out += ch;
+  }
+  return out;
+}
+
+function collapseWhitespace(input: string): string {
+  // Hand-rolled to avoid /\s+/g — same Sonar rule.
+  let out = '';
+  let lastWasSpace = false;
+  for (let i = 0; i < input.length; i += 1) {
+    const code = input.charCodeAt(i);
+    const isSpace =
+      code === 0x20 || code === 0x09 || code === 0x0a || code === 0x0d;
+    if (isSpace) {
+      if (!lastWasSpace && out.length > 0) out += ' ';
+      lastWasSpace = true;
+    } else {
+      out += input[i];
+      lastWasSpace = false;
+    }
+  }
+  return out.trimEnd();
+}
+
+const HTML_ENTITIES: ReadonlyArray<readonly [string, string]> = [
+  ['&nbsp;', ' '],
+  ['&amp;', '&'],
+  ['&lt;', '<'],
+  ['&gt;', '>'],
+  ['&quot;', '"'],
+  ['&#39;', "'"],
+];
+
+function decodeEntities(input: string): string {
+  let out = input;
+  for (const [entity, char] of HTML_ENTITIES) {
+    out = out.split(entity).join(char);
+  }
+  return out;
+}
+
 function stripHtml(input: string): string {
-  return input
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\s+/g, ' ')
-    .trim();
+  return collapseWhitespace(decodeEntities(stripTags(input)));
 }
 
 function extractAnnotationsFromXhtml(xhtml: string): string[] {

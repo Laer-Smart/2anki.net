@@ -79,11 +79,25 @@ function detectLocale(metaLine: string): {
 
 function parseBookHeader(line: string): { book: string; author: string } {
   // "Title (Author Name)" — author is the last parenthesised group.
-  const match = /^(.*?)\s*\(([^()]+)\)\s*$/.exec(line);
-  if (match) {
-    return { book: match[1].trim(), author: match[2].trim() };
+  // Hand-rolled to avoid a regex with super-linear backtracking risk
+  // (Sonar typescript:S5852).
+  const trimmed = line.trim();
+  const lastOpen = trimmed.lastIndexOf('(');
+  const lastClose = trimmed.lastIndexOf(')');
+  if (
+    lastOpen > 0 &&
+    lastClose === trimmed.length - 1 &&
+    lastClose > lastOpen
+  ) {
+    const inside = trimmed.slice(lastOpen + 1, lastClose);
+    if (inside.length > 0 && !inside.includes('(')) {
+      return {
+        book: trimmed.slice(0, lastOpen).trim(),
+        author: inside.trim(),
+      };
+    }
   }
-  return { book: line.trim(), author: '' };
+  return { book: trimmed, author: '' };
 }
 
 function extractDate(metaLine: string): string {
@@ -122,10 +136,7 @@ export function parseMyClippings(input: string): ParseResult {
       continue;
     }
 
-    const body = lines
-      .slice(2)
-      .join('\n')
-      .replace(/^\s+|\s+$/g, '');
+    const body = lines.slice(2).join('\n').trim();
 
     if (body.length === 0) {
       skipped += 1;
