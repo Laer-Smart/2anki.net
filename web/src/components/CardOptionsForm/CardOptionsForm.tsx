@@ -107,10 +107,12 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
     label: 'PDF & AI',
     keys: [
       'process-pdfs',
-      'vertex-ai-pdf-questions',
       'claude-ai-flashcards',
-      'image-quiz-html-to-anki',
     ],
+  },
+  {
+    label: 'Image quizzes',
+    keys: ['image-quiz-html-to-anki'],
   },
   {
     label: 'Debugging',
@@ -118,7 +120,11 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
   },
 ];
 
-const GROUPED_KEYS = new Set(OPTION_GROUPS.flatMap((g) => g.keys));
+const HIDDEN_KEYS = ['vertex-ai-pdf-questions'];
+const GROUPED_KEYS = new Set([
+  ...OPTION_GROUPS.flatMap((g) => g.keys),
+  ...HIDDEN_KEYS,
+]);
 
 const PREMIUM_KEYS = new Set([
   'vertex-ai-pdf-questions',
