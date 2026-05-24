@@ -761,6 +761,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
 }
 
 .workspaceBarActions {
@@ -777,6 +778,21 @@
 .workspaceBarMenuButton {
   width: 2rem;
   height: 2rem;
+  opacity: 0.55;
+  transition: opacity var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .workspaceBarMenuButton:hover,
+  .workspaceBarMenuButton:focus-visible {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .workspaceBarMenuButton {
+    opacity: 1;
+  }
 }
 
 .workspaceBarMenu {
@@ -974,7 +990,23 @@
   color: var(--color-warning-text);
   font-weight: var(--font-semibold);
   font-size: var(--text-sm);
-  text-decoration: underline;
+  text-decoration: none;
+  opacity: 0.7;
+  transition: opacity var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .conflictsBannerLink:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+}
+
+@media (hover: none) {
+  .conflictsBannerLink {
+    opacity: 1;
+    text-decoration: underline;
+  }
 }
 
 .decksHeader {
@@ -1051,6 +1083,7 @@
   font-size: var(--text-xs);
   color: var(--color-text-tertiary);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .decksItemError {
@@ -1062,6 +1095,21 @@
 
 .decksItemRowMenu {
   position: relative;
+  opacity: 0.55;
+  transition: opacity var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .decksItem:hover .decksItemRowMenu,
+  .decksItem:focus-within .decksItemRowMenu {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .decksItemRowMenu {
+    opacity: 1;
+  }
 }
 
 .decksItemMenu {
