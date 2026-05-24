@@ -17,6 +17,12 @@ vi.mock('../../lib/hooks/useUserLocals', () => ({
   useUserLocals: () => mockUseUserLocals(),
 }));
 
+const mockUseCardUsage = vi.fn();
+
+vi.mock('../../lib/hooks/useCardUsage', () => ({
+  useCardUsage: () => mockUseCardUsage(),
+}));
+
 const mockTrack = vi.fn();
 
 vi.mock('../../lib/analytics/track', () => ({
@@ -43,6 +49,7 @@ describe('UpsellCard', () => {
   beforeEach(() => {
     mockTrack.mockClear();
     mockStartPassCheckout.mockReset();
+    mockUseCardUsage.mockReturnValue(null);
   });
 
   it('renders three CTAs for free users', () => {
@@ -186,6 +193,57 @@ describe('UpsellCard', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Day Pass' })).toBeEnabled();
+    });
+  });
+
+  it('fires paywall_dismissed when unmounted without an upgrade click', () => {
+    mockUseUserLocals.mockReturnValue(freeUser);
+    const { unmount } = render(<UpsellCard surface="downloads_upsell" />);
+    mockTrack.mockClear();
+    unmount();
+    expect(mockTrack).toHaveBeenCalledWith('paywall_dismissed', { surface: 'downloads_upsell' });
+  });
+
+  it('does not fire paywall_dismissed when unmounted after an upgrade click', async () => {
+    mockUseUserLocals.mockReturnValue(freeUser);
+    mockStartPassCheckout.mockReturnValue(new Promise(() => {}));
+
+    const { unmount } = render(<UpsellCard surface="downloads_upsell" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Day Pass' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Redirecting…' })).toBeDisabled();
+    });
+
+    mockTrack.mockClear();
+    unmount();
+    expect(mockTrack).not.toHaveBeenCalledWith('paywall_dismissed', expect.anything());
+  });
+
+  it('does not fire paywall_dismissed for paying users (card never shown)', () => {
+    mockUseUserLocals.mockReturnValue(payingUser);
+    const { unmount } = render(<UpsellCard surface="downloads_upsell" />);
+    mockTrack.mockClear();
+    unmount();
+    expect(mockTrack).not.toHaveBeenCalled();
+  });
+
+  it('includes quota_remaining in paywall_shown when card usage is available', () => {
+    mockUseUserLocals.mockReturnValue(freeUser);
+    mockUseCardUsage.mockReturnValue({ cards_used: 75, cards_limit: 100, unlimited: false, loading: false });
+    render(<UpsellCard surface="downloads_upsell" />);
+    expect(mockTrack).toHaveBeenCalledWith('paywall_shown', {
+      surface: 'downloads_upsell',
+      quota_remaining: 25,
+    });
+  });
+
+  it('omits quota_remaining from paywall_shown when card usage is not yet loaded', () => {
+    mockUseUserLocals.mockReturnValue(freeUser);
+    mockUseCardUsage.mockReturnValue(null);
+    render(<UpsellCard surface="downloads_upsell" />);
+    expect(mockTrack).toHaveBeenCalledWith('paywall_shown', {
+      surface: 'downloads_upsell',
     });
   });
 });

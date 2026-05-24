@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { track } from '../../lib/analytics/track';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
+import { useCardUsage } from '../../lib/hooks/useCardUsage';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../NavigationBar/helpers/getPlanLabel';
 import { getSubscribeLink } from '../../pages/PricingPage/payment.links';
@@ -29,14 +30,37 @@ const BODY: Record<Surface, string> = {
 export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProps) {
   const { data } = useUserLocals();
   const [pendingKind, setPendingKind] = useState<'24h' | '7d' | null>(null);
+  const upgradeClickedRef = useRef(false);
+  const shownFiredRef = useRef(false);
 
   const paying = isPayingUser(data?.locals);
   const isAnonymous = data?.user?.email == null;
   const suppress = paying || (hideForAnonymous && isAnonymous);
 
+  const cardUsage = useCardUsage(!suppress);
+  const quotaRemaining =
+    cardUsage != null && !cardUsage.loading
+      ? cardUsage.cards_limit - cardUsage.cards_used
+      : null;
+
   useEffect(() => {
     if (suppress) return;
-    track('paywall_shown', { surface });
+    if (shownFiredRef.current) return;
+    if (cardUsage?.loading) return;
+    shownFiredRef.current = true;
+    const props =
+      quotaRemaining == null
+        ? { surface }
+        : { surface, quota_remaining: quotaRemaining };
+    track('paywall_shown', props);
+  }, [suppress, surface, quotaRemaining, cardUsage]);
+
+  useEffect(() => {
+    if (suppress) return;
+    return () => {
+      if (upgradeClickedRef.current) return;
+      track('paywall_dismissed', { surface });
+    };
   }, [suppress, surface]);
 
   useEffect(() => {
@@ -54,6 +78,7 @@ export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProp
   const email = data?.user?.email;
 
   const handlePassClick = async (kind: '24h' | '7d') => {
+    upgradeClickedRef.current = true;
     track('paywall_upgrade_clicked', {
       surface,
       plan: kind === '24h' ? 'day_pass' : 'week_pass',
@@ -68,6 +93,7 @@ export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProp
   };
 
   const handleUnlimitedClick = () => {
+    upgradeClickedRef.current = true;
     track('paywall_upgrade_clicked', { surface, plan: 'unlimited' });
   };
 

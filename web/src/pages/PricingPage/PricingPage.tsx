@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useSearchParams } from 'react-router-dom';
 import TopMessage from '../../components/TopMessage/TopMessage';
 import { firePaywallEvent } from '../../lib/analytics/firePaywallEvent';
 import { track } from '../../lib/analytics/track';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
+import { useCardUsage } from '../../lib/hooks/useCardUsage';
 import { getVisibleText } from '../../lib/text/getVisibleText';
 import { AutoSyncCard } from './components/AutoSyncCard';
 import { PassCards } from './components/PassCards';
@@ -83,6 +84,13 @@ export default function PricingPage({
   const showContextBanner =
     fromContext != null && !isLoggedIn ? false : fromContext != null;
   const isAutoSyncUpsell = searchParams.get('upsell') === 'auto-sync';
+  const enteredAtRef = useRef(Date.now());
+  const shownFiredRef = useRef(false);
+  const cardUsage = useCardUsage(true);
+  const quotaRemaining =
+    cardUsage != null && !cardUsage.loading
+      ? cardUsage.cards_limit - cardUsage.cards_used
+      : null;
 
   useEffect(() => {
     if (!isAutoSyncUpsell) return;
@@ -101,7 +109,32 @@ export default function PricingPage({
     trialState !== 'sent';
 
   useEffect(() => {
-    track('paywall_shown', { surface: 'pricing_page' });
+    if (shownFiredRef.current) return;
+    if (cardUsage?.loading) return;
+    shownFiredRef.current = true;
+    const props =
+      quotaRemaining == null
+        ? { surface: 'pricing_page' as const }
+        : { surface: 'pricing_page' as const, quota_remaining: quotaRemaining };
+    track('paywall_shown', props);
+  }, [cardUsage, quotaRemaining]);
+
+  useEffect(() => {
+    const enteredAt = enteredAtRef.current;
+    const leftFiredRef = { current: false };
+
+    const fireLeft = () => {
+      if (leftFiredRef.current) return;
+      leftFiredRef.current = true;
+      const seconds_on_page = Math.round((Date.now() - enteredAt) / 1000);
+      track('pricing_left', { seconds_on_page });
+    };
+
+    globalThis.addEventListener('pagehide', fireLeft);
+    return () => {
+      globalThis.removeEventListener('pagehide', fireLeft);
+      fireLeft();
+    };
   }, []);
 
   useEffect(() => {
