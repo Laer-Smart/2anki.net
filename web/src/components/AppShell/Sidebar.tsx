@@ -18,6 +18,7 @@ import CommandLineIcon from '../icons/CommandLineIcon';
 import CreditCardIcon from '../icons/CreditCardIcon';
 import PrinterIcon from '../icons/PrinterIcon';
 import SparklesIcon from '../icons/SparklesIcon';
+import StarIcon from '../icons/StarIcon';
 import UserCircleIcon from '../icons/UserCircleIcon';
 import SettingsIcon from '../icons/SettingsIcon';
 import WrenchIcon from '../icons/WrenchIcon';
@@ -170,6 +171,7 @@ export function Sidebar({
   const logoSrc = getLogoSrc(collapsed, theme);
   const showAnkify =
     locals?.patreon === true || locals?.autoSyncActive === true;
+  const showFavorites = email != null && email !== '';
   const paying = isPayingUser(locals);
   const showPricing = !paying;
   const showKi = features?.kiUI === true;
@@ -320,6 +322,17 @@ export function Sidebar({
           >
             {getVisibleText('navigation.myDecks')}
           </SidebarRow>
+          {showFavorites && (
+            <SidebarRow
+              href="/favorites"
+              pathname={pathname}
+              matchPrefix={false}
+              onClick={handleNavClick()}
+              icon={StarIcon}
+            >
+              Favorites
+            </SidebarRow>
+          )}
           <SidebarRow
             href="/card-options"
             pathname={pathname}
