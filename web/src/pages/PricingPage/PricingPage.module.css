@@ -323,72 +323,6 @@
 }
 
 /* =====================================================================
-   AUTO SYNC — live tier (raised surface with accent border)
-   ===================================================================== */
-.cardAutoSync {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 1px var(--color-primary),
-    0 18px 44px -18px var(--color-focus-ring);
-}
-
-.cardAutoSyncUpsell {
-  box-shadow: 0 0 0 3px var(--color-primary),
-    0 18px 44px -18px var(--color-focus-ring);
-}
-
-.cardAutoSync::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-indigo-dark) 100%);
-  z-index: 1;
-}
-
-.cardAutoSync:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 0 0 1px var(--color-primary),
-    0 24px 52px -18px var(--color-focus-ring);
-}
-
-/* =====================================================================
-   LIFETIME — earned tier (warm paper)
-   ===================================================================== */
-.cardLifetime {
-  background: linear-gradient(180deg, var(--color-gold-bg) 0%, var(--color-gold-bg-end) 100%);
-  border-color: var(--color-gold-border);
-}
-
-.cardLifetime::before {
-  content: '∞';
-  position: absolute;
-  top: 1.1rem;
-  right: 1.4rem;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Fraunces', Georgia, serif;
-  font-size: 18px;
-  font-weight: 600;
-  font-variation-settings: 'opsz' 144;
-  color: var(--color-gold-text);
-  border: 1px solid var(--color-gold-border-light);
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.5);
-  z-index: 1;
-  letter-spacing: 0;
-  line-height: 1;
-}
-
-.cardLifetime:hover {
-  border-color: var(--color-gold-border-hover);
-}
-
-/* =====================================================================
    CARD HEADER
    ===================================================================== */
 .cardHeader {
@@ -408,10 +342,6 @@
   text-transform: uppercase;
   letter-spacing: 0.18em;
   margin: 0;
-}
-
-.cardLifetime .cardTitle {
-  color: var(--color-gold-text);
 }
 
 .cardPriceLine {
@@ -450,14 +380,10 @@
   font-size: 1.55rem;
   font-weight: 500;
   font-variation-settings: 'opsz' 96, 'SOFT' 40;
-  color: var(--color-gold-text);
+  color: var(--color-text-tertiary);
   vertical-align: 0.55rem;
   letter-spacing: -0.02em;
   margin-left: 0.4rem;
-}
-
-.cardLifetime .cardPrice {
-  color: var(--color-gold-text-dark);
 }
 
 .cardPriceChip {
@@ -548,18 +474,6 @@
   color: var(--color-primary);
 }
 
-.cardLifetime .benefit {
-  color: var(--color-gold-text-darker);
-}
-
-.cardLifetime .benefitIcon {
-  color: var(--color-gold-text);
-}
-
-.cardAutoSync .benefitIcon {
-  color: var(--color-primary);
-}
-
 /* =====================================================================
    FOOTER
    ===================================================================== */
@@ -571,11 +485,9 @@
 }
 
 .cardCaption {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
-  font-style: italic;
-  font-variation-settings: 'opsz' 9, 'SOFT' 100;
-  color: var(--color-gold-text);
+  color: var(--color-text-tertiary);
   text-align: center;
   margin: 0;
   line-height: var(--leading-relaxed);
@@ -655,20 +567,21 @@
 
 .cardButtonOutline {
   composes: cardButton;
-  background: transparent;
-  color: var(--color-gold-text-dark);
-  border: 1px solid var(--color-gold-border-hover);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  box-shadow: none;
 }
 
 .cardButtonOutline::after {
-  color: var(--color-gold-text);
+  color: var(--color-text-secondary);
 }
 
 .cardButtonOutline:hover {
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--color-gold-text-darker);
-  border-color: var(--color-gold-text);
-  box-shadow: 0 6px 18px -6px var(--color-gold-shadow);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border-color: var(--color-text-secondary);
+  box-shadow: var(--shadow-xs);
 }
 
 /* =====================================================================
