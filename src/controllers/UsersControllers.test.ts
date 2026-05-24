@@ -991,6 +991,211 @@ describe('UsersController.loginWithMicrosoft', () => {
   });
 });
 
+describe('UsersController.loginWithApple', () => {
+  const MockedOauthIdentitiesRepo =
+    OauthIdentitiesRepository as jest.MockedClass<typeof OauthIdentitiesRepository>;
+
+  beforeEach(() => {
+    MockedOauthIdentitiesRepo.mockClear();
+    MockedOauthIdentitiesRepo.prototype.findByProviderAndSubject = jest
+      .fn()
+      .mockResolvedValue(null);
+    MockedOauthIdentitiesRepo.prototype.link = jest
+      .fn()
+      .mockResolvedValue(undefined);
+  });
+
+  const buildAppleController = (overrides?: {
+    getUserFrom?: jest.Mock;
+    getUserById?: jest.Mock;
+    register?: jest.Mock;
+    markEmailVerified?: jest.Mock;
+    newJWTToken?: jest.Mock;
+    persistToken?: jest.Mock;
+    updateLastLoginAt?: jest.Mock;
+    loginWithApple?: jest.Mock;
+  }) => {
+    const mockUser = { id: 20, email: 'apple@example.com' };
+    const userService = {
+      getUserFrom:
+        overrides?.getUserFrom ??
+        jest
+          .fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValue(mockUser),
+      getUserById: overrides?.getUserById ?? jest.fn().mockResolvedValue(mockUser),
+      register: overrides?.register ?? jest.fn().mockResolvedValue([{ id: 20 }]),
+      markEmailVerified:
+        overrides?.markEmailVerified ?? jest.fn().mockResolvedValue(1),
+      updateLastLoginAt:
+        overrides?.updateLastLoginAt ?? jest.fn().mockResolvedValue(undefined),
+    } as unknown as UsersService;
+    const authService = {
+      loginWithApple:
+        overrides?.loginWithApple ??
+        jest.fn().mockResolvedValue({
+          subject: 'apple-sub-001',
+          email: 'apple@example.com',
+          emailVerified: true,
+        }),
+      getHashPassword: jest.fn().mockReturnValue('hashed'),
+      newJWTToken:
+        overrides?.newJWTToken ?? jest.fn().mockResolvedValue('apple-jwt'),
+      persistToken:
+        overrides?.persistToken ?? jest.fn().mockResolvedValue(undefined),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    return { controller, userService, authService };
+  };
+
+  const buildAppleRes = () => {
+    const redirect = jest.fn();
+    const cookie = jest.fn();
+    const clearCookie = jest.fn();
+    const status = jest.fn().mockReturnThis();
+    return { redirect, cookie, clearCookie, status } as unknown as express.Response & {
+      redirect: jest.Mock;
+      cookie: jest.Mock;
+      clearCookie: jest.Mock;
+      status: jest.Mock;
+    };
+  };
+
+  const buildReq = (opts?: {
+    code?: string | null;
+    state?: string;
+    stateCookie?: string;
+    userField?: string;
+  }) => {
+    const state = opts?.state ?? 'valid-state-token';
+    const stateCookie = opts?.stateCookie ?? 'valid-state-token';
+    const code = opts?.code === null ? undefined : (opts?.code ?? 'apple-auth-code');
+    const body: Record<string, string | undefined> = { state, code };
+    if (opts?.userField) {
+      body.user = opts.userField;
+    }
+    return {
+      body,
+      cookies: stateCookie ? { apple_login_state: stateCookie } : {},
+      headers: {},
+      query: {},
+    } as unknown as express.Request;
+  };
+
+  it("creates a new user, links the identity, and stamps signup_origin='apple' when the email has no existing account", async () => {
+    const register = jest.fn().mockResolvedValue([{ id: 20 }]);
+    const { controller } = buildAppleController({ register });
+
+    await controller.loginWithApple(buildReq(), buildAppleRes());
+
+    expect(register).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'apple@example.com',
+      'apple'
+    );
+    expect(MockedOauthIdentitiesRepo.prototype.link).toHaveBeenCalledWith(
+      'apple',
+      'apple-sub-001',
+      20
+    );
+  });
+
+  it('signs in via subject lookup without calling register when the identity already exists', async () => {
+    const register = jest.fn();
+    MockedOauthIdentitiesRepo.prototype.findByProviderAndSubject = jest
+      .fn()
+      .mockResolvedValue({ user_id: 20, provider: 'apple', subject: 'apple-sub-001' });
+    const getUserById = jest.fn().mockResolvedValue({ id: 20, email: 'apple@example.com' });
+
+    const { controller } = buildAppleController({ register, getUserById });
+
+    await controller.loginWithApple(buildReq(), buildAppleRes());
+
+    expect(getUserById).toHaveBeenCalledWith('20');
+    expect(register).not.toHaveBeenCalled();
+    expect(MockedOauthIdentitiesRepo.prototype.link).not.toHaveBeenCalled();
+  });
+
+  it('links the identity to the existing user when email matches but no identity row exists yet', async () => {
+    const existingUser = { id: 21, email: 'existing@example.com' };
+    const getUserFrom = jest.fn().mockResolvedValue(existingUser);
+    const register = jest.fn();
+
+    const { controller } = buildAppleController({ getUserFrom, register });
+
+    await controller.loginWithApple(buildReq(), buildAppleRes());
+
+    expect(register).not.toHaveBeenCalled();
+    expect(MockedOauthIdentitiesRepo.prototype.link).toHaveBeenCalledWith(
+      'apple',
+      'apple-sub-001',
+      21
+    );
+  });
+
+  it('redirects to /login when the state cookie is missing', async () => {
+    const { controller } = buildAppleController();
+    const res = buildAppleRes();
+
+    await controller.loginWithApple(
+      buildReq({ stateCookie: '' }),
+      res
+    );
+
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+  });
+
+  it('redirects to /login when the state parameter does not match the cookie', async () => {
+    const { controller } = buildAppleController();
+    const res = buildAppleRes();
+
+    await controller.loginWithApple(
+      buildReq({ state: 'tampered', stateCookie: 'valid-state-token' }),
+      res
+    );
+
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+  });
+
+  it('redirects to /login when the code is absent', async () => {
+    const { controller } = buildAppleController();
+    const res = buildAppleRes();
+
+    await controller.loginWithApple(buildReq({ code: null }), res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+  });
+
+  it('redirects to /login when the token exchange fails', async () => {
+    const loginWithApple = jest.fn().mockResolvedValue(undefined);
+    const { controller } = buildAppleController({ loginWithApple });
+    const res = buildAppleRes();
+
+    await controller.loginWithApple(buildReq(), res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+  });
+
+  it('redirects to /login when email is missing and no identity exists', async () => {
+    const loginWithApple = jest.fn().mockResolvedValue({
+      subject: 'apple-sub-noemail',
+      email: undefined,
+      emailVerified: true,
+    });
+    const { controller } = buildAppleController({ loginWithApple });
+    const res = buildAppleRes();
+
+    await controller.loginWithApple(buildReq(), res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+  });
+});
+
 describe('UsersController.loginWithNotion', () => {
   const buildNotionDb = () => {
     const chainable: Record<string, jest.Mock> = {};

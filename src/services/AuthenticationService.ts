@@ -49,6 +49,42 @@ export const __resetMicrosoftJwksCacheForTests = () => {
   cachedMicrosoftJwks = null;
 };
 
+const APPLE_JWKS_URL = 'https://appleid.apple.com/auth/keys';
+const APPLE_JWKS_TTL_MS = 60 * 60 * 1000;
+const APPLE_ISSUER = 'https://appleid.apple.com';
+const APPLE_TOKEN_URL = 'https://appleid.apple.com/auth/token';
+
+interface AppleJwk {
+  kid: string;
+  kty: string;
+  alg: string;
+  use: string;
+  n: string;
+  e: string;
+  x?: string;
+  y?: string;
+  crv?: string;
+}
+
+let cachedAppleJwks: { keys: AppleJwk[]; fetchedAt: number } | null = null;
+
+async function getAppleJwks(): Promise<AppleJwk[]> {
+  const now = Date.now();
+  if (cachedAppleJwks && now - cachedAppleJwks.fetchedAt < APPLE_JWKS_TTL_MS) {
+    return cachedAppleJwks.keys;
+  }
+  const result = await instrumentedAxios.get<{ keys: AppleJwk[] }>(
+    'apple_login',
+    APPLE_JWKS_URL
+  );
+  cachedAppleJwks = { keys: result.data.keys, fetchedAt: now };
+  return result.data.keys;
+}
+
+export const __resetAppleJwksCacheForTests = () => {
+  cachedAppleJwks = null;
+};
+
 export interface UserWithOwner extends Users {
   owner: number;
 }
@@ -349,6 +385,97 @@ class AuthenticationService {
     } catch (error) {
       console.info("Couldn't login with Microsoft");
       console.error(error);
+    }
+  }
+
+  mintAppleClientSecret(): string {
+    const teamId = process.env.APPLE_TEAM_ID;
+    const servicesId = process.env.APPLE_SERVICES_ID;
+    const keyId = process.env.APPLE_KEY_ID;
+    const privateKeyPem = process.env.APPLE_PRIVATE_KEY;
+    if (!teamId || !servicesId || !keyId || !privateKeyPem) {
+      throw new Error('Apple OAuth env vars are not configured');
+    }
+    const now = Math.floor(Date.now() / 1000);
+    return jwt.sign(
+      {
+        iss: teamId,
+        iat: now,
+        exp: now + 86400,
+        aud: APPLE_ISSUER,
+        sub: servicesId,
+      },
+      privateKeyPem.replace(/\\n/g, '\n'),
+      { algorithm: 'ES256', header: { alg: 'ES256', kid: keyId } }
+    );
+  }
+
+  async loginWithApple(code: string) {
+    const servicesId = process.env.APPLE_SERVICES_ID;
+    const redirectUri = process.env.APPLE_REDIRECT_URI;
+    if (!servicesId || !redirectUri) {
+      return undefined;
+    }
+    try {
+      const clientSecret = this.mintAppleClientSecret();
+      const values = {
+        code,
+        client_id: servicesId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      };
+      const result = await instrumentedAxios.post<{ id_token: string }>(
+        'apple_login',
+        APPLE_TOKEN_URL,
+        qs.stringify(values),
+        {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        }
+      );
+      const idToken = result.data.id_token;
+      const decoded = jwt.decode(idToken, { complete: true });
+      if (!decoded || typeof decoded === 'string') {
+        return undefined;
+      }
+      const kid = decoded.header.kid;
+      const alg = decoded.header.alg;
+      if (alg !== 'ES256' || typeof kid !== 'string') {
+        return undefined;
+      }
+      const jwks = await getAppleJwks();
+      const jwk = jwks.find((k) => k.kid === kid);
+      if (!jwk) {
+        return undefined;
+      }
+      const publicKey = crypto.createPublicKey({ key: jwk as unknown as crypto.JsonWebKey, format: 'jwk' });
+      const payload = jwt.verify(idToken, publicKey, {
+        algorithms: ['ES256'],
+        audience: servicesId,
+        issuer: APPLE_ISSUER,
+      });
+      if (typeof payload === 'string') {
+        return undefined;
+      }
+      const subject = typeof payload.sub === 'string' ? payload.sub : undefined;
+      if (!subject) {
+        console.info("Couldn't login with Apple: missing sub claim");
+        return undefined;
+      }
+      const emailVerified = payload.email_verified === true || payload.email_verified === 'true';
+      if (!emailVerified) {
+        console.info("Couldn't login with Apple: email not verified");
+        return undefined;
+      }
+      const email =
+        typeof payload.email === 'string' && payload.email.length > 0
+          ? payload.email
+          : undefined;
+      return { subject, email, emailVerified: true as const };
+    } catch (error) {
+      console.info("Couldn't login with Apple");
+      console.error(error);
+      return undefined;
     }
   }
 }
