@@ -22,6 +22,9 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e
+            set -o pipefail
+
             SERVER_DIR=~/src/github.com/2anki/2anki.net
 
             export NVM_DIR="$HOME/.nvm"
@@ -30,7 +33,8 @@ jobs:
             nvm use $(cat ${SERVER_DIR}/.nvmrc)
 
             node --version
-            corepack enable
+            npm install -g pnpm@10.18.2 --force
+            pnpm --version
 
             git -C ${SERVER_DIR} fetch origin main
             git -C ${SERVER_DIR} reset --hard origin/main
