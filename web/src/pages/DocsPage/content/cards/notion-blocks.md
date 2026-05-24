@@ -36,7 +36,7 @@ These blocks are rendered in the exported deck.
 
 These blocks don't render as cards, but they can structure your deck when used in [Parser rules](/documentation/cards/parser-rules):
 
-- [Child database](https://developers.notion.com/reference/block#child-database-blocks) — pick it as a sub-deck source. The database's rows then convert through the table path.
+- [Child database](https://developers.notion.com/reference/block#child-database-blocks) — pick it as a sub-deck source. The database's rows then convert through the table path. On Notion search you can also click the eye icon on a database row to preview it first — see the row count, columns, and which columns 2anki will use as the card front and back.
 
 ## Unsupported
 
