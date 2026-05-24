@@ -34,11 +34,17 @@ const baseResponse: DatabasePreviewResponse = {
   columns: ['Word', 'Definition', 'Tags'],
   mapping: { frontField: 'Word', backField: 'Definition', ambiguous: false },
   samples: [
-    { Word: 'Osmosis', Definition: 'Movement of water across a membrane', Tags: 'Biology' },
-    { Word: 'Mitosis', Definition: 'Cell division', Tags: 'Biology' },
+    {
+      id: 'row-1',
+      values: { Word: 'Osmosis', Definition: 'Movement of water across a membrane', Tags: 'Biology' },
+    },
+    {
+      id: 'row-2',
+      values: { Word: 'Mitosis', Definition: 'Cell division', Tags: 'Biology' },
+    },
   ],
   rowCount: 2,
-  totalRowCount: 214,
+  hasMore: true,
 };
 
 function renderPage(id = 'db-abc') {
@@ -79,7 +85,7 @@ describe('DatabasePreviewPage', () => {
 
     expect(
       screen.getByText(
-        (_, node) => node?.textContent === '214 rows · 3 columns · Front: Word · Back: Definition'
+        (_, node) => node?.textContent === '2+ rows · 3 columns · Front: Word · Back: Definition'
       )
     ).toBeInTheDocument();
 
@@ -87,7 +93,7 @@ describe('DatabasePreviewPage', () => {
     expect(screen.getByText('Movement of water across a membrane')).toBeInTheDocument();
 
     expect(
-      screen.getByText('Showing 2 of 214 rows. Convert to see all of them.')
+      screen.getByText('Showing the first 2 rows. Convert to see all of them.')
     ).toBeInTheDocument();
 
     const wordHeader = screen.getByRole('columnheader', { name: /Word/ });
@@ -115,7 +121,7 @@ describe('DatabasePreviewPage', () => {
       mapping: { frontField: null, backField: null, ambiguous: true },
       samples: [],
       rowCount: 0,
-      totalRowCount: 0,
+      hasMore: false,
     });
     renderPage();
 
@@ -127,7 +133,8 @@ describe('DatabasePreviewPage', () => {
     mockGetDatabasePreview.mockRejectedValue(new Error('Failed: 404 not found'));
     renderPage();
 
-    await screen.findByText(/no longer available/i);
+    const notice = await screen.findByText(/no longer available/i);
+    expect(notice).toBeInTheDocument();
   });
 
   it('fires convert_clicked_from_preview and navigates to /downloads on 202', async () => {

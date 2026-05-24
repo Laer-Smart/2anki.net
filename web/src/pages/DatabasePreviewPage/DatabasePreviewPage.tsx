@@ -23,15 +23,17 @@ function truncateCell(value: string): string {
   return `${value.slice(0, CELL_MAX)}…`;
 }
 
-function StatsLine({ data }: { data: DatabasePreviewResponse }) {
-  const rowsLabel = `${data.totalRowCount} ${data.totalRowCount === 1 ? 'row' : 'rows'}`;
+function StatsLine({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
+  const rowsCopy = data.hasMore
+    ? `${data.rowCount}+ rows`
+    : `${data.rowCount} ${data.rowCount === 1 ? 'row' : 'rows'}`;
   const columnsLabel = `${data.columns.length} ${data.columns.length === 1 ? 'column' : 'columns'}`;
   const mapping = data.mapping;
 
   if (mapping.ambiguous || mapping.frontField == null || mapping.backField == null) {
     return (
       <p className={styles.stats} aria-live="polite">
-        <span>{rowsLabel} · {columnsLabel} · </span>
+        <span>{rowsCopy} · {columnsLabel} · </span>
         <span className={styles.statsWarning}>Column mapping needed</span>
       </p>
     );
@@ -39,12 +41,12 @@ function StatsLine({ data }: { data: DatabasePreviewResponse }) {
 
   return (
     <p className={styles.stats} aria-live="polite">
-      {rowsLabel} · {columnsLabel} · Front: {mapping.frontField} · Back: {mapping.backField}
+      {rowsCopy} · {columnsLabel} · Front: {mapping.frontField} · Back: {mapping.backField}
     </p>
   );
 }
 
-function PreviewTable({ data }: { data: DatabasePreviewResponse }) {
+function PreviewTable({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
   const { columns, samples, mapping } = data;
   return (
     <div className={styles.tableScroll}>
@@ -69,10 +71,10 @@ function PreviewTable({ data }: { data: DatabasePreviewResponse }) {
           </tr>
         </thead>
         <tbody data-hj-suppress>
-          {samples.map((row, rowIdx) => (
-            <tr key={rowIdx}>
+          {samples.map((sample) => (
+            <tr key={sample.id}>
               {columns.map((col) => {
-                const value = row[col] ?? '';
+                const value = sample.values[col] ?? '';
                 if (value === '') {
                   return (
                     <td key={col} className={styles.cellEmpty} title="(empty)">
@@ -129,7 +131,7 @@ export default function DatabasePreviewPage({ setError }: Readonly<DatabasePrevi
   }
 
   if (error && !data) {
-    const message = (error as Error).message ?? '';
+    const message = error instanceof Error ? error.message : '';
     const isNotFound = message.includes('404');
     if (isNotFound) {
       return (
@@ -198,12 +200,12 @@ export default function DatabasePreviewPage({ setError }: Readonly<DatabasePrevi
         }
       })
       .catch((err: unknown) => {
-        setError(err as Error);
+        setError(err);
         setConverting(false);
       });
   };
 
-  const showRowCapFooter = data.rowCount > 0 && data.totalRowCount > data.rowCount;
+  const showRowCapFooter = data.rowCount > 0 && data.hasMore;
 
   return (
     <div className={sharedStyles.pageWide}>
@@ -250,7 +252,7 @@ export default function DatabasePreviewPage({ setError }: Readonly<DatabasePrevi
             <PreviewTable data={data} />
             {showRowCapFooter && (
               <p className={styles.rowCapFooter}>
-                Showing {data.rowCount} of {data.totalRowCount} rows. Convert to see all of them.
+                Showing the first {data.rowCount} rows. Convert to see all of them.
               </p>
             )}
           </>

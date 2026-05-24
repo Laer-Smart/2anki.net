@@ -964,14 +964,19 @@ export interface DatabasePreviewMapping {
   ambiguous: boolean;
 }
 
+export interface DatabasePreviewSample {
+  id: string;
+  values: Record<string, string>;
+}
+
 export interface DatabasePreviewResponse {
   title: string;
   url: string | null;
   columns: string[];
   mapping: DatabasePreviewMapping;
-  samples: Array<Record<string, string>>;
+  samples: DatabasePreviewSample[];
   rowCount: number;
-  totalRowCount: number;
+  hasMore: boolean;
 }
 
 export interface ContactMessage {

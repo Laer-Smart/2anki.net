@@ -258,7 +258,7 @@ class NotionAPIWrapper {
   async queryDatabasePreview(
     id: string,
     pageSize: number
-  ): Promise<{ results: unknown[]; hasMore: boolean; totalRowCount: number }> {
+  ): Promise<{ results: unknown[]; hasMore: boolean }> {
     const queryLabel = uniqueTimerLabel(`queryDatabasePreview:${id}`);
     console.time(queryLabel);
 
@@ -270,7 +270,7 @@ class NotionAPIWrapper {
 
     if (dataSources.length === 0) {
       console.timeEnd(queryLabel);
-      return { results: [], hasMore: false, totalRowCount: 0 };
+      return { results: [], hasMore: false };
     }
 
     const firstDataSource = dataSources[0];
@@ -287,7 +287,6 @@ class NotionAPIWrapper {
     return {
       results: response.results,
       hasMore: response.has_more,
-      totalRowCount: response.has_more ? response.results.length : response.results.length,
     };
   }
 

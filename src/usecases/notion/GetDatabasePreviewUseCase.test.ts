@@ -1,6 +1,7 @@
 import { GetDatabasePreviewUseCase } from './GetDatabasePreviewUseCase';
 
 interface QueryRow {
+  id: string;
   properties: Record<string, unknown>;
 }
 
@@ -17,7 +18,6 @@ function fakeApi(overrides: Partial<FakeAPI> = {}): FakeAPI {
     queryDatabasePreview: jest.fn().mockResolvedValue({
       results: [] as QueryRow[],
       hasMore: false,
-      totalRowCount: 0,
     }),
     ...overrides,
   };
@@ -37,6 +37,7 @@ describe('GetDatabasePreviewUseCase', () => {
       queryDatabasePreview: jest.fn().mockResolvedValue({
         results: [
           {
+            id: 'row-1',
             properties: {
               Word: titleProp('Osmosis'),
               Definition: richTextProp('Movement of water'),
@@ -44,6 +45,7 @@ describe('GetDatabasePreviewUseCase', () => {
             },
           },
           {
+            id: 'row-2',
             properties: {
               Word: titleProp('Mitosis'),
               Definition: richTextProp('Cell division'),
@@ -52,7 +54,6 @@ describe('GetDatabasePreviewUseCase', () => {
           },
         ],
         hasMore: true,
-        totalRowCount: 42,
       }),
     });
 
@@ -70,12 +71,15 @@ describe('GetDatabasePreviewUseCase', () => {
     });
     expect(result.samples).toHaveLength(2);
     expect(result.samples[0]).toEqual({
-      Word: 'Osmosis',
-      Definition: 'Movement of water',
-      Tags: 'Bio',
+      id: 'row-1',
+      values: {
+        Word: 'Osmosis',
+        Definition: 'Movement of water',
+        Tags: 'Bio',
+      },
     });
     expect(result.rowCount).toBe(2);
-    expect(result.totalRowCount).toBe(42);
+    expect(result.hasMore).toBe(true);
   });
 
   it('flags ambiguous mapping when no candidate columns match', async () => {
@@ -83,6 +87,7 @@ describe('GetDatabasePreviewUseCase', () => {
       queryDatabasePreview: jest.fn().mockResolvedValue({
         results: [
           {
+            id: 'row-1',
             properties: {
               Name: titleProp('Anything'),
               Notes: richTextProp('Anything else'),
@@ -90,7 +95,6 @@ describe('GetDatabasePreviewUseCase', () => {
           },
         ],
         hasMore: false,
-        totalRowCount: 1,
       }),
     });
 
@@ -99,6 +103,7 @@ describe('GetDatabasePreviewUseCase', () => {
 
     expect(result.mapping.ambiguous).toBe(true);
     expect(result.columns).toEqual(['Name', 'Notes']);
+    expect(result.hasMore).toBe(false);
   });
 
   it('returns empty preview when the database has no rows', async () => {
@@ -106,7 +111,6 @@ describe('GetDatabasePreviewUseCase', () => {
       queryDatabasePreview: jest.fn().mockResolvedValue({
         results: [],
         hasMore: false,
-        totalRowCount: 0,
       }),
     });
 
@@ -116,7 +120,7 @@ describe('GetDatabasePreviewUseCase', () => {
     expect(result.columns).toEqual([]);
     expect(result.samples).toEqual([]);
     expect(result.rowCount).toBe(0);
-    expect(result.totalRowCount).toBe(0);
+    expect(result.hasMore).toBe(false);
     expect(result.mapping).toEqual({
       frontField: null,
       backField: null,
@@ -124,15 +128,15 @@ describe('GetDatabasePreviewUseCase', () => {
     });
   });
 
-  it('truncates samples to the preview cap and reports totalRowCount when has_more', async () => {
+  it('truncates samples to the preview cap and reports hasMore', async () => {
     const rows: QueryRow[] = Array.from({ length: 10 }, (_, i) => ({
+      id: `row-${i}`,
       properties: { Word: titleProp(`Term ${i}`), Definition: richTextProp(`Def ${i}`) },
     }));
     const api = fakeApi({
       queryDatabasePreview: jest.fn().mockResolvedValue({
         results: rows,
         hasMore: true,
-        totalRowCount: 200,
       }),
     });
 
@@ -140,7 +144,8 @@ describe('GetDatabasePreviewUseCase', () => {
     const result = await useCase.execute('abc', 'owner-1');
 
     expect(result.rowCount).toBe(10);
-    expect(result.totalRowCount).toBe(200);
+    expect(result.hasMore).toBe(true);
     expect(result.samples).toHaveLength(10);
+    expect(result.samples[0].id).toBe('row-0');
   });
 });
