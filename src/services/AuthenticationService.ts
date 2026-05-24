@@ -440,7 +440,7 @@ class AuthenticationService {
       }
       const kid = decoded.header.kid;
       const alg = decoded.header.alg;
-      if (alg !== 'ES256' || typeof kid !== 'string') {
+      if (alg !== 'RS256' || typeof kid !== 'string') {
         return undefined;
       }
       const jwks = await getAppleJwks();
@@ -450,7 +450,7 @@ class AuthenticationService {
       }
       const publicKey = crypto.createPublicKey({ key: jwk, format: 'jwk' });
       const payload = jwt.verify(idToken, publicKey, {
-        algorithms: ['ES256'],
+        algorithms: ['RS256'],
         audience: servicesId,
         issuer: APPLE_ISSUER,
       });
