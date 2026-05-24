@@ -59,6 +59,12 @@ export function SearchPage({ setError }: Readonly<SearchPageProps>) {
         <div className={searchStyles.workspaceLabel}>
           <span className={searchStyles.workspaceDot} />
           {notionData.workSpace}
+          <a
+            href={notionData.connectionLink}
+            className={searchStyles.workspaceSwitch}
+          >
+            Switch
+          </a>
         </div>
       )}
       {useCard ? (

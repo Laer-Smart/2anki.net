@@ -48,7 +48,7 @@ export default function AccountPage() {
           aria-live="polite"
         >
           <p>
-            <strong>Subscribed.</strong> Your plan details are below.
+            <strong>Subscribed.</strong>
           </p>
           <button
             type="button"

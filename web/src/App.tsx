@@ -31,6 +31,9 @@ const AccountPage = lazy(() => import('./pages/AccountPage/AccountPage'));
 const AccountPreviewPage = lazy(
   () => import('./pages/AccountPreviewPage/AccountPreviewPage')
 );
+const NotionPreviewPage = lazy(
+  () => import('./pages/NotionPreviewPage/NotionPreviewPage')
+);
 const SuccessfulCheckoutPage = lazy(
   () => import('./pages/SuccessfulCheckout/SuccessfulCheckout')
 );
@@ -238,6 +241,7 @@ function AppContent({
           <Route path="/limit" element={<LimitPage />} />
           <Route path="/account" element={requireAuth(<AccountPage />)} />
           <Route path="/dev/account-preview" element={<AccountPreviewPage />} />
+          <Route path="/dev/notion-preview" element={<NotionPreviewPage />} />
           <Route
             path="/import"
             element={requireAuth(

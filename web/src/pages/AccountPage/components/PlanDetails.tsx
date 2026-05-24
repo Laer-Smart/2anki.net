@@ -8,8 +8,8 @@ export function PlanDetails({ subscriptionType }: PlanDetailsProps) {
   if (subscriptionType === 'lifetime') {
     return (
       <section className={styles.section}>
-        <p className={styles.planLine}>Lifetime access.</p>
-        <p className={styles.muted}>Thanks for backing 2anki.</p>
+        <p className={styles.planTier}>Lifetime</p>
+        <p className={styles.planMeta}>All current and future features.</p>
       </section>
     );
   }
@@ -17,14 +17,16 @@ export function PlanDetails({ subscriptionType }: PlanDetailsProps) {
   if (subscriptionType === 'subscriber') {
     return (
       <section className={styles.section}>
-        <p className={styles.planLine}>Pro subscription.</p>
+        <p className={styles.planTier}>Premium</p>
+        <p className={styles.planMeta}>Unlimited cards, all formats.</p>
       </section>
     );
   }
 
   return (
     <section className={styles.section}>
-      <p className={styles.planLine}>Free — 100 cards per month.</p>
+      <p className={styles.planTier}>Free</p>
+      <p className={styles.planMeta}>100 cards per month.</p>
       <a href="/pricing" className={styles.primaryButton}>
         Upgrade
       </a>

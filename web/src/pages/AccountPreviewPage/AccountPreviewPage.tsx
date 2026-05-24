@@ -43,7 +43,7 @@ const variants: Variant[] = [
     ),
   },
   {
-    label: 'Pro subscriber — active',
+    label: 'Premium subscriber — active',
     note: 'Active monthly subscription.',
     render: () => (
       <>
@@ -67,7 +67,7 @@ const variants: Variant[] = [
     ),
   },
   {
-    label: 'Pro subscriber — legacy $2/mo',
+    label: 'Premium subscriber — legacy $2/mo',
     note: 'Active on the legacy price; about to be told what they’d lose.',
     render: () => (
       <>
@@ -94,7 +94,7 @@ const variants: Variant[] = [
     ),
   },
   {
-    label: 'Pro subscriber — scheduled to cancel',
+    label: 'Premium subscriber — scheduled to cancel',
     note: 'Has cancelled; still inside the paid window.',
     render: () => (
       <>

@@ -35,16 +35,18 @@
   margin: 0.5rem 0 0;
 }
 
-.planLine {
-  font-size: var(--text-base);
+.planTier {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
   color: var(--color-text-primary);
-  margin: 0 0 1rem;
+  margin: 0 0 0.25rem;
+  letter-spacing: var(--tracking-tight);
 }
 
-.muted {
+.planMeta {
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
-  margin: -0.75rem 0 0;
+  margin: 0 0 1rem;
 }
 
 .primaryButton,
@@ -108,7 +110,7 @@
 }
 
 .textButton:hover {
-  color: var(--color-text-primary);
+  color: var(--color-danger);
 }
 
 .textButton:disabled {
@@ -205,7 +207,8 @@
 
 .secondaryButton:hover {
   background: var(--color-bg-secondary);
-  color: var(--color-text-primary);
+  color: var(--color-danger);
+  border-color: var(--color-danger-border);
 }
 
 .scheduledBadge {

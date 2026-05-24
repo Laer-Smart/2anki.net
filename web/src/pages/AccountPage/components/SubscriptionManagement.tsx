@@ -116,7 +116,7 @@ export function SubscriptionManagement({
           {view.kind === 'active' && (
             <>
               <p className={styles.statusLine}>
-                {formatPlan(view.subscription) ?? 'Pro'} · Renews{' '}
+                {formatPlan(view.subscription) ?? 'Premium'} · Renews{' '}
                 <strong>{formatDate(view.subscription.current_period_end)}</strong>
               </p>
               {view.subscription.plan?.amount != null &&
@@ -176,7 +176,7 @@ export function SubscriptionManagement({
 
           {stripeStatus.isLoading && view.kind === 'none' && (
             <p className={sharedStyles.smallDescription}>
-              Loading subscription status…
+              Reading your subscription
             </p>
           )}
 
@@ -224,7 +224,7 @@ export function SubscriptionManagement({
                 onClick={onLink}
                 disabled={isEmailLinked || !linkEmail.trim()}
               >
-                {isLinking ? 'Linking' : 'Link email'}
+                {isLinking ? 'Linking…' : 'Link email'}
               </button>
             </div>
           )}

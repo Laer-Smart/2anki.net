@@ -124,6 +124,8 @@ For any task that changes user-facing behavior, invoke `pm`, `designer`, and `en
 - Where they conflict, and how the conflict was resolved
 - The resulting plan
 
+**When the trio disagrees on a visual direction, don't pick silently — ship a preview.** Build a `/dev/<surface>-preview` route that renders each candidate side by side with prefilled state for every variant the surface supports (free / paid / lifetime user, loading / error / empty, etc.). Use direct prop injection on the existing components — don't re-mock the data hooks. No auth gate, no nav link, no analytics. Push it as part of the draft PR so the user can open it locally with `pnpm dev` and choose from visuals. The preview route stays in the repo after merge as a regression check; remove only if the surface is deleted. Example: `/dev/account-preview` shipped with `style/account-redesign` to compare four subscriber states and a free + privaterelay variant at once.
+
 Use `/trio <task>` to force a trio review on any prompt regardless of the heuristic. See `.claude/commands/trio.md`.
 
 ## Spec lifecycle

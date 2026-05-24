@@ -48,3 +48,13 @@
 .frame > div {
   padding: 0;
 }
+
+.placeholder {
+  padding: 2rem 1.5rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
