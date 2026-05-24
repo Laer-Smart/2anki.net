@@ -17,7 +17,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMindmapById, useUpdateMindmap, exportMindmap, uploadMindmapImage, type MindmapCardType } from './useMindmap';
 import type { MindmapData } from './useMindmap';
-import styles from '../../styles/shared.module.css';
+import shared from '../../styles/shared.module.css';
+import styles from './MindmapEditor.module.css';
 import { MindmapNode } from './MindmapNode';
 import PencilIcon from '../../components/icons/PencilIcon';
 
@@ -76,69 +77,21 @@ function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, on
   }
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.4)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-    >
-      <div
-        style={{
-          background: 'var(--color-bg-primary)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '2rem',
-          width: '360px',
-          maxWidth: '90vw',
-        }}
-      >
-        <h2
-          style={{
-            fontSize: 'var(--text-xl)',
-            fontWeight: 'var(--font-semibold)',
-            margin: '0 0 1rem',
-          }}
-        >
-          Download deck
-        </h2>
-        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+    <div className={styles.exportModal}>
+      <div className={styles.exportCard}>
+        <h2 className={styles.exportTitle}>Download deck</h2>
+        <label className={styles.exportLabel}>
           Deck name
         </label>
         <input
           type="text"
           value={deckName}
           onChange={(e) => setDeckName(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '0.5rem',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-sm)',
-            marginBottom: '0.75rem',
-            boxSizing: 'border-box',
-          }}
+          className={styles.exportInput}
         />
-        <fieldset
-          style={{
-            border: 'none',
-            padding: 0,
-            margin: '0 0 0.75rem',
-          }}
-        >
-          <legend
-            style={{
-              fontSize: 'var(--text-sm)',
-              color: 'var(--color-text-secondary)',
-              marginBottom: '0.5rem',
-              padding: 0,
-            }}
-          >
-            Card type
-          </legend>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+        <fieldset className={styles.exportFieldset}>
+          <legend className={styles.exportLegend}>Card type</legend>
+          <label className={styles.exportRadioLabel}>
             <input
               type="radio"
               name="card-type"
@@ -148,7 +101,7 @@ function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, on
             />
             Basic — one card per edge (parent → child)
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+          <label className={styles.exportRadioLabel}>
             <input
               type="radio"
               name="card-type"
@@ -158,7 +111,7 @@ function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, on
             />
             Cloze — one card per path, each node clozed in sequence
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+          <label className={styles.exportRadioLabel}>
             <input
               type="radio"
               name="card-type"
@@ -169,25 +122,16 @@ function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, on
             Whole map — entire tree as one interactive card
           </label>
         </fieldset>
-        <p
-          style={{
-            fontSize: 'var(--text-sm)',
-            color: 'var(--color-text-secondary)',
-            margin: '0 0 1.25rem',
-            fontVariantNumeric: 'tabular-nums',
-          }}
-        >
-          {cardCountLabel()}
-        </p>
-        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-          <button type="button" onClick={onClose} className={styles.btnSecondary}>
+        <p className={styles.exportCount}>{cardCountLabel()}</p>
+        <div className={styles.exportFooter}>
+          <button type="button" onClick={onClose} className={`${shared.btnSecondary} ${shared.btnInline}`}>
             Cancel
           </button>
           <button
             type="button"
             disabled={exporting || deckName.trim().length === 0}
             onClick={() => onExport(deckName.trim(), cardType)}
-            className={`${styles.btnPrimary} ${styles.btnInline}`}
+            className={`${shared.btnPrimary} ${shared.btnInline}`}
           >
             Download deck
           </button>
@@ -730,19 +674,14 @@ export function MindmapEditor() {
 
   if (isMobile) {
     return (
-      <div
-        style={{
-          padding: '2rem 1.5rem',
-          textAlign: 'center',
-          color: 'var(--color-text-secondary)',
-        }}
-      >
-        <p>The mind map editor needs a larger screen. Open on desktop to build and export your map.</p>
+      <div className={styles.mobileNotice}>
+        <p className={styles.mobileNoticeText}>
+          The mind map editor needs a larger screen. Open on desktop to build and export your map.
+        </p>
         <button
           type="button"
           onClick={() => navigate('/mindmaps')}
-          className={styles.btnSecondary}
-          style={{ marginTop: '1rem' }}
+          className={`${shared.btnSecondary} ${shared.btnInline}`}
         >
           Back to Mind maps
         </button>
@@ -855,74 +794,43 @@ export function MindmapEditor() {
           type="button"
           onClick={handleTidy}
           title="Tidy layout (Ctrl/Cmd+L)"
-          style={{
-            position: 'absolute',
-            right: '1rem',
-            bottom: '1rem',
-            zIndex: 4,
-            padding: '0.5rem 0.875rem',
-            background: 'var(--color-bg-primary)',
-            color: 'var(--color-text-primary)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-sm)',
-            cursor: 'pointer',
-            fontSize: 'var(--text-sm)',
-            fontWeight: 'var(--font-medium)',
-          }}
+          className={styles.tidyBtn}
         >
           Tidy layout
         </button>
       </div>
-      <div
-        style={{
-          width: '280px',
-          borderLeft: '1px solid var(--color-border)',
-          padding: '1.5rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
-          background: 'var(--color-bg-primary)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <h2
-          ref={titleRef}
-          contentEditable
-          suppressContentEditableWarning
-          spellCheck={false}
-          title="Click to rename"
-          onBlur={(e) => {
-            const text = e.currentTarget.innerText;
-            if (text.trim().length === 0) {
-              e.currentTarget.innerText = map?.title ?? 'Untitled';
-              return;
-            }
-            commitTitle(text);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              e.currentTarget.blur();
-            } else if (e.key === 'Escape') {
-              e.preventDefault();
-              e.currentTarget.innerText = map?.title ?? 'Untitled';
-              e.currentTarget.blur();
-            }
-            e.stopPropagation();
-          }}
-          style={{
-            fontSize: 'var(--text-lg)',
-            fontWeight: 'var(--font-semibold)',
-            margin: '-0.125rem -0.25rem',
-            padding: '0.125rem 0.25rem',
-            borderRadius: 'var(--radius-sm)',
-            outline: 'none',
-            cursor: 'text',
-          }}
-        >
-          {map?.title ?? 'Untitled'}
-        </h2>
+
+      <div className={styles.sidebar}>
+        <div className={styles.sidebarTitleRow}>
+          <h2
+            ref={titleRef}
+            contentEditable
+            suppressContentEditableWarning
+            spellCheck={false}
+            title="Click to rename"
+            onBlur={(e) => {
+              const text = e.currentTarget.innerText;
+              if (text.trim().length === 0) {
+                e.currentTarget.innerText = map?.title ?? 'Untitled';
+                return;
+              }
+              commitTitle(text);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                e.currentTarget.blur();
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.currentTarget.innerText = map?.title ?? 'Untitled';
+                e.currentTarget.blur();
+              }
+              e.stopPropagation();
+            }}
+            className={styles.sidebarTitle}
+          >
+            {map?.title ?? 'Untitled'}
+          </h2>
           <button
             type="button"
             aria-label="Rename map"
@@ -936,51 +844,39 @@ export function MindmapEditor() {
               sel?.removeAllRanges();
               sel?.addRange(range);
             }}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--color-text-secondary)',
-              padding: '0.25rem',
-              borderRadius: 'var(--radius-sm)',
-              display: 'inline-flex',
-              alignItems: 'center',
-            }}
+            className={styles.renameTrigger}
           >
-            <PencilIcon width={16} height={16} />
+            <PencilIcon width={14} height={14} />
           </button>
         </div>
-        <p
-          style={{
-            fontSize: 'var(--text-sm)',
-            color: 'var(--color-text-secondary)',
-            margin: 0,
-          }}
-        >
+
+        <p className={styles.statLine}>
           {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'} · {edges.length} {edges.length === 1 ? 'edge' : 'edges'}
         </p>
-        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
-          <p style={{ margin: '0 0 0.25rem' }}>Tab — add child</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Enter — add sibling</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Backspace — delete</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Double-click / F2 — rename node</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Double-click node border — auto-size to content</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Double-click canvas — add node here</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Right-click — menu (node, edge, or canvas)</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Click an edge — open its menu</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Drag from a node — new connected node</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Ctrl/Cmd+A — select all</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Esc — clear selection</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Paste text — drops a new node on canvas</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Paste or drop an image — drops a new image node</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Markdown supported in node labels</p>
-          <p style={{ margin: '0 0 0.25rem' }}>Ctrl/Cmd+L — tidy layout</p>
+
+        <div className={styles.shortcuts}>
+          <p className={styles.shortcutItem}>Tab — add child</p>
+          <p className={styles.shortcutItem}>Enter — add sibling</p>
+          <p className={styles.shortcutItem}>Backspace — delete</p>
+          <p className={styles.shortcutItem}>Double-click / F2 — rename node</p>
+          <p className={styles.shortcutItem}>Double-click node border — auto-size</p>
+          <p className={styles.shortcutItem}>Double-click canvas — add node</p>
+          <p className={styles.shortcutItem}>Right-click — context menu</p>
+          <p className={styles.shortcutItem}>Click an edge — edge menu</p>
+          <p className={styles.shortcutItem}>Drag from a node — new connected node</p>
+          <p className={styles.shortcutItem}>Ctrl/Cmd+A — select all</p>
+          <p className={styles.shortcutItem}>Esc — clear selection</p>
+          <p className={styles.shortcutItem}>Paste text — new node on canvas</p>
+          <p className={styles.shortcutItem}>Paste or drop image — image node</p>
+          <p className={styles.shortcutItem}>Markdown supported in labels</p>
+          <p className={styles.shortcutItem}>Ctrl/Cmd+L — tidy layout</p>
         </div>
-        <div style={{ marginTop: 'auto' }}>
+
+        <div className={styles.primaryAction}>
           <button
             type="button"
             onClick={() => setShowExport(true)}
-            className={styles.btnPrimary}
+            className={shared.btnPrimary}
           >
             Download deck
           </button>
@@ -1002,18 +898,7 @@ export function MindmapEditor() {
         <div
           role="status"
           aria-live="polite"
-          style={{
-            position: 'fixed',
-            bottom: '1.5rem',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'var(--color-text-primary)',
-            color: 'var(--color-bg-primary)',
-            padding: '0.75rem 1.25rem',
-            borderRadius: 'var(--radius-md)',
-            fontSize: 'var(--text-sm)',
-            zIndex: 2000,
-          }}
+          className={styles.toast}
         >
           {toast}
         </div>
@@ -1023,18 +908,8 @@ export function MindmapEditor() {
         <div
           role="menu"
           onClick={(e) => e.stopPropagation()}
-          style={{
-            position: 'fixed',
-            top: contextMenu.y,
-            left: contextMenu.x,
-            background: 'var(--color-bg-primary)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-md)',
-            padding: '0.25rem',
-            minWidth: '180px',
-            zIndex: 3000,
-          }}
+          className={styles.contextMenu}
+          style={{ top: contextMenu.y, left: contextMenu.x }}
         >
           {contextMenu.edgeId != null && (
             <ContextMenuItem
@@ -1051,10 +926,10 @@ export function MindmapEditor() {
           {contextMenu.edgeId == null && contextMenu.nodeId != null && (
             <NodeContextMenu
               nodeId={contextMenu.nodeId}
-              onAddChild={(id) => { addChildNode(id); setContextMenu(null); }}
-              onAddSibling={(id) => { addSiblingNode(id); setContextMenu(null); }}
-              onRename={(id) => { setContextMenu(null); startRename(id); }}
-              onDelete={(id) => { deleteNode(id); setContextMenu(null); }}
+              onAddChild={(nodeId) => { addChildNode(nodeId); setContextMenu(null); }}
+              onAddSibling={(nodeId) => { addSiblingNode(nodeId); setContextMenu(null); }}
+              onRename={(nodeId) => { setContextMenu(null); startRename(nodeId); }}
+              onDelete={(nodeId) => { deleteNode(nodeId); setContextMenu(null); }}
             />
           )}
           {contextMenu.edgeId == null && contextMenu.nodeId == null && (
@@ -1087,31 +962,10 @@ function ContextMenuItem({ label, shortcut, onSelect }: Readonly<ContextMenuItem
       type="button"
       role="menuitem"
       onClick={onSelect}
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        width: '100%',
-        padding: '0.5rem 0.75rem',
-        background: 'transparent',
-        border: 'none',
-        borderRadius: 'var(--radius-sm)',
-        color: 'var(--color-text-primary)',
-        fontSize: 'var(--text-sm)',
-        textAlign: 'left',
-        cursor: 'pointer',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = 'var(--color-bg-secondary)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = 'transparent';
-      }}
+      className={styles.contextMenuItem}
     >
       <span>{label}</span>
-      <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', marginLeft: '1rem' }}>
-        {shortcut}
-      </span>
+      <span className={styles.contextMenuShortcut}>{shortcut}</span>
     </button>
   );
 }

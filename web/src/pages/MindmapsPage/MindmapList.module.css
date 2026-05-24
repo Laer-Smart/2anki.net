@@ -1,0 +1,73 @@
+.mapRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.mapRow:hover,
+.mapRow:focus-within {
+  background: var(--color-bg-secondary);
+  box-shadow: inset 2px 0 0 var(--color-primary);
+}
+
+.mapTitle {
+  flex: 1;
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.mapActions {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  opacity: 0.55;
+  transition: opacity var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .mapRow:hover .mapActions,
+  .mapRow:focus-within .mapActions {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .mapActions {
+    opacity: 1;
+  }
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  padding: 0.375rem;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+  font-size: var(--text-sm);
+}
+
+.deleteBtn:hover,
+.deleteBtn:focus-visible {
+  color: var(--color-danger);
+  background: var(--color-danger-light);
+  outline: none;
+}
