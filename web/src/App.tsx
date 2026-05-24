@@ -39,6 +39,7 @@ const TemplatesEditorPage = lazy(
 );
 const RulesPage = lazy(() => import('./pages/RulesPage'));
 const PreviewPage = lazy(() => import('./pages/PreviewPage'));
+const DatabasePreviewPage = lazy(() => import('./pages/DatabasePreviewPage'));
 const PreviewApkgPage = lazy(() => import('./pages/PreviewApkgPage'));
 const AnkifyPage = lazy(() => import('./pages/AnkifyPage'));
 const AnkifySetupPage = lazy(
@@ -291,6 +292,12 @@ function AppContent({
             path="/preview/:id"
             element={requireAuth(
               <PreviewPage setError={setErrorMessage} />
+            )}
+          />
+          <Route
+            path="/preview/database/:id"
+            element={requireAuth(
+              <DatabasePreviewPage setError={setErrorMessage} />
             )}
           />
           <Route

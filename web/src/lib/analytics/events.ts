@@ -21,6 +21,8 @@ export const KNOWN_EVENTS = new Set([
   'sidebar_auto_minimize_reverted',
   'card_size_selected',
   'notion_column_mapping_submitted',
+  'database_preview_viewed',
+  'convert_clicked_from_preview',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;
