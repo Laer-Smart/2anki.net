@@ -80,7 +80,6 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
           <span> to convert</span>
         </div>
       )}
-      <UploadForm setErrorMessage={setErrorMessage} aiOn={isAiOn} />
       {showAiBadge && (
         <div className={pageStyles.aiOffBadge} role="status">
           {isAiOn ? (
@@ -114,6 +113,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
           )}
         </div>
       )}
+      <UploadForm setErrorMessage={setErrorMessage} aiOn={isAiOn} />
       <ExploreCard />
       <section className={pageStyles.howItWorks}>
         <h2 className={pageStyles.howItWorksHeading}>How it works</h2>
