@@ -6,6 +6,7 @@ export type ErrorHandlerType = (error: unknown) => void;
 interface FriendlyError {
   title: string;
   detail?: string;
+  actionLink?: { text: string; to: string };
 }
 
 const FALLBACK: FriendlyError = {
@@ -28,7 +29,23 @@ function toText(error: unknown): string {
   return '';
 }
 
+const NOTION_UNAUTHORIZED: FriendlyError = {
+  title: 'Your Notion connection expired',
+  detail: 'Reconnect Notion on the upload page to keep converting.',
+  actionLink: { text: 'Go to the upload page', to: '/upload' },
+};
+
+function isNotionUnauthorized(error: unknown): boolean {
+  if (error != null && typeof error === 'object' && 'code' in error) {
+    return (error as { code: unknown }).code === 'notion_unauthorized';
+  }
+  const raw = toText(error).toLowerCase();
+  return raw.includes('api token is invalid');
+}
+
 export function classifyError(error: unknown): FriendlyError {
+  if (isNotionUnauthorized(error)) return NOTION_UNAUTHORIZED;
+
   const raw = toText(error);
 
   if (!raw) return FALLBACK;

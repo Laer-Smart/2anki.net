@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { classifyError } from './helpers/getErrorMessage';
 import { useDismissed } from './helpers/useDismissed';
 import styles from '../../styles/shared.module.css';
@@ -14,7 +15,7 @@ export function ErrorPresenter({ error, onRetry }: Readonly<ErrorPresenterProps>
     return null;
   }
 
-  const { title, detail } = classifyError(error);
+  const { title, detail, actionLink } = classifyError(error);
 
   return (
     <article className={styles.alertInfo}>
@@ -25,6 +26,11 @@ export function ErrorPresenter({ error, onRetry }: Readonly<ErrorPresenterProps>
         {detail && <p className={styles.smallDescription}>{detail}</p>}
       </div>
       <div className={styles.modalFooter}>
+        {actionLink && (
+          <Link to={actionLink.to} className={styles.btnPrimary} onClick={() => setDismissed(true)}>
+            {actionLink.text}
+          </Link>
+        )}
         {onRetry && (
           <button
             type="button"

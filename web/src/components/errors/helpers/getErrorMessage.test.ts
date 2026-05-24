@@ -65,6 +65,25 @@ describe('classifyError', () => {
   });
 });
 
+describe('classifyError — notion_unauthorized', () => {
+  it('new structured code returns reconnect copy', () => {
+    const result = classifyError({ code: 'notion_unauthorized', message: 'API token is invalid.' });
+    expect(result.title).toBe('Your Notion connection expired');
+    expect(result.detail).toBe('Reconnect Notion on the upload page to keep converting.');
+  });
+
+  it('legacy text "api token is invalid" (case-insensitive) returns reconnect copy', () => {
+    const result = classifyError(new Error('API token is invalid.'));
+    expect(result.title).toBe('Your Notion connection expired');
+    expect(result.detail).toBe('Reconnect Notion on the upload page to keep converting.');
+  });
+
+  it('action link path is /upload', () => {
+    const result = classifyError({ code: 'notion_unauthorized', message: '' });
+    expect(result.actionLink).toEqual({ text: 'Go to the upload page', to: '/upload' });
+  });
+});
+
 describe('getErrorMessage', () => {
   test('returns plain text — no HTML', () => {
     const msg = getErrorMessage(new Error('Failed to fetch'));
