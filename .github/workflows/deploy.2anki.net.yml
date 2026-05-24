@@ -19,11 +19,16 @@ jobs:
         uses: appleboy/ssh-action@v1.2.5
         env:
           GIT_SHA: ${{ github.sha }}
+          ASSET_BASE_URL: ${{ secrets.ASSET_BASE_URL }}
+          SPACES_ASSETS_ACCESS_KEY_ID: ${{ secrets.SPACES_ASSETS_ACCESS_KEY_ID }}
+          SPACES_ASSETS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_ASSETS_SECRET_ACCESS_KEY }}
+          SPACES_ASSETS_BUCKET: ${{ secrets.SPACES_ASSETS_BUCKET }}
+          SPACES_ASSETS_REGION: ${{ secrets.SPACES_ASSETS_REGION }}
         with:
           host: 2anki.net
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: GIT_SHA
+          envs: GIT_SHA,ASSET_BASE_URL,SPACES_ASSETS_ACCESS_KEY_ID,SPACES_ASSETS_SECRET_ACCESS_KEY,SPACES_ASSETS_BUCKET,SPACES_ASSETS_REGION
           script: |
             set -e
             set -o pipefail
@@ -47,8 +52,24 @@ jobs:
             pnpm --dir ${SERVER_DIR} exec puppeteer browsers install chrome
             pip install -r ${SERVER_DIR}/create_deck/requirements.txt
 
+            if ! command -v aws >/dev/null 2>&1; then
+              echo "Installing aws-cli to ~/.local/bin..."
+              pip install --user awscli
+            fi
+            export PATH="$HOME/.local/bin:$PATH"
+            aws --version
+
             pnpm --dir ${SERVER_DIR} run build
-            pnpm --filter 2anki-web -C ${SERVER_DIR} build
+            ASSET_BASE_URL="$ASSET_BASE_URL" pnpm --filter 2anki-web -C ${SERVER_DIR} build
+
+            echo "Syncing web/build/assets/ to s3://${SPACES_ASSETS_BUCKET}/assets/..."
+            AWS_ACCESS_KEY_ID="$SPACES_ASSETS_ACCESS_KEY_ID" \
+            AWS_SECRET_ACCESS_KEY="$SPACES_ASSETS_SECRET_ACCESS_KEY" \
+            aws s3 sync ${SERVER_DIR}/web/build/assets/ s3://${SPACES_ASSETS_BUCKET}/assets/ \
+              --endpoint-url="https://${SPACES_ASSETS_REGION}.digitaloceanspaces.com" \
+              --cache-control "public, max-age=31536000, immutable" \
+              --acl public-read \
+              --size-only
 
             cd ${SERVER_DIR}
             export GIT_SHA
