@@ -1,4 +1,7 @@
 import express from 'express';
+import multer from 'multer';
+
+jest.mock('../../lib/misc/GetUploadHandler');
 
 jest.mock('../../lib/integrations/stripe', () => ({
   getStripe: jest.fn().mockReturnValue({
@@ -12,6 +15,7 @@ jest.mock('../../services/SubscriptionService', () => ({
   default: { findActiveStripeSubscriptions: jest.fn().mockResolvedValue([]) },
 }));
 
+import { getUploadHandler } from '../../lib/misc/GetUploadHandler';
 import { INotionRepository } from '../../data_layer/NotionRespository';
 import { IUploadRepository } from '../../data_layer/UploadRespository';
 import NotionTokens from '../../data_layer/public/NotionTokens';
@@ -104,6 +108,69 @@ describe('Upload file', () => {
     expect(capturedStatus).toBe(400);
     expect(jsonSpy).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.any(String) })
+    );
+  });
+});
+
+describe('Upload file — multer error handling', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('returns 413 with code=too_large when multer LIMIT_FILE_SIZE fires', async () => {
+    const multerError = new multer.MulterError('LIMIT_FILE_SIZE');
+    (getUploadHandler as jest.Mock).mockImplementation(
+      () =>
+        (_req: express.Request, _res: express.Response, cb: (err?: unknown) => void) => {
+          cb(multerError);
+        }
+    );
+
+    const jsonSpy = jest.fn();
+    let capturedStatus = 0;
+
+    const repository = {
+      deleteUpload: jest.fn(),
+      getUploadsByOwner: jest.fn().mockResolvedValue([]),
+      findByIdAndOwner: jest.fn().mockResolvedValue(null),
+      findByKey: jest.fn().mockResolvedValue(null),
+      findAllByObjectIdAndOwner: jest.fn().mockResolvedValue([]),
+      update: jest.fn().mockResolvedValue([]),
+      getLastUploadForUser: jest.fn().mockResolvedValue(null),
+    };
+    const notionRepository: INotionRepository = {
+      getNotionData: jest.fn() as INotionRepository['getNotionData'],
+      saveNotionToken: jest.fn() as INotionRepository['saveNotionToken'],
+      getNotionToken: jest.fn() as INotionRepository['getNotionToken'],
+      deleteBlocksByOwner: jest.fn() as INotionRepository['deleteBlocksByOwner'],
+      deleteNotionData: jest.fn() as INotionRepository['deleteNotionData'],
+    };
+    const uploadService = new UploadService(repository, {} as JobRepository);
+    const notionService = new NotionService(notionRepository);
+    const controller = new UploadController(uploadService, notionService);
+
+    await new Promise<void>((resolve) => {
+      const fakeRes = {
+        locals: {},
+        status: (code: number) => {
+          capturedStatus = code;
+          return {
+            json: (body: unknown) => {
+              jsonSpy(body);
+              resolve();
+            },
+          };
+        },
+      } as unknown as express.Response;
+      controller.file({} as express.Request, fakeRes);
+    });
+
+    expect(capturedStatus).toBe(413);
+    expect(jsonSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: 'too_large',
+        message: expect.stringContaining('50 MB'),
+      })
     );
   });
 });
