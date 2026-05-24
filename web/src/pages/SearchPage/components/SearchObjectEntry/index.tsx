@@ -5,7 +5,6 @@ import DotsHorizontal from '../../../../components/icons/DotsHorizontal';
 import EyeIcon from '../../../../components/icons/EyeIcon';
 import { get2ankiApi } from '../../../../lib/backend/get2ankiApi';
 import NotionObject from '../../../../lib/interfaces/NotionObject';
-import ObjectAction from '../actions/ObjectAction';
 import { BlockIcon } from '../BlockIcon';
 import styles from './SearchObjectEntry.module.css';
 
@@ -55,8 +54,7 @@ function SearchObjectEntry(props: Readonly<Props>) {
     navigate(`/rules/${encodeURIComponent(id)}?${params.toString()}`);
   };
 
-  const handleConvert = (event: React.MouseEvent) => {
-    event.preventDefault();
+  const handleConvert = () => {
     if (status !== 'idle') return;
     setStatus('in_progress');
     get2ankiApi()
@@ -114,39 +112,48 @@ function SearchObjectEntry(props: Readonly<Props>) {
             Couldn&apos;t queue this page. Try again.
           </span>
         )}
-        <ObjectAction
-          url={url}
-          image="/icons/Anki_app_logo.png"
-          label={isConverting || isQueued ? 'In progress' : 'Convert to Anki'}
-          onClick={handleConvert}
-          disabled={isConverting || isQueued}
-        />
-        <ObjectAction
-          url={url}
-          image="/icons/Notion_app_logo.png"
-          label={`Open ${title} in Notion`}
-        />
-        <Link
-          to={
-            getType(type) === 'database'
-              ? `/preview/database/${encodeURIComponent(id)}`
-              : `/preview/${encodeURIComponent(id)}`
-          }
-          className={styles.rulesButton}
-          aria-label={`Preview ${title}`}
-          title={`Preview ${title}`}
-        >
-          <EyeIcon width={32} height={32} />
-        </Link>
         <button
           type="button"
-          className={styles.rulesButton}
-          onClick={openRules}
-          aria-label={`Configure rules for ${title}`}
-          title={`Configure rules for ${title}`}
+          className={styles.convertBtn}
+          onClick={handleConvert}
+          disabled={isConverting || isQueued}
+          aria-label={isConverting || isQueued ? 'In progress' : 'Convert to Anki'}
         >
-          <DotsHorizontal width={32} height={32} />
+          {isConverting || isQueued ? 'In progress' : 'Convert'}
         </button>
+        <div className={styles.secondaryActions}>
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className={styles.iconLink}
+            aria-label={`Open ${title} in Notion`}
+            title={`Open ${title} in Notion`}
+          >
+            <img src="/icons/Notion_app_logo.png" alt="" width={20} height={20} />
+          </a>
+          <Link
+            to={
+              getType(type) === 'database'
+                ? `/preview/database/${encodeURIComponent(id)}`
+                : `/preview/${encodeURIComponent(id)}`
+            }
+            className={styles.iconLink}
+            aria-label={`Preview ${title}`}
+            title={`Preview ${title}`}
+          >
+            <EyeIcon width={20} height={20} />
+          </Link>
+          <button
+            type="button"
+            className={styles.iconBtn}
+            onClick={openRules}
+            aria-label={`Configure rules for ${title}`}
+            title={`Configure rules for ${title}`}
+          >
+            <DotsHorizontal width={20} height={20} />
+          </button>
+        </div>
       </div>
     </div>
   );
