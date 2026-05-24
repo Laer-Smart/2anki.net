@@ -38,14 +38,10 @@ describe('HomePage (anonymous)', () => {
     expect(screen.getByText(/drop your files here/i)).toBeInTheDocument();
   });
 
-  it('shows the open source link in the hero footer', () => {
-    renderHome();
-    expect(screen.getByText(/open source/i)).toBeInTheDocument();
-  });
-
-  it('does not anchor visitors to the free-tier card limit in the hero', () => {
+  it('keeps the hero focused on conversion — no free-tier limit or open-source brag in the hero', () => {
     renderHome();
     expect(screen.queryByText(/100 cards per month/i)).toBeNull();
+    expect(screen.queryByText(/open source/i)).toBeNull();
   });
 
   it('shows the AI-off badge inviting anon visitors to create an account', () => {
