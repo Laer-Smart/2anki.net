@@ -131,10 +131,21 @@ export function HomePage({
         <p className={styles.heroSubtitle}>
           Upload a Notion export, PDF, Word doc, Markdown file, or Quizlet export. Drop a file to try it — no account needed.
         </p>
+        <div className={sharedStyles.aiOffBadge} role="status">
+          <span className={sharedStyles.badgeWarning}>AI is off</span>
+          <span className={sharedStyles.aiOffBadgeBody}>
+            {' '}
+            <Link
+              to="/register"
+              onClick={() => track('home_ai_anon_badge_clicked')}
+            >
+              Create an account to turn it on
+            </Link>
+            .
+          </span>
+        </div>
         <UploadForm setErrorMessage={setErrorMessage} />
         <div className={styles.heroFooter}>
-          <span>Free up to 100 cards per month</span>
-          <span className={styles.footerDot} aria-hidden="true" />
           <a
             href="https://github.com/2anki/server"
             target="_blank"
@@ -146,16 +157,6 @@ export function HomePage({
             </svg>
             Open source
           </a>
-          <span className={styles.footerDot} aria-hidden="true" />
-          <span>
-            <span className={sharedStyles.badgePrimary}>AI</span>{' '}
-            <Link
-              to="/register"
-              onClick={() => track('home_ai_anon_badge_clicked')}
-            >
-              Create an account to turn it on
-            </Link>
-          </span>
         </div>
       </section>
 
