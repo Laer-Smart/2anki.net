@@ -171,17 +171,25 @@ export class Backend {
     const isObjectId = query.replaceAll('-', '').length === 32;
     let data;
     if (isObjectId) {
-      const res = await this.getPage(query);
+      let res: NotionObject | null = null;
+      try {
+        res = await this.getPage(query);
+      } catch {
+        res = null;
+      }
       if (res?.data) {
-        data = {
-          results: [res.data],
-        };
+        data = { results: [res.data] };
       } else {
-        const dbResult = await this.getDatabase(query);
+        let dbResult: NotionObject | null = null;
+        try {
+          dbResult = await this.getDatabase(query);
+        } catch {
+          dbResult = null;
+        }
         if (dbResult?.data) {
-          data = {
-            results: [dbResult.data],
-          };
+          data = { results: [dbResult.data] };
+        } else {
+          data = { results: [] };
         }
       }
     } else {
