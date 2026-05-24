@@ -47,30 +47,30 @@ describe('ExploreCard', () => {
 
   it('renders the section heading and subtitle', () => {
     renderCard({ paying: false });
-    expect(screen.getByRole('heading', { name: 'Beyond the defaults' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Make better decks' })).toBeInTheDocument();
     expect(
-      screen.getByText('How Anki power users build decks seriously fast.')
+      screen.getByText('Three settings worth knowing about.')
     ).toBeInTheDocument();
   });
 
   it('renders the three row titles', () => {
     renderCard({ paying: false });
     expect(screen.getByText('Multiple choice questions (MCQ)')).toBeInTheDocument();
-    expect(screen.getByText('Photo to deck')).toBeInTheDocument();
+    expect(screen.getAllByText('Photo to deck').length).toBeGreaterThan(0);
     expect(screen.getByText('Deck defaults')).toBeInTheDocument();
   });
 
-  it('describes MCQ as available via photo and chat', () => {
+  it('describes MCQ as a Card Options toggle', () => {
     renderCard({ paying: false });
     expect(
-      screen.getByText(/MCQ alongside standard cards/i)
+      screen.getByText(/multiple-choice cards alongside standard ones/i)
     ).toBeInTheDocument();
   });
 
-  it('mentions generate-vs-copy modes in the Photo to deck row', () => {
+  it('mentions image-to-cards in the Photo to deck row', () => {
     renderCard({ paying: false });
     expect(
-      screen.getByText(/generate new cards or copy questions already on the page/i)
+      screen.getByText(/2anki builds the cards from the image/i)
     ).toBeInTheDocument();
   });
 
@@ -84,7 +84,7 @@ describe('ExploreCard', () => {
   it('mentions card size in the Deck defaults row', () => {
     renderCard({ paying: false });
     expect(
-      screen.getByText(/card size \(Short, Medium, Detailed\)/i)
+      screen.getByText(/Short, Medium, Detailed/i)
     ).toBeInTheDocument();
   });
 
@@ -115,13 +115,13 @@ describe('ExploreCard', () => {
 
   it('links Photo to deck to /photo-to-deck', () => {
     renderCard({ paying: false });
-    const link = screen.getByRole('link', { name: 'Open photo to deck' });
+    const link = screen.getByRole('link', { name: 'Photo to deck' });
     expect(link).toHaveAttribute('href', '/photo-to-deck');
   });
 
   it('links Deck defaults to /card-options', () => {
     renderCard({ paying: false });
-    const link = screen.getByRole('link', { name: 'Open settings' });
+    const link = screen.getByRole('link', { name: 'Settings' });
     expect(link).toHaveAttribute('href', '/card-options?returnTo=/upload');
   });
 
@@ -136,7 +136,7 @@ describe('ExploreCard', () => {
   it('fires photo_entry_point_clicked when the photo CTA is clicked', async () => {
     renderCard({ paying: false });
     mockTrack.mockClear();
-    fireEvent.click(screen.getByRole('link', { name: 'Open photo to deck' }));
+    fireEvent.click(screen.getByRole('link', { name: 'Photo to deck' }));
     await waitFor(() => {
       expect(mockTrack).toHaveBeenCalledWith('photo_entry_point_clicked', {
         surface: 'upload_page',

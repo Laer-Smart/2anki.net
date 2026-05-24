@@ -660,7 +660,10 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
 
           return (
             <React.Fragment key={group.label}>
-              <div className={fieldStyles.optionGroup}>
+              <div
+                className={fieldStyles.optionGroup}
+                id={isPdfAiGroup ? 'pdf-ai' : undefined}
+              >
                 <h3 className={fieldStyles.groupHeading}>{group.label}</h3>
                 <div className={fieldStyles.groupOptions}>
                   {groupOptions.map((o: CardOption) => (

@@ -59,7 +59,7 @@ describe('UploadPage header', () => {
   it('renders the format-list subtitle', () => {
     renderPage();
     expect(
-      screen.getByText(/PDF, Notion export, Word, Markdown, HTML, Excel, CSV, or PowerPoint/i)
+      screen.getAllByText(/PDF, Word, Notion export, Markdown, HTML, Excel, CSV, or PowerPoint/i)[0]
     ).toBeInTheDocument();
   });
 });
@@ -98,10 +98,10 @@ describe('UploadPage explore card', () => {
 });
 
 describe('UploadPage doc/docx hint', () => {
-  it('renders the doc and docx heading rule hint', () => {
+  it('renders the Word heading rule hint inside step 1', () => {
     renderPage();
     expect(
-      screen.getByText(/Doc and docx: use headings for the front of each card, body text for the back\. Plain paragraphs become separate cards\./i)
+      screen.getByText(/In Word docs, headings become card fronts and the body text under each heading becomes the back\./i)
     ).toBeInTheDocument();
   });
 });

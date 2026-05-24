@@ -21,8 +21,8 @@ export function detectUploadIssues(
   if (allMarkdown) {
     return {
       status: 'error',
-      title: 'Markdown files make simple cards, not Notion-style decks',
-      body: 'If you exported from Notion, choose HTML instead of Markdown in Notion\'s export menu — you\'ll keep your images, toggles, and formatting. If this is a plain Markdown file, you can continue, but cards will be based on bullet pairs, not toggles.',
+      title: 'Markdown files produce simple cards',
+      body: "Exported from Notion? Choose HTML in Notion's export menu — you'll keep images, toggles, and formatting. For a plain Markdown file, cards are built from bullet pairs.",
       continueLabel: 'Continue with this file',
     };
   }
@@ -34,8 +34,8 @@ export function detectUploadIssues(
   if (htmlFiles.length >= 2) {
     return {
       status: 'warning',
-      title: 'Did Safari unzip your Notion export?',
-      body: 'If your files came from a Notion export, the images might have been left behind when Safari unpacked the zip. For the best results, re-download the export from Notion using a different browser, or find the original zip in your Downloads folder and upload that instead.',
+      title: 'Multiple HTML files — images may be missing',
+      body: "Safari sometimes unpacks Notion exports and leaves images behind. Re-download the zip from Notion in a different browser, or find the original zip in Downloads and upload that.",
       continueLabel: 'Continue with these files',
     };
   }
@@ -47,7 +47,7 @@ export function detectUploadIssues(
     return {
       status: 'info',
       title: 'Each pair of pages becomes one card',
-      body: "Page 1 is the front of your first card, page 2 is the back, page 3 is the next front, and so on. This works well for lecture slides where each topic spans two pages. You can customize how cards are created in Card Options.",
+      body: 'Odd pages are card fronts, even pages are backs. Works well for lecture slides where each topic spans 2 pages. Change this in Card Options.',
       continueLabel: 'Make cards from this PDF',
     };
   }
@@ -55,8 +55,8 @@ export function detectUploadIssues(
   if (fileArray.length === 1 && htmlFiles.length === 1) {
     return {
       status: 'warning',
-      title: 'This will work, but images won’t be included',
-      body: 'A single HTML file doesn\'t carry its images with it. If you exported this from Notion, go back and download the zip file instead — it bundles the images. If you don\'t need images, continue and we\'ll make your deck without them.',
+      title: 'Images won’t be included',
+      body: "A single HTML file doesn't include images. If this came from Notion, download the zip export instead — it bundles the images.",
       continueLabel: 'Continue without images',
     };
   }

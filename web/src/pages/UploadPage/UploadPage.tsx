@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
+import { track } from '../../lib/analytics/track';
 import useQuery from '../../lib/hooks/useQuery';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import styles from '../../styles/shared.module.css';
@@ -26,6 +27,17 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
     return stored != null && stored.length > 0 ? stored : null;
   });
   const { data: userLocals } = useUserLocals();
+
+  const isSignedIn = userLocals?.user?.id != null;
+  const isAiOff = useMemo(() => {
+    if (!isSignedIn) return false;
+    const raw = globalThis.localStorage?.getItem('claude-ai-flashcards');
+    return raw !== 'true';
+  }, [isSignedIn]);
+
+  useEffect(() => {
+    if (isAiOff) track('upload_ai_off_badge_viewed');
+  }, [isAiOff]);
 
   useEffect(() => {
     if (searchParams.get('from') === 'pass') {
@@ -52,7 +64,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       <header className={styles.pageHeaderCenter}>
         <h1 className={styles.title}>Convert your notes</h1>
         <p className={styles.subtitle}>
-          One deck per file — PDF, Notion export, Word, Markdown, HTML, Excel, CSV, or PowerPoint
+          PDF, Word, Notion export, Markdown, HTML, Excel, CSV, or PowerPoint — one deck per file
         </p>
       </header>
       <OnboardingTour
@@ -67,11 +79,26 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
         </div>
       )}
       <UploadForm setErrorMessage={setErrorMessage} />
+      {isAiOff && (
+        <div className={pageStyles.aiOffBadge} role="status">
+          <span className={styles.badgeWarning}>AI is off</span>
+          <span className={pageStyles.aiOffBadgeBody}>
+            {' '}Turn it on in{' '}
+            <Link
+              to="/card-options?returnTo=/upload#pdf-ai"
+              onClick={() => track('upload_ai_off_badge_clicked')}
+            >
+              Settings
+            </Link>{' '}
+            (Subscription or Lifetime required).
+          </span>
+        </div>
+      )}
       <ExploreCard />
       <section className={pageStyles.howItWorks}>
         <h2 className={pageStyles.howItWorksHeading}>How it works</h2>
         <p className={pageStyles.footnote}>
-          Your uploaded files are deleted after 2 hours.
+          Files are deleted after 2 hours.
         </p>
         <div className={pageStyles.steps}>
           <div className={pageStyles.step}>
@@ -79,10 +106,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
             <div>
               <p className={pageStyles.stepTitle}>Drop or choose a file</p>
               <p className={pageStyles.stepBody}>
-                PDF, Word, Markdown, HTML, Excel, PowerPoint, CSV — or a Notion export.
-              </p>
-              <p className={pageStyles.stepBody}>
-                Doc and docx: use headings for the front of each card, body text for the back. Plain paragraphs become separate cards.
+                PDF, Word, Notion export, Markdown, HTML, Excel, CSV, or PowerPoint. In Word docs, headings become card fronts and the body text under each heading becomes the back.
               </p>
               <p className={pageStyles.stepBody}>
                 Coming from Notion?{' '}
@@ -95,10 +119,9 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
           <div className={pageStyles.step}>
             <span className={pageStyles.stepNumber}>2</span>
             <div>
-              <p className={pageStyles.stepTitle}>We build your deck</p>
+              <p className={pageStyles.stepTitle}>Your deck is built</p>
               <p className={pageStyles.stepBody}>
-                Images, code blocks, cloze deletions, and formatting all transfer.
-                Usually takes a few seconds.
+                Images, code blocks, cloze, and formatting carry over. Usually a few seconds.
               </p>
             </div>
           </div>
@@ -107,8 +130,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
             <div>
               <p className={pageStyles.stepTitle}>Open in Anki</p>
               <p className={pageStyles.stepBody}>
-                Your .apkg downloads automatically. Import it into Anki or
-                AnkiDroid and start studying.
+                Your .apkg downloads automatically. Import it into Anki or AnkiDroid to start studying.
               </p>
             </div>
           </div>
@@ -116,7 +138,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       </section>
       <section className={pageStyles.contactNudge} aria-label="Contact us">
         <p>
-          Bug, feature request, or a file that won&apos;t convert?{' '}
+          Something not working?{' '}
           <Link to="/contact">Tell us</Link> or email{' '}
           <a href="mailto:support@2anki.net">support@2anki.net</a>.
         </p>

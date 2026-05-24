@@ -40,17 +40,17 @@ describe('detectUploadIssues', () => {
     const result = detectUploadIssues([fakeFile('page.html')]);
     expect(result).not.toBeNull();
     expect(result!.status).toBe('warning');
-    expect(result!.title).toContain('images');
+    expect(result!.title.toLowerCase()).toContain('images');
   });
 
-  it('returns safari warning for multiple html files', () => {
+  it('returns warning for multiple html files', () => {
     const result = detectUploadIssues([
       fakeFile('page1.html'),
       fakeFile('page2.html'),
     ]);
     expect(result).not.toBeNull();
     expect(result!.status).toBe('warning');
-    expect(result!.title).toContain('Safari');
+    expect(result!.title).toContain('HTML');
   });
 
   it('returns null for csv files', () => {

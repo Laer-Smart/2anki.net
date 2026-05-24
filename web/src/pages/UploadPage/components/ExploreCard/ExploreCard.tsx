@@ -84,10 +84,10 @@ export function ExploreCard() {
     <section className={styles.wrapper} aria-labelledby="explore-card-heading">
       <header className={styles.header}>
         <h2 id="explore-card-heading" className={styles.heading}>
-          Beyond the defaults
+          Make better decks
         </h2>
         <p className={styles.sub}>
-          How Anki power users build decks seriously fast.
+          Three settings worth knowing about.
         </p>
       </header>
       <ul className={styles.card}>
@@ -98,7 +98,7 @@ export function ExploreCard() {
           <div className={styles.rowText}>
             <p className={styles.rowTitle}>Multiple choice questions (MCQ)</p>
             <p className={styles.rowDescription}>
-              Photo to deck and the AI chat can generate MCQ alongside standard cards — useful for exam-style review.
+              Turn on MCQ and your next conversion includes multiple-choice cards alongside standard ones.
             </p>
           </div>
           <div className={styles.rowAffordance}>
@@ -117,7 +117,7 @@ export function ExploreCard() {
           <div className={styles.rowText}>
             <p className={styles.rowTitle}>Photo to deck</p>
             <p className={styles.rowDescription}>
-              Snap a textbook page, lecture slide, or handwritten notes — generate new cards or copy questions already on the page.
+              Snap a textbook page, lecture slide, or handwritten notes — 2anki builds the cards from the image.
             </p>
             {showFreePlanHint && (
               <p className={styles.rowHint}>Free plan: 5 photos per month</p>
@@ -131,7 +131,7 @@ export function ExploreCard() {
                 track('photo_entry_point_clicked', { surface: 'upload_page' })
               }
             >
-              Open photo to deck
+              Photo to deck
             </Link>
           </div>
         </li>
@@ -142,7 +142,7 @@ export function ExploreCard() {
           <div className={styles.rowText}>
             <p className={styles.rowTitle}>Deck defaults</p>
             <p className={styles.rowDescription}>
-              Change deck names, templates, card style (cloze or Q&amp;A), card size (Short, Medium, Detailed), and conversion options.
+              Set the deck name, card style (cloze or Q&amp;A), card size (Short, Medium, Detailed), and AI options before you convert.
             </p>
           </div>
           <div className={styles.rowAffordance}>
@@ -150,7 +150,7 @@ export function ExploreCard() {
               to="/card-options?returnTo=/upload"
               className={styles.linkCta}
             >
-              Open settings
+              Settings
             </Link>
           </div>
         </li>
