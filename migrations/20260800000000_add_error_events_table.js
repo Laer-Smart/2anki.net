@@ -2,14 +2,14 @@ exports.up = async (knex) => {
   await knex.schema.createTable('error_events', (t) => {
     t.bigIncrements('id').primary();
     t.string('source', 10).notNullable().checkIn(['web', 'server']);
-    t.char('message_hash', 64).notNullable();
+    t.specificType('message_hash', 'char(64)').notNullable();
     t.text('message').notNullable();
     t.text('stack').nullable();
     t.text('url').nullable();
     t.text('user_agent').nullable();
     t.string('release', 40).nullable();
     t.integer('user_id').nullable().references('id').inTable('users').onDelete('SET NULL');
-    t.char('ip_hash', 64).nullable();
+    t.specificType('ip_hash', 'char(64)').nullable();
     t.jsonb('context').nullable();
     t.timestamp('created_at', { useTz: true }).notNullable().defaultTo(knex.fn.now());
 
