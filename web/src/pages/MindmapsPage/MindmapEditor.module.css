@@ -1,0 +1,242 @@
+.sidebar {
+  width: 260px;
+  border-left: 1px solid var(--color-border);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  background: var(--color-bg-primary);
+}
+
+.sidebarTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.sidebarTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  padding: 0.125rem 0.25rem;
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: text;
+  flex: 1;
+  min-width: 0;
+}
+
+.renameTrigger {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+
+.renameTrigger:hover {
+  color: var(--color-text-primary);
+}
+
+.statLine {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.shortcuts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+}
+
+.shortcutItem {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.primaryAction {
+  margin-top: auto;
+}
+
+.mobileNotice {
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.mobileNoticeText {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 1rem;
+}
+
+.tidyBtn {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 4;
+  padding: 0.375rem 0.75rem;
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.tidyBtn:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+}
+
+.exportModal {
+  position: fixed;
+  inset: 0;
+  background: var(--color-backdrop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.exportCard {
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  width: 340px;
+  max-width: 90vw;
+  box-shadow: var(--shadow-xl);
+}
+
+.exportTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  margin: 0 0 1rem;
+  color: var(--color-text-primary);
+}
+
+.exportLabel {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-medium);
+}
+
+.exportInput {
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+  box-sizing: border-box;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.exportInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.exportLegend {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin-bottom: 0.375rem;
+  font-weight: var(--font-medium);
+}
+
+.exportFieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 0.875rem;
+}
+
+.exportRadioLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.exportCount {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0 0 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.exportFooter {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.contextMenu {
+  position: fixed;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 0.25rem;
+  min-width: 180px;
+  z-index: 3000;
+}
+
+.contextMenuItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.contextMenuItem:hover {
+  background: var(--color-bg-secondary);
+}
+
+.contextMenuShortcut {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+  margin-left: 1rem;
+}
+
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-text-primary);
+  color: var(--color-bg-primary);
+  padding: 0.625rem 1.125rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  z-index: 2000;
+  box-shadow: var(--shadow-md);
+}
