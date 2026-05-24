@@ -6,6 +6,7 @@ import {
   normalizeTag,
   SYSTEM_PROMPT,
   buildUserMessage,
+  buildFieldMappingPromptFragment,
 } from './ClaudeService';
 
 describe('looksLikeEmptyContentExplanation', () => {
@@ -270,6 +271,72 @@ describe('SYSTEM_PROMPT — Anki math conventions', () => {
 
   it('includes a chemistry example using \\ce{}', () => {
     expect(SYSTEM_PROMPT).toContain('\\ce{');
+  });
+});
+
+describe('buildFieldMappingPromptFragment', () => {
+  it('returns empty string when fieldMapping is undefined', () => {
+    expect(buildFieldMappingPromptFragment(undefined)).toBe('');
+  });
+
+  it('returns empty string when fields array is empty', () => {
+    expect(buildFieldMappingPromptFragment({ templateName: 'n2a-basic', fields: [] })).toBe('');
+  });
+
+  it('includes each field name and instruction', () => {
+    const fragment = buildFieldMappingPromptFragment({
+      templateName: 'n2a-basic',
+      fields: [
+        { name: 'Front', instruction: 'The question or term' },
+        { name: 'Back', instruction: 'The answer or definition' },
+      ],
+    });
+    expect(fragment).toContain('Front');
+    expect(fragment).toContain('The question or term');
+    expect(fragment).toContain('Back');
+    expect(fragment).toContain('The answer or definition');
+  });
+
+  it('includes the template name', () => {
+    const fragment = buildFieldMappingPromptFragment({
+      templateName: 'n2a-cloze',
+      fields: [{ name: 'Text', instruction: 'Cloze sentence' }],
+    });
+    expect(fragment).toContain('n2a-cloze');
+  });
+});
+
+describe('buildUserMessage — field mapping', () => {
+  const content = '<p>Test</p>';
+  const noMedia: string[] = [];
+
+  it('appends field mapping section when fieldMapping is provided', () => {
+    const msg = buildUserMessage(content, noMedia, undefined, '', undefined, {
+      templateName: 'n2a-basic',
+      fields: [
+        { name: 'Front', instruction: 'The question or term' },
+        { name: 'Back', instruction: 'The answer or definition' },
+      ],
+    });
+    expect(msg).toContain('Field mapping');
+    expect(msg).toContain('Front');
+    expect(msg).toContain('Back');
+  });
+
+  it('omits field mapping section when fieldMapping is undefined', () => {
+    const msg = buildUserMessage(content, noMedia, undefined, '', undefined, undefined);
+    expect(msg).not.toContain('Field mapping');
+  });
+
+  it('places field mapping after additional instructions when both are present', () => {
+    const msg = buildUserMessage(content, noMedia, 'Custom rule.', '', undefined, {
+      templateName: 'n2a-basic',
+      fields: [{ name: 'Front', instruction: 'term' }, { name: 'Back', instruction: 'def' }],
+    });
+    const instrIdx = msg.indexOf('Additional instructions:');
+    const mappingIdx = msg.indexOf('Field mapping');
+    expect(instrIdx).toBeGreaterThan(-1);
+    expect(mappingIdx).toBeGreaterThan(instrIdx);
   });
 });
 

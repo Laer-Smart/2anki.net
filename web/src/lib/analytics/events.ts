@@ -23,6 +23,12 @@ export const KNOWN_EVENTS = new Set([
   'notion_column_mapping_submitted',
   'database_preview_viewed',
   'convert_clicked_from_preview',
+  'upload_ai_off_badge_viewed',
+  'upload_ai_off_badge_clicked',
+  'upload_ai_on_badge_viewed',
+  'upload_ai_on_badge_clicked',
+  'upload_ai_anon_badge_viewed',
+  'upload_ai_anon_badge_clicked',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;

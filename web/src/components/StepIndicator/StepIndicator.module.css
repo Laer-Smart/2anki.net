@@ -17,6 +17,7 @@
   padding: 4px 10px;
   border-radius: var(--radius-full);
   border: 1px solid transparent;
+  white-space: nowrap;
   transition: background-color var(--transition-fast), color var(--transition-fast);
 }
 
@@ -83,4 +84,10 @@
   .pillActive .dot {
     animation: none;
   }
+}
+
+.compactRest {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
 }

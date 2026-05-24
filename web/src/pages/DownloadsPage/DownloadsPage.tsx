@@ -128,7 +128,7 @@ export function renderJobStatusCell(j: JobResponse) {
     return <StatusTag status={j.status as JobStatus} />;
   }
   const { step, substep } = jobStepFromStatus(j.status);
-  return <StepIndicator currentStep={step} substep={substep} />;
+  return <StepIndicator currentStep={step} substep={substep} compact />;
 }
 
 function renderJobStatusWithToggle({ job, isExpanded, onToggle }: RenderJobStatusOptions) {

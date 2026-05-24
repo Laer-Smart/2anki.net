@@ -4,6 +4,7 @@ import { StepIndex } from './jobStepFromStatus';
 interface Props {
   readonly currentStep: StepIndex;
   readonly substep?: string;
+  readonly compact?: boolean;
 }
 
 const STEP_LABELS = ['Uploaded', 'Parsing', 'Generating', 'Packaging'] as const;
@@ -14,7 +15,26 @@ function getPillClass(step: StepIndex, currentStep: StepIndex): string {
   return styles.pillPending;
 }
 
-export function StepIndicator({ currentStep, substep }: Props) {
+export function StepIndicator({ currentStep, substep, compact = false }: Props) {
+  if (compact) {
+    const label = STEP_LABELS[currentStep - 1];
+    return (
+      <ol className={styles.indicator} aria-label="Conversion progress">
+        <li
+          className={`${styles.pill} ${styles.pillActive}`}
+          aria-current="step"
+        >
+          <span className={styles.dot} />
+          {label}
+          {substep && <span className={styles.substep}>({substep})</span>}
+          <span className={styles.compactRest}>
+            {' '}/ {STEP_LABELS.length}
+          </span>
+        </li>
+      </ol>
+    );
+  }
+
   return (
     <ol className={styles.indicator} aria-label="Conversion progress">
       {STEP_LABELS.map((label, index) => {

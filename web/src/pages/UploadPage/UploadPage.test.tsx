@@ -59,7 +59,7 @@ describe('UploadPage header', () => {
   it('renders the format-list subtitle', () => {
     renderPage();
     expect(
-      screen.getByText(/PDF, Notion export, Word, Markdown, HTML, Excel, CSV, or PowerPoint/i)
+      screen.getAllByText(/PDF, Word, Notion export, Markdown, HTML, Excel, CSV, or PowerPoint/i)[0]
     ).toBeInTheDocument();
   });
 });
@@ -71,17 +71,18 @@ describe('UploadPage reattach banner', () => {
 
   it('shows the reattach banner when upload_pending_filename is set in sessionStorage', async () => {
     renderPageWithSession('upload_pending_filename', 'biochemistry.zip');
-    expect(await screen.findByRole('status')).toBeInTheDocument();
-    expect(screen.getByRole('status').textContent).toContain('Re-attach');
-    expect(screen.getByRole('status').textContent).toContain('biochemistry.zip');
-    expect(screen.getByRole('status').textContent).toContain('to convert');
+    const reattachText = await screen.findByText(/Re-attach/);
+    const banner = reattachText.closest('[role="status"]') as HTMLElement;
+    expect(banner).toBeInTheDocument();
+    expect(banner.textContent).toContain('biochemistry.zip');
+    expect(banner.textContent).toContain('to convert');
     globalThis.sessionStorage.removeItem('upload_pending_filename');
   });
 
   it('does not show the reattach banner when upload_pending_filename is absent', async () => {
     renderPageWithSession('upload_pending_filename', null);
     await waitFor(() => {
-      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Re-attach/)).not.toBeInTheDocument();
     });
   });
 });
@@ -98,10 +99,10 @@ describe('UploadPage explore card', () => {
 });
 
 describe('UploadPage doc/docx hint', () => {
-  it('renders the doc and docx heading rule hint', () => {
+  it('renders the Word heading rule hint inside step 1', () => {
     renderPage();
     expect(
-      screen.getByText(/Doc and docx: use headings for the front of each card, body text for the back\. Plain paragraphs become separate cards\./i)
+      screen.getByText(/In Word docs, headings become card fronts and the body text under each heading becomes the back\./i)
     ).toBeInTheDocument();
   });
 });
