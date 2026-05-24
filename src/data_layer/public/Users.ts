@@ -57,6 +57,10 @@ export default interface Users {
   upload_primer_dismissed_at: Date | null;
 
   onboarded_at: Date | null;
+
+  pdf_prints_this_month: number;
+
+  prints_month_started_at: Date;
 }
 
 /** Represents the initializer for the table public.users */
@@ -122,6 +126,12 @@ export interface UsersInitializer {
   upload_primer_dismissed_at?: Date | null;
 
   onboarded_at?: Date | null;
+
+  /** Default value: 0 */
+  pdf_prints_this_month?: number;
+
+  /** Default value: CURRENT_TIMESTAMP */
+  prints_month_started_at?: Date;
 }
 
 /** Represents the mutator for the table public.users */
@@ -177,4 +187,8 @@ export interface UsersMutator {
   upload_primer_dismissed_at?: Date | null;
 
   onboarded_at?: Date | null;
+
+  pdf_prints_this_month?: number;
+
+  prints_month_started_at?: Date;
 }

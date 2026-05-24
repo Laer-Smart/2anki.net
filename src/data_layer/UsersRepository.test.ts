@@ -104,6 +104,152 @@ describe('UsersRepository.updatePatreonByEmail', () => {
   });
 });
 
+describe('UsersRepository.createUserAndSeedFromTombstone', () => {
+  function buildTrxKnex(tombstoneSeed: any) {
+    const insertReturning = jest.fn().mockResolvedValue([{ id: 99 }]);
+    const updateSpy = jest.fn().mockResolvedValue(1);
+    const whereForUpdate = { update: updateSpy };
+    const trx: any = jest.fn().mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          insert: jest.fn().mockReturnValue({ returning: insertReturning }),
+          where: jest.fn().mockReturnValue(whereForUpdate),
+        };
+      }
+      return {};
+    });
+    const transaction = jest.fn().mockImplementation(async (cb) => cb(trx));
+    const knex: any = jest.fn();
+    knex.transaction = transaction;
+    const tombstoneRepo = {
+      snapshot: jest.fn().mockResolvedValue(undefined),
+      consumeIfCurrentMonth: jest.fn().mockResolvedValue(tombstoneSeed),
+    };
+    return { knex, tombstoneRepo, updateSpy, insertReturning };
+  }
+
+  it('inserts the user and skips the seed update when no tombstone exists', async () => {
+    const { knex, tombstoneRepo, updateSpy } = buildTrxKnex(null);
+    const repo = new UsersRepository(knex as any, tombstoneRepo as any);
+
+    const result = await repo.createUserAndSeedFromTombstone(
+      'al',
+      SAMPLE_HASH,
+      'al@example.com',
+      '/notion-to-anki'
+    );
+
+    expect(result).toEqual([{ id: 99 }]);
+    expect(tombstoneRepo.consumeIfCurrentMonth).toHaveBeenCalledTimes(1);
+    expect(updateSpy).not.toHaveBeenCalled();
+  });
+
+  it('seeds counters on the new user when a current-month tombstone is found', async () => {
+    const seed = {
+      cards_used_this_month: 80,
+      cards_month_started_at: new Date('2026-05-01T00:00:00Z'),
+      pdf_prints_this_month: 1,
+      prints_month_started_at: new Date('2026-05-01T00:00:00Z'),
+    };
+    const { knex, tombstoneRepo, updateSpy } = buildTrxKnex(seed);
+    const repo = new UsersRepository(knex as any, tombstoneRepo as any);
+
+    await repo.createUserAndSeedFromTombstone(
+      'al',
+      SAMPLE_HASH,
+      'al@example.com',
+      null,
+      new Date('2026-05-24T00:00:00Z')
+    );
+
+    expect(updateSpy).toHaveBeenCalledWith({
+      cards_used_this_month: 80,
+      cards_month_started_at: seed.cards_month_started_at,
+      pdf_prints_this_month: 1,
+      prints_month_started_at: seed.prints_month_started_at,
+    });
+  });
+});
+
+describe('UsersRepository.deleteUser', () => {
+  it('snapshots usage to the tombstone before deleting the user', async () => {
+    const userRow = {
+      email: 'al@example.com',
+      cards_used_this_month: 80,
+      cards_month_started_at: new Date('2026-05-01T00:00:00Z'),
+      pdf_prints_this_month: 1,
+      prints_month_started_at: new Date('2026-05-01T00:00:00Z'),
+    };
+    const deleteOrder: string[] = [];
+    const trx: any = jest.fn().mockImplementation((table: string) => {
+      if (table === 'users') {
+        return {
+          where: jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+              first: jest.fn().mockResolvedValue(userRow),
+            }),
+            del: jest.fn().mockImplementation(() => {
+              deleteOrder.push('users');
+              return Promise.resolve(1);
+            }),
+          }),
+        };
+      }
+      return {
+        where: jest.fn().mockReturnValue({
+          del: jest.fn().mockImplementation(() => {
+            deleteOrder.push(table);
+            return Promise.resolve(1);
+          }),
+        }),
+      };
+    });
+    const transaction = jest.fn().mockImplementation(async (cb) => cb(trx));
+    const knex: any = jest.fn();
+    knex.transaction = transaction;
+    const tombstoneRepo = {
+      snapshot: jest.fn().mockResolvedValue(undefined),
+      consumeIfCurrentMonth: jest.fn(),
+    };
+
+    const repo = new UsersRepository(knex as any, tombstoneRepo as any);
+    await repo.deleteUser('42');
+
+    expect(tombstoneRepo.snapshot).toHaveBeenCalledTimes(1);
+    const [, counters] = tombstoneRepo.snapshot.mock.calls[0];
+    expect(counters).toEqual({
+      cards_used_this_month: 80,
+      cards_month_started_at: userRow.cards_month_started_at,
+      pdf_prints_this_month: 1,
+      prints_month_started_at: userRow.prints_month_started_at,
+    });
+    expect(deleteOrder[deleteOrder.length - 1]).toBe('users');
+  });
+
+  it('skips the snapshot when the user row has no email', async () => {
+    const trx: any = jest.fn().mockImplementation(() => ({
+      where: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          first: jest.fn().mockResolvedValue({ email: null }),
+        }),
+        del: jest.fn().mockResolvedValue(1),
+      }),
+    }));
+    const transaction = jest.fn().mockImplementation(async (cb) => cb(trx));
+    const knex: any = jest.fn();
+    knex.transaction = transaction;
+    const tombstoneRepo = {
+      snapshot: jest.fn(),
+      consumeIfCurrentMonth: jest.fn(),
+    };
+
+    const repo = new UsersRepository(knex as any, tombstoneRepo as any);
+    await repo.deleteUser('42');
+
+    expect(tombstoneRepo.snapshot).not.toHaveBeenCalled();
+  });
+});
+
 const RUN_INTEGRATION = process.env.DATABASE_URL != null;
 
 (RUN_INTEGRATION ? describe : describe.skip)(

@@ -57,6 +57,8 @@ function buildUser(overrides: Partial<UserWithOwner> = {}): UserWithOwner {
     ai_template_modify_count: 0,
     cards_used_this_month: 0,
     cards_month_started_at: new Date(0),
+    pdf_prints_this_month: 0,
+    prints_month_started_at: new Date(0),
     signup_country: null,
     chat_consent_at: null,
     stripe_customer_id: null,

@@ -3,6 +3,8 @@ import { Knex } from 'knex';
 import Users from './public/Users';
 import Subscriptions from './public/Subscriptions';
 import { isNewMonth } from '../lib/User/isNewMonth';
+import DeletedUserUsageRepository from './DeletedUserUsageRepository';
+import { emailHash } from '../lib/emailHash';
 
 export interface SignupCountryCount {
   country: string;
@@ -18,10 +20,16 @@ export interface ISignupCountryRepository {
 
 class UsersRepository {
   table: string;
+  private deletedUserUsage: DeletedUserUsageRepository;
 
-  constructor(private database: Knex) {
+  constructor(
+    private database: Knex,
+    deletedUserUsage?: DeletedUserUsageRepository
+  ) {
     this.database = database;
     this.table = 'users';
+    this.deletedUserUsage =
+      deletedUserUsage ?? new DeletedUserUsageRepository(database);
   }
 
   async getById(id: string): Promise<Users> {
@@ -91,7 +99,51 @@ class UsersRepository {
       .returning(['id']);
   }
 
-  deleteUser(owner: string) {
+  async createUserAndSeedFromTombstone(
+    name: string,
+    password: string,
+    email: string,
+    signupOrigin?: string | null,
+    now: Date = new Date()
+  ): Promise<Array<{ id: string | number }>> {
+    return this.database.transaction(async (trx) => {
+      const inserted = await trx(this.table)
+        .insert({
+          name,
+          password,
+          email,
+          signup_origin: signupOrigin ?? null,
+        })
+        .returning(['id']);
+      const id = inserted[0].id;
+      await this.applyTombstoneSeed(id, email, now, trx);
+      return inserted;
+    });
+  }
+
+  private async applyTombstoneSeed(
+    id: string | number,
+    email: string,
+    now: Date,
+    trx: Knex.Transaction
+  ) {
+    const seed = await this.deletedUserUsage.consumeIfCurrentMonth(
+      emailHash(email),
+      now,
+      trx
+    );
+    if (!seed) return;
+    await trx(this.table)
+      .where({ id })
+      .update({
+        cards_used_this_month: seed.cards_used_this_month,
+        cards_month_started_at: seed.cards_month_started_at,
+        pdf_prints_this_month: seed.pdf_prints_this_month,
+        prints_month_started_at: seed.prints_month_started_at,
+      });
+  }
+
+  async deleteUser(owner: string) {
     const ownerTables = [
       'access_tokens',
       'favorites',
@@ -104,12 +156,40 @@ class UsersRepository {
       'dropbox_uploads',
       'google_drive_uploads',
     ];
-    return Promise.all([
-      ...ownerTables.map((tableName) =>
-        this.database(tableName).where({ owner }).del()
-      ),
-      this.database(this.table).where({ id: owner }).del(),
-    ]);
+    return this.database.transaction(async (trx) => {
+      await this.snapshotUsageForTombstone(owner, trx);
+      for (const tableName of ownerTables) {
+        await trx(tableName).where({ owner }).del();
+      }
+      await trx(this.table).where({ id: owner }).del();
+    });
+  }
+
+  private async snapshotUsageForTombstone(
+    owner: string,
+    trx: Knex.Transaction
+  ) {
+    const row = await trx(this.table)
+      .where({ id: owner })
+      .select(
+        'email',
+        'cards_used_this_month',
+        'cards_month_started_at',
+        'pdf_prints_this_month',
+        'prints_month_started_at'
+      )
+      .first();
+    if (!row?.email) return;
+    await this.deletedUserUsage.snapshot(
+      emailHash(row.email),
+      {
+        cards_used_this_month: row.cards_used_this_month ?? 0,
+        cards_month_started_at: row.cards_month_started_at ?? null,
+        pdf_prints_this_month: row.pdf_prints_this_month ?? 0,
+        prints_month_started_at: row.prints_month_started_at ?? null,
+      },
+      trx
+    );
   }
 
   async linkCurrentUserWithEmail(owner: string, email: string) {
