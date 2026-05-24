@@ -128,16 +128,19 @@ function LoginForm() {
               </a>
             </p>
             <div className={styles.divider}>
-              <span className={styles.dividerLabel}>or</span>
+              <span className={styles.dividerLabel}>Or use a provider</span>
             </div>
-            <WithGoogleLink
-              text={getVisibleText('navigation.login.google')}
-            />
-            <WithNotionLink text="Continue with Notion" />
-            <WithMicrosoftLink
-              text={getVisibleText('navigation.login.microsoft')}
-            />
-            <div className={styles.divider} />
+            <div className={styles.oauthGrid}>
+              <WithGoogleLink
+                variant="card"
+                text={getVisibleText('navigation.login.google')}
+              />
+              <WithNotionLink variant="card" text="Continue with Notion" />
+              <WithMicrosoftLink
+                variant="card"
+                text={getVisibleText('navigation.login.microsoft')}
+              />
+            </div>
           </>
         ) : (
           <form onSubmit={onSubmit}>

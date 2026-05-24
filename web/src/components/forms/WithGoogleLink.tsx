@@ -3,11 +3,20 @@ import styles from '../../styles/auth.module.css';
 
 interface WithGoogleLinkProps {
   text: string;
+  variant?: 'row' | 'card';
 }
 
-export function WithGoogleLink({ text }: Readonly<WithGoogleLinkProps>) {
+export function WithGoogleLink({
+  text,
+  variant = 'row',
+}: Readonly<WithGoogleLinkProps>) {
+  const isCard = variant === 'card';
   return (
-    <a href={getGoogleSignInUrl()} className={styles.googleButton}>
+    <a
+      href={getGoogleSignInUrl()}
+      className={isCard ? styles.oauthCard : styles.googleButton}
+      aria-label={isCard ? text : undefined}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 48 48"
@@ -32,7 +41,7 @@ export function WithGoogleLink({ text }: Readonly<WithGoogleLinkProps>) {
           d="M24.48 9.5288c3.5147 0 6.6628 1.2095 9.1495 3.5772l6.8638-6.8638C36.355 2.3924 30.9437 0 24.48 0 15.1393 0 7.0028 5.3925 3.0428 13.2807l8.0807 6.2353c1.877-5.642 7.1397-9.9872 13.3565-9.9872z"
         />
       </svg>
-      <span>{text}</span>
+      <span>{isCard ? 'Google' : text}</span>
     </a>
   );
 }

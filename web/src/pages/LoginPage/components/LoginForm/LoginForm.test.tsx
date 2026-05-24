@@ -79,14 +79,25 @@ describe('LoginForm', () => {
     expect(screen.queryByPlaceholderText('Password')).toBeNull();
   });
 
-  it('shows Google OAuth button on email step', () => {
+  it('shows Google OAuth card on email step', () => {
     renderLoginForm();
-    expect(screen.getByText('Sign in with Google')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Sign in with Google' })
+    ).toBeInTheDocument();
   });
 
-  it('shows Microsoft OAuth button on email step', () => {
+  it('shows Microsoft OAuth card on email step', () => {
     renderLoginForm();
-    expect(screen.getByText('Sign in with Microsoft')).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Sign in with Microsoft' })
+    ).toBeInTheDocument();
+  });
+
+  it('shows Notion OAuth card on email step', () => {
+    renderLoginForm();
+    expect(
+      screen.getByRole('link', { name: 'Continue with Notion' })
+    ).toBeInTheDocument();
   });
 
   it('shows Use password instead link on email step', () => {
