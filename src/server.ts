@@ -14,6 +14,8 @@ if (existsSync(localEnvFile)) {
 
 import { BUILD_DIR } from './lib/constants';
 import ErrorHandler from './routes/middleware/ErrorHandler';
+import { makeErrorCaptureMiddleware } from './routes/middleware/ErrorCaptureMiddleware';
+import { ErrorEventRepository } from './data_layer/ErrorEventRepository';
 
 // Server Endpoints
 import settingsRouter from './routes/SettingsRouter';
@@ -39,6 +41,7 @@ import webhookRouter from './routes/WebhookRouter';
 import ankifyWebhookRouter from './routes/AnkifyWebhookRouter';
 import swaggerRouter from './routes/SwaggerRouter';
 import opsRouter from './routes/OpsRouter';
+import opsErrorsRouter from './routes/OpsErrorsRouter';
 import opsDiscoveryRouter from './routes/OpsDiscoveryRouter';
 import ostRouter from './routes/OstRouter';
 import feedbackRouter from './routes/FeedbackRouter';
@@ -141,6 +144,7 @@ const serve = async () => {
   app.use(templatesRouter());
   app.use(showcaseRouter());
   app.use(opsRouter());
+  app.use(opsErrorsRouter());
   app.use(opsDiscoveryRouter());
   app.use(ostRouter());
   app.use(feedbackRouter());
@@ -159,6 +163,8 @@ const serve = async () => {
   // Note: this has to be the last router
   app.use(defaultRouter());
 
+  const errorEventRepo = new ErrorEventRepository(getDatabase());
+  app.use(makeErrorCaptureMiddleware(errorEventRepo));
   app.use(
     (
       err: Error,
