@@ -99,7 +99,6 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
     keys: [
       'add-notion-link',
       'no-underline',
-      'remove-mp3-links',
       'markdown-nested-bullet-points',
     ],
   },
@@ -120,7 +119,7 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
   },
 ];
 
-const HIDDEN_KEYS = ['vertex-ai-pdf-questions'];
+const HIDDEN_KEYS = ['vertex-ai-pdf-questions', 'remove-mp3-links'];
 const GROUPED_KEYS = new Set([
   ...OPTION_GROUPS.flatMap((g) => g.keys),
   ...HIDDEN_KEYS,
@@ -817,32 +816,51 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               )}
               {isCardTypesGroup && (
                 <div className={fieldStyles.optionGroup} id="audio">
-                  <div className={fieldStyles.groupHeader}>
-                    <h3 className={fieldStyles.groupHeading}>Audio</h3>
-                    <div className={fieldStyles.segmented} role="group" aria-label="Read cards aloud">
-                      {(
-                        [
-                          { label: 'Off', value: false },
-                          { label: 'On', value: true },
-                        ] as const
-                      ).map(({ label, value }) => (
-                        <button
-                          key={label}
-                          type="button"
-                          className={`${fieldStyles.segment} ${ttsAutoDetect === value ? fieldStyles.segmentActive : ''}`}
-                          onClick={() => {
-                            setTtsAutoDetect(value);
-                            saveValueInLocalStorage('tts-auto-detect', value.toString(), pageId);
-                          }}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  <h3 className={fieldStyles.groupHeading}>Audio</h3>
                   <p className={fieldStyles.groupIntro}>
-                    Anki will read your card aloud using the language we detect from the text. We use English when we can&apos;t tell.
+                    Two settings, opposite effects. One adds Anki&apos;s built-in voice to your cards. The other hides raw MP3 URLs your source may carry.
                   </p>
+
+                  <div className={fieldStyles.section}>
+                    <label className={fieldStyles.toggleRow}>
+                      <span className={fieldStyles.toggleSwitch}>
+                        <input
+                          type="checkbox"
+                          role="switch"
+                          checked={ttsAutoDetect}
+                          onChange={(e) => {
+                            setTtsAutoDetect(e.target.checked);
+                            saveValueInLocalStorage('tts-auto-detect', e.target.checked.toString(), pageId);
+                          }}
+                        />
+                        <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
+                      </span>
+                      <span className={fieldStyles.toggleLabel}>Read cards aloud</span>
+                    </label>
+                    <p className={fieldStyles.sectionHint}>
+                      Adds Anki&apos;s on-device voice to each card. Japanese, Korean, and Chinese are detected automatically; everything else reads in English. No audio file is added to your deck.
+                    </p>
+                  </div>
+
+                  {optionsByKey['remove-mp3-links'] && (
+                    <div className={fieldStyles.section}>
+                      <label className={fieldStyles.toggleRow}>
+                        <span className={fieldStyles.toggleSwitch}>
+                          <input
+                            type="checkbox"
+                            role="switch"
+                            checked={checkboxValues['remove-mp3-links'] ?? false}
+                            onChange={(e) => toggleCheckbox('remove-mp3-links', e.target.checked)}
+                          />
+                          <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
+                        </span>
+                        <span className={fieldStyles.toggleLabel}>Remove MP3 links from audio files</span>
+                      </label>
+                      <p className={fieldStyles.sectionHint}>
+                        Hides raw MP3 URLs that appear as visible text on cards. Embedded audio still plays — only the visible link is stripped.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </React.Fragment>

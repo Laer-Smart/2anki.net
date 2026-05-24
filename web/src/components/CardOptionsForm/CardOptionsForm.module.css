@@ -251,3 +251,61 @@
   color: var(--color-text-primary);
   font-weight: var(--font-medium);
 }
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  cursor: pointer;
+}
+
+.toggleLabel {
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+}
+
+.toggleSwitch {
+  position: relative;
+  display: inline-block;
+  width: 2.5rem;
+  height: 1.375rem;
+  flex-shrink: 0;
+}
+
+.toggleSwitch input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.toggleSwitchTrack {
+  position: absolute;
+  inset: 0;
+  background: var(--color-border);
+  border-radius: 999px;
+  transition: background var(--transition-fast, 150ms);
+}
+
+.toggleSwitchTrack::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1.125rem;
+  height: 1.125rem;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform var(--transition-fast, 150ms);
+}
+
+.toggleSwitch input:checked + .toggleSwitchTrack {
+  background: var(--color-primary);
+}
+
+.toggleSwitch input:checked + .toggleSwitchTrack::after {
+  transform: translateX(1.125rem);
+}
