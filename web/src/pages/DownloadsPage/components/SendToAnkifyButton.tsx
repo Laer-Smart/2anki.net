@@ -1,7 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
 
-import { track } from '../../../lib/analytics/track';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import { useUserLocals } from '../../../lib/hooks/useUserLocals';
 
@@ -15,7 +13,6 @@ export default function SendToAnkifyButton({ uploadId, filename }: Props) {
   const hasAccess =
     data?.locals?.patreon === true || data?.autoSyncActive === true;
   const api = get2ankiApi();
-  const navigate = useNavigate();
 
   const { data: clients } = useQuery({
     queryKey: ['ankify-clients'],
@@ -27,31 +24,25 @@ export default function SendToAnkifyButton({ uploadId, filename }: Props) {
     mutationFn: () => api.dispatchUploadToAnkify(Number(uploadId)),
   });
 
-  const handleClick = () => {
-    if (!hasAccess) {
-      track('paywall_upgrade_clicked', { surface: 'ankify_button', plan: 'auto_sync' });
-      navigate('/pricing?upsell=auto-sync');
-      return;
-    }
-    dispatch.mutate();
-  };
+  if (!hasAccess) {
+    return null;
+  }
 
   const hasActive = (clients ?? []).some((c) => c.status === 'active');
-  const disabled = hasAccess && (dispatch.isPending || !hasActive);
+  const disabled = dispatch.isPending || !hasActive;
 
   const label = (() => {
-    if (!hasAccess) return 'Send to my Anki';
     if (dispatch.isPending) return 'Sending to your Anki…';
     if (dispatch.isSuccess) {
-      const data = dispatch.data;
+      const result = dispatch.data;
       const parts = [];
-      if (data.created > 0) parts.push(`${data.created} new`);
-      if (data.updated > 0) parts.push(`${data.updated} updated`);
+      if (result.created > 0) parts.push(`${result.created} new`);
+      if (result.updated > 0) parts.push(`${result.updated} updated`);
       const counts = parts.length > 0 ? parts.join(', ') : 'Sent';
       let sync = '';
-      if (data.anki_web_sync === 'synced') {
+      if (result.anki_web_sync === 'synced') {
         sync = ' · synced to AnkiWeb';
-      } else if (data.anki_web_sync === 'failed') {
+      } else if (result.anki_web_sync === 'failed') {
         sync = ' · AnkiWeb sync skipped';
       }
       return `${counts}${sync}`;
@@ -61,7 +52,6 @@ export default function SendToAnkifyButton({ uploadId, filename }: Props) {
   })();
 
   const title = (() => {
-    if (!hasAccess) return 'Auto Sync sends decks straight to your Anki — see plans';
     if (!hasActive) return 'Set up your Anki on the Ankify page first';
     if (dispatch.isError) return (dispatch.error as Error).message;
     if (dispatch.isSuccess && dispatch.data.anki_web_sync === 'failed') {
@@ -73,7 +63,7 @@ export default function SendToAnkifyButton({ uploadId, filename }: Props) {
   return (
     <button
       type="button"
-      onClick={handleClick}
+      onClick={() => dispatch.mutate()}
       disabled={disabled}
       title={title}
       style={{

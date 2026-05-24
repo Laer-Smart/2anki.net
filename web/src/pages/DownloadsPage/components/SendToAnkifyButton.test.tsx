@@ -63,17 +63,10 @@ describe('SendToAnkifyButton', () => {
     mockLocalsData = undefined;
   });
 
-  it('routes free users to the Auto Sync upsell on click and never calls the API', async () => {
+  it('renders nothing for non-Ankify users', () => {
     mockLocalsData = { locals: { patreon: false }, autoSyncActive: false };
-    renderButton();
-    const button = screen.getByRole('button', { name: /send to my anki/i });
-    fireEvent.click(button);
-    expect(navigateMock).toHaveBeenCalledWith('/pricing?upsell=auto-sync');
-    expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
-      surface: 'ankify_button',
-      plan: 'auto_sync',
-    });
-    expect(dispatchMock).not.toHaveBeenCalled();
+    const { container } = renderButton();
+    expect(container.firstChild).toBeNull();
     expect(listClientsMock).not.toHaveBeenCalled();
   });
 
