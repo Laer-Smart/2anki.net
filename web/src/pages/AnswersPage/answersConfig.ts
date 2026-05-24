@@ -1,6 +1,14 @@
+export type AnswerFigureKind = 'forgetting-curve' | 'retention-workload';
+
+export interface AnswerFigure {
+  kind: AnswerFigureKind;
+  caption: string;
+}
+
 export interface AnswerSection {
   heading: string;
   body: string;
+  figure?: AnswerFigure;
 }
 
 export interface AnswerConfig {
@@ -149,9 +157,61 @@ const quizletToAnki: AnswerConfig = {
   ],
 };
 
+const fsrsExplained: AnswerConfig = {
+  slug: 'fsrs-explained',
+  title: 'FSRS in Anki — why your next review is 17 months | 2anki',
+  description:
+    'FSRS is the modern spaced repetition algorithm available in Anki since 23.10. If a card you just answered is scheduled 17 months out, that is FSRS — not a bug. Here is what it is, why the interval looks wrong, and what to do about it.',
+  h1: 'FSRS in Anki — what it is and why your next review looks wrong',
+  intro:
+    'FSRS is the modern spaced repetition algorithm Anki has shipped since version 23.10 (November 2023). It is still opt-in — SM-2 remains the default — but it is widely recommended in the community and the Anki manual presents it as more accurate than SM-2. FSRS predicts how long you will remember a card and schedules the next review at the point your recall probability drops to 90%. For a card you answer easily, that point can be a year or more away — which is the source of the "why is my next review in 17 months" question that fills r/Anki every week.',
+  sections: [
+    {
+      heading: 'What FSRS does',
+      body: 'FSRS — Free Spaced Repetition Scheduler — is an alternative to SM-2, the SuperMemo 2 algorithm Anki has used since 2006 (nearly two decades). FSRS models your forgetting curve from your actual review history and picks the next interval to land at your desired retention. By default that target is 90% — every interval is chosen so that, when the card comes back, you have a 90% chance of remembering it. Hit Good on a card you know well and FSRS calculates: "to drop from near-certain to 90% recall, we can wait a long time."',
+      figure: {
+        kind: 'forgetting-curve',
+        caption:
+          'Recall probability decays over time. FSRS schedules the next review at the point you cross 90% — the default desired retention.',
+      },
+    },
+    {
+      heading: 'Why your next review is 17 months out',
+      body: 'Two reasons. First, if you have not yet run the FSRS optimizer, you are using the generic default weights — these are tuned to a population average across hundreds of millions of reviews, so they are accurate for an average user but may not match how fast or slowly you personally forget. Second, the algorithm responds aggressively to Easy on early reviews; rating an early card Easy can make the next interval grow dramatically. The 17-month number is not a bug — it is FSRS doing exactly what the math says, with not enough data about you to be conservative.',
+    },
+    {
+      heading: 'What to do about it',
+      body: 'The simplest fix: lower the desired retention. Open the deck options (click the gear icon on the Decks screen and choose Options, or press O while reviewing), scroll to FSRS, and drop Desired retention from 0.90 to 0.85. Intervals shorten across the board, in exchange for slightly more reviews per day. The other thing worth getting right is grading: on early reviews, Good is the right answer unless you genuinely already knew the material. The Anki manual is most emphatic about one specific bad habit — pressing Hard instead of Again when you actually forgot. Hard tells FSRS you remembered with effort; Again tells it you forgot. The two send opposite signals, and Hard-instead-of-Again is the one mistake the algorithm cannot recover from cleanly.',
+      figure: {
+        kind: 'retention-workload',
+        caption:
+          'Reviews per day grow steeply as desired retention approaches 1.0. Dropping from 0.90 to 0.85 lightens the load; pushing to 0.95 roughly doubles it.',
+      },
+    },
+    {
+      heading: 'When to optimize FSRS weights',
+      body: 'Once you have some review history — a few hundred reviews on a deck is enough today — open the deck options the same way (gear icon → Options) and click Optimize under FSRS parameters. This replaces the generic weights with weights derived from your own forgetting pattern. The Anki manual recommends running the optimizer about once a month; more often than that is overkill, and over time, with enough review history, the parameters stabilise and re-optimizing stops moving them much.',
+    },
+    {
+      heading: 'Should you go back to SM-2',
+      body: 'Probably not. SM-2 adjusts intervals through an ease factor that moves with how you grade each card, but it does not model your forgetting curve mathematically — so it cannot target a specific retention rate the way FSRS does. FSRS, even with the generic weights, schedules more accurately because it is actually predicting recall probability instead of applying heuristic multipliers. The 17-month interval that looks wrong on day one is in fact closer to your true forgetting curve than the SM-2 interval would have been. Lower the desired retention rather than switch algorithms.',
+    },
+    {
+      heading: 'Where 2anki fits in',
+      body: '2anki converts your notes into Anki decks — Notion, PDF, EPUB, Kindle highlights, Markdown, HTML, CSV, and Quizlet exports. The cards 2anki produces work with whichever scheduling algorithm you have enabled in Anki; FSRS and SM-2 both use the same card data. Tuning your scheduling is something you do once in Anki itself, not per-deck.',
+    },
+  ],
+  relatedLinks: [
+    { label: 'Convert Notion to Anki', href: '/answers/convert-notion-to-anki?ref=ai' },
+    { label: 'Convert a PDF to Anki', href: '/answers/pdf-to-anki?ref=ai' },
+    { label: 'Pricing', href: '/pricing?ref=ai' },
+  ],
+};
+
 export const ANSWERS_PAGES: ReadonlyMap<string, AnswerConfig> = new Map([
   ['convert-notion-to-anki', convertNotionToAnki],
   ['notion-to-anki-sync', notionToAnkiSync],
   ['pdf-to-anki', pdfToAnki],
   ['quizlet-to-anki', quizletToAnki],
+  ['fsrs-explained', fsrsExplained],
 ]);

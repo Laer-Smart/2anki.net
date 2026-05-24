@@ -92,6 +92,7 @@ const PhotoToFlashcardsPage = lazy(() =>
 );
 const ChatPage = lazy(() => import('./pages/Chat/ChatPage'));
 const NotionLandingPage = lazy(() => import('./pages/NotionLandingPage/NotionLandingPage'));
+const AnswersPage = lazy(() => import('./pages/AnswersPage/AnswersPage'));
 const LimitPage = lazy(() => import('./pages/LimitPage/LimitPage'));
 const SharedDeckPage = lazy(() => import('./pages/SharedDeckPage'));
 const MindmapsPage = lazy(() => import('./pages/MindmapsPage'));
@@ -345,6 +346,7 @@ function AppContent({
             }
           />
           <Route path="/notion-marketplace" element={<NotionLandingPage />} />
+          <Route path="/answers/:slug" element={<AnswersPage />} />
           <Route
             path="/convert/:slug"
             element={
