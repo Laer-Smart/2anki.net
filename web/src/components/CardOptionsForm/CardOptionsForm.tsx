@@ -430,7 +430,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       if (options) {
         const reset: Record<string, boolean> = {};
         options.forEach((o: CardOption) => {
-          reset[o.key] = false;
+          reset[o.key] = o.value;
         });
         setCheckboxValues(reset);
       }
