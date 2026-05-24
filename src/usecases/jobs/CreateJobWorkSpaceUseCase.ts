@@ -1,9 +1,9 @@
 import NotionAPIWrapper from '../../services/NotionService/NotionAPIWrapper';
 import JobRepository from '../../data_layer/JobRepository';
+import { ISettingsRepository } from '../../data_layer/SettingsRepository';
+import { IParserRulesRepository } from '../../data_layer/ParserRulesRepository';
 import CustomExporter from '../../lib/parser/exporters/CustomExporter';
 import CardOption from '../../lib/parser/Settings';
-import { loadSettingsFromDatabase } from '../../lib/parser/Settings/loadSettingsFromDatabase';
-import { getDatabase } from '../../data_layer';
 import BlockHandler from '../../services/NotionService/BlockHandler/BlockHandler';
 import ParserRules from '../../lib/parser/ParserRules';
 import Workspace from '../../lib/parser/WorkSpace';
@@ -17,7 +17,7 @@ export interface CreateJobWorkSpaceUseCaseInput {
 }
 
 export interface CreateJobWorkSpaceUseCaseOutput {
-  ws: Workspace; // Corrected type
+  ws: Workspace;
   exporter: CustomExporter;
   settings: CardOption;
   bl: BlockHandler;
@@ -25,7 +25,11 @@ export interface CreateJobWorkSpaceUseCaseOutput {
 }
 
 export class CreateJobWorkSpaceUseCase {
-  constructor(private readonly jobRepository: JobRepository) {}
+  constructor(
+    private readonly jobRepository: JobRepository,
+    private readonly settingsRepository: ISettingsRepository,
+    private readonly parserRulesRepository: IParserRulesRepository
+  ) {}
 
   async execute(
     input: CreateJobWorkSpaceUseCaseInput
@@ -47,13 +51,11 @@ export class CreateJobWorkSpaceUseCase {
     console.debug(`using workspace ${ws.location}`);
 
     const exporter = new CustomExporter('', ws.location);
-    // TODO: refactor loadSettingsFromDatabase out
-    const settings = await loadSettingsFromDatabase(getDatabase(), owner, id);
+    const settings = await this.settingsRepository.load(owner, id);
     console.debug(`using settings ${JSON.stringify(settings, null, 2)}`);
 
     const bl = new BlockHandler(exporter, api, settings);
-    // TODO: refactor ParserRules.load out
-    const rules = await ParserRules.Load(owner, id);
+    const rules = await this.parserRulesRepository.load(owner, id);
     bl.useAll = input.isPaying;
 
     return { ws, exporter, settings, bl, rules };

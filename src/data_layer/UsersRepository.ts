@@ -37,6 +37,14 @@ class UsersRepository {
     return user;
   }
 
+  async getEmailById(id: string | number): Promise<string | undefined> {
+    const row = await this.database(this.table)
+      .where({ id })
+      .returning(['email'])
+      .first();
+    return row?.email;
+  }
+
   async getAiTemplateCounts(id: string | number) {
     const row = await this.database
       .table(this.table)

@@ -38,34 +38,19 @@ class ParserRules {
     return this.FLASHCARD;
   }
 
+  /**
+   * Backwards-compatible convenience for callers that don't have a
+   * `ParserRulesRepository` instance. New code should inject the repo
+   * directly (see `src/usecases/jobs/CreateJobWorkSpaceUseCase.ts`).
+   */
   static async Load(owner: string, id: string): Promise<ParserRules> {
-    const rules = new ParserRules();
-    try {
-      const result = await getDatabase()('parser_rules')
-        .where({ object_id: id, owner })
-        .returning(['*'])
-        .first();
-
-      if (result) {
-        rules.setFlashcardTypes(result.flashcard_is.split(','));
-        rules.DECK = (result.deck_is ?? '')
-          .split(',')
-          .filter(Boolean);
-        rules.SUB_DECKS = (result.sub_deck_is ?? '')
-          .split(',')
-          .filter(Boolean);
-        rules.TAGS = result.tags_is;
-        rules.EMAIL_NOTIFICATION = result.email_notification;
-      } else {
-        console.info(
-          `No parser rules found for object_id: ${id} and owner: ${owner}. Using default values.`
-        );
-      }
-      return rules;
-    } catch (error) {
-      console.error(error);
-    }
-    return new ParserRules();
+    // Local import to avoid a circular dependency between the parser
+    // domain class and the data-layer.
+    const { default: ParserRulesRepository } = await import(
+      '../../data_layer/ParserRulesRepository'
+    );
+    const repo = new ParserRulesRepository(getDatabase());
+    return repo.load(owner, id);
   }
 
   useColums() {
