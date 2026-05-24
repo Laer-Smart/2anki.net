@@ -1,6 +1,14 @@
+export type AnswerFigureKind = 'forgetting-curve' | 'retention-workload';
+
+export interface AnswerFigure {
+  kind: AnswerFigureKind;
+  caption: string;
+}
+
 export interface AnswerSection {
   heading: string;
   body: string;
+  figure?: AnswerFigure;
 }
 
 export interface AnswerConfig {
@@ -161,6 +169,11 @@ const fsrsExplained: AnswerConfig = {
     {
       heading: 'What FSRS does',
       body: 'FSRS — Free Spaced Repetition Scheduler — is an alternative to SM-2, the SuperMemo 2 algorithm Anki has used since 2006 (nearly two decades). FSRS models your forgetting curve from your actual review history and picks the next interval to land at your desired retention. By default that target is 90% — every interval is chosen so that, when the card comes back, you have a 90% chance of remembering it. Hit Good on a card you know well and FSRS calculates: "to drop from near-certain to 90% recall, we can wait a long time."',
+      figure: {
+        kind: 'forgetting-curve',
+        caption:
+          'Recall probability decays over time. FSRS schedules the next review at the point you cross 90% — the default desired retention.',
+      },
     },
     {
       heading: 'Why your next review is 17 months out',
@@ -169,6 +182,11 @@ const fsrsExplained: AnswerConfig = {
     {
       heading: 'What to do about it',
       body: 'The simplest fix: lower the desired retention. Open the deck options (click the gear icon on the Decks screen and choose Options, or press O while reviewing), scroll to FSRS, and drop Desired retention from 0.90 to 0.85. Intervals shorten across the board, in exchange for slightly more reviews per day. The other thing worth getting right is grading: on early reviews, Good is the right answer unless you genuinely already knew the material. The Anki manual is most emphatic about one specific bad habit — pressing Hard instead of Again when you actually forgot. Hard tells FSRS you remembered with effort; Again tells it you forgot. The two send opposite signals, and Hard-instead-of-Again is the one mistake the algorithm cannot recover from cleanly.',
+      figure: {
+        kind: 'retention-workload',
+        caption:
+          'Reviews per day grow steeply as desired retention approaches 1.0. Dropping from 0.90 to 0.85 lightens the load; pushing to 0.95 roughly doubles it.',
+      },
     },
     {
       heading: 'When to optimize FSRS weights',

@@ -1,0 +1,67 @@
+.figure {
+  margin: var(--space-6, 1.5rem) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+}
+
+.svg {
+  width: 100%;
+  max-width: 32rem;
+  height: auto;
+  display: block;
+}
+
+.axis {
+  stroke: var(--color-border, #d1d5db);
+  stroke-width: 1;
+  fill: none;
+}
+
+.gridLine {
+  stroke: var(--color-border, #d1d5db);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  fill: none;
+}
+
+.curve {
+  stroke: var(--color-primary, #3b82f6);
+  stroke-width: 2;
+  fill: none;
+}
+
+.markerLine {
+  stroke: var(--color-text-secondary, #6b7280);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+}
+
+.markerDot {
+  fill: var(--color-primary, #3b82f6);
+}
+
+.markerLabel {
+  font-size: 11px;
+  font-family: inherit;
+  fill: var(--color-text-primary, #111827);
+}
+
+.axisLabel {
+  font-size: 11px;
+  font-family: inherit;
+  fill: var(--color-text-secondary, #6b7280);
+}
+
+.tickLabel {
+  font-size: 10px;
+  font-family: inherit;
+  fill: var(--color-text-secondary, #6b7280);
+}
+
+.caption {
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--color-text-secondary, #6b7280);
+  line-height: var(--leading-normal, 1.5);
+  max-width: 32rem;
+}

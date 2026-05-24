@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 import NotFoundPage from '../NotFoundPage';
+import { AnswerFigure } from './AnswerFigures';
 import { ANSWERS_PAGES } from './answersConfig';
 import styles from './AnswersPage.module.css';
 
@@ -47,6 +48,12 @@ function AnswersPage() {
         <div key={section.heading} className={styles.section}>
           <h2 className={styles.sectionHeading}>{section.heading}</h2>
           <p className={styles.sectionBody}>{section.body}</p>
+          {section.figure && (
+            <AnswerFigure
+              kind={section.figure.kind}
+              caption={section.figure.caption}
+            />
+          )}
         </div>
       ))}
 
