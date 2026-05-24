@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-24-upsell-button-reset",
+  "date": "2026-05-24",
+  "type": "fix",
+  "title": "Pass buttons reset after you navigate back from checkout instead of staying on Redirecting"
+}
