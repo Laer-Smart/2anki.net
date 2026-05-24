@@ -281,6 +281,62 @@ describe('NotionController', () => {
     });
   });
 
+  describe('search — Unauthorized', () => {
+    it('returns structured JSON with notion_unauthorized code — no HTML in message', async () => {
+      const unauthorizedError = new APIResponseError({
+        code: APIErrorCode.Unauthorized,
+        message: 'API token is invalid.',
+        status: 401,
+        rawBodyText: '',
+        headers: {},
+      } as any);
+      service = {
+        getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
+        search: jest.fn().mockRejectedValue(unauthorizedError),
+        getNotionAuthorizationLink: jest.fn().mockReturnValue('https://notion.so/oauth'),
+        getClientId: jest.fn().mockReturnValue('client-abc'),
+      } as any;
+      controller = new NotionController(service);
+      req = { body: { query: 'test' }, params: {}, query: {} };
+
+      await controller.search(req as express.Request, res as express.Response);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      const body = (res.json as jest.Mock).mock.calls[0]?.[0];
+      expect(body.code).toBe('notion_unauthorized');
+      expect(body.message).not.toMatch(/<a /);
+      expect(body.message).not.toMatch(/href/);
+    });
+  });
+
+  describe('searchTopLevelPages — Unauthorized', () => {
+    it('returns structured JSON with notion_unauthorized code — no HTML in message', async () => {
+      const unauthorizedError = new APIResponseError({
+        code: APIErrorCode.Unauthorized,
+        message: 'API token is invalid.',
+        status: 401,
+        rawBodyText: '',
+        headers: {},
+      } as any);
+      service = {
+        getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
+        searchTopLevelPages: jest.fn().mockRejectedValue(unauthorizedError),
+        getNotionAuthorizationLink: jest.fn().mockReturnValue('https://notion.so/oauth'),
+        getClientId: jest.fn().mockReturnValue('client-abc'),
+      } as any;
+      controller = new NotionController(service);
+      req = { body: { query: 'test' }, params: {}, query: {} };
+
+      await controller.searchTopLevelPages(req as express.Request, res as express.Response);
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      const body = (res.json as jest.Mock).mock.calls[0]?.[0];
+      expect(body.code).toBe('notion_unauthorized');
+      expect(body.message).not.toMatch(/<a /);
+      expect(body.message).not.toMatch(/href/);
+    });
+  });
+
   describe('getNotionLink', () => {
     it('returns the OAuth link with isConnected=false when the caller is anonymous', async () => {
       service = {

@@ -105,33 +105,19 @@ class NotionController {
 
   async search(req: Request, res: Response) {
     try {
-      // Check for Notion connection first
       const linkInfo = await this.service.getNotionLinkInfo(res.locals.owner);
       if (!linkInfo.isConnected) {
-        const renewalLink = this.service.getNotionAuthorizationLink(
-          this.service.getClientId()
-        );
-        return res.status(401).json({
-          message: `Notion is not connected. Please connect your account <a href='${renewalLink}'>here</a>.`,
-        });
+        return res.status(401).json({ code: 'notion_unauthorized', message: 'Notion is not connected.' });
       }
 
-      // Proceed with search if connected
       const query = req.body.query.toString() || '';
       const result = await this.service.search(query, getOwner(res));
       res.json(result);
     } catch (err) {
-      if (err instanceof APIResponseError) {
-        if (err.code === APIErrorCode.Unauthorized) {
-          const renewalLink = this.service.getNotionAuthorizationLink(
-            this.service.getClientId()
-          );
-          err.message += `You can renew it <a href='${renewalLink}'>here</a>.`;
-        }
-        sendErrorResponse(err, res);
-      } else {
-        sendErrorResponse(err, res);
+      if (err instanceof APIResponseError && err.code === APIErrorCode.Unauthorized) {
+        return res.status(401).json({ code: 'notion_unauthorized', message: 'API token is invalid.' });
       }
+      sendErrorResponse(err, res);
     }
   }
 
@@ -139,12 +125,7 @@ class NotionController {
     try {
       const linkInfo = await this.service.getNotionLinkInfo(res.locals.owner);
       if (!linkInfo.isConnected) {
-        const renewalLink = this.service.getNotionAuthorizationLink(
-          this.service.getClientId()
-        );
-        return res.status(401).json({
-          message: `Notion is not connected. Please connect your account <a href='${renewalLink}'>here</a>.`,
-        });
+        return res.status(401).json({ code: 'notion_unauthorized', message: 'Notion is not connected.' });
       }
 
       const query =
@@ -155,17 +136,10 @@ class NotionController {
       );
       res.json(result);
     } catch (err) {
-      if (err instanceof APIResponseError) {
-        if (err.code === APIErrorCode.Unauthorized) {
-          const renewalLink = this.service.getNotionAuthorizationLink(
-            this.service.getClientId()
-          );
-          err.message += `You can renew it <a href='${renewalLink}'>here</a>.`;
-        }
-        sendErrorResponse(err, res);
-      } else {
-        sendErrorResponse(err, res);
+      if (err instanceof APIResponseError && err.code === APIErrorCode.Unauthorized) {
+        return res.status(401).json({ code: 'notion_unauthorized', message: 'API token is invalid.' });
       }
+      sendErrorResponse(err, res);
     }
   }
 

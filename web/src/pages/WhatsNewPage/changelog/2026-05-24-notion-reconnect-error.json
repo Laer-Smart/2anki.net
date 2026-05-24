@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-24-notion-reconnect-error",
+  "date": "2026-05-24",
+  "type": "fix",
+  "title": "Notion reconnect — clearer message and a working link when your connection expires"
+}
