@@ -124,7 +124,7 @@ const serve = async () => {
 
   app.use(webhookRouter());
   app.use(ankifyWebhookRouter());
-  app.use(express.json({ limit: '1000mb' }) as RequestHandler);
+  app.use(express.json({ limit: '50mb' }) as RequestHandler);
   app.use(cookieParser());
   app.use(anonIdMiddleware);
   app.use(noindexNonCanonicalHosts);
