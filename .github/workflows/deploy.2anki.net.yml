@@ -30,11 +30,10 @@ jobs:
             nvm use $(cat ${SERVER_DIR}/.nvmrc)
 
             node --version
-            npm install -g pnpm
+            corepack enable
 
-            git -C ${SERVER_DIR} clean -fd
-            git -C ${SERVER_DIR} stash
-            git -C ${SERVER_DIR} pull origin
+            git -C ${SERVER_DIR} fetch origin main
+            git -C ${SERVER_DIR} reset --hard origin/main
             git -C ${SERVER_DIR} clean -fd
 
             pnpm --dir ${SERVER_DIR} install --frozen-lockfile
@@ -44,5 +43,22 @@ jobs:
             pnpm --dir ${SERVER_DIR} run build
             pnpm --filter 2anki-web -C ${SERVER_DIR} build
 
-            cd ${SERVER_DIR}/..
-            pm2 restart server --update-env
+            cd ${SERVER_DIR}
+            pm2 startOrRestart ecosystem.config.js --update-env
+            pm2 save
+
+            echo "Waiting for /api/version to respond..."
+            HEALTHY=0
+            for i in $(seq 1 15); do
+              if curl -fsS http://localhost:2020/api/version >/dev/null 2>&1; then
+                echo "Health check passed after ${i} attempts"
+                HEALTHY=1
+                break
+              fi
+              sleep 2
+            done
+            if [ "$HEALTHY" != "1" ]; then
+              echo "Health check failed — recent server logs:"
+              pm2 logs server --lines 80 --nostream
+              exit 1
+            fi
