@@ -448,7 +448,7 @@ class AuthenticationService {
       if (!jwk) {
         return undefined;
       }
-      const publicKey = crypto.createPublicKey({ key: jwk as unknown as crypto.JsonWebKey, format: 'jwk' });
+      const publicKey = crypto.createPublicKey({ key: jwk, format: 'jwk' });
       const payload = jwt.verify(idToken, publicKey, {
         algorithms: ['ES256'],
         audience: servicesId,
