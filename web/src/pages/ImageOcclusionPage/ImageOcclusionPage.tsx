@@ -449,7 +449,14 @@ export function ImageOcclusionPage() {
   };
 
   if (!hydrated) {
-    return <div className={pageStyles.pageLayout}>Restoring your session…</div>;
+    return (
+      <div className={pageStyles.pageRoot}>
+        <div className={pageStyles.pageChrome}>
+          <h1 className={pageStyles.pageTitle}>Image occlusion</h1>
+          <p className={pageStyles.pageSubtitle}>Restoring your session…</p>
+        </div>
+      </div>
+    );
   }
 
   const activeEntry = entries[activeIndex] ?? null;
@@ -464,7 +471,7 @@ export function ImageOcclusionPage() {
   }
 
   return (
-    <>
+    <div className={pageStyles.pageRoot}>
       {!mobileDismissed && (
         <div
           className={`${styles.notificationInfo} ${pageStyles.mobileBanner}`}
@@ -485,6 +492,10 @@ export function ImageOcclusionPage() {
           </button>
         </div>
       )}
+      <div className={pageStyles.pageChrome}>
+        <h1 className={pageStyles.pageTitle}>Image occlusion</h1>
+        <p className={pageStyles.pageSubtitle}>Draw boxes over areas to hide — each box becomes one flashcard.</p>
+      </div>
       <div
         className={`${pageStyles.pageLayout} ${drawerOpen ? pageStyles.pageLayoutDrawerOpen : ''}`}
       >
@@ -524,14 +535,14 @@ export function ImageOcclusionPage() {
             <div className={pageStyles.modeToggle}>
               <button
                 type="button"
-                className={`${styles.btnSecondary} ${mode === 'hide_all' ? pageStyles.modeActive : ''}`}
+                className={`${pageStyles.modeBtn} ${mode === 'hide_all' ? pageStyles.modeActive : ''}`}
                 onClick={() => setMode('hide_all')}
               >
                 Hide all, reveal one
               </button>
               <button
                 type="button"
-                className={`${styles.btnSecondary} ${mode === 'hide_one' ? pageStyles.modeActive : ''}`}
+                className={`${pageStyles.modeBtn} ${mode === 'hide_one' ? pageStyles.modeActive : ''}`}
                 onClick={() => setMode('hide_one')}
               >
                 Hide one at a time
@@ -555,8 +566,8 @@ export function ImageOcclusionPage() {
         <div className={pageStyles.rightPanel}>
           {activeEntry == null ? (
             <div className={pageStyles.emptyCanvas}>
-              <p>Add an image from the panel on the left.</p>
-              <p>Each box you draw becomes one flashcard.</p>
+              <p className={pageStyles.emptyCanvasTitle}>No image selected.</p>
+              <p className={pageStyles.emptyCanvasHint}>Upload an image from the panel on the left to start drawing.</p>
             </div>
           ) : (
             <OcclusionCanvas
@@ -566,6 +577,6 @@ export function ImageOcclusionPage() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
