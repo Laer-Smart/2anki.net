@@ -149,9 +149,51 @@ const quizletToAnki: AnswerConfig = {
   ],
 };
 
+const fsrsExplained: AnswerConfig = {
+  slug: 'fsrs-explained',
+  title: 'FSRS in Anki — why your next review is 17 months | 2anki',
+  description:
+    'FSRS is the spaced repetition algorithm Anki ships today. If a card you just answered is scheduled 17 months out, that is FSRS — not a bug. Here is what it is, why the interval looks wrong, and what to do about it.',
+  h1: 'FSRS in Anki — what it is and why your next review looks wrong',
+  intro:
+    'FSRS is the spaced repetition algorithm Anki ships by default. It predicts how long you will remember a card and schedules the next review at the point your recall probability drops to 90%. For a card you answer easily, that point can be a year or more away — which is the source of the "why is my next review in 17 months" question that fills r/Anki every week.',
+  sections: [
+    {
+      heading: 'What FSRS does',
+      body: 'FSRS — Free Spaced Repetition Scheduler — replaces the older SM-2 algorithm Anki used for over a decade. It models your forgetting curve from your actual review history and picks the next interval to land at your desired retention. By default that target is 90% — meaning every interval is chosen so that, when the card comes back, you have a 90% chance of remembering it. Hit Good on a card you know well and FSRS calculates: "to drop from near-certain to 90% recall, we can wait a long time."',
+    },
+    {
+      heading: 'Why your next review is 17 months out',
+      body: 'Two reasons. First, your fresh-install FSRS weights are the generic defaults — they have not yet seen enough of your reviews to know whether you forget after weeks or months. The generic weights err on the side of long intervals. Second, the algorithm responds aggressively to Good and Easy on early reviews; rate a card Easy and the next interval can balloon by 2-3x. Both effects compound when you mark first-session cards Good. The 17-month number is not a bug — it is FSRS doing exactly what the math says, with not enough data to be conservative.',
+    },
+    {
+      heading: 'What to do about it',
+      body: 'The simplest fix: lower the desired retention. Open Tools → Deck Options → FSRS → Desired retention and drop it from 0.90 to 0.85. Intervals shorten across the board. The trade-off is more reviews per day in exchange for shorter gaps between them. You can also stop pressing Easy on first reviews; on early cards, Good is the right answer unless you genuinely already knew the material before today.',
+    },
+    {
+      heading: 'When to optimize FSRS weights',
+      body: 'After you have around 1,000 reviews on a deck, run Tools → Deck Options → FSRS → Optimize. This replaces the generic weights with weights derived from your own forgetting pattern. Most users see intervals tighten or loosen depending on how forgetful they actually are. Re-run the optimizer every few months as your review history grows.',
+    },
+    {
+      heading: 'Should you go back to SM-2',
+      body: 'Probably not. SM-2 is simpler but ignores your actual forgetting curve — it applies fixed multipliers regardless of how well or badly you remember. FSRS, even with the generic weights, schedules more accurately. The 17-month interval that looks wrong on day one is in fact closer to your true forgetting curve than the SM-2 interval would have been. Lower the desired retention rather than switch algorithms.',
+    },
+    {
+      heading: 'Where 2anki fits in',
+      body: '2anki converts your notes into Anki decks — Notion, PDF, EPUB, Kindle highlights, Markdown, HTML, CSV, and Quizlet exports. The cards 2anki produces work with whichever scheduling algorithm you have enabled in Anki; FSRS and SM-2 both use the same card data. Tuning your scheduling is something you do once in Anki itself, not per-deck.',
+    },
+  ],
+  relatedLinks: [
+    { label: 'Convert Notion to Anki', href: '/answers/convert-notion-to-anki?ref=ai' },
+    { label: 'Convert a PDF to Anki', href: '/answers/pdf-to-anki?ref=ai' },
+    { label: 'Pricing', href: '/pricing?ref=ai' },
+  ],
+};
+
 export const ANSWERS_PAGES: ReadonlyMap<string, AnswerConfig> = new Map([
   ['convert-notion-to-anki', convertNotionToAnki],
   ['notion-to-anki-sync', notionToAnkiSync],
   ['pdf-to-anki', pdfToAnki],
   ['quizlet-to-anki', quizletToAnki],
+  ['fsrs-explained', fsrsExplained],
 ]);
