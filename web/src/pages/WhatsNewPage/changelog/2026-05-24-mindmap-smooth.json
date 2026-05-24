@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-24-mindmap-smooth",
+  "date": "2026-05-24",
+  "type": "fix",
+  "title": "Mindmap editor holds its position instead of jumping when you edit a node"
+}

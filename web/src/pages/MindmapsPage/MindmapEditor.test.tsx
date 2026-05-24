@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+
+const mockSetNodes = vi.fn();
+const mockSetEdges = vi.fn();
 
 const { mockUploadMindmapImage, mockUseMindmapById, mockUseUpdateMindmap } = vi.hoisted(() => ({
   mockUploadMindmapImage: vi.fn(),
@@ -21,8 +24,8 @@ vi.mock('@xyflow/react', () => ({
   ReactFlow: ({ children }: { children?: ReactNode }) => createElement('div', { 'data-testid': 'react-flow' }, children),
   Controls: () => null,
   Background: () => null,
-  useNodesState: () => [[], vi.fn(), vi.fn()],
-  useEdgesState: () => [[], vi.fn(), vi.fn()],
+  useNodesState: () => [[], mockSetNodes, vi.fn()],
+  useEdgesState: () => [[], mockSetEdges, vi.fn()],
   addEdge: vi.fn(),
   ConnectionMode: { Loose: 'loose' },
 }));
@@ -82,6 +85,46 @@ describe('MindmapEditor', () => {
     const { MindmapEditor } = await import('./MindmapEditor');
     render(createElement(MindmapEditor), { wrapper });
     expect(screen.getByTestId('react-flow')).toBeDefined();
+  });
+
+  it('seeds nodes with an array on first load, then uses a functional updater on re-fetch', async () => {
+    const mapWithNodes = {
+      ...baseMap,
+      data: {
+        nodes: [{ id: 'n1', label: 'Root', position: { x: 10, y: 20 } }],
+        edges: [],
+      },
+    };
+    mockUseMindmapById.mockReturnValue({ data: mapWithNodes, isLoading: false });
+
+    const { MindmapEditor } = await import('./MindmapEditor');
+    const { rerender } = render(createElement(MindmapEditor), { wrapper });
+
+    await waitFor(() => {
+      expect(mockSetNodes).toHaveBeenCalled();
+    });
+
+    const firstCallArg = mockSetNodes.mock.calls[0][0];
+    expect(Array.isArray(firstCallArg)).toBe(true);
+
+    mockSetNodes.mockClear();
+
+    const refetchedMap = {
+      ...mapWithNodes,
+      updated_at: new Date(Date.now() + 1000).toISOString(),
+    };
+    mockUseMindmapById.mockReturnValue({ data: refetchedMap, isLoading: false });
+
+    await act(async () => {
+      rerender(createElement(MindmapEditor));
+    });
+
+    await waitFor(() => {
+      expect(mockSetNodes).toHaveBeenCalled();
+    });
+
+    const refetchCallArg = mockSetNodes.mock.calls[0][0];
+    expect(typeof refetchCallArg).toBe('function');
   });
 
   it('paste image event triggers upload and node creation', async () => {
