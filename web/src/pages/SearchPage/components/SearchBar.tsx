@@ -1,3 +1,4 @@
+import sharedStyles from '../../../styles/shared.module.css';
 import searchStyles from '../SearchPage.module.css';
 
 interface SearchBarProps {
@@ -15,7 +16,7 @@ function SearchBar({
 }: Readonly<SearchBarProps>) {
   return (
     <div>
-      <label className={searchStyles.searchLabel} htmlFor="notion-search-input">
+      <label className={sharedStyles.srOnly} htmlFor="notion-search-input">
         Search Notion
       </label>
       <input
@@ -23,7 +24,9 @@ function SearchBar({
         value={value}
         type="text"
         className={searchStyles.searchInput}
-        placeholder="Start typing..."
+        placeholder="Search Notion"
+        aria-busy={inProgress}
+        data-searching={inProgress ? 'true' : 'false'}
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
           if (e.key === 'Enter') {
             onSearchClicked();
@@ -33,15 +36,6 @@ function SearchBar({
           onSearchQueryChanged(event.target.value);
         }}
       />
-      <div className={searchStyles.returnHint}>Results update as you type</div>
-      <div
-        className={searchStyles.searchingIndicator}
-        aria-live="polite"
-        data-visible={inProgress ? 'true' : 'false'}
-      >
-        <span className={searchStyles.searchingDot} />
-        <span className={searchStyles.searchingDot} /> Searching…
-      </div>
     </div>
   );
 }

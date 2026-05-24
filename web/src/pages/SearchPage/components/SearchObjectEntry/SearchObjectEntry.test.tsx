@@ -76,22 +76,22 @@ describe('SearchObjectEntry convert button', () => {
     mockConvert.mockClear();
   });
 
-  it('shows idle label "Convert to Anki" initially', () => {
+  it('shows idle label "Convert" with accessible name "Convert to Anki" initially', () => {
     renderEntry();
-    expect(screen.getByRole('link', { name: 'Convert to Anki' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Convert to Anki' })).toBeInTheDocument();
   });
 
-  it('on 202: button becomes "In progress" (aria-disabled) and shows downloads link', async () => {
+  it('on 202: button becomes "In progress" (disabled) and shows downloads link', async () => {
     mockConvert.mockResolvedValue({
       status: 202,
       json: async () => ({ jobId: 5, restarted: false }),
     });
 
     renderEntry();
-    fireEvent.click(screen.getByRole('link', { name: 'Convert to Anki' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: 'In progress' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'In progress' })).toBeInTheDocument();
     });
 
     expect(screen.getByText(/Added to your downloads/)).toBeInTheDocument();
@@ -105,7 +105,7 @@ describe('SearchObjectEntry convert button', () => {
     });
 
     renderEntry();
-    fireEvent.click(screen.getByRole('link', { name: 'Convert to Anki' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
 
     await waitFor(() => {
       expect(screen.getByText(/Re-making your deck/)).toBeInTheDocument();
@@ -122,7 +122,7 @@ describe('SearchObjectEntry convert button', () => {
     });
 
     renderEntry();
-    fireEvent.click(screen.getByRole('link', { name: 'Convert to Anki' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
 
     await waitFor(() => {
       expect(screen.getByText(/Free plan — one conversion at a time\./)).toBeInTheDocument();
@@ -139,7 +139,7 @@ describe('SearchObjectEntry convert button', () => {
     });
 
     renderEntry();
-    fireEvent.click(screen.getByRole('link', { name: 'Convert to Anki' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
 
     await waitFor(() => {
       expect(screen.getByText('Already converting this page.')).toBeInTheDocument();
@@ -150,7 +150,7 @@ describe('SearchObjectEntry convert button', () => {
     mockConvert.mockResolvedValue({ status: 500, text: async () => '' });
 
     renderEntry();
-    fireEvent.click(screen.getByRole('link', { name: 'Convert to Anki' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
 
     await waitFor(() => {
       expect(screen.getByText("Couldn't queue this page. Try again.")).toBeInTheDocument();

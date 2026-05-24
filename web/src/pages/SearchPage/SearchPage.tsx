@@ -47,8 +47,6 @@ export function SearchPage({ setError }: Readonly<SearchPageProps>) {
     );
   }
 
-  const useCard = notionData.loading || notionData.connected;
-
   return (
     <div className={styles.page}>
       <header className={styles.pageHeader}>
@@ -56,24 +54,20 @@ export function SearchPage({ setError }: Readonly<SearchPageProps>) {
         <p className={styles.subtitle}>{headerSubtitle}</p>
       </header>
       {notionData.connected && notionData.workSpace && (
-        <div className={searchStyles.workspaceLabel}>
+        <div className={searchStyles.workspaceLine}>
           <span className={searchStyles.workspaceDot} />
-          {notionData.workSpace}
+          <span className={searchStyles.workspaceName}>
+            {notionData.workSpace}
+          </span>
           <a
             href={notionData.connectionLink}
             className={searchStyles.workspaceSwitch}
           >
-            Switch
+            Switch workspace
           </a>
         </div>
       )}
-      {useCard ? (
-        <div className={searchStyles.searchSurface}>
-          {content}
-        </div>
-      ) : (
-        content
-      )}
+      {content}
     </div>
   );
 }
