@@ -1,7 +1,12 @@
 import { Knex } from 'knex';
 import Jobs from './public/Jobs';
+import ParserRules from '../lib/parser/ParserRules';
 
-class ParserRulesRepository {
+export interface IParserRulesRepository {
+  load(owner: string, id: string): Promise<ParserRules>;
+}
+
+class ParserRulesRepository implements IParserRulesRepository {
   private readonly tableName: string;
 
   constructor(private database: Knex) {
@@ -43,6 +48,32 @@ class ParserRulesRepository {
 
   deleteAllByOwner(owner: string): Promise<number> {
     return this.database(this.tableName).where({ owner }).del();
+  }
+
+  async load(owner: string, id: string): Promise<ParserRules> {
+    const rules = new ParserRules();
+    try {
+      const result = await this.database(this.tableName)
+        .where({ object_id: id, owner })
+        .returning(['*'])
+        .first();
+
+      if (result) {
+        rules.setFlashcardTypes(result.flashcard_is.split(','));
+        rules.DECK = (result.deck_is ?? '').split(',').filter(Boolean);
+        rules.SUB_DECKS = (result.sub_deck_is ?? '').split(',').filter(Boolean);
+        rules.TAGS = result.tags_is;
+        rules.EMAIL_NOTIFICATION = result.email_notification;
+      } else {
+        console.info(
+          `No parser rules found for object_id: ${id} and owner: ${owner}. Using default values.`
+        );
+      }
+      return rules;
+    } catch (error) {
+      console.error(error);
+      return new ParserRules();
+    }
   }
 }
 

@@ -4,6 +4,8 @@ import NotionAPIWrapper from '../../../../services/NotionService/NotionAPIWrappe
 import JobRepository from '../../../../data_layer/JobRepository';
 import UsersRepository from '../../../../data_layer/UsersRepository';
 import UploadRepository from '../../../../data_layer/UploadRespository';
+import SettingsRepository from '../../../../data_layer/SettingsRepository';
+import ParserRulesRepository from '../../../../data_layer/ParserRulesRepository';
 import {
   CheckMonthlyCardLimitUseCase,
   MonthlyLimitError,
@@ -56,9 +58,15 @@ export default async function performConversion(
   const storage = new StorageHandler();
   const jobRepository = new JobRepository(database);
   const usersRepository = new UsersRepository(database);
+  const settingsRepository = new SettingsRepository(database);
+  const parserRulesRepository = new ParserRulesRepository(database);
 
   try {
-    const createWorkSpace = new CreateJobWorkSpaceUseCase(jobRepository);
+    const createWorkSpace = new CreateJobWorkSpaceUseCase(
+      jobRepository,
+      settingsRepository,
+      parserRulesRepository
+    );
     const { ws, exporter, settings, bl, rules } = await createWorkSpace.execute(
       { api, id, owner, jobRepository, isPaying }
     );
@@ -120,11 +128,10 @@ export default async function performConversion(
       type,
     });
 
-    const notifyUser = new NotifyUserUseCase(jobRepository);
+    const notifyUser = new NotifyUserUseCase(usersRepository);
     await notifyUser.execute({
       owner,
       rules,
-      db: database,
       size,
       key,
       id,

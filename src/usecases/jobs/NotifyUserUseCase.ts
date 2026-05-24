@@ -1,13 +1,10 @@
-import JobRepository from '../../data_layer/JobRepository';
+import UsersRepository from '../../data_layer/UsersRepository';
 import ParserRules from '../../lib/parser/ParserRules';
-import { Knex } from 'knex';
-import getEmailFromOwner from '../../lib/User/getEmailFromOwner';
 import { getDefaultEmailService } from '../../services/EmailService/EmailService';
 
 export interface NotifyUserUseCaseInput {
   owner: string;
   rules: ParserRules;
-  db: Knex;
   key: string;
   id: string;
   size: number;
@@ -15,23 +12,28 @@ export interface NotifyUserUseCaseInput {
 }
 
 export class NotifyUserUseCase {
-  constructor(private readonly jobRepository: JobRepository) {}
+  constructor(private readonly usersRepository: UsersRepository) {}
 
   async execute(input: NotifyUserUseCaseInput): Promise<void> {
-    const { owner, rules, db, key, id, size, apkg } = input;
+    const { owner, rules, key, id, size, apkg } = input;
 
     console.debug('rules.email', rules.EMAIL_NOTIFICATION);
-    // TODO: use UserRepository to get user email
-    const email = await getEmailFromOwner(db, owner);
-    const emailService = getDefaultEmailService();
 
-    // Notify for files bigger than 24MB or if email notifications are not enabled
-    if (size > 24) {
+    const shouldEmailLargeFile = size > 24;
+    const shouldEmailOnRule = rules.EMAIL_NOTIFICATION;
+    if (!shouldEmailLargeFile && !shouldEmailOnRule) return;
+
+    const email = await this.usersRepository.getEmailById(owner);
+    if (!email) {
+      console.warn('[notify] skipping email — no address on file', { owner });
+      return;
+    }
+
+    const emailService = getDefaultEmailService();
+    if (shouldEmailLargeFile) {
       const link = `${process.env.DOMAIN}/api/download/u/${key}`;
       await emailService.sendConversionLinkEmail(email, id, link);
-    }
-    // Always notify if email notifications are enabled
-    else if (rules.EMAIL_NOTIFICATION) {
+    } else {
       await emailService.sendConversionEmail(email, id, apkg);
     }
   }
