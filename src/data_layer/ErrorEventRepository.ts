@@ -105,26 +105,17 @@ export class ErrorEventRepository implements IErrorEventRepository {
   }
 
   async countGroups(source?: 'web' | 'server'): Promise<number> {
-    const query = this.database(this.table)
-      .countDistinct(
-        this.database.raw('(message_hash, message, source)') as unknown as string
-      )
-      .as('total');
+    const inner = this.database(this.table)
+      .select('message_hash')
+      .groupBy('message_hash', 'message', 'source');
 
     if (source != null) {
-      (query as ReturnType<typeof this.database>).where('source', source);
+      inner.where('source', source);
     }
 
     const result = await this.database
       .count('* as total')
-      .from(
-        this.database(this.table)
-          .modify((q) => {
-            if (source != null) q.where('source', source);
-          })
-          .groupBy('message_hash', 'message', 'source')
-          .as('groups')
-      )
+      .from(inner.as('groups'))
       .first();
     return Number(result?.total ?? 0);
   }
