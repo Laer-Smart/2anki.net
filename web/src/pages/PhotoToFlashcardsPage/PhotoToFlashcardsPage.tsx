@@ -292,6 +292,9 @@ export function PhotoToFlashcardsPage() {
       </div>
 
       <div className={styles.sectionCard} data-section-card>
+        <p className={styles.subtitle}>
+          Cards come from what's in your photo — nothing added, nothing removed.
+        </p>
         <div className={pageStyles.row}>
           <label className={pageStyles.deckNameLabel} htmlFor="photo-deck-name">
             Deck name

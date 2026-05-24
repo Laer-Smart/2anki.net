@@ -129,7 +129,7 @@ export function HomePage({
         />
         <h1 className={styles.heroTitle}>Your notes, ready to study in Anki</h1>
         <p className={styles.heroSubtitle}>
-          Upload a Notion export, PDF, Word doc, Markdown file, or Quizlet export. Drop a file to try it — no account needed.
+          Notion, PDF, Quizlet, Markdown, HTML, or CSV — drop a file and get an Anki deck back.
         </p>
         <div className={sharedStyles.aiOffBadge} role="status">
           <span className={sharedStyles.badgeWarning}>AI is off</span>
