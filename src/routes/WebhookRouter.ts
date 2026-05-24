@@ -10,6 +10,7 @@ import { getDatabase } from '../data_layer';
 import { StripeController } from '../controllers/StripeController/StripeController';
 import UsersRepository from '../data_layer/UsersRepository';
 import UserPassRepository, { type PassKind } from '../data_layer/UserPassRepository';
+import AnonymousPassRepository from '../data_layer/AnonymousPassRepository';
 import TokenRepository from '../data_layer/TokenRepository';
 import AuthenticationService from '../services/AuthenticationService';
 import UsersService from '../services/UsersService';
@@ -201,6 +202,43 @@ const WebhooksRouter = () => {
           const passKind = sessionMeta.pass_kind as PassKind | undefined;
 
           if (passKind === '24h' || passKind === '7d') {
+            const paymentIntentId = typeof session.payment_intent === 'string'
+              ? session.payment_intent
+              : null;
+            const durationMs = passKind === '24h' ? DURATION_24H_MS : DURATION_7D_MS;
+            const now = new Date();
+
+            if (sessionMeta.pass_anonymous === '1') {
+              if (paymentIntentId == null) {
+                console.warn('pass.webhook.missing_metadata', {
+                  pass_kind: passKind,
+                  reason: 'no_payment_intent',
+                  anonymous: true,
+                });
+                response.send();
+                return;
+              }
+              try {
+                const anonRepo = new AnonymousPassRepository(getDatabase());
+                const expiresAt = new Date(now.getTime() + durationMs);
+                const granted = await anonRepo.insert({
+                  stripeSessionId: session.id,
+                  kind: passKind,
+                  expiresAt,
+                  paymentIntentId,
+                });
+                console.info('pass.granted.anonymous', {
+                  kind: passKind,
+                  expires_at: granted.expires_at.toISOString(),
+                  payment_intent_id_hash: hashToken(paymentIntentId),
+                });
+              } catch (passError) {
+                console.error('pass.webhook.grant_failed', passError);
+              }
+              response.send();
+              return;
+            }
+
             const rawUserId = sessionMeta.user_id;
             const passUserId = rawUserId == null ? Number.NaN : Number.parseInt(rawUserId, 10);
             if (Number.isNaN(passUserId) || passUserId <= 0) {
@@ -211,9 +249,6 @@ const WebhooksRouter = () => {
               response.send();
               return;
             }
-            const paymentIntentId = typeof session.payment_intent === 'string'
-              ? session.payment_intent
-              : null;
             if (paymentIntentId == null) {
               console.warn('pass.webhook.missing_metadata', {
                 user_id: passUserId,
@@ -223,8 +258,6 @@ const WebhooksRouter = () => {
               response.send();
               return;
             }
-            const durationMs = passKind === '24h' ? DURATION_24H_MS : DURATION_7D_MS;
-            const now = new Date();
             try {
               const passRepo = new UserPassRepository(getDatabase());
               const granted = await passRepo.upsertWithExtension(

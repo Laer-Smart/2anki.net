@@ -1,11 +1,12 @@
 import { type SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { ErrorHandlerType, classifyUploadError } from '../../../../components/errors/helpers/getErrorMessage';
+import { classifyUploadError, ErrorHandlerType } from '../../../../components/errors/helpers/getErrorMessage';
 import handleRedirect from '../../../../lib/handleRedirect';
+import { getStoredPassToken } from '../../../../lib/anonymousPass';
+import type { UploadErrorBody } from '../../../../types/UploadErrorBody';
 import getAcceptedContentTypes from '../../helpers/getAcceptedContentTypes';
 import { extractErrorMessage } from '../../helpers/extractErrorMessage';
-import type { UploadErrorBody } from '../../../../types/UploadErrorBody';
 import getHeadersFilename from '../../helpers/getHeadersFilename';
 import { getDownloadFileName } from '../../../DownloadsPage/helpers/getDownloadFileName';
 import { getEmptyDeckChatPrompt } from '../../helpers/getEmptyDeckChatPrompt';
@@ -566,8 +567,11 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     setShowFallback(false);
     try {
       const formData = buildFormData(event.currentTarget as HTMLFormElement);
+      const passToken = getStoredPassToken();
+      const uploadHeaders: HeadersInit = passToken == null ? {} : { 'X-Pass-Token': passToken };
       const request = await globalThis.fetch('/api/upload/file', {
         method: 'post',
+        headers: uploadHeaders,
         body: formData,
       });
       if (request.redirected) {
