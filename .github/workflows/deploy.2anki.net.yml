@@ -17,10 +17,13 @@ jobs:
     steps:
       - name: SSH and run script
         uses: appleboy/ssh-action@v1.2.5
+        env:
+          GIT_SHA: ${{ github.sha }}
         with:
           host: 2anki.net
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: GIT_SHA
           script: |
             set -e
             set -o pipefail
@@ -48,21 +51,25 @@ jobs:
             pnpm --filter 2anki-web -C ${SERVER_DIR} build
 
             cd ${SERVER_DIR}
+            export GIT_SHA
             pm2 startOrRestart ecosystem.config.js --update-env
             pm2 save
 
-            echo "Waiting for /api/version on :3000 to respond..."
+            echo "Waiting for /api/version on :3000 to report sha=${GIT_SHA}..."
             HEALTHY=0
             for i in $(seq 1 15); do
-              if curl -fsS http://127.0.0.1:3000/api/version >/dev/null 2>&1; then
-                echo "Health check passed after ${i} attempts"
+              RESPONSE=$(curl -fsS http://127.0.0.1:3000/api/version 2>/dev/null || echo "")
+              ACTUAL_SHA=$(echo "$RESPONSE" | jq -r '.sha // empty' 2>/dev/null || echo "")
+              if [ -n "$ACTUAL_SHA" ] && [ "$ACTUAL_SHA" = "$GIT_SHA" ]; then
+                echo "Health check passed after ${i} attempts (sha=${ACTUAL_SHA})"
                 HEALTHY=1
                 break
               fi
               sleep 2
             done
             if [ "$HEALTHY" != "1" ]; then
-              echo "Health check failed — recent server logs:"
+              echo "Health check failed — expected sha=${GIT_SHA}, last response: ${RESPONSE}"
+              echo "Recent server logs:"
               pm2 logs server --lines 80 --nostream
               exit 1
             fi
