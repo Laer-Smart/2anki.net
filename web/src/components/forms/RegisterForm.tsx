@@ -1,5 +1,4 @@
 import { SyntheticEvent, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import TopMessage from '../TopMessage/TopMessage';
 import { ErrorHandlerType } from '../errors/helpers/getErrorMessage';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
@@ -26,7 +25,6 @@ function submitLabel(loading: boolean, startTrial: boolean | undefined): string 
 }
 
 function RegisterForm({ setErrorMessage, redirect, startTrial }: Props) {
-  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState(localStorage.getItem('email') || '');
   const [tos, setTos] = useState(false);
   const [password, setPassword] = useState('');
@@ -104,13 +102,11 @@ function RegisterForm({ setErrorMessage, redirect, startTrial }: Props) {
             variant="card"
             text={getVisibleText('navigation.register.google')}
           />
-          {searchParams.get('apple') === 'true' && (
-            <WithAppleLink variant="card" text="Sign in with Apple" />
-          )}
           <WithMicrosoftLink
             variant="card"
             text={getVisibleText('navigation.register.microsoft')}
           />
+          <WithAppleLink variant="card" text="Sign in with Apple" />
         </div>
         <div className={styles.divider}>
           <span className={styles.dividerLabel}>or sign up with email</span>
