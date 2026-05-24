@@ -40,12 +40,11 @@
 }
 
 .frame {
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-light);
+  background: var(--color-bg-secondary);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  padding: 1rem 0;
 }
 
 .frame > div {
-  padding: 1.5rem;
+  padding: 0;
 }
