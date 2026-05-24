@@ -27,7 +27,6 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
   const job = useImportJob();
 
   const isConnected = notionData.connected === true;
-  const isIdle = job.phase === 'idle';
   const isUploading = job.phase === 'uploading';
   const isPolling = job.phase === 'polling';
   const isCompleted = job.phase === 'completed';
@@ -88,12 +87,12 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
     return (
       <div className={sharedStyles.page}>
         <div className={sharedStyles.pageHeader}>
-          <h1 className={sharedStyles.title}>Connect Notion to import cards</h1>
+          <h1 className={sharedStyles.title}>Import to Notion</h1>
           <p className={sharedStyles.subtitle}>
-            To import an Anki deck into Notion, 2anki needs access to your workspace.
+            Connect Notion to import Anki decks into your workspace.
           </p>
         </div>
-        <div className={styles.connectContainer}>
+        <div className={styles.connectCta}>
           <a href="/notion" className={sharedStyles.btnPrimary}>
             Connect to Notion
           </a>
@@ -109,33 +108,33 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
   if (isCompleted) {
     return (
       <div className={sharedStyles.page}>
-        <div className={styles.completeContainer}>
-          <h2 className={styles.completeTitle}>Import complete</h2>
-          <p className={styles.completeSummary}>
-            {job.progress.imported} cards added
-            {selectedPageTitle
-              ? <> to &ldquo;{selectedPageTitle}&rdquo;</>
-              : <> to your &ldquo;2anki Imports&rdquo; page</>}
-          </p>
-          <div className={styles.completeActions}>
-            {job.notionPageUrl && (
-              <a
-                href={job.notionPageUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={sharedStyles.btnPrimary}
-              >
-                Open in Notion
-              </a>
-            )}
-            <button
-              type="button"
-              className={sharedStyles.btnSecondary}
-              onClick={handleReset}
+        <div className={sharedStyles.pageHeader}>
+          <h1 className={sharedStyles.title}>Import to Notion</h1>
+        </div>
+        <div className={sharedStyles.notificationSuccess}>
+          {job.progress.imported} cards added
+          {selectedPageTitle
+            ? <> to &ldquo;{selectedPageTitle}&rdquo;</>
+            : <> to your &ldquo;2anki Imports&rdquo; page</>}
+        </div>
+        <div className={styles.completeActions}>
+          {job.notionPageUrl && (
+            <a
+              href={job.notionPageUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
             >
-              Import another deck
-            </button>
-          </div>
+              Open in Notion
+            </a>
+          )}
+          <button
+            type="button"
+            className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
+            onClick={handleReset}
+          >
+            Import another deck
+          </button>
         </div>
       </div>
     );
@@ -146,39 +145,37 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
     const partialProgress = !isUpgradeError && job.progress.total_notes > 0 && job.errorMessage == null;
     return (
       <div className={sharedStyles.page}>
-        <div className={styles.errorContainer}>
-          <h2 className={styles.errorTitle}>
-            {isUpgradeError ? 'Upgrade to continue' : 'Import stopped'}
-          </h2>
-          <p className={styles.errorBody}>
-            {isUpgradeError && job.errorMessage}
-            {partialProgress &&
-              `Imported ${job.progress.imported} of ${job.progress.total_notes} cards before something went wrong. The cards already created are still in your Notion page.`}
-            {!isUpgradeError && !partialProgress &&
-              (job.errorMessage ?? 'Something went wrong.')}
-          </p>
-          <div className={styles.errorActions}>
-            {isUpgradeError ? (
-              <Link to="/pricing" className={sharedStyles.btnPrimary}>
-                View plans
-              </Link>
-            ) : (
-              <button
-                type="button"
-                className={sharedStyles.btnPrimary}
-                onClick={handleReset}
-              >
-                Try again
-              </button>
-            )}
+        <div className={sharedStyles.pageHeader}>
+          <h1 className={sharedStyles.title}>Import to Notion</h1>
+        </div>
+        <div className={sharedStyles.notificationDanger}>
+          {isUpgradeError && job.errorMessage}
+          {partialProgress &&
+            `Imported ${job.progress.imported} of ${job.progress.total_notes} cards before something went wrong. The cards already created are still in your Notion page.`}
+          {!isUpgradeError && !partialProgress &&
+            (job.errorMessage ?? 'Something went wrong.')}
+        </div>
+        <div className={styles.errorActions}>
+          {isUpgradeError ? (
+            <Link to="/pricing" className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}>
+              View plans
+            </Link>
+          ) : (
             <button
               type="button"
-              className={sharedStyles.btnSecondary}
+              className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
               onClick={handleReset}
             >
-              {isUpgradeError ? 'Try a smaller deck' : 'Start over'}
+              Try again
             </button>
-          </div>
+          )}
+          <button
+            type="button"
+            className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
+            onClick={handleReset}
+          >
+            {isUpgradeError ? 'Try a smaller deck' : 'Start over'}
+          </button>
         </div>
       </div>
     );
@@ -208,7 +205,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
       </div>
 
       {!paying && (
-        <div className={styles.freeTierBanner}>
+        <div className={sharedStyles.notificationWarning}>
           Free plan · up to 1 000 cards per import.{' '}
           <Link to="/pricing">Upgrade for unlimited imports</Link>
         </div>
@@ -228,14 +225,14 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
         {fileError && <p className={styles.dropZoneError}>{fileError}</p>}
       </div>
 
-      <div className={`${styles.stepCard} ${styles.stepCardSpaced} ${file == null ? styles.stepCardDisabled : ''}`}>
+      <div className={`${styles.stepCard} ${file == null ? styles.stepCardDisabled : ''}`}>
         <div className={styles.stepCardHeader}>
           <span className={styles.stepNumber}>2</span>
           <p className={styles.stepTitle}>Pick a destination</p>
         </div>
 
         <div className={styles.destinationGroup}>
-          <div className={styles.destinationOption}>
+          <div className={styles.quickImportBlock}>
             <button
               type="button"
               className={sharedStyles.btnPrimary}
@@ -253,7 +250,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
             <span className={styles.quickImportDividerText}>or choose a page</span>
           </div>
 
-          <div className={styles.destinationOption}>
+          <div className={styles.pagePickerBlock}>
             <NotionPagePicker
               selectedPageId={selectedPageId}
               onPageSelected={handlePageSelected}
@@ -263,10 +260,10 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
               Showing top-level pages shared with 2anki. Missing a page? Check your
               Notion sharing settings.
             </p>
-            <div className={styles.destinationActions}>
+            <div className={styles.pagePickerActions}>
               <button
                 type="button"
-                className={sharedStyles.btnSecondary}
+                className={sharedStyles.btnOutline}
                 disabled={file == null || selectedPageId == null || isRunning}
                 onClick={handleStartImport}
               >
