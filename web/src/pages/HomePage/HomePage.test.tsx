@@ -44,6 +44,15 @@ describe('HomePage (anonymous)', () => {
     expect(screen.getByText(/open source/i)).toBeInTheDocument();
   });
 
+  it('shows the AI badge inviting anon visitors to create an account', () => {
+    renderHome();
+    const link = screen.getByRole('link', {
+      name: /create an account to turn it on/i,
+    });
+    expect(link).toHaveAttribute('href', '/register');
+    expect(screen.getByText('AI')).toBeInTheDocument();
+  });
+
   it('renders the three how-it-works steps with icons', () => {
     renderHome();
     expect(screen.getByText('Upload')).toBeInTheDocument();

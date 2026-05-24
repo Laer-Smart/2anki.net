@@ -1,12 +1,14 @@
-import { useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, Navigate } from 'react-router-dom';
 import UploadForm from '../UploadPage/components/UploadForm/UploadForm';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import { useSettingsCardsOptions } from '../../components/modals/SettingsModal/useSettingsCardsOptions';
 import ArrowUpTrayIcon from '../../components/icons/ArrowUpTrayIcon';
 import SparklesIcon from '../../components/icons/SparklesIcon';
 import BookOpenIcon from '../../components/icons/BookOpenIcon';
+import { track } from '../../lib/analytics/track';
 import { ShowcaseSection } from './ShowcaseSection';
+import sharedStyles from '../../styles/shared.module.css';
 import styles from './HomePage.module.css';
 
 const FEATURED_WALKTHROUGH_IDS = new Set(['jpR_grXWTTw', 'roQ3awaVa2E', 'UnTo_fN1jpc']);
@@ -109,6 +111,10 @@ export function HomePage({
   );
   const [showAll, setShowAll] = useState(false);
 
+  useEffect(() => {
+    if (!isLoggedIn) track('home_ai_anon_badge_viewed');
+  }, [isLoggedIn]);
+
   if (isLoggedIn) {
     return <Navigate to="/upload" replace />;
   }
@@ -140,6 +146,16 @@ export function HomePage({
             </svg>
             Open source
           </a>
+          <span className={styles.footerDot} aria-hidden="true" />
+          <span>
+            <span className={sharedStyles.badgePrimary}>AI</span>{' '}
+            <Link
+              to="/register"
+              onClick={() => track('home_ai_anon_badge_clicked')}
+            >
+              Create an account to turn it on
+            </Link>
+          </span>
         </div>
       </section>
 
