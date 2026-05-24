@@ -29,7 +29,14 @@ export default defineConfig(({ command, mode }) => {
   // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
   const env = loadEnv(mode, process.cwd(), '');
 
+  const rawAssetBaseUrl = process.env.ASSET_BASE_URL || '/';
+  const base = rawAssetBaseUrl.endsWith('/')
+    ? rawAssetBaseUrl
+    : `${rawAssetBaseUrl}/`;
+
   return {
+    base,
+
     plugins: [
       react(),
       svgr({
