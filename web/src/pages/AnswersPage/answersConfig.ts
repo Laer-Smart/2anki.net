@@ -153,30 +153,30 @@ const fsrsExplained: AnswerConfig = {
   slug: 'fsrs-explained',
   title: 'FSRS in Anki — why your next review is 17 months | 2anki',
   description:
-    'FSRS is the spaced repetition algorithm Anki ships today. If a card you just answered is scheduled 17 months out, that is FSRS — not a bug. Here is what it is, why the interval looks wrong, and what to do about it.',
+    'FSRS is the modern spaced repetition algorithm available in Anki since 23.10. If a card you just answered is scheduled 17 months out, that is FSRS — not a bug. Here is what it is, why the interval looks wrong, and what to do about it.',
   h1: 'FSRS in Anki — what it is and why your next review looks wrong',
   intro:
-    'FSRS is the spaced repetition algorithm Anki ships by default. It predicts how long you will remember a card and schedules the next review at the point your recall probability drops to 90%. For a card you answer easily, that point can be a year or more away — which is the source of the "why is my next review in 17 months" question that fills r/Anki every week.',
+    'FSRS is the modern spaced repetition algorithm Anki has shipped since version 23.10 (November 2023). It is still opt-in — SM-2 remains the default — but the Anki manual recommends it for most users today. FSRS predicts how long you will remember a card and schedules the next review at the point your recall probability drops to 90%. For a card you answer easily, that point can be a year or more away — which is the source of the "why is my next review in 17 months" question that fills r/Anki every week.',
   sections: [
     {
       heading: 'What FSRS does',
-      body: 'FSRS — Free Spaced Repetition Scheduler — replaces the older SM-2 algorithm Anki used for over a decade. It models your forgetting curve from your actual review history and picks the next interval to land at your desired retention. By default that target is 90% — meaning every interval is chosen so that, when the card comes back, you have a 90% chance of remembering it. Hit Good on a card you know well and FSRS calculates: "to drop from near-certain to 90% recall, we can wait a long time."',
+      body: 'FSRS — Free Spaced Repetition Scheduler — is an alternative to SM-2, the SuperMemo 2 algorithm Anki has used since 2006 (nearly two decades). FSRS models your forgetting curve from your actual review history and picks the next interval to land at your desired retention. By default that target is 90% — every interval is chosen so that, when the card comes back, you have a 90% chance of remembering it. Hit Good on a card you know well and FSRS calculates: "to drop from near-certain to 90% recall, we can wait a long time."',
     },
     {
       heading: 'Why your next review is 17 months out',
-      body: 'Two reasons. First, your fresh-install FSRS weights are the generic defaults — they have not yet seen enough of your reviews to know whether you forget after weeks or months. The generic weights err on the side of long intervals. Second, the algorithm responds aggressively to Good and Easy on early reviews; rate a card Easy and the next interval can balloon by 2-3x. Both effects compound when you mark first-session cards Good. The 17-month number is not a bug — it is FSRS doing exactly what the math says, with not enough data to be conservative.',
+      body: 'Two reasons. First, if you have not yet run the FSRS optimizer, you are using the generic default weights — these err on the side of long intervals until they are tuned to your actual forgetting pattern. Second, the algorithm responds aggressively to Easy on early reviews; rating an early card Easy can make the next interval grow dramatically. The 17-month number is not a bug — it is FSRS doing exactly what the math says, with not enough data about you to be conservative.',
     },
     {
       heading: 'What to do about it',
-      body: 'The simplest fix: lower the desired retention. Open Tools → Deck Options → FSRS → Desired retention and drop it from 0.90 to 0.85. Intervals shorten across the board. The trade-off is more reviews per day in exchange for shorter gaps between them. You can also stop pressing Easy on first reviews; on early cards, Good is the right answer unless you genuinely already knew the material before today.',
+      body: 'The simplest fix: lower the desired retention. Open the deck options (click the gear icon on the Decks screen and choose Options, or press O while reviewing), scroll to FSRS, and drop Desired retention from 0.90 to 0.85. Intervals shorten across the board, in exchange for slightly more reviews per day. The other thing worth getting right is grading: on early reviews, Good is the right answer unless you genuinely already knew the material. The Anki manual is most emphatic about one specific bad habit — pressing Hard instead of Again when you actually forgot. Hard tells FSRS you remembered with effort; Again tells it you forgot. The two send opposite signals, and Hard-instead-of-Again is the one mistake the algorithm cannot recover from cleanly.',
     },
     {
       heading: 'When to optimize FSRS weights',
-      body: 'After you have around 1,000 reviews on a deck, run Tools → Deck Options → FSRS → Optimize. This replaces the generic weights with weights derived from your own forgetting pattern. Most users see intervals tighten or loosen depending on how forgetful they actually are. Re-run the optimizer every few months as your review history grows.',
+      body: 'Once you have some review history — a few hundred reviews on a deck is enough today — open the deck options the same way (gear icon → Options) and click Optimize Current Preset under FSRS. This replaces the generic weights with weights derived from your own forgetting pattern. The Anki manual recommends running the optimizer about once a month; more often than that is overkill, and once you have a few thousand reviews the parameters stabilise.',
     },
     {
       heading: 'Should you go back to SM-2',
-      body: 'Probably not. SM-2 is simpler but ignores your actual forgetting curve — it applies fixed multipliers regardless of how well or badly you remember. FSRS, even with the generic weights, schedules more accurately. The 17-month interval that looks wrong on day one is in fact closer to your true forgetting curve than the SM-2 interval would have been. Lower the desired retention rather than switch algorithms.',
+      body: 'Probably not. SM-2 adjusts intervals through an ease factor that moves with how you grade each card, but it does not model your forgetting curve mathematically — so it cannot target a specific retention rate the way FSRS does. FSRS, even with the generic weights, schedules more accurately because it is actually predicting recall probability instead of applying heuristic multipliers. The 17-month interval that looks wrong on day one is in fact closer to your true forgetting curve than the SM-2 interval would have been. Lower the desired retention rather than switch algorithms.',
     },
     {
       heading: 'Where 2anki fits in',
