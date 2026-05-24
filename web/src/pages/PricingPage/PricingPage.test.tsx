@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -25,6 +25,12 @@ vi.mock('../../components/TopMessage/TopMessage', () => ({
 
 vi.mock('../../lib/analytics/track', () => ({
   track: vi.fn(),
+}));
+
+const mockUseCardUsage = vi.fn();
+
+vi.mock('../../lib/hooks/useCardUsage', () => ({
+  useCardUsage: () => mockUseCardUsage(),
 }));
 
 type AnalyticsGlobals = {
@@ -256,6 +262,10 @@ describe('PricingPage pricing honesty', () => {
 });
 
 describe('PricingPage internal event tracking', () => {
+  beforeEach(() => {
+    mockUseCardUsage.mockReturnValue(null);
+  });
+
   it('tracks paywall_shown with surface=pricing_page on mount', async () => {
     const { track } = await import('../../lib/analytics/track');
     const trackMock = vi.mocked(track);
@@ -336,6 +346,67 @@ describe('PricingPage internal event tracking', () => {
         plan: 'unlimited',
       });
     });
+  });
+});
+
+describe('PricingPage pricing_left telemetry', () => {
+  beforeEach(() => {
+    mockUseCardUsage.mockReturnValue(null);
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('fires pricing_left with seconds_on_page when unmounted', async () => {
+    const { track } = await import('../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+
+    const { unmount } = renderAt('/pricing');
+    vi.advanceTimersByTime(8000);
+    act(() => { unmount(); });
+
+    expect(trackMock).toHaveBeenCalledWith('pricing_left', { seconds_on_page: 8 });
+  });
+
+  it('fires pricing_left with 0 seconds when unmounted immediately', async () => {
+    const { track } = await import('../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+
+    const { unmount } = renderAt('/pricing');
+    act(() => { unmount(); });
+
+    expect(trackMock).toHaveBeenCalledWith('pricing_left', { seconds_on_page: 0 });
+  });
+});
+
+describe('PricingPage quota_remaining in paywall_shown', () => {
+  it('includes quota_remaining when card usage is available', async () => {
+    mockUseCardUsage.mockReturnValue({ cards_used: 60, cards_limit: 100, unlimited: false, loading: false });
+    const { track } = await import('../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+
+    renderAt('/pricing');
+
+    expect(trackMock).toHaveBeenCalledWith('paywall_shown', {
+      surface: 'pricing_page',
+      quota_remaining: 40,
+    });
+  });
+
+  it('omits quota_remaining when card usage is not loaded', async () => {
+    mockUseCardUsage.mockReturnValue(null);
+    const { track } = await import('../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+
+    renderAt('/pricing');
+
+    expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'pricing_page' });
   });
 });
 
