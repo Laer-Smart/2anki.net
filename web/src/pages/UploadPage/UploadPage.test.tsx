@@ -71,17 +71,18 @@ describe('UploadPage reattach banner', () => {
 
   it('shows the reattach banner when upload_pending_filename is set in sessionStorage', async () => {
     renderPageWithSession('upload_pending_filename', 'biochemistry.zip');
-    expect(await screen.findByRole('status')).toBeInTheDocument();
-    expect(screen.getByRole('status').textContent).toContain('Re-attach');
-    expect(screen.getByRole('status').textContent).toContain('biochemistry.zip');
-    expect(screen.getByRole('status').textContent).toContain('to convert');
+    const reattachText = await screen.findByText(/Re-attach/);
+    const banner = reattachText.closest('[role="status"]') as HTMLElement;
+    expect(banner).toBeInTheDocument();
+    expect(banner.textContent).toContain('biochemistry.zip');
+    expect(banner.textContent).toContain('to convert');
     globalThis.sessionStorage.removeItem('upload_pending_filename');
   });
 
   it('does not show the reattach banner when upload_pending_filename is absent', async () => {
     renderPageWithSession('upload_pending_filename', null);
     await waitFor(() => {
-      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(screen.queryByText(/Re-attach/)).not.toBeInTheDocument();
     });
   });
 });
