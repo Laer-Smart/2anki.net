@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import { track } from '../../lib/analytics/track';
+import { storePassToken } from '../../lib/anonymousPass';
 import useQuery from '../../lib/hooks/useQuery';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import styles from '../../styles/shared.module.css';
@@ -48,6 +49,18 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
     if (searchParams.get('from') === 'pass') {
       const next = new URLSearchParams(searchParams);
       next.delete('from');
+      const qs = next.toString();
+      navigate(qs ? `/upload?${qs}` : '/upload', { replace: true });
+    }
+  }, [searchParams, navigate]);
+
+  useEffect(() => {
+    const passSession = searchParams.get('pass_session');
+    if (passSession != null && passSession.length > 0) {
+      // Owner decision: anonymous passes live in the browser (localStorage is sanctioned for this use case)
+      storePassToken(passSession);
+      const next = new URLSearchParams(searchParams);
+      next.delete('pass_session');
       const qs = next.toString();
       navigate(qs ? `/upload?${qs}` : '/upload', { replace: true });
     }

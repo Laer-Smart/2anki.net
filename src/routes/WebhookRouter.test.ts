@@ -2,9 +2,13 @@ import express from 'express';
 import http from 'node:http';
 import { AddressInfo } from 'node:net';
 import { InMemoryUserPassRepository } from '../data_layer/UserPassRepository';
+import { InMemoryAnonymousPassRepository } from '../data_layer/AnonymousPassRepository';
 
 const mockUpsert = jest.fn();
 const inMemoryRepo = new InMemoryUserPassRepository();
+
+const mockAnonInsert = jest.fn();
+const inMemoryAnonRepo = new InMemoryAnonymousPassRepository();
 
 const mockCustomersRetrieve = jest.fn();
 const mockSessionsRetrieve = jest.fn();
@@ -53,6 +57,15 @@ jest.mock('../data_layer/UserPassRepository', () => {
     __esModule: true,
     default: jest.fn().mockImplementation(() => ({ upsertWithExtension: mockUpsert })),
     InMemoryUserPassRepository: Mem,
+  };
+});
+
+jest.mock('../data_layer/AnonymousPassRepository', () => {
+  const { InMemoryAnonymousPassRepository: AnonMem } = jest.requireActual('../data_layer/AnonymousPassRepository');
+  return {
+    __esModule: true,
+    default: jest.fn().mockImplementation(() => ({ insert: mockAnonInsert })),
+    InMemoryAnonymousPassRepository: AnonMem,
   };
 });
 
@@ -219,6 +232,62 @@ describe('WebhookRouter — pass grant', () => {
     const res = await postWebhook();
     expect(res.status).toBe(200);
     expect(mockUpsert).not.toHaveBeenCalled();
+  });
+
+  it('persists anonymous pass on checkout.session.completed with pass_anonymous=1', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_anon_test',
+          amount_total: 400,
+          currency: 'usd',
+          customer: null,
+          payment_intent: 'pi_anon_456',
+          metadata: { pass_kind: '24h', pass_anonymous: '1' },
+        },
+      },
+    };
+    mockAnonInsert.mockResolvedValue({
+      id: 1,
+      stripe_session_id: 'cs_anon_test',
+      kind: '24h',
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      payment_intent_id: 'pi_anon_456',
+    });
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockUpsert).not.toHaveBeenCalled();
+    expect(mockAnonInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stripeSessionId: 'cs_anon_test',
+        kind: '24h',
+        paymentIntentId: 'pi_anon_456',
+      })
+    );
+  });
+
+  it('returns 200 and skips anonymous insert when payment_intent is missing', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_anon_nopi',
+          amount_total: 400,
+          currency: 'usd',
+          customer: null,
+          payment_intent: null,
+          metadata: { pass_kind: '24h', pass_anonymous: '1' },
+        },
+      },
+    };
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockAnonInsert).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
   });
 });
 

@@ -1,5 +1,6 @@
 import express from 'express';
 import RequireAuthentication from './middleware/RequireAuthentication';
+import { optionalAuthMiddleware } from './middleware/optionalAuthMiddleware';
 import AutoSyncCheckoutController from '../controllers/AutoSyncCheckoutController';
 import PassCheckoutController from '../controllers/PassCheckoutController';
 import UnlimitedCheckoutController from '../controllers/UnlimitedCheckoutController';
@@ -54,7 +55,7 @@ const CheckoutRouter = () => {
 
   router.post(
     '/api/checkout/pass/24h',
-    RequireAuthentication,
+    optionalAuthMiddleware,
     express.json(),
     (req, res) => {
       const pass24hPriceId = process.env.PASS_24H_PRICE_ID ?? '';
@@ -69,7 +70,7 @@ const CheckoutRouter = () => {
 
   router.post(
     '/api/checkout/pass/7d',
-    RequireAuthentication,
+    optionalAuthMiddleware,
     express.json(),
     (req, res) => {
       const pass7dPriceId = process.env.PASS_7D_PRICE_ID ?? '';

@@ -21,6 +21,17 @@ jest.mock('./middleware/RequireAuthentication', () => {
   return middleware;
 });
 
+let mockOptionalOwner: number | undefined;
+let mockOptionalEmail: string | undefined;
+
+jest.mock('./middleware/optionalAuthMiddleware', () => ({
+  optionalAuthMiddleware: (_req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (mockOptionalOwner != null) res.locals.owner = mockOptionalOwner;
+    if (mockOptionalEmail != null) res.locals.email = mockOptionalEmail;
+    next();
+  },
+}));
+
 async function buildServer() {
   const { default: CheckoutRouter } = await import('./CheckoutRouter');
   const app = express();
@@ -46,6 +57,8 @@ describe('CheckoutRouter — pass routes', () => {
     mockStripeCreate.mockReset();
     delete process.env.PASS_24H_PRICE_ID;
     delete process.env.PASS_7D_PRICE_ID;
+    mockOptionalOwner = undefined;
+    mockOptionalEmail = undefined;
   });
 
   describe('POST /api/checkout/pass/24h', () => {
@@ -56,7 +69,7 @@ describe('CheckoutRouter — pass routes', () => {
       expect(body.message).toBe('Day Pass is not available right now.');
     });
 
-    it('returns checkout url when env var is set', async () => {
+    it('returns checkout url for anonymous user (no auth cookie)', async () => {
       process.env.PASS_24H_PRICE_ID = 'price_24h_test';
       mockStripeCreate.mockResolvedValue({ url: 'https://checkout.stripe.com/24h' });
 
@@ -64,6 +77,34 @@ describe('CheckoutRouter — pass routes', () => {
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.url).toBe('https://checkout.stripe.com/24h');
+    });
+
+    it('anonymous mode sets pass_anonymous=1 in metadata and session-id success_url', async () => {
+      process.env.PASS_24H_PRICE_ID = 'price_24h_test';
+      mockStripeCreate.mockResolvedValue({ url: 'https://checkout.stripe.com/24h' });
+
+      await fetch(`${url}/api/checkout/pass/24h`, { method: 'POST' });
+      expect(mockStripeCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({ pass_kind: '24h', pass_anonymous: '1' }),
+          success_url: expect.stringContaining('{CHECKOUT_SESSION_ID}'),
+        })
+      );
+    });
+
+    it('authenticated mode sets user_id in metadata', async () => {
+      process.env.PASS_24H_PRICE_ID = 'price_24h_test';
+      mockOptionalOwner = 42;
+      mockOptionalEmail = 'test@example.com';
+      mockStripeCreate.mockResolvedValue({ url: 'https://checkout.stripe.com/24h-auth' });
+
+      const res = await fetch(`${url}/api/checkout/pass/24h`, { method: 'POST' });
+      expect(res.status).toBe(200);
+      expect(mockStripeCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: expect.objectContaining({ user_id: '42', pass_kind: '24h' }),
+        })
+      );
     });
 
     it('passes pass_kind=24h in session metadata', async () => {

@@ -79,4 +79,41 @@ describe('CreatePassCheckoutUseCase', () => {
       })
     );
   });
+
+  describe('anonymous mode (no userId / no userEmail)', () => {
+    it('omits user_id from metadata and sets pass_anonymous=1', async () => {
+      mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/anon' });
+
+      const uc = new CreatePassCheckoutUseCase(makeStripe(), 'price_24h', '24h');
+      await uc.execute({});
+
+      expect(mockStripeCreateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: { pass_kind: '24h', pass_anonymous: '1' },
+        })
+      );
+    });
+
+    it('omits customer_email in anonymous mode so Stripe collects it', async () => {
+      mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/anon' });
+
+      const uc = new CreatePassCheckoutUseCase(makeStripe(), 'price_24h', '24h');
+      await uc.execute({});
+
+      const call = mockStripeCreateSession.mock.calls[0][0];
+      expect(call.customer_email).toBeUndefined();
+      expect(call.customer).toBeUndefined();
+    });
+
+    it('embeds {CHECKOUT_SESSION_ID} template in success_url for anonymous mode', async () => {
+      mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/anon' });
+
+      const uc = new CreatePassCheckoutUseCase(makeStripe(), 'price_24h', '24h');
+      await uc.execute({});
+
+      const call = mockStripeCreateSession.mock.calls[0][0];
+      expect(call.success_url).toContain('{CHECKOUT_SESSION_ID}');
+      expect(call.success_url).toContain('/upload?pass_session=');
+    });
+  });
 });
