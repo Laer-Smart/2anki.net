@@ -1,25 +1,38 @@
 .entry {
   display: flex;
   align-items: center;
-  grid-gap: 1.2rem;
-  padding: 1rem;
-  font-size: var(--text-base);
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-size: var(--text-sm);
   justify-content: space-between;
 }
 
 .objectMeta {
   align-items: center;
   display: flex;
-  grid-gap: 1.2rem;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .objectActions {
   display: flex;
-  grid-gap: 1rem;
-  justify-content: center;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .uploadTitle {
-  display: flex;
-  align-items: center;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.objectIconAction {
+  min-width: 24px;
+  min-height: 24px;
+  flex-shrink: 0;
 }

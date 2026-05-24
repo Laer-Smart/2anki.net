@@ -1,95 +1,5 @@
-.page {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 3rem 1.5rem;
-}
-
-.header {
-  margin-bottom: 2.5rem;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  row-gap: 0.75rem;
-}
-
-.headerCopy {
-  flex: 1;
-}
-
-.refreshButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 0.875rem;
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-secondary);
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  box-shadow: var(--shadow-xs);
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-  align-self: center;
-}
-
-.refreshButton:hover {
-  background: var(--color-bg-secondary);
-  color: var(--color-text-primary);
-  box-shadow: var(--shadow-sm);
-}
-
-.refreshButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-  box-shadow: none;
-}
-
-.title {
-  font-size: var(--text-3xl);
-  font-weight: var(--font-semibold);
-  color: var(--color-text-primary);
-  margin: 0 0 0.5rem;
-  letter-spacing: var(--tracking-tight);
-}
-
-.subtitle {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  margin: 0;
-  line-height: var(--leading-normal);
-}
-
 .section {
   margin-bottom: 2.5rem;
-}
-
-.sectionHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-
-.sectionIcon {
-  width: 24px;
-  height: 24px;
-}
-
-.sectionTitle {
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
-  color: var(--color-text-primary);
-  margin: 0;
-}
-
-.sectionDescription {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  margin: 0 0 1rem;
 }
 
 .card {
@@ -153,6 +63,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+.downloadAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-bg-primary);
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  padding: 0;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.downloadAction:hover {
+  background: var(--color-primary-hover);
+  color: var(--color-bg-primary);
+}
+
 .downloadButton {
   display: inline-flex;
   align-items: center;
@@ -160,41 +92,47 @@
   padding: 0.375rem 0.875rem;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-primary);
-  background: var(--color-primary-light);
+  color: var(--color-bg-primary);
+  background: var(--color-primary);
   border: none;
   border-radius: var(--radius-md);
   text-decoration: none;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast);
   cursor: pointer;
   white-space: nowrap;
 }
 
 .downloadButton:hover {
-  background: var(--color-primary);
+  background: var(--color-primary-hover);
   color: var(--color-bg-primary);
 }
 
-.previewButton {
-  display: inline-flex;
-  align-items: center;
+.actions {
+  display: flex;
   gap: 0.375rem;
-  padding: 0.375rem 0.875rem;
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-secondary);
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  transition: all var(--transition-fast);
-  cursor: pointer;
-  white-space: nowrap;
+  justify-content: flex-end;
+  align-items: center;
 }
 
-.previewButton:hover {
-  color: var(--color-text-primary);
-  border-color: var(--color-text-secondary);
+.secondaryActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  opacity: 0.55;
+  transition: opacity var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .table tr:hover .secondaryActions,
+  .table tr:focus-within .secondaryActions {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .secondaryActions {
+    opacity: 1;
+  }
 }
 
 .iconButton {
@@ -204,7 +142,7 @@
   width: 2rem;
   height: 2rem;
   border-radius: var(--radius-sm);
-  border: 1px solid transparent;
+  border: none;
   background: transparent;
   color: var(--color-text-tertiary);
   cursor: pointer;
@@ -216,7 +154,6 @@
 .iconButton:hover {
   color: var(--color-text-primary);
   background: var(--color-bg-secondary);
-  border-color: var(--color-border);
 }
 
 .iconButton:disabled {
@@ -227,82 +164,6 @@
 .iconButtonDanger:hover {
   color: var(--color-danger);
   background: var(--color-danger-light);
-  border-color: var(--color-danger-border);
-}
-
-.deleteButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.875rem;
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-secondary);
-  background: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  white-space: nowrap;
-}
-
-.deleteButton:hover {
-  color: var(--color-danger);
-  border-color: var(--color-danger-border);
-  background: var(--color-danger-light);
-}
-
-.actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-}
-
-.empty {
-  text-align: center;
-  padding: 4rem 2rem;
-}
-
-.emptyIcon {
-  font-size: var(--text-4xl);
-  margin-bottom: 1rem;
-}
-
-.emptyTitle {
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
-  color: var(--color-text-primary);
-  margin: 0 0 0.5rem;
-}
-
-.emptyDescription {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  margin: 0 0 1.5rem;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.emptyLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 1.25rem;
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-bg-primary);
-  background: var(--color-primary);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  box-shadow: var(--shadow-xs);
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.emptyLink:hover {
-  background: var(--color-primary-hover);
-  color: var(--color-bg-primary);
-  box-shadow: var(--shadow-sm);
 }
 
 .upgradeFooter {
@@ -320,19 +181,6 @@
 
 .upgradeFooter a:hover {
   text-decoration: underline;
-}
-
-.preparingBanner {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: var(--color-primary-light);
-  border: 1px solid var(--color-primary);
-  border-radius: var(--radius-lg);
-  margin-bottom: 1rem;
-  font-size: var(--text-sm);
-  color: var(--color-primary);
 }
 
 .failedRow {

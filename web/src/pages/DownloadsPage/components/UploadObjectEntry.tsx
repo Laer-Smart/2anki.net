@@ -1,7 +1,6 @@
 import { DeleteButton } from './ListJobs/DeleteButton';
 import { getDownloadFileName } from '../helpers/getDownloadFileName';
 import styles from './UploadObjectEntry.module.css';
-import entryStyles from '../../SearchPage/components/SearchObjectEntry/SearchObjectEntry.module.css';
 
 interface Props {
   title: string;
@@ -33,7 +32,7 @@ export default function UploadObjectEntry({
           rel="noreferrer"
         >
           <img
-            className={entryStyles.objectIconAction}
+            className={styles.objectIconAction}
             alt="Page action"
             width="32"
             src="/icons/Anki_app_logo.png"
