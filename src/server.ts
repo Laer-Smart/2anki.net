@@ -58,6 +58,7 @@ import eventsRouter from './routes/EventsRouter';
 import checkoutRouter from './routes/CheckoutRouter';
 import shareRouter from './routes/ShareRouter';
 import mindmapRouter from './routes/MindmapRouter';
+import wellKnownRouter from './routes/WellKnownRouter';
 import requestLoggingMiddleware from './routes/middleware/requestLoggingMiddleware';
 import { anonIdMiddleware } from './routes/middleware/anonIdMiddleware';
 import { getEventsSink } from './services/events/eventsSinkInstance';
@@ -173,6 +174,7 @@ const serve = async () => {
   app.use(shareRouter());
   app.use(mindmapRouter());
 
+  app.use(wellKnownRouter());
   app.use(rejectScannerProbes);
   app.use(defaultRouter());
 

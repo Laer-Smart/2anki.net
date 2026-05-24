@@ -235,6 +235,10 @@ class UsersRepository {
     });
   }
 
+  updateName(id: string | number, name: string) {
+    return this.database(this.table).where({ id }).update({ name });
+  }
+
   markHostedAnkiRequested(id: string) {
     return this.database(this.table).where({ id }).update({
       hosted_anki_requested_at: this.database.fn.now(),

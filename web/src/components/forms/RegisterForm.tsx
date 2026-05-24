@@ -1,9 +1,11 @@
 import { SyntheticEvent, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import TopMessage from '../TopMessage/TopMessage';
 import { ErrorHandlerType } from '../errors/helpers/getErrorMessage';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { WithGoogleLink } from './WithGoogleLink';
 import { WithNotionLink } from './WithNotionLink';
+import { WithAppleLink } from './WithAppleLink';
 import { WithMicrosoftLink } from './WithMicrosoftLink';
 import { getVisibleText } from '../../lib/text/getVisibleText';
 import { readSignupOrigin } from '../../lib/signupOrigin';
@@ -24,6 +26,7 @@ function submitLabel(loading: boolean, startTrial: boolean | undefined): string 
 }
 
 function RegisterForm({ setErrorMessage, redirect, startTrial }: Props) {
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState(localStorage.getItem('email') || '');
   const [tos, setTos] = useState(false);
   const [password, setPassword] = useState('');
@@ -96,11 +99,14 @@ function RegisterForm({ setErrorMessage, redirect, startTrial }: Props) {
           {getVisibleText('navigation.register.title')}
         </h1>
         <div className={styles.oauthGrid}>
+          <WithNotionLink variant="card" text="Continue with Notion" />
           <WithGoogleLink
             variant="card"
             text={getVisibleText('navigation.register.google')}
           />
-          <WithNotionLink variant="card" text="Continue with Notion" />
+          {searchParams.get('apple') === 'true' && (
+            <WithAppleLink variant="card" text="Sign in with Apple" />
+          )}
           <WithMicrosoftLink
             variant="card"
             text={getVisibleText('navigation.register.microsoft')}

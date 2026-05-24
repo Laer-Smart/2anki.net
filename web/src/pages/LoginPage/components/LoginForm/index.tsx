@@ -7,6 +7,7 @@ import { useHandleLoginSubmit } from './helpers/useHandleLoginSubmit';
 import { getVisibleText } from '../../../../lib/text/getVisibleText';
 import { WithGoogleLink } from '../../../../components/forms/WithGoogleLink';
 import { WithNotionLink } from '../../../../components/forms/WithNotionLink';
+import { WithAppleLink } from '../../../../components/forms/WithAppleLink';
 import { WithMicrosoftLink } from '../../../../components/forms/WithMicrosoftLink';
 import { get2ankiApi } from '../../../../lib/backend/get2ankiApi';
 import styles from '../../../../styles/auth.module.css';
@@ -136,6 +137,9 @@ function LoginForm() {
                 text={getVisibleText('navigation.login.google')}
               />
               <WithNotionLink variant="card" text="Continue with Notion" />
+              {searchParams.get('apple') === 'true' && (
+                <WithAppleLink variant="card" text="Sign in with Apple" />
+              )}
               <WithMicrosoftLink
                 variant="card"
                 text={getVisibleText('navigation.login.microsoft')}

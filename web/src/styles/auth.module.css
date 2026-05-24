@@ -153,9 +153,64 @@
   box-shadow: var(--shadow-sm);
 }
 
+.appleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.625rem 1.25rem;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: #fff;
+  background: #000;
+  border: none;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  box-shadow: var(--shadow-xs);
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.appleButton:hover {
+  background: #1a1a1a;
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.appleCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  padding: 0.75rem 0.5rem;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: #fff;
+  background: #000;
+  border: none;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  box-shadow: var(--shadow-xs);
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.appleCard:hover {
+  background: #1a1a1a;
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.appleCard svg {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 0.375rem;
+}
+
 .oauthGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.5rem;
   margin: 0 0 1.5rem;
 }
@@ -190,11 +245,13 @@
   margin-bottom: 0.375rem;
 }
 
-@media (max-width: 320px) {
+@media (max-width: 400px) {
   .oauthGrid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.25rem;
   }
-  .oauthCard svg {
+  .oauthCard svg,
+  .appleCard svg {
     width: 20px;
     height: 20px;
   }

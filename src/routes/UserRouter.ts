@@ -672,6 +672,58 @@ const UserRouter = () => {
 
   /**
    * @swagger
+   * /api/users/auth/apple/init:
+   *   get:
+   *     summary: Initiate Apple OAuth login
+   *     description: Sets a CSRF state cookie (sameSite=none; Secure) and redirects to Apple's authorization page.
+   *     tags: [Authentication]
+   *     responses:
+   *       302:
+   *         description: Redirect to Apple OAuth
+   */
+  router.get('/api/users/auth/apple/init', (req, res) => {
+    const clientId = process.env.APPLE_SERVICES_ID;
+    const redirectUri = process.env.APPLE_REDIRECT_URI;
+    if (!clientId || !redirectUri) {
+      return res.redirect('/login');
+    }
+    const state = crypto.randomBytes(32).toString('hex');
+    res.cookie('apple_login_state', state, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+      maxAge: 300_000,
+    });
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code id_token',
+      response_mode: 'form_post',
+      scope: 'name email',
+      state,
+    });
+    return res.redirect(`https://appleid.apple.com/auth/authorize?${params.toString()}`);
+  });
+
+  /**
+   * @swagger
+   * /api/users/auth/apple:
+   *   post:
+   *     summary: Apple OAuth callback
+   *     description: form_post callback from Apple. Verifies state, exchanges code for id_token, signs the user in.
+   *     tags: [Authentication]
+   *     responses:
+   *       302:
+   *         description: Redirect to home on success or /login on failure
+   */
+  router.post(
+    '/api/users/auth/apple',
+    express.urlencoded({ extended: false }),
+    (req, res) => controller.loginWithApple(req, res)
+  );
+
+  /**
+   * @swagger
    * /api/users/auth/notion/init:
    *   get:
    *     summary: Initiate Notion OAuth login

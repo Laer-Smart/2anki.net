@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 
 import AuthenticationService, {
   __resetMicrosoftJwksCacheForTests,
+  __resetAppleJwksCacheForTests,
 } from './AuthenticationService';
 import TokenRepository from '../data_layer/TokenRepository';
 import UsersRepository from '../data_layer/UsersRepository';
@@ -459,6 +460,308 @@ describe('loginWithMicrosoft', () => {
 
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('mintAppleClientSecret', () => {
+  const TEAM_ID = 'TEAMID1234';
+  const SERVICES_ID = 'com.example.2anki';
+  const KEY_ID = 'KEYID56789';
+  let privateKeyPem: string;
+
+  beforeAll(() => {
+    const { privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+    privateKeyPem = privateKey.export({ type: 'pkcs8', format: 'pem' }) as string;
+  });
+
+  beforeEach(() => {
+    process.env.APPLE_TEAM_ID = TEAM_ID;
+    process.env.APPLE_SERVICES_ID = SERVICES_ID;
+    process.env.APPLE_KEY_ID = KEY_ID;
+    process.env.APPLE_PRIVATE_KEY = privateKeyPem;
+  });
+
+  it('produces a JWT with alg=ES256 and the correct claims', () => {
+    const service = createService();
+    const token = service.mintAppleClientSecret();
+    const decoded = jwt.decode(token, { complete: true }) as jwt.Jwt;
+
+    expect(decoded.header.alg).toBe('ES256');
+    expect(decoded.header.kid).toBe(KEY_ID);
+    const payload = decoded.payload as jwt.JwtPayload;
+    expect(payload.iss).toBe(TEAM_ID);
+    expect(payload.sub).toBe(SERVICES_ID);
+    expect(payload.aud).toBe('https://appleid.apple.com');
+    expect(typeof payload.iat).toBe('number');
+    expect(typeof payload.exp).toBe('number');
+    expect(payload.exp! - payload.iat!).toBeLessThanOrEqual(86400);
+  });
+
+  it('throws when any required env var is missing', () => {
+    delete process.env.APPLE_TEAM_ID;
+    const service = createService();
+    expect(() => service.mintAppleClientSecret()).toThrow();
+  });
+});
+
+describe('loginWithApple', () => {
+  const SERVICES_ID = 'com.example.2anki';
+  const KID = 'apple-key-001';
+  let privateKey: crypto.KeyObject;
+  let publicJwk: Record<string, unknown>;
+
+  const signIdToken = (payload: Record<string, unknown>): string =>
+    jwt.sign(payload, privateKey.export({ type: 'pkcs8', format: 'pem' }), {
+      algorithm: 'RS256',
+      header: { alg: 'RS256', kid: KID },
+    });
+
+  beforeAll(() => {
+    const pair = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+    privateKey = pair.privateKey;
+    publicJwk = pair.publicKey.export({ format: 'jwk' }) as Record<string, unknown>;
+    publicJwk['kid'] = KID;
+    publicJwk['alg'] = 'RS256';
+    publicJwk['use'] = 'sig';
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __resetAppleJwksCacheForTests();
+    process.env.APPLE_SERVICES_ID = SERVICES_ID;
+    process.env.APPLE_REDIRECT_URI = 'https://2anki.net/api/users/auth/apple';
+    process.env.APPLE_TEAM_ID = 'TEAMID1234';
+    process.env.APPLE_KEY_ID = 'KEYID56789';
+    const { privateKey: sk } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+    process.env.APPLE_PRIVATE_KEY = sk.export({ type: 'pkcs8', format: 'pem' }) as string;
+    mockedAxios.get = jest.fn().mockResolvedValue({ data: { keys: [publicJwk] } });
+  });
+
+  it('returns subject and email when id_token is valid', async () => {
+    const idToken = signIdToken({
+      iss: 'https://appleid.apple.com',
+      aud: SERVICES_ID,
+      sub: 'apple-sub-001',
+      email: 'user@example.com',
+      email_verified: true,
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithApple('auth-code');
+
+    expect(result).toEqual({
+      subject: 'apple-sub-001',
+      email: 'user@example.com',
+      emailVerified: true,
+    });
+  });
+
+  it('accepts email_verified as the string "true"', async () => {
+    const idToken = signIdToken({
+      iss: 'https://appleid.apple.com',
+      aud: SERVICES_ID,
+      sub: 'apple-sub-002',
+      email: 'hidden@privaterelay.appleid.com',
+      email_verified: 'true',
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithApple('auth-code');
+
+    expect(result).toMatchObject({ subject: 'apple-sub-002', emailVerified: true });
+  });
+
+  it('returns undefined when email_verified is false', async () => {
+    const idToken = signIdToken({
+      iss: 'https://appleid.apple.com',
+      aud: SERVICES_ID,
+      sub: 'apple-sub-003',
+      email: 'user@example.com',
+      email_verified: false,
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithApple('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the issuer is wrong', async () => {
+    const idToken = signIdToken({
+      iss: 'https://evil.example.com',
+      aud: SERVICES_ID,
+      sub: 'apple-sub-004',
+      email: 'user@example.com',
+      email_verified: true,
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithApple('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the audience does not match', async () => {
+    const idToken = signIdToken({
+      iss: 'https://appleid.apple.com',
+      aud: 'com.evil.app',
+      sub: 'apple-sub-005',
+      email: 'user@example.com',
+      email_verified: true,
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithApple('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the signature is invalid', async () => {
+    const wrongPair = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+    const idToken = jwt.sign(
+      {
+        iss: 'https://appleid.apple.com',
+        aud: SERVICES_ID,
+        sub: 'apple-sub-006',
+        email: 'user@example.com',
+        email_verified: true,
+      },
+      wrongPair.privateKey.export({ type: 'pkcs8', format: 'pem' }),
+      { algorithm: 'RS256', header: { alg: 'RS256', kid: KID } }
+    );
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithApple('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the kid is not in the JWKS', async () => {
+    const idToken = jwt.sign(
+      {
+        iss: 'https://appleid.apple.com',
+        aud: SERVICES_ID,
+        sub: 'apple-sub-007',
+        email: 'user@example.com',
+        email_verified: true,
+      },
+      privateKey.export({ type: 'pkcs8', format: 'pem' }),
+      { algorithm: 'RS256', header: { alg: 'RS256', kid: 'unknown-kid' } }
+    );
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithApple('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the token exchange fails', async () => {
+    mockedAxios.post = jest.fn().mockRejectedValue(new Error('network error'));
+
+    const service = createService();
+    const result = await service.loginWithApple('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the sub claim is missing', async () => {
+    const idToken = signIdToken({
+      iss: 'https://appleid.apple.com',
+      aud: SERVICES_ID,
+      email: 'user@example.com',
+      email_verified: true,
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithApple('auth-code');
+
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('loginWithApple algorithm pin', () => {
+  const SERVICES_ID = 'com.example.2anki';
+  const KID = 'apple-rsa-key-001';
+  let rsaPrivateKey: crypto.KeyObject;
+  let rsaPublicJwk: Record<string, unknown>;
+  let ecPrivateKey: crypto.KeyObject;
+  let ecPublicJwk: Record<string, unknown>;
+
+  beforeAll(() => {
+    const rsaPair = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+    rsaPrivateKey = rsaPair.privateKey;
+    const rawJwk = rsaPair.publicKey.export({ format: 'jwk' });
+    rsaPublicJwk = { ...rawJwk, kid: KID, alg: 'RS256', use: 'sig' };
+
+    const ecPair = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+    ecPrivateKey = ecPair.privateKey;
+    const rawEcJwk = ecPair.publicKey.export({ format: 'jwk' });
+    ecPublicJwk = { ...rawEcJwk, kid: KID, alg: 'ES256', use: 'sig' };
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __resetAppleJwksCacheForTests();
+    process.env.APPLE_SERVICES_ID = SERVICES_ID;
+    process.env.APPLE_REDIRECT_URI = 'https://2anki.net/api/users/auth/apple';
+    process.env.APPLE_TEAM_ID = 'TEAMID1234';
+    process.env.APPLE_KEY_ID = 'KEYID56789';
+    const { privateKey: sk } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+    process.env.APPLE_PRIVATE_KEY = sk.export({ type: 'pkcs8', format: 'pem' }) as string;
+  });
+
+  it('accepts an RS256-signed id_token (Apple production algorithm)', async () => {
+    const idToken = jwt.sign(
+      {
+        iss: 'https://appleid.apple.com',
+        aud: SERVICES_ID,
+        sub: 'apple-rsa-sub-001',
+        email: 'rsa-user@example.com',
+        email_verified: true,
+      },
+      rsaPrivateKey.export({ type: 'pkcs8', format: 'pem' }),
+      { algorithm: 'RS256', header: { alg: 'RS256', kid: KID } }
+    );
+    mockedAxios.get = jest.fn().mockResolvedValue({ data: { keys: [rsaPublicJwk] } });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithApple('auth-code');
+
+    expect(result).toEqual({
+      subject: 'apple-rsa-sub-001',
+      email: 'rsa-user@example.com',
+      emailVerified: true,
+    });
+  });
+
+  it('rejects an ES256-signed id_token (algorithm substitution defense)', async () => {
+    const idToken = jwt.sign(
+      {
+        iss: 'https://appleid.apple.com',
+        aud: SERVICES_ID,
+        sub: 'apple-ec-sub-001',
+        email: 'ec-user@example.com',
+        email_verified: true,
+      },
+      ecPrivateKey.export({ type: 'pkcs8', format: 'pem' }),
+      { algorithm: 'ES256', header: { alg: 'ES256', kid: KID } }
+    );
+    mockedAxios.get = jest.fn().mockResolvedValue({ data: { keys: [ecPublicJwk] } });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithApple('auth-code');
 
     expect(result).toBeUndefined();
   });

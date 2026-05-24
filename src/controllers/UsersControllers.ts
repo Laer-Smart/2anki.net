@@ -720,6 +720,116 @@ class UsersController {
     res.status(200).redirect(getRedirect(req));
   }
 
+  async loginWithApple(req: express.Request, res: express.Response) {
+    const { code, state } = req.body as { code?: string; state?: string };
+    const stateCookie = req.cookies?.apple_login_state as string | undefined;
+
+    if (!stateCookie || !state || state !== stateCookie) {
+      await this.recordError?.execute({ userId: null, surface: 'oauth_apple', code: 'oauth_state_mismatch' });
+      return res.redirect('/login');
+    }
+    res.clearCookie('apple_login_state');
+
+    if (!code) {
+      await this.recordError?.execute({ userId: null, surface: 'oauth_apple', code: 'oauth_cancelled' });
+      return res.redirect('/login');
+    }
+
+    const loginRequest = await this.authService.loginWithApple(code);
+    if (!loginRequest) {
+      await this.recordError?.execute({ userId: null, surface: 'oauth_apple', code: 'oauth_token_exchange_failed' });
+      return res.redirect('/login');
+    }
+
+    const { subject, email } = loginRequest;
+    const oauthIdentitiesRepo = new OauthIdentitiesRepository(this.db);
+    const existingIdentity = await oauthIdentitiesRepo.findByProviderAndSubject(
+      'apple',
+      subject
+    );
+
+    let user = existingIdentity
+      ? await this.userService.getUserById(existingIdentity.user_id.toString())
+      : null;
+    let isNewUser = false;
+
+    if (!user) {
+      if (!email) {
+        await this.recordError?.execute({ userId: null, surface: 'oauth_apple', code: 'oauth_email_missing' });
+        return res.redirect('/login');
+      }
+      const existingByEmail = await this.userService.getUserFrom(email);
+      if (existingByEmail) {
+        await oauthIdentitiesRepo.link('apple', subject, existingByEmail.id);
+        user = existingByEmail;
+      } else {
+        const rawName = this.parseAppleName(req.body);
+        const hashedPassword = this.authService.getHashPassword(getRandomUUID());
+        await this.userService.register(rawName ?? email, hashedPassword, email, 'apple');
+        user = await this.userService.getUserFrom(email);
+        isNewUser = true;
+        if (user) {
+          await oauthIdentitiesRepo.link('apple', subject, user.id);
+          if (rawName) {
+            await new UsersRepository(this.db).updateName(user.id, rawName);
+          }
+        }
+      }
+    }
+
+    if (!user) {
+      console.info('Failed to create user');
+      await this.recordError?.execute({ userId: null, surface: 'oauth_apple', code: 'oauth_user_creation_failed' });
+      return res
+        .status(400)
+        .send('Unknown error. Please try again or register a new account.');
+    }
+
+    if (isNewUser) {
+      try {
+        const country = extractCountryFromRequest(req);
+        if (country != null) {
+          await new UsersRepository(this.db).setSignupCountryIfMissing(
+            user.id,
+            country
+          );
+        }
+      } catch {
+        // country capture is best-effort
+      }
+    }
+
+    await this.userService.markEmailVerified(user.id.toString());
+
+    const token = await this.authService.newJWTToken(user.id);
+    if (!token) {
+      console.info('Failed to create token');
+      return res
+        .status(400)
+        .send('Unknown error. Please try again or register a new account.');
+    }
+    await this.authService.persistToken(token, user.id.toString());
+    await this.userService.updateLastLoginAt(user.id.toString());
+    res.cookie('token', token);
+    res.status(200).redirect(getRedirect(req));
+  }
+
+  private parseAppleName(body: Record<string, string | undefined>): string | undefined {
+    const userField = body.user;
+    if (!userField) {
+      return undefined;
+    }
+    try {
+      const parsed = JSON.parse(userField) as { name?: { firstName?: string; lastName?: string } };
+      const first = typeof parsed?.name?.firstName === 'string' ? parsed.name.firstName.trim() : '';
+      const last = typeof parsed?.name?.lastName === 'string' ? parsed.name.lastName.trim() : '';
+      const full = `${first} ${last}`.trim().slice(0, 200);
+      return full.length > 0 ? full : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   async loginWithNotion(req: express.Request, res: express.Response) {
     const { code } = req.query;
     if (!code) {
