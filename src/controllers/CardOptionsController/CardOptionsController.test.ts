@@ -194,6 +194,7 @@ describe('SettingsController', () => {
       'mcq-tts-question': '',
       'mcq-tts-correct-answer': '',
       'mcq-tts-extra': '',
+      'tts-auto-detect': 'false',
     });
   });
 });
