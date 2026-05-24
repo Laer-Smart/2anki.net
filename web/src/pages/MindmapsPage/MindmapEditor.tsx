@@ -155,9 +155,18 @@ export function MindmapEditor() {
   const [toast, setToast] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string | null; edgeId?: string; flowX?: number; flowY?: number } | null>(null);
-  const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
+  const [rfInstance, setRfInstanceState] = useState<ReactFlowInstance | null>(null);
+
+  const setRfInstance = useCallback((instance: ReactFlowInstance) => {
+    setRfInstanceState(instance);
+    if (fitViewPending.current) {
+      fitViewPending.current = false;
+      instance.fitView({ duration: 0 });
+    }
+  }, []);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fitViewPending = useRef(false);
 
   useEffect(() => {
     setIsMobile(window.innerWidth < 768);
@@ -178,8 +187,34 @@ export function MindmapEditor() {
     updateMindmap.mutate({ title: trimmed });
   }
 
+  const seededMapId = useRef<string | null>(null);
+
   useEffect(() => {
     if (map == null) return;
+
+    if (seededMapId.current === map.id) {
+      setNodes((current) =>
+        current.map((n) => {
+          const serverNode = map.data.nodes.find((sn) => sn.id === n.id);
+          if (serverNode == null) return n;
+          const dataChanged =
+            serverNode.label !== (n.data as { label?: string }).label ||
+            (serverNode.color ?? null) !== (n.data as { color?: string | null }).color;
+          if (!dataChanged) return n;
+          return {
+            ...n,
+            data: { ...n.data, label: serverNode.label, color: serverNode.color ?? null },
+            style:
+              serverNode.color == null
+                ? NODE_STYLE
+                : { ...NODE_STYLE, borderColor: serverNode.color, boxShadow: `0 0 0 1px ${serverNode.color}` },
+          };
+        })
+      );
+      return;
+    }
+
+    seededMapId.current = map.id;
 
     const someHasPosition = map.data.nodes.some((n) => n.position != null);
 
@@ -202,10 +237,15 @@ export function MindmapEditor() {
     const initialNodes = someHasPosition ? rfNodes : layoutGraph(rfNodes, rfEdges);
     setNodes(initialNodes);
     setEdges(rfEdges);
+    if (rfInstance == null) {
+      fitViewPending.current = true;
+    } else {
+      rfInstance.fitView({ duration: 0 });
+    }
     if (initialNodes.length === 1) {
       setSelectedNodeId(initialNodes[0].id);
     }
-  }, [map, setNodes, setEdges]);
+  }, [map, setNodes, setEdges, rfInstance]);
 
   const persistData = useCallback(
     (ns: Node[], es: Edge[]) => {
@@ -785,7 +825,6 @@ export function MindmapEditor() {
           connectionMode={ConnectionMode.Loose}
           snapToGrid
           snapGrid={[20, 20]}
-          fitView
         >
           <Controls />
           <Background />
