@@ -22,6 +22,16 @@ interface LoginState {
   setPassword: React.Dispatch<SetStateAction<string>>;
 }
 
+const isSafeRedirect = (value: string): boolean =>
+  value.startsWith('/') && !value.startsWith('//') && !value.includes(':');
+
+const getUrlRedirect = (): string | undefined => {
+  const params = new URLSearchParams(globalThis.location.search);
+  const value = params.get('redirect');
+  if (value == null) return undefined;
+  return isSafeRedirect(value) ? value : undefined;
+};
+
 export const useHandleLoginSubmit = (onError: ErrorHandlerType): LoginState => {
   const [loading, setLoading] = useState(false);
   const [, setCookie] = useCookies(['token']);
@@ -39,7 +49,7 @@ export const useHandleLoginSubmit = (onError: ErrorHandlerType): LoginState => {
         setCookie('token', token);
         await migrateToServer();
         await hydrateFromServer();
-        globalThis.location.href = redirect ?? getSearchPath('anki');
+        globalThis.location.href = redirect ?? getUrlRedirect() ?? getSearchPath('anki');
       } else if (res.status === 401) {
         const data = await res.json().catch(() => ({})) as { message?: string; hint?: string };
         const base = 'Wrong email or password. Try again or reset your password.';

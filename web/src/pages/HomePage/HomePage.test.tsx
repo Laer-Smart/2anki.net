@@ -50,7 +50,7 @@ describe('HomePage (anonymous)', () => {
     const link = screen.getByRole('link', {
       name: /create an account to turn it on/i,
     });
-    expect(link).toHaveAttribute('href', '/register');
+    expect(link).toHaveAttribute('href', '/register?redirect=/card-options');
   });
 
   it('renders the three how-it-works steps with icons', () => {

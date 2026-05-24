@@ -11,6 +11,7 @@ const ALLOWED_REDIRECT_PATHS = [
   '/pricing',
   '/settings',
   '/anki',
+  '/card-options',
 ];
 
 const isValidRedirectUrl = (url: string): boolean => {
@@ -51,9 +52,11 @@ const isValidRedirectUrl = (url: string): boolean => {
 };
 
 export const getRedirect = (req: Request): string => {
-  const redirectParam = req.query.redirect?.toString();
+  const queryRedirect = req.query.redirect?.toString();
+  const bodyRedirect = typeof req.body?.redirect === 'string' ? req.body.redirect : undefined;
+  const redirectParam = queryRedirect ?? bodyRedirect;
 
-  if (!redirectParam) {
+  if (redirectParam == null || redirectParam === '') {
     return '/notion';
   }
 
@@ -61,6 +64,5 @@ export const getRedirect = (req: Request): string => {
     return redirectParam;
   }
 
-  // If redirect URL is not valid, return safe default
   return '/notion';
 };

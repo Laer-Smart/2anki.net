@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-24-login-preserves-redirect",
+  "date": "2026-05-24",
+  "type": "fix",
+  "title": "Sign in from anywhere — you land back on the page you came from"
+}
