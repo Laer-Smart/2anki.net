@@ -14,6 +14,8 @@ export interface ConversionWorkerRequest {
   type?: string;
   title: string;
   jobDbId: string | number;
+  frontField?: string;
+  backField?: string;
 }
 
 let pool: Piscina | null = null;
@@ -98,5 +100,7 @@ export async function runConversionInWorker(
     type: request.type,
     title: request.title,
     jobDbId: request.jobDbId,
+    frontField: request.frontField,
+    backField: request.backField,
   });
 }

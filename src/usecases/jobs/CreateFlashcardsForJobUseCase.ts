@@ -11,13 +11,15 @@ interface CreateFlashcardsForJobUseCaseInput {
   rules: ParserRules;
   settings: CardOption;
   type?: string;
+  frontField?: string;
+  backField?: string;
 }
 
 export class CreateFlashcardsForJobUseCase {
   constructor(private readonly jobRepository: JobRepository) {}
 
   async execute(input: CreateFlashcardsForJobUseCaseInput): Promise<Deck[]> {
-    const { bl, id, rules, settings, owner, type } = input;
+    const { bl, id, rules, settings, owner, type, frontField, backField } = input;
     const updateJobStatus = await this.jobRepository.updateJobStatus(
       id,
       owner,
@@ -35,6 +37,8 @@ export class CreateFlashcardsForJobUseCase {
       rules,
       decks: [],
       parentName: settings.deckName || '',
+      frontField,
+      backField,
     });
   }
 }

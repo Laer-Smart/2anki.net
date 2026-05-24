@@ -346,25 +346,12 @@ class BlockHandler {
     if (parentType === 'page') {
       return this.findFlashcardsFromPage(locator);
     }
-    if (parentType === 'notion-database') {
+    if (
+      parentType === 'notion-database' ||
+      parentType === 'database' ||
+      parentType === 'data_source'
+    ) {
       return this.findFlashcardsFromDatabaseRows(locator);
-    }
-    if (parentType === 'database' || parentType === 'data_source') {
-      const dbResult = await this.api.queryDatabase(topLevelId);
-      const database = await this.api.getDatabase(topLevelId);
-      const dbName = await this.api.getDatabaseTitle(database, this.settings);
-      let dbDecks = [];
-      for (const entry of dbResult.results) {
-        dbDecks = await this.findFlashcardsFromPage({
-          parentType: 'database',
-          topLevelId: entry.id,
-          rules,
-          decks,
-          parentName: dbName,
-        });
-        return dbDecks;
-      }
-      return decks;
     }
     console.error(`[notion] unsupported parentType: ${parentType}`);
     return [];

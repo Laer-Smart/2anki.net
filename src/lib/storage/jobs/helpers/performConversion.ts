@@ -43,11 +43,13 @@ interface ConversionRequest {
   isPaying: boolean;
   type?: string;
   jobDbId: string | number;
+  frontField?: string;
+  backField?: string;
 }
 
 export default async function performConversion(
   database: Knex,
-  { title, api, id, owner, isPaying, type, jobDbId }: ConversionRequest
+  { title, api, id, owner, isPaying, type, jobDbId, frontField, backField }: ConversionRequest
 ) {
   console.info(`Performing conversion for ${id}`);
 
@@ -69,6 +71,8 @@ export default async function performConversion(
       rules,
       settings,
       type,
+      frontField,
+      backField,
     });
     if (!decks || decks.length === 0) {
       const setJobFailed = new SetJobFailedUseCase(jobRepository);

@@ -22,6 +22,7 @@ import { isHeading } from './helpers/isHeading';
 import { getHeadingText } from './helpers/getHeadingText';
 import { uniqueTimerLabel } from './helpers/uniqueTimerLabel';
 import { withRetry } from './helpers/withRetry';
+import { collapseDataSourcesToDatabases } from './helpers/collapseDataSourcesToDatabases';
 import type { IBlocksCacheRepository } from '../../data_layer/BlocksCacheRepository';
 import { isValidNotionId } from './isValidNotionId';
 import { ValidNotionType } from './types';
@@ -415,7 +416,7 @@ class NotionAPIWrapper {
     }
 
     console.timeEnd(searchLabel);
-    return response;
+    return collapseDataSourcesToDatabases(response);
   }
 
   static GetClientID(): string {

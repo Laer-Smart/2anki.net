@@ -1,8 +1,34 @@
 import { PythonExitError } from '../../lib/anki/buildPythonExitError';
 import { EmptyDeckError } from './EmptyDeckError';
+import { inferColumnMapping } from '../../lib/notionDatabase/inferColumnMapping';
 
 export const EMPTY_DECK_FAILURE_REASON =
   "No cards in this deck yet. 2anki turns Notion toggle blocks into flashcards — the toggle title becomes the question, what's inside is the answer. Wrap your key terms in toggles in Notion, then convert again.";
+
+export const COLUMNS_AMBIGUOUS_PREFIX = 'COLUMNS_AMBIGUOUS:';
+
+function isColumnsAmbiguousError(
+  error: unknown
+): error is Error & { code: string; columns: string[] } {
+  return (
+    error instanceof Error &&
+    (error as Error & { code?: string }).code ===
+      'NOTION_DATABASE_COLUMNS_AMBIGUOUS' &&
+    Array.isArray((error as Error & { columns?: unknown }).columns)
+  );
+}
+
+function buildColumnsAmbiguousReason(columns: string[]): string {
+  const inferred = inferColumnMapping(columns);
+  const payload = {
+    columns,
+    suggested: {
+      frontField: inferred.frontField,
+      backField: inferred.backField,
+    },
+  };
+  return `${COLUMNS_AMBIGUOUS_PREFIX}${JSON.stringify(payload)}`;
+}
 
 function genericFailureReason(jobId = 'unavailable'): string {
   return `Something went wrong on our end converting this page. Email support@2anki.net with job ID ${jobId} and we'll take a look.`;
@@ -17,6 +43,9 @@ export function jobFailureReasonFromError(
   }
   if (error instanceof PythonExitError) {
     return error.message;
+  }
+  if (isColumnsAmbiguousError(error)) {
+    return buildColumnsAmbiguousReason(error.columns);
   }
   return genericFailureReason(jobId);
 }
