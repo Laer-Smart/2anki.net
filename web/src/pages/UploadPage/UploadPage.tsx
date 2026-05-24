@@ -106,8 +106,8 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
                   onClick={() => track('upload_ai_off_badge_clicked')}
                 >
                   Settings
-                </Link>{' '}
-                (Subscription or Lifetime required).
+                </Link>
+                .
               </span>
             </>
           )}
