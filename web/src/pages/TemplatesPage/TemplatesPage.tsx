@@ -83,37 +83,35 @@ function NoteTypeCard({
         <div className={styles.actions}>
           <button
             type="button"
-            className={styles.iconButton}
+            className={styles.downloadBtn}
             onClick={() => onDownload(starter)}
             disabled={busy}
             aria-label={busy ? 'Preparing .apkg' : `Download ${starter.name} as .apkg`}
-            title={busy ? 'Preparing…' : 'Download .apkg'}
           >
-            <DownloadIcon width={18} height={18} />
+            <DownloadIcon width={14} height={14} />
+            {busy ? 'Preparing…' : 'Download'}
           </button>
-          <Link
-            to={editHref}
-            className={styles.iconLink}
-            aria-label={
-              ownedByUser
-                ? `Edit ${starter.name}`
-                : `Customize ${starter.name}`
-            }
-            title={ownedByUser ? 'Edit' : 'Customize'}
-          >
-            <PencilIcon width={18} height={18} />
-          </Link>
-          {ownedByUser && onDelete && (
-            <button
-              type="button"
-              className={`${styles.iconButton} ${styles.deleteButton}`}
-              onClick={() => onDelete(starter)}
-              aria-label={`Delete ${starter.name}`}
-              title="Delete"
+          <div className={styles.secondaryActions}>
+            <Link
+              to={editHref}
+              className={styles.ghostIconBtn}
+              aria-label={ownedByUser ? `Edit ${starter.name}` : `Customize ${starter.name}`}
+              title={ownedByUser ? 'Edit' : 'Customize'}
             >
-              <TrashIcon width={18} height={18} />
-            </button>
-          )}
+              <PencilIcon width={16} height={16} />
+            </Link>
+            {ownedByUser && onDelete && (
+              <button
+                type="button"
+                className={`${styles.ghostIconBtn} ${styles.ghostIconBtnDanger}`}
+                onClick={() => onDelete(starter)}
+                aria-label={`Delete ${starter.name}`}
+                title="Delete"
+              >
+                <TrashIcon width={16} height={16} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </article>
@@ -328,8 +326,19 @@ export function TemplatesPage() {
       )}
 
       {starters?.length === 0 && !loadError && (
-        <div className={styles.empty}>
-          No starter note types are available right now.
+        <div className={styles.emptyCard}>
+          <p className={styles.emptyTitle}>No note types yet</p>
+          <p className={styles.emptyBody}>
+            Create your first note type to use custom card layouts in Anki.
+          </p>
+          <div className={styles.emptyActions}>
+            <Link
+              to="/templates/new"
+              className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
+            >
+              New note type
+            </Link>
+          </div>
         </div>
       )}
 
