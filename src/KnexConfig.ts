@@ -6,7 +6,7 @@ const KnexConfig: Knex.Config = {
     process.env.DATABASE_URL || 'postgresql://aa:focaccia@localhost:5432/n',
   pool: {
     min: 2,
-    max: 10,
+    max: 20,
   },
   migrations: {
     tableName: 'knex_migrations',
