@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import { Request, Response } from 'express';
 import { IngestErrorEventUseCase, ErrorEventPayload } from '../usecases/events/IngestErrorEventUseCase';
 

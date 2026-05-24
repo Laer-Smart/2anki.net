@@ -96,7 +96,7 @@ export class ErrorEventRepository implements IErrorEventRepository {
       url: r.url as string | null,
       release: r.release as string | null,
       source: r.source as string,
-      user_id: r.user_id != null ? Number(r.user_id) : null,
+      user_id: r.user_id == null ? null : Number(r.user_id),
       user_agent: r.user_agent as string | null,
       first_seen: r.first_seen instanceof Date ? r.first_seen.toISOString() : String(r.first_seen),
       last_seen: r.last_seen instanceof Date ? r.last_seen.toISOString() : String(r.last_seen),

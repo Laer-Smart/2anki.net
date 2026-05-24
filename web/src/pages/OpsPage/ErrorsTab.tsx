@@ -29,7 +29,7 @@ function truncate(text: string, max: number): string {
   return text.length <= max ? text : `${text.slice(0, max)}…`;
 }
 
-function SourceDot({ source }: { source: string }) {
+function SourceDot({ source }: Readonly<{ source: string }>) {
   const color = source === 'server' ? '#f59e0b' : '#3b82f6';
   return (
     <span
@@ -50,7 +50,7 @@ interface CopyButtonProps {
   group: ErrorGroup;
 }
 
-function CopyButton({ group }: CopyButtonProps) {
+function CopyButton({ group }: Readonly<CopyButtonProps>) {
   const [copied, setCopied] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -85,13 +85,13 @@ interface DetailPanelProps {
   onClose: () => void;
 }
 
-function DetailPanel({ group, onClose }: DetailPanelProps) {
+function DetailPanel({ group, onClose }: Readonly<DetailPanelProps>) {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    globalThis.addEventListener('keydown', handleKey);
+    return () => globalThis.removeEventListener('keydown', handleKey);
   }, [onClose]);
 
   const release = group.release == null ? '(unknown)' : group.release.slice(0, 8);
@@ -271,7 +271,7 @@ export default function ErrorsTab() {
             <p className={styles.emptyHint} style={{ padding: '1.5rem' }}>Loading…</p>
           )}
 
-          {!isLoading && data != null && data.groups.length === 0 && (
+          {!isLoading && data?.groups.length === 0 && (
             <p className={styles.emptyHint} style={{ padding: '1.5rem' }}>
               No errors recorded. Errors appear here as soon as the client reports one.
             </p>
