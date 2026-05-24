@@ -95,7 +95,7 @@ export function SubscriptionManagement({
     locals?.subscriptionInfo?.linked_email === user.email ||
     locals?.subscriptionInfo?.email === user.email;
 
-  if (!hasActivePlan && !user) {
+  if (!locals?.subscriber) {
     return null;
   }
 
@@ -110,8 +110,7 @@ export function SubscriptionManagement({
         onClose={dismissSurvey}
       />
     )}
-    <div className={styles.managementCard}>
-      <h3 className={styles.managementTitle}>Subscription</h3>
+    <section className={styles.section}>
       {locals?.subscriber && (
         <div className={sharedStyles.marginBottomMd}>
           {view.kind === 'active' && (
@@ -212,17 +211,6 @@ export function SubscriptionManagement({
         </div>
       )}
 
-      <div className={sharedStyles.marginTopMd}>
-        <p className={sharedStyles.smallDescription}>
-          <strong>Need help?</strong>
-        </p>
-        <ul className={sharedStyles.featureList}>
-          <li>
-            Email us at <a href="mailto:support@2anki.net">support@2anki.net</a>
-          </li>
-        </ul>
-      </div>
-
       {locals?.subscriber && (
         <div className={sharedStyles.marginTopLg}>
           <h4 className={sharedStyles.smallHeading}>Linked 2anki.net email</h4>
@@ -268,7 +256,7 @@ export function SubscriptionManagement({
           )}
         </div>
       )}
-    </div>
+    </section>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { SkeletonPage } from '../../components/Skeleton/Skeleton';
 import { useSubscriptionStatus } from './hooks';
@@ -8,8 +8,6 @@ import {
   SubscriptionManagement,
   AccountDeletion,
 } from './components';
-import useNotionData from '../SearchPage/helpers/useNotionData';
-import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './AccountPage.module.css';
 
@@ -18,20 +16,13 @@ export default function AccountPage() {
   const { subscriptionType, hasActivePlan } = useSubscriptionStatus(
     data?.locals
   );
-  const notionData = useNotionData(get2ankiApi());
   const [searchParams, setSearchParams] = useSearchParams();
   const justSubscribed = searchParams.get('subscribed') === '1';
   const justVerified = searchParams.get('verified') === '1';
 
-  const dismissSubscribedBanner = () => {
+  const dismissParam = (key: string) => {
     const next = new URLSearchParams(searchParams);
-    next.delete('subscribed');
-    setSearchParams(next, { replace: true });
-  };
-
-  const dismissVerifiedBanner = () => {
-    const next = new URLSearchParams(searchParams);
-    next.delete('verified');
+    next.delete(key);
     setSearchParams(next, { replace: true });
   };
 
@@ -48,9 +39,6 @@ export default function AccountPage() {
     <div className={styles.page}>
       <header className={sharedStyles.pageHeader}>
         <h1 className={sharedStyles.title}>Account</h1>
-        <p className={sharedStyles.subtitle}>
-          Manage your profile, plan, and connected services.
-        </p>
       </header>
 
       {justSubscribed && (
@@ -65,7 +53,7 @@ export default function AccountPage() {
           <button
             type="button"
             className={sharedStyles.btnGhost}
-            onClick={dismissSubscribedBanner}
+            onClick={() => dismissParam('subscribed')}
           >
             Dismiss
           </button>
@@ -82,51 +70,31 @@ export default function AccountPage() {
           <button
             type="button"
             className={sharedStyles.btnGhost}
-            onClick={dismissVerifiedBanner}
+            onClick={() => dismissParam('verified')}
           >
             Dismiss
           </button>
         </div>
       )}
 
-      <div className={styles.mainCard}>
-        <UserProfile user={user} />
+      <UserProfile user={user} />
 
-        <h2 className={styles.sectionTitle}>Plan details</h2>
-        <PlanDetails subscriptionType={subscriptionType} />
+      <PlanDetails subscriptionType={subscriptionType} />
 
-        {notionData.connected && notionData.workSpace && (
-          <>
-            <h2 className={styles.sectionTitle}>Notion workspace</h2>
-            <div className={styles.planCard}>
-              <div className={styles.planHeader}>
-                <span className={styles.planName}>{notionData.workSpace}</span>
-                <a
-                  href={notionData.connectionLink}
-                  className={styles.planButton}
-                >
-                  Switch
-                </a>
-              </div>
-            </div>
-          </>
-        )}
+      <SubscriptionManagement
+        user={user}
+        locals={locals}
+        hasActivePlan={hasActivePlan}
+        onRefetch={refetch}
+      />
 
-        <SubscriptionManagement
-          user={user}
-          locals={locals}
-          hasActivePlan={hasActivePlan}
-          onRefetch={refetch}
-        />
+      <AccountDeletion />
 
-        <AccountDeletion />
-
-        <div className={styles.feedbackFooter}>
-          <Link to="/feedback" className={sharedStyles.btnGhost}>
-            Share your experience
-          </Link>
-        </div>
-      </div>
+      <footer className={styles.pageFooter}>
+        <a href="mailto:support@2anki.net" className={styles.footerLink}>
+          support@2anki.net
+        </a>
+      </footer>
     </div>
   );
 }
