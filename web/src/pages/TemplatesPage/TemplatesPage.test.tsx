@@ -141,7 +141,7 @@ describe('TemplatesPage', () => {
     renderPage();
 
     expect(
-      await screen.findByText(/no starter note types/i)
+      await screen.findByText(/no note types yet/i)
     ).toBeInTheDocument();
   });
 
