@@ -110,12 +110,12 @@ export function renderJobStatusCell(j: JobResponse) {
       return (
         <a
           href={`/api/download/u/${j.download_key}`}
-          className={styles.iconButton}
+          className={styles.downloadAction}
           aria-label={`Download ${j.title}`}
           title="Download"
           onClick={() => { fireAnalyticsEvent('deck_downloaded'); track('deck_downloaded'); }}
         >
-          <DownloadIcon width={18} height={18} />
+          <DownloadIcon width={16} height={16} />
         </a>
       );
     }
@@ -294,19 +294,17 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
   const isGloballyEmpty = totalCount === 0 && !hasActiveJobs;
 
   return (
-    <div className={styles.page}>
+    <div className={sharedStyles.page}>
       {showVerifiedBanner && (
         <div className={sharedStyles.alertSuccess} role="status" aria-live="polite">
           Email verified. You&apos;re all set.
         </div>
       )}
-      <div className={styles.header}>
-        <div className={styles.headerCopy}>
-          <h1 className={styles.title}>My Decks</h1>
-          <p className={styles.subtitle}>
-            Decks you&apos;ve made, ready to download into Anki.
-          </p>
-        </div>
+      <div className={sharedStyles.pageHeader}>
+        <h1 className={sharedStyles.title}>My decks</h1>
+        <p className={sharedStyles.subtitle}>
+          Your converted decks, ready to download into Anki.
+        </p>
       </div>
 
       {loading ? (
@@ -381,16 +379,6 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                 </td>
                                 <td>
                                   <div className={styles.actions}>
-                                    {isDoneJob(row.job.status) && row.job.download_key != null && APKG_PATTERN.test(row.job.download_key) && (
-                                      <Link
-                                        to={`/preview/apkg/${encodeURIComponent(row.job.download_key)}`}
-                                        className={styles.iconButton}
-                                        aria-label={`Preview ${row.job.title ?? 'deck'}`}
-                                        title="Preview"
-                                      >
-                                        <EyeIcon width={18} height={18} />
-                                      </Link>
-                                    )}
                                     {isFailed ? (
                                       renderJobStatusWithToggle({
                                         job: row.job,
@@ -400,29 +388,41 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                     ) : (
                                       renderJobStatusCell(row.job)
                                     )}
-                                    {row.source === 'notion' && isDoneJob(row.job.status) && row.job.upload_id != null && (
-                                      <SendToAnkifyButton uploadId={row.job.upload_id} filename={row.job.title} />
-                                    )}
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDeleteJob(row.job.id)}
-                                      className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-                                      aria-label={`Delete ${row.job.title}`}
-                                      title={isFailed ? 'Delete' : 'Cancel'}
-                                    >
-                                      <TrashIcon width={18} height={18} />
-                                    </button>
-                                    {isFailed && row.job.restartable && (
+                                    <div className={styles.secondaryActions}>
+                                      {isDoneJob(row.job.status) && row.job.download_key != null && APKG_PATTERN.test(row.job.download_key) && (
+                                        <Link
+                                          to={`/preview/apkg/${encodeURIComponent(row.job.download_key)}`}
+                                          className={styles.iconButton}
+                                          aria-label={`Preview ${row.job.title ?? 'deck'}`}
+                                          title="Preview"
+                                        >
+                                          <EyeIcon width={16} height={16} />
+                                        </Link>
+                                      )}
+                                      {row.source === 'notion' && isDoneJob(row.job.status) && row.job.upload_id != null && (
+                                        <SendToAnkifyButton uploadId={row.job.upload_id} filename={row.job.title} />
+                                      )}
+                                      {isFailed && row.job.restartable && (
+                                        <button
+                                          type="button"
+                                          onClick={() => restartJob(row.job)}
+                                          className={styles.iconButton}
+                                          aria-label="Restart job"
+                                          title="Restart"
+                                        >
+                                          ↺
+                                        </button>
+                                      )}
                                       <button
                                         type="button"
-                                        onClick={() => restartJob(row.job)}
-                                        className={styles.iconButton}
-                                        aria-label="Restart job"
-                                        title="Restart"
+                                        onClick={() => handleDeleteJob(row.job.id)}
+                                        className={`${styles.iconButton} ${styles.iconButtonDanger}`}
+                                        aria-label={`Delete ${row.job.title}`}
+                                        title={isFailed ? 'Delete' : 'Cancel'}
                                       >
-                                        ↺
+                                        <TrashIcon width={16} height={16} />
                                       </button>
-                                    )}
+                                    </div>
                                   </div>
                                 </td>
                               </tr>
@@ -494,37 +494,39 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                               </td>
                               <td>
                                 <div className={styles.actions}>
-                                  {APKG_PATTERN.test(u.key) && (
-                                    <Link
-                                      to={`/preview/apkg/${encodeURIComponent(u.key)}`}
-                                      className={styles.iconButton}
-                                      aria-label={`Preview ${u.filename}`}
-                                      title="Preview"
-                                    >
-                                      <EyeIcon width={18} height={18} />
-                                    </Link>
-                                  )}
                                   <a
                                     href={`/api/download/u/${u.key}`}
-                                    className={styles.iconButton}
+                                    className={styles.downloadAction}
                                     aria-label={`Download ${u.filename}`}
                                     title="Download"
                                     onClick={() => { fireAnalyticsEvent('deck_downloaded'); track('deck_downloaded'); }}
                                   >
-                                    <DownloadIcon width={18} height={18} />
+                                    <DownloadIcon width={16} height={16} />
                                   </a>
-                                  {APKG_PATTERN.test(u.key) && (
-                                    <SendToAnkifyButton uploadId={u.id} filename={u.filename} />
-                                  )}
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDeleteUpload(u.key)}
-                                    className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-                                    aria-label={`Delete ${u.filename}`}
-                                    title="Delete"
-                                  >
-                                    <TrashIcon width={18} height={18} />
-                                  </button>
+                                  <div className={styles.secondaryActions}>
+                                    {APKG_PATTERN.test(u.key) && (
+                                      <Link
+                                        to={`/preview/apkg/${encodeURIComponent(u.key)}`}
+                                        className={styles.iconButton}
+                                        aria-label={`Preview ${u.filename}`}
+                                        title="Preview"
+                                      >
+                                        <EyeIcon width={16} height={16} />
+                                      </Link>
+                                    )}
+                                    {APKG_PATTERN.test(u.key) && (
+                                      <SendToAnkifyButton uploadId={u.id} filename={u.filename} />
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteUpload(u.key)}
+                                      className={`${styles.iconButton} ${styles.iconButtonDanger}`}
+                                      aria-label={`Delete ${u.filename}`}
+                                      title="Delete"
+                                    >
+                                      <TrashIcon width={16} height={16} />
+                                    </button>
+                                  </div>
                                 </div>
                               </td>
                             </tr>
@@ -552,15 +554,17 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                               </td>
                               <td>
                                 <div className={styles.actions}>
-                                  <button
-                                    type="button"
-                                    className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-                                    onClick={() => deleteDropboxUpload(d.id)}
-                                    aria-label={`Remove ${d.name}`}
-                                    title="Remove"
-                                  >
-                                    <TrashIcon width={18} height={18} />
-                                  </button>
+                                  <div className={styles.secondaryActions}>
+                                    <button
+                                      type="button"
+                                      className={`${styles.iconButton} ${styles.iconButtonDanger}`}
+                                      onClick={() => deleteDropboxUpload(d.id)}
+                                      aria-label={`Remove ${d.name}`}
+                                      title="Remove"
+                                    >
+                                      <TrashIcon width={16} height={16} />
+                                    </button>
+                                  </div>
                                 </div>
                               </td>
                             </tr>
@@ -588,15 +592,17 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                               </td>
                               <td>
                                 <div className={styles.actions}>
-                                  <button
-                                    type="button"
-                                    className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-                                    onClick={() => deleteGoogleDriveUpload(g.id)}
-                                    aria-label={`Remove ${g.name}`}
-                                    title="Remove"
-                                  >
-                                    <TrashIcon width={18} height={18} />
-                                  </button>
+                                  <div className={styles.secondaryActions}>
+                                    <button
+                                      type="button"
+                                      className={`${styles.iconButton} ${styles.iconButtonDanger}`}
+                                      onClick={() => deleteGoogleDriveUpload(g.id)}
+                                      aria-label={`Remove ${g.name}`}
+                                      title="Remove"
+                                    >
+                                      <TrashIcon width={16} height={16} />
+                                    </button>
+                                  </div>
                                 </div>
                               </td>
                             </tr>
