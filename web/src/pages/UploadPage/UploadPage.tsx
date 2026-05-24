@@ -116,14 +116,14 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
         )}
         {aiBadgeState === 'anon' && (
           <>
-            <span className={styles.badgePrimary}>AI flashcards</span>
+            <span className={styles.badgeWarning}>AI is off</span>
             <span className={pageStyles.aiOffBadgeBody}>
               {' '}
               <Link
                 to="/login"
                 onClick={() => track('upload_ai_anon_badge_clicked')}
               >
-                Sign in to try
+                Sign in to turn it on
               </Link>
               .
             </span>
