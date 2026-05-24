@@ -1,0 +1,127 @@
+.optionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.colorField {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.375rem;
+}
+
+.colorInput {
+  width: 3rem;
+  height: 2.375rem;
+  padding: 0.125rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: var(--color-bg-primary);
+}
+
+.colorHex {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.dropZone {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  min-height: 200px;
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast),
+    border-style var(--transition-fast);
+  cursor: pointer;
+  position: relative;
+}
+
+@media (hover: hover) {
+  .dropZone:hover {
+    border-color: var(--color-primary);
+    border-style: solid;
+    background: var(--color-primary-light);
+  }
+}
+
+@media (hover: none) {
+  .dropZone {
+    border-color: var(--color-border);
+  }
+}
+
+.dropZoneActive {
+  border-color: var(--color-primary);
+  border-style: solid;
+  background: var(--color-primary-light);
+}
+
+.dropZone:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.dropLabel {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+}
+
+.dropHint {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+}
+
+.chooseButton {
+  display: inline-block;
+  padding: 0.625rem 1.5rem;
+  background: var(--color-primary);
+  color: var(--color-bg-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: var(--shadow-xs);
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .chooseButton:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.chooseButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.doneActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
