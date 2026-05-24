@@ -1,7 +1,6 @@
-import Bugsnag from '@bugsnag/js';
-import { getErrorMessage } from '../errors/helpers/getErrorMessage';
+import { reportClientError } from '../../lib/reportClientError';
 
 export const redirectOnError = (error: unknown) => {
-  Bugsnag.notify(getErrorMessage(error));
+  reportClientError(error);
   globalThis.location.href = '/login#login';
 };

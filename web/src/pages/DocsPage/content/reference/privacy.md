@@ -26,6 +26,6 @@ The source code is available at [2anki/server](https://github.com/2anki/server).
 | Notion | Documentation hosting | [Terms and Privacy](https://www.notion.so/Terms-and-Privacy-28ffdd083dc3473e9c2da6ec011b58ac) |
 | Hotjar | User interaction analysis | [Privacy Policy](https://www.hotjar.com/legal/policies/privacy/) |
 | Google Analytics | Usage tracking | [Privacy Policy](https://policies.google.com/privacy?hl=en-US) |
-| Bugsnag | Error reporting | [Privacy Policy](https://smartbear.com/privacy/) |
+| 2anki (self-hosted) | Error reporting — stored on our own infrastructure and deleted after 30 days | — |
 | ChatGPT | HTML conversion | [Privacy Policy](https://openai.com/policies/privacy-policy/?utm_source=chatgpt.com) |
 | Claude | AI flashcard generation | [Privacy Policy](https://www.anthropic.com/legal/privacy) |

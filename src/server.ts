@@ -14,6 +14,9 @@ if (existsSync(localEnvFile)) {
 
 import { BUILD_DIR } from './lib/constants';
 import ErrorHandler from './routes/middleware/ErrorHandler';
+import { makeErrorCaptureMiddleware } from './routes/middleware/ErrorCaptureMiddleware';
+import { ErrorEventRepository } from './data_layer/ErrorEventRepository';
+import { writeFallbackError, drainFallbackFile } from './lib/errorFallback';
 
 // Server Endpoints
 import settingsRouter from './routes/SettingsRouter';
@@ -39,6 +42,7 @@ import webhookRouter from './routes/WebhookRouter';
 import ankifyWebhookRouter from './routes/AnkifyWebhookRouter';
 import swaggerRouter from './routes/SwaggerRouter';
 import opsRouter from './routes/OpsRouter';
+import opsErrorsRouter from './routes/OpsErrorsRouter';
 import opsDiscoveryRouter from './routes/OpsDiscoveryRouter';
 import ostRouter from './routes/OstRouter';
 import feedbackRouter from './routes/FeedbackRouter';
@@ -76,9 +80,30 @@ import {
 
 function registerSignalHandlers(server: http.Server) {
   process.on('uncaughtException', (error) => {
+    writeFallbackError({
+      source: 'server',
+      message: error?.message ?? String(error),
+      stack: error?.stack,
+      capturedAt: new Date().toISOString(),
+      phase: 'uncaught',
+    });
     console.error('Uncaught Exception:', error);
     process.exit(1);
   });
+
+  process.on('unhandledRejection', (reason) => {
+    const error = reason instanceof Error ? reason : new Error(String(reason));
+    writeFallbackError({
+      source: 'server',
+      message: error.message,
+      stack: error.stack,
+      capturedAt: new Date().toISOString(),
+      phase: 'unhandled-rejection',
+    });
+    console.error('Unhandled Rejection:', reason);
+    process.exit(1);
+  });
+
   const drainAndClose = (signal: string) => {
     console.debug(`${signal} signal received: closing HTTP server`);
     server.close(() => {
@@ -108,13 +133,9 @@ const serve = async () => {
   app.use(requestLoggingMiddleware);
 
   const ankifySessionValidate = buildAnkifySessionProxyDeps();
-  // Must run before defaultRouter()'s catch-all (which serves index.html
-  // for anything not under /api), otherwise /v/<token>/* gets shadowed
-  // by the SPA and users see a 404 instead of their Ankify session.
   attachAnkifySessionProxy(app, server, ankifySessionValidate);
 
   app.use('/templates', express.static(templateDir));
-  // Hashed Vite output under /assets/* is content-addressed and immutable.
   app.use(
     '/assets',
     express.static(`${BUILD_DIR}/assets`, {
@@ -141,6 +162,7 @@ const serve = async () => {
   app.use(templatesRouter());
   app.use(showcaseRouter());
   app.use(opsRouter());
+  app.use(opsErrorsRouter());
   app.use(opsDiscoveryRouter());
   app.use(ostRouter());
   app.use(feedbackRouter());
@@ -156,9 +178,11 @@ const serve = async () => {
   app.use(mindmapRouter());
 
   app.use(rejectScannerProbes);
-  // Note: this has to be the last router
   app.use(defaultRouter());
 
+  const database = getDatabase();
+  const errorEventRepo = new ErrorEventRepository(database);
+  app.use(makeErrorCaptureMiddleware(errorEventRepo, writeFallbackError));
   app.use(
     (
       err: Error,
@@ -193,8 +217,13 @@ const serve = async () => {
   });
   registerSignalHandlers(server);
 
-  const database = getDatabase();
   await setupDatabase(database);
+
+  const drainedCount = await drainFallbackFile(errorEventRepo);
+  if (drainedCount > 0) {
+    console.info(`[startup] Drained ${drainedCount} error(s) from fallback file into error_events`);
+  }
+
   const jobRepo = new JobRepository(database);
   const interruptedClaudeCount = await jobRepo.markInterruptedClaudeJobs();
   if (interruptedClaudeCount > 0) {
@@ -230,4 +259,14 @@ const serve = async () => {
   scheduleParserCanary(emailService);
 };
 
-serve();
+serve().catch((error) => {
+  writeFallbackError({
+    source: 'server',
+    message: error?.message ?? String(error),
+    stack: error?.stack,
+    capturedAt: new Date().toISOString(),
+    phase: 'startup',
+  });
+  console.error('[startup] Fatal error during boot:', error);
+  process.exit(1);
+});
