@@ -28,8 +28,10 @@ function buildEmailService(
 
 function buildRegisterRepository() {
   return {
-    createUser: jest.fn().mockResolvedValue([{ id: 1 }]),
-  } as unknown as UsersRepository & { createUser: jest.Mock };
+    createUserAndSeedFromTombstone: jest.fn().mockResolvedValue([{ id: 1 }]),
+  } as unknown as UsersRepository & {
+    createUserAndSeedFromTombstone: jest.Mock;
+  };
 }
 
 interface AccessRepoStubs {
@@ -51,7 +53,7 @@ describe('UsersService.register', () => {
 
     await service.register('Alex', 'hashed', 'Alex@Example.com');
 
-    expect(repository.createUser).toHaveBeenCalledWith(
+    expect(repository.createUserAndSeedFromTombstone).toHaveBeenCalledWith(
       'Alex',
       'hashed',
       'alex@example.com',
@@ -65,7 +67,7 @@ describe('UsersService.register', () => {
 
     await service.register('', 'hashed', 'jane.doe@example.com');
 
-    expect(repository.createUser).toHaveBeenCalledWith(
+    expect(repository.createUserAndSeedFromTombstone).toHaveBeenCalledWith(
       'jane.doe',
       'hashed',
       'jane.doe@example.com',
@@ -79,7 +81,7 @@ describe('UsersService.register', () => {
 
     await service.register('   ', 'hashed', 'student@uni.edu');
 
-    expect(repository.createUser).toHaveBeenCalledWith(
+    expect(repository.createUserAndSeedFromTombstone).toHaveBeenCalledWith(
       'student',
       'hashed',
       'student@uni.edu',
@@ -98,7 +100,7 @@ describe('UsersService.register', () => {
       '/notion-to-anki'
     );
 
-    expect(repository.createUser).toHaveBeenCalledWith(
+    expect(repository.createUserAndSeedFromTombstone).toHaveBeenCalledWith(
       'Alex',
       'hashed',
       'al@example.com',

@@ -71,7 +71,7 @@ class UsersService {
     const trimmedName = name?.trim() ?? '';
     const resolvedName =
       trimmedName.length > 0 ? trimmedName : normalizedEmail.split('@')[0];
-    return this.repository.createUser(
+    return this.repository.createUserAndSeedFromTombstone(
       resolvedName,
       password,
       normalizedEmail,
