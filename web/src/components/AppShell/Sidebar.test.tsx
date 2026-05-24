@@ -131,6 +131,21 @@ describe('Sidebar your-stuff group', () => {
       'page'
     );
   });
+
+  it('shows Favorites for a logged-in user', () => {
+    renderSidebar();
+    expect(screen.getByRole('link', { name: 'Favorites' })).toHaveAttribute(
+      'href',
+      '/favorites'
+    );
+  });
+
+  it('hides Favorites when there is no signed-in account', () => {
+    renderSidebar({ email: null });
+    expect(
+      screen.queryByRole('link', { name: 'Favorites' })
+    ).not.toBeInTheDocument();
+  });
 });
 
 describe('Sidebar help group', () => {
