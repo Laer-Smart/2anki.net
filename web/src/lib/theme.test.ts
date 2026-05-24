@@ -31,6 +31,11 @@ describe('theme', () => {
       localStorage.setItem('2anki-theme', 'purple');
       expect(getStoredTheme()).toBe('purple');
     });
+
+    it('accepts hotpink as a valid theme', () => {
+      localStorage.setItem('2anki-theme', 'hotpink');
+      expect(getStoredTheme()).toBe('hotpink');
+    });
   });
 
   describe('applyTheme', () => {
@@ -53,6 +58,11 @@ describe('theme', () => {
     it('sets data-theme to purple', () => {
       applyTheme('purple');
       expect(document.documentElement.getAttribute('data-theme')).toBe('purple');
+    });
+
+    it('sets data-theme to hotpink', () => {
+      applyTheme('hotpink');
+      expect(document.documentElement.getAttribute('data-theme')).toBe('hotpink');
     });
 
     it('persists the choice to localStorage', () => {

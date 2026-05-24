@@ -278,6 +278,60 @@
   --color-indigo-dark: #7c6cc4;
 }
 
+/* =====================================================================
+   HOT PINK THEME
+   ===================================================================== */
+[data-theme='hotpink'] {
+  --color-text-primary: #1a0a10;
+  --color-text-secondary: #831843;
+  --color-text-tertiary: #9d174d;
+  --color-text-danger: #dc2626;
+  --color-text-success: #059669;
+  --color-text-link: #db2777;
+  --color-text-link-hover: #be185d;
+  --color-bg-primary: #fff7f9;
+  --color-bg-secondary: #fdf2f8;
+  --color-bg-tertiary: #fce7f3;
+  --color-border: #fbcfe8;
+  --color-border-light: #fce7f3;
+  --color-focus-ring: rgba(236, 72, 153, 0.45);
+  --color-primary: #ec4899;
+  --color-primary-hover: #db2777;
+  --color-primary-light: #fdf2f8;
+  --color-danger: #dc2626;
+  --color-danger-light: #fef2f2;
+  --color-danger-border: #fecaca;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fffbeb;
+  --color-success: #059669;
+  --color-success-light: #ecfdf5;
+  --shadow-xs: 0 1px 2px rgba(236, 72, 153, 0.06);
+  --shadow-sm: 0 1px 3px rgba(236, 72, 153, 0.08), 0 1px 2px rgba(236, 72, 153, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(236, 72, 153, 0.08), 0 2px 4px -2px rgba(236, 72, 153, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(236, 72, 153, 0.08), 0 4px 6px -4px rgba(236, 72, 153, 0.06);
+  --shadow-xl: 0 20px 25px -5px rgba(236, 72, 153, 0.08), 0 8px 10px -6px rgba(236, 72, 153, 0.06);
+  --color-danger-text: #991b1b;
+  --color-warning-text: #92400e;
+  --color-warning-border: #fde68a;
+  --color-success-text: #065f46;
+  --color-success-border: #a7f3d0;
+  --color-info-text: #9d174d;
+  --color-info-border: #fbcfe8;
+  --color-info-light: #fdf2f8;
+  --color-success-hover: #047857;
+  --color-gold-bg: #fdf2f8;
+  --color-gold-bg-end: #fce7f3;
+  --color-gold-border: #fbcfe8;
+  --color-gold-border-light: #f9a8d4;
+  --color-gold-border-hover: #ec4899;
+  --color-gold-text: #9d174d;
+  --color-gold-text-dark: #831843;
+  --color-gold-text-darker: #500724;
+  --color-gold-shadow: rgba(236, 72, 153, 0.2);
+  --color-indigo: #f472b6;
+  --color-indigo-dark: #ec4899;
+}
+
 *,
 *::before,
 *::after {

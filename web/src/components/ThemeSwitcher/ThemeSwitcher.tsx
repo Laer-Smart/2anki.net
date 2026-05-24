@@ -7,6 +7,7 @@ const THEMES: readonly { value: Theme; label: string; icon: string }[] = [
   { value: 'dark', label: 'Dark theme', icon: '☾' },
   { value: 'gold', label: 'Gold theme', icon: '✦' },
   { value: 'purple', label: 'Purple theme', icon: '◆' },
+  { value: 'hotpink', label: 'Hot pink theme', icon: '✿' },
 ];
 
 export function ThemeSwitcher() {

@@ -1,9 +1,9 @@
 import { scheduleSync } from './data_layer/userPreferencesSync';
 
-export type Theme = 'light' | 'dark' | 'gold' | 'purple';
+export type Theme = 'light' | 'dark' | 'gold' | 'purple' | 'hotpink';
 
 const STORAGE_KEY = '2anki-theme';
-const VALID_THEMES: ReadonlySet<string> = new Set(['light', 'dark', 'gold', 'purple']);
+const VALID_THEMES: ReadonlySet<string> = new Set(['light', 'dark', 'gold', 'purple', 'hotpink']);
 
 export const THEME_CHANGE_EVENT = '2anki-theme-change';
 
