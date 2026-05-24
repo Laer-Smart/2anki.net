@@ -1,6 +1,39 @@
+.pageRoot {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 56px);
+  overflow: hidden;
+}
+
+.pageChrome {
+  flex-shrink: 0;
+  padding: 0.875rem 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.pageTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  letter-spacing: var(--tracking-tight);
+  white-space: nowrap;
+}
+
+.pageSubtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  margin: 0;
+  line-height: var(--leading-normal);
+}
+
 .pageLayout {
   display: flex;
-  height: 100vh;
+  flex: 1;
   overflow: hidden;
 }
 
@@ -15,15 +48,16 @@
 }
 
 .panelHeader {
-  padding: 1rem;
+  padding: 0.875rem 1rem 0.75rem;
   border-bottom: 1px solid var(--color-border);
 }
 
 .deckNameLabel {
   display: block;
   font-size: var(--text-xs);
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
   margin-bottom: 0.375rem;
+  font-weight: var(--font-medium);
 }
 
 .deckNameInput {
@@ -55,10 +89,10 @@
 }
 
 .queueDragOver {
-  background-color: var(--color-bg-subtle, #f0f4ff);
-  outline: 2px dashed var(--color-primary, #4f46e5);
+  background-color: var(--color-primary-light);
+  outline: 2px dashed var(--color-primary);
   outline-offset: -4px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
 }
 
 .queueList {
@@ -163,55 +197,83 @@
 }
 
 .queueRemoveBtn {
-  align-self: flex-end;
+  flex-shrink: 0;
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
   font-size: var(--text-base);
   line-height: 1;
   padding: 0 0.25rem;
+  opacity: 0.55;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+
+@media (hover: hover) {
+  .queueItem:hover .queueRemoveBtn {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .queueRemoveBtn {
+    opacity: 1;
+  }
 }
 
 .queueRemoveBtn:hover {
-  color: var(--color-danger, #e53e3e);
+  color: var(--color-danger);
+  opacity: 1;
 }
 
 .addBtn {
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  border: 1px dashed var(--color-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  margin-top: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-text-secondary);
   font-size: var(--text-sm);
   cursor: pointer;
   width: 100%;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
 }
 
-.addBtn:hover {
+.addBtn:hover:not(:disabled) {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: var(--color-primary-light);
 }
 
+.addBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .upgradeNotice {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
+  margin-top: 0.625rem;
+  padding: 0.625rem 0.75rem;
   background: var(--color-warning-light);
   border: 1px solid var(--color-warning-border);
   border-radius: var(--radius-md);
   font-size: var(--text-xs);
   color: var(--color-warning-text);
-  text-align: center;
+}
+
+.upgradeNotice p {
+  margin: 0 0 0.25rem;
 }
 
 .upgradeLink {
-  display: block;
-  margin-top: 0.375rem;
+  display: inline-block;
+  margin-top: 0.25rem;
   color: var(--color-primary);
   font-weight: var(--font-medium);
+  font-size: var(--text-xs);
   text-decoration: none;
 }
 
@@ -224,12 +286,12 @@
   border-top: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.625rem;
 }
 
 .modeToggle {
   display: flex;
-  gap: 0.25rem;
+  gap: 2px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 2px;
@@ -246,10 +308,11 @@
   background: transparent;
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+  white-space: nowrap;
 }
 
-.modeBtnActive {
+.modeActive {
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
   box-shadow: var(--shadow-xs);
@@ -331,7 +394,7 @@
   color: var(--color-text-primary);
   font-size: var(--text-sm);
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast);
 }
 
 .deleteRectBtn:hover {
@@ -344,7 +407,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
   font-size: var(--text-sm);
   pointer-events: none;
 }
@@ -356,23 +419,39 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  color: var(--color-text-secondary);
-  font-size: var(--text-sm);
-  gap: 0.5rem;
+  gap: 0.75rem;
   text-align: center;
 }
 
-.modeActive {
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  box-shadow: var(--shadow-xs);
+.emptyCanvasTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.emptyCanvasHint {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+.mobileBanner {
+  display: none;
 }
 
 @media (max-width: 768px) {
-  .pageLayout {
-    flex-direction: column;
+  .mobileBanner {
+    display: block;
+  }
+
+  .pageRoot {
     height: auto;
     min-height: calc(100vh - 56px);
+  }
+
+  .pageLayout {
+    flex-direction: column;
   }
 
   .leftPanel {
@@ -389,15 +468,11 @@
     padding: 1rem;
     min-height: 300px;
   }
-}
 
-.mobileBanner {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .mobileBanner {
-    display: block;
+  .pageChrome {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
   }
 }
 
@@ -749,9 +824,8 @@
 .detectionStatus {
   padding: 0.25rem 0.75rem;
   font-size: var(--text-sm);
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--color-text-secondary);
   background: var(--color-bg-secondary);
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
-
