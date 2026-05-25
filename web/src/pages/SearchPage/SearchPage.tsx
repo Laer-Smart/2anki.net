@@ -1,12 +1,12 @@
 import React from 'react';
+import { ErrorPresenter } from '../../components/errors/ErrorPresenter';
+import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
+import { SkeletonList } from '../../components/Skeleton/Skeleton';
+import { get2ankiApi } from '../../lib/backend/get2ankiApi';
+import styles from '../../styles/shared.module.css';
+import ConnectNotion from './components/ConnectNotion';
 import SearchContainer from './components/SearchContainer';
 import useNotionData from './helpers/useNotionData';
-import ConnectNotion from './components/ConnectNotion';
-import { SkeletonList } from '../../components/Skeleton/Skeleton';
-import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
-import { get2ankiApi } from '../../lib/backend/get2ankiApi';
-import { ErrorPresenter } from '../../components/errors/ErrorPresenter';
-import styles from '../../styles/shared.module.css';
 import searchStyles from './SearchPage.module.css';
 
 interface SearchPageProps {
@@ -16,9 +16,7 @@ interface SearchPageProps {
 export function SearchPage({ setError }: Readonly<SearchPageProps>) {
   const notionData = useNotionData(get2ankiApi());
 
-  const headerTitle = notionData.connected
-    ? 'Notion'
-    : 'Get started';
+  const headerTitle = notionData.connected ? 'Notion' : 'Get started';
   const headerSubtitle = notionData.connected
     ? 'Find a page and convert it into an Anki deck.'
     : 'Connect your Notion workspace or upload files to create Anki decks.';
@@ -36,14 +34,12 @@ export function SearchPage({ setError }: Readonly<SearchPageProps>) {
         backend={get2ankiApi()}
         setError={setError}
         workSpace={notionData.workSpace}
+        isLoggedIn={notionData.connected}
       />
     );
   } else {
     content = (
-      <ConnectNotion
-        ready
-        connectionLink={notionData.connectionLink}
-      />
+      <ConnectNotion ready connectionLink={notionData.connectionLink} />
     );
   }
 
