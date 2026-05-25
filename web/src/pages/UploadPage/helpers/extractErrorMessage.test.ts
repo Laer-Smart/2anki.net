@@ -34,7 +34,7 @@ describe('extractErrorMessage', () => {
   test('extracts code=unsupported_format when server sends that code', async () => {
     const response = jsonResponse({
       code: 'unsupported_format',
-      message: "This file type isn't supported. Use .zip, .html, .md, .csv, or .apkg.",
+      message: "This file type isn't supported. Use .zip, .html, .md, or .csv.",
     });
     const result = await extractErrorMessage(response);
     expect(result.code).toBe('unsupported_format');
