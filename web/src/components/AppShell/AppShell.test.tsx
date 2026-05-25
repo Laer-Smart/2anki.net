@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { describe, expect, it } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import * as get2ankiApiModule from '../../lib/backend/get2ankiApi';
 import { AppShell } from './AppShell';
 
 interface RenderOpts {
@@ -27,7 +28,9 @@ function renderShell({ pathname = '/', isLoggedIn }: RenderOpts) {
 describe('AppShell layout switch', () => {
   it('renders the top-bar navigation for anonymous visitors', () => {
     renderShell({ isLoggedIn: false, pathname: '/' });
-    expect(screen.getByRole('navigation', { name: /main/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('navigation', { name: /main/i })
+    ).toBeInTheDocument();
     expect(screen.queryByTestId('app-sidebar')).not.toBeInTheDocument();
   });
 
@@ -62,5 +65,58 @@ describe('AppShell layout switch', () => {
   it('always renders the page content', () => {
     renderShell({ isLoggedIn: true, pathname: '/upload' });
     expect(screen.getByTestId('page-content')).toBeInTheDocument();
+  });
+});
+
+describe('AppShell logout', () => {
+  let logoutSpy: ReturnType<typeof vi.fn>;
+  let confirmSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    logoutSpy = vi.fn();
+    vi.spyOn(get2ankiApiModule, 'get2ankiApi').mockReturnValue({
+      logout: logoutSpy,
+    } as unknown as ReturnType<typeof get2ankiApiModule.get2ankiApi>);
+    confirmSpy = vi.spyOn(globalThis, 'confirm');
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('calls logout immediately when the Log out link is clicked', () => {
+    render(
+      <MemoryRouter initialEntries={['/upload']}>
+        <AppShell
+          isLoggedIn={true}
+          email="test@example.com"
+          locals={{ patreon: false, subscriber: false }}
+          features={{ kiUI: false, ops: false }}
+        >
+          <div>page</div>
+        </AppShell>
+      </MemoryRouter>
+    );
+    const logoutLink = screen.getByRole('link', { name: /log out/i });
+    fireEvent.click(logoutLink);
+    expect(logoutSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call window.confirm when the Log out link is clicked', () => {
+    render(
+      <MemoryRouter initialEntries={['/upload']}>
+        <AppShell
+          isLoggedIn={true}
+          email="test@example.com"
+          locals={{ patreon: false, subscriber: false }}
+          features={{ kiUI: false, ops: false }}
+        >
+          <div>page</div>
+        </AppShell>
+      </MemoryRouter>
+    );
+    const logoutLink = screen.getByRole('link', { name: /log out/i });
+    fireEvent.click(logoutLink);
+    expect(confirmSpy).not.toHaveBeenCalled();
   });
 });
