@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import { HelmetProvider } from 'react-helmet-async';
@@ -7,6 +7,8 @@ import { MemoryRouter } from 'react-router-dom';
 
 import LandingPage from './LandingPage';
 import notionCopy from './copy/notion';
+import pdfCopy from './copy/pdf';
+import markdownCopy from './copy/markdown';
 import usmleCopy from './copy/usmle';
 import nursingCopy from './copy/nursing';
 import medicalLectureSlidesCopy from './copy/medical-lecture-slides';
@@ -150,4 +152,21 @@ describe('LandingPage', () => {
       screen.queryByText('What you actually get in Anki')
     ).not.toBeInTheDocument();
   });
+
+  it.each([
+    [notionCopy, 'https://2anki.net/notion-to-anki'],
+    [pdfCopy, 'https://2anki.net/pdf-to-anki'],
+    [markdownCopy, 'https://2anki.net/markdown-to-anki'],
+  ])(
+    'self-references the bare-path canonical for %s',
+    async (copy, expectedCanonical) => {
+      renderLandingPage(<LandingPage copy={copy} setErrorMessage={vi.fn()} />);
+      await waitFor(() => {
+        const canonical = document.head.querySelector(
+          'link[rel="canonical"]'
+        );
+        expect(canonical).toHaveAttribute('href', expectedCanonical);
+      });
+    }
+  );
 });
