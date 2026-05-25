@@ -132,7 +132,8 @@ class UsersController {
         await this.authService.persistToken(token, user.id.toString());
         await this.userService.updateLastLoginAt(user.id.toString());
         res.cookie('token', token);
-        res.status(200).json({ token, redirect: getRedirect(req) });
+        const redirect = await this.landingForUser(req, user.id);
+        res.status(200).json({ token, redirect });
       }
     } catch (error) {
       console.info('Login failed');
@@ -626,7 +627,7 @@ class UsersController {
       await this.authService.persistToken(token, user.id.toString());
       await this.userService.updateLastLoginAt(user.id.toString());
       res.cookie('token', token);
-      res.status(200).redirect(getRedirect(req));
+      res.status(200).redirect(await this.landingForUser(req, user.id));
     } else {
       await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_token_exchange_failed' });
       res.redirect('/login');
@@ -717,7 +718,7 @@ class UsersController {
     await this.authService.persistToken(token, user.id.toString());
     await this.userService.updateLastLoginAt(user.id.toString());
     res.cookie('token', token);
-    res.status(200).redirect(getRedirect(req));
+    res.status(200).redirect(await this.landingForUser(req, user.id));
   }
 
   async loginWithApple(req: express.Request, res: express.Response) {
@@ -811,7 +812,7 @@ class UsersController {
     await this.authService.persistToken(token, user.id.toString());
     await this.userService.updateLastLoginAt(user.id.toString());
     res.cookie('token', token);
-    res.status(200).redirect(getRedirect(req));
+    res.status(200).redirect(await this.landingForUser(req, user.id));
   }
 
   private parseAppleName(body: Record<string, string | undefined>): string | undefined {
@@ -1000,6 +1001,23 @@ class UsersController {
     const repository = new UsersRepository(this.db);
     await repository.markOnboarded(owner);
     return res.status(204).end();
+  }
+
+  private hasExplicitRedirect(req: express.Request): boolean {
+    const queryRedirect = req.query.redirect?.toString();
+    const bodyRedirect = typeof req.body?.redirect === 'string' ? req.body.redirect : undefined;
+    return (queryRedirect != null && queryRedirect !== '') || (bodyRedirect != null && bodyRedirect !== '');
+  }
+
+  private async landingForUser(req: express.Request, userId: number): Promise<string> {
+    if (this.hasExplicitRedirect(req)) {
+      return getRedirect(req);
+    }
+    const notionData = await new NotionRepository(this.db).getNotionData(userId);
+    if (notionData != null) {
+      return '/notion';
+    }
+    return '/upload';
   }
 
 }

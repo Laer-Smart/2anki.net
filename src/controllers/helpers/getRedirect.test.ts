@@ -10,14 +10,14 @@ const createMockRequest = (redirectParam?: string, bodyRedirect?: string): Reque
 
 describe('getRedirect security tests', () => {
   describe('should return safe default for missing redirect', () => {
-    it('should return /notion when no redirect param', () => {
+    it('should return /upload when no redirect param', () => {
       const req = createMockRequest();
-      expect(getRedirect(req)).toBe('/notion');
+      expect(getRedirect(req)).toBe('/upload');
     });
 
-    it('should return /notion when redirect param is undefined', () => {
+    it('should return /upload when redirect param is undefined', () => {
       const req = createMockRequest(undefined);
-      expect(getRedirect(req)).toBe('/notion');
+      expect(getRedirect(req)).toBe('/upload');
     });
   });
 
@@ -62,7 +62,7 @@ describe('getRedirect security tests', () => {
     maliciousUrls.forEach(url => {
       it(`should block malicious URL: ${url}`, () => {
         const req = createMockRequest(url);
-        expect(getRedirect(req)).toBe('/notion');
+        expect(getRedirect(req)).toBe('/upload');
       });
     });
   });
@@ -87,7 +87,7 @@ describe('getRedirect security tests', () => {
   describe('should block invalid paths', () => {
     const invalidPaths = [
       '/admin',
-      '/config', 
+      '/config',
       '/secret',
       '/api/internal',
       '/../../etc/passwd',
@@ -97,7 +97,7 @@ describe('getRedirect security tests', () => {
     invalidPaths.forEach(path => {
       it(`should block invalid internal path: ${path}`, () => {
         const req = createMockRequest(path);
-        expect(getRedirect(req)).toBe('/notion');
+        expect(getRedirect(req)).toBe('/upload');
       });
     });
   });
@@ -105,17 +105,17 @@ describe('getRedirect security tests', () => {
   describe('should handle edge cases', () => {
     it('should block empty string', () => {
       const req = createMockRequest('');
-      expect(getRedirect(req)).toBe('/notion');
+      expect(getRedirect(req)).toBe('/upload');
     });
 
     it('should block invalid URL formats', () => {
       const req = createMockRequest('not-a-url');
-      expect(getRedirect(req)).toBe('/notion');
+      expect(getRedirect(req)).toBe('/upload');
     });
 
     it('should block non-HTTPS external URLs (except localhost)', () => {
       const req = createMockRequest('http://2anki.net');
-      expect(getRedirect(req)).toBe('/notion');
+      expect(getRedirect(req)).toBe('/upload');
     });
   });
 
@@ -132,12 +132,12 @@ describe('getRedirect security tests', () => {
 
     it('blocks invalid body redirect', () => {
       const req = createMockRequest(undefined, '//evil.com');
-      expect(getRedirect(req)).toBe('/notion');
+      expect(getRedirect(req)).toBe('/upload');
     });
 
     it('blocks javascript: scheme in body redirect', () => {
       const req = createMockRequest(undefined, 'javascript:alert(1)');
-      expect(getRedirect(req)).toBe('/notion');
+      expect(getRedirect(req)).toBe('/upload');
     });
   });
 });
