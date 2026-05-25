@@ -34,12 +34,12 @@ const escapeHtml = (value: string): string =>
 
 function buildHeroFragment(copy: LandingCopy): string {
   return [
-    '<section id="upload" style="background:#f9fafb;padding:4rem 1.5rem;">',
+    '<section id="upload" style="background:var(--color-bg-secondary);padding:4rem 1.5rem;">',
     '<div style="max-width:720px;margin:0 auto;">',
     `<h1 style="margin:0 0 1rem;font-size:2.5rem;font-weight:600;max-width:18ch;">${escapeHtml(
       copy.h1
     )}</h1>`,
-    `<p style="margin:0 0 2rem;color:#4b5563;">${escapeHtml(copy.subhead)}</p>`,
+    `<p style="margin:0 0 2rem;color:var(--color-text-secondary);">${escapeHtml(copy.subhead)}</p>`,
     '</div>',
     '</section>',
   ].join('');
@@ -122,7 +122,7 @@ function buildNotionMarketplaceFragment(): string {
     '<section style="padding:4rem 1.5rem 3rem;text-align:center;">',
     '<div style="max-width:720px;margin:0 auto;">',
     `<h1 style="margin:0 0 1rem;font-size:2.5rem;font-weight:700;max-width:20ch;margin-left:auto;margin-right:auto;">${escapeHtml(NOTION_MARKETPLACE_META.h1)}</h1>`,
-    `<p style="margin:0 0 2rem;color:#4b5563;font-size:1.125rem;">${escapeHtml(NOTION_MARKETPLACE_META.subhead)}</p>`,
+    `<p style="margin:0 0 2rem;color:var(--color-text-secondary);font-size:1.125rem;">${escapeHtml(NOTION_MARKETPLACE_META.subhead)}</p>`,
     '</div>',
     '</section>',
   ].join('');
