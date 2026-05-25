@@ -17,6 +17,7 @@ import { BuildDeckForJobUseCase } from '../../../../usecases/jobs/BuildDeckForJo
 import { CompleteJobUseCase } from '../../../../usecases/jobs/CompleteJobUseCase';
 import { NotifyUserUseCase } from '../../../../usecases/jobs/NotifyUserUseCase';
 import {
+  EMPTY_DECK_FAILURE_REASON,
   isNotionUnauthorizedError,
   jobFailureReasonFromError,
 } from '../../../../usecases/jobs/jobFailureReason';
@@ -100,6 +101,12 @@ export default async function performConversion(
     }
 
     const cardCount = decks.reduce((acc, d) => acc + d.cards.length, 0);
+    if (cardCount === 0) {
+      const setJobFailed = new SetJobFailedUseCase(jobRepository);
+      await setJobFailed.execute(id, owner, EMPTY_DECK_FAILURE_REASON);
+      return;
+    }
+
     const checkMonthlyLimit = new CheckMonthlyCardLimitUseCase(usersRepository);
     try {
       await checkMonthlyLimit.execute({
