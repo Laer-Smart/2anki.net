@@ -893,30 +893,32 @@ export function MindmapEditor() {
 
         <details className={styles.shortcuts}>
           <summary className={styles.shortcutsSummary}>Keyboard shortcuts</summary>
-          {SHORTCUT_GROUPS.map((group) => (
-            <div key={group.label} className={styles.shortcutGroup}>
-              <p className={styles.shortcutGroupLabel}>{group.label}</p>
-              {group.items.map((item) => (
-                <div key={item.action} className={styles.shortcutRow}>
-                  <span className={styles.shortcutKeys}>
-                    {item.keys.map((key) => (
-                      <kbd key={key} className={styles.shortcutKey}>
-                        {key}
-                      </kbd>
-                    ))}
-                  </span>
-                  <span className={styles.shortcutAction}>{item.action}</span>
-                </div>
-              ))}
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={() => setShowMarkdownModal(true)}
-            className={styles.shortcutNoteBtn}
-          >
-            Markdown works in node labels
-          </button>
+          <div className={styles.shortcutsBody}>
+            {SHORTCUT_GROUPS.map((group) => (
+              <div key={group.label} className={styles.shortcutGroup}>
+                <p className={styles.shortcutGroupLabel}>{group.label}</p>
+                {group.items.map((item) => (
+                  <div key={item.action} className={styles.shortcutRow}>
+                    <span className={styles.shortcutKeys}>
+                      {item.keys.map((key) => (
+                        <kbd key={key} className={styles.shortcutKey}>
+                          {key}
+                        </kbd>
+                      ))}
+                    </span>
+                    <span className={styles.shortcutAction}>{item.action}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setShowMarkdownModal(true)}
+              className={styles.shortcutNoteBtn}
+            >
+              Markdown works in node labels
+            </button>
+          </div>
         </details>
 
         <div className={styles.primaryAction}>
