@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -7,13 +13,16 @@ function beforeEachReset() {
     localStorage.clear();
   });
 }
-import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { Sidebar } from './Sidebar';
+
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { track } from '../../lib/analytics/track';
+import { Sidebar } from './Sidebar';
 
 vi.mock('../../lib/analytics/track', () => ({
   track: vi.fn(),
 }));
+
+import { getCardUsage } from '../../lib/backend/getCardUsage';
 
 vi.mock('../../lib/backend/getCardUsage', () => ({
   getCardUsage: vi.fn().mockResolvedValue({
@@ -31,6 +40,11 @@ interface SidebarRenderOpts {
   kiUI?: boolean;
   ops?: boolean;
   email?: string | null;
+  locals?: {
+    patreon?: boolean;
+    subscriber?: boolean;
+    autoSyncActive?: boolean;
+  } | null;
   onLogOut?: (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
 }
 
@@ -42,13 +56,16 @@ function renderSidebar({
   kiUI = false,
   ops = false,
   email = 'alexander@alemayhu.com',
+  locals,
   onLogOut = vi.fn(),
 }: SidebarRenderOpts = {}) {
+  const resolvedLocals =
+    locals === undefined ? { patreon, subscriber, autoSyncActive } : locals;
   return render(
     <MemoryRouter initialEntries={[pathname]}>
       <Sidebar
         email={email}
-        locals={{ patreon, subscriber, autoSyncActive }}
+        locals={resolvedLocals}
         features={{ kiUI, ops }}
         onLogOut={onLogOut}
       />
@@ -59,10 +76,9 @@ function renderSidebar({
 describe('Sidebar convert group', () => {
   it('renders Upload, My Decks, and Notion to Anki for every logged-in user', () => {
     renderSidebar();
-    expect(screen.getByRole('link', { name: 'Make flashcards' })).toHaveAttribute(
-      'href',
-      '/upload'
-    );
+    expect(
+      screen.getByRole('link', { name: 'Make flashcards' })
+    ).toHaveAttribute('href', '/upload');
     expect(screen.getByRole('link', { name: 'My Decks' })).toHaveAttribute(
       'href',
       '/downloads'
@@ -183,17 +199,16 @@ describe('Sidebar help group', () => {
 describe('Sidebar admin group', () => {
   it('hides the admin group when no flags are on', () => {
     renderSidebar();
-    expect(
-      screen.queryByRole('link', { name: 'KI' })
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'KI' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Ops' })).not.toBeInTheDocument();
   });
 
   it('shows KI when kiUI is on', () => {
     renderSidebar({ kiUI: true });
-    expect(
-      screen.getByRole('link', { name: 'KI' })
-    ).toHaveAttribute('href', '/ki');
+    expect(screen.getByRole('link', { name: 'KI' })).toHaveAttribute(
+      'href',
+      '/ki'
+    );
   });
 
   it('shows Ops when ops is on', () => {
@@ -223,9 +238,7 @@ describe('Sidebar identity block', () => {
       'href',
       '/account'
     );
-    expect(
-      screen.getByRole('link', { name: /log out/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /log out/i })).toBeInTheDocument();
   });
 
   it('fires onLogOut when the Log out row is clicked', () => {
@@ -243,10 +256,9 @@ describe('Sidebar active state', () => {
       'aria-current',
       'page'
     );
-    expect(screen.getByRole('link', { name: 'Make flashcards' })).not.toHaveAttribute(
-      'aria-current',
-      'page'
-    );
+    expect(
+      screen.getByRole('link', { name: 'Make flashcards' })
+    ).not.toHaveAttribute('aria-current', 'page');
   });
 
   it('marks the Account row active on /account', () => {
@@ -285,14 +297,14 @@ describe('Sidebar group hierarchy', () => {
 });
 
 describe('Sidebar cards-used counter', () => {
+  beforeEach(() => {
+    vi.mocked(getCardUsage).mockClear();
+  });
+
   it('renders the counter for free users with the fetched usage', async () => {
     renderSidebar();
-    await waitFor(() =>
-      expect(screen.getByText('23')).toBeInTheDocument()
-    );
-    expect(
-      screen.getByText('/ 100 cards this month')
-    ).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('23')).toBeInTheDocument());
+    expect(screen.getByText('/ 100 cards this month')).toBeInTheDocument();
   });
 
   it('does not render the counter for paying users', async () => {
@@ -301,6 +313,12 @@ describe('Sidebar cards-used counter', () => {
     expect(
       screen.queryByText('/ 100 cards this month')
     ).not.toBeInTheDocument();
+  });
+
+  it('does not call getCardUsage when locals is null (unauthenticated visitor)', async () => {
+    renderSidebar({ locals: null });
+    await new Promise((r) => setTimeout(r, 10));
+    expect(getCardUsage).not.toHaveBeenCalled();
   });
 });
 
@@ -311,7 +329,9 @@ describe('Sidebar collapse toggle', () => {
     renderSidebar();
     const aside = screen.getByRole('complementary', { name: 'primary' });
     expect(aside).toHaveAttribute('data-collapsed', 'false');
-    expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Collapse sidebar' })
+    ).toBeInTheDocument();
   });
 
   it('toggles the data-collapsed attribute on click', () => {
@@ -320,7 +340,9 @@ describe('Sidebar collapse toggle', () => {
     fireEvent.click(toggle);
     const aside = screen.getByRole('complementary', { name: 'primary' });
     expect(aside).toHaveAttribute('data-collapsed', 'true');
-    expect(screen.getByRole('button', { name: 'Expand sidebar' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Expand sidebar' })
+    ).toBeInTheDocument();
   });
 
   it('persists the collapsed state to localStorage', () => {
