@@ -15,7 +15,15 @@ jest.mock('../../../../usecases/jobs/NotifyUserUseCase');
 jest.mock('../../../../data_layer/JobRepository');
 jest.mock('../../../../data_layer/UsersRepository');
 jest.mock('../../../../data_layer/NotionRespository');
-jest.mock('../../../../usecases/users/CheckMonthlyCardLimitUseCase');
+jest.mock('../../../../usecases/users/CheckMonthlyCardLimitUseCase', () => {
+  const actual = jest.requireActual<typeof import('../../../../usecases/users/CheckMonthlyCardLimitUseCase')>(
+    '../../../../usecases/users/CheckMonthlyCardLimitUseCase'
+  );
+  return {
+    ...actual,
+    CheckMonthlyCardLimitUseCase: jest.fn(),
+  };
+});
 jest.mock('../../../../services/events/track', () => ({ track: jest.fn() }));
 
 import { APIResponseError, APIErrorCode } from '@notionhq/client';
@@ -26,6 +34,10 @@ import { CreateJobWorkSpaceUseCase } from '../../../../usecases/jobs/CreateJobWo
 import { SetJobFailedUseCase } from '../../../../usecases/jobs/SetJobFailedUseCase';
 import { CreateFlashcardsForJobUseCase } from '../../../../usecases/jobs/CreateFlashcardsForJobUseCase';
 import { NOTION_TOKEN_EXPIRED_REASON } from '../../../../usecases/jobs/jobFailureReason';
+import {
+  CheckMonthlyCardLimitUseCase,
+  MonthlyLimitError,
+} from '../../../../usecases/users/CheckMonthlyCardLimitUseCase';
 
 function makeUnauthorizedError(): APIResponseError {
   const err = Object.create(APIResponseError.prototype) as APIResponseError;
@@ -144,5 +156,38 @@ describe('performConversion — heavy pipeline', () => {
     await performConversion(mockDatabase, baseRequest);
 
     expect(markTokenInvalidMock).not.toHaveBeenCalled();
+  });
+
+  it('stores structured JSON with code monthly_limit when MonthlyLimitError is thrown', async () => {
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: {},
+        rules: {},
+      }),
+    }));
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [1, 2, 3] }]),
+    }));
+    const limitError = new MonthlyLimitError(80, 100, 3, '2026-07-01T00:00:00.000Z');
+    (CheckMonthlyCardLimitUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockRejectedValue(limitError),
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(setJobFailedExecute).toHaveBeenCalledWith(
+      baseRequest.id,
+      baseRequest.owner,
+      expect.stringContaining('"code":"monthly_limit"')
+    );
+    const payload = JSON.parse(setJobFailedExecute.mock.calls[0][2] as string);
+    expect(payload).toMatchObject({
+      code: 'monthly_limit',
+      cards_used: 80,
+      limit: 100,
+    });
   });
 });
