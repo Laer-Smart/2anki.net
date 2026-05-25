@@ -1,13 +1,13 @@
 import React, { ReactNode, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { PageLayout } from '../Layout/PageLayout';
-import { SidebarLayout } from './SidebarLayout';
-import { SidebarFeatures, SidebarLocals } from './Sidebar';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import {
   injectAdSenseScript,
   removeAdSenseScript,
 } from '../AdSense/AdSenseScript';
+import { PageLayout } from '../Layout/PageLayout';
+import { SidebarFeatures, SidebarLocals } from './Sidebar';
+import { SidebarLayout } from './SidebarLayout';
 
 const TOP_BAR_PATHS = new Set(['/login', '/register', '/forgot']);
 const TOP_BAR_PREFIXES = ['/users/r/'];
@@ -47,12 +47,8 @@ export function AppShell({
     }
   }, [isLoggedIn, pathname]);
 
-  const onLogOut = (
-    event: React.MouseEvent<HTMLAnchorElement, MouseEvent>
-  ) => {
+  const onLogOut = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     event.preventDefault();
-    const confirmed = globalThis.confirm('Are you sure you want to log out?');
-    if (!confirmed) return;
     get2ankiApi().logout();
   };
 
