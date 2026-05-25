@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-25-notion-convert-session-expired",
+  "date": "2026-05-25",
+  "type": "fix",
+  "title": "Expired session during Notion convert shows a Sign in prompt instead of a JSON error"
+}

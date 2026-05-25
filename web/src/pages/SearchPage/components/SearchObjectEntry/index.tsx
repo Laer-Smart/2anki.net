@@ -68,10 +68,11 @@ function SearchObjectEntry(props: Readonly<Props>) {
           setStatus('conflict');
         } else if (response.status === 402) {
           setStatus('paywall');
+        } else if (response.status === 401) {
+          setStatus('error');
+          setError(new Error('Authentication required'));
         } else {
           setStatus('error');
-          const text = await response.text().catch(() => '');
-          if (text) setError(text);
         }
       })
       .catch((error) => {

@@ -86,10 +86,15 @@ export function classifyError(error: unknown): FriendlyError {
     };
   }
 
-  if (lower.includes('unauthorized') || lower.includes('401')) {
+  if (
+    lower.includes('unauthorized') ||
+    lower.includes('401') ||
+    lower.includes('authentication required')
+  ) {
     return {
       title: 'Session expired.',
       detail: 'Sign in again to continue.',
+      actionLink: { text: 'Sign in', to: '/login' },
     };
   }
 
