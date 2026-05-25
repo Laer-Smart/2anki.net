@@ -15,10 +15,12 @@ Scope:
 For each file, walk the security rule table. For every match, report:
 
 ```
-<path>:<line>  [CWE-xxx]  <one-line finding>
-  evidence:    <code snippet>
+<path>:<line>  [CWE-xxx]  (confidence N/10)  <one-line finding>
+  evidence:    <the verbatim line, copied from the file — not paraphrased>
   suggested:   <concrete fix in one sentence>
 ```
+
+The `evidence` line is a gate, not decoration: it must be the actual line as it appears in the file. If you can't quote the exact code, you're guessing — drop the finding. Score confidence 1–10 that the quoted line is genuinely the rule violation. List findings of 7+ as above; collect anything below 7 under a separate **Low confidence** heading at the end (one line each, no fix) so the reader can weigh them without mistaking them for confirmed issues.
 
 Pay particular attention to these stack-specific risks:
 

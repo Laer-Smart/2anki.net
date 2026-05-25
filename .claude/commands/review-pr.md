@@ -33,9 +33,15 @@ Check exclusively for:
 - Raw errors / stack traces leaked to res.send
 - New Math.random for IDs (Sonar S2245 — use crypto.randomUUID)
 
-Output under 200 words. Format:
-- **Blocking** — bullet list with file:line + the fix
-- **Nits** — bullet list
+Output under 200 words. **Evidence gate — every finding must clear it before you list it:**
+1. Quote the verbatim line you're reacting to, copied from `gh pr diff <n>`. If you can't quote it, it doesn't exist — drop it.
+2. Score your confidence 1–10 that this is a real issue on the line you quoted (not a guess about code you didn't see).
+3. Findings under 7 go in the **Low confidence** bucket, never in Blocking. A speculative "this might break if…" without a quoted line is a 0 — omit it.
+
+Format:
+- **Blocking** (confidence ≥ 7) — each bullet: `file:line` · the quoted line · the fix
+- **Nits** (confidence ≥ 7) — bullet list
+- **Low confidence** (< 7) — one line each, no fix; the synthesizer decides whether to surface
 - **No issues** if clean. Don't pad.
 ```
 
@@ -81,6 +87,7 @@ Output under 200 words. Same format as Fork A.
 
 Read the three (or two) summaries. Dedupe overlapping findings. Classify:
 
+- **Drop any finding that lacks a quoted line**, and drop the forks' **Low confidence** bucket unless a finding there is both concrete and quoted — a half-sure flag costs the contributor more than it saves. Never post a speculative finding as Blocking.
 - **Blocking** if any fork flagged it as blocking — bundled, with the file:line and the suggested fix in a `suggestion` code block where possible.
 - **Nits** — bundled separately, no code blocks unless trivial.
 - **First-time contributor?** Check `gh pr view <n> --json authorAssociation`. If `FIRST_TIME_CONTRIBUTOR` or `FIRST_TIMER`, add one warm sentence at the top.
