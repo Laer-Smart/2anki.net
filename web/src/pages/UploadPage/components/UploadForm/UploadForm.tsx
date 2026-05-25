@@ -632,6 +632,19 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
         setZoneState('success');
       }
     } catch (error) {
+      const isNetworkError =
+        error instanceof TypeError ||
+        (error instanceof Error && /fetch|network/i.test(error.message));
+      track('upload_failed', {
+        reason: isNetworkError ? 'network' : 'other',
+        message: (error instanceof Error ? error.message : String(error)).slice(0, 200),
+        fileSizeBytes: fileInputRef.current?.files?.[0]?.size ?? null,
+        fileExt: (() => {
+          const name = fileInputRef.current?.files?.[0]?.name ?? '';
+          const dot = name.lastIndexOf('.');
+          return dot >= 0 ? name.slice(dot).toLowerCase() : null;
+        })(),
+      });
       setLocalError(toFriendlyThrownError(error));
       setZoneState('error');
       return false;

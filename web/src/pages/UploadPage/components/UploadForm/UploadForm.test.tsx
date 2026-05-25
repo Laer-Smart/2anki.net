@@ -672,6 +672,46 @@ describe('UploadForm analytics events', () => {
     });
   });
 
+  it('tracks upload_failed with reason=network when fetch throws a TypeError', async () => {
+    const { track } = await import('../../../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const form = container.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await waitFor(() => {
+      const calls = trackMock.mock.calls.filter(([name]) => name === 'upload_failed');
+      expect(calls).toHaveLength(1);
+      expect(calls[0][1]).toMatchObject({ reason: 'network' });
+    });
+  });
+
+  it('tracks upload_failed with reason=other when fetch throws a non-network Error', async () => {
+    const { track } = await import('../../../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Unexpected server error')));
+
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const form = container.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await waitFor(() => {
+      const calls = trackMock.mock.calls.filter(([name]) => name === 'upload_failed');
+      expect(calls).toHaveLength(1);
+      expect(calls[0][1]).toMatchObject({ reason: 'other' });
+    });
+  });
+
 });
 
 describe('limit state — start trial button', () => {
