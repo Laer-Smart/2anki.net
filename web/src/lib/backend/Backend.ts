@@ -654,6 +654,12 @@ export class Backend {
     errors: string[];
     anki_web_sync: AnkiWebSyncStatus;
     anki_web_sync_error: string | null;
+    diagnostic: {
+      blocks_scanned: number;
+      blocks_matched: number;
+      pattern_hits: Record<string, number>;
+      unmatched_samples?: string[];
+    } | null;
   }> {
     const response = await post(`${this.baseURL}ankify/subscriptions`, {
       notion_page_id: input.notionPageId,
@@ -689,6 +695,12 @@ export class Backend {
     errors: string[];
     anki_web_sync: AnkiWebSyncStatus;
     anki_web_sync_error: string | null;
+    diagnostic: {
+      blocks_scanned: number;
+      blocks_matched: number;
+      pattern_hits: Record<string, number>;
+      unmatched_samples?: string[];
+    } | null;
   }> {
     const response = await post(
       `${this.baseURL}ankify/subscriptions/${id}/refresh`,

@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
@@ -71,6 +71,11 @@ interface RowFlash {
   text: string;
 }
 
+interface ZeroDiagnostic {
+  blocks_scanned: number;
+  unmatched_samples?: string[];
+}
+
 const buildSuccessFlash = (result: {
   created: number;
   updated: number;
@@ -83,7 +88,7 @@ const buildSuccessFlash = (result: {
     };
   }
   if (result.created + result.updated === 0) {
-    return { kind: 'success', text: 'Already up to date' };
+    return { kind: 'success', text: 'No cards created' };
   }
   const cardWord = result.created === 1 ? 'card' : 'cards';
   if (result.updated === 0) {
@@ -102,6 +107,21 @@ const buildSuccessFlash = (result: {
     kind: 'success',
     text: `Updated · ${result.created} new, ${result.updated} changed`,
   };
+};
+
+const extractZeroDiagnostic = (result: {
+  created: number;
+  updated: number;
+  conflicts: number;
+  diagnostic: ZeroDiagnostic | null | undefined;
+}): ZeroDiagnostic | null => {
+  if (result.created + result.updated + result.conflicts > 0) {
+    return null;
+  }
+  if (result.diagnostic == null) {
+    return null;
+  }
+  return result.diagnostic;
 };
 
 const errorFlashFor = (error: Error & {
@@ -162,6 +182,7 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
     () => new Set()
   );
   const [flashByRow, setFlashByRow] = useState<Record<number, RowFlash>>({});
+  const [zeroBannerByRow, setZeroBannerByRow] = useState<Record<number, ZeroDiagnostic | null>>({});
   const flashTimers = useRef<Map<number, ReturnType<typeof setTimeout>>>(
     new Map()
   );
@@ -200,6 +221,10 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
         const { [id]: _omit, ...rest } = prev;
         return rest;
       });
+      setZeroBannerByRow((prev) => {
+        const { [id]: _omit, ...rest } = prev;
+        return rest;
+      });
       const previousTimer = flashTimers.current.get(id);
       if (previousTimer != null) {
         clearTimeout(previousTimer);
@@ -208,6 +233,10 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
       try {
         const result = await api.refreshAnkifySubscription(id);
         showFlash(id, buildSuccessFlash(result));
+        setZeroBannerByRow((prev) => ({
+          ...prev,
+          [id]: extractZeroDiagnostic(result),
+        }));
         queryClient.invalidateQueries({ queryKey: SUBSCRIPTIONS_KEY });
         if (result.conflicts > 0) {
           queryClient.invalidateQueries({ queryKey: CONFLICTS_KEY });
@@ -530,6 +559,7 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
               const isUpdatingThisRow =
                 isSubscribingThisRow || isRefreshingThisRow;
               const flash = flashByRow[sub.id] ?? null;
+              const zeroBanner = zeroBannerByRow[sub.id] ?? null;
               const nextExportLabel =
                 schedule?.enabled === true &&
                 normalizeId(schedule.database_id) ===
@@ -565,7 +595,8 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
               }
               const iconValue = sub.notion_page_icon ?? '';
               return (
-                <li key={sub.id} className={styles.decksItem}>
+                <Fragment key={sub.id}>
+                <li className={styles.decksItem}>
                   {iconValue.length > 0 && (
                     <span className={styles.decksItemIcon} aria-hidden="true">
                       <BlockIcon icon={iconValue} />
@@ -648,6 +679,34 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                     )}
                   </div>
                 </li>
+                {zeroBanner != null && (
+                  <li className={styles.zeroBanner} aria-live="polite">
+                    <p className={styles.zeroBannerText}>
+                      No cards created.{' '}
+                      {zeroBanner.blocks_scanned > 0 ? (
+                        <>
+                          We scanned <strong>{zeroBanner.blocks_scanned}</strong> blocks on your Notion page and found 0 matches for the patterns we look for (toggles, Q&A pairs, bullets).{' '}
+                        </>
+                      ) : null}
+                      <a href="/documentation" className={styles.zeroBannerLink}>
+                        Learn what Ankify looks for →
+                      </a>
+                    </p>
+                    {zeroBanner.unmatched_samples != null && zeroBanner.unmatched_samples.length > 0 && (
+                      <details className={styles.zeroBannerDetails}>
+                        <summary className={styles.zeroBannerSummary}>
+                          Blocks we saw (first {zeroBanner.unmatched_samples.length})
+                        </summary>
+                        <ul className={styles.zeroBannerSamples}>
+                          {zeroBanner.unmatched_samples.map((s) => (
+                            <li key={s}>{s}</li>
+                          ))}
+                        </ul>
+                      </details>
+                    )}
+                  </li>
+                )}
+                </Fragment>
               );
             })}
           </ul>
