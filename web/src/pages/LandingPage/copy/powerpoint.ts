@@ -4,18 +4,18 @@ const powerpointCopy: LandingCopy = {
   pathname: '/powerpoint-to-anki',
   title: 'PowerPoint to Anki — turn slides into flashcards | 2anki',
   description:
-    'Upload a .pptx and get an Anki deck. Slide text becomes cards, speaker notes carry across. Works with Google Slides exports too.',
+    'Upload a .pptx and 2anki turns the text on your slides into an Anki deck. Works with Google Slides exports too.',
   h1: 'Make Anki flashcards from a PowerPoint',
   subhead:
-    'Drop a .pptx and 2anki reads the slide text and speaker notes you can turn into cards.',
+    'Drop a .pptx and 2anki reads the text on your slides and builds an Anki deck you can edit.',
   faqs: [
     {
       q: 'Which slide content becomes a card?',
-      a: 'The text on each slide — titles, bullets, and body text. A slide title becomes the front and its bullets become the back, so one slide usually maps to one card. You can edit everything in Anki afterward.',
+      a: 'The text on each slide — titles, bullets, and body text. 2anki reads it and builds cards you can edit and rearrange in Anki afterward.',
     },
     {
       q: 'Do speaker notes come across?',
-      a: 'Yes. The notes under each slide are read alongside the slide text, so the context you wrote for yourself ends up on the card instead of being lost in the deck file.',
+      a: '2anki reads the text on the slides themselves, so notes that live only in the speaker-notes pane are not picked up. Put anything you want on a card onto the slide before you upload.',
     },
     {
       q: 'I made my slides in Google Slides — does that work?',

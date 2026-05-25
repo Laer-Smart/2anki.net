@@ -19,7 +19,7 @@ const goodnotesCopy: LandingCopy = {
     },
     {
       q: 'How does it pick what becomes a card?',
-      a: 'Headings become deck and tag names. Short lines and bullet points become card fronts; the line or indent that follows becomes the back. You can edit every card in Anki after.',
+      a: '2anki reads the text in your exported PDF and builds cards from it, which you can edit and reorganize in Anki afterward.',
     },
     {
       q: 'Can I convert a whole notebook at once?',
