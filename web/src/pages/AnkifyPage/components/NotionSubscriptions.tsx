@@ -73,6 +73,7 @@ interface RowFlash {
 
 interface ZeroDiagnostic {
   blocks_scanned: number;
+  blocks_matched: number;
   unmatched_samples?: string[];
 }
 
@@ -80,6 +81,7 @@ const buildSuccessFlash = (result: {
   created: number;
   updated: number;
   conflicts: number;
+  diagnostic: ZeroDiagnostic | null | undefined;
 }): RowFlash => {
   if (result.conflicts > 0) {
     return {
@@ -88,7 +90,10 @@ const buildSuccessFlash = (result: {
     };
   }
   if (result.created + result.updated === 0) {
-    return { kind: 'success', text: 'No cards created' };
+    if (result.diagnostic != null && result.diagnostic.blocks_matched === 0) {
+      return { kind: 'success', text: 'No patterns found' };
+    }
+    return { kind: 'success', text: 'Already up to date' };
   }
   const cardWord = result.created === 1 ? 'card' : 'cards';
   if (result.updated === 0) {
@@ -119,6 +124,9 @@ const extractZeroDiagnostic = (result: {
     return null;
   }
   if (result.diagnostic == null) {
+    return null;
+  }
+  if (result.diagnostic.blocks_matched > 0) {
     return null;
   }
   return result.diagnostic;
@@ -232,7 +240,7 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
       }
       try {
         const result = await api.refreshAnkifySubscription(id);
-        showFlash(id, buildSuccessFlash(result));
+        showFlash(id, buildSuccessFlash({ ...result, diagnostic: result.diagnostic ?? null }));
         setZeroBannerByRow((prev) => ({
           ...prev,
           [id]: extractZeroDiagnostic(result),
@@ -682,20 +690,21 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                 {zeroBanner != null && (
                   <li className={styles.zeroBanner} aria-live="polite">
                     <p className={styles.zeroBannerText}>
-                      No cards created.{' '}
                       {zeroBanner.blocks_scanned > 0 ? (
                         <>
-                          We scanned <strong>{zeroBanner.blocks_scanned}</strong> blocks on your Notion page and found 0 matches for the patterns we look for (toggles, Q&A pairs, bullets).{' '}
+                          We scanned <strong>{zeroBanner.blocks_scanned}</strong> blocks and didn't recognize any cards. Ankify looks for toggles, Q&A pairs, and bullets.{' '}
                         </>
-                      ) : null}
+                      ) : (
+                        <>We couldn't read any content from this page.{' '}</>
+                      )}
                       <a href="/documentation" className={styles.zeroBannerLink}>
-                        Learn what Ankify looks for →
+                        What Ankify looks for →
                       </a>
                     </p>
                     {zeroBanner.unmatched_samples != null && zeroBanner.unmatched_samples.length > 0 && (
                       <details className={styles.zeroBannerDetails}>
                         <summary className={styles.zeroBannerSummary}>
-                          Blocks we saw (first {zeroBanner.unmatched_samples.length})
+                          What we saw on this page (first {zeroBanner.unmatched_samples.length})
                         </summary>
                         <ul className={styles.zeroBannerSamples}>
                           {zeroBanner.unmatched_samples.map((s) => (

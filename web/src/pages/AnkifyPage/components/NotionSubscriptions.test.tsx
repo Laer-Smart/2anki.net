@@ -327,7 +327,85 @@ describe('NotionSubscriptions sync copy', () => {
     ).toBeInTheDocument();
   });
 
-  test('a refresh that returns no changes shows "No cards created"', async () => {
+  test('State A: blocks_matched === 0 shows "No patterns found" flash and the zero banner', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({ id: 12, notion_page_id: 'b'.repeat(32) }),
+      ]),
+      refreshAnkifySubscription: vi.fn(async () => ({
+        created: 0,
+        updated: 0,
+        conflicts: 0,
+        unchanged: 0,
+        errors: [],
+        anki_web_sync: 'skipped' as const,
+        anki_web_sync_error: null,
+        diagnostic: {
+          blocks_scanned: 7,
+          blocks_matched: 0,
+          pattern_hits: {},
+          unmatched_samples: undefined,
+        },
+      })),
+    });
+
+    renderSubs(backend);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /options for my deck/i })
+    );
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: /update my deck now/i })
+    );
+
+    expect(
+      await screen.findByText(/no patterns found/i)
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('link', { name: /what ankify looks for/i })
+    ).toBeInTheDocument();
+  });
+
+  test('State B: blocks_matched > 0 but nothing changed shows "Already up to date" flash and no banner', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({ id: 12, notion_page_id: 'b'.repeat(32) }),
+      ]),
+      refreshAnkifySubscription: vi.fn(async () => ({
+        created: 0,
+        updated: 0,
+        conflicts: 0,
+        unchanged: 9,
+        errors: [],
+        anki_web_sync: 'skipped' as const,
+        anki_web_sync_error: null,
+        diagnostic: {
+          blocks_scanned: 9,
+          blocks_matched: 5,
+          pattern_hits: { toggle: 5 },
+          unmatched_samples: undefined,
+        },
+      })),
+    });
+
+    renderSubs(backend);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /options for my deck/i })
+    );
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: /update my deck now/i })
+    );
+
+    expect(
+      await screen.findByText(/already up to date/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /what ankify looks for/i })
+    ).not.toBeInTheDocument();
+  });
+
+  test('graceful degrade: diagnostic null + zero count shows "Already up to date" and no banner', async () => {
     const backend = makeBackend({
       listAnkifySubscriptions: vi.fn(async () => [
         sampleSubscription({ id: 12, notion_page_id: 'b'.repeat(32) }),
@@ -354,8 +432,11 @@ describe('NotionSubscriptions sync copy', () => {
     );
 
     expect(
-      await screen.findByText(/no cards created/i)
+      await screen.findByText(/already up to date/i)
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /what ankify looks for/i })
+    ).not.toBeInTheDocument();
   });
 
   test('a 429 cooldown error renders inline retry guidance', async () => {
@@ -479,7 +560,7 @@ describe('NotionSubscriptions sync copy', () => {
     );
   });
 
-  test('shows zero-cards banner with block count when refresh returns 0 cards and diagnostic present', async () => {
+  test('shows zero-cards banner with block count when refresh returns 0 matched blocks', async () => {
     const backend = makeBackend({
       listAnkifySubscriptions: vi.fn(async () => [
         sampleSubscription({ id: 20, notion_page_id: 'f'.repeat(32) }),
@@ -488,7 +569,7 @@ describe('NotionSubscriptions sync copy', () => {
         created: 0,
         updated: 0,
         conflicts: 0,
-        unchanged: 3,
+        unchanged: 0,
         errors: [],
         anki_web_sync: 'skipped' as const,
         anki_web_sync_error: null,
@@ -511,14 +592,14 @@ describe('NotionSubscriptions sync copy', () => {
     );
 
     expect(
-      await screen.findByRole('link', { name: /learn what ankify looks for/i })
+      await screen.findByRole('link', { name: /what ankify looks for/i })
     ).toBeInTheDocument();
     expect(
       screen.getByText((_, el) => el?.tagName === 'STRONG' && el.textContent === '12')
     ).toBeInTheDocument();
   });
 
-  test('shows unmatched_samples in a details panel when present', async () => {
+  test('shows unmatched_samples in a details panel when present with updated summary text', async () => {
     const backend = makeBackend({
       listAnkifySubscriptions: vi.fn(async () => [
         sampleSubscription({ id: 21, notion_page_id: 'g'.repeat(32) }),
@@ -549,6 +630,9 @@ describe('NotionSubscriptions sync copy', () => {
       await screen.findByRole('menuitem', { name: /update my deck now/i })
     );
 
+    expect(
+      await screen.findByText(/what we saw on this page \(first 3\)/i)
+    ).toBeInTheDocument();
     await waitFor(() =>
       expect(screen.getByText('Introduction')).toBeInTheDocument()
     );
@@ -556,7 +640,7 @@ describe('NotionSubscriptions sync copy', () => {
     expect(screen.getByText('Summary')).toBeInTheDocument();
   });
 
-  test('shows plain "No cards created" without block count when diagnostic is absent', async () => {
+  test('diagnostic null with zero count shows "Already up to date" and no banner', async () => {
     const backend = makeBackend({
       listAnkifySubscriptions: vi.fn(async () => [
         sampleSubscription({ id: 22, notion_page_id: 'h'.repeat(32) }),
@@ -583,10 +667,10 @@ describe('NotionSubscriptions sync copy', () => {
     );
 
     expect(
-      await screen.findByText(/no cards created/i)
+      await screen.findByText(/already up to date/i)
     ).toBeInTheDocument();
     expect(
-      screen.queryByText(/blocks/i)
+      screen.queryByRole('link', { name: /what ankify looks for/i })
     ).not.toBeInTheDocument();
   });
 
@@ -624,7 +708,7 @@ describe('NotionSubscriptions sync copy', () => {
     await waitFor(() =>
       expect(screen.getByText(/updated · 5 new cards/i)).toBeInTheDocument()
     );
-    expect(screen.queryByText(/no cards created/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /what ankify looks for/i })).not.toBeInTheDocument();
   });
 
   test('error line takes precedence over next-export line', async () => {

@@ -2,5 +2,5 @@
   "id": "2026-05-25-ankify-zero-cards-reason",
   "date": "2026-05-25",
   "type": "fix",
-  "title": "Ankify now explains why a sync produced no cards — block count and unrecognised content shown inline"
+  "title": "Ankify tells you when a page has no content it recognizes — instead of silently reporting zero cards"
 }
