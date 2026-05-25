@@ -13,7 +13,7 @@ describe('EmptyDeckError', () => {
     const error = new EmptyDeckError();
 
     expect(error.message).toBe(
-      'No cards found in your upload. Use .zip, .html, .md, .csv, or .apkg.'
+      'No cards found in your upload. Use .zip, .html, .md, or .csv.'
     );
   });
 

@@ -1,10 +1,5 @@
 import { UploadedFile } from '../storage/types';
-
-function isAnkiDeck(file: UploadedFile): boolean {
-  return typeof file.originalname === 'string'
-    ? file.originalname.toLowerCase().endsWith('.apkg')
-    : false;
-}
+import { isAnkiDeckFile } from '../storage/checks';
 
 function isEmptyFile(file: UploadedFile): boolean {
   return file.size === 0;
@@ -26,7 +21,7 @@ export function getUploadValidationError(files: UploadedFile[] | undefined | nul
       );
     }
 
-    if (isAnkiDeck(file)) {
+    if (isAnkiDeckFile(file.originalname)) {
       return new Error(
         `"${file.originalname}" is already an Anki deck. 2anki converts source files like Notion HTML exports, not existing decks.`
       );

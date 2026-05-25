@@ -13,6 +13,7 @@ import {
   isBrainstormsJsonFile,
   isEpubFile,
   isKindleClippingsFile,
+  isAnkiDeckFile,
 } from '../../lib/storage/checks';
 import { getPackagesFromZip } from './getPackagesFromZip';
 import Workspace from '../../lib/parser/WorkSpace';
@@ -69,6 +70,12 @@ async function processFile(
   const warnings: string[] = [];
   const filename = file.originalname;
   const key = file.key;
+
+  if (isAnkiDeckFile(filename)) {
+    throw new Error(
+      `"${filename}" is already an Anki deck. 2anki converts source files like Notion HTML exports, not existing decks.`
+    );
+  }
 
   if (isOpmlFile(filename) || isBrainstormsJsonFile(filename)) {
     const result = await convertMindmapFileToApkg(filename, fileContents, workspace.location);

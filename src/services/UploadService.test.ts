@@ -68,9 +68,11 @@ function buildResponse(): {
   res: express.Response;
   capturedStatus: () => number;
   capturedJson: () => unknown;
+  capturedSend: () => unknown;
 } {
   let status = 0;
   let json: unknown = null;
+  let sent: unknown = null;
 
   const jsonFn = jest.fn((body: unknown) => {
     json = body;
@@ -81,7 +83,10 @@ function buildResponse(): {
     return res; // eslint-disable-line @typescript-eslint/no-use-before-define
   });
   const setFn = jest.fn(() => res); // eslint-disable-line @typescript-eslint/no-use-before-define
-  const sendFn = jest.fn(() => res); // eslint-disable-line @typescript-eslint/no-use-before-define
+  const sendFn = jest.fn((body: unknown) => {
+    sent = body;
+    return res; // eslint-disable-line @typescript-eslint/no-use-before-define
+  });
   const contentTypeFn = jest.fn(() => res); // eslint-disable-line @typescript-eslint/no-use-before-define
   const attachmentFn = jest.fn(() => res); // eslint-disable-line @typescript-eslint/no-use-before-define
   const redirectFn = jest.fn(() => res); // eslint-disable-line @typescript-eslint/no-use-before-define
@@ -102,6 +107,7 @@ function buildResponse(): {
     res,
     capturedStatus: () => status,
     capturedJson: () => json,
+    capturedSend: () => sent,
   };
 }
 
@@ -233,6 +239,40 @@ describe('UploadService.handleUpload — error paths', () => {
     const body = capturedJson() as { message: string };
     expect(body.message).not.toMatch(/at .*\(/);
     expect(body.message).not.toMatch(/RangeError/);
+  });
+
+  it('rejects .apkg upload with 400 and the "already an Anki deck" message before reaching GeneratePackagesUseCase', async () => {
+    const executeMock = jest.fn();
+    MockGeneratePackagesUseCase.mockImplementation(() => ({
+      execute: executeMock,
+    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+
+    const service = new UploadService(buildRepository(), {} as JobRepository);
+    const req = buildRequest({
+      files: [
+        {
+          originalname: 'my-deck.apkg',
+          mimetype: 'application/octet-stream',
+          size: 82138,
+          path: '/tmp/abc123',
+          fieldname: 'pakker',
+          encoding: '7bit',
+          destination: '/tmp',
+          filename: 'abc123',
+          buffer: Buffer.alloc(0),
+          stream: null,
+          key: '',
+        } as unknown as Express.Multer.File,
+      ],
+    });
+    const { res, capturedStatus, capturedSend } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(capturedStatus()).toBe(400);
+    expect(typeof capturedSend()).toBe('string');
+    expect(capturedSend() as string).toContain('already an Anki deck');
+    expect(executeMock).not.toHaveBeenCalled();
   });
 });
 

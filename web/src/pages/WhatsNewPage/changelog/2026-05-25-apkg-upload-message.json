@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-25-apkg-upload-message",
+  "date": "2026-05-25",
+  "type": "fix",
+  "title": "Uploading an existing .apkg deck explains it's already a finished deck instead of showing a cryptic error"
+}

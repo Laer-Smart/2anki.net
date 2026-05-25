@@ -4,7 +4,7 @@ import styles from '../PricingPage.module.css';
 const PASS_BENEFITS = [
   'No subscription',
   'Unlimited conversions',
-  'All upload formats — Notion, .zip, .html, .md, .csv, .apkg',
+  'All upload formats — Notion, .zip, .html, .md, .csv, .pdf, .docx, .epub, and more',
   'Image occlusion',
   'Custom card templates',
   'No ads',
