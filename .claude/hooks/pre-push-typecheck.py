@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 """
-PreToolUse hook: run server `tsc --noEmit` before `git push` to a feature branch.
+PreToolUse hook: run the relevant typecheck/lint before `git push` to a
+feature branch, scoped to the workspace that actually changed.
 
 Goal: stop pushing red branches that then fail GH Actions and chew CI minutes.
-Skips pushes to main/master (safety.py blocks those anyway). Skips when tsc
-would cost more than it saves (no .ts changes since the last push).
+- Server `.ts` changed  → server `tsc --noEmit`.
+- Web `.ts`/`.tsx` changed → web typecheck + web Biome lint (the lint rules
+  mirror the SonarCloud findings that otherwise only surface post-push).
+Web vitest is intentionally left to `/check` and CI — it's the slow one and
+would make every push wait.
+
+Skips pushes to main/master (safety.py blocks those anyway). Skips a workspace
+when nothing in it changed since the last push.
 
 Bypass: CLAUDE_SKIP_TYPECHECK=1 git push ...
         CLAUDE_SKIP_SAFETY=1     git push ...   (also honored)
@@ -15,7 +22,9 @@ import re
 import subprocess
 import sys
 
-TIMEOUT_SECONDS = 120
+SERVER_TIMEOUT_SECONDS = 120
+WEB_TYPECHECK_TIMEOUT_SECONDS = 120
+WEB_LINT_TIMEOUT_SECONDS = 60
 
 
 def allow():
@@ -48,9 +57,9 @@ def push_targets_protected(cmd):
     return bool(PROTECTED_BRANCH.search(after))
 
 
-def has_ts_changes_against_origin():
-    """True if any tracked .ts/.tsx file differs from origin/main, or there are
-    uncommitted .ts/.tsx changes. False means tsc has nothing new to say."""
+def changed_ts_files():
+    """.ts/.tsx paths that differ from origin/main or are uncommitted.
+    Empty means there is nothing for tsc/lint to say."""
     try:
         committed = subprocess.run(
             ["git", "diff", "--name-only", "origin/main...HEAD"],
@@ -61,21 +70,20 @@ def has_ts_changes_against_origin():
             capture_output=True, text=True, timeout=10,
         ).stdout
     except Exception:
-        return True  # err on the side of running tsc
+        return None  # signal "couldn't tell" — caller errs toward running checks
     files = (committed + "\n" + working).splitlines()
-    return any(f.endswith((".ts", ".tsx")) for f in files)
+    return [f for f in files if f.endswith((".ts", ".tsx"))]
 
 
-def run_typecheck(project_dir):
+def run_check(label, cmd, cwd, timeout):
+    """True = passed, None = couldn't run (fail open), str = error output."""
     try:
         result = subprocess.run(
-            ["pnpm", "exec", "tsc", "--noEmit", "-p", "."],
-            cwd=project_dir,
-            capture_output=True, text=True, timeout=TIMEOUT_SECONDS,
+            cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout,
         )
     except subprocess.TimeoutExpired:
         sys.stderr.write(
-            f"[pre-push-typecheck] tsc exceeded {TIMEOUT_SECONDS}s; allowing push.\n"
+            f"[pre-push-typecheck] {label} exceeded {timeout}s; allowing push.\n"
         )
         return None
     except FileNotFoundError:
@@ -83,7 +91,16 @@ def run_typecheck(project_dir):
         return None
     if result.returncode == 0:
         return True
-    return result.stdout or result.stderr or "(tsc produced no output)"
+    return result.stdout or result.stderr or "(no output)"
+
+
+def deny_for(label, output):
+    head = "\n".join(output.splitlines()[:30])
+    deny(
+        f"Refusing `git push` — {label} failed. First errors:\n\n"
+        f"{head}\n\n"
+        "Fix them, or bypass with CLAUDE_SKIP_TYPECHECK=1 if pushing a WIP branch."
+    )
 
 
 def main():
@@ -107,20 +124,44 @@ def main():
 
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
 
-    if not has_ts_changes_against_origin():
+    ts_files = changed_ts_files()
+    if ts_files is not None and not ts_files:
         allow()
 
-    sys.stderr.write("[pre-push-typecheck] running server tsc --noEmit...\n")
-    result = run_typecheck(project_dir)
-    if result is None or result is True:
-        allow()
+    # ts_files is None → "couldn't tell"; run both to be safe.
+    server_changed = ts_files is None or any(not f.startswith("web/") for f in ts_files)
+    web_changed = ts_files is None or any(f.startswith("web/") for f in ts_files)
 
-    head = "\n".join(result.splitlines()[:30])
-    deny(
-        "Refusing `git push` — server tsc --noEmit failed. First errors:\n\n"
-        f"{head}\n\n"
-        "Fix the type errors, or bypass with CLAUDE_SKIP_TYPECHECK=1 if pushing a WIP branch."
-    )
+    if server_changed:
+        sys.stderr.write("[pre-push-typecheck] running server tsc --noEmit...\n")
+        result = run_check(
+            "server tsc --noEmit",
+            ["pnpm", "exec", "tsc", "--noEmit", "-p", "."],
+            project_dir, SERVER_TIMEOUT_SECONDS,
+        )
+        if isinstance(result, str):
+            deny_for("server tsc --noEmit", result)
+
+    if web_changed:
+        sys.stderr.write("[pre-push-typecheck] running web typecheck...\n")
+        result = run_check(
+            "web typecheck",
+            ["pnpm", "--filter", "2anki-web", "typecheck"],
+            project_dir, WEB_TYPECHECK_TIMEOUT_SECONDS,
+        )
+        if isinstance(result, str):
+            deny_for("web typecheck", result)
+
+        sys.stderr.write("[pre-push-typecheck] running web lint (Biome)...\n")
+        result = run_check(
+            "web lint (Biome)",
+            ["pnpm", "--filter", "2anki-web", "lint"],
+            project_dir, WEB_LINT_TIMEOUT_SECONDS,
+        )
+        if isinstance(result, str):
+            deny_for("web lint (Biome)", result)
+
+    allow()
 
 
 if __name__ == "__main__":
