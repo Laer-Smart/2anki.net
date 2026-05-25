@@ -328,6 +328,61 @@ describe('renderJobStatusCell — URL construction', () => {
   });
 });
 
+describe('DownloadsPage deck feedback prompt', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-18T12:00:00Z'));
+    (globalThis as AnalyticsGlobals).hj = vi.fn();
+    (globalThis as AnalyticsGlobals).gtag = vi.fn();
+    localStorage.clear();
+    mockUploads = [];
+    mockDropboxUploads = [];
+    mockGoogleDriveUploads = [];
+    mockJobs = [
+      buildJob({
+        status: 'done',
+        type: 'page',
+        title: 'Pharmacology Ch. 4',
+        download_key: 'deck-abc123.apkg',
+      }),
+    ];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    localStorage.clear();
+    delete (globalThis as AnalyticsGlobals).hj;
+    delete (globalThis as AnalyticsGlobals).gtag;
+  });
+
+  it('hides the feedback prompt until a deck is downloaded', () => {
+    renderAt('/downloads');
+    expect(
+      screen.queryByText('Did this deck come out right?')
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the feedback prompt after clicking a download link', () => {
+    renderAt('/downloads');
+    fireEvent.click(screen.getByLabelText('Download Pharmacology Ch. 4'));
+    expect(
+      screen.getByText('Did this deck come out right?')
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the feedback prompt hidden after download when suppressed', () => {
+    localStorage.setItem(
+      '2anki_deck_feedback_suppressed_until',
+      String(Date.now() + 60_000)
+    );
+    renderAt('/downloads');
+    fireEvent.click(screen.getByLabelText('Download Pharmacology Ch. 4'));
+    expect(
+      screen.queryByText('Did this deck come out right?')
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe('DownloadsPage failure reason panel', () => {
   beforeEach(() => {
     vi.useFakeTimers();

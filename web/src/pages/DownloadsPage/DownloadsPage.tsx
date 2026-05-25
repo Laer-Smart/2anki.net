@@ -90,7 +90,7 @@ interface RenderJobStatusOptions {
   onToggle: () => void;
 }
 
-export function renderJobStatusCell(j: JobResponse) {
+export function renderJobStatusCell(j: JobResponse, onDownload?: () => void) {
   if (isDoneJob(j.status)) {
     if (j.type === 'apkg_import') {
       let notionUrl: string | null = null;
@@ -113,7 +113,7 @@ export function renderJobStatusCell(j: JobResponse) {
           className={styles.downloadAction}
           aria-label={`Download ${j.title}`}
           title="Download"
-          onClick={() => { fireAnalyticsEvent('deck_downloaded'); track('deck_downloaded'); }}
+          onClick={() => { onDownload?.(); fireAnalyticsEvent('deck_downloaded'); track('deck_downloaded'); }}
         >
           <DownloadIcon width={16} height={16} />
         </a>
@@ -202,6 +202,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
   );
   const [expandedFailureJobId, setExpandedFailureJobId] = useState<number | string | null>(null);
   const [mappingModalJob, setMappingModalJob] = useState<JobResponse | null>(null);
+  const [hasDownloaded, setHasDownloaded] = useState(false);
 
   const rawFilter = searchParams.get('filter') ?? 'all';
   const activeFilter: FilterValue = VALID_FILTERS.has(rawFilter as FilterValue)
@@ -268,8 +269,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
   );
 
   const activeJobs = jobs.filter((j) => isActiveJob(j.status));
-  const hasDoneJob = jobs.some((j) => isDoneJob(j.status));
-  const showDeckFeedback = hasDoneJob && !isDeckFeedbackSuppressed();
+  const showDeckFeedback = hasDownloaded && !isDeckFeedbackSuppressed();
 
   const handleDeleteJob = async (id: Parameters<typeof deleteJob>[0]) => {
     await deleteJob(id);
@@ -386,7 +386,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                         onToggle: toggleFailurePanel,
                                       })
                                     ) : (
-                                      renderJobStatusCell(row.job)
+                                      renderJobStatusCell(row.job, () => setHasDownloaded(true))
                                     )}
                                     <div className={styles.secondaryActions}>
                                       {isDoneJob(row.job.status) && row.job.download_key != null && APKG_PATTERN.test(row.job.download_key) && (
@@ -499,7 +499,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                     className={styles.downloadAction}
                                     aria-label={`Download ${u.filename}`}
                                     title="Download"
-                                    onClick={() => { fireAnalyticsEvent('deck_downloaded'); track('deck_downloaded'); }}
+                                    onClick={() => { setHasDownloaded(true); fireAnalyticsEvent('deck_downloaded'); track('deck_downloaded'); }}
                                   >
                                     <DownloadIcon width={16} height={16} />
                                   </a>
@@ -619,8 +619,9 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                     <UpsellCard surface="downloads_upsell" />
                   </div>
                 )}
-                {showDeckFeedback && <DeckFeedbackPrompt />}
               </div>
+
+              {showDeckFeedback && <DeckFeedbackPrompt />}
 
               <div style={{ textAlign: 'right', marginTop: '0.5rem', fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)' }}>
                 {formatUpdatedLabel(lastFetchedAt)}
