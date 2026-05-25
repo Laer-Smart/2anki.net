@@ -493,3 +493,59 @@ describe('DownloadsPage failure reason panel', () => {
     expect(screen.queryByText(/Learn more/)).not.toBeInTheDocument();
   });
 });
+
+describe('DownloadsPage cancel_during_generating telemetry', () => {
+  let fetchCalls: { url: string; body: Record<string, unknown> }[] = [];
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-25T10:00:00Z'));
+    fetchCalls = [];
+    (globalThis as AnalyticsGlobals).hj = vi.fn();
+    (globalThis as AnalyticsGlobals).gtag = vi.fn();
+    globalThis.fetch = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+      if (typeof url === 'string') {
+        try {
+          fetchCalls.push({ url, body: JSON.parse((init?.body as string) ?? '{}') });
+        } catch { /* ignore */ }
+      }
+      return Promise.resolve(new Response(null, { status: 200 }));
+    });
+    mockUploads = [];
+    mockDropboxUploads = [];
+    mockGoogleDriveUploads = [];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    delete (globalThis as AnalyticsGlobals).hj;
+    delete (globalThis as AnalyticsGlobals).gtag;
+  });
+
+  it('fires cancel_during_generating when cancel is clicked on a step2_creating_flashcards job', () => {
+    mockJobs = [buildJob({ id: 42 as JobsId, status: 'step2_creating_flashcards', title: 'PDF notes' })];
+    renderAt('/downloads');
+
+    const cancelButton = screen.getByRole('button', { name: /Cancel PDF notes/i });
+    fireEvent.click(cancelButton);
+
+    const analyticsCall = fetchCalls.find(
+      (c) => c.url === '/api/events/track' && c.body?.name === 'cancel_during_generating'
+    );
+    expect(analyticsCall).toBeDefined();
+  });
+
+  it('does not fire cancel_during_generating when cancel is clicked on a done job', () => {
+    mockJobs = [buildJob({ id: 43 as JobsId, status: 'done', title: 'Done deck', download_key: 'deck.apkg' })];
+    renderAt('/downloads');
+
+    const deleteButton = screen.getByRole('button', { name: /Delete Done deck/i });
+    fireEvent.click(deleteButton);
+
+    const analyticsCall = fetchCalls.find(
+      (c) => c.url === '/api/events/track' && c.body?.name === 'cancel_during_generating'
+    );
+    expect(analyticsCall).toBeUndefined();
+  });
+});

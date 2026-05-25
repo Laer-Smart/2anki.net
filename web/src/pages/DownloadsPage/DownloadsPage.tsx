@@ -55,6 +55,10 @@ function isDoneJob(status: string): boolean {
   return status === 'done';
 }
 
+function isGeneratingStatus(status: string): boolean {
+  return status === 'step2_creating_flashcards' || /^claude:chunk:\d+:\d+$/.test(status);
+}
+
 function getSourceLabel(source: DeckRow['source']): string {
   switch (source) {
     case 'notion': return 'Notion';
@@ -272,6 +276,10 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
   const showDeckFeedback = hasDownloaded && !isDeckFeedbackSuppressed();
 
   const handleDeleteJob = async (id: Parameters<typeof deleteJob>[0]) => {
+    const job = jobs.find((j) => j.id === id);
+    if (job != null && isGeneratingStatus(job.status)) {
+      track('cancel_during_generating');
+    }
     await deleteJob(id);
     await refreshUploads();
   };
