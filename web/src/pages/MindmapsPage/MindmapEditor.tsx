@@ -14,12 +14,13 @@ import {
 } from '@xyflow/react';
 import dagre from 'dagre';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMindmapById, useUpdateMindmap, exportMindmap, uploadMindmapImage, type MindmapCardType } from './useMindmap';
 import type { MindmapData } from './useMindmap';
 import shared from '../../styles/shared.module.css';
 import styles from './MindmapEditor.module.css';
 import { MindmapNode } from './MindmapNode';
+import { MindmapMarkdownModal } from './MindmapMarkdownModal';
 import PencilIcon from '../../components/icons/PencilIcon';
 
 const NODE_WIDTH = 172;
@@ -69,6 +70,40 @@ const SHORTCUT_GROUPS: {
     ],
   },
 ];
+
+function ChevronLeftIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+      width={14}
+      height={14}
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+      width={14}
+      height={14}
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+    </svg>
+  );
+}
 
 function layoutGraph(nodes: Node[], edges: Edge[]): Node[] {
   const g = new dagre.graphlib.Graph();
@@ -176,6 +211,11 @@ function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, on
   );
 }
 
+function readSidebarCollapsed(): boolean {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem('mindmap-editor.sidebar.collapsed') === '1';
+}
+
 export function MindmapEditor() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -191,6 +231,8 @@ export function MindmapEditor() {
   const [isMobile, setIsMobile] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string | null; edgeId?: string; flowX?: number; flowY?: number } | null>(null);
   const [rfInstance, setRfInstanceState] = useState<ReactFlowInstance | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(readSidebarCollapsed);
+  const [showMarkdownModal, setShowMarkdownModal] = useState(false);
 
   const setRfInstance = useCallback((instance: ReactFlowInstance) => {
     setRfInstanceState(instance);
@@ -729,6 +771,14 @@ export function MindmapEditor() {
   }
   const clozeCardCount = leafNodeIds.size;
 
+  function toggleSidebar() {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem('mindmap-editor.sidebar.collapsed', next ? '1' : '0');
+      return next;
+    });
+  }
+
   async function handleExport(deckName: string, cardType: MindmapCardType) {
     if (id == null) return;
     setExporting(true);
@@ -765,8 +815,121 @@ export function MindmapEditor() {
   }
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 60px)' }}>
+    <div data-testid="editor-root" className={styles.editorRoot}>
       <div
+        data-testid="editor-sidebar"
+        className={`${styles.sidebar}${sidebarCollapsed ? ` ${styles.sidebarCollapsed}` : ''}`}
+      >
+        <Link to="/mindmaps" className={styles.backLink}>
+          <ChevronLeftIcon />
+          Mindmaps
+        </Link>
+
+        {!sidebarCollapsed && (
+          <button
+            type="button"
+            aria-label="Collapse sidebar"
+            onClick={toggleSidebar}
+            className={styles.collapseToggle}
+          >
+            <ChevronLeftIcon />
+          </button>
+        )}
+
+        <div className={styles.sidebarTitleRow}>
+          <h2
+            ref={titleRef}
+            contentEditable
+            suppressContentEditableWarning
+            spellCheck={false}
+            title="Click to rename"
+            onBlur={(e) => {
+              const text = e.currentTarget.innerText;
+              if (text.trim().length === 0) {
+                e.currentTarget.innerText = map?.title ?? 'Untitled';
+                return;
+              }
+              commitTitle(text);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                e.currentTarget.blur();
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.currentTarget.innerText = map?.title ?? 'Untitled';
+                e.currentTarget.blur();
+              }
+              e.stopPropagation();
+            }}
+            className={styles.sidebarTitle}
+          >
+            {map?.title ?? 'Untitled'}
+          </h2>
+          <button
+            type="button"
+            aria-label="Rename map"
+            title="Rename map"
+            onClick={() => {
+              if (titleRef.current == null) return;
+              titleRef.current.focus();
+              const range = document.createRange();
+              range.selectNodeContents(titleRef.current);
+              const sel = window.getSelection();
+              sel?.removeAllRanges();
+              sel?.addRange(range);
+            }}
+            className={styles.renameTrigger}
+          >
+            <PencilIcon width={14} height={14} />
+          </button>
+        </div>
+
+        <p className={styles.statLine}>
+          {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'} · {edges.length} {edges.length === 1 ? 'edge' : 'edges'}
+        </p>
+
+        <details className={styles.shortcuts}>
+          <summary className={styles.shortcutsSummary}>Keyboard shortcuts</summary>
+          {SHORTCUT_GROUPS.map((group) => (
+            <div key={group.label} className={styles.shortcutGroup}>
+              <p className={styles.shortcutGroupLabel}>{group.label}</p>
+              {group.items.map((item) => (
+                <div key={item.action} className={styles.shortcutRow}>
+                  <span className={styles.shortcutKeys}>
+                    {item.keys.map((key) => (
+                      <kbd key={key} className={styles.shortcutKey}>
+                        {key}
+                      </kbd>
+                    ))}
+                  </span>
+                  <span className={styles.shortcutAction}>{item.action}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setShowMarkdownModal(true)}
+            className={styles.shortcutNoteBtn}
+          >
+            Markdown works in node labels
+          </button>
+        </details>
+
+        <div className={styles.primaryAction}>
+          <button
+            type="button"
+            onClick={() => setShowExport(true)}
+            className={shared.btnPrimary}
+          >
+            Download deck
+          </button>
+        </div>
+      </div>
+
+      <div
+        data-testid="editor-canvas"
         style={{ flex: 1, position: 'relative' }}
         onDoubleClick={(e) => {
           const target = e.target as HTMLElement;
@@ -792,6 +955,16 @@ export function MindmapEditor() {
           handleImageFile(file, position);
         }}
       >
+        {sidebarCollapsed && (
+          <button
+            type="button"
+            aria-label="Expand sidebar"
+            onClick={toggleSidebar}
+            className={styles.collapseReopenHandle}
+          >
+            <ChevronRightIcon />
+          </button>
+        )}
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -874,93 +1047,6 @@ export function MindmapEditor() {
         </button>
       </div>
 
-      <div className={styles.sidebar}>
-        <div className={styles.sidebarTitleRow}>
-          <h2
-            ref={titleRef}
-            contentEditable
-            suppressContentEditableWarning
-            spellCheck={false}
-            title="Click to rename"
-            onBlur={(e) => {
-              const text = e.currentTarget.innerText;
-              if (text.trim().length === 0) {
-                e.currentTarget.innerText = map?.title ?? 'Untitled';
-                return;
-              }
-              commitTitle(text);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                e.currentTarget.blur();
-              } else if (e.key === 'Escape') {
-                e.preventDefault();
-                e.currentTarget.innerText = map?.title ?? 'Untitled';
-                e.currentTarget.blur();
-              }
-              e.stopPropagation();
-            }}
-            className={styles.sidebarTitle}
-          >
-            {map?.title ?? 'Untitled'}
-          </h2>
-          <button
-            type="button"
-            aria-label="Rename map"
-            title="Rename map"
-            onClick={() => {
-              if (titleRef.current == null) return;
-              titleRef.current.focus();
-              const range = document.createRange();
-              range.selectNodeContents(titleRef.current);
-              const sel = window.getSelection();
-              sel?.removeAllRanges();
-              sel?.addRange(range);
-            }}
-            className={styles.renameTrigger}
-          >
-            <PencilIcon width={14} height={14} />
-          </button>
-        </div>
-
-        <p className={styles.statLine}>
-          {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'} · {edges.length} {edges.length === 1 ? 'edge' : 'edges'}
-        </p>
-
-        <details className={styles.shortcuts}>
-          <summary className={styles.shortcutsSummary}>Keyboard shortcuts</summary>
-          {SHORTCUT_GROUPS.map((group) => (
-            <div key={group.label} className={styles.shortcutGroup}>
-              <p className={styles.shortcutGroupLabel}>{group.label}</p>
-              {group.items.map((item) => (
-                <div key={item.action} className={styles.shortcutRow}>
-                  <span className={styles.shortcutKeys}>
-                    {item.keys.map((key) => (
-                      <kbd key={key} className={styles.shortcutKey}>
-                        {key}
-                      </kbd>
-                    ))}
-                  </span>
-                  <span className={styles.shortcutAction}>{item.action}</span>
-                </div>
-              ))}
-            </div>
-          ))}
-          <p className={styles.shortcutNote}>Markdown works in node labels</p>
-        </details>
-
-        <div className={styles.primaryAction}>
-          <button
-            type="button"
-            onClick={() => setShowExport(true)}
-            className={shared.btnPrimary}
-          >
-            Download deck
-          </button>
-        </div>
-      </div>
-
       {showExport && (
         <ExportModal
           defaultName={map?.title ?? 'My deck'}
@@ -970,6 +1056,10 @@ export function MindmapEditor() {
           onClose={() => setShowExport(false)}
           exporting={exporting}
         />
+      )}
+
+      {showMarkdownModal && (
+        <MindmapMarkdownModal onClose={() => setShowMarkdownModal(false)} />
       )}
 
       {toast != null && (

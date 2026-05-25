@@ -1,6 +1,6 @@
 {
   "id": "2026-05-25-mindmap-shortcuts",
   "date": "2026-05-25",
-  "type": "style",
-  "title": "Mindmap editor keyboard shortcuts collapse into a grouped, scannable reference"
+  "type": "feature",
+  "title": "Mind map editor sidebar — now on the left, collapsible, with a back link and a Markdown reference"
 }
