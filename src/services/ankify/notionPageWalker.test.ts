@@ -36,7 +36,7 @@ describe('walkNotionPageForFlashcards', () => {
       ];
     });
 
-    const cards = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+    const { cards } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
 
     expect(cards).toHaveLength(1);
     expect(cards[0].back).toContain('Spaced repetition.');
@@ -69,7 +69,7 @@ describe('walkNotionPageForFlashcards', () => {
       ];
     });
 
-    const cards = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+    const { cards } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
 
     expect(cards[0].back).toContain(
       '<img src="https://cdn.example.com/diagram.png">'
@@ -99,7 +99,7 @@ describe('walkNotionPageForFlashcards', () => {
       ];
     });
 
-    const cards = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+    const { cards } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
 
     expect(cards[0].back).toContain(
       'src="https://www.youtube.com/embed/dQw4w9WgXcQ?'
@@ -122,7 +122,7 @@ describe('walkNotionPageForFlashcards', () => {
       ];
     });
 
-    const cards = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+    const { cards } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
 
     expect(cards[0].back).toContain('[sound:ankify-a-1.mp3]');
     expect(cards[0].media[0]).toMatchObject({
@@ -144,7 +144,7 @@ describe('walkNotionPageForFlashcards', () => {
       ];
     });
 
-    const cards = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+    const { cards } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
 
     expect(cards[0].back).toContain('<iframe');
     expect(cards[0].back).toContain('youtube.com/embed/');
@@ -166,7 +166,7 @@ describe('walkNotionPageForFlashcards', () => {
       ];
     });
 
-    const cards = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+    const { cards } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
 
     expect(cards[0].back).toContain('<a href="ankify-f-1.pdf">class-notes.pdf</a>');
     expect(cards[0].media[0]).toMatchObject({ kind: 'file', filename: 'ankify-f-1.pdf' });
@@ -189,7 +189,7 @@ describe('walkNotionPageForFlashcards', () => {
       return [];
     });
 
-    const cards = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+    const { cards } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
 
     expect(cards[0].back).toContain('<details>');
     expect(cards[0].back).toContain('<summary>sub-q</summary>');
@@ -207,9 +207,93 @@ describe('walkNotionPageForFlashcards', () => {
       return [paragraphChild('answer')];
     });
 
-    const cards = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+    const { cards } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
 
     expect(cards).toHaveLength(1);
     expect(cards[0].notion_block_id).toBe('t-real');
+  });
+});
+
+describe('walkNotionPageForFlashcards diagnostic', () => {
+  test('diagnostic counts blocks_scanned and blocks_matched from a single toggle page', async () => {
+    const fetchChildren = jest.fn(async (blockId: string) => {
+      if (blockId === 'page-id') {
+        return [
+          toggleBlock({ id: 't-1' }),
+          { id: 'p-1', type: 'paragraph' },
+        ];
+      }
+      return [paragraphChild('answer')];
+    });
+
+    const { diagnostic } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+
+    expect(diagnostic.blocks_scanned).toBe(2);
+    expect(diagnostic.blocks_matched).toBe(1);
+  });
+
+  test('diagnostic records toggle hits in pattern_hits', async () => {
+    const fetchChildren = jest.fn(async (blockId: string) => {
+      if (blockId === 'page-id') {
+        return [toggleBlock({ id: 't-1' }), toggleBlock({ id: 't-2' })];
+      }
+      return [paragraphChild('a')];
+    });
+
+    const { diagnostic } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+
+    expect(diagnostic.pattern_hits['toggle']).toBe(2);
+  });
+
+  test('diagnostic captures unmatched_samples (heading text) for non-toggle blocks up to 3', async () => {
+    const fetchChildren = jest.fn(async (blockId: string) => {
+      if (blockId === 'page-id') {
+        return [
+          { id: 'p-1', type: 'paragraph', paragraph: { rich_text: [{ plain_text: 'Block one' }] } },
+          { id: 'p-2', type: 'paragraph', paragraph: { rich_text: [{ plain_text: 'Block two' }] } },
+          { id: 'p-3', type: 'paragraph', paragraph: { rich_text: [{ plain_text: 'Block three' }] } },
+          { id: 'p-4', type: 'paragraph', paragraph: { rich_text: [{ plain_text: 'Block four' }] } },
+        ];
+      }
+      return [];
+    });
+
+    const { diagnostic } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+
+    expect(diagnostic.unmatched_samples).toHaveLength(3);
+    expect(diagnostic.unmatched_samples![0]).toBe('Block one');
+    expect(diagnostic.unmatched_samples![2]).toBe('Block three');
+  });
+
+  test('diagnostic blocks_scanned is capped at 1000', async () => {
+    const manyBlocks = Array.from({ length: 1200 }, (_, i) => ({
+      id: `p-${i}`,
+      type: 'paragraph',
+      paragraph: { rich_text: [{ plain_text: `Block ${i}` }] },
+    }));
+    const fetchChildren = jest.fn(async (blockId: string) => {
+      if (blockId === 'page-id') return manyBlocks;
+      return [];
+    });
+
+    const { diagnostic } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+
+    expect(diagnostic.blocks_scanned).toBe(1000);
+  });
+
+  test('diagnostic blocks_matched is 0 and unmatched_samples is populated when no toggles found', async () => {
+    const fetchChildren = jest.fn(async (blockId: string) => {
+      if (blockId === 'page-id') {
+        return [
+          { id: 'p-1', type: 'paragraph', paragraph: { rich_text: [{ plain_text: 'Introduction' }] } },
+        ];
+      }
+      return [];
+    });
+
+    const { diagnostic } = await walkNotionPageForFlashcards('page-id', fetchChildren as never);
+
+    expect(diagnostic.blocks_matched).toBe(0);
+    expect(diagnostic.unmatched_samples).toEqual(['Introduction']);
   });
 });

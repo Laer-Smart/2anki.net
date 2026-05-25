@@ -21,6 +21,7 @@ import {
   NotionBlockChildrenFetcher,
   WalkedNotionFlashcard,
   WalkedNotionMediaRef,
+  SyncDiagnostic,
 } from '../../services/ankify/notionPageWalker';
 import { NoActiveAnkifyClientError } from './SendUploadToRacUseCase';
 import { NotionNotConnectedError } from './ExportReviewDataToNotionUseCase';
@@ -59,6 +60,7 @@ export interface SyncNotionPageResult {
   errors: string[];
   ankiWebSync: AnkiWebSyncStatus;
   ankiWebSyncError: string | null;
+  diagnostic: SyncDiagnostic | null;
 }
 
 export type AnkiConnectFactory = (
@@ -172,6 +174,7 @@ export class SyncNotionPageToRacUseCase {
       errors: [],
       ankiWebSync: 'skipped',
       ankiWebSyncError: null,
+      diagnostic: null,
     };
 
     try {
@@ -231,10 +234,11 @@ export class SyncNotionPageToRacUseCase {
   }): Promise<void> {
     const { input, token, client, subscription, result } = args;
     const fetchChildren = this.notionFetcher(token);
-    const cards = await walkNotionPageForFlashcards(
+    const { cards, diagnostic } = await walkNotionPageForFlashcards(
       input.notionPageId,
       fetchChildren
     );
+    result.diagnostic = diagnostic;
 
     const ac = this.ankiConnect(
       input.ankiConnectHost ?? 'localhost',
@@ -507,6 +511,7 @@ export class SyncNotionPageToRacUseCase {
           conflicts: result.conflicts,
           unchanged: result.unchanged,
           errors: result.errors,
+          diagnostic: result.diagnostic,
         },
       })
       .catch((e) => {
