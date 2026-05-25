@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-25-notion-zip-images",
+  "date": "2026-05-25",
+  "type": "fix",
+  "title": "Notion ZIP exports include images even when Notion's download links have expired"
+}
