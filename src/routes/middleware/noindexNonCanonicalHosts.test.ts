@@ -24,11 +24,11 @@ describe('noindexNonCanonicalHosts', () => {
     expect(next).toHaveBeenCalled();
   });
 
-  it('does not add X-Robots-Tag on the www canonical host', () => {
+  it('adds noindex on the www host, which is not canonical', () => {
     const res = mockRes();
     const next = jest.fn();
     noindexNonCanonicalHosts(mockReq('www.2anki.net'), res as unknown as Response, next as NextFunction);
-    expect(res.setHeader).not.toHaveBeenCalled();
+    expect(res.setHeader).toHaveBeenCalledWith('X-Robots-Tag', 'noindex, nofollow');
     expect(next).toHaveBeenCalled();
   });
 
