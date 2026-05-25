@@ -127,7 +127,7 @@ function LandingPage({ copy, setErrorMessage }: Readonly<LandingPageProps>) {
 
       {copy.whatComesAcross != null && (
         <section className={styles.section}>
-          <p className={styles.sectionLabel}>What comes across</p>
+          <p className={styles.sectionLabel}>What you actually get in Anki</p>
           <dl className={styles.stepsGrid}>
             {copy.whatComesAcross.map((item) => (
               <div key={item.title} className={styles.step}>

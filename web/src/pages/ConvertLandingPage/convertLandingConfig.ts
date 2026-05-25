@@ -1,13 +1,15 @@
 import type { LandingCopy } from '../LandingPage/types';
+import { ankiFidelityProof } from '../LandingPage/copy/ankiFidelityProof';
 
 const notionToAnki: LandingCopy = {
   pathname: '/convert/notion-to-anki',
-  title: 'Notion to Anki — turn your notes into flashcards | 2anki',
+  title: 'Notion to Anki — decks that open clean in Anki | 2anki',
   description:
-    'Convert any Notion page into an Anki deck. Connect Notion once, paste a page link, download a .apkg file ready to study.',
+    'Convert any Notion page to an Anki deck that opens clean — cloze stays clickable, images render, toggles become cards. Paste a link, get a .apkg.',
   h1: 'Notion to Anki — turn your notes into flashcards',
   subhead:
     'Connect Notion once, paste any page link, get a .apkg deck. Toggles become cards. No add-on, no copy-pasting.',
+  whatComesAcross: ankiFidelityProof,
   faqs: [
     {
       q: 'How do I connect my Notion workspace?',
@@ -30,12 +32,13 @@ const notionToAnki: LandingCopy = {
 
 const pdfToAnki: LandingCopy = {
   pathname: '/convert/pdf-to-anki',
-  title: 'PDF to Anki — make flashcards from lecture slides | 2anki',
+  title: 'PDF to Anki — flashcards that work in Anki | 2anki',
   description:
-    'Upload a PDF and get an Anki deck. Headings name the deck, bullets become card fronts, and the next line becomes the answer.',
+    'Turn a PDF into an Anki deck that imports clean — correct note types, images embedded, headings as decks. Drop a file, get a .apkg.',
   h1: 'PDF to Anki — make flashcards from lecture slides',
   subhead:
     'Drop a PDF and download a .apkg deck. Works with lecture notes, textbook chapters, and exported slides.',
+  whatComesAcross: ankiFidelityProof,
   faqs: [
     {
       q: 'Will it read a scanned PDF?',
@@ -58,12 +61,13 @@ const pdfToAnki: LandingCopy = {
 
 const markdownToAnki: LandingCopy = {
   pathname: '/convert/markdown-to-anki',
-  title: 'Markdown to Anki — convert .md files and Obsidian notes | 2anki',
+  title: 'Markdown to Anki — decks that open clean in Anki | 2anki',
   description:
-    'Turn a Markdown or Obsidian file into an Anki deck. Top-level bullets become card fronts, nested bullets become the answers.',
+    'Convert Markdown or Obsidian notes to an Anki deck that opens clean — code blocks intact, cloze clickable, bullets become cards.',
   h1: 'Markdown to Anki — convert .md files and Obsidian notes',
   subhead:
     'Drop a .md file and download a deck — bullets, Q/A pairs, and code blocks all come across.',
+  whatComesAcross: ankiFidelityProof,
   faqs: [
     {
       q: 'How does it turn Markdown into cards?',
@@ -86,12 +90,13 @@ const markdownToAnki: LandingCopy = {
 
 const csvToAnki: LandingCopy = {
   pathname: '/convert/csv-to-anki',
-  title: 'CSV to Anki — import spreadsheets as flashcard decks | 2anki',
+  title: 'CSV to Anki — spreadsheets to clean Anki decks | 2anki',
   description:
-    'Convert a CSV or Excel spreadsheet into an Anki deck. First column becomes the card front, second column becomes the back.',
+    'Import a CSV or Excel sheet as an Anki deck that opens clean — correct fields, tags applied, one row per card.',
   h1: 'CSV to Anki — import spreadsheets as flashcard decks',
   subhead:
     'Drop a .csv file and get a .apkg deck. Column A becomes the front, column B becomes the back. Works with Excel exports too.',
+  whatComesAcross: ankiFidelityProof,
   faqs: [
     {
       q: 'What format does the CSV need to be in?',
@@ -114,12 +119,13 @@ const csvToAnki: LandingCopy = {
 
 const htmlToAnki: LandingCopy = {
   pathname: '/convert/html-to-anki',
-  title: 'HTML to Anki — turn web pages into flashcard decks | 2anki',
+  title: 'HTML to Anki — web pages to clean Anki decks | 2anki',
   description:
-    'Upload an HTML file and get an Anki deck. Headings structure the deck, paragraphs and lists become cards.',
+    'Convert an HTML file to an Anki deck that opens clean — images embedded, tables row by row, headings as decks.',
   h1: 'HTML to Anki — turn web pages into flashcard decks',
   subhead:
     'Drop an .html file and download a .apkg deck. Headings, bullets, and tables all come across.',
+  whatComesAcross: ankiFidelityProof,
   faqs: [
     {
       q: 'Where does the HTML come from?',
