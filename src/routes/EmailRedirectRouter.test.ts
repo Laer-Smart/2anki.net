@@ -4,6 +4,7 @@ import { AddressInfo } from 'node:net';
 
 import type { IInactivityEmailRepository } from '../data_layer/InactivityEmailRepository';
 import type { IReEngagementRepository } from '../data_layer/ReEngagementRepository';
+import type { ITrialEndedEmailRepository } from '../data_layer/TrialEndedEmailRepository';
 import type { EventsSink } from '../services/events/EventsSink';
 
 const mockInactivityRepo: jest.Mocked<Pick<IInactivityEmailRepository, 'findByToken'>> = {
@@ -11,6 +12,10 @@ const mockInactivityRepo: jest.Mocked<Pick<IInactivityEmailRepository, 'findByTo
 };
 
 const mockReEngagementRepo: jest.Mocked<Pick<IReEngagementRepository, 'findByToken'>> = {
+  findByToken: jest.fn().mockResolvedValue(null),
+};
+
+const mockTrialEndedRepo: jest.Mocked<Pick<ITrialEndedEmailRepository, 'findByToken'>> = {
   findByToken: jest.fn().mockResolvedValue(null),
 };
 
@@ -25,6 +30,9 @@ jest.mock('../data_layer/InactivityEmailRepository', () =>
 jest.mock('../data_layer/ReEngagementRepository', () =>
   jest.fn().mockImplementation(() => mockReEngagementRepo)
 );
+jest.mock('../data_layer/TrialEndedEmailRepository', () => ({
+  TrialEndedEmailRepository: jest.fn().mockImplementation(() => mockTrialEndedRepo),
+}));
 jest.mock('../services/events/eventsSinkInstance', () => ({
   getEventsSink: jest.fn(() => mockSink),
 }));
@@ -121,6 +129,18 @@ describe('EmailRedirectRouter', () => {
           name: 'email_clicked',
           user_id: 77,
           props: expect.objectContaining({ campaign: 'reengagement', email_id: 9 }),
+        })
+      );
+    });
+
+    it('records email_clicked with user_id when post_trial token resolves', async () => {
+      mockTrialEndedRepo.findByToken.mockResolvedValueOnce({ id: 12, userId: 88 });
+      await fetch(`${url}/r/email?t=trialtoken&c=post_trial&to=/pricing`, { redirect: 'manual' });
+      expect(mockSink.record).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'email_clicked',
+          user_id: 88,
+          props: expect.objectContaining({ campaign: 'post_trial', email_id: 12, destination: '/pricing' }),
         })
       );
     });

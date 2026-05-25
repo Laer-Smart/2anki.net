@@ -23,6 +23,7 @@ function makeEmailService(overrides: Partial<IEmailService> = {}): IEmailService
     sendReEngagementEmail: jest.fn(),
     sendInactivityWarningEmail: jest.fn(),
     sendAbandonedCheckoutRecoveryEmail: jest.fn(),
+    sendTrialEndedEmail: jest.fn().mockResolvedValue(undefined),
     sendParserCanaryAlert: jest.fn().mockResolvedValue(undefined),
     ...overrides,
   } as unknown as IEmailService;

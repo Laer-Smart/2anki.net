@@ -15,6 +15,7 @@ import {
   SUBSCRIPTION_CANCELLED_TEMPLATE,
   SUBSCRIPTION_CANCELLATIONS_LOG_PATH,
   SUBSCRIPTION_SCHEDULED_CANCELLATION_TEMPLATE,
+  TRIAL_ENDED_TEMPLATE,
 } from './constants';
 import { isValidDeckName, addDeckNameSuffix } from '../../lib/anki/format';
 import { ClientResponse } from '@sendgrid/mail';
@@ -58,6 +59,7 @@ export interface IEmailService {
   ): Promise<void>;
   sendInactivityWarningEmail(to: string, token: string, lastConversion?: { deckName: string } | null): Promise<void>;
   sendAbandonedCheckoutRecoveryEmail(to: string): Promise<void>;
+  sendTrialEndedEmail(to: string, token: string, deckCount: number): Promise<void>;
   sendParserCanaryAlert(to: string, summary: string): Promise<void>;
 }
 
@@ -324,6 +326,57 @@ class EmailService implements IEmailService {
     }
   }
 
+  async sendTrialEndedEmail(
+    to: string,
+    token: string,
+    deckCount: number
+  ): Promise<void> {
+    const domain = process.env.DOMAIN ?? 'https://2anki.net';
+    const tokenParam = encodeURIComponent(token);
+    const pricingUrl = `${domain}/r/email?t=${tokenParam}&c=post_trial&to=/pricing`;
+
+    const madeDecks = deckCount > 0;
+    const noun = deckCount === 1 ? 'deck' : 'decks';
+
+    const subject = madeDecks
+      ? `You made ${deckCount} ${noun} during your 2anki trial`
+      : "Your 2anki trial ended — here's what stays free";
+    const lead = madeDecks
+      ? `Your 1-hour trial just ended. You made ${deckCount} ${noun} during that hour.`
+      : 'Your 1-hour trial just ended.';
+    const ctaLabel = madeDecks ? 'Upgrade to continue' : 'Make your first deck';
+    const ctaUrl = madeDecks
+      ? pricingUrl
+      : `${domain}/r/email?t=${tokenParam}&c=post_trial&to=/upload`;
+    const secondaryCta = madeDecks
+      ? ''
+      : `<p class="email-muted" style="text-align: center; margin: 0 0 24px; font-size: 13px;"><a href="${pricingUrl}" style="color: #6b7280;">See pricing</a></p>`;
+
+    const markup = TRIAL_ENDED_TEMPLATE.replaceAll('{{lead}}', lead)
+      .replaceAll('{{ctaLabel}}', ctaLabel)
+      .replaceAll('{{ctaUrl}}', ctaUrl)
+      .replaceAll('{{secondaryCta}}', secondaryCta);
+
+    const $ = cheerio.load(markup);
+    const text = $('body').text().replace(/\s+/g, ' ').trim();
+
+    const msg = {
+      to,
+      from: this.defaultSender,
+      subject,
+      text,
+      html: markup,
+      replyTo: 'support@2anki.net',
+    };
+
+    try {
+      await sgMail.send(msg);
+    } catch (error) {
+      console.error(`Failed to send trial-ended email to ${to}:`, error);
+      throw error;
+    }
+  }
+
   private loadCancellationsSent(): Set<string> {
     try {
       // Ensure .2anki directory exists
@@ -545,6 +598,10 @@ export class UnimplementedEmailService implements IEmailService {
 
   async sendAbandonedCheckoutRecoveryEmail(to: string): Promise<void> {
     console.info('sendAbandonedCheckoutRecoveryEmail not handled', to);
+  }
+
+  async sendTrialEndedEmail(to: string, token: string, deckCount: number): Promise<void> {
+    console.info('sendTrialEndedEmail not handled', to, token, deckCount);
   }
 
   async sendParserCanaryAlert(to: string, summary: string): Promise<void> {
