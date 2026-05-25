@@ -172,6 +172,7 @@ export function Sidebar({
   const showAnkify =
     locals?.patreon === true || locals?.autoSyncActive === true;
   const showFavorites = email != null && email !== '';
+  const isLoggedIn = locals != null;
   const paying = isPayingUser(locals);
   const showPricing = !paying;
   const showKi = features?.kiUI === true;
@@ -179,7 +180,7 @@ export function Sidebar({
   const showAdminGroup = showKi || showOps;
   const trialCountdown = useTrialCountdown(locals?.trial_started_at);
   const planLabel = trialCountdown ?? getPlanLabel(locals);
-  const usage = useCardUsage(!paying);
+  const usage = useCardUsage(isLoggedIn && !paying);
   const showUsage = usage != null && !usage.unlimited && !usage.loading;
 
   const handleNavClick = (

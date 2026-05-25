@@ -8,12 +8,14 @@ interface SearchContainerProps {
   backend: Backend;
   setError: ErrorHandlerType;
   workSpace: string | null;
+  isLoggedIn: boolean;
 }
 
 export default function SearchContainer({
   backend,
   setError,
   workSpace,
+  isLoggedIn,
 }: Readonly<SearchContainerProps>) {
   const {
     myPages,
@@ -33,6 +35,7 @@ export default function SearchContainer({
       searchQuery={searchQuery}
       triggerSearch={triggerSearch}
       workSpace={workSpace}
+      isLoggedIn={isLoggedIn}
     />
   );
 }
