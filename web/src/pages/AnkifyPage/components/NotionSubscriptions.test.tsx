@@ -302,6 +302,7 @@ describe('NotionSubscriptions sync copy', () => {
       errors: [],
       anki_web_sync: 'synced' as const,
       anki_web_sync_error: null,
+      diagnostic: null,
     }));
     const backend = makeBackend({
       listAnkifySubscriptions: vi.fn(async () => [
@@ -326,7 +327,46 @@ describe('NotionSubscriptions sync copy', () => {
     ).toBeInTheDocument();
   });
 
-  test('a refresh that returns no changes shows "Already up to date"', async () => {
+  test('State A: blocks_matched === 0 shows "No patterns found" flash and the zero banner', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({ id: 12, notion_page_id: 'b'.repeat(32) }),
+      ]),
+      refreshAnkifySubscription: vi.fn(async () => ({
+        created: 0,
+        updated: 0,
+        conflicts: 0,
+        unchanged: 0,
+        errors: [],
+        anki_web_sync: 'skipped' as const,
+        anki_web_sync_error: null,
+        diagnostic: {
+          blocks_scanned: 7,
+          blocks_matched: 0,
+          pattern_hits: {},
+          unmatched_samples: undefined,
+        },
+      })),
+    });
+
+    renderSubs(backend);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /options for my deck/i })
+    );
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: /update my deck now/i })
+    );
+
+    expect(
+      await screen.findByText(/no patterns found/i)
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('link', { name: /what ankify looks for/i })
+    ).toBeInTheDocument();
+  });
+
+  test('State B: blocks_matched > 0 but nothing changed shows "Already up to date" flash and no banner', async () => {
     const backend = makeBackend({
       listAnkifySubscriptions: vi.fn(async () => [
         sampleSubscription({ id: 12, notion_page_id: 'b'.repeat(32) }),
@@ -339,6 +379,12 @@ describe('NotionSubscriptions sync copy', () => {
         errors: [],
         anki_web_sync: 'skipped' as const,
         anki_web_sync_error: null,
+        diagnostic: {
+          blocks_scanned: 9,
+          blocks_matched: 5,
+          pattern_hits: { toggle: 5 },
+          unmatched_samples: undefined,
+        },
       })),
     });
 
@@ -354,6 +400,43 @@ describe('NotionSubscriptions sync copy', () => {
     expect(
       await screen.findByText(/already up to date/i)
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /what ankify looks for/i })
+    ).not.toBeInTheDocument();
+  });
+
+  test('graceful degrade: diagnostic null + zero count shows "Already up to date" and no banner', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({ id: 12, notion_page_id: 'b'.repeat(32) }),
+      ]),
+      refreshAnkifySubscription: vi.fn(async () => ({
+        created: 0,
+        updated: 0,
+        conflicts: 0,
+        unchanged: 9,
+        errors: [],
+        anki_web_sync: 'skipped' as const,
+        anki_web_sync_error: null,
+        diagnostic: null,
+      })),
+    });
+
+    renderSubs(backend);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /options for my deck/i })
+    );
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: /update my deck now/i })
+    );
+
+    expect(
+      await screen.findByText(/already up to date/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /what ankify looks for/i })
+    ).not.toBeInTheDocument();
   });
 
   test('a 429 cooldown error renders inline retry guidance', async () => {
@@ -397,6 +480,7 @@ describe('NotionSubscriptions sync copy', () => {
         errors: [],
         anki_web_sync: 'skipped' as const,
         anki_web_sync_error: null,
+        diagnostic: null,
       })),
     });
 
@@ -423,6 +507,7 @@ describe('NotionSubscriptions sync copy', () => {
       errors: string[];
       anki_web_sync: 'synced' | 'failed' | 'skipped';
       anki_web_sync_error: string | null;
+      diagnostic: null;
     }) => void = () => undefined;
     const refresh = vi.fn(
       () =>
@@ -434,6 +519,7 @@ describe('NotionSubscriptions sync copy', () => {
           errors: string[];
           anki_web_sync: 'synced' | 'failed' | 'skipped';
           anki_web_sync_error: string | null;
+          diagnostic: null;
         }>((resolve) => {
           resolveRefresh = resolve;
         })
@@ -465,12 +551,164 @@ describe('NotionSubscriptions sync copy', () => {
         errors: [],
         anki_web_sync: 'synced',
         anki_web_sync_error: null,
+        diagnostic: null,
       });
     });
 
     await waitFor(() =>
       expect(screen.queryByText(/updating now…/i)).not.toBeInTheDocument()
     );
+  });
+
+  test('shows zero-cards banner with block count when refresh returns 0 matched blocks', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({ id: 20, notion_page_id: 'f'.repeat(32) }),
+      ]),
+      refreshAnkifySubscription: vi.fn(async () => ({
+        created: 0,
+        updated: 0,
+        conflicts: 0,
+        unchanged: 0,
+        errors: [],
+        anki_web_sync: 'skipped' as const,
+        anki_web_sync_error: null,
+        diagnostic: {
+          blocks_scanned: 12,
+          blocks_matched: 0,
+          pattern_hits: {},
+          unmatched_samples: undefined,
+        },
+      })),
+    });
+
+    renderSubs(backend);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /options for my deck/i })
+    );
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: /update my deck now/i })
+    );
+
+    expect(
+      await screen.findByRole('link', { name: /what ankify looks for/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((_, el) => el?.tagName === 'STRONG' && el.textContent === '12')
+    ).toBeInTheDocument();
+  });
+
+  test('shows unmatched_samples in a details panel when present with updated summary text', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({ id: 21, notion_page_id: 'g'.repeat(32) }),
+      ]),
+      refreshAnkifySubscription: vi.fn(async () => ({
+        created: 0,
+        updated: 0,
+        conflicts: 0,
+        unchanged: 0,
+        errors: [],
+        anki_web_sync: 'skipped' as const,
+        anki_web_sync_error: null,
+        diagnostic: {
+          blocks_scanned: 5,
+          blocks_matched: 0,
+          pattern_hits: {},
+          unmatched_samples: ['Introduction', 'Chapter 1', 'Summary'],
+        },
+      })),
+    });
+
+    renderSubs(backend);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /options for my deck/i })
+    );
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: /update my deck now/i })
+    );
+
+    expect(
+      await screen.findByText(/what we saw on this page \(first 3\)/i)
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText('Introduction')).toBeInTheDocument()
+    );
+    expect(screen.getByText('Chapter 1')).toBeInTheDocument();
+    expect(screen.getByText('Summary')).toBeInTheDocument();
+  });
+
+  test('diagnostic null with zero count shows "Already up to date" and no banner', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({ id: 22, notion_page_id: 'h'.repeat(32) }),
+      ]),
+      refreshAnkifySubscription: vi.fn(async () => ({
+        created: 0,
+        updated: 0,
+        conflicts: 0,
+        unchanged: 0,
+        errors: [],
+        anki_web_sync: 'skipped' as const,
+        anki_web_sync_error: null,
+        diagnostic: null,
+      })),
+    });
+
+    renderSubs(backend);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /options for my deck/i })
+    );
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: /update my deck now/i })
+    );
+
+    expect(
+      await screen.findByText(/already up to date/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /what ankify looks for/i })
+    ).not.toBeInTheDocument();
+  });
+
+  test('does not show zero-cards banner when cards were created', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({ id: 23, notion_page_id: 'i'.repeat(32) }),
+      ]),
+      refreshAnkifySubscription: vi.fn(async () => ({
+        created: 5,
+        updated: 0,
+        conflicts: 0,
+        unchanged: 0,
+        errors: [],
+        anki_web_sync: 'synced' as const,
+        anki_web_sync_error: null,
+        diagnostic: {
+          blocks_scanned: 5,
+          blocks_matched: 5,
+          pattern_hits: { toggle: 5 },
+          unmatched_samples: undefined,
+        },
+      })),
+    });
+
+    renderSubs(backend);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /options for my deck/i })
+    );
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: /update my deck now/i })
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/updated · 5 new cards/i)).toBeInTheDocument()
+    );
+    expect(screen.queryByRole('link', { name: /what ankify looks for/i })).not.toBeInTheDocument();
   });
 
   test('error line takes precedence over next-export line', async () => {

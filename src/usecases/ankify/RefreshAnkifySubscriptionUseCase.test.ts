@@ -53,6 +53,7 @@ const makeSyncUseCase = (): jest.Mocked<
     errors: [],
     ankiWebSync: 'synced' as const,
     ankiWebSyncError: null,
+    diagnostic: null,
   })),
 });
 

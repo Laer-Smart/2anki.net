@@ -346,6 +346,7 @@ class AnkifyController {
         errors: result.errors,
         anki_web_sync: result.ankiWebSync,
         anki_web_sync_error: result.ankiWebSyncError,
+        diagnostic: result.diagnostic,
       });
     } catch (error) {
       if (error instanceof NoActiveAnkifyClientError) {
@@ -401,6 +402,7 @@ class AnkifyController {
         errors: result.errors,
         anki_web_sync: result.ankiWebSync,
         anki_web_sync_error: result.ankiWebSyncError,
+        diagnostic: result.diagnostic,
       });
     } catch (error) {
       if (error instanceof SubscriptionNotFoundError) {

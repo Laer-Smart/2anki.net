@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-25-ankify-zero-cards-reason",
+  "date": "2026-05-25",
+  "type": "fix",
+  "title": "Ankify tells you when a page has no content it recognizes — instead of silently reporting zero cards"
+}
