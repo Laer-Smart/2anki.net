@@ -212,7 +212,7 @@ function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, on
 }
 
 function readSidebarCollapsed(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof globalThis.window === 'undefined') return false;
   return localStorage.getItem('mindmap-editor.sidebar.collapsed') === '1';
 }
 
@@ -814,11 +814,13 @@ export function MindmapEditor() {
     );
   }
 
+  const sidebarClass = `${styles.sidebar} ${styles.sidebarCollapsed}`;
+
   return (
     <div data-testid="editor-root" className={styles.editorRoot}>
       <div
         data-testid="editor-sidebar"
-        className={`${styles.sidebar}${sidebarCollapsed ? ` ${styles.sidebarCollapsed}` : ''}`}
+        className={sidebarCollapsed ? sidebarClass : styles.sidebar}
       >
         <Link to="/mindmaps" className={styles.backLink}>
           <ChevronLeftIcon />
