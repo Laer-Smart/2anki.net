@@ -3,6 +3,23 @@
 
 <head>
   <meta charset="utf-8" />
+  <!-- Apply the saved/system theme before first paint so the page never flashes
+       the light default before the bundle's initTheme() runs. Mirrors
+       getStoredTheme() + applyTheme() in src/lib/theme.ts. -->
+  <script>
+    (function () {
+      try {
+        var valid = ['light', 'dark', 'gold', 'purple', 'hotpink'];
+        var t = localStorage.getItem('2anki-theme');
+        if (!t || valid.indexOf(t) === -1) {
+          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        if (t !== 'light') {
+          document.documentElement.dataset.theme = t;
+        }
+      } catch (e) {}
+    })();
+  </script>
   <link rel="canonical" href="https://2anki.net" />
   <link rel="icon" href="/favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />

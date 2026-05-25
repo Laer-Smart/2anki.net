@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-25-theme-flash",
+  "date": "2026-05-25",
+  "type": "fix",
+  "title": "Landing pages open cleanly — no white flash or text resize on load"
+}
