@@ -23,14 +23,14 @@ describe('redirectConvertDuplicates', () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it('preserves the query string in the redirect target', () => {
+  it('redirects to the bare canonical path, dropping any query string', () => {
     const { req, res, next } = mockReqRes(
       '/convert/pdf-to-anki',
       '/convert/pdf-to-anki?ref=ai'
     );
     redirectConvertDuplicates(req, res, next);
 
-    expect(res.redirect).toHaveBeenCalledWith(301, '/pdf-to-anki?ref=ai');
+    expect(res.redirect).toHaveBeenCalledWith(301, '/pdf-to-anki');
     expect(next).not.toHaveBeenCalled();
   });
 

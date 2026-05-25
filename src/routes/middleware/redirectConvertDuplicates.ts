@@ -1,27 +1,26 @@
 import { Request, Response, NextFunction } from 'express';
 
-const DUPLICATE_SLUGS = new Set([
-  'notion-to-anki',
-  'pdf-to-anki',
-  'markdown-to-anki',
+// Duplicate /convert/<slug> paths that should 301 to their bare canonical
+// twin. The destinations are hard-coded constants looked up by exact path, so
+// no request data reaches the redirect target — the bare canonical path is the
+// only possible outcome. The query string is intentionally dropped: these are
+// canonicalization redirects for duplicate URLs, and search engines key on the
+// path.
+const CONVERT_REDIRECTS = new Map<string, string>([
+  ['/convert/notion-to-anki', '/notion-to-anki'],
+  ['/convert/pdf-to-anki', '/pdf-to-anki'],
+  ['/convert/markdown-to-anki', '/markdown-to-anki'],
 ]);
-
-const CONVERT_PREFIX = '/convert/';
 
 export function redirectConvertDuplicates(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  if (req.path.startsWith(CONVERT_PREFIX)) {
-    const slug = req.path.slice(CONVERT_PREFIX.length);
-    if (DUPLICATE_SLUGS.has(slug)) {
-      // Parse the query through the URL API rather than splicing the raw
-      // request string, so the redirect target stays a constant relative path.
-      const { search } = new URL(req.originalUrl, 'http://canonical.invalid');
-      res.redirect(301, `/${slug}${search}`);
-      return;
-    }
+  const target = CONVERT_REDIRECTS.get(req.path);
+  if (target != null) {
+    res.redirect(301, target);
+    return;
   }
   next();
 }
