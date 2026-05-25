@@ -19,7 +19,7 @@ that has to happen first. Flipping the workflow is a later PR — see
 | `ecosystem.blue-green.config.js` | repo | two apps: `server-blue` (`PORT=3000`), `server-green` (`PORT=3001`) |
 | `scripts/deploy-blue-green.sh` | repo | the cutover: start next color → health-check → swap Apache → drain old color |
 | `/etc/apache2/conf-2anki-upstream.conf` | prod, generated | one upstream block; rewritten by the script each deploy |
-| `2anki.net.conf` site config | prod, manual one-time edit | `Include`s the upstream file instead of a static `ProxyPass` |
+| four Apache vhosts (`000-2anki*`, `000-beta*`) | prod, manual one-time edit | each `Include`s the upstream file instead of a static `ProxyPass` — see [One-time Apache setup](#one-time-apache-setup) |
 | `~/.deploy_color` | prod, state | `blue` or `green` — the currently live color |
 
 `server-green` binds 3001 even though prod's `.env` sets `PORT=3000`: pm2 injects
@@ -28,20 +28,34 @@ false`, so the pm2 value wins. Confirmed against prod.
 
 ## One-time Apache setup
 
-In the prod site config (`/etc/apache2/sites-available/2anki.net.conf`), replace
-the static upstream:
+Prod does **not** have a single proxy vhost. Four enabled vhosts all proxy the
+same backend on `localhost:3000`:
+
+| vhost | serves |
+|---|---|
+| `000-2anki.conf` | `2anki.net` :80 |
+| `000-2anki-le-ssl.conf` | `2anki.net` :443 (the live site) |
+| `000-beta.conf` | `beta.2anki.net` :80 |
+| `000-beta-le-ssl.conf` | `beta.2anki.net` :443 |
+
+Every one of them must track the live color. The script flips a single upstream
+file, so the setup is: point **all four** vhosts at the *same* include. A
+cutover deletes the old color's port, so any vhost left hardcoded at `:3000`
+starts returning 502 the moment the live color moves to green — beta included.
+
+In each vhost, replace the two proxy lines:
 
 ```apache
-# before
-ProxyPass / http://127.0.0.1:3000/
-ProxyPassReverse / http://127.0.0.1:3000/
+# before (in every app-serving vhost)
+ProxyPass / http://localhost:3000/
+ProxyPassReverse / http://localhost:3000/
 
 # after
 Include /etc/apache2/conf-2anki-upstream.conf
 ```
 
 Seed the include file to point at the current live port (3000) so Apache has a
-valid config before the first script run:
+valid config before the first script run, then verify and reload:
 
 ```bash
 printf 'ProxyPass / http://127.0.0.1:3000/\nProxyPassReverse / http://127.0.0.1:3000/\n' \
@@ -49,8 +63,15 @@ printf 'ProxyPass / http://127.0.0.1:3000/\nProxyPassReverse / http://127.0.0.1:
 sudo apachectl configtest && sudo apachectl graceful
 ```
 
-The deploy user needs passwordless sudo for `tee`, `mv`, and `apachectl` on these
-paths (it already reloads Apache today).
+`127.0.0.1` and `localhost` are equivalent here; the script writes `127.0.0.1`
+to avoid IPv6-localhost resolution surprises. The deploy user already has
+passwordless sudo (`NOPASSWD: ALL`), so `tee`, `mv`, and `apachectl` work
+unattended.
+
+While you're in `sites-enabled/`, move the stale
+`000-2anki-le-ssl.conf.bak.*` backup out of the directory. Apache only loads
+`*.conf`, so it's inert today, but a backup that ends in `.conf` would silently
+load a second, conflicting vhost.
 
 ## First cutover (bootstrap)
 
