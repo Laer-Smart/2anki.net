@@ -22,6 +22,7 @@ describe('TrackEventUseCase', () => {
     const useCase = new TrackEventUseCase(sink);
     useCase.execute({
       name: 'deck_downloaded',
+      unknown: false,
       userId: 7,
       anonymousId: 'anon-abc',
       props: { source: 'upload' },
@@ -45,6 +46,7 @@ describe('TrackEventUseCase', () => {
     const useCase = new TrackEventUseCase(sink);
     useCase.execute({
       name: 'conversion_succeeded',
+      unknown: false,
       userId: null,
       anonymousId: null,
       props: { email: 'x@x.com', source: 'notion', token: 'abc' },
@@ -61,6 +63,7 @@ describe('TrackEventUseCase', () => {
     expect(() =>
       useCase.execute({
         name: 'conversion_succeeded',
+        unknown: false,
         userId: null,
         anonymousId: null,
         props: { data: 'x'.repeat(1025) },

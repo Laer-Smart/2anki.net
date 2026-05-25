@@ -5,7 +5,8 @@ const PII_KEY_PATTERN = /email|token|password|filename|content|title/i;
 const PROPS_MAX_BYTES = 1024;
 
 export interface TrackEventInput {
-  name: KnownEvent;
+  name: string;
+  unknown: boolean;
   userId: number | null;
   anonymousId: string | null;
   props: Record<string, unknown>;
@@ -15,7 +16,10 @@ export class TrackEventUseCase {
   constructor(private readonly sink: EventsSink) {}
 
   execute(input: TrackEventInput): void {
-    const { name, userId, anonymousId, props } = input;
+    const { name, unknown, userId, anonymousId, props } = input;
+    if (unknown) {
+      console.warn(`[events] unknown event received: ${name}`);
+    }
     const safeProps = this.stripPiiKeys(props);
     const serialized = JSON.stringify(safeProps);
     if (serialized.length > PROPS_MAX_BYTES) {

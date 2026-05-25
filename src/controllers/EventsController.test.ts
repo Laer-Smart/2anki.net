@@ -3,6 +3,8 @@ import { EventsController } from './EventsController';
 import { TrackEventUseCase } from '../usecases/events/TrackEventUseCase';
 import { EventsSink } from '../services/events/EventsSink';
 import { IEventsRepository } from '../data_layer/EventsRepository';
+import * as path from 'path';
+import * as fs from 'fs';
 
 function makeFakeRepository(): IEventsRepository {
   return {
@@ -46,9 +48,16 @@ describe('EventsController', () => {
     expect(res.status).toHaveBeenCalledWith(400);
   });
 
-  it('returns 400 when name is not in KNOWN_EVENTS', () => {
+  it('returns 400 when name is not a string', () => {
     const { controller, req, res } = buildMocks({});
-    req.body = { name: 'hacked_event_name' };
+    req.body = { name: 42 };
+    controller.track(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it('returns 400 when name exceeds 64 characters', () => {
+    const { controller, req, res } = buildMocks({});
+    req.body = { name: 'a'.repeat(65) };
     controller.track(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
   });
@@ -75,6 +84,46 @@ describe('EventsController', () => {
     req.body = { name: 'deck_downloaded' };
     controller.track(req, res);
     expect(res.status).toHaveBeenCalledWith(202);
+  });
+
+  it('returns 202 for paywall_dismissed (AC #1)', () => {
+    const { controller, req, res } = buildMocks({ userId: 1 });
+    req.body = { name: 'paywall_dismissed' };
+    controller.track(req, res);
+    expect(res.status).toHaveBeenCalledWith(202);
+  });
+
+  it('returns 202 for pricing_left (AC #2)', () => {
+    const { controller, req, res } = buildMocks({ userId: 1 });
+    req.body = { name: 'pricing_left' };
+    controller.track(req, res);
+    expect(res.status).toHaveBeenCalledWith(202);
+  });
+
+  it('returns 202 for upload_failed (AC #3)', () => {
+    const { controller, req, res } = buildMocks({ userId: 1 });
+    req.body = { name: 'upload_failed' };
+    controller.track(req, res);
+    expect(res.status).toHaveBeenCalledWith(202);
+  });
+
+  it('records unknown event name tagged with unknown:true and does not 400 (AC #4)', () => {
+    const { controller, req, res, executeSpy } = buildMocks({ userId: 1 });
+    req.body = { name: 'not_a_real_event_xyzzy' };
+    controller.track(req, res);
+    expect(res.status).toHaveBeenCalledWith(202);
+    expect(executeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ unknown: true })
+    );
+  });
+
+  it('known events are NOT tagged unknown', () => {
+    const { controller, req, res, executeSpy } = buildMocks({ userId: 1 });
+    req.body = { name: 'deck_downloaded' };
+    controller.track(req, res);
+    expect(executeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ unknown: false })
+    );
   });
 
   it('reads userId from res.locals.owner and never from request body', () => {
@@ -126,6 +175,26 @@ describe('EventsController', () => {
     'sidebar_auto_minimize_reverted',
     'card_size_selected',
   ])('returns 202 for sidebar/card-size event: %s', (eventName) => {
+    const { controller, req, res } = buildMocks({ userId: 1 });
+    req.body = { name: eventName };
+    controller.track(req, res);
+    expect(res.status).toHaveBeenCalledWith(202);
+  });
+});
+
+describe('EventsController — regression: all client events return 202 (AC #5)', () => {
+  const clientEventsPath = path.resolve(
+    __dirname,
+    '../../web/src/lib/analytics/events.ts'
+  );
+
+  const clientEventsSource = fs.readFileSync(clientEventsPath, 'utf-8');
+  const matches = clientEventsSource.matchAll(/'([a-z_]+)'/g);
+  const clientEventNames = [...matches]
+    .map((m) => m[1])
+    .filter((n) => n !== 'as');
+
+  it.each(clientEventNames)('server returns 202 for client event: %s', (eventName) => {
     const { controller, req, res } = buildMocks({ userId: 1 });
     req.body = { name: eventName };
     controller.track(req, res);
