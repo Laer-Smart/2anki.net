@@ -31,8 +31,8 @@ function toText(error: unknown): string {
 
 const NOTION_UNAUTHORIZED: FriendlyError = {
   title: 'Your Notion connection expired',
-  detail: 'Reconnect Notion on the upload page to keep converting.',
-  actionLink: { text: 'Go to the upload page', to: '/upload' },
+  detail: 'Reconnect to keep converting pages directly.',
+  actionLink: { text: 'Reconnect Notion', to: '/notion' },
 };
 
 function isNotionUnauthorized(error: unknown): boolean {

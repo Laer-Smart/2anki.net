@@ -85,6 +85,8 @@ describe('Upload file', () => {
       deleteNotionData(owner: number): Promise<boolean> {
         return Promise.resolve(true);
       },
+      markTokenInvalid: jest.fn().mockResolvedValue(undefined),
+      clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
     };
     const uploadService = new UploadService(repository, {} as JobRepository);
     const notionService = new NotionService(notionRepository);
@@ -144,6 +146,8 @@ describe('Upload file — multer error handling', () => {
       getNotionToken: jest.fn() as INotionRepository['getNotionToken'],
       deleteBlocksByOwner: jest.fn() as INotionRepository['deleteBlocksByOwner'],
       deleteNotionData: jest.fn() as INotionRepository['deleteNotionData'],
+      markTokenInvalid: jest.fn().mockResolvedValue(undefined),
+      clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
     };
     const uploadService = new UploadService(repository, {} as JobRepository);
     const notionService = new NotionService(notionRepository);

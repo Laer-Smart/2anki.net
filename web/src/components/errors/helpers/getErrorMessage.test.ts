@@ -86,18 +86,18 @@ describe('classifyError — notion_unauthorized', () => {
   it('new structured code returns reconnect copy', () => {
     const result = classifyError({ code: 'notion_unauthorized', message: 'API token is invalid.' });
     expect(result.title).toBe('Your Notion connection expired');
-    expect(result.detail).toBe('Reconnect Notion on the upload page to keep converting.');
+    expect(result.detail).toBe('Reconnect to keep converting pages directly.');
   });
 
   it('legacy text "api token is invalid" (case-insensitive) returns reconnect copy', () => {
     const result = classifyError(new Error('API token is invalid.'));
     expect(result.title).toBe('Your Notion connection expired');
-    expect(result.detail).toBe('Reconnect Notion on the upload page to keep converting.');
+    expect(result.detail).toBe('Reconnect to keep converting pages directly.');
   });
 
-  it('action link path is /upload', () => {
+  it('action link points to the Notion connect page', () => {
     const result = classifyError({ code: 'notion_unauthorized', message: '' });
-    expect(result.actionLink).toEqual({ text: 'Go to the upload page', to: '/upload' });
+    expect(result.actionLink).toEqual({ text: 'Reconnect Notion', to: '/notion' });
   });
 });
 

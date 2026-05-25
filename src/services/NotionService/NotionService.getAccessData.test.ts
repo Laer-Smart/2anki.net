@@ -25,6 +25,8 @@ function makeService() {
 		getNotionToken: jest.fn().mockResolvedValue(null),
 		deleteBlocksByOwner: jest.fn().mockResolvedValue(0),
 		deleteNotionData: jest.fn().mockResolvedValue(true),
+		markTokenInvalid: jest.fn().mockResolvedValue(undefined),
+		clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
 	};
 	return new NotionService(stubRepo);
 }

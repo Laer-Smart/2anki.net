@@ -41,6 +41,8 @@ function makeController(
     getNotionToken: jest.fn().mockResolvedValue('...'),
     deleteBlocksByOwner: jest.fn().mockResolvedValue(1),
     deleteNotionData: jest.fn().mockResolvedValue(true),
+    markTokenInvalid: jest.fn().mockResolvedValue(undefined),
+    clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
   };
   const uploadService = new UploadService(
     uploadRepository,

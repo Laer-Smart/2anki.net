@@ -12,6 +12,8 @@ export interface INotionRepository {
   getNotionToken(owner: string): Promise<string | null>;
   deleteBlocksByOwner(owner: number): Promise<number>;
   deleteNotionData(owner: number): Promise<boolean>;
+  markTokenInvalid(owner: number): Promise<void>;
+  clearTokenInvalid(owner: number): Promise<void>;
 }
 
 class NotionRepository implements INotionRepository {
@@ -28,7 +30,7 @@ class NotionRepository implements INotionRepository {
 
     return this.database(this.notionTokensTable)
       .where({ owner: owner })
-      .returning(['token', 'workspace_name'])
+      .select('*')
       .first();
   }
 
@@ -48,6 +50,7 @@ class NotionRepository implements INotionRepository {
           notion_owner: data.owner, // This actually JSON blob from Notion and not related to our owner id
           token: hash(data.access_token),
           owner: user,
+          invalidated_at: null,
         })
         .onConflict('owner')
         .merge()
@@ -75,7 +78,7 @@ class NotionRepository implements INotionRepository {
     }
     const row = await this.database('notion_tokens')
       .where({ owner })
-      .returning('token')
+      .select('token')
       .first();
 
     /**
@@ -97,6 +100,18 @@ class NotionRepository implements INotionRepository {
    */
   deleteNotionData(owner: number | string): Promise<boolean> {
     return this.database(this.notionTokensTable).where({ owner: owner }).del();
+  }
+
+  async markTokenInvalid(owner: number): Promise<void> {
+    await this.database(this.notionTokensTable)
+      .where({ owner })
+      .update({ invalidated_at: this.database.fn.now() });
+  }
+
+  async clearTokenInvalid(owner: number): Promise<void> {
+    await this.database(this.notionTokensTable)
+      .where({ owner })
+      .update({ invalidated_at: null });
   }
 }
 
