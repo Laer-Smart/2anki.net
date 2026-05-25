@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-25-chat-signin-prompt",
+  "date": "2026-05-25",
+  "type": "fix",
+  "title": "Chat consent modal now shows a sign-in link for logged-out users instead of silently doing nothing"
+}
