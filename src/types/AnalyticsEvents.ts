@@ -35,6 +35,10 @@ export const KNOWN_EVENTS = new Set([
   'home_ai_anon_badge_viewed',
   'home_ai_anon_badge_clicked',
   'tts_lang_injected',
+  'paywall_dismissed',
+  'pricing_left',
+  'upload_failed',
+  'cancel_during_generating',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;

@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
-import { KNOWN_EVENTS, KnownEvent } from '../types/AnalyticsEvents';
+import { KNOWN_EVENTS } from '../types/AnalyticsEvents';
 import { TrackEventUseCase } from '../usecases/events/TrackEventUseCase';
 
 const PROPS_MAX_BYTES = 1024;
+const EVENT_NAME_MAX_LENGTH = 64;
 
 export class EventsController {
   constructor(private readonly trackEventUseCase: TrackEventUseCase) {}
@@ -13,8 +14,8 @@ export class EventsController {
       props?: unknown;
     };
 
-    if (typeof name !== 'string' || !KNOWN_EVENTS.has(name as KnownEvent)) {
-      res.status(400).json({ error: 'Unknown event name' });
+    if (typeof name !== 'string' || name.length === 0 || name.length > EVENT_NAME_MAX_LENGTH) {
+      res.status(400).json({ error: 'Invalid event name' });
       return;
     }
 
@@ -34,7 +35,8 @@ export class EventsController {
     const anonymousId = (req.cookies?.anon_id as string | undefined) ?? null;
 
     this.trackEventUseCase.execute({
-      name: name as KnownEvent,
+      name,
+      unknown: !KNOWN_EVENTS.has(name as Parameters<typeof KNOWN_EVENTS.has>[0]),
       userId,
       anonymousId,
       props: safeProps,
