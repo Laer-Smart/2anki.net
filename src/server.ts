@@ -73,6 +73,8 @@ import { updateStripeSubscriptions } from './lib/storage/jobs/helpers/updateStri
 import { scheduleReEngagementEmails } from './lib/reengagement/jobs/scheduleReEngagementEmails';
 import { scheduleInactivityWarnings } from './lib/inactivity/jobs/scheduleInactivityWarnings';
 import { scheduleParserCanary } from './lib/parser/canary/scheduleParserCanary';
+import { schedulePassReconciliation } from './lib/payments/schedulePassReconciliation';
+import { getStripe } from './lib/integrations/stripe';
 import { getDefaultEmailService } from './services/EmailService/EmailService';
 import { SendInactivityWarningsUseCase } from './usecases/ops/SendInactivityWarningsUseCase';
 import { initConversionPool } from './lib/conversionPool';
@@ -255,6 +257,10 @@ const serve = async () => {
   const sendInactivityWarningsUseCase = new SendInactivityWarningsUseCase(inactivityEmailRepo, emailService, uploadRepo);
   scheduleInactivityWarnings(sendInactivityWarningsUseCase, { eventsSink });
   scheduleParserCanary(emailService);
+
+  if (process.env.STRIPE_KEY != null && process.env.STRIPE_KEY.length > 0) {
+    schedulePassReconciliation(getStripe(), database);
+  }
 };
 
 serve().catch((error) => {
