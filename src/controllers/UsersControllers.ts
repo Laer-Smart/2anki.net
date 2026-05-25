@@ -7,6 +7,7 @@ import AuthenticationService, {
 import UsersService from '../services/UsersService';
 import { getRedirect } from './helpers/getRedirect';
 import { parseSignupOrigin } from './helpers/parseSignupOrigin';
+import { SESSION_MAX_AGE_MS } from '../shared/session';
 
 import { sendIndex } from './IndexController/sendIndex';
 import { getRandomUUID } from '../shared/helpers/getRandomUUID';
@@ -131,7 +132,7 @@ class UsersController {
       if (token) {
         await this.authService.persistToken(token, user.id.toString());
         await this.userService.updateLastLoginAt(user.id.toString());
-        res.cookie('token', token);
+        res.cookie('token', token, { maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' });
         const redirect = await this.landingForUser(req, user.id);
         res.status(200).json({ token, redirect });
       }
@@ -204,7 +205,7 @@ class UsersController {
         if (token) {
           await this.authService.persistToken(token, newUser.id.toString());
           await this.userService.updateLastLoginAt(newUser.id.toString());
-          res.cookie('token', token);
+          res.cookie('token', token, { maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' });
           return res.status(200).json({ token });
         }
       }
@@ -626,7 +627,7 @@ class UsersController {
       }
       await this.authService.persistToken(token, user.id.toString());
       await this.userService.updateLastLoginAt(user.id.toString());
-      res.cookie('token', token);
+      res.cookie('token', token, { maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' });
       res.status(200).redirect(await this.landingForUser(req, user.id));
     } else {
       await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_token_exchange_failed' });
@@ -717,7 +718,7 @@ class UsersController {
     }
     await this.authService.persistToken(token, user.id.toString());
     await this.userService.updateLastLoginAt(user.id.toString());
-    res.cookie('token', token);
+    res.cookie('token', token, { maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' });
     res.status(200).redirect(await this.landingForUser(req, user.id));
   }
 
@@ -811,7 +812,7 @@ class UsersController {
     }
     await this.authService.persistToken(token, user.id.toString());
     await this.userService.updateLastLoginAt(user.id.toString());
-    res.cookie('token', token);
+    res.cookie('token', token, { maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' });
     res.status(200).redirect(await this.landingForUser(req, user.id));
   }
 
@@ -880,7 +881,7 @@ class UsersController {
     const notionRepository = new NotionRepository(this.db);
     await notionRepository.saveNotionToken(user.id, accessData, hashToken);
 
-    res.cookie('token', token);
+    res.cookie('token', token, { maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' });
     return res.status(200).redirect('/notion');
   }
 
@@ -967,7 +968,7 @@ class UsersController {
         await this.authService.persistToken(jwtToken, user.id.toString());
         await this.userService.updateLastLoginAt(user.id.toString());
         await this.userService.markEmailVerified(user.id.toString());
-        res.cookie('token', jwtToken);
+        res.cookie('token', jwtToken, { maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' });
         return res.status(200).json({ token: jwtToken });
       }
 
