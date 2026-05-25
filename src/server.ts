@@ -39,6 +39,7 @@ import templatesRouter from './routes/TemplatesRouter';
 import defaultRouter from './routes/DefaultRouter';
 import rejectScannerProbes from './routes/middleware/rejectScannerProbes';
 import { noindexNonCanonicalHosts } from './routes/middleware/noindexNonCanonicalHosts';
+import { redirectNonCanonicalHosts } from './routes/middleware/redirectNonCanonicalHosts';
 import webhookRouter from './routes/WebhookRouter';
 import ankifyWebhookRouter from './routes/AnkifyWebhookRouter';
 import swaggerRouter from './routes/SwaggerRouter';
@@ -121,6 +122,7 @@ const serve = async () => {
 
   app.use(webhookRouter());
   app.use(ankifyWebhookRouter());
+  app.use(redirectNonCanonicalHosts);
   app.use(express.json({ limit: '50mb' }) as RequestHandler);
   app.use(cookieParser());
   app.use(anonIdMiddleware);
