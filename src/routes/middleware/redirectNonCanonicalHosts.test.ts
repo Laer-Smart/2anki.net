@@ -82,6 +82,19 @@ describe('redirectNonCanonicalHosts', () => {
     }
   });
 
+  it('never redirects off the canonical host for a crafted protocol-relative path', () => {
+    process.env.CANONICAL_HOST = '2anki.net';
+    const res = mockRes();
+    const next = jest.fn();
+    redirectNonCanonicalHosts(
+      mockReq('www.2anki.net', '//evil.com'),
+      res as unknown as Response,
+      next as NextFunction
+    );
+    expect(res.redirect).toHaveBeenCalledWith(301, 'https://2anki.net/');
+    expect(next).not.toHaveBeenCalled();
+  });
+
   it('calls next without redirecting on localhost (internal health probes)', () => {
     process.env.CANONICAL_HOST = '2anki.net';
     const res = mockRes();
