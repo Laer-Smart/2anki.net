@@ -293,6 +293,7 @@ describe('NotionController', () => {
       service = {
         getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
         search: jest.fn().mockRejectedValue(unauthorizedError),
+        markTokenInvalid: jest.fn().mockResolvedValue(undefined),
         getNotionAuthorizationLink: jest.fn().mockReturnValue('https://notion.so/oauth'),
         getClientId: jest.fn().mockReturnValue('client-abc'),
       } as any;
@@ -306,6 +307,31 @@ describe('NotionController', () => {
       expect(body.code).toBe('notion_unauthorized');
       expect(body.message).not.toMatch(/<a /);
       expect(body.message).not.toMatch(/href/);
+    });
+
+    it('calls markTokenInvalid on owner when Notion returns Unauthorized', async () => {
+      const unauthorizedError = new APIResponseError({
+        code: APIErrorCode.Unauthorized,
+        message: 'API token is invalid.',
+        status: 401,
+        rawBodyText: '',
+        headers: {},
+      } as any);
+      const markTokenInvalid = jest.fn().mockResolvedValue(undefined);
+      service = {
+        getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
+        search: jest.fn().mockRejectedValue(unauthorizedError),
+        markTokenInvalid,
+        getNotionAuthorizationLink: jest.fn().mockReturnValue('https://notion.so/oauth'),
+        getClientId: jest.fn().mockReturnValue('client-abc'),
+      } as any;
+      controller = new NotionController(service);
+      req = { body: { query: 'test' }, params: {}, query: {} };
+      res = { ...res, locals: { owner: 42 } } as any;
+
+      await controller.search(req as express.Request, res as express.Response);
+
+      expect(markTokenInvalid).toHaveBeenCalledWith(42);
     });
   });
 
@@ -321,6 +347,7 @@ describe('NotionController', () => {
       service = {
         getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
         searchTopLevelPages: jest.fn().mockRejectedValue(unauthorizedError),
+        markTokenInvalid: jest.fn().mockResolvedValue(undefined),
         getNotionAuthorizationLink: jest.fn().mockReturnValue('https://notion.so/oauth'),
         getClientId: jest.fn().mockReturnValue('client-abc'),
       } as any;
@@ -334,6 +361,31 @@ describe('NotionController', () => {
       expect(body.code).toBe('notion_unauthorized');
       expect(body.message).not.toMatch(/<a /);
       expect(body.message).not.toMatch(/href/);
+    });
+
+    it('calls markTokenInvalid on owner when Notion returns Unauthorized', async () => {
+      const unauthorizedError = new APIResponseError({
+        code: APIErrorCode.Unauthorized,
+        message: 'API token is invalid.',
+        status: 401,
+        rawBodyText: '',
+        headers: {},
+      } as any);
+      const markTokenInvalid = jest.fn().mockResolvedValue(undefined);
+      service = {
+        getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
+        searchTopLevelPages: jest.fn().mockRejectedValue(unauthorizedError),
+        markTokenInvalid,
+        getNotionAuthorizationLink: jest.fn().mockReturnValue('https://notion.so/oauth'),
+        getClientId: jest.fn().mockReturnValue('client-abc'),
+      } as any;
+      controller = new NotionController(service);
+      req = { body: { query: 'test' }, params: {}, query: {} };
+      res = { ...res, locals: { owner: 42 } } as any;
+
+      await controller.searchTopLevelPages(req as express.Request, res as express.Response);
+
+      expect(markTokenInvalid).toHaveBeenCalledWith(42);
     });
   });
 

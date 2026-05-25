@@ -20,6 +20,8 @@ export default interface NotionTokens {
   workspace_id: string | null;
 
   notion_owner: unknown | null;
+
+  invalidated_at: Date | null;
 }
 
 /** Represents the initializer for the table public.notion_tokens */
@@ -43,6 +45,9 @@ export interface NotionTokensInitializer {
   workspace_id?: string | null;
 
   notion_owner?: unknown | null;
+
+  /** Default value: null */
+  invalidated_at?: Date | null;
 }
 
 /** Represents the mutator for the table public.notion_tokens */
@@ -64,4 +69,6 @@ export interface NotionTokensMutator {
   workspace_id?: string | null;
 
   notion_owner?: unknown | null;
+
+  invalidated_at?: Date | null;
 }

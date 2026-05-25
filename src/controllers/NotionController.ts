@@ -115,6 +115,7 @@ class NotionController {
       res.json(result);
     } catch (err) {
       if (err instanceof APIResponseError && err.code === APIErrorCode.Unauthorized) {
+        void this.service.markTokenInvalid(res.locals.owner);
         return res.status(401).json({ code: 'notion_unauthorized', message: 'API token is invalid.' });
       }
       sendErrorResponse(err, res);
@@ -137,6 +138,7 @@ class NotionController {
       res.json(result);
     } catch (err) {
       if (err instanceof APIResponseError && err.code === APIErrorCode.Unauthorized) {
+        void this.service.markTokenInvalid(res.locals.owner);
         return res.status(401).json({ code: 'notion_unauthorized', message: 'API token is invalid.' });
       }
       sendErrorResponse(err, res);

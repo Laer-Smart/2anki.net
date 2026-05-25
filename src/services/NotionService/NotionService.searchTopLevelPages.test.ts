@@ -84,6 +84,8 @@ function makeService(opts: {
 		getNotionToken: jest.fn(),
 		deleteBlocksByOwner: jest.fn(),
 		deleteNotionData: jest.fn(),
+		markTokenInvalid: jest.fn().mockResolvedValue(undefined),
+		clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
 	};
 	const service = new NotionService(
 		fakeNotionRepo as never,

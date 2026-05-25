@@ -132,6 +132,15 @@ function isNotionNotFoundError(error: unknown): boolean {
   );
 }
 
+function isNotionUnauthorizedError(error: unknown): boolean {
+  return (
+    error != null &&
+    typeof error === 'object' &&
+    'code' in error &&
+    (error as { code: unknown }).code === 'unauthorized'
+  );
+}
+
 export class SyncNotionPageToRacUseCase {
   private readonly modelCacheByClient = new Map<number, Set<string>>();
 
@@ -211,6 +220,10 @@ export class SyncNotionPageToRacUseCase {
         error: message,
       });
       if (isNotionNotFoundError(error)) {
+        await this.subscriptions.setEnabled(subscription.id, false);
+      }
+      if (isNotionUnauthorizedError(error)) {
+        await this.notionRepo.markTokenInvalid(input.owner);
         await this.subscriptions.setEnabled(subscription.id, false);
       }
       throw error;

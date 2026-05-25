@@ -49,6 +49,8 @@ const makeNotionRepo = (token: string | null): jest.Mocked<INotionRepository> =>
     getNotionToken: jest.fn(async () => token),
     deleteBlocksByOwner: jest.fn(),
     deleteNotionData: jest.fn(),
+    markTokenInvalid: jest.fn(async () => undefined),
+    clearTokenInvalid: jest.fn(async () => undefined),
   } as unknown as jest.Mocked<INotionRepository>);
 
 const makeAnkiConnect = (

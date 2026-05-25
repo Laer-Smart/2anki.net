@@ -240,9 +240,10 @@ export class NotionService {
       };
     }
 
+    const tokenValid = !!notionData.token && notionData.invalidated_at == null;
     return {
       link,
-      isConnected: !!notionData.token,
+      isConnected: tokenValid,
       workspace: notionData.workspace_name,
     };
   }
@@ -287,6 +288,10 @@ export class NotionService {
         reject(err);
       }
     });
+  }
+
+  markTokenInvalid(owner: number): Promise<void> {
+    return this.notionRepository.markTokenInvalid(owner);
   }
 
   purgeBlockCache(owner: number) {

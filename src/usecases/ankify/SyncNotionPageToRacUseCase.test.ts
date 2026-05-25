@@ -119,6 +119,8 @@ const makeNotionRepo = (
     getNotionToken: jest.fn(async () => token),
     deleteBlocksByOwner: jest.fn(),
     deleteNotionData: jest.fn(),
+    markTokenInvalid: jest.fn(async () => undefined),
+    clearTokenInvalid: jest.fn(async () => undefined),
   } as unknown as jest.Mocked<INotionRepository>);
 
 const makeAnkiConnectStub = () =>
@@ -961,5 +963,36 @@ describe('SyncNotionPageToRacUseCase', () => {
         useCase.execute({ owner: 42, notionPageId: 'page-no-repo', trigger: 'manual' })
       ).resolves.not.toThrow();
     });
+  });
+
+  test('marks token invalid and disables subscription when Notion returns Unauthorized', async () => {
+    const unauthorizedError = Object.assign(new Error('API token is invalid.'), {
+      code: 'unauthorized',
+      status: 401,
+    });
+    (walkNotionPageForFlashcards as jest.Mock).mockRejectedValue(unauthorizedError);
+    const repos = makeRepos();
+    const ac = makeAnkiConnectStub();
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => []
+    );
+
+    await expect(
+      useCase.execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'polling',
+      })
+    ).rejects.toThrow('API token is invalid.');
+
+    expect(repos.notionRepo.markTokenInvalid).toHaveBeenCalledWith(42);
+    expect(repos.subscriptions.setEnabled).toHaveBeenCalledWith(1, false);
   });
 });
