@@ -33,14 +33,28 @@ describe('getRedirect security tests', () => {
       '/settings',
       '/anki',
       '/card-options',
-      '/search/results',
-      '/templates/new',
     ];
 
     validPaths.forEach(path => {
       it(`should allow valid internal path: ${path}`, () => {
         const req = createMockRequest(path);
         expect(getRedirect(req)).toBe(path);
+      });
+    });
+  });
+
+  describe('should collapse subpaths to their allowlisted section root', () => {
+    const subpaths: [string, string][] = [
+      ['/search/results', '/search'],
+      ['/templates/new', '/templates'],
+      ['/notion/some-page-id', '/notion'],
+      ['/notion/../../etc/passwd', '/notion'],
+    ];
+
+    subpaths.forEach(([input, expected]) => {
+      it(`collapses ${input} to ${expected}`, () => {
+        const req = createMockRequest(input);
+        expect(getRedirect(req)).toBe(expected);
       });
     });
   });

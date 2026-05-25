@@ -1,6 +1,8 @@
 import { Request } from 'express';
 import { ALLOWED_ORIGINS } from '../../lib/constants';
 
+const DEFAULT_REDIRECT = '/upload';
+
 const ALLOWED_REDIRECT_PATHS = [
   '/notion',
   '/search',
@@ -14,55 +16,54 @@ const ALLOWED_REDIRECT_PATHS = [
   '/card-options',
 ];
 
-const isValidRedirectUrl = (url: string): boolean => {
+const ALLOWED_REDIRECT_ORIGINS = ALLOWED_ORIGINS.map((origin) => {
   try {
-    // Check if it's a relative path (starts with /)
-    if (url.startsWith('/')) {
-      // Allow only specific internal paths
-      return ALLOWED_REDIRECT_PATHS.some(
-        (allowedPath) =>
-          url === allowedPath || url.startsWith(allowedPath + '/')
-      );
-    }
-
-    // For absolute URLs, validate against allowed origins
-    const parsedUrl = new URL(url);
-
-    // Only allow HTTPS (except localhost for development)
-    if (
-      parsedUrl.protocol !== 'https:' &&
-      !parsedUrl.hostname.includes('localhost')
-    ) {
-      return false;
-    }
-
-    // Check if full URL is in ALLOWED_ORIGINS or if the origin is allowed
-    const fullUrl = url;
-    const origin = parsedUrl.origin;
-
-    return (
-      ALLOWED_ORIGINS.includes(fullUrl) ||
-      ALLOWED_ORIGINS.includes(origin) ||
-      ALLOWED_ORIGINS.includes(origin + '/')
-    );
+    return new URL(origin).origin;
   } catch {
-    // Invalid URL format
-    return false;
+    return origin;
   }
+});
+
+const resolveInternalPath = (candidate: string): string | null => {
+  const match = ALLOWED_REDIRECT_PATHS.find(
+    (allowedPath) =>
+      candidate === allowedPath || candidate.startsWith(`${allowedPath}/`)
+  );
+  return match ?? null;
+};
+
+const resolveAllowedOrigin = (candidate: string): string | null => {
+  let parsed: URL;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    return null;
+  }
+
+  const isHttps = parsed.protocol === 'https:';
+  const isLocalhost = parsed.hostname.includes('localhost');
+  if (!isHttps && !isLocalhost) {
+    return null;
+  }
+
+  return (
+    ALLOWED_REDIRECT_ORIGINS.find((origin) => origin === parsed.origin) ?? null
+  );
 };
 
 export const getRedirect = (req: Request): string => {
   const queryRedirect = req.query.redirect?.toString();
-  const bodyRedirect = typeof req.body?.redirect === 'string' ? req.body.redirect : undefined;
+  const bodyRedirect =
+    typeof req.body?.redirect === 'string' ? req.body.redirect : undefined;
   const redirectParam = queryRedirect ?? bodyRedirect;
 
   if (redirectParam == null || redirectParam === '') {
-    return '/upload';
+    return DEFAULT_REDIRECT;
   }
 
-  if (isValidRedirectUrl(redirectParam)) {
-    return redirectParam;
-  }
-
-  return '/upload';
+  return (
+    resolveInternalPath(redirectParam) ??
+    resolveAllowedOrigin(redirectParam) ??
+    DEFAULT_REDIRECT
+  );
 };
