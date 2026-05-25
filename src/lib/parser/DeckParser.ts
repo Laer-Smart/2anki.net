@@ -16,6 +16,7 @@ import get16DigitRandomId from '../../shared/helpers/get16DigitRandomId';
 import { isValidAudioFile } from '../anki/format';
 import FallbackParser from './experimental/FallbackParser';
 import { embedFile } from './exporters/embedFile';
+import { resolveNotionS3ImageFromZip } from './exporters/resolveNotionS3ImageFromZip';
 import getYouTubeEmbedLink from './helpers/getYouTubeEmbedLink';
 import getYouTubeID from './helpers/getYouTubeID';
 import { isFileNameEqual } from '../storage/types';
@@ -203,11 +204,28 @@ export class DeckParser {
     const media: string[] = [];
     dom('img').each((_i, elem) => {
       const src = dom(elem).attr('src');
-      if (src && isImageFileEmbedable(src)) {
+      if (!src) return;
+
+      if (isImageFileEmbedable(src)) {
         const newName = embedFile({
           exporter: this.customExporter,
           files: this.files,
           filePath: decodeURIComponent(src),
+          workspace: this.workspace,
+        });
+        if (newName) {
+          dom(elem).attr('src', newName);
+          media.push(newName);
+        }
+        return;
+      }
+
+      const zipFile = resolveNotionS3ImageFromZip(src, this.files);
+      if (zipFile) {
+        const newName = embedFile({
+          exporter: this.customExporter,
+          files: this.files,
+          filePath: zipFile.name,
           workspace: this.workspace,
         });
         if (newName) {
@@ -476,20 +494,37 @@ export class DeckParser {
 
     images.each((_i, elem) => {
       const originalName = dom(elem).attr('src');
-      if (!originalName || !isImageFileEmbedable(originalName)) return;
+      if (!originalName) return;
 
-      const decodedPath = decodeURIComponent(originalName);
-      const newName = embedFile({
-        exporter: this.customExporter,
-        files: this.files,
-        filePath: decodedPath,
-        workspace: ws,
-      });
-      if (newName) {
-        dom(elem).attr('src', newName);
-        card.media.push(newName);
-      } else {
-        dom(elem).attr('src', decodedPath.split('/').pop() ?? originalName);
+      if (isImageFileEmbedable(originalName)) {
+        const decodedPath = decodeURIComponent(originalName);
+        const newName = embedFile({
+          exporter: this.customExporter,
+          files: this.files,
+          filePath: decodedPath,
+          workspace: ws,
+        });
+        if (newName) {
+          dom(elem).attr('src', newName);
+          card.media.push(newName);
+        } else {
+          dom(elem).attr('src', decodedPath.split('/').pop() ?? originalName);
+        }
+        return;
+      }
+
+      const zipFile = resolveNotionS3ImageFromZip(originalName, this.files);
+      if (zipFile) {
+        const newName = embedFile({
+          exporter: this.customExporter,
+          files: this.files,
+          filePath: zipFile.name,
+          workspace: ws,
+        });
+        if (newName) {
+          dom(elem).attr('src', newName);
+          card.media.push(newName);
+        }
       }
     });
     return dom.html();

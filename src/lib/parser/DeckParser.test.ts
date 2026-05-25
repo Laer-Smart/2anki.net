@@ -316,6 +316,36 @@ test('Notion figure image: embeds image when file found via backslash path (Wind
   expect(deck.cards[0].back).not.toContain('src="Test Deck/');
 });
 
+test('Notion figure image: resolves S3 presigned URL from local ZIP entry', () => {
+  const html = `<html><head><title>Deck</title></head><body><article>
+<ul class="toggle"><li><details open="">
+  <summary>Question</summary>
+  <div><img src="https://prod-files-secure.s3.us-west-2.amazonaws.com/ws-id/file-id/screenshot.png?X-Amz-Expires=3600&amp;X-Amz-Signature=abc" /></div>
+</details></li></ul>
+</article></body></html>`;
+  const fakeImageData = Buffer.from('fake-png-bytes');
+  const ws = new Workspace(true, 'fs');
+
+  const parser = new DeckParser({
+    name: 'deck.html',
+    settings: new CardOption({ cherry: 'false' }),
+    files: [
+      { name: 'deck.html', contents: html },
+      { name: 'Deck Assets/screenshot.png', contents: fakeImageData },
+    ],
+    noLimits: true,
+    workspace: ws,
+  });
+
+  parser.writeDeckInfo(ws);
+  const deck = parser.payload[0];
+
+  expect(deck.cards.length).toBe(1);
+  expect(deck.cards[0].media.length).toBe(1);
+  expect(deck.cards[0].back).not.toContain('prod-files-secure.s3');
+  expect(deck.cards[0].back).toMatch(/src="[^"]+\.png"/);
+});
+
 test('Notion new export: deeply nested toggles (3 levels)', async () => {
   const deck = await getDeck(
     'Notion Page grandchildren 2ce7ab29a11e809998e3d22ed65fc5f2.html',
