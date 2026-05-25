@@ -417,7 +417,7 @@ button {
 
 /* =====================================================================
    REACT FLOW — bind library tokens to app design tokens so canvas
-   chrome (controls, etc.) follows the active theme.
+   chrome (controls, minimap, background, edges) follows the active theme.
    ===================================================================== */
 .react-flow {
   --xy-controls-button-background-color: var(--color-bg-secondary);
@@ -425,4 +425,17 @@ button {
   --xy-controls-button-color: var(--color-text-secondary);
   --xy-controls-button-color-hover: var(--color-text-primary);
   --xy-controls-button-border-color: var(--color-border);
+
+  --xy-background-color: var(--color-bg-primary);
+  --xy-background-pattern-dots-color: var(--color-border);
+  --xy-background-pattern-lines-color: var(--color-border);
+  --xy-background-pattern-cross-color: var(--color-border);
+
+  --xy-edge-stroke: var(--color-border);
+  --xy-edge-stroke-selected: var(--color-primary);
+
+  --xy-minimap-background-color: var(--color-bg-secondary);
+  --xy-minimap-mask-background-color: color-mix(in srgb, var(--color-bg-tertiary) 60%, transparent);
+  --xy-minimap-node-background-color: var(--color-bg-tertiary);
+  --xy-minimap-node-stroke-color: var(--color-border);
 }
