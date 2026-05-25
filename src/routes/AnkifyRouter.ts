@@ -46,6 +46,7 @@ import StorageHandler from '../lib/storage/StorageHandler';
 import { parseCollection } from '../services/ApkgPreviewService/parseCollection';
 import { extractApkg } from '../services/ApkgPreviewService/extractApkg';
 import RequireAnkifyAccess from './middleware/RequireAnkifyAccess';
+import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';
 
 const buildNotionExportClient = (token: string) => {
   const notion = new NotionClient({ auth: token });
@@ -339,7 +340,9 @@ const AnkifyRouter = () => {
     new NotionRepository(db),
     ankiConnectFactory,
     notionBlockChildrenFetcherFactory,
-    buildNotionPageMetaFetcher
+    buildNotionPageMetaFetcher,
+    fetch,
+    new ErrorEventRepository(db)
   );
 
   const controller = new AnkifyController(

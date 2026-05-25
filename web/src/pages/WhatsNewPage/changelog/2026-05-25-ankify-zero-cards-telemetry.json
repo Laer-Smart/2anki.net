@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-25-ankify-zero-cards-telemetry",
+  "date": "2026-05-25",
+  "type": "fix",
+  "title": "Ankify zero-card syncs now link to the answers page so you can see exactly what patterns work"
+}
