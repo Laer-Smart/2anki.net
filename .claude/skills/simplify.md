@@ -25,8 +25,12 @@ Skip:
 
 Output format:
 ```
-<file>:<line>
-  smell:    <one phrase>
+<file>:<line>  (confidence N/10)
+  quoted:    <the verbatim line(s) you're reacting to, copied from the diff>
+  smell:     <one phrase>
   suggested: <concrete change in one sentence>
 ```
+
+`quoted` is a gate: if you can't copy the exact line the smell lives on, you're pattern-matching on something that isn't there — drop it. Score confidence 1–10 that this is a real simplification (not taste). List 7+ findings as above; put anything below 7 under a **Low confidence** heading at the end, one line each, so it's clearly separated from confirmed dead weight.
+
 End with the top three to fix first, in priority order.
