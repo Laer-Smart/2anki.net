@@ -52,11 +52,11 @@ describe('UpsellCard', () => {
     mockUseCardUsage.mockReturnValue(null);
   });
 
-  it('renders three CTAs for free users', () => {
+  it('renders three CTAs with prices for free users', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     render(<UpsellCard surface="downloads_upsell" />);
-    expect(screen.getByRole('button', { name: 'Day Pass' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Week Pass' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Get Day Pass — $4' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Get Week Pass — $9' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Unlimited' })).toBeInTheDocument();
   });
 
@@ -69,7 +69,7 @@ describe('UpsellCard', () => {
   it('renders for anonymous users by default', () => {
     mockUseUserLocals.mockReturnValue(anonymousUser);
     render(<UpsellCard surface="downloads_upsell" />);
-    expect(screen.getByRole('button', { name: 'Day Pass' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Day Pass/ })).toBeInTheDocument();
   });
 
   it('hides for anonymous users when hideForAnonymous is true', () => {
@@ -83,7 +83,7 @@ describe('UpsellCard', () => {
   it('still shows for free logged-in users when hideForAnonymous is true', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     render(<UpsellCard surface="upload_success_upsell" hideForAnonymous />);
-    expect(screen.getByRole('button', { name: 'Day Pass' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Day Pass/ })).toBeInTheDocument();
   });
 
   it('uses the downloads surface headline on /downloads', () => {
@@ -116,7 +116,7 @@ describe('UpsellCard', () => {
     Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
 
     render(<UpsellCard surface="downloads_upsell" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Day Pass' }));
+    fireEvent.click(screen.getByRole('button', { name: /Day Pass/ }));
 
     await waitFor(() => {
       expect(mockTrack).toHaveBeenCalledWith('paywall_upgrade_clicked', {
@@ -133,7 +133,7 @@ describe('UpsellCard', () => {
     Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
 
     render(<UpsellCard surface="upload_success_upsell" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Week Pass' }));
+    fireEvent.click(screen.getByRole('button', { name: /Week Pass/ }));
 
     await waitFor(() => {
       expect(mockTrack).toHaveBeenCalledWith('paywall_upgrade_clicked', {
@@ -164,7 +164,7 @@ describe('UpsellCard', () => {
     );
 
     render(<UpsellCard surface="downloads_upsell" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Day Pass' }));
+    fireEvent.click(screen.getByRole('button', { name: /Day Pass/ }));
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Redirecting…' })).toBeDisabled();
@@ -172,7 +172,7 @@ describe('UpsellCard', () => {
 
     resolveCheckout({ status: 'error' });
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Day Pass' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Day Pass/ })).toBeInTheDocument();
     });
   });
 
@@ -181,7 +181,7 @@ describe('UpsellCard', () => {
     mockStartPassCheckout.mockReturnValue(new Promise(() => {}));
 
     render(<UpsellCard surface="downloads_upsell" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Day Pass' }));
+    fireEvent.click(screen.getByRole('button', { name: /Day Pass/ }));
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Redirecting…' })).toBeDisabled();
@@ -192,7 +192,7 @@ describe('UpsellCard', () => {
     fireEvent(globalThis.window, pageshow);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Day Pass' })).toBeEnabled();
+      expect(screen.getByRole('button', { name: /Day Pass/ })).toBeEnabled();
     });
   });
 
@@ -209,7 +209,7 @@ describe('UpsellCard', () => {
     mockStartPassCheckout.mockReturnValue(new Promise(() => {}));
 
     const { unmount } = render(<UpsellCard surface="downloads_upsell" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Day Pass' }));
+    fireEvent.click(screen.getByRole('button', { name: /Day Pass/ }));
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Redirecting…' })).toBeDisabled();

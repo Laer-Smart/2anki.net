@@ -633,7 +633,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                 </div>
                 {showUpgradeFooter && !isGloballyEmpty && (
                   <div className={styles.upgradeFooter}>
-                    <UpsellCard surface="downloads_upsell" />
+                    <UpsellCard surface="downloads_upsell" hideForAnonymous />
                   </div>
                 )}
               </div>
