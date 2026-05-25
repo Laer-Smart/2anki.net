@@ -10,6 +10,7 @@ import UsersRepository from '../data_layer/UsersRepository';
 import Users from '../data_layer/public/Users';
 import { Knex } from 'knex';
 import instrumentedAxios from './observability/instrumentedAxios';
+import { SESSION_JWT_EXPIRY } from '../shared/session';
 
 const MICROSOFT_JWKS_URL =
   'https://login.microsoftonline.com/common/discovery/v2.0/keys';
@@ -128,7 +129,7 @@ class AuthenticationService {
       jwt.sign(
         { userId },
         process.env.SECRET!,
-        { expiresIn: '1d' },
+        { expiresIn: SESSION_JWT_EXPIRY },
         (error: Error | null, token: string | undefined) => {
           if (error) {
             reject(error);
