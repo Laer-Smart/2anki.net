@@ -35,18 +35,20 @@ export function MindmapMarkdownModal({ onClose }: Readonly<MindmapMarkdownModalP
   }, [onClose]);
 
   return (
-    <div
-      data-testid="markdown-modal-backdrop"
-      className={styles.backdrop}
-      onClick={onClose}
-    >
-      <div
-        role="dialog"
+    <div className={styles.backdrop}>
+      <button
+        type="button"
+        aria-label="Close dialog"
+        data-testid="markdown-modal-backdrop"
+        className={styles.backdropButton}
+        onClick={onClose}
+      />
+      <dialog
+        open
         aria-modal="true"
         aria-labelledby="markdown-modal-title"
         data-testid="markdown-modal-card"
         className={styles.card}
-        onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>
           <h2 id="markdown-modal-title" className={styles.title}>
@@ -82,7 +84,7 @@ export function MindmapMarkdownModal({ onClose }: Readonly<MindmapMarkdownModalP
             ))}
           </tbody>
         </table>
-      </div>
+      </dialog>
     </div>
   );
 }
