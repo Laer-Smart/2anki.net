@@ -1,10 +1,24 @@
+import { APIResponseError, APIErrorCode } from '@notionhq/client';
 import { buildPythonExitError } from '../../lib/anki/buildPythonExitError';
 import { EmptyDeckError } from './EmptyDeckError';
 import {
   COLUMNS_AMBIGUOUS_PREFIX,
   EMPTY_DECK_FAILURE_REASON,
+  NOTION_TOKEN_EXPIRED_REASON,
+  isNotionUnauthorizedError,
   jobFailureReasonFromError,
 } from './jobFailureReason';
+
+function makeUnauthorizedError(): APIResponseError {
+  const err = Object.create(APIResponseError.prototype) as APIResponseError;
+  Object.assign(err, {
+    name: 'APIResponseError',
+    message: 'Unauthorized',
+    code: APIErrorCode.Unauthorized,
+    status: 401,
+  });
+  return err;
+}
 
 describe('jobFailureReasonFromError', () => {
   it('returns the EmptyDeckError reason unchanged', () => {
@@ -59,6 +73,25 @@ describe('jobFailureReasonFromError', () => {
     expect(parsed.columns).toEqual(['Col1', 'Col2', 'Col3']);
     expect(parsed.suggested.frontField).toBeNull();
     expect(parsed.suggested.backField).toBeNull();
+  });
+
+  it('returns NOTION_TOKEN_EXPIRED_REASON for an APIResponseError with unauthorized code', () => {
+    const reason = jobFailureReasonFromError(makeUnauthorizedError(), 'job-unauth');
+    expect(reason).toBe(NOTION_TOKEN_EXPIRED_REASON);
+  });
+
+  it('isNotionUnauthorizedError returns true for an unauthorized APIResponseError', () => {
+    expect(isNotionUnauthorizedError(makeUnauthorizedError())).toBe(true);
+  });
+
+  it('isNotionUnauthorizedError returns false for a non-unauthorized APIResponseError', () => {
+    const err = Object.create(APIResponseError.prototype) as APIResponseError;
+    Object.assign(err, { name: 'APIResponseError', message: 'Not Found', code: 'object_not_found', status: 404 });
+    expect(isNotionUnauthorizedError(err)).toBe(false);
+  });
+
+  it('isNotionUnauthorizedError returns false for a plain Error', () => {
+    expect(isNotionUnauthorizedError(new Error('boom'))).toBe(false);
   });
 
   it('never produces a string starting with "Technical error"', () => {

@@ -1,6 +1,10 @@
+import { APIResponseError, APIErrorCode } from '@notionhq/client';
 import { PythonExitError } from '../../lib/anki/buildPythonExitError';
 import { EmptyDeckError } from './EmptyDeckError';
 import { inferColumnMapping } from '../../lib/notionDatabase/inferColumnMapping';
+
+export const NOTION_TOKEN_EXPIRED_REASON =
+  'notion_token_expired';
 
 export const EMPTY_DECK_FAILURE_REASON =
   "No cards in this deck yet. 2anki turns Notion toggle blocks into flashcards — the toggle title becomes the question, what's inside is the answer. Wrap your key terms in toggles in Notion, then convert again.";
@@ -30,6 +34,13 @@ function buildColumnsAmbiguousReason(columns: string[]): string {
   return `${COLUMNS_AMBIGUOUS_PREFIX}${JSON.stringify(payload)}`;
 }
 
+export function isNotionUnauthorizedError(error: unknown): boolean {
+  return (
+    error instanceof APIResponseError &&
+    error.code === APIErrorCode.Unauthorized
+  );
+}
+
 function genericFailureReason(jobId = 'unavailable'): string {
   return `Something went wrong on our end converting this page. Email support@2anki.net with job ID ${jobId} and we'll take a look.`;
 }
@@ -46,6 +57,9 @@ export function jobFailureReasonFromError(
   }
   if (isColumnsAmbiguousError(error)) {
     return buildColumnsAmbiguousReason(error.columns);
+  }
+  if (isNotionUnauthorizedError(error)) {
+    return NOTION_TOKEN_EXPIRED_REASON;
   }
   return genericFailureReason(jobId);
 }

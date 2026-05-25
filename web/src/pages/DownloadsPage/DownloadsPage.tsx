@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 
 import useUploads from './hooks/useUploads';
@@ -153,6 +153,57 @@ function renderJobStatusWithToggle({ job, isExpanded, onToggle }: RenderJobStatu
     );
   }
   return renderJobStatusCell(job);
+}
+
+const NOTION_TOKEN_EXPIRED_REASON = 'notion_token_expired';
+
+function isNotionTokenExpired(source: DeckRow['source'], reason: string | null): boolean {
+  return source === 'notion' && reason === NOTION_TOKEN_EXPIRED_REASON;
+}
+
+function renderFailurePanelContent(
+  source: DeckRow['source'],
+  reason: string,
+  onMapColumns: () => void
+): ReactNode {
+  if (isNotionTokenExpired(source, reason)) {
+    return (
+      <div>
+        <p>Notion connection expired. Reconnect to keep converting pages.</p>
+        <a href="/notion" className={sharedStyles.btnPrimary}>
+          Reconnect Notion
+        </a>
+      </div>
+    );
+  }
+  if (parseAmbiguousColumnsPayload(reason) != null) {
+    return (
+      <div>
+        <p>
+          This database has more than two columns. Pick which column should be the front and back of each card.
+        </p>
+        <button
+          type="button"
+          className={sharedStyles.btnPrimary}
+          onClick={onMapColumns}
+        >
+          Map columns
+        </button>
+      </div>
+    );
+  }
+  return (
+    <>
+      {reason}
+      {isEmptyDeckError(reason) && (
+        <div>
+          <Link to="/documentation/help/common-problems" className={styles.failureLearnMore}>
+            Learn more →
+          </Link>
+        </div>
+      )}
+    </>
+  );
 }
 
 function isEmptyDeckError(message: string | null): boolean {
@@ -410,7 +461,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                       {row.source === 'notion' && isDoneJob(row.job.status) && row.job.upload_id != null && (
                                         <SendToAnkifyButton uploadId={row.job.upload_id} filename={row.job.title} />
                                       )}
-                                      {isFailed && row.job.restartable && (
+                                      {isFailed && row.job.restartable && !isNotionTokenExpired(row.source, row.job.job_reason_failure) && (
                                         <button
                                           type="button"
                                           onClick={() => restartJob(row.job)}
@@ -437,30 +488,10 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                               {isFailed && isExpanded && row.job.job_reason_failure != null && (
                                 <tr key={`job-${row.job.id}-panel`}>
                                   <td colSpan={4} className={styles.failurePanel}>
-                                    {parseAmbiguousColumnsPayload(row.job.job_reason_failure) == null ? (
-                                      <>
-                                        {row.job.job_reason_failure}
-                                        {isEmptyDeckError(row.job.job_reason_failure) && (
-                                          <div>
-                                            <Link to="/documentation/help/common-problems" className={styles.failureLearnMore}>
-                                              Learn more →
-                                            </Link>
-                                          </div>
-                                        )}
-                                      </>
-                                    ) : (
-                                      <div>
-                                        <p>
-                                          This database has more than two columns. Pick which column should be the front and back of each card.
-                                        </p>
-                                        <button
-                                          type="button"
-                                          className={sharedStyles.btnPrimary}
-                                          onClick={() => setMappingModalJob(row.job)}
-                                        >
-                                          Map columns
-                                        </button>
-                                      </div>
+                                    {renderFailurePanelContent(
+                                      row.source,
+                                      row.job.job_reason_failure,
+                                      () => setMappingModalJob(row.job)
                                     )}
                                   </td>
                                 </tr>

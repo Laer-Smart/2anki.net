@@ -5,10 +5,15 @@ jest.mock('./storage/jobs/helpers/performConversion', () => ({
 
 jest.mock('../data_layer/NotionRespository');
 jest.mock('../data_layer/BlocksCacheRepository');
+jest.mock('../data_layer/JobRepository');
+jest.mock('../usecases/jobs/SetJobFailedUseCase');
 
 import performConversion from './storage/jobs/helpers/performConversion';
 import NotionRepository from '../data_layer/NotionRespository';
 import BlocksCacheRepository from '../data_layer/BlocksCacheRepository';
+import JobRepository from '../data_layer/JobRepository';
+import { SetJobFailedUseCase } from '../usecases/jobs/SetJobFailedUseCase';
+import { NOTION_TOKEN_EXPIRED_REASON } from '../usecases/jobs/jobFailureReason';
 import {
   resolveConversionWorkers,
   runConversionInWorker,
@@ -53,6 +58,8 @@ describe('resolveConversionWorkers', () => {
   });
 });
 
+const mockSetJobFailedExecute = jest.fn().mockResolvedValue(undefined);
+
 describe('runConversionInWorker', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -60,6 +67,10 @@ describe('runConversionInWorker', () => {
       getNotionToken: jest.fn().mockResolvedValue('secret-token'),
     }));
     (BlocksCacheRepository as jest.Mock).mockImplementation(() => ({}));
+    (JobRepository as unknown as jest.Mock).mockImplementation(() => ({}));
+    (SetJobFailedUseCase as jest.Mock).mockImplementation(() => ({
+      execute: mockSetJobFailedExecute,
+    }));
   });
 
   it('rehydrates NotionAPIWrapper from owner and invokes performConversion', async () => {
@@ -86,16 +97,20 @@ describe('runConversionInWorker', () => {
     expect(typeof request.api.getPage).toBe('function');
   });
 
-  it('throws when the owner has no Notion token', async () => {
+  it('sets job failed with notion_token_expired when owner has no Notion token', async () => {
     (NotionRepository as jest.Mock).mockImplementation(() => ({
       getNotionToken: jest.fn().mockResolvedValue(null),
     }));
     const fakeKnex = {} as unknown as Parameters<typeof performConversion>[0];
 
-    await expect(
-      runConversionInWorker(baseRequest, () => fakeKnex)
-    ).rejects.toThrow(/notion token/i);
+    await runConversionInWorker(baseRequest, () => fakeKnex);
+
     expect(performConversion).not.toHaveBeenCalled();
+    expect(mockSetJobFailedExecute).toHaveBeenCalledWith(
+      baseRequest.id,
+      baseRequest.owner,
+      NOTION_TOKEN_EXPIRED_REASON
+    );
   });
 
   it('surfaces unexpected rejections to the caller (controller .catch logs them)', async () => {

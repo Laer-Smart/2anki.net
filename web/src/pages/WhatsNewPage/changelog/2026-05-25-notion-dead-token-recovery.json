@@ -2,5 +2,5 @@
   "id": "2026-05-25-notion-dead-token-recovery",
   "date": "2026-05-25",
   "type": "fix",
-  "title": "Notion connection shown as expired when your access was revoked — reconnect in one click"
+  "title": "Notion conversion shows a reconnect prompt when your Notion connection has expired"
 }
