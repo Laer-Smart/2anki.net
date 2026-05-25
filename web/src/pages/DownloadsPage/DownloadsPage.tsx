@@ -117,7 +117,6 @@ export function renderJobStatusCell(j: JobResponse, onDownload?: () => void) {
         <ConversionResult
           variant="success"
           title={j.title}
-          cardCount={0}
           downloadKey={j.download_key}
           onDownload={() => { onDownload?.(); }}
         />

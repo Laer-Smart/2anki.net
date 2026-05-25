@@ -92,6 +92,24 @@ describe('ConversionResult — success variant', () => {
 
     expect(screen.getByText('Ready to download.')).toBeInTheDocument();
   });
+
+  it('omits the card count when it is unknown rather than showing 0', () => {
+    render(
+      <MemoryRouter>
+        <ConversionResult
+          variant="success"
+          title="My deck"
+          downloadKey="deck.apkg"
+          onDownload={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('My deck')).toBeInTheDocument();
+    expect(screen.getByText('Ready to download.')).toBeInTheDocument();
+    expect(screen.queryByText('cards')).not.toBeInTheDocument();
+    expect(screen.queryByText('0')).not.toBeInTheDocument();
+  });
 });
 
 describe('ConversionResult — paywalled variant', () => {

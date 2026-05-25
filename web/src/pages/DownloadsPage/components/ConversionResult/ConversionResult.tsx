@@ -16,7 +16,7 @@ const NOTION_TOKEN_EXPIRED_REASON = 'notion_token_expired';
 interface SuccessProps {
   variant: 'success';
   title: string | null;
-  cardCount: number;
+  cardCount?: number;
   downloadKey: string;
   onDownload: () => void;
 }
@@ -61,11 +61,13 @@ function SuccessVariant({ title, cardCount, downloadKey, onDownload }: Omit<Succ
       <span className={styles.deckName} title={full}>
         {display}
       </span>
-      <span className={styles.cardCount}>
-        <span className={styles.cardCountNumber}>{cardCount}</span>
-        {' '}
-        <span className={styles.cardCountLabel}>cards</span>
-      </span>
+      {cardCount != null && cardCount > 0 && (
+        <span className={styles.cardCount}>
+          <span className={styles.cardCountNumber}>{cardCount}</span>
+          {' '}
+          <span className={styles.cardCountLabel}>cards</span>
+        </span>
+      )}
       <span className={styles.helperText}>Ready to download.</span>
       <a
         href={`/api/download/u/${downloadKey}`}
