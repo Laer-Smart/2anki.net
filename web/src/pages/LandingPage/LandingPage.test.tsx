@@ -13,6 +13,9 @@ import usmleCopy from './copy/usmle';
 import nursingCopy from './copy/nursing';
 import medicalLectureSlidesCopy from './copy/medical-lecture-slides';
 import { ankiFidelityProof } from './copy/ankiFidelityProof';
+import powerpointCopy from './copy/powerpoint';
+import goodnotesCopy from './copy/goodnotes';
+import aiFlashcardGeneratorCopy from './copy/ai-flashcard-generator';
 
 function renderLandingPage(children: React.ReactElement) {
   const queryClient = new QueryClient({
@@ -169,4 +172,49 @@ describe('LandingPage', () => {
       });
     }
   );
+
+  it('renders the PowerPoint h1 and links CTA to the powerpoint-to-anki source', () => {
+    renderLandingPage(
+      <LandingPage copy={powerpointCopy} setErrorMessage={vi.fn()} />
+    );
+    expect(
+      screen.getByRole('heading', { level: 1, name: powerpointCopy.h1 })
+    ).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: /sign up free/i });
+    expect(link).toHaveAttribute(
+      'href',
+      `/register?source=${encodeURIComponent(powerpointCopy.pathname)}`
+    );
+  });
+
+  it('renders the GoodNotes h1 and links CTA to the goodnotes-to-anki source', () => {
+    renderLandingPage(
+      <LandingPage copy={goodnotesCopy} setErrorMessage={vi.fn()} />
+    );
+    expect(
+      screen.getByRole('heading', { level: 1, name: goodnotesCopy.h1 })
+    ).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: /sign up free/i });
+    expect(link).toHaveAttribute(
+      'href',
+      `/register?source=${encodeURIComponent(goodnotesCopy.pathname)}`
+    );
+  });
+
+  it('renders the AI flashcard generator h1 and links CTA to the ai-flashcard-generator source', () => {
+    renderLandingPage(
+      <LandingPage copy={aiFlashcardGeneratorCopy} setErrorMessage={vi.fn()} />
+    );
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: aiFlashcardGeneratorCopy.h1,
+      })
+    ).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: /sign up free/i });
+    expect(link).toHaveAttribute(
+      'href',
+      `/register?source=${encodeURIComponent(aiFlashcardGeneratorCopy.pathname)}`
+    );
+  });
 });
