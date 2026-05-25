@@ -137,4 +137,27 @@ describe('gracefulShutdown', () => {
   it('drains the pool with a budget below the hard shutdown ceiling', () => {
     expect(POOL_DRAIN_TIMEOUT_MS).toBeLessThan(SHUTDOWN_TIMEOUT_MS);
   });
+
+  it('clears provided intervals before the DB pool is destroyed', async () => {
+    const clearOrder: string[] = [];
+    const fakeInterval = {
+      [Symbol.toPrimitive]: () => 0,
+    } as unknown as NodeJS.Timeout;
+    jest.spyOn(global, 'clearInterval').mockImplementationOnce(() => {
+      clearOrder.push('interval');
+    });
+
+    const { server } = fakeServer();
+    const { db } = fakeDatabase({
+      destroy: () => {
+        clearOrder.push('db');
+        return Promise.resolve();
+      },
+    });
+
+    await gracefulShutdown('SIGTERM', server, db, [fakeInterval]);
+
+    expect(clearOrder).toEqual(['interval', 'db']);
+    expect(exitSpy).toHaveBeenCalledWith(0);
+  });
 });

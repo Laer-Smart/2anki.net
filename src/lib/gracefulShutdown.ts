@@ -17,7 +17,8 @@ export function resetGracefulShutdownStateForTesting(): void {
 export async function gracefulShutdown(
   signal: string,
   server: http.Server,
-  database: Knex
+  database: Knex,
+  intervals: NodeJS.Timeout[] = []
 ): Promise<void> {
   if (shuttingDown) return;
   shuttingDown = true;
@@ -38,6 +39,10 @@ export async function gracefulShutdown(
     await shutdownConversionPool({ timeoutMs: POOL_DRAIN_TIMEOUT_MS });
   } catch (err) {
     console.error('Conversion pool drain failed:', err);
+  }
+
+  for (const interval of intervals) {
+    clearInterval(interval);
   }
 
   try {

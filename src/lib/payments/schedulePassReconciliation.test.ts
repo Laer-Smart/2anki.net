@@ -56,4 +56,20 @@ describe('schedulePassReconciliation', () => {
 
     clearInterval(handle);
   });
+
+  it('does not fire after the handle is cleared', async () => {
+    const handle = schedulePassReconciliation(makeStripe(), makeDb(), { intervalMs: 100 });
+
+    jest.advanceTimersByTime(100);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(reconcilePassGrants).toHaveBeenCalledTimes(1);
+
+    clearInterval(handle);
+
+    jest.advanceTimersByTime(100);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(reconcilePassGrants).toHaveBeenCalledTimes(1);
+  });
 });

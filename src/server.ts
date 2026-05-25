@@ -80,7 +80,11 @@ import { SendInactivityWarningsUseCase } from './usecases/ops/SendInactivityWarn
 import { initConversionPool } from './lib/conversionPool';
 import { gracefulShutdown } from './lib/gracefulShutdown';
 
-function registerSignalHandlers(server: http.Server, database: Knex) {
+function registerSignalHandlers(
+  server: http.Server,
+  database: Knex,
+  intervals: NodeJS.Timeout[] = []
+) {
   process.on('uncaughtException', (error) => {
     writeFallbackError({
       source: 'server',
@@ -107,7 +111,7 @@ function registerSignalHandlers(server: http.Server, database: Knex) {
   });
 
   const handle = (signal: 'SIGTERM' | 'SIGINT') => {
-    gracefulShutdown(signal, server, database).catch((err) => {
+    gracefulShutdown(signal, server, database, intervals).catch((err) => {
       console.error('gracefulShutdown threw, forcing exit:', err);
       process.exit(1);
     });
@@ -215,7 +219,8 @@ const serve = async () => {
   server.listen(port, () => {
     console.info(`Running on http://localhost:${port}`);
   });
-  registerSignalHandlers(server, database);
+  const shutdownIntervals: NodeJS.Timeout[] = [];
+  registerSignalHandlers(server, database, shutdownIntervals);
 
   await setupDatabase(database);
 
@@ -259,7 +264,8 @@ const serve = async () => {
   scheduleParserCanary(emailService);
 
   if (process.env.STRIPE_KEY != null && process.env.STRIPE_KEY.length > 0) {
-    schedulePassReconciliation(getStripe(), database);
+    const reconciliationHandle = schedulePassReconciliation(getStripe(), database);
+    shutdownIntervals.push(reconciliationHandle);
   }
 };
 
