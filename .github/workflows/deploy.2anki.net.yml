@@ -73,24 +73,13 @@ jobs:
 
             cd ${SERVER_DIR}
             export GIT_SHA
-            pm2 startOrRestart ecosystem.config.js --update-env
-            pm2 save
-
-            echo "Waiting for /api/version on :3000 to report sha=${GIT_SHA}..."
-            HEALTHY=0
-            for i in $(seq 1 15); do
-              RESPONSE=$(curl -fsS http://127.0.0.1:3000/api/version 2>/dev/null || echo "")
-              ACTUAL_SHA=$(echo "$RESPONSE" | jq -r '.sha // empty' 2>/dev/null || echo "")
-              if [ -n "$ACTUAL_SHA" ] && [ "$ACTUAL_SHA" = "$GIT_SHA" ]; then
-                echo "Health check passed after ${i} attempts (sha=${ACTUAL_SHA})"
-                HEALTHY=1
-                break
-              fi
-              sleep 2
-            done
-            if [ "$HEALTHY" != "1" ]; then
-              echo "Health check failed — expected sha=${GIT_SHA}, last response: ${RESPONSE}"
-              echo "Recent server logs:"
-              pm2 logs server --lines 80 --nostream
+            # Zero-downtime blue-green cutover: start the idle color, health-check
+            # it, atomically swap the Apache upstreams, drain the old color. The
+            # script health-checks the new color on its port and verifies the
+            # public URL reports ${GIT_SHA} before retiring the old one; it exits
+            # non-zero on any failure with the current color still serving.
+            bash scripts/deploy-blue-green.sh || {
+              echo "blue-green deploy failed — recent logs:"
+              pm2 logs --lines 80 --nostream
               exit 1
-            fi
+            }
