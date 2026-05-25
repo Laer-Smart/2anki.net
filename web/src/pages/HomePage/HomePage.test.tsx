@@ -29,7 +29,7 @@ describe('HomePage (anonymous)', () => {
   it('renders the primary h1', () => {
     renderHome();
     expect(
-      screen.getByRole('heading', { level: 1, name: /your notes, ready to study in anki/i })
+      screen.getByRole('heading', { level: 1, name: /flashcards that work in anki/i })
     ).toBeInTheDocument();
   });
 
