@@ -5,6 +5,7 @@ import { GetOpsMetricsUseCase } from '../usecases/ops/GetOpsMetricsUseCase';
 import { GetBusinessMetricsUseCase } from '../usecases/ops/GetBusinessMetricsUseCase';
 import { GetConversionMetricsUseCase } from '../usecases/ops/GetConversionMetricsUseCase';
 import { GetPerformanceMetricsUseCase } from '../usecases/ops/GetPerformanceMetricsUseCase';
+import { GetReturnRateMetricsUseCase } from '../usecases/ops/GetReturnRateMetricsUseCase';
 import { SendAbandonedCheckoutRecoveryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryUseCase';
 import { PopulateShowcaseUseCase } from '../usecases/ops/PopulateShowcaseUseCase';
 import { ObservabilityRepository } from '../data_layer/ObservabilityRepository';
@@ -12,6 +13,7 @@ import { ObservabilityQueryService } from '../services/observability/Observabili
 import { BusinessMetricsService } from '../services/ops/BusinessMetricsService';
 import { ConversionMetricsService } from '../services/ops/ConversionMetricsService';
 import { PerformanceMetricsService } from '../services/ops/PerformanceMetricsService';
+import { ReturnRateMetricsService } from '../services/ops/ReturnRateMetricsService';
 import { BusinessMetricsCacheRepository } from '../data_layer/BusinessMetricsCacheRepository';
 import { CancellationFeedbackRepository } from '../data_layer/CancellationFeedbackRepository';
 import { EmojiFeedbackRepository } from '../data_layer/EmojiFeedbackRepository';
@@ -75,7 +77,8 @@ const OpsRouter = () => {
       emailService
     ),
     new GetPerformanceMetricsUseCase(performanceMetricsService),
-    new SendAbandonedCheckoutRecoveryUseCase(emailService)
+    new SendAbandonedCheckoutRecoveryUseCase(emailService),
+    new GetReturnRateMetricsUseCase(new ReturnRateMetricsService(database))
   );
 
   /**
@@ -249,6 +252,27 @@ const OpsRouter = () => {
     '/api/ops/send-abandoned-checkout-recovery',
     RequireOpsAccess,
     (req, res) => controller.sendAbandonedCheckoutRecovery(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/return-rate/metrics:
+   *   get:
+   *     summary: Post-completion return-rate metrics bucketed by source type
+   *     description: |
+   *       Internal endpoint locked to the ops owner. Returns the % of users who returned for a
+   *       second conversion within 7, 14, and 30 days of their prior successful conversion,
+   *       bucketed by source_type (page, database, conversion). Cohort window is the last 90 days.
+   *       Returns 404 for everyone else.
+   *     tags: [Ops]
+   *     responses:
+   *       200:
+   *         description: Return-rate metrics payload
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.get('/api/ops/return-rate/metrics', RequireOpsAccess, (req, res) =>
+    controller.getReturnRateMetrics(req, res)
   );
 
   return router;

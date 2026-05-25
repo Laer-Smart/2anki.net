@@ -4,6 +4,7 @@ import { GetOpsMetricsUseCase } from '../usecases/ops/GetOpsMetricsUseCase';
 import { GetBusinessMetricsUseCase } from '../usecases/ops/GetBusinessMetricsUseCase';
 import { GetConversionMetricsUseCase } from '../usecases/ops/GetConversionMetricsUseCase';
 import { GetPerformanceMetricsUseCase } from '../usecases/ops/GetPerformanceMetricsUseCase';
+import { GetReturnRateMetricsUseCase } from '../usecases/ops/GetReturnRateMetricsUseCase';
 import { PopulateShowcaseUseCase } from '../usecases/ops/PopulateShowcaseUseCase';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
 import { SendAbandonedCheckoutRecoveryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryUseCase';
@@ -18,7 +19,8 @@ class OpsController {
     private readonly showcaseRepo?: IShowcaseRepository,
     private readonly sendInactivityWarningsUseCase?: SendInactivityWarningsUseCase,
     private readonly getPerformanceMetricsUseCase?: GetPerformanceMetricsUseCase,
-    private readonly sendAbandonedCheckoutRecoveryUseCase?: SendAbandonedCheckoutRecoveryUseCase
+    private readonly sendAbandonedCheckoutRecoveryUseCase?: SendAbandonedCheckoutRecoveryUseCase,
+    private readonly getReturnRateMetricsUseCase?: GetReturnRateMetricsUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -160,6 +162,20 @@ class OpsController {
     } catch (error) {
       console.error('[ops] sendInactivityWarnings failed', error);
       res.status(500).json({ message: 'Failed to run inactivity warnings' });
+    }
+  }
+
+  async getReturnRateMetrics(_req: express.Request, res: express.Response) {
+    if (this.getReturnRateMetricsUseCase == null) {
+      res.status(500).json({ message: 'Return-rate metrics not configured' });
+      return;
+    }
+    try {
+      const result = await this.getReturnRateMetricsUseCase.execute();
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('[ops] getReturnRateMetrics failed', error);
+      res.status(500).json({ message: 'Failed to load return-rate metrics' });
     }
   }
 }
