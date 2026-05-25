@@ -697,7 +697,7 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                       ) : (
                         <>We couldn't read any content from this page.{' '}</>
                       )}
-                      <a href="/documentation" className={styles.zeroBannerLink}>
+                      <a href="/answers" className={styles.zeroBannerLink}>
                         What Ankify looks for →
                       </a>
                     </p>

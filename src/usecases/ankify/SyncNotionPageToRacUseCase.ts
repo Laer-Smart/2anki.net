@@ -1,9 +1,11 @@
+import crypto from 'node:crypto';
 import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
 import { AnkifySyncMappingsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncMappingsRepository';
 import { AnkifySyncConflictsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncConflictsRepository';
 import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/ankify/AnkifyNotionSubscriptionsRepository';
 import { AnkifySyncLogsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncLogsRepository';
 import { INotionRepository } from '../../data_layer/NotionRespository';
+import { IErrorEventRepository } from '../../data_layer/ErrorEventRepository';
 import {
   AnkifyClient,
   AnkifyNotionSubscription,
@@ -78,6 +80,24 @@ const DECK_TITLE_FALLBACK = 'Untitled';
 
 export type AnkifyMediaFetcher = typeof fetch;
 
+export type AnkifyZeroReasonCode =
+  | 'empty_page'
+  | 'no_matching_blocks'
+  | 'all_blocks_unmatched';
+
+const deriveReasonCode = (diagnostic: SyncDiagnostic): AnkifyZeroReasonCode => {
+  if (diagnostic.blocks_scanned === 0) {
+    return 'empty_page';
+  }
+  if (
+    diagnostic.pattern_hits == null ||
+    Object.keys(diagnostic.pattern_hits).length === 0
+  ) {
+    return 'all_blocks_unmatched';
+  }
+  return 'no_matching_blocks';
+};
+
 const sanitizeDeckTitle = (title: string | null | undefined): string => {
   if (title == null) {
     return DECK_TITLE_FALLBACK;
@@ -125,7 +145,8 @@ export class SyncNotionPageToRacUseCase {
     private readonly ankiConnect: AnkiConnectFactory,
     private readonly notionFetcher: NotionFetcherFactory,
     private readonly notionPageMeta?: NotionPageMetaFetcher,
-    private readonly mediaFetcher: AnkifyMediaFetcher = fetch
+    private readonly mediaFetcher: AnkifyMediaFetcher = fetch,
+    private readonly errorEvents?: IErrorEventRepository
   ) {}
 
   private modelCache(clientId: number): Set<string> {
@@ -225,6 +246,44 @@ export class SyncNotionPageToRacUseCase {
     return { pageTitle, pageUrl, pageIcon };
   }
 
+  private emitZeroCardsEvent(
+    input: SyncNotionPageInput,
+    diagnostic: SyncDiagnostic
+  ): void {
+    if (this.errorEvents == null) {
+      return;
+    }
+    const reasonCode = deriveReasonCode(diagnostic);
+    const pageIdHash = crypto
+      .createHash('sha256')
+      .update(input.notionPageId)
+      .digest('hex');
+    this.errorEvents
+      .insert({
+        source: 'server',
+        message: 'ankify.zero_cards',
+        message_hash: crypto
+          .createHash('sha256')
+          .update(`ankify.zero_cards:${pageIdHash}:${input.owner}`)
+          .digest('hex'),
+        context: {
+          user_id: input.owner,
+          source_type: 'notion_page',
+          file_hash: pageIdHash,
+          input_chars: diagnostic.blocks_scanned,
+          ai_response_chars: 0,
+          parser_path: 'ankify/notionPageWalker',
+          reason_code: reasonCode,
+          blocks_scanned: diagnostic.blocks_scanned,
+          blocks_matched: diagnostic.blocks_matched,
+          trigger: input.trigger,
+        },
+      })
+      .catch((err) => {
+        console.error('[ankify-sync] failed to emit zero_cards event', err);
+      });
+  }
+
   private async runSync(args: {
     input: SyncNotionPageInput;
     token: string;
@@ -239,6 +298,10 @@ export class SyncNotionPageToRacUseCase {
       fetchChildren
     );
     result.diagnostic = diagnostic;
+
+    if (cards.length === 0) {
+      this.emitZeroCardsEvent(input, diagnostic);
+    }
 
     const ac = this.ankiConnect(
       input.ankiConnectHost ?? 'localhost',

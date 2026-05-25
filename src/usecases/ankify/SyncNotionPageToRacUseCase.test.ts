@@ -9,6 +9,7 @@ import { AnkifySyncConflictsRepositoryInterface } from '../../data_layer/ankify/
 import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/ankify/AnkifyNotionSubscriptionsRepository';
 import { AnkifySyncLogsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncLogsRepository';
 import { INotionRepository } from '../../data_layer/NotionRespository';
+import { IErrorEventRepository } from '../../data_layer/ErrorEventRepository';
 import { AnkiConnectClient } from '../../services/ankify/AnkiConnectClient';
 import { WalkedNotionFlashcard } from '../../services/ankify/notionPageWalker';
 
@@ -827,5 +828,138 @@ describe('SyncNotionPageToRacUseCase', () => {
     ).rejects.toThrow('rate_limited');
 
     expect(repos.subscriptions.setEnabled).not.toHaveBeenCalled();
+  });
+
+  describe('zero-card structured event emission', () => {
+    const makeErrorEventRepo = (): jest.Mocked<IErrorEventRepository> => ({
+      insert: jest.fn().mockResolvedValue(undefined),
+      existsWithinWindow: jest.fn().mockResolvedValue(false),
+      listGroups: jest.fn().mockResolvedValue([]),
+      countGroups: jest.fn().mockResolvedValue(0),
+    });
+
+    it('emits ankify.zero_cards event when page produces no cards', async () => {
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+      const errorEventRepo = makeErrorEventRepo();
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [],
+        diagnostic: { blocks_scanned: 5, blocks_matched: 0, pattern_hits: {} },
+      });
+
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => [],
+        undefined,
+        fetch,
+        errorEventRepo
+      );
+
+      await useCase.execute({ owner: 42, notionPageId: 'page-abc', trigger: 'manual' });
+
+      expect(errorEventRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'server',
+          message: 'ankify.zero_cards',
+          context: expect.objectContaining({
+            user_id: 42,
+            source_type: 'notion_page',
+            parser_path: 'ankify/notionPageWalker',
+            reason_code: 'all_blocks_unmatched',
+            blocks_scanned: 5,
+          }),
+        })
+      );
+    });
+
+    it('derives reason_code empty_page when blocks_scanned is zero', async () => {
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+      const errorEventRepo = makeErrorEventRepo();
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [],
+        diagnostic: { blocks_scanned: 0, blocks_matched: 0, pattern_hits: {} },
+      });
+
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => [],
+        undefined,
+        fetch,
+        errorEventRepo
+      );
+
+      await useCase.execute({ owner: 42, notionPageId: 'page-empty', trigger: 'polling' });
+
+      expect(errorEventRepo.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          context: expect.objectContaining({ reason_code: 'empty_page' }),
+        })
+      );
+    });
+
+    it('does not emit zero_cards event when cards are produced', async () => {
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+      const errorEventRepo = makeErrorEventRepo();
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [sampleCard()],
+        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } },
+      });
+
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => [],
+        undefined,
+        fetch,
+        errorEventRepo
+      );
+
+      await useCase.execute({ owner: 42, notionPageId: 'page-with-cards', trigger: 'manual' });
+
+      expect(errorEventRepo.insert).not.toHaveBeenCalled();
+    });
+
+    it('does not throw if errorEventRepo is not provided', async () => {
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [],
+        diagnostic: { blocks_scanned: 3, blocks_matched: 0, pattern_hits: {} },
+      });
+
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      await expect(
+        useCase.execute({ owner: 42, notionPageId: 'page-no-repo', trigger: 'manual' })
+      ).resolves.not.toThrow();
+    });
   });
 });

@@ -14,6 +14,7 @@ import { verifyNotionWebhookSignature } from '../lib/ankify/notionWebhookSignatu
 import { hasAnkifyAccess } from '../lib/ankify/access';
 import UsersRepository from '../data_layer/UsersRepository';
 import SubscriptionService from '../services/SubscriptionService';
+import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';
 
 const AnkifyWebhookRouter = () => {
   const router = express.Router();
@@ -34,7 +35,10 @@ const AnkifyWebhookRouter = () => {
     logs,
     notionRepo,
     ankiConnectFactory,
-    notionBlockChildrenFetcherFactory
+    notionBlockChildrenFetcherFactory,
+    undefined,
+    fetch,
+    new ErrorEventRepository(db)
   );
 
   router.post(
