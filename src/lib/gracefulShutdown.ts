@@ -3,7 +3,7 @@ import type { Knex } from 'knex';
 import { shutdownConversionPool } from './conversionPool';
 
 // pm2 sends SIGINT then escalates to SIGKILL after kill_timeout (set to
-// 30s in ecosystem.config.js). Reserve a safety margin so process.exit
+// 30s in ecosystem.blue-green.config.js). Reserve a safety margin so process.exit
 // fires before pm2's SIGKILL lands.
 export const SHUTDOWN_TIMEOUT_MS = 25_000;
 export const POOL_DRAIN_TIMEOUT_MS = 20_000;
