@@ -57,12 +57,12 @@ export const getRedirect = (req: Request): string => {
   const redirectParam = queryRedirect ?? bodyRedirect;
 
   if (redirectParam == null || redirectParam === '') {
-    return '/notion';
+    return '/upload';
   }
 
   if (isValidRedirectUrl(redirectParam)) {
     return redirectParam;
   }
 
-  return '/notion';
+  return '/upload';
 };

@@ -41,6 +41,7 @@ import UsersController from './UsersControllers';
 import UsersService, { MagicLinkRateLimitError } from '../services/UsersService';
 import AuthenticationService from '../services/AuthenticationService';
 import OauthIdentitiesRepository from '../data_layer/OauthIdentitiesRepository';
+import NotionRepository from '../data_layer/NotionRespository';
 
 const SAMPLE_PW = '12345678';
 
@@ -801,6 +802,7 @@ describe('UsersController.loginWithGoogle', () => {
 });
 
 jest.mock('../data_layer/OauthIdentitiesRepository');
+jest.mock('../data_layer/NotionRespository');
 
 describe('UsersController.loginWithMicrosoft', () => {
   const MockedOauthIdentitiesRepo =
@@ -1196,6 +1198,262 @@ describe('UsersController.loginWithApple', () => {
   });
 });
 
+describe('UsersController.login — Notion-aware redirect', () => {
+  const MockedNotionRepo = NotionRepository as jest.MockedClass<typeof NotionRepository>;
+
+  beforeEach(() => {
+    MockedNotionRepo.mockClear();
+    MockedNotionRepo.prototype.getNotionData = jest.fn().mockResolvedValue(null);
+  });
+
+  const buildLoginController = (overrides?: {
+    comparePassword?: jest.Mock;
+    newJWTToken?: jest.Mock;
+    persistToken?: jest.Mock;
+  }) => {
+    const mockUser = { id: 5, email: 'u@example.com', pw: 'mock' };
+    const userService = {
+      getUserFrom: jest.fn().mockResolvedValue(mockUser),
+      updateLastLoginAt: jest.fn().mockResolvedValue(undefined),
+    } as unknown as UsersService;
+    const authService = {
+      isValidLogin: jest.fn().mockReturnValue(true),
+      comparePassword: overrides?.comparePassword ?? jest.fn().mockReturnValue(true),
+      newJWTToken: overrides?.newJWTToken ?? jest.fn().mockResolvedValue('login-jwt'),
+      persistToken: overrides?.persistToken ?? jest.fn().mockResolvedValue(undefined),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    return { controller };
+  };
+
+  const buildLoginRes = () => {
+    const json = jest.fn();
+    const status = jest.fn().mockReturnValue({ json });
+    const cookie = jest.fn();
+    return { json, status, cookie } as unknown as express.Response & {
+      json: jest.Mock;
+      status: jest.Mock;
+      cookie: jest.Mock;
+    };
+  };
+
+  it('redirects to /upload when user has no Notion token and no redirect param', async () => {
+    MockedNotionRepo.prototype.getNotionData = jest.fn().mockResolvedValue(null);
+    const { controller } = buildLoginController();
+    const req = { body: { email: 'u@example.com', credentials: 'mock' }, query: {} } as unknown as express.Request;
+    const res = buildLoginRes();
+    const next = jest.fn();
+
+    await controller.login(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    const payload = res.json.mock.calls[0][0];
+    expect(payload.redirect).toBe('/upload');
+  });
+
+  it('redirects to /notion when user has a Notion token and no redirect param', async () => {
+    MockedNotionRepo.prototype.getNotionData = jest.fn().mockResolvedValue({ token: 'stored-tok', owner: 5 });
+    const { controller } = buildLoginController();
+    const req = { body: { email: 'u@example.com', credentials: 'mock' }, query: {} } as unknown as express.Request;
+    const res = buildLoginRes();
+    const next = jest.fn();
+
+    await controller.login(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    const payload = res.json.mock.calls[0][0];
+    expect(payload.redirect).toBe('/notion');
+  });
+
+  it('respects explicit ?redirect= param even for Notion users', async () => {
+    MockedNotionRepo.prototype.getNotionData = jest.fn().mockResolvedValue({ token: 'stored-tok', owner: 5 });
+    const { controller } = buildLoginController();
+    const req = { body: { email: 'u@example.com', credentials: 'mock' }, query: { redirect: '/downloads' } } as unknown as express.Request;
+    const res = buildLoginRes();
+    const next = jest.fn();
+
+    await controller.login(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    const payload = res.json.mock.calls[0][0];
+    expect(payload.redirect).toBe('/downloads');
+  });
+});
+
+describe('UsersController.loginWithNotion — error recording', () => {
+  const buildNotionController = (
+    loginWithNotionResult: Record<string, unknown> | null,
+    getUserFromResult: Record<string, unknown> | null = null
+  ) => {
+    const recordExecute = jest.fn().mockResolvedValue(undefined);
+    const recordError = { execute: recordExecute };
+
+    const authService = {
+      loginWithNotion: jest.fn().mockResolvedValue(loginWithNotionResult),
+      getHashPassword: jest.fn().mockReturnValue('hashed'),
+      newJWTToken: jest.fn().mockResolvedValue(null),
+      persistToken: jest.fn().mockResolvedValue(undefined),
+    } as unknown as AuthenticationService;
+    const userService = {
+      getUserFrom: jest.fn().mockResolvedValue(getUserFromResult),
+      register: jest.fn().mockResolvedValue(undefined),
+      updateLastLoginAt: jest.fn().mockResolvedValue(undefined),
+    } as unknown as UsersService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>,
+      recordError as unknown as import('../usecases/observability/RecordUserVisibleErrorUseCase').RecordUserVisibleErrorUseCase
+    );
+    return { controller, recordExecute };
+  };
+
+  const buildRedirectRes = () => {
+    const redirect = jest.fn();
+    const status = jest.fn().mockReturnValue({ send: jest.fn() });
+    return { redirect, status } as unknown as express.Response & {
+      redirect: jest.Mock;
+      status: jest.Mock;
+    };
+  };
+
+  it('records oauth_cancelled when code query param is absent', async () => {
+    const { controller, recordExecute } = buildNotionController(null);
+    const req = { query: {} } as unknown as express.Request;
+    const res = buildRedirectRes();
+
+    await controller.loginWithNotion(req, res);
+
+    expect(recordExecute).toHaveBeenCalledWith({
+      userId: null,
+      surface: 'oauth_notion',
+      code: 'oauth_cancelled',
+    });
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=notion_cancelled');
+  });
+
+  it('records oauth_token_exchange_failed when loginWithNotion returns null', async () => {
+    const { controller, recordExecute } = buildNotionController(null);
+    const req = { query: { code: 'notion-code' } } as unknown as express.Request;
+    const res = buildRedirectRes();
+
+    await controller.loginWithNotion(req, res);
+
+    expect(recordExecute).toHaveBeenCalledWith({
+      userId: null,
+      surface: 'oauth_notion',
+      code: 'oauth_token_exchange_failed',
+    });
+  });
+
+  it('records oauth_user_creation_failed when user lookup returns null after register', async () => {
+    const { controller, recordExecute } = buildNotionController(
+      { email: 'n@notion.so', name: 'N', accessData: {} },
+      null
+    );
+    const req = { query: { code: 'notion-code' }, headers: {} } as unknown as express.Request;
+    const res = buildRedirectRes();
+
+    await controller.loginWithNotion(req, res);
+
+    expect(recordExecute).toHaveBeenCalledWith({
+      userId: null,
+      surface: 'oauth_notion',
+      code: 'oauth_user_creation_failed',
+    });
+  });
+});
+
+describe('UsersController.loginWithGoogle — error recording', () => {
+  const buildOAuthController = (
+    loginWithGoogleResult: Record<string, unknown> | null,
+    getUserFromResult: Record<string, unknown> | null = null
+  ) => {
+    const recordExecute = jest.fn().mockResolvedValue(undefined);
+    const recordError = { execute: recordExecute };
+
+    const authService = {
+      loginWithGoogle: jest.fn().mockResolvedValue(loginWithGoogleResult),
+      getHashPassword: jest.fn().mockReturnValue('hashed'),
+      newJWTToken: jest.fn().mockResolvedValue(null),
+      persistToken: jest.fn().mockResolvedValue(undefined),
+    } as unknown as AuthenticationService;
+    const userService = {
+      getUserFrom: jest.fn().mockResolvedValue(getUserFromResult),
+      register: jest.fn().mockResolvedValue(undefined),
+      updateLastLoginAt: jest.fn().mockResolvedValue(undefined),
+      markEmailVerified: jest.fn().mockResolvedValue(undefined),
+    } as unknown as UsersService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>,
+      recordError as unknown as import('../usecases/observability/RecordUserVisibleErrorUseCase').RecordUserVisibleErrorUseCase
+    );
+    return { controller, recordExecute };
+  };
+
+  const buildRedirectRes = () => {
+    const redirect = jest.fn();
+    const status = jest.fn().mockReturnValue({ send: jest.fn() });
+    return { redirect, status } as unknown as express.Response & {
+      redirect: jest.Mock;
+      status: jest.Mock;
+    };
+  };
+
+  it('records oauth_cancelled when code query param is absent', async () => {
+    const { controller, recordExecute } = buildOAuthController(null);
+    const req = { query: {} } as unknown as express.Request;
+    const res = buildRedirectRes();
+
+    await controller.loginWithGoogle(req, res);
+
+    expect(recordExecute).toHaveBeenCalledWith({
+      userId: null,
+      surface: 'oauth_google',
+      code: 'oauth_cancelled',
+    });
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+  });
+
+  it('records oauth_token_exchange_failed when loginWithGoogle returns null', async () => {
+    const { controller, recordExecute } = buildOAuthController(null);
+    const req = { query: { code: 'auth-code-123' } } as unknown as express.Request;
+    const res = buildRedirectRes();
+
+    await controller.loginWithGoogle(req, res);
+
+    expect(recordExecute).toHaveBeenCalledWith({
+      userId: null,
+      surface: 'oauth_google',
+      code: 'oauth_token_exchange_failed',
+    });
+    expect(res.redirect).toHaveBeenCalledWith('/login');
+  });
+
+  it('records oauth_user_creation_failed when user lookup returns null after register', async () => {
+    const { controller, recordExecute } = buildOAuthController(
+      { email: 'x@google.com', name: 'X' },
+      null
+    );
+    const req = { query: { code: 'auth-code-123' }, headers: {} } as unknown as express.Request;
+    const res = buildRedirectRes();
+
+    await controller.loginWithGoogle(req, res);
+
+    expect(recordExecute).toHaveBeenCalledWith({
+      userId: null,
+      surface: 'oauth_google',
+      code: 'oauth_user_creation_failed',
+    });
+  });
+});
+
 describe('UsersController.loginWithNotion', () => {
   const buildNotionDb = () => {
     const chainable: Record<string, jest.Mock> = {};
@@ -1443,174 +1701,3 @@ describe('UsersController.getLocals', () => {
     expect(payload.user.email_verified).toBe(false);
   });
 });
-
-describe('UsersController.loginWithGoogle — error recording', () => {
-  const buildOAuthController = (
-    loginWithGoogleResult: Record<string, unknown> | null,
-    getUserFromResult: Record<string, unknown> | null = null
-  ) => {
-    const recordExecute = jest.fn().mockResolvedValue(undefined);
-    const recordError = { execute: recordExecute };
-
-    const authService = {
-      loginWithGoogle: jest.fn().mockResolvedValue(loginWithGoogleResult),
-      getHashPassword: jest.fn().mockReturnValue('hashed'),
-      newJWTToken: jest.fn().mockResolvedValue(null),
-      persistToken: jest.fn().mockResolvedValue(undefined),
-    } as unknown as AuthenticationService;
-    const userService = {
-      getUserFrom: jest.fn().mockResolvedValue(getUserFromResult),
-      register: jest.fn().mockResolvedValue(undefined),
-      updateLastLoginAt: jest.fn().mockResolvedValue(undefined),
-      markEmailVerified: jest.fn().mockResolvedValue(undefined),
-    } as unknown as UsersService;
-    const controller = new UsersController(
-      userService,
-      authService,
-      {} as ReturnType<typeof import('../data_layer').getDatabase>,
-      recordError as unknown as import('../usecases/observability/RecordUserVisibleErrorUseCase').RecordUserVisibleErrorUseCase
-    );
-    return { controller, recordExecute };
-  };
-
-  const buildRedirectRes = () => {
-    const redirect = jest.fn();
-    const status = jest.fn().mockReturnValue({ send: jest.fn() });
-    return { redirect, status } as unknown as express.Response & {
-      redirect: jest.Mock;
-      status: jest.Mock;
-    };
-  };
-
-  it('records oauth_cancelled when code query param is absent', async () => {
-    const { controller, recordExecute } = buildOAuthController(null);
-    const req = { query: {} } as unknown as express.Request;
-    const res = buildRedirectRes();
-
-    await controller.loginWithGoogle(req, res);
-
-    expect(recordExecute).toHaveBeenCalledWith({
-      userId: null,
-      surface: 'oauth_google',
-      code: 'oauth_cancelled',
-    });
-    expect(res.redirect).toHaveBeenCalledWith('/login');
-  });
-
-  it('records oauth_token_exchange_failed when loginWithGoogle returns null', async () => {
-    const { controller, recordExecute } = buildOAuthController(null);
-    const req = { query: { code: 'auth-code-123' } } as unknown as express.Request;
-    const res = buildRedirectRes();
-
-    await controller.loginWithGoogle(req, res);
-
-    expect(recordExecute).toHaveBeenCalledWith({
-      userId: null,
-      surface: 'oauth_google',
-      code: 'oauth_token_exchange_failed',
-    });
-    expect(res.redirect).toHaveBeenCalledWith('/login');
-  });
-
-  it('records oauth_user_creation_failed when user lookup returns null after register', async () => {
-    const { controller, recordExecute } = buildOAuthController(
-      { email: 'x@google.com', name: 'X' },
-      null
-    );
-    const req = { query: { code: 'auth-code-123' }, headers: {} } as unknown as express.Request;
-    const res = buildRedirectRes();
-
-    await controller.loginWithGoogle(req, res);
-
-    expect(recordExecute).toHaveBeenCalledWith({
-      userId: null,
-      surface: 'oauth_google',
-      code: 'oauth_user_creation_failed',
-    });
-  });
-});
-
-describe('UsersController.loginWithNotion — error recording', () => {
-  const buildNotionController = (
-    loginWithNotionResult: Record<string, unknown> | null,
-    getUserFromResult: Record<string, unknown> | null = null
-  ) => {
-    const recordExecute = jest.fn().mockResolvedValue(undefined);
-    const recordError = { execute: recordExecute };
-
-    const authService = {
-      loginWithNotion: jest.fn().mockResolvedValue(loginWithNotionResult),
-      getHashPassword: jest.fn().mockReturnValue('hashed'),
-      newJWTToken: jest.fn().mockResolvedValue(null),
-      persistToken: jest.fn().mockResolvedValue(undefined),
-    } as unknown as AuthenticationService;
-    const userService = {
-      getUserFrom: jest.fn().mockResolvedValue(getUserFromResult),
-      register: jest.fn().mockResolvedValue(undefined),
-      updateLastLoginAt: jest.fn().mockResolvedValue(undefined),
-    } as unknown as UsersService;
-    const controller = new UsersController(
-      userService,
-      authService,
-      {} as ReturnType<typeof import('../data_layer').getDatabase>,
-      recordError as unknown as import('../usecases/observability/RecordUserVisibleErrorUseCase').RecordUserVisibleErrorUseCase
-    );
-    return { controller, recordExecute };
-  };
-
-  const buildRedirectRes = () => {
-    const redirect = jest.fn();
-    const status = jest.fn().mockReturnValue({ send: jest.fn() });
-    return { redirect, status } as unknown as express.Response & {
-      redirect: jest.Mock;
-      status: jest.Mock;
-    };
-  };
-
-  it('records oauth_cancelled when code query param is absent', async () => {
-    const { controller, recordExecute } = buildNotionController(null);
-    const req = { query: {} } as unknown as express.Request;
-    const res = buildRedirectRes();
-
-    await controller.loginWithNotion(req, res);
-
-    expect(recordExecute).toHaveBeenCalledWith({
-      userId: null,
-      surface: 'oauth_notion',
-      code: 'oauth_cancelled',
-    });
-    expect(res.redirect).toHaveBeenCalledWith('/login?error=notion_cancelled');
-  });
-
-  it('records oauth_token_exchange_failed when loginWithNotion returns null', async () => {
-    const { controller, recordExecute } = buildNotionController(null);
-    const req = { query: { code: 'notion-code' } } as unknown as express.Request;
-    const res = buildRedirectRes();
-
-    await controller.loginWithNotion(req, res);
-
-    expect(recordExecute).toHaveBeenCalledWith({
-      userId: null,
-      surface: 'oauth_notion',
-      code: 'oauth_token_exchange_failed',
-    });
-  });
-
-  it('records oauth_user_creation_failed when user lookup returns null after register', async () => {
-    const { controller, recordExecute } = buildNotionController(
-      { email: 'n@notion.so', name: 'N', accessData: {} },
-      null
-    );
-    const req = { query: { code: 'notion-code' }, headers: {} } as unknown as express.Request;
-    const res = buildRedirectRes();
-
-    await controller.loginWithNotion(req, res);
-
-    expect(recordExecute).toHaveBeenCalledWith({
-      userId: null,
-      surface: 'oauth_notion',
-      code: 'oauth_user_creation_failed',
-    });
-  });
-});
-
