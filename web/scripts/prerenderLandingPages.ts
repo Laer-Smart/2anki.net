@@ -34,12 +34,14 @@ const escapeHtml = (value: string): string =>
 
 function buildHeroFragment(copy: LandingCopy): string {
   return [
-    '<section id="upload" style="background:var(--color-bg-secondary);padding:4rem 1.5rem;">',
-    '<div style="max-width:720px;margin:0 auto;">',
-    `<h1 style="margin:0 0 1rem;font-size:2.5rem;font-weight:600;max-width:18ch;">${escapeHtml(
+    '<section id="upload" style="background:var(--color-bg-secondary);padding:4rem 1.5rem 3rem;">',
+    '<div style="max-width:640px;margin:0 auto;">',
+    `<h1 style="font-size:clamp(2.25rem, 6vw, 3.5rem);font-weight:var(--font-bold);letter-spacing:-0.03em;line-height:1.1;color:var(--color-text-primary);margin:0 0 1rem;max-width:16ch;">${escapeHtml(
       copy.h1
     )}</h1>`,
-    `<p style="margin:0 0 2rem;color:var(--color-text-secondary);">${escapeHtml(copy.subhead)}</p>`,
+    `<p style="font-size:var(--text-lg);color:var(--color-text-secondary);margin:0 0 2rem;line-height:var(--leading-relaxed);max-width:42ch;">${escapeHtml(
+      copy.subhead
+    )}</p>`,
     '</div>',
     '</section>',
   ].join('');

@@ -2,5 +2,5 @@
   "id": "2026-05-25-theme-flash",
   "date": "2026-05-25",
   "type": "fix",
-  "title": "Pages open in your saved theme without a white flash on load"
+  "title": "Landing pages open cleanly — no white flash or text resize on load"
 }
