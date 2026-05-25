@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-25-clearer-upload-errors",
+  "date": "2026-05-25",
+  "type": "fix",
+  "title": "Clearer messages when a Notion export, .apkg file, or empty export can't be converted — each says what to do next"
+}

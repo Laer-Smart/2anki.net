@@ -141,10 +141,31 @@ describe('classifyUploadError', () => {
     expect(result.title).toBe('Something broke.');
   });
 
-  test('malformed_notion falls back to the server message', () => {
+  test('malformed_notion returns specific copy (not the server message)', () => {
     const body: UploadErrorBody = { code: 'malformed_notion', message: 'Notion error.' };
     const result = classifyUploadError(body);
-    expect(result.title).toBe('Notion error.');
+    expect(result.title).toBe("This Notion export couldn't be parsed.");
+  });
+
+  it('malformed_notion returns specific copy about re-exporting from Notion', () => {
+    const body: UploadErrorBody = { code: 'malformed_notion', message: 'raw server text' };
+    const result = classifyUploadError(body);
+    expect(result.title).toBe("This Notion export couldn't be parsed.");
+    expect(result.detail).toBe('Re-export the page from Notion and try again.');
+  });
+
+  it('corrupted_apkg returns specific copy about re-exporting from Anki', () => {
+    const body: UploadErrorBody = { code: 'corrupted_apkg', message: 'raw server text' };
+    const result = classifyUploadError(body);
+    expect(result.title).toBe('This .apkg file is damaged.');
+    expect(result.detail).toBe('Re-export it from Anki, or send it to support@2anki.net.');
+  });
+
+  it('empty_export returns specific copy about checking page content', () => {
+    const body: UploadErrorBody = { code: 'empty_export', message: 'raw server text' };
+    const result = classifyUploadError(body);
+    expect(result.title).toBe("This export has no content we can turn into cards.");
+    expect(result.detail).toBe('Check the page has text or toggle blocks, then export again.');
   });
 
   test('empty message under an unknown code returns the parser-error spec copy', () => {

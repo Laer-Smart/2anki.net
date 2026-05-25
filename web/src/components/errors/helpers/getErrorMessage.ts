@@ -145,6 +145,18 @@ const PER_CODE_COPY: Partial<Record<UploadErrorBody['code'], FriendlyError>> = {
     title: "Part of this file has formatting we couldn't read.",
     detail: 'Open the source, remove or simplify the block that broke, and try again.',
   },
+  malformed_notion: {
+    title: "This Notion export couldn't be parsed.",
+    detail: 'Re-export the page from Notion and try again.',
+  },
+  corrupted_apkg: {
+    title: 'This .apkg file is damaged.',
+    detail: 'Re-export it from Anki, or send it to support@2anki.net.',
+  },
+  empty_export: {
+    title: 'This export has no content we can turn into cards.',
+    detail: 'Check the page has text or toggle blocks, then export again.',
+  },
 };
 
 export function classifyUploadError(body: UploadErrorBody): FriendlyError {
