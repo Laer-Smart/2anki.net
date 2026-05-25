@@ -42,6 +42,7 @@ import UsersService, { MagicLinkRateLimitError } from '../services/UsersService'
 import AuthenticationService from '../services/AuthenticationService';
 import OauthIdentitiesRepository from '../data_layer/OauthIdentitiesRepository';
 import NotionRepository from '../data_layer/NotionRespository';
+import { SESSION_MAX_AGE_MS } from '../shared/session';
 
 const SAMPLE_PW = '12345678';
 
@@ -132,7 +133,7 @@ describe('UsersController.register', () => {
     await controller.register(req, res, next);
 
     expect(register).toHaveBeenCalledTimes(1);
-    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-reg-tok');
+    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-reg-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' }));
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ token: 'jwt-reg-tok' })
@@ -231,7 +232,7 @@ describe('UsersController.register', () => {
 
     await controller.register(req, res, next);
 
-    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-trial-tok');
+    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-trial-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' }));
     expect(mockMarkTrialStarted).toHaveBeenCalledTimes(1);
   });
 
@@ -607,7 +608,7 @@ describe('UsersController.verifyMagicLink', () => {
 
     await controller.verifyMagicLink(req, res, next);
 
-    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-login-tok');
+    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-login-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' }));
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ token: 'jwt-login-tok' });
     expect(persistToken).toHaveBeenCalledWith('jwt-login-tok', '5');
@@ -1558,6 +1559,225 @@ describe('UsersController.loginWithNotion', () => {
     await controller.loginWithNotion(req, res);
 
     expect(register).not.toHaveBeenCalled();
+  });
+});
+
+describe('UsersController cookie options — 30-day persistent session', () => {
+  const EXPECTED_COOKIE_OPTIONS = {
+    maxAge: SESSION_MAX_AGE_MS,
+    httpOnly: true,
+    sameSite: 'lax',
+  };
+
+  it('sets maxAge, httpOnly, and sameSite on the token cookie during email/password login', async () => {
+    const MockedNotionRepo = NotionRepository as jest.MockedClass<typeof NotionRepository>;
+    MockedNotionRepo.prototype.getNotionData = jest.fn().mockResolvedValue(null);
+    const mockUser = { id: 5, email: 'u@example.com', pw: '$2b$10$hash' };
+    const userService = {
+      getUserFrom: jest.fn().mockResolvedValue(mockUser),
+      updateLastLoginAt: jest.fn().mockResolvedValue(undefined),
+    } as unknown as UsersService;
+    const authService = {
+      isValidLogin: jest.fn().mockReturnValue(true),
+      comparePassword: jest.fn().mockReturnValue(true),
+      newJWTToken: jest.fn().mockResolvedValue('login-jwt'),
+      persistToken: jest.fn().mockResolvedValue(undefined),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    const req = { body: { email: 'u@example.com', credentials: 'mock' }, query: {} } as unknown as express.Request;
+    const res = buildRes();
+    const next = jest.fn();
+
+    await controller.login(req, res, next);
+
+    expect(res.cookie).toHaveBeenCalledWith('token', 'login-jwt', expect.objectContaining(EXPECTED_COOKIE_OPTIONS));
+  });
+
+  it('sets maxAge, httpOnly, and sameSite on the token cookie during registration', async () => {
+    const register = jest.fn().mockResolvedValue([{ id: 1 }]);
+    const newJWTToken = jest.fn().mockResolvedValue('register-jwt');
+    const { controller } = buildController({ register, newJWTToken });
+    const req = {
+      body: { email: 'new@example.com', password: SAMPLE_PW },
+      query: {},
+    } as unknown as express.Request;
+    const res = buildRes();
+    const next = jest.fn();
+
+    await controller.register(req, res, next);
+
+    expect(res.cookie).toHaveBeenCalledWith('token', 'register-jwt', expect.objectContaining(EXPECTED_COOKIE_OPTIONS));
+  });
+
+  it('sets maxAge, httpOnly, and sameSite on the token cookie during magic link verification', async () => {
+    const verifyMagicToken = jest.fn().mockResolvedValue({ userId: 5, purpose: 'login' });
+    const newJWTToken = jest.fn().mockResolvedValue('magic-jwt');
+    const persistToken = jest.fn().mockResolvedValue(undefined);
+    const updateLastLoginAt = jest.fn().mockResolvedValue(undefined);
+    const getUserById = jest.fn().mockResolvedValue({ id: 5, email: 'al@example.com' });
+    const markEmailVerified = jest.fn().mockResolvedValue(1);
+    const userService = {
+      verifyMagicToken,
+      getUserById,
+      updateLastLoginAt,
+      markEmailVerified,
+    } as unknown as UsersService;
+    const authService = {
+      newJWTToken,
+      persistToken,
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    const req = { params: { token: 'magic-tok' } } as unknown as express.Request;
+    const res = { json: jest.fn(), status: jest.fn().mockReturnThis(), cookie: jest.fn() } as unknown as express.Response & { cookie: jest.Mock };
+    const next = jest.fn();
+
+    await controller.verifyMagicLink(req, res, next);
+
+    expect(res.cookie).toHaveBeenCalledWith('token', 'magic-jwt', expect.objectContaining(EXPECTED_COOKIE_OPTIONS));
+  });
+
+  it('sets maxAge, httpOnly, and sameSite on the token cookie during Google OAuth login', async () => {
+    const mockUser = { id: 7, email: 'g@example.com' };
+    const MockedNotionRepo = NotionRepository as jest.MockedClass<typeof NotionRepository>;
+    MockedNotionRepo.prototype.getNotionData = jest.fn().mockResolvedValue(null);
+    const userService = {
+      getUserFrom: jest.fn().mockResolvedValue(mockUser),
+      register: jest.fn().mockResolvedValue([{ id: 7 }]),
+      markEmailVerified: jest.fn().mockResolvedValue(1),
+      updateLastLoginAt: jest.fn().mockResolvedValue(undefined),
+    } as unknown as UsersService;
+    const newJWTToken = jest.fn().mockResolvedValue('google-jwt');
+    const authService = {
+      loginWithGoogle: jest.fn().mockResolvedValue({ email: 'g@example.com', name: 'G' }),
+      getHashPassword: jest.fn().mockReturnValue('hashed'),
+      newJWTToken,
+      persistToken: jest.fn().mockResolvedValue(undefined),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    const req = { query: { code: 'gauth' }, cookies: {}, headers: {} } as unknown as express.Request;
+    const res = { redirect: jest.fn(), cookie: jest.fn(), status: jest.fn().mockReturnThis() } as unknown as express.Response & { cookie: jest.Mock };
+
+    await controller.loginWithGoogle(req, res);
+
+    expect(res.cookie).toHaveBeenCalledWith('token', 'google-jwt', expect.objectContaining(EXPECTED_COOKIE_OPTIONS));
+  });
+
+  it('sets maxAge, httpOnly, and sameSite on the token cookie during Microsoft OAuth login', async () => {
+    const MockedOauthIdentitiesRepo = OauthIdentitiesRepository as jest.MockedClass<typeof OauthIdentitiesRepository>;
+    MockedOauthIdentitiesRepo.prototype.findByProviderAndSubject = jest.fn().mockResolvedValue(null);
+    MockedOauthIdentitiesRepo.prototype.link = jest.fn().mockResolvedValue(undefined);
+    const MockedNotionRepo = NotionRepository as jest.MockedClass<typeof NotionRepository>;
+    MockedNotionRepo.prototype.getNotionData = jest.fn().mockResolvedValue(null);
+
+    const mockUser = { id: 11, email: 'm@example.com' };
+    const newJWTToken = jest.fn().mockResolvedValue('microsoft-jwt');
+    const userService = {
+      getUserFrom: jest.fn().mockResolvedValue(mockUser),
+      getUserById: jest.fn().mockResolvedValue(mockUser),
+      register: jest.fn().mockResolvedValue([{ id: 11 }]),
+      markEmailVerified: jest.fn().mockResolvedValue(1),
+      updateLastLoginAt: jest.fn().mockResolvedValue(undefined),
+    } as unknown as UsersService;
+    const authService = {
+      loginWithMicrosoft: jest.fn().mockResolvedValue({ subject: 'ms-sub', email: 'm@example.com', name: 'M', emailVerified: true }),
+      getHashPassword: jest.fn().mockReturnValue('hashed'),
+      newJWTToken,
+      persistToken: jest.fn().mockResolvedValue(undefined),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    const req = { query: { code: 'mauth' }, cookies: {}, headers: {} } as unknown as express.Request;
+    const res = { redirect: jest.fn(), cookie: jest.fn(), status: jest.fn().mockReturnThis() } as unknown as express.Response & { cookie: jest.Mock };
+
+    await controller.loginWithMicrosoft(req, res);
+
+    expect(res.cookie).toHaveBeenCalledWith('token', 'microsoft-jwt', expect.objectContaining(EXPECTED_COOKIE_OPTIONS));
+  });
+
+  it('sets maxAge, httpOnly, and sameSite on the token cookie during Apple OAuth login', async () => {
+    const MockedOauthIdentitiesRepo = OauthIdentitiesRepository as jest.MockedClass<typeof OauthIdentitiesRepository>;
+    MockedOauthIdentitiesRepo.prototype.findByProviderAndSubject = jest.fn().mockResolvedValue(null);
+    MockedOauthIdentitiesRepo.prototype.link = jest.fn().mockResolvedValue(undefined);
+    const MockedNotionRepo = NotionRepository as jest.MockedClass<typeof NotionRepository>;
+    MockedNotionRepo.prototype.getNotionData = jest.fn().mockResolvedValue(null);
+
+    const mockUser = { id: 20, email: 'apple@example.com' };
+    const newJWTToken = jest.fn().mockResolvedValue('apple-jwt');
+    const userService = {
+      getUserFrom: jest.fn().mockResolvedValue(mockUser),
+      getUserById: jest.fn().mockResolvedValue(mockUser),
+      register: jest.fn().mockResolvedValue([{ id: 20 }]),
+      markEmailVerified: jest.fn().mockResolvedValue(1),
+      updateLastLoginAt: jest.fn().mockResolvedValue(undefined),
+    } as unknown as UsersService;
+    const authService = {
+      loginWithApple: jest.fn().mockResolvedValue({ subject: 'apple-sub', email: 'apple@example.com', emailVerified: true }),
+      getHashPassword: jest.fn().mockReturnValue('hashed'),
+      newJWTToken,
+      persistToken: jest.fn().mockResolvedValue(undefined),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    const req = {
+      body: { state: 'valid-state', code: 'apple-code' },
+      cookies: { apple_login_state: 'valid-state' },
+      headers: {},
+      query: {},
+    } as unknown as express.Request;
+    const res = { redirect: jest.fn(), cookie: jest.fn(), clearCookie: jest.fn(), status: jest.fn().mockReturnThis() } as unknown as express.Response & { cookie: jest.Mock };
+
+    await controller.loginWithApple(req, res);
+
+    expect(res.cookie).toHaveBeenCalledWith('token', 'apple-jwt', expect.objectContaining(EXPECTED_COOKIE_OPTIONS));
+  });
+
+  it('sets maxAge, httpOnly, and sameSite on the token cookie during Notion OAuth login', async () => {
+    const chainable: Record<string, jest.Mock> = {};
+    const methods = ['insert', 'where', 'first', 'whereNull', 'update', 'onConflict', 'merge'];
+    for (const m of methods) { chainable[m] = jest.fn().mockReturnValue(Promise.resolve([1])); }
+    for (const m of ['where', 'whereNull', 'onConflict']) { chainable[m] = jest.fn().mockReturnValue(chainable); }
+    chainable['insert'] = jest.fn().mockReturnValue(chainable);
+    chainable['merge'] = jest.fn().mockResolvedValue([1]);
+    const mockDb = jest.fn().mockReturnValue(chainable) as unknown as ReturnType<typeof import('../data_layer').getDatabase>;
+
+    const mockUser = { id: 11, email: 'n@example.com' };
+    const newJWTToken = jest.fn().mockResolvedValue('notion-jwt');
+    const userService = {
+      getUserFrom: jest.fn().mockResolvedValue(mockUser),
+      register: jest.fn().mockResolvedValue([{ id: 11 }]),
+      updateLastLoginAt: jest.fn().mockResolvedValue(undefined),
+    } as unknown as UsersService;
+    const authService = {
+      loginWithNotion: jest.fn().mockResolvedValue({ email: 'n@example.com', name: 'N', accessData: {} }),
+      getHashPassword: jest.fn().mockReturnValue('hashed'),
+      newJWTToken,
+      persistToken: jest.fn().mockResolvedValue(undefined),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(userService, authService, mockDb);
+    const req = { query: { code: 'notion-code' }, cookies: {}, headers: {} } as unknown as express.Request;
+    const res = { redirect: jest.fn(), cookie: jest.fn(), status: jest.fn().mockReturnThis() } as unknown as express.Response & { cookie: jest.Mock };
+
+    await controller.loginWithNotion(req, res);
+
+    expect(res.cookie).toHaveBeenCalledWith('token', 'notion-jwt', expect.objectContaining(EXPECTED_COOKIE_OPTIONS));
   });
 });
 
