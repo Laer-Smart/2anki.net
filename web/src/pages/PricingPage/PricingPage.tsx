@@ -12,7 +12,7 @@ import { PassCards } from './components/PassCards';
 import { PricingCard } from './components/PricingCard';
 import { UnlimitedCard } from './components/UnlimitedCard';
 import styles from './PricingPage.module.css';
-import { getLifetimeLink } from './payment.links';
+import { getLifetimeLink, PASS_PRICES } from './payment.links';
 import {
   AUTO_SYNC_LAUNCH_DATE,
   AUTO_SYNC_NEW_CHIP_DAYS,
@@ -296,7 +296,7 @@ export default function PricingPage({
         name: 'What is a Day Pass or Week Pass?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Day Pass ($4) gives 24 hours of unlimited access. Week Pass ($9) gives 7 days. Both are one-time payments, no subscription required.',
+          text: `Day Pass (${PASS_PRICES['24h']}) gives 24 hours of unlimited access. Week Pass (${PASS_PRICES['7d']}) gives 7 days. Both are one-time payments, no subscription required.`,
         },
       },
     ],

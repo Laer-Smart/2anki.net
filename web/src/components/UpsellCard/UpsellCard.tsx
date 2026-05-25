@@ -5,7 +5,7 @@ import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../NavigationBar/helpers/getPlanLabel';
-import { getSubscribeLink } from '../../pages/PricingPage/payment.links';
+import { getSubscribeLink, PASS_PRICES } from '../../pages/PricingPage/payment.links';
 import styles from './UpsellCard.module.css';
 
 type Surface = 'downloads_upsell' | 'upload_success_upsell';
@@ -108,7 +108,7 @@ export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProp
           onClick={() => handlePassClick('24h')}
           disabled={pendingKind != null}
         >
-          {pendingKind === '24h' ? 'Redirecting…' : 'Day Pass'}
+          {pendingKind === '24h' ? 'Redirecting…' : `Get Day Pass — ${PASS_PRICES['24h']}`}
         </button>
         <button
           type="button"
@@ -116,7 +116,7 @@ export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProp
           onClick={() => handlePassClick('7d')}
           disabled={pendingKind != null}
         >
-          {pendingKind === '7d' ? 'Redirecting…' : 'Week Pass'}
+          {pendingKind === '7d' ? 'Redirecting…' : `Get Week Pass — ${PASS_PRICES['7d']}`}
         </button>
         <span className={styles.dot} aria-hidden="true">·</span>
         <a

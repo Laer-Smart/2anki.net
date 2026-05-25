@@ -814,7 +814,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
           Didn't get the file? Download it here.
         </button>
       )}
-      <UpsellCard surface="upload_success_upsell" />
+      <UpsellCard surface="upload_success_upsell" hideForAnonymous />
       <button
         type="button"
         className={formStyles.actionButton}
