@@ -34,6 +34,9 @@ const AccountPreviewPage = import.meta.env.DEV
 const NotionPreviewPage = import.meta.env.DEV
   ? lazy(() => import('./pages/NotionPreviewPage/NotionPreviewPage'))
   : null;
+const HomePreviewPage = import.meta.env.DEV
+  ? lazy(() => import('./pages/HomePreviewPage/HomePreviewPage'))
+  : null;
 const SuccessfulCheckoutPage = lazy(
   () => import('./pages/SuccessfulCheckout/SuccessfulCheckout')
 );
@@ -251,6 +254,9 @@ function AppContent({
               path="/dev/notion-preview"
               element={<NotionPreviewPage />}
             />
+          )}
+          {HomePreviewPage && (
+            <Route path="/dev/home-preview" element={<HomePreviewPage />} />
           )}
           <Route
             path="/import"

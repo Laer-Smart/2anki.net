@@ -127,9 +127,9 @@ export function HomePage({
           alt=""
           className={styles.mascot}
         />
-        <h1 className={styles.heroTitle}>Your notes, ready to study in Anki</h1>
+        <h1 className={styles.heroTitle}>Flashcards that work in Anki</h1>
         <p className={styles.heroSubtitle}>
-          Notion, PDF, Quizlet, Markdown, HTML, or CSV — drop a file and get an Anki deck back.
+          Drop a Notion page and get a deck you don&apos;t have to fix — proper cloze, atomic cards, the right note types. PDF, Quizlet, Markdown, HTML, and CSV too.
         </p>
         <div className={sharedStyles.aiOffBadge} role="status">
           <span className={sharedStyles.badgeWarning}>AI is off</span>
