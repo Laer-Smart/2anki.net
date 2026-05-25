@@ -18,8 +18,9 @@ that has to happen first. Flipping the workflow is a later PR — see
 |---|---|---|
 | `ecosystem.blue-green.config.js` | repo | two apps: `server-blue` (`PORT=3000`), `server-green` (`PORT=3001`) |
 | `scripts/deploy-blue-green.sh` | repo | the cutover: start next color → health-check → swap Apache → drain old color |
-| `/etc/apache2/conf-2anki-upstream.conf` | prod, generated | one upstream block; rewritten by the script each deploy |
-| four Apache vhosts (`000-2anki*`, `000-beta*`) | prod, manual one-time edit | each `Include`s the upstream file instead of a static `ProxyPass` — see [One-time Apache setup](#one-time-apache-setup) |
+| `/etc/apache2/conf-2anki-upstream.conf` | prod, generated | HTTP `ProxyPass`/`ProxyPassReverse`; rewritten by the script each deploy |
+| `/etc/apache2/conf-2anki-ws-upstream.conf` | prod, generated | the Ankify WebSocket `RewriteRule` (`/v/*`); rewritten by the script each deploy |
+| four Apache vhosts (`000-2anki*`, `000-beta*`) | prod, manual one-time edit | each `Include`s the upstream file(s) instead of static directives — see [One-time Apache setup](#one-time-apache-setup) |
 | `~/.deploy_color` | prod, state | `blue` or `green` — the currently live color |
 
 `server-green` binds 3001 even though prod's `.env` sets `PORT=3000`: pm2 injects
@@ -38,12 +39,18 @@ same backend on `localhost:3000`:
 | `000-beta.conf` | `beta.2anki.net` :80 |
 | `000-beta-le-ssl.conf` | `beta.2anki.net` :443 |
 
-Every one of them must track the live color. The script flips a single upstream
-file, so the setup is: point **all four** vhosts at the *same* include. A
-cutover deletes the old color's port, so any vhost left hardcoded at `:3000`
-starts returning 502 the moment the live color moves to green — beta included.
+Every one of them must track the live color, because a cutover deletes the old
+color's port — any vhost (or rewrite) left hardcoded at `:3000` returns 502 the
+moment the live color moves to green, beta included.
 
-In each vhost, replace the two proxy lines:
+There are **two** kinds of upstream reference, so the script flips two include
+files:
+
+- **HTTP** — `ProxyPass`/`ProxyPassReverse`, present in all four vhosts.
+- **WebSocket** — the Ankify `/v/*` `RewriteRule` (`ws://localhost:3000`),
+  present only in the live `000-2anki-le-ssl.conf`.
+
+In all four vhosts, replace the two proxy lines with the HTTP include:
 
 ```apache
 # before (in every app-serving vhost)
@@ -54,12 +61,27 @@ ProxyPassReverse / http://localhost:3000/
 Include /etc/apache2/conf-2anki-upstream.conf
 ```
 
-Seed the include file to point at the current live port (3000) so Apache has a
-valid config before the first script run, then verify and reload:
+In `000-2anki-le-ssl.conf` only, also replace the WebSocket rewrite block with
+the WS include:
+
+```apache
+# before
+RewriteEngine on
+RewriteCond %{HTTP:Upgrade} =websocket [NC]
+RewriteRule ^/v/(.*)$ ws://localhost:3000/v/$1 [P,L]
+
+# after
+Include /etc/apache2/conf-2anki-ws-upstream.conf
+```
+
+Seed both include files at the current live port (3000) so Apache has a valid
+config before the first script run, then verify and reload:
 
 ```bash
 printf 'ProxyPass / http://127.0.0.1:3000/\nProxyPassReverse / http://127.0.0.1:3000/\n' \
   | sudo tee /etc/apache2/conf-2anki-upstream.conf
+printf 'RewriteEngine on\nRewriteCond %%{HTTP:Upgrade} =websocket [NC]\nRewriteRule ^/v/(.*)$ ws://127.0.0.1:3000/v/$1 [P,L]\n' \
+  | sudo tee /etc/apache2/conf-2anki-ws-upstream.conf
 sudo apachectl configtest && sudo apachectl graceful
 ```
 
@@ -110,15 +132,15 @@ scripts/deploy-blue-green.sh
 ```
 
 What it does: reads `~/.deploy_color`, starts the other color, waits up to 30s
-for its `/api/version` to report `GIT_SHA`, atomically swaps the Apache include,
-`apachectl graceful`, verifies `https://2anki.net/api/version` reports the new
-sha, then drains and deletes the old color (SIGINT → the graceful-shutdown
-handler, bounded by `kill_timeout`), and writes the new color to `~/.deploy_color`.
+for its `/api/version` to report `GIT_SHA`, rewrites both Apache includes (HTTP
+and WebSocket) to the new port, `apachectl graceful` once, verifies
+`https://2anki.net/api/version` reports the new sha, then drains and deletes the
+old color (SIGINT → the graceful-shutdown handler, bounded by `kill_timeout`),
+and writes the new color to `~/.deploy_color`.
 
 If the new color fails its health check, the script deletes it and exits non-zero
 — the current color never stopped serving. If the post-swap public check fails,
-it rolls the Apache include back to the previous upstream and reloads before
-exiting.
+it rewrites both includes back to the old color's port, reloads, and exits.
 
 ## Dry-run
 
@@ -135,6 +157,7 @@ For a real cutover against a non-prod box, override the paths:
 SERVER_DIR=/path/to/checkout \
 DEPLOY_COLOR_FILE=/tmp/deploy_color \
 UPSTREAM_CONF=/tmp/upstream.conf \
+WS_UPSTREAM_CONF=/tmp/ws-upstream.conf \
 PUBLIC_HEALTH_URL=http://localhost/api/version \
 GIT_SHA=<sha> scripts/deploy-blue-green.sh
 ```
@@ -146,7 +169,8 @@ GIT_SHA=<sha> scripts/deploy-blue-green.sh
 | `GIT_SHA` | *(required)* | sha the health checks must match |
 | `SERVER_DIR` | `~/src/github.com/2anki/2anki.net` | repo checkout on the box |
 | `DEPLOY_COLOR_FILE` | `~/.deploy_color` | live-color state file |
-| `UPSTREAM_CONF` | `/etc/apache2/conf-2anki-upstream.conf` | generated Apache include |
+| `UPSTREAM_CONF` | `/etc/apache2/conf-2anki-upstream.conf` | generated HTTP proxy include |
+| `WS_UPSTREAM_CONF` | `/etc/apache2/conf-2anki-ws-upstream.conf` | generated WebSocket (`/v/*`) include |
 | `ECOSYSTEM` | `$SERVER_DIR/ecosystem.blue-green.config.js` | pm2 app definitions |
 | `PUBLIC_HEALTH_URL` | `https://2anki.net/api/version` | post-swap verification URL |
 | `DEPLOY_LOCK_FILE` | `~/.2anki-deploy.lock` | flock target |

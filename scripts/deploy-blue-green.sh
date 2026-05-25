@@ -15,6 +15,7 @@ set -euo pipefail
 SERVER_DIR="${SERVER_DIR:-$HOME/src/github.com/2anki/2anki.net}"
 STATE_FILE="${DEPLOY_COLOR_FILE:-$HOME/.deploy_color}"
 UPSTREAM_CONF="${UPSTREAM_CONF:-/etc/apache2/conf-2anki-upstream.conf}"
+WS_UPSTREAM_CONF="${WS_UPSTREAM_CONF:-/etc/apache2/conf-2anki-ws-upstream.conf}"
 LOCK_FILE="${DEPLOY_LOCK_FILE:-$HOME/.2anki-deploy.lock}"
 ECOSYSTEM="${ECOSYSTEM:-$SERVER_DIR/ecosystem.blue-green.config.js}"
 PUBLIC_HEALTH_URL="${PUBLIC_HEALTH_URL:-https://2anki.net/api/version}"
@@ -49,6 +50,22 @@ wait_for_sha() {
   return 1
 }
 
+# Rewrite both Apache upstream includes to point at $1 (a port). The HTTP include
+# is shared by every app vhost; the WebSocket include is referenced only by the
+# live :443 vhost (Ankify /v/* proxy). Each temp file lives in the target's own
+# directory so the mv is a same-filesystem rename — no half-written include is
+# ever read. The caller runs `apachectl graceful` once afterwards so both apply
+# together.
+swap_upstreams() {
+  local port="$1"
+  printf 'ProxyPass / http://127.0.0.1:%s/\nProxyPassReverse / http://127.0.0.1:%s/\n' \
+    "$port" "$port" | run sudo tee "${UPSTREAM_CONF}.new" >/dev/null
+  run sudo mv "${UPSTREAM_CONF}.new" "$UPSTREAM_CONF"
+  printf 'RewriteEngine on\nRewriteCond %%{HTTP:Upgrade} =websocket [NC]\nRewriteRule ^/v/(.*)$ ws://127.0.0.1:%s/v/$1 [P,L]\n' \
+    "$port" | run sudo tee "${WS_UPSTREAM_CONF}.new" >/dev/null
+  run sudo mv "${WS_UPSTREAM_CONF}.new" "$WS_UPSTREAM_CONF"
+}
+
 # Serialize against a concurrent deploy. To also serialize against the certbot
 # renewal hook's Apache reload, point both at a shared root-writable lock path
 # via DEPLOY_LOCK_FILE (see the doc).
@@ -66,11 +83,13 @@ CURRENT="$(cat "$STATE_FILE" 2>/dev/null || echo blue)"
 if [ "$CURRENT" = "blue" ]; then
   NEXT=green
   NEXT_PORT=3001
+  CURRENT_PORT=3000
 else
   NEXT=blue
   NEXT_PORT=3000
+  CURRENT_PORT=3001
 fi
-log "current=$CURRENT next=$NEXT port=$NEXT_PORT sha=$GIT_SHA"
+log "current=$CURRENT (:$CURRENT_PORT) next=$NEXT (:$NEXT_PORT) sha=$GIT_SHA"
 
 cd "$SERVER_DIR"
 export GIT_SHA
@@ -84,25 +103,16 @@ if ! wait_for_sha "http://127.0.0.1:$NEXT_PORT$HEALTH_PATH"; then
   exit 1
 fi
 
-# Atomically swap Apache's upstream. The temp file lives in the target's own
-# directory so the mv is a same-filesystem rename — no half-written include can
-# be read mid-swap.
-PREV_CONF="$(cat "$UPSTREAM_CONF" 2>/dev/null || echo '')"
-NEW_CONF="${UPSTREAM_CONF}.new"
-printf 'ProxyPass / http://127.0.0.1:%s/\nProxyPassReverse / http://127.0.0.1:%s/\n' \
-  "$NEXT_PORT" "$NEXT_PORT" | run sudo tee "$NEW_CONF" >/dev/null
-run sudo mv "$NEW_CONF" "$UPSTREAM_CONF"
+# Swap both Apache upstreams (HTTP + WebSocket) to the new color, then one
+# graceful reload applies them together.
+swap_upstreams "$NEXT_PORT"
 run sudo apachectl graceful
 
 # Verify the swap took effect through Apache before retiring the old color.
 if ! wait_for_sha "$PUBLIC_HEALTH_URL"; then
-  log "post-swap check failed at $PUBLIC_HEALTH_URL — rolling back Apache"
-  if [ -n "$PREV_CONF" ]; then
-    printf '%s\n' "$PREV_CONF" | run sudo tee "$UPSTREAM_CONF" >/dev/null
-    run sudo apachectl graceful
-  else
-    log "no previous upstream captured — check Apache config manually"
-  fi
+  log "post-swap check failed at $PUBLIC_HEALTH_URL — rolling back to :$CURRENT_PORT"
+  swap_upstreams "$CURRENT_PORT"
+  run sudo apachectl graceful
   run pm2 delete "server-$NEXT"
   exit 1
 fi
