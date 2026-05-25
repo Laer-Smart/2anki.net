@@ -13,6 +13,23 @@ describe('classifyError', () => {
     );
   });
 
+  test('"Authentication required" server message maps to session-expiry copy', () => {
+    const result = classifyError(new Error('Authentication required'));
+    expect(result.title).toMatch(/session expired/i);
+    expect(result.detail).toMatch(/sign in/i);
+  });
+
+  test('raw JSON blob {"message":"Authentication required"} maps to session-expiry copy', () => {
+    const result = classifyError('{"message":"Authentication required"}');
+    expect(result.title).toMatch(/session expired/i);
+    expect(result.detail).toMatch(/sign in/i);
+  });
+
+  test('session-expiry error has a Sign in actionLink pointing to /login', () => {
+    const result = classifyError(new Error('Authentication required'));
+    expect(result.actionLink).toMatchObject({ text: 'Sign in', to: expect.stringContaining('/login') });
+  });
+
   test('object_not_found gives a Notion-specific hint', () => {
     expect(classifyError(new Error('object_not_found')).detail).toMatch(
       /Notion/i

@@ -156,4 +156,23 @@ describe('SearchObjectEntry convert button', () => {
       expect(screen.getByText("Couldn't queue this page. Try again.")).toBeInTheDocument();
     });
   });
+
+  it('on 401: calls setError with an Error, not raw JSON', async () => {
+    mockConvert.mockResolvedValue({
+      status: 401,
+      text: async () => '{"message":"Authentication required"}',
+    });
+
+    const setError = vi.fn();
+    renderEntry({ setError });
+    fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
+
+    await waitFor(() => {
+      expect(setError).toHaveBeenCalledOnce();
+    });
+
+    const errorArg = setError.mock.calls[0][0];
+    expect(errorArg).toBeInstanceOf(Error);
+    expect(typeof errorArg).not.toBe('string');
+  });
 });
