@@ -1,12 +1,14 @@
 import type { LandingCopy } from '../types';
+import { ankiFidelityProof } from './ankiFidelityProof';
 
 const notionCopy: LandingCopy = {
   pathname: '/notion-to-anki',
-  title: 'Notion to Anki — free, no add-on required | 2anki',
+  title: 'Notion to Anki — decks that open clean in Anki | 2anki',
   description:
-    'Convert Notion pages to Anki flashcards — free, no add-on required. Connect Notion once, paste any page link, and download your deck.',
+    'Convert any Notion page to an Anki deck that opens clean — cloze stays clickable, images render, toggles become cards. Paste a link, get a .apkg.',
   h1: 'Notion to Anki — free, no add-on required',
   subhead: 'Connect Notion once, paste any page link, get a .apkg deck. No software to install.',
+  whatComesAcross: ankiFidelityProof,
   faqs: [
     {
       q: 'Does this work with toggles and callouts?',

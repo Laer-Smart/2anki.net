@@ -1,13 +1,15 @@
 import type { LandingCopy } from '../types';
+import { ankiFidelityProof } from './ankiFidelityProof';
 
 const markdownCopy: LandingCopy = {
   pathname: '/markdown-to-anki',
-  title: 'Markdown to Anki — convert .md files to decks | 2anki',
+  title: 'Markdown to Anki — decks that open clean in Anki | 2anki',
   description:
-    'Convert a Markdown file into an Anki deck. Top-level bullets become card fronts, nested bullets become the answers, and the first heading names the deck.',
+    'Convert Markdown or Obsidian notes to an Anki deck that opens clean — code blocks intact, cloze clickable, bullets become cards.',
   h1: 'Turn Markdown notes into Anki cards',
   subhead:
     'Drop a .md file and download a deck — bullets and Q/A pairs come across.',
+  whatComesAcross: ankiFidelityProof,
   faqs: [
     {
       q: 'How are cards made from my Markdown?',

@@ -7,6 +7,7 @@ import { vi } from 'vitest';
 
 import ConvertLandingPage from './ConvertLandingPage';
 import { CONVERT_LANDING_PAGES } from './convertLandingConfig';
+import { ankiFidelityProof } from '../LandingPage/copy/ankiFidelityProof';
 
 function renderAtSlug(slug: string) {
   const queryClient = new QueryClient({
@@ -67,6 +68,46 @@ describe('ConvertLandingPage', () => {
     expect(link).toHaveAttribute(
       'href',
       `/register?source=${encodeURIComponent(copy?.pathname ?? '')}`
+    );
+  });
+
+  it('renders the fidelity proof section for an import-to-Anki page', () => {
+    renderAtSlug('csv-to-anki');
+    expect(
+      screen.getByText('What you actually get in Anki')
+    ).toBeInTheDocument();
+    for (const item of ankiFidelityProof) {
+      expect(screen.getByText(item.title)).toBeInTheDocument();
+    }
+  });
+
+  it('omits the fidelity proof on the apkg-to-csv export-out page', () => {
+    renderAtSlug('apkg-to-csv');
+    expect(
+      screen.queryByText('What you actually get in Anki')
+    ).not.toBeInTheDocument();
+  });
+
+  it('leads the import-to-Anki titles with fidelity in Anki', () => {
+    for (const slug of [
+      'notion-to-anki',
+      'pdf-to-anki',
+      'markdown-to-anki',
+      'csv-to-anki',
+      'html-to-anki',
+    ]) {
+      expect(CONVERT_LANDING_PAGES.get(slug)?.title).toMatch(
+        /(open clean|work) in Anki|clean Anki decks/
+      );
+    }
+  });
+
+  it('keeps the apkg-to-csv and notion-tables-to-anki titles unchanged', () => {
+    expect(CONVERT_LANDING_PAGES.get('apkg-to-csv')?.title).toBe(
+      'Anki deck to CSV — export cards to a spreadsheet | 2anki'
+    );
+    expect(CONVERT_LANDING_PAGES.get('notion-tables-to-anki')?.title).toBe(
+      'Notion tables to Anki — one row, one card | 2anki'
     );
   });
 

@@ -1,13 +1,15 @@
 import type { LandingCopy } from '../types';
+import { ankiFidelityProof } from './ankiFidelityProof';
 
 const quizletCopy: LandingCopy = {
   pathname: '/quizlet-to-anki',
-  title: 'Quizlet to Anki — convert sets to flashcards | 2anki',
+  title: 'Quizlet to Anki — sets that open clean in Anki | 2anki',
   description:
-    'Move a Quizlet set into Anki without copy-pasting. Upload your export, get a .apkg deck back, keep studying.',
+    'Move a Quizlet set into an Anki deck that opens clean — correct fields, no copy-paste. Upload your export, get a .apkg.',
   h1: 'Move your Quizlet set to Anki',
   subhead:
     'Export from Quizlet, drop the file here, and download an Anki deck.',
+  whatComesAcross: ankiFidelityProof,
   faqs: [
     {
       q: 'How do I get my set out of Quizlet?',

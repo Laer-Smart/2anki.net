@@ -102,6 +102,26 @@ describe('emitLandingPages', () => {
     expect(html).toContain(`<title>${notionCopy.title}</title>`);
   });
 
+  it('prerenders the fidelity-first title for the notion route', () => {
+    emitLandingPages(buildDir);
+    const html = readFileSync(
+      join(buildDir, 'notion-to-anki', 'index.html'),
+      'utf8'
+    );
+    expect(html).toContain(
+      '<title>Notion to Anki — decks that open clean in Anki | 2anki</title>'
+    );
+  });
+
+  it('does not prerender the client-rendered proof section body', () => {
+    emitLandingPages(buildDir);
+    const html = readFileSync(
+      join(buildDir, 'notion-to-anki', 'index.html'),
+      'utf8'
+    );
+    expect(html).not.toContain('What you actually get in Anki');
+  });
+
   it('replaces the description with the per-route description', () => {
     emitLandingPages(buildDir);
     const html = readFileSync(

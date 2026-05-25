@@ -1,12 +1,14 @@
 import type { LandingCopy } from '../types';
+import { ankiFidelityProof } from './ankiFidelityProof';
 
 const pdfCopy: LandingCopy = {
   pathname: '/pdf-to-anki',
-  title: 'PDF to Anki — turn lecture notes into flashcards | 2anki',
+  title: 'PDF to Anki — flashcards that work in Anki | 2anki',
   description:
-    'Upload a PDF and get an Anki deck. Works with lecture slides, textbook chapters, and exported notes. No copy-pasting.',
+    'Turn a PDF into an Anki deck that imports clean — correct note types, images embedded, headings as decks. Drop a file, get a .apkg.',
   h1: 'Make Anki flashcards from a PDF',
   subhead: "Drop a PDF and we'll pull out the text you can turn into cards.",
+  whatComesAcross: ankiFidelityProof,
   faqs: [
     {
       q: 'Will it read scanned PDFs?',

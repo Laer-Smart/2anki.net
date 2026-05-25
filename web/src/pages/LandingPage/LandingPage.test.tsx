@@ -10,6 +10,7 @@ import notionCopy from './copy/notion';
 import usmleCopy from './copy/usmle';
 import nursingCopy from './copy/nursing';
 import medicalLectureSlidesCopy from './copy/medical-lecture-slides';
+import { ankiFidelityProof } from './copy/ankiFidelityProof';
 
 function renderLandingPage(children: React.ReactElement) {
   const queryClient = new QueryClient({
@@ -126,5 +127,27 @@ describe('LandingPage', () => {
       'href',
       `/register?source=${encodeURIComponent(medicalLectureSlidesCopy.pathname)}`
     );
+  });
+
+  it('renders the fidelity proof under the "What you actually get in Anki" label', () => {
+    renderLandingPage(
+      <LandingPage copy={notionCopy} setErrorMessage={vi.fn()} />
+    );
+    expect(
+      screen.getByText('What you actually get in Anki')
+    ).toBeInTheDocument();
+    for (const item of ankiFidelityProof) {
+      expect(screen.getByText(item.title)).toBeInTheDocument();
+    }
+  });
+
+  it('omits the proof section when the copy has no whatComesAcross', () => {
+    const copyWithoutProof = { ...notionCopy, whatComesAcross: undefined };
+    renderLandingPage(
+      <LandingPage copy={copyWithoutProof} setErrorMessage={vi.fn()} />
+    );
+    expect(
+      screen.queryByText('What you actually get in Anki')
+    ).not.toBeInTheDocument();
   });
 });
