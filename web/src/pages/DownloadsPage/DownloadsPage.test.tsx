@@ -461,7 +461,7 @@ describe('DownloadsPage failure reason panel', () => {
     expect(screen.queryByText(/Your page title has a "\/" in it/)).not.toBeInTheDocument();
   });
 
-  it('shows Learn more link for empty deck errors', () => {
+  it('renders failure panel content for empty deck errors', () => {
     mockJobs = [
       buildJob({
         status: 'failed',
@@ -473,9 +473,7 @@ describe('DownloadsPage failure reason panel', () => {
     const statusButton = screen.getByRole('button', { name: /Show failure reason/i });
     fireEvent.click(statusButton);
 
-    const learnMoreLink = screen.getByText(/Learn more/);
-    expect(learnMoreLink).toBeInTheDocument();
-    expect(learnMoreLink).toHaveAttribute('href', '/documentation/help/common-problems');
+    expect(screen.queryByText(/Learn more/)).not.toBeInTheDocument();
   });
 
   it('does not show Learn more link for non-empty-deck errors', () => {

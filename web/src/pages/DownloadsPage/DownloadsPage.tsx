@@ -30,6 +30,8 @@ import { UpsellCard } from '../../components/UpsellCard';
 import JobResponse from '../../schemas/public/JobResponse';
 import { NotionColumnMappingModal } from '../../components/NotionColumnMappingModal/NotionColumnMappingModal';
 import { parseAmbiguousColumnsPayload, type FieldMapping } from '../../lib/fieldMapping/types';
+import { ConversionResult } from './components/ConversionResult/ConversionResult';
+import { parseMonthlyLimitPayload } from './components/ConversionResult/parseMonthlyLimitPayload';
 import styles from './DownloadsPage.module.css';
 import sharedStyles from '../../styles/shared.module.css';
 
@@ -112,15 +114,13 @@ export function renderJobStatusCell(j: JobResponse, onDownload?: () => void) {
     }
     if (j.download_key != null) {
       return (
-        <a
-          href={`/api/download/u/${j.download_key}`}
-          className={styles.downloadAction}
-          aria-label={`Download ${j.title}`}
-          title="Download"
-          onClick={() => { onDownload?.(); fireAnalyticsEvent('deck_downloaded'); track('deck_downloaded'); }}
-        >
-          <DownloadIcon width={16} height={16} />
-        </a>
+        <ConversionResult
+          variant="success"
+          title={j.title}
+          cardCount={0}
+          downloadKey={j.download_key}
+          onDownload={() => { onDownload?.(); }}
+        />
       );
     }
     return null;
@@ -164,51 +164,29 @@ function isNotionTokenExpired(source: DeckRow['source'], reason: string | null):
 function renderFailurePanelContent(
   source: DeckRow['source'],
   reason: string,
-  onMapColumns: () => void
+  onMapColumns: () => void,
+  email?: string
 ): ReactNode {
-  if (isNotionTokenExpired(source, reason)) {
+  const monthlyLimit = parseMonthlyLimitPayload(reason);
+  if (monthlyLimit != null) {
     return (
-      <div>
-        <p>Notion connection expired. Reconnect to keep converting pages.</p>
-        <a href="/notion" className={sharedStyles.btnPrimary}>
-          Reconnect Notion
-        </a>
-      </div>
-    );
-  }
-  if (parseAmbiguousColumnsPayload(reason) != null) {
-    return (
-      <div>
-        <p>
-          This database has more than two columns. Pick which column should be the front and back of each card.
-        </p>
-        <button
-          type="button"
-          className={sharedStyles.btnPrimary}
-          onClick={onMapColumns}
-        >
-          Map columns
-        </button>
-      </div>
+      <ConversionResult
+        variant="paywalled"
+        title={null}
+        limit={monthlyLimit.limit}
+        email={email}
+      />
     );
   }
   return (
-    <>
-      {reason}
-      {isEmptyDeckError(reason) && (
-        <div>
-          <Link to="/documentation/help/common-problems" className={styles.failureLearnMore}>
-            Learn more →
-          </Link>
-        </div>
-      )}
-    </>
+    <ConversionResult
+      variant="failed"
+      title={null}
+      failureReason={reason}
+      source={source === 'dropbox' || source === 'drive' ? 'upload' : source}
+      onMapColumns={onMapColumns}
+    />
   );
-}
-
-function isEmptyDeckError(message: string | null): boolean {
-  if (message == null) return false;
-  return message.includes('No cards in this deck yet');
 }
 
 function formatUpdatedLabel(lastFetchedAt: Date | null): string {
@@ -491,7 +469,8 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                     {renderFailurePanelContent(
                                       row.source,
                                       row.job.job_reason_failure,
-                                      () => setMappingModalJob(row.job)
+                                      () => setMappingModalJob(row.job),
+                                      data?.user?.email ?? undefined
                                     )}
                                   </td>
                                 </tr>

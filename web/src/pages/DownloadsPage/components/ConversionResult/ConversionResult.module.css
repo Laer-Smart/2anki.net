@@ -1,0 +1,68 @@
+.success {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.deckName {
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+}
+
+.cardCount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.cardCountNumber {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.cardCountLabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.helperText {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.paywalled {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.paywallHeadline {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.paywallBody {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.paywallActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.seeAllPlans {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.seeAllPlans:hover {
+  color: var(--color-text-primary);
+}
