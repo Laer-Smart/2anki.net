@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-25-markmap-title-escape",
+  "date": "2026-05-25",
+  "type": "fix",
+  "title": "Mind map deck titles with HTML special characters render correctly"
+}
