@@ -425,7 +425,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                         type="button"
                                         onClick={() => handleDeleteJob(row.job.id)}
                                         className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-                                        aria-label={`Delete ${row.job.title}`}
+                                        aria-label={isFailed || isDoneJob(row.job.status) ? `Delete ${row.job.title}` : `Cancel ${row.job.title}`}
                                         title={isFailed ? 'Delete' : 'Cancel'}
                                       >
                                         <TrashIcon width={16} height={16} />
