@@ -8,6 +8,7 @@ import AuthenticationService, {
 } from './AuthenticationService';
 import TokenRepository from '../data_layer/TokenRepository';
 import UsersRepository from '../data_layer/UsersRepository';
+import { SESSION_MAX_AGE_MS } from '../shared/session';
 import instrumentedAxios from './observability/instrumentedAxios';
 import { OAuth2Client } from 'google-auth-library';
 
@@ -38,7 +39,7 @@ test('newJWTToken includes an expiration claim', async () => {
 
   expect(decoded.exp).toBeDefined();
   expect(decoded.iat).toBeDefined();
-  expect(decoded.exp! - decoded.iat!).toBe(86400);
+  expect(decoded.exp! - decoded.iat!).toBe(SESSION_MAX_AGE_MS / 1000);
 });
 
 describe('isValidToken', () => {
