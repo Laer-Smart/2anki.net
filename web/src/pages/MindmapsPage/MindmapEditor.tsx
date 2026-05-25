@@ -35,6 +35,41 @@ const NODE_STYLE = {
   boxSizing: 'border-box' as const,
 };
 
+const SHORTCUT_GROUPS: {
+  label: string;
+  items: { keys: string[]; action: string }[];
+}[] = [
+  {
+    label: 'Create',
+    items: [
+      { keys: ['Tab'], action: 'Add child' },
+      { keys: ['Enter'], action: 'Add sibling' },
+      { keys: ['Double-click canvas'], action: 'Add node' },
+      { keys: ['Drag from node'], action: 'New connected node' },
+      { keys: ['Paste text'], action: 'New node' },
+      { keys: ['Paste or drop image'], action: 'Image node' },
+    ],
+  },
+  {
+    label: 'Edit',
+    items: [
+      { keys: ['F2', 'Double-click'], action: 'Rename node' },
+      { keys: ['Backspace'], action: 'Delete' },
+      { keys: ['Double-click border'], action: 'Auto-size' },
+      { keys: ['Ctrl/Cmd+L'], action: 'Tidy layout' },
+    ],
+  },
+  {
+    label: 'Select',
+    items: [
+      { keys: ['Ctrl/Cmd+A'], action: 'Select all' },
+      { keys: ['Esc'], action: 'Clear selection' },
+      { keys: ['Right-click'], action: 'Context menu' },
+      { keys: ['Click edge'], action: 'Edge menu' },
+    ],
+  },
+];
+
 function layoutGraph(nodes: Node[], edges: Edge[]): Node[] {
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
@@ -893,23 +928,27 @@ export function MindmapEditor() {
           {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'} · {edges.length} {edges.length === 1 ? 'edge' : 'edges'}
         </p>
 
-        <div className={styles.shortcuts}>
-          <p className={styles.shortcutItem}>Tab — add child</p>
-          <p className={styles.shortcutItem}>Enter — add sibling</p>
-          <p className={styles.shortcutItem}>Backspace — delete</p>
-          <p className={styles.shortcutItem}>Double-click / F2 — rename node</p>
-          <p className={styles.shortcutItem}>Double-click node border — auto-size</p>
-          <p className={styles.shortcutItem}>Double-click canvas — add node</p>
-          <p className={styles.shortcutItem}>Right-click — context menu</p>
-          <p className={styles.shortcutItem}>Click an edge — edge menu</p>
-          <p className={styles.shortcutItem}>Drag from a node — new connected node</p>
-          <p className={styles.shortcutItem}>Ctrl/Cmd+A — select all</p>
-          <p className={styles.shortcutItem}>Esc — clear selection</p>
-          <p className={styles.shortcutItem}>Paste text — new node on canvas</p>
-          <p className={styles.shortcutItem}>Paste or drop image — image node</p>
-          <p className={styles.shortcutItem}>Markdown supported in labels</p>
-          <p className={styles.shortcutItem}>Ctrl/Cmd+L — tidy layout</p>
-        </div>
+        <details className={styles.shortcuts}>
+          <summary className={styles.shortcutsSummary}>Keyboard shortcuts</summary>
+          {SHORTCUT_GROUPS.map((group) => (
+            <div key={group.label} className={styles.shortcutGroup}>
+              <p className={styles.shortcutGroupLabel}>{group.label}</p>
+              {group.items.map((item) => (
+                <div key={item.action} className={styles.shortcutRow}>
+                  <span className={styles.shortcutKeys}>
+                    {item.keys.map((key) => (
+                      <kbd key={key} className={styles.shortcutKey}>
+                        {key}
+                      </kbd>
+                    ))}
+                  </span>
+                  <span className={styles.shortcutAction}>{item.action}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+          <p className={styles.shortcutNote}>Markdown works in node labels</p>
+        </details>
 
         <div className={styles.primaryAction}>
           <button
