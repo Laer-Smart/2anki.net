@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -125,6 +125,53 @@ describe('MindmapEditor', () => {
 
     const refetchCallArg = mockSetNodes.mock.calls[0][0];
     expect(typeof refetchCallArg).toBe('function');
+  });
+
+  it('sidebar is rendered before the ReactFlow canvas (left-side layout)', async () => {
+    const { MindmapEditor } = await import('./MindmapEditor');
+    const { container } = render(createElement(MindmapEditor), { wrapper });
+    const root = container.querySelector('[data-testid="editor-root"]') as HTMLElement | null;
+    expect(root).not.toBeNull();
+    const children = Array.from(root!.children);
+    const sidebarIndex = children.findIndex((el) => el.getAttribute('data-testid') === 'editor-sidebar');
+    const canvasIndex = children.findIndex((el) => el.getAttribute('data-testid') === 'editor-canvas');
+    expect(sidebarIndex).toBeLessThan(canvasIndex);
+  });
+
+  it('renders a back link to /mindmaps as the first sidebar child', async () => {
+    const { MindmapEditor } = await import('./MindmapEditor');
+    render(createElement(MindmapEditor), { wrapper });
+    const link = screen.getByRole('link', { name: /mindmaps/i });
+    expect(link).toBeDefined();
+    expect(link.getAttribute('href')).toBe('/mindmaps');
+    const sidebar = screen.getByTestId('editor-sidebar');
+    expect(sidebar.firstElementChild).toBe(link);
+  });
+
+  it('collapse toggle button has aria-label "Collapse sidebar" when expanded', async () => {
+    const { MindmapEditor } = await import('./MindmapEditor');
+    render(createElement(MindmapEditor), { wrapper });
+    const btn = screen.getByLabelText('Collapse sidebar');
+    expect(btn).toBeDefined();
+  });
+
+  it('clicking collapse toggle hides sidebar content and shows expand handle', async () => {
+    const { MindmapEditor } = await import('./MindmapEditor');
+    render(createElement(MindmapEditor), { wrapper });
+    const collapseBtn = screen.getByLabelText('Collapse sidebar');
+    fireEvent.click(collapseBtn);
+    expect(screen.getByLabelText('Expand sidebar')).toBeDefined();
+    expect(screen.queryByLabelText('Collapse sidebar')).toBeNull();
+  });
+
+  it('markdown shortcut note is a button that opens the markdown modal', async () => {
+    const { MindmapEditor } = await import('./MindmapEditor');
+    render(createElement(MindmapEditor), { wrapper });
+    const details = screen.getByText('Keyboard shortcuts').closest('details');
+    if (details != null) details.setAttribute('open', '');
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /markdown works/i })).toBeDefined();
+    });
   });
 
   it('paste image event triggers upload and node creation', async () => {
