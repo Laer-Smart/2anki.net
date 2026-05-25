@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-25-empty-deck-guidance",
+  "date": "2026-05-25",
+  "type": "fix",
+  "title": "Uploads that produce no cards now explain why and how to fix it"
+}

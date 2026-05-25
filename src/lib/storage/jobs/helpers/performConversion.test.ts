@@ -33,7 +33,10 @@ import NotionRepository from '../../../../data_layer/NotionRespository';
 import { CreateJobWorkSpaceUseCase } from '../../../../usecases/jobs/CreateJobWorkSpaceUseCase';
 import { SetJobFailedUseCase } from '../../../../usecases/jobs/SetJobFailedUseCase';
 import { CreateFlashcardsForJobUseCase } from '../../../../usecases/jobs/CreateFlashcardsForJobUseCase';
-import { NOTION_TOKEN_EXPIRED_REASON } from '../../../../usecases/jobs/jobFailureReason';
+import {
+  NOTION_TOKEN_EXPIRED_REASON,
+  EMPTY_DECK_FAILURE_REASON,
+} from '../../../../usecases/jobs/jobFailureReason';
 import {
   CheckMonthlyCardLimitUseCase,
   MonthlyLimitError,
@@ -189,5 +192,28 @@ describe('performConversion — heavy pipeline', () => {
       cards_used: 80,
       limit: 100,
     });
+  });
+
+  it('marks job as failed with the empty-deck reason when decks have zero cards', async () => {
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: {},
+        rules: {},
+      }),
+    }));
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [] }]),
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(setJobFailedExecute).toHaveBeenCalledWith(
+      baseRequest.id,
+      baseRequest.owner,
+      EMPTY_DECK_FAILURE_REASON
+    );
   });
 });
