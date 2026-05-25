@@ -210,6 +210,13 @@ export class MindmapController {
 
   async serveImage(req: Request, res: Response): Promise<void> {
     const { userId, mapId, file } = req.params;
+    const authenticatedUserId = res.locals.owner as number;
+
+    if (Number(userId) !== authenticatedUserId) {
+      res.status(403).json({ message: 'Forbidden' });
+      return;
+    }
+
     const s3Key = `mindmaps/${userId}/${mapId}/${file}`;
 
     const exists = await this.storage.objectExists(s3Key);
