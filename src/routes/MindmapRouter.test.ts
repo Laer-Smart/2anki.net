@@ -55,13 +55,19 @@ jest.mock('../services/SubscriptionService', () => ({
   },
 }));
 
+let mockAuthOwner: number | null = 42;
+
 jest.mock('./middleware/RequireAuthentication', () => {
   const middleware = (
     _req: express.Request,
     res: express.Response,
     next: express.NextFunction
   ) => {
-    res.locals.owner = 42;
+    if (mockAuthOwner == null) {
+      res.status(401).json({ message: 'Authentication required' });
+      return;
+    }
+    res.locals.owner = mockAuthOwner;
     res.locals.email = 'tester@example.com';
     res.locals.patreon = null;
     next();
@@ -94,6 +100,7 @@ describe('MindmapRouter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAuthOwner = 42;
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
     mockGetPresignedUrl.mockResolvedValue('https://spaces.example.com/presigned');
     mockObjectExists.mockResolvedValue(false);
@@ -333,6 +340,27 @@ describe('MindmapRouter', () => {
       expect(res.status).toBe(410);
       const body = await res.json();
       expect(body.code).toBe('image_missing');
+    });
+
+    it('returns 401 when not authenticated', async () => {
+      mockAuthOwner = null;
+
+      const res = await fetch(`${url}/api/mindmaps/images/42/map-1/img.png`);
+
+      expect(res.status).toBe(401);
+    });
+
+    it('returns 403 cross-tenant: authenticated as user 42 but requesting user 99 image', async () => {
+      mockObjectExists.mockResolvedValue(true);
+      mockGetPresignedUrl.mockResolvedValue('https://spaces.example.com/presigned-img');
+
+      const res = await fetch(`${url}/api/mindmaps/images/99/map-1/img.png`, {
+        redirect: 'manual',
+      });
+
+      expect(res.status).toBe(403);
+      expect(mockObjectExists).not.toHaveBeenCalled();
+      expect(mockGetPresignedUrl).not.toHaveBeenCalled();
     });
   });
 });

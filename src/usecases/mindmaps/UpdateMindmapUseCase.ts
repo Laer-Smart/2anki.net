@@ -13,7 +13,11 @@ export const FREE_NODE_LIMIT = 50;
 const LEGACY_PREFIX = '/api/mindmaps/images/';
 const S3_KEY_PREFIX = 'mindmaps/';
 
-function sanitizeImageUrl(image: MindmapImageMeta): MindmapImageMeta {
+function sanitizeImageUrl(
+  image: MindmapImageMeta,
+  userId: UsersId,
+  mapId: MindmapsId
+): MindmapImageMeta {
   const { url } = image;
   if (url == null) {
     return { ...image, missing: true, url: null };
@@ -21,24 +25,32 @@ function sanitizeImageUrl(image: MindmapImageMeta): MindmapImageMeta {
   if (url.startsWith(LEGACY_PREFIX)) {
     return { url: null, width: image.width, height: image.height, missing: true };
   }
+  const expectedPrefix = `${S3_KEY_PREFIX}${userId}/${mapId}/`;
   if (url.startsWith(S3_KEY_PREFIX)) {
+    if (!url.startsWith(expectedPrefix)) {
+      return { url: null, width: image.width, height: image.height, missing: true };
+    }
     return { ...image, url };
   }
   const s3KeyMatch = url.match(/[?#]/);
   const rawPath = s3KeyMatch != null ? url.slice(0, s3KeyMatch.index) : url;
   const keyStart = rawPath.indexOf(S3_KEY_PREFIX);
   if (keyStart !== -1) {
-    return { ...image, url: rawPath.slice(keyStart) };
+    const s3Key = rawPath.slice(keyStart);
+    if (!s3Key.startsWith(expectedPrefix)) {
+      return { url: null, width: image.width, height: image.height, missing: true };
+    }
+    return { ...image, url: s3Key };
   }
   return { url: null, width: image.width, height: image.height, missing: true };
 }
 
-function sanitizeData(data: MindmapData): MindmapData {
+function sanitizeData(data: MindmapData, userId: UsersId, mapId: MindmapsId): MindmapData {
   return {
     ...data,
     nodes: data.nodes.map((node) => {
       if (node.image == null) return node;
-      return { ...node, image: sanitizeImageUrl(node.image) };
+      return { ...node, image: sanitizeImageUrl(node.image, userId, mapId) };
     }),
   };
 }
@@ -66,7 +78,7 @@ export class UpdateMindmapUseCase {
 
     const patch: Partial<Pick<Mindmaps, 'title' | 'data'>> = {};
     if (title != null) patch.title = title;
-    if (data != null) patch.data = sanitizeData(data);
+    if (data != null) patch.data = sanitizeData(data, userId, id);
 
     return this.repo.update(id, userId, patch);
   }

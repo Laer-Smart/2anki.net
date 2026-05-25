@@ -318,8 +318,10 @@ const MindmapRouter = () => {
    *       410:
    *         description: Image no longer available
    */
-  router.get('/api/mindmaps/images/:userId/:mapId/:file', (req, res) =>
-    controller.serveImage(req, res)
+  router.get(
+    '/api/mindmaps/images/:userId/:mapId/:file',
+    RequireAuthentication,
+    (req, res) => controller.serveImage(req, res)
   );
 
   return router;

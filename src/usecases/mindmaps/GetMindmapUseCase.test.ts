@@ -106,4 +106,20 @@ describe('GetMindmapUseCase', () => {
     expect(nodes[0].image?.missing).toBe(true);
     expect(nodes[0].image?.url).toBeNull();
   });
+
+  it('rejects cross-tenant s3Key: key belongs to user 99, map belongs to user 1', async () => {
+    const data: MindmapData = {
+      nodes: [{ id: 'e', label: 'Node', image: { url: 'mindmaps/99/other-map/uuid.png', width: 10, height: 10 } }],
+      edges: [],
+    };
+    const map = makeMap(data);
+    const storage = makeStorage();
+    const useCase = new GetMindmapUseCase(makeRepo(map), storage);
+
+    const result = await useCase.execute('map-1' as MindmapsId, 1 as UsersId);
+    const nodes = (result!.data as MindmapData).nodes;
+    expect(nodes[0].image?.missing).toBe(true);
+    expect(nodes[0].image?.url).toBeNull();
+    expect(storage.getPresignedUrl).not.toHaveBeenCalled();
+  });
 });
