@@ -110,7 +110,13 @@ export default async function performConversion(
     } catch (error) {
       if (error instanceof MonthlyLimitError) {
         const setJobFailed = new SetJobFailedUseCase(jobRepository);
-        await setJobFailed.execute(id, owner, error.message);
+        const payload = JSON.stringify({
+          code: 'monthly_limit',
+          cards_used: error.cards_used,
+          limit: error.limit,
+          reset_on: error.reset_on,
+        });
+        await setJobFailed.execute(id, owner, payload);
         return;
       }
       throw error;
