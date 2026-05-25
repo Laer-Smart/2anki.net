@@ -262,7 +262,7 @@ describe('UploadService.handleUpload — error paths', () => {
           buffer: Buffer.alloc(0),
           stream: null,
           key: '',
-        } as Express.Multer.File,
+        } as unknown as Express.Multer.File,
       ],
     });
     const { res, capturedStatus, capturedSend } = buildResponse();
