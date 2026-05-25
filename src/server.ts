@@ -40,6 +40,7 @@ import defaultRouter from './routes/DefaultRouter';
 import rejectScannerProbes from './routes/middleware/rejectScannerProbes';
 import { noindexNonCanonicalHosts } from './routes/middleware/noindexNonCanonicalHosts';
 import { redirectNonCanonicalHosts } from './routes/middleware/redirectNonCanonicalHosts';
+import { redirectConvertDuplicates } from './routes/middleware/redirectConvertDuplicates';
 import webhookRouter from './routes/WebhookRouter';
 import ankifyWebhookRouter from './routes/AnkifyWebhookRouter';
 import swaggerRouter from './routes/SwaggerRouter';
@@ -127,6 +128,7 @@ const serve = async () => {
   app.use(cookieParser());
   app.use(anonIdMiddleware);
   app.use(noindexNonCanonicalHosts);
+  app.use(redirectConvertDuplicates);
 
   app.use(morgan('combined') as RequestHandler);
   app.use(requestLoggingMiddleware);
