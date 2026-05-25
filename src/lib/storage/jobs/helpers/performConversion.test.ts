@@ -14,14 +14,29 @@ jest.mock('../../../../usecases/jobs/CompleteJobUseCase');
 jest.mock('../../../../usecases/jobs/NotifyUserUseCase');
 jest.mock('../../../../data_layer/JobRepository');
 jest.mock('../../../../data_layer/UsersRepository');
+jest.mock('../../../../data_layer/NotionRespository');
 jest.mock('../../../../usecases/users/CheckMonthlyCardLimitUseCase');
 jest.mock('../../../../services/events/track', () => ({ track: jest.fn() }));
 
+import { APIResponseError, APIErrorCode } from '@notionhq/client';
 import performConversion from './performConversion';
 import NotionAPIWrapper from '../../../../services/NotionService/NotionAPIWrapper';
+import NotionRepository from '../../../../data_layer/NotionRespository';
 import { CreateJobWorkSpaceUseCase } from '../../../../usecases/jobs/CreateJobWorkSpaceUseCase';
 import { SetJobFailedUseCase } from '../../../../usecases/jobs/SetJobFailedUseCase';
 import { CreateFlashcardsForJobUseCase } from '../../../../usecases/jobs/CreateFlashcardsForJobUseCase';
+import { NOTION_TOKEN_EXPIRED_REASON } from '../../../../usecases/jobs/jobFailureReason';
+
+function makeUnauthorizedError(): APIResponseError {
+  const err = Object.create(APIResponseError.prototype) as APIResponseError;
+  Object.assign(err, {
+    name: 'APIResponseError',
+    message: 'Unauthorized',
+    code: APIErrorCode.Unauthorized,
+    status: 401,
+  });
+  return err;
+}
 
 const mockDatabase = {} as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -44,6 +59,7 @@ describe('performConversion — signature', () => {
 describe('performConversion — heavy pipeline', () => {
   let errorSpy: jest.SpyInstance;
   let setJobFailedExecute: jest.Mock;
+  let markTokenInvalidMock: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -53,6 +69,11 @@ describe('performConversion — heavy pipeline', () => {
     setJobFailedExecute = jest.fn().mockResolvedValue(undefined);
     (SetJobFailedUseCase as jest.Mock).mockImplementation(() => ({
       execute: setJobFailedExecute,
+    }));
+
+    markTokenInvalidMock = jest.fn().mockResolvedValue(undefined);
+    (NotionRepository as jest.Mock).mockImplementation(() => ({
+      markTokenInvalid: markTokenInvalidMock,
     }));
   });
 
@@ -97,5 +118,31 @@ describe('performConversion — heavy pipeline', () => {
       baseRequest.owner,
       expect.stringContaining(baseRequest.id)
     );
+  });
+
+  it('sets notion_token_expired reason and calls markTokenInvalid when workspace throws a 401', async () => {
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockRejectedValue(makeUnauthorizedError()),
+    }));
+    const numericOwnerRequest = { ...baseRequest, owner: '42' };
+
+    await performConversion(mockDatabase, numericOwnerRequest);
+
+    expect(setJobFailedExecute).toHaveBeenCalledWith(
+      numericOwnerRequest.id,
+      numericOwnerRequest.owner,
+      NOTION_TOKEN_EXPIRED_REASON
+    );
+    expect(markTokenInvalidMock).toHaveBeenCalledWith(42);
+  });
+
+  it('does not call markTokenInvalid for non-unauthorized errors', async () => {
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockRejectedValue(new Error('random error')),
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(markTokenInvalidMock).not.toHaveBeenCalled();
   });
 });

@@ -6,6 +6,9 @@ import performConversion from './storage/jobs/helpers/performConversion';
 import NotionAPIWrapper from '../services/NotionService/NotionAPIWrapper';
 import NotionRepository from '../data_layer/NotionRespository';
 import BlocksCacheRepository from '../data_layer/BlocksCacheRepository';
+import JobRepository from '../data_layer/JobRepository';
+import { SetJobFailedUseCase } from '../usecases/jobs/SetJobFailedUseCase';
+import { NOTION_TOKEN_EXPIRED_REASON } from '../usecases/jobs/jobFailureReason';
 
 export interface ConversionWorkerRequest {
   id: string;
@@ -104,8 +107,11 @@ export async function runConversionInWorker(
   const database = knexFactory();
   const notionRepo = new NotionRepository(database);
   const token = await notionRepo.getNotionToken(request.owner);
-  if (!token) {
-    throw new Error(`No Notion token available for owner ${request.owner}`);
+  if (token == null) {
+    const jobRepo = new JobRepository(database);
+    const setJobFailed = new SetJobFailedUseCase(jobRepo);
+    await setJobFailed.execute(request.id, request.owner, NOTION_TOKEN_EXPIRED_REASON);
+    return;
   }
   const blocksCache = new BlocksCacheRepository(database);
   const api = new NotionAPIWrapper(token, request.owner, blocksCache);

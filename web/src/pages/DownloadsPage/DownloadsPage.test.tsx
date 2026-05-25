@@ -494,6 +494,86 @@ describe('DownloadsPage failure reason panel', () => {
   });
 });
 
+describe('DownloadsPage notion_token_expired failure panel', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-25T12:00:00Z'));
+    (globalThis as AnalyticsGlobals).hj = vi.fn();
+    (globalThis as AnalyticsGlobals).gtag = vi.fn();
+    mockUploads = [];
+    mockDropboxUploads = [];
+    mockGoogleDriveUploads = [];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    delete (globalThis as AnalyticsGlobals).hj;
+    delete (globalThis as AnalyticsGlobals).gtag;
+  });
+
+  it('shows reconnect CTA for a Notion job with notion_token_expired reason', () => {
+    mockJobs = [
+      buildJob({
+        status: 'failed',
+        type: 'page',
+        last_edited_time: new Date('2026-05-25T11:55:00Z'),
+        job_reason_failure: 'notion_token_expired',
+      }),
+    ];
+    renderAt('/downloads');
+
+    expect(screen.getByText('Notion connection expired. Reconnect to keep converting pages.')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Reconnect Notion' })).toHaveAttribute('href', '/notion');
+  });
+
+  it('does not show a restart button for notion_token_expired failure', () => {
+    mockJobs = [
+      buildJob({
+        status: 'failed',
+        type: 'page',
+        restartable: true,
+        last_edited_time: new Date('2026-05-25T11:55:00Z'),
+        job_reason_failure: 'notion_token_expired',
+      }),
+    ];
+    renderAt('/downloads');
+
+    expect(screen.queryByRole('button', { name: /Restart job/i })).not.toBeInTheDocument();
+  });
+
+  it('does not show reconnect CTA for a file-upload job with notion_token_expired reason', () => {
+    mockJobs = [
+      buildJob({
+        status: 'failed',
+        type: 'claude',
+        last_edited_time: new Date('2026-05-25T11:55:00Z'),
+        job_reason_failure: 'notion_token_expired',
+      }),
+    ];
+    renderAt('/downloads');
+
+    expect(screen.queryByRole('link', { name: 'Reconnect Notion' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Notion connection expired. Reconnect to keep converting pages.')).not.toBeInTheDocument();
+  });
+
+  it('does not show reconnect CTA for a Notion job with a generic failure reason', () => {
+    mockJobs = [
+      buildJob({
+        status: 'failed',
+        type: 'page',
+        last_edited_time: new Date('2026-05-25T11:45:00Z'),
+        job_reason_failure: 'Something went wrong on our end.',
+      }),
+    ];
+    renderAt('/downloads');
+
+    const statusButton = screen.getByRole('button', { name: /Show failure reason/i });
+    fireEvent.click(statusButton);
+
+    expect(screen.queryByRole('link', { name: 'Reconnect Notion' })).not.toBeInTheDocument();
+  });
+});
+
 describe('DownloadsPage cancel_during_generating telemetry', () => {
   let fetchCalls: { url: string; body: Record<string, unknown> }[] = [];
 

@@ -16,11 +16,15 @@ import { SetJobFailedUseCase } from '../../../../usecases/jobs/SetJobFailedUseCa
 import { BuildDeckForJobUseCase } from '../../../../usecases/jobs/BuildDeckForJobUseCase';
 import { CompleteJobUseCase } from '../../../../usecases/jobs/CompleteJobUseCase';
 import { NotifyUserUseCase } from '../../../../usecases/jobs/NotifyUserUseCase';
-import { jobFailureReasonFromError } from '../../../../usecases/jobs/jobFailureReason';
+import {
+  isNotionUnauthorizedError,
+  jobFailureReasonFromError,
+} from '../../../../usecases/jobs/jobFailureReason';
 import { PythonExitError } from '../../../anki/buildPythonExitError';
 import { track } from '../../../../services/events/track';
 import { EventsRepository } from '../../../../data_layer/EventsRepository';
 import { EventsQueryService } from '../../../../services/events/EventsQueryService';
+import NotionRepository from '../../../../data_layer/NotionRespository';
 
 type CardCountBucket = '<50' | '50-499' | '500+';
 type ConversionSource = 'notion' | 'upload' | 'google_drive';
@@ -170,6 +174,13 @@ export default async function performConversion(
         code: error.code,
         rawOutput: error.rawOutput,
       });
+    }
+    if (isNotionUnauthorizedError(error)) {
+      const notionRepo = new NotionRepository(database);
+      const ownerNum = Number(owner);
+      if (Number.isFinite(ownerNum)) {
+        await notionRepo.markTokenInvalid(ownerNum);
+      }
     }
     const failedJob = new SetJobFailedUseCase(jobRepository);
     await failedJob.execute(id, owner, jobFailureReasonFromError(error, id));
