@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-26-job-restart-race",
+  "date": "2026-05-26",
+  "type": "fix",
+  "title": "Restarting a job twice quickly no longer triggers two duplicate conversions"
+}

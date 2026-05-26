@@ -22,7 +22,8 @@ export class StartJobUseCase {
     }
 
     if (JobRepository.TERMINAL_STATUSES.includes(job.status)) {
-      return this.jobRepository.restartJob(id, owner);
+      const restarted = await this.jobRepository.restartJob(id, owner);
+      return restarted ?? job;
     }
 
     return this.jobRepository.updateJobStatus(id, owner, 'started', '');

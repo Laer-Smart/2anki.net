@@ -142,3 +142,49 @@ describe('JobRepository.getJobsByOwner', () => {
     expect(byTitle.B).toBe('b-2.apkg');
   });
 });
+
+describe('JobRepository.restartJob — optimistic lock', () => {
+  let db: Knex;
+
+  beforeEach(async () => {
+    db = await makeDb();
+  });
+
+  afterEach(async () => {
+    await db.destroy();
+  });
+
+  it('returns the updated job when transitioning from a terminal status', async () => {
+    await insertJob(db, { owner: '1', object_id: 'page-a', status: 'done' });
+    const repo = new JobRepository(db);
+
+    const result = await repo.restartJob('page-a', '1');
+
+    expect(result).toMatchObject({ status: 'started', object_id: 'page-a' });
+  });
+
+  it('returns undefined when the job is already non-terminal (second click loses the race)', async () => {
+    await insertJob(db, { owner: '1', object_id: 'page-a', status: 'started' });
+    const repo = new JobRepository(db);
+
+    const result = await repo.restartJob('page-a', '1');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('second concurrent restart is a no-op: only one transition occurs', async () => {
+    await insertJob(db, { owner: '1', object_id: 'page-a', status: 'done' });
+    const repo = new JobRepository(db);
+
+    const [first, second] = await Promise.all([
+      repo.restartJob('page-a', '1'),
+      repo.restartJob('page-a', '1'),
+    ]);
+
+    const winner = first ?? second;
+    const loser = first == null ? first : second;
+
+    expect(winner).toMatchObject({ status: 'started' });
+    expect(loser).toBeUndefined();
+  });
+});
