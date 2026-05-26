@@ -24,6 +24,8 @@ function makeRepository(): IErrorEventRepository & { inserts: ErrorEventInsert[]
     async countGroups() {
       return 0;
     },
+    async resolveGroup() {},
+    async reopenGroup() {},
   };
 }
 

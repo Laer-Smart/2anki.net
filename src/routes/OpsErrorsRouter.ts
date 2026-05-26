@@ -2,6 +2,8 @@ import express from 'express';
 import RequireOpsAccess from './middleware/RequireOpsAccess';
 import { OpsErrorsController } from '../controllers/OpsErrorsController';
 import { ListErrorGroupsUseCase } from '../usecases/ops/ListErrorGroupsUseCase';
+import { ResolveErrorGroupUseCase } from '../usecases/ops/ResolveErrorGroupUseCase';
+import { ReopenErrorGroupUseCase } from '../usecases/ops/ReopenErrorGroupUseCase';
 import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';
 import { getDatabase } from '../data_layer';
 
@@ -9,8 +11,10 @@ const OpsErrorsRouter = () => {
   const router = express.Router();
   const database = getDatabase();
   const repository = new ErrorEventRepository(database);
-  const useCase = new ListErrorGroupsUseCase(repository);
-  const controller = new OpsErrorsController(useCase);
+  const listUseCase = new ListErrorGroupsUseCase(repository);
+  const resolveUseCase = new ResolveErrorGroupUseCase(repository);
+  const reopenUseCase = new ReopenErrorGroupUseCase(repository);
+  const controller = new OpsErrorsController(listUseCase, resolveUseCase, reopenUseCase);
 
   /**
    * @swagger
@@ -34,14 +38,61 @@ const OpsErrorsRouter = () => {
    *       - in: query
    *         name: sort
    *         schema: { type: string, enum: [last_seen, occurrences] }
+   *       - in: query
+   *         name: status
+   *         schema: { type: string, enum: [unresolved, resolved, all], default: unresolved }
    *     responses:
    *       200:
    *         description: Grouped error events
-   *       401:
+   *       404:
    *         description: Not the ops owner
    */
   router.get('/api/ops/errors', RequireOpsAccess, (req, res) =>
     controller.list(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/errors/{messageHash}/resolve:
+   *   post:
+   *     summary: Mark an error group resolved
+   *     description: |
+   *       Records a resolution timestamp for the group. A later occurrence
+   *       (last_seen after resolved_at) reopens the group automatically.
+   *     tags: [Ops]
+   *     parameters:
+   *       - in: path
+   *         name: messageHash
+   *         required: true
+   *         schema: { type: string, pattern: '^[a-f0-9]{64}$' }
+   *     responses:
+   *       204:
+   *         description: Resolved
+   *       400:
+   *         description: Invalid message hash
+   *       404:
+   *         description: Not the ops owner
+   *   delete:
+   *     summary: Reopen a resolved error group
+   *     tags: [Ops]
+   *     parameters:
+   *       - in: path
+   *         name: messageHash
+   *         required: true
+   *         schema: { type: string, pattern: '^[a-f0-9]{64}$' }
+   *     responses:
+   *       204:
+   *         description: Reopened
+   *       400:
+   *         description: Invalid message hash
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.post('/api/ops/errors/:messageHash/resolve', RequireOpsAccess, (req, res) =>
+    controller.resolve(req, res)
+  );
+  router.delete('/api/ops/errors/:messageHash/resolve', RequireOpsAccess, (req, res) =>
+    controller.reopen(req, res)
   );
 
   return router;

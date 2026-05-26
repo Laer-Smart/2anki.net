@@ -10,6 +10,8 @@ export interface ErrorGroup {
   first_seen: string;
   last_seen: string;
   occurrences: number;
+  resolved: boolean;
+  resolved_at: string | null;
 }
 
 export interface ErrorGroupsResponse {
@@ -19,3 +21,4 @@ export interface ErrorGroupsResponse {
 
 export type ErrorSort = 'last_seen' | 'occurrences';
 export type ErrorSource = 'all' | 'web' | 'server';
+export type ErrorStatus = 'unresolved' | 'resolved' | 'all';

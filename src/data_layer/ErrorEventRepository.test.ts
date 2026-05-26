@@ -206,3 +206,40 @@ describe('ErrorEventRepository.existsWithinWindow', () => {
     expect(result).toBe(true);
   });
 });
+
+describe('ErrorEventRepository.resolveGroup', () => {
+  it('upserts a resolution row keyed by message_hash', async () => {
+    const mergeSpy = jest.fn().mockResolvedValue(undefined);
+    const onConflictSpy = jest.fn().mockReturnValue({ merge: mergeSpy });
+    const insertSpy = jest.fn().mockReturnValue({ onConflict: onConflictSpy });
+    const knex = jest.fn().mockReturnValue({ insert: insertSpy }) as unknown as jest.Mock & {
+      fn: { now: () => string };
+    };
+    knex.fn = { now: () => 'NOW()' };
+
+    const repo = new ErrorEventRepository(knex as never);
+    await repo.resolveGroup('a'.repeat(64), 5);
+
+    expect(insertSpy).toHaveBeenCalledWith({
+      message_hash: 'a'.repeat(64),
+      resolved_at: 'NOW()',
+      resolved_by: 5,
+    });
+    expect(onConflictSpy).toHaveBeenCalledWith('message_hash');
+    expect(mergeSpy).toHaveBeenCalledWith(['resolved_at', 'resolved_by']);
+  });
+});
+
+describe('ErrorEventRepository.reopenGroup', () => {
+  it('deletes the resolution row for the message_hash', async () => {
+    const delSpy = jest.fn().mockResolvedValue(1);
+    const whereSpy = jest.fn().mockReturnValue({ del: delSpy });
+    const knex = jest.fn().mockReturnValue({ where: whereSpy });
+
+    const repo = new ErrorEventRepository(knex as never);
+    await repo.reopenGroup('b'.repeat(64));
+
+    expect(whereSpy).toHaveBeenCalledWith('message_hash', 'b'.repeat(64));
+    expect(delSpy).toHaveBeenCalled();
+  });
+});
