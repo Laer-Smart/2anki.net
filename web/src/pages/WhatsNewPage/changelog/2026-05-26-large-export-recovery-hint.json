@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-26-large-export-recovery-hint",
+  "date": "2026-05-26",
+  "type": "fix",
+  "title": "Large Notion exports that fail now show a clear recovery hint — split into subpages and convert each one separately"
+}

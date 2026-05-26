@@ -135,7 +135,14 @@ function FailedVariant({ failureReason, source, onMapColumns }: Omit<FailedProps
     );
   }
 
-  const errorBody: UploadErrorBody = { code: 'unknown', message: failureReason };
+  const isTooLarge =
+    failureReason.includes('too large') ||
+    failureReason.includes('MemoryError') ||
+    failureReason.includes('Killed');
+  const errorBody: UploadErrorBody = {
+    code: isTooLarge ? 'too_large' : 'unknown',
+    message: failureReason,
+  };
   const friendly = classifyUploadError(errorBody);
   return (
     <p>

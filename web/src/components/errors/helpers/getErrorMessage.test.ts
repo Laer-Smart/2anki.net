@@ -116,10 +116,11 @@ describe('classifyUploadError', () => {
     expect(result.detail).toBe('Use .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, or .csv.');
   });
 
-  test('too_large returns specific copy about splitting the file', () => {
+  test('too_large returns copy about splitting into subpages', () => {
     const body: UploadErrorBody = { code: 'too_large', message: 'original' };
     const result = classifyUploadError(body);
-    expect(result.title).toBe('This file is too large.');
+    expect(result.title).toBe('This export is too large to convert in one go.');
+    expect(result.detail).toMatch(/subpage/i);
   });
 
   test('password_protected_pdf returns specific copy about removing the password', () => {
