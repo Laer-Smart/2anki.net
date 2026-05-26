@@ -79,6 +79,17 @@ jest.mock('../services/ops/ConversionMetricsService', () => {
   };
 });
 
+jest.mock('../lib/storage/StorageHandler', () => {
+  return {
+    __esModule: true,
+    default: class {
+      listMindmapObjects() {
+        return Promise.resolve([]);
+      }
+    },
+  };
+});
+
 import OpsRouter from './OpsRouter';
 
 const opsAccessState = (globalThis as unknown as {
