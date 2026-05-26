@@ -4,8 +4,10 @@ import styles from '../PricingPage.module.css';
 const PASS_BENEFITS = [
   'No subscription',
   'Unlimited cards and conversions',
+  'AI flashcards & photo-to-deck',
+  'Every file format — PDF, Word, EPUB, and more',
+  'Native .apkg — works in any Anki client',
   'Unlimited image occlusion',
-  'Larger uploads — up to 10 GB',
   'No ads',
 ];
 

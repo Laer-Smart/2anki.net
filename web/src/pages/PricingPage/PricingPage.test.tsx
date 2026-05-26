@@ -110,6 +110,11 @@ describe('PricingPage layout', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows the social-proof line under the hero', () => {
+    renderAt('/pricing');
+    expect(screen.getByText('Trusted by 19,000+ learners worldwide')).toBeInTheDocument();
+  });
+
   it('renders the feature overview grid', () => {
     renderAt('/pricing');
     expect(
@@ -166,7 +171,7 @@ describe('PricingPage paywall telemetry', () => {
 describe('PricingPage Auto Sync card', () => {
   it('shows Subscribe button for logged-in free user', () => {
     renderAt('/pricing', { isLoggedIn: true });
-    expect(screen.getByRole('button', { name: 'Subscribe' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Get Auto Sync' })).toBeInTheDocument();
   });
 
   it('shows New — built for Notion badge when Auto Sync is new', () => {
@@ -182,7 +187,7 @@ describe('PricingPage Auto Sync card', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: false });
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
 
     Object.defineProperty(globalThis, 'location', {
@@ -222,7 +227,7 @@ describe('PricingPage Auto Sync card', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
 
     await waitFor(() => {
       expect(
@@ -240,7 +245,7 @@ describe('PricingPage Auto Sync card', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
 
     await waitFor(() => {
       expect(globalThis.location.href).toBe('/ankify/setup');
@@ -262,7 +267,7 @@ describe('PricingPage Auto Sync card', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
 
     await waitFor(() => {
       expect(mockStartAutoSyncCheckout).toHaveBeenCalled();
@@ -317,7 +322,7 @@ describe('PricingPage internal event tracking', () => {
     Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
 
     await waitFor(() => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
@@ -371,7 +376,7 @@ describe('PricingPage internal event tracking', () => {
     Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
@@ -477,7 +482,7 @@ describe('PricingPage Unlimited billing toggle', () => {
     Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
 
     renderAt('/pricing', { isLoggedIn: true, unlimitedYearlyAvailable: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {
       expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('month');
@@ -490,7 +495,7 @@ describe('PricingPage Unlimited billing toggle', () => {
 
     renderAt('/pricing', { isLoggedIn: true, unlimitedYearlyAvailable: true });
     fireEvent.click(screen.getByRole('radio', { name: 'Yearly' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {
       expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('year');
@@ -500,7 +505,7 @@ describe('PricingPage Unlimited billing toggle', () => {
   it('redirects to login when logged-out user clicks Upgrade', () => {
     Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
     renderAt('/pricing', { isLoggedIn: false, unlimitedYearlyAvailable: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
   });
 });

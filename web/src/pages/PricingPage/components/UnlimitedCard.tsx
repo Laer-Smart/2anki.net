@@ -30,6 +30,8 @@ function CheckIcon() {
 
 const BENEFITS = [
   'Unlimited flashcards',
+  'Native .apkg — works in any Anki client',
+  'AI flashcards, photo-to-deck, and chat',
   'Run multiple conversions at once',
   'PDFs and large Notion exports',
   'Unlimited Anki → Notion imports',
@@ -102,7 +104,7 @@ export function UnlimitedCard({
           onClick={onUpgrade}
           disabled={pending}
         >
-          {pending ? 'Starting checkout' : 'Upgrade'}
+          {pending ? 'Starting checkout' : 'Get Unlimited'}
         </button>
       </div>
     </div>

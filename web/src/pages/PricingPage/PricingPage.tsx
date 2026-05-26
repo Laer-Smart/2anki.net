@@ -310,6 +310,7 @@ export default function PricingPage({
             </>
           )}
         </p>
+        <p className={styles.socialProof}>Trusted by 19,000+ learners worldwide</p>
       </div>
 
       {showTrialCta && (
@@ -374,7 +375,7 @@ export default function PricingPage({
             'No future price changes',
           ]}
           link={lifetimeLink}
-          linkText="Apply"
+          linkText="Request Lifetime"
           variant="outline"
           caption="Reply within 24 hours."
         />

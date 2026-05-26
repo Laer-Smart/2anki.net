@@ -61,6 +61,14 @@
   line-height: var(--leading-relaxed);
 }
 
+.socialProof {
+  margin: 1.25rem auto 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.01em;
+  color: var(--color-text-secondary);
+}
+
 .contextBanner {
   display: inline-block;
   margin: 0 auto 1.5rem;
