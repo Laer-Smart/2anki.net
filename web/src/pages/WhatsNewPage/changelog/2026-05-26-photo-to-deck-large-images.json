@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-26-photo-to-deck-large-images",
+  "date": "2026-05-26",
+  "type": "fix",
+  "title": "Photo to deck resizes large photos automatically, so big images and any format convert"
+}

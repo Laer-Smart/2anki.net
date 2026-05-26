@@ -13,6 +13,7 @@ import {
 } from '../usecases/imageOcclusion/PhotoToFlashcardsUseCase';
 import type { VisionMediaType } from '../lib/claude/countVisionTokens';
 import { buildContentDisposition } from '../lib/buildContentDisposition';
+import { detectFileMime } from '../lib/detectFileMime';
 import { isPaying } from '../lib/isPaying';
 
 const ALLOWED_MEDIA_TYPES: VisionMediaType[] = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -67,14 +68,20 @@ export class PhotoToFlashcardsController {
       return;
     }
 
-    if (!isAllowedMediaType(body.mediaType)) {
+    // Trust the bytes, not the client-declared type: a JPEG uploaded as
+    // image/png makes Anthropic reject the message with a media_type mismatch.
+    const detectedMediaType = detectFileMime(
+      Buffer.from(imageBase64.slice(0, 64), 'base64')
+    );
+    const mediaType = isAllowedMediaType(detectedMediaType)
+      ? detectedMediaType
+      : body.mediaType;
+    if (!isAllowedMediaType(mediaType)) {
       res.status(400).json({
         message: `Unsupported image type. Use ${ALLOWED_MEDIA_TYPES.join(', ')}.`,
       });
       return;
     }
-
-    const mediaType = body.mediaType;
     const deckName =
       typeof body.deckName === 'string' && body.deckName.trim()
         ? body.deckName.trim()

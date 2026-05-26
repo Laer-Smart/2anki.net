@@ -115,6 +115,68 @@ describe('PhotoToFlashcardsController mode forwarding', () => {
   });
 });
 
+describe('PhotoToFlashcardsController media type detection', () => {
+  function jpegBase64(): string {
+    return Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0]).toString(
+      'base64'
+    );
+  }
+
+  it('uses the media type detected from the bytes, not the client-declared one', async () => {
+    const useCase = makeUseCase();
+    const controller = new PhotoToFlashcardsController(useCase);
+    await controller.create(
+      makeReq({
+        imageBase64: jpegBase64(),
+        mediaType: 'image/png',
+        deckName: 'X',
+        width: 100,
+        height: 100,
+      }),
+      makeRes()
+    );
+    expect(useCase.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ mediaType: 'image/jpeg' })
+    );
+  });
+
+  it('falls back to the declared type when the bytes are not a known image', async () => {
+    const useCase = makeUseCase();
+    const controller = new PhotoToFlashcardsController(useCase);
+    await controller.create(
+      makeReq({
+        imageBase64: 'abc',
+        mediaType: 'image/png',
+        deckName: 'X',
+        width: 100,
+        height: 100,
+      }),
+      makeRes()
+    );
+    expect(useCase.execute).toHaveBeenCalledWith(
+      expect.objectContaining({ mediaType: 'image/png' })
+    );
+  });
+
+  it('rejects with 400 when neither the bytes nor the declared type are supported', async () => {
+    const useCase = makeUseCase();
+    const controller = new PhotoToFlashcardsController(useCase);
+    const res = makeRes();
+    await controller.create(
+      makeReq({
+        imageBase64: 'abc',
+        mediaType: 'application/pdf',
+        deckName: 'X',
+        width: 100,
+        height: 100,
+      }),
+      res
+    );
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(useCase.execute).not.toHaveBeenCalled();
+  });
+});
+
 describe('PhotoToFlashcardsController MCQ headers', () => {
   const baseBody = {
     imageBase64: 'abc',
