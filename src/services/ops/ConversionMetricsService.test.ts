@@ -1,64 +1,33 @@
-import knex, { Knex } from 'knex';
-
+import type { IJobsMetricsRepository } from '../../data_layer/JobsMetricsRepository';
+import type { ConversionErrorCount } from './ConversionMetricsService';
 import { ConversionMetricsService } from './ConversionMetricsService';
 
-async function makeDb(): Promise<Knex> {
-  const db = knex({
-    client: 'better-sqlite3',
-    connection: { filename: ':memory:' },
-    useNullAsDefault: true,
-  });
-  await db.schema.createTable('jobs', (t) => {
-    t.increments('id');
-    t.string('owner').notNullable();
-    t.string('object_id').notNullable();
-    t.string('title');
-    t.string('type');
-    t.string('status');
-    t.timestamp('created_at').defaultTo(db.fn.now());
-    t.timestamp('last_edited_time');
-    t.string('job_reason_failure');
-    t.integer('card_count');
-  });
-  await db.schema.createTable('users', (t) => {
-    t.string('id').primary();
-    t.string('stripe_customer_id');
-  });
-  return db;
+function makeFailingRepo(): IJobsMetricsRepository {
+  return {
+    countFreeConversions7d: jest.fn().mockRejectedValue(new Error('db down')),
+    countPaidConversions7d: jest.fn().mockRejectedValue(new Error('db down')),
+    computeFreeSuccessRate7d: jest.fn().mockRejectedValue(new Error('db down')),
+    computePaidSuccessRate7d: jest.fn().mockRejectedValue(new Error('db down')),
+    topFailureReasons7d: jest.fn().mockRejectedValue(new Error('db down')),
+    failedConversionsWeekly: jest.fn().mockRejectedValue(new Error('db down')),
+  };
 }
 
-async function insertUser(db: Knex, id: string, stripeCustomerId: string | null) {
-  await db('users').insert({ id, stripe_customer_id: stripeCustomerId });
-}
-
-async function insertJob(
-  db: Knex,
-  attrs: {
-    owner: string;
-    object_id: string;
-    type: string;
-    status?: string;
-    created_at?: Date;
-    job_reason_failure?: string;
-  }
-) {
-  await db('jobs').insert({
-    owner: attrs.owner,
-    object_id: attrs.object_id,
-    type: attrs.type,
-    status: attrs.status ?? 'done',
-    created_at: attrs.created_at ?? new Date(),
-    last_edited_time: new Date(),
-    job_reason_failure: attrs.job_reason_failure ?? null,
-  });
+function makeStubRepo(overrides: Partial<IJobsMetricsRepository> = {}): IJobsMetricsRepository {
+  return {
+    countFreeConversions7d: jest.fn().mockResolvedValue(0),
+    countPaidConversions7d: jest.fn().mockResolvedValue(0),
+    computeFreeSuccessRate7d: jest.fn().mockResolvedValue(null),
+    computePaidSuccessRate7d: jest.fn().mockResolvedValue(null),
+    topFailureReasons7d: jest.fn().mockResolvedValue([]),
+    failedConversionsWeekly: jest.fn().mockResolvedValue([]),
+    ...overrides,
+  };
 }
 
 describe('ConversionMetricsService — graceful failure', () => {
-  it('returns null for every metric when the db throws', async () => {
-    const failing = {
-      raw: jest.fn(),
-    } as unknown as Knex;
-    const service = new ConversionMetricsService(failing);
+  it('returns null for every metric when the repository throws', async () => {
+    const service = new ConversionMetricsService(makeFailingRepo());
     const metrics = await service.getMetrics();
 
     expect(metrics.free_conversions_7d).toBeNull();
@@ -70,88 +39,84 @@ describe('ConversionMetricsService — graceful failure', () => {
   });
 });
 
-describe('ConversionMetricsService — counts cover the real Notion job types', () => {
-  let db: Knex;
-  let service: ConversionMetricsService;
-
-  beforeEach(async () => {
-    db = await makeDb();
-    service = new ConversionMetricsService(db);
-    await insertUser(db, 'free-user', null);
-    await insertUser(db, 'paid-user', 'cus_paid');
-  });
-
-  afterEach(async () => {
-    await db.destroy();
-  });
-
-  it('counts free conversions stored as type=page or type=database', async () => {
-    await insertJob(db, { owner: 'free-user', object_id: 'p-1', type: 'page' });
-    await insertJob(db, { owner: 'free-user', object_id: 'p-2', type: 'database' });
-    await insertJob(db, { owner: 'free-user', object_id: 'p-3', type: 'conversion' });
+describe('ConversionMetricsService — shape assembly', () => {
+  it('passes through free conversion count from the repository', async () => {
+    const service = new ConversionMetricsService(
+      makeStubRepo({ countFreeConversions7d: jest.fn().mockResolvedValue(7) })
+    );
 
     const metrics = await service.getMetrics();
 
-    expect(metrics.free_conversions_7d).toBe(3);
+    expect(metrics.free_conversions_7d).toBe(7);
   });
 
-  it('counts paid conversions stored as type=page or type=database', async () => {
-    await insertJob(db, { owner: 'paid-user', object_id: 'p-4', type: 'page' });
-    await insertJob(db, { owner: 'paid-user', object_id: 'p-5', type: 'database' });
+  it('passes through paid conversion count from the repository', async () => {
+    const service = new ConversionMetricsService(
+      makeStubRepo({ countPaidConversions7d: jest.fn().mockResolvedValue(3) })
+    );
 
     const metrics = await service.getMetrics();
 
-    expect(metrics.paid_conversions_7d).toBe(2);
+    expect(metrics.paid_conversions_7d).toBe(3);
   });
 
-  it('ignores apkg_import and claude (ankify) jobs — those are separate flows', async () => {
-    await insertJob(db, { owner: 'free-user', object_id: 'a-1', type: 'apkg_import' });
-    await insertJob(db, { owner: 'free-user', object_id: 'a-2', type: 'claude' });
+  it('passes through free success rate from the repository', async () => {
+    const service = new ConversionMetricsService(
+      makeStubRepo({ computeFreeSuccessRate7d: jest.fn().mockResolvedValue(66.7) })
+    );
 
     const metrics = await service.getMetrics();
 
-    expect(metrics.free_conversions_7d).toBe(0);
-    expect(metrics.paid_conversions_7d).toBe(0);
+    expect(metrics.free_conversion_success_rate_7d).toBe(66.7);
   });
 
-  it('computes free success rate over page+database+conversion jobs', async () => {
-    await insertJob(db, { owner: 'free-user', object_id: 's-1', type: 'page', status: 'done' });
-    await insertJob(db, { owner: 'free-user', object_id: 's-2', type: 'database', status: 'done' });
-    await insertJob(db, { owner: 'free-user', object_id: 's-3', type: 'page', status: 'failed' });
+  it('passes through top failure reasons from the repository', async () => {
+    const reasons: ConversionErrorCount[] = [
+      { reason: 'rate limit', count: 5 },
+      { reason: 'timeout', count: 2 },
+    ];
+    const service = new ConversionMetricsService(
+      makeStubRepo({ topFailureReasons7d: jest.fn().mockResolvedValue(reasons) })
+    );
 
     const metrics = await service.getMetrics();
 
-    expect(metrics.free_conversion_success_rate_7d).toBeCloseTo((2 / 3) * 100, 5);
+    expect(metrics.conversion_errors_7d_top_reasons).toEqual(reasons);
   });
 
-  it('groups top failure reasons across Notion job types', async () => {
-    await insertJob(db, {
-      owner: 'free-user',
-      object_id: 'f-1',
-      type: 'page',
-      status: 'failed',
-      job_reason_failure: 'rate limit',
-    });
-    await insertJob(db, {
-      owner: 'free-user',
-      object_id: 'f-2',
-      type: 'database',
-      status: 'failed',
-      job_reason_failure: 'rate limit',
-    });
-    await insertJob(db, {
-      owner: 'paid-user',
-      object_id: 'f-3',
-      type: 'page',
-      status: 'failed',
-      job_reason_failure: 'timeout',
+  it('produces a 12-week time series with zeroes for weeks with no data', async () => {
+    const service = new ConversionMetricsService(
+      makeStubRepo({ failedConversionsWeekly: jest.fn().mockResolvedValue([]) })
+    );
+
+    const metrics = await service.getMetrics();
+
+    expect(metrics.failed_conversions_weekly).toHaveLength(12);
+    expect(
+      metrics.failed_conversions_weekly?.every((pt) => pt.count === 0)
+    ).toBe(true);
+  });
+
+  it('fills in counts for weeks that have data', async () => {
+    const now = new Date('2025-05-19T00:00:00.000Z');
+    jest.useFakeTimers();
+    jest.setSystemTime(now);
+
+    const currentMonday = new Date('2025-05-19T00:00:00.000Z');
+    const repo = makeStubRepo({
+      failedConversionsWeekly: jest.fn().mockResolvedValue([
+        { weekStart: currentMonday, count: 4 },
+      ]),
     });
 
+    const service = new ConversionMetricsService(repo);
     const metrics = await service.getMetrics();
 
-    expect(metrics.conversion_errors_7d_top_reasons).toEqual([
-      { reason: 'rate limit', count: 2 },
-      { reason: 'timeout', count: 1 },
-    ]);
+    const weekly = metrics.failed_conversions_weekly ?? [];
+    const lastPoint = weekly[weekly.length - 1];
+    expect(lastPoint?.count).toBe(4);
+    expect(lastPoint?.week).toBe('2025-05-19');
+
+    jest.useRealTimers();
   });
 });
