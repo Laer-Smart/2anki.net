@@ -32,6 +32,8 @@ import InactivityEmailRepository from '../data_layer/InactivityEmailRepository';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepository';
+import { MindmapRepository } from '../data_layer/MindmapRepository';
+import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
 
 const OpsRouter = () => {
   const router = express.Router();
@@ -78,7 +80,8 @@ const OpsRouter = () => {
     ),
     new GetPerformanceMetricsUseCase(performanceMetricsService),
     new SendAbandonedCheckoutRecoveryUseCase(emailService),
-    new GetReturnRateMetricsUseCase(new ReturnRateMetricsService(database))
+    new GetReturnRateMetricsUseCase(new ReturnRateMetricsService(database)),
+    new GetMindmapImageStatsUseCase(new MindmapRepository(database))
   );
 
   /**
@@ -273,6 +276,26 @@ const OpsRouter = () => {
    */
   router.get('/api/ops/return-rate/metrics', RequireOpsAccess, (req, res) =>
     controller.getReturnRateMetrics(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/mindmap/image-stats:
+   *   get:
+   *     summary: Mind map image-paste ratio
+   *     description: |
+   *       Returns the total mindmap count and the count/ratio of maps that contain at least one image node.
+   *       Used to track the 30-day image-paste adoption metric from the image-paste spec.
+   *       Internal endpoint locked to the ops owner. Returns 404 for everyone else.
+   *     tags: [Ops]
+   *     responses:
+   *       200:
+   *         description: Image stats payload with total, with_images, ratio, as_of
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.get('/api/ops/mindmap/image-stats', RequireOpsAccess, (req, res) =>
+    controller.getMindmapImageStats(req, res)
   );
 
   return router;
