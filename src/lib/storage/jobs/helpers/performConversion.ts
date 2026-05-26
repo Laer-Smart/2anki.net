@@ -23,8 +23,6 @@ import {
 } from '../../../../usecases/jobs/jobFailureReason';
 import { PythonExitError } from '../../../anki/buildPythonExitError';
 import { track } from '../../../../services/events/track';
-import { EventsRepository } from '../../../../data_layer/EventsRepository';
-import { EventsQueryService } from '../../../../services/events/EventsQueryService';
 import NotionRepository from '../../../../data_layer/NotionRespository';
 
 type CardCountBucket = '<50' | '50-499' | '500+';
@@ -166,19 +164,6 @@ export default async function performConversion(
         card_count_bucket: toCardCountBucket(cardCount),
       },
     });
-
-    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
-    const eventsRepo = new EventsRepository(database);
-    const eventsQuery = new EventsQueryService(eventsRepo);
-    const priorEngagement = await eventsQuery.countByNameForUser(
-      'upload_error_chat_engaged',
-      thirtyMinutesAgo,
-      userId,
-      null
-    );
-    if (priorEngagement > 0) {
-      track('upload_error_chat_resolved_retry', { userId });
-    }
   } catch (error) {
     if (error instanceof PythonExitError) {
       console.error('[conversion] python crash', {
