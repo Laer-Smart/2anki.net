@@ -134,8 +134,8 @@ const PER_CODE_COPY: Partial<Record<UploadErrorBody['code'], FriendlyError>> = {
     detail: 'Use .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, or .csv.',
   },
   too_large: {
-    title: 'This file is too large.',
-    detail: 'Split it into smaller files and try again.',
+    title: 'This export is too large to convert in one go.',
+    detail: 'Split it into smaller Notion subpages and convert each one separately.',
   },
   password_protected_pdf: {
     title: 'This PDF is password-protected.',
