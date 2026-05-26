@@ -13,7 +13,7 @@ import {
   useNodesState,
 } from '@xyflow/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import PencilIcon from '../../components/icons/PencilIcon';
 import shared from '../../styles/shared.module.css';
 import { layoutGraph, NODE_HEIGHT } from './layoutGraph';
@@ -217,7 +217,6 @@ function readSidebarCollapsed(): boolean {
 
 export function MindmapEditor() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { data: map } = useMindmapById(id ?? null);
   const updateMindmap = useUpdateMindmap(id ?? '');
 
@@ -242,6 +241,7 @@ export function MindmapEditor() {
   const [sidebarCollapsed, setSidebarCollapsed] =
     useState<boolean>(readSidebarCollapsed);
   const [showMarkdownModal, setShowMarkdownModal] = useState(false);
+  const [showMobileHint, setShowMobileHint] = useState(true);
 
   const setRfInstance = useCallback((instance: ReactFlowInstance) => {
     setRfInstanceState(instance);
@@ -914,7 +914,9 @@ export function MindmapEditor() {
       const a = document.createElement('a');
       a.href = url;
       a.download = `${deckName}.apkg`;
+      document.body.appendChild(a);
       a.click();
+      a.remove();
       URL.revokeObjectURL(url);
       setShowExport(false);
       showToast('Deck downloaded — open it in Anki to start studying.');
@@ -923,144 +925,157 @@ export function MindmapEditor() {
     }
   }
 
-  if (isMobile) {
-    return (
-      <div className={styles.mobileNotice}>
-        <p className={styles.mobileNoticeText}>
-          The mind map editor needs a larger screen. Open on desktop to build
-          and export your map.
-        </p>
-        <button
-          type="button"
-          onClick={() => navigate('/mindmaps')}
-          className={`${shared.btnSecondary} ${shared.btnInline}`}
-        >
-          Back to Mind maps
-        </button>
-      </div>
-    );
-  }
-
   const sidebarClass = `${styles.sidebar} ${styles.sidebarCollapsed}`;
 
+  const editableTitle = (
+    <h2
+      ref={titleRef}
+      contentEditable
+      suppressContentEditableWarning
+      spellCheck={false}
+      title="Click to rename"
+      onBlur={(e) => {
+        const text = e.currentTarget.innerText;
+        if (text.trim().length === 0) {
+          e.currentTarget.innerText = map?.title ?? 'Untitled';
+          return;
+        }
+        commitTitle(text);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.currentTarget.blur();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          e.currentTarget.innerText = map?.title ?? 'Untitled';
+          e.currentTarget.blur();
+        }
+        e.stopPropagation();
+      }}
+      className={
+        isMobile
+          ? `${styles.sidebarTitle} ${styles.mobileTitle}`
+          : styles.sidebarTitle
+      }
+    >
+      {map?.title ?? 'Untitled'}
+    </h2>
+  );
+
   return (
-    <div data-testid="editor-root" className={styles.editorRoot}>
-      <div
-        data-testid="editor-sidebar"
-        className={sidebarCollapsed ? sidebarClass : styles.sidebar}
-      >
-        <Link to="/mindmaps" className={styles.backLink}>
-          <ChevronLeftIcon />
-          Mindmaps
-        </Link>
-
-        {!sidebarCollapsed && (
-          <button
-            type="button"
-            aria-label="Collapse sidebar"
-            onClick={toggleSidebar}
-            className={styles.collapseToggle}
-          >
+    <div
+      data-testid="editor-root"
+      className={styles.editorRoot}
+      style={{ flexDirection: isMobile ? 'column' : 'row' }}
+    >
+      {isMobile ? (
+        <div data-testid="editor-mobile-bar" className={styles.mobileBar}>
+          <Link to="/mindmaps" className={styles.backLink}>
             <ChevronLeftIcon />
-          </button>
-        )}
-
-        <div className={styles.sidebarTitleRow}>
-          <h2
-            ref={titleRef}
-            contentEditable
-            suppressContentEditableWarning
-            spellCheck={false}
-            title="Click to rename"
-            onBlur={(e) => {
-              const text = e.currentTarget.innerText;
-              if (text.trim().length === 0) {
-                e.currentTarget.innerText = map?.title ?? 'Untitled';
-                return;
-              }
-              commitTitle(text);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                e.currentTarget.blur();
-              } else if (e.key === 'Escape') {
-                e.preventDefault();
-                e.currentTarget.innerText = map?.title ?? 'Untitled';
-                e.currentTarget.blur();
-              }
-              e.stopPropagation();
-            }}
-            className={styles.sidebarTitle}
-          >
-            {map?.title ?? 'Untitled'}
-          </h2>
-          <button
-            type="button"
-            aria-label="Rename map"
-            title="Rename map"
-            onClick={() => {
-              if (titleRef.current == null) return;
-              titleRef.current.focus();
-              const range = document.createRange();
-              range.selectNodeContents(titleRef.current);
-              const sel = window.getSelection();
-              sel?.removeAllRanges();
-              sel?.addRange(range);
-            }}
-            className={styles.renameTrigger}
-          >
-            <PencilIcon width={14} height={14} />
-          </button>
-        </div>
-
-        <p className={styles.statLine}>
-          {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'} ·{' '}
-          {edges.length} {edges.length === 1 ? 'edge' : 'edges'}
-        </p>
-
-        <details className={styles.shortcuts}>
-          <summary className={styles.shortcutsSummary}>
-            Keyboard shortcuts
-          </summary>
-          <div className={styles.shortcutsBody}>
-            {SHORTCUT_GROUPS.map((group) => (
-              <div key={group.label} className={styles.shortcutGroup}>
-                <p className={styles.shortcutGroupLabel}>{group.label}</p>
-                {group.items.map((item) => (
-                  <div key={item.action} className={styles.shortcutRow}>
-                    <span className={styles.shortcutKeys}>
-                      {item.keys.map((key) => (
-                        <kbd key={key} className={styles.shortcutKey}>
-                          {key}
-                        </kbd>
-                      ))}
-                    </span>
-                    <span className={styles.shortcutAction}>{item.action}</span>
-                  </div>
-                ))}
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => setShowMarkdownModal(true)}
-              className={styles.shortcutNoteBtn}
-            >
-              Markdown works in node labels
-            </button>
-          </div>
-        </details>
-
-        <div className={styles.primaryAction}>
+            Mindmaps
+          </Link>
+          {editableTitle}
           <button
             type="button"
             onClick={() => setShowExport(true)}
-            className={shared.btnPrimary}
+            className={`${shared.btnPrimary} ${shared.btnInline}`}
           >
             Download deck
           </button>
         </div>
-      </div>
+      ) : (
+        <div
+          data-testid="editor-sidebar"
+          className={sidebarCollapsed ? sidebarClass : styles.sidebar}
+        >
+          <Link to="/mindmaps" className={styles.backLink}>
+            <ChevronLeftIcon />
+            Mindmaps
+          </Link>
+
+          {!sidebarCollapsed && (
+            <button
+              type="button"
+              aria-label="Collapse sidebar"
+              onClick={toggleSidebar}
+              className={styles.collapseToggle}
+            >
+              <ChevronLeftIcon />
+            </button>
+          )}
+
+          <div className={styles.sidebarTitleRow}>
+            {editableTitle}
+            <button
+              type="button"
+              aria-label="Rename map"
+              title="Rename map"
+              onClick={() => {
+                if (titleRef.current == null) return;
+                titleRef.current.focus();
+                const range = document.createRange();
+                range.selectNodeContents(titleRef.current);
+                const sel = window.getSelection();
+                sel?.removeAllRanges();
+                sel?.addRange(range);
+              }}
+              className={styles.renameTrigger}
+            >
+              <PencilIcon width={14} height={14} />
+            </button>
+          </div>
+
+          <p className={styles.statLine}>
+            {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'} ·{' '}
+            {edges.length} {edges.length === 1 ? 'edge' : 'edges'}
+          </p>
+
+          <details className={styles.shortcuts}>
+            <summary className={styles.shortcutsSummary}>
+              Keyboard shortcuts
+            </summary>
+            <div className={styles.shortcutsBody}>
+              {SHORTCUT_GROUPS.map((group) => (
+                <div key={group.label} className={styles.shortcutGroup}>
+                  <p className={styles.shortcutGroupLabel}>{group.label}</p>
+                  {group.items.map((item) => (
+                    <div key={item.action} className={styles.shortcutRow}>
+                      <span className={styles.shortcutKeys}>
+                        {item.keys.map((key) => (
+                          <kbd key={key} className={styles.shortcutKey}>
+                            {key}
+                          </kbd>
+                        ))}
+                      </span>
+                      <span className={styles.shortcutAction}>
+                        {item.action}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setShowMarkdownModal(true)}
+                className={styles.shortcutNoteBtn}
+              >
+                Markdown works in node labels
+              </button>
+            </div>
+          </details>
+
+          <div className={styles.primaryAction}>
+            <button
+              type="button"
+              onClick={() => setShowExport(true)}
+              className={shared.btnPrimary}
+            >
+              Download deck
+            </button>
+          </div>
+        </div>
+      )}
 
       <div
         data-testid="editor-canvas"
@@ -1101,7 +1116,20 @@ export function MindmapEditor() {
           handleImageFile(file, position);
         }}
       >
-        {sidebarCollapsed && (
+        {isMobile && showMobileHint && (
+          <div className={styles.mobileHint}>
+            <span>Tap to select · drag a handle to connect</span>
+            <button
+              type="button"
+              aria-label="Dismiss hint"
+              onClick={() => setShowMobileHint(false)}
+              className={styles.mobileHintDismiss}
+            >
+              ×
+            </button>
+          </div>
+        )}
+        {!isMobile && sidebarCollapsed && (
           <button
             type="button"
             aria-label="Expand sidebar"

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, act, fireEvent, within } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -74,11 +74,16 @@ function wrapper({ children }: { children: ReactNode }) {
   );
 }
 
+function setInnerWidth(width: number) {
+  Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: width });
+}
+
 describe('MindmapEditor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseMindmapById.mockReturnValue({ data: baseMap, isLoading: false });
     mockUseUpdateMindmap.mockReturnValue({ mutate: vi.fn() });
+    setInnerWidth(1024);
   });
 
   it('renders without crashing', async () => {
@@ -172,6 +177,31 @@ describe('MindmapEditor', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /markdown works/i })).toBeDefined();
     });
+  });
+
+  it('renders the canvas and a mobile top bar instead of the desktop sidebar below 768px', async () => {
+    setInnerWidth(375);
+    const { MindmapEditor } = await import('./MindmapEditor');
+    render(createElement(MindmapEditor), { wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('editor-mobile-bar')).toBeDefined();
+    });
+    expect(screen.queryByTestId('editor-sidebar')).toBeNull();
+    expect(screen.getByTestId('react-flow')).toBeDefined();
+    expect(screen.queryByText(/needs a larger screen/i)).toBeNull();
+  });
+
+  it('mobile Download deck button opens the export modal', async () => {
+    setInnerWidth(375);
+    const { MindmapEditor } = await import('./MindmapEditor');
+    render(createElement(MindmapEditor), { wrapper });
+
+    const bar = await screen.findByTestId('editor-mobile-bar');
+    const downloadBtn = within(bar).getByRole('button', { name: /download deck/i });
+    fireEvent.click(downloadBtn);
+
+    expect(await screen.findByText(/card type/i)).toBeDefined();
   });
 
   it('paste image event triggers upload and node creation', async () => {
