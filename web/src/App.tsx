@@ -34,6 +34,9 @@ const AccountPreviewPage = import.meta.env.DEV
 const NotionPreviewPage = import.meta.env.DEV
   ? lazy(() => import('./pages/NotionPreviewPage/NotionPreviewPage'))
   : null;
+const CardOptionsPreviewPage = import.meta.env.DEV
+  ? lazy(() => import('./pages/CardOptionsPreviewPage/CardOptionsPreviewPage'))
+  : null;
 const SuccessfulCheckoutPage = lazy(
   () => import('./pages/SuccessfulCheckout/SuccessfulCheckout')
 );
@@ -259,6 +262,12 @@ function AppContent({
             <Route
               path="/dev/notion-preview"
               element={<NotionPreviewPage />}
+            />
+          )}
+          {CardOptionsPreviewPage && (
+            <Route
+              path="/dev/card-options-preview"
+              element={<CardOptionsPreviewPage />}
             />
           )}
           <Route
