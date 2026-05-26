@@ -54,6 +54,11 @@ Minimum-information rules (one fact per card):
 - Cloze cards are already single-fact — do not split them
 - If the user's additional instructions explicitly ask for detailed or longer cards, defer to those instructions over these rules
 
+Card density — extract ALL cards the content supports:
+- Do not stop early; work through the entire input before emitting the array
+- Every heading, term, definition, table row, list item, and detail block is a card candidate
+- Aim for maximum coverage: a 5-page chapter should yield 40–80 cards, not 10–20
+
 ${ANKI_MATH_FRAGMENT}
 `.trim();
 
@@ -300,6 +305,27 @@ function chunkHtmlByDetails(html: string): string[] {
   return chunks;
 }
 
+function normalizeCardFront(front: string): string {
+  return front.toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+export function dedupeCardsByFront(decks: DeckInfo[]): DeckInfo[] {
+  return decks.map((deck) => {
+    const seen = new Set<string>();
+    const dedupedCards = deck.cards.filter((card) => {
+      const key = normalizeCardFront(card.name);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    const removed = deck.cards.length - dedupedCards.length;
+    if (removed > 0) {
+      console.warn('[Claude] dedupeCardsByFront', { deckName: deck.name, removed });
+    }
+    return { ...deck, cards: dedupedCards };
+  });
+}
+
 function mergeDeckInfoArrays(decks: DeckInfo[]): DeckInfo[] {
   const byName = new Map<string, DeckInfo>();
   for (const deck of decks) {
@@ -310,7 +336,7 @@ function mergeDeckInfoArrays(decks: DeckInfo[]): DeckInfo[] {
       byName.set(deck.name, { ...deck, cards: [...deck.cards] });
     }
   }
-  return Array.from(byName.values());
+  return dedupeCardsByFront(Array.from(byName.values()));
 }
 
 export function buildUserMessage(
@@ -432,7 +458,7 @@ async function generateDeckInfoFromChunk(
 
   const cardStyleFragment = getCardStylePromptFragment(cardStyle);
   const userMessage = buildUserMessage(strippedContent, availableMediaFiles, userInstructions, cardStyleFragment, cardSize, fieldMapping);
-  const maxTokens = strippedContent.length > 20000 ? 16384 : 4096;
+  const maxTokens = strippedContent.length > 20000 ? 16384 : 8192;
 
   onProgress?.(`claude:chunk:${chunkIndex + 1}:${totalChunks}`);
 

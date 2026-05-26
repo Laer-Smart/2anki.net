@@ -11,6 +11,10 @@ The claude lib converts HTML content into Anki flashcards using the Anthropic AP
 - Cards already under 600 plain-text chars — no change
 - Single-sentence answers over 600 chars — degenerate case, kept as-is
 
+**Post-merge dedup** (`dedupeCardsByFront`, exported): After `mergeDeckInfoArrays` assembles cards from parallel chunks, `dedupeCardsByFront` removes duplicate cards whose fronts normalize to the same string (lowercase, trim, collapse internal whitespace — exact normalized match, no fuzzy/Levenshtein). The first occurrence wins; subsequent duplicates produced by chunk-boundary overlap are dropped. Operates per-deck so the same question in two different decks is not removed. When duplicates are dropped, a `[Claude] dedupeCardsByFront` warning is emitted with `deckName` and `removed` count — grep to track overlap rate.
+
+**Per-chunk token budget:** `maxTokens` is `strippedContent.length > 20000 ? 16384 : 8192`. The small-chunk floor was raised from 4096 to 8192 to give Claude room to emit more cards from compact but information-dense chunks without extra API calls. The system prompt also includes a "Card density" block instructing the model to cover every heading, term, definition, table row, list item, and detail block rather than stopping early.
+
 **Observability:** After each chunk, a structured log line records `inputCardCount`, `outputCardCount`, `avgAnswerLenBefore`, `avgAnswerLenAfter`, and `chunkIndex` under the `[Claude] splitOversizedCards` key. `parseDeckResponse` truncates anything after the last `]` so trailing prose doesn't break `JSON.parse`; when non-whitespace bytes are stripped, it emits a `[Claude] Trailing prose stripped` warning with `chunkIndex`, `strippedBytes`, and an 80-char sample — grep this to track model drift.
 
 **Override path:** `userInstructions` passed to `generateDeckInfo` flow into the prompt as an "Additional instructions" block. A user asking for "keep cards detailed" or similar will get the prompt's min-info rules deprioritised in Claude's output — the splitter ceiling still applies as a hard guard.

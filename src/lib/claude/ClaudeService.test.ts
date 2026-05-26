@@ -7,6 +7,8 @@ import {
   SYSTEM_PROMPT,
   buildUserMessage,
   buildFieldMappingPromptFragment,
+  dedupeCardsByFront,
+  type DeckInfo,
 } from './ClaudeService';
 
 describe('looksLikeEmptyContentExplanation', () => {
@@ -373,5 +375,97 @@ describe('buildUserMessage — card size suffix', () => {
     const sizeIdx = msg.indexOf('Card size:');
     expect(instrIdx).toBeGreaterThan(-1);
     expect(sizeIdx).toBeGreaterThan(instrIdx);
+  });
+});
+
+function makeDeck(name: string, cards: Array<{ name: string; back: string }>): DeckInfo {
+  return {
+    name,
+    image: '',
+    style: null,
+    id: 1,
+    settings: {},
+    cards: cards.map((c) => ({
+      name: c.name,
+      back: c.back,
+      tags: [],
+      cloze: false,
+      number: 0,
+      enableInput: false,
+      answer: '',
+      media: [],
+    })),
+  };
+}
+
+describe('dedupeCardsByFront', () => {
+  it('removes a card whose front normalizes to the same value as an earlier card', () => {
+    const deck = makeDeck('Biology', [
+      { name: 'What is mitosis?', back: 'Cell division' },
+      { name: '  What is mitosis?  ', back: 'Duplicate from chunk boundary' },
+    ]);
+    const result = dedupeCardsByFront([deck]);
+    expect(result[0].cards).toHaveLength(1);
+    expect(result[0].cards[0].back).toBe('Cell division');
+  });
+
+  it('normalizes by lowercasing before comparing', () => {
+    const deck = makeDeck('Biochemistry', [
+      { name: 'What is ATP?', back: 'Adenosine triphosphate' },
+      { name: 'WHAT IS ATP?', back: 'Duplicate upper-case variant' },
+    ]);
+    const result = dedupeCardsByFront([deck]);
+    expect(result[0].cards).toHaveLength(1);
+    expect(result[0].cards[0].back).toBe('Adenosine triphosphate');
+  });
+
+  it('collapses internal whitespace before comparing', () => {
+    const deck = makeDeck('Chemistry', [
+      { name: 'What is H2O?', back: 'Water' },
+      { name: 'What  is  H2O?', back: 'Duplicate collapsed-space variant' },
+    ]);
+    const result = dedupeCardsByFront([deck]);
+    expect(result[0].cards).toHaveLength(1);
+  });
+
+  it('keeps cards with distinct fronts intact', () => {
+    const deck = makeDeck('Physics', [
+      { name: 'What is velocity?', back: 'Speed with direction' },
+      { name: 'What is acceleration?', back: 'Rate of change of velocity' },
+    ]);
+    const result = dedupeCardsByFront([deck]);
+    expect(result[0].cards).toHaveLength(2);
+  });
+
+  it('dedupes per-deck independently — same front in two different decks is kept in each', () => {
+    const deckA = makeDeck('DeckA', [{ name: 'Shared front', back: 'Answer A' }]);
+    const deckB = makeDeck('DeckB', [{ name: 'Shared front', back: 'Answer B' }]);
+    const result = dedupeCardsByFront([deckA, deckB]);
+    expect(result).toHaveLength(2);
+    expect(result[0].cards).toHaveLength(1);
+    expect(result[1].cards).toHaveLength(1);
+  });
+
+  it('handles an empty deck without throwing', () => {
+    const deck = makeDeck('Empty', []);
+    const result = dedupeCardsByFront([deck]);
+    expect(result[0].cards).toHaveLength(0);
+  });
+
+  it('logs the number of removed duplicates when dedup occurs', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    try {
+      const deck = makeDeck('Bio', [
+        { name: 'What is a cell?', back: 'Basic unit of life' },
+        { name: 'What is a cell?', back: 'Duplicate' },
+      ]);
+      dedupeCardsByFront([deck]);
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[Claude] dedupeCardsByFront',
+        expect.objectContaining({ deckName: 'Bio', removed: 1 })
+      );
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 });
