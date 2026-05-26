@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-26-ai-converter-dedup-density",
+  "date": "2026-05-26",
+  "type": "feature",
+  "title": "AI converter extracts more cards from a single upload — duplicate cards from section boundaries are removed automatically"
+}
