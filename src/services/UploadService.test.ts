@@ -1,4 +1,5 @@
 import os from 'os';
+import fs from 'node:fs';
 import path from 'path';
 import express from 'express';
 
@@ -21,12 +22,28 @@ jest.mock('../services/SubscriptionService', () => ({
   default: { findActiveStripeSubscriptions: jest.fn().mockResolvedValue([]) },
 }));
 
+let mockWorkspaceLocation = '';
+let mockWorkspaceId = 'test-ws-id';
+jest.mock('../lib/parser/WorkSpace', () => {
+  return {
+    __esModule: true,
+    default: jest.fn().mockImplementation(() => ({
+      get id() { return mockWorkspaceId; },
+      get location() { return mockWorkspaceLocation; },
+    })),
+  };
+});
+
 const mockStorageDelete = jest.fn().mockResolvedValue(true);
+const mockStorageUploadFile = jest.fn().mockResolvedValue(undefined);
+const mockStorageUniqify = jest.fn().mockReturnValue('test-key.apkg');
 jest.mock('../lib/storage/StorageHandler', () => {
   return {
     __esModule: true,
     default: jest.fn().mockImplementation(() => ({
       delete: mockStorageDelete,
+      uploadFile: mockStorageUploadFile,
+      uniqify: mockStorageUniqify,
     })),
   };
 });
@@ -351,5 +368,65 @@ describe('UploadService.deleteUpload — cascade', () => {
     await service.deleteUpload(7, 'k.apkg');
 
     expect(jobRepository.deleteJobByObjectId).not.toHaveBeenCalled();
+  });
+});
+
+describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    mockStorageUploadFile.mockClear();
+    mockStorageUniqify.mockClear();
+    MockGeneratePackagesUseCase.mockClear();
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'promote-claude-test-'));
+    mockWorkspaceLocation = tmpDir;
+    mockWorkspaceId = 'test-promote-id';
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('reads the apkg file and passes its contents to StorageHandler.uploadFile', async () => {
+    const apkgContents = Buffer.from('fake-apkg-binary-contents');
+    const apkgPath = path.join(tmpDir, 'my-deck.apkg');
+    fs.writeFileSync(apkgPath, apkgContents);
+
+    let resolveUpload!: () => void;
+    const uploadCalled = new Promise<void>((r) => { resolveUpload = r; });
+    mockStorageUploadFile.mockImplementationOnce((_key: string, _buf: Buffer) => {
+      resolveUpload();
+      return Promise.resolve(undefined);
+    });
+
+    const repo: IUploadRepository = {
+      ...buildRepository(),
+      update: jest.fn().mockResolvedValue([]),
+    };
+    const jobRepository = {
+      create: jest.fn().mockResolvedValue(undefined),
+      updateJobStatus: jest.fn().mockResolvedValue(undefined),
+      findJobById: jest.fn().mockResolvedValue(null),
+      deleteJob: jest.fn().mockResolvedValue(undefined),
+    } as unknown as JobRepository;
+
+    MockGeneratePackagesUseCase.mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        packages: [{ name: 'my-deck', cardCount: 5, mcqCount: 0, mcqSkippedCount: 0 }],
+      }),
+    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+
+    const service = new UploadService(repo, jobRepository);
+    const req = buildRequest({ body: { 'claude-ai-flashcards': 'true' } });
+    const { res } = buildResponse();
+    (res.locals as Record<string, unknown>).owner = 42;
+
+    await service.handleUpload(req, res);
+
+    await uploadCalled;
+
+    expect(mockStorageUploadFile).toHaveBeenCalledTimes(1);
+    const [, uploadedBuffer] = mockStorageUploadFile.mock.calls[0] as [string, Buffer];
+    expect(Buffer.compare(uploadedBuffer, apkgContents)).toBe(0);
   });
 });

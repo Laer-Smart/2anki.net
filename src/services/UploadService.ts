@@ -126,14 +126,14 @@ class UploadService {
   }
 
   private async promoteClaudeJobToUpload(objectId: string, workspaceDir: string, owner: string): Promise<void> {
-    const files = fs.readdirSync(workspaceDir);
+    const files = await fs.promises.readdir(workspaceDir);
     const apkgFilename = files.find((f) => f.endsWith('.apkg'));
     if (!apkgFilename) {
       throw new Error('No APKG file found in workspace');
     }
     await this.jobRepository.updateJobStatus(objectId, owner, 'step3_building_deck', '');
     const apkgPath = path.join(workspaceDir, apkgFilename);
-    const apkgBuffer = fs.readFileSync(apkgPath);
+    const apkgBuffer = await fs.promises.readFile(apkgPath);
     const storage = new StorageHandler();
     const key = storage.uniqify(objectId, owner, 200, 'apkg');
     await storage.uploadFile(key, apkgBuffer);
@@ -160,7 +160,7 @@ class UploadService {
 
     const deckInfoArrays: DeckInfo[][] = [];
     for (const htmlFile of htmlFiles) {
-      const content = fs.readFileSync(htmlFile, 'utf8');
+      const content = await fs.promises.readFile(htmlFile, 'utf8');
       const deckInfo = await generateDeckInfo(content, mediaFiles, undefined, onProgress);
       deckInfoArrays.push(deckInfo);
     }
