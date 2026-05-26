@@ -179,6 +179,29 @@ class StorageHandler {
       })
     );
   }
+
+  async listMindmapObjects(): Promise<{ key: string; size: number }[]> {
+    const results: { key: string; size: number }[] = [];
+    let continuationToken: string | undefined;
+    let hasMore = true;
+    while (hasMore) {
+      const response = await this.s3.send(
+        new ListObjectsV2Command({
+          Bucket: StorageHandler.DefaultBucketName(),
+          Prefix: 'mindmaps/',
+          ContinuationToken: continuationToken,
+        })
+      );
+      for (const obj of response.Contents ?? []) {
+        if (obj.Key != null && obj.Size != null) {
+          results.push({ key: obj.Key, size: obj.Size });
+        }
+      }
+      continuationToken = response.NextContinuationToken;
+      hasMore = Boolean(response.IsTruncated) && continuationToken != null;
+    }
+    return results;
+  }
 }
 
 export default StorageHandler;
