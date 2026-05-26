@@ -3,7 +3,6 @@ import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
 
 interface ActiveSubscriptionRow {
   id: number;
-  email: string;
   payload: unknown;
 }
 
@@ -44,9 +43,7 @@ async function deactivateRow(
     update.payload = JSON.stringify(subscription);
   }
   await db('subscriptions').where({ id: row.id }).update(update);
-  console.info(
-    `[stripe-sync] Flipped subscription row ${row.id} (${row.email}) to inactive`
-  );
+  console.info(`[stripe-sync] Flipped subscription row ${row.id} to inactive`);
 }
 
 export async function reconcileActiveSubscriptions(
@@ -54,7 +51,7 @@ export async function reconcileActiveSubscriptions(
   stripe: Pick<StripeTypes, 'subscriptions'>
 ): Promise<void> {
   const rows: ActiveSubscriptionRow[] = await db('subscriptions')
-    .select('id', 'email', 'payload')
+    .select('id', 'payload')
     .where({ active: true });
 
   console.info(`[stripe-sync] Reconciling ${rows.length} active DB row(s)`);
@@ -63,7 +60,7 @@ export async function reconcileActiveSubscriptions(
     const subscriptionId = parseSubscriptionId(row.payload);
     if (!subscriptionId) {
       console.warn(
-        `[stripe-sync] Row ${row.id} (${row.email}) has no parseable subscription id; skipping`
+        `[stripe-sync] Row ${row.id} has no parseable subscription id; skipping`
       );
       continue;
     }
@@ -80,7 +77,7 @@ export async function reconcileActiveSubscriptions(
         continue;
       }
       console.error(
-        `[stripe-sync] Failed to reconcile row ${row.id} (${row.email}):`,
+        `[stripe-sync] Failed to reconcile row ${row.id}:`,
         error
       );
     }

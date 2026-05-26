@@ -433,21 +433,11 @@ class UsersController {
     }
 
     const requestedMode = req.body?.mode === 'immediate' ? 'immediate' : 'period_end';
-    const reason: string | undefined = req.body?.reason;
-    const comment: string | undefined = req.body?.comment;
 
     try {
       const user = await this.userService.getUserById(owner);
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
-      }
-
-      if (reason) {
-        await this.db('cancellation_feedback').insert({
-          owner,
-          reason: reason.slice(0, 100),
-          comment: comment ? comment.slice(0, 1000) : null,
-        });
       }
 
       const processedCount = await SubscriptionService.cancelUserSubscriptions(
@@ -456,9 +446,9 @@ class UsersController {
       );
 
       if (processedCount === 0) {
-        return res.status(404).json({
+        return res.status(422).json({
           message:
-            'No active subscription found for your account. If you subscribed with a different email, link it under Subscription Management first or email support@2anki.net.',
+            'No active subscription found for this account. If you paid with a different email, enter it in the field below and try again.',
         });
       }
 
@@ -472,6 +462,35 @@ class UsersController {
       console.info('Cancel subscription failed');
       console.error(error);
       return res.status(500).json({ message: 'Failed to cancel subscription' });
+    }
+  }
+
+  async submitCancellationFeedback(
+    req: express.Request,
+    res: express.Response
+  ) {
+    const { owner } = res.locals;
+    if (!owner) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const reason: string | undefined = req.body?.reason;
+    if (!reason) {
+      return res.status(400).json({ message: 'A reason is required' });
+    }
+    const comment: string | undefined = req.body?.comment;
+
+    try {
+      await this.db('cancellation_feedback').insert({
+        owner,
+        reason: reason.slice(0, 100),
+        comment: comment ? comment.slice(0, 1000) : null,
+      });
+      res.status(200).json({ message: 'Thanks for the feedback.' });
+    } catch (error) {
+      console.info('Cancellation feedback failed');
+      console.error(error);
+      return res.status(500).json({ message: 'Failed to record feedback' });
     }
   }
 

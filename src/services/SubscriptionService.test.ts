@@ -324,4 +324,19 @@ describe('SubscriptionService.cancelUserSubscriptions', () => {
     expect(stripe.subscriptions.cancel).not.toHaveBeenCalledWith('sub_old');
     expect(result).toBe(1);
   });
+
+  it('never writes the user email to the logs', async () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    try {
+      await SubscriptionService.cancelUserSubscriptions(email);
+
+      const leakedEmail = logSpy.mock.calls.some((args) =>
+        args.some((arg) => typeof arg === 'string' && arg.includes(email))
+      );
+      expect(leakedEmail).toBe(false);
+    } finally {
+      logSpy.mockRestore();
+    }
+  });
 });

@@ -80,9 +80,7 @@ export class SubscriptionService {
       ? allSubs.filter((s) => s.status !== 'canceled')
       : allSubs;
 
-    console.log(
-      `Found ${subs.length} active Stripe subscriptions for ${userEmail}`
-    );
+    console.log(`Found ${subs.length} active Stripe subscription(s) to process`);
 
     for (const sub of subs) {
       if (mode === 'immediate') {

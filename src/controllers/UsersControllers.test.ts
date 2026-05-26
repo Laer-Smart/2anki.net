@@ -40,6 +40,7 @@ jest.mock('../data_layer/UsersRepository', () => {
 import UsersController from './UsersControllers';
 import UsersService, { MagicLinkRateLimitError } from '../services/UsersService';
 import AuthenticationService from '../services/AuthenticationService';
+import SubscriptionService from '../services/SubscriptionService';
 import OauthIdentitiesRepository from '../data_layer/OauthIdentitiesRepository';
 import NotionRepository from '../data_layer/NotionRespository';
 import { SESSION_MAX_AGE_MS } from '../shared/session';
@@ -1919,5 +1920,147 @@ describe('UsersController.getLocals', () => {
 
     const payload = res.json.mock.calls[0][0];
     expect(payload.user.email_verified).toBe(false);
+  });
+});
+
+describe('UsersController.cancelSubscription', () => {
+  const buildCancelController = (dbMock?: unknown) => {
+    const userService = {
+      getUserById: jest
+        .fn()
+        .mockResolvedValue({ id: 1, email: 'sub@example.com' }),
+    } as unknown as UsersService;
+    const controller = new UsersController(
+      userService,
+      {} as AuthenticationService,
+      (dbMock ?? {}) as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    return { controller };
+  };
+
+  const buildResWithLocals = (owner: number | null = 1) => {
+    const json = jest.fn();
+    const status = jest.fn().mockReturnValue({ json });
+    return { json, status, locals: { owner } } as unknown as express.Response & {
+      json: jest.Mock;
+      status: jest.Mock;
+    };
+  };
+
+  beforeEach(() => {
+    (SubscriptionService.cancelUserSubscriptions as jest.Mock).mockReset();
+  });
+
+  it('returns 422 with a recovery hint when no subscription matches the account', async () => {
+    (SubscriptionService.cancelUserSubscriptions as jest.Mock).mockResolvedValue(
+      0
+    );
+    const { controller } = buildCancelController();
+    const req = { body: { mode: 'period_end' } } as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscription(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(422);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringMatching(/different email/i),
+      })
+    );
+  });
+
+  it('returns 200 when a subscription is cancelled', async () => {
+    (SubscriptionService.cancelUserSubscriptions as jest.Mock).mockResolvedValue(
+      1
+    );
+    const { controller } = buildCancelController();
+    const req = { body: { mode: 'period_end' } } as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscription(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  it('does not record feedback from the cancel endpoint even if a reason is sent', async () => {
+    (SubscriptionService.cancelUserSubscriptions as jest.Mock).mockResolvedValue(
+      1
+    );
+    const insert = jest.fn().mockResolvedValue([1]);
+    const db = jest.fn().mockReturnValue({ insert });
+    const { controller } = buildCancelController(db);
+    const req = {
+      body: { mode: 'period_end', reason: 'Too expensive' },
+    } as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscription(req, res);
+
+    expect(insert).not.toHaveBeenCalled();
+  });
+
+  it('returns 401 when there is no authenticated owner', async () => {
+    const { controller } = buildCancelController();
+    const req = { body: { mode: 'period_end' } } as express.Request;
+    const res = buildResWithLocals(null);
+
+    await controller.cancelSubscription(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(
+      SubscriptionService.cancelUserSubscriptions
+    ).not.toHaveBeenCalled();
+  });
+});
+
+describe('UsersController.submitCancellationFeedback', () => {
+  const buildFeedbackController = (insert: jest.Mock) => {
+    const db = jest.fn().mockReturnValue({ insert });
+    const controller = new UsersController(
+      {} as UsersService,
+      {} as AuthenticationService,
+      db as unknown as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    return { controller, db };
+  };
+
+  const buildResWithLocals = (owner: number | null = 7) => {
+    const json = jest.fn();
+    const status = jest.fn().mockReturnValue({ json });
+    return { json, status, locals: { owner } } as unknown as express.Response & {
+      json: jest.Mock;
+      status: jest.Mock;
+    };
+  };
+
+  it('stores the reason and comment for the owner', async () => {
+    const insert = jest.fn().mockResolvedValue([1]);
+    const { controller, db } = buildFeedbackController(insert);
+    const req = {
+      body: { reason: 'Too expensive', comment: 'too much' },
+    } as express.Request;
+    const res = buildResWithLocals(7);
+
+    await controller.submitCancellationFeedback(req, res);
+
+    expect(db).toHaveBeenCalledWith('cancellation_feedback');
+    expect(insert).toHaveBeenCalledWith({
+      owner: 7,
+      reason: 'Too expensive',
+      comment: 'too much',
+    });
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  it('rejects feedback without a reason and never touches the database', async () => {
+    const insert = jest.fn();
+    const { controller } = buildFeedbackController(insert);
+    const req = { body: { comment: 'no reason given' } } as express.Request;
+    const res = buildResWithLocals(7);
+
+    await controller.submitCancellationFeedback(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(insert).not.toHaveBeenCalled();
   });
 });
