@@ -9,6 +9,7 @@ import { PopulateShowcaseUseCase } from '../usecases/ops/PopulateShowcaseUseCase
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
 import { SendAbandonedCheckoutRecoveryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryUseCase';
 import { IShowcaseRepository } from '../data_layer/ShowcaseRepository';
+import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
 
 class OpsController {
   constructor(
@@ -20,7 +21,8 @@ class OpsController {
     private readonly sendInactivityWarningsUseCase?: SendInactivityWarningsUseCase,
     private readonly getPerformanceMetricsUseCase?: GetPerformanceMetricsUseCase,
     private readonly sendAbandonedCheckoutRecoveryUseCase?: SendAbandonedCheckoutRecoveryUseCase,
-    private readonly getReturnRateMetricsUseCase?: GetReturnRateMetricsUseCase
+    private readonly getReturnRateMetricsUseCase?: GetReturnRateMetricsUseCase,
+    private readonly getMindmapImageStatsUseCase?: GetMindmapImageStatsUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -176,6 +178,20 @@ class OpsController {
     } catch (error) {
       console.error('[ops] getReturnRateMetrics failed', error);
       res.status(500).json({ message: 'Failed to load return-rate metrics' });
+    }
+  }
+
+  async getMindmapImageStats(_req: express.Request, res: express.Response) {
+    if (this.getMindmapImageStatsUseCase == null) {
+      res.status(500).json({ message: 'Mindmap image stats not configured' });
+      return;
+    }
+    try {
+      const result = await this.getMindmapImageStatsUseCase.execute();
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('[ops] getMindmapImageStats failed', error);
+      res.status(500).json({ message: 'Failed to load mindmap image stats' });
     }
   }
 }
