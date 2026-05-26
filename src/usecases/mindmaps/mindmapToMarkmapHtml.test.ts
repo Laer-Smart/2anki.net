@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { mindmapToMarkmapHtml } from './mindmapToMarkmapHtml';
 
 const fiveNodeTree = {
@@ -86,5 +87,23 @@ describe('mindmapToMarkmapHtml', () => {
     const html = mindmapToMarkmapHtml(fiveNodeTree, '"><img src=x onerror=alert(1)>');
     expect(html).not.toContain('"><img');
     expect(html).toContain('&quot;&gt;&lt;img');
+  });
+
+  it('reads each bundle file at most once across multiple calls (memoized)', () => {
+    const readFileSyncSpy = jest.spyOn(fs, 'readFileSync');
+
+    mindmapToMarkmapHtml(fiveNodeTree, 'Call 1');
+    mindmapToMarkmapHtml(fiveNodeTree, 'Call 2');
+    mindmapToMarkmapHtml(fiveNodeTree, 'Call 3');
+
+    const bundleReadCount = readFileSyncSpy.mock.calls.filter(
+      (args) =>
+        typeof args[0] === 'string' &&
+        (args[0].includes('d3.min.js') || args[0].includes('markmap-view'))
+    ).length;
+
+    expect(bundleReadCount).toBeLessThanOrEqual(2);
+
+    readFileSyncSpy.mockRestore();
   });
 });
