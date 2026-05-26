@@ -34,6 +34,7 @@ import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepository';
 import { MindmapRepository } from '../data_layer/MindmapRepository';
 import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
+import { JobsMetricsRepository } from '../data_layer/JobsMetricsRepository';
 
 const OpsRouter = () => {
   const router = express.Router();
@@ -49,7 +50,9 @@ const OpsRouter = () => {
     signupCountryRepository: new UsersRepository(database),
   });
 
-  const conversionMetricsService = new ConversionMetricsService(database);
+  const conversionMetricsService = new ConversionMetricsService(
+    new JobsMetricsRepository(database)
+  );
   const performanceMetricsService = new PerformanceMetricsService(
     database,
     new UserVisibleErrorsRepository(database)

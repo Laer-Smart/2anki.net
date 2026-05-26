@@ -1,4 +1,4 @@
-import { Knex } from 'knex';
+import type { IJobsMetricsRepository } from '../../data_layer/JobsMetricsRepository';
 
 export type ConversionMetricKey =
   | 'free_conversions_7d'
@@ -30,15 +30,18 @@ export interface ConversionMetricsResponse {
 const SECONDS_PER_DAY = 24 * 60 * 60;
 const WEEKLY_HISTORY_WEEKS = 12;
 
-const NOTION_CONVERSION_TYPES: string[] = ['page', 'database', 'conversion'];
-
 export class ConversionMetricsService {
-  constructor(private readonly database: Knex) {}
+  constructor(private readonly repository: IJobsMetricsRepository) {}
 
   async getMetrics(): Promise<ConversionMetricsResponse> {
     const now = new Date();
     const sevenDaysAgoMs = now.getTime() - 7 * SECONDS_PER_DAY * 1000;
     const sevenDaysAgo = new Date(sevenDaysAgoMs);
+
+    const weekStarts = this.lastNIsoWeekStartsUtc(now, WEEKLY_HISTORY_WEEKS);
+    const earliestStart = new Date(weekStarts[0]);
+    const lastStart = weekStarts[weekStarts.length - 1];
+    const weekEnd = new Date(lastStart + 7 * SECONDS_PER_DAY * 1000);
 
     const [
       freeConversions7d,
@@ -46,15 +49,20 @@ export class ConversionMetricsService {
       freeSuccessRate7d,
       paidSuccessRate7d,
       topErrors7d,
-      failedConversionsWeekly,
+      failedConversionsWeeklyRows,
     ] = await Promise.allSettled([
-      this.countFreeConversions7d(sevenDaysAgo),
-      this.countPaidConversions7d(sevenDaysAgo),
-      this.computeFreeSuccessRate7d(sevenDaysAgo),
-      this.computePaidSuccessRate7d(sevenDaysAgo),
-      this.topFailureReasons7d(sevenDaysAgo),
-      this.failedConversionsWeekly(now),
+      this.repository.countFreeConversions7d(sevenDaysAgo),
+      this.repository.countPaidConversions7d(sevenDaysAgo),
+      this.repository.computeFreeSuccessRate7d(sevenDaysAgo),
+      this.repository.computePaidSuccessRate7d(sevenDaysAgo),
+      this.repository.topFailureReasons7d(sevenDaysAgo),
+      this.repository.failedConversionsWeekly(earliestStart, weekEnd),
     ]);
+
+    const failedConversionsWeekly =
+      failedConversionsWeeklyRows.status === 'fulfilled'
+        ? this.buildWeeklyTimeSeries(weekStarts, failedConversionsWeeklyRows.value)
+        : null;
 
     return {
       free_conversions_7d:
@@ -67,105 +75,14 @@ export class ConversionMetricsService {
         paidSuccessRate7d.status === 'fulfilled' ? paidSuccessRate7d.value : null,
       conversion_errors_7d_top_reasons:
         topErrors7d.status === 'fulfilled' ? topErrors7d.value : null,
-      failed_conversions_weekly:
-        failedConversionsWeekly.status === 'fulfilled'
-          ? failedConversionsWeekly.value
-          : null,
+      failed_conversions_weekly: failedConversionsWeekly,
     };
   }
 
-  private async countFreeConversions7d(sevenDaysAgo: Date): Promise<number> {
-    const result = await this.database('jobs')
-      .join('users', 'jobs.owner', '=', 'users.id')
-      .where('jobs.status', 'done')
-      .where('jobs.created_at', '>=', sevenDaysAgo)
-      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
-      .whereRaw(
-        "users.stripe_customer_id IS NULL OR users.stripe_customer_id = ''"
-      )
-      .count('jobs.id as count')
-      .first();
-
-    return result?.count ? Number(result.count) : 0;
-  }
-
-  private async countPaidConversions7d(sevenDaysAgo: Date): Promise<number> {
-    const result = await this.database('jobs')
-      .join('users', 'jobs.owner', '=', 'users.id')
-      .where('jobs.status', 'done')
-      .where('jobs.created_at', '>=', sevenDaysAgo)
-      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
-      .whereRaw("users.stripe_customer_id IS NOT NULL AND users.stripe_customer_id != ''")
-      .count('jobs.id as count')
-      .first();
-
-    return result?.count ? Number(result.count) : 0;
-  }
-
-  private async computeFreeSuccessRate7d(sevenDaysAgo: Date): Promise<number | null> {
-    const result = await this.database('jobs')
-      .join('users', 'jobs.owner', '=', 'users.id')
-      .where('jobs.created_at', '>=', sevenDaysAgo)
-      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
-      .whereRaw(
-        "users.stripe_customer_id IS NULL OR users.stripe_customer_id = ''"
-      )
-      .whereIn('jobs.status', ['done', 'failed'])
-      .select(
-        this.database.raw('COUNT(CASE WHEN jobs.status = ? THEN 1 END) as done', [
-          'done',
-        ]),
-        this.database.raw('COUNT(*) as total')
-      )
-      .first();
-
-    if (!result || Number(result.total) === 0) return null;
-    return (Number(result.done) / Number(result.total)) * 100;
-  }
-
-  private async computePaidSuccessRate7d(sevenDaysAgo: Date): Promise<number | null> {
-    const result = await this.database('jobs')
-      .join('users', 'jobs.owner', '=', 'users.id')
-      .where('jobs.created_at', '>=', sevenDaysAgo)
-      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
-      .whereRaw("users.stripe_customer_id IS NOT NULL AND users.stripe_customer_id != ''")
-      .whereIn('jobs.status', ['done', 'failed'])
-      .select(
-        this.database.raw('COUNT(CASE WHEN jobs.status = ? THEN 1 END) as done', [
-          'done',
-        ]),
-        this.database.raw('COUNT(*) as total')
-      )
-      .first();
-
-    if (!result || Number(result.total) === 0) return null;
-    return (Number(result.done) / Number(result.total)) * 100;
-  }
-
-  private async topFailureReasons7d(
-    sevenDaysAgo: Date
-  ): Promise<ConversionErrorCount[]> {
-    const results = await this.database('jobs')
-      .where('jobs.status', 'failed')
-      .where('jobs.created_at', '>=', sevenDaysAgo)
-      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
-      .whereNotNull('jobs.job_reason_failure')
-      .select('jobs.job_reason_failure as reason')
-      .count('jobs.id as count')
-      .groupBy('jobs.job_reason_failure')
-      .orderBy('count', 'desc')
-      .limit(10);
-
-    return (results as Array<{ reason: string; count: number | string }>).map((row) => ({
-      reason: row.reason || 'Unknown',
-      count: Number(row.count),
-    }));
-  }
-
-  private async failedConversionsWeekly(
-    now: Date
-  ): Promise<FailedConversionsWeekPoint[]> {
-    const weekStarts = this.lastNIsoWeekStartsUtc(now, WEEKLY_HISTORY_WEEKS);
+  private buildWeeklyTimeSeries(
+    weekStarts: number[],
+    rows: Array<{ weekStart: Date; count: number }>
+  ): FailedConversionsWeekPoint[] {
     const weekIndex = new Map<number, FailedConversionsWeekPoint>();
 
     for (const startMs of weekStarts) {
@@ -175,34 +92,17 @@ export class ConversionMetricsService {
       });
     }
 
-    const earliestStart = weekStarts[0];
-    const lastStart = weekStarts[weekStarts.length - 1];
-    const weekEnd = lastStart + 7 * SECONDS_PER_DAY * 1000;
-
-    const results = await this.database('jobs')
-      .where('jobs.status', 'failed')
-      .where('jobs.created_at', '>=', new Date(earliestStart))
-      .where('jobs.created_at', '<', new Date(weekEnd))
-      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
-      .select(
-        this.database.raw(
-          `DATE_TRUNC('week', jobs.created_at) AS week_start`
-        ),
-        this.database.raw('COUNT(*) as count')
-      )
-      .groupBy('week_start')
-      .orderBy('week_start', 'asc');
-
-    for (const row of results) {
-      const weekStartMs = new Date(row.week_start).getTime();
-      const bucket = this.isoWeekStartUtcMs(weekStartMs);
+    for (const row of rows) {
+      const bucket = this.isoWeekStartUtcMs(row.weekStart.getTime());
       const existing = weekIndex.get(bucket);
       if (existing) {
-        existing.count = Number(row.count);
+        existing.count = row.count;
       }
     }
 
-    return weekStarts.map((startMs) => weekIndex.get(startMs) as FailedConversionsWeekPoint);
+    return weekStarts.map(
+      (startMs) => weekIndex.get(startMs) as FailedConversionsWeekPoint
+    );
   }
 
   private isoDate(ms: number): string {
