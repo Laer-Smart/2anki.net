@@ -1,7 +1,10 @@
 import type { Knex } from 'knex';
 
+export const INACTIVITY_DELETION_GRACE_DAYS = 14;
+
 export interface IInactivityEmailRepository {
   getUsersToNotify(limit?: number): Promise<Array<{ id: number; name: string; email: string }>>;
+  getUsersToDelete(limit?: number): Promise<Array<{ id: number; email: string }>>;
   recordSend(userId: number, token: string): Promise<void>;
   findByToken(token: string): Promise<{ id: number; userId: number } | null>;
 }
@@ -59,6 +62,35 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
     return rows.map((row) => ({ id: row.id, name: row.name, email: row.email }));
   }
 
+  async getUsersToDelete(
+    limit = 100
+  ): Promise<Array<{ id: number; email: string }>> {
+    const rows = await this.database<UserRow>(`${this.table} as ie`)
+      .join('users as u', 'u.id', 'ie.user_id')
+      .select('u.id', 'u.email')
+      .whereRaw("ie.sent_at < now() - (? || ' days')::interval", [
+        INACTIVITY_DELETION_GRACE_DAYS,
+      ])
+      .where(function () {
+        this.whereNull('u.last_login_at').orWhereRaw(
+          'u.last_login_at < ie.sent_at'
+        );
+      })
+      .whereRaw('u.patreon IS NOT TRUE')
+      .whereNotExists(
+        this.database('subscriptions')
+          .where('subscriptions.active', true)
+          .whereRaw(
+            '(subscriptions.email = u.email OR subscriptions.linked_email = u.email)'
+          )
+          .limit(1)
+      )
+      .orderBy('ie.sent_at', 'asc')
+      .limit(limit);
+
+    return rows.map((row) => ({ id: row.id, email: row.email }));
+  }
+
   async recordSend(userId: number, token: string): Promise<void> {
     await this.database(this.table).insert({ user_id: userId, token });
   }
@@ -80,6 +112,7 @@ export class InMemoryInactivityEmailRepository
 {
   private usersToReturn: Array<{ id: number; name: string; email: string }> =
     [];
+  private usersToDelete: Array<{ id: number; email: string }> = [];
   private readonly sentUserIds = new Set<number>();
   private emails: Array<{ id: number; userId: number; token: string }> = [];
   private nextId = 1;
@@ -88,10 +121,20 @@ export class InMemoryInactivityEmailRepository
     this.usersToReturn = users;
   }
 
+  seedUsersToDelete(users: Array<{ id: number; email: string }>): void {
+    this.usersToDelete = users;
+  }
+
   async getUsersToNotify(limit = 500): Promise<
     Array<{ id: number; name: string; email: string }>
   > {
     return this.usersToReturn.filter((u) => !this.sentUserIds.has(u.id)).slice(0, limit);
+  }
+
+  async getUsersToDelete(limit = 100): Promise<
+    Array<{ id: number; email: string }>
+  > {
+    return this.usersToDelete.slice(0, limit);
   }
 
   async recordSend(userId: number, token: string): Promise<void> {
@@ -114,6 +157,7 @@ export class InMemoryInactivityEmailRepository
 
   clear(): void {
     this.usersToReturn = [];
+    this.usersToDelete = [];
     this.sentUserIds.clear();
     this.emails = [];
     this.nextId = 1;

@@ -33,6 +33,7 @@ import { getDatabase } from '../data_layer';
 import RequireOpsAccess from './middleware/RequireOpsAccess';
 import InactivityEmailRepository from '../data_layer/InactivityEmailRepository';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
+import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepository';
 import { MindmapRepository } from '../data_layer/MindmapRepository';
@@ -94,7 +95,11 @@ const OpsRouter = () => {
     new SendAbandonedCheckoutRecoveryUseCase(emailService),
     new GetReturnRateMetricsUseCase(new ReturnRateMetricsService(database)),
     new GetMindmapImageStatsUseCase(new MindmapRepository(database)),
-    new GetMindmapStorageMetricsUseCase(mindmapStorageService)
+    new GetMindmapStorageMetricsUseCase(mindmapStorageService),
+    new DeleteInactiveUsersUseCase(
+      new InactivityEmailRepository(database),
+      new UsersRepository(database)
+    )
   );
 
   /**
@@ -215,6 +220,35 @@ const OpsRouter = () => {
    */
   router.post('/api/ops/send-inactivity-warnings', RequireOpsAccess, (req, res) =>
     controller.sendInactivityWarnings(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/delete-inactive-users:
+   *   post:
+   *     summary: Delete free accounts that ignored the inactivity warning
+   *     description: |
+   *       Deletes accounts that were warned 14+ days ago and still have not logged in
+   *       since the warning. Exempt: patreon=true (lifetime) and active Stripe subscribers.
+   *       Permanently removes the user and all their data (usage is snapshotted first).
+   *       Pass ?dryRun=false to delete; omit or pass ?dryRun=true to count candidates only.
+   *       Also runs as a daily background job, capped at 100 deletions per run.
+   *     tags: [Ops]
+   *     parameters:
+   *       - in: query
+   *         name: dryRun
+   *         schema:
+   *           type: string
+   *           enum: ['true', 'false']
+   *         description: Defaults to true. Pass false to actually delete accounts.
+   *     responses:
+   *       200:
+   *         description: Result with candidate/deleted count and dryRun flag
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.post('/api/ops/delete-inactive-users', RequireOpsAccess, (req, res) =>
+    controller.deleteInactiveUsers(req, res)
   );
 
   /**

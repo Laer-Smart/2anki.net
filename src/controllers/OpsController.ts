@@ -8,6 +8,7 @@ import { GetReturnRateMetricsUseCase } from '../usecases/ops/GetReturnRateMetric
 import { GetMindmapStorageMetricsUseCase } from '../usecases/ops/GetMindmapStorageMetricsUseCase';
 import { PopulateShowcaseUseCase } from '../usecases/ops/PopulateShowcaseUseCase';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
+import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
 import { SendAbandonedCheckoutRecoveryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryUseCase';
 import { IShowcaseRepository } from '../data_layer/ShowcaseRepository';
 import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
@@ -24,7 +25,8 @@ class OpsController {
     private readonly sendAbandonedCheckoutRecoveryUseCase?: SendAbandonedCheckoutRecoveryUseCase,
     private readonly getReturnRateMetricsUseCase?: GetReturnRateMetricsUseCase,
     private readonly getMindmapImageStatsUseCase?: GetMindmapImageStatsUseCase,
-    private readonly getMindmapStorageMetricsUseCase?: GetMindmapStorageMetricsUseCase
+    private readonly getMindmapStorageMetricsUseCase?: GetMindmapStorageMetricsUseCase,
+    private readonly deleteInactiveUsersUseCase?: DeleteInactiveUsersUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -166,6 +168,21 @@ class OpsController {
     } catch (error) {
       console.error('[ops] sendInactivityWarnings failed', error);
       res.status(500).json({ message: 'Failed to run inactivity warnings' });
+    }
+  }
+
+  async deleteInactiveUsers(req: express.Request, res: express.Response) {
+    if (this.deleteInactiveUsersUseCase == null) {
+      res.status(500).json({ message: 'Inactive user deletion not configured' });
+      return;
+    }
+    try {
+      const dryRun = req.query.dryRun !== 'false';
+      const result = await this.deleteInactiveUsersUseCase.execute(dryRun);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('[ops] deleteInactiveUsers failed', error);
+      res.status(500).json({ message: 'Failed to run inactive user deletion' });
     }
   }
 
