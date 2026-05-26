@@ -5,24 +5,23 @@ import { MindmapData } from './MindmapData';
 import { escapeHtml } from './escapeHtml';
 import { mindmapToMarkmapTree } from './mindmapToMarkmapTree';
 
-function findPackageRoot(startFile: string): string {
-  let dir = path.dirname(startFile);
-  while (dir !== path.dirname(dir)) {
-    if (fs.existsSync(path.join(dir, 'package.json'))) return dir;
-    dir = path.dirname(dir);
-  }
-  throw new Error(`Cannot find package root for ${startFile}`);
-}
+let d3BundleCache: string | null = null;
+let markmapViewBundleCache: string | null = null;
 
 function readD3Bundle(): string {
-  const d3Main = require.resolve('d3');
-  const d3Root = findPackageRoot(d3Main);
-  return fs.readFileSync(path.join(d3Root, 'dist', 'd3.min.js'), 'utf-8');
+  if (d3BundleCache == null) {
+    const d3Root = path.resolve(path.dirname(require.resolve('d3')), '..');
+    d3BundleCache = fs.readFileSync(path.join(d3Root, 'dist', 'd3.min.js'), 'utf-8');
+  }
+  return d3BundleCache;
 }
 
 function readMarkmapViewBundle(): string {
-  const markmapBrowser = require.resolve('markmap-view/dist/browser/index.js');
-  return fs.readFileSync(markmapBrowser, 'utf-8');
+  if (markmapViewBundleCache == null) {
+    const markmapBrowser = require.resolve('markmap-view/dist/browser/index.js');
+    markmapViewBundleCache = fs.readFileSync(markmapBrowser, 'utf-8');
+  }
+  return markmapViewBundleCache;
 }
 
 export function mindmapToMarkmapHtml(
