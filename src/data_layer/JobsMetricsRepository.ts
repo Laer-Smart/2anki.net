@@ -19,81 +19,72 @@ export interface IJobsMetricsRepository {
 
 const NOTION_CONVERSION_TYPES: string[] = ['page', 'database', 'conversion'];
 
+type ConversionTier = 'free' | 'paid';
+
+const PAID_CUSTOMER_FILTER =
+  "users.stripe_customer_id IS NOT NULL AND users.stripe_customer_id != ''";
+const FREE_CUSTOMER_FILTER =
+  "users.stripe_customer_id IS NULL OR users.stripe_customer_id = ''";
+
 export class JobsMetricsRepository implements IJobsMetricsRepository {
   constructor(private readonly database: Knex) {}
 
-  async countFreeConversions7d(sevenDaysAgo: Date): Promise<number> {
-    const result = await this.database('jobs')
+  private conversionsForTier(
+    sevenDaysAgo: Date,
+    tier: ConversionTier
+  ): Knex.QueryBuilder {
+    return this.database('jobs')
       .join('users', 'jobs.owner', '=', 'users.id')
-      .where('jobs.status', 'done')
       .where('jobs.created_at', '>=', sevenDaysAgo)
       .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
-      .whereRaw(
-        "users.stripe_customer_id IS NULL OR users.stripe_customer_id = ''"
-      )
+      .whereRaw(tier === 'paid' ? PAID_CUSTOMER_FILTER : FREE_CUSTOMER_FILTER);
+  }
+
+  private async countConversions7d(
+    sevenDaysAgo: Date,
+    tier: ConversionTier
+  ): Promise<number> {
+    const result = await this.conversionsForTier(sevenDaysAgo, tier)
+      .where('jobs.status', 'done')
       .count('jobs.id as count')
       .first();
 
     return result?.count ? Number(result.count) : 0;
+  }
+
+  private async computeSuccessRate7d(
+    sevenDaysAgo: Date,
+    tier: ConversionTier
+  ): Promise<number | null> {
+    const result = await this.conversionsForTier(sevenDaysAgo, tier)
+      .whereIn('jobs.status', ['done', 'failed'])
+      .select(
+        this.database.raw(
+          'COUNT(CASE WHEN jobs.status = ? THEN 1 END) as done',
+          ['done']
+        ),
+        this.database.raw('COUNT(*) as total')
+      )
+      .first();
+
+    if (!result || Number(result.total) === 0) return null;
+    return (Number(result.done) / Number(result.total)) * 100;
+  }
+
+  async countFreeConversions7d(sevenDaysAgo: Date): Promise<number> {
+    return this.countConversions7d(sevenDaysAgo, 'free');
   }
 
   async countPaidConversions7d(sevenDaysAgo: Date): Promise<number> {
-    const result = await this.database('jobs')
-      .join('users', 'jobs.owner', '=', 'users.id')
-      .where('jobs.status', 'done')
-      .where('jobs.created_at', '>=', sevenDaysAgo)
-      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
-      .whereRaw(
-        "users.stripe_customer_id IS NOT NULL AND users.stripe_customer_id != ''"
-      )
-      .count('jobs.id as count')
-      .first();
-
-    return result?.count ? Number(result.count) : 0;
+    return this.countConversions7d(sevenDaysAgo, 'paid');
   }
 
   async computeFreeSuccessRate7d(sevenDaysAgo: Date): Promise<number | null> {
-    const result = await this.database('jobs')
-      .join('users', 'jobs.owner', '=', 'users.id')
-      .where('jobs.created_at', '>=', sevenDaysAgo)
-      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
-      .whereRaw(
-        "users.stripe_customer_id IS NULL OR users.stripe_customer_id = ''"
-      )
-      .whereIn('jobs.status', ['done', 'failed'])
-      .select(
-        this.database.raw(
-          'COUNT(CASE WHEN jobs.status = ? THEN 1 END) as done',
-          ['done']
-        ),
-        this.database.raw('COUNT(*) as total')
-      )
-      .first();
-
-    if (!result || Number(result.total) === 0) return null;
-    return (Number(result.done) / Number(result.total)) * 100;
+    return this.computeSuccessRate7d(sevenDaysAgo, 'free');
   }
 
   async computePaidSuccessRate7d(sevenDaysAgo: Date): Promise<number | null> {
-    const result = await this.database('jobs')
-      .join('users', 'jobs.owner', '=', 'users.id')
-      .where('jobs.created_at', '>=', sevenDaysAgo)
-      .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
-      .whereRaw(
-        "users.stripe_customer_id IS NOT NULL AND users.stripe_customer_id != ''"
-      )
-      .whereIn('jobs.status', ['done', 'failed'])
-      .select(
-        this.database.raw(
-          'COUNT(CASE WHEN jobs.status = ? THEN 1 END) as done',
-          ['done']
-        ),
-        this.database.raw('COUNT(*) as total')
-      )
-      .first();
-
-    if (!result || Number(result.total) === 0) return null;
-    return (Number(result.done) / Number(result.total)) * 100;
+    return this.computeSuccessRate7d(sevenDaysAgo, 'paid');
   }
 
   async topFailureReasons7d(
