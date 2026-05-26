@@ -7,7 +7,7 @@
     "notion2anki"
   ],
   "author": "Alexander Alemayhu",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0",
   "engines": {
     "node": ">=12.0.0"
   },
