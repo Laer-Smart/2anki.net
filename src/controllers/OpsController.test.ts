@@ -5,6 +5,7 @@ import { GetOpsMetricsUseCase } from '../usecases/ops/GetOpsMetricsUseCase';
 import { GetBusinessMetricsUseCase } from '../usecases/ops/GetBusinessMetricsUseCase';
 import { GetReturnRateMetricsUseCase } from '../usecases/ops/GetReturnRateMetricsUseCase';
 import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
+import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
 
 const buildRes = () => {
   const json = jest.fn();
@@ -248,5 +249,64 @@ describe('OpsController.getMindmapImageStats', () => {
       expect.objectContaining({ message: expect.any(String) })
     );
     errSpy.mockRestore();
+  });
+});
+
+describe('OpsController.deleteInactiveUsers', () => {
+  const buildController = (useCase: DeleteInactiveUsersUseCase) =>
+    new OpsController(
+      {} as unknown as GetOpsMetricsUseCase,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      useCase
+    );
+
+  it('defaults to a dry run when dryRun is not specified', async () => {
+    const useCase = {
+      execute: jest.fn().mockResolvedValue({ count: 5, dryRun: true }),
+    } as unknown as DeleteInactiveUsersUseCase;
+    const controller = buildController(useCase);
+    const req = { query: {} } as unknown as express.Request;
+    const res = buildRes();
+
+    await controller.deleteInactiveUsers(req, res);
+
+    expect((useCase.execute as jest.Mock)).toHaveBeenCalledWith(true);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ count: 5, dryRun: true });
+  });
+
+  it('deletes for real only when dryRun=false is passed', async () => {
+    const useCase = {
+      execute: jest.fn().mockResolvedValue({ count: 3, dryRun: false }),
+    } as unknown as DeleteInactiveUsersUseCase;
+    const controller = buildController(useCase);
+    const req = { query: { dryRun: 'false' } } as unknown as express.Request;
+    const res = buildRes();
+
+    await controller.deleteInactiveUsers(req, res);
+
+    expect((useCase.execute as jest.Mock)).toHaveBeenCalledWith(false);
+  });
+
+  it('returns 500 when the use case is not configured', async () => {
+    const controller = new OpsController({} as unknown as GetOpsMetricsUseCase);
+    const req = { query: {} } as unknown as express.Request;
+    const res = buildRes();
+
+    await controller.deleteInactiveUsers(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.any(String) })
+    );
   });
 });
