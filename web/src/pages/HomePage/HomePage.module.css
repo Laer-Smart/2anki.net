@@ -36,6 +36,24 @@
   color: var(--color-text-link);
 }
 
+.formOptionsRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.cardOptionsLink {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+
+.cardOptionsLink:hover {
+  text-decoration: underline;
+}
+
 .heroFooter {
   display: flex;
   align-items: center;

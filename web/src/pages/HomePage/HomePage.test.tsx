@@ -53,6 +53,12 @@ describe('HomePage (anonymous)', () => {
     expect(link).toHaveAttribute('href', '/register?redirect=/card-options');
   });
 
+  it('links to card options above the upload form so anon visitors can configure first', () => {
+    renderHome();
+    const link = screen.getByRole('link', { name: 'Card options' });
+    expect(link).toHaveAttribute('href', '/card-options');
+  });
+
   it('renders the three how-it-works steps with icons', () => {
     renderHome();
     expect(screen.getByText('Upload')).toBeInTheDocument();

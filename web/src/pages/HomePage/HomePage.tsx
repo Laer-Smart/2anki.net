@@ -144,6 +144,15 @@ export function HomePage({
             .
           </span>
         </div>
+        <div className={styles.formOptionsRow}>
+          <Link
+            to="/card-options"
+            className={styles.cardOptionsLink}
+            onClick={() => track('home_card_options_link_clicked')}
+          >
+            Card options
+          </Link>
+        </div>
         <UploadForm setErrorMessage={setErrorMessage} />
       </section>
 
