@@ -38,8 +38,6 @@ export function PassCards({
       />
       <PricingCard
         title="Week Pass"
-        badge="Best value"
-        badgeMuted
         price="$9"
         priceSuffix="— 1 week"
         benefits={PASS_BENEFITS}

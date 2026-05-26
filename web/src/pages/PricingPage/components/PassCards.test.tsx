@@ -128,7 +128,7 @@ describe('PassCards', () => {
     expect(screen.getByText('$9')).toBeInTheDocument();
   });
 
-  it('features the Day Pass as Most popular and the Week Pass as Best value', () => {
+  it('features the Day Pass as Most popular without overclaiming on the Week Pass', () => {
     render(
       <PassCards
         onDayPass={vi.fn()}
@@ -138,6 +138,6 @@ describe('PassCards', () => {
       />
     );
     expect(screen.getByText('Most popular')).toBeInTheDocument();
-    expect(screen.getByText('Best value')).toBeInTheDocument();
+    expect(screen.queryByText('Best value')).not.toBeInTheDocument();
   });
 });

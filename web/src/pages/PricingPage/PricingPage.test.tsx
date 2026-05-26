@@ -48,7 +48,9 @@ const renderAt = (path: string, props: Partial<Parameters<typeof PricingPage>[0]
 describe('PricingPage Unlimited benefits', () => {
   it('lists parallel conversions as a benefit', () => {
     renderAt('/pricing');
-    expect(screen.getByText('Run multiple conversions at once')).toBeInTheDocument();
+    expect(
+      screen.getAllByText('Run multiple conversions at once').length
+    ).toBeGreaterThan(0);
   });
 
   it('features the Day Pass with the Most popular badge', () => {
@@ -61,13 +63,13 @@ describe('PricingPage Unlimited benefits', () => {
 describe('PricingPage layout', () => {
   it('renders Unlimited and Auto Sync cards', () => {
     renderAt('/pricing');
-    expect(screen.getByText('Unlimited')).toBeInTheDocument();
-    expect(screen.getByText('Auto Sync')).toBeInTheDocument();
+    expect(screen.getAllByText('Unlimited').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Auto Sync').length).toBeGreaterThan(0);
   });
 
   it('shows Lifetime card with From $345 price', () => {
     renderAt('/pricing');
-    expect(screen.getByText('From $345')).toBeInTheDocument();
+    expect(screen.getAllByText('From $345').length).toBeGreaterThan(0);
   });
 
   it('shows the Pay once section label', () => {
@@ -95,11 +97,10 @@ describe('PricingPage layout', () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
-  it('shows Day Pass and Week Pass as full cards without an accordion', () => {
-    const { container } = renderAt('/pricing');
+  it('shows Day Pass and Week Pass as full cards with visible buttons', () => {
+    renderAt('/pricing');
     expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Get Week Pass' })).toBeInTheDocument();
-    expect(container.querySelector('details')).toBeNull();
   });
 
   it('shows philosophy line', () => {
@@ -107,6 +108,21 @@ describe('PricingPage layout', () => {
     expect(
       screen.getByText('Free works forever. Paid plans support 2anki.net.')
     ).toBeInTheDocument();
+  });
+
+  it('renders the plan comparison table', () => {
+    renderAt('/pricing');
+    expect(
+      screen.getByRole('heading', { name: 'Compare every plan' })
+    ).toBeInTheDocument();
+  });
+
+  it('renders the FAQ section with visible questions', () => {
+    renderAt('/pricing');
+    expect(
+      screen.getByRole('heading', { name: 'Questions & answers' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('What is Auto Sync?')).toBeInTheDocument();
   });
 });
 
