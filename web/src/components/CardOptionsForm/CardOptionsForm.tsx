@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { clearStoredCardOptions } from '../../lib/data_layer/clearStoredCardOptions';
 import { getLocalStorageBooleanValue } from '../../lib/data_layer/getLocalStorageBooleanValue';
@@ -27,9 +27,13 @@ import TemplateSelect from '../TemplateSelect';
 import fieldStyles from './CardOptionsForm.module.css';
 import { NoteTypePicker } from './NoteTypePicker';
 import { useAvailableNoteTypes } from './useAvailableNoteTypes';
-import { FieldMappingPanel } from './FieldMappingPanel';
 import { getDefaultFieldMapping } from './fieldMappingDefaults';
 import type { FieldMapping } from '../../lib/cardFields/types';
+import { ConfigureRow } from './ConfigureRow';
+import { CardSizeModal, type CardSizeValue } from './CardSizeModal';
+import { McqModal, type McqTtsKey } from './McqModal';
+import { FieldMappingModal } from './FieldMappingModal';
+import { UserInstructionsModal } from './UserInstructionsModal';
 
 interface Props {
   pageTitle?: string | null;
@@ -53,25 +57,19 @@ const DEFAULT_PAGE_EMOJI = 'first_emoji';
 const DEFAULT_FONT_SIZE = '20';
 const DEFAULT_MCQ_ENABLED = false;
 const DEFAULT_MCQ_TTS_LANG = '';
-const DEFAULT_CARD_SIZE = 'medium';
-const CARD_SIZE_VALUES = ['short', 'medium', 'detailed'] as const;
-type CardSizeValue = (typeof CARD_SIZE_VALUES)[number];
+const DEFAULT_CARD_SIZE: CardSizeValue = 'medium';
 
 function normalizeCardSize(raw: string | null | undefined): CardSizeValue {
   if (raw === 'short' || raw === 'medium' || raw === 'detailed') return raw;
   return DEFAULT_CARD_SIZE;
 }
 
-const MCQ_TTS_LANGUAGE_OPTIONS = [
-  { label: "Don't speak", value: '' },
-  { label: 'English (US)', value: 'en_US' },
-  { label: 'Spanish (Spain)', value: 'es_ES' },
-  { label: 'French (France)', value: 'fr_FR' },
-  { label: 'German', value: 'de_DE' },
-  { label: 'Japanese', value: 'ja_JP' },
-  { label: 'Mandarin (Simplified)', value: 'zh_CN' },
-  { label: 'Portuguese (Brazil)', value: 'pt_BR' },
-] as const;
+const CARD_SIZE_SUMMARY: Record<CardSizeValue, string> = {
+  short: 'Short',
+  medium: 'Medium',
+  detailed: 'Detailed',
+};
+
 const DEFAULT_USER_INSTRUCTIONS = `Some extra rules and explanations:
 - Read the document from start to finish and identify any question and answers.
 - Use the same language as the document or infer the language based on what is mostly used.
@@ -104,26 +102,22 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
     ],
   },
   {
-    label: 'PDF & AI',
-    keys: [
-      'process-pdfs',
-      'pdf-extract-text',
-      'claude-ai-flashcards',
-    ],
-  },
-  {
-    label: 'Image quizzes',
-    keys: ['image-quiz-html-to-anki'],
-  },
-  {
     label: 'Debugging',
     keys: ['share-files-for-debugging'],
   },
 ];
 
+const PDF_AI_TOGGLE_KEYS = [
+  'process-pdfs',
+  'pdf-extract-text',
+  'claude-ai-flashcards',
+  'image-quiz-html-to-anki',
+];
+
 const HIDDEN_KEYS = ['vertex-ai-pdf-questions', 'remove-mp3-links'];
 const GROUPED_KEYS = new Set([
   ...OPTION_GROUPS.flatMap((g) => g.keys),
+  ...PDF_AI_TOGGLE_KEYS,
   ...HIDDEN_KEYS,
 ]);
 
@@ -177,6 +171,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       options: availableNoteTypes,
       loading: noteTypesLoading,
     } = useAvailableNoteTypes();
+    const location = useLocation();
     const [settings, setSettings] = useState<SettingsPayload>({});
     const [loading, setLoading] = useState(!!pageId);
     const deckNameKey = 'deckName';
@@ -240,6 +235,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       getDefaultFieldMapping(getLocalStorageValue('template', DEFAULT_TEMPLATE, settings))
     );
     const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
+    const [openModal, setOpenModal] = useState<
+      'card-size' | 'mcq' | 'field-mapping' | 'user-instructions' | null
+    >(null);
 
     useEffect(() => {
       if (!options) return;
@@ -339,6 +337,12 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       }
     }, [isError, loadingDefaultsError, setError]);
 
+    useEffect(() => {
+      const target = location.hash.slice(1);
+      if (target === 'card-size') setOpenModal('card-size');
+      else if (target === 'mcq') setOpenModal('mcq');
+    }, [location.hash]);
+
     const currentSnapshot = useMemo(
       () =>
         computeSnapshot({
@@ -400,6 +404,17 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     const toggleCheckbox = (key: string, checked: boolean) => {
       setCheckboxValues((prev) => ({ ...prev, [key]: checked }));
       saveValueInLocalStorage(key, checked.toString(), pageId);
+    };
+
+    const mcqTtsSetters: Record<McqTtsKey, (value: string) => void> = {
+      'mcq-tts-question': setMcqTtsQuestion,
+      'mcq-tts-correct-answer': setMcqTtsCorrectAnswer,
+      'mcq-tts-extra': setMcqTtsExtra,
+    };
+
+    const handleMcqTtsChange = (key: McqTtsKey, value: string) => {
+      mcqTtsSetters[key](value);
+      saveValueInLocalStorage(key, value, pageId);
     };
 
     const resetStore = async () => {
@@ -519,27 +534,60 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       (o: CardOption) => !GROUPED_KEYS.has(o.key)
     );
 
-    const userInstructionsDisclosure = (
-      <div className={fieldStyles.section}>
-        <details>
-          <summary className={fieldStyles.detailsSummary}>
-            User instructions for PDF conversion
-          </summary>
-          <textarea
-            className={fieldStyles.instructionsTextarea}
-            value={userInstructions}
-            onChange={(e) => {
-              setUserInstructions(e.target.value);
-              saveValueInLocalStorage(
-                'user-instructions',
-                e.target.value,
-                pageId
-              );
-            }}
-            rows={4}
-            placeholder="Instructions for PDF conversion..."
+    const pdfAiToggleOptions = PDF_AI_TOGGLE_KEYS.map(
+      (key) => optionsByKey[key]
+    ).filter(Boolean) as CardOption[];
+
+    const userInstructionsSummary =
+      userInstructions.trim() === DEFAULT_USER_INSTRUCTIONS.trim()
+        ? 'Default'
+        : 'Custom';
+
+    const fieldMappingSummary =
+      fieldMapping == null ? 'Off' : fieldMapping.templateName;
+
+    const pdfAiSection = (
+      <div className={fieldStyles.optionGroup} id="pdf-ai">
+        <h3 className={fieldStyles.groupHeading}>PDF &amp; AI</h3>
+        <p className={fieldStyles.groupIntro}>
+          Everything that shapes how AI turns your content into cards. Toggles take
+          effect right away; tap Configure to tune card size, multiple choice, field
+          mapping, and instructions.
+        </p>
+        <div className={fieldStyles.groupOptions}>
+          {pdfAiToggleOptions.map((o: CardOption) => (
+            <LocalCheckbox
+              key={o.key}
+              defaultValue={checkboxValues[o.key] ?? false}
+              label={o.label}
+              description={o.description}
+              onChecked={(checked) => toggleCheckbox(o.key, checked)}
+              badge={PREMIUM_KEYS.has(o.key) ? 'Premium' : undefined}
+            />
+          ))}
+        </div>
+        <div className={fieldStyles.configureRows}>
+          <ConfigureRow
+            label="Card size"
+            summary={CARD_SIZE_SUMMARY[cardSize]}
+            onConfigure={() => setOpenModal('card-size')}
           />
-        </details>
+          <ConfigureRow
+            label="Multiple choice questions (MCQ)"
+            summary={mcqEnabled ? 'On' : 'Off'}
+            onConfigure={() => setOpenModal('mcq')}
+          />
+          <ConfigureRow
+            label="Field mapping"
+            summary={fieldMappingSummary}
+            onConfigure={() => setOpenModal('field-mapping')}
+          />
+          <ConfigureRow
+            label="User instructions"
+            summary={userInstructionsSummary}
+            onConfigure={() => setOpenModal('user-instructions')}
+          />
+        </div>
       </div>
     );
 
@@ -675,200 +723,74 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
             .filter(Boolean);
           if (groupOptions.length === 0) return null;
 
-          const isPdfAiGroup = group.label === 'PDF & AI';
-          const isCardTypesGroup = group.label === 'Card types';
-
           return (
-            <React.Fragment key={group.label}>
-              <div
-                className={fieldStyles.optionGroup}
-                id={isPdfAiGroup ? 'pdf-ai' : undefined}
-              >
-                <h3 className={fieldStyles.groupHeading}>{group.label}</h3>
-                <div className={fieldStyles.groupOptions}>
-                  {groupOptions.map((o: CardOption) => (
-                    <LocalCheckbox
-                      key={o.key}
-                      defaultValue={checkboxValues[o.key] ?? false}
-                      label={o.label}
-                      description={o.description}
-                      onChecked={(checked) => toggleCheckbox(o.key, checked)}
-                      badge={PREMIUM_KEYS.has(o.key) ? 'Premium' : undefined}
-                    />
-                  ))}
-                  {isPdfAiGroup && userInstructionsDisclosure}
-                </div>
+            <div key={group.label} className={fieldStyles.optionGroup}>
+              <h3 className={fieldStyles.groupHeading}>{group.label}</h3>
+              <div className={fieldStyles.groupOptions}>
+                {groupOptions.map((o: CardOption) => (
+                  <LocalCheckbox
+                    key={o.key}
+                    defaultValue={checkboxValues[o.key] ?? false}
+                    label={o.label}
+                    description={o.description}
+                    onChecked={(checked) => toggleCheckbox(o.key, checked)}
+                    badge={PREMIUM_KEYS.has(o.key) ? 'Premium' : undefined}
+                  />
+                ))}
               </div>
-              {isCardTypesGroup && (
-                <div className={fieldStyles.optionGroup} id="card-size">
-                  <div className={fieldStyles.groupHeader}>
-                    <h3 className={fieldStyles.groupHeading}>Card size</h3>
-                    <div className={fieldStyles.segmented} role="group" aria-label="Card size">
-                      {(
-                        [
-                          { label: 'Short', value: 'short' },
-                          { label: 'Medium', value: 'medium' },
-                          { label: 'Detailed', value: 'detailed' },
-                        ] as const
-                      ).map(({ label, value }) => (
-                        <button
-                          key={value}
-                          type="button"
-                          className={`${fieldStyles.segment} ${cardSize === value ? fieldStyles.segmentActive : ''}`}
-                          aria-pressed={cardSize === value}
-                          onClick={() => {
-                            setCardSize(value);
-                            saveValueInLocalStorage('card-size', value, pageId);
-                          }}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <p className={fieldStyles.groupIntro}>
-                    AI conversion uses this to decide how much fits on each card.
-                  </p>
-                  <ul className={fieldStyles.bulletList}>
-                    <li><strong>Short</strong> — 1 fact per card, ~80 characters per answer. Best for vocabulary, dates, formulas.</li>
-                    <li><strong>Medium</strong> — 1–2 facts per card, ~160 characters per answer. Good default for most notes.</li>
-                    <li><strong>Detailed</strong> — 3–4 facts per card, ~320 characters per answer. Better for tightly grouped concepts you want to review together.</li>
-                  </ul>
-                </div>
-              )}
-              {isCardTypesGroup && (
-                <div className={fieldStyles.optionGroup} id="mcq">
-                  <div className={fieldStyles.groupHeader}>
-                    <h3 className={fieldStyles.groupHeading}>Multiple choice questions (MCQ)</h3>
-                    <div className={fieldStyles.segmented} role="group" aria-label="Enable multiple choice questions">
-                      {(
-                        [
-                          { label: 'Off', value: false },
-                          { label: 'On', value: true },
-                        ] as const
-                      ).map(({ label, value }) => (
-                        <button
-                          key={label}
-                          type="button"
-                          className={`${fieldStyles.segment} ${mcqEnabled === value ? fieldStyles.segmentActive : ''}`}
-                          onClick={() => {
-                            setMcqEnabled(value);
-                            saveValueInLocalStorage('mcq-enabled', value.toString(), pageId);
-                          }}
-                        >
-                          {label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <p className={fieldStyles.groupIntro}>
-                    Photo to deck and the AI chat generate MCQ when this is on. You can also write them yourself with the MCQ syntax — see the{' '}
-                    <Link to="/documentation/cards/mcq" className={fieldStyles.groupIntroLink}>
-                      docs
-                    </Link>
-                    .
-                  </p>
-
-                  {mcqEnabled && (
-                    <>
-                      <div className={fieldStyles.section}>
-                        <p className={fieldStyles.sectionLabel}>Read aloud</p>
-                        <p className={fieldStyles.sectionHint}>
-                          Pick a voice for each field. Anki will speak it on the card.
-                        </p>
-
-                        {(
-                          [
-                            { label: 'Question', key: 'mcq-tts-question', value: mcqTtsQuestion, setter: setMcqTtsQuestion },
-                            { label: 'Correct answer', key: 'mcq-tts-correct-answer', value: mcqTtsCorrectAnswer, setter: setMcqTtsCorrectAnswer },
-                            { label: 'Extra', key: 'mcq-tts-extra', value: mcqTtsExtra, setter: setMcqTtsExtra },
-                          ] as const
-                        ).map(({ label, key, value, setter }) => (
-                          <div key={key} className={fieldStyles.section}>
-                            <div className={fieldStyles.labelRow}>
-                              <label htmlFor={key} className={fieldStyles.sectionLabel}>{label}</label>
-                            </div>
-                            <select
-                              id={key}
-                              className={fieldStyles.deckInput}
-                              value={value}
-                              onChange={(e) => {
-                                setter(e.target.value);
-                                saveValueInLocalStorage(key, e.target.value, pageId);
-                              }}
-                            >
-                              {MCQ_TTS_LANGUAGE_OPTIONS.map((opt) => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                              ))}
-                            </select>
-                          </div>
-                        ))}
-
-                        <p className={fieldStyles.sectionHint}>
-                          If your Anki device has no installed voice for the picked language, the audio stays silent.
-                        </p>
-                        <p className={fieldStyles.sectionHint}>
-                          Missing a language? Email{' '}
-                          <a href="mailto:support@2anki.net">support@2anki.net</a>{' '}
-                          and we&apos;ll add it.
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-              {isCardTypesGroup && (
-                <div className={fieldStyles.optionGroup} id="audio">
-                  <h3 className={fieldStyles.groupHeading}>Audio</h3>
-                  <p className={fieldStyles.groupIntro}>
-                    Two settings, opposite effects. One adds Anki&apos;s built-in voice to your cards. The other hides raw MP3 URLs your source may carry.
-                  </p>
-
-                  <div className={fieldStyles.section}>
-                    <label className={fieldStyles.toggleRow}>
-                      <span className={fieldStyles.toggleSwitch}>
-                        <input
-                          type="checkbox"
-                          role="switch"
-                          checked={ttsAutoDetect}
-                          onChange={(e) => {
-                            setTtsAutoDetect(e.target.checked);
-                            saveValueInLocalStorage('tts-auto-detect', e.target.checked.toString(), pageId);
-                          }}
-                        />
-                        <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
-                      </span>
-                      <span className={fieldStyles.toggleLabel}>Read cards aloud</span>
-                    </label>
-                    <p className={fieldStyles.sectionHint}>
-                      Adds Anki&apos;s on-device voice to each card. Japanese, Korean, and Chinese are detected automatically; everything else reads in English. No audio file is added to your deck.
-                    </p>
-                  </div>
-
-                  {optionsByKey['remove-mp3-links'] && (
-                    <div className={fieldStyles.section}>
-                      <label className={fieldStyles.toggleRow}>
-                        <span className={fieldStyles.toggleSwitch}>
-                          <input
-                            type="checkbox"
-                            role="switch"
-                            checked={checkboxValues['remove-mp3-links'] ?? false}
-                            onChange={(e) => toggleCheckbox('remove-mp3-links', e.target.checked)}
-                          />
-                          <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
-                        </span>
-                        <span className={fieldStyles.toggleLabel}>Remove MP3 links from audio files</span>
-                      </label>
-                      <p className={fieldStyles.sectionHint}>
-                        Hides raw MP3 URLs that appear as visible text on cards. Embedded audio still plays — only the visible link is stripped.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </React.Fragment>
+            </div>
           );
         })}
+
+        {pdfAiSection}
+
+        <div className={fieldStyles.optionGroup} id="audio">
+          <h3 className={fieldStyles.groupHeading}>Audio</h3>
+          <p className={fieldStyles.groupIntro}>
+            Two settings, opposite effects. One adds Anki&apos;s built-in voice to your cards. The other hides raw MP3 URLs your source may carry.
+          </p>
+
+          <div className={fieldStyles.section}>
+            <label className={fieldStyles.toggleRow}>
+              <span className={fieldStyles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  role="switch"
+                  checked={ttsAutoDetect}
+                  onChange={(e) => {
+                    setTtsAutoDetect(e.target.checked);
+                    saveValueInLocalStorage('tts-auto-detect', e.target.checked.toString(), pageId);
+                  }}
+                />
+                <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
+              </span>
+              <span className={fieldStyles.toggleLabel}>Read cards aloud</span>
+            </label>
+            <p className={fieldStyles.sectionHint}>
+              Adds Anki&apos;s on-device voice to each card. Japanese, Korean, and Chinese are detected automatically; everything else reads in English. No audio file is added to your deck.
+            </p>
+          </div>
+
+          {optionsByKey['remove-mp3-links'] && (
+            <div className={fieldStyles.section}>
+              <label className={fieldStyles.toggleRow}>
+                <span className={fieldStyles.toggleSwitch}>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    checked={checkboxValues['remove-mp3-links'] ?? false}
+                    onChange={(e) => toggleCheckbox('remove-mp3-links', e.target.checked)}
+                  />
+                  <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
+                </span>
+                <span className={fieldStyles.toggleLabel}>Remove MP3 links from audio files</span>
+              </label>
+              <p className={fieldStyles.sectionHint}>
+                Hides raw MP3 URLs that appear as visible text on cards. Embedded audio still plays — only the visible link is stripped.
+              </p>
+            </div>
+          )}
+        </div>
 
         <div className={fieldStyles.optionGroup}>
           <h3 className={fieldStyles.groupHeading}>Templates</h3>
@@ -895,12 +817,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               }}
             />
           </div>
-          {fieldMapping != null && (
-            <FieldMappingPanel
-              mapping={fieldMapping}
-              onChange={(updated) => setFieldMapping(updated)}
-            />
-          )}
           {template === 'custom' ? (
             <>
               <div className={fieldStyles.section}>
@@ -1002,6 +918,46 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
             />
           </div>
         </div>
+
+        <CardSizeModal
+          isOpen={openModal === 'card-size'}
+          onClose={() => setOpenModal(null)}
+          value={cardSize}
+          onChange={(next) => {
+            setCardSize(next);
+            saveValueInLocalStorage('card-size', next, pageId);
+          }}
+        />
+        <McqModal
+          isOpen={openModal === 'mcq'}
+          onClose={() => setOpenModal(null)}
+          enabled={mcqEnabled}
+          onEnabledChange={(next) => {
+            setMcqEnabled(next);
+            saveValueInLocalStorage('mcq-enabled', next.toString(), pageId);
+          }}
+          ttsQuestion={mcqTtsQuestion}
+          ttsCorrectAnswer={mcqTtsCorrectAnswer}
+          ttsExtra={mcqTtsExtra}
+          onTtsChange={handleMcqTtsChange}
+        />
+        {fieldMapping != null && (
+          <FieldMappingModal
+            isOpen={openModal === 'field-mapping'}
+            onClose={() => setOpenModal(null)}
+            mapping={fieldMapping}
+            onChange={(updated) => setFieldMapping(updated)}
+          />
+        )}
+        <UserInstructionsModal
+          isOpen={openModal === 'user-instructions'}
+          onClose={() => setOpenModal(null)}
+          value={userInstructions}
+          onChange={(next) => {
+            setUserInstructions(next);
+            saveValueInLocalStorage('user-instructions', next, pageId);
+          }}
+        />
       </div>
     );
   }

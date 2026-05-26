@@ -36,6 +36,15 @@ function FontSizePicker(delegate: Readonly<FontPickerDelegate>) {
           {displayValue} px
         </span>
       </div>
+      <div className={localStyles.preview}>
+        <span
+          aria-hidden
+          className={localStyles.previewSample}
+          style={{ fontSize: `${displayValue}px` }}
+        >
+          Aa
+        </span>
+      </div>
     </div>
   );
 }

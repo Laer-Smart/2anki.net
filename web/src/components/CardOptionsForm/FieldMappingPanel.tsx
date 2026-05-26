@@ -17,30 +17,25 @@ export function FieldMappingPanel({ mapping, onChange }: Readonly<Props>) {
 
   return (
     <div className={fieldStyles.section}>
-      <details>
-        <summary className={fieldStyles.detailsSummary}>
-          Field mapping
-        </summary>
-        <p className={fieldStyles.sectionHint}>
-          Tell the AI what to put in each field of your card template. Leave a field blank to let the AI decide.
-        </p>
-        {mapping.fields.map((field, i) => (
-          <div key={field.name} className={fieldStyles.section}>
-            <div className={fieldStyles.labelRow}>
-              <label htmlFor={`field-mapping-${field.name}`} className={fieldStyles.sectionLabel}>
-                {field.name}
-              </label>
-            </div>
-            <input
-              id={`field-mapping-${field.name}`}
-              className={fieldStyles.deckInput}
-              value={field.instruction}
-              placeholder={`What goes in ${field.name}?`}
-              onChange={(e) => handleInstructionChange(i, e.target.value)}
-            />
+      <p className={fieldStyles.sectionHint}>
+        Tell the AI what to put in each field of your card template. Leave a field blank to let the AI decide.
+      </p>
+      {mapping.fields.map((field, i) => (
+        <div key={field.name} className={fieldStyles.section}>
+          <div className={fieldStyles.labelRow}>
+            <label htmlFor={`field-mapping-${field.name}`} className={fieldStyles.sectionLabel}>
+              {field.name}
+            </label>
           </div>
-        ))}
-      </details>
+          <input
+            id={`field-mapping-${field.name}`}
+            className={fieldStyles.deckInput}
+            value={field.instruction}
+            placeholder={`What goes in ${field.name}?`}
+            onChange={(e) => handleInstructionChange(i, e.target.value)}
+          />
+        </div>
+      ))}
     </div>
   );
 }

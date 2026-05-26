@@ -160,6 +160,46 @@
   gap: var(--space-2);
 }
 
+.configureRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.configureRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0.625rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.configureRow:first-child {
+  border-top: none;
+}
+
+.configureText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.configureLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+}
+
+.configureSummary {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
 /* segmented control — for binary / small-n option sets */
 .segmented {
   display: inline-flex;
