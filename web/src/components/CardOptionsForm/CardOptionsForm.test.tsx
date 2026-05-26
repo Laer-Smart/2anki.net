@@ -122,6 +122,26 @@ describe('CardOptionsForm premium upsell notice', () => {
     expect(link).toHaveAttribute('href', '/pricing');
   });
 
+  it('hides the notice again when the premium option is disabled', async () => {
+    vi.mocked(getUserLocals).mockResolvedValue({
+      locals: { patreon: false, subscriber: false },
+    } as Awaited<ReturnType<typeof getUserLocals>>);
+    renderForm(true, { onReset: vi.fn(), setError: vi.fn() });
+
+    const toggle = await screen.findByRole('checkbox', { name: aiOptionLabel });
+    fireEvent.click(toggle);
+    expect(
+      await screen.findByRole('link', { name: 'Compare plans' })
+    ).toBeInTheDocument();
+
+    fireEvent.click(toggle);
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('link', { name: 'Compare plans' })
+      ).not.toBeInTheDocument();
+    });
+  });
+
   it('does not show the notice for a paying user', async () => {
     vi.mocked(getUserLocals).mockResolvedValue({
       locals: { patreon: false, subscriber: true },

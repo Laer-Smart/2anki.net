@@ -551,9 +551,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       <div className={fieldStyles.optionGroup} id="pdf-ai">
         <h3 className={fieldStyles.groupHeading}>PDF &amp; AI</h3>
         <p className={fieldStyles.groupIntro}>
-          Everything that shapes how AI turns your content into cards. Toggles take
-          effect right away; select Configure to tune card size, multiple choice,
-          field mapping, and instructions.
+          Everything that shapes how AI turns your content into cards.
         </p>
         <div className={fieldStyles.groupOptions}>
           {pdfAiToggleOptions.map((o: CardOption) => (
@@ -600,7 +598,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           <ConfigureRow
             label="User instructions"
             summary={userInstructionsSummary}
-            hint="Extra guidance the AI follows when it builds cards from a PDF."
+            hint="Extra guidance the AI follows when building cards."
             onConfigure={() => setOpenModal('user-instructions')}
           />
         </div>
@@ -726,7 +724,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                   label={o.label}
                   description={o.description}
                   onChecked={(checked) => toggleCheckbox(o.key, checked)}
-                  badge={PREMIUM_KEYS.has(o.key) ? 'Premium' : undefined}
                 />
               ))}
             </div>
@@ -750,7 +747,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                     label={o.label}
                     description={o.description}
                     onChecked={(checked) => toggleCheckbox(o.key, checked)}
-                    badge={PREMIUM_KEYS.has(o.key) ? 'Premium' : undefined}
                   />
                 ))}
               </div>

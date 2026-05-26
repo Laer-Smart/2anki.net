@@ -9,9 +9,12 @@ interface FontPickerDelegate {
   pickedFontSize: (fs: string) => void;
 }
 
+const MAX_PREVIEW_PX = 56;
+
 function FontSizePicker(delegate: Readonly<FontPickerDelegate>) {
   const { fontSize, pickedFontSize } = delegate;
   const displayValue = fontSize || '20';
+  const previewPx = Math.min(Number(displayValue) || 20, MAX_PREVIEW_PX);
 
   return (
     <div className={styles.flexColumn}>
@@ -41,7 +44,7 @@ function FontSizePicker(delegate: Readonly<FontPickerDelegate>) {
         <span
           aria-hidden
           className={localStyles.previewSample}
-          style={{ fontSize: `${displayValue}px` }}
+          style={{ fontSize: `${previewPx}px` }}
         >
           Sample card text
         </span>
