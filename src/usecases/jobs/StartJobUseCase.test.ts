@@ -82,4 +82,17 @@ describe('StartJobUseCase', () => {
     expect(updateJobStatus).toHaveBeenCalledWith('p1', 'u1', 'started', '');
     expect(restartJob).not.toHaveBeenCalled();
   });
+
+  it('returns the existing job when restartJob yields undefined (lock lost to concurrent restart)', async () => {
+    const existingJob = { id: 1, status: 'done' };
+    const restartJob = jest.fn().mockResolvedValue(undefined);
+    const findJobById = jest.fn().mockResolvedValue(existingJob);
+    const repo = makeRepo({ findJobById, restartJob });
+    const usecase = new StartJobUseCase(repo);
+
+    const result = await usecase.execute({ id: 'p1', owner: 'u1' });
+
+    expect(restartJob).toHaveBeenCalledWith('p1', 'u1');
+    expect(result).toBe(existingJob);
+  });
 });
