@@ -1,5 +1,4 @@
 import { ReactElement, useState } from 'react';
-import { MemoryRouter } from 'react-router-dom';
 import sharedStyles from '../../styles/shared.module.css';
 import previewStyles from '../AccountPreviewPage/AccountPreviewPage.module.css';
 import { ConfigureRow } from '../../components/CardOptionsForm/ConfigureRow';
@@ -131,37 +130,35 @@ export default function CardOptionsPreviewPage() {
   const [activeModal, setActiveModal] = useState<number | null>(null);
 
   return (
-    <MemoryRouter>
-      <div className={previewStyles.outer}>
-        <header className={previewStyles.outerHeader}>
-          <h1 className={sharedStyles.title}>/card-options — PDF &amp; AI variants</h1>
-          <p className={sharedStyles.subtitle}>
-            Visual preview only. Not linked from navigation. Not gated by auth.
-          </p>
-        </header>
+    <div className={previewStyles.outer}>
+      <header className={previewStyles.outerHeader}>
+        <h1 className={sharedStyles.title}>/card-options — PDF &amp; AI variants</h1>
+        <p className={sharedStyles.subtitle}>
+          Visual preview only. Not linked from navigation. Not gated by auth.
+        </p>
+      </header>
 
-        <div className={previewStyles.grid}>
-          {variants.map((variant, index) => (
-            <article key={variant.label} className={previewStyles.variant}>
-              <header className={previewStyles.variantHeader}>
-                <h2 className={previewStyles.variantLabel}>{variant.label}</h2>
-                <p className={previewStyles.variantNote}>{variant.note}</p>
-              </header>
-              <div className={previewStyles.frame}>
-                <button
-                  type="button"
-                  className={sharedStyles.btnSecondary}
-                  onClick={() => setActiveModal(index)}
-                  style={{ margin: '0 1rem 0.75rem' }}
-                >
-                  Open this variant
-                </button>
-                {activeModal === index && variant.render()}
-              </div>
-            </article>
-          ))}
-        </div>
+      <div className={previewStyles.grid}>
+        {variants.map((variant, index) => (
+          <article key={variant.label} className={previewStyles.variant}>
+            <header className={previewStyles.variantHeader}>
+              <h2 className={previewStyles.variantLabel}>{variant.label}</h2>
+              <p className={previewStyles.variantNote}>{variant.note}</p>
+            </header>
+            <div className={previewStyles.frame}>
+              <button
+                type="button"
+                className={sharedStyles.btnSecondary}
+                onClick={() => setActiveModal(index)}
+                style={{ margin: '0 1rem 0.75rem' }}
+              >
+                Open this variant
+              </button>
+              {activeModal === index && variant.render()}
+            </div>
+          </article>
+        ))}
       </div>
-    </MemoryRouter>
+    </div>
   );
 }
