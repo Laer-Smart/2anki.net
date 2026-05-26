@@ -36,6 +36,30 @@
   color: var(--color-text-link);
 }
 
+.heroControls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem auto 0.75rem;
+}
+
+.heroAiBadge {
+  margin: 0;
+}
+
+.cardOptionsLink {
+  flex-shrink: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+
+.cardOptionsLink:hover {
+  text-decoration: underline;
+}
+
 .heroFooter {
   display: flex;
   align-items: center;

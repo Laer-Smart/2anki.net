@@ -34,6 +34,7 @@ import type { FieldMapping } from '../../lib/cardFields/types';
 interface Props {
   pageTitle?: string | null;
   pageId: string | null;
+  isLoggedIn?: boolean;
   onSaved?: (event?: SyntheticEvent) => void;
   onReset?: () => void;
   setError: ErrorHandlerType;
@@ -161,6 +162,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     {
       pageTitle,
       pageId,
+      isLoggedIn = true,
       onSaved,
       onReset,
       setError,
@@ -402,7 +404,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     const resetStore = async () => {
       if (pageId) {
         await get2ankiApi().deleteSettings(pageId);
-      } else {
+      } else if (isLoggedIn) {
         try {
           await get2ankiApi().resetUserCardOptions();
         } catch {

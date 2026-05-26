@@ -16,6 +16,7 @@ const NON_AUTH_PATHS = [
   '/users/r/',
   '/auth/magic',
   '/upload',
+  '/card-options',
   '/pricing',
   '/about',
   '/contact',

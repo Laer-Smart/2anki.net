@@ -4,10 +4,27 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 
 import CardOptionsPage from './CardOptionsPage';
+import { useUserLocals } from '../../lib/hooks/useUserLocals';
 
 vi.mock('../../lib/backend/get2ankiApi', () => ({
   get2ankiApi: () => mockApi,
 }));
+
+vi.mock('../../lib/hooks/useUserLocals', () => ({
+  useUserLocals: vi.fn(),
+}));
+
+const mockUseUserLocals = vi.mocked(useUserLocals);
+
+function setLoggedIn(loggedIn: boolean) {
+  mockUseUserLocals.mockReturnValue({
+    data: loggedIn ? ({ user: { id: 42 } } as never) : undefined,
+    isLoading: false,
+    error: null,
+    isError: !loggedIn,
+    refetch: vi.fn(),
+  });
+}
 
 const cardOptionsFormProps = vi.fn();
 vi.mock('../../components/CardOptionsForm/CardOptionsForm', () => ({
@@ -43,6 +60,7 @@ describe('CardOptionsPage per-page list', () => {
     vi.clearAllMocks();
     cardOptionsFormProps.mockClear();
     mockNavigate.mockClear();
+    setLoggedIn(true);
     mockApi.listSettings.mockResolvedValue({ items: [] });
     mockApi.deleteSettings.mockResolvedValue(undefined);
     mockApi.deleteRules.mockResolvedValue(undefined);
@@ -55,6 +73,37 @@ describe('CardOptionsPage per-page list', () => {
       expect(screen.getByTestId('card-options-form')).toBeInTheDocument();
     });
     expect(screen.queryByText('Pages with custom settings')).not.toBeInTheDocument();
+  });
+
+  it('renders the form and a device-local notice for anonymous users', async () => {
+    setLoggedIn(false);
+    renderPage();
+    await waitFor(() => {
+      expect(screen.getByTestId('card-options-form')).toBeInTheDocument();
+    });
+    expect(
+      screen.getByText(/Your settings are saved on this device/i)
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute(
+      'href',
+      '/login?redirect=/card-options'
+    );
+    expect(cardOptionsFormProps).toHaveBeenCalledWith(
+      expect.objectContaining({ isLoggedIn: false })
+    );
+  });
+
+  it('omits the device-local notice for logged-in users', async () => {
+    renderPage();
+    await waitFor(() => {
+      expect(screen.getByTestId('card-options-form')).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByText(/Your settings are saved on this device/i)
+    ).not.toBeInTheDocument();
+    expect(cardOptionsFormProps).toHaveBeenCalledWith(
+      expect.objectContaining({ isLoggedIn: true })
+    );
   });
 
   it('shows the pages section with empty state when arriving from /notion', async () => {

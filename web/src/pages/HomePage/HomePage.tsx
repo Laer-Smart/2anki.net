@@ -131,18 +131,30 @@ export function HomePage({
         <p className={styles.heroSubtitle}>
           Drop a Notion page and get a deck you don&apos;t have to fix — proper cloze, atomic cards, the right note types. PDF, Quizlet, Markdown, HTML, and CSV too.
         </p>
-        <div className={sharedStyles.aiOffBadge} role="status">
-          <span className={sharedStyles.badgeWarning}>AI is off</span>
-          <span className={sharedStyles.aiOffBadgeBody}>
-            {' '}
-            <Link
-              to="/register?redirect=/card-options"
-              onClick={() => track('home_ai_anon_badge_clicked')}
-            >
-              Create an account to turn it on
-            </Link>
-            .
-          </span>
+        <div className={styles.heroControls}>
+          <div
+            className={`${sharedStyles.aiOffBadge} ${styles.heroAiBadge}`}
+            role="status"
+          >
+            <span className={sharedStyles.badgeWarning}>AI is off</span>
+            <span className={sharedStyles.aiOffBadgeBody}>
+              {' '}
+              <Link
+                to="/register?redirect=/card-options"
+                onClick={() => track('home_ai_anon_badge_clicked')}
+              >
+                Create an account to turn it on
+              </Link>
+              .
+            </span>
+          </div>
+          <Link
+            to="/card-options"
+            className={styles.cardOptionsLink}
+            onClick={() => track('home_card_options_link_clicked')}
+          >
+            Card options
+          </Link>
         </div>
         <UploadForm setErrorMessage={setErrorMessage} />
       </section>
