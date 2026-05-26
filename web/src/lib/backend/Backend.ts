@@ -431,11 +431,11 @@ export class Backend {
     await post(`${this.baseURL}users/debug/ankify-welcome-seen`, {});
   }
 
-  async startAutoSyncCheckout(): Promise<
+  async startAutoSyncCheckout(variant?: string): Promise<
     { url: string } | { status: 'cap_reached' | 'already_subscribed' | 'error' }
   > {
     try {
-      const response = await post(`${this.baseURL}checkout/auto-sync`, {});
+      const response = await post(`${this.baseURL}checkout/auto-sync`, { variant });
       if (response.status === 404) {
         return { status: 'cap_reached' };
       }
@@ -461,10 +461,11 @@ export class Backend {
   }
 
   async startUnlimitedCheckout(
-    interval: 'month' | 'year'
+    interval: 'month' | 'year',
+    variant?: string
   ): Promise<{ url: string } | { status: 'unavailable' | 'error' }> {
     try {
-      const response = await post(`${this.baseURL}checkout/unlimited`, { interval });
+      const response = await post(`${this.baseURL}checkout/unlimited`, { interval, variant });
       if (response.status === 503) {
         return { status: 'unavailable' };
       }
@@ -484,11 +485,12 @@ export class Backend {
   }
 
   async startPassCheckout(
-    kind: '24h' | '7d'
+    kind: '24h' | '7d',
+    variant?: string
   ): Promise<{ url: string } | { status: 'unavailable' | 'error' }> {
     const path = kind === '24h' ? 'checkout/pass/24h' : 'checkout/pass/7d';
     try {
-      const response = await post(`${this.baseURL}${path}`, {});
+      const response = await post(`${this.baseURL}${path}`, { variant });
       if (response.status === 503) {
         return { status: 'unavailable' };
       }

@@ -17,6 +17,7 @@ import UsersService from '../services/UsersService';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { PersistStripeSessionUseCase } from '../usecases/checkout/PersistStripeSessionUseCase';
 import hashToken from '../lib/misc/hashToken';
+import { track } from '../services/events/track';
 import AbandonedCheckoutRecoveryRepository from '../data_layer/AbandonedCheckoutRecoveryRepository';
 import { SendAbandonedCheckoutRecoveryOnExpiryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryOnExpiryUseCase';
 import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepository';
@@ -200,6 +201,20 @@ const WebhooksRouter = () => {
           const session: StripeTypes.Checkout.Session = event.data.object;
           const sessionMeta = (session.metadata ?? {}) as Record<string, string>;
           const passKind = sessionMeta.pass_kind as PassKind | undefined;
+
+          const pricingVariant = sessionMeta.pricing_variant;
+          if (pricingVariant != null && pricingVariant !== '') {
+            const userIdMeta = Number.parseInt(sessionMeta.user_id ?? '', 10);
+            track('checkout_completed', {
+              userId: Number.isNaN(userIdMeta) ? null : userIdMeta,
+              props: {
+                variant: pricingVariant,
+                plan:
+                  passKind ??
+                  (session.mode === 'subscription' ? 'subscription' : 'payment'),
+              },
+            });
+          }
 
           if (passKind === '24h' || passKind === '7d') {
             const paymentIntentId = typeof session.payment_intent === 'string'

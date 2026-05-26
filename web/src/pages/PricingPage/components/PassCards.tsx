@@ -3,10 +3,11 @@ import styles from '../PricingPage.module.css';
 
 const PASS_BENEFITS = [
   'No subscription',
-  'Unlimited conversions',
-  'All upload formats — Notion, .zip, .html, .md, .csv, .pdf, .docx, .epub, and more',
-  'Image occlusion',
-  'Custom card templates',
+  'Unlimited cards and conversions',
+  'AI flashcards & photo-to-deck',
+  'Every file format — PDF, Word, EPUB, and more',
+  'Native .apkg — works in any Anki client',
+  'Unlimited image occlusion',
   'No ads',
 ];
 
@@ -15,6 +16,7 @@ interface PassCardsProps {
   onWeekPass: () => void;
   dayPassPending: boolean;
   weekPassPending: boolean;
+  featureDayPass?: boolean;
 }
 
 export function PassCards({
@@ -22,32 +24,30 @@ export function PassCards({
   onWeekPass,
   dayPassPending,
   weekPassPending,
+  featureDayPass = true,
 }: Readonly<PassCardsProps>) {
   return (
     <div className={styles.passGrid}>
       <PricingCard
         title="Day Pass"
-        badge="Pay once"
-        badgeMuted
+        badge={featureDayPass ? 'Most popular' : 'Pay once'}
+        badgeMuted={!featureDayPass}
         price="$4"
         priceSuffix="— 24 hours"
         benefits={PASS_BENEFITS}
         onAction={onDayPass}
         actionLabel={dayPassPending ? 'Redirecting…' : 'Get Day Pass'}
         actionDisabled={dayPassPending}
-        variant="outline"
+        className={featureDayPass ? styles.cardPro : undefined}
       />
       <PricingCard
         title="Week Pass"
-        badge="Pay once"
-        badgeMuted
         price="$9"
         priceSuffix="— 1 week"
         benefits={PASS_BENEFITS}
         onAction={onWeekPass}
         actionLabel={weekPassPending ? 'Redirecting…' : 'Get Week Pass'}
         actionDisabled={weekPassPending}
-        variant="outline"
       />
     </div>
   );

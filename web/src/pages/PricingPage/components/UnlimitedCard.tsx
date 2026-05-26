@@ -7,6 +7,7 @@ interface UnlimitedCardProps {
   yearlyAvailable: boolean;
   onUpgrade: () => void;
   pending: boolean;
+  featured?: boolean;
 }
 
 function CheckIcon() {
@@ -30,6 +31,8 @@ function CheckIcon() {
 
 const BENEFITS = [
   'Unlimited flashcards',
+  'Native .apkg — works in any Anki client',
+  'AI flashcards, photo-to-deck, and chat',
   'Run multiple conversions at once',
   'PDFs and large Notion exports',
   'Unlimited Anki → Notion imports',
@@ -44,14 +47,15 @@ export function UnlimitedCard({
   yearlyAvailable,
   onUpgrade,
   pending,
+  featured = false,
 }: Readonly<UnlimitedCardProps>) {
   const isYearly = billingCycle === 'year';
   const price = isYearly ? '$60' : '$6';
   const priceSuffix = isYearly ? '/ yr' : '/ mo';
 
   return (
-    <div className={`${styles.card} ${styles.cardPro}`}>
-      <span className={styles.cardBadge}>Most popular</span>
+    <div className={featured ? `${styles.card} ${styles.cardPro}` : styles.card}>
+      {featured && <span className={styles.cardBadge}>Most popular</span>}
       <div className={styles.cardHeader}>
         <p className={styles.cardTitle}>Unlimited</p>
         {yearlyAvailable && (
@@ -103,7 +107,7 @@ export function UnlimitedCard({
           onClick={onUpgrade}
           disabled={pending}
         >
-          {pending ? 'Starting checkout' : 'Upgrade'}
+          {pending ? 'Starting checkout' : 'Get Unlimited'}
         </button>
       </div>
     </div>

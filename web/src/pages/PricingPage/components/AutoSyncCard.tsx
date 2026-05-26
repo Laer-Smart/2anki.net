@@ -95,7 +95,7 @@ export function AutoSyncCard({
       badgeMuted
       benefits={AUTO_SYNC_BENEFITS}
       onAction={onSubscribe}
-      actionLabel="Subscribe"
+      actionLabel="Get Auto Sync"
       variant="outline"
       caption={caption}
       learnMoreHref={LEARN_MORE_HREF}

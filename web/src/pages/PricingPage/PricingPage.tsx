@@ -6,13 +6,18 @@ import { firePaywallEvent } from '../../lib/analytics/firePaywallEvent';
 import { track } from '../../lib/analytics/track';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
+import { usePricingOrderVariant } from '../../lib/hooks/usePricingOrderVariant';
 import { getVisibleText } from '../../lib/text/getVisibleText';
 import { AutoSyncCard } from './components/AutoSyncCard';
+import { ComparisonTable } from './components/ComparisonTable';
+import { FeatureGrid } from './components/FeatureGrid';
 import { PassCards } from './components/PassCards';
 import { PricingCard } from './components/PricingCard';
+import { PricingFaq } from './components/PricingFaq';
 import { UnlimitedCard } from './components/UnlimitedCard';
 import styles from './PricingPage.module.css';
-import { getLifetimeLink, PASS_PRICES } from './payment.links';
+import { getLifetimeLink } from './payment.links';
+import { PRICING_FAQ } from './pricingFaq';
 import {
   AUTO_SYNC_LAUNCH_DATE,
   AUTO_SYNC_NEW_CHIP_DAYS,
@@ -87,6 +92,7 @@ export default function PricingPage({
   const enteredAtRef = useRef(Date.now());
   const shownFiredRef = useRef(false);
   const cardUsage = useCardUsage(true);
+  const pricingOrder = usePricingOrderVariant();
   const quotaRemaining =
     cardUsage != null && !cardUsage.loading
       ? cardUsage.cards_limit - cardUsage.cards_used
@@ -114,10 +120,14 @@ export default function PricingPage({
     shownFiredRef.current = true;
     const props =
       quotaRemaining == null
-        ? { surface: 'pricing_page' as const }
-        : { surface: 'pricing_page' as const, quota_remaining: quotaRemaining };
+        ? { surface: 'pricing_page' as const, variant: pricingOrder }
+        : {
+            surface: 'pricing_page' as const,
+            quota_remaining: quotaRemaining,
+            variant: pricingOrder,
+          };
     track('paywall_shown', props);
-  }, [cardUsage, quotaRemaining]);
+  }, [cardUsage, quotaRemaining, pricingOrder]);
 
   useEffect(() => {
     const enteredAt = enteredAtRef.current;
@@ -162,9 +172,9 @@ export default function PricingPage({
       globalThis.location.href = '/login?redirect=/pricing';
       return;
     }
-    track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'auto_sync' });
+    track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'auto_sync', variant: pricingOrder });
     setSubscribeError(null);
-    const result = await get2ankiApi().startAutoSyncCheckout();
+    const result = await get2ankiApi().startAutoSyncCheckout(pricingOrder);
     if ('url' in result) {
       globalThis.location.href = result.url;
       return;
@@ -205,13 +215,14 @@ export default function PricingPage({
     track('paywall_upgrade_clicked', {
       surface: 'pricing_page',
       plan: kind === '24h' ? 'day_pass' : 'week_pass',
+      variant: pricingOrder,
     });
     if (kind === '24h') {
       setDayPassState('pending');
     } else {
       setWeekPassState('pending');
     }
-    const result = await get2ankiApi().startPassCheckout(kind);
+    const result = await get2ankiApi().startPassCheckout(kind, pricingOrder);
     if ('url' in result) {
       globalThis.location.href = result.url;
       return;
@@ -228,9 +239,9 @@ export default function PricingPage({
       globalThis.location.href = '/login?redirect=/pricing';
       return;
     }
-    track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'unlimited' });
+    track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'unlimited', variant: pricingOrder });
     setUnlimitedPending(true);
-    const result = await get2ankiApi().startUnlimitedCheckout(billingCycle);
+    const result = await get2ankiApi().startUnlimitedCheckout(billingCycle, pricingOrder);
     if ('url' in result) {
       globalThis.location.href = result.url;
       return;
@@ -258,49 +269,70 @@ export default function PricingPage({
   const pricingFaqJsonLd = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: 'How many cards can I make for free?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: '100 cards per month on the free plan. No account required for one-off conversions — drop a file and download a deck.',
-        },
+    mainEntity: PRICING_FAQ.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
       },
-      {
-        '@type': 'Question',
-        name: 'What is the Unlimited plan?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Unlimited is $6 per month. It removes the 100-card limit, adds PDF support, lets you run multiple conversions at once, and includes unlimited Anki to Notion imports.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'What is Auto Sync?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Auto Sync is $30 per month. Connect your Notion workspace once and 2anki checks your pages every 5 minutes. Edits in Notion flow into your Anki decks automatically — no exports, no manual steps.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'Is there a one-time payment option?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Yes — Lifetime starts at $345, paid once. It includes all Unlimited features plus Auto Sync. Apply on the pricing page; access is granted by review.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: 'What is a Day Pass or Week Pass?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: `Day Pass (${PASS_PRICES['24h']}) gives 24 hours of unlimited access. Week Pass (${PASS_PRICES['7d']}) gives 7 days. Both are one-time payments, no subscription required.`,
-        },
-      },
-    ],
+    })),
   });
+
+  const unlimitedFirst = pricingOrder === 'unlimited-first';
+  const minimalHeader = pricingOrder === 'minimal';
+
+  const passCards = (
+    <PassCards
+      onDayPass={() => handlePassCheckout('24h')}
+      onWeekPass={() => handlePassCheckout('7d')}
+      dayPassPending={dayPassState === 'pending'}
+      weekPassPending={weekPassState === 'pending'}
+      featureDayPass={!unlimitedFirst}
+    />
+  );
+
+  const monthlyPlans = (
+    <div className={styles.anchorGrid}>
+      <UnlimitedCard
+        isLoggedIn={isLoggedIn}
+        billingCycle={billingCycle}
+        onBillingCycleChange={setBillingCycle}
+        yearlyAvailable={unlimitedYearlyAvailable}
+        onUpgrade={handleUnlimitedUpgrade}
+        pending={unlimitedPending}
+        featured={unlimitedFirst}
+      />
+
+      <AutoSyncCard
+        showNewBadge={showAutoSyncNew}
+        isLifetime={isLifetime}
+        isActive={autoSyncActive}
+        capReached={showCapReached}
+        caption={autoSyncCaptionText}
+        waitlistLabel={waitlistLabel}
+        waitlistDisabled={
+          waitlistState === 'pending' || waitlistState === 'sent'
+        }
+        onSubscribe={handleAutoSyncSubscribe}
+        onWaitlist={handleWaitlistRequest}
+      />
+    </div>
+  );
+
+  const passesSection = (
+    <>
+      <p className={styles.sectionLabel}>Pay once — no subscription</p>
+      {passCards}
+    </>
+  );
+
+  const monthlySection = (
+    <>
+      <p className={styles.sectionLabel}>Monthly plans</p>
+      {monthlyPlans}
+    </>
+  );
 
   return (
     <div className={styles.page}>
@@ -308,10 +340,12 @@ export default function PricingPage({
         <script type="application/ld+json">{pricingFaqJsonLd}</script>
       </Helmet>
       <div className={styles.header}>
-        <p className={styles.kicker}>
-          <span className={styles.kickerDot} aria-hidden="true" />
-          <span>Plans</span>
-        </p>
+        {!minimalHeader && (
+          <p className={styles.kicker}>
+            <span className={styles.kickerDot} aria-hidden="true" />
+            <span>Plans</span>
+          </p>
+        )}
         <h1 className={styles.title}>{getVisibleText('pricing.page.title')}</h1>
         <TopMessage />
         {showContextBanner && (
@@ -324,22 +358,27 @@ export default function PricingPage({
             Auto Sync sends any deck straight to your Anki — no downloading, no importing.
           </div>
         )}
-        <p className={styles.intro}>
-          {isUS
-            ? 'Built for spaced repetition — MCAT, USMLE, bar exam, and language prep. 100 cards a month free, plus Anki → Notion imports up to 1,000 notes each.'
-            : 'Free for everyone — 100 cards per month, plus Anki → Notion imports up to 1,000 notes each.'}
-          {!isLoggedIn && (
-            <>
-              {' '}
-              <a href="/register" className={styles.introLink}>
-                Start free{' '}
-                <span className={styles.introArrow} aria-hidden="true">
-                  →
-                </span>
-              </a>
-            </>
-          )}
-        </p>
+        {!minimalHeader && (
+          <p className={styles.intro}>
+            {isUS
+              ? 'Built for spaced repetition — MCAT, USMLE, bar exam, and language prep. Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start.'
+              : 'Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start. Free for 100 cards per month, then pay once by the day or week.'}
+            {!isLoggedIn && (
+              <>
+                {' '}
+                <a href="/register" className={styles.introLink}>
+                  Start free{' '}
+                  <span className={styles.introArrow} aria-hidden="true">
+                    →
+                  </span>
+                </a>
+              </>
+            )}
+          </p>
+        )}
+        {!minimalHeader && (
+          <p className={styles.socialProof}>Trusted by 19,000+ learners worldwide</p>
+        )}
       </div>
 
       {showTrialCta && (
@@ -357,39 +396,17 @@ export default function PricingPage({
         </div>
       )}
 
-      <p className={styles.sectionLabel}>Monthly plans</p>
-      <div className={styles.anchorGrid}>
-        <UnlimitedCard
-          isLoggedIn={isLoggedIn}
-          billingCycle={billingCycle}
-          onBillingCycleChange={setBillingCycle}
-          yearlyAvailable={unlimitedYearlyAvailable}
-          onUpgrade={handleUnlimitedUpgrade}
-          pending={unlimitedPending}
-        />
-
-        <AutoSyncCard
-          showNewBadge={showAutoSyncNew}
-          isLifetime={isLifetime}
-          isActive={autoSyncActive}
-          capReached={showCapReached}
-          caption={autoSyncCaptionText}
-          waitlistLabel={waitlistLabel}
-          waitlistDisabled={
-            waitlistState === 'pending' || waitlistState === 'sent'
-          }
-          onSubscribe={handleAutoSyncSubscribe}
-          onWaitlist={handleWaitlistRequest}
-        />
-      </div>
-
-      <p className={styles.sectionLabel}>Pay once — no subscription</p>
-      <PassCards
-        onDayPass={() => handlePassCheckout('24h')}
-        onWeekPass={() => handlePassCheckout('7d')}
-        dayPassPending={dayPassState === 'pending'}
-        weekPassPending={weekPassState === 'pending'}
-      />
+      {unlimitedFirst ? (
+        <>
+          {monthlySection}
+          {passesSection}
+        </>
+      ) : (
+        <>
+          {passesSection}
+          {monthlySection}
+        </>
+      )}
 
       <p className={styles.sectionLabel}>One-time payment</p>
       <div className={styles.grid}>
@@ -404,7 +421,7 @@ export default function PricingPage({
             'No future price changes',
           ]}
           link={lifetimeLink}
-          linkText="Apply"
+          linkText="Request Lifetime"
           variant="outline"
           caption="Reply within 24 hours."
         />
@@ -413,6 +430,17 @@ export default function PricingPage({
       <p className={styles.pricesNote}>
         Prices in USD. Your card is charged in your local currency at checkout.
       </p>
+
+      <ul className={styles.reassurance}>
+        <li>Cancel anytime — one click</li>
+        <li>Your decks are yours — native .apkg, works in any Anki client</li>
+      </ul>
+
+      <FeatureGrid />
+
+      <ComparisonTable />
+
+      <PricingFaq />
 
       <p className={styles.philosophy}>
         Free works forever. Paid plans support 2anki.net.

@@ -33,6 +33,20 @@ vi.mock('../../lib/hooks/useCardUsage', () => ({
   useCardUsage: () => mockUseCardUsage(),
 }));
 
+const { mockPricingVariant } = vi.hoisted(() => ({
+  mockPricingVariant: {
+    current: 'passes-first' as 'passes-first' | 'unlimited-first' | 'minimal',
+  },
+}));
+
+vi.mock('../../lib/hooks/usePricingOrderVariant', () => ({
+  usePricingOrderVariant: () => mockPricingVariant.current,
+}));
+
+beforeEach(() => {
+  mockPricingVariant.current = 'passes-first';
+});
+
 type AnalyticsGlobals = {
   hj?: ReturnType<typeof vi.fn>;
   gtag?: ReturnType<typeof vi.fn>;
@@ -48,25 +62,28 @@ const renderAt = (path: string, props: Partial<Parameters<typeof PricingPage>[0]
 describe('PricingPage Unlimited benefits', () => {
   it('lists parallel conversions as a benefit', () => {
     renderAt('/pricing');
-    expect(screen.getByText('Run multiple conversions at once')).toBeInTheDocument();
+    expect(
+      screen.getAllByText('Run multiple conversions at once').length
+    ).toBeGreaterThan(0);
   });
 
-  it('shows Most popular badge on Unlimited card', () => {
+  it('features the Day Pass with the Most popular badge', () => {
     renderAt('/pricing');
     expect(screen.getByText('Most popular')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeInTheDocument();
   });
 });
 
 describe('PricingPage layout', () => {
   it('renders Unlimited and Auto Sync cards', () => {
     renderAt('/pricing');
-    expect(screen.getByText('Unlimited')).toBeInTheDocument();
-    expect(screen.getByText('Auto Sync')).toBeInTheDocument();
+    expect(screen.getAllByText('Unlimited').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Auto Sync').length).toBeGreaterThan(0);
   });
 
   it('shows Lifetime card with From $345 price', () => {
     renderAt('/pricing');
-    expect(screen.getByText('From $345')).toBeInTheDocument();
+    expect(screen.getAllByText('From $345').length).toBeGreaterThan(0);
   });
 
   it('shows the Pay once section label', () => {
@@ -84,11 +101,55 @@ describe('PricingPage layout', () => {
     expect(screen.getByText('One-time payment')).toBeInTheDocument();
   });
 
-  it('shows Day Pass and Week Pass as full cards without an accordion', () => {
-    const { container } = renderAt('/pricing');
+  it('leads with the pay-once passes above the monthly plans', () => {
+    renderAt('/pricing');
+    const passLabel = screen.getByText('Pay once — no subscription');
+    const monthlyLabel = screen.getByText('Monthly plans');
+    expect(
+      passLabel.compareDocumentPosition(monthlyLabel) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('leads with the monthly plans when the variant is unlimited-first', () => {
+    mockPricingVariant.current = 'unlimited-first';
+    renderAt('/pricing');
+    const monthlyLabel = screen.getByText('Monthly plans');
+    const passLabel = screen.getByText('Pay once — no subscription');
+    expect(
+      monthlyLabel.compareDocumentPosition(passLabel) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(screen.getByText('Most popular')).toBeInTheDocument();
+  });
+
+  it('drops the kicker, intro, and social proof in the minimal variant', () => {
+    mockPricingVariant.current = 'minimal';
+    renderAt('/pricing');
+    expect(screen.queryByText('Plans')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Trusted by 19,000+ learners worldwide')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/no account needed to start/)
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeInTheDocument();
+  });
+
+  it('shows the risk-reversal reassurance strip', () => {
+    renderAt('/pricing');
+    expect(screen.getByText('Cancel anytime — one click')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Your decks are yours — native .apkg, works in any Anki client'
+      )
+    ).toBeInTheDocument();
+  });
+
+  it('shows Day Pass and Week Pass as full cards with visible buttons', () => {
+    renderAt('/pricing');
     expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Get Week Pass' })).toBeInTheDocument();
-    expect(container.querySelector('details')).toBeNull();
   });
 
   it('shows philosophy line', () => {
@@ -96,6 +157,33 @@ describe('PricingPage layout', () => {
     expect(
       screen.getByText('Free works forever. Paid plans support 2anki.net.')
     ).toBeInTheDocument();
+  });
+
+  it('shows the social-proof line under the hero', () => {
+    renderAt('/pricing');
+    expect(screen.getByText('Trusted by 19,000+ learners worldwide')).toBeInTheDocument();
+  });
+
+  it('renders the feature overview grid', () => {
+    renderAt('/pricing');
+    expect(
+      screen.getByRole('heading', { name: 'Everything 2anki does' })
+    ).toBeInTheDocument();
+  });
+
+  it('renders the plan comparison table', () => {
+    renderAt('/pricing');
+    expect(
+      screen.getByRole('heading', { name: 'Compare every plan' })
+    ).toBeInTheDocument();
+  });
+
+  it('renders the FAQ section with visible questions', () => {
+    renderAt('/pricing');
+    expect(
+      screen.getByRole('heading', { name: 'Questions & answers' })
+    ).toBeInTheDocument();
+    expect(screen.getByText('What is Auto Sync?')).toBeInTheDocument();
   });
 });
 
@@ -132,7 +220,7 @@ describe('PricingPage paywall telemetry', () => {
 describe('PricingPage Auto Sync card', () => {
   it('shows Subscribe button for logged-in free user', () => {
     renderAt('/pricing', { isLoggedIn: true });
-    expect(screen.getByRole('button', { name: 'Subscribe' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Get Auto Sync' })).toBeInTheDocument();
   });
 
   it('shows New — built for Notion badge when Auto Sync is new', () => {
@@ -148,7 +236,7 @@ describe('PricingPage Auto Sync card', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: false });
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
 
     Object.defineProperty(globalThis, 'location', {
@@ -188,7 +276,7 @@ describe('PricingPage Auto Sync card', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
 
     await waitFor(() => {
       expect(
@@ -206,7 +294,7 @@ describe('PricingPage Auto Sync card', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
 
     await waitFor(() => {
       expect(globalThis.location.href).toBe('/ankify/setup');
@@ -228,7 +316,7 @@ describe('PricingPage Auto Sync card', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
 
     await waitFor(() => {
       expect(mockStartAutoSyncCheckout).toHaveBeenCalled();
@@ -250,14 +338,13 @@ describe('PricingPage pricing honesty', () => {
     expect(screen.queryByText(/anki desktop in your browser/i)).not.toBeInTheDocument();
   });
 
-  it('shows the 1,000-note cap on the free-plan import bullet (US copy)', () => {
-    renderAt('/pricing', { signupCountry: 'US' });
-    expect(screen.getByText(/1,000 notes/)).toBeInTheDocument();
-  });
-
-  it('shows the 1,000-note cap on the free-plan import bullet (non-US copy)', () => {
-    renderAt('/pricing', { signupCountry: 'DE' });
-    expect(screen.getByText(/1,000 notes/)).toBeInTheDocument();
+  it('shows the accurate Anki → Notion note caps (1,000 free / 5,000 paid)', () => {
+    renderAt('/pricing');
+    expect(
+      screen.getByRole('row', { name: /Anki → Notion notes/ })
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('1,000').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('5,000').length).toBeGreaterThan(0);
   });
 });
 
@@ -273,7 +360,7 @@ describe('PricingPage internal event tracking', () => {
 
     renderAt('/pricing');
 
-    expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'pricing_page' });
+    expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'pricing_page', variant: 'passes-first' });
   });
 
   it('tracks paywall_upgrade_clicked with plan=auto_sync when Subscribe is clicked', async () => {
@@ -284,12 +371,13 @@ describe('PricingPage internal event tracking', () => {
     Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Subscribe' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
 
     await waitFor(() => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
         surface: 'pricing_page',
         plan: 'auto_sync',
+        variant: 'passes-first',
       });
     });
   });
@@ -308,6 +396,7 @@ describe('PricingPage internal event tracking', () => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
         surface: 'pricing_page',
         plan: 'day_pass',
+        variant: 'passes-first',
       });
     });
   });
@@ -326,6 +415,7 @@ describe('PricingPage internal event tracking', () => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
         surface: 'pricing_page',
         plan: 'week_pass',
+        variant: 'passes-first',
       });
     });
   });
@@ -338,12 +428,13 @@ describe('PricingPage internal event tracking', () => {
     Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
         surface: 'pricing_page',
         plan: 'unlimited',
+        variant: 'passes-first',
       });
     });
   });
@@ -395,6 +486,7 @@ describe('PricingPage quota_remaining in paywall_shown', () => {
     expect(trackMock).toHaveBeenCalledWith('paywall_shown', {
       surface: 'pricing_page',
       quota_remaining: 40,
+      variant: 'passes-first',
     });
   });
 
@@ -406,7 +498,7 @@ describe('PricingPage quota_remaining in paywall_shown', () => {
 
     renderAt('/pricing');
 
-    expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'pricing_page' });
+    expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'pricing_page', variant: 'passes-first' });
   });
 });
 
@@ -444,10 +536,10 @@ describe('PricingPage Unlimited billing toggle', () => {
     Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
 
     renderAt('/pricing', { isLoggedIn: true, unlimitedYearlyAvailable: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {
-      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('month');
+      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('month', 'passes-first');
     });
   });
 
@@ -457,17 +549,17 @@ describe('PricingPage Unlimited billing toggle', () => {
 
     renderAt('/pricing', { isLoggedIn: true, unlimitedYearlyAvailable: true });
     fireEvent.click(screen.getByRole('radio', { name: 'Yearly' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {
-      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('year');
+      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('year', 'passes-first');
     });
   });
 
   it('redirects to login when logged-out user clicks Upgrade', () => {
     Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
     renderAt('/pricing', { isLoggedIn: false, unlimitedYearlyAvailable: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Upgrade' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
   });
 });
