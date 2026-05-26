@@ -9,6 +9,7 @@ import { useCardUsage } from '../../lib/hooks/useCardUsage';
 import { getVisibleText } from '../../lib/text/getVisibleText';
 import { AutoSyncCard } from './components/AutoSyncCard';
 import { ComparisonTable } from './components/ComparisonTable';
+import { FeatureGrid } from './components/FeatureGrid';
 import { PassCards } from './components/PassCards';
 import { PricingCard } from './components/PricingCard';
 import { PricingFaq } from './components/PricingFaq';
@@ -295,8 +296,8 @@ export default function PricingPage({
         )}
         <p className={styles.intro}>
           {isUS
-            ? 'Built for spaced repetition — MCAT, USMLE, bar exam, and language prep. 100 cards a month free, plus Anki → Notion imports up to 1,000 notes each.'
-            : 'Free for everyone — 100 cards per month, plus Anki → Notion imports up to 1,000 notes each.'}
+            ? 'Built for spaced repetition — MCAT, USMLE, bar exam, and language prep. Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start.'
+            : 'Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start. Free for 100 cards per month, then pay once by the day or week.'}
           {!isLoggedIn && (
             <>
               {' '}
@@ -382,6 +383,8 @@ export default function PricingPage({
       <p className={styles.pricesNote}>
         Prices in USD. Your card is charged in your local currency at checkout.
       </p>
+
+      <FeatureGrid />
 
       <ComparisonTable />
 

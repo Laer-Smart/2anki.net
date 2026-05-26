@@ -19,26 +19,38 @@ interface Group {
 
 const GROUPS: Group[] = [
   {
-    name: 'Usage',
+    name: 'Conversion limits',
     rows: [
       { label: 'Cards per month', values: ['100', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
-      { label: 'Run multiple conversions at once', values: [false, true, true, true, true] },
-      { label: 'Anki → Notion imports', values: ['1,000 / mo', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
+      { label: 'Conversions at once', values: ['1', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
+      { label: 'PDF pages per file', values: ['100', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
+      { label: 'Max upload size', values: ['100 MB', '10 GB', '10 GB', '10 GB', '10 GB'] },
+      { label: 'Anki → Notion notes', values: ['1,000', '5,000', '5,000', '5,000', '5,000'] },
     ],
   },
   {
-    name: 'Cards & formats',
+    name: 'AI (Claude)',
     rows: [
-      { label: 'PDF and large Notion exports', values: [false, true, true, true, true] },
-      { label: 'Image occlusion', values: [false, true, true, true, true] },
-      { label: 'Custom card templates', values: [false, true, true, true, true] },
+      { label: 'AI flashcards from PDFs and docs', values: [false, true, true, true, true] },
+      { label: 'Photo to deck (Claude Vision)', values: ['5 / mo', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
+      { label: 'AI multiple choice (MCQ)', values: [false, true, true, true, true] },
+      { label: 'AI card-template drafting', values: ['3', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
+    ],
+  },
+  {
+    name: 'Study tools',
+    rows: [
+      { label: 'Image occlusion', values: ['3 images', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
+      { label: 'Mind maps', values: ['3', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
+      { label: 'Prints to PDF', values: ['1 / mo', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
+    ],
+  },
+  {
+    name: 'Sync & support',
+    rows: [
+      { label: 'Auto Sync from Notion', values: [false, false, false, true, true] },
       { label: 'No ads', values: [false, true, true, true, true] },
-    ],
-  },
-  {
-    name: 'Notion sync',
-    rows: [
-      { label: 'Auto Sync every 5 minutes', values: [false, false, false, true, true] },
+      { label: 'Priority support', values: [false, false, true, true, true] },
     ],
   },
   {

@@ -110,6 +110,13 @@ describe('PricingPage layout', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders the feature overview grid', () => {
+    renderAt('/pricing');
+    expect(
+      screen.getByRole('heading', { name: 'Everything 2anki does' })
+    ).toBeInTheDocument();
+  });
+
   it('renders the plan comparison table', () => {
     renderAt('/pricing');
     expect(
@@ -277,14 +284,13 @@ describe('PricingPage pricing honesty', () => {
     expect(screen.queryByText(/anki desktop in your browser/i)).not.toBeInTheDocument();
   });
 
-  it('shows the 1,000-note cap on the free-plan import bullet (US copy)', () => {
-    renderAt('/pricing', { signupCountry: 'US' });
-    expect(screen.getByText(/1,000 notes/)).toBeInTheDocument();
-  });
-
-  it('shows the 1,000-note cap on the free-plan import bullet (non-US copy)', () => {
-    renderAt('/pricing', { signupCountry: 'DE' });
-    expect(screen.getByText(/1,000 notes/)).toBeInTheDocument();
+  it('shows the accurate Anki → Notion note caps (1,000 free / 5,000 paid)', () => {
+    renderAt('/pricing');
+    expect(
+      screen.getByRole('row', { name: /Anki → Notion notes/ })
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('1,000').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('5,000').length).toBeGreaterThan(0);
   });
 });
 

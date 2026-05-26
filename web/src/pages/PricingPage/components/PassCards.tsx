@@ -3,10 +3,9 @@ import styles from '../PricingPage.module.css';
 
 const PASS_BENEFITS = [
   'No subscription',
-  'Unlimited conversions',
-  'All upload formats — Notion, .zip, .html, .md, .csv, .pdf, .docx, .epub, and more',
-  'Image occlusion',
-  'Custom card templates',
+  'Unlimited cards and conversions',
+  'Unlimited image occlusion',
+  'Larger uploads — up to 10 GB',
   'No ads',
 ];
 

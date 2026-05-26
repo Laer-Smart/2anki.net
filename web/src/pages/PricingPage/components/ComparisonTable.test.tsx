@@ -14,20 +14,35 @@ describe('ComparisonTable', () => {
 
   it('shows the free plan card limit and the paid Unlimited value', () => {
     render(<ComparisonTable />);
-    expect(screen.getByText('100')).toBeInTheDocument();
+    expect(screen.getAllByText('100').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Unlimited').length).toBeGreaterThan(0);
   });
 
-  it('groups rows under category headers', () => {
+  it('groups rows under category headers including AI', () => {
     render(<ComparisonTable />);
-    expect(screen.getByRole('columnheader', { name: 'Usage' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Notion sync' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Conversion limits' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'AI (Claude)' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Sync & support' })).toBeInTheDocument();
   });
 
-  it('marks Auto Sync as the row label and exposes included/not included to assistive tech', () => {
+  it('gates AI multiple choice and AI flashcards to paid tiers', () => {
     render(<ComparisonTable />);
-    const row = screen.getByRole('row', { name: /Auto Sync every 5 minutes/ });
+    const mcq = screen.getByRole('row', { name: /AI multiple choice/ });
+    expect(within(mcq).getAllByText('Included').length).toBe(4);
+    expect(within(mcq).getAllByText('Not included').length).toBe(1);
+  });
+
+  it('exposes Auto Sync included/not included state to assistive tech', () => {
+    render(<ComparisonTable />);
+    const row = screen.getByRole('row', { name: /Auto Sync from Notion/ });
     expect(within(row).getAllByText('Included').length).toBe(2);
     expect(within(row).getAllByText('Not included').length).toBe(3);
+  });
+
+  it('shows priority support as a paid-tier differentiator', () => {
+    render(<ComparisonTable />);
+    const row = screen.getByRole('row', { name: /Priority support/ });
+    expect(within(row).getAllByText('Included').length).toBe(3);
+    expect(within(row).getAllByText('Not included').length).toBe(2);
   });
 });
