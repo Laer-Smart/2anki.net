@@ -9,9 +9,9 @@ afterEach(() => {
 });
 
 describe('usePricingOrderVariant', () => {
-  it('assigns one of the two known variants', () => {
+  it('assigns one of the known variants', () => {
     const { result } = renderHook(() => usePricingOrderVariant());
-    expect(['passes-first', 'unlimited-first']).toContain(result.current);
+    expect(['passes-first', 'unlimited-first', 'minimal']).toContain(result.current);
   });
 
   it('persists the assignment so a returning visitor sees the same order', () => {
@@ -23,7 +23,7 @@ describe('usePricingOrderVariant', () => {
   it('writes the assigned variant to storage on first visit', () => {
     expect(localStorage.getItem('pricing_order_variant')).toBeNull();
     renderHook(() => usePricingOrderVariant());
-    expect(['passes-first', 'unlimited-first']).toContain(
+    expect(['passes-first', 'unlimited-first', 'minimal']).toContain(
       localStorage.getItem('pricing_order_variant')
     );
   });

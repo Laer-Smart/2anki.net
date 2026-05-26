@@ -35,7 +35,7 @@ vi.mock('../../lib/hooks/useCardUsage', () => ({
 
 const { mockPricingVariant } = vi.hoisted(() => ({
   mockPricingVariant: {
-    current: 'passes-first' as 'passes-first' | 'unlimited-first',
+    current: 'passes-first' as 'passes-first' | 'unlimited-first' | 'minimal',
   },
 }));
 
@@ -121,6 +121,19 @@ describe('PricingPage layout', () => {
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(screen.getByText('Most popular')).toBeInTheDocument();
+  });
+
+  it('drops the kicker, intro, and social proof in the minimal variant', () => {
+    mockPricingVariant.current = 'minimal';
+    renderAt('/pricing');
+    expect(screen.queryByText('Plans')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Trusted by 19,000+ learners worldwide')
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/no account needed to start/)
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeInTheDocument();
   });
 
   it('shows the risk-reversal reassurance strip', () => {

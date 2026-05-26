@@ -1,11 +1,13 @@
 import { useState } from 'react';
 
-export type PricingOrder = 'passes-first' | 'unlimited-first';
+export type PricingOrder = 'passes-first' | 'unlimited-first' | 'minimal';
+
+const VARIANTS: PricingOrder[] = ['passes-first', 'unlimited-first', 'minimal'];
 
 const STORAGE_KEY = 'pricing_order_variant';
 
 function isPricingOrder(value: unknown): value is PricingOrder {
-  return value === 'passes-first' || value === 'unlimited-first';
+  return typeof value === 'string' && (VARIANTS as string[]).includes(value);
 }
 
 function readStored(): PricingOrder | null {
@@ -39,7 +41,7 @@ function assignVariant(): PricingOrder {
     return 'passes-first';
   }
   const byte = cryptoObj.getRandomValues(new Uint8Array(1))[0];
-  return byte < 128 ? 'passes-first' : 'unlimited-first';
+  return VARIANTS[byte % VARIANTS.length];
 }
 
 /**

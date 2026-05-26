@@ -280,6 +280,7 @@ export default function PricingPage({
   });
 
   const unlimitedFirst = pricingOrder === 'unlimited-first';
+  const minimalHeader = pricingOrder === 'minimal';
 
   const passCards = (
     <PassCards
@@ -339,10 +340,12 @@ export default function PricingPage({
         <script type="application/ld+json">{pricingFaqJsonLd}</script>
       </Helmet>
       <div className={styles.header}>
-        <p className={styles.kicker}>
-          <span className={styles.kickerDot} aria-hidden="true" />
-          <span>Plans</span>
-        </p>
+        {!minimalHeader && (
+          <p className={styles.kicker}>
+            <span className={styles.kickerDot} aria-hidden="true" />
+            <span>Plans</span>
+          </p>
+        )}
         <h1 className={styles.title}>{getVisibleText('pricing.page.title')}</h1>
         <TopMessage />
         {showContextBanner && (
@@ -355,23 +358,27 @@ export default function PricingPage({
             Auto Sync sends any deck straight to your Anki — no downloading, no importing.
           </div>
         )}
-        <p className={styles.intro}>
-          {isUS
-            ? 'Built for spaced repetition — MCAT, USMLE, bar exam, and language prep. Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start.'
-            : 'Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start. Free for 100 cards per month, then pay once by the day or week.'}
-          {!isLoggedIn && (
-            <>
-              {' '}
-              <a href="/register" className={styles.introLink}>
-                Start free{' '}
-                <span className={styles.introArrow} aria-hidden="true">
-                  →
-                </span>
-              </a>
-            </>
-          )}
-        </p>
-        <p className={styles.socialProof}>Trusted by 19,000+ learners worldwide</p>
+        {!minimalHeader && (
+          <p className={styles.intro}>
+            {isUS
+              ? 'Built for spaced repetition — MCAT, USMLE, bar exam, and language prep. Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start.'
+              : 'Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start. Free for 100 cards per month, then pay once by the day or week.'}
+            {!isLoggedIn && (
+              <>
+                {' '}
+                <a href="/register" className={styles.introLink}>
+                  Start free{' '}
+                  <span className={styles.introArrow} aria-hidden="true">
+                    →
+                  </span>
+                </a>
+              </>
+            )}
+          </p>
+        )}
+        {!minimalHeader && (
+          <p className={styles.socialProof}>Trusted by 19,000+ learners worldwide</p>
+        )}
       </div>
 
       {showTrialCta && (
