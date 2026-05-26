@@ -7,6 +7,15 @@ vi.mock('../../lib/analytics/track', () => ({
   track: (...args: unknown[]) => mockTrack(...args),
 }));
 
+vi.mock('../../lib/image/prepareImageForVision', () => ({
+  prepareImageForVision: vi.fn(async () => ({
+    base64: 'YWJjMTIz',
+    mediaType: 'image/jpeg',
+    width: 800,
+    height: 600,
+  })),
+}));
+
 const FAKE_DATA_URL = 'data:image/jpeg;base64,YWJjMTIz';
 
 const mockUseUserLocals = vi.fn();

@@ -5,6 +5,7 @@ import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabe
 import { track } from '../../lib/analytics/track';
 import styles from '../../styles/shared.module.css';
 import pageStyles from './PhotoToFlashcardsPage.module.css';
+import { prepareImageForVision } from '../../lib/image/prepareImageForVision';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_SIZE_BYTES = 10 * 1024 * 1024;
@@ -39,36 +40,6 @@ function cardCountToDensity(count: number): Density {
   if (count <= 5) return 'sparse';
   if (count <= 10) return 'balanced';
   return 'dense';
-}
-
-async function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      resolve(result.split(',')[1] ?? '');
-    };
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
-}
-
-async function getImageDimensions(
-  file: File
-): Promise<{ width: number; height: number }> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve({ width: img.naturalWidth, height: img.naturalHeight });
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Could not read image dimensions'));
-    };
-    img.src = url;
-  });
 }
 
 function downloadBlob(blob: Blob, filename: string): void {
@@ -173,10 +144,7 @@ export function PhotoToFlashcardsPage() {
     track('photo_upload_started', { source: uploadSource });
 
     try {
-      const [imageBase64, dimensions] = await Promise.all([
-        fileToBase64(file),
-        getImageDimensions(file),
-      ]);
+      const prepared = await prepareImageForVision(file);
 
       const baseName = file.name.replace(/\.[^.]+$/, '') || 'Photo deck';
       const name = deckName.trim() || baseName;
@@ -186,11 +154,11 @@ export function PhotoToFlashcardsPage() {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          imageBase64,
-          mediaType: file.type,
+          imageBase64: prepared.base64,
+          mediaType: prepared.mediaType,
           deckName: name,
-          width: dimensions.width,
-          height: dimensions.height,
+          width: prepared.width,
+          height: prepared.height,
           includeSourceImage,
           density,
           mode,
