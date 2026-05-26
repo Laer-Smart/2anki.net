@@ -5,7 +5,7 @@ const options: swaggerJsdoc.Options = {
     openapi: '3.0.0',
     info: {
       title: '2anki Server API',
-      version: '1.2.1',
+      version: '2.0.0',
       description:
         'API documentation for 2anki server - Convert content to Anki flashcards',
       contact: {
