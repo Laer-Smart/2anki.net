@@ -1,9 +1,16 @@
+import {
+  Handle,
+  type NodeProps,
+  NodeResizer,
+  NodeToolbar,
+  Position,
+} from '@xyflow/react';
 import { useEffect, useRef, useState } from 'react';
-import { Handle, NodeResizer, NodeToolbar, Position, type NodeProps } from '@xyflow/react';
 import Markdown from 'react-markdown';
+import ArrowUpTrayIcon from '../../components/icons/ArrowUpTrayIcon';
 import PencilIcon from '../../components/icons/PencilIcon';
-import TrashIcon from '../../components/icons/TrashIcon';
 import SwatchIcon from '../../components/icons/SwatchIcon';
+import TrashIcon from '../../components/icons/TrashIcon';
 
 export interface MindmapImageMeta {
   url: string | null;
@@ -25,6 +32,7 @@ export interface MindmapNodeData {
   onSetColor?: (color: string | null) => void;
   onDelete?: () => void;
   onResizeEnd?: (width: number, height: number) => void;
+  onReplaceImage?: (file: File) => void;
   [key: string]: unknown;
 }
 
@@ -51,7 +59,10 @@ const toolbarButtonStyle = {
   height: '28px',
 };
 
-function CenterIcon({ width = 16, height = 16 }: Readonly<{ width?: number; height?: number }>) {
+function CenterIcon({
+  width = 16,
+  height = 16,
+}: Readonly<{ width?: number; height?: number }>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -64,7 +75,11 @@ function CenterIcon({ width = 16, height = 16 }: Readonly<{ width?: number; heig
       aria-hidden="true"
     >
       <circle cx="12" cy="12" r="3" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 3v3M12 18v3M3 12h3M18 12h3"
+      />
     </svg>
   );
 }
@@ -72,6 +87,7 @@ function CenterIcon({ width = 16, height = 16 }: Readonly<{ width?: number; heig
 export function MindmapNode({ data, selected }: NodeProps) {
   const nodeData = data as MindmapNodeData;
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
   useEffect(() => {
@@ -131,6 +147,31 @@ export function MindmapNode({ data, selected }: NodeProps) {
             >
               <PencilIcon width={16} height={16} />
             </button>
+            {nodeData.image != null && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  aria-label="Replace image file"
+                  style={{ display: 'none' }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file != null) nodeData.onReplaceImage?.(file);
+                    e.target.value = '';
+                  }}
+                />
+                <button
+                  type="button"
+                  title="Replace image"
+                  aria-label="Replace image"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={toolbarButtonStyle}
+                >
+                  <ArrowUpTrayIcon width={16} height={16} />
+                </button>
+              </>
+            )}
             <button
               type="button"
               title="Center on this node"
@@ -160,7 +201,9 @@ export function MindmapNode({ data, selected }: NodeProps) {
             </button>
           </div>
           {colorPickerOpen && (
-            <div style={{ display: 'flex', gap: '0.25rem', padding: '0.25rem' }}>
+            <div
+              style={{ display: 'flex', gap: '0.25rem', padding: '0.25rem' }}
+            >
               {COLOR_PRESETS.map((c) => (
                 <button
                   key={c.name}
@@ -190,9 +233,16 @@ export function MindmapNode({ data, selected }: NodeProps) {
         minWidth={120}
         minHeight={36}
         keepAspectRatio={nodeData.image != null}
-        onResizeEnd={(_e, params) => nodeData.onResizeEnd?.(params.width, params.height)}
+        onResizeEnd={(_e, params) =>
+          nodeData.onResizeEnd?.(params.width, params.height)
+        }
         lineStyle={{ border: '1px dashed var(--color-primary)' }}
-        handleStyle={{ width: 8, height: 8, borderRadius: 2, background: 'var(--color-primary)' }}
+        handleStyle={{
+          width: 8,
+          height: 8,
+          borderRadius: 2,
+          background: 'var(--color-primary)',
+        }}
       />
       <Handle type="source" position={Position.Left} id="left" />
       <Handle type="source" position={Position.Top} id="top" />
@@ -271,13 +321,20 @@ export function MindmapNode({ data, selected }: NodeProps) {
               Image unavailable
             </div>
           )}
-          {nodeData.image != null && nodeData.image.missing !== true && nodeData.image.url != null && (
-            <img
-              src={nodeData.image.url}
-              alt={nodeData.label}
-              style={{ maxWidth: '100%', height: 'auto', display: 'block', marginBottom: nodeData.label.length > 0 ? '0.25rem' : 0 }}
-            />
-          )}
+          {nodeData.image != null &&
+            nodeData.image.missing !== true &&
+            nodeData.image.url != null && (
+              <img
+                src={nodeData.image.url}
+                alt={nodeData.label}
+                style={{
+                  maxWidth: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  marginBottom: nodeData.label.length > 0 ? '0.25rem' : 0,
+                }}
+              />
+            )}
           {nodeData.label.length > 0 && <Markdown>{nodeData.label}</Markdown>}
         </div>
       )}
