@@ -256,7 +256,7 @@ export function PhotoToFlashcardsPage() {
   };
 
   return (
-    <section className={styles.page} aria-label="Photo to deck">
+    <section className={pageStyles.page} aria-label="Photo to deck">
       <header className={styles.pageHeader}>
         <h1 className={styles.title}>Photo to deck</h1>
         <p className={styles.subtitle}>
