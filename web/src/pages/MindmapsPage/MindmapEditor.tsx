@@ -12,9 +12,9 @@ import {
   Background,
   ConnectionMode,
 } from '@xyflow/react';
-import dagre from 'dagre';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { layoutGraph, NODE_HEIGHT } from './layoutGraph';
 import { useMindmapById, useUpdateMindmap, exportMindmap, uploadMindmapImage, type MindmapCardType } from './useMindmap';
 import type { MindmapData } from './useMindmap';
 import shared from '../../styles/shared.module.css';
@@ -23,8 +23,6 @@ import { MindmapNode } from './MindmapNode';
 import { MindmapMarkdownModal } from './MindmapMarkdownModal';
 import PencilIcon from '../../components/icons/PencilIcon';
 
-const NODE_WIDTH = 172;
-const NODE_HEIGHT = 36;
 const FREE_NODE_LIMIT = 50;
 const NODE_STYLE = {
   borderRadius: 'var(--radius-md)',
@@ -105,27 +103,6 @@ function ChevronRightIcon() {
   );
 }
 
-function layoutGraph(nodes: Node[], edges: Edge[]): Node[] {
-  const g = new dagre.graphlib.Graph();
-  g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: 'LR', ranksep: 60, nodesep: 30 });
-
-  for (const node of nodes) {
-    g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
-  }
-  for (const edge of edges) {
-    g.setEdge(edge.source, edge.target);
-  }
-  dagre.layout(g);
-
-  return nodes.map((node) => {
-    const pos = g.node(node.id);
-    return {
-      ...node,
-      position: { x: pos.x - NODE_WIDTH / 2, y: pos.y - NODE_HEIGHT / 2 },
-    };
-  });
-}
 
 interface ExportModalProps {
   defaultName: string;
