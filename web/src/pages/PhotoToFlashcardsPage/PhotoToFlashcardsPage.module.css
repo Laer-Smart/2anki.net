@@ -1,3 +1,13 @@
+/* Shared .page has no gap; the section cards need this column layout for
+   vertical rhythm between them. Don't drop back to bare shared .page — that
+   collapses the cards together (regressed once in #2748). */
+.page {
+  composes: page from '../../styles/shared.module.css';
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
 .row {
   display: flex;
   align-items: center;
