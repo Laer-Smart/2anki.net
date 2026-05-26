@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { MindmapData } from './MindmapData';
+import { escapeHtml } from './escapeHtml';
 import { mindmapToMarkmapTree } from './mindmapToMarkmapTree';
 
 function findPackageRoot(startFile: string): string {
@@ -40,7 +41,7 @@ export function mindmapToMarkmapHtml(
 <html>
 <head>
 <meta charset="utf-8">
-<title>${title}</title>
+<title>${escapeHtml(title)}</title>
 <style>
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: transparent; color: inherit; }
 svg#mindmap { width: 100%; height: 100%; display: block; color: inherit; }

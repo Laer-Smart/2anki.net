@@ -1,17 +1,10 @@
 import { MindmapData } from './MindmapData';
+import { escapeHtml } from './escapeHtml';
 
 export interface MarkmapTreeNode {
   content: string;
   children: MarkmapTreeNode[];
   payload?: { fold?: number };
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }
 
 function buildNodeContent(

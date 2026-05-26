@@ -75,4 +75,16 @@ describe('mindmapToMarkmapHtml', () => {
     expect(html).not.toContain('<b>Bold</b>');
     expect(html).toContain('&lt;b&gt;');
   });
+
+  it('escapes HTML special characters in the deck title', () => {
+    const html = mindmapToMarkmapHtml(fiveNodeTree, '</title><script>alert(1)</script>');
+    expect(html).not.toContain('</title><script>');
+    expect(html).toContain('&lt;/title&gt;&lt;script&gt;alert(1)&lt;/script&gt;');
+  });
+
+  it('escapes double-quotes in the deck title', () => {
+    const html = mindmapToMarkmapHtml(fiveNodeTree, '"><img src=x onerror=alert(1)>');
+    expect(html).not.toContain('"><img');
+    expect(html).toContain('&quot;&gt;&lt;img');
+  });
 });
