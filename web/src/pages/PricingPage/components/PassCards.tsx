@@ -16,6 +16,7 @@ interface PassCardsProps {
   onWeekPass: () => void;
   dayPassPending: boolean;
   weekPassPending: boolean;
+  featureDayPass?: boolean;
 }
 
 export function PassCards({
@@ -23,19 +24,21 @@ export function PassCards({
   onWeekPass,
   dayPassPending,
   weekPassPending,
+  featureDayPass = true,
 }: Readonly<PassCardsProps>) {
   return (
     <div className={styles.passGrid}>
       <PricingCard
         title="Day Pass"
-        badge="Most popular"
+        badge={featureDayPass ? 'Most popular' : 'Pay once'}
+        badgeMuted={!featureDayPass}
         price="$4"
         priceSuffix="— 24 hours"
         benefits={PASS_BENEFITS}
         onAction={onDayPass}
         actionLabel={dayPassPending ? 'Redirecting…' : 'Get Day Pass'}
         actionDisabled={dayPassPending}
-        className={styles.cardPro}
+        className={featureDayPass ? styles.cardPro : undefined}
       />
       <PricingCard
         title="Week Pass"

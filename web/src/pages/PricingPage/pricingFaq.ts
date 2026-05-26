@@ -30,4 +30,14 @@ export const PRICING_FAQ: PricingFaqItem[] = [
     answer:
       'Lifetime starts at $345, paid once. It includes all Unlimited features plus Auto Sync. Apply on this page; access is granted by review.',
   },
+  {
+    question: 'Can I cancel anytime?',
+    answer:
+      'Subscriptions cancel in one click from your account — no need to email support. Passes are one-time, so there is nothing to cancel.',
+  },
+  {
+    question: 'What happens to my decks if I stop paying?',
+    answer:
+      'They stay yours. Every deck exports as a native .apkg that works in any Anki client, offline, with no lock-in.',
+  },
 ];

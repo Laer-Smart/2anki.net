@@ -33,6 +33,20 @@ vi.mock('../../lib/hooks/useCardUsage', () => ({
   useCardUsage: () => mockUseCardUsage(),
 }));
 
+const { mockPricingVariant } = vi.hoisted(() => ({
+  mockPricingVariant: {
+    current: 'passes-first' as 'passes-first' | 'unlimited-first',
+  },
+}));
+
+vi.mock('../../lib/hooks/usePricingOrderVariant', () => ({
+  usePricingOrderVariant: () => mockPricingVariant.current,
+}));
+
+beforeEach(() => {
+  mockPricingVariant.current = 'passes-first';
+});
+
 type AnalyticsGlobals = {
   hj?: ReturnType<typeof vi.fn>;
   gtag?: ReturnType<typeof vi.fn>;
@@ -95,6 +109,28 @@ describe('PricingPage layout', () => {
       passLabel.compareDocumentPosition(monthlyLabel) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it('leads with the monthly plans when the variant is unlimited-first', () => {
+    mockPricingVariant.current = 'unlimited-first';
+    renderAt('/pricing');
+    const monthlyLabel = screen.getByText('Monthly plans');
+    const passLabel = screen.getByText('Pay once — no subscription');
+    expect(
+      monthlyLabel.compareDocumentPosition(passLabel) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(screen.getByText('Most popular')).toBeInTheDocument();
+  });
+
+  it('shows the risk-reversal reassurance strip', () => {
+    renderAt('/pricing');
+    expect(screen.getByText('Cancel anytime — one click')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Your decks are yours — native .apkg, works in any Anki client'
+      )
+    ).toBeInTheDocument();
   });
 
   it('shows Day Pass and Week Pass as full cards with visible buttons', () => {
@@ -311,7 +347,7 @@ describe('PricingPage internal event tracking', () => {
 
     renderAt('/pricing');
 
-    expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'pricing_page' });
+    expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'pricing_page', variant: 'passes-first' });
   });
 
   it('tracks paywall_upgrade_clicked with plan=auto_sync when Subscribe is clicked', async () => {
@@ -328,6 +364,7 @@ describe('PricingPage internal event tracking', () => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
         surface: 'pricing_page',
         plan: 'auto_sync',
+        variant: 'passes-first',
       });
     });
   });
@@ -346,6 +383,7 @@ describe('PricingPage internal event tracking', () => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
         surface: 'pricing_page',
         plan: 'day_pass',
+        variant: 'passes-first',
       });
     });
   });
@@ -364,6 +402,7 @@ describe('PricingPage internal event tracking', () => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
         surface: 'pricing_page',
         plan: 'week_pass',
+        variant: 'passes-first',
       });
     });
   });
@@ -382,6 +421,7 @@ describe('PricingPage internal event tracking', () => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
         surface: 'pricing_page',
         plan: 'unlimited',
+        variant: 'passes-first',
       });
     });
   });
@@ -433,6 +473,7 @@ describe('PricingPage quota_remaining in paywall_shown', () => {
     expect(trackMock).toHaveBeenCalledWith('paywall_shown', {
       surface: 'pricing_page',
       quota_remaining: 40,
+      variant: 'passes-first',
     });
   });
 
@@ -444,7 +485,7 @@ describe('PricingPage quota_remaining in paywall_shown', () => {
 
     renderAt('/pricing');
 
-    expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'pricing_page' });
+    expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'pricing_page', variant: 'passes-first' });
   });
 });
 

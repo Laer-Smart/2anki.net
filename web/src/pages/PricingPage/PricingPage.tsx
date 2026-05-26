@@ -6,6 +6,7 @@ import { firePaywallEvent } from '../../lib/analytics/firePaywallEvent';
 import { track } from '../../lib/analytics/track';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
+import { usePricingOrderVariant } from '../../lib/hooks/usePricingOrderVariant';
 import { getVisibleText } from '../../lib/text/getVisibleText';
 import { AutoSyncCard } from './components/AutoSyncCard';
 import { ComparisonTable } from './components/ComparisonTable';
@@ -91,6 +92,7 @@ export default function PricingPage({
   const enteredAtRef = useRef(Date.now());
   const shownFiredRef = useRef(false);
   const cardUsage = useCardUsage(true);
+  const pricingOrder = usePricingOrderVariant();
   const quotaRemaining =
     cardUsage != null && !cardUsage.loading
       ? cardUsage.cards_limit - cardUsage.cards_used
@@ -118,10 +120,14 @@ export default function PricingPage({
     shownFiredRef.current = true;
     const props =
       quotaRemaining == null
-        ? { surface: 'pricing_page' as const }
-        : { surface: 'pricing_page' as const, quota_remaining: quotaRemaining };
+        ? { surface: 'pricing_page' as const, variant: pricingOrder }
+        : {
+            surface: 'pricing_page' as const,
+            quota_remaining: quotaRemaining,
+            variant: pricingOrder,
+          };
     track('paywall_shown', props);
-  }, [cardUsage, quotaRemaining]);
+  }, [cardUsage, quotaRemaining, pricingOrder]);
 
   useEffect(() => {
     const enteredAt = enteredAtRef.current;
@@ -166,7 +172,7 @@ export default function PricingPage({
       globalThis.location.href = '/login?redirect=/pricing';
       return;
     }
-    track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'auto_sync' });
+    track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'auto_sync', variant: pricingOrder });
     setSubscribeError(null);
     const result = await get2ankiApi().startAutoSyncCheckout();
     if ('url' in result) {
@@ -209,6 +215,7 @@ export default function PricingPage({
     track('paywall_upgrade_clicked', {
       surface: 'pricing_page',
       plan: kind === '24h' ? 'day_pass' : 'week_pass',
+      variant: pricingOrder,
     });
     if (kind === '24h') {
       setDayPassState('pending');
@@ -232,7 +239,7 @@ export default function PricingPage({
       globalThis.location.href = '/login?redirect=/pricing';
       return;
     }
-    track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'unlimited' });
+    track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'unlimited', variant: pricingOrder });
     setUnlimitedPending(true);
     const result = await get2ankiApi().startUnlimitedCheckout(billingCycle);
     if ('url' in result) {
@@ -271,6 +278,60 @@ export default function PricingPage({
       },
     })),
   });
+
+  const unlimitedFirst = pricingOrder === 'unlimited-first';
+
+  const passCards = (
+    <PassCards
+      onDayPass={() => handlePassCheckout('24h')}
+      onWeekPass={() => handlePassCheckout('7d')}
+      dayPassPending={dayPassState === 'pending'}
+      weekPassPending={weekPassState === 'pending'}
+      featureDayPass={!unlimitedFirst}
+    />
+  );
+
+  const monthlyPlans = (
+    <div className={styles.anchorGrid}>
+      <UnlimitedCard
+        isLoggedIn={isLoggedIn}
+        billingCycle={billingCycle}
+        onBillingCycleChange={setBillingCycle}
+        yearlyAvailable={unlimitedYearlyAvailable}
+        onUpgrade={handleUnlimitedUpgrade}
+        pending={unlimitedPending}
+        featured={unlimitedFirst}
+      />
+
+      <AutoSyncCard
+        showNewBadge={showAutoSyncNew}
+        isLifetime={isLifetime}
+        isActive={autoSyncActive}
+        capReached={showCapReached}
+        caption={autoSyncCaptionText}
+        waitlistLabel={waitlistLabel}
+        waitlistDisabled={
+          waitlistState === 'pending' || waitlistState === 'sent'
+        }
+        onSubscribe={handleAutoSyncSubscribe}
+        onWaitlist={handleWaitlistRequest}
+      />
+    </div>
+  );
+
+  const passesSection = (
+    <>
+      <p className={styles.sectionLabel}>Pay once — no subscription</p>
+      {passCards}
+    </>
+  );
+
+  const monthlySection = (
+    <>
+      <p className={styles.sectionLabel}>Monthly plans</p>
+      {monthlyPlans}
+    </>
+  );
 
   return (
     <div className={styles.page}>
@@ -328,39 +389,17 @@ export default function PricingPage({
         </div>
       )}
 
-      <p className={styles.sectionLabel}>Pay once — no subscription</p>
-      <PassCards
-        onDayPass={() => handlePassCheckout('24h')}
-        onWeekPass={() => handlePassCheckout('7d')}
-        dayPassPending={dayPassState === 'pending'}
-        weekPassPending={weekPassState === 'pending'}
-      />
-
-      <p className={styles.sectionLabel}>Monthly plans</p>
-      <div className={styles.anchorGrid}>
-        <UnlimitedCard
-          isLoggedIn={isLoggedIn}
-          billingCycle={billingCycle}
-          onBillingCycleChange={setBillingCycle}
-          yearlyAvailable={unlimitedYearlyAvailable}
-          onUpgrade={handleUnlimitedUpgrade}
-          pending={unlimitedPending}
-        />
-
-        <AutoSyncCard
-          showNewBadge={showAutoSyncNew}
-          isLifetime={isLifetime}
-          isActive={autoSyncActive}
-          capReached={showCapReached}
-          caption={autoSyncCaptionText}
-          waitlistLabel={waitlistLabel}
-          waitlistDisabled={
-            waitlistState === 'pending' || waitlistState === 'sent'
-          }
-          onSubscribe={handleAutoSyncSubscribe}
-          onWaitlist={handleWaitlistRequest}
-        />
-      </div>
+      {unlimitedFirst ? (
+        <>
+          {monthlySection}
+          {passesSection}
+        </>
+      ) : (
+        <>
+          {passesSection}
+          {monthlySection}
+        </>
+      )}
 
       <p className={styles.sectionLabel}>One-time payment</p>
       <div className={styles.grid}>
@@ -384,6 +423,11 @@ export default function PricingPage({
       <p className={styles.pricesNote}>
         Prices in USD. Your card is charged in your local currency at checkout.
       </p>
+
+      <ul className={styles.reassurance}>
+        <li>Cancel anytime — one click</li>
+        <li>Your decks are yours — native .apkg, works in any Anki client</li>
+      </ul>
 
       <FeatureGrid />
 

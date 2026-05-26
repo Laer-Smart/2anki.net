@@ -7,6 +7,7 @@ interface UnlimitedCardProps {
   yearlyAvailable: boolean;
   onUpgrade: () => void;
   pending: boolean;
+  featured?: boolean;
 }
 
 function CheckIcon() {
@@ -46,13 +47,15 @@ export function UnlimitedCard({
   yearlyAvailable,
   onUpgrade,
   pending,
+  featured = false,
 }: Readonly<UnlimitedCardProps>) {
   const isYearly = billingCycle === 'year';
   const price = isYearly ? '$60' : '$6';
   const priceSuffix = isYearly ? '/ yr' : '/ mo';
 
   return (
-    <div className={styles.card}>
+    <div className={featured ? `${styles.card} ${styles.cardPro}` : styles.card}>
+      {featured && <span className={styles.cardBadge}>Most popular</span>}
       <div className={styles.cardHeader}>
         <p className={styles.cardTitle}>Unlimited</p>
         {yearlyAvailable && (
