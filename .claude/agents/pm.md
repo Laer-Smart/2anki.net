@@ -60,6 +60,9 @@ Tech stack is in `CLAUDE.md`. Two scoping facts that change effort estimates:
 
 When raw feedback is provided (email, Discord exports, survey CSVs, support threads):
 
+> **Regressions are not your job to diagnose.** If the report is "worked before, broke recently," the root cause is a commit — that's engineering (git log), handled by the orchestrator or the `engineer` agent. Synthesize the issue and quote the signal; do **not** go spelunking in the codebase to find the offending code. (See the regression carve-out in `.claude/commands/triage-feedback.md`.)
+
+
 1. **Extract signals** — pull specific pain points, requests, desires, confusions, and compliments. Quote directly when possible; a specific quote is worth ten paraphrases.
 2. **Cluster** — group into themes (e.g. "conversion errors on large pages", "onboarding confusion").
 3. **Quantify** — frequency per theme if data permits.

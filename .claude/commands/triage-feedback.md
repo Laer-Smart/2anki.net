@@ -5,6 +5,8 @@ argument-hint: paste the raw feedback after the command
 
 Use the `pm` agent to process the feedback I'll paste below.
 
+**First, check whether it's a regression** ("worked before, broke recently / stopped working"). If so, the answer is a commit, not a theme — investigate it yourself (or via the `engineer` / `Explore` agent) with `git log` / `git show` / `git log -S "<gate/condition>"` to find the introducing commit *before* drafting anything, and lead the output with that commit. `pm` synthesizes the public issue; it does **not** read the codebase to diagnose. (Do this even though this command says "use the `pm` agent" — routing a regression's root-cause to pm is the wrong tool.) For non-regression feedback, proceed with `pm` as below.
+
 Steps:
 
 1. Read the feedback below the `---` line.
