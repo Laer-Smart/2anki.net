@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-26-mindmap-tidy-disconnected",
+  "date": "2026-05-26",
+  "type": "fix",
+  "title": "Mindmap Tidy spreads disconnected nodes into distinct positions instead of stacking them"
+}
