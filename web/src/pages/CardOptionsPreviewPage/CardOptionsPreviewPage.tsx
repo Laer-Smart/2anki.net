@@ -29,7 +29,7 @@ function SectionRows({ subscriber }: Readonly<{ subscriber: boolean }>) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <ConfigureRow label="Card size" summary="Medium" onConfigure={noop} />
         <ConfigureRow
-          label="Multiple choice"
+          label="Multiple choice questions"
           summary={subscriber ? 'On' : 'Off'}
           onConfigure={noop}
         />
@@ -58,7 +58,7 @@ const variants: Variant[] = [
   },
   {
     label: 'Configure rows — free / anon (AI off)',
-    note: 'Premium badge on gated rows; MCQ summary reads Off until enabled.',
+    note: 'Premium badge on gated rows; the summary reads Off until enabled.',
     render: () => <SectionRows subscriber={false} />,
   },
   {
@@ -69,8 +69,8 @@ const variants: Variant[] = [
     ),
   },
   {
-    label: 'MCQ modal — On with read-aloud',
-    note: 'Read-aloud voice pickers appear only when MCQ is on.',
+    label: 'Multiple choice modal — On with read-aloud',
+    note: 'Read-aloud voice pickers appear only when this is on.',
     render: () => (
       <McqModal
         isOpen
@@ -85,7 +85,7 @@ const variants: Variant[] = [
     ),
   },
   {
-    label: 'MCQ modal — Off',
+    label: 'Multiple choice modal — Off',
     note: 'Off state hides the read-aloud block.',
     render: () => (
       <McqModal

@@ -37,12 +37,13 @@ function FontSizePicker(delegate: Readonly<FontPickerDelegate>) {
         </span>
       </div>
       <div className={localStyles.preview}>
+        <span className={localStyles.previewCaption}>Preview</span>
         <span
           aria-hidden
           className={localStyles.previewSample}
           style={{ fontSize: `${displayValue}px` }}
         >
-          Aa
+          Sample card text
         </span>
       </div>
     </div>

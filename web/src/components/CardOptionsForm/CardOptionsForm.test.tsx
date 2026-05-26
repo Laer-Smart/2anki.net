@@ -5,6 +5,9 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { CardOptionsForm } from './CardOptionsForm';
+import CardOption from '../../lib/data_layer/model/CardOption';
+import { getSettingsCardOptions } from '../../lib/backend/getSettingsCardOptions';
+import { getUserLocals } from '../../lib/backend/getUserLocals';
 
 const mockResetUserCardOptions = vi.fn();
 
@@ -25,6 +28,12 @@ vi.mock('../../lib/backend/templates', () => ({
   getUserTemplates: vi.fn().mockResolvedValue({ templates: [], hiddenIds: [] }),
   getOfficialNoteTypes: vi.fn().mockResolvedValue([]),
   getDefaultNoteTypes: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock('../../lib/backend/getUserLocals', () => ({
+  getUserLocals: vi.fn().mockResolvedValue({
+    locals: { patreon: false, subscriber: false },
+  }),
 }));
 
 function renderForm(
@@ -82,5 +91,51 @@ describe('CardOptionsForm reset for the account-default view', () => {
       expect(mockResetUserCardOptions).toHaveBeenCalledTimes(1);
     });
     expect(setError).not.toHaveBeenCalled();
+  });
+});
+
+describe('CardOptionsForm premium upsell notice', () => {
+  const aiOptionLabel = 'Generate flashcards with Claude AI';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    vi.mocked(getSettingsCardOptions).mockResolvedValue([
+      new CardOption('claude-ai-flashcards', aiOptionLabel, 'Uses Claude.', false),
+    ]);
+  });
+
+  it('shows the paid-plan notice when a non-paying user enables a premium option', async () => {
+    vi.mocked(getUserLocals).mockResolvedValue({
+      locals: { patreon: false, subscriber: false },
+    } as Awaited<ReturnType<typeof getUserLocals>>);
+    renderForm(true, { onReset: vi.fn(), setError: vi.fn() });
+
+    const toggle = await screen.findByRole('checkbox', { name: aiOptionLabel });
+    expect(
+      screen.queryByRole('link', { name: 'Compare plans' })
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(toggle);
+
+    const link = await screen.findByRole('link', { name: 'Compare plans' });
+    expect(link).toHaveAttribute('href', '/pricing');
+  });
+
+  it('does not show the notice for a paying user', async () => {
+    vi.mocked(getUserLocals).mockResolvedValue({
+      locals: { patreon: false, subscriber: true },
+    } as Awaited<ReturnType<typeof getUserLocals>>);
+    renderForm(true, { onReset: vi.fn(), setError: vi.fn() });
+
+    const toggle = await screen.findByRole('checkbox', { name: aiOptionLabel });
+    fireEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(toggle).toBeChecked();
+    });
+    expect(
+      screen.queryByRole('link', { name: 'Compare plans' })
+    ).not.toBeInTheDocument();
   });
 });

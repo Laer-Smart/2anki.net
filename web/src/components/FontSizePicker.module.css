@@ -8,18 +8,30 @@
 
 .preview {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 0.375rem;
   margin-top: 0.625rem;
-  height: 6rem;
+  padding: 0.75rem 1rem;
+  max-height: 7rem;
   overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-bg-secondary);
 }
 
+.previewCaption {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .previewSample {
-  line-height: 1;
+  line-height: 1.2;
   font-weight: var(--font-medium);
   color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

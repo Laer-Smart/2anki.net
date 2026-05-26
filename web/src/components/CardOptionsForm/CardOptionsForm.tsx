@@ -20,6 +20,8 @@ import { ErrorHandlerType } from '../errors/helpers/getErrorMessage';
 import { FieldHint } from '../FieldHint';
 import FontSizePicker from '../FontSizePicker';
 import LocalCheckbox from '../LocalCheckbox';
+import { useUserLocals } from '../../lib/hooks/useUserLocals';
+import { isPayingUser } from '../NavigationBar/helpers/getPlanLabel';
 import { availableTemplates } from '../modals/SettingsModal/constants';
 import { useSettingsCardsOptions } from '../modals/SettingsModal/useSettingsCardsOptions';
 import TemplateName from '../TemplateName';
@@ -172,6 +174,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       loading: noteTypesLoading,
     } = useAvailableNoteTypes();
     const location = useLocation();
+    const { data: userLocals } = useUserLocals();
+    const isPaying = isPayingUser(userLocals?.locals);
     const [settings, setSettings] = useState<SettingsPayload>({});
     const [loading, setLoading] = useState(!!pageId);
     const deckNameKey = 'deckName';
@@ -553,37 +557,50 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         </p>
         <div className={fieldStyles.groupOptions}>
           {pdfAiToggleOptions.map((o: CardOption) => (
-            <LocalCheckbox
-              key={o.key}
-              defaultValue={checkboxValues[o.key] ?? false}
-              label={o.label}
-              description={o.description}
-              onChecked={(checked) => toggleCheckbox(o.key, checked)}
-              badge={PREMIUM_KEYS.has(o.key) ? 'Premium' : undefined}
-            />
+            <React.Fragment key={o.key}>
+              <LocalCheckbox
+                defaultValue={checkboxValues[o.key] ?? false}
+                label={o.label}
+                description={o.description}
+                onChecked={(checked) => toggleCheckbox(o.key, checked)}
+                badge={PREMIUM_KEYS.has(o.key) ? 'Premium' : undefined}
+              />
+              {PREMIUM_KEYS.has(o.key) && checkboxValues[o.key] && !isPaying && (
+                <p className={fieldStyles.premiumNotice}>
+                  Available on paid plans.{' '}
+                  <Link to="/pricing" className={fieldStyles.premiumNoticeLink}>
+                    Compare plans
+                  </Link>
+                </p>
+              )}
+            </React.Fragment>
           ))}
         </div>
         <div className={fieldStyles.configureRows}>
           <ConfigureRow
             label="Card size"
             summary={CARD_SIZE_SUMMARY[cardSize]}
+            hint="How much text the AI fits on each card — Short, Medium, or Detailed."
             onConfigure={() => setOpenModal('card-size')}
           />
           <ConfigureRow
-            label="Multiple choice"
+            label="Multiple choice questions"
             summary={mcqEnabled ? 'On' : 'Off'}
+            hint="Generate multiple-choice questions, with optional read-aloud audio."
             onConfigure={() => setOpenModal('mcq')}
           />
           {fieldMapping != null && (
             <ConfigureRow
               label="Field mapping"
               summary={fieldMapping.templateName}
+              hint="Tell the AI what goes in each field of the selected note type."
               onConfigure={() => setOpenModal('field-mapping')}
             />
           )}
           <ConfigureRow
             label="User instructions"
             summary={userInstructionsSummary}
+            hint="Extra guidance the AI follows when it builds cards from a PDF."
             onConfigure={() => setOpenModal('user-instructions')}
           />
         </div>
@@ -612,7 +629,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 className={`${sharedStyles.btnPrimary} ${fieldStyles.actionButton}`}
                 onClick={onSubmit}
               >
-                Save defaults
+                Save changes
               </button>
             )}
           </div>

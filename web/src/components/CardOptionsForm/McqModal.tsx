@@ -62,7 +62,7 @@ export function McqModal({
       <div className={sharedStyles.modalCard}>
         <div className={sharedStyles.modalHeader}>
           <span id="mcq-modal-title" className={sharedStyles.modalHeaderTitle}>
-            Multiple choice questions (MCQ)
+            Multiple choice questions
           </span>
           <button
             type="button"
@@ -91,7 +91,7 @@ export function McqModal({
             ))}
           </div>
           <p className={fieldStyles.groupIntro}>
-            Photo to deck and the AI chat generate MCQ when this is on. You can also write them yourself with the MCQ syntax — see the{' '}
+            Photo to deck and the AI chat generate multiple-choice questions when this is on. You can also write them yourself — see the{' '}
             <Link to="/documentation/cards/mcq" className={fieldStyles.groupIntroLink}>
               docs
             </Link>

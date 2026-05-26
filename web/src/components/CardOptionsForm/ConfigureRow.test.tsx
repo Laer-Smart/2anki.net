@@ -34,4 +34,20 @@ describe('ConfigureRow', () => {
     );
     expect(screen.getByText('Premium')).toBeInTheDocument();
   });
+
+  it('renders an info hint button when a hint is provided', () => {
+    render(
+      <ConfigureRow
+        label="Card size"
+        summary="Medium"
+        hint="How much text the AI fits on each card."
+        onConfigure={() => undefined}
+      />
+    );
+    expect(
+      screen.getByRole('button', {
+        name: 'How much text the AI fits on each card.',
+      })
+    ).toBeInTheDocument();
+  });
 });
