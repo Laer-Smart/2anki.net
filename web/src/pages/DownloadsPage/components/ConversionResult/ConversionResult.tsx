@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { classifyUploadError } from '../../../../components/errors/helpers/getErrorMessage';
 import { parseAmbiguousColumnsPayload } from '../../../../lib/fieldMapping/types';
 import { getSubscribeLink } from '../../../PricingPage/payment.links';
-import { fireAnalyticsEvent } from '../../../../lib/analytics/fireAnalyticsEvent';
-import { track } from '../../../../lib/analytics/track';
 import type { UploadErrorBody } from '../../../../types/UploadErrorBody';
 import sharedStyles from '../../../../styles/shared.module.css';
 import styles from './ConversionResult.module.css';
@@ -12,14 +10,6 @@ import styles from './ConversionResult.module.css';
 type Source = 'notion' | 'upload' | 'dropbox' | 'drive';
 
 const NOTION_TOKEN_EXPIRED_REASON = 'notion_token_expired';
-
-interface SuccessProps {
-  variant: 'success';
-  title: string | null;
-  cardCount?: number;
-  downloadKey: string;
-  onDownload: () => void;
-}
 
 interface ProcessingProps {
   variant: 'processing';
@@ -42,48 +32,9 @@ interface FailedProps {
 }
 
 type ConversionResultProps =
-  | SuccessProps
   | ProcessingProps
   | PaywalledProps
   | FailedProps;
-
-function truncateTitle(title: string): { display: string; full: string } {
-  if (title.length <= 40) return { display: title, full: title };
-  return { display: `${title.slice(0, 40)}…`, full: title };
-}
-
-function SuccessVariant({ title, cardCount, downloadKey, onDownload }: Omit<SuccessProps, 'variant'>) {
-  const resolvedTitle = title ?? 'Untitled deck';
-  const { display, full } = truncateTitle(resolvedTitle);
-
-  return (
-    <div className={styles.success}>
-      <span className={styles.deckName} title={full}>
-        {display}
-      </span>
-      {cardCount != null && cardCount > 0 && (
-        <span className={styles.cardCount}>
-          <span className={styles.cardCountNumber}>{cardCount}</span>
-          {' '}
-          <span className={styles.cardCountLabel}>cards</span>
-        </span>
-      )}
-      <span className={styles.helperText}>Ready to download.</span>
-      <a
-        href={`/api/download/u/${downloadKey}`}
-        className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
-        aria-label={`Download ${full}`}
-        onClick={() => {
-          onDownload();
-          fireAnalyticsEvent('deck_downloaded');
-          track('deck_downloaded');
-        }}
-      >
-        Download deck
-      </a>
-    </div>
-  );
-}
 
 function PaywalledVariant({ limit, email }: Omit<PaywalledProps, 'variant' | 'title'>) {
   const upgradeHref = `${getSubscribeLink(email)}&ref=downloads-paywall`;
@@ -154,17 +105,6 @@ function FailedVariant({ failureReason, source, onMapColumns }: Omit<FailedProps
 export function ConversionResult(props: Readonly<ConversionResultProps>) {
   if (props.variant === 'processing') {
     return <>{props.children}</>;
-  }
-
-  if (props.variant === 'success') {
-    return (
-      <SuccessVariant
-        title={props.title}
-        cardCount={props.cardCount}
-        downloadKey={props.downloadKey}
-        onDownload={props.onDownload}
-      />
-    );
   }
 
   if (props.variant === 'paywalled') {

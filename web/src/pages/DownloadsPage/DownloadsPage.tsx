@@ -114,12 +114,19 @@ export function renderJobStatusCell(j: JobResponse, onDownload?: () => void) {
     }
     if (j.download_key != null) {
       return (
-        <ConversionResult
-          variant="success"
-          title={j.title}
-          downloadKey={j.download_key}
-          onDownload={() => { onDownload?.(); }}
-        />
+        <a
+          href={`/api/download/u/${j.download_key}`}
+          className={styles.downloadAction}
+          aria-label={`Download ${j.title ?? 'deck'}`}
+          title="Download"
+          onClick={() => {
+            onDownload?.();
+            fireAnalyticsEvent('deck_downloaded');
+            track('deck_downloaded');
+          }}
+        >
+          <DownloadIcon width={16} height={16} />
+        </a>
       );
     }
     return null;
