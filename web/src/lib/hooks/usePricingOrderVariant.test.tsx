@@ -5,6 +5,7 @@ import { usePricingOrderVariant } from './usePricingOrderVariant';
 
 afterEach(() => {
   globalThis.localStorage.clear();
+  window.history.pushState({}, '', '/');
 });
 
 describe('usePricingOrderVariant', () => {
@@ -25,5 +26,12 @@ describe('usePricingOrderVariant', () => {
     expect(['passes-first', 'unlimited-first']).toContain(
       localStorage.getItem('pricing_order_variant')
     );
+  });
+
+  it('honours the ?variant= preview override without persisting it', () => {
+    window.history.pushState({}, '', '/?variant=unlimited-first');
+    const { result } = renderHook(() => usePricingOrderVariant());
+    expect(result.current).toBe('unlimited-first');
+    expect(localStorage.getItem('pricing_order_variant')).toBeNull();
   });
 });

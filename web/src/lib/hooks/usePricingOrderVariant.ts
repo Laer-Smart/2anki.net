@@ -17,6 +17,22 @@ function readStored(): PricingOrder | null {
   }
 }
 
+/**
+ * `?variant=passes-first` / `?variant=unlimited-first` forces a layout for
+ * preview and QA. It does not persist, so it never changes the visitor's
+ * real assignment or the experiment buckets.
+ */
+function readOverride(): PricingOrder | null {
+  try {
+    const value = new URLSearchParams(globalThis.location?.search ?? '').get(
+      'variant'
+    );
+    return isPricingOrder(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 function assignVariant(): PricingOrder {
   const cryptoObj = globalThis.crypto;
   if (cryptoObj?.getRandomValues == null) {
@@ -33,6 +49,8 @@ function assignVariant(): PricingOrder {
  */
 export function usePricingOrderVariant(): PricingOrder {
   const [variant] = useState<PricingOrder>(() => {
+    const override = readOverride();
+    if (override != null) return override;
     const stored = readStored();
     if (stored != null) return stored;
     const assigned = assignVariant();
