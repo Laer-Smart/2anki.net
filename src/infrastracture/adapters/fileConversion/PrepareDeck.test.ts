@@ -26,6 +26,22 @@ jest.mock('fs', () => ({
   writeFileSync: jest.fn(),
 }));
 
+jest.mock('./convertPdfTextToHtml', () => ({
+  convertPdfTextToHtml: jest.fn().mockResolvedValue({
+    html: '<p>extracted text card</p>',
+    cardCount: 3,
+    isDrmLocked: false,
+    needsCredential: false,
+  }),
+}));
+
+jest.mock('./convertPDFToImages', () => ({
+  convertPDFToImages: jest.fn().mockResolvedValue('<p>page image card</p>'),
+}));
+
+const { convertPdfTextToHtml } = require('./convertPdfTextToHtml');
+const { convertPDFToImages } = require('./convertPDFToImages');
+
 const { generateDeckInfo } = require('../../../lib/claude/ClaudeService');
 const CustomExporterMock = require('../../../lib/parser/exporters/CustomExporter').default;
 
@@ -117,5 +133,34 @@ describe('PrepareDeck — Claude AI flashcards branch', () => {
     }).catch(() => {});
 
     expect(generateDeckInfo).not.toHaveBeenCalled();
+  });
+});
+
+describe('PrepareDeck — PDF text-vs-image gate', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  function runPdf(settings: CardOption) {
+    return PrepareDeck({
+      name: 'notes.pdf',
+      files: [{ name: 'notes.pdf', contents: Buffer.from('%PDF-1.4 fake') }],
+      settings,
+      noLimits: true,
+      workspace: makeWorkspace(),
+    }).catch(() => undefined);
+  }
+
+  it('renders page images by default even when text extraction returns cards', async () => {
+    expect(makeSettings().pdfExtractText).toBe(false);
+    await runPdf(makeSettings());
+    expect(convertPDFToImages).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses extracted text when pdf-extract-text is on', async () => {
+    expect(makeSettings({ 'pdf-extract-text': 'true' }).pdfExtractText).toBe(true);
+    await runPdf(makeSettings({ 'pdf-extract-text': 'true' }));
+    expect(convertPdfTextToHtml).toHaveBeenCalledTimes(1);
+    expect(convertPDFToImages).not.toHaveBeenCalled();
   });
 });

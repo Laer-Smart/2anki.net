@@ -76,6 +76,8 @@ class CardOption {
 
   readonly processPDFs: boolean;
 
+  readonly pdfExtractText: boolean;
+
   readonly claudeAIFlashcards: boolean;
 
   readonly shareFilesForDebugging: boolean;
@@ -136,6 +138,7 @@ class CardOption {
       input['disable-indented-bullets'] === 'true';
     this.imageQuizHtmlToAnki = input['image-quiz-html-to-anki'] === 'true';
     this.processPDFs = input['process-pdfs'] !== 'false';
+    this.pdfExtractText = input['pdf-extract-text'] === 'true';
     this.claudeAIFlashcards = input['claude-ai-flashcards'] === 'true';
     this.shareFilesForDebugging = input['share-files-for-debugging'] === 'true';
     /* Is this really needed? */
@@ -186,6 +189,7 @@ class CardOption {
       'max-one-toggle-per-card': 'true',
       'perserve-newlines': 'false',
       'process-pdfs': 'true',
+      'pdf-extract-text': 'false',
       'page-emoji': 'first-emoji',
       'image-quiz-html-to-anki': 'false',
       'markdown-nested-bullet-points': 'true',

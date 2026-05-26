@@ -107,6 +107,7 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
     label: 'PDF & AI',
     keys: [
       'process-pdfs',
+      'pdf-extract-text',
       'claude-ai-flashcards',
     ],
   },

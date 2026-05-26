@@ -117,7 +117,11 @@ async function convertFile(
       throw new Error(buildPdfPasswordSentinel(file.name));
     }
 
-    if (!textResult.isDrmLocked && textResult.cardCount > 0) {
+    if (
+      input.settings.pdfExtractText &&
+      !textResult.isDrmLocked &&
+      textResult.cardCount > 0
+    ) {
       console.log('[PrepareDeck] convertFile pdf→text→html', {
         file: file.name,
         cardCount: textResult.cardCount,
