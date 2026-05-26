@@ -41,11 +41,11 @@ async function findUnlinkedSubscriptions(): Promise<{ email: string; linked_emai
 }
 
 async function cancelAndNotify(email: string): Promise<void> {
-  console.info(`Processing ${email}`);
+  console.info('Processing unlinked subscription row');
 
   const cancelled = await SubscriptionService.cancelUserSubscriptions(email, 'immediate', false, false);
   if (cancelled === 0) {
-    console.warn(`No active Stripe subscriptions found for ${email} — skipping email`);
+    console.warn('No active Stripe subscriptions found for this row — skipping email');
     return;
   }
 
@@ -56,7 +56,7 @@ async function cancelAndNotify(email: string): Promise<void> {
     subject: SUBJECT,
     text: BODY(email),
   });
-  console.info(`Cancelled and notified ${email}`);
+  console.info('Cancelled and notified subscriber');
 }
 
 async function cancelUnlinkedSubscriptions(): Promise<void> {
@@ -67,7 +67,7 @@ async function cancelUnlinkedSubscriptions(): Promise<void> {
     try {
       await cancelAndNotify(row.email);
     } catch (err) {
-      console.error(`Failed for ${row.email}:`, err);
+      console.error('Failed to process unlinked subscription row:', err);
     }
   }
 

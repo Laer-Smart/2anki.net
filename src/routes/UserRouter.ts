@@ -442,6 +442,28 @@ const UserRouter = () => {
 
   /**
    * @swagger
+   * /api/users/cancellation-feedback:
+   *   post:
+   *     summary: Record why a user cancelled
+   *     description: Stores an optional cancellation reason and comment after the subscription has already been cancelled. Never blocks the cancel itself.
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     responses:
+   *       200:
+   *         description: Feedback recorded
+   *       400:
+   *         description: A reason is required
+   *       401:
+   *         description: Authentication required
+   */
+  router.post('/api/users/cancellation-feedback', RequireAuthentication, (req, res) =>
+    controller.submitCancellationFeedback(req, res)
+  );
+
+  /**
+   * @swagger
    * /api/users/subscription-status:
    *   get:
    *     summary: Get live subscription status from Stripe

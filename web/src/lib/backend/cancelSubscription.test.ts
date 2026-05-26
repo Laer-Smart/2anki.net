@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { cancelSubscription } from './cancelSubscription';
+import {
+  cancelSubscription,
+  submitCancellationFeedback,
+} from './cancelSubscription';
 import * as api from './api';
 
 vi.mock('./api', () => ({
@@ -79,6 +82,35 @@ describe('cancelSubscription', () => {
 
     await expect(cancelSubscription()).rejects.toThrow(
       'Internal Server Error'
+    );
+  });
+
+  it('does not send a reason or comment with the cancel request', async () => {
+    vi.mocked(api.post).mockResolvedValue(
+      createMockResponse(200, { message: 'ok' })
+    );
+
+    await cancelSubscription('period_end');
+
+    expect(api.post).toHaveBeenCalledWith('/api/users/cancel-subscription', {
+      mode: 'period_end',
+    });
+  });
+});
+
+describe('submitCancellationFeedback', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('posts the reason and comment to the feedback endpoint', async () => {
+    vi.mocked(api.post).mockResolvedValue(createMockResponse(200, {}));
+
+    await submitCancellationFeedback('Too expensive', 'details');
+
+    expect(api.post).toHaveBeenCalledWith(
+      '/api/users/cancellation-feedback',
+      { reason: 'Too expensive', comment: 'details' }
     );
   });
 });

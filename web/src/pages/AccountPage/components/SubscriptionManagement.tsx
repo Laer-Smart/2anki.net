@@ -3,7 +3,7 @@ import { useEmailLinking } from '../hooks/useEmailLinking';
 import { useSubscriptionCancellation } from '../hooks/useSubscriptionCancellation';
 import { useStripeSubscriptions } from '../../../lib/hooks/useStripeSubscriptions';
 import { StripeSubscriptionSummary } from '../../../lib/backend/getSubscriptionStatus';
-import { CancellationSurveyModal } from './CancellationSurveyModal';
+import { CancellationFollowUp } from './CancellationFollowUp';
 import styles from '../AccountPage.module.css';
 import sharedStyles from '../../../styles/shared.module.css';
 
@@ -69,10 +69,11 @@ export function SubscriptionManagement({
 
   const {
     cancelUserSubscription,
-    confirmCancellation,
-    dismissSurvey,
-    pendingMode,
+    submitFeedback,
+    dismissFollowUp,
+    showFollowUp,
     isCancelling,
+    isSubmittingFeedback,
     cancelError,
     cancelSuccess,
   } = useSubscriptionCancellation(refetchAll);
@@ -102,14 +103,6 @@ export function SubscriptionManagement({
   const { view } = stripeStatus;
 
   return (
-    <>
-    {pendingMode && (
-      <CancellationSurveyModal
-        mode={pendingMode}
-        onConfirm={confirmCancellation}
-        onClose={dismissSurvey}
-      />
-    )}
     <section className={styles.section}>
       {locals?.subscriber && (
         <div>
@@ -129,7 +122,12 @@ export function SubscriptionManagement({
                 <button
                   type="button"
                   className={styles.secondaryButton}
-                  onClick={() => cancelUserSubscription('period_end')}
+                  onClick={() =>
+                    cancelUserSubscription(
+                      'period_end',
+                      view.subscription.current_period_end
+                    )
+                  }
                   disabled={isCancelling}
                 >
                   {isCancelling ? 'Processing…' : 'Cancel at period end'}
@@ -182,6 +180,13 @@ export function SubscriptionManagement({
 
           {cancelError && <p className={styles.helpDanger}>{cancelError}</p>}
           {cancelSuccess && <p className={styles.helpSuccess}>{cancelSuccess}</p>}
+          {showFollowUp && (
+            <CancellationFollowUp
+              onSubmit={submitFeedback}
+              onSkip={dismissFollowUp}
+              isSubmitting={isSubmittingFeedback}
+            />
+          )}
         </div>
       )}
 
@@ -231,6 +236,5 @@ export function SubscriptionManagement({
         </div>
       )}
     </section>
-    </>
   );
 }
