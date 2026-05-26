@@ -202,6 +202,93 @@ const notionTablesToAnki: LandingCopy = {
   ],
 };
 
+const lingvistToAnki: LandingCopy = {
+  pathname: '/convert/lingvist-to-anki',
+  title: 'Lingvist to Anki — move your flashcards to Anki | 2anki',
+  description:
+    'Move your Lingvist flashcards to Anki. Export your vocabulary as a CSV, upload it here, and download a .apkg deck that opens clean.',
+  h1: 'Move your Lingvist flashcards to Anki',
+  subhead:
+    'Export your Lingvist vocabulary as a CSV, drop it here, and get a .apkg deck. Your words and translations come across as basic cards.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'How do I export from Lingvist?',
+      a: 'Go to your Lingvist account settings and look for the vocabulary export option. It downloads a CSV with your words and translations.',
+    },
+    {
+      q: 'Which columns does Lingvist export?',
+      a: 'The CSV typically has the target word in one column and the translation in another. Column A becomes the card front, column B becomes the back.',
+    },
+    {
+      q: 'Will my progress and statistics transfer?',
+      a: 'Card content transfers — the word and translation. Lingvist progress data stays in Lingvist. Anki will schedule the imported cards from scratch using its own spaced repetition algorithm.',
+    },
+    {
+      q: 'Can I keep using Lingvist and Anki together?',
+      a: 'Yes. Export again any time to get an updated deck with your newest vocabulary. Re-import into Anki to add the new cards.',
+    },
+  ],
+};
+
+const studystackToAnki: LandingCopy = {
+  pathname: '/convert/studystack-to-anki',
+  title: 'StudyStack to Anki — move your flashcards to Anki | 2anki',
+  description:
+    'Move your StudyStack flashcards to Anki. Export your stack as a CSV or text file, upload it here, and download a .apkg deck.',
+  h1: 'Move your StudyStack flashcards to Anki',
+  subhead:
+    'Export your StudyStack as a CSV, drop it here, and get a .apkg deck. Terms and definitions become basic cards ready to review in Anki.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'How do I export from StudyStack?',
+      a: 'Open your stack, go to the stack settings or export menu, and choose CSV or text export. The file will have your terms and definitions.',
+    },
+    {
+      q: 'What format does the exported file use?',
+      a: 'StudyStack exports a two-column file — term in the first column, definition in the second. That maps directly to card front and back.',
+    },
+    {
+      q: 'Do images and audio come across?',
+      a: 'Plain text and simple HTML in your cards transfers. Images attached inside StudyStack cards are not included in the CSV export.',
+    },
+    {
+      q: 'How many cards can I import?',
+      a: 'Free accounts convert up to 100 cards per month. Unlimited and Auto Sync plans remove the cap — see the pricing page.',
+    },
+  ],
+};
+
+const zorbiToAnki: LandingCopy = {
+  pathname: '/convert/zorbi-to-anki',
+  title: 'Zorbi to Anki — move your flashcards to Anki | 2anki',
+  description:
+    'Move your Zorbi flashcards to Anki. Export your deck as a CSV, upload it here, and download a .apkg deck that opens clean.',
+  h1: 'Move your Zorbi flashcards to Anki',
+  subhead:
+    'Export your Zorbi deck as a CSV, drop it here, and get a .apkg deck. Questions and answers become basic Anki cards.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'How do I export from Zorbi?',
+      a: 'In Zorbi, open your deck and use the export option to download a CSV. The file contains your card fronts and backs.',
+    },
+    {
+      q: 'Do cloze deletions transfer?',
+      a: 'If your Zorbi cards use cloze-style blanks and the export includes the full text with markup, those cards will convert as cloze notes in Anki. Plain Q/A cards convert as basic notes.',
+    },
+    {
+      q: 'Will my review history carry over?',
+      a: 'Card content transfers — the question and answer. Review history and scheduling data stays in Zorbi. Anki reschedules imported cards from the beginning.',
+    },
+    {
+      q: 'Can I import a Zorbi deck shared by someone else?',
+      a: "Yes, if you have access to export the shared deck. Download the CSV from Zorbi, then upload it here. The deck name comes from the filename — rename it before uploading if you'd like a different name.",
+    },
+  ],
+};
+
 export const CONVERT_LANDING_PAGES: ReadonlyMap<string, LandingCopy> = new Map([
   ['notion-to-anki', notionToAnki],
   ['pdf-to-anki', pdfToAnki],
@@ -210,4 +297,7 @@ export const CONVERT_LANDING_PAGES: ReadonlyMap<string, LandingCopy> = new Map([
   ['html-to-anki', htmlToAnki],
   ['apkg-to-csv', apkgToCsv],
   ['notion-tables-to-anki', notionTablesToAnki],
+  ['lingvist-to-anki', lingvistToAnki],
+  ['studystack-to-anki', studystackToAnki],
+  ['zorbi-to-anki', zorbiToAnki],
 ]);
