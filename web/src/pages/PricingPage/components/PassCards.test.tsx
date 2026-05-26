@@ -128,7 +128,7 @@ describe('PassCards', () => {
     expect(screen.getByText('$9')).toBeInTheDocument();
   });
 
-  it('shows Pay once badges on the pass cards', () => {
+  it('features the Day Pass as Most popular and the Week Pass as Best value', () => {
     render(
       <PassCards
         onDayPass={vi.fn()}
@@ -137,6 +137,7 @@ describe('PassCards', () => {
         weekPassPending={false}
       />
     );
-    expect(screen.getAllByText('Pay once').length).toBe(2);
+    expect(screen.getByText('Most popular')).toBeInTheDocument();
+    expect(screen.getByText('Best value')).toBeInTheDocument();
   });
 });

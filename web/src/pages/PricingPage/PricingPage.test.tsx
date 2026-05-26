@@ -51,9 +51,10 @@ describe('PricingPage Unlimited benefits', () => {
     expect(screen.getByText('Run multiple conversions at once')).toBeInTheDocument();
   });
 
-  it('shows Most popular badge on Unlimited card', () => {
+  it('features the Day Pass with the Most popular badge', () => {
     renderAt('/pricing');
     expect(screen.getByText('Most popular')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeInTheDocument();
   });
 });
 
@@ -82,6 +83,16 @@ describe('PricingPage layout', () => {
   it('shows the One-time payment section label above Lifetime', () => {
     renderAt('/pricing');
     expect(screen.getByText('One-time payment')).toBeInTheDocument();
+  });
+
+  it('leads with the pay-once passes above the monthly plans', () => {
+    renderAt('/pricing');
+    const passLabel = screen.getByText('Pay once — no subscription');
+    const monthlyLabel = screen.getByText('Monthly plans');
+    expect(
+      passLabel.compareDocumentPosition(monthlyLabel) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   it('shows Day Pass and Week Pass as full cards without an accordion', () => {

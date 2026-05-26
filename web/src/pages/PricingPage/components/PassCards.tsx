@@ -27,19 +27,18 @@ export function PassCards({
     <div className={styles.passGrid}>
       <PricingCard
         title="Day Pass"
-        badge="Pay once"
-        badgeMuted
+        badge="Most popular"
         price="$4"
         priceSuffix="— 24 hours"
         benefits={PASS_BENEFITS}
         onAction={onDayPass}
         actionLabel={dayPassPending ? 'Redirecting…' : 'Get Day Pass'}
         actionDisabled={dayPassPending}
-        variant="outline"
+        className={styles.cardPro}
       />
       <PricingCard
         title="Week Pass"
-        badge="Pay once"
+        badge="Best value"
         badgeMuted
         price="$9"
         priceSuffix="— 1 week"
@@ -47,7 +46,6 @@ export function PassCards({
         onAction={onWeekPass}
         actionLabel={weekPassPending ? 'Redirecting…' : 'Get Week Pass'}
         actionDisabled={weekPassPending}
-        variant="outline"
       />
     </div>
   );

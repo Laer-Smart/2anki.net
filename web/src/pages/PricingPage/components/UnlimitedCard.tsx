@@ -50,8 +50,7 @@ export function UnlimitedCard({
   const priceSuffix = isYearly ? '/ yr' : '/ mo';
 
   return (
-    <div className={`${styles.card} ${styles.cardPro}`}>
-      <span className={styles.cardBadge}>Most popular</span>
+    <div className={styles.card}>
       <div className={styles.cardHeader}>
         <p className={styles.cardTitle}>Unlimited</p>
         {yearlyAvailable && (
