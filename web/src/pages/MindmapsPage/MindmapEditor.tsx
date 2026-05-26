@@ -1,27 +1,33 @@
 import '@xyflow/react/dist/style.css';
 import {
-  ReactFlow,
-  Controls,
-  useNodesState,
-  useEdgesState,
   addEdge,
-  type Node,
-  type Edge,
-  type Connection,
-  type ReactFlowInstance,
   Background,
+  type Connection,
   ConnectionMode,
+  Controls,
+  type Edge,
+  type Node,
+  ReactFlow,
+  type ReactFlowInstance,
+  useEdgesState,
+  useNodesState,
 } from '@xyflow/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { layoutGraph, NODE_HEIGHT } from './layoutGraph';
-import { useMindmapById, useUpdateMindmap, exportMindmap, uploadMindmapImage, type MindmapCardType } from './useMindmap';
-import type { MindmapData } from './useMindmap';
-import shared from '../../styles/shared.module.css';
-import styles from './MindmapEditor.module.css';
-import { MindmapNode } from './MindmapNode';
-import { MindmapMarkdownModal } from './MindmapMarkdownModal';
 import PencilIcon from '../../components/icons/PencilIcon';
+import shared from '../../styles/shared.module.css';
+import { layoutGraph, NODE_HEIGHT } from './layoutGraph';
+import styles from './MindmapEditor.module.css';
+import { MindmapMarkdownModal } from './MindmapMarkdownModal';
+import { MindmapNode } from './MindmapNode';
+import type { MindmapData } from './useMindmap';
+import {
+  exportMindmap,
+  type MindmapCardType,
+  uploadMindmapImage,
+  useMindmapById,
+  useUpdateMindmap,
+} from './useMindmap';
 
 const FREE_NODE_LIMIT = 50;
 const NODE_STYLE = {
@@ -81,7 +87,11 @@ function ChevronLeftIcon() {
       height={14}
       aria-hidden="true"
     >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15.75 19.5 8.25 12l7.5-7.5"
+      />
     </svg>
   );
 }
@@ -98,11 +108,14 @@ function ChevronRightIcon() {
       height={14}
       aria-hidden="true"
     >
-      <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="m8.25 4.5 7.5 7.5-7.5 7.5"
+      />
     </svg>
   );
 }
-
 
 interface ExportModalProps {
   defaultName: string;
@@ -113,7 +126,14 @@ interface ExportModalProps {
   exporting: boolean;
 }
 
-function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, onClose, exporting }: Readonly<ExportModalProps>) {
+function ExportModal({
+  defaultName,
+  basicCardCount,
+  clozeCardCount,
+  onExport,
+  onClose,
+  exporting,
+}: Readonly<ExportModalProps>) {
   const [deckName, setDeckName] = useState(defaultName);
   const [cardType, setCardType] = useState<MindmapCardType>('basic');
 
@@ -127,9 +147,7 @@ function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, on
     <div className={styles.exportModal}>
       <div className={styles.exportCard}>
         <h2 className={styles.exportTitle}>Download deck</h2>
-        <label className={styles.exportLabel}>
-          Deck name
-        </label>
+        <label className={styles.exportLabel}>Deck name</label>
         <input
           type="text"
           value={deckName}
@@ -171,7 +189,11 @@ function ExportModal({ defaultName, basicCardCount, clozeCardCount, onExport, on
         </fieldset>
         <p className={styles.exportCount}>{cardCountLabel()}</p>
         <div className={styles.exportFooter}>
-          <button type="button" onClick={onClose} className={`${shared.btnSecondary} ${shared.btnInline}`}>
+          <button
+            type="button"
+            onClick={onClose}
+            className={`${shared.btnSecondary} ${shared.btnInline}`}
+          >
             Cancel
           </button>
           <button
@@ -206,9 +228,19 @@ export function MindmapEditor() {
   const [exporting, setExporting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; nodeId: string | null; edgeId?: string; flowX?: number; flowY?: number } | null>(null);
-  const [rfInstance, setRfInstanceState] = useState<ReactFlowInstance | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(readSidebarCollapsed);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    nodeId: string | null;
+    edgeId?: string;
+    flowX?: number;
+    flowY?: number;
+  } | null>(null);
+  const [rfInstance, setRfInstanceState] = useState<ReactFlowInstance | null>(
+    null
+  );
+  const [sidebarCollapsed, setSidebarCollapsed] =
+    useState<boolean>(readSidebarCollapsed);
   const [showMarkdownModal, setShowMarkdownModal] = useState(false);
 
   const setRfInstance = useCallback((instance: ReactFlowInstance) => {
@@ -230,7 +262,10 @@ export function MindmapEditor() {
   }, []);
 
   useEffect(() => {
-    if (titleRef.current != null && document.activeElement !== titleRef.current) {
+    if (
+      titleRef.current != null &&
+      document.activeElement !== titleRef.current
+    ) {
       titleRef.current.innerText = map?.title ?? 'Untitled';
     }
   }, [map?.title]);
@@ -253,15 +288,24 @@ export function MindmapEditor() {
           if (serverNode == null) return n;
           const dataChanged =
             serverNode.label !== (n.data as { label?: string }).label ||
-            (serverNode.color ?? null) !== (n.data as { color?: string | null }).color;
+            (serverNode.color ?? null) !==
+              (n.data as { color?: string | null }).color;
           if (!dataChanged) return n;
           return {
             ...n,
-            data: { ...n.data, label: serverNode.label, color: serverNode.color ?? null },
+            data: {
+              ...n.data,
+              label: serverNode.label,
+              color: serverNode.color ?? null,
+            },
             style:
               serverNode.color == null
                 ? NODE_STYLE
-                : { ...NODE_STYLE, borderColor: serverNode.color, boxShadow: `0 0 0 1px ${serverNode.color}` },
+                : {
+                    ...NODE_STYLE,
+                    borderColor: serverNode.color,
+                    boxShadow: `0 0 0 1px ${serverNode.color}`,
+                  },
           };
         })
       );
@@ -279,7 +323,14 @@ export function MindmapEditor() {
       position: n.position ?? { x: 0, y: 0 },
       width: n.width,
       height: n.height,
-      style: n.color == null ? NODE_STYLE : { ...NODE_STYLE, borderColor: n.color, boxShadow: `0 0 0 1px ${n.color}` },
+      style:
+        n.color == null
+          ? NODE_STYLE
+          : {
+              ...NODE_STYLE,
+              borderColor: n.color,
+              boxShadow: `0 0 0 1px ${n.color}`,
+            },
     }));
     const rfEdges: Edge[] = map.data.edges.map((e) => ({
       id: `${e.source}-${e.target}`,
@@ -288,7 +339,9 @@ export function MindmapEditor() {
       style: { stroke: 'var(--color-border)' },
     }));
 
-    const initialNodes = someHasPosition ? rfNodes : layoutGraph(rfNodes, rfEdges);
+    const initialNodes = someHasPosition
+      ? rfNodes
+      : layoutGraph(rfNodes, rfEdges);
     setNodes(initialNodes);
     setEdges(rfEdges);
     if (rfInstance == null) {
@@ -313,7 +366,9 @@ export function MindmapEditor() {
             width: n.width,
             height: n.height,
             color: (n.data as { color?: string | null }).color ?? null,
-            image: (n.data as { image?: MindmapData['nodes'][number]['image'] }).image ?? undefined,
+            image:
+              (n.data as { image?: MindmapData['nodes'][number]['image'] })
+                .image ?? undefined,
           })),
           edges: es.map((e) => ({ source: e.source, target: e.target })),
         };
@@ -323,47 +378,105 @@ export function MindmapEditor() {
     [updateMindmap]
   );
 
-  const commitLabel = useCallback((nodeId: string, label: string) => {
-    setNodes((ns) => {
-      const updated = ns.map((n) =>
-        n.id === nodeId
-          ? { ...n, data: { ...n.data, label, editing: false } }
-          : n
+  const commitLabel = useCallback(
+    (nodeId: string, label: string) => {
+      setNodes((ns) => {
+        const updated = ns.map((n) =>
+          n.id === nodeId
+            ? { ...n, data: { ...n.data, label, editing: false } }
+            : n
+        );
+        persistData(updated, edges);
+        return updated;
+      });
+    },
+    [setNodes, persistData, edges]
+  );
+
+  const cancelEdit = useCallback(
+    (nodeId: string) => {
+      setNodes((ns) =>
+        ns.map((n) =>
+          n.id === nodeId ? { ...n, data: { ...n.data, editing: false } } : n
+        )
       );
-      persistData(updated, edges);
-      return updated;
-    });
-  }, [setNodes, persistData, edges]);
+    },
+    [setNodes]
+  );
 
-  const cancelEdit = useCallback((nodeId: string) => {
-    setNodes((ns) =>
-      ns.map((n) =>
-        n.id === nodeId ? { ...n, data: { ...n.data, editing: false } } : n
-      )
-    );
-  }, [setNodes]);
+  const centerOnNode = useCallback(
+    (nodeId: string) => {
+      rfInstance?.fitView({
+        nodes: [{ id: nodeId }],
+        duration: 300,
+        maxZoom: 1.2,
+      });
+    },
+    [rfInstance]
+  );
 
-  const centerOnNode = useCallback((nodeId: string) => {
-    rfInstance?.fitView({ nodes: [{ id: nodeId }], duration: 300, maxZoom: 1.2 });
-  }, [rfInstance]);
+  const setNodeColor = useCallback(
+    (nodeId: string, color: string | null) => {
+      setNodes((ns) => {
+        const updated = ns.map((n) =>
+          n.id === nodeId
+            ? {
+                ...n,
+                data: { ...n.data, color },
+                style:
+                  color == null
+                    ? NODE_STYLE
+                    : {
+                        ...NODE_STYLE,
+                        borderColor: color,
+                        boxShadow: `0 0 0 1px ${color}`,
+                      },
+              }
+            : n
+        );
+        persistData(updated, edges);
+        return updated;
+      });
+    },
+    [setNodes, persistData, edges]
+  );
 
-  const setNodeColor = useCallback((nodeId: string, color: string | null) => {
-    setNodes((ns) => {
-      const updated = ns.map((n) =>
-        n.id === nodeId
-          ? {
-              ...n,
-              data: { ...n.data, color },
-              style: color == null
-                ? NODE_STYLE
-                : { ...NODE_STYLE, borderColor: color, boxShadow: `0 0 0 1px ${color}` },
-            }
-          : n
+  const replaceNodeImage = useCallback(
+    async (nodeId: string, file: File) => {
+      if (id == null) return;
+      setNodes((ns) =>
+        ns.map((n) =>
+          n.id === nodeId ? { ...n, data: { ...n.data, uploading: true } } : n
+        )
       );
-      persistData(updated, edges);
-      return updated;
-    });
-  }, [setNodes, persistData, edges]);
+      try {
+        const imageResult = await uploadMindmapImage(id, file);
+        setNodes((ns) => {
+          const updated = ns.map((n) =>
+            n.id === nodeId
+              ? {
+                  ...n,
+                  data: { ...n.data, uploading: false, image: imageResult },
+                }
+              : n
+          );
+          persistData(updated, edges);
+          return updated;
+        });
+      } catch {
+        setNodes((ns) =>
+          ns.map((n) =>
+            n.id === nodeId
+              ? { ...n, data: { ...n.data, uploading: false } }
+              : n
+          )
+        );
+        setToast("Couldn't upload that image. Try again.");
+        setTimeout(() => setToast(null), 4000);
+      }
+    },
+    [id, setNodes, persistData, edges, setToast]
+  );
 
   const handleImageFile = useCallback(
     async (file: File, position: { x: number; y: number }) => {
@@ -388,7 +501,10 @@ export function MindmapEditor() {
         setNodes((ns) => {
           const updated = ns.map((n) =>
             n.id === newId
-              ? { ...n, data: { ...n.data, uploading: false, image: imageResult } }
+              ? {
+                  ...n,
+                  data: { ...n.data, uploading: false, image: imageResult },
+                }
               : n
           );
           persistData(updated, edges);
@@ -408,7 +524,8 @@ export function MindmapEditor() {
       const target = e.target as HTMLElement | null;
       if (target instanceof HTMLElement) {
         const tag = target.tagName;
-        if (tag === 'INPUT' || tag === 'TEXTAREA' || target.isContentEditable) return;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || target.isContentEditable)
+          return;
       }
 
       const imageItem = Array.from(e.clipboardData?.items ?? []).find(
@@ -419,9 +536,13 @@ export function MindmapEditor() {
         e.preventDefault();
         const file = imageItem.getAsFile();
         if (file == null) return;
-        const center = rfInstance == null
-          ? { x: 0, y: 0 }
-          : rfInstance.screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+        const center =
+          rfInstance == null
+            ? { x: 0, y: 0 }
+            : rfInstance.screenToFlowPosition({
+                x: window.innerWidth / 2,
+                y: window.innerHeight / 2,
+              });
         handleImageFile(file, center);
         return;
       }
@@ -453,29 +574,35 @@ export function MindmapEditor() {
     return () => document.removeEventListener('paste', handlePaste);
   }, [rfInstance, setNodes, persistData, edges, handleImageFile]);
 
-  const setNodeSize = useCallback((nodeId: string, width: number, height: number) => {
-    setNodes((ns) => {
-      const updated = ns.map((n) =>
-        n.id === nodeId ? { ...n, width, height } : n
-      );
-      persistData(updated, edges);
-      return updated;
-    });
-  }, [setNodes, persistData, edges]);
-
-  const autoSizeNode = useCallback((nodeId: string) => {
-    setNodes((ns) => {
-      const updated = ns.map((n) => {
-        if (n.id !== nodeId) return n;
-        const next = { ...n };
-        delete (next as { width?: number }).width;
-        delete (next as { height?: number }).height;
-        return next;
+  const setNodeSize = useCallback(
+    (nodeId: string, width: number, height: number) => {
+      setNodes((ns) => {
+        const updated = ns.map((n) =>
+          n.id === nodeId ? { ...n, width, height } : n
+        );
+        persistData(updated, edges);
+        return updated;
       });
-      persistData(updated, edges);
-      return updated;
-    });
-  }, [setNodes, persistData, edges]);
+    },
+    [setNodes, persistData, edges]
+  );
+
+  const autoSizeNode = useCallback(
+    (nodeId: string) => {
+      setNodes((ns) => {
+        const updated = ns.map((n) => {
+          if (n.id !== nodeId) return n;
+          const next = { ...n };
+          delete (next as { width?: number }).width;
+          delete (next as { height?: number }).height;
+          return next;
+        });
+        persistData(updated, edges);
+        return updated;
+      });
+    },
+    [setNodes, persistData, edges]
+  );
 
   const nodeTypes = useMemo(
     () => ({
@@ -490,12 +617,23 @@ export function MindmapEditor() {
             onCenter: () => centerOnNode(props.id),
             onSetColor: (color: string | null) => setNodeColor(props.id, color),
             onDelete: () => deleteNode(props.id),
-            onResizeEnd: (width: number, height: number) => setNodeSize(props.id, width, height),
+            onResizeEnd: (width: number, height: number) =>
+              setNodeSize(props.id, width, height),
+            onReplaceImage: (file: File) => replaceNodeImage(props.id, file),
           }}
         />
       ),
     }),
-    [commitLabel, cancelEdit, centerOnNode, setNodeColor, setNodeSize, startRename, deleteNode]
+    [
+      commitLabel,
+      cancelEdit,
+      centerOnNode,
+      setNodeColor,
+      setNodeSize,
+      startRename,
+      deleteNode,
+      replaceNodeImage,
+    ]
   );
 
   const onConnect = useCallback(
@@ -511,7 +649,9 @@ export function MindmapEditor() {
 
   const onEdgesDelete = useCallback(
     (deleted: Edge[]) => {
-      const remaining = edges.filter((e) => !deleted.some((d) => d.id === e.id));
+      const remaining = edges.filter(
+        (e) => !deleted.some((d) => d.id === e.id)
+      );
       persistData(nodes, remaining);
     },
     [nodes, edges, persistData]
@@ -621,7 +761,9 @@ export function MindmapEditor() {
     setNodes((ns) =>
       ns.map((n) => {
         if (n.id !== nodeId) return n;
-        const measured = (n as Node & { measured?: { width?: number; height?: number } }).measured;
+        const measured = (
+          n as Node & { measured?: { width?: number; height?: number } }
+        ).measured;
         return {
           ...n,
           data: { ...n.data, editing: true },
@@ -641,7 +783,10 @@ export function MindmapEditor() {
     showToast('Layout updated');
   }
 
-  function createNodeAt(position: { x: number; y: number }, parentId?: string | null) {
+  function createNodeAt(
+    position: { x: number; y: number },
+    parentId?: string | null
+  ) {
     if (nodes.length >= FREE_NODE_LIMIT) {
       showToast('50 nodes reached. Upgrade to add more.');
       return;
@@ -655,17 +800,18 @@ export function MindmapEditor() {
       style: NODE_STYLE,
     };
     const updatedNodes = [...nodes, newNode];
-    const updatedEdges = parentId == null
-      ? edges
-      : [
-          ...edges,
-          {
-            id: `${parentId}-${newId}`,
-            source: parentId,
-            target: newId,
-            style: { stroke: 'var(--color-border)' },
-          },
-        ];
+    const updatedEdges =
+      parentId == null
+        ? edges
+        : [
+            ...edges,
+            {
+              id: `${parentId}-${newId}`,
+              source: parentId,
+              target: newId,
+              style: { stroke: 'var(--color-border)' },
+            },
+          ];
     setNodes(updatedNodes);
     setEdges(updatedEdges);
     setSelectedNodeId(newId);
@@ -751,7 +897,10 @@ export function MindmapEditor() {
   function toggleSidebar() {
     setSidebarCollapsed((prev) => {
       const next = !prev;
-      localStorage.setItem('mindmap-editor.sidebar.collapsed', next ? '1' : '0');
+      localStorage.setItem(
+        'mindmap-editor.sidebar.collapsed',
+        next ? '1' : '0'
+      );
       return next;
     });
   }
@@ -778,7 +927,8 @@ export function MindmapEditor() {
     return (
       <div className={styles.mobileNotice}>
         <p className={styles.mobileNoticeText}>
-          The mind map editor needs a larger screen. Open on desktop to build and export your map.
+          The mind map editor needs a larger screen. Open on desktop to build
+          and export your map.
         </p>
         <button
           type="button"
@@ -865,11 +1015,14 @@ export function MindmapEditor() {
         </div>
 
         <p className={styles.statLine}>
-          {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'} · {edges.length} {edges.length === 1 ? 'edge' : 'edges'}
+          {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'} ·{' '}
+          {edges.length} {edges.length === 1 ? 'edge' : 'edges'}
         </p>
 
         <details className={styles.shortcuts}>
-          <summary className={styles.shortcutsSummary}>Keyboard shortcuts</summary>
+          <summary className={styles.shortcutsSummary}>
+            Keyboard shortcuts
+          </summary>
           <div className={styles.shortcutsBody}>
             {SHORTCUT_GROUPS.map((group) => (
               <div key={group.label} className={styles.shortcutGroup}>
@@ -918,11 +1071,18 @@ export function MindmapEditor() {
           if (target.closest('.react-flow__handle') != null) return;
           if (target.closest('.react-flow__controls') != null) return;
           if (rfInstance == null) return;
-          const position = rfInstance.screenToFlowPosition({ x: e.clientX, y: e.clientY });
+          const position = rfInstance.screenToFlowPosition({
+            x: e.clientX,
+            y: e.clientY,
+          });
           createNodeAt(position, null);
         }}
         onDragOver={(e) => {
-          if (Array.from(e.dataTransfer.items).some((item) => item.type.startsWith('image/'))) {
+          if (
+            Array.from(e.dataTransfer.items).some((item) =>
+              item.type.startsWith('image/')
+            )
+          ) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'copy';
           }
@@ -930,9 +1090,14 @@ export function MindmapEditor() {
         onDrop={(e) => {
           e.preventDefault();
           if (rfInstance == null) return;
-          const file = Array.from(e.dataTransfer.files).find((f) => f.type.startsWith('image/'));
+          const file = Array.from(e.dataTransfer.files).find((f) =>
+            f.type.startsWith('image/')
+          );
           if (file == null) return;
-          const position = rfInstance.screenToFlowPosition({ x: e.clientX, y: e.clientY });
+          const position = rfInstance.screenToFlowPosition({
+            x: e.clientX,
+            y: e.clientY,
+          });
           handleImageFile(file, position);
         }}
       >
@@ -957,23 +1122,39 @@ export function MindmapEditor() {
           onConnect={onConnect}
           onEdgeContextMenu={(e, edge) => {
             e.preventDefault();
-            setContextMenu({ x: e.clientX, y: e.clientY, nodeId: null, edgeId: edge.id });
+            setContextMenu({
+              x: e.clientX,
+              y: e.clientY,
+              nodeId: null,
+              edgeId: edge.id,
+            });
           }}
           onEdgeClick={(e, edge) => {
-            setContextMenu({ x: e.clientX, y: e.clientY, nodeId: null, edgeId: edge.id });
+            setContextMenu({
+              x: e.clientX,
+              y: e.clientY,
+              nodeId: null,
+              edgeId: edge.id,
+            });
           }}
           onConnectEnd={(e, connectionState) => {
             if (connectionState.toNode != null) return;
             if (rfInstance == null) return;
             const fromNodeId = connectionState.fromNode?.id;
             if (fromNodeId == null) return;
-            const mouse = 'changedTouches' in e ? e.changedTouches[0] : (e as MouseEvent);
-            const flow = rfInstance.screenToFlowPosition({ x: mouse.clientX, y: mouse.clientY });
+            const mouse =
+              'changedTouches' in e ? e.changedTouches[0] : (e as MouseEvent);
+            const flow = rfInstance.screenToFlowPosition({
+              x: mouse.clientX,
+              y: mouse.clientY,
+            });
             createNodeAt(flow, fromNodeId);
           }}
           onNodeClick={(_e, node) => setSelectedNodeId(node.id)}
           onNodeDoubleClick={(e, node) => {
-            const wrapper = (e.target as HTMLElement).closest('.react-flow__node') as HTMLElement | null;
+            const wrapper = (e.target as HTMLElement).closest(
+              '.react-flow__node'
+            ) as HTMLElement | null;
             if (wrapper != null) {
               const rect = wrapper.getBoundingClientRect();
               const borderZone = 6;
@@ -1044,11 +1225,7 @@ export function MindmapEditor() {
       )}
 
       {toast != null && (
-        <div
-          role="status"
-          aria-live="polite"
-          className={styles.toast}
-        >
+        <div role="status" aria-live="polite" className={styles.toast}>
           {toast}
         </div>
       )}
@@ -1075,10 +1252,22 @@ export function MindmapEditor() {
           {contextMenu.edgeId == null && contextMenu.nodeId != null && (
             <NodeContextMenu
               nodeId={contextMenu.nodeId}
-              onAddChild={(nodeId) => { addChildNode(nodeId); setContextMenu(null); }}
-              onAddSibling={(nodeId) => { addSiblingNode(nodeId); setContextMenu(null); }}
-              onRename={(nodeId) => { setContextMenu(null); startRename(nodeId); }}
-              onDelete={(nodeId) => { deleteNode(nodeId); setContextMenu(null); }}
+              onAddChild={(nodeId) => {
+                addChildNode(nodeId);
+                setContextMenu(null);
+              }}
+              onAddSibling={(nodeId) => {
+                addSiblingNode(nodeId);
+                setContextMenu(null);
+              }}
+              onRename={(nodeId) => {
+                setContextMenu(null);
+                startRename(nodeId);
+              }}
+              onDelete={(nodeId) => {
+                deleteNode(nodeId);
+                setContextMenu(null);
+              }}
             />
           )}
           {contextMenu.edgeId == null && contextMenu.nodeId == null && (
@@ -1087,7 +1276,10 @@ export function MindmapEditor() {
               shortcut="Double-click"
               onSelect={() => {
                 if (contextMenu.flowX != null && contextMenu.flowY != null) {
-                  createNodeAt({ x: contextMenu.flowX, y: contextMenu.flowY }, null);
+                  createNodeAt(
+                    { x: contextMenu.flowX, y: contextMenu.flowY },
+                    null
+                  );
                 }
                 setContextMenu(null);
               }}
@@ -1105,7 +1297,11 @@ interface ContextMenuItemProps {
   onSelect: () => void;
 }
 
-function ContextMenuItem({ label, shortcut, onSelect }: Readonly<ContextMenuItemProps>) {
+function ContextMenuItem({
+  label,
+  shortcut,
+  onSelect,
+}: Readonly<ContextMenuItemProps>) {
   return (
     <button
       type="button"
@@ -1127,13 +1323,35 @@ interface NodeContextMenuProps {
   onDelete: (id: string) => void;
 }
 
-function NodeContextMenu({ nodeId, onAddChild, onAddSibling, onRename, onDelete }: Readonly<NodeContextMenuProps>) {
+function NodeContextMenu({
+  nodeId,
+  onAddChild,
+  onAddSibling,
+  onRename,
+  onDelete,
+}: Readonly<NodeContextMenuProps>) {
   return (
     <>
-      <ContextMenuItem label="Add child" shortcut="Tab" onSelect={() => onAddChild(nodeId)} />
-      <ContextMenuItem label="Add sibling" shortcut="Enter" onSelect={() => onAddSibling(nodeId)} />
-      <ContextMenuItem label="Rename" shortcut="F2" onSelect={() => onRename(nodeId)} />
-      <ContextMenuItem label="Delete" shortcut="Backspace" onSelect={() => onDelete(nodeId)} />
+      <ContextMenuItem
+        label="Add child"
+        shortcut="Tab"
+        onSelect={() => onAddChild(nodeId)}
+      />
+      <ContextMenuItem
+        label="Add sibling"
+        shortcut="Enter"
+        onSelect={() => onAddSibling(nodeId)}
+      />
+      <ContextMenuItem
+        label="Rename"
+        shortcut="F2"
+        onSelect={() => onRename(nodeId)}
+      />
+      <ContextMenuItem
+        label="Delete"
+        shortcut="Backspace"
+        onSelect={() => onDelete(nodeId)}
+      />
     </>
   );
 }
