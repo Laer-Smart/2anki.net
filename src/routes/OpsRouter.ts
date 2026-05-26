@@ -6,6 +6,9 @@ import { GetBusinessMetricsUseCase } from '../usecases/ops/GetBusinessMetricsUse
 import { GetConversionMetricsUseCase } from '../usecases/ops/GetConversionMetricsUseCase';
 import { GetPerformanceMetricsUseCase } from '../usecases/ops/GetPerformanceMetricsUseCase';
 import { GetReturnRateMetricsUseCase } from '../usecases/ops/GetReturnRateMetricsUseCase';
+import { GetMindmapStorageMetricsUseCase } from '../usecases/ops/GetMindmapStorageMetricsUseCase';
+import { MindmapStorageMetricsService } from '../services/ops/MindmapStorageMetricsService';
+import StorageHandler from '../lib/storage/StorageHandler';
 import { SendAbandonedCheckoutRecoveryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryUseCase';
 import { PopulateShowcaseUseCase } from '../usecases/ops/PopulateShowcaseUseCase';
 import { ObservabilityRepository } from '../data_layer/ObservabilityRepository';
@@ -71,6 +74,12 @@ const OpsRouter = () => {
   );
 
   const emailService = getDefaultEmailService();
+
+  const storageHandler = new StorageHandler();
+  const mindmapStorageService = new MindmapStorageMetricsService(() =>
+    storageHandler.listMindmapObjects()
+  );
+
   const controller = new OpsController(
     new GetOpsMetricsUseCase(queryService),
     new GetBusinessMetricsUseCase(businessMetricsService),
@@ -84,7 +93,8 @@ const OpsRouter = () => {
     new GetPerformanceMetricsUseCase(performanceMetricsService),
     new SendAbandonedCheckoutRecoveryUseCase(emailService),
     new GetReturnRateMetricsUseCase(new ReturnRateMetricsService(database)),
-    new GetMindmapImageStatsUseCase(new MindmapRepository(database))
+    new GetMindmapImageStatsUseCase(new MindmapRepository(database)),
+    new GetMindmapStorageMetricsUseCase(mindmapStorageService)
   );
 
   /**
@@ -299,6 +309,26 @@ const OpsRouter = () => {
    */
   router.get('/api/ops/mindmap/image-stats', RequireOpsAccess, (req, res) =>
     controller.getMindmapImageStats(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/mindmap/storage:
+   *   get:
+   *     summary: Mindmap image storage usage on S3
+   *     description: |
+   *       Internal endpoint locked to the ops owner. Returns total bytes and object count for all
+   *       mindmap images under the mindmaps/ S3 prefix, plus a top-20 breakdown by user ID.
+   *       Use this to gauge growth before deciding on per-user quotas. Returns 404 for everyone else.
+   *     tags: [Ops]
+   *     responses:
+   *       200:
+   *         description: Mindmap storage metrics payload
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.get('/api/ops/mindmap/storage', RequireOpsAccess, (req, res) =>
+    controller.getMindmapStorageMetrics(req, res)
   );
 
   return router;

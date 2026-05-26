@@ -5,6 +5,7 @@ import { GetBusinessMetricsUseCase } from '../usecases/ops/GetBusinessMetricsUse
 import { GetConversionMetricsUseCase } from '../usecases/ops/GetConversionMetricsUseCase';
 import { GetPerformanceMetricsUseCase } from '../usecases/ops/GetPerformanceMetricsUseCase';
 import { GetReturnRateMetricsUseCase } from '../usecases/ops/GetReturnRateMetricsUseCase';
+import { GetMindmapStorageMetricsUseCase } from '../usecases/ops/GetMindmapStorageMetricsUseCase';
 import { PopulateShowcaseUseCase } from '../usecases/ops/PopulateShowcaseUseCase';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
 import { SendAbandonedCheckoutRecoveryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryUseCase';
@@ -22,7 +23,8 @@ class OpsController {
     private readonly getPerformanceMetricsUseCase?: GetPerformanceMetricsUseCase,
     private readonly sendAbandonedCheckoutRecoveryUseCase?: SendAbandonedCheckoutRecoveryUseCase,
     private readonly getReturnRateMetricsUseCase?: GetReturnRateMetricsUseCase,
-    private readonly getMindmapImageStatsUseCase?: GetMindmapImageStatsUseCase
+    private readonly getMindmapImageStatsUseCase?: GetMindmapImageStatsUseCase,
+    private readonly getMindmapStorageMetricsUseCase?: GetMindmapStorageMetricsUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -192,6 +194,27 @@ class OpsController {
     } catch (error) {
       console.error('[ops] getMindmapImageStats failed', error);
       res.status(500).json({ message: 'Failed to load mindmap image stats' });
+    }
+  }
+
+  async getMindmapStorageMetrics(
+    _req: express.Request,
+    res: express.Response
+  ) {
+    if (this.getMindmapStorageMetricsUseCase == null) {
+      res
+        .status(500)
+        .json({ message: 'Mindmap storage metrics not configured' });
+      return;
+    }
+    try {
+      const result = await this.getMindmapStorageMetricsUseCase.execute();
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('[ops] getMindmapStorageMetrics failed', error);
+      res
+        .status(500)
+        .json({ message: 'Failed to load mindmap storage metrics' });
     }
   }
 }
