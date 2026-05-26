@@ -4,6 +4,7 @@ import { CardOptionsForm } from '../../components/CardOptionsForm/CardOptionsFor
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { useDialog } from '../../lib/hooks/useDialog';
+import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './CardOptionsPage.module.css';
 
@@ -48,6 +49,8 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
   const [params] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const { data: userLocals } = useUserLocals();
+  const isLoggedIn = userLocals?.user?.id != null;
   const [perPageItems, setPerPageItems] = useState<PerPageItem[]>([]);
   const [pendingResetIds, setPendingResetIds] = useState<Set<string>>(new Set());
   const [rowError, setRowError] = useState<string | null>(null);
@@ -163,6 +166,13 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
               )}{' '}
               <Link to="/documentation">Read the docs</Link> for a full
               explanation of each option.
+            </p>
+          )}
+          {pageId == null && !isLoggedIn && (
+            <p className={sharedStyles.smallDescription}>
+              Your settings are saved on this device.{' '}
+              <Link to="/login?redirect=/card-options">Sign in</Link> to keep
+              them across browsers and devices.
             </p>
           )}
           {pageId != null && (
@@ -315,6 +325,7 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
         <CardOptionsForm
           pageId={pageId}
           pageTitle={pageTitle}
+          isLoggedIn={isLoggedIn}
           onSaved={shouldReturnAfterSave ? goBack : undefined}
           onReset={shouldReturnAfterSave ? goBack : undefined}
           setError={setErrorMessage}
