@@ -80,6 +80,31 @@ describe('CreatePassCheckoutUseCase', () => {
     );
   });
 
+  describe('pricing A/B variant attribution', () => {
+    it('stamps the pricing variant into session metadata when provided', async () => {
+      mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/v' });
+
+      const uc = new CreatePassCheckoutUseCase(makeStripe(), 'price_24h', '24h');
+      await uc.execute({ userEmail: 'user@example.com', userId: 7, variant: 'minimal' });
+
+      expect(mockStripeCreateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: { user_id: '7', pass_kind: '24h', pricing_variant: 'minimal' },
+        })
+      );
+    });
+
+    it('omits pricing_variant when no variant is supplied', async () => {
+      mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/v' });
+
+      const uc = new CreatePassCheckoutUseCase(makeStripe(), 'price_24h', '24h');
+      await uc.execute({ userEmail: 'user@example.com', userId: 7 });
+
+      const call = mockStripeCreateSession.mock.calls[0][0];
+      expect(call.metadata.pricing_variant).toBeUndefined();
+    });
+  });
+
   describe('anonymous mode (no userId / no userEmail)', () => {
     it('omits user_id from metadata and sets pass_anonymous=1', async () => {
       mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/anon' });

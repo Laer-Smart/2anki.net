@@ -539,7 +539,7 @@ describe('PricingPage Unlimited billing toggle', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {
-      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('month');
+      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('month', 'passes-first');
     });
   });
 
@@ -552,7 +552,7 @@ describe('PricingPage Unlimited billing toggle', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {
-      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('year');
+      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('year', 'passes-first');
     });
   });
 

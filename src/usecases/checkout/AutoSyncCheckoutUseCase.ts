@@ -24,6 +24,7 @@ export class AutoSyncCheckoutUseCase {
     userEmail: string;
     userId: number;
     stripeCustomerId?: string | null;
+    variant?: string;
   }): Promise<AutoSyncCheckoutResult> {
     console.info('auto_sync.checkout.started', { user_id: input.userId });
 
@@ -53,7 +54,12 @@ export class AutoSyncCheckoutUseCase {
       cancel_url: `${process.env.APP_URL ?? 'https://2anki.net'}/pricing`,
       customer_email: input.stripeCustomerId == null ? input.userEmail : undefined,
       customer: input.stripeCustomerId ?? undefined,
-      metadata: { user_id: String(input.userId) },
+      metadata: {
+        user_id: String(input.userId),
+        ...(input.variant != null && input.variant !== ''
+          ? { pricing_variant: input.variant }
+          : {}),
+      },
     };
 
     const session = await this.stripe.checkout.sessions.create(sessionParams);

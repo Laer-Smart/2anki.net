@@ -19,6 +19,7 @@ export class UnlimitedCheckoutUseCase {
     userId: number;
     interval: UnlimitedInterval;
     stripeCustomerId?: string | null;
+    variant?: string;
   }): Promise<UnlimitedCheckoutResult> {
     console.info('unlimited.checkout.started', { user_id: input.userId, interval: input.interval });
 
@@ -32,7 +33,12 @@ export class UnlimitedCheckoutUseCase {
       cancel_url: `${appUrl}/pricing`,
       customer_email: input.stripeCustomerId == null ? input.userEmail : undefined,
       customer: input.stripeCustomerId ?? undefined,
-      metadata: { user_id: String(input.userId) },
+      metadata: {
+        user_id: String(input.userId),
+        ...(input.variant != null && input.variant !== ''
+          ? { pricing_variant: input.variant }
+          : {}),
+      },
     };
 
     const session = await this.stripe.checkout.sessions.create(sessionParams);
