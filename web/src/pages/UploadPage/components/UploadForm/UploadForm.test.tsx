@@ -712,6 +712,92 @@ describe('UploadForm analytics events', () => {
     });
   });
 
+  it('fires upload_error_chat_resolved_retry when chat was engaged and a subsequent conversion succeeds', async () => {
+    const { track } = await import('../../../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+
+    const failResponse = {
+      redirected: false,
+      status: 400,
+      clone: () => ({ json: () => Promise.reject(new Error('not json')) }),
+      text: () => Promise.resolve('Bad request'),
+      headers: new Headers({ 'Content-Type': 'text/plain' }),
+    };
+    const successResponse = {
+      redirected: false,
+      status: 200,
+      headers: new Headers({
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': 'attachment; filename="deck.apkg"',
+        'X-Card-Count': '5',
+      }),
+      blob: () => Promise.resolve(new Blob(['fake'])),
+    };
+
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(failResponse)
+      .mockResolvedValue(successResponse);
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const form = container.querySelector('form')!;
+
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await waitFor(() => {
+      expect(container.querySelector('button[aria-controls="error-state-chat-panel"]')).not.toBeNull();
+    });
+
+    const toggle = container.querySelector('button[aria-controls="error-state-chat-panel"]') as HTMLButtonElement;
+    await act(async () => {
+      fireEvent.click(toggle);
+    });
+
+    trackMock.mockClear();
+
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await waitFor(() => {
+      const calls = trackMock.mock.calls.filter(([name]) => name === 'upload_error_chat_resolved_retry');
+      expect(calls).toHaveLength(1);
+    });
+  });
+
+  it('does not fire upload_error_chat_resolved_retry when error chat was never engaged', async () => {
+    const { track } = await import('../../../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      redirected: false,
+      status: 200,
+      headers: new Headers({
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': 'attachment; filename="deck.apkg"',
+        'X-Card-Count': '5',
+      }),
+      blob: () => Promise.resolve(new Blob(['fake'])),
+    }));
+
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const form = container.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await waitFor(() => {
+      expect(container.querySelector('[class*="successPrimary"]')).not.toBeNull();
+    });
+
+    const calls = trackMock.mock.calls.filter(([name]) => name === 'upload_error_chat_resolved_retry');
+    expect(calls).toHaveLength(0);
+  });
+
 });
 
 describe('limit state — start trial button', () => {

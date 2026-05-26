@@ -377,6 +377,12 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
   }, [zoneState]);
 
   useEffect(() => {
+    if (zoneState === 'success' && showErrorInlineChat) {
+      track('upload_error_chat_resolved_retry');
+    }
+  }, [zoneState, showErrorInlineChat]);
+
+  useEffect(() => {
     if (zoneState === 'emptyDeck') {
       track('upload_empty_deck_chat_shown');
     }
