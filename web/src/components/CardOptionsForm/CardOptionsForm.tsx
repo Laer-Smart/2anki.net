@@ -543,16 +543,13 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         ? 'Default'
         : 'Custom';
 
-    const fieldMappingSummary =
-      fieldMapping == null ? 'Off' : fieldMapping.templateName;
-
     const pdfAiSection = (
       <div className={fieldStyles.optionGroup} id="pdf-ai">
         <h3 className={fieldStyles.groupHeading}>PDF &amp; AI</h3>
         <p className={fieldStyles.groupIntro}>
           Everything that shapes how AI turns your content into cards. Toggles take
-          effect right away; tap Configure to tune card size, multiple choice, field
-          mapping, and instructions.
+          effect right away; select Configure to tune card size, multiple choice,
+          field mapping, and instructions.
         </p>
         <div className={fieldStyles.groupOptions}>
           {pdfAiToggleOptions.map((o: CardOption) => (
@@ -573,15 +570,17 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
             onConfigure={() => setOpenModal('card-size')}
           />
           <ConfigureRow
-            label="Multiple choice questions (MCQ)"
+            label="Multiple choice"
             summary={mcqEnabled ? 'On' : 'Off'}
             onConfigure={() => setOpenModal('mcq')}
           />
-          <ConfigureRow
-            label="Field mapping"
-            summary={fieldMappingSummary}
-            onConfigure={() => setOpenModal('field-mapping')}
-          />
+          {fieldMapping != null && (
+            <ConfigureRow
+              label="Field mapping"
+              summary={fieldMapping.templateName}
+              onConfigure={() => setOpenModal('field-mapping')}
+            />
+          )}
           <ConfigureRow
             label="User instructions"
             summary={userInstructionsSummary}

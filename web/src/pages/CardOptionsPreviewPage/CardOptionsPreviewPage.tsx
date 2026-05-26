@@ -30,7 +30,7 @@ function SectionRows({ subscriber }: Readonly<{ subscriber: boolean }>) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         <ConfigureRow label="Card size" summary="Medium" onConfigure={noop} />
         <ConfigureRow
-          label="Multiple choice questions (MCQ)"
+          label="Multiple choice"
           summary={subscriber ? 'On' : 'Off'}
           onConfigure={noop}
         />
