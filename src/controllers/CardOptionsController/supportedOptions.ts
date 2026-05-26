@@ -99,6 +99,12 @@ const supportedOptions = (): CardOptionDetail[] => {
       true
     ),
     new CardOptionDetail(
+      'pdf-extract-text',
+      'Extract text from PDFs',
+      'Turn the text inside a PDF into cards. Leave off to render each page as an image — page 1 on the front, page 2 on the back.',
+      false
+    ),
+    new CardOptionDetail(
       'markdown-nested-bullet-points',
       'Markdown nested bullet points',
       'Turn bullets and their sub-bullets into front-and-back cards. Recommended for Obsidian exports.',

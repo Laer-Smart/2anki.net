@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-26-pdf-image-default",
+  "date": "2026-05-26",
+  "type": "fix",
+  "title": "PDFs render as page images by default — turn on Extract text from PDFs in Card options for text cards"
+}
