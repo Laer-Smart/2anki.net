@@ -18,6 +18,8 @@ function makeGroup(overrides: Partial<ErrorGroupRow> = {}): ErrorGroupRow {
     first_seen: '2026-05-01T00:00:00.000Z',
     last_seen: '2026-05-24T10:00:00.000Z',
     occurrences: 3,
+    resolved: false,
+    resolved_at: null,
     ...overrides,
   };
 }
@@ -44,6 +46,10 @@ class FakeRepository implements IErrorEventRepository {
   async countGroups(): Promise<number> {
     return this.total;
   }
+
+  async resolveGroup(): Promise<void> {}
+
+  async reopenGroup(): Promise<void> {}
 }
 
 describe('ListErrorGroupsUseCase', () => {
@@ -58,7 +64,7 @@ describe('ListErrorGroupsUseCase', () => {
     expect(result.totalGroups).toBe(2);
   });
 
-  it('passes options through to the repository', async () => {
+  it('passes options through to the repository, including resolution status', async () => {
     const listGroupsSpy = jest.fn(async (): Promise<ErrorGroupRow[]> => []);
     const countGroupsSpy = jest.fn(async (): Promise<number> => 0);
     const repo: IErrorEventRepository = {
@@ -66,18 +72,42 @@ describe('ListErrorGroupsUseCase', () => {
       existsWithinWindow: jest.fn(async () => false),
       listGroups: listGroupsSpy,
       countGroups: countGroupsSpy,
+      resolveGroup: jest.fn(),
+      reopenGroup: jest.fn(),
     };
 
     const useCase = new ListErrorGroupsUseCase(repo);
-    await useCase.execute({ limit: 10, offset: 20, source: 'server', sort: 'occurrences' });
+    await useCase.execute({
+      limit: 10,
+      offset: 20,
+      source: 'server',
+      sort: 'occurrences',
+      status: 'resolved',
+    });
 
     expect(listGroupsSpy).toHaveBeenCalledWith({
       limit: 10,
       offset: 20,
       source: 'server',
       sort: 'occurrences',
+      status: 'resolved',
     });
-    expect(countGroupsSpy).toHaveBeenCalledWith('server');
+    expect(countGroupsSpy).toHaveBeenCalledWith('server', 'resolved');
+  });
+
+  it('passes resolved state through to the returned groups', async () => {
+    const groups = [
+      makeGroup({ resolved: true, resolved_at: '2026-05-25T12:00:00.000Z' }),
+    ];
+    const repo = new FakeRepository(groups, 1);
+    const useCase = new ListErrorGroupsUseCase(repo);
+
+    const result = await useCase.execute({ limit: 50, offset: 0, status: 'resolved' });
+
+    expect(result.groups[0]).toMatchObject({
+      resolved: true,
+      resolved_at: '2026-05-25T12:00:00.000Z',
+    });
   });
 
   it('returns empty groups and zero total when the repository is empty', async () => {

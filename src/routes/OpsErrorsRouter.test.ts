@@ -29,6 +29,9 @@ jest.mock('./middleware/RequireOpsAccess', () => {
   };
 });
 
+const resolveGroupSpy = jest.fn(async () => {});
+const reopenGroupSpy = jest.fn(async () => {});
+
 jest.mock('../data_layer/ErrorEventRepository', () => ({
   ErrorEventRepository: class {
     async listGroups() {
@@ -45,6 +48,8 @@ jest.mock('../data_layer/ErrorEventRepository', () => ({
           first_seen: '2026-05-01T00:00:00.000Z',
           last_seen: '2026-05-24T10:00:00.000Z',
           occurrences: 3,
+          resolved: false,
+          resolved_at: null,
         },
       ];
     }
@@ -53,6 +58,12 @@ jest.mock('../data_layer/ErrorEventRepository', () => ({
     }
     async insert() {}
     async existsWithinWindow() { return false; }
+    resolveGroup(...args: unknown[]) {
+      return resolveGroupSpy(...(args as []));
+    }
+    reopenGroup(...args: unknown[]) {
+      return reopenGroupSpy(...(args as []));
+    }
   },
 }));
 
@@ -124,7 +135,61 @@ describe('OpsErrorsRouter GET /api/ops/errors', () => {
         first_seen: expect.any(String),
         last_seen: expect.any(String),
         occurrences: expect.any(Number),
+        resolved: expect.any(Boolean),
       });
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe('OpsErrorsRouter resolve / reopen', () => {
+  const hash = 'a'.repeat(64);
+
+  beforeEach(() => {
+    resolveGroupSpy.mockClear();
+    reopenGroupSpy.mockClear();
+  });
+
+  it('returns 401 on resolve without admin auth', async () => {
+    const { url, close } = await startServer(false);
+    try {
+      const res = await fetch(`${url}/api/ops/errors/${hash}/resolve`, { method: 'POST' });
+      expect(res.status).toBe(401);
+      expect(resolveGroupSpy).not.toHaveBeenCalled();
+    } finally {
+      await close();
+    }
+  });
+
+  it('resolves a group for the ops owner', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const res = await fetch(`${url}/api/ops/errors/${hash}/resolve`, { method: 'POST' });
+      expect(res.status).toBe(204);
+      expect(resolveGroupSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      await close();
+    }
+  });
+
+  it('rejects an invalid hash with 400', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const res = await fetch(`${url}/api/ops/errors/not-a-hash/resolve`, { method: 'POST' });
+      expect(res.status).toBe(400);
+      expect(resolveGroupSpy).not.toHaveBeenCalled();
+    } finally {
+      await close();
+    }
+  });
+
+  it('reopens a group via DELETE for the ops owner', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const res = await fetch(`${url}/api/ops/errors/${hash}/resolve`, { method: 'DELETE' });
+      expect(res.status).toBe(204);
+      expect(reopenGroupSpy).toHaveBeenCalledTimes(1);
     } finally {
       await close();
     }

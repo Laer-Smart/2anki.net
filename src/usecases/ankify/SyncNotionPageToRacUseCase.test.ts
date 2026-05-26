@@ -838,6 +838,8 @@ describe('SyncNotionPageToRacUseCase', () => {
       existsWithinWindow: jest.fn().mockResolvedValue(false),
       listGroups: jest.fn().mockResolvedValue([]),
       countGroups: jest.fn().mockResolvedValue(0),
+      resolveGroup: jest.fn().mockResolvedValue(undefined),
+      reopenGroup: jest.fn().mockResolvedValue(undefined),
     });
 
     it('emits ankify.zero_cards event when page produces no cards', async () => {

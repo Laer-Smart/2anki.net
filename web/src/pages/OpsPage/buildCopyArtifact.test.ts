@@ -15,6 +15,8 @@ function makeGroup(overrides: Partial<ErrorGroup> = {}): ErrorGroup {
     first_seen: '2026-05-01T08:00:00.000Z',
     last_seen: '2026-05-24T14:30:45.000Z',
     occurrences: 7,
+    resolved: false,
+    resolved_at: null,
     ...overrides,
   };
 }

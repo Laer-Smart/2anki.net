@@ -3,16 +3,30 @@ import { useSearchParams } from 'react-router-dom';
 
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './OpsPage.module.css';
-import { ErrorGroup, ErrorSort, ErrorSource } from './errorsTypes';
+import { ErrorGroup, ErrorSort, ErrorSource, ErrorStatus } from './errorsTypes';
 import { useErrorGroups } from './useErrorGroups';
 import { buildCopyArtifact } from './buildCopyArtifact';
 import { parseUserAgent } from './parseUserAgent';
+import { resolveErrorGroup, reopenErrorGroup } from './resolveErrorGroup';
 
 const SOURCE_OPTIONS: { value: ErrorSource; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'web', label: 'Web' },
   { value: 'server', label: 'Server' },
 ];
+
+const STATUS_OPTIONS: { value: ErrorStatus; label: string }[] = [
+  { value: 'unresolved', label: 'Unresolved' },
+  { value: 'resolved', label: 'Resolved' },
+  { value: 'all', label: 'All' },
+];
+
+const filterLabelStyle: React.CSSProperties = {
+  fontSize: 'var(--text-xs)',
+  color: 'var(--color-text-tertiary)',
+  width: '3.5rem',
+  flexShrink: 0,
+};
 
 function relative(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -83,9 +97,13 @@ function CopyButton({ group }: Readonly<CopyButtonProps>) {
 interface DetailPanelProps {
   group: ErrorGroup;
   onClose: () => void;
+  onResolutionChange: () => void;
 }
 
-function DetailPanel({ group, onClose }: Readonly<DetailPanelProps>) {
+function DetailPanel({ group, onClose, onResolutionChange }: Readonly<DetailPanelProps>) {
+  const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -93,6 +111,16 @@ function DetailPanel({ group, onClose }: Readonly<DetailPanelProps>) {
     globalThis.addEventListener('keydown', handleKey);
     return () => globalThis.removeEventListener('keydown', handleKey);
   }, [onClose]);
+
+  const toggleResolution = () => {
+    setBusy(true);
+    setActionError(null);
+    const action = group.resolved ? reopenErrorGroup : resolveErrorGroup;
+    action(group.message_hash)
+      .then(() => onResolutionChange())
+      .catch((e: unknown) => setActionError(e instanceof Error ? e.message : 'Action failed'))
+      .finally(() => setBusy(false));
+  };
 
   const release = group.release == null ? '(unknown)' : group.release.slice(0, 8);
   const userId = group.user_id == null ? 'anonymous' : String(group.user_id);
@@ -142,6 +170,13 @@ function DetailPanel({ group, onClose }: Readonly<DetailPanelProps>) {
         <dt style={{ color: 'var(--color-text-tertiary)' }}>Last seen</dt>
         <dd style={{ margin: 0 }}>{new Date(group.last_seen).toUTCString()}</dd>
 
+        {group.resolved && group.resolved_at != null && (
+          <>
+            <dt style={{ color: 'var(--color-text-tertiary)' }}>Resolved</dt>
+            <dd style={{ margin: 0 }}>{new Date(group.resolved_at).toUTCString()}</dd>
+          </>
+        )}
+
         <dt style={{ color: 'var(--color-text-tertiary)' }}>URL</dt>
         <dd style={{ margin: 0, wordBreak: 'break-all' }}>{group.url ?? '(none)'}</dd>
 
@@ -182,8 +217,19 @@ function DetailPanel({ group, onClose }: Readonly<DetailPanelProps>) {
         </div>
       )}
 
-      <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
+      <div style={{ marginTop: 'auto', paddingTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <CopyButton group={group} />
+        <button
+          type="button"
+          className={sharedStyles.btnSmall}
+          disabled={busy}
+          onClick={toggleResolution}
+        >
+          {group.resolved ? 'Reopen' : 'Resolve'}
+        </button>
+        {actionError != null && (
+          <span style={{ fontSize: 'var(--text-xs)', color: '#dc2626' }}>{actionError}</span>
+        )}
       </div>
     </aside>
   );
@@ -197,9 +243,12 @@ export default function ErrorsTab() {
     rawSource === 'web' || rawSource === 'server' ? rawSource : 'all';
   const rawSort = searchParams.get('sort');
   const sort: ErrorSort = rawSort === 'occurrences' ? 'occurrences' : 'last_seen';
+  const rawStatus = searchParams.get('status');
+  const status: ErrorStatus =
+    rawStatus === 'resolved' || rawStatus === 'all' ? rawStatus : 'unresolved';
   const selectedHash = searchParams.get('id');
 
-  const { data, isLoading, error, refetch } = useErrorGroups({ source, sort });
+  const { data, isLoading, error, refetch } = useErrorGroups({ source, sort, status });
 
   const selectedGroup = data?.groups.find((g) => g.message_hash === selectedHash) ?? null;
 
@@ -215,30 +264,54 @@ export default function ErrorsTab() {
 
   const selectGroup = (hash: string | null) => updateParam('id', hash);
   const setSource = (s: ErrorSource) => updateParam('source', s === 'all' ? null : s);
+  const setStatus = (s: ErrorStatus) => updateParam('status', s === 'unresolved' ? null : s);
   const toggleSort = () => updateParam('sort', sort === 'last_seen' ? 'occurrences' : 'last_seen');
+
+  const countLabel = status === 'all' ? 'total' : status;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <div
         className={styles.tabHeader}
-        style={{ justifyContent: 'space-between' }}
+        style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}
       >
-        <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
-          {SOURCE_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              className={
-                source === opt.value
-                  ? `${sharedStyles.btnSmallPill} ${sharedStyles.btnSmallPillActive ?? ''}`
-                  : sharedStyles.btnSmallPill
-              }
-              style={source === opt.value ? { background: 'var(--color-primary)', color: '#fff' } : {}}
-              onClick={() => setSource(opt.value)}
-            >
-              {opt.label}
-            </button>
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+          <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
+            <span style={filterLabelStyle}>Status</span>
+            {STATUS_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                className={
+                  status === opt.value
+                    ? `${sharedStyles.btnSmallPill} ${sharedStyles.btnSmallPillActive ?? ''}`
+                    : sharedStyles.btnSmallPill
+                }
+                style={status === opt.value ? { background: 'var(--color-primary)', color: '#fff' } : {}}
+                onClick={() => setStatus(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
+            <span style={filterLabelStyle}>Source</span>
+            {SOURCE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                className={
+                  source === opt.value
+                    ? `${sharedStyles.btnSmallPill} ${sharedStyles.btnSmallPillActive ?? ''}`
+                    : sharedStyles.btnSmallPill
+                }
+                style={source === opt.value ? { background: 'var(--color-primary)', color: '#fff' } : {}}
+                onClick={() => setSource(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -273,7 +346,9 @@ export default function ErrorsTab() {
 
           {!isLoading && data?.groups.length === 0 && (
             <p className={styles.emptyHint} style={{ padding: '1.5rem' }}>
-              No errors recorded. Errors appear here as soon as the client reports one.
+              {status === 'unresolved'
+                ? 'No unresolved errors. A resolved error reappears here if it happens again.'
+                : 'No errors recorded. Errors appear here as soon as the client reports one.'}
             </p>
           )}
 
@@ -304,6 +379,7 @@ export default function ErrorsTab() {
                       style={{
                         cursor: 'pointer',
                         background: isSelected ? 'var(--color-bg-secondary)' : undefined,
+                        opacity: group.resolved ? 0.55 : undefined,
                       }}
                       onClick={() => selectGroup(isSelected ? null : group.message_hash)}
                     >
@@ -320,6 +396,22 @@ export default function ErrorsTab() {
                         }}
                         title={group.message}
                       >
+                        {group.resolved && (
+                          <span
+                            style={{
+                              fontFamily: 'inherit',
+                              fontSize: '0.65rem',
+                              fontWeight: 'var(--font-semibold)',
+                              color: 'var(--color-text-tertiary)',
+                              border: '1px solid var(--color-border)',
+                              borderRadius: 'var(--radius-sm)',
+                              padding: '0 0.3rem',
+                              marginRight: '0.4rem',
+                            }}
+                          >
+                            Resolved
+                          </span>
+                        )}
                         {truncate(group.message, 80)}
                       </td>
                       <td
@@ -356,6 +448,7 @@ export default function ErrorsTab() {
           <DetailPanel
             group={selectedGroup}
             onClose={() => selectGroup(null)}
+            onResolutionChange={refetch}
           />
         )}
       </div>
@@ -369,7 +462,7 @@ export default function ErrorsTab() {
             fontVariantNumeric: 'tabular-nums',
           }}
         >
-          {data.totalGroups} total group{data.totalGroups === 1 ? '' : 's'}
+          {data.totalGroups} {countLabel} group{data.totalGroups === 1 ? '' : 's'}
         </p>
       )}
     </div>

@@ -22,6 +22,8 @@ function makeRepository(existsResult = false): IErrorEventRepository & { inserts
     async countGroups() {
       return 0;
     },
+    async resolveGroup() {},
+    async reopenGroup() {},
   };
 }
 
@@ -119,6 +121,8 @@ describe('makeErrorCaptureMiddleware', () => {
       async existsWithinWindow() { throw new Error('DB down'); },
       async listGroups() { return []; },
       async countGroups() { return 0; },
+      async resolveGroup() {},
+      async reopenGroup() {},
     };
     const middleware = makeErrorCaptureMiddleware(brokenRepo);
     const next = makeNext();
@@ -136,6 +140,8 @@ describe('makeErrorCaptureMiddleware', () => {
       async existsWithinWindow() { throw new Error('DB down'); },
       async listGroups() { return []; },
       async countGroups() { return 0; },
+      async resolveGroup() {},
+      async reopenGroup() {},
     };
     const captured: FallbackErrorPayload[] = [];
     const writeFallback = (payload: FallbackErrorPayload) => { captured.push(payload); };
