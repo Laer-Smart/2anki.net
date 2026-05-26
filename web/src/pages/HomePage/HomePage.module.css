@@ -36,14 +36,20 @@
   color: var(--color-text-link);
 }
 
-.formOptionsRow {
+.heroControls {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 0.75rem;
-  margin-bottom: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem auto 0.75rem;
+}
+
+.heroAiBadge {
+  margin: 0;
 }
 
 .cardOptionsLink {
+  flex-shrink: 0;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   color: var(--color-text-link);
