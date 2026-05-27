@@ -41,7 +41,7 @@ export function CardSizeModal({ isOpen, onClose, value, onChange }: Readonly<Pro
           </button>
         </div>
         <div className={sharedStyles.modalBody}>
-          <div className={fieldStyles.segmented} role="group" aria-label="Card size">
+          <fieldset className={fieldStyles.segmented} aria-label="Card size">
             {CARD_SIZE_CHOICES.map(({ label, value: choice }) => (
               <button
                 key={choice}
@@ -53,7 +53,7 @@ export function CardSizeModal({ isOpen, onClose, value, onChange }: Readonly<Pro
                 {label}
               </button>
             ))}
-          </div>
+          </fieldset>
           <p className={fieldStyles.groupIntro}>
             AI conversion uses this to decide how much fits on each card.
           </p>

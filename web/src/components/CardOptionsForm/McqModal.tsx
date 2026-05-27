@@ -74,9 +74,8 @@ export function McqModal({
           </button>
         </div>
         <div className={sharedStyles.modalBody}>
-          <div
+          <fieldset
             className={fieldStyles.segmented}
-            role="group"
             aria-label="Enable multiple choice questions"
           >
             {ENABLED_CHOICES.map(({ label, value }) => (
@@ -89,7 +88,7 @@ export function McqModal({
                 {label}
               </button>
             ))}
-          </div>
+          </fieldset>
           <p className={fieldStyles.groupIntro}>
             Photo to deck and the AI chat generate multiple-choice questions when this is on. You can also write them yourself — see the{' '}
             <Link to="/documentation/cards/mcq" className={fieldStyles.groupIntroLink}>
