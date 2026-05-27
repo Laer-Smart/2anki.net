@@ -8,6 +8,7 @@ import {
   emitMetaOnlyPages,
   emitNotionMarketplacePage,
 } from './scripts/prerenderLandingPages';
+import { keepManifestSameOrigin } from './scripts/keepManifestSameOrigin';
 
 function landingPrerender(): Plugin {
   return {
@@ -19,6 +20,16 @@ function landingPrerender(): Plugin {
       emitNotionMarketplacePage(buildDir);
       emitAnswersPages(buildDir);
       emitMetaOnlyPages(buildDir);
+    },
+  };
+}
+
+function manifestSameOrigin(): Plugin {
+  return {
+    name: '2anki-manifest-same-origin',
+    enforce: 'post',
+    transformIndexHtml(html) {
+      return keepManifestSameOrigin(html);
     },
   };
 }
@@ -47,6 +58,7 @@ export default defineConfig(({ command, mode }) => {
         include: '**/*.svg',
       }),
       landingPrerender(),
+      manifestSameOrigin(),
     ],
 
     // Test configuration
