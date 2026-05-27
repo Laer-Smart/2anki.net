@@ -10,6 +10,7 @@ function makeRepo(
 ): jest.Mocked<IAbandonedCheckoutRecoveryRepository> {
   return {
     claimSession: jest.fn().mockResolvedValue(claimed),
+    recordEmailSend: jest.fn().mockResolvedValue(undefined),
     isMarketingOptedOut: jest.fn().mockResolvedValue(optedOut),
   };
 }
@@ -40,7 +41,11 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
 
     await useCase.execute('cs_test_abc123', 'alice@example.com');
 
-    expect(repo.claimSession).toHaveBeenCalledWith('cs_test_abc123', 'alice@example.com');
+    expect(repo.claimSession).toHaveBeenCalledWith(
+      'cs_test_abc123',
+      'alice@example.com',
+      expect.any(String)
+    );
     expect(emailService.sendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith(
       'alice@example.com',
       expect.any(String)
@@ -59,6 +64,18 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
     expect(token.length).toBeGreaterThan(0);
   });
 
+  it('passes the same token to claimSession and the email service', async () => {
+    const repo = makeRepo(true);
+    const emailService = makeEmailService();
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+
+    await useCase.execute('cs_test_same_tok', 'alice@example.com');
+
+    const claimToken = (repo.claimSession as jest.Mock).mock.calls[0][2];
+    const [, emailToken] = emailService.sendAbandonedCheckoutRecoveryEmail.mock.calls[0];
+    expect(claimToken).toBe(emailToken);
+  });
+
   it('does not send email when insert is a no-op (duplicate)', async () => {
     const repo = makeRepo(false);
     const emailService = makeEmailService();
@@ -66,7 +83,11 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
 
     await useCase.execute('cs_test_abc123', 'alice@example.com');
 
-    expect(repo.claimSession).toHaveBeenCalledWith('cs_test_abc123', 'alice@example.com');
+    expect(repo.claimSession).toHaveBeenCalledWith(
+      'cs_test_abc123',
+      'alice@example.com',
+      expect.any(String)
+    );
     expect(emailService.sendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
   });
 
@@ -105,6 +126,7 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
       claimSession: jest.fn().mockImplementation(() => {
         return Promise.resolve(claimCalls.shift() ?? false);
       }),
+      recordEmailSend: jest.fn().mockResolvedValue(undefined),
       isMarketingOptedOut: jest.fn().mockResolvedValue(false),
     };
     const emailService = makeEmailService();

@@ -23,6 +23,7 @@ function makeEmailService(): jest.Mocked<IEmailService> {
 function makeRepo(optedOut = false): jest.Mocked<IAbandonedCheckoutRecoveryRepository> {
   return {
     claimSession: jest.fn().mockResolvedValue(true),
+    recordEmailSend: jest.fn().mockResolvedValue(undefined),
     isMarketingOptedOut: jest.fn().mockResolvedValue(optedOut),
   };
 }
@@ -130,5 +131,28 @@ describe('SendAbandonedCheckoutRecoveryUseCase', () => {
 
     expect(result.sent).toBe(1);
     expect(emailService.sendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledTimes(1);
+  });
+
+  it('persists the token via recordEmailSend after a successful send', async () => {
+    const emailService = makeEmailService();
+    const repo = makeRepo(false);
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(emailService, repo);
+
+    await useCase.execute(['active@example.com'], false);
+
+    const [emailArg, tokenArg] = emailService.sendAbandonedCheckoutRecoveryEmail.mock.calls[0];
+    expect(repo.recordEmailSend).toHaveBeenCalledWith(emailArg, tokenArg);
+  });
+
+  it('stores a token that is a non-empty string', async () => {
+    const emailService = makeEmailService();
+    const repo = makeRepo(false);
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(emailService, repo);
+
+    await useCase.execute(['store@example.com'], false);
+
+    const [, persistedToken] = (repo.recordEmailSend as jest.Mock).mock.calls[0];
+    expect(typeof persistedToken).toBe('string');
+    expect(persistedToken.length).toBeGreaterThan(0);
   });
 });

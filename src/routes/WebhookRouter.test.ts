@@ -429,7 +429,7 @@ describe('WebhookRouter — checkout.session.expired', () => {
 
     const res = await postWebhook();
     expect(res.status).toBe(200);
-    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_abc', 'buyer@example.com');
+    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_abc', 'buyer@example.com', expect.any(String));
     expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('buyer@example.com', expect.any(String));
   });
 
@@ -447,7 +447,7 @@ describe('WebhookRouter — checkout.session.expired', () => {
 
     const res = await postWebhook();
     expect(res.status).toBe(200);
-    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_dup', 'buyer@example.com');
+    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_dup', 'buyer@example.com', expect.any(String));
     expect(mockSendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
   });
 
@@ -507,7 +507,7 @@ describe('WebhookRouter — checkout.session.expired', () => {
 
     const res = await postWebhook();
     expect(res.status).toBe(200);
-    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_fallback', 'fallback@example.com');
+    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_fallback', 'fallback@example.com', expect.any(String));
     expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('fallback@example.com', expect.any(String));
   });
 });

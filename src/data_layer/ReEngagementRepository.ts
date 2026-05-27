@@ -81,10 +81,19 @@ export class ReEngagementRepository implements IReEngagementRepository {
       .select('id', 'user_id')
       .where({ token })
       .first();
-    if (trialRow == null) {
+    if (trialRow != null) {
+      return { id: trialRow.id, userId: trialRow.user_id };
+    }
+
+    const abandonedRow = await this.database('abandoned_checkout_recovery_emails')
+      .select('users.id as user_id')
+      .join('users', 'users.email', 'abandoned_checkout_recovery_emails.user_email')
+      .where('abandoned_checkout_recovery_emails.token', token)
+      .first<{ user_id: number }>();
+    if (abandonedRow == null) {
       return null;
     }
-    return { id: trialRow.id, userId: trialRow.user_id };
+    return { id: abandonedRow.user_id, userId: abandonedRow.user_id };
   }
 
   async getUsersToEmail(): Promise<
