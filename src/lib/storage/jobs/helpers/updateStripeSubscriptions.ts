@@ -9,6 +9,29 @@ const stripe = getStripe();
 const database = getDatabase();
 
 /**
+ * Max subscriptions processed concurrently in the forward sync. Each one fires
+ * a Stripe customers.retrieve; a wide Promise.all over the batch (up to 100)
+ * bursts past Stripe's rate limit and throttles live payment traffic during the
+ * run. A small cap keeps the sync comfortably under the limit.
+ */
+const FORWARD_SYNC_CONCURRENCY = 5;
+
+/**
+ * Runs `worker` over `items` with at most `concurrency` in flight at a time,
+ * processing sequential slices so a large batch never bursts all at once.
+ */
+export async function mapWithConcurrency<T>(
+  items: readonly T[],
+  concurrency: number,
+  worker: (item: T) => Promise<void>
+): Promise<void> {
+  const size = concurrency > 0 ? concurrency : 1;
+  for (let i = 0; i < items.length; i += size) {
+    await Promise.all(items.slice(i, i + size).map(worker));
+  }
+}
+
+/**
  * Fetches a batch of active subscriptions from Stripe
  */
 function fetchSubscriptionBatch(startingAfter?: string) {
@@ -247,13 +270,13 @@ async function updateStripeSubscriptions(): Promise<void> {
         break;
       }
 
-      // Process each subscription
-      const processPromises = subscriptions.data.map((subscription) =>
-        processSubscription(database, subscription)
+      // Process with bounded concurrency so the batch's customers.retrieve
+      // calls don't burst past Stripe's rate limit and throttle live traffic.
+      await mapWithConcurrency(
+        subscriptions.data,
+        FORWARD_SYNC_CONCURRENCY,
+        (subscription) => processSubscription(database, subscription)
       );
-
-      // Wait for all subscriptions to be processed
-      await Promise.all(processPromises);
 
       // Update pagination parameters
       const pagination = updatePaginationParams(subscriptions);
