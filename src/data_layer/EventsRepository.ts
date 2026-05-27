@@ -12,6 +12,17 @@ export interface EventCountRow {
   count: number;
 }
 
+export interface PaywallShownByVariantRow {
+  variant: string | null;
+  surface: string | null;
+  distinct_users: number;
+}
+
+export interface PaywallClicksByVariantRow {
+  variant: string | null;
+  click_count: number;
+}
+
 export interface IEventsRepository {
   insertEvents(rows: EventRow[]): Promise<void>;
   countByName(name: string, since: Date): Promise<number>;
@@ -22,6 +33,12 @@ export interface IEventsRepository {
     userId: number | null,
     anonymousId: string | null
   ): Promise<number>;
+  groupPaywallShownByVariantAndSurface(
+    since: Date
+  ): Promise<PaywallShownByVariantRow[]>;
+  groupPaywallClicksByVariant(
+    since: Date
+  ): Promise<PaywallClicksByVariantRow[]>;
 }
 
 export class EventsRepository implements IEventsRepository {
@@ -73,6 +90,53 @@ export class EventsRepository implements IEventsRepository {
 
     const result = await query.count('id as count').first();
     return Number(result?.count ?? 0);
+  }
+
+  async groupPaywallShownByVariantAndSurface(
+    since: Date
+  ): Promise<PaywallShownByVariantRow[]> {
+    const rows = (await this.database(this.table)
+      .where('name', 'paywall_shown')
+      .where('created_at', '>=', since)
+      .select(
+        this.database.raw("props->>'variant' as variant"),
+        this.database.raw("props->>'surface' as surface")
+      )
+      .countDistinct(
+        this.database.raw(
+          "COALESCE(user_id::text, anonymous_id) as distinct_users"
+        )
+      )
+      .groupByRaw("props->>'variant', props->>'surface'")) as Array<{
+      variant: string | null;
+      surface: string | null;
+      distinct_users: string | number;
+    }>;
+
+    return rows.map((r) => ({
+      variant: r.variant ?? null,
+      surface: r.surface ?? null,
+      distinct_users: Number(r.distinct_users),
+    }));
+  }
+
+  async groupPaywallClicksByVariant(
+    since: Date
+  ): Promise<PaywallClicksByVariantRow[]> {
+    const rows = (await this.database(this.table)
+      .where('name', 'paywall_upgrade_clicked')
+      .where('created_at', '>=', since)
+      .select(this.database.raw("props->>'variant' as variant"))
+      .count('id as click_count')
+      .groupByRaw("props->>'variant'")) as Array<{
+      variant: string | null;
+      click_count: string | number;
+    }>;
+
+    return rows.map((r) => ({
+      variant: r.variant ?? null,
+      click_count: Number(r.click_count),
+    }));
   }
 }
 

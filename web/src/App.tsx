@@ -1,24 +1,22 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { lazy, ReactElement, useState } from 'react';
+import { CookiesProvider, useCookies } from 'react-cookie';
 import { HelmetProvider } from 'react-helmet-async';
-
-import { useCookies, CookiesProvider } from 'react-cookie';
-import UploadPage from './pages/UploadPage';
-import HomePage from './pages/HomePage';
-import AboutPage from './pages/AboutPage/AboutPage';
-
-import isOfflineMode from './lib/isOfflineMode';
-import DebugPage from './pages/DebugPage';
-import { ContactPage } from './pages/ContactPage/ContactPage';
-import FavoritesPage from './pages/FavoritesPage';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/AppShell/AppShell';
-import DeleteAccountPage from './pages/DeleteAccountPage';
 import { getErrorMessage } from './components/errors/helpers/getErrorMessage';
-import { reportClientError } from './lib/reportClientError';
-import { useUserLocals } from './lib/hooks/useUserLocals';
 import { SkeletonPage } from './components/Skeleton/Skeleton';
+import { useUserLocals } from './lib/hooks/useUserLocals';
+import isOfflineMode from './lib/isOfflineMode';
+import { reportClientError } from './lib/reportClientError';
+import AboutPage from './pages/AboutPage/AboutPage';
+import { ContactPage } from './pages/ContactPage/ContactPage';
+import DebugPage from './pages/DebugPage';
+import DeleteAccountPage from './pages/DeleteAccountPage';
+import FavoritesPage from './pages/FavoritesPage';
+import HomePage from './pages/HomePage';
 import NotFoundPage from './pages/NotFoundPage';
+import UploadPage from './pages/UploadPage';
 
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const SearchPage = lazy(() => import('./pages/SearchPage'));
@@ -62,15 +60,18 @@ const ConversionsTab = lazy(() => import('./pages/OpsPage/ConversionsTab'));
 const BusinessTab = lazy(() => import('./pages/OpsPage/BusinessTab'));
 const ShowcaseTab = lazy(() => import('./pages/OpsPage/ShowcaseTab'));
 const InterviewsTab = lazy(() => import('./pages/OpsPage/InterviewsTab'));
-const ContactMessagesTab = lazy(() => import('./pages/OpsPage/ContactMessagesTab'));
+const ContactMessagesTab = lazy(
+  () => import('./pages/OpsPage/ContactMessagesTab')
+);
 const CommandsTab = lazy(() => import('./pages/OpsPage/CommandsTab'));
+const PricingAbFunnelTab = lazy(
+  () => import('./pages/OpsPage/PricingAbFunnelTab')
+);
 const FeedbackPage = lazy(() => import('./pages/FeedbackPage/FeedbackPage'));
 const NotionToAnki = lazy(() => import('./pages/LandingPage/NotionToAnki'));
 const AnkiToNotion = lazy(() => import('./pages/LandingPage/AnkiToNotion'));
 const QuizletToAnki = lazy(() => import('./pages/LandingPage/QuizletToAnki'));
-const MarkdownToAnki = lazy(
-  () => import('./pages/LandingPage/MarkdownToAnki')
-);
+const MarkdownToAnki = lazy(() => import('./pages/LandingPage/MarkdownToAnki'));
 const PdfToAnki = lazy(() => import('./pages/LandingPage/PdfToAnki'));
 const UsmleAnki = lazy(() => import('./pages/LandingPage/UsmleAnki'));
 const NursingFlashcards = lazy(
@@ -106,7 +107,9 @@ const PhotoToFlashcardsPage = lazy(() =>
   }))
 );
 const ChatPage = lazy(() => import('./pages/Chat/ChatPage'));
-const NotionLandingPage = lazy(() => import('./pages/NotionLandingPage/NotionLandingPage'));
+const NotionLandingPage = lazy(
+  () => import('./pages/NotionLandingPage/NotionLandingPage')
+);
 const AnswersPage = lazy(() => import('./pages/AnswersPage/AnswersPage'));
 const LimitPage = lazy(() => import('./pages/LimitPage/LimitPage'));
 const SharedDeckPage = lazy(() => import('./pages/SharedDeckPage'));
@@ -156,21 +159,25 @@ function AppContent({
         error={error}
         isLoggedIn={isLoggedIn}
         email={data?.user?.email}
-        locals={data?.locals == null ? data?.locals : { ...data.locals, trial_started_at: data?.user?.trial_started_at ?? null, autoSyncActive: data?.autoSyncActive === true }}
+        locals={
+          data?.locals == null
+            ? data?.locals
+            : {
+                ...data.locals,
+                trial_started_at: data?.user?.trial_started_at ?? null,
+                autoSyncActive: data?.autoSyncActive === true,
+              }
+        }
         features={data?.features}
       >
         <Routes>
           <Route
             path="/favorites"
-            element={requireAuth(
-              <FavoritesPage setError={setErrorMessage} />
-            )}
+            element={requireAuth(<FavoritesPage setError={setErrorMessage} />)}
           />
           <Route
             path="/downloads"
-            element={requireAuth(
-              <DownloadsPage setError={setErrorMessage} />
-            )}
+            element={requireAuth(<DownloadsPage setError={setErrorMessage} />)}
           />
           <Route
             path="/uploads"
@@ -182,7 +189,10 @@ function AppContent({
           />
           <Route path="/print" element={<PrintPage />} />
           <Route path="/image-occlusion" element={<ImageOcclusionPage />} />
-          <Route path="/photo-to-deck" element={requireAuth(<PhotoToFlashcardsPage />)} />
+          <Route
+            path="/photo-to-deck"
+            element={requireAuth(<PhotoToFlashcardsPage />)}
+          />
           <Route path="/mindmaps" element={requireAuth(<MindmapsPage />)} />
           <Route path="/mindmaps/:id" element={requireAuth(<MindmapsPage />)} />
           <Route path="/chat" element={requireAuth(<ChatPage />)} />
@@ -192,14 +202,9 @@ function AppContent({
           />
           <Route
             path="/notion"
-            element={requireAuth(
-              <SearchPage setError={setErrorMessage} />
-            )}
+            element={requireAuth(<SearchPage setError={setErrorMessage} />)}
           />
-          <Route
-            path="/search"
-            element={<Navigate to="/notion" replace />}
-          />
+          <Route path="/search" element={<Navigate to="/notion" replace />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/auth/magic" element={<MagicLinkPage />} />
           <Route
@@ -230,7 +235,9 @@ function AppContent({
                 signupCountry={data?.user?.signup_country ?? null}
                 autoSyncCapReached={data?.autoSyncCapReached === true}
                 autoSyncActive={data?.autoSyncActive === true}
-                onTrialStarted={() => { refetch(); }}
+                onTrialStarted={() => {
+                  refetch();
+                }}
               />
             }
           />
@@ -256,16 +263,11 @@ function AppContent({
             />
           )}
           {NotionPreviewPage && (
-            <Route
-              path="/dev/notion-preview"
-              element={<NotionPreviewPage />}
-            />
+            <Route path="/dev/notion-preview" element={<NotionPreviewPage />} />
           )}
           <Route
             path="/import"
-            element={requireAuth(
-              <ImportPage setError={setErrorMessage} />
-            )}
+            element={requireAuth(<ImportPage setError={setErrorMessage} />)}
           />
           <Route path="/ankify" element={requireAuth(<AnkifyPage />)} />
           <Route
@@ -286,6 +288,7 @@ function AppContent({
             <Route path="interviews" element={<InterviewsTab />} />
             <Route path="messages" element={<ContactMessagesTab />} />
             <Route path="commands" element={<CommandsTab />} />
+            <Route path="pricing-ab" element={<PricingAbFunnelTab />} />
           </Route>
           <Route path="/feedback" element={requireAuth(<FeedbackPage />)} />
           <Route path="/settings" element={requireAuth(<AccountPage />)} />
@@ -318,9 +321,7 @@ function AppContent({
           />
           <Route
             path="/preview/:id"
-            element={requireAuth(
-              <PreviewPage setError={setErrorMessage} />
-            )}
+            element={requireAuth(<PreviewPage setError={setErrorMessage} />)}
           />
           <Route
             path="/preview/database/:id"
@@ -365,9 +366,7 @@ function AppContent({
           <Route
             path="/anki-from-medical-lecture-slides"
             element={
-              <AnkiFromMedicalLectureSlides
-                setErrorMessage={setErrorMessage}
-              />
+              <AnkiFromMedicalLectureSlides setErrorMessage={setErrorMessage} />
             }
           />
           <Route
@@ -386,9 +385,7 @@ function AppContent({
           <Route path="/answers/:slug" element={<AnswersPage />} />
           <Route
             path="/convert/:slug"
-            element={
-              <ConvertLandingPage setErrorMessage={setErrorMessage} />
-            }
+            element={<ConvertLandingPage setErrorMessage={setErrorMessage} />}
           />
           <Route path="/s/:token" element={<SharedDeckPage />} />
           <Route path="*" element={<NotFoundPage />} />

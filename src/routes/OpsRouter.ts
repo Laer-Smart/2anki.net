@@ -41,7 +41,10 @@ import { MindmapRepository } from '../data_layer/MindmapRepository';
 import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
 import { JobsMetricsRepository } from '../data_layer/JobsMetricsRepository';
 import { SyncStripeSubscriptionsUseCase } from '../usecases/ops/SyncStripeSubscriptionsUseCase';
+import { GetPricingAbFunnelUseCase } from '../usecases/ops/GetPricingAbFunnelUseCase';
+import { PricingAbFunnelService } from '../services/ops/PricingAbFunnelService';
 import { updateStripeSubscriptions } from '../lib/storage/jobs/helpers/updateStripeSubscriptions';
+import EventsRepository from '../data_layer/EventsRepository';
 
 const OpsRouter = () => {
   const router = express.Router();
@@ -103,7 +106,10 @@ const OpsRouter = () => {
       new InactivityEmailRepository(database),
       new UsersRepository(database)
     ),
-    new SyncStripeSubscriptionsUseCase(() => updateStripeSubscriptions())
+    new SyncStripeSubscriptionsUseCase(() => updateStripeSubscriptions()),
+    new GetPricingAbFunnelUseCase(
+      new PricingAbFunnelService({ eventsRepo: new EventsRepository(database) })
+    )
   );
 
   /**
@@ -392,6 +398,33 @@ const OpsRouter = () => {
    */
   router.post('/api/ops/sync-stripe-subscriptions', RequireOpsAccess, (req, res) =>
     controller.syncStripeSubscriptions(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/pricing-ab/funnel:
+   *   get:
+   *     summary: Pricing-page A/B test funnel by variant
+   *     description: |
+   *       Returns per-variant funnel metrics (users shown, upgrade clicks, paid conversions,
+   *       revenue) and a surface breakdown. Defaults to the last 30 days; pass ?window=7d|14d|30d|60d|90d
+   *       to change. Internal endpoint locked to the ops owner — returns 404 for everyone else.
+   *     tags: [Ops]
+   *     parameters:
+   *       - in: query
+   *         name: window
+   *         schema:
+   *           type: string
+   *           enum: ['7d', '14d', '30d', '60d', '90d']
+   *         description: Lookback window. Defaults to 30d.
+   *     responses:
+   *       200:
+   *         description: Funnel payload
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.get('/api/ops/pricing-ab/funnel', RequireOpsAccess, (req, res) =>
+    controller.getPricingAbFunnel(req, res)
   );
 
   return router;

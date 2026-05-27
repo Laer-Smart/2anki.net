@@ -13,6 +13,7 @@ import { SendAbandonedCheckoutRecoveryUseCase } from '../usecases/ops/SendAbando
 import { IShowcaseRepository } from '../data_layer/ShowcaseRepository';
 import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
 import { SyncStripeSubscriptionsUseCase } from '../usecases/ops/SyncStripeSubscriptionsUseCase';
+import { GetPricingAbFunnelUseCase } from '../usecases/ops/GetPricingAbFunnelUseCase';
 
 class OpsController {
   constructor(
@@ -28,7 +29,8 @@ class OpsController {
     private readonly getMindmapImageStatsUseCase?: GetMindmapImageStatsUseCase,
     private readonly getMindmapStorageMetricsUseCase?: GetMindmapStorageMetricsUseCase,
     private readonly deleteInactiveUsersUseCase?: DeleteInactiveUsersUseCase,
-    private readonly syncStripeSubscriptionsUseCase?: SyncStripeSubscriptionsUseCase
+    private readonly syncStripeSubscriptionsUseCase?: SyncStripeSubscriptionsUseCase,
+    private readonly getPricingAbFunnelUseCase?: GetPricingAbFunnelUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -257,6 +259,21 @@ class OpsController {
       res
         .status(500)
         .json({ message: 'Failed to load mindmap storage metrics' });
+    }
+  }
+
+  async getPricingAbFunnel(req: express.Request, res: express.Response) {
+    if (this.getPricingAbFunnelUseCase == null) {
+      res.status(500).json({ message: 'Pricing A/B funnel not configured' });
+      return;
+    }
+    try {
+      const window = typeof req.query.window === 'string' ? req.query.window : undefined;
+      const result = await this.getPricingAbFunnelUseCase.execute(window);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('[ops] getPricingAbFunnel failed', error);
+      res.status(500).json({ message: 'Failed to load pricing A/B funnel' });
     }
   }
 }
