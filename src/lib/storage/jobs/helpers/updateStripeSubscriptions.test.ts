@@ -26,7 +26,10 @@ jest.mock('./reconcileActiveSubscriptions', () => ({
   reconcileActiveSubscriptions: jest.fn().mockResolvedValue(undefined),
 }));
 
-import { updateStripeSubscriptions } from './updateStripeSubscriptions';
+import {
+  updateStripeSubscriptions,
+  mapWithConcurrency,
+} from './updateStripeSubscriptions';
 
 function buildSubscription(
   productId: string | null | undefined = 'prod_autoSync789',
@@ -154,5 +157,51 @@ describe('updateStripeSubscriptions — batch provisioning fields', () => {
     expect(insertSpy).toHaveBeenCalledWith(
       expect.objectContaining({ stripe_product_id: null })
     );
+  });
+});
+
+describe('mapWithConcurrency', () => {
+  it('processes every item', async () => {
+    const seen: number[] = [];
+    await mapWithConcurrency([1, 2, 3, 4, 5], 2, async (n) => {
+      seen.push(n);
+    });
+    expect(seen.sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('never runs more than `concurrency` workers at once', async () => {
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const worker = async () => {
+      inFlight += 1;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      inFlight -= 1;
+    };
+
+    await mapWithConcurrency(Array.from({ length: 20 }, (_, i) => i), 5, worker);
+
+    expect(maxInFlight).toBeLessThanOrEqual(5);
+  });
+
+  it('treats a non-positive concurrency as sequential', async () => {
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const worker = async () => {
+      inFlight += 1;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      inFlight -= 1;
+    };
+
+    await mapWithConcurrency([1, 2, 3], 0, worker);
+
+    expect(maxInFlight).toBe(1);
+  });
+
+  it('does nothing for an empty list', async () => {
+    const worker = jest.fn().mockResolvedValue(undefined);
+    await mapWithConcurrency([], 5, worker);
+    expect(worker).not.toHaveBeenCalled();
   });
 });
