@@ -11,6 +11,8 @@ export default interface AbandonedCheckoutRecoveryEmails {
   user_email: string;
 
   sent_at: Date;
+
+  token: string | null;
 }
 
 /** Represents the initializer for the table public.abandoned_checkout_recovery_emails */
@@ -21,6 +23,8 @@ export interface AbandonedCheckoutRecoveryEmailsInitializer {
 
   /** Default value: CURRENT_TIMESTAMP */
   sent_at?: Date;
+
+  token?: string | null;
 }
 
 /** Represents the mutator for the table public.abandoned_checkout_recovery_emails */
@@ -30,4 +34,6 @@ export interface AbandonedCheckoutRecoveryEmailsMutator {
   user_email?: string;
 
   sent_at?: Date;
+
+  token?: string | null;
 }

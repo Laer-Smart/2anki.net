@@ -1,4 +1,5 @@
-import { IEmailService } from '../../services/EmailService/EmailService';
+import type { IAbandonedCheckoutRecoveryRepository } from '../../data_layer/AbandonedCheckoutRecoveryRepository';
+import type { IEmailService } from '../../services/EmailService/EmailService';
 
 export interface SendAbandonedCheckoutRecoveryResult {
   dryRun: boolean;
@@ -15,7 +16,10 @@ const isValidEmail = (value: string): boolean =>
   value.length <= MAX_EMAIL_LEN && EMAIL_RE.test(value);
 
 export class SendAbandonedCheckoutRecoveryUseCase {
-  constructor(private readonly emailService: IEmailService) {}
+  constructor(
+    private readonly emailService: IEmailService,
+    private readonly repository?: IAbandonedCheckoutRecoveryRepository
+  ) {}
 
   async execute(
     emails: string[],
@@ -43,7 +47,17 @@ export class SendAbandonedCheckoutRecoveryUseCase {
     let sent = 0;
     for (const email of unique) {
       try {
-        await this.emailService.sendAbandonedCheckoutRecoveryEmail(email);
+        if (this.repository != null) {
+          const optedOut = await this.repository.isMarketingOptedOut(email);
+          if (optedOut) {
+            continue;
+          }
+        }
+        const token = crypto.randomUUID();
+        await this.emailService.sendAbandonedCheckoutRecoveryEmail(email, token);
+        if (this.repository != null) {
+          await this.repository.recordEmailSend(email, token);
+        }
         sent += 1;
       } catch (error) {
         failures.push({

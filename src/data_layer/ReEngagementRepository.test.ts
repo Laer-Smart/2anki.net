@@ -1,4 +1,5 @@
-import { InMemoryReEngagementRepository } from './ReEngagementRepository';
+import knex, { Knex } from 'knex';
+import { InMemoryReEngagementRepository, ReEngagementRepository } from './ReEngagementRepository';
 
 describe('InMemoryReEngagementRepository', () => {
   describe('hasBeenSent', () => {
@@ -134,5 +135,107 @@ describe('InMemoryReEngagementRepository', () => {
       expect(await repo.hasBeenSent(1)).toBe(false);
       expect(await repo.getUsersToEmail()).toHaveLength(0);
     });
+  });
+});
+
+describe('ReEngagementRepository.findByToken — abandoned checkout path', () => {
+  let database: Knex;
+  let repo: ReEngagementRepository;
+
+  beforeEach(async () => {
+    database = knex({
+      client: 'better-sqlite3',
+      connection: { filename: ':memory:' },
+      useNullAsDefault: true,
+    });
+
+    await database.schema.createTable('re_engagement_emails', (t) => {
+      t.increments('id').primary();
+      t.integer('user_id').notNullable();
+      t.text('token').unique();
+    });
+
+    await database.schema.createTable('inactivity_emails', (t) => {
+      t.increments('id').primary();
+      t.integer('user_id').notNullable();
+      t.text('token').unique();
+    });
+
+    await database.schema.createTable('trial_ended_emails', (t) => {
+      t.increments('id').primary();
+      t.integer('user_id').notNullable();
+      t.text('token').unique();
+    });
+
+    await database.schema.createTable('users', (t) => {
+      t.increments('id').primary();
+      t.text('email').notNullable().unique();
+      t.text('name').notNullable().defaultTo('');
+    });
+
+    await database.schema.createTable('abandoned_checkout_recovery_emails', (t) => {
+      t.text('session_id').primary();
+      t.text('user_email').notNullable();
+      t.timestamp('sent_at').notNullable().defaultTo(database.fn.now());
+      t.string('token', 128).nullable().unique();
+    });
+
+    repo = new ReEngagementRepository(database);
+  });
+
+  afterEach(async () => {
+    await database.destroy();
+  });
+
+  it('returns null when token is not in any table', async () => {
+    const result = await repo.findByToken('ghost-token');
+    expect(result).toBeNull();
+  });
+
+  it('resolves abandoned checkout token to the correct userId via email join', async () => {
+    const [user] = await database('users')
+      .insert({ email: 'buyer@example.com', name: 'Buyer' })
+      .returning('id');
+    const userId = typeof user === 'object' ? user.id : user;
+
+    await database('abandoned_checkout_recovery_emails').insert({
+      session_id: 'cs_test_xyz',
+      user_email: 'buyer@example.com',
+      token: 'unsubscribe-tok',
+    });
+
+    const result = await repo.findByToken('unsubscribe-tok');
+
+    expect(result).not.toBeNull();
+    expect(result?.userId).toBe(userId);
+  });
+
+  it('returns null when token exists in abandoned checkout but user email has no matching user', async () => {
+    await database('abandoned_checkout_recovery_emails').insert({
+      session_id: 'cs_orphan',
+      user_email: 'ghost@example.com',
+      token: 'orphan-tok',
+    });
+
+    const result = await repo.findByToken('orphan-tok');
+
+    expect(result).toBeNull();
+  });
+
+  it('does not find abandoned checkout token when searching other tables', async () => {
+    await database('users').insert({ email: 'buyer2@example.com', name: 'Buyer2' });
+    await database('abandoned_checkout_recovery_emails').insert({
+      session_id: 'cs_other',
+      user_email: 'buyer2@example.com',
+      token: 'checkout-only-tok',
+    });
+
+    const reEngResult = await database('re_engagement_emails')
+      .where({ token: 'checkout-only-tok' })
+      .first();
+    expect(reEngResult).toBeUndefined();
+
+    const repoResult = await repo.findByToken('checkout-only-tok');
+    expect(repoResult).not.toBeNull();
   });
 });

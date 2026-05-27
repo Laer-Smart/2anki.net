@@ -55,7 +55,18 @@ All templates live in `src/services/EmailService/templates/`. The reference is `
 - No "my" in button labels — "Verify email" not "Verify my email"
 - Sign-off: "The 2anki Team" — no "Happy learning", no "Happy studying", no exclamation marks
 - Transactional emails (auth, deck delivery, subscription) do not need an unsubscribe footer
-- `re-engagement.html` is the only marketing email — it keeps its unsubscribe link
+- Commercial emails (those containing an upgrade, pass, or upsell pitch) **must** carry the unsubscribe footer link and their send paths **must** exclude `email_preferences.marketing_opt_out = true` users
+
+## Commercial templates (must carry unsubscribe footer + marketing_opt_out filter)
+
+The following four templates contain an upgrade or upsell pitch — each is subject to the commercial email rule:
+
+1. `re-engagement.html` — uses `{{unsubscribeUrl}}`; send path: `sendReEngagementEmails` helper
+2. `inactivity-warning.html` — uses `{{unsubscribeUrl}}`; send path: `SendInactivityWarningsUseCase`
+3. `trial-ended.html` — uses `{{unsubscribeUrl}}`; send path: `SendTrialEndedEmailsUseCase`
+4. `abandoned-checkout-recovery.html` — uses `{{unsubscribeUrl}}`; send paths: `SendAbandonedCheckoutRecoveryOnExpiryUseCase` and `SendAbandonedCheckoutRecoveryUseCase`
+
+The transactional templates (magic-link, reset, convert, convert-link, subscription-cancelled, subscription-scheduled-cancellation) are not marketing emails and do not need the unsubscribe footer.
 
 ## What NOT to do
 
