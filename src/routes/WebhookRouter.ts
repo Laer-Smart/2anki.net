@@ -114,8 +114,30 @@ const WebhooksRouter = () => {
         return;
       }
 
+      const provisionSubscription = async (
+        subscription: StripeTypes.Subscription
+      ): Promise<boolean> => {
+        const customerId = getCustomerId(subscription.customer as string);
+        if (customerId == null) {
+          console.error('No customer ID found');
+          return false;
+        }
+        const customer = await stripe.customers.retrieve(customerId);
+        await updateStoreSubscription(
+          getDatabase(),
+          customer as StripeTypes.Customer,
+          subscription
+        );
+        return true;
+      };
+
       // Handle the event
       switch (event.type) {
+        case 'customer.subscription.created': {
+          const subscriptionCreated = event.data.object as StripeTypes.Subscription;
+          await provisionSubscription(subscriptionCreated);
+          break;
+        }
         case 'customer.subscription.updated':
           const customerSubscriptionUpdated = event.data.object;
           const customerId = getCustomerId(
