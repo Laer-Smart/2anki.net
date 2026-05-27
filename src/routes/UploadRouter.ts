@@ -4,6 +4,7 @@ import path from 'path';
 
 import RequireAllowedOrigin from './middleware/RequireAllowedOrigin';
 import RequireAuthentication from './middleware/RequireAuthentication';
+import { normalizeUploadFilenames } from './middleware/normalizeUploadFilenames';
 import UploadController from '../controllers/Upload/UploadController';
 import JobController from '../controllers/JobController';
 import JobService from '../services/JobService';
@@ -111,6 +112,7 @@ const UploadRouter = () => {
         cb(null, path.extname(file.originalname).toLowerCase() === '.pdf');
       },
     }).single('file'),
+    normalizeUploadFilenames,
     (req, res) => uploadController.retryPdfWithCredential(req, res)
   );
 
