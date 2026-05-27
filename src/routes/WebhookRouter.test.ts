@@ -578,3 +578,82 @@ describe('WebhookRouter — stripe signature invalid error recording', () => {
     expect(Object.keys(context)).toEqual(['message']);
   });
 });
+
+describe('WebhookRouter — customer.subscription.created', () => {
+  let server: http.Server;
+  let url: string;
+
+  beforeAll(async () => {
+    ({ server, url } = await buildServer());
+  });
+
+  afterAll(() => server.close());
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCustomersRetrieve.mockResolvedValue({ id: 'cus_abc', email: 'subscriber@example.com' });
+  });
+
+  function postWebhook() {
+    return fetch(`${url}/webhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'stripe-signature': 'sig_test' },
+      body: JSON.stringify({}),
+    });
+  }
+
+  it('calls updateStoreSubscription when a new subscription is created with active status', async () => {
+    const { updateStoreSubscription } = jest.requireMock('../lib/integrations/stripe') as {
+      updateStoreSubscription: jest.Mock;
+    };
+    mockWebhookEvent = {
+      type: 'customer.subscription.created',
+      data: {
+        object: {
+          id: 'sub_new_123',
+          customer: 'cus_abc',
+          status: 'active',
+          items: { data: [{ price: { product: 'prod_unlimited' } }] },
+          cancel_at_period_end: false,
+          cancel_at: null,
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockCustomersRetrieve).toHaveBeenCalledWith('cus_abc');
+    expect(updateStoreSubscription).toHaveBeenCalledWith(
+      undefined,
+      { id: 'cus_abc', email: 'subscriber@example.com' },
+      expect.objectContaining({ id: 'sub_new_123', status: 'active' })
+    );
+  });
+
+  it('returns 200 and skips provisioning when customer ID is absent', async () => {
+    const { updateStoreSubscription } = jest.requireMock('../lib/integrations/stripe') as {
+      updateStoreSubscription: jest.Mock;
+    };
+    const { getCustomerId } = jest.requireMock('../lib/integrations/stripe') as {
+      getCustomerId: jest.Mock;
+    };
+    getCustomerId.mockReturnValueOnce(undefined);
+    mockWebhookEvent = {
+      type: 'customer.subscription.created',
+      data: {
+        object: {
+          id: 'sub_no_customer',
+          customer: null,
+          status: 'active',
+          items: { data: [] },
+          cancel_at_period_end: false,
+          cancel_at: null,
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(updateStoreSubscription).not.toHaveBeenCalled();
+  });
+});
