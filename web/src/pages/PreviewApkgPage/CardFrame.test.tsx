@@ -1,11 +1,12 @@
-import { act, render } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, expect, it } from 'vitest';
-
-import { CardFrame } from './CardFrame';
 import type { ApkgPreviewCard } from '../../lib/backend/getApkgPreview';
+import { CardFrame } from './CardFrame';
 
-const buildCard = (overrides: Partial<ApkgPreviewCard> = {}): ApkgPreviewCard => ({
+const buildCard = (
+  overrides: Partial<ApkgPreviewCard> = {}
+): ApkgPreviewCard => ({
   id: 1,
   ord: 0,
   deckName: 'Sample Deck',
@@ -24,6 +25,15 @@ const getSrcDoc = (container: HTMLElement): string => {
   return iframe.getAttribute('srcdoc') ?? '';
 };
 
+// srcDoc is populated asynchronously (media is inlined as data URLs first), so
+// wait for the iframe to receive its document before asserting on it.
+const waitForSrcDoc = (container: HTMLElement): Promise<string> =>
+  waitFor(() => {
+    const srcDoc = getSrcDoc(container);
+    if (!srcDoc) throw new Error('srcdoc not populated yet');
+    return srcDoc;
+  });
+
 const getIframe = (container: HTMLElement): HTMLIFrameElement => {
   const iframe = container.querySelector('iframe');
   if (iframe == null) throw new Error('iframe not rendered');
@@ -38,43 +48,43 @@ describe('CardFrame sandbox', () => {
 });
 
 describe('CardFrame srcDoc', () => {
-  it('does not inject hardcoded background or foreground colors', () => {
+  it('does not inject hardcoded background or foreground colors', async () => {
     const card = buildCard({ css: '' });
     const { container } = render(<CardFrame card={card} />);
-    const srcDoc = getSrcDoc(container);
+    const srcDoc = await waitForSrcDoc(container);
     expect(srcDoc).not.toContain('background: #fff');
     expect(srcDoc).not.toContain('color: #111');
   });
 
-  it('includes color-scheme meta tag', () => {
+  it('includes color-scheme meta tag', async () => {
     const { container } = render(<CardFrame card={buildCard()} />);
-    const srcDoc = getSrcDoc(container);
+    const srcDoc = await waitForSrcDoc(container);
     expect(srcDoc).toContain('<meta name="color-scheme" content="light dark">');
   });
 
-  it('includes the resize-observer script', () => {
+  it('includes the resize-observer script', async () => {
     const { container } = render(<CardFrame card={buildCard()} />);
-    const srcDoc = getSrcDoc(container);
+    const srcDoc = await waitForSrcDoc(container);
     expect(srcDoc).toContain('ResizeObserver');
     expect(srcDoc).toContain('2anki-preview');
   });
 
-  it('leaves benign markup intact', () => {
+  it('leaves benign markup intact', async () => {
     const card = buildCard({
       front: '<p class="q"><strong>Q:</strong> What is spaced repetition?</p>',
     });
     const { container } = render(<CardFrame card={card} />);
-    const srcDoc = getSrcDoc(container);
+    const srcDoc = await waitForSrcDoc(container);
     expect(srcDoc).toContain('<p class="q">');
     expect(srcDoc).toContain('<strong>Q:</strong>');
   });
 
-  it('includes card scripts in srcDoc', () => {
+  it('includes card scripts in srcDoc', async () => {
     const card = buildCard({
       front: 'Hello<script>alert(1)</script> world',
     });
     const { container } = render(<CardFrame card={card} />);
-    const srcDoc = getSrcDoc(container);
+    const srcDoc = await waitForSrcDoc(container);
     expect(srcDoc).toContain('alert(1)');
   });
 });
