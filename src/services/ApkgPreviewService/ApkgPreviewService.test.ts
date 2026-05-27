@@ -123,6 +123,86 @@ function makeBadOrdClozeCollection(): NormalizedCollection {
   };
 }
 
+function makePdfStyleCollection(hashName: string): NormalizedCollection {
+  const noteType = {
+    id: 1,
+    name: 'n2a-basic',
+    type: 0 as const,
+    css: '.card{}',
+    fields: [
+      { name: 'Front', ord: 0 },
+      { name: 'Back', ord: 1 },
+    ],
+    templates: [
+      {
+        name: 'Card 1',
+        ord: 0,
+        qfmt: '{{Front}}',
+        afmt: '{{Back}}',
+      },
+    ],
+  };
+
+  const note = {
+    id: 10,
+    mid: 1,
+    tags: '',
+    fields: [`<img src="${hashName}">`, 'some back text'],
+  };
+
+  return {
+    noteTypes: new Map([[1, noteType]]),
+    notes: new Map([[10, note]]),
+    decks: new Map([[2, { id: 2, name: 'PDF Deck' }]]),
+    cards: [{ id: 100, nid: 10, did: 2, ord: 0 }],
+  };
+}
+
+describe('PDF-style image cards', () => {
+  const service = new ApkgPreviewService();
+  const HASH_NAME = 'a1b2c3d4e5f67890abcdef1234567890abcdef12.png';
+  const ORIGINAL_NAME = 'notes.pdf-page1-1.png';
+  const BASE_URL = '/api/apkg/test.apkg/media/';
+
+  it('rewrites a hash-named image src to the preview media URL', () => {
+    const parsed = {
+      collection: makePdfStyleCollection(HASH_NAME),
+      mediaMap: new Map([[HASH_NAME, '0']]),
+      mediaEntries: new Map([['0', Buffer.from([0x89, 0x50, 0x4e, 0x47])]]),
+      parsedAt: Date.now(),
+    };
+    const result = service.getCardsPage(parsed, 0, 10, BASE_URL);
+    expect(result.cards).toHaveLength(1);
+    expect(result.cards[0].front).toContain(BASE_URL);
+    expect(result.cards[0].front).not.toContain('data-missing-media');
+  });
+
+  it('marks an original pdftoppm filename as missing when not in mediaMap', () => {
+    const parsed = {
+      collection: makePdfStyleCollection(ORIGINAL_NAME),
+      mediaMap: new Map([[HASH_NAME, '0']]),
+      mediaEntries: new Map([['0', Buffer.from([0x89, 0x50, 0x4e, 0x47])]]),
+      parsedAt: Date.now(),
+    };
+    const result = service.getCardsPage(parsed, 0, 10, BASE_URL);
+    expect(result.cards).toHaveLength(1);
+    expect(result.cards[0].front).toContain('data-missing-media');
+  });
+
+  it('rewrites image src when mediaMap key is the original pdftoppm filename', () => {
+    const parsed = {
+      collection: makePdfStyleCollection(ORIGINAL_NAME),
+      mediaMap: new Map([[ORIGINAL_NAME, '0']]),
+      mediaEntries: new Map([['0', Buffer.from([0x89, 0x50, 0x4e, 0x47])]]),
+      parsedAt: Date.now(),
+    };
+    const result = service.getCardsPage(parsed, 0, 10, BASE_URL);
+    expect(result.cards).toHaveLength(1);
+    expect(result.cards[0].front).toContain(BASE_URL);
+    expect(result.cards[0].front).not.toContain('data-missing-media');
+  });
+});
+
 describe('ApkgPreviewService.getCardsPage', () => {
   const service = new ApkgPreviewService();
 

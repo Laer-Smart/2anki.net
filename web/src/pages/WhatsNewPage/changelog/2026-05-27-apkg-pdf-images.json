@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-27-apkg-pdf-images",
+  "date": "2026-05-27",
+  "type": "fix",
+  "title": "Images load in the deck preview for PDFs converted to Anki"
+}
