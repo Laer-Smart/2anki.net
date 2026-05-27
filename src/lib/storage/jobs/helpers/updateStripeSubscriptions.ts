@@ -1,4 +1,4 @@
-import { getStripe } from '../../../integrations/stripe';
+import { getStripe, extractProductId } from '../../../integrations/stripe';
 import { getDatabase } from '../../../../data_layer';
 import { Knex } from 'knex';
 import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
@@ -84,6 +84,7 @@ async function updateExistingSubscription(
 ): Promise<void> {
   const statusChanged = existingActive !== shouldRemainActive;
   const payload = JSON.stringify(subscription);
+  const stripeProductId = extractProductId(subscription);
 
   if (statusChanged) {
     console.info(
@@ -92,12 +93,12 @@ async function updateExistingSubscription(
     await db
       .table('subscriptions')
       .where({ email })
-      .update({ active: shouldRemainActive, payload });
+      .update({ active: shouldRemainActive, payload, stripe_product_id: stripeProductId });
   } else {
     console.info(
       `Subscription status for ${email} remains ${shouldRemainActive ? 'active' : 'inactive'}`
     );
-    await db.table('subscriptions').where({ email }).update({ payload });
+    await db.table('subscriptions').where({ email }).update({ payload, stripe_product_id: stripeProductId });
   }
 }
 
@@ -118,6 +119,7 @@ async function createNewSubscription(
     email,
     active: shouldRemainActive,
     payload: JSON.stringify(subscription),
+    stripe_product_id: extractProductId(subscription),
   });
 }
 
@@ -158,6 +160,11 @@ async function updateSubscriptionRecord(
         shouldRemainActive
       );
     }
+
+    await db
+      .table('users')
+      .where({ email })
+      .update({ stripe_customer_id: customer.id });
   } catch (error) {
     console.error(
       'Error updating subscription record',
