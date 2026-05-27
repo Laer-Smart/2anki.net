@@ -90,6 +90,7 @@ Every PR is checked against both — does it make the experience simpler/faster/
 - The Ankify feature is gated to users with `users.patreon = true` (lifetime). Use `hasAnkifyAccess` from `src/lib/ankify/access.ts`; don't reintroduce hard-coded emails.
 - Notion webhook receiver in `routes/AnkifyWebhookRouter.ts` is intentionally inactive; polling at 5 min carries the story today.
 - The prod box checks out this repo at `/home/alemayhu/src/github.com/2anki/2anki.net` (legacy name).
+- **Writing an email means creating a `.txt` file in the user's Downloads** — `/mnt/c/Users/alexa/Downloads/` on this WSL box (the Windows Downloads, where uploaded `.eml` files land) — not just printing the draft in chat. Use `reply-<name>.txt` for support replies. Offline Downloads files may carry reporter names/emails; commits, PRs, and issues may not (see `.claude/rules/support-confidentiality.md`).
 
 ## The trio
 
@@ -101,7 +102,7 @@ Three sub-agents in `.claude/agents/`:
 
 Default: `pm` produces a spec → `designer` validates UX (only if user-facing) → `engineer` implements and ships. For tiny fixes, skip to engineer. Read-only audits go through `dead-code-auditor` (haiku); isolated feature work through `test-writer` (sonnet, worktree).
 
-Trio conventions: be opinionated (one recommendation, not five options); specs fit on one page; say what *not* to build; reply to support email *as a draft for Alexander to send*.
+Trio conventions: be opinionated (one recommendation, not five options); specs fit on one page; say what *not* to build; reply to support email *as a draft for Alexander to send*, saved as a `.txt` file in Downloads (see Gotchas).
 
 ## Trio review policy
 
