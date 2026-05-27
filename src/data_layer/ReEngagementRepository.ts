@@ -61,14 +61,30 @@ export class ReEngagementRepository implements IReEngagementRepository {
   async findByToken(
     token: string
   ): Promise<{ id: number; userId: number } | null> {
-    const row = await this.database<EmailRow>(this.emailsTable)
+    const reEngagementRow = await this.database<EmailRow>(this.emailsTable)
       .select('id', 'user_id')
       .where({ token })
       .first();
-    if (row == null) {
+    if (reEngagementRow != null) {
+      return { id: reEngagementRow.id, userId: reEngagementRow.user_id };
+    }
+
+    const inactivityRow = await this.database<EmailRow>('inactivity_emails')
+      .select('id', 'user_id')
+      .where({ token })
+      .first();
+    if (inactivityRow != null) {
+      return { id: inactivityRow.id, userId: inactivityRow.user_id };
+    }
+
+    const trialRow = await this.database<EmailRow>('trial_ended_emails')
+      .select('id', 'user_id')
+      .where({ token })
+      .first();
+    if (trialRow == null) {
       return null;
     }
-    return { id: row.id, userId: row.user_id };
+    return { id: trialRow.id, userId: trialRow.user_id };
   }
 
   async getUsersToEmail(): Promise<

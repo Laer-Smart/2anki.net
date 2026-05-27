@@ -28,9 +28,13 @@ jest.mock('../lib/integrations/stripe', () => ({
 jest.mock('../data_layer', () => ({ getDatabase: jest.fn() }));
 
 const mockClaimSession = jest.fn().mockResolvedValue(true);
+const mockIsMarketingOptedOut = jest.fn().mockResolvedValue(false);
 jest.mock('../data_layer/AbandonedCheckoutRecoveryRepository', () => ({
   __esModule: true,
-  default: jest.fn().mockImplementation(() => ({ claimSession: mockClaimSession })),
+  default: jest.fn().mockImplementation(() => ({
+    claimSession: mockClaimSession,
+    isMarketingOptedOut: mockIsMarketingOptedOut,
+  })),
 }));
 
 const mockSendAbandonedCheckoutRecoveryEmail = jest.fn().mockResolvedValue(undefined);
@@ -426,7 +430,7 @@ describe('WebhookRouter — checkout.session.expired', () => {
     const res = await postWebhook();
     expect(res.status).toBe(200);
     expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_abc', 'buyer@example.com');
-    expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('buyer@example.com');
+    expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('buyer@example.com', expect.any(String));
   });
 
   it('does not send email when claim is a no-op (duplicate delivery)', async () => {
@@ -504,7 +508,7 @@ describe('WebhookRouter — checkout.session.expired', () => {
     const res = await postWebhook();
     expect(res.status).toBe(200);
     expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_fallback', 'fallback@example.com');
-    expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('fallback@example.com');
+    expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('fallback@example.com', expect.any(String));
   });
 });
 

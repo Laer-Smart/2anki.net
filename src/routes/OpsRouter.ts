@@ -32,6 +32,7 @@ import { NotionService } from '../services/NotionService/NotionService';
 import { getDatabase } from '../data_layer';
 import RequireOpsAccess from './middleware/RequireOpsAccess';
 import InactivityEmailRepository from '../data_layer/InactivityEmailRepository';
+import AbandonedCheckoutRecoveryRepository from '../data_layer/AbandonedCheckoutRecoveryRepository';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
 import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
@@ -92,7 +93,7 @@ const OpsRouter = () => {
       emailService
     ),
     new GetPerformanceMetricsUseCase(performanceMetricsService),
-    new SendAbandonedCheckoutRecoveryUseCase(emailService),
+    new SendAbandonedCheckoutRecoveryUseCase(emailService, new AbandonedCheckoutRecoveryRepository(database)),
     new GetReturnRateMetricsUseCase(new ReturnRateMetricsService(database)),
     new GetMindmapImageStatsUseCase(new MindmapRepository(database)),
     new GetMindmapStorageMetricsUseCase(mindmapStorageService),

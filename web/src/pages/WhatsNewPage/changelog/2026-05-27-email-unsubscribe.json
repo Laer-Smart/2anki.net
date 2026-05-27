@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-27-email-unsubscribe",
+  "date": "2026-05-27",
+  "type": "fix",
+  "title": "Inactivity, trial, and checkout reminder emails now include a one-click unsubscribe link"
+}

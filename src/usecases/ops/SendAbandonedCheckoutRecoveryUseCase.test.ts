@@ -1,4 +1,5 @@
 import { SendAbandonedCheckoutRecoveryUseCase } from './SendAbandonedCheckoutRecoveryUseCase';
+import type { IAbandonedCheckoutRecoveryRepository } from '../../data_layer/AbandonedCheckoutRecoveryRepository';
 import type { IEmailService } from '../../services/EmailService/EmailService';
 
 function makeEmailService(): jest.Mocked<IEmailService> {
@@ -16,6 +17,13 @@ function makeEmailService(): jest.Mocked<IEmailService> {
     sendAbandonedCheckoutRecoveryEmail: jest.fn().mockResolvedValue(undefined),
     sendTrialEndedEmail: jest.fn().mockResolvedValue(undefined),
     sendParserCanaryAlert: jest.fn().mockResolvedValue(undefined),
+  };
+}
+
+function makeRepo(optedOut = false): jest.Mocked<IAbandonedCheckoutRecoveryRepository> {
+  return {
+    claimSession: jest.fn().mockResolvedValue(true),
+    isMarketingOptedOut: jest.fn().mockResolvedValue(optedOut),
   };
 }
 
@@ -58,6 +66,17 @@ describe('SendAbandonedCheckoutRecoveryUseCase', () => {
     ).toHaveBeenCalledTimes(2);
   });
 
+  it('passes a non-empty unsubscribe token with each email', async () => {
+    const emailService = makeEmailService();
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(emailService);
+
+    await useCase.execute(['alice@example.com'], false);
+
+    const [, token] = emailService.sendAbandonedCheckoutRecoveryEmail.mock.calls[0];
+    expect(typeof token).toBe('string');
+    expect(token.length).toBeGreaterThan(0);
+  });
+
   it('rejects invalid email shapes', async () => {
     const emailService = makeEmailService();
     const useCase = new SendAbandonedCheckoutRecoveryUseCase(emailService);
@@ -88,5 +107,28 @@ describe('SendAbandonedCheckoutRecoveryUseCase', () => {
       email: 'fails@example.com',
       error: 'SendGrid 500',
     });
+  });
+
+  it('skips opted-out emails when a repository is provided', async () => {
+    const emailService = makeEmailService();
+    const repo = makeRepo(true);
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(emailService, repo);
+
+    const result = await useCase.execute(['optout@example.com'], false);
+
+    expect(result.sent).toBe(0);
+    expect(emailService.sendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
+    expect(repo.isMarketingOptedOut).toHaveBeenCalledWith('optout@example.com');
+  });
+
+  it('sends to non-opted-out emails when a repository is provided', async () => {
+    const emailService = makeEmailService();
+    const repo = makeRepo(false);
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(emailService, repo);
+
+    const result = await useCase.execute(['active@example.com'], false);
+
+    expect(result.sent).toBe(1);
+    expect(emailService.sendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledTimes(1);
   });
 });

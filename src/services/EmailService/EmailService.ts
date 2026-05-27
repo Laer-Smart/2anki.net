@@ -58,7 +58,7 @@ export interface IEmailService {
     token: string
   ): Promise<void>;
   sendInactivityWarningEmail(to: string, token: string, lastConversion?: { deckName: string } | null): Promise<void>;
-  sendAbandonedCheckoutRecoveryEmail(to: string): Promise<void>;
+  sendAbandonedCheckoutRecoveryEmail(to: string, token: string): Promise<void>;
   sendTrialEndedEmail(to: string, token: string, deckCount: number): Promise<void>;
   sendParserCanaryAlert(to: string, summary: string): Promise<void>;
 }
@@ -273,10 +273,12 @@ class EmailService implements IEmailService {
       : `You signed up for 2anki but haven't made a deck yet. When you're ready, paste a Notion link or drop in a file at 2anki.net and you'll have an Anki deck in under a minute.`;
 
     const ctaUrl = `${domain}/r/email?t=${encodeURIComponent(token)}&c=inactivity&to=/upload`;
+    const unsubscribeUrl = `${domain}/unsubscribe?uid=${token}`;
 
     const markup = INACTIVITY_WARNING_TEMPLATE
       .replace('{{bodyText}}', bodyText)
-      .replace('{{ctaUrl}}', ctaUrl);
+      .replace('{{ctaUrl}}', ctaUrl)
+      .replace('{{unsubscribeUrl}}', unsubscribeUrl);
 
     const $ = cheerio.load(markup);
     const text = $('body').text().replace(/\s+/g, ' ').trim();
@@ -298,13 +300,13 @@ class EmailService implements IEmailService {
     }
   }
 
-  async sendAbandonedCheckoutRecoveryEmail(to: string): Promise<void> {
+  async sendAbandonedCheckoutRecoveryEmail(to: string, token: string): Promise<void> {
     const domain = process.env.DOMAIN ?? 'https://2anki.net';
     const link = `${domain}/pricing?from=recovery`;
-    const markup = ABANDONED_CHECKOUT_RECOVERY_TEMPLATE.replace(
-      '{{link}}',
-      link
-    );
+    const unsubscribeUrl = `${domain}/unsubscribe?uid=${token}`;
+    const markup = ABANDONED_CHECKOUT_RECOVERY_TEMPLATE
+      .replace('{{link}}', link)
+      .replace('{{unsubscribeUrl}}', unsubscribeUrl);
     const $ = cheerio.load(markup);
     const text = $('body').text().replace(/\s+/g, ' ').trim();
     const msg = {
@@ -352,10 +354,13 @@ class EmailService implements IEmailService {
       ? ''
       : `<p class="email-muted" style="text-align: center; margin: 0 0 24px; font-size: 13px;"><a href="${pricingUrl}" style="color: #6b7280;">See pricing</a></p>`;
 
+    const unsubscribeUrl = `${domain}/unsubscribe?uid=${encodeURIComponent(token)}`;
+
     const markup = TRIAL_ENDED_TEMPLATE.replaceAll('{{lead}}', lead)
       .replaceAll('{{ctaLabel}}', ctaLabel)
       .replaceAll('{{ctaUrl}}', ctaUrl)
-      .replaceAll('{{secondaryCta}}', secondaryCta);
+      .replaceAll('{{secondaryCta}}', secondaryCta)
+      .replace('{{unsubscribeUrl}}', unsubscribeUrl);
 
     const $ = cheerio.load(markup);
     const text = $('body').text().replace(/\s+/g, ' ').trim();
@@ -596,8 +601,8 @@ export class UnimplementedEmailService implements IEmailService {
     console.info('sendInactivityWarningEmail not handled', to, token, lastConversion);
   }
 
-  async sendAbandonedCheckoutRecoveryEmail(to: string): Promise<void> {
-    console.info('sendAbandonedCheckoutRecoveryEmail not handled', to);
+  async sendAbandonedCheckoutRecoveryEmail(to: string, token: string): Promise<void> {
+    console.info('sendAbandonedCheckoutRecoveryEmail not handled', to, token);
   }
 
   async sendTrialEndedEmail(to: string, token: string, deckCount: number): Promise<void> {

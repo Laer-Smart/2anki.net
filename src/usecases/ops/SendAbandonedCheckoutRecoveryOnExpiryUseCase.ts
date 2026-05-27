@@ -16,9 +16,18 @@ export class SendAbandonedCheckoutRecoveryOnExpiryUseCase {
       return;
     }
 
+    const optedOut = await this.repository.isMarketingOptedOut(email);
+    if (optedOut) {
+      console.info('checkout.session.expired.opted_out', {
+        session_id_hash: hashToken(sessionId),
+      });
+      return;
+    }
+
     const claimed = await this.repository.claimSession(sessionId, email);
     if (claimed) {
-      await this.emailService.sendAbandonedCheckoutRecoveryEmail(email);
+      const token = crypto.randomUUID();
+      await this.emailService.sendAbandonedCheckoutRecoveryEmail(email, token);
       console.info('checkout.session.expired.recovery_sent', {
         session_id_hash: hashToken(sessionId),
       });
