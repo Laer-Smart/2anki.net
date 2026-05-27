@@ -7,15 +7,56 @@ import styles from './OpsPage.module.css';
 const PAGE_TITLE = 'Ops · 2anki';
 
 const TABS = [
-  { to: '/ops', label: 'Engineering', match: (path: string) => path === '/ops' || path.startsWith('/ops?') },
-  { to: '/ops/errors', label: 'Errors', match: (path: string) => path.startsWith('/ops/errors') },
-  { to: '/ops/performance', label: 'Performance', match: (path: string) => path.startsWith('/ops/performance') },
-  { to: '/ops/conversions', label: 'Conversions', match: (path: string) => path.startsWith('/ops/conversions') },
-  { to: '/ops/business', label: 'Business', match: (path: string) => path.startsWith('/ops/business') },
-  { to: '/ops/showcase', label: 'Showcase', match: (path: string) => path.startsWith('/ops/showcase') },
-  { to: '/ops/interviews', label: 'Interviews', match: (path: string) => path.startsWith('/ops/interviews') },
-  { to: '/ops/messages', label: 'Messages', match: (path: string) => path.startsWith('/ops/messages') },
-  { to: '/ops/commands', label: 'Commands', match: (path: string) => path.startsWith('/ops/commands') },
+  {
+    to: '/ops',
+    label: 'Engineering',
+    match: (path: string) => path === '/ops' || path.startsWith('/ops?'),
+  },
+  {
+    to: '/ops/errors',
+    label: 'Errors',
+    match: (path: string) => path.startsWith('/ops/errors'),
+  },
+  {
+    to: '/ops/performance',
+    label: 'Performance',
+    match: (path: string) => path.startsWith('/ops/performance'),
+  },
+  {
+    to: '/ops/conversions',
+    label: 'Conversions',
+    match: (path: string) => path.startsWith('/ops/conversions'),
+  },
+  {
+    to: '/ops/business',
+    label: 'Business',
+    match: (path: string) => path.startsWith('/ops/business'),
+  },
+  {
+    to: '/ops/showcase',
+    label: 'Showcase',
+    match: (path: string) => path.startsWith('/ops/showcase'),
+  },
+  {
+    to: '/ops/interviews',
+    label: 'Interviews',
+    match: (path: string) => path.startsWith('/ops/interviews'),
+  },
+  {
+    to: '/ops/messages',
+    label: 'Messages',
+    match: (path: string) => path.startsWith('/ops/messages'),
+  },
+  {
+    to: '/ops/commands',
+    label: 'Commands',
+    match: (path: string) => path.startsWith('/ops/commands'),
+  },
+  {
+    to: '/ops/pricing-ab',
+    label: 'Pricing A/B',
+    match: (path: string) => path.startsWith('/ops/pricing-ab'),
+  },
 ];
 
 export default function OpsLayout() {

@@ -11,6 +11,8 @@ function makeFakeRepository() {
     countByName: jest.fn(async () => 0),
     countDistinctUsers: jest.fn(async () => 0),
     countByNameForUser: jest.fn(async () => 0),
+    groupPaywallShownByVariantAndSurface: jest.fn(async () => []),
+    groupPaywallClicksByVariant: jest.fn(async () => []),
   };
   return { repo, inserted };
 }

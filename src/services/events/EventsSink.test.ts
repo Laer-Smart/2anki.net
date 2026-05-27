@@ -10,6 +10,8 @@ function makeFakeRepository() {
     countByName: jest.fn(async () => 0),
     countDistinctUsers: jest.fn(async () => 0),
     countByNameForUser: jest.fn(async () => 0),
+    groupPaywallShownByVariantAndSurface: jest.fn(async () => []),
+    groupPaywallClicksByVariant: jest.fn(async () => []),
   };
   return { repo, inserted };
 }
@@ -81,6 +83,8 @@ describe('EventsSink', () => {
       countByName: jest.fn(async () => 0),
       countDistinctUsers: jest.fn(async () => 0),
       countByNameForUser: jest.fn(async () => 0),
+      groupPaywallShownByVariantAndSurface: jest.fn(async () => []),
+      groupPaywallClicksByVariant: jest.fn(async () => []),
     };
     const sink = new EventsSink(repo, { flushThreshold: 1 });
     sink.record(baseRow);
