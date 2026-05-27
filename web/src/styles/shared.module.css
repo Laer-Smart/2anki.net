@@ -675,7 +675,8 @@
 .checkboxRow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.375rem 0.5rem;
 }
 
 .checkboxControl {

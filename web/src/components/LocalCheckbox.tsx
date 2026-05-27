@@ -1,5 +1,4 @@
 import styles from '../styles/shared.module.css';
-import { FieldHint } from './FieldHint';
 
 interface Props {
   label: string;
@@ -31,10 +30,14 @@ function LocalCheckbox({
           <strong>{label}</strong>
         </label>
       </div>
-      <div className={styles.checkboxRight}>
-        {badge && <span className={styles.checkboxBadge}>{badge}</span>}
-        {description && <FieldHint text={description} />}
-      </div>
+      {badge && (
+        <div className={styles.checkboxRight}>
+          <span className={styles.checkboxBadge}>{badge}</span>
+        </div>
+      )}
+      {description && (
+        <p className={styles.checkboxDescription}>{description}</p>
+      )}
     </div>
   );
 }

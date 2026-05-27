@@ -116,11 +116,9 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
       'markdown-nested-bullet-points',
     ],
   },
-  {
-    label: 'Debugging',
-    keys: ['share-files-for-debugging'],
-  },
 ];
+
+const DEBUG_KEYS = ['share-files-for-debugging'];
 
 const PDF_AI_TOGGLE_KEYS = [
   'process-pdfs',
@@ -132,6 +130,7 @@ const PDF_AI_TOGGLE_KEYS = [
 const HIDDEN_KEYS = ['vertex-ai-pdf-questions', 'remove-mp3-links'];
 const GROUPED_KEYS = new Set([
   ...OPTION_GROUPS.flatMap((g) => g.keys),
+  ...DEBUG_KEYS,
   ...PDF_AI_TOGGLE_KEYS,
   ...HIDDEN_KEYS,
 ]);
@@ -449,6 +448,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       localStorage.removeItem('page-emoji');
       localStorage.removeItem('user-instructions');
       localStorage.removeItem('field-mapping');
+      localStorage.removeItem('card-size');
+      localStorage.removeItem('mcq-enabled');
+      localStorage.removeItem('tts-auto-detect');
       setDeckName('');
       setFontSize(DEFAULT_FONT_SIZE);
       setToggleMode(DEFAULT_TOGGLE_MODE);
@@ -462,6 +464,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setMcqTtsCorrectAnswer(DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(DEFAULT_MCQ_TTS_LANG);
       setTtsAutoDetect(false);
+      setCardSize(DEFAULT_CARD_SIZE);
+      setMcqEnabled(DEFAULT_MCQ_ENABLED);
       setFieldMapping(getDefaultFieldMapping(DEFAULT_TEMPLATE));
       if (options) {
         const reset: Record<string, boolean> = {};
@@ -552,6 +556,10 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       (o: CardOption) => !GROUPED_KEYS.has(o.key)
     );
 
+    const debuggingOptions = DEBUG_KEYS.map(
+      (key) => optionsByKey[key]
+    ).filter(Boolean) as CardOption[];
+
     const pdfAiToggleOptions = PDF_AI_TOGGLE_KEYS.map(
       (key) => optionsByKey[key]
     ).filter(Boolean) as CardOption[];
@@ -624,9 +632,13 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     const showSaveButton = !hideActions && isDirty && onSaved != null;
 
     return (
-      <div className={fieldStyles.form}>
+      <div
+        className={`${fieldStyles.form}${showSaveButton ? ` ${fieldStyles.formFloatingBar}` : ''}`}
+      >
         {(showResetButton || showSaveButton) && (
-          <div className={fieldStyles.saveBar}>
+          <div
+            className={`${fieldStyles.saveBar}${showSaveButton ? ` ${fieldStyles.saveBarFloating}` : ''}`}
+          >
             {isAutoSaveSurface && (
               <p className={fieldStyles.autoSaveHint}>
                 <span aria-hidden="true">✓</span> Saved automatically
@@ -733,23 +745,6 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           </div>
         </div>
 
-        {generalOptions.length > 0 && (
-          <div className={fieldStyles.optionGroup}>
-            <h3 className={fieldStyles.groupHeading}>General</h3>
-            <div className={fieldStyles.groupOptions}>
-              {generalOptions.map((o: CardOption) => (
-                <LocalCheckbox
-                  key={o.key}
-                  defaultValue={checkboxValues[o.key] ?? false}
-                  label={o.label}
-                  description={o.description}
-                  onChecked={(checked) => toggleCheckbox(o.key, checked)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
         {OPTION_GROUPS.map((group) => {
           const groupOptions = group.keys
             .map((k) => optionsByKey[k])
@@ -779,7 +774,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         <div className={fieldStyles.optionGroup} id="audio">
           <h3 className={fieldStyles.groupHeading}>Audio</h3>
           <p className={fieldStyles.groupIntro}>
-            Two settings, opposite effects. One adds Anki&apos;s built-in voice to your cards. The other hides raw MP3 URLs your source may carry.
+            Add Anki&apos;s on-device voice to your cards, or clean up audio links left over from your source.
           </p>
 
           <div className={fieldStyles.section}>
@@ -955,6 +950,40 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
             />
           </div>
         </div>
+
+        {generalOptions.length > 0 && (
+          <div className={fieldStyles.optionGroup}>
+            <h3 className={fieldStyles.groupHeading}>General</h3>
+            <div className={fieldStyles.groupOptions}>
+              {generalOptions.map((o: CardOption) => (
+                <LocalCheckbox
+                  key={o.key}
+                  defaultValue={checkboxValues[o.key] ?? false}
+                  label={o.label}
+                  description={o.description}
+                  onChecked={(checked) => toggleCheckbox(o.key, checked)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {debuggingOptions.length > 0 && (
+          <div className={fieldStyles.optionGroup}>
+            <h3 className={fieldStyles.groupHeading}>Debugging</h3>
+            <div className={fieldStyles.groupOptions}>
+              {debuggingOptions.map((o: CardOption) => (
+                <LocalCheckbox
+                  key={o.key}
+                  defaultValue={checkboxValues[o.key] ?? false}
+                  label={o.label}
+                  description={o.description}
+                  onChecked={(checked) => toggleCheckbox(o.key, checked)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         <CardSizeModal
           isOpen={openModal === 'card-size'}

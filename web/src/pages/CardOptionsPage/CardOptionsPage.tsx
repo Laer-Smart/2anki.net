@@ -158,9 +158,9 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
           <h1 className={sharedStyles.title}>Settings</h1>
           {pageId == null && (
             <p className={sharedStyles.subtitle}>
-              Control how 2anki converts your content into Anki cards — deck
-              names, templates, card types, and more. Changes here apply to
-              every new conversion.
+              Set your default deck name, card style, and toggle behavior. These
+              apply to every conversion unless you override them for a specific
+              page.
               {cameFromNotion && (
                 <> To adjust settings for a single Notion page, open it from the list below.</>
               )}{' '}
@@ -313,11 +313,11 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
         {pageId == null && (
           <div className={styles.formHeader}>
             <hr className={styles.divider} />
-            <h2 className={styles.formHeading}>Default options</h2>
+            <h2 className={styles.formHeading}>Your defaults</h2>
             <p className={sharedStyles.smallDescription}>
               {cameFromNotion || perPageItems.length > 0
-                ? 'Used for every file upload and any Notion page without saved overrides.'
-                : 'Used for every file upload.'}
+                ? 'Applied to every conversion unless you set different options for a specific page.'
+                : 'Applied to every new conversion.'}
             </p>
           </div>
         )}
