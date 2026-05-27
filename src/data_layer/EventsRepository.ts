@@ -100,11 +100,9 @@ export class EventsRepository implements IEventsRepository {
       .where('created_at', '>=', since)
       .select(
         this.database.raw("props->>'variant' as variant"),
-        this.database.raw("props->>'surface' as surface")
-      )
-      .countDistinct(
+        this.database.raw("props->>'surface' as surface"),
         this.database.raw(
-          "COALESCE(user_id::text, anonymous_id) as distinct_users"
+          'count(distinct COALESCE(user_id::text, anonymous_id)) as distinct_users'
         )
       )
       .groupByRaw("props->>'variant', props->>'surface'")) as Array<{
