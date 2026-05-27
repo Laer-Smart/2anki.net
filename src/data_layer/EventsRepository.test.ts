@@ -1,3 +1,4 @@
+import knexLib, { Knex } from 'knex';
 import { EventsRepository, EventRow } from './EventsRepository';
 
 interface FakeStore {
@@ -124,5 +125,50 @@ describe('EventsRepository', () => {
     const since = new Date('2026-01-01');
     const result = await repo.countByNameForUser('upload_error_chat_engaged', since, null, null);
     expect(result).toBe(0);
+  });
+});
+
+function captureGeneratedSql(): { db: Knex; getSql: () => string } {
+  const pg = knexLib({ client: 'pg' });
+  let sql = '';
+  const db = ((table: string) => {
+    const qb = pg(table);
+    (qb as unknown as { then: unknown }).then = (
+      onFulfilled?: (value: unknown) => unknown
+    ) => {
+      sql = qb.toString();
+      return Promise.resolve([]).then(onFulfilled);
+    };
+    return qb;
+  }) as unknown as Knex;
+  (db as unknown as { raw: Knex['raw'] }).raw = pg.raw.bind(pg);
+  return { db, getSql: () => sql };
+}
+
+describe('EventsRepository SQL generation', () => {
+  it('aliases the distinct-user count outside the aggregate, not inside count()', async () => {
+    const { db, getSql } = captureGeneratedSql();
+    const repo = new EventsRepository(db);
+
+    await repo.groupPaywallShownByVariantAndSurface(new Date('2026-05-01'));
+
+    const sql = getSql();
+    expect(sql).toContain(
+      'count(distinct COALESCE(user_id::text, anonymous_id)) as distinct_users'
+    );
+    // Regression guard: the broken form put the alias inside count(...), which
+    // Postgres rejects with "syntax error at or near \"as\"".
+    expect(sql).not.toContain('anonymous_id) as distinct_users)');
+  });
+
+  it('generates a valid grouped click count', async () => {
+    const { db, getSql } = captureGeneratedSql();
+    const repo = new EventsRepository(db);
+
+    await repo.groupPaywallClicksByVariant(new Date('2026-05-01'));
+
+    const sql = getSql();
+    expect(sql).toContain('count("id") as "click_count"');
+    expect(sql).toContain("group by props->>'variant'");
   });
 });
