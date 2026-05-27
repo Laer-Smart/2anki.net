@@ -50,4 +50,16 @@ describe('Footer', () => {
       screen.queryByRole('link', { name: 'Documentation' })
     ).not.toBeInTheDocument();
   });
+
+  it('attributes the DigitalOcean sponsorship with a link to digitalocean.com', () => {
+    render(<Footer />);
+    const sponsor = screen.getByRole('link', {
+      name: 'Supported by DigitalOcean',
+    });
+    expect(sponsor).toHaveAttribute(
+      'href',
+      'https://www.digitalocean.com/?utm_medium=opensource&utm_source=2anki'
+    );
+    expect(screen.getByAltText('DigitalOcean')).toBeInTheDocument();
+  });
 });

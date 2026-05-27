@@ -65,11 +65,37 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .copyright {
   font-size: var(--text-xs);
   color: var(--color-text-tertiary);
+}
+
+.bottomRight {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.sponsor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.sponsorLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+.sponsorLogo {
+  height: 18px;
+  width: auto;
+  display: block;
 }
 
 .githubLink {
