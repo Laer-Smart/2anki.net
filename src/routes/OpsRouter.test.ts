@@ -90,6 +90,10 @@ jest.mock('../lib/storage/StorageHandler', () => {
   };
 });
 
+jest.mock('../lib/storage/jobs/helpers/updateStripeSubscriptions', () => ({
+  updateStripeSubscriptions: jest.fn().mockResolvedValue(undefined),
+}));
+
 import OpsRouter from './OpsRouter';
 
 const opsAccessState = (globalThis as unknown as {
@@ -145,6 +149,36 @@ describe('OpsRouter /api/ops/business/metrics', () => {
           as_of: expect.any(String),
           cache_age_seconds: expect.any(Number),
         })
+      );
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe('OpsRouter /api/ops/sync-stripe-subscriptions', () => {
+  it('returns 404 for non-owner callers', async () => {
+    const { url, close } = await startServer(false);
+    try {
+      const response = await fetch(`${url}/api/ops/sync-stripe-subscriptions`, {
+        method: 'POST',
+      });
+      expect(response.status).toBe(404);
+    } finally {
+      await close();
+    }
+  });
+
+  it('returns 202 and starts the sync for the ops owner', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(`${url}/api/ops/sync-stripe-subscriptions`, {
+        method: 'POST',
+      });
+      expect(response.status).toBe(202);
+      const body = await response.json();
+      expect(body).toEqual(
+        expect.objectContaining({ message: expect.any(String) })
       );
     } finally {
       await close();

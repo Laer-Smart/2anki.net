@@ -40,6 +40,8 @@ import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepo
 import { MindmapRepository } from '../data_layer/MindmapRepository';
 import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
 import { JobsMetricsRepository } from '../data_layer/JobsMetricsRepository';
+import { SyncStripeSubscriptionsUseCase } from '../usecases/ops/SyncStripeSubscriptionsUseCase';
+import { updateStripeSubscriptions } from '../lib/storage/jobs/helpers/updateStripeSubscriptions';
 
 const OpsRouter = () => {
   const router = express.Router();
@@ -100,7 +102,8 @@ const OpsRouter = () => {
     new DeleteInactiveUsersUseCase(
       new InactivityEmailRepository(database),
       new UsersRepository(database)
-    )
+    ),
+    new SyncStripeSubscriptionsUseCase(() => updateStripeSubscriptions())
   );
 
   /**
@@ -364,6 +367,31 @@ const OpsRouter = () => {
    */
   router.get('/api/ops/mindmap/storage', RequireOpsAccess, (req, res) =>
     controller.getMindmapStorageMetrics(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/sync-stripe-subscriptions:
+   *   post:
+   *     summary: Sync subscriptions from Stripe into the database
+   *     description: |
+   *       Pulls every active Stripe subscription and upserts it into the subscriptions
+   *       table, then reconciles each active DB row against Stripe (deactivating any
+   *       that Stripe no longer reports active). Use this to provision a paying user
+   *       whose subscription did not land via webhook. Runs in the background and
+   *       returns immediately; watch the server logs for the result. Locked to the ops
+   *       owner — returns 404 for everyone else.
+   *     tags: [Ops]
+   *     responses:
+   *       202:
+   *         description: Sync started in the background
+   *       409:
+   *         description: A sync is already running
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.post('/api/ops/sync-stripe-subscriptions', RequireOpsAccess, (req, res) =>
+    controller.syncStripeSubscriptions(req, res)
   );
 
   return router;

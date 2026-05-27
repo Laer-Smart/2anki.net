@@ -12,6 +12,7 @@ import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersU
 import { SendAbandonedCheckoutRecoveryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryUseCase';
 import { IShowcaseRepository } from '../data_layer/ShowcaseRepository';
 import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
+import { SyncStripeSubscriptionsUseCase } from '../usecases/ops/SyncStripeSubscriptionsUseCase';
 
 class OpsController {
   constructor(
@@ -26,7 +27,8 @@ class OpsController {
     private readonly getReturnRateMetricsUseCase?: GetReturnRateMetricsUseCase,
     private readonly getMindmapImageStatsUseCase?: GetMindmapImageStatsUseCase,
     private readonly getMindmapStorageMetricsUseCase?: GetMindmapStorageMetricsUseCase,
-    private readonly deleteInactiveUsersUseCase?: DeleteInactiveUsersUseCase
+    private readonly deleteInactiveUsersUseCase?: DeleteInactiveUsersUseCase,
+    private readonly syncStripeSubscriptionsUseCase?: SyncStripeSubscriptionsUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -183,6 +185,29 @@ class OpsController {
     } catch (error) {
       console.error('[ops] deleteInactiveUsers failed', error);
       res.status(500).json({ message: 'Failed to run inactive user deletion' });
+    }
+  }
+
+  async syncStripeSubscriptions(_req: express.Request, res: express.Response) {
+    if (this.syncStripeSubscriptionsUseCase == null) {
+      res
+        .status(500)
+        .json({ message: 'Stripe subscription sync not configured' });
+      return;
+    }
+    try {
+      const result = this.syncStripeSubscriptionsUseCase.execute();
+      if (result.alreadyRunning) {
+        res.status(409).json({ message: 'A Stripe subscription sync is already running.' });
+        return;
+      }
+      res.status(202).json({
+        message:
+          'Stripe subscription sync started. It runs in the background — check the server logs for the result.',
+      });
+    } catch (error) {
+      console.error('[ops] syncStripeSubscriptions failed', error);
+      res.status(500).json({ message: 'Failed to start Stripe subscription sync' });
     }
   }
 
