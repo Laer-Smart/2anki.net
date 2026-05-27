@@ -20,7 +20,7 @@ export const getCustomerId = (
   return customer?.id;
 };
 
-const extractProductId = (
+export const extractProductId = (
   subscription: StripeTypes.Subscription
 ): string | null => {
   const product = subscription.items?.data?.[0]?.price?.product;
