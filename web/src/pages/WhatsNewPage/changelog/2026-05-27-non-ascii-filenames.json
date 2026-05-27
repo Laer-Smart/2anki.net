@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-27-non-ascii-filenames",
+  "date": "2026-05-27",
+  "type": "fix",
+  "title": "Uploads with Chinese, Japanese, Korean, or accented filenames keep their original characters"
+}
