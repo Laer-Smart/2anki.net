@@ -17,6 +17,7 @@ Jest + ts-jest, `*.test.ts(x)` colocated next to source. `pnpm test <path>` to s
 | Do not add a new public function/route/use case without a test in the same PR. | The Stop hook flags untested new sources; add the `*.test.ts` next to it. | — |
 | Do not assert on JSON snapshot blobs that include timestamps, IDs, or ordering. | Match shape with `toMatchObject` or normalize before snapshotting. | — |
 | Do not write tests that share mutable module state across files. | Reset registries/singletons in `beforeEach`; prefer dependency injection over module-level state. | CWE-362 |
+| Do not "cover" a repository method that builds raw SQL (`knex.raw`, `groupByRaw`, `countDistinct(raw(...))`) only through mocked-repo tests. They never execute SQL, so invalid SQL ships green and 500s in prod (e.g. an alias placed inside `count(distinct … as x)` — see the pricing A/B funnel incident). | Add a test that asserts on the **generated SQL**: build the query with a real Postgres-dialect knex (`knex({ client: 'pg' })`, no connection), capture `qb.toString()`, and assert the SQL shape. A sqlite integration test can't substitute — it won't reproduce PG-only syntax (`::text`, `props->>`). | CWE-89 |
 
 ## Conventions
 

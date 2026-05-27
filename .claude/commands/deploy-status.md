@@ -6,8 +6,10 @@ allowed-tools: Bash
 Run a single SSH call:
 
 ```bash
-ssh -o ConnectTimeout=10 alemayhu@2anki.net "pm2 list && echo '---LOGS---' && pm2 logs server --lines 80 --nostream 2>&1 | tail -100"
+ssh -o ConnectTimeout=10 alemayhu@2anki.net "pm2 list && echo '---LOGS---' && pm2 logs --lines 80 --nostream 2>&1 | tail -100"
 ```
+
+The app runs **blue-green**, so the live process is `server-green` or `server-blue` — never plain `server`. Hardcoding `pm2 logs server` returns an empty tail (no process by that name). Omit the process name so `pm2 logs` tails whichever slot is live (the two pm2 modules, `pm2-logrotate` and `pm2-server-monit`, are low-volume and won't drown the app log). If you need to scope to one process, read the active name from the `pm2 list` table first.
 
 Then report concisely:
 
