@@ -1,6 +1,7 @@
 import { ReactElement, useState } from 'react';
 import sharedStyles from '../../styles/shared.module.css';
 import previewStyles from '../AccountPreviewPage/AccountPreviewPage.module.css';
+import CardOptionsRedesign from './CardOptionsRedesign';
 import { ConfigureRow } from '../../components/CardOptionsForm/ConfigureRow';
 import { CardSizeModal } from '../../components/CardOptionsForm/CardSizeModal';
 import { McqModal } from '../../components/CardOptionsForm/McqModal';
@@ -132,9 +133,20 @@ export default function CardOptionsPreviewPage() {
   return (
     <div className={previewStyles.outer}>
       <header className={previewStyles.outerHeader}>
-        <h1 className={sharedStyles.title}>/card-options — PDF &amp; AI variants</h1>
+        <h1 className={sharedStyles.title}>/card-options — HIG redesign</h1>
         <p className={sharedStyles.subtitle}>
           Visual preview only. Not linked from navigation. Not gated by auth.
+          Essentials visible, the long tail under Advanced, a live WYSIWYG card,
+          one control vocabulary, premium dimmed.
+        </p>
+      </header>
+
+      <CardOptionsRedesign />
+
+      <header className={previewStyles.outerHeader} style={{ marginTop: '3rem' }}>
+        <h2 className={sharedStyles.title}>Component variants</h2>
+        <p className={sharedStyles.subtitle}>
+          The individual PDF &amp; AI modals, for reference.
         </p>
       </header>
 
