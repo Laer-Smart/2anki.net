@@ -1,8 +1,27 @@
 import { ReactNode, useState } from 'react';
 import styles from './CardOptionsRedesign.module.css';
+import {
+  CardSizeModal,
+  CardSizeValue,
+} from '../../components/CardOptionsForm/CardSizeModal';
+import { McqModal, McqTtsKey } from '../../components/CardOptionsForm/McqModal';
+import { FieldMappingModal } from '../../components/CardOptionsForm/FieldMappingModal';
+import { UserInstructionsModal } from '../../components/CardOptionsForm/UserInstructionsModal';
+import type { FieldMapping } from '../../lib/cardFields/types';
 
-type CardSize = 'short' | 'medium' | 'detailed';
 type ToggleMode = 'open' | 'close';
+type ModalKey = 'card-size' | 'mcq' | 'field-mapping' | 'user-instructions' | null;
+
+const DEFAULT_MAPPING: FieldMapping = {
+  templateName: 'specialstyle',
+  fields: [
+    { name: 'Front', instruction: 'The question, term, or concept being tested' },
+    { name: 'Back', instruction: 'The answer, definition, or explanation' },
+  ],
+};
+
+const DEFAULT_INSTRUCTIONS =
+  'Read the document and create a card for every question and answer you find. Keep the original wording and language.';
 
 function InfoIcon({ title }: Readonly<{ title: string }>) {
   return (
@@ -92,21 +111,27 @@ function Segmented<T extends string>({
 function ConfigRow({
   label,
   summary,
-}: Readonly<{ label: string; summary: string }>) {
+  onConfigure,
+}: Readonly<{ label: string; summary: string; onConfigure: () => void }>) {
   return (
     <div className={styles.configRow}>
       <div className={styles.configText}>
         <span className={styles.configLabel}>{label}</span>
         <span className={styles.configSummary}>{summary}</span>
       </div>
-      <button type="button" className={styles.gear} aria-label={`Configure ${label}`}>
+      <button
+        type="button"
+        className={styles.gear}
+        aria-label={`Configure ${label}`}
+        onClick={onConfigure}
+      >
         <GearIcon />
       </button>
     </div>
   );
 }
 
-const SIZE_BACK: Record<CardSize, string> = {
+const SIZE_BACK: Record<CardSizeValue, string> = {
   short: 'Reviewing material at increasing intervals.',
   medium:
     'Reviewing material at increasing intervals so each review lands just before you would forget.',
@@ -115,16 +140,19 @@ const SIZE_BACK: Record<CardSize, string> = {
 };
 
 export default function CardOptionsRedesign() {
+  // Initial values mirror the product defaults (DEFAULT_TEMPLATE, DEFAULT_TOGGLE_MODE,
+  // supportedOptions) so the preview reflects what a real account actually ships with.
   const [deckName, setDeckName] = useState('');
-  const [cardStyle, setCardStyle] = useState('Default');
-  const [toggleMode, setToggleMode] = useState<ToggleMode>('open');
-  const [cloze, setCloze] = useState(false);
+  const [cardStyle, setCardStyle] = useState('Special style');
+  const [toggleMode, setToggleMode] = useState<ToggleMode>('close');
+  const [cloze, setCloze] = useState(true);
   const [input, setInput] = useState(false);
   const [basicReversed, setBasicReversed] = useState(false);
   const [reversed, setReversed] = useState(false);
-  const [cardSize, setCardSize] = useState<CardSize>('medium');
+  const [cardSize, setCardSize] = useState<CardSizeValue>('medium');
   const [aiOn, setAiOn] = useState(false);
   const [processPdfs, setProcessPdfs] = useState(true);
+  const [extractText, setExtractText] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const [cherry, setCherry] = useState(false);
@@ -134,6 +162,20 @@ export default function CardOptionsRedesign() {
   const [useNotionId, setUseNotionId] = useState(true);
   const [shareFiles, setShareFiles] = useState(false);
 
+  const [openModal, setOpenModal] = useState<ModalKey>(null);
+  const [mcqEnabled, setMcqEnabled] = useState(false);
+  const [ttsQuestion, setTtsQuestion] = useState('');
+  const [ttsCorrectAnswer, setTtsCorrectAnswer] = useState('');
+  const [ttsExtra, setTtsExtra] = useState('');
+  const [fieldMapping, setFieldMapping] = useState<FieldMapping>(DEFAULT_MAPPING);
+  const [userInstructions, setUserInstructions] = useState(DEFAULT_INSTRUCTIONS);
+
+  const handleTts = (key: McqTtsKey, value: string) => {
+    if (key === 'mcq-tts-question') setTtsQuestion(value);
+    else if (key === 'mcq-tts-correct-answer') setTtsCorrectAnswer(value);
+    else setTtsExtra(value);
+  };
+
   const sizeLabel = cardSize.charAt(0).toUpperCase() + cardSize.slice(1);
   const resolveTypeLabel = () => {
     if (cloze) return 'Cloze';
@@ -141,6 +183,8 @@ export default function CardOptionsRedesign() {
     return 'Basic';
   };
   const typeLabel = resolveTypeLabel();
+  const instructionsSummary =
+    userInstructions.trim() === DEFAULT_INSTRUCTIONS.trim() ? 'Default' : 'Custom';
 
   return (
     <div className={styles.page}>
@@ -216,7 +260,7 @@ export default function CardOptionsRedesign() {
             value={cardStyle}
             onChange={(e) => setCardStyle(e.target.value)}
           >
-            <option>Default</option>
+            <option>Special style</option>
             <option>Notion style</option>
             <option>No style</option>
             <option>My note types</option>
@@ -261,21 +305,29 @@ export default function CardOptionsRedesign() {
           trailing={<span className={styles.premiumTag}>Paid plans</span>}
         />
         <Switch label="Process PDF files" checked={processPdfs} onChange={setProcessPdfs} />
+        <Switch label="Extract text from PDFs" checked={extractText} onChange={setExtractText} />
         <div>
-          <ConfigRow label="Card size" summary={sizeLabel} />
-          <ConfigRow label="Multiple choice questions" summary="Off" />
-          <ConfigRow label="Field mapping" summary="Basic" />
-          <ConfigRow label="User instructions" summary="Default" />
+          <ConfigRow
+            label="Card size"
+            summary={sizeLabel}
+            onConfigure={() => setOpenModal('card-size')}
+          />
+          <ConfigRow
+            label="Multiple choice questions"
+            summary={mcqEnabled ? 'On' : 'Off'}
+            onConfigure={() => setOpenModal('mcq')}
+          />
+          <ConfigRow
+            label="Field mapping"
+            summary={fieldMapping.templateName}
+            onConfigure={() => setOpenModal('field-mapping')}
+          />
+          <ConfigRow
+            label="User instructions"
+            summary={instructionsSummary}
+            onConfigure={() => setOpenModal('user-instructions')}
+          />
         </div>
-        <Segmented<CardSize>
-          value={cardSize}
-          onChange={setCardSize}
-          options={[
-            { label: 'Short', value: 'short' },
-            { label: 'Medium', value: 'medium' },
-            { label: 'Detailed', value: 'detailed' },
-          ]}
-        />
       </section>
 
       <div className={styles.advanced}>
@@ -323,6 +375,35 @@ export default function CardOptionsRedesign() {
           </div>
         )}
       </div>
+
+      <CardSizeModal
+        isOpen={openModal === 'card-size'}
+        onClose={() => setOpenModal(null)}
+        value={cardSize}
+        onChange={setCardSize}
+      />
+      <McqModal
+        isOpen={openModal === 'mcq'}
+        onClose={() => setOpenModal(null)}
+        enabled={mcqEnabled}
+        onEnabledChange={setMcqEnabled}
+        ttsQuestion={ttsQuestion}
+        ttsCorrectAnswer={ttsCorrectAnswer}
+        ttsExtra={ttsExtra}
+        onTtsChange={handleTts}
+      />
+      <FieldMappingModal
+        isOpen={openModal === 'field-mapping'}
+        onClose={() => setOpenModal(null)}
+        mapping={fieldMapping}
+        onChange={setFieldMapping}
+      />
+      <UserInstructionsModal
+        isOpen={openModal === 'user-instructions'}
+        onClose={() => setOpenModal(null)}
+        value={userInstructions}
+        onChange={setUserInstructions}
+      />
     </div>
   );
 }
