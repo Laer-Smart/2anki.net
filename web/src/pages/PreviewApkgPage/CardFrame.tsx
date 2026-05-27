@@ -1,14 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ApkgPreviewCard } from '../../lib/backend/getApkgPreview';
+import { fetchMediaAsDataUrl, inlineApkgMedia } from './inlineMedia';
 import styles from './PreviewApkgPage.module.css';
 
 interface CardFrameProps {
   card: ApkgPreviewCard;
 }
 
-function buildSrcDoc(card: ApkgPreviewCard, side: 'front' | 'back'): string {
-  const html = side === 'front' ? card.front : card.back;
-  const cardId = String(card.id);
+// Card HTML renders in a sandboxed iframe (allow-scripts, no allow-same-origin),
+// so its <img> requests to the cookie-authenticated media endpoint go out from a
+// null origin without credentials and 401. The authenticated parent fetches the
+// media here and inlines it as data: URLs, shared across cards via this cache.
+const mediaCache = new Map<string, string | null>();
+
+function buildSrcDoc(html: string, css: string, cardId: string): string {
   return `<!doctype html>
 <html>
 <head>
@@ -18,7 +23,7 @@ function buildSrcDoc(card: ApkgPreviewCard, side: 'front' | 'back'): string {
 <style>
   html, body { margin: 0; padding: 1rem; font-family: system-ui, sans-serif; }
   img, video { max-width: 100%; height: auto; }
-${card.css}
+${css}
 </style>
 </head>
 <body>
@@ -58,11 +63,20 @@ export function CardFrame({ card }: Readonly<CardFrameProps>) {
   const [frameHeight, setFrameHeight] = useState(DEFAULT_FRAME_HEIGHT);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const srcDoc = useMemo(
-    () => buildSrcDoc(card, showBack ? 'back' : 'front'),
-    [card, showBack]
-  );
+  const [srcDoc, setSrcDoc] = useState('');
   const deckSegments = useMemo(() => resolveDeckSegments(card), [card]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const cardId = String(card.id);
+    const html = showBack ? card.back : card.front;
+    inlineApkgMedia(html, fetchMediaAsDataUrl, mediaCache).then((inlined) => {
+      if (!cancelled) setSrcDoc(buildSrcDoc(inlined, card.css, cardId));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [card, showBack]);
 
   useEffect(() => {
     setFrameHeight(DEFAULT_FRAME_HEIGHT);
