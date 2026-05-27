@@ -94,6 +94,43 @@ describe('CardOptionsForm reset for the account-default view', () => {
   });
 });
 
+describe('CardOptionsForm auto-save on the account-default view', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    vi.mocked(getSettingsCardOptions).mockResolvedValue([]);
+  });
+
+  it('shows the auto-save indicator instead of a Save button', async () => {
+    renderForm(true, { onReset: vi.fn(), setError: vi.fn() });
+
+    expect(await screen.findByText('Saved automatically')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Save changes' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('persists an edited field mapping to localStorage as it changes', async () => {
+    renderForm(true, { onReset: vi.fn(), setError: vi.fn() });
+
+    const configure = await screen.findByRole('button', {
+      name: 'Configure Field mapping',
+    });
+    fireEvent.click(configure);
+
+    const frontInput = await screen.findByLabelText('Front');
+    fireEvent.change(frontInput, { target: { value: 'A custom instruction' } });
+
+    await waitFor(() => {
+      const stored = localStorage.getItem('field-mapping');
+      expect(stored).toBeTruthy();
+      expect(JSON.parse(stored!).fields[0].instruction).toBe(
+        'A custom instruction'
+      );
+    });
+  });
+});
+
 describe('CardOptionsForm premium upsell notice', () => {
   const aiOptionLabel = 'Generate flashcards with Claude AI';
 

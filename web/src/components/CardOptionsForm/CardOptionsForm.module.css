@@ -98,6 +98,21 @@
   width: auto;
 }
 
+.autoSaveHint {
+  margin: 0;
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.autoSaveHint span {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
 @media (max-width: 600px) {
   .saveBar {
     flex-direction: column;

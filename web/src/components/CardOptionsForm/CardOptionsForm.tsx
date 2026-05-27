@@ -66,6 +66,19 @@ function normalizeCardSize(raw: string | null | undefined): CardSizeValue {
   return DEFAULT_CARD_SIZE;
 }
 
+function readStoredFieldMapping(template: string): FieldMapping | null {
+  try {
+    const raw = localStorage.getItem('field-mapping');
+    if (raw) {
+      const parsed = JSON.parse(raw) as FieldMapping;
+      if (parsed?.templateName === template) return parsed;
+    }
+  } catch {
+    // fall through to the template default
+  }
+  return getDefaultFieldMapping(template);
+}
+
 const CARD_SIZE_SUMMARY: Record<CardSizeValue, string> = {
   short: 'Short',
   medium: 'Medium',
@@ -236,7 +249,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       normalizeCardSize(getLocalStorageValue('card-size', DEFAULT_CARD_SIZE, settings))
     );
     const [fieldMapping, setFieldMapping] = useState<FieldMapping | null>(() =>
-      getDefaultFieldMapping(getLocalStorageValue('template', DEFAULT_TEMPLATE, settings))
+      readStoredFieldMapping(getLocalStorageValue('template', DEFAULT_TEMPLATE, settings))
     );
     const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
     const [openModal, setOpenModal] = useState<
@@ -435,6 +448,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       if (options) clearStoredCardOptions(options);
       localStorage.removeItem('page-emoji');
       localStorage.removeItem('user-instructions');
+      localStorage.removeItem('field-mapping');
       setDeckName('');
       setFontSize(DEFAULT_FONT_SIZE);
       setToggleMode(DEFAULT_TOGGLE_MODE);
@@ -605,13 +619,19 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       </div>
     );
 
+    const isAutoSaveSurface = !hideActions && pageId == null && onSaved == null;
     const showResetButton = !hideActions && pageId == null;
-    const showSaveButton = !hideActions && isDirty;
+    const showSaveButton = !hideActions && isDirty && onSaved != null;
 
     return (
       <div className={fieldStyles.form}>
         {(showResetButton || showSaveButton) && (
           <div className={fieldStyles.saveBar}>
+            {isAutoSaveSurface && (
+              <p className={fieldStyles.autoSaveHint}>
+                <span aria-hidden="true">✓</span> Saved automatically
+              </p>
+            )}
             {showResetButton && (
               <button
                 type="button"
@@ -826,6 +846,11 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 saveValueInLocalStorage('template', t, pageId);
                 const defaultMapping = getDefaultFieldMapping(t);
                 setFieldMapping(defaultMapping);
+                saveValueInLocalStorage(
+                  'field-mapping',
+                  defaultMapping ? JSON.stringify(defaultMapping) : '',
+                  pageId
+                );
               }}
             />
           </div>
@@ -958,7 +983,10 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
             isOpen={openModal === 'field-mapping'}
             onClose={() => setOpenModal(null)}
             mapping={fieldMapping}
-            onChange={(updated) => setFieldMapping(updated)}
+            onChange={(updated) => {
+              setFieldMapping(updated);
+              saveValueInLocalStorage('field-mapping', JSON.stringify(updated), pageId);
+            }}
           />
         )}
         <UserInstructionsModal
