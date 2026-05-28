@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazy, ReactElement, useState } from 'react';
 import { CookiesProvider, useCookies } from 'react-cookie';
 import { HelmetProvider } from 'react-helmet-async';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/AppShell/AppShell';
 import { getErrorMessage } from './components/errors/helpers/getErrorMessage';
 import { SkeletonPage } from './components/Skeleton/Skeleton';
@@ -126,13 +126,16 @@ function RequireAuth({
   isLoading: boolean;
   children: ReactElement;
 }>) {
+  const location = useLocation();
   if (isLoading) {
     return <SkeletonPage />;
   }
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
+  if (isLoggedIn) {
+    return children;
   }
-  return children;
+  const target = `${location.pathname}${location.search}`;
+  const loginUrl = target === '/' ? '/login' : `/login?redirect=${encodeURIComponent(target)}`;
+  return <Navigate to={loginUrl} replace />;
 }
 
 function AppContent({
