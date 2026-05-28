@@ -28,6 +28,58 @@ describe('getFileContents', () => {
     jest.clearAllMocks();
   });
 
+  describe('dwell time logging', () => {
+    let infoSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+      infoSpy.mockRestore();
+    });
+
+    it('logs dwellMs >= 0 when reading from buffer', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(1000);
+
+      const content = Buffer.from('hello');
+      const file = makeFile({ path: '', buffer: content });
+
+      getFileContents(file, 900);
+
+      expect(infoSpy).toHaveBeenCalledWith(
+        '[upload] tempfile dwell',
+        expect.objectContaining({ dwellMs: expect.any(Number), mode: 'buffer', fileSizeBytes: 5 })
+      );
+      const logged = infoSpy.mock.calls[0][1] as { dwellMs: number };
+      expect(logged.dwellMs).toBeGreaterThanOrEqual(0);
+
+      jest.useRealTimers();
+    });
+
+    it('logs dwellMs >= 0 when reading from disk', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(2000);
+
+      const content = Buffer.from('disk content');
+      const file = makeFile({ path: '/tmp/upload-exists' });
+      mockFs.existsSync = jest.fn().mockReturnValue(true);
+      mockFs.readFileSync = jest.fn().mockReturnValue(content);
+
+      getFileContents(file, 1500);
+
+      expect(infoSpy).toHaveBeenCalledWith(
+        '[upload] tempfile dwell',
+        expect.objectContaining({ dwellMs: expect.any(Number), mode: 'disk', fileSizeBytes: 12 })
+      );
+      const logged = infoSpy.mock.calls[0][1] as { dwellMs: number };
+      expect(logged.dwellMs).toBeGreaterThanOrEqual(0);
+
+      jest.useRealTimers();
+    });
+  });
+
   it('throws when path is set to a missing file and buffer is undefined', () => {
     const file = makeFile({ path: '/tmp/upload-gone', buffer: undefined as never });
     mockFs.existsSync = jest.fn().mockReturnValue(false);
