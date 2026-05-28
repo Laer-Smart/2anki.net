@@ -5,6 +5,7 @@ import { Worker } from 'worker_threads';
 import path from 'path';
 import fs from 'node:fs';
 import Workspace from '../../lib/parser/WorkSpace';
+import { EmptyDeckError } from '../jobs/EmptyDeckError';
 
 export interface PackageResult {
   packages: Package[];
@@ -13,7 +14,7 @@ export interface PackageResult {
 
 type ProgressMessage = { type: 'progress'; step: string };
 type ResultMessage = { type: 'result'; packages: Package[]; warnings?: string[] };
-type ErrorMessage = { type: 'error'; message: string };
+type ErrorMessage = { type: 'error'; message: string; name?: string };
 type WorkerMessage = ProgressMessage | ResultMessage | ErrorMessage;
 
 class GeneratePackagesUseCase {
@@ -40,7 +41,15 @@ class GeneratePackagesUseCase {
         if (msg.type === 'progress') {
           onProgress?.(msg.step);
         } else if (msg.type === 'error') {
-          reject(new Error(msg.message));
+          if (msg.name === 'EmptyDeckError') {
+            reject(new EmptyDeckError());
+          } else {
+            const e = new Error(msg.message);
+            if (msg.name != null) {
+              e.name = msg.name;
+            }
+            reject(e);
+          }
         } else {
           resolve({ packages: msg.packages ?? [], warnings: msg.warnings });
         }

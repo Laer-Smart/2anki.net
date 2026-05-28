@@ -18,6 +18,7 @@ import { Worker } from 'worker_threads';
 import CardOption from '../../lib/parser/Settings/CardOption';
 import Workspace from '../../lib/parser/WorkSpace';
 import { UploadedFile } from '../../lib/storage/types';
+import { EmptyDeckError } from '../jobs/EmptyDeckError';
 
 const MockWorker = Worker as jest.MockedClass<typeof Worker>;
 
@@ -129,5 +130,47 @@ describe('GeneratePackagesUseCase', () => {
     emitter.emit('error', new Error('Worker crashed'));
 
     await expect(promise).rejects.toThrow('Worker crashed');
+  });
+
+  it('rejects with EmptyDeckError when the worker sends an error message with name EmptyDeckError', async () => {
+    const emitter = makeWorkerEmitter();
+    const useCase = new GeneratePackagesUseCase();
+
+    const promise = useCase.execute(
+      false,
+      [makeFile('empty.html')],
+      makeSettings(),
+      makeWorkspace()
+    );
+
+    emitter.emit('message', {
+      type: 'error',
+      message: 'No cards found in your upload. Use .zip, .html, .md, or .csv.',
+      name: 'EmptyDeckError',
+    });
+
+    await expect(promise).rejects.toBeInstanceOf(EmptyDeckError);
+  });
+
+  it('preserves error name on the rejected Error for non-EmptyDeckError named errors', async () => {
+    const emitter = makeWorkerEmitter();
+    const useCase = new GeneratePackagesUseCase();
+
+    const promise = useCase.execute(
+      false,
+      [makeFile('other.html')],
+      makeSettings(),
+      makeWorkspace()
+    );
+
+    emitter.emit('message', {
+      type: 'error',
+      message: 'some message',
+      name: 'CustomError',
+    });
+
+    const err = await promise.catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).name).toBe('CustomError');
   });
 });

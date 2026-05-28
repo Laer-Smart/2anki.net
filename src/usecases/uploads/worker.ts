@@ -169,5 +169,11 @@ async function doGenerationWork(data: GenerationData) {
 if (workerData != null) {
   doGenerationWork(workerData.data)
     .then((result) => parentPort?.postMessage(result))
-    .catch((err) => parentPort?.postMessage({ type: 'error', message: err instanceof Error ? err.message : String(err) }));
+    .catch((err) =>
+      parentPort?.postMessage({
+        type: 'error',
+        message: err instanceof Error ? err.message : String(err),
+        name: err instanceof Error ? err.name : undefined,
+      })
+    );
 }

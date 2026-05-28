@@ -235,6 +235,12 @@ class UploadService {
           reason: 'missing_password',
           filename,
         });
+      } else if (err instanceof Error && /^pdfinfo_(failed|spawn_failed)/.test(err.message)) {
+        return res.status(400).json({
+          code: 'pdf_processing_failed',
+          message:
+            'We could not read this PDF. It may be corrupted, password-protected, or an unsupported variant. Try re-exporting the PDF or splitting it into smaller files.',
+        });
       } else {
         return ErrorHandler(res, req, err as Error);
       }
@@ -268,7 +274,17 @@ class UploadService {
       })
       .catch(async (err: unknown) => {
         const message = err instanceof Error ? err.message : String(err);
-        console.error('[UploadService] async job failed', { jobId: ws.id, message, err });
+        const isExpectedState =
+          err instanceof EmptyDeckError ||
+          (err instanceof Error && isPdfPasswordSentinel(err.message));
+        if (isExpectedState) {
+          console.info('[UploadService] async job user-input state', {
+            jobId: ws.id,
+            kind: err instanceof Error ? err.name : 'unknown',
+          });
+        } else {
+          console.error('[UploadService] async job failed', { jobId: ws.id, message, err });
+        }
         await this.jobRepository.updateJobStatus(ws.id, owner, 'failed', message);
       });
 

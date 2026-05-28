@@ -18,6 +18,7 @@ export function getPageCount(pdfPath: string, credential?: string): Promise<numb
 
     let stdout = '';
     let stderr = '';
+    let spawnError: Error | null = null;
 
     pdfinfoProcess.stdout.on('data', (data) => {
       stdout += data;
@@ -27,9 +28,14 @@ export function getPageCount(pdfPath: string, credential?: string): Promise<numb
       stderr += data;
     });
 
-    pdfinfoProcess.on('close', async (code) => {
+    pdfinfoProcess.on('error', (err) => {
+      spawnError = err;
+    });
+
+    pdfinfoProcess.on('close', async (code, signal) => {
       const pdfDir = path.dirname(pdfPath);
       const pdfBaseName = path.basename(pdfPath, path.extname(pdfPath));
+      const basename = path.basename(pdfPath);
 
       await fs.writeFile(
         path.join(pdfDir, `${pdfBaseName}_stdout.log`),
@@ -40,12 +46,22 @@ export function getPageCount(pdfPath: string, credential?: string): Promise<numb
         stderr
       );
 
+      if (spawnError != null) {
+        reject(new Error(`pdfinfo_spawn_failed: ${spawnError.message}`));
+        return;
+      }
+
       if (code !== 0) {
         if (stderr.includes('Encrypted') || stderr.includes('password')) {
           reject(new Error('PDF_NEEDS_PASSWORD'));
           return;
         }
-        reject(new Error('Failed to execute pdfinfo'));
+        const trimmed = stderr.trim();
+        reject(
+          new Error(
+            `pdfinfo_failed code=${code ?? 'null'} signal=${signal ?? 'none'} path=${basename} stderr=${trimmed.slice(0, 200) || '<empty>'}`
+          )
+        );
         return;
       }
 

@@ -18,10 +18,12 @@ import { CompleteJobUseCase } from '../../../../usecases/jobs/CompleteJobUseCase
 import { NotifyUserUseCase } from '../../../../usecases/jobs/NotifyUserUseCase';
 import {
   EMPTY_DECK_FAILURE_REASON,
+  isColumnsAmbiguousError,
   isNotionUnauthorizedError,
   jobFailureReasonFromError,
 } from '../../../../usecases/jobs/jobFailureReason';
 import { PythonExitError } from '../../../anki/buildPythonExitError';
+import { EmptyDeckError } from '../../../../usecases/jobs/EmptyDeckError';
 import { track } from '../../../../services/events/track';
 import NotionRepository from '../../../../data_layer/NotionRespository';
 
@@ -182,6 +184,17 @@ export default async function performConversion(
     }
     const failedJob = new SetJobFailedUseCase(jobRepository);
     await failedJob.execute(id, owner, jobFailureReasonFromError(error, id));
-    console.error(error);
+    const isExpectedUserState =
+      error instanceof EmptyDeckError ||
+      isColumnsAmbiguousError(error) ||
+      isNotionUnauthorizedError(error);
+    if (isExpectedUserState) {
+      console.info('[conversion] user-input state', {
+        jobId: id,
+        kind: error instanceof Error ? error.name : 'unknown',
+      });
+    } else {
+      console.error(error);
+    }
   }
 }
