@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-28-pdf-processing-failure-message",
+  "date": "2026-05-28",
+  "type": "fix",
+  "title": "PDFs that fail to process show a clear error instead of \"Something went wrong\""
+}

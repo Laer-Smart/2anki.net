@@ -11,7 +11,7 @@ export const EMPTY_DECK_FAILURE_REASON =
 
 export const COLUMNS_AMBIGUOUS_PREFIX = 'COLUMNS_AMBIGUOUS:';
 
-function isColumnsAmbiguousError(
+export function isColumnsAmbiguousError(
   error: unknown
 ): error is Error & { code: string; columns: string[] } {
   return (
@@ -60,6 +60,12 @@ export function jobFailureReasonFromError(
   }
   if (isNotionUnauthorizedError(error)) {
     return NOTION_TOKEN_EXPIRED_REASON;
+  }
+  if (
+    error instanceof Error &&
+    /^pdfinfo_(failed|spawn_failed)/.test(error.message)
+  ) {
+    return 'We could not read this PDF. It may be corrupted, password-protected, or an unsupported variant. Try re-exporting the PDF or splitting it into smaller files.';
   }
   return genericFailureReason(jobId);
 }
