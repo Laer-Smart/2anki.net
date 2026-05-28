@@ -8,8 +8,34 @@ import {
   buildUserMessage,
   buildFieldMappingPromptFragment,
   dedupeCardsByFront,
+  generateDeckInfo,
   type DeckInfo,
 } from './ClaudeService';
+
+const FAKE_DECK_JSON = JSON.stringify([
+  { deck: 'Test Deck', cards: [{ q: 'Q1', a: 'A1' }] },
+]);
+
+const mockStreamFn = jest.fn();
+const mockStream = {
+  on: jest.fn().mockReturnThis(),
+  finalMessage: jest.fn(),
+};
+
+jest.mock('@anthropic-ai/sdk', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({
+    messages: { stream: mockStreamFn },
+  })),
+}));
+
+function fakeResponse() {
+  return {
+    content: [{ type: 'text', text: FAKE_DECK_JSON }],
+    stop_reason: 'end_turn',
+    usage: { input_tokens: 100, output_tokens: 50 },
+  };
+}
 
 describe('looksLikeEmptyContentExplanation', () => {
   it('detects the reported empty-page explanation', () => {
@@ -390,6 +416,64 @@ describe('buildUserMessage — card size suffix', () => {
     const sizeIdx = msg.indexOf('Card size:');
     expect(instrIdx).toBeGreaterThan(-1);
     expect(sizeIdx).toBeGreaterThan(instrIdx);
+  });
+});
+
+describe('generateDeckInfo — partial chunk success (CLAUDE_PARTIAL_SUCCESS_ENABLED)', () => {
+  const htmlTwoChunks = '<p>' + 'x'.repeat(39_990) + '</p><p>y</p>';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockStreamFn.mockReturnValue(mockStream);
+    mockStream.on.mockReturnThis();
+  });
+
+  afterEach(() => {
+    delete process.env.CLAUDE_PARTIAL_SUCCESS_ENABLED;
+  });
+
+  it('flag off (default) — one chunk fails → entire call rejects', async () => {
+    mockStream.finalMessage
+      .mockResolvedValueOnce(fakeResponse())
+      .mockRejectedValueOnce(new Error('chunk 1 API error'));
+
+    await expect(generateDeckInfo(htmlTwoChunks, [])).rejects.toThrow('chunk 1 API error');
+  });
+
+  it('flag on — one chunk fails → call resolves with succeeded chunks and logs the failure', async () => {
+    process.env.CLAUDE_PARTIAL_SUCCESS_ENABLED = 'true';
+
+    mockStream.finalMessage
+      .mockResolvedValueOnce(fakeResponse())
+      .mockRejectedValueOnce(new Error('chunk 1 parse error'));
+
+    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    try {
+      const result = await generateDeckInfo(htmlTwoChunks, []);
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0].cards.length).toBeGreaterThan(0);
+      expect(infoSpy).toHaveBeenCalledWith(
+        '[Claude] Some chunks failed; continuing with the rest',
+        expect.objectContaining({ ok: 1, total: 2 })
+      );
+      const callArg = infoSpy.mock.calls.find(
+        ([msg]) => msg === '[Claude] Some chunks failed; continuing with the rest'
+      )![1] as { failures: Array<{ chunkIndex: number; reason: string }> };
+      expect(callArg.failures).toHaveLength(1);
+      expect(callArg.failures[0].reason).toBe('chunk 1 parse error');
+    } finally {
+      infoSpy.mockRestore();
+    }
+  });
+
+  it('flag on — all chunks fail → call rejects with the first failure reason', async () => {
+    process.env.CLAUDE_PARTIAL_SUCCESS_ENABLED = 'true';
+
+    mockStream.finalMessage
+      .mockRejectedValueOnce(new Error('chunk 0 failed'))
+      .mockRejectedValueOnce(new Error('chunk 1 failed'));
+
+    await expect(generateDeckInfo(htmlTwoChunks, [])).rejects.toThrow('chunk 0 failed');
   });
 });
 
