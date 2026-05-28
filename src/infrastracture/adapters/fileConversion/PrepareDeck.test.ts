@@ -164,3 +164,60 @@ describe('PrepareDeck — PDF text-vs-image gate', () => {
     expect(convertPDFToImages).not.toHaveBeenCalled();
   });
 });
+
+describe('PrepareDeck — diagnostic logging', () => {
+  let infoSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    infoSpy.mockRestore();
+  });
+
+  it('logs received file list with count, names, and sources when two same-named entries are present', async () => {
+    const settings = makeSettings();
+    await PrepareDeck({
+      name: 'anatomy.pdf',
+      files: [
+        { name: 'anatomy.pdf', contents: Buffer.from('%PDF-1.4 a') },
+        { name: 'anatomy.pdf', contents: Buffer.from('%PDF-1.4 b') },
+      ],
+      settings,
+      noLimits: true,
+      workspace: makeWorkspace(),
+    }).catch(() => undefined);
+
+    expect(infoSpy).toHaveBeenCalledWith(
+      '[PrepareDeck] received',
+      expect.objectContaining({
+        count: 2,
+        names: ['anatomy.pdf', 'anatomy.pdf'],
+        sources: expect.arrayContaining(['anatomy.pdf']),
+      })
+    );
+  });
+
+  it('logs a convertFile start line for each same-named entry', async () => {
+    const settings = makeSettings();
+    await PrepareDeck({
+      name: 'anatomy.pdf',
+      files: [
+        { name: 'anatomy.pdf', contents: Buffer.from('%PDF-1.4 a') },
+        { name: 'anatomy.pdf', contents: Buffer.from('%PDF-1.4 b') },
+      ],
+      settings,
+      noLimits: true,
+      workspace: makeWorkspace(),
+    }).catch(() => undefined);
+
+    const startCalls = infoSpy.mock.calls.filter(
+      (args) => args[0] === '[PrepareDeck] convertFile start'
+    );
+    expect(startCalls).toHaveLength(2);
+    expect(startCalls[0][1]).toMatchObject({ name: 'anatomy.pdf', workspaceLocation: '/tmp/test-workspace' });
+    expect(startCalls[1][1]).toMatchObject({ name: 'anatomy.pdf', workspaceLocation: '/tmp/test-workspace' });
+  });
+});

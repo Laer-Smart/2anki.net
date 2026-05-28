@@ -40,6 +40,12 @@ async function convertFile(
 ) {
   if (!file.contents) return null;
 
+  console.info('[PrepareDeck] convertFile start', {
+    name: file.name,
+    workspaceLocation: input.workspace.location,
+    mimetype: file.name.split('.').pop() ?? 'unknown',
+  });
+
   const t0 = Date.now();
 
   if (isXLSXFile(file.name)) {
@@ -180,6 +186,12 @@ export async function PrepareDeck(
   input: DeckParserInput
 ): Promise<PrepareDeckResult> {
   const tTotal = Date.now();
+
+  console.info('[PrepareDeck] received', {
+    count: input.files.length,
+    names: input.files.map((f) => f.name),
+    sources: input.files.map((f) => f.name.slice(0, 60)),
+  });
 
   console.log('[PrepareDeck] start', {
     name: input.name,
