@@ -29,19 +29,36 @@ interface GenerationData {
   files: UploadedFile[];
   settings: CardOption;
   workspace: Workspace;
+  enqueuedAt?: number;
 }
 
-export function getFileContents(file: UploadedFile): Buffer {
+export function getFileContents(file: UploadedFile, enqueuedAt?: number): Buffer {
+  const readAt = Date.now();
+
+  let result: Buffer;
+
   if (!file.path) {
     if (file.buffer == null) {
       throw new Error('Uploaded file has neither a path nor a buffer');
     }
-    return Buffer.from(file.buffer);
+    result = Buffer.from(file.buffer);
+    console.info('[upload] tempfile dwell', {
+      dwellMs: readAt - (enqueuedAt ?? readAt),
+      mode: 'buffer',
+      fileSizeBytes: result.byteLength,
+    });
+    return result;
   }
 
   try {
     if (fs.existsSync(file.path)) {
-      return fs.readFileSync(file.path);
+      result = fs.readFileSync(file.path);
+      console.info('[upload] tempfile dwell', {
+        dwellMs: readAt - (enqueuedAt ?? readAt),
+        mode: 'disk',
+        fileSizeBytes: result.byteLength,
+      });
+      return result;
     }
   } catch (error) {
     throw new Error(`Error reading file at path: ${file.path}: ${String(error)}`);
@@ -50,7 +67,13 @@ export function getFileContents(file: UploadedFile): Buffer {
   if (file.buffer == null) {
     throw new Error('Uploaded file is no longer available on disk and has no buffer fallback');
   }
-  return Buffer.from(file.buffer);
+  result = Buffer.from(file.buffer);
+  console.info('[upload] tempfile dwell', {
+    dwellMs: readAt - (enqueuedAt ?? readAt),
+    mode: 'buffer-fallback',
+    fileSizeBytes: result.byteLength,
+  });
+  return result;
 }
 
 interface FileResult {
@@ -141,7 +164,7 @@ async function processFile(
 }
 
 async function doGenerationWork(data: GenerationData) {
-  const { paying, files, settings, workspace } = data;
+  const { paying, files, settings, workspace, enqueuedAt } = data;
   let packages: Package[] = [];
   const warnings: string[] = [];
 
@@ -150,7 +173,7 @@ async function doGenerationWork(data: GenerationData) {
   };
 
   for (const file of files) {
-    const fileContents = getFileContents(file);
+    const fileContents = getFileContents(file, enqueuedAt);
     const result = await processFile(
       file,
       fileContents,

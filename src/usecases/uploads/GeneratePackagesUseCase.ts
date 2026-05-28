@@ -26,7 +26,8 @@ class GeneratePackagesUseCase {
     onProgress?: (step: string) => void
   ): Promise<PackageResult> {
     return new Promise((resolve, reject) => {
-      const data = { paying, files, settings, workspace };
+      const enqueuedAt = Date.now();
+      const data = { paying, files, settings, workspace, enqueuedAt };
       const workerTs = path.resolve(__dirname, './worker.ts');
       const workerJs = path.resolve(__dirname, './worker.js');
       const workerPath = fs.existsSync(workerTs) ? workerTs : workerJs;
