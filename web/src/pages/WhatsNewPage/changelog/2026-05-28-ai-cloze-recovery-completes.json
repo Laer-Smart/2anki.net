@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-28-ai-cloze-recovery-completes",
+  "date": "2026-05-28",
+  "type": "fix",
+  "title": "AI conversions of pages with cloze deletions recover more cards when the response is malformed"
+}

@@ -159,19 +159,19 @@ describe('ApkgPreviewService.getCardsPage', () => {
   });
 
   describe('ord-out-of-range fallback', () => {
-    it('emits a warn log when a card ord exceeds the noteType template count', () => {
+    it('emits a debug log when a card ord exceeds the noteType template count', () => {
       const parsed = makeParsed(makeBadOrdClozeCollection());
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const debugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {});
 
       service.getCardsPage(parsed, 0, 10, 'http://example.com');
 
-      const templateOrdWarnings = warnSpy.mock.calls.filter(([msg]) =>
+      const templateOrdDebugs = debugSpy.mock.calls.filter(([msg]) =>
         String(msg).includes('template ord=')
       );
-      warnSpy.mockRestore();
+      debugSpy.mockRestore();
 
-      expect(templateOrdWarnings).toHaveLength(1);
-      expect(String(templateOrdWarnings[0][0])).toContain('n2a-cloze');
+      expect(templateOrdDebugs).toHaveLength(1);
+      expect(String(templateOrdDebugs[0][0])).toContain('n2a-cloze');
     });
 
     it('still renders the out-of-range card against ord=0 instead of dropping it', () => {
