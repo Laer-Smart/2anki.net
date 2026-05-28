@@ -89,6 +89,21 @@ describe('parseDeckResponse', () => {
     );
   });
 
+  it('recovers a cloze-only deck where every card has a: "" (cloze cards legitimately have no answer field)', () => {
+    const broken =
+      '[{"deck":"Cloze Test","cards":[{"q":"{{c1::Paris}} is the capital of France","a":"","cloze":true}]}]';
+    expect(() => JSON.parse(broken)).not.toThrow();
+    const withRepair = broken.slice(0, -2);
+    expect(() => JSON.parse(withRepair)).toThrow();
+    const clozeOnly = '[{"deck":"Cloze Test","cards":[{"q":"The {{c1::mitochondria}} is the powerhouse","a":"","cloze":true}]}';
+    const parsed = parseDeckResponse(clozeOnly, clozeOnly, 0);
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].deck).toBe('Cloze Test');
+    expect(parsed[0].cards).toHaveLength(1);
+    expect(parsed[0].cards[0].q).toContain('mitochondria');
+    expect(parsed[0].cards[0].cloze).toBe(true);
+  });
+
   it('tolerates leading, interior, and trailing whitespace inside the JSON portion', () => {
     const padded = `  \n\t${deckJson}   \n  `;
     expect(parseDeckResponse(padded, padded, 0)).toEqual(deck);

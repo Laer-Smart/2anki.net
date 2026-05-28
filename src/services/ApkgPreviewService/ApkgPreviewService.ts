@@ -160,7 +160,7 @@ export default class ApkgPreviewService {
       return null;
     }
     if (!foundTemplate) {
-      console.warn(`[apkg-preview] card ${cardId}: template ord=${templateOrd} not found in noteType "${noteType.name}" (has ${noteType.templates.length} templates) — rendering against ord=0`);
+      console.debug(`[apkg-preview] card ${cardId}: template ord=${templateOrd} not found in noteType "${noteType.name}" (has ${noteType.templates.length} templates) — rendering against ord=0`);
     }
     const deck = parsed.collection.decks.get(card.did);
 

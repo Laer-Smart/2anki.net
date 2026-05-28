@@ -385,7 +385,10 @@ function tryRepairDeckArray(toParse: string): unknown[] | null {
       if (!card || typeof card !== 'object') return false;
       const q = (card as { q?: unknown }).q;
       const a = (card as { a?: unknown }).a;
-      return typeof q === 'string' && q.length > 0 && typeof a === 'string' && a.length > 0;
+      const cloze = (card as { cloze?: unknown }).cloze;
+      const hasQ = typeof q === 'string' && q.length > 0;
+      const hasA = typeof a === 'string' && a.length > 0;
+      return hasQ && (hasA || cloze === true);
     });
   });
   return hasUsableCard ? candidate : null;
@@ -418,7 +421,7 @@ export function parseDeckResponse(
     const repaired = tryRepairDeckArray(toParse);
     if (repaired) {
       parsed = repaired;
-      console.warn('[Claude] Recovered malformed JSON via jsonrepair', { chunkIndex });
+      console.log('[Claude] Recovered malformed JSON via jsonrepair', { chunkIndex });
     } else {
       console.error('[Claude] Failed to parse response as JSON', {
         raw,
