@@ -25,6 +25,8 @@ The claude lib converts HTML content into Anki flashcards using the Anthropic AP
 
 **Usage logging:** `logClaudeUsage(label, usage)` from `logClaudeUsage.ts` writes one `[claude-usage] label=… input=… output=… cache_create=… cache_read=…` line per Claude response to `console.info`. Every server-side Claude call site is responsible for calling it after the response (or `finalMessage` for streams) — labels: `ClaudeService`, `ChatUseCase`, `claudeFileConversion`, `AINoteTypeUseCase`, `OstController`. The helper is the single grep target for proving cache hit rate in prod. Missing or null cache fields render as `0`. Per `.claude/rules/security.md`, the log line carries no PII, secrets, or user content — just token counts.
 
+**Partial chunk success (`CLAUDE_PARTIAL_SUCCESS_ENABLED`):** Both fan-out sites in `generateDeckInfo` go through the private `runChunks` helper. When the env var `CLAUDE_PARTIAL_SUCCESS_ENABLED=true` is set, `runChunks` uses `Promise.allSettled` so a single chunk parse failure no longer kills the whole job. Succeeded chunks are merged as normal; failures are collected as `{ chunkIndex, reason }` and emitted via `console.info('[Claude] Some chunks failed; continuing with the rest', { failures, ok, total })`. If zero chunks succeed, the call throws using the first failure's reason (identical to the all-fail behavior today). When the env var is unset or `false` (default), `runChunks` falls back to `Promise.all` — behavior is unchanged for all users. The return type of `generateDeckInfo` is unchanged in PR A; PR B widens the shape and threads `partialFailureCount`/`expectedChunkCount` to the API.
+
 ---
 
 ## Heading-driven contract (`cardStyle: 'heading-driven'`)

@@ -586,6 +586,41 @@ async function generateDeckInfoFromChunk(
   return deckInfo;
 }
 
+async function runChunks(thunks: Array<() => Promise<DeckInfo[]>>): Promise<DeckInfo[]> {
+  if (process.env.CLAUDE_PARTIAL_SUCCESS_ENABLED !== 'true') {
+    const results = await Promise.all(thunks.map((fn) => fn()));
+    return results.flat();
+  }
+
+  const settled = await Promise.allSettled(thunks.map((fn) => fn()));
+  const succeeded: DeckInfo[][] = [];
+  const failures: Array<{ chunkIndex: number; reason: string }> = [];
+  settled.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      succeeded.push(r.value);
+    } else {
+      failures.push({
+        chunkIndex: i,
+        reason: r.reason instanceof Error ? r.reason.message : String(r.reason),
+      });
+    }
+  });
+
+  if (failures.length > 0) {
+    console.info('[Claude] Some chunks failed; continuing with the rest', {
+      failures,
+      ok: succeeded.length,
+      total: thunks.length,
+    });
+  }
+
+  if (succeeded.length === 0) {
+    throw new Error(failures[0]?.reason ?? 'All Claude chunks failed');
+  }
+
+  return succeeded.flat();
+}
+
 export async function generateDeckInfo(
   htmlContent: string,
   availableMediaFiles: string[],
@@ -615,8 +650,8 @@ export async function generateDeckInfo(
     if (headings.length > 0) {
       const chunks = splitByHeadings(headings);
       console.log('[Claude] heading-driven chunks', { headingCount: headings.length, chunkCount: chunks.length });
-      const chunkResults = await Promise.all(
-        chunks.map((chunk, i) =>
+      const chunkResults = await runChunks(
+        chunks.map((chunk, i) => () =>
           generateDeckInfoFromChunk(
             `<h1>${chunk.anchor}</h1>\n${chunk.bodyChunk}`,
             pageStyle,
@@ -631,7 +666,7 @@ export async function generateDeckInfo(
           )
         )
       );
-      const deckInfo = mergeDeckInfoArrays(chunkResults.flat());
+      const deckInfo = mergeDeckInfoArrays(chunkResults);
       console.log('[Claude] All heading-driven chunks done', {
         totalDecks: deckInfo.length,
         totalCards: deckInfo.reduce((sum, d) => sum + d.cards.length, 0),
@@ -645,13 +680,13 @@ export async function generateDeckInfo(
   const chunks = chunkHtmlByDetails(strippedContent);
   console.log('[Claude] Chunked HTML', { chunks: chunks.length, strippedBytes: strippedContent.length });
 
-  const chunkResults = await Promise.all(
-    chunks.map((chunk, i) =>
+  const chunkResults = await runChunks(
+    chunks.map((chunk, i) => () =>
       generateDeckInfoFromChunk(chunk, pageStyle, availableMediaFiles, userInstructions, i, chunks.length, onProgress, cardStyle, cardSize, fieldMapping)
     )
   );
 
-  const deckInfo = mergeDeckInfoArrays(chunkResults.flat());
+  const deckInfo = mergeDeckInfoArrays(chunkResults);
   console.log('[Claude] All chunks done', {
     totalDecks: deckInfo.length,
     totalCards: deckInfo.reduce((sum, d) => sum + d.cards.length, 0),
