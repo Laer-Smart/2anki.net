@@ -341,7 +341,7 @@ importers:
         specifier: ^4.7.0
         version: 4.7.0(monaco-editor@0.55.1)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@tanstack/react-query':
-        specifier: ^5.100.11
+        specifier: ^5.100.14
         version: 5.100.14(react@19.2.6)
       '@xyflow/react':
         specifier: ^12.10.2
@@ -350,7 +350,7 @@ importers:
         specifier: ^0.8.5
         version: 0.8.5
       date-fns:
-        specifier: ^4.2.1
+        specifier: ^4.3.0
         version: 4.3.0
       get-notion-object-title:
         specifier: ^0.2.9
@@ -380,7 +380,7 @@ importers:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.15)(react@19.2.6)
       react-router-dom:
-        specifier: ^7.15.1
+        specifier: ^7.16.0
         version: 7.16.0(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       recharts:
         specifier: ^3.8.1
