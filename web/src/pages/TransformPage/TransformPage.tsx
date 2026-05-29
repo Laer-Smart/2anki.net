@@ -137,6 +137,12 @@ export function TransformPage() {
   const [transformStartedAt, setTransformStartedAt] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const doneRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (status !== 'done') return;
+    doneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [status]);
 
   useEffect(() => {
     if (transformStartedAt == null) {
@@ -474,10 +480,21 @@ export function TransformPage() {
 
       {status === 'done' && (
         <div
+          ref={doneRef}
           role="status"
-          className={`${pageStyles.status} ${styles.notificationSuccess}`}
+          className={`${pageStyles.status} ${styles.notificationSuccess} ${pageStyles.doneBlock}`}
         >
-          <p>{cardCount} cards. Downloaded.</p>
+          <div className={pageStyles.doneHeader}>
+            <span aria-hidden className={pageStyles.doneCheck}>
+              ✓
+            </span>
+            <p className={pageStyles.doneTitle}>
+              {cardCount} cards transformed and downloaded
+            </p>
+          </div>
+          <p className={pageStyles.doneBody}>
+            Check your Downloads folder for the new .apkg.
+          </p>
           <button type="button" className={pageStyles.linkButton} onClick={reset}>
             Transform another deck
           </button>
