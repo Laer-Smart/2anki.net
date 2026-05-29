@@ -1,4 +1,4 @@
-import { buildImageQuery, fetchImage } from './imageFetchService';
+import { buildImageQuery, fetchImages } from './imageFetchService';
 import {
   TransformApkgOutput,
   TransformMediaFile,
@@ -11,6 +11,7 @@ import {
 } from '../../lib/ankify/transforms/types';
 
 const DEFAULT_CONCURRENCY = 3;
+const DEFAULT_IMAGE_COUNT = 1;
 
 export interface ImageTransformInput {
   notes: ParsedNote[];
@@ -18,6 +19,7 @@ export interface ImageTransformInput {
   pexelsApiKey?: string;
   concurrency?: number;
   selection?: FieldSelection;
+  imageCount?: number;
 }
 
 async function mapWithConcurrency<T>(
@@ -51,16 +53,17 @@ const writeField = (
   return next;
 };
 
-const appendImageToField = (
+const appendImagesToField = (
   note: ParsedNote,
-  filename: string,
+  filenames: string[],
   targetIndex: number
 ): TransformedNote => {
   const existing = note.fields[targetIndex] ?? '';
+  const imgTags = filenames
+    .map((filename) => `<img src="${filename}">`)
+    .join('<br>');
   const updated =
-    existing.length > 0
-      ? `${existing}<br><img src="${filename}">`
-      : `<img src="${filename}">`;
+    existing.length > 0 ? `${existing}<br>${imgTags}` : imgTags;
   return {
     guid: note.guid,
     modelKind: note.modelKind,
@@ -68,7 +71,7 @@ const appendImageToField = (
     fields: writeField(note, targetIndex, updated),
     fieldNames: note.fieldNames,
     tags: note.tags,
-    media: [filename],
+    media: [...filenames],
   };
 };
 
@@ -86,6 +89,7 @@ export async function transformApkgWithImages(
 ): Promise<TransformApkgOutput> {
   const concurrency = input.concurrency ?? DEFAULT_CONCURRENCY;
   const selection = input.selection ?? {};
+  const imageCount = input.imageCount ?? DEFAULT_IMAGE_COUNT;
   const t0 = Date.now();
 
   const results: TransformedNote[] = new Array(input.notes.length);
@@ -106,20 +110,28 @@ export async function transformApkgWithImages(
       return;
     }
     try {
-      const hit = await fetchImage(query, input.source, {
+      const hits = await fetchImages(query, input.source, imageCount, {
         pexelsApiKey: input.pexelsApiKey,
       });
-      if (hit == null) {
+      if (hits.length === 0) {
         results[index] = passthrough(note);
         imagesMissed += 1;
         return;
       }
-      if (!seenFilenames.has(hit.filename)) {
-        seenFilenames.add(hit.filename);
-        media.push({ filename: hit.filename, bytes: hit.bytes });
+      const filenamesForNote: string[] = [];
+      for (const hit of hits) {
+        filenamesForNote.push(hit.filename);
+        if (!seenFilenames.has(hit.filename)) {
+          seenFilenames.add(hit.filename);
+          media.push({ filename: hit.filename, bytes: hit.bytes });
+        }
       }
-      results[index] = appendImageToField(note, hit.filename, targetIndex);
-      imagesFound += 1;
+      results[index] = appendImagesToField(
+        note,
+        filenamesForNote,
+        targetIndex
+      );
+      imagesFound += hits.length;
     } catch (err) {
       results[index] = passthrough(note);
       const reason = err instanceof Error ? err.message : String(err);
@@ -137,6 +149,7 @@ export async function transformApkgWithImages(
     failures: failures.length,
     elapsedMs,
     concurrency,
+    imageCount,
   });
 
   return {

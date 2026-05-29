@@ -90,43 +90,50 @@ const downloadImage = async (
 
 const fetchFromPexels = async (
   query: string,
-  apiKey: string
-): Promise<ImageHit | undefined> => {
+  apiKey: string,
+  count: number
+): Promise<ImageHit[]> => {
   let searchPayload: PexelsSearchResponse;
   try {
     const response = await instrumentedAxios.get<PexelsSearchResponse>(
       'pexels',
       PEXELS_SEARCH_URL,
       {
-        params: { query, per_page: 1, orientation: 'landscape' },
+        params: { query, per_page: count, orientation: 'landscape' },
         headers: { Authorization: apiKey },
         timeout: 5000,
       }
     );
     searchPayload = response.data;
-  } catch {
-    return undefined;
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    console.warn('[transform] pexels search failed', { query, reason });
+    return [];
   }
 
-  const photo = searchPayload.photos?.[0];
-  const imageUrl = photo?.src?.medium ?? photo?.src?.large;
-  if (imageUrl == null) return undefined;
-
-  const downloaded = await downloadImage('pexels', imageUrl);
-  if (downloaded == null) return undefined;
-
-  const photographer = photo?.photographer ?? 'Pexels';
-  return {
-    bytes: downloaded.bytes,
-    filename: filenameFromUrl(imageUrl, downloaded.mime),
-    mimeType: downloaded.mime,
-    attribution: `Photo by ${photographer} on Pexels`,
-  };
+  const photos = searchPayload.photos ?? [];
+  const hits: ImageHit[] = [];
+  for (const photo of photos) {
+    const imageUrl = photo?.src?.medium ?? photo?.src?.large;
+    if (imageUrl == null) continue;
+    const downloaded = await downloadImage('pexels', imageUrl);
+    if (downloaded == null) continue;
+    const photographer = photo?.photographer ?? 'Pexels';
+    hits.push({
+      bytes: downloaded.bytes,
+      filename: filenameFromUrl(imageUrl, downloaded.mime),
+      mimeType: downloaded.mime,
+      attribution: `Photo by ${photographer} on Pexels`,
+    });
+    if (hits.length >= count) break;
+  }
+  return hits;
 };
 
 const fetchFromWikimedia = async (
-  query: string
-): Promise<ImageHit | undefined> => {
+  query: string,
+  count: number
+): Promise<ImageHit[]> => {
   let searchPayload: WikipediaPageImagesResponse;
   try {
     const response = await instrumentedAxios.get<WikipediaPageImagesResponse>(
@@ -138,7 +145,7 @@ const fetchFromWikimedia = async (
           format: 'json',
           generator: 'search',
           gsrsearch: query,
-          gsrlimit: 1,
+          gsrlimit: count,
           prop: 'pageimages',
           piprop: 'thumbnail|original',
           pithumbsize: 800,
@@ -154,7 +161,7 @@ const fetchFromWikimedia = async (
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     console.warn('[transform] wikipedia search failed', { query, reason });
-    return undefined;
+    return [];
   }
 
   const pages = searchPayload.query?.pages;
@@ -163,36 +170,70 @@ const fetchFromWikimedia = async (
       query,
       payload: JSON.stringify(searchPayload).slice(0, 240),
     });
-    return undefined;
-  }
-  const firstPage = Object.values(pages)[0];
-  const imageUrl =
-    firstPage?.thumbnail?.source ?? firstPage?.original?.source;
-  if (imageUrl == null) {
-    console.info('[transform] wikipedia article has no image', {
-      query,
-      title: firstPage?.title,
-    });
-    return undefined;
+    return [];
   }
 
-  const downloaded = await downloadImage('wikimedia', imageUrl);
-  if (downloaded == null) {
-    console.warn('[transform] wikipedia image download failed', {
-      query,
-      imageUrl,
+  const hits: ImageHit[] = [];
+  const sortedPages = Object.values(pages).sort((a, b) => {
+    const ai = (a as unknown as { index?: number }).index ?? 0;
+    const bi = (b as unknown as { index?: number }).index ?? 0;
+    return ai - bi;
+  });
+  for (const page of sortedPages) {
+    if (hits.length >= count) break;
+    const imageUrl =
+      page?.thumbnail?.source ?? page?.original?.source;
+    if (imageUrl == null) continue;
+    const downloaded = await downloadImage('wikimedia', imageUrl);
+    if (downloaded == null) continue;
+    const title = page?.title ?? 'Wikipedia';
+    hits.push({
+      bytes: downloaded.bytes,
+      filename: filenameFromUrl(imageUrl, downloaded.mime),
+      mimeType: downloaded.mime,
+      attribution: `${title} (Wikipedia)`,
     });
-    return undefined;
   }
+  if (hits.length === 0) {
+    console.info('[transform] wikipedia no usable images', {
+      query,
+      pagesSeen: sortedPages.length,
+    });
+  } else {
+    console.info('[transform] wikipedia images hit', {
+      query,
+      count: hits.length,
+    });
+  }
+  return hits;
+};
 
-  const title = firstPage?.title ?? 'Wikipedia';
-  console.info('[transform] wikipedia image hit', { query, title });
-  return {
-    bytes: downloaded.bytes,
-    filename: filenameFromUrl(imageUrl, downloaded.mime),
-    mimeType: downloaded.mime,
-    attribution: `${title} (Wikipedia)`,
-  };
+export const MIN_IMAGE_COUNT = 1;
+export const MAX_IMAGE_COUNT = 5;
+
+const clampCount = (count: number): number => {
+  if (!Number.isInteger(count)) return MIN_IMAGE_COUNT;
+  if (count < MIN_IMAGE_COUNT) return MIN_IMAGE_COUNT;
+  if (count > MAX_IMAGE_COUNT) return MAX_IMAGE_COUNT;
+  return count;
+};
+
+export const fetchImages = async (
+  query: string,
+  source: ImageSource,
+  count: number,
+  options: { pexelsApiKey?: string } = {}
+): Promise<ImageHit[]> => {
+  const trimmed = query.trim();
+  if (trimmed.length === 0) return [];
+  const safeCount = clampCount(count);
+  if (source === 'pexels') {
+    if (options.pexelsApiKey == null || options.pexelsApiKey.length === 0) {
+      return [];
+    }
+    return fetchFromPexels(trimmed, options.pexelsApiKey, safeCount);
+  }
+  return fetchFromWikimedia(trimmed, safeCount);
 };
 
 export const fetchImage = async (
@@ -200,13 +241,6 @@ export const fetchImage = async (
   source: ImageSource,
   options: { pexelsApiKey?: string } = {}
 ): Promise<ImageHit | undefined> => {
-  const trimmed = query.trim();
-  if (trimmed.length === 0) return undefined;
-  if (source === 'pexels') {
-    if (options.pexelsApiKey == null || options.pexelsApiKey.length === 0) {
-      return undefined;
-    }
-    return fetchFromPexels(trimmed, options.pexelsApiKey);
-  }
-  return fetchFromWikimedia(trimmed);
+  const hits = await fetchImages(query, source, 1, options);
+  return hits[0];
 };

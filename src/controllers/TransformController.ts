@@ -106,6 +106,7 @@ export class TransformController {
     }
 
     let imageSource: ImageSource | undefined;
+    let imageCount: number | undefined;
     if (transform === 'add_image') {
       const raw = body.imageSource;
       if (
@@ -115,6 +116,12 @@ export class TransformController {
         imageSource = raw as ImageSource;
       } else {
         imageSource = 'pexels';
+      }
+      const rawCount = Number(body.imageCount);
+      if (Number.isInteger(rawCount) && rawCount >= 1 && rawCount <= 5) {
+        imageCount = rawCount;
+      } else {
+        imageCount = 1;
       }
     }
 
@@ -143,6 +150,7 @@ export class TransformController {
         transform,
         targetLanguage: targetLanguage as never,
         imageSource,
+        imageCount,
         pexelsApiKey: process.env.PEXELS_API_KEY,
         selection,
       });

@@ -28,6 +28,7 @@ export interface TransformApkgInput {
   transform: TransformName;
   targetLanguage?: TargetLanguage;
   imageSource?: ImageSource;
+  imageCount?: number;
   pexelsApiKey?: string;
   selection?: FieldSelection;
   concurrency?: number;
@@ -136,6 +137,7 @@ export class TransformApkgUseCase {
             pexelsApiKey: input.pexelsApiKey,
             selection: input.selection,
             concurrency: input.concurrency,
+            imageCount: input.imageCount,
           })
         : await transformApkgNotes({
             notes: parsed.notes,

@@ -91,6 +91,13 @@ const LANGUAGES = [
 
 type Status = 'idle' | 'transforming' | 'done' | 'error';
 
+function formatElapsed(seconds: number): string {
+  if (seconds < 60) return `${seconds}s elapsed`;
+  const minutes = Math.floor(seconds / 60);
+  const remaining = seconds % 60;
+  return `${minutes}m ${remaining}s elapsed`;
+}
+
 function downloadBlob(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -119,13 +126,31 @@ export function TransformPage() {
   const [transform, setTransform] = useState<TransformName>('add_hint');
   const [language, setLanguage] = useState<(typeof LANGUAGES)[number]>('English');
   const [imageSource, setImageSource] = useState<ImageSource>('pexels');
+  const [imageCount, setImageCount] = useState<number>(1);
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
   const [cardCount, setCardCount] = useState<number>(0);
   const [fieldNames, setFieldNames] = useState<string[]>([]);
   const [sourceField, setSourceField] = useState<number>(0);
   const [targetField, setTargetField] = useState<number>(1);
+  const [transformStartedAt, setTransformStartedAt] = useState<number | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (transformStartedAt == null) {
+      setElapsedSeconds(0);
+      return;
+    }
+    const tick = () => {
+      setElapsedSeconds(
+        Math.max(0, Math.floor((Date.now() - transformStartedAt) / 1000))
+      );
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [transformStartedAt]);
 
   useEffect(() => {
     if (incomingFile == null) return;
@@ -174,6 +199,7 @@ export function TransformPage() {
     setStatus('idle');
     setError(null);
     setCardCount(0);
+    setTransformStartedAt(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -199,13 +225,17 @@ export function TransformPage() {
     setStatus('transforming');
     setError(null);
     setCardCount(0);
+    setTransformStartedAt(Date.now());
     track('transform_apkg_submitted', { props: { transform } });
 
     const body = new FormData();
     body.append('file', file);
     body.append('transform', transform);
     if (transform === 'translate_back') body.append('targetLanguage', language);
-    if (transform === 'add_image') body.append('imageSource', imageSource);
+    if (transform === 'add_image') {
+      body.append('imageSource', imageSource);
+      body.append('imageCount', String(imageCount));
+    }
     if (supportsFieldPicker && fieldNames.length > 0) {
       body.append('sourceField', String(sourceField));
       body.append('targetField', String(targetField));
@@ -221,12 +251,14 @@ export function TransformPage() {
       if (response.status === 402) {
         setError('Transform is on the paid plan. Upgrade to transform existing decks.');
         setStatus('error');
+        setTransformStartedAt(null);
         return;
       }
       if (!response.ok) {
         const text = await response.text();
         setError(text || 'Transform failed. Try again.');
         setStatus('error');
+        setTransformStartedAt(null);
         return;
       }
 
@@ -237,11 +269,13 @@ export function TransformPage() {
       const decodedName = filename ? decodeURIComponent(filename) : `${file.name.replace(/\.apkg$/i, '')}-transformed.apkg`;
       downloadBlob(blob, decodedName);
       setStatus('done');
+      setTransformStartedAt(null);
       track('transform_apkg_succeeded', { props: { transform, card_count: count } });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Transform failed. Try again.';
       setError(message);
       setStatus('error');
+      setTransformStartedAt(null);
     }
   };
 
@@ -349,6 +383,22 @@ export function TransformPage() {
           </fieldset>
         )}
 
+        {transform === 'add_image' && (
+          <label className={pageStyles.languageRow}>
+            Images per card
+            <select
+              value={imageCount}
+              onChange={(e) => setImageCount(Number(e.target.value))}
+            >
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
         {showFieldPicker && (
           <div className={pageStyles.fieldPicker}>
             <label className={pageStyles.languageRow}>
@@ -390,9 +440,14 @@ export function TransformPage() {
       </form>
 
       {status === 'transforming' && (
-        <p role="status" className={pageStyles.status}>
-          Working through every note. A 900-card deck takes about 5 to 10 minutes.
-        </p>
+        <div role="status" className={pageStyles.transformingBlock}>
+          <div className={pageStyles.progressBar} aria-hidden>
+            <div className={pageStyles.progressFill} />
+          </div>
+          <p className={pageStyles.status}>
+            Working through every note. {formatElapsed(elapsedSeconds)}.
+          </p>
+        </div>
       )}
 
       {status === 'done' && (

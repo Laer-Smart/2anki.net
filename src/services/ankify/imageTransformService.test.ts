@@ -1,13 +1,13 @@
 jest.mock('./imageFetchService', () => ({
   buildImageQuery: jest.fn((value: string) => value.trim()),
-  fetchImage: jest.fn(),
+  fetchImages: jest.fn(),
 }));
 
-import { fetchImage } from './imageFetchService';
+import { fetchImages } from './imageFetchService';
 import { transformApkgWithImages } from './imageTransformService';
 import { ParsedNote } from '../../lib/ankify/transforms/types';
 
-const mockedFetch = fetchImage as jest.MockedFunction<typeof fetchImage>;
+const mockedFetch = fetchImages as jest.MockedFunction<typeof fetchImages>;
 
 const note = (
   overrides: Partial<ParsedNote> & { front?: string; back?: string } = {}
@@ -24,18 +24,20 @@ const note = (
   };
 };
 
+const hit = (filename: string) => ({
+  bytes: Buffer.from('jpeg'),
+  filename,
+  mimeType: 'image/jpeg',
+  attribution: 'attr',
+});
+
 describe('transformApkgWithImages', () => {
   beforeEach(() => {
     mockedFetch.mockReset();
   });
 
   it('appends an <img> tag to the back field on a hit', async () => {
-    mockedFetch.mockResolvedValueOnce({
-      bytes: Buffer.from('jpeg'),
-      filename: '2anki-abc.jpg',
-      mimeType: 'image/jpeg',
-      attribution: 'photographer on pexels',
-    });
+    mockedFetch.mockResolvedValueOnce([hit('2anki-abc.jpg')]);
 
     const result = await transformApkgWithImages({
       notes: [note()],
@@ -56,12 +58,7 @@ describe('transformApkgWithImages', () => {
   });
 
   it('emits an empty back as just the <img> tag when the source back was empty', async () => {
-    mockedFetch.mockResolvedValueOnce({
-      bytes: Buffer.from('jpeg'),
-      filename: '2anki-xyz.jpg',
-      mimeType: 'image/jpeg',
-      attribution: 'attr',
-    });
+    mockedFetch.mockResolvedValueOnce([hit('2anki-xyz.jpg')]);
 
     const result = await transformApkgWithImages({
       notes: [note({ back: '' })],
@@ -73,8 +70,8 @@ describe('transformApkgWithImages', () => {
     expect(result.notes[0].fields[1]).toBe('<img src="2anki-xyz.jpg">');
   });
 
-  it('passes the note through unchanged when the image source returns no hit', async () => {
-    mockedFetch.mockResolvedValueOnce(undefined);
+  it('passes the note through unchanged when the image source returns no hits', async () => {
+    mockedFetch.mockResolvedValueOnce([]);
 
     const result = await transformApkgWithImages({
       notes: [note({ guid: 'miss', front: 'pangolin' })],
@@ -88,7 +85,7 @@ describe('transformApkgWithImages', () => {
     expect(result.media).toEqual([]);
   });
 
-  it('records a failure entry when fetchImage throws but still emits the note', async () => {
+  it('records a failure entry when fetchImages throws but still emits the note', async () => {
     mockedFetch.mockRejectedValueOnce(new Error('network down'));
 
     const result = await transformApkgWithImages({
@@ -107,18 +104,8 @@ describe('transformApkgWithImages', () => {
 
   it('deduplicates identical filenames across notes', async () => {
     mockedFetch
-      .mockResolvedValueOnce({
-        bytes: Buffer.from('jpeg'),
-        filename: '2anki-shared.jpg',
-        mimeType: 'image/jpeg',
-        attribution: 'attr',
-      })
-      .mockResolvedValueOnce({
-        bytes: Buffer.from('jpeg'),
-        filename: '2anki-shared.jpg',
-        mimeType: 'image/jpeg',
-        attribution: 'attr',
-      });
+      .mockResolvedValueOnce([hit('2anki-shared.jpg')])
+      .mockResolvedValueOnce([hit('2anki-shared.jpg')]);
 
     const result = await transformApkgWithImages({
       notes: [note({ guid: 'a' }), note({ guid: 'b' })],
@@ -130,6 +117,51 @@ describe('transformApkgWithImages', () => {
     expect(result.media).toHaveLength(1);
     expect(result.notes[0].fields[1]).toMatch(/2anki-shared\.jpg/);
     expect(result.notes[1].fields[1]).toMatch(/2anki-shared\.jpg/);
+  });
+
+  it('appends every requested image when imageCount is N', async () => {
+    mockedFetch.mockResolvedValueOnce([
+      hit('2anki-1.jpg'),
+      hit('2anki-2.jpg'),
+      hit('2anki-3.jpg'),
+    ]);
+
+    const result = await transformApkgWithImages({
+      notes: [note({ back: 'definition' })],
+      source: 'pexels',
+      pexelsApiKey: 'K',
+      concurrency: 1,
+      imageCount: 3,
+    });
+
+    expect(result.notes[0].fields[1]).toBe(
+      'definition<br><img src="2anki-1.jpg"><br><img src="2anki-2.jpg"><br><img src="2anki-3.jpg">'
+    );
+    expect(result.notes[0].media).toEqual([
+      '2anki-1.jpg',
+      '2anki-2.jpg',
+      '2anki-3.jpg',
+    ]);
+    expect(result.media).toHaveLength(3);
+  });
+
+  it('forwards the requested imageCount to fetchImages', async () => {
+    mockedFetch.mockResolvedValueOnce([hit('a.jpg')]);
+
+    await transformApkgWithImages({
+      notes: [note()],
+      source: 'pexels',
+      pexelsApiKey: 'K',
+      concurrency: 1,
+      imageCount: 4,
+    });
+
+    expect(mockedFetch).toHaveBeenCalledWith(
+      expect.any(String),
+      'pexels',
+      4,
+      expect.objectContaining({ pexelsApiKey: 'K' })
+    );
   });
 
   it('skips fetch entirely when the query is empty after sanitization', async () => {
