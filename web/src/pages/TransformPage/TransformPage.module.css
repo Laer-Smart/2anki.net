@@ -63,6 +63,12 @@
   font-weight: var(--font-medium);
 }
 
+.fieldLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .fieldPicker {
   display: flex;
   flex-direction: column;

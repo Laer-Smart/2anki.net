@@ -5,6 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
 import { track } from '../../lib/analytics/track';
+import { FieldHint } from '../../components/FieldHint';
 import styles from '../../styles/shared.module.css';
 import pageStyles from './TransformPage.module.css';
 
@@ -385,7 +386,10 @@ export function TransformPage() {
 
         {transform === 'add_image' && (
           <label className={pageStyles.languageRow}>
-            Images per card
+            <span className={pageStyles.fieldLabel}>
+              Images per card
+              <FieldHint text="How many images to attach to each card. More images take longer to fetch and add to the deck file." />
+            </span>
             <select
               value={imageCount}
               onChange={(e) => setImageCount(Number(e.target.value))}
@@ -402,7 +406,16 @@ export function TransformPage() {
         {showFieldPicker && (
           <div className={pageStyles.fieldPicker}>
             <label className={pageStyles.languageRow}>
-              Source field
+              <span className={pageStyles.fieldLabel}>
+                Source field
+                <FieldHint
+                  text={
+                    transform === 'add_image'
+                      ? 'The field used as the image-search query. Pick the field that holds the term you want a picture of.'
+                      : 'The field the transform reads from. For translation this is the text that gets translated.'
+                  }
+                />
+              </span>
               <select
                 value={sourceField}
                 onChange={(e) => setSourceField(Number(e.target.value))}
@@ -415,7 +428,16 @@ export function TransformPage() {
               </select>
             </label>
             <label className={pageStyles.languageRow}>
-              Target field
+              <span className={pageStyles.fieldLabel}>
+                Target field
+                <FieldHint
+                  text={
+                    transform === 'add_image'
+                      ? 'Where the image gets attached. The <img> tag appends to whatever this field already contains.'
+                      : 'Where the result lands. For translation, the translated text replaces this field on every card.'
+                  }
+                />
+              </span>
               <select
                 value={targetField}
                 onChange={(e) => setTargetField(Number(e.target.value))}
