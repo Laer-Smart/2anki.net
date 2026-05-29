@@ -26,9 +26,15 @@ export interface TransformApkgInput {
   client?: Anthropic;
 }
 
+export interface TransformMediaFile {
+  filename: string;
+  bytes: Buffer;
+}
+
 export interface TransformApkgOutput {
   notes: TransformedNote[];
   failures: Array<{ guid: string; reason: string }>;
+  media?: TransformMediaFile[];
   usage: {
     inputTokens: number;
     outputTokens: number;

@@ -1035,6 +1035,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     const isExistingApkg =
       localError != null && /already an Anki deck/i.test(localError.message);
     if (isExistingApkg) {
+      const rejectedFile = fileInputRef.current?.files?.[0];
       return (
         <div className={formStyles.stateContent}>
           <p className={formStyles.apkgRedirectHeading}>
@@ -1044,7 +1045,11 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
             Pick what you want to do with it.
           </p>
           <div className={formStyles.apkgRedirectActions}>
-            <Link to="/transform" className={formStyles.apkgRedirectPrimary}>
+            <Link
+              to="/transform"
+              state={rejectedFile ? { file: rejectedFile } : undefined}
+              className={formStyles.apkgRedirectPrimary}
+            >
               <span className={formStyles.apkgRedirectActionLabel}>
                 Transform this deck →
               </span>

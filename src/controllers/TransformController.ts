@@ -11,6 +11,8 @@ import {
   EMPTY_DECK_ERROR,
 } from '../usecases/ankify/TransformApkgUseCase';
 import {
+  IMAGE_SOURCES,
+  ImageSource,
   isTargetLanguage,
   isTransformName,
 } from '../lib/ankify/transforms/types';
@@ -69,6 +71,19 @@ export class TransformController {
       return;
     }
 
+    let imageSource: ImageSource | undefined;
+    if (transform === 'add_image') {
+      const raw = body.imageSource;
+      if (
+        typeof raw === 'string' &&
+        (IMAGE_SOURCES as readonly string[]).includes(raw)
+      ) {
+        imageSource = raw as ImageSource;
+      } else {
+        imageSource = 'pexels';
+      }
+    }
+
     const bytes = readUploaded(file);
     if (!bytes) {
       res.status(400).contentType('text/plain').send('Could not read the uploaded file.');
@@ -80,6 +95,8 @@ export class TransformController {
         bytes,
         transform,
         targetLanguage: targetLanguage as never,
+        imageSource,
+        pexelsApiKey: process.env.PEXELS_API_KEY,
       });
       res.set('Content-Type', 'application/apkg');
       res.set('Content-Length', Buffer.byteLength(result.apkg).toString());

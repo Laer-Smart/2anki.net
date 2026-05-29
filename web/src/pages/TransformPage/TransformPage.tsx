@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
@@ -8,10 +8,23 @@ import { track } from '../../lib/analytics/track';
 import styles from '../../styles/shared.module.css';
 import pageStyles from './TransformPage.module.css';
 
-type TransformName = 'translate_back' | 'add_example' | 'cloze_front' | 'add_hint';
+type TransformName =
+  | 'translate_back'
+  | 'add_example'
+  | 'cloze_front'
+  | 'add_hint'
+  | 'add_image';
+
+type ImageSource = 'pexels' | 'wikimedia';
 
 interface TransformChoice {
   id: TransformName;
+  label: string;
+  description: string;
+}
+
+interface ImageSourceChoice {
+  id: ImageSource;
   label: string;
   description: string;
 }
@@ -36,6 +49,25 @@ const TRANSFORMS: TransformChoice[] = [
     id: 'add_hint',
     label: 'Add a hint',
     description: 'Adds a one-line hint under the front of every card.',
+  },
+  {
+    id: 'add_image',
+    label: 'Add an image to every card',
+    description:
+      'Searches a real photo or diagram for each front field and appends it to the back.',
+  },
+];
+
+const IMAGE_SOURCES: ImageSourceChoice[] = [
+  {
+    id: 'pexels',
+    label: 'Photos (Pexels)',
+    description: 'Good for language learning — everyday nouns, places, food, animals.',
+  },
+  {
+    id: 'wikimedia',
+    label: 'Diagrams (Wikimedia Commons)',
+    description: 'Good for medicine, biology, anatomy, historical figures, specialty terms.',
   },
 ];
 
@@ -74,13 +106,30 @@ export function TransformPage() {
   const { data } = useUserLocals();
   const isPaying = isPayingUser(data?.locals);
 
-  const [file, setFile] = useState<File | null>(null);
+  const location = useLocation();
+  const incomingFile =
+    location.state &&
+    typeof location.state === 'object' &&
+    'file' in location.state &&
+    location.state.file instanceof File
+      ? (location.state.file as File)
+      : null;
+
+  const [file, setFile] = useState<File | null>(incomingFile);
   const [transform, setTransform] = useState<TransformName>('add_hint');
   const [language, setLanguage] = useState<(typeof LANGUAGES)[number]>('English');
+  const [imageSource, setImageSource] = useState<ImageSource>('pexels');
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
   const [cardCount, setCardCount] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (incomingFile == null) return;
+    track('transform_apkg_handoff_received', {
+      props: { source: 'upload_reject' },
+    });
+  }, [incomingFile]);
 
   const reset = () => {
     setFile(null);
@@ -118,6 +167,7 @@ export function TransformPage() {
     body.append('file', file);
     body.append('transform', transform);
     if (transform === 'translate_back') body.append('targetLanguage', language);
+    if (transform === 'add_image') body.append('imageSource', imageSource);
 
     try {
       const response = await fetch('/api/transform/upload', {
@@ -234,6 +284,27 @@ export function TransformPage() {
               ))}
             </select>
           </label>
+        )}
+
+        {transform === 'add_image' && (
+          <fieldset className={pageStyles.fieldset}>
+            <legend className={pageStyles.legend}>Image source</legend>
+            {IMAGE_SOURCES.map((s) => (
+              <label key={s.id} className={pageStyles.choice}>
+                <input
+                  type="radio"
+                  name="imageSource"
+                  value={s.id}
+                  checked={imageSource === s.id}
+                  onChange={() => setImageSource(s.id)}
+                />
+                <span>
+                  <strong>{s.label}</strong>
+                  <small>{s.description}</small>
+                </span>
+              </label>
+            ))}
+          </fieldset>
         )}
 
         <button

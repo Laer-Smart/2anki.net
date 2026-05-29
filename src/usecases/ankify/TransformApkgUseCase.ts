@@ -7,8 +7,10 @@ import {
   parseApkgNotes,
   ParseApkgNotesResult,
 } from '../../services/ApkgPreviewService/parseApkgNotes';
-import { transformApkgNotes } from '../../services/ankify/transformService';
+import { transformApkgNotes, TransformMediaFile } from '../../services/ankify/transformService';
+import { transformApkgWithImages } from '../../services/ankify/imageTransformService';
 import {
+  ImageSource,
   TargetLanguage,
   TransformedNote,
   TransformName,
@@ -24,6 +26,8 @@ export interface TransformApkgInput {
   bytes: Buffer;
   transform: TransformName;
   targetLanguage?: TargetLanguage;
+  imageSource?: ImageSource;
+  pexelsApiKey?: string;
   concurrency?: number;
 }
 
@@ -46,6 +50,9 @@ function toAnkiNote(transformed: TransformedNote): Note {
     const note = new Note(transformed.front, transformed.back);
     note.cloze = true;
     note.tags = transformed.tags;
+    if (transformed.media && transformed.media.length > 0) {
+      note.media = [...transformed.media];
+    }
     return note;
   }
   const front =
@@ -54,6 +61,9 @@ function toAnkiNote(transformed: TransformedNote): Note {
       : transformed.front;
   const note = new Note(front, transformed.back);
   note.tags = transformed.tags;
+  if (transformed.media && transformed.media.length > 0) {
+    note.media = [...transformed.media];
+  }
   return note;
 }
 
@@ -66,10 +76,16 @@ function buildDeckFromTransformedNotes(
   return new Deck(deckName, ankiNotes, undefined, null, Date.now(), settings);
 }
 
-async function emitApkgFromDeck(deck: Deck): Promise<Buffer> {
+async function emitApkgFromDeck(
+  deck: Deck,
+  media: readonly TransformMediaFile[] = []
+): Promise<Buffer> {
   const ws = new Workspace(true, 'fs');
   const exporter = new CustomExporter(deck.name, ws.location);
   exporter.configure([deck]);
+  for (const file of media) {
+    exporter.addMedia(file.filename, file.bytes);
+  }
   await exporter.save();
   const apkg = await ws.getFirstAPKG();
   if (!apkg) throw new Error('Failed to emit transformed deck');
@@ -84,12 +100,20 @@ export class TransformApkgUseCase {
       throw new Error(EMPTY_DECK_ERROR);
     }
 
-    const transformResult = await transformApkgNotes({
-      notes: parsed.notes,
-      transform: input.transform,
-      targetLanguage: input.targetLanguage,
-      concurrency: input.concurrency,
-    });
+    const transformResult =
+      input.transform === 'add_image'
+        ? await transformApkgWithImages({
+            notes: parsed.notes,
+            source: input.imageSource ?? 'pexels',
+            pexelsApiKey: input.pexelsApiKey,
+            concurrency: input.concurrency,
+          })
+        : await transformApkgNotes({
+            notes: parsed.notes,
+            transform: input.transform,
+            targetLanguage: input.targetLanguage,
+            concurrency: input.concurrency,
+          });
 
     if (transformResult.notes.length === 0) {
       throw new Error('Every note failed to transform. Try again.');
@@ -99,7 +123,7 @@ export class TransformApkgUseCase {
       parsed.deckName,
       transformResult.notes
     );
-    const apkg = await emitApkgFromDeck(deck);
+    const apkg = await emitApkgFromDeck(deck, transformResult.media ?? []);
 
     return {
       apkg,

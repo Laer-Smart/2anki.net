@@ -3,9 +3,14 @@ export const TRANSFORM_NAMES = [
   'add_example',
   'cloze_front',
   'add_hint',
+  'add_image',
 ] as const;
 
 export type TransformName = (typeof TRANSFORM_NAMES)[number];
+
+export const IMAGE_SOURCES = ['pexels', 'wikimedia'] as const;
+
+export type ImageSource = (typeof IMAGE_SOURCES)[number];
 
 export type SourceModelKind = 'basic' | 'cloze';
 
@@ -24,6 +29,7 @@ export interface TransformedNote {
   back: string;
   hint?: string;
   tags: string[];
+  media?: string[];
 }
 
 export interface TransformOptions {
