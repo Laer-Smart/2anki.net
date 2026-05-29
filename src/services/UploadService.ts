@@ -256,6 +256,12 @@ class UploadService {
           message:
             'We could not read this PDF. It may be corrupted, password-protected, or an unsupported variant. Try re-exporting the PDF or splitting it into smaller files.',
         });
+      } else if (err instanceof Error && /^docx_parse_failed/.test(err.message)) {
+        return res.status(400).json({
+          code: 'docx_processing_failed',
+          message:
+            "We couldn't read this .docx. It may have been renamed from another format. Try re-exporting it from Word or Google Docs.",
+        });
       } else {
         return ErrorHandler(res, req, err as Error);
       }
@@ -292,7 +298,8 @@ class UploadService {
         const isExpectedState =
           err instanceof EmptyDeckError ||
           err instanceof ClaudeParseError ||
-          (err instanceof Error && isPdfPasswordSentinel(err.message));
+          (err instanceof Error && isPdfPasswordSentinel(err.message)) ||
+          (err instanceof Error && /^docx_parse_failed/.test(err.message));
         if (isExpectedState) {
           console.info('[UploadService] async job user-input state', {
             jobId: ws.id,
