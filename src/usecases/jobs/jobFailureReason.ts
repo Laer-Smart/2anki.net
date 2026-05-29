@@ -45,7 +45,14 @@ export function isNotionUnauthorizedError(error: unknown): boolean {
 }
 
 function genericFailureReason(jobId = 'unavailable'): string {
-  return `Something went wrong on our end converting this page. Email support@2anki.net with job ID ${jobId} and we'll take a look.`;
+  return `Something went wrong on our end converting this file. Job ID ${jobId}. Check status at 2anki.net/status — if everything's green, email support@2anki.net with the job ID.`;
+}
+
+function hasCode(error: unknown, code: string): boolean {
+  return (
+    error instanceof Error &&
+    (error as Error & { code?: string }).code === code
+  );
 }
 
 export function jobFailureReasonFromError(
@@ -66,6 +73,36 @@ export function jobFailureReasonFromError(
   }
   if (isNotionUnauthorizedError(error)) {
     return NOTION_TOKEN_EXPIRED_REASON;
+  }
+  if (hasCode(error, 'PARSER_CRASH')) {
+    return "Couldn't read this file. It may be malformed or use a structure we don't recognise yet. Try re-exporting from the source app, or send the file to support@2anki.net.";
+  }
+  if (hasCode(error, 'WORKER_TIMEOUT')) {
+    return 'This conversion took longer than the time budget. Try splitting the file into smaller pieces, or remove very large embedded images.';
+  }
+  if (
+    error instanceof APIResponseError &&
+    error.code === APIErrorCode.RateLimited
+  ) {
+    return 'Notion is rate-limiting us right now. Wait a minute and convert again.';
+  }
+  if (
+    error instanceof APIResponseError &&
+    error.code === APIErrorCode.ObjectNotFound
+  ) {
+    return "We couldn't open that Notion page. Share it with the 2anki integration in Notion, then try again.";
+  }
+  if (hasCode(error, 'APKG_TOO_LARGE')) {
+    return "This deck is over Anki's 100 MB upload limit. Split it by toggling fewer pages, or upload directly to Anki desktop.";
+  }
+  if (hasCode(error, 'ZIP_INVALID')) {
+    return "Couldn't read this zip. Make sure it's the Markdown & CSV export from Notion, not the HTML export.";
+  }
+  if (
+    error instanceof Error &&
+    error.message.startsWith('pdfinfo_password')
+  ) {
+    return 'This PDF is password-protected. Remove the password and try again.';
   }
   if (
     error instanceof Error &&

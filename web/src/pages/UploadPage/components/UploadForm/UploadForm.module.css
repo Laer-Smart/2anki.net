@@ -342,6 +342,12 @@
   margin: 0;
 }
 
+.statusLink {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0.5rem 0 0;
+}
+
 /* ── Validation state (carried forward) ── */
 
 .validationTitle {

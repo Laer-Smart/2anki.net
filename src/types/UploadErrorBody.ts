@@ -10,6 +10,12 @@ export type UploadErrorCode =
   | 'claude_parse_failed'
   | 'empty_export'
   | 'markdown_likely_lossy'
+  | 'parser_crash'
+  | 'worker_timeout'
+  | 'notion_rate_limit'
+  | 'notion_object_not_found'
+  | 'apkg_too_large_for_anki'
+  | 'zip_invalid'
   | 'unknown';
 
 export interface UploadErrorBody {

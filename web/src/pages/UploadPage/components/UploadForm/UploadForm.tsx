@@ -1052,6 +1052,9 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
             </>
           )}
         </p>
+        <p className={formStyles.statusLink}>
+          Something looks off? <Link to="/status">Check status.</Link>
+        </p>
         <button
           type="button"
           className={formStyles.actionButton}
