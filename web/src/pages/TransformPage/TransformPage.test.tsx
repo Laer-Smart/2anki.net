@@ -38,14 +38,6 @@ describe('TransformPage', () => {
     vi.clearAllMocks();
   });
 
-  it('asks the user to sign in when they are anonymous', () => {
-    mockUseUserLocals.mockReturnValue({ data: { user: null, locals: {} } });
-    renderPage();
-    expect(
-      screen.getByText(/create an account/i)
-    ).toBeInTheDocument();
-  });
-
   it('shows the paywall to a free signed-in user', () => {
     mockUseUserLocals.mockReturnValue({
       data: {
@@ -55,7 +47,7 @@ describe('TransformPage', () => {
     });
     renderPage();
     expect(
-      screen.getByText(/Transform is on the paid plan/i)
+      screen.getByText(/Translate, add examples, add hints/i)
     ).toBeInTheDocument();
   });
 
@@ -114,7 +106,9 @@ describe('TransformPage', () => {
     const wrongFile = new File(['hello'], 'notes.html', { type: 'text/html' });
     fireEvent.change(input, { target: { files: [wrongFile] } });
     await waitFor(() => {
-      expect(screen.getByText(/Pick a .apkg file/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Only \.apkg files are supported/i)
+      ).toBeInTheDocument();
     });
   });
 });

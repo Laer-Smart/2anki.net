@@ -30,7 +30,7 @@ const TRANSFORMS: TransformChoice[] = [
   {
     id: 'cloze_front',
     label: 'Cloze-ify the front field',
-    description: 'Turns the front into a {{c1::...}} sentence. Emits as Cloze.',
+    description: 'Rewrites the front as a fill-in-the-blank card. Good for definitions and vocabulary.',
   },
   {
     id: 'add_hint',
@@ -73,7 +73,6 @@ function downloadBlob(blob: Blob, filename: string): void {
 export function TransformPage() {
   const { data } = useUserLocals();
   const isPaying = isPayingUser(data?.locals);
-  const isLoggedIn = data?.user?.id != null;
 
   const [file, setFile] = useState<File | null>(null);
   const [transform, setTransform] = useState<TransformName>('add_hint');
@@ -98,7 +97,7 @@ export function TransformPage() {
       return;
     }
     if (!next.name.toLowerCase().endsWith('.apkg')) {
-      setError('Pick a .apkg file. We only transform Anki decks here.');
+      setError('Only .apkg files are supported. Pick an Anki deck file and try again.');
       setFile(null);
       setStatus('error');
       return;
@@ -154,25 +153,6 @@ export function TransformPage() {
     }
   };
 
-  if (!isLoggedIn) {
-    return (
-      <div className={styles.page}>
-        <Helmet>
-          <title>Transform — 2anki</title>
-        </Helmet>
-        <header className={styles.pageHeader}>
-          <h1 className={styles.title}>Transform an existing deck</h1>
-          <p className={styles.subtitle}>
-            Sign in to translate, add examples, cloze-ify, or hint every card in a .apkg.
-          </p>
-        </header>
-        <p>
-          <Link to="/login">Sign in</Link> or <Link to="/register">create an account</Link> to use Transform.
-        </p>
-      </div>
-    );
-  }
-
   if (!isPaying) {
     return (
       <div className={styles.page}>
@@ -186,7 +166,7 @@ export function TransformPage() {
           </p>
         </header>
         <div className={pageStyles.paywall}>
-          <p>Transform is on the paid plan. Upgrade to transform existing decks.</p>
+          <p>Translate, add examples, add hints, and more — on the paid plan.</p>
           <Link className={styles.btnPrimary} to="/pricing">See plans</Link>
         </div>
       </div>
@@ -272,7 +252,10 @@ export function TransformPage() {
       )}
 
       {status === 'done' && (
-        <div role="status" className={pageStyles.status}>
+        <div
+          role="status"
+          className={`${pageStyles.status} ${styles.notificationSuccess}`}
+        >
           <p>{cardCount} cards. Downloaded.</p>
           <button type="button" className={pageStyles.linkButton} onClick={reset}>
             Transform another deck
