@@ -70,14 +70,20 @@ const downloadImage = async (
   try {
     const response = await instrumentedAxios.get<ArrayBuffer>(source, url, {
       responseType: 'arraybuffer',
-      timeout: 8000,
+      timeout: 15000,
+      headers: {
+        'User-Agent': '2anki/1.0 (https://2anki.net; support@2anki.net)',
+        Accept: 'image/*',
+      },
     });
     const mime =
       typeof response.headers['content-type'] === 'string'
         ? response.headers['content-type'].split(';')[0].trim()
         : 'image/jpeg';
     return { bytes: Buffer.from(response.data), mime };
-  } catch {
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    console.warn('[transform] image download error', { source, url, reason });
     return undefined;
   }
 };
