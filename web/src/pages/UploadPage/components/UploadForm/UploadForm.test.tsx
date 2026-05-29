@@ -636,9 +636,9 @@ describe('UploadForm analytics events', () => {
     const transform = container.querySelector('a[href="/transform"]');
     const print = container.querySelector('a[href="/print"]');
     expect(transform?.textContent).toMatch(/Transform this deck/);
-    expect(print?.textContent).toMatch(/Print as PDF instead/);
+    expect(print?.textContent).toMatch(/Print as PDF/);
     expect(container.textContent).toMatch(
-      /Edit cards, merge decks, or change the note type/
+      /Translate every card, add examples, cloze-ify, or add hints/
     );
     expect(container.textContent).toMatch(
       /Export your deck as a printable PDF/

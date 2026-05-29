@@ -680,13 +680,19 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     return true;
   };
 
+  const isExistingApkgReject =
+    zoneState === 'error' &&
+    localError != null &&
+    /already an Anki deck/i.test(localError.message);
+
   const zoneClassName = [
     formStyles.dropZone,
     dropHover && zoneState === 'idle' ? formStyles.dropZoneActive : '',
     zoneState === 'converting' ? formStyles.dropZoneConverting : '',
     zoneState === 'success' ? formStyles.dropZoneSuccess : '',
     zoneState === 'emptyDeck' ? formStyles.dropZoneEmpty : '',
-    zoneState === 'error' ? formStyles.dropZoneError : '',
+    zoneState === 'error' && !isExistingApkgReject ? formStyles.dropZoneError : '',
+    isExistingApkgReject ? formStyles.dropZoneRedirect : '',
     zoneState === 'limitReached' ? formStyles.dropZoneLimit : '',
     zoneState === 'lockedPdf' ? formStyles.dropZoneLocked : '',
     validation?.status === 'warning' ? formStyles.dropZoneWarning : '',
@@ -1031,24 +1037,33 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     if (isExistingApkg) {
       return (
         <div className={formStyles.stateContent}>
-          <p className={formStyles.errorTitle}>That&apos;s already an Anki deck</p>
+          <p className={formStyles.apkgRedirectHeading}>
+            That&apos;s already an Anki deck
+          </p>
+          <p className={formStyles.apkgRedirectIntro}>
+            Pick what you want to do with it.
+          </p>
           <div className={formStyles.apkgRedirectActions}>
-            <Link to="/transform" className={sharedStyles.btnPrimary}>
-              Transform this deck →
+            <Link to="/transform" className={formStyles.apkgRedirectPrimary}>
+              <span className={formStyles.apkgRedirectActionLabel}>
+                Transform this deck →
+              </span>
+              <span className={formStyles.apkgRedirectActionHint}>
+                Translate every card, add examples, cloze-ify, or add hints.
+              </span>
             </Link>
-            <p className={formStyles.apkgRedirectSupporting}>
-              Edit cards, merge decks, or change the note type.
-            </p>
-            <Link to="/print" className={sharedStyles.btnInline}>
-              Print as PDF instead
+            <Link to="/print" className={formStyles.apkgRedirectSecondary}>
+              <span className={formStyles.apkgRedirectActionLabel}>
+                Print as PDF →
+              </span>
+              <span className={formStyles.apkgRedirectActionHint}>
+                Export your deck as a printable PDF for offline study.
+              </span>
             </Link>
-            <p className={formStyles.apkgRedirectSupporting}>
-              Export your deck as a printable PDF for offline study.
-            </p>
           </div>
           <button
             type="button"
-            className={formStyles.actionButton}
+            className={formStyles.resetLink}
             onClick={resetForm}
           >
             Pick a different file
