@@ -34,6 +34,7 @@ jest.mock('../data_layer/UsersRepository', () => {
     getById: mockGetById,
     getCardUsage: jest.fn().mockResolvedValue({ cards_used: 0 }),
     getPrintUsage: jest.fn().mockResolvedValue({ prints_used: 0, month_started_at: null }),
+    updateName: jest.fn().mockResolvedValue(undefined),
   }));
 });
 
@@ -2010,6 +2011,199 @@ describe('UsersController.cancelSubscription', () => {
     expect(
       SubscriptionService.cancelUserSubscriptions
     ).not.toHaveBeenCalled();
+  });
+});
+
+describe('UsersController.loginWithAppleNative', () => {
+  const MockedOauthIdentitiesRepo =
+    OauthIdentitiesRepository as jest.MockedClass<typeof OauthIdentitiesRepository>;
+
+  beforeEach(() => {
+    MockedOauthIdentitiesRepo.mockClear();
+    MockedOauthIdentitiesRepo.prototype.findByProviderAndSubject = jest
+      .fn()
+      .mockResolvedValue(null);
+    MockedOauthIdentitiesRepo.prototype.link = jest
+      .fn()
+      .mockResolvedValue(undefined);
+  });
+
+  const buildNativeController = (overrides?: {
+    getUserFrom?: jest.Mock;
+    getUserById?: jest.Mock;
+    register?: jest.Mock;
+    markEmailVerified?: jest.Mock;
+    newJWTToken?: jest.Mock;
+    persistToken?: jest.Mock;
+    updateLastLoginAt?: jest.Mock;
+    verifyAppleIdentityToken?: jest.Mock;
+  }) => {
+    const recordExecute = jest.fn().mockResolvedValue(undefined);
+    const mockUser = { id: 30, email: 'native-apple@example.com' };
+    const userService = {
+      getUserFrom:
+        overrides?.getUserFrom ??
+        jest.fn().mockResolvedValueOnce(null).mockResolvedValue(mockUser),
+      getUserById: overrides?.getUserById ?? jest.fn().mockResolvedValue(mockUser),
+      register: overrides?.register ?? jest.fn().mockResolvedValue([{ id: 30 }]),
+      markEmailVerified:
+        overrides?.markEmailVerified ?? jest.fn().mockResolvedValue(1),
+      updateLastLoginAt:
+        overrides?.updateLastLoginAt ?? jest.fn().mockResolvedValue(undefined),
+    } as unknown as UsersService;
+    const authService = {
+      verifyAppleIdentityToken:
+        overrides?.verifyAppleIdentityToken ??
+        jest.fn().mockResolvedValue({ subject: 'native-sub-001', email: 'native-apple@example.com' }),
+      getHashPassword: jest.fn().mockReturnValue('hashed'),
+      newJWTToken:
+        overrides?.newJWTToken ?? jest.fn().mockResolvedValue('native-apple-jwt'),
+      persistToken:
+        overrides?.persistToken ?? jest.fn().mockResolvedValue(undefined),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>,
+      { execute: recordExecute } as unknown as import('../usecases/observability/RecordUserVisibleErrorUseCase').RecordUserVisibleErrorUseCase
+    );
+    return { controller, userService, authService, recordExecute };
+  };
+
+  const buildNativeRes = () => {
+    const json = jest.fn();
+    const status = jest.fn().mockReturnValue({ json });
+    const cookie = jest.fn();
+    return { json, status, cookie } as unknown as express.Response & {
+      json: jest.Mock;
+      status: jest.Mock;
+      cookie: jest.Mock;
+    };
+  };
+
+  const buildReq = (body: Record<string, unknown> = {}) =>
+    ({
+      body: { identityToken: 'apple-id-token', ...body },
+      headers: {},
+    }) as unknown as express.Request;
+
+  it('returns 400 when identityToken is missing from the request body', async () => {
+    const { controller } = buildNativeController();
+    const req = { body: {}, headers: {} } as unknown as express.Request;
+    const res = buildNativeRes();
+
+    await controller.loginWithAppleNative(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'missing_identity_token' });
+  });
+
+  it('returns 401 and records the error when the identity token fails verification', async () => {
+    const verifyAppleIdentityToken = jest.fn().mockResolvedValue(undefined);
+    const { controller, recordExecute } = buildNativeController({ verifyAppleIdentityToken });
+    const res = buildNativeRes();
+
+    await controller.loginWithAppleNative(buildReq(), res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ error: 'invalid_identity_token' });
+    expect(recordExecute).toHaveBeenCalledWith({
+      userId: null,
+      surface: 'oauth_apple_native',
+      code: 'invalid_identity_token',
+    });
+  });
+
+  it('sets a JWT cookie and returns 200 { ok: true } on successful sign-in', async () => {
+    const { controller } = buildNativeController();
+    const res = buildNativeRes();
+
+    await controller.loginWithAppleNative(buildReq(), res);
+
+    expect(res.cookie).toHaveBeenCalledWith('token', 'native-apple-jwt', expect.objectContaining({ httpOnly: true, sameSite: 'lax' }));
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ ok: true });
+  });
+
+  it('creates a new user and links the Apple identity when no account exists', async () => {
+    const register = jest.fn().mockResolvedValue([{ id: 30 }]);
+    const { controller } = buildNativeController({ register });
+    const res = buildNativeRes();
+
+    await controller.loginWithAppleNative(buildReq(), res);
+
+    expect(register).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(String),
+      'native-apple@example.com',
+      'apple'
+    );
+    expect(MockedOauthIdentitiesRepo.prototype.link).toHaveBeenCalledWith(
+      'apple',
+      'native-sub-001',
+      30
+    );
+  });
+
+  it('signs in via subject lookup without re-registering when the identity already exists', async () => {
+    const register = jest.fn();
+    MockedOauthIdentitiesRepo.prototype.findByProviderAndSubject = jest
+      .fn()
+      .mockResolvedValue({ user_id: 30, provider: 'apple', subject: 'native-sub-001' });
+    const getUserById = jest.fn().mockResolvedValue({ id: 30, email: 'native-apple@example.com' });
+
+    const { controller } = buildNativeController({ register, getUserById });
+    const res = buildNativeRes();
+
+    await controller.loginWithAppleNative(buildReq(), res);
+
+    expect(register).not.toHaveBeenCalled();
+    expect(getUserById).toHaveBeenCalledWith('30');
+    expect(MockedOauthIdentitiesRepo.prototype.link).not.toHaveBeenCalled();
+  });
+
+  it('returns 401 when email is absent and no existing identity row exists', async () => {
+    const verifyAppleIdentityToken = jest.fn().mockResolvedValue({ subject: 'native-sub-noemail', email: undefined });
+    const { controller } = buildNativeController({ verifyAppleIdentityToken });
+    const res = buildNativeRes();
+
+    await controller.loginWithAppleNative(buildReq(), res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ error: 'email_required_for_new_account' });
+  });
+
+  it('uses fullName from request body when creating a new account', async () => {
+    const register = jest.fn().mockResolvedValue([{ id: 30 }]);
+    const { controller } = buildNativeController({ register });
+    const res = buildNativeRes();
+
+    await controller.loginWithAppleNative(
+      buildReq({ fullName: { givenName: 'Jane', familyName: 'Doe' } }),
+      res
+    );
+
+    expect(register).toHaveBeenCalledWith(
+      'Jane Doe',
+      expect.any(String),
+      'native-apple@example.com',
+      'apple'
+    );
+  });
+
+  it('falls back to email as name when fullName is absent', async () => {
+    const register = jest.fn().mockResolvedValue([{ id: 30 }]);
+    const { controller } = buildNativeController({ register });
+    const res = buildNativeRes();
+
+    await controller.loginWithAppleNative(buildReq(), res);
+
+    expect(register).toHaveBeenCalledWith(
+      'native-apple@example.com',
+      expect.any(String),
+      'native-apple@example.com',
+      'apple'
+    );
   });
 });
 

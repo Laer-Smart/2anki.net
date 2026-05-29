@@ -784,6 +784,190 @@ describe('loginWithApple algorithm pin', () => {
   });
 });
 
+describe('verifyAppleIdentityToken', () => {
+  const NATIVE_CLIENT_ID = 'no.laersmart.2anki';
+  const KID = 'apple-native-key-001';
+  let privateKey: crypto.KeyObject;
+  let publicJwk: Record<string, unknown>;
+
+  const signIdToken = (payload: Record<string, unknown>): string =>
+    jwt.sign(payload, privateKey.export({ type: 'pkcs8', format: 'pem' }), {
+      algorithm: 'RS256',
+      header: { alg: 'RS256', kid: KID },
+    });
+
+  beforeAll(() => {
+    const pair = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+    privateKey = pair.privateKey;
+    publicJwk = pair.publicKey.export({ format: 'jwk' }) as Record<string, unknown>;
+    publicJwk['kid'] = KID;
+    publicJwk['alg'] = 'RS256';
+    publicJwk['use'] = 'sig';
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __resetAppleJwksCacheForTests();
+    process.env.APPLE_NATIVE_CLIENT_ID = NATIVE_CLIENT_ID;
+    mockedAxios.get = jest.fn().mockResolvedValue({ data: { keys: [publicJwk] } });
+  });
+
+  it('returns subject and email for a valid identity token signed for the native audience', async () => {
+    const idToken = signIdToken({
+      iss: 'https://appleid.apple.com',
+      aud: NATIVE_CLIENT_ID,
+      sub: 'native-sub-001',
+      email: 'native@example.com',
+      email_verified: true,
+    });
+
+    const service = createService();
+    const result = await service.verifyAppleIdentityToken(idToken);
+
+    expect(result).toEqual({ subject: 'native-sub-001', email: 'native@example.com' });
+  });
+
+  it('returns subject without email when email claim is absent', async () => {
+    const idToken = signIdToken({
+      iss: 'https://appleid.apple.com',
+      aud: NATIVE_CLIENT_ID,
+      sub: 'native-sub-002',
+      email_verified: true,
+    });
+
+    const service = createService();
+    const result = await service.verifyAppleIdentityToken(idToken);
+
+    expect(result).toEqual({ subject: 'native-sub-002', email: undefined });
+  });
+
+  it('returns undefined when the audience is the web Service ID, not the native App ID', async () => {
+    const idToken = signIdToken({
+      iss: 'https://appleid.apple.com',
+      aud: 'com.example.2anki-web-service-id',
+      sub: 'native-sub-003',
+      email: 'native@example.com',
+      email_verified: true,
+    });
+
+    const service = createService();
+    const result = await service.verifyAppleIdentityToken(idToken);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the issuer is not Apple', async () => {
+    const idToken = signIdToken({
+      iss: 'https://evil.example.com',
+      aud: NATIVE_CLIENT_ID,
+      sub: 'native-sub-004',
+      email: 'native@example.com',
+      email_verified: true,
+    });
+
+    const service = createService();
+    const result = await service.verifyAppleIdentityToken(idToken);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the signature is invalid', async () => {
+    const wrongPair = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+    const idToken = jwt.sign(
+      {
+        iss: 'https://appleid.apple.com',
+        aud: NATIVE_CLIENT_ID,
+        sub: 'native-sub-005',
+        email: 'native@example.com',
+        email_verified: true,
+      },
+      wrongPair.privateKey.export({ type: 'pkcs8', format: 'pem' }),
+      { algorithm: 'RS256', header: { alg: 'RS256', kid: KID } }
+    );
+
+    const service = createService();
+    const result = await service.verifyAppleIdentityToken(idToken);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the sub claim is missing', async () => {
+    const idToken = signIdToken({
+      iss: 'https://appleid.apple.com',
+      aud: NATIVE_CLIENT_ID,
+      email: 'native@example.com',
+      email_verified: true,
+    });
+
+    const service = createService();
+    const result = await service.verifyAppleIdentityToken(idToken);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the kid is not in the JWKS', async () => {
+    const idToken = jwt.sign(
+      {
+        iss: 'https://appleid.apple.com',
+        aud: NATIVE_CLIENT_ID,
+        sub: 'native-sub-007',
+        email: 'native@example.com',
+        email_verified: true,
+      },
+      privateKey.export({ type: 'pkcs8', format: 'pem' }),
+      { algorithm: 'RS256', header: { alg: 'RS256', kid: 'unknown-kid' } }
+    );
+
+    const service = createService();
+    const result = await service.verifyAppleIdentityToken(idToken);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when APPLE_NATIVE_CLIENT_ID is not set', async () => {
+    delete process.env.APPLE_NATIVE_CLIENT_ID;
+    const idToken = signIdToken({
+      iss: 'https://appleid.apple.com',
+      aud: NATIVE_CLIENT_ID,
+      sub: 'native-sub-008',
+      email: 'native@example.com',
+      email_verified: true,
+    });
+
+    const service = createService();
+    const result = await service.verifyAppleIdentityToken(idToken);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('rejects ES256-signed tokens (algorithm substitution defense)', async () => {
+    const ecPair = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+    const ecPublicJwk = {
+      ...ecPair.publicKey.export({ format: 'jwk' }) as Record<string, unknown>,
+      kid: KID,
+      alg: 'ES256',
+      use: 'sig',
+    };
+    mockedAxios.get = jest.fn().mockResolvedValue({ data: { keys: [ecPublicJwk] } });
+    const idToken = jwt.sign(
+      {
+        iss: 'https://appleid.apple.com',
+        aud: NATIVE_CLIENT_ID,
+        sub: 'native-sub-009',
+        email: 'native@example.com',
+        email_verified: true,
+      },
+      ecPair.privateKey.export({ type: 'pkcs8', format: 'pem' }),
+      { algorithm: 'ES256', header: { alg: 'ES256', kid: KID } }
+    );
+
+    const service = createService();
+    const result = await service.verifyAppleIdentityToken(idToken);
+
+    expect(result).toBeUndefined();
+  });
+});
+
 describe('isNewPasswordValid', () => {
   it('returns false (valid) for a UUID-length reset token and a strong password', () => {
     const service = createService();
