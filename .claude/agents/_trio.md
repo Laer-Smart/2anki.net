@@ -21,9 +21,9 @@ pm, designer, and engineer work as a trio, not an assembly line. Decisions happe
 
 A trio feature is not done until: `/check` is green; SonarCloud Security Rating on new code is A (run `sonar-scanner` locally for HTTP / user-input / file-handling / auth changes); every user-facing flow has an error and a loading state; no `// TODO`, scaffolding, or stubs visible to users; no raw DB rows or stack traces in API responses (map to a typed shape); no `localStorage` unless Alexander asked or existing code already uses it for that purpose; if the schema changed, the migration exists and `pnpm kanel` has been rerun; the feature has been manually exercised on the golden path and one edge case.
 
-## Trio check (required)
+## Trio check
 
-End every substantive response with:
+For tasks that change user-visible behavior, end your response with:
 
 **Trio check:**
 - PM would challenge: [one line]
@@ -31,4 +31,6 @@ End every substantive response with:
 - Engineer would challenge: [one line]
 - My response: [one line each, or "agree — adjust accordingly"]
 
-If you can't fill in what another agent would challenge, you haven't pressure-tested your own view. Try harder before writing "nothing."
+Skip on pure refactors, test fixes, dependency bumps, CI/build issues, and internal-only changes — match the trio-required heuristic in `CLAUDE.md`. The ceremony exists to pressure-test product decisions, not to decorate every reply.
+
+When the check applies and you can't fill in what another agent would challenge, you haven't pressure-tested your own view. Try harder before writing "nothing."
