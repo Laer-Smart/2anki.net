@@ -399,7 +399,7 @@ importers:
         version: 8.1.2
     devDependencies:
       '@biomejs/biome':
-        specifier: ^2.4.15
+        specifier: ^2.4.16
         version: 2.4.16
       '@playwright/test':
         specifier: ^1.60.0
@@ -474,7 +474,7 @@ importers:
         specifier: ^7.1.1
         version: 7.1.1
       swagger-typescript-api:
-        specifier: ^13.10.0
+        specifier: ^13.12.0
         version: 13.12.0(magicast@0.5.3)(react@19.2.6)
       swagger-ui-express:
         specifier: ^5.0.1
