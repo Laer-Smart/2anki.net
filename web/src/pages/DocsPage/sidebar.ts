@@ -43,6 +43,7 @@ export const sidebar: SidebarGroup[] = [
       { label: 'Note types and templates', slug: 'cards/templates' },
       { label: 'Markdown and Obsidian', slug: 'cards/markdown' },
       { label: 'HTML', slug: 'cards/html' },
+      { label: 'Edit cards before downloading', slug: 'cards/edit-before-download' },
     ],
   },
   {

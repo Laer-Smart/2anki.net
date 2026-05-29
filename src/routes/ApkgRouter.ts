@@ -154,6 +154,68 @@ const ApkgRouter = () => {
     (req, res) => controller.getMedia(req, res)
   );
 
+  /**
+   * @swagger
+   * /api/apkg/{key}/download-edited:
+   *   post:
+   *     summary: Download an .apkg with user edits applied
+   *     description: Re-packs the source .apkg with the provided edit set — text edits, card deletions, and suspend flags — and returns the modified file for download.
+   *     tags: [Apkg Preview]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: key
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: S3 object key of the upload
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [edits]
+   *             properties:
+   *               edits:
+   *                 type: array
+   *                 items:
+   *                   type: object
+   *                   required: [cardIndex]
+   *                   properties:
+   *                     cardIndex:
+   *                       type: integer
+   *                     front:
+   *                       type: string
+   *                     back:
+   *                       type: string
+   *                     deleted:
+   *                       type: boolean
+   *                     suspended:
+   *                       type: boolean
+   *     responses:
+   *       200:
+   *         description: Modified .apkg file
+   *         content:
+   *           application/octet-stream:
+   *             schema:
+   *               type: string
+   *               format: binary
+   *       400:
+   *         description: Not an .apkg upload or invalid edits
+   *       401:
+   *         description: Authentication required
+   *       404:
+   *         description: Upload not found
+   */
+  router.post(
+    '/api/apkg/:key/download-edited',
+    RequireAuthentication,
+    (req, res) => controller.downloadEdited(req, res)
+  );
+
   const importUpload = multer({
     dest: process.env.UPLOAD_BASE ?? '/tmp',
     limits: { fileSize: 100 * 1024 * 1024 },

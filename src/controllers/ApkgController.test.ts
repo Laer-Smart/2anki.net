@@ -8,6 +8,10 @@ import JobRepository from '../data_layer/JobRepository';
 import ImportApkgToNotionUseCase from '../usecases/apkg/ImportApkgToNotionUseCase';
 
 jest.mock('../usecases/apkg/ImportApkgToNotionUseCase');
+jest.mock('../lib/storage/StorageHandler', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({})),
+}));
 jest.mock('node:fs/promises', () => ({
   readFile: jest.fn().mockResolvedValue(Buffer.from('fake')),
   unlink: jest.fn().mockResolvedValue(undefined),
@@ -76,6 +80,70 @@ function makeController() {
     jobRepository
   );
 }
+
+jest.mock('../usecases/apkg/PackEditedApkgUseCase');
+import PackEditedApkgUseCase from '../usecases/apkg/PackEditedApkgUseCase';
+
+describe('ApkgController.downloadEdited', () => {
+  let executeMock: jest.Mock;
+
+  beforeEach(() => {
+    executeMock = jest.fn().mockResolvedValue({
+      buffer: Buffer.from('fake-apkg'),
+      filename: 'deck-edited.apkg',
+    });
+    (PackEditedApkgUseCase as jest.Mock).mockImplementation(() => ({
+      execute: executeMock,
+    }));
+  });
+
+  it('returns 400 when key is not an .apkg', async () => {
+    const controller = makeController();
+    const req = makeReq({ params: { key: 'notanapkg.zip' }, body: { edits: [] } }) as Request;
+    const res = makeRes() as Response;
+    await controller.downloadEdited(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it('returns 400 when edits is not an array', async () => {
+    const controller = makeController();
+    const req = makeReq({ params: { key: 'deck.apkg' }, body: { edits: 'invalid' } }) as Request;
+    const res = makeRes() as Response;
+    await controller.downloadEdited(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it('returns 404 when upload not found', async () => {
+    const controller = makeController();
+    const ds = controller['downloadService'] as jest.Mocked<DownloadService>;
+    ds.getFileBody.mockResolvedValue(null);
+    const req = makeReq({ params: { key: 'deck.apkg' }, body: { edits: [] } }) as Request;
+    const res = makeRes() as Response;
+    await controller.downloadEdited(req, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  it('sends the .apkg buffer when edits are valid', async () => {
+    const fakeBuffer = Buffer.from('fake-apkg');
+    const controller = makeController();
+    const ds = controller['downloadService'] as jest.Mocked<DownloadService>;
+    ds.getFileBody.mockResolvedValue(fakeBuffer);
+    const res = makeRes() as Response;
+    (res as unknown as Record<string, jest.Mock>).setHeader = jest.fn();
+    (res as unknown as Record<string, jest.Mock>).send = jest.fn();
+    const req = makeReq({
+      params: { key: 'deck.apkg' },
+      body: { edits: [{ cardIndex: 0, deleted: true }] },
+    }) as Request;
+    await controller.downloadEdited(req, res);
+    expect(executeMock).toHaveBeenCalledWith(
+      expect.objectContaining({ edits: [{ cardIndex: 0, deleted: true }] })
+    );
+    expect((res as unknown as Record<string, jest.Mock>).send).toHaveBeenCalledWith(
+      Buffer.from('fake-apkg')
+    );
+  });
+});
 
 describe('ApkgController.importToNotion', () => {
   let executeMock: jest.Mock;
