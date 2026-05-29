@@ -480,6 +480,51 @@ class AuthenticationService {
       return undefined;
     }
   }
+
+  async verifyAppleIdentityToken(
+    idToken: string
+  ): Promise<{ subject: string; email?: string } | undefined> {
+    const audience = process.env.APPLE_NATIVE_CLIENT_ID;
+    if (!audience) {
+      return undefined;
+    }
+    try {
+      const decoded = jwt.decode(idToken, { complete: true });
+      if (!decoded || typeof decoded === 'string') {
+        return undefined;
+      }
+      const kid = decoded.header.kid;
+      const alg = decoded.header.alg;
+      if (alg !== 'RS256' || typeof kid !== 'string') {
+        return undefined;
+      }
+      const jwks = await getAppleJwks();
+      const jwk = jwks.find((k) => k.kid === kid);
+      if (!jwk) {
+        return undefined;
+      }
+      const publicKey = crypto.createPublicKey({ key: jwk, format: 'jwk' });
+      const payload = jwt.verify(idToken, publicKey, {
+        algorithms: ['RS256'],
+        audience,
+        issuer: APPLE_ISSUER,
+      });
+      if (typeof payload === 'string') {
+        return undefined;
+      }
+      const subject = typeof payload.sub === 'string' ? payload.sub : undefined;
+      if (!subject) {
+        return undefined;
+      }
+      const email =
+        typeof payload.email === 'string' && payload.email.length > 0
+          ? payload.email
+          : undefined;
+      return { subject, email };
+    } catch {
+      return undefined;
+    }
+  }
 }
 
 export default AuthenticationService;

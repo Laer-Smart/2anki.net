@@ -746,6 +746,51 @@ const UserRouter = () => {
 
   /**
    * @swagger
+   * /auth/apple/native:
+   *   post:
+   *     summary: Apple Sign In from native iOS/macOS clients
+   *     description: Accepts an Apple identity token from a native ASAuthorizationController flow, verifies it against Apple's JWKS using the App ID audience (APPLE_NATIVE_CLIENT_ID), and issues a session cookie. Does not use the web OAuth code flow.
+   *     tags: [Authentication]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [identityToken]
+   *             properties:
+   *               identityToken:
+   *                 type: string
+   *               email:
+   *                 type: string
+   *               fullName:
+   *                 type: object
+   *                 properties:
+   *                   givenName:
+   *                     type: string
+   *                   familyName:
+   *                     type: string
+   *     responses:
+   *       200:
+   *         description: Signed in — token cookie set
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 ok:
+   *                   type: boolean
+   *       400:
+   *         description: Missing identity token
+   *       401:
+   *         description: Token verification failed or email required for new account
+   */
+  router.post('/auth/apple/native', express.json(), (req, res) =>
+    controller.loginWithAppleNative(req, res)
+  );
+
+  /**
+   * @swagger
    * /api/users/auth/notion/init:
    *   get:
    *     summary: Initiate Notion OAuth login
