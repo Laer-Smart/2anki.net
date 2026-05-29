@@ -30,7 +30,11 @@ const FIXED_HOST_ALLOWLIST: Record<ObservabilityService, readonly string[] | nul
   microsoft_login: ['login.microsoftonline.com'],
   apple_login: ['appleid.apple.com'],
   pexels: ['api.pexels.com', 'images.pexels.com'],
-  wikimedia: ['commons.wikimedia.org', 'upload.wikimedia.org'],
+  wikimedia: [
+    'commons.wikimedia.org',
+    'en.wikipedia.org',
+    'upload.wikimedia.org',
+  ],
 };
 
 const isHostOnFixedAllowlist = (

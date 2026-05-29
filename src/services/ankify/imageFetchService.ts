@@ -11,7 +11,7 @@ export interface ImageHit {
 }
 
 const PEXELS_SEARCH_URL = 'https://api.pexels.com/v1/search';
-const WIKIMEDIA_SEARCH_URL = 'https://commons.wikimedia.org/w/api.php';
+const WIKIPEDIA_API_URL = 'https://en.wikipedia.org/w/api.php';
 
 const EXT_FOR_MIME: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -50,13 +50,14 @@ interface PexelsSearchResponse {
   }>;
 }
 
-interface WikimediaSearchResponse {
+interface WikipediaPageImagesResponse {
   query?: {
     pages?: Record<
       string,
       {
         title?: string;
-        imageinfo?: Array<{ url?: string; mime?: string }>;
+        thumbnail?: { source?: string; width?: number; height?: number };
+        original?: { source?: string };
       }
     >;
   };
@@ -120,21 +121,21 @@ const fetchFromPexels = async (
 const fetchFromWikimedia = async (
   query: string
 ): Promise<ImageHit | undefined> => {
-  let searchPayload: WikimediaSearchResponse;
+  let searchPayload: WikipediaPageImagesResponse;
   try {
-    const response = await instrumentedAxios.get<WikimediaSearchResponse>(
+    const response = await instrumentedAxios.get<WikipediaPageImagesResponse>(
       'wikimedia',
-      WIKIMEDIA_SEARCH_URL,
+      WIKIPEDIA_API_URL,
       {
         params: {
           action: 'query',
           format: 'json',
           generator: 'search',
           gsrsearch: query,
-          gsrnamespace: 6,
           gsrlimit: 1,
-          prop: 'imageinfo',
-          iiprop: 'url|mime',
+          prop: 'pageimages',
+          piprop: 'thumbnail|original',
+          pithumbsize: 800,
           origin: '*',
         },
         headers: {
@@ -151,22 +152,19 @@ const fetchFromWikimedia = async (
   const pages = searchPayload.query?.pages;
   if (pages == null) return undefined;
   const firstPage = Object.values(pages)[0];
-  const info = firstPage?.imageinfo?.[0];
-  const imageUrl = info?.url;
+  const imageUrl =
+    firstPage?.thumbnail?.source ?? firstPage?.original?.source;
   if (imageUrl == null) return undefined;
-
-  const mimeHint = info?.mime ?? 'image/jpeg';
-  if (mimeHint === 'image/svg+xml') return undefined;
 
   const downloaded = await downloadImage('wikimedia', imageUrl);
   if (downloaded == null) return undefined;
 
-  const title = firstPage?.title ?? 'Wikimedia Commons';
+  const title = firstPage?.title ?? 'Wikipedia';
   return {
     bytes: downloaded.bytes,
     filename: filenameFromUrl(imageUrl, downloaded.mime),
     mimeType: downloaded.mime,
-    attribution: `${title} (Wikimedia Commons)`,
+    attribution: `${title} (Wikipedia)`,
   };
 };
 

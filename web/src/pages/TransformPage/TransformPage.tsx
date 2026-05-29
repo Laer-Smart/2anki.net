@@ -66,7 +66,7 @@ const IMAGE_SOURCES: ImageSourceChoice[] = [
   },
   {
     id: 'wikimedia',
-    label: 'Diagrams (Wikimedia Commons)',
+    label: 'Diagrams (Wikipedia)',
     description: 'Good for medicine, biology, anatomy, historical figures, specialty terms.',
   },
 ];

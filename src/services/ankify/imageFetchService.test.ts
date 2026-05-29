@@ -125,20 +125,59 @@ describe('fetchImage', () => {
   });
 
   describe('wikimedia', () => {
-    it('returns the image url found via the search generator', async () => {
+    it('returns the page-image thumbnail for the matching article', async () => {
       mockedGet
         .mockResolvedValueOnce({
           data: {
             query: {
               pages: {
                 '42': {
-                  title: 'File:Anatomy heart.jpg',
-                  imageinfo: [
-                    {
-                      url: 'https://upload.wikimedia.org/heart.jpg',
-                      mime: 'image/jpeg',
-                    },
-                  ],
+                  title: 'Heart',
+                  thumbnail: {
+                    source: 'https://upload.wikimedia.org/heart-thumb.jpg',
+                    width: 800,
+                    height: 600,
+                  },
+                  original: {
+                    source: 'https://upload.wikimedia.org/heart-full.jpg',
+                  },
+                },
+              },
+            },
+          },
+          status: 200,
+          headers: {},
+          config: {},
+          statusText: 'OK',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
+        .mockResolvedValueOnce({
+          data: Buffer.from('jpg-bytes'),
+          status: 200,
+          headers: { 'content-type': 'image/jpeg' },
+          config: {},
+          statusText: 'OK',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+
+      const result = await fetchImage('heart anatomy', 'wikimedia');
+
+      expect(result).toBeDefined();
+      expect(result?.attribution).toBe('Heart (Wikipedia)');
+      expect(result?.filename).toMatch(/\.jpg$/);
+    });
+
+    it('falls back to the original image when no thumbnail is available', async () => {
+      mockedGet
+        .mockResolvedValueOnce({
+          data: {
+            query: {
+              pages: {
+                '7': {
+                  title: 'Madrid',
+                  original: {
+                    source: 'https://upload.wikimedia.org/madrid.png',
+                  },
                 },
               },
             },
@@ -158,28 +197,19 @@ describe('fetchImage', () => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any);
 
-      const result = await fetchImage('heart anatomy', 'wikimedia');
+      const result = await fetchImage('Madrid', 'wikimedia');
 
       expect(result).toBeDefined();
-      expect(result?.attribution).toBe(
-        'File:Anatomy heart.jpg (Wikimedia Commons)'
-      );
-      expect(result?.filename).toMatch(/\.png$/);
+      expect(result?.attribution).toBe('Madrid (Wikipedia)');
     });
 
-    it('rejects SVG results so Anki can render the image without an SVG renderer', async () => {
+    it('returns undefined when the article has no thumbnail or original image', async () => {
       mockedGet.mockResolvedValueOnce({
         data: {
           query: {
             pages: {
               '7': {
-                title: 'File:Diagram.svg',
-                imageinfo: [
-                  {
-                    url: 'https://upload.wikimedia.org/diagram.svg',
-                    mime: 'image/svg+xml',
-                  },
-                ],
+                title: 'Obscure topic',
               },
             },
           },
@@ -191,7 +221,7 @@ describe('fetchImage', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
 
-      const result = await fetchImage('diagram', 'wikimedia');
+      const result = await fetchImage('obscure topic', 'wikimedia');
 
       expect(result).toBeUndefined();
     });
