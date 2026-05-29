@@ -10,7 +10,7 @@ describe('AutoSyncBanner', () => {
     vi.mocked(get2ankiApi).mockReturnValue({
       getAutoSyncPitchEligibility: vi.fn().mockResolvedValue({ convertSuccess: false, accountBanner: true }),
       dismissAutoSyncPitch: vi.fn().mockResolvedValue(undefined),
-    } as ReturnType<typeof get2ankiApi>);
+    } as unknown as ReturnType<typeof get2ankiApi>);
   });
 
   it('renders banner when accountBanner is true', async () => {
@@ -24,7 +24,7 @@ describe('AutoSyncBanner', () => {
     vi.mocked(get2ankiApi).mockReturnValue({
       getAutoSyncPitchEligibility: vi.fn().mockResolvedValue({ convertSuccess: false, accountBanner: false }),
       dismissAutoSyncPitch: vi.fn().mockResolvedValue(undefined),
-    } as ReturnType<typeof get2ankiApi>);
+    } as unknown as ReturnType<typeof get2ankiApi>);
     render(<AutoSyncBanner />);
     await waitFor(() => {
       expect(screen.queryByText(/Your decks already sync with us/)).toBeNull();
@@ -47,7 +47,7 @@ describe('AutoSyncBanner', () => {
     vi.mocked(get2ankiApi).mockReturnValue({
       getAutoSyncPitchEligibility: vi.fn().mockResolvedValue({ convertSuccess: false, accountBanner: true }),
       dismissAutoSyncPitch: mockDismiss,
-    } as ReturnType<typeof get2ankiApi>);
+    } as unknown as ReturnType<typeof get2ankiApi>);
     render(<AutoSyncBanner />);
     await waitFor(() => {
       screen.getByRole('button', { name: /Not now/i });

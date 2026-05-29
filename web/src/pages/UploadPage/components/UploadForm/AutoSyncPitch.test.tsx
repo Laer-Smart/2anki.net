@@ -9,7 +9,7 @@ describe('AutoSyncPitch', () => {
   beforeEach(() => {
     vi.mocked(get2ankiApi).mockReturnValue({
       dismissAutoSyncPitch: vi.fn().mockResolvedValue(undefined),
-    } as ReturnType<typeof get2ankiApi>);
+    } as unknown as ReturnType<typeof get2ankiApi>);
   });
 
   it('renders the pitch copy', () => {
@@ -36,7 +36,7 @@ describe('AutoSyncPitch', () => {
     const mockDismiss = vi.fn().mockResolvedValue(undefined);
     vi.mocked(get2ankiApi).mockReturnValue({
       dismissAutoSyncPitch: mockDismiss,
-    } as ReturnType<typeof get2ankiApi>);
+    } as unknown as ReturnType<typeof get2ankiApi>);
     render(<AutoSyncPitch onDismissed={() => undefined} />);
     fireEvent.click(screen.getByRole('button', { name: /Not now/i }));
     await waitFor(() => {

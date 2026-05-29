@@ -31,7 +31,6 @@ export function AutoSyncPitch({ onDismissed }: Readonly<AutoSyncPitchProps>) {
         type="button"
         className={formStyles.autoSyncPitchDismiss}
         onClick={handleDismiss}
-        aria-label="Dismiss Auto Sync suggestion"
       >
         Not now
       </button>
