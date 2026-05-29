@@ -157,6 +157,11 @@ const PER_CODE_COPY: Partial<Record<UploadErrorBody['code'], FriendlyError>> = {
     title: 'This export has no content we can turn into cards.',
     detail: 'Check the page has text or toggle blocks, then export again.',
   },
+  docx_processing_failed: {
+    title: "We couldn't read this .docx.",
+    detail:
+      'It may have been renamed from another format. Try re-exporting it from Word or Google Docs.',
+  },
   claude_parse_failed: {
     title: 'Something went wrong while making your cards.',
     detail: 'Try again — if it keeps happening, email support@2anki.net.',

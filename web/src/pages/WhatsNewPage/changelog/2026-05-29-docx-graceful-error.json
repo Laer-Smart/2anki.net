@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-29-docx-graceful-error",
+  "date": "2026-05-29",
+  "type": "fix",
+  "title": "Uploads of misnamed .docx files get a clear \"re-export this\" message instead of a library error"
+}

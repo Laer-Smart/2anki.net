@@ -184,4 +184,13 @@ describe('classifyUploadError', () => {
     expect(result.title).toBe('Something went wrong while making your cards.');
     expect(result.detail).toBe('Try again — if it keeps happening, email support@2anki.net.');
   });
+
+  it('returns docx_processing_failed copy when code is docx_processing_failed', () => {
+    const body: UploadErrorBody = { code: 'docx_processing_failed', message: 'raw server text' };
+    const result = classifyUploadError(body);
+    expect(result.title).toBe("We couldn't read this .docx.");
+    expect(result.detail).toBe(
+      'It may have been renamed from another format. Try re-exporting it from Word or Google Docs.'
+    );
+  });
 });
