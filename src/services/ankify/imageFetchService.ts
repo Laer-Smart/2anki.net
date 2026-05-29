@@ -145,21 +145,42 @@ const fetchFromWikimedia = async (
       }
     );
     searchPayload = response.data;
-  } catch {
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    console.warn('[transform] wikipedia search failed', { query, reason });
     return undefined;
   }
 
   const pages = searchPayload.query?.pages;
-  if (pages == null) return undefined;
+  if (pages == null) {
+    console.info('[transform] wikipedia no pages', {
+      query,
+      payload: JSON.stringify(searchPayload).slice(0, 240),
+    });
+    return undefined;
+  }
   const firstPage = Object.values(pages)[0];
   const imageUrl =
     firstPage?.thumbnail?.source ?? firstPage?.original?.source;
-  if (imageUrl == null) return undefined;
+  if (imageUrl == null) {
+    console.info('[transform] wikipedia article has no image', {
+      query,
+      title: firstPage?.title,
+    });
+    return undefined;
+  }
 
   const downloaded = await downloadImage('wikimedia', imageUrl);
-  if (downloaded == null) return undefined;
+  if (downloaded == null) {
+    console.warn('[transform] wikipedia image download failed', {
+      query,
+      imageUrl,
+    });
+    return undefined;
+  }
 
   const title = firstPage?.title ?? 'Wikipedia';
+  console.info('[transform] wikipedia image hit', { query, title });
   return {
     bytes: downloaded.bytes,
     filename: filenameFromUrl(imageUrl, downloaded.mime),
