@@ -38,6 +38,7 @@ import {
 import templatesRouter from './routes/TemplatesRouter';
 import defaultRouter from './routes/DefaultRouter';
 import rejectScannerProbes from './routes/middleware/rejectScannerProbes';
+import { denyFraming } from './routes/middleware/denyFraming';
 import { noindexNonCanonicalHosts } from './routes/middleware/noindexNonCanonicalHosts';
 import { redirectNonCanonicalHosts } from './routes/middleware/redirectNonCanonicalHosts';
 import { redirectConvertDuplicates } from './routes/middleware/redirectConvertDuplicates';
@@ -185,6 +186,7 @@ const serve = async () => {
   app.use(mindmapRouter());
 
   app.use(wellKnownRouter());
+  app.use(denyFraming);
   app.use(rejectScannerProbes);
   app.use(defaultRouter());
 
