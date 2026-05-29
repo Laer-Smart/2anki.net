@@ -304,19 +304,21 @@ export default function PricingPage({
         featured={unlimitedFirst}
       />
 
-      <AutoSyncCard
-        showNewBadge={showAutoSyncNew}
-        isLifetime={isLifetime}
-        isActive={autoSyncActive}
-        capReached={showCapReached}
-        caption={autoSyncCaptionText}
-        waitlistLabel={waitlistLabel}
-        waitlistDisabled={
-          waitlistState === 'pending' || waitlistState === 'sent'
-        }
-        onSubscribe={handleAutoSyncSubscribe}
-        onWaitlist={handleWaitlistRequest}
-      />
+      <div id="auto-sync">
+        <AutoSyncCard
+          showNewBadge={showAutoSyncNew}
+          isLifetime={isLifetime}
+          isActive={autoSyncActive}
+          capReached={showCapReached}
+          caption={autoSyncCaptionText}
+          waitlistLabel={waitlistLabel}
+          waitlistDisabled={
+            waitlistState === 'pending' || waitlistState === 'sent'
+          }
+          onSubscribe={handleAutoSyncSubscribe}
+          onWaitlist={handleWaitlistRequest}
+        />
+      </div>
     </div>
   );
 
