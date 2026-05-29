@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
 import { ErrorPresenter } from '../../components/errors/ErrorPresenter';
@@ -12,10 +12,12 @@ import {
 } from './useApkgPreviewStream';
 import { CardFrame } from './CardFrame';
 import { SharePopover } from './SharePopover';
+import { CardEditState, EditPayload } from './cardEditTypes';
+import { downloadEditedApkg } from './downloadEditedApkg';
 
 function indent(depth: number): string {
   if (depth <= 0) return '';
-  return `${'\u00a0\u00a0'.repeat(depth)}↳ `;
+  return `${'  '.repeat(depth)}↳ `;
 }
 
 interface PreviewApkgPageProps {
@@ -28,6 +30,8 @@ export default function PreviewApkgPage({
   const { key } = useParams<{ key: string }>();
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [deckId, setDeckId] = useState<number | null>(null);
+  const [editMap, setEditMap] = useState<Map<number, CardEditState>>(new Map());
+  const [downloading, setDownloading] = useState(false);
 
   const meta = useApkgPreviewMeta(key);
   const stream = useApkgPreviewStream(key, deckId);
@@ -56,10 +60,65 @@ export default function PreviewApkgPage({
     return () => observer.disconnect();
   }, [stream]);
 
+  useEffect(() => {
+    const hasEdits = editMap.size > 0;
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+    if (hasEdits) {
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    }
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [editMap]);
+
   const cards = useMemo(
     () => stream.data?.pages.flatMap((page) => page.cards) ?? [],
     [stream.data]
   );
+
+  const { deletedCount, suspendedCount } = useMemo(() => {
+    let deleted = 0;
+    let suspended = 0;
+    Array.from(editMap.values()).forEach((state) => {
+      if (state.deleted) deleted++;
+      if (state.suspended && !state.deleted) suspended++;
+    });
+    return { deletedCount: deleted, suspendedCount: suspended };
+  }, [editMap]);
+
+  const handleEdit = useCallback((index: number, state: CardEditState) => {
+    setEditMap((prev) => {
+      const next = new Map(prev);
+      next.set(index, state);
+      return next;
+    });
+  }, []);
+
+  const handleRestoreAll = useCallback(() => {
+    setEditMap(new Map());
+  }, []);
+
+  async function handleDownload() {
+    if (!key) return;
+    setDownloading(true);
+    try {
+      const edits: EditPayload[] = Array.from(editMap.entries()).map(
+        ([cardIndex, state]) => ({
+          cardIndex,
+          front: state.front,
+          back: state.back,
+          deleted: state.deleted,
+          suspended: state.suspended,
+        })
+      );
+      await downloadEditedApkg(key, edits);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   if (!key) {
     return (
@@ -88,10 +147,13 @@ export default function PreviewApkgPage({
   }
 
   const filteredTotal = stream.data?.pages[0]?.total;
-  const totalAll = meta.data?.totalCards;
+  const totalAll = meta.data?.totalCards ?? 0;
   const loadedCount = cards.length;
   const decks = Array.isArray(meta.data?.decks) ? meta.data.decks : [];
   const selectedDeck = decks.find((d) => d.id === deckId) ?? null;
+  const isApkgKey = key.endsWith('.apkg');
+  const hasEdits = editMap.size > 0;
+  const activeCards = totalAll - deletedCount;
 
   return (
     <div className={sharedStyles.page}>
@@ -100,7 +162,7 @@ export default function PreviewApkgPage({
           <Link to="/downloads" className={styles.backLink}>
             ← Back to downloads
           </Link>
-          {key?.endsWith('.apkg') && (
+          {isApkgKey && (
             <SharePopover uploadKey={key} />
           )}
         </div>
@@ -116,7 +178,7 @@ export default function PreviewApkgPage({
           ) : (
             <>
               {decks.length > 1 ? `${decks.length} decks · ` : ''}
-              {totalAll == null
+              {totalAll === 0
                 ? 'Loading your deck'
                 : `${loadedCount} of ${totalAll} cards loaded`}
             </>
@@ -143,6 +205,44 @@ export default function PreviewApkgPage({
             </select>
           </label>
         )}
+        {isApkgKey && totalAll > 0 && (
+          <div className={styles.editStrip}>
+            <span>
+              <span className={styles.editStripCount}>{totalAll}</span> cards
+              {deletedCount > 0 && (
+                <>
+                  {' · '}
+                  <span className={styles.editStripCount}>{deletedCount}</span> deleted
+                </>
+              )}
+              {suspendedCount > 0 && (
+                <>
+                  {' · '}
+                  <span className={styles.editStripCount}>{suspendedCount}</span> suspended
+                </>
+              )}
+            </span>
+            {hasEdits && (
+              <button
+                type="button"
+                className={styles.restoreButton}
+                onClick={handleRestoreAll}
+              >
+                Restore all
+              </button>
+            )}
+            <button
+              type="button"
+              className={styles.downloadButton}
+              onClick={handleDownload}
+              disabled={downloading}
+            >
+              {hasEdits
+                ? `Download deck (${activeCards} cards)`
+                : 'Download deck'}
+            </button>
+          </div>
+        )}
       </header>
 
       {stream.isLoading && cards.length === 0 ? (
@@ -155,8 +255,15 @@ export default function PreviewApkgPage({
               description="This deck has no cards to preview."
             />
           )}
-          {cards.map((card) => (
-            <CardFrame key={card.id} card={card} />
+          {cards.map((card, idx) => (
+            <CardFrame
+              key={card.id}
+              card={card}
+              cardIndex={idx}
+              editState={editMap.get(idx)}
+              onEdit={handleEdit}
+              isEditable={isApkgKey}
+            />
           ))}
         </div>
       )}

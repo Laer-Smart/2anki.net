@@ -15,7 +15,9 @@ import ExportApkgToPdfUseCase, {
   type PdfOptions,
 } from '../usecases/apkg/ExportApkgToPdfUseCase';
 import ImportApkgToNotionUseCase from '../usecases/apkg/ImportApkgToNotionUseCase';
+import PackEditedApkgUseCase from '../usecases/apkg/PackEditedApkgUseCase';
 import ResolveImportParentPageUseCase from '../usecases/apkg/ResolveImportParentPageUseCase';
+import { CardEdit } from '../services/ApkgPreviewService/applyEditsToCards';
 import { NotionService } from '../services/NotionService/NotionService';
 import JobRepository from '../data_layer/JobRepository';
 import sendErrorResponse from '../lib/sendErrorResponse';
@@ -327,6 +329,50 @@ class ApkgController {
       }
       console.error(error);
       res.status(500).json({ message: 'Import failed to start.' });
+    }
+  }
+
+  async downloadEdited(req: Request, res: Response) {
+    try {
+      const { key } = req.params;
+      if (!key || !isApkg(key)) {
+        res.status(400).json({ message: 'Not an .apkg upload.' });
+        return;
+      }
+      const rawEdits = (req.body as { edits?: unknown })?.edits;
+      if (!Array.isArray(rawEdits)) {
+        res.status(400).json({ message: 'edits must be an array.' });
+        return;
+      }
+      const edits = rawEdits.filter(
+        (e): e is CardEdit =>
+          e != null &&
+          typeof e === 'object' &&
+          typeof (e as CardEdit).cardIndex === 'number'
+      );
+      const { owner } = res.locals;
+      const storage = new StorageHandler();
+      const rawBody = await this.downloadService.getFileBody(owner, key, storage);
+      if (!rawBody) {
+        res.status(404).json({ message: 'Upload not found.' });
+        return;
+      }
+      const useCase = new PackEditedApkgUseCase();
+      const result = await useCase.execute({
+        sourceBytes: rawBody as Buffer,
+        filename: key,
+        edits,
+      });
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Content-Disposition', buildContentDisposition(result.filename));
+      res.send(result.buffer);
+    } catch (error) {
+      if (this.downloadService.isMissingDownloadError(error)) {
+        res.status(404).json({ message: 'Upload is no longer available.' });
+        return;
+      }
+      console.error(error);
+      sendErrorResponse(error, res);
     }
   }
 
