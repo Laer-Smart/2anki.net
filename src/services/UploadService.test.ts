@@ -258,6 +258,41 @@ describe('UploadService.handleUpload — error paths', () => {
     expect(body.message).not.toMatch(/RangeError/);
   });
 
+  it('returns 400 with code docx_processing_failed when convertDocxToHTML throws a docx_parse_failed error', async () => {
+    MockGeneratePackagesUseCase.mockImplementation(() => ({
+      execute: jest.fn().mockRejectedValue(
+        new Error('docx_parse_failed: Could not find the body element: are you sure this is a docx file?')
+      ),
+    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+
+    const service = new UploadService(buildRepository(), {} as JobRepository);
+    const req = buildRequest({
+      files: [
+        {
+          fieldname: 'files',
+          originalname: 'notes.docx',
+          mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          size: 1024,
+          path: '/tmp/notes.docx',
+          encoding: '7bit',
+          destination: '/tmp',
+          filename: 'notes.docx',
+          buffer: Buffer.alloc(0),
+          stream: null,
+        } as unknown as Express.Multer.File,
+      ],
+    });
+    const { res, capturedStatus, capturedJson } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(capturedStatus()).toBe(400);
+    const body = capturedJson() as { code: string; message: string };
+    expect(body.code).toBe('docx_processing_failed');
+    expect(typeof body.message).toBe('string');
+    expect(body.message).not.toMatch(/docx_parse_failed/);
+  });
+
   it('rejects .apkg upload with 400 and the "already an Anki deck" message before reaching GeneratePackagesUseCase', async () => {
     const executeMock = jest.fn();
     MockGeneratePackagesUseCase.mockImplementation(() => ({

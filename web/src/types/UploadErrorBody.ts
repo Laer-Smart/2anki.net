@@ -5,6 +5,8 @@ export type UploadErrorCode =
   | 'malformed_notion'
   | 'corrupted_apkg'
   | 'password_protected_pdf'
+  | 'pdf_processing_failed'
+  | 'docx_processing_failed'
   | 'claude_parse_failed'
   | 'empty_export'
   | 'unknown';
