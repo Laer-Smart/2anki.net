@@ -22,7 +22,7 @@ export class SubscriptionClaimController {
     const userId = res.locals.owner as number;
     const submittedEmail: string = (req.body?.email ?? '').trim().toLowerCase();
 
-    if (!submittedEmail || !submittedEmail.includes('@')) {
+    if (!submittedEmail.includes('@')) {
       res.status(400).json({ message: 'Invalid email address.' });
       return;
     }
