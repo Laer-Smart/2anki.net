@@ -26,6 +26,7 @@ const DownloadsPage = lazy(() => import('./pages/DownloadsPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
 const AccountPage = lazy(() => import('./pages/AccountPage/AccountPage'));
+const AccountClaimPage = lazy(() => import('./pages/AccountClaimPage/AccountClaimPage'));
 const AccountPreviewPage = import.meta.env.DEV
   ? lazy(() => import('./pages/AccountPreviewPage/AccountPreviewPage'))
   : null;
@@ -261,6 +262,7 @@ function AppContent({
           />
           <Route path="/limit" element={<LimitPage />} />
           <Route path="/account" element={requireAuth(<AccountPage />)} />
+          <Route path="/account/claim" element={requireAuth(<AccountClaimPage />)} />
           {AccountPreviewPage && (
             <Route
               path="/dev/account-preview"

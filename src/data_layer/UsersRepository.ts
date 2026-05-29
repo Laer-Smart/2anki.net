@@ -408,6 +408,19 @@ class UsersRepository {
         ),
       });
   }
+
+  setStripeCustomerId(id: string | number, stripeCustomerId: string, trx?: Knex.Transaction) {
+    const db = trx ?? this.database;
+    return db(this.table).where({ id }).update({ stripe_customer_id: stripeCustomerId });
+  }
+
+  getStripeCustomerId(id: string | number): Promise<string | null> {
+    return this.database(this.table)
+      .where({ id })
+      .select('stripe_customer_id')
+      .first()
+      .then((row: { stripe_customer_id: string | null } | undefined) => row?.stripe_customer_id ?? null);
+  }
 }
 
 export default UsersRepository;

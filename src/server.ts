@@ -60,6 +60,7 @@ import chatRouter from './routes/ChatRouter';
 import eventsRouter from './routes/EventsRouter';
 import checkoutRouter from './routes/CheckoutRouter';
 import shareRouter from './routes/ShareRouter';
+import subscriptionClaimRouter from './routes/SubscriptionClaimRouter';
 import mindmapRouter from './routes/MindmapRouter';
 import pitchRouter from './routes/PitchRouter';
 import wellKnownRouter from './routes/WellKnownRouter';
@@ -186,6 +187,7 @@ const serve = async () => {
   app.use(eventsRouter());
   app.use(checkoutRouter());
   app.use(shareRouter());
+  app.use(subscriptionClaimRouter());
   app.use(mindmapRouter());
   app.use(pitchRouter());
 

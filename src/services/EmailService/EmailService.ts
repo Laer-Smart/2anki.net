@@ -15,6 +15,7 @@ import {
   RE_ENGAGEMENT_TEMPLATE,
   SUBSCRIPTION_CANCELLED_TEMPLATE,
   SUBSCRIPTION_CANCELLATIONS_LOG_PATH,
+  SUBSCRIPTION_CLAIM_CONFIRMATION_TEMPLATE,
   SUBSCRIPTION_SCHEDULED_CANCELLATION_TEMPLATE,
   TRIAL_ENDED_TEMPLATE,
 } from './constants';
@@ -63,6 +64,7 @@ export interface IEmailService {
   sendTrialEndedEmail(to: string, token: string, deckCount: number): Promise<void>;
   sendParserCanaryAlert(to: string, summary: string): Promise<void>;
   sendNotionReconnectEmail(email: string): Promise<void>;
+  sendSubscriptionClaimConfirmation(to: string, claimUrl: string): Promise<void>;
 }
 
 class EmailService implements IEmailService {
@@ -384,6 +386,24 @@ class EmailService implements IEmailService {
     }
   }
 
+  async sendSubscriptionClaimConfirmation(to: string, claimUrl: string): Promise<void> {
+    const markup = SUBSCRIPTION_CLAIM_CONFIRMATION_TEMPLATE.replace('{{link}}', claimUrl);
+    const msg = {
+      to,
+      from: this.defaultSender,
+      subject: 'Confirm your 2anki subscription claim',
+      text: `Confirm your subscription claim here: ${claimUrl} — this link expires in 15 minutes.`,
+      html: markup,
+      replyTo: 'support@2anki.net',
+    };
+    try {
+      await sgMail.send(msg);
+    } catch (error) {
+      console.error('Failed to send subscription claim confirmation email:', error);
+      throw error;
+    }
+  }
+
   private loadCancellationsSent(): Set<string> {
     try {
       // Ensure .2anki directory exists
@@ -637,6 +657,10 @@ export class UnimplementedEmailService implements IEmailService {
 
   async sendNotionReconnectEmail(email: string): Promise<void> {
     console.info('sendNotionReconnectEmail not handled', email);
+  }
+
+  async sendSubscriptionClaimConfirmation(_to: string, _claimUrl: string): Promise<void> {
+    console.info('sendSubscriptionClaimConfirmation not handled');
   }
 }
 
