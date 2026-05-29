@@ -23,6 +23,17 @@ const TransformRouter = () => {
     (req, res) => controller.transform(req, res)
   );
 
+  router.post(
+    '/api/transform/preview',
+    RequireAuthentication,
+    multer({
+      dest: '/tmp',
+      limits: { fileSize: TRANSFORM_UPLOAD_LIMIT_BYTES },
+    }).array('file', 1),
+    normalizeUploadFilenames,
+    (req, res) => controller.preview(req, res)
+  );
+
   return router;
 };
 

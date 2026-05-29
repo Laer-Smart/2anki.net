@@ -63,6 +63,12 @@
   font-weight: var(--font-medium);
 }
 
+.fieldPicker {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .languageRow select {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--color-border);

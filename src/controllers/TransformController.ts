@@ -10,6 +10,7 @@ import {
   UNKNOWN_MODEL_ERROR,
   EMPTY_DECK_ERROR,
 } from '../usecases/ankify/TransformApkgUseCase';
+import { parseApkgNotes } from '../services/ApkgPreviewService/parseApkgNotes';
 import {
   IMAGE_SOURCES,
   ImageSource,
@@ -31,6 +32,39 @@ function readUploaded(file: UploadedFile | undefined): Buffer | null {
 
 export class TransformController {
   constructor(private readonly useCase: TransformApkgUseCase) {}
+
+  async preview(req: express.Request, res: express.Response): Promise<void> {
+    if (!isPaying(res.locals)) {
+      res.status(402).json(PAYWALL_RESPONSE);
+      return;
+    }
+    const files = req.files as UploadedFile[] | undefined;
+    const file = files?.[0];
+    if (!file || !isAnkiDeckFile(file.originalname)) {
+      res.status(400).json({ error: 'apkg_required' });
+      return;
+    }
+    const bytes = readUploaded(file);
+    if (!bytes) {
+      res.status(400).json({ error: 'unreadable_file' });
+      return;
+    }
+    try {
+      const parsed = await parseApkgNotes(bytes);
+      const firstNote = parsed.notes[0];
+      res.status(200).json({
+        deckName: parsed.deckName,
+        noteCount: parsed.notes.length,
+        unknownModelNames: parsed.unknownModelNames,
+        modelName: firstNote?.modelName ?? null,
+        fieldNames: firstNote?.fieldNames ?? [],
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn('[transform] preview failed', { message });
+      res.status(400).json({ error: 'parse_failed' });
+    }
+  }
 
   async transform(req: express.Request, res: express.Response): Promise<void> {
     if (!isPaying(res.locals)) {
@@ -84,6 +118,19 @@ export class TransformController {
       }
     }
 
+    const parseFieldIndex = (raw: unknown): number | undefined => {
+      if (raw == null || raw === '') return undefined;
+      const n = Number(raw);
+      if (!Number.isInteger(n) || n < 0 || n > 100) return undefined;
+      return n;
+    };
+    const sourceField = parseFieldIndex(body.sourceField);
+    const targetField = parseFieldIndex(body.targetField);
+    const selection =
+      sourceField != null || targetField != null
+        ? { sourceField, targetField }
+        : undefined;
+
     const bytes = readUploaded(file);
     if (!bytes) {
       res.status(400).contentType('text/plain').send('Could not read the uploaded file.');
@@ -97,6 +144,7 @@ export class TransformController {
         targetLanguage: targetLanguage as never,
         imageSource,
         pexelsApiKey: process.env.PEXELS_API_KEY,
+        selection,
       });
       res.set('Content-Type', 'application/apkg');
       res.set('Content-Length', Buffer.byteLength(result.apkg).toString());

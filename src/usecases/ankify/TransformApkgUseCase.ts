@@ -10,6 +10,7 @@ import {
 import { transformApkgNotes, TransformMediaFile } from '../../services/ankify/transformService';
 import { transformApkgWithImages } from '../../services/ankify/imageTransformService';
 import {
+  FieldSelection,
   ImageSource,
   TargetLanguage,
   TransformedNote,
@@ -28,6 +29,7 @@ export interface TransformApkgInput {
   targetLanguage?: TargetLanguage;
   imageSource?: ImageSource;
   pexelsApiKey?: string;
+  selection?: FieldSelection;
   concurrency?: number;
 }
 
@@ -132,12 +134,14 @@ export class TransformApkgUseCase {
             notes: parsed.notes,
             source: input.imageSource ?? 'pexels',
             pexelsApiKey: input.pexelsApiKey,
+            selection: input.selection,
             concurrency: input.concurrency,
           })
         : await transformApkgNotes({
             notes: parsed.notes,
             transform: input.transform,
             targetLanguage: input.targetLanguage,
+            selection: input.selection,
             concurrency: input.concurrency,
           });
 

@@ -6,6 +6,7 @@ import { getAnthropicClient } from '../../lib/claude/ClaudeService';
 import { applyTransformedFields, TransformResultPayload } from '../../lib/ankify/transforms/applyTransformedFields';
 import { buildTransformPrompt } from '../../lib/ankify/transforms/prompts';
 import {
+  FieldSelection,
   ParsedNote,
   TargetLanguage,
   TransformedNote,
@@ -22,6 +23,7 @@ export interface TransformApkgInput {
   notes: ParsedNote[];
   transform: TransformName;
   targetLanguage?: TargetLanguage;
+  selection?: FieldSelection;
   concurrency?: number;
   client?: Anthropic;
 }
@@ -77,9 +79,10 @@ async function runTransformCall(
   client: Anthropic,
   note: ParsedNote,
   transform: TransformName,
-  targetLanguage: TargetLanguage | undefined
+  targetLanguage: TargetLanguage | undefined,
+  selection: FieldSelection
 ): Promise<{ note: TransformedNote; inputTokens: number; outputTokens: number }> {
-  const { system, user } = buildTransformPrompt(transform, note, targetLanguage);
+  const { system, user } = buildTransformPrompt(transform, note, targetLanguage, selection);
   const response = await client.messages.create({
     model: TRANSFORM_MODEL,
     max_tokens: TRANSFORM_MAX_TOKENS,
@@ -87,7 +90,7 @@ async function runTransformCall(
     messages: [{ role: 'user', content: user }],
   });
   const payload = parseJsonPayload(extractText(response));
-  const transformed = applyTransformedFields(note, transform, payload);
+  const transformed = applyTransformedFields(note, transform, payload, selection);
   return {
     note: transformed,
     inputTokens: response.usage?.input_tokens ?? 0,
@@ -100,6 +103,7 @@ export async function transformApkgNotes(
 ): Promise<TransformApkgOutput> {
   const client = input.client ?? getAnthropicClient();
   const concurrency = input.concurrency ?? DEFAULT_CONCURRENCY;
+  const selection = input.selection ?? {};
   const t0 = Date.now();
 
   const results: Array<TransformedNote | null> = new Array(input.notes.length).fill(null);
@@ -113,7 +117,8 @@ export async function transformApkgNotes(
         client,
         note,
         input.transform,
-        input.targetLanguage
+        input.targetLanguage,
+        selection
       );
       results[index] = transformed;
       inputTokens += it;

@@ -122,6 +122,9 @@ export function TransformPage() {
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
   const [cardCount, setCardCount] = useState<number>(0);
+  const [fieldNames, setFieldNames] = useState<string[]>([]);
+  const [sourceField, setSourceField] = useState<number>(0);
+  const [targetField, setTargetField] = useState<number>(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -130,6 +133,41 @@ export function TransformPage() {
       props: { source: 'upload_reject' },
     });
   }, [incomingFile]);
+
+  useEffect(() => {
+    if (file == null) {
+      setFieldNames([]);
+      return;
+    }
+    const controller = new AbortController();
+    const body = new FormData();
+    body.append('file', file);
+    fetch('/api/transform/preview', {
+      method: 'POST',
+      body,
+      credentials: 'include',
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
+      .then((payload: { fieldNames?: unknown }) => {
+        const names = Array.isArray(payload.fieldNames)
+          ? payload.fieldNames.filter((v): v is string => typeof v === 'string')
+          : [];
+        setFieldNames(names);
+        if (names.length > 0) {
+          setSourceField(0);
+          setTargetField(Math.max(0, names.length - 1));
+        }
+      })
+      .catch(() => {
+        setFieldNames([]);
+      });
+    return () => controller.abort();
+  }, [file]);
+
+  const supportsFieldPicker =
+    transform === 'translate_back' || transform === 'add_image';
+  const showFieldPicker = supportsFieldPicker && fieldNames.length > 0;
 
   const reset = () => {
     setFile(null);
@@ -168,6 +206,10 @@ export function TransformPage() {
     body.append('transform', transform);
     if (transform === 'translate_back') body.append('targetLanguage', language);
     if (transform === 'add_image') body.append('imageSource', imageSource);
+    if (supportsFieldPicker && fieldNames.length > 0) {
+      body.append('sourceField', String(sourceField));
+      body.append('targetField', String(targetField));
+    }
 
     try {
       const response = await fetch('/api/transform/upload', {
@@ -305,6 +347,37 @@ export function TransformPage() {
               </label>
             ))}
           </fieldset>
+        )}
+
+        {showFieldPicker && (
+          <div className={pageStyles.fieldPicker}>
+            <label className={pageStyles.languageRow}>
+              Source field
+              <select
+                value={sourceField}
+                onChange={(e) => setSourceField(Number(e.target.value))}
+              >
+                {fieldNames.map((name, idx) => (
+                  <option key={`${idx}-${name}`} value={idx}>
+                    {name || `Field ${idx + 1}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={pageStyles.languageRow}>
+              Target field
+              <select
+                value={targetField}
+                onChange={(e) => setTargetField(Number(e.target.value))}
+              >
+                {fieldNames.map((name, idx) => (
+                  <option key={`${idx}-${name}`} value={idx}>
+                    {name || `Field ${idx + 1}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         )}
 
         <button
