@@ -6,6 +6,14 @@ import { useSettingsCardsOptions } from '../../components/modals/SettingsModal/u
 import ArrowUpTrayIcon from '../../components/icons/ArrowUpTrayIcon';
 import SparklesIcon from '../../components/icons/SparklesIcon';
 import BookOpenIcon from '../../components/icons/BookOpenIcon';
+import ArrowLeftIcon from '../../components/icons/ArrowLeftIcon';
+import ArrowRightIcon from '../../components/icons/ArrowRightIcon';
+import CameraIcon from '../../components/icons/CameraIcon';
+import ChatBubbleIcon from '../../components/icons/ChatBubbleIcon';
+import PrinterIcon from '../../components/icons/PrinterIcon';
+import RectangleGroupIcon from '../../components/icons/RectangleGroupIcon';
+import ShareIcon from '../../components/icons/ShareIcon';
+import SwatchIcon from '../../components/icons/SwatchIcon';
 import { track } from '../../lib/analytics/track';
 import { ShowcaseSection } from './ShowcaseSection';
 import sharedStyles from '../../styles/shared.module.css';
@@ -41,6 +49,63 @@ const STEPS = [
     title: 'Study',
     body: 'Open the .apkg file in Anki or AnkiDroid. Your cards are ready to review.',
     Icon: BookOpenIcon,
+  },
+];
+
+const FEATURES = [
+  {
+    href: '/notion',
+    label: 'Notion to Anki',
+    body: 'Convert a Notion page into a deck — toggles become cards.',
+    Icon: ArrowRightIcon,
+  },
+  {
+    href: '/import',
+    label: 'Anki to Notion',
+    body: 'Turn an .apkg back into a Notion page you can keep editing.',
+    Icon: ArrowLeftIcon,
+  },
+  {
+    href: '/image-occlusion',
+    label: 'Image occlusion',
+    body: 'Mask labels on diagrams to make cards.',
+    Icon: RectangleGroupIcon,
+  },
+  {
+    href: '/photo-to-deck',
+    label: 'Photo to deck',
+    body: 'Snap a page, get a deck.',
+    Icon: CameraIcon,
+  },
+  {
+    href: '/mindmaps',
+    label: 'Mind maps',
+    body: 'Turn a mind map into structured cards.',
+    Icon: ShareIcon,
+  },
+  {
+    href: '/templates',
+    label: 'Note types',
+    body: 'Pick how the front and back of your cards look.',
+    Icon: SwatchIcon,
+  },
+  {
+    href: '/chat',
+    label: 'Chat',
+    body: 'Ask AI to write cards from your notes.',
+    Icon: ChatBubbleIcon,
+  },
+  {
+    href: '/print',
+    label: 'Print',
+    body: 'Print your deck on paper for offline study.',
+    Icon: PrinterIcon,
+  },
+  {
+    href: '/ankify',
+    label: 'Auto Sync',
+    body: 'Keep your Anki deck in sync with your Notion page.',
+    Icon: SparklesIcon,
   },
 ];
 
@@ -177,6 +242,23 @@ export function HomePage({
       </section>
 
       <ShowcaseSection />
+
+      <section className={styles.featuresSection}>
+        <p className={styles.featuresHeading}>Other ways to use 2anki</p>
+        <div className={styles.featuresGrid}>
+          {FEATURES.map((feature) => (
+            <Link key={feature.href} to={feature.href} className={styles.featureCard}>
+              <span className={styles.featureIcon}>
+                <feature.Icon width={22} height={22} />
+              </span>
+              <span className={styles.featureText}>
+                <span className={styles.featureTitle}>{feature.label}</span>
+                <span className={styles.featureBody}>{feature.body}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       <section id="walkthroughs" className={styles.bottomSection}>
         <p className={styles.walkHeading}>Walkthroughs</p>
