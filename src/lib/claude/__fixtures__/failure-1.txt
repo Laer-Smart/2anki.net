@@ -1,0 +1,3 @@
+```json
+[{"deck":"Lorem Ipsum","cards":[{"q":"Lorem ipsum dolor sit amet?","a":"<strong>Consectetur adipiscing elit.</strong> Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.<br>• <strong>Lorem:</strong> Ut enim ad minim veniam<br>• <strong>Ipsum:</strong> Quis nostrud exercitation ullamco laboris"},{"q":"Lorem <strong>ipsum</strong> dolor sit amet {{c1::consectetur}}","a":"","cloze":true},{"q":"Quis nostrud exercitation ullamco?","a":"<strong>Laboris nisi</strong> ut aliquip ex ea commodo consequat."},{"q":"Duis aute irure dolor in reprehenderit?","a":"In voluptate velit esse cillum dolore eu fugiat nulla pariatur."},{"q":"Excepteur sint occaecat cupidatat non proident?","a":"Sunt in culpa qui officia deserunt mollit anim id est laborum."}]}]
+```

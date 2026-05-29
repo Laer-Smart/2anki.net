@@ -1,0 +1,5 @@
+Here are the flashcards in JSON format:
+
+```json
+[{"deck":"Lorem Ipsum","cards":[{"q":"Lorem ipsum dolor sit amet consectetur?","a":"<p>Adipiscing elit sed do eiusmod tempor.</p><p>Incididunt ut labore et dolore magna aliqua.</p>"},{"q":"Ut enim ad minim veniam quis nostrud?","a":"Exercitation ullamco laboris nisi ut aliquip."},{"q":"Ex ea commodo consequat duis aute?","a":"Irure dolor in reprehenderit in voluptate velit."},{"q":"Esse cillum dolore eu fugiat nulla?","a":"Pariatur excepteur sint occaecat cupidatat."},{"q":"Non proident sunt in culpa qui?","a":"Officia deserunt mollit anim id est laborum."}]}]
+```

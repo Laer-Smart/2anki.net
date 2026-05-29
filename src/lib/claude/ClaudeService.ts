@@ -369,6 +369,31 @@ export function buildUserMessage(
   return `Convert this HTML content into the compact deck JSON:\n\n${strippedContent}${mediaFilesList}${instructionsSection}${fieldMappingSection}${styleSection}${sizeSection}`;
 }
 
+function extractJsonArray(text: string): string | null {
+  const start = text.indexOf('[');
+  if (start === -1) return null;
+  const end = text.lastIndexOf(']');
+  if (end < start) return null;
+  return text.slice(start, end + 1);
+}
+
+type RedactedPayload = { length: number; prefix: string; sha256_prefix: string };
+
+function redactClaudePayload(text: string): RedactedPayload {
+  return {
+    length: text.length,
+    prefix: text.slice(0, 80),
+    sha256_prefix: createHash('sha256').update(text).digest('hex').slice(0, 12),
+  };
+}
+
+export class ClaudeParseError extends Error {
+  constructor() {
+    super('claude_parse_failed');
+    this.name = 'ClaudeParseError';
+  }
+}
+
 function tryRepairDeckArray(toParse: string): unknown[] | null {
   let candidate: unknown;
   try {
@@ -399,11 +424,11 @@ export function parseDeckResponse(
   raw: string,
   chunkIndex: number
 ): CompactDeck[] {
-  const jsonEnd = cleaned.lastIndexOf(']');
-  const toParse = jsonEnd >= 0 ? cleaned.slice(0, jsonEnd + 1) : cleaned;
+  const toParse = extractJsonArray(cleaned) ?? cleaned;
 
+  const jsonEnd = toParse.lastIndexOf(']');
   if (jsonEnd >= 0) {
-    const trailing = cleaned.slice(jsonEnd + 1).trim();
+    const trailing = cleaned.slice(cleaned.lastIndexOf(']') + 1).trim();
     if (trailing.length > 0) {
       console.warn('[Claude] Trailing prose stripped', {
         chunkIndex,
@@ -417,28 +442,31 @@ export function parseDeckResponse(
   try {
     parsed = JSON.parse(toParse);
   } catch {
-    // Repairs Claude's occasional unescaped " in string values (common with German „…" and other non-English quoting); plausibility check guards against over-eager repair on truncated content.
     const repaired = tryRepairDeckArray(toParse);
     if (repaired) {
       parsed = repaired;
       console.log('[Claude] Recovered malformed JSON via jsonrepair', { chunkIndex });
     } else {
       console.error('[Claude] Failed to parse response as JSON', {
-        raw,
-        cleaned,
-        toParse,
         chunkIndex,
+        raw: redactClaudePayload(raw),
+        cleaned: redactClaudePayload(cleaned),
+        toParse: redactClaudePayload(toParse),
       });
       if (looksLikeEmptyContentExplanation(cleaned)) {
         throw new Error(EMPTY_CONTENT_USER_MESSAGE);
       }
-      throw new Error(`Claude returned invalid JSON:\n${raw}`);
+      throw new ClaudeParseError();
     }
   }
 
   if (!Array.isArray(parsed)) {
-    console.error('[Claude] Response is not an array', { raw, cleaned, chunkIndex });
-    throw new Error('Claude returned unexpected JSON structure (not an array)');
+    console.error('[Claude] Response is not an array', {
+      chunkIndex,
+      raw: redactClaudePayload(raw),
+      cleaned: redactClaudePayload(cleaned),
+    });
+    throw new ClaudeParseError();
   }
 
   return parsed as CompactDeck[];
@@ -535,7 +563,7 @@ async function generateDeckInfoFromChunk(
     .map((block) => block.text ?? '')
     .join('');
 
-  const cleaned = raw.replace(/```json|```/g, '').trim();
+  const cleaned = raw.replace(/^```json\n?|^```\n?|```\s*$/gm, '').trim();
 
   const tParse0 = Date.now();
   const parsed = parseDeckResponse(cleaned, raw, chunkIndex);

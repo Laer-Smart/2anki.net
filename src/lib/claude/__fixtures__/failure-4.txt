@@ -1,0 +1,3 @@
+```json
+[{"deck":"Lorem Ipsum","cards":[{"q":"Lorem ipsum dolor sit amet?","a":"Consectetur adipiscing elit.","tags":["lorem","ipsum"]},{"q":"Sed do eiusmod tempor incididunt?","a":"Ut labore et dolore magna aliqua.","tags":["lorem"]},{"q":"Lorem {{c1::ipsum}} dolor sit amet consectetur","a":"","cloze":true},{"q":"Ut enim ad minim veniam?","a":"Quis nostrud exercitation ullamco laboris nisi."},{"q":"Aliquip ex ea commodo consequat?","a":"Duis aute irure dolor in reprehenderit."},{"q":"In voluptate velit esse cillum?","a":"Dolore eu fugiat nulla pariatur."},{"q":"Excepteur sint occaecat cupidatat?","a":"Non proident sunt in culpa qui officia."}]}]
+```

@@ -177,4 +177,11 @@ describe('classifyUploadError', () => {
       'Try again, or send the file to support@2anki.net so we can fix the parser.'
     );
   });
+
+  it('claude_parse_failed returns the designer copy instead of falling through to UPLOAD_FALLBACK', () => {
+    const body: UploadErrorBody = { code: 'claude_parse_failed', message: 'claude_parse_failed' };
+    const result = classifyUploadError(body);
+    expect(result.title).toBe('Something went wrong while making your cards.');
+    expect(result.detail).toBe('Try again — if it keeps happening, email support@2anki.net.');
+  });
 });

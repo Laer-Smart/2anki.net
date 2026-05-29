@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-29-claude-fence-stripping",
+  "date": "2026-05-29",
+  "type": "fix",
+  "title": "Large Claude jobs no longer fail when Claude wraps the response in code fences"
+}

@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   looksLikeEmptyContentExplanation,
   EMPTY_CONTENT_USER_MESSAGE,
@@ -9,6 +11,7 @@ import {
   buildFieldMappingPromptFragment,
   dedupeCardsByFront,
   generateDeckInfo,
+  ClaudeParseError,
   type DeckInfo,
 } from './ClaudeService';
 
@@ -85,13 +88,13 @@ describe('parseDeckResponse', () => {
     expect(parseDeckResponse(cleaned, cleaned, 0)).toEqual([]);
   });
 
-  it('throws generic error for truncated/invalid JSON', () => {
+  it('throws ClaudeParseError for truncated/invalid JSON', () => {
     const cleaned = '[{"deck":"Bio","cards":[{"q":"What is';
-    expect(() => parseDeckResponse(cleaned, cleaned, 0)).toThrow('Claude returned invalid JSON');
+    expect(() => parseDeckResponse(cleaned, cleaned, 0)).toThrow(ClaudeParseError);
   });
 
-  it('throws generic error when there is no ] at all', () => {
-    expect(() => parseDeckResponse('not json', 'not json', 0)).toThrow('Claude returned invalid JSON');
+  it('throws ClaudeParseError when there is no ] at all', () => {
+    expect(() => parseDeckResponse('not json', 'not json', 0)).toThrow(ClaudeParseError);
   });
 
   it('recovers a card whose value contains an unescaped ASCII " (the German-quote prod failure)', () => {
@@ -108,11 +111,9 @@ describe('parseDeckResponse', () => {
     expect(parsed[0].cards[0].a).toContain('kaputt macht');
   });
 
-  it('still throws when jsonrepair cannot recover the response', () => {
+  it('still throws ClaudeParseError when jsonrepair cannot recover the response', () => {
     const unrepairable = '[{"deck":"X","cards":[{"q":"a","a"';
-    expect(() => parseDeckResponse(unrepairable, unrepairable, 0)).toThrow(
-      'Claude returned invalid JSON'
-    );
+    expect(() => parseDeckResponse(unrepairable, unrepairable, 0)).toThrow(ClaudeParseError);
   });
 
   it('recovers a cloze-only deck where every card has a: "" (cloze cards legitimately have no answer field)', () => {
@@ -175,6 +176,112 @@ describe('parseDeckResponse', () => {
     } finally {
       warnSpy.mockRestore();
     }
+  });
+
+  it('recovers a fenced response with ```json prefix (prod fence failure pattern)', () => {
+    const fenced = '```json\n' + deckJson + '\n```';
+    const cleaned = fenced.replace(/^```json\n?|^```\n?|```\s*$/gm, '').trim();
+    expect(parseDeckResponse(cleaned, fenced, 0)).toEqual(deck);
+  });
+
+  it('recovers a fenced response with leading prose before the opening fence', () => {
+    const withProse = 'Here are your flashcards:\n\n```json\n' + deckJson + '\n```';
+    const cleaned = withProse.replace(/^```json\n?|^```\n?|```\s*$/gm, '').trim();
+    expect(parseDeckResponse(cleaned, withProse, 0)).toEqual(deck);
+  });
+
+  it('recovers a fenced response with trailing prose after the closing fence', () => {
+    const withTrailing = '```json\n' + deckJson + '\n```\n\nI hope these are helpful.';
+    const cleaned = withTrailing.replace(/^```json\n?|^```\n?|```\s*$/gm, '').trim();
+    expect(parseDeckResponse(cleaned, withTrailing, 0)).toEqual(deck);
+  });
+
+  it('preserves backticks inside a card answer field after fence stripping', () => {
+    const cardWithBacktick = '[{"deck":"Shell","cards":[{"q":"List files","a":"Run `ls -la` to see all files"}]}]';
+    const fenced = '```json\n' + cardWithBacktick + '\n```';
+    const cleaned = fenced.replace(/^```json\n?|^```\n?|```\s*$/gm, '').trim();
+    const parsed = parseDeckResponse(cleaned, fenced, 0);
+    expect(parsed[0].cards[0].a).toBe('Run `ls -la` to see all files');
+  });
+
+  it('throws ClaudeParseError with message "claude_parse_failed" when unrecoverable', () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      expect(() => parseDeckResponse('no json here at all', 'no json here at all', 0)).toThrow(
+        expect.objectContaining({ message: 'claude_parse_failed', name: 'ClaudeParseError' })
+      );
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it('thrown ClaudeParseError message does not contain any substring of the input payload', () => {
+    const payload = '[{"deck":"Secret","cards":[{"q":"sensitive question","a":"sensitive answer"}';
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      let caughtMessage = '';
+      try {
+        parseDeckResponse(payload, payload, 0);
+      } catch (e) {
+        caughtMessage = e instanceof Error ? e.message : String(e);
+      }
+      expect(caughtMessage).not.toContain('[{');
+      expect(caughtMessage).not.toContain('```');
+      expect(caughtMessage).not.toContain('Secret');
+      expect(caughtMessage).not.toContain('sensitive');
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it('emits exactly one console.error with redacted payload shape (no raw content) on parse failure', () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      try {
+        parseDeckResponse('not valid json at all', 'not valid json at all', 3);
+      } catch {
+        // expected
+      }
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      const [, loggedObj] = errorSpy.mock.calls[0];
+      expect(loggedObj).toMatchObject({
+        chunkIndex: 3,
+        raw: expect.objectContaining({ length: expect.any(Number), prefix: expect.any(String), sha256_prefix: expect.any(String) }),
+        cleaned: expect.objectContaining({ length: expect.any(Number), prefix: expect.any(String), sha256_prefix: expect.any(String) }),
+        toParse: expect.objectContaining({ length: expect.any(Number), prefix: expect.any(String), sha256_prefix: expect.any(String) }),
+      });
+      const rawVal = loggedObj.raw as Record<string, unknown>;
+      expect(typeof rawVal.raw).toBe('undefined');
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+});
+
+const FIXTURES_DIR = path.join(__dirname, '__fixtures__');
+
+function loadFixture(name: string): string {
+  return fs.readFileSync(path.join(FIXTURES_DIR, name), 'utf-8');
+}
+
+function applyFenceStrip(raw: string): string {
+  return raw.replace(/^```json\n?|^```\n?|```\s*$/gm, '').trim();
+}
+
+describe('parseDeckResponse — prod fixture recovery', () => {
+  it.each([
+    'failure-1.txt',
+    'failure-2.txt',
+    'failure-3.txt',
+    'failure-4.txt',
+    'failure-5.txt',
+  ])('fixture %s parses to a non-empty deck array', (fixtureName) => {
+    const raw = loadFixture(fixtureName);
+    const cleaned = applyFenceStrip(raw);
+    const result = parseDeckResponse(cleaned, raw, 0);
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result[0].cards.length).toBeGreaterThan(0);
   });
 });
 
