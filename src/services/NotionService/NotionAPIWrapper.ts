@@ -26,6 +26,7 @@ import { collapseDataSourcesToDatabases } from './helpers/collapseDataSourcesToD
 import type { IBlocksCacheRepository } from '../../data_layer/BlocksCacheRepository';
 import { isValidNotionId } from './isValidNotionId';
 import { ValidNotionType } from './types';
+import { notionCallRingBuffer } from './NotionCallRingBuffer';
 
 const DEFAULT_PAGE_SIZE_LIMIT = 100 * 2;
 
@@ -66,7 +67,7 @@ class NotionAPIWrapper {
     }
     return withRetry(() => this.notion.pages.retrieve({ page_id: id }), {
       label: 'pages.retrieve',
-    });
+    }).then((result) => { notionCallRingBuffer.record(); return result; });
   }
 
   async getBlocks({

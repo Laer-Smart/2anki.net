@@ -5,6 +5,10 @@ description: The errors users actually hit, with the fix on the same page.
 
 If you saw an error and want the fix, find the heading below that matches what you saw. If your problem isn't here, [contact us](/documentation/help/contact) or [report a bug](/documentation/help/bug-report).
 
+## Is 2anki down?
+
+Check the [status page](/status) — it shows whether the API, database, and Notion connection are healthy. If the page itself is unreachable, the server is likely down; check the community on Reddit for updates.
+
 ## "Please select a file to upload."
 
 **What you saw.** A red error appears the moment you submit, before anything uploads.

@@ -63,6 +63,7 @@ import shareRouter from './routes/ShareRouter';
 import mindmapRouter from './routes/MindmapRouter';
 import pitchRouter from './routes/PitchRouter';
 import wellKnownRouter from './routes/WellKnownRouter';
+import healthRouter from './routes/HealthRouter';
 import requestLoggingMiddleware from './routes/middleware/requestLoggingMiddleware';
 import { anonIdMiddleware } from './routes/middleware/anonIdMiddleware';
 import { getEventsSink } from './services/events/eventsSinkInstance';
@@ -188,11 +189,11 @@ const serve = async () => {
   app.use(mindmapRouter());
   app.use(pitchRouter());
 
+  const database = getDatabase();
+  app.use(healthRouter(database));
   app.use(wellKnownRouter());
   app.use(rejectScannerProbes);
   app.use(defaultRouter());
-
-  const database = getDatabase();
   const errorEventRepo = new ErrorEventRepository(database);
   app.use(makeErrorCaptureMiddleware(errorEventRepo, writeFallbackError));
   app.use(
