@@ -6,6 +6,7 @@ import { getDeck } from '../../test/test-utils';
 import CardOption from './Settings/CardOption';
 import { DeckParser } from './DeckParser';
 import Workspace from './WorkSpace';
+import { EmptyDeckError } from '../../usecases/jobs/EmptyDeckError';
 
 beforeEach(() => setupTests());
 
@@ -169,6 +170,46 @@ test('Markdown empty deck', async () => {
   );
   expect(deck.name).toBe('Empty Deck');
   expect(deck.cards.length).toBe(0);
+});
+
+test('tryExperimental on a Markdown file throws EmptyDeckError with markdown sourceFormat', () => {
+  const fixturePath = path.join(__dirname, '../../test/fixtures/empty-deck.md');
+  const contents = fs.readFileSync(fixturePath).toString();
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'empty-deck.md',
+    settings: new CardOption({}),
+    files: [{ name: 'empty-deck.md', contents }],
+    noLimits: true,
+    workspace,
+  });
+
+  expect(() => parser.tryExperimental()).toThrow(EmptyDeckError);
+
+  try {
+    parser.tryExperimental();
+  } catch (err) {
+    expect(err).toBeInstanceOf(EmptyDeckError);
+    expect((err as EmptyDeckError).sourceFormat).toBe('markdown');
+  }
+});
+
+test('tryExperimental on an HTML file throws EmptyDeckError without markdown sourceFormat', () => {
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'empty.html',
+    settings: new CardOption({}),
+    files: [{ name: 'empty.html', contents: '<html><body></body></html>' }],
+    noLimits: true,
+    workspace,
+  });
+
+  try {
+    parser.tryExperimental();
+  } catch (err) {
+    expect(err).toBeInstanceOf(EmptyDeckError);
+    expect((err as EmptyDeckError).sourceFormat).toBeUndefined();
+  }
 });
 
 test('Markdown nested bullet points', async () => {

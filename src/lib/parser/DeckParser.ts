@@ -37,6 +37,17 @@ import { findNotionToggleLists, isMCQ } from './findNotionToggleLists';
 import { EmptyDeckError } from '../../usecases/jobs/EmptyDeckError';
 import { extractName } from '../extractDeckName';
 
+const MARKDOWN_SOURCE_RATIO_THRESHOLD = 0.8;
+
+function isMarkdownSourcedFiles(files: File[]): boolean {
+  const contentFiles = files.filter(
+    (f) => isMarkdownFile(f.name) || isHTMLFile(f.name)
+  );
+  if (contentFiles.length === 0) return false;
+  const mdCount = contentFiles.filter((f) => isMarkdownFile(f.name)).length;
+  return mdCount / contentFiles.length >= MARKDOWN_SOURCE_RATIO_THRESHOLD;
+}
+
 export interface DeckParserInput {
   name: string;
   settings: CardOption;
@@ -678,7 +689,10 @@ export class DeckParser {
       this.payload.length === 0 ||
       this.totalCardCount() === 0
     ) {
-      throw new EmptyDeckError();
+      const markdownSourced =
+        isMarkdownFile(this.firstDeckName) ||
+        isMarkdownSourcedFiles(this.files);
+      throw new EmptyDeckError(markdownSourced ? 'markdown' : undefined);
     }
 
     this.payload[0].settings = this.settings;

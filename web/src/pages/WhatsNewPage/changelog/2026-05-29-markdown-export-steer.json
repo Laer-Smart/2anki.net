@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-29-markdown-export-steer",
+  "date": "2026-05-29",
+  "type": "fix",
+  "title": "Notion Markdown exports that produce empty decks now tell you to re-export as HTML"
+}

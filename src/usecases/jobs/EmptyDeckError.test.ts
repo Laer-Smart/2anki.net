@@ -17,6 +17,14 @@ describe('EmptyDeckError', () => {
     );
   });
 
+  it('has undefined sourceFormat when constructed without arguments', () => {
+    expect(new EmptyDeckError().sourceFormat).toBeUndefined();
+  });
+
+  it('stores markdown sourceFormat when provided', () => {
+    expect(new EmptyDeckError('markdown').sourceFormat).toBe('markdown');
+  });
+
   it('survives an instanceof check after being thrown and caught', () => {
     let caught: unknown;
     try {

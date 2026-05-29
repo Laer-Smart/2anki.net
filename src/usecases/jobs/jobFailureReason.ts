@@ -9,6 +9,9 @@ export const NOTION_TOKEN_EXPIRED_REASON =
 export const EMPTY_DECK_FAILURE_REASON =
   "No cards in this deck yet. 2anki turns Notion toggle blocks into flashcards — the toggle title becomes the question, what's inside is the answer. Wrap your key terms in toggles in Notion, then convert again.";
 
+export const MARKDOWN_LIKELY_LOSSY_REASON =
+  'Notion Markdown exports flatten toggles — re-export this page as HTML and the toggles become flashcards.';
+
 export const COLUMNS_AMBIGUOUS_PREFIX = 'COLUMNS_AMBIGUOUS:';
 
 export function isColumnsAmbiguousError(
@@ -50,6 +53,9 @@ export function jobFailureReasonFromError(
   jobId?: string
 ): string {
   if (error instanceof EmptyDeckError) {
+    if (error.sourceFormat === 'markdown') {
+      return MARKDOWN_LIKELY_LOSSY_REASON;
+    }
     return EMPTY_DECK_FAILURE_REASON;
   }
   if (error instanceof PythonExitError) {

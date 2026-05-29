@@ -9,6 +9,7 @@ export type UploadErrorCode =
   | 'docx_processing_failed'
   | 'claude_parse_failed'
   | 'empty_export'
+  | 'markdown_likely_lossy'
   | 'unknown';
 
 export interface UploadErrorBody {

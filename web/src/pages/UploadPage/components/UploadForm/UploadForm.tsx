@@ -85,7 +85,10 @@ function toFriendlyThrownError(error: unknown): UploadErrorBody {
 }
 
 function zoneStateForUploadError(message: UploadErrorBody): 'emptyDeck' | 'error' {
-  return message.code === 'empty_export' ? 'emptyDeck' : 'error';
+  if (message.code === 'empty_export' || message.code === 'markdown_likely_lossy') {
+    return 'emptyDeck';
+  }
+  return 'error';
 }
 
 function buildFormData(form: HTMLFormElement): FormData {
@@ -836,6 +839,14 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
   );
 
   const renderEmptyDeckBody = () => {
+    if (localError?.code === 'markdown_likely_lossy') {
+      return (
+        <p className={formStyles.emptyBody}>
+          Notion Markdown exports flatten toggles — re-export this page as HTML
+          and the toggles become flashcards.
+        </p>
+      );
+    }
     if (driveMimeType === 'application/vnd.google-apps.document') {
       return (
         <p className={formStyles.emptyBody}>
