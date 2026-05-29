@@ -133,6 +133,7 @@ const serve = async () => {
   app.use(redirectNonCanonicalHosts);
   app.use(express.json({ limit: '50mb' }) as RequestHandler);
   app.use(cookieParser());
+  app.use(denyFraming);
   app.use(anonIdMiddleware);
   app.use(noindexNonCanonicalHosts);
   app.use(redirectConvertDuplicates);
@@ -186,7 +187,6 @@ const serve = async () => {
   app.use(mindmapRouter());
 
   app.use(wellKnownRouter());
-  app.use(denyFraming);
   app.use(rejectScannerProbes);
   app.use(defaultRouter());
 
