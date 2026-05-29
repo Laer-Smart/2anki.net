@@ -69,6 +69,31 @@ class JobRepository {
       .first();
   }
 
+  findPriorNotionJobByOwnerAndObjectId(
+    owner: string,
+    objectId: string,
+    windowMs: number
+  ): Promise<Pick<Jobs, 'object_id' | 'created_at' | 'type'> | undefined> {
+    const cutoff = new Date(Date.now() - windowMs);
+    return this.database<Jobs>(this.tableName)
+      .where({ owner, object_id: objectId })
+      .whereIn('type', ['page', 'database'])
+      .where('created_at', '>=', cutoff)
+      .select('object_id', 'created_at', 'type')
+      .first();
+  }
+
+  countRecentNotionJobsByOwner(owner: string, windowMs: number): Promise<number> {
+    const cutoff = new Date(Date.now() - windowMs);
+    return this.database(this.tableName)
+      .where({ owner })
+      .whereIn('type', ['page', 'database'])
+      .where('created_at', '>=', cutoff)
+      .count('* as count')
+      .first()
+      .then((row) => Number((row as { count: string | number })?.count ?? 0));
+  }
+
   markInterruptedClaudeJobs() {
     return this.database(this.tableName)
       .whereNotIn('status', ['done', 'failed', 'cancelled', 'interrupted'])
@@ -121,6 +146,7 @@ class JobRepository {
     const rows = await query.update(update).returning('*');
     return rows[0] as Jobs;
   }
+
   countJobsByType(owner: string, type: string): Promise<number> {
     return this.database(this.tableName)
       .where({ owner, type })
