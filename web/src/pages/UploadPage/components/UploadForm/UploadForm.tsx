@@ -20,6 +20,7 @@ import {
 } from './hooks/useGooglePicker';
 import { UploadSourceChips, type UploadSource } from './UploadSourceChips';
 import { FeedbackWidget } from '../../../../components/FeedbackWidget/FeedbackWidget';
+import { AutoSyncPitch } from './AutoSyncPitch';
 import { useUserLocals } from '../../../../lib/hooks/useUserLocals';
 import { get2ankiApi } from '../../../../lib/backend/get2ankiApi';
 import { fireAnalyticsEvent } from '../../../../lib/analytics/fireAnalyticsEvent';
@@ -291,6 +292,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
   const { data: userLocals } = useUserLocals();
   const queryClient = useQueryClient();
   const isAuthenticated = userLocals?.user?.id != null;
+  const [showAutoSyncPitch, setShowAutoSyncPitch] = useState(false);
   const showTrialButton =
     isAuthenticated &&
     userLocals?.user?.trial_started_at == null &&
@@ -381,6 +383,23 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       track('upload_error_chat_resolved_retry');
     }
   }, [zoneState, showErrorInlineChat]);
+
+  useEffect(() => {
+    if (zoneState !== 'success' || !isAuthenticated) {
+      setShowAutoSyncPitch(false);
+      return;
+    }
+    let cancelled = false;
+    get2ankiApi()
+      .getAutoSyncPitchEligibility()
+      .then((result) => {
+        if (!cancelled) {
+          setShowAutoSyncPitch(result.accountBanner || result.convertSuccess);
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [zoneState, isAuthenticated]);
 
   useEffect(() => {
     if (zoneState === 'emptyDeck') {
@@ -819,6 +838,9 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
         >
           Didn't get the file? Download it here.
         </button>
+      )}
+      {showAutoSyncPitch && (
+        <AutoSyncPitch onDismissed={() => setShowAutoSyncPitch(false)} />
       )}
       <UpsellCard surface="upload_success_upsell" hideForAnonymous />
       <button

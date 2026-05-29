@@ -936,6 +936,25 @@ export class Backend {
     return get(`${this.baseURL}ops/contact-messages`);
   }
 
+
+  async getAutoSyncPitchEligibility(
+    objectId?: string,
+    jobType?: string
+  ): Promise<{ convertSuccess: boolean; accountBanner: boolean }> {
+    const params = new URLSearchParams();
+    if (objectId) params.set('objectId', objectId);
+    if (jobType) params.set('jobType', jobType);
+    const qs = params.toString();
+    return get(`${this.baseURL}pitches/auto-sync${qs ? '?' + qs : ''}`)
+      .catch(() => ({ convertSuccess: false, accountBanner: false }));
+  }
+
+  async dismissAutoSyncPitch(
+    placement: 'convert_success' | 'account_banner'
+  ): Promise<void> {
+    await post(`${this.baseURL}pitches/dismiss`, { placement });
+  }
+
   async acknowledgeContactMessage(
     id: number,
     isAcknowledged = true
