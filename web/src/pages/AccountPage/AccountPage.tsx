@@ -5,6 +5,7 @@ import { useSubscriptionStatus } from './hooks';
 import {
   UserProfile,
   PlanDetails,
+  ClaimSubscription,
   SubscriptionManagement,
   AccountDeletion,
   AutoSyncBanner,
@@ -83,6 +84,8 @@ export default function AccountPage() {
       <PlanDetails subscriptionType={subscriptionType} />
 
       <AutoSyncBanner />
+
+      <ClaimSubscription />
 
       <SubscriptionManagement
         user={user}
