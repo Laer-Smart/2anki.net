@@ -45,9 +45,12 @@ Before the first `Edit`, `Write`, or `Bash` command that mutates files, check th
 
 - `src/services/AuthenticationService/**`
 - `src/services/StripeService/**`
+- `src/controllers/StripeController/**`
+- `src/routes/WebhookRouter.*`
 - `src/lib/Token.ts`
+- `src/server.ts` (boot wiring, startup jobs, middleware order)
 - `migrations/**`
-- Any path matching `**/auth/**` or `**/payments/**` (case-insensitive)
+- Any path matching `**/auth/**`, `**/payments/**`, or `**/webhook*/**` (case-insensitive)
 
 **Why:** Reverting a worktree is free; reverting a bad edit on the orchestrator's main checkout costs a force-revert and may require a re-deploy. The cost of `EnterWorktree` is seconds; the cost of a botched auth or payments change on main is hours.
 
