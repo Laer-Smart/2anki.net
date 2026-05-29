@@ -3,6 +3,7 @@ Retrieve the correct genanki model
 """
 from genanki import Model
 
+from .get_model_id import get_model_id
 from .get_template import get_template
 
 MODEL_INFO = {
@@ -129,4 +130,55 @@ def get_model(descriptor, mcq_settings=None, front_lang=""):
         ],
         css=css,
         model_type=model_info.get("model_type"),
+    )
+
+
+def get_custom_model(model_name, field_names, is_cloze, css):
+    """
+    Build a genanki Model that preserves the user's original note-type
+    structure. Used by the apkg-input transform pipeline when the source
+    deck has fields beyond Front/Back — we keep all of them so the
+    transformed deck round-trips cleanly into Anki.
+
+    model_name: the original note-type name from the uploaded deck
+    field_names: ordered list of field names from the source note type
+    is_cloze: True if the original model was a Cloze note type
+    css: stylesheet to apply (typically BASIC_STYLE or CLOZE_STYLE)
+    """
+    if not field_names:
+        field_names = ["Front", "Back"]
+
+    safe_id = get_model_id(model_name)
+    safe_fields = [{"name": name} for name in field_names]
+    first = field_names[0]
+    remaining = field_names[1:]
+
+    if is_cloze:
+        qfmt = f"{{{{cloze:{first}}}}}"
+        afmt_parts = [f"{{{{cloze:{first}}}}}"]
+        for name in remaining:
+            afmt_parts.append(f"<br>{{{{{name}}}}}")
+        afmt = "".join(afmt_parts)
+        model_type = Model.CLOZE
+    else:
+        qfmt = f"{{{{{first}}}}}"
+        afmt_parts = ['{{FrontSide}}<hr id="answer">']
+        for name in remaining:
+            afmt_parts.append(f"<br>{{{{{name}}}}}")
+        afmt = "".join(afmt_parts)
+        model_type = Model.FRONT_BACK
+
+    return Model(
+        safe_id,
+        model_name,
+        fields=safe_fields,
+        templates=[
+            {
+                "name": model_name,
+                "qfmt": qfmt,
+                "afmt": afmt,
+            },
+        ],
+        css=css,
+        model_type=model_type,
     )
