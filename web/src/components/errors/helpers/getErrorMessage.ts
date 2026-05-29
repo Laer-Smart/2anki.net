@@ -157,6 +157,10 @@ const PER_CODE_COPY: Partial<Record<UploadErrorBody['code'], FriendlyError>> = {
     title: 'This export has no content we can turn into cards.',
     detail: 'Check the page has text or toggle blocks, then export again.',
   },
+  claude_parse_failed: {
+    title: 'Something went wrong while making your cards.',
+    detail: 'Try again — if it keeps happening, email support@2anki.net.',
+  },
 };
 
 export function classifyUploadError(body: UploadErrorBody): FriendlyError {

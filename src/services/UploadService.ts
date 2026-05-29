@@ -18,7 +18,7 @@ import { getUploadValidationError } from '../lib/upload/getUploadValidationError
 import { EmptyDeckError } from '../usecases/jobs/EmptyDeckError';
 import { DeckTooLargeError } from '../lib/parser/exporters/DeckTooLargeError';
 import { getOwner } from '../lib/User/getOwner';
-import { generateDeckInfo, DeckInfo } from '../lib/claude/ClaudeService';
+import { generateDeckInfo, DeckInfo, ClaudeParseError } from '../lib/claude/ClaudeService';
 import CustomExporter from '../lib/parser/exporters/CustomExporter';
 import Deck from '../lib/parser/Deck';
 import { isHTMLFile, isMarkdownFile } from '../lib/storage/checks';
@@ -276,6 +276,7 @@ class UploadService {
         const message = err instanceof Error ? err.message : String(err);
         const isExpectedState =
           err instanceof EmptyDeckError ||
+          err instanceof ClaudeParseError ||
           (err instanceof Error && isPdfPasswordSentinel(err.message));
         if (isExpectedState) {
           console.info('[UploadService] async job user-input state', {

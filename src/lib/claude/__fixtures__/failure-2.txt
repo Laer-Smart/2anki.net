@@ -1,0 +1,5 @@
+```json
+[{"deck":"Lorem Deck A","cards":[{"q":"Lorem ipsum dolor sit amet?","a":"Consectetur adipiscing elit, sed do eiusmod."},{"q":"Ut enim ad minim veniam?","a":"Quis nostrud exercitation ullamco laboris."},{"q":"Duis aute irure dolor?","a":"In reprehenderit in voluptate velit esse."}]},{"deck":"Lorem Deck B","cards":[{"q":"Excepteur sint occaecat?","a":"Cupidatat non proident sunt in culpa."},{"q":"Qui officia deserunt?","a":"Mollit anim id est laborum consectetur."},{"q":"Sed ut perspiciatis unde?","a":"Omnis iste natus error sit voluptatem."}]}]
+```
+
+I've created flashcards covering the main topics from the provided content.
