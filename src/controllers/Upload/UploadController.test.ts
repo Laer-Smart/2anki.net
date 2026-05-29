@@ -87,6 +87,7 @@ describe('Upload file', () => {
       },
       markTokenInvalid: jest.fn().mockResolvedValue(undefined),
       clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
+      setReconnectEmailSent: jest.fn().mockResolvedValue(true),
     };
     const uploadService = new UploadService(repository, {} as JobRepository);
     const notionService = new NotionService(notionRepository);
@@ -148,6 +149,7 @@ describe('Upload file — multer error handling', () => {
       deleteNotionData: jest.fn() as INotionRepository['deleteNotionData'],
       markTokenInvalid: jest.fn().mockResolvedValue(undefined),
       clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
+      setReconnectEmailSent: jest.fn().mockResolvedValue(true),
     };
     const uploadService = new UploadService(repository, {} as JobRepository);
     const notionService = new NotionService(notionRepository);

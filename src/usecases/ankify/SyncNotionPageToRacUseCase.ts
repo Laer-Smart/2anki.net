@@ -6,6 +6,8 @@ import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/a
 import { AnkifySyncLogsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncLogsRepository';
 import { INotionRepository } from '../../data_layer/NotionRespository';
 import { IErrorEventRepository } from '../../data_layer/ErrorEventRepository';
+
+export type OnTokenInvalidFn = (owner: number) => Promise<void>;
 import {
   AnkifyClient,
   AnkifyNotionSubscription,
@@ -155,7 +157,8 @@ export class SyncNotionPageToRacUseCase {
     private readonly notionFetcher: NotionFetcherFactory,
     private readonly notionPageMeta?: NotionPageMetaFetcher,
     private readonly mediaFetcher: AnkifyMediaFetcher = fetch,
-    private readonly errorEvents?: IErrorEventRepository
+    private readonly errorEvents?: IErrorEventRepository,
+    private readonly onTokenInvalid?: OnTokenInvalidFn
   ) {}
 
   private modelCache(clientId: number): Set<string> {
@@ -223,7 +226,11 @@ export class SyncNotionPageToRacUseCase {
         await this.subscriptions.setEnabled(subscription.id, false);
       }
       if (isNotionUnauthorizedError(error)) {
-        await this.notionRepo.markTokenInvalid(input.owner);
+        if (this.onTokenInvalid != null) {
+          await this.onTokenInvalid(input.owner);
+        } else {
+          await this.notionRepo.markTokenInvalid(input.owner);
+        }
         await this.subscriptions.setEnabled(subscription.id, false);
       }
       throw error;

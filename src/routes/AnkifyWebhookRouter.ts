@@ -15,6 +15,8 @@ import { hasAnkifyAccess } from '../lib/ankify/access';
 import UsersRepository from '../data_layer/UsersRepository';
 import SubscriptionService from '../services/SubscriptionService';
 import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';
+import { getDefaultEmailService } from '../services/EmailService/EmailService';
+import { MarkNotionTokenInvalidUseCase } from '../usecases/notion/MarkNotionTokenInvalidUseCase';
 
 const AnkifyWebhookRouter = () => {
   const router = express.Router();
@@ -38,7 +40,13 @@ const AnkifyWebhookRouter = () => {
     notionBlockChildrenFetcherFactory,
     undefined,
     fetch,
-    new ErrorEventRepository(db)
+    new ErrorEventRepository(db),
+    (owner: number) =>
+      new MarkNotionTokenInvalidUseCase(
+        notionRepo,
+        usersRepo,
+        getDefaultEmailService()
+      ).execute(owner)
   );
 
   router.post(

@@ -14,6 +14,7 @@ export interface INotionRepository {
   deleteNotionData(owner: number): Promise<boolean>;
   markTokenInvalid(owner: number): Promise<void>;
   clearTokenInvalid(owner: number): Promise<void>;
+  setReconnectEmailSent(owner: number): Promise<boolean>;
 }
 
 class NotionRepository implements INotionRepository {
@@ -51,6 +52,7 @@ class NotionRepository implements INotionRepository {
           token: hash(data.access_token),
           owner: user,
           invalidated_at: null,
+          reconnect_email_sent_at: null,
         })
         .onConflict('owner')
         .merge()
@@ -111,7 +113,15 @@ class NotionRepository implements INotionRepository {
   async clearTokenInvalid(owner: number): Promise<void> {
     await this.database(this.notionTokensTable)
       .where({ owner })
-      .update({ invalidated_at: null });
+      .update({ invalidated_at: null, reconnect_email_sent_at: null });
+  }
+
+  async setReconnectEmailSent(owner: number): Promise<boolean> {
+    const affected = await this.database(this.notionTokensTable)
+      .where({ owner })
+      .whereNull('reconnect_email_sent_at')
+      .update({ reconnect_email_sent_at: this.database.fn.now() });
+    return affected === 1;
   }
 }
 

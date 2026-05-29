@@ -33,6 +33,9 @@ import { Client as NotionClient } from '@notionhq/client';
 import { setAnkifyExportScheduler } from '../lib/ankify/scheduler/instance';
 import Docker from 'dockerode';
 import KnexConfig from '../KnexConfig';
+import UsersRepository from './UsersRepository';
+import { getDefaultEmailService } from '../services/EmailService/EmailService';
+import { MarkNotionTokenInvalidUseCase } from '../usecases/notion/MarkNotionTokenInvalidUseCase';
 
 /**
  * Performing this assignment here to prevent new connections from being created.
@@ -232,7 +235,15 @@ export const setupDatabase = async (database: Knex) => {
             }
             return { title, url, icon };
           };
-        }
+        },
+        undefined,
+        undefined,
+        (owner: number) =>
+          new MarkNotionTokenInvalidUseCase(
+            notionRepo,
+            new UsersRepository(database),
+            getDefaultEmailService()
+          ).execute(owner)
       );
       const topLevelPagesRepo = new NotionTopLevelPagesRepository(database);
       const blocksCacheRepo = new BlocksCacheRepository(database);

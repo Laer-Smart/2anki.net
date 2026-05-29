@@ -43,6 +43,7 @@ function makeController(
     deleteNotionData: jest.fn().mockResolvedValue(true),
     markTokenInvalid: jest.fn().mockResolvedValue(undefined),
     clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
+    setReconnectEmailSent: jest.fn().mockResolvedValue(true),
   };
   const uploadService = new UploadService(
     uploadRepository,
