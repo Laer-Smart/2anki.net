@@ -26,6 +26,7 @@ function Footer() {
           <a href="/documentation/misc/privacy-policy">
             {getVisibleText('navigation.legal.privacy')}
           </a>
+          <a href="/security">Security</a>
         </div>
       </div>
       <div className={styles.bottom}>

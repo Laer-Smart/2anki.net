@@ -1,0 +1,21 @@
+.section {
+  margin-block: 1.5rem;
+}
+
+.section h2 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.section p {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0 0 0.75rem;
+}
+
+.section p:last-child {
+  margin-bottom: 0;
+}
