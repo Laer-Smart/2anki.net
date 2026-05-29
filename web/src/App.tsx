@@ -117,6 +117,7 @@ const SharedDeckPage = lazy(() => import('./pages/SharedDeckPage'));
 const MindmapsPage = lazy(() => import('./pages/MindmapsPage'));
 const SecurityPage = lazy(() => import('./pages/SecurityPage/SecurityPage'));
 const StatusPage = lazy(() => import('./pages/StatusPage/StatusPage'));
+const TransformPage = lazy(() => import('./pages/TransformPage'));
 
 const queryClient = new QueryClient();
 
@@ -200,6 +201,7 @@ function AppContent({
             element={requireAuth(<PhotoToFlashcardsPage />)}
           />
           <Route path="/mindmaps" element={requireAuth(<MindmapsPage />)} />
+          <Route path="/transform" element={requireAuth(<TransformPage />)} />
           <Route path="/mindmaps/:id" element={requireAuth(<MindmapsPage />)} />
           <Route path="/chat" element={requireAuth(<ChatPage />)} />
           <Route
