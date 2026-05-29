@@ -17,6 +17,7 @@ const KNOWN_APP_PREFIXES = [
   '/changelog',
   '/card-options',
   '/print',
+  '/status',
 ];
 
 const LINK_RE = /(?<!!)\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;

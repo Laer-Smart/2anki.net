@@ -92,14 +92,14 @@ export default function StatusPage() {
             </div>
             <div className={pageStyles.signalRow}>
               <span
-                className={`${pageStyles.dot} ${status.stripe.lastWebhookAt != null ? pageStyles.dotGreen : pageStyles.dotGray}`}
+                className={`${pageStyles.dot} ${status.stripe.lastWebhookAt == null ? pageStyles.dotGray : pageStyles.dotGreen}`}
                 aria-hidden="true"
               />
               <span className={pageStyles.label}>Stripe webhooks</span>
               <span>
-                {status.stripe.lastWebhookAt != null
-                  ? `Last received ${formatRelative(status.stripe.lastWebhookAt)}`
-                  : 'No webhook received since last deploy'}
+                {status.stripe.lastWebhookAt == null
+                  ? 'No webhook received since last deploy'
+                  : `Last received ${formatRelative(status.stripe.lastWebhookAt)}`}
               </span>
             </div>
           </section>

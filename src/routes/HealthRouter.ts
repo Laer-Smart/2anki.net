@@ -27,6 +27,17 @@ function loadIncidents(): IncidentEntry[] {
 const HealthRouter = (database: Knex) => {
   const router = express.Router();
 
+  /**
+   * @swagger
+   * /api/health:
+   *   get:
+   *     summary: Process health
+   *     description: Returns process uptime and version. Always 200.
+   *     tags: [Health]
+   *     responses:
+   *       200:
+   *         description: Process is up
+   */
   router.get('/api/health', (_req, res) => {
     res.json({
       ok: true,
@@ -35,6 +46,19 @@ const HealthRouter = (database: Knex) => {
     });
   });
 
+  /**
+   * @swagger
+   * /api/health/db:
+   *   get:
+   *     summary: Database health
+   *     description: Returns 200 when the database responds to a probe query, 503 otherwise.
+   *     tags: [Health]
+   *     responses:
+   *       200:
+   *         description: Database is reachable
+   *       503:
+   *         description: Database is unreachable
+   */
   router.get('/api/health/db', async (_req, res) => {
     try {
       await database.raw('select 1');
@@ -44,6 +68,17 @@ const HealthRouter = (database: Knex) => {
     }
   });
 
+  /**
+   * @swagger
+   * /api/status:
+   *   get:
+   *     summary: Public status snapshot
+   *     description: Aggregated signals for the public status page (api, db, Notion, Stripe, last deploy, recent incidents).
+   *     tags: [Health]
+   *     responses:
+   *       200:
+   *         description: Status snapshot
+   */
   router.get('/api/status', async (_req, res) => {
     const dbOk = await database.raw('select 1').then(() => true).catch(() => false);
     const notionLastCallAt = notionCallRingBuffer.lastSuccessAt();
