@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import TransformController from './TransformController';
-import { TransformApkgUseCase, UNKNOWN_MODEL_ERROR } from '../usecases/ankify/TransformApkgUseCase';
+import {
+  DeckTooLargeError,
+  TransformApkgUseCase,
+  UNKNOWN_MODEL_ERROR,
+} from '../usecases/ankify/TransformApkgUseCase';
 
 function makeRes(locals: Record<string, unknown> = {}): Partial<Response> {
   return {
@@ -136,15 +140,32 @@ describe('TransformController', () => {
 
     await controller.transform(req, res);
 
-    expect(execute).toHaveBeenCalledWith({
-      bytes: expect.any(Buffer),
-      transform: 'add_hint',
-      targetLanguage: undefined,
-    });
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        transform: 'add_hint',
+        targetLanguage: undefined,
+        noteCap: 250,
+      })
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.send).toHaveBeenCalledWith(expect.any(Buffer));
     expect(res.set).toHaveBeenCalledWith('Content-Type', 'application/apkg');
     expect(res.set).toHaveBeenCalledWith('X-Card-Count', '42');
+  });
+
+  it('maps DeckTooLargeError to a 413 with the cap in the message', async () => {
+    const execute = jest.fn().mockRejectedValue(new DeckTooLargeError(900, 250));
+    const useCase = { execute } as unknown as TransformApkgUseCase;
+    const controller = new TransformController(useCase);
+    const req = makeReq() as Request;
+    const res = makeRes({ subscriber: true }) as Response;
+
+    await controller.transform(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(413);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.stringContaining('900 notes — over the 250-per-job limit')
+    );
   });
 
   it('maps the unknown-model error to a 400 with the spec message', async () => {

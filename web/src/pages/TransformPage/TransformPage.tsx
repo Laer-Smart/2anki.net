@@ -134,6 +134,8 @@ export function TransformPage() {
   const [fieldNames, setFieldNames] = useState<string[]>([]);
   const [sourceField, setSourceField] = useState<number>(0);
   const [targetField, setTargetField] = useState<number>(1);
+  const [previewNoteCount, setPreviewNoteCount] = useState<number | null>(null);
+  const [noteCap, setNoteCap] = useState<number>(250);
   const [transformStartedAt, setTransformStartedAt] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -169,6 +171,7 @@ export function TransformPage() {
   useEffect(() => {
     if (file == null) {
       setFieldNames([]);
+      setPreviewNoteCount(null);
       return;
     }
     const controller = new AbortController();
@@ -181,7 +184,7 @@ export function TransformPage() {
       signal: controller.signal,
     })
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
-      .then((payload: { fieldNames?: unknown }) => {
+      .then((payload: { fieldNames?: unknown; noteCount?: unknown; noteCap?: unknown }) => {
         const names = Array.isArray(payload.fieldNames)
           ? payload.fieldNames.filter((v): v is string => typeof v === 'string')
           : [];
@@ -190,12 +193,21 @@ export function TransformPage() {
           setSourceField(0);
           setTargetField(Math.max(0, names.length - 1));
         }
+        if (typeof payload.noteCount === 'number') {
+          setPreviewNoteCount(payload.noteCount);
+        }
+        if (typeof payload.noteCap === 'number' && payload.noteCap > 0) {
+          setNoteCap(payload.noteCap);
+        }
       })
       .catch(() => {
         setFieldNames([]);
+        setPreviewNoteCount(null);
       });
     return () => controller.abort();
   }, [file]);
+
+  const overCap = previewNoteCount != null && previewNoteCount > noteCap;
 
   const supportsFieldPicker =
     transform === 'translate_back' || transform === 'add_image';
@@ -206,6 +218,7 @@ export function TransformPage() {
     setStatus('idle');
     setError(null);
     setCardCount(0);
+    setPreviewNoteCount(null);
     setTransformStartedAt(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -299,7 +312,10 @@ export function TransformPage() {
           </p>
         </header>
         <div className={pageStyles.paywall}>
-          <p>Translate, add examples, add hints, and more — on the paid plan.</p>
+          <p>
+            Transform is on the paid plan — translate, cloze, hint, or
+            illustrate every card in a deck you already have.
+          </p>
           <Link className={styles.btnPrimary} to="/pricing">See plans</Link>
         </div>
       </div>
@@ -333,6 +349,14 @@ export function TransformPage() {
             <span>{file.name}</span>
           )}
         </label>
+        <p className={pageStyles.capHint}>Up to {noteCap} notes per job. v1.</p>
+
+        {overCap && previewNoteCount != null && (
+          <p role="alert" className={pageStyles.capWarning}>
+            {previewNoteCount} notes — over the {noteCap}-per-job limit. Split
+            the deck and run it in batches. Larger decks are coming.
+          </p>
+        )}
 
         <fieldset className={pageStyles.fieldset}>
           <legend className={pageStyles.legend}>Transform</legend>
@@ -461,7 +485,7 @@ export function TransformPage() {
         <button
           type="submit"
           className={styles.btnPrimary}
-          disabled={file == null || status === 'transforming'}
+          disabled={file == null || status === 'transforming' || overCap}
         >
           {status === 'transforming' ? 'Transforming' : 'Transform'}
         </button>

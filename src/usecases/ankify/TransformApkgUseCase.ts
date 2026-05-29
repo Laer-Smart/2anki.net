@@ -23,6 +23,16 @@ export const UNKNOWN_MODEL_ERROR =
 export const EMPTY_DECK_ERROR =
   "We couldn't find any Basic or Cloze notes in this deck.";
 
+export class DeckTooLargeError extends Error {
+  constructor(
+    public readonly noteCount: number,
+    public readonly noteCap: number
+  ) {
+    super('deck_too_large');
+    this.name = 'DeckTooLargeError';
+  }
+}
+
 export interface TransformApkgInput {
   bytes: Buffer;
   transform: TransformName;
@@ -32,6 +42,7 @@ export interface TransformApkgInput {
   pexelsApiKey?: string;
   selection?: FieldSelection;
   concurrency?: number;
+  noteCap?: number;
 }
 
 export interface TransformApkgResult {
@@ -127,6 +138,9 @@ export class TransformApkgUseCase {
     this.assertOnlyKnownModels(parsed);
     if (parsed.notes.length === 0) {
       throw new Error(EMPTY_DECK_ERROR);
+    }
+    if (input.noteCap != null && parsed.notes.length > input.noteCap) {
+      throw new DeckTooLargeError(parsed.notes.length, input.noteCap);
     }
 
     const transformResult =

@@ -1,4 +1,9 @@
-import { TransformApkgUseCase, UNKNOWN_MODEL_ERROR, EMPTY_DECK_ERROR } from './TransformApkgUseCase';
+import {
+  TransformApkgUseCase,
+  UNKNOWN_MODEL_ERROR,
+  EMPTY_DECK_ERROR,
+  DeckTooLargeError,
+} from './TransformApkgUseCase';
 import * as parseModule from '../../services/ApkgPreviewService/parseApkgNotes';
 import * as transformModule from '../../services/ankify/transformService';
 import { ParsedNote, TransformedNote } from '../../lib/ankify/transforms/types';
@@ -81,6 +86,27 @@ describe('TransformApkgUseCase', () => {
         transform: 'add_hint',
       })
     ).rejects.toThrow(EMPTY_DECK_ERROR);
+  });
+
+  it('throws DeckTooLargeError when the deck exceeds the per-job cap', async () => {
+    const oversized = [makeNote('a'), makeNote('b'), makeNote('c')];
+    jest
+      .spyOn(parseModule, 'parseApkgNotes')
+      .mockResolvedValueOnce(makeParsed(oversized));
+    const transformSpy = jest.spyOn(transformModule, 'transformApkgNotes');
+
+    const useCase = new TransformApkgUseCase();
+    const promise = useCase.execute({
+      bytes: Buffer.from('x'),
+      transform: 'add_hint',
+      noteCap: 2,
+    });
+    await expect(promise).rejects.toBeInstanceOf(DeckTooLargeError);
+    await promise.catch((err: DeckTooLargeError) => {
+      expect(err.noteCount).toBe(3);
+      expect(err.noteCap).toBe(2);
+    });
+    expect(transformSpy).not.toHaveBeenCalled();
   });
 
   it('returns an apkg buffer with the transformed note count', async () => {

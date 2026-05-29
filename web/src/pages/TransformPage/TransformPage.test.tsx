@@ -47,7 +47,7 @@ describe('TransformPage', () => {
     });
     renderPage();
     expect(
-      screen.getByText(/Translate, add examples, add hints/i)
+      screen.getByText(/translate, cloze, hint, or illustrate/i)
     ).toBeInTheDocument();
   });
 
