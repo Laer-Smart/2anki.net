@@ -4,6 +4,7 @@ import {
   TransformMediaFile,
 } from './transformService';
 import {
+  FieldSelection,
   ImageSource,
   ParsedNote,
   TransformedNote,
@@ -16,6 +17,7 @@ export interface ImageTransformInput {
   source: ImageSource;
   pexelsApiKey?: string;
   concurrency?: number;
+  selection?: FieldSelection;
 }
 
 async function mapWithConcurrency<T>(
@@ -30,26 +32,52 @@ async function mapWithConcurrency<T>(
   }
 }
 
-const appendImageToBack = (
+const resolveSourceIndex = (note: ParsedNote, selection: FieldSelection): number =>
+  selection.sourceField ?? 0;
+
+const resolveTargetIndex = (note: ParsedNote, selection: FieldSelection): number => {
+  if (selection.targetField != null) return selection.targetField;
+  return Math.max(1, Math.min(note.fields.length - 1, 1));
+};
+
+const writeField = (
   note: ParsedNote,
-  filename: string
-): TransformedNote => ({
-  guid: note.guid,
-  modelKind: note.modelKind,
-  front: note.front,
-  back:
-    note.back.length > 0
-      ? `${note.back}<br><img src="${filename}">`
-      : `<img src="${filename}">`,
-  tags: note.tags,
-  media: [filename],
-});
+  index: number,
+  value: string
+): string[] => {
+  const next = [...note.fields];
+  while (next.length <= index) next.push('');
+  next[index] = value;
+  return next;
+};
+
+const appendImageToField = (
+  note: ParsedNote,
+  filename: string,
+  targetIndex: number
+): TransformedNote => {
+  const existing = note.fields[targetIndex] ?? '';
+  const updated =
+    existing.length > 0
+      ? `${existing}<br><img src="${filename}">`
+      : `<img src="${filename}">`;
+  return {
+    guid: note.guid,
+    modelKind: note.modelKind,
+    modelName: note.modelName,
+    fields: writeField(note, targetIndex, updated),
+    fieldNames: note.fieldNames,
+    tags: note.tags,
+    media: [filename],
+  };
+};
 
 const passthrough = (note: ParsedNote): TransformedNote => ({
   guid: note.guid,
   modelKind: note.modelKind,
-  front: note.front,
-  back: note.back,
+  modelName: note.modelName,
+  fields: [...note.fields],
+  fieldNames: note.fieldNames,
   tags: note.tags,
 });
 
@@ -57,6 +85,7 @@ export async function transformApkgWithImages(
   input: ImageTransformInput
 ): Promise<TransformApkgOutput> {
   const concurrency = input.concurrency ?? DEFAULT_CONCURRENCY;
+  const selection = input.selection ?? {};
   const t0 = Date.now();
 
   const results: TransformedNote[] = new Array(input.notes.length);
@@ -67,7 +96,10 @@ export async function transformApkgWithImages(
   let imagesMissed = 0;
 
   await mapWithConcurrency(input.notes, concurrency, async (note, index) => {
-    const query = buildImageQuery(note.front);
+    const sourceIndex = resolveSourceIndex(note, selection);
+    const targetIndex = resolveTargetIndex(note, selection);
+    const querySource = note.fields[sourceIndex] ?? '';
+    const query = buildImageQuery(querySource);
     if (query.length === 0) {
       results[index] = passthrough(note);
       imagesMissed += 1;
@@ -86,7 +118,7 @@ export async function transformApkgWithImages(
         seenFilenames.add(hit.filename);
         media.push({ filename: hit.filename, bytes: hit.bytes });
       }
-      results[index] = appendImageToBack(note, hit.filename);
+      results[index] = appendImageToField(note, hit.filename, targetIndex);
       imagesFound += 1;
     } catch (err) {
       results[index] = passthrough(note);

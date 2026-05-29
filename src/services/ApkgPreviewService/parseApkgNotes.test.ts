@@ -82,7 +82,14 @@ describe('parseApkgNotes', () => {
     const result = await parseApkgNotes(Buffer.alloc(0));
 
     expect(result.notes).toEqual([
-      { guid: 'g-1', modelKind: 'basic', front: 'Q', back: 'A', tags: ['alpha', 'beta'] },
+      {
+        guid: 'g-1',
+        modelKind: 'basic',
+        modelName: 'Basic',
+        fields: ['Q', 'A'],
+        fieldNames: [],
+        tags: ['alpha', 'beta'],
+      },
     ]);
     expect(result.deckName).toBe('Deck A');
     expect(result.unknownModelNames).toEqual([]);
@@ -199,7 +206,7 @@ describe('parseApkgNotes', () => {
     const result = await parseApkgNotes(Buffer.alloc(0));
 
     expect(result.notes[0]).toEqual(
-      expect.objectContaining({ front: 'only-front', back: '' })
+      expect.objectContaining({ fields: ['only-front'] })
     );
   });
 });

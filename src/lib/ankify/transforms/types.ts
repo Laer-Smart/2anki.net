@@ -17,20 +17,31 @@ export type SourceModelKind = 'basic' | 'cloze';
 export interface ParsedNote {
   guid: string;
   modelKind: SourceModelKind;
-  front: string;
-  back: string;
+  modelName: string;
+  fields: string[];
+  fieldNames: string[];
   tags: string[];
 }
 
 export interface TransformedNote {
   guid: string;
   modelKind: SourceModelKind;
-  front: string;
-  back: string;
-  hint?: string;
+  modelName: string;
+  fields: string[];
+  fieldNames: string[];
   tags: string[];
+  hint?: string;
   media?: string[];
 }
+
+export interface FieldSelection {
+  sourceField?: number;
+  targetField?: number;
+}
+
+export const getFrontField = (note: ParsedNote): string => note.fields[0] ?? '';
+
+export const getBackField = (note: ParsedNote): string => note.fields[1] ?? '';
 
 export interface TransformOptions {
   transform: TransformName;

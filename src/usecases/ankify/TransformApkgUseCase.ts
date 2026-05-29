@@ -45,24 +45,50 @@ export interface TransformApkgResult {
   };
 }
 
+function isCustomNoteType(transformed: TransformedNote): boolean {
+  if (transformed.fields.length > 2) return true;
+  const names = transformed.fieldNames.map((n) => n.toLowerCase());
+  const looksLikeBasic =
+    names.length === 2 &&
+    (names[0]?.includes('front') || names[0] === '') &&
+    (names[1]?.includes('back') || names[1] === '');
+  const looksLikeCloze =
+    transformed.modelKind === 'cloze' &&
+    names.length <= 2 &&
+    (names[0]?.includes('text') || names[0]?.includes('cloze') || names[0] === '');
+  return !looksLikeBasic && !looksLikeCloze;
+}
+
 function toAnkiNote(transformed: TransformedNote): Note {
+  const front = transformed.fields[0] ?? '';
+  const back = transformed.fields[1] ?? '';
   if (transformed.modelKind === 'cloze') {
-    const note = new Note(transformed.front, transformed.back);
+    const note = new Note(front, back);
     note.cloze = true;
     note.tags = transformed.tags;
     if (transformed.media && transformed.media.length > 0) {
       note.media = [...transformed.media];
     }
+    if (isCustomNoteType(transformed)) {
+      note.customFields = [...transformed.fields];
+      note.customFieldNames = [...transformed.fieldNames];
+      note.customModelName = transformed.modelName;
+    }
     return note;
   }
-  const front =
+  const renderedFront =
     transformed.hint != null && transformed.hint.length > 0
-      ? `${transformed.front}<div class="hint"><small>${transformed.hint}</small></div>`
-      : transformed.front;
-  const note = new Note(front, transformed.back);
+      ? `${front}<div class="hint"><small>${transformed.hint}</small></div>`
+      : front;
+  const note = new Note(renderedFront, back);
   note.tags = transformed.tags;
   if (transformed.media && transformed.media.length > 0) {
     note.media = [...transformed.media];
+  }
+  if (isCustomNoteType(transformed)) {
+    note.customFields = [...transformed.fields];
+    note.customFieldNames = [...transformed.fieldNames];
+    note.customModelName = transformed.modelName;
   }
   return note;
 }

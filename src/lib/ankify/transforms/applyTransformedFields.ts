@@ -1,7 +1,7 @@
-import { ParsedNote, TransformName, TransformedNote } from './types';
+import { FieldSelection, ParsedNote, TransformName, TransformedNote } from './types';
 
 export interface TransformResultPayload {
-  back?: string;
+  value?: string;
   example?: string;
   cloze?: string;
   hint?: string;
@@ -14,17 +14,33 @@ function appendExample(back: string, example: string): string {
   return `${back}${separator}<div class="example"><b>Example:</b> ${trimmedExample}</div>`;
 }
 
+const writeField = (
+  note: ParsedNote,
+  index: number,
+  value: string
+): string[] => {
+  const next = [...note.fields];
+  while (next.length <= index) next.push('');
+  next[index] = value;
+  return next;
+};
+
+const defaultBackIndex = (note: ParsedNote): number =>
+  Math.max(1, Math.min(note.fields.length - 1, 1));
+
 export function applyTransformedFields(
   note: ParsedNote,
   transform: TransformName,
-  payload: TransformResultPayload
+  payload: TransformResultPayload,
+  selection: FieldSelection = {}
 ): TransformedNote {
   if (transform === 'translate_back') {
-    const back = payload.back?.trim();
-    if (back == null || back.length === 0) {
-      throw new Error('translate_back result missing "back"');
+    const value = payload.value?.trim();
+    if (value == null || value.length === 0) {
+      throw new Error('translate_back result missing "value"');
     }
-    return { ...note, back };
+    const targetIndex = selection.targetField ?? selection.sourceField ?? defaultBackIndex(note);
+    return { ...note, fields: writeField(note, targetIndex, value) };
   }
 
   if (transform === 'add_example') {
@@ -32,7 +48,12 @@ export function applyTransformedFields(
     if (example == null || example.length === 0) {
       throw new Error('add_example result missing "example"');
     }
-    return { ...note, back: appendExample(note.back, example) };
+    const targetIndex = selection.targetField ?? defaultBackIndex(note);
+    const current = note.fields[targetIndex] ?? '';
+    return {
+      ...note,
+      fields: writeField(note, targetIndex, appendExample(current, example)),
+    };
   }
 
   if (transform === 'cloze_front') {
@@ -40,11 +61,16 @@ export function applyTransformedFields(
     if (cloze == null || cloze.length === 0) {
       throw new Error('cloze_front result missing "cloze"');
     }
+    const targetIndex = selection.sourceField ?? 0;
+    const cleared = writeField(note, targetIndex, cloze);
+    const backIndex = defaultBackIndex(note);
+    if (backIndex !== targetIndex) {
+      cleared[backIndex] = '';
+    }
     return {
       ...note,
       modelKind: 'cloze',
-      front: cloze,
-      back: '',
+      fields: cleared,
     };
   }
 

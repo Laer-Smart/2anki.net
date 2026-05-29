@@ -9,14 +9,20 @@ import { ParsedNote } from '../../lib/ankify/transforms/types';
 
 const mockedFetch = fetchImage as jest.MockedFunction<typeof fetchImage>;
 
-const note = (overrides: Partial<ParsedNote> = {}): ParsedNote => ({
-  guid: 'g-1',
-  modelKind: 'basic',
-  front: 'cat',
-  back: 'a small carnivorous mammal',
-  tags: [],
-  ...overrides,
-});
+const note = (
+  overrides: Partial<ParsedNote> & { front?: string; back?: string } = {}
+): ParsedNote => {
+  const { front, back, ...rest } = overrides;
+  return {
+    guid: 'g-1',
+    modelKind: 'basic',
+    modelName: 'Basic',
+    fields: [front ?? 'cat', back ?? 'a small carnivorous mammal'],
+    fieldNames: ['Front', 'Back'],
+    tags: [],
+    ...rest,
+  };
+};
 
 describe('transformApkgWithImages', () => {
   beforeEach(() => {
@@ -39,7 +45,7 @@ describe('transformApkgWithImages', () => {
     });
 
     expect(result.notes).toHaveLength(1);
-    expect(result.notes[0].back).toBe(
+    expect(result.notes[0].fields[1]).toBe(
       'a small carnivorous mammal<br><img src="2anki-abc.jpg">'
     );
     expect(result.notes[0].media).toEqual(['2anki-abc.jpg']);
@@ -64,7 +70,7 @@ describe('transformApkgWithImages', () => {
       concurrency: 1,
     });
 
-    expect(result.notes[0].back).toBe('<img src="2anki-xyz.jpg">');
+    expect(result.notes[0].fields[1]).toBe('<img src="2anki-xyz.jpg">');
   });
 
   it('passes the note through unchanged when the image source returns no hit', async () => {
@@ -77,7 +83,7 @@ describe('transformApkgWithImages', () => {
       concurrency: 1,
     });
 
-    expect(result.notes[0].back).toBe('a small carnivorous mammal');
+    expect(result.notes[0].fields[1]).toBe('a small carnivorous mammal');
     expect(result.failures).toEqual([]);
     expect(result.media).toEqual([]);
   });
@@ -93,7 +99,7 @@ describe('transformApkgWithImages', () => {
     });
 
     expect(result.notes).toHaveLength(1);
-    expect(result.notes[0].back).toBe('a small carnivorous mammal');
+    expect(result.notes[0].fields[1]).toBe('a small carnivorous mammal');
     expect(result.failures).toEqual([
       { guid: 'bang', reason: 'network down' },
     ]);
@@ -122,8 +128,8 @@ describe('transformApkgWithImages', () => {
     });
 
     expect(result.media).toHaveLength(1);
-    expect(result.notes[0].back).toMatch(/2anki-shared\.jpg/);
-    expect(result.notes[1].back).toMatch(/2anki-shared\.jpg/);
+    expect(result.notes[0].fields[1]).toMatch(/2anki-shared\.jpg/);
+    expect(result.notes[1].fields[1]).toMatch(/2anki-shared\.jpg/);
   });
 
   it('skips fetch entirely when the query is empty after sanitization', async () => {
@@ -133,6 +139,6 @@ describe('transformApkgWithImages', () => {
     });
 
     expect(mockedFetch).not.toHaveBeenCalled();
-    expect(result.notes[0].back).toBe('a small carnivorous mammal');
+    expect(result.notes[0].fields[1]).toBe('a small carnivorous mammal');
   });
 });

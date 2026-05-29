@@ -25,6 +25,12 @@ export default class Note {
 
   correctIndices: number[] = [];
 
+  customFields?: string[];
+
+  customFieldNames?: string[];
+
+  customModelName?: string;
+
   constructor(name: string, back: string) {
     this.name = name;
     this.back = back;

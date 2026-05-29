@@ -51,13 +51,15 @@ function buildNote(
   }
   const fields = note.fields;
   if (fields.length === 0) return null;
-  const front = fields[0] ?? '';
-  const back = fields[1] ?? '';
+  const fieldNames = [...model.fields]
+    .sort((a, b) => a.ord - b.ord)
+    .map((f) => f.name);
   return {
     guid: note.guid ?? `id-${note.id}`,
     modelKind: kind,
-    front,
-    back,
+    modelName: model.name,
+    fields: [...fields],
+    fieldNames,
     tags: note.tags
       .split(' ')
       .map((t) => t.trim())

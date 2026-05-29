@@ -14,8 +14,9 @@ function makeClient(handler: MessageCreateFn): FakeClient {
 const sample = (suffix: string): ParsedNote => ({
   guid: `g-${suffix}`,
   modelKind: 'basic',
-  front: `Front ${suffix}`,
-  back: `Back ${suffix}`,
+  modelName: 'Basic',
+  fields: [`Front ${suffix}`, `Back ${suffix}`],
+  fieldNames: ['Front', 'Back'],
   tags: [],
 });
 
@@ -25,7 +26,7 @@ describe('transformApkgNotes', () => {
     const client = makeClient(async (req) => {
       calls.push(req);
       return {
-        content: [{ type: 'text', text: '{"back":"traducido"}' }],
+        content: [{ type: 'text', text: '{"value":"traducido"}' }],
         usage: { input_tokens: 100, output_tokens: 20 },
       };
     });
@@ -39,7 +40,7 @@ describe('transformApkgNotes', () => {
     });
 
     expect(result.notes).toHaveLength(3);
-    expect(result.notes.every((n) => n.back === 'traducido')).toBe(true);
+    expect(result.notes.every((n) => n.fields[1] === 'traducido')).toBe(true);
     expect(result.failures).toHaveLength(0);
     expect(calls).toHaveLength(3);
     expect(result.usage.totalCalls).toBe(3);
@@ -60,8 +61,8 @@ describe('transformApkgNotes', () => {
       client: client as never,
     });
 
-    expect(result.notes[0].back).toContain('Back a');
-    expect(result.notes[0].back).toContain('Mitochondria multiply rapidly.');
+    expect(result.notes[0].fields[1]).toContain('Back a');
+    expect(result.notes[0].fields[1]).toContain('Mitochondria multiply rapidly.');
   });
 
   it('flips Basic to Cloze for cloze_front', async () => {
@@ -77,8 +78,8 @@ describe('transformApkgNotes', () => {
     });
 
     expect(result.notes[0].modelKind).toBe('cloze');
-    expect(result.notes[0].front).toContain('{{c1::Mitochondrion}}');
-    expect(result.notes[0].back).toBe('');
+    expect(result.notes[0].fields[0]).toContain('{{c1::Mitochondrion}}');
+    expect(result.notes[0].fields[1]).toBe('');
   });
 
   it('records a failure when the model returns junk', async () => {
@@ -92,7 +93,7 @@ describe('transformApkgNotes', () => {
         };
       }
       return {
-        content: [{ type: 'text', text: '{"back":"ok"}' }],
+        content: [{ type: 'text', text: '{"value":"ok"}' }],
         usage: { input_tokens: 0, output_tokens: 0 },
       };
     });

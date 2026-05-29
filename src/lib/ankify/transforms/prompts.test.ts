@@ -4,8 +4,9 @@ import { ParsedNote } from './types';
 const basicNote: ParsedNote = {
   guid: 'g-1',
   modelKind: 'basic',
-  front: 'What is the mitochondrion?',
-  back: 'The powerhouse of the cell.',
+  modelName: 'Basic',
+  fields: ['What is the mitochondrion?', 'The powerhouse of the cell.'],
+  fieldNames: ['Front', 'Back'],
   tags: [],
 };
 
@@ -15,8 +16,8 @@ describe('buildTransformPrompt', () => {
       const result = buildTransformPrompt('translate_back', basicNote, 'Spanish');
       const payload = JSON.parse(result.user);
       expect(payload.target_language).toBe('Spanish');
-      expect(payload.front).toBe(basicNote.front);
-      expect(payload.back).toBe(basicNote.back);
+      expect(payload.field_to_translate).toBe(basicNote.fields[1]);
+      expect(payload.context_front).toBe(basicNote.fields[0]);
       expect(result.system).toContain('JSON only');
     });
 
@@ -31,8 +32,10 @@ describe('buildTransformPrompt', () => {
     it('strips HTML before sending to the model', () => {
       const noteWithHtml: ParsedNote = {
         ...basicNote,
-        front: '<b>What is the mitochondrion?</b>',
-        back: '<i>The powerhouse</i> of the <span>cell</span>.',
+        fields: [
+          '<b>What is the mitochondrion?</b>',
+          '<i>The powerhouse</i> of the <span>cell</span>.',
+        ],
       };
       const result = buildTransformPrompt('add_example', noteWithHtml, undefined);
       const payload = JSON.parse(result.user);
