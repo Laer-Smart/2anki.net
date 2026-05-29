@@ -1026,6 +1026,36 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
   };
 
   const renderErrorState = () => {
+    const isExistingApkg =
+      localError != null && /already an Anki deck/i.test(localError.message);
+    if (isExistingApkg) {
+      return (
+        <div className={formStyles.stateContent}>
+          <p className={formStyles.errorTitle}>That&apos;s already an Anki deck</p>
+          <div className={formStyles.apkgRedirectActions}>
+            <Link to="/transform" className={sharedStyles.btnPrimary}>
+              Transform this deck →
+            </Link>
+            <p className={formStyles.apkgRedirectSupporting}>
+              Edit cards, merge decks, or change the note type.
+            </p>
+            <Link to="/print" className={sharedStyles.btnInline}>
+              Print as PDF instead
+            </Link>
+            <p className={formStyles.apkgRedirectSupporting}>
+              Export your deck as a printable PDF for offline study.
+            </p>
+          </div>
+          <button
+            type="button"
+            className={formStyles.actionButton}
+            onClick={resetForm}
+          >
+            Pick a different file
+          </button>
+        </div>
+      );
+    }
     const classified = localError
       ? classifyUploadError(localError)
       : {
@@ -1036,22 +1066,11 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     const errorText = classified.detail
       ? `${classified.title} ${classified.detail}`
       : classified.title;
-    const isExistingApkg =
-      localError != null && /already an Anki deck/i.test(localError.message);
     return (
       <div className={formStyles.stateContent}>
         <WarningIcon className={formStyles.iconError} />
         <p className={formStyles.errorTitle}>Something went wrong</p>
-        <p className={formStyles.errorBody}>
-          {errorText}
-          {isExistingApkg && (
-            <>
-              {' '}
-              Want to print or share it as a PDF?{' '}
-              <Link to="/print">Try Print Decks</Link>.
-            </>
-          )}
-        </p>
+        <p className={formStyles.errorBody}>{errorText}</p>
         <p className={formStyles.statusLink}>
           Something looks off? <Link to="/status">Check status.</Link>
         </p>
