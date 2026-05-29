@@ -16,6 +16,7 @@ import { isLimitError } from '../lib/misc/isLimitError';
 import { handleUploadLimitError } from '../controllers/Upload/helpers/handleUploadLimitError';
 import { getUploadValidationError } from '../lib/upload/getUploadValidationError';
 import { EmptyDeckError } from '../usecases/jobs/EmptyDeckError';
+import { MARKDOWN_LIKELY_LOSSY_REASON } from '../usecases/jobs/jobFailureReason';
 import { DeckTooLargeError } from '../lib/parser/exporters/DeckTooLargeError';
 import { getOwner } from '../lib/User/getOwner';
 import { generateDeckInfo, DeckInfo, ClaudeParseError } from '../lib/claude/ClaudeService';
@@ -34,6 +35,12 @@ interface EmptyDeckResponse {
   message: string;
   filename: string;
   docsLink: string;
+}
+
+interface MarkdownLossyResponse {
+  code: 'markdown_likely_lossy';
+  message: string;
+  filename: string;
 }
 
 interface DeckTooLargeResponse {
@@ -215,6 +222,14 @@ class UploadService {
       } else if (err instanceof EmptyDeckError) {
         const files = req.files as UploadedFile[] | undefined;
         const filename = files?.[0]?.originalname ?? 'your file';
+        if (err.sourceFormat === 'markdown') {
+          const body: MarkdownLossyResponse = {
+            code: 'markdown_likely_lossy',
+            message: MARKDOWN_LIKELY_LOSSY_REASON,
+            filename,
+          };
+          return res.status(400).json(body);
+        }
         const body: EmptyDeckResponse = {
           code: 'empty_export',
           message:
@@ -240,12 +255,6 @@ class UploadService {
           code: 'pdf_processing_failed',
           message:
             'We could not read this PDF. It may be corrupted, password-protected, or an unsupported variant. Try re-exporting the PDF or splitting it into smaller files.',
-        });
-      } else if (err instanceof Error && /^docx_parse_failed/.test(err.message)) {
-        return res.status(400).json({
-          code: 'docx_processing_failed',
-          message:
-            "We couldn't read this .docx. It may have been renamed from another format. Try re-exporting it from Word or Google Docs.",
         });
       } else {
         return ErrorHandler(res, req, err as Error);
@@ -283,8 +292,7 @@ class UploadService {
         const isExpectedState =
           err instanceof EmptyDeckError ||
           err instanceof ClaudeParseError ||
-          (err instanceof Error && isPdfPasswordSentinel(err.message)) ||
-          (err instanceof Error && /^docx_parse_failed/.test(err.message));
+          (err instanceof Error && isPdfPasswordSentinel(err.message));
         if (isExpectedState) {
           console.info('[UploadService] async job user-input state', {
             jobId: ws.id,

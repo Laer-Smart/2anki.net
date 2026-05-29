@@ -55,6 +55,14 @@ If you saw an error and want the fix, find the heading below that matches what y
 
 If you click anywhere else and the input goes away, drop the file in again — the password prompt comes back.
 
+## Notion Markdown export produces 0 cards
+
+**What you saw.** You exported a Notion page as Markdown and uploaded it, but got 0 cards — even though the page has toggles.
+
+**Why it happened.** Notion's Markdown export flattens toggle blocks into plain text. The toggles that 2anki turns into flashcards are stripped from the file before it reaches the converter.
+
+**How to fix it.** Re-export the same page from Notion as **HTML** instead of Markdown. The toggles are preserved in HTML and convert correctly.
+
 ## "Could not create a deck using your file and rules."
 
 **What you saw.** The upload finishes but produces no deck.

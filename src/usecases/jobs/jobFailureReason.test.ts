@@ -4,6 +4,7 @@ import { EmptyDeckError } from './EmptyDeckError';
 import {
   COLUMNS_AMBIGUOUS_PREFIX,
   EMPTY_DECK_FAILURE_REASON,
+  MARKDOWN_LIKELY_LOSSY_REASON,
   NOTION_TOKEN_EXPIRED_REASON,
   isNotionUnauthorizedError,
   jobFailureReasonFromError,
@@ -23,6 +24,16 @@ function makeUnauthorizedError(): APIResponseError {
 describe('jobFailureReasonFromError', () => {
   it('returns the EmptyDeckError reason unchanged', () => {
     const reason = jobFailureReasonFromError(new EmptyDeckError(), 'job-1');
+    expect(reason).toBe(EMPTY_DECK_FAILURE_REASON);
+  });
+
+  it('returns MARKDOWN_LIKELY_LOSSY_REASON for EmptyDeckError with markdown sourceFormat', () => {
+    const reason = jobFailureReasonFromError(new EmptyDeckError('markdown'), 'job-md');
+    expect(reason).toBe(MARKDOWN_LIKELY_LOSSY_REASON);
+  });
+
+  it('returns EMPTY_DECK_FAILURE_REASON for EmptyDeckError without sourceFormat', () => {
+    const reason = jobFailureReasonFromError(new EmptyDeckError(), 'job-html');
     expect(reason).toBe(EMPTY_DECK_FAILURE_REASON);
   });
 

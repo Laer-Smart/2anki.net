@@ -185,12 +185,12 @@ describe('classifyUploadError', () => {
     expect(result.detail).toBe('Try again — if it keeps happening, email support@2anki.net.');
   });
 
-  it('returns docx_processing_failed copy when code is docx_processing_failed', () => {
-    const body: UploadErrorBody = { code: 'docx_processing_failed', message: 'raw server text' };
+  it('markdown_likely_lossy returns the Notion toggle-flatten copy', () => {
+    const body: UploadErrorBody = { code: 'markdown_likely_lossy', message: 'raw server text' };
     const result = classifyUploadError(body);
-    expect(result.title).toBe("We couldn't read this .docx.");
-    expect(result.detail).toBe(
-      'It may have been renamed from another format. Try re-exporting it from Word or Google Docs.'
+    expect(result.title).toBe(
+      'Notion Markdown exports flatten toggles — re-export this page as HTML and the toggles become flashcards.'
     );
+    expect(result.detail).toBeUndefined();
   });
 });
