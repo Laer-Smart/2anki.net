@@ -10,7 +10,10 @@ export const ScheduleCleanup = (db: Knex) => {
   setInterval(() => runFileSystemCleanup(db), MS_21);
 
   setInterval(
-    () => deleteOldUploads(db).then(() => console.info('deleted old uploads')),
+    () =>
+      deleteOldUploads(db)
+        .then(() => console.info('deleted old uploads'))
+        .catch(console.error),
     MS_24_HOURS
   );
 };
