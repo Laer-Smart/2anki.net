@@ -89,6 +89,7 @@ describe('performConversion — heavy pipeline', () => {
     markTokenInvalidMock = jest.fn().mockResolvedValue(undefined);
     (NotionRepository as jest.Mock).mockImplementation(() => ({
       markTokenInvalid: markTokenInvalidMock,
+      setReconnectEmailSent: jest.fn().mockResolvedValue(false),
     }));
   });
 
