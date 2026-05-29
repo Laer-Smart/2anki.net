@@ -33,6 +33,10 @@ import sendErrorResponse from '../lib/sendErrorResponse';
 import { isPaying } from '../lib/isPaying';
 import ParserRules from '../lib/parser/ParserRules';
 import { GetDatabasePreviewUseCase } from '../usecases/notion/GetDatabasePreviewUseCase';
+import { MarkNotionTokenInvalidUseCase } from '../usecases/notion/MarkNotionTokenInvalidUseCase';
+import { INotionRepository } from '../data_layer/NotionRespository';
+import { IEmailService } from '../services/EmailService/EmailService';
+import UsersRepository from '../data_layer/UsersRepository';
 
 const DEFAULT_PREVIEW_PAGE_SIZE = 15;
 const MAX_PREVIEW_PAGE_SIZE = 50;
@@ -73,7 +77,24 @@ async function lookupPageMeta(
 }
 
 class NotionController {
-  constructor(private readonly service: NotionService) {}
+  constructor(
+    private readonly service: NotionService,
+    private readonly notionRepo?: INotionRepository,
+    private readonly usersRepo?: UsersRepository,
+    private readonly emailService?: IEmailService
+  ) {}
+
+  private markTokenInvalid(owner: number): void {
+    if (this.notionRepo != null && this.usersRepo != null && this.emailService != null) {
+      void new MarkNotionTokenInvalidUseCase(
+        this.notionRepo,
+        this.usersRepo,
+        this.emailService
+      ).execute(owner);
+    } else {
+      void this.service.markTokenInvalid(owner);
+    }
+  }
 
   async connect(req: Request, res: Response) {
     const { code, state } = req.query;
@@ -115,7 +136,7 @@ class NotionController {
       res.json(result);
     } catch (err) {
       if (err instanceof APIResponseError && err.code === APIErrorCode.Unauthorized) {
-        void this.service.markTokenInvalid(res.locals.owner);
+        this.markTokenInvalid(res.locals.owner);
         return res.status(401).json({ code: 'notion_unauthorized', message: 'API token is invalid.' });
       }
       sendErrorResponse(err, res);
@@ -138,7 +159,7 @@ class NotionController {
       res.json(result);
     } catch (err) {
       if (err instanceof APIResponseError && err.code === APIErrorCode.Unauthorized) {
-        void this.service.markTokenInvalid(res.locals.owner);
+        this.markTokenInvalid(res.locals.owner);
         return res.status(401).json({ code: 'notion_unauthorized', message: 'API token is invalid.' });
       }
       sendErrorResponse(err, res);

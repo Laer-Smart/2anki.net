@@ -8,6 +8,8 @@ import NotionTopLevelPagesRepository from '../data_layer/NotionTopLevelPagesRepo
 import BlocksCacheRepository from '../data_layer/BlocksCacheRepository';
 import NotionService from '../services/NotionService';
 import { getDatabase } from '../data_layer';
+import UsersRepository from '../data_layer/UsersRepository';
+import { getDefaultEmailService } from '../services/EmailService/EmailService';
 
 const NotionRouter = () => {
   const router = express.Router();
@@ -17,7 +19,10 @@ const NotionRouter = () => {
   const topLevelPagesRepository = new NotionTopLevelPagesRepository(database);
   const blocksCacheRepository = new BlocksCacheRepository(database);
   const controller = new NotionController(
-    new NotionService(repository, topLevelPagesRepository, blocksCacheRepository)
+    new NotionService(repository, topLevelPagesRepository, blocksCacheRepository),
+    repository,
+    new UsersRepository(database),
+    getDefaultEmailService()
   );
 
   /**

@@ -86,6 +86,7 @@ function makeService(opts: {
 		deleteNotionData: jest.fn(),
 		markTokenInvalid: jest.fn().mockResolvedValue(undefined),
 		clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
+		setReconnectEmailSent: jest.fn().mockResolvedValue(true),
 	};
 	const service = new NotionService(
 		fakeNotionRepo as never,

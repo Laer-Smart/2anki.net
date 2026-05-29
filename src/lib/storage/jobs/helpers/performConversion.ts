@@ -26,6 +26,8 @@ import { PythonExitError } from '../../../anki/buildPythonExitError';
 import { EmptyDeckError } from '../../../../usecases/jobs/EmptyDeckError';
 import { track } from '../../../../services/events/track';
 import NotionRepository from '../../../../data_layer/NotionRespository';
+import { getDefaultEmailService } from '../../../../services/EmailService/EmailService';
+import { MarkNotionTokenInvalidUseCase } from '../../../../usecases/notion/MarkNotionTokenInvalidUseCase';
 
 type CardCountBucket = '<50' | '50-499' | '500+';
 type ConversionSource = 'notion' | 'upload' | 'google_drive';
@@ -176,10 +178,14 @@ export default async function performConversion(
       });
     }
     if (isNotionUnauthorizedError(error)) {
-      const notionRepo = new NotionRepository(database);
       const ownerNum = Number(owner);
       if (Number.isFinite(ownerNum)) {
-        await notionRepo.markTokenInvalid(ownerNum);
+        const notionRepo = new NotionRepository(database);
+        await new MarkNotionTokenInvalidUseCase(
+          notionRepo,
+          new UsersRepository(database),
+          getDefaultEmailService()
+        ).execute(ownerNum);
       }
     }
     const failedJob = new SetJobFailedUseCase(jobRepository);

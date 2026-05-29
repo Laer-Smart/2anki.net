@@ -22,6 +22,8 @@ export default interface NotionTokens {
   notion_owner: unknown | null;
 
   invalidated_at: Date | null;
+
+  reconnect_email_sent_at: Date | null;
 }
 
 /** Represents the initializer for the table public.notion_tokens */
@@ -46,8 +48,9 @@ export interface NotionTokensInitializer {
 
   notion_owner?: unknown | null;
 
-  /** Default value: null */
   invalidated_at?: Date | null;
+
+  reconnect_email_sent_at?: Date | null;
 }
 
 /** Represents the mutator for the table public.notion_tokens */
@@ -71,4 +74,6 @@ export interface NotionTokensMutator {
   notion_owner?: unknown | null;
 
   invalidated_at?: Date | null;
+
+  reconnect_email_sent_at?: Date | null;
 }

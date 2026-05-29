@@ -10,6 +10,7 @@ function makeRepo(overrides: Partial<INotionRepository> = {}): INotionRepository
     deleteNotionData: jest.fn().mockResolvedValue(true),
     markTokenInvalid: jest.fn().mockResolvedValue(undefined),
     clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
+    setReconnectEmailSent: jest.fn().mockResolvedValue(true),
     ...overrides,
   };
 }

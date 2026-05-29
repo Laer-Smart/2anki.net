@@ -47,6 +47,8 @@ import { parseCollection } from '../services/ApkgPreviewService/parseCollection'
 import { extractApkg } from '../services/ApkgPreviewService/extractApkg';
 import RequireAnkifyAccess from './middleware/RequireAnkifyAccess';
 import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';
+import { getDefaultEmailService } from '../services/EmailService/EmailService';
+import { MarkNotionTokenInvalidUseCase } from '../usecases/notion/MarkNotionTokenInvalidUseCase';
 
 const buildNotionExportClient = (token: string) => {
   const notion = new NotionClient({ auth: token });
@@ -331,18 +333,25 @@ const AnkifyRouter = () => {
     return Buffer.isBuffer(body) ? body : Buffer.from(body as Uint8Array);
   };
 
+  const ankifyNotionRepo = new NotionRepository(db);
   const syncNotionPageUseCase = new SyncNotionPageToRacUseCase(
     repo,
     mappings,
     conflictsRepo,
     subscriptionsRepo,
     logsRepo,
-    new NotionRepository(db),
+    ankifyNotionRepo,
     ankiConnectFactory,
     notionBlockChildrenFetcherFactory,
     buildNotionPageMetaFetcher,
     fetch,
-    new ErrorEventRepository(db)
+    new ErrorEventRepository(db),
+    (owner: number) =>
+      new MarkNotionTokenInvalidUseCase(
+        ankifyNotionRepo,
+        new UsersRepository(db),
+        getDefaultEmailService()
+      ).execute(owner)
   );
 
   const controller = new AnkifyController(

@@ -52,6 +52,7 @@ jest.mock('../services/EmailService/EmailService', () => ({
     sendReEngagementEmail: jest.fn(),
     sendInactivityWarningEmail: jest.fn(),
     sendParserCanaryAlert: jest.fn(),
+    sendNotionReconnectEmail: jest.fn().mockResolvedValue(undefined),
   }),
 }));
 

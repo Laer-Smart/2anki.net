@@ -10,6 +10,7 @@ import {
   DEFAULT_SENDER,
   INACTIVITY_WARNING_TEMPLATE,
   MAGIC_LINK_TEMPLATE,
+  NOTION_RECONNECT_TEMPLATE,
   PASSWORD_RESET_TEMPLATE,
   RE_ENGAGEMENT_TEMPLATE,
   SUBSCRIPTION_CANCELLED_TEMPLATE,
@@ -61,6 +62,7 @@ export interface IEmailService {
   sendAbandonedCheckoutRecoveryEmail(to: string, token: string): Promise<void>;
   sendTrialEndedEmail(to: string, token: string, deckCount: number): Promise<void>;
   sendParserCanaryAlert(to: string, summary: string): Promise<void>;
+  sendNotionReconnectEmail(email: string): Promise<void>;
 }
 
 class EmailService implements IEmailService {
@@ -516,6 +518,26 @@ class EmailService implements IEmailService {
       throw error;
     }
   }
+
+  async sendNotionReconnectEmail(email: string): Promise<void> {
+    const ctaUrl = `${process.env.DOMAIN ?? 'https://2anki.net'}/notion`;
+    const markup = NOTION_RECONNECT_TEMPLATE.replace('{{ctaUrl}}', ctaUrl);
+    const msg = {
+      to: email,
+      from: this.defaultSender,
+      subject: 'Your Notion connection expired',
+      text: `2anki lost access to your Notion workspace and can no longer convert your pages. Reconnect at ${ctaUrl}`,
+      html: markup,
+      replyTo: 'support@2anki.net',
+    };
+
+    try {
+      await sgMail.send(msg);
+    } catch (error) {
+      console.error('[notion-reconnect] failed to send reconnect email:', error);
+      throw error;
+    }
+  }
 }
 
 export class UnimplementedEmailService implements IEmailService {
@@ -611,6 +633,10 @@ export class UnimplementedEmailService implements IEmailService {
 
   async sendParserCanaryAlert(to: string, summary: string): Promise<void> {
     console.info('sendParserCanaryAlert not handled', to, summary);
+  }
+
+  async sendNotionReconnectEmail(email: string): Promise<void> {
+    console.info('sendNotionReconnectEmail not handled', email);
   }
 }
 

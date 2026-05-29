@@ -3,6 +3,9 @@ import { APIErrorCode, APIResponseError } from '@notionhq/client';
 import NotionController from './NotionController';
 import NotionService from '../services/NotionService';
 import { InProgressJobError, JobLimitError } from '../lib/storage/jobs/helpers/errors';
+import { INotionRepository } from '../data_layer/NotionRespository';
+import { IEmailService } from '../services/EmailService/EmailService';
+import UsersRepository from '../data_layer/UsersRepository';
 
 jest.mock('../lib/conversionPool', () => ({
   __esModule: true,
@@ -25,6 +28,45 @@ import { CheckInProgressJobUseCase } from '../usecases/jobs/CheckInProgressJobUs
 import { CheckJobLimitUseCase } from '../usecases/jobs/CheckJobLimitUseCase';
 import { CancelJobUseCase } from '../usecases/jobs/CancelJobUseCase';
 import { StartJobUseCase } from '../usecases/jobs/StartJobUseCase';
+
+function buildNotionRepo(overrides: Partial<INotionRepository> = {}): INotionRepository {
+  return {
+    getNotionData: jest.fn(),
+    saveNotionToken: jest.fn(),
+    getNotionToken: jest.fn(),
+    deleteBlocksByOwner: jest.fn(),
+    deleteNotionData: jest.fn(),
+    markTokenInvalid: jest.fn().mockResolvedValue(undefined),
+    clearTokenInvalid: jest.fn(),
+    setReconnectEmailSent: jest.fn().mockResolvedValue(true),
+    ...overrides,
+  };
+}
+
+function buildEmailService(): IEmailService {
+  return {
+    sendResetEmail: jest.fn(),
+    sendConversionEmail: jest.fn(),
+    sendConversionLinkEmail: jest.fn(),
+    sendContactEmail: jest.fn(),
+    sendSubscriptionCancelledEmail: jest.fn(),
+    sendSubscriptionScheduledCancellationEmail: jest.fn(),
+    sendHostedAnkiAccessRequestEmail: jest.fn(),
+    sendMagicLinkEmail: jest.fn(),
+    sendReEngagementEmail: jest.fn(),
+    sendInactivityWarningEmail: jest.fn(),
+    sendAbandonedCheckoutRecoveryEmail: jest.fn(),
+    sendTrialEndedEmail: jest.fn(),
+    sendParserCanaryAlert: jest.fn(),
+    sendNotionReconnectEmail: jest.fn().mockResolvedValue(undefined),
+  };
+}
+
+function buildUsersRepo(): UsersRepository {
+  return {
+    getEmailById: jest.fn().mockResolvedValue(undefined),
+  } as unknown as UsersRepository;
+}
 
 describe('NotionController', () => {
   let service: NotionService;
@@ -309,7 +351,7 @@ describe('NotionController', () => {
       expect(body.message).not.toMatch(/href/);
     });
 
-    it('calls markTokenInvalid on owner when Notion returns Unauthorized', async () => {
+    it('invokes MarkNotionTokenInvalidUseCase when Notion returns Unauthorized on search', async () => {
       const unauthorizedError = new APIResponseError({
         code: APIErrorCode.Unauthorized,
         message: 'API token is invalid.',
@@ -317,21 +359,22 @@ describe('NotionController', () => {
         rawBodyText: '',
         headers: {},
       } as any);
-      const markTokenInvalid = jest.fn().mockResolvedValue(undefined);
+      const notionRepo = buildNotionRepo();
+      const emailService = buildEmailService();
       service = {
         getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
         search: jest.fn().mockRejectedValue(unauthorizedError),
-        markTokenInvalid,
+        markTokenInvalid: jest.fn().mockResolvedValue(undefined),
         getNotionAuthorizationLink: jest.fn().mockReturnValue('https://notion.so/oauth'),
         getClientId: jest.fn().mockReturnValue('client-abc'),
       } as any;
-      controller = new NotionController(service);
+      controller = new NotionController(service, notionRepo, buildUsersRepo(), emailService);
       req = { body: { query: 'test' }, params: {}, query: {} };
       res = { ...res, locals: { owner: 42 } } as any;
 
       await controller.search(req as express.Request, res as express.Response);
 
-      expect(markTokenInvalid).toHaveBeenCalledWith(42);
+      expect(notionRepo.markTokenInvalid).toHaveBeenCalledWith(42);
     });
   });
 
@@ -363,7 +406,7 @@ describe('NotionController', () => {
       expect(body.message).not.toMatch(/href/);
     });
 
-    it('calls markTokenInvalid on owner when Notion returns Unauthorized', async () => {
+    it('invokes MarkNotionTokenInvalidUseCase when Notion returns Unauthorized on searchTopLevelPages', async () => {
       const unauthorizedError = new APIResponseError({
         code: APIErrorCode.Unauthorized,
         message: 'API token is invalid.',
@@ -371,21 +414,22 @@ describe('NotionController', () => {
         rawBodyText: '',
         headers: {},
       } as any);
-      const markTokenInvalid = jest.fn().mockResolvedValue(undefined);
+      const notionRepo = buildNotionRepo();
+      const emailService = buildEmailService();
       service = {
         getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
         searchTopLevelPages: jest.fn().mockRejectedValue(unauthorizedError),
-        markTokenInvalid,
+        markTokenInvalid: jest.fn().mockResolvedValue(undefined),
         getNotionAuthorizationLink: jest.fn().mockReturnValue('https://notion.so/oauth'),
         getClientId: jest.fn().mockReturnValue('client-abc'),
       } as any;
-      controller = new NotionController(service);
+      controller = new NotionController(service, notionRepo, buildUsersRepo(), emailService);
       req = { body: { query: 'test' }, params: {}, query: {} };
       res = { ...res, locals: { owner: 42 } } as any;
 
       await controller.searchTopLevelPages(req as express.Request, res as express.Response);
 
-      expect(markTokenInvalid).toHaveBeenCalledWith(42);
+      expect(notionRepo.markTokenInvalid).toHaveBeenCalledWith(42);
     });
   });
 
