@@ -41,6 +41,7 @@ const makeEmailService = (
   sendAbandonedCheckoutRecoveryEmail: jest.fn(),
   sendTrialEndedEmail: jest.fn(),
   sendParserCanaryAlert: jest.fn(),
+  sendNotionReconnectEmail: jest.fn().mockResolvedValue(undefined),
   sendSubscriptionClaimConfirmation: jest.fn().mockResolvedValue(undefined),
   ...overrides,
 });
