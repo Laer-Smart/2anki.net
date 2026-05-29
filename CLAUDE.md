@@ -94,13 +94,24 @@ Every PR is checked against both — does it make the experience simpler/faster/
 
 ## The trio
 
-Three sub-agents in `.claude/agents/`:
+Three core sub-agents in `.claude/agents/`:
 
-- **engineer** — implements specs, reviews PRs, writes tests, ships.
-- **designer** — UI/UX decisions, copy, visual consistency.
-- **pm** — feedback synthesis, prioritization, spec writing, metrics.
+- **engineer** (opus) — implements specs, reviews PRs, writes tests, ships.
+- **designer** (opus) — UI/UX decisions, copy, visual consistency.
+- **pm** (opus) — feedback synthesis, prioritization, spec writing, metrics.
 
-Default: `pm` produces a spec → `designer` validates UX (only if user-facing) → `engineer` implements and ships. For tiny fixes, skip to engineer. Read-only audits go through `dead-code-auditor` (haiku); isolated feature work through `test-writer` (sonnet, worktree).
+Default: `pm` produces a spec → `designer` validates UX (only if user-facing) → `engineer` implements and ships. For tiny fixes, skip to engineer.
+
+**Supporting cast** (specialists, invoke by name):
+
+- **conversion-funnel-analyst** (sonnet) — weekly funnel pull; names the biggest drop-off between landing → signup → upload → download → paid. Use before prioritization.
+- **seo-content** (opus) — landing-page content, topical clusters, internal linking, sitemap proposals. Designer owns in-product voice; this owns search-driven copy.
+- **prod-incident-responder** (opus, worktree) — turns a recurring prod error into a single fix PR with a regression test. Use when logs show a repeat crash with no open PR.
+- **migration-reviewer** (sonnet) — read-only safety review of a Knex migration before flip-ready: locking, backfill, rollback, kanel.
+- **support-triage** (sonnet) — classify inbound `.eml` into bug / feature-request / billing / how-to / spam / urgent; route to the right next action. Reply itself stays in `/support-reply`.
+- **a11y-reviewer** (sonnet) — read-only accessibility punch list on a `web/` diff before browser-check sign-off.
+- **test-writer** (opus, worktree) — colocated Jest tests for a given source file; tests-only, never edits source.
+- **dead-code-auditor** (haiku) — read-only scan for unused exports, files, branches in `src/` and `web/src/`.
 
 Trio conventions: be opinionated (one recommendation, not five options); specs fit on one page; say what *not* to build; reply to support email *as a draft for Alexander to send*, saved as a `.txt` file in Downloads (see Gotchas).
 
