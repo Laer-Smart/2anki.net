@@ -32,8 +32,9 @@ function makeNote(id: string): ParsedNote {
   return {
     guid: id,
     modelKind: 'basic',
-    front: `Front ${id}`,
-    back: `Back ${id}`,
+    modelName: 'Basic',
+    fields: [`Front ${id}`, `Back ${id}`],
+    fieldNames: ['Front', 'Back'],
     tags: [],
   };
 }
@@ -42,8 +43,9 @@ function transformed(id: string, overrides: Partial<TransformedNote> = {}): Tran
   return {
     guid: id,
     modelKind: 'basic',
-    front: `Front ${id}`,
-    back: `Back ${id}`,
+    modelName: 'Basic',
+    fields: [`Front ${id}`, `Back ${id}`],
+    fieldNames: ['Front', 'Back'],
     tags: [],
     ...overrides,
   };
