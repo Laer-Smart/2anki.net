@@ -659,9 +659,8 @@ export class UnimplementedEmailService implements IEmailService {
     console.info('sendNotionReconnectEmail not handled', email);
   }
 
-  async sendSubscriptionClaimConfirmation(to: string, claimUrl: string): Promise<void> {
-    console.info('sendSubscriptionClaimConfirmation not handled', to);
-    void claimUrl;
+  async sendSubscriptionClaimConfirmation(_to: string, _claimUrl: string): Promise<void> {
+    console.info('sendSubscriptionClaimConfirmation not handled');
   }
 }
 

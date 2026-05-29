@@ -42,9 +42,9 @@ export function ClaimSubscription() {
       {expanded && (
         <div style={{ marginTop: '1rem' }}>
           {status === 'success' ? (
-            <p role="status" style={{ margin: 0 }}>
+            <output style={{ margin: 0, display: 'block' }}>
               Sent. Check that inbox for a confirmation link.
-            </p>
+            </output>
           ) : (
             <>
               <p style={{ margin: '0 0 1rem', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
