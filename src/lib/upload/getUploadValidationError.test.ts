@@ -77,4 +77,21 @@ describe('getUploadValidationError', () => {
     (suspect as unknown as { originalname: unknown }).originalname = 42;
     expect(() => getUploadValidationError([suspect])).not.toThrow();
   });
+
+  test('accepts an apkg file when allowApkg is true', () => {
+    const error = getUploadValidationError(
+      [makeFile({ originalname: 'Pharmacology.apkg', size: 82138 })],
+      { allowApkg: true }
+    );
+    expect(error).toBeNull();
+  });
+
+  test('still rejects an empty apkg file when allowApkg is true', () => {
+    const error = getUploadValidationError(
+      [makeFile({ originalname: 'Pharmacology.apkg', size: 0 })],
+      { allowApkg: true }
+    );
+    expect(error).not.toBeNull();
+    expect(error!.message).toContain('empty');
+  });
 });
