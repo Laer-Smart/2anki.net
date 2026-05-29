@@ -1,0 +1,88 @@
+.section {
+  margin-block: 1.5rem;
+}
+
+.section h2 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 0.75rem;
+}
+
+.signalRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.signalRow:last-child {
+  border-bottom: none;
+}
+
+.dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dotGreen {
+  background-color: #22c55e;
+}
+
+.dotRed {
+  background-color: #ef4444;
+}
+
+.dotGray {
+  background-color: #9ca3af;
+}
+
+.label {
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  min-width: 7rem;
+}
+
+.meta {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin-left: auto;
+}
+
+.fallback {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  padding: 1rem 0;
+}
+
+.incident {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: var(--text-sm);
+}
+
+.incident:last-child {
+  border-bottom: none;
+}
+
+.incidentSummary {
+  color: var(--color-text-primary);
+  font-weight: var(--font-medium);
+}
+
+.incidentTime {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+  margin-top: 0.25rem;
+}
+
+.incidentOpen {
+  color: #ef4444;
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+}

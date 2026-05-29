@@ -96,9 +96,14 @@ function FailedVariant({ failureReason, source, onMapColumns }: Omit<FailedProps
   };
   const friendly = classifyUploadError(errorBody);
   return (
-    <p>
-      {friendly.detail ? `${friendly.title} ${friendly.detail}` : friendly.title}
-    </p>
+    <>
+      <p>
+        {friendly.detail ? `${friendly.title} ${friendly.detail}` : friendly.title}
+      </p>
+      <p>
+        Something looks off? <Link to="/status">Check status.</Link>
+      </p>
+    </>
   );
 }
 

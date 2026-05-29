@@ -194,3 +194,48 @@ describe('classifyUploadError', () => {
     expect(result.detail).toBeUndefined();
   });
 });
+
+describe('classifyUploadError — new error codes', () => {
+  it('parser_crash returns the malformed-file copy', () => {
+    const body: UploadErrorBody = { code: 'parser_crash', message: 'raw' };
+    const result = classifyUploadError(body);
+    expect(result.title).toBe("Couldn't read this file.");
+    expect(result.detail).toContain("malformed or use a structure");
+    expect(result.detail).toContain('support@2anki.net');
+  });
+
+  it('worker_timeout returns the time-budget copy', () => {
+    const body: UploadErrorBody = { code: 'worker_timeout', message: 'raw' };
+    const result = classifyUploadError(body);
+    expect(result.title).toBe('This conversion took longer than the time budget.');
+    expect(result.detail).toContain('smaller pieces');
+  });
+
+  it('notion_rate_limit returns the rate-limiting copy', () => {
+    const body: UploadErrorBody = { code: 'notion_rate_limit', message: 'raw' };
+    const result = classifyUploadError(body);
+    expect(result.title).toBe('Notion is rate-limiting us right now.');
+    expect(result.detail).toContain('Wait a minute');
+  });
+
+  it('notion_object_not_found returns the page-not-found copy', () => {
+    const body: UploadErrorBody = { code: 'notion_object_not_found', message: 'raw' };
+    const result = classifyUploadError(body);
+    expect(result.title).toBe("We couldn't open that Notion page.");
+    expect(result.detail).toContain('Share it with the 2anki integration');
+  });
+
+  it('apkg_too_large_for_anki returns the upload-limit copy', () => {
+    const body: UploadErrorBody = { code: 'apkg_too_large_for_anki', message: 'raw' };
+    const result = classifyUploadError(body);
+    expect(result.title).toContain("Anki's upload limit");
+    expect(result.detail).toContain('Anki desktop');
+  });
+
+  it('zip_invalid returns the zip-format copy', () => {
+    const body: UploadErrorBody = { code: 'zip_invalid', message: 'raw' };
+    const result = classifyUploadError(body);
+    expect(result.title).toBe("Couldn't read this zip.");
+    expect(result.detail).toContain('Markdown & CSV export');
+  });
+});

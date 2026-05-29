@@ -52,7 +52,6 @@ export function classifyError(error: unknown): FriendlyError {
 
   const lower = raw.toLowerCase();
 
-  // Network / offline — Chrome's fetch throws "TypeError: Failed to fetch"
   if (
     error instanceof TypeError ||
     lower.includes('failed to fetch') ||
@@ -163,6 +162,30 @@ const PER_CODE_COPY: Partial<Record<UploadErrorBody['code'], FriendlyError>> = {
   claude_parse_failed: {
     title: 'Something went wrong while making your cards.',
     detail: 'Try again — if it keeps happening, email support@2anki.net.',
+  },
+  parser_crash: {
+    title: "Couldn't read this file.",
+    detail: "It may be malformed or use a structure we don't recognise yet. Try re-exporting from the source app, or send the file to support@2anki.net.",
+  },
+  worker_timeout: {
+    title: 'This conversion took longer than the time budget.',
+    detail: 'Try splitting the file into smaller pieces, or remove very large embedded images.',
+  },
+  notion_rate_limit: {
+    title: 'Notion is rate-limiting us right now.',
+    detail: 'Wait a minute and convert again.',
+  },
+  notion_object_not_found: {
+    title: "We couldn't open that Notion page.",
+    detail: 'Share it with the 2anki integration in Notion, then try again.',
+  },
+  apkg_too_large_for_anki: {
+    title: "This deck is over Anki's upload limit.",
+    detail: 'Split it by toggling fewer pages, or upload directly to Anki desktop.',
+  },
+  zip_invalid: {
+    title: "Couldn't read this zip.",
+    detail: "Make sure it's the Markdown & CSV export from Notion, not the HTML export.",
   },
 };
 

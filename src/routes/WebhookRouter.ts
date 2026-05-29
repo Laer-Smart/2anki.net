@@ -22,6 +22,7 @@ import AbandonedCheckoutRecoveryRepository from '../data_layer/AbandonedCheckout
 import { SendAbandonedCheckoutRecoveryOnExpiryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryOnExpiryUseCase';
 import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepository';
 import { RecordUserVisibleErrorUseCase } from '../usecases/observability/RecordUserVisibleErrorUseCase';
+import { recordStripeWebhook } from '../services/stripeWebhookTimestamp';
 
 const DURATION_24H_MS = 24 * 60 * 60 * 1000;
 const DURATION_7D_MS = 7 * 24 * 60 * 60 * 1000;
@@ -113,6 +114,8 @@ const WebhooksRouter = () => {
         console.error(err);
         return;
       }
+
+      recordStripeWebhook();
 
       const provisionSubscription = async (
         subscription: StripeTypes.Subscription

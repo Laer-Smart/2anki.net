@@ -115,6 +115,7 @@ const LimitPage = lazy(() => import('./pages/LimitPage/LimitPage'));
 const SharedDeckPage = lazy(() => import('./pages/SharedDeckPage'));
 const MindmapsPage = lazy(() => import('./pages/MindmapsPage'));
 const SecurityPage = lazy(() => import('./pages/SecurityPage/SecurityPage'));
+const StatusPage = lazy(() => import('./pages/StatusPage/StatusPage'));
 
 const queryClient = new QueryClient();
 
@@ -298,6 +299,7 @@ function AppContent({
           <Route path="/settings" element={requireAuth(<AccountPage />)} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/security" element={<SecurityPage />} />
+          <Route path="/status" element={<StatusPage />} />
           <Route path="/whats-new" element={<WhatsNewPage />} />
           <Route path="/documentation" element={<DocsPage />} />
           <Route path="/documentation/*" element={<DocsPage />} />
