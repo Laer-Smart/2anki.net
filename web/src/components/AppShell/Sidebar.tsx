@@ -15,6 +15,7 @@ import CameraIcon from '../icons/CameraIcon';
 import RectangleGroupIcon from '../icons/RectangleGroupIcon';
 import SwatchIcon from '../icons/SwatchIcon';
 import LayersIcon from '../icons/LayersIcon';
+import ChevronRightIcon from '../icons/ChevronRightIcon';
 import CommandLineIcon from '../icons/CommandLineIcon';
 import CreditCardIcon from '../icons/CreditCardIcon';
 import PrinterIcon from '../icons/PrinterIcon';
@@ -25,6 +26,7 @@ import UserCircleIcon from '../icons/UserCircleIcon';
 import SettingsIcon from '../icons/SettingsIcon';
 import WrenchIcon from '../icons/WrenchIcon';
 import ShareIcon from '../icons/ShareIcon';
+import { OPS_TABS } from '../../pages/OpsPage/opsTabs';
 import { ThemeSwitcher } from '../ThemeSwitcher/ThemeSwitcher';
 import { ThemeToggle } from '../ThemeSwitcher/ThemeToggle';
 import styles from './AppShell.module.css';
@@ -149,6 +151,78 @@ function SidebarRow({
       {Icon && <Icon width={20} height={20} />}
       <span className={styles.sidebarRowLabel}>{children}</span>
     </Link>
+  );
+}
+
+interface OpsSidebarFolderProps {
+  pathname: string;
+  collapsed: boolean;
+  onNavigate: React.MouseEventHandler<HTMLAnchorElement>;
+}
+
+function OpsSidebarFolder({
+  pathname,
+  collapsed,
+  onNavigate,
+}: Readonly<OpsSidebarFolderProps>) {
+  const opsActive = pathname === '/ops' || pathname.startsWith('/ops/');
+  const [open, setOpen] = useState(opsActive);
+  const expanded = open || opsActive;
+
+  if (collapsed) {
+    return (
+      <SidebarRow
+        href="/ops"
+        pathname={pathname}
+        matchPrefix
+        onClick={onNavigate}
+        icon={WrenchIcon}
+      >
+        Ops
+      </SidebarRow>
+    );
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className={`${styles.sidebarRow} ${styles.sidebarFolderHeader}`}
+        aria-expanded={expanded}
+        aria-controls="ops-folder-items"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <WrenchIcon width={20} height={20} />
+        <span className={styles.sidebarRowLabel}>Ops</span>
+        <ChevronRightIcon
+          width={16}
+          height={16}
+          className={`${styles.sidebarFolderChevron} ${
+            expanded ? styles.sidebarFolderChevronOpen : ''
+          }`}
+        />
+      </button>
+      {expanded && (
+        <div
+          id="ops-folder-items"
+          role="group"
+          aria-label="Ops"
+          className={styles.sidebarFolderItems}
+        >
+          {OPS_TABS.map((tab) => (
+            <SidebarRow
+              key={tab.to}
+              href={tab.to}
+              pathname={pathname}
+              matchPrefix={tab.to !== '/ops'}
+              onClick={onNavigate}
+            >
+              {tab.label}
+            </SidebarRow>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -404,14 +478,11 @@ export function Sidebar({
               </SidebarRow>
             )}
             {showOps && (
-              <SidebarRow
-                href="/ops"
+              <OpsSidebarFolder
                 pathname={pathname}
-                onClick={handleNavClick()}
-                icon={WrenchIcon}
-              >
-                Ops
-              </SidebarRow>
+                collapsed={collapsed}
+                onNavigate={handleNavClick()}
+              />
             )}
           </div>
         )}

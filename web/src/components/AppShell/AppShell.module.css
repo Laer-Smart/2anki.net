@@ -240,6 +240,35 @@
   gap: 0.125rem;
 }
 
+.sidebarFolderHeader {
+  width: 100%;
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebarFolderChevron {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  transition: transform var(--transition-fast);
+}
+
+.sidebarFolderChevronOpen {
+  transform: rotate(90deg);
+}
+
+.sidebarFolderItems {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.sidebarFolderItems .sidebarRow {
+  padding-left: 44px;
+}
+
 .sidebarSpacer {
   flex: 1 1 auto;
 }

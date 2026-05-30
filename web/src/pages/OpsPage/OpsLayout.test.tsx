@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, expect, test } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -21,39 +21,31 @@ const renderAt = (path: string) =>
   );
 
 describe('OpsLayout', () => {
-  test('renders both tab links', () => {
+  test('renders the Ops heading and the active section breadcrumb', () => {
     renderAt('/ops');
-    expect(screen.getByRole('link', { name: 'Engineering' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Business' })).toBeInTheDocument();
-  });
-
-  test('marks Engineering active on /ops', () => {
-    renderAt('/ops');
-    const engineering = screen.getByRole('link', { name: 'Engineering' });
-    const business = screen.getByRole('link', { name: 'Business' });
-    expect(engineering).toHaveAttribute('aria-current', 'page');
-    expect(business).not.toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('heading', { name: 'Ops' })).toBeInTheDocument();
+    const section = screen.getByText('Engineering');
+    expect(section).toHaveAttribute('aria-current', 'page');
     expect(screen.getByTestId('engineering')).toBeInTheDocument();
   });
 
-  test('marks Business active on /ops/business', () => {
+  test('shows the Business section name on /ops/business', () => {
     renderAt('/ops/business');
-    const engineering = screen.getByRole('link', { name: 'Engineering' });
-    const business = screen.getByRole('link', { name: 'Business' });
-    expect(business).toHaveAttribute('aria-current', 'page');
-    expect(engineering).not.toHaveAttribute('aria-current', 'page');
+    expect(screen.getByText('Business')).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    expect(screen.queryByText('Engineering')).not.toBeInTheDocument();
     expect(screen.getByTestId('business')).toBeInTheDocument();
   });
 
-  test('clicking the Business tab updates the URL and renders BusinessTab', () => {
+  test('no longer renders an in-page tab bar', () => {
     renderAt('/ops');
-    expect(screen.getByTestId('engineering')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('link', { name: 'Business' }));
-
-    expect(screen.getByTestId('business')).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: 'Business' })
-    ).toHaveAttribute('aria-current', 'page');
+      screen.queryByRole('link', { name: 'Business' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('navigation', { name: 'Ops sections' })
+    ).not.toBeInTheDocument();
   });
 });

@@ -211,12 +211,90 @@ describe('Sidebar admin group', () => {
     );
   });
 
-  it('shows Ops when ops is on', () => {
-    renderSidebar({ ops: true });
+  it('shows Ops as an expandable folder when ops is on', () => {
+    renderSidebar({ ops: true, pathname: '/upload' });
+    expect(
+      screen.getByRole('button', { name: 'Ops' })
+    ).toHaveAttribute('aria-expanded', 'false');
+  });
+});
+
+describe('Sidebar Ops folder', () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(() => localStorage.clear());
+
+  it('keeps the folder collapsed and its tabs hidden off /ops', () => {
+    renderSidebar({ ops: true, pathname: '/upload' });
+    expect(
+      screen.queryByRole('link', { name: 'Errors' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('expands the folder and reveals tabs when the header is clicked', () => {
+    renderSidebar({ ops: true, pathname: '/upload' });
+    fireEvent.click(screen.getByRole('button', { name: 'Ops' }));
+    expect(screen.getByRole('button', { name: 'Ops' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
+    expect(screen.getByRole('link', { name: 'Errors' })).toHaveAttribute(
+      'href',
+      '/ops/errors'
+    );
+  });
+
+  it('auto-expands and lists every ops tab when on an /ops route', () => {
+    renderSidebar({ ops: true, pathname: '/ops/errors' });
+    expect(screen.getByRole('button', { name: 'Ops' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
+    expect(screen.getByRole('link', { name: 'Engineering' })).toHaveAttribute(
+      'href',
+      '/ops'
+    );
+    expect(screen.getByRole('link', { name: 'Pricing A/B' })).toHaveAttribute(
+      'href',
+      '/ops/pricing-ab'
+    );
+  });
+
+  it('marks exactly the current tab active, not the Engineering index', () => {
+    renderSidebar({ ops: true, pathname: '/ops/errors' });
+    expect(screen.getByRole('link', { name: 'Errors' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    expect(
+      screen.getByRole('link', { name: 'Engineering' })
+    ).not.toHaveAttribute('aria-current', 'page');
+  });
+
+  it('marks Engineering active only on the /ops index', () => {
+    renderSidebar({ ops: true, pathname: '/ops' });
+    expect(screen.getByRole('link', { name: 'Engineering' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+    expect(screen.getByRole('link', { name: 'Errors' })).not.toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+  });
+
+  it('falls back to a single Ops link when the sidebar is collapsed', () => {
+    localStorage.setItem('sidebar.collapsed', 'true');
+    renderSidebar({ ops: true, pathname: '/ops/errors' });
     expect(screen.getByRole('link', { name: 'Ops' })).toHaveAttribute(
       'href',
       '/ops'
     );
+    expect(
+      screen.queryByRole('button', { name: 'Ops' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Errors' })
+    ).not.toBeInTheDocument();
   });
 });
 
