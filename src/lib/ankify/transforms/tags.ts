@@ -1,5 +1,5 @@
 const MAX_TAGS = 10;
-const ALLOWED = /[A-Za-z0-9_:\-]/;
+const ALLOWED = /[A-Za-z0-9_:-]/;
 
 function sanitizeToken(raw: string): string {
   let out = '';
