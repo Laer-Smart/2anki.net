@@ -551,6 +551,164 @@ const options: swaggerJsdoc.Options = {
             },
           },
         },
+        ChatBasicCard: {
+          type: 'object',
+          description:
+            'Basic two-sided flashcard. Front and back are both required strings.',
+          required: ['front', 'back'],
+          properties: {
+            front: { type: 'string' },
+            back: { type: 'string' },
+            tags: {
+              type: 'array',
+              items: { type: 'string' },
+              maxItems: 8,
+              description:
+                'Optional subject tags. Each tag is normalised server-side to lower-case kebab-case.',
+            },
+          },
+        },
+        ChatMcqCard: {
+          type: 'object',
+          description:
+            'Multiple-choice flashcard. On `/api/chat/deck` requests, `back` may be omitted — the server derives it from `options[correctIndex]`. On `/api/chat/message` `done` frames, `back` is emitted as an empty string.',
+          required: ['front', 'options', 'correctIndex'],
+          properties: {
+            front: { type: 'string' },
+            back: {
+              type: 'string',
+              description:
+                'Always emitted as an empty string in `done` frames. Optional in `/api/chat/deck` requests.',
+            },
+            options: {
+              type: 'array',
+              minItems: 4,
+              maxItems: 4,
+              items: { type: 'string' },
+              description: 'Exactly 4 non-empty option strings.',
+            },
+            correctIndex: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 3,
+              description: 'Index into `options` of the correct answer.',
+            },
+            rationale: {
+              type: 'string',
+              description: 'Optional short explanation of the correct answer.',
+            },
+            tags: {
+              type: 'array',
+              items: { type: 'string' },
+              maxItems: 8,
+            },
+          },
+        },
+        ChatTokenFrame: {
+          type: 'object',
+          description:
+            'SSE frame emitted as `event: token`. `data` is a JSON string fragment of the assistant reply.',
+          properties: {
+            event: { type: 'string', enum: ['token'] },
+            data: {
+              type: 'string',
+              description: 'JSON-encoded string fragment.',
+            },
+          },
+          required: ['event', 'data'],
+        },
+        ChatDoneFrame: {
+          type: 'object',
+          description:
+            'SSE frame emitted as `event: done`. Terminal frame on success.',
+          properties: {
+            event: { type: 'string', enum: ['done'] },
+            data: {
+              type: 'object',
+              required: ['content', 'conversationId'],
+              properties: {
+                content: {
+                  type: 'string',
+                  description: 'Full assistant reply, also reconstructable by concatenating `token` frames.',
+                },
+                conversationId: {
+                  type: 'integer',
+                  description:
+                    'Conversation id the message was persisted under. Returned even for first-turn requests where the caller did not send one.',
+                },
+                cards: {
+                  type: 'array',
+                  description:
+                    'Generated flashcards, when the assistant produced them. Each entry is either a basic card or an MCQ card — clients must handle both shapes.',
+                  items: {
+                    oneOf: [
+                      { $ref: '#/components/schemas/ChatBasicCard' },
+                      { $ref: '#/components/schemas/ChatMcqCard' },
+                    ],
+                  },
+                },
+                contentBefore: {
+                  type: 'string',
+                  description: 'Prose that appeared before the cards block.',
+                },
+                contentAfter: {
+                  type: 'string',
+                  description: 'Prose that appeared after the cards block.',
+                },
+              },
+            },
+          },
+          required: ['event', 'data'],
+        },
+        ChatErrorFrame: {
+          type: 'object',
+          description:
+            'SSE frame emitted as `event: error`. Terminal frame on failure. HTTP status remains 200 — branch on `data.type`.',
+          properties: {
+            event: { type: 'string', enum: ['error'] },
+            data: {
+              oneOf: [
+                {
+                  type: 'object',
+                  description:
+                    'Monthly free-tier message budget reached. `resetDate` is when the budget refills.',
+                  required: ['type', 'resetDate'],
+                  properties: {
+                    type: { type: 'string', enum: ['rate_limit'] },
+                    resetDate: { type: 'string', format: 'date-time' },
+                  },
+                },
+                {
+                  type: 'object',
+                  description:
+                    'Caller has not yet recorded chat consent (POST /api/chat/consent).',
+                  required: ['type'],
+                  properties: {
+                    type: { type: 'string', enum: ['consent_required'] },
+                  },
+                },
+                {
+                  type: 'object',
+                  description:
+                    'The `conversationId` in the request does not belong to the caller or does not exist.',
+                  required: ['type'],
+                  properties: {
+                    type: { type: 'string', enum: ['conversation_not_found'] },
+                  },
+                },
+                {
+                  type: 'object',
+                  description: 'Unhandled server error; safe to retry.',
+                  required: ['type'],
+                  properties: {
+                    type: { type: 'string', enum: ['server_error'] },
+                  },
+                },
+              ],
+            },
+          },
+          required: ['event', 'data'],
+        },
       },
     },
     security: [

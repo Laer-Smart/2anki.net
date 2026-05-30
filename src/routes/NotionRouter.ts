@@ -115,15 +115,36 @@ const NotionRouter = () => {
 
   /**
    * @swagger
+   * /api/notion/login:
+   *   get:
+   *     deprecated: true
+   *     summary: Deprecated — use GET /api/notion/get-notion-link
+   *     description: |
+   *       There is no `/api/notion/login` endpoint. Integrators sometimes
+   *       guess this URL because OAuth flows are commonly called "login"
+   *       elsewhere; hitting it returns 404. The endpoint that returns the
+   *       Notion OAuth authorization URL is `GET /api/notion/get-notion-link`.
+   *     tags: [Notion]
+   *     responses:
+   *       404:
+   *         description: Not found. Call GET /api/notion/get-notion-link instead.
+   */
+
+  /**
+   * @swagger
    * /api/notion/get-notion-link:
    *   get:
-   *     summary: Get Notion connection link
+   *     summary: Get Notion connection link (Notion OAuth login URL)
    *     description: |
    *       Returns the OAuth link to connect to Notion. The link itself is
    *       public — anonymous and expired-session users still get back a
    *       working URL so the "Connect to Notion" button never goes inert.
    *       `isConnected` and `workspace` are only populated when the caller
    *       has a valid session.
+   *
+   *       Note: there is no `/api/notion/login` endpoint. Some integrators
+   *       guess that path because OAuth flows are commonly called "login";
+   *       this endpoint is the canonical one.
    *     tags: [Notion]
    *     responses:
    *       200:

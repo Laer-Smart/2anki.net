@@ -237,4 +237,85 @@ describe('Swagger Documentation Coverage', () => {
     expect(spec.components.securitySchemes.bearerAuth).toBeDefined();
     expect(spec.components.securitySchemes.cookieAuth).toBeDefined();
   });
+
+  describe('chat endpoint contract documentation', () => {
+    const spec = swaggerSpec as SwaggerSpec;
+
+    it('documents /api/chat/message as a Server-Sent Events stream', () => {
+      const op = spec.paths['/api/chat/message']?.post;
+      expect(op).toBeDefined();
+      const ok = op.responses['200'];
+      expect(ok).toBeDefined();
+      expect(ok.content).toHaveProperty('text/event-stream');
+    });
+
+    it('documents templateSlug and multipart files for /api/chat/message', () => {
+      const op = spec.paths['/api/chat/message']?.post;
+      const jsonProps =
+        op.requestBody.content['application/json'].schema.properties;
+      expect(jsonProps.templateSlug).toBeDefined();
+      const multipart = op.requestBody.content['multipart/form-data'];
+      expect(multipart).toBeDefined();
+      expect(multipart.schema.properties.files).toBeDefined();
+    });
+
+    it('exposes ChatBasicCard, ChatMcqCard, and the three SSE frame schemas', () => {
+      const schemas = spec.components.schemas;
+      expect(schemas.ChatBasicCard).toBeDefined();
+      expect(schemas.ChatMcqCard).toBeDefined();
+      expect(schemas.ChatTokenFrame).toBeDefined();
+      expect(schemas.ChatDoneFrame).toBeDefined();
+      expect(schemas.ChatErrorFrame).toBeDefined();
+    });
+
+    it('models the done-frame cards entry as a oneOf of basic and MCQ shapes', () => {
+      const doneFrame = spec.components.schemas.ChatDoneFrame;
+      const cards = doneFrame.properties.data.properties.cards;
+      expect(cards.items.oneOf).toBeDefined();
+      const refs = cards.items.oneOf.map((entry: { $ref: string }) => entry.$ref);
+      expect(refs).toContain('#/components/schemas/ChatBasicCard');
+      expect(refs).toContain('#/components/schemas/ChatMcqCard');
+    });
+
+    it('models /api/chat/deck cards as a oneOf of basic and MCQ shapes', () => {
+      const op = spec.paths['/api/chat/deck']?.post;
+      const cards =
+        op.requestBody.content['application/json'].schema.properties.cards;
+      expect(cards.items.oneOf).toBeDefined();
+      const refs = cards.items.oneOf.map((entry: { $ref: string }) => entry.$ref);
+      expect(refs).toContain('#/components/schemas/ChatBasicCard');
+      expect(refs).toContain('#/components/schemas/ChatMcqCard');
+    });
+
+    it('documents templateSlug on /api/chat/deck', () => {
+      const op = spec.paths['/api/chat/deck']?.post;
+      const props =
+        op.requestBody.content['application/json'].schema.properties;
+      expect(props.templateSlug).toBeDefined();
+    });
+
+    it('documents the four error-frame types for /api/chat/message', () => {
+      const errorFrame = spec.components.schemas.ChatErrorFrame;
+      const variants = errorFrame.properties.data.oneOf;
+      const types = variants.map(
+        (variant: { properties: { type: { enum: string[] } } }) =>
+          variant.properties.type.enum[0]
+      );
+      expect(types).toEqual(
+        expect.arrayContaining([
+          'rate_limit',
+          'consent_required',
+          'conversation_not_found',
+          'server_error',
+        ])
+      );
+    });
+
+    it('documents /api/notion/login as deprecated and points to get-notion-link', () => {
+      const op = spec.paths['/api/notion/login']?.get;
+      expect(op).toBeDefined();
+      expect(op.deprecated).toBe(true);
+      expect(op.description).toMatch(/get-notion-link/);
+    });
+  });
 });
