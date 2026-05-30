@@ -70,11 +70,14 @@ function CopyButton({ group }: Readonly<CopyButtonProps>) {
 
   const handleCopy = useCallback(() => {
     const artifact = buildCopyArtifact(group);
-    navigator.clipboard.writeText(artifact).then(() => {
-      setCopied(true);
-      if (timerRef.current != null) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => setCopied(false), 1500);
-    }).catch(() => {});
+    navigator.clipboard
+      .writeText(artifact)
+      .then(() => {
+        setCopied(true);
+        if (timerRef.current != null) clearTimeout(timerRef.current);
+        timerRef.current = setTimeout(() => setCopied(false), 1500);
+      })
+      .catch(() => {});
   }, [group]);
 
   useEffect(() => {
@@ -100,7 +103,11 @@ interface DetailPanelProps {
   onResolutionChange: () => void;
 }
 
-function DetailPanel({ group, onClose, onResolutionChange }: Readonly<DetailPanelProps>) {
+function DetailPanel({
+  group,
+  onClose,
+  onResolutionChange,
+}: Readonly<DetailPanelProps>) {
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -118,13 +125,17 @@ function DetailPanel({ group, onClose, onResolutionChange }: Readonly<DetailPane
     const action = group.resolved ? reopenErrorGroup : resolveErrorGroup;
     action(group.message_hash)
       .then(() => onResolutionChange())
-      .catch((e: unknown) => setActionError(e instanceof Error ? e.message : 'Action failed'))
+      .catch((e: unknown) =>
+        setActionError(e instanceof Error ? e.message : 'Action failed')
+      )
       .finally(() => setBusy(false));
   };
 
-  const release = group.release == null ? '(unknown)' : group.release.slice(0, 8);
+  const release =
+    group.release == null ? '(unknown)' : group.release.slice(0, 8);
   const userId = group.user_id == null ? 'anonymous' : String(group.user_id);
-  const browser = group.source === 'web' ? parseUserAgent(group.user_agent) : null;
+  const browser =
+    group.source === 'web' ? parseUserAgent(group.user_agent) : null;
 
   return (
     <aside
@@ -139,8 +150,20 @@ function DetailPanel({ group, onClose, onResolutionChange }: Readonly<DetailPane
         gap: '0.75rem',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <h3 style={{ margin: 0, fontSize: 'var(--text-sm)', fontWeight: 'var(--font-semibold)' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            fontSize: 'var(--text-sm)',
+            fontWeight: 'var(--font-semibold)',
+          }}
+        >
           Error detail
         </h3>
         <button
@@ -153,19 +176,37 @@ function DetailPanel({ group, onClose, onResolutionChange }: Readonly<DetailPane
         </button>
       </div>
 
-      <p style={{ margin: 0, fontSize: 'var(--text-sm)', wordBreak: 'break-word' }}>
+      <p
+        style={{
+          margin: 0,
+          fontSize: 'var(--text-sm)',
+          wordBreak: 'break-word',
+        }}
+      >
         {group.message}
       </p>
 
-      <dl style={{ margin: 0, display: 'grid', gridTemplateColumns: '7rem 1fr', gap: '0.3rem 0.5rem', fontSize: 'var(--text-xs)' }}>
+      <dl
+        style={{
+          margin: 0,
+          display: 'grid',
+          gridTemplateColumns: '7rem 1fr',
+          gap: '0.3rem 0.5rem',
+          fontSize: 'var(--text-xs)',
+        }}
+      >
         <dt style={{ color: 'var(--color-text-tertiary)' }}>Source</dt>
         <dd style={{ margin: 0 }}>{group.source}</dd>
 
         <dt style={{ color: 'var(--color-text-tertiary)' }}>Occurrences</dt>
-        <dd style={{ margin: 0, fontVariantNumeric: 'tabular-nums' }}>{group.occurrences}</dd>
+        <dd style={{ margin: 0, fontVariantNumeric: 'tabular-nums' }}>
+          {group.occurrences}
+        </dd>
 
         <dt style={{ color: 'var(--color-text-tertiary)' }}>First seen</dt>
-        <dd style={{ margin: 0 }}>{new Date(group.first_seen).toUTCString()}</dd>
+        <dd style={{ margin: 0 }}>
+          {new Date(group.first_seen).toUTCString()}
+        </dd>
 
         <dt style={{ color: 'var(--color-text-tertiary)' }}>Last seen</dt>
         <dd style={{ margin: 0 }}>{new Date(group.last_seen).toUTCString()}</dd>
@@ -173,15 +214,21 @@ function DetailPanel({ group, onClose, onResolutionChange }: Readonly<DetailPane
         {group.resolved && group.resolved_at != null && (
           <>
             <dt style={{ color: 'var(--color-text-tertiary)' }}>Resolved</dt>
-            <dd style={{ margin: 0 }}>{new Date(group.resolved_at).toUTCString()}</dd>
+            <dd style={{ margin: 0 }}>
+              {new Date(group.resolved_at).toUTCString()}
+            </dd>
           </>
         )}
 
         <dt style={{ color: 'var(--color-text-tertiary)' }}>URL</dt>
-        <dd style={{ margin: 0, wordBreak: 'break-all' }}>{group.url ?? '(none)'}</dd>
+        <dd style={{ margin: 0, wordBreak: 'break-all' }}>
+          {group.url ?? '(none)'}
+        </dd>
 
         <dt style={{ color: 'var(--color-text-tertiary)' }}>Release</dt>
-        <dd style={{ margin: 0, fontFamily: 'ui-monospace, monospace' }}>{release}</dd>
+        <dd style={{ margin: 0, fontFamily: 'ui-monospace, monospace' }}>
+          {release}
+        </dd>
 
         <dt style={{ color: 'var(--color-text-tertiary)' }}>User</dt>
         <dd style={{ margin: 0 }}>{userId}</dd>
@@ -196,28 +243,47 @@ function DetailPanel({ group, onClose, onResolutionChange }: Readonly<DetailPane
 
       {group.stack != null && (
         <div>
-          <p style={{ margin: '0 0 0.25rem', fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <p
+            style={{
+              margin: '0 0 0.25rem',
+              fontSize: 'var(--text-xs)',
+              color: 'var(--color-text-tertiary)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}
+          >
             Stack
           </p>
-          <pre style={{
-            margin: 0,
-            fontSize: '0.7rem',
-            fontFamily: 'ui-monospace, monospace',
-            color: 'var(--color-text-secondary)',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-all',
-            background: 'var(--color-bg-secondary)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '0.5rem',
-            maxHeight: '240px',
-            overflowY: 'auto',
-          }}>
+          <pre
+            style={{
+              margin: 0,
+              fontSize: '0.7rem',
+              fontFamily: 'ui-monospace, monospace',
+              color: 'var(--color-text-secondary)',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-all',
+              background: 'var(--color-bg-secondary)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '0.5rem',
+              maxHeight: '240px',
+              overflowY: 'auto',
+            }}
+          >
             {group.stack}
           </pre>
         </div>
       )}
 
-      <div style={{ marginTop: 'auto', paddingTop: '0.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div
+        style={{
+          marginTop: 'auto',
+          paddingTop: '0.5rem',
+          display: 'flex',
+          gap: '0.5rem',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+        }}
+      >
         <CopyButton group={group} />
         <button
           type="button"
@@ -228,7 +294,9 @@ function DetailPanel({ group, onClose, onResolutionChange }: Readonly<DetailPane
           {group.resolved ? 'Reopen' : 'Resolve'}
         </button>
         {actionError != null && (
-          <span style={{ fontSize: 'var(--text-xs)', color: '#dc2626' }}>{actionError}</span>
+          <span style={{ fontSize: 'var(--text-xs)', color: '#dc2626' }}>
+            {actionError}
+          </span>
         )}
       </div>
     </aside>
@@ -242,19 +310,25 @@ export default function ErrorsTab() {
   const source: ErrorSource =
     rawSource === 'web' || rawSource === 'server' ? rawSource : 'all';
   const rawSort = searchParams.get('sort');
-  const sort: ErrorSort = rawSort === 'occurrences' ? 'occurrences' : 'last_seen';
+  const sort: ErrorSort =
+    rawSort === 'occurrences' ? 'occurrences' : 'last_seen';
   const rawStatus = searchParams.get('status');
   const status: ErrorStatus =
     rawStatus === 'resolved' || rawStatus === 'all' ? rawStatus : 'unresolved';
   const selectedHash = searchParams.get('id');
 
-  const { data, isLoading, error, refetch } = useErrorGroups({ source, sort, status });
+  const { data, isLoading, error, refetch } = useErrorGroups({
+    source,
+    sort,
+    status,
+  });
 
-  const selectedGroup = data?.groups.find((g) => g.message_hash === selectedHash) ?? null;
+  const selectedGroup =
+    data?.groups.find((g) => g.message_hash === selectedHash) ?? null;
 
   const updateParam = (key: string, value: string | null) => {
     const params = new URLSearchParams(searchParams);
-    if (value == null || value === '' ) {
+    if (value == null || value === '') {
       params.delete(key);
     } else {
       params.set(key, value);
@@ -263,9 +337,12 @@ export default function ErrorsTab() {
   };
 
   const selectGroup = (hash: string | null) => updateParam('id', hash);
-  const setSource = (s: ErrorSource) => updateParam('source', s === 'all' ? null : s);
-  const setStatus = (s: ErrorStatus) => updateParam('status', s === 'unresolved' ? null : s);
-  const toggleSort = () => updateParam('sort', sort === 'last_seen' ? 'occurrences' : 'last_seen');
+  const setSource = (s: ErrorSource) =>
+    updateParam('source', s === 'all' ? null : s);
+  const setStatus = (s: ErrorStatus) =>
+    updateParam('status', s === 'unresolved' ? null : s);
+  const toggleSort = () =>
+    updateParam('sort', sort === 'last_seen' ? 'occurrences' : 'last_seen');
 
   const countLabel = status === 'all' ? 'total' : status;
 
@@ -275,8 +352,12 @@ export default function ErrorsTab() {
         className={styles.tabHeader}
         style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-          <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}
+        >
+          <div
+            style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}
+          >
             <span style={filterLabelStyle}>Status</span>
             {STATUS_OPTIONS.map((opt) => (
               <button
@@ -287,14 +368,20 @@ export default function ErrorsTab() {
                     ? `${sharedStyles.btnSmallPill} ${sharedStyles.btnSmallPillActive ?? ''}`
                     : sharedStyles.btnSmallPill
                 }
-                style={status === opt.value ? { background: 'var(--color-primary)', color: '#fff' } : {}}
+                style={
+                  status === opt.value
+                    ? { background: 'var(--color-primary)', color: '#fff' }
+                    : {}
+                }
                 onClick={() => setStatus(opt.value)}
               >
                 {opt.label}
               </button>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
+          <div
+            style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}
+          >
             <span style={filterLabelStyle}>Source</span>
             {SOURCE_OPTIONS.map((opt) => (
               <button
@@ -305,7 +392,11 @@ export default function ErrorsTab() {
                     ? `${sharedStyles.btnSmallPill} ${sharedStyles.btnSmallPillActive ?? ''}`
                     : sharedStyles.btnSmallPill
                 }
-                style={source === opt.value ? { background: 'var(--color-primary)', color: '#fff' } : {}}
+                style={
+                  source === opt.value
+                    ? { background: 'var(--color-primary)', color: '#fff' }
+                    : {}
+                }
                 onClick={() => setSource(opt.value)}
               >
                 {opt.label}
@@ -338,10 +429,21 @@ export default function ErrorsTab() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 0, border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden', minHeight: '300px' }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 0,
+          border: '1px solid var(--color-border)',
+          borderRadius: 'var(--radius-md)',
+          overflow: 'hidden',
+          minHeight: '300px',
+        }}
+      >
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {isLoading && data == null && (
-            <p className={styles.emptyHint} style={{ padding: '1.5rem' }}>Loading…</p>
+            <p className={styles.emptyHint} style={{ padding: '1.5rem' }}>
+              Loading…
+            </p>
           )}
 
           {!isLoading && data?.groups.length === 0 && (
@@ -353,94 +455,103 @@ export default function ErrorsTab() {
           )}
 
           {data != null && data.groups.length > 0 && (
-            <table className={styles.table} style={{ tableLayout: 'fixed' }}>
-              <colgroup>
-                <col style={{ width: '1.25rem' }} />
-                <col />
-                <col style={{ width: '10rem' }} />
-                <col style={{ width: '6rem' }} />
-                <col style={{ width: '5rem' }} />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th aria-label="Source" />
-                  <th>Message</th>
-                  <th>URL</th>
-                  <th>Last seen</th>
-                  <th className={styles.numeric}>Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.groups.map((group) => {
-                  const isSelected = group.message_hash === selectedHash;
-                  return (
-                    <tr
-                      key={group.message_hash}
-                      style={{
-                        cursor: 'pointer',
-                        background: isSelected ? 'var(--color-bg-secondary)' : undefined,
-                        opacity: group.resolved ? 0.55 : undefined,
-                      }}
-                      onClick={() => selectGroup(isSelected ? null : group.message_hash)}
-                    >
-                      <td>
-                        <SourceDot source={group.source} />
-                      </td>
-                      <td
+            <div className={styles.tableScroll}>
+              <table
+                className={styles.table}
+                style={{ tableLayout: 'fixed', minWidth: '40rem' }}
+              >
+                <colgroup>
+                  <col style={{ width: '1.25rem' }} />
+                  <col />
+                  <col style={{ width: '10rem' }} />
+                  <col style={{ width: '6rem' }} />
+                  <col style={{ width: '5rem' }} />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th aria-label="Source" />
+                    <th>Message</th>
+                    <th>URL</th>
+                    <th>Last seen</th>
+                    <th className={styles.numeric}>Count</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.groups.map((group) => {
+                    const isSelected = group.message_hash === selectedHash;
+                    return (
+                      <tr
+                        key={group.message_hash}
                         style={{
-                          fontFamily: 'ui-monospace, monospace',
-                          fontSize: 'var(--text-xs)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
+                          cursor: 'pointer',
+                          background: isSelected
+                            ? 'var(--color-bg-secondary)'
+                            : undefined,
+                          opacity: group.resolved ? 0.55 : undefined,
                         }}
-                        title={group.message}
+                        onClick={() =>
+                          selectGroup(isSelected ? null : group.message_hash)
+                        }
                       >
-                        {group.resolved && (
-                          <span
-                            style={{
-                              fontFamily: 'inherit',
-                              fontSize: '0.65rem',
-                              fontWeight: 'var(--font-semibold)',
-                              color: 'var(--color-text-tertiary)',
-                              border: '1px solid var(--color-border)',
-                              borderRadius: 'var(--radius-sm)',
-                              padding: '0 0.3rem',
-                              marginRight: '0.4rem',
-                            }}
-                          >
-                            Resolved
-                          </span>
-                        )}
-                        {truncate(group.message, 80)}
-                      </td>
-                      <td
-                        style={{
-                          fontSize: 'var(--text-xs)',
-                          color: 'var(--color-text-secondary)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                        title={group.url ?? undefined}
-                      >
-                        {group.url == null ? '—' : truncate(group.url, 40)}
-                      </td>
-                      <td
-                        style={{
-                          fontSize: 'var(--text-xs)',
-                          color: 'var(--color-text-secondary)',
-                          fontVariantNumeric: 'tabular-nums',
-                        }}
-                      >
-                        {relative(group.last_seen)}
-                      </td>
-                      <td className={styles.numeric}>{group.occurrences}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        <td>
+                          <SourceDot source={group.source} />
+                        </td>
+                        <td
+                          style={{
+                            fontFamily: 'ui-monospace, monospace',
+                            fontSize: 'var(--text-xs)',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                          title={group.message}
+                        >
+                          {group.resolved && (
+                            <span
+                              style={{
+                                fontFamily: 'inherit',
+                                fontSize: '0.65rem',
+                                fontWeight: 'var(--font-semibold)',
+                                color: 'var(--color-text-tertiary)',
+                                border: '1px solid var(--color-border)',
+                                borderRadius: 'var(--radius-sm)',
+                                padding: '0 0.3rem',
+                                marginRight: '0.4rem',
+                              }}
+                            >
+                              Resolved
+                            </span>
+                          )}
+                          {truncate(group.message, 80)}
+                        </td>
+                        <td
+                          style={{
+                            fontSize: 'var(--text-xs)',
+                            color: 'var(--color-text-secondary)',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                          title={group.url ?? undefined}
+                        >
+                          {group.url == null ? '—' : truncate(group.url, 40)}
+                        </td>
+                        <td
+                          style={{
+                            fontSize: 'var(--text-xs)',
+                            color: 'var(--color-text-secondary)',
+                            fontVariantNumeric: 'tabular-nums',
+                          }}
+                        >
+                          {relative(group.last_seen)}
+                        </td>
+                        <td className={styles.numeric}>{group.occurrences}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
@@ -462,7 +573,8 @@ export default function ErrorsTab() {
             fontVariantNumeric: 'tabular-nums',
           }}
         >
-          {data.totalGroups} {countLabel} group{data.totalGroups === 1 ? '' : 's'}
+          {data.totalGroups} {countLabel} group
+          {data.totalGroups === 1 ? '' : 's'}
         </p>
       )}
     </div>

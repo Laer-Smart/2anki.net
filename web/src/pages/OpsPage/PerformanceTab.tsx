@@ -64,28 +64,30 @@ const STATUS_COLORS: Record<string, string> = {
 const COUNTRY_BAR_COLOR = '#3b82f6';
 
 const renderDurationsTable = (rows: JobDurationPercentiles[]) => (
-  <table className={styles.table}>
-    <thead>
-      <tr>
-        <th>Window</th>
-        <th>p50</th>
-        <th>p95</th>
-        <th>p99</th>
-        <th>Completed jobs</th>
-      </tr>
-    </thead>
-    <tbody>
-      {rows.map((row) => (
-        <tr key={row.window}>
-          <td>{row.window === '24h' ? 'Last 24h' : 'Last 7d'}</td>
-          <td className={styles.numeric}>{formatMs(row.p50_ms)}</td>
-          <td className={styles.numeric}>{formatMs(row.p95_ms)}</td>
-          <td className={styles.numeric}>{formatMs(row.p99_ms)}</td>
-          <td className={styles.numeric}>{formatCount(row.count)}</td>
+  <div className={styles.tableScroll}>
+    <table className={styles.table}>
+      <thead>
+        <tr>
+          <th>Window</th>
+          <th>p50</th>
+          <th>p95</th>
+          <th>p99</th>
+          <th>Completed jobs</th>
         </tr>
-      ))}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr key={row.window}>
+            <td>{row.window === '24h' ? 'Last 24h' : 'Last 7d'}</td>
+            <td className={styles.numeric}>{formatMs(row.p50_ms)}</td>
+            <td className={styles.numeric}>{formatMs(row.p95_ms)}</td>
+            <td className={styles.numeric}>{formatMs(row.p99_ms)}</td>
+            <td className={styles.numeric}>{formatCount(row.count)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
 );
 
 const renderStatusBreakdown = (
@@ -94,7 +96,9 @@ const renderStatusBreakdown = (
   const total = rows.reduce((sum, row) => sum + row.count, 0);
   if (total === 0) {
     return (
-      <p className={styles.emptyHint}>No terminal-status jobs in the last 24h.</p>
+      <p className={styles.emptyHint}>
+        No terminal-status jobs in the last 24h.
+      </p>
     );
   }
   return (
@@ -134,37 +138,41 @@ const renderSlowestJobs = (
   rows: PerformanceMetricsResponse['slowest_jobs_24h']
 ) => {
   if (rows.length === 0) {
-    return <p className={styles.emptyHint}>No completed jobs in the last 24h.</p>;
+    return (
+      <p className={styles.emptyHint}>No completed jobs in the last 24h.</p>
+    );
   }
   return (
-    <table className={styles.table}>
-      <thead>
-        <tr>
-          <th>Job</th>
-          <th>Type</th>
-          <th>Duration</th>
-          <th>Cards</th>
-          <th>Completed</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <tr key={row.id}>
-            <td className={styles.numericMuted}>
-              <JobIdCell id={row.id} />
-            </td>
-            <td>{row.type ?? '—'}</td>
-            <td className={styles.numeric}>{formatMs(row.duration_ms)}</td>
-            <td className={styles.numeric}>
-              {row.card_count == null ? '—' : formatCount(row.card_count)}
-            </td>
-            <td className={styles.numericMuted}>
-              {new Date(row.completed_at).toLocaleString()}
-            </td>
+    <div className={styles.tableScroll}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Job</th>
+            <th>Type</th>
+            <th>Duration</th>
+            <th>Cards</th>
+            <th>Completed</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.id}>
+              <td className={styles.numericMuted}>
+                <JobIdCell id={row.id} />
+              </td>
+              <td>{row.type ?? '—'}</td>
+              <td className={styles.numeric}>{formatMs(row.duration_ms)}</td>
+              <td className={styles.numeric}>
+                {row.card_count == null ? '—' : formatCount(row.card_count)}
+              </td>
+              <td className={styles.numericMuted}>
+                {new Date(row.completed_at).toLocaleString()}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 

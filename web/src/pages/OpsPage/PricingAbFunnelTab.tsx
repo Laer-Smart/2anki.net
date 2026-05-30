@@ -79,40 +79,42 @@ export default function PricingAbFunnelTab() {
             <h2 className={styles.sectionTitle}>Variant funnel</h2>
           </div>
           <div className={sharedStyles.surface}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Variant</th>
-                  <th className={styles.numeric}>Users shown</th>
-                  <th className={styles.numeric}>Upgrade clicks</th>
-                  <th className={styles.numeric}>Click rate</th>
-                  <th className={styles.numeric}>Paid conversions</th>
-                  <th className={styles.numeric}>Revenue</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.variants.map((row) => (
-                  <tr key={row.variant}>
-                    <td>
-                      <code>{row.variant}</code>
-                    </td>
-                    <td className={styles.numeric}>{fmt(row.users_shown)}</td>
-                    <td className={styles.numeric}>
-                      {fmt(row.upgrade_clicks)}
-                    </td>
-                    <td className={styles.numeric}>
-                      {fmtPct(row.upgrade_click_rate_pct)}
-                    </td>
-                    <td className={styles.numeric}>
-                      {fmt(row.paid_conversions)}
-                    </td>
-                    <td className={styles.numeric}>
-                      {fmtRevenue(row.revenue_cents)}
-                    </td>
+            <div className={styles.tableScroll}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Variant</th>
+                    <th className={styles.numeric}>Users shown</th>
+                    <th className={styles.numeric}>Upgrade clicks</th>
+                    <th className={styles.numeric}>Click rate</th>
+                    <th className={styles.numeric}>Paid conversions</th>
+                    <th className={styles.numeric}>Revenue</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.variants.map((row) => (
+                    <tr key={row.variant}>
+                      <td>
+                        <code>{row.variant}</code>
+                      </td>
+                      <td className={styles.numeric}>{fmt(row.users_shown)}</td>
+                      <td className={styles.numeric}>
+                        {fmt(row.upgrade_clicks)}
+                      </td>
+                      <td className={styles.numeric}>
+                        {fmtPct(row.upgrade_click_rate_pct)}
+                      </td>
+                      <td className={styles.numeric}>
+                        {fmt(row.paid_conversions)}
+                      </td>
+                      <td className={styles.numeric}>
+                        {fmtRevenue(row.revenue_cents)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
       )}
@@ -127,26 +129,28 @@ export default function PricingAbFunnelTab() {
             </p>
           </div>
           <div className={sharedStyles.surface}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Surface</th>
-                  <th className={styles.numeric}>Distinct users</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.surface_breakdown.map((row) => (
-                  <tr key={row.surface}>
-                    <td>
-                      <code>{row.surface}</code>
-                    </td>
-                    <td className={styles.numeric}>
-                      {fmt(row.distinct_users)}
-                    </td>
+            <div className={styles.tableScroll}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Surface</th>
+                    <th className={styles.numeric}>Distinct users</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.surface_breakdown.map((row) => (
+                    <tr key={row.surface}>
+                      <td>
+                        <code>{row.surface}</code>
+                      </td>
+                      <td className={styles.numeric}>
+                        {fmt(row.distinct_users)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
       )}
