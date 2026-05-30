@@ -46,6 +46,14 @@ function StatsLine({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
   );
 }
 
+function SampleFraming({ count }: Readonly<{ count: number }>) {
+  return (
+    <p className={styles.sampleFraming} aria-live="polite">
+      Preview of the first {count} {count === 1 ? 'row' : 'rows'}. Converting to Anki includes every row in this database.
+    </p>
+  );
+}
+
 function PreviewTable({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
   const { columns, samples, mapping } = data;
   return (
@@ -205,7 +213,7 @@ export default function DatabasePreviewPage({ setError }: Readonly<DatabasePrevi
       });
   };
 
-  const showRowCapFooter = data.rowCount > 0 && data.hasMore;
+  const showSampleFraming = data.rowCount > 0 && data.hasMore;
 
   return (
     <div className={sharedStyles.pageWide}>
@@ -249,10 +257,11 @@ export default function DatabasePreviewPage({ setError }: Readonly<DatabasePrevi
           <p className={styles.empty}>This database has no rows yet.</p>
         ) : (
           <>
+            {showSampleFraming && <SampleFraming count={data.rowCount} />}
             <PreviewTable data={data} />
-            {showRowCapFooter && (
+            {showSampleFraming && (
               <p className={styles.rowCapFooter}>
-                Showing the first {data.rowCount} rows. Convert to see all of them.
+                Showing {data.rowCount} {data.rowCount === 1 ? 'row' : 'rows'} here. Every row in this database is included when you convert.
               </p>
             )}
           </>

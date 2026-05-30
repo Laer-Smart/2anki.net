@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-30-database-preview-clarity",
+  "date": "2026-05-30",
+  "type": "fix",
+  "title": "Notion database preview labels the sample so it's clear all rows convert, not just the visible ones"
+}

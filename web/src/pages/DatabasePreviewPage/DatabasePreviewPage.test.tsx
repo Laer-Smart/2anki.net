@@ -77,7 +77,7 @@ describe('DatabasePreviewPage', () => {
     expect(screen.getByText('Reading your database')).toBeInTheDocument();
   });
 
-  it('renders the table, stats line, dot badges and row-cap footer', async () => {
+  it('renders the table, stats line, dot badges and sample framing', async () => {
     mockGetDatabasePreview.mockResolvedValue(baseResponse);
     renderPage();
 
@@ -93,13 +93,31 @@ describe('DatabasePreviewPage', () => {
     expect(screen.getByText('Movement of water across a membrane')).toBeInTheDocument();
 
     expect(
-      screen.getByText('Showing the first 2 rows. Convert to see all of them.')
+      screen.getByText(
+        'Preview of the first 2 rows. Converting to Anki includes every row in this database.'
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(
+        'Showing 2 rows here. Every row in this database is included when you convert.'
+      )
     ).toBeInTheDocument();
 
     const wordHeader = screen.getByRole('columnheader', { name: /Word/ });
     expect(wordHeader.textContent).toContain('●');
 
     expect(mockTrack).toHaveBeenCalledWith('database_preview_viewed', expect.any(Object));
+  });
+
+  it('omits the sample framing when every row already fits in the preview', async () => {
+    mockGetDatabasePreview.mockResolvedValue({ ...baseResponse, hasMore: false });
+    renderPage();
+
+    await screen.findByRole('heading', { name: 'Vocabulary' });
+
+    expect(screen.queryByText(/Preview of the first/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Every row in this database/i)).not.toBeInTheDocument();
   });
 
   it('shows the ambiguous-mapping warning when inference fails', async () => {
