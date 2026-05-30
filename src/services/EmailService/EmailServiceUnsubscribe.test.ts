@@ -42,16 +42,6 @@ describe('commercial email unsubscribe links', () => {
     expect(html).toContain("Don't want emails like this? Unsubscribe");
   });
 
-  it('trial-ended email contains a resolved unsubscribe URL', async () => {
-    const service = getDefaultEmailService();
-    await service.sendTrialEndedEmail('bob@example.com', 'tok-trial', 2);
-
-    const { html } = lastMessage();
-    expect(html).toContain('href="https://2anki.net/unsubscribe?uid=tok-trial"');
-    expect(html).not.toContain('{{unsubscribeUrl}}');
-    expect(html).toContain("Don't want emails like this? Unsubscribe");
-  });
-
   it('abandoned-checkout-recovery email contains a resolved unsubscribe URL', async () => {
     const service = getDefaultEmailService();
     await service.sendAbandonedCheckoutRecoveryEmail('carol@example.com', 'tok-checkout');

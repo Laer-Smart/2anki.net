@@ -142,10 +142,6 @@ class UsersService {
     return this.repository.markEmailVerified(userId);
   }
 
-  markTrialStarted(userId: string) {
-    return this.repository.markTrialStarted(userId);
-  }
-
   async requestMagicLink(
     email: string,
     purpose: 'login' | 'password_reset'

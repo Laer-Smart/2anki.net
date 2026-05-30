@@ -60,11 +60,6 @@ export const ABANDONED_CHECKOUT_RECOVERY_TEMPLATE = fs.readFileSync(
   'utf8'
 );
 
-export const TRIAL_ENDED_TEMPLATE = fs.readFileSync(
-  path.join(EMAIL_TEMPLATES_DIRECTORY, 'trial-ended.html'),
-  'utf8'
-);
-
 export const NOTION_RECONNECT_TEMPLATE = fs.readFileSync(
   path.join(EMAIL_TEMPLATES_DIRECTORY, 'notion-reconnect.html'),
   'utf8'

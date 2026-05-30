@@ -1,23 +1,11 @@
 ---
-title: Short plans and trial
-description: Day Pass, Week Pass, and the 1-hour Unlimited trial — when one-time access makes sense.
+title: Short plans and passes
+description: Day Pass and Week Pass — when one-time Unlimited access makes sense.
 ---
 
-Most people use Free or a monthly Subscription. But three short options exist for when neither fits — a deck for the weekend, a one-off cram session, or trying the paid features before paying.
+Most people use Free or a monthly Subscription. But two short options exist for when neither fits — a deck for the weekend or a one-off cram session.
 
 For the full plan list and prices, see the [pricing page](/pricing).
-
-## 1-hour Unlimited trial
-
-Free for any signed-in account that hasn't used it yet. One hour of Unlimited — no payment, no card on file.
-
-- **Length:** 1 hour from the moment you start it.
-- **Cost:** Free.
-- **Where:** the **Try Unlimited free for 1 hour** button on the [pricing page](/pricing). Visible only if you're signed in, on Free, and haven't used the trial before.
-- **What you get:** the full Unlimited feature set — unlimited cards, larger uploads, PDF support, [AI flashcards](/documentation/cards/ai-flashcards), the works.
-- **What happens after:** your account goes back to Free at the end of the hour. Decks built during the trial follow the [Free storage window](/documentation/help/limits#storage) — 24 hours.
-
-Use this when you have one big upload to do and want to confirm the paid path works for your source before subscribing.
 
 ## Day Pass — $4
 
@@ -57,7 +45,6 @@ Day Pass and Week Pass do not include Auto Sync. If you need ongoing Notion → 
 
 ## Common mistakes
 
-- **Buying a pass while the trial is running.** The 1-hour trial runs its course — passes are added on top. If you've already started the trial, finish it before paying.
 - **Expecting the pass to renew.** Day and Week passes are one-time. When the window closes, you go back to Free. Buy another pass or move to a Subscription if you want continuous access.
 - **Mixing payment paths.** Lifetime is a separate, application-based plan paid through Patreon (see [pricing](/pricing)). Day and Week passes are Stripe checkouts.
 

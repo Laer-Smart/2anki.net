@@ -13,18 +13,16 @@ import styles from '../../styles/auth.module.css';
 interface Props {
   readonly setErrorMessage: ErrorHandlerType;
   readonly redirect?: string | null;
-  readonly startTrial?: boolean;
 }
 
 const MIN_PASSWORD_LENGTH = 8;
 
-function submitLabel(loading: boolean, startTrial: boolean | undefined): string {
+function submitLabel(loading: boolean): string {
   if (loading) return 'Creating account…';
-  if (startTrial) return 'Create account and start trial';
   return 'Create account';
 }
 
-function RegisterForm({ setErrorMessage, redirect, startTrial }: Props) {
+function RegisterForm({ setErrorMessage, redirect }: Props) {
   const [email, setEmail] = useState(localStorage.getItem('email') || '');
   const [tos, setTos] = useState(false);
   const [password, setPassword] = useState('');
@@ -53,7 +51,7 @@ function RegisterForm({ setErrorMessage, redirect, startTrial }: Props) {
     setLoading(true);
 
     try {
-      const res = await get2ankiApi().register('', email, password, signupOrigin, startTrial);
+      const res = await get2ankiApi().register('', email, password, signupOrigin);
       if (res.status === 200) {
         globalThis.sessionStorage?.setItem('email_verification_pending', 'true');
         try {
@@ -197,7 +195,7 @@ function RegisterForm({ setErrorMessage, redirect, startTrial }: Props) {
               className={styles.submitButton}
               disabled={!isValid() || loading}
             >
-              {submitLabel(loading, startTrial)}
+              {submitLabel(loading)}
             </button>
           </div>
         </form>

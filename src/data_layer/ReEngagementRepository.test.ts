@@ -161,12 +161,6 @@ describe('ReEngagementRepository.findByToken — abandoned checkout path', () =>
       t.text('token').unique();
     });
 
-    await database.schema.createTable('trial_ended_emails', (t) => {
-      t.increments('id').primary();
-      t.integer('user_id').notNullable();
-      t.text('token').unique();
-    });
-
     await database.schema.createTable('users', (t) => {
       t.increments('id').primary();
       t.text('email').notNullable().unique();

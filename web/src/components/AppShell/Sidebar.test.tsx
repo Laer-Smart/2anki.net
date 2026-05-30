@@ -15,6 +15,7 @@ function beforeEachReset() {
 }
 
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { track } from '../../lib/analytics/track';
 import { Sidebar } from './Sidebar';
 
@@ -61,15 +62,20 @@ function renderSidebar({
 }: SidebarRenderOpts = {}) {
   const resolvedLocals =
     locals === undefined ? { patreon, subscriber, autoSyncActive } : locals;
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
-    <MemoryRouter initialEntries={[pathname]}>
-      <Sidebar
-        email={email}
-        locals={resolvedLocals}
-        features={{ kiUI, ops }}
-        onLogOut={onLogOut}
-      />
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[pathname]}>
+        <Sidebar
+          email={email}
+          locals={resolvedLocals}
+          features={{ kiUI, ops }}
+          onLogOut={onLogOut}
+        />
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 }
 

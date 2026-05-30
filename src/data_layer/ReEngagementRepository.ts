@@ -77,14 +77,6 @@ export class ReEngagementRepository implements IReEngagementRepository {
       return { id: inactivityRow.id, userId: inactivityRow.user_id };
     }
 
-    const trialRow = await this.database<EmailRow>('trial_ended_emails')
-      .select('id', 'user_id')
-      .where({ token })
-      .first();
-    if (trialRow != null) {
-      return { id: trialRow.id, userId: trialRow.user_id };
-    }
-
     const abandonedRow = await this.database('abandoned_checkout_recovery_emails')
       .select('users.id as user_id')
       .join('users', 'users.email', 'abandoned_checkout_recovery_emails.user_email')

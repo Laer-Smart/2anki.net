@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { track } from '../../lib/analytics/track';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { getSubscribeLink } from '../PricingPage/payment.links';
+import { PassCards } from '../PricingPage/components/PassCards';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import {
   AUTO_SYNC_PRICE,
@@ -84,6 +85,9 @@ export function LimitPage() {
   const isLoggedIn = userLocals?.user?.id != null;
   const [autoSyncPending, setAutoSyncPending] = useState(false);
   const [autoSyncError, setAutoSyncError] = useState<string | null>(null);
+  const [dayPassPending, setDayPassPending] = useState(false);
+  const [weekPassPending, setWeekPassPending] = useState(false);
+  const [passError, setPassError] = useState<string | null>(null);
 
   const kind = searchParams.get('kind');
   const showAnonymous = kind === 'anonymous' || !isLoggedIn;
@@ -118,6 +122,34 @@ export function LimitPage() {
       setAutoSyncError("Couldn't start checkout. Try again or email support@2anki.net.");
     } finally {
       setAutoSyncPending(false);
+    }
+  };
+
+  const handlePassCheckout = async (passKind: '24h' | '7d') => {
+    if (!isLoggedIn) {
+      globalThis.location.href = `/login?redirect=/limit&ref=${REF}`;
+      return;
+    }
+    track('paywall_upgrade_clicked', {
+      surface: REF,
+      plan: passKind === '24h' ? 'day_pass' : 'week_pass',
+    });
+    setPassError(null);
+    if (passKind === '24h') {
+      setDayPassPending(true);
+    } else {
+      setWeekPassPending(true);
+    }
+    try {
+      const result = await get2ankiApi().startPassCheckout(passKind);
+      if ('url' in result) {
+        globalThis.location.href = result.url;
+        return;
+      }
+      setPassError("Couldn't start checkout. Try again or email support@2anki.net.");
+    } finally {
+      setDayPassPending(false);
+      setWeekPassPending(false);
     }
   };
 
@@ -196,6 +228,19 @@ export function LimitPage() {
           )}
         </div>
       </div>
+
+      <p className={styles.sectionLabel}>Pay once — no subscription</p>
+      <PassCards
+        onDayPass={() => handlePassCheckout('24h')}
+        onWeekPass={() => handlePassCheckout('7d')}
+        dayPassPending={dayPassPending}
+        weekPassPending={weekPassPending}
+      />
+      {passError && (
+        <p className={styles.planError} role="alert">
+          {passError}
+        </p>
+      )}
 
       <p className={styles.backLink}>
         <Link to="/upload">Back to upload</Link>

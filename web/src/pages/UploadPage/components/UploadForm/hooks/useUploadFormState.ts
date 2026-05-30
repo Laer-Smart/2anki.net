@@ -37,8 +37,6 @@ export function useUploadFormState(onReset: () => void) {
   const [progressWidth, setProgressWidth] = useState(10);
   const [progressSlow, setProgressSlow] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
-  const [trialPending, setTrialPending] = useState(false);
-  const [trialError, setTrialError] = useState<string | null>(null);
   const [dropboxFilename, setDropboxFilename] = useState<string | null>(null);
   const [dropboxPending, setDropboxPending] = useState(false);
   const [dropboxError, setDropboxError] = useState<string | null>(null);
@@ -65,7 +63,6 @@ export function useUploadFormState(onReset: () => void) {
     setMcqShowAnswer(false);
     setWarningMessage(null);
     setLimitInfo(null);
-    setTrialError(null);
     setLocalError(null);
     setProgressWidth(10);
     setProgressSlow(false);
@@ -114,10 +111,6 @@ export function useUploadFormState(onReset: () => void) {
     setProgressSlow,
     showFallback,
     setShowFallback,
-    trialPending,
-    setTrialPending,
-    trialError,
-    setTrialError,
     dropboxFilename,
     setDropboxFilename,
     dropboxPending,

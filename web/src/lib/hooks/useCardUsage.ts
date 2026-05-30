@@ -1,28 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { getCardUsage, CardUsageResponse } from '../backend/getCardUsage';
+
+export const CARD_USAGE_QUERY_KEY = ['cardUsage'] as const;
 
 interface CardUsageState extends CardUsageResponse {
   loading: boolean;
 }
 
 export const useCardUsage = (enabled: boolean): CardUsageState | null => {
-  const [state, setState] = useState<CardUsageState | null>(null);
+  const { data, isFetching } = useQuery({
+    queryKey: CARD_USAGE_QUERY_KEY,
+    queryFn: getCardUsage,
+    enabled,
+  });
 
-  useEffect(() => {
-    if (!enabled) {
-      setState(null);
-      return;
-    }
-    let cancelled = false;
-    setState({ cards_used: 0, cards_limit: 100, unlimited: false, loading: true });
-    getCardUsage().then((result) => {
-      if (cancelled || !result) return;
-      setState({ ...result, loading: false });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled]);
+  if (!enabled) {
+    return null;
+  }
 
-  return state;
+  if (data == null) {
+    return { cards_used: 0, cards_limit: 100, unlimited: false, loading: isFetching };
+  }
+
+  return { ...data, loading: false };
 };

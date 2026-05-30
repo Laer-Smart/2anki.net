@@ -2,8 +2,17 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import * as get2ankiApiModule from '../../lib/backend/get2ankiApi';
 import { AppShell } from './AppShell';
+
+function withClient(ui: ReactNode) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>;
+}
 
 interface RenderOpts {
   pathname?: string;
@@ -12,16 +21,18 @@ interface RenderOpts {
 
 function renderShell({ pathname = '/', isLoggedIn }: RenderOpts) {
   return render(
-    <MemoryRouter initialEntries={[pathname]}>
-      <AppShell
-        isLoggedIn={isLoggedIn}
-        email="alexander@alemayhu.com"
-        locals={{ patreon: false, subscriber: false }}
-        features={{ kiUI: false, ops: false }}
-      >
-        <div data-testid="page-content">page</div>
-      </AppShell>
-    </MemoryRouter>
+    withClient(
+      <MemoryRouter initialEntries={[pathname]}>
+        <AppShell
+          isLoggedIn={isLoggedIn}
+          email="alexander@alemayhu.com"
+          locals={{ patreon: false, subscriber: false }}
+          features={{ kiUI: false, ops: false }}
+        >
+          <div data-testid="page-content">page</div>
+        </AppShell>
+      </MemoryRouter>
+    )
   );
 }
 
@@ -86,16 +97,18 @@ describe('AppShell logout', () => {
 
   it('calls logout immediately when the Log out link is clicked', () => {
     render(
-      <MemoryRouter initialEntries={['/upload']}>
-        <AppShell
-          isLoggedIn={true}
-          email="test@example.com"
-          locals={{ patreon: false, subscriber: false }}
-          features={{ kiUI: false, ops: false }}
-        >
-          <div>page</div>
-        </AppShell>
-      </MemoryRouter>
+      withClient(
+        <MemoryRouter initialEntries={['/upload']}>
+          <AppShell
+            isLoggedIn={true}
+            email="test@example.com"
+            locals={{ patreon: false, subscriber: false }}
+            features={{ kiUI: false, ops: false }}
+          >
+            <div>page</div>
+          </AppShell>
+        </MemoryRouter>
+      )
     );
     const logoutLink = screen.getByRole('link', { name: /log out/i });
     fireEvent.click(logoutLink);
@@ -104,16 +117,18 @@ describe('AppShell logout', () => {
 
   it('does not call window.confirm when the Log out link is clicked', () => {
     render(
-      <MemoryRouter initialEntries={['/upload']}>
-        <AppShell
-          isLoggedIn={true}
-          email="test@example.com"
-          locals={{ patreon: false, subscriber: false }}
-          features={{ kiUI: false, ops: false }}
-        >
-          <div>page</div>
-        </AppShell>
-      </MemoryRouter>
+      withClient(
+        <MemoryRouter initialEntries={['/upload']}>
+          <AppShell
+            isLoggedIn={true}
+            email="test@example.com"
+            locals={{ patreon: false, subscriber: false }}
+            features={{ kiUI: false, ops: false }}
+          >
+            <div>page</div>
+          </AppShell>
+        </MemoryRouter>
+      )
     );
     const logoutLink = screen.getByRole('link', { name: /log out/i });
     fireEvent.click(logoutLink);

@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { DownloadsPage, renderJobStatusCell } from './DownloadsPage';
 import JobResponse from '../../schemas/public/JobResponse';
@@ -91,9 +92,13 @@ const buildJob = (overrides: Partial<JobResponse> = {}): JobResponse => ({
 
 const renderAt = (path: string) =>
   render(
-    <MemoryRouter initialEntries={[path]}>
-      <DownloadsPage setError={vi.fn()} />
-    </MemoryRouter>
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
+      <MemoryRouter initialEntries={[path]}>
+        <DownloadsPage setError={vi.fn()} />
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 
 describe('DownloadsPage paywall query param', () => {

@@ -16,6 +16,8 @@ description: For PDFs, slides, spreadsheets, or a Notion HTML export.
 
 Upload works without an account. You drop in a file, 2anki builds the deck, and you download an `.apkg`. Good for one-off conversions or sources that don't live in Notion.
 
+Without an account, each conversion is capped at 21 cards. Sign up for a free account to get 100 cards per month across every conversion path. See [Limits and quotas](/documentation/help/limits).
+
 **Plan:** Free (anonymous, no sign-in needed)
 
 ## When to use upload instead of Connect Notion

@@ -2,12 +2,17 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SidebarLayout } from './SidebarLayout';
 
 function renderLayout() {
   const onLogOut = vi.fn();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
-    <MemoryRouter initialEntries={['/upload']}>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={['/upload']}>
       <SidebarLayout
         email="alexander@alemayhu.com"
         locals={{ patreon: true, subscriber: false }}
@@ -17,6 +22,7 @@ function renderLayout() {
         <div data-testid="page-content">hello</div>
       </SidebarLayout>
     </MemoryRouter>
+    </QueryClientProvider>
   );
 }
 
