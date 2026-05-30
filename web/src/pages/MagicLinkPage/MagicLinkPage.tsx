@@ -48,6 +48,11 @@ function MagicLinkPage() {
 
           setCookie('token', data.token);
           setState({ status: 'success' });
+          try {
+            globalThis.sessionStorage?.setItem('2anki_post_login', '1');
+          } catch {
+            // sessionStorage may be unavailable; the survey just won't arm.
+          }
           globalThis.location.href =
             redirect ?? data.redirect ?? getSearchPath('anki');
         } else {
