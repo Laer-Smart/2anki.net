@@ -16,6 +16,7 @@ import {
   TransformedNote,
   TransformName,
 } from '../../lib/ankify/transforms/types';
+import { attachReferencedMedia } from '../../lib/ankify/transforms/attachReferencedMedia';
 
 export const UNKNOWN_MODEL_ERROR =
   "This deck uses a note type we don't support yet. v1 supports Basic and Cloze decks.";
@@ -175,11 +176,13 @@ export class TransformApkgUseCase {
       throw new Error('Every note failed to transform. Try again.');
     }
 
-    const deck = buildDeckFromTransformedNotes(
-      parsed.deckName,
-      transformResult.notes
-    );
     const mergedMedia = mergeMedia(parsed.sourceMedia, transformResult.media ?? []);
+    const knownFilenames = new Set(mergedMedia.map((f) => f.filename));
+    const notesWithMedia = attachReferencedMedia(
+      transformResult.notes,
+      knownFilenames
+    );
+    const deck = buildDeckFromTransformedNotes(parsed.deckName, notesWithMedia);
     const apkg = await emitApkgFromDeck(deck, mergedMedia);
 
     return {

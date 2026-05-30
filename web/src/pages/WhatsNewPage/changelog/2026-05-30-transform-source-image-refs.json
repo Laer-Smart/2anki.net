@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-30-transform-source-image-refs",
+  "date": "2026-05-30",
+  "type": "fix",
+  "title": "Transform — images from your original .apkg now render in the output deck"
+}
