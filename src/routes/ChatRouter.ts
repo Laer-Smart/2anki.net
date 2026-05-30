@@ -60,7 +60,37 @@ const ChatRouter = () => {
    * @swagger
    * /api/chat/message:
    *   post:
-   *     summary: Send a message to the study assistant
+   *     summary: Send a message to the study assistant (Server-Sent Events stream)
+   *     description: |
+   *       Streams the assistant's reply as Server-Sent Events (`text/event-stream`).
+   *       Three event names are emitted on the response, each carrying a JSON
+   *       payload in the `data:` line:
+   *
+   *       - `event: token` — incremental assistant text. `data` is a JSON
+   *         string fragment (e.g. `"Hello"`). Concatenate every `token`
+   *         payload to reconstruct the full reply.
+   *       - `event: done` — terminal frame for a successful turn. `data` is
+   *         a JSON object matching `ChatDoneFrame` (see schemas), carrying
+   *         the final assistant content, the conversation id, and, when the
+   *         assistant generated flashcards, a `cards` array plus the prose
+   *         that came before / after the cards.
+   *       - `event: error` — terminal frame for a failure. `data` is a JSON
+   *         object matching `ChatErrorFrame` (see schemas). The HTTP status
+   *         is still 200 because the stream has already opened; clients must
+   *         branch on the `error` frame's `type` field instead of HTTP code.
+   *
+   *       Each event ends with a blank line (`\n\n`). Clients that consume
+   *       SSE via a line-based reader must not discard empty lines — they
+   *       are the frame separator.
+   *
+   *       The request accepts `multipart/form-data` so the caller can attach
+   *       up to 5 files (PDF or image) totalling 25 MB.
+   *
+   *       Card-shape footgun: when the caller is a Patreon (lifetime/paid)
+   *       user, the assistant may emit MCQ-shape cards even if
+   *       `templateSlug=basic` is sent. `templateSlug` is a hint, not a
+   *       contract — clients must be ready for both card shapes on every
+   *       `done` frame. See the `ChatDoneFrame.cards` schema's `oneOf`.
    *     tags: [Chat]
    *     security:
    *       - bearerAuth: []
@@ -78,6 +108,13 @@ const ChatRouter = () => {
    *               conversationId:
    *                 type: integer
    *                 nullable: true
+   *               templateSlug:
+   *                 type: string
+   *                 nullable: true
+   *                 description: |
+   *                   Card template hint (`basic`, `basic-and-reversed`,
+   *                   `cloze`, `mcq`). Patreon users may still receive MCQ
+   *                   cards when this is `basic` — see endpoint description.
    *               history:
    *                 type: array
    *                 items:
@@ -89,13 +126,62 @@ const ChatRouter = () => {
    *                       enum: [user, assistant]
    *                     content:
    *                       type: string
+   *         multipart/form-data:
+   *           schema:
+   *             type: object
+   *             required: [content]
+   *             properties:
+   *               content:
+   *                 type: string
+   *                 maxLength: 100000
+   *               conversationId:
+   *                 type: integer
+   *                 nullable: true
+   *               templateSlug:
+   *                 type: string
+   *                 nullable: true
+   *               history:
+   *                 type: string
+   *                 description: |
+   *                   JSON-encoded array of `{ role, content }` history
+   *                   entries when sent over multipart.
+   *               files:
+   *                 type: array
+   *                 maxItems: 5
+   *                 description: |
+   *                   PDF or image attachments. Per-file limit 10 MB,
+   *                   combined limit 25 MB. Accepted MIME types:
+   *                   `application/pdf`, `image/png`, `image/jpeg`,
+   *                   `image/gif`, `image/webp`.
+   *                 items:
+   *                   type: string
+   *                   format: binary
    *     responses:
    *       200:
-   *         description: Assistant reply
+   *         description: |
+   *           SSE stream of `token`, `done`, and `error` events. Inspect the
+   *           terminal frame to determine success or failure — the HTTP
+   *           status is 200 for both outcomes once the stream is open.
+   *         content:
+   *           text/event-stream:
+   *             schema:
+   *               oneOf:
+   *                 - $ref: '#/components/schemas/ChatTokenFrame'
+   *                 - $ref: '#/components/schemas/ChatDoneFrame'
+   *                 - $ref: '#/components/schemas/ChatErrorFrame'
    *       400:
-   *         description: Invalid content
-   *       429:
-   *         description: Monthly message limit reached
+   *         description: |
+   *           Invalid request (missing `content`, content over the 100 000
+   *           character cap, too many files, file too large, total
+   *           attachment payload over 25 MB, or an attachment whose MIME
+   *           type is not allowed). Returned as `application/json` before
+   *           the SSE stream opens.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   *       401:
+   *         description: Authentication required
    */
   router.post(
     '/api/chat/message',
@@ -109,6 +195,13 @@ const ChatRouter = () => {
    * /api/chat/deck:
    *   post:
    *     summary: Generate an Anki deck from chat cards
+   *     description: |
+   *       Builds an `.apkg` from a client-supplied card list. Each card may
+   *       be either the basic shape (`front` + `back`) or the MCQ shape
+   *       (`front` + 4 `options` + `correctIndex`, with optional `rationale`
+   *       and `tags`); the two shapes can be mixed in a single request. Per
+   *       card, `tags` is an optional array of short subject tags
+   *       (lower-case, hyphenated, up to 8 per card).
    *     tags: [Chat]
    *     security:
    *       - bearerAuth: []
@@ -123,17 +216,21 @@ const ChatRouter = () => {
    *               deckName:
    *                 type: string
    *                 maxLength: 120
+   *               templateSlug:
+   *                 type: string
+   *                 nullable: true
+   *                 description: |
+   *                   Card template slug (`basic`, `basic-and-reversed`,
+   *                   `cloze`, `mcq`). The server still chooses the actual
+   *                   note model based on card shape — MCQ-shape cards
+   *                   render as MCQ regardless of this value.
    *               cards:
    *                 type: array
    *                 maxItems: 200
    *                 items:
-   *                   type: object
-   *                   required: [front, back]
-   *                   properties:
-   *                     front:
-   *                       type: string
-   *                     back:
-   *                       type: string
+   *                   oneOf:
+   *                     - $ref: '#/components/schemas/ChatBasicCard'
+   *                     - $ref: '#/components/schemas/ChatMcqCard'
    *     responses:
    *       200:
    *         description: Anki .apkg file
@@ -143,7 +240,22 @@ const ChatRouter = () => {
    *               type: string
    *               format: binary
    *       400:
-   *         description: Invalid input
+   *         description: |
+   *           Invalid input. `deckName` is required and must be 120
+   *           characters or fewer. `cards` must be a non-empty array of at
+   *           most 200 items. Each card must be either a basic card
+   *           (string `front` and string `back`) or a valid MCQ card (string
+   *           `front`, an `options` array of exactly 4 non-empty strings,
+   *           and an integer `correctIndex` in range `[0, 3]`). Cards that
+   *           match neither shape produce
+   *           `each card must have string front and back fields, or a
+   *           valid MCQ shape`.
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   *       401:
+   *         description: Authentication required
    */
   router.post('/api/chat/deck', RequireAuthentication, (req, res) =>
     deckController.generate(req, res)
