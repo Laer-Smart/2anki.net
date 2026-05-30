@@ -932,6 +932,47 @@ describe('limit state', () => {
     return container;
   }
 
+  it('pre-emptively locks the upload form when a free user is over the monthly limit', () => {
+    setUserLocals(loggedInData);
+    mockUseCardUsage.mockReturnValue({
+      cards_used: 100,
+      cards_limit: 100,
+      unlimited: false,
+      loading: false,
+    });
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
+    expect(
+      screen.getByText("You've used all 100 cards this month")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /Get a Day Pass/ })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'See upgrade options' })
+    ).toBeInTheDocument();
+    const fileInput = container.querySelector(
+      '#pakker'
+    ) as HTMLInputElement | null;
+    expect(fileInput?.disabled).toBe(true);
+    expect(screen.queryByText('Choose files')).not.toBeInTheDocument();
+  });
+
+  it('does not lock the form when the free user is under the limit', () => {
+    setUserLocals(loggedInData);
+    mockUseCardUsage.mockReturnValue({
+      cards_used: 10,
+      cards_limit: 100,
+      unlimited: false,
+      loading: false,
+    });
+    renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    expect(
+      screen.queryByText("You've used all 100 cards this month")
+    ).not.toBeInTheDocument();
+  });
+
   it('shows a single "Create a free account" CTA for anonymous users with no start_trial param', async () => {
     setUserLocals(anonymousData);
     stubLimitFetch('file_size');

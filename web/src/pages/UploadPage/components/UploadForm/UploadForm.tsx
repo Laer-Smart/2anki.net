@@ -308,6 +308,13 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
   const [dayPassError, setDayPassError] = useState<string | null>(null);
   const showSignInPrompt = userLocals != null && !isAuthenticated;
   const cardUsage = useCardUsage(isAuthenticated);
+  const isUploadLocked =
+    isAuthenticated &&
+    userLocals?.user?.patreon !== true &&
+    cardUsage != null &&
+    !cardUsage.unlimited &&
+    !cardUsage.loading &&
+    cardUsage.cards_used >= cardUsage.cards_limit;
   const { openChooser, isConfigured: isDropboxConfigured } = useDropboxChooser(FORMATS);
   const { openPicker, isConfigured: isGoogleDriveConfigured } = useGooglePicker();
 
@@ -333,8 +340,21 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     convertRef.current?.click();
   };
 
+  useEffect(() => {
+    if (isUploadLocked) {
+      track('paywall_shown', {
+        surface: 'upload_limit_wall',
+        variant: 'preemptive',
+      });
+    }
+  }, [isUploadLocked]);
+
   const { dropHover } = useDrag({
     onDrop: (event) => {
+      if (isUploadLocked) {
+        event.preventDefault();
+        return;
+      }
       const { dataTransfer } = event;
       if (dataTransfer && dataTransfer.files.length > 0) {
         fileInputRef.current!.files = dataTransfer.files;
@@ -708,6 +728,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     isExistingApkgReject ? formStyles.dropZoneRedirect : '',
     zoneState === 'limitReached' ? formStyles.dropZoneLimit : '',
     zoneState === 'lockedPdf' ? formStyles.dropZoneLocked : '',
+    isUploadLocked && zoneState === 'idle' ? formStyles.dropZoneLimitWall : '',
     validation?.status === 'warning' ? formStyles.dropZoneWarning : '',
     validation?.status === 'error' ? formStyles.dropZoneError : '',
     validation?.status === 'info' ? formStyles.dropZoneInfo : '',
@@ -1014,20 +1035,20 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
             </Link>
           ) : (
             <>
-              <Link
-                to="/limit?ref=upload-limit-wall"
-                className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
-              >
-                See upgrade options
-              </Link>
               <button
                 type="button"
-                className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
+                className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
                 onClick={handleDayPass}
                 disabled={dayPassPending}
               >
                 {dayPassPending ? 'Starting checkout' : 'Get a Day Pass — $4'}
               </button>
+              <Link
+                to="/limit?ref=upload-limit-wall"
+                className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
+              >
+                See upgrade options
+              </Link>
             </>
           )}
           <button
@@ -1241,7 +1262,66 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     </div>
   );
 
+  const renderLockedState = () => {
+    const used = cardUsage?.cards_used ?? 0;
+    const limit = cardUsage?.cards_limit ?? 100;
+    const now = new Date();
+    const resetsOn = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      1
+    ).toLocaleDateString(undefined, { day: 'numeric', month: 'long' });
+    return (
+      <div className={formStyles.limitContent}>
+        <span className={formStyles.lockedIcon} aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            width="28"
+            height="28"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </span>
+        <p className={formStyles.limitTitle}>
+          You&apos;ve used all {limit} cards this month
+        </p>
+        <p className={formStyles.limitDescription}>
+          {used} / {limit} cards · resets {resetsOn}, when your free cards come
+          back
+        </p>
+        {dayPassError && (
+          <p className={formStyles.limitError} role="alert">
+            {dayPassError}
+          </p>
+        )}
+        <div className={formStyles.limitActions}>
+          <button
+            type="button"
+            className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
+            onClick={handleDayPass}
+            disabled={dayPassPending}
+          >
+            {dayPassPending ? 'Starting checkout' : 'Get a Day Pass — $4'}
+          </button>
+          <Link
+            to="/limit?ref=upload-limit-wall"
+            className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
+          >
+            See upgrade options
+          </Link>
+        </div>
+      </div>
+    );
+  };
+
   const renderZoneContent = () => {
+    if (isUploadLocked && zoneState === 'idle') return renderLockedState();
     if (validation && zoneState === 'idle') return renderValidationState();
     if (zoneState === 'converting') return renderConvertingState();
     if (zoneState === 'success') return renderSuccessState();
@@ -1252,7 +1332,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     return renderIdleState();
   };
 
-  const showChips = zoneState === 'idle' && !validation;
+  const showChips = zoneState === 'idle' && !validation && !isUploadLocked;
   const showDropboxPanel = showChips && source === 'dropbox';
   const showGoogleDrivePanel = showChips && source === 'google_drive';
   const showLocalPanel = !showChips || source === 'local';
@@ -1298,6 +1378,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
           accept={getAcceptedContentTypes()}
           required
           multiple
+          disabled={isUploadLocked}
           onChange={() => {
             const files = fileInputRef.current?.files;
             if (files && validate(files)) {
