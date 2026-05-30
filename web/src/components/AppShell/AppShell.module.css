@@ -27,6 +27,29 @@
   background: var(--color-bg-secondary);
   padding: 1.25rem 0.75rem;
   transition: width var(--transition-fast);
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.sidebar:hover {
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.sidebar:hover::-webkit-scrollbar-thumb {
+  background: var(--color-border);
 }
 
 .sidebarRowLabel {
