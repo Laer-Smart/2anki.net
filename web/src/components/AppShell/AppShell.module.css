@@ -103,10 +103,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2px;
-  height: 20px;
+  width: 3px;
+  height: 24px;
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: 999px;
   background: var(--color-text-tertiary);
   color: var(--color-text-tertiary);
   opacity: 1;
