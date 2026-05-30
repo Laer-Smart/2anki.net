@@ -128,6 +128,10 @@ export class PhotoToFlashcardsController {
         res.status(413).json({ message: e.message });
         return;
       }
+      if (e.status === 422) {
+        res.status(422).json({ message: e.message });
+        return;
+      }
       if (e.status === 429) {
         res.status(429).json({
           message: e.message,

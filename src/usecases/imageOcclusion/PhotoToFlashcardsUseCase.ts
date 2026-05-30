@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os, { homedir } from 'node:os';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
 
 import { getAnthropicClient, normalizeTag } from '../../lib/claude/ClaudeService';
@@ -216,6 +216,14 @@ function makePayloadTooLargeError(): Error & { status: number } {
   return err;
 }
 
+function makeUnreadableVisionResponseError(): Error & { status: number } {
+  const err = new Error(
+    "Couldn't read the cards from this photo. Try a clearer or less dense image."
+  ) as Error & { status: number };
+  err.status = 422;
+  return err;
+}
+
 function makeFreeQuotaReachedError(used: number, limit: number): Error & {
   status: number;
   used: number;
@@ -269,12 +277,32 @@ function looksLikeMcqAttempt(card: CompactCard): boolean {
   return card.options !== undefined || card.correct_index !== undefined;
 }
 
+function logUnreadableVisionResponse(raw: string): void {
+  console.log(JSON.stringify({
+    event: 'vision_parse_failed',
+    source: 'photo',
+    response_length: raw.length,
+    response_sha256_prefix: createHash('sha256').update(raw).digest('hex').slice(0, 12),
+  }));
+}
+
 function parseClaudeVisionResponse(raw: string): CompactDeck[] {
   const cleaned = raw.replace(/```json|```/g, '').trim();
   const jsonEnd = cleaned.lastIndexOf(']');
   const toParse = jsonEnd >= 0 ? cleaned.slice(0, jsonEnd + 1) : cleaned;
-  const parsed = JSON.parse(toParse) as unknown;
-  if (!Array.isArray(parsed)) throw new Error('Claude Vision returned unexpected JSON structure');
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(toParse);
+  } catch {
+    logUnreadableVisionResponse(raw);
+    throw makeUnreadableVisionResponseError();
+  }
+
+  if (!Array.isArray(parsed)) {
+    logUnreadableVisionResponse(raw);
+    throw makeUnreadableVisionResponseError();
+  }
   return parsed as CompactDeck[];
 }
 

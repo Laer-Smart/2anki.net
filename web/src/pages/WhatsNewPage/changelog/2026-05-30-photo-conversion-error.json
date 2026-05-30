@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-30-photo-conversion-error",
+  "date": "2026-05-30",
+  "type": "fix",
+  "title": "Photo conversions that can't be read return a clear message instead of failing"
+}

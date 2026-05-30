@@ -177,6 +177,37 @@ describe('PhotoToFlashcardsController media type detection', () => {
   });
 });
 
+describe('PhotoToFlashcardsController unreadable Vision response', () => {
+  const baseBody = {
+    imageBase64: 'abc',
+    mediaType: 'image/jpeg',
+    deckName: 'X',
+    width: 100,
+    height: 100,
+  };
+
+  function makeUnreadableUseCase() {
+    const execute = jest.fn().mockRejectedValue(
+      Object.assign(new Error("Couldn't read the cards from this photo. Try a clearer or less dense image."), {
+        status: 422,
+      })
+    );
+    return { execute } as unknown as PhotoToFlashcardsUseCase & {
+      execute: jest.Mock;
+    };
+  }
+
+  it('responds 422 with the use-case message when the Vision JSON cannot be parsed', async () => {
+    const controller = new PhotoToFlashcardsController(makeUnreadableUseCase());
+    const res = makeRes();
+    await controller.create(makeReq(baseBody), res);
+    expect(res.status).toHaveBeenCalledWith(422);
+    expect(res.json).toHaveBeenCalledWith({
+      message: "Couldn't read the cards from this photo. Try a clearer or less dense image.",
+    });
+  });
+});
+
 describe('PhotoToFlashcardsController MCQ headers', () => {
   const baseBody = {
     imageBase64: 'abc',
