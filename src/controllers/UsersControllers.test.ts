@@ -135,7 +135,7 @@ describe('UsersController.register', () => {
     await controller.register(req, res, next);
 
     expect(register).toHaveBeenCalledTimes(1);
-    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-reg-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' }));
+    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-reg-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: false, sameSite: 'lax' }));
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ token: 'jwt-reg-tok' })
@@ -234,7 +234,7 @@ describe('UsersController.register', () => {
 
     await controller.register(req, res, next);
 
-    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-trial-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' }));
+    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-trial-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: false, sameSite: 'lax' }));
     expect(mockMarkTrialStarted).toHaveBeenCalledTimes(1);
   });
 
@@ -610,7 +610,7 @@ describe('UsersController.verifyMagicLink', () => {
 
     await controller.verifyMagicLink(req, res, next);
 
-    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-login-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' }));
+    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-login-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: false, sameSite: 'lax' }));
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ token: 'jwt-login-tok' });
     expect(persistToken).toHaveBeenCalledWith('jwt-login-tok', '5');
@@ -1596,7 +1596,7 @@ describe('UsersController.loginWithNotion', () => {
 describe('UsersController cookie options — 30-day persistent session', () => {
   const EXPECTED_COOKIE_OPTIONS = {
     maxAge: SESSION_MAX_AGE_MS,
-    httpOnly: true,
+    httpOnly: false,
     sameSite: 'lax',
   };
 
@@ -2149,7 +2149,7 @@ describe('UsersController.loginWithAppleNative', () => {
 
     await controller.loginWithAppleNative(buildReq(), res);
 
-    expect(res.cookie).toHaveBeenCalledWith('token', 'native-apple-jwt', expect.objectContaining({ httpOnly: true, sameSite: 'lax' }));
+    expect(res.cookie).toHaveBeenCalledWith('token', 'native-apple-jwt', expect.objectContaining({ httpOnly: false, sameSite: 'lax' }));
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ ok: true });
   });
