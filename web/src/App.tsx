@@ -139,6 +139,10 @@ const PricingAbFunnelTab = lazyWithRetry(
   () => import('./pages/OpsPage/PricingAbFunnelTab'),
   './pages/OpsPage/PricingAbFunnelTab'
 );
+const UploadFunnelTab = lazyWithRetry(
+  () => import('./pages/OpsPage/UploadFunnelTab'),
+  './pages/OpsPage/UploadFunnelTab'
+);
 const FeedbackPage = lazyWithRetry(
   () => import('./pages/FeedbackPage/FeedbackPage'),
   './pages/FeedbackPage/FeedbackPage'
@@ -420,6 +424,7 @@ function AppContent({
             <Route path="errors" element={<ErrorsTab />} />
             <Route path="performance" element={<PerformanceTab />} />
             <Route path="conversions" element={<ConversionsTab />} />
+            <Route path="upload-funnel" element={<UploadFunnelTab />} />
             <Route path="business" element={<BusinessTab />} />
             <Route path="showcase" element={<ShowcaseTab />} />
             <Route path="interviews" element={<InterviewsTab />} />

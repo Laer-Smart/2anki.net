@@ -28,6 +28,11 @@ const TABS = [
     match: (path: string) => path.startsWith('/ops/conversions'),
   },
   {
+    to: '/ops/upload-funnel',
+    label: 'Upload funnel',
+    match: (path: string) => path.startsWith('/ops/upload-funnel'),
+  },
+  {
     to: '/ops/business',
     label: 'Business',
     match: (path: string) => path.startsWith('/ops/business'),
