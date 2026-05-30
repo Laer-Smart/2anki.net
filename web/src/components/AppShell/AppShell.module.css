@@ -132,13 +132,11 @@
   white-space: nowrap;
   padding: 4px 10px;
   border-radius: var(--radius-sm);
-  /* Tooltip is intentionally theme-independent, like Stripe's: always a
-     dark slate pill so the label reads on light and dark backgrounds. */
-  background: #1f2937;
+  background: var(--color-text-primary);
   box-shadow: var(--shadow-md);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  color: #f9fafb;
+  color: var(--color-bg-primary);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition-fast);
