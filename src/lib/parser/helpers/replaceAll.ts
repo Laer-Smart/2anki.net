@@ -3,9 +3,7 @@ export default function replaceAll(
   oldValue: string,
   newValue: string
 ): string {
-  // escaping all special Characters
-  const escaped = oldValue.replace(/[{}()[\].?*+$^\\/]/g, '\\$&');
-  // creating regex with global flag
+  const escaped = oldValue.replace(/[\\^$.*+?()[\]{}|/]/g, '\\$&');
   const reg = new RegExp(escaped, 'g');
   return original.replace(reg, newValue);
 }

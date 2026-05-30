@@ -151,6 +151,33 @@ describe('#1411 — LaTeX inside cloze blocks', () => {
   });
 });
 
+describe('#412 — pipe characters inside cloze deletions', () => {
+  it('plain text with a pipe inside a cloze does not duplicate', () => {
+    const input = '<p>Use the <code>x|y</code> operator</p>';
+    const result = handleClozeDeletions(input);
+    const matches = result.match(/\{\{c\d+::/g) ?? [];
+    expect(matches.length).toBe(1);
+    expect(result).toBe('<p>Use the {{c1::x|y}} operator</p>');
+  });
+
+  it('KaTeX with a pipe inside a cloze does not duplicate', () => {
+    const input = '<p>The norm is <code>KaTex:\\|x\\|</code> here</p>';
+    const result = handleClozeDeletions(input);
+    const matches = result.match(/\{\{c\d+::/g) ?? [];
+    expect(matches.length).toBe(1);
+    expect(result).toBe('<p>The norm is {{c1::\\|x\\| }} here</p>');
+  });
+
+  it('multiple clozes each containing a pipe stay numbered correctly', () => {
+    const input = '<p><code>a|b</code> and <code>c|d</code></p>';
+    const result = handleClozeDeletions(input);
+    const matches = result.match(/\{\{c\d+::/g) ?? [];
+    expect(matches.length).toBe(2);
+    expect(result).toContain('{{c1::a|b}}');
+    expect(result).toContain('{{c2::c|d}}');
+  });
+});
+
 describe('#1094 — code tags become cloze deletions', () => {
   it('code tag in the summary (front) of a toggle becomes a cloze deletion', () => {
     const input = '<p>The speed of light is <code>299792458 m/s</code> in a vacuum.</p>';
