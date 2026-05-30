@@ -9,6 +9,7 @@ import CardOptionModel from '../../lib/data_layer/model/CardOption';
 
 const mockResetUserCardOptions = vi.fn();
 const mockGetSettingsCardOptions = vi.fn();
+const mockUseUserLocals = vi.fn();
 
 vi.mock('../../lib/backend/get2ankiApi', () => ({
   get2ankiApi: () => ({
@@ -23,11 +24,27 @@ vi.mock('../../lib/backend/getSettingsCardOptions', () => ({
   getSettingsCardOptions: () => mockGetSettingsCardOptions(),
 }));
 
+vi.mock('../../lib/hooks/useUserLocals', () => ({
+  useUserLocals: () => mockUseUserLocals(),
+}));
+
 vi.mock('../../lib/backend/templates', () => ({
   getUserTemplates: vi.fn().mockResolvedValue({ templates: [], hiddenIds: [] }),
   getOfficialNoteTypes: vi.fn().mockResolvedValue([]),
   getDefaultNoteTypes: vi.fn().mockResolvedValue([]),
 }));
+
+function setUserLocalsPaying(paying: boolean) {
+  mockUseUserLocals.mockReturnValue({
+    data: paying
+      ? { locals: { patreon: false, subscriber: true } }
+      : { locals: { patreon: false, subscriber: false } },
+    isLoading: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+  });
+}
 
 function renderForm(
   isLoggedIn: boolean,
@@ -55,6 +72,7 @@ describe('CardOptionsForm reset for the account-default view', () => {
     vi.clearAllMocks();
     mockResetUserCardOptions.mockResolvedValue(undefined);
     mockGetSettingsCardOptions.mockResolvedValue([]);
+    setUserLocalsPaying(false);
     localStorage.clear();
   });
 
@@ -92,6 +110,7 @@ describe('CardOptionsForm embed-images toggle', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockResetUserCardOptions.mockResolvedValue(undefined);
+    setUserLocalsPaying(false);
     localStorage.clear();
     mockGetSettingsCardOptions.mockResolvedValue([
       new CardOptionModel(
@@ -130,6 +149,56 @@ describe('CardOptionsForm embed-images toggle', () => {
 
     await waitFor(() => {
       expect(localStorage.getItem('embed-images')).toBe('true');
+    });
+    expect(toggle).toBeChecked();
+  });
+});
+
+describe('CardOptionsForm ai-comprehensive toggle (paid-only)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockResetUserCardOptions.mockResolvedValue(undefined);
+    localStorage.clear();
+    mockGetSettingsCardOptions.mockResolvedValue([
+      new CardOptionModel(
+        'ai-comprehensive',
+        'Comprehensive AI mode',
+        'Aim for hundreds of cards per chapter instead of dozens. Conversions take longer. Paid plans only.',
+        false
+      ),
+    ]);
+  });
+
+  it('renders the toggle for a paying user', async () => {
+    setUserLocalsPaying(true);
+    renderForm(true, { onReset: vi.fn(), setError: vi.fn() });
+    const toggle = await screen.findByRole('checkbox', {
+      name: 'Comprehensive AI mode',
+    });
+    expect(toggle).not.toBeChecked();
+  });
+
+  it('hides the toggle for a non-paying user', async () => {
+    setUserLocalsPaying(false);
+    renderForm(true, { onReset: vi.fn(), setError: vi.fn() });
+    await screen.findByRole('button', { name: 'Reset to defaults' });
+    expect(
+      screen.queryByRole('checkbox', { name: 'Comprehensive AI mode' })
+    ).toBeNull();
+  });
+
+  it('round-trips the toggle value to localStorage for a paying user', async () => {
+    setUserLocalsPaying(true);
+    renderForm(true, { onReset: vi.fn(), setError: vi.fn() });
+    const toggle = await screen.findByRole('checkbox', {
+      name: 'Comprehensive AI mode',
+    });
+    expect(toggle).not.toBeChecked();
+
+    fireEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(localStorage.getItem('ai-comprehensive')).toBe('true');
     });
     expect(toggle).toBeChecked();
   });

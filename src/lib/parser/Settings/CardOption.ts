@@ -82,6 +82,8 @@ class CardOption {
 
   readonly claudeAIFlashcards: boolean;
 
+  readonly aiComprehensive: boolean;
+
   readonly shareFilesForDebugging: boolean;
 
   readonly userInstructions?: string;
@@ -143,6 +145,7 @@ class CardOption {
     this.processPDFs = input['process-pdfs'] !== 'false';
     this.pdfExtractText = input['pdf-extract-text'] === 'true';
     this.claudeAIFlashcards = input['claude-ai-flashcards'] === 'true';
+    this.aiComprehensive = input['ai-comprehensive'] === 'true';
     this.shareFilesForDebugging = input['share-files-for-debugging'] === 'true';
     /* Is this really needed? */
     if (this.parentBlockId) {
@@ -198,6 +201,7 @@ class CardOption {
       'embed-images': 'true',
       'markdown-nested-bullet-points': 'true',
       'claude-ai-flashcards': 'false',
+      'ai-comprehensive': 'false',
       'share-files-for-debugging': 'false',
       'mcq-enabled': 'false',
       'mcq-tts-question': '',

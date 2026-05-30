@@ -247,7 +247,11 @@ export async function PrepareDeck(
       hasFieldMapping: fieldMapping != null,
     });
     const tClaude = Date.now();
-    const generateDeckInfoOptions = { isPaying: input.noLimits, userId: input.userId ?? null };
+    const generateDeckInfoOptions = {
+      isPaying: input.noLimits,
+      userId: input.userId ?? null,
+      comprehensive: input.settings.aiComprehensive,
+    };
     const deckInfoArrays: DeckInfo[][] = [];
     for (let i = 0; i < htmlFiles.length; i += 3) {
       const batch = htmlFiles.slice(i, i + 3);

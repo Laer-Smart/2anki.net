@@ -637,6 +637,7 @@ const FLOOR_V1_CACHE_WRITE_PREMIUM = 1.25;
 export interface GenerateDeckInfoOptions {
   isPaying?: boolean;
   userId?: number | null;
+  comprehensive?: boolean;
 }
 
 interface ChunkUsage {
@@ -644,10 +645,6 @@ interface ChunkUsage {
   output_tokens: number;
   cache_creation_input_tokens: number;
   cache_read_input_tokens: number;
-}
-
-function isFloorV1Enabled(): boolean {
-  return process.env.AI_CONVERTER_FLOOR_V1_ENABLED === 'true';
 }
 
 function computeCostUsd(usages: ChunkUsage[]): number {
@@ -800,7 +797,8 @@ export async function generateDeckInfo(
     durationMs: Date.now() - tStrip0,
   });
 
-  const floorV1Active = isFloorV1Enabled() && options?.isPaying === true;
+  const floorV1Active =
+    options?.comprehensive === true && options?.isPaying === true;
 
   if (cardStyle === 'heading-driven') {
     const headings = detect('html', strippedContent);
@@ -869,6 +867,7 @@ export async function generateDeckInfo(
         top_up_rounds: result.topUpRounds,
         cost_usd: costUsd,
         elapsed_ms: elapsedMs,
+        comprehensive: true,
       },
     });
     return deckInfo;
