@@ -88,6 +88,11 @@ jest.mock('../services/GA4Service', () => ({
   sendPurchaseEvent: jest.fn().mockResolvedValue(undefined),
 }));
 
+const mockTrack = jest.fn();
+jest.mock('../services/events/track', () => ({
+  track: (...args: unknown[]) => mockTrack(...args),
+}));
+
 const mockRecordError = jest.fn().mockResolvedValue(undefined);
 jest.mock('../data_layer/UserVisibleErrorsRepository', () => ({
   UserVisibleErrorsRepository: jest.fn().mockImplementation(() => ({
@@ -294,6 +299,117 @@ describe('WebhookRouter — pass grant', () => {
     expect(res.status).toBe(200);
     expect(mockAnonInsert).not.toHaveBeenCalled();
     warnSpy.mockRestore();
+  });
+});
+
+describe('WebhookRouter — checkout_completed funnel join', () => {
+  let server: http.Server;
+  let url: string;
+
+  beforeAll(async () => {
+    ({ server, url } = await buildServer());
+  });
+
+  afterAll(() => server.close());
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  function postWebhook() {
+    return fetch(`${url}/webhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'stripe-signature': 'sig_test' },
+      body: JSON.stringify({}),
+    });
+  }
+
+  it('emits checkout_completed with anonymousId from session metadata', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_join',
+          mode: 'subscription',
+          metadata: { user_id: '42', anon_id: 'anon-uuid-123' },
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockTrack).toHaveBeenCalledWith(
+      'checkout_completed',
+      expect.objectContaining({ userId: 42, anonymousId: 'anon-uuid-123' })
+    );
+  });
+
+  it('emits checkout_completed with anonymousId for an anonymous pass (no user_id)', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_anon_join',
+          mode: 'payment',
+          payment_intent: 'pi_anon_join',
+          metadata: { pass_kind: '24h', pass_anonymous: '1', anon_id: 'anon-uuid-456' },
+        },
+      },
+    };
+    mockAnonInsert.mockResolvedValue({
+      id: 1,
+      stripe_session_id: 'cs_anon_join',
+      kind: '24h',
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      payment_intent_id: 'pi_anon_join',
+    });
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockTrack).toHaveBeenCalledWith(
+      'checkout_completed',
+      expect.objectContaining({ userId: null, anonymousId: 'anon-uuid-456' })
+    );
+  });
+
+  it('emits checkout_completed even when no pricing_variant is set', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_no_variant',
+          mode: 'subscription',
+          metadata: { user_id: '7' },
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockTrack).toHaveBeenCalledWith(
+      'checkout_completed',
+      expect.objectContaining({ userId: 7, anonymousId: null })
+    );
+  });
+
+  it('emits checkout_completed with anonymousId null when no anon_id metadata', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_no_anon',
+          mode: 'subscription',
+          metadata: { user_id: '9', pricing_variant: 'minimal' },
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockTrack).toHaveBeenCalledWith(
+      'checkout_completed',
+      expect.objectContaining({ userId: 9, anonymousId: null, props: expect.objectContaining({ variant: 'minimal' }) })
+    );
   });
 });
 

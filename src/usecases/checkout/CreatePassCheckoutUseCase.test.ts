@@ -105,6 +105,44 @@ describe('CreatePassCheckoutUseCase', () => {
     });
   });
 
+  describe('anon_id funnel attribution', () => {
+    it('stamps anon_id into metadata when provided for a logged-in pass', async () => {
+      mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/a' });
+
+      const uc = new CreatePassCheckoutUseCase(makeStripe(), 'price_24h', '24h');
+      await uc.execute({ userEmail: 'user@example.com', userId: 7, anonId: 'anon-uuid-123' });
+
+      expect(mockStripeCreateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: { user_id: '7', pass_kind: '24h', anon_id: 'anon-uuid-123' },
+        })
+      );
+    });
+
+    it('stamps anon_id into metadata for an anonymous pass', async () => {
+      mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/anon' });
+
+      const uc = new CreatePassCheckoutUseCase(makeStripe(), 'price_24h', '24h');
+      await uc.execute({ anonId: 'anon-uuid-456' });
+
+      expect(mockStripeCreateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: { pass_kind: '24h', pass_anonymous: '1', anon_id: 'anon-uuid-456' },
+        })
+      );
+    });
+
+    it('omits anon_id when no cookie value is supplied', async () => {
+      mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/a' });
+
+      const uc = new CreatePassCheckoutUseCase(makeStripe(), 'price_24h', '24h');
+      await uc.execute({ userEmail: 'user@example.com', userId: 7 });
+
+      const call = mockStripeCreateSession.mock.calls[0][0];
+      expect(call.metadata.anon_id).toBeUndefined();
+    });
+  });
+
   describe('anonymous mode (no userId / no userEmail)', () => {
     it('omits user_id from metadata and sets pass_anonymous=1', async () => {
       mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/anon' });

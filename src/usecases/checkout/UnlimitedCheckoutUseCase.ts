@@ -20,6 +20,7 @@ export class UnlimitedCheckoutUseCase {
     interval: UnlimitedInterval;
     stripeCustomerId?: string | null;
     variant?: string;
+    anonId?: string;
   }): Promise<UnlimitedCheckoutResult> {
     console.info('unlimited.checkout.started', { user_id: input.userId, interval: input.interval });
 
@@ -37,6 +38,9 @@ export class UnlimitedCheckoutUseCase {
         user_id: String(input.userId),
         ...(input.variant != null && input.variant !== ''
           ? { pricing_variant: input.variant }
+          : {}),
+        ...(input.anonId != null && input.anonId !== ''
+          ? { anon_id: input.anonId }
           : {}),
       },
     };

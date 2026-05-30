@@ -66,6 +66,20 @@ describe('AutoSyncCheckoutController', () => {
     expect(res.body).toEqual({ status: 'already_subscribed' });
   });
 
+  test('forwards the anon_id cookie to the use case when present', async () => {
+    const uc = makeUseCase({ url: 'https://checkout.stripe.com/test' });
+    const controller = new AutoSyncCheckoutController(uc);
+    const req = { cookies: { anon_id: 'anon-uuid-123' } } as unknown as Request;
+    const res = makeResponse();
+    res.locals = { owner: 99, email: 'alice@example.com' };
+
+    await controller.createSession(req, res as unknown as Response);
+
+    expect((uc.execute as jest.Mock)).toHaveBeenCalledWith(
+      expect.objectContaining({ anonId: 'anon-uuid-123' })
+    );
+  });
+
   test('passes owner and email from res.locals to the use case', async () => {
     const uc = makeUseCase({ url: 'https://checkout.stripe.com/test' });
     const controller = new AutoSyncCheckoutController(uc);

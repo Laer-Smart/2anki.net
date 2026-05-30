@@ -228,18 +228,20 @@ const WebhooksRouter = () => {
           const passKind = sessionMeta.pass_kind as PassKind | undefined;
 
           const pricingVariant = sessionMeta.pricing_variant;
-          if (pricingVariant != null && pricingVariant !== '') {
-            const userIdMeta = Number.parseInt(sessionMeta.user_id ?? '', 10);
-            track('checkout_completed', {
-              userId: Number.isNaN(userIdMeta) ? null : userIdMeta,
-              props: {
-                variant: pricingVariant,
-                plan:
-                  passKind ??
-                  (session.mode === 'subscription' ? 'subscription' : 'payment'),
-              },
-            });
-          }
+          const anonId = sessionMeta.anon_id;
+          const userIdMeta = Number.parseInt(sessionMeta.user_id ?? '', 10);
+          track('checkout_completed', {
+            userId: Number.isNaN(userIdMeta) ? null : userIdMeta,
+            anonymousId: anonId != null && anonId !== '' ? anonId : null,
+            props: {
+              plan:
+                passKind ??
+                (session.mode === 'subscription' ? 'subscription' : 'payment'),
+              ...(pricingVariant != null && pricingVariant !== ''
+                ? { variant: pricingVariant }
+                : {}),
+            },
+          });
 
           if (passKind === '24h' || passKind === '7d') {
             const paymentIntentId = typeof session.payment_intent === 'string'
