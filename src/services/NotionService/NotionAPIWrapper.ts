@@ -29,6 +29,7 @@ import { ValidNotionType } from './types';
 import { notionCallRingBuffer } from './NotionCallRingBuffer';
 
 const DEFAULT_PAGE_SIZE_LIMIT = 100 * 2;
+const SEARCH_MAX_PAGES = 20;
 
 export interface GetBlockParams {
   createdAt: string;
@@ -411,48 +412,45 @@ class NotionAPIWrapper {
     return { results: collected };
   }
 
-  async search(query: string, all?: boolean) {
-    const searchLabel = uniqueTimerLabel(all ? 'search:all' : 'search:single');
+  async search(query: string) {
+    const searchLabel = uniqueTimerLabel('search');
     console.time(searchLabel);
-    const response = await withRetry(
-      () =>
-        this.notion.search({
-          page_size: DEFAULT_PAGE_SIZE_LIMIT,
-          query,
-          sort: {
-            direction: 'descending',
-            timestamp: 'last_edited_time',
-          },
-        }),
-      { label: 'search' }
-    );
 
-    if (all && response.has_more && response.next_cursor) {
-      while (true) {
-        const res2: SearchResponse = await withRetry(
-          () =>
-            this.notion.search({
-              page_size: DEFAULT_PAGE_SIZE_LIMIT,
-              query,
-              start_cursor: response.next_cursor!,
-              sort: {
-                direction: 'descending',
-                timestamp: 'last_edited_time',
-              },
-            }),
-          { label: 'search:page' }
-        );
-        response.results.push(...res2.results);
-        if (res2.next_cursor) {
-          response.next_cursor = res2.next_cursor;
-        } else {
-          break;
-        }
+    const aggregated: SearchResponse = {
+      object: 'list',
+      type: 'page_or_data_source',
+      page_or_data_source: {},
+      results: [],
+      next_cursor: null,
+      has_more: false,
+    };
+
+    let cursor: string | undefined;
+    for (let page = 0; page < SEARCH_MAX_PAGES; page++) {
+      const response: SearchResponse = await withRetry(
+        () =>
+          this.notion.search({
+            page_size: DEFAULT_PAGE_SIZE_LIMIT,
+            query,
+            sort: {
+              direction: 'descending',
+              timestamp: 'last_edited_time',
+            },
+            ...(cursor ? { start_cursor: cursor } : {}),
+          }),
+        { label: 'search' }
+      );
+
+      aggregated.results.push(...response.results);
+
+      if (!response.has_more || response.next_cursor == null) {
+        break;
       }
+      cursor = response.next_cursor;
     }
 
     console.timeEnd(searchLabel);
-    return collapseDataSourcesToDatabases(response);
+    return collapseDataSourcesToDatabases(aggregated);
   }
 
   static GetClientID(): string {

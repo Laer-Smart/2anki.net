@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-30-notion-search-completeness",
+  "date": "2026-05-30",
+  "type": "fix",
+  "title": "Notion search returns every matching page, not just the first batch"
+}
