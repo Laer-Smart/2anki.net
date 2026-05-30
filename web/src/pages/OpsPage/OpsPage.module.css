@@ -944,3 +944,46 @@
   font-size: var(--text-sm);
   margin: 0;
 }
+
+/* ── Upload funnel tab ──────────────────────────────────────────── */
+
+.rateHero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1rem;
+}
+
+.rateHeroLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  margin: 0;
+}
+
+.rateHeroValue {
+  font-size: var(--text-4xl, 2.5rem);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-semibold);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.rateHeroFootnote {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+.cardMuted .cardTitle {
+  color: var(--color-text-tertiary);
+}
+
+.cardMuted .cardValue {
+  color: var(--color-text-secondary);
+}
