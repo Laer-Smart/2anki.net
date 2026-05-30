@@ -228,6 +228,9 @@ export function Sidebar({
             <ArrowLeftIcon width={16} height={16} />
           )}
         </span>
+        <span className={styles.collapseRailLabel} aria-hidden="true">
+          {collapsed ? 'Expand' : 'Collapse'}
+        </span>
       </button>
       <nav className={styles.sidebarNav}>
         <div className={styles.sidebarGroup}>

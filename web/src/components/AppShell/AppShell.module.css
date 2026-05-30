@@ -104,12 +104,12 @@
   align-items: center;
   justify-content: center;
   width: 2px;
-  height: 32px;
+  height: 20px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  background: var(--color-border);
+  background: var(--color-text-tertiary);
   color: var(--color-text-tertiary);
-  opacity: 0.6;
+  opacity: 1;
   transition:
     width var(--transition-fast),
     height var(--transition-fast),
@@ -122,6 +122,30 @@
 .collapseRailIndicator svg {
   opacity: 0;
   transition: opacity var(--transition-fast);
+}
+
+.collapseRailLabel {
+  position: absolute;
+  left: calc(50% + 20px);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  padding: 2px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+}
+
+.collapseRail:hover .collapseRailLabel,
+.collapseRail:focus-visible .collapseRailLabel {
+  opacity: 1;
 }
 
 .collapseRail:hover .collapseRailIndicator,
