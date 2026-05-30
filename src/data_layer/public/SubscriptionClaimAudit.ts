@@ -32,7 +32,7 @@ export interface SubscriptionClaimAuditInitializer {
 
   outcome: string;
 
-  /** Default value: now() */
+  /** Default value: CURRENT_TIMESTAMP */
   created_at?: Date;
 }
 

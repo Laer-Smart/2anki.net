@@ -33,3 +33,16 @@ export interface OauthIdentitiesInitializer {
   /** Default value: CURRENT_TIMESTAMP */
   created_at?: Date;
 }
+
+/** Represents the mutator for the table public.oauth_identities */
+export interface OauthIdentitiesMutator {
+  id?: OauthIdentitiesId;
+
+  provider?: string;
+
+  subject?: string;
+
+  user_id?: UsersId;
+
+  created_at?: Date;
+}
