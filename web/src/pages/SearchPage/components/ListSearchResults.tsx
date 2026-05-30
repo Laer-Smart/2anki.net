@@ -56,7 +56,7 @@ export default function ListSearchResults(
       : `No pages found ${scope}`;
     return (
       <div className={styles.emptyState}>
-        <p>{headline}</p>
+        <p data-hj-suppress>{headline}</p>
         <p className={styles.secondaryText}>
           Try a different search term, or make sure the page is shared with
           the 2anki integration — see{' '}
