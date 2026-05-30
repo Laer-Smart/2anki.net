@@ -23,6 +23,7 @@ import JobRepository from '../data_layer/JobRepository';
 import sendErrorResponse from '../lib/sendErrorResponse';
 import { isPaying } from '../lib/isPaying';
 import { buildContentDisposition } from '../lib/buildContentDisposition';
+import { track } from '../services/events/track';
 
 const MEDIA_CONTENT_TYPES: Record<string, string> = {
   png: 'image/png',
@@ -221,6 +222,16 @@ class ApkgController {
         res.status(400).json({ message: 'Invalid background color. Use a six-digit hex value like #ffffff.' });
         return;
       }
+      const ownerId = typeof res.locals.owner === 'number' ? res.locals.owner : null;
+      track('pdf_print_options_used', {
+        userId: ownerId,
+        props: {
+          backgroundColor: pdfOptions.backgroundColor !== DEFAULT_PDF_OPTIONS.backgroundColor,
+          paperSize: pdfOptions.paperSize !== DEFAULT_PDF_OPTIONS.paperSize,
+          orientation: pdfOptions.orientation !== DEFAULT_PDF_OPTIONS.orientation,
+          margins: pdfOptions.margins !== DEFAULT_PDF_OPTIONS.margins,
+        },
+      });
       const fs = await import('node:fs/promises');
       let fileBuffer: Buffer;
       try {

@@ -6,8 +6,12 @@ import PdfRenderService from '../services/PdfRenderService';
 import { NotionService } from '../services/NotionService/NotionService';
 import JobRepository from '../data_layer/JobRepository';
 import ImportApkgToNotionUseCase from '../usecases/apkg/ImportApkgToNotionUseCase';
+import ExportApkgToPdfUseCase from '../usecases/apkg/ExportApkgToPdfUseCase';
+import { track } from '../services/events/track';
 
 jest.mock('../usecases/apkg/ImportApkgToNotionUseCase');
+jest.mock('../usecases/apkg/ExportApkgToPdfUseCase');
+jest.mock('../services/events/track', () => ({ track: jest.fn() }));
 jest.mock('../lib/storage/StorageHandler', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({})),
@@ -16,6 +20,8 @@ jest.mock('node:fs/promises', () => ({
   readFile: jest.fn().mockResolvedValue(Buffer.from('fake')),
   unlink: jest.fn().mockResolvedValue(undefined),
 }));
+
+const trackMock = track as jest.Mock;
 
 function makeRes(locals: Record<string, unknown> = {}): Partial<Response> {
   return {
@@ -189,5 +195,148 @@ describe('ApkgController.importToNotion', () => {
     expect(res.status).toHaveBeenCalledWith(202);
     const executeCall = executeMock.mock.calls[0];
     expect(executeCall[5]).toMatchObject({ isPaying: true, maxNotes: 5000 });
+  });
+});
+
+describe('ApkgController.exportPdf — pdf_print_options_used event', () => {
+  beforeEach(() => {
+    trackMock.mockClear();
+    (ExportApkgToPdfUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        pdf: Buffer.from('fake-pdf'),
+        deckName: 'deck',
+        cardCount: 1,
+      }),
+    }));
+  });
+
+  function makePdfRes(locals: Record<string, unknown> = {}): Response {
+    const res = makeRes(locals) as Partial<Response> & {
+      setHeader?: jest.Mock;
+      send?: jest.Mock;
+    };
+    res.setHeader = jest.fn();
+    res.send = jest.fn();
+    return res as Response;
+  }
+
+  it('fires the event with all four booleans false when every option is default', async () => {
+    const controller = makeController();
+    const req = makeReq({ body: {} }) as Request;
+    const res = makePdfRes({ owner: 42 });
+
+    await controller.exportPdf(req, res);
+
+    expect(trackMock).toHaveBeenCalledTimes(1);
+    expect(trackMock).toHaveBeenCalledWith('pdf_print_options_used', {
+      userId: 42,
+      props: {
+        backgroundColor: false,
+        paperSize: false,
+        orientation: false,
+        margins: false,
+      },
+    });
+  });
+
+  it('flags backgroundColor true when the user picks a non-default color', async () => {
+    const controller = makeController();
+    const req = makeReq({ body: { backgroundColor: '#ff0000' } }) as Request;
+    const res = makePdfRes({ owner: 42 });
+
+    await controller.exportPdf(req, res);
+
+    expect(trackMock).toHaveBeenCalledTimes(1);
+    expect(trackMock).toHaveBeenCalledWith('pdf_print_options_used', {
+      userId: 42,
+      props: {
+        backgroundColor: true,
+        paperSize: false,
+        orientation: false,
+        margins: false,
+      },
+    });
+  });
+
+  it('flags paperSize true when the user picks a non-default size', async () => {
+    const controller = makeController();
+    const req = makeReq({ body: { paperSize: 'Letter' } }) as Request;
+    const res = makePdfRes({ owner: 42 });
+
+    await controller.exportPdf(req, res);
+
+    expect(trackMock).toHaveBeenCalledTimes(1);
+    expect(trackMock).toHaveBeenCalledWith('pdf_print_options_used', {
+      userId: 42,
+      props: {
+        backgroundColor: false,
+        paperSize: true,
+        orientation: false,
+        margins: false,
+      },
+    });
+  });
+
+  it('flags orientation true when the user picks landscape', async () => {
+    const controller = makeController();
+    const req = makeReq({ body: { orientation: 'landscape' } }) as Request;
+    const res = makePdfRes({ owner: 42 });
+
+    await controller.exportPdf(req, res);
+
+    expect(trackMock).toHaveBeenCalledTimes(1);
+    expect(trackMock).toHaveBeenCalledWith('pdf_print_options_used', {
+      userId: 42,
+      props: {
+        backgroundColor: false,
+        paperSize: false,
+        orientation: true,
+        margins: false,
+      },
+    });
+  });
+
+  it('flags margins true when the user picks a non-default margin', async () => {
+    const controller = makeController();
+    const req = makeReq({ body: { margins: 'wide' } }) as Request;
+    const res = makePdfRes({ owner: 42 });
+
+    await controller.exportPdf(req, res);
+
+    expect(trackMock).toHaveBeenCalledTimes(1);
+    expect(trackMock).toHaveBeenCalledWith('pdf_print_options_used', {
+      userId: 42,
+      props: {
+        backgroundColor: false,
+        paperSize: false,
+        orientation: false,
+        margins: true,
+      },
+    });
+  });
+
+  it('falls back to null userId when res.locals.owner is missing', async () => {
+    const controller = makeController();
+    const req = makeReq({ body: {} }) as Request;
+    const res = makePdfRes();
+
+    await controller.exportPdf(req, res);
+
+    expect(trackMock).toHaveBeenCalledTimes(1);
+    expect(trackMock).toHaveBeenCalledWith(
+      'pdf_print_options_used',
+      expect.objectContaining({ userId: null })
+    );
+  });
+
+  it('does not fire when the request is rejected before parsePdfOptions succeeds', async () => {
+    const controller = makeController();
+    const req = makeReq({ body: { backgroundColor: 'not-a-hex' } }) as Request;
+    const res = makePdfRes({ owner: 42 });
+
+    await controller.exportPdf(req, res);
+
+    expect(trackMock).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
   });
 });
