@@ -21,6 +21,7 @@ import {
   isTransformName,
 } from '../lib/ankify/transforms/types';
 import { getTransformNoteCap } from '../lib/ankify/transforms/limits';
+import { parseTagInput } from '../lib/ankify/transforms/tags';
 
 const PAYWALL_RESPONSE = {
   code: 'paywall',
@@ -41,6 +42,7 @@ interface TransformRequestParts {
   imageSource?: ImageSource;
   imageCount?: number;
   selection?: FieldSelection;
+  extraTags?: string[];
 }
 
 type ParseResult<T> = { ok: true; value: T } | { ok: false; error: string };
@@ -66,11 +68,18 @@ function parseTransformBody(
 
   const image = transform === 'add_image' ? parseImageOptions(body) : {};
   const selection = parseFieldSelection(body);
+  const extraTags = parseTagsField(body.tags);
 
   return {
     ok: true,
-    value: { transform, targetLanguage, ...image, selection },
+    value: { transform, targetLanguage, ...image, selection, extraTags },
   };
+}
+
+function parseTagsField(raw: unknown): string[] | undefined {
+  if (typeof raw !== 'string') return undefined;
+  const tags = parseTagInput(raw);
+  return tags.length > 0 ? tags : undefined;
 }
 
 function parseImageOptions(body: Record<string, unknown>): {
@@ -197,6 +206,7 @@ export class TransformController {
         pexelsApiKey: process.env.PEXELS_API_KEY,
         selection: parts.value.selection,
         noteCap: getTransformNoteCap(true),
+        extraTags: parts.value.extraTags,
       });
       res.set('Content-Type', 'application/apkg');
       res.set('Content-Length', Buffer.byteLength(result.apkg).toString());

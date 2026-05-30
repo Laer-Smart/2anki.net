@@ -17,6 +17,7 @@ import {
   TransformName,
 } from '../../lib/ankify/transforms/types';
 import { attachReferencedMedia } from '../../lib/ankify/transforms/attachReferencedMedia';
+import { mergeTags } from '../../lib/ankify/transforms/tags';
 
 export const UNKNOWN_MODEL_ERROR =
   "This deck uses a note type we don't support yet. v1 supports Basic and Cloze decks.";
@@ -44,6 +45,7 @@ export interface TransformApkgInput {
   selection?: FieldSelection;
   concurrency?: number;
   noteCap?: number;
+  extraTags?: string[];
 }
 
 export interface TransformApkgResult {
@@ -182,7 +184,15 @@ export class TransformApkgUseCase {
       transformResult.notes,
       knownFilenames
     );
-    const deck = buildDeckFromTransformedNotes(parsed.deckName, notesWithMedia);
+    const extraTags = input.extraTags ?? [];
+    const notesForDeck =
+      extraTags.length === 0
+        ? notesWithMedia
+        : notesWithMedia.map((n) => ({
+            ...n,
+            tags: mergeTags(n.tags, extraTags),
+          }));
+    const deck = buildDeckFromTransformedNotes(parsed.deckName, notesForDeck);
     const apkg = await emitApkgFromDeck(deck, mergedMedia);
 
     return {

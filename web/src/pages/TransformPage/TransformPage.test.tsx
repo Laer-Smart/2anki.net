@@ -111,4 +111,21 @@ describe('TransformPage', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('renders an optional Tags input with the agreed helper text', () => {
+    mockUseUserLocals.mockReturnValue({
+      data: {
+        user: { id: 1 },
+        locals: { patreon: true, subscriber: false },
+      },
+    });
+    renderPage();
+    expect(screen.getByText(/Tags \(optional\)/i)).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/pharm::cardio week-12/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Space-separated\. Use :: to nest/i)
+    ).toBeInTheDocument();
+  });
 });
