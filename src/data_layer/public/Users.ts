@@ -30,8 +30,6 @@ export default interface Users {
 
   ankify_welcome_seen: boolean;
 
-  trial_started_at: Date | null;
-
   card_options: unknown | null;
 
   theme: string | null;
@@ -93,8 +91,6 @@ export interface UsersInitializer {
 
   /** Default value: false */
   ankify_welcome_seen?: boolean;
-
-  trial_started_at?: Date | null;
 
   card_options?: unknown | null;
 
@@ -159,8 +155,6 @@ export interface UsersMutator {
   signup_origin?: string | null;
 
   ankify_welcome_seen?: boolean;
-
-  trial_started_at?: Date | null;
 
   card_options?: unknown | null;
 

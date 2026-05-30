@@ -26,7 +26,6 @@ import { fireAnalyticsEvent } from '../../lib/analytics/fireAnalyticsEvent';
 import { track } from '../../lib/analytics/track';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
-import { useCardUsage } from '../../lib/hooks/useCardUsage';
 import { UpsellCard } from '../../components/UpsellCard';
 import JobResponse from '../../schemas/public/JobResponse';
 import { NotionColumnMappingModal } from '../../components/NotionColumnMappingModal/NotionColumnMappingModal';
@@ -231,15 +230,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
   const { uploads: dropboxUploads, deleteUpload: deleteDropboxUpload } = useDropboxUploads(backend);
   const { uploads: googleDriveUploads, deleteUpload: deleteGoogleDriveUpload } = useGoogleDriveUploads(backend);
   const { data } = useUserLocals();
-  const cardUsage = useCardUsage(data?.user?.id != null);
-  const overMonthlyLimit =
-    cardUsage != null &&
-    !cardUsage.unlimited &&
-    !cardUsage.loading &&
-    cardUsage.cards_used >= cardUsage.cards_limit;
-  // When over the limit, the contextual monthly-limit card already shows on the
-  // failed job, so suppress the generic upsell footer to avoid two paywall CTAs.
-  const showUpgradeFooter = !isPayingUser(data?.locals) && !overMonthlyLimit;
+  const showUpgradeFooter = !isPayingUser(data?.locals);
   const activeShares = useActiveShares();
   const sharedKeySet = new Set(activeShares.map((s) => s.upload_key));
 
