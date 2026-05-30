@@ -34,27 +34,30 @@ function buildNoteFromBack(
   exporter: CustomExporter,
   files: File[],
   workspace: Workspace,
-  mcqEnabled: boolean
+  mcqEnabled: boolean,
+  embedImages: boolean
 ): BuildNoteResult {
   const convertedBack = markdownToHTML(dedent(rawBack), true);
   const dom = cheerio.load(convertedBack, { xmlMode: true });
   const media: string[] = [];
 
-  dom('img').each((_i, elem) => {
-    const src = dom(elem).attr('src');
-    if (src && isImageFileEmbedable(src)) {
-      const newName = embedFile({
-        exporter,
-        files,
-        filePath: decodeURIComponent(src),
-        workspace,
-      });
-      if (newName) {
-        dom(elem).attr('src', newName);
-        media.push(newName);
+  if (embedImages) {
+    dom('img').each((_i, elem) => {
+      const src = dom(elem).attr('src');
+      if (src && isImageFileEmbedable(src)) {
+        const newName = embedFile({
+          exporter,
+          files,
+          filePath: decodeURIComponent(src),
+          workspace,
+        });
+        if (newName) {
+          dom(elem).attr('src', newName);
+          media.push(newName);
+        }
       }
-    }
-  });
+    });
+  }
 
   const note = new Note(front, dom.html() || '');
   note.media = media;
@@ -123,7 +126,8 @@ export const handleNestedBulletPointsInMarkdown = (
       exporter,
       files,
       workspace,
-      settings.mcqEnabled
+      settings.mcqEnabled,
+      settings.embedImages
     );
     deck.cards.push(result.note);
     if (result.note.mcq) {

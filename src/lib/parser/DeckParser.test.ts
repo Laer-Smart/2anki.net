@@ -864,3 +864,107 @@ describe('heuristic markdown path — entity preservation', () => {
     expect(hasEntity || hasChar).toBe(true);
   });
 });
+
+describe('embed-images opt-out', () => {
+  const fixtureDir = path.join(__dirname, '__fixtures__/notion-html-2024');
+  const html = fs.readFileSync(path.join(fixtureDir, 'index.html')).toString();
+  const pngPath = path.join(fixtureDir, 'notion-html-2024/pasted-screenshot.png');
+  const pngContents = fs.readFileSync(pngPath);
+
+  function buildParser(settings: CardOption) {
+    return new DeckParser({
+      name: 'index.html',
+      settings,
+      files: [
+        { name: 'index.html', contents: html },
+        { name: 'notion-html-2024/pasted-screenshot.png', contents: pngContents },
+      ],
+      noLimits: true,
+      workspace: new Workspace(true, 'fs'),
+    });
+  }
+
+  test('default (embed-images on) attaches image bytes to card media', () => {
+    const ws = new Workspace(true, 'fs');
+    const parser = buildParser(
+      new CardOption({ 'max-one-toggle-per-card': 'true', cherry: 'false' })
+    );
+    parser.writeDeckInfo(ws);
+
+    const cardWithMedia = parser.payload[0].cards.find(
+      (c) => c.media.length > 0
+    );
+    expect(cardWithMedia).toBeDefined();
+  });
+
+  test('embed-images off leaves every card with an empty media list', () => {
+    const ws = new Workspace(true, 'fs');
+    const parser = buildParser(
+      new CardOption({
+        'max-one-toggle-per-card': 'true',
+        cherry: 'false',
+        'embed-images': 'false',
+      })
+    );
+    parser.writeDeckInfo(ws);
+
+    for (const card of parser.payload[0].cards) {
+      expect(card.media).toHaveLength(0);
+    }
+  });
+
+  const bulletMarkdown = [
+    '# Notes',
+    '',
+    '- Question with image',
+    '    ',
+    '    ![diagram](diagram.png)',
+    '    ',
+  ].join('\n');
+
+  test('embed-images off skips embed in markdown bullet path', () => {
+    const workspace = new Workspace(true, 'fs');
+    const parser = new DeckParser({
+      name: 'notes.md',
+      settings: new CardOption({
+        cherry: 'false',
+        'markdown-nested-bullet-points': 'true',
+        'embed-images': 'false',
+      }),
+      files: [
+        { name: 'notes.md', contents: bulletMarkdown },
+        { name: 'diagram.png', contents: Buffer.from('fake-png-bytes') },
+      ],
+      noLimits: true,
+      workspace,
+    });
+    parser.writeDeckInfo(workspace);
+
+    for (const card of parser.payload[0].cards) {
+      expect(card.media).toHaveLength(0);
+    }
+  });
+
+  test('embed-images on (default) embeds image in markdown bullet path', () => {
+    const workspace = new Workspace(true, 'fs');
+    const parser = new DeckParser({
+      name: 'notes.md',
+      settings: new CardOption({
+        cherry: 'false',
+        'markdown-nested-bullet-points': 'true',
+      }),
+      files: [
+        { name: 'notes.md', contents: bulletMarkdown },
+        { name: 'diagram.png', contents: Buffer.from('fake-png-bytes') },
+      ],
+      noLimits: true,
+      workspace,
+    });
+    parser.writeDeckInfo(workspace);
+
+    const cardWithMedia = parser.payload[0].cards.find(
+      (c) => c.media.length > 0
+    );
+    expect(cardWithMedia).toBeDefined();
+  });
+});

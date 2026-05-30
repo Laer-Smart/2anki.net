@@ -74,6 +74,8 @@ class CardOption {
 
   readonly imageQuizHtmlToAnki: boolean;
 
+  readonly embedImages: boolean;
+
   readonly processPDFs: boolean;
 
   readonly pdfExtractText: boolean;
@@ -137,6 +139,7 @@ class CardOption {
     this.disableIndentedBulletPoints =
       input['disable-indented-bullets'] === 'true';
     this.imageQuizHtmlToAnki = input['image-quiz-html-to-anki'] === 'true';
+    this.embedImages = input['embed-images'] !== 'false';
     this.processPDFs = input['process-pdfs'] !== 'false';
     this.pdfExtractText = input['pdf-extract-text'] === 'true';
     this.claudeAIFlashcards = input['claude-ai-flashcards'] === 'true';
@@ -192,6 +195,7 @@ class CardOption {
       'pdf-extract-text': 'false',
       'page-emoji': 'first-emoji',
       'image-quiz-html-to-anki': 'false',
+      'embed-images': 'true',
       'markdown-nested-bullet-points': 'true',
       'claude-ai-flashcards': 'false',
       'share-files-for-debugging': 'false',
