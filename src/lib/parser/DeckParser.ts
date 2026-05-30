@@ -10,6 +10,10 @@ import CardOption from './Settings';
 import Workspace from './WorkSpace';
 import CustomExporter from './exporters/CustomExporter';
 import handleClozeDeletions from './helpers/handleClozeDeletions';
+import {
+  extractHeadingFromSummary,
+  extractHeadingMarkup,
+} from './helpers/extractHeadingFromSummary';
 import replaceAll from './helpers/replaceAll';
 
 import get16DigitRandomId from '../../shared/helpers/get16DigitRandomId';
@@ -171,8 +175,12 @@ export class DeckParser {
 
   removeNestedTogglesLegacy(input: string): string {
     return input
-      .replace(/<details(.*?)>(.*?)<\/details>/g, '')
-      .replace(/<summary>(.*?)<\/summary>/g, '')
+      .replace(/<details[^>]*>([\s\S]*?)<\/details>/g, (_match, inner) =>
+        extractHeadingFromSummary(inner)
+      )
+      .replace(/<summary[^>]*>([\s\S]*?)<\/summary>/g, (_match, inner) =>
+        extractHeadingMarkup(inner)
+      )
       .replace(/<li><\/li>/g, '')
       .replace(/<ul[^/>][^>]*><\/ul>/g, '')
       .replace(/<\/details><\/li><\/ul><\/details><\/li><\/ul>/g, '')
