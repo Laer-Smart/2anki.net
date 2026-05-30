@@ -45,6 +45,9 @@ import { GetPricingAbFunnelUseCase } from '../usecases/ops/GetPricingAbFunnelUse
 import { PricingAbFunnelService } from '../services/ops/PricingAbFunnelService';
 import { updateStripeSubscriptions } from '../lib/storage/jobs/helpers/updateStripeSubscriptions';
 import EventsRepository from '../data_layer/EventsRepository';
+import { FeatureFlagsRepository } from '../data_layer/FeatureFlagsRepository';
+import { ListFeatureFlagsUseCase } from '../usecases/ops/ListFeatureFlagsUseCase';
+import { SetFeatureFlagUseCase } from '../usecases/ops/SetFeatureFlagUseCase';
 
 const OpsRouter = () => {
   const router = express.Router();
@@ -109,7 +112,9 @@ const OpsRouter = () => {
     new SyncStripeSubscriptionsUseCase(() => updateStripeSubscriptions()),
     new GetPricingAbFunnelUseCase(
       new PricingAbFunnelService({ eventsRepo: new EventsRepository(database) })
-    )
+    ),
+    new ListFeatureFlagsUseCase(new FeatureFlagsRepository(database)),
+    new SetFeatureFlagUseCase(new FeatureFlagsRepository(database))
   );
 
   /**
@@ -425,6 +430,64 @@ const OpsRouter = () => {
    */
   router.get('/api/ops/pricing-ab/funnel', RequireOpsAccess, (req, res) =>
     controller.getPricingAbFunnel(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/flags:
+   *   get:
+   *     summary: List runtime feature flags
+   *     description: |
+   *       Returns every flag in the feature_flags table along with the email of the
+   *       admin who last toggled it. Flags are pre-seeded via migration — the UI
+   *       only toggles existing flags, it does not create them. Returns 404 for
+   *       everyone except the ops owner.
+   *     tags: [Ops]
+   *     responses:
+   *       200:
+   *         description: Array of feature flags
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.get('/api/ops/flags', RequireOpsAccess, (req, res) =>
+    controller.listFeatureFlags(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/flags/{key}:
+   *   put:
+   *     summary: Toggle a runtime feature flag
+   *     description: |
+   *       Updates value for the given flag key. 400 when the body value is not a
+   *       boolean. 404 when the key does not exist — new flags get added via
+   *       migration, not from the UI. Returns 404 for everyone except the ops
+   *       owner.
+   *     tags: [Ops]
+   *     parameters:
+   *       - in: path
+   *         name: key
+   *         required: true
+   *         schema: { type: string }
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [value]
+   *             properties:
+   *               value: { type: boolean }
+   *     responses:
+   *       200:
+   *         description: Updated flag row
+   *       400:
+   *         description: Bad request
+   *       404:
+   *         description: Not the ops owner, or flag key not found
+   */
+  router.put('/api/ops/flags/:key', RequireOpsAccess, (req, res) =>
+    controller.setFeatureFlag(req, res)
   );
 
   return router;
