@@ -112,6 +112,10 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
     ],
   },
   {
+    label: 'Media',
+    keys: ['embed-images'],
+  },
+  {
     label: 'Image quizzes',
     keys: ['image-quiz-html-to-anki'],
   },

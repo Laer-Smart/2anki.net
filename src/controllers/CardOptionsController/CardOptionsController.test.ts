@@ -165,6 +165,7 @@ describe('SettingsController', () => {
       'vertex-ai-pdf-questions': 'false',
       'disable-indented-bullets': 'false',
       'image-quiz-html-to-anki': 'false',
+      'embed-images': 'true',
       'share-files-for-debugging': 'false',
     });
   });
@@ -190,6 +191,7 @@ describe('SettingsController', () => {
       'pdf-extract-text': 'false',
       'page-emoji': 'first-emoji',
       'image-quiz-html-to-anki': 'false',
+      'embed-images': 'true',
       'markdown-nested-bullet-points': 'true',
       'share-files-for-debugging': 'false',
       'mcq-enabled': 'false',

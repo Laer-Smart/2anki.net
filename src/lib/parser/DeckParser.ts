@@ -195,11 +195,15 @@ export class DeckParser {
 
   private applyHeuristic(heuristic: MarkdownHeuristicResult, contentsStr: string | undefined, name: string) {
     for (const note of heuristic.notes) {
-      const { html: newName, media: namMedia } = this.embedImagesInHtml(note.name);
-      const { html: newBack, media: backMedia } = this.embedImagesInHtml(note.back);
-      note.name = newName;
-      note.back = newBack;
-      note.media = [...namMedia, ...backMedia];
+      if (this.settings.embedImages) {
+        const { html: newName, media: namMedia } = this.embedImagesInHtml(note.name);
+        const { html: newBack, media: backMedia } = this.embedImagesInHtml(note.back);
+        note.name = newName;
+        note.back = newBack;
+        note.media = [...namMedia, ...backMedia];
+      } else {
+        note.media = [];
+      }
     }
     const deck = new Deck(
       this.settings.deckName ?? getTitleFromMarkdown(contentsStr) ?? name,
@@ -550,6 +554,9 @@ export class DeckParser {
   }
 
   private embedCardImages(card: Note, ws: Workspace) {
+    if (!this.settings.embedImages) {
+      return;
+    }
     if (card.name) {
       card.name = this.embedImagesInCardContent(card.name, card, ws);
     }

@@ -129,6 +129,12 @@ const supportedOptions = (): CardOptionDetail[] => {
       false
     ),
     new CardOptionDetail(
+      'embed-images',
+      'Embed images in cards',
+      'Pack image bytes into the deck so cards render offline. Turn off to ship a leaner deck when images are pushing the upload over the size cap.',
+      true
+    ),
+    new CardOptionDetail(
       'claude-ai-flashcards',
       'Generate flashcards with Claude AI',
       'Use Claude AI to draft cards from your content. Produces stronger results on dense or unstructured documents.',

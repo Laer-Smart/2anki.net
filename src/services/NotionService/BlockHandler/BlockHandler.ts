@@ -104,7 +104,12 @@ class BlockHandler {
 
   async embedImage(c: BlockObjectResponse): Promise<string> {
     const url = getImageUrl(c as ImageBlockObjectResponse);
-    if (this.settings.isTextOnlyBack || isTesting() || !url) {
+    if (
+      !this.settings.embedImages ||
+      this.settings.isTextOnlyBack ||
+      isTesting() ||
+      !url
+    ) {
       return '';
     }
 
