@@ -2,7 +2,7 @@
 name: prod-incident-responder
 description: Reads recent prod logs, picks the highest-impact recurring error, drafts a minimal fix PR with a regression test. Use when prod logs show a recurring crash that has not been addressed (e.g. the GeneratePackagesUseCase name crash pattern).
 tools: Read, Write, Edit, Bash, Grep, Glob
-model: opus
+model: claude-opus-4-8
 isolation: worktree
 ---
 

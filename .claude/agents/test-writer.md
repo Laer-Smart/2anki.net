@@ -2,7 +2,7 @@
 name: test-writer
 description: Writes Jest tests for a given source file in an isolated worktree. Reads the file, designs colocated tests against the public surface, runs them, and returns the diff. Does not touch source code.
 tools: Read, Write, Edit, Bash, Grep, Glob
-model: opus
+model: claude-opus-4-8
 isolation: worktree
 ---
 
