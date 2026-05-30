@@ -66,7 +66,9 @@ function makePhotoId(): string {
   ) {
     return crypto.randomUUID();
   }
-  return `photo-${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return `photo-${Date.now()}-${hex}`;
 }
 
 function validatePhoto(file: File): string | null {
