@@ -46,24 +46,85 @@
   padding: 0;
 }
 
-.sidebarCollapseToggle {
+.sidebarGroupLabel {
+  margin: 0 0 var(--space-1);
+  padding: 0 0.75rem;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.collapseRail {
+  position: fixed;
+  top: 50%;
+  left: 228px;
+  transform: translateY(-50%);
+  z-index: 45;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: var(--radius-sm);
+  width: 24px;
+  height: 48px;
+  margin: 0;
+  padding: 0;
   border: none;
   background: none;
-  color: var(--color-text-tertiary);
   cursor: pointer;
-  flex-shrink: 0;
-  padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.sidebarCollapseToggle:hover {
+.collapseRailIndicator {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--color-border);
+  color: var(--color-text-tertiary);
+  opacity: 0.6;
+  transition:
+    width var(--transition-fast),
+    height var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    opacity var(--transition-fast);
+}
+
+.collapseRailIndicator svg {
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.collapseRail:hover .collapseRailIndicator,
+.collapseRail:focus-visible .collapseRailIndicator {
+  width: 24px;
+  height: 24px;
+  border-color: var(--color-border);
+  background: var(--color-bg-secondary);
+  box-shadow: var(--shadow-sm);
   color: var(--color-text-primary);
-  background: var(--color-bg-tertiary);
+  opacity: 1;
+}
+
+.collapseRail:hover .collapseRailIndicator svg,
+.collapseRail:focus-visible .collapseRailIndicator svg {
+  opacity: 1;
+}
+
+.collapseRail:focus-visible {
+  outline: 2px solid var(--color-text-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.collapseRail:focus:not(:focus-visible) {
+  outline: none;
 }
 
 @media (min-width: 1024px) {
@@ -101,6 +162,14 @@
     display: flex;
     justify-content: center;
   }
+
+  .sidebar.sidebarCollapsed .sidebarGroupLabel {
+    display: none;
+  }
+
+  .sidebar.sidebarCollapsed .collapseRail {
+    left: 52px;
+  }
 }
 
 @media (max-width: 1023px) {
@@ -108,7 +177,7 @@
     width: 240px;
   }
 
-  .sidebarCollapseToggle {
+  .collapseRail {
     display: none;
   }
 }

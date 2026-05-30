@@ -279,10 +279,26 @@ describe('Sidebar active state', () => {
 });
 
 describe('Sidebar group hierarchy', () => {
-  it('does not render group labels', () => {
+  it('labels the Library and Resources groups', () => {
     renderSidebar();
-    expect(screen.queryByText('Make')).not.toBeInTheDocument();
-    expect(screen.queryByText('Learn')).not.toBeInTheDocument();
+    expect(screen.getByText('Library')).toBeInTheDocument();
+    expect(screen.getByText('Resources')).toBeInTheDocument();
+  });
+
+  it('orders the top feature group by visit frequency (Upload, Notion, Note types first)', () => {
+    renderSidebar();
+    const nav = screen.getByRole('navigation');
+    const hrefs = Array.from(nav.querySelectorAll('a')).map((a) =>
+      a.getAttribute('href')
+    );
+    const upload = hrefs.indexOf('/upload');
+    const notion = hrefs.indexOf('/notion');
+    const templates = hrefs.indexOf('/templates');
+    const importRoute = hrefs.indexOf('/import');
+    expect(upload).toBeGreaterThanOrEqual(0);
+    expect(upload).toBeLessThan(notion);
+    expect(notion).toBeLessThan(templates);
+    expect(templates).toBeLessThan(importRoute);
   });
 
   it('omits the Admin group label when no admin flags are on', () => {
