@@ -41,6 +41,10 @@ import {
   CheckMonthlyCardLimitUseCase,
   MonthlyLimitError,
 } from '../../../../usecases/users/CheckMonthlyCardLimitUseCase';
+import { CompleteJobUseCase } from '../../../../usecases/jobs/CompleteJobUseCase';
+import { BuildDeckForJobUseCase } from '../../../../usecases/jobs/BuildDeckForJobUseCase';
+import { NotifyUserUseCase } from '../../../../usecases/jobs/NotifyUserUseCase';
+import { track } from '../../../../services/events/track';
 
 function makeUnauthorizedError(): APIResponseError {
   const err = Object.create(APIResponseError.prototype) as APIResponseError;
@@ -215,6 +219,76 @@ describe('performConversion — heavy pipeline', () => {
       baseRequest.id,
       baseRequest.owner,
       EMPTY_DECK_FAILURE_REASON
+    );
+  });
+
+  it('emits conversion_succeeded carrying the anonymous_id threaded through the job', async () => {
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: {},
+        rules: {},
+      }),
+    }));
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [1, 2, 3] }]),
+    }));
+    (CheckMonthlyCardLimitUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (BuildDeckForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({ size: 1, key: 'k', apkg: Buffer.from('') }),
+    }));
+    (NotifyUserUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (CompleteJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+
+    await performConversion(mockDatabase, {
+      ...baseRequest,
+      owner: 'anonymous',
+      anonId: 'anon-from-cookie',
+    });
+
+    expect(track).toHaveBeenCalledWith(
+      'conversion_succeeded',
+      expect.objectContaining({
+        anonymousId: 'anon-from-cookie',
+        props: expect.objectContaining({ source: 'notion' }),
+      })
+    );
+  });
+
+  it('emits conversion_failed with the anonymous_id when decks have zero cards', async () => {
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: {},
+        rules: {},
+      }),
+    }));
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [] }]),
+    }));
+
+    await performConversion(mockDatabase, {
+      ...baseRequest,
+      owner: 'anonymous',
+      anonId: 'anon-from-cookie',
+    });
+
+    expect(track).toHaveBeenCalledWith(
+      'conversion_failed',
+      expect.objectContaining({
+        anonymousId: 'anon-from-cookie',
+        props: expect.objectContaining({ reason: 'empty_deck' }),
+      })
     );
   });
 });

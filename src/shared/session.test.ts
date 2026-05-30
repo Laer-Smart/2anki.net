@@ -10,14 +10,19 @@ describe('sessionCookieOptions', () => {
     process.env.NODE_ENV = originalNodeEnv;
   });
 
-  it('persists the auth cookie for 30 days, httpOnly and sameSite=lax', () => {
+  it('persists the auth cookie for 30 days, sameSite=lax', () => {
     process.env.NODE_ENV = 'development';
     expect(sessionCookieOptions()).toEqual({
       maxAge: SESSION_MAX_AGE_MS,
-      httpOnly: true,
+      httpOnly: false,
       sameSite: 'lax',
       secure: false,
     });
+  });
+
+  it('keeps the auth cookie readable by JS so the SPA can detect login (#2454)', () => {
+    process.env.NODE_ENV = 'production';
+    expect(sessionCookieOptions().httpOnly).toBeFalsy();
   });
 
   it('marks the cookie secure in production', () => {

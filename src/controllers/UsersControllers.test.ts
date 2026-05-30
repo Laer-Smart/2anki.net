@@ -802,6 +802,35 @@ describe('UsersController.loginWithGoogle', () => {
     expect(register).not.toHaveBeenCalled();
   });
 
+  it('redirects with error=google_signin_failed when the token exchange fails', async () => {
+    const loginWithGoogle = jest.fn().mockResolvedValue(null);
+    const { controller } = buildGoogleController({ loginWithGoogle });
+    const req = {
+      query: { code: 'gauth-code' },
+      cookies: {},
+      headers: {},
+    } as unknown as express.Request;
+    const res = buildGoogleRes();
+
+    await controller.loginWithGoogle(req, res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=google_signin_failed');
+  });
+
+  it('redirects with error=google_signin_failed when the OAuth code is missing', async () => {
+    const { controller } = buildGoogleController();
+    const req = {
+      query: {},
+      cookies: {},
+      headers: {},
+    } as unknown as express.Request;
+    const res = buildGoogleRes();
+
+    await controller.loginWithGoogle(req, res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=google_signin_failed');
+  });
+
 });
 
 jest.mock('../data_layer/OauthIdentitiesRepository');
