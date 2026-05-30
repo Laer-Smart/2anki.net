@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-30-landing-page-honesty",
+  "date": "2026-05-30",
+  "type": "fix",
+  "title": "CSV and Excel landing pages describe the actual conversion shape, including header-row detection on .xlsx"
+}
