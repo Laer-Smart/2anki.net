@@ -1,9 +1,12 @@
+import { UserNotice } from './errors/UserNotice';
+
 const ENDPOINT = '/api/events/errors';
 
 export function reportClientError(
   error: unknown,
   context?: Record<string, unknown>
 ): void {
+  if (error instanceof UserNotice) return;
   try {
     const message =
       error instanceof Error

@@ -11,6 +11,7 @@ import UserUpload from '../interfaces/UserUpload';
 import isOfflineMode from '../isOfflineMode';
 import getObjectIcon, { ObjectIcon } from '../notion/getObjectIcon';
 import { Rules, Settings } from '../types';
+import { UserNotice, isIntentionalBackendNotice } from '../errors/UserNotice';
 import { del, get, getLoginURL, post } from './api';
 import { getResourceUrl } from './getResourceUrl';
 import { CONFLICT, OK } from './http';
@@ -140,6 +141,9 @@ export class Backend {
     });
     const data = await response.json();
     if ('message' in data) {
+      if (isIntentionalBackendNotice(data.message)) {
+        throw new UserNotice(data.message, data.code);
+      }
       throw new Error(data.message);
     }
     if (!data?.results) {
@@ -198,6 +202,9 @@ export class Backend {
     }
 
     if ('message' in data) {
+      if (isIntentionalBackendNotice(data.message)) {
+        throw new UserNotice(data.message, data.code);
+      }
       throw new Error(data.message);
     }
 

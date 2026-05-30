@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ErrorHandlerType } from '../../../components/errors/helpers/getErrorMessage';
 
 import Backend from '../../../lib/backend';
+import { UserNotice } from '../../../lib/errors/UserNotice';
 import { JobsId } from '../../../schemas/public/Jobs';
 import JobResponse from '../../../schemas/public/JobResponse';
 
@@ -42,7 +43,7 @@ export default function useJobs(
       setJobs((prev) => prev.filter((job) => job.id !== id));
     } catch (error) {
       if (error instanceof Error && error.message.includes('Cannot delete job while it is in progress')) {
-        setError(new Error('This job is still running. Wait for it to finish before deleting.'));
+        setError(new UserNotice('This job is still running. Wait for it to finish.'));
       } else {
         setError(error);
       }
