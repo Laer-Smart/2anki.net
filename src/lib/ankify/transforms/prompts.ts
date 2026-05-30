@@ -12,7 +12,7 @@ export interface BuiltPrompt {
   user: string;
 }
 
-const STRIP_HTML = /<[^>]*>/g;
+const STRIP_HTML = /<[^>]{0,1024}>/g;
 
 function plainText(value: string): string {
   return value.replace(STRIP_HTML, '').replace(/\s+/g, ' ').trim();

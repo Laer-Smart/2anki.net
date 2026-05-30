@@ -34,7 +34,7 @@ const filenameFromUrl = (url: string, mime: string): string => {
 
 const stripPunctuation = (value: string): string =>
   value
-    .replace(/<[^>]*>/g, ' ')
+    .replace(/<[^>]{0,1024}>/g, ' ')
     .replace(/[^\p{L}\p{N}\s]/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim();

@@ -80,7 +80,7 @@ export async function parseApkgNotes(
   }
   return {
     notes,
-    unknownModelNames: Array.from(unknown).sort(),
+    unknownModelNames: Array.from(unknown).sort((a, b) => a.localeCompare(b)),
     deckName: pickDeckName(collection),
   };
 }
