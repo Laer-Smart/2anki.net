@@ -53,11 +53,26 @@ export async function downloadNoteTypeApkg(
     previewData,
   });
   if (!response.ok) {
+    const message = await readServerErrorMessage(response);
     throw new Error(
-      `Failed to export note type: ${response.status} ${response.statusText}`
+      message ??
+        `Failed to export note type: ${response.status} ${response.statusText}`
     );
   }
   return response.blob();
+}
+
+async function readServerErrorMessage(
+  response: Response
+): Promise<string | null> {
+  const contentType = response.headers.get('Content-Type') ?? '';
+  if (!contentType.includes('application/json')) return null;
+  try {
+    const body = (await response.clone().json()) as { error?: unknown };
+    return typeof body.error === 'string' ? body.error : null;
+  } catch {
+    return null;
+  }
 }
 
 export interface UserTemplatesPayload {
@@ -93,8 +108,10 @@ async function putUserTemplates(payload: UserTemplatesPayload): Promise<void> {
     body: JSON.stringify(payload),
   });
   if (!response.ok) {
+    const message = await readServerErrorMessage(response);
     throw new Error(
-      `Failed to save templates: ${response.status} ${response.statusText}`
+      message ??
+        `Failed to save templates: ${response.status} ${response.statusText}`
     );
   }
 }

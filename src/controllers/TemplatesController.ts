@@ -6,6 +6,7 @@ import {
   AnkiNoteType,
   exportNoteTypeToApkg,
 } from '../lib/templates/exportNoteTypeToApkg';
+import { validateTemplateFields } from '../lib/templates/validateTemplateFields';
 import { getDefaultTemplates } from '../services/DefaultTemplatesService';
 import { getOfficialTemplates } from '../services/officialTemplates';
 import {
@@ -33,6 +34,30 @@ function isValidNoteType(value: unknown): value is AnkiNoteType {
     return false;
   }
   return true;
+}
+
+interface InvalidSavedTemplate {
+  templateId: string | undefined;
+  missing: string[];
+  message: string;
+}
+
+function findInvalidSavedTemplate(
+  templates: unknown[]
+): InvalidSavedTemplate | null {
+  for (const entry of templates) {
+    if (!entry || typeof entry !== 'object') continue;
+    const noteType = (entry as { noteType?: unknown }).noteType;
+    if (!isValidNoteType(noteType)) continue;
+    const result = validateTemplateFields(noteType);
+    if (result.ok) continue;
+    return {
+      templateId: (entry as { id?: string }).id,
+      missing: result.missing,
+      message: result.message,
+    };
+  }
+  return null;
 }
 
 function safeApkgFilename(name: string | undefined): string {
@@ -121,6 +146,16 @@ class TemplatesController {
     const templates = Array.isArray(body.templates) ? body.templates : [];
     const hiddenIds = Array.isArray(body.hiddenIds) ? body.hiddenIds : [];
 
+    const invalid = findInvalidSavedTemplate(templates);
+    if (invalid) {
+      res.status(400).json({
+        error: invalid.message,
+        missing: invalid.missing,
+        templateId: invalid.templateId,
+      });
+      return;
+    }
+
     try {
       await this.service.create(owner, { templates, hiddenIds });
       res.status(200).json({ ok: true });
@@ -192,6 +227,15 @@ class TemplatesController {
 
     if (!isValidNoteType(noteType)) {
       res.status(400).json({ error: 'Invalid note type' });
+      return;
+    }
+
+    const validation = validateTemplateFields(noteType);
+    if (!validation.ok) {
+      res.status(400).json({
+        error: validation.message,
+        missing: validation.missing,
+      });
       return;
     }
 

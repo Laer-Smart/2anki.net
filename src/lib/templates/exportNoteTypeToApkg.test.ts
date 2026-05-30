@@ -3,6 +3,7 @@ import { unzipSync, strFromU8 } from 'fflate';
 const initSqlJs = require('sql.js');
 
 import { exportNoteTypeToApkg, AnkiNoteType } from './exportNoteTypeToApkg';
+import { TemplateFieldValidationError } from './validateTemplateFields';
 
 async function readColJson<T>(apkg: Buffer, column: 'decks' | 'models'): Promise<Record<string, T>> {
   const entries = unzipSync(new Uint8Array(apkg));
@@ -108,6 +109,24 @@ describe('exportNoteTypeToApkg', () => {
 
     expect(Object.values(decks)[0].name).toBe(
       '2anki::Abhiyan Bhandari (Night Mode — Cloze)'
+    );
+  });
+
+  it('refuses to build a deck when a template references a missing field', async () => {
+    const brokenNoteType: AnkiNoteType = {
+      ...basicNoteType,
+      tmpls: [
+        {
+          name: 'Card 1',
+          ord: 0,
+          qfmt: '{{Front}}{{#text2 image}}{{text2 image}}{{/text2 image}}',
+          afmt: '{{Back}}',
+        },
+      ],
+    };
+
+    await expect(exportNoteTypeToApkg(brokenNoteType)).rejects.toBeInstanceOf(
+      TemplateFieldValidationError
     );
   });
 });

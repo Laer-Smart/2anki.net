@@ -217,6 +217,16 @@ describe('TemplatesController.getUserData', () => {
 });
 
 describe('TemplatesController.saveUserData', () => {
+  const validStarter = {
+    id: 'user-basic',
+    name: 'Custom Basic',
+    description: '',
+    baseType: 'basic',
+    noteType: validNoteType,
+    previewData: {},
+    tags: [],
+  };
+
   it('persists templates and hiddenIds arrays', async () => {
     const create = jest.fn().mockResolvedValue(undefined);
     const controller = new TemplatesController(
@@ -225,14 +235,67 @@ describe('TemplatesController.saveUserData', () => {
     const res = buildRes();
 
     await controller.saveUserData(
-      buildReq({ templates: [{ id: 'x' }], hiddenIds: ['cloze-modern'] }),
+      buildReq({ templates: [validStarter], hiddenIds: ['cloze-modern'] }),
       res
     );
 
     expect(create).toHaveBeenCalledWith(42, {
-      templates: [{ id: 'x' }],
+      templates: [validStarter],
       hiddenIds: ['cloze-modern'],
     });
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  it('rejects a save when a template references a missing field', async () => {
+    const create = jest.fn().mockResolvedValue(undefined);
+    const controller = new TemplatesController(
+      buildService({ create }) as never
+    );
+    const res = buildRes();
+
+    const brokenStarter = {
+      ...validStarter,
+      noteType: {
+        ...validNoteType,
+        tmpls: [
+          {
+            name: 'Card 1',
+            ord: 0,
+            qfmt: '{{Front}}{{#text2 image}}{{text2 image}}{{/text2 image}}',
+            afmt: '{{Back}}',
+          },
+        ],
+      },
+    };
+
+    await controller.saveUserData(
+      buildReq({ templates: [brokenStarter], hiddenIds: [] }),
+      res
+    );
+
+    expect(create).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error:
+        "Template references a field that doesn't exist: text2 image. Add the field or remove the reference.",
+      missing: ['text2 image'],
+      templateId: 'user-basic',
+    });
+  });
+
+  it('accepts entries without a noteType (skips validation)', async () => {
+    const create = jest.fn().mockResolvedValue(undefined);
+    const controller = new TemplatesController(
+      buildService({ create }) as never
+    );
+    const res = buildRes();
+
+    await controller.saveUserData(
+      buildReq({ templates: [{ id: 'x' }], hiddenIds: [] }),
+      res
+    );
+
+    expect(create).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(200);
   });
 
@@ -379,5 +442,32 @@ describe('TemplatesController.exportTemplate', () => {
     await controller.exportTemplate(buildReq({ noteType: validNoteType }), res);
 
     expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it('returns 400 when the noteType references a missing field', async () => {
+    const controller = new TemplatesController(buildService() as never);
+    const res = buildRes();
+
+    const brokenNoteType = {
+      ...validNoteType,
+      tmpls: [
+        {
+          name: 'Card 1',
+          ord: 0,
+          qfmt: '{{Front}}{{#text2 image}}{{text2 image}}{{/text2 image}}',
+          afmt: '{{Back}}',
+        },
+      ],
+    };
+
+    await controller.exportTemplate(buildReq({ noteType: brokenNoteType }), res);
+
+    expect(mockedExport).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error:
+        "Template references a field that doesn't exist: text2 image. Add the field or remove the reference.",
+      missing: ['text2 image'],
+    });
   });
 });
