@@ -219,7 +219,6 @@ export function Sidebar({
         className={styles.collapseRail}
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         aria-expanded={!collapsed}
-        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         <span className={styles.collapseRailIndicator} aria-hidden="true">
           {collapsed ? (
