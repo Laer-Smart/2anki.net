@@ -12,6 +12,8 @@ export const OBSERVABILITY_SERVICES = [
   'patreon',
   'microsoft_login',
   'apple_login',
+  'pexels',
+  'wikimedia',
 ] as const;
 
 export type ObservabilityService = (typeof OBSERVABILITY_SERVICES)[number];
@@ -27,6 +29,12 @@ const FIXED_HOST_ALLOWLIST: Record<ObservabilityService, readonly string[] | nul
   patreon: ['www.patreon.com', 'api.patreon.com'],
   microsoft_login: ['login.microsoftonline.com'],
   apple_login: ['appleid.apple.com'],
+  pexels: ['api.pexels.com', 'images.pexels.com'],
+  wikimedia: [
+    'commons.wikimedia.org',
+    'en.wikipedia.org',
+    'upload.wikimedia.org',
+  ],
 };
 
 const isHostOnFixedAllowlist = (

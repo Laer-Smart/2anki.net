@@ -16,7 +16,7 @@ from genanki import Note
 from genanki.util import guid_for
 
 from helpers.cards import get_safe_value
-from helpers.get_model import get_model
+from helpers.get_model import get_custom_model, get_model
 from helpers.get_model_id import get_model_id
 from helpers.read_template import read_template
 from helpers.sanitize_tags import sanitize_tags
@@ -160,7 +160,20 @@ def build_one_deck(data_file, template_dir):
             model = get_model(("basic", basic_model_id, basic_model_name,
                                BASIC_STYLE, BASIC_FRONT, BASIC_BACK),
                               front_lang=front_lang)
-            if card.get('mcq', False):
+            custom_fields = card.get("customFields")
+            custom_field_names = card.get("customFieldNames")
+            custom_model_name = card.get("customModelName")
+            use_custom_model = bool(custom_fields and custom_field_names and custom_model_name)
+            if use_custom_model:
+                is_cloze_custom = bool(card.get('cloze', False))
+                model = get_custom_model(
+                    custom_model_name,
+                    custom_field_names,
+                    is_cloze=is_cloze_custom,
+                    css=CLOZE_STYLE if is_cloze_custom else BASIC_STYLE,
+                )
+                fields = [get_safe_value(value) for value in custom_fields]
+            elif card.get('mcq', False):
                 options = card.get('options', [])
                 correct_indices = card.get('correctIndices', [])
                 options_html = "<br>".join(options)
@@ -185,8 +198,10 @@ def build_one_deck(data_file, template_dir):
                     ",".join(card["media"]),
                 ]
 
-            fields[0] = get_safe_value(fields[0])
-            fields[1] = get_safe_value(fields[1])
+            if len(fields) > 0:
+                fields[0] = get_safe_value(fields[0])
+            if len(fields) > 1:
+                fields[1] = get_safe_value(fields[1])
 
             if card["number"] == -1 and "notionId" in card:
                 card["number"] = card["notionId"]

@@ -680,13 +680,19 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     return true;
   };
 
+  const isExistingApkgReject =
+    zoneState === 'error' &&
+    localError != null &&
+    /already an Anki deck/i.test(localError.message);
+
   const zoneClassName = [
     formStyles.dropZone,
     dropHover && zoneState === 'idle' ? formStyles.dropZoneActive : '',
     zoneState === 'converting' ? formStyles.dropZoneConverting : '',
     zoneState === 'success' ? formStyles.dropZoneSuccess : '',
     zoneState === 'emptyDeck' ? formStyles.dropZoneEmpty : '',
-    zoneState === 'error' ? formStyles.dropZoneError : '',
+    zoneState === 'error' && !isExistingApkgReject ? formStyles.dropZoneError : '',
+    isExistingApkgReject ? formStyles.dropZoneRedirect : '',
     zoneState === 'limitReached' ? formStyles.dropZoneLimit : '',
     zoneState === 'lockedPdf' ? formStyles.dropZoneLocked : '',
     validation?.status === 'warning' ? formStyles.dropZoneWarning : '',
@@ -1026,6 +1032,50 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
   };
 
   const renderErrorState = () => {
+    const isExistingApkg =
+      localError != null && /already an Anki deck/i.test(localError.message);
+    if (isExistingApkg) {
+      const rejectedFile = fileInputRef.current?.files?.[0];
+      return (
+        <div className={formStyles.stateContent}>
+          <p className={formStyles.apkgRedirectHeading}>
+            That&apos;s already an Anki deck
+          </p>
+          <p className={formStyles.apkgRedirectIntro}>
+            Pick what you want to do with it.
+          </p>
+          <div className={formStyles.apkgRedirectActions}>
+            <Link
+              to="/transform"
+              state={rejectedFile ? { file: rejectedFile } : undefined}
+              className={formStyles.apkgRedirectPrimary}
+            >
+              <span className={formStyles.apkgRedirectActionLabel}>
+                Transform this deck →
+              </span>
+              <span className={formStyles.apkgRedirectActionHint}>
+                Translate every card, add examples, cloze-ify, or add hints.
+              </span>
+            </Link>
+            <Link to="/print" className={formStyles.apkgRedirectSecondary}>
+              <span className={formStyles.apkgRedirectActionLabel}>
+                Print as PDF →
+              </span>
+              <span className={formStyles.apkgRedirectActionHint}>
+                Export your deck as a printable PDF for offline study.
+              </span>
+            </Link>
+          </div>
+          <button
+            type="button"
+            className={formStyles.resetLink}
+            onClick={resetForm}
+          >
+            Pick a different file
+          </button>
+        </div>
+      );
+    }
     const classified = localError
       ? classifyUploadError(localError)
       : {
@@ -1036,22 +1086,11 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     const errorText = classified.detail
       ? `${classified.title} ${classified.detail}`
       : classified.title;
-    const isExistingApkg =
-      localError != null && /already an Anki deck/i.test(localError.message);
     return (
       <div className={formStyles.stateContent}>
         <WarningIcon className={formStyles.iconError} />
         <p className={formStyles.errorTitle}>Something went wrong</p>
-        <p className={formStyles.errorBody}>
-          {errorText}
-          {isExistingApkg && (
-            <>
-              {' '}
-              Want to print or share it as a PDF?{' '}
-              <Link to="/print">Try Print Decks</Link>.
-            </>
-          )}
-        </p>
+        <p className={formStyles.errorBody}>{errorText}</p>
         <p className={formStyles.statusLink}>
           Something looks off? <Link to="/status">Check status.</Link>
         </p>

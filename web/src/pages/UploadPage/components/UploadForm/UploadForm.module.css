@@ -372,6 +372,87 @@
   margin-top: 0.25rem;
 }
 
+.dropZoneRedirect {
+  border-color: var(--color-border);
+  border-style: solid;
+  background: var(--color-bg-primary);
+  cursor: default;
+}
+
+.apkgRedirectHeading {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.apkgRedirectIntro {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 1rem;
+}
+
+.apkgRedirectActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
+}
+
+.apkgRedirectPrimary,
+.apkgRedirectSecondary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  text-align: left;
+  text-decoration: none;
+  transition: transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.apkgRedirectPrimary {
+  background: var(--color-primary);
+  color: var(--color-bg-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.apkgRedirectPrimary:hover {
+  background: var(--color-primary-dark, var(--color-primary));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.apkgRedirectSecondary {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.apkgRedirectSecondary:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.apkgRedirectActionLabel {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+}
+
+.apkgRedirectActionHint {
+  font-size: var(--text-sm);
+  opacity: 0.85;
+  font-weight: var(--font-normal);
+  line-height: var(--leading-normal);
+}
+
 .validationIcon {
   font-size: var(--text-4xl);
   line-height: 1;

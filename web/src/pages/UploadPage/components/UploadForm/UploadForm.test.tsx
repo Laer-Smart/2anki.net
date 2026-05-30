@@ -610,6 +610,41 @@ describe('UploadForm analytics events', () => {
     });
   });
 
+  it('redirects an apkg-reject error to /transform and /print with both CTAs', async () => {
+    const jsonBody = {
+      code: 'unsupported_format',
+      message: 'This file is already an Anki deck.',
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      redirected: false,
+      status: 400,
+      clone: () => ({ json: () => Promise.resolve(jsonBody) }),
+      text: () => Promise.resolve(JSON.stringify(jsonBody)),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+    }));
+
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const form = container.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await waitFor(() => {
+      expect(container.textContent).toMatch(/That's already an Anki deck/);
+    });
+
+    const transform = container.querySelector('a[href="/transform"]');
+    const print = container.querySelector('a[href="/print"]');
+    expect(transform?.textContent).toMatch(/Transform this deck/);
+    expect(print?.textContent).toMatch(/Print as PDF/);
+    expect(container.textContent).toMatch(
+      /Translate every card, add examples, cloze-ify, or add hints/
+    );
+    expect(container.textContent).toMatch(
+      /Export your deck as a printable PDF/
+    );
+  });
+
   it('renders empty-deck spec copy with docs link on the 200 + 0-cards path', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       redirected: false,
