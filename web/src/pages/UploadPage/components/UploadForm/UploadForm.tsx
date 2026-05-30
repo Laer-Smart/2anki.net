@@ -833,7 +833,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
           {mcqDrawerOpen && renderMcqDrawer()}
         </>
       )}
-      <p className={formStyles.successSecondary}>
+      <p className={formStyles.successSecondary} data-hj-suppress>
         {deckName} was saved to your downloads
       </p>
       {warningMessage && (

@@ -833,6 +833,30 @@ describe('UploadForm analytics events', () => {
     expect(calls).toHaveLength(0);
   });
 
+  it('suppresses the uploaded filename in success copy from Hotjar recordings', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      redirected: false,
+      status: 200,
+      headers: new Headers({
+        'Content-Type': 'application/octet-stream',
+        'File-Name': encodeURIComponent('private-notes.apkg'),
+        'X-Card-Count': '5',
+      }),
+      blob: () => Promise.resolve(new Blob(['fake'])),
+    }));
+
+    renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const form = document.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    const successCopy = await screen.findByText(
+      'private-notes.apkg was saved to your downloads'
+    );
+    expect(successCopy).toHaveAttribute('data-hj-suppress');
+  });
+
 });
 
 describe('limit state — start trial button', () => {

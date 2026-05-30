@@ -52,7 +52,7 @@ export function SearchPage({ setError }: Readonly<SearchPageProps>) {
       {notionData.connected && notionData.workSpace && (
         <div className={searchStyles.workspaceLine}>
           <span className={searchStyles.workspaceDot} />
-          <span className={searchStyles.workspaceName}>
+          <span className={searchStyles.workspaceName} data-hj-suppress>
             {notionData.workSpace}
           </span>
           <a
