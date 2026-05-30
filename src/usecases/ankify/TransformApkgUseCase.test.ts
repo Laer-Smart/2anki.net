@@ -10,17 +10,24 @@ import { ParsedNote, TransformedNote } from '../../lib/ankify/transforms/types';
 
 jest.mock('../../lib/parser/exporters/CustomExporter', () => {
   const addedMedia: Array<{ filename: string; bytes: Buffer }> = [];
+  let configuredDecks: unknown[] = [];
   return {
     __esModule: true,
     default: class FakeExporter {
       static __addedMedia(): Array<{ filename: string; bytes: Buffer }> {
         return addedMedia;
       }
+      static __configuredDecks(): unknown[] {
+        return configuredDecks;
+      }
       static __reset(): void {
         addedMedia.length = 0;
+        configuredDecks = [];
       }
       constructor(public name: string, public workspaceLocation: string) {}
-      configure() {}
+      configure(decks: unknown[]): void {
+        configuredDecks = decks;
+      }
       addMedia(filename: string, bytes: Buffer): void {
         addedMedia.push({ filename, bytes });
       }
@@ -39,6 +46,7 @@ const FakeExporter = jest.requireMock(
   '../../lib/parser/exporters/CustomExporter'
 ).default as {
   __addedMedia(): Array<{ filename: string; bytes: Buffer }>;
+  __configuredDecks(): Array<{ cards: Array<{ media: string[] }> }>;
   __reset(): void;
 };
 
@@ -161,6 +169,48 @@ describe('TransformApkgUseCase', () => {
       filename: 'Chugoku.png',
       bytes: Buffer.from('chugoku-bytes'),
     });
+  });
+
+  it('attaches referenced source-deck images to each note media list', async () => {
+    const noteWithImage: ParsedNote = {
+      guid: 'a',
+      modelKind: 'basic',
+      modelName: 'Basic',
+      fields: ['<img src="Chugoku.png"><br>Front a', 'Back a'],
+      fieldNames: ['Front', 'Back'],
+      tags: [],
+    };
+    jest.spyOn(parseModule, 'parseApkgNotes').mockResolvedValueOnce(
+      makeParsed(
+        [noteWithImage],
+        [],
+        [{ filename: 'Chugoku.png', bytes: Buffer.from('chugoku-bytes') }]
+      )
+    );
+    jest.spyOn(transformModule, 'transformApkgNotes').mockResolvedValueOnce({
+      notes: [
+        transformed('a', {
+          fields: ['<img src="Chugoku.png"><br>Front a', 'Back a + hint'],
+        }),
+      ],
+      failures: [],
+      usage: {
+        inputTokens: 0,
+        outputTokens: 0,
+        estimatedCostUsd: 0,
+        totalCalls: 1,
+        elapsedMs: 1,
+      },
+    });
+
+    await new TransformApkgUseCase().execute({
+      bytes: Buffer.from('x'),
+      transform: 'add_hint',
+    });
+
+    const decks = FakeExporter.__configuredDecks();
+    expect(decks).toHaveLength(1);
+    expect(decks[0].cards[0].media).toContain('Chugoku.png');
   });
 
   it('returns an apkg buffer with the transformed note count', async () => {
