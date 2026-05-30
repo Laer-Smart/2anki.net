@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-30-template-field-validation",
+  "date": "2026-05-30",
+  "type": "fix",
+  "title": "Note types — saving or downloading flags a template that references a field that doesn't exist, before you hit a broken card in Anki"
+}

@@ -5,6 +5,11 @@ import path from 'node:path';
 const initSqlJs = require('sql.js');
 import { zipSync } from 'fflate';
 
+import {
+  TemplateFieldValidationError,
+  validateTemplateFields,
+} from './validateTemplateFields';
+
 const FIELD_SEPARATOR = '\x1f';
 
 function randomGuid(): string {
@@ -253,6 +258,11 @@ export async function exportNoteTypeToApkg(
   noteType: AnkiNoteType,
   previewData: PreviewData = {}
 ): Promise<Buffer> {
+  const validation = validateTemplateFields(noteType);
+  if (!validation.ok) {
+    throw new TemplateFieldValidationError(validation.missing, validation.message);
+  }
+
   const SQL = await initSqlJs({ locateFile: locateSqlWasm });
   const db = new SQL.Database();
 

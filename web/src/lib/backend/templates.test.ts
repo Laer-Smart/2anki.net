@@ -4,6 +4,8 @@ import {
   AiQuotaExceededError,
   NoteTypeStarter,
   aiModifyNoteType,
+  downloadNoteTypeApkg,
+  saveUserTemplate,
 } from './templates';
 
 const starter: NoteTypeStarter = {
@@ -112,6 +114,63 @@ describe('aiModifyNoteType error handling', () => {
       expect.objectContaining({
         message: expect.not.stringMatching(/502|Proxy Error/),
       })
+    );
+  });
+});
+
+describe('saveUserTemplate field-validation error', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('surfaces the server-sent error message when the API returns 400 with JSON', async () => {
+    const fetchMock = vi.mocked(globalThis.fetch);
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(200, { templates: [], hiddenIds: [] })
+    );
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(400, {
+        error:
+          "Template references a field that doesn't exist: text2 image. Add the field or remove the reference.",
+        missing: ['text2 image'],
+        templateId: 'user-basic',
+      })
+    );
+
+    await expect(saveUserTemplate(starter)).rejects.toThrow(
+      "Template references a field that doesn't exist: text2 image. Add the field or remove the reference."
+    );
+  });
+});
+
+describe('downloadNoteTypeApkg field-validation error', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('surfaces the server-sent error message on 400', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValue(
+      jsonResponse(400, {
+        error:
+          "Template references a field that doesn't exist: text2 image. Add the field or remove the reference.",
+        missing: ['text2 image'],
+      })
+    );
+
+    await expect(
+      downloadNoteTypeApkg(starter.noteType, starter.previewData)
+    ).rejects.toThrow(
+      "Template references a field that doesn't exist: text2 image. Add the field or remove the reference."
     );
   });
 });
