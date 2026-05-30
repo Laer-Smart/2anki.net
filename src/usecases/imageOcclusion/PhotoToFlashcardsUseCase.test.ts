@@ -758,6 +758,43 @@ describe('PhotoToFlashcardsUseCase', () => {
     });
   });
 
+  describe('malformed Claude Vision response', () => {
+    it('throws a 422 conversion-failure error when the JSON is truncated', async () => {
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [{ type: 'text', text: '[{"deck":"X","cards":[{"q":' }],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await expect(
+        useCase.execute({ ...BASE_INPUT, isPaying: true })
+      ).rejects.toMatchObject({ status: 422 });
+    });
+
+    it('throws a 422 conversion-failure error when the response is not an array', async () => {
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [{ type: 'text', text: '{"deck":"X","cards":[]}' }],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await expect(
+        useCase.execute({ ...BASE_INPUT, isPaying: true })
+      ).rejects.toMatchObject({ status: 422 });
+    });
+
+    it('does not leak the raw model text in the thrown error message', async () => {
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [{ type: 'text', text: '[{"deck":"Secret Deck Name","cards":[{"q":' }],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await expect(
+        useCase.execute({ ...BASE_INPUT, isPaying: true })
+      ).rejects.toMatchObject({
+        message: expect.not.stringContaining('Secret Deck Name'),
+      });
+    });
+  });
+
   describe('deck builder invocation', () => {
     it('spawns create_deck.py with deck_info.json and a trailing-slashed template dir', async () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
