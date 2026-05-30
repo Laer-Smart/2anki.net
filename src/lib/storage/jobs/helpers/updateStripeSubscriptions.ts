@@ -4,6 +4,11 @@ import { Knex } from 'knex';
 import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
 import { reconcileActiveSubscriptions } from './reconcileActiveSubscriptions';
 import { withStripeRetry } from './withStripeRetry';
+import { emailHash } from '../../../emailHash';
+
+function shortHash(value: string): string {
+  return emailHash(value).slice(-8);
+}
 
 const stripe = getStripe();
 const database = getDatabase();
@@ -55,10 +60,10 @@ async function getCustomer(
     if ('email' in customer && customer.email) {
       return customer as StripeTypes.Customer;
     }
-    console.warn('Customer does not have an email', customerId);
+    console.warn('Customer does not have an email', `customer=${shortHash(customerId)}`);
     return null;
   } catch (error) {
-    console.error('Error retrieving customer', customerId, error);
+    console.error('Error retrieving customer', `customer=${shortHash(customerId)}`, error);
     return null;
   }
 }
@@ -88,7 +93,7 @@ function determineSubscriptionActiveStatus(
 
   if (shouldRemainActive) {
     console.info(
-      `Subscription for ${email} is scheduled for cancellation but still active until ${periodEndDate.toISOString()}`
+      `Subscription for email=${shortHash(email)} is scheduled for cancellation but still active until ${periodEndDate.toISOString()}`
     );
   }
 
@@ -111,7 +116,7 @@ async function updateExistingSubscription(
 
   if (statusChanged) {
     console.info(
-      `Updating subscription status for ${email} to ${shouldRemainActive ? 'active' : 'inactive'}`
+      `Updating subscription status for email=${shortHash(email)} to ${shouldRemainActive ? 'active' : 'inactive'}`
     );
     await db
       .table('subscriptions')
@@ -119,7 +124,7 @@ async function updateExistingSubscription(
       .update({ active: shouldRemainActive, payload, stripe_product_id: stripeProductId });
   } else {
     console.info(
-      `Subscription status for ${email} remains ${shouldRemainActive ? 'active' : 'inactive'}`
+      `Subscription status for email=${shortHash(email)} remains ${shouldRemainActive ? 'active' : 'inactive'}`
     );
     await db.table('subscriptions').where({ email }).update({ payload, stripe_product_id: stripeProductId });
   }
@@ -136,7 +141,7 @@ async function createNewSubscription(
   shouldRemainActive: boolean
 ): Promise<void> {
   console.info(
-    `Creating subscription for customer ${customerId}, ${email}, active: ${shouldRemainActive}`
+    `Creating subscription for customer=${shortHash(customerId)} email=${shortHash(email)} active=${shouldRemainActive}`
   );
   await db.table('subscriptions').insert({
     email,
@@ -191,8 +196,8 @@ async function updateSubscriptionRecord(
   } catch (error) {
     console.error(
       'Error updating subscription record',
-      customer.id,
-      email,
+      `customer=${shortHash(customer.id)}`,
+      `email=${shortHash(email)}`,
       error
     );
     throw error;

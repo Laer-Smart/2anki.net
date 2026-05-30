@@ -160,6 +160,104 @@ describe('updateStripeSubscriptions — batch provisioning fields', () => {
   });
 });
 
+describe('updateStripeSubscriptions — does not log raw email or customer id', () => {
+  let infoSpy: jest.SpyInstance;
+  let warnSpy: jest.SpyInstance;
+  let errorSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    infoSpy.mockRestore();
+    warnSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  function flatArgs(spy: jest.SpyInstance): string {
+    return spy.mock.calls
+      .flat()
+      .map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
+      .join(' | ');
+  }
+
+  it('does not interpolate the raw email when creating a new subscription', async () => {
+    setupDbMock(null);
+    setupStripeMock([buildSubscription()]);
+    await updateStripeSubscriptions();
+    expect(flatArgs(infoSpy)).not.toContain('@');
+    expect(flatArgs(infoSpy)).not.toContain('cus_test456');
+  });
+
+  it('does not interpolate the raw email when updating an existing subscription (status unchanged)', async () => {
+    setupDbMock({ email: 'user@example.com', active: true, payload: '{}' });
+    setupStripeMock([buildSubscription()]);
+    await updateStripeSubscriptions();
+    expect(flatArgs(infoSpy)).not.toContain('@');
+  });
+
+  it('does not interpolate the raw email when updating an existing subscription (status changed)', async () => {
+    setupDbMock({ email: 'user@example.com', active: false, payload: '{}' });
+    setupStripeMock([buildSubscription()]);
+    await updateStripeSubscriptions();
+    expect(flatArgs(infoSpy)).not.toContain('@');
+  });
+
+  it('does not interpolate the raw email for a scheduled-cancellation subscription still inside the paid window', async () => {
+    setupDbMock({ email: 'user@example.com', active: true, payload: '{}' });
+    const futureUnix = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
+    setupStripeMock([
+      buildSubscription(undefined, {
+        cancel_at_period_end: true,
+        cancel_at: futureUnix,
+      }),
+    ]);
+    await updateStripeSubscriptions();
+    expect(flatArgs(infoSpy)).not.toContain('@');
+  });
+
+  it('does not interpolate the raw email or customer id when a customer has no email', async () => {
+    setupDbMock(null);
+    mockStripeInstance.subscriptions.list.mockResolvedValue({
+      data: [buildSubscription()],
+      has_more: false,
+    });
+    mockStripeInstance.customers.retrieve.mockResolvedValue({
+      id: 'cus_test456',
+      email: null,
+      object: 'customer',
+    });
+    await updateStripeSubscriptions();
+    expect(flatArgs(warnSpy)).not.toContain('cus_test456');
+  });
+
+  it('does not interpolate the raw email or customer id when the per-subscription update path errors', async () => {
+    const failingDb = {
+      table: jest.fn().mockImplementation((tableName: string) => {
+        if (tableName === 'subscriptions') {
+          return {
+            where: jest.fn().mockReturnValue({
+              first: jest.fn().mockRejectedValue(new Error('db boom')),
+              update: jest.fn(),
+            }),
+            insert: jest.fn(),
+          };
+        }
+        return { where: jest.fn().mockReturnThis(), update: jest.fn(), insert: jest.fn() };
+      }),
+    };
+    mockDbInstance.table.mockImplementation(failingDb.table);
+    setupStripeMock([buildSubscription()]);
+    await updateStripeSubscriptions();
+    expect(flatArgs(errorSpy)).not.toContain('@');
+    expect(flatArgs(errorSpy)).not.toContain('cus_test456');
+  });
+});
+
 describe('mapWithConcurrency', () => {
   it('processes every item', async () => {
     const seen: number[] = [];
