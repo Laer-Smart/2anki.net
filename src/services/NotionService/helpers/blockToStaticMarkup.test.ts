@@ -62,6 +62,30 @@ describe('blockToStaticMarkup', () => {
     expect(result).not.toContain('"object"');
   });
 
+  it('drops a synced_block rendered through the markup layer instead of leaking unsupported JSON', async () => {
+    const handler = makeHandler();
+    const syncedBlock = {
+      object: 'block',
+      id: 'synced-1',
+      type: 'synced_block',
+      synced_block: { synced_from: null },
+      parent: { type: 'page_id', page_id: 'page-1' },
+      created_time: '2026-05-20T07:46:00.000Z',
+      last_edited_time: '2026-05-20T07:46:00.000Z',
+      created_by: { object: 'user', id: 'user-1' },
+      last_edited_by: { object: 'user', id: 'user-1' },
+      has_children: true,
+      archived: false,
+      in_trash: false,
+    } as unknown as BlockObjectResponse;
+
+    const result = await blockToStaticMarkup(handler, syncedBlock);
+
+    expect(result).toBe('');
+    expect(result).not.toContain('unsupported');
+    expect(result).not.toContain('synced_block');
+  });
+
   it('still emits the unsupported placeholder for genuinely unknown block types', async () => {
     const handler = makeHandler();
     const unknownBlock = {
