@@ -35,6 +35,7 @@ export const sidebar: SidebarGroup[] = [
       { label: 'Card types', slug: 'cards/card-types' },
       { label: 'Multiple choice questions', slug: 'cards/mcq' },
       { label: 'Notion blocks we support', slug: 'cards/notion-blocks' },
+      { label: 'What is a deck?', slug: 'cards/decks' },
       { label: 'Parser rules', slug: 'cards/parser-rules' },
       { label: 'AI flashcard generation', slug: 'cards/ai-flashcards' },
       { label: 'Image occlusion', slug: 'cards/image-occlusion' },
