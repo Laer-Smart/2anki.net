@@ -47,9 +47,8 @@ function AnonymousLimit() {
         </p>
       </header>
 
-      <div className={styles.plans}>
+      <div className={styles.singlePlan}>
         <div className={`${styles.planCard} ${styles.planCardFeatured}`}>
-          <p className={styles.planBadge}>Free</p>
           <p className={styles.planTitle}>Free account</p>
           <ul className={styles.planBenefits}>
             <li className={styles.planBenefit}>Up to 100 cards a month</li>
