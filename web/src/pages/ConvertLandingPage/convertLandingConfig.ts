@@ -260,6 +260,35 @@ const studystackToAnki: LandingCopy = {
   ],
 };
 
+const plecoToAnki: LandingCopy = {
+  pathname: '/convert/pleco-to-anki',
+  title: 'Pleco to Anki — move your flashcards to Anki | 2anki',
+  description:
+    'Move your Pleco flashcards to Anki. Export your userdict as a .txt file, upload it here, and download a .apkg deck with your Chinese vocabulary.',
+  h1: 'Move your Pleco flashcards to Anki',
+  subhead:
+    'Export your Pleco userdict as a .txt file, drop it here, and get a .apkg deck. Hanzi, pinyin, and definitions come across as basic cards.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'Which Pleco export format works?',
+      a: 'The tab-separated .txt userdict export works through our CSV pipeline. The XML userdict export does not — it carries Pleco-specific scheduling and category metadata we do not parse. Export as .txt and you are set.',
+    },
+    {
+      q: 'How do I export the .txt file from Pleco?',
+      a: 'In the Pleco app, open the flashcards module, go to Import/Export, choose Export Cards, and select the text file format. Save the file to your device, then upload it here.',
+    },
+    {
+      q: 'Will hanzi, pinyin, and definitions all come across?',
+      a: 'Yes. Each row in the .txt export becomes one card: hanzi on the front, pinyin and the English definition on the back. Tone marks and traditional or simplified characters are preserved.',
+    },
+    {
+      q: 'Will my SRS progress and custom categories transfer?',
+      a: 'Card content transfers — the words and definitions. Pleco review history, scheduling, and custom categories stay in Pleco; Anki schedules the imported cards from scratch with its own algorithm.',
+    },
+  ],
+};
+
 const zorbiToAnki: LandingCopy = {
   pathname: '/convert/zorbi-to-anki',
   title: 'Zorbi to Anki — move your flashcards to Anki | 2anki',
@@ -299,5 +328,6 @@ export const CONVERT_LANDING_PAGES: ReadonlyMap<string, LandingCopy> = new Map([
   ['notion-tables-to-anki', notionTablesToAnki],
   ['lingvist-to-anki', lingvistToAnki],
   ['studystack-to-anki', studystackToAnki],
+  ['pleco-to-anki', plecoToAnki],
   ['zorbi-to-anki', zorbiToAnki],
 ]);
