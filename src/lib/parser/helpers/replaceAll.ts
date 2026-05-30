@@ -3,7 +3,7 @@ export default function replaceAll(
   oldValue: string,
   newValue: string
 ): string {
-  const escaped = oldValue.replace(/[\\^$.*+?()[\]{}|/]/g, '\\$&');
+  const escaped = oldValue.replace(/[\\^$.*+?()[\]{}|/]/g, String.raw`\$&`);
   const reg = new RegExp(escaped, 'g');
   return original.replace(reg, newValue);
 }
