@@ -1,8 +1,66 @@
+import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { isChunkLoadError, recoverFromChunkError, withinChunkReloadCooldown } from './chunkReload';
+import {
+  clearReloadingFlag,
+  isChunkLoadError,
+  isReloadingForFreshChunks,
+  lazyWithRetry,
+  recoverFromChunkError,
+  withinChunkReloadCooldown,
+} from './chunkReload';
 
 const STORAGE_KEY = '2anki:chunkReload:lastAt';
+const RELOADING_FLAG_KEY = '2anki:chunkReload:reloading';
+const PER_CHUNK_KEY_PREFIX = '2anki:chunkReload:chunk:';
+
+function makeChunkError(): Error {
+  return new TypeError(
+    'Failed to fetch dynamically imported module: https://2anki.net/assets/A.js'
+  );
+}
+
+function makeCssPreloadError(): Error {
+  return new Error(
+    'Unable to preload CSS for https://2anki.net/assets/A-XYZ.css'
+  );
+}
+
+function makeModuleScriptError(): Error {
+  return new TypeError('Importing a module script failed.');
+}
+
+function setVisibility(state: 'visible' | 'hidden'): void {
+  Object.defineProperty(document, 'visibilityState', {
+    value: state,
+    configurable: true,
+  });
+}
+
+async function readLazyFactory<T>(
+  Component: React.LazyExoticComponent<React.ComponentType<T>>
+): Promise<unknown> {
+  type LazyInternal = { _init: (payload: unknown) => unknown; _payload: unknown };
+  const internal = Component as unknown as LazyInternal;
+  try {
+    const result = internal._init(internal._payload);
+    if (
+      result != null &&
+      typeof (result as { then?: unknown }).then === 'function'
+    ) {
+      return await (result as Promise<unknown>);
+    }
+    return result;
+  } catch (e) {
+    if (
+      e != null &&
+      typeof (e as { then?: unknown }).then === 'function'
+    ) {
+      return await (e as Promise<unknown>);
+    }
+    throw e;
+  }
+}
 
 describe('isChunkLoadError', () => {
   it('returns true for a ChunkLoadError by name', () => {
@@ -113,6 +171,131 @@ describe('recoverFromChunkError', () => {
 
     expect(result).toBe(true);
     expect(reloadMock).toHaveBeenCalledOnce();
+  });
+});
+
+describe('isChunkLoadError — new patterns', () => {
+  it('returns true for "Unable to preload CSS" Error', () => {
+    expect(isChunkLoadError(makeCssPreloadError())).toBe(true);
+  });
+
+  it('returns true for "Importing a module script failed" TypeError', () => {
+    expect(isChunkLoadError(makeModuleScriptError())).toBe(true);
+  });
+});
+
+describe('lazyWithRetry', () => {
+  let reloadMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    sessionStorage.clear();
+    reloadMock = vi.fn();
+    vi.stubGlobal('location', { reload: reloadMock });
+    setVisibility('visible');
+  });
+
+  afterEach(() => {
+    sessionStorage.clear();
+    vi.unstubAllGlobals();
+  });
+
+  it('returns the imported module when the factory succeeds', async () => {
+    const factory = vi.fn(async () => ({
+      default: (() => null) as unknown as React.ComponentType<unknown>,
+    }));
+    const Component = lazyWithRetry(factory, './pages/Foo');
+
+    const result = (await readLazyFactory(Component)) as { default: unknown };
+
+    expect(factory).toHaveBeenCalledOnce();
+    expect(typeof result.default).toBe('function');
+    expect(reloadMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects once → reloads the page', async () => {
+    const factory = vi.fn(() => Promise.reject(makeChunkError()));
+    const Component = lazyWithRetry(factory, './pages/Foo');
+
+    void readLazyFactory(Component);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(reloadMock).toHaveBeenCalledOnce();
+    expect(sessionStorage.getItem(`${PER_CHUNK_KEY_PREFIX}./pages/Foo`)).not.toBeNull();
+    expect(sessionStorage.getItem(RELOADING_FLAG_KEY)).toBe('1');
+  });
+
+  it('rejects twice on the same key in the same session → throws without reloading', async () => {
+    sessionStorage.setItem(`${PER_CHUNK_KEY_PREFIX}./pages/Foo`, String(Date.now()));
+
+    const error = makeChunkError();
+    const factory = vi.fn(() => Promise.reject(error));
+    const Component = lazyWithRetry(factory, './pages/Foo');
+
+    await expect(readLazyFactory(Component)).rejects.toBe(error);
+    expect(reloadMock).not.toHaveBeenCalled();
+  });
+
+  it('does not reload when document is hidden', async () => {
+    setVisibility('hidden');
+
+    const error = makeChunkError();
+    const factory = vi.fn(() => Promise.reject(error));
+    const Component = lazyWithRetry(factory, './pages/Foo');
+
+    await expect(readLazyFactory(Component)).rejects.toBe(error);
+    expect(reloadMock).not.toHaveBeenCalled();
+  });
+
+  it('rethrows non-chunk errors without reloading', async () => {
+    const error = new Error('boom');
+    const factory = vi.fn(() => Promise.reject(error));
+    const Component = lazyWithRetry(factory, './pages/Foo');
+
+    await expect(readLazyFactory(Component)).rejects.toBe(error);
+    expect(reloadMock).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem(`${PER_CHUNK_KEY_PREFIX}./pages/Foo`)).toBeNull();
+  });
+
+  it('reloads independently for a different chunk key on the same session', async () => {
+    sessionStorage.setItem(`${PER_CHUNK_KEY_PREFIX}./pages/Foo`, String(Date.now()));
+
+    const factory = vi.fn(() => Promise.reject(makeChunkError()));
+    const Component = lazyWithRetry(factory, './pages/Bar');
+
+    void readLazyFactory(Component);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(reloadMock).toHaveBeenCalledOnce();
+    expect(sessionStorage.getItem(`${PER_CHUNK_KEY_PREFIX}./pages/Bar`)).not.toBeNull();
+  });
+});
+
+describe('reloading flag', () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    sessionStorage.clear();
+  });
+
+  it('isReloadingForFreshChunks returns false by default', () => {
+    expect(isReloadingForFreshChunks()).toBe(false);
+  });
+
+  it('isReloadingForFreshChunks returns true after recoverFromChunkError fires', () => {
+    vi.stubGlobal('location', { reload: vi.fn() });
+    recoverFromChunkError(makeChunkError());
+    expect(isReloadingForFreshChunks()).toBe(true);
+    vi.unstubAllGlobals();
+  });
+
+  it('clearReloadingFlag removes the flag', () => {
+    sessionStorage.setItem(RELOADING_FLAG_KEY, '1');
+    clearReloadingFlag();
+    expect(isReloadingForFreshChunks()).toBe(false);
   });
 });
 

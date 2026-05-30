@@ -1,12 +1,18 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { lazy, ReactElement, useState } from 'react';
+import { lazy, ReactElement, useEffect, useState } from 'react';
 import { CookiesProvider, useCookies } from 'react-cookie';
 import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/AppShell/AppShell';
+import { ChunkReloadOverlay } from './components/ChunkReloadOverlay/ChunkReloadOverlay';
 import { getErrorMessage } from './components/errors/helpers/getErrorMessage';
 import { SkeletonPage } from './components/Skeleton/Skeleton';
 import PostLoginSurvey from './components/PostLoginSurvey/PostLoginSurvey';
+import {
+  clearReloadingFlag,
+  isReloadingForFreshChunks,
+  lazyWithRetry,
+} from './lib/chunkReload';
 import { useUserLocals } from './lib/hooks/useUserLocals';
 import isOfflineMode from './lib/isOfflineMode';
 import { reportClientError } from './lib/reportClientError';
@@ -19,106 +25,222 @@ import HomePage from './pages/HomePage';
 import NotFoundPage from './pages/NotFoundPage';
 import UploadPage from './pages/UploadPage';
 
-const RegisterPage = lazy(() => import('./pages/RegisterPage'));
-const SearchPage = lazy(() => import('./pages/SearchPage'));
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const NewPasswordPage = lazy(() => import('./pages/NewPasswordPage'));
-const DownloadsPage = lazy(() => import('./pages/DownloadsPage'));
-const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
-const PricingPage = lazy(() => import('./pages/PricingPage'));
-const AccountPage = lazy(() => import('./pages/AccountPage/AccountPage'));
-const AccountClaimPage = lazy(() => import('./pages/AccountClaimPage/AccountClaimPage'));
+const RegisterPage = lazyWithRetry(() => import('./pages/RegisterPage'), './pages/RegisterPage');
+const SearchPage = lazyWithRetry(() => import('./pages/SearchPage'), './pages/SearchPage');
+const LoginPage = lazyWithRetry(() => import('./pages/LoginPage'), './pages/LoginPage');
+const NewPasswordPage = lazyWithRetry(
+  () => import('./pages/NewPasswordPage'),
+  './pages/NewPasswordPage'
+);
+const DownloadsPage = lazyWithRetry(
+  () => import('./pages/DownloadsPage'),
+  './pages/DownloadsPage'
+);
+const ForgotPasswordPage = lazyWithRetry(
+  () => import('./pages/ForgotPasswordPage'),
+  './pages/ForgotPasswordPage'
+);
+const PricingPage = lazyWithRetry(() => import('./pages/PricingPage'), './pages/PricingPage');
+const AccountPage = lazyWithRetry(
+  () => import('./pages/AccountPage/AccountPage'),
+  './pages/AccountPage/AccountPage'
+);
+const AccountClaimPage = lazyWithRetry(
+  () => import('./pages/AccountClaimPage/AccountClaimPage'),
+  './pages/AccountClaimPage/AccountClaimPage'
+);
 const AccountPreviewPage = import.meta.env.DEV
   ? lazy(() => import('./pages/AccountPreviewPage/AccountPreviewPage'))
   : null;
 const NotionPreviewPage = import.meta.env.DEV
   ? lazy(() => import('./pages/NotionPreviewPage/NotionPreviewPage'))
   : null;
-const SuccessfulCheckoutPage = lazy(
-  () => import('./pages/SuccessfulCheckout/SuccessfulCheckout')
+const SuccessfulCheckoutPage = lazyWithRetry(
+  () => import('./pages/SuccessfulCheckout/SuccessfulCheckout'),
+  './pages/SuccessfulCheckout/SuccessfulCheckout'
 );
-const DocsPage = lazy(() => import('./pages/DocsPage/DocsPage'));
-const CardOptionsPage = lazy(() => import('./pages/CardOptionsPage'));
-const TemplatesPage = lazy(() => import('./pages/TemplatesPage'));
-const TemplatesEditorPage = lazy(
-  () => import('./pages/TemplatesPage/EditorPage')
+const DocsPage = lazyWithRetry(() => import('./pages/DocsPage/DocsPage'), './pages/DocsPage/DocsPage');
+const CardOptionsPage = lazyWithRetry(
+  () => import('./pages/CardOptionsPage'),
+  './pages/CardOptionsPage'
 );
-const RulesPage = lazy(() => import('./pages/RulesPage'));
-const PreviewPage = lazy(() => import('./pages/PreviewPage'));
-const DatabasePreviewPage = lazy(() => import('./pages/DatabasePreviewPage'));
-const PreviewApkgPage = lazy(() => import('./pages/PreviewApkgPage'));
-const AnkifyPage = lazy(() => import('./pages/AnkifyPage'));
-const AnkifySetupPage = lazy(
-  () => import('./pages/AnkifyPage/AnkifySetupPage')
+const TemplatesPage = lazyWithRetry(
+  () => import('./pages/TemplatesPage'),
+  './pages/TemplatesPage'
 );
-const AnkifyHistoryPage = lazy(
-  () => import('./pages/AnkifyPage/AnkifyHistoryPage')
+const TemplatesEditorPage = lazyWithRetry(
+  () => import('./pages/TemplatesPage/EditorPage'),
+  './pages/TemplatesPage/EditorPage'
 );
-const OpsLayout = lazy(() => import('./pages/OpsPage/OpsLayout'));
-const EngineeringTab = lazy(() => import('./pages/OpsPage/EngineeringTab'));
-const ErrorsTab = lazy(() => import('./pages/OpsPage/ErrorsTab'));
-const PerformanceTab = lazy(() => import('./pages/OpsPage/PerformanceTab'));
-const ConversionsTab = lazy(() => import('./pages/OpsPage/ConversionsTab'));
-const BusinessTab = lazy(() => import('./pages/OpsPage/BusinessTab'));
-const ShowcaseTab = lazy(() => import('./pages/OpsPage/ShowcaseTab'));
-const InterviewsTab = lazy(() => import('./pages/OpsPage/InterviewsTab'));
-const ContactMessagesTab = lazy(
-  () => import('./pages/OpsPage/ContactMessagesTab')
+const RulesPage = lazyWithRetry(() => import('./pages/RulesPage'), './pages/RulesPage');
+const PreviewPage = lazyWithRetry(() => import('./pages/PreviewPage'), './pages/PreviewPage');
+const DatabasePreviewPage = lazyWithRetry(
+  () => import('./pages/DatabasePreviewPage'),
+  './pages/DatabasePreviewPage'
 );
-const CommandsTab = lazy(() => import('./pages/OpsPage/CommandsTab'));
-const PricingAbFunnelTab = lazy(
-  () => import('./pages/OpsPage/PricingAbFunnelTab')
+const PreviewApkgPage = lazyWithRetry(
+  () => import('./pages/PreviewApkgPage'),
+  './pages/PreviewApkgPage'
 );
-const FeedbackPage = lazy(() => import('./pages/FeedbackPage/FeedbackPage'));
-const NotionToAnki = lazy(() => import('./pages/LandingPage/NotionToAnki'));
-const AnkiToNotion = lazy(() => import('./pages/LandingPage/AnkiToNotion'));
-const QuizletToAnki = lazy(() => import('./pages/LandingPage/QuizletToAnki'));
-const MarkdownToAnki = lazy(() => import('./pages/LandingPage/MarkdownToAnki'));
-const PdfToAnki = lazy(() => import('./pages/LandingPage/PdfToAnki'));
-const UsmleAnki = lazy(() => import('./pages/LandingPage/UsmleAnki'));
-const NursingFlashcards = lazy(
-  () => import('./pages/LandingPage/NursingFlashcards')
+const AnkifyPage = lazyWithRetry(() => import('./pages/AnkifyPage'), './pages/AnkifyPage');
+const AnkifySetupPage = lazyWithRetry(
+  () => import('./pages/AnkifyPage/AnkifySetupPage'),
+  './pages/AnkifyPage/AnkifySetupPage'
 );
-const AnkiFromMedicalLectureSlides = lazy(
-  () => import('./pages/LandingPage/AnkiFromMedicalLectureSlides')
+const AnkifyHistoryPage = lazyWithRetry(
+  () => import('./pages/AnkifyPage/AnkifyHistoryPage'),
+  './pages/AnkifyPage/AnkifyHistoryPage'
 );
-const PowerpointToAnki = lazy(
-  () => import('./pages/LandingPage/PowerpointToAnki')
+const OpsLayout = lazyWithRetry(
+  () => import('./pages/OpsPage/OpsLayout'),
+  './pages/OpsPage/OpsLayout'
 );
-const GoodnotesToAnki = lazy(
-  () => import('./pages/LandingPage/GoodnotesToAnki')
+const EngineeringTab = lazyWithRetry(
+  () => import('./pages/OpsPage/EngineeringTab'),
+  './pages/OpsPage/EngineeringTab'
 );
-const AiFlashcardGenerator = lazy(
-  () => import('./pages/LandingPage/AiFlashcardGenerator')
+const ErrorsTab = lazyWithRetry(
+  () => import('./pages/OpsPage/ErrorsTab'),
+  './pages/OpsPage/ErrorsTab'
 );
-const ConvertLandingPage = lazy(
-  () => import('./pages/ConvertLandingPage/ConvertLandingPage')
+const PerformanceTab = lazyWithRetry(
+  () => import('./pages/OpsPage/PerformanceTab'),
+  './pages/OpsPage/PerformanceTab'
 );
-const MagicLinkPage = lazy(() => import('./pages/MagicLinkPage'));
-const PrintPage = lazy(() => import('./pages/PrintPage'));
-const WhatsNewPage = lazy(() => import('./pages/WhatsNewPage/WhatsNewPage'));
-const ImportPage = lazy(() => import('./pages/ImportPage'));
-const ImageOcclusionPage = lazy(() =>
-  import('./pages/ImageOcclusionPage').then((m) => ({
-    default: m.ImageOcclusionPage,
-  }))
+const ConversionsTab = lazyWithRetry(
+  () => import('./pages/OpsPage/ConversionsTab'),
+  './pages/OpsPage/ConversionsTab'
 );
-const PhotoToFlashcardsPage = lazy(() =>
-  import('./pages/PhotoToFlashcardsPage').then((m) => ({
-    default: m.PhotoToFlashcardsPage,
-  }))
+const BusinessTab = lazyWithRetry(
+  () => import('./pages/OpsPage/BusinessTab'),
+  './pages/OpsPage/BusinessTab'
 );
-const ChatPage = lazy(() => import('./pages/Chat/ChatPage'));
-const NotionLandingPage = lazy(
-  () => import('./pages/NotionLandingPage/NotionLandingPage')
+const ShowcaseTab = lazyWithRetry(
+  () => import('./pages/OpsPage/ShowcaseTab'),
+  './pages/OpsPage/ShowcaseTab'
 );
-const AnswersPage = lazy(() => import('./pages/AnswersPage/AnswersPage'));
-const LimitPage = lazy(() => import('./pages/LimitPage/LimitPage'));
-const SharedDeckPage = lazy(() => import('./pages/SharedDeckPage'));
-const MindmapsPage = lazy(() => import('./pages/MindmapsPage'));
-const SecurityPage = lazy(() => import('./pages/SecurityPage/SecurityPage'));
-const StatusPage = lazy(() => import('./pages/StatusPage/StatusPage'));
-const TransformPage = lazy(() => import('./pages/TransformPage'));
+const InterviewsTab = lazyWithRetry(
+  () => import('./pages/OpsPage/InterviewsTab'),
+  './pages/OpsPage/InterviewsTab'
+);
+const ContactMessagesTab = lazyWithRetry(
+  () => import('./pages/OpsPage/ContactMessagesTab'),
+  './pages/OpsPage/ContactMessagesTab'
+);
+const CommandsTab = lazyWithRetry(
+  () => import('./pages/OpsPage/CommandsTab'),
+  './pages/OpsPage/CommandsTab'
+);
+const PricingAbFunnelTab = lazyWithRetry(
+  () => import('./pages/OpsPage/PricingAbFunnelTab'),
+  './pages/OpsPage/PricingAbFunnelTab'
+);
+const FeedbackPage = lazyWithRetry(
+  () => import('./pages/FeedbackPage/FeedbackPage'),
+  './pages/FeedbackPage/FeedbackPage'
+);
+const NotionToAnki = lazyWithRetry(
+  () => import('./pages/LandingPage/NotionToAnki'),
+  './pages/LandingPage/NotionToAnki'
+);
+const AnkiToNotion = lazyWithRetry(
+  () => import('./pages/LandingPage/AnkiToNotion'),
+  './pages/LandingPage/AnkiToNotion'
+);
+const QuizletToAnki = lazyWithRetry(
+  () => import('./pages/LandingPage/QuizletToAnki'),
+  './pages/LandingPage/QuizletToAnki'
+);
+const MarkdownToAnki = lazyWithRetry(
+  () => import('./pages/LandingPage/MarkdownToAnki'),
+  './pages/LandingPage/MarkdownToAnki'
+);
+const PdfToAnki = lazyWithRetry(
+  () => import('./pages/LandingPage/PdfToAnki'),
+  './pages/LandingPage/PdfToAnki'
+);
+const UsmleAnki = lazyWithRetry(
+  () => import('./pages/LandingPage/UsmleAnki'),
+  './pages/LandingPage/UsmleAnki'
+);
+const NursingFlashcards = lazyWithRetry(
+  () => import('./pages/LandingPage/NursingFlashcards'),
+  './pages/LandingPage/NursingFlashcards'
+);
+const AnkiFromMedicalLectureSlides = lazyWithRetry(
+  () => import('./pages/LandingPage/AnkiFromMedicalLectureSlides'),
+  './pages/LandingPage/AnkiFromMedicalLectureSlides'
+);
+const PowerpointToAnki = lazyWithRetry(
+  () => import('./pages/LandingPage/PowerpointToAnki'),
+  './pages/LandingPage/PowerpointToAnki'
+);
+const GoodnotesToAnki = lazyWithRetry(
+  () => import('./pages/LandingPage/GoodnotesToAnki'),
+  './pages/LandingPage/GoodnotesToAnki'
+);
+const AiFlashcardGenerator = lazyWithRetry(
+  () => import('./pages/LandingPage/AiFlashcardGenerator'),
+  './pages/LandingPage/AiFlashcardGenerator'
+);
+const ConvertLandingPage = lazyWithRetry(
+  () => import('./pages/ConvertLandingPage/ConvertLandingPage'),
+  './pages/ConvertLandingPage/ConvertLandingPage'
+);
+const MagicLinkPage = lazyWithRetry(
+  () => import('./pages/MagicLinkPage'),
+  './pages/MagicLinkPage'
+);
+const PrintPage = lazyWithRetry(() => import('./pages/PrintPage'), './pages/PrintPage');
+const WhatsNewPage = lazyWithRetry(
+  () => import('./pages/WhatsNewPage/WhatsNewPage'),
+  './pages/WhatsNewPage/WhatsNewPage'
+);
+const ImportPage = lazyWithRetry(() => import('./pages/ImportPage'), './pages/ImportPage');
+const ImageOcclusionPage = lazyWithRetry(
+  () =>
+    import('./pages/ImageOcclusionPage').then((m) => ({
+      default: m.ImageOcclusionPage,
+    })),
+  './pages/ImageOcclusionPage'
+);
+const PhotoToFlashcardsPage = lazyWithRetry(
+  () =>
+    import('./pages/PhotoToFlashcardsPage').then((m) => ({
+      default: m.PhotoToFlashcardsPage,
+    })),
+  './pages/PhotoToFlashcardsPage'
+);
+const ChatPage = lazyWithRetry(() => import('./pages/Chat/ChatPage'), './pages/Chat/ChatPage');
+const NotionLandingPage = lazyWithRetry(
+  () => import('./pages/NotionLandingPage/NotionLandingPage'),
+  './pages/NotionLandingPage/NotionLandingPage'
+);
+const AnswersPage = lazyWithRetry(
+  () => import('./pages/AnswersPage/AnswersPage'),
+  './pages/AnswersPage/AnswersPage'
+);
+const LimitPage = lazyWithRetry(
+  () => import('./pages/LimitPage/LimitPage'),
+  './pages/LimitPage/LimitPage'
+);
+const SharedDeckPage = lazyWithRetry(
+  () => import('./pages/SharedDeckPage'),
+  './pages/SharedDeckPage'
+);
+const MindmapsPage = lazyWithRetry(() => import('./pages/MindmapsPage'), './pages/MindmapsPage');
+const SecurityPage = lazyWithRetry(
+  () => import('./pages/SecurityPage/SecurityPage'),
+  './pages/SecurityPage/SecurityPage'
+);
+const StatusPage = lazyWithRetry(
+  () => import('./pages/StatusPage/StatusPage'),
+  './pages/StatusPage/StatusPage'
+);
+const TransformPage = lazyWithRetry(
+  () => import('./pages/TransformPage'),
+  './pages/TransformPage'
+);
 
 const queryClient = new QueryClient();
 
@@ -410,6 +532,18 @@ function AppContent({
 
 function AppWithCookies() {
   const [cookies, setCookie] = useCookies(['token']);
+  const [showReloadOverlay, setShowReloadOverlay] = useState<boolean>(() =>
+    isReloadingForFreshChunks()
+  );
+
+  useEffect(() => {
+    if (!showReloadOverlay) {
+      return;
+    }
+    clearReloadingFlag();
+    const id = window.setTimeout(() => setShowReloadOverlay(false), 600);
+    return () => window.clearTimeout(id);
+  }, [showReloadOverlay]);
 
   if (isOfflineMode() && !cookies.token) {
     setCookie('token', '?');
@@ -428,6 +562,7 @@ function AppWithCookies() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {showReloadOverlay && <ChunkReloadOverlay />}
       <AppContent
         error={apiError as Error | null}
         setErrorMessage={handledError}
