@@ -19,6 +19,7 @@ import {
   FeatureFlagNotFoundError,
   SetFeatureFlagUseCase,
 } from '../usecases/ops/SetFeatureFlagUseCase';
+import { GetUploadFunnelUseCase } from '../usecases/ops/GetUploadFunnelUseCase';
 
 class OpsController {
   constructor(
@@ -37,7 +38,8 @@ class OpsController {
     private readonly syncStripeSubscriptionsUseCase?: SyncStripeSubscriptionsUseCase,
     private readonly getPricingAbFunnelUseCase?: GetPricingAbFunnelUseCase,
     private readonly listFeatureFlagsUseCase?: ListFeatureFlagsUseCase,
-    private readonly setFeatureFlagUseCase?: SetFeatureFlagUseCase
+    private readonly setFeatureFlagUseCase?: SetFeatureFlagUseCase,
+    private readonly getUploadFunnelUseCase?: GetUploadFunnelUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -346,6 +348,21 @@ class OpsController {
       }
       console.error('[ops] setFeatureFlag failed', error);
       res.status(500).json({ message: 'Failed to update feature flag' });
+    }
+  }
+
+  async getUploadFunnel(req: express.Request, res: express.Response) {
+    if (this.getUploadFunnelUseCase == null) {
+      res.status(500).json({ message: 'Upload funnel not configured' });
+      return;
+    }
+    try {
+      const window = typeof req.query.window === 'string' ? req.query.window : undefined;
+      const result = await this.getUploadFunnelUseCase.execute(window);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('[ops] getUploadFunnel failed', error);
+      res.status(500).json({ message: 'Failed to load upload funnel' });
     }
   }
 }

@@ -10,7 +10,7 @@ export const SESSION_JWT_EXPIRY = '30d';
 export function sessionCookieOptions(): CookieOptions {
   return {
     maxAge: SESSION_MAX_AGE_MS,
-    httpOnly: true,
+    httpOnly: false, // #2454: SPA reads token= via document.cookie; httpOnly re-breaks the login loop
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
   };

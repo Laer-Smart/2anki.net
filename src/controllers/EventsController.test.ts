@@ -14,6 +14,7 @@ function makeFakeRepository(): IEventsRepository {
     countByNameForUser: jest.fn(async () => 0),
     groupPaywallShownByVariantAndSurface: jest.fn(async () => []),
     groupPaywallClicksByVariant: jest.fn(async () => []),
+    groupUploadFunnel: jest.fn(async () => []),
   };
 }
 

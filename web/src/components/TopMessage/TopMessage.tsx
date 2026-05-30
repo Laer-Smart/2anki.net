@@ -2,9 +2,21 @@ import { Link } from 'react-router-dom';
 import useQuery from '../../lib/hooks/useQuery';
 import styles from '../../styles/shared.module.css';
 
+const SIGN_IN_FALLBACK =
+  "Couldn't sign you in. Try again, or use your email below.";
+
+const ERROR_MESSAGES: Record<string, string> = {
+  google_signin_failed:
+    "Couldn't sign you in with Google. Try again, or use your email below.",
+  microsoft_signin_failed:
+    "Couldn't sign you in with Microsoft. Try again, or use your email below.",
+  notion_cancelled:
+    "Couldn't sign you in with Notion. Try again, or use your email below.",
+};
+
 function TopMessage() {
   const query = useQuery();
-  const errorMessage = query.get('error');
+  const errorCode = query.get('error');
   const verified = query.get('verified');
 
   if (verified === '1') {
@@ -15,7 +27,7 @@ function TopMessage() {
     );
   }
 
-  if (errorMessage === 'upload_limit_exceeded') {
+  if (errorCode === 'upload_limit_exceeded') {
     return (
       <div className={styles.alertDanger}>
         <p>
@@ -25,10 +37,10 @@ function TopMessage() {
       </div>
     );
   }
-  if (errorMessage) {
+  if (errorCode) {
     return (
       <div className={styles.alertDanger}>
-        <p>{errorMessage}</p>
+        <p>{ERROR_MESSAGES[errorCode] ?? SIGN_IN_FALLBACK}</p>
       </div>
     );
   }

@@ -135,7 +135,7 @@ describe('UsersController.register', () => {
     await controller.register(req, res, next);
 
     expect(register).toHaveBeenCalledTimes(1);
-    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-reg-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' }));
+    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-reg-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: false, sameSite: 'lax' }));
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ token: 'jwt-reg-tok' })
@@ -234,7 +234,7 @@ describe('UsersController.register', () => {
 
     await controller.register(req, res, next);
 
-    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-trial-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' }));
+    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-trial-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: false, sameSite: 'lax' }));
     expect(mockMarkTrialStarted).toHaveBeenCalledTimes(1);
   });
 
@@ -610,7 +610,7 @@ describe('UsersController.verifyMagicLink', () => {
 
     await controller.verifyMagicLink(req, res, next);
 
-    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-login-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: true, sameSite: 'lax' }));
+    expect(res.cookie).toHaveBeenCalledWith('token', 'jwt-login-tok', expect.objectContaining({ maxAge: SESSION_MAX_AGE_MS, httpOnly: false, sameSite: 'lax' }));
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ token: 'jwt-login-tok' });
     expect(persistToken).toHaveBeenCalledWith('jwt-login-tok', '5');
@@ -802,6 +802,35 @@ describe('UsersController.loginWithGoogle', () => {
     expect(register).not.toHaveBeenCalled();
   });
 
+  it('redirects with error=google_signin_failed when the token exchange fails', async () => {
+    const loginWithGoogle = jest.fn().mockResolvedValue(null);
+    const { controller } = buildGoogleController({ loginWithGoogle });
+    const req = {
+      query: { code: 'gauth-code' },
+      cookies: {},
+      headers: {},
+    } as unknown as express.Request;
+    const res = buildGoogleRes();
+
+    await controller.loginWithGoogle(req, res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=google_signin_failed');
+  });
+
+  it('redirects with error=google_signin_failed when the OAuth code is missing', async () => {
+    const { controller } = buildGoogleController();
+    const req = {
+      query: {},
+      cookies: {},
+      headers: {},
+    } as unknown as express.Request;
+    const res = buildGoogleRes();
+
+    await controller.loginWithGoogle(req, res);
+
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=google_signin_failed');
+  });
+
 });
 
 jest.mock('../data_layer/OauthIdentitiesRepository');
@@ -954,7 +983,7 @@ describe('UsersController.loginWithMicrosoft', () => {
 
     await controller.loginWithMicrosoft(buildReq(), res);
 
-    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=microsoft_signin_failed');
     expect(register).not.toHaveBeenCalled();
     expect(MockedOauthIdentitiesRepo.prototype.link).not.toHaveBeenCalled();
   });
@@ -972,7 +1001,7 @@ describe('UsersController.loginWithMicrosoft', () => {
 
     await controller.loginWithMicrosoft(buildReq(), res);
 
-    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=microsoft_signin_failed');
     expect(register).not.toHaveBeenCalled();
   });
 
@@ -982,7 +1011,7 @@ describe('UsersController.loginWithMicrosoft', () => {
 
     await controller.loginWithMicrosoft(buildReq(null), res);
 
-    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=microsoft_signin_failed');
   });
 
   it('redirects to /login when the token exchange fails', async () => {
@@ -992,7 +1021,7 @@ describe('UsersController.loginWithMicrosoft', () => {
 
     await controller.loginWithMicrosoft(buildReq('bad-code'), res);
 
-    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=microsoft_signin_failed');
   });
 });
 
@@ -1421,7 +1450,7 @@ describe('UsersController.loginWithGoogle — error recording', () => {
       surface: 'oauth_google',
       code: 'oauth_cancelled',
     });
-    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=google_signin_failed');
   });
 
   it('records oauth_token_exchange_failed when loginWithGoogle returns null', async () => {
@@ -1436,7 +1465,7 @@ describe('UsersController.loginWithGoogle — error recording', () => {
       surface: 'oauth_google',
       code: 'oauth_token_exchange_failed',
     });
-    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=google_signin_failed');
   });
 
   it('records oauth_user_creation_failed when user lookup returns null after register', async () => {
@@ -1567,7 +1596,7 @@ describe('UsersController.loginWithNotion', () => {
 describe('UsersController cookie options — 30-day persistent session', () => {
   const EXPECTED_COOKIE_OPTIONS = {
     maxAge: SESSION_MAX_AGE_MS,
-    httpOnly: true,
+    httpOnly: false,
     sameSite: 'lax',
   };
 
@@ -2120,7 +2149,7 @@ describe('UsersController.loginWithAppleNative', () => {
 
     await controller.loginWithAppleNative(buildReq(), res);
 
-    expect(res.cookie).toHaveBeenCalledWith('token', 'native-apple-jwt', expect.objectContaining({ httpOnly: true, sameSite: 'lax' }));
+    expect(res.cookie).toHaveBeenCalledWith('token', 'native-apple-jwt', expect.objectContaining({ httpOnly: false, sameSite: 'lax' }));
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ ok: true });
   });

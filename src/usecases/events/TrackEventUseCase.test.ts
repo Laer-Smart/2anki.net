@@ -13,6 +13,7 @@ function makeFakeRepository() {
     countByNameForUser: jest.fn(async () => 0),
     groupPaywallShownByVariantAndSurface: jest.fn(async () => []),
     groupPaywallClicksByVariant: jest.fn(async () => []),
+    groupUploadFunnel: jest.fn(async () => []),
   };
   return { repo, inserted };
 }

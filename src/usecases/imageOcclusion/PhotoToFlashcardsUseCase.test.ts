@@ -63,6 +63,7 @@ function makeEventsStub(usedThisMonth = 0): IEventsRepository {
     countByNameForUser: jest.fn().mockResolvedValue(usedThisMonth),
     groupPaywallShownByVariantAndSurface: jest.fn().mockResolvedValue([]),
     groupPaywallClicksByVariant: jest.fn().mockResolvedValue([]),
+    groupUploadFunnel: jest.fn().mockResolvedValue([]),
   };
 }
 

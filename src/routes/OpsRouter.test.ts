@@ -150,6 +150,28 @@ jest.mock('../lib/storage/jobs/helpers/updateStripeSubscriptions', () => ({
   updateStripeSubscriptions: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../data_layer/EventsRepository', () => {
+  return {
+    __esModule: true,
+    default: class {
+      groupUploadFunnel() {
+        return Promise.resolve([
+          { stage: 'upload_started', distinct_identities: 100 },
+          { stage: 'conversion_succeeded', distinct_identities: 72 },
+          { stage: 'conversion_failed', distinct_identities: 20 },
+          { stage: 'deck_downloaded', distinct_identities: 60 },
+        ]);
+      }
+      groupPaywallShownByVariantAndSurface() {
+        return Promise.resolve([]);
+      }
+      groupPaywallClicksByVariant() {
+        return Promise.resolve([]);
+      }
+    },
+  };
+});
+
 import OpsRouter from './OpsRouter';
 
 const opsAccessState = (globalThis as unknown as {
@@ -236,6 +258,42 @@ describe('OpsRouter /api/ops/sync-stripe-subscriptions', () => {
       const body = await response.json();
       expect(body).toEqual(
         expect.objectContaining({ message: expect.any(String) })
+      );
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe('OpsRouter /api/ops/upload-funnel', () => {
+  it('returns 404 for non-owner callers', async () => {
+    const { url, close } = await startServer(false);
+    try {
+      const response = await fetch(`${url}/api/ops/upload-funnel`);
+      expect(response.status).toBe(404);
+    } finally {
+      await close();
+    }
+  });
+
+  it('returns 200 with stage counts and success rate for the ops owner', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(`${url}/api/ops/upload-funnel`);
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body).toEqual(
+        expect.objectContaining({
+          stages: expect.objectContaining({
+            upload_started: 100,
+            conversion_succeeded: 72,
+            conversion_failed: 20,
+            deck_downloaded: 60,
+          }),
+          upload_to_download_rate_pct: 60,
+          since: expect.any(String),
+          as_of: expect.any(String),
+        })
       );
     } finally {
       await close();

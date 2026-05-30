@@ -171,4 +171,19 @@ describe('EventsRepository SQL generation', () => {
     expect(sql).toContain('count("id") as "click_count"');
     expect(sql).toContain("group by props->>'variant'");
   });
+
+  it('groupUploadFunnel counts distinct identities by stage with PG-only jsonb reads', async () => {
+    const { db, getSql } = captureGeneratedSql();
+    const repo = new EventsRepository(db);
+
+    await repo.groupUploadFunnel(new Date('2026-05-01'));
+
+    const sql = getSql();
+    expect(sql).toContain('name as stage');
+    expect(sql).toContain(
+      'count(distinct COALESCE(user_id::text, anonymous_id)) as distinct_identities'
+    );
+    expect(sql).toContain('group by "name"');
+    expect(sql).not.toContain('anonymous_id) as distinct_identities)');
+  });
 });

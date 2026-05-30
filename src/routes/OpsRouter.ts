@@ -43,6 +43,8 @@ import { JobsMetricsRepository } from '../data_layer/JobsMetricsRepository';
 import { SyncStripeSubscriptionsUseCase } from '../usecases/ops/SyncStripeSubscriptionsUseCase';
 import { GetPricingAbFunnelUseCase } from '../usecases/ops/GetPricingAbFunnelUseCase';
 import { PricingAbFunnelService } from '../services/ops/PricingAbFunnelService';
+import { GetUploadFunnelUseCase } from '../usecases/ops/GetUploadFunnelUseCase';
+import { UploadFunnelService } from '../services/ops/UploadFunnelService';
 import { updateStripeSubscriptions } from '../lib/storage/jobs/helpers/updateStripeSubscriptions';
 import EventsRepository from '../data_layer/EventsRepository';
 import { FeatureFlagsRepository } from '../data_layer/FeatureFlagsRepository';
@@ -114,7 +116,10 @@ const OpsRouter = () => {
       new PricingAbFunnelService({ eventsRepo: new EventsRepository(database) })
     ),
     new ListFeatureFlagsUseCase(new FeatureFlagsRepository(database)),
-    new SetFeatureFlagUseCase(new FeatureFlagsRepository(database))
+    new SetFeatureFlagUseCase(new FeatureFlagsRepository(database)),
+    new GetUploadFunnelUseCase(
+      new UploadFunnelService({ eventsRepo: new EventsRepository(database) })
+    )
   );
 
   /**
@@ -488,6 +493,35 @@ const OpsRouter = () => {
    */
   router.put('/api/ops/flags/:key', RequireOpsAccess, (req, res) =>
     controller.setFeatureFlag(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/upload-funnel:
+   *   get:
+   *     summary: Upload-to-download funnel by stage
+   *     description: |
+   *       Returns distinct-identity counts for each upload-funnel stage
+   *       (upload_started, conversion_succeeded, conversion_failed, deck_downloaded)
+   *       keyed by user_id or anonymous_id, plus the true upload-to-download success
+   *       rate. Defaults to the last 30 days; pass ?window=7d|14d|30d|60d|90d.
+   *       Internal endpoint locked to the ops owner — returns 404 for everyone else.
+   *     tags: [Ops]
+   *     parameters:
+   *       - in: query
+   *         name: window
+   *         schema:
+   *           type: string
+   *           enum: ['7d', '14d', '30d', '60d', '90d']
+   *         description: Lookback window. Defaults to 30d.
+   *     responses:
+   *       200:
+   *         description: Funnel payload
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.get('/api/ops/upload-funnel', RequireOpsAccess, (req, res) =>
+    controller.getUploadFunnel(req, res)
   );
 
   return router;

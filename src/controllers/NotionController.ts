@@ -227,6 +227,8 @@ class NotionController {
       const safeString = (v: unknown): string | undefined =>
         typeof v === 'string' && v.length > 0 ? v : undefined;
 
+      const cookies = req.cookies as Record<string, unknown> | undefined;
+
       runConversion({
         id,
         type,
@@ -236,6 +238,7 @@ class NotionController {
         jobDbId: job.id,
         frontField: safeString(frontField),
         backField: safeString(backField),
+        anonId: safeString(cookies?.anon_id),
       }).catch((err: unknown) => {
         console.error('notion convert worker:', err);
       });
