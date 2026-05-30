@@ -6,6 +6,7 @@ import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-route
 import { AppShell } from './components/AppShell/AppShell';
 import { getErrorMessage } from './components/errors/helpers/getErrorMessage';
 import { SkeletonPage } from './components/Skeleton/Skeleton';
+import PostLoginSurvey from './components/PostLoginSurvey/PostLoginSurvey';
 import { useUserLocals } from './lib/hooks/useUserLocals';
 import isOfflineMode from './lib/isOfflineMode';
 import { reportClientError } from './lib/reportClientError';
@@ -177,6 +178,7 @@ function AppContent({
         }
         features={data?.features}
       >
+        {isLoggedInResolved && <PostLoginSurvey />}
         <Routes>
           <Route
             path="/favorites"

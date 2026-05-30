@@ -1,0 +1,169 @@
+.card {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 1000;
+  width: 360px;
+  max-width: calc(100vw - 3rem);
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  padding: 1.25rem 1.25rem 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted, #9ca3af);
+}
+
+.title {
+  margin: 0 1.5rem 0.25rem 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--text-muted, #6b7280);
+}
+
+.question {
+  margin-bottom: 1rem;
+}
+
+.label {
+  margin: 0 0 0.5rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.ratings {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.rating {
+  font-size: 1.6rem;
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  border-radius: 8px;
+  transition: transform 0.1s ease;
+}
+
+.rating:hover {
+  transform: scale(1.15);
+}
+
+.rating[aria-pressed='true'] {
+  border-color: var(--accent-color, #3b82f6);
+  background: var(--accent-bg, rgba(59, 130, 246, 0.08));
+}
+
+.textarea {
+  margin-top: 0.6rem;
+  width: 100%;
+  min-height: 3.5rem;
+  resize: vertical;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  border: 1px solid var(--border-color, #e5e7eb);
+  background: var(--chip-bg, #f9fafb);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.chip[aria-pressed='true'] {
+  border-color: var(--accent-color, #3b82f6);
+  background: var(--accent-bg, rgba(59, 130, 246, 0.12));
+  font-weight: 500;
+}
+
+.otherInput {
+  margin-top: 0.6rem;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.errorText {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--error-color, #dc2626);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.notNow {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-muted, #6b7280);
+  padding: 0.4rem 0.2rem;
+}
+
+.send {
+  background: var(--accent-color, #3b82f6);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.45rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.send:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.confirmation {
+  margin: 0.5rem 1.5rem 0.5rem 0;
+  font-weight: 500;
+}
+
+@media only screen and (max-width: 480px) {
+  .card {
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 12px 12px 0 0;
+  }
+}
