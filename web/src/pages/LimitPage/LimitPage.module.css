@@ -41,6 +41,17 @@
   }
 }
 
+.singlePlan {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+}
+
+.singlePlan .planCard {
+  width: 100%;
+  max-width: 420px;
+}
+
 .planCard {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);

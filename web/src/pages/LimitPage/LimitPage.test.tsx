@@ -24,7 +24,7 @@ vi.mock('../../lib/hooks/useUserLocals', () => ({
   })),
 }));
 
-function renderPage() {
+function renderPage(initialEntries: string[] = ['/limit']) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -32,7 +32,7 @@ function renderPage() {
   return render(
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={initialEntries}>
           <LimitPage />
         </MemoryRouter>
       </QueryClientProvider>
@@ -81,5 +81,34 @@ describe('LimitPage', () => {
     expect(button).toBeTruthy();
     fireEvent.click(button);
     expect(screen.getByText('Starting checkout…')).toBeTruthy();
+  });
+});
+
+describe('LimitPage — anonymous variant', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('shows the sign-up heading for kind=anonymous', () => {
+    renderPage(['/limit?kind=anonymous']);
+    expect(screen.getByText('Sign up free to keep converting')).toBeTruthy();
+  });
+
+  it('shows a "Sign up free" CTA pointing at /register', () => {
+    renderPage(['/limit?kind=anonymous']);
+    const cta = screen.getByText('Sign up free');
+    expect(cta.closest('a')?.getAttribute('href')).toBe('/register?redirect=/upload');
+  });
+
+  it('keeps a secondary Sign in link', () => {
+    renderPage(['/limit?kind=anonymous']);
+    const signIn = screen.getByText('Sign in');
+    expect(signIn.closest('a')?.getAttribute('href')).toBe('/login?redirect=/upload');
+  });
+
+  it('does not show the monthly-limit upgrade UI for anonymous users', () => {
+    renderPage(['/limit?kind=anonymous']);
+    expect(screen.queryByText('You reached 100 cards this month')).toBeNull();
+    expect(screen.queryByText('Get Auto Sync')).toBeNull();
   });
 });

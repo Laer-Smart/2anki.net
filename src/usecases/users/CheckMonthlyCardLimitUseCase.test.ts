@@ -1,6 +1,5 @@
 import {
   CheckMonthlyCardLimitUseCase,
-  ENFORCE_AFTER,
   MONTHLY_CARD_LIMIT,
   MonthlyLimitError,
 } from './CheckMonthlyCardLimitUseCase';
@@ -14,9 +13,6 @@ function buildRepo(cards_used: number): UsersRepository {
   } as unknown as UsersRepository;
 }
 
-const AFTER = new Date(ENFORCE_AFTER.getTime() + 86400000);
-const BEFORE = new Date(ENFORCE_AFTER.getTime() - 86400000);
-
 describe('CheckMonthlyCardLimitUseCase', () => {
   it('passes when free user has capacity remaining', async () => {
     const useCase = new CheckMonthlyCardLimitUseCase(buildRepo(50));
@@ -25,7 +21,6 @@ describe('CheckMonthlyCardLimitUseCase', () => {
         userId: '1',
         candidateCardCount: 30,
         isPaying: false,
-        now: AFTER,
       })
     ).resolves.toBeUndefined();
   });
@@ -37,7 +32,18 @@ describe('CheckMonthlyCardLimitUseCase', () => {
         userId: '1',
         candidateCardCount: 30,
         isPaying: false,
-        now: AFTER,
+      })
+    ).rejects.toBeInstanceOf(MonthlyLimitError);
+  });
+
+  it('enforces the limit regardless of the date — the June gate is gone', async () => {
+    const useCase = new CheckMonthlyCardLimitUseCase(buildRepo(80));
+    await expect(
+      useCase.execute({
+        userId: '1',
+        candidateCardCount: 30,
+        isPaying: false,
+        now: new Date(Date.UTC(2020, 0, 1)),
       })
     ).rejects.toBeInstanceOf(MonthlyLimitError);
   });
@@ -50,21 +56,6 @@ describe('CheckMonthlyCardLimitUseCase', () => {
         userId: '1',
         candidateCardCount: 200,
         isPaying: true,
-        now: AFTER,
-      })
-    ).resolves.toBeUndefined();
-    expect(repo.getCardUsage).not.toHaveBeenCalled();
-  });
-
-  it('skips the check before ENFORCE_AFTER even when over limit', async () => {
-    const repo = buildRepo(500);
-    const useCase = new CheckMonthlyCardLimitUseCase(repo);
-    await expect(
-      useCase.execute({
-        userId: '1',
-        candidateCardCount: 200,
-        isPaying: false,
-        now: BEFORE,
       })
     ).resolves.toBeUndefined();
     expect(repo.getCardUsage).not.toHaveBeenCalled();
@@ -77,7 +68,6 @@ describe('CheckMonthlyCardLimitUseCase', () => {
         userId: '1',
         candidateCardCount: 10,
         isPaying: false,
-        now: AFTER,
       });
       throw new Error('expected throw');
     } catch (error) {

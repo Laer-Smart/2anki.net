@@ -51,6 +51,10 @@ function isLimitRedirect(url: URL): boolean {
   );
 }
 
+function isAnonymousLimit(url: URL): boolean {
+  return url.searchParams.get('kind') === 'anonymous';
+}
+
 function getLimitKind(url: URL): 'file_size' | 'card_count' {
   return url.searchParams.get('kind') === 'card_count' ? 'card_count' : 'file_size';
 }
@@ -433,6 +437,10 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       if (request.redirected) {
         const redirectUrl = new URL(request.url, globalThis.location.origin);
         if (isLimitRedirect(redirectUrl)) {
+          if (isAnonymousLimit(redirectUrl)) {
+            globalThis.location.href = '/limit?kind=anonymous';
+            return;
+          }
           const kind = getLimitKind(redirectUrl);
           setLimitInfo({
             filename: first?.name ?? null,
@@ -523,6 +531,10 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       if (request.redirected) {
         const redirectUrl = new URL(request.url, globalThis.location.origin);
         if (isLimitRedirect(redirectUrl)) {
+          if (isAnonymousLimit(redirectUrl)) {
+            globalThis.location.href = '/limit?kind=anonymous';
+            return;
+          }
           const kind = getLimitKind(redirectUrl);
           setLimitInfo({
             filename: first?.name ?? null,
@@ -605,6 +617,10 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       if (request.redirected) {
         const redirectUrl = new URL(request.url, globalThis.location.origin);
         if (isLimitRedirect(redirectUrl)) {
+          if (isAnonymousLimit(redirectUrl)) {
+            globalThis.location.href = '/limit?kind=anonymous';
+            return true;
+          }
           const firstFile = fileInputRef.current?.files?.[0];
           const kind = getLimitKind(redirectUrl);
           setLimitInfo({
@@ -958,7 +974,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
   const renderLimitState = () => {
     const isFileSize = limitInfo?.kind === 'file_size';
     const title = isFileSize
-      ? 'This file is over the 50 MB limit'
+      ? 'This file is over the 100 MB limit'
       : 'You reached your monthly limit of 100 cards';
     let limitContext: 'anonymous' | 'trial_available' | 'trial_used';
     if (showSignInPrompt) {

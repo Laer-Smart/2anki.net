@@ -80,7 +80,7 @@ class UploadController {
         if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
           return res.status(413).json({
             code: 'too_large',
-            message: 'Upload failed — file is over the 50 MB limit. Try splitting it.',
+            message: 'Upload failed — file is over the 100 MB limit. Try splitting it.',
           });
         }
         if (isLimitError(error)) {

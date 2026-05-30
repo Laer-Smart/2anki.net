@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import { IUploadRepository } from '../data_layer/UploadRespository';
 import JobRepository from '../data_layer/JobRepository';
+import UsersRepository from '../data_layer/UsersRepository';
 import ErrorHandler from '../routes/middleware/ErrorHandler';
 import CardOption from '../lib/parser/Settings';
 import Workspace from '../lib/parser/WorkSpace';
@@ -19,6 +20,12 @@ import { EmptyDeckError } from '../usecases/jobs/EmptyDeckError';
 import { MARKDOWN_LIKELY_LOSSY_REASON } from '../usecases/jobs/jobFailureReason';
 import { DeckTooLargeError } from '../lib/parser/exporters/DeckTooLargeError';
 import { getOwner } from '../lib/User/getOwner';
+import {
+  CheckMonthlyCardLimitUseCase,
+  MonthlyLimitError,
+  AnonymousCardCapError,
+  ANONYMOUS_CARD_CAP,
+} from '../usecases/users/CheckMonthlyCardLimitUseCase';
 import { generateDeckInfo, DeckInfo, ClaudeParseError } from '../lib/claude/ClaudeService';
 import CustomExporter from '../lib/parser/exporters/CustomExporter';
 import Deck from '../lib/parser/Deck';
@@ -102,7 +109,8 @@ class UploadService {
 
   constructor(
     private readonly uploadRepository: IUploadRepository,
-    private readonly jobRepository: JobRepository
+    private readonly jobRepository: JobRepository,
+    private readonly usersRepository: UsersRepository
   ) {}
 
   async restartClaudeJob(req: express.Request, res: express.Response) {
@@ -132,7 +140,7 @@ class UploadService {
     res.status(202).json({ jobId: job.object_id });
   }
 
-  private async promoteClaudeJobToUpload(objectId: string, workspaceDir: string, owner: string): Promise<void> {
+  private async promoteClaudeJobToUpload(objectId: string, workspaceDir: string, owner: string, totalCards = 0): Promise<void> {
     const files = await fs.promises.readdir(workspaceDir);
     const apkgFilename = files.find((f) => f.endsWith('.apkg'));
     if (!apkgFilename) {
@@ -146,6 +154,7 @@ class UploadService {
     await storage.uploadFile(key, apkgBuffer);
     const sizeMb = FileSizeInMegaBytes(apkgPath);
     await this.uploadRepository.update(Number(owner), apkgFilename, key, sizeMb);
+    await this.usersRepository.incrementCardUsage(Number(owner), totalCards);
     const job = await this.jobRepository.findJobById(objectId, owner);
     if (job) {
       await this.jobRepository.deleteJob(String(job.id), owner);
@@ -223,7 +232,11 @@ class UploadService {
 
       return await this.handleSyncUpload(req, res, settings, ws, paying);
     } catch (err) {
-      if (isLimitError(err as Error)) {
+      if (err instanceof MonthlyLimitError) {
+        return res.redirect('/limit?kind=card_count');
+      } else if (err instanceof AnonymousCardCapError) {
+        return res.redirect('/limit?kind=anonymous');
+      } else if (isLimitError(err as Error)) {
         handleUploadLimitError(req, res);
       } else if (err instanceof EmptyDeckError) {
         const files = req.files as UploadedFile[] | undefined;
@@ -295,7 +308,8 @@ class UploadService {
       }, ownerId)
       .then(async ({ packages }) => {
         if (packages.length > 0) {
-          await this.promoteClaudeJobToUpload(ws.id, ws.location, owner);
+          const totalCards = packages.reduce((s, p) => s + (p.cardCount ?? 0), 0);
+          await this.promoteClaudeJobToUpload(ws.id, ws.location, owner, totalCards);
         } else {
           logNoPackageDiagnostics(req.files as UploadedFile[]);
           await this.jobRepository.updateJobStatus(ws.id, owner, 'failed', 'No packages produced');
@@ -337,6 +351,20 @@ class UploadService {
       ws
     );
 
+    const totalCards = packages.reduce((s, p) => s + (p.cardCount ?? 0), 0);
+    const owner = getOwner(res);
+
+    if (owner == null && totalCards > ANONYMOUS_CARD_CAP) {
+      throw new AnonymousCardCapError(totalCards, ANONYMOUS_CARD_CAP);
+    }
+    if (owner != null) {
+      await new CheckMonthlyCardLimitUseCase(this.usersRepository).execute({
+        userId: owner,
+        candidateCardCount: totalCards,
+        isPaying: paying,
+      });
+    }
+
     const first = packages[0];
     if (packages.length === 1) {
       const apkg = await ws.getFirstAPKG();
@@ -345,10 +373,6 @@ class UploadService {
         throw new Error(`Could not produce APKG for ${name}`);
       }
       const plen = Buffer.byteLength(apkg);
-      const totalCards = packages.reduce(
-        (sum, p) => sum + (p.cardCount ?? 0),
-        0
-      );
       const totalMcqCount = packages.reduce((sum, p) => sum + (p.mcqCount ?? 0), 0);
       const totalMcqSkippedCount = packages.reduce((sum, p) => sum + (p.mcqSkippedCount ?? 0), 0);
       res.set('Content-Type', 'application/apkg');
@@ -375,14 +399,27 @@ class UploadService {
       res.attachment(`/${first.name}`);
       const uploadSource = this.resolveUploadSource(req);
       const bucket = this.toCardCountBucket(totalCards);
-      const userId = getOwner(res);
       track('conversion_succeeded', {
-        userId: userId != null ? Number(userId) : null,
+        userId: owner != null ? Number(owner) : null,
         anonymousId: this.resolveAnonId(req),
         props: { source: uploadSource, card_count_bucket: bucket },
       });
+      if (owner != null) {
+        await this.usersRepository.incrementCardUsage(owner, totalCards);
+      }
       return res.status(200).send(apkg);
     } else if (packages.length > 1) {
+      track('conversion_succeeded', {
+        userId: owner != null ? Number(owner) : null,
+        anonymousId: this.resolveAnonId(req),
+        props: {
+          source: this.resolveUploadSource(req),
+          card_count_bucket: this.toCardCountBucket(totalCards),
+        },
+      });
+      if (owner != null) {
+        await this.usersRepository.incrementCardUsage(owner, totalCards);
+      }
       const url = `/download/${ws.id}`;
       res.status(300);
       return res.redirect(url);

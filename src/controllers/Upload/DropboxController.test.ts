@@ -19,6 +19,7 @@ import Uploads from '../../data_layer/public/Uploads';
 import NotionService from '../../services/NotionService';
 import UploadService from '../../services/UploadService';
 import JobRepository from '../../data_layer/JobRepository';
+import UsersRepository from '../../data_layer/UsersRepository';
 import UploadController from './UploadController';
 import { GetDropboxUploadsUseCase } from '../../usecases/uploads/GetDropboxUploadsUseCase';
 import { DeleteDropboxUploadUseCase } from '../../usecases/uploads/DeleteDropboxUploadUseCase';
@@ -48,7 +49,13 @@ function makeController(
   };
   const uploadService = new UploadService(
     uploadRepository,
-    {} as JobRepository
+    {} as JobRepository,
+    {
+      getCardUsage: jest
+        .fn()
+        .mockResolvedValue({ cards_used: 0, month_started_at: new Date() }),
+      incrementCardUsage: jest.fn().mockResolvedValue(1),
+    } as unknown as UsersRepository
   );
   const notionService = new NotionService(notionRepository);
   return new UploadController(uploadService, notionService, getUseCase, deleteUseCase);

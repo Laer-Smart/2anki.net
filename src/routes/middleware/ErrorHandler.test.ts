@@ -150,7 +150,7 @@ describe('ErrorHandler', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         code: 'too_large',
-        message: expect.stringContaining('50 MB'),
+        message: expect.stringContaining('100 MB'),
       })
     );
   });

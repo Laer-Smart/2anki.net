@@ -1056,8 +1056,45 @@ describe('limit state — start trial button', () => {
 
     await waitFor(() => {
       const title = container.querySelector('[class*="limitTitle"]');
-      expect(title?.textContent).toMatch(/50 MB/i);
+      expect(title?.textContent).toMatch(/100 MB/i);
     });
+  });
+
+  it('navigates to /limit?kind=anonymous on an anonymous limit redirect', async () => {
+    mockUseUserLocals.mockReturnValue({
+      data: {
+        user: null,
+        locals: { owner: 0, patreon: false, subscriber: false, subscriptionInfo: { active: false, email: '', linked_email: '' } },
+        linked_email: '',
+      } as unknown as ReturnType<typeof useUserLocals>['data'],
+      isLoading: false,
+      error: null,
+      isError: false,
+      refetch: vi.fn(),
+    });
+
+    const locationStub = { href: '' } as Location;
+    vi.stubGlobal('location', locationStub);
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      redirected: true,
+      url: 'http://localhost/limit?kind=anonymous',
+      status: 200,
+      headers: new Headers({}),
+      blob: () => Promise.resolve(new Blob([])),
+    }));
+
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const form = container.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await waitFor(() => {
+      expect(locationStub.href).toBe('/limit?kind=anonymous');
+    });
+
+    expect(container.querySelector('[class*="limitContent"]')).toBeNull();
   });
 
   it('shows trial-used description and no trial button when trial_started_at is set (file_size)', async () => {
