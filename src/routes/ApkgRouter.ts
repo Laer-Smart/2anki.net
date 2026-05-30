@@ -249,6 +249,19 @@ const ApkgRouter = () => {
     (req, res) => controller.exportPdf(req, res)
   );
 
+  const csvUpload = multer({
+    dest: process.env.UPLOAD_BASE ?? '/tmp',
+    limits: { fileSize: 100 * 1024 * 1024 },
+  });
+
+  router.post(
+    '/api/apkg/csv',
+    RequireAllowedOrigin,
+    RequireAuthentication,
+    csvUpload.single('file'),
+    (req, res) => controller.exportCsv(req, res)
+  );
+
   return router;
 };
 

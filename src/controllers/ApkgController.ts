@@ -14,6 +14,10 @@ import ExportApkgToPdfUseCase, {
   type PaperSize,
   type PdfOptions,
 } from '../usecases/apkg/ExportApkgToPdfUseCase';
+import ExportApkgToCsvUseCase, {
+  CardLimitExceededError as CsvCardLimitExceededError,
+  EmptyDeckError as CsvEmptyDeckError,
+} from '../usecases/apkg/ExportApkgToCsvUseCase';
 import ImportApkgToNotionUseCase from '../usecases/apkg/ImportApkgToNotionUseCase';
 import PackEditedApkgUseCase from '../usecases/apkg/PackEditedApkgUseCase';
 import ResolveImportParentPageUseCase from '../usecases/apkg/ResolveImportParentPageUseCase';
@@ -23,7 +27,13 @@ import JobRepository from '../data_layer/JobRepository';
 import sendErrorResponse from '../lib/sendErrorResponse';
 import { isPaying } from '../lib/isPaying';
 import { buildContentDisposition } from '../lib/buildContentDisposition';
+import { getSafeFilename } from '../lib/getSafeFilename';
 import { track } from '../services/events/track';
+
+async function tryUnlink(filePath: string): Promise<void> {
+  const fs = await import('node:fs/promises');
+  await fs.unlink(filePath).catch(() => {});
+}
 
 const MEDIA_CONTENT_TYPES: Record<string, string> = {
   png: 'image/png',
@@ -267,6 +277,34 @@ class ApkgController {
       res.status(500).json({ message: 'PDF generation failed.' });
     }
   }
+
+  async exportCsv(req: Request, res: Response) {
+    const file = req.file;
+    if (file == null) {
+      res.status(400).json({ message: 'No file uploaded.' });
+      return;
+    }
+    if (!isApkg(file.originalname)) {
+      await tryUnlink(file.path);
+      res.status(400).json({ message: 'File must be an .apkg file.' });
+      return;
+    }
+    const fs = await import('node:fs/promises');
+    let fileBuffer: Buffer;
+    try {
+      fileBuffer = await fs.readFile(file.path);
+    } finally {
+      await tryUnlink(file.path);
+    }
+    try {
+      const useCase = new ExportApkgToCsvUseCase();
+      const result = await useCase.execute(fileBuffer, isPaying(res.locals));
+      sendCsvDownload(res, result.csv, file.originalname, result.noteCount);
+    } catch (error) {
+      sendCsvExportError(res, error);
+    }
+  }
+
   async importToNotion(req: Request, res: Response) {
     try {
       if (this.notionService == null || this.jobRepository == null) {
@@ -458,6 +496,54 @@ function parseDeckId(input: unknown): number | null {
   if (typeof input !== 'string' || input.length === 0) return null;
   const parsed = Number.parseInt(input, 10);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function sendCsvDownload(
+  res: Response,
+  csv: Buffer,
+  originalName: string,
+  noteCount: number
+): void {
+  const trimmed = originalName.replace(/\.apkg$/i, '') || 'deck';
+  const safeName = getSafeFilename(trimmed);
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', buildContentDisposition(`${safeName}.csv`));
+  res.setHeader('X-Card-Count', String(noteCount));
+  res.setHeader('Access-Control-Expose-Headers', 'X-Card-Count');
+  res.send(csv);
+}
+
+function isInvalidApkgError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error.message.includes('No Anki collection') ||
+      error.message.includes('open failed'))
+  );
+}
+
+function sendCsvExportError(res: Response, error: unknown): void {
+  if (error instanceof CsvEmptyDeckError) {
+    res.status(400).json({
+      message: 'No notes found in this .apkg file. Pick another deck.',
+    });
+    return;
+  }
+  if (error instanceof CsvCardLimitExceededError) {
+    res.status(402).json({
+      message: `${error.noteCount} notes — over the free limit of ${error.noteLimit}. Upgrade for no monthly cap.`,
+      note_count: error.noteCount,
+      note_limit: error.noteLimit,
+    });
+    return;
+  }
+  if (isInvalidApkgError(error)) {
+    res.status(400).json({
+      message: "Couldn't read this file as an .apkg deck.",
+    });
+    return;
+  }
+  console.error(error);
+  res.status(500).json({ message: 'CSV export failed.' });
 }
 
 export default ApkgController;

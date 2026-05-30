@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Helmet } from 'react-helmet-async';
 import UploadForm from '../UploadPage/components/UploadForm/UploadForm';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
@@ -10,6 +10,7 @@ import type { LandingCopy } from './types';
 interface LandingPageProps {
   copy: LandingCopy;
   setErrorMessage: ErrorHandlerType;
+  heroSlot?: ReactNode;
 }
 
 const STEPS = [
@@ -37,7 +38,49 @@ const FORMATS = [
   'Quizlet',
 ];
 
-function LandingPage({ copy, setErrorMessage }: Readonly<LandingPageProps>) {
+interface HeroActionProps {
+  heroSlot?: ReactNode;
+  ctaHref?: string;
+  ctaLabel?: string;
+  setErrorMessage: ErrorHandlerType;
+  registerHref: string;
+}
+
+function renderHeroAction({
+  heroSlot,
+  ctaHref,
+  ctaLabel,
+  setErrorMessage,
+  registerHref,
+}: Readonly<HeroActionProps>) {
+  if (heroSlot != null) {
+    return <div className={styles.uploadWrapper}>{heroSlot}</div>;
+  }
+  if (ctaHref != null) {
+    return (
+      <div className={styles.uploadWrapper}>
+        <a href={ctaHref} className={sharedStyles.btnPrimary}>
+          {ctaLabel}
+        </a>
+        <p className={styles.secondaryLink}>Free · up to 1 000 cards per import</p>
+      </div>
+    );
+  }
+  return (
+    <>
+      <div className={styles.uploadWrapper}>
+        <UploadForm setErrorMessage={setErrorMessage} />
+      </div>
+      <p className={styles.secondaryLink}>
+        or <a href={registerHref}>sign up free</a>
+        {' — '}
+        <a href="/pricing">try Unlimited free for 1 hour</a>
+      </p>
+    </>
+  );
+}
+
+function LandingPage({ copy, setErrorMessage, heroSlot }: Readonly<LandingPageProps>) {
   useEffect(() => {
     persistSignupOrigin(copy.pathname, globalThis.sessionStorage ?? null);
   }, [copy.pathname]);
@@ -77,25 +120,13 @@ function LandingPage({ copy, setErrorMessage }: Readonly<LandingPageProps>) {
         <div className={styles.heroInner}>
           <h1 className={styles.heroTitle}>{copy.h1}</h1>
           <p className={styles.heroSubhead}>{copy.subhead}</p>
-          {copy.ctaHref == null ? (
-            <>
-              <div className={styles.uploadWrapper}>
-                <UploadForm setErrorMessage={setErrorMessage} />
-              </div>
-              <p className={styles.secondaryLink}>
-                or <a href={registerHref}>sign up free</a>
-                {' — '}
-                <a href="/pricing">try Unlimited free for 1 hour</a>
-              </p>
-            </>
-          ) : (
-            <div className={styles.uploadWrapper}>
-              <a href={copy.ctaHref} className={sharedStyles.btnPrimary}>
-                {copy.ctaLabel}
-              </a>
-              <p className={styles.secondaryLink}>Free · up to 1 000 cards per import</p>
-            </div>
-          )}
+          {renderHeroAction({
+            heroSlot,
+            ctaHref: copy.ctaHref,
+            ctaLabel: copy.ctaLabel,
+            setErrorMessage,
+            registerHref,
+          })}
         </div>
       </section>
 

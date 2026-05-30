@@ -88,6 +88,21 @@ describe('ConvertLandingPage', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('renders the .apkg → CSV export form on the apkg-to-csv page', () => {
+    renderAtSlug('apkg-to-csv');
+    expect(
+      screen.getByRole('button', { name: /Export to CSV/i })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Choose \.apkg file/i)).toBeInTheDocument();
+  });
+
+  it('does not render the .apkg → CSV form on other slugs', () => {
+    renderAtSlug('csv-to-anki');
+    expect(
+      screen.queryByRole('button', { name: /Export to CSV/i })
+    ).not.toBeInTheDocument();
+  });
+
   it('leads the import-to-Anki titles with fidelity in Anki', () => {
     for (const slug of [
       'notion-to-anki',
