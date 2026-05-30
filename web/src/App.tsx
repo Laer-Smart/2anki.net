@@ -65,6 +65,7 @@ const ContactMessagesTab = lazy(
   () => import('./pages/OpsPage/ContactMessagesTab')
 );
 const CommandsTab = lazy(() => import('./pages/OpsPage/CommandsTab'));
+const FlagsTab = lazy(() => import('./pages/OpsPage/FlagsTab'));
 const PricingAbFunnelTab = lazy(
   () => import('./pages/OpsPage/PricingAbFunnelTab')
 );
@@ -297,6 +298,7 @@ function AppContent({
             <Route path="interviews" element={<InterviewsTab />} />
             <Route path="messages" element={<ContactMessagesTab />} />
             <Route path="commands" element={<CommandsTab />} />
+            <Route path="flags" element={<FlagsTab />} />
             <Route path="pricing-ab" element={<PricingAbFunnelTab />} />
           </Route>
           <Route path="/feedback" element={requireAuth(<FeedbackPage />)} />

@@ -53,6 +53,11 @@ const TABS = [
     match: (path: string) => path.startsWith('/ops/commands'),
   },
   {
+    to: '/ops/flags',
+    label: 'Flags',
+    match: (path: string) => path.startsWith('/ops/flags'),
+  },
+  {
     to: '/ops/pricing-ab',
     label: 'Pricing A/B',
     match: (path: string) => path.startsWith('/ops/pricing-ab'),

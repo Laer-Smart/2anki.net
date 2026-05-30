@@ -14,6 +14,11 @@ import { IShowcaseRepository } from '../data_layer/ShowcaseRepository';
 import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
 import { SyncStripeSubscriptionsUseCase } from '../usecases/ops/SyncStripeSubscriptionsUseCase';
 import { GetPricingAbFunnelUseCase } from '../usecases/ops/GetPricingAbFunnelUseCase';
+import { ListFeatureFlagsUseCase } from '../usecases/ops/ListFeatureFlagsUseCase';
+import {
+  FeatureFlagNotFoundError,
+  SetFeatureFlagUseCase,
+} from '../usecases/ops/SetFeatureFlagUseCase';
 
 class OpsController {
   constructor(
@@ -30,7 +35,9 @@ class OpsController {
     private readonly getMindmapStorageMetricsUseCase?: GetMindmapStorageMetricsUseCase,
     private readonly deleteInactiveUsersUseCase?: DeleteInactiveUsersUseCase,
     private readonly syncStripeSubscriptionsUseCase?: SyncStripeSubscriptionsUseCase,
-    private readonly getPricingAbFunnelUseCase?: GetPricingAbFunnelUseCase
+    private readonly getPricingAbFunnelUseCase?: GetPricingAbFunnelUseCase,
+    private readonly listFeatureFlagsUseCase?: ListFeatureFlagsUseCase,
+    private readonly setFeatureFlagUseCase?: SetFeatureFlagUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -274,6 +281,71 @@ class OpsController {
     } catch (error) {
       console.error('[ops] getPricingAbFunnel failed', error);
       res.status(500).json({ message: 'Failed to load pricing A/B funnel' });
+    }
+  }
+
+  async listFeatureFlags(_req: express.Request, res: express.Response) {
+    if (this.listFeatureFlagsUseCase == null) {
+      res.status(500).json({ message: 'Feature flags not configured' });
+      return;
+    }
+    try {
+      const rows = await this.listFeatureFlagsUseCase.execute();
+      res.status(200).json(
+        rows.map((row) => ({
+          key: row.key,
+          value: row.value,
+          description: row.description,
+          updated_at: row.updated_at,
+          updated_by_email: row.updated_by_email,
+        }))
+      );
+    } catch (error) {
+      console.error('[ops] listFeatureFlags failed', error);
+      res.status(500).json({ message: 'Failed to load feature flags' });
+    }
+  }
+
+  async setFeatureFlag(req: express.Request, res: express.Response) {
+    if (this.setFeatureFlagUseCase == null) {
+      res.status(500).json({ message: 'Feature flags not configured' });
+      return;
+    }
+    const key = req.params.key;
+    if (typeof key !== 'string' || key.length === 0) {
+      res.status(400).json({ message: 'key is required' });
+      return;
+    }
+    const body = req.body as { value?: unknown };
+    if (typeof body?.value !== 'boolean') {
+      res.status(400).json({ message: 'value must be a boolean' });
+      return;
+    }
+    const userId = res.locals.owner;
+    if (typeof userId !== 'number') {
+      res.status(500).json({ message: 'Authenticated user id missing' });
+      return;
+    }
+    try {
+      const updated = await this.setFeatureFlagUseCase.execute({
+        key,
+        value: body.value,
+        userId,
+      });
+      res.status(200).json({
+        key: updated.key,
+        value: updated.value,
+        description: updated.description,
+        updated_at: updated.updated_at,
+        updated_by_email: updated.updated_by_email,
+      });
+    } catch (error) {
+      if (error instanceof FeatureFlagNotFoundError) {
+        res.status(404).json({ message: `Flag not found: ${key}` });
+        return;
+      }
+      console.error('[ops] setFeatureFlag failed', error);
+      res.status(500).json({ message: 'Failed to update feature flag' });
     }
   }
 }
