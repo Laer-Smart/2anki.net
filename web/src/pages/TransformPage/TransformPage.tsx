@@ -169,6 +169,11 @@ export function TransformPage() {
   }, [incomingFile]);
 
   useEffect(() => {
+    if (isPaying) return;
+    track('paywall_shown', { surface: 'transform_paywall' });
+  }, [isPaying]);
+
+  useEffect(() => {
     if (file == null) {
       setFieldNames([]);
       setPreviewNoteCount(null);
@@ -193,11 +198,20 @@ export function TransformPage() {
           setSourceField(0);
           setTargetField(Math.max(0, names.length - 1));
         }
-        if (typeof payload.noteCount === 'number') {
-          setPreviewNoteCount(payload.noteCount);
-        }
+        const nextCount =
+          typeof payload.noteCount === 'number' ? payload.noteCount : null;
+        const nextCap =
+          typeof payload.noteCap === 'number' && payload.noteCap > 0
+            ? payload.noteCap
+            : noteCap;
+        if (nextCount != null) setPreviewNoteCount(nextCount);
         if (typeof payload.noteCap === 'number' && payload.noteCap > 0) {
           setNoteCap(payload.noteCap);
+        }
+        if (nextCount != null && nextCount > nextCap) {
+          track('transform_apkg_over_cap', {
+            props: { note_count: nextCount, cap: nextCap, transform },
+          });
         }
       })
       .catch(() => {
@@ -272,6 +286,9 @@ export function TransformPage() {
         setError('Transform is on the paid plan. Upgrade to transform existing decks.');
         setStatus('error');
         setTransformStartedAt(null);
+        track('transform_apkg_failed', {
+          props: { transform, reason: 'paywall' },
+        });
         return;
       }
       if (!response.ok) {
@@ -279,6 +296,9 @@ export function TransformPage() {
         setError(text || 'Transform failed. Try again.');
         setStatus('error');
         setTransformStartedAt(null);
+        track('transform_apkg_failed', {
+          props: { transform, reason: 'http_error', status: response.status },
+        });
         return;
       }
 
@@ -296,6 +316,9 @@ export function TransformPage() {
       setError(message);
       setStatus('error');
       setTransformStartedAt(null);
+      track('transform_apkg_failed', {
+        props: { transform, reason: 'network' },
+      });
     }
   };
 
@@ -316,7 +339,15 @@ export function TransformPage() {
             Transform is on the paid plan — translate, cloze, hint, or
             illustrate every card in a deck you already have.
           </p>
-          <Link className={styles.btnPrimary} to="/pricing">See plans</Link>
+          <Link
+            className={styles.btnPrimary}
+            to="/pricing"
+            onClick={() =>
+              track('paywall_upgrade_clicked', { surface: 'transform_paywall' })
+            }
+          >
+            See plans
+          </Link>
         </div>
       </div>
     );
