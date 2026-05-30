@@ -26,6 +26,8 @@ The general-purpose option. Sends your content to Anthropic's Claude and uses th
 
 The result is a normal `.apkg`. Cards arrive pre-tagged with 1–3 topic tags drawn from the content — you can filter or browse by tag in Anki's tag browser the moment the deck opens. You can re-download the deck from **My Decks** for as long as your plan keeps it (see [Limits and quotas](/documentation/help/limits) for storage windows).
 
+**Card volume.** Subscription and Lifetime plans target 200–500 cards per upload for chapter-scale material. The converter splits long uploads into chunks, runs them in parallel, and follows up on the thinnest chunks with a top-up pass so a 50-page chapter lands as one full deck instead of a sparse sample. The total is capped at 500 to keep the deck reviewable.
+
 ### Writing good user instructions
 
 The model does better with a clear angle than with a long brief. One or two sentences is plenty.
