@@ -138,6 +138,7 @@ export function TransformPage() {
   const [noteCap, setNoteCap] = useState<number>(250);
   const [transformStartedAt, setTransformStartedAt] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+  const [tags, setTags] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const doneRef = useRef<HTMLDivElement>(null);
 
@@ -260,7 +261,11 @@ export function TransformPage() {
     setError(null);
     setCardCount(0);
     setTransformStartedAt(Date.now());
-    track('transform_apkg_submitted', { props: { transform } });
+    const trimmedTags = tags.trim().replace(/\s+/g, ' ');
+    const tagCount = trimmedTags.length === 0 ? 0 : trimmedTags.split(' ').length;
+    track('transform_apkg_submitted', {
+      props: { transform, tag_count: tagCount },
+    });
 
     const body = new FormData();
     body.append('file', file);
@@ -274,6 +279,7 @@ export function TransformPage() {
       body.append('sourceField', String(sourceField));
       body.append('targetField', String(targetField));
     }
+    if (trimmedTags.length > 0) body.append('tags', trimmedTags);
 
     try {
       const response = await fetch('/api/transform/upload', {
@@ -512,6 +518,21 @@ export function TransformPage() {
             </label>
           </div>
         )}
+
+        <label className={pageStyles.languageRow}>
+          <span className={pageStyles.fieldLabel}>Tags (optional)</span>
+          <input
+            type="text"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            placeholder="pharm::cardio week-12"
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <p className={pageStyles.capHint}>
+            Space-separated. Use :: to nest, like pharm::cardio.
+          </p>
+        </label>
 
         <button
           type="submit"

@@ -46,7 +46,7 @@ const FakeExporter = jest.requireMock(
   '../../lib/parser/exporters/CustomExporter'
 ).default as {
   __addedMedia(): Array<{ filename: string; bytes: Buffer }>;
-  __configuredDecks(): Array<{ cards: Array<{ media: string[] }> }>;
+  __configuredDecks(): Array<{ cards: Array<{ media: string[]; tags: string[] }> }>;
   __reset(): void;
 };
 
@@ -211,6 +211,45 @@ describe('TransformApkgUseCase', () => {
     const decks = FakeExporter.__configuredDecks();
     expect(decks).toHaveLength(1);
     expect(decks[0].cards[0].media).toContain('Chugoku.png');
+  });
+
+  it('merges extraTags into every output note while preserving source tags', async () => {
+    const sourceNote: ParsedNote = {
+      guid: 'a',
+      modelKind: 'basic',
+      modelName: 'Basic',
+      fields: ['Front a', 'Back a'],
+      fieldNames: ['Front', 'Back'],
+      tags: ['original-tag'],
+    };
+    jest
+      .spyOn(parseModule, 'parseApkgNotes')
+      .mockResolvedValueOnce(makeParsed([sourceNote]));
+    jest.spyOn(transformModule, 'transformApkgNotes').mockResolvedValueOnce({
+      notes: [transformed('a', { tags: ['original-tag'] })],
+      failures: [],
+      usage: {
+        inputTokens: 0,
+        outputTokens: 0,
+        estimatedCostUsd: 0,
+        totalCalls: 1,
+        elapsedMs: 1,
+      },
+    });
+
+    await new TransformApkgUseCase().execute({
+      bytes: Buffer.from('x'),
+      transform: 'add_hint',
+      extraTags: ['exam_block_3', 'spanish'],
+    });
+
+    const decks = FakeExporter.__configuredDecks();
+    expect(decks).toHaveLength(1);
+    expect(decks[0].cards[0].tags).toEqual([
+      'original-tag',
+      'exam_block_3',
+      'spanish',
+    ]);
   });
 
   it('returns an apkg buffer with the transformed note count', async () => {

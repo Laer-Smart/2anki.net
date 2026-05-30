@@ -93,12 +93,14 @@
   gap: 1rem;
 }
 
-.languageRow select {
+.languageRow select,
+.languageRow input[type='text'] {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
+  font: inherit;
 }
 
 .status {

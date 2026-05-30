@@ -168,6 +168,68 @@ describe('TransformController', () => {
     );
   });
 
+  it('forwards parsed extraTags from the body to the use case', async () => {
+    const execute = jest.fn().mockResolvedValue({
+      apkg: Buffer.from('transformed-apkg'),
+      deckName: 'Pharmacology',
+      noteCount: 1,
+      failedCount: 0,
+      usage: {
+        inputTokens: 0,
+        outputTokens: 0,
+        estimatedCostUsd: 0,
+        totalCalls: 1,
+        elapsedMs: 1,
+      },
+    });
+    const useCase = { execute } as unknown as TransformApkgUseCase;
+    const controller = new TransformController(useCase);
+    const req = makeReq({
+      body: { transform: 'add_hint', tags: 'pharm::cardio week-12' },
+    }) as Request;
+    const res = makeRes({ patreon: true }) as Response;
+
+    await controller.transform(req, res);
+
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        extraTags: ['pharm::cardio', 'week-12'],
+      })
+    );
+  });
+
+  it('omits extraTags when the tags field is absent or sanitizes to empty', async () => {
+    const execute = jest.fn().mockResolvedValue({
+      apkg: Buffer.from('transformed-apkg'),
+      deckName: 'Pharmacology',
+      noteCount: 1,
+      failedCount: 0,
+      usage: {
+        inputTokens: 0,
+        outputTokens: 0,
+        estimatedCostUsd: 0,
+        totalCalls: 1,
+        elapsedMs: 1,
+      },
+    });
+    const useCase = { execute } as unknown as TransformApkgUseCase;
+    const controller = new TransformController(useCase);
+
+    const reqAbsent = makeReq() as Request;
+    const resAbsent = makeRes({ patreon: true }) as Response;
+    await controller.transform(reqAbsent, resAbsent);
+
+    const reqBlank = makeReq({
+      body: { transform: 'add_hint', tags: '   !!!   ' },
+    }) as Request;
+    const resBlank = makeRes({ patreon: true }) as Response;
+    await controller.transform(reqBlank, resBlank);
+
+    for (const call of execute.mock.calls) {
+      expect(call[0].extraTags).toBeUndefined();
+    }
+  });
+
   it('maps the unknown-model error to a 400 with the spec message', async () => {
     const execute = jest.fn().mockRejectedValue(new Error(UNKNOWN_MODEL_ERROR));
     const useCase = { execute } as unknown as TransformApkgUseCase;
