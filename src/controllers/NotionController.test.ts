@@ -56,7 +56,6 @@ function buildEmailService(): IEmailService {
     sendReEngagementEmail: jest.fn(),
     sendInactivityWarningEmail: jest.fn(),
     sendAbandonedCheckoutRecoveryEmail: jest.fn(),
-    sendTrialEndedEmail: jest.fn(),
     sendParserCanaryAlert: jest.fn(),
     sendNotionReconnectEmail: jest.fn().mockResolvedValue(undefined),
     sendSubscriptionClaimConfirmation: jest.fn().mockResolvedValue(undefined),
@@ -242,6 +241,28 @@ describe('NotionController', () => {
         query: {},
       };
       (service.getNotionAPI as jest.Mock).mockResolvedValue(buildApi());
+      jest
+        .spyOn(UsersRepository.prototype, 'getCardUsage')
+        .mockResolvedValue({ cards_used: 0, month_started_at: new Date() });
+    });
+
+    afterEach(() => {
+      (UsersRepository.prototype.getCardUsage as jest.Mock).mockRestore?.();
+    });
+
+    it('returns 402 monthly_limit and starts no job when a free user is over the limit', async () => {
+      setupConvertMocks();
+      jest
+        .spyOn(UsersRepository.prototype, 'getCardUsage')
+        .mockResolvedValue({ cards_used: 200, month_started_at: new Date() });
+
+      await controller.convert(req as express.Request, res as express.Response);
+
+      expect(res.status).toHaveBeenCalledWith(402);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ reason: 'monthly_limit', limit: 100 })
+      );
+      expect(runConversion).not.toHaveBeenCalled();
     });
 
     it('returns 202 with jobId on happy path', async () => {

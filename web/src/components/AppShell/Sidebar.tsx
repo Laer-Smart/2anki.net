@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../lib/hooks/useTheme';
@@ -32,8 +32,6 @@ import { ThemeToggle } from '../ThemeSwitcher/ThemeToggle';
 import styles from './AppShell.module.css';
 import { useSidebarCollapseState } from './useSidebarCollapseState';
 
-const TRIAL_DURATION_MS = 60 * 60 * 1000;
-
 interface CardUsageCounterProps {
   used: number;
   limit: number;
@@ -61,39 +59,10 @@ function CardUsageCounter({ used, limit }: Readonly<CardUsageCounterProps>) {
   );
 }
 
-function useTrialCountdown(trialStartedAt: string | null | undefined): string | null {
-  const [label, setLabel] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (trialStartedAt == null) {
-      setLabel(null);
-      return;
-    }
-    const startedAt = new Date(trialStartedAt).getTime();
-
-    function tick() {
-      const remaining = startedAt + TRIAL_DURATION_MS - Date.now();
-      if (remaining <= 0) {
-        setLabel(null);
-        return;
-      }
-      const minutes = Math.floor(remaining / 60000);
-      setLabel(`Unlimited · ${minutes}m left`);
-    }
-
-    tick();
-    const id = setInterval(tick, 60000);
-    return () => clearInterval(id);
-  }, [trialStartedAt]);
-
-  return label;
-}
-
 export interface SidebarLocals {
   patreon?: boolean;
   subscriber?: boolean;
   autoSyncActive?: boolean;
-  trial_started_at?: string | null;
   passExpiresAt?: string | null;
   passKind?: '24h' | '7d' | null;
 }
@@ -254,8 +223,7 @@ export function Sidebar({
   const showKi = features?.kiUI === true;
   const showOps = features?.ops === true;
   const showAdminGroup = showKi || showOps;
-  const trialCountdown = useTrialCountdown(locals?.trial_started_at);
-  const planLabel = trialCountdown ?? getPlanLabel(locals);
+  const planLabel = getPlanLabel(locals);
   const usage = useCardUsage(isLoggedIn && !paying);
   const showUsage = usage != null && !usage.unlimited && !usage.loading;
 

@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import '@testing-library/jest-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import PricingPage from './PricingPage';
 
@@ -52,12 +53,18 @@ type AnalyticsGlobals = {
   gtag?: ReturnType<typeof vi.fn>;
 };
 
-const renderAt = (path: string, props: Partial<Parameters<typeof PricingPage>[0]> = {}) =>
-  render(
-    <MemoryRouter initialEntries={[path]}>
-      <PricingPage isLoggedIn={false} {...props} />
-    </MemoryRouter>
+const renderAt = (path: string, props: Partial<Parameters<typeof PricingPage>[0]> = {}) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[path]}>
+        <PricingPage isLoggedIn={false} {...props} />
+      </MemoryRouter>
+    </QueryClientProvider>
   );
+};
 
 describe('PricingPage Unlimited benefits', () => {
   it('lists parallel conversions as a benefit', () => {

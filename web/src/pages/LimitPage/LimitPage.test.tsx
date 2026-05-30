@@ -9,9 +9,12 @@ vi.mock('../../lib/analytics/track', () => ({
   track: vi.fn(),
 }));
 
+const mockStartPassCheckout = vi.fn();
+
 vi.mock('../../lib/backend/get2ankiApi', () => ({
   get2ankiApi: vi.fn(() => ({
     startAutoSyncCheckout: vi.fn().mockResolvedValue({ url: 'https://checkout.stripe.com/test' }),
+    startPassCheckout: mockStartPassCheckout,
   })),
 }));
 
@@ -81,6 +84,23 @@ describe('LimitPage', () => {
     expect(button).toBeTruthy();
     fireEvent.click(button);
     expect(screen.getByText('Starting checkout…')).toBeTruthy();
+  });
+
+  it('shows Day Pass and Week Pass options below the subscriptions', () => {
+    renderPage();
+    expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Get Week Pass' })).toBeTruthy();
+  });
+
+  it('starts a Day Pass checkout when Get Day Pass is clicked', async () => {
+    mockStartPassCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/pass' });
+    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Get Day Pass' }));
+    await vi.waitFor(() => {
+      expect(mockStartPassCheckout).toHaveBeenCalledWith('24h');
+      expect(globalThis.location.href).toBe('https://checkout.stripe.com/pass');
+    });
   });
 });
 

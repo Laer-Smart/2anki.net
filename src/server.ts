@@ -76,19 +76,16 @@ import JobRepository from './data_layer/JobRepository';
 import { MagicTokenRepository } from './data_layer/MagicTokenRepository';
 import ReEngagementRepository from './data_layer/ReEngagementRepository';
 import InactivityEmailRepository from './data_layer/InactivityEmailRepository';
-import { TrialEndedEmailRepository } from './data_layer/TrialEndedEmailRepository';
 import UploadRepository from './data_layer/UploadRespository';
 import { updateStripeSubscriptions } from './lib/storage/jobs/helpers/updateStripeSubscriptions';
 import { scheduleReEngagementEmails } from './lib/reengagement/jobs/scheduleReEngagementEmails';
 import { scheduleInactivityWarnings } from './lib/inactivity/jobs/scheduleInactivityWarnings';
 import { scheduleInactiveUserDeletions } from './lib/inactivity/jobs/scheduleInactiveUserDeletions';
-import { scheduleTrialEndedEmails } from './lib/trial/jobs/scheduleTrialEndedEmails';
 import { scheduleParserCanary } from './lib/parser/canary/scheduleParserCanary';
 import { getDefaultEmailService } from './services/EmailService/EmailService';
 import { SendInactivityWarningsUseCase } from './usecases/ops/SendInactivityWarningsUseCase';
 import { DeleteInactiveUsersUseCase } from './usecases/ops/DeleteInactiveUsersUseCase';
 import UsersRepository from './data_layer/UsersRepository';
-import { SendTrialEndedEmailsUseCase } from './usecases/ops/SendTrialEndedEmailsUseCase';
 import { initConversionPool } from './lib/conversionPool';
 import { gracefulShutdown } from './lib/gracefulShutdown';
 
@@ -277,10 +274,6 @@ const serve = async () => {
 
   const deleteInactiveUsersUseCase = new DeleteInactiveUsersUseCase(inactivityEmailRepo, new UsersRepository(database));
   scheduleInactiveUserDeletions(deleteInactiveUsersUseCase, { eventsSink });
-
-  const trialEndedEmailRepo = new TrialEndedEmailRepository(database);
-  const sendTrialEndedEmailsUseCase = new SendTrialEndedEmailsUseCase(trialEndedEmailRepo, emailService);
-  scheduleTrialEndedEmails(sendTrialEndedEmailsUseCase, { eventsSink });
 
   scheduleParserCanary(emailService);
 };

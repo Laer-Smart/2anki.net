@@ -1,3 +1,12 @@
+/* Shared .page has no gap and is not a flex container; the stacked step
+   cards need this column layout to breathe (see web/CLAUDE.md gotcha). */
+.page {
+  composes: page from '../../styles/shared.module.css';
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
 .dropZone {
   border: 2px dashed var(--color-border);
   border-radius: var(--radius-md);

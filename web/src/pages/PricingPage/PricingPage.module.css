@@ -230,37 +230,6 @@
   line-height: var(--leading-relaxed);
 }
 
-.trialCta {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.trialButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.6rem 1.25rem;
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-primary);
-  background: transparent;
-  border: 1px solid var(--color-primary);
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
-}
-
-.trialButton:hover:not(:disabled) {
-  background: var(--color-primary);
-  color: var(--color-bg-primary);
-}
-
-.trialButton:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
 /* =====================================================================
    CARD BASE
    ===================================================================== */

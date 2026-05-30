@@ -567,12 +567,6 @@ const UserRouter = () => {
     (req, res) => controller.markAnkifyWelcomeSeen(req, res)
   );
 
-  router.post(
-    '/api/users/start-trial',
-    RequireAuthentication,
-    (req, res) => controller.startTrial(req, res)
-  );
-
   /**
    * @swagger
    * /login:

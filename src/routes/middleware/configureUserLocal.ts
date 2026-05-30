@@ -31,7 +31,6 @@ export async function configureUserLocal(
     res.locals.owner = user.owner;
     res.locals.email = user.email;
     res.locals.patreon = user.patreon;
-    res.locals.trial_started_at = user.trial_started_at ?? null;
     res.locals.chat_consent_at = user.chat_consent_at ?? null;
     const isSubscriber = await authService.getIsSubscriber(database, user.email);
     if (isSubscriber) {

@@ -251,12 +251,6 @@ class UsersRepository {
     });
   }
 
-  markTrialStarted(userId: string) {
-    return this.database(this.table).where({ id: userId }).update({
-      trial_started_at: this.database.fn.now(),
-    });
-  }
-
   markEmailVerified(userId: string) {
     return this.database(this.table)
       .where({ id: userId })

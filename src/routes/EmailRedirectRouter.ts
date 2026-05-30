@@ -3,7 +3,6 @@ import express from 'express';
 import { getDatabase } from '../data_layer';
 import InactivityEmailRepository from '../data_layer/InactivityEmailRepository';
 import ReEngagementRepository from '../data_layer/ReEngagementRepository';
-import { TrialEndedEmailRepository } from '../data_layer/TrialEndedEmailRepository';
 import { getEventsSink } from '../services/events/eventsSinkInstance';
 
 const ALLOWED_EMAIL_DESTINATIONS = new Set(['/', '/upload', '/pricing', '/login']);
@@ -33,7 +32,7 @@ const EmailRedirectRouter = () => {
    *         name: c
    *         schema:
    *           type: string
-   *           enum: [inactivity, reengagement, post_trial]
+   *           enum: [inactivity, reengagement]
    *         description: Campaign — disambiguates which table to resolve the token against
    *       - in: query
    *         name: to
@@ -70,12 +69,6 @@ const EmailRedirectRouter = () => {
         }
       } else if (campaign === 'reengagement') {
         const result = await new ReEngagementRepository(database).findByToken(token).catch(() => null);
-        if (result != null) {
-          userId = result.userId;
-          emailId = result.id;
-        }
-      } else if (campaign === 'post_trial') {
-        const result = await new TrialEndedEmailRepository(database).findByToken(token).catch(() => null);
         if (result != null) {
           userId = result.userId;
           emailId = result.id;

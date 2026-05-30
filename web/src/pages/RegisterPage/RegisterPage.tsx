@@ -10,11 +10,10 @@ interface Props {
 export function RegisterPage({ setErrorMessage }: Readonly<Props>) {
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect');
-  const startTrial = searchParams.get('start_trial') === '1';
 
   return (
     <AuthPageBackground>
-      <RegisterForm setErrorMessage={setErrorMessage} redirect={redirect} startTrial={startTrial} />
+      <RegisterForm setErrorMessage={setErrorMessage} redirect={redirect} />
     </AuthPageBackground>
   );
 }

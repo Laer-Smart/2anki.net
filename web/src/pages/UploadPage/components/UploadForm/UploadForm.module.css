@@ -75,6 +75,17 @@
   border-style: solid;
   background: var(--color-warning-light);
   cursor: default;
+  min-height: auto;
+  padding: 2.5rem 2rem;
+}
+
+.dropZoneLimitWall {
+  border-color: var(--color-border);
+  border-style: solid;
+  background: var(--color-bg-secondary);
+  cursor: default;
+  min-height: auto;
+  padding: 2.5rem 2rem;
 }
 
 /* ── Icons ── */

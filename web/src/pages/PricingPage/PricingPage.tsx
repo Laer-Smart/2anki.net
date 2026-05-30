@@ -27,13 +27,11 @@ interface PricingPageProps {
   isLoggedIn: boolean;
   email?: string;
   hostedAnkiRequested?: boolean;
-  trialStartedAt?: string | null;
   patreon?: boolean | null;
   signupCountry?: string | null;
   autoSyncCapReached?: boolean;
   autoSyncActive?: boolean;
   unlimitedYearlyAvailable?: boolean;
-  onTrialStarted?: () => void;
 }
 
 type RequestState = 'idle' | 'pending' | 'sent' | 'error';
@@ -66,18 +64,15 @@ export default function PricingPage({
   isLoggedIn,
   email: _email,
   hostedAnkiRequested = false,
-  trialStartedAt,
   patreon,
   signupCountry,
   autoSyncCapReached = false,
   autoSyncActive = false,
   unlimitedYearlyAvailable = false,
-  onTrialStarted,
 }: Readonly<PricingPageProps>) {
   const isUS = signupCountry === 'US';
   const lifetimeLink = getLifetimeLink();
   const [waitlistState, setWaitlistState] = useState<RequestState>('idle');
-  const [trialState, setTrialState] = useState<RequestState>('idle');
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
   const [dayPassState, setDayPassState] = useState<PassState>('idle');
   const [weekPassState, setWeekPassState] = useState<PassState>('idle');
@@ -107,12 +102,6 @@ export default function PricingPage({
 
   const isLifetime = patreon === true;
   const showAutoSyncNew = isAutoSyncNewChipVisible();
-
-  const showTrialCta =
-    isLoggedIn &&
-    patreon !== true &&
-    trialStartedAt == null &&
-    trialState !== 'sent';
 
   useEffect(() => {
     if (shownFiredRef.current) return;
@@ -190,21 +179,6 @@ export default function PricingPage({
     setSubscribeError(
       "Couldn't start checkout. Try again, or email support@2anki.net."
     );
-  };
-
-  const handleStartTrial = async () => {
-    setTrialState('pending');
-    try {
-      const result = await get2ankiApi().startTrial();
-      if (result.ok) {
-        setTrialState('sent');
-        onTrialStarted?.();
-      } else {
-        setTrialState('error');
-      }
-    } catch {
-      setTrialState('error');
-    }
   };
 
   const handlePassCheckout = async (kind: '24h' | '7d') => {
@@ -382,21 +356,6 @@ export default function PricingPage({
           <p className={styles.socialProof}>Trusted by 19,000+ learners worldwide</p>
         )}
       </div>
-
-      {showTrialCta && (
-        <div className={styles.trialCta}>
-          <button
-            type="button"
-            className={styles.trialButton}
-            onClick={handleStartTrial}
-            disabled={trialState === 'pending'}
-          >
-            {trialState === 'pending'
-              ? 'Starting trial…'
-              : 'Try Unlimited free for 1 hour — no card needed'}
-          </button>
-        </div>
-      )}
 
       {unlimitedFirst ? (
         <>

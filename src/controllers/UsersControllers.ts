@@ -14,12 +14,10 @@ import { getRandomUUID } from '../shared/helpers/getRandomUUID';
 import SubscriptionService from '../services/SubscriptionService';
 import { OPS_OWNER_EMAIL } from '../routes/middleware/RequireOpsAccess';
 import { MagicLinkRateLimitError } from '../services/UsersService';
-import StartTrialUseCase from '../usecases/users/StartTrialUseCase';
 import { MONTHLY_CARD_LIMIT } from '../usecases/users/CheckMonthlyCardLimitUseCase';
 import UsersRepository from '../data_layer/UsersRepository';
 import OauthIdentitiesRepository from '../data_layer/OauthIdentitiesRepository';
 import { isPaying } from '../lib/isPaying';
-import type { UsersId } from '../data_layer/public/Users';
 import NotionRepository from '../data_layer/NotionRespository';
 import hashToken from '../lib/misc/hashToken';
 import { extractCountryFromRequest } from '../lib/http/extractCountryFromRequest';
@@ -192,15 +190,6 @@ class UsersController {
         } catch {
           // country capture is best-effort
         }
-        if (req.body.start_trial === '1' || req.body.start_trial === true) {
-          try {
-            const trialRepo = new UsersRepository(this.db);
-            const trialUseCase = new StartTrialUseCase(trialRepo);
-            await trialUseCase.execute(newUser.id);
-          } catch (trialError) {
-            console.info('Trial start failed after registration', trialError);
-          }
-        }
         const token = await this.authService.newJWTToken(newUser.id);
         if (token) {
           await this.authService.persistToken(token, newUser.id.toString());
@@ -305,7 +294,6 @@ class UsersController {
         email: user?.email,
         email_verified: user?.email_verified ?? false,
         ankify_welcome_seen: user?.ankify_welcome_seen ?? false,
-        trial_started_at: user?.trial_started_at ?? null,
         signup_country: signupCountry,
         chat_consent_at: user?.chat_consent_at ?? null,
         created_at: user?.created_at ?? null,
@@ -330,20 +318,6 @@ class UsersController {
     }
     await this.userService.markAnkifyWelcomeSeen(owner);
     return res.json({ ok: true });
-  }
-
-  async startTrial(_req: express.Request, res: express.Response) {
-    const { owner } = res.locals;
-    if (owner == null) {
-      return res.status(401).json({ message: 'Authentication required' });
-    }
-    const repository = new UsersRepository(this.db);
-    const useCase = new StartTrialUseCase(repository);
-    const result = await useCase.execute(owner as UsersId);
-    if (result.ok) {
-      return res.json({ ok: true, trialExpiresAt: result.trialExpiresAt.toISOString() });
-    }
-    return res.json({ ok: false, reason: result.reason });
   }
 
   async linkEmail(req: express.Request, res: express.Response) {

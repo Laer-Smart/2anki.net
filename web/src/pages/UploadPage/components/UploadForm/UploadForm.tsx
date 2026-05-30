@@ -22,6 +22,7 @@ import { UploadSourceChips, type UploadSource } from './UploadSourceChips';
 import { FeedbackWidget } from '../../../../components/FeedbackWidget/FeedbackWidget';
 import { AutoSyncPitch } from './AutoSyncPitch';
 import { useUserLocals } from '../../../../lib/hooks/useUserLocals';
+import { useCardUsage, CARD_USAGE_QUERY_KEY } from '../../../../lib/hooks/useCardUsage';
 import { get2ankiApi } from '../../../../lib/backend/get2ankiApi';
 import { fireAnalyticsEvent } from '../../../../lib/analytics/fireAnalyticsEvent';
 import { track } from '../../../../lib/analytics/track';
@@ -61,16 +62,23 @@ function getLimitKind(url: URL): 'file_size' | 'card_count' {
 
 function getLimitDescription(
   kind: 'file_size' | 'card_count',
-  context: 'anonymous' | 'trial_available' | 'trial_used'
+  context: 'anonymous' | 'logged_in'
 ): string {
   if (kind === 'file_size') {
     if (context === 'anonymous') return 'Create a free account to convert files of any size, or split the file and try again.';
-    if (context === 'trial_available') return 'Start a 1-hour trial to convert files of any size, or split the file and try again.';
-    return 'Your trial is used. Split the file, or upgrade to convert files of any size.';
+    return 'Split the file, or upgrade to convert files of any size.';
   }
   if (context === 'anonymous') return 'Create a free account to start converting, or upgrade for no monthly cap.';
-  if (context === 'trial_available') return 'Start a 1-hour trial to keep converting, or upgrade for no monthly cap.';
-  return 'Your trial is used. Upgrade for no monthly cap, or wait until next month.';
+  return 'Upgrade for no monthly cap, or wait until next month.';
+}
+
+function decodeFilename(filename: string | null): string | null {
+  if (filename == null) return filename;
+  try {
+    return decodeURIComponent(filename);
+  } catch {
+    return filename;
+  }
 }
 
 function formatFileSize(bytes: number): string {
@@ -253,10 +261,6 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     setProgressSlow,
     showFallback,
     setShowFallback,
-    trialPending,
-    setTrialPending,
-    trialError,
-    setTrialError,
     dropboxFilename,
     setDropboxFilename,
     dropboxPending,
@@ -300,36 +304,35 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
   const queryClient = useQueryClient();
   const isAuthenticated = userLocals?.user?.id != null;
   const [showAutoSyncPitch, setShowAutoSyncPitch] = useState(false);
-  const showTrialButton =
-    isAuthenticated &&
-    userLocals?.user?.trial_started_at == null &&
-    userLocals?.locals?.patreon !== true;
+  const [dayPassPending, setDayPassPending] = useState(false);
+  const [dayPassError, setDayPassError] = useState<string | null>(null);
   const showSignInPrompt = userLocals != null && !isAuthenticated;
+  const cardUsage = useCardUsage(isAuthenticated);
+  const isUploadLocked =
+    isAuthenticated &&
+    userLocals?.user?.patreon !== true &&
+    cardUsage != null &&
+    !cardUsage.unlimited &&
+    !cardUsage.loading &&
+    cardUsage.cards_used >= cardUsage.cards_limit;
   const { openChooser, isConfigured: isDropboxConfigured } = useDropboxChooser(FORMATS);
   const { openPicker, isConfigured: isGoogleDriveConfigured } = useGooglePicker();
 
-  const handleStartTrial = async () => {
-    setTrialError(null);
-    setTrialPending(true);
+  const handleDayPass = async () => {
+    setDayPassError(null);
+    setDayPassPending(true);
+    track('paywall_upgrade_clicked', { surface: 'upload_limit_wall', plan: 'day_pass' });
     try {
-      const result = await get2ankiApi().startTrial();
-      if (result.ok) {
-        await queryClient.invalidateQueries({ queryKey: ['userLocals'] });
-        setLimitInfo(null);
-        setZoneState('converting');
-        convertRef.current?.click();
-      } else if (result.reason === 'already_paid') {
-        await queryClient.invalidateQueries({ queryKey: ['userLocals'] });
-        setTrialError("You're already on Unlimited. Refresh to continue.");
-      } else if (result.reason === 'already_used') {
-        setTrialError("You've already used your 1-hour trial. Upgrade for unlimited conversions.");
-      } else {
-        setTrialError("Couldn't start your trial. Try again, or email support@2anki.net.");
+      const result = await get2ankiApi().startPassCheckout('24h', 'upload-limit-wall');
+      if ('url' in result) {
+        globalThis.location.href = result.url;
+        return;
       }
+      setDayPassError("Couldn't start checkout. Try again, or email support@2anki.net.");
     } catch {
-      setTrialError("Couldn't start your trial. Check your connection and try again.");
+      setDayPassError("Couldn't start checkout. Check your connection and try again.");
     } finally {
-      setTrialPending(false);
+      setDayPassPending(false);
     }
   };
 
@@ -337,8 +340,21 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     convertRef.current?.click();
   };
 
+  useEffect(() => {
+    if (isUploadLocked) {
+      track('paywall_shown', {
+        surface: 'upload_limit_wall',
+        variant: 'preemptive',
+      });
+    }
+  }, [isUploadLocked]);
+
   const { dropHover } = useDrag({
     onDrop: (event) => {
+      if (isUploadLocked) {
+        event.preventDefault();
+        return;
+      }
       const { dataTransfer } = event;
       if (dataTransfer && dataTransfer.files.length > 0) {
         fileInputRef.current!.files = dataTransfer.files;
@@ -353,6 +369,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
   useEffect(() => {
     if (zoneState === 'success' && downloadLink && !showFallback) {
       globalThis.sessionStorage?.removeItem('upload_pending_filename');
+      queryClient.invalidateQueries({ queryKey: CARD_USAGE_QUERY_KEY });
       if (cardCount !== 0) {
         fireAnalyticsEvent('deck_downloaded');
         track('deck_downloaded');
@@ -711,6 +728,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     isExistingApkgReject ? formStyles.dropZoneRedirect : '',
     zoneState === 'limitReached' ? formStyles.dropZoneLimit : '',
     zoneState === 'lockedPdf' ? formStyles.dropZoneLocked : '',
+    isUploadLocked && zoneState === 'idle' ? formStyles.dropZoneLimitWall : '',
     validation?.status === 'warning' ? formStyles.dropZoneWarning : '',
     validation?.status === 'error' ? formStyles.dropZoneError : '',
     validation?.status === 'info' ? formStyles.dropZoneInfo : '',
@@ -973,66 +991,64 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
 
   const renderLimitState = () => {
     const isFileSize = limitInfo?.kind === 'file_size';
-    const title = isFileSize
-      ? 'This file is over the 100 MB limit'
-      : 'You reached your monthly limit of 100 cards';
-    let limitContext: 'anonymous' | 'trial_available' | 'trial_used';
-    if (showSignInPrompt) {
-      limitContext = 'anonymous';
-    } else if (showTrialButton) {
-      limitContext = 'trial_available';
+    const cardsUsed = cardUsage?.cards_used ?? 0;
+    let title: string;
+    if (isFileSize) {
+      title = 'This file is over the 100 MB limit';
+    } else if (cardsUsed >= 100) {
+      title = "You've used all 100 cards this month";
     } else {
-      limitContext = 'trial_used';
+      title = 'This conversion is over your free limit of 100 cards a month';
     }
+    const limitContext = showSignInPrompt ? 'anonymous' : 'logged_in';
     const description = getLimitDescription(
       isFileSize ? 'file_size' : 'card_count',
       limitContext
     );
+    const displayedFilename = decodeFilename(limitInfo?.filename ?? null);
 
     return (
       <div className={formStyles.limitContent}>
         <p className={formStyles.limitTitle}>{title}</p>
         <p className={formStyles.limitDescription}>{description}</p>
-        {limitInfo?.filename && (
-          <span className={formStyles.limitFilename} title={limitInfo.filename}>
-            {limitInfo.filename}
-            {isFileSize && limitInfo.fileSizeBytes != null && (
+        {displayedFilename && (
+          <span className={formStyles.limitFilename} title={displayedFilename}>
+            {displayedFilename}
+            {isFileSize && limitInfo?.fileSizeBytes != null && (
               <> &mdash; {formatFileSize(limitInfo.fileSizeBytes)}</>
             )}
           </span>
         )}
-        {trialError && (
+        {dayPassError && (
           <p className={formStyles.limitError} role="alert">
-            {trialError}
+            {dayPassError}
           </p>
         )}
         <div className={formStyles.limitActions}>
           {showSignInPrompt ? (
             <Link
-              to="/register?redirect=/upload&start_trial=1"
+              to="/register?redirect=/upload"
               className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
               onClick={() => saveFilenameForReattach(limitInfo?.filename ?? null)}
             >
-              Create account and start trial
+              Create a free account
             </Link>
           ) : (
             <>
+              <button
+                type="button"
+                className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
+                onClick={handleDayPass}
+                disabled={dayPassPending}
+              >
+                {dayPassPending ? 'Starting checkout' : 'Get a Day Pass — $4'}
+              </button>
               <Link
                 to="/limit?ref=upload-limit-wall"
-                className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
+                className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
               >
                 See upgrade options
               </Link>
-              {showTrialButton && (
-                <button
-                  type="button"
-                  className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
-                  onClick={handleStartTrial}
-                  disabled={trialPending}
-                >
-                  {trialPending ? 'Starting trial' : 'Start 1-hour trial'}
-                </button>
-              )}
             </>
           )}
           <button
@@ -1246,7 +1262,66 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     </div>
   );
 
+  const renderLockedState = () => {
+    const used = cardUsage?.cards_used ?? 0;
+    const limit = cardUsage?.cards_limit ?? 100;
+    const now = new Date();
+    const resetsOn = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      1
+    ).toLocaleDateString(undefined, { day: 'numeric', month: 'long' });
+    return (
+      <div className={formStyles.limitContent}>
+        <span className={formStyles.lockedIcon} aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            width="28"
+            height="28"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </span>
+        <p className={formStyles.limitTitle}>
+          You&apos;ve used all {limit} cards this month
+        </p>
+        <p className={formStyles.limitDescription}>
+          {used} / {limit} cards · resets {resetsOn}, when your free cards come
+          back
+        </p>
+        {dayPassError && (
+          <p className={formStyles.limitError} role="alert">
+            {dayPassError}
+          </p>
+        )}
+        <div className={formStyles.limitActions}>
+          <button
+            type="button"
+            className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
+            onClick={handleDayPass}
+            disabled={dayPassPending}
+          >
+            {dayPassPending ? 'Starting checkout' : 'Get a Day Pass — $4'}
+          </button>
+          <Link
+            to="/limit?ref=upload-limit-wall"
+            className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
+          >
+            See upgrade options
+          </Link>
+        </div>
+      </div>
+    );
+  };
+
   const renderZoneContent = () => {
+    if (isUploadLocked && zoneState === 'idle') return renderLockedState();
     if (validation && zoneState === 'idle') return renderValidationState();
     if (zoneState === 'converting') return renderConvertingState();
     if (zoneState === 'success') return renderSuccessState();
@@ -1257,7 +1332,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     return renderIdleState();
   };
 
-  const showChips = zoneState === 'idle' && !validation;
+  const showChips = zoneState === 'idle' && !validation && !isUploadLocked;
   const showDropboxPanel = showChips && source === 'dropbox';
   const showGoogleDrivePanel = showChips && source === 'google_drive';
   const showLocalPanel = !showChips || source === 'local';
@@ -1303,6 +1378,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
           accept={getAcceptedContentTypes()}
           required
           multiple
+          disabled={isUploadLocked}
           onChange={() => {
             const files = fileInputRef.current?.files;
             if (files && validate(files)) {

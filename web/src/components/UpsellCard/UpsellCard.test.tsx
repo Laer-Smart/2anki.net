@@ -1,7 +1,17 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { UpsellCard } from './UpsellCard';
+
+function renderCard(ui: React.ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+  );
+}
 
 const mockStartPassCheckout = vi.fn();
 
@@ -54,7 +64,7 @@ describe('UpsellCard', () => {
 
   it('renders three CTAs with prices for free users', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
-    render(<UpsellCard surface="downloads_upsell" />);
+    renderCard(<UpsellCard surface="downloads_upsell" />);
     expect(screen.getByRole('button', { name: 'Get Day Pass — $4' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Get Week Pass — $9' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Unlimited' })).toBeInTheDocument();
@@ -62,19 +72,19 @@ describe('UpsellCard', () => {
 
   it('renders nothing for paying users', () => {
     mockUseUserLocals.mockReturnValue(payingUser);
-    const { container } = render(<UpsellCard surface="downloads_upsell" />);
+    const { container } = renderCard(<UpsellCard surface="downloads_upsell" />);
     expect(container).toBeEmptyDOMElement();
   });
 
   it('renders for anonymous users by default', () => {
     mockUseUserLocals.mockReturnValue(anonymousUser);
-    render(<UpsellCard surface="downloads_upsell" />);
+    renderCard(<UpsellCard surface="downloads_upsell" />);
     expect(screen.getByRole('button', { name: /Day Pass/ })).toBeInTheDocument();
   });
 
   it('hides for anonymous users when hideForAnonymous is true', () => {
     mockUseUserLocals.mockReturnValue(anonymousUser);
-    const { container } = render(
+    const { container } = renderCard(
       <UpsellCard surface="upload_success_upsell" hideForAnonymous />
     );
     expect(container).toBeEmptyDOMElement();
@@ -82,31 +92,31 @@ describe('UpsellCard', () => {
 
   it('still shows for free logged-in users when hideForAnonymous is true', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
-    render(<UpsellCard surface="upload_success_upsell" hideForAnonymous />);
+    renderCard(<UpsellCard surface="upload_success_upsell" hideForAnonymous />);
     expect(screen.getByRole('button', { name: /Day Pass/ })).toBeInTheDocument();
   });
 
   it('uses the downloads surface headline on /downloads', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
-    render(<UpsellCard surface="downloads_upsell" />);
+    renderCard(<UpsellCard surface="downloads_upsell" />);
     expect(screen.getByText('Converting more this month?')).toBeInTheDocument();
   });
 
   it('uses the upload-success surface headline on upload success', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
-    render(<UpsellCard surface="upload_success_upsell" />);
+    renderCard(<UpsellCard surface="upload_success_upsell" />);
     expect(screen.getByText('More pages to convert?')).toBeInTheDocument();
   });
 
   it('fires paywall_shown with the surface on mount for free users', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
-    render(<UpsellCard surface="downloads_upsell" />);
+    renderCard(<UpsellCard surface="downloads_upsell" />);
     expect(mockTrack).toHaveBeenCalledWith('paywall_shown', { surface: 'downloads_upsell' });
   });
 
   it('does not fire paywall_shown for paying users', () => {
     mockUseUserLocals.mockReturnValue(payingUser);
-    render(<UpsellCard surface="downloads_upsell" />);
+    renderCard(<UpsellCard surface="downloads_upsell" />);
     expect(mockTrack).not.toHaveBeenCalled();
   });
 
@@ -115,7 +125,7 @@ describe('UpsellCard', () => {
     mockStartPassCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/day' });
     Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
 
-    render(<UpsellCard surface="downloads_upsell" />);
+    renderCard(<UpsellCard surface="downloads_upsell" />);
     fireEvent.click(screen.getByRole('button', { name: /Day Pass/ }));
 
     await waitFor(() => {
@@ -132,7 +142,7 @@ describe('UpsellCard', () => {
     mockStartPassCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/week' });
     Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
 
-    render(<UpsellCard surface="upload_success_upsell" />);
+    renderCard(<UpsellCard surface="upload_success_upsell" />);
     fireEvent.click(screen.getByRole('button', { name: /Week Pass/ }));
 
     await waitFor(() => {
@@ -146,7 +156,7 @@ describe('UpsellCard', () => {
 
   it('fires paywall_upgrade_clicked with plan=unlimited when Unlimited is clicked', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
-    render(<UpsellCard surface="downloads_upsell" />);
+    renderCard(<UpsellCard surface="downloads_upsell" />);
     fireEvent.click(screen.getByRole('link', { name: 'Unlimited' }));
     expect(mockTrack).toHaveBeenCalledWith('paywall_upgrade_clicked', {
       surface: 'downloads_upsell',
@@ -163,7 +173,7 @@ describe('UpsellCard', () => {
       })
     );
 
-    render(<UpsellCard surface="downloads_upsell" />);
+    renderCard(<UpsellCard surface="downloads_upsell" />);
     fireEvent.click(screen.getByRole('button', { name: /Day Pass/ }));
 
     await waitFor(() => {
@@ -180,7 +190,7 @@ describe('UpsellCard', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     mockStartPassCheckout.mockReturnValue(new Promise(() => {}));
 
-    render(<UpsellCard surface="downloads_upsell" />);
+    renderCard(<UpsellCard surface="downloads_upsell" />);
     fireEvent.click(screen.getByRole('button', { name: /Day Pass/ }));
 
     await waitFor(() => {
@@ -198,7 +208,7 @@ describe('UpsellCard', () => {
 
   it('fires paywall_dismissed when unmounted without an upgrade click', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
-    const { unmount } = render(<UpsellCard surface="downloads_upsell" />);
+    const { unmount } = renderCard(<UpsellCard surface="downloads_upsell" />);
     mockTrack.mockClear();
     unmount();
     expect(mockTrack).toHaveBeenCalledWith('paywall_dismissed', { surface: 'downloads_upsell' });
@@ -208,7 +218,7 @@ describe('UpsellCard', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     mockStartPassCheckout.mockReturnValue(new Promise(() => {}));
 
-    const { unmount } = render(<UpsellCard surface="downloads_upsell" />);
+    const { unmount } = renderCard(<UpsellCard surface="downloads_upsell" />);
     fireEvent.click(screen.getByRole('button', { name: /Day Pass/ }));
 
     await waitFor(() => {
@@ -222,7 +232,7 @@ describe('UpsellCard', () => {
 
   it('does not fire paywall_dismissed for paying users (card never shown)', () => {
     mockUseUserLocals.mockReturnValue(payingUser);
-    const { unmount } = render(<UpsellCard surface="downloads_upsell" />);
+    const { unmount } = renderCard(<UpsellCard surface="downloads_upsell" />);
     mockTrack.mockClear();
     unmount();
     expect(mockTrack).not.toHaveBeenCalled();
@@ -231,7 +241,7 @@ describe('UpsellCard', () => {
   it('includes quota_remaining in paywall_shown when card usage is available', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     mockUseCardUsage.mockReturnValue({ cards_used: 75, cards_limit: 100, unlimited: false, loading: false });
-    render(<UpsellCard surface="downloads_upsell" />);
+    renderCard(<UpsellCard surface="downloads_upsell" />);
     expect(mockTrack).toHaveBeenCalledWith('paywall_shown', {
       surface: 'downloads_upsell',
       quota_remaining: 25,
@@ -241,7 +251,7 @@ describe('UpsellCard', () => {
   it('omits quota_remaining from paywall_shown when card usage is not yet loaded', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     mockUseCardUsage.mockReturnValue(null);
-    render(<UpsellCard surface="downloads_upsell" />);
+    renderCard(<UpsellCard surface="downloads_upsell" />);
     expect(mockTrack).toHaveBeenCalledWith('paywall_shown', {
       surface: 'downloads_upsell',
     });

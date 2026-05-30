@@ -404,16 +404,12 @@ export class Backend {
     name: string,
     email: string,
     password: string,
-    source?: string | null,
-    startTrial?: boolean
+    source?: string | null
   ): Promise<Response> {
     const endpoint = `${this.baseURL}users/register`;
     const payload: Record<string, string> = { name, email, password };
     if (source != null && source.length > 0) {
       payload.source = source;
-    }
-    if (startTrial === true) {
-      payload.start_trial = '1';
     }
     return post(endpoint, payload);
   }
@@ -513,28 +509,6 @@ export class Backend {
       return { status: 'error' };
     } catch {
       return { status: 'error' };
-    }
-  }
-
-  async startTrial(): Promise<{
-    ok: boolean;
-    reason?: 'already_used' | 'already_paid' | 'unauthenticated' | 'network';
-    trialExpiresAt?: string;
-  }> {
-    try {
-      const response = await post(`${this.baseURL}users/start-trial`, {});
-      if (response.status === 401) {
-        return { ok: false, reason: 'unauthenticated' };
-      }
-      if (!response.ok) {
-        return { ok: false };
-      }
-      const body = (await response.json().catch(() => null)) as
-        | { ok: boolean; reason?: 'already_used' | 'already_paid'; trialExpiresAt?: string }
-        | null;
-      return body ?? { ok: false };
-    } catch {
-      return { ok: false, reason: 'network' };
     }
   }
 
