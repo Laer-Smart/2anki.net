@@ -179,7 +179,7 @@ describe('EventsRepository SQL generation', () => {
     await repo.groupUploadFunnel(new Date('2026-05-01'));
 
     const sql = getSql();
-    expect(sql).toContain('"name" as "stage"');
+    expect(sql).toContain('name as stage');
     expect(sql).toContain(
       'count(distinct COALESCE(user_id::text, anonymous_id)) as distinct_identities'
     );

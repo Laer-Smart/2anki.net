@@ -183,6 +183,8 @@ describe('DownloadController.getBulkDownload', () => {
 
     expect(trackMock).toHaveBeenCalledTimes(1);
     expect(trackMock).toHaveBeenCalledWith('deck_downloaded', {
+      userId: null,
+      anonymousId: null,
       props: { workspace_id: id, bulk: true, file_count: 3 },
     });
   });
@@ -243,6 +245,8 @@ describe('DownloadController.getLocalFile', () => {
 
     expect(trackMock).toHaveBeenCalledTimes(1);
     expect(trackMock).toHaveBeenCalledWith('deck_downloaded', {
+      userId: null,
+      anonymousId: null,
       props: { workspace_id: id, bulk: false },
     });
     expect(res.sendFile).toHaveBeenCalled();

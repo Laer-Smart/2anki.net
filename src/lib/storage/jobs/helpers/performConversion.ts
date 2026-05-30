@@ -54,11 +54,16 @@ interface ConversionRequest {
   jobDbId: string | number;
   frontField?: string;
   backField?: string;
+  anonId?: string;
+}
+
+function toAnonymousId(anonId?: string): string | null {
+  return typeof anonId === 'string' && anonId.length > 0 ? anonId : null;
 }
 
 export default async function performConversion(
   database: Knex,
-  { title, api, id, owner, isPaying, type, jobDbId, frontField, backField }: ConversionRequest
+  { title, api, id, owner, isPaying, type, jobDbId, frontField, backField, anonId }: ConversionRequest
 ) {
   console.info(`Performing conversion for ${id}`);
 
@@ -106,6 +111,11 @@ export default async function performConversion(
     if (cardCount === 0) {
       const setJobFailed = new SetJobFailedUseCase(jobRepository);
       await setJobFailed.execute(id, owner, EMPTY_DECK_FAILURE_REASON);
+      track('conversion_failed', {
+        userId: Number.isFinite(Number(owner)) ? Number(owner) : null,
+        anonymousId: toAnonymousId(anonId),
+        props: { source: toConversionSource(type), reason: 'empty_deck' },
+      });
       return;
     }
 
@@ -163,6 +173,7 @@ export default async function performConversion(
     const userId = Number.isFinite(Number(owner)) ? Number(owner) : null;
     track('conversion_succeeded', {
       userId,
+      anonymousId: toAnonymousId(anonId),
       props: {
         source: toConversionSource(type),
         card_count_bucket: toCardCountBucket(cardCount),

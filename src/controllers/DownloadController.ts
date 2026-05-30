@@ -31,6 +31,24 @@ function isValidWorkspaceId(id: string): boolean {
   return WORKSPACE_ID_PATTERN.test(id);
 }
 
+function resolveDownloadIdentity(
+  req: Request,
+  res: Response
+): { userId: number | null; anonymousId: string | null } {
+  const owner = res.locals?.owner as unknown;
+  const userId =
+    typeof owner === 'number'
+      ? owner
+      : typeof owner === 'string' && Number.isFinite(Number(owner))
+        ? Number(owner)
+        : null;
+  const cookies = req.cookies as Record<string, unknown> | undefined;
+  const anonId = cookies?.anon_id;
+  const anonymousId =
+    typeof anonId === 'string' && anonId.length > 0 ? anonId : null;
+  return { userId, anonymousId };
+}
+
 class DownloadController {
   constructor(
     private readonly service: DownloadService,
@@ -154,7 +172,12 @@ class DownloadController {
     if (!canAccess(filePath, workspace) || !fs.existsSync(filePath)) {
       return res.status(404).end();
     }
-    track('deck_downloaded', { props: { workspace_id: id, bulk: false } });
+    const identity = resolveDownloadIdentity(req, res);
+    track('deck_downloaded', {
+      userId: identity.userId,
+      anonymousId: identity.anonymousId,
+      props: { workspace_id: id, bulk: false },
+    });
     return res.sendFile(filePath);
   }
 
@@ -197,7 +220,10 @@ class DownloadController {
       res.setHeader('Content-Type', 'application/zip');
       res.setHeader('Content-Disposition', buildContentDisposition(`anki-decks-${id}.zip`));
 
+      const identity = resolveDownloadIdentity(req, res);
       track('deck_downloaded', {
+        userId: identity.userId,
+        anonymousId: identity.anonymousId,
         props: { workspace_id: id, bulk: true, file_count: ankiFiles.length },
       });
 

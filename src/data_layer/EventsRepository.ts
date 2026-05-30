@@ -23,6 +23,18 @@ export interface PaywallClicksByVariantRow {
   click_count: number;
 }
 
+export interface UploadFunnelStageRow {
+  stage: string;
+  distinct_identities: number;
+}
+
+const UPLOAD_FUNNEL_STAGES = [
+  'upload_started',
+  'conversion_succeeded',
+  'conversion_failed',
+  'deck_downloaded',
+];
+
 export interface IEventsRepository {
   insertEvents(rows: EventRow[]): Promise<void>;
   countByName(name: string, since: Date): Promise<number>;
@@ -39,6 +51,7 @@ export interface IEventsRepository {
   groupPaywallClicksByVariant(
     since: Date
   ): Promise<PaywallClicksByVariantRow[]>;
+  groupUploadFunnel(since: Date): Promise<UploadFunnelStageRow[]>;
 }
 
 export class EventsRepository implements IEventsRepository {
@@ -134,6 +147,27 @@ export class EventsRepository implements IEventsRepository {
     return rows.map((r) => ({
       variant: r.variant ?? null,
       click_count: Number(r.click_count),
+    }));
+  }
+
+  async groupUploadFunnel(since: Date): Promise<UploadFunnelStageRow[]> {
+    const rows = (await this.database(this.table)
+      .whereIn('name', UPLOAD_FUNNEL_STAGES)
+      .where('created_at', '>=', since)
+      .select(
+        this.database.raw('name as stage'),
+        this.database.raw(
+          'count(distinct COALESCE(user_id::text, anonymous_id)) as distinct_identities'
+        )
+      )
+      .groupBy('name')) as Array<{
+      stage: string;
+      distinct_identities: string | number;
+    }>;
+
+    return rows.map((r) => ({
+      stage: r.stage,
+      distinct_identities: Number(r.distinct_identities),
     }));
   }
 }

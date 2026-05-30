@@ -211,6 +211,12 @@ class UploadService {
       const owner = getOwner(res);
       const paying = isPaying(res.locals);
 
+      track('upload_started', {
+        userId: owner != null ? Number(owner) : null,
+        anonymousId: this.resolveAnonId(req),
+        props: { source: this.resolveUploadSource(req) },
+      });
+
       if (owner && settings.claudeAIFlashcards) {
         return await this.handleAsyncUpload(req, res, settings, ws, String(owner), paying);
       }
@@ -372,6 +378,7 @@ class UploadService {
       const userId = getOwner(res);
       track('conversion_succeeded', {
         userId: userId != null ? Number(userId) : null,
+        anonymousId: this.resolveAnonId(req),
         props: { source: uploadSource, card_count_bucket: bucket },
       });
       return res.status(200).send(apkg);
@@ -381,8 +388,19 @@ class UploadService {
       return res.redirect(url);
     } else {
       logNoPackageDiagnostics(req.files as UploadedFile[]);
+      track('conversion_failed', {
+        userId: getOwner(res) != null ? Number(getOwner(res)) : null,
+        anonymousId: this.resolveAnonId(req),
+        props: { source: this.resolveUploadSource(req), reason: 'empty_deck' },
+      });
       throw new EmptyDeckError();
     }
+  }
+
+  private resolveAnonId(req: express.Request): string | null {
+    const cookies = req.cookies as Record<string, unknown> | undefined;
+    const anonId = cookies?.anon_id;
+    return typeof anonId === 'string' && anonId.length > 0 ? anonId : null;
   }
 
   private resolveUploadSource(req: express.Request): 'upload' | 'google_drive' {

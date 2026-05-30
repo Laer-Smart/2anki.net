@@ -57,7 +57,7 @@ describe('UploadFunnelService', () => {
 
     const result = await service.getMetrics(since);
 
-    expect(result.stages.upload_started).toBe(0);
+    expect(result.stages?.upload_started).toBe(0);
     expect(result.upload_to_download_rate_pct).toBe(0);
   });
 

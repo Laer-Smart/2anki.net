@@ -22,6 +22,8 @@ jest.mock('../services/SubscriptionService', () => ({
   default: { findActiveStripeSubscriptions: jest.fn().mockResolvedValue([]) },
 }));
 
+jest.mock('./events/track', () => ({ track: jest.fn() }));
+
 let mockWorkspaceLocation = '';
 let mockWorkspaceId = 'test-ws-id';
 jest.mock('../lib/parser/WorkSpace', () => {
@@ -52,6 +54,9 @@ import GeneratePackagesUseCase from '../usecases/uploads/GeneratePackagesUseCase
 import { EmptyDeckError } from '../usecases/jobs/EmptyDeckError';
 import { DeckTooLargeError } from '../lib/parser/exporters/DeckTooLargeError';
 import UploadService from './UploadService';
+import { track } from './events/track';
+
+const trackMock = track as jest.Mock;
 import { IUploadRepository } from '../data_layer/UploadRespository';
 import JobRepository from '../data_layer/JobRepository';
 import Uploads from '../data_layer/public/Uploads';
@@ -141,6 +146,33 @@ describe('UploadService.handleUpload — error paths', () => {
 
   beforeEach(() => {
     MockGeneratePackagesUseCase.mockClear();
+    trackMock.mockClear();
+  });
+
+  it('emits upload_started and conversion_failed sharing the anonymous_id from the cookie', async () => {
+    MockGeneratePackagesUseCase.mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({ packages: [] }),
+    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+
+    const service = new UploadService(buildRepository(), {} as JobRepository);
+    const req = buildRequest({
+      cookies: { anon_id: 'anon-upload-1' },
+    } as Partial<express.Request>);
+    const { res } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(trackMock).toHaveBeenCalledWith(
+      'upload_started',
+      expect.objectContaining({ anonymousId: 'anon-upload-1', userId: null })
+    );
+    expect(trackMock).toHaveBeenCalledWith(
+      'conversion_failed',
+      expect.objectContaining({
+        anonymousId: 'anon-upload-1',
+        props: expect.objectContaining({ reason: 'empty_deck' }),
+      })
+    );
   });
 
   it('returns 400 JSON with empty_export code, spec copy and docs link when no packages are produced', async () => {

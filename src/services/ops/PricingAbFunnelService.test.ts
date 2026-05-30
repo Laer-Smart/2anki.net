@@ -86,6 +86,7 @@ function makeEventsRepo(
       .fn()
       .mockResolvedValue(shownRows),
     groupPaywallClicksByVariant: jest.fn().mockResolvedValue(clickRows),
+    groupUploadFunnel: jest.fn().mockResolvedValue([]),
   };
 }
 
