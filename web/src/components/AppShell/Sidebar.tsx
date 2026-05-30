@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
@@ -213,24 +214,29 @@ export function Sidebar({
           <img src={logoSrc} alt="" />
         </Link>
       </div>
-      <button
-        type="button"
-        onClick={onToggleClick}
-        className={styles.collapseRail}
-        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        aria-expanded={!collapsed}
-      >
-        <span className={styles.collapseRailIndicator} aria-hidden="true">
-          {collapsed ? (
-            <ArrowRightIcon width={16} height={16} />
-          ) : (
-            <ArrowLeftIcon width={16} height={16} />
-          )}
-        </span>
-        <span className={styles.collapseRailLabel} aria-hidden="true">
-          {collapsed ? 'Expand' : 'Collapse'}
-        </span>
-      </button>
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <button
+            type="button"
+            onClick={onToggleClick}
+            className={`${styles.collapseRail} ${
+              collapsed ? styles.collapseRailCollapsed : ''
+            }`}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-expanded={!collapsed}
+          >
+            <span className={styles.collapseRailLine} aria-hidden="true" />
+            <span className={styles.collapseRailContent} aria-hidden="true">
+              {collapsed ? (
+                <ArrowRightIcon width={16} height={16} />
+              ) : (
+                <ArrowLeftIcon width={16} height={16} />
+              )}
+              {collapsed ? 'Expand' : 'Collapse'}
+            </span>
+          </button>,
+          document.body
+        )}
       <nav className={styles.sidebarNav}>
         <div className={styles.sidebarGroup}>
           <SidebarRow

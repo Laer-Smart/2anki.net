@@ -361,6 +361,13 @@ describe('Sidebar collapse toggle', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders the collapse rail outside the sidebar aside element', () => {
+    renderSidebar();
+    const aside = screen.getByRole('complementary', { name: 'primary' });
+    const rail = screen.getByRole('button', { name: 'Collapse sidebar' });
+    expect(aside.contains(rail)).toBe(false);
+  });
+
   it('renders the rail label, flipping between Collapse and Expand', () => {
     renderSidebar();
     const toggle = screen.getByRole('button', { name: 'Collapse sidebar' });
