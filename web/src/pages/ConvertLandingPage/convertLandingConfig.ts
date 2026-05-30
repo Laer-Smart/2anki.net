@@ -202,6 +202,35 @@ const notionTablesToAnki: LandingCopy = {
   ],
 };
 
+const brainscapeToAnki: LandingCopy = {
+  pathname: '/convert/brainscape-to-anki',
+  title: 'Brainscape to Anki — move your flashcards to Anki | 2anki',
+  description:
+    'Move your Brainscape flashcards to Anki. Export your deck as a CSV, upload it here, and download a .apkg deck that opens clean.',
+  h1: 'Move your Brainscape flashcards to Anki',
+  subhead:
+    'Export your Brainscape deck as CSV, drop it here, get a .apkg deck that opens clean in Anki.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'How do I get a CSV out of Brainscape?',
+      a: 'Open the deck you own, click the deck options menu, and pick Export. Brainscape has historically gated export behind a Pro plan — confirm in your account before you rely on it.',
+    },
+    {
+      q: 'Does this work for decks I did not make?',
+      a: 'No. Brainscape only lets you export decks you own. Copy the cards into a deck on your own account first, then export that one.',
+    },
+    {
+      q: 'What gets carried across?',
+      a: 'Whatever sits in the CSV columns. Brainscape exports the question and answer text by default — those become the card front and back. Extra columns map to extra fields if your CSV has them.',
+    },
+    {
+      q: 'Do images come across?',
+      a: 'No. Brainscape\'s CSV export is text-only — images and audio stay in Brainscape. Re-add any visuals in Anki after import, or paste the image link if the CSV captured one.',
+    },
+  ],
+};
+
 const lingvistToAnki: LandingCopy = {
   pathname: '/convert/lingvist-to-anki',
   title: 'Lingvist to Anki — move your flashcards to Anki | 2anki',
@@ -326,6 +355,7 @@ export const CONVERT_LANDING_PAGES: ReadonlyMap<string, LandingCopy> = new Map([
   ['html-to-anki', htmlToAnki],
   ['apkg-to-csv', apkgToCsv],
   ['notion-tables-to-anki', notionTablesToAnki],
+  ['brainscape-to-anki', brainscapeToAnki],
   ['lingvist-to-anki', lingvistToAnki],
   ['studystack-to-anki', studystackToAnki],
   ['pleco-to-anki', plecoToAnki],
