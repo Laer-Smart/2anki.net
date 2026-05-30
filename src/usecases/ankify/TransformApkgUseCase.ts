@@ -116,6 +116,16 @@ function buildDeckFromTransformedNotes(
   return new Deck(deckName, ankiNotes, undefined, null, Date.now(), settings);
 }
 
+function mergeMedia(
+  sourceMedia: readonly TransformMediaFile[],
+  fetchedMedia: readonly TransformMediaFile[]
+): TransformMediaFile[] {
+  const byFilename = new Map<string, TransformMediaFile>();
+  for (const file of sourceMedia) byFilename.set(file.filename, file);
+  for (const file of fetchedMedia) byFilename.set(file.filename, file);
+  return Array.from(byFilename.values());
+}
+
 async function emitApkgFromDeck(
   deck: Deck,
   media: readonly TransformMediaFile[] = []
@@ -169,7 +179,8 @@ export class TransformApkgUseCase {
       parsed.deckName,
       transformResult.notes
     );
-    const apkg = await emitApkgFromDeck(deck, transformResult.media ?? []);
+    const mergedMedia = mergeMedia(parsed.sourceMedia, transformResult.media ?? []);
+    const apkg = await emitApkgFromDeck(deck, mergedMedia);
 
     return {
       apkg,

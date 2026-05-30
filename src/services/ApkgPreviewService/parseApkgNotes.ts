@@ -1,12 +1,18 @@
-import { extractApkg } from './extractApkg';
+import { extractApkg, parseMediaManifest } from './extractApkg';
 import { parseCollection } from './parseCollection';
 import { ParsedNote, SourceModelKind } from '../../lib/ankify/transforms/types';
 import { NormalizedCollection } from './types';
+
+export interface SourceMediaFile {
+  filename: string;
+  bytes: Buffer;
+}
 
 export interface ParseApkgNotesResult {
   notes: ParsedNote[];
   unknownModelNames: string[];
   deckName: string;
+  sourceMedia: SourceMediaFile[];
 }
 
 function classifyModel(typeFlag: 0 | 1, name: string): SourceModelKind | null {
@@ -82,5 +88,19 @@ export async function parseApkgNotes(
     notes,
     unknownModelNames: Array.from(unknown).sort((a, b) => a.localeCompare(b)),
     deckName: pickDeckName(collection),
+    sourceMedia: collectSourceMedia(archive),
   };
+}
+
+function collectSourceMedia(archive: {
+  mediaManifestRaw: Buffer | null;
+  mediaEntries: Map<string, Buffer>;
+}): SourceMediaFile[] {
+  const manifest = parseMediaManifest(archive.mediaManifestRaw);
+  const out: SourceMediaFile[] = [];
+  for (const [originalName, archiveName] of manifest.entries()) {
+    const bytes = archive.mediaEntries.get(archiveName);
+    if (bytes != null) out.push({ filename: originalName, bytes });
+  }
+  return out;
 }

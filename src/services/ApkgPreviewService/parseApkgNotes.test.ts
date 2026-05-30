@@ -2,9 +2,12 @@ import { parseApkgNotes } from './parseApkgNotes';
 import { NormalizedCollection, Note, NoteType, Deck, Card } from './types';
 
 jest.mock('./extractApkg', () => ({
-  extractApkg: jest
-    .fn()
-    .mockResolvedValue({ collectionBuffer: Buffer.from('stub') }),
+  extractApkg: jest.fn().mockResolvedValue({
+    collectionBuffer: Buffer.from('stub'),
+    mediaManifestRaw: null,
+    mediaEntries: new Map(),
+  }),
+  parseMediaManifest: jest.fn(() => new Map()),
 }));
 
 jest.mock('./parseCollection', () => ({
@@ -64,6 +67,7 @@ describe('parseApkgNotes', () => {
       notes: [],
       unknownModelNames: [],
       deckName: 'Transformed deck',
+      sourceMedia: [],
     });
   });
 

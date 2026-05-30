@@ -9,11 +9,21 @@ import * as transformModule from '../../services/ankify/transformService';
 import { ParsedNote, TransformedNote } from '../../lib/ankify/transforms/types';
 
 jest.mock('../../lib/parser/exporters/CustomExporter', () => {
+  const addedMedia: Array<{ filename: string; bytes: Buffer }> = [];
   return {
     __esModule: true,
     default: class FakeExporter {
+      static __addedMedia(): Array<{ filename: string; bytes: Buffer }> {
+        return addedMedia;
+      }
+      static __reset(): void {
+        addedMedia.length = 0;
+      }
       constructor(public name: string, public workspaceLocation: string) {}
       configure() {}
+      addMedia(filename: string, bytes: Buffer): void {
+        addedMedia.push({ filename, bytes });
+      }
       async save(): Promise<Buffer> {
         const fs = await import('node:fs/promises');
         const path = await import('node:path');
@@ -25,12 +35,24 @@ jest.mock('../../lib/parser/exporters/CustomExporter', () => {
   };
 });
 
+const FakeExporter = jest.requireMock(
+  '../../lib/parser/exporters/CustomExporter'
+).default as {
+  __addedMedia(): Array<{ filename: string; bytes: Buffer }>;
+  __reset(): void;
+};
+
 beforeEach(() => {
   process.env.WORKSPACE_BASE = process.env.WORKSPACE_BASE ?? '/tmp/2anki-transform-test';
+  FakeExporter.__reset();
 });
 
-function makeParsed(notes: ParsedNote[], unknown: string[] = []): parseModule.ParseApkgNotesResult {
-  return { notes, unknownModelNames: unknown, deckName: 'Pharmacology' };
+function makeParsed(
+  notes: ParsedNote[],
+  unknown: string[] = [],
+  sourceMedia: parseModule.SourceMediaFile[] = []
+): parseModule.ParseApkgNotesResult {
+  return { notes, unknownModelNames: unknown, deckName: 'Pharmacology', sourceMedia };
 }
 
 function makeNote(id: string): ParsedNote {
@@ -107,6 +129,38 @@ describe('TransformApkgUseCase', () => {
       expect(err.noteCap).toBe(2);
     });
     expect(transformSpy).not.toHaveBeenCalled();
+  });
+
+  it('passes source-deck media through to the exporter', async () => {
+    jest.spyOn(parseModule, 'parseApkgNotes').mockResolvedValueOnce(
+      makeParsed(
+        [makeNote('a')],
+        [],
+        [{ filename: 'Chugoku.png', bytes: Buffer.from('chugoku-bytes') }]
+      )
+    );
+    jest.spyOn(transformModule, 'transformApkgNotes').mockResolvedValueOnce({
+      notes: [transformed('a')],
+      failures: [],
+      usage: {
+        inputTokens: 0,
+        outputTokens: 0,
+        estimatedCostUsd: 0,
+        totalCalls: 1,
+        elapsedMs: 1,
+      },
+    });
+
+    await new TransformApkgUseCase().execute({
+      bytes: Buffer.from('x'),
+      transform: 'add_hint',
+    });
+
+    const added = FakeExporter.__addedMedia();
+    expect(added).toContainEqual({
+      filename: 'Chugoku.png',
+      bytes: Buffer.from('chugoku-bytes'),
+    });
   });
 
   it('returns an apkg buffer with the transformed note count', async () => {
