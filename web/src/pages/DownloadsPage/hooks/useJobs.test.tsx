@@ -3,6 +3,8 @@ import { renderHook, act } from '@testing-library/react';
 
 import useJobs from './useJobs';
 import Backend from '../../../lib/backend';
+import { UserNotice } from '../../../lib/errors/UserNotice';
+import { JobsId } from '../../../schemas/public/Jobs';
 
 function makeMockBackend(): Backend {
   return {
@@ -38,6 +40,30 @@ describe('useJobs warmup window', () => {
     );
     const firstIntervalMs = callsWithMs[0]?.[1];
     expect(firstIntervalMs).toBe(3000);
+  });
+
+  it('surfaces a UserNotice when delete fails because the job is in progress', async () => {
+    const backend = makeMockBackend();
+    (backend.deleteJob as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      new Error('Cannot delete job while it is in progress')
+    );
+    const setError = vi.fn();
+
+    const { result } = renderHook(() => useJobs(backend, setError));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await result.current.deleteJob(1 as JobsId);
+    });
+
+    expect(setError).toHaveBeenCalledWith(expect.any(UserNotice));
+    const notice = setError.mock.calls[0][0] as UserNotice;
+    expect(notice.message).toBe(
+      'This job is still running. Wait for it to finish.'
+    );
   });
 
   it('switches to 10000ms after warmup expires with no active jobs', async () => {

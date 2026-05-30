@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { reportClientError } from './reportClientError';
+import { UserNotice } from './errors/UserNotice';
 
 const fetchSpy = vi.fn(() =>
   Promise.resolve(new Response(null, { status: 202 }))
@@ -70,5 +71,10 @@ describe('reportClientError', () => {
     const [, init] = getLastCall();
     const body = JSON.parse(init.body as string) as Record<string, unknown>;
     expect(body.message).toBe('plain string error');
+  });
+
+  it('skips UserNotice instances without calling fetch', () => {
+    reportClientError(new UserNotice('Notion is not connected.'));
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

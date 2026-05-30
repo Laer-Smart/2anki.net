@@ -1,4 +1,5 @@
 import handleRedirect from '../handleRedirect';
+import { UserNotice, isIntentionalBackendNotice } from '../errors/UserNotice';
 import { NOT_FOUND, UNAUTHORIZED } from './http';
 
 interface ClientSideOptions {
@@ -75,9 +76,16 @@ export const get = async (
   url: string,
   options: ClientSideOptions = DEFAULT_GET_OPTIONS
 ) => {
-  const response = await fetch(url, {
-    credentials: 'include',
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, { credentials: 'include' });
+  } catch (cause) {
+    throw taggedHttpError(
+      `Network error on GET ${pathOf(url)}: ${cause instanceof Error ? cause.message : String(cause)}`,
+      'GET',
+      url
+    );
+  }
 
   if (options.redirect && handleRedirect(response)) {
     return undefined;
@@ -86,24 +94,45 @@ export const get = async (
   if (!response.ok) {
     if (response.status === UNAUTHORIZED) {
       redirectToLogin();
-      throw new Error('Unauthorized');
+      throw new UserNotice('Unauthorized');
     }
     if (response.status === NOT_FOUND) {
-      throw new Error(
-        `Resource not found: ${response.status} ${response.statusText}`
-      );
-    } else {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: response.statusText }));
-      throw new Error(
-        `HTTP error! status: ${response.status}, message: ${errorData.message}`
+      throw taggedHttpError(
+        `Resource not found: ${response.status} ${response.statusText}`,
+        'GET',
+        url
       );
     }
+    const errorData = await response
+      .json()
+      .catch(() => ({ message: response.statusText }));
+    if (isIntentionalBackendNotice(errorData.message)) {
+      throw new UserNotice(errorData.message, errorData.code);
+    }
+    throw taggedHttpError(
+      `HTTP error! GET ${pathOf(url)} status: ${response.status}, message: ${errorData.message}`,
+      'GET',
+      url
+    );
   }
 
   return response.json();
 };
+
+function pathOf(url: string): string {
+  try {
+    return new URL(url, globalThis.location?.origin ?? 'http://localhost').pathname;
+  } catch {
+    return url;
+  }
+}
+
+function taggedHttpError(message: string, method: string, url: string): Error {
+  const err = new Error(message) as Error & { url?: string; method?: string };
+  err.url = pathOf(url);
+  err.method = method;
+  return err;
+}
 
 const DEFAULT_DELETE_OPTIONS: ClientSideOptions = { redirect: true };
 
