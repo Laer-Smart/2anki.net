@@ -6,10 +6,64 @@ jest.mock('../lib/integrations/stripe', () => ({
   getStripe: jest.fn(),
 }));
 
+const featureFlagStore: Array<{
+  key: string;
+  value: boolean;
+  description: string | null;
+  updated_at: Date | null;
+  updated_by: number | null;
+  email: string | null;
+}> = [];
+
 jest.mock('../data_layer', () => ({
   getDatabase: jest.fn(() => ({
     raw: jest.fn(),
   })),
+}));
+
+jest.mock('../data_layer/FeatureFlagsRepository', () => {
+  class FakeFeatureFlagsRepository {
+    async getAll() {
+      return featureFlagStore.map((row) => ({
+        key: row.key,
+        value: row.value,
+        description: row.description,
+        updated_at:
+          row.updated_at == null ? null : row.updated_at.toISOString(),
+        updated_by: row.updated_by,
+        updated_by_email: row.email,
+      }));
+    }
+    async get(key: string) {
+      const row = featureFlagStore.find((r) => r.key === key);
+      return row == null ? null : row.value;
+    }
+    async set(key: string, value: boolean, userId: number) {
+      const idx = featureFlagStore.findIndex((r) => r.key === key);
+      if (idx === -1) return null;
+      featureFlagStore[idx] = {
+        ...featureFlagStore[idx],
+        value,
+        updated_by: userId,
+        updated_at: new Date('2026-05-30T12:00:00Z'),
+      };
+      const row = featureFlagStore[idx];
+      return {
+        key: row.key,
+        value: row.value,
+        description: row.description,
+        updated_at:
+          row.updated_at == null ? null : row.updated_at.toISOString(),
+        updated_by: row.updated_by,
+        updated_by_email: row.email,
+      };
+    }
+  }
+  return { FeatureFlagsRepository: FakeFeatureFlagsRepository };
+});
+
+jest.mock('../services/events/track', () => ({
+  track: jest.fn(),
 }));
 
 jest.mock('./middleware/RequireOpsAccess', () => {
@@ -31,6 +85,8 @@ jest.mock('./middleware/RequireOpsAccess', () => {
         res.status(404).end();
         return;
       }
+      res.locals.owner = 1;
+      res.locals.email = 'alex@example.com';
       next();
     },
     makeRequireOpsAccess: jest.fn(),
@@ -107,6 +163,7 @@ const setOwnerAccess = (allow: boolean) => {
 const startServer = async (allowOps: boolean = false) => {
   setOwnerAccess(allowOps);
   const app = express();
+  app.use(express.json());
   app.use(OpsRouter());
   const server = http.createServer(app);
   await new Promise<void>((resolve) => server.listen(0, resolve));
@@ -213,6 +270,113 @@ describe('OpsRouter /api/ops/conversion/metrics', () => {
           failed_conversions_weekly: expect.any(Array),
         })
       );
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe('OpsRouter /api/ops/flags', () => {
+  beforeEach(() => {
+    featureFlagStore.length = 0;
+    featureFlagStore.push({
+      key: 'ai-converter-floor-v1',
+      value: false,
+      description: 'desc',
+      updated_at: new Date('2026-05-29T10:00:00Z'),
+      updated_by: 1,
+      email: 'alex@example.com',
+    });
+  });
+
+  it('GET returns 404 for non-owner callers', async () => {
+    const { url, close } = await startServer(false);
+    try {
+      const response = await fetch(`${url}/api/ops/flags`);
+      expect(response.status).toBe(404);
+    } finally {
+      await close();
+    }
+  });
+
+  it('GET returns the seeded flag with updated_by_email but no updated_by id', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(`${url}/api/ops/flags`);
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body).toEqual([
+        {
+          key: 'ai-converter-floor-v1',
+          value: false,
+          description: 'desc',
+          updated_at: '2026-05-29T10:00:00.000Z',
+          updated_by_email: 'alex@example.com',
+        },
+      ]);
+    } finally {
+      await close();
+    }
+  });
+
+  it('PUT returns 404 for non-owner callers', async () => {
+    const { url, close } = await startServer(false);
+    try {
+      const response = await fetch(`${url}/api/ops/flags/ai-converter-floor-v1`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: true }),
+      });
+      expect(response.status).toBe(404);
+    } finally {
+      await close();
+    }
+  });
+
+  it('PUT returns 400 when the body value is not a boolean', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(`${url}/api/ops/flags/ai-converter-floor-v1`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: 'yes' }),
+      });
+      expect(response.status).toBe(400);
+    } finally {
+      await close();
+    }
+  });
+
+  it('PUT returns 404 when the flag key does not exist', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(`${url}/api/ops/flags/missing-key`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: true }),
+      });
+      expect(response.status).toBe(404);
+    } finally {
+      await close();
+    }
+  });
+
+  it('PUT updates the flag and returns the updated row', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(`${url}/api/ops/flags/ai-converter-floor-v1`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: true }),
+      });
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body).toMatchObject({
+        key: 'ai-converter-floor-v1',
+        value: true,
+        updated_by_email: 'alex@example.com',
+      });
+      expect(body).not.toHaveProperty('updated_by');
     } finally {
       await close();
     }

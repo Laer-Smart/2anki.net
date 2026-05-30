@@ -82,6 +82,10 @@ const PreviewApkgPage = lazyWithRetry(
   () => import('./pages/PreviewApkgPage'),
   './pages/PreviewApkgPage'
 );
+const FlagsTab = lazyWithRetry(
+  () => import('./pages/OpsPage/FlagsTab'),
+  './pages/OpsPage/FlagsTab'
+);
 const AnkifyPage = lazyWithRetry(() => import('./pages/AnkifyPage'), './pages/AnkifyPage');
 const AnkifySetupPage = lazyWithRetry(
   () => import('./pages/AnkifyPage/AnkifySetupPage'),
@@ -421,6 +425,7 @@ function AppContent({
             <Route path="interviews" element={<InterviewsTab />} />
             <Route path="messages" element={<ContactMessagesTab />} />
             <Route path="commands" element={<CommandsTab />} />
+            <Route path="flags" element={<FlagsTab />} />
             <Route path="pricing-ab" element={<PricingAbFunnelTab />} />
           </Route>
           <Route path="/feedback" element={requireAuth(<FeedbackPage />)} />
