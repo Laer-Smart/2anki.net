@@ -118,7 +118,7 @@ function toMulterErrorBody(err: multer.MulterError): { status: number; code: Upl
     return {
       status: 413,
       code: 'too_large',
-      message: 'Upload failed — file is over the 50 MB limit. Try splitting it.',
+      message: 'Upload failed — file is over the 100 MB limit. Try splitting it.',
     };
   }
   if (err.code === 'LIMIT_UNEXPECTED_FILE') {

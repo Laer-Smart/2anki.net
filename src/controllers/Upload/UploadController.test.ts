@@ -23,7 +23,17 @@ import Uploads from '../../data_layer/public/Uploads';
 import NotionService from '../../services/NotionService';
 import UploadService from '../../services/UploadService';
 import JobRepository from '../../data_layer/JobRepository';
+import UsersRepository from '../../data_layer/UsersRepository';
 import UploadController from './UploadController';
+
+function buildUsersRepo(): UsersRepository {
+  return {
+    getCardUsage: jest
+      .fn()
+      .mockResolvedValue({ cards_used: 0, month_started_at: new Date() }),
+    incrementCardUsage: jest.fn().mockResolvedValue(1),
+  } as unknown as UsersRepository;
+}
 
 describe('Upload file', () => {
   test('upload failed is caught', () => {
@@ -89,7 +99,7 @@ describe('Upload file', () => {
       clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
       setReconnectEmailSent: jest.fn().mockResolvedValue(true),
     };
-    const uploadService = new UploadService(repository, {} as JobRepository);
+    const uploadService = new UploadService(repository, {} as JobRepository, buildUsersRepo());
     const notionService = new NotionService(notionRepository);
     const uploadController = new UploadController(uploadService, notionService);
 
@@ -151,7 +161,7 @@ describe('Upload file — multer error handling', () => {
       clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
       setReconnectEmailSent: jest.fn().mockResolvedValue(true),
     };
-    const uploadService = new UploadService(repository, {} as JobRepository);
+    const uploadService = new UploadService(repository, {} as JobRepository, buildUsersRepo());
     const notionService = new NotionService(notionRepository);
     const controller = new UploadController(uploadService, notionService);
 
@@ -175,7 +185,7 @@ describe('Upload file — multer error handling', () => {
     expect(jsonSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         code: 'too_large',
-        message: expect.stringContaining('50 MB'),
+        message: expect.stringContaining('100 MB'),
       })
     );
   });

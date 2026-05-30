@@ -18,6 +18,7 @@ import NotionTokens from '../../data_layer/public/NotionTokens';
 import NotionService from '../../services/NotionService';
 import UploadService from '../../services/UploadService';
 import JobRepository from '../../data_layer/JobRepository';
+import UsersRepository from '../../data_layer/UsersRepository';
 import UploadController from './UploadController';
 import { GetGoogleDriveUploadsUseCase } from '../../usecases/uploads/GetGoogleDriveUploadsUseCase';
 import { DeleteGoogleDriveUploadUseCase } from '../../usecases/uploads/DeleteGoogleDriveUploadUseCase';
@@ -47,7 +48,13 @@ function makeController(
   };
   const uploadService = new UploadService(
     uploadRepository,
-    {} as JobRepository
+    {} as JobRepository,
+    {
+      getCardUsage: jest
+        .fn()
+        .mockResolvedValue({ cards_used: 0, month_started_at: new Date() }),
+      incrementCardUsage: jest.fn().mockResolvedValue(1),
+    } as unknown as UsersRepository
   );
   const notionService = new NotionService(notionRepository);
   return new UploadController(

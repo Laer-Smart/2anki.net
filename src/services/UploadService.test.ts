@@ -26,12 +26,14 @@ jest.mock('./events/track', () => ({ track: jest.fn() }));
 
 let mockWorkspaceLocation = '';
 let mockWorkspaceId = 'test-ws-id';
+let mockFirstApkg: Buffer | null = null;
 jest.mock('../lib/parser/WorkSpace', () => {
   return {
     __esModule: true,
     default: jest.fn().mockImplementation(() => ({
       get id() { return mockWorkspaceId; },
       get location() { return mockWorkspaceLocation; },
+      getFirstAPKG: () => Promise.resolve(mockFirstApkg),
     })),
   };
 });
@@ -59,6 +61,7 @@ import { track } from './events/track';
 const trackMock = track as jest.Mock;
 import { IUploadRepository } from '../data_layer/UploadRespository';
 import JobRepository from '../data_layer/JobRepository';
+import UsersRepository from '../data_layer/UsersRepository';
 import Uploads from '../data_layer/public/Uploads';
 
 const MockGeneratePackagesUseCase = GeneratePackagesUseCase as jest.MockedClass<typeof GeneratePackagesUseCase>;
@@ -75,6 +78,18 @@ function buildRepository(): IUploadRepository {
       Promise.resolve([] as Uploads[]),
     getLastUploadForUser: (_userId: number) => Promise.resolve(null),
   };
+}
+
+function buildUsersRepo(
+  overrides: Partial<UsersRepository> = {}
+): UsersRepository {
+  return {
+    getCardUsage: jest
+      .fn()
+      .mockResolvedValue({ cards_used: 0, month_started_at: new Date() }),
+    incrementCardUsage: jest.fn().mockResolvedValue(1),
+    ...overrides,
+  } as unknown as UsersRepository;
 }
 
 function buildRequest(overrides: Partial<express.Request> = {}): express.Request {
@@ -154,7 +169,7 @@ describe('UploadService.handleUpload — error paths', () => {
       execute: jest.fn().mockResolvedValue({ packages: [] }),
     }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
 
-    const service = new UploadService(buildRepository(), {} as JobRepository);
+    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
     const req = buildRequest({
       cookies: { anon_id: 'anon-upload-1' },
     } as Partial<express.Request>);
@@ -180,7 +195,7 @@ describe('UploadService.handleUpload — error paths', () => {
       execute: jest.fn().mockResolvedValue({ packages: [] }),
     }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
 
-    const service = new UploadService(buildRepository(), {} as JobRepository);
+    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
     const req = buildRequest();
     const { res, capturedStatus, capturedJson } = buildResponse();
 
@@ -210,7 +225,7 @@ describe('UploadService.handleUpload — error paths', () => {
       execute: jest.fn().mockResolvedValue({ packages: [] }),
     }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
 
-    const service = new UploadService(buildRepository(), {} as JobRepository);
+    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
     const req = buildRequest();
     const { res, capturedJson } = buildResponse();
 
@@ -229,7 +244,7 @@ describe('UploadService.handleUpload — error paths', () => {
         execute: jest.fn().mockResolvedValue({ packages: [] }),
       }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
 
-      const service = new UploadService(buildRepository(), {} as JobRepository);
+      const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
       const req = buildRequest({
         files: [
           {
@@ -260,7 +275,7 @@ describe('UploadService.handleUpload — error paths', () => {
       execute: jest.fn().mockRejectedValue(new DeckTooLargeError()),
     }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
 
-    const service = new UploadService(buildRepository(), {} as JobRepository);
+    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
     const req = buildRequest();
     const { res, capturedStatus, capturedJson } = buildResponse();
 
@@ -279,7 +294,7 @@ describe('UploadService.handleUpload — error paths', () => {
       execute: jest.fn().mockRejectedValue(new DeckTooLargeError()),
     }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
 
-    const service = new UploadService(buildRepository(), {} as JobRepository);
+    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
     const req = buildRequest();
     const { res, capturedJson } = buildResponse();
 
@@ -297,7 +312,7 @@ describe('UploadService.handleUpload — error paths', () => {
       ),
     }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
 
-    const service = new UploadService(buildRepository(), {} as JobRepository);
+    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
     const req = buildRequest({
       files: [
         {
@@ -331,7 +346,7 @@ describe('UploadService.handleUpload — error paths', () => {
       execute: executeMock,
     }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
 
-    const service = new UploadService(buildRepository(), {} as JobRepository);
+    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
     const req = buildRequest({
       files: [
         {
@@ -360,6 +375,133 @@ describe('UploadService.handleUpload — error paths', () => {
   });
 });
 
+describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
+  const originalWorkspaceBase = process.env.WORKSPACE_BASE;
+
+  beforeAll(() => {
+    process.env.WORKSPACE_BASE = path.join(os.tmpdir(), 'upload-service-test');
+  });
+
+  afterAll(() => {
+    process.env.WORKSPACE_BASE = originalWorkspaceBase;
+  });
+
+  beforeEach(() => {
+    MockGeneratePackagesUseCase.mockClear();
+    trackMock.mockClear();
+    mockFirstApkg = Buffer.from('fake-apkg');
+    mockWorkspaceId = 'test-ws-id';
+  });
+
+  function mockPackages(packages: Array<{ name: string; cardCount: number }>) {
+    MockGeneratePackagesUseCase.mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({ packages }),
+    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+  }
+
+  function responseWithRedirect() {
+    const built = buildResponse();
+    let redirectedTo: string | null = null;
+    (built.res.redirect as unknown as jest.Mock).mockImplementation(
+      (url: string) => {
+        redirectedTo = url;
+        return built.res;
+      }
+    );
+    return { ...built, redirectedTo: () => redirectedTo };
+  }
+
+  it('redirects a logged-in free user over the monthly limit to /limit?kind=card_count and does not send the deck', async () => {
+    mockPackages([{ name: 'deck', cardCount: 30 }]);
+    const usersRepo = buildUsersRepo({
+      getCardUsage: jest
+        .fn()
+        .mockResolvedValue({ cards_used: 80, month_started_at: new Date() }),
+    });
+    const incrementSpy = usersRepo.incrementCardUsage as jest.Mock;
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      usersRepo
+    );
+    const req = buildRequest();
+    const { res, capturedSend, redirectedTo } = responseWithRedirect();
+    (res.locals as Record<string, unknown>).owner = 42;
+
+    await service.handleUpload(req, res);
+
+    expect(redirectedTo()).toBe('/limit?kind=card_count');
+    expect(capturedSend()).toBeNull();
+    expect(incrementSpy).not.toHaveBeenCalled();
+  });
+
+  it('sends the deck and increments card usage for a logged-in free user under the limit', async () => {
+    mockPackages([{ name: 'deck', cardCount: 30 }]);
+    const usersRepo = buildUsersRepo({
+      getCardUsage: jest
+        .fn()
+        .mockResolvedValue({ cards_used: 10, month_started_at: new Date() }),
+    });
+    const incrementSpy = usersRepo.incrementCardUsage as jest.Mock;
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      usersRepo
+    );
+    const req = buildRequest();
+    const { res, capturedStatus, capturedSend } = buildResponse();
+    (res.locals as Record<string, unknown>).owner = 42;
+
+    await service.handleUpload(req, res);
+
+    expect(capturedStatus()).toBe(200);
+    expect(capturedSend()).not.toBeNull();
+    expect(incrementSpy).toHaveBeenCalledWith(42, 30);
+  });
+
+  it('redirects an anonymous conversion over 21 cards to /limit?kind=anonymous and does not send the deck', async () => {
+    mockPackages([{ name: 'deck', cardCount: 22 }]);
+    const usersRepo = buildUsersRepo();
+    const incrementSpy = usersRepo.incrementCardUsage as jest.Mock;
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      usersRepo
+    );
+    const req = buildRequest();
+    const { res, capturedSend, redirectedTo } = responseWithRedirect();
+
+    await service.handleUpload(req, res);
+
+    expect(redirectedTo()).toBe('/limit?kind=anonymous');
+    expect(capturedSend()).toBeNull();
+    expect(incrementSpy).not.toHaveBeenCalled();
+  });
+
+  it('sends the deck for an anonymous conversion at or under 21 cards without incrementing usage', async () => {
+    mockPackages([{ name: 'deck', cardCount: 21 }]);
+    const usersRepo = buildUsersRepo();
+    const incrementSpy = usersRepo.incrementCardUsage as jest.Mock;
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      usersRepo
+    );
+    const req = buildRequest();
+    const { res, capturedStatus, capturedSend } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(capturedStatus()).toBe(200);
+    expect(capturedSend()).not.toBeNull();
+    expect(incrementSpy).not.toHaveBeenCalled();
+  });
+});
+
 describe('UploadService.deleteUpload — cascade', () => {
   beforeEach(() => {
     mockStorageDelete.mockClear();
@@ -383,7 +525,7 @@ describe('UploadService.deleteUpload — cascade', () => {
       deleteJobByObjectId: jest.fn().mockResolvedValue(1),
     } as unknown as JobRepository;
 
-    const service = new UploadService(repo, jobRepository);
+    const service = new UploadService(repo, jobRepository, buildUsersRepo());
     await service.deleteUpload(7, 'k.apkg');
 
     expect(repo.findByKey).toHaveBeenCalledWith(7, 'k.apkg');
@@ -413,7 +555,7 @@ describe('UploadService.deleteUpload — cascade', () => {
       deleteJobByObjectId: jest.fn(),
     } as unknown as JobRepository;
 
-    const service = new UploadService(repo, jobRepository);
+    const service = new UploadService(repo, jobRepository, buildUsersRepo());
     await service.deleteUpload(7, 'k.apkg');
 
     expect(repo.deleteUpload).toHaveBeenCalledWith(7, 'k.apkg');
@@ -431,7 +573,7 @@ describe('UploadService.deleteUpload — cascade', () => {
       deleteJobByObjectId: jest.fn(),
     } as unknown as JobRepository;
 
-    const service = new UploadService(repo, jobRepository);
+    const service = new UploadService(repo, jobRepository, buildUsersRepo());
     await service.deleteUpload(7, 'k.apkg');
 
     expect(jobRepository.deleteJobByObjectId).not.toHaveBeenCalled();
@@ -483,7 +625,7 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
       }),
     }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
 
-    const service = new UploadService(repo, jobRepository);
+    const service = new UploadService(repo, jobRepository, buildUsersRepo());
     const req = buildRequest({ body: { 'claude-ai-flashcards': 'true' } });
     const { res } = buildResponse();
     (res.locals as Record<string, unknown>).owner = 42;

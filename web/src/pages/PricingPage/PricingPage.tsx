@@ -364,7 +364,7 @@ export default function PricingPage({
           <p className={styles.intro}>
             {isUS
               ? 'Built for spaced repetition — MCAT, USMLE, bar exam, and language prep. Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start.'
-              : 'Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start. Free for 100 cards per month, then pay once by the day or week.'}
+              : 'Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start. Sign up free for 100 cards per month, then pay once by the day or week.'}
             {!isLoggedIn && (
               <>
                 {' '}

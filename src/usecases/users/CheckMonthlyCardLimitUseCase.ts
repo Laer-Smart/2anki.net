@@ -2,7 +2,19 @@ import UsersRepository from '../../data_layer/UsersRepository';
 
 export const MONTHLY_CARD_LIMIT = 100;
 
-export const ENFORCE_AFTER = new Date(Date.UTC(2026, 5, 1));
+export const ANONYMOUS_CARD_CAP = 21;
+
+export class AnonymousCardCapError extends Error {
+  constructor(
+    public readonly cardsFound: number,
+    public readonly cap: number
+  ) {
+    super(
+      `Anonymous conversion produced ${cardsFound} cards; cap is ${cap}`
+    );
+    this.name = 'AnonymousCardCapError';
+  }
+}
 
 export class MonthlyLimitError extends Error {
   constructor(
@@ -39,7 +51,6 @@ export class CheckMonthlyCardLimitUseCase {
     now = new Date(),
   }: CheckArgs): Promise<void> {
     if (isPaying) return;
-    if (now < ENFORCE_AFTER) return;
     if (candidateCardCount <= 0) return;
 
     const { cards_used } = await this.userRepository.getCardUsage(userId);

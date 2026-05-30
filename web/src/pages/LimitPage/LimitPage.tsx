@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { track } from '../../lib/analytics/track';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
@@ -28,16 +28,75 @@ const AUTO_SYNC_BENEFITS = [
   'Cancel anytime',
 ];
 
+function AnonymousLimit() {
+  useEffect(() => {
+    track('paywall_shown', { surface: REF, variant: 'anonymous' });
+  }, []);
+
+  return (
+    <div className={styles.page}>
+      <Helmet>
+        <title>Sign up free to keep converting | 2anki</title>
+      </Helmet>
+
+      <header className={styles.header}>
+        <h1 className={styles.heading}>Sign up free to keep converting</h1>
+        <p className={styles.subheading}>
+          A free account converts up to 100 cards a month. Without an account,
+          conversions are capped at 21 cards.
+        </p>
+      </header>
+
+      <div className={styles.plans}>
+        <div className={`${styles.planCard} ${styles.planCardFeatured}`}>
+          <p className={styles.planBadge}>Free</p>
+          <p className={styles.planTitle}>Free account</p>
+          <ul className={styles.planBenefits}>
+            <li className={styles.planBenefit}>Up to 100 cards a month</li>
+            <li className={styles.planBenefit}>Save and re-download your decks</li>
+            <li className={styles.planBenefit}>Connect Notion, Dropbox, and Google Drive</li>
+          </ul>
+          <Link
+            to="/register?redirect=/upload"
+            className={styles.planCtaPrimary}
+            onClick={() =>
+              track('paywall_upgrade_clicked', {
+                surface: REF,
+                plan: 'free_signup',
+              })
+            }
+          >
+            Sign up free
+          </Link>
+        </div>
+      </div>
+
+      <p className={styles.backLink}>
+        Already have an account? <Link to="/login?redirect=/upload">Sign in</Link>
+      </p>
+    </div>
+  );
+}
+
 export function LimitPage() {
+  const [searchParams] = useSearchParams();
   const { data: userLocals } = useUserLocals();
   const email = userLocals?.user?.email;
   const isLoggedIn = userLocals?.user?.id != null;
   const [autoSyncPending, setAutoSyncPending] = useState(false);
   const [autoSyncError, setAutoSyncError] = useState<string | null>(null);
 
+  const kind = searchParams.get('kind');
+  const showAnonymous = kind === 'anonymous' || !isLoggedIn;
+
   useEffect(() => {
+    if (showAnonymous) return;
     track('paywall_shown', { surface: REF });
-  }, []);
+  }, [showAnonymous]);
+
+  if (showAnonymous) {
+    return <AnonymousLimit />;
+  }
 
   const handleAutoSyncClick = async () => {
     if (!isLoggedIn) {
