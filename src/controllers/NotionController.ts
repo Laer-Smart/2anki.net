@@ -31,6 +31,7 @@ import { getNotionId } from '../services/NotionService/getNotionId';
 import { getOwner } from '../lib/User/getOwner';
 import sendErrorResponse from '../lib/sendErrorResponse';
 import { isPaying } from '../lib/isPaying';
+import { MONTHLY_CARD_LIMIT } from '../usecases/users/CheckMonthlyCardLimitUseCase';
 import ParserRules from '../lib/parser/ParserRules';
 import { GetDatabasePreviewUseCase } from '../usecases/notion/GetDatabasePreviewUseCase';
 import { MarkNotionTokenInvalidUseCase } from '../usecases/notion/MarkNotionTokenInvalidUseCase';
@@ -193,6 +194,19 @@ class NotionController {
     const database = getDatabase();
 
     try {
+      if (!paying) {
+        const usersRepository = new UsersRepository(database);
+        const { cards_used } = await usersRepository.getCardUsage(owner);
+        if (cards_used >= MONTHLY_CARD_LIMIT) {
+          return res.status(402).json({
+            reason: 'monthly_limit',
+            code: 'monthly_limit',
+            cards_used,
+            limit: MONTHLY_CARD_LIMIT,
+          });
+        }
+      }
+
       const jobRepository = new JobRepository(database);
 
       const findOrCreate = new FindOrCreateJobUseCase(jobRepository);

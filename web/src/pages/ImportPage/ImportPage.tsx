@@ -196,7 +196,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
   }
 
   return (
-    <div className={sharedStyles.page}>
+    <div className={styles.page}>
       <div className={sharedStyles.pageHeader}>
         <h1 className={sharedStyles.title}>Import to Notion</h1>
         <p className={sharedStyles.subtitle}>
