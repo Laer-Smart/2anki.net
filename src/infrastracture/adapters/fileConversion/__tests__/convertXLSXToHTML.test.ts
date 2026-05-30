@@ -1,7 +1,8 @@
 import { readFileSync } from 'fs';
 import Workspace from '../../../../lib/parser/WorkSpace';
-import { convertXLSXToHTML } from '../convertXLSXToHTML';
+import { convertXLSXToHTML, looksLikeHeaderRow } from '../convertXLSXToHTML';
 import { join } from 'path';
+import * as XLSX from 'xlsx';
 
 describe('convertXLSXToHTML', () => {
   beforeAll(() => {
@@ -22,5 +23,64 @@ describe('convertXLSXToHTML', () => {
 
   afterAll(() => {
     delete process.env.WORKSPACE_BASE;
+  });
+});
+
+function buildXlsxBuffer(rows: unknown[][]): Buffer {
+  const worksheet = XLSX.utils.aoa_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+  return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+}
+
+describe('looksLikeHeaderRow', () => {
+  it('treats a row of short non-numeric strings as a header', () => {
+    expect(looksLikeHeaderRow(['Term', 'Definition'] as never)).toBe(true);
+  });
+
+  it('treats a row with a numeric cell as data, not a header', () => {
+    expect(looksLikeHeaderRow(['Term', 42] as never)).toBe(false);
+  });
+
+  it('keeps a row with leading short labels but a long-form back cell as data', () => {
+    const longBack =
+      'A really long answer that runs well past the heuristic length cap used to spot label-shaped rows';
+    expect(looksLikeHeaderRow(['hello', longBack] as never)).toBe(false);
+  });
+});
+
+describe('convertXLSXToHTML header detection', () => {
+  it('skips a header row when row 0 looks like labels', () => {
+    const buffer = buildXlsxBuffer([
+      ['Term', 'Definition'],
+      ['hola', 'hello'],
+      ['adiós', 'goodbye'],
+    ]);
+    const html = convertXLSXToHTML(buffer, 'deck.html');
+    expect(html).not.toContain('<summary>Term</summary>');
+    expect(html).toContain('<summary>hola</summary>');
+    expect(html).toContain('<summary>adiós</summary>');
+  });
+
+  it('keeps row 0 when it contains a numeric cell', () => {
+    const buffer = buildXlsxBuffer([
+      ['question 1', 2024],
+      ['question 2', 2025],
+    ]);
+    const html = convertXLSXToHTML(buffer, 'deck.html');
+    expect(html).toContain('<summary>question 1</summary>');
+    expect(html).toContain('<summary>question 2</summary>');
+  });
+
+  it('keeps row 0 when a cell is too long to be a label', () => {
+    const longBack =
+      'A really long answer that runs well past the heuristic length cap used to spot label-shaped rows';
+    const buffer = buildXlsxBuffer([
+      ['hola', longBack],
+      ['adiós', 'goodbye'],
+    ]);
+    const html = convertXLSXToHTML(buffer, 'deck.html');
+    expect(html).toContain('<summary>hola</summary>');
+    expect(html).toContain('<summary>adiós</summary>');
   });
 });

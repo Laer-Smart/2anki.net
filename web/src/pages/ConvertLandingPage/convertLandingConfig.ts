@@ -92,27 +92,27 @@ const csvToAnki: LandingCopy = {
   pathname: '/convert/csv-to-anki',
   title: 'CSV to Anki — spreadsheets to clean Anki decks | 2anki',
   description:
-    'Import a CSV or Excel sheet as an Anki deck that opens clean — correct fields, tags applied, one row per card.',
+    'Import a CSV or Excel sheet as an Anki deck that opens clean — correct fields, one row per card.',
   h1: 'CSV to Anki — import spreadsheets as flashcard decks',
   subhead:
-    'Drop a .csv file and get a .apkg deck. Column A becomes the front, column B becomes the back. Works with Excel exports too.',
+    'Drop a .csv file and get a .apkg deck. Column A becomes the front, everything after A joins into the back. Works with Excel exports too.',
   whatComesAcross: ankiFidelityProof,
   faqs: [
     {
       q: 'What format does the CSV need to be in?',
-      a: 'Two columns minimum: front in column A, back in column B. A header row is detected and skipped automatically. UTF-8 encoding works best for accented characters and CJK text.',
+      a: 'Column A is the front. Everything after A is joined into the back with spaces. Use a 2-column file for the cleanest result. A header row is detected and skipped automatically. UTF-8 encoding works best for accented characters and CJK text.',
     },
     {
       q: 'Can I import an Excel .xlsx file directly?',
-      a: 'Yes — upload the .xlsx file and we convert it. If the spreadsheet has multiple sheets, the first sheet is used.',
+      a: 'Yes — upload the .xlsx file and we convert it. If the spreadsheet has multiple sheets, the first sheet is used. A header row that looks like labels (short non-numeric text in every column) is detected and skipped.',
     },
     {
       q: 'How do I name the deck?',
       a: 'The deck name comes from the filename — rename the file before uploading and the deck will match. You can also rename the deck inside Anki after importing.',
     },
     {
-      q: 'Can I add tags from the spreadsheet?',
-      a: 'Add a third column with a tag or comma-separated tags and they attach to every card from that row. Leave the column empty to skip tagging.',
+      q: 'Where do tags come from?',
+      a: "v1 doesn't add tags from CSV columns. To tag cards, edit them in Anki after import, or paste the deck through Notion where strikethrough text becomes a tag on every card.",
     },
   ],
 };
@@ -243,7 +243,7 @@ const lingvistToAnki: LandingCopy = {
   faqs: [
     {
       q: 'How do I export from Lingvist?',
-      a: 'Go to your Lingvist account settings and look for the vocabulary export option. It downloads a CSV with your words and translations.',
+      a: 'Lingvist offers an account-data download — search Lingvist\'s help center at help.lingvist.com for "data export" to find the current path. The download includes a CSV of your vocabulary that you can upload here.',
     },
     {
       q: 'Which columns does Lingvist export?',
@@ -272,7 +272,7 @@ const studystackToAnki: LandingCopy = {
   faqs: [
     {
       q: 'How do I export from StudyStack?',
-      a: 'Open your stack, go to the stack settings or export menu, and choose CSV or text export. The file will have your terms and definitions.',
+      a: 'Open your stack on studystack.com and look for the export or download option in the stack\'s menu. The exported file should contain your terms and definitions, ready to upload here.',
     },
     {
       q: 'What format does the exported file use?',
@@ -284,7 +284,7 @@ const studystackToAnki: LandingCopy = {
     },
     {
       q: 'How many cards can I import?',
-      a: 'Free accounts convert up to 100 cards per month. Unlimited and Auto Sync plans remove the cap — see the pricing page.',
+      a: 'Free 2anki accounts convert up to 100 cards per month — this is the 2anki limit, not a StudyStack restriction. Unlimited and Auto Sync plans remove the cap — see the pricing page.',
     },
   ],
 };
@@ -330,7 +330,7 @@ const zorbiToAnki: LandingCopy = {
   faqs: [
     {
       q: 'How do I export from Zorbi?',
-      a: 'In Zorbi, open your deck and use the export option to download a CSV. The file contains your card fronts and backs.',
+      a: 'Open your deck on zorbi.com and look for the export option in the deck menu. Download the CSV and upload it here. If you can\'t find the export option, check Zorbi\'s help docs for the current path.',
     },
     {
       q: 'Do cloze deletions transfer?',
