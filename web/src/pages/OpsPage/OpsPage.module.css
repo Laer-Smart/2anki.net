@@ -9,12 +9,18 @@
 
 .tabs {
   display: flex;
+  flex-wrap: nowrap;
   gap: 0.25rem;
   border-bottom: 1px solid var(--color-border);
   margin: 0.25rem 0 1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .tab {
+  flex-shrink: 0;
+  white-space: nowrap;
   padding: 0.5rem 0.875rem;
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
@@ -843,6 +849,12 @@
 }
 
 /* ── Performance tab ────────────────────────────────────────────── */
+
+.tableScroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
 .table {
   width: 100%;
