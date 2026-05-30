@@ -595,7 +595,7 @@ class UsersController {
     const { code } = req.query;
     if (!code) {
       await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_cancelled' });
-      return res.redirect('/login');
+      return res.redirect('/login?error=google_signin_failed');
     }
 
     const loginRequest = await this.authService.loginWithGoogle(code as string);
@@ -604,7 +604,7 @@ class UsersController {
       const { email, name } = loginRequest;
       if (email == null) {
         await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_token_exchange_failed' });
-        return res.redirect('/login');
+        return res.redirect('/login?error=google_signin_failed');
       }
       let user = await this.userService.getUserFrom(email);
       const isNewUser = !user;
@@ -650,7 +650,7 @@ class UsersController {
       res.status(200).redirect(await this.landingForUser(req, user.id));
     } else {
       await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_token_exchange_failed' });
-      res.redirect('/login');
+      res.redirect('/login?error=google_signin_failed');
     }
   }
 
@@ -659,13 +659,13 @@ class UsersController {
     const { code } = req.query;
     if (!code) {
       await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_cancelled' });
-      return res.redirect('/login');
+      return res.redirect('/login?error=microsoft_signin_failed');
     }
 
     const loginRequest = await this.authService.loginWithMicrosoft(code as string);
     if (!loginRequest) {
       await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_token_exchange_failed' });
-      return res.redirect('/login');
+      return res.redirect('/login?error=microsoft_signin_failed');
     }
 
     const { subject, email, name, emailVerified } = loginRequest;
@@ -683,11 +683,11 @@ class UsersController {
     if (!user) {
       if (!email) {
         await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_email_missing' });
-        return res.redirect('/login');
+        return res.redirect('/login?error=microsoft_signin_failed');
       }
       if (!emailVerified) {
         await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_email_not_verified' });
-        return res.redirect('/login');
+        return res.redirect('/login?error=microsoft_signin_failed');
       }
       const existingByEmail = await this.userService.getUserFrom(email);
       if (existingByEmail) {

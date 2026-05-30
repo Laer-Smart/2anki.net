@@ -983,7 +983,7 @@ describe('UsersController.loginWithMicrosoft', () => {
 
     await controller.loginWithMicrosoft(buildReq(), res);
 
-    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=microsoft_signin_failed');
     expect(register).not.toHaveBeenCalled();
     expect(MockedOauthIdentitiesRepo.prototype.link).not.toHaveBeenCalled();
   });
@@ -1001,7 +1001,7 @@ describe('UsersController.loginWithMicrosoft', () => {
 
     await controller.loginWithMicrosoft(buildReq(), res);
 
-    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=microsoft_signin_failed');
     expect(register).not.toHaveBeenCalled();
   });
 
@@ -1011,7 +1011,7 @@ describe('UsersController.loginWithMicrosoft', () => {
 
     await controller.loginWithMicrosoft(buildReq(null), res);
 
-    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=microsoft_signin_failed');
   });
 
   it('redirects to /login when the token exchange fails', async () => {
@@ -1021,7 +1021,7 @@ describe('UsersController.loginWithMicrosoft', () => {
 
     await controller.loginWithMicrosoft(buildReq('bad-code'), res);
 
-    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=microsoft_signin_failed');
   });
 });
 
@@ -1450,7 +1450,7 @@ describe('UsersController.loginWithGoogle — error recording', () => {
       surface: 'oauth_google',
       code: 'oauth_cancelled',
     });
-    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=google_signin_failed');
   });
 
   it('records oauth_token_exchange_failed when loginWithGoogle returns null', async () => {
@@ -1465,7 +1465,7 @@ describe('UsersController.loginWithGoogle — error recording', () => {
       surface: 'oauth_google',
       code: 'oauth_token_exchange_failed',
     });
-    expect(res.redirect).toHaveBeenCalledWith('/login');
+    expect(res.redirect).toHaveBeenCalledWith('/login?error=google_signin_failed');
   });
 
   it('records oauth_user_creation_failed when user lookup returns null after register', async () => {
