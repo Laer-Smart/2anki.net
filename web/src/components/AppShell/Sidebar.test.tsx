@@ -361,6 +361,16 @@ describe('Sidebar collapse toggle', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders the rail label, flipping between Collapse and Expand', () => {
+    renderSidebar();
+    const toggle = screen.getByRole('button', { name: 'Collapse sidebar' });
+    expect(toggle).toHaveTextContent('Collapse');
+    fireEvent.click(toggle);
+    expect(
+      screen.getByRole('button', { name: 'Expand sidebar' })
+    ).toHaveTextContent('Expand');
+  });
+
   it('persists the collapsed state to localStorage', () => {
     renderSidebar();
     fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));

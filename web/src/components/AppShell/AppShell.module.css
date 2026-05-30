@@ -130,14 +130,15 @@
   top: 50%;
   transform: translateY(-50%);
   white-space: nowrap;
-  padding: 2px 8px;
-  border: 1px solid var(--color-border);
+  padding: 4px 10px;
   border-radius: var(--radius-sm);
-  background: var(--color-bg-secondary);
-  box-shadow: var(--shadow-sm);
+  /* Tooltip is intentionally theme-independent, like Stripe's: always a
+     dark slate pill so the label reads on light and dark backgrounds. */
+  background: #1f2937;
+  box-shadow: var(--shadow-md);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  color: var(--color-text-primary);
+  color: #f9fafb;
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition-fast);
