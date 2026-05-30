@@ -185,6 +185,18 @@
   line-height: var(--leading-normal);
 }
 
+.densityHintLink {
+  font-size: inherit;
+  font-weight: var(--font-medium);
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+
+.densityHintLink:hover {
+  color: var(--color-text-link-hover);
+  text-decoration: underline;
+}
+
 .cameraButtonContainer {
   display: flex;
   flex-direction: column;

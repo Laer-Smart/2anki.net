@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
@@ -546,9 +547,20 @@ export function PhotoToFlashcardsPage() {
           Include multiple-choice questions
         </label>
         <p className={pageStyles.densityHint}>
-          {isPaying
-            ? 'When the source looks like a quiz, the AI writes options A–D.'
-            : 'Upgrade for multiple-choice cards.'}
+          {isPaying ? (
+            'When the source looks like a quiz, the AI writes options A–D.'
+          ) : (
+            <>
+              <Link
+                to="/pricing?from=photo-mcq"
+                className={pageStyles.densityHintLink}
+              >
+                Upgrade
+              </Link>{' '}
+              for multiple-choice cards — A–D options when the source looks like
+              a quiz.
+            </>
+          )}
         </p>
       </div>
 
