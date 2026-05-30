@@ -15,6 +15,12 @@ type UploadSource = 'camera' | 'library';
 type Density = 'sparse' | 'balanced' | 'dense';
 type PhotoMode = 'generative' | 'verbatim';
 
+interface SelectedPhoto {
+  id: string;
+  file: File;
+  previewUrl: string;
+}
+
 const MIN_CARDS = 1;
 const MAX_CARDS = 20;
 const DEFAULT_CARDS = 10;
@@ -53,13 +59,34 @@ function downloadBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
+function makePhotoId(): string {
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
+    return crypto.randomUUID();
+  }
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return `photo-${Date.now()}-${hex}`;
+}
+
+function validatePhoto(file: File): string | null {
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return 'Use JPEG, PNG, WebP, or GIF.';
+  }
+  if (file.size > MAX_SIZE_BYTES) {
+    return 'Photo is over the 10 MB limit. Try a smaller image.';
+  }
+  return null;
+}
+
 export function PhotoToFlashcardsPage() {
   const { data } = useUserLocals();
   const isPaying = isPayingUser(data?.locals);
 
   const [deckName, setDeckName] = useState('');
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<SelectedPhoto[]>([]);
   const [status, setStatus] = useState<Status>('idle');
   const [cardCount, setCardCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -75,40 +102,65 @@ export function PhotoToFlashcardsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
+  const photoCount = photos.length;
+
+  const resetInputs = () => {
+    if (fileInputRef.current != null) fileInputRef.current.value = '';
+    if (cameraInputRef.current != null) cameraInputRef.current.value = '';
+  };
+
   const reset = () => {
-    setFile(null);
-    setPreviewUrl(null);
+    photos.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+    setPhotos([]);
     setStatus('idle');
     setCardCount(0);
     setError(null);
     setVerbatimEmptyState(false);
+    resetInputs();
   };
 
-  const handleFile = (next: File, source: UploadSource) => {
+  const appendPhotos = (incoming: File[], source: UploadSource) => {
+    if (incoming.length === 0) return;
     setError(null);
-    if (!ALLOWED_TYPES.includes(next.type)) {
-      setError('Use JPEG, PNG, WebP, or GIF.');
+
+    const accepted: SelectedPhoto[] = [];
+    let rejection: string | null = null;
+    for (const file of incoming) {
+      const issue = validatePhoto(file);
+      if (issue != null) {
+        rejection = issue;
+        continue;
+      }
+      accepted.push({
+        id: makePhotoId(),
+        file,
+        previewUrl: URL.createObjectURL(file),
+      });
+    }
+
+    if (accepted.length === 0) {
+      if (rejection != null) setError(rejection);
+      resetInputs();
       return;
     }
-    if (next.size > MAX_SIZE_BYTES) {
-      setError('Photo is over the 10 MB limit. Try a smaller image.');
-      return;
-    }
+
+    if (rejection != null) setError(rejection);
     setUploadSource(source);
-    setFile(next);
-    setPreviewUrl(URL.createObjectURL(next));
+    setPhotos((current) => [...current, ...accepted]);
     setStatus('idle');
     setCardCount(0);
+    setVerbatimEmptyState(false);
+    resetInputs();
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const next = e.target.files?.[0];
-    if (next != null) handleFile(next, 'library');
+    const next = Array.from(e.target.files ?? []);
+    appendPhotos(next, 'library');
   };
 
   const handleCameraInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const next = e.target.files?.[0];
-    if (next != null) handleFile(next, 'camera');
+    const next = Array.from(e.target.files ?? []);
+    appendPhotos(next, 'camera');
   };
 
   const handleCardCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,8 +175,27 @@ export function PhotoToFlashcardsPage() {
 
   const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
-    const next = e.dataTransfer.files[0];
-    if (next != null) handleFile(next, 'library');
+    const next = Array.from(e.dataTransfer.files ?? []);
+    appendPhotos(next, 'library');
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLLabelElement>) => {
+    const items = Array.from(e.clipboardData?.files ?? []);
+    if (items.length === 0) return;
+    e.preventDefault();
+    appendPhotos(items, 'library');
+  };
+
+  const removePhoto = (id: string) => {
+    setPhotos((current) => {
+      const removed = current.find((p) => p.id === id);
+      if (removed != null) URL.revokeObjectURL(removed.previewUrl);
+      return current.filter((p) => p.id !== id);
+    });
+    setStatus('idle');
+    setCardCount(0);
+    setVerbatimEmptyState(false);
+    setError(null);
   };
 
   const switchToGenerative = () => {
@@ -133,9 +204,79 @@ export function PhotoToFlashcardsPage() {
     card1Ref.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
   };
 
+  const convertOnePhoto = async (
+    photo: SelectedPhoto,
+    name: string
+  ): Promise<{ cardCount: number } | { error: string }> => {
+    const prepared = await prepareImageForVision(photo.file);
+
+    const res = await fetch('/api/image-occlusion/photo-to-deck', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        imageBase64: prepared.base64,
+        mediaType: prepared.mediaType,
+        deckName: name,
+        width: prepared.width,
+        height: prepared.height,
+        includeSourceImage,
+        density,
+        mode,
+        mcqEnabled: includeMcq && isPaying,
+      }),
+    });
+
+    if (res.status === 404) {
+      return { error: "Photo to deck isn't available yet." };
+    }
+    if (res.status === 401 || res.status === 403) {
+      return { error: 'Sign in to use photo to deck.' };
+    }
+    if (res.status === 413) {
+      return {
+        error: 'Photo is too large. Try a smaller or lower-resolution image.',
+      };
+    }
+    if (res.status === 429) {
+      const body = (await res.json().catch(() => ({}))) as {
+        used?: number;
+        limit?: number;
+      };
+      const limit = body.limit ?? 5;
+      const used = body.used ?? limit;
+      track('photo_quota_reached', { used, limit });
+      return {
+        error: `Free plan is ${limit} photos per month. Upgrade for unlimited.`,
+      };
+    }
+    if (!res.ok) {
+      const body = (await res
+        .json()
+        .catch(() => ({ message: res.statusText }))) as { message?: string };
+      return { error: body.message ?? "Couldn't read this photo. Try again." };
+    }
+
+    const count = Number(res.headers.get('X-Card-Count') ?? '0');
+    const blob = await res.blob();
+    downloadBlob(blob, `${name}.apkg`);
+    return { cardCount: count };
+  };
+
+  const buildDeckName = (
+    photo: SelectedPhoto,
+    index: number,
+    total: number
+  ): string => {
+    const trimmed = deckName.trim();
+    const fallback = photo.file.name.replace(/\.[^.]+$/, '') || 'Photo deck';
+    if (trimmed.length === 0) return fallback;
+    return total === 1 ? trimmed : `${trimmed} ${index + 1}`;
+  };
+
   const handleConvert = async () => {
-    if (file == null) {
-      setError('Select a photo first.');
+    if (photos.length === 0) {
+      setError('Add a photo first.');
       return;
     }
     setError(null);
@@ -143,84 +284,45 @@ export function PhotoToFlashcardsPage() {
     setStatus('reading');
     track('photo_upload_started', { source: uploadSource });
 
+    let totalCards = 0;
+
     try {
-      const prepared = await prepareImageForVision(file);
-
-      const baseName = file.name.replace(/\.[^.]+$/, '') || 'Photo deck';
-      const name = deckName.trim() || baseName;
-
-      const res = await fetch('/api/image-occlusion/photo-to-deck', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageBase64: prepared.base64,
-          mediaType: prepared.mediaType,
-          deckName: name,
-          width: prepared.width,
-          height: prepared.height,
-          includeSourceImage,
-          density,
-          mode,
-          mcqEnabled: includeMcq && isPaying,
-        }),
-      });
-
-      if (res.status === 404) {
-        setError("Photo to deck isn't available yet.");
-        setStatus('idle');
-        return;
-      }
-      if (res.status === 401 || res.status === 403) {
-        setError('Sign in to use photo to deck.');
-        setStatus('idle');
-        return;
-      }
-      if (res.status === 413) {
-        setError(
-          'Photo is too large. Try a smaller or lower-resolution image.'
-        );
-        setStatus('idle');
-        return;
-      }
-      if (res.status === 429) {
-        const body = (await res.json().catch(() => ({}))) as {
-          used?: number;
-          limit?: number;
-        };
-        const limit = body.limit ?? 5;
-        const used = body.used ?? limit;
-        track('photo_quota_reached', { used, limit });
-        setError(
-          `Free plan is ${limit} photos per month. Upgrade for unlimited.`
-        );
-        setStatus('idle');
-        return;
-      }
-      if (!res.ok) {
-        const body = (await res
-          .json()
-          .catch(() => ({ message: res.statusText }))) as {
-          message?: string;
-        };
-        setError(body.message ?? "Couldn't read this photo. Try again.");
-        setStatus('idle');
-        return;
+      for (let i = 0; i < photos.length; i += 1) {
+        const photo = photos[i];
+        const name = buildDeckName(photo, i, photos.length);
+        const result = await convertOnePhoto(photo, name);
+        if ('error' in result) {
+          setError(result.error);
+          setStatus('idle');
+          return;
+        }
+        totalCards += result.cardCount;
       }
 
-      const count = Number(res.headers.get('X-Card-Count') ?? '0');
-      const blob = await res.blob();
-      downloadBlob(blob, `${name}.apkg`);
-      setCardCount(count);
+      setCardCount(totalCards);
       setStatus('done');
-
-      if (mode === 'verbatim' && count === 0) {
+      if (mode === 'verbatim' && totalCards === 0) {
         setVerbatimEmptyState(true);
       }
     } catch {
       setError('Something broke on our end. Try again in a moment.');
       setStatus('idle');
     }
+  };
+
+  const renderConvertLabel = (): string => {
+    if (status === 'reading') {
+      return photoCount > 1 ? `Reading ${photoCount} photos` : 'Reading your photo';
+    }
+    return photoCount > 1 ? `Get cards from ${photoCount} photos` : 'Get cards';
+  };
+
+  const renderSuccessLabel = (): string => {
+    const cardWord = cardCount === 1 ? 'card' : 'cards';
+    if (photoCount > 1) {
+      return `${cardCount} ${cardWord} from ${photoCount} photos. Decks downloaded.`;
+    }
+    return `${cardCount} ${cardWord} from your photo. Deck downloaded.`;
   };
 
   return (
@@ -285,7 +387,9 @@ export function PhotoToFlashcardsPage() {
             value={deckName}
             onChange={(e) => setDeckName(e.target.value)}
             className={pageStyles.deckNameInput}
-            placeholder={file?.name.replace(/\.[^.]+$/, '') || 'Photo deck'}
+            placeholder={
+              photos[0]?.file.name.replace(/\.[^.]+$/, '') || 'Photo deck'
+            }
           />
         </div>
 
@@ -315,32 +419,65 @@ export function PhotoToFlashcardsPage() {
           htmlFor="photo-file-input"
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
+          onPaste={handlePaste}
         >
-          {previewUrl == null ? (
+          {photoCount === 0 ? (
             <>
               <span className={pageStyles.dropzoneTitle}>
-                Drop a photo or click to select
+                Drop photos, paste, or click to add
               </span>
               <span className={pageStyles.dropzoneHint}>
-                JPEG, PNG, WebP, GIF — up to 10 MB
+                JPEG, PNG, WebP, GIF — up to 10 MB each. Add as many as you need.
               </span>
             </>
           ) : (
-            <img
-              src={previewUrl}
-              alt="Selected photo"
-              className={pageStyles.preview}
-            />
+            <>
+              <span className={pageStyles.dropzoneTitle}>
+                Add more — drop, paste, or click
+              </span>
+              <span className={pageStyles.dropzoneHint}>
+                {photoCount} {photoCount === 1 ? 'photo' : 'photos'} ready
+              </span>
+            </>
           )}
           <input
             ref={fileInputRef}
             id="photo-file-input"
             type="file"
             accept={ALLOWED_TYPES.join(',')}
+            multiple
             onChange={handleFileInput}
             hidden
           />
         </label>
+
+        {photoCount > 0 && (
+          <ul
+            className={pageStyles.thumbnailStrip}
+            aria-label={`${photoCount} ${photoCount === 1 ? 'photo' : 'photos'} selected`}
+          >
+            {photos.map((photo) => (
+              <li key={photo.id} className={pageStyles.thumbnail}>
+                <img
+                  src={photo.previewUrl}
+                  alt={photo.file.name}
+                  className={pageStyles.thumbnailImage}
+                />
+                <button
+                  type="button"
+                  className={pageStyles.thumbnailRemove}
+                  aria-label={`Remove ${photo.file.name}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    removePhoto(photo.id);
+                  }}
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {mode === 'generative' && (
@@ -364,7 +501,7 @@ export function PhotoToFlashcardsPage() {
           </div>
           <p className={pageStyles.densityHint}>
             3–5 for a quick pass, 6–10 for typical study, 11–20 for a dense
-            page.
+            page. Applied to each photo.
           </p>
         </div>
       )}
@@ -420,10 +557,7 @@ export function PhotoToFlashcardsPage() {
       )}
 
       {status === 'done' && !verbatimEmptyState && (
-        <div className={styles.notificationSuccess}>
-          {cardCount} {cardCount === 1 ? 'card' : 'cards'} from your photo. Deck
-          downloaded.
-        </div>
+        <div className={styles.notificationSuccess}>{renderSuccessLabel()}</div>
       )}
 
       {verbatimEmptyState && (
@@ -445,7 +579,7 @@ export function PhotoToFlashcardsPage() {
           type="button"
           className={styles.btnSecondary}
           onClick={reset}
-          disabled={file == null && status === 'idle'}
+          disabled={photoCount === 0 && status === 'idle'}
         >
           Clear
         </button>
@@ -453,9 +587,9 @@ export function PhotoToFlashcardsPage() {
           type="button"
           className={styles.btnPrimary}
           onClick={handleConvert}
-          disabled={file == null || status === 'reading'}
+          disabled={photoCount === 0 || status === 'reading'}
         >
-          {status === 'reading' ? 'Reading your photo' : 'Get cards'}
+          {renderConvertLabel()}
         </button>
       </div>
     </section>

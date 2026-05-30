@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-30-photo-upload-append",
+  "date": "2026-05-30",
+  "type": "fix",
+  "title": "Photo to deck keeps earlier photos when you add another one"
+}
