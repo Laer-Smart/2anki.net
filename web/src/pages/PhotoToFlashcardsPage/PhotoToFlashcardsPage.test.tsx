@@ -257,7 +257,7 @@ describe('PhotoToFlashcardsPage', () => {
     expect(input.min).toBe('1');
     expect(input.max).toBe('20');
     expect(
-      screen.getByText('3–5 for a quick pass, 6–10 for typical study, 11–20 for a dense page.')
+      screen.getByText(/3–5 for a quick pass, 6–10 for typical study, 11–20 for a dense page/)
     ).toBeTruthy();
   });
 
@@ -527,6 +527,143 @@ describe('PhotoToFlashcardsPage', () => {
         (fetchMock.mock.calls[0][1] as RequestInit).body as string
       ) as { includeSourceImage: boolean };
       expect(body.includeSourceImage).toBe(false);
+    });
+  });
+
+  describe('multi-photo append behaviour', () => {
+    function getThumbnails(): HTMLElement[] {
+      return Array.from(
+        document.querySelectorAll('[aria-label^="Remove "]')
+      ) as HTMLElement[];
+    }
+
+    it('appends a second picker selection instead of replacing the first', () => {
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [makePhoto('first.jpg')] } });
+      fireEvent.change(input, { target: { files: [makePhoto('second.jpg')] } });
+      expect(getThumbnails()).toHaveLength(2);
+      expect(screen.getByRole('button', { name: 'Remove first.jpg' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Remove second.jpg' })).toBeTruthy();
+    });
+
+    it('accepts multiple photos in a single picker invocation', () => {
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, {
+        target: { files: [makePhoto('a.jpg'), makePhoto('b.jpg'), makePhoto('c.jpg')] },
+      });
+      expect(getThumbnails()).toHaveLength(3);
+    });
+
+    it('appends drag-and-drop additions to the existing set', () => {
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [makePhoto('one.jpg')] } });
+
+      const dropzone = document.querySelector('label[for="photo-file-input"]') as HTMLElement;
+      fireEvent.drop(dropzone, {
+        dataTransfer: { files: [makePhoto('two.jpg'), makePhoto('three.jpg')] },
+      });
+      expect(getThumbnails()).toHaveLength(3);
+    });
+
+    it('appends clipboard-pasted images to the existing set', () => {
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [makePhoto('one.jpg')] } });
+
+      const dropzone = document.querySelector('label[for="photo-file-input"]') as HTMLElement;
+      fireEvent.paste(dropzone, {
+        clipboardData: { files: [makePhoto('pasted.jpg')] },
+      });
+      expect(getThumbnails()).toHaveLength(2);
+      expect(screen.getByRole('button', { name: 'Remove pasted.jpg' })).toBeTruthy();
+    });
+
+    it('removes the targeted photo when its × button is clicked and leaves the rest', () => {
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, {
+        target: { files: [makePhoto('keep1.jpg'), makePhoto('drop.jpg'), makePhoto('keep2.jpg')] },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Remove drop.jpg' }));
+      expect(getThumbnails()).toHaveLength(2);
+      expect(screen.getByRole('button', { name: 'Remove keep1.jpg' })).toBeTruthy();
+      expect(screen.getByRole('button', { name: 'Remove keep2.jpg' })).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Remove drop.jpg' })).toBeNull();
+    });
+
+    it('returns to the empty state after removing the last thumbnail', () => {
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [makePhoto('only.jpg')] } });
+      expect(getThumbnails()).toHaveLength(1);
+      fireEvent.click(screen.getByRole('button', { name: 'Remove only.jpg' }));
+      expect(getThumbnails()).toHaveLength(0);
+      expect(screen.getByText('Drop photos, paste, or click to add')).toBeTruthy();
+    });
+
+    it('keeps duplicate filenames in the same batch (one is allowed)', () => {
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, {
+        target: { files: [makePhoto('same.jpg'), makePhoto('same.jpg')] },
+      });
+      expect(getThumbnails()).toHaveLength(2);
+    });
+
+    it('the Convert CTA reflects the photo count after each addition', () => {
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, { target: { files: [makePhoto('a.jpg')] } });
+      expect(screen.getByRole('button', { name: 'Get cards' })).toBeTruthy();
+      fireEvent.change(input, { target: { files: [makePhoto('b.jpg')] } });
+      expect(screen.getByRole('button', { name: 'Get cards from 2 photos' })).toBeTruthy();
+      fireEvent.change(input, { target: { files: [makePhoto('c.jpg')] } });
+      expect(screen.getByRole('button', { name: 'Get cards from 3 photos' })).toBeTruthy();
+    });
+
+    it('rejects an invalid file in a mixed batch but keeps the valid ones', () => {
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      const pdf = new File(['x'], 'doc.pdf', { type: 'application/pdf' });
+      fireEvent.change(input, { target: { files: [makePhoto('ok.jpg'), pdf] } });
+      expect(getThumbnails()).toHaveLength(1);
+      expect(screen.getByText('Use JPEG, PNG, WebP, or GIF.')).toBeTruthy();
+    });
+
+    it('exposes a multiple-file input so picker allows in-batch multi-select', () => {
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      expect(input.multiple).toBe(true);
+    });
+
+    it('uploads each photo sequentially when converting a multi-photo set', async () => {
+      setLocals({ paying: true });
+      const makeOkResponse = () =>
+        new Response('fake-apkg-bytes', {
+          status: 200,
+          headers: {
+            'X-Card-Count': '5',
+            'Content-Type': 'application/octet-stream',
+          },
+        });
+      const fetchMock = vi.fn().mockImplementation(async () => makeOkResponse());
+      vi.stubGlobal('fetch', fetchMock);
+      HTMLAnchorElement.prototype.click = vi.fn();
+
+      render(<PhotoToFlashcardsPage />);
+      const input = document.getElementById('photo-file-input') as HTMLInputElement;
+      fireEvent.change(input, {
+        target: { files: [makePhoto('a.jpg'), makePhoto('b.jpg')] },
+      });
+      fireEvent.click(screen.getByRole('button', { name: 'Get cards from 2 photos' }));
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      await waitFor(() => {
+        expect(screen.getByText(/10 cards from 2 photos\. Decks downloaded\./)).toBeTruthy();
+      });
     });
   });
 });
