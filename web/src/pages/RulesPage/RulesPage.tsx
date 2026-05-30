@@ -65,6 +65,14 @@ const defaultRules: NewRule = {
 
 type RuleListKey = 'flashcard_is' | 'sub_deck_is' | 'deck_is';
 
+function loadDeckSelection(raw: string | null | undefined): string[] {
+  if (raw == null || raw.length === 0) {
+    return [...deckOptions];
+  }
+  const allowed = raw.split(',').filter((v) => deckOptions.includes(v));
+  return allowed.length > 0 ? allowed : [...deckOptions];
+}
+
 const byLocale = (a: string, b: string) => a.localeCompare(b);
 
 function snapshot(rules: NewRule, tags: string, email: boolean) {
@@ -132,7 +140,7 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
               sub_deck_is: rule.sub_deck_is
                 .split(',')
                 .filter((v: string) => subDeckOptions.includes(v)),
-              deck_is: deckOptions,
+              deck_is: loadDeckSelection(rule.deck_is),
             }
           : defaultRules;
         setRules(loaded);
@@ -201,11 +209,14 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
     if (isSaving) return;
     setIsSaving(true);
 
+    const deckSelection =
+      rules.deck_is.length === 0 ? [...deckOptions] : rules.deck_is;
+
     try {
       await get2ankiApi().saveRules(
         id,
         rules.flashcard_is,
-        rules.deck_is,
+        deckSelection,
         rules.sub_deck_is,
         tags,
         sendEmail
@@ -314,17 +325,36 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
             <section className={styles.optionGroup}>
               <div className={styles.groupHeader}>
                 <h2 className={styles.groupHeading}>Decks and sub-decks</h2>
-                <FieldHint text="Pages and databases always become decks. Pick which blocks nest inside as sub-decks." />
+                <FieldHint text="Pick which Notion block types create a new deck, and which nest inside as sub-decks." />
               </div>
               <p className={styles.groupHint}>
-                Pages and databases become decks. The blocks below nest inside
-                as sub-decks.
+                By default, Notion pages and databases become decks. The blocks
+                below nest inside as sub-decks.
               </p>
-              <RuleDefinition
-                value={rules.sub_deck_is}
-                options={subDeckOptions}
-                onSelected={(fco) => toggleSelection('sub_deck_is', fco)}
-              />
+
+              <div className={styles.section}>
+                <div className={styles.labelRow}>
+                  <span className={styles.sectionLabel}>Deck boundaries</span>
+                  <FieldHint text="Notion block types that start a new deck. Defaults to page and database." />
+                </div>
+                <RuleDefinition
+                  value={rules.deck_is}
+                  options={deckOptions}
+                  onSelected={(fco) => toggleSelection('deck_is', fco)}
+                />
+              </div>
+
+              <div className={styles.section}>
+                <div className={styles.labelRow}>
+                  <span className={styles.sectionLabel}>Sub-decks</span>
+                  <FieldHint text="Notion block types that nest inside a deck as a sub-deck." />
+                </div>
+                <RuleDefinition
+                  value={rules.sub_deck_is}
+                  options={subDeckOptions}
+                  onSelected={(fco) => toggleSelection('sub_deck_is', fco)}
+                />
+              </div>
             </section>
 
             <section className={styles.optionGroup}>

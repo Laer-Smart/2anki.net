@@ -60,7 +60,19 @@ class ParserRulesRepository implements IParserRulesRepository {
 
       if (result) {
         rules.setFlashcardTypes(result.flashcard_is.split(','));
-        rules.DECK = (result.deck_is ?? '').split(',').filter(Boolean);
+        const deckTypes = (result.deck_is ?? '')
+          .split(',')
+          .filter(Boolean);
+        if (deckTypes.length > 0) {
+          try {
+            rules.setDeckTypes(deckTypes);
+          } catch (validationError) {
+            console.info(
+              `Invalid deck_is for object_id ${id}; falling back to defaults`,
+              validationError
+            );
+          }
+        }
         rules.SUB_DECKS = (result.sub_deck_is ?? '').split(',').filter(Boolean);
         rules.TAGS = result.tags_is;
         rules.EMAIL_NOTIFICATION = result.email_notification;

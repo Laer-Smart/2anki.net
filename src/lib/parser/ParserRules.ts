@@ -2,6 +2,8 @@ import { getDatabase } from '../../data_layer';
 import addHeadings from './helpers/addHeadings';
 
 class ParserRules {
+  static readonly DECK_TYPE_ALLOWLIST: readonly string[] = ['page', 'database'];
+
   private FLASHCARD = ['toggle'];
 
   DECK = ['page', 'database'];
@@ -28,6 +30,26 @@ class ParserRules {
    */
   setFlashcardTypes(types: string[]) {
     this.FLASHCARD = types;
+  }
+
+  setDeckTypes(types: string[]) {
+    if (!Array.isArray(types) || types.length === 0) {
+      throw new Error('setDeckTypes: at least one deck type is required');
+    }
+    const unknown = types.filter(
+      (t) => !ParserRules.DECK_TYPE_ALLOWLIST.includes(t)
+    );
+    if (unknown.length > 0) {
+      throw new Error(
+        `setDeckTypes: unsupported deck types: ${unknown.join(', ')}`
+      );
+    }
+    const seen = new Set<string>();
+    this.DECK = types.filter((t) => {
+      if (seen.has(t)) return false;
+      seen.add(t);
+      return true;
+    });
   }
 
   /**

@@ -23,6 +23,7 @@ const mockApi = {
   deleteSettings: vi.fn(),
   addFavorite: vi.fn(),
   deleteFavorite: vi.fn(),
+  saveRules: vi.fn(),
 };
 
 function renderPage(id = 'page-abc') {
@@ -87,5 +88,80 @@ describe('RulesPage reset', () => {
       expect(mockApi.deleteRules).toHaveBeenCalledWith('page-xyz');
       expect(mockApi.deleteSettings).toHaveBeenCalledWith('page-xyz');
     });
+  });
+});
+
+describe('RulesPage deck boundaries', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockApi.getRules.mockResolvedValue(null);
+    mockApi.getFavorites.mockResolvedValue([]);
+    mockApi.saveRules.mockResolvedValue(undefined);
+  });
+
+  it('renders a Deck boundaries label so users can configure which blocks start a deck', async () => {
+    renderPage();
+    await waitFor(() => {
+      expect(screen.getByText('Deck boundaries')).toBeInTheDocument();
+    });
+  });
+
+  it('persists the deck-types selection when the user clicks Save changes', async () => {
+    renderPage('page-deck-select');
+    await waitFor(() => {
+      expect(screen.getByText('Deck boundaries')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'database' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    await waitFor(() => {
+      expect(mockApi.saveRules).toHaveBeenCalled();
+    });
+    const call = mockApi.saveRules.mock.calls[0];
+    expect(call[0]).toBe('page-deck-select');
+    expect(call[2]).toEqual(['page']);
+  });
+
+  it('falls back to the defaults when the user has deselected every deck type', async () => {
+    renderPage('page-deck-empty');
+    await waitFor(() => {
+      expect(screen.getByText('Deck boundaries')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'page' }));
+    fireEvent.click(screen.getByRole('button', { name: 'database' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    await waitFor(() => {
+      expect(mockApi.saveRules).toHaveBeenCalled();
+    });
+    const call = mockApi.saveRules.mock.calls[0];
+    expect(call[2]).toEqual(['page', 'database']);
+  });
+
+  it('loads the saved deck-types from a stored rule', async () => {
+    mockApi.getRules.mockResolvedValue({
+      id: 1,
+      object_id: 'page-loaded',
+      flashcard_is: 'toggle',
+      sub_deck_is: 'child_page',
+      tags_is: 'strikethrough',
+      deck_is: 'database',
+      owner: 1,
+      email_notification: false,
+    });
+    renderPage('page-loaded');
+    await waitFor(() => {
+      expect(screen.getByText('Deck boundaries')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+    await waitFor(() => {
+      expect(mockApi.saveRules).toHaveBeenCalled();
+    });
+    const call = mockApi.saveRules.mock.calls[0];
+    expect(call[2]).toEqual(['database']);
   });
 });
