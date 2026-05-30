@@ -22,6 +22,20 @@ describe('PassCheckoutController', () => {
     expect(res.json).toHaveBeenCalledWith({ url: 'https://stripe/session' });
   });
 
+  it('forwards the anon_id cookie to the use case when present', async () => {
+    const execute = jest.fn().mockResolvedValue({ url: 'https://stripe/session' });
+    const useCase = { execute } as unknown as CreatePassCheckoutUseCase;
+    const controller = new PassCheckoutController(useCase);
+    const res = makeRes();
+    const req = { cookies: { anon_id: 'anon-uuid-123' } } as never;
+
+    await controller.createSession(req, res);
+
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({ anonId: 'anon-uuid-123' })
+    );
+  });
+
   it('propagates use case errors', async () => {
     const execute = jest.fn().mockRejectedValue(new Error('stripe down'));
     const useCase = { execute } as unknown as CreatePassCheckoutUseCase;

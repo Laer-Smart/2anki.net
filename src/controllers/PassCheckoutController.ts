@@ -9,8 +9,9 @@ class PassCheckoutController {
     const userId = res.locals.owner as number | undefined;
     const userEmail = res.locals.email as string | undefined;
     const variant = parsePricingVariant(req.body?.variant);
+    const anonId = (req.cookies?.anon_id as string | undefined) ?? undefined;
 
-    const result = await this.useCase.execute({ userId, userEmail, variant });
+    const result = await this.useCase.execute({ userId, userEmail, variant, anonId });
     res.json(result);
   }
 }

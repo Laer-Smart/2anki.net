@@ -77,6 +77,36 @@ describe('AutoSyncCheckoutUseCase', () => {
     );
   });
 
+  test('stamps anon_id into metadata when present', async () => {
+    mockCountActive.mockResolvedValue(0);
+    mockGetUserActiveSubscriptions.mockResolvedValue([]);
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+
+    const uc = makeUseCase();
+    await uc.execute({ userEmail: 'user@example.com', userId: 42, anonId: 'anon-uuid-123' });
+
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: { user_id: '42', anon_id: 'anon-uuid-123' },
+      })
+    );
+  });
+
+  test('omits anon_id from metadata when absent', async () => {
+    mockCountActive.mockResolvedValue(0);
+    mockGetUserActiveSubscriptions.mockResolvedValue([]);
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+
+    const uc = makeUseCase();
+    await uc.execute({ userEmail: 'user@example.com', userId: 42 });
+
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: { user_id: '42' },
+      })
+    );
+  });
+
   test('does not log raw Stripe IDs in session creation args', async () => {
     mockCountActive.mockResolvedValue(0);
     mockGetUserActiveSubscriptions.mockResolvedValue([]);

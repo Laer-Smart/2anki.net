@@ -17,6 +17,7 @@ export class CreatePassCheckoutUseCase {
     userId?: number;
     stripeCustomerId?: string | null;
     variant?: string;
+    anonId?: string;
   }): Promise<CreatePassCheckoutResult> {
     const appUrl = process.env.APP_URL ?? 'https://2anki.net';
     const isAnonymous = input.userId == null;
@@ -33,6 +34,9 @@ export class CreatePassCheckoutUseCase {
     }
     if (input.variant != null && input.variant !== '') {
       metadata.pricing_variant = input.variant;
+    }
+    if (input.anonId != null && input.anonId !== '') {
+      metadata.anon_id = input.anonId;
     }
 
     const sessionParams: StripeTypes.Checkout.SessionCreateParams = {

@@ -79,6 +79,19 @@ describe('UnlimitedCheckoutController', () => {
     );
   });
 
+  it('forwards the anon_id cookie to the use case when present', async () => {
+    const req = { body: { interval: 'month' }, cookies: { anon_id: 'anon-uuid-123' } } as unknown as Request;
+    const res = makeResponse();
+    const uc = makeUseCase();
+    const controller = new UnlimitedCheckoutController(uc);
+
+    await controller.createSession(req, res as unknown as Response);
+
+    expect((uc.execute as jest.Mock)).toHaveBeenCalledWith(
+      expect.objectContaining({ anonId: 'anon-uuid-123' })
+    );
+  });
+
   it('propagates use case errors', async () => {
     const execute = jest.fn().mockRejectedValue(new Error('stripe down'));
     const uc = { execute } as unknown as UnlimitedCheckoutUseCase;

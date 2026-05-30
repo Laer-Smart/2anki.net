@@ -9,8 +9,9 @@ class AutoSyncCheckoutController {
     const userId = res.locals.owner as number;
     const userEmail = res.locals.email as string;
     const variant = parsePricingVariant(req.body?.variant);
+    const anonId = (req.cookies?.anon_id as string | undefined) ?? undefined;
 
-    const result = await this.useCase.execute({ userId, userEmail, variant });
+    const result = await this.useCase.execute({ userId, userEmail, variant, anonId });
     res.json(result);
   }
 }

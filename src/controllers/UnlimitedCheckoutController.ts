@@ -16,12 +16,14 @@ class UnlimitedCheckoutController {
 
     const userId = res.locals.owner as number;
     const userEmail = res.locals.email as string;
+    const anonId = (req.cookies?.anon_id as string | undefined) ?? undefined;
 
     const result = await this.useCase.execute({
       userId,
       userEmail,
       interval: interval as UnlimitedInterval,
       variant: parsePricingVariant(req.body?.variant),
+      anonId,
     });
     res.json(result);
   }
