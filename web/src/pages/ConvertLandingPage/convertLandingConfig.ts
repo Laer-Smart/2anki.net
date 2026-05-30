@@ -347,6 +347,35 @@ const zorbiToAnki: LandingCopy = {
   ],
 };
 
+const languageReactorToAnki: LandingCopy = {
+  pathname: '/convert/language-reactor-to-anki',
+  title: 'Language Reactor to Anki — move your saved phrases to Anki | 2anki',
+  description:
+    'Move your Language Reactor saves to Anki. Export the zip from Language Reactor, upload it here, and download a .apkg deck with your phrases, images, and audio.',
+  h1: 'Move your Language Reactor saves to Anki',
+  subhead:
+    'Drop the export zip from Language Reactor — your saved phrases, images, and audio come across as a clean .apkg you can study on any device.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'How do I export from Language Reactor?',
+      a: 'Open the Language Reactor extension, go to your saved phrases, and use the Export option to download a ZIP. The ZIP contains a CSV of your phrases together with the images and audio captured from the source video and subtitles.',
+    },
+    {
+      q: "What's in the export?",
+      a: 'Your saved phrases become cards — the phrase on the front, the translation and context on the back. Images and audio captured from the source video come across embedded so each card keeps its sentence audio and screenshot.',
+    },
+    {
+      q: 'Why do the thumbnails look blank in Anki on my phone?',
+      a: 'Language Reactor stores card thumbnails using CSS background-image URLs. Anki desktop renders these; Anki mobile on iOS and Android does not. The phrase, translation, and audio still work — only the thumbnail image is missing on mobile. Workaround: study these cards on desktop, or wait for the automatic rewrite that turns background-image into a regular img tag (planned).',
+    },
+    {
+      q: 'Does the sentence audio stay paired with the right card?',
+      a: 'Yes. Each audio clip is named in the export so it stays attached to the phrase it came from. After import, tapping the play button on a card plays the original line from the source video.',
+    },
+  ],
+};
+
 export const CONVERT_LANDING_PAGES: ReadonlyMap<string, LandingCopy> = new Map([
   ['notion-to-anki', notionToAnki],
   ['pdf-to-anki', pdfToAnki],
@@ -360,4 +389,5 @@ export const CONVERT_LANDING_PAGES: ReadonlyMap<string, LandingCopy> = new Map([
   ['studystack-to-anki', studystackToAnki],
   ['pleco-to-anki', plecoToAnki],
   ['zorbi-to-anki', zorbiToAnki],
+  ['language-reactor-to-anki', languageReactorToAnki],
 ]);
