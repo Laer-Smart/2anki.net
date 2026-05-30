@@ -8,6 +8,8 @@ import React, {
   useState,
 } from 'react';
 import { Link } from 'react-router-dom';
+import { useUserLocals } from '../../lib/hooks/useUserLocals';
+import { isPayingUser } from '../NavigationBar/helpers/getPlanLabel';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { clearStoredCardOptions } from '../../lib/data_layer/clearStoredCardOptions';
 import { getLocalStorageBooleanValue } from '../../lib/data_layer/getLocalStorageBooleanValue';
@@ -109,6 +111,7 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
       'process-pdfs',
       'pdf-extract-text',
       'claude-ai-flashcards',
+      'ai-comprehensive',
     ],
   },
   {
@@ -135,7 +138,10 @@ const PREMIUM_KEYS = new Set([
   'vertex-ai-pdf-questions',
   'claude-ai-flashcards',
   'image-quiz-html-to-anki',
+  'ai-comprehensive',
 ]);
+
+const PAID_ONLY_KEYS = new Set(['ai-comprehensive']);
 
 function computeSnapshot(values: {
   deckName: string;
@@ -177,6 +183,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
   ) {
     const { isLoading, isError, options, loadingDefaultsError } =
       useSettingsCardsOptions(pageId);
+    const { data: userLocals } = useUserLocals();
+    const isPaying = isPayingUser(userLocals?.locals);
     const {
       options: availableNoteTypes,
       loading: noteTypesLoading,
@@ -676,7 +684,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         {OPTION_GROUPS.map((group) => {
           const groupOptions = group.keys
             .map((k) => optionsByKey[k])
-            .filter(Boolean);
+            .filter(Boolean)
+            .filter((o: CardOption) => isPaying || !PAID_ONLY_KEYS.has(o.key));
           if (groupOptions.length === 0) return null;
 
           const isPdfAiGroup = group.label === 'PDF & AI';

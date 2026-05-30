@@ -30,6 +30,7 @@ interface GenerationData {
   settings: CardOption;
   workspace: Workspace;
   enqueuedAt?: number;
+  userId?: number | null;
 }
 
 export function getFileContents(file: UploadedFile, enqueuedAt?: number): Buffer {
@@ -87,7 +88,8 @@ async function processFile(
   paying: boolean,
   settings: CardOption,
   workspace: Workspace,
-  onProgress: (step: string) => void
+  onProgress: (step: string) => void,
+  userId: number | null
 ): Promise<FileResult> {
   const packages: Package[] = [];
   const warnings: string[] = [];
@@ -142,6 +144,7 @@ async function processFile(
       noLimits: paying,
       workspace,
       onProgress,
+      userId,
     });
 
     if (d) {
@@ -154,7 +157,8 @@ async function processFile(
       paying,
       settings,
       workspace,
-      onProgress
+      onProgress,
+      userId
     );
     packages.push(...result.packages);
     if (result.warnings) warnings.push(...result.warnings);
@@ -164,7 +168,7 @@ async function processFile(
 }
 
 async function doGenerationWork(data: GenerationData) {
-  const { paying, files, settings, workspace, enqueuedAt } = data;
+  const { paying, files, settings, workspace, enqueuedAt, userId = null } = data;
   let packages: Package[] = [];
   const warnings: string[] = [];
 
@@ -180,7 +184,8 @@ async function doGenerationWork(data: GenerationData) {
       paying,
       settings,
       workspace,
-      onProgress
+      onProgress,
+      userId
     );
     packages = packages.concat(result.packages);
     warnings.push(...result.warnings);

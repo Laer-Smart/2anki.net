@@ -141,6 +141,12 @@ const supportedOptions = (): CardOptionDetail[] => {
       false
     ),
     new CardOptionDetail(
+      'ai-comprehensive',
+      'Comprehensive AI mode',
+      'Aim for hundreds of cards per chapter instead of dozens. Conversions take longer. Paid plans only.',
+      false
+    ),
+    new CardOptionDetail(
       'share-files-for-debugging',
       'Share files for debugging when conversion fails',
       'On a failed conversion, send the uploaded files and error details to the 2anki team to investigate. Off by default to keep your notes private.',

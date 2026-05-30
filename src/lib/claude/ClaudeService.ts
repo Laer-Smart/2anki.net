@@ -148,6 +148,7 @@ export interface CardInfo {
   enableInput: boolean;
   answer: string;
   media: string[];
+  chunkIndex?: number;
 }
 
 export function normalizeTag(raw: string): string {
@@ -482,7 +483,8 @@ async function generateDeckInfoFromChunk(
   onProgress?: (step: string) => void,
   cardStyle?: string,
   cardSize?: string,
-  fieldMapping?: FieldMapping
+  fieldMapping?: FieldMapping,
+  usageCollector?: (usage: ChunkUsage) => void
 ): Promise<DeckInfo[]> {
   const tChunk0 = Date.now();
   const client = getAnthropicClient();
@@ -557,6 +559,14 @@ async function generateDeckInfoFromChunk(
     totalChunks,
   });
   logClaudeUsage('ClaudeService', response.usage);
+  if (usageCollector && response.usage) {
+    usageCollector({
+      input_tokens: response.usage.input_tokens ?? 0,
+      output_tokens: response.usage.output_tokens ?? 0,
+      cache_creation_input_tokens: response.usage.cache_creation_input_tokens ?? 0,
+      cache_read_input_tokens: response.usage.cache_read_input_tokens ?? 0,
+    });
+  }
 
   const raw = (response.content as Array<{ type: string; text?: string }>)
     .filter((block) => block.type === 'text')
@@ -614,6 +624,119 @@ async function generateDeckInfoFromChunk(
   return deckInfo;
 }
 
+const FLOOR_V1_CARD_FLOOR = 200;
+const FLOOR_V1_CARD_CEILING = 500;
+const FLOOR_V1_MAX_TOPUP_ROUNDS = 2;
+const FLOOR_V1_MAX_PARALLEL = 4;
+const FLOOR_V1_TOPUP_BUDGET_MS = 50_000;
+const FLOOR_V1_INPUT_TOKEN_PRICE_PER_MILLION = 3;
+const FLOOR_V1_OUTPUT_TOKEN_PRICE_PER_MILLION = 15;
+const FLOOR_V1_CACHE_READ_DISCOUNT = 0.1;
+const FLOOR_V1_CACHE_WRITE_PREMIUM = 1.25;
+
+export interface GenerateDeckInfoOptions {
+  isPaying?: boolean;
+  userId?: number | null;
+  comprehensive?: boolean;
+}
+
+interface ChunkUsage {
+  input_tokens: number;
+  output_tokens: number;
+  cache_creation_input_tokens: number;
+  cache_read_input_tokens: number;
+}
+
+function computeCostUsd(usages: ChunkUsage[]): number {
+  let cost = 0;
+  for (const u of usages) {
+    const input = u.input_tokens / 1_000_000;
+    const output = u.output_tokens / 1_000_000;
+    const cacheRead = u.cache_read_input_tokens / 1_000_000;
+    const cacheWrite = u.cache_creation_input_tokens / 1_000_000;
+    cost += input * FLOOR_V1_INPUT_TOKEN_PRICE_PER_MILLION;
+    cost += output * FLOOR_V1_OUTPUT_TOKEN_PRICE_PER_MILLION;
+    cost += cacheRead * FLOOR_V1_INPUT_TOKEN_PRICE_PER_MILLION * FLOOR_V1_CACHE_READ_DISCOUNT;
+    cost += cacheWrite * FLOOR_V1_INPUT_TOKEN_PRICE_PER_MILLION * FLOOR_V1_CACHE_WRITE_PREMIUM;
+  }
+  return Math.round(cost * 10_000) / 10_000;
+}
+
+async function runWithSemaphore<T>(
+  thunks: Array<() => Promise<T>>,
+  concurrency: number
+): Promise<PromiseSettledResult<T>[]> {
+  const results: PromiseSettledResult<T>[] = new Array(thunks.length);
+  let cursor = 0;
+  const workers: Promise<void>[] = [];
+  const workerCount = Math.min(concurrency, thunks.length);
+  for (let i = 0; i < workerCount; i++) {
+    workers.push(
+      (async () => {
+        while (true) {
+          const idx = cursor++;
+          if (idx >= thunks.length) return;
+          try {
+            results[idx] = { status: 'fulfilled', value: await thunks[idx]() };
+          } catch (err) {
+            results[idx] = { status: 'rejected', reason: err };
+          }
+        }
+      })()
+    );
+  }
+  await Promise.all(workers);
+  return results;
+}
+
+function totalCardCount(decks: DeckInfo[]): number {
+  return decks.reduce((sum, d) => sum + d.cards.length, 0);
+}
+
+function cardCountByChunk(decks: DeckInfo[], chunkCount: number): number[] {
+  const counts = new Array(chunkCount).fill(0);
+  for (const deck of decks) {
+    for (const card of deck.cards) {
+      if (card.chunkIndex != null && card.chunkIndex < chunkCount) {
+        counts[card.chunkIndex] += 1;
+      }
+    }
+  }
+  return counts;
+}
+
+function thinnestQuartileIndices(perChunkCounts: number[]): number[] {
+  const indexed = perChunkCounts.map((count, index) => ({ count, index }));
+  indexed.sort((a, b) => a.count - b.count);
+  const quartileSize = Math.max(1, Math.ceil(indexed.length / 4));
+  return indexed.slice(0, quartileSize).map((entry) => entry.index);
+}
+
+function collectExistingFronts(decks: DeckInfo[]): string[] {
+  const fronts: string[] = [];
+  for (const deck of decks) {
+    for (const card of deck.cards) {
+      fronts.push(card.name);
+    }
+  }
+  return fronts;
+}
+
+function buildTopUpInstruction(existingFronts: string[]): string {
+  const sample = existingFronts.slice(0, 80).map((f) => f.replace(/<[^>]*>/g, '').slice(0, 120));
+  const list = sample.map((s) => `- ${s}`).join('\n');
+  return `Extract MORE single-fact cards from the same content. Do NOT repeat any of these fronts:\n${list}\n\nReturn only net-new cards.`;
+}
+
+function stampChunkIndex(decks: DeckInfo[], chunkIndex: number): DeckInfo[] {
+  for (const deck of decks) {
+    for (const card of deck.cards) {
+      card.chunkIndex = chunkIndex;
+    }
+  }
+  return decks;
+}
+
 async function runChunks(thunks: Array<() => Promise<DeckInfo[]>>): Promise<DeckInfo[]> {
   if (process.env.CLAUDE_PARTIAL_SUCCESS_ENABLED !== 'true') {
     const results = await Promise.all(thunks.map((fn) => fn()));
@@ -656,7 +779,8 @@ export async function generateDeckInfo(
   onProgress?: (step: string) => void,
   cardStyle?: string,
   cardSize?: string,
-  fieldMapping?: FieldMapping
+  fieldMapping?: FieldMapping,
+  options?: GenerateDeckInfoOptions
 ): Promise<DeckInfo[]> {
   const t0 = Date.now();
 
@@ -672,6 +796,9 @@ export async function generateDeckInfo(
       : 'N/A',
     durationMs: Date.now() - tStrip0,
   });
+
+  const floorV1Active =
+    options?.comprehensive === true && options?.isPaying === true;
 
   if (cardStyle === 'heading-driven') {
     const headings = detect('html', strippedContent);
@@ -708,6 +835,44 @@ export async function generateDeckInfo(
   const chunks = chunkHtmlByDetails(strippedContent);
   console.log('[Claude] Chunked HTML', { chunks: chunks.length, strippedBytes: strippedContent.length });
 
+  if (floorV1Active) {
+    const result = await runFloorV1(
+      chunks,
+      pageStyle,
+      availableMediaFiles,
+      userInstructions,
+      onProgress,
+      cardStyle,
+      cardSize,
+      fieldMapping
+    );
+    const deckInfo = result.deckInfo;
+    const elapsedMs = Date.now() - t0;
+    const cardCount = totalCardCount(deckInfo);
+    const costUsd = computeCostUsd(result.usages);
+    console.log('[Claude] All chunks done (floor v1)', {
+      totalDecks: deckInfo.length,
+      totalCards: cardCount,
+      topUpRounds: result.topUpRounds,
+      costUsd,
+      totalMs: elapsedMs,
+    });
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { track } = require('../../services/events/track');
+    track('ai_conversion_completed', {
+      userId: options?.userId ?? null,
+      props: {
+        card_count: cardCount,
+        chunks: chunks.length,
+        top_up_rounds: result.topUpRounds,
+        cost_usd: costUsd,
+        elapsed_ms: elapsedMs,
+        comprehensive: true,
+      },
+    });
+    return deckInfo;
+  }
+
   const chunkResults = await runChunks(
     chunks.map((chunk, i) => () =>
       generateDeckInfoFromChunk(chunk, pageStyle, availableMediaFiles, userInstructions, i, chunks.length, onProgress, cardStyle, cardSize, fieldMapping)
@@ -722,5 +887,138 @@ export async function generateDeckInfo(
   });
 
   return deckInfo;
+}
+
+interface FloorV1Result {
+  deckInfo: DeckInfo[];
+  usages: ChunkUsage[];
+  topUpRounds: number;
+}
+
+async function runFloorV1(
+  chunks: string[],
+  pageStyle: string,
+  availableMediaFiles: string[],
+  userInstructions: string | undefined,
+  onProgress: ((step: string) => void) | undefined,
+  cardStyle: string | undefined,
+  cardSize: string | undefined,
+  fieldMapping: FieldMapping | undefined
+): Promise<FloorV1Result> {
+  const tStart = Date.now();
+  const usages: ChunkUsage[] = [];
+  const collect = (usage: ChunkUsage) => usages.push(usage);
+
+  const firstRoundResults = await runWithSemaphore(
+    chunks.map((chunk, i) => () =>
+      generateDeckInfoFromChunk(
+        chunk,
+        pageStyle,
+        availableMediaFiles,
+        userInstructions,
+        i,
+        chunks.length,
+        onProgress,
+        cardStyle,
+        cardSize,
+        fieldMapping,
+        collect
+      ).then((decks) => stampChunkIndex(decks, i))
+    ),
+    FLOOR_V1_MAX_PARALLEL
+  );
+
+  const initialDecks: DeckInfo[] = [];
+  firstRoundResults.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      initialDecks.push(...r.value);
+    } else {
+      console.warn('[Claude] floor v1 chunk failed', { chunkIndex: i, reason: String(r.reason) });
+    }
+  });
+
+  let merged = mergeDeckInfoArrays(initialDecks);
+  let topUpRounds = 0;
+
+  while (
+    topUpRounds < FLOOR_V1_MAX_TOPUP_ROUNDS &&
+    totalCardCount(merged) < FLOOR_V1_CARD_FLOOR &&
+    Date.now() - tStart < FLOOR_V1_TOPUP_BUDGET_MS
+  ) {
+    const beforeCount = totalCardCount(merged);
+    const perChunkCounts = cardCountByChunk(merged, chunks.length);
+    const targetChunks = thinnestQuartileIndices(perChunkCounts);
+    const existingFronts = collectExistingFronts(merged);
+    const topUpInstruction = buildTopUpInstruction(existingFronts);
+    const combinedInstructions = userInstructions
+      ? `${userInstructions}\n\n${topUpInstruction}`
+      : topUpInstruction;
+
+    const topUpResults = await runWithSemaphore(
+      targetChunks.map((idx) => () =>
+        generateDeckInfoFromChunk(
+          chunks[idx],
+          pageStyle,
+          availableMediaFiles,
+          combinedInstructions,
+          idx,
+          chunks.length,
+          onProgress,
+          cardStyle,
+          cardSize,
+          fieldMapping,
+          collect
+        ).then((decks) => stampChunkIndex(decks, idx))
+      ),
+      FLOOR_V1_MAX_PARALLEL
+    );
+
+    const newDecks: DeckInfo[] = [];
+    topUpResults.forEach((r, i) => {
+      if (r.status === 'fulfilled') {
+        newDecks.push(...r.value);
+      } else {
+        console.warn('[Claude] floor v1 top-up chunk failed', {
+          chunkIndex: targetChunks[i],
+          reason: String(r.reason),
+          round: topUpRounds + 1,
+        });
+      }
+    });
+
+    merged = mergeDeckInfoArrays([...initialDecks, ...newDecks]);
+    initialDecks.push(...newDecks);
+    topUpRounds += 1;
+
+    if (totalCardCount(merged) <= beforeCount) {
+      console.log('[Claude] floor v1 top-up stopped: zero net-new cards', { round: topUpRounds });
+      break;
+    }
+  }
+
+  if (totalCardCount(merged) > FLOOR_V1_CARD_CEILING) {
+    merged = clampDeckTotal(merged, FLOOR_V1_CARD_CEILING);
+  }
+
+  return { deckInfo: merged, usages, topUpRounds };
+}
+
+function clampDeckTotal(decks: DeckInfo[], ceiling: number): DeckInfo[] {
+  const clamped: DeckInfo[] = [];
+  let remaining = ceiling;
+  for (const deck of decks) {
+    if (remaining <= 0) {
+      clamped.push({ ...deck, cards: [] });
+      continue;
+    }
+    if (deck.cards.length <= remaining) {
+      clamped.push(deck);
+      remaining -= deck.cards.length;
+    } else {
+      clamped.push({ ...deck, cards: deck.cards.slice(0, remaining) });
+      remaining = 0;
+    }
+  }
+  return clamped;
 }
 

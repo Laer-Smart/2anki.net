@@ -60,6 +60,7 @@ export interface DeckParserInput {
   workspace: Workspace;
   onProgress?: (step: string) => void;
   pdfCredential?: string;
+  userId?: number | null;
 }
 
 function hasNestedBullets(content: string | undefined): boolean {

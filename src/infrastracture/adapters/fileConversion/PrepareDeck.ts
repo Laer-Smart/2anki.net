@@ -247,12 +247,17 @@ export async function PrepareDeck(
       hasFieldMapping: fieldMapping != null,
     });
     const tClaude = Date.now();
+    const generateDeckInfoOptions = {
+      isPaying: input.noLimits,
+      userId: input.userId ?? null,
+      comprehensive: input.settings.aiComprehensive,
+    };
     const deckInfoArrays: DeckInfo[][] = [];
     for (let i = 0; i < htmlFiles.length; i += 3) {
       const batch = htmlFiles.slice(i, i + 3);
       const batchResults = await Promise.all(
         batch.map((f) =>
-          generateDeckInfo(f.contents!.toString(), mediaFilesForHtmlFile(f.name, mediaFiles), userInstructions, input.onProgress, cardStyle, input.settings.cardSize, fieldMapping)
+          generateDeckInfo(f.contents!.toString(), mediaFilesForHtmlFile(f.name, mediaFiles), userInstructions, input.onProgress, cardStyle, input.settings.cardSize, fieldMapping, generateDeckInfoOptions)
         )
       );
       deckInfoArrays.push(...batchResults);
