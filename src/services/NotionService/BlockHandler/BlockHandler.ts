@@ -33,6 +33,7 @@ import { getToggleSummaryRichText } from '../helpers/getToggleSummaryRichText';
 import { isToggleHeading } from '../helpers/isToggleHeading';
 import { classifyBlock } from '../../../lib/parser/intent/classifyBlock';
 import { downloadMediaOrSkip } from '../helpers/downloadMediaOrSkip';
+import { expandSyncedBlocks } from '../helpers/expandSyncedBlocks';
 import { getAudioUrl } from '../helpers/getAudioUrl';
 import getClozeDeletionCard from '../helpers/getClozeDeletionCard';
 import getColumn from '../helpers/getColumn';
@@ -165,7 +166,11 @@ class BlockHandler {
         all: this.useAll,
         type: block.type,
       });
-      const requestChildren = response2.results;
+      const requestChildren = await expandSyncedBlocks(
+        response2.results,
+        this.api,
+        this.useAll
+      );
       return await renderBack(this, requestChildren, response2, handleChildren);
     } catch (e: unknown) {
       console.info('Get back side failed');
@@ -442,7 +447,11 @@ class BlockHandler {
       all: this.useAll,
       type: 'page',
     });
-    const blocks = response.results;
+    const blocks = await expandSyncedBlocks(
+      response.results,
+      this.api,
+      this.useAll
+    );
     const flashCardTypes = rules.flaschardTypeNames();
 
     const title = await this.api.getPageTitle(page, this.settings);
@@ -536,8 +545,13 @@ class BlockHandler {
             all: this.useAll,
             type: sd.type,
           });
+          const subBlocks = await expandSyncedBlocks(
+            res.results,
+            this.api,
+            this.useAll
+          );
           const toggleHeadingsEnabled = flashCardTypes.includes('toggle');
-          let cBlocks = res.results.filter((b: GetBlockResponse) => {
+          let cBlocks = subBlocks.filter((b: GetBlockResponse) => {
             if (!isFullBlock(b)) return false;
             if (flashCardTypes.includes(b.type)) return true;
             return toggleHeadingsEnabled && isToggleHeading(b);

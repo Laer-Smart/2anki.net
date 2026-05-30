@@ -104,6 +104,8 @@ export const blockToStaticMarkup = async (
       break;
     case 'table_row':
       break;
+    case 'synced_block':
+      break;
     default:
       back += `unsupported: ${c.type}`;
       back += BlockDivider();
