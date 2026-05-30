@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
@@ -212,17 +213,30 @@ export function Sidebar({
         >
           <img src={logoSrc} alt="" />
         </Link>
-        <button
-          type="button"
-          onClick={onToggleClick}
-          className={styles.sidebarCollapseToggle}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          aria-pressed={collapsed}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? <ArrowRightIcon width={16} height={16} /> : <ArrowLeftIcon width={16} height={16} />}
-        </button>
       </div>
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <button
+            type="button"
+            onClick={onToggleClick}
+            className={`${styles.collapseRail} ${
+              collapsed ? styles.collapseRailCollapsed : ''
+            }`}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-expanded={!collapsed}
+          >
+            <span className={styles.collapseRailLine} aria-hidden="true" />
+            <span className={styles.collapseRailContent} aria-hidden="true">
+              {collapsed ? (
+                <ArrowRightIcon width={16} height={16} />
+              ) : (
+                <ArrowLeftIcon width={16} height={16} />
+              )}
+              {collapsed ? 'Expand' : 'Collapse'}
+            </span>
+          </button>,
+          document.body
+        )}
       <nav className={styles.sidebarNav}>
         <div className={styles.sidebarGroup}>
           <SidebarRow
@@ -243,13 +257,39 @@ export function Sidebar({
             Notion to Anki
           </SidebarRow>
           <SidebarRow
-            href="/import"
+            href="/templates"
             pathname={pathname}
             matchPrefix={false}
             onClick={handleNavClick()}
-            icon={ArrowLeftIcon}
+            icon={SwatchIcon}
           >
-            Anki to Notion
+            Note types
+          </SidebarRow>
+          <SidebarRow
+            href="/print"
+            pathname={pathname}
+            matchPrefix={false}
+            onClick={handleNavClick()}
+            icon={PrinterIcon}
+          >
+            {getVisibleText('navigation.print')}
+          </SidebarRow>
+          <SidebarRow
+            href="/chat"
+            pathname={pathname}
+            matchPrefix={false}
+            onClick={handleNavClick()}
+            icon={ChatBubbleIcon}
+          >
+            Chat
+          </SidebarRow>
+          <SidebarRow
+            href="/mindmaps"
+            pathname={pathname}
+            onClick={handleNavClick()}
+            icon={ShareIcon}
+          >
+            Mind maps
           </SidebarRow>
           <SidebarRow
             href="/image-occlusion"
@@ -270,39 +310,13 @@ export function Sidebar({
             Photo to deck
           </SidebarRow>
           <SidebarRow
-            href="/mindmaps"
-            pathname={pathname}
-            onClick={handleNavClick()}
-            icon={ShareIcon}
-          >
-            Mind maps
-          </SidebarRow>
-          <SidebarRow
-            href="/templates"
+            href="/import"
             pathname={pathname}
             matchPrefix={false}
             onClick={handleNavClick()}
-            icon={SwatchIcon}
+            icon={ArrowLeftIcon}
           >
-            Note types
-          </SidebarRow>
-          <SidebarRow
-            href="/chat"
-            pathname={pathname}
-            matchPrefix={false}
-            onClick={handleNavClick()}
-            icon={ChatBubbleIcon}
-          >
-            Chat
-          </SidebarRow>
-          <SidebarRow
-            href="/print"
-            pathname={pathname}
-            matchPrefix={false}
-            onClick={handleNavClick()}
-            icon={PrinterIcon}
-          >
-            {getVisibleText('navigation.print')}
+            Anki to Notion
           </SidebarRow>
           <SidebarRow
             href="/transform"
@@ -325,6 +339,7 @@ export function Sidebar({
           )}
         </div>
         <div className={styles.sidebarGroup}>
+          <p className={styles.sidebarGroupLabel}>Library</p>
           <SidebarRow
             href="/downloads"
             pathname={pathname}
@@ -355,6 +370,7 @@ export function Sidebar({
           </SidebarRow>
         </div>
         <div className={styles.sidebarGroup}>
+          <p className={styles.sidebarGroupLabel}>Resources</p>
           <SidebarRow
             href="/documentation"
             pathname={pathname}
