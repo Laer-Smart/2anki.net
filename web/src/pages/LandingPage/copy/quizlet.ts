@@ -13,7 +13,7 @@ const quizletCopy: LandingCopy = {
   faqs: [
     {
       q: 'How do I get my set out of Quizlet?',
-      a: "Open the set, click the three dots, choose Export, and copy the text into a .txt file. Drop that file here and we'll make the deck.",
+      a: 'Quizlet\'s export flow has moved several times. Search help.quizlet.com for "export your set" to find the current path. Once you have the text, save it as a .txt file and drop it here.',
     },
     {
       q: 'Do my starred or learned cards come across?',

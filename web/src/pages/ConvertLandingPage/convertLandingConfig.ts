@@ -243,7 +243,7 @@ const lingvistToAnki: LandingCopy = {
   faqs: [
     {
       q: 'How do I export from Lingvist?',
-      a: 'Go to your Lingvist account settings and look for the vocabulary export option. It downloads a CSV with your words and translations.',
+      a: 'Lingvist offers an account-data download — search Lingvist\'s help center at help.lingvist.com for "data export" to find the current path. The download includes a CSV of your vocabulary that you can upload here.',
     },
     {
       q: 'Which columns does Lingvist export?',
@@ -272,7 +272,7 @@ const studystackToAnki: LandingCopy = {
   faqs: [
     {
       q: 'How do I export from StudyStack?',
-      a: 'Open your stack, go to the stack settings or export menu, and choose CSV or text export. The file will have your terms and definitions.',
+      a: 'Open your stack on studystack.com and look for the export or download option in the stack\'s menu. The exported file should contain your terms and definitions, ready to upload here.',
     },
     {
       q: 'What format does the exported file use?',
@@ -284,7 +284,7 @@ const studystackToAnki: LandingCopy = {
     },
     {
       q: 'How many cards can I import?',
-      a: 'Free accounts convert up to 100 cards per month. Unlimited and Auto Sync plans remove the cap — see the pricing page.',
+      a: 'Free 2anki accounts convert up to 100 cards per month — this is the 2anki limit, not a StudyStack restriction. Unlimited and Auto Sync plans remove the cap — see the pricing page.',
     },
   ],
 };
@@ -330,7 +330,7 @@ const zorbiToAnki: LandingCopy = {
   faqs: [
     {
       q: 'How do I export from Zorbi?',
-      a: 'In Zorbi, open your deck and use the export option to download a CSV. The file contains your card fronts and backs.',
+      a: 'Open your deck on zorbi.com and look for the export option in the deck menu. Download the CSV and upload it here. If you can\'t find the export option, check Zorbi\'s help docs for the current path.',
     },
     {
       q: 'Do cloze deletions transfer?',
