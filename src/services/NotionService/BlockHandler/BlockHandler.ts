@@ -613,7 +613,7 @@ class BlockHandler {
     sd: BlockObjectResponse,
     rules: ParserRules
   ): Promise<Deck[]> {
-    const dbResult = await this.api.queryDatabase(sd.id);
+    const dbResult = await this.api.queryDatabase(sd.id, true);
     const database = await this.api.getDatabase(sd.id);
     const dbName = await this.api.getDatabaseTitle(database, this.settings);
     let dbDecks: Deck[] = [];
