@@ -111,8 +111,8 @@ describe('ConvertLandingPage', () => {
     );
   });
 
-  it('covers all 10 supported input types', () => {
-    expect(CONVERT_LANDING_PAGES.size).toBe(10);
+  it('covers all 11 supported input types', () => {
+    expect(CONVERT_LANDING_PAGES.size).toBe(11);
   });
 
   it('each config entry has a pathname under /convert/', () => {
