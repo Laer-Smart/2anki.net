@@ -281,10 +281,12 @@ class UploadService {
     await this.jobRepository.create(ws.id, owner, title, 'claude');
 
     const useCase = new GeneratePackagesUseCase();
+    const ownerNumeric = Number(owner);
+    const ownerId = Number.isFinite(ownerNumeric) && ownerNumeric > 0 ? ownerNumeric : null;
     useCase
       .execute(paying, req.files as UploadedFile[], settings, ws, async (step) => {
         await this.jobRepository.updateJobStatus(ws.id, owner, step);
-      })
+      }, ownerId)
       .then(async ({ packages }) => {
         if (packages.length > 0) {
           await this.promoteClaudeJobToUpload(ws.id, ws.location, owner);

@@ -23,11 +23,12 @@ class GeneratePackagesUseCase {
     files: UploadedFile[],
     settings: CardOption,
     workspace: Workspace,
-    onProgress?: (step: string) => void
+    onProgress?: (step: string) => void,
+    userId: number | null = null
   ): Promise<PackageResult> {
     return new Promise((resolve, reject) => {
       const enqueuedAt = Date.now();
-      const data = { paying, files, settings, workspace, enqueuedAt };
+      const data = { paying, files, settings, workspace, enqueuedAt, userId };
       const workerTs = path.resolve(__dirname, './worker.ts');
       const workerJs = path.resolve(__dirname, './worker.js');
       const workerPath = fs.existsSync(workerTs) ? workerTs : workerJs;

@@ -118,7 +118,8 @@ async function buildClaudeFlashcardDeck(
   settings: CardOption,
   paying: boolean,
   workspace: Workspace,
-  onProgress: ((step: string) => void) | undefined
+  onProgress: ((step: string) => void) | undefined,
+  userId: number | null
 ): Promise<PackageResult> {
   const deck = await PrepareDeck({
     name: rootName,
@@ -127,6 +128,7 @@ async function buildClaudeFlashcardDeck(
     noLimits: paying,
     workspace,
     onProgress,
+    userId,
   });
 
   const packages: Package[] = [];
@@ -178,7 +180,8 @@ export const getPackagesFromZip = async (
   paying: boolean,
   settings: CardOption,
   workspace: Workspace,
-  onProgress?: (step: string) => void
+  onProgress?: (step: string) => void,
+  userId: number | null = null
 ): Promise<PackageResult> => {
   if (!fileContents) {
     return { packages: [] };
@@ -198,7 +201,8 @@ export const getPackagesFromZip = async (
       effectiveSettings,
       paying,
       workspace,
-      onProgress
+      onProgress,
+      userId
     );
   }
 
