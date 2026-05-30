@@ -675,3 +675,211 @@ describe('dedupeCardsByFront', () => {
     }
   });
 });
+
+describe('generateDeckInfo — floor v1 (AI_CONVERTER_FLOOR_V1_ENABLED)', () => {
+  const sixChunkHtml = '<p>' + 'x'.repeat(40_000 * 5 + 100) + '</p>';
+
+  function deckResponse(cardCount: number, frontPrefix = 'Card', deckName = 'Test Deck') {
+    const cards = Array.from({ length: cardCount }, (_, i) => ({
+      q: `${frontPrefix} ${i}`,
+      a: `Answer ${i}`,
+    }));
+    return {
+      content: [{ type: 'text', text: JSON.stringify([{ deck: deckName, cards }]) }],
+      stop_reason: 'end_turn',
+      usage: { input_tokens: 1000, output_tokens: 500 },
+    };
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockStreamFn.mockReturnValue(mockStream);
+    mockStream.on.mockReturnThis();
+  });
+
+  afterEach(() => {
+    delete process.env.AI_CONVERTER_FLOOR_V1_ENABLED;
+  });
+
+  it('flag off — existing behavior preserved: no top-up, no provenance stamps', async () => {
+    let call = 0;
+    mockStream.finalMessage.mockImplementation(async () => deckResponse(5, `C${call++}`));
+
+    const result = await generateDeckInfo(sixChunkHtml, []);
+
+    expect(mockStream.finalMessage).toHaveBeenCalledTimes(6);
+    expect(result[0].cards.length).toBe(30);
+    expect(result[0].cards.every((c) => (c as { chunkIndex?: number }).chunkIndex === undefined)).toBe(true);
+  });
+
+  it('flag on — caps in-flight calls at 4 (semaphore)', async () => {
+    process.env.AI_CONVERTER_FLOOR_V1_ENABLED = 'true';
+
+    let inFlight = 0;
+    let maxInFlight = 0;
+    let call = 0;
+    mockStream.finalMessage.mockImplementation(async () => {
+      inFlight += 1;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise((r) => setImmediate(r));
+      inFlight -= 1;
+      return deckResponse(60, `C${call++}`);
+    });
+
+    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
+      isPaying: true,
+      userId: 42,
+    });
+
+    expect(maxInFlight).toBeLessThanOrEqual(4);
+    expect(mockStream.finalMessage).toHaveBeenCalledTimes(6);
+  });
+
+  it('flag on — stamps chunkIndex provenance on every card', async () => {
+    process.env.AI_CONVERTER_FLOOR_V1_ENABLED = 'true';
+
+    let call = 0;
+    mockStream.finalMessage.mockImplementation(async () => deckResponse(60, `C${call++}`));
+
+    const result = await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
+      isPaying: true,
+      userId: 42,
+    });
+
+    for (const card of result[0].cards) {
+      expect(typeof (card as { chunkIndex?: number }).chunkIndex).toBe('number');
+    }
+  });
+
+  it('flag on — total ≥ floor after first round skips top-up', async () => {
+    process.env.AI_CONVERTER_FLOOR_V1_ENABLED = 'true';
+
+    let call = 0;
+    mockStream.finalMessage.mockImplementation(async () => deckResponse(60, `C${call++}`));
+
+    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
+      isPaying: true,
+      userId: 42,
+    });
+
+    expect(mockStream.finalMessage).toHaveBeenCalledTimes(6);
+  });
+
+  it('flag on — total < floor triggers a top-up round', async () => {
+    process.env.AI_CONVERTER_FLOOR_V1_ENABLED = 'true';
+
+    let call = 0;
+    mockStream.finalMessage.mockImplementation(async () => {
+      const c = call++;
+      if (c < 6) return deckResponse(20, `Initial${c}`);
+      return deckResponse(50, `Topup${c}`);
+    });
+
+    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
+      isPaying: true,
+      userId: 42,
+    });
+
+    expect(mockStream.finalMessage.mock.calls.length).toBeGreaterThan(6);
+    expect(mockStream.finalMessage.mock.calls.length).toBeLessThanOrEqual(6 + 6 + 6);
+  });
+
+  it('flag on — top-up loop runs at most 2 rounds even when never reaching floor', async () => {
+    process.env.AI_CONVERTER_FLOOR_V1_ENABLED = 'true';
+
+    let call = 0;
+    mockStream.finalMessage.mockImplementation(async () => deckResponse(5, `Round${call++}`));
+
+    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
+      isPaying: true,
+      userId: 42,
+    });
+
+    expect(mockStream.finalMessage.mock.calls.length).toBeLessThanOrEqual(6 + 6 + 6);
+  });
+
+  it('flag on but isPaying=false — no top-up, no floor enforcement', async () => {
+    process.env.AI_CONVERTER_FLOOR_V1_ENABLED = 'true';
+
+    let call = 0;
+    mockStream.finalMessage.mockImplementation(async () => deckResponse(5, `C${call++}`));
+
+    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
+      isPaying: false,
+      userId: 42,
+    });
+
+    expect(mockStream.finalMessage).toHaveBeenCalledTimes(6);
+  });
+
+  it('flag on — emits ai_conversion_completed event with the five required fields', async () => {
+    process.env.AI_CONVERTER_FLOOR_V1_ENABLED = 'true';
+
+    let call = 0;
+    mockStream.finalMessage.mockImplementation(async () => deckResponse(50, `C${call++}`));
+
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const trackMod = require('../../services/events/track');
+    const trackSpy = jest.spyOn(trackMod, 'track').mockImplementation(() => undefined);
+
+    try {
+      await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
+        isPaying: true,
+        userId: 42,
+      });
+
+      const completedCall = trackSpy.mock.calls.find(
+        (call: unknown[]) => call[0] === 'ai_conversion_completed'
+      );
+      expect(completedCall).toBeDefined();
+      const props = (completedCall![1] as { props?: Record<string, unknown> }).props;
+      expect(props).toMatchObject({
+        card_count: expect.any(Number),
+        chunks: expect.any(Number),
+        top_up_rounds: expect.any(Number),
+        cost_usd: expect.any(Number),
+        elapsed_ms: expect.any(Number),
+      });
+    } finally {
+      trackSpy.mockRestore();
+    }
+  });
+
+  it('flag off — does NOT emit ai_conversion_completed event', async () => {
+    let call = 0;
+    mockStream.finalMessage.mockImplementation(async () => deckResponse(5, `C${call++}`));
+
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const trackMod = require('../../services/events/track');
+    const trackSpy = jest.spyOn(trackMod, 'track').mockImplementation(() => undefined);
+
+    try {
+      await generateDeckInfo(sixChunkHtml, []);
+
+      const completedCall = trackSpy.mock.calls.find(
+        (call: unknown[]) => call[0] === 'ai_conversion_completed'
+      );
+      expect(completedCall).toBeUndefined();
+    } finally {
+      trackSpy.mockRestore();
+    }
+  });
+
+  it('flag on — top-up stops early when a round yields zero net-new cards', async () => {
+    process.env.AI_CONVERTER_FLOOR_V1_ENABLED = 'true';
+
+    let call = 0;
+    mockStream.finalMessage.mockImplementation(async () => {
+      const c = call++;
+      if (c < 6) return deckResponse(10, `Initial${c}`);
+      return deckResponse(10, 'Initial0');
+    });
+
+    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
+      isPaying: true,
+      userId: 42,
+    });
+
+    expect(mockStream.finalMessage.mock.calls.length).toBeLessThan(6 + 6 + 6);
+  });
+});
