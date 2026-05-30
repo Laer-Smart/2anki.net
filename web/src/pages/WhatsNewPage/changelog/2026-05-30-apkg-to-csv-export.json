@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-30-apkg-to-csv-export",
+  "date": "2026-05-30",
+  "type": "feature",
+  "title": "Export any .apkg deck back to a CSV — cloze markup, tags, and all fields round-trip into your spreadsheet"
+}

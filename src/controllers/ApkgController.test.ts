@@ -7,10 +7,24 @@ import { NotionService } from '../services/NotionService/NotionService';
 import JobRepository from '../data_layer/JobRepository';
 import ImportApkgToNotionUseCase from '../usecases/apkg/ImportApkgToNotionUseCase';
 import ExportApkgToPdfUseCase from '../usecases/apkg/ExportApkgToPdfUseCase';
+import ExportApkgToCsvUseCase, {
+  CardLimitExceededError as CsvCardLimitExceededError,
+  EmptyDeckError as CsvEmptyDeckError,
+} from '../usecases/apkg/ExportApkgToCsvUseCase';
 import { track } from '../services/events/track';
 
 jest.mock('../usecases/apkg/ImportApkgToNotionUseCase');
 jest.mock('../usecases/apkg/ExportApkgToPdfUseCase');
+jest.mock('../usecases/apkg/ExportApkgToCsvUseCase', () => {
+  const actual = jest.requireActual('../usecases/apkg/ExportApkgToCsvUseCase');
+  return {
+    __esModule: true,
+    default: jest.fn(),
+    CardLimitExceededError: actual.CardLimitExceededError,
+    EmptyDeckError: actual.EmptyDeckError,
+    CSV_FREE_NOTE_LIMIT: actual.CSV_FREE_NOTE_LIMIT,
+  };
+});
 jest.mock('../services/events/track', () => ({ track: jest.fn() }));
 jest.mock('../lib/storage/StorageHandler', () => ({
   __esModule: true,
@@ -338,5 +352,112 @@ describe('ApkgController.exportPdf — pdf_print_options_used event', () => {
 
     expect(trackMock).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(400);
+  });
+});
+
+describe('ApkgController.exportCsv', () => {
+  function makeCsvRes(locals: Record<string, unknown> = {}): Response {
+    const res = makeRes(locals) as Partial<Response> & {
+      setHeader?: jest.Mock;
+      send?: jest.Mock;
+    };
+    res.setHeader = jest.fn();
+    res.send = jest.fn();
+    return res as Response;
+  }
+
+  let executeMock: jest.Mock;
+
+  beforeEach(() => {
+    executeMock = jest.fn().mockResolvedValue({
+      csv: Buffer.from('Model,Front,Back,Tags\r\nBasic,Q,A,\r\n'),
+      deckName: 'My deck',
+      noteCount: 1,
+    });
+    (ExportApkgToCsvUseCase as unknown as jest.Mock).mockImplementation(() => ({
+      execute: executeMock,
+    }));
+  });
+
+  it('returns 400 when no file is uploaded', async () => {
+    const controller = makeController();
+    const req = makeReq({ file: undefined }) as Request;
+    const res = makeCsvRes();
+    await controller.exportCsv(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(executeMock).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when the file is not an .apkg by extension', async () => {
+    const controller = makeController();
+    const req = makeReq({
+      file: { ...(makeReq().file as Express.Multer.File), originalname: 'notes.zip' },
+    }) as Request;
+    const res = makeCsvRes();
+    await controller.exportCsv(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(executeMock).not.toHaveBeenCalled();
+  });
+
+  it('sends CSV bytes with attachment headers on success', async () => {
+    const controller = makeController();
+    const req = makeReq() as Request;
+    const res = makeCsvRes({ patreon: true });
+
+    await controller.exportCsv(req, res);
+
+    expect(executeMock).toHaveBeenCalledWith(expect.any(Buffer), true);
+    const setHeader = (res as unknown as { setHeader: jest.Mock }).setHeader;
+    expect(setHeader).toHaveBeenCalledWith(
+      'Content-Type',
+      'text/csv; charset=utf-8'
+    );
+    expect(setHeader).toHaveBeenCalledWith(
+      'Content-Disposition',
+      expect.stringContaining('attachment;')
+    );
+    expect(setHeader).toHaveBeenCalledWith(
+      'Content-Disposition',
+      expect.stringContaining('deck.csv')
+    );
+    expect(setHeader).toHaveBeenCalledWith('X-Card-Count', '1');
+    expect(
+      (res as unknown as { send: jest.Mock }).send
+    ).toHaveBeenCalledWith(expect.any(Buffer));
+  });
+
+  it('passes isPaying=false through to the use case for free users', async () => {
+    const controller = makeController();
+    const req = makeReq() as Request;
+    const res = makeCsvRes({ patreon: false, subscriber: false });
+
+    await controller.exportCsv(req, res);
+
+    expect(executeMock).toHaveBeenCalledWith(expect.any(Buffer), false);
+  });
+
+  it('returns 400 when the deck has no notes', async () => {
+    executeMock.mockRejectedValueOnce(new CsvEmptyDeckError());
+    const controller = makeController();
+    const req = makeReq() as Request;
+    const res = makeCsvRes({ patreon: true });
+
+    await controller.exportCsv(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it('returns 402 with note count when a free user exceeds the cap', async () => {
+    executeMock.mockRejectedValueOnce(new CsvCardLimitExceededError(250, 100));
+    const controller = makeController();
+    const req = makeReq() as Request;
+    const res = makeCsvRes();
+
+    await controller.exportCsv(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(402);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ note_count: 250, note_limit: 100 })
+    );
   });
 });
