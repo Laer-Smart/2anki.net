@@ -12,6 +12,7 @@ export interface ImageHit {
 
 const PEXELS_SEARCH_URL = 'https://api.pexels.com/v1/search';
 const WIKIPEDIA_API_URL = 'https://en.wikipedia.org/w/api.php';
+const WIKIPEDIA_SUMMARY_URL = 'https://en.wikipedia.org/api/rest_v1/page/summary/';
 
 const EXT_FOR_MIME: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -48,6 +49,11 @@ interface PexelsSearchResponse {
     photographer?: string;
     url?: string;
   }>;
+}
+
+interface WikipediaSummaryResponse {
+  originalimage?: { source?: string };
+  thumbnail?: { source?: string };
 }
 
 interface WikipediaPageImagesResponse {
@@ -130,6 +136,34 @@ const fetchFromPexels = async (
   return hits;
 };
 
+const fetchWikipediaSummaryImage = async (
+  title: string
+): Promise<string | undefined> => {
+  try {
+    const url = `${WIKIPEDIA_SUMMARY_URL}${encodeURIComponent(title)}`;
+    const response = await instrumentedAxios.get<WikipediaSummaryResponse>(
+      'wikimedia',
+      url,
+      {
+        headers: {
+          'User-Agent': '2anki/1.0 (https://2anki.net; support@2anki.net)',
+          Accept: 'application/json',
+        },
+        timeout: 5000,
+      }
+    );
+    return (
+      response.data?.originalimage?.source ??
+      response.data?.thumbnail?.source ??
+      undefined
+    );
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    console.warn('[transform] wikipedia summary failed', { title, reason });
+    return undefined;
+  }
+};
+
 const fetchFromWikimedia = async (
   query: string,
   count: number
@@ -181,17 +215,26 @@ const fetchFromWikimedia = async (
   });
   for (const page of sortedPages) {
     if (hits.length >= count) break;
-    const imageUrl =
-      page?.thumbnail?.source ?? page?.original?.source;
+    const title = page?.title;
+    let imageUrl: string | undefined =
+      page?.thumbnail?.source ?? page?.original?.source ?? undefined;
+    if (imageUrl == null && title != null) {
+      imageUrl = await fetchWikipediaSummaryImage(title);
+      if (imageUrl != null) {
+        console.info('[transform] wikipedia summary fallback hit', {
+          query,
+          title,
+        });
+      }
+    }
     if (imageUrl == null) continue;
     const downloaded = await downloadImage('wikimedia', imageUrl);
     if (downloaded == null) continue;
-    const title = page?.title ?? 'Wikipedia';
     hits.push({
       bytes: downloaded.bytes,
       filename: filenameFromUrl(imageUrl, downloaded.mime),
       mimeType: downloaded.mime,
-      attribution: `${title} (Wikipedia)`,
+      attribution: `${title ?? 'Wikipedia'} (Wikipedia)`,
     });
   }
   if (hits.length === 0) {

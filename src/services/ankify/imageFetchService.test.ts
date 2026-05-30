@@ -203,27 +203,81 @@ describe('fetchImage', () => {
       expect(result?.attribution).toBe('Madrid (Wikipedia)');
     });
 
-    it('returns undefined when the article has no thumbnail or original image', async () => {
-      mockedGet.mockResolvedValueOnce({
-        data: {
-          query: {
-            pages: {
-              '7': {
-                title: 'Obscure topic',
+    it('returns undefined when neither pageimages nor the summary fallback yield an image', async () => {
+      mockedGet
+        .mockResolvedValueOnce({
+          data: {
+            query: {
+              pages: {
+                '7': {
+                  title: 'Obscure topic',
+                },
               },
             },
           },
-        },
-        status: 200,
-        headers: {},
-        config: {},
-        statusText: 'OK',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+          status: 200,
+          headers: {},
+          config: {},
+          statusText: 'OK',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
+        .mockResolvedValueOnce({
+          data: {},
+          status: 200,
+          headers: {},
+          config: {},
+          statusText: 'OK',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
 
       const result = await fetchImage('obscure topic', 'wikimedia');
 
       expect(result).toBeUndefined();
+    });
+
+    it('falls back to the REST summary endpoint when pageimages returns no thumbnail', async () => {
+      mockedGet
+        .mockResolvedValueOnce({
+          data: {
+            query: {
+              pages: {
+                '11': {
+                  title: 'Saitama',
+                },
+              },
+            },
+          },
+          status: 200,
+          headers: {},
+          config: {},
+          statusText: 'OK',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
+        .mockResolvedValueOnce({
+          data: {
+            thumbnail: {
+              source: 'https://upload.wikimedia.org/saitama.jpg',
+            },
+          },
+          status: 200,
+          headers: {},
+          config: {},
+          statusText: 'OK',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
+        .mockResolvedValueOnce({
+          data: Buffer.from('jpg-bytes'),
+          status: 200,
+          headers: { 'content-type': 'image/jpeg' },
+          config: {},
+          statusText: 'OK',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+
+      const result = await fetchImage('Saitama prefecture', 'wikimedia');
+
+      expect(result).toBeDefined();
+      expect(result?.attribution).toBe('Saitama (Wikipedia)');
     });
 
     it('returns undefined when no pages come back from the search', async () => {
