@@ -38,7 +38,7 @@ export interface SubscriptionClaimTokensInitializer {
 
   consumed_at?: Date | null;
 
-  /** Default value: now() */
+  /** Default value: CURRENT_TIMESTAMP */
   created_at?: Date;
 }
 

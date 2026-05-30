@@ -21,6 +21,8 @@ export default interface Conversations {
   deleted_at: Date | null;
 
   draft_content: string | null;
+
+  template_slug: string | null;
 }
 
 /** Represents the initializer for the table public.conversations */
@@ -41,6 +43,8 @@ export interface ConversationsInitializer {
   deleted_at?: Date | null;
 
   draft_content?: string | null;
+
+  template_slug?: string | null;
 }
 
 /** Represents the mutator for the table public.conversations */
@@ -58,4 +62,6 @@ export interface ConversationsMutator {
   deleted_at?: Date | null;
 
   draft_content?: string | null;
+
+  template_slug?: string | null;
 }
