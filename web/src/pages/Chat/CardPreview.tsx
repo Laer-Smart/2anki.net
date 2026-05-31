@@ -141,9 +141,10 @@ export default function CardPreview({
     }
   }, [saveState]);
 
-  const isMcqTemplate = template === 'mcq';
   const displayCards =
     template === 'basic-and-reversed' ? expandForReversed(cards) : cards;
+  const allCardsAreMcq =
+    displayCards.length > 0 && displayCards.every(isMcqCard);
   const visibleCards = expanded
     ? displayCards
     : displayCards.slice(0, VISIBLE_COUNT);
@@ -278,7 +279,7 @@ export default function CardPreview({
         )}
       </div>
 
-      {!isMcqTemplate && (
+      {!allCardsAreMcq && (
         <div
           className={`${styles.cardPreviewColumnLabels} ${hideBackColumn && !hasTags ? styles.cardPreviewColumnLabelsSingle : ''} ${!hideBackColumn && hasTags ? styles.cardPreviewColumnLabelsThree : ''}`}
         >
@@ -315,7 +316,7 @@ export default function CardPreview({
         <>
           <div className={styles.cardPreviewList}>
             {visibleCards.map((card, i) =>
-              isMcqTemplate && isMcqCard(card) ? (
+              isMcqCard(card) ? (
                 <McqRow key={i} card={card} />
               ) : (
                 <div

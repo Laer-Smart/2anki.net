@@ -1,8 +1,10 @@
 import importlib.util
 import json
 import os
+import sqlite3
 import sys
 import tempfile
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -74,6 +76,41 @@ class TestMCQDeckBuild:
                 assert result is not None
                 assert result.endswith(".apkg")
                 assert os.path.exists(result)
+            finally:
+                os.chdir(old_cwd)
+
+    def test_mcq_apkg_carries_options_and_correct_answer(self):
+        options = ["Lipase", "Amylase", "Protease", "Lactase"]
+        data = _mcq_deck_info(
+            "Which enzyme hydrolyses starch?",
+            options,
+            1,
+            "Amylase breaks down starch.",
+        )
+        with tempfile.TemporaryDirectory() as tmpdir:
+            old_cwd = os.getcwd()
+            os.chdir(tmpdir)
+            try:
+                info_path = _write_deck_info(tmpdir, data)
+                result = build_one_deck(info_path, TEMPLATE_DIR)
+                extract_dir = os.path.join(tmpdir, "unpacked")
+                with zipfile.ZipFile(result) as archive:
+                    archive.extractall(extract_dir)
+                conn = sqlite3.connect(
+                    os.path.join(extract_dir, "collection.anki2")
+                )
+                try:
+                    flds = conn.execute("select flds from notes").fetchone()[0]
+                    models = json.loads(
+                        conn.execute("select models from col").fetchone()[0]
+                    )
+                finally:
+                    conn.close()
+                field_values = flds.split("\x1f")
+                assert "Lipase<br>Amylase<br>Protease<br>Lactase" in field_values
+                assert "Amylase" in field_values
+                model_names = [m["name"] for m in models.values()]
+                assert model_names == ["n2a-mcq"]
             finally:
                 os.chdir(old_cwd)
 

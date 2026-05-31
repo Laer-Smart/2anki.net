@@ -182,4 +182,48 @@ describe('CardPreview', () => {
       expect(onSave).toHaveBeenCalledWith('My-Deck-Name');
     });
   });
+
+  describe('MCQ rendering off card shape', () => {
+    const mcqCard = {
+      front: 'Which enzyme hydrolyses starch?',
+      back: '',
+      options: ['Lipase', 'Amylase', 'Protease', 'Lactase'],
+      correctIndex: 1,
+      rationale: 'Amylase breaks down starch.',
+    };
+
+    it('renders options and marks the correct one without a template prop', () => {
+      render(<CardPreview cards={[mcqCard]} onSave={vi.fn()} />);
+      expect(
+        screen.getByText('Which enzyme hydrolyses starch?')
+      ).toBeInTheDocument();
+      for (const opt of mcqCard.options) {
+        expect(screen.getByText(opt)).toBeInTheDocument();
+      }
+      expect(
+        screen.getByLabelText('Correct answer').closest('li')
+      ).toHaveTextContent('Amylase');
+    });
+
+    it('renders MCQ options even when template is not mcq', () => {
+      render(
+        <CardPreview cards={[mcqCard]} onSave={vi.fn()} template="basic" />
+      );
+      for (const opt of mcqCard.options) {
+        expect(screen.getByText(opt)).toBeInTheDocument();
+      }
+      expect(screen.getByLabelText('Correct answer')).toBeInTheDocument();
+    });
+
+    it('keeps basic cards as front/back rows even when an MCQ card is also present', () => {
+      render(
+        <CardPreview
+          cards={[mcqCard, { front: 'Capital of France?', back: 'Paris' }]}
+          onSave={vi.fn()}
+        />
+      );
+      expect(screen.getByText('Capital of France?')).toBeInTheDocument();
+      expect(screen.getByText('Paris')).toBeInTheDocument();
+    });
+  });
 });
