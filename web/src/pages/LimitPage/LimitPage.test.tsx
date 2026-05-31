@@ -124,7 +124,8 @@ describe('LimitPage', () => {
     asLoggedIn();
     renderPage(['/limit?kind=anonymous']);
     expect(screen.getByText('You reached 100 cards this month')).toBeTruthy();
-    expect(screen.getByText('Get Auto Sync')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeTruthy();
+    expect(screen.queryByText('Get Auto Sync')).toBeNull();
     expect(screen.queryByText('Sign up free')).toBeNull();
     expect(screen.queryByText('Sign up free and finish converting')).toBeNull();
   });
