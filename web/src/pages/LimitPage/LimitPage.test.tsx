@@ -14,7 +14,6 @@ const mockStartPassCheckout = vi.fn();
 
 vi.mock('../../lib/backend/get2ankiApi', () => ({
   get2ankiApi: vi.fn(() => ({
-    startAutoSyncCheckout: vi.fn().mockResolvedValue({ url: 'https://checkout.stripe.com/test' }),
     startPassCheckout: mockStartPassCheckout,
   })),
 }));
@@ -73,16 +72,21 @@ describe('LimitPage', () => {
     expect(screen.getByText('You reached 100 cards this month')).toBeTruthy();
   });
 
-  it('shows Unlimited and Auto Sync plan titles', () => {
+  it('shows the Unlimited plan title', () => {
     renderPage();
     expect(screen.getByText('Unlimited')).toBeTruthy();
-    expect(screen.getByText('Auto Sync')).toBeTruthy();
   });
 
-  it('shows the correct prices', () => {
+  it('does not advertise the Auto Sync plan', () => {
+    renderPage();
+    expect(screen.queryByText('Auto Sync')).toBeNull();
+    expect(screen.queryByText('$30')).toBeNull();
+    expect(screen.queryByText('Get Auto Sync')).toBeNull();
+  });
+
+  it('shows the Unlimited price', () => {
     renderPage();
     expect(screen.getByText('$6')).toBeTruthy();
-    expect(screen.getByText('$30')).toBeTruthy();
   });
 
   it('shows a back link to /upload', () => {
@@ -98,18 +102,11 @@ describe('LimitPage', () => {
     expect(href).toContain('ref=limit-wall');
   });
 
-  it('Get Auto Sync button is present and clickable', () => {
-    renderPage();
-    const button = screen.getByText('Get Auto Sync');
-    expect(button).toBeTruthy();
-    fireEvent.click(button);
-    expect(screen.getByText('Starting checkout…')).toBeTruthy();
-  });
-
-  it('shows Day Pass and Week Pass options below the subscriptions', () => {
+  it('features the Day Pass as the primary unblock', () => {
     renderPage();
     expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Get Week Pass' })).toBeTruthy();
+    expect(screen.getByText('Most popular')).toBeTruthy();
   });
 
   it('starts a Day Pass checkout when Get Day Pass is clicked', async () => {
@@ -127,7 +124,8 @@ describe('LimitPage', () => {
     asLoggedIn();
     renderPage(['/limit?kind=anonymous']);
     expect(screen.getByText('You reached 100 cards this month')).toBeTruthy();
-    expect(screen.getByText('Get Auto Sync')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeTruthy();
+    expect(screen.queryByText('Get Auto Sync')).toBeNull();
     expect(screen.queryByText('Sign up free')).toBeNull();
     expect(screen.queryByText('Sign up free and finish converting')).toBeNull();
   });

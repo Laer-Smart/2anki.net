@@ -608,31 +608,6 @@
   margin: 0 0 0.5rem;
 }
 
-.autoSyncPitch {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  margin: 0;
-  text-align: center;
-}
-
-.autoSyncPitch a {
-  color: var(--color-text-link);
-}
-
-.autoSyncPitchDismiss {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  text-decoration: underline;
-  padding: 0;
-}
-
-.autoSyncPitchDismiss:hover {
-  color: var(--color-text-primary);
-}
-
 @media (max-width: 600px) {
   .dropZone {
     padding: 2rem 1rem;

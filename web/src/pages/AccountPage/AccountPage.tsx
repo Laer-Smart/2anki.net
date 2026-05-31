@@ -8,7 +8,6 @@ import {
   ClaimSubscription,
   SubscriptionManagement,
   AccountDeletion,
-  AutoSyncBanner,
 } from './components';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './AccountPage.module.css';
@@ -82,8 +81,6 @@ export default function AccountPage() {
       <UserProfile user={user} />
 
       <PlanDetails subscriptionType={subscriptionType} />
-
-      <AutoSyncBanner />
 
       <ClaimSubscription />
 
