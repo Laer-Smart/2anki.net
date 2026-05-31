@@ -60,8 +60,15 @@ export default function SecurityPage() {
         <h2>Acknowledgements</h2>
         <ul>
           <li>
-            Bertie — server-side request forgery in the Notion bookmark and
-            media fetch. Fixed May 2026.
+            <a
+              href="https://github.com/endscene665"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              endscene665
+            </a>{' '}
+            — server-side request forgery in the Notion bookmark and media
+            fetch. Fixed May 2026.
           </li>
         </ul>
       </section>
