@@ -86,6 +86,28 @@ describe('blockToStaticMarkup', () => {
     expect(result).not.toContain('synced_block');
   });
 
+  it('renders a standalone equation block as display math', async () => {
+    const handler = makeHandler();
+    const equation = {
+      object: 'block',
+      id: 'equation-1',
+      type: 'equation',
+      equation: { expression: '\\sqrt{x}' },
+      parent: { type: 'page_id', page_id: 'page-1' },
+      created_time: '2026-05-21T07:46:00.000Z',
+      last_edited_time: '2026-05-21T07:46:00.000Z',
+      created_by: { object: 'user', id: 'user-1' },
+      last_edited_by: { object: 'user', id: 'user-1' },
+      has_children: false,
+      archived: false,
+      in_trash: false,
+    } as unknown as BlockObjectResponse;
+
+    const result = await blockToStaticMarkup(handler, equation);
+
+    expect(result).toBe('\\[\\sqrt{x}\\]');
+  });
+
   it('still emits the unsupported placeholder for genuinely unknown block types', async () => {
     const handler = makeHandler();
     const unknownBlock = {

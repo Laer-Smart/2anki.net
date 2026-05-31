@@ -114,7 +114,24 @@ describe('renderNotionBlocks — text blocks', () => {
     expect(out.html).toContain(
       '<pre><code class="language-javascript">console.log(&quot;hi&quot;)</code></pre>'
     );
-    expect(out.html).toContain('\\(a + b\\)');
+    expect(out.html).toContain('\\[a + b\\]');
+  });
+
+  it('renders inline equations in rich text with inline delimiters', async () => {
+    const blocks: NotionRenderableBlock[] = [
+      {
+        type: 'paragraph',
+        paragraph: {
+          rich_text: [
+            { plain_text: 'where ' },
+            { type: 'equation', equation: { expression: 'x^2' } },
+          ],
+        },
+      },
+    ];
+    const out = await renderNotionBlocks(blocks, noChildren);
+    expect(out.html).toContain('\\(x^2\\)');
+    expect(out.html).not.toContain('\\[x^2\\]');
   });
 });
 
