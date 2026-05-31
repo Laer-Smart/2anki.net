@@ -126,8 +126,17 @@ describe('ConvertLandingPage', () => {
     );
   });
 
-  it('covers all 13 supported input types', () => {
-    expect(CONVERT_LANDING_PAGES.size).toBe(13);
+  it('covers all 15 supported input types', () => {
+    expect(CONVERT_LANDING_PAGES.size).toBe(15);
+  });
+
+  it('serves dedicated EPUB and Kindle highlight converter pages', () => {
+    expect(CONVERT_LANDING_PAGES.get('epub-to-anki')?.title).toBe(
+      'EPUB highlights to Anki — turn ebook highlights into cards | 2anki'
+    );
+    expect(CONVERT_LANDING_PAGES.get('kindle-to-anki')?.title).toBe(
+      'Kindle highlights to Anki — My Clippings.txt to a deck | 2anki'
+    );
   });
 
   it('each config entry has a pathname under /convert/', () => {
