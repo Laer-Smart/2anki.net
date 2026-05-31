@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { track } from '../../lib/analytics/track';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
@@ -14,6 +14,9 @@ import {
 import styles from './LimitPage.module.css';
 
 const REF = 'limit-wall';
+
+const ANONYMOUS_CARD_CAP = 21;
+const FREE_MONTHLY_CARDS = 100;
 
 const UNLIMITED_BENEFITS = [
   'Unlimited flashcards',
@@ -37,14 +40,20 @@ function AnonymousLimit() {
   return (
     <div className={styles.page}>
       <Helmet>
-        <title>Sign up free to keep converting | 2anki</title>
+        <title>You reached the conversion limit | 2anki</title>
       </Helmet>
 
       <header className={styles.header}>
-        <h1 className={styles.heading}>Sign up free to keep converting</h1>
+        <p className={styles.statusLine}>
+          Conversion stopped — you reached the {ANONYMOUS_CARD_CAP}-card limit
+        </p>
+        <h1 className={styles.heading}>
+          You hit the limit for converting without an account
+        </h1>
         <p className={styles.subheading}>
-          A free account converts up to 100 cards a month. Without an account,
-          conversions are capped at 21 cards.
+          Without an account, conversions stop at {ANONYMOUS_CARD_CAP} cards. A
+          free account raises that to {FREE_MONTHLY_CARDS} cards a month — same
+          conversion, no cap to worry about.
         </p>
       </header>
 
@@ -52,7 +61,9 @@ function AnonymousLimit() {
         <div className={`${styles.planCard} ${styles.planCardFeatured}`}>
           <p className={styles.planTitle}>Free account</p>
           <ul className={styles.planBenefits}>
-            <li className={styles.planBenefit}>Up to 100 cards a month</li>
+            <li className={styles.planBenefit}>
+              Convert up to {FREE_MONTHLY_CARDS} cards a month
+            </li>
             <li className={styles.planBenefit}>Save and re-download your decks</li>
             <li className={styles.planBenefit}>Connect Notion, Dropbox, and Google Drive</li>
           </ul>
@@ -66,7 +77,7 @@ function AnonymousLimit() {
               })
             }
           >
-            Sign up free
+            Sign up free and finish converting
           </Link>
         </div>
       </div>
@@ -79,8 +90,7 @@ function AnonymousLimit() {
 }
 
 export function LimitPage() {
-  const [searchParams] = useSearchParams();
-  const { data: userLocals } = useUserLocals();
+  const { data: userLocals, isLoading } = useUserLocals();
   const email = userLocals?.user?.email;
   const isLoggedIn = userLocals?.user?.id != null;
   const [autoSyncPending, setAutoSyncPending] = useState(false);
@@ -89,13 +99,16 @@ export function LimitPage() {
   const [weekPassPending, setWeekPassPending] = useState(false);
   const [passError, setPassError] = useState<string | null>(null);
 
-  const kind = searchParams.get('kind');
-  const showAnonymous = kind === 'anonymous' || !isLoggedIn;
+  const showAnonymous = !isLoggedIn;
 
   useEffect(() => {
-    if (showAnonymous) return;
+    if (isLoading || showAnonymous) return;
     track('paywall_shown', { surface: REF });
-  }, [showAnonymous]);
+  }, [isLoading, showAnonymous]);
+
+  if (isLoading) {
+    return <div className={styles.page} aria-busy="true" />;
+  }
 
   if (showAnonymous) {
     return <AnonymousLimit />;

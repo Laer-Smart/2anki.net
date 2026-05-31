@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-limit-page-clarity",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Hitting the free limit now explains what happened and shows the right options whether or not you're signed in"
+}

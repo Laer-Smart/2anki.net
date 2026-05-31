@@ -9,6 +9,13 @@
   margin-bottom: 3rem;
 }
 
+.statusLine {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-warning);
+  margin: 0 0 var(--space-2);
+}
+
 .heading {
   font-size: clamp(1.5rem, 4vw, 2.25rem);
   font-weight: var(--font-bold);
