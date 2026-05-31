@@ -3,11 +3,16 @@ export interface UploadFunnelStages {
   conversion_succeeded: number;
   conversion_failed: number;
   deck_downloaded: number;
+  paywall_shown: number;
+  signup: number;
+  paid: number;
 }
 
 export interface UploadFunnelResponse {
   stages: UploadFunnelStages | null;
   upload_to_download_rate_pct: number;
+  download_to_signup_rate_pct: number;
+  download_to_paid_rate_pct: number;
   since: string;
   as_of: string;
   error?: string;

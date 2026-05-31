@@ -29,8 +29,13 @@ describe('useUploadFunnel', () => {
         conversion_succeeded: 80,
         conversion_failed: 20,
         deck_downloaded: 60,
+        paywall_shown: 40,
+        signup: 30,
+        paid: 6,
       },
       upload_to_download_rate_pct: 60,
+      download_to_signup_rate_pct: 50,
+      download_to_paid_rate_pct: 10,
       since: '2026-05-01T00:00:00.000Z',
       as_of: '2026-05-30T00:00:00.000Z',
     };
@@ -42,6 +47,9 @@ describe('useUploadFunnel', () => {
 
     await waitFor(() => expect(result.current.data).toEqual(payload));
 
+    expect(result.current.data?.stages?.paid).toBe(6);
+    expect(result.current.data?.download_to_signup_rate_pct).toBe(50);
+    expect(result.current.data?.download_to_paid_rate_pct).toBe(10);
     expect(result.current.window).toBe('30d');
     expect(globalThis.fetch).toHaveBeenCalledWith(
       '/api/ops/upload-funnel?window=30d',
@@ -57,8 +65,13 @@ describe('useUploadFunnel', () => {
           conversion_succeeded: 0,
           conversion_failed: 0,
           deck_downloaded: 0,
+          paywall_shown: 0,
+          signup: 0,
+          paid: 0,
         },
         upload_to_download_rate_pct: 0,
+        download_to_signup_rate_pct: 0,
+        download_to_paid_rate_pct: 0,
         since: '2026-05-01T00:00:00.000Z',
         as_of: '2026-05-30T00:00:00.000Z',
       })
