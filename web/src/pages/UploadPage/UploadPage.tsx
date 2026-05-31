@@ -114,7 +114,9 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       <header className={styles.pageHeader}>
         <h1 className={styles.title}>Convert your notes</h1>
         <p className={styles.subtitle}>
-          Drop a file and get a clean Anki deck in seconds
+          Drop a file and get a deck you don&apos;t have to fix — proper cloze,
+          atomic cards, the right note types. Notion, PDF, Markdown, HTML, Word,
+          and CSV too.
         </p>
       </header>
       <OnboardingTour
@@ -128,6 +130,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
           <span> to convert</span>
         </div>
       )}
+      <UploadForm setErrorMessage={setErrorMessage} aiOn={isAiOn} />
       <div className={styles.aiOffBadge} role="status">
         {aiBadgeState === 'on' && (
           <>
@@ -175,7 +178,6 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
           </>
         )}
       </div>
-      <UploadForm setErrorMessage={setErrorMessage} aiOn={isAiOn} />
       <ExploreCard />
       <section className={pageStyles.howItWorks}>
         <h2 className={pageStyles.howItWorksHeading}>How it works</h2>

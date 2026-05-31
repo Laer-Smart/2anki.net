@@ -78,10 +78,13 @@ describe('UploadPage header', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders the page subtitle', () => {
+  it('renders the page subtitle naming the deck quality and formats', () => {
     renderPage();
     expect(
-      screen.getByText(/Drop a file and get a clean Anki deck in seconds/i)
+      screen.getByText(/Drop a file and get a deck you don't have to fix/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Notion, PDF, Markdown, HTML, Word, and CSV too\./i)
     ).toBeInTheDocument();
   });
 });
@@ -134,6 +137,30 @@ describe('UploadPage AI badge anon link', () => {
     renderPage();
     const link = screen.getByRole('link', { name: /sign in to turn it on/i });
     expect(link).toHaveAttribute('href', '/login?redirect=/card-options');
+  });
+});
+
+describe('UploadPage AI badge placement', () => {
+  beforeEach(() => {
+    globalThis.sessionStorage.clear();
+  });
+
+  it('renders the AI badge after the upload form and before the explore card', () => {
+    renderPage();
+    const uploadForm = screen.getByTestId('upload-form-stub');
+    const exploreCard = screen.getByTestId('explore-card-stub');
+    const badge = screen
+      .getByRole('link', { name: /sign in to turn it on/i })
+      .closest('[role="status"]') as HTMLElement;
+    expect(badge).toBeInTheDocument();
+    expect(
+      uploadForm.compareDocumentPosition(badge) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(
+      exploreCard.compareDocumentPosition(badge) &
+        Node.DOCUMENT_POSITION_PRECEDING
+    ).toBe(Node.DOCUMENT_POSITION_PRECEDING);
   });
 });
 
