@@ -376,6 +376,62 @@ const languageReactorToAnki: LandingCopy = {
   ],
 };
 
+const epubToAnki: LandingCopy = {
+  pathname: '/convert/epub-to-anki',
+  title: 'EPUB to Anki — build a vocab deck from your ebook | 2anki',
+  description:
+    'Turn a DRM-free EPUB into an Anki vocabulary deck. Upload the file, get a .apkg of words and definitions — built for language learners and readers.',
+  h1: 'EPUB to Anki — make a vocab deck from your ebook',
+  subhead:
+    'Drop a DRM-free .epub and download a .apkg. The words you marked while reading become cards, with definitions on the back. English, German, Spanish, and French.',
+  faqs: [
+    {
+      q: 'Which EPUB files work?',
+      a: 'DRM-free EPUBs — the kind you download from Project Gutenberg, Standard Ebooks, or a publisher who sells unlocked files. Books locked with Adobe DRM or a store wrapper cannot be read; use a DRM-free copy instead.',
+    },
+    {
+      q: 'How does an ebook become flashcards?',
+      a: 'We pull the vocabulary worth learning and build one card per word — the word on the front, a definition on the back. The deck name comes from the book filename, so rename the file before uploading if you want a cleaner name in Anki.',
+    },
+    {
+      q: 'Which languages are supported?',
+      a: 'English, German, Spanish, and French. The definition on the back of each card follows the language of the book. More languages are on the roadmap.',
+    },
+    {
+      q: 'Can I keep using EPUB and Kindle highlights together?',
+      a: 'Yes. Convert an EPUB for the vocabulary in a book you read DRM-free, and upload a Kindle My Clippings.txt for the passages you highlighted on a Kindle. Both produce a deck you study in Anki.',
+    },
+  ],
+};
+
+const kindleToAnki: LandingCopy = {
+  pathname: '/convert/kindle-to-anki',
+  title: 'Kindle highlights to Anki — My Clippings.txt to a deck | 2anki',
+  description:
+    'Turn your Kindle My Clippings.txt into an Anki deck. Copy the file off your Kindle, upload it, and get a .apkg of the words and passages you highlighted.',
+  h1: 'Kindle highlights to Anki — from My Clippings.txt to a deck',
+  subhead:
+    'Copy My Clippings.txt off your Kindle, drop it here, and download a .apkg. The words and passages you highlighted while reading become cards.',
+  faqs: [
+    {
+      q: 'Where do I find My Clippings.txt?',
+      a: 'Connect your Kindle to your computer by USB. Open the device in your file browser, go to the documents folder, and copy My Clippings.txt. That single file holds every highlight, note, and bookmark across all your books.',
+    },
+    {
+      q: 'What becomes a card?',
+      a: 'The words and passages you highlighted become card fronts, with a definition or the surrounding context on the back. Each highlight is one card, so you review exactly what you marked while reading.',
+    },
+    {
+      q: 'Which languages are supported?',
+      a: 'English, German, Spanish, and French. The definition matched to each highlighted word follows the language of the book you read.',
+    },
+    {
+      q: 'Can I upload highlights from several books at once?',
+      a: 'Yes. My Clippings.txt spans every book on the device, so one upload turns all your recent highlights into a single deck. Split it into subdecks inside Anki after import if you want one deck per book.',
+    },
+  ],
+};
+
 export const CONVERT_LANDING_PAGES: ReadonlyMap<string, LandingCopy> = new Map([
   ['notion-to-anki', notionToAnki],
   ['pdf-to-anki', pdfToAnki],
@@ -390,4 +446,6 @@ export const CONVERT_LANDING_PAGES: ReadonlyMap<string, LandingCopy> = new Map([
   ['pleco-to-anki', plecoToAnki],
   ['zorbi-to-anki', zorbiToAnki],
   ['language-reactor-to-anki', languageReactorToAnki],
+  ['epub-to-anki', epubToAnki],
+  ['kindle-to-anki', kindleToAnki],
 ]);
