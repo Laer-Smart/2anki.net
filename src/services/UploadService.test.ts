@@ -434,6 +434,13 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
     expect(redirectedTo()).toBe('/limit?kind=card_count');
     expect(capturedSend()).toBeNull();
     expect(incrementSpy).not.toHaveBeenCalled();
+    expect(trackMock).toHaveBeenCalledWith(
+      'paywall_shown',
+      expect.objectContaining({
+        userId: 42,
+        props: expect.objectContaining({ kind: 'card_count', source: 'upload' }),
+      })
+    );
   });
 
   it('sends the deck and increments card usage for a logged-in free user under the limit', async () => {
@@ -479,6 +486,14 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
     expect(redirectedTo()).toBe('/limit?kind=anonymous');
     expect(capturedSend()).toBeNull();
     expect(incrementSpy).not.toHaveBeenCalled();
+    expect(trackMock).toHaveBeenCalledWith(
+      'paywall_shown',
+      expect.objectContaining({
+        userId: null,
+        anonymousId: null,
+        props: expect.objectContaining({ kind: 'anonymous', source: 'upload' }),
+      })
+    );
   });
 
   it('sends the deck for an anonymous conversion at or under 21 cards without incrementing usage', async () => {
