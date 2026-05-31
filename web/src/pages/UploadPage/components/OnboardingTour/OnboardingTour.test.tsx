@@ -8,6 +8,12 @@ vi.mock('../../../../lib/backend/markOnboarded', () => ({
   markOnboarded: () => markOnboardedMock(),
 }));
 
+const trackMock = vi.fn();
+
+vi.mock('../../../../lib/analytics/track', () => ({
+  track: (...args: unknown[]) => trackMock(...args),
+}));
+
 import { OnboardingTour } from './OnboardingTour';
 
 const MIGRATION_DATE = '2026-06-08T00:00:00.000Z';
@@ -17,6 +23,7 @@ const BEFORE_MIGRATION = '2026-06-07T12:00:00.000Z';
 describe('OnboardingTour', () => {
   beforeEach(() => {
     markOnboardedMock.mockClear();
+    trackMock.mockClear();
   });
 
   it('renders the tour for a new user with no onboarded_at', () => {
@@ -178,5 +185,59 @@ describe('OnboardingTour', () => {
       ).not.toBeInTheDocument()
     );
     expect(markOnboardedMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks onboarding_shown once when the tour first renders', () => {
+    render(
+      <OnboardingTour
+        createdAt={AFTER_MIGRATION}
+        onboardedAt={null}
+        migrationDate={MIGRATION_DATE}
+      />
+    );
+    const shownCalls = trackMock.mock.calls.filter(
+      ([name]) => name === 'onboarding_shown'
+    );
+    expect(shownCalls).toHaveLength(1);
+  });
+
+  it('does not track onboarding_shown when the tour is hidden', () => {
+    render(
+      <OnboardingTour
+        createdAt={AFTER_MIGRATION}
+        onboardedAt="2026-06-09T13:00:00.000Z"
+        migrationDate={MIGRATION_DATE}
+      />
+    );
+    expect(trackMock).not.toHaveBeenCalledWith('onboarding_shown');
+  });
+
+  it('tracks onboarding_skipped when Skip is pressed before the last step', () => {
+    render(
+      <OnboardingTour
+        createdAt={AFTER_MIGRATION}
+        onboardedAt={null}
+        migrationDate={MIGRATION_DATE}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
+    expect(trackMock).toHaveBeenCalledWith('onboarding_skipped');
+    expect(trackMock).not.toHaveBeenCalledWith('onboarding_completed');
+  });
+
+  it('tracks onboarding_completed when Skip is pressed on the last step', () => {
+    render(
+      <OnboardingTour
+        createdAt={AFTER_MIGRATION}
+        onboardedAt={null}
+        migrationDate={MIGRATION_DATE}
+      />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
+    expect(trackMock).toHaveBeenCalledWith('onboarding_completed');
+    expect(trackMock).not.toHaveBeenCalledWith('onboarding_skipped');
   });
 });

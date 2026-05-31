@@ -15,6 +15,28 @@ vi.mock('./components/ExploreCard/ExploreCard', () => ({
   ExploreCard: () => <div data-testid="explore-card-stub" />,
 }));
 
+const trackMock = vi.fn();
+vi.mock('../../lib/analytics/track', () => ({
+  track: (...args: unknown[]) => trackMock(...args),
+}));
+
+type FakeUser = {
+  id?: number;
+  created_at?: string | null;
+  onboarded_at?: string | null;
+} | null;
+
+let fakeUser: FakeUser = null;
+vi.mock('../../lib/hooks/useUserLocals', () => ({
+  useUserLocals: () => ({
+    data: fakeUser == null ? undefined : { user: fakeUser },
+    isLoading: false,
+    error: null,
+    isError: false,
+    refetch: () => {},
+  }),
+}));
+
 const renderPage = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -112,6 +134,76 @@ describe('UploadPage AI badge anon link', () => {
     renderPage();
     const link = screen.getByRole('link', { name: /sign in to turn it on/i });
     expect(link).toHaveAttribute('href', '/login?redirect=/card-options');
+  });
+});
+
+const SIGNUP_FLAG_KEY = 'signup_completed_tracked';
+
+const callsFor = (name: string) =>
+  trackMock.mock.calls.filter(([eventName]) => eventName === name);
+
+describe('UploadPage analytics', () => {
+  beforeEach(() => {
+    trackMock.mockClear();
+    fakeUser = null;
+    globalThis.sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    fakeUser = null;
+    globalThis.sessionStorage.clear();
+  });
+
+  it('tracks upload_page_viewed once on mount', () => {
+    renderPage();
+    expect(callsFor('upload_page_viewed')).toHaveLength(1);
+  });
+
+  it('tracks signup_completed for a brand-new account that just signed up', () => {
+    fakeUser = {
+      id: 42,
+      created_at: new Date().toISOString(),
+      onboarded_at: null,
+    };
+    renderPage();
+    expect(callsFor('signup_completed')).toHaveLength(1);
+  });
+
+  it('does not track signup_completed for an already-onboarded user', () => {
+    fakeUser = {
+      id: 42,
+      created_at: new Date().toISOString(),
+      onboarded_at: new Date().toISOString(),
+    };
+    renderPage();
+    expect(callsFor('signup_completed')).toHaveLength(0);
+  });
+
+  it('does not track signup_completed for an account created long ago', () => {
+    fakeUser = {
+      id: 42,
+      created_at: '2024-01-01T00:00:00.000Z',
+      onboarded_at: null,
+    };
+    renderPage();
+    expect(callsFor('signup_completed')).toHaveLength(0);
+  });
+
+  it('does not double-fire signup_completed when the email path already tracked it', () => {
+    globalThis.sessionStorage.setItem(SIGNUP_FLAG_KEY, '1');
+    fakeUser = {
+      id: 42,
+      created_at: new Date().toISOString(),
+      onboarded_at: null,
+    };
+    renderPage();
+    expect(callsFor('signup_completed')).toHaveLength(0);
+  });
+
+  it('does not track signup_completed when there is no signed-in user', () => {
+    fakeUser = null;
+    renderPage();
+    expect(callsFor('signup_completed')).toHaveLength(0);
   });
 });
 

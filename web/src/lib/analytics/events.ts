@@ -41,6 +41,11 @@ export const KNOWN_EVENTS = new Set([
   'transform_apkg_handoff_received',
   'transform_apkg_failed',
   'transform_apkg_over_cap',
+  'signup_completed',
+  'upload_page_viewed',
+  'onboarding_shown',
+  'onboarding_skipped',
+  'onboarding_completed',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;
