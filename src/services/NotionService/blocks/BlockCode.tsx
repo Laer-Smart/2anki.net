@@ -16,7 +16,7 @@ const BlockCode = (block: CodeBlockObjectResponse, handler: BlockHandler) => {
   }
 
   return ReactDOMServer.renderToStaticMarkup(
-    <pre id={block.id} className={`code}`}>
+    <pre id={block.id} className="code">
       <code>
         {richText.map((t: RichTextItemResponse) => {
           const { annotations } = t;

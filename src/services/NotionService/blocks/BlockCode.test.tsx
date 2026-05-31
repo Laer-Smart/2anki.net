@@ -74,4 +74,11 @@ describe('BlockCode — newline preservation', () => {
     expect(html).toMatch(/^<pre/);
     expect(html).toContain('<code>');
   });
+
+  it('applies the code class so the card template styles the block', () => {
+    const block = makeCodeBlock([{ plain_text: 'hello' }]);
+    const html = BlockCode(block, makeHandler());
+    expect(html).toContain('class="code"');
+    expect(html).not.toContain('code}');
+  });
 });
