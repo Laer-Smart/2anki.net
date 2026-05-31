@@ -26,6 +26,10 @@ jest.mock('../../../../usecases/users/CheckMonthlyCardLimitUseCase', () => {
 });
 jest.mock('../../../../services/events/track', () => ({ track: jest.fn() }));
 
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { APIResponseError, APIErrorCode } from '@notionhq/client';
 import performConversion from './performConversion';
 import NotionAPIWrapper from '../../../../services/NotionService/NotionAPIWrapper';
@@ -68,6 +72,25 @@ const baseRequest = {
   type: 'page',
   jobDbId: 42,
 };
+
+function makeRealWorkspace(): { location: string } {
+  const location = path.join(os.tmpdir(), `perform-conversion-test-${randomUUID()}`);
+  fs.mkdirSync(location, { recursive: true });
+  fs.writeFileSync(path.join(location, 'deck.apkg'), 'fake-bytes');
+  return { location };
+}
+
+function mockWorkspaceCreation(ws: { location: string }): void {
+  (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+    execute: jest.fn().mockResolvedValue({
+      ws,
+      exporter: {},
+      settings: {},
+      bl: {},
+      rules: {},
+    }),
+  }));
+}
 
 describe('performConversion — signature', () => {
   it('does not accept a res parameter (res is absent from ConversionRequest)', () => {
@@ -290,5 +313,65 @@ describe('performConversion — heavy pipeline', () => {
         props: expect.objectContaining({ reason: 'empty_deck' }),
       })
     );
+  });
+});
+
+describe('performConversion — workspace cleanup', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    jest.spyOn(console, 'info').mockImplementation(() => undefined);
+
+    (SetJobFailedUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (NotionRepository as jest.Mock).mockImplementation(() => ({
+      markTokenInvalid: jest.fn().mockResolvedValue(undefined),
+      setReconnectEmailSent: jest.fn().mockResolvedValue(false),
+    }));
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('removes the workspace directory after a successful conversion', async () => {
+    const ws = makeRealWorkspace();
+    mockWorkspaceCreation(ws);
+
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [{}, {}] }]),
+    }));
+    (CheckMonthlyCardLimitUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (BuildDeckForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest
+        .fn()
+        .mockResolvedValue({ size: 10, key: 'k', apkg: Buffer.from('x') }),
+    }));
+    (NotifyUserUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (CompleteJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(fs.existsSync(ws.location)).toBe(false);
+  });
+
+  it('removes the workspace directory when the conversion fails', async () => {
+    const ws = makeRealWorkspace();
+    mockWorkspaceCreation(ws);
+
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockRejectedValue(new Error('deck build blew up')),
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(fs.existsSync(ws.location)).toBe(false);
   });
 });
