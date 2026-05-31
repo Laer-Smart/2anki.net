@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-download-retry",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Deck downloads that hit a busy storage server tell you to retry instead of failing silently"
+}

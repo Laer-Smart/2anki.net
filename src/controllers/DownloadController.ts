@@ -81,19 +81,30 @@ class DownloadController {
         throw new Error(`File not found: ${key}`);
       }
     } catch (error) {
-      console.error(error);
       if (this.service.isMissingDownloadError(error)) {
         this.service.deleteMissingFile(owner, key);
         res.redirect('/downloads');
-      } else {
-        console.info('Download failed');
-        console.error(error);
-        res
-          .status(404)
-          .send(
-            "Download link expire, try converting again <a href='/upload'>upload</a>"
-          );
+        return;
       }
+      if (this.service.isTransientStorageError(error)) {
+        console.info('Download storage transient error', {
+          owner,
+          name: (error as { name?: string })?.name,
+        });
+        res
+          .status(503)
+          .send(
+            'Storage is busy right now. Try the download again in a moment.'
+          );
+        return;
+      }
+      console.info('Download failed');
+      console.error(error);
+      res
+        .status(404)
+        .send(
+          "Download link expire, try converting again <a href='/upload'>upload</a>"
+        );
     }
   }
 
