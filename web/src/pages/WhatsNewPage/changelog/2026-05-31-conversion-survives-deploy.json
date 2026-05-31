@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-conversion-survives-deploy",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "A conversion in progress keeps running through a deploy instead of being dropped"
+}

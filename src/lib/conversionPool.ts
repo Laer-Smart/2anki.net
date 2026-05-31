@@ -66,11 +66,11 @@ export async function runConversion(
 }
 
 export async function shutdownConversionPool(
-  options: { timeoutMs?: number } = {}
+  options: { timeoutMs?: number; handle?: Piscina } = {}
 ): Promise<void> {
-  if (!pool) return;
-  const handle = pool;
-  pool = null;
+  const handle = options.handle ?? pool;
+  if (handle == null) return;
+  if (handle === pool) pool = null;
   const drain = handle.close();
   if (options.timeoutMs == null) {
     await drain;
@@ -80,10 +80,14 @@ export async function shutdownConversionPool(
     const t = setTimeout(() => resolve('timeout'), options.timeoutMs);
     t.unref();
   });
-  const winner = await Promise.race([drain.then(() => 'drained' as const), timeout]);
+  const winner = await Promise.race([
+    drain.then(() => 'drained' as const),
+    timeout,
+  ]);
   if (winner === 'timeout') {
     console.error(
-      `Conversion pool did not drain within ${options.timeoutMs}ms — forcing destroy`
+      `Conversion pool did not drain within ${options.timeoutMs}ms — ` +
+        `forcing destroy, dropping ${handle.queueSize} queued conversion(s)`
     );
     await handle.destroy();
   }

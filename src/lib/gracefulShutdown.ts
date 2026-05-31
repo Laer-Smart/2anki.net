@@ -6,7 +6,11 @@ import { shutdownConversionPool } from './conversionPool';
 // 30s in ecosystem.blue-green.config.js). Reserve a safety margin so process.exit
 // fires before pm2's SIGKILL lands.
 export const SHUTDOWN_TIMEOUT_MS = 25_000;
-export const POOL_DRAIN_TIMEOUT_MS = 20_000;
+// The drain budget must stay just under SHUTDOWN_TIMEOUT_MS, not far below it:
+// an in-flight conversion that finishes between the old 20s ceiling and the 25s
+// hard exit was being force-destroyed with grace budget still on the clock.
+// 2s reserve covers the trailing database.destroy() before the hard exit fires.
+export const POOL_DRAIN_TIMEOUT_MS = 23_000;
 
 let shuttingDown = false;
 
