@@ -186,4 +186,15 @@ describe('EventsRepository SQL generation', () => {
     expect(sql).toContain('group by "name"');
     expect(sql).not.toContain('anonymous_id) as distinct_identities)');
   });
+
+  it('groupUploadFunnel includes the paid funnel tail stages', async () => {
+    const { db, getSql } = captureGeneratedSql();
+    const repo = new EventsRepository(db);
+
+    await repo.groupUploadFunnel(new Date('2026-05-01'));
+
+    const sql = getSql();
+    expect(sql).toContain("'paywall_shown'");
+    expect(sql).toContain("'checkout_completed'");
+  });
 });

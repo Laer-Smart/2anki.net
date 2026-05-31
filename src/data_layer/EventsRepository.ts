@@ -33,6 +33,8 @@ const UPLOAD_FUNNEL_STAGES = [
   'conversion_succeeded',
   'conversion_failed',
   'deck_downloaded',
+  'paywall_shown',
+  'checkout_completed',
 ];
 
 export interface IEventsRepository {
