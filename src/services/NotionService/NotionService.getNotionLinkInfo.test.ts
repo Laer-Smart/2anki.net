@@ -50,6 +50,18 @@ describe('getNotionLinkInfo', () => {
     expect(result.workspace).toBe('My Workspace');
   });
 
+  it('omits state from the link by default (web flow unchanged)', async () => {
+    const service = new NotionService(makeRepo());
+    const result = await service.getNotionLinkInfo(1);
+    expect(new URL(result.link).searchParams.has('state')).toBe(false);
+  });
+
+  it('carries state=native in the link when client is native', async () => {
+    const service = new NotionService(makeRepo());
+    const result = await service.getNotionLinkInfo(1, { client: 'native' });
+    expect(new URL(result.link).searchParams.get('state')).toBe('native');
+  });
+
   it('returns isConnected: false when token row has invalidated_at set', async () => {
     const repo = makeRepo({
       getNotionData: jest.fn().mockResolvedValue({

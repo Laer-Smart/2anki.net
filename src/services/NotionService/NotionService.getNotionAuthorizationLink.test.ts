@@ -42,3 +42,21 @@ test("url-encodes the redirect_uri", () => {
 
 	expect(link).toContain("redirect_uri=https%3A%2F%2F2anki.net%2Fapi%2Fnotion%2Fconnect%3Ffrom%3Dsignup");
 });
+
+test("omits the state param when no state is passed (web flow unchanged)", () => {
+	process.env.NOTION_CLIENT_ID = "client-abc";
+	process.env.NOTION_REDIRECT_URI = "https://2anki.net/api/notion/connect";
+
+	const url = new URL(makeService().getNotionAuthorizationLink("client-abc"));
+
+	expect(url.searchParams.has("state")).toBe(false);
+});
+
+test("adds state=native when the native state is passed", () => {
+	process.env.NOTION_CLIENT_ID = "client-abc";
+	process.env.NOTION_REDIRECT_URI = "https://2anki.net/api/notion/connect";
+
+	const url = new URL(makeService().getNotionAuthorizationLink("client-abc", "native"));
+
+	expect(url.searchParams.get("state")).toBe("native");
+});
