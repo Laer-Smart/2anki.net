@@ -84,7 +84,10 @@ const ChatRouter = () => {
    *       are the frame separator.
    *
    *       The request accepts `multipart/form-data` so the caller can attach
-   *       up to 5 files (PDF or image) totalling 25 MB.
+   *       up to 5 files totalling 25 MB. PDFs and images are sent to the
+   *       model as native blocks; `.zip` (Notion export), `.docx`, `.md`, and
+   *       `.txt` are parsed to text on the server and injected into the model
+   *       context as `<file name="…">…</file>` blocks before the prompt runs.
    *
    *       Card-shape footgun: when the caller is a Patreon (lifetime/paid)
    *       user, the assistant may emit MCQ-shape cards even if
@@ -149,10 +152,14 @@ const ChatRouter = () => {
    *                 type: array
    *                 maxItems: 5
    *                 description: |
-   *                   PDF or image attachments. Per-file limit 10 MB,
+   *                   Study-material attachments. Per-file limit 10 MB,
    *                   combined limit 25 MB. Accepted MIME types:
    *                   `application/pdf`, `image/png`, `image/jpeg`,
-   *                   `image/gif`, `image/webp`.
+   *                   `image/gif`, `image/webp`, `application/zip`,
+   *                   `application/vnd.openxmlformats-officedocument.wordprocessingml.document`,
+   *                   `text/markdown`, `text/plain`. The zip, docx, markdown,
+   *                   and plain-text types are parsed to text server-side and
+   *                   injected into the model context before the prompt runs.
    *                 items:
    *                   type: string
    *                   format: binary

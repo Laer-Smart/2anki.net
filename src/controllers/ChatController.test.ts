@@ -290,6 +290,102 @@ describe('ChatController.sendMessage — file attachments', () => {
   });
 });
 
+const ZIP_MAGIC = Buffer.from([0x50, 0x4b, 0x03, 0x04]);
+const DOCX_MIME =
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+describe('ChatController.sendMessage — expanded attachment types', () => {
+  it('accepts a Notion .zip whose bytes start with the zip signature', async () => {
+    const { execute, controller, res } = buildMocks();
+    execute.mockResolvedValueOnce({ content: 'ok', conversationId: 1 });
+    const file = makeFile({
+      mimetype: 'application/zip',
+      originalname: 'export.zip',
+      buffer: Buffer.concat([ZIP_MAGIC, Buffer.alloc(40)]),
+    });
+    await controller.sendMessage(buildReq({ content: 'Cards' }, [file]), res);
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachments: [
+          expect.objectContaining({ mimeType: 'application/zip', fileName: 'export.zip' }),
+        ],
+      })
+    );
+  });
+
+  it('accepts a .docx whose bytes start with the zip signature', async () => {
+    const { execute, controller, res } = buildMocks();
+    execute.mockResolvedValueOnce({ content: 'ok', conversationId: 1 });
+    const file = makeFile({
+      mimetype: DOCX_MIME,
+      originalname: 'essay.docx',
+      buffer: Buffer.concat([ZIP_MAGIC, Buffer.alloc(40)]),
+    });
+    await controller.sendMessage(buildReq({ content: 'Summarize' }, [file]), res);
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachments: [expect.objectContaining({ mimeType: DOCX_MIME })],
+      })
+    );
+  });
+
+  it('accepts a .md attachment of UTF-8 text', async () => {
+    const { execute, controller, res } = buildMocks();
+    execute.mockResolvedValueOnce({ content: 'ok', conversationId: 1 });
+    const file = makeFile({
+      mimetype: 'text/markdown',
+      originalname: 'notes.md',
+      buffer: Buffer.from('# Heading\n\nbody', 'utf8'),
+    });
+    await controller.sendMessage(buildReq({ content: 'Make cards' }, [file]), res);
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachments: [
+          expect.objectContaining({ mimeType: 'text/markdown', fileName: 'notes.md' }),
+        ],
+      })
+    );
+  });
+
+  it('accepts a .txt attachment of UTF-8 text', async () => {
+    const { execute, controller, res } = buildMocks();
+    execute.mockResolvedValueOnce({ content: 'ok', conversationId: 1 });
+    const file = makeFile({
+      mimetype: 'text/plain',
+      originalname: 'scratch.txt',
+      buffer: Buffer.from('plain notes', 'utf8'),
+    });
+    await controller.sendMessage(buildReq({ content: 'Summarize' }, [file]), res);
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachments: [expect.objectContaining({ mimeType: 'text/plain' })],
+      })
+    );
+  });
+
+  it('rejects a declared .zip whose bytes are not a real zip', async () => {
+    const { controller, res } = buildMocks();
+    const file = makeFile({
+      mimetype: 'application/zip',
+      originalname: 'fake.zip',
+      buffer: Buffer.from('not really a zip', 'utf8'),
+    });
+    await controller.sendMessage(buildReq({ content: 'Hi' }, [file]), res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it('rejects a declared .txt that contains binary NUL bytes', async () => {
+    const { controller, res } = buildMocks();
+    const file = makeFile({
+      mimetype: 'text/plain',
+      originalname: 'binary.txt',
+      buffer: Buffer.from([0x68, 0x69, 0x00, 0xff, 0xfe]),
+    });
+    await controller.sendMessage(buildReq({ content: 'Hi' }, [file]), res);
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+});
+
 describe('ChatController.sendMessage — multipart history parsing', () => {
   it('parses history when serialized as a JSON string by multer (multipart/form-data)', async () => {
     const { execute, controller, res } = buildMocks();

@@ -13,13 +13,58 @@ const MAX_CONTENT_LENGTH = 100_000;
 const MAX_FILE_COUNT = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_TOTAL_SIZE = 25 * 1024 * 1024;
-const ALLOWED_MIMES = new Set([
+
+const ZIP_MIME = 'application/zip';
+const DOCX_MIME =
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const MARKDOWN_MIME = 'text/markdown';
+const PLAIN_TEXT_MIME = 'text/plain';
+
+const BINARY_VERIFIED_MIMES = new Set([
   'application/pdf',
   'image/png',
   'image/jpeg',
   'image/gif',
   'image/webp',
 ]);
+
+const ZIP_BASED_MIMES = new Set([ZIP_MIME, DOCX_MIME]);
+const TEXT_MIMES = new Set([MARKDOWN_MIME, PLAIN_TEXT_MIME]);
+
+const ALLOWED_MIMES = new Set([
+  ...BINARY_VERIFIED_MIMES,
+  ...ZIP_BASED_MIMES,
+  ...TEXT_MIMES,
+]);
+
+const ZIP_SIGNATURE = [0x50, 0x4b, 0x03, 0x04];
+
+function hasZipSignature(buffer: Buffer): boolean {
+  if (buffer.length < ZIP_SIGNATURE.length) return false;
+  return ZIP_SIGNATURE.every((byte, i) => buffer[i] === byte);
+}
+
+function looksLikeUtf8Text(buffer: Buffer): boolean {
+  if (buffer.includes(0x00)) return false;
+  const sample = buffer.subarray(0, 8192).toString('utf8');
+  return !sample.includes('�');
+}
+
+function contentMatchesMime(buffer: Buffer, mimeType: string): boolean {
+  if (BINARY_VERIFIED_MIMES.has(mimeType)) {
+    return detectFileMime(buffer) === mimeType;
+  }
+  if (ZIP_BASED_MIMES.has(mimeType)) {
+    return hasZipSignature(buffer);
+  }
+  if (TEXT_MIMES.has(mimeType)) {
+    return looksLikeUtf8Text(buffer);
+  }
+  return false;
+}
+
+const ATTACH_REJECTED_MESSAGE =
+  'Files work here as PDF, image, .zip, .docx, .md, or .txt.';
 
 function sseWrite(res: Response, event: string, data: unknown): void {
   res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
@@ -51,7 +96,7 @@ function validateAttachments(rawFiles: Express.Multer.File[]): AttachmentValidat
       return { ok: false, error: `${safeName} is ${sizeMB} MB. The per-file limit is 10 MB.` };
     }
     if (!ALLOWED_MIMES.has(file.mimetype)) {
-      return { ok: false, error: `Can't attach ${safeName}. Only PDF and image files work here.` };
+      return { ok: false, error: `Can't attach ${safeName}. ${ATTACH_REJECTED_MESSAGE}` };
     }
   }
 
@@ -66,11 +111,11 @@ function validateAttachments(rawFiles: Express.Multer.File[]): AttachmentValidat
 
   const attachments: ChatAttachment[] = [];
   for (const file of rawFiles) {
-    if (detectFileMime(file.buffer) !== file.mimetype) {
-      const safeName = getSafeFilename(file.originalname);
-      return { ok: false, error: `Can't attach ${safeName}. Only PDF and image files work here.` };
+    const safeName = getSafeFilename(file.originalname);
+    if (!contentMatchesMime(file.buffer, file.mimetype)) {
+      return { ok: false, error: `Can't attach ${safeName}. ${ATTACH_REJECTED_MESSAGE}` };
     }
-    attachments.push({ mimeType: file.mimetype, data: file.buffer });
+    attachments.push({ mimeType: file.mimetype, data: file.buffer, fileName: safeName });
   }
 
   return { ok: true, attachments };

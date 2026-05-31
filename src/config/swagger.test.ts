@@ -269,6 +269,19 @@ describe('Swagger Documentation Coverage', () => {
       expect(multipart.schema.properties.files).toBeDefined();
     });
 
+    it('documents the expanded attachment MIME types for /api/chat/message', () => {
+      const op = spec.paths['/api/chat/message']?.post;
+      const filesDescription =
+        op.requestBody.content['multipart/form-data'].schema.properties.files
+          .description;
+      expect(filesDescription).toContain('application/zip');
+      expect(filesDescription).toContain(
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      );
+      expect(filesDescription).toContain('text/markdown');
+      expect(filesDescription).toContain('text/plain');
+    });
+
     it('exposes ChatBasicCard, ChatMcqCard, and the three SSE frame schemas', () => {
       const schemas = spec.components.schemas;
       expect(schemas.ChatBasicCard).toBeDefined();
