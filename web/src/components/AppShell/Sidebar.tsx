@@ -240,7 +240,7 @@ export function Sidebar({
     <aside
       id={drawerId}
       className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''} ${collapsed ? styles.sidebarCollapsed : ''}`}
-      aria-label="primary"
+      aria-label="Main navigation"
       data-testid="app-sidebar"
       data-collapsed={collapsed ? 'true' : 'false'}
       onMouseEnter={onSidebarInteraction}
