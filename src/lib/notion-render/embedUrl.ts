@@ -1,6 +1,8 @@
+import getLoomEmbedUrl from '../parser/helpers/getLoomEmbedUrl';
 import getYouTubeEmbedLink from '../parser/helpers/getYouTubeEmbedLink';
 import getYouTubeID from '../parser/helpers/getYouTubeID';
 import {
+  isLoomURL,
   isSoundCloudURL,
   isTwitterURL,
   isVimeoURL,
@@ -50,6 +52,9 @@ export const resolveEmbedUrl = (url: string): ResolvedEmbed => {
     if (id != null && id !== '') {
       return { kind: 'iframe', src: `https://player.vimeo.com/video/${id}` };
     }
+  }
+  if (isLoomURL(url) != null) {
+    return { kind: 'iframe', src: getLoomEmbedUrl(url) };
   }
   return { kind: 'iframe', src: url };
 };

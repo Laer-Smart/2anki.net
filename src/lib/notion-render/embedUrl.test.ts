@@ -57,6 +57,14 @@ describe('resolveEmbedUrl', () => {
     });
   });
 
+  it('rewrites a Loom share link to its embeddable form', () => {
+    const result = resolveEmbedUrl('https://www.loom.com/share/abc123');
+    expect(result).toEqual({
+      kind: 'iframe',
+      src: 'https://www.loom.com/embed/abc123',
+    });
+  });
+
   it('passes other URLs through as iframe src', () => {
     const result = resolveEmbedUrl('https://codepen.io/user/pen/abc');
     expect(result).toEqual({

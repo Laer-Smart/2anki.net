@@ -18,6 +18,8 @@ export const isTwitterURL = (url: string) => /twitter\.com/.exec(url);
 
 export const isVimeoURL = (url: string) => /vimeo\.com/.exec(url);
 
+export const isLoomURL = (url: string) => /loom\.com/.exec(url);
+
 export const isImageFileEmbedable = (url: string) => {
   const isLocalPath = !url.startsWith('http') && !url.startsWith('data:image');
   const hasTraversal = url.includes('../') || url.includes('..\\');

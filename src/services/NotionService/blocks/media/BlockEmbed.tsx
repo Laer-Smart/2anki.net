@@ -1,9 +1,14 @@
 import { EmbedBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import { renderToStaticMarkup } from 'react-dom/server';
+import getLoomEmbedUrl from '../../../../lib/parser/helpers/getLoomEmbedUrl';
 import getYouTubeEmbedLink from '../../../../lib/parser/helpers/getYouTubeEmbedLink';
 import getYouTubeID from '../../../../lib/parser/helpers/getYouTubeID';
 import BlockHandler from '../../BlockHandler/BlockHandler';
-import { isSoundCloudURL, isTwitterURL } from '../../../../lib/storage/checks';
+import {
+  isLoomURL,
+  isSoundCloudURL,
+  isTwitterURL,
+} from '../../../../lib/storage/checks';
 
 export const BlockEmbed = (
   c: EmbedBlockObjectResponse,
@@ -23,6 +28,8 @@ export const BlockEmbed = (
           <a href={url}>{url}</a>
         </div>
       );
+    } else if (isLoomURL(url)) {
+      url = getLoomEmbedUrl(url);
     }
 
     const yt = getYouTubeID(url);
