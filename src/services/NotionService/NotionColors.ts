@@ -15,7 +15,7 @@ export const NOTION_COLORS = [
   { name: 'yellow_background', color: '#DFAB01' },
   { name: 'green_background', color: '#0F7B6C' },
   { name: 'blue_background', color: '#0B6E99' },
-  { name: 'purple_background', color: '#E03E3E' },
+  { name: 'purple_background', color: '#6940A5' },
   { name: 'pink_background', color: '#AD1A72' },
   { name: 'red_background', color: '#E03E3E' },
 ];
