@@ -58,8 +58,13 @@ describe('UploadFunnelTab', () => {
         conversion_succeeded: 11200,
         conversion_failed: 320,
         deck_downloaded: 10300,
+        paywall_shown: 4200,
+        signup: 3100,
+        paid: 620,
       },
       upload_to_download_rate_pct: 57.83,
+      download_to_signup_rate_pct: 30.1,
+      download_to_paid_rate_pct: 6.02,
       since: '2026-05-01T00:00:00.000Z',
       as_of: '2026-05-30T00:00:00.000Z',
     });
@@ -78,8 +83,25 @@ describe('UploadFunnelTab', () => {
     expect(
       screen.getByText('10 300', { normalizer: spaceNormalizer })
     ).toBeInTheDocument();
-    expect(screen.getByText('57.8%')).toBeInTheDocument();
+    expect(
+      screen.getByText('4200', { normalizer: spaceNormalizer })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('3100', { normalizer: spaceNormalizer })
+    ).toBeInTheDocument();
+    expect(screen.getByText('620')).toBeInTheDocument();
+
+    expect(screen.getByText('Paywall shown')).toBeInTheDocument();
+    expect(screen.getByText('Signup')).toBeInTheDocument();
+    expect(screen.getByText('Paid')).toBeInTheDocument();
     expect(screen.getByText('Conversion failed')).toBeInTheDocument();
+
+    expect(screen.getByText('Upload to download')).toBeInTheDocument();
+    expect(screen.getByText('57.8%')).toBeInTheDocument();
+    expect(screen.getByText('Download to signup')).toBeInTheDocument();
+    expect(screen.getByText('30.1%')).toBeInTheDocument();
+    expect(screen.getByText('Download to paid')).toBeInTheDocument();
+    expect(screen.getByText('6.0%')).toBeInTheDocument();
   });
 
   test('shows the zero state and an honest 0% rate when there are no uploads', async () => {
@@ -89,8 +111,13 @@ describe('UploadFunnelTab', () => {
         conversion_succeeded: 0,
         conversion_failed: 0,
         deck_downloaded: 0,
+        paywall_shown: 0,
+        signup: 0,
+        paid: 0,
       },
       upload_to_download_rate_pct: 0,
+      download_to_signup_rate_pct: 0,
+      download_to_paid_rate_pct: 0,
       since: '2026-05-01T00:00:00.000Z',
       as_of: '2026-05-30T00:00:00.000Z',
     });
@@ -100,13 +127,16 @@ describe('UploadFunnelTab', () => {
     await waitFor(() =>
       expect(screen.getByText('No uploads in this window')).toBeInTheDocument()
     );
-    expect(screen.getByText('0.0%')).toBeInTheDocument();
+    expect(screen.getAllByText('No downloads in this window')).toHaveLength(2);
+    expect(screen.getAllByText('0.0%')).toHaveLength(3);
   });
 
   test('renders the server error message in the danger banner', async () => {
     mockFetch({
       stages: null,
       upload_to_download_rate_pct: 0,
+      download_to_signup_rate_pct: 0,
+      download_to_paid_rate_pct: 0,
       since: '2026-05-01T00:00:00.000Z',
       as_of: '2026-05-30T00:00:00.000Z',
       error: 'relation "events" does not exist',
