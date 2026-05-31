@@ -496,6 +496,26 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
     );
   });
 
+  it('treats an authenticated request whose owner is unresolved as a logged-in limit, not anonymous', async () => {
+    mockPackages([{ name: 'deck', cardCount: 22 }]);
+    const usersRepo = buildUsersRepo();
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      usersRepo
+    );
+    const req = buildRequest({
+      cookies: { token: 'a-valid-session-token' },
+    } as Partial<express.Request>);
+    const { res, capturedSend, redirectedTo } = responseWithRedirect();
+
+    await service.handleUpload(req, res);
+
+    expect(redirectedTo()).toBe('/limit?kind=card_count');
+    expect(capturedSend()).toBeNull();
+  });
+
   it('sends the deck for an anonymous conversion at or under 21 cards without incrementing usage', async () => {
     mockPackages([{ name: 'deck', cardCount: 21 }]);
     const usersRepo = buildUsersRepo();
