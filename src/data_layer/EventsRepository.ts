@@ -34,6 +34,7 @@ const UPLOAD_FUNNEL_STAGES = [
   'conversion_failed',
   'deck_downloaded',
   'paywall_shown',
+  'account_created',
   'checkout_completed',
 ];
 
