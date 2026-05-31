@@ -857,6 +857,12 @@
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.messageActionError {
+  font-size: var(--text-xs);
+  color: var(--color-danger, #dc2626);
 }
 
 /* ── Performance tab ────────────────────────────────────────────── */
