@@ -39,7 +39,7 @@ const AnkifyWebhookRouter = () => {
     ankiConnectFactory,
     notionBlockChildrenFetcherFactory,
     undefined,
-    fetch,
+    undefined,
     new ErrorEventRepository(db),
     (owner: number) =>
       new MarkNotionTokenInvalidUseCase(

@@ -17,7 +17,18 @@ jest.mock('../../services/ankify/notionPageWalker', () => ({
   walkNotionPageForFlashcards: jest.fn(),
 }));
 
+jest.mock('axios');
+
+jest.mock('node:dns', () => ({
+  promises: { lookup: jest.fn() },
+}));
+
+import axios from 'axios';
+import dns from 'node:dns';
 import { walkNotionPageForFlashcards } from '../../services/ankify/notionPageWalker';
+
+const mockAxiosGet = axios.get as jest.Mock;
+const mockDnsLookup = dns.promises.lookup as jest.Mock;
 
 const sampleClient = (): AnkifyClient => ({
   id: 1,
@@ -450,13 +461,10 @@ describe('SyncNotionPageToRacUseCase', () => {
   });
 
   test('downloads Notion file images and pushes them to media before addNote', async () => {
-    const sampleFetcher = jest.fn(async (url: string) => ({
-      ok: true,
-      arrayBuffer: async () => {
-        expect(url).toBe('https://prod-files.notion.so/img.png?signed=1');
-        return new TextEncoder().encode('PNGDATA').buffer as ArrayBuffer;
-      },
-    })) as unknown as typeof fetch;
+    const sampleFetcher = jest.fn(async (url: string) => {
+      expect(url).toBe('https://prod-files.notion.so/img.png?signed=1');
+      return { status: 200, data: Buffer.from('PNGDATA') };
+    });
 
     (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
       cards: [
@@ -561,7 +569,7 @@ describe('SyncNotionPageToRacUseCase', () => {
   test('records sync_logs error but does not fail when image download fails', async () => {
     const failingFetch = jest.fn(async () => {
       throw new Error('network down');
-    }) as unknown as typeof fetch;
+    });
 
     (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
       cards: [
@@ -861,7 +869,7 @@ describe('SyncNotionPageToRacUseCase', () => {
         () => ac,
         () => async () => [],
         undefined,
-        fetch,
+        undefined,
         errorEventRepo
       );
 
@@ -901,7 +909,7 @@ describe('SyncNotionPageToRacUseCase', () => {
         () => ac,
         () => async () => [],
         undefined,
-        fetch,
+        undefined,
         errorEventRepo
       );
 
@@ -933,7 +941,7 @@ describe('SyncNotionPageToRacUseCase', () => {
         () => ac,
         () => async () => [],
         undefined,
-        fetch,
+        undefined,
         errorEventRepo
       );
 
@@ -996,5 +1004,113 @@ describe('SyncNotionPageToRacUseCase', () => {
 
     expect(repos.notionRepo.markTokenInvalid).toHaveBeenCalledWith(42);
     expect(repos.subscriptions.setEnabled).toHaveBeenCalledWith(1, false);
+  });
+
+  describe('default media fetcher routes through the SSRF guard', () => {
+    const fileMediaCard = (url: string) =>
+      sampleCard({
+        back: 'See <img src="ankify-img-1.png">',
+        media: [
+          {
+            block_id: 'img-1',
+            kind: 'image',
+            source: 'file',
+            url,
+            filename: 'ankify-img-1.png',
+          },
+        ],
+      });
+
+    beforeEach(() => {
+      mockAxiosGet.mockReset();
+      mockDnsLookup.mockReset();
+    });
+
+    const buildUseCase = (
+      repos: ReturnType<typeof makeRepos>,
+      ac: AnkiConnectClient
+    ) =>
+      new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+    it('refuses a loopback media URL and stores no media', async () => {
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [fileMediaCard('http://127.0.0.1/secret.png')],
+        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } },
+      });
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+
+      const result = await buildUseCase(repos, ac).execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'manual',
+      });
+
+      expect(mockAxiosGet).not.toHaveBeenCalled();
+      expect(ac.storeMediaFile).not.toHaveBeenCalled();
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors[0]).toMatch(/img-1/);
+      expect(ac.addNote).toHaveBeenCalled();
+    });
+
+    it('refuses a link-local metadata media URL and stores no media', async () => {
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [fileMediaCard('http://169.254.169.254/latest/meta-data/')],
+        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } },
+      });
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+
+      const result = await buildUseCase(repos, ac).execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'manual',
+      });
+
+      expect(mockAxiosGet).not.toHaveBeenCalled();
+      expect(ac.storeMediaFile).not.toHaveBeenCalled();
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it('fetches a public media URL through the guard and stores the bytes', async () => {
+      mockDnsLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }]);
+      mockAxiosGet.mockResolvedValue({
+        status: 200,
+        data: Buffer.from('PNGDATA'),
+      });
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [fileMediaCard('https://prod-files.notion.so/img.png?signed=1')],
+        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } },
+      });
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+
+      const result = await buildUseCase(repos, ac).execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'manual',
+      });
+
+      expect(mockAxiosGet).toHaveBeenCalledWith(
+        'https://prod-files.notion.so/img.png?signed=1',
+        expect.objectContaining({ responseType: 'arraybuffer' })
+      );
+      expect(ac.storeMediaFile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filename: 'ankify-img-1.png',
+          data: Buffer.from('PNGDATA').toString('base64'),
+        })
+      );
+      expect(result.errors).toEqual([]);
+    });
   });
 });
