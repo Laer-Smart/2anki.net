@@ -6,11 +6,12 @@ import {
 import {
   AppleUnavailableError,
   AppleVerificationError,
+  type DecodedAppleTransaction,
   type IAppleStoreKitService,
 } from '../../services/AppleStoreKitService';
 import hashToken from '../../lib/misc/hashToken';
 import { IapRedeemError } from './IapRedeemError';
-import { findConsumableProduct } from './products';
+import { findAppleProduct, type SubscriptionProduct } from './products';
 
 export interface RedeemAppleTransactionInput {
   userId: number;
@@ -40,19 +41,26 @@ export class RedeemAppleTransactionUseCase {
       throw IapRedeemError.malformed();
     }
 
-    const product = findConsumableProduct(decoded.productId);
+    const product = findAppleProduct(decoded.productId);
     if (product == null) {
       throw IapRedeemError.malformed();
     }
 
     const now = this.now();
-    const pass = await this.userPassRepository.upsertWithExtension(
-      input.userId,
-      product.passKind,
-      product.durationMs,
-      `apple:${decoded.transactionId}`,
-      now
-    );
+    const idempotencyKey = `apple:${decoded.transactionId}`;
+    const pass =
+      product.kind === 'subscription'
+        ? await this.grantSubscription(input.userId, product, decoded, idempotencyKey)
+        : await this.userPassRepository.upsertWithExtension(
+            input.userId,
+            product.passKind,
+            product.durationMs,
+            idempotencyKey,
+            now
+          );
+
+    const ledgerExpiresAt =
+      decoded.expiresDateMs != null ? new Date(decoded.expiresDateMs) : null;
 
     try {
       await this.appleTransactions.record(
@@ -61,6 +69,7 @@ export class RedeemAppleTransactionUseCase {
           transactionId: decoded.transactionId,
           productId: decoded.productId,
           environment: decoded.environment,
+          expiresAt: ledgerExpiresAt,
         },
         now
       );
@@ -76,6 +85,7 @@ export class RedeemAppleTransactionUseCase {
       product_id: decoded.productId,
       kind: product.passKind,
       environment: decoded.environment,
+      expires_at: pass.expires_at.toISOString(),
       transaction_id_hash: hashToken(decoded.transactionId),
     });
 
@@ -83,6 +93,23 @@ export class RedeemAppleTransactionUseCase {
       message: product.successMessage,
       pass: { kind: pass.kind, expiresAt: pass.expires_at },
     };
+  }
+
+  private grantSubscription(
+    userId: number,
+    product: SubscriptionProduct,
+    decoded: DecodedAppleTransaction,
+    idempotencyKey: string
+  ) {
+    if (decoded.expiresDateMs == null) {
+      throw IapRedeemError.malformed();
+    }
+    return this.userPassRepository.upsertWithAbsoluteExpiry(
+      userId,
+      product.passKind,
+      new Date(decoded.expiresDateMs),
+      idempotencyKey
+    );
   }
 
   private async verify(jws: string) {

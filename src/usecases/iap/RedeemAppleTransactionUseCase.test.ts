@@ -165,15 +165,111 @@ describe('RedeemAppleTransactionUseCase', () => {
 
   it('returns 400 for an unmapped product', async () => {
     const { useCase } = build(
-      serviceReturning(decoded({ productId: 'unlimited.monthly' }))
+      serviceReturning(decoded({ productId: 'lifetime.forever' }))
     );
 
     await expect(
       useCase.execute({
         userId: USER_ID,
         jws: 'signed',
-        productId: 'unlimited.monthly',
+        productId: 'lifetime.forever',
       })
     ).rejects.toBeInstanceOf(IapRedeemError);
+  });
+
+  describe('unlimited.monthly subscription', () => {
+    const EXPIRES = new Date('2026-07-01T00:00:00.000Z');
+
+    function subscriptionDecoded(
+      transactionId: string,
+      expiresDateMs: number = EXPIRES.getTime()
+    ): DecodedAppleTransaction {
+      return decoded({
+        transactionId,
+        productId: 'unlimited.monthly',
+        environment: 'Production',
+        expiresDateMs,
+      });
+    }
+
+    it('grants an unlimited pass that expires exactly at the decoded expiresDate', async () => {
+      const { useCase, passes, ledger } = build(
+        serviceReturning(subscriptionDecoded('sub-1'))
+      );
+
+      const result = await useCase.execute({
+        userId: USER_ID,
+        jws: 'signed',
+        productId: 'unlimited.monthly',
+      });
+
+      expect(result.message).toBe(
+        'Unlimited active — no card limit, PDF uploads, and several conversions at once'
+      );
+      expect(result.pass.kind).toBe('unlimited');
+      const active = await passes.findActive(USER_ID, NOW);
+      expect(active?.kind).toBe('unlimited');
+      expect(active?.expires_at).toEqual(EXPIRES);
+      await expect(
+        ledger.record(
+          {
+            userId: USER_ID,
+            transactionId: 'sub-1',
+            productId: 'unlimited.monthly',
+            environment: 'Production',
+          },
+          NOW
+        )
+      ).rejects.toMatchObject({ name: 'DuplicateAppleTransactionError' });
+    });
+
+    it('sets the window to the renewal expiry rather than accumulating', async () => {
+      const RENEWAL = new Date('2026-08-01T00:00:00.000Z');
+      const { useCase, passes } = build(
+        serviceReturning(subscriptionDecoded('sub-1'))
+      );
+      await useCase.execute({
+        userId: USER_ID,
+        jws: 'signed',
+        productId: 'unlimited.monthly',
+      });
+
+      const renewalCase = new RedeemAppleTransactionUseCase(
+        serviceReturning(subscriptionDecoded('sub-2', RENEWAL.getTime())),
+        passes,
+        new InMemoryAppleTransactionsRepository(),
+        () => NOW
+      );
+      const result = await renewalCase.execute({
+        userId: USER_ID,
+        jws: 'signed',
+        productId: 'unlimited.monthly',
+      });
+
+      expect(result.pass.expiresAt).toEqual(RENEWAL);
+      const active = await passes.findActive(USER_ID, NOW);
+      expect(active?.expires_at).toEqual(RENEWAL);
+    });
+
+    it('returns 400 when a subscription JWS carries no expiresDate', async () => {
+      const { useCase, passes } = build(
+        serviceReturning(
+          decoded({
+            transactionId: 'sub-1',
+            productId: 'unlimited.monthly',
+            environment: 'Production',
+          })
+        )
+      );
+
+      await expect(
+        useCase.execute({
+          userId: USER_ID,
+          jws: 'signed',
+          productId: 'unlimited.monthly',
+        })
+      ).rejects.toMatchObject({ status: 400 });
+      expect(await passes.findActive(USER_ID, NOW)).toBeNull();
+    });
   });
 });

@@ -5,7 +5,7 @@ import type {
 } from '../../data_layer/AnonymousPassRepository';
 import type { PassKind } from '../../data_layer/UserPassRepository';
 
-const DURATION_MS: Record<PassKind, number> = {
+const DURATION_MS: Record<Extract<PassKind, '24h' | '7d'>, number> = {
   '24h': 24 * 60 * 60 * 1000,
   '7d': 7 * 24 * 60 * 60 * 1000,
 };

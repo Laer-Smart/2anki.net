@@ -73,4 +73,23 @@ describe('InMemoryUserPassRepository', () => {
       expect(active?.stripe_payment_intent_id).toBe('pi_dup');
     });
   });
+
+  describe('upsertWithAbsoluteExpiry', () => {
+    const EXPIRES = new Date('2026-06-15T00:00:00Z');
+
+    it('sets the expiry to the absolute date, not an accumulated duration', async () => {
+      const seeded = new Date(NOW.getTime() + DURATION_7D);
+      repo.seed({ user_id: 1, kind: '24h', expires_at: seeded, stripe_payment_intent_id: 'pi_1' });
+
+      const pass = await repo.upsertWithAbsoluteExpiry(1, 'unlimited', EXPIRES, 'apple:sub-1');
+      expect(pass.kind).toBe('unlimited');
+      expect(pass.expires_at).toEqual(EXPIRES);
+    });
+
+    it('returns the existing row on a duplicate idempotency key', async () => {
+      const first = await repo.upsertWithAbsoluteExpiry(1, 'unlimited', EXPIRES, 'apple:sub-1');
+      const second = await repo.upsertWithAbsoluteExpiry(1, 'unlimited', EXPIRES, 'apple:sub-1');
+      expect(second.id).toBe(first.id);
+    });
+  });
 });

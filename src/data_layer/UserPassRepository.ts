@@ -1,6 +1,6 @@
 import type { Knex } from 'knex';
 
-export type PassKind = '24h' | '7d';
+export type PassKind = '24h' | '7d' | 'unlimited';
 
 export interface UserPass {
   id: number;
@@ -18,6 +18,12 @@ export interface IUserPassRepository {
     durationMs: number,
     stripePaymentIntentId: string,
     now: Date
+  ): Promise<UserPass>;
+  upsertWithAbsoluteExpiry(
+    userId: number,
+    kind: PassKind,
+    expiresAt: Date,
+    stripePaymentIntentId: string
   ): Promise<UserPass>;
 }
 
@@ -98,6 +104,41 @@ export class UserPassRepository implements IUserPassRepository {
       throw err;
     }
   }
+
+  async upsertWithAbsoluteExpiry(
+    userId: number,
+    kind: PassKind,
+    expiresAt: Date,
+    stripePaymentIntentId: string
+  ): Promise<UserPass> {
+    const existing = await this.database<UserPassRow>(this.table)
+      .where('stripe_payment_intent_id', stripePaymentIntentId)
+      .first();
+    if (existing) {
+      return toUserPass(existing);
+    }
+
+    try {
+      const [row] = await this.database<UserPassRow>(this.table)
+        .insert({
+          user_id: userId,
+          kind,
+          expires_at: expiresAt,
+          stripe_payment_intent_id: stripePaymentIntentId,
+        })
+        .returning('*');
+      return toUserPass(row);
+    } catch (err: unknown) {
+      const pgErr = err as { code?: string };
+      if (pgErr.code === '23505') {
+        const idempotent = await this.database<UserPassRow>(this.table)
+          .where('stripe_payment_intent_id', stripePaymentIntentId)
+          .first();
+        if (idempotent) return toUserPass(idempotent);
+      }
+      throw err;
+    }
+  }
 }
 
 export class InMemoryUserPassRepository implements IUserPassRepository {
@@ -135,6 +176,28 @@ export class InMemoryUserPassRepository implements IUserPassRepository {
 
     const base = currentActive ? currentActive.expires_at : now;
     const expiresAt = new Date(base.getTime() + durationMs);
+
+    const entry: UserPass = {
+      id: this.nextId++,
+      user_id: userId,
+      kind,
+      expires_at: expiresAt,
+      stripe_payment_intent_id: stripePaymentIntentId,
+    };
+    this.rows.push(entry);
+    return entry;
+  }
+
+  async upsertWithAbsoluteExpiry(
+    userId: number,
+    kind: PassKind,
+    expiresAt: Date,
+    stripePaymentIntentId: string
+  ): Promise<UserPass> {
+    const existing = this.rows.find(
+      (r) => r.stripe_payment_intent_id === stripePaymentIntentId
+    );
+    if (existing) return existing;
 
     const entry: UserPass = {
       id: this.nextId++,

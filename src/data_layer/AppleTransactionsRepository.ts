@@ -6,6 +6,7 @@ export interface AppleTransaction {
   transaction_id: string;
   product_id: string;
   environment: string;
+  expires_at: Date | null;
   created_at: Date;
 }
 
@@ -14,6 +15,7 @@ export interface RecordAppleTransaction {
   transactionId: string;
   productId: string;
   environment: string;
+  expiresAt?: Date | null;
 }
 
 export class DuplicateAppleTransactionError extends Error {
@@ -33,7 +35,13 @@ interface AppleTransactionRow {
   transaction_id: string;
   product_id: string;
   environment: string;
+  expires_at: Date | null;
   created_at: Date;
+}
+
+function toDate(value: Date | string | null): Date | null {
+  if (value == null) return null;
+  return value instanceof Date ? value : new Date(value);
 }
 
 function toAppleTransaction(row: AppleTransactionRow): AppleTransaction {
@@ -43,6 +51,7 @@ function toAppleTransaction(row: AppleTransactionRow): AppleTransaction {
     transaction_id: row.transaction_id,
     product_id: row.product_id,
     environment: row.environment,
+    expires_at: toDate(row.expires_at),
     created_at:
       row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
   };
@@ -64,6 +73,7 @@ export class AppleTransactionsRepository implements IAppleTransactionsRepository
           transaction_id: input.transactionId,
           product_id: input.productId,
           environment: input.environment,
+          expires_at: input.expiresAt ?? null,
           created_at: now,
         })
         .returning('*');
@@ -100,6 +110,7 @@ export class InMemoryAppleTransactionsRepository
       transaction_id: input.transactionId,
       product_id: input.productId,
       environment: input.environment,
+      expires_at: input.expiresAt ?? null,
       created_at: now,
     };
     this.rows.push(entry);

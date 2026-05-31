@@ -27,9 +27,17 @@ function formatTimeRemaining(ms: number): string {
   return `about ${hours} hour${hours === 1 ? '' : 's'}`;
 }
 
+type PassKind = '24h' | '7d' | 'unlimited';
+
+const PASS_LABELS: Record<PassKind, string> = {
+  '24h': 'Day Pass',
+  '7d': 'Week Pass',
+  unlimited: 'Unlimited',
+};
+
 interface AccessBannerProps {
   passExpiresAt: string | null | undefined;
-  passKind: '24h' | '7d' | null | undefined;
+  passKind: PassKind | null | undefined;
   now?: Date;
 }
 
@@ -45,7 +53,7 @@ export function AccessBanner({
 
   if (remainingMs <= 0) return null;
 
-  const passLabel = passKind === '24h' ? 'Day Pass' : 'Week Pass';
+  const passLabel = PASS_LABELS[passKind];
 
   if (remainingMs >= TWO_HOURS_MS) {
     return (

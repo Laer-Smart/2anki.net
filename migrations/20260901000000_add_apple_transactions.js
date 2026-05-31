@@ -5,6 +5,7 @@ exports.up = async (knex) => {
     t.text('transaction_id').notNullable().unique();
     t.text('product_id').notNullable();
     t.text('environment').notNullable();
+    t.timestamp('expires_at', { useTz: true }).nullable();
     t.timestamp('created_at', { useTz: true }).notNullable().defaultTo(knex.fn.now());
   });
   await knex.schema.raw(
