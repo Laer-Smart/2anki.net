@@ -1,3 +1,27 @@
+.showcaseCurrent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.showcaseCurrentTitle {
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.showcaseStats {
+  display: flex;
+  gap: 2rem;
+}
+
+.showcaseStat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
 .header {
   display: flex;
   align-items: flex-start;
