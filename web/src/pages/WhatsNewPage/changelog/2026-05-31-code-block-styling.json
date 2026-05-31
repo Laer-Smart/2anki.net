@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-code-block-styling",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Code blocks from Notion keep their monospace styling in converted cards"
+}
