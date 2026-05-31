@@ -1,6 +1,12 @@
 import type { LandingCopy } from '../types';
 
 const powerpointCopy: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
+    { label: 'Turn medical lecture slides into Anki cards', href: '/anki-from-medical-lecture-slides' },
+    { label: 'Convert GoodNotes notebooks to Anki', href: '/goodnotes-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/powerpoint-to-anki',
   title: 'PowerPoint to Anki — turn slides into flashcards | 2anki',
   description:

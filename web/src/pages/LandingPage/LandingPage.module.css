@@ -106,6 +106,40 @@
   padding: 2.5rem 1.5rem;
 }
 
+.related {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 1.5rem 2.5rem;
+}
+
+.relatedHeading {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-text-tertiary);
+  margin: 0 0 0.75rem;
+}
+
+.relatedList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.relatedLink {
+  color: var(--color-text-link);
+  text-decoration: none;
+  font-size: var(--text-base);
+}
+
+.relatedLink:hover {
+  text-decoration: underline;
+}
+
 .sectionLabel {
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);

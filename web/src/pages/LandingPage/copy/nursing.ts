@@ -1,6 +1,12 @@
 import type { LandingCopy } from '../types';
 
 const nursingCopy: LandingCopy = {
+  relatedLinks: [
+    { label: 'Build USMLE Anki decks from your notes', href: '/usmle-anki' },
+    { label: 'Turn medical lecture slides into Anki cards', href: '/anki-from-medical-lecture-slides' },
+    { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/nursing-flashcards',
   title: 'Anki flashcards from nursing lecture slides and notes — 2anki',
   description:

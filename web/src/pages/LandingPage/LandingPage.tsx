@@ -182,6 +182,21 @@ function LandingPage({ copy, setErrorMessage, heroSlot }: Readonly<LandingPagePr
         </div>
       </section>
 
+      {copy.relatedLinks != null && copy.relatedLinks.length > 0 && (
+        <nav className={styles.related} aria-label="Related">
+          <p className={styles.relatedHeading}>Related</p>
+          <ul className={styles.relatedList}>
+            {copy.relatedLinks.map((link) => (
+              <li key={link.href}>
+                <a href={link.href} className={styles.relatedLink}>
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+
       <section className={styles.footerCta}>
         <p className={styles.footerCtaText}>
           Ready to try it?{' '}

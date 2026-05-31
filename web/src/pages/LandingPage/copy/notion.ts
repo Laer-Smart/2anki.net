@@ -2,6 +2,12 @@ import type { LandingCopy } from '../types';
 import { ankiFidelityProof } from './ankiFidelityProof';
 
 const notionCopy: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert Notion tables to Anki', href: '/convert/notion-tables-to-anki' },
+    { label: 'Convert Markdown and Obsidian notes to Anki', href: '/markdown-to-anki' },
+    { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/notion-to-anki',
   title: 'Notion to Anki — decks that open clean in Anki | 2anki',
   description:

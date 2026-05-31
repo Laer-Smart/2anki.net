@@ -1,6 +1,12 @@
 import type { LandingCopy } from '../types';
 
 const ankiToNotionCopy: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert Notion pages to Anki', href: '/notion-to-anki' },
+    { label: 'Export an Anki deck to CSV', href: '/convert/apkg-to-csv' },
+    { label: 'Convert Notion tables to Anki', href: '/convert/notion-tables-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/anki-to-notion',
   title: 'Anki to Notion — free import, no add-on | 2anki',
   description:
