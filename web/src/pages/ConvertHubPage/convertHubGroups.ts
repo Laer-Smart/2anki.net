@@ -1,0 +1,161 @@
+import { CONVERT_LANDING_PAGES } from '../ConvertLandingPage/convertLandingConfig';
+
+export interface ConvertHubEntry {
+  slug: string;
+  href: string;
+  anchor: string;
+  blurb: string;
+}
+
+export interface ConvertHubGroup {
+  heading: string;
+  entries: ConvertHubEntry[];
+}
+
+interface RawEntry {
+  slug: string;
+  anchor: string;
+  blurb: string;
+}
+
+const NOTE_APPS: RawEntry[] = [
+  {
+    slug: 'notion-to-anki',
+    anchor: 'Convert Notion pages to Anki',
+    blurb:
+      'Connect Notion once, paste a page link, get a .apkg deck. Toggles become cards.',
+  },
+  {
+    slug: 'notion-tables-to-anki',
+    anchor: 'Convert Notion tables to Anki',
+    blurb:
+      'Turn a Notion table into cards — one row per card, column 1 front, column 2 back.',
+  },
+  {
+    slug: 'markdown-to-anki',
+    anchor: 'Convert Markdown and Obsidian notes to Anki',
+    blurb:
+      'Drop a .md file — bullets, Q/A pairs, and code blocks all become cards.',
+  },
+];
+
+const FLASHCARD_APPS: RawEntry[] = [
+  {
+    slug: 'brainscape-to-anki',
+    anchor: 'Move Brainscape flashcards to Anki',
+    blurb:
+      'Export your Brainscape deck as CSV and convert it to a clean .apkg.',
+  },
+  {
+    slug: 'lingvist-to-anki',
+    anchor: 'Move Lingvist flashcards to Anki',
+    blurb:
+      'Export your Lingvist vocabulary as CSV — words and translations become cards.',
+  },
+  {
+    slug: 'studystack-to-anki',
+    anchor: 'Move StudyStack flashcards to Anki',
+    blurb:
+      'Export your stack and convert terms and definitions into Anki cards.',
+  },
+  {
+    slug: 'zorbi-to-anki',
+    anchor: 'Move Zorbi flashcards to Anki',
+    blurb:
+      'Export your Zorbi deck as CSV — questions and answers become Anki cards.',
+  },
+];
+
+const FILE_FORMATS: RawEntry[] = [
+  {
+    slug: 'pdf-to-anki',
+    anchor: 'Convert a PDF to Anki',
+    blurb:
+      'Drop a PDF of lecture slides or a textbook chapter and get a .apkg deck.',
+  },
+  {
+    slug: 'csv-to-anki',
+    anchor: 'Convert a CSV or Excel sheet to Anki',
+    blurb:
+      'Drop a .csv or .xlsx — one row per card, ready to import into Anki.',
+  },
+  {
+    slug: 'html-to-anki',
+    anchor: 'Convert an HTML file to Anki',
+    blurb:
+      'Drop a saved web page — headings, bullets, and tables become cards.',
+  },
+  {
+    slug: 'epub-to-anki',
+    anchor: 'Convert EPUB highlights to Anki',
+    blurb:
+      'Drop a DRM-free .epub — each passage you highlighted becomes a card.',
+  },
+  {
+    slug: 'kindle-to-anki',
+    anchor: 'Convert Kindle highlights to Anki',
+    blurb:
+      'Upload My Clippings.txt — every Kindle highlight and note becomes a card.',
+  },
+  {
+    slug: 'apkg-to-csv',
+    anchor: 'Export an Anki deck to CSV',
+    blurb:
+      'Upload an .apkg and download a spreadsheet of every card to edit or share.',
+  },
+];
+
+const LANGUAGE_TOOLS: RawEntry[] = [
+  {
+    slug: 'pleco-to-anki',
+    anchor: 'Move Pleco flashcards to Anki',
+    blurb:
+      'Export your Pleco userdict as .txt — hanzi, pinyin, and definitions become cards.',
+  },
+  {
+    slug: 'language-reactor-to-anki',
+    anchor: 'Move Language Reactor saves to Anki',
+    blurb:
+      'Drop the Language Reactor export zip — phrases, images, and audio come across.',
+  },
+];
+
+const RAW_GROUPS: ReadonlyArray<{ heading: string; entries: RawEntry[] }> = [
+  { heading: 'Note apps', entries: NOTE_APPS },
+  { heading: 'Flashcard apps', entries: FLASHCARD_APPS },
+  { heading: 'Files', entries: FILE_FORMATS },
+  { heading: 'Language tools', entries: LANGUAGE_TOOLS },
+];
+
+function resolveHref(slug: string): string {
+  const copy = CONVERT_LANDING_PAGES.get(slug);
+  if (copy == null) {
+    throw new Error(`Convert hub references unknown converter slug: ${slug}`);
+  }
+  return copy.pathname;
+}
+
+export const CONVERT_HUB_GROUPS: ReadonlyArray<ConvertHubGroup> =
+  RAW_GROUPS.map((group) => ({
+    heading: group.heading,
+    entries: group.entries.map((entry) => ({
+      slug: entry.slug,
+      href: resolveHref(entry.slug),
+      anchor: entry.anchor,
+      blurb: entry.blurb,
+    })),
+  }));
+
+const coveredSlugs = new Set(
+  CONVERT_HUB_GROUPS.flatMap((group) =>
+    group.entries.map((entry) => entry.slug)
+  )
+);
+
+for (const slug of Array.from(CONVERT_LANDING_PAGES.keys())) {
+  if (!coveredSlugs.has(slug)) {
+    throw new Error(
+      `Convert hub is missing a group entry for converter: ${slug}`
+    );
+  }
+}

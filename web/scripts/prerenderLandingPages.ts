@@ -169,6 +169,37 @@ export function emitNotionMarketplacePage(buildDir: string): string {
   return outPath;
 }
 
+const CONVERT_HUB_META = {
+  pathname: '/convert',
+  title: 'Convert anything to Anki — every converter | 2anki',
+  description:
+    'Browse every 2anki converter in one place. Turn Notion, Markdown, PDF, CSV, Quizlet, Brainscape, Pleco, and more into Anki flashcard decks.',
+  h1: 'Convert anything to Anki',
+  subhead:
+    'Pick your source. Every converter turns your notes, files, or flashcards into a clean .apkg deck you study in Anki.',
+};
+
+export function emitConvertHubPage(buildDir: string): string {
+  const meta = CONVERT_HUB_META;
+  const indexPath = join(buildDir, 'index.html');
+  const source = readFileSync(indexPath, 'utf8');
+  const copy: LandingCopy = {
+    pathname: meta.pathname,
+    title: meta.title,
+    description: meta.description,
+    h1: meta.h1,
+    subhead: meta.subhead,
+    faqs: [],
+  };
+  const slug = meta.pathname.replace(/^\//, '');
+  const outDir = join(buildDir, slug);
+  const outPath = join(outDir, 'index.html');
+  mkdirSync(dirname(outPath), { recursive: true });
+  const html = rewriteRoot(rewriteHead(source, copy), copy);
+  writeFileSync(outPath, html, 'utf8');
+  return outPath;
+}
+
 export function emitLandingPages(buildDir: string): string[] {
   const indexPath = join(buildDir, 'index.html');
   const source = readFileSync(indexPath, 'utf8');
@@ -282,6 +313,8 @@ if (process.argv[1] && process.argv[1].endsWith('prerenderLandingPages.ts')) {
   }
   const marketplacePage = emitNotionMarketplacePage(buildDir);
   process.stdout.write(`prerendered ${marketplacePage}\n`);
+  const convertHubPage = emitConvertHubPage(buildDir);
+  process.stdout.write(`prerendered ${convertHubPage}\n`);
   const answerFiles = emitAnswersPages(buildDir);
   for (const file of answerFiles) {
     process.stdout.write(`prerendered ${file}\n`);

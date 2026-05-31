@@ -201,6 +201,28 @@ describe('LandingPage', () => {
     );
   });
 
+  it('renders the Related nav with every relatedLink when the copy has them', () => {
+    renderLandingPage(
+      <LandingPage copy={notionCopy} setErrorMessage={vi.fn()} />
+    );
+    const related = screen.getByRole('navigation', { name: 'Related' });
+    expect(related).toBeInTheDocument();
+    for (const link of notionCopy.relatedLinks ?? []) {
+      const anchor = screen.getByRole('link', { name: link.label });
+      expect(anchor).toHaveAttribute('href', link.href);
+    }
+  });
+
+  it('omits the Related nav when the copy has no relatedLinks', () => {
+    const copyWithoutRelated = { ...notionCopy, relatedLinks: undefined };
+    renderLandingPage(
+      <LandingPage copy={copyWithoutRelated} setErrorMessage={vi.fn()} />
+    );
+    expect(
+      screen.queryByRole('navigation', { name: 'Related' })
+    ).not.toBeInTheDocument();
+  });
+
   it('renders the AI flashcard generator h1 and links CTA to the ai-flashcard-generator source', () => {
     renderLandingPage(
       <LandingPage copy={aiFlashcardGeneratorCopy} setErrorMessage={vi.fn()} />

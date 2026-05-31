@@ -1,6 +1,13 @@
 import type { LandingCopy } from '../types';
 
 const medicalLectureSlidesCopy: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert PowerPoint slides to Anki', href: '/powerpoint-to-anki' },
+    { label: 'Build USMLE Anki decks from your notes', href: '/usmle-anki' },
+    { label: 'Make nursing flashcards from lecture slides', href: '/nursing-flashcards' },
+    { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/anki-from-medical-lecture-slides',
   title: 'Turn medical lecture slides into Anki cards — 2anki',
   description:

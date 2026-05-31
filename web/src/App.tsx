@@ -192,6 +192,10 @@ const AiFlashcardGenerator = lazyWithRetry(
   () => import('./pages/LandingPage/AiFlashcardGenerator'),
   './pages/LandingPage/AiFlashcardGenerator'
 );
+const ConvertHubPage = lazyWithRetry(
+  () => import('./pages/ConvertHubPage/ConvertHubPage'),
+  './pages/ConvertHubPage/ConvertHubPage'
+);
 const ConvertLandingPage = lazyWithRetry(
   () => import('./pages/ConvertLandingPage/ConvertLandingPage'),
   './pages/ConvertLandingPage/ConvertLandingPage'
@@ -525,6 +529,7 @@ function AppContent({
           />
           <Route path="/notion-marketplace" element={<NotionLandingPage />} />
           <Route path="/answers/:slug" element={<AnswersPage />} />
+          <Route path="/convert" element={<ConvertHubPage />} />
           <Route
             path="/convert/:slug"
             element={<ConvertLandingPage setErrorMessage={setErrorMessage} />}

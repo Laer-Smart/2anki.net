@@ -2,6 +2,12 @@ import type { LandingCopy } from '../LandingPage/types';
 import { ankiFidelityProof } from '../LandingPage/copy/ankiFidelityProof';
 
 const notionToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert Notion tables to Anki', href: '/convert/notion-tables-to-anki' },
+    { label: 'Convert Markdown and Obsidian notes to Anki', href: '/convert/markdown-to-anki' },
+    { label: 'Convert a PDF to Anki', href: '/convert/pdf-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/notion-to-anki',
   title: 'Notion to Anki — decks that open clean in Anki | 2anki',
   description:
@@ -31,6 +37,13 @@ const notionToAnki: LandingCopy = {
 };
 
 const pdfToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert PowerPoint slides to Anki', href: '/powerpoint-to-anki' },
+    { label: 'Convert an HTML file to Anki', href: '/convert/html-to-anki' },
+    { label: 'Convert Markdown and Obsidian notes to Anki', href: '/convert/markdown-to-anki' },
+    { label: 'Convert Notion pages to Anki', href: '/convert/notion-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/pdf-to-anki',
   title: 'PDF to Anki — flashcards that work in Anki | 2anki',
   description:
@@ -60,6 +73,12 @@ const pdfToAnki: LandingCopy = {
 };
 
 const markdownToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert Notion pages to Anki', href: '/convert/notion-to-anki' },
+    { label: 'Convert an HTML file to Anki', href: '/convert/html-to-anki' },
+    { label: 'Convert a PDF to Anki', href: '/convert/pdf-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/markdown-to-anki',
   title: 'Markdown to Anki — decks that open clean in Anki | 2anki',
   description:
@@ -89,6 +108,13 @@ const markdownToAnki: LandingCopy = {
 };
 
 const csvToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Export an Anki deck to CSV', href: '/convert/apkg-to-csv' },
+    { label: 'Convert an HTML file to Anki', href: '/convert/html-to-anki' },
+    { label: 'Move Brainscape flashcards to Anki', href: '/convert/brainscape-to-anki' },
+    { label: 'Convert Quizlet sets to Anki', href: '/quizlet-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/csv-to-anki',
   title: 'CSV to Anki — spreadsheets to clean Anki decks | 2anki',
   description:
@@ -118,6 +144,13 @@ const csvToAnki: LandingCopy = {
 };
 
 const htmlToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert Notion pages to Anki', href: '/convert/notion-to-anki' },
+    { label: 'Convert Markdown and Obsidian notes to Anki', href: '/convert/markdown-to-anki' },
+    { label: 'Convert a PDF to Anki', href: '/convert/pdf-to-anki' },
+    { label: 'Convert a CSV or Excel sheet to Anki', href: '/convert/csv-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/html-to-anki',
   title: 'HTML to Anki — web pages to clean Anki decks | 2anki',
   description:
@@ -147,6 +180,12 @@ const htmlToAnki: LandingCopy = {
 };
 
 const apkgToCsv: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert a CSV or Excel sheet to Anki', href: '/convert/csv-to-anki' },
+    { label: 'Convert Anki notes to Notion', href: '/anki-to-notion' },
+    { label: 'Convert an HTML file to Anki', href: '/convert/html-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/apkg-to-csv',
   title: 'Anki deck to CSV — export cards to a spreadsheet | 2anki',
   description:
@@ -175,6 +214,12 @@ const apkgToCsv: LandingCopy = {
 };
 
 const notionTablesToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert Notion pages to Anki', href: '/convert/notion-to-anki' },
+    { label: 'Convert a CSV or Excel sheet to Anki', href: '/convert/csv-to-anki' },
+    { label: 'Convert Markdown and Obsidian notes to Anki', href: '/convert/markdown-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/notion-tables-to-anki',
   title: 'Notion tables to Anki — one row, one card | 2anki',
   description:
@@ -203,6 +248,13 @@ const notionTablesToAnki: LandingCopy = {
 };
 
 const brainscapeToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Move StudyStack flashcards to Anki', href: '/convert/studystack-to-anki' },
+    { label: 'Move Zorbi flashcards to Anki', href: '/convert/zorbi-to-anki' },
+    { label: 'Convert Quizlet sets to Anki', href: '/quizlet-to-anki' },
+    { label: 'Convert a CSV or Excel sheet to Anki', href: '/convert/csv-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/brainscape-to-anki',
   title: 'Brainscape to Anki — move your flashcards to Anki | 2anki',
   description:
@@ -232,6 +284,13 @@ const brainscapeToAnki: LandingCopy = {
 };
 
 const lingvistToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Move Pleco flashcards to Anki', href: '/convert/pleco-to-anki' },
+    { label: 'Move Language Reactor saves to Anki', href: '/convert/language-reactor-to-anki' },
+    { label: 'Move Zorbi flashcards to Anki', href: '/convert/zorbi-to-anki' },
+    { label: 'Convert a CSV or Excel sheet to Anki', href: '/convert/csv-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/lingvist-to-anki',
   title: 'Lingvist to Anki — move your flashcards to Anki | 2anki',
   description:
@@ -261,6 +320,13 @@ const lingvistToAnki: LandingCopy = {
 };
 
 const studystackToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Move Brainscape flashcards to Anki', href: '/convert/brainscape-to-anki' },
+    { label: 'Move Zorbi flashcards to Anki', href: '/convert/zorbi-to-anki' },
+    { label: 'Convert Quizlet sets to Anki', href: '/quizlet-to-anki' },
+    { label: 'Convert a CSV or Excel sheet to Anki', href: '/convert/csv-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/studystack-to-anki',
   title: 'StudyStack to Anki — move your flashcards to Anki | 2anki',
   description:
@@ -290,6 +356,12 @@ const studystackToAnki: LandingCopy = {
 };
 
 const plecoToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Move Lingvist flashcards to Anki', href: '/convert/lingvist-to-anki' },
+    { label: 'Move Language Reactor saves to Anki', href: '/convert/language-reactor-to-anki' },
+    { label: 'Convert a CSV or Excel sheet to Anki', href: '/convert/csv-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/pleco-to-anki',
   title: 'Pleco to Anki — move your flashcards to Anki | 2anki',
   description:
@@ -319,6 +391,12 @@ const plecoToAnki: LandingCopy = {
 };
 
 const zorbiToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Move Brainscape flashcards to Anki', href: '/convert/brainscape-to-anki' },
+    { label: 'Move StudyStack flashcards to Anki', href: '/convert/studystack-to-anki' },
+    { label: 'Convert Quizlet sets to Anki', href: '/quizlet-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/zorbi-to-anki',
   title: 'Zorbi to Anki — move your flashcards to Anki | 2anki',
   description:
@@ -348,6 +426,12 @@ const zorbiToAnki: LandingCopy = {
 };
 
 const languageReactorToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Move Lingvist flashcards to Anki', href: '/convert/lingvist-to-anki' },
+    { label: 'Move Pleco flashcards to Anki', href: '/convert/pleco-to-anki' },
+    { label: 'Convert EPUB highlights to Anki', href: '/convert/epub-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/language-reactor-to-anki',
   title: 'Language Reactor to Anki — move your saved phrases to Anki | 2anki',
   description:
@@ -377,6 +461,12 @@ const languageReactorToAnki: LandingCopy = {
 };
 
 const epubToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert Kindle highlights to Anki', href: '/convert/kindle-to-anki' },
+    { label: 'Move Language Reactor saves to Anki', href: '/convert/language-reactor-to-anki' },
+    { label: 'Convert a PDF to Anki', href: '/convert/pdf-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/epub-to-anki',
   title: 'EPUB highlights to Anki — turn ebook highlights into cards | 2anki',
   description:
@@ -405,6 +495,12 @@ const epubToAnki: LandingCopy = {
 };
 
 const kindleToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert EPUB highlights to Anki', href: '/convert/epub-to-anki' },
+    { label: 'Convert a PDF to Anki', href: '/convert/pdf-to-anki' },
+    { label: 'Convert Markdown and Obsidian notes to Anki', href: '/convert/markdown-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/convert/kindle-to-anki',
   title: 'Kindle highlights to Anki — My Clippings.txt to a deck | 2anki',
   description:

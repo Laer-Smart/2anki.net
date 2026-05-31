@@ -25,6 +25,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://2anki.net/convert</loc>
+    <lastmod>2026-05-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://2anki.net/notion-to-anki</loc>
     <lastmod>2026-05-25</lastmod>
     <changefreq>weekly</changefreq>

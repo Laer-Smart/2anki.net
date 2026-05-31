@@ -1,6 +1,12 @@
 import type { LandingCopy } from '../types';
 
 const goodnotesCopy: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
+    { label: 'Convert PowerPoint slides to Anki', href: '/powerpoint-to-anki' },
+    { label: 'Convert Markdown and Obsidian notes to Anki', href: '/markdown-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/goodnotes-to-anki',
   title: 'GoodNotes to Anki — turn notebooks into flashcards | 2anki',
   description:

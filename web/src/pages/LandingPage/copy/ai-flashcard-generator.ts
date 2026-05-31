@@ -1,6 +1,12 @@
 import type { LandingCopy } from '../types';
 
 const aiFlashcardGeneratorCopy: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert Notion pages to Anki', href: '/notion-to-anki' },
+    { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
+    { label: 'Convert Markdown and Obsidian notes to Anki', href: '/markdown-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
   pathname: '/ai-flashcard-generator',
   title: 'AI flashcard generator for Anki — your notes in, real cards out | 2anki',
   description:

@@ -8,6 +8,11 @@ export interface WhatComesAcrossItem {
   body: string;
 }
 
+export interface RelatedLink {
+  label: string;
+  href: string;
+}
+
 export interface LandingCopy {
   pathname: string;
   title: string;
@@ -18,4 +23,5 @@ export interface LandingCopy {
   ctaLabel?: string;
   ctaHref?: string;
   whatComesAcross?: WhatComesAcrossItem[];
+  relatedLinks?: ReadonlyArray<RelatedLink>;
 }

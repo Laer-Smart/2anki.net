@@ -1,0 +1,86 @@
+.page {
+  background: var(--color-bg-primary);
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+
+.hero {
+  padding: 4rem 0 2.5rem;
+}
+
+.h1 {
+  font-size: clamp(2.25rem, 6vw, 3.25rem);
+  font-weight: var(--font-bold);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--color-text-primary);
+  margin: 0 0 1rem;
+  max-width: 16ch;
+}
+
+.subhead {
+  font-size: var(--text-lg);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+  max-width: 48ch;
+}
+
+.group {
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border);
+  margin-top: 2rem;
+}
+
+.groupHeading {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-text-tertiary);
+  margin: 0 0 1rem;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.itemLink {
+  color: var(--color-text-link);
+  text-decoration: none;
+  font-weight: var(--font-semibold);
+  font-size: var(--text-base);
+}
+
+.itemLink:hover {
+  text-decoration: underline;
+}
+
+.itemBlurb {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  margin: 0;
+}
+
+@media (max-width: 639px) {
+  .page {
+    padding: 0 1rem 3rem;
+  }
+
+  .hero {
+    padding: 2.5rem 0 2rem;
+  }
+}
