@@ -2,6 +2,7 @@ import {
   ChatUseCase,
   ChatRateLimitError,
   ChatConversationNotFoundError,
+  McqExtractionFailedError,
 } from './ChatUseCase';
 import { InMemoryChatMessagesRepository } from '../../data_layer/ChatMessagesRepository';
 import { InMemoryConversationsRepository } from '../../data_layer/ConversationsRepository';
@@ -9,12 +10,10 @@ import { InMemoryConversationsRepository } from '../../data_layer/ConversationsR
 const FREE_USER = { owner: 1, patreon: false } as const;
 const PATREON_USER = { owner: 2, patreon: true } as const;
 
-function buildAnthropicMock(responseContent: string) {
+function buildAnthropicMockWithBlocks(content: unknown[]) {
   const mockStream = {
     on: jest.fn().mockReturnThis(),
-    finalMessage: jest.fn().mockResolvedValue({
-      content: [{ type: 'text', text: responseContent }],
-    }),
+    finalMessage: jest.fn().mockResolvedValue({ content }),
   };
   return {
     messages: {
@@ -23,10 +22,22 @@ function buildAnthropicMock(responseContent: string) {
   };
 }
 
+function buildAnthropicMock(responseContent: string) {
+  return buildAnthropicMockWithBlocks([{ type: 'text', text: responseContent }]);
+}
+
 function buildUseCase(responseContent: string) {
   const messagesRepo = new InMemoryChatMessagesRepository();
   const conversationsRepo = new InMemoryConversationsRepository();
   const anthropic = buildAnthropicMock(responseContent);
+  const useCase = new ChatUseCase(messagesRepo, conversationsRepo, anthropic as never);
+  return { messagesRepo, conversationsRepo, anthropic, useCase };
+}
+
+function buildUseCaseWithBlocks(content: unknown[]) {
+  const messagesRepo = new InMemoryChatMessagesRepository();
+  const conversationsRepo = new InMemoryConversationsRepository();
+  const anthropic = buildAnthropicMockWithBlocks(content);
   const useCase = new ChatUseCase(messagesRepo, conversationsRepo, anthropic as never);
   return { messagesRepo, conversationsRepo, anthropic, useCase };
 }
@@ -500,6 +511,140 @@ describe('ChatUseCase', () => {
       await useCase.execute({ user: FREE_USER, content: 'q', conversationHistory: [] });
       const callArg = anthropic.messages.stream.mock.calls[0][0];
       expect(callArg.system[0].text).not.toMatch(/correct_index/);
+    });
+  });
+
+  describe('MCQ structured output (templateSlug=mcq)', () => {
+    function mcqToolBlock(input: unknown) {
+      return { type: 'tool_use', name: 'emit_mcq_cards', input };
+    }
+
+    it('forces the MCQ tool with tool_choice when templateSlug is mcq', async () => {
+      const { anthropic, useCase } = buildUseCaseWithBlocks([
+        mcqToolBlock({
+          cards: [
+            {
+              front: 'Capital of Albania?',
+              options: ['Tirana', 'Durrës', 'Vlorë', 'Shkodër'],
+              correct_index: 0,
+              rationale: 'Tirana is the capital.',
+            },
+          ],
+        }),
+      ]);
+
+      await useCase.execute({
+        user: FREE_USER,
+        content: '10 facts about Albania',
+        conversationHistory: [],
+        templateSlug: 'mcq',
+      });
+
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.tools).toEqual([
+        expect.objectContaining({ name: 'emit_mcq_cards' }),
+      ]);
+      expect(callArg.tool_choice).toEqual({ type: 'tool', name: 'emit_mcq_cards' });
+    });
+
+    it('extracts MCQ cards from the tool_use block for templateSlug=mcq', async () => {
+      const { useCase } = buildUseCaseWithBlocks([
+        mcqToolBlock({
+          cards: [
+            {
+              front: 'Capital of Albania?',
+              options: ['Tirana', 'Durrës', 'Vlorë', 'Shkodër'],
+              correct_index: 0,
+              rationale: 'Tirana is the capital.',
+            },
+            {
+              front: 'Albanian currency?',
+              options: ['Lek', 'Euro', 'Dinar', 'Lev'],
+              correct_index: 0,
+            },
+          ],
+        }),
+      ]);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: '10 facts about Albania',
+        conversationHistory: [],
+        templateSlug: 'mcq',
+      });
+
+      expect(result.cards).toHaveLength(2);
+      expect(result.cards![0]).toMatchObject({
+        front: 'Capital of Albania?',
+        options: ['Tirana', 'Durrës', 'Vlorë', 'Shkodër'],
+        correctIndex: 0,
+        rationale: 'Tirana is the capital.',
+      });
+      expect(result.cards![1]).toMatchObject({
+        front: 'Albanian currency?',
+        correctIndex: 0,
+      });
+    });
+
+    it('throws McqExtractionFailedError when the model returns prose and no tool call', async () => {
+      const { useCase } = buildUseCaseWithBlocks([
+        { type: 'text', text: 'Here are 10 facts about Albania...' },
+      ]);
+
+      await expect(
+        useCase.execute({
+          user: FREE_USER,
+          content: '10 facts about Albania',
+          conversationHistory: [],
+          templateSlug: 'mcq',
+        })
+      ).rejects.toBeInstanceOf(McqExtractionFailedError);
+    });
+
+    it('throws McqExtractionFailedError when the tool emits malformed MCQ cards', async () => {
+      const { useCase } = buildUseCaseWithBlocks([
+        mcqToolBlock({
+          cards: [{ front: 'bad', options: ['A', 'B', 'C'], correct_index: 0 }],
+        }),
+      ]);
+
+      await expect(
+        useCase.execute({
+          user: FREE_USER,
+          content: 'quiz me',
+          conversationHistory: [],
+          templateSlug: 'mcq',
+        })
+      ).rejects.toBeInstanceOf(McqExtractionFailedError);
+    });
+
+    it('does not force the MCQ tool for non-mcq templates', async () => {
+      const { anthropic, useCase } = buildUseCase('plain answer');
+
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'question',
+        conversationHistory: [],
+        templateSlug: 'basic',
+      });
+
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.tools).toBeUndefined();
+      expect(callArg.tool_choice).toBeUndefined();
+    });
+
+    it('does not force the MCQ tool for a patreon user on the basic template', async () => {
+      const { anthropic, useCase } = buildUseCase('plain answer');
+
+      await useCase.execute({
+        user: PATREON_USER,
+        content: 'question',
+        conversationHistory: [],
+        templateSlug: 'basic',
+      });
+
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.tool_choice).toBeUndefined();
     });
   });
 
