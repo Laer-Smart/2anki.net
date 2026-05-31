@@ -44,6 +44,7 @@ export const KNOWN_EVENTS = new Set([
   'pdf_print_options_used',
   'ai_conversion_completed',
   'feature_flag_changed',
+  'account_created',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;

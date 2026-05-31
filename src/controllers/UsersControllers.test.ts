@@ -23,6 +23,8 @@ jest.mock('../lib/misc/hashToken', () => ({
   default: jest.fn().mockReturnValue('hashed-token'),
 }));
 
+jest.mock('../services/events/track', () => ({ track: jest.fn() }));
+
 const mockGetById = jest.fn().mockResolvedValue({ patreon: false });
 
 jest.mock('../data_layer/UsersRepository', () => {
@@ -43,6 +45,9 @@ import SubscriptionService from '../services/SubscriptionService';
 import OauthIdentitiesRepository from '../data_layer/OauthIdentitiesRepository';
 import NotionRepository from '../data_layer/NotionRespository';
 import { SESSION_MAX_AGE_MS } from '../shared/session';
+import { track } from '../services/events/track';
+
+const trackMock = track as jest.Mock;
 
 const SAMPLE_PW = '12345678';
 
@@ -89,6 +94,67 @@ const buildController = (overrides?: {
 };
 
 describe('UsersController.register', () => {
+  beforeEach(() => {
+    trackMock.mockClear();
+  });
+
+  it('emits account_created keyed to the new user id and the request anonymous id on success', async () => {
+    const register = jest.fn().mockResolvedValue([{ id: 1 }]);
+    const { controller } = buildController({ register });
+    const req = {
+      body: { email: 'jane.doe@example.com', password: SAMPLE_PW, source: '/notion-to-anki' },
+      query: {},
+      cookies: { anon_id: 'anon-abc-123' },
+    } as unknown as express.Request;
+    const res = buildRes();
+    const next = jest.fn();
+
+    await controller.register(req, res, next);
+
+    expect(trackMock).toHaveBeenCalledWith('account_created', {
+      userId: 1,
+      anonymousId: 'anon-abc-123',
+      props: { signup_origin: '/notion-to-anki' },
+    });
+  });
+
+  it('emits account_created with a null anonymous id when no anon_id cookie is present', async () => {
+    const register = jest.fn().mockResolvedValue([{ id: 1 }]);
+    const { controller } = buildController({ register });
+    const req = {
+      body: { email: 'jane.doe@example.com', password: SAMPLE_PW },
+      query: {},
+      cookies: {},
+    } as unknown as express.Request;
+    const res = buildRes();
+    const next = jest.fn();
+
+    await controller.register(req, res, next);
+
+    expect(trackMock).toHaveBeenCalledWith(
+      'account_created',
+      expect.objectContaining({ userId: 1, anonymousId: null })
+    );
+  });
+
+  it('does not emit account_created when the email is already registered', async () => {
+    const getUserFrom = jest
+      .fn()
+      .mockResolvedValue({ id: 1, email: 'taken@example.com' });
+    const register = jest.fn();
+    const { controller } = buildController({ getUserFrom, register });
+    const req = {
+      body: { email: 'taken@example.com', password: SAMPLE_PW },
+      cookies: { anon_id: 'anon-abc-123' },
+    } as unknown as express.Request;
+    const res = buildRes();
+    const next = jest.fn();
+
+    await controller.register(req, res, next);
+
+    expect(trackMock).not.toHaveBeenCalled();
+  });
+
   it('rejects requests missing both email and password with 400', async () => {
     const { controller } = buildController();
     const req = { body: {} } as express.Request;
