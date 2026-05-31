@@ -8,6 +8,7 @@ import { useErrorGroups } from './useErrorGroups';
 import { buildCopyArtifact } from './buildCopyArtifact';
 import { parseUserAgent } from './parseUserAgent';
 import { resolveErrorGroup, reopenErrorGroup } from './resolveErrorGroup';
+import { ERROR_PAGE_SIZE, resolveErrorPage } from './errorPagination';
 
 const SOURCE_OPTIONS: { value: ErrorSource; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -316,12 +317,21 @@ export default function ErrorsTab() {
   const status: ErrorStatus =
     rawStatus === 'resolved' || rawStatus === 'all' ? rawStatus : 'unresolved';
   const selectedHash = searchParams.get('id');
+  const rawPage = searchParams.get('page');
+  const requestedPage = (() => {
+    const parsed = Number(rawPage);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : 0;
+  })();
 
   const { data, isLoading, error, refetch } = useErrorGroups({
     source,
     sort,
     status,
+    limit: ERROR_PAGE_SIZE,
+    offset: requestedPage * ERROR_PAGE_SIZE,
   });
+
+  const pageInfo = resolveErrorPage(rawPage, data?.totalGroups ?? 0);
 
   const selectedGroup =
     data?.groups.find((g) => g.message_hash === selectedHash) ?? null;
@@ -336,13 +346,27 @@ export default function ErrorsTab() {
     setSearchParams(params, { replace: true });
   };
 
+  const setFilterParam = (key: string, value: string | null) => {
+    const params = new URLSearchParams(searchParams);
+    if (value == null || value === '') {
+      params.delete(key);
+    } else {
+      params.set(key, value);
+    }
+    params.delete('page');
+    params.delete('id');
+    setSearchParams(params, { replace: true });
+  };
+
   const selectGroup = (hash: string | null) => updateParam('id', hash);
   const setSource = (s: ErrorSource) =>
-    updateParam('source', s === 'all' ? null : s);
+    setFilterParam('source', s === 'all' ? null : s);
   const setStatus = (s: ErrorStatus) =>
-    updateParam('status', s === 'unresolved' ? null : s);
+    setFilterParam('status', s === 'unresolved' ? null : s);
   const toggleSort = () =>
-    updateParam('sort', sort === 'last_seen' ? 'occurrences' : 'last_seen');
+    setFilterParam('sort', sort === 'last_seen' ? 'occurrences' : 'last_seen');
+  const goToPage = (next: number) =>
+    updateParam('page', next <= 0 ? null : String(next));
 
   const countLabel = status === 'all' ? 'total' : status;
 
@@ -565,17 +589,60 @@ export default function ErrorsTab() {
       </div>
 
       {data != null && (
-        <p
+        <div
           style={{
-            fontSize: 'var(--text-xs)',
-            color: 'var(--color-text-tertiary)',
-            margin: 0,
-            fontVariantNumeric: 'tabular-nums',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '0.5rem',
+            flexWrap: 'wrap',
           }}
         >
-          {data.totalGroups} {countLabel} group
-          {data.totalGroups === 1 ? '' : 's'}
-        </p>
+          <p
+            style={{
+              fontSize: 'var(--text-xs)',
+              color: 'var(--color-text-tertiary)',
+              margin: 0,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {data.totalGroups === 0
+              ? `0 ${countLabel} groups`
+              : `${pageInfo.rangeStart}–${pageInfo.rangeEnd} of ${data.totalGroups} ${countLabel} group${data.totalGroups === 1 ? '' : 's'}`}
+          </p>
+
+          {pageInfo.pageCount > 1 && (
+            <div
+              style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+            >
+              <button
+                type="button"
+                className={sharedStyles.btnSmall}
+                disabled={!pageInfo.hasPrev}
+                onClick={() => goToPage(pageInfo.page - 1)}
+              >
+                Previous
+              </button>
+              <span
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  color: 'var(--color-text-tertiary)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                Page {pageInfo.page + 1} of {pageInfo.pageCount}
+              </span>
+              <button
+                type="button"
+                className={sharedStyles.btnSmall}
+                disabled={!pageInfo.hasNext}
+                onClick={() => goToPage(pageInfo.page + 1)}
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

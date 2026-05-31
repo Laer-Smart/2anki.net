@@ -9,6 +9,9 @@ export default function ContactMessagesTab() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pendingId, setPendingId] = useState<number | null>(null);
+  const [failedId, setFailedId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     get2ankiApi()
@@ -19,12 +22,29 @@ export default function ContactMessagesTab() {
   }, []);
 
   async function handleToggle(id: number, nextValue: boolean) {
-    await get2ankiApi().acknowledgeContactMessage(id, nextValue);
+    setPendingId(id);
+    setFailedId(null);
+    setActionError(null);
     setMessages((prev) =>
-      prev.map((m) =>
-        m.id === id ? { ...m, is_acknowledged: nextValue } : m
-      )
+      prev.map((m) => (m.id === id ? { ...m, is_acknowledged: nextValue } : m))
     );
+    try {
+      await get2ankiApi().acknowledgeContactMessage(id, nextValue);
+    } catch {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === id ? { ...m, is_acknowledged: !nextValue } : m
+        )
+      );
+      setFailedId(id);
+      setActionError(
+        nextValue
+          ? "Couldn't mark this message as read. Try again."
+          : "Couldn't reopen this message. Try again."
+      );
+    } finally {
+      setPendingId(null);
+    }
   }
 
   if (loading) {
@@ -55,7 +75,13 @@ export default function ContactMessagesTab() {
       </header>
       <ul className={styles.messageList}>
         {messages.map((m) => (
-          <MessageCard key={m.id} message={m} onToggle={handleToggle} />
+          <MessageCard
+            key={m.id}
+            message={m}
+            onToggle={handleToggle}
+            isPending={pendingId === m.id}
+            error={failedId === m.id ? actionError : null}
+          />
         ))}
       </ul>
     </div>
@@ -65,9 +91,16 @@ export default function ContactMessagesTab() {
 interface MessageCardProps {
   message: ContactMessage;
   onToggle: (id: number, nextValue: boolean) => void;
+  isPending: boolean;
+  error: string | null;
 }
 
-function MessageCard({ message, onToggle }: Readonly<MessageCardProps>) {
+function MessageCard({
+  message,
+  onToggle,
+  isPending,
+  error,
+}: Readonly<MessageCardProps>) {
   const attachments: string[] = (() => {
     try {
       return message.attachments ? JSON.parse(message.attachments) : [];
@@ -107,9 +140,10 @@ function MessageCard({ message, onToggle }: Readonly<MessageCardProps>) {
           type="button"
           className={sharedStyles.btnSmall}
           aria-pressed={acked}
+          disabled={isPending}
           onClick={() => onToggle(message.id, !acked)}
         >
-          {acked ? 'Acknowledged' : 'Mark as read'}
+          {pendingLabel(acked, isPending)}
         </button>
         {!acked && (
           <a
@@ -119,7 +153,19 @@ function MessageCard({ message, onToggle }: Readonly<MessageCardProps>) {
             Reply
           </a>
         )}
+        {error != null && (
+          <span role="alert" className={styles.messageActionError}>
+            {error}
+          </span>
+        )}
       </div>
     </li>
   );
+}
+
+function pendingLabel(acked: boolean, isPending: boolean): string {
+  if (isPending) {
+    return 'Saving…';
+  }
+  return acked ? 'Acknowledged' : 'Mark as read';
 }
