@@ -226,7 +226,7 @@ export function HomePage({
 
       <section className={styles.stepsSection}>
         <div className={styles.stepsInner}>
-          <p className={styles.stepsHeading}>How it works</p>
+          <h2 className={styles.stepsHeading}>How it works</h2>
           <div className={styles.stepsGrid}>
             {STEPS.map((step) => (
               <div key={step.title} className={styles.step}>
@@ -244,7 +244,7 @@ export function HomePage({
       <ShowcaseSection />
 
       <section className={styles.featuresSection}>
-        <p className={styles.featuresHeading}>Other ways to use 2anki</p>
+        <h2 className={styles.featuresHeading}>Other ways to use 2anki</h2>
         <div className={styles.featuresGrid}>
           {FEATURES.map((feature) => (
             <Link key={feature.href} to={feature.href} className={styles.featureCard}>
@@ -261,7 +261,7 @@ export function HomePage({
       </section>
 
       <section id="walkthroughs" className={styles.bottomSection}>
-        <p className={styles.walkHeading}>Walkthroughs</p>
+        <h2 className={styles.walkHeading}>Walkthroughs</h2>
         <div className={styles.walkGrid}>
           {(showAll ? WALKTHROUGHS : WALKTHROUGHS.filter(([id]) => FEATURED_WALKTHROUGH_IDS.has(id))).map(([embedId, title]) => (
             <VideoCard

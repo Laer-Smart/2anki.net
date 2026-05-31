@@ -69,5 +69,9 @@
 .deleteBtn:focus-visible {
   color: var(--color-danger);
   background: var(--color-danger-light);
+}
+
+.deleteBtn:focus-visible {
   outline: none;
+  box-shadow: 0 0 0 2px var(--color-focus-ring);
 }

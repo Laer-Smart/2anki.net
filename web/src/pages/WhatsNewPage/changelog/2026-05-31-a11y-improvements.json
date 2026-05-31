@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-a11y-improvements",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Screen readers announce feedback confirmations, and keyboard focus stays visible across more controls"
+}
