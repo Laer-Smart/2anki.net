@@ -14,6 +14,20 @@ interface UseJobsResult {
   lastFetchedAt: Date | null;
 }
 
+function statusOf(error: unknown): number | undefined {
+  if (error != null && typeof error === 'object' && 'status' in error) {
+    const status = (error as { status?: unknown }).status;
+    if (typeof status === 'number') return status;
+  }
+  return undefined;
+}
+
+function isTransientPollError(error: unknown): boolean {
+  const status = statusOf(error);
+  if (status == null) return false;
+  return status === 0 || status >= 500;
+}
+
 export default function useJobs(
   backend: Backend,
   setError: ErrorHandlerType
@@ -33,6 +47,7 @@ export default function useJobs(
       setJobs(active);
       setLastFetchedAt(new Date());
     } catch (error) {
+      if (isTransientPollError(error)) return;
       setError(error);
     }
   }

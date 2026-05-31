@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-downloads-poll-resilience",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Your decks list stays put when a refresh briefly fails instead of flashing a technical error"
+}

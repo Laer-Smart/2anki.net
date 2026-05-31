@@ -5,6 +5,7 @@ import useJobs from './useJobs';
 import Backend from '../../../lib/backend';
 import { UserNotice } from '../../../lib/errors/UserNotice';
 import { JobsId } from '../../../schemas/public/Jobs';
+import JobResponse from '../../../schemas/public/JobResponse';
 
 function makeMockBackend(): Backend {
   return {
@@ -64,6 +65,98 @@ describe('useJobs warmup window', () => {
     expect(notice.message).toBe(
       'This job is still running. Wait for it to finish.'
     );
+  });
+
+  it('keeps the last jobs and stays silent when a poll hits a transient 503', async () => {
+    const backend = makeMockBackend();
+    const job = { id: 7, status: 'done' } as unknown as JobResponse;
+    const transient = new Error(
+      'HTTP error! GET /upload/jobs status: 503, message: Service Unavailable'
+    ) as Error & { status?: number };
+    transient.status = 503;
+    (backend.getJobs as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([job])
+      .mockRejectedValueOnce(transient);
+    const setError = vi.fn();
+
+    const { result } = renderHook(() => useJobs(backend, setError));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await result.current.refreshJobs();
+    });
+
+    expect(setError).not.toHaveBeenCalled();
+    expect(result.current.jobs).toEqual([job]);
+  });
+
+  it('stays silent on a network/fetch poll failure and keeps the last jobs', async () => {
+    const backend = makeMockBackend();
+    const job = { id: 9, status: 'done' } as unknown as JobResponse;
+    const networkError = new Error(
+      'Network error on GET /upload/jobs: Failed to fetch'
+    ) as Error & { status?: number };
+    networkError.status = 0;
+    (backend.getJobs as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([job])
+      .mockRejectedValueOnce(networkError);
+    const setError = vi.fn();
+
+    const { result } = renderHook(() => useJobs(backend, setError));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await result.current.refreshJobs();
+    });
+
+    expect(setError).not.toHaveBeenCalled();
+    expect(result.current.jobs).toEqual([job]);
+  });
+
+  it('propagates an auth failure from a poll so the redirect path fires', async () => {
+    const backend = makeMockBackend();
+    const unauthorized = new UserNotice('Unauthorized') as UserNotice & {
+      status?: number;
+    };
+    unauthorized.status = 401;
+    (backend.getJobs as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      unauthorized
+    );
+    const setError = vi.fn();
+
+    renderHook(() => useJobs(backend, setError));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(setError).toHaveBeenCalledWith(unauthorized);
+  });
+
+  it('propagates a 403 forbidden poll failure instead of swallowing it', async () => {
+    const backend = makeMockBackend();
+    const forbidden = new Error(
+      'HTTP error! GET /upload/jobs status: 403, message: Forbidden'
+    ) as Error & { status?: number };
+    forbidden.status = 403;
+    (backend.getJobs as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      forbidden
+    );
+    const setError = vi.fn();
+
+    renderHook(() => useJobs(backend, setError));
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(setError).toHaveBeenCalledWith(forbidden);
   });
 
   it('switches to 10000ms after warmup expires with no active jobs', async () => {
