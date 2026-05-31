@@ -526,7 +526,15 @@ describe('buildUserMessage — card size suffix', () => {
   });
 });
 
-describe('generateDeckInfo — partial chunk success (CLAUDE_PARTIAL_SUCCESS_ENABLED)', () => {
+function truncatedResponse() {
+  return {
+    content: [{ type: 'text', text: FAKE_DECK_JSON.slice(0, 20) }],
+    stop_reason: 'max_tokens',
+    usage: { input_tokens: 100, output_tokens: 50 },
+  };
+}
+
+describe('generateDeckInfo — partial chunk success (default)', () => {
   const htmlTwoChunks = '<p>' + 'x'.repeat(39_990) + '</p><p>y</p>';
 
   beforeEach(() => {
@@ -535,21 +543,7 @@ describe('generateDeckInfo — partial chunk success (CLAUDE_PARTIAL_SUCCESS_ENA
     mockStream.on.mockReturnThis();
   });
 
-  afterEach(() => {
-    delete process.env.CLAUDE_PARTIAL_SUCCESS_ENABLED;
-  });
-
-  it('flag off (default) — one chunk fails → entire call rejects', async () => {
-    mockStream.finalMessage
-      .mockResolvedValueOnce(fakeResponse())
-      .mockRejectedValueOnce(new Error('chunk 1 API error'));
-
-    await expect(generateDeckInfo(htmlTwoChunks, [])).rejects.toThrow('chunk 1 API error');
-  });
-
-  it('flag on — one chunk fails → call resolves with succeeded chunks and logs the failure', async () => {
-    process.env.CLAUDE_PARTIAL_SUCCESS_ENABLED = 'true';
-
+  it('one chunk fails to parse → call resolves with the succeeded chunks and logs the failure', async () => {
     mockStream.finalMessage
       .mockResolvedValueOnce(fakeResponse())
       .mockRejectedValueOnce(new Error('chunk 1 parse error'));
@@ -573,14 +567,63 @@ describe('generateDeckInfo — partial chunk success (CLAUDE_PARTIAL_SUCCESS_ENA
     }
   });
 
-  it('flag on — all chunks fail → call rejects with the first failure reason', async () => {
-    process.env.CLAUDE_PARTIAL_SUCCESS_ENABLED = 'true';
-
+  it('all chunks fail → call rejects with the first failure reason', async () => {
     mockStream.finalMessage
       .mockRejectedValueOnce(new Error('chunk 0 failed'))
       .mockRejectedValueOnce(new Error('chunk 1 failed'));
 
     await expect(generateDeckInfo(htmlTwoChunks, [])).rejects.toThrow('chunk 0 failed');
+  });
+});
+
+describe('generateDeckInfo — truncated chunk retry', () => {
+  const htmlOneChunk =
+    '<details>' + 'x'.repeat(10_000) + '</details><details>' + 'y'.repeat(10_000) + '</details>';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockStreamFn.mockReturnValue(mockStream);
+    mockStream.on.mockReturnThis();
+  });
+
+  it('stop_reason max_tokens → splits the chunk in half and retries, then succeeds', async () => {
+    mockStream.finalMessage
+      .mockResolvedValueOnce(truncatedResponse())
+      .mockResolvedValueOnce(fakeResponse())
+      .mockResolvedValueOnce(fakeResponse());
+
+    const result = await generateDeckInfo(htmlOneChunk, []);
+
+    expect(mockStream.finalMessage).toHaveBeenCalledTimes(3);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result[0].cards.length).toBeGreaterThan(0);
+  });
+
+  it('retried halves still truncate → chunk is dropped, sibling chunk survives', async () => {
+    const htmlTwoChunks =
+      '<p>' +
+      'a'.repeat(39_990) +
+      '</p>' +
+      '<details>' +
+      'b'.repeat(10_000) +
+      '</details><details>' +
+      'c'.repeat(10_000) +
+      '</details>';
+
+    mockStream.finalMessage
+      .mockResolvedValueOnce(fakeResponse())
+      .mockResolvedValueOnce(truncatedResponse())
+      .mockResolvedValueOnce(truncatedResponse())
+      .mockResolvedValueOnce(truncatedResponse());
+
+    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    try {
+      const result = await generateDeckInfo(htmlTwoChunks, []);
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0].cards.length).toBeGreaterThan(0);
+    } finally {
+      infoSpy.mockRestore();
+    }
   });
 });
 
