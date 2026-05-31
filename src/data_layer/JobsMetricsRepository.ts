@@ -4,6 +4,7 @@ import type {
   ConversionErrorCount,
   FailedConversionsWeekPoint,
 } from '../services/ops/ConversionMetricsService';
+import { normalizeFailureReasons } from './normalizeFailureReasons';
 
 export interface IJobsMetricsRepository {
   countFreeConversions7d(sevenDaysAgo: Date): Promise<number>;
@@ -33,8 +34,13 @@ export class JobsMetricsRepository implements IJobsMetricsRepository {
     sevenDaysAgo: Date,
     tier: ConversionTier
   ): Knex.QueryBuilder {
+    const ownerJoin = this.database.raw(
+      'CAST(users.id AS TEXT) = "jobs"."owner"'
+    );
     return this.database('jobs')
-      .join('users', 'jobs.owner', '=', 'users.id')
+      .join('users', function joinOnUserId() {
+        this.on(ownerJoin);
+      })
       .where('jobs.created_at', '>=', sevenDaysAgo)
       .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
       .whereRaw(tier === 'paid' ? PAID_CUSTOMER_FILTER : FREE_CUSTOMER_FILTER);
@@ -97,16 +103,16 @@ export class JobsMetricsRepository implements IJobsMetricsRepository {
       .whereNotNull('jobs.job_reason_failure')
       .select('jobs.job_reason_failure as reason')
       .count('jobs.id as count')
-      .groupBy('jobs.job_reason_failure')
-      .orderBy('count', 'desc')
-      .limit(10);
+      .groupBy('jobs.job_reason_failure');
 
-    return (
+    const rawRows = (
       results as Array<{ reason: string; count: number | string }>
     ).map((row) => ({
       reason: row.reason || 'Unknown',
       count: Number(row.count),
     }));
+
+    return normalizeFailureReasons(rawRows);
   }
 
   async failedConversionsWeekly(

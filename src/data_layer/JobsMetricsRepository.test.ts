@@ -119,6 +119,16 @@ describe('JobsMetricsRepository — counts cover the real Notion job types', () 
     expect(rate).toBeNull();
   });
 
+  it('counts paid conversions when owner is the numeric user id as a string', async () => {
+    await insertUser(db, '19848', 'cus_numeric');
+    await insertJob(db, { owner: '19848', object_id: 'n-1', type: 'page' });
+    await insertJob(db, { owner: '19848', object_id: 'n-2', type: 'database' });
+
+    const count = await repo.countPaidConversions7d(sevenDaysAgo);
+
+    expect(count).toBe(2);
+  });
+
   it('groups top failure reasons across Notion job types', async () => {
     await insertJob(db, {
       owner: 'free-user',
@@ -148,5 +158,66 @@ describe('JobsMetricsRepository — counts cover the real Notion job types', () 
       { reason: 'rate limit', count: 2 },
       { reason: 'timeout', count: 1 },
     ]);
+  });
+});
+
+interface CapturingRunner {
+  run(): Promise<unknown>;
+}
+
+interface CapturingClient {
+  runner(builder: { toQuery(): string }): CapturingRunner;
+}
+
+function captureCompiledSql(pg: Knex): () => string {
+  const client = pg.client as unknown as CapturingClient;
+  const originalRunner = client.runner.bind(client);
+  let captured = '';
+  client.runner = (builder: { toQuery(): string }) => {
+    const runner = originalRunner(builder);
+    runner.run = () => {
+      captured = builder.toQuery();
+      return Promise.reject(new Error('captured'));
+    };
+    return runner;
+  };
+  return () => captured;
+}
+
+describe('JobsMetricsRepository — tier join emits portable SQL on Postgres', () => {
+  let pg: Knex;
+
+  beforeEach(() => {
+    pg = knex({ client: 'pg' });
+  });
+
+  afterEach(async () => {
+    await pg.destroy();
+  });
+
+  it('casts users.id to text so it joins against the varchar jobs.owner', async () => {
+    const getSql = captureCompiledSql(pg);
+    const repo = new JobsMetricsRepository(pg);
+    const sevenDaysAgo = new Date('2026-05-01T00:00:00.000Z');
+
+    await repo.countPaidConversions7d(sevenDaysAgo).catch(() => undefined);
+
+    const sql = getSql();
+    expect(sql).toContain('CAST(users.id AS TEXT) = "jobs"."owner"');
+    expect(sql).toContain('"jobs"."type" in');
+    expect(sql).toContain(`"jobs"."status" = 'done'`);
+    expect(sql).toContain("users.stripe_customer_id IS NOT NULL");
+  });
+
+  it('emits the text cast for the free success-rate query too', async () => {
+    const getSql = captureCompiledSql(pg);
+    const repo = new JobsMetricsRepository(pg);
+    const sevenDaysAgo = new Date('2026-05-01T00:00:00.000Z');
+
+    await repo.computeFreeSuccessRate7d(sevenDaysAgo).catch(() => undefined);
+
+    const sql = getSql();
+    expect(sql).toContain('CAST(users.id AS TEXT) = "jobs"."owner"');
+    expect(sql).toContain("users.stripe_customer_id IS NULL");
   });
 });
