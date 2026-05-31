@@ -5,7 +5,7 @@ import {
 import ReactDOMServer from 'react-dom/server';
 import CardOption from '../../../lib/parser/Settings';
 
-import BlockEquation from '../blocks/BlockEquation';
+import { renderInlineEquation } from '../blocks/BlockEquation';
 import HandleBlockAnnotations from '../blocks/HandleBlockAnnotations';
 import isEquation from './isEquation';
 import isMention from './isMention';
@@ -22,7 +22,7 @@ export default function renderTextChildren(
   const content = text
     .map((t: RichTextItemResponse) => {
       if (isEquation(t)) {
-        return BlockEquation(t as EquationRichTextItemResponse);
+        return renderInlineEquation(t as EquationRichTextItemResponse);
       }
 
       if (isText(t) || isMention(t)) {

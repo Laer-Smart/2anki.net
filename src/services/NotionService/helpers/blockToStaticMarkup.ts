@@ -8,7 +8,7 @@ import { BlockCallout } from '../blocks/BlockCallout';
 import { BlockChildPage } from '../blocks/BlockChildPage';
 import BlockCode from '../blocks/BlockCode';
 import { BlockDivider } from '../blocks/BlockDivider';
-import BlockEquation from '../blocks/BlockEquation';
+import { renderDisplayEquation } from '../blocks/BlockEquation';
 import { BlockHeading } from '../blocks/BlockHeadings';
 import BlockParagraph from '../blocks/BlockParagraph';
 import { BlockQuote } from '../blocks/BlockQuote';
@@ -94,7 +94,7 @@ export const blockToStaticMarkup = async (
       back += await BlockColumnList(c, handler);
       break;
     case 'equation':
-      back += BlockEquation(c as EquationBlockObjectResponse);
+      back += renderDisplayEquation(c as EquationBlockObjectResponse);
       break;
     case 'link_to_page':
       back += await LinkToPage(c, handler);

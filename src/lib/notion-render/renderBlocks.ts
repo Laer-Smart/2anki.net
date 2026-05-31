@@ -259,7 +259,7 @@ const renderCode = (block: NotionRenderableBlock): string => {
 const renderEquation = (block: NotionRenderableBlock): string => {
   const expr = block.equation?.expression;
   if (expr == null || expr === '') return '';
-  return `\\(${escapeHtml(expr)}\\)`;
+  return `\\[${escapeHtml(expr)}\\]`;
 };
 
 const renderChildPageTitle = (block: NotionRenderableBlock): string => {
