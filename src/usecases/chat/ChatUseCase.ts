@@ -3,6 +3,7 @@ import type { IChatMessagesRepository } from '../../data_layer/ChatMessagesRepos
 import type { IConversationsRepository } from '../../data_layer/ConversationsRepository';
 import { logClaudeUsage } from '../../lib/claude/logClaudeUsage';
 import { buildAttachmentBlocks, type ChatAttachment } from './buildAttachmentBlocks';
+import { extractAttachmentText, buildAttachmentTextBlock } from './extractAttachmentText';
 import { isChatCardTemplate, templatePromptSuffix, type ChatCardTemplate } from './chatTemplates';
 
 const REQUIRED_MCQ_OPTION_COUNT = 4;
@@ -366,10 +367,14 @@ export class ChatUseCase {
 
     const recentHistory = conversationHistory.slice(-MAX_HISTORY_TURNS);
     const attachmentBlocks = buildAttachmentBlocks(attachments);
+    const extractedText = await extractAttachmentText(attachments);
+    const attachmentTextBlock = buildAttachmentTextBlock(extractedText);
+    const promptText =
+      attachmentTextBlock.length > 0 ? `${attachmentTextBlock}\n\n${content}` : content;
     const userContent: Anthropic.MessageParam['content'] =
       attachmentBlocks.length > 0
-        ? [...attachmentBlocks, { type: 'text', text: content }]
-        : content;
+        ? [...attachmentBlocks, { type: 'text', text: promptText }]
+        : promptText;
 
     await this.messagesRepo.insert({
       userId: user.owner,

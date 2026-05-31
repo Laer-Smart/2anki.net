@@ -1,3 +1,4 @@
+import { zipSync, strToU8 } from 'fflate';
 import {
   ChatUseCase,
   ChatRateLimitError,
@@ -6,6 +7,41 @@ import {
 } from './ChatUseCase';
 import { InMemoryChatMessagesRepository } from '../../data_layer/ChatMessagesRepository';
 import { InMemoryConversationsRepository } from '../../data_layer/ConversationsRepository';
+
+jest.mock(
+  '../../infrastracture/adapters/fileConversion/convertDocxToHTML',
+  () => ({
+    convertDocxToHTML: jest.fn(),
+  })
+);
+
+import { convertDocxToHTML } from '../../infrastracture/adapters/fileConversion/convertDocxToHTML';
+
+const mockedConvertDocx = convertDocxToHTML as jest.MockedFunction<typeof convertDocxToHTML>;
+
+const ZIP_MIME = 'application/zip';
+const DOCX_MIME =
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const MARKDOWN_MIME = 'text/markdown';
+const PLAIN_TEXT_MIME = 'text/plain';
+
+function notionZip(files: Record<string, string>): Buffer {
+  const entries: Record<string, Uint8Array> = {};
+  for (const [name, contents] of Object.entries(files)) {
+    entries[name] = strToU8(contents);
+  }
+  return Buffer.from(zipSync(entries));
+}
+
+function lastUserText(stream: jest.Mock): string {
+  const callArg = stream.mock.calls[0][0];
+  const lastMessage = callArg.messages[callArg.messages.length - 1];
+  if (typeof lastMessage.content === 'string') return lastMessage.content;
+  const textBlock = lastMessage.content.find(
+    (block: { type: string }) => block.type === 'text'
+  );
+  return textBlock?.text ?? '';
+}
 
 const FREE_USER = { owner: 1, patreon: false } as const;
 const PATREON_USER = { owner: 2, patreon: true } as const;
@@ -434,6 +470,125 @@ describe('ChatUseCase', () => {
       const all = messagesRepo.getAll();
       const userMsg = all.find((m) => m.role === 'user');
       expect(userMsg?.content).toBe('Summarize this PDF');
+    });
+  });
+
+  describe('text-extractable attachments', () => {
+    beforeEach(() => {
+      mockedConvertDocx.mockReset();
+    });
+
+    it('injects markdown attachment text into the prompt', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'Make cards from this',
+        conversationHistory: [],
+        attachments: [
+          {
+            mimeType: MARKDOWN_MIME,
+            data: Buffer.from('# Photosynthesis\n\nConverts light to energy.', 'utf8'),
+            fileName: 'bio.md',
+          },
+        ],
+      });
+
+      const prompt = lastUserText(anthropic.messages.stream);
+      expect(prompt).toContain('<file name="bio.md">');
+      expect(prompt).toContain('Converts light to energy.');
+      expect(prompt).toContain('Make cards from this');
+    });
+
+    it('injects plain text attachment text into the prompt', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'Summarize',
+        conversationHistory: [],
+        attachments: [
+          {
+            mimeType: PLAIN_TEXT_MIME,
+            data: Buffer.from('Mitosis has four phases.', 'utf8'),
+            fileName: 'lecture.txt',
+          },
+        ],
+      });
+
+      const prompt = lastUserText(anthropic.messages.stream);
+      expect(prompt).toContain('<file name="lecture.txt">');
+      expect(prompt).toContain('Mitosis has four phases.');
+    });
+
+    it('injects Notion .zip export text into the prompt', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'Cards please',
+        conversationHistory: [],
+        attachments: [
+          {
+            mimeType: ZIP_MIME,
+            data: notionZip({
+              'Cell Biology.html':
+                '<html><body><h1>Ribosomes</h1><p>Synthesize proteins.</p></body></html>',
+            }),
+            fileName: 'notion-export.zip',
+          },
+        ],
+      });
+
+      const prompt = lastUserText(anthropic.messages.stream);
+      expect(prompt).toContain('<file name="notion-export.zip">');
+      expect(prompt).toContain('Ribosomes');
+      expect(prompt).toContain('Synthesize proteins.');
+    });
+
+    it('injects .docx attachment text into the prompt', async () => {
+      mockedConvertDocx.mockResolvedValue('<h1>Kinetics</h1><p>Rate of reaction.</p>');
+      const { anthropic, useCase } = buildUseCase('answer');
+
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'Explain',
+        conversationHistory: [],
+        attachments: [
+          {
+            mimeType: DOCX_MIME,
+            data: Buffer.from([0x50, 0x4b, 0x03, 0x04]),
+            fileName: 'chem.docx',
+          },
+        ],
+      });
+
+      const prompt = lastUserText(anthropic.messages.stream);
+      expect(prompt).toContain('<file name="chem.docx">');
+      expect(prompt).toContain('Rate of reaction.');
+    });
+
+    it('keeps a PDF as a native block while injecting a sibling .md as text', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'Combine these',
+        conversationHistory: [],
+        attachments: [
+          { mimeType: 'application/pdf', data: Buffer.from([0x25, 0x50, 0x44, 0x46]), fileName: 'slides.pdf' },
+          { mimeType: MARKDOWN_MIME, data: Buffer.from('extra md notes', 'utf8'), fileName: 'notes.md' },
+        ],
+      });
+
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      const lastMessage = callArg.messages[callArg.messages.length - 1];
+      const docBlock = lastMessage.content.find(
+        (block: { type: string }) => block.type === 'document'
+      );
+      expect(docBlock).toBeDefined();
+      const prompt = lastUserText(anthropic.messages.stream);
+      expect(prompt).toContain('extra md notes');
     });
   });
 
