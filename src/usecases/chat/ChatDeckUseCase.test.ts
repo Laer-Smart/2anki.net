@@ -131,6 +131,31 @@ describe('ChatDeckUseCase.execute basic-and-reversed template', () => {
   });
 });
 
+describe('ChatDeckUseCase.execute cloze content under a basic template label', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (CustomExporter as unknown as jest.Mock).mockImplementation(() => ({
+      configure: jest.fn(),
+      save: jest.fn().mockResolvedValue(Buffer.from('apkg')),
+    }));
+  });
+
+  it('exports cloze:true from the front content even when templateSlug is basic', async () => {
+    const useCase = new ChatDeckUseCase();
+    await useCase.execute({
+      deckName: 'Mismatched',
+      templateSlug: 'basic',
+      cards: [{ front: 'The capital of France is {{c1::Paris}}.', back: '' }],
+    });
+    const Mock = CustomExporter as unknown as jest.Mock;
+    const configure = Mock.mock.results[0].value.configure as jest.Mock;
+    const deckInfo = configure.mock.calls[0][0] as Array<{
+      cards: Array<{ cloze: boolean }>;
+    }>;
+    expect(deckInfo[0].cards[0].cloze).toBe(true);
+  });
+});
+
 describe('looksLikeCloze', () => {
   it('returns true for a single cloze marker', () => {
     expect(looksLikeCloze('Paris is the capital of {{c1::France}}')).toBe(true);
