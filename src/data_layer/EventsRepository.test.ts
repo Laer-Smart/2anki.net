@@ -197,4 +197,14 @@ describe('EventsRepository SQL generation', () => {
     expect(sql).toContain("'paywall_shown'");
     expect(sql).toContain("'checkout_completed'");
   });
+
+  it('groupUploadFunnel includes the account_created signup stage', async () => {
+    const { db, getSql } = captureGeneratedSql();
+    const repo = new EventsRepository(db);
+
+    await repo.groupUploadFunnel(new Date('2026-05-01'));
+
+    const sql = getSql();
+    expect(sql).toContain("'account_created'");
+  });
 });

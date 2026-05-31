@@ -36,9 +36,46 @@ describe('UploadFunnelService', () => {
       conversion_failed: 20,
       deck_downloaded: 60,
       paywall_shown: 0,
+      signup: 0,
       paid: 0,
     });
     expect(result.since).toBe(since.toISOString());
+  });
+
+  it('carries the account_created count through to the signup stage', async () => {
+    const repo = makeRepo([
+      { stage: 'deck_downloaded', distinct_identities: 60 },
+      { stage: 'account_created', distinct_identities: 18 },
+    ]);
+    const service = new UploadFunnelService({ eventsRepo: repo });
+
+    const result = await service.getMetrics(since);
+
+    expect(result.stages?.signup).toBe(18);
+  });
+
+  it('computes the download to signup conversion rate', async () => {
+    const repo = makeRepo([
+      { stage: 'deck_downloaded', distinct_identities: 80 },
+      { stage: 'account_created', distinct_identities: 20 },
+    ]);
+    const service = new UploadFunnelService({ eventsRepo: repo });
+
+    const result = await service.getMetrics(since);
+
+    expect(result.download_to_signup_rate_pct).toBe(25);
+  });
+
+  it('reports a zero signup rate when no decks were downloaded', async () => {
+    const repo = makeRepo([
+      { stage: 'account_created', distinct_identities: 5 },
+    ]);
+    const service = new UploadFunnelService({ eventsRepo: repo });
+
+    const result = await service.getMetrics(since);
+
+    expect(result.stages?.deck_downloaded).toBe(0);
+    expect(result.download_to_signup_rate_pct).toBe(0);
   });
 
   it('carries the paywall_shown and paid stages through to the response', async () => {
