@@ -54,7 +54,13 @@ export class CreateJobWorkSpaceUseCase {
     const settings = await this.settingsRepository.load(owner, id);
     console.debug(`using settings ${JSON.stringify(settings, null, 2)}`);
 
-    const bl = new BlockHandler(exporter, api, settings);
+    const bl = new BlockHandler(
+      exporter,
+      api,
+      settings,
+      this.settingsRepository,
+      owner
+    );
     const rules = await this.parserRulesRepository.load(owner, id);
     bl.useAll = input.isPaying;
 
