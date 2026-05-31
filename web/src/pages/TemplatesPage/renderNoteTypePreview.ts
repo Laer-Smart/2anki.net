@@ -70,7 +70,7 @@ export function buildPreviewDocument(
   side: 'front' | 'back'
 ): string {
   const body = renderCardSide(noteType, previewData, side);
-  return `<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>
+  return `<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><script>window.anki={imageOcclusion:{setup(){}}};</script><style>
 html { font-size: clamp(8px, 2.5vw, 16px); }
 :where(h1) { font-size: 1.4em; }
 :where(h2) { font-size: 1.25em; }

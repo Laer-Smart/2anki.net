@@ -182,4 +182,24 @@ describe('buildPreviewDocument', () => {
     expect(doc).toContain('.card { color: black; }');
     expect(doc).toContain('<div class="card">Q</div>');
   });
+
+  it('stubs the anki global before the card body so image-occlusion setup cannot throw', () => {
+    const imageOcclusion: AnkiNoteType = {
+      ...basic,
+      name: 'Image Occlusion',
+      tmpls: [
+        {
+          name: 'Card 1',
+          ord: 0,
+          qfmt: '<div id="err"></div><script>try{anki.imageOcclusion.setup();}catch(e){document.getElementById("err").innerHTML=`Error loading image occlusion.<br><br>${e}`;}</script>',
+          afmt: '{{FrontSide}}',
+        },
+      ],
+    };
+    const doc = buildPreviewDocument(imageOcclusion, {}, 'front');
+    const stubIndex = doc.indexOf('window.anki=');
+    const bodyIndex = doc.indexOf('<body>');
+    expect(stubIndex).toBeGreaterThan(-1);
+    expect(stubIndex).toBeLessThan(bodyIndex);
+  });
 });
