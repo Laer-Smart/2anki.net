@@ -54,10 +54,11 @@ vi.mock('../../lib/backend/api', () => ({
   del: vi.fn(),
 }));
 
-import { get, post } from '../../lib/backend/api';
+import { get, patch, post } from '../../lib/backend/api';
 
 const mockPost = post as ReturnType<typeof vi.fn>;
 const mockGet = get as ReturnType<typeof vi.fn>;
+const mockPatch = patch as ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   mockUseUserLocals.mockReturnValue(consentedLocals);
@@ -645,6 +646,7 @@ describe('ChatPanel — template selector', () => {
   beforeEach(() => {
     mockPost.mockReset();
     mockGet.mockResolvedValue({ used: 0, limit: 20 });
+    mockPatch.mockResolvedValue({ ok: true, status: 204 });
   });
 
   it('renders "Template: Basic" pill alongside the cards', () => {
@@ -716,36 +718,95 @@ describe('ChatPanel — template selector', () => {
     });
   });
 
-  it('auto-regenerates the last turn when the template changes', async () => {
+  it('regenerates in place via the conversation endpoint when the template changes', async () => {
     mockPost.mockResolvedValueOnce(
       makeSseResponse([
         {
           event: 'done',
           data: {
             content: 'Reply',
-            conversationId: 1,
+            conversationId: 7,
             cards: [{ front: 'New', back: 'Card' }],
           },
         },
       ])
     );
-    renderChatPanel({ initialMessages: assistantWithCards });
+    renderChatPanel({
+      initialMessages: assistantWithCards,
+      initialConversationId: 7,
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
     fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
     await waitFor(() => {
       expect(mockPost).toHaveBeenCalledWith(
-        '/api/chat/message',
-        expect.objectContaining({
-          content: '20 cards about Norway',
-          templateSlug: 'cloze',
-        })
+        '/api/chat/conversations/7/regenerate',
+        { templateSlug: 'cloze' }
       );
     });
-    const regenerateCall = mockPost.mock.calls.find(
+  });
+
+  it('does not re-send the prior message as a new turn on template change', async () => {
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([
+        {
+          event: 'done',
+          data: {
+            content: 'Reply',
+            conversationId: 7,
+            cards: [{ front: 'New', back: 'Card' }],
+          },
+        },
+      ])
+    );
+    renderChatPanel({
+      initialMessages: assistantWithCards,
+      initialConversationId: 7,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
+    fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/chat/conversations/7/regenerate',
+        { templateSlug: 'cloze' }
+      );
+    });
+    const messageCall = mockPost.mock.calls.find(
       (call) => call[0] === '/api/chat/message'
     );
-    expect(regenerateCall).toBeDefined();
-    expect(regenerateCall?.[1].history).toEqual([]);
+    expect(messageCall).toBeUndefined();
+  });
+
+  it('replaces the target assistant message in place without appending a new one', async () => {
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([
+        {
+          event: 'done',
+          data: {
+            content: 'Regenerated reply',
+            conversationId: 7,
+            cards: [{ front: 'Cloze front', back: 'Cloze back' }],
+          },
+        },
+      ])
+    );
+    renderChatPanel({
+      initialMessages: assistantWithCards,
+      initialConversationId: 7,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
+    fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
+    await waitFor(() => {
+      expect(screen.getByText('Cloze front')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Capital?')).not.toBeInTheDocument();
+    expect(screen.getByText('20 cards about Norway')).toBeInTheDocument();
+  });
+
+  it('does not regenerate when there is no saved conversation', async () => {
+    renderChatPanel({ initialMessages: assistantWithCards });
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
+    fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
+    expect(mockPost).not.toHaveBeenCalled();
   });
 
   it('shows a skeleton while regenerating and hides the Download button', async () => {
@@ -757,7 +818,10 @@ describe('ChatPanel — template selector', () => {
     );
     mockPost.mockReturnValueOnce(sseResponse);
 
-    renderChatPanel({ initialMessages: assistantWithCards });
+    renderChatPanel({
+      initialMessages: assistantWithCards,
+      initialConversationId: 7,
+    });
     expect(
       screen.getByRole('button', { name: 'Download deck' })
     ).toBeInTheDocument();
