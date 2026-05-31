@@ -56,13 +56,16 @@ export class NotionService {
     this.redirectURI = process.env.NOTION_REDIRECT_URI!;
   }
 
-  getNotionAuthorizationLink(clientId: string) {
+  getNotionAuthorizationLink(clientId: string, state?: string) {
     const params = new URLSearchParams({
       owner: 'user',
       client_id: clientId,
       response_type: 'code',
       redirect_uri: this.redirectURI,
     });
+    if (state) {
+      params.set('state', state);
+    }
     return `https://api.notion.com/v1/oauth/authorize?${params.toString()}`;
   }
 
@@ -227,10 +230,16 @@ export class NotionService {
     }
   }
 
-  async getNotionLinkInfo(owner: number): Promise<NotionLinkInfo> {
+  async getNotionLinkInfo(
+    owner: number,
+    { client }: { client?: 'native' } = {}
+  ): Promise<NotionLinkInfo> {
     const notionData = await this.notionRepository.getNotionData(owner);
     const clientId = this.clientId;
-    const link = this.getNotionAuthorizationLink(clientId);
+    const link =
+      client === 'native'
+        ? this.getNotionAuthorizationLink(clientId, 'native')
+        : this.getNotionAuthorizationLink(clientId);
 
     if (!notionData) {
       return {

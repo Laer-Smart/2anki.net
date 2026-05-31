@@ -41,6 +41,7 @@ import UsersRepository from '../data_layer/UsersRepository';
 
 const DEFAULT_PREVIEW_PAGE_SIZE = 15;
 const MAX_PREVIEW_PAGE_SIZE = 50;
+const NATIVE_NOTION_RETURN_URL = 'twoanki://x-callback-url/notion-connected';
 
 function clampPageSize(input: unknown): number {
   const raw = typeof input === 'string' ? input : '';
@@ -117,6 +118,9 @@ class NotionController {
     try {
       const authorizationCode = code as string;
       await this.service.connectToNotion(authorizationCode, res.locals.owner);
+      if (stateStr === 'native') {
+        return res.redirect(NATIVE_NOTION_RETURN_URL);
+      }
       return res.redirect('/notion');
     } catch (err) {
       console.info('Connect to Notion failed');
@@ -167,7 +171,7 @@ class NotionController {
     }
   }
 
-  async getNotionLink(_req: Request, res: Response) {
+  async getNotionLink(req: Request, res: Response) {
     console.debug('/get-notion-link');
     const clientId = this.service.getClientId();
 
@@ -175,7 +179,12 @@ class NotionController {
       return res.status(400).send();
     }
 
-    const linkInfo = await this.service.getNotionLinkInfo(res.locals.owner);
+    const linkInfo =
+      req.query.client === 'native'
+        ? await this.service.getNotionLinkInfo(res.locals.owner, {
+            client: 'native',
+          })
+        : await this.service.getNotionLinkInfo(res.locals.owner);
     return res.status(200).send(linkInfo);
   }
 

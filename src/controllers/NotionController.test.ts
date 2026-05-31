@@ -528,5 +528,114 @@ describe('NotionController', () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(service.getNotionLinkInfo).not.toHaveBeenCalled();
     });
+
+    it('threads client=native into the link info when query.client is native', async () => {
+      service = {
+        getClientId: jest.fn().mockReturnValue('client-abc'),
+        getNotionLinkInfo: jest.fn().mockResolvedValue({
+          link: 'https://api.notion.com/v1/oauth/authorize?client_id=client-abc&state=native',
+          isConnected: false,
+          workspace: null,
+        }),
+      } as any;
+      controller = new NotionController(service);
+      req = { params: {}, query: { client: 'native' } };
+
+      await controller.getNotionLink(
+        req as express.Request,
+        res as express.Response
+      );
+
+      expect(service.getNotionLinkInfo).toHaveBeenCalledWith('owner1', {
+        client: 'native',
+      });
+      const sent = (res.send as jest.Mock).mock.calls[0]?.[0];
+      expect(new URL(sent.link).searchParams.get('state')).toBe('native');
+    });
+
+    it('does not pass options for a web caller (no client query)', async () => {
+      service = {
+        getClientId: jest.fn().mockReturnValue('client-abc'),
+        getNotionLinkInfo: jest.fn().mockResolvedValue({
+          link: 'https://api.notion.com/v1/oauth/authorize?client_id=client-abc',
+          isConnected: false,
+          workspace: null,
+        }),
+      } as any;
+      controller = new NotionController(service);
+      req = { params: {}, query: {} };
+
+      await controller.getNotionLink(
+        req as express.Request,
+        res as express.Response
+      );
+
+      expect(service.getNotionLinkInfo).toHaveBeenCalledWith('owner1');
+      const sent = (res.send as jest.Mock).mock.calls[0]?.[0];
+      expect(new URL(sent.link).searchParams.has('state')).toBe(false);
+    });
+  });
+
+  describe('connect', () => {
+    function buildConnectService() {
+      return {
+        connectToNotion: jest.fn().mockResolvedValue(undefined),
+      } as any;
+    }
+
+    it('redirects to the native deep link after a native connect', async () => {
+      service = buildConnectService();
+      controller = new NotionController(service);
+      req = { query: { code: 'auth-code', state: 'native' } };
+      res = {
+        redirect: jest.fn().mockReturnThis(),
+        clearCookie: jest.fn().mockReturnThis(),
+        locals: { owner: 42 },
+      } as any;
+
+      await controller.connect(req as express.Request, res as express.Response);
+
+      expect(service.connectToNotion).toHaveBeenCalledWith('auth-code', 42);
+      expect(res.redirect).toHaveBeenCalledWith(
+        'twoanki://x-callback-url/notion-connected'
+      );
+    });
+
+    it('redirects to /notion after a web connect with no state', async () => {
+      service = buildConnectService();
+      controller = new NotionController(service);
+      req = { query: { code: 'auth-code' } };
+      res = {
+        redirect: jest.fn().mockReturnThis(),
+        clearCookie: jest.fn().mockReturnThis(),
+        locals: { owner: 42 },
+      } as any;
+
+      await controller.connect(req as express.Request, res as express.Response);
+
+      expect(service.connectToNotion).toHaveBeenCalledWith('auth-code', 42);
+      expect(res.redirect).toHaveBeenCalledWith('/notion');
+    });
+
+    it('preserves the login: branch and does not call connectToNotion', async () => {
+      service = buildConnectService();
+      controller = new NotionController(service);
+      req = {
+        query: { code: 'auth-code', state: 'login:nonce-1' },
+        cookies: { notion_login_state: 'nonce-1' },
+      } as any;
+      res = {
+        redirect: jest.fn().mockReturnThis(),
+        clearCookie: jest.fn().mockReturnThis(),
+        locals: { owner: 42 },
+      } as any;
+
+      await controller.connect(req as express.Request, res as express.Response);
+
+      expect(service.connectToNotion).not.toHaveBeenCalled();
+      expect(res.redirect).toHaveBeenCalledWith(
+        '/api/users/auth/notion?code=auth-code'
+      );
+    });
   });
 });
