@@ -6,11 +6,7 @@ import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { getSubscribeLink } from '../PricingPage/payment.links';
 import { PassCards } from '../PricingPage/components/PassCards';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
-import {
-  AUTO_SYNC_PRICE,
-  MONTHLY_PRICE,
-  MONTHLY_SUFFIX,
-} from '../PricingPage/pricing.constants';
+import { MONTHLY_PRICE, MONTHLY_SUFFIX } from '../PricingPage/pricing.constants';
 import styles from './LimitPage.module.css';
 
 const REF = 'limit-wall';
@@ -22,13 +18,6 @@ const UNLIMITED_BENEFITS = [
   'Unlimited flashcards',
   'Run multiple conversions at once',
   'PDFs and large Notion exports',
-  'Cancel anytime',
-];
-
-const AUTO_SYNC_BENEFITS = [
-  'Everything in Unlimited',
-  'Notion edits sync to Anki every 5 minutes',
-  'No exports, no manual steps',
   'Cancel anytime',
 ];
 
@@ -93,8 +82,6 @@ export function LimitPage() {
   const { data: userLocals, isLoading } = useUserLocals();
   const email = userLocals?.user?.email;
   const isLoggedIn = userLocals?.user?.id != null;
-  const [autoSyncPending, setAutoSyncPending] = useState(false);
-  const [autoSyncError, setAutoSyncError] = useState<string | null>(null);
   const [dayPassPending, setDayPassPending] = useState(false);
   const [weekPassPending, setWeekPassPending] = useState(false);
   const [passError, setPassError] = useState<string | null>(null);
@@ -113,30 +100,6 @@ export function LimitPage() {
   if (showAnonymous) {
     return <AnonymousLimit />;
   }
-
-  const handleAutoSyncClick = async () => {
-    if (!isLoggedIn) {
-      globalThis.location.href = `/login?redirect=/limit&ref=${REF}`;
-      return;
-    }
-    track('paywall_upgrade_clicked', { surface: REF, plan: 'auto_sync' });
-    setAutoSyncPending(true);
-    setAutoSyncError(null);
-    try {
-      const result = await get2ankiApi().startAutoSyncCheckout();
-      if ('url' in result) {
-        globalThis.location.href = result.url;
-        return;
-      }
-      if (result.status === 'already_subscribed') {
-        globalThis.location.href = '/ankify/setup';
-        return;
-      }
-      setAutoSyncError("Couldn't start checkout. Try again or email support@2anki.net.");
-    } finally {
-      setAutoSyncPending(false);
-    }
-  };
 
   const handlePassCheckout = async (passKind: '24h' | '7d') => {
     if (!isLoggedIn) {
@@ -183,9 +146,23 @@ export function LimitPage() {
         </p>
       </header>
 
-      <div className={styles.plans}>
+      <p className={styles.sectionLabel}>Pay once — no subscription</p>
+      <PassCards
+        onDayPass={() => handlePassCheckout('24h')}
+        onWeekPass={() => handlePassCheckout('7d')}
+        dayPassPending={dayPassPending}
+        weekPassPending={weekPassPending}
+        featureDayPass
+      />
+      {passError && (
+        <p className={styles.planError} role="alert">
+          {passError}
+        </p>
+      )}
+
+      <p className={styles.sectionLabel}>Skip the cap for good</p>
+      <div className={styles.singlePlan}>
         <div className={styles.planCard}>
-          <p className={styles.planBadge}>Most popular</p>
           <p className={styles.planTitle}>Unlimited</p>
           <p className={styles.planPrice}>
             {MONTHLY_PRICE}
@@ -211,49 +188,7 @@ export function LimitPage() {
             Upgrade to Unlimited
           </a>
         </div>
-
-        <div className={`${styles.planCard} ${styles.planCardFeatured}`}>
-          <p className={styles.planBadge}>Never re-upload again</p>
-          <p className={styles.planTitle}>Auto Sync</p>
-          <p className={styles.planPrice}>
-            {AUTO_SYNC_PRICE}
-            <span className={styles.planPriceSuffix}>{MONTHLY_SUFFIX}</span>
-          </p>
-          <ul className={styles.planBenefits}>
-            {AUTO_SYNC_BENEFITS.map((b) => (
-              <li key={b} className={styles.planBenefit}>
-                {b}
-              </li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            className={styles.planCtaPrimary}
-            onClick={handleAutoSyncClick}
-            disabled={autoSyncPending}
-          >
-            {autoSyncPending ? 'Starting checkout…' : 'Get Auto Sync'}
-          </button>
-          {autoSyncError && (
-            <p className={styles.planError} role="alert">
-              {autoSyncError}
-            </p>
-          )}
-        </div>
       </div>
-
-      <p className={styles.sectionLabel}>Pay once — no subscription</p>
-      <PassCards
-        onDayPass={() => handlePassCheckout('24h')}
-        onWeekPass={() => handlePassCheckout('7d')}
-        dayPassPending={dayPassPending}
-        weekPassPending={weekPassPending}
-      />
-      {passError && (
-        <p className={styles.planError} role="alert">
-          {passError}
-        </p>
-      )}
 
       <p className={styles.backLink}>
         <Link to="/upload">Back to upload</Link>

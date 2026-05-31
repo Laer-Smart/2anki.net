@@ -18,10 +18,6 @@ import { UnlimitedCard } from './components/UnlimitedCard';
 import styles from './PricingPage.module.css';
 import { getLifetimeLink } from './payment.links';
 import { PRICING_FAQ } from './pricingFaq';
-import {
-  AUTO_SYNC_LAUNCH_DATE,
-  AUTO_SYNC_NEW_CHIP_DAYS,
-} from './pricing.constants';
 
 interface PricingPageProps {
   isLoggedIn: boolean;
@@ -36,12 +32,6 @@ interface PricingPageProps {
 
 type RequestState = 'idle' | 'pending' | 'sent' | 'error';
 type PassState = 'idle' | 'pending' | 'error';
-
-function isAutoSyncNewChipVisible(): boolean {
-  const daysSinceLaunch =
-    (Date.now() - AUTO_SYNC_LAUNCH_DATE.getTime()) / (1000 * 60 * 60 * 24);
-  return daysSinceLaunch < AUTO_SYNC_NEW_CHIP_DAYS;
-}
 
 function autoSyncCaption(
   patreon: boolean | null | undefined,
@@ -78,12 +68,11 @@ export default function PricingPage({
   const [weekPassState, setWeekPassState] = useState<PassState>('idle');
   const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('month');
   const [unlimitedPending, setUnlimitedPending] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const fromPaywall = searchParams.get('source') === 'paywall-cancel';
   const fromContext = searchParams.get('from');
   const showContextBanner =
     fromContext != null && !isLoggedIn ? false : fromContext != null;
-  const isAutoSyncUpsell = searchParams.get('upsell') === 'auto-sync';
   const enteredAtRef = useRef(Date.now());
   const shownFiredRef = useRef(false);
   const cardUsage = useCardUsage(true);
@@ -93,15 +82,7 @@ export default function PricingPage({
       ? cardUsage.cards_limit - cardUsage.cards_used
       : null;
 
-  useEffect(() => {
-    if (!isAutoSyncUpsell) return;
-    const next = new URLSearchParams(searchParams);
-    next.delete('upsell');
-    setSearchParams(next, { replace: true });
-  }, [isAutoSyncUpsell, searchParams, setSearchParams]);
-
   const isLifetime = patreon === true;
-  const showAutoSyncNew = isAutoSyncNewChipVisible();
 
   useEffect(() => {
     if (shownFiredRef.current) return;
@@ -280,7 +261,7 @@ export default function PricingPage({
 
       <div id="auto-sync">
         <AutoSyncCard
-          showNewBadge={showAutoSyncNew}
+          showNewBadge={false}
           isLifetime={isLifetime}
           isActive={autoSyncActive}
           capReached={showCapReached}
@@ -327,11 +308,6 @@ export default function PricingPage({
         {showContextBanner && (
           <div className={styles.contextBanner} role="status">
             You're on the free plan — 100 cards per month.
-          </div>
-        )}
-        {isAutoSyncUpsell && (
-          <div className={styles.contextBanner} role="status">
-            Auto Sync sends any deck straight to your Anki — no downloading, no importing.
           </div>
         )}
         {!minimalHeader && (

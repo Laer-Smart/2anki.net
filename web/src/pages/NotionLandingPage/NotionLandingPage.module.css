@@ -49,12 +49,6 @@
   background: var(--color-primary-hover);
 }
 
-.paywallNotice {
-  margin-top: 1rem;
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-}
-
 .plans {
   padding: 3rem 0 0;
 }

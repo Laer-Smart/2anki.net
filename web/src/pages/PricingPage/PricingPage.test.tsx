@@ -88,6 +88,15 @@ describe('PricingPage layout', () => {
     expect(screen.getAllByText('Auto Sync').length).toBeGreaterThan(0);
   });
 
+  it('does not show the auto-sync upsell context banner', () => {
+    renderAt('/pricing?upsell=auto-sync', { isLoggedIn: true });
+    expect(
+      screen.queryByText(
+        'Auto Sync sends any deck straight to your Anki — no downloading, no importing.'
+      )
+    ).not.toBeInTheDocument();
+  });
+
   it('shows Lifetime card with From $345 price', () => {
     renderAt('/pricing');
     expect(screen.getAllByText('From $345').length).toBeGreaterThan(0);
@@ -230,9 +239,9 @@ describe('PricingPage Auto Sync card', () => {
     expect(screen.getByRole('button', { name: 'Get Auto Sync' })).toBeInTheDocument();
   });
 
-  it('shows New — built for Notion badge when Auto Sync is new', () => {
+  it('does not feature Auto Sync with the New — built for Notion badge', () => {
     renderAt('/pricing');
-    expect(screen.getByText('New — built for Notion')).toBeInTheDocument();
+    expect(screen.queryByText('New — built for Notion')).not.toBeInTheDocument();
   });
 
   it('redirects to login when logged-out user clicks Subscribe', () => {

@@ -31,37 +31,39 @@ describe('NotionLandingPage', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders the hero headline from the spec', () => {
+  it('renders the hero headline', () => {
     renderPage();
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-      'Your Notion notes become Anki cards — automatically'
+      'Your Notion notes become Anki cards'
     );
   });
 
-  it('renders the Auto Sync plan card', () => {
-    renderPage();
-    expect(screen.getByText('Auto Sync')).toBeInTheDocument();
-    expect(screen.getByText('$30')).toBeInTheDocument();
-  });
-
-  it('renders the Unlimited plan card as the downsell', () => {
+  it('features the Unlimited plan card', () => {
     renderPage();
     expect(screen.getByText('Unlimited')).toBeInTheDocument();
     expect(screen.getByText('$6')).toBeInTheDocument();
+    expect(screen.getByText('Recommended')).toBeInTheDocument();
+  });
+
+  it('renders the Day Pass plan card as the secondary option', () => {
+    renderPage();
+    expect(screen.getByText('Day Pass')).toBeInTheDocument();
+    expect(screen.getByText('$4')).toBeInTheDocument();
+  });
+
+  it('does not advertise the Auto Sync plan', () => {
+    renderPage();
+    expect(screen.queryByText('Auto Sync')).not.toBeInTheDocument();
+    expect(screen.queryByText('$30')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /get auto sync/i })
+    ).not.toBeInTheDocument();
   });
 
   it('includes ?ref=notion-marketplace in the Connect Notion CTA href', () => {
     renderPage();
     const connectLink = screen.getByRole('link', { name: /connect notion/i });
     expect(connectLink.getAttribute('href')).toContain(
-      'ref=notion-marketplace'
-    );
-  });
-
-  it('includes ?ref=notion-marketplace in the Auto Sync CTA href', () => {
-    renderPage();
-    const autoSyncLink = screen.getByRole('link', { name: /get auto sync/i });
-    expect(autoSyncLink.getAttribute('href')).toContain(
       'ref=notion-marketplace'
     );
   });
@@ -74,17 +76,18 @@ describe('NotionLandingPage', () => {
     );
   });
 
+  it('includes ?ref=notion-marketplace in the Day Pass CTA href', () => {
+    renderPage();
+    const dayPassLink = screen.getByRole('link', { name: /get a day pass/i });
+    expect(dayPassLink.getAttribute('href')).toContain(
+      'ref=notion-marketplace'
+    );
+  });
+
   it('fires paywall_shown with surface notion-marketplace on mount', () => {
     renderPage();
     expect(track).toHaveBeenCalledWith('paywall_shown', {
       surface: 'notion-marketplace',
     });
-  });
-
-  it('shows the paywall framing before the OAuth CTA', () => {
-    renderPage();
-    expect(
-      screen.getByText(/Auto Sync requires a \$30\/mo subscription/i)
-    ).toBeInTheDocument();
   });
 });
