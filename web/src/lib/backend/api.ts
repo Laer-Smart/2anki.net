@@ -83,7 +83,8 @@ export const get = async (
     throw taggedHttpError(
       `Network error on GET ${pathOf(url)}: ${cause instanceof Error ? cause.message : String(cause)}`,
       'GET',
-      url
+      url,
+      0
     );
   }
 
@@ -100,7 +101,8 @@ export const get = async (
       throw taggedHttpError(
         `Resource not found: ${response.status} ${response.statusText}`,
         'GET',
-        url
+        url,
+        response.status
       );
     }
     const errorData = await response
@@ -112,7 +114,8 @@ export const get = async (
     throw taggedHttpError(
       `HTTP error! GET ${pathOf(url)} status: ${response.status}, message: ${errorData.message}`,
       'GET',
-      url
+      url,
+      response.status
     );
   }
 
@@ -127,10 +130,20 @@ function pathOf(url: string): string {
   }
 }
 
-function taggedHttpError(message: string, method: string, url: string): Error {
-  const err = new Error(message) as Error & { url?: string; method?: string };
+function taggedHttpError(
+  message: string,
+  method: string,
+  url: string,
+  status: number
+): Error {
+  const err = new Error(message) as Error & {
+    url?: string;
+    method?: string;
+    status?: number;
+  };
   err.url = pathOf(url);
   err.method = method;
+  err.status = status;
   return err;
 }
 

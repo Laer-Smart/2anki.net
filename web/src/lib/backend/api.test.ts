@@ -26,20 +26,27 @@ describe('api.get error tagging', () => {
     );
   });
 
-  it('attaches url and method as properties on the thrown error', async () => {
+  it('attaches url, method, and status as properties on the thrown error', async () => {
     fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify({ message: 'boom' }), { status: 500 })
+      new Response(JSON.stringify({ message: 'boom' }), { status: 503 })
     );
 
-    let caught: (Error & { url?: string; method?: string }) | undefined;
+    let caught:
+      | (Error & { url?: string; method?: string; status?: number })
+      | undefined;
     try {
       await get('http://localhost/api/uploads');
     } catch (e) {
-      caught = e as Error & { url?: string; method?: string };
+      caught = e as Error & {
+        url?: string;
+        method?: string;
+        status?: number;
+      };
     }
 
     expect(caught?.url).toBe('/api/uploads');
     expect(caught?.method).toBe('GET');
+    expect(caught?.status).toBe(503);
   });
 
   it('tags network failures with the URL', async () => {
