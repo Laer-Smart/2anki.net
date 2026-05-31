@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-chat-mcq-persist",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Multiple-choice cards from chat stay put after a page reload"
+}

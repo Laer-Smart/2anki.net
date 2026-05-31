@@ -4,7 +4,9 @@ import {
   ChatRateLimitError,
   ChatConversationNotFoundError,
   McqExtractionFailedError,
+  extractCards,
 } from './ChatUseCase';
+import { ConversationsUseCase } from './ConversationsUseCase';
 import { InMemoryChatMessagesRepository } from '../../data_layer/ChatMessagesRepository';
 import { InMemoryConversationsRepository } from '../../data_layer/ConversationsRepository';
 
@@ -739,6 +741,94 @@ describe('ChatUseCase', () => {
         front: 'Albanian currency?',
         correctIndex: 0,
       });
+    });
+
+    it('persists MCQ cards as a JSON code block that extractCards recovers on reload', async () => {
+      const { messagesRepo, useCase } = buildUseCaseWithBlocks([
+        { type: 'text', text: 'Here are your quiz cards:' },
+        mcqToolBlock({
+          cards: [
+            {
+              front: 'Capital of Albania?',
+              options: ['Tirana', 'Durrës', 'Vlorë', 'Shkodër'],
+              correct_index: 0,
+              rationale: 'Tirana is the capital.',
+            },
+          ],
+        }),
+      ]);
+
+      const { conversationId } = await useCase.execute({
+        user: FREE_USER,
+        content: 'quiz me on Albania',
+        conversationHistory: [],
+        templateSlug: 'mcq',
+      });
+
+      const persisted = await messagesRepo.findLatestAssistantInConversation({
+        userId: FREE_USER.owner,
+        conversationId,
+      });
+      const recovered = extractCards(persisted!.content, true);
+      expect(recovered.cards).toEqual([
+        {
+          front: 'Capital of Albania?',
+          back: '',
+          options: ['Tirana', 'Durrës', 'Vlorë', 'Shkodër'],
+          correctIndex: 0,
+          rationale: 'Tirana is the capital.',
+        },
+      ]);
+    });
+
+    it('round-trips MCQ cards through persistence and conversation hydration', async () => {
+      const conversationsRepo = new InMemoryConversationsRepository();
+      const messagesRepo = new InMemoryChatMessagesRepository();
+      const anthropic = buildAnthropicMockWithBlocks([
+        mcqToolBlock({
+          cards: [
+            {
+              front: 'Albanian currency?',
+              options: ['Lek', 'Euro', 'Dinar', 'Lev'],
+              correct_index: 0,
+            },
+          ],
+        }),
+      ]);
+      const chatUseCase = new ChatUseCase(
+        messagesRepo,
+        conversationsRepo,
+        anthropic as never
+      );
+
+      const { conversationId, content } = await chatUseCase.execute({
+        user: FREE_USER,
+        content: 'quiz me',
+        conversationHistory: [],
+        templateSlug: 'mcq',
+      });
+
+      conversationsRepo.recordMessage({
+        userId: FREE_USER.owner,
+        conversationId,
+        role: 'assistant',
+        content,
+      });
+
+      const conversationsUseCase = new ConversationsUseCase(conversationsRepo);
+      const view = await conversationsUseCase.get({
+        userId: FREE_USER.owner,
+        conversationId,
+      });
+      const assistant = view?.messages.find((m) => m.role === 'assistant');
+      expect(assistant?.cards).toEqual([
+        {
+          front: 'Albanian currency?',
+          back: '',
+          options: ['Lek', 'Euro', 'Dinar', 'Lev'],
+          correctIndex: 0,
+        },
+      ]);
     });
 
     it('throws McqExtractionFailedError when the model returns prose and no tool call', async () => {
