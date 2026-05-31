@@ -115,13 +115,6 @@ function findLastAssistantWithCardsIdx(messages: Message[]): number {
   return -1;
 }
 
-function findUserIdxBefore(messages: Message[], beforeIdx: number): number {
-  for (let i = beforeIdx - 1; i >= 0; i--) {
-    if (messages[i].role === 'user') return i;
-  }
-  return -1;
-}
-
 export function parseSseEvent(
   rawEvent: string
 ): { eventType: string; data: string } | null {
@@ -924,9 +917,7 @@ export default function ChatPanel({
     newSlug: ChatCardTemplate,
     targetIdx: number
   ) {
-    const userIdx = findUserIdxBefore(messages, targetIdx);
-    if (userIdx === -1) return;
-    const userContent = messages[userIdx].content;
+    if (activeConversationId == null) return;
 
     setRegeneratingIdx(targetIdx);
     setIsLoading(true);
@@ -934,19 +925,12 @@ export default function ChatPanel({
     setStreamingText('');
     setUserScrolledAway(false);
 
-    const history = messages
-      .slice(0, userIdx)
-      .slice(-10)
-      .map((m) => ({ role: m.role, content: m.content }));
-
     let response: Response;
     try {
-      response = await post('/api/chat/message', {
-        content: userContent,
-        history,
-        conversationId: activeConversationId,
-        templateSlug: newSlug,
-      });
+      response = await post(
+        `/api/chat/conversations/${activeConversationId}/regenerate`,
+        { templateSlug: newSlug }
+      );
     } catch {
       setNetworkError("Couldn't rebuild your cards. Try again.");
       setIsLoading(false);
