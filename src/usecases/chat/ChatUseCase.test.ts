@@ -585,6 +585,87 @@ describe('ChatUseCase', () => {
     });
   });
 
+  describe('regenerate', () => {
+    async function seedConversation(
+      messagesRepo: InMemoryChatMessagesRepository,
+      conversationsRepo: InMemoryConversationsRepository,
+      userId: number
+    ) {
+      const conversationId = await conversationsRepo.create({ userId, title: 'Seeded' });
+      const turns: Array<{ role: 'user' | 'assistant'; content: string }> = [
+        { role: 'user', content: 'first prompt' },
+        { role: 'assistant', content: 'old assistant reply' },
+      ];
+      for (const turn of turns) {
+        await messagesRepo.insert({ userId, conversationId, role: turn.role, content: turn.content });
+        conversationsRepo.recordMessage({
+          userId,
+          conversationId,
+          role: turn.role,
+          content: turn.content,
+        });
+      }
+      return conversationId;
+    }
+
+    it('deletes the last assistant message and streams a fresh turn', async () => {
+      const { messagesRepo, conversationsRepo, useCase } = buildUseCase('new assistant reply');
+      const conversationId = await seedConversation(messagesRepo, conversationsRepo, PATREON_USER.owner);
+
+      const result = await useCase.regenerate({
+        user: PATREON_USER,
+        conversationId,
+        templateSlug: 'cloze',
+      });
+
+      expect(result.content).toBe('new assistant reply');
+      expect(result.conversationId).toBe(conversationId);
+
+      const remaining = messagesRepo.getAll().filter((r) => r.conversation_id === conversationId);
+      const assistantContents = remaining
+        .filter((r) => r.role === 'assistant')
+        .map((r) => r.content);
+      expect(assistantContents).toEqual(['new assistant reply']);
+    });
+
+    it('leaves the prior user message untouched', async () => {
+      const { messagesRepo, conversationsRepo, useCase } = buildUseCase('regenerated');
+      const conversationId = await seedConversation(messagesRepo, conversationsRepo, PATREON_USER.owner);
+
+      await useCase.regenerate({
+        user: PATREON_USER,
+        conversationId,
+        templateSlug: null,
+      });
+
+      const userMessages = messagesRepo
+        .getAll()
+        .filter((r) => r.conversation_id === conversationId && r.role === 'user');
+      expect(userMessages.map((r) => r.content)).toEqual(['first prompt']);
+    });
+
+    it('passes the regenerate templateSlug to the model prompt, not the stored default', async () => {
+      const { messagesRepo, conversationsRepo, anthropic, useCase } = buildUseCase('regenerated');
+      const conversationId = await seedConversation(messagesRepo, conversationsRepo, PATREON_USER.owner);
+
+      await useCase.regenerate({
+        user: PATREON_USER,
+        conversationId,
+        templateSlug: 'cloze',
+      });
+
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.system[0].text).toMatch(/cloze deletion/i);
+    });
+
+    it('throws ChatConversationNotFoundError for an unknown conversation', async () => {
+      const { useCase } = buildUseCase('x');
+      await expect(
+        useCase.regenerate({ user: PATREON_USER, conversationId: 999, templateSlug: null })
+      ).rejects.toBeInstanceOf(ChatConversationNotFoundError);
+    });
+  });
+
   describe('ChatRateLimitError', () => {
     it('provides a resetDate as the first of next month', async () => {
       const { messagesRepo, useCase } = buildUseCase('');

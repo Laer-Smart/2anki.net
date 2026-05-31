@@ -186,6 +186,58 @@ class ChatController {
       res.end();
     }
   }
+
+  async regenerateMessage(req: Request, res: Response) {
+    if (!hasConsented(res.locals as Record<string, unknown>)) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.flushHeaders();
+      sseWrite(res, 'error', { type: 'consent_required' });
+      res.end();
+      return;
+    }
+
+    const conversationId = parseConversationId(req.params?.id);
+    if (conversationId == null) {
+      res.status(400).json({ error: 'conversationId is required' });
+      return;
+    }
+
+    const owner = res.locals.owner as number;
+    const patreon = (res.locals.patreon as boolean) ?? false;
+    const subscriber = (res.locals.subscriber as boolean) ?? false;
+    const isPremium = patreon || subscriber;
+
+    const rawTemplateSlug = req.body?.templateSlug;
+    const templateSlug = typeof rawTemplateSlug === 'string' ? rawTemplateSlug : null;
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    try {
+      const result = await this.chatUseCase.regenerate({
+        user: { owner, patreon: isPremium },
+        conversationId,
+        templateSlug,
+        onToken: (text) => sseWrite(res, 'token', text),
+      });
+
+      sseWrite(res, 'done', {
+        content: result.content,
+        conversationId: result.conversationId,
+        ...(result.cards != null ? { cards: result.cards } : {}),
+        ...(result.contentBefore != null ? { contentBefore: result.contentBefore } : {}),
+        ...(result.contentAfter != null ? { contentAfter: result.contentAfter } : {}),
+      });
+    } catch (err) {
+      emitChatError(res, err);
+    } finally {
+      res.end();
+    }
+  }
 }
 
 export default ChatController;

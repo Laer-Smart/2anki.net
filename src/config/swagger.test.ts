@@ -249,6 +249,16 @@ describe('Swagger Documentation Coverage', () => {
       expect(ok.content).toHaveProperty('text/event-stream');
     });
 
+    it('documents /api/chat/conversations/{id}/regenerate as a Server-Sent Events stream', () => {
+      const op = spec.paths['/api/chat/conversations/{id}/regenerate']?.post;
+      expect(op).toBeDefined();
+      const ok = op.responses['200'];
+      expect(ok).toBeDefined();
+      expect(ok.content).toHaveProperty('text/event-stream');
+      const props = op.requestBody.content['application/json'].schema.properties;
+      expect(props.templateSlug).toBeDefined();
+    });
+
     it('documents templateSlug and multipart files for /api/chat/message', () => {
       const op = spec.paths['/api/chat/message']?.post;
       const jsonProps =

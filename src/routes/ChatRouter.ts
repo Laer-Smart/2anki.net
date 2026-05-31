@@ -501,6 +501,64 @@ const ChatRouter = () => {
     conversationsController.saveTemplate(req, res)
   );
 
+  /**
+   * @swagger
+   * /api/chat/conversations/{id}/regenerate:
+   *   post:
+   *     summary: Regenerate the last assistant turn in place (Server-Sent Events stream)
+   *     description: |
+   *       Deletes the most recent assistant message in the conversation and
+   *       re-runs the prior user prompt against Claude under the supplied
+   *       `templateSlug`, streaming the new turn back with the same SSE event
+   *       shape as `POST /api/chat/message` (`token` / `done` / `error`). The
+   *       prior user message is kept as-is, so the conversation does not grow a
+   *       duplicate turn on reload. The per-call `templateSlug` is independent
+   *       of the conversation's stored default template set via
+   *       `PATCH /api/chat/conversations/{id}/template`.
+   *     tags: [Chat]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema: { type: integer }
+   *     requestBody:
+   *       required: false
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               templateSlug:
+   *                 type: string
+   *                 nullable: true
+   *                 enum: [basic, basic-and-reversed, cloze, mcq]
+   *     responses:
+   *       200:
+   *         description: |
+   *           SSE stream of `token`, `done`, and `error` events, identical to
+   *           `POST /api/chat/message`.
+   *         content:
+   *           text/event-stream:
+   *             schema:
+   *               oneOf:
+   *                 - $ref: '#/components/schemas/ChatTokenFrame'
+   *                 - $ref: '#/components/schemas/ChatDoneFrame'
+   *                 - $ref: '#/components/schemas/ChatErrorFrame'
+   *       400:
+   *         description: Invalid conversation id
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   *       401:
+   *         description: Authentication required
+   */
+  router.post('/api/chat/conversations/:id/regenerate', RequireAuthentication, (req, res) =>
+    controller.regenerateMessage(req, res)
+  );
+
   return router;
 };
 

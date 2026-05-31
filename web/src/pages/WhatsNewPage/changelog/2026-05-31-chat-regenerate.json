@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-chat-regenerate",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Changing a chat card's template regenerates the turn in place instead of leaving duplicate messages"
+}
