@@ -378,28 +378,28 @@ const languageReactorToAnki: LandingCopy = {
 
 const epubToAnki: LandingCopy = {
   pathname: '/convert/epub-to-anki',
-  title: 'EPUB to Anki — build a vocab deck from your ebook | 2anki',
+  title: 'EPUB highlights to Anki — turn ebook highlights into cards | 2anki',
   description:
-    'Turn a DRM-free EPUB into an Anki vocabulary deck. Upload the file, get a .apkg of words and definitions — built for language learners and readers.',
-  h1: 'EPUB to Anki — make a vocab deck from your ebook',
+    'Turn the passages you highlighted in a DRM-free EPUB into an Anki deck. Upload the file and get a .apkg — each highlight on a card, with the book and author on the back.',
+  h1: 'EPUB highlights to Anki — from ebook highlights to cards',
   subhead:
-    'Drop a DRM-free .epub and download a .apkg. The words you marked while reading become cards, with definitions on the back. English, German, Spanish, and French.',
+    'Drop a DRM-free .epub and download a .apkg. Each passage you highlighted becomes a card, with the book title and author on the back.',
   faqs: [
     {
       q: 'Which EPUB files work?',
-      a: 'DRM-free EPUBs — the kind you download from Project Gutenberg, Standard Ebooks, or a publisher who sells unlocked files. Books locked with Adobe DRM or a store wrapper cannot be read; use a DRM-free copy instead.',
+      a: 'DRM-free EPUBs — the kind from Project Gutenberg, Standard Ebooks, or a publisher who sells unlocked files. DRM-locked files can’t be opened; use a DRM-free copy instead.',
     },
     {
       q: 'How does an ebook become flashcards?',
-      a: 'We pull the vocabulary worth learning and build one card per word — the word on the front, a definition on the back. The deck name comes from the book filename, so rename the file before uploading if you want a cleaner name in Anki.',
+      a: 'Each passage you highlighted in the ebook becomes one card — the highlight on the front, the book title and author on the back so you remember where it came from.',
     },
     {
-      q: 'Which languages are supported?',
-      a: 'English, German, Spanish, and French. The definition on the back of each card follows the language of the book. More languages are on the roadmap.',
+      q: 'Where does the deck name come from?',
+      a: 'From the book’s title if the EPUB carries one, otherwise the filename. Rename the file before uploading if you want a cleaner fallback name in Anki.',
     },
     {
       q: 'Can I keep using EPUB and Kindle highlights together?',
-      a: 'Yes. Convert an EPUB for the vocabulary in a book you read DRM-free, and upload a Kindle My Clippings.txt for the passages you highlighted on a Kindle. Both produce a deck you study in Anki.',
+      a: 'Yes. Convert an EPUB for the passages you highlighted in a DRM-free book, and upload a Kindle My Clippings.txt for the highlights you marked on a Kindle. Both produce a deck you study in Anki.',
     },
   ],
 };
@@ -408,10 +408,10 @@ const kindleToAnki: LandingCopy = {
   pathname: '/convert/kindle-to-anki',
   title: 'Kindle highlights to Anki — My Clippings.txt to a deck | 2anki',
   description:
-    'Turn your Kindle My Clippings.txt into an Anki deck. Copy the file off your Kindle, upload it, and get a .apkg of the words and passages you highlighted.',
+    'Turn your Kindle My Clippings.txt into an Anki deck. Copy the file off your Kindle, upload it, and get a .apkg — each highlight and note on a card, with the book and author on the back.',
   h1: 'Kindle highlights to Anki — from My Clippings.txt to a deck',
   subhead:
-    'Copy My Clippings.txt off your Kindle, drop it here, and download a .apkg. The words and passages you highlighted while reading become cards.',
+    'Copy My Clippings.txt off your Kindle, drop it here, and download a .apkg. Each passage you highlighted — and any note you typed — becomes a card.',
   faqs: [
     {
       q: 'Where do I find My Clippings.txt?',
@@ -419,11 +419,11 @@ const kindleToAnki: LandingCopy = {
     },
     {
       q: 'What becomes a card?',
-      a: 'The words and passages you highlighted become card fronts, with a definition or the surrounding context on the back. Each highlight is one card, so you review exactly what you marked while reading.',
+      a: 'Every highlight and note becomes one card — the passage on the front, the book title and author on the back. Bookmarks are skipped. You review exactly what you marked while reading.',
     },
     {
-      q: 'Which languages are supported?',
-      a: 'English, German, Spanish, and French. The definition matched to each highlighted word follows the language of the book you read.',
+      q: 'Which Kindle languages are recognized?',
+      a: 'Kindles set to English, German, Spanish, or French. 2anki reads the highlight and note markers in those four languages; a Kindle set to another language may not be picked up.',
     },
     {
       q: 'Can I upload highlights from several books at once?',
