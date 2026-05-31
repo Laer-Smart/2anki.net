@@ -22,6 +22,7 @@ import NotionRepository from '../data_layer/NotionRespository';
 import hashToken from '../lib/misc/hashToken';
 import { extractCountryFromRequest } from '../lib/http/extractCountryFromRequest';
 import { RecordUserVisibleErrorUseCase } from '../usecases/observability/RecordUserVisibleErrorUseCase';
+import { track } from '../services/events/track';
 
 class UsersController {
   constructor(
@@ -179,6 +180,14 @@ class UsersController {
       );
       const newUser = await this.userService.getUserFrom(email);
       if (newUser) {
+        const cookies = req.cookies as Record<string, unknown> | undefined;
+        const anonId = cookies?.anon_id;
+        track('account_created', {
+          userId: Number(newUser.id),
+          anonymousId:
+            typeof anonId === 'string' && anonId.length > 0 ? anonId : null,
+          props: signupOrigin == null ? {} : { signup_origin: signupOrigin },
+        });
         try {
           const country = extractCountryFromRequest(req);
           if (country != null) {
