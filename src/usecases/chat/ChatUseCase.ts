@@ -15,6 +15,48 @@ const MCQ_PROMPT_ADDITION = `For multiple-choice cards with one correct answer, 
 
 Use exactly four options. correct_index is the 0-based position of the right option. Omit "back" on MCQ cards.`;
 
+const MCQ_TOOL_NAME = 'emit_mcq_cards';
+
+const MCQ_TOOL: Anthropic.Tool = {
+  name: MCQ_TOOL_NAME,
+  description:
+    'Emit a set of multiple-choice flashcards. Every card must have a question stem, exactly four answer options, and the 0-based index of the correct option.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      cards: {
+        type: 'array',
+        minItems: 1,
+        items: {
+          type: 'object',
+          properties: {
+            front: { type: 'string', description: 'The question stem' },
+            options: {
+              type: 'array',
+              description: 'Exactly four answer options',
+              minItems: REQUIRED_MCQ_OPTION_COUNT,
+              maxItems: REQUIRED_MCQ_OPTION_COUNT,
+              items: { type: 'string' },
+            },
+            correct_index: {
+              type: 'integer',
+              minimum: 0,
+              maximum: REQUIRED_MCQ_OPTION_COUNT - 1,
+              description: '0-based index of the correct option',
+            },
+            rationale: {
+              type: 'string',
+              description: 'Brief explanation of why the correct option is right',
+            },
+          },
+          required: ['front', 'options', 'correct_index'],
+        },
+      },
+    },
+    required: ['cards'],
+  },
+};
+
 const FREE_MONTHLY_LIMIT = 20;
 const FREE_MODEL = 'claude-haiku-4-5-20251001';
 const PATREON_MODEL = 'claude-sonnet-4-6';
@@ -251,6 +293,34 @@ export class ChatConversationNotFoundError extends Error {
   }
 }
 
+export class McqExtractionFailedError extends Error {
+  constructor() {
+    super('Could not produce multiple-choice cards');
+    this.name = 'McqExtractionFailedError';
+  }
+}
+
+export function extractMcqCardsFromToolUse(
+  content: Anthropic.ContentBlock[]
+): ChatCard[] | undefined {
+  const toolBlock = content.find(
+    (block): block is Anthropic.ToolUseBlock =>
+      block.type === 'tool_use' && block.name === MCQ_TOOL_NAME
+  );
+  if (toolBlock == null) return undefined;
+  const input = toolBlock.input;
+  if (input == null || typeof input !== 'object') return undefined;
+  const rawCards = (input as Record<string, unknown>).cards;
+  if (!Array.isArray(rawCards)) return undefined;
+  const cards: ChatCard[] = [];
+  for (const item of rawCards) {
+    if (item == null || typeof item !== 'object') continue;
+    const mcq = asMcqChatCard(item as Record<string, unknown>);
+    if (mcq != null) cards.push(mcq);
+  }
+  return cards.length > 0 ? cards : undefined;
+}
+
 export class ChatUseCase {
   constructor(
     private readonly messagesRepo: IChatMessagesRepository,
@@ -380,7 +450,8 @@ export class ChatUseCase {
     const resolvedTemplate: ChatCardTemplate = isChatCardTemplate(params.templateSlug)
       ? params.templateSlug
       : 'basic';
-    const mcqAllowed = user.patreon || resolvedTemplate === 'mcq';
+    const mcqForced = resolvedTemplate === 'mcq';
+    const mcqAllowed = user.patreon || mcqForced;
 
     const templateSuffix = templatePromptSuffix(resolvedTemplate);
     const baseSystemPrompt = mcqAllowed
@@ -400,6 +471,9 @@ export class ChatUseCase {
       max_tokens: MAX_TOKENS,
       system: [{ type: 'text', text: systemPromptText, cache_control: { type: 'ephemeral' } }],
       messages,
+      ...(mcqForced
+        ? { tools: [MCQ_TOOL], tool_choice: { type: 'tool', name: MCQ_TOOL_NAME } }
+        : {}),
     });
 
     if (onToken != null) {
@@ -414,18 +488,20 @@ export class ChatUseCase {
       .map((block) => block.text)
       .join('');
 
-    await this.messagesRepo.insert({
-      userId: user.owner,
-      conversationId,
-      role: 'assistant',
-      content: assistantContent,
-    });
-    await this.conversationsRepo.touch({ userId: user.owner, conversationId });
-    await this.conversationsRepo.saveDraft({
-      userId: user.owner,
-      conversationId,
-      content: null,
-    });
+    if (mcqForced) {
+      const mcqCards = extractMcqCardsFromToolUse(finalMessage.content);
+      if (mcqCards == null) {
+        throw new McqExtractionFailedError();
+      }
+      await this.persistAssistantTurn(user.owner, conversationId, assistantContent);
+      return {
+        content: assistantContent,
+        conversationId,
+        cards: mcqCards,
+      };
+    }
+
+    await this.persistAssistantTurn(user.owner, conversationId, assistantContent);
 
     const { cards, contentBefore, contentAfter } = extractCards(assistantContent, mcqAllowed);
 
@@ -436,5 +512,20 @@ export class ChatUseCase {
       ...(contentBefore != null ? { contentBefore } : {}),
       ...(contentAfter != null ? { contentAfter } : {}),
     };
+  }
+
+  private async persistAssistantTurn(
+    userId: number,
+    conversationId: number,
+    content: string
+  ): Promise<void> {
+    await this.messagesRepo.insert({
+      userId,
+      conversationId,
+      role: 'assistant',
+      content,
+    });
+    await this.conversationsRepo.touch({ userId, conversationId });
+    await this.conversationsRepo.saveDraft({ userId, conversationId, content: null });
   }
 }

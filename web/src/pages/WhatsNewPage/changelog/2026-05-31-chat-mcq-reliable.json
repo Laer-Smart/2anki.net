@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-chat-mcq-reliable",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Multiple-choice cards in chat generate reliably, with a clear message when they can't"
+}

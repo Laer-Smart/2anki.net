@@ -3,6 +3,7 @@ import ChatController from './ChatController';
 import {
   ChatRateLimitError,
   ChatConversationNotFoundError,
+  McqExtractionFailedError,
 } from '../usecases/chat/ChatUseCase';
 
 function buildRes(
@@ -184,6 +185,21 @@ describe('ChatController.sendMessage', () => {
       event: 'done',
       data: expect.objectContaining({ conversationId: 42 }),
     });
+  });
+
+  it('sends mcq_extraction_failed error event when use case throws McqExtractionFailedError', async () => {
+    const { execute, controller, res } = buildMocks();
+    execute.mockRejectedValueOnce(new McqExtractionFailedError());
+    await controller.sendMessage(
+      buildReq({ content: 'Quiz me on Albania', templateSlug: 'mcq' }),
+      res
+    );
+    const events = writtenEvents(res);
+    expect(events).toContainEqual({
+      event: 'error',
+      data: { type: 'mcq_extraction_failed' },
+    });
+    expect(res.end).toHaveBeenCalled();
   });
 
   it('sends conversation_not_found error event when use case throws ChatConversationNotFoundError', async () => {

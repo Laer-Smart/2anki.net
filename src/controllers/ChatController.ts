@@ -3,6 +3,7 @@ import {
   ChatUseCase,
   ChatRateLimitError,
   ChatConversationNotFoundError,
+  McqExtractionFailedError,
 } from '../usecases/chat/ChatUseCase';
 import type { ChatAttachment } from '../usecases/chat/buildAttachmentBlocks';
 import { detectFileMime } from '../lib/detectFileMime';
@@ -102,6 +103,8 @@ function emitChatError(res: Response, err: unknown): void {
     sseWrite(res, 'error', { type: 'rate_limit', resetDate: err.resetDate });
   } else if (err instanceof ChatConversationNotFoundError) {
     sseWrite(res, 'error', { type: 'conversation_not_found' });
+  } else if (err instanceof McqExtractionFailedError) {
+    sseWrite(res, 'error', { type: 'mcq_extraction_failed' });
   } else {
     sseWrite(res, 'error', { type: 'server_error' });
   }

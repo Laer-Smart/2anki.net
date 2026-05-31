@@ -698,6 +698,15 @@ const options: swaggerJsdoc.Options = {
                 },
                 {
                   type: 'object',
+                  description:
+                    'The MCQ template could not produce well-formed multiple-choice cards. Surface a specific message; do not silently fall back to the previous turn.',
+                  required: ['type'],
+                  properties: {
+                    type: { type: 'string', enum: ['mcq_extraction_failed'] },
+                  },
+                },
+                {
+                  type: 'object',
                   description: 'Unhandled server error; safe to retry.',
                   required: ['type'],
                   properties: {
