@@ -18,6 +18,9 @@ describe('CreateJobWorkSpaceUseCase', () => {
     load: jest
       .fn()
       .mockResolvedValue(new CardOption(CardOption.LoadDefaultOptions())),
+    loadIfExists: jest
+      .fn()
+      .mockResolvedValue(new CardOption(CardOption.LoadDefaultOptions())),
   };
 
   const parserRulesRepository: IParserRulesRepository = {
