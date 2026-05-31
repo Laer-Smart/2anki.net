@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import StorageHandler from '../../StorageHandler';
 import { Knex } from 'knex';
 import NotionAPIWrapper from '../../../../services/NotionService/NotionAPIWrapper';
@@ -73,6 +74,8 @@ export default async function performConversion(
   const settingsRepository = new SettingsRepository(database);
   const parserRulesRepository = new ParserRulesRepository(database);
 
+  let workspaceLocation: string | undefined;
+
   try {
     const createWorkSpace = new CreateJobWorkSpaceUseCase(
       jobRepository,
@@ -82,6 +85,7 @@ export default async function performConversion(
     const { ws, exporter, settings, bl, rules } = await createWorkSpace.execute(
       { api, id, owner, jobRepository, isPaying }
     );
+    workspaceLocation = ws.location;
 
     const createFlashcards = new CreateFlashcardsForJobUseCase(jobRepository);
     const decks = await createFlashcards.execute({
@@ -212,6 +216,18 @@ export default async function performConversion(
       });
     } else {
       console.error(error);
+    }
+  } finally {
+    if (workspaceLocation != null) {
+      try {
+        fs.rmSync(workspaceLocation, { recursive: true, force: true });
+      } catch (cleanupError) {
+        console.error('[conversion] workspace cleanup failed', {
+          jobId: id,
+          message:
+            cleanupError instanceof Error ? cleanupError.message : 'unknown',
+        });
+      }
     }
   }
 }
