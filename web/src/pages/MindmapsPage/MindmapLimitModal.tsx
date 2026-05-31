@@ -12,8 +12,8 @@ export function MindmapLimitModal({ onClose }: Readonly<MindmapLimitModalProps>)
       <div className={styles.header}>
         <h1 className={styles.heading}>You've used all 3 maps this month</h1>
         <p className={styles.subheading}>
-          Free accounts can have 3 mind maps at a time. Upgrade to Auto-Sync to
-          create as many as you need.
+          Free accounts can have 3 mind maps at a time. Upgrade for unlimited
+          mind maps.
         </p>
       </div>
       <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
