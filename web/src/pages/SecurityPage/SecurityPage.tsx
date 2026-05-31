@@ -58,7 +58,12 @@ export default function SecurityPage() {
 
       <section className={pageStyles.section}>
         <h2>Acknowledgements</h2>
-        <p>No reports yet.</p>
+        <ul>
+          <li>
+            Bertie — server-side request forgery in the Notion bookmark and
+            media fetch. Fixed May 2026.
+          </li>
+        </ul>
       </section>
     </div>
   );
