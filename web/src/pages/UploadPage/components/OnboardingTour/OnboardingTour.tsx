@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { track } from '../../../../lib/analytics/track';
 import { markOnboarded } from '../../../../lib/backend/markOnboarded';
 import styles from './OnboardingTour.module.css';
 
@@ -51,9 +52,17 @@ export function OnboardingTour({
 }: Readonly<OnboardingTourProps>) {
   const [step, setStep] = useState(0);
   const [dismissed, setDismissed] = useState(false);
+  const shownTracked = useRef(false);
 
   const visible =
     !dismissed && shouldShowTour(createdAt, onboardedAt, migrationDate);
+
+  useEffect(() => {
+    if (visible && !shownTracked.current) {
+      shownTracked.current = true;
+      track('onboarding_shown');
+    }
+  }, [visible]);
 
   if (!visible) return null;
 
@@ -62,6 +71,7 @@ export function OnboardingTour({
   const isLast = step === STEPS.length - 1;
 
   const handleSkip = () => {
+    track(isLast ? 'onboarding_completed' : 'onboarding_skipped');
     setDismissed(true);
     void markOnboarded();
   };

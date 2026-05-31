@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
@@ -13,9 +13,22 @@ import UploadForm from './components/UploadForm/UploadForm';
 import pageStyles from './UploadPage.module.css';
 
 const REATTACH_KEY = 'upload_pending_filename';
+const SIGNUP_FLAG_KEY = 'signup_completed_tracked';
+const SIGNUP_RECENCY_MS = 10 * 60 * 1000;
 
 interface Props {
   setErrorMessage: ErrorHandlerType;
+}
+
+function isFreshSignup(
+  createdAt: string | null | undefined,
+  onboardedAt: string | null | undefined
+): boolean {
+  if (createdAt == null) return false;
+  if (onboardedAt != null) return false;
+  const createdMs = new Date(createdAt).getTime();
+  if (Number.isNaN(createdMs)) return false;
+  return Date.now() - createdMs <= SIGNUP_RECENCY_MS;
 }
 
 export function UploadPage({ setErrorMessage }: Readonly<Props>) {
@@ -28,6 +41,8 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
     return stored != null && stored.length > 0 ? stored : null;
   });
   const { data: userLocals } = useUserLocals();
+  const pageViewTracked = useRef(false);
+  const signupTracked = useRef(false);
 
   const isSignedIn = userLocals?.user?.id != null;
   const isAiOn = useMemo(() => {
@@ -44,6 +59,23 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
     else if (aiBadgeState === 'on') track('upload_ai_on_badge_viewed');
     else track('upload_ai_off_badge_viewed');
   }, [aiBadgeState]);
+
+  useEffect(() => {
+    if (pageViewTracked.current) return;
+    pageViewTracked.current = true;
+    track('upload_page_viewed');
+  }, []);
+
+  useEffect(() => {
+    if (signupTracked.current) return;
+    const user = userLocals?.user;
+    if (user?.id == null) return;
+    if (!isFreshSignup(user.created_at, user.onboarded_at)) return;
+    if (globalThis.sessionStorage?.getItem(SIGNUP_FLAG_KEY) != null) return;
+    signupTracked.current = true;
+    globalThis.sessionStorage?.setItem(SIGNUP_FLAG_KEY, '1');
+    track('signup_completed', { method: 'oauth' });
+  }, [userLocals]);
 
   useEffect(() => {
     if (searchParams.get('from') === 'pass') {

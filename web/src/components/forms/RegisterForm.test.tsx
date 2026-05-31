@@ -18,6 +18,11 @@ vi.mock('../../lib/backend/get2ankiApi', () => ({
   }),
 }));
 
+const trackMock = vi.fn();
+vi.mock('../../lib/analytics/track', () => ({
+  track: (...args: unknown[]) => trackMock(...args),
+}));
+
 function fillAndSubmit() {
   fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
     target: { value: 'taken@example.com' },
@@ -40,7 +45,59 @@ function renderForm(redirect?: string) {
 describe('RegisterForm', () => {
   beforeEach(() => {
     registerMock.mockReset();
+    trackMock.mockClear();
     localStorage.clear();
+    globalThis.sessionStorage.clear();
+  });
+
+  it('tracks signup_completed once with method email on a successful registration', async () => {
+    registerMock.mockResolvedValue({ status: 200 });
+
+    renderForm();
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(trackMock).toHaveBeenCalledWith('signup_completed', {
+        method: 'email',
+      });
+    });
+    expect(
+      trackMock.mock.calls.filter(([name]) => name === 'signup_completed')
+    ).toHaveLength(1);
+  });
+
+  it('sets the signup dedup flag so the upload page does not re-fire', async () => {
+    registerMock.mockResolvedValue({ status: 200 });
+
+    renderForm();
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(globalThis.sessionStorage.getItem('signup_completed_tracked')).toBe(
+        '1'
+      );
+    });
+  });
+
+  it('does not track signup_completed when the account already exists', async () => {
+    registerMock.mockResolvedValue({
+      status: 400,
+      json: () =>
+        Promise.resolve({
+          message:
+            'An account with this email already exists. Try logging in instead.',
+        }),
+    });
+
+    renderForm();
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(registerMock).toHaveBeenCalled();
+    });
+    expect(trackMock).not.toHaveBeenCalledWith('signup_completed', {
+      method: 'email',
+    });
   });
 
   it('shows a recovery CTA with log in and reset password links when the account already exists', async () => {

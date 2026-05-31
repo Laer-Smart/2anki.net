@@ -9,6 +9,7 @@ import { WithAppleLink } from './WithAppleLink';
 import { WithMicrosoftLink } from './WithMicrosoftLink';
 import { getVisibleText } from '../../lib/text/getVisibleText';
 import { readSignupOrigin } from '../../lib/signupOrigin';
+import { track } from '../../lib/analytics/track';
 import styles from '../../styles/auth.module.css';
 
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
 }
 
 const MIN_PASSWORD_LENGTH = 8;
+const SIGNUP_FLAG_KEY = 'signup_completed_tracked';
 
 function submitLabel(loading: boolean): string {
   if (loading) return 'Creating account…';
@@ -65,6 +67,8 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
     try {
       const res = await get2ankiApi().register('', email, password, signupOrigin);
       if (res.status === 200) {
+        track('signup_completed', { method: 'email' });
+        globalThis.sessionStorage?.setItem(SIGNUP_FLAG_KEY, '1');
         globalThis.sessionStorage?.setItem('email_verification_pending', 'true');
         try {
           globalThis.sessionStorage?.setItem('2anki_post_login', '1');
