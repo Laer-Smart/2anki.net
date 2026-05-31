@@ -17,8 +17,26 @@ import { NOTION_TOKEN_EXPIRED_REASON } from '../usecases/jobs/jobFailureReason';
 import {
   resolveConversionWorkers,
   runConversionInWorker,
+  shutdownConversionPool,
   ConversionWorkerRequest,
 } from './conversionPool';
+
+interface FakePoolHandle {
+  close: jest.Mock<Promise<void>, []>;
+  destroy: jest.Mock<Promise<void>, []>;
+  queueSize: number;
+}
+
+function fakePoolHandle(
+  closeImpl: () => Promise<void>,
+  queueSize = 0
+): FakePoolHandle {
+  return {
+    close: jest.fn(closeImpl),
+    destroy: jest.fn().mockResolvedValue(undefined),
+    queueSize,
+  };
+}
 
 const baseRequest: ConversionWorkerRequest = {
   id: 'notion-page-id',
@@ -120,5 +138,59 @@ describe('runConversionInWorker', () => {
     await expect(
       runConversionInWorker(baseRequest, () => fakeKnex)
     ).rejects.toThrow('boom');
+  });
+});
+
+describe('shutdownConversionPool', () => {
+  let errorSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+    errorSpy.mockRestore();
+  });
+
+  it('lets an in-flight conversion finish inside the budget without force-destroying', async () => {
+    let release: (() => void) | null = null;
+    const handle = fakePoolHandle(
+      () =>
+        new Promise<void>((resolve) => {
+          release = resolve;
+        })
+    );
+
+    const shutdown = shutdownConversionPool({
+      timeoutMs: 23_000,
+      handle: handle as never,
+    });
+
+    await jest.advanceTimersByTimeAsync(22_000);
+    release!();
+    await shutdown;
+
+    expect(handle.destroy).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+
+  it('force-destroys and names the dropped queue when the budget is exceeded', async () => {
+    const handle = fakePoolHandle(() => new Promise<void>(() => undefined), 3);
+
+    const shutdown = shutdownConversionPool({
+      timeoutMs: 23_000,
+      handle: handle as never,
+    });
+
+    await jest.advanceTimersByTimeAsync(23_000);
+    await shutdown;
+
+    expect(handle.destroy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('3 queued conversion(s)')
+    );
   });
 });
