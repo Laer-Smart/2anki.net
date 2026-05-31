@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import instrumentedAxios from '../../services/observability/instrumentedAxios';
 import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
 import { AnkifySyncMappingsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncMappingsRepository';
 import { AnkifySyncConflictsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncConflictsRepository';
@@ -80,7 +81,19 @@ const BACK_FIELD_BASIC = 'Back';
 const DECK_PARENT = 'Notion Sync';
 const DECK_TITLE_FALLBACK = 'Untitled';
 
-export type AnkifyMediaFetcher = typeof fetch;
+export interface AnkifyMediaResponse {
+  status: number;
+  data: Buffer;
+}
+
+export type AnkifyMediaFetcher = (url: string) => Promise<AnkifyMediaResponse>;
+
+const guardedMediaFetcher: AnkifyMediaFetcher = async (url) => {
+  const response = await instrumentedAxios.get<Buffer>('notion', url, {
+    responseType: 'arraybuffer',
+  });
+  return { status: response.status, data: Buffer.from(response.data) };
+};
 
 export type AnkifyZeroReasonCode =
   | 'empty_page'
@@ -122,9 +135,6 @@ const summarizeCardErrors = (errors: string[]): string | null => {
   return `${errors.length} ${noun} failed: ${errors[0]}`;
 };
 
-const arrayBufferToBase64 = (buffer: ArrayBuffer): string =>
-  Buffer.from(buffer).toString('base64');
-
 function isNotionNotFoundError(error: unknown): boolean {
   return (
     error != null &&
@@ -156,7 +166,7 @@ export class SyncNotionPageToRacUseCase {
     private readonly ankiConnect: AnkiConnectFactory,
     private readonly notionFetcher: NotionFetcherFactory,
     private readonly notionPageMeta?: NotionPageMetaFetcher,
-    private readonly mediaFetcher: AnkifyMediaFetcher = fetch,
+    private readonly mediaFetcher: AnkifyMediaFetcher = guardedMediaFetcher,
     private readonly errorEvents?: IErrorEventRepository,
     private readonly onTokenInvalid?: OnTokenInvalidFn
   ) {}
@@ -371,13 +381,12 @@ export class SyncNotionPageToRacUseCase {
     }
     try {
       const response = await this.mediaFetcher(ref.url);
-      if (!response.ok) {
+      if (response.status < 200 || response.status >= 300) {
         throw new Error(`HTTP ${response.status}`);
       }
-      const buffer = await response.arrayBuffer();
       await ac.storeMediaFile({
         filename: ref.filename,
-        data: arrayBufferToBase64(buffer),
+        data: response.data.toString('base64'),
       });
     } catch (error) {
       result.errors.push(

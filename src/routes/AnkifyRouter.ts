@@ -344,7 +344,7 @@ const AnkifyRouter = () => {
     ankiConnectFactory,
     notionBlockChildrenFetcherFactory,
     buildNotionPageMetaFetcher,
-    fetch,
+    undefined,
     new ErrorEventRepository(db),
     (owner: number) =>
       new MarkNotionTokenInvalidUseCase(
