@@ -369,6 +369,11 @@ export default function ErrorsTab() {
     updateParam('page', next <= 0 ? null : String(next));
 
   const countLabel = status === 'all' ? 'total' : status;
+  const groupPlural = data?.totalGroups === 1 ? '' : 's';
+  const groupRangeLabel =
+    data?.totalGroups === 0
+      ? `0 ${countLabel} groups`
+      : `${pageInfo.rangeStart}–${pageInfo.rangeEnd} of ${data?.totalGroups} ${countLabel} group${groupPlural}`;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -606,9 +611,7 @@ export default function ErrorsTab() {
               fontVariantNumeric: 'tabular-nums',
             }}
           >
-            {data.totalGroups === 0
-              ? `0 ${countLabel} groups`
-              : `${pageInfo.rangeStart}–${pageInfo.rangeEnd} of ${data.totalGroups} ${countLabel} group${data.totalGroups === 1 ? '' : 's'}`}
+            {groupRangeLabel}
           </p>
 
           {pageInfo.pageCount > 1 && (
