@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-image-occlusion-template-preview",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Image occlusion template on the templates page previews the card instead of a script error"
+}
