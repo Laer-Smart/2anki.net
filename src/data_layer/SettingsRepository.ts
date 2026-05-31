@@ -5,6 +5,7 @@ import { getCustomTemplate } from '../lib/parser/Settings/helpers/getCustomTempl
 
 export interface ISettingsRepository {
   load(owner: string, id: string): Promise<CardOption>;
+  loadIfExists(owner: string, id: string): Promise<CardOption | null>;
 }
 
 class SettingsRepository implements ISettingsRepository {
@@ -55,14 +56,22 @@ class SettingsRepository implements ISettingsRepository {
   }
 
   async load(owner: string, id: string): Promise<CardOption> {
+    const settings = await this.loadIfExists(owner, id);
+    if (settings) {
+      return settings;
+    }
+    console.log('using default settings');
+    return new CardOption(CardOption.LoadDefaultOptions());
+  }
+
+  async loadIfExists(owner: string, id: string): Promise<CardOption | null> {
     try {
       const result = await this.database(this.table)
         .where({ object_id: id, owner })
         .returning(['payload'])
         .first();
       if (!result) {
-        console.log('using default settings');
-        return new CardOption(CardOption.LoadDefaultOptions());
+        return null;
       }
 
       const settings = new CardOption(result.payload.payload);
@@ -90,7 +99,7 @@ class SettingsRepository implements ISettingsRepository {
     } catch (error: unknown) {
       console.info('Load settings from database failed');
       console.error(error);
-      return new CardOption(CardOption.LoadDefaultOptions());
+      return null;
     }
   }
 }

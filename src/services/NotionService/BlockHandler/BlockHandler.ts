@@ -47,7 +47,9 @@ import { renderBack } from '../helpers/renderBack';
 import renderTextChildren from '../helpers/renderTextChildren';
 import { toText } from './helpers/deckNameToText';
 import getSubDeckName from './helpers/getSubDeckName';
+import mergeChildPageSettings from './helpers/mergeChildPageSettings';
 import RenderNotionLink from './RenderNotionLink';
+import { ISettingsRepository } from '../../../data_layer/SettingsRepository';
 
 interface Finder {
   parentType: string;
@@ -91,15 +93,37 @@ class BlockHandler {
 
   settings: CardOption;
 
+  settingsRepository?: ISettingsRepository;
+
+  owner?: string;
+
   constructor(
     exporter: CustomExporter,
     api: NotionAPIWrapper,
-    settings: CardOption
+    settings: CardOption,
+    settingsRepository?: ISettingsRepository,
+    owner?: string
   ) {
     this.exporter = exporter;
     this.api = api;
     this.skip = [];
     this.settings = settings;
+    this.settingsRepository = settingsRepository;
+    this.owner = owner;
+  }
+
+  private async resolvePageSettings(pageId: string): Promise<CardOption> {
+    if (!this.settingsRepository || this.owner == null) {
+      return this.settings;
+    }
+    const childSettings = await this.settingsRepository.loadIfExists(
+      this.owner,
+      pageId
+    );
+    if (!childSettings) {
+      return this.settings;
+    }
+    return mergeChildPageSettings(this.settings, childSettings);
   }
 
   async embedImage(c: BlockObjectResponse): Promise<string> {
@@ -433,8 +457,31 @@ class BlockHandler {
 
   async findFlashcardsFromPage(locator: Finder, globalSeenIds?: Set<string>): Promise<Deck[]> {
     const { topLevelId, rules, parentName } = locator;
-    let { decks } = locator;
     if (!globalSeenIds) globalSeenIds = new Set<string>();
+
+    const parentSettings = this.settings;
+    this.settings = await this.resolvePageSettings(topLevelId);
+    try {
+      return await this.collectDecksFromPage(
+        topLevelId,
+        rules,
+        parentName,
+        locator.decks,
+        globalSeenIds
+      );
+    } finally {
+      this.settings = parentSettings;
+    }
+  }
+
+  private async collectDecksFromPage(
+    topLevelId: string,
+    rules: ParserRules,
+    parentName: string,
+    initialDecks: Deck[],
+    globalSeenIds: Set<string>
+  ): Promise<Deck[]> {
+    let decks = initialDecks;
 
     const page = await this.api.getPage(topLevelId);
     const createdAt = (page as PageObjectResponse).created_time;
