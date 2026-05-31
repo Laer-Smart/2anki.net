@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { LimitPage } from './LimitPage';
+import { useUserLocals } from '../../lib/hooks/useUserLocals';
 
 vi.mock('../../lib/analytics/track', () => ({
   track: vi.fn(),
@@ -19,13 +20,31 @@ vi.mock('../../lib/backend/get2ankiApi', () => ({
 }));
 
 vi.mock('../../lib/hooks/useUserLocals', () => ({
-  useUserLocals: vi.fn(() => ({
-    data: {
-      user: { id: 1, email: 'test@example.com' },
-    },
-    isLoading: false,
-  })),
+  useUserLocals: vi.fn(),
 }));
+
+const mockedUseUserLocals = vi.mocked(useUserLocals);
+
+function asLoggedIn() {
+  mockedUseUserLocals.mockReturnValue({
+    data: { user: { id: 1, email: 'test@example.com' } },
+    isLoading: false,
+  } as ReturnType<typeof useUserLocals>);
+}
+
+function asAnonymous() {
+  mockedUseUserLocals.mockReturnValue({
+    data: undefined,
+    isLoading: false,
+  } as ReturnType<typeof useUserLocals>);
+}
+
+function asLoading() {
+  mockedUseUserLocals.mockReturnValue({
+    data: undefined,
+    isLoading: true,
+  } as ReturnType<typeof useUserLocals>);
+}
 
 function renderPage(initialEntries: string[] = ['/limit']) {
   const queryClient = new QueryClient({
@@ -46,6 +65,7 @@ function renderPage(initialEntries: string[] = ['/limit']) {
 describe('LimitPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    asLoggedIn();
   });
 
   it('shows the monthly limit message', () => {
@@ -102,33 +122,72 @@ describe('LimitPage', () => {
       expect(globalThis.location.href).toBe('https://checkout.stripe.com/pass');
     });
   });
+
+  it('shows the logged-in upgrade view even when the URL says kind=anonymous', () => {
+    asLoggedIn();
+    renderPage(['/limit?kind=anonymous']);
+    expect(screen.getByText('You reached 100 cards this month')).toBeTruthy();
+    expect(screen.getByText('Get Auto Sync')).toBeTruthy();
+    expect(screen.queryByText('Sign up free')).toBeNull();
+    expect(screen.queryByText('Sign up free and finish converting')).toBeNull();
+  });
 });
 
 describe('LimitPage — anonymous variant', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    asAnonymous();
   });
 
-  it('shows the sign-up heading for kind=anonymous', () => {
-    renderPage(['/limit?kind=anonymous']);
-    expect(screen.getByText('Sign up free to keep converting')).toBeTruthy();
+  it('shows the status line explaining the conversion stopped', () => {
+    renderPage();
+    expect(
+      screen.getByText('Conversion stopped — you reached the 21-card limit')
+    ).toBeTruthy();
   });
 
-  it('shows a "Sign up free" CTA pointing at /register', () => {
-    renderPage(['/limit?kind=anonymous']);
-    const cta = screen.getByText('Sign up free');
+  it('shows the no-account heading', () => {
+    renderPage();
+    expect(
+      screen.getByText('You hit the limit for converting without an account')
+    ).toBeTruthy();
+  });
+
+  it('shows a "Sign up free and finish converting" CTA pointing at /register', () => {
+    renderPage();
+    const cta = screen.getByText('Sign up free and finish converting');
     expect(cta.closest('a')?.getAttribute('href')).toBe('/register?redirect=/upload');
   });
 
+  it('lists the cap-fix benefit first', () => {
+    renderPage();
+    expect(screen.getByText('Convert up to 100 cards a month')).toBeTruthy();
+  });
+
   it('keeps a secondary Sign in link', () => {
-    renderPage(['/limit?kind=anonymous']);
+    renderPage();
     const signIn = screen.getByText('Sign in');
     expect(signIn.closest('a')?.getAttribute('href')).toBe('/login?redirect=/upload');
   });
 
   it('does not show the monthly-limit upgrade UI for anonymous users', () => {
-    renderPage(['/limit?kind=anonymous']);
+    renderPage();
     expect(screen.queryByText('You reached 100 cards this month')).toBeNull();
     expect(screen.queryByText('Get Auto Sync')).toBeNull();
+  });
+});
+
+describe('LimitPage — loading state', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    asLoading();
+  });
+
+  it('does not show the anonymous variant while user locals are loading', () => {
+    renderPage(['/limit?kind=anonymous']);
+    expect(screen.queryByText('Sign up free and finish converting')).toBeNull();
+    expect(
+      screen.queryByText('You hit the limit for converting without an account')
+    ).toBeNull();
   });
 });
