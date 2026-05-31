@@ -35,6 +35,14 @@ describe('effectiveTemplateForCards', () => {
     );
   });
 
+  it('reports basic for plain front/back cards when a stale mcq is selected', () => {
+    expect(effectiveTemplateForCards([basicCard], 'mcq')).toBe('basic');
+  });
+
+  it('reports basic for plain front/back cards when a stale cloze is selected', () => {
+    expect(effectiveTemplateForCards([basicCard], 'cloze')).toBe('basic');
+  });
+
   it('falls back to the selected template when card kinds are mixed', () => {
     expect(effectiveTemplateForCards([clozeCard, basicCard], 'cloze')).toBe(
       'cloze'

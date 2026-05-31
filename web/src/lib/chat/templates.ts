@@ -36,6 +36,15 @@ function isClozeShape(card: ShapeCard): boolean {
   return CLOZE_MARKER.test(card.front);
 }
 
+function isBasicShape(card: ShapeCard): boolean {
+  return card.back.trim().length > 0 && !isMcqShape(card) && !isClozeShape(card);
+}
+
+const BASIC_FAMILY: ReadonlySet<ChatCardTemplate> = new Set<ChatCardTemplate>([
+  'basic',
+  'basic-and-reversed',
+]);
+
 export function effectiveTemplateForCards(
   cards: ShapeCard[],
   selected: ChatCardTemplate
@@ -43,5 +52,6 @@ export function effectiveTemplateForCards(
   if (cards.length === 0) return selected;
   if (cards.every(isMcqShape)) return 'mcq';
   if (cards.every(isClozeShape)) return 'cloze';
+  if (cards.every(isBasicShape) && !BASIC_FAMILY.has(selected)) return 'basic';
   return selected;
 }

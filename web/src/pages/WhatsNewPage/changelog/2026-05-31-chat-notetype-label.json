@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-chat-notetype-label",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Chat note type label matches the cards on screen after a reload"
+}
