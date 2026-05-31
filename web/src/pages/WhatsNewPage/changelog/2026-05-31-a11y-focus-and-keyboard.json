@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-a11y-focus-and-keyboard",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Clearer focus outlines on text fields, and theme switching with the arrow keys"
+}

@@ -427,7 +427,7 @@ describe('Sidebar collapse toggle', () => {
 
   it('defaults to expanded when localStorage has no preference', () => {
     renderSidebar();
-    const aside = screen.getByRole('complementary', { name: 'primary' });
+    const aside = screen.getByRole('complementary', { name: 'Main navigation' });
     expect(aside).toHaveAttribute('data-collapsed', 'false');
     expect(
       screen.getByRole('button', { name: 'Collapse sidebar' })
@@ -438,7 +438,7 @@ describe('Sidebar collapse toggle', () => {
     renderSidebar();
     const toggle = screen.getByRole('button', { name: 'Collapse sidebar' });
     fireEvent.click(toggle);
-    const aside = screen.getByRole('complementary', { name: 'primary' });
+    const aside = screen.getByRole('complementary', { name: 'Main navigation' });
     expect(aside).toHaveAttribute('data-collapsed', 'true');
     expect(
       screen.getByRole('button', { name: 'Expand sidebar' })
@@ -447,7 +447,7 @@ describe('Sidebar collapse toggle', () => {
 
   it('renders the collapse rail outside the sidebar aside element', () => {
     renderSidebar();
-    const aside = screen.getByRole('complementary', { name: 'primary' });
+    const aside = screen.getByRole('complementary', { name: 'Main navigation' });
     const rail = screen.getByRole('button', { name: 'Collapse sidebar' });
     expect(aside.contains(rail)).toBe(false);
   });
@@ -473,7 +473,7 @@ describe('Sidebar collapse toggle', () => {
   it('reads the collapsed state from localStorage on mount', () => {
     localStorage.setItem('sidebar.collapsed', 'true');
     renderSidebar();
-    const aside = screen.getByRole('complementary', { name: 'primary' });
+    const aside = screen.getByRole('complementary', { name: 'Main navigation' });
     expect(aside).toHaveAttribute('data-collapsed', 'true');
   });
 });
@@ -497,7 +497,7 @@ describe('Sidebar auto-minimize', () => {
 
   it('auto-minimizes on /upload after 20 seconds of sidebar inactivity', () => {
     renderSidebar({ pathname: '/upload' });
-    const aside = screen.getByRole('complementary', { name: 'primary' });
+    const aside = screen.getByRole('complementary', { name: 'Main navigation' });
     expect(aside).toHaveAttribute('data-collapsed', 'false');
     advance(20_000);
     expect(aside).toHaveAttribute('data-collapsed', 'true');
@@ -506,7 +506,7 @@ describe('Sidebar auto-minimize', () => {
 
   it('does not auto-minimize on a non-workflow route', () => {
     renderSidebar({ pathname: '/account' });
-    const aside = screen.getByRole('complementary', { name: 'primary' });
+    const aside = screen.getByRole('complementary', { name: 'Main navigation' });
     advance(60_000);
     expect(aside).toHaveAttribute('data-collapsed', 'false');
     expect(track).not.toHaveBeenCalled();
@@ -520,7 +520,7 @@ describe('Sidebar auto-minimize', () => {
 
   it('resets the timer when the user hovers the sidebar', () => {
     renderSidebar({ pathname: '/upload' });
-    const aside = screen.getByRole('complementary', { name: 'primary' });
+    const aside = screen.getByRole('complementary', { name: 'Main navigation' });
     advance(15_000);
     fireEvent.mouseEnter(aside);
     advance(15_000);
@@ -531,7 +531,7 @@ describe('Sidebar auto-minimize', () => {
 
   it('pins the sidebar when the user manually expands after auto-minimize', () => {
     renderSidebar({ pathname: '/upload' });
-    const aside = screen.getByRole('complementary', { name: 'primary' });
+    const aside = screen.getByRole('complementary', { name: 'Main navigation' });
     advance(20_000);
     expect(aside).toHaveAttribute('data-collapsed', 'true');
 
