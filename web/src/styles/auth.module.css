@@ -293,6 +293,30 @@
   margin-top: 0.375rem;
 }
 
+.recovery {
+  background: var(--color-danger-light);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.recovery p {
+  font-size: var(--text-sm);
+  color: var(--color-danger-text);
+  margin: 0 0 0.5rem;
+}
+
+.recoveryActions {
+  display: flex;
+  gap: 1rem;
+}
+
+.recoveryActions a {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
 .footerText {
   font-size: var(--text-sm);
   color: var(--color-text-secondary);

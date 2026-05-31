@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-register-account-exists-recovery",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Signing up with an email that already has an account now links straight to log in or password reset"
+}
