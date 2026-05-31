@@ -64,6 +64,7 @@ import shareRouter from './routes/ShareRouter';
 import subscriptionClaimRouter from './routes/SubscriptionClaimRouter';
 import mindmapRouter from './routes/MindmapRouter';
 import pitchRouter from './routes/PitchRouter';
+import iapRouter from './routes/IapRouter';
 import userSurveyRouter from './routes/UserSurveyRouter';
 import wellKnownRouter from './routes/WellKnownRouter';
 import healthRouter from './routes/HealthRouter';
@@ -192,6 +193,7 @@ const serve = async () => {
   app.use(subscriptionClaimRouter());
   app.use(mindmapRouter());
   app.use(pitchRouter());
+  app.use(iapRouter());
 
   const database = getDatabase();
   app.use(healthRouter(database));
