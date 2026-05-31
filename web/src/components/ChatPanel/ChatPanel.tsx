@@ -138,6 +138,29 @@ export function parseSseEvent(
   return { eventType, data };
 }
 
+export async function consumeSseEvents(
+  body: ReadableStream<Uint8Array>,
+  onEvent: (eventType: string, data: string) => void
+): Promise<void> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split('\n\n');
+    buffer = events.pop() ?? '';
+
+    for (const rawEvent of events) {
+      const parsed = parseSseEvent(rawEvent);
+      if (parsed != null) onEvent(parsed.eventType, parsed.data);
+    }
+  }
+}
+
 async function downloadDeck(
   cards: ChatCard[],
   deckName: string,
@@ -818,24 +841,8 @@ export default function ChatPanel({
       if (eventType === 'error') return handleSseError(data);
     };
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
     try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const events = buffer.split('\n\n');
-        buffer = events.pop() ?? '';
-
-        for (const rawEvent of events) {
-          const parsed = parseSseEvent(rawEvent);
-          if (parsed != null) dispatchSseEvent(parsed.eventType, parsed.data);
-        }
-      }
+      await consumeSseEvents(response.body, dispatchSseEvent);
     } catch {
       setNetworkError("Couldn't send this message. Try again.");
     } finally {
@@ -950,60 +957,61 @@ export default function ChatPanel({
       return;
     }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
+    const handleRegenToken = (data: string) => {
+      const text = JSON.parse(data) as string;
+      setStreamingText((prev) => prev + text);
+    };
+
+    const handleRegenDone = (data: string) => {
+      const result = JSON.parse(data) as ApiDonePayload;
+      setMessages((prev) =>
+        prev.map((m, i) =>
+          i === targetIdx
+            ? {
+                role: 'assistant',
+                content: result.content,
+                contentBefore: result.contentBefore,
+                contentAfter: result.contentAfter,
+                cards: result.cards,
+              }
+            : m
+        )
+      );
+      setMessagesUsedThisMonth((n) => n + 1);
+      setActiveConversationId(result.conversationId);
+      if (result.cards != null && result.cards.length > 0) {
+        onCardsGenerated?.(result.cards);
+      }
+    };
+
+    const handleRegenError = (data: string) => {
+      const err = JSON.parse(data) as ApiErrorPayload;
+      if (err.type === 'rate_limit') {
+        setLimitReached(true);
+        if (err.resetDate != null) setResetDate(err.resetDate);
+        return;
+      }
+      if (err.type === 'conversation_not_found') {
+        setNetworkError('This conversation is gone. Start a new one.');
+        setActiveConversationId(null);
+        onConversationNotFound?.();
+        return;
+      }
+      if (err.type === 'consent_required') {
+        setShowConsentModal(true);
+        return;
+      }
+      setNetworkError("Couldn't rebuild your cards. Try again.");
+    };
+
+    const dispatchRegenEvent = (eventType: string, data: string) => {
+      if (eventType === 'token') return handleRegenToken(data);
+      if (eventType === 'done') return handleRegenDone(data);
+      if (eventType === 'error') return handleRegenError(data);
+    };
 
     try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const events = buffer.split('\n\n');
-        buffer = events.pop() ?? '';
-        for (const rawEvent of events) {
-          const parsed = parseSseEvent(rawEvent);
-          if (parsed == null) continue;
-          if (parsed.eventType === 'token') {
-            const text = JSON.parse(parsed.data) as string;
-            setStreamingText((prev) => prev + text);
-          } else if (parsed.eventType === 'done') {
-            const result = JSON.parse(parsed.data) as ApiDonePayload;
-            setMessages((prev) =>
-              prev.map((m, i) =>
-                i === targetIdx
-                  ? {
-                      role: 'assistant',
-                      content: result.content,
-                      contentBefore: result.contentBefore,
-                      contentAfter: result.contentAfter,
-                      cards: result.cards,
-                    }
-                  : m
-              )
-            );
-            setMessagesUsedThisMonth((n) => n + 1);
-            setActiveConversationId(result.conversationId);
-            if (result.cards != null && result.cards.length > 0) {
-              onCardsGenerated?.(result.cards);
-            }
-          } else if (parsed.eventType === 'error') {
-            const err = JSON.parse(parsed.data) as ApiErrorPayload;
-            if (err.type === 'rate_limit') {
-              setLimitReached(true);
-              if (err.resetDate != null) setResetDate(err.resetDate);
-            } else if (err.type === 'conversation_not_found') {
-              setNetworkError('This conversation is gone. Start a new one.');
-              setActiveConversationId(null);
-              onConversationNotFound?.();
-            } else if (err.type === 'consent_required') {
-              setShowConsentModal(true);
-            } else {
-              setNetworkError("Couldn't rebuild your cards. Try again.");
-            }
-          }
-        }
-      }
+      await consumeSseEvents(response.body, dispatchRegenEvent);
     } catch {
       setNetworkError("Couldn't rebuild your cards. Try again.");
     } finally {
