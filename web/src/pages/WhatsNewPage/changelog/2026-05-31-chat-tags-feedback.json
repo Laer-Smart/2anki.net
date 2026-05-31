@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-chat-tags-feedback",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Chat cards confirm when tags are added, with a count of the cards tagged"
+}

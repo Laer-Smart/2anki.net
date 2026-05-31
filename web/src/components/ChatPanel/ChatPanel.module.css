@@ -262,6 +262,12 @@
   margin: 0;
 }
 
+.successMessage {
+  font-size: var(--text-xs);
+  color: var(--color-success);
+  margin: 0;
+}
+
 .composerPill {
   position: relative;
   display: flex;
