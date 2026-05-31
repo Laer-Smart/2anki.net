@@ -8,6 +8,10 @@ import {
 } from './BusinessMetricsService';
 import { InMemoryBusinessMetricsCacheRepository } from '../../data_layer/BusinessMetricsCacheRepository';
 import { InMemoryCancellationFeedbackRepository } from '../../data_layer/CancellationFeedbackRepository';
+import {
+  InMemoryUserSignupCountsRepository,
+  IUserSignupCountsRepository,
+} from '../../data_layer/UsersRepository';
 
 interface FakeSubscriptionItem {
   price: {
@@ -675,6 +679,89 @@ describe('BusinessMetricsService', () => {
           }),
         ])
       );
+    });
+  });
+
+  describe('signup counts', () => {
+    it('returns total users plus 24h and 7d signup windows from the repo', async () => {
+      const stripe = buildFakeStripe({});
+      const signupCountsRepo = new InMemoryUserSignupCountsRepository();
+      signupCountsRepo.setTotalUsers(19389);
+      signupCountsRepo.addSignup(new Date(NOW_MS - 1 * SECONDS_PER_DAY * 1000 + 1000));
+      signupCountsRepo.addSignup(new Date(NOW_MS - 3 * SECONDS_PER_DAY * 1000));
+      signupCountsRepo.addSignup(new Date(NOW_MS - 6 * SECONDS_PER_DAY * 1000));
+      signupCountsRepo.addSignup(new Date(NOW_MS - 10 * SECONDS_PER_DAY * 1000));
+
+      const service = new BusinessMetricsService({
+        stripeFactory: () => stripe as never,
+        signupCountsRepository: signupCountsRepo,
+      });
+
+      const result = await service.getMetrics();
+
+      expect(result.total_users).toBe(19389);
+      expect(result.signups_24h).toBe(1);
+      expect(result.signups_7d).toBe(3);
+    });
+
+    it('caches signup counts within the TTL', async () => {
+      const stripe = buildFakeStripe({});
+      const signupCountsRepo = new InMemoryUserSignupCountsRepository();
+      signupCountsRepo.setTotalUsers(5);
+      const totalSpy = jest.spyOn(signupCountsRepo, 'countTotalUsers');
+      const sinceSpy = jest.spyOn(signupCountsRepo, 'countSignupsSince');
+
+      const service = new BusinessMetricsService({
+        stripeFactory: () => stripe as never,
+        signupCountsRepository: signupCountsRepo,
+      });
+
+      await service.getMetrics();
+      jest.advanceTimersByTime(10 * 60 * 1000);
+      await service.getMetrics();
+
+      expect(totalSpy).toHaveBeenCalledTimes(1);
+      expect(sinceSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('reports a per-metric error and nulls the windows when total count throws', async () => {
+      const stripe = buildFakeStripe({});
+      const signupCountsRepo: IUserSignupCountsRepository =
+        new InMemoryUserSignupCountsRepository();
+      jest
+        .spyOn(signupCountsRepo, 'countTotalUsers')
+        .mockRejectedValueOnce(new Error('counts down'));
+
+      const service = new BusinessMetricsService({
+        stripeFactory: () => stripe as never,
+        signupCountsRepository: signupCountsRepo,
+      });
+
+      const result = await service.getMetrics();
+
+      expect(result.total_users).toBeNull();
+      expect(result.mrr_usd).toBeCloseTo(0, 5);
+      expect(result.errors).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            metric: 'total_users',
+            message: 'counts down',
+          }),
+        ])
+      );
+    });
+
+    it('omits the signup metrics when no counts repo is wired', async () => {
+      const stripe = buildFakeStripe({});
+      const service = new BusinessMetricsService({
+        stripeFactory: () => stripe as never,
+      });
+
+      const result = await service.getMetrics();
+
+      expect(result.total_users).toBeNull();
+      expect(result.signups_24h).toBeNull();
+      expect(result.signups_7d).toBeNull();
     });
   });
 });

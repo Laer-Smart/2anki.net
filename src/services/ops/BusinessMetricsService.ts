@@ -28,6 +28,7 @@ import {
 } from '../../data_layer/ReEngagementFeedbackRepository';
 import {
   ISignupCountryRepository,
+  IUserSignupCountsRepository,
   SignupCountryCount,
 } from '../../data_layer/UsersRepository';
 
@@ -48,7 +49,10 @@ export type BusinessMetricKey =
   | 'emoji_feedback_comments'
   | 'reengagement_reasons_top'
   | 'reengagement_comments_recent'
-  | 'signup_countries_90d';
+  | 'signup_countries_90d'
+  | 'total_users'
+  | 'signups_24h'
+  | 'signups_7d';
 
 export interface BusinessMetricError {
   metric: BusinessMetricKey;
@@ -94,6 +98,9 @@ export interface BusinessMetricsResponse {
   reengagement_reasons_top: ReEngagementReasonCount[] | null;
   reengagement_comments_recent: ReEngagementCommentEntry[] | null;
   signup_countries_90d: SignupCountryCount[] | null;
+  total_users: number | null;
+  signups_24h: number | null;
+  signups_7d: number | null;
   as_of: string;
   cache_age_seconds: number;
   errors?: BusinessMetricError[];
@@ -108,6 +115,8 @@ export const REENGAGEMENT_REASONS_LOOKBACK_DAYS = 90;
 export const REENGAGEMENT_COMMENTS_LIMIT = 20;
 export const SIGNUP_COUNTRIES_LOOKBACK_DAYS = 90;
 export const SIGNUP_COUNTRIES_LIMIT = 10;
+export const SIGNUPS_24H_LOOKBACK_DAYS = 1;
+export const SIGNUPS_7D_LOOKBACK_DAYS = 7;
 
 interface BusinessMetricsServiceDeps {
   stripeFactory?: () => Stripe;
@@ -117,6 +126,7 @@ interface BusinessMetricsServiceDeps {
   emojiFeedbackRepository?: IEmojiFeedbackRepository;
   reengagementRepository?: IReEngagementFeedbackRepository;
   signupCountryRepository?: ISignupCountryRepository;
+  signupCountsRepository?: IUserSignupCountsRepository;
 }
 
 const SECONDS_PER_DAY = 24 * 60 * 60;
@@ -197,6 +207,8 @@ export class BusinessMetricsService {
 
   private readonly signupCountryRepository: ISignupCountryRepository | null;
 
+  private readonly signupCountsRepository: IUserSignupCountsRepository | null;
+
   private inflightSourceRefresh: Promise<SourceRefreshResult> | null = null;
 
   constructor(deps: BusinessMetricsServiceDeps = {}) {
@@ -214,6 +226,7 @@ export class BusinessMetricsService {
       deps.reengagementRepository ??
       new InMemoryReEngagementFeedbackRepository();
     this.signupCountryRepository = deps.signupCountryRepository ?? null;
+    this.signupCountsRepository = deps.signupCountsRepository ?? null;
   }
 
   async getMetrics(): Promise<BusinessMetricsResponse> {
@@ -305,6 +318,15 @@ export class BusinessMetricsService {
       ) as ReEngagementCommentEntry[] | null,
       signup_countries_90d: dbValueByKey.has('signup_countries_90d')
         ? (dbValueByKey.get('signup_countries_90d') as SignupCountryCount[] | null)
+        : null,
+      total_users: dbValueByKey.has('total_users')
+        ? (dbValueByKey.get('total_users') as number | null)
+        : null,
+      signups_24h: dbValueByKey.has('signups_24h')
+        ? (dbValueByKey.get('signups_24h') as number | null)
+        : null,
+      signups_7d: dbValueByKey.has('signups_7d')
+        ? (dbValueByKey.get('signups_7d') as number | null)
         : null,
       as_of: now.toISOString(),
       cache_age_seconds: cacheAgeSeconds,
@@ -413,6 +435,36 @@ export class BusinessMetricsService {
             SIGNUP_COUNTRIES_LIMIT
           ),
       });
+    }
+
+    if (this.signupCountsRepository != null) {
+      const repo = this.signupCountsRepository;
+      tasks.push(
+        {
+          key: 'total_users',
+          fetch: () => repo.countTotalUsers(),
+        },
+        {
+          key: 'signups_24h',
+          fetch: () =>
+            repo.countSignupsSince(
+              new Date(
+                now.getTime() -
+                  SIGNUPS_24H_LOOKBACK_DAYS * SECONDS_PER_DAY * 1000
+              )
+            ),
+        },
+        {
+          key: 'signups_7d',
+          fetch: () =>
+            repo.countSignupsSince(
+              new Date(
+                now.getTime() -
+                  SIGNUPS_7D_LOOKBACK_DAYS * SECONDS_PER_DAY * 1000
+              )
+            ),
+        }
+      );
     }
 
     return tasks;

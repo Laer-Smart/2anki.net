@@ -18,6 +18,11 @@ export interface ISignupCountryRepository {
   ): Promise<SignupCountryCount[]>;
 }
 
+export interface IUserSignupCountsRepository {
+  countTotalUsers(): Promise<number>;
+  countSignupsSince(since: Date): Promise<number>;
+}
+
 class UsersRepository {
   table: string;
   private deletedUserUsage: DeletedUserUsageRepository;
@@ -414,6 +419,45 @@ class UsersRepository {
       .select('stripe_customer_id')
       .first()
       .then((row: { stripe_customer_id: string | null } | undefined) => row?.stripe_customer_id ?? null);
+  }
+
+  async countTotalUsers(): Promise<number> {
+    const row = (await this.database(this.table)
+      .count<{ count: string | number }>('* as count')
+      .first()) as { count: string | number } | undefined;
+    return Number(row?.count ?? 0);
+  }
+
+  async countSignupsSince(since: Date): Promise<number> {
+    const row = (await this.database(this.table)
+      .where('created_at', '>=', since)
+      .count<{ count: string | number }>('* as count')
+      .first()) as { count: string | number } | undefined;
+    return Number(row?.count ?? 0);
+  }
+}
+
+export class InMemoryUserSignupCountsRepository
+  implements IUserSignupCountsRepository
+{
+  private totalUsers = 0;
+
+  private readonly signupDates: Date[] = [];
+
+  setTotalUsers(total: number): void {
+    this.totalUsers = total;
+  }
+
+  addSignup(createdAt: Date): void {
+    this.signupDates.push(createdAt);
+  }
+
+  async countTotalUsers(): Promise<number> {
+    return this.totalUsers;
+  }
+
+  async countSignupsSince(since: Date): Promise<number> {
+    return this.signupDates.filter((date) => date >= since).length;
   }
 }
 

@@ -24,6 +24,9 @@ describe('GetBusinessMetricsUseCase', () => {
       reengagement_reasons_top: [],
       reengagement_comments_recent: [],
       signup_countries_90d: [],
+      total_users: 19389,
+      signups_24h: 31,
+      signups_7d: 214,
       as_of: '2026-05-09T14:32:07.000Z',
       cache_age_seconds: 412,
     };
