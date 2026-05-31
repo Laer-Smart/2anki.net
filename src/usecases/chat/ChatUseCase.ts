@@ -294,10 +294,91 @@ export class ChatUseCase {
       });
     }
 
+    const recentHistory = conversationHistory.slice(-MAX_HISTORY_TURNS);
+    const attachmentBlocks = buildAttachmentBlocks(attachments);
+    const userContent: Anthropic.MessageParam['content'] =
+      attachmentBlocks.length > 0
+        ? [...attachmentBlocks, { type: 'text', text: content }]
+        : content;
+
+    await this.messagesRepo.insert({
+      userId: user.owner,
+      conversationId,
+      role: 'user',
+      content,
+    });
+
+    return this.streamAssistantTurn({
+      user,
+      conversationId,
+      templateSlug: input.templateSlug,
+      historyMessages: recentHistory.map((m) => ({ role: m.role, content: m.content })),
+      userContent,
+      onToken,
+    });
+  }
+
+  async regenerate(input: {
+    user: ChatUser;
+    conversationId: number;
+    templateSlug?: string | null;
+    onToken?: (text: string) => void;
+  }): Promise<SendMessageResult> {
+    const { user, onToken } = input;
+
+    const conversation = await this.conversationsRepo.findForUser({
+      userId: user.owner,
+      conversationId: input.conversationId,
+    });
+    if (conversation == null) {
+      throw new ChatConversationNotFoundError();
+    }
+
+    const latestAssistant = await this.messagesRepo.findLatestAssistantInConversation({
+      userId: user.owner,
+      conversationId: conversation.id,
+    });
+    if (latestAssistant != null) {
+      await this.messagesRepo.deleteById({
+        userId: user.owner,
+        messageId: latestAssistant.id,
+      });
+    }
+
+    const priorMessages = conversation.messages.filter(
+      (m) => m.id !== latestAssistant?.id
+    );
+    const lastUserIndex = priorMessages.map((m) => m.role).lastIndexOf('user');
+    const upToLastUser =
+      lastUserIndex >= 0 ? priorMessages.slice(0, lastUserIndex + 1) : priorMessages;
+    const recentHistory = upToLastUser.slice(-(MAX_HISTORY_TURNS + 1));
+    const historyHead = recentHistory.slice(0, -1);
+    const lastTurn = recentHistory[recentHistory.length - 1];
+
+    return this.streamAssistantTurn({
+      user,
+      conversationId: conversation.id,
+      templateSlug: input.templateSlug,
+      historyMessages: historyHead.map((m) => ({ role: m.role, content: m.content })),
+      userContent: lastTurn?.content ?? '',
+      onToken,
+    });
+  }
+
+  private async streamAssistantTurn(params: {
+    user: ChatUser;
+    conversationId: number;
+    templateSlug?: string | null;
+    historyMessages: Array<{ role: 'user' | 'assistant'; content: Anthropic.MessageParam['content'] }>;
+    userContent: Anthropic.MessageParam['content'];
+    onToken?: (text: string) => void;
+  }): Promise<SendMessageResult> {
+    const { user, conversationId, historyMessages, userContent, onToken } = params;
+
     const model = user.patreon ? PATREON_MODEL : FREE_MODEL;
 
-    const resolvedTemplate: ChatCardTemplate = isChatCardTemplate(input.templateSlug)
-      ? input.templateSlug
+    const resolvedTemplate: ChatCardTemplate = isChatCardTemplate(params.templateSlug)
+      ? params.templateSlug
       : 'basic';
     const mcqAllowed = user.patreon || resolvedTemplate === 'mcq';
 
@@ -309,23 +390,10 @@ export class ChatUseCase {
       ? `${baseSystemPrompt}\n\n${templateSuffix.trim()}`
       : baseSystemPrompt;
 
-    const recentHistory = conversationHistory.slice(-MAX_HISTORY_TURNS);
-    const attachmentBlocks = buildAttachmentBlocks(attachments);
-    const userContent: Anthropic.MessageParam['content'] =
-      attachmentBlocks.length > 0
-        ? [...attachmentBlocks, { type: 'text', text: content }]
-        : content;
     const messages: Anthropic.MessageParam[] = [
-      ...recentHistory.map((m) => ({ role: m.role, content: m.content })),
+      ...historyMessages.map((m) => ({ role: m.role, content: m.content })),
       { role: 'user', content: userContent },
     ];
-
-    await this.messagesRepo.insert({
-      userId: user.owner,
-      conversationId,
-      role: 'user',
-      content,
-    });
 
     const stream = this.anthropic.messages.stream({
       model,

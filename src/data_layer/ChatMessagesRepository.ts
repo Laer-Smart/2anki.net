@@ -28,6 +28,7 @@ export interface IChatMessagesRepository {
     messageId: number;
     content: string;
   }): Promise<boolean>;
+  deleteById(input: { userId: number; messageId: number }): Promise<boolean>;
 }
 
 export class ChatMessagesRepository implements IChatMessagesRepository {
@@ -82,6 +83,13 @@ export class ChatMessagesRepository implements IChatMessagesRepository {
       .where({ id: input.messageId, user_id: input.userId })
       .update({ content: input.content });
     return updated > 0;
+  }
+
+  async deleteById(input: { userId: number; messageId: number }): Promise<boolean> {
+    const deleted = await this.database(this.table)
+      .where({ id: input.messageId, user_id: input.userId })
+      .del();
+    return deleted > 0;
   }
 }
 
@@ -142,6 +150,15 @@ export class InMemoryChatMessagesRepository implements IChatMessagesRepository {
     );
     if (row == null) return false;
     row.content = input.content;
+    return true;
+  }
+
+  async deleteById(input: { userId: number; messageId: number }): Promise<boolean> {
+    const index = this.rows.findIndex(
+      (r) => r.id === input.messageId && r.user_id === input.userId
+    );
+    if (index === -1) return false;
+    this.rows.splice(index, 1);
     return true;
   }
 

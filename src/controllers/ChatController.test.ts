@@ -29,13 +29,18 @@ function buildMocks(
   chatConsentAt: Date | null = new Date()
 ) {
   const execute = jest.fn();
-  const controller = new ChatController({ execute } as never);
+  const regenerate = jest.fn();
+  const controller = new ChatController({ execute, regenerate } as never);
   const res = buildRes(owner, patreon, subscriber, chatConsentAt);
-  return { execute, controller, res };
+  return { execute, regenerate, controller, res };
 }
 
 function buildReq(body: unknown, files?: Express.Multer.File[]): Request {
   return { body, files: files ?? [] } as unknown as Request;
+}
+
+function buildReqWithParams(body: unknown, params: Record<string, string>): Request {
+  return { body, params } as unknown as Request;
 }
 
 function makeFile(
@@ -334,5 +339,69 @@ describe('ChatController.sendMessage — multipart history parsing', () => {
         conversationHistory: [{ role: 'user', content: 'prior' }],
       })
     );
+  });
+});
+
+describe('ChatController.regenerateMessage', () => {
+  it('emits consent_required SSE error when chat_consent_at is null', async () => {
+    const { controller, res } = buildMocks(42, false, false, null);
+    await controller.regenerateMessage(buildReqWithParams({}, { id: '7' }), res);
+    const events = writtenEvents(res);
+    expect(events).toContainEqual({ event: 'error', data: { type: 'consent_required' } });
+    expect(res.end).toHaveBeenCalled();
+  });
+
+  it('returns 400 when the conversation id is not a positive integer', async () => {
+    const { regenerate, controller, res } = buildMocks();
+    await controller.regenerateMessage(buildReqWithParams({}, { id: 'abc' }), res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(regenerate).not.toHaveBeenCalled();
+  });
+
+  it('passes the conversation id and per-call templateSlug to the use case', async () => {
+    const { regenerate, controller, res } = buildMocks();
+    regenerate.mockResolvedValueOnce({ content: 'fresh', conversationId: 7 });
+
+    await controller.regenerateMessage(
+      buildReqWithParams({ templateSlug: 'cloze' }, { id: '7' }),
+      res
+    );
+
+    expect(regenerate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversationId: 7,
+        templateSlug: 'cloze',
+        user: { owner: 42, patreon: false },
+      })
+    );
+  });
+
+  it('streams a done frame with the regenerated content', async () => {
+    const { regenerate, controller, res } = buildMocks();
+    regenerate.mockResolvedValueOnce({ content: 'fresh', conversationId: 7 });
+
+    await controller.regenerateMessage(
+      buildReqWithParams({ templateSlug: null }, { id: '7' }),
+      res
+    );
+
+    const events = writtenEvents(res);
+    expect(events).toContainEqual({
+      event: 'done',
+      data: { content: 'fresh', conversationId: 7 },
+    });
+  });
+
+  it('emits a conversation_not_found SSE error when the use case rejects', async () => {
+    const { regenerate, controller, res } = buildMocks();
+    regenerate.mockRejectedValueOnce(new ChatConversationNotFoundError());
+
+    await controller.regenerateMessage(buildReqWithParams({}, { id: '7' }), res);
+
+    const events = writtenEvents(res);
+    expect(events).toContainEqual({
+      event: 'error',
+      data: { type: 'conversation_not_found' },
+    });
   });
 });
