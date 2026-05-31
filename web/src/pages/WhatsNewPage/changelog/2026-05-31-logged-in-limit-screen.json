@@ -1,0 +1,6 @@
+{
+  "id": "2026-05-31-logged-in-limit-screen",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Hitting the card limit while signed in shows the upgrade view, not the sign-up screen"
+}

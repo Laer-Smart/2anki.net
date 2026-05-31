@@ -25,6 +25,7 @@ import {
   MonthlyLimitError,
   AnonymousCardCapError,
   ANONYMOUS_CARD_CAP,
+  MONTHLY_CARD_LIMIT,
 } from '../usecases/users/CheckMonthlyCardLimitUseCase';
 import { generateDeckInfo, DeckInfo, ClaudeParseError } from '../lib/claude/ClaudeService';
 import CustomExporter from '../lib/parser/exporters/CustomExporter';
@@ -52,6 +53,11 @@ interface MarkdownLossyResponse {
 
 interface DeckTooLargeResponse {
   message: string;
+}
+
+function hasSessionToken(req: express.Request): boolean {
+  const token = (req.cookies as Record<string, unknown> | undefined)?.token;
+  return typeof token === 'string' && token.length > 0;
 }
 
 function walkHtmlFiles(dir: string): string[] {
@@ -365,16 +371,24 @@ class UploadService {
 
     const totalCards = packages.reduce((s, p) => s + (p.cardCount ?? 0), 0);
     const owner = getOwner(res);
+    const authenticated = hasSessionToken(req);
 
-    if (owner == null && totalCards > ANONYMOUS_CARD_CAP) {
-      throw new AnonymousCardCapError(totalCards, ANONYMOUS_CARD_CAP);
-    }
     if (owner != null) {
       await new CheckMonthlyCardLimitUseCase(this.usersRepository).execute({
         userId: owner,
         candidateCardCount: totalCards,
         isPaying: paying,
       });
+    } else if (totalCards > ANONYMOUS_CARD_CAP) {
+      if (authenticated) {
+        throw new MonthlyLimitError(
+          MONTHLY_CARD_LIMIT,
+          MONTHLY_CARD_LIMIT,
+          totalCards,
+          new Date().toISOString()
+        );
+      }
+      throw new AnonymousCardCapError(totalCards, ANONYMOUS_CARD_CAP);
     }
 
     const first = packages[0];
