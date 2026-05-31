@@ -233,8 +233,20 @@ class UploadService {
       return await this.handleSyncUpload(req, res, settings, ws, paying);
     } catch (err) {
       if (err instanceof MonthlyLimitError) {
+        const owner = getOwner(res);
+        track('paywall_shown', {
+          userId: owner != null ? Number(owner) : null,
+          anonymousId: this.resolveAnonId(req),
+          props: { source: this.resolveUploadSource(req), kind: 'card_count' },
+        });
         return res.redirect('/limit?kind=card_count');
       } else if (err instanceof AnonymousCardCapError) {
+        const owner = getOwner(res);
+        track('paywall_shown', {
+          userId: owner != null ? Number(owner) : null,
+          anonymousId: this.resolveAnonId(req),
+          props: { source: this.resolveUploadSource(req), kind: 'anonymous' },
+        });
         return res.redirect('/limit?kind=anonymous');
       } else if (isLimitError(err as Error)) {
         handleUploadLimitError(req, res);
