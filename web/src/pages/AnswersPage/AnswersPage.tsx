@@ -2,8 +2,23 @@ import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 import NotFoundPage from '../NotFoundPage';
 import { AnswerFigure } from './AnswerFigures';
-import { ANSWERS_PAGES } from './answersConfig';
+import { AnswerConfig, ANSWERS_PAGES } from './answersConfig';
 import styles from './AnswersPage.module.css';
+
+export function buildArticleJsonLd(config: AnswerConfig): string {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: config.title,
+    description: config.description,
+    articleSection: config.sections.map((section) => section.heading),
+    articleBody: config.sections.map((section) => section.body).join('\n\n'),
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://2anki.net/answers/${config.slug}`,
+    },
+  });
+}
 
 function AnswersPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -15,18 +30,7 @@ function AnswersPage() {
 
   const canonical = `https://2anki.net/answers/${config.slug}`;
 
-  const faqJsonLd = JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: config.sections.map((section) => ({
-      '@type': 'Question',
-      name: section.heading,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: section.body,
-      },
-    })),
-  });
+  const articleJsonLd = buildArticleJsonLd(config);
 
   return (
     <div className={styles.page}>
@@ -38,7 +42,7 @@ function AnswersPage() {
         <meta property="og:description" content={config.description} />
         <meta property="og:url" content={canonical} />
         <meta property="og:type" content="article" />
-        <script type="application/ld+json">{faqJsonLd}</script>
+        <script type="application/ld+json">{articleJsonLd}</script>
       </Helmet>
 
       <h1 className={styles.h1}>{config.h1}</h1>
