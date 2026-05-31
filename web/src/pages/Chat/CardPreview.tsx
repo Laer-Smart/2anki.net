@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import DownloadIcon from '../../components/icons/DownloadIcon';
 import { TemplateSelector } from '../../components/ChatPanel/TemplateSelector';
-import type { ChatCardTemplate } from '../../lib/chat/templates';
+import {
+  effectiveTemplateForCards,
+  type ChatCardTemplate,
+} from '../../lib/chat/templates';
 import styles from './CardPreview.module.css';
 
 interface ChatCard {
@@ -141,6 +144,8 @@ export default function CardPreview({
     }
   }, [saveState]);
 
+  const displayTemplate =
+    template == null ? template : effectiveTemplateForCards(cards, template);
   const displayCards =
     template === 'basic-and-reversed' ? expandForReversed(cards) : cards;
   const allCardsAreMcq =
@@ -150,7 +155,7 @@ export default function CardPreview({
     : displayCards.slice(0, VISIBLE_COUNT);
   const hasMore = displayCards.length > VISIBLE_COUNT;
   const hideBackColumn =
-    template === 'cloze' &&
+    displayTemplate === 'cloze' &&
     (isRegenerating === true ||
       (cards.length > 0 && cards.every((c) => c.back.trim().length === 0)));
   const hasTags =
@@ -197,9 +202,9 @@ export default function CardPreview({
           {cardLabel}
         </span>
 
-        {template != null && onTemplateChange != null && (
+        {displayTemplate != null && onTemplateChange != null && (
           <TemplateSelector
-            value={template}
+            value={displayTemplate}
             onChange={onTemplateChange}
             disabled={templateDisabled === true || isRegenerating === true}
           />

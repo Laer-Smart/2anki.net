@@ -215,6 +215,36 @@ describe('CardPreview', () => {
       expect(screen.getByLabelText('Correct answer')).toBeInTheDocument();
     });
 
+    it('labels the note type as Cloze when cards are cloze even if basic is selected', () => {
+      render(
+        <CardPreview
+          cards={[
+            { front: 'The capital of France is {{c1::Paris}}.', back: '' },
+          ]}
+          onSave={vi.fn()}
+          template="basic"
+          onTemplateChange={vi.fn()}
+        />
+      );
+      expect(
+        screen.getByRole('button', { name: 'Note type: Cloze' })
+      ).toBeInTheDocument();
+    });
+
+    it('labels the note type as Multiple choice when cards are MCQ even if basic is selected', () => {
+      render(
+        <CardPreview
+          cards={[mcqCard]}
+          onSave={vi.fn()}
+          template="basic"
+          onTemplateChange={vi.fn()}
+        />
+      );
+      expect(
+        screen.getByRole('button', { name: 'Note type: Multiple choice' })
+      ).toBeInTheDocument();
+    });
+
     it('keeps basic cards as front/back rows even when an MCQ card is also present', () => {
       render(
         <CardPreview
