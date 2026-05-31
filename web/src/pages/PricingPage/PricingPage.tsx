@@ -298,14 +298,14 @@ export default function PricingPage({
 
   const passesSection = (
     <>
-      <p className={styles.sectionLabel}>Pay once — no subscription</p>
+      <h2 className={styles.sectionLabel}>Pay once — no subscription</h2>
       {passCards}
     </>
   );
 
   const monthlySection = (
     <>
-      <p className={styles.sectionLabel}>Monthly plans</p>
+      <h2 className={styles.sectionLabel}>Monthly plans</h2>
       {monthlyPlans}
     </>
   );
@@ -369,7 +369,7 @@ export default function PricingPage({
         </>
       )}
 
-      <p className={styles.sectionLabel}>One-time payment</p>
+      <h2 className={styles.sectionLabel}>One-time payment</h2>
       <div className={styles.grid}>
         <PricingCard
           badge="Pay once"

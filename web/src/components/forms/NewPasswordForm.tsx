@@ -79,6 +79,7 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
                 autoComplete="new-password"
                 placeholder="New password"
                 required
+                aria-describedby="password-help"
               />
             </label>
             <p id="password-help" className={passwordHelpClass}>

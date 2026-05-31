@@ -45,7 +45,11 @@ export function FeedbackWidget({
 
   if (status === 'sent') {
     return (
-      <div className={compact ? styles.inlineThank : styles.thankYou}>
+      <div
+        role="status"
+        aria-live="polite"
+        className={compact ? styles.inlineThank : styles.thankYou}
+      >
         Thanks — feedback received.
       </div>
     );
@@ -95,9 +99,11 @@ export function FeedbackWidget({
           </button>
         </>
       )}
-      {status === 'error' && (
-        <p className={styles.errorText}>Something went wrong. Try again?</p>
-      )}
+      <div role="status" aria-live="polite">
+        {status === 'error' && (
+          <p className={styles.errorText}>Something went wrong. Try again?</p>
+        )}
+      </div>
     </div>
   );
 }
