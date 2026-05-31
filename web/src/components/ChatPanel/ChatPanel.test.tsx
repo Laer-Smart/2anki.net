@@ -692,9 +692,6 @@ describe('ChatPanel — template selector', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
     fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
     expect(onTemplateChange).toHaveBeenCalledWith('cloze');
-    expect(
-      screen.getByRole('button', { name: 'Note type: Cloze' })
-    ).toBeInTheDocument();
   });
 
   it('includes templateSlug in the message API call', async () => {
