@@ -1,4 +1,4 @@
-import axios from 'axios';
+import instrumentedAxios from '../../../../../observability/instrumentedAxios';
 
 const metascraper = require('metascraper')([
   require('metascraper-description'),
@@ -17,7 +17,7 @@ export interface Metadata {
 
 export default async function useMetadata(url: string): Promise<Metadata> {
   try {
-    const response = await axios.get(url);
+    const response = await instrumentedAxios.get('notion', url);
     return metascraper({ html: response.data, url });
   } catch (error) {
     console.error(error);
