@@ -343,3 +343,81 @@ describe('DownloadController.getDownloadPage view model', () => {
     expect(html).toContain('No decks found in your upload');
   });
 });
+
+describe('DownloadController.getFile storage error handling', () => {
+  function makeServiceThatThrows(error: unknown, overrides: Record<string, unknown> = {}) {
+    return makeService({
+      getFileBody: jest.fn().mockRejectedValue(error),
+      isMissingDownloadError: (e: unknown) =>
+        (e as { name?: string })?.name?.includes('NoSuchKey') === true,
+      isTransientStorageError: jest
+        .fn()
+        .mockImplementation((e: unknown) =>
+          (e as { transient?: boolean })?.transient === true
+        ),
+      deleteMissingFile: jest.fn(),
+      ...overrides,
+    });
+  }
+
+  it('redirects and drops the row when the object is gone (NoSuchKey)', async () => {
+    const error = Object.assign(new Error('not found'), { name: 'NoSuchKey' });
+    const service = makeServiceThatThrows(error);
+    const controller = new DownloadController(service as never);
+    const req = { params: { key: 'deck.apkg' } } as unknown as Request;
+    const res = mockResponse();
+
+    await controller.getFile(req, res, {} as never);
+
+    expect(service.deleteMissingFile).toHaveBeenCalledWith('test-owner', 'deck.apkg');
+    expect(res.redirect).toHaveBeenCalledWith('/downloads');
+  });
+
+  it('returns 503 with a retry message on a transient storage error', async () => {
+    const error = Object.assign(new Error('connection reset'), {
+      transient: true,
+    });
+    const service = makeServiceThatThrows(error);
+    const controller = new DownloadController(service as never);
+    const req = { params: { key: 'deck.apkg' } } as unknown as Request;
+    const res = mockResponse();
+
+    await controller.getFile(req, res, {} as never);
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.send).toHaveBeenCalledWith(
+      'Storage is busy right now. Try the download again in a moment.'
+    );
+  });
+
+  it('does not leak raw storage error text on a transient failure', async () => {
+    const error = Object.assign(
+      new Error('S3 internal: bucket=2anki-prod endpoint leaked'),
+      { transient: true }
+    );
+    const service = makeServiceThatThrows(error);
+    const controller = new DownloadController(service as never);
+    const req = { params: { key: 'deck.apkg' } } as unknown as Request;
+    const res = mockResponse();
+
+    await controller.getFile(req, res, {} as never);
+
+    const sent = (res.send as jest.Mock).mock.calls.map((c) => String(c[0])).join('');
+    expect(sent).not.toContain('2anki-prod');
+    expect(sent).not.toContain('endpoint leaked');
+  });
+
+  it('falls back to the 404 expire page on an unknown error', async () => {
+    const error = new Error('weird internal detail user must not see');
+    const service = makeServiceThatThrows(error);
+    const controller = new DownloadController(service as never);
+    const req = { params: { key: 'deck.apkg' } } as unknown as Request;
+    const res = mockResponse();
+
+    await controller.getFile(req, res, {} as never);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    const sent = (res.send as jest.Mock).mock.calls.map((c) => String(c[0])).join('');
+    expect(sent).not.toContain('weird internal detail');
+  });
+});
