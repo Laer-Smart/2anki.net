@@ -1,4 +1,5 @@
 import { SyntheticEvent, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import TopMessage from '../TopMessage/TopMessage';
 import { ErrorHandlerType } from '../errors/helpers/getErrorMessage';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
@@ -22,11 +23,21 @@ function submitLabel(loading: boolean): string {
   return 'Create account';
 }
 
+function isAccountExistsFailure(message: unknown): boolean {
+  return typeof message === 'string' && message.includes('already exists');
+}
+
+function loginHref(redirect?: string | null): string {
+  if (redirect == null) return '/login';
+  return `/login?redirect=${encodeURIComponent(redirect)}`;
+}
+
 function RegisterForm({ setErrorMessage, redirect }: Props) {
   const [email, setEmail] = useState(localStorage.getItem('email') || '');
   const [tos, setTos] = useState(false);
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [accountExists, setAccountExists] = useState(false);
   const signupOrigin = useMemo(
     () =>
       readSignupOrigin(
@@ -49,6 +60,7 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
   const handleSubmit = async (event: SyntheticEvent) => {
     event.preventDefault();
     setLoading(true);
+    setAccountExists(false);
 
     try {
       const res = await get2ankiApi().register('', email, password, signupOrigin);
@@ -63,6 +75,14 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
       } else {
         const body = await res.json().catch(() => null);
         const backendMessage = body?.message;
+        if (isAccountExistsFailure(backendMessage)) {
+          if (email.includes('@')) {
+            localStorage.setItem('email', email);
+          }
+          setAccountExists(true);
+          setLoading(false);
+          return;
+        }
         setErrorMessage(
           backendMessage ??
             'Something went wrong on our end. Try again, or email support@2anki.net if it keeps happening.'
@@ -96,6 +116,15 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
     <div className={styles.formPage}>
       <div className={styles.formCard}>
         <TopMessage />
+        {accountExists && (
+          <div className={styles.recovery} role="alert">
+            <p>This email already has an account — log in or reset your password.</p>
+            <div className={styles.recoveryActions}>
+              <Link to={loginHref(redirect)}>Log in</Link>
+              <Link to="/forgot">Reset password</Link>
+            </div>
+          </div>
+        )}
         <h1 className={styles.formTitle}>
           {getVisibleText('navigation.register.title')}
         </h1>
