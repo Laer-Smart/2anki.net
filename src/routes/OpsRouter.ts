@@ -63,6 +63,7 @@ const OpsRouter = () => {
     emojiFeedbackRepository: new EmojiFeedbackRepository(database),
     reengagementRepository: new ReEngagementFeedbackRepository(database),
     signupCountryRepository: new UsersRepository(database),
+    signupCountsRepository: new UsersRepository(database),
   });
 
   const conversionMetricsService = new ConversionMetricsService(

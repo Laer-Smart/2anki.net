@@ -250,6 +250,48 @@ describe('UsersRepository.deleteUser', () => {
   });
 });
 
+describe('UsersRepository.countTotalUsers', () => {
+  it('counts every row in the users table and coerces the string count to a number', async () => {
+    const firstSpy = jest.fn().mockResolvedValue({ count: '19389' });
+    const countSpy = jest.fn().mockReturnValue({ first: firstSpy });
+    const knex = jest.fn().mockReturnValue({ count: countSpy }) as unknown as jest.Mock;
+    const repo = new UsersRepository(knex as any);
+
+    const total = await repo.countTotalUsers();
+
+    expect(countSpy).toHaveBeenCalledWith('* as count');
+    expect(total).toBe(19389);
+  });
+
+  it('returns 0 when the count row is missing', async () => {
+    const firstSpy = jest.fn().mockResolvedValue(undefined);
+    const countSpy = jest.fn().mockReturnValue({ first: firstSpy });
+    const knex = jest.fn().mockReturnValue({ count: countSpy }) as unknown as jest.Mock;
+    const repo = new UsersRepository(knex as any);
+
+    const total = await repo.countTotalUsers();
+
+    expect(total).toBe(0);
+  });
+});
+
+describe('UsersRepository.countSignupsSince', () => {
+  it('binds the cutoff date against created_at and coerces the count', async () => {
+    const firstSpy = jest.fn().mockResolvedValue({ count: '42' });
+    const countSpy = jest.fn().mockReturnValue({ first: firstSpy });
+    const whereSpy = jest.fn().mockReturnValue({ count: countSpy });
+    const knex = jest.fn().mockReturnValue({ where: whereSpy }) as unknown as jest.Mock;
+    const repo = new UsersRepository(knex as any);
+
+    const since = new Date('2026-05-30T14:32:07.000Z');
+    const count = await repo.countSignupsSince(since);
+
+    expect(whereSpy).toHaveBeenCalledWith('created_at', '>=', since);
+    expect(countSpy).toHaveBeenCalledWith('* as count');
+    expect(count).toBe(42);
+  });
+});
+
 const RUN_INTEGRATION = process.env.DATABASE_URL != null;
 
 (RUN_INTEGRATION ? describe : describe.skip)(
