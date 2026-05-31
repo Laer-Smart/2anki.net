@@ -85,6 +85,32 @@ describe('ConversationsUseCase', () => {
       expect(assistant?.contentAfter).toBe('Hope that helps!');
     });
 
+    it('hydrates MCQ cards from a persisted JSON code block on reload', async () => {
+      const repo = new InMemoryConversationsRepository();
+      const useCase = new ConversationsUseCase(repo);
+      const id = await repo.create({ userId: USER_A, title: 'MCQ' });
+      const assistantContent =
+        'Here are your quiz cards:\n\n```json\n[{"front":"Capital of Albania?","options":["Tirana","Durrës","Vlorë","Shkodër"],"correct_index":0,"rationale":"Tirana is the capital."}]\n```';
+      repo.recordMessage({
+        userId: USER_A,
+        conversationId: id,
+        role: 'assistant',
+        content: assistantContent,
+      });
+
+      const result = await useCase.get({ userId: USER_A, conversationId: id });
+      const assistant = result?.messages.find((m) => m.role === 'assistant');
+      expect(assistant?.cards).toEqual([
+        {
+          front: 'Capital of Albania?',
+          back: '',
+          options: ['Tirana', 'Durrës', 'Vlorë', 'Shkodër'],
+          correctIndex: 0,
+          rationale: 'Tirana is the capital.',
+        },
+      ]);
+    });
+
     it('does not attach cards to user messages even when their content has JSON', async () => {
       const repo = new InMemoryConversationsRepository();
       const useCase = new ConversationsUseCase(repo);

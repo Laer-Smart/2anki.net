@@ -58,7 +58,7 @@ function hydrateMessages(
     if (m.role !== 'assistant') {
       return m;
     }
-    const { cards, contentBefore, contentAfter } = extractCards(m.content);
+    const { cards, contentBefore, contentAfter } = extractCards(m.content, true);
     return {
       ...m,
       ...(cards != null ? { cards } : {}),

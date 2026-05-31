@@ -301,6 +301,25 @@ export class McqExtractionFailedError extends Error {
   }
 }
 
+function mcqCardToWireShape(card: ChatCard): Record<string, unknown> {
+  return {
+    front: card.front,
+    options: card.options ?? [],
+    correct_index: card.correctIndex ?? 0,
+    ...(card.rationale != null && card.rationale.length > 0
+      ? { rationale: card.rationale }
+      : {}),
+    ...(card.tags != null && card.tags.length > 0 ? { tags: card.tags } : {}),
+  };
+}
+
+export function embedMcqCardsAsJsonBlock(prose: string, cards: ChatCard[]): string {
+  const jsonArray = JSON.stringify(cards.map(mcqCardToWireShape));
+  const block = `\`\`\`json\n${jsonArray}\n\`\`\``;
+  const trimmedProse = prose.trim();
+  return trimmedProse.length > 0 ? `${trimmedProse}\n\n${block}` : block;
+}
+
 export function extractMcqCardsFromToolUse(
   content: Anthropic.ContentBlock[]
 ): ChatCard[] | undefined {
@@ -498,9 +517,10 @@ export class ChatUseCase {
       if (mcqCards == null) {
         throw new McqExtractionFailedError();
       }
-      await this.persistAssistantTurn(user.owner, conversationId, assistantContent);
+      const persistedContent = embedMcqCardsAsJsonBlock(assistantContent, mcqCards);
+      await this.persistAssistantTurn(user.owner, conversationId, persistedContent);
       return {
-        content: assistantContent,
+        content: persistedContent,
         conversationId,
         cards: mcqCards,
       };
