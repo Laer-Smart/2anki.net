@@ -85,6 +85,7 @@ const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
 const MAX_FILE_COUNT = 5;
 
 const FREE_MONTHLY_LIMIT = 20;
+const TAG_SUCCESS_DISMISS_MS = 3000;
 
 function formatResetDate(iso: string): string {
   try {
@@ -584,6 +585,7 @@ export default function ChatPanel({
   const [regeneratingIdx, setRegeneratingIdx] = useState<number | null>(null);
   const [taggingIdx, setTaggingIdx] = useState<number | null>(null);
   const [networkError, setNetworkError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
   const [resetDate, setResetDate] = useState<string | null>(null);
   const [messagesUsedThisMonth, setMessagesUsedThisMonth] = useState(0);
@@ -865,6 +867,7 @@ export default function ChatPanel({
     const cardsToTag = target.cards;
     setTaggingIdx(messageIdx);
     setNetworkError(null);
+    setSuccessMessage(null);
     try {
       const response = await post('/api/chat/tag-cards', {
         cards: cardsToTag.map((c) => ({ front: c.front, back: c.back })),
@@ -891,6 +894,10 @@ export default function ChatPanel({
           };
         })
       );
+      const taggedCount = cardsToTag.length;
+      const cardWord = taggedCount === 1 ? 'card' : 'cards';
+      setSuccessMessage(`Tags added to ${taggedCount} ${cardWord}`);
+      window.setTimeout(() => setSuccessMessage(null), TAG_SUCCESS_DISMISS_MS);
     } catch {
       setNetworkError("Couldn't add tags. Try again.");
     } finally {
@@ -1220,6 +1227,11 @@ export default function ChatPanel({
               )}
               {networkError != null && (
                 <p className={styles.networkError}>{networkError}</p>
+              )}
+              {successMessage != null && (
+                <p className={styles.successMessage} role="status">
+                  {successMessage}
+                </p>
               )}
             </div>
           </>

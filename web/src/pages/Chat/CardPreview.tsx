@@ -347,7 +347,7 @@ export default function CardPreview({
                         <span
                           className={styles.cardPreviewTagSkeleton}
                           role="status"
-                          aria-label="Generating tags"
+                          aria-label="Adding tags"
                         />
                       ) : (
                         <TagChips tags={card.tags ?? []} />

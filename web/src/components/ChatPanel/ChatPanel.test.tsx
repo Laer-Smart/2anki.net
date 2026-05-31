@@ -263,6 +263,65 @@ describe('ChatPanel — CardPreview integration', () => {
   });
 });
 
+describe('ChatPanel — add tags feedback', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+    mockGet.mockResolvedValue({ used: 0, limit: 20 });
+  });
+
+  const taggableMessages = [
+    {
+      role: 'assistant' as const,
+      content: '',
+      cards: [
+        { front: 'Q1', back: 'A1' },
+        { front: 'Q2', back: 'A2' },
+      ],
+    },
+  ];
+
+  it('shows "Tags added to N cards" after a successful tag add', async () => {
+    mockPost.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ tags: [['anatomy'], ['anatomy']] }),
+    });
+    renderChatPanel({ initialMessages: taggableMessages });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add tags' }));
+
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/chat/tag-cards',
+        expect.objectContaining({
+          cards: [
+            { front: 'Q1', back: 'A1' },
+            { front: 'Q2', back: 'A2' },
+          ],
+        })
+      );
+    });
+    expect(
+      await screen.findByText('Tags added to 2 cards')
+    ).toBeInTheDocument();
+  });
+
+  it('does not show the success message when the tag add fails', async () => {
+    mockPost.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: () => Promise.resolve({}),
+    });
+    renderChatPanel({ initialMessages: taggableMessages });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add tags' }));
+
+    expect(
+      await screen.findByText("Couldn't add tags. Try again.")
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Tags added to/)).not.toBeInTheDocument();
+  });
+});
+
 describe('ChatPanel — aria-live', () => {
   it('message list container has aria-live="polite"', async () => {
     mockPost.mockResolvedValueOnce(
