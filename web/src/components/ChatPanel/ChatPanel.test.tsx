@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import ChatPanel from './ChatPanel';
+import ChatPanel, { consumeSseEvents } from './ChatPanel';
 
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
@@ -740,5 +740,48 @@ describe('ChatPanel — template selector', () => {
         })
       ).not.toBeInTheDocument();
     });
+  });
+});
+
+describe('consumeSseEvents', () => {
+  function streamFromStrings(parts: string[]): ReadableStream<Uint8Array> {
+    const encoder = new TextEncoder();
+    return new ReadableStream({
+      start(controller) {
+        for (const part of parts) controller.enqueue(encoder.encode(part));
+        controller.close();
+      },
+    });
+  }
+
+  it('dispatches each complete SSE event in arrival order', async () => {
+    const stream = streamFromStrings([
+      'event: token\ndata: "Hi"\n\n',
+      'event: done\ndata: {"content":"Hi","conversationId":1}\n\n',
+    ]);
+    const received: Array<[string, string]> = [];
+
+    await consumeSseEvents(stream, (eventType, data) => {
+      received.push([eventType, data]);
+    });
+
+    expect(received).toEqual([
+      ['token', '"Hi"'],
+      ['done', '{"content":"Hi","conversationId":1}'],
+    ]);
+  });
+
+  it('reassembles an event split across two stream chunks', async () => {
+    const stream = streamFromStrings([
+      'event: tok',
+      'en\ndata: "split"\n\n',
+    ]);
+    const received: Array<[string, string]> = [];
+
+    await consumeSseEvents(stream, (eventType, data) => {
+      received.push([eventType, data]);
+    });
+
+    expect(received).toEqual([['token', '"split"']]);
   });
 });
