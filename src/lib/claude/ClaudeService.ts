@@ -306,6 +306,19 @@ function chunkHtmlByDetails(html: string): string[] {
   return chunks;
 }
 
+function splitChunkInHalf(html: string): string[] {
+  if (html.length < 2) return [html];
+
+  const mid = Math.floor(html.length / 2);
+  const detailsBoundary = html.indexOf('</details>', mid);
+  const splitAt =
+    detailsBoundary >= 0 && detailsBoundary + '</details>'.length < html.length
+      ? detailsBoundary + '</details>'.length
+      : mid;
+
+  return [html.slice(0, splitAt), html.slice(splitAt)];
+}
+
 function normalizeCardFront(front: string): string {
   return front.toLowerCase().trim().replace(/\s+/g, ' ');
 }
@@ -392,6 +405,13 @@ export class ClaudeParseError extends Error {
   constructor() {
     super('claude_parse_failed');
     this.name = 'ClaudeParseError';
+  }
+}
+
+export class ClaudeTruncatedError extends Error {
+  constructor(readonly chunkContent: string) {
+    super('claude_response_truncated');
+    this.name = 'ClaudeTruncatedError';
   }
 }
 
@@ -568,6 +588,16 @@ async function generateDeckInfoFromChunk(
     });
   }
 
+  if (response.stop_reason === 'max_tokens') {
+    console.warn('[Claude] Response truncated at max_tokens', {
+      chunkIndex,
+      totalChunks,
+      maxTokens,
+      chunkBytes: strippedContent.length,
+    });
+    throw new ClaudeTruncatedError(strippedContent);
+  }
+
   const raw = (response.content as Array<{ type: string; text?: string }>)
     .filter((block) => block.type === 'text')
     .map((block) => block.text ?? '')
@@ -737,12 +767,26 @@ function stampChunkIndex(decks: DeckInfo[], chunkIndex: number): DeckInfo[] {
   return decks;
 }
 
-async function runChunks(thunks: Array<() => Promise<DeckInfo[]>>): Promise<DeckInfo[]> {
-  if (process.env.CLAUDE_PARTIAL_SUCCESS_ENABLED !== 'true') {
-    const results = await Promise.all(thunks.map((fn) => fn()));
-    return results.flat();
+async function runChunkWithTruncationRetry(
+  content: string,
+  call: (content: string) => Promise<DeckInfo[]>
+): Promise<DeckInfo[]> {
+  try {
+    return await call(content);
+  } catch (err) {
+    if (!(err instanceof ClaudeTruncatedError)) throw err;
+    const halves = splitChunkInHalf(content);
+    if (halves.length < 2) throw err;
+    console.info('[Claude] Retrying truncated chunk as halves', {
+      originalBytes: content.length,
+      halfBytes: halves.map((h) => h.length),
+    });
+    const settled = await Promise.all(halves.map((half) => call(half)));
+    return settled.flat();
   }
+}
 
+async function runChunks(thunks: Array<() => Promise<DeckInfo[]>>): Promise<DeckInfo[]> {
   const settled = await Promise.allSettled(thunks.map((fn) => fn()));
   const succeeded: DeckInfo[][] = [];
   const failures: Array<{ chunkIndex: number; reason: string }> = [];
@@ -807,17 +851,21 @@ export async function generateDeckInfo(
       console.log('[Claude] heading-driven chunks', { headingCount: headings.length, chunkCount: chunks.length });
       const chunkResults = await runChunks(
         chunks.map((chunk, i) => () =>
-          generateDeckInfoFromChunk(
+          runChunkWithTruncationRetry(
             `<h1>${chunk.anchor}</h1>\n${chunk.bodyChunk}`,
-            pageStyle,
-            availableMediaFiles,
-            userInstructions,
-            i,
-            chunks.length,
-            onProgress,
-            cardStyle,
-            cardSize,
-            fieldMapping
+            (content) =>
+              generateDeckInfoFromChunk(
+                content,
+                pageStyle,
+                availableMediaFiles,
+                userInstructions,
+                i,
+                chunks.length,
+                onProgress,
+                cardStyle,
+                cardSize,
+                fieldMapping
+              )
           )
         )
       );
@@ -875,7 +923,9 @@ export async function generateDeckInfo(
 
   const chunkResults = await runChunks(
     chunks.map((chunk, i) => () =>
-      generateDeckInfoFromChunk(chunk, pageStyle, availableMediaFiles, userInstructions, i, chunks.length, onProgress, cardStyle, cardSize, fieldMapping)
+      runChunkWithTruncationRetry(chunk, (content) =>
+        generateDeckInfoFromChunk(content, pageStyle, availableMediaFiles, userInstructions, i, chunks.length, onProgress, cardStyle, cardSize, fieldMapping)
+      )
     )
   );
 
@@ -911,18 +961,20 @@ async function runFloorV1(
 
   const firstRoundResults = await runWithSemaphore(
     chunks.map((chunk, i) => () =>
-      generateDeckInfoFromChunk(
-        chunk,
-        pageStyle,
-        availableMediaFiles,
-        userInstructions,
-        i,
-        chunks.length,
-        onProgress,
-        cardStyle,
-        cardSize,
-        fieldMapping,
-        collect
+      runChunkWithTruncationRetry(chunk, (content) =>
+        generateDeckInfoFromChunk(
+          content,
+          pageStyle,
+          availableMediaFiles,
+          userInstructions,
+          i,
+          chunks.length,
+          onProgress,
+          cardStyle,
+          cardSize,
+          fieldMapping,
+          collect
+        )
       ).then((decks) => stampChunkIndex(decks, i))
     ),
     FLOOR_V1_MAX_PARALLEL
@@ -956,18 +1008,20 @@ async function runFloorV1(
 
     const topUpResults = await runWithSemaphore(
       targetChunks.map((idx) => () =>
-        generateDeckInfoFromChunk(
-          chunks[idx],
-          pageStyle,
-          availableMediaFiles,
-          combinedInstructions,
-          idx,
-          chunks.length,
-          onProgress,
-          cardStyle,
-          cardSize,
-          fieldMapping,
-          collect
+        runChunkWithTruncationRetry(chunks[idx], (content) =>
+          generateDeckInfoFromChunk(
+            content,
+            pageStyle,
+            availableMediaFiles,
+            combinedInstructions,
+            idx,
+            chunks.length,
+            onProgress,
+            cardStyle,
+            cardSize,
+            fieldMapping,
+            collect
+          )
         ).then((decks) => stampChunkIndex(decks, idx))
       ),
       FLOOR_V1_MAX_PARALLEL
