@@ -201,6 +201,26 @@ describe('CardOptionsForm overlapping cloze picker', () => {
       screen.getByText('Turn on Cloze deletion cards first.')
     ).toBeInTheDocument();
   });
+
+  it('hides the preview while the style is Off and shows it once a style is picked', async () => {
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const showAll = await screen.findByRole('button', {
+      name: 'Show the whole list',
+    });
+    expect(
+      screen.queryByLabelText('Preview: each card hides one line of the list')
+    ).toBeNull();
+
+    fireEvent.click(showAll);
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(
+          'Preview: each card hides one line of the list'
+        )
+      ).toBeInTheDocument();
+    });
+  });
 });
 
 describe('CardOptionsForm ai-comprehensive toggle (paid-only)', () => {

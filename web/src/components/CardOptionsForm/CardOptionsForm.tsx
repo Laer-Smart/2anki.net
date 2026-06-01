@@ -31,6 +31,7 @@ import { NoteTypePicker } from './NoteTypePicker';
 import { useAvailableNoteTypes } from './useAvailableNoteTypes';
 import { FieldMappingPanel } from './FieldMappingPanel';
 import { getDefaultFieldMapping } from './fieldMappingDefaults';
+import { OverlappingClozePreview } from './OverlappingClozePreview';
 import type { FieldMapping } from '../../lib/cardFields/types';
 
 interface Props {
@@ -883,10 +884,17 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                     Turn a list into a set of cards that hide one item at a time. Best for ordered things like steps or poem lines.
                   </p>
                   {(checkboxValues['cloze'] ?? true) ? (
-                    <ul className={fieldStyles.bulletList}>
-                      <li><strong>Show the whole list</strong> — each card hides one item; the rest stays visible as context.</li>
-                      <li><strong>Show nearby lines only</strong> — each card hides one item; only the lines just before and after stay visible.</li>
-                    </ul>
+                    <>
+                      <ul className={fieldStyles.bulletList}>
+                        <li><strong>Show the whole list</strong> — each card hides one item; the rest stays visible as context.</li>
+                        <li><strong>Show nearby lines only</strong> — each card hides one item; only the lines just before and after stay visible.</li>
+                      </ul>
+                      {overlappingCloze !== 'off' && (
+                        <OverlappingClozePreview
+                          style={overlappingCloze as 'show-all' | 'windowed'}
+                        />
+                      )}
+                    </>
                   ) : (
                     <p className={fieldStyles.sectionHint}>Turn on Cloze deletion cards first.</p>
                   )}
