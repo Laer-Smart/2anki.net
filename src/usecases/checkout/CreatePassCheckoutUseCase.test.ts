@@ -143,6 +143,31 @@ describe('CreatePassCheckoutUseCase', () => {
     });
   });
 
+  describe('surface attribution', () => {
+    it('stamps surface into metadata when provided', async () => {
+      mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/s' });
+
+      const uc = new CreatePassCheckoutUseCase(makeStripe(), 'price_24h', '24h');
+      await uc.execute({ userEmail: 'user@example.com', userId: 7, surface: 'limit-wall' });
+
+      expect(mockStripeCreateSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          metadata: { user_id: '7', pass_kind: '24h', surface: 'limit-wall' },
+        })
+      );
+    });
+
+    it('omits surface when none is supplied', async () => {
+      mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/s' });
+
+      const uc = new CreatePassCheckoutUseCase(makeStripe(), 'price_24h', '24h');
+      await uc.execute({ userEmail: 'user@example.com', userId: 7 });
+
+      const call = mockStripeCreateSession.mock.calls[0][0];
+      expect(call.metadata.surface).toBeUndefined();
+    });
+  });
+
   describe('anonymous mode (no userId / no userEmail)', () => {
     it('omits user_id from metadata and sets pass_anonymous=1', async () => {
       mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/anon' });

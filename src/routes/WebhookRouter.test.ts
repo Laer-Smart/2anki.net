@@ -411,6 +411,47 @@ describe('WebhookRouter — checkout_completed funnel join', () => {
       expect.objectContaining({ userId: 9, anonymousId: null, props: expect.objectContaining({ variant: 'minimal' }) })
     );
   });
+
+  it('emits checkout_completed with surface when session metadata carries it', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_surface',
+          mode: 'subscription',
+          metadata: { user_id: '11', surface: 'pricing_page' },
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockTrack).toHaveBeenCalledWith(
+      'checkout_completed',
+      expect.objectContaining({
+        userId: 11,
+        props: expect.objectContaining({ surface: 'pricing_page' }),
+      })
+    );
+  });
+
+  it('omits surface from checkout_completed props when metadata lacks it', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_no_surface',
+          mode: 'subscription',
+          metadata: { user_id: '12' },
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    const call = mockTrack.mock.calls.find((c) => c[0] === 'checkout_completed');
+    expect(call?.[1].props.surface).toBeUndefined();
+  });
 });
 
 describe('WebhookRouter — lifetime product-ID allowlist', () => {

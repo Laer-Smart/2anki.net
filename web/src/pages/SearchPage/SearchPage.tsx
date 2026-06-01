@@ -36,6 +36,7 @@ export function SearchPage({ setError }: Readonly<SearchPageProps>) {
     try {
       const result = await get2ankiApi().startPassCheckout(
         '24h',
+        undefined,
         'notion-limit-wall'
       );
       if ('url' in result) {

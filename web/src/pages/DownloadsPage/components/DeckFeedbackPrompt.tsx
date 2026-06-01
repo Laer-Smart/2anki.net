@@ -106,7 +106,7 @@ export function DeckFeedbackPrompt() {
       plan: 'day_pass',
     });
     setDayPassPending(true);
-    const result = await get2ankiApi().startPassCheckout('24h');
+    const result = await get2ankiApi().startPassCheckout('24h', undefined, UPSELL_SURFACE);
     if ('url' in result) {
       globalThis.location.href = result.url;
       return;

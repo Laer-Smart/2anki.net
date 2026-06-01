@@ -84,7 +84,7 @@ export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProp
       plan: kind === '24h' ? 'day_pass' : 'week_pass',
     });
     setPendingKind(kind);
-    const result = await get2ankiApi().startPassCheckout(kind);
+    const result = await get2ankiApi().startPassCheckout(kind, undefined, surface);
     if ('url' in result) {
       globalThis.location.href = result.url;
       return;

@@ -26,6 +26,7 @@ export class AutoSyncCheckoutUseCase {
     stripeCustomerId?: string | null;
     variant?: string;
     anonId?: string;
+    surface?: string;
   }): Promise<AutoSyncCheckoutResult> {
     console.info('auto_sync.checkout.started', { user_id: input.userId });
 
@@ -62,6 +63,9 @@ export class AutoSyncCheckoutUseCase {
           : {}),
         ...(input.anonId != null && input.anonId !== ''
           ? { anon_id: input.anonId }
+          : {}),
+        ...(input.surface != null && input.surface !== ''
+          ? { surface: input.surface }
           : {}),
       },
     };

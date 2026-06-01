@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { UnlimitedCheckoutUseCase, UnlimitedInterval } from '../usecases/checkout/UnlimitedCheckoutUseCase';
 import { parsePricingVariant } from '../usecases/checkout/pricingVariant';
+import { parseCheckoutSurface } from '../usecases/checkout/checkoutSurface';
 
 const VALID_INTERVALS: ReadonlySet<string> = new Set(['month', 'year']);
 
@@ -24,6 +25,7 @@ class UnlimitedCheckoutController {
       interval: interval as UnlimitedInterval,
       variant: parsePricingVariant(req.body?.variant),
       anonId,
+      surface: parseCheckoutSurface(req.body?.surface),
     });
     res.json(result);
   }

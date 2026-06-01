@@ -230,6 +230,7 @@ const WebhooksRouter = () => {
           const passKind = sessionMeta.pass_kind as PassKind | undefined;
 
           const pricingVariant = sessionMeta.pricing_variant;
+          const surface = sessionMeta.surface;
           const anonId = sessionMeta.anon_id;
           const userIdMeta = Number.parseInt(sessionMeta.user_id ?? '', 10);
           track('checkout_completed', {
@@ -241,6 +242,9 @@ const WebhooksRouter = () => {
                 (session.mode === 'subscription' ? 'subscription' : 'payment'),
               ...(pricingVariant != null && pricingVariant !== ''
                 ? { variant: pricingVariant }
+                : {}),
+              ...(surface != null && surface !== ''
+                ? { surface }
                 : {}),
             },
           });
