@@ -49,11 +49,19 @@ export function convertPPTToPDF(
             stderr
           );
           if (code !== 0) {
+            const trimmedStderr = stderr.trim();
+            const detail = trimmedStderr || stdout.trim() || '(no output)';
             await fs.writeFile(
               path.join(workspace.location, 'error.log'),
               `Conversion failed with code ${code}`
             );
-            reject(new Error(`Conversion failed with code ${code}`));
+            console.error(
+              `PPT to PDF conversion failed with exit code ${code}:`,
+              detail
+            );
+            reject(
+              new Error(`Conversion failed with code ${code}: ${detail}`)
+            );
           } else {
             resolve(await fs.readFile(pdfFile));
           }
