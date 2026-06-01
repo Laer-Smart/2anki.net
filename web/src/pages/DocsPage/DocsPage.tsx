@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { DocsSidebar } from './DocsSidebar';
 import { DocContent } from './DocContent';
 import { DocsHome } from './DocsHome';
-import { DocsDrawer } from './DocsDrawer';
+import { DocsSearchTrigger } from './DocsSearchTrigger';
 import { DocsSearch } from './DocsSearch';
 import { WipBanner } from './WipBanner';
 import styles from './DocsPage.module.css';
@@ -25,14 +25,9 @@ function isTypingTarget(target: EventTarget | null): boolean {
 export default function DocsPage() {
   const params = useParams();
   const slug = stripTrailingSlashes(params['*'] ?? '');
-  const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  const closeMenu = () => setMenuOpen(false);
-  const openSearch = useCallback(() => {
-    setMenuOpen(false);
-    setSearchOpen(true);
-  }, []);
+  const openSearch = useCallback(() => setSearchOpen(true), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
 
   useEffect(() => {
@@ -53,30 +48,13 @@ export default function DocsPage() {
 
   return (
     <div className={styles.layout}>
-      <button
-        type="button"
-        className={styles.menuButton}
-        onClick={() => setMenuOpen(true)}
-        aria-expanded={menuOpen}
-        aria-controls="docs-sidebar"
-      >
-        Menu
-      </button>
+      <div className={styles.mobileSearch}>
+        <DocsSearchTrigger onOpen={openSearch} />
+      </div>
 
       <aside id="docs-sidebar" className={styles.sidebarWrapper}>
-        <DocsSidebar
-          onNavigate={closeMenu}
-          onSearch={openSearch}
-          activeSlug={slug}
-        />
+        <DocsSidebar onSearch={openSearch} activeSlug={slug} />
       </aside>
-
-      <DocsDrawer
-        isOpen={menuOpen}
-        onClose={closeMenu}
-        onSearch={openSearch}
-        activeSlug={slug}
-      />
 
       <DocsSearch isOpen={searchOpen} onClose={closeSearch} />
 

@@ -18,6 +18,11 @@
   padding-right: 0.5rem;
 }
 
+.mobileSearch {
+  display: block;
+  margin-bottom: 1rem;
+}
+
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -601,6 +606,16 @@
   .homeGrid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .layout {
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 2rem;
+  }
+  .sidebarWrapper {
+    display: block;
+  }
+  .mobileSearch {
+    display: none;
+  }
 }
 
 .homeCard {
@@ -664,116 +679,8 @@
   color: var(--color-text-secondary);
 }
 
-.menuButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
-  border: 1px solid var(--color-border-light);
-  background: var(--color-bg-primary);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-secondary);
-  margin-bottom: 1rem;
-  cursor: pointer;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
-  box-shadow: var(--shadow-xs);
-}
-
-.menuButton:hover {
-  border-color: var(--color-border);
-  color: var(--color-text-primary);
-}
-
-.drawerOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-}
-
-.drawerBackdrop {
-  position: absolute;
-  inset: 0;
-  background: var(--color-backdrop);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-
-.drawer {
-  position: relative;
-  width: min(300px, 85vw);
-  height: 100vh;
-  background: var(--color-bg-primary);
-  border-right: 1px solid var(--color-border-light);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  animation: drawerSlideIn 0.2s ease-out;
-}
-
-@keyframes drawerSlideIn {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-.drawerHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.875rem 1.25rem;
-  border-bottom: 1px solid var(--color-border-light);
-  flex-shrink: 0;
-}
-
-.drawerTitle {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-text-primary);
-  letter-spacing: var(--tracking-tight);
-}
-
-.drawerClose {
-  background: none;
-  border: none;
-  font-size: 1.125rem;
-  line-height: 1;
-  cursor: pointer;
-  color: var(--color-text-tertiary);
-  padding: 0.25rem 0.375rem;
-  border-radius: var(--radius-sm);
-  transition: color var(--transition-fast), background var(--transition-fast);
-}
-
-.drawerClose:hover {
-  color: var(--color-text-primary);
-  background: var(--color-bg-tertiary);
-}
-
 .sidebarDrawer {
   padding: 1rem 1.25rem 2rem;
-}
-
-:global([data-shell]) .layout {
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-:global([data-shell]) .menuButton {
-  display: inline-flex;
-  justify-self: start;
-}
-
-:global([data-shell]) .sidebarWrapper {
-  display: none;
 }
 
 .searchTrigger {
@@ -826,6 +733,35 @@
   padding: 10vh 1rem 1rem;
 }
 
+.searchBackdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--color-backdrop);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.searchClose {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.searchClose:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
 .searchModal {
   position: relative;
   width: min(560px, 92vw);
@@ -852,8 +788,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .searchModal,
-  .drawer {
+  .searchModal {
     animation: none;
   }
 }
@@ -891,15 +826,6 @@
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
-}
-
-.searchEscHint {
-  font-family: inherit;
-  font-size: var(--text-xs);
-  color: var(--color-text-tertiary);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-sm);
-  padding: 0.05rem 0.35rem;
 }
 
 .searchHint {
@@ -1020,8 +946,7 @@
     border: none;
     border-radius: 0;
   }
-  .searchTriggerKbd,
-  .searchEscHint {
+  .searchTriggerKbd {
     display: none;
   }
 }
@@ -1031,12 +956,6 @@
     grid-template-columns: 240px minmax(0, 1fr);
     gap: 3rem;
     padding: 2rem 1.5rem 4rem;
-  }
-  .menuButton {
-    display: none;
-  }
-  .sidebarWrapper {
-    display: block;
   }
   .pager {
     grid-template-columns: 1fr 1fr;
