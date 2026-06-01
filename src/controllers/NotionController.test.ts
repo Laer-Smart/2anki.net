@@ -400,6 +400,40 @@ describe('NotionController', () => {
     });
   });
 
+  describe('search — empty query', () => {
+    it('treats a null query as empty and searches without throwing', async () => {
+      const searchResult = { results: [] };
+      service = {
+        getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
+        search: jest.fn().mockResolvedValue(searchResult),
+      } as any;
+      controller = new NotionController(service);
+      req = { body: { query: null }, params: {}, query: {} };
+
+      await controller.search(req as express.Request, res as express.Response);
+
+      expect(service.search).toHaveBeenCalledWith('', 'owner1');
+      expect(res.json).toHaveBeenCalledWith(searchResult);
+      expect(res.status).not.toHaveBeenCalledWith(500);
+    });
+
+    it('treats an absent query as empty and searches without throwing', async () => {
+      const searchResult = { results: [] };
+      service = {
+        getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
+        search: jest.fn().mockResolvedValue(searchResult),
+      } as any;
+      controller = new NotionController(service);
+      req = { body: {}, params: {}, query: {} };
+
+      await controller.search(req as express.Request, res as express.Response);
+
+      expect(service.search).toHaveBeenCalledWith('', 'owner1');
+      expect(res.json).toHaveBeenCalledWith(searchResult);
+      expect(res.status).not.toHaveBeenCalledWith(500);
+    });
+  });
+
   describe('searchTopLevelPages — Unauthorized', () => {
     it('returns structured JSON with notion_unauthorized code — no HTML in message', async () => {
       const unauthorizedError = new APIResponseError({
