@@ -1,17 +1,55 @@
 export const MAX_PARAGRAPH_SEGMENTS = 25;
 
-const SURROUNDING_QUOTES = /^[«»"'“”„‘’\s]+|[«»"'“”„‘’\s]+$/g;
+const QUOTE_CHARS = new Set(['«', '»', '"', "'", '“', '”', '„', '‘', '’']);
+
+function isStrippable(ch: string): boolean {
+  return QUOTE_CHARS.has(ch) || /\s/.test(ch);
+}
+
+function isSentenceEnder(ch: string): boolean {
+  return ch === '.' || ch === '!' || ch === '?';
+}
 
 function stripSurroundingQuotes(text: string): string {
-  return text.replace(SURROUNDING_QUOTES, '');
+  let start = 0;
+  let end = text.length;
+  while (start < end && isStrippable(text[start])) start++;
+  while (end > start && isStrippable(text[end - 1])) end--;
+  return text.slice(start, end);
 }
 
+function stripTrailingEnders(text: string): string {
+  let end = text.length;
+  while (end > 0 && isSentenceEnder(text[end - 1])) end--;
+  return text.slice(0, end);
+}
+
+// Collapse a trailing run of sentence enders down to its first character,
+// e.g. "Wait..." -> "Wait." A single trailing ender is left unchanged.
 function collapseTrailingEnders(segment: string): string {
-  return segment.replace(/([.!?])[.!?]+$/, '$1');
+  let end = segment.length;
+  while (end > 0 && isSentenceEnder(segment[end - 1])) end--;
+  if (end === segment.length) return segment;
+  return segment.slice(0, end + 1);
 }
 
+// Split into "sentence + its trailing punctuation" runs. Mirrors the previous
+// /[^.!?]+[.!?]+/g matcher: leading enders are skipped, and a trailing run of
+// non-enders with no terminating punctuation is dropped.
 function splitOnSentenceEnders(text: string): string[] {
-  return (text.match(/[^.!?]+[.!?]+/g) ?? [])
+  const out: string[] = [];
+  const n = text.length;
+  let i = 0;
+  while (i < n) {
+    while (i < n && isSentenceEnder(text[i])) i++;
+    if (i >= n) break;
+    const start = i;
+    while (i < n && !isSentenceEnder(text[i])) i++;
+    if (i >= n) break;
+    while (i < n && isSentenceEnder(text[i])) i++;
+    out.push(text.slice(start, i));
+  }
+  return out
     .map((segment) => collapseTrailingEnders(segment.trim()))
     .filter((segment) => segment.length > 0);
 }
@@ -19,7 +57,7 @@ function splitOnSentenceEnders(text: string): string[] {
 function splitOnClauseSeparators(text: string): string[] {
   return text
     .split(/[,;]+/)
-    .map((segment) => segment.trim().replace(/[.!?]+$/, '').trim())
+    .map((segment) => stripTrailingEnders(segment.trim()).trim())
     .filter((segment) => segment.length > 0);
 }
 
