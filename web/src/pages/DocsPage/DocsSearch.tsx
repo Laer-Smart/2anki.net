@@ -127,7 +127,7 @@ export function DocsSearch({ isOpen, onClose }: Readonly<DocsSearchProps>) {
     >
       <button
         type="button"
-        className={styles.drawerBackdrop}
+        className={styles.searchBackdrop}
         onClick={onClose}
         aria-label="Close search"
       />
@@ -153,7 +153,14 @@ export function DocsSearch({ isOpen, onClose }: Readonly<DocsSearchProps>) {
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={onKeyDown}
           />
-          <kbd className={styles.searchEscHint}>Esc</kbd>
+          <button
+            type="button"
+            className={styles.searchClose}
+            onClick={onClose}
+            aria-label="Close search"
+          >
+            ×
+          </button>
         </div>
 
         {!trimmed && (

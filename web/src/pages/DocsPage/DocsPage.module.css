@@ -733,6 +733,35 @@
   padding: 10vh 1rem 1rem;
 }
 
+.searchBackdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--color-backdrop);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.searchClose {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-text-tertiary);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.searchClose:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
 .searchModal {
   position: relative;
   width: min(560px, 92vw);
@@ -797,15 +826,6 @@
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
-}
-
-.searchEscHint {
-  font-family: inherit;
-  font-size: var(--text-xs);
-  color: var(--color-text-tertiary);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-sm);
-  padding: 0.05rem 0.35rem;
 }
 
 .searchHint {
@@ -926,8 +946,7 @@
     border: none;
     border-radius: 0;
   }
-  .searchTriggerKbd,
-  .searchEscHint {
+  .searchTriggerKbd {
     display: none;
   }
 }
