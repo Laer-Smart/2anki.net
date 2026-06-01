@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-01-notion-connect-signed-out",
+  "date": "2026-06-01",
+  "type": "fix",
+  "title": "Connecting Notion while signed out now asks you to sign in instead of failing"
+}
