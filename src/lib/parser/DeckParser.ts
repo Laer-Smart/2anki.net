@@ -10,6 +10,10 @@ import CardOption from './Settings';
 import Workspace from './WorkSpace';
 import CustomExporter from './exporters/CustomExporter';
 import handleClozeDeletions from './helpers/handleClozeDeletions';
+import handleOverlappingCloze, {
+  OverlappingClozeStyle,
+} from './helpers/handleOverlappingCloze';
+import extractListItems from './helpers/extractListItems';
 import {
   extractHeadingFromSummary,
   extractHeadingMarkup,
@@ -640,6 +644,30 @@ export class DeckParser {
     }
   }
 
+  private buildOverlappingClozeNotes(card: Note): Note[] {
+    const style = this.settings.overlappingCloze;
+    const overlappingEnabled =
+      this.settings.isCloze && (style === 'show-all' || style === 'windowed');
+    if (!overlappingEnabled || card.mcq || card.back.includes('{{c')) {
+      return [];
+    }
+
+    const items = extractListItems(card.back);
+    if (items.length < 2) {
+      return [];
+    }
+
+    const bodies = handleOverlappingCloze(items, style as OverlappingClozeStyle);
+    return bodies.map((body) => {
+      const note = new Note(body, '');
+      note.cloze = true;
+      note.tags = card.tags;
+      note.notionId = card.notionId;
+      note.notionLink = card.notionLink;
+      return note;
+    });
+  }
+
   private processPayload(ws: Workspace) {
     for (const d of this.payload) {
       const deck = d;
@@ -647,12 +675,23 @@ export class DeckParser {
 
       let counter = 0;
       const addThese: Note[] = [];
+      const replaced = new Set<Note>();
       for (const c of deck.cards) {
         let card = c;
         this.transformCard(card, counter++, ws);
 
         if (this.settings.useTags) {
           card = this.locateTags(card, deck.globalTags);
+        }
+
+        const overlappingNotes = this.buildOverlappingClozeNotes(card);
+        if (overlappingNotes.length > 0) {
+          for (const note of overlappingNotes) {
+            note.number = counter++;
+          }
+          addThese.push(...overlappingNotes);
+          replaced.add(c);
+          continue;
         }
 
         if (this.settings.basicReversed) {
@@ -669,7 +708,8 @@ export class DeckParser {
           card.name = tmp;
         }
       }
-      deck.cards = Deck.CleanCards(deck.cards.concat(addThese));
+      const kept = deck.cards.filter((card) => !replaced.has(card));
+      deck.cards = Deck.CleanCards(kept.concat(addThese));
     }
 
     this.payload[0].settings = this.settings;

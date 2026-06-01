@@ -83,6 +83,112 @@ test('Cloze Deletions', async () => {
   );
 });
 
+const pledgeHTML = `<!DOCTYPE html><html><head><title>Pledge</title></head>
+<body>
+<article id="pledge-article" class="page sans">
+<header><h1 class="page-title">Pledge</h1></header>
+<div class="page-body">
+<ul class="toggle">
+  <li>
+    <details open>
+      <summary>Pledge of Allegiance</summary>
+      <ul class="bulleted-list">
+        <li>I pledge allegiance</li>
+        <li>to the flag</li>
+        <li>of the United States of America</li>
+      </ul>
+    </details>
+  </li>
+</ul>
+</div>
+</article>
+</body></html>`;
+
+async function buildPledgeDeck(overlapping: string) {
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'pledge.html',
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'overlapping-cloze': overlapping,
+    }),
+    files: [{ name: 'pledge.html', contents: pledgeHTML }],
+    noLimits: true,
+    workspace,
+  });
+  parser.writeDeckInfo(workspace);
+  return parser.payload[0];
+}
+
+const countC1 = (text: string) => (text.match(/\{\{c1::/g) || []).length;
+
+test('overlapping cloze show-all fans a toggle list into one card per item', async () => {
+  const deck = await buildPledgeDeck('show-all');
+  expect(deck.cards.length).toBe(3);
+  for (const card of deck.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+  expect(deck.cards[0].name).toContain('{{c1::I pledge allegiance}}');
+  expect(deck.cards[0].name).toContain('to the flag');
+  expect(deck.cards[0].name).toContain('of the United States of America');
+});
+
+test('overlapping cloze windowed keeps only the neighbouring lines', async () => {
+  const deck = await buildPledgeDeck('windowed');
+  expect(deck.cards.length).toBe(3);
+  const middle = deck.cards[1].name;
+  expect(countC1(middle)).toBe(1);
+  expect(middle).toContain('I pledge allegiance');
+  expect(middle).toContain('{{c1::to the flag}}');
+  expect(middle).toContain('of the United States of America');
+  expect(deck.cards[0].name).not.toContain('of the United States of America');
+});
+
+test('overlapping cloze off leaves the single toggle card untouched', async () => {
+  const deck = await buildPledgeDeck('off');
+  expect(deck.cards.length).toBe(1);
+  expect(deck.cards[0].name).toContain('Pledge of Allegiance');
+  expect(deck.cards[0].name).not.toContain('{{c1::');
+});
+
+test('overlapping cloze falls back to one card when the list has under 2 items', async () => {
+  const workspace = new Workspace(true, 'fs');
+  const oneItemHTML = `<!DOCTYPE html><html><head><title>Solo</title></head>
+<body>
+<article id="solo-article" class="page sans">
+<header><h1 class="page-title">Solo</h1></header>
+<div class="page-body">
+<ul class="toggle">
+  <li>
+    <details open>
+      <summary>Single</summary>
+      <ul class="bulleted-list"><li>only line</li></ul>
+    </details>
+  </li>
+</ul>
+</div>
+</article>
+</body></html>`;
+  const parser = new DeckParser({
+    name: 'solo.html',
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'overlapping-cloze': 'show-all',
+    }),
+    files: [{ name: 'solo.html', contents: oneItemHTML }],
+    noLimits: true,
+    workspace,
+  });
+  parser.writeDeckInfo(workspace);
+  const deck = parser.payload[0];
+  expect(deck.cards.length).toBe(1);
+  expect(deck.cards[0].name).toContain('Single');
+  expect(deck.cards[0].name).not.toContain('{{c1::');
+});
+
 test('Colours', async () => {
   const deck = await getDeck(
     'Colours 0519bf7e86d84ee4ba710c1b7ff7438e.html',

@@ -27,6 +27,8 @@ class CardOption {
 
   readonly toggleMode: string;
 
+  readonly overlappingCloze: string;
+
   readonly isCloze: boolean;
 
   readonly useTags: boolean;
@@ -120,6 +122,7 @@ class CardOption {
     this.fontSize = input['font-size'];
     this.isTextOnlyBack = input.paragraph === 'true';
     this.toggleMode = input['toggle-mode'] || 'close_toggle';
+    this.overlappingCloze = validateOverlappingCloze(input['overlapping-cloze']);
     this.isCloze = input.cloze !== 'false';
     this.useTags = input.tags !== 'false';
     this.basicReversed = input['basic-reversed'] === 'true';
@@ -208,8 +211,15 @@ class CardOption {
       'mcq-tts-correct-answer': '',
       'mcq-tts-extra': '',
       'tts-auto-detect': 'false',
+      'overlapping-cloze': 'off',
     };
   }
+}
+
+const OVERLAPPING_CLOZE_VALUES = ['off', 'show-all', 'windowed'];
+
+function validateOverlappingCloze(raw: string | undefined): string {
+  return raw && OVERLAPPING_CLOZE_VALUES.includes(raw) ? raw : 'off';
 }
 
 function parseFieldMapping(raw: string | undefined): FieldMapping | undefined {
