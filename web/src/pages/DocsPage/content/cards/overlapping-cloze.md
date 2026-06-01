@@ -26,6 +26,16 @@ Say you have a Notion toggle titled **Pledge of Allegiance** whose contents are 
 
 A list of 4 items becomes 4 cards. The styles differ in how much of the list each card shows around the hidden line.
 
+A three-line list, cycling through its cards:
+
+**Show the whole list**
+
+<overlapping-cloze-demo data-style="show-all"></overlapping-cloze-demo>
+
+**Show nearby lines only**
+
+<overlapping-cloze-demo data-style="windowed"></overlapping-cloze-demo>
+
 **Show the whole list** keeps every line visible, hiding one at a time. The card for the third line reads:
 
 > I pledge allegiance

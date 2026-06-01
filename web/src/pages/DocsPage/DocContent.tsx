@@ -13,6 +13,7 @@ import { loadDoc, resolveSlug } from './loader';
 import { findAdjacent, redirects } from './sidebar';
 import { CalloutVariant } from './Callout';
 import { CodeBlock } from './CodeBlock';
+import { OverlappingClozePreview } from '../../components/CardOptionsForm/OverlappingClozePreview';
 import styles from './DocsPage.module.css';
 
 interface DocContentProps {
@@ -115,10 +116,16 @@ function transformCallouts(body: string): string {
   return out.join('\n');
 }
 
-const markdownComponents: Components = {
+function OverlappingClozeDemo(props: Record<string, unknown>) {
+  const style = props['data-style'] === 'windowed' ? 'windowed' : 'show-all';
+  return <OverlappingClozePreview style={style} />;
+}
+
+const markdownComponents = {
   a: DocsAnchor,
   pre: CodeBlock as Components['pre'],
-};
+  'overlapping-cloze-demo': OverlappingClozeDemo,
+} as unknown as Components;
 const remarkPlugins = [remarkGfm];
 const rehypePlugins = [rehypeRaw, rehypeSlug];
 
