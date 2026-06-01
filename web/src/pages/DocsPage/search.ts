@@ -39,10 +39,10 @@ export const POPULAR_SLUGS = [
 function stripMarkdown(body: string): string {
   return body
     .replaceAll(/```[\s\S]*?```/g, ' ')
-    .replaceAll(/`([^`]+)`/g, '$1')
-    .replaceAll(/!\[[^\]]*]\([^)]*\)/g, ' ')
-    .replaceAll(/\[([^\]]+)]\([^)]*\)/g, '$1')
-    .replaceAll(/<[^>]+>/g, ' ')
+    .replaceAll(/`([^`]{1,500})`/g, '$1')
+    .replaceAll(/!\[[^\]]{0,300}]\([^)]{0,1000}\)/g, ' ')
+    .replaceAll(/\[([^\]]{1,300})]\([^)]{0,1000}\)/g, '$1')
+    .replaceAll(/<[^>]{1,500}>/g, ' ')
     .replaceAll(/^[>#\-*+]+\s?/gm, '')
     .replaceAll(/[*_~]/g, '')
     .replaceAll(/:::\w*/g, ' ')

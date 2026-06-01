@@ -926,6 +926,8 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   position: relative;
+  text-decoration: none;
+  color: inherit;
 }
 
 .searchResultActive {

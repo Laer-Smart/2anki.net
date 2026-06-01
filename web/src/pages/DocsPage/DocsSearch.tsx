@@ -42,7 +42,7 @@ export function DocsSearch({ isOpen, onClose }: Readonly<DocsSearchProps>) {
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const terms = useMemo(() => tokenize(query), [query]);
   const trimmed = query.trim();
@@ -80,6 +80,22 @@ export function DocsSearch({ isOpen, onClose }: Readonly<DocsSearchProps>) {
   const open = (result: SearchResult) => {
     navigate(`/documentation/${result.slug}`);
     onClose();
+  };
+
+  const onResultClick = (
+    event: React.MouseEvent,
+    result: SearchResult,
+  ) => {
+    if (
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.button !== 0
+    )
+      return;
+    event.preventDefault();
+    open(result);
   };
 
   const onKeyDown = (event: React.KeyboardEvent) => {
@@ -165,7 +181,7 @@ export function DocsSearch({ isOpen, onClose }: Readonly<DocsSearchProps>) {
             </p>
           </div>
         ) : (
-          <ul
+          <div
             ref={listRef}
             id="docs-search-results"
             className={styles.searchResults}
@@ -173,16 +189,18 @@ export function DocsSearch({ isOpen, onClose }: Readonly<DocsSearchProps>) {
             aria-label="Search results"
           >
             {results.map((result, index) => (
-              <li
+              <a
                 key={result.slug}
                 id={`docs-search-option-${index}`}
                 role="option"
+                href={`/documentation/${result.slug}`}
+                tabIndex={-1}
                 aria-selected={index === selected}
                 className={`${styles.searchResult} ${
                   index === selected ? styles.searchResultActive : ''
                 }`}
                 onMouseEnter={() => setSelected(index)}
-                onClick={() => open(result)}
+                onClick={(event) => onResultClick(event, result)}
               >
                 <span className={styles.searchResultTitle}>
                   <Highlighted text={result.title} terms={terms} />
@@ -198,9 +216,9 @@ export function DocsSearch({ isOpen, onClose }: Readonly<DocsSearchProps>) {
                     </>
                   )}
                 </span>
-              </li>
+              </a>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>
