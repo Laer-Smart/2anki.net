@@ -1024,7 +1024,7 @@ describe('limit state', () => {
     });
 
     await waitFor(() => {
-      expect(startPassCheckout).toHaveBeenCalledWith('24h', 'upload-limit-wall');
+      expect(startPassCheckout).toHaveBeenCalledWith('24h', undefined, 'upload-limit-wall');
       expect(locationStub.href).toBe('https://checkout.stripe.com/pass');
     });
   });

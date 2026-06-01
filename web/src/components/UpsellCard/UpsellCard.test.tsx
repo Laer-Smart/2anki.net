@@ -133,7 +133,7 @@ describe('UpsellCard', () => {
         surface: 'downloads_upsell',
         plan: 'day_pass',
       });
-      expect(mockStartPassCheckout).toHaveBeenCalledWith('24h');
+      expect(mockStartPassCheckout).toHaveBeenCalledWith('24h', undefined, 'downloads_upsell');
     });
   });
 
@@ -150,7 +150,7 @@ describe('UpsellCard', () => {
         surface: 'upload_success_upsell',
         plan: 'week_pass',
       });
-      expect(mockStartPassCheckout).toHaveBeenCalledWith('7d');
+      expect(mockStartPassCheckout).toHaveBeenCalledWith('7d', undefined, 'upload_success_upsell');
     });
   });
 

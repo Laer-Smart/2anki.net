@@ -321,7 +321,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     setDayPassPending(true);
     track('paywall_upgrade_clicked', { surface: 'upload_limit_wall', plan: 'day_pass' });
     try {
-      const result = await get2ankiApi().startPassCheckout('24h', 'upload-limit-wall');
+      const result = await get2ankiApi().startPassCheckout('24h', undefined, 'upload-limit-wall');
       if ('url' in result) {
         globalThis.location.href = result.url;
         return;

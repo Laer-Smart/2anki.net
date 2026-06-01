@@ -117,7 +117,7 @@ export function LimitPage() {
       setWeekPassPending(true);
     }
     try {
-      const result = await get2ankiApi().startPassCheckout(passKind);
+      const result = await get2ankiApi().startPassCheckout(passKind, undefined, REF);
       if ('url' in result) {
         globalThis.location.href = result.url;
         return;

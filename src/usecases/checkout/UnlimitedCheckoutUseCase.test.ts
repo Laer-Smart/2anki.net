@@ -139,6 +139,37 @@ describe('UnlimitedCheckoutUseCase', () => {
     );
   });
 
+  it('stamps surface into metadata when provided', async () => {
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+
+    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 10,
+      interval: 'month',
+      surface: 'pricing_page',
+    });
+
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: { user_id: '10', surface: 'pricing_page' },
+      })
+    );
+  });
+
+  it('omits surface from metadata when absent', async () => {
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+
+    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
+    await uc.execute({ userEmail: 'user@example.com', userId: 11, interval: 'month' });
+
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: { user_id: '11' },
+      })
+    );
+  });
+
   it('does not log raw Stripe customer IDs', async () => {
     mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
     const consoleSpy = jest.spyOn(console, 'info').mockImplementation(() => {});

@@ -115,7 +115,7 @@ describe('LimitPage', () => {
     renderPage();
     fireEvent.click(screen.getByRole('button', { name: 'Get Day Pass' }));
     await vi.waitFor(() => {
-      expect(mockStartPassCheckout).toHaveBeenCalledWith('24h');
+      expect(mockStartPassCheckout).toHaveBeenCalledWith('24h', undefined, 'limit-wall');
       expect(globalThis.location.href).toBe('https://checkout.stripe.com/pass');
     });
   });

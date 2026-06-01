@@ -192,7 +192,7 @@ describe('DeckFeedbackPrompt — Day Pass offer after positive rating', () => {
         surface: 'deck_feedback_sent',
         plan: 'day_pass',
       });
-      expect(startPassCheckout).toHaveBeenCalledWith('24h');
+      expect(startPassCheckout).toHaveBeenCalledWith('24h', undefined, 'deck_feedback_sent');
     });
   });
 

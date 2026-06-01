@@ -144,7 +144,7 @@ export default function PricingPage({
     }
     track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'auto_sync', variant: pricingOrder });
     setSubscribeError(null);
-    const result = await get2ankiApi().startAutoSyncCheckout(pricingOrder);
+    const result = await get2ankiApi().startAutoSyncCheckout(pricingOrder, 'pricing_page');
     if ('url' in result) {
       globalThis.location.href = result.url;
       return;
@@ -177,7 +177,7 @@ export default function PricingPage({
     } else {
       setWeekPassState('pending');
     }
-    const result = await get2ankiApi().startPassCheckout(kind, pricingOrder);
+    const result = await get2ankiApi().startPassCheckout(kind, pricingOrder, 'pricing_page');
     if ('url' in result) {
       globalThis.location.href = result.url;
       return;
@@ -196,7 +196,7 @@ export default function PricingPage({
     }
     track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'unlimited', variant: pricingOrder });
     setUnlimitedPending(true);
-    const result = await get2ankiApi().startUnlimitedCheckout(billingCycle, pricingOrder);
+    const result = await get2ankiApi().startUnlimitedCheckout(billingCycle, pricingOrder, 'pricing_page');
     if ('url' in result) {
       globalThis.location.href = result.url;
       return;
