@@ -14,6 +14,7 @@ import handleOverlappingCloze, {
   OverlappingClozeStyle,
 } from './helpers/handleOverlappingCloze';
 import extractListItems from './helpers/extractListItems';
+import splitParagraphSegments from './helpers/splitParagraphSegments';
 import {
   extractHeadingFromSummary,
   extractHeadingMarkup,
@@ -371,8 +372,14 @@ export class DeckParser {
     const disableIndentedBullets = this.settings.disableIndentedBulletPoints;
     if (cards.length === 0) {
       const overlappingPageNotes = this.buildPageListOverlappingNotes(dom);
+      const overlappingParagraphNotes =
+        overlappingPageNotes.length > 0
+          ? []
+          : this.buildPageParagraphOverlappingNotes(dom);
       if (overlappingPageNotes.length > 0) {
         cards.push(...overlappingPageNotes);
+      } else if (overlappingParagraphNotes.length > 0) {
+        cards.push(...overlappingParagraphNotes);
       } else {
         cards.push(
           ...[
@@ -697,6 +704,53 @@ export class DeckParser {
 
     const items = extractListItems(html);
     return this.notesFromOverlappingItems(items);
+  }
+
+  private findSoleProseBlock(
+    dom: cheerio.CheerioAPI
+  ): cheerio.Cheerio<Element> | null {
+    const pageBody = dom('.page-body');
+    const root = pageBody.length > 0 ? pageBody : dom('body');
+    const blocks = root
+      .children()
+      .toArray()
+      .filter((node) => {
+        const text = dom(node).text().trim();
+        return text.length > 0 || dom(node).find('img, iframe').length > 0;
+      });
+
+    if (blocks.length !== 1) {
+      return null;
+    }
+
+    const block = dom(blocks[0]);
+    const tag = blocks[0].tagName?.toLowerCase();
+    const isProse = tag === 'p' || tag === 'blockquote';
+    const hasStructure = block.find('ul, ol, details, table, img, iframe').length > 0;
+    if (!isProse || hasStructure) {
+      return null;
+    }
+
+    return block;
+  }
+
+  private buildPageParagraphOverlappingNotes(dom: cheerio.CheerioAPI): Note[] {
+    if (!this.overlappingClozeEnabled()) {
+      return [];
+    }
+
+    const block = this.findSoleProseBlock(dom);
+    if (!block) {
+      return [];
+    }
+
+    const text = block.text();
+    if (text.includes('{{c')) {
+      return [];
+    }
+
+    const segments = splitParagraphSegments(text);
+    return this.notesFromOverlappingItems(segments);
   }
 
   private processPayload(ws: Workspace) {

@@ -246,6 +246,56 @@ test('overlapping cloze off leaves a fragmented page list as one card per item',
   expect(deck.cards[4].name).toContain('Jupiter');
 });
 
+function buildPageDeck(fixture: string, overlapping: string) {
+  const fixturePath = path.join(__dirname, '../../test/fixtures', fixture);
+  const contents = fs.readFileSync(fixturePath).toString();
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: fixture,
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'overlapping-cloze': overlapping,
+    }),
+    files: [{ name: fixture, contents }],
+    noLimits: true,
+    workspace,
+  });
+  parser.writeDeckInfo(workspace);
+  return parser.payload[0];
+}
+
+test('overlapping cloze show-all turns a single prose paragraph into N cloze notes', async () => {
+  const deck = buildPageDeck('notion-single-paragraph.html', 'show-all');
+  expect(deck.cards.length).toBe(3);
+  for (const card of deck.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+  expect(deck.cards[0].name).toContain('{{c1::You should not bother others}}');
+  expect(deck.cards[0].name).toContain('you should be kind and helpful');
+  expect(deck.cards[2].name).toContain(
+    '{{c1::and otherwise you may do as you like}}'
+  );
+});
+
+test('overlapping cloze off leaves a single prose paragraph as one card', async () => {
+  const deck = buildPageDeck('notion-single-paragraph.html', 'off');
+  expect(deck.cards.length).toBe(1);
+  expect(deck.cards[0].name).toContain('You should not bother others');
+  expect(deck.cards[0].name).not.toContain('{{c1::');
+});
+
+test('overlapping cloze leaves a multi-paragraph page untouched', async () => {
+  const deck = buildPageDeck('notion-multi-paragraph.html', 'show-all');
+  for (const card of deck.cards) {
+    expect(card.name).not.toContain('{{c1::');
+  }
+  expect(deck.cards.some((c) => c.name.includes('Mercury is the closest'))).toBe(
+    true
+  );
+});
+
 test('Colours', async () => {
   const deck = await getDeck(
     'Colours 0519bf7e86d84ee4ba710c1b7ff7438e.html',
