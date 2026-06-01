@@ -34,7 +34,7 @@ export const sidebar: SidebarGroup[] = [
       { label: 'Card options', slug: 'cards/card-options' },
       { label: 'Card types', slug: 'cards/card-types' },
       { label: 'Multiple choice questions', slug: 'cards/mcq' },
-      { label: 'Overlapping cloze for lists', slug: 'cards/overlapping-cloze' },
+      { label: 'Overlapping cloze', slug: 'cards/overlapping-cloze' },
       { label: 'Notion blocks we support', slug: 'cards/notion-blocks' },
       { label: 'What is a deck?', slug: 'cards/decks' },
       { label: 'Parser rules', slug: 'cards/parser-rules' },

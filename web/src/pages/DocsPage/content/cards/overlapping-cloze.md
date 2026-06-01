@@ -1,5 +1,5 @@
 ---
-title: Overlapping cloze for lists
+title: Overlapping cloze
 description: Turn a list or a paragraph into a set of cards that hide one item at a time.
 ---
 
@@ -11,7 +11,7 @@ Each card hides one item with a cloze deletion. One cloze per card, so Anki sche
 
 1. Open **Card options**.
 2. Under **Card types**, turn on **Cloze deletion cards**.
-3. In **Overlapping cloze for lists**, pick a style.
+3. In **Overlapping cloze**, pick a style.
 
 The picker stays disabled until Cloze is on.
 
@@ -56,6 +56,8 @@ The first line is gone — you recall the hidden line from its immediate neighbo
 If a page is one paragraph or quote instead of a list, overlapping cloze splits it for you. A few sentences become one card per sentence; a single sentence with commas becomes one card per clause. Surrounding quote marks and guillemets are stripped first.
 
 A quote like «You should not bother others, you should be kind, and otherwise do as you like» becomes 3 cards, each hiding one clause.
+
+The same goes for a song or poem whose lines sit in separate blocks — each line becomes its own card.
 
 ## What fires it
 

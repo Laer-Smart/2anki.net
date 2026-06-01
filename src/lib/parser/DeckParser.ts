@@ -14,6 +14,7 @@ import handleOverlappingCloze, {
   OverlappingClozeStyle,
 } from './helpers/handleOverlappingCloze';
 import extractListItems from './helpers/extractListItems';
+import extractTextLines from './helpers/extractTextLines';
 import splitParagraphSegments from './helpers/splitParagraphSegments';
 import {
   extractHeadingFromSummary,
@@ -376,10 +377,16 @@ export class DeckParser {
         overlappingPageNotes.length > 0
           ? []
           : this.buildPageParagraphOverlappingNotes(dom);
+      const overlappingLineNotes =
+        overlappingPageNotes.length > 0 || overlappingParagraphNotes.length > 0
+          ? []
+          : this.buildPageLinesOverlappingNotes(dom);
       if (overlappingPageNotes.length > 0) {
         cards.push(...overlappingPageNotes);
       } else if (overlappingParagraphNotes.length > 0) {
         cards.push(...overlappingParagraphNotes);
+      } else if (overlappingLineNotes.length > 0) {
+        cards.push(...overlappingLineNotes);
       } else {
         cards.push(
           ...[
@@ -751,6 +758,67 @@ export class DeckParser {
 
     const segments = splitParagraphSegments(text);
     return this.notesFromOverlappingItems(segments);
+  }
+
+  private pageBodyLooksLikeLines(dom: cheerio.CheerioAPI): boolean {
+    const pageBody = dom('.page-body');
+    const root = pageBody.length > 0 ? pageBody : dom('body');
+
+    const blocks = root
+      .children()
+      .toArray()
+      .filter((node) => {
+        const $node = dom(node);
+        return $node.text().trim().length > 0 || $node.find('img, iframe').length > 0;
+      });
+
+    const everyBlockIsProse = blocks.every((node) => {
+      const tag = node.tagName?.toLowerCase();
+      const isProse =
+        tag === 'p' ||
+        tag === 'blockquote' ||
+        dom(node).children('p, blockquote').length > 0;
+      const hasStructure =
+        dom(node).find('ul, ol, details, table, h1, h2, h3, h4, h5, h6, img, iframe, figure').length > 0;
+      return isProse && !hasStructure;
+    });
+    if (!everyBlockIsProse) {
+      return false;
+    }
+
+    const html = root.html() ?? '';
+    const lines = extractTextLines(html);
+    if (lines.length < 2) {
+      return false;
+    }
+
+    const everyLineIsLyric = lines.every((line) => {
+      const isShort = line.length <= 80;
+      const hasMidSentencePunctuation =
+        /[.!?][^\s)\]"'»”’]/.test(line) || /[.!?]\s+\S/.test(line);
+      const endsLikeSentence = /\.\s*$/.test(line);
+      return isShort && !hasMidSentencePunctuation && !endsLikeSentence;
+    });
+    if (!everyLineIsLyric) {
+      return false;
+    }
+
+    return !lines.some((line) => line.includes('{{c'));
+  }
+
+  private buildPageLinesOverlappingNotes(dom: cheerio.CheerioAPI): Note[] {
+    if (!this.overlappingClozeEnabled()) {
+      return [];
+    }
+
+    if (!this.pageBodyLooksLikeLines(dom)) {
+      return [];
+    }
+
+    const pageBody = dom('.page-body');
+    const html = (pageBody.length > 0 ? pageBody : dom('body')).html() ?? '';
+    const lines = extractTextLines(html);
+    return this.notesFromOverlappingItems(lines);
   }
 
   private processPayload(ws: Workspace) {

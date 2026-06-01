@@ -851,11 +851,11 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               {isCardTypesGroup && (
                 <div className={fieldStyles.optionGroup} id="overlapping-cloze">
                   <div className={fieldStyles.groupHeader}>
-                    <h3 className={fieldStyles.groupHeading}>Overlapping cloze for lists</h3>
+                    <h3 className={fieldStyles.groupHeading}>Overlapping cloze</h3>
                     <div
                       className={fieldStyles.segmented}
                       role="group"
-                      aria-label="Overlapping cloze for lists"
+                      aria-label="Overlapping cloze"
                     >
                       {(
                         [
@@ -881,7 +881,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                     </div>
                   </div>
                   <p className={fieldStyles.groupIntro}>
-                    Turn a list into a set of cards that hide one item at a time. Best for ordered things like steps or poem lines.
+                    Turn a list, poem, or quote into a set of cards that hide one line at a time. Best for ordered things you recite — steps, lyrics, or a passage you're learning by heart.
                   </p>
                   {(checkboxValues['cloze'] ?? true) ? (
                     <>

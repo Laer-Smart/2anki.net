@@ -296,6 +296,56 @@ test('overlapping cloze leaves a multi-paragraph page untouched', async () => {
   );
 });
 
+test('overlapping cloze show-all turns a poem of one-line blocks into N cloze notes', () => {
+  const deck = buildPageDeck('notion-poem-lines.html', 'show-all');
+  expect(deck.cards.length).toBe(7);
+  for (const card of deck.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+  expect(deck.cards[0].name).toContain('{{c1::Over the hills we go}}');
+  expect(deck.cards[0].name).toContain('Under a wide blue sky');
+  expect(deck.cards[6].name).toContain('{{c1::Sing for the falling night}}');
+  expect(deck.cards.some((c) => c.name.includes('(Come along now!)'))).toBe(
+    true
+  );
+});
+
+test('overlapping cloze windowed limits a poem to neighbouring lines', () => {
+  const deck = buildPageDeck('notion-poem-lines.html', 'windowed');
+  expect(deck.cards.length).toBe(7);
+  for (const card of deck.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+});
+
+test('overlapping cloze off leaves a poem as one basic card per line', () => {
+  const deck = buildPageDeck('notion-poem-lines.html', 'off');
+  expect(deck.cards.length).toBe(7);
+  for (const card of deck.cards) {
+    expect(card.name).not.toContain('{{c1::');
+  }
+  expect(deck.cards[0].name).toContain('Over the hills we go');
+});
+
+test('overlapping cloze leaves a multi-line prose page untouched', () => {
+  const deck = buildPageDeck('notion-prose-lines.html', 'show-all');
+  for (const card of deck.cards) {
+    expect(card.name).not.toContain('{{c1::');
+  }
+  expect(deck.cards.some((c) => c.name.includes('The river rose overnight'))).toBe(
+    true
+  );
+});
+
+test('overlapping cloze skips a page that mixes lines with a heading', () => {
+  const deck = buildPageDeck('notion-mixed-lines.html', 'show-all');
+  for (const card of deck.cards) {
+    expect(card.name).not.toContain('{{c1::');
+  }
+});
+
 function buildDeckFromFiles(
   entryName: string,
   files: { name: string; contents: string }[],
