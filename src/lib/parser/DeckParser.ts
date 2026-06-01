@@ -370,12 +370,17 @@ export class DeckParser {
 
     const disableIndentedBullets = this.settings.disableIndentedBulletPoints;
     if (cards.length === 0) {
-      cards.push(
-        ...[
-          ...this.extractCardsFromLists(dom, disableIndentedBullets),
-          ...paragraphs,
-        ]
-      );
+      const overlappingPageNotes = this.buildPageListOverlappingNotes(dom);
+      if (overlappingPageNotes.length > 0) {
+        cards.push(...overlappingPageNotes);
+      } else {
+        cards.push(
+          ...[
+            ...this.extractCardsFromLists(dom, disableIndentedBullets),
+            ...paragraphs,
+          ]
+        );
+      }
     } else if (this.settings.disableIndentedBulletPoints) {
       cards.push(
         ...[...this.extractCardsFromLists(dom, disableIndentedBullets)]
@@ -644,28 +649,54 @@ export class DeckParser {
     }
   }
 
-  private buildOverlappingClozeNotes(card: Note): Note[] {
+  private overlappingClozeEnabled(): boolean {
     const style = this.settings.overlappingCloze;
-    const overlappingEnabled =
-      this.settings.isCloze && (style === 'show-all' || style === 'windowed');
-    if (!overlappingEnabled || card.mcq || card.back.includes('{{c')) {
-      return [];
-    }
+    return (
+      this.settings.isCloze && (style === 'show-all' || style === 'windowed')
+    );
+  }
 
-    const items = extractListItems(card.back);
+  private notesFromOverlappingItems(items: string[], source?: Note): Note[] {
     if (items.length < 2) {
       return [];
     }
 
-    const bodies = handleOverlappingCloze(items, style as OverlappingClozeStyle);
+    const style = this.settings.overlappingCloze as OverlappingClozeStyle;
+    const bodies = handleOverlappingCloze(items, style);
     return bodies.map((body) => {
       const note = new Note(body, '');
       note.cloze = true;
-      note.tags = card.tags;
-      note.notionId = card.notionId;
-      note.notionLink = card.notionLink;
+      if (source) {
+        note.tags = source.tags;
+        note.notionId = source.notionId;
+        note.notionLink = source.notionLink;
+      }
       return note;
     });
+  }
+
+  private buildOverlappingClozeNotes(card: Note): Note[] {
+    if (!this.overlappingClozeEnabled() || card.mcq || card.back.includes('{{c')) {
+      return [];
+    }
+
+    const items = extractListItems(card.back);
+    return this.notesFromOverlappingItems(items, card);
+  }
+
+  private buildPageListOverlappingNotes(dom: cheerio.CheerioAPI): Note[] {
+    if (!this.overlappingClozeEnabled()) {
+      return [];
+    }
+
+    const pageBody = dom('.page-body');
+    const html = (pageBody.length > 0 ? pageBody : dom('body')).html() ?? '';
+    if (html.includes('{{c')) {
+      return [];
+    }
+
+    const items = extractListItems(html);
+    return this.notesFromOverlappingItems(items);
   }
 
   private processPayload(ws: Workspace) {

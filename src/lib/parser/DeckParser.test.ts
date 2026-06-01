@@ -189,6 +189,63 @@ test('overlapping cloze falls back to one card when the list has under 2 items',
   expect(deck.cards[0].name).not.toContain('{{c1::');
 });
 
+async function buildFragmentedListDeck(overlapping: string) {
+  const fixturePath = path.join(
+    __dirname,
+    '../../test/fixtures/notion-fragmented-numbered-list.html'
+  );
+  const contents = fs.readFileSync(fixturePath).toString();
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'notion-fragmented-numbered-list.html',
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'overlapping-cloze': overlapping,
+    }),
+    files: [
+      { name: 'notion-fragmented-numbered-list.html', contents },
+    ],
+    noLimits: true,
+    workspace,
+  });
+  parser.writeDeckInfo(workspace);
+  return parser.payload[0];
+}
+
+test('overlapping cloze show-all turns a fragmented page list into N cloze notes', async () => {
+  const deck = await buildFragmentedListDeck('show-all');
+  expect(deck.cards.length).toBe(5);
+  for (const card of deck.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+  expect(deck.cards[0].name).toContain('{{c1::Mercury}}');
+  expect(deck.cards[0].name).toContain('Jupiter');
+  expect(deck.cards[4].name).toContain('{{c1::Jupiter}}');
+});
+
+test('overlapping cloze windowed limits a fragmented page list to neighbours', async () => {
+  const deck = await buildFragmentedListDeck('windowed');
+  expect(deck.cards.length).toBe(5);
+  const middle = deck.cards[2].name;
+  expect(countC1(middle)).toBe(1);
+  expect(middle).toContain('Venus');
+  expect(middle).toContain('{{c1::Earth}}');
+  expect(middle).toContain('Mars');
+  expect(middle).not.toContain('Mercury');
+  expect(middle).not.toContain('Jupiter');
+});
+
+test('overlapping cloze off leaves a fragmented page list as one card per item', async () => {
+  const deck = await buildFragmentedListDeck('off');
+  expect(deck.cards.length).toBe(5);
+  expect(deck.cards[0].name).toContain('Mercury');
+  expect(deck.cards[0].name).not.toContain('{{c1::');
+  expect(deck.cards[0].name).not.toContain('Venus');
+  expect(deck.cards[4].name).toContain('Jupiter');
+});
+
 test('Colours', async () => {
   const deck = await getDeck(
     'Colours 0519bf7e86d84ee4ba710c1b7ff7438e.html',

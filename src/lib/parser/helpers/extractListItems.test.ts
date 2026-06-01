@@ -39,8 +39,52 @@ describe('extractListItems', () => {
     expect(extractListItems('')).toEqual([]);
   });
 
-  it('reads the first list only when several are present', () => {
+  it('merges consecutive sibling lists into one item run', () => {
     const html = '<ul><li>a</li><li>b</li></ul><ul><li>c</li></ul>';
+    expect(extractListItems(html)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('merges a fragmented numbered list of single-item ol blocks', () => {
+    const html =
+      '<div class="page-body">' +
+      '<ol class="numbered-list" start="1"><li>Mercury</li></ol>' +
+      '<ol class="numbered-list" start="2"><li>Venus</li></ol>' +
+      '<ol class="numbered-list" start="3"><li>Earth</li></ol>' +
+      '<ol class="numbered-list" start="4"><li>Mars</li></ol>' +
+      '<ol class="numbered-list" start="5"><li>Jupiter</li></ol>' +
+      '</div>';
+    expect(extractListItems(html)).toEqual([
+      'Mercury',
+      'Venus',
+      'Earth',
+      'Mars',
+      'Jupiter',
+    ]);
+  });
+
+  it('merges fragmented ol blocks wrapped in display:contents divs', () => {
+    const html =
+      '<div class="page-body">' +
+      '<div style="display:contents"><ol class="numbered-list" start="1"><li>Step one</li></ol></div>' +
+      '<div style="display:contents"><ol class="numbered-list" start="2"><li>Step two</li></ol></div>' +
+      '<div style="display:contents"><ol class="numbered-list" start="3"><li>Step three</li></ol></div>' +
+      '</div>';
+    expect(extractListItems(html)).toEqual([
+      'Step one',
+      'Step two',
+      'Step three',
+    ]);
+  });
+
+  it('does not merge two lists separated by a heading', () => {
+    const html =
+      '<ul><li>a</li><li>b</li></ul><h2>Other</h2><ul><li>c</li></ul>';
     expect(extractListItems(html)).toEqual(['a', 'b']);
+  });
+
+  it('does not merge two lists separated by a paragraph', () => {
+    const html =
+      '<ol><li>first</li></ol><p>break</p><ol><li>second</li></ol>';
+    expect(extractListItems(html)).toEqual(['first']);
   });
 });
