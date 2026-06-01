@@ -1,10 +1,6 @@
 export const isMarkdownFile = (fileName: string) => /.md$/i.exec(fileName);
 
 export const isHTMLFile = (fileName: string) => /.html$/i.exec(fileName);
-export const isPotentiallyHTMLFile = (fileName: string) =>
-  isHTMLFile(fileName) || fileName.toLowerCase().endsWith('.htm');
-
-export const isZIPFile = (fileName: string) => /.zip$/i.exec(fileName);
 
 export const isPlainText = (fileName: string) => /\.txt$/i.exec(fileName);
 
@@ -58,9 +54,6 @@ export const isCompressedFile = (
   }
   return filename.trim().endsWith('.') || !filename.includes('.');
 };
-
-// Maintain backward compatibility
-export const isPotentialZipFile = isCompressedFile;
 
 export const isImageFile = (name: string) =>
   isImageFileEmbedable(name) &&

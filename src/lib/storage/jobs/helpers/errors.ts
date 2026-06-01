@@ -11,10 +11,3 @@ export class JobLimitError extends Error {
     this.name = 'JobLimitError';
   }
 }
-
-export class ConversionFailedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ConversionFailedError';
-  }
-}
