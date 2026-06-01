@@ -18,6 +18,7 @@ import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { PersistStripeSessionUseCase } from '../usecases/checkout/PersistStripeSessionUseCase';
 import hashToken from '../lib/misc/hashToken';
 import { track } from '../services/events/track';
+import { getEventsSink } from '../services/events/eventsSinkInstance';
 import AbandonedCheckoutRecoveryRepository from '../data_layer/AbandonedCheckoutRecoveryRepository';
 import { SendAbandonedCheckoutRecoveryOnExpiryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryOnExpiryUseCase';
 import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepository';
@@ -44,7 +45,8 @@ const WebhooksRouter = () => {
   );
   const abandonedCheckoutRecoveryUseCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
     new AbandonedCheckoutRecoveryRepository(database),
-    getDefaultEmailService()
+    getDefaultEmailService(),
+    getEventsSink()
   );
   const recordErrorUseCase = new RecordUserVisibleErrorUseCase(
     new UserVisibleErrorsRepository(database)
