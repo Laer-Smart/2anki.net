@@ -49,3 +49,13 @@ describe('DocContent markdown link rewriting', () => {
     ).toBeInTheDocument();
   });
 });
+
+describe('DocContent custom element embedding', () => {
+  it('renders both overlapping-cloze demos from the markdown', () => {
+    renderAt('cards/overlapping-cloze');
+    const previews = screen.getAllByLabelText(
+      'Preview: each card hides one line of the list',
+    );
+    expect(previews).toHaveLength(2);
+  });
+});

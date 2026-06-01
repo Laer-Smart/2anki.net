@@ -201,6 +201,7 @@ describe('SettingsController', () => {
       'mcq-tts-correct-answer': '',
       'mcq-tts-extra': '',
       'tts-auto-detect': 'false',
+      'overlapping-cloze': 'off',
     });
   });
 });

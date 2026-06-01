@@ -154,6 +154,75 @@ describe('CardOptionsForm embed-images toggle', () => {
   });
 });
 
+describe('CardOptionsForm overlapping cloze picker', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockResetUserCardOptions.mockResolvedValue(undefined);
+    setUserLocalsPaying(false);
+    localStorage.clear();
+    mockGetSettingsCardOptions.mockResolvedValue([
+      new CardOptionModel(
+        'cloze',
+        'Cloze deletion cards',
+        'Turn code spans into cloze deletions.',
+        true
+      ),
+    ]);
+  });
+
+  it('writes the picked style to localStorage when cloze is on', async () => {
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const showAll = await screen.findByRole('button', {
+      name: 'Show the whole list',
+    });
+    expect(showAll).toBeEnabled();
+
+    fireEvent.click(showAll);
+
+    await waitFor(() => {
+      expect(localStorage.getItem('overlapping-cloze')).toBe('show-all');
+    });
+    expect(showAll).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('disables the picker when cloze is turned off', async () => {
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const cloze = await screen.findByRole('checkbox', {
+      name: 'Cloze deletion cards',
+    });
+    fireEvent.click(cloze);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Show nearby lines only' })
+      ).toBeDisabled();
+    });
+    expect(
+      screen.getByText('Turn on Cloze deletion cards first.')
+    ).toBeInTheDocument();
+  });
+
+  it('hides the preview while the style is Off and shows it once a style is picked', async () => {
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const showAll = await screen.findByRole('button', {
+      name: 'Show the whole list',
+    });
+    expect(
+      screen.queryByLabelText('Preview: each card hides one line of the list')
+    ).toBeNull();
+
+    fireEvent.click(showAll);
+
+    await waitFor(() => {
+      expect(
+        screen.getByLabelText(
+          'Preview: each card hides one line of the list'
+        )
+      ).toBeInTheDocument();
+    });
+  });
+});
+
 describe('CardOptionsForm ai-comprehensive toggle (paid-only)', () => {
   beforeEach(() => {
     vi.clearAllMocks();

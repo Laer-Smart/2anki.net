@@ -31,6 +31,7 @@ import { NoteTypePicker } from './NoteTypePicker';
 import { useAvailableNoteTypes } from './useAvailableNoteTypes';
 import { FieldMappingPanel } from './FieldMappingPanel';
 import { getDefaultFieldMapping } from './fieldMappingDefaults';
+import { OverlappingClozePreview } from './OverlappingClozePreview';
 import type { FieldMapping } from '../../lib/cardFields/types';
 
 interface Props {
@@ -56,6 +57,7 @@ const DEFAULT_FONT_SIZE = '20';
 const DEFAULT_MCQ_ENABLED = false;
 const DEFAULT_MCQ_TTS_LANG = '';
 const DEFAULT_CARD_SIZE = 'medium';
+const DEFAULT_OVERLAPPING_CLOZE = 'off';
 const CARD_SIZE_VALUES = ['short', 'medium', 'detailed'] as const;
 type CardSizeValue = (typeof CARD_SIZE_VALUES)[number];
 
@@ -148,6 +150,7 @@ function computeSnapshot(values: {
   fontSize: string;
   template: string;
   toggleMode: string;
+  overlappingCloze: string;
   pageEmoji: string;
   basicName: string;
   clozeName: string;
@@ -207,6 +210,13 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     );
     const [toggleMode, setToggleMode] = useState(
       getLocalStorageValue('toggle-mode', DEFAULT_TOGGLE_MODE, settings)
+    );
+    const [overlappingCloze, setOverlappingCloze] = useState(
+      getLocalStorageValue(
+        'overlapping-cloze',
+        DEFAULT_OVERLAPPING_CLOZE,
+        settings
+      )
     );
     const [pageEmoji, setPageEmoji] = useState(
       getLocalStorageValue('page-emoji', DEFAULT_PAGE_EMOJI, settings)
@@ -277,6 +287,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setFontSize(localStorage.getItem('font-size') ?? '');
       setTemplate(localStorage.getItem('template') ?? DEFAULT_TEMPLATE);
       setToggleMode(localStorage.getItem('toggle-mode') ?? DEFAULT_TOGGLE_MODE);
+      setOverlappingCloze(
+        localStorage.getItem('overlapping-cloze') ?? DEFAULT_OVERLAPPING_CLOZE
+      );
       setPageEmoji(localStorage.getItem('page-emoji') ?? DEFAULT_PAGE_EMOJI);
       setBasicName(localStorage.getItem('basic_model_name') ?? '');
       setClozeName(localStorage.getItem('cloze_model_name') ?? '');
@@ -297,6 +310,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         const assignments: Array<[string, (value: string) => void]> = [
           ['deckName', setDeckName],
           ['toggle-mode', setToggleMode],
+          ['overlapping-cloze', setOverlappingCloze],
           ['page-emoji', setPageEmoji],
           ['template', setTemplate],
           ['font-size', setFontSize],
@@ -358,6 +372,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           fontSize,
           template,
           toggleMode,
+          overlappingCloze,
           pageEmoji,
           basicName,
           clozeName,
@@ -377,6 +392,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         fontSize,
         template,
         toggleMode,
+        overlappingCloze,
         pageEmoji,
         basicName,
         clozeName,
@@ -431,6 +447,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setDeckName('');
       setFontSize(DEFAULT_FONT_SIZE);
       setToggleMode(DEFAULT_TOGGLE_MODE);
+      setOverlappingCloze(DEFAULT_OVERLAPPING_CLOZE);
       setTemplate(DEFAULT_TEMPLATE);
       setPageEmoji(DEFAULT_PAGE_EMOJI);
       setBasicName('');
@@ -461,6 +478,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       });
       payload.deckName = deckName;
       payload['toggle-mode'] = toggleMode;
+      payload['overlapping-cloze'] = overlappingCloze;
       payload.template = template;
       payload.basic_model_name = basicName;
       payload.cloze_model_name = clozeName;
@@ -827,6 +845,58 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                         </p>
                       </div>
                     </>
+                  )}
+                </div>
+              )}
+              {isCardTypesGroup && (
+                <div className={fieldStyles.optionGroup} id="overlapping-cloze">
+                  <div className={fieldStyles.groupHeader}>
+                    <h3 className={fieldStyles.groupHeading}>Overlapping cloze</h3>
+                    <div
+                      className={fieldStyles.segmented}
+                      role="group"
+                      aria-label="Overlapping cloze"
+                    >
+                      {(
+                        [
+                          { label: 'Off', value: 'off' },
+                          { label: 'Show the whole list', value: 'show-all' },
+                          { label: 'Show nearby lines only', value: 'windowed' },
+                        ] as const
+                      ).map(({ label, value }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          disabled={!(checkboxValues['cloze'] ?? true)}
+                          className={`${fieldStyles.segment} ${overlappingCloze === value ? fieldStyles.segmentActive : ''}`}
+                          aria-pressed={overlappingCloze === value}
+                          onClick={() => {
+                            setOverlappingCloze(value);
+                            saveValueInLocalStorage('overlapping-cloze', value, pageId);
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className={fieldStyles.groupIntro}>
+                    Turn a list, poem, or quote into a set of cards that hide one line at a time. Best for ordered things you recite — steps, lyrics, or a passage you're learning by heart.
+                  </p>
+                  {(checkboxValues['cloze'] ?? true) ? (
+                    <>
+                      <ul className={fieldStyles.bulletList}>
+                        <li><strong>Show the whole list</strong> — each card hides one item; the rest stays visible as context.</li>
+                        <li><strong>Show nearby lines only</strong> — each card hides one item; only the lines just before and after stay visible.</li>
+                      </ul>
+                      {overlappingCloze !== 'off' && (
+                        <OverlappingClozePreview
+                          style={overlappingCloze as 'show-all' | 'windowed'}
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <p className={fieldStyles.sectionHint}>Turn on Cloze deletion cards first.</p>
                   )}
                 </div>
               )}

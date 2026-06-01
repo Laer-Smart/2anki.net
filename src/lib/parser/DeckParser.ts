@@ -10,6 +10,12 @@ import CardOption from './Settings';
 import Workspace from './WorkSpace';
 import CustomExporter from './exporters/CustomExporter';
 import handleClozeDeletions from './helpers/handleClozeDeletions';
+import handleOverlappingCloze, {
+  OverlappingClozeStyle,
+} from './helpers/handleOverlappingCloze';
+import extractListItems from './helpers/extractListItems';
+import extractTextLines from './helpers/extractTextLines';
+import splitParagraphSegments from './helpers/splitParagraphSegments';
 import {
   extractHeadingFromSummary,
   extractHeadingMarkup,
@@ -366,12 +372,29 @@ export class DeckParser {
 
     const disableIndentedBullets = this.settings.disableIndentedBulletPoints;
     if (cards.length === 0) {
-      cards.push(
-        ...[
-          ...this.extractCardsFromLists(dom, disableIndentedBullets),
-          ...paragraphs,
-        ]
-      );
+      const overlappingPageNotes = this.buildPageListOverlappingNotes(dom);
+      const overlappingParagraphNotes =
+        overlappingPageNotes.length > 0
+          ? []
+          : this.buildPageParagraphOverlappingNotes(dom);
+      const overlappingLineNotes =
+        overlappingPageNotes.length > 0 || overlappingParagraphNotes.length > 0
+          ? []
+          : this.buildPageLinesOverlappingNotes(dom);
+      if (overlappingPageNotes.length > 0) {
+        cards.push(...overlappingPageNotes);
+      } else if (overlappingParagraphNotes.length > 0) {
+        cards.push(...overlappingParagraphNotes);
+      } else if (overlappingLineNotes.length > 0) {
+        cards.push(...overlappingLineNotes);
+      } else {
+        cards.push(
+          ...[
+            ...this.extractCardsFromLists(dom, disableIndentedBullets),
+            ...paragraphs,
+          ]
+        );
+      }
     } else if (this.settings.disableIndentedBulletPoints) {
       cards.push(
         ...[...this.extractCardsFromLists(dom, disableIndentedBullets)]
@@ -640,6 +663,164 @@ export class DeckParser {
     }
   }
 
+  private overlappingClozeEnabled(): boolean {
+    const style = this.settings.overlappingCloze;
+    return (
+      this.settings.isCloze && (style === 'show-all' || style === 'windowed')
+    );
+  }
+
+  private notesFromOverlappingItems(items: string[], source?: Note): Note[] {
+    if (items.length < 2) {
+      return [];
+    }
+
+    const style = this.settings.overlappingCloze as OverlappingClozeStyle;
+    const bodies = handleOverlappingCloze(items, style);
+    return bodies.map((body) => {
+      const note = new Note(body, '');
+      note.cloze = true;
+      if (source) {
+        note.tags = source.tags;
+        note.notionId = source.notionId;
+        note.notionLink = source.notionLink;
+      }
+      return note;
+    });
+  }
+
+  private buildOverlappingClozeNotes(card: Note): Note[] {
+    if (!this.overlappingClozeEnabled() || card.mcq || card.back.includes('{{c')) {
+      return [];
+    }
+
+    const items = extractListItems(card.back);
+    return this.notesFromOverlappingItems(items, card);
+  }
+
+  private buildPageListOverlappingNotes(dom: cheerio.CheerioAPI): Note[] {
+    if (!this.overlappingClozeEnabled()) {
+      return [];
+    }
+
+    const pageBody = dom('.page-body');
+    const html = (pageBody.length > 0 ? pageBody : dom('body')).html() ?? '';
+    if (html.includes('{{c')) {
+      return [];
+    }
+
+    const items = extractListItems(html);
+    return this.notesFromOverlappingItems(items);
+  }
+
+  private findSoleProseBlock(
+    dom: cheerio.CheerioAPI
+  ): cheerio.Cheerio<Element> | null {
+    const pageBody = dom('.page-body');
+    const root = pageBody.length > 0 ? pageBody : dom('body');
+    const blocks = root
+      .children()
+      .toArray()
+      .filter((node) => {
+        const text = dom(node).text().trim();
+        return text.length > 0 || dom(node).find('img, iframe').length > 0;
+      });
+
+    if (blocks.length !== 1) {
+      return null;
+    }
+
+    const block = dom(blocks[0]);
+    const tag = blocks[0].tagName?.toLowerCase();
+    const isProse = tag === 'p' || tag === 'blockquote';
+    const hasStructure = block.find('ul, ol, details, table, img, iframe').length > 0;
+    if (!isProse || hasStructure) {
+      return null;
+    }
+
+    return block;
+  }
+
+  private buildPageParagraphOverlappingNotes(dom: cheerio.CheerioAPI): Note[] {
+    if (!this.overlappingClozeEnabled()) {
+      return [];
+    }
+
+    const block = this.findSoleProseBlock(dom);
+    if (!block) {
+      return [];
+    }
+
+    const text = block.text();
+    if (text.includes('{{c')) {
+      return [];
+    }
+
+    const segments = splitParagraphSegments(text);
+    return this.notesFromOverlappingItems(segments);
+  }
+
+  private pageBodyLooksLikeLines(dom: cheerio.CheerioAPI): boolean {
+    const pageBody = dom('.page-body');
+    const root = pageBody.length > 0 ? pageBody : dom('body');
+
+    const blocks = root
+      .children()
+      .toArray()
+      .filter((node) => {
+        const $node = dom(node);
+        return $node.text().trim().length > 0 || $node.find('img, iframe').length > 0;
+      });
+
+    const everyBlockIsProse = blocks.every((node) => {
+      const tag = node.tagName?.toLowerCase();
+      const isProse =
+        tag === 'p' ||
+        tag === 'blockquote' ||
+        dom(node).children('p, blockquote').length > 0;
+      const hasStructure =
+        dom(node).find('ul, ol, details, table, h1, h2, h3, h4, h5, h6, img, iframe, figure').length > 0;
+      return isProse && !hasStructure;
+    });
+    if (!everyBlockIsProse) {
+      return false;
+    }
+
+    const html = root.html() ?? '';
+    const lines = extractTextLines(html);
+    if (lines.length < 2) {
+      return false;
+    }
+
+    const everyLineIsLyric = lines.every((line) => {
+      const isShort = line.length <= 80;
+      const hasMidSentencePunctuation =
+        /[.!?][^\s)\]"'»”’]/.test(line) || /[.!?]\s+\S/.test(line);
+      const endsLikeSentence = /\.\s*$/.test(line);
+      return isShort && !hasMidSentencePunctuation && !endsLikeSentence;
+    });
+    if (!everyLineIsLyric) {
+      return false;
+    }
+
+    return !lines.some((line) => line.includes('{{c'));
+  }
+
+  private buildPageLinesOverlappingNotes(dom: cheerio.CheerioAPI): Note[] {
+    if (!this.overlappingClozeEnabled()) {
+      return [];
+    }
+
+    if (!this.pageBodyLooksLikeLines(dom)) {
+      return [];
+    }
+
+    const pageBody = dom('.page-body');
+    const html = (pageBody.length > 0 ? pageBody : dom('body')).html() ?? '';
+    const lines = extractTextLines(html);
+    return this.notesFromOverlappingItems(lines);
+  }
+
   private processPayload(ws: Workspace) {
     for (const d of this.payload) {
       const deck = d;
@@ -647,12 +828,23 @@ export class DeckParser {
 
       let counter = 0;
       const addThese: Note[] = [];
+      const replaced = new Set<Note>();
       for (const c of deck.cards) {
         let card = c;
         this.transformCard(card, counter++, ws);
 
         if (this.settings.useTags) {
           card = this.locateTags(card, deck.globalTags);
+        }
+
+        const overlappingNotes = this.buildOverlappingClozeNotes(card);
+        if (overlappingNotes.length > 0) {
+          for (const note of overlappingNotes) {
+            note.number = counter++;
+          }
+          addThese.push(...overlappingNotes);
+          replaced.add(c);
+          continue;
         }
 
         if (this.settings.basicReversed) {
@@ -669,7 +861,8 @@ export class DeckParser {
           card.name = tmp;
         }
       }
-      deck.cards = Deck.CleanCards(deck.cards.concat(addThese));
+      const kept = deck.cards.filter((card) => !replaced.has(card));
+      deck.cards = Deck.CleanCards(kept.concat(addThese));
     }
 
     this.payload[0].settings = this.settings;

@@ -1,0 +1,81 @@
+.preview {
+  display: block;
+  margin: 0.75rem 0;
+}
+
+.deck {
+  position: relative;
+  display: block;
+  min-height: 8.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-secondary);
+}
+
+.frame {
+  position: absolute;
+  inset: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  opacity: 0;
+  animation: cloze-frame 7500ms ease-in-out infinite;
+  animation-delay: calc(var(--frame-index) * 1500ms);
+}
+
+.line {
+  display: block;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.lineText {
+  color: var(--color-text-primary);
+}
+
+.slot {
+  display: inline-block;
+  min-width: 2.5rem;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-medium);
+}
+
+.caption {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+@keyframes cloze-frame {
+  0% {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  2.7% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  17.3% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame {
+    position: relative;
+    inset: auto;
+    opacity: 1;
+    animation: none;
+  }
+}

@@ -83,6 +83,347 @@ test('Cloze Deletions', async () => {
   );
 });
 
+const pledgeHTML = `<!DOCTYPE html><html><head><title>Pledge</title></head>
+<body>
+<article id="pledge-article" class="page sans">
+<header><h1 class="page-title">Pledge</h1></header>
+<div class="page-body">
+<ul class="toggle">
+  <li>
+    <details open>
+      <summary>Pledge of Allegiance</summary>
+      <ul class="bulleted-list">
+        <li>I pledge allegiance</li>
+        <li>to the flag</li>
+        <li>of the United States of America</li>
+      </ul>
+    </details>
+  </li>
+</ul>
+</div>
+</article>
+</body></html>`;
+
+async function buildPledgeDeck(overlapping: string) {
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'pledge.html',
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'overlapping-cloze': overlapping,
+    }),
+    files: [{ name: 'pledge.html', contents: pledgeHTML }],
+    noLimits: true,
+    workspace,
+  });
+  parser.writeDeckInfo(workspace);
+  return parser.payload[0];
+}
+
+const countC1 = (text: string) => (text.match(/\{\{c1::/g) || []).length;
+
+test('overlapping cloze show-all fans a toggle list into one card per item', async () => {
+  const deck = await buildPledgeDeck('show-all');
+  expect(deck.cards.length).toBe(3);
+  for (const card of deck.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+  expect(deck.cards[0].name).toContain('{{c1::I pledge allegiance}}');
+  expect(deck.cards[0].name).toContain('to the flag');
+  expect(deck.cards[0].name).toContain('of the United States of America');
+});
+
+test('overlapping cloze windowed keeps only the neighbouring lines', async () => {
+  const deck = await buildPledgeDeck('windowed');
+  expect(deck.cards.length).toBe(3);
+  const middle = deck.cards[1].name;
+  expect(countC1(middle)).toBe(1);
+  expect(middle).toContain('I pledge allegiance');
+  expect(middle).toContain('{{c1::to the flag}}');
+  expect(middle).toContain('of the United States of America');
+  expect(deck.cards[0].name).not.toContain('of the United States of America');
+});
+
+test('overlapping cloze off leaves the single toggle card untouched', async () => {
+  const deck = await buildPledgeDeck('off');
+  expect(deck.cards.length).toBe(1);
+  expect(deck.cards[0].name).toContain('Pledge of Allegiance');
+  expect(deck.cards[0].name).not.toContain('{{c1::');
+});
+
+test('overlapping cloze falls back to one card when the list has under 2 items', async () => {
+  const workspace = new Workspace(true, 'fs');
+  const oneItemHTML = `<!DOCTYPE html><html><head><title>Solo</title></head>
+<body>
+<article id="solo-article" class="page sans">
+<header><h1 class="page-title">Solo</h1></header>
+<div class="page-body">
+<ul class="toggle">
+  <li>
+    <details open>
+      <summary>Single</summary>
+      <ul class="bulleted-list"><li>only line</li></ul>
+    </details>
+  </li>
+</ul>
+</div>
+</article>
+</body></html>`;
+  const parser = new DeckParser({
+    name: 'solo.html',
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'overlapping-cloze': 'show-all',
+    }),
+    files: [{ name: 'solo.html', contents: oneItemHTML }],
+    noLimits: true,
+    workspace,
+  });
+  parser.writeDeckInfo(workspace);
+  const deck = parser.payload[0];
+  expect(deck.cards.length).toBe(1);
+  expect(deck.cards[0].name).toContain('Single');
+  expect(deck.cards[0].name).not.toContain('{{c1::');
+});
+
+async function buildFragmentedListDeck(overlapping: string) {
+  const fixturePath = path.join(
+    __dirname,
+    '../../test/fixtures/notion-fragmented-numbered-list.html'
+  );
+  const contents = fs.readFileSync(fixturePath).toString();
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'notion-fragmented-numbered-list.html',
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'overlapping-cloze': overlapping,
+    }),
+    files: [
+      { name: 'notion-fragmented-numbered-list.html', contents },
+    ],
+    noLimits: true,
+    workspace,
+  });
+  parser.writeDeckInfo(workspace);
+  return parser.payload[0];
+}
+
+test('overlapping cloze show-all turns a fragmented page list into N cloze notes', async () => {
+  const deck = await buildFragmentedListDeck('show-all');
+  expect(deck.cards.length).toBe(5);
+  for (const card of deck.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+  expect(deck.cards[0].name).toContain('{{c1::Mercury}}');
+  expect(deck.cards[0].name).toContain('Jupiter');
+  expect(deck.cards[4].name).toContain('{{c1::Jupiter}}');
+});
+
+test('overlapping cloze windowed limits a fragmented page list to neighbours', async () => {
+  const deck = await buildFragmentedListDeck('windowed');
+  expect(deck.cards.length).toBe(5);
+  const middle = deck.cards[2].name;
+  expect(countC1(middle)).toBe(1);
+  expect(middle).toContain('Venus');
+  expect(middle).toContain('{{c1::Earth}}');
+  expect(middle).toContain('Mars');
+  expect(middle).not.toContain('Mercury');
+  expect(middle).not.toContain('Jupiter');
+});
+
+test('overlapping cloze off leaves a fragmented page list as one card per item', async () => {
+  const deck = await buildFragmentedListDeck('off');
+  expect(deck.cards.length).toBe(5);
+  expect(deck.cards[0].name).toContain('Mercury');
+  expect(deck.cards[0].name).not.toContain('{{c1::');
+  expect(deck.cards[0].name).not.toContain('Venus');
+  expect(deck.cards[4].name).toContain('Jupiter');
+});
+
+function buildPageDeck(fixture: string, overlapping: string) {
+  const fixturePath = path.join(__dirname, '../../test/fixtures', fixture);
+  const contents = fs.readFileSync(fixturePath).toString();
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: fixture,
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'overlapping-cloze': overlapping,
+    }),
+    files: [{ name: fixture, contents }],
+    noLimits: true,
+    workspace,
+  });
+  parser.writeDeckInfo(workspace);
+  return parser.payload[0];
+}
+
+test('overlapping cloze show-all turns a single prose paragraph into N cloze notes', async () => {
+  const deck = buildPageDeck('notion-single-paragraph.html', 'show-all');
+  expect(deck.cards.length).toBe(3);
+  for (const card of deck.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+  expect(deck.cards[0].name).toContain('{{c1::You should not bother others}}');
+  expect(deck.cards[0].name).toContain('you should be kind and helpful');
+  expect(deck.cards[2].name).toContain(
+    '{{c1::and otherwise you may do as you like}}'
+  );
+});
+
+test('overlapping cloze off leaves a single prose paragraph as one card', async () => {
+  const deck = buildPageDeck('notion-single-paragraph.html', 'off');
+  expect(deck.cards.length).toBe(1);
+  expect(deck.cards[0].name).toContain('You should not bother others');
+  expect(deck.cards[0].name).not.toContain('{{c1::');
+});
+
+test('overlapping cloze leaves a multi-paragraph page untouched', async () => {
+  const deck = buildPageDeck('notion-multi-paragraph.html', 'show-all');
+  for (const card of deck.cards) {
+    expect(card.name).not.toContain('{{c1::');
+  }
+  expect(deck.cards.some((c) => c.name.includes('Mercury is the closest'))).toBe(
+    true
+  );
+});
+
+test('overlapping cloze show-all turns a poem of one-line blocks into N cloze notes', () => {
+  const deck = buildPageDeck('notion-poem-lines.html', 'show-all');
+  expect(deck.cards.length).toBe(7);
+  for (const card of deck.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+  expect(deck.cards[0].name).toContain('{{c1::Over the hills we go}}');
+  expect(deck.cards[0].name).toContain('Under a wide blue sky');
+  expect(deck.cards[6].name).toContain('{{c1::Sing for the falling night}}');
+  expect(deck.cards.some((c) => c.name.includes('(Come along now!)'))).toBe(
+    true
+  );
+});
+
+test('overlapping cloze windowed limits a poem to neighbouring lines', () => {
+  const deck = buildPageDeck('notion-poem-lines.html', 'windowed');
+  expect(deck.cards.length).toBe(7);
+  for (const card of deck.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+});
+
+test('overlapping cloze off leaves a poem as one basic card per line', () => {
+  const deck = buildPageDeck('notion-poem-lines.html', 'off');
+  expect(deck.cards.length).toBe(7);
+  for (const card of deck.cards) {
+    expect(card.name).not.toContain('{{c1::');
+  }
+  expect(deck.cards[0].name).toContain('Over the hills we go');
+});
+
+test('overlapping cloze leaves a multi-line prose page untouched', () => {
+  const deck = buildPageDeck('notion-prose-lines.html', 'show-all');
+  for (const card of deck.cards) {
+    expect(card.name).not.toContain('{{c1::');
+  }
+  expect(deck.cards.some((c) => c.name.includes('The river rose overnight'))).toBe(
+    true
+  );
+});
+
+test('overlapping cloze skips a page that mixes lines with a heading', () => {
+  const deck = buildPageDeck('notion-mixed-lines.html', 'show-all');
+  for (const card of deck.cards) {
+    expect(card.name).not.toContain('{{c1::');
+  }
+});
+
+function buildDeckFromFiles(
+  entryName: string,
+  files: { name: string; contents: string }[],
+  overlapping: string
+) {
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: entryName,
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'overlapping-cloze': overlapping,
+    }),
+    files,
+    noLimits: true,
+    workspace,
+  });
+  parser.writeDeckInfo(workspace);
+  return parser.payload;
+}
+
+test('overlapping cloze fires on the real Notion list wrapper, not just idealized HTML', () => {
+  const deck = buildPageDeck('notion-real-numbered-list.html', 'show-all');
+  expect(deck.cards.length).toBe(5);
+  for (const card of deck.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+  expect(deck.cards[0].name).toContain('{{c1::Mercury}}');
+  expect(deck.cards[0].name).toContain('Jupiter');
+  expect(deck.cards[4].name).toContain('{{c1::Jupiter}}');
+});
+
+test('the real Notion list wrapper stays basic when overlapping cloze is off', () => {
+  const deck = buildPageDeck('notion-real-numbered-list.html', 'off');
+  expect(deck.cards.length).toBe(5);
+  for (const card of deck.cards) {
+    expect(card.name).not.toContain('{{c1::');
+  }
+  expect(deck.cards[0].name).toContain('Mercury');
+  expect(deck.cards[0].name).not.toContain('Venus');
+});
+
+test('overlapping cloze reaches a real Notion subpage through link recursion', () => {
+  const parentPath = path.join(
+    __dirname,
+    '../../test/fixtures/notion-real-parent-with-link.html'
+  );
+  const subpagePath = path.join(
+    __dirname,
+    '../../test/fixtures/notion-real-numbered-list.html'
+  );
+  const parent = fs.readFileSync(parentPath).toString();
+  const subpage = fs.readFileSync(subpagePath).toString();
+  const decks = buildDeckFromFiles(
+    'Solar System 3727ab29a11e805099c5efe852c0ce3c.html',
+    [
+      {
+        name: 'Solar System 3727ab29a11e805099c5efe852c0ce3c.html',
+        contents: parent,
+      },
+      {
+        name: 'Solar System/Planets 3727ab29a11e807bbf51f5be7dc2959a.html',
+        contents: subpage,
+      },
+    ],
+    'show-all'
+  );
+  const subDeck = decks.find((d) => d.name === 'Solar System::Planets');
+  expect(subDeck).toBeDefined();
+  expect(subDeck!.cards.length).toBe(5);
+  for (const card of subDeck!.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+  expect(subDeck!.cards[0].name).toContain('{{c1::Mercury}}');
+});
+
 test('Colours', async () => {
   const deck = await getDeck(
     'Colours 0519bf7e86d84ee4ba710c1b7ff7438e.html',
