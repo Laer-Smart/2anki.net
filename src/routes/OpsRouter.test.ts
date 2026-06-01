@@ -6,6 +6,10 @@ jest.mock('../lib/integrations/stripe', () => ({
   getStripe: jest.fn(),
 }));
 
+jest.mock('../services/events/eventsSinkInstance', () => ({
+  getEventsSink: () => ({ record: jest.fn() }),
+}));
+
 const featureFlagStore: Array<{
   key: string;
   value: boolean;
