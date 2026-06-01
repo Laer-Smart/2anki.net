@@ -651,6 +651,26 @@ describe('NotionController', () => {
       expect(res.redirect).toHaveBeenCalledWith('/notion');
     });
 
+    it('returns 401 and never calls connectToNotion when the owner is missing', async () => {
+      service = buildConnectService();
+      controller = new NotionController(service);
+      req = { query: { code: 'auth-code' } };
+      res = {
+        redirect: jest.fn().mockReturnThis(),
+        clearCookie: jest.fn().mockReturnThis(),
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+        locals: {},
+      } as any;
+
+      await controller.connect(req as express.Request, res as express.Response);
+
+      expect(service.connectToNotion).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(401);
+      const body = (res.json as jest.Mock).mock.calls[0]?.[0];
+      expect(body.code).toBe('notion_unauthorized');
+    });
+
     it('preserves the login: branch and does not call connectToNotion', async () => {
       service = buildConnectService();
       controller = new NotionController(service);
