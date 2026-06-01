@@ -6,7 +6,7 @@
 .deck {
   position: relative;
   display: block;
-  min-height: 5.25rem;
+  min-height: 8.75rem;
   padding: 0.875rem 1rem;
   border-radius: var(--radius-md);
   background-color: var(--color-bg-secondary);
@@ -19,8 +19,8 @@
   flex-direction: column;
   gap: 0.25rem;
   opacity: 0;
-  animation: cloze-frame 4860ms ease-in-out infinite;
-  animation-delay: calc(var(--frame-index) * 1620ms);
+  animation: cloze-frame 7500ms ease-in-out infinite;
+  animation-delay: calc(var(--frame-index) * 1500ms);
 }
 
 .line {
@@ -32,11 +32,6 @@
 
 .lineText {
   color: var(--color-text-primary);
-}
-
-.lineOutside {
-  color: var(--color-text-primary);
-  opacity: 0.25;
 }
 
 .slot {
@@ -58,15 +53,15 @@
     opacity: 0;
     transform: translateY(2px);
   }
-  4.5% {
+  2.7% {
     opacity: 1;
     transform: translateY(0);
   }
-  33.3% {
+  17.3% {
     opacity: 1;
     transform: translateY(0);
   }
-  37.8% {
+  20% {
     opacity: 0;
     transform: translateY(-2px);
   }

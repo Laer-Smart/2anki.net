@@ -7,7 +7,7 @@ interface OverlappingClozePreviewProps {
   style: OverlappingClozeStyle;
 }
 
-const LINES = ['Mercury', 'Venus', 'Earth'] as const;
+const LINES = ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter'] as const;
 const HIDDEN_SLOT = '[ … ]';
 
 function prefersReducedMotion(): boolean {
@@ -15,13 +15,13 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-function isOutsideWindow(
+function isInWindow(
   style: OverlappingClozeStyle,
   hiddenIndex: number,
   lineIndex: number,
 ): boolean {
-  if (style === 'show-all') return false;
-  return Math.abs(lineIndex - hiddenIndex) > 1;
+  if (style === 'show-all') return true;
+  return Math.abs(lineIndex - hiddenIndex) <= 1;
 }
 
 function Frame({
@@ -40,23 +40,19 @@ function Frame({
       style={{ '--frame-index': position } as React.CSSProperties}
     >
       {LINES.map((line, lineIndex) => {
-        const hidden = lineIndex === hiddenIndex;
-        if (hidden) {
+        if (!isInWindow(style, hiddenIndex, lineIndex)) {
+          return null;
+        }
+        if (lineIndex === hiddenIndex) {
           return (
             <span key={line} className={styles.line}>
               <span className={styles.slot}>{HIDDEN_SLOT}</span>
             </span>
           );
         }
-        const outside = isOutsideWindow(style, hiddenIndex, lineIndex);
         return (
           <span key={line} className={styles.line}>
-            <span
-              className={outside ? styles.lineOutside : styles.lineText}
-              data-outside={outside ? 'true' : undefined}
-            >
-              {line}
-            </span>
+            <span className={styles.lineText}>{line}</span>
           </span>
         );
       })}
@@ -73,7 +69,7 @@ export function OverlappingClozePreview({
     setReducedMotion(prefersReducedMotion());
   }, []);
 
-  const hiddenIndices = reducedMotion ? [0] : [0, 1, 2];
+  const hiddenIndices = reducedMotion ? [0] : LINES.map((_, index) => index);
 
   return (
     <span
@@ -92,7 +88,7 @@ export function OverlappingClozePreview({
         ))}
       </span>
       <span className={styles.caption}>
-        3 lines become 3 cards — each hides one
+        5 lines become 5 cards — each hides one
       </span>
     </span>
   );
