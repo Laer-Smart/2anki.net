@@ -146,3 +146,11 @@ export function hasDoc(slug: string): boolean {
   const resolved = resolveSlug(slug);
   return Object.hasOwn(docs, resolved);
 }
+
+export interface SlugDoc extends LoadedDoc {
+  slug: string;
+}
+
+export function getAllDocs(): SlugDoc[] {
+  return Object.entries(docs).map(([slug, doc]) => ({ slug, ...doc }));
+}

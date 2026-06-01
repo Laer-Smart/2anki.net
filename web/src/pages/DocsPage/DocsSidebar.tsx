@@ -1,15 +1,18 @@
 import { NavLink } from 'react-router-dom';
 import { findGroupForSlug, sidebar } from './sidebar';
+import { DocsSearchTrigger } from './DocsSearchTrigger';
 import styles from './DocsPage.module.css';
 
 interface DocsSidebarProps {
   onNavigate?: () => void;
+  onSearch?: () => void;
   isDrawer?: boolean;
   activeSlug?: string;
 }
 
 export function DocsSidebar({
   onNavigate,
+  onSearch,
   isDrawer,
   activeSlug,
 }: Readonly<DocsSidebarProps>) {
@@ -22,6 +25,7 @@ export function DocsSidebar({
       className={`${styles.sidebar} ${isDrawer ? styles.sidebarDrawer : ''}`}
       aria-label="Documentation"
     >
+      {onSearch && <DocsSearchTrigger onOpen={onSearch} />}
       {sidebar.map((group) => {
         const isActiveGroup = group.label === activeGroupLabel;
         return (
