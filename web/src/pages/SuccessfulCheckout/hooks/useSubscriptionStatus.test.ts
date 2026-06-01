@@ -61,6 +61,43 @@ describe('useSubscriptionStatus purchase event', () => {
     expect(purchaseCalls).toHaveLength(1);
   }, 12000);
 
+  it('strips session_id from the address bar after capturing it', async () => {
+    const replaceState = vi.fn();
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      configurable: true,
+      value: {
+        href: 'https://2anki.net/successful-checkout?session_id=cs_test_xyz',
+        pathname: '/successful-checkout',
+        search: '?session_id=cs_test_xyz',
+        hash: '',
+      },
+    });
+    Object.defineProperty(globalThis, 'history', {
+      writable: true,
+      configurable: true,
+      value: { state: null, replaceState },
+    });
+
+    vi.mocked(globalThis.fetch).mockResolvedValue(
+      new Response(
+        JSON.stringify({ authenticated: false, hasActiveSubscription: false }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )
+    );
+
+    const { useSubscriptionStatus } = await import('./useSubscriptionStatus');
+    renderHook(() => useSubscriptionStatus(), { wrapper: buildWrapper() });
+
+    await waitFor(() => {
+      expect(replaceState).toHaveBeenCalledWith(
+        null,
+        '',
+        '/successful-checkout'
+      );
+    });
+  });
+
   it('does not fire purchase when dedup key is already set in sessionStorage', async () => {
     const { track } = await import('../../../lib/analytics/track');
     const trackMock = vi.mocked(track);

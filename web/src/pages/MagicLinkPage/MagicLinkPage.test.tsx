@@ -99,4 +99,19 @@ describe('MagicLinkPage', () => {
       screen.getByText('Something went wrong. Try again.')
     ).toBeInTheDocument();
   });
+
+  it('strips the token from the address bar after reading it', async () => {
+    globalThis.history.replaceState(
+      null,
+      '',
+      '/auth/magic?token=secret-value'
+    );
+    mockValidateMagicToken.mockReturnValue(new Promise(() => {}));
+    renderMagicLinkPage('?token=secret-value');
+
+    await waitFor(() => {
+      expect(globalThis.location.search).not.toContain('token');
+    });
+    expect(globalThis.location.pathname).toBe('/auth/magic');
+  });
 });

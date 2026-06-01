@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { track } from '../../../lib/analytics/track';
+import { stripUrlParam } from '../../../lib/stripUrlParam';
 
 interface SubscriptionStatus {
   authenticated: boolean;
@@ -38,9 +39,13 @@ export const useSubscriptionStatus = () => {
   const [shouldPoll, setShouldPoll] = useState(true);
   const [timeoutReached, setTimeoutReached] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const sessionId = new URLSearchParams(globalThis.location.search).get(
-    'session_id'
+  const [sessionId] = useState(() =>
+    new URLSearchParams(globalThis.location.search).get('session_id')
   );
+
+  useEffect(() => {
+    stripUrlParam('session_id');
+  }, []);
 
   const query = useQuery({
     queryKey: ['subscription-status', sessionId],
