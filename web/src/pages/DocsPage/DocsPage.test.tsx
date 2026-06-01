@@ -12,9 +12,6 @@ vi.mock('./DocsHome', () => ({
 vi.mock('./DocsSidebar', () => ({
   DocsSidebar: () => <nav>sidebar</nav>,
 }));
-vi.mock('./DocsDrawer', () => ({
-  DocsDrawer: () => null,
-}));
 
 function renderAt(path: string) {
   return render(
