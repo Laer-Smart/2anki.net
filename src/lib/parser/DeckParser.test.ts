@@ -10,6 +10,29 @@ import { EmptyDeckError } from '../../usecases/jobs/EmptyDeckError';
 
 beforeEach(() => setupTests());
 
+test('YouTube embeds are responsive so they fit narrow screens', async () => {
+  const html = `<html><head><title>Video</title></head>
+<body><article class="page sans"><header><h1 class="page-title">Video</h1></header><div class="page-body">
+<ul class="toggle"><li><details open=""><summary>Watch this</summary>
+<figure><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">https://www.youtube.com/watch?v=dQw4w9WgXcQ</a></figure></details></li></ul>
+</div></article></body></html>`;
+
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'video.html',
+    settings: new CardOption({ cherry: 'false' }),
+    files: [{ name: 'video.html', contents: html }],
+    noLimits: true,
+    workspace,
+  });
+  await parser.build(workspace);
+
+  const back = parser.payload[0].cards[0].back;
+  expect(back).toContain('youtube.com/embed/dQw4w9WgXcQ');
+  expect(back).toContain('max-width:560px');
+  expect(back).not.toContain("width='560'");
+});
+
 test('deck style includes Notion highlight color rules for file uploads', async () => {
   const html = `<html><head><title>Colors</title><style>body { font-size: 16px; }</style></head>
 <body><article>
