@@ -136,7 +136,7 @@ class NotionController {
         return res.status(401).json({ code: 'notion_unauthorized', message: 'Notion is not connected.' });
       }
 
-      const query = req.body.query.toString() || '';
+      const query = (req.body.query ?? '').toString();
       const result = await this.service.search(query, getOwner(res));
       res.json(result);
     } catch (err) {
