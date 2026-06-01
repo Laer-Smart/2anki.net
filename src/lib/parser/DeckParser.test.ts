@@ -296,6 +296,84 @@ test('overlapping cloze leaves a multi-paragraph page untouched', async () => {
   );
 });
 
+function buildDeckFromFiles(
+  entryName: string,
+  files: { name: string; contents: string }[],
+  overlapping: string
+) {
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: entryName,
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'overlapping-cloze': overlapping,
+    }),
+    files,
+    noLimits: true,
+    workspace,
+  });
+  parser.writeDeckInfo(workspace);
+  return parser.payload;
+}
+
+test('overlapping cloze fires on the real Notion list wrapper, not just idealized HTML', () => {
+  const deck = buildPageDeck('notion-real-numbered-list.html', 'show-all');
+  expect(deck.cards.length).toBe(5);
+  for (const card of deck.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+  expect(deck.cards[0].name).toContain('{{c1::Mercury}}');
+  expect(deck.cards[0].name).toContain('Jupiter');
+  expect(deck.cards[4].name).toContain('{{c1::Jupiter}}');
+});
+
+test('the real Notion list wrapper stays basic when overlapping cloze is off', () => {
+  const deck = buildPageDeck('notion-real-numbered-list.html', 'off');
+  expect(deck.cards.length).toBe(5);
+  for (const card of deck.cards) {
+    expect(card.name).not.toContain('{{c1::');
+  }
+  expect(deck.cards[0].name).toContain('Mercury');
+  expect(deck.cards[0].name).not.toContain('Venus');
+});
+
+test('overlapping cloze reaches a real Notion subpage through link recursion', () => {
+  const parentPath = path.join(
+    __dirname,
+    '../../test/fixtures/notion-real-parent-with-link.html'
+  );
+  const subpagePath = path.join(
+    __dirname,
+    '../../test/fixtures/notion-real-numbered-list.html'
+  );
+  const parent = fs.readFileSync(parentPath).toString();
+  const subpage = fs.readFileSync(subpagePath).toString();
+  const decks = buildDeckFromFiles(
+    'Solar System 3727ab29a11e805099c5efe852c0ce3c.html',
+    [
+      {
+        name: 'Solar System 3727ab29a11e805099c5efe852c0ce3c.html',
+        contents: parent,
+      },
+      {
+        name: 'Solar System/Planets 3727ab29a11e807bbf51f5be7dc2959a.html',
+        contents: subpage,
+      },
+    ],
+    'show-all'
+  );
+  const subDeck = decks.find((d) => d.name === 'Solar System::Planets');
+  expect(subDeck).toBeDefined();
+  expect(subDeck!.cards.length).toBe(5);
+  for (const card of subDeck!.cards) {
+    expect(card.cloze).toBe(true);
+    expect(countC1(card.name)).toBe(1);
+  }
+  expect(subDeck!.cards[0].name).toContain('{{c1::Mercury}}');
+});
+
 test('Colours', async () => {
   const deck = await getDeck(
     'Colours 0519bf7e86d84ee4ba710c1b7ff7438e.html',
