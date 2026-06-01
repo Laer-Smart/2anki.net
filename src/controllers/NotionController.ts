@@ -115,9 +115,17 @@ class NotionController {
       return res.redirect(`/api/users/auth/notion?code=${encodeURIComponent(code as string)}`);
     }
 
+    const owner = res.locals.owner;
+    if (owner == null) {
+      return res.status(401).json({
+        code: 'notion_unauthorized',
+        message: 'Sign in before connecting Notion.',
+      });
+    }
+
     try {
       const authorizationCode = code as string;
-      await this.service.connectToNotion(authorizationCode, res.locals.owner);
+      await this.service.connectToNotion(authorizationCode, owner);
       if (stateStr === 'native') {
         return res.redirect(NATIVE_NOTION_RETURN_URL);
       }
