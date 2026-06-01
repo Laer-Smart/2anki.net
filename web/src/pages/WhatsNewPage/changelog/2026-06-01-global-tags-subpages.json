@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-01-global-tags-subpages",
+  "date": "2026-06-01",
+  "type": "fix",
+  "title": "Global tags set on a page now apply to the cards in its sub-pages too"
+}
