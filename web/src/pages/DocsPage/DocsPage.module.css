@@ -601,6 +601,16 @@
   .homeGrid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .layout {
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 2rem;
+  }
+  .menuButton {
+    display: none;
+  }
+  .sidebarWrapper {
+    display: block;
+  }
 }
 
 .homeCard {
@@ -760,20 +770,6 @@
 
 .sidebarDrawer {
   padding: 1rem 1.25rem 2rem;
-}
-
-:global([data-shell]) .layout {
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-:global([data-shell]) .menuButton {
-  display: inline-flex;
-  justify-self: start;
-}
-
-:global([data-shell]) .sidebarWrapper {
-  display: none;
 }
 
 .searchTrigger {
@@ -1031,12 +1027,6 @@
     grid-template-columns: 240px minmax(0, 1fr);
     gap: 3rem;
     padding: 2rem 1.5rem 4rem;
-  }
-  .menuButton {
-    display: none;
-  }
-  .sidebarWrapper {
-    display: block;
   }
   .pager {
     grid-template-columns: 1fr 1fr;
