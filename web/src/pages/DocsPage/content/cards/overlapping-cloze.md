@@ -22,21 +22,24 @@ Say you have a Notion toggle titled **Pledge of Allegiance** whose contents are 
 - I pledge allegiance
 - to the flag
 - of the United States of America
+- and to the republic for which it stands
 
-A list of 3 items becomes 3 cards. The styles differ in how much of the list each card shows around the hidden line.
+A list of 4 items becomes 4 cards. The styles differ in how much of the list each card shows around the hidden line.
 
-**Show the whole list** keeps every line visible, hiding one at a time. The card for the second line reads:
-
-> I pledge allegiance
-> [...]
-> of the United States of America
-
-**Show nearby lines only** keeps just the line before and the line after, dropping the rest. The card for the second line reads:
+**Show the whole list** keeps every line visible, hiding one at a time. The card for the third line reads:
 
 > I pledge allegiance
+> to the flag
 > [...]
+> and to the republic for which it stands
 
-Show the whole list is best when the surrounding lines jog your memory. Show nearby lines only is closer to true recitation — you recall each line from its immediate neighbours.
+**Show nearby lines only** keeps just the line before and the line after, dropping the rest. The card for the third line reads:
+
+> to the flag
+> [...]
+> and to the republic for which it stands
+
+The first line is gone — you recall the hidden line from its immediate neighbours, not the whole list. Show the whole list is best when the full sequence jogs your memory; show nearby lines only is closer to true recitation.
 
 ## What fires it
 
