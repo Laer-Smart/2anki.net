@@ -499,6 +499,38 @@ test('global tags per file are preserved in multi-file uploads', async () => {
   expect(deckB.cards[0].tags).not.toContain('alpha-tag');
 });
 
+test('global tags on a parent page carry into its sub-pages', async () => {
+  const parentHtml = `<html><head><title>Parent</title></head><body><article class="page sans"><header><h1 class="page-title">Parent</h1></header><div class="page-body">
+<p><del>parenttag</del></p>
+<ul class="toggle"><li><details open=""><summary>Parent Q</summary><p>Parent A</p></details></li></ul>
+<figure class="link-to-page"><a href="sub.html">Sub</a></figure>
+</div></article></body></html>`;
+  const subHtml = `<html><head><title>Sub</title></head><body><article class="page sans"><header><h1 class="page-title">Sub</h1></header><div class="page-body">
+<ul class="toggle"><li><details open=""><summary>Sub Q</summary><p>Sub A</p></details></li></ul>
+</div></article></body></html>`;
+
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'parent.html',
+    settings: new CardOption({ tags: 'true', cherry: 'false' }),
+    files: [
+      { name: 'parent.html', contents: parentHtml },
+      { name: 'sub.html', contents: subHtml },
+    ],
+    noLimits: true,
+    workspace,
+  });
+
+  parser.customExporter.save = jest.fn().mockResolvedValue('');
+  await parser.build(workspace);
+
+  const parentDeck = parser.payload[0];
+  const subDeck = parser.payload.find((d) => d.name.includes('Sub'));
+  expect(parentDeck.cards[0].tags).toContain('parenttag');
+  expect(subDeck).toBeDefined();
+  expect(subDeck!.cards[0].tags).toContain('parenttag');
+});
+
 test.todo('Input Cards ');
 test.todo('Test Basic Card');
 

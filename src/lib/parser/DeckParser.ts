@@ -340,7 +340,8 @@ export class DeckParser {
     fileName: string,
     contents: string,
     deckName: string,
-    decks: Deck[]
+    decks: Deck[],
+    inheritedGlobalTags: string[] = []
   ) {
     const { dom, isNewFormat } = this.loadAndNormalizeDOM(contents);
 
@@ -363,7 +364,9 @@ export class DeckParser {
       settings: this.settings,
     });
 
-    const fileGlobalTags = this.extractGlobalTags(dom);
+    const fileGlobalTags = [
+      ...new Set([...inheritedGlobalTags, ...this.extractGlobalTags(dom)]),
+    ];
 
     const toggleList = this.extractToggleLists(dom);
     const paragraphs = this.extractCardsFromParagraph(dom);
@@ -421,7 +424,8 @@ export class DeckParser {
           fileName,
           pageContent.toString(),
           `${name}::${subDeckName}`,
-          decks
+          decks,
+          fileGlobalTags
         );
       }
     }
