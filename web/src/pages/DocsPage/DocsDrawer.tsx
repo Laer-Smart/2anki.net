@@ -5,12 +5,14 @@ import styles from './DocsPage.module.css';
 interface DocsDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  onSearch: () => void;
   activeSlug: string;
 }
 
 export function DocsDrawer({
   isOpen,
   onClose,
+  onSearch,
   activeSlug,
 }: Readonly<DocsDrawerProps>) {
   useEffect(() => {
@@ -56,6 +58,7 @@ export function DocsDrawer({
         <DocsSidebar
           isDrawer
           onNavigate={onClose}
+          onSearch={onSearch}
           activeSlug={activeSlug}
         />
       </div>
