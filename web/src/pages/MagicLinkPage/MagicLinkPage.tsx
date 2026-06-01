@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { getSearchPath } from '../../components/NavigationBar/helpers/getSearchPath';
+import { stripUrlParam } from '../../lib/stripUrlParam';
 import styles from '../../styles/auth.module.css';
 import sharedStyles from '../../styles/shared.module.css';
 
@@ -33,6 +34,7 @@ function MagicLinkPage() {
 
     let cancelled = false;
     const validToken = token;
+    stripUrlParam('token');
 
     async function validateToken() {
       try {
