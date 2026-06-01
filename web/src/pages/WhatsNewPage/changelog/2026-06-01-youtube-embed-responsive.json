@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-01-youtube-embed-responsive",
+  "date": "2026-06-01",
+  "type": "fix",
+  "title": "YouTube videos on cards scale to fit the screen instead of overflowing on phones"
+}

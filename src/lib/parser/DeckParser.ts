@@ -615,7 +615,11 @@ export class DeckParser {
     const id = this._getYouTubeID(card.back);
     if (id) {
       const ytSrc = getYouTubeEmbedLink(id);
-      card.back += `<iframe width='560' height='315' src='${ytSrc}' frameborder='0' allowfullscreen></iframe>`;
+      card.back +=
+        `<div style='position:relative;width:100%;max-width:560px;margin:0 auto;'>` +
+        `<div style='position:relative;padding-bottom:56.25%;height:0;'>` +
+        `<iframe src='${ytSrc}' style='position:absolute;top:0;left:0;width:100%;height:100%;border:0;' allowfullscreen></iframe>` +
+        `</div></div>`;
     }
 
     const soundCloudUrl = this.getSoundCloudURL(card.back);
