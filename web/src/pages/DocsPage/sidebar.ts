@@ -25,7 +25,6 @@ export const sidebar: SidebarGroup[] = [
         slug: 'start-here/import-from-anki',
       },
       { label: 'Share a deck with a link', slug: 'start-here/share-a-deck' },
-      { label: 'Sign in with Apple', slug: 'start-here/sign-in-with-apple' },
     ],
   },
   {
