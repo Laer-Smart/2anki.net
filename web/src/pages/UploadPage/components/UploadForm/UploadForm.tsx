@@ -7,7 +7,10 @@ import { getStoredPassToken } from '../../../../lib/anonymousPass';
 import type { UploadErrorBody } from '../../../../types/UploadErrorBody';
 import getAcceptedContentTypes from '../../helpers/getAcceptedContentTypes';
 import { extractErrorMessage } from '../../helpers/extractErrorMessage';
-import getHeadersFilename from '../../helpers/getHeadersFilename';
+import {
+  applyConversionSuccess,
+  type ConversionSuccessHandlers,
+} from './uploadResponse';
 import { getDownloadFileName } from '../../../DownloadsPage/helpers/getDownloadFileName';
 import { getEmptyDeckChatPrompt } from '../../helpers/getEmptyDeckChatPrompt';
 import { useDrag } from './hooks/useDrag';
@@ -111,29 +114,6 @@ function buildFormData(form: HTMLFormElement): FormData {
   return formData;
 }
 
-function parseCardCountHeader(headers: Headers): number | null {
-  const cardCountHeader = headers.get('X-Card-Count');
-  if (!cardCountHeader) return null;
-  const parsed = Number.parseInt(cardCountHeader, 10);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function parseNonNegativeIntHeader(headers: Headers, name: string): number {
-  const raw = headers.get(name);
-  if (!raw) return 0;
-  const parsed = Number.parseInt(raw, 10);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-}
-
-function resolveDeckName(headers: Headers): string {
-  const fileNameHeader = getHeadersFilename(headers);
-  const fallback =
-    headers.get('Content-Type') === 'application/zip'
-      ? 'Your Decks.zip'
-      : 'Your deck.apkg';
-  return fileNameHeader ?? fallback;
-}
-
 function displayFilename(fileInput: HTMLInputElement | null): string {
   const files = fileInput?.files;
   if (!files || files.length === 0) return '';
@@ -234,6 +214,8 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
   const {
     zoneState,
     setZoneState,
+    batchResult,
+    setBatchResult,
     downloadLink,
     setDownloadLink,
     deckName,
@@ -298,6 +280,18 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       clearTimeout(fallbackTimerRef.current);
     }
   });
+
+  const conversionSuccessHandlers: ConversionSuccessHandlers = {
+    setWarningMessage,
+    setDeckName,
+    setCardCount,
+    setMcqCount,
+    setMcqSkippedCount,
+    setDownloadLink,
+    setProgressWidth,
+    setBatchResult,
+    setZoneState,
+  };
 
   const { data: userLocals } = useUserLocals();
   const queryClient = useQueryClient();
@@ -461,21 +455,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
         setZoneState(zoneStateForUploadError(message));
         return;
       }
-      setWarningMessage(request.headers.get('X-Warning'));
-      setDeckName(resolveDeckName(request.headers));
-      const count = parseCardCountHeader(request.headers);
-      setCardCount(count);
-      setMcqCount(parseNonNegativeIntHeader(request.headers, 'X-MCQ-Count'));
-      setMcqSkippedCount(parseNonNegativeIntHeader(request.headers, 'X-MCQ-Skipped-Count'));
-      const blob = await request.blob();
-      setDownloadLink(globalThis.URL.createObjectURL(blob));
-      setProgressWidth(100);
-      if (count === 0) {
-        setZoneState('emptyDeck');
-      } else {
-        fireAnalyticsEvent('conversion_success');
-        setZoneState('success');
-      }
+      await applyConversionSuccess(request, conversionSuccessHandlers);
     } catch (error) {
       setLocalError(toFriendlyThrownError(error));
       setZoneState('error');
@@ -555,21 +535,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
         setZoneState(zoneStateForUploadError(message));
         return;
       }
-      setWarningMessage(request.headers.get('X-Warning'));
-      setDeckName(resolveDeckName(request.headers));
-      const count = parseCardCountHeader(request.headers);
-      setCardCount(count);
-      setMcqCount(parseNonNegativeIntHeader(request.headers, 'X-MCQ-Count'));
-      setMcqSkippedCount(parseNonNegativeIntHeader(request.headers, 'X-MCQ-Skipped-Count'));
-      const blob = await request.blob();
-      setDownloadLink(globalThis.URL.createObjectURL(blob));
-      setProgressWidth(100);
-      if (count === 0) {
-        setZoneState('emptyDeck');
-      } else {
-        fireAnalyticsEvent('conversion_success');
-        setZoneState('success');
-      }
+      await applyConversionSuccess(request, conversionSuccessHandlers);
     } catch (error) {
       setLocalError(toFriendlyThrownError(error));
       setZoneState('error');
@@ -658,21 +624,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
         setZoneState(zoneStateForUploadError(message));
         return false;
       }
-      setWarningMessage(request.headers.get('X-Warning'));
-      setDeckName(resolveDeckName(request.headers));
-      const count = parseCardCountHeader(request.headers);
-      setCardCount(count);
-      setMcqCount(parseNonNegativeIntHeader(request.headers, 'X-MCQ-Count'));
-      setMcqSkippedCount(parseNonNegativeIntHeader(request.headers, 'X-MCQ-Skipped-Count'));
-      const blob = await request.blob();
-      setDownloadLink(globalThis.URL.createObjectURL(blob));
-      setProgressWidth(100);
-      if (count === 0) {
-        setZoneState('emptyDeck');
-      } else {
-        fireAnalyticsEvent('conversion_success');
-        setZoneState('success');
-      }
+      await applyConversionSuccess(request, conversionSuccessHandlers);
     } catch (error) {
       const isNetworkError =
         error instanceof TypeError ||
@@ -703,7 +655,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     formStyles.dropZone,
     dropHover && zoneState === 'idle' ? formStyles.dropZoneActive : '',
     zoneState === 'converting' ? formStyles.dropZoneConverting : '',
-    zoneState === 'success' ? formStyles.dropZoneSuccess : '',
+    zoneState === 'success' || zoneState === 'multiDeck' ? formStyles.dropZoneSuccess : '',
     zoneState === 'emptyDeck' ? formStyles.dropZoneEmpty : '',
     zoneState === 'error' && !isExistingApkgReject ? formStyles.dropZoneError : '',
     isExistingApkgReject ? formStyles.dropZoneRedirect : '',
@@ -877,6 +829,63 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       </div>
     </div>
   );
+
+  const renderMultiDeckState = () => {
+    if (batchResult == null) return null;
+    const { decks, bulkUrl, deckCount } = batchResult;
+    const onDeckDownload = () => {
+      fireAnalyticsEvent('deck_downloaded');
+      track('deck_downloaded');
+    };
+    return (
+      <div className={formStyles.stateContent}>
+        <CheckCircleIcon className={formStyles.iconSuccess} />
+        <p className={formStyles.successPrimary}>
+          {deckCount} {deckCount === 1 ? 'deck' : 'decks'} ready
+        </p>
+        <ul className={formStyles.deckList}>
+          {decks.map((deck) => (
+            <li key={deck.filename} className={formStyles.deckRow}>
+              <span
+                className={formStyles.deckRowName}
+                data-hj-suppress
+                title={deck.name}
+              >
+                {deck.name}
+              </span>
+              <a
+                href={deck.downloadUrl}
+                download
+                className={formStyles.deckRowDownload}
+                aria-label={`Download ${deck.name}`}
+                onClick={onDeckDownload}
+              >
+                Download
+              </a>
+            </li>
+          ))}
+        </ul>
+        <a
+          href={bulkUrl}
+          download
+          className={formStyles.actionButton}
+          onClick={onDeckDownload}
+        >
+          Download all (zip)
+        </a>
+        <p className={formStyles.successSecondary}>
+          Links expire in 2 hours — download now.
+        </p>
+        <button
+          type="button"
+          className={formStyles.resetLink}
+          onClick={resetForm}
+        >
+          Make more decks
+        </button>
+      </div>
+    );
+  };
 
   const renderEmptyDeckBody = () => {
     if (localError?.code === 'markdown_likely_lossy') {
@@ -1162,22 +1171,8 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       });
 
       if (request.status === 200) {
-        setWarningMessage(request.headers.get('X-Warning'));
-        setDeckName(resolveDeckName(request.headers));
-        const count = parseCardCountHeader(request.headers);
-        setCardCount(count);
-        setMcqCount(parseNonNegativeIntHeader(request.headers, 'X-MCQ-Count'));
-        setMcqSkippedCount(parseNonNegativeIntHeader(request.headers, 'X-MCQ-Skipped-Count'));
-        const blob = await request.blob();
-        setDownloadLink(globalThis.URL.createObjectURL(blob));
-        setProgressWidth(100);
         setLockedPdfInfo(null);
-        if (count === 0) {
-          setZoneState('emptyDeck');
-        } else {
-          fireAnalyticsEvent('conversion_success');
-          setZoneState('success');
-        }
+        await applyConversionSuccess(request, conversionSuccessHandlers);
         return;
       }
 
@@ -1303,6 +1298,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     if (validation && zoneState === 'idle') return renderValidationState();
     if (zoneState === 'converting') return renderConvertingState();
     if (zoneState === 'success') return renderSuccessState();
+    if (zoneState === 'multiDeck') return renderMultiDeckState();
     if (zoneState === 'emptyDeck') return renderEmptyDeckState();
     if (zoneState === 'limitReached' && limitInfo) return renderLimitState();
     if (zoneState === 'lockedPdf') return renderLockedPdfState();
@@ -1321,6 +1317,10 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       if (cardCount == null) return 'Your deck is ready.';
       const noun = cardCount === 1 ? 'card' : 'cards';
       return `Your deck is ready — ${cardCount} ${noun}.`;
+    }
+    if (zoneState === 'multiDeck') {
+      const n = batchResult?.deckCount ?? 0;
+      return `${n} ${n === 1 ? 'deck' : 'decks'} ready.`;
     }
     if (zoneState === 'emptyDeck') {
       return 'Conversion finished, but no cards were found.';

@@ -674,3 +674,81 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
     expect(Buffer.compare(uploadedBuffer, apkgContents)).toBe(0);
   });
 });
+
+describe('UploadService.handleUpload — multi-deck batch', () => {
+  const originalWorkspaceBase = process.env.WORKSPACE_BASE;
+  let workspaceDir = '';
+
+  beforeAll(() => {
+    process.env.WORKSPACE_BASE = path.join(os.tmpdir(), 'upload-service-batch');
+  });
+
+  afterAll(() => {
+    process.env.WORKSPACE_BASE = originalWorkspaceBase;
+  });
+
+  beforeEach(() => {
+    MockGeneratePackagesUseCase.mockClear();
+    trackMock.mockClear();
+    mockWorkspaceId = 'batch-ws-id';
+    workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'batch-ws-'));
+    mockWorkspaceLocation = workspaceDir;
+    fs.writeFileSync(path.join(workspaceDir, 'Biology 101.apkg'), 'deck-a');
+    fs.writeFileSync(path.join(workspaceDir, 'Chemistry.apkg'), 'deck-b');
+    fs.writeFileSync(path.join(workspaceDir, 'index.html'), '<html></html>');
+  });
+
+  afterEach(() => {
+    fs.rmSync(workspaceDir, { recursive: true, force: true });
+  });
+
+  it('returns 200 JSON listing every deck instead of redirecting to /download', async () => {
+    MockGeneratePackagesUseCase.mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        packages: [
+          { name: 'Biology 101', cardCount: 3, mcqCount: 0, mcqSkippedCount: 0 },
+          { name: 'Chemistry', cardCount: 5, mcqCount: 0, mcqSkippedCount: 0 },
+        ],
+        warnings: [],
+      }),
+    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+
+    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
+    const req = buildRequest();
+    const { res, capturedStatus, capturedJson } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(res.redirect).not.toHaveBeenCalled();
+    expect(capturedStatus()).toBe(200);
+
+    const body = capturedJson() as {
+      kind: string;
+      workspaceId: string;
+      deckCount: number;
+      decks: { name: string; filename: string; downloadUrl: string }[];
+      bulkUrl: string;
+    };
+    expect(body.kind).toBe('batch');
+    expect(body.workspaceId).toBe('batch-ws-id');
+    expect(body.deckCount).toBe(2);
+    expect(body.bulkUrl).toBe('/download/batch-ws-id/bulk');
+    expect(body.decks).toHaveLength(2);
+
+    const names = body.decks.map((d) => d.name).sort();
+    expect(names).toEqual(['Biology 101', 'Chemistry']);
+    const chemistry = body.decks.find((d) => d.name === 'Chemistry')!;
+    expect(chemistry.filename).toBe('Chemistry.apkg');
+    expect(chemistry.downloadUrl).toBe('/download/batch-ws-id/Chemistry.apkg');
+
+    const biology = body.decks.find((d) => d.name === 'Biology 101')!;
+    expect(biology.downloadUrl).toBe(
+      '/download/batch-ws-id/Biology%20101.apkg'
+    );
+
+    expect(trackMock).toHaveBeenCalledWith(
+      'conversion_succeeded',
+      expect.objectContaining({ props: expect.objectContaining({ source: 'upload' }) })
+    );
+  });
+});

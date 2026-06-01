@@ -1,0 +1,82 @@
+import getHeadersFilename from '../../helpers/getHeadersFilename';
+import { fireAnalyticsEvent } from '../../../../lib/analytics/fireAnalyticsEvent';
+import type { BatchResult, ZoneState } from './hooks/useUploadFormState';
+
+export function resolveDeckName(headers: Headers): string {
+  const fileNameHeader = getHeadersFilename(headers);
+  const fallback =
+    headers.get('Content-Type') === 'application/zip'
+      ? 'Your Decks.zip'
+      : 'Your deck.apkg';
+  return fileNameHeader ?? fallback;
+}
+
+export function parseCardCountHeader(headers: Headers): number | null {
+  const cardCountHeader = headers.get('X-Card-Count');
+  if (!cardCountHeader) return null;
+  const parsed = Number.parseInt(cardCountHeader, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function parseNonNegativeIntHeader(headers: Headers, name: string): number {
+  const raw = headers.get(name);
+  if (!raw) return 0;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+}
+
+export interface ConversionSuccessHandlers {
+  setWarningMessage: (value: string | null) => void;
+  setDeckName: (value: string) => void;
+  setCardCount: (value: number | null) => void;
+  setMcqCount: (value: number) => void;
+  setMcqSkippedCount: (value: number) => void;
+  setDownloadLink: (value: string | null) => void;
+  setProgressWidth: (value: number) => void;
+  setBatchResult: (value: BatchResult) => void;
+  setZoneState: (value: ZoneState) => void;
+}
+
+function isBatchResult(value: unknown): value is BatchResult {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as { kind?: unknown }).kind === 'batch' &&
+    Array.isArray((value as { decks?: unknown }).decks)
+  );
+}
+
+export async function applyConversionSuccess(
+  response: Response,
+  handlers: ConversionSuccessHandlers
+): Promise<void> {
+  const contentType = response.headers.get('Content-Type') ?? '';
+  if (contentType.includes('application/json')) {
+    const body: unknown = await response.json();
+    if (isBatchResult(body)) {
+      handlers.setBatchResult(body);
+      handlers.setProgressWidth(100);
+      fireAnalyticsEvent('conversion_success');
+      handlers.setZoneState('multiDeck');
+      return;
+    }
+  }
+
+  handlers.setWarningMessage(response.headers.get('X-Warning'));
+  handlers.setDeckName(resolveDeckName(response.headers));
+  const count = parseCardCountHeader(response.headers);
+  handlers.setCardCount(count);
+  handlers.setMcqCount(parseNonNegativeIntHeader(response.headers, 'X-MCQ-Count'));
+  handlers.setMcqSkippedCount(
+    parseNonNegativeIntHeader(response.headers, 'X-MCQ-Skipped-Count')
+  );
+  const blob = await response.blob();
+  handlers.setDownloadLink(globalThis.URL.createObjectURL(blob));
+  handlers.setProgressWidth(100);
+  if (count === 0) {
+    handlers.setZoneState('emptyDeck');
+  } else {
+    fireAnalyticsEvent('conversion_success');
+    handlers.setZoneState('success');
+  }
+}

@@ -866,6 +866,74 @@ describe('UploadForm analytics events', () => {
 
 });
 
+describe('UploadForm multi-deck batch', () => {
+  beforeEach(() => {
+    (globalThis as AnalyticsGlobals).gtag = vi.fn();
+    (globalThis as AnalyticsGlobals).hj = vi.fn();
+  });
+
+  afterEach(() => {
+    delete (globalThis as AnalyticsGlobals).gtag;
+    delete (globalThis as AnalyticsGlobals).hj;
+    vi.restoreAllMocks();
+  });
+
+  const batchBody = {
+    kind: 'batch',
+    workspaceId: 'ws-1',
+    deckCount: 2,
+    decks: [
+      { name: 'Biology 101', filename: 'Biology 101.apkg', downloadUrl: '/download/ws-1/Biology%20101.apkg' },
+      { name: 'Chemistry', filename: 'Chemistry.apkg', downloadUrl: '/download/ws-1/Chemistry.apkg' },
+    ],
+    bulkUrl: '/download/ws-1/bulk',
+  };
+
+  function stubBatchFetch() {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      redirected: false,
+      status: 200,
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+      json: () => Promise.resolve(batchBody),
+    }));
+  }
+
+  it('renders an in-page deck list instead of navigating away on a multi-deck batch', async () => {
+    const locationStub = { href: '', origin: 'http://localhost' } as Location;
+    vi.stubGlobal('location', locationStub);
+    stubBatchFetch();
+
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const form = container.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    await screen.findByText('2 decks ready');
+    expect(locationStub.href).toBe('');
+
+    const biology = screen.getByLabelText('Download Biology 101') as HTMLAnchorElement;
+    const chemistry = screen.getByLabelText('Download Chemistry') as HTMLAnchorElement;
+    expect(biology.getAttribute('href')).toBe('/download/ws-1/Biology%20101.apkg');
+    expect(chemistry.getAttribute('href')).toBe('/download/ws-1/Chemistry.apkg');
+
+    const downloadAll = screen.getByText('Download all (zip)') as HTMLAnchorElement;
+    expect(downloadAll.getAttribute('href')).toBe('/download/ws-1/bulk');
+  });
+
+  it('suppresses deck names in the batch list from Hotjar recordings', async () => {
+    stubBatchFetch();
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const form = container.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    const deckName = await screen.findByText('Biology 101');
+    expect(deckName).toHaveAttribute('data-hj-suppress');
+  });
+});
+
 describe('limit state', () => {
   beforeEach(() => {
     mockGet2ankiApi.mockReturnValue({

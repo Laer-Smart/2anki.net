@@ -20,6 +20,7 @@ import { EmptyDeckError } from '../usecases/jobs/EmptyDeckError';
 import { MARKDOWN_LIKELY_LOSSY_REASON } from '../usecases/jobs/jobFailureReason';
 import { DeckTooLargeError } from '../lib/parser/exporters/DeckTooLargeError';
 import { getOwner } from '../lib/User/getOwner';
+import { formatDeckName } from '../lib/formatDeckName';
 import {
   CheckMonthlyCardLimitUseCase,
   MonthlyLimitError,
@@ -53,6 +54,20 @@ interface MarkdownLossyResponse {
 
 interface DeckTooLargeResponse {
   message: string;
+}
+
+interface BatchDeckResult {
+  name: string;
+  filename: string;
+  downloadUrl: string;
+}
+
+interface BatchUploadResponse {
+  kind: 'batch';
+  workspaceId: string;
+  deckCount: number;
+  decks: BatchDeckResult[];
+  bulkUrl: string;
 }
 
 function hasSessionToken(req: express.Request): boolean {
@@ -446,9 +461,7 @@ class UploadService {
       if (owner != null) {
         await this.usersRepository.incrementCardUsage(owner, totalCards);
       }
-      const url = `/download/${ws.id}`;
-      res.status(300);
-      return res.redirect(url);
+      return res.status(200).json(await this.buildBatchResponse(ws));
     } else {
       logNoPackageDiagnostics(req.files as UploadedFile[]);
       track('conversion_failed', {
@@ -458,6 +471,24 @@ class UploadService {
       });
       throw new EmptyDeckError();
     }
+  }
+
+  private async buildBatchResponse(ws: Workspace): Promise<BatchUploadResponse> {
+    const apkgFilenames = (await fs.promises.readdir(ws.location)).filter(
+      (filename) => filename.endsWith('.apkg')
+    );
+    const decks = apkgFilenames.map((filename) => ({
+      name: formatDeckName(filename),
+      filename,
+      downloadUrl: `/download/${ws.id}/${encodeURIComponent(filename)}`,
+    }));
+    return {
+      kind: 'batch',
+      workspaceId: ws.id,
+      deckCount: decks.length,
+      decks,
+      bulkUrl: `/download/${ws.id}/bulk`,
+    };
   }
 
   private resolveAnonId(req: express.Request): string | null {

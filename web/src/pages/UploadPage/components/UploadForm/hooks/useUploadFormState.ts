@@ -6,10 +6,24 @@ export type ZoneState =
   | 'idle'
   | 'converting'
   | 'success'
+  | 'multiDeck'
   | 'emptyDeck'
   | 'limitReached'
   | 'error'
   | 'lockedPdf';
+
+export interface BatchDeck {
+  name: string;
+  filename: string;
+  downloadUrl: string;
+}
+
+export interface BatchResult {
+  workspaceId: string;
+  deckCount: number;
+  decks: BatchDeck[];
+  bulkUrl: string;
+}
 
 export interface LockedPdfInfo {
   filename: string;
@@ -24,6 +38,7 @@ export interface LimitInfo {
 
 export function useUploadFormState(onReset: () => void) {
   const [zoneState, setZoneState] = useState<ZoneState>('idle');
+  const [batchResult, setBatchResult] = useState<BatchResult | null>(null);
   const [downloadLink, setDownloadLink] = useState<string | null>(null);
   const [deckName, setDeckName] = useState('');
   const [cardCount, setCardCount] = useState<number | null>(null);
@@ -54,6 +69,7 @@ export function useUploadFormState(onReset: () => void) {
 
   const resetForm = () => {
     setZoneState('idle');
+    setBatchResult(null);
     setDownloadLink(null);
     setDeckName('');
     setCardCount(null);
@@ -85,6 +101,8 @@ export function useUploadFormState(onReset: () => void) {
   return {
     zoneState,
     setZoneState,
+    batchResult,
+    setBatchResult,
     downloadLink,
     setDownloadLink,
     deckName,
