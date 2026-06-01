@@ -314,7 +314,7 @@ class EmailService implements IEmailService {
     const msg = {
       to,
       from: this.defaultSender,
-      subject: 'Pick up where you left off on 2anki',
+      subject: 'Finish your 2anki Unlimited subscription',
       text,
       html: markup,
       replyTo: 'support@2anki.net',

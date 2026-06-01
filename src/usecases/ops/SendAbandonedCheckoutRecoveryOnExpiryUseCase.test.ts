@@ -1,8 +1,13 @@
 import { SendAbandonedCheckoutRecoveryOnExpiryUseCase } from './SendAbandonedCheckoutRecoveryOnExpiryUseCase';
 import type { IAbandonedCheckoutRecoveryRepository } from '../../data_layer/AbandonedCheckoutRecoveryRepository';
 import type { IEmailService } from '../../services/EmailService/EmailService';
+import type { EventsSink } from '../../services/events/EventsSink';
 
 jest.mock('../../lib/misc/hashToken', () => (s: string) => `hashed:${s}`);
+
+function makeEventsSink(): jest.Mocked<Pick<EventsSink, 'record'>> {
+  return { record: jest.fn() };
+}
 
 function makeRepo(
   claimed = true,
@@ -137,5 +142,70 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
     await useCase.execute('cs_test_dup', 'bob@example.com');
 
     expect(emailService.sendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledTimes(1);
+  });
+
+  it('emits email_batch_sent with campaign=abandoned_checkout and count 1 on a real send', async () => {
+    const repo = makeRepo(true);
+    const emailService = makeEmailService();
+    const eventsSink = makeEventsSink();
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService,
+      eventsSink
+    );
+
+    await useCase.execute('cs_test_event', 'alice@example.com');
+
+    expect(eventsSink.record).toHaveBeenCalledWith({
+      name: 'email_batch_sent',
+      props: { campaign: 'abandoned_checkout', count: 1 },
+    });
+  });
+
+  it('does not emit when the user opted out of marketing', async () => {
+    const repo = makeRepo(true, true);
+    const emailService = makeEmailService();
+    const eventsSink = makeEventsSink();
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService,
+      eventsSink
+    );
+
+    await useCase.execute('cs_opted_out', 'optout@example.com');
+
+    expect(eventsSink.record).not.toHaveBeenCalled();
+  });
+
+  it('does not emit when the email is missing', async () => {
+    const repo = makeRepo(true);
+    const emailService = makeEmailService();
+    const eventsSink = makeEventsSink();
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService,
+      eventsSink
+    );
+
+    await useCase.execute('cs_test_no_email', null);
+
+    expect(eventsSink.record).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('does not emit when the claim is a no-op duplicate', async () => {
+    const repo = makeRepo(false);
+    const emailService = makeEmailService();
+    const eventsSink = makeEventsSink();
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService,
+      eventsSink
+    );
+
+    await useCase.execute('cs_test_dup_event', 'alice@example.com');
+
+    expect(eventsSink.record).not.toHaveBeenCalled();
   });
 });

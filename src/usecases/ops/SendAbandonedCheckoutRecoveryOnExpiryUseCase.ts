@@ -1,11 +1,13 @@
 import hashToken from '../../lib/misc/hashToken';
 import type { IAbandonedCheckoutRecoveryRepository } from '../../data_layer/AbandonedCheckoutRecoveryRepository';
 import type { IEmailService } from '../../services/EmailService/EmailService';
+import type { EventsSink } from '../../services/events/EventsSink';
 
 export class SendAbandonedCheckoutRecoveryOnExpiryUseCase {
   constructor(
     private readonly repository: IAbandonedCheckoutRecoveryRepository,
-    private readonly emailService: IEmailService
+    private readonly emailService: IEmailService,
+    private readonly eventsSink?: Pick<EventsSink, 'record'>
   ) {}
 
   async execute(sessionId: string, email: string | null): Promise<void> {
@@ -30,6 +32,10 @@ export class SendAbandonedCheckoutRecoveryOnExpiryUseCase {
       await this.emailService.sendAbandonedCheckoutRecoveryEmail(email, token);
       console.info('checkout.session.expired.recovery_sent', {
         session_id_hash: hashToken(sessionId),
+      });
+      this.eventsSink?.record({
+        name: 'email_batch_sent',
+        props: { campaign: 'abandoned_checkout', count: 1 },
       });
     }
   }

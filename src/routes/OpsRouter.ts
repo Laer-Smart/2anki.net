@@ -30,6 +30,7 @@ import DownloadService from '../services/DownloadService';
 import ApkgPreviewService from '../services/ApkgPreviewService/ApkgPreviewService';
 import { NotionService } from '../services/NotionService/NotionService';
 import { getDatabase } from '../data_layer';
+import { getEventsSink } from '../services/events/eventsSinkInstance';
 import RequireOpsAccess from './middleware/RequireOpsAccess';
 import InactivityEmailRepository from '../data_layer/InactivityEmailRepository';
 import AbandonedCheckoutRecoveryRepository from '../data_layer/AbandonedCheckoutRecoveryRepository';
@@ -104,7 +105,11 @@ const OpsRouter = () => {
       emailService
     ),
     new GetPerformanceMetricsUseCase(performanceMetricsService),
-    new SendAbandonedCheckoutRecoveryUseCase(emailService, new AbandonedCheckoutRecoveryRepository(database)),
+    new SendAbandonedCheckoutRecoveryUseCase(
+      emailService,
+      new AbandonedCheckoutRecoveryRepository(database),
+      getEventsSink()
+    ),
     new GetReturnRateMetricsUseCase(new ReturnRateMetricsService(database)),
     new GetMindmapImageStatsUseCase(new MindmapRepository(database)),
     new GetMindmapStorageMetricsUseCase(mindmapStorageService),

@@ -1,5 +1,6 @@
 import type { IAbandonedCheckoutRecoveryRepository } from '../../data_layer/AbandonedCheckoutRecoveryRepository';
 import type { IEmailService } from '../../services/EmailService/EmailService';
+import type { EventsSink } from '../../services/events/EventsSink';
 
 export interface SendAbandonedCheckoutRecoveryResult {
   dryRun: boolean;
@@ -18,7 +19,8 @@ const isValidEmail = (value: string): boolean =>
 export class SendAbandonedCheckoutRecoveryUseCase {
   constructor(
     private readonly emailService: IEmailService,
-    private readonly repository?: IAbandonedCheckoutRecoveryRepository
+    private readonly repository?: IAbandonedCheckoutRecoveryRepository,
+    private readonly eventsSink?: Pick<EventsSink, 'record'>
   ) {}
 
   async execute(
@@ -65,6 +67,13 @@ export class SendAbandonedCheckoutRecoveryUseCase {
           error: error instanceof Error ? error.message : 'unknown',
         });
       }
+    }
+
+    if (sent > 0) {
+      this.eventsSink?.record({
+        name: 'email_batch_sent',
+        props: { campaign: 'abandoned_checkout', count: sent },
+      });
     }
 
     return {

@@ -1,6 +1,11 @@
 import { SendAbandonedCheckoutRecoveryUseCase } from './SendAbandonedCheckoutRecoveryUseCase';
 import type { IAbandonedCheckoutRecoveryRepository } from '../../data_layer/AbandonedCheckoutRecoveryRepository';
 import type { IEmailService } from '../../services/EmailService/EmailService';
+import type { EventsSink } from '../../services/events/EventsSink';
+
+function makeEventsSink(): jest.Mocked<Pick<EventsSink, 'record'>> {
+  return { record: jest.fn() };
+}
 
 function makeEmailService(): jest.Mocked<IEmailService> {
   return {
@@ -155,5 +160,72 @@ describe('SendAbandonedCheckoutRecoveryUseCase', () => {
     const [, persistedToken] = (repo.recordEmailSend as jest.Mock).mock.calls[0];
     expect(typeof persistedToken).toBe('string');
     expect(persistedToken.length).toBeGreaterThan(0);
+  });
+
+  it('emits email_batch_sent with campaign=abandoned_checkout and the real sent count', async () => {
+    const emailService = makeEmailService();
+    const repo = makeRepo(false);
+    const eventsSink = makeEventsSink();
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(
+      emailService,
+      repo,
+      eventsSink
+    );
+
+    await useCase.execute(['alice@example.com', 'bob@example.com'], false);
+
+    expect(eventsSink.record).toHaveBeenCalledWith({
+      name: 'email_batch_sent',
+      props: { campaign: 'abandoned_checkout', count: 2 },
+    });
+  });
+
+  it('does not emit in a dry run', async () => {
+    const emailService = makeEmailService();
+    const eventsSink = makeEventsSink();
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(
+      emailService,
+      undefined,
+      eventsSink
+    );
+
+    await useCase.execute(['alice@example.com'], true);
+
+    expect(eventsSink.record).not.toHaveBeenCalled();
+  });
+
+  it('does not emit when every candidate opted out', async () => {
+    const emailService = makeEmailService();
+    const repo = makeRepo(true);
+    const eventsSink = makeEventsSink();
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(
+      emailService,
+      repo,
+      eventsSink
+    );
+
+    await useCase.execute(['optout@example.com'], false);
+
+    expect(eventsSink.record).not.toHaveBeenCalled();
+  });
+
+  it('emits the count of successful sends when some fail', async () => {
+    const emailService = makeEmailService();
+    emailService.sendAbandonedCheckoutRecoveryEmail.mockImplementationOnce(
+      () => Promise.reject(new Error('SendGrid 500'))
+    );
+    const eventsSink = makeEventsSink();
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(
+      emailService,
+      undefined,
+      eventsSink
+    );
+
+    await useCase.execute(['fails@example.com', 'works@example.com'], false);
+
+    expect(eventsSink.record).toHaveBeenCalledWith({
+      name: 'email_batch_sent',
+      props: { campaign: 'abandoned_checkout', count: 1 },
+    });
   });
 });
