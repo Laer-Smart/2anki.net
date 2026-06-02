@@ -1,4 +1,5 @@
 import Note from '../../lib/parser/Note';
+import { markdownToInlineHTML } from '../../lib/markdown';
 import { MindmapData } from './MindmapData';
 
 function buildNodeBack(
@@ -6,13 +7,14 @@ function buildNodeBack(
   imageUrl: string | undefined,
   filenameMap: Record<string, string>
 ): { html: string; media: string | null } {
-  if (imageUrl == null) return { html: label, media: null };
+  const labelHtml = markdownToInlineHTML(label);
+  if (imageUrl == null) return { html: labelHtml, media: null };
   const filename = imageUrl.split('/').pop() ?? '';
   const mapped = filenameMap[filename];
-  if (mapped == null) return { html: label, media: null };
+  if (mapped == null) return { html: labelHtml, media: null };
   const imgTag = `<img src="${mapped}" alt="${label}" style="max-width:100%;height:auto;">`;
   return {
-    html: label.length > 0 ? `${imgTag}<br>${label}` : imgTag,
+    html: labelHtml.length > 0 ? `${imgTag}<br>${labelHtml}` : imgTag,
     media: mapped,
   };
 }

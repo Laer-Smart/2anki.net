@@ -92,6 +92,19 @@ describe('mindmapToClozeNotes', () => {
     expect(result[0].isValidClozeNote()).toBeTruthy();
   });
 
+  it('renders markdown in node labels as HTML inside cloze deletions', () => {
+    const result = mindmapToClozeNotes({
+      nodes: [
+        { id: '1', label: '**Cell**' },
+        { id: '2', label: '*Nucleus*' },
+      ],
+      edges: [{ source: '1', target: '2' }],
+    });
+    expect(result[0].name).toContain('{{c1::<strong>Cell</strong>}}');
+    expect(result[0].name).not.toContain('**Cell**');
+    expect(result[0].name).toContain('<em>Nucleus</em>');
+  });
+
   it('handles a branching tree: root → A → C, root → B', () => {
     const result = mindmapToClozeNotes({
       nodes: [

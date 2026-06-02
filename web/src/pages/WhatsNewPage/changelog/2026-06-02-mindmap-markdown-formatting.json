@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-02-mindmap-markdown-formatting",
+  "date": "2026-06-02",
+  "type": "fix",
+  "title": "Mind map decks render bold, italic, and links instead of raw markdown on the card"
+}

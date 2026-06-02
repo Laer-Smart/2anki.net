@@ -1,4 +1,5 @@
 import Note from '../../lib/parser/Note';
+import { markdownToInlineHTML } from '../../lib/markdown';
 import { MindmapData } from './MindmapData';
 
 function buildChildMap(data: MindmapData): Map<string, string[]> {
@@ -40,12 +41,13 @@ function nodeLabel(
   filenameMap: Record<string, string>
 ): string {
   const label = labelMap.get(id) ?? id;
+  const labelHtml = markdownToInlineHTML(label);
   const imageUrl = imageUrlMap.get(id);
-  if (imageUrl == null) return label;
+  if (imageUrl == null) return labelHtml;
   const filename = imageUrl.split('/').pop() ?? '';
   const mapped = filenameMap[filename];
-  if (mapped == null) return label;
-  return `<img src="${mapped}" alt="${label}" style="max-width:100%;height:auto;">${label.length > 0 ? `<br>${label}` : ''}`;
+  if (mapped == null) return labelHtml;
+  return `<img src="${mapped}" alt="${label}" style="max-width:100%;height:auto;">${labelHtml.length > 0 ? `<br>${labelHtml}` : ''}`;
 }
 
 export function mindmapToClozeNotes(
