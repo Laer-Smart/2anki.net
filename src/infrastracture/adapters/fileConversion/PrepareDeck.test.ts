@@ -136,6 +136,108 @@ describe('PrepareDeck — Claude AI flashcards branch', () => {
   });
 });
 
+describe('PrepareDeck — HTML generation concurrency window', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  function deckArrayFor(label: string) {
+    return [
+      {
+        name: label,
+        image: '',
+        style: null,
+        id: 100000000000000,
+        settings: { template: 'specialstyle' },
+        cards: [
+          {
+            name: label,
+            back: 'Back',
+            tags: [],
+            cloze: false,
+            number: 0,
+            enableInput: false,
+            answer: '',
+            media: [],
+          },
+        ],
+      },
+    ];
+  }
+
+  it('keeps at most 3 calls in flight, slides the window, and returns results in source order', async () => {
+    const fileCount = 7;
+    const files = Array.from({ length: fileCount }, (_, i) => ({
+      name: `page-${i}.html`,
+      contents: `<p>page ${i}</p>`,
+    }));
+
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const resolvers: Array<(value: unknown) => void> = [];
+    const callOrder: number[] = [];
+
+    generateDeckInfo.mockImplementation((html: string) => {
+      const index = Number(/page (\d+)/.exec(html)![1]);
+      callOrder.push(index);
+      inFlight += 1;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      return new Promise((resolve) => {
+        resolvers[index] = (value) => {
+          inFlight -= 1;
+          resolve(value);
+        };
+      });
+    });
+
+    const settings = makeSettings({ 'claude-ai-flashcards': 'true' });
+    const prepared = PrepareDeck({
+      name: 'export.zip',
+      files,
+      settings,
+      noLimits: true,
+      workspace: makeWorkspace(),
+    });
+
+    const flush = () => new Promise((r) => setImmediate(r));
+    const waitUntil = async (predicate: () => boolean) => {
+      for (let i = 0; i < 100 && !predicate(); i++) {
+        await flush();
+      }
+    };
+
+    await waitUntil(() => callOrder.length >= 3);
+
+    expect(inFlight).toBe(3);
+
+    const resolveOrder = [2, 0, 1, 5, 3, 6, 4];
+    for (const index of resolveOrder) {
+      await waitUntil(() => Boolean(resolvers[index]));
+      resolvers[index](deckArrayFor(`page-${index}`));
+      await flush();
+    }
+
+    const result = await prepared;
+
+    expect(generateDeckInfo).toHaveBeenCalledTimes(fileCount);
+    expect(maxInFlight).toBe(3);
+
+    const configuredDecks = CustomExporterMock.mock.results[0].value.configure.mock
+      .calls[0][0] as Array<{ name: string }>;
+    expect(configuredDecks.map((d) => d.name)).toEqual([
+      'page-0',
+      'page-1',
+      'page-2',
+      'page-3',
+      'page-4',
+      'page-5',
+      'page-6',
+    ]);
+
+    expect(result.cardCount).toBe(fileCount);
+  });
+});
+
 describe('PrepareDeck — PDF text-vs-image gate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
