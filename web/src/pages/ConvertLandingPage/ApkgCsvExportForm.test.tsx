@@ -4,6 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import ApkgCsvExportForm from './ApkgCsvExportForm';
 
+const mockTrack = vi.fn();
+
+vi.mock('../../lib/analytics/track', () => ({
+  track: (...args: unknown[]) => mockTrack(...args),
+}));
+
 function makeApkgFile(name = 'deck.apkg'): File {
   return new File([new Uint8Array([0x50, 0x4b, 0x03, 0x04])], name, {
     type: 'application/octet-stream',
@@ -16,6 +22,7 @@ describe('ApkgCsvExportForm', () => {
   });
 
   afterEach(() => {
+    mockTrack.mockClear();
     vi.restoreAllMocks();
   });
 
@@ -64,6 +71,19 @@ describe('ApkgCsvExportForm', () => {
     expect(url).toBe('/api/apkg/csv');
     expect((init as RequestInit).method).toBe('post');
     expect((init as RequestInit).body).toBeInstanceOf(FormData);
+    expect(mockTrack).toHaveBeenCalledWith('apkg_csv_exported', { noteCount: 42 });
+  });
+
+  it('does not track an export when the server returns an error', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 401 }));
+    render(<ApkgCsvExportForm />);
+    const input = screen.getByLabelText(/Choose \.apkg file/i) as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [makeApkgFile()] } });
+    fireEvent.submit(input.closest('form')!);
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+    expect(mockTrack).not.toHaveBeenCalled();
   });
 
   it('surfaces the server error message on failure', async () => {
