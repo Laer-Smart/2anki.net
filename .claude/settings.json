@@ -2,6 +2,17 @@
   "env": {
     "CLAUDE_CODE_FORK_SUBAGENT": "1"
   },
+  "extraKnownMarketplaces": {
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "caveman@caveman": true
+  },
   "permissions": {
     "allow": [
       "Bash(git commit *)",
