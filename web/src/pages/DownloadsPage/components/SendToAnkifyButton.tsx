@@ -48,7 +48,7 @@ export default function SendToAnkifyButton({ uploadId, filename }: Props) {
       return `${counts}${sync}`;
     }
     if (dispatch.isError) return 'Try again';
-    return 'Send this to my Anki';
+    return 'Send to Anki';
   })();
 
   const title = (() => {

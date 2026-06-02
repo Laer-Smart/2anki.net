@@ -73,7 +73,7 @@ describe('SendToAnkifyButton', () => {
   it('dispatches the upload for lifetime (patreon) users', async () => {
     mockLocalsData = { locals: { patreon: true }, autoSyncActive: false };
     renderButton();
-    const button = await screen.findByRole('button', { name: /send this to my anki/i });
+    const button = await screen.findByRole('button', { name: /send to anki/i });
     await waitFor(() => expect(button).not.toBeDisabled());
     fireEvent.click(button);
     await waitFor(() => expect(dispatchMock).toHaveBeenCalledWith(42));
@@ -83,7 +83,7 @@ describe('SendToAnkifyButton', () => {
   it('dispatches the upload for Auto Sync subscribers', async () => {
     mockLocalsData = { locals: { patreon: false }, autoSyncActive: true };
     renderButton();
-    const button = await screen.findByRole('button', { name: /send this to my anki/i });
+    const button = await screen.findByRole('button', { name: /send to anki/i });
     await waitFor(() => expect(button).not.toBeDisabled());
     fireEvent.click(button);
     await waitFor(() => expect(dispatchMock).toHaveBeenCalledWith(42));
