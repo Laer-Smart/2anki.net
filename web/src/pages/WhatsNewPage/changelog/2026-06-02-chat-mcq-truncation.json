@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-02-chat-mcq-truncation",
+  "date": "2026-06-02",
+  "type": "fix",
+  "title": "Multiple-choice cards in chat generate reliably for larger sets"
+}
