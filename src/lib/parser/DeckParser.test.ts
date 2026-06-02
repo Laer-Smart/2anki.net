@@ -33,6 +33,32 @@ test('YouTube embeds are responsive so they fit narrow screens', async () => {
   expect(back).not.toContain("width='560'");
 });
 
+test('deck style wraps long code blocks instead of overflowing the card', async () => {
+  const html = `<html><head><title>Code</title><style>
+body { line-height: 1.5; white-space: pre-wrap; }
+.code-wrap { white-space: pre-wrap; word-break: break-all; }
+</style></head>
+<body><article class="page sans"><header><h1 class="page-title">Code</h1></header><div class="page-body">
+<ul class="toggle"><li><details open=""><summary>How to print?</summary>
+<pre class="code code-wrap"><code>def foo():
+    return "a very long line of code that would otherwise run off the edge of the card"</code></pre></details></li></ul>
+</div></article></body></html>`;
+
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'code.html',
+    settings: new CardOption({ cherry: 'false' }),
+    files: [{ name: 'code.html', contents: html }],
+    noLimits: true,
+    workspace,
+  });
+  await parser.build(workspace);
+
+  const style = parser.payload[0].style ?? '';
+  expect(style).toMatch(/(\.code-wrap|pre)[^{}]*\{[^{}]*white-space:\s*pre-wrap/);
+  expect(parser.payload[0].cards[0].back).toContain('<pre');
+});
+
 test('deck style includes Notion highlight color rules for file uploads', async () => {
   const html = `<html><head><title>Colors</title><style>body { font-size: 16px; }</style></head>
 <body><article>

@@ -49,6 +49,13 @@ import { extractName } from '../extractDeckName';
 
 const MARKDOWN_SOURCE_RATIO_THRESHOLD = 0.8;
 
+// Notion code blocks export as <pre class="code code-wrap"> and rely on
+// .code-wrap { white-space: pre-wrap } to wrap long lines. extractStyles
+// strips every white-space: pre-wrap rule (it harms body/toggle text), which
+// left code blocks running off the edge of narrow cards. Re-apply wrapping to
+// code blocks only, appended last so it wins the cascade over the stripped rule.
+const CODE_WRAP_STYLE = '.code-wrap, pre { white-space: pre-wrap; }';
+
 function isMarkdownSourcedFiles(files: File[]): boolean {
   const contentFiles = files.filter(
     (f) => isMarkdownFile(f.name) || isHTMLFile(f.name)
@@ -346,8 +353,11 @@ export class DeckParser {
     const { dom, isNewFormat } = this.loadAndNormalizeDOM(contents);
 
     const extractedStyle = extractStyles(dom);
+    const baseStyle = extractedStyle
+      ? `${NOTION_STYLE}\n${extractedStyle}`
+      : NOTION_STYLE;
     const style = withFontSize(
-      extractedStyle ? `${NOTION_STYLE}\n${extractedStyle}` : NOTION_STYLE,
+      `${baseStyle}\n${CODE_WRAP_STYLE}`,
       this.settings.fontSize
     );
     let image: string | undefined = this.extractCoverImage(dom);
