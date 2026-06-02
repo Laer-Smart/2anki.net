@@ -52,10 +52,16 @@ async function mapWithConcurrency<T>(
   worker: (item: T, index: number) => Promise<void>
 ): Promise<void> {
   const size = concurrency > 0 ? concurrency : 1;
-  for (let i = 0; i < items.length; i += size) {
-    const slice = items.slice(i, i + size);
-    await Promise.all(slice.map((item, j) => worker(item, i + j)));
+  let next = 0;
+  async function pump(): Promise<void> {
+    while (next < items.length) {
+      const index = next;
+      next += 1;
+      await worker(items[index], index);
+    }
   }
+  const poolSize = Math.min(size, items.length);
+  await Promise.all(Array.from({ length: poolSize }, () => pump()));
 }
 
 function extractText(response: Message): string {
@@ -86,7 +92,7 @@ async function runTransformCall(
   const response = await client.messages.create({
     model: TRANSFORM_MODEL,
     max_tokens: TRANSFORM_MAX_TOKENS,
-    system,
+    system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: user }],
   });
   const payload = parseJsonPayload(extractText(response));
