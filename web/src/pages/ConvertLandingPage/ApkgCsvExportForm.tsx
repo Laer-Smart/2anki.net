@@ -1,4 +1,5 @@
 import { type SyntheticEvent, useRef, useState } from 'react';
+import { track } from '../../lib/analytics/track';
 import styles from './ApkgCsvExportForm.module.css';
 
 type FormState =
@@ -94,6 +95,7 @@ function ApkgCsvExportForm() {
       const csvUrl = globalThis.URL.createObjectURL(blob);
       const csvName = `${deckName}.csv`;
       triggerDownload(csvUrl, csvName);
+      track('apkg_csv_exported', { noteCount });
       setState({ kind: 'success', deckName, noteCount, csvName, csvUrl });
     } catch (error) {
       const message =
