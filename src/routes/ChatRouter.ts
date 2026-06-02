@@ -495,7 +495,7 @@ const ChatRouter = () => {
    *               templateSlug:
    *                 type: string
    *                 nullable: true
-   *                 enum: [basic, basic-and-reversed, cloze]
+   *                 enum: [basic, basic-and-reversed, cloze, mcq]
    *     responses:
    *       204:
    *         description: Template saved

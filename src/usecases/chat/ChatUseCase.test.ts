@@ -704,6 +704,44 @@ describe('ChatUseCase', () => {
       expect(callArg.tool_choice).toEqual({ type: 'tool', name: 'emit_mcq_cards' });
     });
 
+    it('raises max_tokens on the MCQ tool path so structured output is not truncated', async () => {
+      const { anthropic, useCase } = buildUseCaseWithBlocks([
+        mcqToolBlock({
+          cards: [
+            {
+              front: 'Capital of Albania?',
+              options: ['Tirana', 'Durrës', 'Vlorë', 'Shkodër'],
+              correct_index: 0,
+            },
+          ],
+        }),
+      ]);
+
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'make mcq cards',
+        conversationHistory: [],
+        templateSlug: 'mcq',
+      });
+
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.max_tokens).toBe(8192);
+    });
+
+    it('keeps the default max_tokens for non-MCQ templates', async () => {
+      const { anthropic, useCase } = buildUseCase('a basic reply');
+
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'hello',
+        conversationHistory: [],
+        templateSlug: 'basic',
+      });
+
+      const callArg = anthropic.messages.stream.mock.calls[0][0];
+      expect(callArg.max_tokens).toBe(4096);
+    });
+
     it('extracts MCQ cards from the tool_use block for templateSlug=mcq', async () => {
       const { useCase } = buildUseCaseWithBlocks([
         mcqToolBlock({

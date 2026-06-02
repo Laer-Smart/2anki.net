@@ -63,6 +63,11 @@ const FREE_MODEL = 'claude-haiku-4-5-20251001';
 const PATREON_MODEL = 'claude-sonnet-4-6';
 const MAX_HISTORY_TURNS = 10;
 const MAX_TOKENS = 4096;
+// MCQ is emitted as forced tool-use JSON (stem + 4 options + rationale per
+// card). At 4096 the structured output truncates on multi-card batches, the
+// tool input never closes, extraction returns nothing, and the turn fails with
+// McqExtractionFailedError. Give the MCQ path more headroom so the JSON fits.
+const MCQ_MAX_TOKENS = 8192;
 const AUTO_TITLE_MAX_LENGTH = 60;
 
 const STUDY_ASSISTANT_SYSTEM_PROMPT = `You are a study assistant for 2anki, a tool that turns notes into Anki flashcards.
@@ -492,7 +497,7 @@ export class ChatUseCase {
 
     const stream = this.anthropic.messages.stream({
       model,
-      max_tokens: MAX_TOKENS,
+      max_tokens: mcqForced ? MCQ_MAX_TOKENS : MAX_TOKENS,
       system: [{ type: 'text', text: systemPromptText, cache_control: { type: 'ephemeral' } }],
       messages,
       ...(mcqForced
