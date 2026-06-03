@@ -1,12 +1,17 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { PaywallBanner } from './PaywallBanner';
 import JobResponse from '../../../schemas/public/JobResponse';
 
 vi.mock('../../../lib/analytics/track', () => ({
   track: vi.fn(),
+}));
+
+const startUnlimitedCheckout = vi.fn();
+vi.mock('../../../lib/backend/get2ankiApi', () => ({
+  get2ankiApi: () => ({ startUnlimitedCheckout }),
 }));
 
 type AnalyticsGlobals = {
@@ -32,12 +37,30 @@ function buildJob(overrides: Partial<JobResponse> = {}): JobResponse {
   };
 }
 
+function getUpgradeButton() {
+  return screen.getByRole('button', {
+    name: /Upgrade to Unlimited — \$6 \/ mo/,
+  });
+}
+
 describe('PaywallBanner', () => {
+  let hrefSetter: Mock<(value: string) => void>;
+
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-05-10T12:00:00Z'));
     (globalThis as AnalyticsGlobals).hj = vi.fn();
     (globalThis as AnalyticsGlobals).gtag = vi.fn();
+    startUnlimitedCheckout.mockReset();
+    hrefSetter = vi.fn();
+    Object.defineProperty(globalThis, 'location', {
+      configurable: true,
+      value: {
+        set href(value: string) {
+          hrefSetter(value);
+        },
+      },
+    });
   });
 
   afterEach(() => {
@@ -46,7 +69,7 @@ describe('PaywallBanner', () => {
     delete (globalThis as AnalyticsGlobals).gtag;
   });
 
-  it('renders headline body and CTA pointing to /pricing?source=paywall-cancel', () => {
+  it('renders headline, body, the upgrade button, and a See all plans link to /pricing', () => {
     render(
       <MemoryRouter>
         <PaywallBanner inProgressJob={null} />
@@ -61,10 +84,9 @@ describe('PaywallBanner', () => {
         'This conversion was paused so the one you already started can finish. Upgrade to Unlimited to run several at once.'
       )
     ).toBeInTheDocument();
-    const cta = screen.getByRole('link', {
-      name: /Upgrade to Unlimited — \$6 \/ mo/,
-    });
-    expect(cta).toHaveAttribute('href', '/pricing?source=paywall-cancel');
+    expect(getUpgradeButton()).toBeInTheDocument();
+    const seeAllPlans = screen.getByRole('link', { name: 'See all plans' });
+    expect(seeAllPlans).toHaveAttribute('href', '/pricing?source=paywall-cancel');
   });
 
   it('shows in-progress job title and relative start time when inProgressJob is provided', () => {
@@ -90,7 +112,8 @@ describe('PaywallBanner', () => {
     ).toBeInTheDocument();
   });
 
-  it('fires paywall_shown on mount and paywall_clicked_upgrade before navigation', () => {
+  it('fires paywall_shown on mount and paywall_clicked_upgrade when the button is clicked', async () => {
+    startUnlimitedCheckout.mockResolvedValue({ url: 'https://checkout.test/s' });
     const hj = (globalThis as AnalyticsGlobals).hj!;
     const gtag = (globalThis as AnalyticsGlobals).gtag!;
 
@@ -106,10 +129,9 @@ describe('PaywallBanner', () => {
     hj.mockClear();
     gtag.mockClear();
 
-    const cta = screen.getByRole('link', {
-      name: /Upgrade to Unlimited — \$6 \/ mo/,
+    await act(async () => {
+      fireEvent.click(getUpgradeButton());
     });
-    fireEvent.click(cta);
 
     expect(hj).toHaveBeenCalledWith('event', 'paywall_clicked_upgrade');
     expect(gtag).toHaveBeenCalledWith('event', 'paywall_clicked_upgrade');
@@ -129,7 +151,8 @@ describe('PaywallBanner', () => {
     expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'downloads_banner' });
   });
 
-  it('tracks paywall_upgrade_clicked with surface=downloads_banner when CTA is clicked', async () => {
+  it('tracks paywall_upgrade_clicked with surface=downloads_banner when the button is clicked', async () => {
+    startUnlimitedCheckout.mockResolvedValue({ url: 'https://checkout.test/s' });
     const { track } = await import('../../../lib/analytics/track');
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
@@ -140,11 +163,53 @@ describe('PaywallBanner', () => {
       </MemoryRouter>
     );
 
-    const cta = screen.getByRole('link', {
-      name: /Upgrade to Unlimited — \$6 \/ mo/,
+    await act(async () => {
+      fireEvent.click(getUpgradeButton());
     });
-    fireEvent.click(cta);
 
-    expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', { surface: 'downloads_banner' });
+    expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
+      surface: 'downloads_banner',
+    });
+  });
+
+  it('starts an Unlimited checkout and redirects to the returned Stripe url', async () => {
+    startUnlimitedCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.test/session-123',
+    });
+
+    render(
+      <MemoryRouter>
+        <PaywallBanner inProgressJob={null} />
+      </MemoryRouter>
+    );
+
+    await act(async () => {
+      fireEvent.click(getUpgradeButton());
+    });
+
+    expect(startUnlimitedCheckout).toHaveBeenCalledWith(
+      'month',
+      undefined,
+      'downloads_banner'
+    );
+    expect(hrefSetter).toHaveBeenCalledWith(
+      'https://checkout.stripe.test/session-123'
+    );
+  });
+
+  it('falls back to the pricing page when checkout cannot start', async () => {
+    startUnlimitedCheckout.mockResolvedValue({ status: 'error' });
+
+    render(
+      <MemoryRouter>
+        <PaywallBanner inProgressJob={null} />
+      </MemoryRouter>
+    );
+
+    await act(async () => {
+      fireEvent.click(getUpgradeButton());
+    });
+
+    expect(hrefSetter).toHaveBeenCalledWith('/pricing?source=paywall-cancel');
   });
 });

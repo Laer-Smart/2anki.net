@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import JobResponse from '../../../schemas/public/JobResponse';
 import { getDistance } from '../../../lib/getDistance';
 import { firePaywallEvent } from '../../../lib/analytics/firePaywallEvent';
 import { track } from '../../../lib/analytics/track';
+import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import {
   MONTHLY_PRICE,
   MONTHLY_SUFFIX,
@@ -14,17 +16,30 @@ interface PaywallBannerProps {
   readonly inProgressJob: JobResponse | null;
 }
 
-const UPGRADE_HREF = '/pricing?source=paywall-cancel';
+const SEE_ALL_PLANS_HREF = '/pricing?source=paywall-cancel';
 
 export function PaywallBanner({ inProgressJob }: PaywallBannerProps) {
+  const [pending, setPending] = useState(false);
+
   useEffect(() => {
     firePaywallEvent('paywall_shown');
     track('paywall_shown', { surface: 'downloads_banner' });
   }, []);
 
-  const handleCtaClick = () => {
+  const handleUpgrade = async () => {
     firePaywallEvent('paywall_clicked_upgrade');
     track('paywall_upgrade_clicked', { surface: 'downloads_banner' });
+    setPending(true);
+    const result = await get2ankiApi().startUnlimitedCheckout(
+      'month',
+      undefined,
+      'downloads_banner'
+    );
+    if ('url' in result) {
+      globalThis.location.href = result.url;
+      return;
+    }
+    globalThis.location.href = SEE_ALL_PLANS_HREF;
   };
 
   const startedDistance =
@@ -44,13 +59,16 @@ export function PaywallBanner({ inProgressJob }: PaywallBannerProps) {
         Upgrade to Unlimited to run several at once.
       </p>
       <div className={styles.actions}>
-        <a
+        <button
+          type="button"
           className={styles.cta}
-          href={UPGRADE_HREF}
-          onClick={handleCtaClick}
+          onClick={handleUpgrade}
+          disabled={pending}
         >
-          Upgrade to Unlimited — {MONTHLY_PRICE} {MONTHLY_SUFFIX}
-        </a>
+          {pending
+            ? 'Opening checkout'
+            : `Upgrade to Unlimited — ${MONTHLY_PRICE} ${MONTHLY_SUFFIX}`}
+        </button>
         {inProgressJob != null && startedDistance != null && hasTitle && (
           <span className={styles.secondary}>
             {'Or wait for "'}
@@ -72,6 +90,9 @@ export function PaywallBanner({ inProgressJob }: PaywallBannerProps) {
             {startedDistance} ago.
           </span>
         )}
+        <Link className={styles.seeAllPlans} to={SEE_ALL_PLANS_HREF}>
+          See all plans
+        </Link>
       </div>
     </section>
   );
