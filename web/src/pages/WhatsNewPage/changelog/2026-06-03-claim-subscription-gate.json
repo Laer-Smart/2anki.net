@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-claim-subscription-gate",
+  "date": "2026-06-03",
+  "type": "fix",
+  "title": "Account page shows the claim-subscription form only when you have no active plan"
+}

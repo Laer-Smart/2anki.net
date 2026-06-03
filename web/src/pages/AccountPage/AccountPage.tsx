@@ -35,6 +35,7 @@ export default function AccountPage() {
   }
 
   const { user, locals } = data;
+  const canClaimSubscription = !hasActivePlan;
 
   return (
     <div className={styles.page}>
@@ -82,7 +83,7 @@ export default function AccountPage() {
 
       <PlanDetails subscriptionType={subscriptionType} />
 
-      <ClaimSubscription />
+      {canClaimSubscription && <ClaimSubscription />}
 
       <SubscriptionManagement
         user={user}
