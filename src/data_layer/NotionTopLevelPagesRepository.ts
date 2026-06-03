@@ -13,6 +13,7 @@ export interface NotionTopLevelPageRow {
 
 export interface INotionTopLevelPagesRepository {
 	getByOwner(owner: number): Promise<NotionTopLevelPageRow[]>;
+	getRecentByOwner(owner: number, limit: number): Promise<NotionTopLevelPageRow[]>;
 	newestCachedAt(owner: number): Promise<Date | null>;
 	replaceForOwnerIfTokenStillValid(
 		owner: number,
@@ -34,6 +35,18 @@ export class NotionTopLevelPagesRepository
 		return this.database(this.tableName)
 			.where({ owner })
 			.orderBy("title", "asc")
+			.select<NotionTopLevelPageRow[]>("*");
+	}
+
+	getRecentByOwner(
+		owner: number,
+		limit: number,
+	): Promise<NotionTopLevelPageRow[]> {
+		return this.database(this.tableName)
+			.where({ owner })
+			.orderByRaw("last_edited_time desc nulls last")
+			.orderBy("cached_at", "desc")
+			.limit(limit)
 			.select<NotionTopLevelPageRow[]>("*");
 	}
 

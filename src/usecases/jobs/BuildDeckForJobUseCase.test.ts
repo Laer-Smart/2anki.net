@@ -35,6 +35,7 @@ function buildUploadRepository(): jest.Mocked<IUploadRepository> {
     findAllByObjectIdAndOwner: jest.fn().mockResolvedValue([]),
     update: jest.fn().mockResolvedValue([]),
     getLastUploadForUser: jest.fn().mockResolvedValue(null),
+    getLastReconvertibleUpload: jest.fn().mockResolvedValue(null),
   };
 }
 
