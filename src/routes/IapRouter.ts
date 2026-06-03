@@ -6,12 +6,25 @@ import { getDatabase } from '../data_layer';
 import UserPassRepository from '../data_layer/UserPassRepository';
 import AppleTransactionsRepository from '../data_layer/AppleTransactionsRepository';
 import { RedeemAppleTransactionUseCase } from '../usecases/iap/RedeemAppleTransactionUseCase';
-import { createAppleStoreKitService } from '../services/AppleStoreKitService';
+import {
+  createAppleStoreKitService,
+  type IAppleStoreKitService,
+} from '../services/AppleStoreKitService';
 import IapController from '../controllers/IapController';
 
 const IapRouter = () => {
   const router = express.Router();
   const database = getDatabase();
+  const userPassRepository = new UserPassRepository(database);
+  const appleTransactions = new AppleTransactionsRepository(database);
+
+  let appleService: IAppleStoreKitService | null = null;
+  const getAppleService = () => {
+    if (appleService == null) {
+      appleService = createAppleStoreKitService();
+    }
+    return appleService;
+  };
 
   /**
    * @swagger
@@ -54,9 +67,9 @@ const IapRouter = () => {
     async (req, res, next) => {
       try {
         const useCase = new RedeemAppleTransactionUseCase(
-          createAppleStoreKitService(),
-          new UserPassRepository(database),
-          new AppleTransactionsRepository(database)
+          getAppleService(),
+          userPassRepository,
+          appleTransactions
         );
         const controller = new IapController(useCase);
         await controller.redeem(req, res);

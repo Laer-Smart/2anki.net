@@ -74,6 +74,20 @@ describe('IapController', () => {
     );
   });
 
+  it('returns 400 without calling the use case when the product id is missing', async () => {
+    const execute = jest.fn();
+    const controller = controllerWith(execute);
+    const res = makeRes();
+
+    await controller.redeem(makeReq({ jws: 'signed' }), res);
+
+    expect(execute).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ ok: false })
+    );
+  });
+
   it('maps an IapRedeemError to its status and message', async () => {
     const execute = jest.fn().mockRejectedValue(IapRedeemError.duplicate());
     const controller = controllerWith(execute);
