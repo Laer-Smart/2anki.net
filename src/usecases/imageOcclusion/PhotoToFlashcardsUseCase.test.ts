@@ -600,6 +600,36 @@ describe('PhotoToFlashcardsUseCase', () => {
         })
       );
     });
+
+    it('tracks the requested density in the analytics event', async () => {
+      const events = makeEventsStub(0);
+      const useCase = new PhotoToFlashcardsUseCase(events);
+      await useCase.execute({ ...BASE_INPUT, isPaying: true, density: 'dense' });
+      const { track } = jest.requireMock(
+        '../../services/events/track'
+      ) as { track: jest.Mock };
+      expect(track).toHaveBeenCalledWith(
+        'vision_photo_converted',
+        expect.objectContaining({
+          props: expect.objectContaining({ density: 'dense' }),
+        })
+      );
+    });
+
+    it('tracks density: balanced when density is absent', async () => {
+      const events = makeEventsStub(0);
+      const useCase = new PhotoToFlashcardsUseCase(events);
+      await useCase.execute({ ...BASE_INPUT, isPaying: false });
+      const { track } = jest.requireMock(
+        '../../services/events/track'
+      ) as { track: jest.Mock };
+      expect(track).toHaveBeenCalledWith(
+        'vision_photo_converted',
+        expect.objectContaining({
+          props: expect.objectContaining({ density: 'balanced' }),
+        })
+      );
+    });
   });
 
   describe('MCQ emission', () => {
