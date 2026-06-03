@@ -4,8 +4,12 @@ import path from 'path';
 
 import RequireAllowedOrigin from './middleware/RequireAllowedOrigin';
 import RequireAuthentication from './middleware/RequireAuthentication';
+import RequirePayingJson from './middleware/RequirePayingJson';
 import { normalizeUploadFilenames } from './middleware/normalizeUploadFilenames';
 import UploadController from '../controllers/Upload/UploadController';
+import { SaveNativeDeckController } from '../controllers/Upload/SaveNativeDeckController';
+import { SaveNativeDeckUseCase } from '../usecases/uploads/SaveNativeDeckUseCase';
+import StorageHandler from '../lib/storage/StorageHandler';
 import JobController from '../controllers/JobController';
 import JobService from '../services/JobService';
 import JobRepository from '../data_layer/JobRepository';
@@ -47,6 +51,12 @@ const UploadRouter = () => {
     new GetRecentSourcesUseCase(
       new NotionTopLevelPagesRepository(database),
       new UploadRepository(database)
+    )
+  );
+  const saveNativeDeckController = new SaveNativeDeckController(
+    new SaveNativeDeckUseCase(
+      new UploadRepository(database),
+      new StorageHandler()
     )
   );
   const uploadController = new UploadController(
@@ -111,6 +121,72 @@ const UploadRouter = () => {
    */
   router.post('/api/upload/file', RequireAllowedOrigin, (req, res) =>
     uploadController.file(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/upload/save:
+   *   post:
+   *     summary: Save a built deck to the user's library
+   *     description: Persist a built .apkg produced on a native device to My Decks. Paid users only. Accepts the built bytes plus metadata; the server does not rebuild the deck.
+   *     tags: [Upload]
+   *     security:
+   *       - cookieAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         multipart/form-data:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               file:
+   *                 type: string
+   *                 format: binary
+   *                 description: The built .apkg deck
+   *               name:
+   *                 type: string
+   *                 description: Display name for the deck
+   *               dedupe_key:
+   *                 type: string
+   *                 description: Client-supplied key so re-saving the same deck does not duplicate rows
+   *     responses:
+   *       200:
+   *         description: Deck saved to the library
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 key:
+   *                   type: string
+   *                 filename:
+   *                   type: string
+   *                 size_mb:
+   *                   type: number
+   *       400:
+   *         description: Missing or non-apkg file
+   *       401:
+   *         description: Authentication required
+   *       402:
+   *         description: Upgrade required
+   *       403:
+   *         description: Origin not allowed
+   *       413:
+   *         description: Deck file is too large
+   */
+  router.post(
+    '/api/upload/save',
+    RequireAllowedOrigin,
+    RequirePayingJson,
+    multer({
+      storage: multer.memoryStorage(),
+      limits: { fileSize: 100 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        cb(null, path.extname(file.originalname).toLowerCase() === '.apkg');
+      },
+    }).single('file'),
+    normalizeUploadFilenames,
+    (req, res) => saveNativeDeckController.save(req, res)
   );
 
   router.post(

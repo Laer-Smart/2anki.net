@@ -30,6 +30,7 @@ const makeUpload = (overrides: Partial<UserUpload> = {}): UserUpload => ({
   filename: 'deck.apkg',
   object_id: 'obj-upload-1',
   created_at: '2026-05-10T09:00:00Z',
+  source: null,
   ...overrides,
 });
 
@@ -81,6 +82,11 @@ describe('toDeckRows — source mapping', () => {
   it('maps UserUpload to source: upload, kind: file', () => {
     const rows = toDeckRows([], [makeUpload()], [], []);
     expect(rows[0]).toMatchObject({ source: 'upload', kind: 'file' });
+  });
+
+  it('maps a UserUpload with source "app" to source: app, kind: file', () => {
+    const rows = toDeckRows([], [makeUpload({ source: 'app' })], [], []);
+    expect(rows[0]).toMatchObject({ source: 'app', kind: 'file' });
   });
 
   it('maps DropboxUpload to source: dropbox, kind: dropbox', () => {

@@ -90,6 +90,10 @@ function buildRepository(): IUploadRepository {
     ) => Promise.resolve([] as Uploads[]),
     getLastUploadForUser: (_userId: number) => Promise.resolve(null),
     getLastReconvertibleUpload: (_userId: number) => Promise.resolve(null),
+    findByOwnerAndDedupeKey: (_owner: number, _dedupeKey: string) =>
+      Promise.resolve(null),
+    insertNativeDeck: () =>
+      Promise.reject(new Error('not implemented')) as Promise<Uploads>,
   };
 }
 

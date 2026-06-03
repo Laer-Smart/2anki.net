@@ -6,6 +6,7 @@ interface UserUpload {
   filename: string;
   object_id: string;
   created_at: string | null;
+  source: string | null;
 }
 
 export default UserUpload;

@@ -5,7 +5,7 @@ import { DropboxUpload, GoogleDriveUpload } from '../../../lib/backend';
 export type DeckRow =
   | { source: 'notion'; kind: 'job'; job: JobResponse; sortKey: Date }
   | { source: 'upload'; kind: 'job'; job: JobResponse; sortKey: Date }
-  | { source: 'upload'; kind: 'file'; upload: UserUpload; sortKey: Date }
+  | { source: 'upload' | 'app'; kind: 'file'; upload: UserUpload; sortKey: Date }
   | { source: 'dropbox'; kind: 'dropbox'; upload: DropboxUpload; sortKey: Date }
   | { source: 'drive'; kind: 'drive'; upload: GoogleDriveUpload; sortKey: Date };
 
@@ -14,6 +14,11 @@ const EPOCH = new Date(0);
 
 function jobSource(type: string | null | undefined): 'notion' | 'upload' {
   if (type != null && NOTION_TYPES.has(type)) return 'notion';
+  return 'upload';
+}
+
+function uploadSource(source: string | null | undefined): 'upload' | 'app' {
+  if (source === 'app') return 'app';
   return 'upload';
 }
 
@@ -54,7 +59,7 @@ export function toDeckRows(
 
   for (const upload of uploads) {
     if (upload.object_id != null && suppressedUploadObjectIds.has(upload.object_id)) continue;
-    rows.push({ source: 'upload', kind: 'file', upload, sortKey: toSortKey(upload.created_at) });
+    rows.push({ source: uploadSource(upload.source), kind: 'file', upload, sortKey: toSortKey(upload.created_at) });
   }
 
   for (const upload of dropboxUploads) {

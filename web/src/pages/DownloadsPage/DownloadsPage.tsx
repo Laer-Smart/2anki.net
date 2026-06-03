@@ -65,6 +65,7 @@ function getSourceLabel(source: DeckRow['source']): string {
   switch (source) {
     case 'notion': return 'Notion';
     case 'upload': return 'Upload';
+    case 'app': return 'From the app';
     case 'dropbox': return 'Dropbox';
     case 'drive': return 'Drive';
   }
@@ -189,7 +190,7 @@ function renderFailurePanelContent(
       variant="failed"
       title={null}
       failureReason={reason}
-      source={source === 'dropbox' || source === 'drive' ? 'upload' : source}
+      source={source === 'notion' ? 'notion' : 'upload'}
       onMapColumns={onMapColumns}
     />
   );
@@ -508,7 +509,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                 )}
                               </td>
                               <td>
-                                <span className={sharedStyles.badge}>Upload</span>
+                                <span className={sharedStyles.badge}>{getSourceLabel(row.source)}</span>
                               </td>
                               <td>
                                 {u.created_at != null && (

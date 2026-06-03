@@ -70,7 +70,7 @@ type AnalyticsGlobals = {
 };
 
 let mockJobs: JobResponse[] = [];
-let mockUploads: { id: string; size_mb: number; owner: number; key: string; filename: string; object_id: string; created_at: string | null }[] = [];
+let mockUploads: { id: string; size_mb: number; owner: number; key: string; filename: string; object_id: string; created_at: string | null; source?: string | null }[] = [];
 let mockDropboxUploads: { id: number; bytes: number; name: string; created_at: string | null }[] = [];
 let mockGoogleDriveUploads: { id: string; iconUrl: string; mimeType: string; name: string; sizeBytes: string | null; url: string; last_converted_at: string | null }[] = [];
 
@@ -252,6 +252,23 @@ describe('DownloadsPage source labels', () => {
     mockJobs = [buildJob({ type: 'page', status: 'done', title: 'Notion deck' })];
     renderAt('/downloads');
     expect(screen.getAllByText('Notion').length).toBeGreaterThan(0);
+  });
+
+  it('shows "From the app" source label for uploads saved from the app', () => {
+    mockUploads = [
+      {
+        id: 'u-app',
+        size_mb: 2,
+        owner: 1,
+        key: 'app-deck.apkg',
+        filename: 'Pharmacology.apkg',
+        object_id: '',
+        created_at: '2026-05-18T10:00:00Z',
+        source: 'app',
+      },
+    ];
+    renderAt('/downloads');
+    expect(screen.getByText('From the app')).toBeInTheDocument();
   });
 });
 

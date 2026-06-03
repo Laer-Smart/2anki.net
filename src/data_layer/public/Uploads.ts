@@ -21,6 +21,8 @@ export default interface Uploads {
   created_at: Date | null;
 
   source: string | null;
+
+  dedupe_key: string | null;
 }
 
 /** Represents the initializer for the table public.uploads */
@@ -42,6 +44,8 @@ export interface UploadsInitializer {
   created_at?: Date | null;
 
   source?: string | null;
+
+  dedupe_key?: string | null;
 }
 
 /** Represents the mutator for the table public.uploads */
@@ -61,4 +65,6 @@ export interface UploadsMutator {
   created_at?: Date | null;
 
   source?: string | null;
+
+  dedupe_key?: string | null;
 }
