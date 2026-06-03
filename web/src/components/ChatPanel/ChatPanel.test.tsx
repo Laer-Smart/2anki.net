@@ -682,13 +682,16 @@ describe('ChatPanel — template selector', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('does not render the template selector when no assistant message has cards', () => {
+  it('renders the template selector on the last assistant turn even with no cards', () => {
     renderChatPanel({
-      initialMessages: [{ role: 'assistant', content: 'Hello' }],
+      initialMessages: [
+        { role: 'user', content: 'spring boot' },
+        { role: 'assistant', content: 'Want cards on a specific area?' },
+      ],
     });
     expect(
-      screen.queryByRole('button', { name: /Note type/i })
-    ).not.toBeInTheDocument();
+      screen.getByRole('button', { name: 'Note type: Basic' })
+    ).toBeInTheDocument();
   });
 
   it('opens the template dropdown on click', () => {
@@ -952,6 +955,49 @@ describe('ChatPanel — template selector', () => {
         { templateSlug: 'cloze' }
       );
     });
+  });
+
+  it('regenerates a cardless last assistant turn when the template changes', async () => {
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([
+        {
+          event: 'done',
+          data: {
+            content: 'Reply',
+            conversationId: 7,
+            cards: [{ front: 'New', back: 'Card' }],
+          },
+        },
+      ])
+    );
+    renderChatPanel({
+      initialMessages: [
+        { role: 'user', content: 'spring boot' },
+        { role: 'assistant', content: 'Want cards on a specific area?' },
+      ],
+      initialConversationId: 7,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
+    fireEvent.click(
+      screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!
+    );
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/chat/conversations/7/regenerate',
+        { templateSlug: 'cloze' }
+      );
+    });
+  });
+
+  it('does not regenerate when there is no assistant turn yet', () => {
+    renderChatPanel({
+      initialMessages: [{ role: 'user', content: 'spring boot' }],
+      initialConversationId: 7,
+    });
+    expect(
+      screen.queryByRole('button', { name: /Note type/i })
+    ).not.toBeInTheDocument();
+    expect(mockPost).not.toHaveBeenCalled();
   });
 });
 
