@@ -256,4 +256,47 @@ describe('CardPreview', () => {
       expect(screen.getByText('Paris')).toBeInTheDocument();
     });
   });
+
+  describe('regenerating', () => {
+    it('keeps the existing cards on screen instead of swapping in placeholders', () => {
+      render(
+        <CardPreview
+          cards={makeCards(3)}
+          onSave={vi.fn()}
+          template="cloze"
+          isRegenerating
+        />
+      );
+      expect(screen.getByText('Question 1')).toBeInTheDocument();
+      expect(screen.getByText('Answer 1')).toBeInTheDocument();
+    });
+
+    it('names the target template in the status banner', () => {
+      render(
+        <CardPreview
+          cards={makeCards(3)}
+          onSave={vi.fn()}
+          template="cloze"
+          isRegenerating
+        />
+      );
+      expect(
+        screen.getByRole('status', { name: 'Switching to Cloze' })
+      ).toBeInTheDocument();
+    });
+
+    it('hides the Download button while regenerating', () => {
+      render(
+        <CardPreview
+          cards={makeCards(3)}
+          onSave={vi.fn()}
+          template="cloze"
+          isRegenerating
+        />
+      );
+      expect(
+        screen.queryByRole('button', { name: 'Download deck' })
+      ).not.toBeInTheDocument();
+    });
+  });
 });

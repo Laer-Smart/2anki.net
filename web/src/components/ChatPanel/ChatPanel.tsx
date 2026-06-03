@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { get, patch, post, postMultipart } from '../../lib/backend/api';
+import {
+  type ChatCardTemplate,
+  DEFAULT_TEMPLATE,
+  isPureClientReshape,
+} from '../../lib/chat/templates';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
-import ConsentModal from '../ConsentModal/ConsentModal';
 import AssistantMarkdown from '../../pages/Chat/AssistantMarkdown';
 import CardPreview from '../../pages/Chat/CardPreview';
+import ConsentModal from '../ConsentModal/ConsentModal';
 import styles from './ChatPanel.module.css';
-import {
-  DEFAULT_TEMPLATE,
-  type ChatCardTemplate,
-} from '../../lib/chat/templates';
 
 export interface ChatCard {
   front: string;
@@ -160,7 +161,11 @@ async function downloadDeck(
   deckName: string,
   templateSlug: ChatCardTemplate
 ): Promise<void> {
-  const response = await post('/api/chat/deck', { cards, deckName, templateSlug });
+  const response = await post('/api/chat/deck', {
+    cards,
+    deckName,
+    templateSlug,
+  });
   if (!response.ok) {
     throw new Error('Failed to generate deck');
   }
@@ -320,7 +325,7 @@ function StreamingMessage({
           {visibleStreamingText(streamingText)}
         </AssistantMarkdown>
         {isCardStreaming && (
-          <span className={styles.makingCards}>Making your cards</span>
+          <span className={styles.makingCards}>Writing your cards</span>
         )}
       </div>
     );
@@ -900,6 +905,7 @@ export default function ChatPanel({
 
   function handleTemplateChange(slug: ChatCardTemplate) {
     if (slug === activeTemplate) return;
+    const reshapeOnly = isPureClientReshape(activeTemplate, slug);
     setActiveTemplate(slug);
     onTemplateChange?.(slug);
     if (activeConversationId != null) {
@@ -907,6 +913,7 @@ export default function ChatPanel({
         templateSlug: slug,
       }).catch(() => {});
     }
+    if (reshapeOnly) return;
     const lastAssistantWithCards = findLastAssistantWithCardsIdx(messages);
     if (lastAssistantWithCards !== -1 && !isLoading) {
       regenerateLastTurn(slug, lastAssistantWithCards);
@@ -1068,7 +1075,8 @@ export default function ChatPanel({
 
   return (
     <>
-      {(showConsentModal || (!hasConsented && userLocals != null && !userDismissedConsent)) && (
+      {(showConsentModal ||
+        (!hasConsented && userLocals != null && !userDismissedConsent)) && (
         <ConsentModal
           onAccept={async () => {
             await refetchUserLocals();
@@ -1105,10 +1113,7 @@ export default function ChatPanel({
         ) : (
           <>
             <div className={styles.messageList} ref={messageListRef}>
-              <div
-                className={styles.messageListInner}
-                aria-live="polite"
-              >
+              <div className={styles.messageListInner} aria-live="polite">
                 {(() => {
                   const lastCardsIdx = findLastAssistantWithCardsIdx(messages);
                   return messages.map((m, i) => {
@@ -1139,14 +1144,20 @@ export default function ChatPanel({
                         key={i}
                         message={m}
                         onSave={handleSaveAsDeck}
-                        template={showTemplateSelector ? activeTemplate : undefined}
+                        template={
+                          showTemplateSelector ? activeTemplate : undefined
+                        }
                         onTemplateChange={
-                          showTemplateSelector ? handleTemplateChange : undefined
+                          showTemplateSelector
+                            ? handleTemplateChange
+                            : undefined
                         }
                         templateDisabled={isLoading}
                         isRegenerating={i === regeneratingIdx}
                         onAddTags={
-                          i === lastCardsIdx ? () => handleAddTags(i) : undefined
+                          i === lastCardsIdx
+                            ? () => handleAddTags(i)
+                            : undefined
                         }
                         isTagging={i === taggingIdx}
                       />

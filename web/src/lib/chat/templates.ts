@@ -1,8 +1,4 @@
-export type ChatCardTemplate =
-  | 'basic'
-  | 'basic-and-reversed'
-  | 'cloze'
-  | 'mcq';
+export type ChatCardTemplate = 'basic' | 'basic-and-reversed' | 'cloze' | 'mcq';
 
 export interface ChatTemplateOption {
   slug: ChatCardTemplate;
@@ -12,9 +8,17 @@ export interface ChatTemplateOption {
 
 export const CHAT_TEMPLATE_OPTIONS: ChatTemplateOption[] = [
   { slug: 'basic', label: 'Basic', fieldHint: 'Front / Back' },
-  { slug: 'basic-and-reversed', label: 'Basic + Reverse', fieldHint: 'Front / Back (both directions)' },
+  {
+    slug: 'basic-and-reversed',
+    label: 'Basic + Reverse',
+    fieldHint: 'Front / Back (both directions)',
+  },
   { slug: 'cloze', label: 'Cloze', fieldHint: 'Front with {{c1::blanks}}' },
-  { slug: 'mcq', label: 'Multiple choice', fieldHint: 'Stem with four options' },
+  {
+    slug: 'mcq',
+    label: 'Multiple choice',
+    fieldHint: 'Stem with four options',
+  },
 ];
 
 export const DEFAULT_TEMPLATE: ChatCardTemplate = 'basic';
@@ -37,13 +41,32 @@ function isClozeShape(card: ShapeCard): boolean {
 }
 
 function isBasicShape(card: ShapeCard): boolean {
-  return card.back.trim().length > 0 && !isMcqShape(card) && !isClozeShape(card);
+  return (
+    card.back.trim().length > 0 && !isMcqShape(card) && !isClozeShape(card)
+  );
 }
 
-const BASIC_FAMILY: ReadonlySet<ChatCardTemplate> = new Set<ChatCardTemplate>([
-  'basic',
-  'basic-and-reversed',
-]);
+export const TRANSFORM_TEMPLATES: ReadonlySet<ChatCardTemplate> =
+  new Set<ChatCardTemplate>(['basic', 'basic-and-reversed']);
+
+export function isPureClientReshape(
+  from: ChatCardTemplate,
+  to: ChatCardTemplate
+): boolean {
+  return TRANSFORM_TEMPLATES.has(from) && TRANSFORM_TEMPLATES.has(to);
+}
+
+export function templateSwitchLabel(target: ChatCardTemplate): string {
+  switch (target) {
+    case 'cloze':
+      return 'Switching to Cloze';
+    case 'mcq':
+      return 'Switching to multiple choice';
+    case 'basic-and-reversed':
+    case 'basic':
+      return 'Switching to Basic';
+  }
+}
 
 export function effectiveTemplateForCards(
   cards: ShapeCard[],
@@ -52,6 +75,7 @@ export function effectiveTemplateForCards(
   if (cards.length === 0) return selected;
   if (cards.every(isMcqShape)) return 'mcq';
   if (cards.every(isClozeShape)) return 'cloze';
-  if (cards.every(isBasicShape) && !BASIC_FAMILY.has(selected)) return 'basic';
+  if (cards.every(isBasicShape) && !TRANSFORM_TEMPLATES.has(selected))
+    return 'basic';
   return selected;
 }

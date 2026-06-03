@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import DownloadIcon from '../../components/icons/DownloadIcon';
 import { TemplateSelector } from '../../components/ChatPanel/TemplateSelector';
+import DownloadIcon from '../../components/icons/DownloadIcon';
 import {
-  effectiveTemplateForCards,
   type ChatCardTemplate,
+  effectiveTemplateForCards,
+  templateSwitchLabel,
 } from '../../lib/chat/templates';
 import styles from './CardPreview.module.css';
 
@@ -17,9 +18,7 @@ interface ChatCard {
 }
 
 function isMcqCard(card: ChatCard): boolean {
-  return (
-    Array.isArray(card.options) && typeof card.correctIndex === 'number'
-  );
+  return Array.isArray(card.options) && typeof card.correctIndex === 'number';
 }
 
 interface CardPreviewProps {
@@ -33,7 +32,6 @@ interface CardPreviewProps {
   isTagging?: boolean;
 }
 
-const SKELETON_ROWS = 5;
 const MAX_VISIBLE_TAGS = 3;
 const CLOZE_PATTERN = /\{\{c\d+::/;
 
@@ -41,10 +39,7 @@ function expandForReversed(cards: ChatCard[]): ChatCard[] {
   const expanded: ChatCard[] = [];
   for (const card of cards) {
     expanded.push(card);
-    if (
-      card.back.trim().length > 0 &&
-      !CLOZE_PATTERN.test(card.front)
-    ) {
+    if (card.back.trim().length > 0 && !CLOZE_PATTERN.test(card.front)) {
       expanded.push({ front: card.back, back: card.front, tags: card.tags });
     }
   }
@@ -156,8 +151,8 @@ export default function CardPreview({
   const hasMore = displayCards.length > VISIBLE_COUNT;
   const hideBackColumn =
     displayTemplate === 'cloze' &&
-    (isRegenerating === true ||
-      (cards.length > 0 && cards.every((c) => c.back.trim().length === 0)));
+    cards.length > 0 &&
+    cards.every((c) => c.back.trim().length === 0);
   const hasTags =
     cards.some((c) => c.tags != null && c.tags.length > 0) ||
     isTagging === true;
@@ -191,6 +186,7 @@ export default function CardPreview({
   }
 
   const cardLabel = displayCards.length === 1 ? 'card' : 'cards';
+  const switchLabel = template == null ? null : templateSwitchLabel(template);
 
   return (
     <div className={styles.cardPreview}>
@@ -294,84 +290,69 @@ export default function CardPreview({
         </div>
       )}
 
-      {isRegenerating ? (
-        <>
-          <div
-            className={styles.cardPreviewSkeletonList}
-            aria-label="Rebuilding your cards with the new template"
-            role="status"
-          >
-            {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+      {isRegenerating === true && switchLabel != null && (
+        <p
+          className={styles.cardPreviewSwitchHint}
+          role="status"
+          aria-label={switchLabel}
+        >
+          {switchLabel}
+        </p>
+      )}
+      <>
+        <div
+          className={`${styles.cardPreviewList} ${isRegenerating === true ? styles.cardPreviewListDimmed : ''}`}
+          aria-busy={isRegenerating === true}
+        >
+          {visibleCards.map((card, i) =>
+            isMcqCard(card) ? (
+              <McqRow key={i} card={card} />
+            ) : (
               <div
                 key={i}
-                className={`${styles.cardPreviewSkeletonRow} ${hideBackColumn ? styles.cardPreviewSkeletonRowSingle : ''}`}
+                className={`${styles.cardPreviewRow} ${hideBackColumn && !hasTags ? styles.cardPreviewRowSingle : ''} ${!hideBackColumn && hasTags ? styles.cardPreviewRowThree : ''}`}
               >
-                <span className={styles.cardPreviewSkeletonBlock} />
+                <div className={styles.cardPreviewFront}>
+                  {(!hideBackColumn || hasTags) && (
+                    <span className={styles.cardPreviewMobileLabel}>Front</span>
+                  )}
+                  {card.front}
+                </div>
                 {!hideBackColumn && (
-                  <span className={styles.cardPreviewSkeletonBlock} />
+                  <div className={styles.cardPreviewBack}>
+                    <span className={styles.cardPreviewMobileLabel}>Back</span>
+                    {card.back}
+                  </div>
+                )}
+                {hasTags && (
+                  <div className={styles.cardPreviewTags}>
+                    <span className={styles.cardPreviewMobileLabel}>Tags</span>
+                    {isTagging ? (
+                      <span
+                        className={styles.cardPreviewTagSkeleton}
+                        role="status"
+                        aria-label="Adding tags"
+                      />
+                    ) : (
+                      <TagChips tags={card.tags ?? []} />
+                    )}
+                  </div>
                 )}
               </div>
-            ))}
-          </div>
-          <p className={styles.cardPreviewSkeletonHint}>
-            Rebuilding your cards with the new template
-          </p>
-        </>
-      ) : (
-        <>
-          <div className={styles.cardPreviewList}>
-            {visibleCards.map((card, i) =>
-              isMcqCard(card) ? (
-                <McqRow key={i} card={card} />
-              ) : (
-                <div
-                  key={i}
-                  className={`${styles.cardPreviewRow} ${hideBackColumn && !hasTags ? styles.cardPreviewRowSingle : ''} ${!hideBackColumn && hasTags ? styles.cardPreviewRowThree : ''}`}
-                >
-                  <div className={styles.cardPreviewFront}>
-                    {(!hideBackColumn || hasTags) && (
-                      <span className={styles.cardPreviewMobileLabel}>Front</span>
-                    )}
-                    {card.front}
-                  </div>
-                  {!hideBackColumn && (
-                    <div className={styles.cardPreviewBack}>
-                      <span className={styles.cardPreviewMobileLabel}>Back</span>
-                      {card.back}
-                    </div>
-                  )}
-                  {hasTags && (
-                    <div className={styles.cardPreviewTags}>
-                      <span className={styles.cardPreviewMobileLabel}>Tags</span>
-                      {isTagging ? (
-                        <span
-                          className={styles.cardPreviewTagSkeleton}
-                          role="status"
-                          aria-label="Adding tags"
-                        />
-                      ) : (
-                        <TagChips tags={card.tags ?? []} />
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            )}
-          </div>
-
-          {hasMore && (
-            <button
-              type="button"
-              className={styles.cardPreviewExpandBtn}
-              onClick={() => setExpanded((v) => !v)}
-            >
-              {expanded
-                ? 'Show fewer'
-                : `Show all ${displayCards.length} cards`}
-            </button>
+            )
           )}
-        </>
-      )}
+        </div>
+
+        {hasMore && (
+          <button
+            type="button"
+            className={styles.cardPreviewExpandBtn}
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? 'Show fewer' : `Show all ${displayCards.length} cards`}
+          </button>
+        )}
+      </>
     </div>
   );
 }

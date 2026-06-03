@@ -144,7 +144,9 @@ describe('ChatPanel — send button state', () => {
     renderChatPanel();
     const textarea = screen.getByRole('textbox', { name: 'Message input' });
     fireEvent.change(textarea, { target: { value: 'Hello' } });
-    expect(screen.getByRole('button', { name: 'Send message' })).not.toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Send message' })
+    ).not.toBeDisabled();
   });
 });
 
@@ -184,7 +186,9 @@ describe('ChatPanel — long user message collapse', () => {
       ])
     );
     const longMessage = 'A'.repeat(700);
-    renderChatPanel({ initialMessages: [{ role: 'user', content: longMessage }] });
+    renderChatPanel({
+      initialMessages: [{ role: 'user', content: longMessage }],
+    });
     expect(
       screen.getByRole('button', { name: 'Show full message' })
     ).toBeInTheDocument();
@@ -192,7 +196,9 @@ describe('ChatPanel — long user message collapse', () => {
 
   it('toggles to "Show less" after clicking "Show full message"', () => {
     const longMessage = 'B'.repeat(700);
-    renderChatPanel({ initialMessages: [{ role: 'user', content: longMessage }] });
+    renderChatPanel({
+      initialMessages: [{ role: 'user', content: longMessage }],
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Show full message' }));
     expect(
       screen.getByRole('button', { name: 'Show less' })
@@ -208,9 +214,7 @@ describe('ChatPanel — assistant message layout', () => {
 
   it('renders assistant prose without a user-message aria-label', async () => {
     renderChatPanel({
-      initialMessages: [
-        { role: 'assistant', content: 'The answer is 42.' },
-      ],
+      initialMessages: [{ role: 'assistant', content: 'The answer is 42.' }],
     });
     expect(screen.getByText('The answer is 42.')).toBeInTheDocument();
     expect(screen.queryByLabelText('User message')).not.toBeInTheDocument();
@@ -221,7 +225,12 @@ describe('ChatPanel — CardPreview integration', () => {
   beforeEach(() => {
     mockPost.mockReset();
     mockGet.mockResolvedValue({ used: 0, limit: 20 });
-    Object.assign(global, { URL: { createObjectURL: vi.fn(() => 'blob:test'), revokeObjectURL: vi.fn() } });
+    Object.assign(global, {
+      URL: {
+        createObjectURL: vi.fn(() => 'blob:test'),
+        revokeObjectURL: vi.fn(),
+      },
+    });
   });
 
   it('renders "Download deck" button when message has cards', () => {
@@ -579,13 +588,17 @@ describe('ChatPanel — consent modal dismissal', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: 'Chat sends your messages to Anthropic' })
+      screen.getByRole('heading', {
+        name: 'Chat sends your messages to Anthropic',
+      })
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Not now' }));
 
     expect(
-      screen.queryByRole('heading', { name: 'Chat sends your messages to Anthropic' })
+      screen.queryByRole('heading', {
+        name: 'Chat sends your messages to Anthropic',
+      })
     ).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Message input' }), {
@@ -599,7 +612,9 @@ describe('ChatPanel — consent modal dismissal', () => {
     );
 
     expect(
-      screen.queryByRole('heading', { name: 'Chat sends your messages to Anthropic' })
+      screen.queryByRole('heading', {
+        name: 'Chat sends your messages to Anthropic',
+      })
     ).not.toBeInTheDocument();
   });
 
@@ -613,7 +628,9 @@ describe('ChatPanel — consent modal dismissal', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Not now' }));
 
     expect(
-      screen.queryByRole('heading', { name: 'Chat sends your messages to Anthropic' })
+      screen.queryByRole('heading', {
+        name: 'Chat sends your messages to Anthropic',
+      })
     ).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByRole('textbox', { name: 'Message input' }), {
@@ -623,7 +640,9 @@ describe('ChatPanel — consent modal dismissal', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('heading', { name: 'Chat sends your messages to Anthropic' })
+        screen.getByRole('heading', {
+          name: 'Chat sends your messages to Anthropic',
+        })
       ).toBeInTheDocument();
     });
   });
@@ -675,8 +694,12 @@ describe('ChatPanel — template selector', () => {
   it('opens the template dropdown on click', () => {
     renderChatPanel({ initialMessages: assistantWithCards });
     fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
-    expect(screen.getByRole('listbox', { name: 'Note type' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /Basic \+/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole('listbox', { name: 'Note type' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: /Basic \+/ })
+    ).toBeInTheDocument();
     expect(screen.getByRole('option', { name: /Cloze/ })).toBeInTheDocument();
   });
 
@@ -684,7 +707,10 @@ describe('ChatPanel — template selector', () => {
     const onTemplateChange = vi.fn();
     mockPost.mockResolvedValueOnce(
       makeSseResponse([
-        { event: 'done', data: { content: 'Reply', conversationId: 1, cards: [] } },
+        {
+          event: 'done',
+          data: { content: 'Reply', conversationId: 1, cards: [] },
+        },
       ])
     );
     renderChatPanel({
@@ -692,7 +718,9 @@ describe('ChatPanel — template selector', () => {
       onTemplateChange,
     });
     fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
-    fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
+    fireEvent.click(
+      screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!
+    );
     expect(onTemplateChange).toHaveBeenCalledWith('cloze');
   });
 
@@ -736,7 +764,9 @@ describe('ChatPanel — template selector', () => {
       initialConversationId: 7,
     });
     fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
-    fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
+    fireEvent.click(
+      screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!
+    );
     await waitFor(() => {
       expect(mockPost).toHaveBeenCalledWith(
         '/api/chat/conversations/7/regenerate',
@@ -763,7 +793,9 @@ describe('ChatPanel — template selector', () => {
       initialConversationId: 7,
     });
     fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
-    fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
+    fireEvent.click(
+      screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!
+    );
     await waitFor(() => {
       expect(mockPost).toHaveBeenCalledWith(
         '/api/chat/conversations/7/regenerate',
@@ -794,7 +826,9 @@ describe('ChatPanel — template selector', () => {
       initialConversationId: 7,
     });
     fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
-    fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
+    fireEvent.click(
+      screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!
+    );
     await waitFor(() => {
       expect(screen.getByText('Cloze front')).toBeInTheDocument();
     });
@@ -805,11 +839,13 @@ describe('ChatPanel — template selector', () => {
   it('does not regenerate when there is no saved conversation', async () => {
     renderChatPanel({ initialMessages: assistantWithCards });
     fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
-    fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
+    fireEvent.click(
+      screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!
+    );
     expect(mockPost).not.toHaveBeenCalled();
   });
 
-  it('shows a skeleton while regenerating and hides the Download button', async () => {
+  it('keeps the existing cards visible while regenerating and hides Download', async () => {
     let resolveSse: (v: ReturnType<typeof makeSseResponse>) => void = () => {};
     const sseResponse = new Promise<ReturnType<typeof makeSseResponse>>(
       (res) => {
@@ -827,15 +863,16 @@ describe('ChatPanel — template selector', () => {
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
-    fireEvent.click(screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!);
+    fireEvent.click(
+      screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!
+    );
 
     await waitFor(() => {
       expect(
-        screen.getByRole('status', {
-          name: 'Rebuilding your cards with the new template',
-        })
+        screen.getByRole('status', { name: 'Switching to Cloze' })
       ).toBeInTheDocument();
     });
+    expect(screen.getByText('Capital?')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Download deck' })
     ).not.toBeInTheDocument();
@@ -855,10 +892,65 @@ describe('ChatPanel — template selector', () => {
 
     await waitFor(() => {
       expect(
-        screen.queryByRole('status', {
-          name: 'Rebuilding your cards with the new template',
-        })
+        screen.queryByRole('status', { name: 'Switching to Cloze' })
       ).not.toBeInTheDocument();
+    });
+  });
+
+  it('switches basic to basic-and-reversed without calling the server', () => {
+    renderChatPanel({
+      initialMessages: assistantWithCards,
+      initialConversationId: 7,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
+    fireEvent.click(
+      screen.getByRole('option', { name: /Basic \+/ }).querySelector('button')!
+    );
+    expect(mockPost).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('button', { name: 'Note type: Basic + Reverse' })
+    ).toBeInTheDocument();
+  });
+
+  it('renders reversed duplicate rows after the instant basic-and-reversed switch', () => {
+    renderChatPanel({
+      initialMessages: assistantWithCards,
+      initialConversationId: 7,
+    });
+    expect(screen.getAllByText('Oslo')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
+    fireEvent.click(
+      screen.getByRole('option', { name: /Basic \+/ }).querySelector('button')!
+    );
+    expect(screen.getAllByText('Oslo')).toHaveLength(2);
+  });
+
+  it('still calls the server when switching basic to cloze', async () => {
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([
+        {
+          event: 'done',
+          data: {
+            content: 'Reply',
+            conversationId: 7,
+            cards: [{ front: 'New', back: 'Card' }],
+          },
+        },
+      ])
+    );
+    renderChatPanel({
+      initialMessages: assistantWithCards,
+      initialConversationId: 7,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
+    fireEvent.click(
+      screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!
+    );
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/chat/conversations/7/regenerate',
+        { templateSlug: 'cloze' }
+      );
     });
   });
 });
@@ -892,10 +984,7 @@ describe('consumeSseEvents', () => {
   });
 
   it('reassembles an event split across two stream chunks', async () => {
-    const stream = streamFromStrings([
-      'event: tok',
-      'en\ndata: "split"\n\n',
-    ]);
+    const stream = streamFromStrings(['event: tok', 'en\ndata: "split"\n\n']);
     const received: Array<[string, string]> = [];
 
     await consumeSseEvents(stream, (eventType, data) => {

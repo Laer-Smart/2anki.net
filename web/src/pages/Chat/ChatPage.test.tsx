@@ -132,7 +132,7 @@ describe('ChatPage', () => {
     expect(screen.queryByText('Download deck')).not.toBeInTheDocument();
   });
 
-  it('shows Making your cards indicator and hides JSON while streaming cards', async () => {
+  it('shows Writing your cards indicator and hides JSON while streaming cards', async () => {
     const cards = [{ front: 'Q1', back: 'A1' }];
     const encoder = new TextEncoder();
     let enqueue!: (chunk: Uint8Array) => void;
@@ -160,7 +160,7 @@ describe('ChatPage', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Making your cards')).toBeInTheDocument();
+      expect(screen.getByText('Writing your cards')).toBeInTheDocument();
     });
     expect(screen.queryByText(/```json/)).not.toBeInTheDocument();
 
@@ -179,7 +179,7 @@ describe('ChatPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Q1')).toBeInTheDocument();
     });
-    expect(screen.queryByText('Making your cards')).not.toBeInTheDocument();
+    expect(screen.queryByText('Writing your cards')).not.toBeInTheDocument();
   });
 
   it('does not collapse short user messages', async () => {
