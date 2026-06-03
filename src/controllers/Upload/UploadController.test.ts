@@ -205,3 +205,132 @@ describe('Upload file — multer error handling', () => {
     );
   });
 });
+
+describe('UploadController.retryPdfWithCredential rate limit', () => {
+  test('returns 429 when the limiter rejects the IP', async () => {
+    const repository = {
+      deleteUpload: jest.fn(),
+      getUploadsByOwner: jest.fn().mockResolvedValue([]),
+      findByIdAndOwner: jest.fn().mockResolvedValue(null),
+      findByKey: jest.fn().mockResolvedValue(null),
+      findAllByObjectIdAndOwner: jest.fn().mockResolvedValue([]),
+      update: jest.fn().mockResolvedValue([]),
+      getLastUploadForUser: jest.fn().mockResolvedValue(null),
+      getLastReconvertibleUpload: jest.fn().mockResolvedValue(null),
+      findByOwnerAndDedupeKey: jest.fn().mockResolvedValue(null),
+      insertNativeDeck: jest.fn(),
+    };
+    const notionRepository: INotionRepository = {
+      getNotionData: jest.fn() as INotionRepository['getNotionData'],
+      saveNotionToken: jest.fn() as INotionRepository['saveNotionToken'],
+      getNotionToken: jest.fn() as INotionRepository['getNotionToken'],
+      deleteBlocksByOwner: jest.fn() as INotionRepository['deleteBlocksByOwner'],
+      deleteNotionData: jest.fn() as INotionRepository['deleteNotionData'],
+      markTokenInvalid: jest.fn().mockResolvedValue(undefined),
+      clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
+      setReconnectEmailSent: jest.fn().mockResolvedValue(true),
+    };
+    const uploadService = new UploadService(repository, {} as JobRepository, buildUsersRepo());
+    const notionService = new NotionService(notionRepository);
+
+    const blockingLimiter = { check: jest.fn().mockReturnValue(false) };
+    const controller = new UploadController(
+      uploadService,
+      notionService,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      blockingLimiter
+    );
+
+    const jsonSpy = jest.fn();
+    let capturedStatus = 0;
+
+    const req = {
+      file: { path: '/tmp/does-not-need-to-exist.pdf', originalname: 'foo.pdf' },
+      body: {},
+      headers: { 'x-forwarded-for': '10.0.0.1' },
+      socket: { remoteAddress: '10.0.0.1' },
+    } as unknown as express.Request;
+
+    const res = {
+      locals: {},
+      status: (code: number) => {
+        capturedStatus = code;
+        return { json: jsonSpy } as unknown as express.Response;
+      },
+    } as unknown as express.Response;
+
+    await controller.retryPdfWithCredential(req, res);
+
+    expect(blockingLimiter.check).toHaveBeenCalledTimes(1);
+    expect(capturedStatus).toBe(429);
+    expect(jsonSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining('Too many password attempts'),
+      })
+    );
+  });
+
+  test('returns 400 when no file is provided (before rate limit check)', async () => {
+    const repository = {
+      deleteUpload: jest.fn(),
+      getUploadsByOwner: jest.fn().mockResolvedValue([]),
+      findByIdAndOwner: jest.fn().mockResolvedValue(null),
+      findByKey: jest.fn().mockResolvedValue(null),
+      findAllByObjectIdAndOwner: jest.fn().mockResolvedValue([]),
+      update: jest.fn().mockResolvedValue([]),
+      getLastUploadForUser: jest.fn().mockResolvedValue(null),
+      getLastReconvertibleUpload: jest.fn().mockResolvedValue(null),
+      findByOwnerAndDedupeKey: jest.fn().mockResolvedValue(null),
+      insertNativeDeck: jest.fn(),
+    };
+    const notionRepository: INotionRepository = {
+      getNotionData: jest.fn() as INotionRepository['getNotionData'],
+      saveNotionToken: jest.fn() as INotionRepository['saveNotionToken'],
+      getNotionToken: jest.fn() as INotionRepository['getNotionToken'],
+      deleteBlocksByOwner: jest.fn() as INotionRepository['deleteBlocksByOwner'],
+      deleteNotionData: jest.fn() as INotionRepository['deleteNotionData'],
+      markTokenInvalid: jest.fn().mockResolvedValue(undefined),
+      clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
+      setReconnectEmailSent: jest.fn().mockResolvedValue(true),
+    };
+    const uploadService = new UploadService(repository, {} as JobRepository, buildUsersRepo());
+    const notionService = new NotionService(notionRepository);
+
+    const blockingLimiter = { check: jest.fn().mockReturnValue(false) };
+    const controller = new UploadController(
+      uploadService,
+      notionService,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      blockingLimiter
+    );
+
+    const jsonSpy = jest.fn();
+    let capturedStatus = 0;
+
+    const req = {
+      file: undefined,
+      body: {},
+      headers: {},
+      socket: { remoteAddress: '10.0.0.1' },
+    } as unknown as express.Request;
+
+    const res = {
+      locals: {},
+      status: (code: number) => {
+        capturedStatus = code;
+        return { json: jsonSpy } as unknown as express.Response;
+      },
+    } as unknown as express.Response;
+
+    await controller.retryPdfWithCredential(req, res);
+
+    expect(blockingLimiter.check).not.toHaveBeenCalled();
+    expect(capturedStatus).toBe(400);
+  });
+});

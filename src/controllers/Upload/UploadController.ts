@@ -1,8 +1,13 @@
+import crypto from 'node:crypto';
 import express from 'express';
 import fs from 'node:fs';
 import multer from 'multer';
 
 import { getOwner } from '../../lib/User/getOwner';
+import {
+  InMemoryRateLimiter,
+  RateLimiter,
+} from '../../lib/rateLimit/InMemoryRateLimiter';
 import NotionService from '../../services/NotionService';
 import UploadService from '../../services/UploadService';
 import { getUploadHandler } from '../../lib/misc/GetUploadHandler';
@@ -25,15 +30,42 @@ const DROPBOX_PAGE_SIZE = 10;
 const GOOGLE_DRIVE_PAGE_SIZE = 10;
 const GOOGLE_DRIVE_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
 
+const RETRY_PDF_WINDOW_MS = 60_000;
+const RETRY_PDF_PER_IP_MAX = 10;
+const RETRY_PDF_GLOBAL_MAX = 500;
+
+function resolveClientIp(req: express.Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string') {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.socket?.remoteAddress ?? 'unknown';
+}
+
+function hashIp(raw: string): string {
+  return crypto.createHash('sha256').update(raw).digest('hex');
+}
+
 class UploadController {
+  private readonly retryPdfRateLimiter: RateLimiter;
+
   constructor(
     private readonly service: UploadService,
     private readonly notionService: NotionService,
     private readonly getDropboxUploadsUseCase?: GetDropboxUploadsUseCase,
     private readonly deleteDropboxUploadUseCase?: DeleteDropboxUploadUseCase,
     private readonly getGoogleDriveUploadsUseCase?: GetGoogleDriveUploadsUseCase,
-    private readonly deleteGoogleDriveUploadUseCase?: DeleteGoogleDriveUploadUseCase
-  ) {}
+    private readonly deleteGoogleDriveUploadUseCase?: DeleteGoogleDriveUploadUseCase,
+    retryPdfRateLimiter?: RateLimiter
+  ) {
+    this.retryPdfRateLimiter =
+      retryPdfRateLimiter ??
+      new InMemoryRateLimiter({
+        windowMs: RETRY_PDF_WINDOW_MS,
+        perKeyMax: RETRY_PDF_PER_IP_MAX,
+        globalMax: RETRY_PDF_GLOBAL_MAX,
+      });
+  }
 
   async deleteUpload(req: express.Request, res: express.Response) {
     const owner = getOwner(res);
@@ -218,6 +250,19 @@ class UploadController {
     const uploadedFile = req.file;
     if (!uploadedFile) {
       return res.status(400).json({ message: 'No file provided.' });
+    }
+
+    const ipKey = hashIp(resolveClientIp(req));
+    if (!this.retryPdfRateLimiter.check(ipKey)) {
+      const unlinkPath = uploadedFile.path;
+      fs.promises.unlink(unlinkPath).catch((e) => {
+        console.error('[retryPdfWithCredential] temp file cleanup failed', {
+          error: e instanceof Error ? e.message : String(e),
+        });
+      });
+      return res
+        .status(429)
+        .json({ message: 'Too many password attempts. Please wait a minute and try again.' });
     }
 
     const credential = validatePdfCredential((req.body as Record<string, unknown>).credential);
