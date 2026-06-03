@@ -197,6 +197,22 @@ describe('TemplatesPage', () => {
     expect(screen.getByText('Back')).toBeInTheDocument();
   });
 
+  it('opens a preview dialog when the Preview button is clicked', async () => {
+    getDefaults.mockResolvedValue([sampleStarter]);
+    renderPage();
+
+    const previewButton = await screen.findByRole('button', {
+      name: /preview clean basic/i,
+    });
+    fireEvent.click(previewButton);
+
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveAttribute('aria-labelledby', 'note-type-preview-title');
+    expect(screen.getByText('Front')).toBeInTheDocument();
+    expect(screen.getByText('Back')).toBeInTheDocument();
+  });
+
   it('closes the preview when Escape is pressed', async () => {
     getDefaults.mockResolvedValue([sampleStarter]);
     renderPage();

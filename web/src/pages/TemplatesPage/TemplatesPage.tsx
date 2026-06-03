@@ -13,6 +13,7 @@ import {
 import { useDialog } from '../../lib/hooks/useDialog';
 import sharedStyles from '../../styles/shared.module.css';
 import DownloadIcon from '../../components/icons/DownloadIcon';
+import EyeIcon from '../../components/icons/EyeIcon';
 import PencilIcon from '../../components/icons/PencilIcon';
 import TrashIcon from '../../components/icons/TrashIcon';
 import styles from './TemplatesPage.module.css';
@@ -90,6 +91,15 @@ function NoteTypeCard({
           >
             <DownloadIcon width={14} height={14} />
             {busy ? 'Preparing…' : 'Download'}
+          </button>
+          <button
+            type="button"
+            className={styles.previewBtn}
+            onClick={() => onPreview(starter)}
+            aria-label={`Preview ${starter.name}`}
+          >
+            <EyeIcon width={14} height={14} />
+            Preview
           </button>
           <div className={styles.secondaryActions}>
             <Link
