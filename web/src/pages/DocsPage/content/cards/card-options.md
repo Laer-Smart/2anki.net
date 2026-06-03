@@ -17,6 +17,7 @@ Card options change how 2anki turns your source into flashcards. Most are off-or
 |---|---|---|
 | Deck name | — | Custom name for the downloaded `.apkg`. Leave empty to use the source's name. |
 | Font size | 20 | Base font size for card text, in pixels. |
+| Text color | Default | Pick from a set of readable colors, or keep Default to follow Anki's theme so text stays legible in light and night mode. |
 | Toggle mode | Close nested toggles | Controls whether nested toggles render open or closed on the card back. |
 | Page emoji | Icon first | Where the page emoji shows up in the deck title — first, last, or disabled. |
 | Basic note type | `n2a-basic` | The Anki note type name 2anki uses for basic cards. Change it to plug your own template in. |

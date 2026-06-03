@@ -1,6 +1,7 @@
 export const CARD_OPTION_KEYS = [
   'deckName',
   'font-size',
+  'text-color',
   'template',
   'toggle-mode',
   'page-emoji',
