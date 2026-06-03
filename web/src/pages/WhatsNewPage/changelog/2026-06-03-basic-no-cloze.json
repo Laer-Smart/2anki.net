@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-basic-no-cloze",
+  "date": "2026-06-03",
+  "type": "fix",
+  "title": "Basic chat decks keep plain front and back cards — no stray cloze markers"
+}

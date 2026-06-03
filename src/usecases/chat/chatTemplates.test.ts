@@ -17,8 +17,14 @@ describe('isChatCardTemplate', () => {
 });
 
 describe('templatePromptSuffix', () => {
-  it('returns empty string for basic template', () => {
-    expect(templatePromptSuffix('basic')).toBe('');
+  it('returns a non-empty suffix for basic that forbids cloze and mcq', () => {
+    const suffix = templatePromptSuffix('basic');
+    expect(suffix.length).toBeGreaterThan(0);
+    expect(suffix).toMatch(/front/i);
+    expect(suffix).toMatch(/back/i);
+    expect(suffix).toMatch(/\{\{c/);
+    expect(suffix).toMatch(/cloze/i);
+    expect(suffix).toMatch(/multiple.choice|mcq/i);
   });
 
   it('returns a non-empty suffix for basic-and-reversed', () => {

@@ -16,7 +16,14 @@ export function isChatCardTemplate(value: unknown): value is ChatCardTemplate {
 }
 
 const TEMPLATE_PROMPT_SUFFIX: Record<ChatCardTemplate, string> = {
-  basic: '',
+  basic: `
+TEMPLATE OVERRIDE — basic front/back (this overrides any earlier instruction about cloze or multiple-choice cards):
+
+EVERY card you emit must be a plain front/back pair. For each card:
+- "front" holds the question or prompt
+- "back" holds the answer and must be non-empty
+- Do NOT use {{cN::...}} cloze syntax anywhere
+- Do NOT produce multiple-choice (MCQ) cards or answer-option lists`,
   'basic-and-reversed': `
 TEMPLATE OVERRIDE — basic + reverse:
 Each card will appear in Anki as BOTH a question→answer AND answer→question pair. Make sure every card makes sense in both directions (e.g. terms and definitions, language pairs).`,
@@ -59,4 +66,13 @@ Rules:
 
 export function templatePromptSuffix(slug: ChatCardTemplate): string {
   return TEMPLATE_PROMPT_SUFFIX[slug];
+}
+
+const CLOZE_FORBIDDING_TEMPLATES: ReadonlySet<ChatCardTemplate> = new Set([
+  'basic',
+  'basic-and-reversed',
+]);
+
+export function templateForbidsCloze(slug: string | null | undefined): boolean {
+  return isChatCardTemplate(slug) && CLOZE_FORBIDDING_TEMPLATES.has(slug);
 }

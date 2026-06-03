@@ -3,6 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
 import CustomExporter from '../../lib/parser/exporters/CustomExporter';
+import { templateForbidsCloze } from './chatTemplates';
 
 export interface ChatDeckCard {
   front: string;
@@ -30,10 +31,21 @@ function randomDeckId(): number {
 }
 
 const CLOZE_PATTERN = /\{\{c\d+::/;
+const CLOZE_REPLACE_PATTERN = /\{\{c\d+::([\s\S]*?)\}\}/g;
 const BLANK_PATTERN = /_{2,}/;
 
 export function looksLikeCloze(front: string): boolean {
   return CLOZE_PATTERN.test(front);
+}
+
+export function normalizeBasicCard(card: ChatDeckCard): ChatDeckCard {
+  if (!looksLikeCloze(card.front)) return card;
+  const answers: string[] = [];
+  const front = card.front.replace(CLOZE_REPLACE_PATTERN, (_match, answer: string) => {
+    answers.push(answer.trim());
+    return '[...]';
+  });
+  return { ...card, front, back: answers.join(', ') };
 }
 
 export function transformBlankToCloze(card: ChatDeckCard): ChatDeckCard {
@@ -66,10 +78,13 @@ export class ChatDeckUseCase {
     fs.mkdirSync(workspaceDir, { recursive: true });
 
     try {
-      const normalizedCards = expandForTemplate(
-        cards.map((c) => (isMcqCard(c) ? c : transformBlankToCloze(c))),
-        templateSlug
-      );
+      const forbidCloze = templateForbidsCloze(templateSlug);
+      const preparedCards = cards.map((c) => {
+        if (isMcqCard(c)) return c;
+        const withCloze = transformBlankToCloze(c);
+        return forbidCloze ? normalizeBasicCard(withCloze) : withCloze;
+      });
+      const normalizedCards = expandForTemplate(preparedCards, templateSlug);
       const deckInfo = [
         {
           name: deckName,
