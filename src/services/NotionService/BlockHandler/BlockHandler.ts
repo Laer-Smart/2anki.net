@@ -38,6 +38,8 @@ import { downloadMediaOrSkip } from '../helpers/downloadMediaOrSkip';
 import { expandSyncedBlocks } from '../helpers/expandSyncedBlocks';
 import { getAudioUrl } from '../helpers/getAudioUrl';
 import getClozeDeletionCard from '../helpers/getClozeDeletionCard';
+import handleClozeDeletions from '../../../lib/parser/helpers/handleClozeDeletions';
+import hasInlineClozeCode from '../../../lib/parser/helpers/hasInlineClozeCode';
 import getColumn from '../helpers/getColumn';
 import { getFileUrl } from '../helpers/getFileUrl';
 import { getImageUrl } from '../helpers/getImageUrl';
@@ -323,6 +325,16 @@ class BlockHandler {
         if (clozeCard) {
           isBasicType = false;
           ankiNote.copyValues(clozeCard);
+        } else if (
+          back &&
+          this.settings.clozeFromToggleContent &&
+          hasInlineClozeCode(back)
+        ) {
+          isBasicType = false;
+          ankiNote.cloze = true;
+          ankiNote.name = handleClozeDeletions(back);
+          ankiNote.back = name;
+          back = name;
         }
       }
       // Look for input cards

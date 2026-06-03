@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-cloze-in-toggle-content",
+  "date": "2026-06-03",
+  "type": "feature",
+  "title": "Turn inline code inside Notion toggles into cloze cards — the code becomes the blank, the toggle header the hint"
+}

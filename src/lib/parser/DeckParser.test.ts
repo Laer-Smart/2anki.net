@@ -133,6 +133,90 @@ test('Toggle Headings', async () => {
   expect(deck.cards.length).toBeGreaterThan(0);
 });
 
+test('cloze markers inside toggle content produce a cloze card with the header as Extra', async () => {
+  const html = `<html><head><title>Capitals</title></head>
+<body><article class="page sans"><header><h1 class="page-title">Capitals</h1></header><div class="page-body">
+<ul class="toggle"><li><details open=""><summary>Australia</summary>
+<p>The capital is <code>Canberra</code>, founded in <code>1913</code>.</p></details></li></ul>
+</div></article></body></html>`;
+
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'capitals.html',
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'cloze-from-toggle-content': 'true',
+    }),
+    files: [{ name: 'capitals.html', contents: html }],
+    noLimits: true,
+    workspace,
+  });
+  await parser.build(workspace);
+
+  const card = parser.payload[0].cards[0];
+  expect(card.cloze).toBe(true);
+  expect(card.name).toContain('{{c1::Canberra}}');
+  expect(card.name).toContain('{{c2::1913}}');
+  expect(card.name).not.toContain('<code>');
+  expect(card.back).toContain('Australia');
+  expect(card.back).not.toContain('{{c');
+});
+
+test('cloze toggle content keeps a table intact in the cloze Text', async () => {
+  const html = `<html><head><title>Elements</title></head>
+<body><article class="page sans"><header><h1 class="page-title">Elements</h1></header><div class="page-body">
+<ul class="toggle"><li><details open=""><summary>Periodic facts</summary>
+<table class="simple-table"><tbody><tr><td>Symbol</td><td><code>H</code></td></tr><tr><td>Number</td><td><code>1</code></td></tr></tbody></table></details></li></ul>
+</div></article></body></html>`;
+
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'elements.html',
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'cloze-from-toggle-content': 'true',
+    }),
+    files: [{ name: 'elements.html', contents: html }],
+    noLimits: true,
+    workspace,
+  });
+  await parser.build(workspace);
+
+  const card = parser.payload[0].cards[0];
+  expect(card.cloze).toBe(true);
+  expect(card.name).toContain('<table');
+  expect(card.name).toContain('<td>Symbol</td>');
+  expect(card.name).toContain('{{c1::H}}');
+  expect(card.name).toContain('{{c2::1}}');
+  expect(card.back).toContain('Periodic facts');
+});
+
+test('cloze markers in the toggle header keep the header-as-Text behaviour', async () => {
+  const html = `<html><head><title>Header cloze</title></head>
+<body><article class="page sans"><header><h1 class="page-title">Header cloze</h1></header><div class="page-body">
+<ul class="toggle"><li><details open=""><summary><code>Canberra</code> was founded in <code>1913</code></summary>
+<p>Source: Anki manual</p></details></li></ul>
+</div></article></body></html>`;
+
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'header.html',
+    settings: new CardOption({ cherry: 'false', cloze: 'true' }),
+    files: [{ name: 'header.html', contents: html }],
+    noLimits: true,
+    workspace,
+  });
+  await parser.build(workspace);
+
+  const card = parser.payload[0].cards[0];
+  expect(card.cloze).toBe(true);
+  expect(card.name).toContain('{{c1::Canberra}}');
+  expect(card.name).toContain('{{c2::1913}}');
+  expect(card.back).toContain('Source: Anki manual');
+});
+
 test('Grouped cloze deletions', async () => {
   const deck = await getDeck(
     'Grouped Cloze Deletions fbf856ad7911423dbef0bfd3e3c5ce5c 3.html',
@@ -910,15 +994,42 @@ test('Nested toggles produce one card without maxOne (new format)', async () => 
   expect(deck.cards[0].back).toContain('Child');
 });
 
-test('Nested toggles produce one card without maxOne (legacy format)', async () => {
+test('Nested toggles with cloze markers in content produce one cloze card (legacy format)', async () => {
   const deck = await getDeck(
     'Nested Toggles.html',
-    new CardOption({ 'max-one-toggle-per-card': 'false', cherry: 'false', all: 'true', 'enable-input': 'false' })
+    new CardOption({ 'max-one-toggle-per-card': 'false', cherry: 'false', all: 'true', 'enable-input': 'false', cloze: 'true', 'cloze-from-toggle-content': 'true' })
   );
 
   expect(deck.cards.length).toBe(1);
-  expect(deck.cards[0].name).toContain('Parent');
-  expect(deck.cards[0].back).toContain('Capital');
+  expect(deck.cards[0].cloze).toBe(true);
+  expect(deck.cards[0].name).toContain('Capital');
+  expect(deck.cards[0].name).toContain('{{c1::Sweden}}');
+  expect(deck.cards[0].back).toContain('Parent');
+});
+
+test('cloze toggle content stays a basic card when cloze-from-toggle-content is off', async () => {
+  const html = `<html><head><title>Capitals</title></head>
+<body><article class="page sans"><header><h1 class="page-title">Capitals</h1></header><div class="page-body">
+<ul class="toggle"><li><details open=""><summary>Australia</summary>
+<p>The capital is <code>Canberra</code>, founded in <code>1913</code>.</p></details></li></ul>
+</div></article></body></html>`;
+
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'capitals.html',
+    settings: new CardOption({ cherry: 'false', cloze: 'true' }),
+    files: [{ name: 'capitals.html', contents: html }],
+    noLimits: true,
+    workspace,
+  });
+  await parser.build(workspace);
+
+  const card = parser.payload[0].cards[0];
+  expect(card.cloze).toBe(true);
+  expect(card.name).toContain('Australia');
+  expect(card.name).not.toContain('{{c');
+  expect(card.back).toContain('Canberra');
+  expect(card.back).not.toContain('{{c');
 });
 
 test('bullet points inside toggle are preserved (legacy format)', async () => {

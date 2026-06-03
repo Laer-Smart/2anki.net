@@ -146,7 +146,11 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
   },
 ];
 
-const HIDDEN_KEYS = ['vertex-ai-pdf-questions', 'remove-mp3-links'];
+const HIDDEN_KEYS = [
+  'vertex-ai-pdf-questions',
+  'remove-mp3-links',
+  'cloze-from-toggle-content',
+];
 const GROUPED_KEYS = new Set([
   ...OPTION_GROUPS.flatMap((g) => g.keys),
   ...HIDDEN_KEYS,
@@ -994,6 +998,49 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                   ) : (
                     <p className={fieldStyles.sectionHint}>Turn on Cloze deletion cards first.</p>
                   )}
+                </div>
+              )}
+              {isCardTypesGroup && (
+                <div
+                  className={fieldStyles.optionGroup}
+                  id="cloze-from-toggle-content"
+                >
+                  <h3 className={fieldStyles.groupHeading}>
+                    Inline code toggles become cloze
+                  </h3>
+                  <div className={fieldStyles.section}>
+                    <label className={fieldStyles.toggleRow}>
+                      <span className={fieldStyles.toggleSwitch}>
+                        <input
+                          type="checkbox"
+                          role="switch"
+                          disabled={!(checkboxValues['cloze'] ?? true)}
+                          checked={
+                            checkboxValues['cloze-from-toggle-content'] ?? false
+                          }
+                          onChange={(e) =>
+                            toggleCheckbox(
+                              'cloze-from-toggle-content',
+                              e.target.checked
+                            )
+                          }
+                        />
+                        <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
+                      </span>
+                      <span className={fieldStyles.toggleLabel}>
+                        Inline code toggles become cloze
+                      </span>
+                    </label>
+                    {(checkboxValues['cloze'] ?? true) ? (
+                      <p className={fieldStyles.sectionHint}>
+                        When a toggle&apos;s contents contain inline code, hide the
+                        code as a cloze and use the toggle header as the hint. Works
+                        only when Cloze deletion is on.
+                      </p>
+                    ) : (
+                      <p className={fieldStyles.sectionHint}>Turn on Cloze deletion cards first.</p>
+                    )}
+                  </div>
                 </div>
               )}
               {isCardTypesGroup && (

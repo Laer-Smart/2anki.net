@@ -10,6 +10,7 @@ import CardOption from './Settings';
 import Workspace from './WorkSpace';
 import CustomExporter from './exporters/CustomExporter';
 import handleClozeDeletions from './helpers/handleClozeDeletions';
+import hasInlineClozeCode from './helpers/hasInlineClozeCode';
 import handleOverlappingCloze, {
   OverlappingClozeStyle,
 } from './helpers/handleOverlappingCloze';
@@ -665,7 +666,18 @@ export class DeckParser {
     card.cloze = this.settings.isCloze;
 
     if (card.cloze) {
-      card.name = handleClozeDeletions(card.name);
+      const headerHasCloze = hasInlineClozeCode(card.name);
+      if (
+        !headerHasCloze &&
+        this.settings.clozeFromToggleContent &&
+        hasInlineClozeCode(card.back)
+      ) {
+        const header = card.name;
+        card.name = handleClozeDeletions(card.back);
+        card.back = header;
+      } else {
+        card.name = handleClozeDeletions(card.name);
+      }
     }
 
     if (this.settings.useInput && card.name.includes('<strong>')) {
