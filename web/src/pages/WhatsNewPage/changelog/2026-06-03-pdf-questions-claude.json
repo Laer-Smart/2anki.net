@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-pdf-questions-claude",
+  "date": "2026-06-03",
+  "type": "fix",
+  "title": "PDF question generation shows that it sends your content to Claude (Anthropic), not Google Cloud"
+}

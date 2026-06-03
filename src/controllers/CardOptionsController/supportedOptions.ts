@@ -119,7 +119,7 @@ const supportedOptions = (): CardOptionDetail[] => {
     new CardOptionDetail(
       'vertex-ai-pdf-questions',
       'Generate questions from PDF uploads',
-      'Use Vertex AI to draft questions from your PDFs. Your content is sent to Google Cloud for processing.',
+      'Drafts questions from your PDF using Claude (Anthropic). Your PDF content is sent to Anthropic for processing.',
       false
     ),
     new CardOptionDetail(
