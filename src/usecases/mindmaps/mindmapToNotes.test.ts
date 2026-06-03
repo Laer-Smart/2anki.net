@@ -100,6 +100,20 @@ describe('mindmapToNotes', () => {
     expect(result[0].media).toEqual(['abc.png']);
   });
 
+  it('renders markdown in node labels as HTML on both card faces', () => {
+    const result = mindmapToNotes({
+      nodes: [
+        { id: '1', label: '**Mitosis**' },
+        { id: '2', label: 'Splits into *two* [cells](https://x.test)' },
+      ],
+      edges: [{ source: '1', target: '2' }],
+    });
+    expect(result[0].name).toContain('<strong>Mitosis</strong>');
+    expect(result[0].name).not.toContain('**Mitosis**');
+    expect(result[0].back).toContain('<em>two</em>');
+    expect(result[0].back).toContain('<a href="https://x.test">cells</a>');
+  });
+
   it('node with image and no filename map falls back to label only', () => {
     const result = mindmapToNotes({
       nodes: [

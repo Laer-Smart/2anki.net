@@ -21,3 +21,5 @@ export const markdownToHTML = (
   const input = trimWhitespace ? stripped.trim() : stripped;
   return md.render(input);
 };
+
+export const markdownToInlineHTML = (text: string) => md.renderInline(text);
