@@ -4,6 +4,7 @@ export type CardOptions = Partial<{
   deckName: string;
   'font-size': string;
   'text-color': string;
+  'text-align': string;
   template: string;
   'toggle-mode': string;
   'page-emoji': string;
@@ -37,6 +38,7 @@ const ALLOWED_CARD_OPTION_KEYS = new Set([
   'deckName',
   'font-size',
   'text-color',
+  'text-align',
   'template',
   'toggle-mode',
   'page-emoji',
