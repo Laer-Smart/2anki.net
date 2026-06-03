@@ -35,6 +35,8 @@ class CardOption {
 
   readonly isCloze: boolean;
 
+  readonly clozeFromToggleContent: boolean;
+
   readonly useTags: boolean;
 
   readonly basicReversed: boolean;
@@ -136,6 +138,7 @@ class CardOption {
     this.toggleMode = input['toggle-mode'] || 'close_toggle';
     this.overlappingCloze = validateOverlappingCloze(input['overlapping-cloze']);
     this.isCloze = input.cloze !== 'false';
+    this.clozeFromToggleContent = input['cloze-from-toggle-content'] === 'true';
     this.useTags = input.tags !== 'false';
     this.basicReversed = input['basic-reversed'] === 'true';
     this.reversed = input.reversed === 'true';
@@ -206,6 +209,7 @@ class CardOption {
       avocado: 'false',
       tags: 'true',
       cloze: 'true',
+      'cloze-from-toggle-content': 'false',
       'enable-input': 'false',
       'basic-reversed': 'false',
       reversed: 'false',

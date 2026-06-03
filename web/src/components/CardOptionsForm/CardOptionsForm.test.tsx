@@ -241,8 +241,8 @@ describe('CardOptionsForm overlapping cloze picker', () => {
       ).toBeDisabled();
     });
     expect(
-      screen.getByText('Turn on Cloze deletion cards first.')
-    ).toBeInTheDocument();
+      screen.getAllByText('Turn on Cloze deletion cards first.').length
+    ).toBeGreaterThan(0);
   });
 
   it('hides the preview while the style is Off and shows it once a style is picked', async () => {
@@ -311,6 +311,64 @@ describe('CardOptionsForm manual TTS picker', () => {
       expect(localStorage.getItem('tts-manual-side')).toBe('both');
     });
     expect(bothButton).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
+describe('CardOptionsForm inline-code-toggles-become-cloze sub-option', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockResetUserCardOptions.mockResolvedValue(undefined);
+    setUserLocalsPaying(false);
+    localStorage.clear();
+    mockGetSettingsCardOptions.mockResolvedValue([
+      new CardOptionModel(
+        'cloze',
+        'Cloze deletion cards',
+        'Turn code spans into cloze deletions.',
+        true
+      ),
+      new CardOptionModel(
+        'cloze-from-toggle-content',
+        'Inline code toggles become cloze',
+        "When a toggle's contents contain inline code, hide the code as a cloze and use the toggle header as the hint. Works only when Cloze deletion is on.",
+        false
+      ),
+    ]);
+  });
+
+  it('renders the toggle off by default and writes "true" to localStorage when ticked', async () => {
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const toggle = await screen.findByRole('switch', {
+      name: 'Inline code toggles become cloze',
+    });
+    expect(toggle).not.toBeChecked();
+    expect(toggle).toBeEnabled();
+
+    fireEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(localStorage.getItem('cloze-from-toggle-content')).toBe('true');
+    });
+    expect(toggle).toBeChecked();
+  });
+
+  it('disables the toggle when cloze is turned off', async () => {
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const cloze = await screen.findByRole('checkbox', {
+      name: 'Cloze deletion cards',
+    });
+    fireEvent.click(cloze);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('switch', {
+          name: 'Inline code toggles become cloze',
+        })
+      ).toBeDisabled();
+    });
+    expect(
+      screen.getAllByText('Turn on Cloze deletion cards first.').length
+    ).toBeGreaterThan(0);
   });
 });
 

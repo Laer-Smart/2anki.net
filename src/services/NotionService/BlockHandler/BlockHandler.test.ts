@@ -509,7 +509,11 @@ describe('BlockHandler', () => {
       ]),
     ]);
     const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
-    const bl = new BlockHandler(exporter, childApi, new CardOption({ cloze: 'true' }));
+    const bl = new BlockHandler(
+      exporter,
+      childApi,
+      new CardOption({ cloze: 'true', 'cloze-from-toggle-content': 'true' })
+    );
     const flashcards = await bl.getFlashcards(
       new ParserRules(),
       [mockToggleBlock],
@@ -527,6 +531,35 @@ describe('BlockHandler', () => {
     expect(card.back).not.toContain('{{c');
   });
 
+  test('Cloze markers in toggle content stay a basic card when cloze-from-toggle-content is off', async () => {
+    const toggleId = 'content-cloze-off-toggle';
+    const mockToggleBlock = buildToggleBlock(toggleId, [richText('Australia')]);
+    const childApi = new ChildStubApi(api, toggleId, [
+      paragraphBlock('child-para', [
+        richText('The capital is '),
+        codeText('Canberra'),
+        richText(', founded in '),
+        codeText('1913'),
+        richText('.'),
+      ]),
+    ]);
+    const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
+    const bl = new BlockHandler(exporter, childApi, new CardOption({ cloze: 'true' }));
+    const flashcards = await bl.getFlashcards(
+      new ParserRules(),
+      [mockToggleBlock],
+      [],
+      undefined
+    );
+
+    expect(flashcards.length).toBe(1);
+    const card = flashcards[0];
+    expect(card.name).toContain('Australia');
+    expect(card.name).not.toContain('{{c');
+    expect(card.back).toContain('Canberra');
+    expect(card.back).not.toContain('{{c');
+  });
+
   test('Cloze markers inside a toggle table survive into the cloze Text', async () => {
     const toggleId = 'content-cloze-table-toggle';
     const mockToggleBlock = buildToggleBlock(toggleId, [
@@ -541,7 +574,11 @@ describe('BlockHandler', () => {
       ]),
     ]);
     const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
-    const bl = new BlockHandler(exporter, childApi, new CardOption({ cloze: 'true' }));
+    const bl = new BlockHandler(
+      exporter,
+      childApi,
+      new CardOption({ cloze: 'true', 'cloze-from-toggle-content': 'true' })
+    );
     const flashcards = await bl.getFlashcards(
       new ParserRules(),
       [mockToggleBlock],

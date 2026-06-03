@@ -143,7 +143,11 @@ test('cloze markers inside toggle content produce a cloze card with the header a
   const workspace = new Workspace(true, 'fs');
   const parser = new DeckParser({
     name: 'capitals.html',
-    settings: new CardOption({ cherry: 'false', cloze: 'true' }),
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'cloze-from-toggle-content': 'true',
+    }),
     files: [{ name: 'capitals.html', contents: html }],
     noLimits: true,
     workspace,
@@ -169,7 +173,11 @@ test('cloze toggle content keeps a table intact in the cloze Text', async () => 
   const workspace = new Workspace(true, 'fs');
   const parser = new DeckParser({
     name: 'elements.html',
-    settings: new CardOption({ cherry: 'false', cloze: 'true' }),
+    settings: new CardOption({
+      cherry: 'false',
+      cloze: 'true',
+      'cloze-from-toggle-content': 'true',
+    }),
     files: [{ name: 'elements.html', contents: html }],
     noLimits: true,
     workspace,
@@ -989,7 +997,7 @@ test('Nested toggles produce one card without maxOne (new format)', async () => 
 test('Nested toggles with cloze markers in content produce one cloze card (legacy format)', async () => {
   const deck = await getDeck(
     'Nested Toggles.html',
-    new CardOption({ 'max-one-toggle-per-card': 'false', cherry: 'false', all: 'true', 'enable-input': 'false' })
+    new CardOption({ 'max-one-toggle-per-card': 'false', cherry: 'false', all: 'true', 'enable-input': 'false', cloze: 'true', 'cloze-from-toggle-content': 'true' })
   );
 
   expect(deck.cards.length).toBe(1);
@@ -997,6 +1005,31 @@ test('Nested toggles with cloze markers in content produce one cloze card (legac
   expect(deck.cards[0].name).toContain('Capital');
   expect(deck.cards[0].name).toContain('{{c1::Sweden}}');
   expect(deck.cards[0].back).toContain('Parent');
+});
+
+test('cloze toggle content stays a basic card when cloze-from-toggle-content is off', async () => {
+  const html = `<html><head><title>Capitals</title></head>
+<body><article class="page sans"><header><h1 class="page-title">Capitals</h1></header><div class="page-body">
+<ul class="toggle"><li><details open=""><summary>Australia</summary>
+<p>The capital is <code>Canberra</code>, founded in <code>1913</code>.</p></details></li></ul>
+</div></article></body></html>`;
+
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'capitals.html',
+    settings: new CardOption({ cherry: 'false', cloze: 'true' }),
+    files: [{ name: 'capitals.html', contents: html }],
+    noLimits: true,
+    workspace,
+  });
+  await parser.build(workspace);
+
+  const card = parser.payload[0].cards[0];
+  expect(card.cloze).toBe(true);
+  expect(card.name).toContain('Australia');
+  expect(card.name).not.toContain('{{c');
+  expect(card.back).toContain('Canberra');
+  expect(card.back).not.toContain('{{c');
 });
 
 test('bullet points inside toggle are preserved (legacy format)', async () => {

@@ -51,6 +51,12 @@ const supportedOptions = (): CardOptionDetail[] => {
       true
     ),
     new CardOptionDetail(
+      'cloze-from-toggle-content',
+      'Inline code toggles become cloze',
+      "When a toggle's contents contain inline code, hide the code as a cloze and use the toggle header as the hint. Works only when Cloze deletion is on.",
+      false
+    ),
+    new CardOptionDetail(
       'enable-input',
       'Treat bold text as input',
       'Hide bold words on the front of the card so you type them during review. Useful for vocabulary and exact-answer recall.',

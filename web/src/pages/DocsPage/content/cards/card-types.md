@@ -61,7 +61,7 @@ That renders the front as "The capital of France is [capital]", with Paris as th
 
 ### Cloze from toggle content
 
-Code inside the toggle's content works the same way. When the markers are in the content instead of the heading, the content becomes the cloze and the heading becomes the hint:
+Code inside the toggle's content can become the cloze too. When the markers are in the content instead of the heading, the content becomes the cloze and the heading becomes the hint:
 
 ```html
 <details>
@@ -70,7 +70,7 @@ Code inside the toggle's content works the same way. When the markers are in the
 </details>
 ```
 
-Tables and bulleted lists inside the toggle keep their structure in the resulting card. This is opt-in — switch on **Cloze from toggle content** in card options.
+Tables and bulleted lists inside the toggle keep their structure in the resulting card. This is controlled by the **Inline code toggles become cloze** card option, which is off by default and needs **Cloze Deletion** turned on. Leave it off and a toggle with inline code in its body stays a basic card — heading on the front, content on the back.
 
 You can also use Anki's native cloze syntax directly when you want explicit numbering or hints:
 

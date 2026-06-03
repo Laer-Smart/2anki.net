@@ -325,7 +325,11 @@ class BlockHandler {
         if (clozeCard) {
           isBasicType = false;
           ankiNote.copyValues(clozeCard);
-        } else if (back && hasInlineClozeCode(back)) {
+        } else if (
+          back &&
+          this.settings.clozeFromToggleContent &&
+          hasInlineClozeCode(back)
+        ) {
           isBasicType = false;
           ankiNote.cloze = true;
           ankiNote.name = handleClozeDeletions(back);

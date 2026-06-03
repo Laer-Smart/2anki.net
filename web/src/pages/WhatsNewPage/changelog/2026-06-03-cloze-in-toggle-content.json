@@ -2,5 +2,5 @@
   "id": "2026-06-03-cloze-in-toggle-content",
   "date": "2026-06-03",
   "type": "feature",
-  "title": "Cloze deletions work inside toggle content — including tables and lists, not just the toggle heading"
+  "title": "Turn inline code inside Notion toggles into cloze cards — the code becomes the blank, the toggle header the hint"
 }

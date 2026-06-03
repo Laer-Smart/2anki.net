@@ -667,7 +667,11 @@ export class DeckParser {
 
     if (card.cloze) {
       const headerHasCloze = hasInlineClozeCode(card.name);
-      if (!headerHasCloze && hasInlineClozeCode(card.back)) {
+      if (
+        !headerHasCloze &&
+        this.settings.clozeFromToggleContent &&
+        hasInlineClozeCode(card.back)
+      ) {
         const header = card.name;
         card.name = handleClozeDeletions(card.back);
         card.back = header;
