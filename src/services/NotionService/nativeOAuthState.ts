@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 
 const NATIVE_PREFIX = 'native';
 const MAX_AGE_MS = 300_000;
+const HMAC_HEX = /^[0-9a-f]{64}$/;
 
 function sign(payload: string, secret: string): string {
   return crypto.createHmac('sha256', secret).update(payload).digest('hex');
@@ -52,10 +53,10 @@ export function verifyNativeOAuthState(
   if (now - timestamp > MAX_AGE_MS || timestamp - now > MAX_AGE_MS) {
     return null;
   }
-  const expected = sign(`${ownerStr}:${tsStr}`, secret);
-  if (expected.length !== providedHmac.length) {
+  if (!HMAC_HEX.test(providedHmac)) {
     return null;
   }
+  const expected = sign(`${ownerStr}:${tsStr}`, secret);
   const matches = crypto.timingSafeEqual(
     Buffer.from(expected, 'hex'),
     Buffer.from(providedHmac, 'hex')

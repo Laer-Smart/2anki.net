@@ -49,6 +49,40 @@ describe('nativeOAuthState', () => {
     expect(verifyNativeOAuthState('native', SECRET, 1_000)).toBeNull();
   });
 
+  it('returns null for an equal-length non-hex signature without throwing', () => {
+    const state = buildNativeOAuthState(7, SECRET, 1_000);
+    const parts = state.split(':');
+    parts[3] = 'z'.repeat(parts[3].length);
+    const tampered = parts.join(':');
+    expect(() => verifyNativeOAuthState(tampered, SECRET, 1_000)).not.toThrow();
+    expect(verifyNativeOAuthState(tampered, SECRET, 1_000)).toBeNull();
+  });
+
+  it('returns null for an uppercase-hex signature', () => {
+    const state = buildNativeOAuthState(7, SECRET, 1_000);
+    const parts = state.split(':');
+    parts[3] = parts[3].toUpperCase();
+    expect(verifyNativeOAuthState(parts.join(':'), SECRET, 1_000)).toBeNull();
+  });
+
+  it('returns null for a too-short signature without throwing', () => {
+    const state = buildNativeOAuthState(7, SECRET, 1_000);
+    const parts = state.split(':');
+    parts[3] = parts[3].slice(0, 10);
+    const tampered = parts.join(':');
+    expect(() => verifyNativeOAuthState(tampered, SECRET, 1_000)).not.toThrow();
+    expect(verifyNativeOAuthState(tampered, SECRET, 1_000)).toBeNull();
+  });
+
+  it('returns null for a too-long signature without throwing', () => {
+    const state = buildNativeOAuthState(7, SECRET, 1_000);
+    const parts = state.split(':');
+    parts[3] = `${parts[3]}abcdef`;
+    const tampered = parts.join(':');
+    expect(() => verifyNativeOAuthState(tampered, SECRET, 1_000)).not.toThrow();
+    expect(verifyNativeOAuthState(tampered, SECRET, 1_000)).toBeNull();
+  });
+
   it('throws when building with a non-positive owner', () => {
     expect(() => buildNativeOAuthState(0, SECRET)).toThrow();
     expect(() => buildNativeOAuthState(-3, SECRET)).toThrow();
