@@ -14,6 +14,7 @@ interface User {
 
 interface LocalsData {
   subscriber?: boolean;
+  planSource?: 'stripe' | 'apple' | 'lifetime' | null;
   subscriptionInfo?: {
     linked_email?: string;
     email?: string;
@@ -46,7 +47,46 @@ const formatPlan = (sub: StripeSubscriptionSummary): string | null => {
   return plan.interval ? `${price} / ${plan.interval}` : price;
 };
 
-export function SubscriptionManagement({
+function AppleSubscriptionManagement() {
+  return (
+    <section className={styles.section}>
+      <p className={styles.statusLine}>Unlimited · Billed through Apple</p>
+      <p className={sharedStyles.smallDescription}>
+        Manage or cancel this subscription in your Apple Account settings: open
+        Settings on your iPhone or iPad, tap your name, then Subscriptions.
+      </p>
+    </section>
+  );
+}
+
+function LifetimeSubscriptionManagement() {
+  return (
+    <section className={styles.section}>
+      <p className={styles.statusLine}>Lifetime access</p>
+      <p className={sharedStyles.smallDescription}>No renewal, no billing.</p>
+    </section>
+  );
+}
+
+export function SubscriptionManagement(props: SubscriptionManagementProps) {
+  const { locals } = props;
+
+  if (!locals?.subscriber) {
+    return null;
+  }
+
+  if (locals.planSource === 'apple') {
+    return <AppleSubscriptionManagement />;
+  }
+
+  if (locals.planSource === 'lifetime') {
+    return <LifetimeSubscriptionManagement />;
+  }
+
+  return <StripeSubscriptionManagement {...props} />;
+}
+
+function StripeSubscriptionManagement({
   user,
   locals,
   hasActivePlan,
