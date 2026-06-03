@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-account-claim-dark-mode",
+  "date": "2026-06-03",
+  "type": "fix",
+  "title": "Account page \"Paid with a different email?\" link is readable in dark mode"
+}
