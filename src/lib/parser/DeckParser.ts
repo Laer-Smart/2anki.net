@@ -41,6 +41,7 @@ import { guessMarkdownCards, MarkdownHeuristicResult } from './guessMarkdownCard
 import { getTitleFromMarkdown } from './getTitleFromMarkdown';
 import { extractStyles } from './extractStyles';
 import { withFontSize } from './withFontSize';
+import { withTextColor } from './withTextColor';
 import { NOTION_STYLE } from '../../templates/helper';
 import { transformDetailsTagToNotionToggleList } from './transformDetailsTagToNotionToggleList';
 import { findNotionToggleLists, isMCQ } from './findNotionToggleLists';
@@ -356,9 +357,9 @@ export class DeckParser {
     const baseStyle = extractedStyle
       ? `${NOTION_STYLE}\n${extractedStyle}`
       : NOTION_STYLE;
-    const style = withFontSize(
-      `${baseStyle}\n${CODE_WRAP_STYLE}`,
-      this.settings.fontSize
+    const style = withTextColor(
+      withFontSize(`${baseStyle}\n${CODE_WRAP_STYLE}`, this.settings.fontSize),
+      this.settings.textColor
     );
     let image: string | undefined = this.extractCoverImage(dom);
 

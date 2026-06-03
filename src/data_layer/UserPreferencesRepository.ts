@@ -3,6 +3,7 @@ import type { Knex } from 'knex';
 export type CardOptions = Partial<{
   deckName: string;
   'font-size': string;
+  'text-color': string;
   template: string;
   'toggle-mode': string;
   'page-emoji': string;
@@ -35,6 +36,7 @@ export interface IUserPreferencesRepository {
 const ALLOWED_CARD_OPTION_KEYS = new Set([
   'deckName',
   'font-size',
+  'text-color',
   'template',
   'toggle-mode',
   'page-emoji',
