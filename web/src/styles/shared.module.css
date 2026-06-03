@@ -426,6 +426,7 @@
   background: transparent;
   border: none;
   cursor: pointer;
+  color: inherit;
 }
 
 .btnSmall {
