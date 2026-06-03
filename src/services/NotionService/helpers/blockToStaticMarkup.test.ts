@@ -62,7 +62,7 @@ describe('blockToStaticMarkup', () => {
     expect(result).not.toContain('"object"');
   });
 
-  it('drops a synced_block rendered through the markup layer instead of leaking unsupported JSON', async () => {
+  it('renders a labelled placeholder for an empty synced_block instead of leaking unsupported JSON or nothing', async () => {
     const handler = makeHandler();
     const syncedBlock = {
       object: 'block',
@@ -74,16 +74,72 @@ describe('blockToStaticMarkup', () => {
       last_edited_time: '2026-05-20T07:46:00.000Z',
       created_by: { object: 'user', id: 'user-1' },
       last_edited_by: { object: 'user', id: 'user-1' },
-      has_children: true,
+      has_children: false,
       archived: false,
       in_trash: false,
     } as unknown as BlockObjectResponse;
 
     const result = await blockToStaticMarkup(handler, syncedBlock);
 
-    expect(result).toBe('');
+    expect(result).toContain('synced-block-empty');
+    expect(result).toContain('Synced block');
     expect(result).not.toContain('unsupported');
-    expect(result).not.toContain('synced_block');
+    expect(result).not.toContain('"object"');
+  });
+
+  it('renders a pdf block as an embed with a fallback download link', async () => {
+    const handler = makeHandler();
+    const pdf = {
+      object: 'block',
+      id: 'pdf-1',
+      type: 'pdf',
+      pdf: {
+        type: 'external',
+        external: { url: 'https://example.com/notes.pdf' },
+        caption: [],
+      },
+      parent: { type: 'page_id', page_id: 'page-1' },
+      created_time: '2026-05-21T07:46:00.000Z',
+      last_edited_time: '2026-05-21T07:46:00.000Z',
+      created_by: { object: 'user', id: 'user-1' },
+      last_edited_by: { object: 'user', id: 'user-1' },
+      has_children: false,
+      archived: false,
+      in_trash: false,
+    } as unknown as BlockObjectResponse;
+
+    const result = await blockToStaticMarkup(handler, pdf);
+
+    expect(result).toContain('<embed');
+    expect(result).toContain('type="application/pdf"');
+    expect(result).toContain('https://example.com/notes.pdf');
+    expect(result).toContain('<a');
+    expect(result).not.toContain('unsupported: pdf');
+  });
+
+  it('renders a link_preview block as a clickable link to the previewed url', async () => {
+    const handler = makeHandler();
+    const linkPreview = {
+      object: 'block',
+      id: 'link-preview-1',
+      type: 'link_preview',
+      link_preview: { url: 'https://github.com/2anki/server' },
+      parent: { type: 'page_id', page_id: 'page-1' },
+      created_time: '2026-05-21T07:46:00.000Z',
+      last_edited_time: '2026-05-21T07:46:00.000Z',
+      created_by: { object: 'user', id: 'user-1' },
+      last_edited_by: { object: 'user', id: 'user-1' },
+      has_children: false,
+      archived: false,
+      in_trash: false,
+    } as unknown as BlockObjectResponse;
+
+    const result = await blockToStaticMarkup(handler, linkPreview);
+
+    expect(result).toContain('href="https://github.com/2anki/server"');
+    expect(result).toContain('rel="noopener noreferrer"');
+    expect(result).toContain('https://github.com/2anki/server');
+    expect(result).not.toContain('unsupported: link_preview');
   });
 
   it('renders a standalone equation block as display math', async () => {
