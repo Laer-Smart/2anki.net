@@ -70,6 +70,46 @@ describe('api.get error tagging', () => {
     );
   });
 
+  it('a notion_unauthorized 401 keeps the session — no /login bounce, code preserved', async () => {
+    const location = { origin: 'http://localhost', pathname: '/notion', href: '' };
+    vi.stubGlobal('location', location);
+    fetchSpy.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          message: 'API token is invalid.',
+          code: 'notion_unauthorized',
+        }),
+        { status: 401 }
+      )
+    );
+
+    let caught: UserNotice | undefined;
+    try {
+      await get('http://localhost/api/notion/search');
+    } catch (e) {
+      caught = e as UserNotice;
+    }
+
+    expect(caught).toBeInstanceOf(UserNotice);
+    expect(caught?.code).toBe('notion_unauthorized');
+    expect(location.href).toBe('');
+  });
+
+  it('a bare 401 still redirects to /login', async () => {
+    const location = { origin: 'http://localhost', pathname: '/search', href: '' };
+    vi.stubGlobal('location', location);
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: 'Authentication required' }), {
+        status: 401,
+      })
+    );
+
+    await expect(get('http://localhost/api/notion/search')).rejects.toBeInstanceOf(
+      UserNotice
+    );
+    expect(location.href).toBe('/login');
+  });
+
   it('throws UserNotice with code when present', async () => {
     fetchSpy.mockResolvedValueOnce(
       new Response(

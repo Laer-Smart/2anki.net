@@ -94,6 +94,12 @@ export const get = async (
 
   if (!response.ok) {
     if (response.status === UNAUTHORIZED) {
+      const body = await response.json().catch(() => ({}));
+      const code = typeof body.code === 'string' ? body.code : undefined;
+      const message = typeof body.message === 'string' ? body.message : undefined;
+      if (code === 'notion_unauthorized' || isIntentionalBackendNotice(message)) {
+        throw new UserNotice(message ?? 'Unauthorized', code);
+      }
       redirectToLogin();
       throw new UserNotice('Unauthorized');
     }
