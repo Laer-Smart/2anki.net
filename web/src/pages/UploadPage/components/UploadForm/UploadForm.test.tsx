@@ -67,7 +67,7 @@ describe('UploadForm', () => {
     const previousClient = process.env.REACT_APP_GOOGLE_CLIENT_ID;
     const previousKey = process.env.REACT_APP_GOOGLE_API_KEY;
     process.env.REACT_APP_GOOGLE_CLIENT_ID = 'test-client';
-    process.env.REACT_APP_GOOGLE_API_KEY = 'test-key';
+    process.env.REACT_APP_GOOGLE_API_KEY = 'AIza' + 'fake-test-key';
     try {
       const { container } = renderUploadForm(
         <UploadForm setErrorMessage={vi.fn()} />
