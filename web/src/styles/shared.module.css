@@ -208,6 +208,7 @@
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   border-radius: var(--radius-full);
+  transition: color 200ms ease, background-color 200ms ease;
 }
 
 .badgePrimary {
@@ -236,7 +237,7 @@
 
 .aiOffBadge {
   max-width: 800px;
-  margin: 1rem auto 0;
+  margin: 0 auto 1rem;
   padding: 0.5rem 0.75rem;
   display: flex;
   flex-wrap: wrap;
@@ -244,6 +245,19 @@
   gap: 0.25rem;
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
+}
+
+.aiToggle {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: var(--radius-full);
+}
+
+.aiToggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .aiOffBadgeBody a {

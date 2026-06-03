@@ -27,9 +27,11 @@ type FakeUser = {
 } | null;
 
 let fakeUser: FakeUser = null;
+let fakeLocals: { patreon?: boolean; subscriber?: boolean } | undefined;
 vi.mock('../../lib/hooks/useUserLocals', () => ({
   useUserLocals: () => ({
-    data: fakeUser == null ? undefined : { user: fakeUser },
+    data:
+      fakeUser == null ? undefined : { user: fakeUser, locals: fakeLocals },
     isLoading: false,
     error: null,
     isError: false,
@@ -145,22 +147,82 @@ describe('UploadPage AI badge placement', () => {
     globalThis.sessionStorage.clear();
   });
 
-  it('renders the AI badge after the upload form and before the explore card', () => {
+  it('renders the AI badge above the upload form so the mode is read before dropping a file', () => {
     renderPage();
     const uploadForm = screen.getByTestId('upload-form-stub');
-    const exploreCard = screen.getByTestId('explore-card-stub');
     const badge = screen
       .getByRole('link', { name: /sign in to turn it on/i })
       .closest('[role="status"]') as HTMLElement;
     expect(badge).toBeInTheDocument();
     expect(
       uploadForm.compareDocumentPosition(badge) &
-        Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(
-      exploreCard.compareDocumentPosition(badge) &
         Node.DOCUMENT_POSITION_PRECEDING
     ).toBe(Node.DOCUMENT_POSITION_PRECEDING);
+  });
+});
+
+describe('UploadPage AI toggle', () => {
+  beforeEach(() => {
+    trackMock.mockClear();
+    fakeUser = null;
+    fakeLocals = undefined;
+    globalThis.localStorage.clear();
+    globalThis.sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    fakeUser = null;
+    fakeLocals = undefined;
+    globalThis.localStorage.clear();
+  });
+
+  it('shows an upgrade link and no toggle for a signed-in non-paying user', () => {
+    fakeUser = { id: 42 };
+    fakeLocals = { patreon: false, subscriber: false };
+    globalThis.localStorage.setItem('claude-ai-flashcards', 'true');
+    renderPage();
+    const upgrade = screen.getByRole('link', {
+      name: /upgrade to write cards with claude/i,
+    });
+    expect(upgrade).toHaveAttribute('href', '/pricing');
+    expect(
+      screen.queryByRole('button', { name: /turn ai (on|off)/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('turns AI on when a paying user clicks the off toggle', async () => {
+    fakeUser = { id: 42 };
+    fakeLocals = { patreon: true, subscriber: false };
+    renderPage();
+    const toggle = screen.getByRole('button', { name: /turn ai on/i });
+    toggle.click();
+    await waitFor(() => {
+      expect(globalThis.localStorage.getItem('claude-ai-flashcards')).toBe(
+        'true'
+      );
+    });
+    expect(
+      screen.getByRole('button', { name: /turn ai off/i })
+    ).toBeInTheDocument();
+    expect(callsFor('upload_ai_turned_on')).toHaveLength(1);
+  });
+
+  it('turns AI off when a paying user clicks the on toggle', async () => {
+    fakeUser = { id: 42 };
+    fakeLocals = { patreon: false, subscriber: true };
+    globalThis.localStorage.setItem('claude-ai-flashcards', 'true');
+    renderPage();
+    const toggle = screen.getByRole('button', { name: /turn ai off/i });
+    toggle.click();
+    await waitFor(() => {
+      expect(globalThis.localStorage.getItem('claude-ai-flashcards')).toBe(
+        'false'
+      );
+    });
+    expect(
+      screen.getByRole('button', { name: /turn ai on/i })
+    ).toBeInTheDocument();
+    expect(callsFor('upload_ai_turned_off')).toHaveLength(1);
   });
 });
 
