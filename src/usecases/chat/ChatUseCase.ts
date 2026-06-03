@@ -5,7 +5,7 @@ import { logClaudeUsage } from '../../lib/claude/logClaudeUsage';
 import { buildAttachmentBlocks, type ChatAttachment } from './buildAttachmentBlocks';
 import { extractAttachmentText, buildAttachmentTextBlock } from './extractAttachmentText';
 import { isChatCardTemplate, templatePromptSuffix, templateForbidsCloze, type ChatCardTemplate } from './chatTemplates';
-import { looksLikeCloze, normalizeBasicCard } from './ChatDeckUseCase';
+import { looksLikeCloze, normalizeBasicCard, stripClozeFromStem } from './ChatDeckUseCase';
 
 const REQUIRED_MCQ_OPTION_COUNT = 4;
 
@@ -32,7 +32,11 @@ const MCQ_TOOL: Anthropic.Tool = {
         items: {
           type: 'object',
           properties: {
-            front: { type: 'string', description: 'The question stem' },
+            front: {
+              type: 'string',
+              description:
+                'The question stem. Must NOT contain cloze deletion syntax like {{c1::...}}; if basing a question on a cloze sentence, replace the deleted span with a blank (_____).',
+            },
             options: {
               type: 'array',
               description: 'Exactly four answer options',
@@ -199,7 +203,7 @@ function asMcqChatCard(item: Record<string, unknown>): ChatCard | null {
   if (correctIndex < 0 || correctIndex >= options.length) return null;
   const rationale = typeof item.rationale === 'string' ? item.rationale : '';
   return {
-    front,
+    front: stripClozeFromStem(front),
     back: '',
     options,
     correctIndex,

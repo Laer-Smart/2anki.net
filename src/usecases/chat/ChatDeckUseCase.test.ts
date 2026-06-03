@@ -1,7 +1,29 @@
-import { ChatDeckUseCase, looksLikeCloze, transformBlankToCloze, normalizeBasicCard, type ChatDeckCard } from './ChatDeckUseCase';
+import { ChatDeckUseCase, looksLikeCloze, transformBlankToCloze, normalizeBasicCard, stripClozeFromStem, type ChatDeckCard } from './ChatDeckUseCase';
 import CustomExporter from '../../lib/parser/exporters/CustomExporter';
 
 jest.mock('../../lib/parser/exporters/CustomExporter');
+
+describe('stripClozeFromStem', () => {
+  it('replaces a single cloze span with a blank', () => {
+    expect(stripClozeFromStem('Spring Boot uses {{c1::auto-configuration}} to detect deps.')).toBe(
+      'Spring Boot uses _____ to detect deps.'
+    );
+  });
+
+  it('replaces multiple cloze spans with separate blanks', () => {
+    expect(stripClozeFromStem('{{c1::HTTP}} runs over {{c2::TCP}}.')).toBe('_____ runs over _____.');
+  });
+
+  it('leaves a stem without cloze syntax unchanged', () => {
+    expect(stripClozeFromStem('Which protocol runs over TCP?')).toBe('Which protocol runs over TCP?');
+  });
+
+  it('does not reveal the deleted answer text', () => {
+    const out = stripClozeFromStem('Spring Boot uses {{c1::auto-configuration}} to detect deps.');
+    expect(out).not.toContain('auto-configuration');
+    expect(out).not.toContain('{{c');
+  });
+});
 
 describe('ChatDeckUseCase.execute MCQ handling', () => {
   beforeEach(() => {

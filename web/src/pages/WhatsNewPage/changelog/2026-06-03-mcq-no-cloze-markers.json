@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-mcq-no-cloze-markers",
+  "date": "2026-06-03",
+  "type": "fix",
+  "title": "Multiple-choice cards no longer show cloze markers in the question"
+}

@@ -849,6 +849,58 @@ describe('ChatUseCase', () => {
       });
     });
 
+    it('blanks cloze markers in the MCQ stem without revealing the answer', async () => {
+      const { useCase } = buildUseCaseWithBlocks([
+        mcqToolBlock({
+          cards: [
+            {
+              front: 'Spring Boot uses {{c1::auto-configuration}} to detect deps.',
+              options: ['auto-configuration', 'reflection', 'a build plugin', 'manual wiring'],
+              correct_index: 0,
+              rationale: 'Auto-configuration wires beans from the classpath.',
+            },
+          ],
+        }),
+      ]);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: 'switch to multiple choice',
+        conversationHistory: [],
+        templateSlug: 'mcq',
+      });
+
+      const card = result.cards![0];
+      expect(card.front).not.toContain('{{c');
+      expect(card.front).not.toContain('auto-configuration');
+      expect(card.front).toContain('_____');
+      expect(card.options).toEqual(['auto-configuration', 'reflection', 'a build plugin', 'manual wiring']);
+      expect(card.correctIndex).toBe(0);
+    });
+
+    it('leaves a clean MCQ stem untouched', async () => {
+      const { useCase } = buildUseCaseWithBlocks([
+        mcqToolBlock({
+          cards: [
+            {
+              front: 'Capital of Albania?',
+              options: ['Tirana', 'Durrës', 'Vlorë', 'Shkodër'],
+              correct_index: 0,
+            },
+          ],
+        }),
+      ]);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: 'quiz me',
+        conversationHistory: [],
+        templateSlug: 'mcq',
+      });
+
+      expect(result.cards![0].front).toBe('Capital of Albania?');
+    });
+
     it('persists MCQ cards as a JSON code block that extractCards recovers on reload', async () => {
       const { messagesRepo, useCase } = buildUseCaseWithBlocks([
         { type: 'text', text: 'Here are your quiz cards:' },
