@@ -111,6 +111,12 @@ const supportedOptions = (): CardOptionDetail[] => {
       false
     ),
     new CardOptionDetail(
+      'download-pdfs',
+      'Download PDFs as Anki media',
+      'Off: PDFs appear as clickable links. On: PDFs are bundled into the .apkg, which makes the deck file much larger.',
+      false
+    ),
+    new CardOptionDetail(
       'markdown-nested-bullet-points',
       'Markdown nested bullet points',
       'Turn bullets and their sub-bullets into front-and-back cards. Recommended for Obsidian exports.',
