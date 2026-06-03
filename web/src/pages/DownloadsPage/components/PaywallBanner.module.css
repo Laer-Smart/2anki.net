@@ -41,16 +41,31 @@
   font-weight: var(--font-semibold);
   color: var(--color-bg-primary);
   background: var(--color-warning);
+  border: none;
   border-radius: var(--radius-md);
   text-decoration: none;
   box-shadow: var(--shadow-xs);
+  font-family: inherit;
+  cursor: pointer;
   transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.cta:hover {
+.cta:hover:not(:disabled) {
   background: var(--color-warning-text);
   color: var(--color-bg-primary);
   box-shadow: var(--shadow-sm);
+}
+
+.cta:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.seeAllPlans {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-warning-text);
+  text-decoration: underline;
 }
 
 .secondary {
