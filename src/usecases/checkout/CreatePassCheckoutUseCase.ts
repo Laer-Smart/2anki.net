@@ -1,5 +1,6 @@
 import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
 import type { PassKind } from '../../data_layer/UserPassRepository';
+import { optionalMetadata } from './checkoutMetadata';
 
 export interface CreatePassCheckoutResult {
   url: string;
@@ -34,18 +35,15 @@ export class CreatePassCheckoutUseCase {
     } else {
       metadata.user_id = String(input.userId);
     }
-    if (input.variant != null && input.variant !== '') {
-      metadata.pricing_variant = input.variant;
-    }
-    if (input.anonId != null && input.anonId !== '') {
-      metadata.anon_id = input.anonId;
-    }
-    if (input.surface != null && input.surface !== '') {
-      metadata.surface = input.surface;
-    }
-    if (input.gaClientId != null && input.gaClientId !== '') {
-      metadata.ga_client_id = input.gaClientId;
-    }
+    Object.assign(
+      metadata,
+      optionalMetadata({
+        pricing_variant: input.variant,
+        anon_id: input.anonId,
+        surface: input.surface,
+        ga_client_id: input.gaClientId,
+      })
+    );
 
     const sessionParams: StripeTypes.Checkout.SessionCreateParams = {
       mode: 'payment',

@@ -1,5 +1,6 @@
 import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
 import hashToken from '../../lib/misc/hashToken';
+import { optionalMetadata } from './checkoutMetadata';
 
 export type UnlimitedInterval = 'month' | 'year';
 
@@ -38,18 +39,12 @@ export class UnlimitedCheckoutUseCase {
       customer: input.stripeCustomerId ?? undefined,
       metadata: {
         user_id: String(input.userId),
-        ...(input.variant != null && input.variant !== ''
-          ? { pricing_variant: input.variant }
-          : {}),
-        ...(input.anonId != null && input.anonId !== ''
-          ? { anon_id: input.anonId }
-          : {}),
-        ...(input.surface != null && input.surface !== ''
-          ? { surface: input.surface }
-          : {}),
-        ...(input.gaClientId != null && input.gaClientId !== ''
-          ? { ga_client_id: input.gaClientId }
-          : {}),
+        ...optionalMetadata({
+          pricing_variant: input.variant,
+          anon_id: input.anonId,
+          surface: input.surface,
+          ga_client_id: input.gaClientId,
+        }),
       },
     };
 
