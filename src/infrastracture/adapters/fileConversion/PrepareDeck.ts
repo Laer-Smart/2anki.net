@@ -24,6 +24,27 @@ import Workspace from '../../../lib/parser/WorkSpace';
 import fs from 'fs';
 import path from 'path';
 
+const HTML_GENERATION_CONCURRENCY = 3;
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  const runnerCount = Math.min(concurrency, items.length);
+  const runners = new Array(runnerCount).fill(null).map(async () => {
+    while (true) {
+      const index = cursor++;
+      if (index >= items.length) return;
+      results[index] = await worker(items[index], index);
+    }
+  });
+  await Promise.all(runners);
+  return results;
+}
+
 interface PrepareDeckResult {
   name: string;
   apkg: Buffer;
@@ -252,16 +273,12 @@ export async function PrepareDeck(
       userId: input.userId ?? null,
       comprehensive: input.settings.aiComprehensive,
     };
-    const deckInfoArrays: DeckInfo[][] = [];
-    for (let i = 0; i < htmlFiles.length; i += 3) {
-      const batch = htmlFiles.slice(i, i + 3);
-      const batchResults = await Promise.all(
-        batch.map((f) =>
-          generateDeckInfo(f.contents!.toString(), mediaFilesForHtmlFile(f.name, mediaFiles), userInstructions, input.onProgress, cardStyle, input.settings.cardSize, fieldMapping, generateDeckInfoOptions)
-        )
-      );
-      deckInfoArrays.push(...batchResults);
-    }
+    const deckInfoArrays: DeckInfo[][] = await mapWithConcurrency(
+      htmlFiles,
+      HTML_GENERATION_CONCURRENCY,
+      (f) =>
+        generateDeckInfo(f.contents!.toString(), mediaFilesForHtmlFile(f.name, mediaFiles), userInstructions, input.onProgress, cardStyle, input.settings.cardSize, fieldMapping, generateDeckInfoOptions)
+    );
     const deckInfo = deckInfoArrays.flatMap((decks, i) => {
       const prefix = deckPrefixFromFilePath(htmlFiles[i].name);
       return decks
