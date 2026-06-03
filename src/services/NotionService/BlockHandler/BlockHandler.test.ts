@@ -89,6 +89,98 @@ import BlockHandler from './BlockHandler';
 dotenv.config({ path: 'test/.env' });
 const api = new MockNotionAPI(process.env.NOTION_KEY!, '3');
 
+const defaultAnnotations = {
+  bold: false,
+  italic: false,
+  strikethrough: false,
+  underline: false,
+  code: false,
+  color: 'default' as const,
+};
+
+function richText(content: string) {
+  return {
+    type: 'text' as const,
+    text: { content, link: null },
+    annotations: { ...defaultAnnotations },
+    plain_text: content,
+    href: null,
+  };
+}
+
+function codeText(content: string) {
+  return {
+    type: 'text' as const,
+    text: { content, link: null },
+    annotations: { ...defaultAnnotations, code: true },
+    plain_text: content,
+    href: null,
+  };
+}
+
+function buildToggleBlock(
+  id: string,
+  rich_text: ReturnType<typeof richText>[]
+) {
+  return {
+    object: 'block' as const,
+    id,
+    parent: { type: 'page_id' as const, page_id: 'page-id' },
+    created_time: '',
+    last_edited_time: '',
+    created_by: { object: 'user' as const, id: 'user-id' },
+    last_edited_by: { object: 'user' as const, id: 'user-id' },
+    has_children: true,
+    archived: false,
+    in_trash: false,
+    type: 'toggle' as const,
+    toggle: { rich_text, color: 'default' as const },
+  };
+}
+
+function paragraphBlock(id: string, rich_text: ReturnType<typeof richText>[]) {
+  return {
+    object: 'block' as const,
+    id,
+    parent: { type: 'block_id' as const, block_id: 'parent-toggle' },
+    created_time: '',
+    last_edited_time: '',
+    created_by: { object: 'user' as const, id: 'user-id' },
+    last_edited_by: { object: 'user' as const, id: 'user-id' },
+    has_children: false,
+    archived: false,
+    in_trash: false,
+    type: 'paragraph' as const,
+    paragraph: { rich_text, color: 'default' as const },
+  };
+}
+
+class ChildStubApi extends MockNotionAPI {
+  constructor(
+    private readonly delegate: MockNotionAPI,
+    private readonly toggleId: string,
+    private readonly children: ReturnType<typeof paragraphBlock>[]
+  ) {
+    super(process.env.NOTION_KEY!, '3');
+  }
+
+  async getBlocks(
+    params: Parameters<MockNotionAPI['getBlocks']>[0]
+  ): ReturnType<MockNotionAPI['getBlocks']> {
+    if (params.id === this.toggleId) {
+      return {
+        type: 'block',
+        block: {},
+        object: 'list',
+        next_cursor: null,
+        has_more: false,
+        results: this.children,
+      } as Awaited<ReturnType<MockNotionAPI['getBlocks']>>;
+    }
+    return this.delegate.getBlocks(params);
+  }
+}
+
 type Options = { [key: string]: string };
 
 const loadCards = async (
@@ -400,6 +492,97 @@ describe('BlockHandler', () => {
     expect(card?.back).toBe(
       '<p class="" id="34be35bd-db68-4588-85d9-e1adc84c45a5">Extra</p>'
     );
+  });
+
+  test('Cloze markers inside toggle content produce a cloze card with the header as Extra', async () => {
+    const toggleId = 'content-cloze-toggle';
+    const mockToggleBlock = buildToggleBlock(toggleId, [
+      richText('Australia'),
+    ]);
+    const childApi = new ChildStubApi(api, toggleId, [
+      paragraphBlock('child-para', [
+        richText('The capital is '),
+        codeText('Canberra'),
+        richText(', founded in '),
+        codeText('1913'),
+        richText('.'),
+      ]),
+    ]);
+    const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
+    const bl = new BlockHandler(exporter, childApi, new CardOption({ cloze: 'true' }));
+    const flashcards = await bl.getFlashcards(
+      new ParserRules(),
+      [mockToggleBlock],
+      [],
+      undefined
+    );
+
+    expect(flashcards.length).toBe(1);
+    const card = flashcards[0];
+    expect(card.cloze).toBe(true);
+    expect(card.name).toContain('{{c1::Canberra}}');
+    expect(card.name).toContain('{{c2::1913}}');
+    expect(card.name).not.toContain('<code>');
+    expect(card.back).toContain('Australia');
+    expect(card.back).not.toContain('{{c');
+  });
+
+  test('Cloze markers inside a toggle table survive into the cloze Text', async () => {
+    const toggleId = 'content-cloze-table-toggle';
+    const mockToggleBlock = buildToggleBlock(toggleId, [
+      richText('Periodic facts'),
+    ]);
+    const childApi = new ChildStubApi(api, toggleId, [
+      paragraphBlock('symbol-para', [
+        richText('Symbol: '),
+        codeText('H'),
+        richText(' Number: '),
+        codeText('1'),
+      ]),
+    ]);
+    const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
+    const bl = new BlockHandler(exporter, childApi, new CardOption({ cloze: 'true' }));
+    const flashcards = await bl.getFlashcards(
+      new ParserRules(),
+      [mockToggleBlock],
+      [],
+      undefined
+    );
+
+    expect(flashcards.length).toBe(1);
+    const card = flashcards[0];
+    expect(card.cloze).toBe(true);
+    expect(card.name).toContain('Symbol');
+    expect(card.name).toContain('{{c1::H}}');
+    expect(card.name).toContain('{{c2::1}}');
+    expect(card.back).toContain('Periodic facts');
+  });
+
+  test('Cloze markers in the toggle header keep the header as the cloze Text', async () => {
+    const toggleId = 'header-cloze-toggle';
+    const mockToggleBlock = buildToggleBlock(toggleId, [
+      codeText('Canberra'),
+      richText(' was founded in '),
+      codeText('1913'),
+    ]);
+    const childApi = new ChildStubApi(api, toggleId, [
+      paragraphBlock('source-para', [richText('Source: Anki manual')]),
+    ]);
+    const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
+    const bl = new BlockHandler(exporter, childApi, new CardOption({ cloze: 'true' }));
+    const flashcards = await bl.getFlashcards(
+      new ParserRules(),
+      [mockToggleBlock],
+      [],
+      undefined
+    );
+
+    expect(flashcards.length).toBe(1);
+    const card = flashcards[0];
+    expect(card.cloze).toBe(true);
+    expect(card.name).toContain('{{c1::Canberra}}');
+    expect(card.name).toContain('{{c2::1913}}');
+    expect(card.back).toContain('Source: Anki manual');
   });
 
   test('Input Cards from Blocks', async () => {

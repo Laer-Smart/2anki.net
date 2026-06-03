@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-cloze-in-toggle-content",
+  "date": "2026-06-03",
+  "type": "feature",
+  "title": "Cloze deletions work inside toggle content — including tables and lists, not just the toggle heading"
+}

@@ -59,6 +59,19 @@ To show a hint instead of `[...]`, append `::your hint` after the answer inside 
 
 That renders the front as "The capital of France is [capital]", with Paris as the answer.
 
+### Cloze from toggle content
+
+Code inside the toggle's content works the same way. When the markers are in the content instead of the heading, the content becomes the cloze and the heading becomes the hint:
+
+```html
+<details>
+  <summary>European capitals</summary>
+  <p>The capital of <code>Albania</code> is <code>Tirana</code></p>
+</details>
+```
+
+Tables and bulleted lists inside the toggle keep their structure in the resulting card. This is opt-in — switch on **Cloze from toggle content** in card options.
+
 You can also use Anki's native cloze syntax directly when you want explicit numbering or hints:
 
 ```
