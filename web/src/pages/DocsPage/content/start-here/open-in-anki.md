@@ -49,3 +49,16 @@ The first time you re-import a deck after this change, Anki shows its built-in "
 :::
 
 For Notion pages where you want updates to flow automatically without re-uploading, use [Sync](/documentation/sync/how-it-works) instead.
+
+### Why duplicates appear after restructuring toggles
+
+The card ID is anchored to the Notion block ID of the toggle. Notion preserves that block ID for some edits and replaces it for others:
+
+- **Editing the text inside a toggle** keeps the same block ID → re-import updates the existing card in place.
+- **Cutting a toggle and pasting it elsewhere** assigns a new block ID → re-import creates a new card next to the old one.
+- **Duplicating a toggle** (via right-click → Duplicate or ⌘D) assigns a new block ID to the copy → both cards appear after re-import.
+- **Moving a toggle by drag** within the same page usually preserves the block ID; moving across pages does not.
+
+If you re-import and see duplicate cards, the most likely cause is a cut-and-paste or duplicate-and-edit during the edit pass.
+
+**Workflow that avoids the duplicates:** edit toggle text in place. Restructure the page before the first conversion if you can — once a deck is live in Anki, treat the toggle layout as the anchor and change the contents, not the positions.
