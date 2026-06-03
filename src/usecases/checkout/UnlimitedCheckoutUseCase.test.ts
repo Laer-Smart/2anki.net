@@ -170,6 +170,37 @@ describe('UnlimitedCheckoutUseCase', () => {
     );
   });
 
+  it('stamps ga_client_id into metadata when provided', async () => {
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+
+    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 12,
+      interval: 'month',
+      gaClientId: '1234567890.987654321',
+    });
+
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: { user_id: '12', ga_client_id: '1234567890.987654321' },
+      })
+    );
+  });
+
+  it('omits ga_client_id from metadata when absent', async () => {
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+
+    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
+    await uc.execute({ userEmail: 'user@example.com', userId: 13, interval: 'month' });
+
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: { user_id: '13' },
+      })
+    );
+  });
+
   it('does not log raw Stripe customer IDs', async () => {
     mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
     const consoleSpy = jest.spyOn(console, 'info').mockImplementation(() => {});

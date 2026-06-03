@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { AutoSyncCheckoutUseCase } from '../usecases/checkout/AutoSyncCheckoutUseCase';
 import { parsePricingVariant } from '../usecases/checkout/pricingVariant';
 import { parseCheckoutSurface } from '../usecases/checkout/checkoutSurface';
+import { parseGaClientId } from '../usecases/checkout/gaClientId';
 
 class AutoSyncCheckoutController {
   constructor(private readonly useCase: AutoSyncCheckoutUseCase) {}
@@ -12,8 +13,9 @@ class AutoSyncCheckoutController {
     const variant = parsePricingVariant(req.body?.variant);
     const anonId = (req.cookies?.anon_id as string | undefined) ?? undefined;
     const surface = parseCheckoutSurface(req.body?.surface);
+    const gaClientId = parseGaClientId(req.cookies?._ga);
 
-    const result = await this.useCase.execute({ userId, userEmail, variant, anonId, surface });
+    const result = await this.useCase.execute({ userId, userEmail, variant, anonId, surface, gaClientId });
     res.json(result);
   }
 }

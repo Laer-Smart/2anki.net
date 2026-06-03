@@ -1,6 +1,7 @@
 import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
 import SubscriptionService from '../../services/SubscriptionService';
 import hashToken from '../../lib/misc/hashToken';
+import { optionalMetadata } from './checkoutMetadata';
 
 export type AutoSyncCheckoutResult =
   | { url: string }
@@ -27,6 +28,7 @@ export class AutoSyncCheckoutUseCase {
     variant?: string;
     anonId?: string;
     surface?: string;
+    gaClientId?: string;
   }): Promise<AutoSyncCheckoutResult> {
     console.info('auto_sync.checkout.started', { user_id: input.userId });
 
@@ -58,15 +60,12 @@ export class AutoSyncCheckoutUseCase {
       customer: input.stripeCustomerId ?? undefined,
       metadata: {
         user_id: String(input.userId),
-        ...(input.variant != null && input.variant !== ''
-          ? { pricing_variant: input.variant }
-          : {}),
-        ...(input.anonId != null && input.anonId !== ''
-          ? { anon_id: input.anonId }
-          : {}),
-        ...(input.surface != null && input.surface !== ''
-          ? { surface: input.surface }
-          : {}),
+        ...optionalMetadata({
+          pricing_variant: input.variant,
+          anon_id: input.anonId,
+          surface: input.surface,
+          ga_client_id: input.gaClientId,
+        }),
       },
     };
 
