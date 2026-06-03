@@ -1,3 +1,5 @@
+process.env.THE_HASHING_SECRET = 'test-secret-for-jest';
+
 import knex, { Knex } from 'knex';
 
 import OauthIdentitiesRepository from './OauthIdentitiesRepository';
@@ -68,12 +70,21 @@ describe('OauthIdentitiesRepository', () => {
     expect(row).toBeNull();
   });
 
-  it('stores the refresh token passed to link', async () => {
+  it('encrypts the refresh token at rest when linking', async () => {
     const userId = await insertUser('user@example.com');
     await repo.link('apple', 'sub-apple', userId, 'apple-refresh-1');
 
     const row = await repo.findByProviderAndSubject('apple', 'sub-apple');
-    expect(row).toMatchObject({ refresh_token: 'apple-refresh-1' });
+    expect(row?.refresh_token).not.toBeNull();
+    expect(row?.refresh_token).not.toBe('apple-refresh-1');
+  });
+
+  it('returns the raw refresh token after a link round-trip', async () => {
+    const userId = await insertUser('user@example.com');
+    await repo.link('apple', 'sub-apple', userId, 'apple-refresh-1');
+
+    const token = await repo.findRefreshTokenByUserAndProvider(userId, 'apple');
+    expect(token).toBe('apple-refresh-1');
   });
 
   it('stores null when link is called without a refresh token', async () => {
@@ -84,17 +95,20 @@ describe('OauthIdentitiesRepository', () => {
     expect(row?.refresh_token).toBeNull();
   });
 
-  it('updates the refresh token for an existing identity', async () => {
+  it('updates the refresh token for an existing identity and encrypts it at rest', async () => {
     const userId = await insertUser('user@example.com');
     await repo.link('apple', 'sub-apple', userId, 'apple-refresh-old');
 
     await repo.updateRefreshToken('apple', 'sub-apple', 'apple-refresh-new');
 
     const row = await repo.findByProviderAndSubject('apple', 'sub-apple');
-    expect(row).toMatchObject({ refresh_token: 'apple-refresh-new' });
+    expect(row?.refresh_token).not.toBe('apple-refresh-new');
+
+    const token = await repo.findRefreshTokenByUserAndProvider(userId, 'apple');
+    expect(token).toBe('apple-refresh-new');
   });
 
-  it('reads back the refresh token by user and provider', async () => {
+  it('reads back the raw refresh token by user and provider', async () => {
     const userId = await insertUser('user@example.com');
     await repo.link('apple', 'sub-apple', userId, 'apple-refresh-2');
 

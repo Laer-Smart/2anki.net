@@ -1,5 +1,7 @@
 import { Knex } from 'knex';
 
+import hashToken from '../lib/misc/hashToken';
+import unHashToken from '../lib/misc/unHashToken';
 import OauthIdentities, {
   OauthIdentitiesInitializer,
 } from './public/OauthIdentities';
@@ -30,7 +32,7 @@ class OauthIdentitiesRepository {
       provider,
       subject,
       user_id: userId,
-      refresh_token: refreshToken ?? null,
+      refresh_token: refreshToken ? hashToken(refreshToken) : null,
     };
     await this.database(this.table).insert(row);
   }
@@ -42,7 +44,7 @@ class OauthIdentitiesRepository {
   ): Promise<void> {
     await this.database(this.table)
       .where({ provider, subject })
-      .update({ refresh_token: refreshToken });
+      .update({ refresh_token: hashToken(refreshToken) });
   }
 
   async findRefreshTokenByUserAndProvider(
@@ -54,7 +56,7 @@ class OauthIdentitiesRepository {
         .where({ user_id: userId, provider })
         .select('refresh_token')
         .first();
-    return row?.refresh_token ?? null;
+    return row?.refresh_token ? unHashToken(row.refresh_token) : null;
   }
 }
 
