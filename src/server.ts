@@ -82,6 +82,8 @@ import { scheduleReEngagementEmails } from './lib/reengagement/jobs/scheduleReEn
 import { scheduleInactivityWarnings } from './lib/inactivity/jobs/scheduleInactivityWarnings';
 import { scheduleInactiveUserDeletions } from './lib/inactivity/jobs/scheduleInactiveUserDeletions';
 import { scheduleParserCanary } from './lib/parser/canary/scheduleParserCanary';
+import { scheduleObservabilityCleanup } from './lib/observability/jobs/scheduleObservabilityCleanup';
+import { ObservabilityRepository } from './data_layer/ObservabilityRepository';
 import { getDefaultEmailService } from './services/EmailService/EmailService';
 import { SendInactivityWarningsUseCase } from './usecases/ops/SendInactivityWarningsUseCase';
 import { DeleteInactiveUsersUseCase } from './usecases/ops/DeleteInactiveUsersUseCase';
@@ -276,6 +278,8 @@ const serve = async () => {
   scheduleInactiveUserDeletions(deleteInactiveUsersUseCase, { eventsSink });
 
   scheduleParserCanary(emailService);
+
+  scheduleObservabilityCleanup(new ObservabilityRepository(database));
 };
 
 serve().catch((error) => {

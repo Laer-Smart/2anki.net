@@ -18,6 +18,7 @@ class FakeRepo implements IObservabilityRepository {
   insertOutboundCallLogs = async (rows: OutboundCallLogRow[]) => {
     this.outbound.push(...rows);
   };
+  deleteOlderThan = async () => ({ requestLogs: 0, outboundCallLogs: 0 });
   aggregateInboundByStatusClass = async () => [];
   topRoutesByLatency = async () => [];
   aggregateOutboundByService = async () => [];

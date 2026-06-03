@@ -27,6 +27,7 @@ class StubRepo implements IObservabilityRepository {
 
   insertRequestLogs = async (_rows: RequestLogRow[]) => {};
   insertOutboundCallLogs = async (_rows: OutboundCallLogRow[]) => {};
+  deleteOlderThan = async () => ({ requestLogs: 0, outboundCallLogs: 0 });
 
   aggregateInboundByStatusClass = async (fromTime: Date, bucketSeconds: number) => {
     this.capturedFromTime = fromTime;

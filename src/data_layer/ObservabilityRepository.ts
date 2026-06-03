@@ -57,9 +57,15 @@ export interface ServiceLatencyRow {
   count: number;
 }
 
+export interface DeletedLogCounts {
+  requestLogs: number;
+  outboundCallLogs: number;
+}
+
 export interface IObservabilityRepository {
   insertRequestLogs(rows: RequestLogRow[]): Promise<void>;
   insertOutboundCallLogs(rows: OutboundCallLogRow[]): Promise<void>;
+  deleteOlderThan(days: number): Promise<DeletedLogCounts>;
   aggregateInboundByStatusClass(
     fromTime: Date,
     bucketSeconds: number
@@ -95,6 +101,17 @@ export class ObservabilityRepository implements IObservabilityRepository {
   async insertOutboundCallLogs(rows: OutboundCallLogRow[]): Promise<void> {
     if (rows.length === 0) return;
     await this.database(this.outboundTable).insert(rows);
+  }
+
+  async deleteOlderThan(days: number): Promise<DeletedLogCounts> {
+    const cutoff = this.database.raw('NOW() - make_interval(days => ?)', [days]);
+    const requestLogs = await this.database(this.requestTable)
+      .where('created_at', '<', cutoff)
+      .del();
+    const outboundCallLogs = await this.database(this.outboundTable)
+      .where('created_at', '<', cutoff)
+      .del();
+    return { requestLogs, outboundCallLogs };
   }
 
   async aggregateInboundByStatusClass(
