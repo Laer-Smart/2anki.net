@@ -69,6 +69,8 @@ When given a spec or issue:
 9. **Run `/check`** — parallel tsc + web typecheck + web vitest. Everything green before pushing.
 10. **Open the PR.** Title uses a conventional commit prefix (`fix:`, `feat:`, `chore:`, `refactor:`, `test:`, `docs:`) followed by an imperative summary.
 
+**Always end with the PR link.** Whenever you open a PR or flip one to ready, print the full `https://github.com/2anki/server/pull/<n>` URL as the last line of your reply so Alexander can click straight through.
+
 ### When the work originated from a draft spec PR
 
 `/spec-draft-pr` opens a draft PR on a branch like `feat/spec-<slug>` containing only `Documentation/specs/<slug>.md`. When you start implementation, take that PR over rather than branching again:
@@ -76,7 +78,7 @@ When given a spec or issue:
 - `gh pr checkout <n>` onto the existing branch; do not stack a new branch on top.
 - Commit the implementation on the same branch.
 - Before the final push, `git rm Documentation/specs/<slug>.md` in a `chore: remove implemented spec for …` commit. The spec text stays recoverable via `git log -p -- Documentation/specs/<slug>.md`; we keep the folder lean.
-- `gh pr edit <n> --title "<type>: <feature name>"` and `gh pr ready <n>` to graduate the PR. Replace the body with the engineer template below.
+- `gh pr edit <n> --title "<type>: <feature name>"` and `gh pr ready <n>` to graduate the PR. Replace the body with the engineer template below. Print the PR link (`https://github.com/2anki/server/pull/<n>`) as the last line of your reply.
 
 Before considering a task done, remove any scaffolding, debug logs, or temporary code added during implementation.
 
