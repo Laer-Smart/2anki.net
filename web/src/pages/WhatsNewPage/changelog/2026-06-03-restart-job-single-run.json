@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-restart-job-single-run",
+  "date": "2026-06-03",
+  "type": "fix",
+  "title": "Restarting a job runs it once, even if you click restart twice"
+}
