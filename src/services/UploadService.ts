@@ -251,7 +251,7 @@ class UploadService {
         anonymousId: this.resolveAnonId(req),
         props: {
           source: this.resolveUploadSource(req),
-          device: classifyDevice(req.headers['user-agent']),
+          device: classifyDevice(req.headers?.['user-agent']),
         },
       });
 
