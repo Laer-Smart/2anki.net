@@ -61,7 +61,9 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .cardPreviewAddTags:hover,
@@ -274,23 +276,6 @@
   color: var(--color-text-secondary);
 }
 
-.cardPreviewSkeletonList {
-  display: flex;
-  flex-direction: column;
-}
-
-.cardPreviewSkeletonRow {
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--color-border-light);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 1.5rem;
-}
-
-.cardPreviewSkeletonRowSingle {
-  grid-template-columns: minmax(0, 1fr);
-}
-
 .cardPreviewMcqRow {
   padding: 0.875rem 1rem;
   border-top: 1px solid var(--color-border-light);
@@ -348,19 +333,7 @@
   font-style: italic;
 }
 
-.cardPreviewSkeletonBlock {
-  display: block;
-  height: 1rem;
-  border-radius: 4px;
-  background: var(--color-border);
-  animation: cardPreviewSkeletonPulse 1.4s ease-in-out infinite;
-}
-
-.cardPreviewSkeletonRow > .cardPreviewSkeletonBlock:nth-child(2) {
-  animation-delay: 0.15s;
-}
-
-.cardPreviewSkeletonHint {
+.cardPreviewSwitchHint {
   margin: 0;
   padding: 0.75rem 1rem;
   font-size: var(--text-xs);
@@ -369,16 +342,30 @@
   text-align: center;
 }
 
+.cardPreviewListDimmed {
+  opacity: 0.5;
+  transition: opacity 0.15s ease-in-out;
+  pointer-events: none;
+}
+
 @keyframes cardPreviewSkeletonPulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cardPreviewSkeletonBlock,
   .cardPreviewTagSkeleton {
     animation: none;
     opacity: 0.7;
+  }
+
+  .cardPreviewListDimmed {
+    transition: none;
   }
 }
 
