@@ -63,6 +63,7 @@
     "fzstd": "^0.1.1",
     "get-notion-object-title": "^0.2.0",
     "google-auth-library": "^10.6.2",
+    "highlight.js": "^11.11.1",
     "html-to-text": "^10.0.0",
     "http-proxy-middleware": "^4.0.0",
     "image-size": "^2.0.2",

@@ -154,6 +154,49 @@ describe('CardOptionsForm embed-images toggle', () => {
   });
 });
 
+describe('CardOptionsForm code theme picker', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockResetUserCardOptions.mockResolvedValue(undefined);
+    setUserLocalsPaying(false);
+    localStorage.clear();
+    mockGetSettingsCardOptions.mockResolvedValue([
+      new CardOptionModel(
+        'no-underline',
+        'Remove underlines',
+        'Strip underline formatting from card text.',
+        false
+      ),
+    ]);
+  });
+
+  it('defaults to GitHub and writes the picked theme to localStorage', async () => {
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const select = (await screen.findByLabelText(
+      'Code theme'
+    )) as HTMLSelectElement;
+    expect(select.value).toBe('github');
+
+    fireEvent.change(select, { target: { value: 'dracula' } });
+
+    await waitFor(() => {
+      expect(localStorage.getItem('code-theme')).toBe('dracula');
+    });
+    expect(select.value).toBe('dracula');
+  });
+
+  it('offers the four documented themes', async () => {
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    await screen.findByLabelText('Code theme');
+    expect(screen.getByRole('option', { name: 'GitHub' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'One Dark' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: 'Solarized' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Dracula' })).toBeInTheDocument();
+  });
+});
+
 describe('CardOptionsForm overlapping cloze picker', () => {
   beforeEach(() => {
     vi.clearAllMocks();

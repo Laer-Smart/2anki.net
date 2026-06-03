@@ -204,6 +204,7 @@ describe('SettingsController', () => {
       'tts-manual-lang': '',
       'tts-manual-side': 'front',
       'overlapping-cloze': 'off',
+      'code-theme': 'github',
     });
   });
 });

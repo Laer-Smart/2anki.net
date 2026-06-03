@@ -43,7 +43,8 @@ import { extractStyles } from './extractStyles';
 import { withFontSize } from './withFontSize';
 import { withTextColor } from './withTextColor';
 import { withTextAlign } from './withTextAlign';
-import { NOTION_STYLE } from '../../templates/helper';
+import { NOTION_STYLE, getCodeThemeCss } from '../../templates/helper';
+import { highlightCode } from '../notion-render/highlightCode';
 import { transformDetailsTagToNotionToggleList } from './transformDetailsTagToNotionToggleList';
 import { findNotionToggleLists, isMCQ } from './findNotionToggleLists';
 import { EmptyDeckError } from '../../usecases/jobs/EmptyDeckError';
@@ -355,9 +356,11 @@ export class DeckParser {
     const { dom, isNewFormat } = this.loadAndNormalizeDOM(contents);
 
     const extractedStyle = extractStyles(dom);
+    const codeThemeStyle = getCodeThemeCss(this.settings.codeTheme);
+    const themedNotionStyle = `${NOTION_STYLE}\n${codeThemeStyle}`;
     const baseStyle = extractedStyle
-      ? `${NOTION_STYLE}\n${extractedStyle}`
-      : NOTION_STYLE;
+      ? `${themedNotionStyle}\n${extractedStyle}`
+      : themedNotionStyle;
     const style = withTextAlign(
       withTextColor(
         withFontSize(`${baseStyle}\n${CODE_WRAP_STYLE}`, this.settings.fontSize),
@@ -954,7 +957,17 @@ export class DeckParser {
     const dom = this.loadDOM(contents);
     const isNewFormat = this.hasNotionNewExportFormat(dom);
     this.normalizeNotionNewExportFormat(dom);
+    this.applyCodeBlockContainer(dom);
     return { dom, isNewFormat };
+  }
+
+  private applyCodeBlockContainer(dom: cheerio.CheerioAPI): void {
+    dom('pre > code').each((_i, elem) => {
+      const code = dom(elem);
+      if (code.hasClass('hljs')) return;
+      code.html(highlightCode(code.text()));
+      code.addClass('hljs');
+    });
   }
 
   private normalizeNotionNewExportFormat(dom: cheerio.CheerioAPI): void {

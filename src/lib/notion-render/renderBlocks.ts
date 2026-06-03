@@ -1,4 +1,5 @@
 import { escapeAttribute, escapeHtml } from './escape';
+import { highlightCode } from './highlightCode';
 import { resolveEmbedUrl, resolveVideoUrl } from './embedUrl';
 import { renderPlainText, renderRichText } from './richText';
 import {
@@ -253,7 +254,8 @@ const renderCode = (block: NotionRenderableBlock): string => {
   const inner = renderPlainText(block.code?.rich_text);
   if (inner === '') return '';
   const lang = block.code?.language ?? 'plaintext';
-  return `<pre><code class="language-${escapeAttribute(lang)}">${escapeHtml(inner)}</code></pre>`;
+  const highlighted = highlightCode(inner, lang);
+  return `<pre><code class="hljs language-${escapeAttribute(lang)}">${highlighted}</code></pre>`;
 };
 
 const renderEquation = (block: NotionRenderableBlock): string => {

@@ -111,9 +111,8 @@ describe('renderNotionBlocks — text blocks', () => {
     const out = await renderNotionBlocks(blocks, noChildren);
     expect(out.html).toContain('<blockquote>said</blockquote>');
     expect(out.html).toContain('<hr>');
-    expect(out.html).toContain(
-      '<pre><code class="language-javascript">console.log(&quot;hi&quot;)</code></pre>'
-    );
+    expect(out.html).toContain('<pre><code class="hljs language-javascript">');
+    expect(out.html).toContain('<span class="hljs-string">&quot;hi&quot;</span>');
     expect(out.html).toContain('\\[a + b\\]');
   });
 

@@ -26,7 +26,7 @@ import { withFontSize } from '../../../lib/parser/withFontSize';
 import { withTextColor } from '../../../lib/parser/withTextColor';
 import { withTextAlign } from '../../../lib/parser/withTextAlign';
 import get16DigitRandomId from '../../../shared/helpers/get16DigitRandomId';
-import { NOTION_STYLE } from '../../../templates/helper';
+import { NOTION_STYLE, getCodeThemeCss } from '../../../templates/helper';
 import NotionAPIWrapper from '../NotionAPIWrapper';
 import BlockColumn from '../blocks/lists/BlockColumn';
 import { tableRowsToCards } from '../blocks/lists/BlockTable';
@@ -112,6 +112,19 @@ class BlockHandler {
     this.settings = settings;
     this.settingsRepository = settingsRepository;
     this.owner = owner;
+  }
+
+  private buildDeckStyle(): string {
+    const themed = `${NOTION_STYLE}\n${getCodeThemeCss(this.settings.codeTheme)}`;
+    return (
+      withTextAlign(
+        withTextColor(
+          withFontSize(themed, this.settings.fontSize),
+          this.settings.textColor
+        ),
+        this.settings.textAlign
+      ) ?? themed
+    );
   }
 
   private async resolvePageSettings(pageId: string): Promise<CardOption> {
@@ -449,13 +462,7 @@ class BlockHandler {
       dbName,
       Deck.CleanCards(notes),
       undefined,
-      withTextAlign(
-        withTextColor(
-          withFontSize(NOTION_STYLE, this.settings.fontSize),
-          this.settings.textColor
-        ),
-        this.settings.textAlign
-      ),
+      this.buildDeckStyle(),
       get16DigitRandomId(),
       this.settings
     );
@@ -558,13 +565,7 @@ class BlockHandler {
         currentDeckName,
         Deck.CleanCards(cards),
         undefined,
-        withTextAlign(
-          withTextColor(
-            withFontSize(NOTION_STYLE, this.settings.fontSize),
-            this.settings.textColor
-          ),
-          this.settings.textAlign
-        ),
+        this.buildDeckStyle(),
         get16DigitRandomId(),
         this.settings
       );
@@ -648,13 +649,7 @@ class BlockHandler {
               ),
               cards,
               undefined,
-              withTextAlign(
-                withTextColor(
-                  withFontSize(NOTION_STYLE, this.settings.fontSize),
-                  this.settings.textColor
-                ),
-                this.settings.textAlign
-              ),
+              this.buildDeckStyle(),
               get16DigitRandomId(),
               this.settings
             )

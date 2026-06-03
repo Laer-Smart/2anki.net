@@ -81,6 +81,50 @@ test('deck style includes Notion highlight color rules for file uploads', async 
   expect(style).toContain('.highlight-red');
 });
 
+test('code blocks from HTML uploads get the themed hljs container', async () => {
+  const html = `<html><head><title>Code</title></head>
+<body><article class="page sans"><header><h1 class="page-title">Code</h1></header><div class="page-body">
+<ul class="toggle"><li><details open=""><summary>How to print?</summary>
+<pre class="code code-wrap"><code>&lt;tag&gt; not a real element</code></pre></details></li></ul>
+</div></article></body></html>`;
+
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'code.html',
+    settings: new CardOption({ cherry: 'false' }),
+    files: [{ name: 'code.html', contents: html }],
+    noLimits: true,
+    workspace,
+  });
+  await parser.build(workspace);
+
+  const back = parser.payload[0].cards[0].back;
+  expect(back).toContain('<code class="hljs"');
+  expect(back).toContain('&lt;tag&gt; not a real element');
+});
+
+test('deck style carries the selected code theme for file uploads', async () => {
+  const html = `<html><head><title>Code</title></head>
+<body><article class="page sans"><header><h1 class="page-title">Code</h1></header><div class="page-body">
+<ul class="toggle"><li><details open=""><summary>Q</summary>
+<pre class="code code-wrap"><code>x = 1</code></pre></details></li></ul>
+</div></article></body></html>`;
+
+  const workspace = new Workspace(true, 'fs');
+  const parser = new DeckParser({
+    name: 'code.html',
+    settings: new CardOption({ cherry: 'false', 'code-theme': 'dracula' }),
+    files: [{ name: 'code.html', contents: html }],
+    noLimits: true,
+    workspace,
+  });
+  await parser.build(workspace);
+
+  const style = parser.payload[0].style ?? '';
+  expect(style).toContain('#282a36');
+  expect(style).toContain('@media (prefers-color-scheme: dark)');
+});
+
 test('Toggle Headings', async () => {
   const deck = await getDeck(
     'Toggle Hea 0e02b 2.html',

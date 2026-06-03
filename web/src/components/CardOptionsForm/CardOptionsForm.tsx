@@ -67,6 +67,13 @@ const TTS_MANUAL_SIDE_OPTIONS = [
 ] as const;
 const DEFAULT_CARD_SIZE = 'medium';
 const DEFAULT_OVERLAPPING_CLOZE = 'off';
+const DEFAULT_CODE_THEME = 'github';
+const CODE_THEME_OPTIONS = [
+  { label: 'GitHub', value: 'github' },
+  { label: 'One Dark', value: 'one-dark' },
+  { label: 'Solarized', value: 'solarized' },
+  { label: 'Dracula', value: 'dracula' },
+] as const;
 const CARD_SIZE_VALUES = ['short', 'medium', 'detailed'] as const;
 type CardSizeValue = (typeof CARD_SIZE_VALUES)[number];
 
@@ -162,6 +169,7 @@ function computeSnapshot(values: {
   template: string;
   toggleMode: string;
   overlappingCloze: string;
+  codeTheme: string;
   pageEmoji: string;
   basicName: string;
   clozeName: string;
@@ -236,6 +244,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         DEFAULT_OVERLAPPING_CLOZE,
         settings
       )
+    );
+    const [codeTheme, setCodeTheme] = useState(
+      getLocalStorageValue('code-theme', DEFAULT_CODE_THEME, settings)
     );
     const [pageEmoji, setPageEmoji] = useState(
       getLocalStorageValue('page-emoji', DEFAULT_PAGE_EMOJI, settings)
@@ -318,6 +329,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         localStorage.getItem('overlapping-cloze') ?? DEFAULT_OVERLAPPING_CLOZE
       );
       setPageEmoji(localStorage.getItem('page-emoji') ?? DEFAULT_PAGE_EMOJI);
+      setCodeTheme(localStorage.getItem('code-theme') ?? DEFAULT_CODE_THEME);
       setBasicName(localStorage.getItem('basic_model_name') ?? '');
       setClozeName(localStorage.getItem('cloze_model_name') ?? '');
       setInputName(localStorage.getItem('input_model_name') ?? '');
@@ -340,6 +352,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           ['deckName', setDeckName],
           ['toggle-mode', setToggleMode],
           ['overlapping-cloze', setOverlappingCloze],
+          ['code-theme', setCodeTheme],
           ['page-emoji', setPageEmoji],
           ['template', setTemplate],
           ['font-size', setFontSize],
@@ -408,6 +421,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           template,
           toggleMode,
           overlappingCloze,
+          codeTheme,
           pageEmoji,
           basicName,
           clozeName,
@@ -432,6 +446,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         template,
         toggleMode,
         overlappingCloze,
+        codeTheme,
         pageEmoji,
         basicName,
         clozeName,
@@ -491,6 +506,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setTextAlign('');
       setToggleMode(DEFAULT_TOGGLE_MODE);
       setOverlappingCloze(DEFAULT_OVERLAPPING_CLOZE);
+      setCodeTheme(DEFAULT_CODE_THEME);
       setTemplate(DEFAULT_TEMPLATE);
       setPageEmoji(DEFAULT_PAGE_EMOJI);
       setBasicName('');
@@ -524,6 +540,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       payload.deckName = deckName;
       payload['toggle-mode'] = toggleMode;
       payload['overlapping-cloze'] = overlappingCloze;
+      payload['code-theme'] = codeTheme;
       payload.template = template;
       payload.basic_model_name = basicName;
       payload.cloze_model_name = clozeName;
@@ -757,6 +774,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
 
           const isPdfAiGroup = group.label === 'PDF & AI';
           const isCardTypesGroup = group.label === 'Card types';
+          const isLinksFormattingGroup = group.label === 'Links & formatting';
 
           return (
             <React.Fragment key={group.label}>
@@ -779,6 +797,35 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                   {isPdfAiGroup && userInstructionsDisclosure}
                 </div>
               </div>
+              {isLinksFormattingGroup && (
+                <div className={fieldStyles.optionGroup} id="code-blocks">
+                  <h3 className={fieldStyles.groupHeading}>Code blocks</h3>
+                  <p className={fieldStyles.groupIntro}>
+                    Code from your notes keeps its colors in Anki. Pick the look.
+                  </p>
+                  <div className={fieldStyles.section}>
+                    <div className={fieldStyles.labelRow}>
+                      <label htmlFor="code-theme" className={fieldStyles.sectionLabel}>
+                        Code theme
+                      </label>
+                      <FieldHint text="Colors for code from your notes. Switches between light and dark to match your Anki theme." />
+                    </div>
+                    <select
+                      id="code-theme"
+                      className={fieldStyles.deckInput}
+                      value={codeTheme}
+                      onChange={(e) => {
+                        setCodeTheme(e.target.value);
+                        saveValueInLocalStorage('code-theme', e.target.value, pageId);
+                      }}
+                    >
+                      {CODE_THEME_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
               {isCardTypesGroup && (
                 <div className={fieldStyles.optionGroup} id="card-size">
                   <div className={fieldStyles.groupHeader}>

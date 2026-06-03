@@ -642,4 +642,14 @@ blockquote {
 .n2a-highlight-blue_background { background-color: rgb(231, 243, 248); }
 .n2a-highlight-purple_background { background-color: rgba(244, 240, 247, 0.8); }
 .n2a-highlight-pink_background { background-color: rgba(249, 238, 243, 0.8); }
+
+/* highlight.js code-block container (token colors live in hljs-themes/*) */
+pre code.hljs {
+	display: block;
+	overflow-x: auto;
+	padding: 1em;
+}
+code.hljs {
+	padding: 3px 5px;
+}
 .n2a-highlight-red_background { background-color: rgb(253, 235, 236); }

@@ -7,6 +7,12 @@ describe('sanitizeCardHtml', () => {
     expect(sanitizeCardHtml(html)).toBe(html);
   });
 
+  it('preserves hljs token spans on highlighted code', () => {
+    const html =
+      '<pre><code class="hljs language-javascript"><span class="hljs-keyword">const</span> x = 1;</code></pre>';
+    expect(sanitizeCardHtml(html)).toBe(html);
+  });
+
   it('preserves mark tags with highlight-red_background class', () => {
     const html =
       '<p><mark class="highlight-red_background">red highlighted</mark></p>';
