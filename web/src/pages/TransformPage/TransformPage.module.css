@@ -25,6 +25,17 @@
   color: var(--color-text-secondary);
 }
 
+.fieldGroupLabel {
+  font-weight: var(--font-semibold);
+}
+
+.fieldHint {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--font-normal);
+  color: var(--color-text-secondary);
+}
+
 .capWarning {
   margin: 0;
   padding: 0.75rem 1rem;
