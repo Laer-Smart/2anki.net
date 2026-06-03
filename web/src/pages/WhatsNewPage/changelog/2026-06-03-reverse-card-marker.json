@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-reverse-card-marker",
+  "date": "2026-06-03",
+  "type": "fix",
+  "title": "Reverse cards stay clean — the 🔄 marker is hidden, and 🔄 also reverses cards in uploaded files"
+}
