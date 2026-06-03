@@ -21,6 +21,7 @@ import sharedStyles from '../../styles/shared.module.css';
 import { ErrorHandlerType } from '../errors/helpers/getErrorMessage';
 import { FieldHint } from '../FieldHint';
 import FontSizePicker from '../FontSizePicker';
+import TextColorPicker from '../TextColorPicker';
 import LocalCheckbox from '../LocalCheckbox';
 import { availableTemplates } from '../modals/SettingsModal/constants';
 import { useSettingsCardsOptions } from '../modals/SettingsModal/useSettingsCardsOptions';
@@ -148,6 +149,7 @@ const PAID_ONLY_KEYS = new Set(['ai-comprehensive']);
 function computeSnapshot(values: {
   deckName: string;
   fontSize: string;
+  textColor: string;
   template: string;
   toggleMode: string;
   overlappingCloze: string;
@@ -204,6 +206,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     );
     const [fontSize, setFontSize] = useState(
       getLocalStorageValue('font-size', '', settings)
+    );
+    const [textColor, setTextColor] = useState(
+      getLocalStorageValue('text-color', '', settings)
     );
     const [template, setTemplate] = useState(
       getLocalStorageValue('template', DEFAULT_TEMPLATE, settings)
@@ -285,6 +290,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setInitialSnapshot(null);
       setDeckName(pageTitle ?? localStorage.getItem(deckNameKey) ?? '');
       setFontSize(localStorage.getItem('font-size') ?? '');
+      setTextColor(localStorage.getItem('text-color') ?? '');
       setTemplate(localStorage.getItem('template') ?? DEFAULT_TEMPLATE);
       setToggleMode(localStorage.getItem('toggle-mode') ?? DEFAULT_TOGGLE_MODE);
       setOverlappingCloze(
@@ -314,6 +320,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           ['page-emoji', setPageEmoji],
           ['template', setTemplate],
           ['font-size', setFontSize],
+          ['text-color', setTextColor],
           ['basic_model_name', setBasicName],
           ['cloze_model_name', setClozeName],
           ['input_model_name', setInputName],
@@ -370,6 +377,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         computeSnapshot({
           deckName,
           fontSize,
+          textColor,
           template,
           toggleMode,
           overlappingCloze,
@@ -390,6 +398,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       [
         deckName,
         fontSize,
+        textColor,
         template,
         toggleMode,
         overlappingCloze,
@@ -446,6 +455,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       localStorage.removeItem('user-instructions');
       setDeckName('');
       setFontSize(DEFAULT_FONT_SIZE);
+      setTextColor('');
       setToggleMode(DEFAULT_TOGGLE_MODE);
       setOverlappingCloze(DEFAULT_OVERLAPPING_CLOZE);
       setTemplate(DEFAULT_TEMPLATE);
@@ -484,6 +494,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       payload.cloze_model_name = clozeName;
       payload.input_model_name = inputName;
       payload['font-size'] = fontSize;
+      payload['text-color'] = textColor;
       payload['page-emoji'] = pageEmoji;
       payload['user-instructions'] = userInstructions;
       payload['mcq-enabled'] = mcqEnabled.toString();
@@ -1081,6 +1092,15 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               pickedFontSize={(fs) => {
                 setFontSize(fs);
                 saveValueInLocalStorage('font-size', fs.toString(), pageId);
+              }}
+            />
+          </div>
+          <div className={fieldStyles.section}>
+            <TextColorPicker
+              textColor={textColor}
+              pickedTextColor={(color) => {
+                setTextColor(color);
+                saveValueInLocalStorage('text-color', color, pageId);
               }}
             />
           </div>
