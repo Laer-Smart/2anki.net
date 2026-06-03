@@ -818,8 +818,12 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       <UpsellCard surface="upload_success_upsell" hideForAnonymous />
       <button
         type="button"
-        className={formStyles.actionButton}
-        onClick={resetForm}
+        className={sharedStyles.btnSecondary}
+        onClick={() => {
+          fireAnalyticsEvent('make_another_deck_clicked');
+          track('make_another_deck_clicked');
+          resetForm();
+        }}
       >
         Make another deck
       </button>

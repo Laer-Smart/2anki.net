@@ -173,6 +173,12 @@
   color: var(--color-text-secondary);
 }
 
+.makeAnotherDeck {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
 .upgradeFooter a {
   color: var(--color-primary);
   font-weight: var(--font-medium);

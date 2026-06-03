@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 
 import useUploads from './hooks/useUploads';
 import useJobs from './hooks/useJobs';
@@ -242,6 +242,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
   const [expandedFailureJobId, setExpandedFailureJobId] = useState<number | string | null>(null);
   const [mappingModalJob, setMappingModalJob] = useState<JobResponse | null>(null);
   const [hasDownloaded, setHasDownloaded] = useState(false);
+  const navigate = useNavigate();
 
   const rawFilter = searchParams.get('filter') ?? 'all';
   const activeFilter: FilterValue = VALID_FILTERS.has(rawFilter as FilterValue)
@@ -644,6 +645,22 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                   </div>
                 )}
               </div>
+
+              {hasDownloaded && (
+                <div className={styles.makeAnotherDeck}>
+                  <button
+                    type="button"
+                    className={sharedStyles.btnSecondary}
+                    onClick={() => {
+                      fireAnalyticsEvent('make_another_deck_clicked');
+                      track('make_another_deck_clicked');
+                      navigate('/upload');
+                    }}
+                  >
+                    Make another deck
+                  </button>
+                </div>
+              )}
 
               {showDeckFeedback && <DeckFeedbackPrompt />}
 

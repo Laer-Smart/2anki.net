@@ -60,6 +60,7 @@ export const KNOWN_EVENTS = new Set([
   'onboarding_skipped',
   'onboarding_completed',
   'apkg_csv_exported',
+  'make_another_deck_clicked',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;
