@@ -45,6 +45,13 @@ describe('AccessBanner', () => {
     expect(screen.getByText(/Week Pass active/)).toBeInTheDocument();
   });
 
+  it('renders active state for an Unlimited subscription', () => {
+    render(
+      <AccessBanner passExpiresAt={FUTURE_2H.toISOString()} passKind="unlimited" now={NOW} />
+    );
+    expect(screen.getByText(/Unlimited active/)).toBeInTheDocument();
+  });
+
   it('renders warning state with < 2h remaining', () => {
     render(
       <AccessBanner passExpiresAt={FUTURE_90MIN.toISOString()} passKind="24h" now={NOW} />

@@ -13,7 +13,7 @@ interface GetUserLocalsResponse {
       linked_email: string;
     };
     passExpiresAt?: string | null;
-    passKind?: '24h' | '7d' | null;
+    passKind?: '24h' | '7d' | 'unlimited' | null;
   };
   linked_email: string;
   user?: Users & {
