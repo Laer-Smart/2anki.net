@@ -36,6 +36,10 @@ import { FileSizeInMegaBytes } from '../lib/misc/file';
 import { track } from './events/track';
 import { classifyDevice } from '../lib/analytics/classifyDevice';
 import {
+  validateUploadSource,
+  UploadSource,
+} from '../lib/upload/validateUploadSource';
+import {
   isPdfPasswordSentinel,
   parsePdfPasswordSentinel,
 } from '../lib/pdf/pdfPasswordSentinel';
@@ -166,7 +170,13 @@ class UploadService {
     res.status(202).json({ jobId: job.object_id });
   }
 
-  private async promoteClaudeJobToUpload(objectId: string, workspaceDir: string, owner: string, totalCards = 0): Promise<void> {
+  private async promoteClaudeJobToUpload(
+    objectId: string,
+    workspaceDir: string,
+    owner: string,
+    totalCards = 0,
+    source: UploadSource | null = null
+  ): Promise<void> {
     const files = await fs.promises.readdir(workspaceDir);
     const apkgFilename = files.find((f) => f.endsWith('.apkg'));
     if (!apkgFilename) {
@@ -179,7 +189,7 @@ class UploadService {
     const key = storage.uniqify(objectId, owner, 200, 'apkg');
     await storage.uploadFile(key, apkgBuffer);
     const sizeMb = FileSizeInMegaBytes(apkgPath);
-    await this.uploadRepository.update(Number(owner), apkgFilename, key, sizeMb);
+    await this.uploadRepository.update(Number(owner), apkgFilename, key, sizeMb, source);
     await this.usersRepository.incrementCardUsage(Number(owner), totalCards);
     const job = await this.jobRepository.findJobById(objectId, owner);
     if (job) {
@@ -340,6 +350,7 @@ class UploadService {
     const title = files.length === 1 ? files[0].originalname : `${files.length} files`;
     await this.jobRepository.create(ws.id, owner, title, 'claude');
 
+    const source = this.resolvePersistedSource(req);
     const useCase = new GeneratePackagesUseCase();
     const ownerNumeric = Number(owner);
     const ownerId = Number.isFinite(ownerNumeric) && ownerNumeric > 0 ? ownerNumeric : null;
@@ -350,7 +361,7 @@ class UploadService {
       .then(async ({ packages }) => {
         if (packages.length > 0) {
           const totalCards = packages.reduce((s, p) => s + (p.cardCount ?? 0), 0);
-          await this.promoteClaudeJobToUpload(ws.id, ws.location, owner, totalCards);
+          await this.promoteClaudeJobToUpload(ws.id, ws.location, owner, totalCards, source);
         } else {
           logNoPackageDiagnostics(req.files as UploadedFile[]);
           await this.jobRepository.updateJobStatus(ws.id, owner, 'failed', 'No packages produced');
@@ -505,7 +516,16 @@ class UploadService {
     return typeof anonId === 'string' && anonId.length > 0 ? anonId : null;
   }
 
-  private resolveUploadSource(req: express.Request): 'upload' | 'google_drive' {
+  private resolvePersistedSource(req: express.Request): UploadSource | null {
+    const body = req.body as Record<string, unknown> | undefined;
+    return validateUploadSource(body?.source);
+  }
+
+  private resolveUploadSource(
+    req: express.Request
+  ): UploadSource | 'upload' | 'google_drive' {
+    const explicit = this.resolvePersistedSource(req);
+    if (explicit != null) return explicit;
     if (req.path?.includes('google_drive')) return 'google_drive';
     return 'upload';
   }

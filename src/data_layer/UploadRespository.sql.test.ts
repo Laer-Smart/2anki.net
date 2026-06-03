@@ -1,4 +1,37 @@
 import knex from 'knex';
+import UploadRepository from './UploadRespository';
+
+describe('UploadRepository.update generated SQL', () => {
+  it('inserts the source column alongside the existing upload fields', () => {
+    const pg = knex({ client: 'pg' });
+    const repo = new UploadRepository(pg);
+
+    const sql = (
+      repo.update(7, 'deck.apkg', 'key/deck.apkg', 1.5, 'app') as unknown as {
+        toString(): string;
+      }
+    ).toString();
+
+    expect(sql).toBe(
+      'insert into "uploads" ("filename", "key", "owner", "size_mb", "source") values (\'deck.apkg\', \'key/deck.apkg\', 7, 1.5, \'app\')'
+    );
+  });
+
+  it('inserts a null source when none is supplied', () => {
+    const pg = knex({ client: 'pg' });
+    const repo = new UploadRepository(pg);
+
+    const sql = (
+      repo.update(7, 'deck.apkg', 'key/deck.apkg', 1.5) as unknown as {
+        toString(): string;
+      }
+    ).toString();
+
+    expect(sql).toBe(
+      'insert into "uploads" ("filename", "key", "owner", "size_mb", "source") values (\'deck.apkg\', \'key/deck.apkg\', 7, 1.5, NULL)'
+    );
+  });
+});
 
 describe('UploadRepository.getLastReconvertibleUpload generated SQL', () => {
   it('filters apkg keys with a bound parameter and orders by created_at desc', () => {
