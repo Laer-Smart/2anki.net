@@ -1,3 +1,9 @@
+const REFRESH_ICON_PATTERN = /(?:&#x1F504;?|🔄)/g;
+
+export function removeRefreshIcon(value: string): string {
+  return value.replace(REFRESH_ICON_PATTERN, '').trim();
+}
+
 export default class Note {
   name: string;
 
@@ -74,8 +80,16 @@ export default class Note {
     return this.name.includes('&#x1F504') || this.name.includes('🔄');
   }
 
+  stripRefreshIcon() {
+    this.name = removeRefreshIcon(this.name);
+    this.back = removeRefreshIcon(this.back);
+  }
+
   reversed(input: Note): Note {
-    const note = new Note(input.back, input.name);
+    const note = new Note(
+      removeRefreshIcon(input.back),
+      removeRefreshIcon(input.name)
+    );
     note.tags = input.tags;
     note.media = input.media;
     note.number = input.number + 0.5;

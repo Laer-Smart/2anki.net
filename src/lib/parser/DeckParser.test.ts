@@ -1087,7 +1087,7 @@ test('empty paragraphs preserved as spacing in card back', async () => {
   expect(emptyParagraphs).not.toBeNull();
 });
 
-test('refresh emoji does not reverse cards when reversed setting is off', async () => {
+test('refresh emoji reverses an uploaded card even when reverse settings are off', async () => {
   const fixturePath = path.join(__dirname, '../../test/fixtures/refresh-emoji-toggle.html');
   const contents = fs.readFileSync(fixturePath).toString();
   const workspace = new Workspace(true, 'fs');
@@ -1104,11 +1104,23 @@ test('refresh emoji does not reverse cards when reversed setting is off', async 
   await parser.build(workspace);
 
   const deck = parser.payload[0];
-  expect(deck.cards.length).toBe(2);
-  expect(deck.cards[0].name).toContain('capital of France');
-  expect(deck.cards[0].back).toContain('Paris');
-  expect(deck.cards[1].name).toContain('capital of Germany');
-  expect(deck.cards[1].back).toContain('Berlin');
+  expect(deck.cards.length).toBe(3);
+
+  const forwardFrance = deck.cards.find((c) => c.name.includes('capital of France'));
+  expect(forwardFrance?.back).toContain('Paris');
+
+  const germany = deck.cards.find((c) => c.name.includes('capital of Germany'));
+  expect(germany?.back).toContain('Berlin');
+
+  const reversedFrance = deck.cards.find((c) => c.name.includes('Paris'));
+  expect(reversedFrance?.back).toContain('capital of France');
+
+  for (const card of deck.cards) {
+    expect(card.name).not.toContain('🔄');
+    expect(card.name).not.toContain('&#x1F504');
+    expect(card.back).not.toContain('🔄');
+    expect(card.back).not.toContain('&#x1F504');
+  }
 });
 
 describe('removeNewlinesInSVGPathAttributeD', () => {

@@ -374,13 +374,17 @@ class BlockHandler {
       }
 
       cards.push(ankiNote);
-      
+
+      const refreshIconRequested = ankiNote.hasRefreshIcon();
       if (
         !this.settings.isCherry &&
-        (this.settings.basicReversed || ankiNote.hasRefreshIcon()) &&
+        (this.settings.basicReversed || refreshIconRequested) &&
         isBasicType
       ) {
         cards.push(ankiNote.reversed(ankiNote));
+      }
+      if (refreshIconRequested) {
+        ankiNote.stripRefreshIcon();
       }
       tr.clear();
     }

@@ -885,10 +885,9 @@ export class DeckParser {
           continue;
         }
 
-        if (this.settings.basicReversed) {
-          const note = new Note(card.back, card.name);
-          note.tags = card.tags;
-          note.media = card.media;
+        const refreshIconRequested = card.hasRefreshIcon();
+        if (this.settings.basicReversed || refreshIconRequested) {
+          const note = card.reversed(card);
           note.number = counter++;
           addThese.push(note);
         }
@@ -897,6 +896,10 @@ export class DeckParser {
           const tmp = card.back;
           card.back = card.name;
           card.name = tmp;
+        }
+
+        if (refreshIconRequested) {
+          card.stripRefreshIcon();
         }
       }
       const kept = deck.cards.filter((card) => !replaced.has(card));
