@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { DownloadsPage, renderJobStatusCell } from './DownloadsPage';
@@ -630,5 +630,93 @@ describe('DownloadsPage cancel_during_generating telemetry', () => {
       (c) => c.url === '/api/events/track' && c.body?.name === 'cancel_during_generating'
     );
     expect(analyticsCall).toBeUndefined();
+  });
+});
+
+describe('DownloadsPage make another deck CTA', () => {
+  let fetchCalls: { url: string; body: Record<string, unknown> }[] = [];
+
+  function LocationDisplay() {
+    const location = useLocation();
+    return <div data-testid="location-display">{location.pathname}</div>;
+  }
+
+  const renderWithLocation = () =>
+    render(
+      <QueryClientProvider
+        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      >
+        <MemoryRouter initialEntries={['/downloads']}>
+          <Routes>
+            <Route path="/downloads" element={<DownloadsPage setError={vi.fn()} />} />
+            <Route path="/upload" element={<LocationDisplay />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-03T12:00:00Z'));
+    fetchCalls = [];
+    (globalThis as AnalyticsGlobals).hj = vi.fn();
+    (globalThis as AnalyticsGlobals).gtag = vi.fn();
+    globalThis.fetch = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+      if (typeof url === 'string') {
+        try {
+          fetchCalls.push({ url, body: JSON.parse((init?.body as string) ?? '{}') });
+        } catch { /* ignore */ }
+      }
+      return Promise.resolve(new Response(null, { status: 200 }));
+    });
+    localStorage.clear();
+    mockUploads = [];
+    mockDropboxUploads = [];
+    mockGoogleDriveUploads = [];
+    mockJobs = [
+      buildJob({
+        status: 'done',
+        type: 'page',
+        title: 'Pharmacology Ch. 4',
+        download_key: 'deck-abc123.apkg',
+      }),
+    ];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    localStorage.clear();
+    delete (globalThis as AnalyticsGlobals).hj;
+    delete (globalThis as AnalyticsGlobals).gtag;
+  });
+
+  it('hides the CTA until a deck is downloaded', () => {
+    renderWithLocation();
+    expect(
+      screen.queryByRole('button', { name: 'Make another deck' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the CTA after a deck download fires', () => {
+    renderWithLocation();
+    fireEvent.click(screen.getByLabelText('Download Pharmacology Ch. 4'));
+    expect(
+      screen.getByRole('button', { name: 'Make another deck' })
+    ).toBeInTheDocument();
+  });
+
+  it('fires make_another_deck_clicked and navigates to /upload on click', () => {
+    const gtag = (globalThis as AnalyticsGlobals).gtag!;
+    renderWithLocation();
+    fireEvent.click(screen.getByLabelText('Download Pharmacology Ch. 4'));
+    fireEvent.click(screen.getByRole('button', { name: 'Make another deck' }));
+
+    expect(gtag).toHaveBeenCalledWith('event', 'make_another_deck_clicked');
+    const trackCall = fetchCalls.find(
+      (c) => c.url === '/api/events/track' && c.body?.name === 'make_another_deck_clicked'
+    );
+    expect(trackCall).toBeDefined();
+    expect(screen.getByTestId('location-display').textContent).toBe('/upload');
   });
 });

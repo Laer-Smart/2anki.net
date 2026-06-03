@@ -1,7 +1,8 @@
 export type ConversionEventName =
   | 'upload_started'
   | 'conversion_success'
-  | 'deck_downloaded';
+  | 'deck_downloaded'
+  | 'make_another_deck_clicked';
 
 interface AnalyticsWindow {
   hj?: (...args: unknown[]) => void;

@@ -840,6 +840,44 @@ describe('UploadForm analytics events', () => {
     expect(calls).toHaveLength(0);
   });
 
+  it('fires make_another_deck_clicked when the success-state button is clicked', async () => {
+    const { track } = await import('../../../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+    const gtag = (globalThis as AnalyticsGlobals).gtag!;
+
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      redirected: false,
+      status: 200,
+      headers: new Headers({
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': 'attachment; filename="deck.apkg"',
+        'X-Card-Count': '5',
+      }),
+      blob: () => Promise.resolve(new Blob(['fake'])),
+    }));
+
+    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const form = container.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+
+    const button = await screen.findByRole('button', { name: 'Make another deck' });
+    expect(button.className).toMatch(/btnSecondary/);
+
+    trackMock.mockClear();
+    await act(async () => {
+      fireEvent.click(button);
+    });
+
+    expect(gtag).toHaveBeenCalledWith('event', 'make_another_deck_clicked');
+    const clickedCalls = trackMock.mock.calls.filter(
+      ([name]) => name === 'make_another_deck_clicked'
+    );
+    expect(clickedCalls).toHaveLength(1);
+  });
+
   it('suppresses the uploaded filename in success copy from Hotjar recordings', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       redirected: false,
