@@ -1,5 +1,6 @@
 import { NotionService } from './NotionService';
 import type { INotionRepository } from '../../data_layer/NotionRespository';
+import { verifyNativeOAuthState } from './nativeOAuthState';
 
 function makeRepo(overrides: Partial<INotionRepository> = {}): INotionRepository {
   return {
@@ -19,6 +20,7 @@ beforeEach(() => {
   process.env.NOTION_CLIENT_ID = 'client-abc';
   process.env.NOTION_CLIENT_SECRET = 'secret-xyz';
   process.env.NOTION_REDIRECT_URI = 'https://2anki.net/api/notion/connect';
+  process.env.SECRET = 'link-info-secret';
 });
 
 describe('getNotionLinkInfo', () => {
@@ -56,10 +58,13 @@ describe('getNotionLinkInfo', () => {
     expect(new URL(result.link).searchParams.has('state')).toBe(false);
   });
 
-  it('carries state=native in the link when client is native', async () => {
+  it('carries a signed native state encoding the app owner when client is native', async () => {
     const service = new NotionService(makeRepo());
-    const result = await service.getNotionLinkInfo(1, { client: 'native' });
-    expect(new URL(result.link).searchParams.get('state')).toBe('native');
+    const result = await service.getNotionLinkInfo(7, { client: 'native' });
+    const state = new URL(result.link).searchParams.get('state');
+    expect(state).not.toBeNull();
+    expect(state!.startsWith('native:')).toBe(true);
+    expect(verifyNativeOAuthState(state!, 'link-info-secret')).toBe(7);
   });
 
   it('returns isConnected: false when token row has invalidated_at set', async () => {

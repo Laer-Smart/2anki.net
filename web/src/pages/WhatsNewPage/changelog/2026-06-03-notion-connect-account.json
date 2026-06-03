@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-notion-connect-account",
+  "date": "2026-06-03",
+  "type": "fix",
+  "title": "Connecting Notion from the app links it to the account you signed into the app with"
+}

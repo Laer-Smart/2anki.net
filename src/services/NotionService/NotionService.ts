@@ -8,6 +8,7 @@ import {
   NotionTopLevelPageRow,
 } from '../../data_layer/NotionTopLevelPagesRepository';
 import hashToken from '../../lib/misc/hashToken';
+import { buildNativeOAuthState } from './nativeOAuthState';
 import NotionAPIWrapper from './NotionAPIWrapper';
 import { getNotionId } from './getNotionId';
 import {
@@ -238,7 +239,10 @@ export class NotionService {
     const clientId = this.clientId;
     const link =
       client === 'native'
-        ? this.getNotionAuthorizationLink(clientId, 'native')
+        ? this.getNotionAuthorizationLink(
+            clientId,
+            buildNativeOAuthState(owner, process.env.SECRET ?? '')
+          )
         : this.getNotionAuthorizationLink(clientId);
 
     if (!notionData) {
