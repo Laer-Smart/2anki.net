@@ -37,6 +37,8 @@ function makeController(
     update: jest.fn().mockResolvedValue([]),
     getLastUploadForUser: jest.fn().mockResolvedValue(null),
     getLastReconvertibleUpload: jest.fn().mockResolvedValue(null),
+    findByOwnerAndDedupeKey: jest.fn().mockResolvedValue(null),
+    insertNativeDeck: jest.fn(),
   };
   const notionRepository: INotionRepository = {
     getNotionData: jest.fn().mockResolvedValue({ owner: 1, token: '...' } as NotionTokens),

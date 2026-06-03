@@ -190,7 +190,7 @@ function renderFailurePanelContent(
       variant="failed"
       title={null}
       failureReason={reason}
-      source={source === 'dropbox' || source === 'drive' ? 'upload' : source}
+      source={source === 'notion' ? 'notion' : 'upload'}
       onMapColumns={onMapColumns}
     />
   );

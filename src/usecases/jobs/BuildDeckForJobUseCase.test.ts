@@ -36,6 +36,8 @@ function buildUploadRepository(): jest.Mocked<IUploadRepository> {
     update: jest.fn().mockResolvedValue([]),
     getLastUploadForUser: jest.fn().mockResolvedValue(null),
     getLastReconvertibleUpload: jest.fn().mockResolvedValue(null),
+    findByOwnerAndDedupeKey: jest.fn().mockResolvedValue(null),
+    insertNativeDeck: jest.fn(),
   };
 }
 

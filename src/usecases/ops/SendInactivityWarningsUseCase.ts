@@ -17,6 +17,10 @@ class NoOpUploadRepository implements IUploadRepository {
   update(): Promise<never[]> { return Promise.resolve([]); }
   getLastUploadForUser(): Promise<null> { return Promise.resolve(null); }
   getLastReconvertibleUpload(): Promise<null> { return Promise.resolve(null); }
+  findByOwnerAndDedupeKey(): Promise<null> { return Promise.resolve(null); }
+  insertNativeDeck(): Promise<never> {
+    return Promise.reject(new Error('NoOpUploadRepository does not support insertNativeDeck'));
+  }
 }
 
 export class SendInactivityWarningsUseCase {

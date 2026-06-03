@@ -77,6 +77,15 @@ describe('Upload file', () => {
       getLastReconvertibleUpload: function (_userId: number) {
         return Promise.resolve(null);
       },
+      findByOwnerAndDedupeKey: function (
+        _owner: number,
+        _dedupeKey: string
+      ): Promise<Uploads | null> {
+        return Promise.resolve(null);
+      },
+      insertNativeDeck: function (): Promise<Uploads> {
+        return Promise.reject(new Error('not implemented'));
+      },
     };
     const notionRepository: INotionRepository = {
       getNotionData: function (owner: string | number): Promise<NotionTokens> {
@@ -154,6 +163,8 @@ describe('Upload file — multer error handling', () => {
       update: jest.fn().mockResolvedValue([]),
       getLastUploadForUser: jest.fn().mockResolvedValue(null),
       getLastReconvertibleUpload: jest.fn().mockResolvedValue(null),
+      findByOwnerAndDedupeKey: jest.fn().mockResolvedValue(null),
+      insertNativeDeck: jest.fn(),
     };
     const notionRepository: INotionRepository = {
       getNotionData: jest.fn() as INotionRepository['getNotionData'],

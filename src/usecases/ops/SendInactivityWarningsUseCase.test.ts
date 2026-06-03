@@ -35,6 +35,8 @@ function makeUploadRepo(lastUpload: LastUpload | null = null): jest.Mocked<IUplo
     update: jest.fn(),
     getLastUploadForUser: jest.fn().mockResolvedValue(lastUpload),
     getLastReconvertibleUpload: jest.fn().mockResolvedValue(null),
+    findByOwnerAndDedupeKey: jest.fn().mockResolvedValue(null),
+    insertNativeDeck: jest.fn(),
   };
 }
 
