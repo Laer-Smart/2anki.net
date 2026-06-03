@@ -34,6 +34,7 @@ import Deck from '../lib/parser/Deck';
 import { isHTMLFile, isMarkdownFile } from '../lib/storage/checks';
 import { FileSizeInMegaBytes } from '../lib/misc/file';
 import { track } from './events/track';
+import { classifyDevice } from '../lib/analytics/classifyDevice';
 import {
   isPdfPasswordSentinel,
   parsePdfPasswordSentinel,
@@ -248,7 +249,10 @@ class UploadService {
       track('upload_started', {
         userId: owner != null ? Number(owner) : null,
         anonymousId: this.resolveAnonId(req),
-        props: { source: this.resolveUploadSource(req) },
+        props: {
+          source: this.resolveUploadSource(req),
+          device: classifyDevice(req.headers?.['user-agent']),
+        },
       });
 
       if (owner && settings.claudeAIFlashcards) {
