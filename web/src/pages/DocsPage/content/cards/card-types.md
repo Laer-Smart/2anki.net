@@ -49,6 +49,16 @@ Cloze hides part of a sentence. You see "The capital of France is [...]" and typ
 </details>
 ```
 
+### Cloze hints
+
+To show a hint instead of `[...]`, append `::your hint` after the answer inside the code-formatted cloze. The hint takes the place of the blank on the front, so you get a nudge before you recall the answer.
+
+```
+- The capital of France is `Paris::capital`
+```
+
+That renders the front as "The capital of France is [capital]", with Paris as the answer.
+
 You can also use Anki's native cloze syntax directly when you want explicit numbering or hints:
 
 ```
