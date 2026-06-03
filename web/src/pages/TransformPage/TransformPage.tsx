@@ -520,7 +520,7 @@ export function TransformPage() {
         )}
 
         <label className={pageStyles.languageRow}>
-          <span className={pageStyles.fieldLabel}>Tags (optional)</span>
+          <span className={pageStyles.fieldGroupLabel}>Tags (optional)</span>
           <input
             type="text"
             value={tags}
@@ -529,7 +529,7 @@ export function TransformPage() {
             autoComplete="off"
             spellCheck={false}
           />
-          <p className={pageStyles.capHint}>
+          <p className={pageStyles.fieldHint}>
             Space-separated. Use :: to nest, like pharm::cardio.
           </p>
         </label>
