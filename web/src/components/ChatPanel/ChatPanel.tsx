@@ -116,6 +116,15 @@ function findLastAssistantWithCardsIdx(messages: Message[]): number {
   return -1;
 }
 
+function findLastAssistantIdx(messages: Message[]): number {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].role === 'assistant') {
+      return i;
+    }
+  }
+  return -1;
+}
+
 export function parseSseEvent(
   rawEvent: string
 ): { eventType: string; data: string } | null {
@@ -263,6 +272,7 @@ function AssistantMessage({
   onSave,
   template,
   onTemplateChange,
+  showSelectorWithoutCards,
   templateDisabled,
   isRegenerating,
   onAddTags,
@@ -272,18 +282,28 @@ function AssistantMessage({
   onSave?: (cards: ChatCard[], deckName: string) => void;
   template?: ChatCardTemplate;
   onTemplateChange?: (slug: ChatCardTemplate) => void;
+  showSelectorWithoutCards?: boolean;
   templateDisabled?: boolean;
   isRegenerating?: boolean;
   onAddTags?: () => void;
   isTagging?: boolean;
 }) {
+  const hasCards = message.cards != null && message.cards.length > 0;
+  const selectorOnlyPreview =
+    showSelectorWithoutCards === true &&
+    !hasCards &&
+    onTemplateChange != null;
   const showCardPreview =
-    (message.cards != null && message.cards.length > 0 && onSave != null) ||
-    isRegenerating === true;
+    (hasCards && onSave != null) ||
+    isRegenerating === true ||
+    selectorOnlyPreview;
   return (
     <div className={styles.assistantRow}>
       {message.contentBefore != null && (
         <AssistantMarkdown>{message.contentBefore}</AssistantMarkdown>
+      )}
+      {message.cards == null && !isRegenerating && (
+        <AssistantMarkdown>{message.content}</AssistantMarkdown>
       )}
       {showCardPreview && (
         <CardPreview
@@ -303,9 +323,6 @@ function AssistantMessage({
       )}
       {message.contentAfter != null && (
         <AssistantMarkdown>{message.contentAfter}</AssistantMarkdown>
-      )}
-      {message.cards == null && !isRegenerating && (
-        <AssistantMarkdown>{message.content}</AssistantMarkdown>
       )}
     </div>
   );
@@ -914,9 +931,9 @@ export default function ChatPanel({
       }).catch(() => {});
     }
     if (reshapeOnly) return;
-    const lastAssistantWithCards = findLastAssistantWithCardsIdx(messages);
-    if (lastAssistantWithCards !== -1 && !isLoading) {
-      regenerateLastTurn(slug, lastAssistantWithCards);
+    const lastAssistant = findLastAssistantIdx(messages);
+    if (lastAssistant !== -1 && !isLoading) {
+      regenerateLastTurn(slug, lastAssistant);
     }
   }
 
@@ -1116,6 +1133,7 @@ export default function ChatPanel({
               <div className={styles.messageListInner} aria-live="polite">
                 {(() => {
                   const lastCardsIdx = findLastAssistantWithCardsIdx(messages);
+                  const lastAssistantIdx = findLastAssistantIdx(messages);
                   return messages.map((m, i) => {
                     if (m.role === 'user') {
                       return (
@@ -1138,7 +1156,7 @@ export default function ChatPanel({
                       );
                     }
                     const showTemplateSelector =
-                      i === lastCardsIdx || i === regeneratingIdx;
+                      i === lastAssistantIdx || i === regeneratingIdx;
                     return (
                       <AssistantMessage
                         key={i}
@@ -1152,6 +1170,7 @@ export default function ChatPanel({
                             ? handleTemplateChange
                             : undefined
                         }
+                        showSelectorWithoutCards={showTemplateSelector}
                         templateDisabled={isLoading}
                         isRegenerating={i === regeneratingIdx}
                         onAddTags={

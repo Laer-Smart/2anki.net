@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-template-switch-generates",
+  "date": "2026-06-03",
+  "type": "fix",
+  "title": "Switching the card type in chat builds cards even when the last reply was just an answer"
+}

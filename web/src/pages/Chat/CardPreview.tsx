@@ -191,12 +191,14 @@ export default function CardPreview({
   return (
     <div className={styles.cardPreview}>
       <div className={styles.cardPreviewHeader}>
-        <span className={styles.cardPreviewCount}>
-          <span className={styles.cardPreviewCountNumber}>
-            {displayCards.length}
-          </span>{' '}
-          {cardLabel}
-        </span>
+        {displayCards.length > 0 && (
+          <span className={styles.cardPreviewCount}>
+            <span className={styles.cardPreviewCountNumber}>
+              {displayCards.length}
+            </span>{' '}
+            {cardLabel}
+          </span>
+        )}
 
         {displayTemplate != null && onTemplateChange != null && (
           <TemplateSelector
