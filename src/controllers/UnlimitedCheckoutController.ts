@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { UnlimitedCheckoutUseCase, UnlimitedInterval } from '../usecases/checkout/UnlimitedCheckoutUseCase';
 import { parsePricingVariant } from '../usecases/checkout/pricingVariant';
 import { parseCheckoutSurface } from '../usecases/checkout/checkoutSurface';
+import { parseGaClientId } from '../usecases/checkout/gaClientId';
 
 const VALID_INTERVALS: ReadonlySet<string> = new Set(['month', 'year']);
 
@@ -18,6 +19,7 @@ class UnlimitedCheckoutController {
     const userId = res.locals.owner as number;
     const userEmail = res.locals.email as string;
     const anonId = (req.cookies?.anon_id as string | undefined) ?? undefined;
+    const gaClientId = parseGaClientId(req.cookies?._ga);
 
     const result = await this.useCase.execute({
       userId,
@@ -26,6 +28,7 @@ class UnlimitedCheckoutController {
       variant: parsePricingVariant(req.body?.variant),
       anonId,
       surface: parseCheckoutSurface(req.body?.surface),
+      gaClientId,
     });
     res.json(result);
   }

@@ -27,6 +27,7 @@ export class AutoSyncCheckoutUseCase {
     variant?: string;
     anonId?: string;
     surface?: string;
+    gaClientId?: string;
   }): Promise<AutoSyncCheckoutResult> {
     console.info('auto_sync.checkout.started', { user_id: input.userId });
 
@@ -66,6 +67,9 @@ export class AutoSyncCheckoutUseCase {
           : {}),
         ...(input.surface != null && input.surface !== ''
           ? { surface: input.surface }
+          : {}),
+        ...(input.gaClientId != null && input.gaClientId !== ''
+          ? { ga_client_id: input.gaClientId }
           : {}),
       },
     };

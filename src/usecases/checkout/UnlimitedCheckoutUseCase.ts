@@ -22,6 +22,7 @@ export class UnlimitedCheckoutUseCase {
     variant?: string;
     anonId?: string;
     surface?: string;
+    gaClientId?: string;
   }): Promise<UnlimitedCheckoutResult> {
     console.info('unlimited.checkout.started', { user_id: input.userId, interval: input.interval });
 
@@ -45,6 +46,9 @@ export class UnlimitedCheckoutUseCase {
           : {}),
         ...(input.surface != null && input.surface !== ''
           ? { surface: input.surface }
+          : {}),
+        ...(input.gaClientId != null && input.gaClientId !== ''
+          ? { ga_client_id: input.gaClientId }
           : {}),
       },
     };
