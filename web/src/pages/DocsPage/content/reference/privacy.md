@@ -27,8 +27,6 @@ The source code is available at [2anki/server](https://github.com/2anki/server).
 | Hotjar | User interaction analysis | [Privacy Policy](https://www.hotjar.com/legal/policies/privacy/) |
 | Google Analytics | Usage tracking | [Privacy Policy](https://policies.google.com/privacy?hl=en-US) |
 | 2anki (self-hosted) | Error reporting — stored on our own infrastructure and deleted after 30 days | — |
-| ChatGPT | HTML conversion | [Privacy Policy](https://openai.com/policies/privacy-policy/?utm_source=chatgpt.com) |
-| Claude | AI flashcard generation | [Privacy Policy](https://www.anthropic.com/legal/privacy) |
+| Claude (Anthropic) | Optional AI features only — flashcard generation and converting PDFs and other files into cards. Used only when you turn on an AI option. | [Privacy Policy](https://www.anthropic.com/legal/privacy) |
 | Stripe | Payment processing and subscription management | [Privacy Policy](https://stripe.com/privacy) |
 | SendGrid | Sending transactional emails | [Privacy Policy](https://www.twilio.com/en-us/legal/privacy) |
-| Google Vertex AI | AI question generation from PDFs | [Privacy Policy](https://cloud.google.com/terms/cloud-privacy-notice) |
