@@ -58,6 +58,13 @@ const DEFAULT_PAGE_EMOJI = 'first_emoji';
 const DEFAULT_FONT_SIZE = '20';
 const DEFAULT_MCQ_ENABLED = false;
 const DEFAULT_MCQ_TTS_LANG = '';
+const DEFAULT_TTS_MANUAL_LANG = '';
+const DEFAULT_TTS_MANUAL_SIDE = 'front';
+const TTS_MANUAL_SIDE_OPTIONS = [
+  { label: 'Front', value: 'front' },
+  { label: 'Back', value: 'back' },
+  { label: 'Both', value: 'both' },
+] as const;
 const DEFAULT_CARD_SIZE = 'medium';
 const DEFAULT_OVERLAPPING_CLOZE = 'off';
 const CARD_SIZE_VALUES = ['short', 'medium', 'detailed'] as const;
@@ -166,6 +173,8 @@ function computeSnapshot(values: {
   mcqTtsCorrectAnswer: string;
   mcqTtsExtra: string;
   ttsAutoDetect: boolean;
+  ttsManualLang: string;
+  ttsManualSide: string;
   cardSize: CardSizeValue;
   fieldMapping: FieldMapping | null;
 }) {
@@ -265,6 +274,12 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     const [ttsAutoDetect, setTtsAutoDetect] = useState(
       getLocalStorageBooleanValue('tts-auto-detect', 'false', settings)
     );
+    const [ttsManualLang, setTtsManualLang] = useState(
+      getLocalStorageValue('tts-manual-lang', DEFAULT_TTS_MANUAL_LANG, settings)
+    );
+    const [ttsManualSide, setTtsManualSide] = useState(
+      getLocalStorageValue('tts-manual-side', DEFAULT_TTS_MANUAL_SIDE, settings)
+    );
     const [cardSize, setCardSize] = useState<CardSizeValue>(() =>
       normalizeCardSize(getLocalStorageValue('card-size', DEFAULT_CARD_SIZE, settings))
     );
@@ -314,6 +329,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setMcqTtsCorrectAnswer(localStorage.getItem('mcq-tts-correct-answer') ?? DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(localStorage.getItem('mcq-tts-extra') ?? DEFAULT_MCQ_TTS_LANG);
       setTtsAutoDetect((localStorage.getItem('tts-auto-detect') ?? 'false') === 'true');
+      setTtsManualLang(localStorage.getItem('tts-manual-lang') ?? DEFAULT_TTS_MANUAL_LANG);
+      setTtsManualSide(localStorage.getItem('tts-manual-side') ?? DEFAULT_TTS_MANUAL_SIDE);
       setCardSize(normalizeCardSize(localStorage.getItem('card-size')));
       setFieldMapping(getDefaultFieldMapping(localStorage.getItem('template') ?? DEFAULT_TEMPLATE));
       setSettings({});
@@ -335,6 +352,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           ['mcq-tts-question', setMcqTtsQuestion],
           ['mcq-tts-correct-answer', setMcqTtsCorrectAnswer],
           ['mcq-tts-extra', setMcqTtsExtra],
+          ['tts-manual-lang', setTtsManualLang],
+          ['tts-manual-side', setTtsManualSide],
         ];
         assignments.forEach(([key, setter]) => {
           if (Object.hasOwn(payload, key)) {
@@ -400,6 +419,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           mcqTtsCorrectAnswer,
           mcqTtsExtra,
           ttsAutoDetect,
+          ttsManualLang,
+          ttsManualSide,
           cardSize,
           fieldMapping,
         }),
@@ -422,6 +443,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         mcqTtsCorrectAnswer,
         mcqTtsExtra,
         ttsAutoDetect,
+        ttsManualLang,
+        ttsManualSide,
         cardSize,
         fieldMapping,
       ]
@@ -478,6 +501,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setMcqTtsCorrectAnswer(DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(DEFAULT_MCQ_TTS_LANG);
       setTtsAutoDetect(false);
+      setTtsManualLang(DEFAULT_TTS_MANUAL_LANG);
+      setTtsManualSide(DEFAULT_TTS_MANUAL_SIDE);
       setFieldMapping(getDefaultFieldMapping(DEFAULT_TEMPLATE));
       if (options) {
         const reset: Record<string, boolean> = {};
@@ -513,6 +538,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       payload['mcq-tts-correct-answer'] = mcqTtsCorrectAnswer;
       payload['mcq-tts-extra'] = mcqTtsExtra;
       payload['tts-auto-detect'] = ttsAutoDetect.toString();
+      payload['tts-manual-lang'] = ttsManualLang;
+      payload['tts-manual-side'] = ttsManualSide;
       payload['card-size'] = cardSize;
       if (fieldMapping != null) {
         payload['field-mapping'] = JSON.stringify(fieldMapping);
@@ -947,6 +974,59 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                     </label>
                     <p className={fieldStyles.sectionHint}>
                       Adds Anki&apos;s on-device voice to each card. Japanese, Korean, and Chinese are detected automatically; everything else reads in English. No audio file is added to your deck.
+                    </p>
+                  </div>
+
+                  <div className={fieldStyles.section}>
+                    <p className={fieldStyles.sectionLabel}>Pick a voice yourself</p>
+                    <p className={fieldStyles.sectionHint}>
+                      Choose a language and which side Anki reads. A pick here takes precedence over the automatic detection above.
+                    </p>
+                    <div className={fieldStyles.section}>
+                      <div className={fieldStyles.labelRow}>
+                        <label htmlFor="tts-manual-lang" className={fieldStyles.sectionLabel}>Language</label>
+                      </div>
+                      <select
+                        id="tts-manual-lang"
+                        className={fieldStyles.deckInput}
+                        value={ttsManualLang}
+                        onChange={(e) => {
+                          setTtsManualLang(e.target.value);
+                          saveValueInLocalStorage('tts-manual-lang', e.target.value, pageId);
+                        }}
+                      >
+                        {MCQ_TTS_LANGUAGE_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {ttsManualLang && (
+                      <div className={fieldStyles.section}>
+                        <p className={fieldStyles.sectionLabel}>Read</p>
+                        <div
+                          className={fieldStyles.segmented}
+                          role="group"
+                          aria-label="Read aloud side"
+                        >
+                          {TTS_MANUAL_SIDE_OPTIONS.map(({ label, value }) => (
+                            <button
+                              key={value}
+                              type="button"
+                              className={`${fieldStyles.segment} ${ttsManualSide === value ? fieldStyles.segmentActive : ''}`}
+                              aria-pressed={ttsManualSide === value}
+                              onClick={() => {
+                                setTtsManualSide(value);
+                                saveValueInLocalStorage('tts-manual-side', value, pageId);
+                              }}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <p className={fieldStyles.sectionHint}>
+                      If your Anki device has no installed voice for the picked language, the audio stays silent.
                     </p>
                   </div>
 

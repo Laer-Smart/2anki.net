@@ -223,6 +223,54 @@ describe('CardOptionsForm overlapping cloze picker', () => {
   });
 });
 
+describe('CardOptionsForm manual TTS picker', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockResetUserCardOptions.mockResolvedValue(undefined);
+    setUserLocalsPaying(false);
+    localStorage.clear();
+    mockGetSettingsCardOptions.mockResolvedValue([
+      new CardOptionModel(
+        'cloze',
+        'Cloze deletion cards',
+        'Turn code spans into cloze deletions.',
+        true
+      ),
+    ]);
+  });
+
+  it('writes the picked language to localStorage and reveals the side selector', async () => {
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const langSelect = await screen.findByLabelText('Language');
+
+    expect(
+      screen.queryByRole('group', { name: 'Read aloud side' })
+    ).toBeNull();
+
+    fireEvent.change(langSelect, { target: { value: 'ja_JP' } });
+
+    await waitFor(() => {
+      expect(localStorage.getItem('tts-manual-lang')).toBe('ja_JP');
+    });
+    expect(
+      screen.getByRole('group', { name: 'Read aloud side' })
+    ).toBeInTheDocument();
+  });
+
+  it('writes the picked side to localStorage', async () => {
+    localStorage.setItem('tts-manual-lang', 'ja_JP');
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const bothButton = await screen.findByRole('button', { name: 'Both' });
+
+    fireEvent.click(bothButton);
+
+    await waitFor(() => {
+      expect(localStorage.getItem('tts-manual-side')).toBe('both');
+    });
+    expect(bothButton).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
 describe('CardOptionsForm ai-comprehensive toggle (paid-only)', () => {
   beforeEach(() => {
     vi.clearAllMocks();

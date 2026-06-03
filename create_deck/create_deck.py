@@ -16,7 +16,7 @@ from genanki import Note
 from genanki.util import guid_for
 
 from helpers.cards import get_safe_value
-from helpers.get_model import get_custom_model, get_model
+from helpers.get_model import get_custom_model, get_model, resolve_tts_langs
 from helpers.get_model_id import get_model_id
 from helpers.read_template import read_template
 from helpers.sanitize_tags import sanitize_tags
@@ -147,7 +147,7 @@ def build_one_deck(data_file, template_dir):
         "mcqTtsCorrectAnswer": mt.get("mcqTtsCorrectAnswer", ""),
         "mcqTtsExtra": mt.get("mcqTtsExtra", ""),
     }
-    front_lang = mt.get("frontLang", "") or ""
+    front_lang, back_lang = resolve_tts_langs(mt)
 
     for deck in data:
         cards = deck.get("cards", [])
@@ -159,7 +159,7 @@ def build_one_deck(data_file, template_dir):
             fields = [front, back, ",".join(card["media"])]
             model = get_model(("basic", basic_model_id, basic_model_name,
                                BASIC_STYLE, BASIC_FRONT, BASIC_BACK),
-                              front_lang=front_lang)
+                              front_lang=front_lang, back_lang=back_lang)
             custom_fields = card.get("customFields")
             custom_field_names = card.get("customFieldNames")
             custom_model_name = card.get("customModelName")
@@ -185,12 +185,12 @@ def build_one_deck(data_file, template_dir):
                 model = get_model(
                     ("cloze", cloze_model_id, cloze_model_name,
                      CLOZE_STYLE, CLOZE_FRONT, CLOZE_BACK),
-                    front_lang=front_lang)
+                    front_lang=front_lang, back_lang=back_lang)
             elif card.get('enableInput', False) and card.get('answer', False):
                 model = get_model(
                     ("input", input_model_id, input_model_name,
                      INPUT_STYLE, INPUT_FRONT, INPUT_BACK),
-                    front_lang=front_lang)
+                    front_lang=front_lang, back_lang=back_lang)
                 fields = [
                     front.replace("{{type:Input}}", ""),
                     back,

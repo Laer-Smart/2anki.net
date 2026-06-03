@@ -107,4 +107,37 @@ describe('CustomExporter.configure', () => {
     const parsed = JSON.parse(fs.readFileSync(path.join(dir, 'deck_info.json'), 'utf8'));
     expect(parsed[0].settings.frontLang).toBe('en');
   });
+
+  it('serializes the manual TTS language and side into deck_info.json', () => {
+    const dir = tempDir();
+    const exporter = new CustomExporter('test-deck', dir);
+    const settings = new CardOption({
+      'tts-manual-lang': 'ja_JP',
+      'tts-manual-side': 'both',
+    });
+    const deck = deckWithCards('JP', ['front'], settings);
+
+    exporter.configure([deck]);
+
+    const parsed = JSON.parse(fs.readFileSync(path.join(dir, 'deck_info.json'), 'utf8'));
+    expect(parsed[0].settings.ttsManualLang).toBe('ja_JP');
+    expect(parsed[0].settings.ttsManualSide).toBe('both');
+  });
+
+  it('skips auto-detect when a manual TTS language is set', () => {
+    const dir = tempDir();
+    const exporter = new CustomExporter('test-deck', dir);
+    const settings = new CardOption({
+      'tts-auto-detect': 'true',
+      'tts-manual-lang': 'es_ES',
+      'tts-manual-side': 'front',
+    });
+    const deck = deckWithCards('JP', ['こんにちは', 'ありがとう', 'すみません'], settings);
+
+    exporter.configure([deck]);
+
+    const parsed = JSON.parse(fs.readFileSync(path.join(dir, 'deck_info.json'), 'utf8'));
+    expect(parsed[0].settings.frontLang).toBe('');
+    expect(parsed[0].settings.ttsManualLang).toBe('es_ES');
+  });
 });

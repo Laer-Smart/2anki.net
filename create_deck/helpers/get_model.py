@@ -79,6 +79,12 @@ _FRONT_FIELD_BY_MODEL = {
     "cloze": "Text",
 }
 
+_BACK_FIELD_BY_MODEL = {
+    "basic": "Back",
+    "input": "Back",
+    "cloze": "Extra",
+}
+
 
 def _apply_front_tts(qfmt, model_type, lang):
     """
@@ -92,13 +98,52 @@ def _apply_front_tts(qfmt, model_type, lang):
     return f"{{{{tts {lang}:{field}}}}}\n" + qfmt
 
 
-def get_model(descriptor, mcq_settings=None, front_lang=""):
+def _apply_back_tts(afmt, model_type, lang):
+    """
+    Prepend `{{tts <lang>:<Field>}}` to the back/answer template for basic, input, and
+    cloze models. basic/input read the `Back` field, cloze reads the `Extra` field.
+    Same compile-time constraint as `_apply_front_tts`.
+    """
+    field = _BACK_FIELD_BY_MODEL.get(model_type)
+    if not field or not lang:
+        return afmt
+    return f"{{{{tts {lang}:{field}}}}}\n" + afmt
+
+
+_MANUAL_TTS_SIDES = ("front", "back", "both")
+
+
+def resolve_tts_langs(settings):
+    """
+    Resolve the effective front/back TTS lang codes for non-MCQ cards from deck settings.
+
+    A manual language pick (`ttsManualLang` + `ttsManualSide`) takes precedence over
+    auto-detect (`frontLang`). When a manual language is set, the side drives which
+    template carries it: 'front', 'back', or 'both'. With no manual language, auto-detect
+    drives the front only, preserving the prior behaviour.
+
+    Returns a (front_lang, back_lang) tuple.
+    """
+    manual_lang = settings.get("ttsManualLang", "") or ""
+    if manual_lang:
+        side = settings.get("ttsManualSide", "front") or "front"
+        if side not in _MANUAL_TTS_SIDES:
+            side = "front"
+        front = manual_lang if side in ("front", "both") else ""
+        back = manual_lang if side in ("back", "both") else ""
+        return front, back
+    return settings.get("frontLang", "") or "", ""
+
+
+def get_model(descriptor, mcq_settings=None, front_lang="", back_lang=""):
     """
     load the correct model based on type
     :param descriptor:
     :param mcq_settings: optional dict of MCQ user settings (only used for mcq model type)
     :param front_lang: optional Anki TTS lang code (e.g. 'ja', 'zh', 'ko', 'en') to inject
         on the front of non-MCQ cards. Empty string means no injection.
+    :param back_lang: optional Anki TTS lang code to inject on the back of non-MCQ cards.
+        Empty string means no injection. 'both' is front_lang and back_lang sharing a value.
     :return:
     """
     model_type, model_id, name, css, qfmt, afmt = descriptor
@@ -115,8 +160,9 @@ def get_model(descriptor, mcq_settings=None, front_lang=""):
 
     if model_type == "mcq" and mcq_settings:
         qfmt, afmt = _apply_mcq_settings(qfmt, afmt, mcq_settings)
-    elif front_lang:
+    else:
         qfmt = _apply_front_tts(qfmt, model_type, front_lang)
+        afmt = _apply_back_tts(afmt, model_type, back_lang)
 
     return Model(
         model_id, name,
