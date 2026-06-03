@@ -16,6 +16,7 @@ class NoOpUploadRepository implements IUploadRepository {
   findAllByObjectIdAndOwner(): Promise<never[]> { return Promise.resolve([]); }
   update(): Promise<never[]> { return Promise.resolve([]); }
   getLastUploadForUser(): Promise<null> { return Promise.resolve(null); }
+  getLastReconvertibleUpload(): Promise<null> { return Promise.resolve(null); }
 }
 
 export class SendInactivityWarningsUseCase {

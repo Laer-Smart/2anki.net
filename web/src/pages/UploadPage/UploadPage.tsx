@@ -10,6 +10,7 @@ import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import styles from '../../styles/shared.module.css';
 import { ExploreCard } from './components/ExploreCard/ExploreCard';
 import { OnboardingTour } from './components/OnboardingTour/OnboardingTour';
+import { RecentSources } from './components/RecentSources/RecentSources';
 import UploadForm from './components/UploadForm/UploadForm';
 import pageStyles from './UploadPage.module.css';
 
@@ -224,6 +225,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
         )}
       </div>
       <UploadForm setErrorMessage={setErrorMessage} aiOn={isAiOn} />
+      {isSignedIn && <RecentSources />}
       <ExploreCard />
       <section className={pageStyles.howItWorks}>
         <h2 className={pageStyles.howItWorksHeading}>How it works</h2>

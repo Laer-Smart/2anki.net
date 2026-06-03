@@ -84,6 +84,7 @@ function buildRepository(): IUploadRepository {
     update: (_owner: number, _filename: string, _key: string, _size_mb: number) =>
       Promise.resolve([] as Uploads[]),
     getLastUploadForUser: (_userId: number) => Promise.resolve(null),
+    getLastReconvertibleUpload: (_userId: number) => Promise.resolve(null),
   };
 }
 

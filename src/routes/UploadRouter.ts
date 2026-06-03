@@ -23,6 +23,9 @@ import { DeleteDropboxUploadUseCase } from '../usecases/uploads/DeleteDropboxUpl
 import { GetGoogleDriveUploadsUseCase } from '../usecases/uploads/GetGoogleDriveUploadsUseCase';
 import { DeleteGoogleDriveUploadUseCase } from '../usecases/uploads/DeleteGoogleDriveUploadUseCase';
 import DeleteJobUseCase from '../usecases/jobs/DeleteJobUseCase';
+import NotionTopLevelPagesRepository from '../data_layer/NotionTopLevelPagesRepository';
+import { GetRecentSourcesUseCase } from '../usecases/uploads/GetRecentSourcesUseCase';
+import { RecentSourcesController } from '../controllers/Upload/RecentSourcesController';
 
 const UploadRouter = () => {
   const router = express.Router();
@@ -40,6 +43,12 @@ const UploadRouter = () => {
   );
   const dropboxRepository = new DropboxRepository(database);
   const googleDriveRepository = new GoogleDriveRepository(database);
+  const recentSourcesController = new RecentSourcesController(
+    new GetRecentSourcesUseCase(
+      new NotionTopLevelPagesRepository(database),
+      new UploadRepository(database)
+    )
+  );
   const uploadController = new UploadController(
     uploadService,
     new NotionService(
@@ -240,6 +249,52 @@ const UploadRouter = () => {
    */
   router.get('/api/upload/mine', RequireAuthentication, (req, res) =>
     uploadController.getUploads(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/upload/recent-sources:
+   *   get:
+   *     summary: Get the user's recent re-convertible sources
+   *     description: Returns up to 3 recent Notion top-level pages and the user's last re-convertible upload, sorted by recency descending. Powers the Recent section on the upload page so deck #2 is one click.
+   *     tags: [Upload]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     responses:
+   *       200:
+   *         description: Recent sources retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 sources:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       id:
+   *                         type: string
+   *                       title:
+   *                         type: string
+   *                       type:
+   *                         type: string
+   *                         enum: [notion, remote_upload]
+   *                       updatedAt:
+   *                         type: string
+   *                         format: date-time
+   *                       convertUrl:
+   *                         type: string
+   *       401:
+   *         description: Authentication required
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   */
+  router.get('/api/upload/recent-sources', RequireAuthentication, (req, res) =>
+    recentSourcesController.get(req, res)
   );
 
   /**

@@ -6,6 +6,12 @@ export interface LastUpload {
   created_at: Date;
 }
 
+export interface LastReconvertibleUpload {
+  key: string;
+  filename: string;
+  created_at: Date;
+}
+
 export interface IUploadRepository {
   deleteUpload(owner: number, key: string): Promise<number>;
   getUploadsByOwner(owner: number): Promise<Uploads[]>;
@@ -22,6 +28,9 @@ export interface IUploadRepository {
     size_mb: number
   ): Promise<Uploads[]>;
   getLastUploadForUser(userId: number): Promise<LastUpload | null>;
+  getLastReconvertibleUpload(
+    userId: number
+  ): Promise<LastReconvertibleUpload | null>;
 }
 class UploadRepository implements IUploadRepository {
   private readonly table = 'uploads';
@@ -108,6 +117,29 @@ class UploadRepository implements IUploadRepository {
       return null;
     }
     return { filename: row.filename, created_at: row.created_at };
+  }
+
+  async getLastReconvertibleUpload(
+    userId: number
+  ): Promise<LastReconvertibleUpload | null> {
+    if (userId == null) {
+      return null;
+    }
+    const row = await this.database<Uploads>(this.table)
+      .select('key', 'filename', 'created_at')
+      .where({ owner: userId })
+      .whereNotNull('filename')
+      .whereRaw('lower(key) like ?', ['%.apkg'])
+      .orderBy('created_at', 'desc')
+      .first();
+    if (row == null || row.filename == null || row.created_at == null) {
+      return null;
+    }
+    return {
+      key: row.key,
+      filename: row.filename,
+      created_at: row.created_at,
+    };
   }
 }
 

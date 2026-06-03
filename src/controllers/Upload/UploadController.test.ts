@@ -74,6 +74,9 @@ describe('Upload file', () => {
       getLastUploadForUser: function (_userId: number) {
         return Promise.resolve(null);
       },
+      getLastReconvertibleUpload: function (_userId: number) {
+        return Promise.resolve(null);
+      },
     };
     const notionRepository: INotionRepository = {
       getNotionData: function (owner: string | number): Promise<NotionTokens> {
@@ -150,6 +153,7 @@ describe('Upload file — multer error handling', () => {
       findAllByObjectIdAndOwner: jest.fn().mockResolvedValue([]),
       update: jest.fn().mockResolvedValue([]),
       getLastUploadForUser: jest.fn().mockResolvedValue(null),
+      getLastReconvertibleUpload: jest.fn().mockResolvedValue(null),
     };
     const notionRepository: INotionRepository = {
       getNotionData: jest.fn() as INotionRepository['getNotionData'],

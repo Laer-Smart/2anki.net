@@ -48,6 +48,7 @@ export const KNOWN_EVENTS = new Set([
   'apkg_csv_exported',
   'make_another_deck_clicked',
   'invite_link_copied',
+  'recent_page_reconvert_clicked',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;
