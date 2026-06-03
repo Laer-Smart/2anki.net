@@ -1,0 +1,172 @@
+/* Material Design basic card for 2anki.
+   Renders offline — no @import, no web-font fetch.
+   Light and Anki night mode both handled via .nightMode / .night_mode. */
+
+/* DESIGN TOKENS (light) */
+:root {
+    --md-bg: #f1f3f4;
+    --md-card: #ffffff;
+    --md-on-surface: #202124;
+    --md-on-surface-muted: #5f6368;
+    --md-primary: #1a73e8;
+    --md-divider: #e0e0e0;
+    --md-radius: 12px;
+    --md-elevation: 0 1px 2px rgba(60, 64, 67, 0.30),
+                    0 2px 6px 2px rgba(60, 64, 67, 0.15);
+}
+
+/* BODY */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Roboto, "Helvetica Neue", -apple-system, BlinkMacSystemFont,
+        "Segoe UI", "Noto Sans", "Noto Sans KR", Arial, sans-serif;
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 1.6;
+    text-align: left;
+    background-color: var(--md-bg);
+    color: var(--md-on-surface);
+    -webkit-font-smoothing: antialiased;
+    padding: 16px;
+    min-height: 100vh;
+}
+
+/* SURFACE + CARD */
+.md-surface {
+    margin: 0 auto 16px auto;
+    width: 100%;
+    max-width: 42em;
+    box-sizing: border-box;
+}
+
+.md-card {
+    background-color: var(--md-card);
+    color: var(--md-on-surface);
+    border-radius: var(--md-radius);
+    box-shadow: var(--md-elevation);
+    padding: 24px;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+}
+
+.md-card.back {
+    border-top: 3px solid var(--md-primary);
+}
+
+/* TYPE SCALE */
+.md-label {
+    font-size: 0.72em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--md-on-surface-muted);
+    margin-bottom: 8px;
+}
+
+.md-label-accent {
+    color: var(--md-primary);
+}
+
+.md-headline {
+    font-size: 1.25em;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.md-body {
+    font-size: 1em;
+    font-weight: 400;
+}
+
+.md-row {
+    margin: 0;
+}
+
+.md-row + .md-row {
+    margin-top: 12px;
+}
+
+/* LINKS — Material primary, no underline until hover */
+.md-card a,
+.md-card a:link,
+.md-card a:visited {
+    color: var(--md-primary);
+    text-decoration: none;
+}
+
+.md-card a:hover,
+.md-card a:active {
+    text-decoration: underline;
+}
+
+/* TAGS — Material outlined chips */
+.tags {
+    margin-bottom: 16px;
+}
+
+.tag {
+    font-size: 0.72em;
+    font-weight: 500;
+    padding: 5px 12px;
+    display: inline-block;
+    border-radius: 16px;
+    border: 1px solid var(--md-divider);
+    color: var(--md-on-surface-muted);
+    margin: 0 8px 8px 0;
+    line-height: 1.2;
+}
+
+/* IMAGES */
+img {
+    object-fit: contain;
+    margin: 8px auto 0 auto;
+    display: block;
+    width: auto;
+    max-width: 100%;
+    border-radius: 8px;
+}
+
+/* ANKI TEMPLATE WIZARDRY */
+:not(.backtemplate) .backonly {
+    display: none;
+}
+
+.backtemplate .backonly {
+    display: block;
+}
+
+.backtemplate .frontonly {
+    display: none;
+}
+
+/* NIGHT MODE — Material dark surfaces */
+.nightMode,
+.night_mode {
+    --md-bg: #121212;
+    --md-card: #1e1e1e;
+    --md-on-surface: #e8eaed;
+    --md-on-surface-muted: #9aa0a6;
+    --md-primary: #8ab4f8;
+    --md-divider: #3c4043;
+    --md-elevation: 0 1px 2px rgba(0, 0, 0, 0.60),
+                    0 2px 6px 2px rgba(0, 0, 0, 0.40);
+}
+
+.nightMode body,
+.night_mode body {
+    background-color: var(--md-bg);
+    color: var(--md-on-surface);
+}
+
+/* Resize image add-on compatibility (matches abhiyan) */
+.mobile .card img {
+    height: unset !important;
+    width: unset !important;
+}

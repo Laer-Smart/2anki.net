@@ -1,0 +1,29 @@
+<script>
+    /* SPLIT HIERARCHICAL TAGS */
+    var tagEl = document.querySelector('.tags');
+    if (tagEl) {
+        var tags = tagEl.innerHTML.split(' ');
+        var html = '';
+        tags.forEach(function(tag) {
+            if (tag.includes('::')) {
+                var topleveltag = tag.substring(0, tag.indexOf("::"));
+                var bottomleveltag = tag.substring(tag.lastIndexOf("::") + 2);
+            } else {
+                var bottomleveltag = tag;
+            }
+            var newTag = '<span class="tag ' + topleveltag + ' ' + bottomleveltag + '">' + bottomleveltag + '</span>';
+            html += newTag;
+        });
+        tagEl.innerHTML = html;
+    }
+</script>
+
+<div class="md-surface">
+    <div class="md-card front">
+        {{#Tags}}
+        <div class="tags md-row">{{Tags}}</div>{{/Tags}}
+        <div class="question md-row md-headline">
+            {{cloze:Text}}
+        </div>
+    </div>
+</div>
