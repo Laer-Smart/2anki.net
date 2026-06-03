@@ -81,7 +81,7 @@
     "metascraper-logo-favicon": "^5.50.1",
     "metascraper-title": "^5.50.1",
     "metascraper-url": "^5.50.1",
-    "morgan": "^1.10.0",
+    "morgan": "^1.11.0",
     "multer": "^2.0.1",
     "nodemailer": "^8.0.1",
     "p-limit": "^3.1.0",
