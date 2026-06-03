@@ -373,6 +373,44 @@ export function getOfficialTemplates(): OfficialStarter[] {
       tags: ['alex_deluxe', 'blue', 'cloze'],
       modelName: 'Alex Deluxe Cloze',
     }),
+    variantStarter({
+      id: 'official-material-basic',
+      name: 'Material (Basic)',
+      description:
+        'Clean Material Design card — elevated surface, Roboto type, primary-blue answer accent. Light and dark ready',
+      baseType: 'basic',
+      ankiType: 0,
+      qfmtFile: 'material_basic_front.html',
+      afmtFile: 'material_basic_back.html',
+      cssFile: 'material.css',
+      flds: ABHIYAN_BASIC_FLDS,
+      previewData: {
+        Front: 'What is the capital of France?',
+        Back: 'Paris',
+        Tags: '',
+      },
+      tags: ['material', 'material-design'],
+      modelName: 'Material Basic',
+    }),
+    variantStarter({
+      id: 'official-material-cloze',
+      name: 'Material (Cloze)',
+      description:
+        'Material Design cloze deletion — blanks highlighted in primary blue, readable on light and dark backgrounds',
+      baseType: 'cloze',
+      ankiType: 1,
+      qfmtFile: 'material_cloze_front.html',
+      afmtFile: 'material_cloze_back.html',
+      cssFile: 'material_cloze_style.css',
+      flds: ABHIYAN_CLOZE_FLDS,
+      previewData: {
+        Text: 'The capital of {{c1::France}} is {{c2::Paris}}',
+        Extra: 'European geography',
+        Tags: '',
+      },
+      tags: ['material', 'material-design', 'cloze'],
+      modelName: 'Material Cloze',
+    }),
   ];
 
   return starters.filter((s): s is OfficialStarter => s !== null);

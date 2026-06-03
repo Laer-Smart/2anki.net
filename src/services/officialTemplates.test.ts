@@ -20,8 +20,23 @@ describe('getOfficialTemplates', () => {
         'official-abhiyan-cloze',
         'official-alex-deluxe-basic',
         'official-alex-deluxe-cloze',
+        'official-material-basic',
+        'official-material-cloze',
       ])
     );
+  });
+
+  it('wires the Material basic template with its files', () => {
+    const material = templates.find((t) => t.id === 'official-material-basic');
+    expect(material?.noteType.tmpls[0].qfmt).toContain('{{Front}}');
+    expect(material?.noteType.css).toContain('.md-card');
+  });
+
+  it('wires the Material cloze template with its highlight styling', () => {
+    const material = templates.find((t) => t.id === 'official-material-cloze');
+    expect(material?.noteType.type).toBe(1);
+    expect(material?.noteType.tmpls[0].qfmt).toContain('{{cloze:Text}}');
+    expect(material?.noteType.css).toContain('.cloze');
   });
 
   it('shapes each entry as a NoteTypeStarter', () => {

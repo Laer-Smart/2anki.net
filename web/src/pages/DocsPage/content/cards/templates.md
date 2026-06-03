@@ -20,7 +20,7 @@ If you just want cards from your notes, you don't have to touch this page — 2a
 Open [2anki.net/templates](https://2anki.net/templates). Three sections show up, in order:
 
 - **Your note types** — anything you've created or customized in the browser (logged-in only).
-- **Official 2anki templates** — handcrafted designs we ship and maintain. Examples: Abhiyan Night Mode, Alexander Deluxe Blue, Only Notion.
+- **Official 2anki templates** — handcrafted designs we ship and maintain. Examples: Abhiyan Night Mode, Alexander Deluxe Blue, Material, Only Notion.
 - **Starter note types** — the bare-bones n2a-basic, n2a-cloze, n2a-input, n2a-mcq, and Image Occlusion templates that 2anki uses by default.
 
 Each card has a small preview of the front. Click the card name to open a full-size **Front / Back** preview side-by-side.
