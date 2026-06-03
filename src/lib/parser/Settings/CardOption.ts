@@ -96,6 +96,8 @@ class CardOption {
 
   readonly cardStyle: string;
 
+  readonly codeTheme: string;
+
   readonly mcqEnabled: boolean;
 
   readonly mcqTtsQuestion: string;
@@ -169,6 +171,7 @@ class CardOption {
     this.userInstructions =
       input['user-instructions'] ?? getDefaultUserInstructions();
     this.cardStyle = validateCardStylePicker(input['card-style']);
+    this.codeTheme = validateCodeTheme(input['code-theme']);
     this.mcqEnabled = input['mcq-enabled'] === 'true';
     this.mcqTtsQuestion = input['mcq-tts-question'] ?? '';
     this.mcqTtsCorrectAnswer = input['mcq-tts-correct-answer'] ?? '';
@@ -226,6 +229,7 @@ class CardOption {
       'tts-manual-lang': '',
       'tts-manual-side': 'front',
       'overlapping-cloze': 'off',
+      'code-theme': 'github',
     };
   }
 }
@@ -238,6 +242,12 @@ function validateOverlappingCloze(raw: string | undefined): string {
 
 function validateTtsSide(raw: string | undefined): 'front' | 'back' | 'both' {
   return raw === 'back' || raw === 'both' ? raw : 'front';
+}
+
+const CODE_THEME_VALUES = ['github', 'one-dark', 'solarized', 'dracula'];
+
+function validateCodeTheme(raw: string | undefined): string {
+  return raw && CODE_THEME_VALUES.includes(raw) ? raw : 'github';
 }
 
 function parseFieldMapping(raw: string | undefined): FieldMapping | undefined {

@@ -61,6 +61,12 @@ Card options change how 2anki turns your source into flashcards. Most are off-or
 | Remove Underlines | Off | Drops underline formatting. Helps when Notion underlines clash with Anki's link styling. |
 | Remove the MP3 Links Created From Audio Files | On | Strips the auto-generated `.mp3` links left behind by some Notion exports. |
 
+## Code blocks
+
+| Option | Default | What it does |
+|---|---|---|
+| Code theme | GitHub | Sets the syntax-highlighting colors for code in your cards. Choose GitHub, One Dark, Solarized, or Dracula. Each switches between a light and dark palette to match your Anki theme. Full coloring needs the Notion connection — HTML and ZIP uploads drop the language, so uploaded code keeps the themed container without per-token colors. |
+
 ## PDF and AI
 
 | Option | Default | What it does |
@@ -107,4 +113,4 @@ These only fire when **Enable MCQ** is on. See [Multiple choice questions](/docu
 
 ## Internal option keys
 
-The option keys 2anki uses internally (handy if you're filing a bug report): `add-notion-link`, `all`, `paragraph`, `cherry`, `avocado`, `tags`, `cloze`, `enable-input`, `basic-reversed`, `reversed`, `no-underline`, `max-one-toggle-per-card`, `remove-mp3-links`, `perserve-newlines`, `process-pdfs`, `markdown-nested-bullet-points`, `vertex-ai-pdf-questions`, `disable-indented-bullets`, `image-quiz-html-to-anki`, `embed-images`, `claude-ai-flashcards`, `share-files-for-debugging`, `mcq-enabled`, `mcq-tts-question`, `mcq-tts-correct-answer`, `mcq-tts-extra`, `tts-auto-detect`, `tts-manual-lang`, `tts-manual-side`, `font-size`, `toggle-mode`, `page-emoji`, `basic_model_name`, `cloze_model_name`, `input_model_name`, `user-instructions`.
+The option keys 2anki uses internally (handy if you're filing a bug report): `add-notion-link`, `all`, `paragraph`, `cherry`, `avocado`, `tags`, `cloze`, `enable-input`, `basic-reversed`, `reversed`, `no-underline`, `max-one-toggle-per-card`, `remove-mp3-links`, `perserve-newlines`, `process-pdfs`, `markdown-nested-bullet-points`, `vertex-ai-pdf-questions`, `disable-indented-bullets`, `image-quiz-html-to-anki`, `embed-images`, `claude-ai-flashcards`, `share-files-for-debugging`, `mcq-enabled`, `mcq-tts-question`, `mcq-tts-correct-answer`, `mcq-tts-extra`, `tts-auto-detect`, `tts-manual-lang`, `tts-manual-side`, `font-size`, `toggle-mode`, `code-theme`, `page-emoji`, `basic_model_name`, `cloze_model_name`, `input_model_name`, `user-instructions`.
