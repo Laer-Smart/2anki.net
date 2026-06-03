@@ -1,6 +1,6 @@
 ---
 title: AI flashcard generation
-description: When 2anki should write the cards for you — Claude for any PDF, Vertex AI for question generation.
+description: When 2anki should write the cards for you — Claude for any PDF, and a PDF-only question generator that also uses Claude.
 ---
 
 Two card options send your source to an AI model instead of running the normal toggle/bullet parser. Use them when your source isn't already shaped like flashcards — long-form PDFs, lecture transcripts, dense study material — and you want the model to pull the question-answer pairs out for you.
@@ -40,15 +40,15 @@ Useful instructions:
 
 Skip instructions like "make great flashcards" or "explain everything" — the model already tries to do that.
 
-## Generate Questions from Single PDF File Uploads (Vertex AI)
+## Generate Questions from Single PDF File Uploads
 
-A narrower option, scoped to single PDFs. Sends the PDF to Google Vertex AI to generate question-and-answer pairs page by page.
+A narrower option, scoped to single PDFs. Sends the PDF to Anthropic Claude to generate question-and-answer pairs page by page.
 
 1. Open the settings panel before uploading.
 2. Switch **Generate Questions from Single PDF File Uploads** on.
 3. Upload a single PDF. ZIPs and Markdown don't use this path.
 
-Use this when you want question generation tuned to a specific page-by-page rhythm, or when Claude's output for a particular textbook looks off. The output runs through the same packaging step, so the resulting `.apkg` opens in Anki just like any other.
+Use this when you want question generation tuned to a specific page-by-page rhythm. The output runs through the same packaging step, so the resulting `.apkg` opens in Anki just like any other.
 
 ## Storage and privacy
 
