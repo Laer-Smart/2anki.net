@@ -1,7 +1,6 @@
 ---
 title: "Privacy Policy"
 description: "Privacy policy for 2anki.net"
-todo: "Audit MISSING-CONTEXT (2026-05-09): ChatGPT/OpenAI not found in src/; missing Stripe, SendGrid, Anthropic, Google Vertex AI. Owner: Alexander."
 ---
 
 If you have any questions about our privacy practices, please don't hesitate to reach out to us at [support@2anki.net](mailto:support@2anki.net).

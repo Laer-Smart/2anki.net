@@ -1,7 +1,6 @@
 ---
 title: Terms of Service
 description: Terms of service for 2anki.net
-todo: "Audit MISSING-CONTEXT (2026-05-09): refers to a Notion-hosted privacy policy URL different from the in-product policy. Defer to Alexander."
 ---
 
 Please read these terms of service ("terms", "terms of service") carefully before using 2anki.net website (the "service") operated by Lær Smart AS ("us", 'we", "our").
