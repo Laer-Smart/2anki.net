@@ -8,6 +8,7 @@ import { IObservabilityRepository } from '../../data_layer/ObservabilityReposito
 class StubRepo implements IObservabilityRepository {
   insertRequestLogs = async () => {};
   insertOutboundCallLogs = async () => {};
+  deleteOlderThan = async () => ({ requestLogs: 0, outboundCallLogs: 0 });
   aggregateInboundByStatusClass = async () => [];
   topRoutesByLatency = async () => [];
   aggregateOutboundByService = async () => [];
