@@ -1,6 +1,7 @@
 import qs from 'querystring';
 import crypto from 'crypto';
 
+import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
@@ -54,6 +55,7 @@ const APPLE_JWKS_URL = 'https://appleid.apple.com/auth/keys';
 const APPLE_JWKS_TTL_MS = 60 * 60 * 1000;
 const APPLE_ISSUER = 'https://appleid.apple.com';
 const APPLE_TOKEN_URL = 'https://appleid.apple.com/auth/token';
+const APPLE_REVOKE_URL = 'https://appleid.apple.com/auth/revoke';
 
 interface AppleJwk {
   kid: string;
@@ -427,7 +429,11 @@ class AuthenticationService {
         redirect_uri: APPLE_REDIRECT_URI,
         grant_type: 'authorization_code',
       };
-      const result = await instrumentedAxios.post<{ id_token: string }>(
+      const result = await instrumentedAxios.post<{
+        id_token: string;
+        refresh_token?: string;
+        access_token?: string;
+      }>(
         'apple_login',
         APPLE_TOKEN_URL,
         qs.stringify(values),
@@ -436,6 +442,10 @@ class AuthenticationService {
         }
       );
       const idToken = result.data.id_token;
+      const refreshToken =
+        typeof result.data.refresh_token === 'string'
+          ? result.data.refresh_token
+          : undefined;
       const decoded = jwt.decode(idToken, { complete: true });
       if (!decoded || typeof decoded === 'string') {
         return undefined;
@@ -473,11 +483,38 @@ class AuthenticationService {
         typeof payload.email === 'string' && payload.email.length > 0
           ? payload.email
           : undefined;
-      return { subject, email, emailVerified: true as const };
+      return { subject, email, emailVerified: true as const, refreshToken };
     } catch (error) {
       console.info("Couldn't login with Apple");
       console.error(error);
       return undefined;
+    }
+  }
+
+  async revokeAppleToken(refreshToken: string): Promise<boolean> {
+    const clientId = process.env.APPLE_CLIENT_ID;
+    if (!clientId) {
+      return false;
+    }
+    try {
+      const clientSecret = this.mintAppleClientSecret();
+      const values = {
+        client_id: clientId,
+        client_secret: clientSecret,
+        token: refreshToken,
+        token_type_hint: 'refresh_token',
+      };
+      await instrumentedAxios.post('apple_login', APPLE_REVOKE_URL, qs.stringify(values), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+      return true;
+    } catch (error) {
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      if (status === 400 || status === 401) {
+        return true;
+      }
+      console.info("Couldn't revoke Apple token", { status: status ?? 'unknown' });
+      return false;
     }
   }
 

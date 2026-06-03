@@ -17,6 +17,7 @@ import { MagicLinkRateLimitError } from '../services/UsersService';
 import { MONTHLY_CARD_LIMIT } from '../usecases/users/CheckMonthlyCardLimitUseCase';
 import UsersRepository from '../data_layer/UsersRepository';
 import OauthIdentitiesRepository from '../data_layer/OauthIdentitiesRepository';
+import { UsersId } from '../data_layer/public/Users';
 import { isPaying } from '../lib/isPaying';
 import NotionRepository from '../data_layer/NotionRespository';
 import hashToken from '../lib/misc/hashToken';
@@ -400,12 +401,30 @@ class UsersController {
         );
       }
 
+      await this.#revokeAppleTokenForOwner(user.id);
+
       await this.userService.deleteUser(owner);
       res.status(200).json({});
     } catch (error) {
       console.info('Delete account failed');
       console.error(error);
       return res.status(500).json({ message: 'Failed to delete account' });
+    }
+  }
+
+  async #revokeAppleTokenForOwner(userId: UsersId) {
+    try {
+      const oauthIdentitiesRepo = new OauthIdentitiesRepository(this.db);
+      const refreshToken = await oauthIdentitiesRepo.findRefreshTokenByUserAndProvider(
+        userId,
+        'apple'
+      );
+      if (refreshToken == null) {
+        return;
+      }
+      await this.authService.revokeAppleToken(refreshToken);
+    } catch (revokeError) {
+      console.error('Apple token revocation failed during account deletion:', revokeError);
     }
   }
 
@@ -745,9 +764,9 @@ class UsersController {
       return res.redirect('/login');
     }
 
-    const { subject, email } = loginRequest;
+    const { subject, email, refreshToken } = loginRequest;
     const rawName = this.parseAppleName(req.body);
-    const result = await this.#upsertAppleUser({ subject, email, rawName, req });
+    const result = await this.#upsertAppleUser({ subject, email, rawName, refreshToken, req });
 
     if (result === 'email_missing') {
       await this.recordError?.execute({ userId: null, surface: 'oauth_apple', code: 'oauth_email_missing' });
@@ -806,11 +825,13 @@ class UsersController {
     subject,
     email,
     rawName,
+    refreshToken,
     req,
   }: {
     subject: string;
     email: string | undefined;
     rawName: string | undefined;
+    refreshToken?: string;
     req: express.Request;
   }): Promise<
     | { user: { id: number; email?: string }; token: string }
@@ -826,13 +847,17 @@ class UsersController {
       : null;
     let isNewUser = false;
 
+    if (existingIdentity && refreshToken) {
+      await oauthIdentitiesRepo.updateRefreshToken('apple', subject, refreshToken);
+    }
+
     if (!user) {
       if (!email) {
         return 'email_missing';
       }
       const existingByEmail = await this.userService.getUserFrom(email);
       if (existingByEmail) {
-        await oauthIdentitiesRepo.link('apple', subject, existingByEmail.id);
+        await oauthIdentitiesRepo.link('apple', subject, existingByEmail.id, refreshToken);
         user = existingByEmail;
       } else {
         const hashedPassword = this.authService.getHashPassword(getRandomUUID());
@@ -840,7 +865,7 @@ class UsersController {
         user = await this.userService.getUserFrom(email);
         isNewUser = true;
         if (user) {
-          await oauthIdentitiesRepo.link('apple', subject, user.id);
+          await oauthIdentitiesRepo.link('apple', subject, user.id, refreshToken);
           if (rawName) {
             await new UsersRepository(this.db).updateName(user.id, rawName);
           }
