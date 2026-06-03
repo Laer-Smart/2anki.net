@@ -27,19 +27,25 @@ import BlockBookmark from '../blocks/media/BlockBookmark';
 import { BlockEmbed } from '../blocks/media/BlockEmbed';
 import { BlockVideo } from '../blocks/media/BlockVideo';
 
-const renderPdf = (c: PdfBlockObjectResponse): string => {
+const renderPdfLink = (url: string): string =>
+  renderToStaticMarkup(
+    <a href={url} target="_blank" rel="noopener noreferrer">
+      {url}
+    </a>
+  );
+
+const renderPdf = async (
+  c: PdfBlockObjectResponse,
+  handler: BlockHandler
+): Promise<string> => {
   const url = c.pdf.type === 'file' ? c.pdf.file.url : c.pdf.external.url;
   if (!url) {
     return '';
   }
-  return renderToStaticMarkup(
-    <>
-      <embed src={url} type="application/pdf" width="100%" height="600" />
-      <a href={url} target="_blank" rel="noopener noreferrer">
-        {url}
-      </a>
-    </>
-  );
+  if (handler.settings.downloadPdfs && c.pdf.type === 'file') {
+    return handler.embedFile(c);
+  }
+  return renderPdfLink(url);
 };
 
 const renderLinkPreview = (c: LinkPreviewBlockObjectResponse): string => {
@@ -154,7 +160,7 @@ export const blockToStaticMarkup = async (
       back += await renderSyncedBlock(c, handler);
       break;
     case 'pdf':
-      back += renderPdf(c);
+      back += await renderPdf(c, handler);
       break;
     case 'link_preview':
       back += renderLinkPreview(c);

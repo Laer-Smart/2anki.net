@@ -7,6 +7,7 @@ import {
   ImageBlockObjectResponse,
   ListBlockChildrenResponse,
   PageObjectResponse,
+  PdfBlockObjectResponse,
   TableBlockObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints';
 
@@ -179,7 +180,9 @@ class BlockHandler {
     return `[sound:${newName}]`;
   }
 
-  async embedFile(block: FileBlockObjectResponse): Promise<string> {
+  async embedFile(
+    block: FileBlockObjectResponse | PdfBlockObjectResponse
+  ): Promise<string> {
     const url = getFileUrl(block);
     if (this.settings.isTextOnlyBack || isTesting() || !url) {
       return '';

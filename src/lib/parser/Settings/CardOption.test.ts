@@ -20,3 +20,19 @@ describe('CardOption codeTheme', () => {
     expect(CardOption.LoadDefaultOptions()['code-theme']).toBe('github');
   });
 });
+
+describe('CardOption downloadPdfs', () => {
+  it('defaults to false when the option is absent', () => {
+    const option = new CardOption({});
+    expect(option.downloadPdfs).toBe(false);
+  });
+
+  it('reads true from the payload', () => {
+    const option = new CardOption({ 'download-pdfs': 'true' });
+    expect(option.downloadPdfs).toBe(true);
+  });
+
+  it('ships download-pdfs as false in the default options payload', () => {
+    expect(CardOption.LoadDefaultOptions()['download-pdfs']).toBe('false');
+  });
+});

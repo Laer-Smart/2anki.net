@@ -87,7 +87,7 @@ describe('blockToStaticMarkup', () => {
     expect(result).not.toContain('"object"');
   });
 
-  it('renders a pdf block as an embed with a fallback download link', async () => {
+  it('renders a pdf block as a clickable link by default', async () => {
     const handler = makeHandler();
     const pdf = {
       object: 'block',
@@ -110,10 +110,8 @@ describe('blockToStaticMarkup', () => {
 
     const result = await blockToStaticMarkup(handler, pdf);
 
-    expect(result).toContain('<embed');
-    expect(result).toContain('type="application/pdf"');
-    expect(result).toContain('https://example.com/notes.pdf');
-    expect(result).toContain('<a');
+    expect(result).toContain('<a href="https://example.com/notes.pdf"');
+    expect(result).not.toContain('<embed');
     expect(result).not.toContain('unsupported: pdf');
   });
 
@@ -162,6 +160,116 @@ describe('blockToStaticMarkup', () => {
     const result = await blockToStaticMarkup(handler, equation);
 
     expect(result).toBe('\\[\\sqrt{x}\\]');
+  });
+
+  function makePdfBlock(
+    pdf: Record<string, unknown>
+  ): BlockObjectResponse {
+    return {
+      object: 'block',
+      id: 'pdf-1',
+      type: 'pdf',
+      pdf,
+      parent: { type: 'page_id', page_id: 'page-1' },
+      created_time: '2026-06-03T07:46:00.000Z',
+      last_edited_time: '2026-06-03T07:46:00.000Z',
+      created_by: { object: 'user', id: 'user-1' },
+      last_edited_by: { object: 'user', id: 'user-1' },
+      has_children: false,
+      archived: false,
+      in_trash: false,
+    } as unknown as BlockObjectResponse;
+  }
+
+  it('renders a file-hosted pdf as a link when downloadPdfs is off', async () => {
+    const handler = makeHandler();
+    handler.settings = new CardOption({ 'download-pdfs': 'false' });
+    const embedSpy = jest.spyOn(handler, 'embedFile');
+    const pdf = makePdfBlock({
+      type: 'file',
+      file: { url: 'https://notion.example/doc.pdf', expiry_time: '' },
+    });
+
+    const result = await blockToStaticMarkup(handler, pdf);
+
+    expect(embedSpy).not.toHaveBeenCalled();
+    expect(result).toContain('<a href="https://notion.example/doc.pdf"');
+    expect(result).not.toContain('<embed');
+  });
+
+  it('downloads a file-hosted pdf as media when downloadPdfs is on', async () => {
+    const handler = makeHandler();
+    handler.settings = new CardOption({ 'download-pdfs': 'true' });
+    const embedSpy = jest
+      .spyOn(handler, 'embedFile')
+      .mockResolvedValue('<embed src="2anki-doc.pdf" />');
+    const pdf = makePdfBlock({
+      type: 'file',
+      file: { url: 'https://notion.example/doc.pdf', expiry_time: '' },
+    });
+
+    const result = await blockToStaticMarkup(handler, pdf);
+
+    expect(embedSpy).toHaveBeenCalledWith(pdf);
+    expect(result).toBe('<embed src="2anki-doc.pdf" />');
+  });
+
+  it('renders an external pdf as a link when downloadPdfs is off', async () => {
+    const handler = makeHandler();
+    handler.settings = new CardOption({ 'download-pdfs': 'false' });
+    const embedSpy = jest.spyOn(handler, 'embedFile');
+    const pdf = makePdfBlock({
+      type: 'external',
+      external: { url: 'https://example.com/public.pdf' },
+    });
+
+    const result = await blockToStaticMarkup(handler, pdf);
+
+    expect(embedSpy).not.toHaveBeenCalled();
+    expect(result).toContain('<a href="https://example.com/public.pdf"');
+    expect(result).not.toContain('<embed');
+  });
+
+  it('renders an external pdf as a link even when downloadPdfs is on', async () => {
+    const handler = makeHandler();
+    handler.settings = new CardOption({ 'download-pdfs': 'true' });
+    const embedSpy = jest.spyOn(handler, 'embedFile');
+    const pdf = makePdfBlock({
+      type: 'external',
+      external: { url: 'https://example.com/public.pdf' },
+    });
+
+    const result = await blockToStaticMarkup(handler, pdf);
+
+    expect(embedSpy).not.toHaveBeenCalled();
+    expect(result).toContain('<a href="https://example.com/public.pdf"');
+    expect(result).not.toContain('<embed');
+  });
+
+  it('renders a synced_block by resolving its children through getBackSide', async () => {
+    const handler = makeHandler();
+    const getBackSideSpy = jest
+      .spyOn(handler, 'getBackSide')
+      .mockResolvedValue('<p>synced child content</p>');
+    const syncedBlock = {
+      object: 'block',
+      id: 'synced-2',
+      type: 'synced_block',
+      synced_block: { synced_from: null },
+      parent: { type: 'page_id', page_id: 'page-1' },
+      created_time: '2026-05-20T07:46:00.000Z',
+      last_edited_time: '2026-05-20T07:46:00.000Z',
+      created_by: { object: 'user', id: 'user-1' },
+      last_edited_by: { object: 'user', id: 'user-1' },
+      has_children: true,
+      archived: false,
+      in_trash: false,
+    } as unknown as BlockObjectResponse;
+
+    const result = await blockToStaticMarkup(handler, syncedBlock);
+
+    expect(getBackSideSpy).toHaveBeenCalledWith(syncedBlock, true);
+    expect(result).toBe('<p>synced child content</p>');
   });
 
   it('still emits the unsupported placeholder for genuinely unknown block types', async () => {

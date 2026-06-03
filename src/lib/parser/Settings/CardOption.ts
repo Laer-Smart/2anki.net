@@ -88,6 +88,8 @@ class CardOption {
 
   readonly pdfExtractText: boolean;
 
+  readonly downloadPdfs: boolean;
+
   readonly claudeAIFlashcards: boolean;
 
   readonly aiComprehensive: boolean;
@@ -162,6 +164,7 @@ class CardOption {
     this.embedImages = input['embed-images'] !== 'false';
     this.processPDFs = input['process-pdfs'] !== 'false';
     this.pdfExtractText = input['pdf-extract-text'] === 'true';
+    this.downloadPdfs = input['download-pdfs'] === 'true';
     this.claudeAIFlashcards = input['claude-ai-flashcards'] === 'true';
     this.aiComprehensive = input['ai-comprehensive'] === 'true';
     this.shareFilesForDebugging = input['share-files-for-debugging'] === 'true';
@@ -218,6 +221,7 @@ class CardOption {
       'perserve-newlines': 'false',
       'process-pdfs': 'true',
       'pdf-extract-text': 'false',
+      'download-pdfs': 'false',
       'page-emoji': 'first-emoji',
       'image-quiz-html-to-anki': 'false',
       'embed-images': 'true',
