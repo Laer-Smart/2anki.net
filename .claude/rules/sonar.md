@@ -46,6 +46,16 @@ The scanner reads `sonar-project.properties` for everything else. The report lin
 3. Does any new code extract a zip? → use existing `lib/zip` helpers.
 4. Does any new code read a file path from user input? → assert path stays inside the base dir.
 
+## File rename = entire file marked as "new code"
+
+When a PR renames a file (extension change like `.ts → .tsx`, folder move, or anything that breaks Git's rename heuristic for Sonar's diff), Sonar treats every line of the renamed file as new code on the leak period. **Pre-existing patterns surface as new findings.** PR #3068 (Notion block render) had 4 "new" issues — all 4 on lines that existed unchanged before the rename: 3× `typescript:S6836` const-in-case (existing `image`/`audio`/`file` arms) + 1× `typescript:S4123` await-non-Promise (existing `paragraph` arm).
+
+Don't reactively rewrite pre-existing patterns to satisfy the rename. Either:
+1. **Mark as False Positive in the SonarCloud UI** with a one-line note "pre-existing pattern, surfaced by file rename in PR #NNNN."
+2. **Fix the underlying pattern in a follow-up `refactor:` PR scoped to that fix** — never mix the refactor into the rename PR (the noise hides any genuinely new finding).
+
+Confirm the issue is genuinely pre-existing by checking the line against the pre-rename file (`git show <pre-rename-sha>:<old-path>`). If it's pre-existing, the rename made it visible; the PR didn't introduce it.
+
 ## Handling false positives
 
 `tssecurity` taint findings (S5144, S7044) **cannot** be suppressed via `sonar.issue.ignore.multicriteria` — the rule engine ignores multicriteria for taint flows. The only options are:
