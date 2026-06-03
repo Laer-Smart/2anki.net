@@ -65,6 +65,7 @@ function getSourceLabel(source: DeckRow['source']): string {
   switch (source) {
     case 'notion': return 'Notion';
     case 'upload': return 'Upload';
+    case 'app': return 'From the app';
     case 'dropbox': return 'Dropbox';
     case 'drive': return 'Drive';
   }
@@ -508,7 +509,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                 )}
                               </td>
                               <td>
-                                <span className={sharedStyles.badge}>Upload</span>
+                                <span className={sharedStyles.badge}>{getSourceLabel(row.source)}</span>
                               </td>
                               <td>
                                 {u.created_at != null && (
