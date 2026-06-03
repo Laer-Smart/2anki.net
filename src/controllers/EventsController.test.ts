@@ -183,6 +183,26 @@ describe('EventsController', () => {
     controller.track(req, res);
     expect(res.status).toHaveBeenCalledWith(202);
   });
+
+  it.each([
+    'upload_ai_badge_viewed',
+    'upload_ai_free_badge_clicked',
+    'upload_ai_turned_on',
+    'upload_ai_turned_off',
+    'transform_apkg_submitted',
+    'transform_apkg_succeeded',
+    'transform_apkg_failed',
+    'transform_apkg_handoff_received',
+    'transform_apkg_over_cap',
+  ])('records client event %s as known, not unknown', (eventName) => {
+    const { controller, req, res, executeSpy } = buildMocks({ userId: 1 });
+    req.body = { name: eventName };
+    controller.track(req, res);
+    expect(res.status).toHaveBeenCalledWith(202);
+    expect(executeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ name: eventName, unknown: false })
+    );
+  });
 });
 
 describe('EventsController — regression: all client events return 202 (AC #5)', () => {
