@@ -1,8 +1,12 @@
 import {
   BlockObjectResponse,
   EquationBlockObjectResponse,
+  LinkPreviewBlockObjectResponse,
   ListBlockChildrenResponse,
+  PdfBlockObjectResponse,
+  SyncedBlockBlockObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints';
+import { renderToStaticMarkup } from 'react-dom/server';
 import BlockHandler from '../BlockHandler/BlockHandler';
 import { BlockCallout } from '../blocks/BlockCallout';
 import { BlockChildPage } from '../blocks/BlockChildPage';
@@ -22,6 +26,48 @@ import { BlockToggleList } from '../blocks/lists/BlockToggleList';
 import BlockBookmark from '../blocks/media/BlockBookmark';
 import { BlockEmbed } from '../blocks/media/BlockEmbed';
 import { BlockVideo } from '../blocks/media/BlockVideo';
+
+const renderPdf = (c: PdfBlockObjectResponse): string => {
+  const url = c.pdf.type === 'file' ? c.pdf.file.url : c.pdf.external.url;
+  if (!url) {
+    return '';
+  }
+  return renderToStaticMarkup(
+    <>
+      <embed src={url} type="application/pdf" width="100%" height="600" />
+      <a href={url} target="_blank" rel="noopener noreferrer">
+        {url}
+      </a>
+    </>
+  );
+};
+
+const renderLinkPreview = (c: LinkPreviewBlockObjectResponse): string => {
+  const url = c.link_preview.url;
+  if (!url) {
+    return '';
+  }
+  return renderToStaticMarkup(
+    <a href={url} target="_blank" rel="noopener noreferrer">
+      {url}
+    </a>
+  );
+};
+
+const renderSyncedBlock = async (
+  c: SyncedBlockBlockObjectResponse,
+  handler: BlockHandler
+): Promise<string> => {
+  if (c.has_children) {
+    const children = await handler.getBackSide(c, true);
+    if (children) {
+      return children;
+    }
+  }
+  return renderToStaticMarkup(
+    <aside className="synced-block-empty">Synced block</aside>
+  );
+};
 
 export const blockToStaticMarkup = async (
   handler: BlockHandler,
@@ -105,6 +151,13 @@ export const blockToStaticMarkup = async (
     case 'table_row':
       break;
     case 'synced_block':
+      back += await renderSyncedBlock(c, handler);
+      break;
+    case 'pdf':
+      back += renderPdf(c);
+      break;
+    case 'link_preview':
+      back += renderLinkPreview(c);
       break;
     default:
       back += `unsupported: ${c.type}`;
