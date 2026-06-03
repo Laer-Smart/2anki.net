@@ -272,6 +272,74 @@ describe('ChatUseCase', () => {
       expect(result.contentBefore).toBeUndefined();
       expect(result.contentAfter).toBeUndefined();
     });
+
+    it('normalizes stray cloze cards to plain front/back when templateSlug is basic', async () => {
+      const cards = [{ front: 'The capital of {{c1::France}} is Paris.', back: '' }];
+      const responseText = `\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
+      const { useCase } = buildUseCase(responseText);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: 'Make basic cards',
+        conversationHistory: [],
+        templateSlug: 'basic',
+      });
+
+      expect(result.cards).toEqual([
+        { front: 'The capital of [...] is Paris.', back: 'France' },
+      ]);
+    });
+
+    it('joins multiple cloze answers on the back when templateSlug is basic', async () => {
+      const cards = [
+        { front: '{{c1::Mitochondria}} is the {{c2::powerhouse}} of the cell.', back: '' },
+      ];
+      const responseText = `\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
+      const { useCase } = buildUseCase(responseText);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: 'Make basic cards',
+        conversationHistory: [],
+        templateSlug: 'basic',
+      });
+
+      expect(result.cards).toEqual([
+        { front: '[...] is the [...] of the cell.', back: 'Mitochondria, powerhouse' },
+      ]);
+    });
+
+    it('normalizes stray cloze when templateSlug is basic-and-reversed', async () => {
+      const cards = [{ front: 'The capital of {{c1::France}} is Paris.', back: '' }];
+      const responseText = `\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
+      const { useCase } = buildUseCase(responseText);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: 'Make reversible cards',
+        conversationHistory: [],
+        templateSlug: 'basic-and-reversed',
+      });
+
+      expect(result.cards).toEqual([
+        { front: 'The capital of [...] is Paris.', back: 'France' },
+      ]);
+    });
+
+    it('passes cloze cards through untouched when templateSlug is cloze', async () => {
+      const cards = [{ front: 'The capital of {{c1::France}} is Paris.', back: '' }];
+      const responseText = `\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
+      const { useCase } = buildUseCase(responseText);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: 'Make cloze cards',
+        conversationHistory: [],
+        templateSlug: 'cloze',
+      });
+
+      expect(result.cards).toEqual(cards);
+    });
   });
 
   describe('message persistence', () => {

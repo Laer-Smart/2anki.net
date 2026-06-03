@@ -4,7 +4,8 @@ import type { IConversationsRepository } from '../../data_layer/ConversationsRep
 import { logClaudeUsage } from '../../lib/claude/logClaudeUsage';
 import { buildAttachmentBlocks, type ChatAttachment } from './buildAttachmentBlocks';
 import { extractAttachmentText, buildAttachmentTextBlock } from './extractAttachmentText';
-import { isChatCardTemplate, templatePromptSuffix, type ChatCardTemplate } from './chatTemplates';
+import { isChatCardTemplate, templatePromptSuffix, templateForbidsCloze, type ChatCardTemplate } from './chatTemplates';
+import { looksLikeCloze, normalizeBasicCard } from './ChatDeckUseCase';
 
 const REQUIRED_MCQ_OPTION_COUNT = 4;
 
@@ -206,7 +207,7 @@ function asMcqChatCard(item: Record<string, unknown>): ChatCard | null {
   };
 }
 
-function parseCardItem(item: unknown, mcqAllowed: boolean): ChatCard | null {
+function parseCardItem(item: unknown, mcqAllowed: boolean, forbidCloze: boolean): ChatCard | null {
   if (item == null || typeof item !== 'object') return null;
   const record = item as Record<string, unknown>;
   const looksLikeMcq = record.options !== undefined || record.correct_index !== undefined;
@@ -218,11 +219,16 @@ function parseCardItem(item: unknown, mcqAllowed: boolean): ChatCard | null {
   }
   if (typeof record.front === 'string' && typeof record.back === 'string') {
     const tags = parseTagsField(record.tags);
-    return {
+    const base: ChatCard = {
       front: record.front,
       back: record.back,
       ...(tags != null ? { tags } : {}),
     };
+    if (forbidCloze && looksLikeCloze(base.front)) {
+      const normalized = normalizeBasicCard(base);
+      return { ...base, front: normalized.front, back: normalized.back };
+    }
+    return base;
   }
   return null;
 }
@@ -244,7 +250,7 @@ export function rewriteAssistantContentWithTaggedCards(
   return content;
 }
 
-function parseCardArray(raw: string, mcqAllowed: boolean): ChatCard[] | undefined {
+function parseCardArray(raw: string, mcqAllowed: boolean, forbidCloze: boolean): ChatCard[] | undefined {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw.trim());
@@ -254,16 +260,16 @@ function parseCardArray(raw: string, mcqAllowed: boolean): ChatCard[] | undefine
   if (!Array.isArray(parsed)) return undefined;
   const cards: ChatCard[] = [];
   for (const item of parsed) {
-    const card = parseCardItem(item, mcqAllowed);
+    const card = parseCardItem(item, mcqAllowed, forbidCloze);
     if (card != null) cards.push(card);
   }
   return cards.length > 0 ? cards : undefined;
 }
 
-export function extractCards(text: string, mcqAllowed = false): ExtractCardsResult {
+export function extractCards(text: string, mcqAllowed = false, forbidCloze = false): ExtractCardsResult {
   const fencedMatch = /```json\s*([\s\S]*?)```/.exec(text);
   if (fencedMatch != null) {
-    const cards = parseCardArray(fencedMatch[1], mcqAllowed);
+    const cards = parseCardArray(fencedMatch[1], mcqAllowed, forbidCloze);
     if (cards != null) {
       const before = text.slice(0, fencedMatch.index).trim();
       const after = text.slice(fencedMatch.index + fencedMatch[0].length).trim();
@@ -277,7 +283,7 @@ export function extractCards(text: string, mcqAllowed = false): ExtractCardsResu
 
   const rawMatch = /((?:^|\n)\s*)(\[\s*\{[\s\S]*\}\s*\])/.exec(text);
   if (rawMatch != null) {
-    const cards = parseCardArray(rawMatch[2], mcqAllowed);
+    const cards = parseCardArray(rawMatch[2], mcqAllowed, forbidCloze);
     if (cards != null) {
       const before = text.slice(0, rawMatch.index).trim();
       const after = text.slice(rawMatch.index + rawMatch[0].length).trim();
@@ -533,7 +539,12 @@ export class ChatUseCase {
 
     await this.persistAssistantTurn(user.owner, conversationId, assistantContent);
 
-    const { cards, contentBefore, contentAfter } = extractCards(assistantContent, mcqAllowed);
+    const forbidCloze = templateForbidsCloze(resolvedTemplate);
+    const { cards, contentBefore, contentAfter } = extractCards(
+      assistantContent,
+      mcqAllowed,
+      forbidCloze
+    );
 
     return {
       content: assistantContent,

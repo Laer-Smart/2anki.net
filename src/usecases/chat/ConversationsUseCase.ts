@@ -4,7 +4,7 @@ import type {
   ConversationWithMessages,
 } from '../../data_layer/ConversationsRepository';
 import { extractCards, ChatCard } from './ChatUseCase';
-import { isChatCardTemplate } from './chatTemplates';
+import { isChatCardTemplate, templateForbidsCloze } from './chatTemplates';
 
 const MAX_TITLE_LENGTH = 120;
 
@@ -54,11 +54,12 @@ export class InvalidDraftError extends Error {
 function hydrateMessages(
   conv: ConversationWithMessages
 ): ConversationMessageView[] {
+  const forbidCloze = templateForbidsCloze(conv.templateSlug);
   return conv.messages.map((m) => {
     if (m.role !== 'assistant') {
       return m;
     }
-    const { cards, contentBefore, contentAfter } = extractCards(m.content, true);
+    const { cards, contentBefore, contentAfter } = extractCards(m.content, true, forbidCloze);
     return {
       ...m,
       ...(cards != null ? { cards } : {}),
