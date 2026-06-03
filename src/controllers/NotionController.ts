@@ -26,6 +26,10 @@ import {
 } from '@notionhq/client';
 import { getNotionObjectTitle } from 'get-notion-object-title';
 import NotionService from '../services/NotionService';
+import {
+  isNativeOAuthState,
+  verifyNativeOAuthState,
+} from '../services/NotionService/nativeOAuthState';
 import { getDatabase } from '../data_layer';
 import { getNotionId } from '../services/NotionService/getNotionId';
 import { getOwner } from '../lib/User/getOwner';
@@ -115,6 +119,11 @@ class NotionController {
       return res.redirect(`/api/users/auth/notion?code=${encodeURIComponent(code as string)}`);
     }
 
+    const authorizationCode = code as string;
+    if (stateStr != null && isNativeOAuthState(stateStr)) {
+      return this.connectNative(authorizationCode, stateStr, res);
+    }
+
     const owner = res.locals.owner;
     if (owner == null) {
       return res.status(401).json({
@@ -124,16 +133,32 @@ class NotionController {
     }
 
     try {
-      const authorizationCode = code as string;
       await this.service.connectToNotion(authorizationCode, owner);
-      if (stateStr === 'native') {
-        return res.redirect(NATIVE_NOTION_RETURN_URL);
-      }
       return res.redirect('/notion');
     } catch (err) {
       console.info('Connect to Notion failed');
       console.error(err);
       return res.redirect('/notion');
+    }
+  }
+
+  private async connectNative(
+    authorizationCode: string,
+    stateStr: string,
+    res: Response
+  ) {
+    const owner = verifyNativeOAuthState(stateStr, process.env.SECRET ?? '');
+    if (owner == null) {
+      return res.redirect(`${NATIVE_NOTION_RETURN_URL}?error=invalid_state`);
+    }
+
+    try {
+      await this.service.connectToNotion(authorizationCode, owner);
+      return res.redirect(NATIVE_NOTION_RETURN_URL);
+    } catch (err) {
+      console.info('Connect to Notion failed');
+      console.error(err);
+      return res.redirect(`${NATIVE_NOTION_RETURN_URL}?error=connect_failed`);
     }
   }
 

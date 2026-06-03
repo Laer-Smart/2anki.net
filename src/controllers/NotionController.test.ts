@@ -6,6 +6,7 @@ import { InProgressJobError, JobLimitError } from '../lib/storage/jobs/helpers/e
 import { INotionRepository } from '../data_layer/NotionRespository';
 import { IEmailService } from '../services/EmailService/EmailService';
 import UsersRepository from '../data_layer/UsersRepository';
+import { buildNativeOAuthState } from '../services/NotionService/nativeOAuthState';
 
 jest.mock('../lib/conversionPool', () => ({
   __esModule: true,
@@ -617,21 +618,65 @@ describe('NotionController', () => {
       } as any;
     }
 
-    it('redirects to the native deep link after a native connect', async () => {
+    it('ties the token to the app owner from state, not the browser session', async () => {
+      process.env.SECRET = 'controller-secret';
+      service = buildConnectService();
+      controller = new NotionController(service);
+      const appOwnerState = buildNativeOAuthState(7, process.env.SECRET);
+      req = { query: { code: 'auth-code', state: appOwnerState } };
+      res = {
+        redirect: jest.fn().mockReturnThis(),
+        clearCookie: jest.fn().mockReturnThis(),
+        locals: { owner: 99 },
+      } as any;
+
+      await controller.connect(req as express.Request, res as express.Response);
+
+      expect(service.connectToNotion).toHaveBeenCalledWith('auth-code', 7);
+      expect(res.redirect).toHaveBeenCalledWith(
+        'twoanki://x-callback-url/notion-connected'
+      );
+    });
+
+    it('rejects a tampered native state and never calls connectToNotion', async () => {
+      process.env.SECRET = 'controller-secret';
+      service = buildConnectService();
+      controller = new NotionController(service);
+      const tampered = buildNativeOAuthState(7, process.env.SECRET).replace(
+        'native:7:',
+        'native:8:'
+      );
+      req = { query: { code: 'auth-code', state: tampered } };
+      res = {
+        redirect: jest.fn().mockReturnThis(),
+        clearCookie: jest.fn().mockReturnThis(),
+        locals: { owner: 99 },
+      } as any;
+
+      await controller.connect(req as express.Request, res as express.Response);
+
+      expect(service.connectToNotion).not.toHaveBeenCalled();
+      expect(res.redirect).toHaveBeenCalledWith(
+        'twoanki://x-callback-url/notion-connected?error=invalid_state'
+      );
+    });
+
+    it('rejects a bare native state with no owner', async () => {
+      process.env.SECRET = 'controller-secret';
       service = buildConnectService();
       controller = new NotionController(service);
       req = { query: { code: 'auth-code', state: 'native' } };
       res = {
         redirect: jest.fn().mockReturnThis(),
         clearCookie: jest.fn().mockReturnThis(),
-        locals: { owner: 42 },
+        locals: { owner: 99 },
       } as any;
 
       await controller.connect(req as express.Request, res as express.Response);
 
-      expect(service.connectToNotion).toHaveBeenCalledWith('auth-code', 42);
+      expect(service.connectToNotion).not.toHaveBeenCalled();
       expect(res.redirect).toHaveBeenCalledWith(
-        'twoanki://x-callback-url/notion-connected'
+        'twoanki://x-callback-url/notion-connected?error=invalid_state'
       );
     });
 
