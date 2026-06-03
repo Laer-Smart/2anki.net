@@ -81,8 +81,13 @@ function buildRepository(): IUploadRepository {
     findByKey: (_owner: number, _key: string) => Promise.resolve(null),
     findAllByObjectIdAndOwner: (_objectId: string, _owner: number) =>
       Promise.resolve([] as Uploads[]),
-    update: (_owner: number, _filename: string, _key: string, _size_mb: number) =>
-      Promise.resolve([] as Uploads[]),
+    update: (
+      _owner: number,
+      _filename: string,
+      _key: string,
+      _size_mb: number,
+      _source?: string | null
+    ) => Promise.resolve([] as Uploads[]),
     getLastUploadForUser: (_userId: number) => Promise.resolve(null),
     getLastReconvertibleUpload: (_userId: number) => Promise.resolve(null),
   };
@@ -680,6 +685,59 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
     expect(mockStorageUploadFile).toHaveBeenCalledTimes(1);
     const [, uploadedBuffer] = mockStorageUploadFile.mock.calls[0] as [string, Buffer];
     expect(Buffer.compare(uploadedBuffer, apkgContents)).toBe(0);
+  });
+
+  async function runAsyncUploadWithBody(
+    body: Record<string, unknown>
+  ): Promise<jest.Mock> {
+    fs.writeFileSync(path.join(tmpDir, 'my-deck.apkg'), Buffer.from('apkg'));
+
+    let resolveUpdate!: () => void;
+    const updateCalled = new Promise<void>((r) => {
+      resolveUpdate = r;
+    });
+    const updateMock = jest.fn().mockImplementation(() => {
+      resolveUpdate();
+      return Promise.resolve([]);
+    });
+    const repo: IUploadRepository = { ...buildRepository(), update: updateMock };
+    const jobRepository = {
+      create: jest.fn().mockResolvedValue(undefined),
+      updateJobStatus: jest.fn().mockResolvedValue(undefined),
+      findJobById: jest.fn().mockResolvedValue(null),
+      deleteJob: jest.fn().mockResolvedValue(undefined),
+    } as unknown as JobRepository;
+
+    MockGeneratePackagesUseCase.mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        packages: [{ name: 'my-deck', cardCount: 5, mcqCount: 0, mcqSkippedCount: 0 }],
+      }),
+    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+
+    const service = new UploadService(repo, jobRepository, buildUsersRepo());
+    const req = buildRequest({ body: { 'claude-ai-flashcards': 'true', ...body } });
+    const { res } = buildResponse();
+    (res.locals as Record<string, unknown>).owner = 42;
+
+    await service.handleUpload(req, res);
+    await updateCalled;
+    return updateMock;
+  }
+
+  it('persists source=app on the async Claude upload insert', async () => {
+    const updateMock = await runAsyncUploadWithBody({ source: 'app' });
+
+    expect(updateMock).toHaveBeenCalledTimes(1);
+    const args = updateMock.mock.calls[0];
+    expect(args[0]).toBe(42);
+    expect(args[4]).toBe('app');
+  });
+
+  it('persists null when the source is not on the allowlist', async () => {
+    const updateMock = await runAsyncUploadWithBody({ source: 'mobile-app-v2' });
+
+    expect(updateMock).toHaveBeenCalledTimes(1);
+    expect(updateMock.mock.calls[0][4]).toBeNull();
   });
 });
 

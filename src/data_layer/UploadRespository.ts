@@ -1,5 +1,6 @@
 import { Knex } from 'knex';
 import Uploads from './public/Uploads';
+import { UploadSource } from '../lib/upload/validateUploadSource';
 
 export interface LastUpload {
   filename: string;
@@ -25,7 +26,8 @@ export interface IUploadRepository {
     owner: number,
     filename: string,
     key: string,
-    size_mb: number
+    size_mb: number,
+    source?: UploadSource | null
   ): Promise<Uploads[]>;
   getLastUploadForUser(userId: number): Promise<LastUpload | null>;
   getLastReconvertibleUpload(
@@ -96,13 +98,15 @@ class UploadRepository implements IUploadRepository {
     owner: number,
     filename: string,
     key: string,
-    size_mb: number
+    size_mb: number,
+    source: UploadSource | null = null
   ): Promise<Uploads[]> {
     return this.database(this.table).insert({
       owner,
       filename,
       key,
       size_mb,
+      source,
     });
   }
 
