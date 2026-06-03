@@ -2,6 +2,19 @@
 
 Three project-scoped MCP servers. None are required to use Claude Code on this repo; each one trades an extra dependency for a specific capability.
 
+## Project-enabled plugins (`.claude/settings.json`)
+
+`enabledPlugins` registers plugins for everyone who opens this repo in Claude Code. Pulled from the `claude-plugins-official` marketplace. None block normal work — each is opt-in capability.
+
+| Plugin | What it adds | Auth |
+| --- | --- | --- |
+| `typescript-lsp` | Type-aware navigation (go-to-def, find-refs, real TS errors) across `src/` and `web/`. | None — works immediately. |
+| `sonarqube` | SonarCloud's rule engine in-loop, before push — catches the cognitive-complexity / nesting / a11y smells that `/check` misses (see `rules/sonar.md`). | Uses existing `SONAR_TOKEN`. |
+| `stripe` | Inspect subscriptions/customers directly instead of prod psql + the `/ops` Sync button. | Needs Stripe key via `/mcp`. **Read-only scope; never point at a key with write access for routine debugging.** |
+| `playwright` | Browser automation — makes the browser-attestation golden-path check (localhost:3000, console at 375px) machine-verifiable instead of honor-system. | None for local drive. |
+
+Auth-gated plugins (`stripe`) stay inert until you wire credentials via `/mcp`; the enable flag alone is harmless.
+
 ## `ide` — built-in diagnostics
 
 Launches Claude Code's own MCP server. Surfaces TS diagnostics, file diffs, and the editor's open buffers so the model can read what you're actually staring at instead of guessing.

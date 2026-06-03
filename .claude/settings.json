@@ -8,10 +8,20 @@
         "source": "github",
         "repo": "JuliusBrussee/caveman"
       }
+    },
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
     }
   },
   "enabledPlugins": {
-    "caveman@caveman": true
+    "caveman@caveman": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "sonarqube@claude-plugins-official": true,
+    "stripe@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true
   },
   "permissions": {
     "allow": [
