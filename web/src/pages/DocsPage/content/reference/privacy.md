@@ -29,3 +29,6 @@ The source code is available at [2anki/server](https://github.com/2anki/server).
 | 2anki (self-hosted) | Error reporting — stored on our own infrastructure and deleted after 30 days | — |
 | ChatGPT | HTML conversion | [Privacy Policy](https://openai.com/policies/privacy-policy/?utm_source=chatgpt.com) |
 | Claude | AI flashcard generation | [Privacy Policy](https://www.anthropic.com/legal/privacy) |
+| Stripe | Payment processing and subscription management | [Privacy Policy](https://stripe.com/privacy) |
+| SendGrid | Sending transactional emails | [Privacy Policy](https://www.twilio.com/en-us/legal/privacy) |
+| Google Vertex AI | AI question generation from PDFs | [Privacy Policy](https://cloud.google.com/terms/cloud-privacy-notice) |

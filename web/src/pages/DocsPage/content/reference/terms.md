@@ -12,7 +12,7 @@ We will provide their services to you, which are subject to the conditions state
 
 ## Privacy Policy
 
-Before you continue using our website we advise you to read our [privacy policy](https://alemayhu.notion.site/Privacy-38c6e8238ac04ea9b2485bf488909fd0) regarding our user data collection. It will help you better understand our practices.
+Before you continue using our website we advise you to read our [privacy policy](/documentation/reference/privacy) regarding our user data collection. It will help you better understand our practices.
 
 ## Copyright
 
