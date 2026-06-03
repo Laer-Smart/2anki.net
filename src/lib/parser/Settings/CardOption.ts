@@ -23,6 +23,8 @@ class CardOption {
 
   readonly fontSize: string;
 
+  readonly textColor: string;
+
   readonly isTextOnlyBack: boolean;
 
   readonly toggleMode: string;
@@ -120,6 +122,7 @@ class CardOption {
     this.isAvocado = input.avocado === 'true';
     this.isAll = input.all === 'true';
     this.fontSize = input['font-size'];
+    this.textColor = input['text-color'] ?? '';
     this.isTextOnlyBack = input.paragraph === 'true';
     this.toggleMode = input['toggle-mode'] || 'close_toggle';
     this.overlappingCloze = validateOverlappingCloze(input['overlapping-cloze']);
