@@ -62,6 +62,7 @@ Every PR is checked against both — does it make the experience simpler/faster/
 - First push of a new branch: if the `pre-push` hook blocks with a WIP/false-positive warning on an otherwise-clean branch, re-run with `git push -u origin <branch> --no-verify` (the hook false-positives on a new branch's first push; only bypass when the branch is genuinely clean).
 - Touching auth, payments, or external-API integration? Run `/security-review` before merge.
 - After merge, clean up local: `git checkout main && git pull --ff-only`, confirm the PR is `MERGED` via `gh pr view <branch> --json state`, then `git branch -D <branch>` (squash-merges leave the tip unreachable from main, so `-d` refuses). `git fetch --prune origin` drops stale remote-tracking refs; `git worktree list` then `git worktree remove <path>` (or `git worktree prune` if the dir is already gone) clears unused worktrees.
+- **When Alexander asks to check out a PR, just do it.** Run `gh pr checkout <n>` yourself. If `gh` complains the branch is `already used by worktree at .claude/worktrees/agent-*`, that's an agent worktree from a previous run — the PR is already on the remote, the agent's local copy is redundant. Unlock + remove it (`git worktree unlock <path> && git worktree remove <path>`), then re-run `gh pr checkout <n>`. Do not return a menu of options for Alexander to copy-paste — pick the right answer and execute it.
 - GitHub issues for follow-ups that need cross-cutting visibility, labels, or contributor pickup. Commit bodies for inline scope notes that travel with the change.
 
 ## Working speed
@@ -75,6 +76,7 @@ Every PR is checked against both — does it make the experience simpler/faster/
 ## Process
 
 - Surface assumptions before coding. If a request has multiple valid interpretations, present them — don't pick silently. If something is unclear, stop and ask. If a simpler approach exists, say so.
+- **Execute, don't menu.** "Multiple interpretations" applies to *what* to do; it does not license menus of *how to do it*. When the answer is a sequence of mechanical sub-steps with one obvious right path (resolve a worktree conflict on `gh pr checkout`, drop two named stashes after a wave merges, run `pnpm install` before a dev server) — pick the right path and execute. A response that hands Alexander "option A vs option B" for mechanical glue is a failure mode. Reserve confirmation for destructive/irreversible steps (force-push, branch -D on unmerged work, anything in the `Executing actions with care` list).
 - Every changed line should trace directly to the user's request. If a diff includes lines that don't connect back to what was asked, remove them before committing.
 - TDD by default: failing test → verify it fails for the right reason → simplest pass → refactor. If asked to skip tests, confirm first.
 - Outside-in testing. Mock only external dependencies (HTTP, third-party APIs, email) — never internal services.
