@@ -2,6 +2,7 @@ import os from 'os';
 import fs from 'node:fs';
 import path from 'path';
 import express from 'express';
+import knex, { Knex } from 'knex';
 
 jest.mock('../usecases/uploads/GeneratePackagesUseCase', () => {
   return {
@@ -9,6 +10,12 @@ jest.mock('../usecases/uploads/GeneratePackagesUseCase', () => {
     default: jest.fn(),
   };
 });
+
+const mockGenerateDeckInfo = jest.fn();
+jest.mock('../lib/claude/ClaudeService', () => ({
+  ...jest.requireActual('../lib/claude/ClaudeService'),
+  generateDeckInfo: (...args: unknown[]) => mockGenerateDeckInfo(...args),
+}));
 
 jest.mock('../lib/integrations/stripe', () => ({
   getStripe: jest.fn().mockReturnValue({
@@ -750,5 +757,120 @@ describe('UploadService.handleUpload — multi-deck batch', () => {
       'conversion_succeeded',
       expect.objectContaining({ props: expect.objectContaining({ source: 'upload' }) })
     );
+  });
+});
+
+describe('UploadService.restartClaudeJob — concurrent restart guard', () => {
+  const originalWorkspaceBase = process.env.WORKSPACE_BASE;
+  let db: Knex;
+  let workspaceBase: string;
+  let resolveDeckInfo: (() => void) | null = null;
+
+  beforeAll(() => {
+    workspaceBase = fs.mkdtempSync(path.join(os.tmpdir(), 'restart-guard-base-'));
+    process.env.WORKSPACE_BASE = workspaceBase;
+  });
+
+  afterAll(() => {
+    process.env.WORKSPACE_BASE = originalWorkspaceBase;
+    fs.rmSync(workspaceBase, { recursive: true, force: true });
+  });
+
+  beforeEach(async () => {
+    mockGenerateDeckInfo.mockReset();
+    db = knex({
+      client: 'better-sqlite3',
+      connection: { filename: ':memory:' },
+      useNullAsDefault: true,
+    });
+    await db.schema.createTable('jobs', (t) => {
+      t.increments('id');
+      t.string('owner').notNullable();
+      t.string('object_id').notNullable();
+      t.string('title');
+      t.string('type');
+      t.string('status');
+      t.timestamp('created_at').defaultTo(db.fn.now());
+      t.timestamp('last_edited_time');
+      t.string('job_reason_failure');
+      t.integer('card_count');
+    });
+    const workspaceDir = path.join(workspaceBase, 'job-obj-1');
+    fs.mkdirSync(workspaceDir, { recursive: true });
+    fs.writeFileSync(path.join(workspaceDir, 'page.html'), '<html><body>Q/A</body></html>');
+  });
+
+  afterEach(async () => {
+    resolveDeckInfo = null;
+    await db.destroy();
+  });
+
+  function buildRestartRequest() {
+    return { params: { jobId: 'job-obj-1' }, body: {} } as unknown as express.Request;
+  }
+
+  it('fires exactly one worker when two restart requests race on the same done job', async () => {
+    await db('jobs').insert({
+      owner: '42',
+      object_id: 'job-obj-1',
+      title: 'Deck',
+      type: 'claude',
+      status: 'done',
+      last_edited_time: new Date(),
+    });
+
+    const deckInfoStarted = new Promise<void>((started) => {
+      mockGenerateDeckInfo.mockImplementation(() => {
+        started();
+        return new Promise(() => {
+          resolveDeckInfo = () => undefined;
+        });
+      });
+    });
+
+    const repo = buildRepository();
+    const jobRepository = new JobRepository(db);
+    const service = new UploadService(repo, jobRepository, buildUsersRepo());
+
+    const firstResponse = buildResponse();
+    (firstResponse.res.locals as Record<string, unknown>).owner = 42;
+    const secondResponse = buildResponse();
+    (secondResponse.res.locals as Record<string, unknown>).owner = 42;
+
+    await Promise.all([
+      service.restartClaudeJob(buildRestartRequest(), firstResponse.res),
+      service.restartClaudeJob(buildRestartRequest(), secondResponse.res),
+    ]);
+
+    await deckInfoStarted;
+
+    expect(mockGenerateDeckInfo).toHaveBeenCalledTimes(1);
+
+    const statuses = [firstResponse.capturedStatus(), secondResponse.capturedStatus()];
+    expect(statuses).toContain(202);
+    expect(statuses).toContain(409);
+  });
+
+  it('does not fire a worker when the job is already in flight (non-terminal status)', async () => {
+    await db('jobs').insert({
+      owner: '42',
+      object_id: 'job-obj-1',
+      title: 'Deck',
+      type: 'claude',
+      status: 'step1_started',
+      last_edited_time: new Date(),
+    });
+
+    const repo = buildRepository();
+    const jobRepository = new JobRepository(db);
+    const service = new UploadService(repo, jobRepository, buildUsersRepo());
+
+    const { res, capturedStatus } = buildResponse();
+    (res.locals as Record<string, unknown>).owner = 42;
+
+    await service.restartClaudeJob(buildRestartRequest(), res);
+
+    expect(mockGenerateDeckInfo).not.toHaveBeenCalled();
+    expect(capturedStatus()).toBe(409);
   });
 });

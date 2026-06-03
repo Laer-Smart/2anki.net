@@ -150,7 +150,11 @@ class UploadService {
       return;
     }
 
-    await this.jobRepository.updateJobStatus(job.object_id, owner, 'started');
+    const claimed = await this.jobRepository.restartJob(job.object_id, owner);
+    if (claimed == null) {
+      res.status(409).json({ error: 'This job is already running' });
+      return;
+    }
 
     this.runClaudeRestart(job.object_id, owner, workspaceDir, async (step) => {
       await this.jobRepository.updateJobStatus(job.object_id, owner, step);
