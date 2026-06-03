@@ -530,6 +530,7 @@ export class PhotoToFlashcardsUseCase {
         tile_count: tiles,
         source_mode: mode,
         card_style: input.cardStyle ?? DEFAULT_PHOTO_CARD_STYLE,
+        density: input.density ?? DEFAULT_PHOTO_DENSITY,
       },
     });
 
