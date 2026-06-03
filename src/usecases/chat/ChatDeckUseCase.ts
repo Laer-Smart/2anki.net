@@ -38,6 +38,12 @@ export function looksLikeCloze(front: string): boolean {
   return CLOZE_PATTERN.test(front);
 }
 
+const MCQ_STEM_BLANK = '_____';
+
+export function stripClozeFromStem(front: string): string {
+  return front.replace(CLOZE_REPLACE_PATTERN, MCQ_STEM_BLANK);
+}
+
 export function normalizeBasicCard(card: ChatDeckCard): ChatDeckCard {
   if (!looksLikeCloze(card.front)) return card;
   const answers: string[] = [];

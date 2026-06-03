@@ -60,6 +60,7 @@ Rules:
 - correct_index is the 0-based position of the right option (0, 1, 2, or 3)
 - rationale is a brief explanation of why the correct option is right
 - Do NOT include a "back" field
+- The "front" stem must NOT contain cloze deletion syntax like {{c1::...}}; if basing a question on a cloze sentence, replace the deleted span with a blank (_____)
 - Do NOT emit any front/back Q&A pairs or cloze cards — only MCQ cards are valid in this conversation`,
 };
 
