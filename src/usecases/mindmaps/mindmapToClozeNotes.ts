@@ -47,7 +47,8 @@ function nodeLabel(
   const filename = imageUrl.split('/').pop() ?? '';
   const mapped = filenameMap[filename];
   if (mapped == null) return labelHtml;
-  return `<img src="${mapped}" alt="${label}" style="max-width:100%;height:auto;">${labelHtml.length > 0 ? `<br>${labelHtml}` : ''}`;
+  const labelSuffix = labelHtml.length > 0 ? `<br>${labelHtml}` : '';
+  return `<img src="${mapped}" alt="${label}" style="max-width:100%;height:auto;">${labelSuffix}`;
 }
 
 export function mindmapToClozeNotes(
