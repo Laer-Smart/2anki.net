@@ -23,14 +23,38 @@ class OauthIdentitiesRepository {
   async link(
     provider: string,
     subject: string,
-    userId: UsersId
+    userId: UsersId,
+    refreshToken?: string
   ): Promise<void> {
     const row: OauthIdentitiesInitializer = {
       provider,
       subject,
       user_id: userId,
+      refresh_token: refreshToken ?? null,
     };
     await this.database(this.table).insert(row);
+  }
+
+  async updateRefreshToken(
+    provider: string,
+    subject: string,
+    refreshToken: string
+  ): Promise<void> {
+    await this.database(this.table)
+      .where({ provider, subject })
+      .update({ refresh_token: refreshToken });
+  }
+
+  async findRefreshTokenByUserAndProvider(
+    userId: UsersId,
+    provider: string
+  ): Promise<string | null> {
+    const row: Pick<OauthIdentities, 'refresh_token'> | undefined =
+      await this.database(this.table)
+        .where({ user_id: userId, provider })
+        .select('refresh_token')
+        .first();
+    return row?.refresh_token ?? null;
   }
 }
 

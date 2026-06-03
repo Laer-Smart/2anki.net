@@ -1041,6 +1041,9 @@ describe('UsersController.loginWithApple', () => {
     MockedOauthIdentitiesRepo.prototype.link = jest
       .fn()
       .mockResolvedValue(undefined);
+    MockedOauthIdentitiesRepo.prototype.updateRefreshToken = jest
+      .fn()
+      .mockResolvedValue(undefined);
   });
 
   const buildAppleController = (overrides?: {
@@ -1139,7 +1142,54 @@ describe('UsersController.loginWithApple', () => {
     expect(MockedOauthIdentitiesRepo.prototype.link).toHaveBeenCalledWith(
       'apple',
       'apple-sub-001',
-      20
+      20,
+      undefined
+    );
+  });
+
+  it('stores the Apple refresh token on the linked identity when present', async () => {
+    const register = jest.fn().mockResolvedValue([{ id: 20 }]);
+    const loginWithApple = jest.fn().mockResolvedValue({
+      subject: 'apple-sub-001',
+      email: 'apple@example.com',
+      emailVerified: true,
+      refreshToken: 'apple-refresh-555',
+    });
+    const { controller } = buildAppleController({ register, loginWithApple });
+
+    await controller.loginWithApple(buildReq(), buildAppleRes());
+
+    expect(MockedOauthIdentitiesRepo.prototype.link).toHaveBeenCalledWith(
+      'apple',
+      'apple-sub-001',
+      20,
+      'apple-refresh-555'
+    );
+  });
+
+  it('refreshes the stored token when the identity already exists', async () => {
+    MockedOauthIdentitiesRepo.prototype.findByProviderAndSubject = jest
+      .fn()
+      .mockResolvedValue({ user_id: 20, provider: 'apple', subject: 'apple-sub-001' });
+    MockedOauthIdentitiesRepo.prototype.updateRefreshToken = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    const getUserById = jest.fn().mockResolvedValue({ id: 20, email: 'apple@example.com' });
+    const loginWithApple = jest.fn().mockResolvedValue({
+      subject: 'apple-sub-001',
+      email: 'apple@example.com',
+      emailVerified: true,
+      refreshToken: 'apple-refresh-rotated',
+    });
+
+    const { controller } = buildAppleController({ getUserById, loginWithApple });
+
+    await controller.loginWithApple(buildReq(), buildAppleRes());
+
+    expect(MockedOauthIdentitiesRepo.prototype.updateRefreshToken).toHaveBeenCalledWith(
+      'apple',
+      'apple-sub-001',
+      'apple-refresh-rotated'
     );
   });
 
@@ -1172,7 +1222,8 @@ describe('UsersController.loginWithApple', () => {
     expect(MockedOauthIdentitiesRepo.prototype.link).toHaveBeenCalledWith(
       'apple',
       'apple-sub-001',
-      21
+      21,
+      undefined
     );
   });
 
@@ -1231,6 +1282,123 @@ describe('UsersController.loginWithApple', () => {
     await controller.loginWithApple(buildReq(), res);
 
     expect(res.redirect).toHaveBeenCalledWith('/login');
+  });
+});
+
+describe('UsersController.deleteAccount — Apple token revocation', () => {
+  const MockedOauthIdentitiesRepo =
+    OauthIdentitiesRepository as jest.MockedClass<typeof OauthIdentitiesRepository>;
+  const SubscriptionServiceMock = SubscriptionService as unknown as {
+    cancelUserSubscriptions: jest.Mock;
+  };
+
+  beforeEach(() => {
+    MockedOauthIdentitiesRepo.mockClear();
+    SubscriptionServiceMock.cancelUserSubscriptions = jest
+      .fn()
+      .mockResolvedValue(undefined);
+  });
+
+  const buildDeleteController = (overrides?: {
+    refreshToken?: string | null;
+    revokeAppleToken?: jest.Mock;
+    deleteUser?: jest.Mock;
+  }) => {
+    MockedOauthIdentitiesRepo.prototype.findRefreshTokenByUserAndProvider = jest
+      .fn()
+      .mockResolvedValue(overrides?.refreshToken ?? null);
+    const deleteUser = overrides?.deleteUser ?? jest.fn().mockResolvedValue(undefined);
+    const userService = {
+      getUserById: jest
+        .fn()
+        .mockResolvedValue({ id: 42, email: 'apple@example.com' }),
+      deleteUser,
+    } as unknown as UsersService;
+    const authService = {
+      revokeAppleToken:
+        overrides?.revokeAppleToken ?? jest.fn().mockResolvedValue(true),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    return { controller, userService, authService, deleteUser };
+  };
+
+  const buildDeleteReq = () =>
+    ({ body: {}, cookies: {}, headers: {}, query: {} } as unknown as express.Request);
+
+  const buildDeleteRes = () => {
+    const json = jest.fn();
+    const status = jest.fn().mockReturnValue({ json });
+    return { json, status } as unknown as express.Response & {
+      json: jest.Mock;
+      status: jest.Mock;
+    };
+  };
+
+  it('revokes the stored Apple refresh token before deleting the user', async () => {
+    const revokeAppleToken = jest.fn().mockResolvedValue(true);
+    const deleteUser = jest.fn().mockResolvedValue(undefined);
+    const { controller } = buildDeleteController({
+      refreshToken: 'apple-refresh-del',
+      revokeAppleToken,
+      deleteUser,
+    });
+    const res = buildDeleteRes();
+
+    await controller.deleteAccount(
+      buildDeleteReq(),
+      Object.assign(res, { locals: { owner: '42' } }) as unknown as express.Response
+    );
+
+    expect(revokeAppleToken).toHaveBeenCalledWith('apple-refresh-del');
+    const revokeOrder = revokeAppleToken.mock.invocationCallOrder[0];
+    const deleteOrder = deleteUser.mock.invocationCallOrder[0];
+    expect(revokeOrder).toBeLessThan(deleteOrder);
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  it('completes deletion without revoking when no Apple identity token exists', async () => {
+    const revokeAppleToken = jest.fn();
+    const deleteUser = jest.fn().mockResolvedValue(undefined);
+    const { controller } = buildDeleteController({
+      refreshToken: null,
+      revokeAppleToken,
+      deleteUser,
+    });
+    const res = buildDeleteRes();
+
+    await controller.deleteAccount(
+      buildDeleteReq(),
+      Object.assign(res, { locals: { owner: '42' } }) as unknown as express.Response
+    );
+
+    expect(revokeAppleToken).not.toHaveBeenCalled();
+    expect(deleteUser).toHaveBeenCalledWith('42');
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  it('still deletes the account when Apple revocation throws', async () => {
+    const revokeAppleToken = jest
+      .fn()
+      .mockRejectedValue(new Error('apple revoke down'));
+    const deleteUser = jest.fn().mockResolvedValue(undefined);
+    const { controller } = buildDeleteController({
+      refreshToken: 'apple-refresh-del',
+      revokeAppleToken,
+      deleteUser,
+    });
+    const res = buildDeleteRes();
+
+    await controller.deleteAccount(
+      buildDeleteReq(),
+      Object.assign(res, { locals: { owner: '42' } }) as unknown as express.Response
+    );
+
+    expect(deleteUser).toHaveBeenCalledWith('42');
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 });
 
@@ -2170,7 +2338,8 @@ describe('UsersController.loginWithAppleNative', () => {
     expect(MockedOauthIdentitiesRepo.prototype.link).toHaveBeenCalledWith(
       'apple',
       'native-sub-001',
-      30
+      30,
+      undefined
     );
   });
 

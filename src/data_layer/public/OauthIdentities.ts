@@ -17,6 +17,8 @@ export default interface OauthIdentities {
   user_id: UsersId;
 
   created_at: Date;
+
+  refresh_token: string | null;
 }
 
 /** Represents the initializer for the table public.oauth_identities */
@@ -32,6 +34,8 @@ export interface OauthIdentitiesInitializer {
 
   /** Default value: CURRENT_TIMESTAMP */
   created_at?: Date;
+
+  refresh_token?: string | null;
 }
 
 /** Represents the mutator for the table public.oauth_identities */
@@ -45,4 +49,6 @@ export interface OauthIdentitiesMutator {
   user_id?: UsersId;
 
   created_at?: Date;
+
+  refresh_token?: string | null;
 }

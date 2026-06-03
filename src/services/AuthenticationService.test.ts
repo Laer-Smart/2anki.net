@@ -564,7 +564,9 @@ describe('loginWithApple', () => {
       email: 'user@example.com',
       email_verified: true,
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest.fn().mockResolvedValue({
+      data: { id_token: idToken, refresh_token: 'apple-refresh-001' },
+    });
 
     const service = createService();
     const result = await service.loginWithApple('auth-code');
@@ -573,7 +575,24 @@ describe('loginWithApple', () => {
       subject: 'apple-sub-001',
       email: 'user@example.com',
       emailVerified: true,
+      refreshToken: 'apple-refresh-001',
     });
+  });
+
+  it('returns refreshToken undefined when Apple omits one', async () => {
+    const idToken = signIdToken({
+      iss: 'https://appleid.apple.com',
+      aud: SERVICES_ID,
+      sub: 'apple-sub-001b',
+      email: 'user@example.com',
+      email_verified: true,
+    });
+    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithApple('auth-code');
+
+    expect(result).toMatchObject({ subject: 'apple-sub-001b', refreshToken: undefined });
   });
 
   it('accepts email_verified as the string "true"', async () => {
@@ -781,6 +800,66 @@ describe('loginWithApple algorithm pin', () => {
     const result = await service.loginWithApple('auth-code');
 
     expect(result).toBeUndefined();
+  });
+});
+
+describe('revokeAppleToken', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.APPLE_CLIENT_ID = 'com.example.2anki';
+    process.env.APPLE_TEAM_ID = 'TEAMID1234';
+    process.env.APPLE_KEY_ID = 'KEYID56789';
+    const { privateKey: sk } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+    process.env.APPLE_PRIVATE_KEY_B64 = Buffer.from(
+      sk.export({ type: 'pkcs8', format: 'pem' }) as string
+    ).toString('base64');
+  });
+
+  it('posts the refresh token to the Apple revoke endpoint', async () => {
+    mockedAxios.post = jest.fn().mockResolvedValue({ status: 200, data: {} });
+
+    const service = createService();
+    const result = await service.revokeAppleToken('apple-refresh-xyz');
+
+    expect(result).toBe(true);
+    const call = (mockedAxios.post as jest.Mock).mock.calls[0];
+    expect(call[0]).toBe('apple_login');
+    expect(call[1]).toBe('https://appleid.apple.com/auth/revoke');
+    expect(call[2]).toContain('token=apple-refresh-xyz');
+    expect(call[2]).toContain('token_type_hint=refresh_token');
+  });
+
+  it('treats a 400 from Apple (already revoked) as success', async () => {
+    const axiosError = Object.assign(new Error('bad request'), {
+      isAxiosError: true,
+      response: { status: 400 },
+    });
+    mockedAxios.post = jest.fn().mockRejectedValue(axiosError);
+
+    const service = createService();
+    const result = await service.revokeAppleToken('apple-refresh-xyz');
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false on an unexpected error', async () => {
+    mockedAxios.post = jest.fn().mockRejectedValue(new Error('network down'));
+
+    const service = createService();
+    const result = await service.revokeAppleToken('apple-refresh-xyz');
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when APPLE_CLIENT_ID is missing', async () => {
+    delete process.env.APPLE_CLIENT_ID;
+    mockedAxios.post = jest.fn();
+
+    const service = createService();
+    const result = await service.revokeAppleToken('apple-refresh-xyz');
+
+    expect(result).toBe(false);
+    expect(mockedAxios.post).not.toHaveBeenCalled();
   });
 });
 
