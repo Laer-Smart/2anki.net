@@ -111,28 +111,98 @@ describe('transformApkgNotes', () => {
     expect(result.failures[0].guid).toBe('g-b');
   });
 
-  it('respects the concurrency bound', async () => {
+  it('keeps at most `concurrency` calls in flight and slides the window as each finishes', async () => {
+    const total = 8;
+    const concurrency = 3;
     let inFlight = 0;
     let peak = 0;
-    const client = makeClient(async () => {
+    const release: Array<() => void> = new Array(total);
+    const started: Array<Promise<void>> = Array.from({ length: total }, () => {
+      let resolveStarted: () => void = () => {};
+      const p = new Promise<void>((r) => {
+        resolveStarted = r;
+      });
+      (p as Promise<void> & { fire: () => void }).fire = resolveStarted;
+      return p;
+    });
+    const fireStarted = (i: number) =>
+      (started[i] as Promise<void> & { fire: () => void }).fire();
+
+    const client = makeClient((req) => {
+      const index = Number(
+        (req as { messages: { content: string }[] }).messages[0].content.match(/\d+/)?.[0]
+      );
       inFlight += 1;
       peak = Math.max(peak, inFlight);
-      await new Promise((r) => setTimeout(r, 10));
-      inFlight -= 1;
+      fireStarted(index);
+      return new Promise((resolve) => {
+        release[index] = () => {
+          inFlight -= 1;
+          resolve({
+            content: [{ type: 'text', text: '{"hint":"x"}' }],
+            usage: { input_tokens: 0, output_tokens: 0 },
+          });
+        };
+      });
+    });
+
+    const notes = Array.from({ length: total }, (_, i) => sample(String(i)));
+    const job = transformApkgNotes({
+      notes,
+      transform: 'add_hint',
+      concurrency,
+      client: client as never,
+    });
+
+    await Promise.all([started[0], started[1], started[2]]);
+    expect(inFlight).toBe(concurrency);
+
+    const finishOrder = [2, 0, 1, 4, 3, 6, 7, 5];
+    let nextToStart = concurrency;
+    for (const idx of finishOrder) {
+      await started[idx];
+      expect(inFlight).toBeLessThanOrEqual(concurrency);
+      release[idx]();
+      if (nextToStart < total) {
+        await started[nextToStart];
+        nextToStart += 1;
+      }
+    }
+
+    const result = await job;
+
+    expect(peak).toBe(concurrency);
+    expect(result.notes).toHaveLength(total);
+    expect(result.usage.totalCalls).toBe(total);
+    expect(result.notes.map((n) => n.guid)).toEqual(notes.map((n) => n.guid));
+  });
+
+  it('caches the static system prompt across per-note calls', async () => {
+    const calls: Array<{ system: unknown }> = [];
+    const client = makeClient(async (req) => {
+      calls.push(req as { system: unknown });
       return {
-        content: [{ type: 'text', text: '{"hint":"x"}' }],
+        content: [{ type: 'text', text: '{"value":"x"}' }],
         usage: { input_tokens: 0, output_tokens: 0 },
       };
     });
 
-    const notes = Array.from({ length: 8 }, (_, i) => sample(String(i)));
     await transformApkgNotes({
-      notes,
-      transform: 'add_hint',
-      concurrency: 3,
+      notes: [sample('a'), sample('b')],
+      transform: 'translate_back',
+      targetLanguage: 'Spanish',
       client: client as never,
     });
 
-    expect(peak).toBeLessThanOrEqual(3);
+    expect(calls).toHaveLength(2);
+    for (const call of calls) {
+      expect(call.system).toEqual([
+        {
+          type: 'text',
+          text: expect.any(String),
+          cache_control: { type: 'ephemeral' },
+        },
+      ]);
+    }
   });
 });
