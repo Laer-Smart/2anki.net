@@ -76,6 +76,17 @@ Card options change how 2anki turns your source into flashcards. Most are off-or
 |---|---|---|
 | Embed images in cards | On | Pack image bytes into the deck so cards render offline. Turn off to keep the deck small — cards still reference the images by name, but the bytes don't ship. Use this when an upload is hitting the size cap. |
 
+## Audio
+
+Anki reads cards aloud with its on-device voice. No audio file is added to the deck — the voice plays at review time, and the language needs to be installed on the device.
+
+| Option | Default | What it does |
+|---|---|---|
+| Read cards aloud | Off | Detects the front language automatically. Japanese, Korean, and Chinese are detected; everything else reads in English. |
+| Pick a voice yourself | Don't speak | Choose a language and which side Anki reads — front, back, or both. Applies to basic, input, and cloze cards. A pick here takes precedence over the automatic detection above. Languages: English (US), Spanish, French, German, Japanese, Mandarin (Simplified), Portuguese (Brazil). |
+
+If the picked language has no installed voice on the Anki device, the audio stays silent.
+
 ## Multiple choice
 
 These only fire when **Enable MCQ** is on. See [Multiple choice questions](/documentation/cards/mcq) for the full guide.
@@ -95,4 +106,4 @@ These only fire when **Enable MCQ** is on. See [Multiple choice questions](/docu
 
 ## Internal option keys
 
-The option keys 2anki uses internally (handy if you're filing a bug report): `add-notion-link`, `all`, `paragraph`, `cherry`, `avocado`, `tags`, `cloze`, `enable-input`, `basic-reversed`, `reversed`, `no-underline`, `max-one-toggle-per-card`, `remove-mp3-links`, `perserve-newlines`, `process-pdfs`, `markdown-nested-bullet-points`, `vertex-ai-pdf-questions`, `disable-indented-bullets`, `image-quiz-html-to-anki`, `embed-images`, `claude-ai-flashcards`, `share-files-for-debugging`, `mcq-enabled`, `mcq-tts-question`, `mcq-tts-correct-answer`, `mcq-tts-extra`, `font-size`, `toggle-mode`, `page-emoji`, `basic_model_name`, `cloze_model_name`, `input_model_name`, `user-instructions`.
+The option keys 2anki uses internally (handy if you're filing a bug report): `add-notion-link`, `all`, `paragraph`, `cherry`, `avocado`, `tags`, `cloze`, `enable-input`, `basic-reversed`, `reversed`, `no-underline`, `max-one-toggle-per-card`, `remove-mp3-links`, `perserve-newlines`, `process-pdfs`, `markdown-nested-bullet-points`, `vertex-ai-pdf-questions`, `disable-indented-bullets`, `image-quiz-html-to-anki`, `embed-images`, `claude-ai-flashcards`, `share-files-for-debugging`, `mcq-enabled`, `mcq-tts-question`, `mcq-tts-correct-answer`, `mcq-tts-extra`, `tts-auto-detect`, `tts-manual-lang`, `tts-manual-side`, `font-size`, `toggle-mode`, `page-emoji`, `basic_model_name`, `cloze_model_name`, `input_model_name`, `user-instructions`.

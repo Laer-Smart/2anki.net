@@ -104,6 +104,10 @@ class CardOption {
 
   readonly ttsAutoDetect: boolean;
 
+  readonly ttsManualLang: string;
+
+  readonly ttsManualSide: 'front' | 'back' | 'both';
+
   frontLang: string;
 
   readonly cardSize: 'short' | 'medium' | 'detailed';
@@ -167,6 +171,8 @@ class CardOption {
     this.mcqTtsCorrectAnswer = input['mcq-tts-correct-answer'] ?? '';
     this.mcqTtsExtra = input['mcq-tts-extra'] ?? '';
     this.ttsAutoDetect = input['tts-auto-detect'] === 'true';
+    this.ttsManualLang = input['tts-manual-lang'] ?? '';
+    this.ttsManualSide = validateTtsSide(input['tts-manual-side']);
     this.frontLang = '';
     this.cardSize = validateCardSize(input['card-size']);
     this.fieldMapping = parseFieldMapping(input['field-mapping']);
@@ -214,6 +220,8 @@ class CardOption {
       'mcq-tts-correct-answer': '',
       'mcq-tts-extra': '',
       'tts-auto-detect': 'false',
+      'tts-manual-lang': '',
+      'tts-manual-side': 'front',
       'overlapping-cloze': 'off',
     };
   }
@@ -223,6 +231,10 @@ const OVERLAPPING_CLOZE_VALUES = ['off', 'show-all', 'windowed'];
 
 function validateOverlappingCloze(raw: string | undefined): string {
   return raw && OVERLAPPING_CLOZE_VALUES.includes(raw) ? raw : 'off';
+}
+
+function validateTtsSide(raw: string | undefined): 'front' | 'back' | 'both' {
+  return raw === 'back' || raw === 'both' ? raw : 'front';
 }
 
 function parseFieldMapping(raw: string | undefined): FieldMapping | undefined {

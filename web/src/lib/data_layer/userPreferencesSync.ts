@@ -14,6 +14,8 @@ export const CARD_OPTION_KEYS = [
   'mcq-tts-question',
   'mcq-tts-correct-answer',
   'mcq-tts-extra',
+  'tts-manual-lang',
+  'tts-manual-side',
 ] as const;
 
 const PREFERENCES_URL = '/api/users/me/preferences';

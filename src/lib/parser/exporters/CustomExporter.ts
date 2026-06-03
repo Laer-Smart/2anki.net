@@ -12,7 +12,9 @@ const FRONT_SAMPLE_LIMIT = 25;
 function applyAutoDetectedLang(payload: Deck[]): void {
   if (payload.length === 0) return;
   const settings = payload[0].settings;
-  if (settings == null || !settings.ttsAutoDetect) return;
+  if (settings == null) return;
+  const manualLangSet = settings.ttsManualLang !== '';
+  if (manualLangSet || !settings.ttsAutoDetect) return;
 
   const samples: string[] = [];
   for (const deck of payload) {
