@@ -25,6 +25,8 @@ class CardOption {
 
   readonly textColor: string;
 
+  readonly textAlign: string;
+
   readonly isTextOnlyBack: boolean;
 
   readonly toggleMode: string;
@@ -123,6 +125,7 @@ class CardOption {
     this.isAll = input.all === 'true';
     this.fontSize = input['font-size'];
     this.textColor = input['text-color'] ?? '';
+    this.textAlign = input['text-align'] ?? '';
     this.isTextOnlyBack = input.paragraph === 'true';
     this.toggleMode = input['toggle-mode'] || 'close_toggle';
     this.overlappingCloze = validateOverlappingCloze(input['overlapping-cloze']);

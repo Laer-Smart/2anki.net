@@ -24,6 +24,7 @@ import TagRegistry from '../../../lib/parser/TagRegistry';
 import CustomExporter from '../../../lib/parser/exporters/CustomExporter';
 import { withFontSize } from '../../../lib/parser/withFontSize';
 import { withTextColor } from '../../../lib/parser/withTextColor';
+import { withTextAlign } from '../../../lib/parser/withTextAlign';
 import get16DigitRandomId from '../../../shared/helpers/get16DigitRandomId';
 import { NOTION_STYLE } from '../../../templates/helper';
 import NotionAPIWrapper from '../NotionAPIWrapper';
@@ -448,9 +449,12 @@ class BlockHandler {
       dbName,
       Deck.CleanCards(notes),
       undefined,
-      withTextColor(
-        withFontSize(NOTION_STYLE, this.settings.fontSize),
-        this.settings.textColor
+      withTextAlign(
+        withTextColor(
+          withFontSize(NOTION_STYLE, this.settings.fontSize),
+          this.settings.textColor
+        ),
+        this.settings.textAlign
       ),
       get16DigitRandomId(),
       this.settings
@@ -554,9 +558,12 @@ class BlockHandler {
         currentDeckName,
         Deck.CleanCards(cards),
         undefined,
-        withTextColor(
-          withFontSize(NOTION_STYLE, this.settings.fontSize),
-          this.settings.textColor
+        withTextAlign(
+          withTextColor(
+            withFontSize(NOTION_STYLE, this.settings.fontSize),
+            this.settings.textColor
+          ),
+          this.settings.textAlign
         ),
         get16DigitRandomId(),
         this.settings
@@ -641,9 +648,12 @@ class BlockHandler {
               ),
               cards,
               undefined,
-              withTextColor(
-                withFontSize(NOTION_STYLE, this.settings.fontSize),
-                this.settings.textColor
+              withTextAlign(
+                withTextColor(
+                  withFontSize(NOTION_STYLE, this.settings.fontSize),
+                  this.settings.textColor
+                ),
+                this.settings.textAlign
               ),
               get16DigitRandomId(),
               this.settings
