@@ -22,6 +22,7 @@ import {
   type GoogleDriveFile,
 } from './hooks/useGooglePicker';
 import { UploadSourceChips, type UploadSource } from './UploadSourceChips';
+import { getStaleSourceState } from './helpers/getStaleSourceState';
 import { FeedbackWidget } from '../../../../components/FeedbackWidget/FeedbackWidget';
 import { useUserLocals } from '../../../../lib/hooks/useUserLocals';
 import { useCardUsage, CARD_USAGE_QUERY_KEY } from '../../../../lib/hooks/useCardUsage';
@@ -282,6 +283,20 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       clearTimeout(fallbackTimerRef.current);
     }
   });
+
+  const handleSourceChange = (next: UploadSource) => {
+    const { clearDrive, clearDropbox } = getStaleSourceState(next);
+    if (clearDrive) {
+      setDriveFilename(null);
+      setDriveMimeType(null);
+      setDriveError(null);
+    }
+    if (clearDropbox) {
+      setDropboxFilename(null);
+      setDropboxError(null);
+    }
+    setSource(next);
+  };
 
   const conversionSuccessHandlers: ConversionSuccessHandlers = {
     setWarningMessage,
@@ -1479,7 +1494,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
               type="button"
               className={formStyles.changeSourceLink}
               aria-label="Change upload source"
-              onClick={() => setSource('local')}
+              onClick={() => handleSourceChange('local')}
             >
               ← Change source
             </button>
@@ -1522,7 +1537,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
               type="button"
               className={formStyles.changeSourceLink}
               aria-label="Change upload source"
-              onClick={() => setSource('local')}
+              onClick={() => handleSourceChange('local')}
             >
               ← Change source
             </button>
@@ -1561,7 +1576,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
         <div className={formStyles.chipsRow}>
           <UploadSourceChips
             active={source}
-            onChange={setSource}
+            onChange={handleSourceChange}
             dropboxAvailable={isDropboxConfigured}
             googleDriveAvailable={isGoogleDriveConfigured}
           />
