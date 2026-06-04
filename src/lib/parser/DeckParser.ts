@@ -543,6 +543,10 @@ export class DeckParser {
         continue;
       }
 
+      if (!i.includes('<del')) {
+        continue;
+      }
+
       const dom = cheerio.load(i);
       const deletionsDOM = dom('del');
       deletionsDOM.each((_i: number, elem: Element) => {
@@ -558,6 +562,8 @@ export class DeckParser {
   }
 
   private embedImagesInCardContent(content: string, card: Note, ws: Workspace): string {
+    if (!content.includes('<img')) return content;
+
     const dom = cheerio.load(content);
     const images = dom('img');
     if (images.length === 0) return content;
