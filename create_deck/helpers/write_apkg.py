@@ -10,6 +10,23 @@ import uuid
 
 from genanki import Deck, Package
 
+
+class FastPackage(Package):
+    """
+    Subclass of genanki.Package that sets `journal_mode=MEMORY` and
+    `synchronous=OFF` on the SQLite collection before any DDL/DML runs.
+
+    Justified because the .apkg SQLite collection is a build artifact written
+    once, finalized, and immediately consumed by the ZIP step. There is no
+    crash-recovery window where durability matters; the resulting file bytes
+    are unchanged.
+    """
+
+    def write_to_db(self, cursor, timestamp, id_gen):
+        cursor.execute('PRAGMA journal_mode=MEMORY')
+        cursor.execute('PRAGMA synchronous=OFF')
+        super().write_to_db(cursor, timestamp, id_gen)
+
 def sanitize_filename(filename):
     """
     Sanitize the filename by removing any character that is not alphanumeric, a space, or a hyphen.
@@ -145,7 +162,7 @@ def _write_new_apkg(deck_payloads, media_files):
         media_files (list): List of media files to be included in the package.
     """
     decks, first_deck_id = create_decks(deck_payloads)
-    package = Package(decks)
+    package = FastPackage(decks)
     existing_media = [f for f in media_files if os.path.exists(f)]
     if len(existing_media) < len(media_files):
         missing = set(media_files) - set(existing_media)
