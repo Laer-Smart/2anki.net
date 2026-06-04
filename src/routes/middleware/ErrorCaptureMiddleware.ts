@@ -2,17 +2,10 @@ import crypto from 'node:crypto';
 import { Request, Response, NextFunction } from 'express';
 import { IErrorEventRepository, ErrorEventInsert } from '../../data_layer/ErrorEventRepository';
 import { FallbackErrorPayload } from '../../lib/errorFallback';
+import { resolveClientIp } from '../../lib/rateLimit/ipHelpers';
 
 function sha256(value: string): string {
   return crypto.createHash('sha256').update(value).digest('hex');
-}
-
-function resolveIp(req: Request): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string') {
-    return forwarded.split(',')[0].trim();
-  }
-  return req.socket?.remoteAddress ?? 'unknown';
 }
 
 type FallbackWriter = (payload: FallbackErrorPayload) => void;
@@ -30,7 +23,7 @@ export const makeErrorCaptureMiddleware = (
     try {
       const message = err?.message ?? String(err);
       const messageHash = sha256(message);
-      const ipHash = sha256(resolveIp(req));
+      const ipHash = sha256(resolveClientIp(req));
 
       const isDuplicate = await repository.existsWithinWindow(
         messageHash,

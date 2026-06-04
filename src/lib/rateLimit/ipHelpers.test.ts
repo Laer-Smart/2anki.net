@@ -4,15 +4,26 @@ import { resolveClientIp, hashIp } from './ipHelpers';
 
 function makeReq(
   headers: Record<string, unknown>,
-  remoteAddress?: string
+  remoteAddress?: string,
+  ip?: string
 ): express.Request {
   return {
+    ip,
     headers,
     socket: { remoteAddress },
   } as unknown as express.Request;
 }
 
 describe('resolveClientIp', () => {
+  it('prefers req.ip and ignores a conflicting x-forwarded-for', () => {
+    const req = makeReq(
+      { 'x-forwarded-for': '1.2.3.4' },
+      '10.0.0.1',
+      '203.0.113.7'
+    );
+    expect(resolveClientIp(req)).toBe('203.0.113.7');
+  });
+
   it('returns the x-forwarded-for value when present', () => {
     const req = makeReq({ 'x-forwarded-for': '203.0.113.7' }, '10.0.0.1');
     expect(resolveClientIp(req)).toBe('203.0.113.7');

@@ -131,6 +131,8 @@ function registerSignalHandlers(server: http.Server, database: Knex) {
 const serve = async () => {
   const templateDir = path.join(__dirname, 'templates');
   const app = express();
+  // nginx on the same box terminates SSL and forwards over loopback; trust exactly one hop.
+  app.set('trust proxy', 1);
   const server = http.createServer(app);
 
   app.use(webhookRouter());
