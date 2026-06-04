@@ -155,6 +155,10 @@ img {
     /* fix for Anki */
 }
 
+.image {
+    text-align: center;
+}
+
 
 /* ANKI TEMPLATE WIZARDRY */
 

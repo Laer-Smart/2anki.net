@@ -198,13 +198,15 @@ const CLOZE_PREVIEW = {
 const ABHIYAN_BASIC_FLDS = [
   { name: 'Front', ord: 0 },
   { name: 'Back', ord: 1 },
-  { name: 'Tags', ord: 2 },
+  { name: 'Image', ord: 2 },
+  { name: 'Tags', ord: 3 },
 ];
 
 const ABHIYAN_CLOZE_FLDS = [
   { name: 'Text', ord: 0 },
   { name: 'Extra', ord: 1 },
-  { name: 'Tags', ord: 2 },
+  { name: 'Image', ord: 2 },
+  { name: 'Tags', ord: 3 },
 ];
 
 const ALEX_BASIC_FLDS = [
@@ -319,6 +321,7 @@ export function getOfficialTemplates(): OfficialStarter[] {
       previewData: {
         Front: 'What is the capital of France?',
         Back: 'Paris',
+        Image: '',
         Tags: '',
       },
       tags: ['abhiyan', 'night-mode'],
@@ -337,6 +340,7 @@ export function getOfficialTemplates(): OfficialStarter[] {
       previewData: {
         Text: 'The capital of {{c1::France}} is {{c2::Paris}}',
         Extra: 'European geography',
+        Image: '',
         Tags: '',
       },
       tags: ['abhiyan', 'night-mode', 'cloze'],
@@ -387,6 +391,7 @@ export function getOfficialTemplates(): OfficialStarter[] {
       previewData: {
         Front: 'What is the capital of France?',
         Back: 'Paris',
+        Image: '',
         Tags: '',
       },
       tags: ['material', 'material-design'],
@@ -406,6 +411,7 @@ export function getOfficialTemplates(): OfficialStarter[] {
       previewData: {
         Text: 'The capital of {{c1::France}} is {{c2::Paris}}',
         Extra: 'European geography',
+        Image: '',
         Tags: '',
       },
       tags: ['material', 'material-design', 'cloze'],
