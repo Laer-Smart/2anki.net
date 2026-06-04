@@ -30,10 +30,34 @@ describe('classifyError', () => {
     expect(result.actionLink).toMatchObject({ text: 'Sign in', to: expect.stringContaining('/login') });
   });
 
-  test('object_not_found gives a Notion-specific hint', () => {
-    expect(classifyError(new Error('object_not_found')).detail).toMatch(
-      /Notion/i
-    );
+  test('object_not_found gives a Notion-page hint, not a workspace reconnect', () => {
+    const result = classifyError(new Error('object_not_found'));
+    expect(result.title).toBe("We couldn't open that Notion page.");
+    expect(result.detail).toMatch(/Notion/i);
+    expect(result.actionLink).toEqual({ text: 'Choose a page', to: '/notion' });
+  });
+
+  test('a 404 from the .apkg preview endpoint says the deck is gone, not Notion', () => {
+    const err = Object.assign(new Error('Resource not found: 404 Not Found'), {
+      status: 404,
+      url: '/api/apkg/deck-abc123.apkg/cards',
+    });
+    const result = classifyError(err);
+    expect(result.title).toBe('This deck is no longer available.');
+    expect(result.title).not.toMatch(/Notion/i);
+    expect(result.detail).not.toMatch(/Notion/i);
+    expect(result.actionLink).toEqual({
+      text: 'Back to downloads',
+      to: '/downloads',
+    });
+  });
+
+  test('a 404 from a non-apkg endpoint keeps the Notion-page copy', () => {
+    const err = Object.assign(new Error('Resource not found: 404 Not Found'), {
+      status: 404,
+      url: '/api/notion/preview/xyz',
+    });
+    expect(classifyError(err).title).toBe("We couldn't open that Notion page.");
   });
 
   test('upload_limit_exceeded suggests upgrading', () => {
@@ -86,13 +110,13 @@ describe('classifyError — notion_unauthorized', () => {
   it('new structured code returns reconnect copy', () => {
     const result = classifyError({ code: 'notion_unauthorized', message: 'API token is invalid.' });
     expect(result.title).toBe('Your Notion connection expired');
-    expect(result.detail).toBe('Reconnect to keep converting pages directly.');
+    expect(result.detail).toBe('Sign in to Notion again to keep converting your pages.');
   });
 
   it('legacy text "api token is invalid" (case-insensitive) returns reconnect copy', () => {
     const result = classifyError(new Error('API token is invalid.'));
     expect(result.title).toBe('Your Notion connection expired');
-    expect(result.detail).toBe('Reconnect to keep converting pages directly.');
+    expect(result.detail).toBe('Sign in to Notion again to keep converting your pages.');
   });
 
   it('action link points to the Notion connect page', () => {

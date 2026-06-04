@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-missing-deck-preview-says-its-gone",
+  "date": "2026-06-03",
+  "type": "fix",
+  "title": "Opening a preview of a deck that's gone says so, with a link back to your decks"
+}

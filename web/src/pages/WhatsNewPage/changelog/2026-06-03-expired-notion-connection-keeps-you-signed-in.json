@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-03-expired-notion-connection-keeps-you-signed-in",
+  "date": "2026-06-03",
+  "type": "fix",
+  "title": "An expired Notion connection keeps you signed in and offers a Reconnect link"
+}

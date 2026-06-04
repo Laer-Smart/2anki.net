@@ -31,9 +31,20 @@ function toText(error: unknown): string {
 
 const NOTION_UNAUTHORIZED: FriendlyError = {
   title: 'Your Notion connection expired',
-  detail: 'Reconnect to keep converting pages directly.',
+  detail: 'Sign in to Notion again to keep converting your pages.',
   actionLink: { text: 'Reconnect Notion', to: '/notion' },
 };
+
+function httpMeta(error: unknown): { status?: number; url?: string } {
+  if (error != null && typeof error === 'object') {
+    const e = error as { status?: unknown; url?: unknown };
+    return {
+      status: typeof e.status === 'number' ? e.status : undefined,
+      url: typeof e.url === 'string' ? e.url : undefined,
+    };
+  }
+  return {};
+}
 
 function isNotionUnauthorized(error: unknown): boolean {
   if (error != null && typeof error === 'object' && 'code' in error) {
@@ -97,11 +108,26 @@ export function classifyError(error: unknown): FriendlyError {
     };
   }
 
+  const { status, url } = httpMeta(error);
+
+  if (
+    (status === 404 || lower.includes('404')) &&
+    url?.startsWith('/api/apkg/')
+  ) {
+    return {
+      title: 'This deck is no longer available.',
+      detail:
+        'Uploaded decks are removed after a while. Convert or upload it again to preview it.',
+      actionLink: { text: 'Back to downloads', to: '/downloads' },
+    };
+  }
+
   if (lower.includes('object_not_found') || lower.includes('404')) {
     return {
-      title: "Couldn't find that page.",
+      title: "We couldn't open that Notion page.",
       detail:
-        'It may have been deleted in Notion, or access was revoked. Try reconnecting or choosing a different page.',
+        "It may have been deleted, or it's no longer shared with 2anki. Share it again in Notion, or pick a different page.",
+      actionLink: { text: 'Choose a page', to: '/notion' },
     };
   }
 
