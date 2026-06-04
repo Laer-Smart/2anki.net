@@ -1,5 +1,4 @@
 import getHeadersFilename from '../../helpers/getHeadersFilename';
-import { fireAnalyticsEvent } from '../../../../lib/analytics/fireAnalyticsEvent';
 import type { BatchResult, ZoneState } from './hooks/useUploadFormState';
 
 export function resolveDeckName(headers: Headers): string {
@@ -56,7 +55,6 @@ export async function applyConversionSuccess(
     if (isBatchResult(body)) {
       handlers.setBatchResult(body);
       handlers.setProgressWidth(100);
-      fireAnalyticsEvent('conversion_success');
       handlers.setZoneState('multiDeck');
       return;
     }
@@ -76,7 +74,6 @@ export async function applyConversionSuccess(
   if (count === 0) {
     handlers.setZoneState('emptyDeck');
   } else {
-    fireAnalyticsEvent('conversion_success');
     handlers.setZoneState('success');
   }
 }

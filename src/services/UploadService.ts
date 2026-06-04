@@ -273,18 +273,34 @@ class UploadService {
     } catch (err) {
       if (err instanceof MonthlyLimitError) {
         const owner = getOwner(res);
+        const userId = owner != null ? Number(owner) : null;
+        const source = this.resolveUploadSource(req);
+        const anonymousId = this.resolveAnonId(req);
+        track('conversion_failed', {
+          userId,
+          anonymousId,
+          props: { source, reason: 'monthly_limit' },
+        });
         track('paywall_shown', {
-          userId: owner != null ? Number(owner) : null,
-          anonymousId: this.resolveAnonId(req),
-          props: { source: this.resolveUploadSource(req), kind: 'card_count' },
+          userId,
+          anonymousId,
+          props: { source, kind: 'card_count' },
         });
         return res.redirect('/limit?kind=card_count');
       } else if (err instanceof AnonymousCardCapError) {
         const owner = getOwner(res);
+        const userId = owner != null ? Number(owner) : null;
+        const source = this.resolveUploadSource(req);
+        const anonymousId = this.resolveAnonId(req);
+        track('conversion_failed', {
+          userId,
+          anonymousId,
+          props: { source, reason: 'anonymous_cap' },
+        });
         track('paywall_shown', {
-          userId: owner != null ? Number(owner) : null,
-          anonymousId: this.resolveAnonId(req),
-          props: { source: this.resolveUploadSource(req), kind: 'anonymous' },
+          userId,
+          anonymousId,
+          props: { source, kind: 'anonymous' },
         });
         return res.redirect('/limit?kind=anonymous');
       } else if (isLimitError(err as Error)) {
@@ -527,6 +543,7 @@ class UploadService {
     const explicit = this.resolvePersistedSource(req);
     if (explicit != null) return explicit;
     if (req.path?.includes('google_drive')) return 'google_drive';
+    if (req.path?.includes('dropbox')) return 'dropbox';
     return 'upload';
   }
 

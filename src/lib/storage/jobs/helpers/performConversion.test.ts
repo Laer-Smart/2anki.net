@@ -48,6 +48,7 @@ import {
 import { CompleteJobUseCase } from '../../../../usecases/jobs/CompleteJobUseCase';
 import { BuildDeckForJobUseCase } from '../../../../usecases/jobs/BuildDeckForJobUseCase';
 import { NotifyUserUseCase } from '../../../../usecases/jobs/NotifyUserUseCase';
+import { PythonExitError } from '../../../anki/buildPythonExitError';
 import { track } from '../../../../services/events/track';
 
 function makeUnauthorizedError(): APIResponseError {
@@ -161,6 +162,12 @@ describe('performConversion — heavy pipeline', () => {
       baseRequest.owner,
       expect.stringContaining(baseRequest.id)
     );
+    expect(track).toHaveBeenCalledWith(
+      'conversion_failed',
+      expect.objectContaining({
+        props: expect.objectContaining({ reason: 'no_decks_created' }),
+      })
+    );
   });
 
   it('sets notion_token_expired reason and calls markTokenInvalid when workspace throws a 401', async () => {
@@ -177,6 +184,30 @@ describe('performConversion — heavy pipeline', () => {
       NOTION_TOKEN_EXPIRED_REASON
     );
     expect(markTokenInvalidMock).toHaveBeenCalledWith(42);
+    expect(track).toHaveBeenCalledWith(
+      'conversion_failed',
+      expect.objectContaining({
+        props: expect.objectContaining({ reason: 'notion_token_expired' }),
+      })
+    );
+  });
+
+  it('emits conversion_failed with reason=unknown for an unclassified workspace error', async () => {
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockRejectedValue(new Error('random error')),
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(track).toHaveBeenCalledWith(
+      'conversion_failed',
+      expect.objectContaining({
+        props: expect.objectContaining({
+          source: 'notion',
+          reason: 'unknown',
+        }),
+      })
+    );
   });
 
   it('does not call markTokenInvalid for non-unauthorized errors', async () => {
@@ -220,6 +251,16 @@ describe('performConversion — heavy pipeline', () => {
       cards_used: 80,
       limit: 100,
     });
+    expect(track).toHaveBeenCalledWith(
+      'conversion_failed',
+      expect.objectContaining({
+        props: expect.objectContaining({
+          reason: 'monthly_limit',
+          cards_used: 80,
+          limit: 100,
+        }),
+      })
+    );
   });
 
   it('marks job as failed with the empty-deck reason when decks have zero cards', async () => {
@@ -311,6 +352,42 @@ describe('performConversion — heavy pipeline', () => {
       expect.objectContaining({
         anonymousId: 'anon-from-cookie',
         props: expect.objectContaining({ reason: 'empty_deck' }),
+      })
+    );
+  });
+
+  it('emits conversion_failed with reason=python_crash when the deck build throws a PythonExitError', async () => {
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: {},
+        rules: {},
+      }),
+    }));
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [1, 2, 3] }]),
+    }));
+    (CheckMonthlyCardLimitUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (BuildDeckForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockRejectedValue(
+        new PythonExitError('python died', {
+          kind: 'unknown',
+          rawOutput: 'traceback',
+          code: 1,
+        })
+      ),
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(track).toHaveBeenCalledWith(
+      'conversion_failed',
+      expect.objectContaining({
+        props: expect.objectContaining({ reason: 'python_crash' }),
       })
     );
   });

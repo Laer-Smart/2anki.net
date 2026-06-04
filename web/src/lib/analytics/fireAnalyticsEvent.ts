@@ -1,6 +1,5 @@
 export type ConversionEventName =
   | 'upload_started'
-  | 'conversion_success'
   | 'deck_downloaded'
   | 'make_another_deck_clicked';
 
