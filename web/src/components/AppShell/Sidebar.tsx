@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
@@ -237,291 +236,288 @@ export function Sidebar({
   };
 
   return (
-    <aside
-      id={drawerId}
-      className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''} ${collapsed ? styles.sidebarCollapsed : ''}`}
-      aria-label="Main navigation"
-      data-testid="app-sidebar"
-      data-collapsed={collapsed ? 'true' : 'false'}
-      onMouseEnter={onSidebarInteraction}
-      onFocus={onSidebarInteraction}
-    >
-      <div className={styles.sidebarHeader}>
-        <Link
-          className={styles.sidebarLogo}
-          to="/"
-          aria-label="2anki home"
-          onClick={handleNavClick()}
-        >
-          <img src={logoSrc} alt="" />
-        </Link>
-      </div>
-      {typeof document !== 'undefined' &&
-        createPortal(
-          <button
-            type="button"
-            onClick={onToggleClick}
-            className={`${styles.collapseRail} ${
-              collapsed ? styles.collapseRailCollapsed : ''
-            }`}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            aria-expanded={!collapsed}
-          >
-            <span className={styles.collapseRailLine} aria-hidden="true" />
-            <span className={styles.collapseRailContent} aria-hidden="true">
-              {collapsed ? (
-                <ArrowRightIcon width={16} height={16} />
-              ) : (
-                <ArrowLeftIcon width={16} height={16} />
-              )}
-              {collapsed ? 'Expand' : 'Collapse'}
-            </span>
-          </button>,
-          document.body
-        )}
-      <nav className={styles.sidebarNav}>
-        <div className={styles.sidebarGroup}>
-          <SidebarRow
-            href="/upload"
-            pathname={pathname}
-            matchPrefix={false}
+    <>
+      <aside
+        id={drawerId}
+        className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''} ${collapsed ? styles.sidebarCollapsed : ''}`}
+        aria-label="Main navigation"
+        data-testid="app-sidebar"
+        data-collapsed={collapsed ? 'true' : 'false'}
+        onMouseEnter={onSidebarInteraction}
+        onFocus={onSidebarInteraction}
+      >
+        <div className={styles.sidebarHeader}>
+          <Link
+            className={styles.sidebarLogo}
+            to="/"
+            aria-label="2anki home"
             onClick={handleNavClick()}
-            icon={ArrowUpTrayIcon}
           >
-            {getVisibleText('navigation.upload')}
-          </SidebarRow>
-          <SidebarRow
-            href="/notion"
-            pathname={pathname}
-            onClick={handleNavClick()}
-            icon={ArrowRightIcon}
-          >
-            Notion to Anki
-          </SidebarRow>
-          <SidebarRow
-            href="/templates"
-            pathname={pathname}
-            matchPrefix={false}
-            onClick={handleNavClick()}
-            icon={SwatchIcon}
-          >
-            Note types
-          </SidebarRow>
-          <SidebarRow
-            href="/print"
-            pathname={pathname}
-            matchPrefix={false}
-            onClick={handleNavClick()}
-            icon={PrinterIcon}
-          >
-            {getVisibleText('navigation.print')}
-          </SidebarRow>
-          <SidebarRow
-            href="/chat"
-            pathname={pathname}
-            matchPrefix={false}
-            onClick={handleNavClick()}
-            icon={ChatBubbleIcon}
-          >
-            Chat
-          </SidebarRow>
-          <SidebarRow
-            href="/mindmaps"
-            pathname={pathname}
-            onClick={handleNavClick()}
-            icon={ShareIcon}
-          >
-            Mind maps
-          </SidebarRow>
-          <SidebarRow
-            href="/image-occlusion"
-            pathname={pathname}
-            matchPrefix={false}
-            onClick={handleNavClick()}
-            icon={RectangleGroupIcon}
-          >
-            Image Occlusion
-          </SidebarRow>
-          <SidebarRow
-            href="/photo-to-deck"
-            pathname={pathname}
-            matchPrefix={false}
-            onClick={handleNavClick()}
-            icon={CameraIcon}
-          >
-            Photo to deck
-          </SidebarRow>
-          <SidebarRow
-            href="/import"
-            pathname={pathname}
-            matchPrefix={false}
-            onClick={handleNavClick()}
-            icon={ArrowLeftIcon}
-          >
-            Anki to Notion
-          </SidebarRow>
-          <SidebarRow
-            href="/transform"
-            pathname={pathname}
-            matchPrefix={false}
-            onClick={handleNavClick()}
-            icon={RefreshIcon}
-          >
-            Transform
-          </SidebarRow>
-          {showAnkify && (
-            <SidebarRow
-              href="/ankify"
-              pathname={pathname}
-              onClick={handleNavClick()}
-              icon={SparklesIcon}
-            >
-              Auto Sync
-            </SidebarRow>
-          )}
+            <img src={logoSrc} alt="" />
+          </Link>
         </div>
-        <div className={styles.sidebarGroup}>
-          <p className={styles.sidebarGroupLabel}>Library</p>
-          <SidebarRow
-            href="/downloads"
-            pathname={pathname}
-            onClick={handleNavClick()}
-            icon={LayersIcon}
-          >
-            {getVisibleText('navigation.myDecks')}
-          </SidebarRow>
-          {showFavorites && (
-            <SidebarRow
-              href="/favorites"
-              pathname={pathname}
-              matchPrefix={false}
-              onClick={handleNavClick()}
-              icon={StarIcon}
-            >
-              Favorites
-            </SidebarRow>
-          )}
-          <SidebarRow
-            href="/card-options"
-            pathname={pathname}
-            matchPrefix={false}
-            onClick={handleNavClick()}
-            icon={SettingsIcon}
-          >
-            Settings
-          </SidebarRow>
-        </div>
-        <div className={styles.sidebarGroup}>
-          <p className={styles.sidebarGroupLabel}>Resources</p>
-          <SidebarRow
-            href="/documentation"
-            pathname={pathname}
-            onClick={handleNavClick()}
-            icon={BookOpenIcon}
-          >
-            {getVisibleText('navigation.docs')}
-          </SidebarRow>
-          {showPricing && (
-            <SidebarRow
-              href="/pricing"
-              pathname={pathname}
-              matchPrefix={false}
-              onClick={handleNavClick()}
-              icon={CreditCardIcon}
-            >
-              {getVisibleText('navigation.pricing')}
-            </SidebarRow>
-          )}
-        </div>
-        {showAdminGroup && (
+        <nav className={styles.sidebarNav}>
           <div className={styles.sidebarGroup}>
-            {showKi && (
+            <SidebarRow
+              href="/upload"
+              pathname={pathname}
+              matchPrefix={false}
+              onClick={handleNavClick()}
+              icon={ArrowUpTrayIcon}
+            >
+              {getVisibleText('navigation.upload')}
+            </SidebarRow>
+            <SidebarRow
+              href="/notion"
+              pathname={pathname}
+              onClick={handleNavClick()}
+              icon={ArrowRightIcon}
+            >
+              Notion to Anki
+            </SidebarRow>
+            <SidebarRow
+              href="/templates"
+              pathname={pathname}
+              matchPrefix={false}
+              onClick={handleNavClick()}
+              icon={SwatchIcon}
+            >
+              Note types
+            </SidebarRow>
+            <SidebarRow
+              href="/print"
+              pathname={pathname}
+              matchPrefix={false}
+              onClick={handleNavClick()}
+              icon={PrinterIcon}
+            >
+              {getVisibleText('navigation.print')}
+            </SidebarRow>
+            <SidebarRow
+              href="/chat"
+              pathname={pathname}
+              matchPrefix={false}
+              onClick={handleNavClick()}
+              icon={ChatBubbleIcon}
+            >
+              Chat
+            </SidebarRow>
+            <SidebarRow
+              href="/mindmaps"
+              pathname={pathname}
+              onClick={handleNavClick()}
+              icon={ShareIcon}
+            >
+              Mind maps
+            </SidebarRow>
+            <SidebarRow
+              href="/image-occlusion"
+              pathname={pathname}
+              matchPrefix={false}
+              onClick={handleNavClick()}
+              icon={RectangleGroupIcon}
+            >
+              Image Occlusion
+            </SidebarRow>
+            <SidebarRow
+              href="/photo-to-deck"
+              pathname={pathname}
+              matchPrefix={false}
+              onClick={handleNavClick()}
+              icon={CameraIcon}
+            >
+              Photo to deck
+            </SidebarRow>
+            <SidebarRow
+              href="/import"
+              pathname={pathname}
+              matchPrefix={false}
+              onClick={handleNavClick()}
+              icon={ArrowLeftIcon}
+            >
+              Anki to Notion
+            </SidebarRow>
+            <SidebarRow
+              href="/transform"
+              pathname={pathname}
+              matchPrefix={false}
+              onClick={handleNavClick()}
+              icon={RefreshIcon}
+            >
+              Transform
+            </SidebarRow>
+            {showAnkify && (
               <SidebarRow
-                href="/ki"
+                href="/ankify"
                 pathname={pathname}
                 onClick={handleNavClick()}
-                icon={CommandLineIcon}
+                icon={SparklesIcon}
               >
-                KI
+                Auto Sync
               </SidebarRow>
             )}
-            {showOps && (
-              <OpsSidebarFolder
+          </div>
+          <div className={styles.sidebarGroup}>
+            <p className={styles.sidebarGroupLabel}>Library</p>
+            <SidebarRow
+              href="/downloads"
+              pathname={pathname}
+              onClick={handleNavClick()}
+              icon={LayersIcon}
+            >
+              {getVisibleText('navigation.myDecks')}
+            </SidebarRow>
+            {showFavorites && (
+              <SidebarRow
+                href="/favorites"
                 pathname={pathname}
-                collapsed={collapsed}
-                onNavigate={handleNavClick()}
-              />
+                matchPrefix={false}
+                onClick={handleNavClick()}
+                icon={StarIcon}
+              >
+                Favorites
+              </SidebarRow>
+            )}
+            <SidebarRow
+              href="/card-options"
+              pathname={pathname}
+              matchPrefix={false}
+              onClick={handleNavClick()}
+              icon={SettingsIcon}
+            >
+              Settings
+            </SidebarRow>
+          </div>
+          <div className={styles.sidebarGroup}>
+            <p className={styles.sidebarGroupLabel}>Resources</p>
+            <SidebarRow
+              href="/documentation"
+              pathname={pathname}
+              onClick={handleNavClick()}
+              icon={BookOpenIcon}
+            >
+              {getVisibleText('navigation.docs')}
+            </SidebarRow>
+            {showPricing && (
+              <SidebarRow
+                href="/pricing"
+                pathname={pathname}
+                matchPrefix={false}
+                onClick={handleNavClick()}
+                icon={CreditCardIcon}
+              >
+                {getVisibleText('navigation.pricing')}
+              </SidebarRow>
             )}
           </div>
-        )}
-      </nav>
-      <div className={styles.sidebarTheme}>
-        {collapsed ? <ThemeToggle /> : <ThemeSwitcher />}
-        {!collapsed && (
-          <Link
-            to="/whats-new"
-            onClick={handleNavClick()}
-            className={styles.whatsNewLink}
-          >
-            What's new
-          </Link>
-        )}
-      </div>
-      <div className={styles.sidebarSpacer} />
-      <div className={styles.identity}>
-        <span className={styles.identityEmail} title={email ?? undefined}>
-          {email ?? 'Account'}
-        </span>
-        <span className={styles.identityPlan}>{planLabel}</span>
-        {showUsage && usage && (
-          <CardUsageCounter used={usage.cards_used} limit={usage.cards_limit} />
-        )}
-      </div>
-      <div className={styles.sidebarGroup}>
-        <SidebarRow
-          href="/account"
-          pathname={pathname}
-          matchPrefix={false}
-          onClick={handleNavClick()}
-          icon={UserCircleIcon}
-        >
-          {getVisibleText('navigation.account')}
-        </SidebarRow>
-        <a
-          className={styles.sidebarRow}
-          href="/users/logout"
-          onClick={handleNavClick(onLogOut)}
-          title={getVisibleText('navigation.logout')}
-        >
-          <ArrowRightOnRectangleIcon width={20} height={20} />
-          <span className={styles.sidebarRowLabel}>
-            {getVisibleText('navigation.logout')}
-          </span>
-        </a>
-      </div>
-      <div className={styles.sidebarMore}>
-        <div className={styles.sidebarMoreLinks}>
-          <Link to="/contact" onClick={handleNavClick()}>
-            {getVisibleText('navigation.contact')}
-          </Link>
-          <Link
-            to="/documentation/misc/privacy-policy"
-            onClick={handleNavClick()}
-          >
-            {getVisibleText('navigation.legal.privacy')}
-          </Link>
-          <Link
-            to="/documentation/misc/terms-of-service"
-            onClick={handleNavClick()}
-          >
-            {getVisibleText('navigation.legal.terms')}
-          </Link>
-          <Link to="/about" onClick={handleNavClick()}>
-            {getVisibleText('navigation.legal.about')}
-          </Link>
+          {showAdminGroup && (
+            <div className={styles.sidebarGroup}>
+              {showKi && (
+                <SidebarRow
+                  href="/ki"
+                  pathname={pathname}
+                  onClick={handleNavClick()}
+                  icon={CommandLineIcon}
+                >
+                  KI
+                </SidebarRow>
+              )}
+              {showOps && (
+                <OpsSidebarFolder
+                  pathname={pathname}
+                  collapsed={collapsed}
+                  onNavigate={handleNavClick()}
+                />
+              )}
+            </div>
+          )}
+        </nav>
+        <div className={styles.sidebarTheme}>
+          {collapsed ? <ThemeToggle /> : <ThemeSwitcher />}
+          {!collapsed && (
+            <Link
+              to="/whats-new"
+              onClick={handleNavClick()}
+              className={styles.whatsNewLink}
+            >
+              What's new
+            </Link>
+          )}
         </div>
-
-      </div>
-    </aside>
+        <div className={styles.sidebarSpacer} />
+        <div className={styles.identity}>
+          <span className={styles.identityEmail} title={email ?? undefined}>
+            {email ?? 'Account'}
+          </span>
+          <span className={styles.identityPlan}>{planLabel}</span>
+          {showUsage && usage && (
+            <CardUsageCounter used={usage.cards_used} limit={usage.cards_limit} />
+          )}
+        </div>
+        <div className={styles.sidebarGroup}>
+          <SidebarRow
+            href="/account"
+            pathname={pathname}
+            matchPrefix={false}
+            onClick={handleNavClick()}
+            icon={UserCircleIcon}
+          >
+            {getVisibleText('navigation.account')}
+          </SidebarRow>
+          <a
+            className={styles.sidebarRow}
+            href="/users/logout"
+            onClick={handleNavClick(onLogOut)}
+            title={getVisibleText('navigation.logout')}
+          >
+            <ArrowRightOnRectangleIcon width={20} height={20} />
+            <span className={styles.sidebarRowLabel}>
+              {getVisibleText('navigation.logout')}
+            </span>
+          </a>
+        </div>
+        <div className={styles.sidebarMore}>
+          <div className={styles.sidebarMoreLinks}>
+            <Link to="/contact" onClick={handleNavClick()}>
+              {getVisibleText('navigation.contact')}
+            </Link>
+            <Link
+              to="/documentation/misc/privacy-policy"
+              onClick={handleNavClick()}
+            >
+              {getVisibleText('navigation.legal.privacy')}
+            </Link>
+            <Link
+              to="/documentation/misc/terms-of-service"
+              onClick={handleNavClick()}
+            >
+              {getVisibleText('navigation.legal.terms')}
+            </Link>
+            <Link to="/about" onClick={handleNavClick()}>
+              {getVisibleText('navigation.legal.about')}
+            </Link>
+          </div>
+        </div>
+      </aside>
+      <button
+        type="button"
+        onClick={onToggleClick}
+        className={`${styles.collapseRail} ${
+          collapsed ? styles.collapseRailCollapsed : ''
+        }`}
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-expanded={!collapsed}
+      >
+        <span className={styles.collapseRailLine} aria-hidden="true" />
+        <span className={styles.collapseRailContent} aria-hidden="true">
+          {collapsed ? (
+            <ArrowRightIcon width={16} height={16} />
+          ) : (
+            <ArrowLeftIcon width={16} height={16} />
+          )}
+          {collapsed ? 'Expand' : 'Collapse'}
+        </span>
+      </button>
+    </>
   );
 }

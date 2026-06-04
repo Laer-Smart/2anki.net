@@ -452,6 +452,15 @@ describe('Sidebar collapse toggle', () => {
     expect(aside.contains(rail)).toBe(false);
   });
 
+  it('renders the collapse rail as a sibling inside the component tree, not portaled to document.body', () => {
+    const { container } = renderSidebar();
+    const aside = screen.getByRole('complementary', { name: 'Main navigation' });
+    const rail = screen.getByRole('button', { name: 'Collapse sidebar' });
+    expect(container.contains(rail)).toBe(true);
+    expect(rail.parentElement).toBe(aside.parentElement);
+    expect(document.body.contains(rail)).toBe(true);
+  });
+
   it('renders the rail label, flipping between Collapse and Expand', () => {
     renderSidebar();
     const toggle = screen.getByRole('button', { name: 'Collapse sidebar' });
