@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
-import {
-  ErrorEventController,
-  InMemoryRateLimiter,
-  RateLimiter,
-} from './ErrorEventController';
+import { ErrorEventController } from './ErrorEventController';
+import { RateLimiter } from '../lib/rateLimit/InMemoryRateLimiter';
 import { IngestErrorEventUseCase } from '../usecases/events/IngestErrorEventUseCase';
 
 function makeIngestUseCase(result: 'accepted' | 'duplicate' = 'accepted'): IngestErrorEventUseCase {
@@ -12,10 +9,15 @@ function makeIngestUseCase(result: 'accepted' | 'duplicate' = 'accepted'): Inges
   } as unknown as IngestErrorEventUseCase;
 }
 
-function makeRes(): jest.Mocked<Pick<Response, 'status' | 'json' | 'end'>> & { _statusCode?: number; _body?: unknown } {
+function makeRes(): jest.Mocked<Pick<Response, 'status' | 'json' | 'end' | 'set'>> & {
+  _statusCode?: number;
+  _body?: unknown;
+  _headers: Record<string, string>;
+} {
   const res = {
     _statusCode: 0,
     _body: undefined as unknown,
+    _headers: {} as Record<string, string>,
     status(code: number) {
       this._statusCode = code;
       return this;
@@ -24,11 +26,17 @@ function makeRes(): jest.Mocked<Pick<Response, 'status' | 'json' | 'end'>> & { _
       this._body = body;
       return this;
     },
+    set(name: string, value: string) {
+      this._headers[name] = value;
+      return this;
+    },
     end() {
       return this;
     },
   };
-  return res as unknown as jest.Mocked<Pick<Response, 'status' | 'json' | 'end'>> & { _statusCode?: number; _body?: unknown };
+  return res as unknown as jest.Mocked<
+    Pick<Response, 'status' | 'json' | 'end' | 'set'>
+  > & { _statusCode?: number; _body?: unknown; _headers: Record<string, string> };
 }
 
 function makeReq(body: unknown, remoteAddress = '127.0.0.1'): Request {
@@ -84,6 +92,14 @@ describe('ErrorEventController.ingest', () => {
     expect(res._statusCode).toBe(429);
   });
 
+  it('sets Retry-After: 60 on a 429 response', async () => {
+    const exhaustedLimiter: RateLimiter = { check: () => false };
+    const controller = new ErrorEventController(makeIngestUseCase(), exhaustedLimiter);
+    const res = makeRes();
+    await controller.ingest(makeReq(VALID_BODY), res as unknown as Response);
+    expect(res._headers['Retry-After']).toBe('60');
+  });
+
   it('does not call the use case when the rate limit is exceeded', async () => {
     const useCase = makeIngestUseCase();
     const exhaustedLimiter: RateLimiter = { check: () => false };
@@ -102,29 +118,5 @@ describe('ErrorEventController.ingest', () => {
     const callArg = (executeSpy.mock.calls[0][0] as { ipHash: string; payload: unknown });
     expect(callArg.ipHash).not.toBe('192.168.1.1');
     expect(callArg.ipHash).toHaveLength(64);
-  });
-});
-
-describe('InMemoryRateLimiter', () => {
-  it.each([
-    [1, true],
-    [5, true],
-    [10, true],
-    [11, false],
-  ])('after %i requests from the same IP the %ith is %s', (count, expected) => {
-    const limiter = new InMemoryRateLimiter(60_000, 10, 1000);
-    let result = false;
-    for (let i = 0; i < count; i++) {
-      result = limiter.check('same-ip-hash');
-    }
-    expect(result).toBe(expected);
-  });
-
-  it('allows a second IP while the first is exhausted', () => {
-    const limiter = new InMemoryRateLimiter(60_000, 1, 1000);
-    limiter.check('ip-a');
-    limiter.check('ip-a');
-    const result = limiter.check('ip-b');
-    expect(result).toBe(true);
   });
 });

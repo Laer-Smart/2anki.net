@@ -246,6 +246,7 @@ describe('UploadController.retryPdfWithCredential rate limit', () => {
 
     const jsonSpy = jest.fn();
     let capturedStatus = 0;
+    const capturedHeaders: Record<string, string> = {};
 
     const req = {
       file: { path: '/tmp/does-not-need-to-exist.pdf', originalname: 'foo.pdf' },
@@ -256,6 +257,10 @@ describe('UploadController.retryPdfWithCredential rate limit', () => {
 
     const res = {
       locals: {},
+      set: (name: string, value: string) => {
+        capturedHeaders[name] = value;
+        return res;
+      },
       status: (code: number) => {
         capturedStatus = code;
         return { json: jsonSpy } as unknown as express.Response;
@@ -266,6 +271,7 @@ describe('UploadController.retryPdfWithCredential rate limit', () => {
 
     expect(blockingLimiter.check).toHaveBeenCalledTimes(1);
     expect(capturedStatus).toBe(429);
+    expect(capturedHeaders['Retry-After']).toBe('60');
     expect(jsonSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining('Too many password attempts'),
