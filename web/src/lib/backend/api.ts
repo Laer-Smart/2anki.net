@@ -93,40 +93,53 @@ export const get = async (
   }
 
   if (!response.ok) {
-    if (response.status === UNAUTHORIZED) {
-      const body = await response.json().catch(() => ({}));
-      const code = typeof body.code === 'string' ? body.code : undefined;
-      const message = typeof body.message === 'string' ? body.message : undefined;
-      if (code === 'notion_unauthorized' || isIntentionalBackendNotice(message)) {
-        throw new UserNotice(message ?? 'Unauthorized', code);
-      }
-      redirectToLogin();
-      throw new UserNotice('Unauthorized');
-    }
-    if (response.status === NOT_FOUND) {
-      throw taggedHttpError(
-        `Resource not found: ${response.status} ${response.statusText}`,
-        'GET',
-        url,
-        response.status
-      );
-    }
-    const errorData = await response
-      .json()
-      .catch(() => ({ message: response.statusText }));
-    if (isIntentionalBackendNotice(errorData.message)) {
-      throw new UserNotice(errorData.message, errorData.code);
-    }
+    await throwForErrorResponse(response, url);
+  }
+
+  return response.json();
+};
+
+function throwForUnauthorized(body: {
+  code?: unknown;
+  message?: unknown;
+}): never {
+  const code = typeof body.code === 'string' ? body.code : undefined;
+  const message = typeof body.message === 'string' ? body.message : undefined;
+  if (code === 'notion_unauthorized' || isIntentionalBackendNotice(message)) {
+    throw new UserNotice(message ?? 'Unauthorized', code);
+  }
+  redirectToLogin();
+  throw new UserNotice('Unauthorized');
+}
+
+async function throwForErrorResponse(
+  response: Response,
+  url: string
+): Promise<never> {
+  if (response.status === UNAUTHORIZED) {
+    throwForUnauthorized(await response.json().catch(() => ({})));
+  }
+  if (response.status === NOT_FOUND) {
     throw taggedHttpError(
-      `HTTP error! GET ${pathOf(url)} status: ${response.status}, message: ${errorData.message}`,
+      `Resource not found: ${response.status} ${response.statusText}`,
       'GET',
       url,
       response.status
     );
   }
-
-  return response.json();
-};
+  const errorData = await response
+    .json()
+    .catch(() => ({ message: response.statusText }));
+  if (isIntentionalBackendNotice(errorData.message)) {
+    throw new UserNotice(errorData.message, errorData.code);
+  }
+  throw taggedHttpError(
+    `HTTP error! GET ${pathOf(url)} status: ${response.status}, message: ${errorData.message}`,
+    'GET',
+    url,
+    response.status
+  );
+}
 
 function pathOf(url: string): string {
   try {
