@@ -782,6 +782,139 @@ mjx-container {
   });
 }
 
+function getBasicReversedNoteType(): AnkiNoteType {
+  return noteType({
+    id: 1000000000016,
+    name: 'Basic (Reversed)',
+    tmpls: [
+      {
+        name: 'Card 1',
+        ord: 0,
+        qfmt: '<div class="front">\n  <h1>{{Front}}</h1>\n</div>',
+        afmt: '<div class="back">\n  <div class="question">{{Front}}</div>\n  <hr id="answer">\n  <div class="answer">{{Back}}</div>\n</div>',
+      },
+      {
+        name: 'Card 2',
+        ord: 1,
+        qfmt: '<div class="front">\n  <h1>{{Back}}</h1>\n</div>',
+        afmt: '<div class="back">\n  <div class="question">{{Back}}</div>\n  <hr id="answer">\n  <div class="answer">{{Front}}</div>\n</div>',
+      },
+    ],
+    flds: [
+      field('Front', 0),
+      field('Back', 1),
+    ],
+    css: `.card {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 20px;
+  text-align: center;
+  color: #1f2937;
+  background: #ffffff;
+  min-height: 100vh;
+  padding: 40px;
+  margin: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card > * {
+  max-width: 600px;
+  width: 100%;
+}
+
+.front h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.question {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+.answer {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin-top: 20px;
+}
+
+hr {
+  border: none;
+  height: 2px;
+  background: #e5e7eb;
+  margin: 20px 0;
+  border-radius: 1px;
+}`,
+  });
+}
+
+function getInputNoteType(): AnkiNoteType {
+  return noteType({
+    id: 1000000000017,
+    name: 'Type the answer',
+    tmpls: [
+      {
+        name: 'Card 1',
+        ord: 0,
+        qfmt: '<div class="front">\n  <div class="prompt">{{Front}}</div>\n  <div class="input-row">{{type:Back}}</div>\n</div>',
+        afmt: '<div class="back">\n  <div class="prompt">{{Front}}</div>\n  <div class="input-row">{{type:Back}}</div>\n</div>',
+      },
+    ],
+    flds: [
+      field('Front', 0),
+      field('Back', 1),
+    ],
+    css: `.card {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 20px;
+  text-align: center;
+  color: #1f2937;
+  background: #ffffff;
+  min-height: 100vh;
+  padding: 40px;
+  margin: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card > * {
+  max-width: 600px;
+  width: 100%;
+}
+
+.prompt {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 24px;
+}
+
+.input-row {
+  font-size: 1.4rem;
+}
+
+input[type="text"] {
+  font-family: inherit;
+  font-size: 1.4rem;
+  padding: 12px 16px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+}`,
+  });
+}
+
 export function getDefaultTemplates(): DefaultTemplate[] {
   return [
     {
@@ -886,8 +1019,26 @@ export function getDefaultTemplates(): DefaultTemplate[] {
       },
       tags: ['math', 'science', 'equations'],
     },
+    {
+      id: 'basic-reversed',
+      name: 'Basic (Reversed)',
+      description: 'One note, two cards — forward and reverse. Standard for bidirectional language drills.',
+      baseType: 'basic',
+      noteType: getBasicReversedNoteType(),
+      previewData: { Front: '勉強', Back: 'study; to study' },
+      tags: ['basic', 'reversed', 'language'],
+    },
+    {
+      id: 'input-type-the-answer',
+      name: 'Type the answer',
+      description: 'Type your answer — Anki diffs it against the expected value. Standard for spelling and recall drills.',
+      baseType: 'basic',
+      noteType: getInputNoteType(),
+      previewData: { Front: 'Capital of France?', Back: 'Paris' },
+      tags: ['basic', 'input', 'type-the-answer'],
+    },
   ];
 }
 
-export { getBasicNoteType, getClozeNoteType, getVocabNoteType, getMedicalNoteType, getProgrammingNoteType, getMinimalNoteType, getQuoteNoteType, getMathNoteType };
+export { getBasicNoteType, getClozeNoteType, getVocabNoteType, getMedicalNoteType, getProgrammingNoteType, getMinimalNoteType, getQuoteNoteType, getMathNoteType, getBasicReversedNoteType, getInputNoteType };
 export type { DefaultTemplate, AnkiNoteType, AnkiField, AnkiCardType };
