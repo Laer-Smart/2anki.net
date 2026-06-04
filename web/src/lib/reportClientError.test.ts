@@ -54,11 +54,34 @@ describe('reportClientError', () => {
     expect(body.userAgent).toBe('Vitest/1.0');
   });
 
-  it('includes context when provided', () => {
+  it('includes caller context merged with the translate breadcrumbs', () => {
     reportClientError(new Error('ctx test'), { route: '/upload' });
     const [, init] = getLastCall();
     const body = JSON.parse(init.body as string) as Record<string, unknown>;
-    expect(body.context).toEqual({ route: '/upload' });
+    expect(body.context).toMatchObject({ route: '/upload' });
+  });
+
+  it('captures url, lang, and translated for the next investigator', () => {
+    reportClientError(new Error('translate test'));
+    const [, init] = getLastCall();
+    const body = JSON.parse(init.body as string) as Record<string, unknown>;
+    expect(body.url).toBe(window.location.href);
+    const context = body.context as Record<string, unknown>;
+    expect(context).toHaveProperty('lang');
+    expect(context.translated).toBe(false);
+  });
+
+  it('flags translated when Chrome Translate has added its html class', () => {
+    document.documentElement.classList.add('translated-ltr');
+    try {
+      reportClientError(new Error('translated page'));
+      const [, init] = getLastCall();
+      const body = JSON.parse(init.body as string) as Record<string, unknown>;
+      const context = body.context as Record<string, unknown>;
+      expect(context.translated).toBe(true);
+    } finally {
+      document.documentElement.classList.remove('translated-ltr');
+    }
   });
 
   it('swallows a fetch failure without throwing', () => {

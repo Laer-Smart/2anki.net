@@ -14,15 +14,21 @@ export function reportClientError(
         : String(error);
     const stack = error instanceof Error ? error.stack ?? null : null;
     const release = process.env.REACT_APP_RELEASE ?? null;
+    const root = document.documentElement;
+    const lang = root.lang || navigator.language || null;
+    const translated =
+      root.classList.contains('translated-ltr') ||
+      root.classList.contains('translated-rtl');
 
     const payload: Record<string, unknown> = {
       message,
       source: 'web',
+      url: window.location.href,
       userAgent: navigator.userAgent,
+      context: { ...context, lang, translated },
     };
     if (stack != null) payload.stack = stack;
     if (release != null) payload.release = release;
-    if (context != null) payload.context = context;
 
     fetch(ENDPOINT, {
       method: 'POST',
