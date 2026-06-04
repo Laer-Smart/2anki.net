@@ -415,7 +415,6 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     setDropboxError(null);
     setZoneState('converting');
     fireAnalyticsEvent('upload_started');
-    track('upload_started', { source: 'dropbox' });
     setProgressWidth(10);
     setProgressSlow(false);
     setShowFallback(false);
@@ -494,7 +493,6 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     setDriveError(null);
     setZoneState('converting');
     fireAnalyticsEvent('upload_started');
-    track('upload_started', { source: 'google_drive' });
     setProgressWidth(10);
     setProgressSlow(false);
     setShowFallback(false);
@@ -568,7 +566,6 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     event.preventDefault();
     setZoneState('converting');
     fireAnalyticsEvent('upload_started');
-    track('upload_started', { source: 'file' });
     setProgressWidth(10);
     setProgressSlow(false);
     setShowFallback(false);

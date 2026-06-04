@@ -7,6 +7,7 @@ import {
   MARKDOWN_LIKELY_LOSSY_REASON,
   NOTION_TOKEN_EXPIRED_REASON,
   isNotionUnauthorizedError,
+  jobFailureReasonCode,
   jobFailureReasonFromError,
 } from './jobFailureReason';
 
@@ -197,5 +198,88 @@ describe('jobFailureReasonFromError', () => {
   it('generic fallback includes status link', () => {
     const reason = jobFailureReasonFromError(new Error('some unknown error'), 'job-unk');
     expect(reason).toContain('2anki.net/status');
+  });
+});
+
+describe('jobFailureReasonCode', () => {
+  function withCode(code: string): Error & { code?: string } {
+    const err = new Error(code) as Error & { code?: string };
+    err.code = code;
+    return err;
+  }
+
+  it('maps EmptyDeckError to empty_deck', () => {
+    expect(jobFailureReasonCode(new EmptyDeckError())).toBe('empty_deck');
+  });
+
+  it('maps markdown EmptyDeckError to markdown_likely_lossy', () => {
+    expect(jobFailureReasonCode(new EmptyDeckError('markdown'))).toBe(
+      'markdown_likely_lossy'
+    );
+  });
+
+  it('maps PythonExitError to python_crash', () => {
+    const err = buildPythonExitError({
+      code: 1,
+      stdout: '',
+      stderr: 'traceback',
+      jobId: 'job-py',
+    });
+    expect(jobFailureReasonCode(err)).toBe('python_crash');
+  });
+
+  it('maps an unauthorized Notion error to notion_token_expired', () => {
+    expect(jobFailureReasonCode(makeUnauthorizedError())).toBe(
+      'notion_token_expired'
+    );
+  });
+
+  it('maps a COLUMNS_AMBIGUOUS error to columns_ambiguous', () => {
+    const err = new Error('ambiguous') as Error & {
+      code?: string;
+      columns?: string[];
+    };
+    err.code = 'NOTION_DATABASE_COLUMNS_AMBIGUOUS';
+    err.columns = ['Term', 'Definition'];
+    expect(jobFailureReasonCode(err)).toBe('columns_ambiguous');
+  });
+
+  it.each([
+    ['PARSER_CRASH', 'parser_crash'],
+    ['WORKER_TIMEOUT', 'worker_timeout'],
+    ['APKG_TOO_LARGE', 'apkg_too_large'],
+    ['ZIP_INVALID', 'zip_invalid'],
+  ] as const)('maps %s code to %s', (code, expected) => {
+    expect(jobFailureReasonCode(withCode(code))).toBe(expected);
+  });
+
+  it('maps a Notion rate-limited error to notion_rate_limited', () => {
+    expect(
+      jobFailureReasonCode(makeAPIResponseError(APIErrorCode.RateLimited, 429))
+    ).toBe('notion_rate_limited');
+  });
+
+  it('maps a Notion object-not-found error to notion_not_found', () => {
+    expect(
+      jobFailureReasonCode(makeAPIResponseError(APIErrorCode.ObjectNotFound, 404))
+    ).toBe('notion_not_found');
+  });
+
+  it('maps a pdfinfo_password error to pdf_password', () => {
+    expect(jobFailureReasonCode(new Error('pdfinfo_password: encrypted'))).toBe(
+      'pdf_password'
+    );
+  });
+
+  it('maps a pdfinfo_failed error to pdf_unreadable', () => {
+    expect(jobFailureReasonCode(new Error('pdfinfo_failed: corrupt'))).toBe(
+      'pdf_unreadable'
+    );
+  });
+
+  it('maps an unclassified error to unknown', () => {
+    expect(jobFailureReasonCode(new Error('mystery'))).toBe('unknown');
+    expect(jobFailureReasonCode('string error')).toBe('unknown');
+    expect(jobFailureReasonCode(undefined)).toBe('unknown');
   });
 });

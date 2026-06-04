@@ -207,6 +207,27 @@ describe('UploadService.handleUpload — error paths', () => {
     );
   });
 
+  it('attributes source=dropbox when the request lands on the dropbox path with no explicit source', async () => {
+    MockGeneratePackagesUseCase.mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({ packages: [] }),
+    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+
+    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
+    const req = buildRequest({
+      path: '/api/upload/dropbox',
+    } as Partial<express.Request>);
+    const { res } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(trackMock).toHaveBeenCalledWith(
+      'upload_started',
+      expect.objectContaining({
+        props: expect.objectContaining({ source: 'dropbox' }),
+      })
+    );
+  });
+
   it('returns 400 JSON with empty_export code, spec copy and docs link when no packages are produced', async () => {
     MockGeneratePackagesUseCase.mockImplementation(() => ({
       execute: jest.fn().mockResolvedValue({ packages: [] }),
@@ -452,6 +473,13 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
     expect(capturedSend()).toBeNull();
     expect(incrementSpy).not.toHaveBeenCalled();
     expect(trackMock).toHaveBeenCalledWith(
+      'conversion_failed',
+      expect.objectContaining({
+        userId: 42,
+        props: expect.objectContaining({ reason: 'monthly_limit', source: 'upload' }),
+      })
+    );
+    expect(trackMock).toHaveBeenCalledWith(
       'paywall_shown',
       expect.objectContaining({
         userId: 42,
@@ -503,6 +531,14 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
     expect(redirectedTo()).toBe('/limit?kind=anonymous');
     expect(capturedSend()).toBeNull();
     expect(incrementSpy).not.toHaveBeenCalled();
+    expect(trackMock).toHaveBeenCalledWith(
+      'conversion_failed',
+      expect.objectContaining({
+        userId: null,
+        anonymousId: null,
+        props: expect.objectContaining({ reason: 'anonymous_cap', source: 'upload' }),
+      })
+    );
     expect(trackMock).toHaveBeenCalledWith(
       'paywall_shown',
       expect.objectContaining({

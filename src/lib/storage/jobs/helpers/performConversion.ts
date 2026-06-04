@@ -21,6 +21,7 @@ import {
   EMPTY_DECK_FAILURE_REASON,
   isColumnsAmbiguousError,
   isNotionUnauthorizedError,
+  jobFailureReasonCode,
   jobFailureReasonFromError,
 } from '../../../../usecases/jobs/jobFailureReason';
 import { PythonExitError } from '../../../anki/buildPythonExitError';
@@ -60,6 +61,19 @@ interface ConversionRequest {
 
 function toAnonymousId(anonId?: string): string | null {
   return typeof anonId === 'string' && anonId.length > 0 ? anonId : null;
+}
+
+function trackConversionFailed(
+  owner: string,
+  anonId: string | undefined,
+  type: string | undefined,
+  reasonProps: Record<string, unknown>
+): void {
+  track('conversion_failed', {
+    userId: Number.isFinite(Number(owner)) ? Number(owner) : null,
+    anonymousId: toAnonymousId(anonId),
+    props: { source: toConversionSource(type), ...reasonProps },
+  });
 }
 
 export default async function performConversion(
@@ -108,6 +122,7 @@ export default async function performConversion(
           '.' +
           String(jobDbId)
       );
+      trackConversionFailed(owner, anonId, type, { reason: 'no_decks_created' });
       return;
     }
 
@@ -115,11 +130,7 @@ export default async function performConversion(
     if (cardCount === 0) {
       const setJobFailed = new SetJobFailedUseCase(jobRepository);
       await setJobFailed.execute(id, owner, EMPTY_DECK_FAILURE_REASON);
-      track('conversion_failed', {
-        userId: Number.isFinite(Number(owner)) ? Number(owner) : null,
-        anonymousId: toAnonymousId(anonId),
-        props: { source: toConversionSource(type), reason: 'empty_deck' },
-      });
+      trackConversionFailed(owner, anonId, type, { reason: 'empty_deck' });
       return;
     }
 
@@ -140,6 +151,11 @@ export default async function performConversion(
           reset_on: error.reset_on,
         });
         await setJobFailed.execute(id, owner, payload);
+        trackConversionFailed(owner, anonId, type, {
+          reason: 'monthly_limit',
+          cards_used: error.cards_used,
+          limit: error.limit,
+        });
         return;
       }
       throw error;
@@ -205,6 +221,9 @@ export default async function performConversion(
     }
     const failedJob = new SetJobFailedUseCase(jobRepository);
     await failedJob.execute(id, owner, jobFailureReasonFromError(error, id));
+    trackConversionFailed(owner, anonId, type, {
+      reason: jobFailureReasonCode(error),
+    });
     const isExpectedUserState =
       error instanceof EmptyDeckError ||
       isColumnsAmbiguousError(error) ||

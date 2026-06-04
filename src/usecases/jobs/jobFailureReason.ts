@@ -55,6 +55,64 @@ function hasCode(error: unknown, code: string): boolean {
   );
 }
 
+export type JobFailureReasonCode =
+  | 'empty_deck'
+  | 'markdown_likely_lossy'
+  | 'python_crash'
+  | 'columns_ambiguous'
+  | 'notion_token_expired'
+  | 'parser_crash'
+  | 'worker_timeout'
+  | 'notion_rate_limited'
+  | 'notion_not_found'
+  | 'apkg_too_large'
+  | 'zip_invalid'
+  | 'pdf_password'
+  | 'pdf_unreadable'
+  | 'unknown';
+
+export function jobFailureReasonCode(error: unknown): JobFailureReasonCode {
+  if (error instanceof EmptyDeckError) {
+    return error.sourceFormat === 'markdown'
+      ? 'markdown_likely_lossy'
+      : 'empty_deck';
+  }
+  if (error instanceof PythonExitError) {
+    return 'python_crash';
+  }
+  if (isColumnsAmbiguousError(error)) {
+    return 'columns_ambiguous';
+  }
+  if (isNotionUnauthorizedError(error)) {
+    return 'notion_token_expired';
+  }
+  if (hasCode(error, 'PARSER_CRASH')) {
+    return 'parser_crash';
+  }
+  if (hasCode(error, 'WORKER_TIMEOUT')) {
+    return 'worker_timeout';
+  }
+  if (error instanceof APIResponseError && error.code === APIErrorCode.RateLimited) {
+    return 'notion_rate_limited';
+  }
+  if (error instanceof APIResponseError && error.code === APIErrorCode.ObjectNotFound) {
+    return 'notion_not_found';
+  }
+  if (hasCode(error, 'APKG_TOO_LARGE')) {
+    return 'apkg_too_large';
+  }
+  if (hasCode(error, 'ZIP_INVALID')) {
+    return 'zip_invalid';
+  }
+  if (error instanceof Error && error.message.startsWith('pdfinfo_password')) {
+    return 'pdf_password';
+  }
+  if (error instanceof Error && /^pdfinfo_(failed|spawn_failed)/.test(error.message)) {
+    return 'pdf_unreadable';
+  }
+  return 'unknown';
+}
+
 export function jobFailureReasonFromError(
   error: unknown,
   jobId?: string

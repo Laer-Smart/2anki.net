@@ -30,11 +30,11 @@ describe('fireAnalyticsEvent', () => {
     );
   });
 
-  it('sends conversion_success without throwing when both trackers are present', () => {
-    expect(() => fireAnalyticsEvent('conversion_success')).not.toThrow();
+  it('sends make_another_deck_clicked without throwing when both trackers are present', () => {
+    expect(() => fireAnalyticsEvent('make_another_deck_clicked')).not.toThrow();
     expect((globalThis as AnalyticsGlobals).gtag).toHaveBeenCalledWith(
       'event',
-      'conversion_success'
+      'make_another_deck_clicked'
     );
   });
 

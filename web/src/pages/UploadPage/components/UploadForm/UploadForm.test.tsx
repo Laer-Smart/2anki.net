@@ -136,7 +136,7 @@ describe('UploadForm analytics events', () => {
     expect(gtag).toHaveBeenCalledWith('event', 'upload_started');
   });
 
-  it('tracks upload_started with source=file on form submit', async () => {
+  it('does not fire the DB-backed upload_started track on file submit (server owns it)', async () => {
     const { track } = await import('../../../../lib/analytics/track');
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
@@ -158,10 +158,13 @@ describe('UploadForm analytics events', () => {
       form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     });
 
-    expect(trackMock).toHaveBeenCalledWith('upload_started', { source: 'file' });
+    const startedCalls = trackMock.mock.calls.filter(
+      ([name]) => name === 'upload_started'
+    );
+    expect(startedCalls).toHaveLength(0);
   });
 
-  it('tracks upload_started with source=dropbox when Dropbox chooser returns a file', async () => {
+  it('does not fire the DB-backed upload_started track when Dropbox chooser returns a file', async () => {
     const { track } = await import('../../../../lib/analytics/track');
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
@@ -183,7 +186,7 @@ describe('UploadForm analytics events', () => {
         ]);
       },
     };
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    const fetchMock = vi.fn().mockResolvedValue({
       redirected: false,
       status: 200,
       headers: new Headers({
@@ -192,7 +195,8 @@ describe('UploadForm analytics events', () => {
         'X-Card-Count': '3',
       }),
       blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    });
+    vi.stubGlobal('fetch', fetchMock);
 
     const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
     const button = container.querySelector('button[aria-label="Choose from Dropbox"]') as HTMLButtonElement;
@@ -201,14 +205,21 @@ describe('UploadForm analytics events', () => {
     });
 
     await waitFor(() =>
-      expect(trackMock).toHaveBeenCalledWith('upload_started', { source: 'dropbox' })
+      expect(
+        fetchMock.mock.calls.find((call) => call[0] === '/api/upload/dropbox')
+      ).toBeDefined()
     );
+
+    const startedCalls = trackMock.mock.calls.filter(
+      ([name]) => name === 'upload_started'
+    );
+    expect(startedCalls).toHaveLength(0);
 
     delete (window as unknown as { Dropbox?: unknown }).Dropbox;
     process.env.REACT_APP_DROPBOX_APP_KEY = previousKey;
   });
 
-  it('fires conversion_success on a successful conversion with cards', async () => {
+  it('does not fire conversion_success on a successful conversion with cards', async () => {
     const gtag = (globalThis as AnalyticsGlobals).gtag!;
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
@@ -229,7 +240,7 @@ describe('UploadForm analytics events', () => {
       form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     });
 
-    expect(gtag).toHaveBeenCalledWith('event', 'conversion_success');
+    expect(gtag).not.toHaveBeenCalledWith('event', 'conversion_success');
   });
 
   it('posts to /api/upload/dropbox when the chooser returns a file', async () => {
