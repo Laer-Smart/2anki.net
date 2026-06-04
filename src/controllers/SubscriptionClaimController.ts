@@ -3,14 +3,7 @@ import type { ClaimSubscriptionUseCase } from '../usecases/subscriptions/ClaimSu
 import type { ConfirmSubscriptionClaimUseCase } from '../usecases/subscriptions/ConfirmSubscriptionClaimUseCase';
 import { emailHash } from '../lib/emailHash';
 import hashToken from '../lib/misc/hashToken';
-
-function getClientIp(req: Request): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string') {
-    return forwarded.split(',')[0]?.trim() ?? req.ip ?? 'unknown';
-  }
-  return req.ip ?? 'unknown';
-}
+import { resolveClientIp } from '../lib/rateLimit/ipHelpers';
 
 export class SubscriptionClaimController {
   constructor(
@@ -27,7 +20,7 @@ export class SubscriptionClaimController {
       return;
     }
 
-    const ip = getClientIp(req);
+    const ip = resolveClientIp(req);
     const result = await this.claimUseCase.execute({
       userId,
       submittedEmail,
@@ -47,7 +40,7 @@ export class SubscriptionClaimController {
       return;
     }
 
-    const ip = getClientIp(req);
+    const ip = resolveClientIp(req);
     const ipHashValue = hashToken(ip);
     const placeholderEmailHash = hashToken('unknown');
 

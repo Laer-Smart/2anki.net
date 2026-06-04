@@ -12,6 +12,7 @@ import DownloadService from '../services/DownloadService';
 import DownloadRepository from '../data_layer/DownloadRepository';
 import UploadRepository from '../data_layer/UploadRespository';
 import { getDatabase } from '../data_layer';
+import { resolveClientIp } from '../lib/rateLimit/ipHelpers';
 
 const MAX_REQUESTS_PER_IP_PER_MINUTE = 100;
 const MAX_DOWNLOADS_PER_TOKEN_PER_HOUR = 10;
@@ -25,14 +26,6 @@ interface Counter {
 
 const ipCounters = new Map<string, Counter>();
 const tokenDownloadCounters = new Map<string, Counter>();
-
-function getClientIp(req: Request): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string') {
-    return forwarded.split(',')[0]?.trim() ?? req.ip ?? 'unknown';
-  }
-  return req.ip ?? 'unknown';
-}
 
 function checkCounter(
   map: Map<string, Counter>,
@@ -54,7 +47,7 @@ function checkCounter(
 }
 
 function ipRateLimit(req: Request, res: Response, next: NextFunction) {
-  const ip = getClientIp(req);
+  const ip = resolveClientIp(req);
   if (checkCounter(ipCounters, ip, MAX_REQUESTS_PER_IP_PER_MINUTE, ONE_MINUTE_MS)) {
     next();
   } else {
