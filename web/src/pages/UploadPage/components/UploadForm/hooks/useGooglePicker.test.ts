@@ -99,7 +99,7 @@ describe('useGooglePicker', () => {
   describe('with credentials configured', () => {
     beforeEach(() => {
       process.env.REACT_APP_GOOGLE_CLIENT_ID = 'test-client-id';
-      process.env.REACT_APP_GOOGLE_API_KEY = 'test-api-key';
+      process.env.REACT_APP_GOOGLE_API_KEY = 'AIza' + 'fake-test-key';
     });
 
     it('resolves with picked files and the access token when the user picks a file', async () => {

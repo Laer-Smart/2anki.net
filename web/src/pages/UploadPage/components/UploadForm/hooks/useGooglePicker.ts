@@ -1,5 +1,10 @@
 import { useCallback, useRef } from 'react';
 
+import {
+  assertGoogleApiKeyShape,
+  describeGoogleApiKeyProblem,
+} from '../../../../../lib/google/assertGoogleApiKeyShape';
+
 export interface GoogleDriveFile {
   id: string;
   name: string;
@@ -106,9 +111,19 @@ function clientId(): string | null {
   return id && id.length > 0 ? id : null;
 }
 
+let warnedApiKeyShape = false;
+
 function apiKey(): string | null {
-  const key = process.env.REACT_APP_GOOGLE_API_KEY;
-  return key && key.length > 0 ? key : null;
+  const shape = assertGoogleApiKeyShape(process.env.REACT_APP_GOOGLE_API_KEY);
+  if (shape.valid) {
+    return shape.key;
+  }
+  if (shape.reason !== 'empty' && !warnedApiKeyShape) {
+    warnedApiKeyShape = true;
+    // eslint-disable-next-line no-console
+    console.error(describeGoogleApiKeyProblem(shape));
+  }
+  return null;
 }
 
 function loadScript(src: string, id: string): Promise<void> {
