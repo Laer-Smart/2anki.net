@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import express from 'express';
 import fs from 'node:fs';
 import multer from 'multer';
@@ -8,6 +7,7 @@ import {
   InMemoryRateLimiter,
   RateLimiter,
 } from '../../lib/rateLimit/InMemoryRateLimiter';
+import { hashIp, resolveClientIp } from '../../lib/rateLimit/ipHelpers';
 import NotionService from '../../services/NotionService';
 import UploadService from '../../services/UploadService';
 import { getUploadHandler } from '../../lib/misc/GetUploadHandler';
@@ -33,18 +33,6 @@ const GOOGLE_DRIVE_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
 const RETRY_PDF_WINDOW_MS = 60_000;
 const RETRY_PDF_PER_IP_MAX = 10;
 const RETRY_PDF_GLOBAL_MAX = 500;
-
-function resolveClientIp(req: express.Request): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string') {
-    return forwarded.split(',')[0].trim();
-  }
-  return req.socket?.remoteAddress ?? 'unknown';
-}
-
-function hashIp(raw: string): string {
-  return crypto.createHash('sha256').update(raw).digest('hex');
-}
 
 class UploadController {
   private readonly retryPdfRateLimiter: RateLimiter;
@@ -260,6 +248,7 @@ class UploadController {
           error: e instanceof Error ? e.message : String(e),
         });
       });
+      res.set('Retry-After', '60');
       return res
         .status(429)
         .json({ message: 'Too many password attempts. Please wait a minute and try again.' });
