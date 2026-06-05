@@ -1,4 +1,10 @@
-import { hasMarkdownFileName, isCompressedFile, isAnkiDeckFile } from './checks';
+import {
+  hasMarkdownFileName,
+  isCompressedFile,
+  isAnkiDeckFile,
+  isXmlFile,
+  isAnkiAppExportXml,
+} from './checks';
 
 const FILE_MD = 'abc.md';
 const FILE_TXT = 'def.txt';
@@ -53,4 +59,24 @@ test('isAnkiDeckFile returns false for null/undefined/non-string', () => {
   expect(isAnkiDeckFile(null)).toBe(false);
   expect(isAnkiDeckFile(undefined)).toBe(false);
   expect(isAnkiDeckFile(42 as never)).toBe(false);
+});
+
+test('isXmlFile matches .xml regardless of case', () => {
+  expect(isXmlFile('cards.xml')).toBe(true);
+  expect(isXmlFile('My Deck.XML')).toBe(true);
+  expect(isXmlFile('cards.xml.zip')).toBe(false);
+  expect(isXmlFile('page.html')).toBe(false);
+});
+
+test('isAnkiAppExportXml detects a deck root element regardless of filename', () => {
+  expect(isAnkiAppExportXml('<deck name="French">...</deck>')).toBe(true);
+  expect(isAnkiAppExportXml('\uFEFF<?xml version="1.0"?>\n<!-- export -->\n<deck name="x">')).toBe(true);
+  expect(isAnkiAppExportXml(Buffer.from('<deck name="x"><cards/></deck>'))).toBe(true);
+});
+
+test('isAnkiAppExportXml rejects non-deck content', () => {
+  expect(isAnkiAppExportXml('<html><body>hi</body></html>')).toBe(false);
+  expect(isAnkiAppExportXml('<decks><deck/></decks>')).toBe(false);
+  expect(isAnkiAppExportXml('plain text')).toBe(false);
+  expect(isAnkiAppExportXml(Buffer.from([0x50, 0x4b, 0x03, 0x04]))).toBe(false);
 });

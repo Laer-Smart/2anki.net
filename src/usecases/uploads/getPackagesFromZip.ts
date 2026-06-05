@@ -8,6 +8,7 @@ import Workspace from '../../lib/parser/WorkSpace';
 import { getMaxUploadCount } from '../../lib/misc/getMaxUploadCount';
 
 import { isZipContentFileSupported } from './isZipContentFileSupported';
+import { convertAnkiAppDecksFromZip } from './convertAnkiAppDecksFromZip';
 import { getRelevantFiles } from './getRelevantFiles';
 import { enableMarkdownForMarkdownUploads } from './enableMarkdownForMarkdownUploads';
 import CardGenerator from '../../lib/anki/CardGenerator';
@@ -189,6 +190,14 @@ export const getPackagesFromZip = async (
 
   const zipHandler = new ZipHandler(getMaxUploadCount(paying));
   await zipHandler.build(fileContents as Uint8Array, paying, settings);
+
+  const ankiAppResult = await convertAnkiAppDecksFromZip(
+    zipHandler.files,
+    workspace
+  );
+  if (ankiAppResult) {
+    return ankiAppResult;
+  }
 
   const fileNames = zipHandler.getFileNames();
   const supportedFileNames = fileNames.filter(isZipContentFileSupported);

@@ -14,11 +14,17 @@ import {
   isEpubFile,
   isKindleClippingsFile,
   isAnkiDeckFile,
+  isAnkiAppExportXml,
+  isXmlFile,
 } from '../../lib/storage/checks';
 import { getPackagesFromZip } from './getPackagesFromZip';
 import Workspace from '../../lib/parser/WorkSpace';
 import { isZipContentFileSupported } from './isZipContentFileSupported';
 import { convertMindmapFileToApkg } from './ConvertMindmapFileUseCase';
+import {
+  convertAnkiAppExportToApkg,
+  describeSkippedMediaOnlyCards,
+} from './ConvertAnkiAppExportUseCase';
 import {
   buildVocabDeckFromEpub,
   buildVocabDeckFromKindleClippings,
@@ -101,6 +107,19 @@ async function processFile(
     throw new Error(
       `"${filename}" is already an Anki deck. 2anki converts source files like Notion HTML exports, not existing decks.`
     );
+  }
+
+  if (isAnkiAppExportXml(fileContents) || isXmlFile(filename)) {
+    const result = await convertAnkiAppExportToApkg(
+      filename,
+      fileContents,
+      workspace.location
+    );
+    packages.push(new Package(result.deckName, result.cardCount, 0, 0));
+    if (result.skippedMediaOnlyCount > 0) {
+      warnings.push(describeSkippedMediaOnlyCards(result.skippedMediaOnlyCount));
+    }
+    return { packages, warnings };
   }
 
   if (isOpmlFile(filename) || isBrainstormsJsonFile(filename)) {

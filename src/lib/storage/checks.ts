@@ -89,3 +89,22 @@ export const isAnkiDeckFile = (fileName: string | null | undefined): boolean => 
   if (typeof fileName !== 'string') return false;
   return fileName.toLowerCase().endsWith('.apkg');
 };
+
+export const isXmlFile = (fileName: string) => /\.xml$/i.test(fileName);
+
+const ANKI_APP_SNIFF_BYTES = 2048;
+
+export const isAnkiAppExportXml = (
+  contents: Buffer | Uint8Array | string
+): boolean => {
+  const head =
+    typeof contents === 'string'
+      ? contents.slice(0, ANKI_APP_SNIFF_BYTES)
+      : Buffer.from(contents.slice(0, ANKI_APP_SNIFF_BYTES)).toString('utf-8');
+  const stripped = head
+    .replace(/^\uFEFF/, '')
+    .replace(/<\?xml[^>]*\?>/, '')
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .trimStart();
+  return /^<deck[\s>]/i.test(stripped);
+};
