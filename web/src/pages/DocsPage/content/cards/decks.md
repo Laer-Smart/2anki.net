@@ -16,6 +16,8 @@ By default, two Notion block types create a deck boundary:
 
 So if you point 2anki at a page called *Pharmacology* that contains a sub-page *Antibiotics*, you'll get a deck named *Pharmacology* and a sub-deck named *Antibiotics*. Cards under each heading or toggle end up in the matching deck.
 
+On the free plan, 2anki reads the first 100 blocks of a page. Longer pages convert partially, and the deck's row on Downloads says how many blocks were converted. Paid plans convert the whole page.
+
 ## Change which blocks create a deck
 
 Rules apply to **one Notion page** at a time. To change the deck boundaries:

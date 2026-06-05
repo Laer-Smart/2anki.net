@@ -36,6 +36,11 @@ import { getToggleSummaryRichText } from '../helpers/getToggleSummaryRichText';
 import { isToggleHeading } from '../helpers/isToggleHeading';
 import { classifyBlock } from '../../../lib/parser/intent/classifyBlock';
 import { buildHeadingTagMap } from './helpers/buildHeadingTagMap';
+import {
+  ConversionTruncation,
+  hasRuleBasedSubDecks,
+  isTruncatedBlockFetch,
+} from '../helpers/conversionTruncation';
 import { downloadMediaOrSkip } from '../helpers/downloadMediaOrSkip';
 import { expandSyncedBlocks } from '../helpers/expandSyncedBlocks';
 import { getAudioUrl } from '../helpers/getAudioUrl';
@@ -104,6 +109,8 @@ class BlockHandler {
   firstPageTitle?: string;
 
   useAll: boolean = false;
+
+  truncation?: ConversionTruncation;
 
   settings: CardOption;
 
@@ -546,6 +553,7 @@ class BlockHandler {
       all: this.useAll,
       type: 'page',
     });
+    this.recordTruncation(response, rules);
     const blocks = await expandSyncedBlocks(
       response.results,
       this.api,
@@ -713,6 +721,22 @@ class BlockHandler {
       }
     }
     return decks;
+  }
+
+  private recordTruncation(
+    response: ListBlockChildrenResponse,
+    rules: ParserRules
+  ): void {
+    if (!isTruncatedBlockFetch(this.useAll, response)) {
+      return;
+    }
+    this.truncation = {
+      blocksConverted:
+        (this.truncation?.blocksConverted ?? 0) + response.results.length,
+      subDeckRulesSkipped:
+        this.truncation?.subDeckRulesSkipped === true ||
+        hasRuleBasedSubDecks(rules),
+    };
   }
 
   private async handleChildDatabase(

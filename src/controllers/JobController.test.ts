@@ -48,6 +48,35 @@ describe('JobController', () => {
     ]);
   });
 
+  it('passes job_reason_failure through for a done Notion job', async () => {
+    const truncationPayload = JSON.stringify({
+      code: 'notion_truncated',
+      blocks_converted: 100,
+      sub_deck_rules_skipped: false,
+    });
+    const mockJobs = [
+      {
+        id: 5,
+        title: 'Long Notion Page',
+        object_id: 'notion-page-uuid',
+        status: 'done',
+        owner: 'owner1',
+        type: 'page',
+        job_reason_failure: truncationPayload,
+        download_key: 'abc123.apkg',
+      },
+    ];
+    (jobService.getJobsByOwner as jest.Mock).mockResolvedValue(mockJobs);
+    await jobController.getJobsByOwner(
+      req as express.Request,
+      res as express.Response
+    );
+    const sent = (res.send as jest.Mock).mock.calls[0][0] as Array<{
+      job_reason_failure: string | null;
+    }>;
+    expect(sent[0].job_reason_failure).toBe(truncationPayload);
+  });
+
   it('exposes download_key for a done Notion job with a matching upload', async () => {
     const mockJobs = [
       {
