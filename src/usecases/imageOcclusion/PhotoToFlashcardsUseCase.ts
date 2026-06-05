@@ -135,6 +135,8 @@ function resolvePrompt(
 
 const INPUT_COST_PER_MILLION = 3;
 const OUTPUT_COST_PER_MILLION = 15;
+const VISION_MAX_TOKENS = 4096;
+const VISION_RETRY_MAX_TOKENS = 8192;
 
 function findPython(): string {
   const envOverride = process.env.PYTHON ?? process.env.ANKI_PYTHON;
@@ -431,34 +433,45 @@ export class PhotoToFlashcardsUseCase {
     const mcqEnabled = (input.mcqEnabled ?? false) && input.isPaying;
     const mode = input.mode ?? DEFAULT_PHOTO_MODE;
 
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-5',
-      max_tokens: 4096,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: input.mediaType,
-                data: input.imageBase64,
+    const createVisionMessage = (maxTokens: number) =>
+      client.messages.create({
+        model: 'claude-sonnet-4-5',
+        max_tokens: maxTokens,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: input.mediaType,
+                  data: input.imageBase64,
+                },
               },
-            },
-            {
-              type: 'text',
-              text: resolvePrompt(
-                mode,
-                input.cardStyle ?? DEFAULT_PHOTO_CARD_STYLE,
-                input.density ?? DEFAULT_PHOTO_DENSITY,
-                mcqEnabled
-              ),
-            },
-          ],
-        },
-      ],
-    });
+              {
+                type: 'text',
+                text: resolvePrompt(
+                  mode,
+                  input.cardStyle ?? DEFAULT_PHOTO_CARD_STYLE,
+                  input.density ?? DEFAULT_PHOTO_DENSITY,
+                  mcqEnabled
+                ),
+              },
+            ],
+          },
+        ],
+      });
+
+    let response = await createVisionMessage(VISION_MAX_TOKENS);
+    if (response.stop_reason === 'max_tokens') {
+      console.warn('[Claude] Vision response truncated at max_tokens, retrying', {
+        source: 'photo',
+        maxTokens: VISION_MAX_TOKENS,
+        retryMaxTokens: VISION_RETRY_MAX_TOKENS,
+      });
+      response = await createVisionMessage(VISION_RETRY_MAX_TOKENS);
+    }
 
     const rawText = response.content
       .filter((b) => b.type === 'text')
