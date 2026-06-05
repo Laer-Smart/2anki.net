@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ApkgPreviewCard } from '../../lib/backend/getApkgPreview';
 import { CardEditState } from './cardEditTypes';
 import { fetchMediaAsDataUrl, inlineApkgMedia } from './inlineMedia';
+import { useTheme } from '../../lib/hooks/useTheme';
 import styles from './PreviewApkgPage.module.css';
 
 interface CardFrameProps {
@@ -14,20 +15,68 @@ interface CardFrameProps {
 
 const mediaCache = new Map<string, string | null>();
 
-function buildSrcDoc(html: string, css: string, cardId: string): string {
+function buildSrcDoc(
+  html: string,
+  css: string,
+  cardId: string,
+  isDark: boolean
+): string {
+  const colorScheme = isDark ? 'dark' : 'light';
+  const bodyClass = isDark ? ' class="nightMode"' : '';
   return `<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="${colorScheme}">
 <base target="_blank">
+<script>
+(function () {
+  // Preview iframes run with an opaque origin (sandbox="allow-scripts", no
+  // allow-same-origin), so sessionStorage/localStorage access throws
+  // SecurityError. Anki note templates — including the Anki Persistence library
+  // the MCQ card uses — read sessionStorage during init; an unhandled throw
+  // short-circuits the rest of the script and the click handlers never attach.
+  // Swap in an in-memory store so template scripts run to completion without
+  // weakening the sandbox to allow-same-origin.
+  function makeStore() {
+    var data = {};
+    return {
+      getItem: function (k) {
+        return Object.prototype.hasOwnProperty.call(data, k) ? data[k] : null;
+      },
+      setItem: function (k, v) { data[k] = String(v); },
+      removeItem: function (k) { delete data[k]; },
+      clear: function () { data = {}; },
+      key: function (i) { return Object.keys(data)[i] || null; },
+      get length() { return Object.keys(data).length; }
+    };
+  }
+  ['sessionStorage', 'localStorage'].forEach(function (name) {
+    var usable = false;
+    try {
+      window[name].getItem('__2anki_probe__');
+      usable = true;
+    } catch (e) {
+      usable = false;
+    }
+    if (!usable) {
+      try {
+        Object.defineProperty(window, name, {
+          value: makeStore(),
+          configurable: true
+        });
+      } catch (e) {}
+    }
+  });
+})();
+</script>
 <style>
   html, body { margin: 0; padding: 1rem; font-family: system-ui, sans-serif; }
   img, video { max-width: 100%; height: auto; }
 ${css}
 </style>
 </head>
-<body>
+<body${bodyClass}>
 <div class="card">${html}</div>
 <script>
 (function () {
@@ -75,6 +124,8 @@ export function CardFrame({
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const [srcDoc, setSrcDoc] = useState('');
+  const theme = useTheme();
+  const isDark = theme === 'dark';
   const deckSegments = useMemo(() => resolveDeckSegments(card), [card]);
 
   const isDeleted = editState?.deleted ?? false;
@@ -87,12 +138,12 @@ export function CardFrame({
     const cardId = String(card.id);
     const html = showBack ? effectiveBack : effectiveFront;
     inlineApkgMedia(html, fetchMediaAsDataUrl, mediaCache).then((inlined) => {
-      if (!cancelled) setSrcDoc(buildSrcDoc(inlined, card.css, cardId));
+      if (!cancelled) setSrcDoc(buildSrcDoc(inlined, card.css, cardId, isDark));
     });
     return () => {
       cancelled = true;
     };
-  }, [card, showBack, effectiveFront, effectiveBack]);
+  }, [card, showBack, effectiveFront, effectiveBack, isDark]);
 
   useEffect(() => {
     setFrameHeight(DEFAULT_FRAME_HEIGHT);
