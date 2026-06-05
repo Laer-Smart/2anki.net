@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
-import archiver from 'archiver';
 import StorageHandler from '../lib/storage/StorageHandler';
 import DownloadService from '../services/DownloadService';
 import { canAccess } from '../lib/misc/canAccess';
@@ -11,6 +10,7 @@ import { getSafeFilename } from '../lib/getSafeFilename';
 import { formatDeckName } from '../lib/formatDeckName';
 import JobRepository from '../data_layer/JobRepository';
 import { track } from '../services/events/track';
+import { createZipArchive } from '../lib/archiver/createZipArchive';
 
 export interface DownloadFileViewModel {
   originalName: string;
@@ -216,7 +216,7 @@ class DownloadController {
         return res.status(404).send('No Anki deck files found');
       }
 
-      const archive = archiver('zip', { zlib: { level: 9 } });
+      const archive = createZipArchive({ zlib: { level: 9 } });
 
       archive.on('error', (err) => {
         console.error('Archive error:', err);
