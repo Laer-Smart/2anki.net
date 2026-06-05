@@ -33,13 +33,23 @@ jest.mock('./convertPdfTextToHtml', () => ({
     isDrmLocked: false,
     needsCredential: false,
   }),
+  convertPdfTextToHtmlAuto: jest.fn().mockResolvedValue({
+    html: '',
+    cardCount: 0,
+    isDrmLocked: false,
+    needsCredential: false,
+    isTextShaped: false,
+  }),
 }));
 
 jest.mock('./convertPDFToImages', () => ({
   convertPDFToImages: jest.fn().mockResolvedValue('<p>page image card</p>'),
 }));
 
-const { convertPdfTextToHtml } = require('./convertPdfTextToHtml');
+const {
+  convertPdfTextToHtml,
+  convertPdfTextToHtmlAuto,
+} = require('./convertPdfTextToHtml');
 const { convertPDFToImages } = require('./convertPDFToImages');
 
 const { generateDeckInfo } = require('../../../lib/claude/ClaudeService');
@@ -253,16 +263,84 @@ describe('PrepareDeck — PDF text-vs-image gate', () => {
     }).catch(() => undefined);
   }
 
-  it('renders page images by default even when text extraction returns cards', async () => {
+  it('renders page images when auto-detection finds the PDF not text-shaped', async () => {
     expect(makeSettings().pdfExtractText).toBe(false);
     await runPdf(makeSettings());
+    expect(convertPdfTextToHtmlAuto).toHaveBeenCalledTimes(1);
     expect(convertPDFToImages).toHaveBeenCalledTimes(1);
+    expect(convertPdfTextToHtml).not.toHaveBeenCalled();
+  });
+
+  it('uses heading-split text when auto-detection finds a text-shaped PDF', async () => {
+    convertPdfTextToHtmlAuto.mockResolvedValueOnce({
+      html: '<p>auto text card</p>',
+      cardCount: 5,
+      isDrmLocked: false,
+      needsCredential: false,
+      isTextShaped: true,
+    });
+
+    await runPdf(makeSettings());
+
+    expect(convertPdfTextToHtmlAuto).toHaveBeenCalledTimes(1);
+    expect(convertPDFToImages).not.toHaveBeenCalled();
+    expect(convertPdfTextToHtml).not.toHaveBeenCalled();
+  });
+
+  it('keeps page images when the text-shaped PDF yields no heading cards', async () => {
+    convertPdfTextToHtmlAuto.mockResolvedValueOnce({
+      html: '',
+      cardCount: 0,
+      isDrmLocked: false,
+      needsCredential: false,
+      isTextShaped: true,
+    });
+
+    await runPdf(makeSettings());
+
+    expect(convertPDFToImages).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps page images for DRM-locked PDFs when the flag is unset', async () => {
+    convertPdfTextToHtmlAuto.mockResolvedValueOnce({
+      html: '',
+      cardCount: 0,
+      isDrmLocked: true,
+      needsCredential: false,
+      isTextShaped: false,
+    });
+
+    await runPdf(makeSettings());
+
+    expect(convertPDFToImages).toHaveBeenCalledTimes(1);
+  });
+
+  it('throws the password sentinel when the auto path needs a credential', async () => {
+    convertPdfTextToHtmlAuto.mockResolvedValueOnce({
+      html: '',
+      cardCount: 0,
+      isDrmLocked: false,
+      needsCredential: true,
+      isTextShaped: false,
+    });
+
+    await expect(
+      PrepareDeck({
+        name: 'notes.pdf',
+        files: [{ name: 'notes.pdf', contents: Buffer.from('%PDF-1.4 fake') }],
+        settings: makeSettings(),
+        noLimits: true,
+        workspace: makeWorkspace(),
+      })
+    ).rejects.toThrow('PDF_NEEDS_PASSWORD');
+    expect(convertPDFToImages).not.toHaveBeenCalled();
   });
 
   it('uses extracted text when pdf-extract-text is on', async () => {
     expect(makeSettings({ 'pdf-extract-text': 'true' }).pdfExtractText).toBe(true);
     await runPdf(makeSettings({ 'pdf-extract-text': 'true' }));
     expect(convertPdfTextToHtml).toHaveBeenCalledTimes(1);
+    expect(convertPdfTextToHtmlAuto).not.toHaveBeenCalled();
     expect(convertPDFToImages).not.toHaveBeenCalled();
   });
 });

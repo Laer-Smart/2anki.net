@@ -1,4 +1,7 @@
-import { convertPdfTextToHtml } from './convertPdfTextToHtml';
+import {
+  convertPdfTextToHtml,
+  convertPdfTextToHtmlAuto,
+} from './convertPdfTextToHtml';
 
 jest.mock('../../../lib/parser/extractPdfText');
 jest.mock('../../../lib/parser/synthesizeCardsFromPdf');
@@ -115,5 +118,146 @@ describe('convertPdfTextToHtml', () => {
     const result = await convertPdfTextToHtml(Buffer.from('x'), 'Chapter 3.PDF');
 
     expect(result.html).toContain('<title>Chapter 3</title>');
+  });
+});
+
+describe('convertPdfTextToHtmlAuto', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  function textShapedPages() {
+    return Array.from({ length: 5 }, () => ({
+      text: [
+        'What is osmosis?',
+        'Movement of water across a semipermeable membrane down a gradient.',
+      ].join('\n'),
+    }));
+  }
+
+  it('builds heading-split cards for a text-shaped PDF', async () => {
+    mockExtract.mockResolvedValue({
+      pages: textShapedPages(),
+      pageCount: 5,
+      avgCharsPerPage: 320,
+      isDrmLocked: false,
+      needsCredential: false,
+    });
+
+    const result = await convertPdfTextToHtmlAuto(Buffer.from('x'), 'bio.pdf');
+
+    expect(result.isTextShaped).toBe(true);
+    expect(result.cardCount).toBe(5);
+    expect(result.html).toContain('<summary>What is osmosis?</summary>');
+    expect(result.html).toContain(
+      '<p>Movement of water across a semipermeable membrane down a gradient.</p>'
+    );
+    expect(mockSynthesize).not.toHaveBeenCalled();
+  });
+
+  it('reports not text-shaped when most pages have no text', async () => {
+    mockExtract.mockResolvedValue({
+      pages: [
+        { text: 'Only the cover page has any extractable text on it here.' },
+        ...Array.from({ length: 4 }, () => ({ text: '' })),
+      ],
+      pageCount: 5,
+      avgCharsPerPage: 320,
+      isDrmLocked: false,
+      needsCredential: false,
+    });
+
+    const result = await convertPdfTextToHtmlAuto(Buffer.from('x'), 'scan.pdf');
+
+    expect(result).toEqual({
+      html: '',
+      cardCount: 0,
+      isDrmLocked: false,
+      needsCredential: false,
+      isTextShaped: false,
+    });
+  });
+
+  it('reports not text-shaped when the average chars per page is low', async () => {
+    mockExtract.mockResolvedValue({
+      pages: textShapedPages(),
+      pageCount: 5,
+      avgCharsPerPage: 40,
+      isDrmLocked: false,
+      needsCredential: false,
+    });
+
+    const result = await convertPdfTextToHtmlAuto(Buffer.from('x'), 'thin.pdf');
+
+    expect(result.isTextShaped).toBe(false);
+    expect(result.cardCount).toBe(0);
+  });
+
+  it('passes through DRM-locked PDFs as not text-shaped', async () => {
+    mockExtract.mockResolvedValue({
+      pages: [],
+      pageCount: 5,
+      avgCharsPerPage: 2,
+      isDrmLocked: true,
+      needsCredential: false,
+    });
+
+    const result = await convertPdfTextToHtmlAuto(
+      Buffer.from('x'),
+      'locked.pdf'
+    );
+
+    expect(result).toEqual({
+      html: '',
+      cardCount: 0,
+      isDrmLocked: true,
+      needsCredential: false,
+      isTextShaped: false,
+    });
+  });
+
+  it('passes through needsCredential for password-protected PDFs', async () => {
+    mockExtract.mockResolvedValue({
+      pages: [],
+      pageCount: 0,
+      avgCharsPerPage: 0,
+      isDrmLocked: false,
+      needsCredential: true,
+    });
+
+    const result = await convertPdfTextToHtmlAuto(
+      Buffer.from('x'),
+      'protected.pdf'
+    );
+
+    expect(result).toEqual({
+      html: '',
+      cardCount: 0,
+      isDrmLocked: false,
+      needsCredential: true,
+      isTextShaped: false,
+    });
+  });
+
+  it('reports text-shaped with zero cards when no heading structure exists', async () => {
+    const longLine =
+      'Every line in this export is a long flowing paragraph well over the heading limit.';
+    mockExtract.mockResolvedValue({
+      pages: Array.from({ length: 5 }, () => ({
+        text: [longLine, longLine].join('\n'),
+      })),
+      pageCount: 5,
+      avgCharsPerPage: 320,
+      isDrmLocked: false,
+      needsCredential: false,
+    });
+
+    const result = await convertPdfTextToHtmlAuto(
+      Buffer.from('x'),
+      'prose.pdf'
+    );
+
+    expect(result.isTextShaped).toBe(true);
+    expect(result.cardCount).toBe(0);
   });
 });

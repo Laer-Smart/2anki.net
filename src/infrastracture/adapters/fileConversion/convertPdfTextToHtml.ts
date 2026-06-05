@@ -1,5 +1,10 @@
 import { extractPdfText } from '../../../lib/parser/extractPdfText';
-import { synthesizeCardsFromPdf } from '../../../lib/parser/synthesizeCardsFromPdf';
+import {
+  synthesizeCardsFromPdf,
+  PdfCard,
+} from '../../../lib/parser/synthesizeCardsFromPdf';
+import { synthesizeCardsFromPdfHeadings } from '../../../lib/parser/synthesizeCardsFromPdfHeadings';
+import { isTextShapedPdf } from '../../../lib/parser/isTextShapedPdf';
 import path from 'path';
 
 function escapeHtml(text: string): string {
@@ -31,6 +36,22 @@ export interface ConvertPdfTextToHtmlResult {
   needsCredential: boolean;
 }
 
+export interface ConvertPdfTextToHtmlAutoResult
+  extends ConvertPdfTextToHtmlResult {
+  isTextShaped: boolean;
+}
+
+function renderCardsAsHtml(title: string, cards: PdfCard[]): string {
+  const toggles = cards.map((c) => cardToToggle(c.front, c.back)).join('\n');
+  return `<!DOCTYPE html>
+<html>
+<head><title>${escapeHtml(title)}</title></head>
+<body>
+${toggles}
+</body>
+</html>`;
+}
+
 export async function convertPdfTextToHtml(
   buffer: Buffer,
   name: string,
@@ -48,15 +69,57 @@ export async function convertPdfTextToHtml(
   }
 
   const cards = synthesizeCardsFromPdf(extraction.pages, title);
-
-  const toggles = cards.map((c) => cardToToggle(c.front, c.back)).join('\n');
-  const html = `<!DOCTYPE html>
-<html>
-<head><title>${escapeHtml(title)}</title></head>
-<body>
-${toggles}
-</body>
-</html>`;
+  const html = renderCardsAsHtml(title, cards);
 
   return { html, cardCount: cards.length, isDrmLocked: false, needsCredential: false };
+}
+
+export async function convertPdfTextToHtmlAuto(
+  buffer: Buffer,
+  name: string,
+  credential?: string
+): Promise<ConvertPdfTextToHtmlAutoResult> {
+  const title = path.basename(name, path.extname(name));
+  const extraction = await extractPdfText(buffer, credential);
+
+  if (extraction.needsCredential) {
+    return {
+      html: '',
+      cardCount: 0,
+      isDrmLocked: false,
+      needsCredential: true,
+      isTextShaped: false,
+    };
+  }
+
+  if (extraction.isDrmLocked) {
+    return {
+      html: '',
+      cardCount: 0,
+      isDrmLocked: true,
+      needsCredential: false,
+      isTextShaped: false,
+    };
+  }
+
+  if (!isTextShapedPdf(extraction)) {
+    return {
+      html: '',
+      cardCount: 0,
+      isDrmLocked: false,
+      needsCredential: false,
+      isTextShaped: false,
+    };
+  }
+
+  const cards = synthesizeCardsFromPdfHeadings(extraction.pages, title);
+  const html = renderCardsAsHtml(title, cards);
+
+  return {
+    html,
+    cardCount: cards.length,
+    isDrmLocked: false,
+    needsCredential: false,
+    isTextShaped: true,
+  };
 }
