@@ -4,17 +4,26 @@ jest.mock('./storage/jobs/helpers/performConversion', () => ({
 }));
 
 const mockPoolRun = jest.fn();
-jest.mock('piscina', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
-    run: (...args: unknown[]) => mockPoolRun(...args),
-  })),
-}));
 
 jest.mock('../data_layer/NotionRespository');
 jest.mock('../data_layer/BlocksCacheRepository');
 jest.mock('../data_layer/JobRepository');
 jest.mock('../usecases/jobs/SetJobFailedUseCase');
+
+jest.mock('piscina', () => {
+  const construct = jest.fn();
+  const fakePiscina = jest.fn().mockImplementation((options) => {
+    construct(options);
+    return {
+      run: (...args: unknown[]) => mockPoolRun(...args),
+      close: jest.fn(),
+      destroy: jest.fn(),
+      queueSize: 0,
+    };
+  });
+  (fakePiscina as unknown as { construct: jest.Mock }).construct = construct;
+  return { __esModule: true, default: fakePiscina };
+});
 
 import performConversion from './storage/jobs/helpers/performConversion';
 import NotionRepository from '../data_layer/NotionRespository';
@@ -22,11 +31,15 @@ import BlocksCacheRepository from '../data_layer/BlocksCacheRepository';
 import JobRepository from '../data_layer/JobRepository';
 import { SetJobFailedUseCase } from '../usecases/jobs/SetJobFailedUseCase';
 import { NOTION_TOKEN_EXPIRED_REASON } from '../usecases/jobs/jobFailureReason';
+import Piscina from 'piscina';
 import {
   resolveConversionWorkers,
   runConversionInWorker,
   runUploadGeneration,
   shutdownConversionPool,
+  initConversionPool,
+  resetConversionPoolForTesting,
+  POOL_CLOSE_TIMEOUT_MS,
   ConversionWorkerRequest,
 } from './conversionPool';
 import { UploadGenerationTask } from '../usecases/uploads/uploadGenerationTypes';
@@ -249,5 +262,32 @@ describe('shutdownConversionPool', () => {
     expect(errorSpy).toHaveBeenCalledWith(
       expect.stringContaining('3 queued conversion(s)')
     );
+  });
+});
+
+describe('initConversionPool', () => {
+  const construct = (Piscina as unknown as { construct: jest.Mock }).construct;
+
+  beforeEach(() => {
+    resetConversionPoolForTesting();
+    construct.mockClear();
+    (Piscina as unknown as jest.Mock).mockClear();
+  });
+
+  afterEach(() => {
+    resetConversionPoolForTesting();
+  });
+
+  it('sets closeTimeout to the drain budget so close() waits for in-flight conversions', () => {
+    initConversionPool();
+
+    expect(construct).toHaveBeenCalledTimes(1);
+    expect(construct.mock.calls[0][0]).toMatchObject({
+      closeTimeout: POOL_CLOSE_TIMEOUT_MS,
+    });
+  });
+
+  it('keeps the drain budget well above piscina default so large decks finish', () => {
+    expect(POOL_CLOSE_TIMEOUT_MS).toBeGreaterThanOrEqual(60_000);
   });
 });

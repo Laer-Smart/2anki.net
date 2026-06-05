@@ -1,16 +1,25 @@
 import type http from 'http';
 import type { Knex } from 'knex';
-import { shutdownConversionPool } from './conversionPool';
+import {
+  shutdownConversionPool,
+  POOL_CLOSE_TIMEOUT_MS,
+} from './conversionPool';
 
-// pm2 sends SIGINT then escalates to SIGKILL after kill_timeout (set to
-// 30s in ecosystem.blue-green.config.js). Reserve a safety margin so process.exit
-// fires before pm2's SIGKILL lands.
-export const SHUTDOWN_TIMEOUT_MS = 25_000;
-// The drain budget must stay just under SHUTDOWN_TIMEOUT_MS, not far below it:
-// an in-flight conversion that finishes between the old 20s ceiling and the 25s
-// hard exit was being force-destroyed with grace budget still on the clock.
-// 2s reserve covers the trailing database.destroy() before the hard exit fires.
-export const POOL_DRAIN_TIMEOUT_MS = 23_000;
+// pm2 sends SIGINT then escalates to SIGKILL after kill_timeout
+// (ecosystem.blue-green.config.js). Blue-green puts the new color live before
+// the old color drains, so a slow drain on the retiring process never delays a
+// user — the budget only needs to outlast the slowest legitimate conversion.
+export const PM2_KILL_TIMEOUT_MS = 90_000;
+// Reserve under PM2_KILL_TIMEOUT_MS so process.exit fires before pm2's SIGKILL.
+export const SHUTDOWN_TIMEOUT_MS = 85_000;
+// Sits just above piscina's own closeTimeout: close() races the pool flush
+// against that internal ceiling and self-destructs on timeout, so the outer
+// race here gives piscina its full window first, then force-destroys only if
+// close() itself hangs. A large Notion deck (pagination plus image/PDF
+// downloads plus the Python .apkg build) can run past the old 23s window; the
+// 80s pool budget lets it finish, and the 5s reserve below SHUTDOWN_TIMEOUT_MS
+// covers the trailing database.destroy() before the hard exit.
+export const POOL_DRAIN_TIMEOUT_MS = POOL_CLOSE_TIMEOUT_MS + 3_000;
 
 let shuttingDown = false;
 

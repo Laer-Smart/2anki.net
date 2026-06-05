@@ -1,6 +1,8 @@
 jest.mock('./conversionPool', () => ({
   __esModule: true,
   shutdownConversionPool: jest.fn(),
+  POOL_CLOSE_TIMEOUT_MS:
+    jest.requireActual('./conversionPool').POOL_CLOSE_TIMEOUT_MS,
 }));
 
 import type http from 'http';
@@ -10,6 +12,7 @@ import {
   gracefulShutdown,
   POOL_DRAIN_TIMEOUT_MS,
   SHUTDOWN_TIMEOUT_MS,
+  PM2_KILL_TIMEOUT_MS,
   resetGracefulShutdownStateForTesting,
 } from './gracefulShutdown';
 
@@ -134,7 +137,12 @@ describe('gracefulShutdown', () => {
     expect(drainMock).toHaveBeenCalledTimes(1);
   });
 
-  it('drains the pool with a budget below the hard shutdown ceiling', () => {
+  it('orders the timeouts so drain finishes before the hard exit and pm2 SIGKILL', () => {
     expect(POOL_DRAIN_TIMEOUT_MS).toBeLessThan(SHUTDOWN_TIMEOUT_MS);
+    expect(SHUTDOWN_TIMEOUT_MS).toBeLessThan(PM2_KILL_TIMEOUT_MS);
+  });
+
+  it('gives in-flight conversions room past the old 23s window that force-killed large decks', () => {
+    expect(POOL_DRAIN_TIMEOUT_MS).toBeGreaterThanOrEqual(60_000);
   });
 });
