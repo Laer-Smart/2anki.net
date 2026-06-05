@@ -3,6 +3,7 @@ import {
   Heading1BlockObjectResponse,
   Heading2BlockObjectResponse,
   Heading3BlockObjectResponse,
+  Heading4BlockObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints';
 
 export const getHeading = (block?: BlockObjectResponse) => {
@@ -13,6 +14,8 @@ export const getHeading = (block?: BlockObjectResponse) => {
       return (block as Heading2BlockObjectResponse).heading_2;
     case 'heading_3':
       return (block as Heading3BlockObjectResponse).heading_3;
+    case 'heading_4':
+      return (block as Heading4BlockObjectResponse).heading_4;
     default:
       return undefined;
   }

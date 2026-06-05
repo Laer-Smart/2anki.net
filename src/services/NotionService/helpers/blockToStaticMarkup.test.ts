@@ -272,7 +272,7 @@ describe('blockToStaticMarkup', () => {
     expect(result).toBe('<p>synced child content</p>');
   });
 
-  it('still emits the unsupported placeholder for genuinely unknown block types', async () => {
+  it('drops genuinely unknown block types without leaking placeholder text or JSON', async () => {
     const handler = makeHandler();
     const unknownBlock = {
       object: 'block',
@@ -290,8 +290,68 @@ describe('blockToStaticMarkup', () => {
 
     const consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation(() => undefined);
     const result = await blockToStaticMarkup(handler, unknownBlock);
-    consoleDebugSpy.mockRestore();
 
-    expect(result).toContain('unsupported: something_notion_added_later');
+    expect(result).toBe('');
+    expect(consoleDebugSpy).toHaveBeenCalledWith(
+      'unsupported something_notion_added_later'
+    );
+    consoleDebugSpy.mockRestore();
+  });
+
+  function makeHeading4Block(isToggleable: boolean): BlockObjectResponse {
+    return {
+      object: 'block',
+      id: 'heading4-1',
+      type: 'heading_4',
+      heading_4: {
+        rich_text: [
+          {
+            type: 'text',
+            text: { content: 'Pharmacokinetics', link: null },
+            annotations: {
+              bold: false,
+              italic: false,
+              strikethrough: false,
+              underline: false,
+              code: false,
+              color: 'default',
+            },
+            plain_text: 'Pharmacokinetics',
+            href: null,
+          },
+        ],
+        color: 'default',
+        is_toggleable: isToggleable,
+      },
+      parent: { type: 'page_id', page_id: 'page-1' },
+      created_time: '2026-06-05T07:46:00.000Z',
+      last_edited_time: '2026-06-05T07:46:00.000Z',
+      created_by: { object: 'user', id: 'user-1' },
+      last_edited_by: { object: 'user', id: 'user-1' },
+      has_children: false,
+      archived: false,
+      in_trash: false,
+    } as unknown as BlockObjectResponse;
+  }
+
+  it('renders a heading_4 block as h3-level heading markup', async () => {
+    const handler = makeHandler();
+
+    const result = await blockToStaticMarkup(handler, makeHeading4Block(false));
+
+    expect(result).toContain('<h3');
+    expect(result).toContain('Pharmacokinetics');
+    expect(result).not.toContain('unsupported');
+    expect(result).not.toContain('"object"');
+  });
+
+  it('renders a toggleable heading_4 block as heading markup like heading_3', async () => {
+    const handler = makeHandler();
+
+    const result = await blockToStaticMarkup(handler, makeHeading4Block(true));
+
+    expect(result).toContain('<h3');
+    expect(result).toContain('Pharmacokinetics');
+    expect(result).not.toContain('unsupported');
   });
 });

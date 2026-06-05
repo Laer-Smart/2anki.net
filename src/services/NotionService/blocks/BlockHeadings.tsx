@@ -23,6 +23,7 @@ const Heading = (props: HeadingProps) => {
   const { id, level, children, className } = props;
   switch (level) {
     case 'heading_3':
+    case 'heading_4':
       return (
         <h3 id={id} className={className}>
           {children}
@@ -44,7 +45,7 @@ const Heading = (props: HeadingProps) => {
 };
 
 export const BlockHeading = (
-  level: 'heading_1' | 'heading_2' | 'heading_3',
+  level: 'heading_1' | 'heading_2' | 'heading_3' | 'heading_4',
   block: GetBlockResponse,
   handler: BlockHandler
 ) => {

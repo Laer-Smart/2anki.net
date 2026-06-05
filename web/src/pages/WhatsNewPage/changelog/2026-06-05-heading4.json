@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-05-heading4",
+  "date": "2026-06-05",
+  "type": "fix",
+  "title": "Notion heading 4 blocks render as headings on cards instead of raw data"
+}
