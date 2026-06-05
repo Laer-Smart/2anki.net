@@ -39,5 +39,7 @@ module.exports = {
       },
     ],
   },
-  transformIgnorePatterns: ['/node_modules/(?!(p-limit|yocto-queue)/)'],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(\\.pnpm/)?(p-limit|yocto-queue)(@|/))',
+  ],
 };
