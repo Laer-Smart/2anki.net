@@ -133,6 +133,8 @@ jest.mock('../services/ops/ConversionMetricsService', () => {
             { week: '2026-05-04', count: 3 },
             { week: '2026-05-11', count: 8 },
           ],
+          time_to_first_deck_median_minutes_30d: 42.5,
+          upload_to_download_rate_7d: 25,
         };
       }
     },
@@ -330,6 +332,8 @@ describe('OpsRouter /api/ops/conversion/metrics', () => {
           paid_conversion_success_rate_7d: expect.any(Number),
           conversion_errors_7d_top_reasons: expect.any(Array),
           failed_conversions_weekly: expect.any(Array),
+          time_to_first_deck_median_minutes_30d: expect.any(Number),
+          upload_to_download_rate_7d: expect.any(Number),
         })
       );
     } finally {

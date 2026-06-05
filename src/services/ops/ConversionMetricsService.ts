@@ -1,3 +1,4 @@
+import type { IEventsMetricsRepository } from '../../data_layer/EventsMetricsRepository';
 import type { IJobsMetricsRepository } from '../../data_layer/JobsMetricsRepository';
 
 export type ConversionMetricKey =
@@ -6,7 +7,9 @@ export type ConversionMetricKey =
   | 'free_conversion_success_rate_7d'
   | 'paid_conversion_success_rate_7d'
   | 'conversion_errors_7d_top_reasons'
-  | 'failed_conversions_weekly';
+  | 'failed_conversions_weekly'
+  | 'time_to_first_deck_median_minutes_30d'
+  | 'upload_to_download_rate_7d';
 
 export interface ConversionErrorCount {
   reason: string;
@@ -25,18 +28,27 @@ export interface ConversionMetricsResponse {
   paid_conversion_success_rate_7d: number | null;
   conversion_errors_7d_top_reasons: ConversionErrorCount[] | null;
   failed_conversions_weekly: FailedConversionsWeekPoint[] | null;
+  time_to_first_deck_median_minutes_30d: number | null;
+  upload_to_download_rate_7d: number | null;
 }
 
 const SECONDS_PER_DAY = 24 * 60 * 60;
 const WEEKLY_HISTORY_WEEKS = 12;
+const COHORT_WINDOW_DAYS = 30;
 
 export class ConversionMetricsService {
-  constructor(private readonly repository: IJobsMetricsRepository) {}
+  constructor(
+    private readonly repository: IJobsMetricsRepository,
+    private readonly eventsMetricsRepository: IEventsMetricsRepository
+  ) {}
 
   async getMetrics(): Promise<ConversionMetricsResponse> {
     const now = new Date();
     const sevenDaysAgoMs = now.getTime() - 7 * SECONDS_PER_DAY * 1000;
     const sevenDaysAgo = new Date(sevenDaysAgoMs);
+    const thirtyDaysAgo = new Date(
+      now.getTime() - COHORT_WINDOW_DAYS * SECONDS_PER_DAY * 1000
+    );
 
     const weekStarts = this.lastNIsoWeekStartsUtc(now, WEEKLY_HISTORY_WEEKS);
     const earliestStart = new Date(weekStarts[0]);
@@ -50,6 +62,8 @@ export class ConversionMetricsService {
       paidSuccessRate7d,
       topErrors7d,
       failedConversionsWeeklyRows,
+      timeToFirstDeck30d,
+      uploadToDownloadRate7d,
     ] = await Promise.allSettled([
       this.repository.countFreeConversions7d(sevenDaysAgo),
       this.repository.countPaidConversions7d(sevenDaysAgo),
@@ -57,6 +71,8 @@ export class ConversionMetricsService {
       this.repository.computePaidSuccessRate7d(sevenDaysAgo),
       this.repository.topFailureReasons7d(sevenDaysAgo),
       this.repository.failedConversionsWeekly(earliestStart, weekEnd),
+      this.eventsMetricsRepository.medianMinutesToFirstDeck(thirtyDaysAgo),
+      this.eventsMetricsRepository.uploadToDownloadRate(sevenDaysAgo),
     ]);
 
     const failedConversionsWeekly =
@@ -76,6 +92,14 @@ export class ConversionMetricsService {
       conversion_errors_7d_top_reasons:
         topErrors7d.status === 'fulfilled' ? topErrors7d.value : null,
       failed_conversions_weekly: failedConversionsWeekly,
+      time_to_first_deck_median_minutes_30d:
+        timeToFirstDeck30d.status === 'fulfilled'
+          ? timeToFirstDeck30d.value
+          : null,
+      upload_to_download_rate_7d:
+        uploadToDownloadRate7d.status === 'fulfilled'
+          ? uploadToDownloadRate7d.value
+          : null,
     };
   }
 

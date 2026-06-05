@@ -35,6 +35,8 @@ const buildSampleMetrics = (
     week: `2026-02-${String((i % 28) + 1).padStart(2, '0')}`,
     count: i % 4,
   })),
+  time_to_first_deck_median_minutes_30d: 42,
+  upload_to_download_rate_7d: 25.4,
   ...overrides,
 });
 
@@ -73,6 +75,62 @@ describe('ConversionsTab', () => {
       '/api/ops/conversion/metrics',
       expect.objectContaining({ credentials: 'include' })
     );
+  });
+
+  test('renders the funnel cards from the response', async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => buildSampleMetrics(),
+    });
+
+    renderTab();
+
+    await waitFor(() => expect(screen.getByText('42 min')).toBeInTheDocument());
+    expect(screen.getByText('Time to first deck')).toBeInTheDocument();
+    expect(
+      screen.getByText('Median, accounts created in the last 30 days')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Upload → download rate')).toBeInTheDocument();
+    expect(screen.getByText('25.4%')).toBeInTheDocument();
+    expect(
+      screen.getByText('Distinct visitors, last 7 days')
+    ).toBeInTheDocument();
+  });
+
+  test('formats a multi-hour median in hours', async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () =>
+        buildSampleMetrics({ time_to_first_deck_median_minutes_30d: 150 }),
+    });
+
+    renderTab();
+
+    await waitFor(() =>
+      expect(screen.getByText('2.5 h')).toBeInTheDocument()
+    );
+  });
+
+  test('renders em-dash for null funnel metrics', async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () =>
+        buildSampleMetrics({
+          time_to_first_deck_median_minutes_30d: null,
+          upload_to_download_rate_7d: null,
+        }),
+    });
+
+    renderTab();
+
+    await waitFor(() => expect(screen.getByText('824')).toBeInTheDocument());
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(2);
   });
 
   test('renders failure panel titles', async () => {

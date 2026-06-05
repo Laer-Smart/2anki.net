@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import sharedStyles from '../../styles/shared.module.css';
 import {
+  formatDurationMinutes,
   formatInteger,
   formatPercentOneDecimal,
 } from './businessHelpers';
@@ -87,6 +88,35 @@ export default function ConversionsTab() {
               visible?.paid_conversion_success_rate_7d ?? null,
               formatPercentOneDecimal
             )}
+          />
+        </div>
+      </section>
+
+      <section className={styles.section} aria-labelledby="conv-section-funnel">
+        <header className={styles.sectionHeader}>
+          <h2 id="conv-section-funnel" className={styles.sectionTitle}>
+            Funnel
+          </h2>
+          <p className={styles.sectionHint}>
+            From signup or upload to a downloaded deck
+          </p>
+        </header>
+        <div className={styles.cardGrid}>
+          <MetricCard
+            title="Time to first deck"
+            value={formatNumberOrDash(
+              visible?.time_to_first_deck_median_minutes_30d ?? null,
+              formatDurationMinutes
+            )}
+            footnote="Median, accounts created in the last 30 days"
+          />
+          <MetricCard
+            title="Upload → download rate"
+            value={formatNumberOrDash(
+              visible?.upload_to_download_rate_7d ?? null,
+              formatPercentOneDecimal
+            )}
+            footnote="Distinct visitors, last 7 days"
           />
         </div>
       </section>

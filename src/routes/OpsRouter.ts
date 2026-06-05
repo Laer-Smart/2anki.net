@@ -41,6 +41,7 @@ import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepo
 import { MindmapRepository } from '../data_layer/MindmapRepository';
 import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
 import { JobsMetricsRepository } from '../data_layer/JobsMetricsRepository';
+import { EventsMetricsRepository } from '../data_layer/EventsMetricsRepository';
 import { SyncStripeSubscriptionsUseCase } from '../usecases/ops/SyncStripeSubscriptionsUseCase';
 import { GetPricingAbFunnelUseCase } from '../usecases/ops/GetPricingAbFunnelUseCase';
 import { PricingAbFunnelService } from '../services/ops/PricingAbFunnelService';
@@ -68,7 +69,8 @@ const OpsRouter = () => {
   });
 
   const conversionMetricsService = new ConversionMetricsService(
-    new JobsMetricsRepository(database)
+    new JobsMetricsRepository(database),
+    new EventsMetricsRepository(database)
   );
   const performanceMetricsService = new PerformanceMetricsService(
     database,
@@ -173,7 +175,7 @@ const OpsRouter = () => {
    * @swagger
    * /api/ops/conversion/metrics:
    *   get:
-   *     summary: Conversion success/failure metrics from jobs table
+   *     summary: Conversion success/failure metrics from jobs table plus funnel metrics from events
    *     description: Internal endpoint locked to the ops owner. Returns 404 for everyone else.
    *     tags: [Ops]
    *     responses:
