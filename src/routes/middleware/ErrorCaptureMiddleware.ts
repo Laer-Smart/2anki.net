@@ -6,6 +6,7 @@ import {
 } from '../../data_layer/ErrorEventRepository';
 import { FallbackErrorPayload } from '../../lib/errorFallback';
 import { resolveClientIp } from '../../lib/rateLimit/ipHelpers';
+import { buildUnknownPythonErrorContext } from '../../lib/anki/scrubPythonRawOutput';
 
 function sha256(value: string): string {
   return crypto.createHash('sha256').update(value).digest('hex');
@@ -47,6 +48,7 @@ export const makeErrorCaptureMiddleware = (
           release,
           ip_hash: ipHash,
           user_id: userId,
+          context: buildUnknownPythonErrorContext(err),
         };
         await repository.insert(row);
       }
