@@ -2,6 +2,7 @@ import { Response } from 'express';
 
 import { sendIndex } from './sendIndex';
 import { getIndexFileContents } from './getIndexFileContents';
+import { INDEX_HTML_CACHE_CONTROL } from '../../lib/mountWebBuild';
 
 jest.mock('./getIndexFileContents');
 
@@ -30,6 +31,18 @@ describe('sendIndex', () => {
 
     expect(res.status).not.toHaveBeenCalled();
     expect(res.send).toHaveBeenCalledWith('<html>ready</html>');
+  });
+
+  it('marks the shell no-cache so stale clients pick up new builds', () => {
+    mockedGet.mockReturnValue('<html>ready</html>');
+    const res = buildResponse();
+
+    sendIndex(res);
+
+    expect(res.set).toHaveBeenCalledWith(
+      'Cache-Control',
+      INDEX_HTML_CACHE_CONTROL
+    );
   });
 
   it('responds 503 with Retry-After when the build is mid-deploy', () => {
