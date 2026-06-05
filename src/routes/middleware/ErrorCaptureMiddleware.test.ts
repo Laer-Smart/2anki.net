@@ -193,7 +193,9 @@ describe('makeErrorCaptureMiddleware', () => {
     expect(context.python_crash_kind).toBe('unknown');
     expect(context.python_exit_code).toBe(1);
     expect(context.python_raw_output).toMatch(/^KeyError: \[path\] exploded/);
-    expect((context.python_raw_output as string).length).toBeLessThanOrEqual(500);
+    expect((context.python_raw_output as string).length).toBeLessThanOrEqual(
+      500
+    );
     expect(next).toHaveBeenCalledWith(err);
   });
 

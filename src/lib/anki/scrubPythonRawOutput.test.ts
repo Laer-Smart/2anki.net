@@ -14,7 +14,7 @@ describe('scrubPythonRawOutput', () => {
   });
 
   it('redacts non-python absolute paths', () => {
-    const raw = "FileNotFoundError: /workspace/123/uploads/secret-notes.html";
+    const raw = 'FileNotFoundError: /workspace/123/uploads/secret-notes.html';
     expect(scrubPythonRawOutput(raw)).toBe('FileNotFoundError: [path]');
   });
 
