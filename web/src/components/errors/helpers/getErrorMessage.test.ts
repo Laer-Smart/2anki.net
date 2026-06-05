@@ -38,10 +38,15 @@ describe('classifyError', () => {
   });
 
   test('a 404 from the .apkg preview endpoint says the deck is gone, not Notion', () => {
-    const err = Object.assign(new Error('Resource not found: 404 Not Found'), {
-      status: 404,
-      url: '/api/apkg/deck-abc123.apkg/cards',
-    });
+    const err = Object.assign(
+      new Error(
+        'Resource not found: GET /api/apkg/deck-abc123.apkg/cards status: 404 Not Found'
+      ),
+      {
+        status: 404,
+        url: '/api/apkg/deck-abc123.apkg/cards',
+      }
+    );
     const result = classifyError(err);
     expect(result.title).toBe('This deck is no longer available.');
     expect(result.title).not.toMatch(/Notion/i);
@@ -53,10 +58,15 @@ describe('classifyError', () => {
   });
 
   test('a 404 from a non-apkg endpoint keeps the Notion-page copy', () => {
-    const err = Object.assign(new Error('Resource not found: 404 Not Found'), {
-      status: 404,
-      url: '/api/notion/preview/xyz',
-    });
+    const err = Object.assign(
+      new Error(
+        'Resource not found: GET /api/notion/preview/xyz status: 404 Not Found'
+      ),
+      {
+        status: 404,
+        url: '/api/notion/preview/xyz',
+      }
+    );
     expect(classifyError(err).title).toBe("We couldn't open that Notion page.");
   });
 

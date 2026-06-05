@@ -49,6 +49,18 @@ describe('api.get error tagging', () => {
     expect(caught?.status).toBe(503);
   });
 
+  it('tags a 404 with the method and request path', async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response(null, { status: 404, statusText: 'Not Found' })
+    );
+
+    await expect(
+      get('http://localhost/api/notion/page/abc')
+    ).rejects.toThrowError(
+      /Resource not found: GET \/api\/notion\/page\/abc status: 404/
+    );
+  });
+
   it('tags network failures with the URL', async () => {
     fetchSpy.mockRejectedValueOnce(new TypeError('Failed to fetch'));
 

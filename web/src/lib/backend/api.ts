@@ -121,7 +121,7 @@ async function throwForErrorResponse(
   }
   if (response.status === NOT_FOUND) {
     throw taggedHttpError(
-      `Resource not found: ${response.status} ${response.statusText}`,
+      `Resource not found: GET ${pathOf(url)} status: ${response.status} ${response.statusText}`,
       'GET',
       url,
       response.status
@@ -141,7 +141,7 @@ async function throwForErrorResponse(
   );
 }
 
-function pathOf(url: string): string {
+export function pathOf(url: string): string {
   try {
     return new URL(url, globalThis.location?.origin ?? 'http://localhost').pathname;
   } catch {

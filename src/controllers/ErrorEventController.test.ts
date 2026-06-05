@@ -156,6 +156,46 @@ describe('ErrorEventController.ingest', () => {
     expect(useCase.execute).toHaveBeenCalledTimes(1);
   });
 
+  it('falls back to the Referer header when the payload has no url', async () => {
+    const useCase = makeIngestUseCase();
+    const controller = new ErrorEventController(useCase);
+    const req = makeReq({ message: 'TypeError: x is null' });
+    (req.headers as Record<string, string>).referer = 'https://2anki.net/upload';
+    await controller.ingest(req, makeRes() as unknown as Response);
+    expect(useCase.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: expect.objectContaining({ url: 'https://2anki.net/upload' }),
+      })
+    );
+  });
+
+  it('keeps the payload url when both payload url and Referer are present', async () => {
+    const useCase = makeIngestUseCase();
+    const controller = new ErrorEventController(useCase);
+    const req = makeReq(VALID_BODY);
+    (req.headers as Record<string, string>).referer = 'https://2anki.net/other';
+    await controller.ingest(req, makeRes() as unknown as Response);
+    expect(useCase.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: expect.objectContaining({ url: 'https://2anki.net' }),
+      })
+    );
+  });
+
+  it('leaves url null when neither payload url nor Referer is present', async () => {
+    const useCase = makeIngestUseCase();
+    const controller = new ErrorEventController(useCase);
+    await controller.ingest(
+      makeReq({ message: 'TypeError: x is null' }),
+      makeRes() as unknown as Response
+    );
+    expect(useCase.execute).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: expect.objectContaining({ url: null }),
+      })
+    );
+  });
+
   it('does not expose the raw IP in the response', async () => {
     const useCase = makeIngestUseCase();
     const executeSpy = jest.spyOn(useCase, 'execute');
