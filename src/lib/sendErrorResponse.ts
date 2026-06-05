@@ -2,6 +2,9 @@ import { Response } from 'express';
 
 import { APIErrorCode, APIResponseError } from '@notionhq/client';
 
+import { toNotionUploadError } from './notion/toNotionUploadError';
+import type { UploadErrorBody } from '../types/UploadErrorBody';
+
 function isExpectedUserError(error: unknown): boolean {
   if (!(error instanceof APIResponseError)) return false;
   // Notion returning Unauthorized means the user revoked access or
@@ -15,9 +18,15 @@ export default function sendErrorResponse(
   response: Response
 ) {
   let status = 500;
-  let body = { message: 'Unknown error.' };
+  let body: { message: string } | UploadErrorBody = {
+    message: 'Unknown error.',
+  };
 
-  if (error instanceof APIResponseError) {
+  const notionError = toNotionUploadError(error);
+  if (notionError) {
+    status = notionError.status;
+    body = notionError.body;
+  } else if (error instanceof APIResponseError) {
     status = error.status;
     body = { message: error.message };
   }

@@ -14,6 +14,7 @@ export type UploadErrorCode =
   | 'worker_timeout'
   | 'notion_rate_limit'
   | 'notion_object_not_found'
+  | 'notion_unauthorized'
   | 'apkg_too_large_for_anki'
   | 'zip_invalid'
   | 'unknown';

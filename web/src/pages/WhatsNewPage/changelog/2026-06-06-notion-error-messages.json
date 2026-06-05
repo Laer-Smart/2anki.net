@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-06-notion-error-messages",
+  "date": "2026-06-06",
+  "type": "fix",
+  "title": "Expired Notion connections and missing pages show what happened instead of a generic error"
+}

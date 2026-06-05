@@ -9,6 +9,7 @@ import { preserveFilesForDebugging } from '../../lib/debug/preserveFilesForDebug
 import { shouldShareFilesForDebugging } from './shouldShareFilesForDebugging';
 import * as cheerio from 'cheerio';
 import { PythonExitError, toUploadErrorCode } from '../../lib/anki/buildPythonExitError';
+import { toNotionUploadError } from '../../lib/notion/toNotionUploadError';
 import type { UploadErrorBody, UploadErrorCode } from '../../types/UploadErrorBody';
 
 const transporter = nodemailer.createTransport({
@@ -104,6 +105,12 @@ export default async function ErrorHandler(
   if (err instanceof multer.MulterError) {
     const multerBody = toMulterErrorBody(err);
     res.status(multerBody.status).json({ code: multerBody.code, message: multerBody.message });
+    return;
+  }
+
+  const notionError = toNotionUploadError(err);
+  if (notionError) {
+    res.status(notionError.status).json(notionError.body);
     return;
   }
 
