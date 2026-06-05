@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { PhotoToFlashcardsPage } from './PhotoToFlashcardsPage';
+import { prepareImageForVision } from '../../lib/image/prepareImageForVision';
 
 function renderPage() {
   return render(
@@ -135,7 +136,9 @@ describe('PhotoToFlashcardsPage', () => {
     const input = document.getElementById('photo-file-input') as HTMLInputElement;
     const pdf = new File(['x'], 'doc.pdf', { type: 'application/pdf' });
     fireEvent.change(input, { target: { files: [pdf] } });
-    expect(screen.getByText('Use JPEG, PNG, WebP, or GIF.')).toBeTruthy();
+    expect(
+      screen.getByText('Use a photo format like JPEG, PNG, WebP, GIF, or HEIC.')
+    ).toBeTruthy();
   });
 
   it('rejects photos over 10 MB', () => {
@@ -145,6 +148,68 @@ describe('PhotoToFlashcardsPage', () => {
     const oversized = makePhoto('big.jpg', 'image/jpeg', 11 * 1024 * 1024);
     fireEvent.change(input, { target: { files: [oversized] } });
     expect(screen.getByText('Photo is over the 10 MB limit. Try a smaller image.')).toBeTruthy();
+  });
+
+  it.each([
+    ['iphone.heic', 'image/heic'],
+    ['samsung.heif', 'image/heif'],
+  ])('accepts %s (%s)', (name, type) => {
+    setLocals({ paying: true });
+    renderPage();
+    const input = document.getElementById('photo-file-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [makePhoto(name, type)] } });
+    expect(screen.getByRole('button', { name: `Remove ${name}` })).toBeTruthy();
+    expect(document.querySelector('[class*="notificationDanger"]')).toBeNull();
+  });
+
+  it('accepts a photo with an empty MIME type', () => {
+    setLocals({ paying: true });
+    renderPage();
+    const input = document.getElementById('photo-file-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [makePhoto('android-pick.jpg', '')] } });
+    expect(screen.getByRole('button', { name: 'Remove android-pick.jpg' })).toBeTruthy();
+    expect(document.querySelector('[class*="notificationDanger"]')).toBeNull();
+  });
+
+  it('rejects an oversized photo even when the MIME type is empty', () => {
+    setLocals({ paying: true });
+    renderPage();
+    const input = document.getElementById('photo-file-input') as HTMLInputElement;
+    fireEvent.change(input, {
+      target: { files: [makePhoto('huge.heic', '', 11 * 1024 * 1024)] },
+    });
+    expect(screen.getByText('Photo is over the 10 MB limit. Try a smaller image.')).toBeTruthy();
+  });
+
+  it('shows the decode error per photo when the image cannot be read', async () => {
+    setLocals({ paying: true });
+    vi.mocked(prepareImageForVision).mockRejectedValueOnce(
+      new Error('Could not read the image')
+    );
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderPage();
+    const input = document.getElementById('photo-file-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [makePhoto('broken.heic', 'image/heic')] } });
+    fireEvent.click(screen.getByText('Get cards'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Could not read the image')).toBeTruthy();
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('lists HEIC and HEIF in the file picker accept attribute', () => {
+    renderPage();
+    const input = document.getElementById('photo-file-input') as HTMLInputElement;
+    const camera = document.getElementById('photo-camera-input') as HTMLInputElement;
+    for (const accept of [input.accept, camera.accept]) {
+      expect(accept).toContain('image/heic');
+      expect(accept).toContain('image/heif');
+      expect(accept).toContain('.heic');
+      expect(accept).toContain('.heif');
+    }
   });
 
   it('shows the specific 404 message when the route is disabled', async () => {
@@ -656,7 +721,9 @@ describe('PhotoToFlashcardsPage', () => {
       const pdf = new File(['x'], 'doc.pdf', { type: 'application/pdf' });
       fireEvent.change(input, { target: { files: [makePhoto('ok.jpg'), pdf] } });
       expect(getThumbnails()).toHaveLength(1);
-      expect(screen.getByText('Use JPEG, PNG, WebP, or GIF.')).toBeTruthy();
+      expect(
+        screen.getByText('Use a photo format like JPEG, PNG, WebP, GIF, or HEIC.')
+      ).toBeTruthy();
     });
 
     it('exposes a multiple-file input so picker allows in-batch multi-select', () => {
