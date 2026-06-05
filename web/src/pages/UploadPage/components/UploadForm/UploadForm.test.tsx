@@ -81,6 +81,27 @@ describe('UploadForm', () => {
     }
   });
 
+  test('renders the Drive shape-hint with its own shapeHint class', () => {
+    const previousClient = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    const previousKey = process.env.REACT_APP_GOOGLE_API_KEY;
+    process.env.REACT_APP_GOOGLE_CLIENT_ID = 'test-client';
+    process.env.REACT_APP_GOOGLE_API_KEY = 'AIza' + 'fake-test-key';
+    try {
+      const { container } = renderUploadForm(
+        <UploadForm setErrorMessage={vi.fn()} />
+      );
+      const hint = Array.from(
+        container.querySelectorAll('#upload-panel-google-drive span')
+      ).find((el) => el.textContent?.includes('Docs work best'));
+      expect(hint).toBeDefined();
+      expect(hint?.className).toMatch(/shapeHint/);
+      expect(hint?.className).not.toMatch(/dropHint/);
+    } finally {
+      process.env.REACT_APP_GOOGLE_CLIENT_ID = previousClient;
+      process.env.REACT_APP_GOOGLE_API_KEY = previousKey;
+    }
+  });
+
   test('renders the Google Drive chip disabled when env vars are missing', () => {
     const previousClient = process.env.REACT_APP_GOOGLE_CLIENT_ID;
     const previousKey = process.env.REACT_APP_GOOGLE_API_KEY;

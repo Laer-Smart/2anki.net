@@ -1545,7 +1545,7 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
             <span className={formStyles.dropText}>
               Pick a Doc, Sheet, Slide, or file from your Google Drive.
             </span>
-            <span className={formStyles.dropHint}>
+            <span className={formStyles.shapeHint}>
               Docs work best as a bulleted outline — top bullet asks, indented bullet answers.
             </span>
             <button
