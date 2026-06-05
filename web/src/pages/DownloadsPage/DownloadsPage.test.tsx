@@ -739,3 +739,79 @@ describe('DownloadsPage make another deck CTA', () => {
     expect(screen.getByTestId('location-display').textContent).toBe('/upload');
   });
 });
+
+describe('DownloadsPage truncation notice', () => {
+  const truncatedJob = (subDeckRulesSkipped: boolean) =>
+    buildJob({
+      status: 'done',
+      type: 'page',
+      title: 'Long Notion Page',
+      download_key: 'deck-long.apkg',
+      job_reason_failure: JSON.stringify({
+        code: 'notion_truncated',
+        blocks_converted: 100,
+        sub_deck_rules_skipped: subDeckRulesSkipped,
+      }),
+    });
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-01T12:00:00Z'));
+    (globalThis as AnalyticsGlobals).hj = vi.fn();
+    (globalThis as AnalyticsGlobals).gtag = vi.fn();
+    mockJobs = [truncatedJob(false)];
+    mockUploads = [];
+    mockDropboxUploads = [];
+    mockGoogleDriveUploads = [];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    delete (globalThis as AnalyticsGlobals).hj;
+    delete (globalThis as AnalyticsGlobals).gtag;
+  });
+
+  it('shows a Partial toggle on a truncated done Notion row', () => {
+    renderAt('/downloads');
+    expect(screen.getByText('Partial')).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Converted the first 100 blocks/)
+    ).not.toBeInTheDocument();
+  });
+
+  it('expands the truncation note with the upgrade link on toggle', () => {
+    renderAt('/downloads');
+    fireEvent.click(screen.getByRole('button', { name: 'Show conversion note' }));
+    expect(
+      screen.getByText(/Converted the first 100 blocks\. The free plan stops there/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'upgrade to convert the whole page' })
+    ).toHaveAttribute('href', '/pricing?source=truncated-conversion');
+    expect(
+      screen.queryByText(/Sub-deck rules from toggles/)
+    ).not.toBeInTheDocument();
+  });
+
+  it('adds the sub-deck rules line when they were skipped', () => {
+    mockJobs = [truncatedJob(true)];
+    renderAt('/downloads');
+    fireEvent.click(screen.getByRole('button', { name: 'Show conversion note' }));
+    expect(
+      screen.getByText(/Sub-deck rules from toggles, headings, and databases apply on paid plans/)
+    ).toBeInTheDocument();
+  });
+
+  it('shows no toggle on a done Notion row without truncation', () => {
+    mockJobs = [
+      buildJob({
+        status: 'done',
+        type: 'page',
+        title: 'Short Page',
+        download_key: 'deck-short.apkg',
+      }),
+    ];
+    renderAt('/downloads');
+    expect(screen.queryByText('Partial')).not.toBeInTheDocument();
+  });
+});

@@ -31,6 +31,8 @@ import JobResponse from '../../schemas/public/JobResponse';
 import { NotionColumnMappingModal } from '../../components/NotionColumnMappingModal/NotionColumnMappingModal';
 import { parseAmbiguousColumnsPayload, type FieldMapping } from '../../lib/fieldMapping/types';
 import { ConversionResult } from './components/ConversionResult/ConversionResult';
+import { TruncationNotice } from './components/TruncationNotice';
+import { parseTruncationPayload } from './helpers/parseTruncationPayload';
 import { parseMonthlyLimitPayload } from './components/ConversionResult/parseMonthlyLimitPayload';
 import styles from './DownloadsPage.module.css';
 import sharedStyles from '../../styles/shared.module.css';
@@ -396,6 +398,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                         if (row.kind === 'job') {
                           const isExpanded = expandedFailureJobId === row.job.id;
                           const isFailed = isFailedJob(row.job.status);
+                          const truncation = parseTruncationPayload(row.job);
                           const toggleFailurePanel = () => {
                             setExpandedFailureJobId(isExpanded ? null : row.job.id);
                           };
@@ -431,7 +434,23 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                         onToggle: toggleFailurePanel,
                                       })
                                     ) : (
-                                      renderJobStatusCell(row.job, () => setHasDownloaded(true))
+                                      <>
+                                        {renderJobStatusCell(row.job, () => setHasDownloaded(true))}
+                                        {truncation != null && (
+                                          <button
+                                            type="button"
+                                            className={styles.statusToggle}
+                                            onClick={toggleFailurePanel}
+                                            aria-label={isExpanded ? 'Collapse conversion note' : 'Show conversion note'}
+                                            aria-expanded={isExpanded}
+                                          >
+                                            <span className={sharedStyles.badge}>Partial</span>
+                                            <span className={`${styles.statusChevron} ${isExpanded ? styles.statusChevronExpanded : ''}`}>
+                                              ▾
+                                            </span>
+                                          </button>
+                                        )}
+                                      </>
                                     )}
                                     <div className={styles.secondaryActions}>
                                       {isDoneJob(row.job.status) && row.job.download_key != null && APKG_PATTERN.test(row.job.download_key) && (
@@ -480,6 +499,16 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                       () => setMappingModalJob(row.job),
                                       data?.user?.email ?? undefined
                                     )}
+                                  </td>
+                                </tr>
+                              )}
+                              {!isFailed && isExpanded && truncation != null && (
+                                <tr key={`job-${row.job.id}-truncation`}>
+                                  <td colSpan={4} className={styles.failurePanel}>
+                                    <TruncationNotice
+                                      blocksConverted={truncation.blocksConverted}
+                                      subDeckRulesSkipped={truncation.subDeckRulesSkipped}
+                                    />
                                   </td>
                                 </tr>
                               )}

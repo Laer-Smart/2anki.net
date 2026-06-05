@@ -36,6 +36,8 @@ Notion pages and databases always become decks. Pick which blocks **inside** the
 
 Pick zero or more. If you pick none, the whole page is one deck.
 
+The toggle, heading, and database sub-deck options apply on paid plans. Sub-pages nest as sub-decks on every plan.
+
 ### Flashcards
 
 Which Notion block types become individual cards. Default is just `toggle`. Available choices:

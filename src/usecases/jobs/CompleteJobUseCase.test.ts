@@ -120,6 +120,55 @@ describe('CompleteJobUseCase', () => {
     expect(result).toEqual(cancelledJob);
   });
 
+  it('persists a namespaced truncation payload on done', async () => {
+    const jobRepository = {
+      findJobById: jest.fn().mockResolvedValue({
+        id: 1,
+        object_id: 'page-1',
+        owner: 'user-a',
+        status: 'started',
+      }),
+      updateJobStatus: jest.fn().mockResolvedValue({ status: 'done' }),
+    } as unknown as JobRepository;
+
+    const useCase = new CompleteJobUseCase(jobRepository);
+    await useCase.execute('page-1', 'user-a', 42, {
+      blocksConverted: 100,
+      subDeckRulesSkipped: true,
+    });
+
+    const description = (jobRepository.updateJobStatus as jest.Mock).mock
+      .calls[0][3];
+    expect(JSON.parse(description)).toEqual({
+      code: 'notion_truncated',
+      blocks_converted: 100,
+      sub_deck_rules_skipped: true,
+    });
+  });
+
+  it('leaves the failure reason untouched when there is no truncation', async () => {
+    const jobRepository = {
+      findJobById: jest.fn().mockResolvedValue({
+        id: 1,
+        object_id: 'page-1',
+        owner: 'user-a',
+        status: 'started',
+      }),
+      updateJobStatus: jest.fn().mockResolvedValue({ status: 'done' }),
+    } as unknown as JobRepository;
+
+    const useCase = new CompleteJobUseCase(jobRepository);
+    await useCase.execute('page-1', 'user-a', 42);
+
+    expect(jobRepository.updateJobStatus).toHaveBeenCalledWith(
+      'page-1',
+      'user-a',
+      'done',
+      undefined,
+      42
+    );
+  });
+
   it('throws when the job does not exist', async () => {
     const jobRepository = {
       findJobById: jest.fn().mockResolvedValue(null),

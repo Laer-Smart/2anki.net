@@ -1,6 +1,10 @@
 import JobRepository from '../../data_layer/JobRepository';
 import Jobs from '../../data_layer/public/Jobs';
 import UsersRepository from '../../data_layer/UsersRepository';
+import {
+  buildNotionTruncationPayload,
+  ConversionTruncation,
+} from '../../services/NotionService/helpers/conversionTruncation';
 
 export class CompleteJobUseCase {
   constructor(
@@ -11,7 +15,8 @@ export class CompleteJobUseCase {
   async execute(
     jobId: string,
     owner: string,
-    cardCount = 0
+    cardCount = 0,
+    truncation?: ConversionTruncation
   ): Promise<Jobs> {
     const job = await this.jobRepository.findJobById(jobId, owner);
 
@@ -27,7 +32,7 @@ export class CompleteJobUseCase {
       jobId,
       owner,
       'done',
-      undefined,
+      truncation ? buildNotionTruncationPayload(truncation) : undefined,
       cardCount
     );
 
