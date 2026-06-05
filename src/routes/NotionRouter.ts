@@ -146,6 +146,17 @@ const NotionRouter = () => {
    *       guess that path because OAuth flows are commonly called "login";
    *       this endpoint is the canonical one.
    *     tags: [Notion]
+   *     parameters:
+   *       - in: query
+   *         name: client
+   *         required: false
+   *         schema:
+   *           type: string
+   *           enum: [native]
+   *         description: |
+   *           Pass `native` to get a link whose OAuth state is bound to the
+   *           authenticated user for the native app flow. Requires a valid
+   *           session — anonymous callers receive 401.
    *     responses:
    *       200:
    *         description: Notion link retrieved successfully
@@ -165,6 +176,11 @@ const NotionRouter = () => {
    *                   type: string
    *                   nullable: true
    *                   description: Connected workspace name
+   *       401:
+   *         description: |
+   *           Returned only for `client=native` without a valid session. The
+   *           native OAuth state is bound to the user, so authentication is
+   *           required. Body carries `code: auth_required_for_native`.
    */
   router.get(
     '/api/notion/get-notion-link',
