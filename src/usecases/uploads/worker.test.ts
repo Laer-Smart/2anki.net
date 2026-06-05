@@ -142,7 +142,10 @@ describe('runUploadGenerationInWorker', () => {
     } as unknown as MessagePort;
   }
 
-  function makeTask(file: UploadedFile, progressPort?: MessagePort): UploadGenerationTask {
+  function makeTask(
+    file: UploadedFile,
+    progressPort?: MessagePort
+  ): UploadGenerationTask {
     return {
       paying: false,
       files: [file],

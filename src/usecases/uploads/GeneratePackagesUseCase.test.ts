@@ -48,7 +48,9 @@ describe('GeneratePackagesUseCase', () => {
   it('dispatches the generation task through the conversion pool', async () => {
     mockRunUploadGeneration.mockResolvedValueOnce({
       ok: true,
-      packages: [{ name: 'notes.apkg', cardCount: 5, mcqCount: 0, mcqSkippedCount: 0 }] as never,
+      packages: [
+        { name: 'notes.apkg', cardCount: 5, mcqCount: 0, mcqSkippedCount: 0 },
+      ] as never,
       warnings: [],
     });
     const useCase = new GeneratePackagesUseCase();
@@ -129,7 +131,12 @@ describe('GeneratePackagesUseCase', () => {
     });
     const useCase = new GeneratePackagesUseCase();
 
-    await useCase.execute(false, [makeFile('notes.html')], makeSettings(), makeWorkspace());
+    await useCase.execute(
+      false,
+      [makeFile('notes.html')],
+      makeSettings(),
+      makeWorkspace()
+    );
 
     const [task, transferList] = mockRunUploadGeneration.mock.calls[0];
     expect(task.progressPort).toBeUndefined();
@@ -139,12 +146,19 @@ describe('GeneratePackagesUseCase', () => {
   it('rejects when the pool worker reports an error', async () => {
     mockRunUploadGeneration.mockResolvedValueOnce({
       ok: false,
-      error: { message: "Cannot read properties of undefined (reading 'name')" },
+      error: {
+        message: "Cannot read properties of undefined (reading 'name')",
+      },
     });
     const useCase = new GeneratePackagesUseCase();
 
     await expect(
-      useCase.execute(false, [makeFile('bad.html')], makeSettings(), makeWorkspace())
+      useCase.execute(
+        false,
+        [makeFile('bad.html')],
+        makeSettings(),
+        makeWorkspace()
+      )
     ).rejects.toThrow("Cannot read properties of undefined (reading 'name')");
   });
 
@@ -153,7 +167,12 @@ describe('GeneratePackagesUseCase', () => {
     const useCase = new GeneratePackagesUseCase();
 
     await expect(
-      useCase.execute(false, [makeFile('crash.html')], makeSettings(), makeWorkspace())
+      useCase.execute(
+        false,
+        [makeFile('crash.html')],
+        makeSettings(),
+        makeWorkspace()
+      )
     ).rejects.toThrow('Worker crashed');
   });
 
@@ -161,14 +180,20 @@ describe('GeneratePackagesUseCase', () => {
     mockRunUploadGeneration.mockResolvedValueOnce({
       ok: false,
       error: {
-        message: 'No cards found in your upload. Use .zip, .html, .md, or .csv.',
+        message:
+          'No cards found in your upload. Use .zip, .html, .md, or .csv.',
         name: 'EmptyDeckError',
       },
     });
     const useCase = new GeneratePackagesUseCase();
 
     await expect(
-      useCase.execute(false, [makeFile('empty.html')], makeSettings(), makeWorkspace())
+      useCase.execute(
+        false,
+        [makeFile('empty.html')],
+        makeSettings(),
+        makeWorkspace()
+      )
     ).rejects.toBeInstanceOf(EmptyDeckError);
   });
 
@@ -177,7 +202,12 @@ describe('GeneratePackagesUseCase', () => {
     const useCase = new GeneratePackagesUseCase();
 
     const err = await useCase
-      .execute(false, [makeFile('garbled.html')], makeSettings(), makeWorkspace())
+      .execute(
+        false,
+        [makeFile('garbled.html')],
+        makeSettings(),
+        makeWorkspace()
+      )
       .catch((e: unknown) => e);
 
     expect(err).toBeInstanceOf(Error);
@@ -193,7 +223,12 @@ describe('GeneratePackagesUseCase', () => {
     const useCase = new GeneratePackagesUseCase();
 
     const err = await useCase
-      .execute(false, [makeFile('garbled.html')], makeSettings(), makeWorkspace())
+      .execute(
+        false,
+        [makeFile('garbled.html')],
+        makeSettings(),
+        makeWorkspace()
+      )
       .catch((e: unknown) => e);
 
     expect(err).toBeInstanceOf(Error);
@@ -205,7 +240,8 @@ describe('GeneratePackagesUseCase', () => {
     mockRunUploadGeneration.mockResolvedValueOnce({
       ok: false,
       error: {
-        message: 'No cards found in your upload. Use .zip, .html, .md, or .csv.',
+        message:
+          'No cards found in your upload. Use .zip, .html, .md, or .csv.',
         name: 'EmptyDeckError',
         sourceFormat: 'markdown',
       },
@@ -213,7 +249,12 @@ describe('GeneratePackagesUseCase', () => {
     const useCase = new GeneratePackagesUseCase();
 
     const err = await useCase
-      .execute(false, [makeFile('flat-export.md')], makeSettings(), makeWorkspace())
+      .execute(
+        false,
+        [makeFile('flat-export.md')],
+        makeSettings(),
+        makeWorkspace()
+      )
       .catch((e: unknown) => e);
 
     expect(err).toBeInstanceOf(EmptyDeckError);
