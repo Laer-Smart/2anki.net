@@ -4,12 +4,25 @@ import {
   TableBlockObjectResponse,
   TableRowBlockObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints';
+import handleClozeDeletions from '../../../../lib/parser/helpers/handleClozeDeletions';
+import hasInlineClozeCode from '../../../../lib/parser/helpers/hasInlineClozeCode';
 import BlockHandler from '../../BlockHandler/BlockHandler';
 import renderTextChildren from '../../helpers/renderTextChildren';
 
 interface TableCard {
   front: string;
   back: string;
+  isCloze: boolean;
+}
+
+function toClozeCard(front: string, back: string): TableCard {
+  if (hasInlineClozeCode(front)) {
+    return { front: handleClozeDeletions(front), back, isCloze: true };
+  }
+  if (hasInlineClozeCode(back)) {
+    return { front: handleClozeDeletions(back), back: front, isCloze: true };
+  }
+  return { front, back, isCloze: false };
 }
 
 function renderCell(
@@ -65,7 +78,11 @@ export function tableRowsToCards(
         ? col2 + buildExtraColumnsTable(extraCells, handler)
         : col2;
 
-    cards.push({ front, back });
+    if (handler.settings.isCloze) {
+      cards.push(toClozeCard(front, back));
+    } else {
+      cards.push({ front, back, isCloze: false });
+    }
   }
 
   if (skippedCount > 0) {
