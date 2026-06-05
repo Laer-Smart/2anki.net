@@ -18,6 +18,7 @@ from genanki.util import guid_for
 from helpers.cards import get_safe_value
 from helpers.get_model import get_custom_model, get_model, resolve_tts_langs
 from helpers.get_model_id import get_model_id
+from helpers.get_template import get_template
 from helpers.read_template import read_template
 from helpers.sanitize_tags import sanitize_tags
 from helpers.write_apkg import _write_new_apkg
@@ -140,6 +141,12 @@ def build_one_deck(data_file, template_dir):
         INPUT_FRONT = n2aInput["front"]
         INPUT_BACK = n2aInput["back"]
 
+    HIERARCHY_MODEL_NAME = "n2a-hierarchy"
+    hierarchy_model_id = get_model_id(HIERARCHY_MODEL_NAME)
+    HIERARCHY_STYLE = (BASIC_STYLE or "") + "\n" + (
+        get_template("n2a-hierarchy.json").get("styling") or ""
+    )
+
     mcq_model_name = mt.get('mcqModelName', "n2a-mcq") or "n2a-mcq"
     mcq_model_id = mt.get('mcqModelId', get_model_id(mcq_model_name))
     mcq_settings = {
@@ -197,6 +204,19 @@ def build_one_deck(data_file, template_dir):
                     card["answer"],
                     ",".join(card["media"]),
                 ]
+            elif card.get('hierarchy', False):
+                model = get_model(
+                    ("hierarchy", hierarchy_model_id, HIERARCHY_MODEL_NAME,
+                     HIERARCHY_STYLE, None, None),
+                    front_lang=front_lang, back_lang=back_lang)
+                fields = [
+                    get_safe_value(card.get("h1", "")),
+                    get_safe_value(card.get("h2", "")),
+                    get_safe_value(card.get("h3", "")),
+                    get_safe_value(front),
+                    get_safe_value(back),
+                    ",".join(card["media"]),
+                ]
 
             if len(fields) > 0:
                 fields[0] = get_safe_value(fields[0])
@@ -211,7 +231,8 @@ def build_one_deck(data_file, template_dir):
                 guid = guid_for(notion_id)
             else:
                 card_type = "cloze" if card.get("cloze") else ("mcq" if card.get("mcq") else ("input" if card.get("enableInput") else "basic"))
-                guid = guid_for(deck["name"], fields[0], card_type)
+                guid_value = front if card.get('hierarchy', False) else fields[0]
+                guid = guid_for(deck["name"], guid_value, card_type)
             my_note = Note(model, fields=fields,
                            sort_field=card["number"], tags=tags,
                            guid=guid)

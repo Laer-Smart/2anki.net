@@ -11,6 +11,10 @@ export const availableTemplates = [
     label: 'Alexander Deluxe (Blue)'
   },
   {
+    value: 'hierarchy',
+    label: 'Hierarchy (H1 › H2 › H3 fields)'
+  },
+  {
     value: 'custom',
     label: 'My note types'
   }

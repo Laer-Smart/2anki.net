@@ -1,4 +1,8 @@
-import { buildHeadingTagMap, HeadingClassifier } from './buildHeadingTagMap';
+import {
+  buildHeadingContextMap,
+  buildHeadingTagMap,
+  HeadingClassifier,
+} from './buildHeadingTagMap';
 
 interface FakeBlock {
   object: 'block';
@@ -136,5 +140,102 @@ describe('buildHeadingTagMap', () => {
     ]);
     expect(map.has('c0')).toBe(false);
     expect(map.get('c1')).toBe('Biology');
+  });
+});
+
+const buildContext = (blocks: FakeBlock[]) =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fake blocks structurally match the heading fields the helper reads
+  buildHeadingContextMap(blocks as any, classify as any);
+
+describe('buildHeadingContextMap', () => {
+  it('captures the raw heading text per level, spaces preserved', () => {
+    const map = buildContext([
+      heading('h1', 'heading_1', 'Biology'),
+      heading('h2', 'heading_2', 'Cell division'),
+      heading('h3', 'heading_3', 'Mitosis'),
+      toggle('c1'),
+    ]);
+    expect(map.get('c1')).toEqual({
+      h1: 'Biology',
+      h2: 'Cell division',
+      h3: 'Mitosis',
+    });
+  });
+
+  it('records an all-undefined context for a card with no preceding heading', () => {
+    const map = buildContext([toggle('c0')]);
+    expect(map.get('c0')).toEqual({
+      h1: undefined,
+      h2: undefined,
+      h3: undefined,
+    });
+  });
+
+  it('clears deeper levels when a higher heading appears', () => {
+    const map = buildContext([
+      heading('h1', 'heading_1', 'Biology'),
+      heading('h2', 'heading_2', 'Cell division'),
+      heading('h3', 'heading_3', 'Mitosis'),
+      heading('h1b', 'heading_1', 'Chemistry'),
+      toggle('c1'),
+    ]);
+    expect(map.get('c1')).toEqual({
+      h1: 'Chemistry',
+      h2: undefined,
+      h3: undefined,
+    });
+  });
+
+  it('keeps H1 and clears H3 when a sibling H2 replaces the current H2', () => {
+    const map = buildContext([
+      heading('h1', 'heading_1', 'Biology'),
+      heading('h2', 'heading_2', 'Cell division'),
+      heading('h3', 'heading_3', 'Mitosis'),
+      heading('h2b', 'heading_2', 'Respiration'),
+      toggle('c1'),
+    ]);
+    expect(map.get('c1')).toEqual({
+      h1: 'Biology',
+      h2: 'Respiration',
+      h3: undefined,
+    });
+  });
+
+  it('treats whitespace-only heading titles as absent', () => {
+    const map = buildContext([
+      heading('h1', 'heading_1', '   '),
+      heading('h2', 'heading_2', 'Respiration'),
+      toggle('c1'),
+    ]);
+    expect(map.get('c1')).toEqual({
+      h1: undefined,
+      h2: 'Respiration',
+      h3: undefined,
+    });
+  });
+
+  it('uses ancestors, not the heading itself, for a toggle-heading card', () => {
+    const map = buildContext([
+      heading('h1', 'heading_1', 'Biology'),
+      heading('h2', 'heading_2', 'Mitosis', true),
+    ]);
+    expect(map.get('h2')).toEqual({
+      h1: 'Biology',
+      h2: undefined,
+      h3: undefined,
+    });
+  });
+
+  it('ignores heading_4', () => {
+    const map = buildContext([
+      heading('h1', 'heading_1', 'Biology'),
+      heading('h4', 'heading_4', 'Deep'),
+      toggle('c1'),
+    ]);
+    expect(map.get('c1')).toEqual({
+      h1: 'Biology',
+      h2: undefined,
+      h3: undefined,
+    });
   });
 });

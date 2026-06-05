@@ -4,6 +4,12 @@ import { getHeadingText } from '../../helpers/getHeadingText';
 
 export type HeadingClassifier = (block: GetBlockResponse) => boolean;
 
+export interface HeadingContext {
+  h1?: string;
+  h2?: string;
+  h3?: string;
+}
+
 const HEADING_LEVELS: Record<string, number> = {
   heading_1: 1,
   heading_2: 2,
@@ -17,28 +23,23 @@ const headingLevelOf = (block: GetBlockResponse): number | undefined => {
   return HEADING_LEVELS[block.type];
 };
 
-const headingSegment = (block: GetBlockResponse): string => {
+const headingTitle = (block: GetBlockResponse): string => {
   if (!isFullBlock(block)) {
     return '';
   }
-  const text = getHeadingText(block)
-    ?.map((t) => t.plain_text)
-    .join('')
-    .trim();
-  if (!text) {
-    return '';
-  }
-  return text.replace(/\s+/g, '-');
+  return (
+    getHeadingText(block)
+      ?.map((t) => t.plain_text)
+      .join('')
+      .trim() ?? ''
+  );
 };
 
-const chainOf = (context: (string | undefined)[]): string =>
-  context.filter((segment): segment is string => Boolean(segment)).join('::');
-
-export const buildHeadingTagMap = (
+export const buildHeadingContextMap = (
   blocks: GetBlockResponse[],
   isCard: HeadingClassifier
-): Map<string, string> => {
-  const map = new Map<string, string>();
+): Map<string, HeadingContext> => {
+  const map = new Map<string, HeadingContext>();
   const context: (string | undefined)[] = [undefined, undefined, undefined];
 
   for (const block of blocks) {
@@ -47,10 +48,7 @@ export const buildHeadingTagMap = (
     }
 
     if (isCard(block)) {
-      const chain = chainOf(context);
-      if (chain) {
-        map.set(block.id, chain);
-      }
+      map.set(block.id, { h1: context[0], h2: context[1], h3: context[2] });
     }
 
     const level = headingLevelOf(block);
@@ -58,11 +56,30 @@ export const buildHeadingTagMap = (
       continue;
     }
 
-    context[level - 1] = headingSegment(block) || undefined;
+    context[level - 1] = headingTitle(block) || undefined;
     for (let deeper = level; deeper < context.length; deeper += 1) {
       context[deeper] = undefined;
     }
   }
 
+  return map;
+};
+
+const tagSegment = (title: string): string => title.replace(/\s+/g, '-');
+
+export const buildHeadingTagMap = (
+  blocks: GetBlockResponse[],
+  isCard: HeadingClassifier
+): Map<string, string> => {
+  const map = new Map<string, string>();
+  for (const [blockId, context] of buildHeadingContextMap(blocks, isCard)) {
+    const chain = [context.h1, context.h2, context.h3]
+      .filter((title): title is string => Boolean(title))
+      .map(tagSegment)
+      .join('::');
+    if (chain) {
+      map.set(blockId, chain);
+    }
+  }
   return map;
 };

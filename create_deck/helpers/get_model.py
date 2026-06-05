@@ -26,6 +26,10 @@ MODEL_INFO = {
     "mcq": {
         "file_name": "n2a-mcq.json",
         "model_type": Model.FRONT_BACK
+    },
+    "hierarchy": {
+        "file_name": "n2a-hierarchy.json",
+        "model_type": Model.FRONT_BACK
     }
 }
 
@@ -77,12 +81,14 @@ _FRONT_FIELD_BY_MODEL = {
     "basic": "Front",
     "input": "Front",
     "cloze": "Text",
+    "hierarchy": "Question",
 }
 
 _BACK_FIELD_BY_MODEL = {
     "basic": "Back",
     "input": "Back",
     "cloze": "Extra",
+    "hierarchy": "Answer",
 }
 
 

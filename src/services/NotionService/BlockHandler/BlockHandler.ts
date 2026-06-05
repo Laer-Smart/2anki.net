@@ -35,7 +35,11 @@ import { blockToStaticMarkup } from '../helpers/blockToStaticMarkup';
 import { getToggleSummaryRichText } from '../helpers/getToggleSummaryRichText';
 import { isToggleHeading } from '../helpers/isToggleHeading';
 import { classifyBlock } from '../../../lib/parser/intent/classifyBlock';
-import { buildHeadingTagMap } from './helpers/buildHeadingTagMap';
+import {
+  buildHeadingContextMap,
+  buildHeadingTagMap,
+  HeadingContext,
+} from './helpers/buildHeadingTagMap';
 import {
   ConversionTruncation,
   hasRuleBasedSubDecks,
@@ -97,6 +101,18 @@ function headingTagsFor(
 ): string[] {
   const tag = headingTagMap.get(blockId);
   return tag ? [tag] : [];
+}
+
+function applyHierarchyFields(
+  ankiNote: Note,
+  blockId: string,
+  headingContextMap: Map<string, HeadingContext>
+): void {
+  const context = headingContextMap.get(blockId);
+  ankiNote.hierarchy = true;
+  ankiNote.h1 = context?.h1 ?? '';
+  ankiNote.h2 = context?.h2 ?? '';
+  ankiNote.h3 = context?.h3 ?? '';
 }
 
 class BlockHandler {
@@ -258,8 +274,10 @@ class BlockHandler {
     flashcardBlocks: GetBlockResponse[],
     tags: string[],
     notionBaseLink: string | undefined,
-    headingTagMap: Map<string, string> = new Map()
+    headingTagMap: Map<string, string> = new Map(),
+    headingContextMap: Map<string, HeadingContext> = new Map()
   ): Promise<Note[]> {
+    const hierarchyEnabled = this.settings.template === 'hierarchy';
     let cards = [];
     let counter = 0;
 
@@ -285,6 +303,9 @@ class BlockHandler {
               ? headingTagsFor(tableBlock.id, headingTagMap)
               : TagRegistry.getInstance().strikethroughs;
           ankiNote.number = counter++;
+          if (hierarchyEnabled) {
+            applyHierarchyFields(ankiNote, tableBlock.id, headingContextMap);
+          }
           cards.push(ankiNote);
         }
         TagRegistry.getInstance().clear();
@@ -384,6 +405,9 @@ class BlockHandler {
           ? headingTagsFor(block.id, headingTagMap)
           : tr.strikethroughs;
       ankiNote.number = counter++;
+      if (hierarchyEnabled && isBasicType) {
+        applyHierarchyFields(ankiNote, block.id, headingContextMap);
+      }
 
       ankiNote.name = perserveNewlinesIfApplicable(
         ankiNote.name,
@@ -585,6 +609,10 @@ class BlockHandler {
         rules.TAGS === 'heading'
           ? buildHeadingTagMap(blocks, isCardBlock)
           : new Map<string, string>();
+      const headingContextMap =
+        this.settings.template === 'hierarchy'
+          ? buildHeadingContextMap(blocks, isCardBlock)
+          : new Map<string, HeadingContext>();
       this.settings.parentBlockId = page.id;
 
       let notionBaseLink =
@@ -598,7 +626,8 @@ class BlockHandler {
         cBlocks,
         tags,
         notionBaseLink,
-        headingTagMap
+        headingTagMap,
+        headingContextMap
       );
       cards = cards.filter(card => {
         if (typeof card.notionId === 'string' && globalSeenIds.has(card.notionId)) {
@@ -674,6 +703,10 @@ class BlockHandler {
             rules.TAGS === 'heading'
               ? buildHeadingTagMap(subBlocks, isSubCardBlock)
               : new Map<string, string>();
+          const subHeadingContextMap =
+            this.settings.template === 'hierarchy'
+              ? buildHeadingContextMap(subBlocks, isSubCardBlock)
+              : new Map<string, HeadingContext>();
 
           this.settings.parentBlockId = sd.id;
           let cards = await this.getFlashcards(
@@ -681,7 +714,8 @@ class BlockHandler {
             cBlocks,
             tags,
             undefined,
-            subHeadingTagMap
+            subHeadingTagMap,
+            subHeadingContextMap
           );
           // Deduplicate by globalSeenIds
           cards = cards.filter(card => {

@@ -967,5 +967,60 @@ describe('BlockHandler', () => {
       );
       expect(cards[0].tags).toEqual(['Biology::Cell-division', 'review']);
     });
+
+    test('hierarchy template populates heading fields from the context map', async () => {
+      const rules = new ParserRules();
+      const bl = buildHandler({ template: 'hierarchy' });
+      const cards = await bl.getFlashcards(
+        rules,
+        [toggleCard('card-d')],
+        [],
+        undefined,
+        new Map(),
+        new Map([
+          ['card-d', { h1: 'Biology', h2: 'Cell division', h3: 'Mitosis' }],
+        ])
+      );
+      expect(cards[0].hierarchy).toBe(true);
+      expect(cards[0].h1).toBe('Biology');
+      expect(cards[0].h2).toBe('Cell division');
+      expect(cards[0].h3).toBe('Mitosis');
+    });
+
+    test('hierarchy template leaves missing heading levels empty', async () => {
+      const rules = new ParserRules();
+      const bl = buildHandler({ template: 'hierarchy' });
+      const cards = await bl.getFlashcards(
+        rules,
+        [toggleCard('card-e')],
+        [],
+        undefined,
+        new Map(),
+        new Map([['card-e', { h1: 'Biology', h2: undefined, h3: undefined }]])
+      );
+      expect(cards[0].hierarchy).toBe(true);
+      expect(cards[0].h1).toBe('Biology');
+      expect(cards[0].h2).toBe('');
+      expect(cards[0].h3).toBe('');
+    });
+
+    test('default template leaves heading fields untouched', async () => {
+      const rules = new ParserRules();
+      const bl = buildHandler();
+      const cards = await bl.getFlashcards(
+        rules,
+        [toggleCard('card-f')],
+        [],
+        undefined,
+        new Map(),
+        new Map([
+          ['card-f', { h1: 'Biology', h2: 'Cell division', h3: 'Mitosis' }],
+        ])
+      );
+      expect(cards[0].hierarchy).toBeUndefined();
+      expect(cards[0].h1).toBeUndefined();
+      expect(cards[0].h2).toBeUndefined();
+      expect(cards[0].h3).toBeUndefined();
+    });
   });
 });
