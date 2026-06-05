@@ -1,4 +1,4 @@
-import { Client, isFullBlock, isFullDatabase } from '@notionhq/client';
+import { Client, isFullDatabase } from '@notionhq/client';
 import {
   BlockObjectRequest,
   CreatePageResponse,
@@ -18,8 +18,6 @@ import CardOption from '../../lib/parser/Settings/CardOption';
 import { getParagraphBlocks } from './helpers/getParagraphBlocks';
 import renderIcon from './helpers/renderIcon';
 import getBlockIcon, { WithIcon } from './blocks/getBlockIcon';
-import { isHeading } from './helpers/isHeading';
-import { getHeadingText } from './helpers/getHeadingText';
 import { uniqueTimerLabel } from './helpers/uniqueTimerLabel';
 import { withRetry } from './helpers/withRetry';
 import { collapseDataSourcesToDatabases } from './helpers/collapseDataSourcesToDatabases';
@@ -463,7 +461,9 @@ class NotionAPIWrapper {
     createdAt: string,
     lastEditedAt: string
   ) {
-    const useHeadings = rules.TAGS === 'heading';
+    if (rules.TAGS === 'heading') {
+      return [];
+    }
     const response = await this.getBlocks({
       createdAt,
       lastEditedAt,
@@ -472,36 +472,22 @@ class NotionAPIWrapper {
       type: 'page',
     });
     const globalTags = [];
-    if (useHeadings) {
-      const headings = response.results.filter((block) => isHeading(block));
-      for (const heading of headings) {
-        if (isFullBlock(heading)) {
-          const newTag = getHeadingText(heading)
-            ?.map((t) => t.plain_text)
-            .join('');
-          if (newTag) {
-            globalTags.push(newTag);
-          }
-        }
+    const paragraphs = getParagraphBlocks(response.results);
+    for (const p of paragraphs) {
+      const pp = p.paragraph;
+
+      if (!pp) {
+        continue;
       }
-    } else {
-      const paragraphs = getParagraphBlocks(response.results);
-      for (const p of paragraphs) {
-        const pp = p.paragraph;
 
-        if (!pp) {
-          continue;
-        }
+      const tt = pp.rich_text;
+      if (!tt || tt.length < 1) {
+        continue;
+      }
 
-        const tt = pp.rich_text;
-        if (!tt || tt.length < 1) {
-          continue;
-        }
-
-        const { annotations } = tt[0];
-        if (annotations.strikethrough) {
-          globalTags.push(tt[0].plain_text);
-        }
+      const { annotations } = tt[0];
+      if (annotations.strikethrough) {
+        globalTags.push(tt[0].plain_text);
       }
     }
     return sanitizeTags(globalTags);

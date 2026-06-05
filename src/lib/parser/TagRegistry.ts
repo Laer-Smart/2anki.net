@@ -1,6 +1,4 @@
 export default class TagRegistry {
-  headings: string[];
-
   strikethroughs: string[];
 
   // singleton instance
@@ -8,7 +6,6 @@ export default class TagRegistry {
 
   constructor() {
     this.strikethroughs = [];
-    this.headings = [];
   }
 
   static getInstance(): TagRegistry {
@@ -18,16 +15,11 @@ export default class TagRegistry {
     return TagRegistry._instance;
   }
 
-  addHeading(heading: string): void {
-    this.headings.push(heading);
-  }
-
   addStrikethrough(strikethrough: string): void {
     this.strikethroughs.push(strikethrough);
   }
 
   clear(): void {
-    this.headings = [];
     this.strikethroughs = [];
   }
 }
