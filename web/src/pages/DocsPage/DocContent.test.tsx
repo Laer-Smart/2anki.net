@@ -50,6 +50,46 @@ describe('DocContent markdown link rewriting', () => {
   });
 });
 
+const wrapTextNodesInFont = (root: HTMLElement) => {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const textNodes: Text[] = [];
+  let node = walker.nextNode();
+  while (node != null) {
+    if ((node.textContent ?? '').trim().length > 0) {
+      textNodes.push(node as Text);
+    }
+    node = walker.nextNode();
+  }
+  for (const textNode of textNodes) {
+    const font = document.createElement('font');
+    textNode.parentNode?.insertBefore(font, textNode);
+    font.appendChild(textNode);
+  }
+};
+
+function docAt(slug: string) {
+  return (
+    <MemoryRouter initialEntries={[`/documentation/${slug}`]}>
+      <Routes>
+        <Route path="/documentation/*" element={<DocContent slug={slug} />} />
+      </Routes>
+    </MemoryRouter>
+  );
+}
+
+describe('DocContent survives browser translation across navigation', () => {
+  it('renders the next doc after a translation tool wraps text in font tags', () => {
+    const { rerender } = render(docAt('start-here/what-is-2anki'));
+    const article = document.querySelector('article') as HTMLElement;
+    expect(article).not.toBeNull();
+    wrapTextNodesInFont(article);
+    rerender(docAt('start-here/connect-notion'));
+    expect(
+      screen.getByRole('heading', { level: 1, name: /connect notion/i }),
+    ).toBeInTheDocument();
+  });
+});
+
 describe('DocContent custom element embedding', () => {
   it('renders both overlapping-cloze demos from the markdown', () => {
     renderAt('cards/overlapping-cloze');

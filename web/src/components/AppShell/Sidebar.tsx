@@ -515,7 +515,7 @@ export function Sidebar({
           ) : (
             <ArrowLeftIcon width={16} height={16} />
           )}
-          {collapsed ? 'Expand' : 'Collapse'}
+          <span>{collapsed ? 'Expand' : 'Collapse'}</span>
         </span>
       </button>
     </>

@@ -157,7 +157,7 @@ export function DocContent({ slug }: Readonly<DocContentProps>) {
 
   if (!doc) {
     return (
-      <article className={styles.article}>
+      <article key={resolvedSlug} className={styles.article}>
         <h1>Not found</h1>
         <p>
           The page you are looking for does not exist.{' '}
@@ -172,7 +172,7 @@ export function DocContent({ slug }: Readonly<DocContentProps>) {
   const transformedBody = transformCallouts(body);
 
   return (
-    <article className={styles.article}>
+    <article key={resolvedSlug} className={styles.article}>
       <header className={styles.articleHeader}>
         {frontmatter.title && (
           <h1 className={styles.articleTitle}>{frontmatter.title}</h1>
