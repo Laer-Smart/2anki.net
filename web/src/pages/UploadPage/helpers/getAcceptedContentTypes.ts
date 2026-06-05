@@ -20,6 +20,7 @@ export default function getAcceptedContentTypes(): string {
     '.brainstorms.json',
     '.epub',
     '.txt',
+    '.xml',
   ];
   return acceptedTypes.join(',');
 }

@@ -156,7 +156,7 @@ export const getErrorMessage = (error: unknown): string => {
 const PER_CODE_COPY: Partial<Record<UploadErrorBody['code'], FriendlyError>> = {
   unsupported_format: {
     title: "This file type isn't supported.",
-    detail: 'Use .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, or .csv.',
+    detail: 'Use .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, .csv, or .xml.',
   },
   too_large: {
     title: 'This export is too large to convert in one go.',

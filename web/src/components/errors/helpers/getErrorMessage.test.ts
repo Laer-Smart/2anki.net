@@ -147,7 +147,7 @@ describe('classifyUploadError', () => {
     const body: UploadErrorBody = { code: 'unsupported_format', message: 'original' };
     const result = classifyUploadError(body);
     expect(result.title).toBe("This file type isn't supported.");
-    expect(result.detail).toBe('Use .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, or .csv.');
+    expect(result.detail).toBe('Use .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, .csv, or .xml.');
   });
 
   test('too_large returns copy about splitting into subpages', () => {
