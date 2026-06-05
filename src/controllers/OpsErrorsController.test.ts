@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { OpsErrorsController } from './OpsErrorsController';
 import { ListErrorGroupsUseCase } from '../usecases/ops/ListErrorGroupsUseCase';
+import { ExportErrorGroupsUseCase } from '../usecases/ops/ExportErrorGroupsUseCase';
 import { ResolveErrorGroupUseCase } from '../usecases/ops/ResolveErrorGroupUseCase';
 import { ReopenErrorGroupUseCase } from '../usecases/ops/ReopenErrorGroupUseCase';
 
@@ -30,16 +31,18 @@ function makeResponse() {
 
 function makeController() {
   const listExecute = jest.fn(async () => ({ groups: [], totalGroups: 0 }));
+  const exportExecute = jest.fn(async () => '# export');
   const resolveExecute = jest.fn(async () => {});
   const reopenExecute = jest.fn(async () => {});
 
   const controller = new OpsErrorsController(
     { execute: listExecute } as unknown as ListErrorGroupsUseCase,
+    { execute: exportExecute } as unknown as ExportErrorGroupsUseCase,
     { execute: resolveExecute } as unknown as ResolveErrorGroupUseCase,
     { execute: reopenExecute } as unknown as ReopenErrorGroupUseCase
   );
 
-  return { controller, listExecute, resolveExecute, reopenExecute };
+  return { controller, listExecute, exportExecute, resolveExecute, reopenExecute };
 }
 
 describe('OpsErrorsController.list', () => {

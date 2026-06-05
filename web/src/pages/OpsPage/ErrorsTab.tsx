@@ -6,6 +6,7 @@ import styles from './OpsPage.module.css';
 import { ErrorGroup, ErrorSort, ErrorSource, ErrorStatus } from './errorsTypes';
 import { useErrorGroups } from './useErrorGroups';
 import { buildCopyArtifact } from './buildCopyArtifact';
+import { buildExportErrorsUrl } from './exportErrorsUrl';
 import { parseUserAgent } from './parseUserAgent';
 import { resolveErrorGroup, reopenErrorGroup } from './resolveErrorGroup';
 import { ERROR_PAGE_SIZE, resolveErrorPage } from './errorPagination';
@@ -435,6 +436,13 @@ export default function ErrorsTab() {
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <a
+            className={sharedStyles.btnSmall}
+            href={buildExportErrorsUrl(status, source)}
+            download
+          >
+            Download for Claude
+          </a>
           <button
             type="button"
             className={sharedStyles.btnSmall}

@@ -2,6 +2,7 @@ import express from 'express';
 import RequireOpsAccess from './middleware/RequireOpsAccess';
 import { OpsErrorsController } from '../controllers/OpsErrorsController';
 import { ListErrorGroupsUseCase } from '../usecases/ops/ListErrorGroupsUseCase';
+import { ExportErrorGroupsUseCase } from '../usecases/ops/ExportErrorGroupsUseCase';
 import { ResolveErrorGroupUseCase } from '../usecases/ops/ResolveErrorGroupUseCase';
 import { ReopenErrorGroupUseCase } from '../usecases/ops/ReopenErrorGroupUseCase';
 import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';
@@ -12,9 +13,15 @@ const OpsErrorsRouter = () => {
   const database = getDatabase();
   const repository = new ErrorEventRepository(database);
   const listUseCase = new ListErrorGroupsUseCase(repository);
+  const exportUseCase = new ExportErrorGroupsUseCase(repository);
   const resolveUseCase = new ResolveErrorGroupUseCase(repository);
   const reopenUseCase = new ReopenErrorGroupUseCase(repository);
-  const controller = new OpsErrorsController(listUseCase, resolveUseCase, reopenUseCase);
+  const controller = new OpsErrorsController(
+    listUseCase,
+    exportUseCase,
+    resolveUseCase,
+    reopenUseCase
+  );
 
   /**
    * @swagger
@@ -49,6 +56,33 @@ const OpsErrorsRouter = () => {
    */
   router.get('/api/ops/errors', RequireOpsAccess, (req, res) =>
     controller.list(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/errors/export:
+   *   get:
+   *     summary: Export error groups as a Claude-ready markdown file
+   *     description: |
+   *       Internal endpoint locked to the ops owner. Returns 401 for everyone else.
+   *       One markdown document with an investigation preamble and a section per
+   *       group, each carrying the latest sample event. Never exposes ip_hash.
+   *     tags: [Ops]
+   *     parameters:
+   *       - in: query
+   *         name: source
+   *         schema: { type: string, enum: [web, server] }
+   *       - in: query
+   *         name: status
+   *         schema: { type: string, enum: [unresolved, resolved, all], default: unresolved }
+   *     responses:
+   *       200:
+   *         description: Markdown attachment
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.get('/api/ops/errors/export', RequireOpsAccess, (req, res) =>
+    controller.exportMarkdown(req, res)
   );
 
   /**
