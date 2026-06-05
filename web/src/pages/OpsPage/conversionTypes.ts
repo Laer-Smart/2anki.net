@@ -15,4 +15,6 @@ export interface ConversionMetricsResponse {
   paid_conversion_success_rate_7d: number | null;
   conversion_errors_7d_top_reasons: ConversionErrorCount[] | null;
   failed_conversions_weekly: FailedConversionsWeekPoint[] | null;
+  time_to_first_deck_median_minutes_30d: number | null;
+  upload_to_download_rate_7d: number | null;
 }

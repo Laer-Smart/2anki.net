@@ -30,6 +30,8 @@ describe('useConversionMetrics', () => {
       paid_conversion_success_rate_7d: 95,
       conversion_errors_7d_top_reasons: [],
       failed_conversions_weekly: [],
+      time_to_first_deck_median_minutes_30d: 42.5,
+      upload_to_download_rate_7d: 25,
     };
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,

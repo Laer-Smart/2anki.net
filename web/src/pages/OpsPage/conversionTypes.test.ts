@@ -17,6 +17,8 @@ describe('conversionTypes', () => {
       paid_conversion_success_rate_7d: 95,
       conversion_errors_7d_top_reasons: [reason],
       failed_conversions_weekly: [week],
+      time_to_first_deck_median_minutes_30d: 42.5,
+      upload_to_download_rate_7d: 25,
     };
 
     expect(response.free_conversions_7d).toBe(10);
@@ -34,6 +36,8 @@ describe('conversionTypes', () => {
       paid_conversion_success_rate_7d: null,
       conversion_errors_7d_top_reasons: null,
       failed_conversions_weekly: null,
+      time_to_first_deck_median_minutes_30d: null,
+      upload_to_download_rate_7d: null,
     };
     expect(response.free_conversions_7d).toBeNull();
     expect(response.failed_conversions_weekly).toBeNull();
