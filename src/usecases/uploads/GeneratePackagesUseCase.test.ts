@@ -1,32 +1,20 @@
-import { EventEmitter } from 'events';
-
-jest.mock('worker_threads', () => ({
-  Worker: jest.fn(),
-  workerData: null,
-  parentPort: null,
-  isMainThread: true,
-}));
-
-jest.mock('node:fs', () => ({
-  existsSync: jest.fn().mockReturnValue(false),
+jest.mock('../../lib/conversionPool', () => ({
+  runUploadGeneration: jest.fn(),
 }));
 
 jest.mock('../../lib/parser/WorkSpace');
 
 import GeneratePackagesUseCase from './GeneratePackagesUseCase';
-import { Worker } from 'worker_threads';
+import { runUploadGeneration } from '../../lib/conversionPool';
 import CardOption from '../../lib/parser/Settings/CardOption';
 import Workspace from '../../lib/parser/WorkSpace';
 import { UploadedFile } from '../../lib/storage/types';
 import { EmptyDeckError } from '../jobs/EmptyDeckError';
+import { UploadGenerationTask } from './uploadGenerationTypes';
 
-const MockWorker = Worker as jest.MockedClass<typeof Worker>;
-
-function makeWorkerEmitter(): EventEmitter {
-  const emitter = new EventEmitter();
-  MockWorker.mockImplementation(() => emitter as never);
-  return emitter;
-}
+const mockRunUploadGeneration = runUploadGeneration as jest.MockedFunction<
+  typeof runUploadGeneration
+>;
 
 function makeSettings(): CardOption {
   return new CardOption({});
@@ -57,188 +45,192 @@ describe('GeneratePackagesUseCase', () => {
     jest.clearAllMocks();
   });
 
-  it('resolves with packages and warnings when the worker sends a result message', async () => {
-    const emitter = makeWorkerEmitter();
-    const useCase = new GeneratePackagesUseCase();
-
-    const promise = useCase.execute(
-      false,
-      [makeFile('notes.html')],
-      makeSettings(),
-      makeWorkspace()
-    );
-
-    emitter.emit('message', {
-      type: 'result',
-      packages: [
-        { name: 'notes.apkg', cardCount: 5, mcqCount: 0, mcqSkippedCount: 0 },
-      ],
+  it('dispatches the generation task through the conversion pool', async () => {
+    mockRunUploadGeneration.mockResolvedValueOnce({
+      ok: true,
+      packages: [{ name: 'notes.apkg', cardCount: 5, mcqCount: 0, mcqSkippedCount: 0 }] as never,
       warnings: [],
     });
+    const useCase = new GeneratePackagesUseCase();
+    const files = [makeFile('notes.html')];
+    const settings = makeSettings();
+    const workspace = makeWorkspace();
 
-    const result = await promise;
+    const result = await useCase.execute(false, files, settings, workspace);
+
+    expect(mockRunUploadGeneration).toHaveBeenCalledTimes(1);
+    const [task] = mockRunUploadGeneration.mock.calls[0];
+    expect(task).toMatchObject({
+      paying: false,
+      files,
+      settings,
+      workspace,
+      userId: null,
+    });
     expect(result.packages).toHaveLength(1);
     expect(result.packages[0].name).toBe('notes.apkg');
     expect(result.warnings).toEqual([]);
   });
 
-  it('resolves with an empty packages array when the worker sends a result with undefined packages', async () => {
-    const emitter = makeWorkerEmitter();
+  it('passes paying and userId through to the pool task', async () => {
+    mockRunUploadGeneration.mockResolvedValueOnce({
+      ok: true,
+      packages: [],
+      warnings: [],
+    });
     const useCase = new GeneratePackagesUseCase();
 
-    const promise = useCase.execute(
-      false,
-      [makeFile('empty.html')],
+    await useCase.execute(
+      true,
+      [makeFile('notes.html')],
       makeSettings(),
-      makeWorkspace()
+      makeWorkspace(),
+      undefined,
+      42
     );
 
-    emitter.emit('message', {
-      type: 'result',
-      packages: undefined,
-      warnings: undefined,
-    });
-
-    const result = await promise;
-    expect(result.packages).toEqual([]);
+    const [task] = mockRunUploadGeneration.mock.calls[0];
+    expect(task).toMatchObject({ paying: true, userId: 42 });
   });
 
-  it('rejects when the worker sends an error message', async () => {
-    const emitter = makeWorkerEmitter();
+  it('forwards progress messages from the pool worker to onProgress', async () => {
+    let progressDelivered: () => void = () => undefined;
+    const delivered = new Promise<void>((resolve) => {
+      progressDelivered = resolve;
+    });
+    const onProgress = jest.fn(() => progressDelivered());
+    mockRunUploadGeneration.mockImplementationOnce(
+      async (task: UploadGenerationTask) => {
+        task.progressPort?.postMessage('Parsing notes.html');
+        await delivered;
+        return { ok: true, packages: [], warnings: [] };
+      }
+    );
     const useCase = new GeneratePackagesUseCase();
 
-    const promise = useCase.execute(
+    await useCase.execute(
       false,
-      [makeFile('bad.html')],
+      [makeFile('notes.html')],
       makeSettings(),
-      makeWorkspace()
+      makeWorkspace(),
+      onProgress
     );
 
-    emitter.emit('message', {
-      type: 'error',
-      message: "Cannot read properties of undefined (reading 'name')",
-    });
-
-    await expect(promise).rejects.toThrow(
-      "Cannot read properties of undefined (reading 'name')"
-    );
+    expect(onProgress).toHaveBeenCalledWith('Parsing notes.html');
+    const [task, transferList] = mockRunUploadGeneration.mock.calls[0];
+    expect(transferList).toEqual([task.progressPort]);
   });
 
-  it('rejects when the worker emits an error event', async () => {
-    const emitter = makeWorkerEmitter();
+  it('omits the progress channel when no onProgress callback is given', async () => {
+    mockRunUploadGeneration.mockResolvedValueOnce({
+      ok: true,
+      packages: [],
+      warnings: [],
+    });
     const useCase = new GeneratePackagesUseCase();
 
-    const promise = useCase.execute(
-      false,
-      [makeFile('crash.html')],
-      makeSettings(),
-      makeWorkspace()
-    );
+    await useCase.execute(false, [makeFile('notes.html')], makeSettings(), makeWorkspace());
 
-    emitter.emit('error', new Error('Worker crashed'));
-
-    await expect(promise).rejects.toThrow('Worker crashed');
+    const [task, transferList] = mockRunUploadGeneration.mock.calls[0];
+    expect(task.progressPort).toBeUndefined();
+    expect(transferList).toBeUndefined();
   });
 
-  it('rejects with EmptyDeckError when the worker sends an error message with name EmptyDeckError', async () => {
-    const emitter = makeWorkerEmitter();
+  it('rejects when the pool worker reports an error', async () => {
+    mockRunUploadGeneration.mockResolvedValueOnce({
+      ok: false,
+      error: { message: "Cannot read properties of undefined (reading 'name')" },
+    });
     const useCase = new GeneratePackagesUseCase();
 
-    const promise = useCase.execute(
-      false,
-      [makeFile('empty.html')],
-      makeSettings(),
-      makeWorkspace()
-    );
+    await expect(
+      useCase.execute(false, [makeFile('bad.html')], makeSettings(), makeWorkspace())
+    ).rejects.toThrow("Cannot read properties of undefined (reading 'name')");
+  });
 
-    emitter.emit('message', {
-      type: 'error',
-      message: 'No cards found in your upload. Use .zip, .html, .md, or .csv.',
-      name: 'EmptyDeckError',
+  it('rejects when the pool run itself fails', async () => {
+    mockRunUploadGeneration.mockRejectedValueOnce(new Error('Worker crashed'));
+    const useCase = new GeneratePackagesUseCase();
+
+    await expect(
+      useCase.execute(false, [makeFile('crash.html')], makeSettings(), makeWorkspace())
+    ).rejects.toThrow('Worker crashed');
+  });
+
+  it('rejects with EmptyDeckError when the worker error is named EmptyDeckError', async () => {
+    mockRunUploadGeneration.mockResolvedValueOnce({
+      ok: false,
+      error: {
+        message: 'No cards found in your upload. Use .zip, .html, .md, or .csv.',
+        name: 'EmptyDeckError',
+      },
     });
+    const useCase = new GeneratePackagesUseCase();
 
-    await expect(promise).rejects.toBeInstanceOf(EmptyDeckError);
+    await expect(
+      useCase.execute(false, [makeFile('empty.html')], makeSettings(), makeWorkspace())
+    ).rejects.toBeInstanceOf(EmptyDeckError);
   });
 
   it('rejects with a non-empty parser-crash error when the worker error has no message', async () => {
-    const emitter = makeWorkerEmitter();
+    mockRunUploadGeneration.mockResolvedValueOnce({ ok: false, error: {} });
     const useCase = new GeneratePackagesUseCase();
 
-    const promise = useCase.execute(
-      false,
-      [makeFile('garbled.html')],
-      makeSettings(),
-      makeWorkspace()
-    );
+    const err = await useCase
+      .execute(false, [makeFile('garbled.html')], makeSettings(), makeWorkspace())
+      .catch((e: unknown) => e);
 
-    emitter.emit('message', { type: 'error' });
-
-    const err = await promise.catch((e: unknown) => e);
     expect(err).toBeInstanceOf(Error);
     expect((err as Error).message.trim()).not.toBe('');
     expect((err as Error & { code?: string }).code).toBe('PARSER_CRASH');
   });
 
   it('rejects with a non-empty parser-crash error when the worker error message is blank', async () => {
-    const emitter = makeWorkerEmitter();
+    mockRunUploadGeneration.mockResolvedValueOnce({
+      ok: false,
+      error: { message: '  ' },
+    });
     const useCase = new GeneratePackagesUseCase();
 
-    const promise = useCase.execute(
-      false,
-      [makeFile('garbled.html')],
-      makeSettings(),
-      makeWorkspace()
-    );
+    const err = await useCase
+      .execute(false, [makeFile('garbled.html')], makeSettings(), makeWorkspace())
+      .catch((e: unknown) => e);
 
-    emitter.emit('message', { type: 'error', message: '  ' });
-
-    const err = await promise.catch((e: unknown) => e);
     expect(err).toBeInstanceOf(Error);
     expect((err as Error).message.trim()).not.toBe('');
     expect((err as Error & { code?: string }).code).toBe('PARSER_CRASH');
   });
 
-  it('preserves the markdown sourceFormat on EmptyDeckError across the worker boundary', async () => {
-    const emitter = makeWorkerEmitter();
+  it('preserves the markdown sourceFormat on EmptyDeckError across the pool boundary', async () => {
+    mockRunUploadGeneration.mockResolvedValueOnce({
+      ok: false,
+      error: {
+        message: 'No cards found in your upload. Use .zip, .html, .md, or .csv.',
+        name: 'EmptyDeckError',
+        sourceFormat: 'markdown',
+      },
+    });
     const useCase = new GeneratePackagesUseCase();
 
-    const promise = useCase.execute(
-      false,
-      [makeFile('flat-export.md')],
-      makeSettings(),
-      makeWorkspace()
-    );
+    const err = await useCase
+      .execute(false, [makeFile('flat-export.md')], makeSettings(), makeWorkspace())
+      .catch((e: unknown) => e);
 
-    emitter.emit('message', {
-      type: 'error',
-      message: 'No cards found in your upload. Use .zip, .html, .md, or .csv.',
-      name: 'EmptyDeckError',
-      sourceFormat: 'markdown',
-    });
-
-    const err = await promise.catch((e: unknown) => e);
     expect(err).toBeInstanceOf(EmptyDeckError);
     expect((err as EmptyDeckError).sourceFormat).toBe('markdown');
   });
 
   it('preserves error name on the rejected Error for non-EmptyDeckError named errors', async () => {
-    const emitter = makeWorkerEmitter();
+    mockRunUploadGeneration.mockResolvedValueOnce({
+      ok: false,
+      error: { message: 'some message', name: 'CustomError' },
+    });
     const useCase = new GeneratePackagesUseCase();
 
-    const promise = useCase.execute(
-      false,
-      [makeFile('other.html')],
-      makeSettings(),
-      makeWorkspace()
-    );
+    const err = await useCase
+      .execute(false, [makeFile('other.html')], makeSettings(), makeWorkspace())
+      .catch((e: unknown) => e);
 
-    emitter.emit('message', {
-      type: 'error',
-      message: 'some message',
-      name: 'CustomError',
-    });
-
-    const err = await promise.catch((e: unknown) => e);
     expect(err).toBeInstanceOf(Error);
     expect((err as Error).name).toBe('CustomError');
   });

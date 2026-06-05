@@ -1,8 +1,13 @@
 import fs from 'fs';
-import { getFileContents } from './worker';
+import type { MessagePort } from 'node:worker_threads';
+import { getFileContents, runUploadGenerationInWorker } from './worker';
 import { UploadedFile } from '../../lib/storage/types';
+import CardOption from '../../lib/parser/Settings/CardOption';
+import Workspace from '../../lib/parser/WorkSpace';
+import { UploadGenerationTask } from './uploadGenerationTypes';
 
 jest.mock('fs');
+jest.mock('../../lib/parser/WorkSpace');
 
 const mockFs = jest.mocked(fs);
 
@@ -126,5 +131,85 @@ describe('getFileContents', () => {
     const result = getFileContents(file);
 
     expect(result).toEqual(content);
+  });
+});
+
+describe('runUploadGenerationInWorker', () => {
+  function makeFakePort(): MessagePort {
+    return {
+      postMessage: jest.fn(),
+      close: jest.fn(),
+    } as unknown as MessagePort;
+  }
+
+  function makeTask(file: UploadedFile, progressPort?: MessagePort): UploadGenerationTask {
+    return {
+      paying: false,
+      files: [file],
+      settings: new CardOption({}),
+      workspace: {} as Workspace,
+      enqueuedAt: Date.now(),
+      userId: null,
+      progressPort,
+    };
+  }
+
+  let infoSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    infoSpy.mockRestore();
+  });
+
+  it('returns a failure result with a non-empty message and error name when generation throws', async () => {
+    const file = makeFile({
+      originalname: 'existing.apkg',
+      filename: 'existing.apkg',
+      path: '',
+      buffer: Buffer.from('not really a deck'),
+    });
+
+    const result = await runUploadGenerationInWorker(makeTask(file));
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error('expected a failure result');
+    }
+    expect(result.error.message).toContain('already an Anki deck');
+    expect(result.error.name).toBe('Error');
+  });
+
+  it('closes the progress port even when generation throws', async () => {
+    const port = makeFakePort();
+    const file = makeFile({
+      originalname: 'existing.apkg',
+      filename: 'existing.apkg',
+      path: '',
+      buffer: Buffer.from('not really a deck'),
+    });
+
+    await runUploadGenerationInWorker(makeTask(file, port));
+
+    expect(port.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns a success result with empty packages for an unsupported file type', async () => {
+    const file = makeFile({
+      originalname: 'notes.unsupported',
+      filename: 'notes.unsupported',
+      key: 'notes.unsupported',
+      path: '',
+      buffer: Buffer.from('plain text'),
+    });
+    const port = makeFakePort();
+
+    const result = await runUploadGenerationInWorker(makeTask(file, port));
+
+    expect(result).toEqual({ ok: true, packages: [], warnings: [] });
+    expect(port.close).toHaveBeenCalledTimes(1);
   });
 });

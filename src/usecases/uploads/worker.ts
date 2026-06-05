@@ -1,4 +1,3 @@
-import { parentPort, workerData } from 'worker_threads';
 import { UploadedFile } from '../../lib/storage/types';
 import CardOption from '../../lib/parser/Settings/CardOption';
 import Package from '../../lib/parser/Package';
@@ -30,15 +29,10 @@ import {
   buildVocabDeckFromKindleClippings,
 } from './BuildVocabDeckUseCase';
 import { EmptyDeckError } from '../jobs/EmptyDeckError';
-
-interface GenerationData {
-  paying: boolean;
-  files: UploadedFile[];
-  settings: CardOption;
-  workspace: Workspace;
-  enqueuedAt?: number;
-  userId?: number | null;
-}
+import {
+  UploadGenerationResult,
+  UploadGenerationTask,
+} from './uploadGenerationTypes';
 
 export function getFileContents(
   file: UploadedFile,
@@ -207,21 +201,13 @@ async function processFile(
   return { packages, warnings };
 }
 
-async function doGenerationWork(data: GenerationData) {
-  const {
-    paying,
-    files,
-    settings,
-    workspace,
-    enqueuedAt,
-    userId = null,
-  } = data;
+async function doGenerationWork(
+  task: UploadGenerationTask,
+  onProgress: (step: string) => void
+): Promise<{ packages: Package[]; warnings: string[] }> {
+  const { paying, files, settings, workspace, enqueuedAt, userId } = task;
   let packages: Package[] = [];
   const warnings: string[] = [];
-
-  const onProgress = (step: string) => {
-    parentPort?.postMessage({ type: 'progress', step });
-  };
 
   for (const file of files) {
     const fileContents = getFileContents(file, enqueuedAt);
@@ -238,19 +224,29 @@ async function doGenerationWork(data: GenerationData) {
     warnings.push(...result.warnings);
   }
 
-  return { type: 'result', packages, warnings };
+  return { packages, warnings };
 }
 
-if (workerData != null) {
-  doGenerationWork(workerData.data)
-    .then((result) => parentPort?.postMessage(result))
-    .catch((err) =>
-      parentPort?.postMessage({
-        type: 'error',
+export async function runUploadGenerationInWorker(
+  task: UploadGenerationTask
+): Promise<UploadGenerationResult> {
+  const onProgress = (step: string) => {
+    task.progressPort?.postMessage(step);
+  };
+  try {
+    const { packages, warnings } = await doGenerationWork(task, onProgress);
+    return { ok: true, packages, warnings };
+  } catch (err) {
+    return {
+      ok: false,
+      error: {
         message: err instanceof Error ? err.message : String(err),
         name: err instanceof Error ? err.name : undefined,
         sourceFormat:
           err instanceof EmptyDeckError ? err.sourceFormat : undefined,
-      })
-    );
+      },
+    };
+  } finally {
+    task.progressPort?.close();
+  }
 }

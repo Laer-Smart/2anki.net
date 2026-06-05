@@ -1,7 +1,13 @@
 import path from 'node:path';
 import fs from 'node:fs';
+import type { TransferListItem } from 'node:worker_threads';
 import Piscina from 'piscina';
 import knex, { Knex } from 'knex';
+import {
+  UPLOAD_GENERATION_TASK,
+  UploadGenerationResult,
+  UploadGenerationTask,
+} from '../usecases/uploads/uploadGenerationTypes';
 import performConversion from './storage/jobs/helpers/performConversion';
 import NotionAPIWrapper from '../services/NotionService/NotionAPIWrapper';
 import NotionRepository from '../data_layer/NotionRespository';
@@ -51,6 +57,7 @@ export function initConversionPool(): Piscina {
     execArgv,
     maxThreads,
     minThreads: 1,
+    resourceLimits: { maxOldGenerationSizeMb: 1024 },
   });
   return pool;
 }
@@ -63,6 +70,16 @@ export async function runConversion(
   request: ConversionWorkerRequest
 ): Promise<void> {
   await getConversionPool().run(request);
+}
+
+export async function runUploadGeneration(
+  task: UploadGenerationTask,
+  transferList?: TransferListItem[]
+): Promise<UploadGenerationResult> {
+  return getConversionPool().run(task, {
+    name: UPLOAD_GENERATION_TASK,
+    transferList: transferList as never, // piscina's TransferList type misinfers to StructuredSerializeOptions under lib.dom; the runtime expects an array
+  });
 }
 
 export async function shutdownConversionPool(
