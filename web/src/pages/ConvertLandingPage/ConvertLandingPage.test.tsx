@@ -54,6 +54,28 @@ describe('ConvertLandingPage', () => {
     expect(screen.getByText(/Drop your files here/i)).toBeInTheDocument();
   });
 
+  it('renders the new Convert PDF to Anki H1 on the pdf-to-anki page', () => {
+    renderAtSlug('pdf-to-anki');
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Convert PDF to Anki — flashcards from lecture slides and textbook chapters',
+      })
+    ).toBeInTheDocument();
+  });
+
+  it('cross-links pdf-to-anki to the AnKing enrichment and AI generator pages', () => {
+    const links = CONVERT_LANDING_PAGES.get('pdf-to-anki')?.relatedLinks ?? [];
+    expect(links).toContainEqual({
+      label: 'Enrich an AnKing deck',
+      href: '/convert/enrich-anki-deck',
+    });
+    expect(links).toContainEqual({
+      label: 'AI flashcard generator',
+      href: '/ai-flashcard-generator',
+    });
+  });
+
   it('renders NotFoundPage for an unknown slug', () => {
     renderAtSlug('unknown-format');
     expect(

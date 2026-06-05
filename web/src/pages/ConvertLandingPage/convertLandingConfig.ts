@@ -38,6 +38,8 @@ const notionToAnki: LandingCopy = {
 
 const pdfToAnki: LandingCopy = {
   relatedLinks: [
+    { label: 'Enrich an AnKing deck', href: '/convert/enrich-anki-deck' },
+    { label: 'AI flashcard generator', href: '/ai-flashcard-generator' },
     { label: 'Convert PowerPoint slides to Anki', href: '/powerpoint-to-anki' },
     { label: 'Convert an HTML file to Anki', href: '/convert/html-to-anki' },
     { label: 'Convert Markdown and Obsidian notes to Anki', href: '/convert/markdown-to-anki' },
@@ -45,29 +47,33 @@ const pdfToAnki: LandingCopy = {
     { label: 'Browse every converter', href: '/convert' },
   ],
   pathname: '/convert/pdf-to-anki',
-  title: 'PDF to Anki — flashcards that work in Anki | 2anki',
+  title: 'Convert PDF to Anki — flashcards that work in Anki | 2anki',
   description:
-    'Turn a PDF into an Anki deck that imports clean — correct note types, images embedded, headings as decks. Drop a file, get a .apkg.',
-  h1: 'PDF to Anki — make flashcards from lecture slides',
+    'Convert a lecture PDF, slide export, or textbook chapter into a .apkg deck. Text becomes question-and-answer cards, scanned pages become image cards, and AI mode handles dense chapters.',
+  h1: 'Convert PDF to Anki — flashcards from lecture slides and textbook chapters',
   subhead:
-    'Drop a PDF and download a .apkg deck. Works with lecture notes, textbook chapters, and exported slides.',
+    'Drop a lecture PDF, slide export, or textbook chapter and download a .apkg deck. 2anki reads the text into question-and-answer cards, falls back to image cards when a page has no text, and can write cards with AI when the PDF is dense.',
   whatComesAcross: ankiFidelityProof,
   faqs: [
     {
-      q: 'Will it read a scanned PDF?',
-      a: 'Only if the scan includes a text layer. Most modern textbook exports and slide PDFs do. For a photo scan with no text, run it through OCR in macOS Preview or Adobe Acrobat first.',
+      q: 'How do text PDFs become cards?',
+      a: 'When a PDF carries a text layer, 2anki reads it and pairs the pages into cards — the text on one page becomes the front, the next page becomes the back. You get editable text cards you can fix in Anki in seconds, not flattened images.',
     },
     {
-      q: 'How does it decide what becomes a card?',
-      a: 'Headings name the deck and subdeck. Top-level bullets become card fronts; the next indent level or line becomes the back. You can edit the cards in Anki after — nothing is locked.',
+      q: 'What about scanned PDFs and slide decks?',
+      a: "A photo scan with no text layer can't be read as text. When there's no usable text, 2anki falls back to image cards: each page is paired with the next as a front-and-back image, so you still get a reviewable deck. For a true photo scan, add a text layer with OCR in macOS Preview or Adobe Acrobat first, then upload for text cards.",
+    },
+    {
+      q: 'Is there an AI mode for dense chapters?',
+      a: 'Yes. When a chapter is wall-to-wall prose with no clean front/back split, the AI flashcard mode reads the content and writes question-and-answer cards for you. They land as basic notes you can edit, tag, and move into a subdeck.',
     },
     {
       q: 'Can I upload a whole textbook?',
-      a: 'Yes. Large PDFs work, though big files take longer and create large decks. Uploading one chapter at a time keeps decks easier to review and share.',
+      a: 'Yes. Large PDFs work, though big files take longer and create large decks. Free accounts handle everyday lecture and chapter PDFs; paid plans lift the size limit. Uploading one chapter at a time keeps decks easier to review.',
     },
     {
       q: 'What happens to equations and diagrams?',
-      a: 'Diagrams come across as embedded images. Equations stored as images stay as images. Equations stored as text need MathJax enabled in your Anki card template to render.',
+      a: 'Equations stored as images stay as images. Equations stored as text need MathJax enabled in your Anki card template to render. In image mode, the full page comes across as an image so diagrams stay intact.',
     },
   ],
 };
