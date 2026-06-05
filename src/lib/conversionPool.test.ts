@@ -3,6 +3,14 @@ jest.mock('./storage/jobs/helpers/performConversion', () => ({
   default: jest.fn().mockResolvedValue(undefined),
 }));
 
+const mockPoolRun = jest.fn();
+jest.mock('piscina', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    run: (...args: unknown[]) => mockPoolRun(...args),
+  })),
+}));
+
 jest.mock('../data_layer/NotionRespository');
 jest.mock('../data_layer/BlocksCacheRepository');
 jest.mock('../data_layer/JobRepository');
@@ -17,9 +25,11 @@ import { NOTION_TOKEN_EXPIRED_REASON } from '../usecases/jobs/jobFailureReason';
 import {
   resolveConversionWorkers,
   runConversionInWorker,
+  runUploadGeneration,
   shutdownConversionPool,
   ConversionWorkerRequest,
 } from './conversionPool';
+import { UploadGenerationTask } from '../usecases/uploads/uploadGenerationTypes';
 
 interface FakePoolHandle {
   close: jest.Mock<Promise<void>, []>;
@@ -138,6 +148,53 @@ describe('runConversionInWorker', () => {
     await expect(
       runConversionInWorker(baseRequest, () => fakeKnex)
     ).rejects.toThrow('boom');
+  });
+});
+
+describe('runUploadGeneration', () => {
+  beforeEach(() => {
+    mockPoolRun.mockReset();
+  });
+
+  it('dispatches the task on the shared pool under the uploadGeneration name', async () => {
+    mockPoolRun.mockResolvedValueOnce({ ok: true, packages: [], warnings: [] });
+    const task = {
+      paying: false,
+      files: [],
+      settings: {},
+      workspace: {},
+      enqueuedAt: 1,
+      userId: null,
+    } as unknown as UploadGenerationTask;
+
+    const result = await runUploadGeneration(task);
+
+    expect(mockPoolRun).toHaveBeenCalledWith(task, {
+      name: 'uploadGeneration',
+      transferList: undefined,
+    });
+    expect(result).toEqual({ ok: true, packages: [], warnings: [] });
+  });
+
+  it('forwards the transfer list so progress ports reach the worker', async () => {
+    mockPoolRun.mockResolvedValueOnce({ ok: true, packages: [], warnings: [] });
+    const fakePort = { __port: true } as never;
+    const task = {
+      paying: true,
+      files: [],
+      settings: {},
+      workspace: {},
+      enqueuedAt: 1,
+      userId: 7,
+      progressPort: fakePort,
+    } as unknown as UploadGenerationTask;
+
+    await runUploadGeneration(task, [fakePort]);
+
+    expect(mockPoolRun).toHaveBeenCalledWith(task, {
+      name: 'uploadGeneration',
+      transferList: [fakePort],
+    });
   });
 });
 
