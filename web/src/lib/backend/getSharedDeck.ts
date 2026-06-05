@@ -1,10 +1,24 @@
+import { pathOf } from './api';
 import { ApkgPreviewBatch, ApkgPreviewMeta } from './getApkgPreview';
+
+async function shareApiError(
+  method: string,
+  url: string,
+  response: Response
+): Promise<Error> {
+  const data = (await response.json().catch(() => ({}))) as {
+    message?: string;
+  };
+  return new Error(
+    data.message ??
+      `HTTP error! ${method} ${pathOf(url)} status: ${response.status}, message: ${response.statusText}`
+  );
+}
 
 async function fetchShareApi<T>(url: string): Promise<T> {
   const response = await fetch(url);
   if (!response.ok) {
-    const data = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error((data as { message?: string }).message ?? response.statusText);
+    throw await shareApiError('GET', url, response);
   }
   return response.json() as Promise<T>;
 }
@@ -41,8 +55,7 @@ export async function createDeckShare(uploadKey: string): Promise<CreateShareRes
     body: JSON.stringify({ upload_key: uploadKey }),
   });
   if (!response.ok) {
-    const data = await response.json().catch(() => ({ message: response.statusText }));
-    throw new Error((data as { message?: string }).message ?? response.statusText);
+    throw await shareApiError('POST', '/api/shares', response);
   }
   return response.json() as Promise<CreateShareResponse>;
 }

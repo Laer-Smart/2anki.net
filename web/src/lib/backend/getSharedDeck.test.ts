@@ -47,13 +47,13 @@ describe('getSharedDeck', () => {
       await expect(getSharedDeckMeta('t')).rejects.toThrow('Share not found');
     });
 
-    it('falls back to statusText when no JSON message is present', async () => {
+    it('falls back to method, path, and status when no JSON message is present', async () => {
       vi.mocked(globalThis.fetch).mockResolvedValue(
         new Response('', { status: 500, statusText: 'Internal Server Error' })
       );
 
       await expect(getSharedDeckMeta('t')).rejects.toThrow(
-        'Internal Server Error'
+        'HTTP error! GET /api/shares/t/meta status: 500, message: Internal Server Error'
       );
     });
   });
@@ -112,6 +112,16 @@ describe('getSharedDeck', () => {
 
       await expect(createDeckShare('uploads/x.apkg')).rejects.toThrow(
         'Upload not owned by you'
+      );
+    });
+
+    it('falls back to method, path, and status when no JSON message is present', async () => {
+      vi.mocked(globalThis.fetch).mockResolvedValue(
+        new Response('', { status: 500, statusText: 'Internal Server Error' })
+      );
+
+      await expect(createDeckShare('uploads/x.apkg')).rejects.toThrow(
+        'HTTP error! POST /api/shares status: 500, message: Internal Server Error'
       );
     });
   });

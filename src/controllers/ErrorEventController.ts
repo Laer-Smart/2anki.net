@@ -38,6 +38,20 @@ function validatePayload(body: unknown): ErrorEventPayload | null {
   };
 }
 
+function resolvePageUrl(
+  payloadUrl: string | null | undefined,
+  req: Request
+): string | null {
+  if (payloadUrl != null) {
+    return payloadUrl;
+  }
+  const referer = req.headers.referer;
+  if (typeof referer === 'string' && referer.length > 0) {
+    return referer;
+  }
+  return null;
+}
+
 export class ErrorEventController {
   private readonly rateLimiter: RateLimiter;
 
@@ -66,6 +80,7 @@ export class ErrorEventController {
       res.status(400).json({ error: 'Invalid payload' });
       return;
     }
+    payload.url = resolvePageUrl(payload.url, req);
 
     if (isBotUserAgent(payload.userAgent)) {
       res.status(202).end();

@@ -94,7 +94,9 @@ describe('PreviewPage deleted-page handling', () => {
     mockUsePreviewStream.mockReturnValue({
       data: undefined,
       isLoading: false,
-      error: new Error('Resource not found: 404 Not Found'),
+      error: new Error(
+        'Resource not found: GET /api/notion/page/abc status: 404 Not Found'
+      ),
       hasNextPage: false,
       isFetchingNextPage: false,
       fetchNextPage: vi.fn(),
