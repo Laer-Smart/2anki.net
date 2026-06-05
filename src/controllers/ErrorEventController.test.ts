@@ -109,6 +109,53 @@ describe('ErrorEventController.ingest', () => {
     expect(useCase.execute).not.toHaveBeenCalled();
   });
 
+  it.each([
+    'Mozilla/5.0 (compatible; Applebot/0.1; +http://www.apple.com/go/applebot)',
+    'Leikibot/2.0 (+https://leiki.com)',
+    'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+    'SomeCrawler/1.0',
+    'BaiduSpider/3.0',
+    'Yahoo! Slurp',
+  ])('responds 202 without storing when user agent is %s', async (userAgent) => {
+    const useCase = makeIngestUseCase();
+    const controller = new ErrorEventController(useCase);
+    const res = makeRes();
+    await controller.ingest(
+      makeReq({ ...VALID_BODY, userAgent }),
+      res as unknown as Response
+    );
+    expect(res._statusCode).toBe(202);
+    expect(useCase.execute).not.toHaveBeenCalled();
+  });
+
+  it('stores events from a normal browser user agent', async () => {
+    const useCase = makeIngestUseCase();
+    const controller = new ErrorEventController(useCase);
+    const res = makeRes();
+    await controller.ingest(
+      makeReq({
+        ...VALID_BODY,
+        userAgent:
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
+      }),
+      res as unknown as Response
+    );
+    expect(res._statusCode).toBe(202);
+    expect(useCase.execute).toHaveBeenCalledTimes(1);
+  });
+
+  it('stores events when the user agent is absent', async () => {
+    const useCase = makeIngestUseCase();
+    const controller = new ErrorEventController(useCase);
+    const res = makeRes();
+    await controller.ingest(
+      makeReq({ message: 'TypeError: x is null' }),
+      res as unknown as Response
+    );
+    expect(res._statusCode).toBe(202);
+    expect(useCase.execute).toHaveBeenCalledTimes(1);
+  });
+
   it('does not expose the raw IP in the response', async () => {
     const useCase = makeIngestUseCase();
     const executeSpy = jest.spyOn(useCase, 'execute');

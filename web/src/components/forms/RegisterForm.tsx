@@ -10,6 +10,10 @@ import { WithMicrosoftLink } from './WithMicrosoftLink';
 import { getVisibleText } from '../../lib/text/getVisibleText';
 import { readSignupOrigin } from '../../lib/signupOrigin';
 import { track } from '../../lib/analytics/track';
+import {
+  UserNotice,
+  isIntentionalBackendNotice,
+} from '../../lib/errors/UserNotice';
 import styles from '../../styles/auth.module.css';
 
 interface Props {
@@ -78,12 +82,18 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
         globalThis.location.href = redirect ? `/${redirect.replace(/^\//, '')}` : '/';
       } else {
         const body = await res.json().catch(() => null);
-        const backendMessage = body?.message;
+        const backendMessage =
+          typeof body?.message === 'string' ? body.message : null;
         if (isAccountExistsFailure(backendMessage)) {
           if (email.includes('@')) {
             localStorage.setItem('email', email);
           }
           setAccountExists(true);
+          setLoading(false);
+          return;
+        }
+        if (backendMessage != null && isIntentionalBackendNotice(backendMessage)) {
+          setErrorMessage(new UserNotice(backendMessage));
           setLoading(false);
           return;
         }

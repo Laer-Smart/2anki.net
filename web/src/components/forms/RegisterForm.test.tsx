@@ -9,6 +9,7 @@ import '@testing-library/jest-dom';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import RegisterForm from './RegisterForm';
+import { UserNotice } from '../../lib/errors/UserNotice';
 
 const registerMock = vi.fn();
 
@@ -34,12 +35,13 @@ function fillAndSubmit() {
   fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
 }
 
-function renderForm(redirect?: string) {
-  return render(
+function renderForm(redirect?: string, setErrorMessage = vi.fn()) {
+  render(
     <MemoryRouter initialEntries={['/register']}>
-      <RegisterForm setErrorMessage={vi.fn()} redirect={redirect ?? null} />
+      <RegisterForm setErrorMessage={setErrorMessage} redirect={redirect ?? null} />
     </MemoryRouter>
   );
+  return setErrorMessage;
 }
 
 describe('RegisterForm', () => {
@@ -142,5 +144,42 @@ describe('RegisterForm', () => {
     expect(
       screen.queryByRole('link', { name: 'Reset password' })
     ).not.toBeInTheDocument();
+  });
+
+  it('wraps an intentional backend notice in UserNotice so it shows without being reported', async () => {
+    const notice = 'An account with this email is linked to Google sign-in.';
+    registerMock.mockResolvedValue({
+      status: 400,
+      json: () => Promise.resolve({ message: notice }),
+    });
+
+    const setErrorMessage = renderForm();
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(setErrorMessage).toHaveBeenCalled();
+    });
+    const arg = setErrorMessage.mock.calls[0][0] as UserNotice;
+    expect(arg).toBeInstanceOf(UserNotice);
+    expect(arg.message).toBe(notice);
+  });
+
+  it('passes a generic backend failure through as a plain message', async () => {
+    registerMock.mockResolvedValue({
+      status: 400,
+      json: () =>
+        Promise.resolve({
+          message: 'Invalid user data. Required email and password!',
+        }),
+    });
+
+    const setErrorMessage = renderForm();
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(setErrorMessage).toHaveBeenCalledWith(
+        'Invalid user data. Required email and password!'
+      );
+    });
   });
 });
