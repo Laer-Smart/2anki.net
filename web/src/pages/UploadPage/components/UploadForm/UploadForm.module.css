@@ -146,6 +146,11 @@
   color: var(--color-text-tertiary);
 }
 
+.shapeHint {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
 .fileInput {
   position: absolute;
   width: 1px;
