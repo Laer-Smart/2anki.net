@@ -100,4 +100,37 @@ describe('reportClientError', () => {
     reportClientError(new UserNotice('Notion is not connected.'));
     expect(fetchSpy).not.toHaveBeenCalled();
   });
+
+  it('skips reporting when the browser is offline', () => {
+    vi.stubGlobal('navigator', { userAgent: 'Vitest/1.0', onLine: false });
+    reportClientError(new Error('boom while offline'));
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('still reports when onLine is undefined', () => {
+    reportClientError(new Error('real error'));
+    expect(fetchSpy).toHaveBeenCalledOnce();
+  });
+
+  it('skips AbortError', () => {
+    const aborted = new Error('The user aborted a request.');
+    aborted.name = 'AbortError';
+    reportClientError(aborted);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    'Failed to fetch',
+    'NetworkError when attempting to fetch resource.',
+    'Load failed',
+    'Network error on GET /api/upload/mine: Load failed',
+  ])('skips transient network message %s', (message) => {
+    reportClientError(new Error(message));
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('reports a message that merely mentions a transient phrase mid-string', () => {
+    reportClientError(new Error('Parser said: Load failed is not a card'));
+    expect(fetchSpy).toHaveBeenCalledOnce();
+  });
 });

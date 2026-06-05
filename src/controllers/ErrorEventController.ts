@@ -10,6 +10,11 @@ const MAX_BODY_BYTES = 10 * 1024;
 const RATE_WINDOW_MS = 60_000;
 const PER_IP_MAX = 10;
 const GLOBAL_MAX = 1000;
+const BOT_USER_AGENT_PATTERN = /bot|crawler|spider|slurp|applebot|leikibot/i;
+
+function isBotUserAgent(userAgent: string | null | undefined): boolean {
+  return userAgent != null && BOT_USER_AGENT_PATTERN.test(userAgent);
+}
 
 function validatePayload(body: unknown): ErrorEventPayload | null {
   if (body == null || typeof body !== 'object' || Array.isArray(body)) {
@@ -59,6 +64,11 @@ export class ErrorEventController {
     const payload = validatePayload(req.body);
     if (payload == null) {
       res.status(400).json({ error: 'Invalid payload' });
+      return;
+    }
+
+    if (isBotUserAgent(payload.userAgent)) {
+      res.status(202).end();
       return;
     }
 

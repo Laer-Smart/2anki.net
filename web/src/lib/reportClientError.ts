@@ -2,16 +2,41 @@ import { UserNotice } from './errors/UserNotice';
 
 const ENDPOINT = '/api/events/errors';
 
+const TRANSIENT_MESSAGE_PREFIXES = [
+  'Failed to fetch',
+  'NetworkError when attempting to fetch resource.',
+  'Load failed',
+  'Network error on ',
+];
+
+function isTransientNetworkMessage(message: string): boolean {
+  return TRANSIENT_MESSAGE_PREFIXES.some((prefix) =>
+    message.startsWith(prefix)
+  );
+}
+
+function isAbortError(error: unknown): boolean {
+  return (
+    error != null &&
+    typeof error === 'object' &&
+    'name' in error &&
+    (error as { name?: unknown }).name === 'AbortError'
+  );
+}
+
 export function reportClientError(
   error: unknown,
   context?: Record<string, unknown>
 ): void {
   if (error instanceof UserNotice) return;
+  if (isAbortError(error)) return;
   try {
+    if (navigator.onLine === false) return;
     const message =
       error instanceof Error
         ? error.message
         : String(error);
+    if (isTransientNetworkMessage(message)) return;
     const stack = error instanceof Error ? error.stack ?? null : null;
     const release = process.env.REACT_APP_RELEASE ?? null;
     const root = document.documentElement;
