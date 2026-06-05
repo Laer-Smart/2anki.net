@@ -57,6 +57,12 @@ const supportedOptions = (): CardOptionDetail[] => {
       false
     ),
     new CardOptionDetail(
+      'group-cloze-per-toggle',
+      'Group cloze blanks per toggle',
+      'When one Notion toggle holds several :: blanks, put them all on a single card and reveal them together. Off by default — each :: makes its own card.',
+      false
+    ),
+    new CardOptionDetail(
       'enable-input',
       'Treat bold text as input',
       'Hide bold words on the front of the card so you type them during review. Useful for vocabulary and exact-answer recall.',

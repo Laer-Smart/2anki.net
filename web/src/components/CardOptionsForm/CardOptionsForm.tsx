@@ -151,6 +151,7 @@ const HIDDEN_KEYS = [
   'vertex-ai-pdf-questions',
   'remove-mp3-links',
   'cloze-from-toggle-content',
+  'group-cloze-per-toggle',
 ];
 const GROUPED_KEYS = new Set([
   ...OPTION_GROUPS.flatMap((g) => g.keys),
@@ -999,6 +1000,49 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                   ) : (
                     <p className={fieldStyles.sectionHint}>Turn on Cloze deletion cards first.</p>
                   )}
+                </div>
+              )}
+              {isCardTypesGroup && (
+                <div
+                  className={fieldStyles.optionGroup}
+                  id="group-cloze-per-toggle"
+                >
+                  <h3 className={fieldStyles.groupHeading}>
+                    Group cloze blanks per toggle
+                  </h3>
+                  <div className={fieldStyles.section}>
+                    <label className={fieldStyles.toggleRow}>
+                      <span className={fieldStyles.toggleSwitch}>
+                        <input
+                          type="checkbox"
+                          role="switch"
+                          disabled={!(checkboxValues['cloze'] ?? true)}
+                          checked={
+                            checkboxValues['group-cloze-per-toggle'] ?? false
+                          }
+                          onChange={(e) =>
+                            toggleCheckbox(
+                              'group-cloze-per-toggle',
+                              e.target.checked
+                            )
+                          }
+                        />
+                        <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
+                      </span>
+                      <span className={fieldStyles.toggleLabel}>
+                        Group cloze blanks per toggle
+                      </span>
+                    </label>
+                    {(checkboxValues['cloze'] ?? true) ? (
+                      <p className={fieldStyles.sectionHint}>
+                        When one Notion toggle holds several :: blanks, put them
+                        all on a single card and reveal them together. Off by
+                        default — each :: makes its own card.
+                      </p>
+                    ) : (
+                      <p className={fieldStyles.sectionHint}>Turn on Cloze deletion cards first.</p>
+                    )}
+                  </div>
                 </div>
               )}
               {isCardTypesGroup && (

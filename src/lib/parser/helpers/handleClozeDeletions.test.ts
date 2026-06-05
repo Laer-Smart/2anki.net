@@ -193,3 +193,37 @@ describe('#1094 — code tags become cloze deletions', () => {
     expect(result).toContain('{{c2::second}}');
   });
 });
+
+describe('#2501 — group cloze blanks per toggle', () => {
+  const threeBlanks =
+    '<p><code>alpha</code> and <code>beta</code> and <code>gamma</code></p>';
+
+  it('numbers each inline-code blank separately when grouping is off (default)', () => {
+    const result = handleClozeDeletions(threeBlanks);
+
+    expect(result).toContain('{{c1::alpha}}');
+    expect(result).toContain('{{c2::beta}}');
+    expect(result).toContain('{{c3::gamma}}');
+  });
+
+  it('collapses every inline-code blank onto the seed cloze number when grouping is on', () => {
+    const result = handleClozeDeletions(threeBlanks, true);
+
+    const c1Count = (result.match(/\{\{c1::/g) ?? []).length;
+    expect(c1Count).toBe(3);
+    expect(result).not.toContain('{{c2');
+    expect(result).not.toContain('{{c3');
+  });
+
+  it('preserves an explicit user-typed cloze and collapses autos to the seed when grouping is on', () => {
+    const withExplicit =
+      '<p><code>c2::pinned</code> then <code>alpha</code> and <code>beta</code></p>';
+
+    const result = handleClozeDeletions(withExplicit, true);
+
+    expect(result).toContain('{{c2::pinned}}');
+    const c3Count = (result.match(/\{\{c3::/g) ?? []).length;
+    expect(c3Count).toBe(2);
+    expect(result).not.toContain('{{c4');
+  });
+});
