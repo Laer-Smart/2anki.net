@@ -155,11 +155,52 @@ function paragraphBlock(id: string, rich_text: ReturnType<typeof richText>[]) {
   };
 }
 
+function buildTableBlock(id: string, tableWidth: number) {
+  return {
+    object: 'block' as const,
+    id,
+    parent: { type: 'page_id' as const, page_id: 'page-id' },
+    created_time: '',
+    last_edited_time: '',
+    created_by: { object: 'user' as const, id: 'user-id' },
+    last_edited_by: { object: 'user' as const, id: 'user-id' },
+    has_children: true,
+    archived: false,
+    in_trash: false,
+    type: 'table' as const,
+    table: {
+      table_width: tableWidth,
+      has_column_header: false,
+      has_row_header: false,
+    },
+  };
+}
+
+function tableRowBlock(id: string, cells: ReturnType<typeof richText>[][]) {
+  return {
+    object: 'block' as const,
+    id,
+    parent: { type: 'block_id' as const, block_id: 'parent-table' },
+    created_time: '',
+    last_edited_time: '',
+    created_by: { object: 'user' as const, id: 'user-id' },
+    last_edited_by: { object: 'user' as const, id: 'user-id' },
+    has_children: false,
+    archived: false,
+    in_trash: false,
+    type: 'table_row' as const,
+    table_row: { cells },
+  };
+}
+
 class ChildStubApi extends MockNotionAPI {
   constructor(
     private readonly delegate: MockNotionAPI,
     private readonly toggleId: string,
-    private readonly children: ReturnType<typeof paragraphBlock>[]
+    private readonly children: (
+      | ReturnType<typeof paragraphBlock>
+      | ReturnType<typeof tableRowBlock>
+    )[]
   ) {
     super(process.env.NOTION_KEY!, '3');
   }
@@ -814,6 +855,35 @@ describe('BlockHandler', () => {
     expect(tableBlockCalls).toHaveLength(1);
 
     getBlocksSpy.mockRestore();
+  });
+
+  test('Code-wrapped text in a table cell produces a cloze note', async () => {
+    const tableId = 'cloze-table-block';
+    const table = buildTableBlock(tableId, 2);
+    const childApi = new ChildStubApi(api, tableId, [
+      tableRowBlock('cloze-table-row', [
+        [richText('The capital of France is '), codeText('Paris')],
+        [richText('geography')],
+      ]),
+    ]);
+    const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
+    const bl = new BlockHandler(
+      exporter,
+      childApi,
+      new CardOption({ cloze: 'true' })
+    );
+    const flashcards = await bl.getFlashcards(
+      new ParserRules(),
+      [table],
+      [],
+      undefined
+    );
+
+    expect(flashcards).toHaveLength(1);
+    const card = flashcards[0];
+    expect(card.cloze).toBe(true);
+    expect(card.name).toContain('{{c1::Paris}}');
+    expect(card.back).toContain('geography');
   });
 
   describe('positional heading tags', () => {

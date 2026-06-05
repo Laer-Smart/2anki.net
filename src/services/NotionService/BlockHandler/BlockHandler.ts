@@ -267,8 +267,9 @@ class BlockHandler {
           type: tableBlock.type,
         });
         const tableCards = tableRowsToCards(tableBlock, tableChildren, this);
-        for (const { front, back: tableBack } of tableCards) {
+        for (const { front, back: tableBack, isCloze } of tableCards) {
           const ankiNote = new Note(front, tableBack);
+          ankiNote.cloze = isCloze;
           ankiNote.media = this.exporter.media;
           ankiNote.notionLink = this.__notionLink(tableBlock.id, notionBaseLink);
           ankiNote.notionId = this.settings.useNotionId ? tableBlock.id : undefined;

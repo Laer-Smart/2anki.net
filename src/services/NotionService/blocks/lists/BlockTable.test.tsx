@@ -45,6 +45,23 @@ function textRun(content: string): RichTextItemResponse {
   };
 }
 
+function codeRun(content: string): RichTextItemResponse {
+  return {
+    type: 'text',
+    text: { content, link: null },
+    annotations: {
+      bold: false,
+      italic: false,
+      strikethrough: false,
+      underline: false,
+      code: true,
+      color: 'default',
+    },
+    plain_text: content,
+    href: null,
+  };
+}
+
 function tableRow(
   id: string,
   cells: RichTextItemResponse[][]
@@ -179,6 +196,92 @@ describe('tableRowsToCards', () => {
     expect(cards[0].back).toContain('back');
     expect(cards[0].back).toContain('<table');
     expect(cards[0].back).toContain('extra');
+  });
+
+  it('turns code-wrapped text in col1 into a cloze deletion', () => {
+    const block = tableBlock('t7', 2, false);
+    const rows = [
+      tableRow('r1', [
+        [textRun('The capital of France is '), codeRun('Paris')],
+        [textRun('geography')],
+      ]),
+    ];
+    const handler = makeHandler();
+    const cards = tableRowsToCards(block, childrenResponse(rows), handler);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toContain('{{c1::Paris}}');
+    expect(cards[0].front).not.toContain('<code>');
+    expect(cards[0].back).toContain('geography');
+    expect(cards[0].isCloze).toBe(true);
+  });
+
+  it('uses col2 as the cloze text and col1 as the back when only col2 has code', () => {
+    const block = tableBlock('t8', 2, false);
+    const rows = [
+      tableRow('r1', [
+        [textRun('France')],
+        [textRun('The capital is '), codeRun('Paris')],
+      ]),
+    ];
+    const handler = makeHandler();
+    const cards = tableRowsToCards(block, childrenResponse(rows), handler);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toContain('{{c1::Paris}}');
+    expect(cards[0].back).toContain('France');
+    expect(cards[0].isCloze).toBe(true);
+  });
+
+  it('increments cloze numbers across multiple code spans in one cell', () => {
+    const block = tableBlock('t9', 2, false);
+    const rows = [
+      tableRow('r1', [
+        [
+          textRun('Symbol: '),
+          codeRun('H'),
+          textRun(' Number: '),
+          codeRun('1'),
+        ],
+        [textRun('chemistry')],
+      ]),
+    ];
+    const handler = makeHandler();
+    const cards = tableRowsToCards(block, childrenResponse(rows), handler);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toContain('{{c1::H}}');
+    expect(cards[0].front).toContain('{{c2::1}}');
+    expect(cards[0].isCloze).toBe(true);
+  });
+
+  it('leaves plain cells unchanged and not cloze-typed', () => {
+    const block = tableBlock('t10', 2, false);
+    const rows = [tableRow('r1', [[textRun('hello')], [textRun('world')]])];
+    const handler = makeHandler();
+    const cards = tableRowsToCards(block, childrenResponse(rows), handler);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toContain('hello');
+    expect(cards[0].back).toContain('world');
+    expect(cards[0].isCloze).toBe(false);
+  });
+
+  it('keeps code markup as-is when cloze is disabled in settings', () => {
+    const block = tableBlock('t11', 2, false);
+    const rows = [
+      tableRow('r1', [
+        [textRun('The capital is '), codeRun('Paris')],
+        [textRun('geography')],
+      ]),
+    ];
+    const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
+    const handler = new BlockHandler(
+      exporter,
+      api,
+      new CardOption({ cloze: 'false' })
+    );
+    const cards = tableRowsToCards(block, childrenResponse(rows), handler);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toContain('<code>Paris</code>');
+    expect(cards[0].front).not.toContain('{{c1::');
+    expect(cards[0].isCloze).toBe(false);
   });
 });
 
