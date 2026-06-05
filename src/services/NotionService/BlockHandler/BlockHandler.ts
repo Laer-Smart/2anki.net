@@ -35,6 +35,7 @@ import { blockToStaticMarkup } from '../helpers/blockToStaticMarkup';
 import { getToggleSummaryRichText } from '../helpers/getToggleSummaryRichText';
 import { isToggleHeading } from '../helpers/isToggleHeading';
 import { classifyBlock } from '../../../lib/parser/intent/classifyBlock';
+import { buildHeadingTagMap } from './helpers/buildHeadingTagMap';
 import { downloadMediaOrSkip } from '../helpers/downloadMediaOrSkip';
 import { expandSyncedBlocks } from '../helpers/expandSyncedBlocks';
 import { getAudioUrl } from '../helpers/getAudioUrl';
@@ -83,6 +84,14 @@ function extractRowText(property: unknown): string {
   if (p.type === 'title' && Array.isArray(p.title)) return joinPlainText(p.title);
   if (p.type === 'rich_text' && Array.isArray(p.rich_text)) return joinPlainText(p.rich_text);
   return '';
+}
+
+function headingTagsFor(
+  blockId: string,
+  headingTagMap: Map<string, string>
+): string[] {
+  const tag = headingTagMap.get(blockId);
+  return tag ? [tag] : [];
 }
 
 class BlockHandler {
@@ -241,7 +250,8 @@ class BlockHandler {
     rules: ParserRules,
     flashcardBlocks: GetBlockResponse[],
     tags: string[],
-    notionBaseLink: string | undefined
+    notionBaseLink: string | undefined,
+    headingTagMap: Map<string, string> = new Map()
   ): Promise<Note[]> {
     let cards = [];
     let counter = 0;
@@ -264,7 +274,7 @@ class BlockHandler {
           ankiNote.notionId = this.settings.useNotionId ? tableBlock.id : undefined;
           ankiNote.tags =
             rules.TAGS === 'heading'
-              ? TagRegistry.getInstance().headings
+              ? headingTagsFor(tableBlock.id, headingTagMap)
               : TagRegistry.getInstance().strikethroughs;
           ankiNote.number = counter++;
           cards.push(ankiNote);
@@ -362,7 +372,9 @@ class BlockHandler {
 
       const tr = TagRegistry.getInstance();
       ankiNote.tags =
-        rules.TAGS === 'heading' ? tr.headings : tr.strikethroughs;
+        rules.TAGS === 'heading'
+          ? headingTagsFor(block.id, headingTagMap)
+          : tr.strikethroughs;
       ankiNote.number = counter++;
 
       ankiNote.name = perserveNewlinesIfApplicable(
@@ -402,7 +414,7 @@ class BlockHandler {
     if (this.settings.useTags && tags.length > 0) {
       cards.forEach((c) => {
         c.tags ||= [];
-        c.tags = tags.concat(sanitizeTags(c.tags));
+        c.tags = [...new Set(tags.concat(sanitizeTags(c.tags)))];
       });
     }
     
@@ -550,7 +562,7 @@ class BlockHandler {
     // Depth-first traversal: process current page, then children
     if (rules.permitsDeckAsPage() && page) {
       const classifyRules = { flashcardTypes: flashCardTypes };
-      const cBlocks = blocks.filter((b: GetBlockResponse) => {
+      const isCardBlock = (b: GetBlockResponse): boolean => {
         if (!isFullBlock(b)) {
           return false;
         }
@@ -558,7 +570,12 @@ class BlockHandler {
           { type: b.type, hasToggleableHeading: isToggleHeading(b) },
           classifyRules
         ) === 'card';
-      });
+      };
+      const cBlocks = blocks.filter(isCardBlock);
+      const headingTagMap =
+        rules.TAGS === 'heading'
+          ? buildHeadingTagMap(blocks, isCardBlock)
+          : new Map<string, string>();
       this.settings.parentBlockId = page.id;
 
       let notionBaseLink =
@@ -571,7 +588,8 @@ class BlockHandler {
         rules,
         cBlocks,
         tags,
-        notionBaseLink
+        notionBaseLink,
+        headingTagMap
       );
       cards = cards.filter(card => {
         if (typeof card.notionId === 'string' && globalSeenIds.has(card.notionId)) {
@@ -637,18 +655,24 @@ class BlockHandler {
             this.useAll
           );
           const toggleHeadingsEnabled = flashCardTypes.includes('toggle');
-          let cBlocks = subBlocks.filter((b: GetBlockResponse) => {
+          const isSubCardBlock = (b: GetBlockResponse): boolean => {
             if (!isFullBlock(b)) return false;
             if (flashCardTypes.includes(b.type)) return true;
             return toggleHeadingsEnabled && isToggleHeading(b);
-          });
+          };
+          let cBlocks = subBlocks.filter(isSubCardBlock);
+          const subHeadingTagMap =
+            rules.TAGS === 'heading'
+              ? buildHeadingTagMap(subBlocks, isSubCardBlock)
+              : new Map<string, string>();
 
           this.settings.parentBlockId = sd.id;
           let cards = await this.getFlashcards(
             rules,
             cBlocks,
             tags,
-            undefined
+            undefined,
+            subHeadingTagMap
           );
           // Deduplicate by globalSeenIds
           cards = cards.filter(card => {

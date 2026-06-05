@@ -5,7 +5,6 @@ import {
 } from '@notionhq/client/build/src/api-endpoints';
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
-import TagRegistry from '../../../lib/parser/TagRegistry';
 import BlockHandler from '../BlockHandler/BlockHandler';
 import getPlainText from '../helpers/getPlainText';
 import HandleBlockAnnotations from './HandleBlockAnnotations';
@@ -65,7 +64,6 @@ export const BlockHeading = (
       id={block.id}
     >
       {headingText.map((t: RichTextItemResponse) => {
-        TagRegistry.getInstance().addHeading(t.plain_text);
         const { annotations } = t;
         return HandleBlockAnnotations(annotations, t);
       })}

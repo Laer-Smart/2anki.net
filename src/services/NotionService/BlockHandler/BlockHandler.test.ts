@@ -815,4 +815,87 @@ describe('BlockHandler', () => {
 
     getBlocksSpy.mockRestore();
   });
+
+  describe('positional heading tags', () => {
+    const toggleCard = (id: string) => ({
+      object: 'block' as const,
+      id,
+      parent: { type: 'page_id' as const, page_id: 'page-id' },
+      created_time: '',
+      last_edited_time: '',
+      created_by: { object: 'user' as const, id: 'user-id' },
+      last_edited_by: { object: 'user' as const, id: 'user-id' },
+      has_children: false,
+      archived: false,
+      in_trash: false,
+      type: 'toggle' as const,
+      toggle: {
+        rich_text: [
+          {
+            type: 'text' as const,
+            text: { content: 'Front', link: null },
+            annotations: {
+              bold: false,
+              italic: false,
+              strikethrough: false,
+              underline: false,
+              code: false,
+              color: 'default' as const,
+            },
+            plain_text: 'Front',
+            href: null,
+          },
+        ],
+        color: 'default' as const,
+      },
+    });
+
+    const buildHandler = (settingsInput: Record<string, string> = {}) => {
+      const settings = new CardOption(settingsInput);
+      const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
+      return new BlockHandler(exporter, api, settings);
+    };
+
+    test('TAGS is not heading leaves the card without heading tags', async () => {
+      const rules = new ParserRules();
+      rules.TAGS = 'strikethrough';
+      const bl = buildHandler();
+      const cards = await bl.getFlashcards(
+        rules,
+        [toggleCard('card-a')],
+        [],
+        undefined,
+        new Map([['card-a', 'Biology::Cell-division']])
+      );
+      expect(cards[0].tags).toEqual([]);
+    });
+
+    test('TAGS is heading tags the card with its nested ancestor chain', async () => {
+      const rules = new ParserRules();
+      rules.TAGS = 'heading';
+      const bl = buildHandler();
+      const cards = await bl.getFlashcards(
+        rules,
+        [toggleCard('card-b')],
+        [],
+        undefined,
+        new Map([['card-b', 'Biology::Cell-division']])
+      );
+      expect(cards[0].tags).toEqual(['Biology::Cell-division']);
+    });
+
+    test('heading tags coexist with global useTags without duplicates', async () => {
+      const rules = new ParserRules();
+      rules.TAGS = 'heading';
+      const bl = buildHandler({ tags: 'true' });
+      const cards = await bl.getFlashcards(
+        rules,
+        [toggleCard('card-c')],
+        ['Biology::Cell-division', 'review'],
+        undefined,
+        new Map([['card-c', 'Biology::Cell-division']])
+      );
+      expect(cards[0].tags).toEqual(['Biology::Cell-division', 'review']);
+    });
+  });
 });
