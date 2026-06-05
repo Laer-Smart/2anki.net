@@ -189,6 +189,47 @@ describe('PhotoToFlashcardsUseCase', () => {
     });
   });
 
+  describe('max_tokens truncation retry', () => {
+    const TRUNCATED_RESPONSE = STUB_CLAUDE_RESPONSE.slice(0, 40);
+
+    it('retries once with a higher max_tokens and succeeds on a complete response', async () => {
+      mockMessageCreate
+        .mockResolvedValueOnce({
+          stop_reason: 'max_tokens',
+          content: [{ type: 'text', text: TRUNCATED_RESPONSE }],
+          usage: { input_tokens: 100, output_tokens: 4096 },
+        })
+        .mockResolvedValueOnce({
+          stop_reason: 'end_turn',
+          content: [{ type: 'text', text: STUB_CLAUDE_RESPONSE }],
+          usage: { input_tokens: 100, output_tokens: 200 },
+        });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true });
+      expect(result.cardCount).toBe(2);
+      expect(mockMessageCreate).toHaveBeenCalledTimes(2);
+      expect(mockMessageCreate.mock.calls[0][0].max_tokens).toBe(4096);
+      expect(mockMessageCreate.mock.calls[1][0].max_tokens).toBe(8192);
+    });
+
+    it('throws 422 when the retry is also truncated mid-JSON', async () => {
+      mockMessageCreate.mockResolvedValue({
+        stop_reason: 'max_tokens',
+        content: [{ type: 'text', text: TRUNCATED_RESPONSE }],
+        usage: { input_tokens: 100, output_tokens: 8192 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await expect(
+        useCase.execute({ ...BASE_INPUT, isPaying: true })
+      ).rejects.toMatchObject({
+        status: 422,
+        message:
+          "Couldn't read the cards from this photo. Try a clearer or less dense image.",
+      });
+      expect(mockMessageCreate).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('tag plumbing', () => {
     it('writes tags from Claude Vision response into deck_info.json', async () => {
       mockMessageCreate.mockResolvedValueOnce({
