@@ -296,3 +296,68 @@ describe('UploadPage analytics', () => {
   });
 });
 
+const collectUnwrappedTextNodes = (root: HTMLElement): string[] => {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const offenders: string[] = [];
+  let node = walker.nextNode();
+  while (node != null) {
+    const hasVisibleText = (node.textContent ?? '').trim().length > 0;
+    const parentMixesElements =
+      (node.parentElement?.childElementCount ?? 0) > 0;
+    const parentIsBadgeContainer =
+      node.parentElement?.className.includes('aiOffBadgeBody') ?? false;
+    if (hasVisibleText && (parentMixesElements || parentIsBadgeContainer)) {
+      offenders.push(node.textContent ?? '');
+    }
+    node = walker.nextNode();
+  }
+  return offenders;
+};
+
+describe('UploadPage AI badge survives browser translation', () => {
+  beforeEach(() => {
+    fakeUser = null;
+    fakeLocals = undefined;
+    globalThis.localStorage.clear();
+    globalThis.sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    fakeUser = null;
+    fakeLocals = undefined;
+    globalThis.localStorage.clear();
+  });
+
+  const badgeFor = (label: RegExp): HTMLElement => {
+    const badgeLabel = screen.getByText(label);
+    return badgeLabel.closest('[role="status"]') as HTMLElement;
+  };
+
+  it('renders no bare text nodes in the anon branch', () => {
+    renderPage();
+    expect(collectUnwrappedTextNodes(badgeFor(/AI is off/))).toEqual([]);
+  });
+
+  it('renders no bare text nodes in the free branch', () => {
+    fakeUser = { id: 42 };
+    fakeLocals = { patreon: false, subscriber: false };
+    renderPage();
+    expect(collectUnwrappedTextNodes(badgeFor(/AI is off/))).toEqual([]);
+  });
+
+  it('renders no bare text nodes in the on branch', () => {
+    fakeUser = { id: 42 };
+    fakeLocals = { patreon: true, subscriber: false };
+    globalThis.localStorage.setItem('claude-ai-flashcards', 'true');
+    renderPage();
+    expect(collectUnwrappedTextNodes(badgeFor(/AI is on/))).toEqual([]);
+  });
+
+  it('renders no bare text nodes in the off branch', () => {
+    fakeUser = { id: 42 };
+    fakeLocals = { patreon: true, subscriber: false };
+    renderPage();
+    expect(collectUnwrappedTextNodes(badgeFor(/AI is off/))).toEqual([]);
+  });
+});
+

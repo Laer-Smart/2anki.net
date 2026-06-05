@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-05-upload-translate",
+  "date": "2026-06-05",
+  "type": "fix",
+  "title": "The upload page no longer breaks when the browser translates it"
+}
