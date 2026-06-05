@@ -1,10 +1,12 @@
 import express from 'express';
 import { getIndexFileContents } from './getIndexFileContents';
+import { INDEX_HTML_CACHE_CONTROL } from '../../lib/mountWebBuild';
 
 const BUILD_PENDING_BODY =
   'The site is being updated. Refresh in a few seconds.';
 
 export const sendIndex = (response: express.Response) => {
+  response.set('Cache-Control', INDEX_HTML_CACHE_CONTROL);
   const html = getIndexFileContents();
   if (html == null) {
     response.set('Retry-After', '5');

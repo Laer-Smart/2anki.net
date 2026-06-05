@@ -14,6 +14,7 @@ if (existsSync(localEnvFile)) {
 }
 
 import { BUILD_DIR } from './lib/constants';
+import { mountWebBuild } from './lib/mountWebBuild';
 import ErrorHandler from './routes/middleware/ErrorHandler';
 import { makeErrorCaptureMiddleware } from './routes/middleware/ErrorCaptureMiddleware';
 import { ErrorEventRepository } from './data_layer/ErrorEventRepository';
@@ -152,14 +153,7 @@ const serve = async () => {
   attachAnkifySessionProxy(app, server, ankifySessionValidate);
 
   app.use('/templates', express.static(templateDir));
-  app.use(
-    '/assets',
-    express.static(`${BUILD_DIR}/assets`, {
-      immutable: true,
-      maxAge: '1y',
-    })
-  );
-  app.use(express.static(BUILD_DIR));
+  mountWebBuild(app, BUILD_DIR);
 
   // API Documentation
   app.use(swaggerRouter());

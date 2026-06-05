@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-05-fresh-after-updates",
+  "date": "2026-06-05",
+  "type": "fix",
+  "title": "The site loads the latest version right after an update instead of a broken page"
+}

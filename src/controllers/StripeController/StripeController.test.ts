@@ -106,6 +106,7 @@ function mockResponse(): express.Response {
     status: jest.fn().mockReturnThis(),
     json: jest.fn().mockReturnThis(),
     send: jest.fn().mockReturnThis(),
+    set: jest.fn().mockReturnThis(),
   } as unknown as express.Response;
 }
 
