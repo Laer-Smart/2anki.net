@@ -28,5 +28,16 @@ module.exports = {
         isolatedModules: true,
       },
     ],
+    '^.+\\.jsx?$': [
+      'ts-jest',
+      {
+        isolatedModules: true,
+        tsconfig: {
+          allowJs: true,
+          module: 'commonjs',
+        },
+      },
+    ],
   },
+  transformIgnorePatterns: ['/node_modules/(?!(p-limit|yocto-queue)/)'],
 };
