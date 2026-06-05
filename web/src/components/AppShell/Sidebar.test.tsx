@@ -569,6 +569,66 @@ describe('Sidebar auto-minimize', () => {
   });
 });
 
+const collectUnwrappedTextNodes = (root: HTMLElement): string[] => {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const offenders: string[] = [];
+  let node = walker.nextNode();
+  while (node != null) {
+    const hasVisibleText = (node.textContent ?? '').trim().length > 0;
+    const parentMixesElements =
+      (node.parentElement?.childElementCount ?? 0) > 0;
+    if (hasVisibleText && parentMixesElements) {
+      offenders.push(node.textContent ?? '');
+    }
+    node = walker.nextNode();
+  }
+  return offenders;
+};
+
+const wrapTextNodesInFont = (root: HTMLElement) => {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const textNodes: Text[] = [];
+  let node = walker.nextNode();
+  while (node != null) {
+    if ((node.textContent ?? '').trim().length > 0) {
+      textNodes.push(node as Text);
+    }
+    node = walker.nextNode();
+  }
+  for (const textNode of textNodes) {
+    const font = document.createElement('font');
+    textNode.parentNode?.insertBefore(font, textNode);
+    font.appendChild(textNode);
+  }
+};
+
+describe('Sidebar collapse rail survives browser translation', () => {
+  beforeEachReset();
+
+  it('renders no bare text nodes next to the rail icon when expanded', () => {
+    renderSidebar();
+    const rail = screen.getByRole('button', { name: 'Collapse sidebar' });
+    expect(collectUnwrappedTextNodes(rail)).toEqual([]);
+  });
+
+  it('renders no bare text nodes next to the rail icon when collapsed', () => {
+    localStorage.setItem('sidebar.collapsed', 'true');
+    renderSidebar();
+    const rail = screen.getByRole('button', { name: 'Expand sidebar' });
+    expect(collectUnwrappedTextNodes(rail)).toEqual([]);
+  });
+
+  it('toggles after a translation tool wraps the rail text in font tags', () => {
+    renderSidebar();
+    const rail = screen.getByRole('button', { name: 'Collapse sidebar' });
+    wrapTextNodesInFont(rail);
+    fireEvent.click(rail);
+    expect(
+      screen.getByRole('button', { name: 'Expand sidebar' })
+    ).toBeInTheDocument();
+  });
+});
+
 describe('Sidebar More block', () => {
   it('renders the footer links', () => {
     renderSidebar();

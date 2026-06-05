@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-05-translate-sweep",
+  "date": "2026-06-05",
+  "type": "fix",
+  "title": "Browser page translation no longer breaks the documentation pages or the sidebar"
+}
