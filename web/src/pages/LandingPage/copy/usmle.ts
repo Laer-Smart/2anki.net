@@ -5,6 +5,7 @@ const usmleCopy: LandingCopy = {
     { label: 'Make nursing flashcards from lecture slides', href: '/nursing-flashcards' },
     { label: 'Turn medical lecture slides into Anki cards', href: '/anki-from-medical-lecture-slides' },
     { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
+    { label: 'Enrich an AnKing deck', href: '/convert/enrich-anki-deck' },
     { label: 'Browse every converter', href: '/convert' },
   ],
   pathname: '/usmle-anki',
