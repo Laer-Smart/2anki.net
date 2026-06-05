@@ -52,8 +52,6 @@ export default interface Users {
 
   stripe_customer_id: string | null;
 
-  upload_primer_dismissed_at: Date | null;
-
   onboarded_at: Date | null;
 
   pdf_prints_this_month: number;
@@ -119,8 +117,6 @@ export interface UsersInitializer {
 
   stripe_customer_id?: string | null;
 
-  upload_primer_dismissed_at?: Date | null;
-
   onboarded_at?: Date | null;
 
   /** Default value: 0 */
@@ -177,8 +173,6 @@ export interface UsersMutator {
   chat_consent_at?: Date | null;
 
   stripe_customer_id?: string | null;
-
-  upload_primer_dismissed_at?: Date | null;
 
   onboarded_at?: Date | null;
 

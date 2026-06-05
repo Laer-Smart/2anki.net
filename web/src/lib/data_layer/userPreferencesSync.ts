@@ -97,7 +97,6 @@ export interface ServerUserPreferences {
   cardOptions: Record<string, string> | null;
   theme: string | null;
   ankiWebAcknowledgedAt: string | null;
-  uploadPrimerDismissedAt: string | null;
 }
 
 export async function fetchUserPreferences(): Promise<ServerUserPreferences | null> {
@@ -108,20 +107,6 @@ export async function fetchUserPreferences(): Promise<ServerUserPreferences | nu
     return (await res.json()) as ServerUserPreferences;
   } catch {
     return null;
-  }
-}
-
-export async function dismissUploadPrimer(): Promise<void> {
-  if (!isAuthed()) return;
-  try {
-    await fetch(PREFERENCES_URL, {
-      method: 'PATCH',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uploadPrimerDismissedAt: new Date().toISOString() }),
-    });
-  } catch {
-    // silent — the caller already updated the query cache optimistically
   }
 }
 

@@ -5,7 +5,6 @@ export interface MigrateUserPreferencesInput {
   cardOptions?: CardOptions;
   theme?: string;
   ankiWebAcknowledgedAt?: string;
-  uploadPrimerDismissedAt?: string;
 }
 
 export class MigrateUserPreferencesUseCase {
@@ -16,7 +15,6 @@ export class MigrateUserPreferencesUseCase {
       cardOptions: input.cardOptions,
       theme: input.theme,
       ankiWebAcknowledgedAt: input.ankiWebAcknowledgedAt,
-      uploadPrimerDismissedAt: input.uploadPrimerDismissedAt,
     });
   }
 }

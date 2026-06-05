@@ -3,7 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   acknowledgeAnkiWeb,
   cancelPendingSync,
-  dismissUploadPrimer,
   fetchUserPreferences,
   hydrateFromServer,
   migrateToServer,
@@ -57,11 +56,6 @@ describe('userPreferencesSync — anonymous user (no token cookie)', () => {
 
   it('hydrateFromServer is a no-op', async () => {
     await hydrateFromServer();
-    expect(fetchSpy).not.toHaveBeenCalled();
-  });
-
-  it('dismissUploadPrimer is a no-op', async () => {
-    await dismissUploadPrimer();
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
