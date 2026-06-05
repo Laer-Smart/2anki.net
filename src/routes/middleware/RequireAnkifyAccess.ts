@@ -20,7 +20,9 @@ export const makeRequireAnkifyAccess = (authService: AuthenticationService) => {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const subscriptions = await SubscriptionService.getUserActiveSubscriptions(user.email);
+    const subscriptions = await SubscriptionService.getUserActiveSubscriptions(
+      user.email
+    );
     const autoSyncProductId = process.env.AUTO_SYNC_PRODUCT_ID ?? '';
 
     if (!hasAnkifyAccess(user, subscriptions, autoSyncProductId)) {

@@ -43,9 +43,7 @@ describe('SignupCountriesChart', () => {
   });
 
   test('formats counts of 10 000+ with a thin space separator', () => {
-    render(
-      <SignupCountriesChart points={[{ country: 'US', count: 12450 }]} />
-    );
+    render(<SignupCountriesChart points={[{ country: 'US', count: 12450 }]} />);
     expect(screen.getByText('12 450')).toBeInTheDocument();
   });
 });

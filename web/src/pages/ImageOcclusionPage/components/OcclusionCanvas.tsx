@@ -95,10 +95,7 @@ function duplicateRects(rects: OcclusionRect[]): OcclusionRect[] {
   });
 }
 
-export function OcclusionCanvas({
-  entry,
-  onRectsChange,
-}: Readonly<Props>) {
+export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);

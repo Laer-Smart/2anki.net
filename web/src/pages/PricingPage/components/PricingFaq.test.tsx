@@ -22,11 +22,15 @@ describe('PricingFaq', () => {
 
   it('renders the pay-once one-time payment question', () => {
     render(<PricingFaq />);
-    expect(screen.getByText('Is there a one-time payment option?')).toBeInTheDocument();
+    expect(
+      screen.getByText('Is there a one-time payment option?')
+    ).toBeInTheDocument();
   });
 
   it('shows answers in collapsible details elements', () => {
     const { container } = render(<PricingFaq />);
-    expect(container.querySelectorAll('details').length).toBe(PRICING_FAQ.length);
+    expect(container.querySelectorAll('details').length).toBe(
+      PRICING_FAQ.length
+    );
   });
 });

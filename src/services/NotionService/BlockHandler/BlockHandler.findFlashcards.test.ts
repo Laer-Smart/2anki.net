@@ -21,7 +21,14 @@ function makeDataSourceApi(): NotionAPIWrapper {
             text: { content: 'What is spaced repetition?', link: null },
             plain_text: 'What is spaced repetition?',
             href: null,
-            annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' },
+            annotations: {
+              bold: false,
+              italic: false,
+              strikethrough: false,
+              underline: false,
+              code: false,
+              color: 'default',
+            },
           },
         ],
       },
@@ -31,10 +38,20 @@ function makeDataSourceApi(): NotionAPIWrapper {
         rich_text: [
           {
             type: 'text',
-            text: { content: 'A learning method that spaces reviews over time.', link: null },
+            text: {
+              content: 'A learning method that spaces reviews over time.',
+              link: null,
+            },
             plain_text: 'A learning method that spaces reviews over time.',
             href: null,
-            annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' },
+            annotations: {
+              bold: false,
+              italic: false,
+              strikethrough: false,
+              underline: false,
+              code: false,
+              color: 'default',
+            },
           },
         ],
       },

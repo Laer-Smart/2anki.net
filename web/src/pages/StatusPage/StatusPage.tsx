@@ -43,7 +43,7 @@ export default function StatusPage() {
     fetch('/api/status')
       .then(async (res) => {
         if (res.ok) {
-          const data = await res.json() as StatusPayload;
+          const data = (await res.json()) as StatusPayload;
           setStatus(data);
         } else {
           setError(true);
@@ -59,7 +59,11 @@ export default function StatusPage() {
       {error && (
         <p className={pageStyles.fallback}>
           API unreachable — check{' '}
-          <a href="https://www.reddit.com/r/notion2anki/" target="_blank" rel="noreferrer">
+          <a
+            href="https://www.reddit.com/r/notion2anki/"
+            target="_blank"
+            rel="noreferrer"
+          >
             r/notion2anki
           </a>{' '}
           for community updates.
@@ -71,17 +75,26 @@ export default function StatusPage() {
           <section className={pageStyles.section}>
             <h2>Services</h2>
             <div className={`${pageStyles.signalRow}`}>
-              <span className={`${pageStyles.dot} ${dotClass(status.api.ok)}`} aria-hidden="true" />
+              <span
+                className={`${pageStyles.dot} ${dotClass(status.api.ok)}`}
+                aria-hidden="true"
+              />
               <span className={pageStyles.label}>API</span>
               <span>{status.api.ok ? 'Operational' : 'Degraded'}</span>
             </div>
             <div className={pageStyles.signalRow}>
-              <span className={`${pageStyles.dot} ${dotClass(status.db.ok)}`} aria-hidden="true" />
+              <span
+                className={`${pageStyles.dot} ${dotClass(status.db.ok)}`}
+                aria-hidden="true"
+              />
               <span className={pageStyles.label}>Database</span>
               <span>{status.db.ok ? 'Operational' : 'Unreachable'}</span>
             </div>
             <div className={pageStyles.signalRow}>
-              <span className={`${pageStyles.dot} ${dotClass(status.notion.ok)}`} aria-hidden="true" />
+              <span
+                className={`${pageStyles.dot} ${dotClass(status.notion.ok)}`}
+                aria-hidden="true"
+              />
               <span className={pageStyles.label}>Notion API</span>
               <span>{status.notion.ok ? 'Active' : 'No recent calls'}</span>
               {status.notion.lastSuccessAt != null && (
@@ -111,7 +124,9 @@ export default function StatusPage() {
                 <span className={pageStyles.label}>Version</span>
                 <span>{status.lastDeploy.sha.slice(0, 7)}</span>
                 {status.lastDeploy.time != null && (
-                  <span className={pageStyles.meta}>{status.lastDeploy.time}</span>
+                  <span className={pageStyles.meta}>
+                    {status.lastDeploy.time}
+                  </span>
                 )}
               </div>
             </section>
@@ -122,13 +137,23 @@ export default function StatusPage() {
               <h2>Recent incidents</h2>
               {status.incidents.map((incident) => (
                 <div key={incident.id} className={pageStyles.incident}>
-                  <p className={pageStyles.incidentSummary}>{incident.summary}</p>
+                  <p className={pageStyles.incidentSummary}>
+                    {incident.summary}
+                  </p>
                   <p className={pageStyles.incidentTime}>
                     Started {new Date(incident.start).toLocaleString()}
                     {incident.end == null ? (
-                      <> &mdash; <span className={pageStyles.incidentOpen}>ongoing</span></>
+                      <>
+                        {' '}
+                        &mdash;{' '}
+                        <span className={pageStyles.incidentOpen}>ongoing</span>
+                      </>
                     ) : (
-                      <> &mdash; resolved {new Date(incident.end).toLocaleString()}</>
+                      <>
+                        {' '}
+                        &mdash; resolved{' '}
+                        {new Date(incident.end).toLocaleString()}
+                      </>
                     )}
                   </p>
                 </div>

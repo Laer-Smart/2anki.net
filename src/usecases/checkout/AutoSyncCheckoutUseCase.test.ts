@@ -12,7 +12,8 @@ import { AutoSyncCheckoutUseCase } from './AutoSyncCheckoutUseCase';
 import SubscriptionService from '../../services/SubscriptionService';
 
 const mockCountActive = SubscriptionService.countActiveByProductId as jest.Mock;
-const mockGetUserActiveSubscriptions = SubscriptionService.getUserActiveSubscriptions as jest.Mock;
+const mockGetUserActiveSubscriptions =
+  SubscriptionService.getUserActiveSubscriptions as jest.Mock;
 
 const AUTO_SYNC_PRODUCT_ID = 'prod_test_auto_sync';
 const AUTO_SYNC_PRICE_ID = 'price_test_auto_sync';
@@ -38,7 +39,10 @@ describe('AutoSyncCheckoutUseCase', () => {
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
 
     const uc = makeUseCase();
-    const result = await uc.execute({ userEmail: 'user@example.com', userId: 42 });
+    const result = await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 42,
+    });
 
     expect(result).toEqual({ status: 'cap_reached' });
     expect(mockStripeCreateSession).not.toHaveBeenCalled();
@@ -51,7 +55,10 @@ describe('AutoSyncCheckoutUseCase', () => {
     ]);
 
     const uc = makeUseCase();
-    const result = await uc.execute({ userEmail: 'user@example.com', userId: 42 });
+    const result = await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 42,
+    });
 
     expect(result).toEqual({ status: 'already_subscribed' });
     expect(mockStripeCreateSession).not.toHaveBeenCalled();
@@ -60,10 +67,15 @@ describe('AutoSyncCheckoutUseCase', () => {
   test('creates a Stripe Checkout Session and returns url when within cap', async () => {
     mockCountActive.mockResolvedValue(5);
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
     const uc = makeUseCase();
-    const result = await uc.execute({ userEmail: 'user@example.com', userId: 42 });
+    const result = await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 42,
+    });
 
     expect(result).toEqual({ url: 'https://checkout.stripe.com/test' });
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
@@ -80,7 +92,9 @@ describe('AutoSyncCheckoutUseCase', () => {
   test('enables Stripe session recovery on expiry', async () => {
     mockCountActive.mockResolvedValue(0);
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
     const uc = makeUseCase();
     await uc.execute({ userEmail: 'user@example.com', userId: 42 });
@@ -95,10 +109,16 @@ describe('AutoSyncCheckoutUseCase', () => {
   test('stamps anon_id into metadata when present', async () => {
     mockCountActive.mockResolvedValue(0);
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
     const uc = makeUseCase();
-    await uc.execute({ userEmail: 'user@example.com', userId: 42, anonId: 'anon-uuid-123' });
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 42,
+      anonId: 'anon-uuid-123',
+    });
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -110,7 +130,9 @@ describe('AutoSyncCheckoutUseCase', () => {
   test('omits anon_id from metadata when absent', async () => {
     mockCountActive.mockResolvedValue(0);
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
     const uc = makeUseCase();
     await uc.execute({ userEmail: 'user@example.com', userId: 42 });
@@ -125,10 +147,16 @@ describe('AutoSyncCheckoutUseCase', () => {
   test('stamps surface into metadata when provided', async () => {
     mockCountActive.mockResolvedValue(0);
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
     const uc = makeUseCase();
-    await uc.execute({ userEmail: 'user@example.com', userId: 42, surface: 'pricing_page' });
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 42,
+      surface: 'pricing_page',
+    });
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -140,7 +168,9 @@ describe('AutoSyncCheckoutUseCase', () => {
   test('omits surface from metadata when absent', async () => {
     mockCountActive.mockResolvedValue(0);
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
     const uc = makeUseCase();
     await uc.execute({ userEmail: 'user@example.com', userId: 42 });
@@ -155,12 +185,18 @@ describe('AutoSyncCheckoutUseCase', () => {
   test('does not log raw Stripe IDs in session creation args', async () => {
     mockCountActive.mockResolvedValue(0);
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
     const consoleSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
 
     const uc = makeUseCase();
-    await uc.execute({ userEmail: 'user@example.com', userId: 42, stripeCustomerId: 'cus_secret' });
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 42,
+      stripeCustomerId: 'cus_secret',
+    });
 
     const logCalls = consoleSpy.mock.calls.map((c) => JSON.stringify(c));
     for (const call of logCalls) {
@@ -190,7 +226,9 @@ describe('AutoSyncCheckoutUseCase', () => {
   test('emits auto_sync.checkout.session_created structured log', async () => {
     mockCountActive.mockResolvedValue(0);
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
     const consoleSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
 

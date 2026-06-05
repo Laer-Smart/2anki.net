@@ -97,14 +97,22 @@ class UploadController {
       const handleUploadEndpoint = getUploadHandler(res);
 
       handleUploadEndpoint(req, res, async (error) => {
-        if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
+        if (
+          error instanceof multer.MulterError &&
+          error.code === 'LIMIT_FILE_SIZE'
+        ) {
           return res.status(413).json({
             code: 'too_large',
-            message: 'Upload failed — file is over the 100 MB limit. Try splitting it.',
+            message:
+              'Upload failed — file is over the 100 MB limit. Try splitting it.',
           });
         }
         if (isLimitError(error)) {
-          return handleUploadLimitError(req, res, error instanceof Error ? error : null);
+          return handleUploadLimitError(
+            req,
+            res,
+            error instanceof Error ? error : null
+          );
         }
         await this.service.handleUpload(req, res);
       });
@@ -161,7 +169,8 @@ class UploadController {
     } catch (error) {
       console.error('getDropboxUploads failed', error);
       return res.status(500).json({
-        message: "Couldn't load your Dropbox history right now. Refresh to try again.",
+        message:
+          "Couldn't load your Dropbox history right now. Refresh to try again.",
       });
     }
   }
@@ -249,12 +258,15 @@ class UploadController {
         });
       });
       res.set('Retry-After', '60');
-      return res
-        .status(429)
-        .json({ message: 'Too many password attempts. Please wait a minute and try again.' });
+      return res.status(429).json({
+        message:
+          'Too many password attempts. Please wait a minute and try again.',
+      });
     }
 
-    const credential = validatePdfCredential((req.body as Record<string, unknown>).credential);
+    const credential = validatePdfCredential(
+      (req.body as Record<string, unknown>).credential
+    );
     if (credential == null) {
       return res.status(400).json({ message: 'Invalid credential.' });
     }
@@ -278,11 +290,18 @@ class UploadController {
 
     const filename = uploadedFile.originalname;
     const paying = isPaying(res.locals);
-    const settings = new CardOption(req.body as Record<string, string> || {});
+    const settings = new CardOption((req.body as Record<string, string>) || {});
     const workspace = new Workspace(true, 'fs');
 
     const useCase = new RetryPdfWithCredentialUseCase();
-    const outcome = await useCase.execute(fileBuffer, filename, credential, paying, settings, workspace);
+    const outcome = await useCase.execute(
+      fileBuffer,
+      filename,
+      credential,
+      paying,
+      settings,
+      workspace
+    );
 
     if ('needsCredential' in outcome) {
       return res.status(400).json({
@@ -300,7 +319,9 @@ class UploadController {
     try {
       res.set('File-Name', encodeURIComponent(deckName));
     } catch {
-      console.info(`retryPdfWithCredential: failed to encode filename ${deckName}`);
+      console.info(
+        `retryPdfWithCredential: failed to encode filename ${deckName}`
+      );
     }
     res.attachment(`/${deckName}`);
     return res.status(200).send(apkg);

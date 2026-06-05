@@ -40,7 +40,10 @@ export class ReEngagementController {
       res.status(400).json({ message: 'token is required.' });
       return;
     }
-    if (typeof stoppedReason !== 'string' || stoppedReason.trim().length === 0) {
+    if (
+      typeof stoppedReason !== 'string' ||
+      stoppedReason.trim().length === 0
+    ) {
       res.status(400).json({ message: 'stoppedReason is required.' });
       return;
     }

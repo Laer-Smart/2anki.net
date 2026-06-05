@@ -29,18 +29,26 @@ class StubRepo implements IObservabilityRepository {
   insertOutboundCallLogs = async (_rows: OutboundCallLogRow[]) => {};
   deleteOlderThan = async () => ({ requestLogs: 0, outboundCallLogs: 0 });
 
-  aggregateInboundByStatusClass = async (fromTime: Date, bucketSeconds: number) => {
+  aggregateInboundByStatusClass = async (
+    fromTime: Date,
+    bucketSeconds: number
+  ) => {
     this.capturedFromTime = fromTime;
     this.capturedBucketSeconds = bucketSeconds;
     return this.inboundBuckets;
   };
-  topRoutesByLatency = async (_fromTime: Date, _limit: number) => this.routeLatency;
-  aggregateOutboundByService = async (_fromTime: Date, _bucketSeconds: number) =>
-    this.outboundBuckets;
+  topRoutesByLatency = async (_fromTime: Date, _limit: number) =>
+    this.routeLatency;
+  aggregateOutboundByService = async (
+    _fromTime: Date,
+    _bucketSeconds: number
+  ) => this.outboundBuckets;
   outboundLatencyByService = async (_fromTime: Date, _limit: number) =>
     this.outboundLatency;
-  errorRateByRoute = async (_fromTime: Date, _limit: number) => this.routeErrors;
-  errorRateByService = async (_fromTime: Date, _limit: number) => this.serviceErrors;
+  errorRateByRoute = async (_fromTime: Date, _limit: number) =>
+    this.routeErrors;
+  errorRateByService = async (_fromTime: Date, _limit: number) =>
+    this.serviceErrors;
 }
 
 describe('ObservabilityQueryService', () => {
@@ -56,29 +64,46 @@ describe('ObservabilityQueryService', () => {
     ['1h', 60 * 60 * 1000],
     ['24h', 24 * 60 * 60 * 1000],
     ['7d', 7 * 24 * 60 * 60 * 1000],
-  ])('passes a fromTime that matches the %s window', async (window, expectedMs) => {
-    const repo = new StubRepo();
-    const service = new ObservabilityQueryService(repo);
-    const before = Date.now();
-    await service.getMetrics(window);
-    const after = Date.now();
+  ])(
+    'passes a fromTime that matches the %s window',
+    async (window, expectedMs) => {
+      const repo = new StubRepo();
+      const service = new ObservabilityQueryService(repo);
+      const before = Date.now();
+      await service.getMetrics(window);
+      const after = Date.now();
 
-    const captured = repo.capturedFromTime!.getTime();
-    expect(captured).toBeGreaterThanOrEqual(before - expectedMs);
-    expect(captured).toBeLessThanOrEqual(after - expectedMs);
-    expect(repo.capturedBucketSeconds).toBe(
-      OPS_METRICS_BUCKET_SECONDS_BY_WINDOW[window]
-    );
-  });
+      const captured = repo.capturedFromTime!.getTime();
+      expect(captured).toBeGreaterThanOrEqual(before - expectedMs);
+      expect(captured).toBeLessThanOrEqual(after - expectedMs);
+      expect(repo.capturedBucketSeconds).toBe(
+        OPS_METRICS_BUCKET_SECONDS_BY_WINDOW[window]
+      );
+    }
+  );
 
   it('shapes the result into the expected payload', async () => {
     const repo = new StubRepo();
     repo.inboundBuckets = [
-      { bucket: new Date('2026-05-09T10:00:00Z'), status_class: '2xx', count: 9 },
-      { bucket: new Date('2026-05-09T10:00:00Z'), status_class: '5xx', count: 1 },
+      {
+        bucket: new Date('2026-05-09T10:00:00Z'),
+        status_class: '2xx',
+        count: 9,
+      },
+      {
+        bucket: new Date('2026-05-09T10:00:00Z'),
+        status_class: '5xx',
+        count: 1,
+      },
     ];
     repo.routeLatency = [
-      { method: 'GET', route: '/api/upload', avg_ms: 50, p95_ms: 200, count: 10 },
+      {
+        method: 'GET',
+        route: '/api/upload',
+        avg_ms: 50,
+        p95_ms: 200,
+        count: 10,
+      },
     ];
     repo.outboundBuckets = [
       { bucket: new Date('2026-05-09T10:00:00Z'), service: 'notion', count: 4 },

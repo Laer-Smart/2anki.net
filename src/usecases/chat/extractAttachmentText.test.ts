@@ -21,7 +21,9 @@ jest.mock(
 
 import { convertDocxToHTML } from '../../infrastracture/adapters/fileConversion/convertDocxToHTML';
 
-const mockedConvertDocx = convertDocxToHTML as jest.MockedFunction<typeof convertDocxToHTML>;
+const mockedConvertDocx = convertDocxToHTML as jest.MockedFunction<
+  typeof convertDocxToHTML
+>;
 
 function notionZip(files: Record<string, string>): Buffer {
   const entries: Record<string, Uint8Array> = {};
@@ -75,7 +77,9 @@ describe('extractAttachmentText', () => {
 
     const result = await extractAttachmentText([attachment]);
 
-    expect(result).toEqual([{ fileName: 'scratch.txt', text: 'plain notes here' }]);
+    expect(result).toEqual([
+      { fileName: 'scratch.txt', text: 'plain notes here' },
+    ]);
   });
 
   it('extracts text from a Notion .zip export, stripping HTML tags', async () => {
@@ -130,7 +134,9 @@ describe('extractAttachmentText', () => {
   });
 
   it('extracts text from a .docx via the conversion adapter', async () => {
-    mockedConvertDocx.mockResolvedValue('<h2>Heading</h2><p>Docx body text</p>');
+    mockedConvertDocx.mockResolvedValue(
+      '<h2>Heading</h2><p>Docx body text</p>'
+    );
     const attachment: ChatAttachment = {
       mimeType: DOCX_MIME,
       data: Buffer.from([0x50, 0x4b, 0x03, 0x04]),
@@ -146,8 +152,16 @@ describe('extractAttachmentText', () => {
 
   it('skips image and pdf attachments', async () => {
     const attachments: ChatAttachment[] = [
-      { mimeType: 'image/png', data: Buffer.from([0x89, 0x50]), fileName: 'a.png' },
-      { mimeType: 'application/pdf', data: Buffer.from([0x25, 0x50]), fileName: 'b.pdf' },
+      {
+        mimeType: 'image/png',
+        data: Buffer.from([0x89, 0x50]),
+        fileName: 'a.png',
+      },
+      {
+        mimeType: 'application/pdf',
+        data: Buffer.from([0x25, 0x50]),
+        fileName: 'b.pdf',
+      },
     ];
 
     const result = await extractAttachmentText(attachments);

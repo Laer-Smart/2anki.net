@@ -66,7 +66,11 @@ const AnkifyWebhookRouter = () => {
         return;
       }
 
-      let payload: { page_id?: string; type?: string; entity?: { id?: string } };
+      let payload: {
+        page_id?: string;
+        type?: string;
+        entity?: { id?: string };
+      };
       try {
         payload = JSON.parse(rawBody);
       } catch {
@@ -89,7 +93,13 @@ const AnkifyWebhookRouter = () => {
           const userSubs = user?.email
             ? await SubscriptionService.getUserActiveSubscriptions(user.email)
             : [];
-          if (!hasAnkifyAccess(user, userSubs, process.env.AUTO_SYNC_PRODUCT_ID ?? '')) {
+          if (
+            !hasAnkifyAccess(
+              user,
+              userSubs,
+              process.env.AUTO_SYNC_PRODUCT_ID ?? ''
+            )
+          ) {
             continue;
           }
           useCase

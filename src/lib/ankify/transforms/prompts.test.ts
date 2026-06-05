@@ -13,7 +13,11 @@ const basicNote: ParsedNote = {
 describe('buildTransformPrompt', () => {
   describe('translate_back', () => {
     it('embeds the target language and source fields', () => {
-      const result = buildTransformPrompt('translate_back', basicNote, 'Spanish');
+      const result = buildTransformPrompt(
+        'translate_back',
+        basicNote,
+        'Spanish'
+      );
       const payload = JSON.parse(result.user);
       expect(payload.target_language).toBe('Spanish');
       expect(payload.field_to_translate).toBe(basicNote.fields[1]);
@@ -35,7 +39,11 @@ describe('buildTransformPrompt', () => {
         frontFieldIndex: 0,
         backFieldIndex: 2,
       };
-      const result = buildTransformPrompt('translate_back', vocabNote, 'Spanish');
+      const result = buildTransformPrompt(
+        'translate_back',
+        vocabNote,
+        'Spanish'
+      );
       const payload = JSON.parse(result.user);
       expect(payload.field_to_translate).toBe('the dog');
       expect(payload.context_front).toBe('der Hund');
@@ -51,7 +59,11 @@ describe('buildTransformPrompt', () => {
           '<i>The powerhouse</i> of the <span>cell</span>.',
         ],
       };
-      const result = buildTransformPrompt('add_example', noteWithHtml, undefined);
+      const result = buildTransformPrompt(
+        'add_example',
+        noteWithHtml,
+        undefined
+      );
       const payload = JSON.parse(result.user);
       expect(payload.front).toBe('What is the mitochondrion?');
       expect(payload.back).toBe('The powerhouse of the cell.');

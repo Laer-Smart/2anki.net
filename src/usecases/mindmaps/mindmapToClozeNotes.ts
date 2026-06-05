@@ -59,7 +59,9 @@ export function mindmapToClozeNotes(
     return [];
   }
 
-  const labelMap = new Map<string, string>(data.nodes.map((n) => [n.id, n.label]));
+  const labelMap = new Map<string, string>(
+    data.nodes.map((n) => [n.id, n.label])
+  );
   const imageUrlMap = new Map<string, string | undefined>(
     data.nodes.map((n) => [n.id, n.image?.url ?? undefined])
   );
@@ -79,7 +81,9 @@ export function mindmapToClozeNotes(
     note.cloze = true;
     const media = path
       .map((id) => imageUrlMap.get(id))
-      .map((url) => (url == null ? null : filenameMap[url.split('/').pop() ?? '']))
+      .map((url) =>
+        url == null ? null : filenameMap[url.split('/').pop() ?? '']
+      )
       .filter((m): m is string => m != null);
     if (media.length > 0) note.media = media;
     return note;

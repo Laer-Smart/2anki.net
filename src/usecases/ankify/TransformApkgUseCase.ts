@@ -7,7 +7,10 @@ import {
   parseApkgNotes,
   ParseApkgNotesResult,
 } from '../../services/ApkgPreviewService/parseApkgNotes';
-import { transformApkgNotes, TransformMediaFile } from '../../services/ankify/transformService';
+import {
+  transformApkgNotes,
+  TransformMediaFile,
+} from '../../services/ankify/transformService';
 import { transformApkgWithImages } from '../../services/ankify/imageTransformService';
 import {
   FieldSelection,
@@ -72,7 +75,9 @@ function isCustomNoteType(transformed: TransformedNote): boolean {
   const looksLikeCloze =
     transformed.modelKind === 'cloze' &&
     names.length <= 2 &&
-    (names[0]?.includes('text') || names[0]?.includes('cloze') || names[0] === '');
+    (names[0]?.includes('text') ||
+      names[0]?.includes('cloze') ||
+      names[0] === '');
   return !looksLikeBasic && !looksLikeCloze;
 }
 
@@ -178,7 +183,10 @@ export class TransformApkgUseCase {
       throw new Error('Every note failed to transform. Try again.');
     }
 
-    const mergedMedia = mergeMedia(parsed.sourceMedia, transformResult.media ?? []);
+    const mergedMedia = mergeMedia(
+      parsed.sourceMedia,
+      transformResult.media ?? []
+    );
     const knownFilenames = new Set(mergedMedia.map((f) => f.filename));
     const notesWithMedia = attachReferencedMedia(
       transformResult.notes,

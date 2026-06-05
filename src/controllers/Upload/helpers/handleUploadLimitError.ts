@@ -4,10 +4,15 @@ import UsersService from '../../../services/UsersService';
 import UsersRepository from '../../../data_layer/UsersRepository';
 import { getDatabase } from '../../../data_layer';
 import SubscriptionService from '../../../services/SubscriptionService';
-import { getStripe, updateStoreSubscription } from '../../../lib/integrations/stripe';
+import {
+  getStripe,
+  updateStoreSubscription,
+} from '../../../lib/integrations/stripe';
 import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
 
-function determineLimitKind(error: Error | null | undefined): 'file_size' | 'card_count' {
+function determineLimitKind(
+  error: Error | null | undefined
+): 'file_size' | 'card_count' {
   if (error?.message?.includes('You can only add 100 cards')) {
     return 'card_count';
   }
@@ -33,13 +38,14 @@ export const handleUploadLimitError = async (
     const user = await usersService.getUserById(response.locals.owner);
     if (user) {
       try {
-        const activeSubs = await SubscriptionService.findActiveStripeSubscriptions(user.email);
+        const activeSubs =
+          await SubscriptionService.findActiveStripeSubscriptions(user.email);
         if (activeSubs.length > 0) {
           const stripe = getStripe();
           for (const sub of activeSubs) {
-            const customer = await stripe.customers.retrieve(
+            const customer = (await stripe.customers.retrieve(
               sub.customer as string
-            ) as StripeTypes.Customer;
+            )) as StripeTypes.Customer;
             await updateStoreSubscription(database, customer, sub);
           }
           return response.redirect('/upload');

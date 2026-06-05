@@ -38,7 +38,7 @@ const makeSubscriptionsRepo = (
     setEnabled: jest.fn(),
     deleteById: jest.fn(),
     recordPoll: jest.fn(),
-  } as unknown as jest.Mocked<AnkifyNotionSubscriptionsRepositoryInterface>);
+  }) as unknown as jest.Mocked<AnkifyNotionSubscriptionsRepositoryInterface>;
 
 const makeSyncUseCase = (): jest.Mocked<
   Pick<SyncNotionPageToRacUseCase, 'execute'>

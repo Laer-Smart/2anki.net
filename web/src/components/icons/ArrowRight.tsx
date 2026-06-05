@@ -5,7 +5,12 @@ interface ChevronProps {
   innerFill?: string;
 }
 
-function ArrowRight({ width, height, outerFill, innerFill }: Readonly<ChevronProps>) {
+function ArrowRight({
+  width,
+  height,
+  outerFill,
+  innerFill,
+}: Readonly<ChevronProps>) {
   return (
     <svg
       width={width}

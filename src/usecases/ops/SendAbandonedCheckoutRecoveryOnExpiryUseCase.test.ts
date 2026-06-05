@@ -44,7 +44,10 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
   it('sends email and claims row when insert wins', async () => {
     const repo = makeRepo(true);
     const emailService = makeEmailService();
-    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService
+    );
 
     await useCase.execute('cs_test_abc123', 'alice@example.com');
 
@@ -54,16 +57,18 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
       expect.any(String),
       null
     );
-    expect(emailService.sendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith(
-      'alice@example.com',
-      expect.any(String)
-    );
+    expect(
+      emailService.sendAbandonedCheckoutRecoveryEmail
+    ).toHaveBeenCalledWith('alice@example.com', expect.any(String));
   });
 
   it('passes recovery details through to claimSession when provided', async () => {
     const repo = makeRepo(true);
     const emailService = makeEmailService();
-    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService
+    );
     const recovery = {
       url: 'https://buy.stripe.com/r/live_abc',
       expiresAt: new Date('2026-07-05T00:00:00Z'),
@@ -83,17 +88,23 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
     const repo = makeRepo(true);
     const emailService = makeEmailService();
     const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
-    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService
+    );
 
     await useCase.execute('cs_log_check', 'alice@example.com', {
       url: 'https://buy.stripe.com/r/live_secret',
       expiresAt: null,
     });
 
-    expect(infoSpy).toHaveBeenCalledWith('checkout.session.expired.recovery_url', {
-      present: true,
-      session_id_hash: 'hashed:cs_log_check',
-    });
+    expect(infoSpy).toHaveBeenCalledWith(
+      'checkout.session.expired.recovery_url',
+      {
+        present: true,
+        session_id_hash: 'hashed:cs_log_check',
+      }
+    );
     const logged = infoSpy.mock.calls.map((c) => JSON.stringify(c)).join('\n');
     expect(logged).not.toContain('live_secret');
     infoSpy.mockRestore();
@@ -103,25 +114,35 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
     const repo = makeRepo(true);
     const emailService = makeEmailService();
     const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
-    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService
+    );
 
     await useCase.execute('cs_no_recovery', 'alice@example.com');
 
-    expect(infoSpy).toHaveBeenCalledWith('checkout.session.expired.recovery_url', {
-      present: false,
-      session_id_hash: 'hashed:cs_no_recovery',
-    });
+    expect(infoSpy).toHaveBeenCalledWith(
+      'checkout.session.expired.recovery_url',
+      {
+        present: false,
+        session_id_hash: 'hashed:cs_no_recovery',
+      }
+    );
     infoSpy.mockRestore();
   });
 
   it('passes a non-empty token to the email service', async () => {
     const repo = makeRepo(true);
     const emailService = makeEmailService();
-    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService
+    );
 
     await useCase.execute('cs_test_tok', 'alice@example.com');
 
-    const [, token] = emailService.sendAbandonedCheckoutRecoveryEmail.mock.calls[0];
+    const [, token] =
+      emailService.sendAbandonedCheckoutRecoveryEmail.mock.calls[0];
     expect(typeof token).toBe('string');
     expect(token.length).toBeGreaterThan(0);
   });
@@ -129,19 +150,26 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
   it('passes the same token to claimSession and the email service', async () => {
     const repo = makeRepo(true);
     const emailService = makeEmailService();
-    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService
+    );
 
     await useCase.execute('cs_test_same_tok', 'alice@example.com');
 
     const claimToken = (repo.claimSession as jest.Mock).mock.calls[0][2];
-    const [, emailToken] = emailService.sendAbandonedCheckoutRecoveryEmail.mock.calls[0];
+    const [, emailToken] =
+      emailService.sendAbandonedCheckoutRecoveryEmail.mock.calls[0];
     expect(claimToken).toBe(emailToken);
   });
 
   it('does not send email when insert is a no-op (duplicate)', async () => {
     const repo = makeRepo(false);
     const emailService = makeEmailService();
-    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService
+    );
 
     await useCase.execute('cs_test_abc123', 'alice@example.com');
 
@@ -151,31 +179,43 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
       expect.any(String),
       null
     );
-    expect(emailService.sendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
+    expect(
+      emailService.sendAbandonedCheckoutRecoveryEmail
+    ).not.toHaveBeenCalled();
   });
 
   it('does not send email when the user has opted out of marketing', async () => {
     const repo = makeRepo(true, true);
     const emailService = makeEmailService();
-    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService
+    );
 
     await useCase.execute('cs_opted_out', 'optout@example.com');
 
     expect(repo.isMarketingOptedOut).toHaveBeenCalledWith('optout@example.com');
     expect(repo.claimSession).not.toHaveBeenCalled();
-    expect(emailService.sendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
+    expect(
+      emailService.sendAbandonedCheckoutRecoveryEmail
+    ).not.toHaveBeenCalled();
   });
 
   it('skips with warn log when email is missing', async () => {
     const repo = makeRepo(true);
     const emailService = makeEmailService();
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService
+    );
 
     await useCase.execute('cs_test_no_email', null);
 
     expect(repo.claimSession).not.toHaveBeenCalled();
-    expect(emailService.sendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
+    expect(
+      emailService.sendAbandonedCheckoutRecoveryEmail
+    ).not.toHaveBeenCalled();
     expect(warnSpy).toHaveBeenCalledWith(
       'checkout.session.expired.no_email',
       expect.objectContaining({ session_id_hash: expect.any(String) })
@@ -194,12 +234,17 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
       getRecoveryByToken: jest.fn().mockResolvedValue(null),
     };
     const emailService = makeEmailService();
-    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService
+    );
 
     await useCase.execute('cs_test_dup', 'bob@example.com');
     await useCase.execute('cs_test_dup', 'bob@example.com');
 
-    expect(emailService.sendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledTimes(1);
+    expect(
+      emailService.sendAbandonedCheckoutRecoveryEmail
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('emits email_batch_sent with campaign=abandoned_checkout and count 1 on a real send', async () => {

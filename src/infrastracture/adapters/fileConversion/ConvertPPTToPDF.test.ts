@@ -25,12 +25,10 @@ function makeFailingProcess(
   const proc = new EventEmitter() as childProcess.ChildProcess;
   const stdoutEmitter = new EventEmitter();
   const stderrEmitter = new EventEmitter();
-  (
-    proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }
-  ).stdout = stdoutEmitter;
-  (
-    proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }
-  ).stderr = stderrEmitter;
+  (proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }).stdout =
+    stdoutEmitter;
+  (proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }).stderr =
+    stderrEmitter;
 
   setImmediate(() => {
     stderrEmitter.emit('data', Buffer.from(stderr));
@@ -48,8 +46,7 @@ describe('convertPPTToPDF', () => {
   });
 
   it('surfaces the subprocess stderr and exit code on failure', async () => {
-    const stderr =
-      'unoconv: Cannot connect to a running LibreOffice instance.';
+    const stderr = 'unoconv: Cannot connect to a running LibreOffice instance.';
     mockedSpawn.mockReturnValue(makeFailingProcess(stderr, 251));
 
     const result = await convertPPTToPDF(

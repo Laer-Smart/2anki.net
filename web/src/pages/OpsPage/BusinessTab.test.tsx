@@ -213,9 +213,7 @@ describe('BusinessTab', () => {
     expect(
       screen.getByText('No re-engagement comments yet.')
     ).toBeInTheDocument();
-    expect(
-      screen.getByText('No countries captured yet.')
-    ).toBeInTheDocument();
+    expect(screen.getByText('No countries captured yet.')).toBeInTheDocument();
   });
 
   test('renders cancellation comment text from the response', async () => {

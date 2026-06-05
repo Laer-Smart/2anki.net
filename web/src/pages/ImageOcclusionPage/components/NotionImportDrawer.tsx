@@ -66,14 +66,21 @@ function makeSem(limit: number): Sem {
   return {
     acquire() {
       return new Promise<void>((resolve) => {
-        if (active < limit) { active++; resolve(); }
-        else { queue.push(resolve); }
+        if (active < limit) {
+          active++;
+          resolve();
+        } else {
+          queue.push(resolve);
+        }
       });
     },
     release() {
       active--;
       const next = queue.shift();
-      if (next) { active++; next(); }
+      if (next) {
+        active++;
+        next();
+      }
     },
   };
 }
@@ -90,11 +97,18 @@ interface FetchResult {
   error: { isPermission: boolean } | null;
 }
 
-async function fetchBlocks(blockId: string, signal: AbortSignal, sem: Sem): Promise<FetchResult> {
+async function fetchBlocks(
+  blockId: string,
+  signal: AbortSignal,
+  sem: Sem
+): Promise<FetchResult> {
   await sem.acquire();
   let res: Response;
   try {
-    res = await fetch(`/api/notion/blocks/${blockId}`, { credentials: 'include', signal });
+    res = await fetch(`/api/notion/blocks/${blockId}`, {
+      credentials: 'include',
+      signal,
+    });
   } finally {
     sem.release();
   }
@@ -102,10 +116,14 @@ async function fetchBlocks(blockId: string, signal: AbortSignal, sem: Sem): Prom
     const body = await res.text().catch(() => '');
     const isPermission =
       res.status === 400 &&
-      (body.includes('object_not_found') || body.includes('not_found') || body.includes('shared'));
+      (body.includes('object_not_found') ||
+        body.includes('not_found') ||
+        body.includes('shared'));
     return { images: [], childPages: [], error: { isPermission } };
   }
-  const data = (await res.json()) as { results?: NotionBlock[] } | NotionBlock[];
+  const data = (await res.json()) as
+    | { results?: NotionBlock[] }
+    | NotionBlock[];
   const blocks = Array.isArray(data) ? data : (data.results ?? []);
 
   const images: GalleryItem[] = [];
@@ -117,11 +135,14 @@ async function fetchBlocks(blockId: string, signal: AbortSignal, sem: Sem): Prom
       const url = getImageUrl(block as NotionImageBlock);
       if (url != null) {
         const caption =
-          (block as NotionImageBlock).image.caption?.map((c) => c.plain_text).join('') ?? '';
+          (block as NotionImageBlock).image.caption
+            ?.map((c) => c.plain_text)
+            .join('') ?? '';
         images.push({ blockId: block.id, imageUrl: url, caption });
       }
     } else if (block.type === 'child_page') {
-      const title = (block as NotionChildPageBlock).child_page.title || 'Untitled page';
+      const title =
+        (block as NotionChildPageBlock).child_page.title || 'Untitled page';
       childPages.push({ id: block.id, title });
     } else if (
       block.type !== 'child_database' &&
@@ -171,7 +192,9 @@ export function NotionImportDrawer({
   const [anyPending, setAnyPending] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  const freeSlotsLeft = isPaying ? Infinity : Math.max(0, FREE_TIER_LIMIT - currentCount);
+  const freeSlotsLeft = isPaying
+    ? Infinity
+    : Math.max(0, FREE_TIER_LIMIT - currentCount);
   const atFreeTierCap = !isPaying && currentCount >= FREE_TIER_LIMIT;
 
   const crawlPage = (
@@ -186,38 +209,49 @@ export function NotionImportDrawer({
     pendingRef.current += 1;
     setAnyPending(true);
 
-    fetchBlocks(id, signal, semRef.current).then((result) => {
-      if (signal.aborted) return;
+    fetchBlocks(id, signal, semRef.current)
+      .then((result) => {
+        if (signal.aborted) return;
 
-      const uniqueImages = result.images.filter((item) => {
-        if (seenImageIds.current.has(item.blockId)) return false;
-        seenImageIds.current.add(item.blockId);
-        return true;
-      });
-
-      if (uniqueImages.length > 0 || result.error != null) {
-        startTransition(() => {
-          setSections((prev) => [
-            ...prev,
-            { id, title, icon, images: uniqueImages, loading: false, error: result.error, showAll: false },
-          ]);
+        const uniqueImages = result.images.filter((item) => {
+          if (seenImageIds.current.has(item.blockId)) return false;
+          seenImageIds.current.add(item.blockId);
+          return true;
         });
-      }
 
-      if (result.error == null) {
-        for (const child of result.childPages) {
-          crawlPage(child.id, child.title, undefined, signal);
+        if (uniqueImages.length > 0 || result.error != null) {
+          startTransition(() => {
+            setSections((prev) => [
+              ...prev,
+              {
+                id,
+                title,
+                icon,
+                images: uniqueImages,
+                loading: false,
+                error: result.error,
+                showAll: false,
+              },
+            ]);
+          });
         }
-      }
-    }).catch(() => {
-      // silently drop network errors mid-crawl
-    }).finally(() => {
-      if (signal.aborted) return;
-      pendingRef.current -= 1;
-      if (pendingRef.current === 0) {
-        startTransition(() => setAnyPending(false));
-      }
-    });
+
+        if (result.error == null) {
+          for (const child of result.childPages) {
+            crawlPage(child.id, child.title, undefined, signal);
+          }
+        }
+      })
+      .catch(() => {
+        // silently drop network errors mid-crawl
+      })
+      .finally(() => {
+        if (signal.aborted) return;
+        pendingRef.current -= 1;
+        if (pendingRef.current === 0) {
+          startTransition(() => setAnyPending(false));
+        }
+      });
   };
 
   const startCrawl = (controller: AbortController) => {
@@ -237,7 +271,12 @@ export function NotionImportDrawer({
         setPagesLoading(false);
         setTimeout(() => searchRef.current?.focus(), 50);
         for (const page of pages) {
-          crawlPage(page.id, page.title || 'Untitled page', page.icon, controller.signal);
+          crawlPage(
+            page.id,
+            page.title || 'Untitled page',
+            page.icon,
+            controller.signal
+          );
         }
       })
       .catch((err: Error) => {
@@ -255,7 +294,7 @@ export function NotionImportDrawer({
     abortRef.current = controller;
     startCrawl(controller);
     return () => controller.abort();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const toggleImage = (blockId: string) => {
@@ -284,22 +323,37 @@ export function NotionImportDrawer({
   if (!isOpen) return null;
 
   const visibleSections = sections
-    .filter((s) => s.images.length > 0 || (s.error != null && !s.error.isPermission))
-    .filter((s) =>
-      search.trim() === '' || s.title.toLowerCase().includes(search.toLowerCase())
+    .filter(
+      (s) => s.images.length > 0 || (s.error != null && !s.error.isPermission)
+    )
+    .filter(
+      (s) =>
+        search.trim() === '' ||
+        s.title.toLowerCase().includes(search.toLowerCase())
     );
 
   const stillLoading = pagesLoading || anyPending;
 
-  const addLabel = selected.size === 0
-    ? 'Select images to add'
-    : `Add ${selected.size} ${selected.size === 1 ? 'image' : 'images'}`;
+  const addLabel =
+    selected.size === 0
+      ? 'Select images to add'
+      : `Add ${selected.size} ${selected.size === 1 ? 'image' : 'images'}`;
 
   return (
-    <div className={styles.drawer} role="dialog" aria-modal="true" aria-label="Import from Notion">
+    <div
+      className={styles.drawer}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Import from Notion"
+    >
       <div className={styles.drawerHeader}>
         <span className={styles.drawerTitle}>Import from Notion</span>
-        <button type="button" className={styles.drawerCloseBtn} onClick={onClose} aria-label="Close">
+        <button
+          type="button"
+          className={styles.drawerCloseBtn}
+          onClick={onClose}
+          aria-label="Close"
+        >
           ×
         </button>
       </div>
@@ -323,23 +377,32 @@ export function NotionImportDrawer({
           </div>
         )}
 
-        {!pagesLoading && pagesError == null && visibleSections.length === 0 && !stillLoading && (
-          <div className={styles.drawerEmpty}>
-            {search.trim().length > 0 ? (
-              <p>No pages match "<strong>{search}</strong>".</p>
-            ) : (
-              <>
-                <p>No images found in your shared pages.</p>
-                <p>Share a page with images in Notion, then come back here.</p>
-              </>
-            )}
-          </div>
-        )}
+        {!pagesLoading &&
+          pagesError == null &&
+          visibleSections.length === 0 &&
+          !stillLoading && (
+            <div className={styles.drawerEmpty}>
+              {search.trim().length > 0 ? (
+                <p>
+                  No pages match "<strong>{search}</strong>".
+                </p>
+              ) : (
+                <>
+                  <p>No images found in your shared pages.</p>
+                  <p>
+                    Share a page with images in Notion, then come back here.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
 
         {(visibleSections.length > 0 || stillLoading) && (
           <>
             {visibleSections.length > 0 && (
-              <div className={`${sharedStyles.searchBarGroup} ${styles.drawerSearchBar}`}>
+              <div
+                className={`${sharedStyles.searchBarGroup} ${styles.drawerSearchBar}`}
+              >
                 <input
                   ref={searchRef}
                   type="search"
@@ -354,7 +417,9 @@ export function NotionImportDrawer({
             {atFreeTierCap && (
               <p className={styles.drawerFreeTierNote}>
                 Free plan: 3 images already added.{' '}
-                <a href="/pricing" className={styles.drawerUpgradeLink}>Upgrade for unlimited</a>
+                <a href="/pricing" className={styles.drawerUpgradeLink}>
+                  Upgrade for unlimited
+                </a>
               </p>
             )}
 
@@ -382,7 +447,11 @@ export function NotionImportDrawer({
                       <div className={styles.galleryGrid}>
                         {Array.from({ length: PREVIEW_COUNT }).map((_, i) => (
                           // eslint-disable-next-line react/no-array-index-key
-                          <div key={i} className={styles.gallerySkeletonTile} aria-hidden="true" />
+                          <div
+                            key={i}
+                            className={styles.gallerySkeletonTile}
+                            aria-hidden="true"
+                          />
                         ))}
                       </div>
                     )}
@@ -399,13 +468,18 @@ export function NotionImportDrawer({
                       <div className={styles.galleryGrid}>
                         {visible.map((item) => {
                           const isSelected = selected.has(item.blockId);
-                          const atLimit = !isPaying && !isSelected && selected.size >= freeSlotsLeft;
+                          const atLimit =
+                            !isPaying &&
+                            !isSelected &&
+                            selected.size >= freeSlotsLeft;
                           return (
                             <button
                               key={item.blockId}
                               type="button"
                               className={`${styles.galleryTile} ${isSelected ? styles.galleryTileSelected : ''}`}
-                              onClick={() => !atLimit && toggleImage(item.blockId)}
+                              onClick={() =>
+                                !atLimit && toggleImage(item.blockId)
+                              }
                               disabled={atLimit && !isSelected}
                               aria-pressed={isSelected}
                               title={item.caption || undefined}
@@ -417,7 +491,11 @@ export function NotionImportDrawer({
                                 loading="lazy"
                                 decoding="async"
                               />
-                              {isSelected && <span className={styles.galleryCheckBadge}>✓</span>}
+                              {isSelected && (
+                                <span className={styles.galleryCheckBadge}>
+                                  ✓
+                                </span>
+                              )}
                             </button>
                           );
                         })}
@@ -430,11 +508,14 @@ export function NotionImportDrawer({
                         className={styles.galleryShowMore}
                         onClick={() =>
                           setSections((prev) =>
-                            prev.map((s) => (s.id === section.id ? { ...s, showAll: true } : s))
+                            prev.map((s) =>
+                              s.id === section.id ? { ...s, showAll: true } : s
+                            )
                           )
                         }
                       >
-                        Show {hiddenCount} more {hiddenCount === 1 ? 'image' : 'images'}
+                        Show {hiddenCount} more{' '}
+                        {hiddenCount === 1 ? 'image' : 'images'}
                       </button>
                     )}
                   </div>
@@ -442,12 +523,22 @@ export function NotionImportDrawer({
               })}
 
               {stillLoading && (
-                <div className={styles.gallerySection} aria-label="Loading more pages">
-                  <div className={styles.gallerySectionHeaderSkeleton} aria-hidden="true" />
+                <div
+                  className={styles.gallerySection}
+                  aria-label="Loading more pages"
+                >
+                  <div
+                    className={styles.gallerySectionHeaderSkeleton}
+                    aria-hidden="true"
+                  />
                   <div className={styles.galleryGrid}>
                     {Array.from({ length: PREVIEW_COUNT }).map((_, i) => (
                       // eslint-disable-next-line react/no-array-index-key
-                      <div key={i} className={styles.gallerySkeletonTile} aria-hidden="true" />
+                      <div
+                        key={i}
+                        className={styles.gallerySkeletonTile}
+                        aria-hidden="true"
+                      />
                     ))}
                   </div>
                 </div>
@@ -466,7 +557,11 @@ export function NotionImportDrawer({
         >
           {importing ? 'Importing…' : addLabel}
         </button>
-        <button type="button" className={styles.drawerCancelBtn} onClick={onClose}>
+        <button
+          type="button"
+          className={styles.drawerCancelBtn}
+          onClick={onClose}
+        >
           Cancel
         </button>
       </div>

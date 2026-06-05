@@ -33,9 +33,7 @@ describe('MagicLinkPage', () => {
   it('shows error when no token is present', () => {
     renderMagicLinkPage('');
     expect(screen.getByText('Link expired or invalid')).toBeInTheDocument();
-    expect(
-      screen.getByText(/No token found/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/No token found/)).toBeInTheDocument();
   });
 
   it('shows loading state while validating token', () => {
@@ -47,8 +45,7 @@ describe('MagicLinkPage', () => {
   it('shows error state on failed validation', async () => {
     mockValidateMagicToken.mockResolvedValue({
       ok: false,
-      json: () =>
-        Promise.resolve({ message: 'Token has expired' }),
+      json: () => Promise.resolve({ message: 'Token has expired' }),
     });
     renderMagicLinkPage('?token=expired');
 
@@ -83,9 +80,10 @@ describe('MagicLinkPage', () => {
     await waitFor(() => {
       expect(screen.getByText('Back to login')).toBeInTheDocument();
     });
-    expect(
-      screen.getByRole('link', { name: 'Back to login' })
-    ).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: 'Back to login' })).toHaveAttribute(
+      'href',
+      '/login'
+    );
   });
 
   it('shows error when network request fails', async () => {
@@ -101,11 +99,7 @@ describe('MagicLinkPage', () => {
   });
 
   it('strips the token from the address bar after reading it', async () => {
-    globalThis.history.replaceState(
-      null,
-      '',
-      '/auth/magic?token=secret-value'
-    );
+    globalThis.history.replaceState(null, '', '/auth/magic?token=secret-value');
     mockValidateMagicToken.mockReturnValue(new Promise(() => {}));
     renderMagicLinkPage('?token=secret-value');
 

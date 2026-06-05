@@ -16,8 +16,8 @@
     "test:watch": "vitest --watch",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "lint": "biome lint .",
-    "lint:fix": "biome format . --write",
+    "lint": "oxlint -c ../.oxlintrc.json src",
+    "lint:fix": "oxfmt -c ../.oxfmtrc.json --write src",
     "schema:generate-types": "npx kanel -c .kanelrc.js",
     "generate:api-types": "swagger-typescript-api generate -p http://localhost:2020/docs/swagger.json -o ./src/generated --modular",
     "mock-server": "node mock-server/server.js",
@@ -53,7 +53,6 @@
     "universal-cookie": "^8.1.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.16",
     "@playwright/test": "^1.60.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

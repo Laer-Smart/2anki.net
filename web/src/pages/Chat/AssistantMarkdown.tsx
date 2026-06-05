@@ -31,9 +31,7 @@ const components: Components = {
       const code = String(children).replace(/\n$/, '');
       return <CodeBlock language={language} code={code} />;
     }
-    return (
-      <code className={className}>{children}</code>
-    );
+    return <code className={className}>{children}</code>;
   },
 };
 

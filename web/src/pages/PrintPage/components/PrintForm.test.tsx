@@ -52,9 +52,13 @@ describe('PrintForm', () => {
     await waitFor(() => {
       expect(screen.getByText(/1873 cards/)).toBeInTheDocument();
     });
-    expect(screen.getByText(/PDF export supports up to 1000 cards/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/PDF export supports up to 1000 cards/)
+    ).toBeInTheDocument();
 
-    const upgrade = screen.getByRole('link', { name: /Upgrade for unlimited/i });
+    const upgrade = screen.getByRole('link', {
+      name: /Upgrade for unlimited/i,
+    });
     expect(upgrade).toHaveAttribute('href', '/pricing');
   });
 
@@ -73,9 +77,7 @@ describe('PrintForm', () => {
     pickApkg();
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/Couldn't read this file/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Couldn't read this file/i)).toBeInTheDocument();
     });
     expect(
       screen.queryByRole('link', { name: /Upgrade for unlimited/i })

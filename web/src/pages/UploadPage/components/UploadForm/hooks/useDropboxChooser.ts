@@ -47,14 +47,18 @@ function loadSdk(key: string): Promise<DropboxGlobal> {
   if (window.Dropbox) {
     return Promise.resolve(window.Dropbox);
   }
-  const existing = document.getElementById(SDK_SCRIPT_ID) as HTMLScriptElement | null;
+  const existing = document.getElementById(
+    SDK_SCRIPT_ID
+  ) as HTMLScriptElement | null;
   if (existing) {
     return new Promise((resolve, reject) => {
       existing.addEventListener('load', () => {
         if (window.Dropbox) resolve(window.Dropbox);
         else reject(new Error(SDK_UNAVAILABLE));
       });
-      existing.addEventListener('error', () => reject(new Error(SDK_UNAVAILABLE)));
+      existing.addEventListener('error', () =>
+        reject(new Error(SDK_UNAVAILABLE))
+      );
     });
   }
   return new Promise((resolve, reject) => {

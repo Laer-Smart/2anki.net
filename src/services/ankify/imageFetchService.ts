@@ -12,7 +12,8 @@ export interface ImageHit {
 
 const PEXELS_SEARCH_URL = 'https://api.pexels.com/v1/search';
 const WIKIPEDIA_API_URL = 'https://en.wikipedia.org/w/api.php';
-const WIKIPEDIA_SUMMARY_URL = 'https://en.wikipedia.org/api/rest_v1/page/summary/';
+const WIKIPEDIA_SUMMARY_URL =
+  'https://en.wikipedia.org/api/rest_v1/page/summary/';
 
 const EXT_FOR_MIME: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -29,7 +30,11 @@ const extensionForMime = (mime: string): string => {
 };
 
 const filenameFromUrl = (url: string, mime: string): string => {
-  const hash = crypto.createHash('sha256').update(url).digest('hex').slice(0, 16);
+  const hash = crypto
+    .createHash('sha256')
+    .update(url)
+    .digest('hex')
+    .slice(0, 16);
   return `2anki-${hash}.${extensionForMime(mime)}`;
 };
 

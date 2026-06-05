@@ -21,10 +21,7 @@ function makeSettings(): CardOption {
 }
 
 function makeHandler(): BlockHandler {
-  const exporter = new CustomExporter(
-    '',
-    new Workspace(true, 'fs').location
-  );
+  const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
   return new BlockHandler(exporter, api, makeSettings());
 }
 
@@ -235,12 +232,7 @@ describe('tableRowsToCards', () => {
     const block = tableBlock('t9', 2, false);
     const rows = [
       tableRow('r1', [
-        [
-          textRun('Symbol: '),
-          codeRun('H'),
-          textRun(' Number: '),
-          codeRun('1'),
-        ],
+        [textRun('Symbol: '), codeRun('H'), textRun(' Number: '), codeRun('1')],
         [textRun('chemistry')],
       ]),
     ];

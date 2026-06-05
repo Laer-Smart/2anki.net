@@ -11,9 +11,7 @@ describe('InMemoryCancellationFeedbackRepository', () => {
       repo.insert({ reason: "I don't use it enough", created_at: now });
       repo.insert({ reason: 'Other', comment: 'wat', created_at: now });
 
-      const result = await repo.countByReason(
-        new Date('2026-01-01T00:00:00Z')
-      );
+      const result = await repo.countByReason(new Date('2026-01-01T00:00:00Z'));
 
       expect(result).toEqual([
         { reason: 'Too expensive', count: 3 },
@@ -33,9 +31,7 @@ describe('InMemoryCancellationFeedbackRepository', () => {
         created_at: new Date('2026-05-01T00:00:00Z'),
       });
 
-      const result = await repo.countByReason(
-        new Date('2026-04-01T00:00:00Z')
-      );
+      const result = await repo.countByReason(new Date('2026-04-01T00:00:00Z'));
 
       expect(result).toEqual([{ reason: 'Too expensive', count: 1 }]);
     });

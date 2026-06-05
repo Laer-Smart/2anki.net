@@ -34,20 +34,30 @@ describe('commercial email unsubscribe links', () => {
 
   it('inactivity-warning email contains a resolved unsubscribe URL', async () => {
     const service = getDefaultEmailService();
-    await service.sendInactivityWarningEmail('alice@example.com', 'tok-inactivity');
+    await service.sendInactivityWarningEmail(
+      'alice@example.com',
+      'tok-inactivity'
+    );
 
     const { html } = lastMessage();
-    expect(html).toContain('href="https://2anki.net/unsubscribe?uid=tok-inactivity"');
+    expect(html).toContain(
+      'href="https://2anki.net/unsubscribe?uid=tok-inactivity"'
+    );
     expect(html).not.toContain('{{unsubscribeUrl}}');
     expect(html).toContain("Don't want emails like this? Unsubscribe");
   });
 
   it('abandoned-checkout-recovery email contains a resolved unsubscribe URL', async () => {
     const service = getDefaultEmailService();
-    await service.sendAbandonedCheckoutRecoveryEmail('carol@example.com', 'tok-checkout');
+    await service.sendAbandonedCheckoutRecoveryEmail(
+      'carol@example.com',
+      'tok-checkout'
+    );
 
     const { html } = lastMessage();
-    expect(html).toContain('href="https://2anki.net/unsubscribe?uid=tok-checkout"');
+    expect(html).toContain(
+      'href="https://2anki.net/unsubscribe?uid=tok-checkout"'
+    );
     expect(html).not.toContain('{{unsubscribeUrl}}');
     expect(html).toContain("Don't want emails like this? Unsubscribe");
   });

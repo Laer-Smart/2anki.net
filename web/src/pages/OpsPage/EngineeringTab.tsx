@@ -3,7 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './OpsPage.module.css';
-import { OPS_METRICS_WINDOWS, OpsMetricsResponse, OpsMetricsWindow } from './opsTypes';
+import {
+  OPS_METRICS_WINDOWS,
+  OpsMetricsResponse,
+  OpsMetricsWindow,
+} from './opsTypes';
 import { formatClock } from './opsHelpers';
 import { useOpsMetrics } from './useOpsMetrics';
 import ChartPanel from './charts/ChartPanel';
@@ -158,7 +162,10 @@ export default function EngineeringTab() {
         </div>
       </section>
 
-      <section className={styles.section} aria-labelledby="ops-section-outbound">
+      <section
+        className={styles.section}
+        aria-labelledby="ops-section-outbound"
+      >
         <header className={styles.sectionHeader}>
           <h2 id="ops-section-outbound" className={styles.sectionTitle}>
             Outbound
@@ -182,9 +189,7 @@ export default function EngineeringTab() {
             title={`Latency by service, ${suffix}`}
             subtitle="p50 / p95 / p99 over duration_ms · top 10 services"
             isLoading={showInitialSkeleton}
-            isEmpty={
-              (visible?.outbound_latency_by_service?.length ?? 0) === 0
-            }
+            isEmpty={(visible?.outbound_latency_by_service?.length ?? 0) === 0}
             emptyText="No outbound calls in this window."
           >
             <OutboundLatencyTable

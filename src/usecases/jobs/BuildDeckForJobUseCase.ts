@@ -47,7 +47,12 @@ export class BuildDeckForJobUseCase {
   ): Promise<BuildDeckForJobUseCaseOutput> {
     const { bl, exporter, decks, ws, settings, storage, id, owner, type } =
       input;
-    await this.jobRepository.updateJobStatus(id, owner, 'step3_building_deck', '');
+    await this.jobRepository.updateJobStatus(
+      id,
+      owner,
+      'step3_building_deck',
+      ''
+    );
 
     const filteredDecks = decks.filter(
       (deck) => deck.cards && deck.cards.length > 0

@@ -28,15 +28,7 @@ const STEPS = [
   },
 ];
 
-const FORMATS = [
-  'Notion',
-  'PDF',
-  'Markdown',
-  'HTML',
-  'CSV',
-  'Word',
-  'Quizlet',
-];
+const FORMATS = ['Notion', 'PDF', 'Markdown', 'HTML', 'CSV', 'Word', 'Quizlet'];
 
 interface HeroActionProps {
   heroSlot?: ReactNode;
@@ -62,7 +54,9 @@ function renderHeroAction({
         <a href={ctaHref} className={sharedStyles.btnPrimary}>
           {ctaLabel}
         </a>
-        <p className={styles.secondaryLink}>Free · up to 1 000 cards per import</p>
+        <p className={styles.secondaryLink}>
+          Free · up to 1 000 cards per import
+        </p>
       </div>
     );
   }
@@ -80,7 +74,11 @@ function renderHeroAction({
   );
 }
 
-function LandingPage({ copy, setErrorMessage, heroSlot }: Readonly<LandingPageProps>) {
+function LandingPage({
+  copy,
+  setErrorMessage,
+  heroSlot,
+}: Readonly<LandingPageProps>) {
   useEffect(() => {
     persistSignupOrigin(copy.pathname, globalThis.sessionStorage ?? null);
   }, [copy.pathname]);

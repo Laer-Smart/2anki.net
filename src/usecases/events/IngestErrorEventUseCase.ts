@@ -25,7 +25,9 @@ const DEDUP_WINDOW_MS = 5 * 60_000;
 export class IngestErrorEventUseCase {
   constructor(private readonly repository: IErrorEventRepository) {}
 
-  async execute(input: IngestErrorEventInput): Promise<'accepted' | 'duplicate'> {
+  async execute(
+    input: IngestErrorEventInput
+  ): Promise<'accepted' | 'duplicate'> {
     const messageHash = crypto
       .createHash('sha256')
       .update(input.payload.message)

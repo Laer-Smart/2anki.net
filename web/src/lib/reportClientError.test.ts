@@ -27,7 +27,7 @@ afterEach(() => {
 function getLastCall(): [string, RequestInit] {
   const calls = fetchSpy.mock.calls as unknown as Array<[string, RequestInit]>;
   const last = calls[calls.length - 1];
-  return last ?? ['' , {}];
+  return last ?? ['', {}];
 }
 
 describe('reportClientError', () => {

@@ -74,7 +74,11 @@ export function UploadSourceChips({
       <div className={styles.divider} aria-hidden="true">
         <span className={styles.dividerText}>or</span>
       </div>
-      <div className={styles.chips} role="group" aria-label="Other upload sources">
+      <div
+        className={styles.chips}
+        role="group"
+        aria-label="Other upload sources"
+      >
         <button
           type="button"
           aria-label="Dropbox"
@@ -92,7 +96,9 @@ export function UploadSourceChips({
           aria-pressed={active === 'google_drive'}
           disabled={!googleDriveAvailable}
           className={`${styles.chip} ${active === 'google_drive' ? styles.chipActive : ''}`}
-          onClick={() => onChange(active === 'google_drive' ? 'local' : 'google_drive')}
+          onClick={() =>
+            onChange(active === 'google_drive' ? 'local' : 'google_drive')
+          }
         >
           <GoogleDriveIcon />
           <span>Google Drive</span>

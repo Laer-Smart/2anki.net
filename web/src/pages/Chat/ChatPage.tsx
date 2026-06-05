@@ -102,13 +102,16 @@ export default function ChatPage() {
         ...(m.contentBefore == null ? {} : { contentBefore: m.contentBefore }),
         ...(m.contentAfter == null ? {} : { contentAfter: m.contentAfter }),
       }));
-      const validSlug = CHAT_TEMPLATE_OPTIONS.find((o) => o.slug === data.templateSlug);
+      const validSlug = CHAT_TEMPLATE_OPTIONS.find(
+        (o) => o.slug === data.templateSlug
+      );
       setPanelSeed({
         key: `conv-${id}`,
         conversationId: id,
         messages: loaded,
         draft: data.draft ?? '',
-        templateSlug: validSlug == null ? null : (data.templateSlug as ChatCardTemplate),
+        templateSlug:
+          validSlug == null ? null : (data.templateSlug as ChatCardTemplate),
       });
     } catch {
       setLoadError("Couldn't load this conversation.");

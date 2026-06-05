@@ -36,9 +36,7 @@ export class MissingTrackerSchemaError extends Error {
   readonly missing: string[];
 
   constructor(missing: string[]) {
-    super(
-      `Tracker is missing required columns: ${missing.join(', ')}`
-    );
+    super(`Tracker is missing required columns: ${missing.join(', ')}`);
     this.name = 'MissingTrackerSchemaError';
     this.missing = missing;
   }
@@ -111,7 +109,11 @@ export class ExportReviewDataToNotionUseCase {
     }
 
     const host = input.ankiConnectHost ?? 'localhost';
-    const ac = this.ankiConnect(host, client.anki_port, client.anki_connect_api_key);
+    const ac = this.ankiConnect(
+      host,
+      client.anki_port,
+      client.anki_connect_api_key
+    );
 
     const { filtered, minutesByDay } = await this.loadHistory(
       ac,
@@ -178,7 +180,11 @@ export class ExportReviewDataToNotionUseCase {
   private async resolveSchemaKeys(
     notion: NotionExportClient,
     databaseId: string
-  ): Promise<{ dateKey: string; reviewsKey: string; timeSpentKey: string | null }> {
+  ): Promise<{
+    dateKey: string;
+    reviewsKey: string;
+    timeSpentKey: string | null;
+  }> {
     const schema = await notion.getSchema(databaseId);
     const dateKey = findTrackerPropertyKey(schema, 'Date', 'date');
     const reviewsKey = findTrackerPropertyKey(schema, 'Reviews', 'number');
@@ -206,8 +212,15 @@ export class ExportReviewDataToNotionUseCase {
     minutesByDay: Map<string, number>;
     result: ExportReviewDataResult;
   }): Promise<void> {
-    const { notion, databaseId, date, reviewCount, keys, minutesByDay, result } =
-      args;
+    const {
+      notion,
+      databaseId,
+      date,
+      reviewCount,
+      keys,
+      minutesByDay,
+      result,
+    } = args;
     try {
       const existing = await notion.databases.query({
         database_id: databaseId,

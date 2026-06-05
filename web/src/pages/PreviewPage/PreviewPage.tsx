@@ -50,11 +50,7 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
     const node = sentinelRef.current;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (
-          entries[0]?.isIntersecting &&
-          hasNextPage &&
-          !isFetchingNextPage
-        ) {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
           fetchNextPage();
         }
       },
@@ -146,7 +142,9 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
     );
   }
 
-  const backLabel = parentTitle ? `← Back to ${parentTitle}` : '← Back to Notion search';
+  const backLabel = parentTitle
+    ? `← Back to ${parentTitle}`
+    : '← Back to Notion search';
 
   return (
     <div className={sharedStyles.page}>
@@ -234,7 +232,8 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
                     className={`${styles.tallySwatch} ${styles.tallySwatchRecurse}`}
                     aria-hidden="true"
                   />
-                  {tally.recurse} {tally.recurse === 1 ? 'sub-page' : 'sub-pages'}
+                  {tally.recurse}{' '}
+                  {tally.recurse === 1 ? 'sub-page' : 'sub-pages'}
                 </span>
                 {hasNextPage && (
                   <span className={styles.tallyLoading}>+ loading more…</span>

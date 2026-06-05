@@ -9,7 +9,10 @@ describe('handleNestedBulletPointsInMarkdown', () => {
     process.env.WORKSPACE_BASE = os.tmpdir();
   });
 
-  function makeDecks(contents: string, settingsOverride: Record<string, string> = {}) {
+  function makeDecks(
+    contents: string,
+    settingsOverride: Record<string, string> = {}
+  ) {
     const workspace = new Workspace(true, 'fs');
     const exporter = new CustomExporter('test', workspace.location);
     const settings = new CardOption(settingsOverride);
@@ -95,9 +98,7 @@ describe('handleNestedBulletPointsInMarkdown', () => {
       '    ![image.png](image%201.png)',
     ].join('\n');
 
-    const files = [
-      { name: 'image 1.png', contents: imageContents },
-    ];
+    const files = [{ name: 'image 1.png', contents: imageContents }];
 
     const decks = handleNestedBulletPointsInMarkdown({
       name: 'test.md',

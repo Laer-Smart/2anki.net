@@ -20,7 +20,7 @@ function buildGraph(nodes: Node[], edges: Edge[]): dagre.graphlib.Graph {
 
 function layoutComponent(
   componentIds: string[],
-  fullGraph: dagre.graphlib.Graph,
+  fullGraph: dagre.graphlib.Graph
 ): Map<string, { x: number; y: number }> {
   const sub = new dagre.graphlib.Graph();
   sub.setDefaultEdgeLabel(() => ({}));

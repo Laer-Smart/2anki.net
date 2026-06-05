@@ -172,8 +172,6 @@ describe('walkEpub', () => {
       ),
     });
     const result = walkEpub(epub);
-    expect(
-      result.highlights.some((h) => h.highlight === 'evil')
-    ).toBe(false);
+    expect(result.highlights.some((h) => h.highlight === 'evil')).toBe(false);
   });
 });

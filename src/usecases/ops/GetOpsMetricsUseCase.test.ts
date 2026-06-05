@@ -57,6 +57,6 @@ describe('GetOpsMetricsUseCase', () => {
     const useCase = new GetOpsMetricsUseCase(service);
     const result = await useCase.execute('7d');
     expect(result).toBe(fakeResponse);
-    expect((service.getMetrics as jest.Mock)).toHaveBeenCalledWith('7d');
+    expect(service.getMetrics as jest.Mock).toHaveBeenCalledWith('7d');
   });
 });

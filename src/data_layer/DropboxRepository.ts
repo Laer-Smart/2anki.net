@@ -52,7 +52,17 @@ export class DropboxRepository {
       return Promise.resolve([]);
     }
     return this.database(this.table)
-      .select('id', 'bytes', 'icon', 'dropbox_id', 'isDir', 'linkType', 'name', 'owner', 'created_at')
+      .select(
+        'id',
+        'bytes',
+        'icon',
+        'dropbox_id',
+        'isDir',
+        'linkType',
+        'name',
+        'owner',
+        'created_at'
+      )
       .where({ owner, isDir: false })
       .orderBy('id', 'desc')
       .limit(limit)

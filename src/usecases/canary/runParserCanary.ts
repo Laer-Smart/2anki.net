@@ -26,10 +26,7 @@ export type CanaryResult =
   | { status: 'pass'; failures: [] }
   | { status: 'fail'; failures: CanaryFailure[] };
 
-const FIXTURES_DIR = path.join(
-  __dirname,
-  '../../lib/parser/__fixtures__'
-);
+const FIXTURES_DIR = path.join(__dirname, '../../lib/parser/__fixtures__');
 
 export const CANARY_FIXTURES: CanaryFixtureDefinition[] = [
   {
@@ -60,7 +57,12 @@ async function measureFixture(name: string): Promise<CanarySnapshot> {
     }
   }
 
-  const settings = new CardOption({ 'max-one-toggle-per-card': 'true', cherry: 'false', cloze: 'true', 'mcq-enabled': 'true' });
+  const settings = new CardOption({
+    'max-one-toggle-per-card': 'true',
+    cherry: 'false',
+    cloze: 'true',
+    'mcq-enabled': 'true',
+  });
   const parser = new DeckParser({
     name: 'index.html',
     settings,
@@ -73,10 +75,7 @@ async function measureFixture(name: string): Promise<CanarySnapshot> {
 
   const cards = parser.payload.flatMap((d) => d.cards);
   const cardCount = cards.length;
-  const imageCount = cards.reduce(
-    (sum, c) => sum + (c.media?.length ?? 0),
-    0
-  );
+  const imageCount = cards.reduce((sum, c) => sum + (c.media?.length ?? 0), 0);
   const clozeCount = cards.filter((c) => c.cloze).length;
 
   return { cardCount, imageCount, clozeCount };

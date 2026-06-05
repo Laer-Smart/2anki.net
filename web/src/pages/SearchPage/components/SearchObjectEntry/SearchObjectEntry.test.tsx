@@ -20,7 +20,9 @@ vi.mock('../../../../lib/backend/get2ankiApi', () => ({
   get2ankiApi: () => ({ convert: mockConvert }),
 }));
 
-function renderEntry(overrides: Partial<Parameters<typeof SearchObjectEntry>[0]> = {}) {
+function renderEntry(
+  overrides: Partial<Parameters<typeof SearchObjectEntry>[0]> = {}
+) {
   const defaults = {
     isFavorite: false,
     title: 'Organic Chemistry',
@@ -48,13 +50,17 @@ describe('SearchObjectEntry rules link', () => {
     renderEntry({ title: 'Organic Chemistry', id: 'page-abc' });
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'Configure rules for Organic Chemistry' })
+      screen.getByRole('button', {
+        name: 'Configure rules for Organic Chemistry',
+      })
     );
 
     expect(mockNavigate).toHaveBeenCalledOnce();
     const destination: string = mockNavigate.mock.calls[0][0];
     expect(destination).toContain('/rules/page-abc');
-    expect(destination).toContain('returnTo=%2Fnotion%3Fq%3DOrganic%2BChemistry');
+    expect(destination).toContain(
+      'returnTo=%2Fnotion%3Fq%3DOrganic%2BChemistry'
+    );
   });
 
   it('encodes special characters in title correctly', () => {
@@ -78,7 +84,9 @@ describe('SearchObjectEntry convert button', () => {
 
   it('shows idle label "Convert" with accessible name "Convert to Anki" initially', () => {
     renderEntry();
-    expect(screen.getByRole('button', { name: 'Convert to Anki' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Convert to Anki' })
+    ).toBeInTheDocument();
   });
 
   it('on 202: button becomes "In progress" (disabled) and shows downloads link', async () => {
@@ -91,11 +99,16 @@ describe('SearchObjectEntry convert button', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'In progress' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'In progress' })
+      ).toBeInTheDocument();
     });
 
     expect(screen.getByText(/Added to your downloads/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'view' })).toHaveAttribute('href', '/downloads');
+    expect(screen.getByRole('link', { name: 'view' })).toHaveAttribute(
+      'href',
+      '/downloads'
+    );
   });
 
   it('on 202 with restarted: true: shows "Re-making your deck" copy instead', async () => {
@@ -111,8 +124,13 @@ describe('SearchObjectEntry convert button', () => {
       expect(screen.getByText(/Re-making your deck/)).toBeInTheDocument();
     });
 
-    expect(screen.queryByText(/Added to your downloads/)).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'view' })).toHaveAttribute('href', '/downloads');
+    expect(
+      screen.queryByText(/Added to your downloads/)
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'view' })).toHaveAttribute(
+      'href',
+      '/downloads'
+    );
   });
 
   it('on 402: shows paywall copy with Upgrade link to /pricing', async () => {
@@ -125,11 +143,18 @@ describe('SearchObjectEntry convert button', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
 
     await waitFor(() => {
-      expect(screen.getByText(/Free plan — one conversion at a time\./)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Free plan — one conversion at a time\./)
+      ).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('link', { name: 'Upgrade' })).toHaveAttribute('href', '/pricing');
-    expect(screen.queryByRole('link', { name: 'Auto Sync' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Upgrade' })).toHaveAttribute(
+      'href',
+      '/pricing'
+    );
+    expect(
+      screen.queryByRole('link', { name: 'Auto Sync' })
+    ).not.toBeInTheDocument();
   });
 
   it('on 409: shows already-converting copy', async () => {
@@ -142,7 +167,9 @@ describe('SearchObjectEntry convert button', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
 
     await waitFor(() => {
-      expect(screen.getByText('Already converting this page.')).toBeInTheDocument();
+      expect(
+        screen.getByText('Already converting this page.')
+      ).toBeInTheDocument();
     });
   });
 
@@ -153,7 +180,9 @@ describe('SearchObjectEntry convert button', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
 
     await waitFor(() => {
-      expect(screen.getByText("Couldn't queue this page. Try again.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Couldn't queue this page. Try again.")
+      ).toBeInTheDocument();
     });
   });
 

@@ -108,7 +108,6 @@ class UsersService {
     return this.repository.getById(owner);
   }
 
-
   updateLastLoginAt(id: string) {
     return this.repository.updateLastLoginAt(id);
   }

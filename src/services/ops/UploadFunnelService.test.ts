@@ -130,7 +130,9 @@ describe('UploadFunnelService', () => {
   });
 
   it('reports a zero rate when no uploads started', async () => {
-    const repo = makeRepo([{ stage: 'deck_downloaded', distinct_identities: 10 }]);
+    const repo = makeRepo([
+      { stage: 'deck_downloaded', distinct_identities: 10 },
+    ]);
     const service = new UploadFunnelService({ eventsRepo: repo });
 
     const result = await service.getMetrics(since);

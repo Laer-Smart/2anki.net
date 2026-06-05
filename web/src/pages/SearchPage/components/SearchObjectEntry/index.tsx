@@ -93,7 +93,9 @@ function SearchObjectEntry(props: Readonly<Props>) {
       <div className={styles.objectActions}>
         {status === 'queued' && (
           <span className={styles.convertStatus}>
-            {restarted ? 'Re-making your deck — ' : 'Added to your downloads — '}
+            {restarted
+              ? 'Re-making your deck — '
+              : 'Added to your downloads — '}
             <Link to="/downloads">view</Link>
           </span>
         )}
@@ -118,7 +120,9 @@ function SearchObjectEntry(props: Readonly<Props>) {
           className={styles.convertBtn}
           onClick={handleConvert}
           disabled={isConverting || isQueued}
-          aria-label={isConverting || isQueued ? 'In progress' : 'Convert to Anki'}
+          aria-label={
+            isConverting || isQueued ? 'In progress' : 'Convert to Anki'
+          }
         >
           {isConverting || isQueued ? 'In progress' : 'Convert'}
         </button>
@@ -131,7 +135,12 @@ function SearchObjectEntry(props: Readonly<Props>) {
             aria-label={`Open ${title} in Notion`}
             title={`Open ${title} in Notion`}
           >
-            <img src="/icons/Notion_app_logo.png" alt="" width={20} height={20} />
+            <img
+              src="/icons/Notion_app_logo.png"
+              alt=""
+              width={20}
+              height={20}
+            />
           </a>
           <Link
             to={

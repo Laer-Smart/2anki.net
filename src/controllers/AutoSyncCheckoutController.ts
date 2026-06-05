@@ -15,7 +15,14 @@ class AutoSyncCheckoutController {
     const surface = parseCheckoutSurface(req.body?.surface);
     const gaClientId = parseGaClientId(req.cookies?._ga);
 
-    const result = await this.useCase.execute({ userId, userEmail, variant, anonId, surface, gaClientId });
+    const result = await this.useCase.execute({
+      userId,
+      userEmail,
+      variant,
+      anonId,
+      surface,
+      gaClientId,
+    });
     res.json(result);
   }
 }

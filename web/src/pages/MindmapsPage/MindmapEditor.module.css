@@ -12,7 +12,9 @@
   gap: 0.875rem;
   background: var(--color-bg-primary);
   position: relative;
-  transition: width 0.2s ease, padding 0.2s ease;
+  transition:
+    width 0.2s ease,
+    padding 0.2s ease;
   overflow: hidden;
 }
 
@@ -161,7 +163,7 @@
 }
 
 .shortcutsSummary::before {
-  content: "";
+  content: '';
   width: 0;
   height: 0;
   border-left: 4px solid currentColor;
@@ -312,7 +314,9 @@
   cursor: pointer;
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .tidyBtn:hover {
@@ -364,7 +368,9 @@
   font-size: var(--text-sm);
   color: var(--color-text-primary);
   background: var(--color-bg-primary);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .exportInput:focus {

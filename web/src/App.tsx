@@ -2,7 +2,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { lazy, ReactElement, useEffect, useState } from 'react';
 import { CookiesProvider, useCookies } from 'react-cookie';
 import { HelmetProvider } from 'react-helmet-async';
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from 'react-router-dom';
 import { AppShell } from './components/AppShell/AppShell';
 import { ChunkReloadOverlay } from './components/ChunkReloadOverlay/ChunkReloadOverlay';
 import { getErrorMessage } from './components/errors/helpers/getErrorMessage';
@@ -26,9 +32,18 @@ import HomePage from './pages/HomePage';
 import NotFoundPage from './pages/NotFoundPage';
 import UploadPage from './pages/UploadPage';
 
-const RegisterPage = lazyWithRetry(() => import('./pages/RegisterPage'), './pages/RegisterPage');
-const SearchPage = lazyWithRetry(() => import('./pages/SearchPage'), './pages/SearchPage');
-const LoginPage = lazyWithRetry(() => import('./pages/LoginPage'), './pages/LoginPage');
+const RegisterPage = lazyWithRetry(
+  () => import('./pages/RegisterPage'),
+  './pages/RegisterPage'
+);
+const SearchPage = lazyWithRetry(
+  () => import('./pages/SearchPage'),
+  './pages/SearchPage'
+);
+const LoginPage = lazyWithRetry(
+  () => import('./pages/LoginPage'),
+  './pages/LoginPage'
+);
 const NewPasswordPage = lazyWithRetry(
   () => import('./pages/NewPasswordPage'),
   './pages/NewPasswordPage'
@@ -41,7 +56,10 @@ const ForgotPasswordPage = lazyWithRetry(
   () => import('./pages/ForgotPasswordPage'),
   './pages/ForgotPasswordPage'
 );
-const PricingPage = lazyWithRetry(() => import('./pages/PricingPage'), './pages/PricingPage');
+const PricingPage = lazyWithRetry(
+  () => import('./pages/PricingPage'),
+  './pages/PricingPage'
+);
 const AccountPage = lazyWithRetry(
   () => import('./pages/AccountPage/AccountPage'),
   './pages/AccountPage/AccountPage'
@@ -60,7 +78,10 @@ const SuccessfulCheckoutPage = lazyWithRetry(
   () => import('./pages/SuccessfulCheckout/SuccessfulCheckout'),
   './pages/SuccessfulCheckout/SuccessfulCheckout'
 );
-const DocsPage = lazyWithRetry(() => import('./pages/DocsPage/DocsPage'), './pages/DocsPage/DocsPage');
+const DocsPage = lazyWithRetry(
+  () => import('./pages/DocsPage/DocsPage'),
+  './pages/DocsPage/DocsPage'
+);
 const CardOptionsPage = lazyWithRetry(
   () => import('./pages/CardOptionsPage'),
   './pages/CardOptionsPage'
@@ -73,8 +94,14 @@ const TemplatesEditorPage = lazyWithRetry(
   () => import('./pages/TemplatesPage/EditorPage'),
   './pages/TemplatesPage/EditorPage'
 );
-const RulesPage = lazyWithRetry(() => import('./pages/RulesPage'), './pages/RulesPage');
-const PreviewPage = lazyWithRetry(() => import('./pages/PreviewPage'), './pages/PreviewPage');
+const RulesPage = lazyWithRetry(
+  () => import('./pages/RulesPage'),
+  './pages/RulesPage'
+);
+const PreviewPage = lazyWithRetry(
+  () => import('./pages/PreviewPage'),
+  './pages/PreviewPage'
+);
 const DatabasePreviewPage = lazyWithRetry(
   () => import('./pages/DatabasePreviewPage'),
   './pages/DatabasePreviewPage'
@@ -87,7 +114,10 @@ const FlagsTab = lazyWithRetry(
   () => import('./pages/OpsPage/FlagsTab'),
   './pages/OpsPage/FlagsTab'
 );
-const AnkifyPage = lazyWithRetry(() => import('./pages/AnkifyPage'), './pages/AnkifyPage');
+const AnkifyPage = lazyWithRetry(
+  () => import('./pages/AnkifyPage'),
+  './pages/AnkifyPage'
+);
 const AnkifySetupPage = lazyWithRetry(
   () => import('./pages/AnkifyPage/AnkifySetupPage'),
   './pages/AnkifyPage/AnkifySetupPage'
@@ -204,12 +234,18 @@ const MagicLinkPage = lazyWithRetry(
   () => import('./pages/MagicLinkPage'),
   './pages/MagicLinkPage'
 );
-const PrintPage = lazyWithRetry(() => import('./pages/PrintPage'), './pages/PrintPage');
+const PrintPage = lazyWithRetry(
+  () => import('./pages/PrintPage'),
+  './pages/PrintPage'
+);
 const WhatsNewPage = lazyWithRetry(
   () => import('./pages/WhatsNewPage/WhatsNewPage'),
   './pages/WhatsNewPage/WhatsNewPage'
 );
-const ImportPage = lazyWithRetry(() => import('./pages/ImportPage'), './pages/ImportPage');
+const ImportPage = lazyWithRetry(
+  () => import('./pages/ImportPage'),
+  './pages/ImportPage'
+);
 const ImageOcclusionPage = lazyWithRetry(
   () =>
     import('./pages/ImageOcclusionPage').then((m) => ({
@@ -224,7 +260,10 @@ const PhotoToFlashcardsPage = lazyWithRetry(
     })),
   './pages/PhotoToFlashcardsPage'
 );
-const ChatPage = lazyWithRetry(() => import('./pages/Chat/ChatPage'), './pages/Chat/ChatPage');
+const ChatPage = lazyWithRetry(
+  () => import('./pages/Chat/ChatPage'),
+  './pages/Chat/ChatPage'
+);
 const NotionLandingPage = lazyWithRetry(
   () => import('./pages/NotionLandingPage/NotionLandingPage'),
   './pages/NotionLandingPage/NotionLandingPage'
@@ -241,7 +280,10 @@ const SharedDeckPage = lazyWithRetry(
   () => import('./pages/SharedDeckPage'),
   './pages/SharedDeckPage'
 );
-const MindmapsPage = lazyWithRetry(() => import('./pages/MindmapsPage'), './pages/MindmapsPage');
+const MindmapsPage = lazyWithRetry(
+  () => import('./pages/MindmapsPage'),
+  './pages/MindmapsPage'
+);
 const SecurityPage = lazyWithRetry(
   () => import('./pages/SecurityPage/SecurityPage'),
   './pages/SecurityPage/SecurityPage'
@@ -278,7 +320,8 @@ function RequireAuth({
     return children;
   }
   const target = `${location.pathname}${location.search}`;
-  const loginUrl = target === '/' ? '/login' : `/login?redirect=${encodeURIComponent(target)}`;
+  const loginUrl =
+    target === '/' ? '/login' : `/login?redirect=${encodeURIComponent(target)}`;
   return <Navigate to={loginUrl} replace />;
 }
 
@@ -401,7 +444,10 @@ function AppContent({
           />
           <Route path="/limit" element={<LimitPage />} />
           <Route path="/account" element={requireAuth(<AccountPage />)} />
-          <Route path="/account/claim" element={requireAuth(<AccountClaimPage />)} />
+          <Route
+            path="/account/claim"
+            element={requireAuth(<AccountClaimPage />)}
+          />
           {AccountPreviewPage && (
             <Route
               path="/dev/account-preview"

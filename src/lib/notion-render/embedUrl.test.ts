@@ -2,7 +2,9 @@ import { resolveEmbedUrl, resolveVideoUrl } from './embedUrl';
 
 describe('resolveVideoUrl', () => {
   it('rewrites a YouTube URL to the embed iframe src', () => {
-    const result = resolveVideoUrl('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    const result = resolveVideoUrl(
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+    );
     expect(result.kind).toBe('iframe');
     if (result.kind === 'iframe') {
       expect(result.src).toContain('youtube.com/embed/dQw4w9WgXcQ');
@@ -32,9 +34,7 @@ describe('resolveEmbedUrl', () => {
     const result = resolveEmbedUrl(url);
     expect(result.kind).toBe('iframe');
     if (result.kind === 'iframe') {
-      expect(result.src).toBe(
-        `https://w.soundcloud.com/player/?url=${url}`
-      );
+      expect(result.src).toBe(`https://w.soundcloud.com/player/?url=${url}`);
     }
   });
 

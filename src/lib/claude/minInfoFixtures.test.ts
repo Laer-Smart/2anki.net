@@ -44,11 +44,16 @@ function median(values: number[]): number {
 const LONG_PARAGRAPH = (n: number, filler: string): string =>
   Array(n).fill(filler).join(' ');
 
-const BIOLOGY_FACT = 'Mitochondria are membrane-bound organelles that generate most of the cell\'s supply of adenosine triphosphate (ATP), used as a source of chemical energy.';
-const CHEMISTRY_FACT = 'An enzyme is a biological catalyst that speeds up chemical reactions in cells by lowering the activation energy required for a reaction to proceed.';
-const HISTORY_FACT = 'The French Revolution began in 1789 and fundamentally transformed France from a monarchy to a republic, abolishing feudalism and establishing principles of liberty and equality.';
-const MEDICAL_FACT = 'Hypertension is defined as systolic blood pressure above 130 mmHg or diastolic above 80 mmHg, and is a major risk factor for cardiovascular disease and stroke.';
-const LANGUAGE_FACT = 'In Japanese, the honorific suffix "-san" is a title of respect added to a name and can be used with both males and females and also with occupations.';
+const BIOLOGY_FACT =
+  "Mitochondria are membrane-bound organelles that generate most of the cell's supply of adenosine triphosphate (ATP), used as a source of chemical energy.";
+const CHEMISTRY_FACT =
+  'An enzyme is a biological catalyst that speeds up chemical reactions in cells by lowering the activation energy required for a reaction to proceed.';
+const HISTORY_FACT =
+  'The French Revolution began in 1789 and fundamentally transformed France from a monarchy to a republic, abolishing feudalism and establishing principles of liberty and equality.';
+const MEDICAL_FACT =
+  'Hypertension is defined as systolic blood pressure above 130 mmHg or diastolic above 80 mmHg, and is a major risk factor for cardiovascular disease and stroke.';
+const LANGUAGE_FACT =
+  'In Japanese, the honorific suffix "-san" is a title of respect added to a name and can be used with both males and females and also with occupations.';
 
 const INPUT_FIXTURES: CompactDeck[] = [
   {
@@ -208,7 +213,9 @@ describe('min-info contract fixtures', () => {
     expect(clozeFixture).toBeDefined();
     if (clozeFixture) {
       const clozeInput = INPUT_FIXTURES.find((d) => d.deck === 'Cloze Cards');
-      expect(clozeFixture.output.cards).toHaveLength(clozeInput?.cards.length ?? 1);
+      expect(clozeFixture.output.cards).toHaveLength(
+        clozeInput?.cards.length ?? 1
+      );
     }
   });
 
@@ -225,7 +232,9 @@ describe('min-info contract fixtures', () => {
   });
 
   it('short cards pass through unchanged', () => {
-    const shortFixture = OUTPUT_FIXTURES.find(({ input }) => input.deck === 'Short Cards');
+    const shortFixture = OUTPUT_FIXTURES.find(
+      ({ input }) => input.deck === 'Short Cards'
+    );
     expect(shortFixture).toBeDefined();
     if (shortFixture) {
       expect(shortFixture.output.cards).toHaveLength(1);

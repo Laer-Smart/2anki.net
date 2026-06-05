@@ -193,9 +193,10 @@ function toGoogleDriveFile(doc: PickerDoc): GoogleDriveFile {
     mimeType: doc.mimeType,
     iconUrl: doc.iconUrl,
     url: doc.url,
-    sizeBytes: typeof doc.sizeBytes === 'string'
-      ? Number.parseInt(doc.sizeBytes, 10) || 0
-      : doc.sizeBytes ?? 0,
+    sizeBytes:
+      typeof doc.sizeBytes === 'string'
+        ? Number.parseInt(doc.sizeBytes, 10) || 0
+        : (doc.sizeBytes ?? 0),
     embedUrl: doc.embedUrl ?? '',
     description: doc.description ?? '',
     driveSuccess: true,

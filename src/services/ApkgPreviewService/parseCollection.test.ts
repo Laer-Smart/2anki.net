@@ -77,9 +77,10 @@ function buildLegacyCollection(): Buffer {
   const decks = {
     '2': { id: 2, name: 'Demo' },
   };
-  db.prepare(
-    'INSERT INTO col (id, models, decks) VALUES (1, ?, ?)'
-  ).run(JSON.stringify(models), JSON.stringify(decks));
+  db.prepare('INSERT INTO col (id, models, decks) VALUES (1, ?, ?)').run(
+    JSON.stringify(models),
+    JSON.stringify(decks)
+  );
   db.prepare(
     "INSERT INTO notes (id, guid, mid, tags, flds, sfld) VALUES (10, 'g', 1, ' ', 'hello\x1fworld', 'hello')"
   ).run();

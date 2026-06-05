@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
 
 import StorageHandler from '../lib/storage/StorageHandler';
-import { CreateMindmapUseCase, MindmapLimitError } from '../usecases/mindmaps/CreateMindmapUseCase';
+import {
+  CreateMindmapUseCase,
+  MindmapLimitError,
+} from '../usecases/mindmaps/CreateMindmapUseCase';
 import { UpdateMindmapUseCase } from '../usecases/mindmaps/UpdateMindmapUseCase';
 import { DeleteMindmapUseCase } from '../usecases/mindmaps/DeleteMindmapUseCase';
 import { ListMindmapsUseCase } from '../usecases/mindmaps/ListMindmapsUseCase';
@@ -18,7 +21,10 @@ import {
 } from '../usecases/mindmaps/UploadMindmapImageUseCase';
 import { MindmapsId } from '../data_layer/public/Mindmaps';
 import { UsersId } from '../data_layer/public/Users';
-import { AnkifyAccessUser, AnkifyAccessSubscription } from '../lib/ankify/access';
+import {
+  AnkifyAccessUser,
+  AnkifyAccessSubscription,
+} from '../lib/ankify/access';
 import SubscriptionService from '../services/SubscriptionService';
 
 export class MindmapController {
@@ -44,7 +50,9 @@ export class MindmapController {
       : [];
     return {
       userId: res.locals.owner as UsersId,
-      user: { patreon: (res.locals.patreon as boolean | null | undefined) ?? null },
+      user: {
+        patreon: (res.locals.patreon as boolean | null | undefined) ?? null,
+      },
       subscriptions,
       autoSyncProductId: process.env.AUTO_SYNC_PRODUCT_ID ?? '',
     };
@@ -155,7 +163,12 @@ export class MindmapController {
     const cardType = this.resolveCardType(req.body?.card_type);
 
     try {
-      const buffer = await this.exportUseCase.execute({ id, userId, deckName, cardType });
+      const buffer = await this.exportUseCase.execute({
+        id,
+        userId,
+        deckName,
+        cardType,
+      });
       const fileName = `${(deckName ?? id).replace(/[^a-zA-Z0-9._-]/g, '_')}.apkg`;
       res.setHeader('Content-Type', 'application/octet-stream');
       res.setHeader(
@@ -226,6 +239,8 @@ export class MindmapController {
       return;
     }
 
-    res.status(410).json({ code: 'image_missing', message: 'Image no longer available' });
+    res
+      .status(410)
+      .json({ code: 'image_missing', message: 'Image no longer available' });
   }
 }

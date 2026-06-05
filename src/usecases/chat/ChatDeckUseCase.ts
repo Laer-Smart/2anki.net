@@ -26,7 +26,10 @@ function isMcqCard(card: ChatDeckCard): boolean {
 }
 
 function randomDeckId(): number {
-  const hex = createHash('sha1').update(randomUUID()).digest('hex').slice(0, 13);
+  const hex = createHash('sha1')
+    .update(randomUUID())
+    .digest('hex')
+    .slice(0, 13);
   return Number.parseInt(hex, 16) % 1e13;
 }
 
@@ -47,10 +50,13 @@ export function stripClozeFromStem(front: string): string {
 export function normalizeBasicCard(card: ChatDeckCard): ChatDeckCard {
   if (!looksLikeCloze(card.front)) return card;
   const answers: string[] = [];
-  const front = card.front.replace(CLOZE_REPLACE_PATTERN, (_match, answer: string) => {
-    answers.push(answer.trim());
-    return '[...]';
-  });
+  const front = card.front.replace(
+    CLOZE_REPLACE_PATTERN,
+    (_match, answer: string) => {
+      answers.push(answer.trim());
+      return '[...]';
+    }
+  );
   return { ...card, front, back: answers.join(', ') };
 }
 
@@ -65,12 +71,19 @@ export function transformBlankToCloze(card: ChatDeckCard): ChatDeckCard {
   };
 }
 
-function expandForTemplate(cards: ChatDeckCard[], templateSlug: string | null | undefined): ChatDeckCard[] {
+function expandForTemplate(
+  cards: ChatDeckCard[],
+  templateSlug: string | null | undefined
+): ChatDeckCard[] {
   if (templateSlug !== 'basic-and-reversed') return cards;
   const expanded: ChatDeckCard[] = [];
   for (const card of cards) {
     expanded.push(card);
-    if (!isMcqCard(card) && !looksLikeCloze(card.front) && card.back.trim().length > 0) {
+    if (
+      !isMcqCard(card) &&
+      !looksLikeCloze(card.front) &&
+      card.back.trim().length > 0
+    ) {
       expanded.push({ front: card.back, back: card.front, tags: card.tags });
     }
   }

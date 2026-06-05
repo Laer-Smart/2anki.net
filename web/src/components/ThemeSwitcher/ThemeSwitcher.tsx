@@ -28,7 +28,10 @@ export function ThemeSwitcher() {
     buttonRefs.current[nextIndex]?.focus();
   }
 
-  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+  function handleKeyDown(
+    event: KeyboardEvent<HTMLButtonElement>,
+    index: number
+  ) {
     if (FORWARD_KEYS.has(event.key)) {
       event.preventDefault();
       moveSelection(index, 1);

@@ -1,4 +1,10 @@
-import { render, act, waitFor, fireEvent, screen } from '@testing-library/react';
+import {
+  render,
+  act,
+  waitFor,
+  fireEvent,
+  screen,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -136,22 +142,29 @@ describe('UploadForm analytics events', () => {
   it('fires upload_started when the form is submitted', async () => {
     const gtag = (globalThis as AnalyticsGlobals).gtag!;
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename="deck.apkg"',
-        'X-Card-Count': '5',
-      }),
-      blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'Content-Disposition': 'attachment; filename="deck.apkg"',
+          'X-Card-Count': '5',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
 
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     expect(gtag).toHaveBeenCalledWith('event', 'upload_started');
@@ -162,21 +175,28 @@ describe('UploadForm analytics events', () => {
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename="deck.apkg"',
-        'X-Card-Count': '5',
-      }),
-      blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'Content-Disposition': 'attachment; filename="deck.apkg"',
+          'X-Card-Count': '5',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     const startedCalls = trackMock.mock.calls.filter(
@@ -219,8 +239,12 @@ describe('UploadForm analytics events', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
-    const button = container.querySelector('button[aria-label="Choose from Dropbox"]') as HTMLButtonElement;
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
+    const button = container.querySelector(
+      'button[aria-label="Choose from Dropbox"]'
+    ) as HTMLButtonElement;
     await act(async () => {
       button.click();
     });
@@ -243,22 +267,29 @@ describe('UploadForm analytics events', () => {
   it('does not fire conversion_success on a successful conversion with cards', async () => {
     const gtag = (globalThis as AnalyticsGlobals).gtag!;
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename="deck.apkg"',
-        'X-Card-Count': '5',
-      }),
-      blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'Content-Disposition': 'attachment; filename="deck.apkg"',
+          'X-Card-Count': '5',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
 
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     expect(gtag).not.toHaveBeenCalledWith('event', 'conversion_success');
@@ -294,7 +325,9 @@ describe('UploadForm analytics events', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const button = container.querySelector(
       'button[aria-label="Choose from Dropbox"]'
     ) as HTMLButtonElement;
@@ -304,9 +337,7 @@ describe('UploadForm analytics events', () => {
     });
     await waitFor(() =>
       expect(
-        fetchMock.mock.calls.find(
-          (call) => call[0] === '/api/upload/dropbox'
-        )
+        fetchMock.mock.calls.find((call) => call[0] === '/api/upload/dropbox')
       ).toBeDefined()
     );
     const dropboxCall = fetchMock.mock.calls.find(
@@ -325,7 +356,9 @@ describe('UploadForm analytics events', () => {
   it('shows the local panel and hides the Dropbox panel by default', () => {
     const previousKey = process.env.REACT_APP_DROPBOX_APP_KEY;
     process.env.REACT_APP_DROPBOX_APP_KEY = 'test-key';
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const localPanel = container.querySelector('#upload-panel-local')!;
     const dropboxPanel = container.querySelector('#upload-panel-dropbox')!;
     expect(localPanel.getAttribute('aria-hidden')).toBe('false');
@@ -336,8 +369,12 @@ describe('UploadForm analytics events', () => {
   it('reveals the Dropbox panel and hides the local panel when the Dropbox chip is clicked', async () => {
     const previousKey = process.env.REACT_APP_DROPBOX_APP_KEY;
     process.env.REACT_APP_DROPBOX_APP_KEY = 'test-key';
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
-    const dropboxChip = container.querySelector('button[aria-label="Dropbox"]') as HTMLButtonElement;
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
+    const dropboxChip = container.querySelector(
+      'button[aria-label="Dropbox"]'
+    ) as HTMLButtonElement;
     expect(dropboxChip).toBeTruthy();
     await act(async () => {
       dropboxChip.click();
@@ -352,9 +389,13 @@ describe('UploadForm analytics events', () => {
   it('keeps the same file input mounted across a chip switch round-trip', async () => {
     const previousKey = process.env.REACT_APP_DROPBOX_APP_KEY;
     process.env.REACT_APP_DROPBOX_APP_KEY = 'test-key';
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const before = container.querySelector('input#pakker');
-    const dropboxChip = container.querySelector('button[aria-label="Dropbox"]') as HTMLButtonElement;
+    const dropboxChip = container.querySelector(
+      'button[aria-label="Dropbox"]'
+    ) as HTMLButtonElement;
     await act(async () => {
       dropboxChip.click();
     });
@@ -369,12 +410,18 @@ describe('UploadForm analytics events', () => {
   it('shows a "Change source" button inside the Dropbox panel after selecting Dropbox', async () => {
     const previousKey = process.env.REACT_APP_DROPBOX_APP_KEY;
     process.env.REACT_APP_DROPBOX_APP_KEY = 'test-key';
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
-    const dropboxChip = container.querySelector('button[aria-label="Dropbox"]') as HTMLButtonElement;
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
+    const dropboxChip = container.querySelector(
+      'button[aria-label="Dropbox"]'
+    ) as HTMLButtonElement;
     await act(async () => {
       dropboxChip.click();
     });
-    const changeBtn = container.querySelector('button[aria-label="Change upload source"]');
+    const changeBtn = container.querySelector(
+      'button[aria-label="Change upload source"]'
+    );
     expect(changeBtn).not.toBeNull();
     process.env.REACT_APP_DROPBOX_APP_KEY = previousKey;
   });
@@ -382,12 +429,18 @@ describe('UploadForm analytics events', () => {
   it('clicking "Change source" in the Dropbox panel returns to the local panel', async () => {
     const previousKey = process.env.REACT_APP_DROPBOX_APP_KEY;
     process.env.REACT_APP_DROPBOX_APP_KEY = 'test-key';
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
-    const dropboxChip = container.querySelector('button[aria-label="Dropbox"]') as HTMLButtonElement;
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
+    const dropboxChip = container.querySelector(
+      'button[aria-label="Dropbox"]'
+    ) as HTMLButtonElement;
     await act(async () => {
       dropboxChip.click();
     });
-    const changeBtn = container.querySelector('button[aria-label="Change upload source"]') as HTMLButtonElement;
+    const changeBtn = container.querySelector(
+      'button[aria-label="Change upload source"]'
+    ) as HTMLButtonElement;
     await act(async () => {
       changeBtn.click();
     });
@@ -401,42 +454,58 @@ describe('UploadForm analytics events', () => {
   it('does not fire conversion_success when the deck is empty', async () => {
     const gtag = (globalThis as AnalyticsGlobals).gtag!;
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({
-        'Content-Type': 'application/octet-stream',
-        'X-Card-Count': '0',
-      }),
-      blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'X-Card-Count': '0',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
 
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     expect(gtag).not.toHaveBeenCalledWith('event', 'conversion_success');
   });
 
   it('shows the inline chat toggle in the error state instead of a deep-link', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 400,
-      text: () => Promise.resolve('Bad request'),
-      headers: new Headers({ 'Content-Type': 'text/plain' }),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 400,
+        text: () => Promise.resolve('Bad request'),
+        headers: new Headers({ 'Content-Type': 'text/plain' }),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
-      const toggle = container.querySelector('button[aria-controls="error-state-chat-panel"]');
+      const toggle = container.querySelector(
+        'button[aria-controls="error-state-chat-panel"]'
+      );
       expect(toggle).not.toBeNull();
       expect(toggle?.textContent).toContain('Talk it through instead');
     });
@@ -448,21 +517,32 @@ describe('UploadForm analytics events', () => {
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 400,
-      text: () => Promise.resolve('Bad request'),
-      headers: new Headers({ 'Content-Type': 'text/plain' }),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 400,
+        text: () => Promise.resolve('Bad request'),
+        headers: new Headers({ 'Content-Type': 'text/plain' }),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
-      expect(container.querySelector('button[aria-controls="error-state-chat-panel"]')).not.toBeNull();
+      expect(
+        container.querySelector(
+          'button[aria-controls="error-state-chat-panel"]'
+        )
+      ).not.toBeNull();
     });
 
     const chatShownCalls = trackMock.mock.calls.filter(
@@ -476,24 +556,37 @@ describe('UploadForm analytics events', () => {
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 400,
-      text: () => Promise.resolve('Bad request'),
-      headers: new Headers({ 'Content-Type': 'text/plain' }),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 400,
+        text: () => Promise.resolve('Bad request'),
+        headers: new Headers({ 'Content-Type': 'text/plain' }),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
-      expect(container.querySelector('button[aria-controls="error-state-chat-panel"]')).not.toBeNull();
+      expect(
+        container.querySelector(
+          'button[aria-controls="error-state-chat-panel"]'
+        )
+      ).not.toBeNull();
     });
 
-    const toggle = container.querySelector('button[aria-controls="error-state-chat-panel"]') as HTMLButtonElement;
+    const toggle = container.querySelector(
+      'button[aria-controls="error-state-chat-panel"]'
+    ) as HTMLButtonElement;
     await act(async () => {
       fireEvent.click(toggle);
     });
@@ -508,27 +601,36 @@ describe('UploadForm analytics events', () => {
   });
 
   it('shows the inline chat toggle in the empty-deck state', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({
-        'Content-Type': 'application/octet-stream',
-        'X-Card-Count': '0',
-      }),
-      blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'X-Card-Count': '0',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
       const toggle = container.querySelector('button[aria-expanded]');
       expect(toggle).not.toBeNull();
       expect(toggle?.textContent).toContain('Ask Claude about this file');
-      expect(toggle?.getAttribute('aria-controls')).toBe('empty-deck-chat-panel');
+      expect(toggle?.getAttribute('aria-controls')).toBe(
+        'empty-deck-chat-panel'
+      );
     });
   });
 
@@ -537,20 +639,27 @@ describe('UploadForm analytics events', () => {
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({
-        'Content-Type': 'application/octet-stream',
-        'X-Card-Count': '0',
-      }),
-      blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'X-Card-Count': '0',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
@@ -568,27 +677,36 @@ describe('UploadForm analytics events', () => {
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({
-        'Content-Type': 'application/octet-stream',
-        'X-Card-Count': '0',
-      }),
-      blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'X-Card-Count': '0',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
       expect(container.querySelector('button[aria-expanded]')).not.toBeNull();
     });
 
-    const toggle = container.querySelector('button[aria-expanded]') as HTMLButtonElement;
+    const toggle = container.querySelector(
+      'button[aria-expanded]'
+    ) as HTMLButtonElement;
     await act(async () => {
       fireEvent.click(toggle);
     });
@@ -602,23 +720,33 @@ describe('UploadForm analytics events', () => {
     expect(engagedCalls).toHaveLength(1);
 
     const panel = container.querySelector('#empty-deck-chat-panel');
-    expect(panel === null || panel.getAttribute('aria-label')?.startsWith('Ask Claude about')).toBe(true);
+    expect(
+      panel === null ||
+        panel.getAttribute('aria-label')?.startsWith('Ask Claude about')
+    ).toBe(true);
   });
 
   it('shows per-code copy for too_large errors', async () => {
     const jsonBody = { code: 'too_large', message: 'original server message' };
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 400,
-      clone: () => ({ json: () => Promise.resolve(jsonBody) }),
-      text: () => Promise.resolve(JSON.stringify(jsonBody)),
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 400,
+        clone: () => ({ json: () => Promise.resolve(jsonBody) }),
+        text: () => Promise.resolve(JSON.stringify(jsonBody)),
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
@@ -628,19 +756,29 @@ describe('UploadForm analytics events', () => {
   });
 
   it('shows per-code copy for unsupported_format errors', async () => {
-    const jsonBody = { code: 'unsupported_format', message: 'original server message' };
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 400,
-      clone: () => ({ json: () => Promise.resolve(jsonBody) }),
-      text: () => Promise.resolve(JSON.stringify(jsonBody)),
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-    }));
+    const jsonBody = {
+      code: 'unsupported_format',
+      message: 'original server message',
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 400,
+        clone: () => ({ json: () => Promise.resolve(jsonBody) }),
+        text: () => Promise.resolve(JSON.stringify(jsonBody)),
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
@@ -654,18 +792,25 @@ describe('UploadForm analytics events', () => {
       code: 'unsupported_format',
       message: 'This file is already an Anki deck.',
     };
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 400,
-      clone: () => ({ json: () => Promise.resolve(jsonBody) }),
-      text: () => Promise.resolve(JSON.stringify(jsonBody)),
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 400,
+        clone: () => ({ json: () => Promise.resolve(jsonBody) }),
+        text: () => Promise.resolve(JSON.stringify(jsonBody)),
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
@@ -685,31 +830,38 @@ describe('UploadForm analytics events', () => {
   });
 
   it('renders empty-deck spec copy with docs link on the 200 + 0-cards path', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({
-        'Content-Type': 'application/octet-stream',
-        'X-Card-Count': '0',
-      }),
-      blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'X-Card-Count': '0',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
       const body = container.querySelector('[class*="emptyBody"]');
-      expect(body?.textContent).toContain(
-        'No cards were found in this file.'
-      );
+      expect(body?.textContent).toContain('No cards were found in this file.');
       expect(body?.textContent).toContain(
         'Most files need a toggle-list (Notion) or a question/answer pair'
       );
-      const link = container.querySelector('a[href="/documentation/help/common-problems"]');
+      const link = container.querySelector(
+        'a[href="/documentation/help/common-problems"]'
+      );
       expect(link?.textContent).toBe('common problems');
     });
   });
@@ -722,18 +874,25 @@ describe('UploadForm analytics events', () => {
       filename: 'notes.zip',
       docsLink: '/documentation/help/common-problems',
     };
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 400,
-      clone: () => ({ json: () => Promise.resolve(jsonBody) }),
-      text: () => Promise.resolve(JSON.stringify(jsonBody)),
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 400,
+        clone: () => ({ json: () => Promise.resolve(jsonBody) }),
+        text: () => Promise.resolve(JSON.stringify(jsonBody)),
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
@@ -742,7 +901,9 @@ describe('UploadForm analytics events', () => {
         'Most files need a toggle-list (Notion) or a question/answer pair'
       );
       expect(container.querySelector('[class*="errorBody"]')).toBeNull();
-      expect(container.querySelector('[class*="emptyDownloadButton"]')).toBeNull();
+      expect(
+        container.querySelector('[class*="emptyDownloadButton"]')
+      ).toBeNull();
     });
   });
 
@@ -751,16 +912,25 @@ describe('UploadForm analytics events', () => {
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
 
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new TypeError('Failed to fetch'))
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
-      const calls = trackMock.mock.calls.filter(([name]) => name === 'upload_failed');
+      const calls = trackMock.mock.calls.filter(
+        ([name]) => name === 'upload_failed'
+      );
       expect(calls).toHaveLength(1);
       expect(calls[0][1]).toMatchObject({ reason: 'network' });
     });
@@ -771,16 +941,25 @@ describe('UploadForm analytics events', () => {
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
 
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Unexpected server error')));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new Error('Unexpected server error'))
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
-      const calls = trackMock.mock.calls.filter(([name]) => name === 'upload_failed');
+      const calls = trackMock.mock.calls.filter(
+        ([name]) => name === 'upload_failed'
+      );
       expect(calls).toHaveLength(1);
       expect(calls[0][1]).toMatchObject({ reason: 'other' });
     });
@@ -809,23 +988,34 @@ describe('UploadForm analytics events', () => {
       blob: () => Promise.resolve(new Blob(['fake'])),
     };
 
-    const fetchMock = vi.fn()
+    const fetchMock = vi
+      .fn()
       .mockResolvedValueOnce(failResponse)
       .mockResolvedValue(successResponse);
     vi.stubGlobal('fetch', fetchMock);
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
 
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
-      expect(container.querySelector('button[aria-controls="error-state-chat-panel"]')).not.toBeNull();
+      expect(
+        container.querySelector(
+          'button[aria-controls="error-state-chat-panel"]'
+        )
+      ).not.toBeNull();
     });
 
-    const toggle = container.querySelector('button[aria-controls="error-state-chat-panel"]') as HTMLButtonElement;
+    const toggle = container.querySelector(
+      'button[aria-controls="error-state-chat-panel"]'
+    ) as HTMLButtonElement;
     await act(async () => {
       fireEvent.click(toggle);
     });
@@ -833,11 +1023,15 @@ describe('UploadForm analytics events', () => {
     trackMock.mockClear();
 
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
-      const calls = trackMock.mock.calls.filter(([name]) => name === 'upload_error_chat_resolved_retry');
+      const calls = trackMock.mock.calls.filter(
+        ([name]) => name === 'upload_error_chat_resolved_retry'
+      );
       expect(calls).toHaveLength(1);
     });
   });
@@ -847,28 +1041,39 @@ describe('UploadForm analytics events', () => {
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename="deck.apkg"',
-        'X-Card-Count': '5',
-      }),
-      blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'Content-Disposition': 'attachment; filename="deck.apkg"',
+          'X-Card-Count': '5',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
-      expect(container.querySelector('[class*="successPrimary"]')).not.toBeNull();
+      expect(
+        container.querySelector('[class*="successPrimary"]')
+      ).not.toBeNull();
     });
 
-    const calls = trackMock.mock.calls.filter(([name]) => name === 'upload_error_chat_resolved_retry');
+    const calls = trackMock.mock.calls.filter(
+      ([name]) => name === 'upload_error_chat_resolved_retry'
+    );
     expect(calls).toHaveLength(0);
   });
 
@@ -878,24 +1083,33 @@ describe('UploadForm analytics events', () => {
     trackMock.mockClear();
     const gtag = (globalThis as AnalyticsGlobals).gtag!;
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename="deck.apkg"',
-        'X-Card-Count': '5',
-      }),
-      blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'Content-Disposition': 'attachment; filename="deck.apkg"',
+          'X-Card-Count': '5',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
-    const button = await screen.findByRole('button', { name: 'Make another deck' });
+    const button = await screen.findByRole('button', {
+      name: 'Make another deck',
+    });
     expect(button.className).toMatch(/btnSecondary/);
 
     trackMock.mockClear();
@@ -911,21 +1125,26 @@ describe('UploadForm analytics events', () => {
   });
 
   it('suppresses the uploaded filename in success copy from Hotjar recordings', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({
-        'Content-Type': 'application/octet-stream',
-        'File-Name': encodeURIComponent('private-notes.apkg'),
-        'X-Card-Count': '5',
-      }),
-      blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'File-Name': encodeURIComponent('private-notes.apkg'),
+          'X-Card-Count': '5',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
 
     renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
     const form = document.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     const successCopy = await screen.findByText(
@@ -933,7 +1152,6 @@ describe('UploadForm analytics events', () => {
     );
     expect(successCopy).toHaveAttribute('data-hj-suppress');
   });
-
 });
 
 describe('UploadForm multi-deck batch', () => {
@@ -953,19 +1171,30 @@ describe('UploadForm multi-deck batch', () => {
     workspaceId: 'ws-1',
     deckCount: 2,
     decks: [
-      { name: 'Biology 101', filename: 'Biology 101.apkg', downloadUrl: '/download/ws-1/Biology%20101.apkg' },
-      { name: 'Chemistry', filename: 'Chemistry.apkg', downloadUrl: '/download/ws-1/Chemistry.apkg' },
+      {
+        name: 'Biology 101',
+        filename: 'Biology 101.apkg',
+        downloadUrl: '/download/ws-1/Biology%20101.apkg',
+      },
+      {
+        name: 'Chemistry',
+        filename: 'Chemistry.apkg',
+        downloadUrl: '/download/ws-1/Chemistry.apkg',
+      },
     ],
     bulkUrl: '/download/ws-1/bulk',
   };
 
   function stubBatchFetch() {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({ 'Content-Type': 'application/json' }),
-      json: () => Promise.resolve(batchBody),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+        json: () => Promise.resolve(batchBody),
+      })
+    );
   }
 
   it('renders an in-page deck list instead of navigating away on a multi-deck batch', async () => {
@@ -973,30 +1202,48 @@ describe('UploadForm multi-deck batch', () => {
     vi.stubGlobal('location', locationStub);
     stubBatchFetch();
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await screen.findByText('2 decks ready');
     expect(locationStub.href).toBe('');
 
-    const biology = screen.getByLabelText('Download Biology 101') as HTMLAnchorElement;
-    const chemistry = screen.getByLabelText('Download Chemistry') as HTMLAnchorElement;
-    expect(biology.getAttribute('href')).toBe('/download/ws-1/Biology%20101.apkg');
-    expect(chemistry.getAttribute('href')).toBe('/download/ws-1/Chemistry.apkg');
+    const biology = screen.getByLabelText(
+      'Download Biology 101'
+    ) as HTMLAnchorElement;
+    const chemistry = screen.getByLabelText(
+      'Download Chemistry'
+    ) as HTMLAnchorElement;
+    expect(biology.getAttribute('href')).toBe(
+      '/download/ws-1/Biology%20101.apkg'
+    );
+    expect(chemistry.getAttribute('href')).toBe(
+      '/download/ws-1/Chemistry.apkg'
+    );
 
-    const downloadAll = screen.getByText('Download all (zip)') as HTMLAnchorElement;
+    const downloadAll = screen.getByText(
+      'Download all (zip)'
+    ) as HTMLAnchorElement;
     expect(downloadAll.getAttribute('href')).toBe('/download/ws-1/bulk');
   });
 
   it('suppresses deck names in the batch list from Hotjar recordings', async () => {
     stubBatchFetch();
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     const deckName = await screen.findByText('Biology 101');
@@ -1035,26 +1282,35 @@ describe('invite link copy', () => {
   });
 
   function stubSuccessFetch() {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: false,
-      status: 200,
-      headers: new Headers({
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename="deck.apkg"',
-        'X-Card-Count': '5',
-      }),
-      blob: () => Promise.resolve(new Blob(['fake'])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'Content-Disposition': 'attachment; filename="deck.apkg"',
+          'X-Card-Count': '5',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
   }
 
   async function reachSuccessState() {
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
     await waitFor(() => {
-      expect(container.querySelector('[class*="successPrimary"]')).not.toBeNull();
+      expect(
+        container.querySelector('[class*="successPrimary"]')
+      ).not.toBeNull();
     });
     return container;
   }
@@ -1139,13 +1395,16 @@ describe('limit state', () => {
   } as unknown as ReturnType<typeof useUserLocals>['data'];
 
   function stubLimitFetch(kind: 'file_size' | 'card_count' = 'file_size') {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: true,
-      url: `http://localhost/limit?kind=${kind}`,
-      status: 200,
-      headers: new Headers({}),
-      blob: () => Promise.resolve(new Blob([])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: true,
+        url: `http://localhost/limit?kind=${kind}`,
+        status: 200,
+        headers: new Headers({}),
+        blob: () => Promise.resolve(new Blob([])),
+      })
+    );
   }
 
   function setUserLocals(data: ReturnType<typeof useUserLocals>['data']) {
@@ -1159,10 +1418,14 @@ describe('limit state', () => {
   }
 
   async function submitAndReachLimit() {
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
     await waitFor(() => {
       expect(container.querySelector('[class*="limitContent"]')).not.toBeNull();
@@ -1232,7 +1495,9 @@ describe('limit state', () => {
     stubLimitFetch('card_count');
     const container = await submitAndReachLimit();
 
-    const upgradeLink = container.querySelector('a[href*="/limit?ref=upload-limit-wall"]');
+    const upgradeLink = container.querySelector(
+      'a[href*="/limit?ref=upload-limit-wall"]'
+    );
     expect(upgradeLink).not.toBeNull();
     expect(upgradeLink?.textContent).toContain('See upgrade options');
 
@@ -1244,7 +1509,9 @@ describe('limit state', () => {
 
   it('starts a Day Pass checkout and redirects on a url response', async () => {
     setUserLocals(loggedInData);
-    const startPassCheckout = vi.fn().mockResolvedValue({ url: 'https://checkout.stripe.com/pass' });
+    const startPassCheckout = vi
+      .fn()
+      .mockResolvedValue({ url: 'https://checkout.stripe.com/pass' });
     mockGet2ankiApi.mockReturnValue({
       startPassCheckout,
     } as unknown as ReturnType<typeof get2ankiApi>);
@@ -1262,7 +1529,11 @@ describe('limit state', () => {
     });
 
     await waitFor(() => {
-      expect(startPassCheckout).toHaveBeenCalledWith('24h', undefined, 'upload-limit-wall');
+      expect(startPassCheckout).toHaveBeenCalledWith(
+        '24h',
+        undefined,
+        'upload-limit-wall'
+      );
       expect(locationStub.href).toBe('https://checkout.stripe.com/pass');
     });
   });
@@ -1323,7 +1594,9 @@ describe('limit state', () => {
     stubLimitFetch('card_count');
     const container = await submitAndReachLimit();
     const title = container.querySelector('[class*="limitTitle"]');
-    expect(title?.textContent).toMatch(/over your free limit of 100 cards a month/i);
+    expect(title?.textContent).toMatch(
+      /over your free limit of 100 cards a month/i
+    );
   });
 
   it('navigates to /limit?kind=anonymous on an anonymous limit redirect', async () => {
@@ -1332,10 +1605,14 @@ describe('limit state', () => {
     vi.stubGlobal('location', locationStub);
     stubLimitFetch('anonymous' as 'file_size');
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {
@@ -1346,22 +1623,36 @@ describe('limit state', () => {
 
   it('decodes a URL-encoded filename for display', async () => {
     setUserLocals(loggedInData);
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      redirected: true,
-      url: 'http://localhost/limit?kind=card_count',
-      status: 200,
-      headers: new Headers({}),
-      blob: () => Promise.resolve(new Blob([])),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: true,
+        url: 'http://localhost/limit?kind=card_count',
+        status: 200,
+        headers: new Headers({}),
+        blob: () => Promise.resolve(new Blob([])),
+      })
+    );
 
-    const { container } = renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
-    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = new File(['x'], 'notes%2Fchapter.pdf', { type: 'application/pdf' });
-    Object.defineProperty(fileInput, 'files', { value: [file], configurable: true });
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
+    const fileInput = container.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    const file = new File(['x'], 'notes%2Fchapter.pdf', {
+      type: 'application/pdf',
+    });
+    Object.defineProperty(fileInput, 'files', {
+      value: [file],
+      configurable: true,
+    });
 
     const form = container.querySelector('form')!;
     await act(async () => {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
     });
 
     await waitFor(() => {

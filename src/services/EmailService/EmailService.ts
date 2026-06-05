@@ -53,16 +53,19 @@ export interface IEmailService {
     token: string,
     purpose: 'login' | 'password_reset'
   ): Promise<void>;
-  sendReEngagementEmail(
+  sendReEngagementEmail(to: string, name: string, token: string): Promise<void>;
+  sendInactivityWarningEmail(
     to: string,
-    name: string,
-    token: string
+    token: string,
+    lastConversion?: { deckName: string } | null
   ): Promise<void>;
-  sendInactivityWarningEmail(to: string, token: string, lastConversion?: { deckName: string } | null): Promise<void>;
   sendAbandonedCheckoutRecoveryEmail(to: string, token: string): Promise<void>;
   sendParserCanaryAlert(to: string, summary: string): Promise<void>;
   sendNotionReconnectEmail(email: string): Promise<void>;
-  sendSubscriptionClaimConfirmation(to: string, claimUrl: string): Promise<void>;
+  sendSubscriptionClaimConfirmation(
+    to: string,
+    claimUrl: string
+  ): Promise<void>;
 }
 
 class EmailService implements IEmailService {
@@ -277,8 +280,7 @@ class EmailService implements IEmailService {
     const ctaUrl = `${domain}/r/email?t=${encodeURIComponent(token)}&c=inactivity&to=/upload`;
     const unsubscribeUrl = `${domain}/unsubscribe?uid=${token}`;
 
-    const markup = INACTIVITY_WARNING_TEMPLATE
-      .replace('{{bodyText}}', bodyText)
+    const markup = INACTIVITY_WARNING_TEMPLATE.replace('{{bodyText}}', bodyText)
       .replace('{{ctaUrl}}', ctaUrl)
       .replace('{{unsubscribeUrl}}', unsubscribeUrl);
 
@@ -302,13 +304,17 @@ class EmailService implements IEmailService {
     }
   }
 
-  async sendAbandonedCheckoutRecoveryEmail(to: string, token: string): Promise<void> {
+  async sendAbandonedCheckoutRecoveryEmail(
+    to: string,
+    token: string
+  ): Promise<void> {
     const domain = process.env.DOMAIN ?? 'https://2anki.net';
     const link = `${domain}/checkout/resume?token=${encodeURIComponent(token)}`;
     const unsubscribeUrl = `${domain}/unsubscribe?uid=${token}`;
-    const markup = ABANDONED_CHECKOUT_RECOVERY_TEMPLATE
-      .replace('{{link}}', link)
-      .replace('{{unsubscribeUrl}}', unsubscribeUrl);
+    const markup = ABANDONED_CHECKOUT_RECOVERY_TEMPLATE.replace(
+      '{{link}}',
+      link
+    ).replace('{{unsubscribeUrl}}', unsubscribeUrl);
     const $ = cheerio.load(markup);
     const text = $('body').text().replace(/\s+/g, ' ').trim();
     const msg = {
@@ -330,8 +336,14 @@ class EmailService implements IEmailService {
     }
   }
 
-  async sendSubscriptionClaimConfirmation(to: string, claimUrl: string): Promise<void> {
-    const markup = SUBSCRIPTION_CLAIM_CONFIRMATION_TEMPLATE.replace('{{link}}', claimUrl);
+  async sendSubscriptionClaimConfirmation(
+    to: string,
+    claimUrl: string
+  ): Promise<void> {
+    const markup = SUBSCRIPTION_CLAIM_CONFIRMATION_TEMPLATE.replace(
+      '{{link}}',
+      claimUrl
+    );
     const msg = {
       to,
       from: this.defaultSender,
@@ -343,7 +355,10 @@ class EmailService implements IEmailService {
     try {
       await sgMail.send(msg);
     } catch (error) {
-      console.error('Failed to send subscription claim confirmation email:', error);
+      console.error(
+        'Failed to send subscription claim confirmation email:',
+        error
+      );
       throw error;
     }
   }
@@ -498,7 +513,10 @@ class EmailService implements IEmailService {
     try {
       await sgMail.send(msg);
     } catch (error) {
-      console.error('[notion-reconnect] failed to send reconnect email:', error);
+      console.error(
+        '[notion-reconnect] failed to send reconnect email:',
+        error
+      );
       throw error;
     }
   }
@@ -583,11 +601,23 @@ export class UnimplementedEmailService implements IEmailService {
     console.info('sendReEngagementEmail not handled', to, name, token);
   }
 
-  async sendInactivityWarningEmail(to: string, token: string, lastConversion?: { deckName: string } | null): Promise<void> {
-    console.info('sendInactivityWarningEmail not handled', to, token, lastConversion);
+  async sendInactivityWarningEmail(
+    to: string,
+    token: string,
+    lastConversion?: { deckName: string } | null
+  ): Promise<void> {
+    console.info(
+      'sendInactivityWarningEmail not handled',
+      to,
+      token,
+      lastConversion
+    );
   }
 
-  async sendAbandonedCheckoutRecoveryEmail(to: string, token: string): Promise<void> {
+  async sendAbandonedCheckoutRecoveryEmail(
+    to: string,
+    token: string
+  ): Promise<void> {
     console.info('sendAbandonedCheckoutRecoveryEmail not handled', to, token);
   }
 
@@ -599,7 +629,10 @@ export class UnimplementedEmailService implements IEmailService {
     console.info('sendNotionReconnectEmail not handled', email);
   }
 
-  async sendSubscriptionClaimConfirmation(_to: string, _claimUrl: string): Promise<void> {
+  async sendSubscriptionClaimConfirmation(
+    _to: string,
+    _claimUrl: string
+  ): Promise<void> {
     console.info('sendSubscriptionClaimConfirmation not handled');
   }
 }

@@ -81,7 +81,10 @@ export default function InboundVolumeChart({
             style: { fontSize: 11, fill: '#6b7280' },
           }}
         />
-        <Tooltip content={(props) => <InboundTooltip {...props} />} cursor={{ fill: '#f9fafb' }} />
+        <Tooltip
+          content={(props) => <InboundTooltip {...props} />}
+          cursor={{ fill: '#f9fafb' }}
+        />
         {STATUS_ORDER.map((key) => (
           <Area
             key={key}

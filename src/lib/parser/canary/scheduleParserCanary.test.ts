@@ -10,7 +10,9 @@ import type { CanaryResult } from '../../../usecases/canary/runParserCanary';
 
 beforeEach(() => setupTests());
 
-function makeEmailService(overrides: Partial<IEmailService> = {}): IEmailService {
+function makeEmailService(
+  overrides: Partial<IEmailService> = {}
+): IEmailService {
   return {
     sendResetEmail: jest.fn(),
     sendConversionEmail: jest.fn(),
@@ -58,9 +60,16 @@ describe('scheduleParserCanary', () => {
   test('does not fire before the next 03:00 UTC window', () => {
     const now = new Date('2026-05-18T01:00:00Z');
     const runCanary = jest.fn().mockResolvedValue(PASS_RESULT);
-    const handle = scheduleParserCanary(makeEmailService(), { now: () => now, runCanary });
+    const handle = scheduleParserCanary(makeEmailService(), {
+      now: () => now,
+      runCanary,
+    });
 
-    const expected = nextDailyRunAt(PARSER_CANARY_TIME_OF_DAY, PARSER_CANARY_TIMEZONE, now);
+    const expected = nextDailyRunAt(
+      PARSER_CANARY_TIME_OF_DAY,
+      PARSER_CANARY_TIMEZONE,
+      now
+    );
     const delayMs = expected.getTime() - now.getTime();
 
     jest.advanceTimersByTime(delayMs - 1);

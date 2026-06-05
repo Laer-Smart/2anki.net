@@ -32,9 +32,7 @@ interface CommentRow {
 const toIso = (value: Date | string): string =>
   typeof value === 'string' ? value : value.toISOString();
 
-export class ReEngagementFeedbackRepository
-  implements IReEngagementFeedbackRepository
-{
+export class ReEngagementFeedbackRepository implements IReEngagementFeedbackRepository {
   private readonly table = 're_engagement_feedback';
 
   constructor(private readonly database: Knex) {}
@@ -68,9 +66,7 @@ export class ReEngagementFeedbackRepository
   }
 }
 
-export class InMemoryReEngagementFeedbackRepository
-  implements IReEngagementFeedbackRepository
-{
+export class InMemoryReEngagementFeedbackRepository implements IReEngagementFeedbackRepository {
   private readonly rows: Array<{
     stopped_reason: string;
     content_type: string;

@@ -25,7 +25,6 @@ import SignupCountriesChart from './charts/SignupCountriesChart';
 import styles from './OpsPage.module.css';
 import { useBusinessMetrics } from './useBusinessMetrics';
 
-
 const buildMrrFootnote = (
   asOf: string | null,
   cacheAgeSeconds: number | null
@@ -123,10 +122,7 @@ export default function BusinessTab() {
         />
       </div>
 
-      <section
-        className={styles.section}
-        aria-labelledby="biz-section-emoji"
-      >
+      <section className={styles.section} aria-labelledby="biz-section-emoji">
         <header className={styles.sectionHeader}>
           <h2 id="biz-section-emoji" className={styles.sectionTitle}>
             Emoji feedback
@@ -161,15 +157,14 @@ export default function BusinessTab() {
         </div>
       </section>
 
-      <section
-        className={styles.section}
-        aria-labelledby="biz-section-revenue"
-      >
+      <section className={styles.section} aria-labelledby="biz-section-revenue">
         <header className={styles.sectionHeader}>
           <h2 id="biz-section-revenue" className={styles.sectionTitle}>
             Revenue & subscriptions
           </h2>
-          <p className={styles.sectionHint}>MRR, active subs, churn, failed payments</p>
+          <p className={styles.sectionHint}>
+            MRR, active subs, churn, failed payments
+          </p>
         </header>
         <div className={styles.grid}>
           <ChartPanel
@@ -224,7 +219,9 @@ export default function BusinessTab() {
           <h2 id="biz-section-cancellations" className={styles.sectionTitle}>
             Why users cancel
           </h2>
-          <p className={styles.sectionHint}>Cancel-survey reasons and comments</p>
+          <p className={styles.sectionHint}>
+            Cancel-survey reasons and comments
+          </p>
         </header>
         <div className={styles.grid}>
           <ChartPanel
@@ -242,9 +239,7 @@ export default function BusinessTab() {
             title="Recent cancellation comments"
             subtitle="Latest free-text feedback from the cancel survey"
             isLoading={showInitialSkeleton}
-            isEmpty={
-              (visible?.cancellation_comments_recent?.length ?? 0) === 0
-            }
+            isEmpty={(visible?.cancellation_comments_recent?.length ?? 0) === 0}
             emptyText="No free-text comments yet."
           >
             <CancellationCommentsList
@@ -282,9 +277,7 @@ export default function BusinessTab() {
             title="Recent re-engagement comments"
             subtitle="Latest free-text feedback after a re-engagement email"
             isLoading={showInitialSkeleton}
-            isEmpty={
-              (visible?.reengagement_comments_recent?.length ?? 0) === 0
-            }
+            isEmpty={(visible?.reengagement_comments_recent?.length ?? 0) === 0}
             emptyText="No re-engagement comments yet."
           >
             <ReEngagementCommentsList

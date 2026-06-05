@@ -15,10 +15,7 @@ describe('mountWebBuild', () => {
     buildDir = fs.mkdtempSync(path.join(os.tmpdir(), 'web-build-'));
     fs.writeFileSync(path.join(buildDir, 'index.html'), '<html>app</html>');
     fs.mkdirSync(path.join(buildDir, 'assets'));
-    fs.writeFileSync(
-      path.join(buildDir, 'assets', 'app-abc123.css'),
-      'body{}'
-    );
+    fs.writeFileSync(path.join(buildDir, 'assets', 'app-abc123.css'), 'body{}');
 
     const app = express();
     mountWebBuild(app, buildDir);

@@ -124,9 +124,18 @@ describe('GetRecentSourcesUseCase', () => {
   it('caps the result at 3 items', async () => {
     const { useCase } = buildUseCase(
       [
-        notionPage({ notion_page_id: 'a', last_edited_time: new Date('2026-06-04T00:00:00.000Z') }),
-        notionPage({ notion_page_id: 'b', last_edited_time: new Date('2026-06-03T00:00:00.000Z') }),
-        notionPage({ notion_page_id: 'c', last_edited_time: new Date('2026-06-02T00:00:00.000Z') }),
+        notionPage({
+          notion_page_id: 'a',
+          last_edited_time: new Date('2026-06-04T00:00:00.000Z'),
+        }),
+        notionPage({
+          notion_page_id: 'b',
+          last_edited_time: new Date('2026-06-03T00:00:00.000Z'),
+        }),
+        notionPage({
+          notion_page_id: 'c',
+          last_edited_time: new Date('2026-06-02T00:00:00.000Z'),
+        }),
       ],
       {
         key: 'k.apkg',

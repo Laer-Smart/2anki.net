@@ -80,7 +80,9 @@
   border: none;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xs);
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .btnInline {
@@ -208,7 +210,9 @@
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
   border-radius: var(--radius-full);
-  transition: color 200ms ease, background-color 200ms ease;
+  transition:
+    color 200ms ease,
+    background-color 200ms ease;
 }
 
 .badgePrimary {

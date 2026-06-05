@@ -54,7 +54,12 @@ describe('LoginPage', () => {
   });
 
   it('renders the login form when there is no cookie', () => {
-    mockUseUserLocals.mockReturnValue({ data: undefined, isLoading: false, isError: false, error: null });
+    mockUseUserLocals.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
     const { getByTestId } = renderLoginPage();
     expect(getByTestId('login-form')).toBeInTheDocument();
   });

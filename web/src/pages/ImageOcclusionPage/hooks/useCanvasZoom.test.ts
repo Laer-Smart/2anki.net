@@ -69,7 +69,11 @@ describe('useCanvasZoom', () => {
   it('handleWheel does nothing without Ctrl/Cmd', () => {
     const { result } = renderHook(() => useCanvasZoom());
     const fakeRect = { left: 0, top: 0 } as DOMRect;
-    const event = { ctrlKey: false, metaKey: false, deltaY: -100 } as WheelEvent;
+    const event = {
+      ctrlKey: false,
+      metaKey: false,
+      deltaY: -100,
+    } as WheelEvent;
     act(() => result.current.handleWheel(event, fakeRect));
     expect(result.current.zoom).toBe(1);
   });

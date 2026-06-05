@@ -20,7 +20,11 @@
 
 .heroSubtitle {
   text-align: center;
-  background: linear-gradient(var(--color-primary-hover), 70%, var(--color-primary));
+  background: linear-gradient(
+    var(--color-primary-hover),
+    70%,
+    var(--color-primary)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

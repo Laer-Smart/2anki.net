@@ -32,7 +32,9 @@ describe('parseMonthlyLimitPayload', () => {
   });
 
   it('returns null for JSON with wrong code', () => {
-    expect(parseMonthlyLimitPayload(JSON.stringify({ code: 'other' }))).toBeNull();
+    expect(
+      parseMonthlyLimitPayload(JSON.stringify({ code: 'other' }))
+    ).toBeNull();
   });
 
   it('returns null for null input', () => {
@@ -53,7 +55,9 @@ describe('ConversionResult — paywalled variant', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Your monthly limit: 100 cards')).toBeInTheDocument();
+    expect(
+      screen.getByText('Your monthly limit: 100 cards')
+    ).toBeInTheDocument();
   });
 
   it('renders Upgrade to Unlimited CTA with ref=downloads-paywall', () => {
@@ -103,7 +107,9 @@ describe('ConversionResult — failed variant', () => {
       </MemoryRouter>
     );
 
-    expect(screen.queryByRole('link', { name: 'Upgrade to Unlimited' })).toBeNull();
+    expect(
+      screen.queryByRole('link', { name: 'Upgrade to Unlimited' })
+    ).toBeNull();
   });
 
   it('renders notion token expired reconnect link when source is notion and reason is notion_token_expired', () => {
@@ -119,7 +125,9 @@ describe('ConversionResult — failed variant', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('link', { name: 'Reconnect Notion' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Reconnect Notion' })
+    ).toBeInTheDocument();
   });
 
   it('shows the toggle teaching copy and docs CTA for an empty deck without falling through to Check status', () => {
@@ -137,8 +145,12 @@ describe('ConversionResult — failed variant', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/makes a card from every Notion toggle/i)).toBeInTheDocument();
-    const cta = screen.getByRole('link', { name: 'See how toggles become cards' });
+    expect(
+      screen.getByText(/makes a card from every Notion toggle/i)
+    ).toBeInTheDocument();
+    const cta = screen.getByRole('link', {
+      name: 'See how toggles become cards',
+    });
     expect(cta.getAttribute('href')).toBe('/documentation/cards/notion-blocks');
     expect(screen.queryByText(/Check status/i)).toBeNull();
   });

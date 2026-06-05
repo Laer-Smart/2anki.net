@@ -1,10 +1,5 @@
 import { AnchorHTMLAttributes, useEffect, useMemo } from 'react';
-import {
-  Link,
-  Navigate,
-  useLocation,
-  useNavigate,
-} from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import ReactMarkdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -103,13 +98,16 @@ function transformCallouts(body: string): string {
       i++;
       continue;
     }
-    const inner = lines.slice(i + 1, close).join('\n').trim();
+    const inner = lines
+      .slice(i + 1, close)
+      .join('\n')
+      .trim();
     out.push(
       `<aside class="callout ${CALLOUT_VARIANT_CLASS[variant]}">`,
       '',
       inner,
       '',
-      '</aside>',
+      '</aside>'
     );
     i = close + 1;
   }
@@ -148,7 +146,7 @@ export function DocContent({ slug }: Readonly<DocContentProps>) {
 
   const { prev, next } = useMemo(
     () => findAdjacent(resolvedSlug),
-    [resolvedSlug],
+    [resolvedSlug]
   );
 
   if (slug !== resolvedSlug && Object.hasOwn(redirects, slug)) {

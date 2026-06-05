@@ -74,7 +74,9 @@
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   position: relative;
-  transition: background 120ms ease, border-color 120ms ease;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
 }
 
 .toggleTrack::after {

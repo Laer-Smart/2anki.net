@@ -6,7 +6,10 @@ import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { getSubscribeLink } from '../PricingPage/payment.links';
 import { PassCards } from '../PricingPage/components/PassCards';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
-import { MONTHLY_PRICE, MONTHLY_SUFFIX } from '../PricingPage/pricing.constants';
+import {
+  MONTHLY_PRICE,
+  MONTHLY_SUFFIX,
+} from '../PricingPage/pricing.constants';
 import styles from './LimitPage.module.css';
 
 const REF = 'limit-wall';
@@ -53,8 +56,12 @@ function AnonymousLimit() {
             <li className={styles.planBenefit}>
               Convert up to {FREE_MONTHLY_CARDS} cards a month
             </li>
-            <li className={styles.planBenefit}>Save and re-download your decks</li>
-            <li className={styles.planBenefit}>Connect Notion, Dropbox, and Google Drive</li>
+            <li className={styles.planBenefit}>
+              Save and re-download your decks
+            </li>
+            <li className={styles.planBenefit}>
+              Connect Notion, Dropbox, and Google Drive
+            </li>
           </ul>
           <Link
             to="/register?redirect=/upload"
@@ -72,7 +79,8 @@ function AnonymousLimit() {
       </div>
 
       <p className={styles.backLink}>
-        Already have an account? <Link to="/login?redirect=/upload">Sign in</Link>
+        Already have an account?{' '}
+        <Link to="/login?redirect=/upload">Sign in</Link>
       </p>
     </div>
   );
@@ -117,12 +125,18 @@ export function LimitPage() {
       setWeekPassPending(true);
     }
     try {
-      const result = await get2ankiApi().startPassCheckout(passKind, undefined, REF);
+      const result = await get2ankiApi().startPassCheckout(
+        passKind,
+        undefined,
+        REF
+      );
       if ('url' in result) {
         globalThis.location.href = result.url;
         return;
       }
-      setPassError("Couldn't start checkout. Try again or email support@2anki.net.");
+      setPassError(
+        "Couldn't start checkout. Try again or email support@2anki.net."
+      );
     } finally {
       setDayPassPending(false);
       setWeekPassPending(false);

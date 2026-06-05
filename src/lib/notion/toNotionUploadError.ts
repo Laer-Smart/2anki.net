@@ -12,7 +12,8 @@ const NOTION_UPLOAD_ERRORS: Partial<Record<APIErrorCode, NotionUploadError>> = {
     status: 401,
     body: {
       code: 'notion_unauthorized',
-      message: 'Your Notion connection expired. Reconnect Notion and try again.',
+      message:
+        'Your Notion connection expired. Reconnect Notion and try again.',
     },
   },
   [APIErrorCode.ObjectNotFound]: {
@@ -27,7 +28,8 @@ const NOTION_UPLOAD_ERRORS: Partial<Record<APIErrorCode, NotionUploadError>> = {
     status: 429,
     body: {
       code: 'notion_rate_limit',
-      message: 'Notion is rate-limiting us right now. Wait a minute and convert again.',
+      message:
+        'Notion is rate-limiting us right now. Wait a minute and convert again.',
     },
   },
 };

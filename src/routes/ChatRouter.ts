@@ -38,7 +38,9 @@ const ChatRouter = () => {
   const tagCardsUseCase = new TagCardsUseCase(anthropic, messagesRepo);
   const tagCardsController = new TagCardsController(tagCardsUseCase);
   const conversationsUseCase = new ConversationsUseCase(conversationsRepo);
-  const conversationsController = new ConversationsController(conversationsUseCase);
+  const conversationsController = new ConversationsController(
+    conversationsUseCase
+  );
 
   /**
    * @swagger
@@ -427,11 +429,15 @@ const ChatRouter = () => {
   router.get('/api/chat/conversations/:id', RequireAuthentication, (req, res) =>
     conversationsController.get(req, res)
   );
-  router.patch('/api/chat/conversations/:id', RequireAuthentication, (req, res) =>
-    conversationsController.rename(req, res)
+  router.patch(
+    '/api/chat/conversations/:id',
+    RequireAuthentication,
+    (req, res) => conversationsController.rename(req, res)
   );
-  router.delete('/api/chat/conversations/:id', RequireAuthentication, (req, res) =>
-    conversationsController.delete(req, res)
+  router.delete(
+    '/api/chat/conversations/:id',
+    RequireAuthentication,
+    (req, res) => conversationsController.delete(req, res)
   );
 
   /**
@@ -467,8 +473,10 @@ const ChatRouter = () => {
    *       404:
    *         description: Conversation not found
    */
-  router.patch('/api/chat/conversations/:id/draft', RequireAuthentication, (req, res) =>
-    conversationsController.saveDraft(req, res)
+  router.patch(
+    '/api/chat/conversations/:id/draft',
+    RequireAuthentication,
+    (req, res) => conversationsController.saveDraft(req, res)
   );
 
   /**
@@ -504,8 +512,10 @@ const ChatRouter = () => {
    *       404:
    *         description: Conversation not found
    */
-  router.patch('/api/chat/conversations/:id/template', RequireAuthentication, (req, res) =>
-    conversationsController.saveTemplate(req, res)
+  router.patch(
+    '/api/chat/conversations/:id/template',
+    RequireAuthentication,
+    (req, res) => conversationsController.saveTemplate(req, res)
   );
 
   /**
@@ -562,8 +572,10 @@ const ChatRouter = () => {
    *       401:
    *         description: Authentication required
    */
-  router.post('/api/chat/conversations/:id/regenerate', RequireAuthentication, (req, res) =>
-    controller.regenerateMessage(req, res)
+  router.post(
+    '/api/chat/conversations/:id/regenerate',
+    RequireAuthentication,
+    (req, res) => controller.regenerateMessage(req, res)
   );
 
   return router;

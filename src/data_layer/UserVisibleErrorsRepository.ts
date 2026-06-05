@@ -57,9 +57,7 @@ export class UserVisibleErrorsRepository implements IUserVisibleErrorsRepository
   }
 }
 
-export class InMemoryUserVisibleErrorsRepository
-  implements IUserVisibleErrorsRepository
-{
+export class InMemoryUserVisibleErrorsRepository implements IUserVisibleErrorsRepository {
   private readonly rows: Array<{
     userId: number | null;
     surface: string;

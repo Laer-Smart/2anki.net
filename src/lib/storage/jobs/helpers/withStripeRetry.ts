@@ -28,8 +28,12 @@ export async function withStripeRetry<T>(
       if (attempt === maxAttempts || !isStripeRateLimitError(error)) {
         throw error;
       }
-      const delay = Math.floor(baseDelayMs * 2 ** (attempt - 1) * (0.5 + Math.random()));
-      console.warn(`[${label}] rate limited; retrying in ${delay}ms (attempt ${attempt}/${maxAttempts})`);
+      const delay = Math.floor(
+        baseDelayMs * 2 ** (attempt - 1) * (0.5 + Math.random())
+      );
+      console.warn(
+        `[${label}] rate limited; retrying in ${delay}ms (attempt ${attempt}/${maxAttempts})`
+      );
       await sleep(delay);
     }
   }

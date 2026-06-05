@@ -33,19 +33,19 @@ export default function ImportProgress({
         </p>
       )}
       <div className={styles.progressBar}>
-        <div
-          className={styles.progressFill}
-          style={{ width: `${percent}%` }}
-        />
+        <div className={styles.progressFill} style={{ width: `${percent}%` }} />
       </div>
       <p className={styles.progressCount}>
         {isUploadingImages
-          ? (statusText ?? '').replace('uploading images ', 'Uploading images: ')
+          ? (statusText ?? '').replace(
+              'uploading images ',
+              'Uploading images: '
+            )
           : `${imported} of ${total} cards`}
       </p>
       <p className={styles.progressReassurance}>
         {isUploadingImages
-          ? "Uploading images to Notion. This can take a minute for large decks."
+          ? 'Uploading images to Notion. This can take a minute for large decks.'
           : "You can leave this page — we'll keep going in the background."}
       </p>
     </div>

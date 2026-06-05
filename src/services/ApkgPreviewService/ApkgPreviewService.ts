@@ -73,10 +73,7 @@ export default class ApkgPreviewService {
     };
   }
 
-  getMediaEntry(
-    parsed: ParsedApkg,
-    originalName: string
-  ): Buffer | null {
+  getMediaEntry(parsed: ParsedApkg, originalName: string): Buffer | null {
     const archiveName = parsed.mediaMap.get(originalName);
     if (!archiveName) return null;
     return parsed.mediaEntries.get(archiveName) ?? null;
@@ -149,18 +146,24 @@ export default class ApkgPreviewService {
     }
     const noteType = parsed.collection.noteTypes.get(note.mid);
     if (!noteType) {
-      console.warn(`[apkg-preview] card ${cardId}: noteType ${note.mid} not found`);
+      console.warn(
+        `[apkg-preview] card ${cardId}: noteType ${note.mid} not found`
+      );
       return null;
     }
     const templateOrd = noteType.type === 1 ? 0 : card.ord;
     const foundTemplate = noteType.templates.find((t) => t.ord === templateOrd);
     const template = foundTemplate ?? noteType.templates[0];
     if (!template) {
-      console.warn(`[apkg-preview] card ${cardId}: no templates in noteType "${noteType.name}" — skipping`);
+      console.warn(
+        `[apkg-preview] card ${cardId}: no templates in noteType "${noteType.name}" — skipping`
+      );
       return null;
     }
     if (!foundTemplate) {
-      console.debug(`[apkg-preview] card ${cardId}: template ord=${templateOrd} not found in noteType "${noteType.name}" (has ${noteType.templates.length} templates) — rendering against ord=0`);
+      console.debug(
+        `[apkg-preview] card ${cardId}: template ord=${templateOrd} not found in noteType "${noteType.name}" (has ${noteType.templates.length} templates) — rendering against ord=0`
+      );
     }
     const deck = parsed.collection.decks.get(card.did);
 

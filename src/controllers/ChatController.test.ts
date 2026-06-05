@@ -40,7 +40,10 @@ function buildReq(body: unknown, files?: Express.Multer.File[]): Request {
   return { body, files: files ?? [] } as unknown as Request;
 }
 
-function buildReqWithParams(body: unknown, params: Record<string, string>): Request {
+function buildReqWithParams(
+  body: unknown,
+  params: Record<string, string>
+): Request {
   return { body, params } as unknown as Request;
 }
 
@@ -53,7 +56,10 @@ function makeFile(
     encoding: '7bit',
     mimetype: 'application/pdf',
     size: 1024,
-    buffer: Buffer.concat([Buffer.from([0x25, 0x50, 0x44, 0x46]), Buffer.alloc(20)]),
+    buffer: Buffer.concat([
+      Buffer.from([0x25, 0x50, 0x44, 0x46]),
+      Buffer.alloc(20),
+    ]),
     stream: null as never,
     destination: '',
     filename: '',
@@ -79,7 +85,10 @@ describe('ChatController.sendMessage', () => {
     const { controller, res } = buildMocks(42, false, false, null);
     await controller.sendMessage(buildReq({ content: 'Hello' }), res);
     const events = writtenEvents(res);
-    expect(events).toContainEqual({ event: 'error', data: { type: 'consent_required' } });
+    expect(events).toContainEqual({
+      event: 'error',
+      data: { type: 'consent_required' },
+    });
     expect(res.end).toHaveBeenCalled();
   });
 
@@ -98,7 +107,10 @@ describe('ChatController.sendMessage', () => {
   it('allows content up to 100 000 chars for free users', async () => {
     const { execute, controller, res } = buildMocks();
     execute.mockResolvedValueOnce({ content: 'ok' });
-    await controller.sendMessage(buildReq({ content: 'x'.repeat(100_000) }), res);
+    await controller.sendMessage(
+      buildReq({ content: 'x'.repeat(100_000) }),
+      res
+    );
     expect(res.status).not.toHaveBeenCalledWith(400);
     expect(execute).toHaveBeenCalled();
   });
@@ -106,7 +118,10 @@ describe('ChatController.sendMessage', () => {
   it('allows content up to 100 000 chars for patreon users', async () => {
     const { execute, controller, res } = buildMocks(42, true, false);
     execute.mockResolvedValueOnce({ content: 'ok' });
-    await controller.sendMessage(buildReq({ content: 'x'.repeat(100_000) }), res);
+    await controller.sendMessage(
+      buildReq({ content: 'x'.repeat(100_000) }),
+      res
+    );
     expect(res.status).not.toHaveBeenCalledWith(400);
     expect(execute).toHaveBeenCalled();
   });
@@ -114,14 +129,20 @@ describe('ChatController.sendMessage', () => {
   it('allows content up to 100 000 chars for subscriber users', async () => {
     const { execute, controller, res } = buildMocks(42, false, true);
     execute.mockResolvedValueOnce({ content: 'ok' });
-    await controller.sendMessage(buildReq({ content: 'x'.repeat(100_000) }), res);
+    await controller.sendMessage(
+      buildReq({ content: 'x'.repeat(100_000) }),
+      res
+    );
     expect(res.status).not.toHaveBeenCalledWith(400);
     expect(execute).toHaveBeenCalled();
   });
 
   it('returns 400 when content exceeds 100 000 chars for any tier', async () => {
     const { controller, res } = buildMocks(42, true, false);
-    await controller.sendMessage(buildReq({ content: 'x'.repeat(100_001) }), res);
+    await controller.sendMessage(
+      buildReq({ content: 'x'.repeat(100_001) }),
+      res
+    );
     expect(res.status).toHaveBeenCalledWith(400);
   });
 
@@ -131,15 +152,24 @@ describe('ChatController.sendMessage', () => {
     execute.mockRejectedValueOnce(new ChatRateLimitError(resetDate));
     await controller.sendMessage(buildReq({ content: 'Hello' }), res);
     const events = writtenEvents(res);
-    expect(events).toContainEqual({ event: 'error', data: { type: 'rate_limit', resetDate } });
+    expect(events).toContainEqual({
+      event: 'error',
+      data: { type: 'rate_limit', resetDate },
+    });
   });
 
   it('sends done SSE event with content on happy path', async () => {
     const { execute, controller, res } = buildMocks();
     execute.mockResolvedValueOnce({ content: 'Nice answer' });
-    await controller.sendMessage(buildReq({ content: 'Tell me about mitosis' }), res);
+    await controller.sendMessage(
+      buildReq({ content: 'Tell me about mitosis' }),
+      res
+    );
     const events = writtenEvents(res);
-    expect(events).toContainEqual({ event: 'done', data: expect.objectContaining({ content: 'Nice answer' }) });
+    expect(events).toContainEqual({
+      event: 'done',
+      data: expect.objectContaining({ content: 'Nice answer' }),
+    });
     expect(res.end).toHaveBeenCalled();
   });
 
@@ -149,7 +179,10 @@ describe('ChatController.sendMessage', () => {
     execute.mockResolvedValueOnce({ content: 'Here are cards', cards });
     await controller.sendMessage(buildReq({ content: 'Make flashcards' }), res);
     const events = writtenEvents(res);
-    expect(events).toContainEqual({ event: 'done', data: expect.objectContaining({ cards }) });
+    expect(events).toContainEqual({
+      event: 'done',
+      data: expect.objectContaining({ cards }),
+    });
   });
 
   it('passes conversationId from body through to the use case', async () => {
@@ -245,7 +278,10 @@ describe('ChatController.sendMessage — file attachments', () => {
 
   it('returns 400 when MIME type is not allowlisted', async () => {
     const { controller, res } = buildMocks();
-    const file = makeFile({ mimetype: 'application/msword', originalname: 'doc.doc' });
+    const file = makeFile({
+      mimetype: 'application/msword',
+      originalname: 'doc.doc',
+    });
     await controller.sendMessage(buildReq({ content: 'Hi' }, [file]), res);
     expect(res.status).toHaveBeenCalledWith(400);
   });
@@ -255,7 +291,10 @@ describe('ChatController.sendMessage — file attachments', () => {
     const file = makeFile({
       mimetype: 'image/png',
       originalname: 'fake.png',
-      buffer: Buffer.concat([Buffer.from([0x25, 0x50, 0x44, 0x46]), Buffer.alloc(20)]),
+      buffer: Buffer.concat([
+        Buffer.from([0x25, 0x50, 0x44, 0x46]),
+        Buffer.alloc(20),
+      ]),
     });
     await controller.sendMessage(buildReq({ content: 'Hi' }, [file]), res);
     expect(res.status).toHaveBeenCalledWith(400);
@@ -283,7 +322,10 @@ describe('ChatController.sendMessage — file attachments', () => {
   it('allows send with no files attached (backward-compatible)', async () => {
     const { execute, controller, res } = buildMocks();
     execute.mockResolvedValueOnce({ content: 'ok', conversationId: 1 });
-    await controller.sendMessage(buildReq({ content: 'Plain text message' }), res);
+    await controller.sendMessage(
+      buildReq({ content: 'Plain text message' }),
+      res
+    );
     expect(execute).toHaveBeenCalledWith(
       expect.objectContaining({ attachments: [] })
     );
@@ -307,7 +349,10 @@ describe('ChatController.sendMessage — expanded attachment types', () => {
     expect(execute).toHaveBeenCalledWith(
       expect.objectContaining({
         attachments: [
-          expect.objectContaining({ mimeType: 'application/zip', fileName: 'export.zip' }),
+          expect.objectContaining({
+            mimeType: 'application/zip',
+            fileName: 'export.zip',
+          }),
         ],
       })
     );
@@ -321,7 +366,10 @@ describe('ChatController.sendMessage — expanded attachment types', () => {
       originalname: 'essay.docx',
       buffer: Buffer.concat([ZIP_MAGIC, Buffer.alloc(40)]),
     });
-    await controller.sendMessage(buildReq({ content: 'Summarize' }, [file]), res);
+    await controller.sendMessage(
+      buildReq({ content: 'Summarize' }, [file]),
+      res
+    );
     expect(execute).toHaveBeenCalledWith(
       expect.objectContaining({
         attachments: [expect.objectContaining({ mimeType: DOCX_MIME })],
@@ -337,11 +385,17 @@ describe('ChatController.sendMessage — expanded attachment types', () => {
       originalname: 'notes.md',
       buffer: Buffer.from('# Heading\n\nbody', 'utf8'),
     });
-    await controller.sendMessage(buildReq({ content: 'Make cards' }, [file]), res);
+    await controller.sendMessage(
+      buildReq({ content: 'Make cards' }, [file]),
+      res
+    );
     expect(execute).toHaveBeenCalledWith(
       expect.objectContaining({
         attachments: [
-          expect.objectContaining({ mimeType: 'text/markdown', fileName: 'notes.md' }),
+          expect.objectContaining({
+            mimeType: 'text/markdown',
+            fileName: 'notes.md',
+          }),
         ],
       })
     );
@@ -355,7 +409,10 @@ describe('ChatController.sendMessage — expanded attachment types', () => {
       originalname: 'scratch.txt',
       buffer: Buffer.from('plain notes', 'utf8'),
     });
-    await controller.sendMessage(buildReq({ content: 'Summarize' }, [file]), res);
+    await controller.sendMessage(
+      buildReq({ content: 'Summarize' }, [file]),
+      res
+    );
     expect(execute).toHaveBeenCalledWith(
       expect.objectContaining({
         attachments: [expect.objectContaining({ mimeType: 'text/plain' })],
@@ -457,15 +514,24 @@ describe('ChatController.sendMessage — multipart history parsing', () => {
 describe('ChatController.regenerateMessage', () => {
   it('emits consent_required SSE error when chat_consent_at is null', async () => {
     const { controller, res } = buildMocks(42, false, false, null);
-    await controller.regenerateMessage(buildReqWithParams({}, { id: '7' }), res);
+    await controller.regenerateMessage(
+      buildReqWithParams({}, { id: '7' }),
+      res
+    );
     const events = writtenEvents(res);
-    expect(events).toContainEqual({ event: 'error', data: { type: 'consent_required' } });
+    expect(events).toContainEqual({
+      event: 'error',
+      data: { type: 'consent_required' },
+    });
     expect(res.end).toHaveBeenCalled();
   });
 
   it('returns 400 when the conversation id is not a positive integer', async () => {
     const { regenerate, controller, res } = buildMocks();
-    await controller.regenerateMessage(buildReqWithParams({}, { id: 'abc' }), res);
+    await controller.regenerateMessage(
+      buildReqWithParams({}, { id: 'abc' }),
+      res
+    );
     expect(res.status).toHaveBeenCalledWith(400);
     expect(regenerate).not.toHaveBeenCalled();
   });
@@ -508,7 +574,10 @@ describe('ChatController.regenerateMessage', () => {
     const { regenerate, controller, res } = buildMocks();
     regenerate.mockRejectedValueOnce(new ChatConversationNotFoundError());
 
-    await controller.regenerateMessage(buildReqWithParams({}, { id: '7' }), res);
+    await controller.regenerateMessage(
+      buildReqWithParams({}, { id: '7' }),
+      res
+    );
 
     const events = writtenEvents(res);
     expect(events).toContainEqual({

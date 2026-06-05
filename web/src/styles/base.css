@@ -28,16 +28,19 @@
   --radius-full: 9999px;
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
   --color-backdrop: rgba(0, 0, 0, 0.5);
   --color-code-bg: #0b1020;
   --color-code-text: #e5e7eb;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    sans-serif;
+  --font-sans:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Type scale */
   --text-xs: 0.75rem;
@@ -140,9 +143,12 @@
   --color-success-light: #0b3d2e;
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+  --shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
   --color-danger-text: #fca5a5;
   --color-warning-text: #fcd34d;
   --color-warning-border: #92400e;
@@ -196,10 +202,17 @@
   --color-success: #047857;
   --color-success-light: #ecfdf5;
   --shadow-xs: 0 1px 2px rgba(122, 91, 34, 0.06);
-  --shadow-sm: 0 1px 3px rgba(122, 91, 34, 0.08), 0 1px 2px rgba(122, 91, 34, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(122, 91, 34, 0.08), 0 2px 4px -2px rgba(122, 91, 34, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(122, 91, 34, 0.08), 0 4px 6px -4px rgba(122, 91, 34, 0.06);
-  --shadow-xl: 0 20px 25px -5px rgba(122, 91, 34, 0.08), 0 8px 10px -6px rgba(122, 91, 34, 0.06);
+  --shadow-sm:
+    0 1px 3px rgba(122, 91, 34, 0.08), 0 1px 2px rgba(122, 91, 34, 0.06);
+  --shadow-md:
+    0 4px 6px -1px rgba(122, 91, 34, 0.08),
+    0 2px 4px -2px rgba(122, 91, 34, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(122, 91, 34, 0.08),
+    0 4px 6px -4px rgba(122, 91, 34, 0.06);
+  --shadow-xl:
+    0 20px 25px -5px rgba(122, 91, 34, 0.08),
+    0 8px 10px -6px rgba(122, 91, 34, 0.06);
   --color-danger-text: #991b1b;
   --color-warning-text: #92400e;
   --color-warning-border: #fde68a;
@@ -250,10 +263,17 @@
   --color-success: #059669;
   --color-success-light: #ecfdf5;
   --shadow-xs: 0 1px 2px rgba(100, 80, 160, 0.06);
-  --shadow-sm: 0 1px 3px rgba(100, 80, 160, 0.08), 0 1px 2px rgba(100, 80, 160, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(100, 80, 160, 0.08), 0 2px 4px -2px rgba(100, 80, 160, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(100, 80, 160, 0.08), 0 4px 6px -4px rgba(100, 80, 160, 0.06);
-  --shadow-xl: 0 20px 25px -5px rgba(100, 80, 160, 0.08), 0 8px 10px -6px rgba(100, 80, 160, 0.06);
+  --shadow-sm:
+    0 1px 3px rgba(100, 80, 160, 0.08), 0 1px 2px rgba(100, 80, 160, 0.06);
+  --shadow-md:
+    0 4px 6px -1px rgba(100, 80, 160, 0.08),
+    0 2px 4px -2px rgba(100, 80, 160, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(100, 80, 160, 0.08),
+    0 4px 6px -4px rgba(100, 80, 160, 0.06);
+  --shadow-xl:
+    0 20px 25px -5px rgba(100, 80, 160, 0.08),
+    0 8px 10px -6px rgba(100, 80, 160, 0.06);
   --color-danger-text: #991b1b;
   --color-warning-text: #92400e;
   --color-warning-border: #fde68a;
@@ -306,10 +326,17 @@
   --color-success: #059669;
   --color-success-light: #ecfdf5;
   --shadow-xs: 0 1px 2px rgba(236, 72, 153, 0.06);
-  --shadow-sm: 0 1px 3px rgba(236, 72, 153, 0.08), 0 1px 2px rgba(236, 72, 153, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(236, 72, 153, 0.08), 0 2px 4px -2px rgba(236, 72, 153, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(236, 72, 153, 0.08), 0 4px 6px -4px rgba(236, 72, 153, 0.06);
-  --shadow-xl: 0 20px 25px -5px rgba(236, 72, 153, 0.08), 0 8px 10px -6px rgba(236, 72, 153, 0.06);
+  --shadow-sm:
+    0 1px 3px rgba(236, 72, 153, 0.08), 0 1px 2px rgba(236, 72, 153, 0.06);
+  --shadow-md:
+    0 4px 6px -1px rgba(236, 72, 153, 0.08),
+    0 2px 4px -2px rgba(236, 72, 153, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(236, 72, 153, 0.08),
+    0 4px 6px -4px rgba(236, 72, 153, 0.06);
+  --shadow-xl:
+    0 20px 25px -5px rgba(236, 72, 153, 0.08),
+    0 8px 10px -6px rgba(236, 72, 153, 0.06);
   --color-danger-text: #991b1b;
   --color-warning-text: #92400e;
   --color-warning-border: #fde68a;
@@ -380,7 +407,8 @@ select {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   outline: none;
-  transition: border-color var(--transition-fast),
+  transition:
+    border-color var(--transition-fast),
     box-shadow var(--transition-fast);
 }
 
@@ -435,7 +463,11 @@ button {
   --xy-edge-stroke-selected: var(--color-primary);
 
   --xy-minimap-background-color: var(--color-bg-secondary);
-  --xy-minimap-mask-background-color: color-mix(in srgb, var(--color-bg-tertiary) 60%, transparent);
+  --xy-minimap-mask-background-color: color-mix(
+    in srgb,
+    var(--color-bg-tertiary) 60%,
+    transparent
+  );
   --xy-minimap-node-background-color: var(--color-bg-tertiary);
   --xy-minimap-node-stroke-color: var(--color-border);
 }

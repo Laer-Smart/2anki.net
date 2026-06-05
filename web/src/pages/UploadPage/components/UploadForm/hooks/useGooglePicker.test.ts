@@ -29,16 +29,26 @@ function buildBuilder(
   builder.setOAuthToken = vi.fn().mockReturnValue(builder);
   builder.setDeveloperKey = vi.fn().mockReturnValue(builder);
   builder.addView = vi.fn().mockReturnValue(builder);
-  builder.setCallback = vi.fn().mockImplementation((cb: typeof onCallback extends never ? never : (data: { action: string; docs?: unknown[] }) => void) => {
-    onCallback(cb);
-    return builder;
-  });
+  builder.setCallback = vi
+    .fn()
+    .mockImplementation(
+      (
+        cb: typeof onCallback extends never
+          ? never
+          : (data: { action: string; docs?: unknown[] }) => void
+      ) => {
+        onCallback(cb);
+        return builder;
+      }
+    );
   builder.build = vi.fn().mockReturnValue(built);
   return { builder, built };
 }
 
 function stubGoogle(
-  pickerCallbackRunner: (cb: (data: { action: string; docs?: unknown[] }) => void) => void,
+  pickerCallbackRunner: (
+    cb: (data: { action: string; docs?: unknown[] }) => void
+  ) => void,
   tokenResponse: { access_token?: string; error?: string } = {
     access_token: 'test-token',
   }
@@ -145,10 +155,7 @@ describe('useGooglePicker', () => {
     });
 
     it('rejects when the token request returns an error', async () => {
-      stubGoogle(
-        () => undefined,
-        { error: 'access_denied' }
-      );
+      stubGoogle(() => undefined, { error: 'access_denied' });
       const { result } = renderHook(() => useGooglePicker());
       await expect(result.current.openPicker()).rejects.toThrow(
         /access_denied/

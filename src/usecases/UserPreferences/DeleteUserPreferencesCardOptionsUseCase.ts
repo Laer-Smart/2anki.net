@@ -1,4 +1,7 @@
-import type { IUserPreferencesRepository, UserPreferences } from '../../data_layer/UserPreferencesRepository';
+import type {
+  IUserPreferencesRepository,
+  UserPreferences,
+} from '../../data_layer/UserPreferencesRepository';
 
 export class DeleteUserPreferencesCardOptionsUseCase {
   constructor(private readonly repo: IUserPreferencesRepository) {}

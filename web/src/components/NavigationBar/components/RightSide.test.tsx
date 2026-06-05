@@ -4,13 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { RightSide } from './RightSide';
 
 function getNavLinks() {
-  return Array.from(
-    document.querySelectorAll('nav, [role="navigation"], div')
-  )
+  return Array.from(document.querySelectorAll('nav, [role="navigation"], div'))
     .flatMap((el) => Array.from(el.querySelectorAll('a')))
-    .filter(
-      (a, idx, arr) => arr.findIndex((b) => b === a) === idx
-    );
+    .filter((a, idx, arr) => arr.findIndex((b) => b === a) === idx);
 }
 
 describe('RightSide (anonymous nav)', () => {

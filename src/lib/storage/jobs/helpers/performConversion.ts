@@ -78,7 +78,18 @@ function trackConversionFailed(
 
 export default async function performConversion(
   database: Knex,
-  { title, api, id, owner, isPaying, type, jobDbId, frontField, backField, anonId }: ConversionRequest
+  {
+    title,
+    api,
+    id,
+    owner,
+    isPaying,
+    type,
+    jobDbId,
+    frontField,
+    backField,
+    anonId,
+  }: ConversionRequest
 ) {
   console.info(`Performing conversion for ${id}`);
 
@@ -122,7 +133,9 @@ export default async function performConversion(
           '.' +
           String(jobDbId)
       );
-      trackConversionFailed(owner, anonId, type, { reason: 'no_decks_created' });
+      trackConversionFailed(owner, anonId, type, {
+        reason: 'no_decks_created',
+      });
       return;
     }
 

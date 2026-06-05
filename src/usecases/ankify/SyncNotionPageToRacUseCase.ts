@@ -74,7 +74,9 @@ export type AnkiConnectFactory = (
   apiKey: string | null
 ) => AnkiConnectClient;
 
-export type NotionFetcherFactory = (token: string) => NotionBlockChildrenFetcher;
+export type NotionFetcherFactory = (
+  token: string
+) => NotionBlockChildrenFetcher;
 
 const FRONT_FIELD_BASIC = 'Front';
 const BACK_FIELD_BASIC = 'Back';
@@ -395,7 +397,9 @@ export class SyncNotionPageToRacUseCase {
     }
   }
 
-  private async refreshAnkifyModelStyling(ac: AnkiConnectClient): Promise<void> {
+  private async refreshAnkifyModelStyling(
+    ac: AnkiConnectClient
+  ): Promise<void> {
     const basic = ankifyBasicCreateModelParams();
     const cloze = ankifyClozeCreateModelParams();
     await ac.updateModelStyling({ name: basic.modelName, css: basic.css });
@@ -403,13 +407,19 @@ export class SyncNotionPageToRacUseCase {
     await ac.updateModelTemplates({
       name: basic.modelName,
       templates: Object.fromEntries(
-        basic.cardTemplates.map((t) => [t.Name, { Front: t.Front, Back: t.Back }])
+        basic.cardTemplates.map((t) => [
+          t.Name,
+          { Front: t.Front, Back: t.Back },
+        ])
       ),
     });
     await ac.updateModelTemplates({
       name: cloze.modelName,
       templates: Object.fromEntries(
-        cloze.cardTemplates.map((t) => [t.Name, { Front: t.Front, Back: t.Back }])
+        cloze.cardTemplates.map((t) => [
+          t.Name,
+          { Front: t.Front, Back: t.Back },
+        ])
       ),
     });
   }
@@ -494,10 +504,7 @@ export class SyncNotionPageToRacUseCase {
     const ankiNote = ankiInfo[0];
 
     if (ankiNote?.noteId == null) {
-      await this.mappings.deleteByAnkiNoteId(
-        client.id,
-        existing.anki_note_id
-      );
+      await this.mappings.deleteByAnkiNoteId(client.id, existing.anki_note_id);
       const ankiNoteId = await ac.addNote({
         deckName,
         modelName: ANKIFY_BASIC_MODEL,

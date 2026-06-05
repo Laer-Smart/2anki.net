@@ -66,18 +66,26 @@ export class DeletedUserUsageRepository {
       .onConflict('email_sha256')
       .merge({
         cards_used_this_month: db.raw(
-          mergeUsageAcrossMonths('cards_used_this_month', 'cards_month_started_at')
+          mergeUsageAcrossMonths(
+            'cards_used_this_month',
+            'cards_month_started_at'
+          )
         ),
         cards_month_started_at: db.raw(
           takeLaterMonthValue('cards_month_started_at')
         ),
         pdf_prints_this_month: db.raw(
-          mergeUsageAcrossMonths('pdf_prints_this_month', 'prints_month_started_at')
+          mergeUsageAcrossMonths(
+            'pdf_prints_this_month',
+            'prints_month_started_at'
+          )
         ),
         prints_month_started_at: db.raw(
           takeLaterMonthValue('prints_month_started_at')
         ),
-        deleted_at: db.raw(`GREATEST(EXCLUDED.deleted_at, ${TABLE}.deleted_at)`),
+        deleted_at: db.raw(
+          `GREATEST(EXCLUDED.deleted_at, ${TABLE}.deleted_at)`
+        ),
       });
   }
 

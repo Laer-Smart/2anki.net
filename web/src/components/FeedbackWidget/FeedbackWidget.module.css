@@ -38,7 +38,9 @@
   border: 2px solid transparent;
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: transform var(--transition-fast), border-color var(--transition-fast),
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
     background var(--transition-fast);
 }
 
@@ -85,7 +87,9 @@
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .submitButton:hover {

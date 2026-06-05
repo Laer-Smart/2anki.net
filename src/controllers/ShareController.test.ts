@@ -5,7 +5,9 @@ function mockResponse(locals: Record<string, unknown> = {}): Response {
   const headers: Record<string, string> = {};
   return {
     locals: { owner: null, ...locals },
-    setHeader: jest.fn((k: string, v: string) => { headers[k] = v; }),
+    setHeader: jest.fn((k: string, v: string) => {
+      headers[k] = v;
+    }),
     status: jest.fn().mockReturnThis(),
     json: jest.fn(),
     send: jest.fn(),
@@ -13,7 +15,13 @@ function mockResponse(locals: Record<string, unknown> = {}): Response {
 }
 
 function makeCreateUseCase(overrides: Record<string, unknown> = {}) {
-  return { execute: jest.fn().mockResolvedValue({ token: 'abc-token', url: 'https://2anki.net/s/abc-token' }), ...overrides };
+  return {
+    execute: jest.fn().mockResolvedValue({
+      token: 'abc-token',
+      url: 'https://2anki.net/s/abc-token',
+    }),
+    ...overrides,
+  };
 }
 
 function makeResolveUseCase(overrides: Record<string, unknown> = {}) {
@@ -44,7 +52,9 @@ function makeShareService(overrides: Record<string, unknown> = {}) {
 
 function makeStorage(overrides: Record<string, unknown> = {}) {
   return {
-    getFileContents: jest.fn().mockResolvedValue({ Body: Buffer.from('fake-apkg') }),
+    getFileContents: jest
+      .fn()
+      .mockResolvedValue({ Body: Buffer.from('fake-apkg') }),
     ...overrides,
   };
 }
@@ -53,7 +63,9 @@ function makePreviewService(overrides: Record<string, unknown> = {}) {
   return {
     parse: jest.fn().mockResolvedValue({}),
     getMeta: jest.fn().mockReturnValue({ totalCards: 5, decks: [] }),
-    getCardsPage: jest.fn().mockReturnValue({ cards: [], nextCursor: null, total: 5 }),
+    getCardsPage: jest
+      .fn()
+      .mockReturnValue({ cards: [], nextCursor: null, total: 5 }),
     getMediaEntry: jest.fn().mockReturnValue(Buffer.from('media-bytes')),
     ...overrides,
   };
@@ -84,7 +96,9 @@ describe('ShareController - POST /api/shares (createShare)', () => {
     await controller.createShare(req, res);
 
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Authentication required' });
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Authentication required',
+    });
   });
 
   it('returns 400 when upload_key is missing', async () => {
@@ -103,7 +117,9 @@ describe('ShareController - POST /api/shares (createShare)', () => {
     await controller.createShare(req, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ message: 'upload_key is required' });
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'upload_key is required',
+    });
   });
 
   it('returns token and url on success', async () => {
@@ -121,7 +137,10 @@ describe('ShareController - POST /api/shares (createShare)', () => {
 
     await controller.createShare(req, res);
 
-    expect(res.json).toHaveBeenCalledWith({ token: 'abc-token', url: 'https://2anki.net/s/abc-token' });
+    expect(res.json).toHaveBeenCalledWith({
+      token: 'abc-token',
+      url: 'https://2anki.net/s/abc-token',
+    });
   });
 });
 
@@ -142,7 +161,9 @@ describe('ShareController - GET /api/shares/:token/meta', () => {
     await controller.getMeta(req, res);
 
     expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({ message: 'This link was turned off by the owner.' });
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'This link was turned off by the owner.',
+    });
   });
 
   it('returns meta on active share', async () => {
@@ -188,7 +209,9 @@ describe('ShareController - GET /api/shares/:token/download', () => {
     const headers: Record<string, string> = {};
     const res = {
       locals: {},
-      setHeader: jest.fn((k: string, v: string) => { headers[k] = v; }),
+      setHeader: jest.fn((k: string, v: string) => {
+        headers[k] = v;
+      }),
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
       send: jest.fn(),

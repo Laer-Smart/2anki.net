@@ -94,7 +94,9 @@ describe('JobController', () => {
       req as express.Request,
       res as express.Response
     );
-    const sent = (res.send as jest.Mock).mock.calls[0][0] as Array<{ download_key: string | null }>;
+    const sent = (res.send as jest.Mock).mock.calls[0][0] as Array<{
+      download_key: string | null;
+    }>;
     expect(sent[0].download_key).toBe('abc123.apkg');
   });
 
@@ -115,7 +117,9 @@ describe('JobController', () => {
       req as express.Request,
       res as express.Response
     );
-    const sent = (res.send as jest.Mock).mock.calls[0][0] as Array<{ download_key: string | null }>;
+    const sent = (res.send as jest.Mock).mock.calls[0][0] as Array<{
+      download_key: string | null;
+    }>;
     expect(sent[0].download_key).toBe('upload-key.apkg');
   });
 
@@ -136,7 +140,9 @@ describe('JobController', () => {
       req as express.Request,
       res as express.Response
     );
-    const sent = (res.send as jest.Mock).mock.calls[0][0] as Array<{ download_key: string | null }>;
+    const sent = (res.send as jest.Mock).mock.calls[0][0] as Array<{
+      download_key: string | null;
+    }>;
     expect(sent[0].download_key).toBeNull();
   });
 
@@ -152,12 +158,16 @@ describe('JobController', () => {
         download_key: null,
       },
     ];
-    (jobService.getJobsByOwner as jest.Mock).mockResolvedValue(mockJobsForOwner1);
+    (jobService.getJobsByOwner as jest.Mock).mockResolvedValue(
+      mockJobsForOwner1
+    );
     await jobController.getJobsByOwner(
       req as express.Request,
       res as express.Response
     );
-    const sent = (res.send as jest.Mock).mock.calls[0][0] as Array<{ download_key: string | null }>;
+    const sent = (res.send as jest.Mock).mock.calls[0][0] as Array<{
+      download_key: string | null;
+    }>;
     expect(sent[0].download_key).toBeNull();
   });
 

@@ -31,15 +31,15 @@ Use this when you have a week to prep for an exam or a sprint to digitize a stac
 
 ## How the short plans differ from Subscription
 
-| | Free | Day Pass | Week Pass | Unlimited (sub) | Lifetime |
-|---|---|---|---|---|---|
-| Cost | $0 | $4 | $9 | $6 / mo | from $345 once |
-| Length | forever | 24 h | 7 days | until cancelled | forever |
-| Cards per month | 100 | unlimited | unlimited | unlimited | unlimited |
-| PDF support | — | ✓ | ✓ | ✓ | ✓ |
-| [AI flashcards](/documentation/cards/ai-flashcards) | — | ✓ | ✓ | ✓ | ✓ |
-| [Auto Sync](/documentation/sync/how-it-works) | — | — | — | $30/mo add-on | ✓ |
-| Recurring charge | — | — | — | monthly | — |
+|                                                     | Free    | Day Pass  | Week Pass | Unlimited (sub) | Lifetime       |
+| --------------------------------------------------- | ------- | --------- | --------- | --------------- | -------------- |
+| Cost                                                | $0      | $4        | $9        | $6 / mo         | from $345 once |
+| Length                                              | forever | 24 h      | 7 days    | until cancelled | forever        |
+| Cards per month                                     | 100     | unlimited | unlimited | unlimited       | unlimited      |
+| PDF support                                         | —       | ✓         | ✓         | ✓               | ✓              |
+| [AI flashcards](/documentation/cards/ai-flashcards) | —       | ✓         | ✓         | ✓               | ✓              |
+| [Auto Sync](/documentation/sync/how-it-works)       | —       | —         | —         | $30/mo add-on   | ✓              |
+| Recurring charge                                    | —       | —         | —         | monthly         | —              |
 
 Day Pass and Week Pass do not include Auto Sync. If you need ongoing Notion → Anki sync, you need a Subscription with Auto Sync or a Lifetime plan.
 

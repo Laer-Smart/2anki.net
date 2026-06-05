@@ -55,7 +55,9 @@ body { line-height: 1.5; white-space: pre-wrap; }
   await parser.build(workspace);
 
   const style = parser.payload[0].style ?? '';
-  expect(style).toMatch(/(\.code-wrap|pre)[^{}]*\{[^{}]*white-space:\s*pre-wrap/);
+  expect(style).toMatch(
+    /(\.code-wrap|pre)[^{}]*\{[^{}]*white-space:\s*pre-wrap/
+  );
   expect(parser.payload[0].cards[0].back).toContain('<pre');
 });
 
@@ -380,9 +382,7 @@ async function buildFragmentedListDeck(overlapping: string) {
       cloze: 'true',
       'overlapping-cloze': overlapping,
     }),
-    files: [
-      { name: 'notion-fragmented-numbered-list.html', contents },
-    ],
+    files: [{ name: 'notion-fragmented-numbered-list.html', contents }],
     noLimits: true,
     workspace,
   });
@@ -468,9 +468,9 @@ test('overlapping cloze leaves a multi-paragraph page untouched', async () => {
   for (const card of deck.cards) {
     expect(card.name).not.toContain('{{c1::');
   }
-  expect(deck.cards.some((c) => c.name.includes('Mercury is the closest'))).toBe(
-    true
-  );
+  expect(
+    deck.cards.some((c) => c.name.includes('Mercury is the closest'))
+  ).toBe(true);
 });
 
 test('overlapping cloze show-all turns a poem of one-line blocks into N cloze notes', () => {
@@ -511,9 +511,9 @@ test('overlapping cloze leaves a multi-line prose page untouched', () => {
   for (const card of deck.cards) {
     expect(card.name).not.toContain('{{c1::');
   }
-  expect(deck.cards.some((c) => c.name.includes('The river rose overnight'))).toBe(
-    true
-  );
+  expect(
+    deck.cards.some((c) => c.name.includes('The river rose overnight'))
+  ).toBe(true);
 });
 
 test('overlapping cloze skips a page that mixes lines with a heading', () => {
@@ -637,8 +637,12 @@ test('Global Tags', async () => {
 
 test('global tags per file are preserved in multi-file uploads', async () => {
   const fixtureDir = path.join(__dirname, '../../test/fixtures');
-  const fileAContents = fs.readFileSync(path.join(fixtureDir, 'multi-file-tags-a.html')).toString();
-  const fileBContents = fs.readFileSync(path.join(fixtureDir, 'multi-file-tags-b.html')).toString();
+  const fileAContents = fs
+    .readFileSync(path.join(fixtureDir, 'multi-file-tags-a.html'))
+    .toString();
+  const fileBContents = fs
+    .readFileSync(path.join(fixtureDir, 'multi-file-tags-b.html'))
+    .toString();
 
   const files = [
     { name: 'multi-file-tags-a.html', contents: fileAContents },
@@ -655,7 +659,12 @@ test('global tags per file are preserved in multi-file uploads', async () => {
     workspace,
   });
 
-  const decks = parser.handleHTML('multi-file-tags-b.html', fileBContents, '', parser.payload);
+  const decks = parser.handleHTML(
+    'multi-file-tags-b.html',
+    fileBContents,
+    '',
+    parser.payload
+  );
   parser.payload = decks;
 
   expect(parser.payload.length).toBe(2);
@@ -794,7 +803,10 @@ test('Markdown nested bullet points', async () => {
 });
 
 test('Markdown reversed cards keep numeric sort order', async () => {
-  const fixturePath = path.join(__dirname, '../../test/fixtures/simple-deck.md');
+  const fixturePath = path.join(
+    __dirname,
+    '../../test/fixtures/simple-deck.md'
+  );
   const contents = fs.readFileSync(fixturePath).toString();
   const workspace = new Workspace(true, 'fs');
   const parser = new DeckParser({
@@ -815,11 +827,16 @@ test('Markdown reversed cards keep numeric sort order', async () => {
   const deck = parser.payload[0];
 
   expect(deck.cards.map((card) => card.number)).toEqual([0, 1, 2, 3]);
-  expect(deck.cards).not.toContainEqual(expect.objectContaining({ number: -1 }));
+  expect(deck.cards).not.toContainEqual(
+    expect.objectContaining({ number: -1 })
+  );
 });
 
 test('Markdown nested bullets auto-detected without explicit setting', () => {
-  const fixturePath = path.join(__dirname, '../../test/fixtures/notion-nested-bullets.md');
+  const fixturePath = path.join(
+    __dirname,
+    '../../test/fixtures/notion-nested-bullets.md'
+  );
   const contents = fs.readFileSync(fixturePath).toString();
   const info = [{ name: 'notion-nested-bullets.md', contents }];
   const parser = new DeckParser({
@@ -849,20 +866,24 @@ test('Notion new export: display:contents and fragmented ul.toggle', async () =>
 test('Notion new export: display:contents for toggles', async () => {
   const deck = await getDeck(
     'Toggles test 2cd7ab29a11e80bea100ed002a880884.html',
-    new CardOption({ 'max-one-toggle-per-card': 'true', cherry: 'false', 'enable-input': 'false' })
+    new CardOption({
+      'max-one-toggle-per-card': 'true',
+      cherry: 'false',
+      'enable-input': 'false',
+    })
   );
 
   // Should extract 2 cards from this structure
   expect(deck.cards.length).toBe(2);
-  
+
   // First card should be the simple Albania question
   expect(deck.cards[0].name).toContain('Albania');
   expect(deck.cards[0].back).toContain('Tirana');
-  
+
   // Second card should be the Japan greetings with nested content
   expect(deck.cards[1].name).toBeDefined();
   expect(deck.cards[1].back).toBeDefined();
-  
+
   // Check that nested Japanese greetings are preserved as functional toggles
   expect(deck.cards[1].back).toContain('おはようございます');
   expect(deck.cards[1].back).toContain('Ohayō gozaimasu');
@@ -884,7 +905,10 @@ test('Notion figure image: img src uses filename not full subfolder path', async
 });
 
 test('Notion figure image: embeds image when file found via backslash path (Windows ZIP)', async () => {
-  const htmlPath = path.join(__dirname, '../../test/fixtures/notion-figure-image.html');
+  const htmlPath = path.join(
+    __dirname,
+    '../../test/fixtures/notion-figure-image.html'
+  );
   const htmlContents = fs.readFileSync(htmlPath).toString();
   const fakeImageData = Buffer.from('fake-image-data');
 
@@ -940,7 +964,11 @@ test('Notion figure image: resolves S3 presigned URL from local ZIP entry', () =
 test('Notion new export: deeply nested toggles (3 levels)', async () => {
   const deck = await getDeck(
     'Notion Page grandchildren 2ce7ab29a11e809998e3d22ed65fc5f2.html',
-    new CardOption({ 'max-one-toggle-per-card': 'true', cherry: 'false', 'enable-input': 'false' })
+    new CardOption({
+      'max-one-toggle-per-card': 'true',
+      cherry: 'false',
+      'enable-input': 'false',
+    })
   );
 
   expect(deck.cards.length).toBe(1);
@@ -956,11 +984,16 @@ test('Notion new export: deeply nested toggles (3 levels)', async () => {
 test('nested toggle summaries are not forcibly bolded', async () => {
   const deck = await getDeck(
     'Notion Page grandchildren 2ce7ab29a11e809998e3d22ed65fc5f2.html',
-    new CardOption({ 'max-one-toggle-per-card': 'true', cherry: 'false', 'enable-input': 'false' })
+    new CardOption({
+      'max-one-toggle-per-card': 'true',
+      cherry: 'false',
+      'enable-input': 'false',
+    })
   );
 
   expect(deck.cards.length).toBe(1);
-  const summaryMatches = deck.cards[0].back.match(/<summary[^>]*>([\s\S]*?)<\/summary>/g) || [];
+  const summaryMatches =
+    deck.cards[0].back.match(/<summary[^>]*>([\s\S]*?)<\/summary>/g) || [];
   expect(summaryMatches.length).toBeGreaterThan(0);
   for (const match of summaryMatches) {
     expect(match).not.toContain('<strong>');
@@ -970,15 +1003,23 @@ test('nested toggle summaries are not forcibly bolded', async () => {
 test('nested toggle summaries preserve non-empty content', async () => {
   const deck = await getDeck(
     'Notion Page grandchildren 2ce7ab29a11e809998e3d22ed65fc5f2.html',
-    new CardOption({ 'max-one-toggle-per-card': 'true', cherry: 'false', 'enable-input': 'false' })
+    new CardOption({
+      'max-one-toggle-per-card': 'true',
+      cherry: 'false',
+      'enable-input': 'false',
+    })
   );
 
   expect(deck.cards.length).toBe(1);
   const back = deck.cards[0].back;
-  const summaryMatches = back.match(/<summary[^>]*>([\s\S]*?)<\/summary>/g) || [];
+  const summaryMatches =
+    back.match(/<summary[^>]*>([\s\S]*?)<\/summary>/g) || [];
   expect(summaryMatches.length).toBeGreaterThan(0);
   for (const match of summaryMatches) {
-    const inner = match.replace(/<summary[^>]*>/g, '').replace(/<\/summary>/g, '').trim();
+    const inner = match
+      .replace(/<summary[^>]*>/g, '')
+      .replace(/<\/summary>/g, '')
+      .trim();
     expect(inner.length).toBeGreaterThan(0);
   }
 });
@@ -986,7 +1027,12 @@ test('nested toggle summaries preserve non-empty content', async () => {
 test('Nested toggles produce one card without maxOne (new format)', async () => {
   const deck = await getDeck(
     'Notion Page grandchildren 2ce7ab29a11e809998e3d22ed65fc5f2.html',
-    new CardOption({ 'max-one-toggle-per-card': 'false', cherry: 'false', all: 'true', 'enable-input': 'false' })
+    new CardOption({
+      'max-one-toggle-per-card': 'false',
+      cherry: 'false',
+      all: 'true',
+      'enable-input': 'false',
+    })
   );
 
   expect(deck.cards.length).toBe(1);
@@ -997,7 +1043,14 @@ test('Nested toggles produce one card without maxOne (new format)', async () => 
 test('Nested toggles with cloze markers in content produce one cloze card (legacy format)', async () => {
   const deck = await getDeck(
     'Nested Toggles.html',
-    new CardOption({ 'max-one-toggle-per-card': 'false', cherry: 'false', all: 'true', 'enable-input': 'false', cloze: 'true', 'cloze-from-toggle-content': 'true' })
+    new CardOption({
+      'max-one-toggle-per-card': 'false',
+      cherry: 'false',
+      all: 'true',
+      'enable-input': 'false',
+      cloze: 'true',
+      'cloze-from-toggle-content': 'true',
+    })
   );
 
   expect(deck.cards.length).toBe(1);
@@ -1088,12 +1141,19 @@ test('empty paragraphs preserved as spacing in card back', async () => {
 });
 
 test('refresh emoji reverses an uploaded card even when reverse settings are off', async () => {
-  const fixturePath = path.join(__dirname, '../../test/fixtures/refresh-emoji-toggle.html');
+  const fixturePath = path.join(
+    __dirname,
+    '../../test/fixtures/refresh-emoji-toggle.html'
+  );
   const contents = fs.readFileSync(fixturePath).toString();
   const workspace = new Workspace(true, 'fs');
   const parser = new DeckParser({
     name: 'refresh-emoji-toggle.html',
-    settings: new CardOption({ reversed: 'false', 'basic-reversed': 'false', cherry: 'false' }),
+    settings: new CardOption({
+      reversed: 'false',
+      'basic-reversed': 'false',
+      cherry: 'false',
+    }),
     files: [{ name: 'refresh-emoji-toggle.html', contents }],
     noLimits: true,
     workspace,
@@ -1106,7 +1166,9 @@ test('refresh emoji reverses an uploaded card even when reverse settings are off
   const deck = parser.payload[0];
   expect(deck.cards.length).toBe(3);
 
-  const forwardFrance = deck.cards.find((c) => c.name.includes('capital of France'));
+  const forwardFrance = deck.cards.find((c) =>
+    c.name.includes('capital of France')
+  );
   expect(forwardFrance?.back).toContain('Paris');
 
   const germany = deck.cards.find((c) => c.name.includes('capital of Germany'));
@@ -1168,8 +1230,7 @@ describe('removeNewlinesInSVGPathAttributeD', () => {
   });
 
   it('processes multiple path elements in one document', () => {
-    const input =
-      '<svg><path d="M0,0\nL1,1"/><path d="\nM2,2\nL3,3\n"/></svg>';
+    const input = '<svg><path d="M0,0\nL1,1"/><path d="\nM2,2\nL3,3\n"/></svg>';
     expect(newParser().removeNewlinesInSVGPathAttributeD(input)).toBe(
       '<svg><path d="M0,0L1,1"/><path d="M2,2L3,3"/></svg>'
     );
@@ -1184,7 +1245,10 @@ describe('removeNewlinesInSVGPathAttributeD', () => {
 describe('notion-html-2024 regression corpus', () => {
   const fixtureDir = path.join(__dirname, '__fixtures__/notion-html-2024');
   const html = fs.readFileSync(path.join(fixtureDir, 'index.html')).toString();
-  const pngPath = path.join(fixtureDir, 'notion-html-2024/pasted-screenshot.png');
+  const pngPath = path.join(
+    fixtureDir,
+    'notion-html-2024/pasted-screenshot.png'
+  );
   const pngContents = fs.readFileSync(pngPath);
 
   function buildParser(settings: CardOption) {
@@ -1193,7 +1257,10 @@ describe('notion-html-2024 regression corpus', () => {
       settings,
       files: [
         { name: 'index.html', contents: html },
-        { name: 'notion-html-2024/pasted-screenshot.png', contents: pngContents },
+        {
+          name: 'notion-html-2024/pasted-screenshot.png',
+          contents: pngContents,
+        },
       ],
       noLimits: true,
       workspace: new Workspace(true, 'fs'),
@@ -1201,12 +1268,14 @@ describe('notion-html-2024 regression corpus', () => {
   }
 
   test('Bug 1: toggle with bulleted-list children produces one card with list items', async () => {
-    const parser = buildParser(new CardOption({ 'max-one-toggle-per-card': 'true', cherry: 'false' }));
+    const parser = buildParser(
+      new CardOption({ 'max-one-toggle-per-card': 'true', cherry: 'false' })
+    );
     parser.customExporter.save = jest.fn().mockResolvedValue('');
     await parser.build(new Workspace(true, 'fs'));
 
-    const symptomCard = parser.payload[0].cards.find((c) =>
-      c.name.includes('influenza') || c.name.includes('symptoms')
+    const symptomCard = parser.payload[0].cards.find(
+      (c) => c.name.includes('influenza') || c.name.includes('symptoms')
     );
     expect(symptomCard).toBeDefined();
     expect(symptomCard!.back).toContain('<li');
@@ -1216,28 +1285,37 @@ describe('notion-html-2024 regression corpus', () => {
   });
 
   test('Bug 2: pasted screenshot image is embedded into the card media list', async () => {
-    const parser = buildParser(new CardOption({ 'max-one-toggle-per-card': 'true', cherry: 'false' }));
+    const parser = buildParser(
+      new CardOption({ 'max-one-toggle-per-card': 'true', cherry: 'false' })
+    );
     parser.customExporter.save = jest.fn().mockResolvedValue('');
     await parser.build(new Workspace(true, 'fs'));
 
-    const imageCard = parser.payload[0].cards.find((c) =>
-      c.name.includes('diagram') || c.name.includes('Diagram')
+    const imageCard = parser.payload[0].cards.find(
+      (c) => c.name.includes('diagram') || c.name.includes('Diagram')
     );
     expect(imageCard).toBeDefined();
     expect(imageCard!.media.length).toBeGreaterThan(0);
     expect(imageCard!.back).toMatch(/src="[^"]+\.png"/);
-    expect(imageCard!.back).not.toContain('src="notion-html-2024/pasted-screenshot.png"');
+    expect(imageCard!.back).not.toContain(
+      'src="notion-html-2024/pasted-screenshot.png"'
+    );
   });
 
   test('Bug 3: adjacent code siblings in a cloze summary produce exactly one cloze token', async () => {
     const parser = buildParser(
-      new CardOption({ 'max-one-toggle-per-card': 'true', cherry: 'false', cloze: 'true' })
+      new CardOption({
+        'max-one-toggle-per-card': 'true',
+        cherry: 'false',
+        cloze: 'true',
+      })
     );
     parser.customExporter.save = jest.fn().mockResolvedValue('');
     await parser.build(new Workspace(true, 'fs'));
 
-    const clozeCard = parser.payload[0].cards.find((c) =>
-      c.name.includes('cloze concept') || c.back.includes('cloze concept')
+    const clozeCard = parser.payload[0].cards.find(
+      (c) =>
+        c.name.includes('cloze concept') || c.back.includes('cloze concept')
     );
     expect(clozeCard).toBeDefined();
     const clozeTokens = (clozeCard!.name.match(/\{\{c\d+::/g) ?? []).length;
@@ -1293,7 +1371,9 @@ describe('MCQ detection via DeckParser', () => {
   });
 
   test('opt-in: mcq-enabled=false leaves an MCQ-shaped toggle as a Basic note', async () => {
-    const html = fs.readFileSync(path.join(fixtureDir, 'mcq-todo-checked.html')).toString();
+    const html = fs
+      .readFileSync(path.join(fixtureDir, 'mcq-todo-checked.html'))
+      .toString();
     const workspace = new Workspace(true, 'fs');
     const parser = new DeckParser({
       name: 'mcq-todo-checked.html',
@@ -1329,7 +1409,12 @@ describe('MCQ detection via DeckParser', () => {
     expect(deck.cards.length).toBe(1);
     const card = deck.cards[0];
     expect(card.mcq).toBe(true);
-    expect(card.options).toEqual(['Acute MI', 'Stable angina', 'GERD', 'Aortic dissection']);
+    expect(card.options).toEqual([
+      'Acute MI',
+      'Stable angina',
+      'GERD',
+      'Aortic dissection',
+    ]);
     expect(card.correctIndices).toEqual([0]);
     expect(deck.mcqCount).toBe(1);
     expect(deck.mcqSkippedCount).toBe(0);
@@ -1366,13 +1451,19 @@ describe('MCQ detection via DeckParser', () => {
   });
 
   test('regression: existing non-MCQ fixture produces mcq=false on all cards', async () => {
-    const fixtureHtml = fs.readFileSync(
-      path.join(__dirname, '../../test/fixtures/Nested Toggles.html')
-    ).toString();
+    const fixtureHtml = fs
+      .readFileSync(
+        path.join(__dirname, '../../test/fixtures/Nested Toggles.html')
+      )
+      .toString();
     const workspace = new Workspace(true, 'fs');
     const parser = new DeckParser({
       name: 'Nested Toggles.html',
-      settings: new CardOption({ cherry: 'true', reversed: 'true', 'basic-reversed': 'true' }),
+      settings: new CardOption({
+        cherry: 'true',
+        reversed: 'true',
+        'basic-reversed': 'true',
+      }),
       files: [{ name: 'Nested Toggles.html', contents: fixtureHtml }],
       noLimits: true,
       workspace,
@@ -1441,10 +1532,9 @@ describe('heuristic markdown path — entity preservation', () => {
   });
 
   it('preserves &nbsp; entity (or U+00A0) so Anki renders a non-breaking space', async () => {
-    const markdown = [
-      '## Concept',
-      `prefix${nbsp}body content here`,
-    ].join('\n');
+    const markdown = ['## Concept', `prefix${nbsp}body content here`].join(
+      '\n'
+    );
 
     const deck = await buildHeuristicDeck(markdown);
     const back = deck.cards[0]?.back ?? '';
@@ -1457,7 +1547,10 @@ describe('heuristic markdown path — entity preservation', () => {
 describe('embed-images opt-out', () => {
   const fixtureDir = path.join(__dirname, '__fixtures__/notion-html-2024');
   const html = fs.readFileSync(path.join(fixtureDir, 'index.html')).toString();
-  const pngPath = path.join(fixtureDir, 'notion-html-2024/pasted-screenshot.png');
+  const pngPath = path.join(
+    fixtureDir,
+    'notion-html-2024/pasted-screenshot.png'
+  );
   const pngContents = fs.readFileSync(pngPath);
 
   function buildParser(settings: CardOption) {
@@ -1466,7 +1559,10 @@ describe('embed-images opt-out', () => {
       settings,
       files: [
         { name: 'index.html', contents: html },
-        { name: 'notion-html-2024/pasted-screenshot.png', contents: pngContents },
+        {
+          name: 'notion-html-2024/pasted-screenshot.png',
+          contents: pngContents,
+        },
       ],
       noLimits: true,
       workspace: new Workspace(true, 'fs'),

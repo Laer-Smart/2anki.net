@@ -1,8 +1,5 @@
 import { renderNotionBlocks } from './renderBlocks';
-import {
-  NotionBlockChildrenFetcher,
-  NotionRenderableBlock,
-} from './types';
+import { NotionBlockChildrenFetcher, NotionRenderableBlock } from './types';
 
 const noChildren: NotionBlockChildrenFetcher = async () => [];
 
@@ -112,7 +109,9 @@ describe('renderNotionBlocks — text blocks', () => {
     expect(out.html).toContain('<blockquote>said</blockquote>');
     expect(out.html).toContain('<hr>');
     expect(out.html).toContain('<pre><code class="hljs language-javascript">');
-    expect(out.html).toContain('<span class="hljs-string">&quot;hi&quot;</span>');
+    expect(out.html).toContain(
+      '<span class="hljs-string">&quot;hi&quot;</span>'
+    );
     expect(out.html).toContain('\\[a + b\\]');
   });
 
@@ -149,8 +148,22 @@ describe('renderNotionBlocks — recursion', () => {
 
   it('handles nested toggles up to maxDepth and stops past it', async () => {
     const fetch = fetcherFor({
-      a: [{ id: 'b', type: 'toggle', has_children: true, toggle: { rich_text: [{ plain_text: 'b' }] } }],
-      b: [{ id: 'c', type: 'toggle', has_children: true, toggle: { rich_text: [{ plain_text: 'c' }] } }],
+      a: [
+        {
+          id: 'b',
+          type: 'toggle',
+          has_children: true,
+          toggle: { rich_text: [{ plain_text: 'b' }] },
+        },
+      ],
+      b: [
+        {
+          id: 'c',
+          type: 'toggle',
+          has_children: true,
+          toggle: { rich_text: [{ plain_text: 'c' }] },
+        },
+      ],
       c: [para('deep')],
     });
     const root: NotionRenderableBlock = {
@@ -265,9 +278,7 @@ describe('renderNotionBlocks — media', () => {
       },
     };
     const out = await renderNotionBlocks([block], noChildren);
-    expect(out.html).toContain(
-      '<video controls src="ankify-v3.mp4"></video>'
-    );
+    expect(out.html).toContain('<video controls src="ankify-v3.mp4"></video>');
     expect(out.media[0]).toMatchObject({
       block_id: 'v3',
       kind: 'video',
@@ -305,10 +316,11 @@ describe('renderNotionBlocks — media', () => {
       },
     };
     const out = await renderNotionBlocks([block], noChildren);
-    expect(out.html).toContain(
-      '<a href="ankify-f1.pdf">class-notes.pdf</a>'
-    );
-    expect(out.media[0]).toMatchObject({ kind: 'file', filename: 'ankify-f1.pdf' });
+    expect(out.html).toContain('<a href="ankify-f1.pdf">class-notes.pdf</a>');
+    expect(out.media[0]).toMatchObject({
+      kind: 'file',
+      filename: 'ankify-f1.pdf',
+    });
   });
 
   it('emits an iframe for pdf blocks and tracks the file', async () => {
@@ -321,10 +333,11 @@ describe('renderNotionBlocks — media', () => {
       },
     };
     const out = await renderNotionBlocks([block], noChildren);
-    expect(out.html).toContain(
-      '<iframe src="ankify-pdf1.pdf"'
-    );
-    expect(out.media[0]).toMatchObject({ kind: 'file', filename: 'ankify-pdf1.pdf' });
+    expect(out.html).toContain('<iframe src="ankify-pdf1.pdf"');
+    expect(out.media[0]).toMatchObject({
+      kind: 'file',
+      filename: 'ankify-pdf1.pdf',
+    });
   });
 
   it('rewrites embed YouTube to iframe and embed Twitter to source link', async () => {

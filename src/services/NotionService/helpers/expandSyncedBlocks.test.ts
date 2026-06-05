@@ -41,10 +41,7 @@ function makeToggle(id: string, text: string) {
   };
 }
 
-function makeSyncedBlock(
-  id: string,
-  syncedFromBlockId: string | null
-) {
+function makeSyncedBlock(id: string, syncedFromBlockId: string | null) {
   return {
     ...baseBlockShape,
     id,
@@ -59,9 +56,7 @@ function makeSyncedBlock(
   };
 }
 
-function makeApi(
-  responses: Record<string, unknown[]>
-): NotionAPIWrapper {
+function makeApi(responses: Record<string, unknown[]>): NotionAPIWrapper {
   const calls: string[] = [];
   const api = {
     getBlocks: jest.fn(async ({ id }: { id: string }) => {
@@ -93,7 +88,10 @@ describe('expandSyncedBlocks', () => {
 
   it('replaces an original synced_block (synced_from=null) with its own children', async () => {
     const original = makeSyncedBlock('orig-1', null);
-    const childToggle = makeToggle('child-toggle-1', 'inside the synced source');
+    const childToggle = makeToggle(
+      'child-toggle-1',
+      'inside the synced source'
+    );
     const api = makeApi({ 'orig-1': [childToggle] });
 
     const result = await expandSyncedBlocks([original], api, true);
@@ -106,7 +104,10 @@ describe('expandSyncedBlocks', () => {
 
   it('replaces a reference synced_block by fetching children from synced_from.block_id', async () => {
     const reference = makeSyncedBlock('ref-1', 'source-block-99');
-    const sourceChild = makeToggle('source-toggle', 'authored once, linked many');
+    const sourceChild = makeToggle(
+      'source-toggle',
+      'authored once, linked many'
+    );
     const api = makeApi({ 'source-block-99': [sourceChild] });
 
     const result = await expandSyncedBlocks([reference], api, true);
@@ -142,7 +143,9 @@ describe('expandSyncedBlocks', () => {
     const result = await expandSyncedBlocks([a], api, true);
 
     expect(Array.isArray(result)).toBe(true);
-    expect(result.every((r) => (r as { type?: string }).type !== 'synced_block')).toBe(true);
+    expect(
+      result.every((r) => (r as { type?: string }).type !== 'synced_block')
+    ).toBe(true);
   });
 
   it('preserves order: blocks before and after a synced_block keep their position', async () => {
@@ -152,7 +155,11 @@ describe('expandSyncedBlocks', () => {
     const after = makeToggle('after', 'last');
     const api = makeApi({ src: [fromSrc] });
 
-    const result = await expandSyncedBlocks([before, reference, after], api, true);
+    const result = await expandSyncedBlocks(
+      [before, reference, after],
+      api,
+      true
+    );
 
     expect(result.map((b) => (b as { id: string }).id)).toEqual([
       'before',

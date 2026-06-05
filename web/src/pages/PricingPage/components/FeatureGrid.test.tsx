@@ -15,7 +15,9 @@ describe('FeatureGrid', () => {
   it('surfaces the AI features (Claude chat and photo-to-deck)', () => {
     render(<FeatureGrid />);
     expect(screen.getByText('AI chat')).toBeInTheDocument();
-    expect(screen.getByText('Draft and refine cards with Claude')).toBeInTheDocument();
+    expect(
+      screen.getByText('Draft and refine cards with Claude')
+    ).toBeInTheDocument();
     expect(screen.getByText('Photo to deck')).toBeInTheDocument();
   });
 
@@ -29,7 +31,9 @@ describe('FeatureGrid', () => {
   it('states that every plan includes the features', () => {
     render(<FeatureGrid />);
     expect(
-      screen.getByText('Every plan includes all of it, free included. Paid plans lift the limits.')
+      screen.getByText(
+        'Every plan includes all of it, free included. Paid plans lift the limits.'
+      )
     ).toBeInTheDocument();
   });
 });

@@ -19,7 +19,10 @@ describe('extractErrorMessage', () => {
   });
 
   test('extracts code from JSON response body when present', async () => {
-    const response = jsonResponse({ code: 'too_large', message: 'File too big.' });
+    const response = jsonResponse({
+      code: 'too_large',
+      message: 'File too big.',
+    });
     const result = await extractErrorMessage(response);
     expect(result.code).toBe('too_large');
     expect(result.message).toBe('File too big.');

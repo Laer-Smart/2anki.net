@@ -18,7 +18,9 @@
   border-radius: var(--radius-full);
   border: 1px solid transparent;
   white-space: nowrap;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .dot {

@@ -58,15 +58,16 @@ export default function ListSearchResults(
       <div className={styles.emptyState}>
         <p data-hj-suppress>{headline}</p>
         <p className={styles.secondaryText}>
-          Try a different search term, or make sure the page is shared with
-          the 2anki integration — see{' '}
+          Try a different search term, or make sure the page is shared with the
+          2anki integration — see{' '}
           <a
             target="_blank"
             rel="noreferrer"
             href="https://www.notion.so/help/guides/understanding-notions-sharing-settings"
           >
             Notion&apos;s sharing settings
-          </a>.
+          </a>
+          .
         </p>
       </div>
     );

@@ -12,7 +12,9 @@ describe('UploadSourceChips', () => {
         googleDriveAvailable={true}
       />
     );
-    const group = container.querySelector('[role="group"][aria-label="Other upload sources"]');
+    const group = container.querySelector(
+      '[role="group"][aria-label="Other upload sources"]'
+    );
     expect(group).not.toBeNull();
     expect(container.textContent).toContain('or');
   });
@@ -54,7 +56,9 @@ describe('UploadSourceChips', () => {
         googleDriveAvailable={true}
       />
     );
-    const driveBtn = container.querySelector('button[aria-label="Google Drive"]');
+    const driveBtn = container.querySelector(
+      'button[aria-label="Google Drive"]'
+    );
     expect(driveBtn).not.toBeNull();
     expect(driveBtn?.hasAttribute('disabled')).toBe(false);
   });
@@ -68,7 +72,9 @@ describe('UploadSourceChips', () => {
         googleDriveAvailable={false}
       />
     );
-    const driveBtn = container.querySelector('button[aria-label="Google Drive"]');
+    const driveBtn = container.querySelector(
+      'button[aria-label="Google Drive"]'
+    );
     expect(driveBtn).not.toBeNull();
     expect(driveBtn?.hasAttribute('disabled')).toBe(true);
   });
@@ -83,7 +89,9 @@ describe('UploadSourceChips', () => {
         googleDriveAvailable={false}
       />
     );
-    const dropboxBtn = container.querySelector('button[aria-label="Dropbox"]') as HTMLButtonElement;
+    const dropboxBtn = container.querySelector(
+      'button[aria-label="Dropbox"]'
+    ) as HTMLButtonElement;
     await act(async () => {
       dropboxBtn.click();
     });
@@ -100,7 +108,9 @@ describe('UploadSourceChips', () => {
         googleDriveAvailable={false}
       />
     );
-    const dropboxBtn = container.querySelector('button[aria-label="Dropbox"]') as HTMLButtonElement;
+    const dropboxBtn = container.querySelector(
+      'button[aria-label="Dropbox"]'
+    ) as HTMLButtonElement;
     await act(async () => {
       dropboxBtn.click();
     });
@@ -117,7 +127,9 @@ describe('UploadSourceChips', () => {
         googleDriveAvailable={true}
       />
     );
-    const driveBtn = container.querySelector('button[aria-label="Google Drive"]') as HTMLButtonElement;
+    const driveBtn = container.querySelector(
+      'button[aria-label="Google Drive"]'
+    ) as HTMLButtonElement;
     await act(async () => {
       driveBtn.click();
     });

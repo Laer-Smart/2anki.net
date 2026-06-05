@@ -75,7 +75,8 @@ export function DeleteAccountPage({ setError }: Readonly<Prop>) {
             rel="noreferrer"
           >
             disconnect 2anki from your Notion workspace
-          </a>.
+          </a>
+          .
         </p>
       </div>
     </div>

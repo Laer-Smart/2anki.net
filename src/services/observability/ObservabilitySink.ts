@@ -26,7 +26,8 @@ export class ObservabilitySink {
 
   start() {
     if (this.intervalHandle != null) return;
-    const interval = this.options.flushIntervalMs ?? OBSERVABILITY_FLUSH_INTERVAL_MS;
+    const interval =
+      this.options.flushIntervalMs ?? OBSERVABILITY_FLUSH_INTERVAL_MS;
     this.intervalHandle = setInterval(() => {
       void this.flush();
     }, interval);
@@ -85,7 +86,8 @@ export class ObservabilitySink {
   }
 
   private maybeFlush() {
-    const threshold = this.options.flushThreshold ?? OBSERVABILITY_FLUSH_THRESHOLD;
+    const threshold =
+      this.options.flushThreshold ?? OBSERVABILITY_FLUSH_THRESHOLD;
     if (
       this.requestBuffer.length < threshold &&
       this.outboundBuffer.length < threshold

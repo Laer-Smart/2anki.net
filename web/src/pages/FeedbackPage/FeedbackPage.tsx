@@ -17,7 +17,7 @@ async function submitFeedback(payload: {
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    const data = await res.json().catch(() => ({})) as { message?: string };
+    const data = (await res.json().catch(() => ({}))) as { message?: string };
     throw new Error(data.message ?? `${res.status}`);
   }
 }
@@ -59,7 +59,9 @@ export default function FeedbackPage() {
     return (
       <main className={sharedStyles.pageNarrow}>
         <div className={`${sharedStyles.card} ${styles.successCard}`}>
-          <p className={styles.successIcon} aria-hidden="true">✦</p>
+          <p className={styles.successIcon} aria-hidden="true">
+            ✦
+          </p>
           <h1 className={styles.successHeading}>
             Got it — you're helping us build something better.
           </h1>
@@ -67,7 +69,10 @@ export default function FeedbackPage() {
             We read every response. What you shared will shape the next thing we
             fix or build. Thank you for taking the time.
           </p>
-          <a href="/downloads" className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}>
+          <a
+            href="/downloads"
+            className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
+          >
             Back to my decks
           </a>
         </div>
@@ -79,9 +84,7 @@ export default function FeedbackPage() {
     <main className={sharedStyles.pageNarrow}>
       <header className={styles.header}>
         <h1 className={sharedStyles.title}>What's your 2anki story?</h1>
-        <p className={sharedStyles.subtitle}>
-          Your own words, under a minute.
-        </p>
+        <p className={sharedStyles.subtitle}>Your own words, under a minute.</p>
       </header>
 
       <div className={sharedStyles.card}>
@@ -126,8 +129,7 @@ export default function FeedbackPage() {
 
           <div className={styles.field}>
             <label htmlFor="fb-extra" className={styles.label}>
-              Anything else?{' '}
-              <span className={styles.optional}>(optional)</span>
+              Anything else? <span className={styles.optional}>(optional)</span>
             </label>
             <textarea
               id="fb-extra"

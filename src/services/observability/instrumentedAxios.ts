@@ -21,7 +21,10 @@ export type ObservabilityService = (typeof OBSERVABILITY_SERVICES)[number];
 const isAllowedService = (service: string): service is ObservabilityService =>
   (OBSERVABILITY_SERVICES as readonly string[]).includes(service);
 
-const FIXED_HOST_ALLOWLIST: Record<ObservabilityService, readonly string[] | null> = {
+const FIXED_HOST_ALLOWLIST: Record<
+  ObservabilityService,
+  readonly string[] | null
+> = {
   notion: null,
   claude: ['api.anthropic.com'],
   dropbox: null,
@@ -176,7 +179,9 @@ const resolveHostnameSafely = async (
     );
   }
   if (entries.length === 0) {
-    throw new Error(`[observability] dns lookup returned no addresses for "${hostname}"`);
+    throw new Error(
+      `[observability] dns lookup returned no addresses for "${hostname}"`
+    );
   }
   for (const entry of entries) {
     if (isPrivateResolvedAddress(entry.address, entry.family)) {
@@ -192,11 +197,13 @@ type AxiosLookup = NonNullable<AxiosRequestConfig['lookup']>;
 
 const buildPinnedLookup = (resolved: ResolvedAddress): AxiosLookup =>
   ((_hostname, _options, callback) => {
-    (callback as (err: NodeJS.ErrnoException | null, address: string, family: number) => void)(
-      null,
-      resolved.address,
-      resolved.family
-    );
+    (
+      callback as (
+        err: NodeJS.ErrnoException | null,
+        address: string,
+        family: number
+      ) => void
+    )(null, resolved.address, resolved.family);
   }) as AxiosLookup;
 
 const validateAndResolveUrl = async (
@@ -304,12 +311,20 @@ const measure = async <T>(
     recordSafely(sink, service, endpoint, response.status, Date.now() - start);
     return response;
   } catch (error) {
-    recordSafely(sink, service, endpoint, extractStatusFromError(error), Date.now() - start);
+    recordSafely(
+      sink,
+      service,
+      endpoint,
+      extractStatusFromError(error),
+      Date.now() - start
+    );
     throw error;
   }
 };
 
-export const makeInstrumentedAxios = (sink: ObservabilitySink): InstrumentedAxios => ({
+export const makeInstrumentedAxios = (
+  sink: ObservabilitySink
+): InstrumentedAxios => ({
   get: (service, url, config) =>
     measure(sink, service, url, (lookup) =>
       axios.get(url, mergeLookupOption(config, lookup))
@@ -337,12 +352,14 @@ const getInstrumentedAxios = (): InstrumentedAxios => {
 };
 
 const proxy: InstrumentedAxios = {
-  get: (service, url, config) => getInstrumentedAxios().get(service, url, config),
+  get: (service, url, config) =>
+    getInstrumentedAxios().get(service, url, config),
   post: (service, url, data, config) =>
     getInstrumentedAxios().post(service, url, data, config),
   put: (service, url, data, config) =>
     getInstrumentedAxios().put(service, url, data, config),
-  delete: (service, url, config) => getInstrumentedAxios().delete(service, url, config),
+  delete: (service, url, config) =>
+    getInstrumentedAxios().delete(service, url, config),
 };
 
 export default proxy;

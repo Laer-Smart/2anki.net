@@ -12,14 +12,16 @@ function HeroSection() {
             <span className={`${styles.heroTitle} ${styles.heroSubtitle}`}>
               Notion to Anki{' '}
             </span>
-            <span className={`${styles.heroTitle} ${styles.heroSubtitleAlignRight}`}>
+            <span
+              className={`${styles.heroTitle} ${styles.heroSubtitleAlignRight}`}
+            >
               fast
             </span>
           </span>
         </h1>
         <HeroText>
-          Drop a Notion export, PDF, or markdown file and get a beautiful
-          Anki deck back. Free and open source.
+          Drop a Notion export, PDF, or markdown file and get a beautiful Anki
+          deck back. Free and open source.
         </HeroText>
       </div>
     </div>

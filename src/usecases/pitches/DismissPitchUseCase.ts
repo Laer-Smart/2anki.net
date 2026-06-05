@@ -1,6 +1,9 @@
 import type { PitchPlacement } from '../../data_layer/PitchDismissalsRepository';
 
-const VALID_PLACEMENTS: PitchPlacement[] = ['convert_success', 'account_banner'];
+const VALID_PLACEMENTS: PitchPlacement[] = [
+  'convert_success',
+  'account_banner',
+];
 
 interface DismissalWritePort {
   upsertDismissal(userId: string, placement: PitchPlacement): Promise<void>;

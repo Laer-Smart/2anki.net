@@ -26,9 +26,7 @@ describe('InMemoryReEngagementFeedbackRepository', () => {
         created_at: now,
       });
 
-      const result = await repo.countByReason(
-        new Date('2026-01-01T00:00:00Z')
-      );
+      const result = await repo.countByReason(new Date('2026-01-01T00:00:00Z'));
 
       expect(result).toEqual([
         { stopped_reason: 'Switched to another tool', count: 3 },
@@ -49,9 +47,7 @@ describe('InMemoryReEngagementFeedbackRepository', () => {
         created_at: new Date('2026-05-01T00:00:00Z'),
       });
 
-      const result = await repo.countByReason(
-        new Date('2026-04-01T00:00:00Z')
-      );
+      const result = await repo.countByReason(new Date('2026-04-01T00:00:00Z'));
 
       expect(result).toEqual([
         { stopped_reason: 'Switched to another tool', count: 1 },

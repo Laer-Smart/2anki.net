@@ -7,10 +7,14 @@ export interface MindmapImageRatioResult {
 }
 
 function hasImage(data: MindmapData): boolean {
-  return data.nodes.some((node) => node.image != null && node.image.url != null);
+  return data.nodes.some(
+    (node) => node.image != null && node.image.url != null
+  );
 }
 
-export function mindmapImageRatio(maps: MindmapData[]): MindmapImageRatioResult {
+export function mindmapImageRatio(
+  maps: MindmapData[]
+): MindmapImageRatioResult {
   const total = maps.length;
   if (total === 0) {
     return { total: 0, withImages: 0, ratio: null };

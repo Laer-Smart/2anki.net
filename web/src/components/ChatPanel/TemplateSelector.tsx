@@ -11,13 +11,20 @@ interface TemplateSelectorProps {
   disabled?: boolean;
 }
 
-export function TemplateSelector({ value, onChange, disabled }: TemplateSelectorProps) {
+export function TemplateSelector({
+  value,
+  onChange,
+  disabled,
+}: TemplateSelectorProps) {
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current != null && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current != null &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     }
@@ -26,7 +33,8 @@ export function TemplateSelector({ value, onChange, disabled }: TemplateSelector
   }, []);
 
   const activeOption =
-    CHAT_TEMPLATE_OPTIONS.find((o) => o.slug === value) ?? CHAT_TEMPLATE_OPTIONS[0];
+    CHAT_TEMPLATE_OPTIONS.find((o) => o.slug === value) ??
+    CHAT_TEMPLATE_OPTIONS[0];
 
   return (
     <div className={styles.templateDropdown} ref={dropdownRef}>
@@ -55,7 +63,11 @@ export function TemplateSelector({ value, onChange, disabled }: TemplateSelector
         </svg>
       </button>
       {open && (
-        <ul role="listbox" aria-label="Note type" className={styles.templateMenu}>
+        <ul
+          role="listbox"
+          aria-label="Note type"
+          className={styles.templateMenu}
+        >
           {CHAT_TEMPLATE_OPTIONS.map((opt) => (
             <li key={opt.slug} role="option" aria-selected={opt.slug === value}>
               <button

@@ -35,12 +35,18 @@ export class ClaimSubscriptionUseCase {
   async execute(input: ClaimSubscriptionInput): Promise<{ message: string }> {
     const hourAgo = new Date(Date.now() - ONE_HOUR_MS);
 
-    const userAttempts = await this.tokensRepo.countRecentByUser(input.userId, hourAgo);
+    const userAttempts = await this.tokensRepo.countRecentByUser(
+      input.userId,
+      hourAgo
+    );
     if (userAttempts >= MAX_ATTEMPTS_PER_USER_PER_HOUR) {
       return { message: CLAIM_INITIATE_MESSAGE };
     }
 
-    const ipAttempts = await this.auditRepo.countRecentByIp(input.ipHash, hourAgo);
+    const ipAttempts = await this.auditRepo.countRecentByIp(
+      input.ipHash,
+      hourAgo
+    );
     if (ipAttempts >= MAX_ATTEMPTS_PER_IP_PER_HOUR) {
       return { message: CLAIM_INITIATE_MESSAGE };
     }
@@ -52,17 +58,22 @@ export class ClaimSubscriptionUseCase {
       outcome: 'initiate',
     });
 
-    const activeSubs = await this.subscriptionService.findActiveStripeSubscriptions(
-      input.submittedEmail
-    );
+    const activeSubs =
+      await this.subscriptionService.findActiveStripeSubscriptions(
+        input.submittedEmail
+      );
 
     if (activeSubs.length > 0) {
       const firstSub = activeSubs[0];
       const stripeCustomer = firstSub.customer;
       const stripeCustomerId =
-        typeof stripeCustomer === 'string' ? stripeCustomer : stripeCustomer?.id ?? '';
+        typeof stripeCustomer === 'string'
+          ? stripeCustomer
+          : (stripeCustomer?.id ?? '');
 
-      const customer = await this.stripe.customers.retrieve(stripeCustomerId) as StripeTypes.Customer;
+      const customer = (await this.stripe.customers.retrieve(
+        stripeCustomerId
+      )) as StripeTypes.Customer;
       const recipientEmail = customer.email ?? input.submittedEmail;
 
       const rawToken = crypto.randomUUID();
@@ -77,7 +88,10 @@ export class ClaimSubscriptionUseCase {
       });
 
       const claimUrl = `${this.domain}/account/claim?token=${encodeURIComponent(rawToken)}`;
-      await this.emailService.sendSubscriptionClaimConfirmation(recipientEmail, claimUrl);
+      await this.emailService.sendSubscriptionClaimConfirmation(
+        recipientEmail,
+        claimUrl
+      );
     }
 
     return { message: CLAIM_INITIATE_MESSAGE };

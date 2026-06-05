@@ -11,15 +11,21 @@ export type ClaimOutcome =
   | 'replay';
 
 export interface ISubscriptionClaimAuditRepository {
-  insert(initializer: SubscriptionClaimAuditInitializer): Promise<SubscriptionClaimAudit>;
+  insert(
+    initializer: SubscriptionClaimAuditInitializer
+  ): Promise<SubscriptionClaimAudit>;
   countRecentByIp(ipHash: string, since: Date): Promise<number>;
 }
 
 class SubscriptionClaimAuditRepository implements ISubscriptionClaimAuditRepository {
   constructor(private readonly database: Knex) {}
 
-  async insert(initializer: SubscriptionClaimAuditInitializer): Promise<SubscriptionClaimAudit> {
-    const rows = await this.database('subscription_claim_audit').insert(initializer).returning('*');
+  async insert(
+    initializer: SubscriptionClaimAuditInitializer
+  ): Promise<SubscriptionClaimAudit> {
+    const rows = await this.database('subscription_claim_audit')
+      .insert(initializer)
+      .returning('*');
     return rows[0];
   }
 

@@ -14,7 +14,9 @@ function makeFailingRepo(): IJobsMetricsRepository {
   };
 }
 
-function makeStubRepo(overrides: Partial<IJobsMetricsRepository> = {}): IJobsMetricsRepository {
+function makeStubRepo(
+  overrides: Partial<IJobsMetricsRepository> = {}
+): IJobsMetricsRepository {
   return {
     countFreeConversions7d: jest.fn().mockResolvedValue(0),
     countPaidConversions7d: jest.fn().mockResolvedValue(0),
@@ -28,9 +30,7 @@ function makeStubRepo(overrides: Partial<IJobsMetricsRepository> = {}): IJobsMet
 
 function makeFailingEventsRepo(): IEventsMetricsRepository {
   return {
-    medianMinutesToFirstDeck: jest
-      .fn()
-      .mockRejectedValue(new Error('db down')),
+    medianMinutesToFirstDeck: jest.fn().mockRejectedValue(new Error('db down')),
     uploadToDownloadRate: jest.fn().mockRejectedValue(new Error('db down')),
   };
 }
@@ -89,7 +89,9 @@ describe('ConversionMetricsService — shape assembly', () => {
 
   it('passes through free success rate from the repository', async () => {
     const service = new ConversionMetricsService(
-      makeStubRepo({ computeFreeSuccessRate7d: jest.fn().mockResolvedValue(66.7) }),
+      makeStubRepo({
+        computeFreeSuccessRate7d: jest.fn().mockResolvedValue(66.7),
+      }),
       makeStubEventsRepo()
     );
 
@@ -104,7 +106,9 @@ describe('ConversionMetricsService — shape assembly', () => {
       { reason: 'timeout', count: 2 },
     ];
     const service = new ConversionMetricsService(
-      makeStubRepo({ topFailureReasons7d: jest.fn().mockResolvedValue(reasons) }),
+      makeStubRepo({
+        topFailureReasons7d: jest.fn().mockResolvedValue(reasons),
+      }),
       makeStubEventsRepo()
     );
 
@@ -115,7 +119,9 @@ describe('ConversionMetricsService — shape assembly', () => {
 
   it('produces a 12-week time series with zeroes for weeks with no data', async () => {
     const service = new ConversionMetricsService(
-      makeStubRepo({ failedConversionsWeekly: jest.fn().mockResolvedValue([]) }),
+      makeStubRepo({
+        failedConversionsWeekly: jest.fn().mockResolvedValue([]),
+      }),
       makeStubEventsRepo()
     );
 
@@ -134,9 +140,9 @@ describe('ConversionMetricsService — shape assembly', () => {
 
     const currentMonday = new Date('2025-05-19T00:00:00.000Z');
     const repo = makeStubRepo({
-      failedConversionsWeekly: jest.fn().mockResolvedValue([
-        { weekStart: currentMonday, count: 4 },
-      ]),
+      failedConversionsWeekly: jest
+        .fn()
+        .mockResolvedValue([{ weekStart: currentMonday, count: 4 }]),
     });
 
     const service = new ConversionMetricsService(repo, makeStubEventsRepo());

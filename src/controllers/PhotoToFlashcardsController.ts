@@ -16,7 +16,12 @@ import { buildContentDisposition } from '../lib/buildContentDisposition';
 import { detectFileMime } from '../lib/detectFileMime';
 import { isPaying } from '../lib/isPaying';
 
-const ALLOWED_MEDIA_TYPES: VisionMediaType[] = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_MEDIA_TYPES: VisionMediaType[] = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+];
 const ALLOWED_DENSITIES: PhotoDensity[] = ['sparse', 'balanced', 'dense'];
 const ALLOWED_MODES: PhotoMode[] = ['generative', 'verbatim'];
 const ALLOWED_CARD_STYLES: PhotoCardStyle[] = ['generative', 'heading-driven'];
@@ -35,23 +40,29 @@ interface RawPhotoBody {
 }
 
 function isAllowedMediaType(value: unknown): value is VisionMediaType {
-  return typeof value === 'string' && (ALLOWED_MEDIA_TYPES as string[]).includes(value);
+  return (
+    typeof value === 'string' &&
+    (ALLOWED_MEDIA_TYPES as string[]).includes(value)
+  );
 }
 
 function parseDensity(value: unknown): PhotoDensity {
-  return typeof value === 'string' && (ALLOWED_DENSITIES as string[]).includes(value)
+  return typeof value === 'string' &&
+    (ALLOWED_DENSITIES as string[]).includes(value)
     ? (value as PhotoDensity)
     : DEFAULT_PHOTO_DENSITY;
 }
 
 function parseMode(value: unknown): PhotoMode {
-  return typeof value === 'string' && (ALLOWED_MODES as string[]).includes(value)
+  return typeof value === 'string' &&
+    (ALLOWED_MODES as string[]).includes(value)
     ? (value as PhotoMode)
     : DEFAULT_PHOTO_MODE;
 }
 
 function parseCardStyle(value: unknown): PhotoCardStyle {
-  return typeof value === 'string' && (ALLOWED_CARD_STYLES as string[]).includes(value)
+  return typeof value === 'string' &&
+    (ALLOWED_CARD_STYLES as string[]).includes(value)
     ? (value as PhotoCardStyle)
     : DEFAULT_PHOTO_CARD_STYLE;
 }
@@ -62,7 +73,8 @@ export class PhotoToFlashcardsController {
   async create(req: express.Request, res: express.Response): Promise<void> {
     const body = req.body as RawPhotoBody;
 
-    const imageBase64 = typeof body.imageBase64 === 'string' ? body.imageBase64.trim() : '';
+    const imageBase64 =
+      typeof body.imageBase64 === 'string' ? body.imageBase64.trim() : '';
     if (imageBase64.length === 0) {
       res.status(400).json({ message: 'imageBase64 is required' });
       return;
@@ -93,7 +105,9 @@ export class PhotoToFlashcardsController {
     const owner = (res.locals['owner'] ?? '') as string;
     const paying = isPaying(res.locals);
     const includeSourceImage =
-      typeof body.includeSourceImage === 'boolean' ? body.includeSourceImage : true;
+      typeof body.includeSourceImage === 'boolean'
+        ? body.includeSourceImage
+        : true;
 
     const mode = parseMode(body.mode);
     const cardStyle = parseCardStyle(body.cardStyle);
@@ -143,7 +157,10 @@ export class PhotoToFlashcardsController {
       throw err;
     }
 
-    res.setHeader('Content-Disposition', buildContentDisposition(path.basename(result.apkgPath)));
+    res.setHeader(
+      'Content-Disposition',
+      buildContentDisposition(path.basename(result.apkgPath))
+    );
     res.setHeader('Content-Type', 'application/octet-stream');
     res.setHeader('X-Card-Count', String(result.cardCount));
     res.setHeader('X-MCQ-Count', String(result.mcqCount));

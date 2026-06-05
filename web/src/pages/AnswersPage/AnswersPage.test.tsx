@@ -36,7 +36,9 @@ describe('AnswersPage', () => {
 
   it('renders the not-found page for an unknown slug', () => {
     renderAtSlug('does-not-exist');
-    expect(screen.getByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Page not found' })
+    ).toBeInTheDocument();
   });
 
   it('all related links contain ?ref=ai', () => {

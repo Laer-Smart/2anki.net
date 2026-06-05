@@ -13,7 +13,9 @@
   text-align: center;
   color: var(--color-text-secondary);
   background: var(--color-bg-secondary);
-  transition: border-color var(--transition-fast), background-color var(--transition-fast),
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
     border-style var(--transition-fast);
   cursor: pointer;
   position: relative;
@@ -171,7 +173,9 @@
   cursor: pointer;
   text-decoration: none;
   box-shadow: var(--shadow-xs);
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .chooseButton:hover:not(:disabled) {
@@ -267,7 +271,9 @@
   font-weight: var(--font-medium);
   cursor: pointer;
   box-shadow: var(--shadow-xs);
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
   margin-top: 0.25rem;
 }
 
@@ -479,7 +485,8 @@
   border-radius: var(--radius-lg);
   text-align: left;
   text-decoration: none;
-  transition: transform var(--transition-fast),
+  transition:
+    transform var(--transition-fast),
     box-shadow var(--transition-fast),
     background-color var(--transition-fast);
 }
@@ -613,18 +620,31 @@
 /* ── Keyframes ── */
 
 @keyframes bobUp {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
-  from { transform: scale(0); }
-  to { transform: scale(1); }
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
 }
 
 @keyframes successFade {
@@ -815,7 +835,9 @@
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .dropboxButton:hover {
@@ -915,7 +937,9 @@
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
   text-align: left;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .inlineChatToggle:hover {
@@ -975,7 +999,9 @@
   color: var(--color-text-secondary);
   cursor: pointer;
   font-variant-numeric: tabular-nums;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
   margin-top: 0.25rem;
 }
 

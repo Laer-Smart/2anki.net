@@ -186,7 +186,9 @@ class OpsController {
 
   async deleteInactiveUsers(req: express.Request, res: express.Response) {
     if (this.deleteInactiveUsersUseCase == null) {
-      res.status(500).json({ message: 'Inactive user deletion not configured' });
+      res
+        .status(500)
+        .json({ message: 'Inactive user deletion not configured' });
       return;
     }
     try {
@@ -209,7 +211,9 @@ class OpsController {
     try {
       const result = this.syncStripeSubscriptionsUseCase.execute();
       if (result.alreadyRunning) {
-        res.status(409).json({ message: 'A Stripe subscription sync is already running.' });
+        res
+          .status(409)
+          .json({ message: 'A Stripe subscription sync is already running.' });
         return;
       }
       res.status(202).json({
@@ -218,7 +222,9 @@ class OpsController {
       });
     } catch (error) {
       console.error('[ops] syncStripeSubscriptions failed', error);
-      res.status(500).json({ message: 'Failed to start Stripe subscription sync' });
+      res
+        .status(500)
+        .json({ message: 'Failed to start Stripe subscription sync' });
     }
   }
 
@@ -250,10 +256,7 @@ class OpsController {
     }
   }
 
-  async getMindmapStorageMetrics(
-    _req: express.Request,
-    res: express.Response
-  ) {
+  async getMindmapStorageMetrics(_req: express.Request, res: express.Response) {
     if (this.getMindmapStorageMetricsUseCase == null) {
       res
         .status(500)
@@ -277,7 +280,8 @@ class OpsController {
       return;
     }
     try {
-      const window = typeof req.query.window === 'string' ? req.query.window : undefined;
+      const window =
+        typeof req.query.window === 'string' ? req.query.window : undefined;
       const result = await this.getPricingAbFunnelUseCase.execute(window);
       res.status(200).json(result);
     } catch (error) {
@@ -357,7 +361,8 @@ class OpsController {
       return;
     }
     try {
-      const window = typeof req.query.window === 'string' ? req.query.window : undefined;
+      const window =
+        typeof req.query.window === 'string' ? req.query.window : undefined;
       const result = await this.getUploadFunnelUseCase.execute(window);
       res.status(200).json(result);
     } catch (error) {

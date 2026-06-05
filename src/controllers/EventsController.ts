@@ -14,7 +14,11 @@ export class EventsController {
       props?: unknown;
     };
 
-    if (typeof name !== 'string' || name.length === 0 || name.length > EVENT_NAME_MAX_LENGTH) {
+    if (
+      typeof name !== 'string' ||
+      name.length === 0 ||
+      name.length > EVENT_NAME_MAX_LENGTH
+    ) {
       res.status(400).json({ error: 'Invalid event name' });
       return;
     }
@@ -36,7 +40,9 @@ export class EventsController {
 
     this.trackEventUseCase.execute({
       name,
-      unknown: !KNOWN_EVENTS.has(name as Parameters<typeof KNOWN_EVENTS.has>[0]),
+      unknown: !KNOWN_EVENTS.has(
+        name as Parameters<typeof KNOWN_EVENTS.has>[0]
+      ),
       userId,
       anonymousId,
       props: safeProps,
@@ -45,9 +51,7 @@ export class EventsController {
     res.status(202).end();
   }
 
-  private resolveProps(
-    raw: unknown
-  ): Record<string, unknown> | null {
+  private resolveProps(raw: unknown): Record<string, unknown> | null {
     if (raw == null) return {};
     if (typeof raw !== 'object' || Array.isArray(raw)) return null;
     return raw as Record<string, unknown>;

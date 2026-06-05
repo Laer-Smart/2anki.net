@@ -60,7 +60,9 @@ export default function WhatsNewPage() {
           Everything we've shipped, newest first.
         </p>
         <div className={styles.inlineRating}>
-          <span className={styles.ratingPrompt}>How&apos;s 2anki working for you?</span>
+          <span className={styles.ratingPrompt}>
+            How&apos;s 2anki working for you?
+          </span>
           <FeedbackWidget page="/whats-new" compact />
           <a
             href="https://github.com/2anki/server/issues/new"
@@ -83,8 +85,13 @@ export default function WhatsNewPage() {
                 <h3 className={styles.dateHeading}>{group.label}</h3>
                 <ul className={styles.commitList}>
                   {group.entries.map((entry, idx) => (
-                    <li key={`${entry.date}-${idx}`} className={styles.commitItem}>
-                      <span className={`${styles.typeBadge} ${styles['badge_' + entry.type]}`}>
+                    <li
+                      key={`${entry.date}-${idx}`}
+                      className={styles.commitItem}
+                    >
+                      <span
+                        className={`${styles.typeBadge} ${styles['badge_' + entry.type]}`}
+                      >
                         {TYPE_LABELS[entry.type] ?? entry.type}
                       </span>
                       <span className={styles.commitText}>{entry.title}</span>

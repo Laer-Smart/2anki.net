@@ -40,7 +40,8 @@ function toOption(
   origin: NoteTypeOption['origin']
 ): NoteTypeOption {
   const value = modelName(starter);
-  const label = starter.name === value ? starter.name : `${starter.name} (${value})`;
+  const label =
+    starter.name === value ? starter.name : `${starter.name} (${value})`;
   return { value, label, origin };
 }
 
@@ -84,7 +85,9 @@ export function useAvailableNoteTypes(): {
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err : new Error('Failed to load templates'));
+        setError(
+          err instanceof Error ? err : new Error('Failed to load templates')
+        );
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

@@ -1,8 +1,14 @@
 export type GoogleApiKeyShape =
   | { valid: true; key: string }
-  | { valid: false; reason: 'empty' | 'oauth-client-secret' | 'unrecognized'; key: string };
+  | {
+      valid: false;
+      reason: 'empty' | 'oauth-client-secret' | 'unrecognized';
+      key: string;
+    };
 
-export function assertGoogleApiKeyShape(value: string | undefined | null): GoogleApiKeyShape {
+export function assertGoogleApiKeyShape(
+  value: string | undefined | null
+): GoogleApiKeyShape {
   const key = (value ?? '').trim();
   if (key.length === 0) {
     return { valid: false, reason: 'empty', key };

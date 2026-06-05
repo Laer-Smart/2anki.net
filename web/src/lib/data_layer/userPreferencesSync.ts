@@ -127,7 +127,9 @@ export async function hydrateFromServer(): Promise<void> {
       localStorage.setItem('2anki-theme', theme);
     }
     if (typeof ankiWebAcknowledgedAt === 'string') {
-      try { localStorage.setItem(ANKI_WEB_ACK_KEY, 'true'); } catch {}
+      try {
+        localStorage.setItem(ANKI_WEB_ACK_KEY, 'true');
+      } catch {}
     }
   } catch {
     // silent

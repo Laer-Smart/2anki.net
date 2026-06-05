@@ -1,4 +1,11 @@
-import { Fragment, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Fragment,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
@@ -132,10 +139,12 @@ const extractZeroDiagnostic = (result: {
   return result.diagnostic;
 };
 
-const errorFlashFor = (error: Error & {
-  status?: number;
-  retryAfterSeconds?: number;
-}): RowFlash => {
+const errorFlashFor = (
+  error: Error & {
+    status?: number;
+    retryAfterSeconds?: number;
+  }
+): RowFlash => {
   if (error.status === 429 && error.retryAfterSeconds != null) {
     return {
       kind: 'error',
@@ -154,7 +163,8 @@ const extractNotionId = (input: string): string => {
   return urlMatch == null ? trimmed : urlMatch[1];
 };
 
-const normalizeId = (id: string): string => id.replaceAll('-', '').toLowerCase();
+const normalizeId = (id: string): string =>
+  id.replaceAll('-', '').toLowerCase();
 
 const renderSecondLine = (
   lastError: string | null | undefined,
@@ -169,9 +179,7 @@ const renderSecondLine = (
   }
   if (nextExportLabel != null) {
     return (
-      <p className={styles.decksItemError}>
-        Next export at {nextExportLabel}
-      </p>
+      <p className={styles.decksItemError}>Next export at {nextExportLabel}</p>
     );
   }
   return null;
@@ -190,7 +198,9 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
     () => new Set()
   );
   const [flashByRow, setFlashByRow] = useState<Record<number, RowFlash>>({});
-  const [zeroBannerByRow, setZeroBannerByRow] = useState<Record<number, ZeroDiagnostic | null>>({});
+  const [zeroBannerByRow, setZeroBannerByRow] = useState<
+    Record<number, ZeroDiagnostic | null>
+  >({});
   const flashTimers = useRef<Map<number, ReturnType<typeof setTimeout>>>(
     new Map()
   );
@@ -240,7 +250,13 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
       }
       try {
         const result = await api.refreshAnkifySubscription(id);
-        showFlash(id, buildSuccessFlash({ ...result, diagnostic: result.diagnostic ?? null }));
+        showFlash(
+          id,
+          buildSuccessFlash({
+            ...result,
+            diagnostic: result.diagnostic ?? null,
+          })
+        );
         setZeroBannerByRow((prev) => ({
           ...prev,
           [id]: extractZeroDiagnostic(result),
@@ -288,9 +304,8 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
       }),
     onMutate: async (args: SubscribeArgs) => {
       await queryClient.cancelQueries({ queryKey: SUBSCRIPTIONS_KEY });
-      const previous = queryClient.getQueryData<SubscriptionRow[]>(
-        SUBSCRIPTIONS_KEY
-      );
+      const previous =
+        queryClient.getQueryData<SubscriptionRow[]>(SUBSCRIPTIONS_KEY);
       const optimisticRow: SubscriptionRow = {
         id: -Date.now(),
         notion_page_id: args.notionPageId,
@@ -304,8 +319,7 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
       };
       const alreadyPresent = (previous ?? []).some(
         (sub) =>
-          normalizeId(sub.notion_page_id) ===
-          normalizeId(args.notionPageId)
+          normalizeId(sub.notion_page_id) === normalizeId(args.notionPageId)
       );
       if (!alreadyPresent) {
         queryClient.setQueryData<SubscriptionRow[]>(SUBSCRIPTIONS_KEY, [
@@ -448,20 +462,23 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
             subscribedLabel="Already a deck"
           />
 
-          {subscribe.isError && (() => {
-            const mapped = mapSubscribeError(subscribe.error as Error & { status?: number });
-            return (
-              <p role="alert" className={sharedStyles.helpDanger}>
-                {mapped.text}
-                {mapped.link != null && (
-                  <>
-                    {' '}
-                    <Link to={mapped.link.href}>{mapped.link.label}</Link>
-                  </>
-                )}
-              </p>
-            );
-          })()}
+          {subscribe.isError &&
+            (() => {
+              const mapped = mapSubscribeError(
+                subscribe.error as Error & { status?: number }
+              );
+              return (
+                <p role="alert" className={sharedStyles.helpDanger}>
+                  {mapped.text}
+                  {mapped.link != null && (
+                    <>
+                      {' '}
+                      <Link to={mapped.link.href}>{mapped.link.label}</Link>
+                    </>
+                  )}
+                </p>
+              );
+            })()}
           {subscribe.isSuccess && (
             <>
               <p className={sharedStyles.helpSuccess}>
@@ -513,8 +530,8 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
         </div>
       )}
 
-      {effectiveTab === 'decks' && (
-        subscriptions.length === 0 ? (
+      {effectiveTab === 'decks' &&
+        (subscriptions.length === 0 ? (
           <div
             role="tabpanel"
             id="ankify-tabpanel-decks"
@@ -534,193 +551,207 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
             </p>
           </div>
         ) : (
-        <div
-          role="tabpanel"
-          id="ankify-tabpanel-decks"
-          aria-labelledby="ankify-tab-decks"
-          className={styles.tabPanel}
-        >
-          {showSearch && (
-            <div className={styles.searchAbove}>
-              <input
-                type="search"
-                placeholder="Search your decks"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </div>
-          )}
-          <p className={styles.decksHelper}>
-            Checks Notion for changes every 5 minutes.
-          </p>
-          <ul className={styles.decksList} ref={menuContainerRef}>
-            {filteredSubscriptions.map((sub) => {
-              const displayTitle =
-                sub.notion_page_title?.trim().length
+          <div
+            role="tabpanel"
+            id="ankify-tabpanel-decks"
+            aria-labelledby="ankify-tab-decks"
+            className={styles.tabPanel}
+          >
+            {showSearch && (
+              <div className={styles.searchAbove}>
+                <input
+                  type="search"
+                  placeholder="Search your decks"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </div>
+            )}
+            <p className={styles.decksHelper}>
+              Checks Notion for changes every 5 minutes.
+            </p>
+            <ul className={styles.decksList} ref={menuContainerRef}>
+              {filteredSubscriptions.map((sub) => {
+                const displayTitle = sub.notion_page_title?.trim().length
                   ? sub.notion_page_title
                   : 'Untitled page';
-              const isSubscribingThisRow =
-                subscribe.isPending &&
-                pendingId != null &&
-                normalizeId(pendingId) === normalizeId(sub.notion_page_id);
-              const isRefreshingThisRow = refreshingIds.has(sub.id);
-              const isUpdatingThisRow =
-                isSubscribingThisRow || isRefreshingThisRow;
-              const flash = flashByRow[sub.id] ?? null;
-              const zeroBanner = zeroBannerByRow[sub.id] ?? null;
-              const nextExportLabel =
-                schedule?.enabled === true &&
-                normalizeId(schedule.database_id) ===
-                  normalizeId(sub.notion_page_id)
-                  ? formatScheduleTime(schedule.time_of_day, schedule.timezone)
-                  : null;
-              const secondLine = renderSecondLine(
-                sub.last_error,
-                nextExportLabel
-              );
-              const relative = formatRelativeTime(sub.last_synced_at);
-              const isPreparingFirstSync =
-                sub.last_synced_at == null &&
-                sub.last_polled_at == null &&
-                sub.last_error == null;
-              let lastSyncedDisplay: ReactNode;
-              if (isPreparingFirstSync) {
-                lastSyncedDisplay = (
-                  <span className={styles.muted}>
-                    Preparing your first sync — usually under a minute.
-                  </span>
+                const isSubscribingThisRow =
+                  subscribe.isPending &&
+                  pendingId != null &&
+                  normalizeId(pendingId) === normalizeId(sub.notion_page_id);
+                const isRefreshingThisRow = refreshingIds.has(sub.id);
+                const isUpdatingThisRow =
+                  isSubscribingThisRow || isRefreshingThisRow;
+                const flash = flashByRow[sub.id] ?? null;
+                const zeroBanner = zeroBannerByRow[sub.id] ?? null;
+                const nextExportLabel =
+                  schedule?.enabled === true &&
+                  normalizeId(schedule.database_id) ===
+                    normalizeId(sub.notion_page_id)
+                    ? formatScheduleTime(
+                        schedule.time_of_day,
+                        schedule.timezone
+                      )
+                    : null;
+                const secondLine = renderSecondLine(
+                  sub.last_error,
+                  nextExportLabel
                 );
-              } else if (relative == null) {
-                lastSyncedDisplay = (
-                  <span className={styles.muted}>Not yet</span>
-                );
-              } else {
-                lastSyncedDisplay = (
-                  <span title={sub.last_synced_at ?? undefined}>
-                    Last sync: {relative}
-                  </span>
-                );
-              }
-              const iconValue = sub.notion_page_icon ?? '';
-              return (
-                <Fragment key={sub.id}>
-                <li className={styles.decksItem}>
-                  {iconValue.length > 0 && (
-                    <span className={styles.decksItemIcon} aria-hidden="true">
-                      <BlockIcon icon={iconValue} />
+                const relative = formatRelativeTime(sub.last_synced_at);
+                const isPreparingFirstSync =
+                  sub.last_synced_at == null &&
+                  sub.last_polled_at == null &&
+                  sub.last_error == null;
+                let lastSyncedDisplay: ReactNode;
+                if (isPreparingFirstSync) {
+                  lastSyncedDisplay = (
+                    <span className={styles.muted}>
+                      Preparing your first sync — usually under a minute.
                     </span>
-                  )}
-                  <span className={styles.decksItemTitle} title={displayTitle}>
-                    {sub.notion_page_url != null &&
-                    sub.notion_page_url.length > 0 ? (
-                      <a
-                        href={sub.notion_page_url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {displayTitle}
-                      </a>
-                    ) : (
-                      displayTitle
-                    )}
-                    {secondLine}
-                  </span>
-                  <span className={styles.decksItemTime} aria-live="polite">
-                    {(() => {
-                      if (isUpdatingThisRow) return <span>Updating now…</span>;
-                      if (flash != null) {
-                        return (
-                          <span
-                            className={
-                              flash.kind === 'success'
-                                ? styles.muted
-                                : styles.decksItemError
-                            }
-                          >
-                            {flash.text}
-                          </span>
-                        );
-                      }
-                      return lastSyncedDisplay;
-                    })()}
-                  </span>
-                  <div className={styles.decksItemRowMenu}>
-                    <button
-                      type="button"
-                      className={sharedStyles.btnIcon}
-                      aria-label={`Options for ${displayTitle}`}
-                      aria-haspopup="menu"
-                      aria-expanded={openMenuId === sub.id}
-                      onClick={() =>
-                        setOpenMenuId((current) =>
-                          current === sub.id ? null : sub.id
-                        )
-                      }
-                    >
-                      <DotsHorizontal width={16} height={16} />
-                    </button>
-                    {openMenuId === sub.id && (
-                      <div role="menu" className={styles.decksItemMenu}>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className={styles.decksItemMenuItem}
-                          aria-label={`Update ${displayTitle} now`}
-                          onClick={() => handleRefresh(sub.id)}
-                          disabled={isUpdatingThisRow}
+                  );
+                } else if (relative == null) {
+                  lastSyncedDisplay = (
+                    <span className={styles.muted}>Not yet</span>
+                  );
+                } else {
+                  lastSyncedDisplay = (
+                    <span title={sub.last_synced_at ?? undefined}>
+                      Last sync: {relative}
+                    </span>
+                  );
+                }
+                const iconValue = sub.notion_page_icon ?? '';
+                return (
+                  <Fragment key={sub.id}>
+                    <li className={styles.decksItem}>
+                      {iconValue.length > 0 && (
+                        <span
+                          className={styles.decksItemIcon}
+                          aria-hidden="true"
                         >
-                          Update now
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className={styles.decksItemMenuItem}
-                          onClick={() => {
-                            setOpenMenuId(null);
-                            unsubscribe.mutate(sub.id);
-                          }}
-                          disabled={unsubscribe.isPending}
-                        >
-                          Stop
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </li>
-                {zeroBanner != null && (
-                  <li className={styles.zeroBanner} aria-live="polite">
-                    <p className={styles.zeroBannerText}>
-                      {zeroBanner.blocks_scanned > 0 ? (
-                        <>
-                          We scanned <strong>{zeroBanner.blocks_scanned}</strong> blocks and didn't recognize any cards. Ankify looks for toggles, Q&A pairs, and bullets.{' '}
-                        </>
-                      ) : (
-                        <>We couldn't read any content from this page.{' '}</>
+                          <BlockIcon icon={iconValue} />
+                        </span>
                       )}
-                      <a href="/answers" className={styles.zeroBannerLink}>
-                        What Ankify looks for →
-                      </a>
-                    </p>
-                    {zeroBanner.unmatched_samples != null && zeroBanner.unmatched_samples.length > 0 && (
-                      <details className={styles.zeroBannerDetails}>
-                        <summary className={styles.zeroBannerSummary}>
-                          What we saw on this page (first {zeroBanner.unmatched_samples.length})
-                        </summary>
-                        <ul className={styles.zeroBannerSamples}>
-                          {zeroBanner.unmatched_samples.map((s) => (
-                            <li key={s}>{s}</li>
-                          ))}
-                        </ul>
-                      </details>
+                      <span
+                        className={styles.decksItemTitle}
+                        title={displayTitle}
+                      >
+                        {sub.notion_page_url != null &&
+                        sub.notion_page_url.length > 0 ? (
+                          <a
+                            href={sub.notion_page_url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {displayTitle}
+                          </a>
+                        ) : (
+                          displayTitle
+                        )}
+                        {secondLine}
+                      </span>
+                      <span className={styles.decksItemTime} aria-live="polite">
+                        {(() => {
+                          if (isUpdatingThisRow)
+                            return <span>Updating now…</span>;
+                          if (flash != null) {
+                            return (
+                              <span
+                                className={
+                                  flash.kind === 'success'
+                                    ? styles.muted
+                                    : styles.decksItemError
+                                }
+                              >
+                                {flash.text}
+                              </span>
+                            );
+                          }
+                          return lastSyncedDisplay;
+                        })()}
+                      </span>
+                      <div className={styles.decksItemRowMenu}>
+                        <button
+                          type="button"
+                          className={sharedStyles.btnIcon}
+                          aria-label={`Options for ${displayTitle}`}
+                          aria-haspopup="menu"
+                          aria-expanded={openMenuId === sub.id}
+                          onClick={() =>
+                            setOpenMenuId((current) =>
+                              current === sub.id ? null : sub.id
+                            )
+                          }
+                        >
+                          <DotsHorizontal width={16} height={16} />
+                        </button>
+                        {openMenuId === sub.id && (
+                          <div role="menu" className={styles.decksItemMenu}>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              className={styles.decksItemMenuItem}
+                              aria-label={`Update ${displayTitle} now`}
+                              onClick={() => handleRefresh(sub.id)}
+                              disabled={isUpdatingThisRow}
+                            >
+                              Update now
+                            </button>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              className={styles.decksItemMenuItem}
+                              onClick={() => {
+                                setOpenMenuId(null);
+                                unsubscribe.mutate(sub.id);
+                              }}
+                              disabled={unsubscribe.isPending}
+                            >
+                              Stop
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                    {zeroBanner != null && (
+                      <li className={styles.zeroBanner} aria-live="polite">
+                        <p className={styles.zeroBannerText}>
+                          {zeroBanner.blocks_scanned > 0 ? (
+                            <>
+                              We scanned{' '}
+                              <strong>{zeroBanner.blocks_scanned}</strong>{' '}
+                              blocks and didn't recognize any cards. Ankify
+                              looks for toggles, Q&A pairs, and bullets.{' '}
+                            </>
+                          ) : (
+                            <>We couldn't read any content from this page. </>
+                          )}
+                          <a href="/answers" className={styles.zeroBannerLink}>
+                            What Ankify looks for →
+                          </a>
+                        </p>
+                        {zeroBanner.unmatched_samples != null &&
+                          zeroBanner.unmatched_samples.length > 0 && (
+                            <details className={styles.zeroBannerDetails}>
+                              <summary className={styles.zeroBannerSummary}>
+                                What we saw on this page (first{' '}
+                                {zeroBanner.unmatched_samples.length})
+                              </summary>
+                              <ul className={styles.zeroBannerSamples}>
+                                {zeroBanner.unmatched_samples.map((s) => (
+                                  <li key={s}>{s}</li>
+                                ))}
+                              </ul>
+                            </details>
+                          )}
+                      </li>
                     )}
-                  </li>
-                )}
-                </Fragment>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
+                  </Fragment>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
     </section>
   );
 }

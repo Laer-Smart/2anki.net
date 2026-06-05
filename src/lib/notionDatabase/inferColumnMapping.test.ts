@@ -31,7 +31,13 @@ describe('inferColumnMapping', () => {
   });
 
   it('ignores non-canonical columns alongside canonical ones', () => {
-    const result = inferColumnMapping(['Notes', 'Term', 'Tags', 'Definition', 'Created']);
+    const result = inferColumnMapping([
+      'Notes',
+      'Term',
+      'Tags',
+      'Definition',
+      'Created',
+    ]);
     expect(result).toEqual({
       frontField: 'Term',
       backField: 'Definition',
@@ -56,7 +62,12 @@ describe('inferColumnMapping', () => {
   });
 
   it('flags ambiguous when both sides have multiple candidates', () => {
-    const result = inferColumnMapping(['Term', 'Word', 'Definition', 'Meaning']);
+    const result = inferColumnMapping([
+      'Term',
+      'Word',
+      'Definition',
+      'Meaning',
+    ]);
     expect(result.ambiguous).toBe(true);
   });
 

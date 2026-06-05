@@ -83,7 +83,10 @@ export class ExportMindmapUseCase {
       allMediaFilenames
     );
 
-    const workspaceDir = path.join(os.tmpdir(), `mindmap-export-${randomUUID()}`);
+    const workspaceDir = path.join(
+      os.tmpdir(),
+      `mindmap-export-${randomUUID()}`
+    );
     fs.mkdirSync(workspaceDir, { recursive: true });
 
     try {

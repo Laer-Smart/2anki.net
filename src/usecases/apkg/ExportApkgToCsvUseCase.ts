@@ -40,7 +40,10 @@ export default class ExportApkgToCsvUseCase {
       throw new EmptyDeckError();
     }
     if (!unlimitedAccess && parsed.notes.length > CSV_FREE_NOTE_LIMIT) {
-      throw new CardLimitExceededError(parsed.notes.length, CSV_FREE_NOTE_LIMIT);
+      throw new CardLimitExceededError(
+        parsed.notes.length,
+        CSV_FREE_NOTE_LIMIT
+      );
     }
     const csvText = buildCsvFromApkgNotes(parsed.notes);
     const csv = Buffer.concat([UTF8_BOM, Buffer.from(csvText, 'utf8')]);

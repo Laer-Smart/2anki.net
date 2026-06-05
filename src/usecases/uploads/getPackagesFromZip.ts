@@ -1,7 +1,10 @@
 import pLimit from 'p-limit';
 import CardOption from '../../lib/parser/Settings/CardOption';
 import { ZipHandler } from '../../lib/zip/zip';
-import { PrepareDeck, prepareDeckInfoOnly } from '../../infrastracture/adapters/fileConversion/PrepareDeck';
+import {
+  PrepareDeck,
+  prepareDeckInfoOnly,
+} from '../../infrastracture/adapters/fileConversion/PrepareDeck';
 import Package from '../../lib/parser/Package';
 import { PackageResult } from './GeneratePackagesUseCase';
 import Workspace from '../../lib/parser/WorkSpace';
@@ -67,7 +70,14 @@ async function buildDeckBatch(
     const batchResults = preparedResults.filter((r) => !r.needsIndividualBuild);
     batchResults.forEach((result, i) => {
       if (!apkgPaths[i]) return;
-      packages.push(new Package(result.name, result.cardCount, result.mcqCount, result.mcqSkippedCount));
+      packages.push(
+        new Package(
+          result.name,
+          result.cardCount,
+          result.mcqCount,
+          result.mcqSkippedCount
+        )
+      );
       if (result.warning) warnings.push(result.warning);
     });
   }
@@ -96,7 +106,10 @@ async function buildStragglerDecks(
   const warnings: string[] = [];
 
   for (const straggler of stragglers) {
-    const relevantFiles = getRelevantFiles(straggler.inputFileName, zipHandler.files);
+    const relevantFiles = getRelevantFiles(
+      straggler.inputFileName,
+      zipHandler.files
+    );
     const deck = await PrepareDeck({
       name: straggler.inputFileName,
       files: relevantFiles,
@@ -105,7 +118,14 @@ async function buildStragglerDecks(
       workspace,
     });
     if (deck) {
-      packages.push(new Package(deck.name, deck.cardCount ?? 0, deck.mcqCount ?? 0, deck.mcqSkippedCount ?? 0));
+      packages.push(
+        new Package(
+          deck.name,
+          deck.cardCount ?? 0,
+          deck.mcqCount ?? 0,
+          deck.mcqSkippedCount ?? 0
+        )
+      );
       if (deck.warning) warnings.push(deck.warning);
     }
   }
@@ -135,7 +155,14 @@ async function buildClaudeFlashcardDeck(
   const packages: Package[] = [];
   const warnings: string[] = [];
   if (deck) {
-    packages.push(new Package(deck.name, deck.cardCount ?? 0, deck.mcqCount ?? 0, deck.mcqSkippedCount ?? 0));
+    packages.push(
+      new Package(
+        deck.name,
+        deck.cardCount ?? 0,
+        deck.mcqCount ?? 0,
+        deck.mcqSkippedCount ?? 0
+      )
+    );
     if (deck.warning) warnings.push(deck.warning);
   }
   return { packages, warnings };
@@ -169,7 +196,14 @@ async function buildAllInOneSlot(
   const warnings: string[] = [];
   for (const deck of results) {
     if (deck) {
-      packages.push(new Package(deck.name, deck.cardCount ?? 0, deck.mcqCount ?? 0, deck.mcqSkippedCount ?? 0));
+      packages.push(
+        new Package(
+          deck.name,
+          deck.cardCount ?? 0,
+          deck.mcqCount ?? 0,
+          deck.mcqSkippedCount ?? 0
+        )
+      );
       if (deck.warning) warnings.push(deck.warning);
     }
   }
@@ -201,7 +235,10 @@ export const getPackagesFromZip = async (
 
   const fileNames = zipHandler.getFileNames();
   const supportedFileNames = fileNames.filter(isZipContentFileSupported);
-  const effectiveSettings = enableMarkdownForMarkdownUploads(fileNames, settings);
+  const effectiveSettings = enableMarkdownForMarkdownUploads(
+    fileNames,
+    settings
+  );
 
   if (effectiveSettings.claudeAIFlashcards && paying && fileNames.length > 0) {
     return buildClaudeFlashcardDeck(

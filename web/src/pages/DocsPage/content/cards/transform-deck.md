@@ -33,7 +33,7 @@ A 900-card deck takes roughly 5 to 10 minutes. Leave the tab open; the download 
 
 - **Basic and Cloze decks.** If the deck contains any other note type — Image Occlusion Enhanced, custom note types with extra fields, third-party templates — we reject the upload with a clear error. Partial decks are worse than no deck.
 - **Up to 100 MB per upload.**
-- **One transform per round trip.** To translate *and* add hints, run two passes: translate, download, upload again, add hint.
+- **One transform per round trip.** To translate _and_ add hints, run two passes: translate, download, upload again, add hint.
 
 ## What the output looks like
 

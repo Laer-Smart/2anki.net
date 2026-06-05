@@ -16,10 +16,7 @@ import {
   invalidateTopLevelPagesForOwner,
   setTopLevelPagesCache,
 } from './topLevelPagesCache';
-import {
-  releaseRefresh,
-  tryClaimRefresh,
-} from './topLevelPagesRefreshGate';
+import { releaseRefresh, tryClaimRefresh } from './topLevelPagesRefreshGate';
 
 export interface NotionLinkInfo {
   link: string;
@@ -88,9 +85,7 @@ export class NotionService {
     return new NotionAPIWrapper(token, owner, this.blocksCacheRepository);
   };
 
-  tryGetNotionAPI = async (
-    owner: string
-  ): Promise<NotionAPIWrapper | null> => {
+  tryGetNotionAPI = async (owner: string): Promise<NotionAPIWrapper | null> => {
     const token = await this.notionRepository.getNotionToken(owner);
     if (!token) {
       return null;
@@ -156,9 +151,7 @@ export class NotionService {
     return live;
   }
 
-  private async tier2Read(
-    owner: number
-  ): Promise<TopLevelPagesResult | null> {
+  private async tier2Read(owner: number): Promise<TopLevelPagesResult | null> {
     if (!this.topLevelPagesRepository) return null;
     const rows = await this.topLevelPagesRepository.getByOwner(owner);
     if (rows.length === 0) return null;

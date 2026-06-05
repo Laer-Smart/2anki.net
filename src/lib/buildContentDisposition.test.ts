@@ -4,7 +4,7 @@ import { buildContentDisposition } from './buildContentDisposition';
 describe('buildContentDisposition', () => {
   it('handles plain ASCII filename', () => {
     expect(buildContentDisposition('report.apkg')).toBe(
-      "attachment; filename=\"report.apkg\"; filename*=UTF-8''report.apkg"
+      'attachment; filename="report.apkg"; filename*=UTF-8\'\'report.apkg'
     );
   });
 
@@ -23,7 +23,9 @@ describe('buildContentDisposition', () => {
   it('handles Cyrillic filename', () => {
     const result = buildContentDisposition('Здравствуйте.apkg');
     expect(result).toMatch(/^attachment; filename="[^"]*"/);
-    expect(result).toContain("filename*=UTF-8''%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5.apkg");
+    expect(result).toContain(
+      "filename*=UTF-8''%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5.apkg"
+    );
   });
 
   it('handles emoji filename', () => {
@@ -36,7 +38,9 @@ describe('buildContentDisposition', () => {
     const result = buildContentDisposition('Some "Quoted" Name.apkg');
     expect(result).not.toMatch(/filename="[^"]*"[^;]/);
     expect(result).toMatch(/filename="Some _Quoted_ Name\.apkg"/);
-    expect(result).toContain("filename*=UTF-8''Some%20%22Quoted%22%20Name.apkg");
+    expect(result).toContain(
+      "filename*=UTF-8''Some%20%22Quoted%22%20Name.apkg"
+    );
   });
 
   it('strips backslash from ASCII fallback', () => {

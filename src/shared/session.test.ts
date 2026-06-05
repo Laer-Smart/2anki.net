@@ -1,7 +1,4 @@
-import {
-  SESSION_MAX_AGE_MS,
-  sessionCookieOptions,
-} from './session';
+import { SESSION_MAX_AGE_MS, sessionCookieOptions } from './session';
 
 describe('sessionCookieOptions', () => {
   const originalNodeEnv = process.env.NODE_ENV;

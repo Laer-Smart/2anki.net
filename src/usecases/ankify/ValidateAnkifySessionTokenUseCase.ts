@@ -37,7 +37,9 @@ export class ValidateAnkifySessionTokenUseCase {
       return { ok: false, status: 401, reason: 'cookie_owner_mismatch' };
     }
 
-    const subscriptions = await SubscriptionService.getUserActiveSubscriptions(user.email);
+    const subscriptions = await SubscriptionService.getUserActiveSubscriptions(
+      user.email
+    );
     const autoSyncProductId = process.env.AUTO_SYNC_PRODUCT_ID ?? '';
 
     if (!hasAnkifyAccess(user, subscriptions, autoSyncProductId)) {

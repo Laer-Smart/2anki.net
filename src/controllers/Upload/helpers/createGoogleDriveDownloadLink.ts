@@ -5,7 +5,8 @@ export const NATIVE_GOOGLE_APPS_EXPORT_MIMES: Record<
   { exportMime: string; extension: string }
 > = {
   'application/vnd.google-apps.document': {
-    exportMime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    exportMime:
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     extension: '.docx',
   },
   'application/vnd.google-apps.spreadsheet': {
@@ -13,7 +14,8 @@ export const NATIVE_GOOGLE_APPS_EXPORT_MIMES: Record<
     extension: '.csv',
   },
   'application/vnd.google-apps.presentation': {
-    exportMime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    exportMime:
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     extension: '.pptx',
   },
 };

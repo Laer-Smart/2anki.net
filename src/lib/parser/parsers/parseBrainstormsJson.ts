@@ -37,7 +37,13 @@ export function parseBrainstormsJson(text: string): MindmapData {
   }
   assertShape(parsed);
   return {
-    nodes: parsed.nodes.map((n) => ({ id: String(n.id), label: String(n.label) })),
-    edges: parsed.edges.map((e) => ({ source: String(e.source), target: String(e.target) })),
+    nodes: parsed.nodes.map((n) => ({
+      id: String(n.id),
+      label: String(n.label),
+    })),
+    edges: parsed.edges.map((e) => ({
+      source: String(e.source),
+      target: String(e.target),
+    })),
   };
 }

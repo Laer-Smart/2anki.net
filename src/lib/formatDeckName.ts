@@ -4,6 +4,10 @@ export function formatDeckName(filename: string): string {
   const withoutLeadingDash = withoutTrailingId.replace(/^-+/, '');
   const withSpaces = withoutLeadingDash.replaceAll('-', ' ');
   const collapsed = withSpaces.replace(/\s+/g, ' ').trim();
-  const withoutLeadingNonAlpha = collapsed.replace(/^[^\p{L}\p{N}]+/u, '').trim();
-  return withoutLeadingNonAlpha.length > 0 ? withoutLeadingNonAlpha : 'Untitled deck';
+  const withoutLeadingNonAlpha = collapsed
+    .replace(/^[^\p{L}\p{N}]+/u, '')
+    .trim();
+  return withoutLeadingNonAlpha.length > 0
+    ? withoutLeadingNonAlpha
+    : 'Untitled deck';
 }

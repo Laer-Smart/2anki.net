@@ -4,7 +4,11 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 
-import { CREATE_DECK_DIR, CREATE_DECK_SCRIPT_PATH, resolvePath } from '../constants';
+import {
+  CREATE_DECK_DIR,
+  CREATE_DECK_SCRIPT_PATH,
+  resolvePath,
+} from '../constants';
 import { buildPythonExitError } from './buildPythonExitError';
 
 function tryCommand(command: string): boolean {
@@ -25,8 +29,18 @@ function findExecutable(commands: string[]): string | undefined {
 }
 
 function windowsPython(): string | undefined {
-  const localPython = path.join(homedir(), 'AppData', 'Local', 'Programs', 'Python', 'Python38', 'python.exe');
-  return findExisting([localPython]) ?? findExecutable(['py', 'python', 'python3']);
+  const localPython = path.join(
+    homedir(),
+    'AppData',
+    'Local',
+    'Programs',
+    'Python',
+    'Python38',
+    'python.exe'
+  );
+  return (
+    findExisting([localPython]) ?? findExecutable(['py', 'python', 'python3'])
+  );
 }
 
 function macPython(): string | undefined {
@@ -77,7 +91,12 @@ class CardGenerator {
       deckInfo,
       templateDirectory,
     ];
-    console.log('execFile', path.basename(PYTHON()), createDeckScriptPathARGS.length, 'args');
+    console.log(
+      'execFile',
+      path.basename(PYTHON()),
+      createDeckScriptPathARGS.length,
+      'args'
+    );
     const jobId = this.jobId;
     return new Promise((resolve, reject) => {
       const process = spawn(PYTHON(), createDeckScriptPathARGS, {
@@ -114,19 +133,33 @@ class CardGenerator {
         const output = stdoutData.join('').trim();
         const lastLine = output.split('\n').pop();
         if (!lastLine?.endsWith('.apkg')) {
-          return reject(new Error(`Python script did not return a valid .apkg path. stdout: ${output || '(empty)'}`));
+          return reject(
+            new Error(
+              `Python script did not return a valid .apkg path. stdout: ${output || '(empty)'}`
+            )
+          );
         }
         resolve(lastLine);
       });
     });
   }
 
-  runBatch(entries: Array<{ input: string; output: string }>): Promise<string[]> {
-    const manifestPath = path.join(this.currentDirectory, `batch_manifest_${randomUUID()}.json`);
+  runBatch(
+    entries: Array<{ input: string; output: string }>
+  ): Promise<string[]> {
+    const manifestPath = path.join(
+      this.currentDirectory,
+      `batch_manifest_${randomUUID()}.json`
+    );
     writeFileSync(manifestPath, JSON.stringify(entries));
     const templateDirectory = resolvePath(__dirname, '../../templates/');
 
-    const args = [CREATE_DECK_SCRIPT_PATH, '--batch', manifestPath, templateDirectory];
+    const args = [
+      CREATE_DECK_SCRIPT_PATH,
+      '--batch',
+      manifestPath,
+      templateDirectory,
+    ];
     const jobId = this.jobId;
 
     return new Promise((resolve, reject) => {

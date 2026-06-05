@@ -85,7 +85,9 @@ export const isHiddenFileOrDirectory = (fileName: string) =>
   fileName.endsWith('/') ||
   fileName.startsWith('__MACOSX');
 
-export const isAnkiDeckFile = (fileName: string | null | undefined): boolean => {
+export const isAnkiDeckFile = (
+  fileName: string | null | undefined
+): boolean => {
   if (typeof fileName !== 'string') return false;
   return fileName.toLowerCase().endsWith('.apkg');
 };

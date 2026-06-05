@@ -17,7 +17,7 @@ const AUTO_SYNC_PRODUCT_ID = 'prod_test_auto_sync';
 const makeRequest = (token: string | undefined): express.Request =>
   ({
     cookies: token == null ? {} : { token },
-  } as unknown as express.Request);
+  }) as unknown as express.Request;
 
 interface FakeResponse {
   statusCode: number;
@@ -54,9 +54,10 @@ const makeAuthService = (
     getUserFrom: jest.fn(async () =>
       user == null ? null : { ...user, owner: user.id }
     ),
-  } as unknown as AuthenticationService);
+  }) as unknown as AuthenticationService;
 
-const mockGetUserActiveSubscriptions = SubscriptionService.getUserActiveSubscriptions as jest.Mock;
+const mockGetUserActiveSubscriptions =
+  SubscriptionService.getUserActiveSubscriptions as jest.Mock;
 
 beforeEach(() => {
   jest.resetAllMocks();

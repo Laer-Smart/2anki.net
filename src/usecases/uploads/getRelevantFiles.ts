@@ -1,10 +1,7 @@
 import { File } from '../../lib/zip/zip';
 import { isImageFileEmbedable } from '../../lib/storage/checks';
 
-export function getRelevantFiles(
-  fileName: string,
-  allFiles: File[]
-): File[] {
+export function getRelevantFiles(fileName: string, allFiles: File[]): File[] {
   const baseName = fileName.replace(/\.[^.]+$/, '');
   const baseNameWithoutNotionId = baseName.replace(/ [0-9a-f]{32}$/, '');
   const isRootFile = !fileName.includes('/');

@@ -19,7 +19,11 @@ import { ShowcaseSection } from './ShowcaseSection';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './HomePage.module.css';
 
-const FEATURED_WALKTHROUGH_IDS = new Set(['jpR_grXWTTw', 'roQ3awaVa2E', 'UnTo_fN1jpc']);
+const FEATURED_WALKTHROUGH_IDS = new Set([
+  'jpR_grXWTTw',
+  'roQ3awaVa2E',
+  'UnTo_fN1jpc',
+]);
 
 const MASCOTS = [
   '/mascot/Notion 1.png',
@@ -111,7 +115,10 @@ const FEATURES = [
 
 const WALKTHROUGHS: ReadonlyArray<[string, string]> = [
   ['jpR_grXWTTw', 'PDF to Anki in Seconds — No Plugins, No Manual Work'],
-  ['roQ3awaVa2E', 'Image Occlusion Comes to 2anki.net — Anatomy Flashcards in Seconds'],
+  [
+    'roQ3awaVa2E',
+    'Image Occlusion Comes to 2anki.net — Anatomy Flashcards in Seconds',
+  ],
   ['UnTo_fN1jpc', 'How I use Notion to Anki as a medical student'],
   ['NLUfAWA2LJI', 'Turn any website into Anki flashcards'],
   ['r9pPNl8Mx_Q', 'How to use cloze deletions'],
@@ -122,7 +129,10 @@ const WALKTHROUGHS: ReadonlyArray<[string, string]> = [
   ['RHReYOKywZc', 'Créer des flashcards Anki avec Notion'],
 ];
 
-function VideoCard({ embedId, title }: Readonly<{ embedId: string; title: string }>) {
+function VideoCard({
+  embedId,
+  title,
+}: Readonly<{ embedId: string; title: string }>) {
   const [playing, setPlaying] = useState(false);
 
   if (playing) {
@@ -187,14 +197,12 @@ export function HomePage({
   return (
     <div className={styles.page}>
       <section className={styles.hero}>
-        <img
-          src={mascotSrc}
-          alt=""
-          className={styles.mascot}
-        />
+        <img src={mascotSrc} alt="" className={styles.mascot} />
         <h1 className={styles.heroTitle}>Flashcards that work in Anki</h1>
         <p className={styles.heroSubtitle}>
-          Drop a Notion page and get a deck you don&apos;t have to fix — proper cloze, atomic cards, the right note types. PDF, Quizlet, Markdown, HTML, and CSV too.
+          Drop a Notion page and get a deck you don&apos;t have to fix — proper
+          cloze, atomic cards, the right note types. PDF, Quizlet, Markdown,
+          HTML, and CSV too.
         </p>
         <div className={styles.heroControls}>
           <div
@@ -247,7 +255,11 @@ export function HomePage({
         <h2 className={styles.featuresHeading}>Other ways to use 2anki</h2>
         <div className={styles.featuresGrid}>
           {FEATURES.map((feature) => (
-            <Link key={feature.href} to={feature.href} className={styles.featureCard}>
+            <Link
+              key={feature.href}
+              to={feature.href}
+              className={styles.featureCard}
+            >
               <span className={styles.featureIcon}>
                 <feature.Icon width={22} height={22} />
               </span>
@@ -263,12 +275,11 @@ export function HomePage({
       <section id="walkthroughs" className={styles.bottomSection}>
         <h2 className={styles.walkHeading}>Walkthroughs</h2>
         <div className={styles.walkGrid}>
-          {(showAll ? WALKTHROUGHS : WALKTHROUGHS.filter(([id]) => FEATURED_WALKTHROUGH_IDS.has(id))).map(([embedId, title]) => (
-            <VideoCard
-              key={embedId}
-              embedId={embedId}
-              title={title}
-            />
+          {(showAll
+            ? WALKTHROUGHS
+            : WALKTHROUGHS.filter(([id]) => FEATURED_WALKTHROUGH_IDS.has(id))
+          ).map(([embedId, title]) => (
+            <VideoCard key={embedId} embedId={embedId} title={title} />
           ))}
           {showAll && (
             <a href="/contact" className={styles.walkCard}>

@@ -29,7 +29,9 @@ describe('TruncationNotice', () => {
     renderNotice(false);
 
     expect(
-      screen.getByText(/Converted the first 100 blocks\. The free plan stops there/)
+      screen.getByText(
+        /Converted the first 100 blocks\. The free plan stops there/
+      )
     ).toBeInTheDocument();
     const link = screen.getByRole('link', {
       name: 'upgrade to convert the whole page',

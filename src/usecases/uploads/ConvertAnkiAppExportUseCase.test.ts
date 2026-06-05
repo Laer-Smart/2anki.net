@@ -52,7 +52,8 @@ describe('convertAnkiAppExportToApkg', () => {
   });
 
   it('falls back to the filename when the deck has no name attribute', async () => {
-    const xml = '<deck><cards><card><field name="F">a</field><field name="B">b</field></card></cards></deck>';
+    const xml =
+      '<deck><cards><card><field name="F">a</field><field name="B">b</field></card></cards></deck>';
 
     const result = await convertAnkiAppExportToApkg(
       'My AnkiApp Deck.xml',

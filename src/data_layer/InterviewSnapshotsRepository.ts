@@ -114,9 +114,7 @@ export class InterviewSnapshotsRepository {
       oppsBySnapshot.set(opp.snapshot_id, list);
     }
 
-    return rows.map((row) =>
-      toSnapshot(row, oppsBySnapshot.get(row.id) ?? [])
-    );
+    return rows.map((row) => toSnapshot(row, oppsBySnapshot.get(row.id) ?? []));
   }
 
   async create(input: NewSnapshotInput): Promise<InterviewSnapshot> {

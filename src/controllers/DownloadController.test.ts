@@ -55,7 +55,7 @@ describe('DownloadController.getFile', () => {
     );
     expect(res.setHeader).toHaveBeenCalledWith(
       'Content-Disposition',
-      "attachment; filename=\"123-deck.apkg\"; filename*=UTF-8''123-deck.apkg"
+      'attachment; filename="123-deck.apkg"; filename*=UTF-8\'\'123-deck.apkg'
     );
   });
 
@@ -69,35 +69,41 @@ describe('DownloadController.getFile', () => {
     expect(res.send).toHaveBeenCalled();
     expect(res.setHeader).toHaveBeenCalledWith(
       'Content-Disposition',
-      "attachment; filename=\"123-deck.apkg\"; filename*=UTF-8''123-deck.apkg"
+      'attachment; filename="123-deck.apkg"; filename*=UTF-8\'\'123-deck.apkg'
     );
   });
 
   it('uses the friendly deck name from DB when available', async () => {
     const controller = new DownloadController(
-      makeService({ getFilename: jest.fn().mockResolvedValue('My Custom Deck') }) as any
+      makeService({
+        getFilename: jest.fn().mockResolvedValue('My Custom Deck'),
+      }) as any
     );
-    const req = { params: { key: 'owner-1234-uuid.apkg' } } as unknown as Request;
+    const req = {
+      params: { key: 'owner-1234-uuid.apkg' },
+    } as unknown as Request;
     const res = mockResponse();
 
     await controller.getFile(req, res, {} as any);
 
     expect(res.setHeader).toHaveBeenCalledWith(
       'Content-Disposition',
-      "attachment; filename=\"My Custom Deck.apkg\"; filename*=UTF-8''My%20Custom%20Deck.apkg"
+      'attachment; filename="My Custom Deck.apkg"; filename*=UTF-8\'\'My%20Custom%20Deck.apkg'
     );
   });
 
   it('falls back to the page-title slug when no custom name and no DB name', async () => {
     const controller = new DownloadController(makeService() as any);
-    const req = { params: { key: 'owner-1234-uuid.apkg' } } as unknown as Request;
+    const req = {
+      params: { key: 'owner-1234-uuid.apkg' },
+    } as unknown as Request;
     const res = mockResponse();
 
     await controller.getFile(req, res, {} as any);
 
     expect(res.setHeader).toHaveBeenCalledWith(
       'Content-Disposition',
-      "attachment; filename=\"owner-1234-uuid.apkg\"; filename*=UTF-8''owner-1234-uuid.apkg"
+      'attachment; filename="owner-1234-uuid.apkg"; filename*=UTF-8\'\'owner-1234-uuid.apkg'
     );
   });
 });
@@ -121,7 +127,11 @@ describe('DownloadController.getBulkDownload', () => {
     }
   });
 
-  function streamingResponse(): { res: Response; chunks: Buffer[]; done: Promise<void> } {
+  function streamingResponse(): {
+    res: Response;
+    chunks: Buffer[];
+    done: Promise<void>;
+  } {
     const chunks: Buffer[] = [];
     let resolveDone!: () => void;
     const done = new Promise<void>((resolve) => {
@@ -160,8 +170,11 @@ describe('DownloadController.getBulkDownload', () => {
     controller.getBulkDownload(req, res);
     await done;
 
-    expect((res.status as jest.Mock)).not.toHaveBeenCalledWith(500);
-    expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/zip');
+    expect(res.status as jest.Mock).not.toHaveBeenCalledWith(500);
+    expect(res.setHeader).toHaveBeenCalledWith(
+      'Content-Type',
+      'application/zip'
+    );
     expect(chunks.length).toBeGreaterThan(0);
     expect(Buffer.concat(chunks).subarray(0, 2).toString()).toBe('PK');
   });
@@ -289,7 +302,11 @@ describe('DownloadController.getDownloadPage view model', () => {
 
   function makeJobRepository(title: string | null = null) {
     return {
-      findJobByObjectId: jest.fn().mockResolvedValue(title != null ? { title, created_at: new Date() } : undefined),
+      findJobByObjectId: jest
+        .fn()
+        .mockResolvedValue(
+          title != null ? { title, created_at: new Date() } : undefined
+        ),
     };
   }
 
@@ -297,9 +314,15 @@ describe('DownloadController.getDownloadPage view model', () => {
     const id = 'ws-view-model';
     const workspace = path.join(workspaceBase, id);
     fs.mkdirSync(workspace);
-    fs.writeFileSync(path.join(workspace, '-Biology-Notes-5827131637243234.apkg'), 'x'.repeat(1000));
+    fs.writeFileSync(
+      path.join(workspace, '-Biology-Notes-5827131637243234.apkg'),
+      'x'.repeat(1000)
+    );
 
-    const controller = new DownloadController(makeService() as any, makeJobRepository('My Source') as any);
+    const controller = new DownloadController(
+      makeService() as any,
+      makeJobRepository('My Source') as any
+    );
     const req = { params: { id } } as unknown as Request;
     const res = mockResponse();
 
@@ -317,7 +340,10 @@ describe('DownloadController.getDownloadPage view model', () => {
     fs.mkdirSync(workspace);
     fs.writeFileSync(path.join(workspace, 'Deck-A.apkg'), 'data');
 
-    const controller = new DownloadController(makeService() as any, makeJobRepository(null) as any);
+    const controller = new DownloadController(
+      makeService() as any,
+      makeJobRepository(null) as any
+    );
     const req = { params: { id } } as unknown as Request;
     const res = mockResponse();
 
@@ -333,7 +359,10 @@ describe('DownloadController.getDownloadPage view model', () => {
     const workspace = path.join(workspaceBase, id);
     fs.mkdirSync(workspace);
 
-    const controller = new DownloadController(makeService() as any, makeJobRepository(null) as any);
+    const controller = new DownloadController(
+      makeService() as any,
+      makeJobRepository(null) as any
+    );
     const req = { params: { id } } as unknown as Request;
     const res = mockResponse();
 
@@ -345,15 +374,18 @@ describe('DownloadController.getDownloadPage view model', () => {
 });
 
 describe('DownloadController.getFile storage error handling', () => {
-  function makeServiceThatThrows(error: unknown, overrides: Record<string, unknown> = {}) {
+  function makeServiceThatThrows(
+    error: unknown,
+    overrides: Record<string, unknown> = {}
+  ) {
     return makeService({
       getFileBody: jest.fn().mockRejectedValue(error),
       isMissingDownloadError: (e: unknown) =>
         (e as { name?: string })?.name?.includes('NoSuchKey') === true,
       isTransientStorageError: jest
         .fn()
-        .mockImplementation((e: unknown) =>
-          (e as { transient?: boolean })?.transient === true
+        .mockImplementation(
+          (e: unknown) => (e as { transient?: boolean })?.transient === true
         ),
       deleteMissingFile: jest.fn(),
       ...overrides,
@@ -369,7 +401,10 @@ describe('DownloadController.getFile storage error handling', () => {
 
     await controller.getFile(req, res, {} as never);
 
-    expect(service.deleteMissingFile).toHaveBeenCalledWith('test-owner', 'deck.apkg');
+    expect(service.deleteMissingFile).toHaveBeenCalledWith(
+      'test-owner',
+      'deck.apkg'
+    );
     expect(res.redirect).toHaveBeenCalledWith('/downloads');
   });
 
@@ -402,7 +437,9 @@ describe('DownloadController.getFile storage error handling', () => {
 
     await controller.getFile(req, res, {} as never);
 
-    const sent = (res.send as jest.Mock).mock.calls.map((c) => String(c[0])).join('');
+    const sent = (res.send as jest.Mock).mock.calls
+      .map((c) => String(c[0]))
+      .join('');
     expect(sent).not.toContain('2anki-prod');
     expect(sent).not.toContain('endpoint leaked');
   });
@@ -417,7 +454,9 @@ describe('DownloadController.getFile storage error handling', () => {
     await controller.getFile(req, res, {} as never);
 
     expect(res.status).toHaveBeenCalledWith(404);
-    const sent = (res.send as jest.Mock).mock.calls.map((c) => String(c[0])).join('');
+    const sent = (res.send as jest.Mock).mock.calls
+      .map((c) => String(c[0]))
+      .join('');
     expect(sent).not.toContain('weird internal detail');
   });
 });

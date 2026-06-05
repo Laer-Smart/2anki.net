@@ -9,7 +9,14 @@ import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
 
 export type ConfirmOutcome =
   | { success: true }
-  | { success: false; reason: 'invalid_token' | 'already_consumed' | 'user_has_active_sub' | 'race' };
+  | {
+      success: false;
+      reason:
+        | 'invalid_token'
+        | 'already_consumed'
+        | 'user_has_active_sub'
+        | 'race';
+    };
 
 export class ConfirmSubscriptionClaimUseCase {
   constructor(
@@ -30,7 +37,10 @@ export class ConfirmSubscriptionClaimUseCase {
     const tokenHash = hashToken(rawToken);
     const tokenRow = await this.tokensRepo.findByTokenHash(tokenHash);
 
-    if (tokenRow == null || new Date(tokenRow.expires_at).getTime() < Date.now()) {
+    if (
+      tokenRow == null ||
+      new Date(tokenRow.expires_at).getTime() < Date.now()
+    ) {
       await this.auditRepo.insert({
         user_id: userId,
         email_hash: emailHash,
@@ -45,14 +55,16 @@ export class ConfirmSubscriptionClaimUseCase {
         user_id: userId,
         email_hash: emailHash,
         ip_hash: ipHash,
-        outcome: tokenRow.user_id === userId ? 'confirm_already_consumed' : 'replay',
+        outcome:
+          tokenRow.user_id === userId ? 'confirm_already_consumed' : 'replay',
       });
       return { success: false, reason: 'already_consumed' };
     }
 
-    const existingSubs = await this.subscriptionService.findActiveStripeSubscriptions(
-      await this.getEmailForUser(userId)
-    );
+    const existingSubs =
+      await this.subscriptionService.findActiveStripeSubscriptions(
+        await this.getEmailForUser(userId)
+      );
     if (existingSubs.length > 0) {
       await this.auditRepo.insert({
         user_id: userId,
@@ -67,13 +79,20 @@ export class ConfirmSubscriptionClaimUseCase {
       await this.db.transaction(async (trx) => {
         await trx('users').where({ id: userId }).forUpdate().first();
         await this.tokensRepo.markConsumed(tokenRow.id, trx);
-        await trx('users').where({ id: userId }).update({ stripe_customer_id: tokenRow.stripe_customer_id });
+        await trx('users')
+          .where({ id: userId })
+          .update({ stripe_customer_id: tokenRow.stripe_customer_id });
 
-        const customer = await this.stripe.customers.retrieve(tokenRow.stripe_customer_id, {
-          expand: ['subscriptions'],
-        }) as StripeTypes.Customer;
+        const customer = (await this.stripe.customers.retrieve(
+          tokenRow.stripe_customer_id,
+          {
+            expand: ['subscriptions'],
+          }
+        )) as StripeTypes.Customer;
 
-        const activeSubs = customer.subscriptions?.data?.filter(s => s.status === 'active') ?? [];
+        const activeSubs =
+          customer.subscriptions?.data?.filter((s) => s.status === 'active') ??
+          [];
         for (const sub of activeSubs) {
           await updateStoreSubscription(trx, customer, sub);
         }

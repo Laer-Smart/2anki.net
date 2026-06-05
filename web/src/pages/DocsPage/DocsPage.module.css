@@ -72,7 +72,9 @@
   color: var(--color-text-secondary);
   text-decoration: none;
   line-height: 1.35;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
   position: relative;
 }
 
@@ -185,15 +187,21 @@
   scroll-margin-top: 1.5rem;
 }
 
-.markdown h1 { font-size: var(--text-3xl); }
+.markdown h1 {
+  font-size: var(--text-3xl);
+}
 .markdown h2 {
   font-size: var(--text-2xl);
   padding-bottom: 0.35rem;
   border-bottom: 1px solid var(--color-border-light);
   margin-top: 2.5rem;
 }
-.markdown h3 { font-size: var(--text-xl); }
-.markdown h4 { font-size: var(--text-lg); }
+.markdown h3 {
+  font-size: var(--text-xl);
+}
+.markdown h4 {
+  font-size: var(--text-lg);
+}
 
 .markdown p {
   margin: 0 0 1rem;
@@ -349,7 +357,9 @@
   border-radius: var(--radius-sm);
   color: var(--color-code-text);
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
   opacity: 0;
 }
 
@@ -495,7 +505,9 @@
   text-decoration: none;
   color: var(--color-text-primary);
   background: var(--color-bg-primary);
-  transition: border-color var(--transition-fast), background var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .pagerNext {
@@ -558,7 +570,9 @@
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   text-decoration: none;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .docsHomeButtonPrimary {
@@ -626,7 +640,9 @@
   background: var(--color-bg-primary);
   text-decoration: none;
   color: var(--color-text-primary);
-  transition: border-color var(--transition-fast), background var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .homeCard:hover {
@@ -696,7 +712,9 @@
   color: var(--color-text-tertiary);
   cursor: pointer;
   box-shadow: var(--shadow-xs);
-  transition: border-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .searchTrigger:hover {
@@ -754,7 +772,9 @@
   color: var(--color-text-tertiary);
   padding: 0.125rem 0.5rem;
   border-radius: var(--radius-sm);
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .searchClose:hover {

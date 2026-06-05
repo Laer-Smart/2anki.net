@@ -54,7 +54,9 @@ export function UnlimitedCard({
   const priceSuffix = isYearly ? '/ yr' : '/ mo';
 
   return (
-    <div className={featured ? `${styles.card} ${styles.cardPro}` : styles.card}>
+    <div
+      className={featured ? `${styles.card} ${styles.cardPro}` : styles.card}
+    >
       {featured && <span className={styles.cardBadge}>Most popular</span>}
       <div className={styles.cardHeader}>
         <p className={styles.cardTitle}>Unlimited</p>
@@ -68,7 +70,11 @@ export function UnlimitedCard({
               type="button"
               role="radio"
               aria-checked={!isYearly}
-              className={isYearly ? styles.billingToggleOption : styles.billingToggleOptionActive}
+              className={
+                isYearly
+                  ? styles.billingToggleOption
+                  : styles.billingToggleOptionActive
+              }
               onClick={() => onBillingCycleChange('month')}
             >
               Monthly
@@ -77,7 +83,11 @@ export function UnlimitedCard({
               type="button"
               role="radio"
               aria-checked={isYearly}
-              className={isYearly ? styles.billingToggleOptionActive : styles.billingToggleOption}
+              className={
+                isYearly
+                  ? styles.billingToggleOptionActive
+                  : styles.billingToggleOption
+              }
               onClick={() => onBillingCycleChange('year')}
             >
               Yearly
@@ -88,9 +98,7 @@ export function UnlimitedCard({
           <span className={styles.cardPrice}>{price}</span>
           <span className={styles.cardPriceSuffix}>{priceSuffix}</span>
         </span>
-        {isYearly && (
-          <p className={styles.yearlyHint}>2 months free</p>
-        )}
+        {isYearly && <p className={styles.yearlyHint}>2 months free</p>}
       </div>
       <div className={styles.cardBody}>
         {BENEFITS.map((benefit) => (

@@ -110,9 +110,7 @@ describe('ConversionsTab', () => {
 
     renderTab();
 
-    await waitFor(() =>
-      expect(screen.getByText('2.5 h')).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText('2.5 h')).toBeInTheDocument());
   });
 
   test('renders em-dash for null funnel metrics', async () => {

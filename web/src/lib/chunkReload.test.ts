@@ -40,7 +40,10 @@ function setVisibility(state: 'visible' | 'hidden'): void {
 async function readLazyFactory<T>(
   Component: React.LazyExoticComponent<React.ComponentType<T>>
 ): Promise<unknown> {
-  type LazyInternal = { _init: (payload: unknown) => unknown; _payload: unknown };
+  type LazyInternal = {
+    _init: (payload: unknown) => unknown;
+    _payload: unknown;
+  };
   const internal = Component as unknown as LazyInternal;
   try {
     const result = internal._init(internal._payload);
@@ -52,10 +55,7 @@ async function readLazyFactory<T>(
     }
     return result;
   } catch (e) {
-    if (
-      e != null &&
-      typeof (e as { then?: unknown }).then === 'function'
-    ) {
+    if (e != null && typeof (e as { then?: unknown }).then === 'function') {
       return await (e as Promise<unknown>);
     }
     throw e;
@@ -221,12 +221,17 @@ describe('lazyWithRetry', () => {
     await Promise.resolve();
 
     expect(reloadMock).toHaveBeenCalledOnce();
-    expect(sessionStorage.getItem(`${PER_CHUNK_KEY_PREFIX}./pages/Foo`)).not.toBeNull();
+    expect(
+      sessionStorage.getItem(`${PER_CHUNK_KEY_PREFIX}./pages/Foo`)
+    ).not.toBeNull();
     expect(sessionStorage.getItem(RELOADING_FLAG_KEY)).toBe('1');
   });
 
   it('rejects twice on the same key in the same session → throws without reloading', async () => {
-    sessionStorage.setItem(`${PER_CHUNK_KEY_PREFIX}./pages/Foo`, String(Date.now()));
+    sessionStorage.setItem(
+      `${PER_CHUNK_KEY_PREFIX}./pages/Foo`,
+      String(Date.now())
+    );
 
     const error = makeChunkError();
     const factory = vi.fn(() => Promise.reject(error));
@@ -254,11 +259,16 @@ describe('lazyWithRetry', () => {
 
     await expect(readLazyFactory(Component)).rejects.toBe(error);
     expect(reloadMock).not.toHaveBeenCalled();
-    expect(sessionStorage.getItem(`${PER_CHUNK_KEY_PREFIX}./pages/Foo`)).toBeNull();
+    expect(
+      sessionStorage.getItem(`${PER_CHUNK_KEY_PREFIX}./pages/Foo`)
+    ).toBeNull();
   });
 
   it('reloads independently for a different chunk key on the same session', async () => {
-    sessionStorage.setItem(`${PER_CHUNK_KEY_PREFIX}./pages/Foo`, String(Date.now()));
+    sessionStorage.setItem(
+      `${PER_CHUNK_KEY_PREFIX}./pages/Foo`,
+      String(Date.now())
+    );
 
     const factory = vi.fn(() => Promise.reject(makeChunkError()));
     const Component = lazyWithRetry(factory, './pages/Bar');
@@ -268,7 +278,9 @@ describe('lazyWithRetry', () => {
     await Promise.resolve();
 
     expect(reloadMock).toHaveBeenCalledOnce();
-    expect(sessionStorage.getItem(`${PER_CHUNK_KEY_PREFIX}./pages/Bar`)).not.toBeNull();
+    expect(
+      sessionStorage.getItem(`${PER_CHUNK_KEY_PREFIX}./pages/Bar`)
+    ).not.toBeNull();
   });
 });
 

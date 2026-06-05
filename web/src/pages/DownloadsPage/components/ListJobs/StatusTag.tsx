@@ -16,7 +16,9 @@ interface Prop {
   readonly status: JobStatus;
 }
 
-function parseClaudeChunk(status: string): { current: number; total: number } | null {
+function parseClaudeChunk(
+  status: string
+): { current: number; total: number } | null {
   const match = /^claude:chunk:(\d+):(\d+)$/.exec(status);
   if (!match) return null;
   return { current: Number(match[1]), total: Number(match[2]) };
@@ -39,9 +41,15 @@ function getStatusStyle(status: JobStatus): {
     case 'interrupted':
     case 'failed':
     case 'cancelled':
-      return { className: listStyles.statusDanger, dotClassName: styles.dotDanger };
+      return {
+        className: listStyles.statusDanger,
+        dotClassName: styles.dotDanger,
+      };
     default:
-      return { className: listStyles.statusWarning, dotClassName: styles.dotWarning };
+      return {
+        className: listStyles.statusWarning,
+        dotClassName: styles.dotWarning,
+      };
   }
 }
 

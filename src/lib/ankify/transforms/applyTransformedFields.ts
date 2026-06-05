@@ -1,4 +1,9 @@
-import { FieldSelection, ParsedNote, TransformName, TransformedNote } from './types';
+import {
+  FieldSelection,
+  ParsedNote,
+  TransformName,
+  TransformedNote,
+} from './types';
 
 export interface TransformResultPayload {
   value?: string;
@@ -39,7 +44,8 @@ export function applyTransformedFields(
     if (value == null || value.length === 0) {
       throw new Error('translate_back result missing "value"');
     }
-    const targetIndex = selection.targetField ?? selection.sourceField ?? defaultBackIndex(note);
+    const targetIndex =
+      selection.targetField ?? selection.sourceField ?? defaultBackIndex(note);
     return { ...note, fields: writeField(note, targetIndex, value) };
   }
 

@@ -1,9 +1,6 @@
 import { Knex } from 'knex';
 
-import {
-  AnkifySyncMapping,
-  NewAnkifySyncMapping,
-} from '../../entities/ankify';
+import { AnkifySyncMapping, NewAnkifySyncMapping } from '../../entities/ankify';
 
 const TABLE = 'ankify_sync_mappings';
 
@@ -23,15 +20,10 @@ export interface AnkifySyncMappingsRepositoryInterface {
     ankifyClientId: number,
     ankiNoteId: number
   ): Promise<AnkifySyncMapping | null>;
-  deleteByAnkiNoteId(
-    ankifyClientId: number,
-    ankiNoteId: number
-  ): Promise<void>;
+  deleteByAnkiNoteId(ankifyClientId: number, ankiNoteId: number): Promise<void>;
 }
 
-export class AnkifySyncMappingsRepository
-  implements AnkifySyncMappingsRepositoryInterface
-{
+export class AnkifySyncMappingsRepository implements AnkifySyncMappingsRepositoryInterface {
   constructor(private readonly database: Knex) {}
 
   async findBySourceId(

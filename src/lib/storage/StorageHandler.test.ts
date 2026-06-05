@@ -25,7 +25,9 @@ describe('StorageHandler.getFileContents', () => {
     const content = Buffer.from('hello from s3');
     mockSend.mockResolvedValueOnce({
       Body: {
-        transformToByteArray: jest.fn().mockResolvedValue(new Uint8Array(content)),
+        transformToByteArray: jest
+          .fn()
+          .mockResolvedValue(new Uint8Array(content)),
       },
     });
 

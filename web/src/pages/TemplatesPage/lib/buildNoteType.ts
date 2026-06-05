@@ -1,11 +1,11 @@
-import {
-  AnkiNoteType,
-  NoteTypeStarter,
-} from '../../../lib/backend/templates';
+import { AnkiNoteType, NoteTypeStarter } from '../../../lib/backend/templates';
 
 export type BaseType = 'basic' | 'cloze';
 
-const BASE_TYPE_FIELDS: Record<BaseType, Array<{ name: string; ord: number }>> = {
+const BASE_TYPE_FIELDS: Record<
+  BaseType,
+  Array<{ name: string; ord: number }>
+> = {
   basic: [
     { name: 'Front', ord: 0 },
     { name: 'Back', ord: 1 },

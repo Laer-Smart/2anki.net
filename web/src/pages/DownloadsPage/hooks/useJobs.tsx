@@ -57,8 +57,13 @@ export default function useJobs(
       await backend.deleteJob(id);
       setJobs((prev) => prev.filter((job) => job.id !== id));
     } catch (error) {
-      if (error instanceof Error && error.message.includes('Cannot delete job while it is in progress')) {
-        setError(new UserNotice('This job is still running. Wait for it to finish.'));
+      if (
+        error instanceof Error &&
+        error.message.includes('Cannot delete job while it is in progress')
+      ) {
+        setError(
+          new UserNotice('This job is still running. Wait for it to finish.')
+        );
       } else {
         setError(error);
       }
@@ -84,7 +89,7 @@ export default function useJobs(
 
   useEffect(() => {
     fetchJobs();
-    const intervalMs = (hasActiveJobs || isWarmup) ? 3000 : 10000;
+    const intervalMs = hasActiveJobs || isWarmup ? 3000 : 10000;
     const intervalId = setInterval(fetchJobs, intervalMs);
     return () => clearInterval(intervalId);
   }, [backend, hasActiveJobs, isWarmup]);

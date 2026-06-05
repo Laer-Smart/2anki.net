@@ -5,7 +5,10 @@ import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../NavigationBar/helpers/getPlanLabel';
-import { getSubscribeLink, PASS_PRICES } from '../../pages/PricingPage/payment.links';
+import {
+  getSubscribeLink,
+  PASS_PRICES,
+} from '../../pages/PricingPage/payment.links';
 import styles from './UpsellCard.module.css';
 
 type Surface = 'downloads_upsell' | 'upload_success_upsell';
@@ -27,7 +30,10 @@ const BODY: Record<Surface, string> = {
     'A pass lifts the 100-card monthly cap — for a day or a week, no subscription.',
 };
 
-export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProps) {
+export function UpsellCard({
+  surface,
+  hideForAnonymous = false,
+}: UpsellCardProps) {
   const { data } = useUserLocals();
   const [pendingKind, setPendingKind] = useState<'24h' | '7d' | null>(null);
   const upgradeClickedRef = useRef(false);
@@ -84,7 +90,11 @@ export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProp
       plan: kind === '24h' ? 'day_pass' : 'week_pass',
     });
     setPendingKind(kind);
-    const result = await get2ankiApi().startPassCheckout(kind, undefined, surface);
+    const result = await get2ankiApi().startPassCheckout(
+      kind,
+      undefined,
+      surface
+    );
     if ('url' in result) {
       globalThis.location.href = result.url;
       return;
@@ -98,7 +108,10 @@ export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProp
   };
 
   return (
-    <section className={styles.card} aria-label="Keep going without the monthly cap">
+    <section
+      className={styles.card}
+      aria-label="Keep going without the monthly cap"
+    >
       <p className={styles.headline}>{HEADLINE[surface]}</p>
       <p className={styles.body}>{BODY[surface]}</p>
       <div className={styles.actions}>
@@ -108,7 +121,9 @@ export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProp
           onClick={() => handlePassClick('24h')}
           disabled={pendingKind != null}
         >
-          {pendingKind === '24h' ? 'Redirecting…' : `Get Day Pass — ${PASS_PRICES['24h']}`}
+          {pendingKind === '24h'
+            ? 'Redirecting…'
+            : `Get Day Pass — ${PASS_PRICES['24h']}`}
         </button>
         <button
           type="button"
@@ -116,9 +131,13 @@ export function UpsellCard({ surface, hideForAnonymous = false }: UpsellCardProp
           onClick={() => handlePassClick('7d')}
           disabled={pendingKind != null}
         >
-          {pendingKind === '7d' ? 'Redirecting…' : `Get Week Pass — ${PASS_PRICES['7d']}`}
+          {pendingKind === '7d'
+            ? 'Redirecting…'
+            : `Get Week Pass — ${PASS_PRICES['7d']}`}
         </button>
-        <span className={styles.dot} aria-hidden="true">·</span>
+        <span className={styles.dot} aria-hidden="true">
+          ·
+        </span>
         <a
           className={styles.secondary}
           href={getSubscribeLink(email)}

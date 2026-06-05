@@ -43,7 +43,9 @@
   text-align: center;
   color: var(--color-text-secondary);
   background: var(--color-bg-secondary);
-  transition: border-color var(--transition-fast), background-color var(--transition-fast),
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
     border-style var(--transition-fast);
   cursor: pointer;
   position: relative;
@@ -97,7 +99,9 @@
   cursor: pointer;
   text-decoration: none;
   box-shadow: var(--shadow-xs);
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 @media (hover: hover) {

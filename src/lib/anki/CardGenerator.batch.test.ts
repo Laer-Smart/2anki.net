@@ -16,16 +16,27 @@ jest.mock('node:fs', () => ({
   writeFileSync: jest.fn(),
 }));
 
-const mockedSpawn = childProcess.spawn as jest.MockedFunction<typeof childProcess.spawn>;
-const mockedExistsSync = fs.existsSync as jest.MockedFunction<typeof fs.existsSync>;
-const mockedWriteFileSync = fs.writeFileSync as jest.MockedFunction<typeof fs.writeFileSync>;
+const mockedSpawn = childProcess.spawn as jest.MockedFunction<
+  typeof childProcess.spawn
+>;
+const mockedExistsSync = fs.existsSync as jest.MockedFunction<
+  typeof fs.existsSync
+>;
+const mockedWriteFileSync = fs.writeFileSync as jest.MockedFunction<
+  typeof fs.writeFileSync
+>;
 
-function makeProcessStub(stdout: string, exitCode: number = 0): childProcess.ChildProcess {
+function makeProcessStub(
+  stdout: string,
+  exitCode: number = 0
+): childProcess.ChildProcess {
   const proc = new EventEmitter() as childProcess.ChildProcess;
   const stdoutEmitter = new EventEmitter();
   const stderrEmitter = new EventEmitter();
-  (proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }).stdout = stdoutEmitter;
-  (proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }).stderr = stderrEmitter;
+  (proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }).stdout =
+    stdoutEmitter;
+  (proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }).stderr =
+    stderrEmitter;
 
   setImmediate(() => {
     stdoutEmitter.emit('data', Buffer.from(stdout));
@@ -82,16 +93,23 @@ describe('CardGenerator.runBatch', () => {
   });
 
   it('rejects when Python exits with non-zero code', async () => {
-    const entries = [{ input: '/ws/bad/deck_info.json', output: '/ws/bad/out.apkg' }];
+    const entries = [
+      { input: '/ws/bad/deck_info.json', output: '/ws/bad/out.apkg' },
+    ];
 
     const proc = new EventEmitter() as childProcess.ChildProcess;
     const stdoutEmitter = new EventEmitter();
     const stderrEmitter = new EventEmitter();
-    (proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }).stdout = stdoutEmitter;
-    (proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }).stderr = stderrEmitter;
+    (proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }).stdout =
+      stdoutEmitter;
+    (proc as unknown as { stdout: EventEmitter; stderr: EventEmitter }).stderr =
+      stderrEmitter;
 
     setImmediate(() => {
-      stderrEmitter.emit('data', Buffer.from('FileNotFoundError: /ws/bad/deck_info.json'));
+      stderrEmitter.emit(
+        'data',
+        Buffer.from('FileNotFoundError: /ws/bad/deck_info.json')
+      );
       proc.emit('close', 1);
     });
 
@@ -102,8 +120,12 @@ describe('CardGenerator.runBatch', () => {
   });
 
   it('rejects when stdout does not end with .apkg paths', async () => {
-    const entries = [{ input: '/ws/a/deck_info.json', output: '/ws/a/out.apkg' }];
-    mockedSpawn.mockReturnValue(makeProcessStub('No cards generated; exiting cleanly\n'));
+    const entries = [
+      { input: '/ws/a/deck_info.json', output: '/ws/a/out.apkg' },
+    ];
+    mockedSpawn.mockReturnValue(
+      makeProcessStub('No cards generated; exiting cleanly\n')
+    );
 
     const gen = new CardGenerator(workspace);
     const result = await gen.runBatch(entries);
@@ -111,7 +133,9 @@ describe('CardGenerator.runBatch', () => {
   });
 
   it('passes the workspace as cwd to the spawned process', async () => {
-    const entries = [{ input: '/ws/a/deck_info.json', output: '/ws/a/out.apkg' }];
+    const entries = [
+      { input: '/ws/a/deck_info.json', output: '/ws/a/out.apkg' },
+    ];
     mockedSpawn.mockReturnValue(makeProcessStub('/ws/a/out.apkg'));
 
     const gen = new CardGenerator(workspace);

@@ -122,11 +122,15 @@ const OpsErrorsRouter = () => {
    *       404:
    *         description: Not the ops owner
    */
-  router.post('/api/ops/errors/:messageHash/resolve', RequireOpsAccess, (req, res) =>
-    controller.resolve(req, res)
+  router.post(
+    '/api/ops/errors/:messageHash/resolve',
+    RequireOpsAccess,
+    (req, res) => controller.resolve(req, res)
   );
-  router.delete('/api/ops/errors/:messageHash/resolve', RequireOpsAccess, (req, res) =>
-    controller.reopen(req, res)
+  router.delete(
+    '/api/ops/errors/:messageHash/resolve',
+    RequireOpsAccess,
+    (req, res) => controller.reopen(req, res)
   );
 
   return router;

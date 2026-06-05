@@ -26,17 +26,25 @@ describe('ConsentModal', () => {
 
   it('renders the consent heading', () => {
     renderModal();
-    expect(screen.getByRole('heading', { name: 'Chat sends your messages to Anthropic' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        name: 'Chat sends your messages to Anthropic',
+      })
+    ).toBeInTheDocument();
   });
 
   it('renders the body copy', () => {
     renderModal();
-    expect(screen.getByText(/Your messages and any files you attach go to Anthropic/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Your messages and any files you attach go to Anthropic/)
+    ).toBeInTheDocument();
   });
 
   it('renders the primary Start chatting button', () => {
     renderModal();
-    expect(screen.getByRole('button', { name: 'Start chatting' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Start chatting' })
+    ).toBeInTheDocument();
   });
 
   it('renders the secondary Not now button', () => {
@@ -85,10 +93,16 @@ describe('ConsentModal', () => {
 
   it('disables Start chatting button while posting', async () => {
     let resolve!: (v: unknown) => void;
-    mockPost.mockReturnValueOnce(new Promise((res) => { resolve = res; }));
+    mockPost.mockReturnValueOnce(
+      new Promise((res) => {
+        resolve = res;
+      })
+    );
     renderModal();
     fireEvent.click(screen.getByRole('button', { name: 'Start chatting' }));
-    expect(screen.getByRole('button', { name: 'Start chatting' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Start chatting' })
+    ).toBeDisabled();
     resolve({ ok: true, status: 204 });
   });
 });

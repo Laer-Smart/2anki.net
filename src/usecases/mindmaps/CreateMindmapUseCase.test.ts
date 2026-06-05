@@ -1,4 +1,7 @@
-import { CreateMindmapUseCase, MindmapLimitError } from './CreateMindmapUseCase';
+import {
+  CreateMindmapUseCase,
+  MindmapLimitError,
+} from './CreateMindmapUseCase';
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import Mindmaps, { MindmapsId } from '../../data_layer/public/Mindmaps';
 import { UsersId } from '../../data_layer/public/Users';

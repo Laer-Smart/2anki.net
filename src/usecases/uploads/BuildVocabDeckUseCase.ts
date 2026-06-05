@@ -12,10 +12,7 @@ import {
   groupByBook,
   parseMyClippings,
 } from '../../lib/vocab/MyClippingsParser';
-import {
-  EpubHighlight,
-  walkEpub,
-} from '../../lib/vocab/EpubWalker';
+import { EpubHighlight, walkEpub } from '../../lib/vocab/EpubWalker';
 
 export interface VocabDeckResult {
   readonly name: string;
@@ -56,17 +53,11 @@ interface BookCards {
   readonly notes: readonly Note[];
 }
 
-function noteFromKindleEntry(
-  entry: ClippingEntry,
-  sourceTag: string
-): Note {
+function noteFromKindleEntry(entry: ClippingEntry, sourceTag: string): Note {
   return buildNote(entry.highlight, entry.book, entry.author, sourceTag);
 }
 
-function noteFromEpubHighlight(
-  entry: EpubHighlight,
-  sourceTag: string
-): Note {
+function noteFromEpubHighlight(entry: EpubHighlight, sourceTag: string): Note {
   return buildNote(entry.highlight, entry.book, entry.author, sourceTag);
 }
 
@@ -177,7 +168,11 @@ export async function buildVocabDeckFromEpub(
 
   const parentName =
     book || path.parse(input.file.name).name || 'EPUB Highlights';
-  const decks = buildDecks(parentName, [{ book: parentName, notes }], input.settings);
+  const decks = buildDecks(
+    parentName,
+    [{ book: parentName, notes }],
+    input.settings
+  );
   const apkg = await exportDecks(decks, parentName, input.workspace);
 
   return {

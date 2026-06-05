@@ -29,9 +29,7 @@ describe('ReEngagementCommentsList', () => {
       screen.getByText('Switched to another tool · pdf')
     ).toBeInTheDocument();
     expect(screen.getByText('I moved to RemNote')).toBeInTheDocument();
-    expect(
-      screen.getByText('No longer studying · notion')
-    ).toBeInTheDocument();
+    expect(screen.getByText('No longer studying · notion')).toBeInTheDocument();
     expect(screen.getByText('Done with my exam')).toBeInTheDocument();
   });
 

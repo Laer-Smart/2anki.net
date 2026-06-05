@@ -51,9 +51,10 @@ describe('CheckYourEmail', () => {
         purpose="login"
       />
     );
-    expect(
-      screen.getByRole('link', { name: 'Open Outlook' })
-    ).toHaveAttribute('href', 'https://outlook.live.com');
+    expect(screen.getByRole('link', { name: 'Open Outlook' })).toHaveAttribute(
+      'href',
+      'https://outlook.live.com'
+    );
   });
 
   it('shows Yahoo link for yahoo.com addresses', () => {
@@ -101,7 +102,9 @@ describe('CheckYourEmail', () => {
         purpose="login"
       />
     );
-    expect(screen.getByText(/Usually arrives within a minute/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Usually arrives within a minute/)
+    ).toBeInTheDocument();
   });
 
   it('shows a resend link button', () => {
@@ -113,7 +116,9 @@ describe('CheckYourEmail', () => {
         onResend={vi.fn()}
       />
     );
-    expect(screen.getByRole('button', { name: 'Resend link' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Resend link' })
+    ).toBeInTheDocument();
   });
 
   it('shows Sent! after resend succeeds', async () => {
@@ -175,8 +180,6 @@ describe('CheckYourEmail', () => {
     expect(
       screen.getByText(/Still nothing after checking spam\?/)
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(/we'll get you in/)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/we'll get you in/)).toBeInTheDocument();
   });
 });

@@ -50,9 +50,7 @@ export class MindmapStorageMetricsService {
       }
     }
 
-    const topUsers: MindmapUserStorageEntry[] = Array.from(
-      byUser.entries()
-    )
+    const topUsers: MindmapUserStorageEntry[] = Array.from(byUser.entries())
       .map(([user_id, { bytes, count }]) => ({
         user_id,
         bytes,

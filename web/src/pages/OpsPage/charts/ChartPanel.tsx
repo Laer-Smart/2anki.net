@@ -20,7 +20,12 @@ interface RenderBodyArgs {
   children: ReactNode;
 }
 
-function renderBody({ isLoading, isEmpty, emptyText, children }: RenderBodyArgs) {
+function renderBody({
+  isLoading,
+  isEmpty,
+  emptyText,
+  children,
+}: RenderBodyArgs) {
   if (isLoading) {
     return <div className={styles.skeletonBar} aria-hidden="true" />;
   }
@@ -44,7 +49,9 @@ export default function ChartPanel({
     <section className={`${sharedStyles.surface} ${styles.panel}`}>
       <h2 className={styles.panelTitle}>{title}</h2>
       {subtitle != null && <p className={styles.panelSubtitle}>{subtitle}</p>}
-      <div className={frameClass}>{renderBody({ isLoading, isEmpty, emptyText, children })}</div>
+      <div className={frameClass}>
+        {renderBody({ isLoading, isEmpty, emptyText, children })}
+      </div>
     </section>
   );
 }

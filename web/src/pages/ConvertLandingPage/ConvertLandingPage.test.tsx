@@ -31,23 +31,25 @@ function renderAtSlug(slug: string) {
 }
 
 describe('ConvertLandingPage', () => {
-  it.each(
-    Array.from(CONVERT_LANDING_PAGES.entries())
-  )('renders the H1 for slug "%s"', (slug, copy) => {
-    renderAtSlug(slug);
-    expect(
-      screen.getByRole('heading', { level: 1, name: copy.h1 })
-    ).toBeInTheDocument();
-  });
-
-  it.each(
-    Array.from(CONVERT_LANDING_PAGES.entries())
-  )('renders all FAQ questions for slug "%s"', (slug, copy) => {
-    renderAtSlug(slug);
-    for (const faq of copy.faqs) {
-      expect(screen.getByText(faq.q)).toBeInTheDocument();
+  it.each(Array.from(CONVERT_LANDING_PAGES.entries()))(
+    'renders the H1 for slug "%s"',
+    (slug, copy) => {
+      renderAtSlug(slug);
+      expect(
+        screen.getByRole('heading', { level: 1, name: copy.h1 })
+      ).toBeInTheDocument();
     }
-  });
+  );
+
+  it.each(Array.from(CONVERT_LANDING_PAGES.entries()))(
+    'renders all FAQ questions for slug "%s"',
+    (slug, copy) => {
+      renderAtSlug(slug);
+      for (const faq of copy.faqs) {
+        expect(screen.getByText(faq.q)).toBeInTheDocument();
+      }
+    }
+  );
 
   it('renders the upload form for a known slug', () => {
     renderAtSlug('pdf-to-anki');

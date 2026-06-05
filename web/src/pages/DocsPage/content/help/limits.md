@@ -7,11 +7,11 @@ description: What's allowed on each plan, and how long your decks stick around.
 
 ## Cards per month
 
-| Plan | Cards per month |
-|---|---|
-| Anonymous (no account) | 21 per conversion |
-| Free account | 100 per month |
-| Subscription / Lifetime | Unlimited |
+| Plan                    | Cards per month   |
+| ----------------------- | ----------------- |
+| Anonymous (no account)  | 21 per conversion |
+| Free account            | 100 per month     |
+| Subscription / Lifetime | Unlimited         |
 
 The free monthly limit counts cards across **every** conversion path — file uploads, `.zip`, Notion, all of them — not just Notion. The counter resets at the start of each calendar month.
 
@@ -19,21 +19,21 @@ Without an account, each conversion is capped at 21 cards. Sign up for a free ac
 
 ## File size
 
-| Plan | Max upload size |
-|---|---|
-| Free | 100 MB per request |
+| Plan                    | Max upload size    |
+| ----------------------- | ------------------ |
+| Free                    | 100 MB per request |
 | Subscription / Lifetime | ~10 GB per request |
 
 Free covers anonymous and signed-in users without a paid plan.
 
 ## PDF pages
 
-| Plan | Max pages per PDF |
-|---|---|
-| Free | 100 |
-| Subscription / Lifetime | No fixed cap |
+| Plan                    | Max pages per PDF |
+| ----------------------- | ----------------- |
+| Free                    | 100               |
+| Subscription / Lifetime | No fixed cap      |
 
-PDFs over the free limit return: *PDF exceeds maximum page limit of 100 for free and anonymous users.*
+PDFs over the free limit return: _PDF exceeds maximum page limit of 100 for free and anonymous users._
 
 ## AI-generated flashcards
 
@@ -43,11 +43,11 @@ The **Use Claude AI** card option is a Subscription / Lifetime feature. Free acc
 
 The Chat study assistant is available to all signed-in users.
 
-| | Free | Subscription | Lifetime |
-|---|---|---|---|
-| Messages per month | 20 | Unlimited | Unlimited |
-| Message length | 4 000 characters | 100 000 characters | 100 000 characters |
-| Model | Claude Haiku | Claude Sonnet | Claude Sonnet |
+|                    | Free             | Subscription       | Lifetime           |
+| ------------------ | ---------------- | ------------------ | ------------------ |
+| Messages per month | 20               | Unlimited          | Unlimited          |
+| Message length     | 4 000 characters | 100 000 characters | 100 000 characters |
+| Model              | Claude Haiku     | Claude Sonnet      | Claude Sonnet      |
 
 Free users who reach 20 messages see the exact reset date (first of the following month). Message count resets monthly.
 
@@ -65,11 +65,11 @@ Your file lives on disk only long enough to build the deck. The `.apkg` is sent 
 
 These paths build your deck in the background and store the `.apkg` in our bucket so you can re-download it from **My Decks** and so [sync](/documentation/sync/how-it-works) has something to update.
 
-| Plan | How long your decks stay in the bucket |
-|---|---|
-| Free account | Removed in the next daily cleanup (within 24 hours). |
-| Subscription | Kept for as long as your subscription is active. |
-| Lifetime (Patreon) | Kept indefinitely. |
+| Plan               | How long your decks stay in the bucket               |
+| ------------------ | ---------------------------------------------------- |
+| Free account       | Removed in the next daily cleanup (within 24 hours). |
+| Subscription       | Kept for as long as your subscription is active.     |
+| Lifetime (Patreon) | Kept indefinitely.                                   |
 
 If your subscription lapses, your stored decks are removed in the next daily cleanup — re-convert and they come back. You can also delete a deck yourself from **My Decks** at any time.
 
@@ -77,15 +77,15 @@ If your subscription lapses, your stored decks are removed in the next daily cle
 
 Free covers the conversion paths most people need: drag in a file, get a deck back. The paid plans add AI-generated flashcards, larger uploads, longer storage, and Notion sync.
 
-| Capability | Free | Subscription | Lifetime |
-|---|---|---|---|
-| Cards per month | 100 (21 anonymous) | Unlimited | Unlimited |
-| Anonymous file upload | ✓ | ✓ | ✓ |
-| Account features (history, favorites, templates) | sign-in required | ✓ | ✓ |
-| AI-generated flashcards (Claude) | — | ✓ | ✓ |
-| Chat (study assistant) | 20 msg / mo | Unlimited | Unlimited |
-| Long-term deck storage | 24 h | active sub | indefinite |
-| Auto Sync (Notion → Anki) | — | $30/mo add-on | ✓ |
+| Capability                                       | Free               | Subscription  | Lifetime   |
+| ------------------------------------------------ | ------------------ | ------------- | ---------- |
+| Cards per month                                  | 100 (21 anonymous) | Unlimited     | Unlimited  |
+| Anonymous file upload                            | ✓                  | ✓             | ✓          |
+| Account features (history, favorites, templates) | sign-in required   | ✓             | ✓          |
+| AI-generated flashcards (Claude)                 | —                  | ✓             | ✓          |
+| Chat (study assistant)                           | 20 msg / mo        | Unlimited     | Unlimited  |
+| Long-term deck storage                           | 24 h               | active sub    | indefinite |
+| Auto Sync (Notion → Anki)                        | —                  | $30/mo add-on | ✓          |
 
 See the [pricing page](/pricing) for the current plan list. Privacy details — what we read, what we don't — are on the [privacy policy](/documentation/reference/privacy).
 

@@ -39,7 +39,12 @@ export class SendAbandonedCheckoutRecoveryOnExpiryUseCase {
     }
 
     const token = crypto.randomUUID();
-    const claimed = await this.repository.claimSession(sessionId, email, token, recovery);
+    const claimed = await this.repository.claimSession(
+      sessionId,
+      email,
+      token,
+      recovery
+    );
     if (claimed) {
       await this.emailService.sendAbandonedCheckoutRecoveryEmail(email, token);
       console.info('checkout.session.expired.recovery_sent', {

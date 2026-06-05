@@ -1,11 +1,19 @@
-import { getStoredPassToken, storePassToken, clearPassToken } from './anonymousPass';
+import {
+  getStoredPassToken,
+  storePassToken,
+  clearPassToken,
+} from './anonymousPass';
 
 describe('anonymousPass', () => {
   const mockStorage: Record<string, string> = {};
   const localStorageMock = {
     getItem: (key: string) => mockStorage[key] ?? null,
-    setItem: (key: string, value: string) => { mockStorage[key] = value; },
-    removeItem: (key: string) => { delete mockStorage[key]; },
+    setItem: (key: string, value: string) => {
+      mockStorage[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete mockStorage[key];
+    },
   };
 
   beforeEach(() => {

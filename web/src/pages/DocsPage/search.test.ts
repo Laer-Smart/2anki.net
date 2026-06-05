@@ -41,7 +41,7 @@ describe('searchDocs', () => {
   it('builds a snippet around the matched body term', () => {
     const results = searchDocs('cloze');
     const withSnippet = results.find((r) =>
-      r.snippet.toLowerCase().includes('cloze'),
+      r.snippet.toLowerCase().includes('cloze')
     );
     expect(withSnippet).toBeDefined();
   });

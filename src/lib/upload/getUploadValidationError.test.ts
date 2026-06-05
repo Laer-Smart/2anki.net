@@ -32,43 +32,55 @@ describe('getUploadValidationError', () => {
   });
 
   test('returns error when file is zero bytes', () => {
-    const error = getUploadValidationError([makeFile({ size: 0, originalname: 'ExportBlock-Part-1' })]);
+    const error = getUploadValidationError([
+      makeFile({ size: 0, originalname: 'ExportBlock-Part-1' }),
+    ]);
     expect(error).not.toBeNull();
     expect(error!.message).toContain('empty');
   });
 
   test('returns error when an apkg file is uploaded', () => {
-    const error = getUploadValidationError([makeFile({ originalname: '🧠 L4 Neurotransmission.apkg', size: 82138 })]);
+    const error = getUploadValidationError([
+      makeFile({ originalname: '🧠 L4 Neurotransmission.apkg', size: 82138 }),
+    ]);
     expect(error).not.toBeNull();
     expect(error!.message).toContain('already an Anki deck');
   });
 
   test('returns error when an uppercase .APKG file is uploaded', () => {
-    const error = getUploadValidationError([makeFile({ originalname: 'Deck.UPPER.APKG', size: 82138 })]);
+    const error = getUploadValidationError([
+      makeFile({ originalname: 'Deck.UPPER.APKG', size: 82138 }),
+    ]);
     expect(error).not.toBeNull();
     expect(error!.message).toContain('already an Anki deck');
   });
 
   test('returns null for a valid html file', () => {
-    const error = getUploadValidationError([makeFile({ originalname: 'export.html', size: 5000 })]);
+    const error = getUploadValidationError([
+      makeFile({ originalname: 'export.html', size: 5000 }),
+    ]);
     expect(error).toBeNull();
   });
 
   test('returns null for a valid zip file', () => {
-    const error = getUploadValidationError([makeFile({ originalname: 'notion-export.zip', size: 20000 })]);
+    const error = getUploadValidationError([
+      makeFile({ originalname: 'notion-export.zip', size: 20000 }),
+    ]);
     expect(error).toBeNull();
   });
 
   test('returns error when file has no originalname', () => {
-    const error = getUploadValidationError([makeFile({ originalname: undefined as any, size: undefined as any })]);
+    const error = getUploadValidationError([
+      makeFile({ originalname: undefined as any, size: undefined as any }),
+    ]);
     expect(error).not.toBeNull();
     expect(error!.message).toContain('invalid');
   });
 
   test('returns null for .docx file', () => {
-    const error = getUploadValidationError(
-      [makeFile({ originalname: 'exam questions.docx', size: 30264 })]
-    );
+    const error = getUploadValidationError([
+      makeFile({ originalname: 'exam questions.docx', size: 30264 }),
+    ]);
     expect(error).toBeNull();
   });
 

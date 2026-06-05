@@ -1,7 +1,10 @@
 import { SendInactivityWarningsUseCase } from './SendInactivityWarningsUseCase';
 import { InMemoryInactivityEmailRepository } from '../../data_layer/InactivityEmailRepository';
 import type { IEmailService } from '../../services/EmailService/EmailService';
-import type { IUploadRepository, LastUpload } from '../../data_layer/UploadRespository';
+import type {
+  IUploadRepository,
+  LastUpload,
+} from '../../data_layer/UploadRespository';
 
 function makeEmailService(
   overrides: Partial<IEmailService> = {}
@@ -25,7 +28,9 @@ function makeEmailService(
   };
 }
 
-function makeUploadRepo(lastUpload: LastUpload | null = null): jest.Mocked<IUploadRepository> {
+function makeUploadRepo(
+  lastUpload: LastUpload | null = null
+): jest.Mocked<IUploadRepository> {
   return {
     deleteUpload: jest.fn(),
     getUploadsByOwner: jest.fn(),
@@ -69,7 +74,10 @@ describe('SendInactivityWarningsUseCase', () => {
         { id: 2, name: 'Bob', email: 'bob@example.com' },
         { id: 3, name: 'Carol', email: 'carol@example.com' },
       ]);
-      const useCase = new SendInactivityWarningsUseCase(repo, makeEmailService());
+      const useCase = new SendInactivityWarningsUseCase(
+        repo,
+        makeEmailService()
+      );
 
       const result = await useCase.execute(true, 1);
 
@@ -77,7 +85,10 @@ describe('SendInactivityWarningsUseCase', () => {
     });
 
     it('returns zero when no candidates exist', async () => {
-      const useCase = new SendInactivityWarningsUseCase(repo, makeEmailService());
+      const useCase = new SendInactivityWarningsUseCase(
+        repo,
+        makeEmailService()
+      );
 
       const result = await useCase.execute(true);
 
@@ -98,8 +109,16 @@ describe('SendInactivityWarningsUseCase', () => {
 
       expect(result).toEqual({ count: 2, dryRun: false });
       expect(emailService.sendInactivityWarningEmail).toHaveBeenCalledTimes(2);
-      expect(emailService.sendInactivityWarningEmail).toHaveBeenCalledWith('alice@example.com', expect.any(String), null);
-      expect(emailService.sendInactivityWarningEmail).toHaveBeenCalledWith('bob@example.com', expect.any(String), null);
+      expect(emailService.sendInactivityWarningEmail).toHaveBeenCalledWith(
+        'alice@example.com',
+        expect.any(String),
+        null
+      );
+      expect(emailService.sendInactivityWarningEmail).toHaveBeenCalledWith(
+        'bob@example.com',
+        expect.any(String),
+        null
+      );
       expect(repo.getSentUserIds()).toEqual(new Set([1, 2]));
     });
 
@@ -123,7 +142,10 @@ describe('SendInactivityWarningsUseCase', () => {
     });
 
     it('returns zero when no candidates exist', async () => {
-      const useCase = new SendInactivityWarningsUseCase(repo, makeEmailService());
+      const useCase = new SendInactivityWarningsUseCase(
+        repo,
+        makeEmailService()
+      );
 
       const result = await useCase.execute(false);
 
@@ -155,7 +177,11 @@ describe('SendInactivityWarningsUseCase', () => {
         filename: 'Biochemistry Chapter 4.html',
         created_at: new Date('2026-01-01'),
       });
-      const useCase = new SendInactivityWarningsUseCase(repo, emailService, uploadsRepo);
+      const useCase = new SendInactivityWarningsUseCase(
+        repo,
+        emailService,
+        uploadsRepo
+      );
 
       await useCase.execute(false);
 
@@ -170,7 +196,11 @@ describe('SendInactivityWarningsUseCase', () => {
       repo.seedUsers([{ id: 1, name: 'Alice', email: 'alice@example.com' }]);
       const emailService = makeEmailService();
       const uploadsRepo = makeUploadRepo(null);
-      const useCase = new SendInactivityWarningsUseCase(repo, emailService, uploadsRepo);
+      const useCase = new SendInactivityWarningsUseCase(
+        repo,
+        emailService,
+        uploadsRepo
+      );
 
       await useCase.execute(false);
 

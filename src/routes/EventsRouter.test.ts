@@ -21,9 +21,15 @@ jest.mock('../usecases/events/IngestErrorEventUseCase', () => ({
 jest.mock('../data_layer/ErrorEventRepository', () => ({
   ErrorEventRepository: class {
     async insert() {}
-    async existsWithinWindow() { return false; }
-    async listGroups() { return []; }
-    async countGroups() { return 0; }
+    async existsWithinWindow() {
+      return false;
+    }
+    async listGroups() {
+      return [];
+    }
+    async countGroups() {
+      return 0;
+    }
   },
 }));
 

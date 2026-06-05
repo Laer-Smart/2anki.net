@@ -46,9 +46,7 @@ describe('LandingPage', () => {
     renderLandingPage(
       <LandingPage copy={notionCopy} setErrorMessage={vi.fn()} />
     );
-    expect(
-      screen.getByText(/Drop your files here/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Drop your files here/i)).toBeInTheDocument();
   });
 
   it('links the secondary CTA to /register with the source param', () => {
@@ -125,7 +123,10 @@ describe('LandingPage', () => {
       <LandingPage copy={medicalLectureSlidesCopy} setErrorMessage={vi.fn()} />
     );
     expect(
-      screen.getByRole('heading', { level: 1, name: medicalLectureSlidesCopy.h1 })
+      screen.getByRole('heading', {
+        level: 1,
+        name: medicalLectureSlidesCopy.h1,
+      })
     ).toBeInTheDocument();
     const link = screen.getByRole('link', { name: /sign up free/i });
     expect(link).toHaveAttribute(
@@ -165,9 +166,7 @@ describe('LandingPage', () => {
     async (copy, expectedCanonical) => {
       renderLandingPage(<LandingPage copy={copy} setErrorMessage={vi.fn()} />);
       await waitFor(() => {
-        const canonical = document.head.querySelector(
-          'link[rel="canonical"]'
-        );
+        const canonical = document.head.querySelector('link[rel="canonical"]');
         expect(canonical).toHaveAttribute('href', expectedCanonical);
       });
     }

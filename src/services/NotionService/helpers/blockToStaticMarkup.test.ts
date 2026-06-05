@@ -10,11 +10,12 @@ import { blockToStaticMarkup } from './blockToStaticMarkup';
 beforeEach(() => setupTests());
 
 function makeHandler(): BlockHandler {
-  const exporter = new CustomExporter(
-    '',
-    new Workspace(true, 'fs').location
+  const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
+  return new BlockHandler(
+    exporter,
+    new MockNotionAPI('', ''),
+    new CardOption({})
   );
-  return new BlockHandler(exporter, new MockNotionAPI('', ''), new CardOption({}));
 }
 
 describe('blockToStaticMarkup', () => {
@@ -162,9 +163,7 @@ describe('blockToStaticMarkup', () => {
     expect(result).toBe('\\[\\sqrt{x}\\]');
   });
 
-  function makePdfBlock(
-    pdf: Record<string, unknown>
-  ): BlockObjectResponse {
+  function makePdfBlock(pdf: Record<string, unknown>): BlockObjectResponse {
     return {
       object: 'block',
       id: 'pdf-1',
@@ -288,7 +287,9 @@ describe('blockToStaticMarkup', () => {
       in_trash: false,
     } as unknown as BlockObjectResponse;
 
-    const consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation(() => undefined);
+    const consoleDebugSpy = jest
+      .spyOn(console, 'debug')
+      .mockImplementation(() => undefined);
     const result = await blockToStaticMarkup(handler, unknownBlock);
 
     expect(result).toBe('');

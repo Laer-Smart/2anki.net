@@ -168,8 +168,12 @@ describe('ReturnRateMetricsService — return-rate windows', () => {
 
     const result = await service.getMetrics();
 
-    const pageRow = result.by_source_type?.find((r) => r.source_type === 'page');
-    const convRow = result.by_source_type?.find((r) => r.source_type === 'conversion');
+    const pageRow = result.by_source_type?.find(
+      (r) => r.source_type === 'page'
+    );
+    const convRow = result.by_source_type?.find(
+      (r) => r.source_type === 'conversion'
+    );
     expect(pageRow?.cohort_size).toBe(1);
     expect(pageRow?.returned_7d).toBe(1);
     expect(convRow?.cohort_size).toBe(1);

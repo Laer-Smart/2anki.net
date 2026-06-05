@@ -85,7 +85,10 @@ export class ChatMessagesRepository implements IChatMessagesRepository {
     return updated > 0;
   }
 
-  async deleteById(input: { userId: number; messageId: number }): Promise<boolean> {
+  async deleteById(input: {
+    userId: number;
+    messageId: number;
+  }): Promise<boolean> {
     const deleted = await this.database(this.table)
       .where({ id: input.messageId, user_id: input.userId })
       .del();
@@ -153,7 +156,10 @@ export class InMemoryChatMessagesRepository implements IChatMessagesRepository {
     return true;
   }
 
-  async deleteById(input: { userId: number; messageId: number }): Promise<boolean> {
+  async deleteById(input: {
+    userId: number;
+    messageId: number;
+  }): Promise<boolean> {
     const index = this.rows.findIndex(
       (r) => r.id === input.messageId && r.user_id === input.userId
     );

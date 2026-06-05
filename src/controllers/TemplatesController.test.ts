@@ -26,11 +26,13 @@ function buildReq(body: unknown): Request {
   return { body } as unknown as Request;
 }
 
-function buildService(overrides: Partial<{
-  create: jest.Mock;
-  delete: jest.Mock;
-  findByOwner: jest.Mock;
-}> = {}) {
+function buildService(
+  overrides: Partial<{
+    create: jest.Mock;
+    delete: jest.Mock;
+    findByOwner: jest.Mock;
+  }> = {}
+) {
   return {
     create: overrides.create ?? jest.fn().mockResolvedValue(undefined),
     delete: overrides.delete ?? jest.fn().mockResolvedValue(undefined),
@@ -50,10 +52,12 @@ const validNoteType = {
   css: '.card { color: black; }',
 };
 
-function buildQuota(overrides: Partial<{
-  check: jest.Mock;
-  record: jest.Mock;
-}> = {}) {
+function buildQuota(
+  overrides: Partial<{
+    check: jest.Mock;
+    record: jest.Mock;
+  }> = {}
+) {
   return {
     check:
       overrides.check ??
@@ -178,7 +182,9 @@ describe('TemplatesController.aiModify quota', () => {
 
 describe('TemplatesController.getUserData', () => {
   it('returns empty payload when user has no saved templates', async () => {
-    const service = buildService({ findByOwner: jest.fn().mockResolvedValue(null) });
+    const service = buildService({
+      findByOwner: jest.fn().mockResolvedValue(null),
+    });
     const controller = new TemplatesController(service as never);
     const res = buildRes();
 
@@ -318,7 +324,10 @@ describe('TemplatesController.saveUserData', () => {
     );
     const res = buildRes();
 
-    await controller.saveUserData(buildReq({ templates: [], hiddenIds: [] }), res);
+    await controller.saveUserData(
+      buildReq({ templates: [], hiddenIds: [] }),
+      res
+    );
 
     expect(res.status).toHaveBeenCalledWith(400);
   });
@@ -389,11 +398,17 @@ describe('TemplatesController.exportTemplate', () => {
     const res = buildRes();
 
     await controller.exportTemplate(
-      buildReq({ noteType: validNoteType, previewData: { Front: 'Q', Back: 'A' } }),
+      buildReq({
+        noteType: validNoteType,
+        previewData: { Front: 'Q', Back: 'A' },
+      }),
       res
     );
 
-    expect(mockedExport).toHaveBeenCalledWith(validNoteType, { Front: 'Q', Back: 'A' });
+    expect(mockedExport).toHaveBeenCalledWith(validNoteType, {
+      Front: 'Q',
+      Back: 'A',
+    });
     expect(res.setHeader).toHaveBeenCalledWith(
       'Content-Type',
       'application/octet-stream'
@@ -460,7 +475,10 @@ describe('TemplatesController.exportTemplate', () => {
       ],
     };
 
-    await controller.exportTemplate(buildReq({ noteType: brokenNoteType }), res);
+    await controller.exportTemplate(
+      buildReq({ noteType: brokenNoteType }),
+      res
+    );
 
     expect(mockedExport).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(400);

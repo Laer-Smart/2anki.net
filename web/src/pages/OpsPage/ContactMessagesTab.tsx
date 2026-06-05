@@ -56,9 +56,7 @@ export default function ContactMessagesTab() {
   }
 
   if (messages.length === 0) {
-    return (
-      <p className={sharedStyles.emptyState}>No contact messages yet.</p>
-    );
+    return <p className={sharedStyles.emptyState}>No contact messages yet.</p>;
   }
 
   const unreadCount = messages.filter((m) => !m.is_acknowledged).length;
@@ -119,10 +117,7 @@ function MessageCard({
       <div className={styles.messageHeader}>
         <div>
           <span className={styles.messageName}>{message.name}</span>
-          <a
-            href={`mailto:${message.email}`}
-            className={styles.messageEmail}
-          >
+          <a href={`mailto:${message.email}`} className={styles.messageEmail}>
             {message.email}
           </a>
         </div>

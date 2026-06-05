@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 
-
 // @ts-ignore
 export const useDismissed = (error: ErrorType) => {
   const [dismissed, setDismissed] = useState(false);

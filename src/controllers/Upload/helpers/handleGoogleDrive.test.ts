@@ -121,21 +121,28 @@ const baseSlidesFile = {
 describe('handleGoogleDrive — native Google Apps mime types', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedAxios.get.mockResolvedValue({ data: Buffer.from('fake content') } as never);
+    mockedAxios.get.mockResolvedValue({
+      data: Buffer.from('fake content'),
+    } as never);
   });
 
   it('uses alt=media download URL for binary files (PDF)', async () => {
     const req = makeReq([basePdfFile]);
     const res = makeRes();
     const handleUpload = jest.fn();
-    await handleGoogleDrive(req, res as unknown as express.Response, handleUpload);
+    await handleGoogleDrive(
+      req,
+      res as unknown as express.Response,
+      handleUpload
+    );
     expect(mockedAxios.get).toHaveBeenCalledWith(
       'google_drive',
       expect.stringContaining('?alt=media'),
       expect.anything()
     );
     expect(handleUpload).toHaveBeenCalled();
-    const reqFiles = (req as unknown as { files: { originalname: string }[] }).files;
+    const reqFiles = (req as unknown as { files: { originalname: string }[] })
+      .files;
     expect(reqFiles[0].originalname).toBe('lecture.pdf');
   });
 
@@ -143,13 +150,20 @@ describe('handleGoogleDrive — native Google Apps mime types', () => {
     const req = makeReq([baseDocFile]);
     const res = makeRes();
     const handleUpload = jest.fn();
-    await handleGoogleDrive(req, res as unknown as express.Response, handleUpload);
+    await handleGoogleDrive(
+      req,
+      res as unknown as express.Response,
+      handleUpload
+    );
     expect(mockedAxios.get).toHaveBeenCalledWith(
       'google_drive',
-      expect.stringContaining('/export?mimeType=application%2Fvnd.openxmlformats-officedocument.wordprocessingml.document'),
+      expect.stringContaining(
+        '/export?mimeType=application%2Fvnd.openxmlformats-officedocument.wordprocessingml.document'
+      ),
       expect.anything()
     );
-    const reqFiles = (req as unknown as { files: { originalname: string }[] }).files;
+    const reqFiles = (req as unknown as { files: { originalname: string }[] })
+      .files;
     expect(reqFiles[0].originalname).toMatch(/\.docx$/);
   });
 
@@ -157,13 +171,18 @@ describe('handleGoogleDrive — native Google Apps mime types', () => {
     const req = makeReq([baseSheetFile]);
     const res = makeRes();
     const handleUpload = jest.fn();
-    await handleGoogleDrive(req, res as unknown as express.Response, handleUpload);
+    await handleGoogleDrive(
+      req,
+      res as unknown as express.Response,
+      handleUpload
+    );
     expect(mockedAxios.get).toHaveBeenCalledWith(
       'google_drive',
       expect.stringContaining('/export?mimeType=text%2Fcsv'),
       expect.anything()
     );
-    const reqFiles = (req as unknown as { files: { originalname: string }[] }).files;
+    const reqFiles = (req as unknown as { files: { originalname: string }[] })
+      .files;
     expect(reqFiles[0].originalname).toMatch(/\.csv$/);
   });
 
@@ -171,13 +190,20 @@ describe('handleGoogleDrive — native Google Apps mime types', () => {
     const req = makeReq([baseSlidesFile]);
     const res = makeRes();
     const handleUpload = jest.fn();
-    await handleGoogleDrive(req, res as unknown as express.Response, handleUpload);
+    await handleGoogleDrive(
+      req,
+      res as unknown as express.Response,
+      handleUpload
+    );
     expect(mockedAxios.get).toHaveBeenCalledWith(
       'google_drive',
-      expect.stringContaining('/export?mimeType=application%2Fvnd.openxmlformats-officedocument.presentationml.presentation'),
+      expect.stringContaining(
+        '/export?mimeType=application%2Fvnd.openxmlformats-officedocument.presentationml.presentation'
+      ),
       expect.anything()
     );
-    const reqFiles = (req as unknown as { files: { originalname: string }[] }).files;
+    const reqFiles = (req as unknown as { files: { originalname: string }[] })
+      .files;
     expect(reqFiles[0].originalname).toMatch(/\.pptx$/);
   });
 
@@ -189,10 +215,16 @@ describe('handleGoogleDrive — native Google Apps mime types', () => {
     mockedAxios.get.mockResolvedValue({
       data: Buffer.from('<html><body><h1>hello</h1></body></html>'),
     } as never);
-    await handleGoogleDrive(req, res as unknown as express.Response, handleUpload);
-    const reqFiles = (req as unknown as {
-      files: { size: number; buffer: Buffer }[];
-    }).files;
+    await handleGoogleDrive(
+      req,
+      res as unknown as express.Response,
+      handleUpload
+    );
+    const reqFiles = (
+      req as unknown as {
+        files: { size: number; buffer: Buffer }[];
+      }
+    ).files;
     expect(reqFiles[0].size).toBeGreaterThan(0);
     expect(Buffer.isBuffer(reqFiles[0].buffer)).toBe(true);
     expect(handleUpload).toHaveBeenCalled();
@@ -202,7 +234,11 @@ describe('handleGoogleDrive — native Google Apps mime types', () => {
     const req = makeReq([baseDocFile]);
     const res = makeRes();
     const handleUpload = jest.fn();
-    await handleGoogleDrive(req, res as unknown as express.Response, handleUpload);
+    await handleGoogleDrive(
+      req,
+      res as unknown as express.Response,
+      handleUpload
+    );
     expect(mockedAxios.get).toHaveBeenCalledWith(
       'google_drive',
       expect.any(String),
@@ -215,7 +251,11 @@ describe('handleGoogleDrive — native Google Apps mime types', () => {
     (req.body as Record<string, unknown>).googleDriveAuth = undefined;
     const res = makeRes();
     const handleUpload = jest.fn();
-    await handleGoogleDrive(req, res as unknown as express.Response, handleUpload);
+    await handleGoogleDrive(
+      req,
+      res as unknown as express.Response,
+      handleUpload
+    );
     expect(res.statusCode).toBe(400);
     expect(handleUpload).not.toHaveBeenCalled();
   });

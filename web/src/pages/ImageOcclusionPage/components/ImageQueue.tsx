@@ -74,7 +74,11 @@ export function ImageQueue({
               onClick={() => !entry.uploading && onSelect(i)}
               disabled={entry.uploading}
               aria-busy={entry.uploading || undefined}
-              aria-label={entry.uploading ? `Importing ${entry.imageName}` : `Select image ${i + 1}: ${entry.imageName}`}
+              aria-label={
+                entry.uploading
+                  ? `Importing ${entry.imageName}`
+                  : `Select image ${i + 1}: ${entry.imageName}`
+              }
             >
               {entry.uploading ? (
                 <div className={styles.queueThumbSkeleton} />
@@ -87,7 +91,8 @@ export function ImageQueue({
               )}
               {entry.rects.length > 0 && !entry.uploading && (
                 <span className={styles.queueBadge}>
-                  {entry.rects.length} {entry.rects.length === 1 ? 'box' : 'boxes'}
+                  {entry.rects.length}{' '}
+                  {entry.rects.length === 1 ? 'box' : 'boxes'}
                 </span>
               )}
             </button>
@@ -127,7 +132,11 @@ export function ImageQueue({
           className={styles.addBtn}
           onClick={() => !atLimit && onImportFromNotion()}
           disabled={atLimit}
-          title={atLimit ? 'Upgrade to add more images' : 'Pick a page, pick the images'}
+          title={
+            atLimit
+              ? 'Upgrade to add more images'
+              : 'Pick a page, pick the images'
+          }
           aria-disabled={atLimit}
         >
           <img
@@ -135,7 +144,11 @@ export function ImageQueue({
             alt=""
             width={14}
             height={14}
-            style={{ verticalAlign: 'middle', marginRight: '0.375rem', opacity: 0.8 }}
+            style={{
+              verticalAlign: 'middle',
+              marginRight: '0.375rem',
+              opacity: 0.8,
+            }}
           />
           Import from Notion
         </button>

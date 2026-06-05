@@ -17,15 +17,21 @@ describe('isFileNameEqual', () => {
   });
 
   it('matches when the zip entry is UTF-8 but the name arrived double-encoded as latin1', () => {
-    expect(isFileNameEqual(file('Speicheldrüsen.zip'), 'SpeicheldrÃ¼sen.zip')).toBe(true);
+    expect(
+      isFileNameEqual(file('Speicheldrüsen.zip'), 'SpeicheldrÃ¼sen.zip')
+    ).toBe(true);
   });
 
   it('matches when the file name is double-encoded but the name is clean UTF-8', () => {
-    expect(isFileNameEqual(file('SpeicheldrÃ¼sen.zip'), 'Speicheldrüsen.zip')).toBe(true);
+    expect(
+      isFileNameEqual(file('SpeicheldrÃ¼sen.zip'), 'Speicheldrüsen.zip')
+    ).toBe(true);
   });
 
   it('does not throw and returns false for a truly malformed percent-encoded name', () => {
-    expect(() => isFileNameEqual(file('normal.zip'), 'bad%E0%A4%A.zip')).not.toThrow();
+    expect(() =>
+      isFileNameEqual(file('normal.zip'), 'bad%E0%A4%A.zip')
+    ).not.toThrow();
     expect(isFileNameEqual(file('normal.zip'), 'bad%E0%A4%A.zip')).toBe(false);
   });
 

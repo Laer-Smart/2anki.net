@@ -61,7 +61,9 @@ function encodeUnderCeiling(
   return null;
 }
 
-export async function prepareImageForVision(file: File): Promise<PreparedImage> {
+export async function prepareImageForVision(
+  file: File
+): Promise<PreparedImage> {
   const img = await loadImage(file);
   let scale = initialScale(img.naturalWidth, img.naturalHeight);
 

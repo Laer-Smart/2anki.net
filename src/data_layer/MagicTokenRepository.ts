@@ -120,8 +120,7 @@ export class InMemoryMagicTokenRepository implements IMagicTokenRepository {
 
   async findValidToken(token: string): Promise<MagicTokenRecord | null> {
     const row = this.rows.find(
-      (r) =>
-        r.token === token && r.used_at == null && r.expires_at > this.now
+      (r) => r.token === token && r.used_at == null && r.expires_at > this.now
     );
     if (row == null) {
       return null;
@@ -137,9 +136,8 @@ export class InMemoryMagicTokenRepository implements IMagicTokenRepository {
   }
 
   async countRecentByOwner(owner: number, since: Date): Promise<number> {
-    return this.rows.filter(
-      (r) => r.owner === owner && r.created_at >= since
-    ).length;
+    return this.rows.filter((r) => r.owner === owner && r.created_at >= since)
+      .length;
   }
 
   async deleteExpired(): Promise<number> {

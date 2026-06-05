@@ -122,7 +122,9 @@ class ShareController {
   private async loadParsedForToken(token: string, res: Response) {
     const share = await this.resolveUseCase.execute(token);
     if (share == null) {
-      res.status(404).json({ message: 'This link was turned off by the owner.' });
+      res
+        .status(404)
+        .json({ message: 'This link was turned off by the owner.' });
       return null;
     }
 
@@ -133,7 +135,10 @@ class ShareController {
         return null;
       }
       const cacheKey = `share:${token}`;
-      const parsed = await this.previewService.parse(cacheKey, fileOutput.Body as Buffer);
+      const parsed = await this.previewService.parse(
+        cacheKey,
+        fileOutput.Body as Buffer
+      );
       return { share, parsed };
     } catch (error) {
       if (this.downloadService.isMissingDownloadError(error)) {
@@ -171,7 +176,13 @@ class ShareController {
       const deckId = parseDeckId(req.query.deck_id);
       const mediaBaseUrl = `/api/shares/${encodeURIComponent(token)}/media/`;
       res.json(
-        this.previewService.getCardsPage(loaded.parsed, cursor, pageSize, mediaBaseUrl, deckId)
+        this.previewService.getCardsPage(
+          loaded.parsed,
+          cursor,
+          pageSize,
+          mediaBaseUrl,
+          deckId
+        )
       );
     } catch (error) {
       console.error('[ShareController.getCards]', error);
@@ -211,7 +222,9 @@ class ShareController {
     try {
       const share = await this.resolveUseCase.execute(token);
       if (share == null) {
-        res.status(404).json({ message: 'This link was turned off by the owner.' });
+        res
+          .status(404)
+          .json({ message: 'This link was turned off by the owner.' });
         return;
       }
 
@@ -221,9 +234,14 @@ class ShareController {
         return;
       }
 
-      const dbName = await this.downloadService.getFilename(String(share.owner), share.upload_key);
+      const dbName = await this.downloadService.getFilename(
+        String(share.owner),
+        share.upload_key
+      );
       const basename = dbName ? getSafeFilename(dbName) : share.upload_key;
-      const filename = basename.endsWith('.apkg') ? basename : `${basename}.apkg`;
+      const filename = basename.endsWith('.apkg')
+        ? basename
+        : `${basename}.apkg`;
 
       res.setHeader('Content-Type', 'application/octet-stream');
       res.setHeader('Content-Disposition', buildContentDisposition(filename));

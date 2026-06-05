@@ -39,11 +39,11 @@ The same advice that works for [AI flashcards](/documentation/cards/ai-flashcard
 
 ## Conversation limits
 
-| | Free | Subscription | Lifetime |
-|---|---|---|---|
-| Messages per month | 20 | Unlimited | Unlimited |
-| Message length | 4 000 characters | 100 000 characters | 100 000 characters |
-| Model | Claude Haiku | Claude Sonnet | Claude Sonnet |
+|                    | Free             | Subscription       | Lifetime           |
+| ------------------ | ---------------- | ------------------ | ------------------ |
+| Messages per month | 20               | Unlimited          | Unlimited          |
+| Message length     | 4 000 characters | 100 000 characters | 100 000 characters |
+| Model              | Claude Haiku     | Claude Sonnet      | Claude Sonnet      |
 
 The count resets on the first of the following month. The exact reset date shows up when you hit the limit. See [Limits and quotas](/documentation/help/limits) for the full plan table.
 

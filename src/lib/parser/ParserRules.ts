@@ -68,9 +68,8 @@ class ParserRules {
   static async Load(owner: string, id: string): Promise<ParserRules> {
     // Local import to avoid a circular dependency between the parser
     // domain class and the data-layer.
-    const { default: ParserRulesRepository } = await import(
-      '../../data_layer/ParserRulesRepository'
-    );
+    const { default: ParserRulesRepository } =
+      await import('../../data_layer/ParserRulesRepository');
     const repo = new ParserRulesRepository(getDatabase());
     return repo.load(owner, id);
   }

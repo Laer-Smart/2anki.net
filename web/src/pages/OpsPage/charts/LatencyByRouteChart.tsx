@@ -26,9 +26,7 @@ interface RouteLatencyRow {
   count: number;
 }
 
-const buildRows = (
-  points: OpsMetricsRouteLatencyPoint[]
-): RouteLatencyRow[] =>
+const buildRows = (points: OpsMetricsRouteLatencyPoint[]): RouteLatencyRow[] =>
   points.map((point) => {
     const fullLabel = `${point.method} ${point.route}`;
     return {
@@ -57,7 +55,9 @@ function LatencyTooltip({ active, payload }: TooltipContentProps) {
       </div>
       <div className={styles.tooltipRow}>
         <span>count</span>
-        <span className={styles.tooltipNumber}>{row.count.toLocaleString()}</span>
+        <span className={styles.tooltipNumber}>
+          {row.count.toLocaleString()}
+        </span>
       </div>
     </div>
   );
@@ -100,7 +100,10 @@ export default function LatencyByRouteChart({
           stroke="#e5e7eb"
           interval={0}
         />
-        <Tooltip content={(props) => <LatencyTooltip {...props} />} cursor={{ fill: '#f9fafb' }} />
+        <Tooltip
+          content={(props) => <LatencyTooltip {...props} />}
+          cursor={{ fill: '#f9fafb' }}
+        />
         <Bar dataKey="avg_ms" fill="#3b82f6" barSize={8} />
         <Bar dataKey="p95_ms" fill="#1e40af" barSize={8} />
       </BarChart>

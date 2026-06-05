@@ -17,9 +17,13 @@ describe('scheduleObservabilityCleanup', () => {
   ) {
     return {
       deleteOlderThan: jest
-        .fn<Promise<{ requestLogs: number; outboundCallLogs: number }>, [number]>()
+        .fn<
+          Promise<{ requestLogs: number; outboundCallLogs: number }>,
+          [number]
+        >()
         .mockImplementation(
-          impl ?? (() => Promise.resolve({ requestLogs: 0, outboundCallLogs: 0 }))
+          impl ??
+            (() => Promise.resolve({ requestLogs: 0, outboundCallLogs: 0 }))
         ),
     };
   }
@@ -32,7 +36,9 @@ describe('scheduleObservabilityCleanup', () => {
     await Promise.resolve();
 
     expect(repo.deleteOlderThan).toHaveBeenCalledTimes(1);
-    expect(repo.deleteOlderThan).toHaveBeenCalledWith(OBSERVABILITY_RETENTION_DAYS);
+    expect(repo.deleteOlderThan).toHaveBeenCalledWith(
+      OBSERVABILITY_RETENTION_DAYS
+    );
     clearInterval(handle);
   });
 
@@ -50,7 +56,9 @@ describe('scheduleObservabilityCleanup', () => {
     const repo = makeRepo(() =>
       Promise.resolve({ requestLogs: 12, outboundCallLogs: 4 })
     );
-    const info = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    const info = jest
+      .spyOn(console, 'info')
+      .mockImplementation(() => undefined);
     const handle = scheduleObservabilityCleanup(repo, { intervalMs: 1000 });
 
     jest.advanceTimersByTime(1000);
@@ -65,7 +73,9 @@ describe('scheduleObservabilityCleanup', () => {
 
   it('catches errors from the repo without rethrowing', async () => {
     const repo = makeRepo(() => Promise.reject(new Error('db down')));
-    const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const error = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
     const handle = scheduleObservabilityCleanup(repo, { intervalMs: 1000 });
 
     jest.advanceTimersByTime(1000);

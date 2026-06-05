@@ -120,7 +120,10 @@ function makeHandler(api: NotionAPIWrapper): BlockHandler {
 describe('BlockHandler — linked toggle blocks (synced_block)', () => {
   it('converts a toggle wrapped in an original synced_block (synced_from=null) at page level', async () => {
     const childToggle = makeToggle('toggle-inside', 'What is a linked toggle?');
-    const toggleBack = makeParagraph('para-1', 'A toggle inside a synced block.');
+    const toggleBack = makeParagraph(
+      'para-1',
+      'A toggle inside a synced block.'
+    );
     const original = makeSyncedBlock('synced-orig', null);
 
     const api = makeApi({
@@ -145,7 +148,10 @@ describe('BlockHandler — linked toggle blocks (synced_block)', () => {
 
   it('converts a toggle reached through a reference synced_block at page level', async () => {
     const sourceToggle = makeToggle('toggle-src', 'Authored once, linked many');
-    const toggleBack = makeParagraph('para-back', 'Linked toggles share content.');
+    const toggleBack = makeParagraph(
+      'para-back',
+      'Linked toggles share content.'
+    );
     const reference = makeSyncedBlock('synced-ref', 'source-block-id');
 
     const api = makeApi({

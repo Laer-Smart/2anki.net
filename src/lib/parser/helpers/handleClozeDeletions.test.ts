@@ -107,7 +107,8 @@ describe('handleClozeDeletions', () => {
   });
 
   it('adjacent code siblings across different parents each become their own cloze', () => {
-    const input = '<p><code>alpha</code><code>beta</code></p><p><code>gamma</code><code>delta</code></p>';
+    const input =
+      '<p><code>alpha</code><code>beta</code></p><p><code>gamma</code><code>delta</code></p>';
     const result = handleClozeDeletions(input);
     const matches = result.match(/\{\{c\d+::/g) ?? [];
     expect(matches.length).toBe(2);
@@ -126,7 +127,8 @@ describe('handleClozeDeletions', () => {
 
 describe('#1411 — LaTeX inside cloze blocks', () => {
   it('two cloze blocks with KaTeX produce exactly two cloze tokens', () => {
-    const input = '<p><code>KaTex:\\alpha</code> and <code>KaTex:\\beta</code></p>';
+    const input =
+      '<p><code>KaTex:\\alpha</code> and <code>KaTex:\\beta</code></p>';
     const result = handleClozeDeletions(input);
     const matches = result.match(/\{\{c\d+::/g) ?? [];
     expect(matches.length).toBe(2);
@@ -135,14 +137,16 @@ describe('#1411 — LaTeX inside cloze blocks', () => {
   });
 
   it('three cloze blocks with mixed KaTeX and plain text produce exactly three cloze tokens', () => {
-    const input = '<p><code>KaTex:\\alpha</code> and <code>plain text</code> and <code>KaTex:\\gamma</code></p>';
+    const input =
+      '<p><code>KaTex:\\alpha</code> and <code>plain text</code> and <code>KaTex:\\gamma</code></p>';
     const result = handleClozeDeletions(input);
     const matches = result.match(/\{\{c\d+::/g) ?? [];
     expect(matches.length).toBe(3);
   });
 
   it('non-standalone KaTeX (two code blocks) neither gets a trailing space', () => {
-    const input = '<p><code>KaTex:\\frac{a}{b}</code> and <code>KaTex:\\frac{c}{d}</code></p>';
+    const input =
+      '<p><code>KaTex:\\frac{a}{b}</code> and <code>KaTex:\\frac{c}{d}</code></p>';
     const result = handleClozeDeletions(input);
     const matches = result.match(/\{\{c\d+::/g) ?? [];
     expect(matches.length).toBe(2);
@@ -180,7 +184,8 @@ describe('#412 — pipe characters inside cloze deletions', () => {
 
 describe('#1094 — code tags become cloze deletions', () => {
   it('code tag in the summary (front) of a toggle becomes a cloze deletion', () => {
-    const input = '<p>The speed of light is <code>299792458 m/s</code> in a vacuum.</p>';
+    const input =
+      '<p>The speed of light is <code>299792458 m/s</code> in a vacuum.</p>';
     const result = handleClozeDeletions(input);
     expect(result).toContain('{{c1::299792458 m/s}}');
     expect(result).not.toContain('<code>');

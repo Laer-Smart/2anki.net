@@ -24,64 +24,110 @@ describe('hasAnkifyAccess', () => {
   });
 
   test('returns false when patreon is null and no subscriptions', () => {
-    expect(hasAnkifyAccess({ patreon: null }, [], AUTO_SYNC_PRODUCT_ID)).toBe(false);
+    expect(hasAnkifyAccess({ patreon: null }, [], AUTO_SYNC_PRODUCT_ID)).toBe(
+      false
+    );
   });
 
   test('returns false when patreon is false and no subscriptions', () => {
-    expect(hasAnkifyAccess({ patreon: false }, [], AUTO_SYNC_PRODUCT_ID)).toBe(false);
+    expect(hasAnkifyAccess({ patreon: false }, [], AUTO_SYNC_PRODUCT_ID)).toBe(
+      false
+    );
   });
 
   test('returns true when patreon is true (grandfathered)', () => {
-    expect(hasAnkifyAccess({ patreon: true }, [], AUTO_SYNC_PRODUCT_ID)).toBe(true);
+    expect(hasAnkifyAccess({ patreon: true }, [], AUTO_SYNC_PRODUCT_ID)).toBe(
+      true
+    );
   });
 
   test('returns true when active Auto Sync subscription matches product ID', () => {
     const subs = [activeAutoSyncSub(AUTO_SYNC_PRODUCT_ID)];
-    expect(hasAnkifyAccess({ patreon: false }, subs, AUTO_SYNC_PRODUCT_ID)).toBe(true);
+    expect(
+      hasAnkifyAccess({ patreon: false }, subs, AUTO_SYNC_PRODUCT_ID)
+    ).toBe(true);
   });
 
   test('returns false when subscription is inactive for Auto Sync product', () => {
     const subs = [inactiveSub(AUTO_SYNC_PRODUCT_ID)];
-    expect(hasAnkifyAccess({ patreon: false }, subs, AUTO_SYNC_PRODUCT_ID)).toBe(false);
+    expect(
+      hasAnkifyAccess({ patreon: false }, subs, AUTO_SYNC_PRODUCT_ID)
+    ).toBe(false);
   });
 
   test('returns false when subscription is active but for a different product', () => {
     const subs = [activeOtherSub()];
-    expect(hasAnkifyAccess({ patreon: false }, subs, AUTO_SYNC_PRODUCT_ID)).toBe(false);
+    expect(
+      hasAnkifyAccess({ patreon: false }, subs, AUTO_SYNC_PRODUCT_ID)
+    ).toBe(false);
   });
 
   test('returns false when stripe_product_id is null on an active subscription', () => {
-    const subs: AnkifyAccessSubscription[] = [{ active: true, stripe_product_id: null }];
-    expect(hasAnkifyAccess({ patreon: false }, subs, AUTO_SYNC_PRODUCT_ID)).toBe(false);
+    const subs: AnkifyAccessSubscription[] = [
+      { active: true, stripe_product_id: null },
+    ];
+    expect(
+      hasAnkifyAccess({ patreon: false }, subs, AUTO_SYNC_PRODUCT_ID)
+    ).toBe(false);
   });
 
   test('returns true when patreon is true even with no matching subscription', () => {
     const subs = [activeOtherSub()];
-    expect(hasAnkifyAccess({ patreon: true }, subs, AUTO_SYNC_PRODUCT_ID)).toBe(true);
+    expect(hasAnkifyAccess({ patreon: true }, subs, AUTO_SYNC_PRODUCT_ID)).toBe(
+      true
+    );
   });
 
   test('returns true with active Auto Sync sub even when patreon is null', () => {
     const subs = [activeAutoSyncSub(AUTO_SYNC_PRODUCT_ID)];
-    expect(hasAnkifyAccess({ patreon: null }, subs, AUTO_SYNC_PRODUCT_ID)).toBe(true);
+    expect(hasAnkifyAccess({ patreon: null }, subs, AUTO_SYNC_PRODUCT_ID)).toBe(
+      true
+    );
   });
 
   test('returns false when subscriptions array is empty and patreon is false', () => {
-    expect(hasAnkifyAccess({ patreon: false }, [], AUTO_SYNC_PRODUCT_ID)).toBe(false);
+    expect(hasAnkifyAccess({ patreon: false }, [], AUTO_SYNC_PRODUCT_ID)).toBe(
+      false
+    );
   });
 
   test('returns false when subscriptions is undefined and patreon is false', () => {
-    expect(hasAnkifyAccess({ patreon: false }, undefined as unknown as never[], AUTO_SYNC_PRODUCT_ID)).toBe(false);
+    expect(
+      hasAnkifyAccess(
+        { patreon: false },
+        undefined as unknown as never[],
+        AUTO_SYNC_PRODUCT_ID
+      )
+    ).toBe(false);
   });
 
   test('returns false when subscriptions is null and patreon is false', () => {
-    expect(hasAnkifyAccess({ patreon: false }, null as unknown as never[], AUTO_SYNC_PRODUCT_ID)).toBe(false);
+    expect(
+      hasAnkifyAccess(
+        { patreon: false },
+        null as unknown as never[],
+        AUTO_SYNC_PRODUCT_ID
+      )
+    ).toBe(false);
   });
 
   test('returns true when subscriptions is undefined but patreon is true', () => {
-    expect(hasAnkifyAccess({ patreon: true }, undefined as unknown as never[], AUTO_SYNC_PRODUCT_ID)).toBe(true);
+    expect(
+      hasAnkifyAccess(
+        { patreon: true },
+        undefined as unknown as never[],
+        AUTO_SYNC_PRODUCT_ID
+      )
+    ).toBe(true);
   });
 
   test('returns true when subscriptions is null but patreon is true', () => {
-    expect(hasAnkifyAccess({ patreon: true }, null as unknown as never[], AUTO_SYNC_PRODUCT_ID)).toBe(true);
+    expect(
+      hasAnkifyAccess(
+        { patreon: true },
+        null as unknown as never[],
+        AUTO_SYNC_PRODUCT_ID
+      )
+    ).toBe(true);
   });
 });

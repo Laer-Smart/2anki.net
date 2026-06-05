@@ -1,14 +1,16 @@
 import hasInlineClozeCode from './hasInlineClozeCode';
 
 test('detects an inline code element as a cloze marker', () => {
-  expect(hasInlineClozeCode('<p>The capital is <code>Canberra</code>.</p>')).toBe(
-    true
-  );
+  expect(
+    hasInlineClozeCode('<p>The capital is <code>Canberra</code>.</p>')
+  ).toBe(true);
 });
 
 test('ignores a fenced code block', () => {
   expect(
-    hasInlineClozeCode('<pre class="code"><code>def foo():\n  return 1</code></pre>')
+    hasInlineClozeCode(
+      '<pre class="code"><code>def foo():\n  return 1</code></pre>'
+    )
   ).toBe(false);
 });
 
@@ -25,5 +27,7 @@ test('detects inline code inside a table cell', () => {
 });
 
 test('returns false when there is no code element', () => {
-  expect(hasInlineClozeCode('<p>Plain content with no markers</p>')).toBe(false);
+  expect(hasInlineClozeCode('<p>Plain content with no markers</p>')).toBe(
+    false
+  );
 });

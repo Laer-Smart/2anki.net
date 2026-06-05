@@ -24,20 +24,15 @@ interface BusinessMetricsCacheRow {
   expires_at: Date | string;
 }
 
-export class BusinessMetricsCacheRepository
-  implements IBusinessMetricsCacheRepository
-{
+export class BusinessMetricsCacheRepository implements IBusinessMetricsCacheRepository {
   private readonly table = 'business_metrics_cache';
 
   constructor(private readonly database: Knex) {}
 
   async loadAll(): Promise<BusinessMetricsCacheEntry[]> {
-    const rows = await this.database<BusinessMetricsCacheRow>(this.table).select(
-      'metric_key',
-      'value',
-      'cached_at',
-      'expires_at'
-    );
+    const rows = await this.database<BusinessMetricsCacheRow>(
+      this.table
+    ).select('metric_key', 'value', 'cached_at', 'expires_at');
     return rows.map((row) => ({
       key: row.metric_key as BusinessCacheKey,
       value: row.value,
@@ -61,10 +56,11 @@ export class BusinessMetricsCacheRepository
   }
 }
 
-export class InMemoryBusinessMetricsCacheRepository
-  implements IBusinessMetricsCacheRepository
-{
-  private readonly entries = new Map<BusinessCacheKey, BusinessMetricsCacheEntry>();
+export class InMemoryBusinessMetricsCacheRepository implements IBusinessMetricsCacheRepository {
+  private readonly entries = new Map<
+    BusinessCacheKey,
+    BusinessMetricsCacheEntry
+  >();
 
   async loadAll(): Promise<BusinessMetricsCacheEntry[]> {
     return Array.from(this.entries.values()).map((entry) => ({ ...entry }));

@@ -162,7 +162,10 @@ export default function WorkspaceBar({
     params.delete('reason');
     const next = params.toString();
     navigate(
-      { pathname: location.pathname, search: next.length > 0 ? `?${next}` : '' },
+      {
+        pathname: location.pathname,
+        search: next.length > 0 ? `?${next}` : '',
+      },
       { replace: true }
     );
   }, [activeClient?.id, location.search, location.pathname, navigate]);
@@ -220,10 +223,7 @@ export default function WorkspaceBar({
       )}
       <span className={styles.workspaceBarStatus}>{statusContent}</span>
       {sessionUrl != null && (
-        <span
-          className={styles.workspaceBarSession}
-          title={sessionUrl}
-        >
+        <span className={styles.workspaceBarSession} title={sessionUrl}>
           {formatSessionLabel(sessionUrl)}
         </span>
       )}

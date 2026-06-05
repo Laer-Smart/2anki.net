@@ -39,7 +39,10 @@ export class RefreshAnkifySubscriptionUseCase {
   async execute(
     input: RefreshAnkifySubscriptionInput
   ): Promise<SyncNotionPageResult> {
-    const subscription = await this.subscriptions.findById(input.id, input.owner);
+    const subscription = await this.subscriptions.findById(
+      input.id,
+      input.owner
+    );
     if (subscription == null) {
       throw new SubscriptionNotFoundError();
     }

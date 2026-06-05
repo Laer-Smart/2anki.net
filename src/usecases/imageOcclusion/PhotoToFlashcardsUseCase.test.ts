@@ -127,9 +127,9 @@ describe('PhotoToFlashcardsUseCase', () => {
       const events = makeEventsStub(0);
       const useCase = new PhotoToFlashcardsUseCase(events);
       await useCase.execute({ ...BASE_INPUT, isPaying: false });
-      const { track } = jest.requireMock(
-        '../../services/events/track'
-      ) as { track: jest.Mock };
+      const { track } = jest.requireMock('../../services/events/track') as {
+        track: jest.Mock;
+      };
       expect(track).toHaveBeenCalledWith(
         'vision_photo_converted',
         expect.objectContaining({
@@ -240,7 +240,11 @@ describe('PhotoToFlashcardsUseCase', () => {
               {
                 deck: 'Tagged Photo',
                 cards: [
-                  { q: 'What is an enzyme?', a: 'A catalyst', tags: ['enzymes', 'biochemistry'] },
+                  {
+                    q: 'What is an enzyme?',
+                    a: 'A catalyst',
+                    tags: ['enzymes', 'biochemistry'],
+                  },
                   { q: 'What is ATP?', a: 'Energy currency' },
                 ],
               },
@@ -272,7 +276,9 @@ describe('PhotoToFlashcardsUseCase', () => {
             text: JSON.stringify([
               {
                 deck: 'Tagged Photo',
-                cards: [{ q: 'Q', a: 'A', tags: ['Cell Biology', 'KINETICS!'] }],
+                cards: [
+                  { q: 'Q', a: 'A', tags: ['Cell Biology', 'KINETICS!'] },
+                ],
               },
             ]),
           },
@@ -298,8 +304,11 @@ describe('PhotoToFlashcardsUseCase', () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
       await useCase.execute({ ...BASE_INPUT, isPaying: true });
 
-      const imageWriteCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
-        ([p]: [string]) => typeof p === 'string' && !p.endsWith('deck_info.json')
+      const imageWriteCall = (
+        mockFs.writeFileSync as jest.Mock
+      ).mock.calls.find(
+        ([p]: [string]) =>
+          typeof p === 'string' && !p.endsWith('deck_info.json')
       );
       expect(imageWriteCall).toBeDefined();
       const writtenBytes = imageWriteCall![1];
@@ -342,7 +351,11 @@ describe('PhotoToFlashcardsUseCase', () => {
 
     it('uses the correct extension for png media type', async () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      await useCase.execute({ ...BASE_INPUT, mediaType: 'image/png', isPaying: true });
+      await useCase.execute({
+        ...BASE_INPUT,
+        mediaType: 'image/png',
+        isPaying: true,
+      });
 
       const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
         ([p]: [string]) => typeof p === 'string' && p.endsWith('deck_info.json')
@@ -356,20 +369,32 @@ describe('PhotoToFlashcardsUseCase', () => {
     describe('includeSourceImage: false', () => {
       it('does not write the source image file to disk', async () => {
         const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-        await useCase.execute({ ...BASE_INPUT, isPaying: true, includeSourceImage: false });
+        await useCase.execute({
+          ...BASE_INPUT,
+          isPaying: true,
+          includeSourceImage: false,
+        });
 
-        const imageWriteCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
-          ([p]: [string]) => typeof p === 'string' && !p.endsWith('deck_info.json')
+        const imageWriteCall = (
+          mockFs.writeFileSync as jest.Mock
+        ).mock.calls.find(
+          ([p]: [string]) =>
+            typeof p === 'string' && !p.endsWith('deck_info.json')
         );
         expect(imageWriteCall).toBeUndefined();
       });
 
       it('sets media to empty array on every card in deck_info.json', async () => {
         const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-        await useCase.execute({ ...BASE_INPUT, isPaying: true, includeSourceImage: false });
+        await useCase.execute({
+          ...BASE_INPUT,
+          isPaying: true,
+          includeSourceImage: false,
+        });
 
         const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
-          ([p]: [string]) => typeof p === 'string' && p.endsWith('deck_info.json')
+          ([p]: [string]) =>
+            typeof p === 'string' && p.endsWith('deck_info.json')
         );
         expect(writeCall).toBeDefined();
         const payload = JSON.parse(writeCall![1] as string) as Array<{
@@ -484,7 +509,11 @@ describe('PhotoToFlashcardsUseCase', () => {
 
     it('sends the verbatim prompt to Claude when mode is verbatim', async () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      await useCase.execute({ ...BASE_INPUT, isPaying: true, mode: 'verbatim' });
+      await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        mode: 'verbatim',
+      });
       const [callArgs] = mockMessageCreate.mock.calls[0];
       const text = (
         callArgs.messages[0].content as Array<{ type: string; text?: string }>
@@ -495,7 +524,11 @@ describe('PhotoToFlashcardsUseCase', () => {
 
     it('sends the generative prompt when mode is generative', async () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      await useCase.execute({ ...BASE_INPUT, isPaying: true, mode: 'generative' });
+      await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        mode: 'generative',
+      });
       const [callArgs] = mockMessageCreate.mock.calls[0];
       const text = (
         callArgs.messages[0].content as Array<{ type: string; text?: string }>
@@ -517,10 +550,14 @@ describe('PhotoToFlashcardsUseCase', () => {
     it('tracks source_mode: verbatim in the analytics event', async () => {
       const events = makeEventsStub(0);
       const useCase = new PhotoToFlashcardsUseCase(events);
-      await useCase.execute({ ...BASE_INPUT, isPaying: false, mode: 'verbatim' });
-      const { track } = jest.requireMock(
-        '../../services/events/track'
-      ) as { track: jest.Mock };
+      await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: false,
+        mode: 'verbatim',
+      });
+      const { track } = jest.requireMock('../../services/events/track') as {
+        track: jest.Mock;
+      };
       expect(track).toHaveBeenCalledWith(
         'vision_photo_converted',
         expect.objectContaining({
@@ -533,9 +570,9 @@ describe('PhotoToFlashcardsUseCase', () => {
       const events = makeEventsStub(0);
       const useCase = new PhotoToFlashcardsUseCase(events);
       await useCase.execute({ ...BASE_INPUT, isPaying: false });
-      const { track } = jest.requireMock(
-        '../../services/events/track'
-      ) as { track: jest.Mock };
+      const { track } = jest.requireMock('../../services/events/track') as {
+        track: jest.Mock;
+      };
       expect(track).toHaveBeenCalledWith(
         'vision_photo_converted',
         expect.objectContaining({
@@ -564,7 +601,11 @@ describe('PhotoToFlashcardsUseCase', () => {
 
       it('sends verbatim prompt with hierarchy instructions to Claude when mode is verbatim', async () => {
         const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-        await useCase.execute({ ...BASE_INPUT, isPaying: true, mode: 'verbatim' });
+        await useCase.execute({
+          ...BASE_INPUT,
+          isPaying: true,
+          mode: 'verbatim',
+        });
         const [callArgs] = mockMessageCreate.mock.calls[0];
         const text = (
           callArgs.messages[0].content as Array<{ type: string; text?: string }>
@@ -583,16 +624,24 @@ describe('PhotoToFlashcardsUseCase', () => {
     });
 
     it('buildHeadingDrivenVisionPrompt is distinct from buildVisionPrompt', () => {
-      expect(buildHeadingDrivenVisionPrompt()).not.toEqual(buildVisionPrompt('balanced'));
+      expect(buildHeadingDrivenVisionPrompt()).not.toEqual(
+        buildVisionPrompt('balanced')
+      );
     });
 
     it('buildHeadingDrivenVisionPrompt is distinct from buildVerbatimPrompt', () => {
-      expect(buildHeadingDrivenVisionPrompt()).not.toEqual(buildVerbatimPrompt());
+      expect(buildHeadingDrivenVisionPrompt()).not.toEqual(
+        buildVerbatimPrompt()
+      );
     });
 
     it('sends the heading-driven prompt to Claude when cardStyle is heading-driven', async () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      await useCase.execute({ ...BASE_INPUT, isPaying: true, cardStyle: 'heading-driven' });
+      await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        cardStyle: 'heading-driven',
+      });
       const [callArgs] = mockMessageCreate.mock.calls[0];
       const text = (
         callArgs.messages[0].content as Array<{ type: string; text?: string }>
@@ -615,10 +664,14 @@ describe('PhotoToFlashcardsUseCase', () => {
     it('tracks card_style: heading-driven in the analytics event', async () => {
       const events = makeEventsStub(0);
       const useCase = new PhotoToFlashcardsUseCase(events);
-      await useCase.execute({ ...BASE_INPUT, isPaying: false, cardStyle: 'heading-driven' });
-      const { track } = jest.requireMock(
-        '../../services/events/track'
-      ) as { track: jest.Mock };
+      await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: false,
+        cardStyle: 'heading-driven',
+      });
+      const { track } = jest.requireMock('../../services/events/track') as {
+        track: jest.Mock;
+      };
       expect(track).toHaveBeenCalledWith(
         'vision_photo_converted',
         expect.objectContaining({
@@ -631,9 +684,9 @@ describe('PhotoToFlashcardsUseCase', () => {
       const events = makeEventsStub(0);
       const useCase = new PhotoToFlashcardsUseCase(events);
       await useCase.execute({ ...BASE_INPUT, isPaying: false });
-      const { track } = jest.requireMock(
-        '../../services/events/track'
-      ) as { track: jest.Mock };
+      const { track } = jest.requireMock('../../services/events/track') as {
+        track: jest.Mock;
+      };
       expect(track).toHaveBeenCalledWith(
         'vision_photo_converted',
         expect.objectContaining({
@@ -645,10 +698,14 @@ describe('PhotoToFlashcardsUseCase', () => {
     it('tracks the requested density in the analytics event', async () => {
       const events = makeEventsStub(0);
       const useCase = new PhotoToFlashcardsUseCase(events);
-      await useCase.execute({ ...BASE_INPUT, isPaying: true, density: 'dense' });
-      const { track } = jest.requireMock(
-        '../../services/events/track'
-      ) as { track: jest.Mock };
+      await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        density: 'dense',
+      });
+      const { track } = jest.requireMock('../../services/events/track') as {
+        track: jest.Mock;
+      };
       expect(track).toHaveBeenCalledWith(
         'vision_photo_converted',
         expect.objectContaining({
@@ -661,9 +718,9 @@ describe('PhotoToFlashcardsUseCase', () => {
       const events = makeEventsStub(0);
       const useCase = new PhotoToFlashcardsUseCase(events);
       await useCase.execute({ ...BASE_INPUT, isPaying: false });
-      const { track } = jest.requireMock(
-        '../../services/events/track'
-      ) as { track: jest.Mock };
+      const { track } = jest.requireMock('../../services/events/track') as {
+        track: jest.Mock;
+      };
       expect(track).toHaveBeenCalledWith(
         'vision_photo_converted',
         expect.objectContaining({
@@ -732,7 +789,8 @@ describe('PhotoToFlashcardsUseCase', () => {
       }>;
     }> {
       const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
-        ([p]) => typeof p === 'string' && (p as string).endsWith('deck_info.json')
+        ([p]) =>
+          typeof p === 'string' && (p as string).endsWith('deck_info.json')
       );
       return JSON.parse(writeCall![1] as string);
     }
@@ -743,11 +801,20 @@ describe('PhotoToFlashcardsUseCase', () => {
         usage: { input_tokens: 100, output_tokens: 50 },
       });
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true, mcqEnabled: true });
+      const result = await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        mcqEnabled: true,
+      });
       const payload = readDeckPayload();
       const mcqCard = payload[0].cards[0];
       expect(mcqCard.mcq).toBe(true);
-      expect(mcqCard.options).toEqual(['Lipase', 'Amylase', 'Protease', 'Lactase']);
+      expect(mcqCard.options).toEqual([
+        'Lipase',
+        'Amylase',
+        'Protease',
+        'Lactase',
+      ]);
       expect(mcqCard.correctIndices).toEqual([1]);
       expect(mcqCard.back).toContain('Amylase hydrolyses');
       expect(payload[0].cards[1].mcq).toBeFalsy();
@@ -761,7 +828,11 @@ describe('PhotoToFlashcardsUseCase', () => {
         usage: { input_tokens: 100, output_tokens: 50 },
       });
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true, mcqEnabled: true });
+      const result = await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        mcqEnabled: true,
+      });
       const payload = readDeckPayload();
       expect(payload[0].cards).toHaveLength(4);
       expect(payload[0].cards[0].mcq).toBeFalsy();
@@ -778,7 +849,11 @@ describe('PhotoToFlashcardsUseCase', () => {
         usage: { input_tokens: 100, output_tokens: 50 },
       });
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      const result = await useCase.execute({ ...BASE_INPUT, isPaying: true, mcqEnabled: false });
+      const result = await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        mcqEnabled: false,
+      });
       const payload = readDeckPayload();
       expect(payload[0].cards[0].mcq).toBeFalsy();
       expect(result.mcqCount).toBe(0);
@@ -801,7 +876,11 @@ describe('PhotoToFlashcardsUseCase', () => {
         usage: { input_tokens: 100, output_tokens: 50 },
       });
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      const result = await useCase.execute({ ...BASE_INPUT, isPaying: false, mcqEnabled: true });
+      const result = await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: false,
+        mcqEnabled: true,
+      });
       const payload = readDeckPayload();
       expect(payload[0].cards[0].mcq).toBeFalsy();
       expect(result.mcqCount).toBe(0);
@@ -809,7 +888,11 @@ describe('PhotoToFlashcardsUseCase', () => {
 
     it('adds MCQ instructions to the generative prompt when the gate is open', async () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      await useCase.execute({ ...BASE_INPUT, isPaying: true, mcqEnabled: true });
+      await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        mcqEnabled: true,
+      });
       const [callArgs] = mockMessageCreate.mock.calls[0];
       const text = (
         callArgs.messages[0].content as Array<{ type: string; text?: string }>
@@ -820,7 +903,11 @@ describe('PhotoToFlashcardsUseCase', () => {
 
     it('omits MCQ instructions when mcqEnabled is false', async () => {
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
-      await useCase.execute({ ...BASE_INPUT, isPaying: true, mcqEnabled: false });
+      await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        mcqEnabled: false,
+      });
       const [callArgs] = mockMessageCreate.mock.calls[0];
       const text = (
         callArgs.messages[0].content as Array<{ type: string; text?: string }>
@@ -854,7 +941,9 @@ describe('PhotoToFlashcardsUseCase', () => {
 
     it('does not leak the raw model text in the thrown error message', async () => {
       mockMessageCreate.mockResolvedValueOnce({
-        content: [{ type: 'text', text: '[{"deck":"Secret Deck Name","cards":[{"q":' }],
+        content: [
+          { type: 'text', text: '[{"deck":"Secret Deck Name","cards":[{"q":' },
+        ],
         usage: { input_tokens: 100, output_tokens: 50 },
       });
       const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());

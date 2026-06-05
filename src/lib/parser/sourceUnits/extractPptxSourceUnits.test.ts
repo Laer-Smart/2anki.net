@@ -1,9 +1,7 @@
 import { strToU8, zipSync } from 'fflate';
 import { extractPptxSourceUnits } from './extractPptxSourceUnits';
 
-function buildPptx(
-  slides: Array<{ xml: string; notesXml?: string }>
-): Buffer {
+function buildPptx(slides: Array<{ xml: string; notesXml?: string }>): Buffer {
   const files: Record<string, Uint8Array> = {};
 
   slides.forEach((slide, i) => {
@@ -71,9 +69,7 @@ function imageSlidXml(): string {
 
 describe('extractPptxSourceUnits', () => {
   it('returns one unit per slide with title and body text', async () => {
-    const pptx = buildPptx([
-      { xml: slideXml('Slide One', 'Body text here') },
-    ]);
+    const pptx = buildPptx([{ xml: slideXml('Slide One', 'Body text here') }]);
 
     const units = await extractPptxSourceUnits(pptx);
 
@@ -102,7 +98,9 @@ describe('extractPptxSourceUnits', () => {
     const pptx = buildPptx([
       {
         xml: slideXml('Mitosis', 'Cell division'),
-        notesXml: notesXml('Remember: prophase, metaphase, anaphase, telophase'),
+        notesXml: notesXml(
+          'Remember: prophase, metaphase, anaphase, telophase'
+        ),
       },
     ]);
 
@@ -114,7 +112,9 @@ describe('extractPptxSourceUnits', () => {
   });
 
   it('returns empty array for a PPTX with no slides', async () => {
-    const pptx = Buffer.from(zipSync({ 'ppt/presentation.xml': strToU8('<root/>') }));
+    const pptx = Buffer.from(
+      zipSync({ 'ppt/presentation.xml': strToU8('<root/>') })
+    );
 
     const units = await extractPptxSourceUnits(pptx);
 

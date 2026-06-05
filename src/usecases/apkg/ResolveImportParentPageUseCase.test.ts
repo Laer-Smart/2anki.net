@@ -73,9 +73,7 @@ describe('ResolveImportParentPageUseCase', () => {
 
   it('throws when no top-level pages are available to host the import page', async () => {
     const notionApi = makeNotionApi({
-      searchTopLevelPages: jest
-        .fn()
-        .mockResolvedValue({ results: [] }),
+      searchTopLevelPages: jest.fn().mockResolvedValue({ results: [] }),
     });
 
     await expect(useCase.execute(notionApi)).rejects.toThrow(
@@ -84,7 +82,8 @@ describe('ResolveImportParentPageUseCase', () => {
   });
 
   it('does not treat a partial title match as the import page', async () => {
-    const searchMock = jest.fn()
+    const searchMock = jest
+      .fn()
       .mockResolvedValueOnce({
         results: [
           {

@@ -19,7 +19,7 @@ function renderAt(path: string) {
       <Routes>
         <Route path="/documentation/*" element={<DocsPage />} />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 }
 

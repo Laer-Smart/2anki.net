@@ -166,7 +166,9 @@ export class TransformController {
     }
 
     const files = req.files as UploadedFile[] | undefined;
-    const validationError = getUploadValidationError(files, { allowApkg: true });
+    const validationError = getUploadValidationError(files, {
+      allowApkg: true,
+    });
     if (validationError) {
       res.status(400).contentType('text/plain').send(validationError.message);
       return;

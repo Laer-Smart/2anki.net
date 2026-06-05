@@ -3,7 +3,10 @@ import type { LandingCopy } from '../types';
 const nursingCopy: LandingCopy = {
   relatedLinks: [
     { label: 'Build USMLE Anki decks from your notes', href: '/usmle-anki' },
-    { label: 'Turn medical lecture slides into Anki cards', href: '/anki-from-medical-lecture-slides' },
+    {
+      label: 'Turn medical lecture slides into Anki cards',
+      href: '/anki-from-medical-lecture-slides',
+    },
     { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
     { label: 'Browse every converter', href: '/convert' },
   ],
@@ -43,11 +46,11 @@ const nursingCopy: LandingCopy = {
     },
     {
       q: 'Can it handle a full semester of nursing slides?',
-      a: "Yes. Upload one module or one topic at a time rather than the whole semester in one file. Smaller decks are easier to schedule, easier to review, and Anki handles 500-card decks more smoothly than 5,000-card ones.",
+      a: 'Yes. Upload one module or one topic at a time rather than the whole semester in one file. Smaller decks are easier to schedule, easier to review, and Anki handles 500-card decks more smoothly than 5,000-card ones.',
     },
     {
       q: 'How is this different from Quizlet?',
-      a: "Anki uses spaced repetition to schedule each card based on your recall — cards you find harder come back sooner. Quizlet offers flash-card practice but schedules differently. Many nursing programs and study groups coordinate around Anki decks, so 2anki keeps your cards in the same ecosystem.",
+      a: 'Anki uses spaced repetition to schedule each card based on your recall — cards you find harder come back sooner. Quizlet offers flash-card practice but schedules differently. Many nursing programs and study groups coordinate around Anki decks, so 2anki keeps your cards in the same ecosystem.',
     },
   ],
 };

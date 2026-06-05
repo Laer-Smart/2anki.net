@@ -5,7 +5,9 @@ import sharedStyles from '../../../styles/shared.module.css';
 import styles from '../AnkifyPage.module.css';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import { Backend, TrackerSchemaError } from '../../../lib/backend/Backend';
-import NotionDatabasePicker, { NotionDatabaseOption } from './NotionDatabasePicker';
+import NotionDatabasePicker, {
+  NotionDatabaseOption,
+} from './NotionDatabasePicker';
 import TrackerParentPicker from './TrackerParentPicker';
 import NotionObject from '../../../lib/interfaces/NotionObject';
 
@@ -120,10 +122,7 @@ export default function ReviewDataExport({ backend }: Props) {
   const lead =
     "Each day's review count and time spent show up as a row in a Notion database you control.";
 
-  const handlePickerChange = (
-    id: string,
-    picked?: NotionDatabaseOption
-  ) => {
+  const handlePickerChange = (id: string, picked?: NotionDatabaseOption) => {
     setDatabaseId(id);
     const nextTitle = picked?.title ?? '';
     const nextUrl = picked?.url ?? '';
@@ -142,9 +141,7 @@ export default function ReviewDataExport({ backend }: Props) {
           rel="noreferrer"
           className={styles.trackerSummaryLink}
         >
-          {trackerTitle.length > 0
-            ? trackerTitle
-            : 'Your saved Notion tracker'}
+          {trackerTitle.length > 0 ? trackerTitle : 'Your saved Notion tracker'}
         </a>
       );
     }
@@ -242,8 +239,7 @@ export default function ReviewDataExport({ backend }: Props) {
     }
     return (
       <p role="alert" className={sharedStyles.helpDanger}>
-        Couldn't update Notion.{' '}
-        {(exportMutation.error as Error).message}
+        Couldn't update Notion. {(exportMutation.error as Error).message}
       </p>
     );
   };
@@ -363,8 +359,8 @@ export default function ReviewDataExport({ backend }: Props) {
         </h4>
         <p className={styles.trackerStepHint}>
           We'll add a Notion database called "Anki review tracker" with three
-          columns: Date, Reviews, Time spent (min). Each day's count becomes
-          one row. Nothing else on your Notion page changes.
+          columns: Date, Reviews, Time spent (min). Each day's count becomes one
+          row. Nothing else on your Notion page changes.
         </p>
         {createTracker.isError && (
           <p role="alert" className={sharedStyles.helpDanger}>

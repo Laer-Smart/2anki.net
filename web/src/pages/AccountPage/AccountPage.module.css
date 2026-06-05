@@ -62,7 +62,9 @@
   border-radius: var(--radius-md);
   text-decoration: none;
   box-shadow: var(--shadow-xs);
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
   cursor: pointer;
 }
 
@@ -283,8 +285,13 @@
 }
 
 @keyframes badgeShine {
-  0%, 100% { left: -100%; }
-  50% { left: 150%; }
+  0%,
+  100% {
+    left: -100%;
+  }
+  50% {
+    left: 150%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

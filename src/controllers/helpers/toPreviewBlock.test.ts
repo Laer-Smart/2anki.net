@@ -3,7 +3,9 @@ import { BlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 
 const DEFAULT_RULES = { flashcardTypes: ['toggle'] };
 
-function makeBlock(overrides: Partial<BlockObjectResponse>): BlockObjectResponse {
+function makeBlock(
+  overrides: Partial<BlockObjectResponse>
+): BlockObjectResponse {
   return {
     object: 'block',
     id: 'test-block-id',

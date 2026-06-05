@@ -9,7 +9,9 @@ function makeShareService(overrides: Record<string, unknown> = {}) {
 
 describe('ResolveShareUseCase', () => {
   it('returns null when the share is revoked', async () => {
-    const service = makeShareService({ findActiveShare: jest.fn().mockResolvedValue(null) });
+    const service = makeShareService({
+      findActiveShare: jest.fn().mockResolvedValue(null),
+    });
     const useCase = new ResolveShareUseCase(service as any);
 
     const result = await useCase.execute('some-token');
@@ -27,7 +29,9 @@ describe('ResolveShareUseCase', () => {
       revoked_at: null,
       view_count: 0,
     };
-    const service = makeShareService({ findActiveShare: jest.fn().mockResolvedValue(activeShare) });
+    const service = makeShareService({
+      findActiveShare: jest.fn().mockResolvedValue(activeShare),
+    });
     const useCase = new ResolveShareUseCase(service as any);
 
     const result = await useCase.execute('some-token');

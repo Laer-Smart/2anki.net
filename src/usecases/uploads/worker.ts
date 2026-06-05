@@ -40,7 +40,10 @@ interface GenerationData {
   userId?: number | null;
 }
 
-export function getFileContents(file: UploadedFile, enqueuedAt?: number): Buffer {
+export function getFileContents(
+  file: UploadedFile,
+  enqueuedAt?: number
+): Buffer {
   const readAt = Date.now();
 
   let result: Buffer;
@@ -69,11 +72,15 @@ export function getFileContents(file: UploadedFile, enqueuedAt?: number): Buffer
       return result;
     }
   } catch (error) {
-    throw new Error(`Error reading file at path: ${file.path}: ${String(error)}`);
+    throw new Error(
+      `Error reading file at path: ${file.path}: ${String(error)}`
+    );
   }
 
   if (file.buffer == null) {
-    throw new Error('Uploaded file is no longer available on disk and has no buffer fallback');
+    throw new Error(
+      'Uploaded file is no longer available on disk and has no buffer fallback'
+    );
   }
   result = Buffer.from(file.buffer);
   console.info('[upload] tempfile dwell', {
@@ -117,13 +124,19 @@ async function processFile(
     );
     packages.push(new Package(result.deckName, result.cardCount, 0, 0));
     if (result.skippedMediaOnlyCount > 0) {
-      warnings.push(describeSkippedMediaOnlyCards(result.skippedMediaOnlyCount));
+      warnings.push(
+        describeSkippedMediaOnlyCards(result.skippedMediaOnlyCount)
+      );
     }
     return { packages, warnings };
   }
 
   if (isOpmlFile(filename) || isBrainstormsJsonFile(filename)) {
-    const result = await convertMindmapFileToApkg(filename, fileContents, workspace.location);
+    const result = await convertMindmapFileToApkg(
+      filename,
+      fileContents,
+      workspace.location
+    );
     packages.push(new Package(result.deckName, result.cardCount, 0, 0));
     return { packages, warnings };
   }
@@ -168,7 +181,14 @@ async function processFile(
     });
 
     if (d) {
-      packages.push(new Package(d.name, d.cardCount ?? 0, d.mcqCount ?? 0, d.mcqSkippedCount ?? 0));
+      packages.push(
+        new Package(
+          d.name,
+          d.cardCount ?? 0,
+          d.mcqCount ?? 0,
+          d.mcqSkippedCount ?? 0
+        )
+      );
       if (d.warning) warnings.push(d.warning);
     }
   } else if (isCompressedFile(filename) || isCompressedFile(key)) {
@@ -188,7 +208,14 @@ async function processFile(
 }
 
 async function doGenerationWork(data: GenerationData) {
-  const { paying, files, settings, workspace, enqueuedAt, userId = null } = data;
+  const {
+    paying,
+    files,
+    settings,
+    workspace,
+    enqueuedAt,
+    userId = null,
+  } = data;
   let packages: Package[] = [];
   const warnings: string[] = [];
 
@@ -222,7 +249,8 @@ if (workerData != null) {
         type: 'error',
         message: err instanceof Error ? err.message : String(err),
         name: err instanceof Error ? err.name : undefined,
-        sourceFormat: err instanceof EmptyDeckError ? err.sourceFormat : undefined,
+        sourceFormat:
+          err instanceof EmptyDeckError ? err.sourceFormat : undefined,
       })
     );
 }

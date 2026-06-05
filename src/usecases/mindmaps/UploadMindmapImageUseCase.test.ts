@@ -1,4 +1,8 @@
-import { UploadMindmapImageUseCase, MindmapImageTooLargeError, MindmapImageTypeError } from './UploadMindmapImageUseCase';
+import {
+  UploadMindmapImageUseCase,
+  MindmapImageTooLargeError,
+  MindmapImageTypeError,
+} from './UploadMindmapImageUseCase';
 import StorageHandler from '../../lib/storage/StorageHandler';
 
 const TINY_PNG = Buffer.from(
@@ -9,7 +13,9 @@ const TINY_PNG = Buffer.from(
 function makeStorage(overrides: Partial<StorageHandler> = {}): StorageHandler {
   return {
     uploadFile: jest.fn().mockResolvedValue(undefined),
-    getPresignedUrl: jest.fn().mockResolvedValue('https://spaces.example.com/presigned'),
+    getPresignedUrl: jest
+      .fn()
+      .mockResolvedValue('https://spaces.example.com/presigned'),
     getFileContents: jest.fn(),
     objectExists: jest.fn(),
     listByPrefix: jest.fn(),
@@ -43,13 +49,19 @@ describe('UploadMindmapImageUseCase', () => {
   it('rejects an SVG file', async () => {
     const storage = makeStorage();
     const useCase = new UploadMindmapImageUseCase(storage);
-    const svgBuf = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+    const svgBuf = Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+    );
 
     await expect(
       useCase.execute({
         userId: '42',
         mapId: 'map-1',
-        file: { buffer: svgBuf, mimetype: 'image/svg+xml', size: svgBuf.length },
+        file: {
+          buffer: svgBuf,
+          mimetype: 'image/svg+xml',
+          size: svgBuf.length,
+        },
       })
     ).rejects.toBeInstanceOf(MindmapImageTypeError);
 

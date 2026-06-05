@@ -73,13 +73,16 @@ export function rewriteMediaRefs(
   mediaMap: Map<string, string>,
   baseUrl: string
 ): string {
-  let out = html.replace(SRC_ATTR_REGEX, (_match, attr: string, value: string) => {
-    if (!isLocalRef(value)) return `${attr}="${value}"`;
-    const decoded = decodeURIComponent(value);
-    const url = mediaUrlIfKnown(decoded, mediaMap, baseUrl);
-    if (!url) return `${attr}="" data-missing-media="${escapeHtml(decoded)}"`;
-    return `${attr}="${url}"`;
-  });
+  let out = html.replace(
+    SRC_ATTR_REGEX,
+    (_match, attr: string, value: string) => {
+      if (!isLocalRef(value)) return `${attr}="${value}"`;
+      const decoded = decodeURIComponent(value);
+      const url = mediaUrlIfKnown(decoded, mediaMap, baseUrl);
+      if (!url) return `${attr}="" data-missing-media="${escapeHtml(decoded)}"`;
+      return `${attr}="${url}"`;
+    }
+  );
   out = out.replace(SOUND_TOKEN_REGEX, (_match, name: string) =>
     renderSoundToken(name.trim(), mediaMap, baseUrl)
   );

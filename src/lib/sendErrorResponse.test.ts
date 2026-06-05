@@ -25,7 +25,10 @@ const makeResponse = (): FakeResponse => {
   return state;
 };
 
-const makeAPIResponseError = (code: string, status: number): APIResponseError => {
+const makeAPIResponseError = (
+  code: string,
+  status: number
+): APIResponseError => {
   const err = Object.create(APIResponseError.prototype) as APIResponseError;
   Object.assign(err, {
     name: 'APIResponseError',

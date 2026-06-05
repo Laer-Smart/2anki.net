@@ -140,7 +140,9 @@ class CardOption {
     this.textAlign = input['text-align'] ?? '';
     this.isTextOnlyBack = input.paragraph === 'true';
     this.toggleMode = input['toggle-mode'] || 'close_toggle';
-    this.overlappingCloze = validateOverlappingCloze(input['overlapping-cloze']);
+    this.overlappingCloze = validateOverlappingCloze(
+      input['overlapping-cloze']
+    );
     this.isCloze = input.cloze !== 'false';
     this.clozeFromToggleContent = input['cloze-from-toggle-content'] === 'true';
     this.groupClozePerToggle = input['group-cloze-per-toggle'] === 'true';

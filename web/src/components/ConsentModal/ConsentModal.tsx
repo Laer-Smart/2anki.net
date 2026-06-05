@@ -9,7 +9,10 @@ interface ConsentModalProps {
   onDismiss: () => void;
 }
 
-export default function ConsentModal({ onAccept, onDismiss }: Readonly<ConsentModalProps>) {
+export default function ConsentModal({
+  onAccept,
+  onDismiss,
+}: Readonly<ConsentModalProps>) {
   const [pending, setPending] = useState(false);
   const [needsSignIn, setNeedsSignIn] = useState(false);
 
@@ -28,7 +31,12 @@ export default function ConsentModal({ onAccept, onDismiss }: Readonly<ConsentMo
   };
 
   return (
-    <dialog open className={styles.dialog} aria-modal="true" aria-labelledby="consent-heading">
+    <dialog
+      open
+      className={styles.dialog}
+      aria-modal="true"
+      aria-labelledby="consent-heading"
+    >
       <div className={sharedStyles.modalBackdrop} />
       <div className={sharedStyles.modalCardNarrow}>
         <div className={sharedStyles.modalHeader}>
@@ -38,7 +46,9 @@ export default function ConsentModal({ onAccept, onDismiss }: Readonly<ConsentMo
         </div>
         <div className={sharedStyles.modalBody}>
           <p className={styles.body}>
-            Your messages and any files you attach go to Anthropic to generate replies. They aren't used to train models. 20 messages a month on the free plan.
+            Your messages and any files you attach go to Anthropic to generate
+            replies. They aren't used to train models. 20 messages a month on
+            the free plan.
           </p>
           {needsSignIn && (
             <p className={styles.body}>

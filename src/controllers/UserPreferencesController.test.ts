@@ -49,7 +49,9 @@ describe('UserPreferencesController.patch', () => {
     await controller.patch(req, res);
 
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ theme: 'gold' }));
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ theme: 'gold' })
+    );
   });
 
   it('updates cardOptions', async () => {
@@ -88,7 +90,9 @@ describe('UserPreferencesController.patch', () => {
 
   it('returns 400 when ankiWebAcknowledgedAt is not a valid timestamp', async () => {
     const { controller, res } = buildMocks(1);
-    const req = { body: { ankiWebAcknowledgedAt: 'not-a-date' } } as unknown as Request;
+    const req = {
+      body: { ankiWebAcknowledgedAt: 'not-a-date' },
+    } as unknown as Request;
 
     await controller.patch(req, res);
 
@@ -97,13 +101,14 @@ describe('UserPreferencesController.patch', () => {
 
   it('accepts a valid ISO timestamp for ankiWebAcknowledgedAt', async () => {
     const { controller, res } = buildMocks(1);
-    const req = { body: { ankiWebAcknowledgedAt: '2026-05-13T18:00:00.000Z' } } as unknown as Request;
+    const req = {
+      body: { ankiWebAcknowledgedAt: '2026-05-13T18:00:00.000Z' },
+    } as unknown as Request;
 
     await controller.patch(req, res);
 
     expect(res.status).toHaveBeenCalledWith(200);
   });
-
 });
 
 describe('UserPreferencesController.deleteCardOptions', () => {

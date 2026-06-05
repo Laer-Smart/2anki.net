@@ -5,5 +5,7 @@ export default function hasInlineClozeCode(html: string): boolean {
     return false;
   }
   const dom = cheerio.load(html);
-  return dom('code').toArray().some((el) => dom(el).parents('pre').length === 0);
+  return dom('code')
+    .toArray()
+    .some((el) => dom(el).parents('pre').length === 0);
 }

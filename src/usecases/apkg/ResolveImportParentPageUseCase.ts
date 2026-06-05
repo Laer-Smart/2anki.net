@@ -26,9 +26,7 @@ export default class ResolveImportParentPageUseCase {
     return exactMatch?.id ?? null;
   }
 
-  private async createImportPage(
-    notionApi: NotionAPIWrapper
-  ): Promise<string> {
+  private async createImportPage(notionApi: NotionAPIWrapper): Promise<string> {
     const topPages = await notionApi.searchTopLevelPages('', {
       maxResults: 1,
     });

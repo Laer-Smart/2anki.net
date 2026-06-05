@@ -1,4 +1,8 @@
-import { hasAnkifyAccess, AnkifyAccessUser, AnkifyAccessSubscription } from '../../lib/ankify/access';
+import {
+  hasAnkifyAccess,
+  AnkifyAccessUser,
+  AnkifyAccessSubscription,
+} from '../../lib/ankify/access';
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import Mindmaps, { MindmapsId } from '../../data_layer/public/Mindmaps';
 import { MindmapData, MindmapImageMeta } from './MindmapData';
@@ -23,12 +27,22 @@ function sanitizeImageUrl(
     return { ...image, missing: true, url: null };
   }
   if (url.startsWith(LEGACY_PREFIX)) {
-    return { url: null, width: image.width, height: image.height, missing: true };
+    return {
+      url: null,
+      width: image.width,
+      height: image.height,
+      missing: true,
+    };
   }
   const expectedPrefix = `${S3_KEY_PREFIX}${userId}/${mapId}/`;
   if (url.startsWith(S3_KEY_PREFIX)) {
     if (!url.startsWith(expectedPrefix)) {
-      return { url: null, width: image.width, height: image.height, missing: true };
+      return {
+        url: null,
+        width: image.width,
+        height: image.height,
+        missing: true,
+      };
     }
     return { ...image, url };
   }
@@ -38,14 +52,23 @@ function sanitizeImageUrl(
   if (keyStart !== -1) {
     const s3Key = rawPath.slice(keyStart);
     if (!s3Key.startsWith(expectedPrefix)) {
-      return { url: null, width: image.width, height: image.height, missing: true };
+      return {
+        url: null,
+        width: image.width,
+        height: image.height,
+        missing: true,
+      };
     }
     return { ...image, url: s3Key };
   }
   return { url: null, width: image.width, height: image.height, missing: true };
 }
 
-function sanitizeData(data: MindmapData, userId: UsersId, mapId: MindmapsId): MindmapData {
+function sanitizeData(
+  data: MindmapData,
+  userId: UsersId,
+  mapId: MindmapsId
+): MindmapData {
   return {
     ...data,
     nodes: data.nodes.map((node) => {
@@ -69,7 +92,15 @@ export class UpdateMindmapUseCase {
   constructor(private readonly repo: MindmapRepositoryInterface) {}
 
   async execute(input: UpdateInput): Promise<Mindmaps | null> {
-    const { id, userId, title, data, user, subscriptions, autoSyncProductId = '' } = input;
+    const {
+      id,
+      userId,
+      title,
+      data,
+      user,
+      subscriptions,
+      autoSyncProductId = '',
+    } = input;
     const isUnlimited = hasAnkifyAccess(user, subscriptions, autoSyncProductId);
 
     if (!isUnlimited && data != null && data.nodes.length > FREE_NODE_LIMIT) {

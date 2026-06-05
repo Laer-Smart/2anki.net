@@ -1,7 +1,12 @@
-import { DeleteInactiveUsersUseCase, IInactiveUserDeleter } from './DeleteInactiveUsersUseCase';
+import {
+  DeleteInactiveUsersUseCase,
+  IInactiveUserDeleter,
+} from './DeleteInactiveUsersUseCase';
 import { InMemoryInactivityEmailRepository } from '../../data_layer/InactivityEmailRepository';
 
-function makeDeleter(overrides: Partial<IInactiveUserDeleter> = {}): jest.Mocked<IInactiveUserDeleter> {
+function makeDeleter(
+  overrides: Partial<IInactiveUserDeleter> = {}
+): jest.Mocked<IInactiveUserDeleter> {
   return {
     deleteUser: jest.fn().mockResolvedValue(undefined),
     ...overrides,

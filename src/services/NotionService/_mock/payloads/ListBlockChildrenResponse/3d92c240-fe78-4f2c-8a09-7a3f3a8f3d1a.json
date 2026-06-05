@@ -1,54 +1,54 @@
 {
-    "object": "list",
-    "results": [
-        {
-            "object": "block",
-            "id": "86483025-4798-4265-9045-780d9ea6eb19",
-            "parent": {
-                "type": "block_id",
-                "block_id": "3d92c240-fe78-4f2c-8a09-7a3f3a8f3d1a"
+  "object": "list",
+  "results": [
+    {
+      "object": "block",
+      "id": "86483025-4798-4265-9045-780d9ea6eb19",
+      "parent": {
+        "type": "block_id",
+        "block_id": "3d92c240-fe78-4f2c-8a09-7a3f3a8f3d1a"
+      },
+      "created_time": "2021-05-16T13:57:00.000Z",
+      "last_edited_time": "2021-05-16T13:57:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+      },
+      "has_children": false,
+      "archived": false,
+      "in_trash": false,
+      "type": "paragraph",
+      "paragraph": {
+        "rich_text": [
+          {
+            "type": "text",
+            "text": {
+              "content": "B is inside",
+              "link": null
             },
-            "created_time": "2021-05-16T13:57:00.000Z",
-            "last_edited_time": "2021-05-16T13:57:00.000Z",
-            "created_by": {
-                "object": "user",
-                "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+            "annotations": {
+              "bold": false,
+              "italic": false,
+              "strikethrough": false,
+              "underline": false,
+              "code": false,
+              "color": "default"
             },
-            "last_edited_by": {
-                "object": "user",
-                "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
-            },
-            "has_children": false,
-            "archived": false,
-            "in_trash": false,
-            "type": "paragraph",
-            "paragraph": {
-                "rich_text": [
-                    {
-                        "type": "text",
-                        "text": {
-                            "content": "B is inside",
-                            "link": null
-                        },
-                        "annotations": {
-                            "bold": false,
-                            "italic": false,
-                            "strikethrough": false,
-                            "underline": false,
-                            "code": false,
-                            "color": "default"
-                        },
-                        "plain_text": "B is inside",
-                        "href": null
-                    }
-                ],
-                "color": "default"
-            }
-        }
-    ],
-    "next_cursor": null,
-    "has_more": false,
-    "type": "block",
-    "block": {},
-    "request_id": "e7ae8bee-6f32-4f83-93cb-65750545ef0a"
+            "plain_text": "B is inside",
+            "href": null
+          }
+        ],
+        "color": "default"
+      }
+    }
+  ],
+  "next_cursor": null,
+  "has_more": false,
+  "type": "block",
+  "block": {},
+  "request_id": "e7ae8bee-6f32-4f83-93cb-65750545ef0a"
 }

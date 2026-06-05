@@ -2,7 +2,9 @@ import { reconcileActiveSubscriptions } from './reconcileActiveSubscriptions';
 
 type DbMock = jest.Mock & { updateSpy: jest.Mock };
 
-function buildDbMock(activeRows: Array<{ id: number; email: string; payload: unknown }>): DbMock {
+function buildDbMock(
+  activeRows: Array<{ id: number; email: string; payload: unknown }>
+): DbMock {
   const updateSpy = jest.fn().mockResolvedValue(1);
 
   const db = jest.fn().mockImplementation(() => {

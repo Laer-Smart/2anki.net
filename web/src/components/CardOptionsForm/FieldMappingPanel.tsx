@@ -1,5 +1,8 @@
 import React from 'react';
-import type { FieldMapping, FieldMappingEntry } from '../../lib/cardFields/types';
+import type {
+  FieldMapping,
+  FieldMappingEntry,
+} from '../../lib/cardFields/types';
 import fieldStyles from './CardOptionsForm.module.css';
 
 interface Props {
@@ -18,16 +21,18 @@ export function FieldMappingPanel({ mapping, onChange }: Readonly<Props>) {
   return (
     <div className={fieldStyles.section}>
       <details>
-        <summary className={fieldStyles.detailsSummary}>
-          Field mapping
-        </summary>
+        <summary className={fieldStyles.detailsSummary}>Field mapping</summary>
         <p className={fieldStyles.sectionHint}>
-          Tell the AI what to put in each field of your card template. Leave a field blank to let the AI decide.
+          Tell the AI what to put in each field of your card template. Leave a
+          field blank to let the AI decide.
         </p>
         {mapping.fields.map((field, i) => (
           <div key={field.name} className={fieldStyles.section}>
             <div className={fieldStyles.labelRow}>
-              <label htmlFor={`field-mapping-${field.name}`} className={fieldStyles.sectionLabel}>
+              <label
+                htmlFor={`field-mapping-${field.name}`}
+                className={fieldStyles.sectionLabel}
+              >
                 {field.name}
               </label>
             </div>

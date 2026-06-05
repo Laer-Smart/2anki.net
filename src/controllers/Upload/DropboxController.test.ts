@@ -41,7 +41,9 @@ function makeController(
     insertNativeDeck: jest.fn(),
   };
   const notionRepository: INotionRepository = {
-    getNotionData: jest.fn().mockResolvedValue({ owner: 1, token: '...' } as NotionTokens),
+    getNotionData: jest
+      .fn()
+      .mockResolvedValue({ owner: 1, token: '...' } as NotionTokens),
     saveNotionToken: jest.fn().mockResolvedValue(true),
     getNotionToken: jest.fn().mockResolvedValue('...'),
     deleteBlocksByOwner: jest.fn().mockResolvedValue(1),
@@ -61,7 +63,12 @@ function makeController(
     } as unknown as UsersRepository
   );
   const notionService = new NotionService(notionRepository);
-  return new UploadController(uploadService, notionService, getUseCase, deleteUseCase);
+  return new UploadController(
+    uploadService,
+    notionService,
+    getUseCase,
+    deleteUseCase
+  );
 }
 
 function makeRes(owner: number | null = 42) {
@@ -76,36 +83,47 @@ function makeRes(owner: number | null = 42) {
 
 describe('UploadController.getDropboxUploads', () => {
   it('returns 401 when owner is missing', async () => {
-    const getUseCase = { execute: jest.fn().mockResolvedValue([]) } as unknown as GetDropboxUploadsUseCase;
-    const deleteUseCase = { execute: jest.fn() } as unknown as DeleteDropboxUploadUseCase;
+    const getUseCase = {
+      execute: jest.fn().mockResolvedValue([]),
+    } as unknown as GetDropboxUploadsUseCase;
+    const deleteUseCase = {
+      execute: jest.fn(),
+    } as unknown as DeleteDropboxUploadUseCase;
     const controller = makeController(getUseCase, deleteUseCase);
     const { res, status, json } = makeRes(null);
 
     await controller.getDropboxUploads({} as express.Request, res);
 
     expect(status).toHaveBeenCalledWith(401);
-    expect(json).toHaveBeenCalledWith(expect.objectContaining({ message: expect.any(String) }));
+    expect(json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.any(String) })
+    );
     expect(getUseCase.execute).not.toHaveBeenCalled();
   });
 
   it('returns uploads when owner is present', async () => {
     const rows = [{ id: 1, bytes: 1024, name: 'file.pdf', created_at: null }];
-    const getUseCase = { execute: jest.fn().mockResolvedValue(rows) } as unknown as GetDropboxUploadsUseCase;
-    const deleteUseCase = { execute: jest.fn() } as unknown as DeleteDropboxUploadUseCase;
+    const getUseCase = {
+      execute: jest.fn().mockResolvedValue(rows),
+    } as unknown as GetDropboxUploadsUseCase;
+    const deleteUseCase = {
+      execute: jest.fn(),
+    } as unknown as DeleteDropboxUploadUseCase;
     const controller = makeController(getUseCase, deleteUseCase);
     const { res, json } = makeRes(42);
 
-    await controller.getDropboxUploads(
-      { query: {} } as express.Request,
-      res
-    );
+    await controller.getDropboxUploads({ query: {} } as express.Request, res);
 
     expect(json).toHaveBeenCalledWith(rows);
   });
 
   it('passes parsed offset to use case', async () => {
-    const getUseCase = { execute: jest.fn().mockResolvedValue([]) } as unknown as GetDropboxUploadsUseCase;
-    const deleteUseCase = { execute: jest.fn() } as unknown as DeleteDropboxUploadUseCase;
+    const getUseCase = {
+      execute: jest.fn().mockResolvedValue([]),
+    } as unknown as GetDropboxUploadsUseCase;
+    const deleteUseCase = {
+      execute: jest.fn(),
+    } as unknown as DeleteDropboxUploadUseCase;
     const controller = makeController(getUseCase, deleteUseCase);
     const { res } = makeRes(42);
 
@@ -120,8 +138,12 @@ describe('UploadController.getDropboxUploads', () => {
 
 describe('UploadController.deleteDropboxUpload', () => {
   it('returns 401 when owner is missing', async () => {
-    const getUseCase = { execute: jest.fn() } as unknown as GetDropboxUploadsUseCase;
-    const deleteUseCase = { execute: jest.fn() } as unknown as DeleteDropboxUploadUseCase;
+    const getUseCase = {
+      execute: jest.fn(),
+    } as unknown as GetDropboxUploadsUseCase;
+    const deleteUseCase = {
+      execute: jest.fn(),
+    } as unknown as DeleteDropboxUploadUseCase;
     const controller = makeController(getUseCase, deleteUseCase);
     const { res, status, json } = makeRes(null);
 
@@ -131,13 +153,19 @@ describe('UploadController.deleteDropboxUpload', () => {
     );
 
     expect(status).toHaveBeenCalledWith(401);
-    expect(json).toHaveBeenCalledWith(expect.objectContaining({ message: expect.any(String) }));
+    expect(json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.any(String) })
+    );
     expect(deleteUseCase.execute).not.toHaveBeenCalled();
   });
 
   it('returns 400 when id param is missing', async () => {
-    const getUseCase = { execute: jest.fn() } as unknown as GetDropboxUploadsUseCase;
-    const deleteUseCase = { execute: jest.fn() } as unknown as DeleteDropboxUploadUseCase;
+    const getUseCase = {
+      execute: jest.fn(),
+    } as unknown as GetDropboxUploadsUseCase;
+    const deleteUseCase = {
+      execute: jest.fn(),
+    } as unknown as DeleteDropboxUploadUseCase;
     const controller = makeController(getUseCase, deleteUseCase);
     const { res, status, json } = makeRes(42);
 
@@ -147,11 +175,15 @@ describe('UploadController.deleteDropboxUpload', () => {
     );
 
     expect(status).toHaveBeenCalledWith(400);
-    expect(json).toHaveBeenCalledWith(expect.objectContaining({ message: expect.any(String) }));
+    expect(json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.any(String) })
+    );
   });
 
   it('returns 404 when use case throws', async () => {
-    const getUseCase = { execute: jest.fn() } as unknown as GetDropboxUploadsUseCase;
+    const getUseCase = {
+      execute: jest.fn(),
+    } as unknown as GetDropboxUploadsUseCase;
     const deleteUseCase = {
       execute: jest.fn().mockRejectedValue(new Error('Not found')),
     } as unknown as DeleteDropboxUploadUseCase;
@@ -164,12 +196,18 @@ describe('UploadController.deleteDropboxUpload', () => {
     );
 
     expect(status).toHaveBeenCalledWith(404);
-    expect(json).toHaveBeenCalledWith(expect.objectContaining({ message: expect.any(String) }));
+    expect(json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.any(String) })
+    );
   });
 
   it('returns 200 on successful delete', async () => {
-    const getUseCase = { execute: jest.fn() } as unknown as GetDropboxUploadsUseCase;
-    const deleteUseCase = { execute: jest.fn().mockResolvedValue(undefined) } as unknown as DeleteDropboxUploadUseCase;
+    const getUseCase = {
+      execute: jest.fn(),
+    } as unknown as GetDropboxUploadsUseCase;
+    const deleteUseCase = {
+      execute: jest.fn().mockResolvedValue(undefined),
+    } as unknown as DeleteDropboxUploadUseCase;
     const controller = makeController(getUseCase, deleteUseCase);
     const { res, json } = makeRes(42);
 

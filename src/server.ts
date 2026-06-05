@@ -198,7 +198,9 @@ const serve = async () => {
   app.use(rejectScannerProbes);
   app.use(defaultRouter());
   const errorEventRepo = new ErrorEventRepository(database);
-  app.use(makeErrorCaptureMiddleware(errorEventRepo, writeFallbackError, getRelease()));
+  app.use(
+    makeErrorCaptureMiddleware(errorEventRepo, writeFallbackError, getRelease())
+  );
   app.use(
     (
       err: Error,
@@ -237,17 +239,23 @@ const serve = async () => {
 
   const drainedCount = await drainFallbackFile(errorEventRepo);
   if (drainedCount > 0) {
-    console.info(`[startup] Drained ${drainedCount} error(s) from fallback file into error_events`);
+    console.info(
+      `[startup] Drained ${drainedCount} error(s) from fallback file into error_events`
+    );
   }
 
   const jobRepo = new JobRepository(database);
   const interruptedClaudeCount = await jobRepo.markInterruptedClaudeJobs();
   if (interruptedClaudeCount > 0) {
-    console.info(`[startup] Marked ${interruptedClaudeCount} Claude job(s) as interrupted`);
+    console.info(
+      `[startup] Marked ${interruptedClaudeCount} Claude job(s) as interrupted`
+    );
   }
   const interruptedNotionCount = await jobRepo.markInterruptedNotionJobs();
   if (interruptedNotionCount > 0) {
-    console.info(`[startup] Marked ${interruptedNotionCount} Notion job(s) as interrupted`);
+    console.info(
+      `[startup] Marked ${interruptedNotionCount} Notion job(s) as interrupted`
+    );
   }
 
   new MagicTokenRepository(database).deleteExpired().then((count) => {
@@ -270,10 +278,17 @@ const serve = async () => {
 
   const inactivityEmailRepo = new InactivityEmailRepository(database);
   const uploadRepo = new UploadRepository(database);
-  const sendInactivityWarningsUseCase = new SendInactivityWarningsUseCase(inactivityEmailRepo, emailService, uploadRepo);
+  const sendInactivityWarningsUseCase = new SendInactivityWarningsUseCase(
+    inactivityEmailRepo,
+    emailService,
+    uploadRepo
+  );
   scheduleInactivityWarnings(sendInactivityWarningsUseCase, { eventsSink });
 
-  const deleteInactiveUsersUseCase = new DeleteInactiveUsersUseCase(inactivityEmailRepo, new UsersRepository(database));
+  const deleteInactiveUsersUseCase = new DeleteInactiveUsersUseCase(
+    inactivityEmailRepo,
+    new UsersRepository(database)
+  );
   scheduleInactiveUserDeletions(deleteInactiveUsersUseCase, { eventsSink });
 
   scheduleParserCanary(emailService);

@@ -36,7 +36,10 @@ function joinPlainText(items: PlainTextItem[] | undefined): string {
 
 function joinNamed(items: Array<{ name?: string }> | undefined): string {
   if (!Array.isArray(items)) return '';
-  return items.map((s) => s.name ?? '').filter((s) => s.length > 0).join(', ');
+  return items
+    .map((s) => s.name ?? '')
+    .filter((s) => s.length > 0)
+    .join(', ');
 }
 
 function numberToString(n: number | null | undefined): string {
@@ -66,7 +69,8 @@ const CELL_EXTRACTORS: Record<string, (p: Property) => string> = {
   rich_text: (p) => joinPlainText(p.rich_text as PlainTextItem[] | undefined),
   number: (p) => numberToString(p.number as number | null | undefined),
   select: (p) => (p.select as { name?: string } | null)?.name ?? '',
-  multi_select: (p) => joinNamed(p.multi_select as Array<{ name?: string }> | undefined),
+  multi_select: (p) =>
+    joinNamed(p.multi_select as Array<{ name?: string }> | undefined),
   status: (p) => (p.status as { name?: string } | null)?.name ?? '',
   checkbox: (p) => (p.checkbox ? '✓' : ''),
   url: (p) => (p.url as string | null) ?? '',
@@ -97,9 +101,14 @@ function columnNamesFrom(row: RawRow | undefined): string[] {
   return Object.keys(row.properties);
 }
 
-type PreviewCapable = Pick<NotionAPIWrapper, 'getDatabase' | 'getDatabaseTitle' | 'queryDatabasePreview'>;
+type PreviewCapable = Pick<
+  NotionAPIWrapper,
+  'getDatabase' | 'getDatabaseTitle' | 'queryDatabasePreview'
+>;
 
-const PREVIEW_TITLE_SETTINGS = { pageEmoji: 'first_emoji' } as unknown as CardOption;
+const PREVIEW_TITLE_SETTINGS = {
+  pageEmoji: 'first_emoji',
+} as unknown as CardOption;
 
 export class GetDatabasePreviewUseCase {
   constructor(private readonly api: PreviewCapable) {}
@@ -110,7 +119,10 @@ export class GetDatabasePreviewUseCase {
       this.api.queryDatabasePreview(databaseId, DATABASE_PREVIEW_ROW_CAP),
     ]);
 
-    const title = await this.api.getDatabaseTitle(database, PREVIEW_TITLE_SETTINGS);
+    const title = await this.api.getDatabaseTitle(
+      database,
+      PREVIEW_TITLE_SETTINGS
+    );
     const url = (database as { url?: string | null })?.url ?? null;
 
     const rows = queryResult.results as RawRow[];

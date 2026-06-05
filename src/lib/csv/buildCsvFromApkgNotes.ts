@@ -20,10 +20,7 @@ function unionFieldNames(notes: readonly ParsedNote[]): string[] {
   return ordered;
 }
 
-function buildRow(
-  note: ParsedNote,
-  fieldHeaders: readonly string[]
-): string {
+function buildRow(note: ParsedNote, fieldHeaders: readonly string[]): string {
   const fieldByName = new Map<string, string>();
   for (let i = 0; i < note.fieldNames.length; i += 1) {
     fieldByName.set(note.fieldNames[i], note.fields[i] ?? '');
@@ -37,7 +34,8 @@ function buildRow(
 }
 
 export function buildCsvFromApkgNotes(notes: readonly ParsedNote[]): string {
-  const fieldHeaders = notes.length === 0 ? ['Front', 'Back'] : unionFieldNames(notes);
+  const fieldHeaders =
+    notes.length === 0 ? ['Front', 'Back'] : unionFieldNames(notes);
   const header = ['Model', ...fieldHeaders, 'Tags'].map(escapeField).join(',');
   const lines = [header];
   for (const note of notes) {

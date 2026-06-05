@@ -37,7 +37,10 @@ const SubscriptionClaimRouter = () => {
     stripe
   );
 
-  const controller = new SubscriptionClaimController(claimUseCase, confirmUseCase);
+  const controller = new SubscriptionClaimController(
+    claimUseCase,
+    confirmUseCase
+  );
 
   router.post(
     '/api/subscriptions/claim',

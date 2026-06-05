@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ErrorGroupsResponse, ErrorSort, ErrorSource, ErrorStatus } from './errorsTypes';
+import {
+  ErrorGroupsResponse,
+  ErrorSort,
+  ErrorSource,
+  ErrorStatus,
+} from './errorsTypes';
 
 interface UseErrorGroupsOptions {
   limit?: number;
@@ -16,7 +21,9 @@ interface UseErrorGroupsResult {
   refetch: () => void;
 }
 
-export function useErrorGroups(options: UseErrorGroupsOptions): UseErrorGroupsResult {
+export function useErrorGroups(
+  options: UseErrorGroupsOptions
+): UseErrorGroupsResult {
   const { limit = 50, offset = 0, source, sort, status } = options;
   const [data, setData] = useState<ErrorGroupsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,7 +63,9 @@ export function useErrorGroups(options: UseErrorGroupsOptions): UseErrorGroupsRe
         }
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [limit, offset, source, sort, status, tick]);
 
   return {

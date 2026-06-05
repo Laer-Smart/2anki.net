@@ -23,6 +23,6 @@ describe('GetMindmapStorageMetricsUseCase', () => {
     const result = await useCase.execute();
 
     expect(result).toBe(fake);
-    expect((service.getMetrics as jest.Mock)).toHaveBeenCalledTimes(1);
+    expect(service.getMetrics as jest.Mock).toHaveBeenCalledTimes(1);
   });
 });

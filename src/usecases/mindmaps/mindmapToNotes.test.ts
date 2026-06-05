@@ -83,17 +83,24 @@ describe('mindmapToNotes', () => {
   });
 
   it('node with image produces a card whose back contains an img tag with the filename', () => {
-    const result = mindmapToNotes({
-      nodes: [
-        { id: '1', label: 'Parent' },
-        {
-          id: '2',
-          label: 'Child with image',
-          image: { url: '/api/mindmaps/images/42/map-1/abc.png', width: 100, height: 80 },
-        },
-      ],
-      edges: [{ source: '1', target: '2' }],
-    }, { 'abc.png': 'abc.png' });
+    const result = mindmapToNotes(
+      {
+        nodes: [
+          { id: '1', label: 'Parent' },
+          {
+            id: '2',
+            label: 'Child with image',
+            image: {
+              url: '/api/mindmaps/images/42/map-1/abc.png',
+              width: 100,
+              height: 80,
+            },
+          },
+        ],
+        edges: [{ source: '1', target: '2' }],
+      },
+      { 'abc.png': 'abc.png' }
+    );
 
     expect(result[0].back).toContain('<img src="abc.png"');
     expect(result[0].back).toContain('Child with image');
@@ -121,7 +128,11 @@ describe('mindmapToNotes', () => {
         {
           id: '2',
           label: 'No map',
-          image: { url: '/api/mindmaps/images/42/map-1/xyz.png', width: 100, height: 80 },
+          image: {
+            url: '/api/mindmaps/images/42/map-1/xyz.png',
+            width: 100,
+            height: 80,
+          },
         },
       ],
       edges: [{ source: '1', target: '2' }],

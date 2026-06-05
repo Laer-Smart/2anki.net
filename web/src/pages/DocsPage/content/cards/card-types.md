@@ -109,6 +109,7 @@ In Notion's markdown shortcuts:
 
 ```markdown
 > Which antibiotic class inhibits cell wall synthesis?
+
     - [ ]  Fluoroquinolones
     - [x]  Beta-lactams
     - [ ]  Macrolides

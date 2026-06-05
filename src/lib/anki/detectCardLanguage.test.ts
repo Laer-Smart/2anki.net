@@ -10,7 +10,9 @@ describe('detectFrontLanguage', () => {
   });
 
   it('returns ja when hiragana dominates', () => {
-    expect(detectFrontLanguage(['こんにちは', 'ありがとう', 'すみません'])).toBe('ja');
+    expect(
+      detectFrontLanguage(['こんにちは', 'ありがとう', 'すみません'])
+    ).toBe('ja');
   });
 
   it('returns ja when katakana dominates', () => {
@@ -18,7 +20,9 @@ describe('detectFrontLanguage', () => {
   });
 
   it('returns ko when hangul dominates', () => {
-    expect(detectFrontLanguage(['안녕하세요', '감사합니다', '죄송합니다'])).toBe('ko');
+    expect(
+      detectFrontLanguage(['안녕하세요', '감사합니다', '죄송합니다'])
+    ).toBe('ko');
   });
 
   it('returns zh when only CJK ideographs are present (no kana, no hangul)', () => {
@@ -34,7 +38,9 @@ describe('detectFrontLanguage', () => {
   });
 
   it('strips HTML tags before classifying', () => {
-    expect(detectFrontLanguage(['<p>こんにちは</p>', '<span>ありがとう</span>'])).toBe('ja');
+    expect(
+      detectFrontLanguage(['<p>こんにちは</p>', '<span>ありがとう</span>'])
+    ).toBe('ja');
   });
 
   it('falls back to en when fewer than half of samples match a single script', () => {
@@ -42,6 +48,8 @@ describe('detectFrontLanguage', () => {
   });
 
   it('prefers ja over zh when both kana and ideographs appear together', () => {
-    expect(detectFrontLanguage(['日本語のテスト', '私の名前', '今日は'])).toBe('ja');
+    expect(detectFrontLanguage(['日本語のテスト', '私の名前', '今日は'])).toBe(
+      'ja'
+    );
   });
 });

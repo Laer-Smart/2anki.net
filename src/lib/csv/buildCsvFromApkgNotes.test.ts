@@ -39,20 +39,28 @@ describe('buildCsvFromApkgNotes', () => {
 
   it('emits one row per basic note with model, fields, and tags', () => {
     const notes: ParsedNote[] = [
-      basicNote(['What is the capital of France?', 'Paris'], ['geography', 'europe']),
+      basicNote(
+        ['What is the capital of France?', 'Paris'],
+        ['geography', 'europe']
+      ),
       basicNote(['2 + 2', '4']),
     ];
     const csv = buildCsvFromApkgNotes(notes);
     const lines = csv.split('\r\n');
     expect(lines[0]).toBe('Model,Front,Back,Tags');
-    expect(lines[1]).toBe('Basic,What is the capital of France?,Paris,geography europe');
+    expect(lines[1]).toBe(
+      'Basic,What is the capital of France?,Paris,geography europe'
+    );
     expect(lines[2]).toBe('Basic,2 + 2,4,');
     expect(lines[3]).toBe('');
   });
 
   it('preserves cloze markup in the cloze field column and marks model as Cloze', () => {
     const notes: ParsedNote[] = [
-      clozeNote(['The capital of {{c1::France}} is {{c2::Paris}}', 'Geography note']),
+      clozeNote([
+        'The capital of {{c1::France}} is {{c2::Paris}}',
+        'Geography note',
+      ]),
     ];
     const csv = buildCsvFromApkgNotes(notes);
     const lines = csv.split('\r\n');

@@ -8,7 +8,9 @@ const MCQ_MIN_OPTIONS = 2;
 const MCQ_MAX_OPTIONS = 7;
 
 function collectListItems(element: Element, dom: CheerioAPI): Element[] {
-  return dom(element).find('ul.to-do-list > li, ul.bulleted-list > li').toArray() as Element[];
+  return dom(element)
+    .find('ul.to-do-list > li, ul.bulleted-list > li')
+    .toArray() as Element[];
 }
 
 function checkedTodoIndex(items: Element[], dom: CheerioAPI): number {
@@ -38,7 +40,8 @@ function fullyBoldedIndex(items: Element[], dom: CheerioAPI): number {
 
 export function isMCQ(element: Element, dom: CheerioAPI): number {
   const items = collectListItems(element, dom);
-  if (items.length < MCQ_MIN_OPTIONS || items.length > MCQ_MAX_OPTIONS) return -1;
+  if (items.length < MCQ_MIN_OPTIONS || items.length > MCQ_MAX_OPTIONS)
+    return -1;
 
   const hasTodoItems = dom(element).find('ul.to-do-list > li').length > 0;
   if (hasTodoItems) {
@@ -85,7 +88,10 @@ export function detectMarkdownMCQ(bodyHtml: string): MarkdownMcqResult {
     .filter((_, li) => $(li).children('input[type="checkbox"]').length > 0)
     .toArray() as Element[];
 
-  if (taskItems.length < MCQ_MIN_OPTIONS || taskItems.length > MCQ_MAX_OPTIONS) {
+  if (
+    taskItems.length < MCQ_MIN_OPTIONS ||
+    taskItems.length > MCQ_MAX_OPTIONS
+  ) {
     return { isMcqShape: false, correctIndex: -1, options: [] };
   }
 
@@ -94,7 +100,9 @@ export function detectMarkdownMCQ(bodyHtml: string): MarkdownMcqResult {
     .every((ul) => {
       const lis = $(ul).children('li').toArray();
       if (lis.length === 0) return true;
-      return lis.every((li) => $(li).children('input[type="checkbox"]').length > 0);
+      return lis.every(
+        (li) => $(li).children('input[type="checkbox"]').length > 0
+      );
     });
   if (!everyItemIsTaskItem) {
     return { isMcqShape: false, correctIndex: -1, options: [] };

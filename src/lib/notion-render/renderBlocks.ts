@@ -293,7 +293,9 @@ const renderCallout = async (
 ): Promise<string> => {
   const inner = renderRichText(block.callout?.rich_text);
   const emoji =
-    block.callout?.icon?.type === 'emoji' ? block.callout.icon.emoji ?? '' : '';
+    block.callout?.icon?.type === 'emoji'
+      ? (block.callout.icon.emoji ?? '')
+      : '';
   const childrenHtml = await renderChildren(block, ctx, depth);
   const head = emoji === '' ? inner : `${escapeHtml(emoji)} ${inner}`;
   return `<div class="callout">${head}${childrenHtml}</div>`;

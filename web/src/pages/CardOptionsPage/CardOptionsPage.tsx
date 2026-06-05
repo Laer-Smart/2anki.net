@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
 import { CardOptionsForm } from '../../components/CardOptionsForm/CardOptionsForm';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
@@ -52,12 +57,16 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
   const { data: userLocals } = useUserLocals();
   const isLoggedIn = userLocals?.user?.id != null;
   const [perPageItems, setPerPageItems] = useState<PerPageItem[]>([]);
-  const [pendingResetIds, setPendingResetIds] = useState<Set<string>>(new Set());
+  const [pendingResetIds, setPendingResetIds] = useState<Set<string>>(
+    new Set()
+  );
   const [rowError, setRowError] = useState<string | null>(null);
   const [bulkError, setBulkError] = useState<string | null>(null);
   const [bulkSuccess, setBulkSuccess] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const bulkResetDialogRef = useDialog(confirmOpen, () => setConfirmOpen(false));
+  const bulkResetDialogRef = useDialog(confirmOpen, () =>
+    setConfirmOpen(false)
+  );
   const [bulkPending, setBulkPending] = useState(false);
 
   const pageId = params.get('pageId');
@@ -162,7 +171,11 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
               names, templates, card types, and more. Changes here apply to
               every new conversion.
               {cameFromNotion && (
-                <> To adjust settings for a single Notion page, open it from the list below.</>
+                <>
+                  {' '}
+                  To adjust settings for a single Notion page, open it from the
+                  list below.
+                </>
               )}{' '}
               <Link to="/documentation">Read the docs</Link> for a full
               explanation of each option.
@@ -250,7 +263,9 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
                                 {displayTitle ?? 'Untitled page'}
                               </span>
                               {(() => {
-                                const updatedLabel = formatUpdatedAt(item.updatedAt);
+                                const updatedLabel = formatUpdatedAt(
+                                  item.updatedAt
+                                );
                                 return updatedLabel ? (
                                   <span className={styles.entryTimestamp}>
                                     Updated {updatedLabel}
@@ -358,8 +373,8 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
             <p>
               {itemCount} {itemCount === 1 ? 'page' : 'pages'} will go back to
               your default options. The custom options and parser rules saved
-              for these pages are removed. You can save new options for any
-              page later.
+              for these pages are removed. You can save new options for any page
+              later.
             </p>
           </div>
           <div className={sharedStyles.modalFooter}>

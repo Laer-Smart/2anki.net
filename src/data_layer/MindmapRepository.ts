@@ -1,9 +1,6 @@
 import { Knex } from 'knex';
 
-import Mindmaps, {
-  MindmapsId,
-  MindmapsInitializer,
-} from './public/Mindmaps';
+import Mindmaps, { MindmapsId, MindmapsInitializer } from './public/Mindmaps';
 import { UsersId } from './public/Users';
 
 const TABLE = 'mindmaps';
@@ -14,10 +11,16 @@ export interface MindmapImageStatsRow {
 }
 
 export interface MindmapRepositoryInterface {
-  create(input: Omit<MindmapsInitializer, 'id' | 'created_at' | 'updated_at'>): Promise<Mindmaps>;
+  create(
+    input: Omit<MindmapsInitializer, 'id' | 'created_at' | 'updated_at'>
+  ): Promise<Mindmaps>;
   findById(id: MindmapsId, userId: UsersId): Promise<Mindmaps | null>;
   findByUserId(userId: UsersId): Promise<Mindmaps[]>;
-  update(id: MindmapsId, userId: UsersId, patch: Partial<Pick<Mindmaps, 'title' | 'data'>>): Promise<Mindmaps | null>;
+  update(
+    id: MindmapsId,
+    userId: UsersId,
+    patch: Partial<Pick<Mindmaps, 'title' | 'data'>>
+  ): Promise<Mindmaps | null>;
   delete(id: MindmapsId, userId: UsersId): Promise<void>;
   countByUserId(userId: UsersId): Promise<number>;
   getMindmapImageStats(): Promise<MindmapImageStatsRow>;
@@ -78,7 +81,9 @@ export class MindmapRepository implements MindmapRepositoryInterface {
   }
 
   async getMindmapImageStats(): Promise<MindmapImageStatsRow> {
-    const result = await this.database.raw<{ rows: Array<{ total: string; with_images: string }> }>(
+    const result = await this.database.raw<{
+      rows: Array<{ total: string; with_images: string }>;
+    }>(
       `SELECT
          COUNT(*)::int AS total,
          SUM(

@@ -41,7 +41,11 @@ describe('applyEditsToCards', () => {
   });
 
   it('edits both front and back when both are provided', () => {
-    const edit: CardEdit = { cardIndex: 0, front: 'new front', back: 'new back' };
+    const edit: CardEdit = {
+      cardIndex: 0,
+      front: 'new front',
+      back: 'new back',
+    };
     const [result] = applyEditsToCards([card0], [edit]);
     expect(result.front).toBe('new front');
     expect(result.back).toBe('new back');

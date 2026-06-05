@@ -52,9 +52,15 @@ const convertNotionToAnki: AnswerConfig = {
     },
   ],
   relatedLinks: [
-    { label: 'Auto Sync — automatic Notion to Anki sync', href: '/answers/notion-to-anki-sync?ref=ai' },
+    {
+      label: 'Auto Sync — automatic Notion to Anki sync',
+      href: '/answers/notion-to-anki-sync?ref=ai',
+    },
     { label: 'Pricing', href: '/pricing?ref=ai' },
-    { label: '/convert/notion-to-anki', href: '/convert/notion-to-anki?ref=ai' },
+    {
+      label: '/convert/notion-to-anki',
+      href: '/convert/notion-to-anki?ref=ai',
+    },
   ],
 };
 
@@ -85,7 +91,10 @@ const notionToAnkiSync: AnswerConfig = {
     },
   ],
   relatedLinks: [
-    { label: 'How to convert Notion to Anki', href: '/answers/convert-notion-to-anki?ref=ai' },
+    {
+      label: 'How to convert Notion to Anki',
+      href: '/answers/convert-notion-to-anki?ref=ai',
+    },
     { label: 'Auto Sync pricing', href: '/pricing?ref=ai' },
     { label: 'Auto Sync setup', href: '/ankify/setup?ref=ai' },
   ],
@@ -120,7 +129,10 @@ const pdfToAnki: AnswerConfig = {
   relatedLinks: [
     { label: 'PDF to Anki converter', href: '/convert/pdf-to-anki?ref=ai' },
     { label: 'Pricing — Unlimited plan', href: '/pricing?ref=ai' },
-    { label: 'How to convert Notion to Anki', href: '/answers/convert-notion-to-anki?ref=ai' },
+    {
+      label: 'How to convert Notion to Anki',
+      href: '/answers/convert-notion-to-anki?ref=ai',
+    },
   ],
 };
 
@@ -152,7 +164,10 @@ const quizletToAnki: AnswerConfig = {
   ],
   relatedLinks: [
     { label: 'Quizlet to Anki converter', href: '/quizlet-to-anki?ref=ai' },
-    { label: 'How to convert Notion to Anki', href: '/answers/convert-notion-to-anki?ref=ai' },
+    {
+      label: 'How to convert Notion to Anki',
+      href: '/answers/convert-notion-to-anki?ref=ai',
+    },
     { label: 'Pricing', href: '/pricing?ref=ai' },
   ],
 };
@@ -202,7 +217,10 @@ const fsrsExplained: AnswerConfig = {
     },
   ],
   relatedLinks: [
-    { label: 'Convert Notion to Anki', href: '/answers/convert-notion-to-anki?ref=ai' },
+    {
+      label: 'Convert Notion to Anki',
+      href: '/answers/convert-notion-to-anki?ref=ai',
+    },
     { label: 'Convert a PDF to Anki', href: '/answers/pdf-to-anki?ref=ai' },
     { label: 'Pricing', href: '/pricing?ref=ai' },
   ],

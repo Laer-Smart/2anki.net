@@ -11,7 +11,10 @@ import {
 } from '../../../../../components/errors/helpers/getErrorMessage';
 import { get2ankiApi } from '../../../../../lib/backend/get2ankiApi';
 import { getSearchPath } from '../../../../../components/NavigationBar/helpers/getSearchPath';
-import { migrateToServer, hydrateFromServer } from '../../../../../lib/data_layer/userPreferencesSync';
+import {
+  migrateToServer,
+  hydrateFromServer,
+} from '../../../../../lib/data_layer/userPreferencesSync';
 
 interface LoginState {
   email: string;
@@ -54,13 +57,19 @@ export const useHandleLoginSubmit = (onError: ErrorHandlerType): LoginState => {
         } catch {
           // sessionStorage may be unavailable; the survey just won't arm.
         }
-        globalThis.location.href = redirect ?? getUrlRedirect() ?? getSearchPath('anki');
+        globalThis.location.href =
+          redirect ?? getUrlRedirect() ?? getSearchPath('anki');
       } else if (res.status === 401) {
-        const data = await res.json().catch(() => ({})) as { message?: string; hint?: string };
-        const base = 'Wrong email or password. Try again or reset your password.';
-        const detail = data.hint === 'google'
-          ? ' This account uses Google sign-in — use "Sign in with Google" or send a login link.'
-          : '';
+        const data = (await res.json().catch(() => ({}))) as {
+          message?: string;
+          hint?: string;
+        };
+        const base =
+          'Wrong email or password. Try again or reset your password.';
+        const detail =
+          data.hint === 'google'
+            ? ' This account uses Google sign-in — use "Sign in with Google" or send a login link.'
+            : '';
         onError(new Error(base + detail));
       } else {
         onError(

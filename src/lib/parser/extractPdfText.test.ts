@@ -113,7 +113,9 @@ describe('extractPdfText', () => {
 
     const result = await extractPdfText(FIXTURE_BUFFER, 'correct-password');
 
-    expect(mockPdfParse).toHaveBeenCalledWith(FIXTURE_BUFFER, { userPassword: 'correct-password' });
+    expect(mockPdfParse).toHaveBeenCalledWith(FIXTURE_BUFFER, {
+      userPassword: 'correct-password',
+    });
     expect(result.needsCredential).toBe(false);
     expect(result.isDrmLocked).toBe(false);
     expect(result.pageCount).toBe(2);

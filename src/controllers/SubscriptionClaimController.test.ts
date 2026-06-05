@@ -4,7 +4,10 @@ import { CLAIM_INITIATE_MESSAGE } from '../usecases/subscriptions/ClaimSubscript
 
 process.env.THE_HASHING_SECRET = 'test-secret-for-jest';
 
-function buildReq(body: Record<string, unknown> = {}, headers: Record<string, string> = {}): Request {
+function buildReq(
+  body: Record<string, unknown> = {},
+  headers: Record<string, string> = {}
+): Request {
   return {
     body,
     headers,
@@ -29,7 +32,9 @@ describe('SubscriptionClaimController.initiate', () => {
     const res = buildRes();
     await controller.initiate(buildReq({}), res);
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Invalid email address.' });
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Invalid email address.',
+    });
   });
 
   it('returns 400 for invalid email without @', async () => {
@@ -43,7 +48,9 @@ describe('SubscriptionClaimController.initiate', () => {
   });
 
   it('returns 200 with the identical message regardless of match', async () => {
-    const claimUseCase = { execute: jest.fn().mockResolvedValue({ message: CLAIM_INITIATE_MESSAGE }) };
+    const claimUseCase = {
+      execute: jest.fn().mockResolvedValue({ message: CLAIM_INITIATE_MESSAGE }),
+    };
     const controller = new SubscriptionClaimController(
       claimUseCase as never,
       { execute: jest.fn() } as never
@@ -68,7 +75,9 @@ describe('SubscriptionClaimController.confirm', () => {
   });
 
   it('returns 200 on success', async () => {
-    const confirmUseCase = { execute: jest.fn().mockResolvedValue({ success: true }) };
+    const confirmUseCase = {
+      execute: jest.fn().mockResolvedValue({ success: true }),
+    };
     const controller = new SubscriptionClaimController(
       { execute: jest.fn() } as never,
       confirmUseCase as never
@@ -81,7 +90,9 @@ describe('SubscriptionClaimController.confirm', () => {
 
   it('returns 409 for already consumed token', async () => {
     const confirmUseCase = {
-      execute: jest.fn().mockResolvedValue({ success: false, reason: 'already_consumed' }),
+      execute: jest
+        .fn()
+        .mockResolvedValue({ success: false, reason: 'already_consumed' }),
     };
     const controller = new SubscriptionClaimController(
       { execute: jest.fn() } as never,
@@ -94,7 +105,9 @@ describe('SubscriptionClaimController.confirm', () => {
 
   it('returns 409 when user already has active subscription', async () => {
     const confirmUseCase = {
-      execute: jest.fn().mockResolvedValue({ success: false, reason: 'user_has_active_sub' }),
+      execute: jest
+        .fn()
+        .mockResolvedValue({ success: false, reason: 'user_has_active_sub' }),
     };
     const controller = new SubscriptionClaimController(
       { execute: jest.fn() } as never,
@@ -107,7 +120,9 @@ describe('SubscriptionClaimController.confirm', () => {
 
   it('returns 400 for invalid or expired token', async () => {
     const confirmUseCase = {
-      execute: jest.fn().mockResolvedValue({ success: false, reason: 'invalid_token' }),
+      execute: jest
+        .fn()
+        .mockResolvedValue({ success: false, reason: 'invalid_token' }),
     };
     const controller = new SubscriptionClaimController(
       { execute: jest.fn() } as never,

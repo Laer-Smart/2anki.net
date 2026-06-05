@@ -264,7 +264,9 @@ export class Backend {
   }
 
   async getDatabasePreview(id: string): Promise<DatabasePreviewResponse> {
-    return get(`${this.baseURL}notion/database/${encodeURIComponent(id)}/preview`);
+    return get(
+      `${this.baseURL}notion/database/${encodeURIComponent(id)}/preview`
+    );
   }
 
   async getUploads(): Promise<UserUpload[]> {
@@ -434,27 +436,37 @@ export class Backend {
     await post(`${this.baseURL}users/debug/ankify-welcome-seen`, {});
   }
 
-  async startAutoSyncCheckout(variant?: string, surface?: string): Promise<
+  async startAutoSyncCheckout(
+    variant?: string,
+    surface?: string
+  ): Promise<
     { url: string } | { status: 'cap_reached' | 'already_subscribed' | 'error' }
   > {
     try {
-      const response = await post(`${this.baseURL}checkout/auto-sync`, { variant, surface });
+      const response = await post(`${this.baseURL}checkout/auto-sync`, {
+        variant,
+        surface,
+      });
       if (response.status === 404) {
         return { status: 'cap_reached' };
       }
       if (!response.ok) {
         return { status: 'error' };
       }
-      const body = (await response.json().catch(() => null)) as
-        | { url?: string; status?: 'cap_reached' | 'already_subscribed' }
-        | null;
+      const body = (await response.json().catch(() => null)) as {
+        url?: string;
+        status?: 'cap_reached' | 'already_subscribed';
+      } | null;
       if (body == null) {
         return { status: 'error' };
       }
       if (typeof body.url === 'string') {
         return { url: body.url };
       }
-      if (body.status === 'cap_reached' || body.status === 'already_subscribed') {
+      if (
+        body.status === 'cap_reached' ||
+        body.status === 'already_subscribed'
+      ) {
         return { status: body.status };
       }
       return { status: 'error' };
@@ -469,16 +481,20 @@ export class Backend {
     surface?: string
   ): Promise<{ url: string } | { status: 'unavailable' | 'error' }> {
     try {
-      const response = await post(`${this.baseURL}checkout/unlimited`, { interval, variant, surface });
+      const response = await post(`${this.baseURL}checkout/unlimited`, {
+        interval,
+        variant,
+        surface,
+      });
       if (response.status === 503) {
         return { status: 'unavailable' };
       }
       if (!response.ok) {
         return { status: 'error' };
       }
-      const body = (await response.json().catch(() => null)) as
-        | { url?: string }
-        | null;
+      const body = (await response.json().catch(() => null)) as {
+        url?: string;
+      } | null;
       if (body?.url != null) {
         return { url: body.url };
       }
@@ -495,16 +511,19 @@ export class Backend {
   ): Promise<{ url: string } | { status: 'unavailable' | 'error' }> {
     const path = kind === '24h' ? 'checkout/pass/24h' : 'checkout/pass/7d';
     try {
-      const response = await post(`${this.baseURL}${path}`, { variant, surface });
+      const response = await post(`${this.baseURL}${path}`, {
+        variant,
+        surface,
+      });
       if (response.status === 503) {
         return { status: 'unavailable' };
       }
       if (!response.ok) {
         return { status: 'error' };
       }
-      const body = (await response.json().catch(() => null)) as
-        | { url?: string }
-        | null;
+      const body = (await response.json().catch(() => null)) as {
+        url?: string;
+      } | null;
       if (body?.url != null) {
         return { url: body.url };
       }

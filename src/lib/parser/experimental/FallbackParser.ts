@@ -144,7 +144,10 @@ class FallbackParser {
       .filter((note) => note.name.length > 0 && note.back.length > 0);
   }
 
-  private parseHTMLFile(contents: string, fileName: string): { cards: Note[]; deckName: string } {
+  private parseHTMLFile(
+    contents: string,
+    fileName: string
+  ): { cards: Note[]; deckName: string } {
     const plainText = this.htmlToTextWithNewlines(contents).join('\n');
     const plainTextParser = new PlainTextParser();
     const found = plainTextParser.parse(plainText);
@@ -154,7 +157,10 @@ class FallbackParser {
     };
   }
 
-  private parseTextFile(contents: string, fileName: string): { cards: Note[]; deckName: string } | null {
+  private parseTextFile(
+    contents: string,
+    fileName: string
+  ): { cards: Note[]; deckName: string } | null {
     if (this.isTabSeparated(contents)) {
       return {
         cards: this.parseTabSeparated(contents),
@@ -173,7 +179,10 @@ class FallbackParser {
     };
   }
 
-  private parseCSVFile(contents: Uint8Array, fileName: string): { cards: Note[]; deckName: string; clean: boolean } {
+  private parseCSVFile(
+    contents: Uint8Array,
+    fileName: string
+  ): { cards: Note[]; deckName: string; clean: boolean } {
     const csv = new TextDecoder().decode(contents);
     return {
       cards: getCardsFromCSV(csv) as Note[],
@@ -192,7 +201,8 @@ class FallbackParser {
         continue;
       }
 
-      let result: { cards: Note[]; deckName: string; clean?: boolean } | null = null;
+      let result: { cards: Note[]; deckName: string; clean?: boolean } | null =
+        null;
 
       if (isHTMLFile(file.name)) {
         result = this.parseHTMLFile(contents, file.name);

@@ -21,13 +21,20 @@ a:hover { text-decoration: underline; }
 }
 `;
 
-export const DownloadPage = ({ id, sourceTitle, files, totalSizeBytes }: DownloadPageViewModel) => {
+export const DownloadPage = ({
+  id,
+  sourceTitle,
+  files,
+  totalSizeBytes,
+}: DownloadPageViewModel) => {
   const count = files.length;
   const hasFiles = count > 0;
   const showStickyBar = count >= STICKY_THRESHOLD;
 
   const deckWord = count === 1 ? 'deck' : 'decks';
-  const title = hasFiles ? `${count} ${deckWord} ready — 2anki` : 'Your decks — 2anki';
+  const title = hasFiles
+    ? `${count} ${deckWord} ready — 2anki`
+    : 'Your decks — 2anki';
 
   return ReactDOMServer.renderToStaticMarkup(
     <html lang="en">
@@ -35,7 +42,10 @@ export const DownloadPage = ({ id, sourceTitle, files, totalSizeBytes }: Downloa
         <meta charSet="utf-8" />
         <title>{title}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="Download your Anki decks from 2anki.net" />
+        <meta
+          name="description"
+          content="Download your Anki decks from 2anki.net"
+        />
         <style dangerouslySetInnerHTML={{ __html: globalCss }} />
       </head>
       <body style={styles.pageBackground}>
@@ -62,7 +72,10 @@ export const DownloadPage = ({ id, sourceTitle, files, totalSizeBytes }: Downloa
           {hasFiles ? (
             <>
               <DownloadTitle count={count} />
-              <DownloadDescription sourceTitle={sourceTitle} totalSizeBytes={totalSizeBytes} />
+              <DownloadDescription
+                sourceTitle={sourceTitle}
+                totalSizeBytes={totalSizeBytes}
+              />
               <div style={styles.ctaRow}>
                 <a
                   href={`/download/${id}/bulk`}
@@ -71,7 +84,9 @@ export const DownloadPage = ({ id, sourceTitle, files, totalSizeBytes }: Downloa
                 >
                   Download all ({count})
                 </a>
-                <p style={styles.expiryLine}>Available for 2 hours, then removed.</p>
+                <p style={styles.expiryLine}>
+                  Available for 2 hours, then removed.
+                </p>
               </div>
               <DownloadList files={files} id={id} />
             </>
@@ -79,7 +94,8 @@ export const DownloadPage = ({ id, sourceTitle, files, totalSizeBytes }: Downloa
             <>
               <h1 style={styles.h1}>No decks found in your upload</h1>
               <p style={{ color: '#64748b', fontSize: '15px' }}>
-                Check that your file follows the formatting guidelines and try again.
+                Check that your file follows the formatting guidelines and try
+                again.
               </p>
             </>
           )}

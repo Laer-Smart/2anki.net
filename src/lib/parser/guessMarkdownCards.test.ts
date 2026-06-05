@@ -6,7 +6,9 @@ describe('guessMarkdownCards', () => {
   });
 
   it('returns null when no known pattern is found', () => {
-    expect(guessMarkdownCards('just some random text\nwith multiple lines')).toBeNull();
+    expect(
+      guessMarkdownCards('just some random text\nwith multiple lines')
+    ).toBeNull();
   });
 
   describe('details-summary (Notion export)', () => {

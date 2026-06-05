@@ -10,7 +10,12 @@ import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersU
 const buildRes = () => {
   const json = jest.fn();
   const status = jest.fn().mockReturnValue({ json });
-  return { json, status, end: jest.fn(), set: jest.fn() } as unknown as express.Response & {
+  return {
+    json,
+    status,
+    end: jest.fn(),
+    set: jest.fn(),
+  } as unknown as express.Response & {
     json: jest.Mock;
     status: jest.Mock;
     set: jest.Mock;
@@ -29,7 +34,7 @@ describe('OpsController.getMetrics', () => {
 
     await controller.getMetrics(req, res);
 
-    expect((useCase.execute as jest.Mock)).toHaveBeenCalledWith('24h');
+    expect(useCase.execute as jest.Mock).toHaveBeenCalledWith('24h');
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(fakeMetrics);
   });
@@ -41,7 +46,9 @@ describe('OpsController.getMetrics', () => {
     const controller = new OpsController(useCase);
     const req = { query: {} } as unknown as express.Request;
     const res = buildRes();
-    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
 
     await controller.getMetrics(req, res);
 
@@ -66,7 +73,7 @@ describe('OpsController.getBusinessMetrics', () => {
 
     await controller.getBusinessMetrics(req, res);
 
-    expect((businessUseCase.execute as jest.Mock)).toHaveBeenCalledTimes(1);
+    expect(businessUseCase.execute as jest.Mock).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(fake);
   });
@@ -79,7 +86,9 @@ describe('OpsController.getBusinessMetrics', () => {
     const controller = new OpsController(opsUseCase, businessUseCase);
     const req = {} as unknown as express.Request;
     const res = buildRes();
-    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
 
     await controller.getBusinessMetrics(req, res);
 
@@ -143,7 +152,7 @@ describe('OpsController.getReturnRateMetrics', () => {
 
     await controller.getReturnRateMetrics(req, res);
 
-    expect((returnRateUseCase.execute as jest.Mock)).toHaveBeenCalledTimes(1);
+    expect(returnRateUseCase.execute as jest.Mock).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(fakeResult);
   });
@@ -166,7 +175,9 @@ describe('OpsController.getReturnRateMetrics', () => {
     );
     const req = {} as unknown as express.Request;
     const res = buildRes();
-    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
 
     await controller.getReturnRateMetrics(req, res);
 
@@ -194,7 +205,12 @@ describe('OpsController.getMindmapImageStats', () => {
   });
 
   it('returns 200 with the use case result', async () => {
-    const fakeResult = { total: 10, with_images: 3, ratio: 0.3, as_of: '2026-05-25T00:00:00.000Z' };
+    const fakeResult = {
+      total: 10,
+      with_images: 3,
+      ratio: 0.3,
+      as_of: '2026-05-25T00:00:00.000Z',
+    };
     const opsUseCase = {} as unknown as GetOpsMetricsUseCase;
     const imageStatsUseCase = {
       execute: jest.fn().mockResolvedValue(fakeResult),
@@ -216,7 +232,7 @@ describe('OpsController.getMindmapImageStats', () => {
 
     await controller.getMindmapImageStats(req, res);
 
-    expect((imageStatsUseCase.execute as jest.Mock)).toHaveBeenCalledTimes(1);
+    expect(imageStatsUseCase.execute as jest.Mock).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(fakeResult);
   });
@@ -240,7 +256,9 @@ describe('OpsController.getMindmapImageStats', () => {
     );
     const req = {} as unknown as express.Request;
     const res = buildRes();
-    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
 
     await controller.getMindmapImageStats(req, res);
 
@@ -279,7 +297,7 @@ describe('OpsController.deleteInactiveUsers', () => {
 
     await controller.deleteInactiveUsers(req, res);
 
-    expect((useCase.execute as jest.Mock)).toHaveBeenCalledWith(true);
+    expect(useCase.execute as jest.Mock).toHaveBeenCalledWith(true);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ count: 5, dryRun: true });
   });
@@ -294,7 +312,7 @@ describe('OpsController.deleteInactiveUsers', () => {
 
     await controller.deleteInactiveUsers(req, res);
 
-    expect((useCase.execute as jest.Mock)).toHaveBeenCalledWith(false);
+    expect(useCase.execute as jest.Mock).toHaveBeenCalledWith(false);
   });
 
   it('returns 500 when the use case is not configured', async () => {

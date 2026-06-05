@@ -11,9 +11,8 @@ const TABLE = 'ankify_sync_conflicts';
 const fromRow = (row: AnkifySyncConflict): AnkifySyncConflict => ({
   ...row,
   anki_note_id: Number(row.anki_note_id),
-  anki_modified_at: row.anki_modified_at == null
-    ? null
-    : Number(row.anki_modified_at),
+  anki_modified_at:
+    row.anki_modified_at == null ? null : Number(row.anki_modified_at),
 });
 
 export interface AnkifySyncConflictsRepositoryInterface {
@@ -30,15 +29,10 @@ export interface AnkifySyncConflictsRepositoryInterface {
     owner: number,
     resolution: AnkifyConflictResolution
   ): Promise<void>;
-  hasPending(
-    ankifyClientId: number,
-    sourceId: string
-  ): Promise<boolean>;
+  hasPending(ankifyClientId: number, sourceId: string): Promise<boolean>;
 }
 
-export class AnkifySyncConflictsRepository
-  implements AnkifySyncConflictsRepositoryInterface
-{
+export class AnkifySyncConflictsRepository implements AnkifySyncConflictsRepositoryInterface {
   constructor(private readonly database: Knex) {}
 
   async recordOrFindPending(
@@ -68,9 +62,7 @@ export class AnkifySyncConflictsRepository
         notion_snapshot: JSON.stringify(
           input.notion_snapshot
         ) as unknown as object,
-        anki_snapshot: JSON.stringify(
-          input.anki_snapshot
-        ) as unknown as object,
+        anki_snapshot: JSON.stringify(input.anki_snapshot) as unknown as object,
         status: 'pending',
       })
       .returning('*');
@@ -118,10 +110,7 @@ export class AnkifySyncConflictsRepository
       .where({ id, owner });
   }
 
-  async hasPending(
-    ankifyClientId: number,
-    sourceId: string
-  ): Promise<boolean> {
+  async hasPending(ankifyClientId: number, sourceId: string): Promise<boolean> {
     const row = await this.database(TABLE)
       .select('id')
       .where({

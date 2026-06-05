@@ -45,9 +45,13 @@ export async function handleDropbox(
     // @ts-ignore
     req.files = await Promise.all(
       files.map(async (file) => {
-        const contents = await instrumentedAxios.get<ArrayBuffer>('dropbox', file.link, {
-          responseType: 'arraybuffer',
-        });
+        const contents = await instrumentedAxios.get<ArrayBuffer>(
+          'dropbox',
+          file.link,
+          {
+            responseType: 'arraybuffer',
+          }
+        );
         return {
           originalname: file.name,
           size: file.bytes,

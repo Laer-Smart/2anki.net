@@ -51,7 +51,8 @@ export class ValidateAnonymousPassUseCase {
     }
 
     try {
-      const session = await this.stripe.checkout.sessions.retrieve(stripeSessionId);
+      const session =
+        await this.stripe.checkout.sessions.retrieve(stripeSessionId);
       const meta = (session.metadata ?? {}) as Record<string, string>;
       const passKind = meta.pass_kind as PassKind | undefined;
       const isPaidAnonymousPass =
@@ -63,12 +64,15 @@ export class ValidateAnonymousPassUseCase {
       }
 
       const paymentIntentId =
-        typeof session.payment_intent === 'string' ? session.payment_intent : null;
+        typeof session.payment_intent === 'string'
+          ? session.payment_intent
+          : null;
       if (paymentIntentId == null) {
         return { valid: false };
       }
 
-      const createdMs = session.created != null ? session.created * 1000 : now.getTime();
+      const createdMs =
+        session.created != null ? session.created * 1000 : now.getTime();
       const expiresAt = new Date(createdMs + DURATION_MS[passKind]);
       if (expiresAt <= now) {
         return { valid: false };

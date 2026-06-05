@@ -6,7 +6,9 @@
   font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
   font-size: clamp(1.75rem, 3.5vw, 2.5rem);
   font-weight: 600;
-  font-variation-settings: 'opsz' 144, 'SOFT' 50;
+  font-variation-settings:
+    'opsz' 144,
+    'SOFT' 50;
   letter-spacing: -0.025em;
   color: var(--color-text-primary);
   text-align: center;
@@ -49,7 +51,9 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-bg-primary);
-  transition: border-color var(--transition-fast), transform var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .item:hover {

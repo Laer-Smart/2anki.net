@@ -20,9 +20,7 @@ describe('WithMicrosoftLink', () => {
   });
 
   it('card variant shows the short "Microsoft" label and keeps the full text as accessible name', () => {
-    render(
-      <WithMicrosoftLink text="Sign in with Microsoft" variant="card" />
-    );
+    render(<WithMicrosoftLink text="Sign in with Microsoft" variant="card" />);
     expect(screen.getByText('Microsoft')).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: 'Sign in with Microsoft' })

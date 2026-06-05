@@ -256,17 +256,19 @@ export default function AnkifySetupPage({ backend }: Props) {
           </button>
         </div>
       )}
-      {provision.error && (() => {
-        const err = provision.error as Error & { status?: number };
-        const body = err.status === 503
-          ? 'Anki couldn\'t start — usually a temporary infra issue. Try again in a moment. If it keeps failing, email support@2anki.net.'
-          : 'Anki couldn\'t start. Try again, or email support@2anki.net.';
-        return (
-          <div className={styles.provisionErrorBlock} role="alert">
-            <p className={styles.provisionErrorBody}>{body}</p>
-          </div>
-        );
-      })()}
+      {provision.error &&
+        (() => {
+          const err = provision.error as Error & { status?: number };
+          const body =
+            err.status === 503
+              ? "Anki couldn't start — usually a temporary infra issue. Try again in a moment. If it keeps failing, email support@2anki.net."
+              : "Anki couldn't start. Try again, or email support@2anki.net.";
+          return (
+            <div className={styles.provisionErrorBlock} role="alert">
+              <p className={styles.provisionErrorBody}>{body}</p>
+            </div>
+          );
+        })()}
     </section>
   );
 
@@ -328,9 +330,9 @@ export default function AnkifySetupPage({ backend }: Props) {
         <p className={styles.setupActiveStepLabel}>Step 2 of 2</p>
         <h2 className={styles.setupActiveStepTitle}>Sign in to AnkiWeb</h2>
         <p className={styles.setupActiveStepHint}>
-          Open Anki, click <strong>Sync</strong> in the toolbar, then enter
-          your AnkiWeb email and password. After that, we keep AnkiWeb up to
-          date whenever a Notion page changes.
+          Open Anki, click <strong>Sync</strong> in the toolbar, then enter your
+          AnkiWeb email and password. After that, we keep AnkiWeb up to date
+          whenever a Notion page changes.
         </p>
         <div className={styles.setupActiveStepActions}>
           {sessionUrl == null ? (

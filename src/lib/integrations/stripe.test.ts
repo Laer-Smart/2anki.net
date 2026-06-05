@@ -7,7 +7,9 @@ import { Knex } from 'knex';
 const makeInsertChain = () => {
   const mergeChain = { merge: jest.fn().mockResolvedValue(1) };
   const onConflictChain = { merge: jest.fn().mockReturnValue(mergeChain) };
-  const insertChain = { onConflict: jest.fn().mockReturnValue(onConflictChain) };
+  const insertChain = {
+    onConflict: jest.fn().mockReturnValue(onConflictChain),
+  };
   return { insertChain, onConflictChain, mergeChain };
 };
 
@@ -26,8 +28,11 @@ const makeKnex = () => {
   return { db, insertChain, onConflictChain, whereChain };
 };
 
-const makeCustomer = (email: string | null, id = 'cus_test123'): StripeTypes.Customer =>
-  ({ email, id, object: 'customer' } as unknown as StripeTypes.Customer);
+const makeCustomer = (
+  email: string | null,
+  id = 'cus_test123'
+): StripeTypes.Customer =>
+  ({ email, id, object: 'customer' }) as unknown as StripeTypes.Customer;
 
 const makeSubscription = (
   status: StripeTypes.Subscription['status'],
@@ -43,7 +48,7 @@ const makeSubscription = (
     items: {
       data: [{ price: { product: productId } }],
     },
-  } as unknown as StripeTypes.Subscription);
+  }) as unknown as StripeTypes.Subscription;
 
 describe('updateStoreSubscription', () => {
   test('inserts with stripe_product_id extracted from subscription items', async () => {
@@ -56,9 +61,16 @@ describe('updateStoreSubscription', () => {
 
     const subsResult = (db as unknown as jest.Mock).mock.results[0]?.value;
     expect(subsResult.insert).toHaveBeenCalledWith(
-      expect.objectContaining({ stripe_product_id: 'prod_auto_sync', active: true })
+      expect.objectContaining({
+        stripe_product_id: 'prod_auto_sync',
+        active: true,
+      })
     );
-    expect(onConflictChain.merge).toHaveBeenCalledWith(['active', 'payload', 'stripe_product_id']);
+    expect(onConflictChain.merge).toHaveBeenCalledWith([
+      'active',
+      'payload',
+      'stripe_product_id',
+    ]);
   });
 
   test('marks active=false when subscription status is canceled', async () => {
@@ -83,9 +95,13 @@ describe('updateStoreSubscription', () => {
       makeSubscription('active', 'prod_auto_sync')
     );
 
-    const usersCall = (db as unknown as jest.Mock).mock.calls.find((c) => c[0] === 'users');
+    const usersCall = (db as unknown as jest.Mock).mock.calls.find(
+      (c) => c[0] === 'users'
+    );
     expect(usersCall).toBeDefined();
-    expect(whereChain.update).toHaveBeenCalledWith({ stripe_customer_id: 'cus_test123' });
+    expect(whereChain.update).toHaveBeenCalledWith({
+      stripe_customer_id: 'cus_test123',
+    });
   });
 
   test('skips users table update when customer email is null', async () => {
@@ -96,7 +112,9 @@ describe('updateStoreSubscription', () => {
       makeSubscription('active', 'prod_auto_sync')
     );
 
-    const usersCall = (db as unknown as jest.Mock).mock.calls.find((c) => c[0] === 'users');
+    const usersCall = (db as unknown as jest.Mock).mock.calls.find(
+      (c) => c[0] === 'users'
+    );
     expect(usersCall).toBeUndefined();
   });
 });

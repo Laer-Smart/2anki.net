@@ -49,7 +49,7 @@ describe('GET /api/health', () => {
 
   it('returns ok: true with uptime and version', async () => {
     const res = await fetch(`${url}/api/health`);
-    const body = await res.json() as { ok: boolean; uptime: number };
+    const body = (await res.json()) as { ok: boolean; uptime: number };
     expect(res.status).toBe(200);
     expect(body.ok).toBe(true);
     expect(typeof body.uptime).toBe('number');
@@ -61,7 +61,7 @@ describe('GET /api/health/db', () => {
     const { server, url } = await buildServer(makeTestDb(true));
     try {
       const res = await fetch(`${url}/api/health/db`);
-      const body = await res.json() as { ok: boolean };
+      const body = (await res.json()) as { ok: boolean };
       expect(res.status).toBe(200);
       expect(body.ok).toBe(true);
     } finally {
@@ -73,7 +73,7 @@ describe('GET /api/health/db', () => {
     const { server, url } = await buildServer(makeTestDb(false));
     try {
       const res = await fetch(`${url}/api/health/db`);
-      const body = await res.json() as { ok: boolean };
+      const body = (await res.json()) as { ok: boolean };
       expect(res.status).toBe(503);
       expect(body.ok).toBe(false);
     } finally {
@@ -94,7 +94,7 @@ describe('GET /api/status', () => {
 
   it('returns the five signal shape', async () => {
     const res = await fetch(`${url}/api/status`);
-    const body = await res.json() as Record<string, unknown>;
+    const body = (await res.json()) as Record<string, unknown>;
     expect(res.status).toBe(200);
     expect(body).toMatchObject({
       api: { ok: true },
@@ -110,7 +110,7 @@ describe('GET /api/status', () => {
     const { server: s, url: u } = await buildServer(makeTestDb(false));
     try {
       const res = await fetch(`${u}/api/status`);
-      const body = await res.json() as { db: { ok: boolean } };
+      const body = (await res.json()) as { db: { ok: boolean } };
       expect(body.db).toEqual({ ok: false });
     } finally {
       s.close();

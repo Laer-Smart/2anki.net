@@ -69,14 +69,17 @@ describe('ResumeAbandonedCheckoutUseCase', () => {
     ['undefined input', undefined],
     ['malformed token', 'not-a-uuid'],
     ['sql-ish token', "' OR 1=1 --"],
-  ])('falls back without querying the repository on %s', async (_label, token) => {
-    const spy = jest.spyOn(repo, 'getRecoveryByToken');
+  ])(
+    'falls back without querying the repository on %s',
+    async (_label, token) => {
+      const spy = jest.spyOn(repo, 'getRecoveryByToken');
 
-    const result = await useCase.execute(token, NOW);
+      const result = await useCase.execute(token, NOW);
 
-    expect(result).toEqual({ url: '/pricing?from=recovery', resumed: false });
-    expect(spy).not.toHaveBeenCalled();
-  });
+      expect(result).toEqual({ url: '/pricing?from=recovery', resumed: false });
+      expect(spy).not.toHaveBeenCalled();
+    }
+  );
 
   it.each([
     ['http (not https)', 'http://buy.stripe.com/r/live_abc'],

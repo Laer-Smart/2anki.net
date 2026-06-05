@@ -5,9 +5,19 @@ import { DropboxUpload, GoogleDriveUpload } from '../../../lib/backend';
 export type DeckRow =
   | { source: 'notion'; kind: 'job'; job: JobResponse; sortKey: Date }
   | { source: 'upload'; kind: 'job'; job: JobResponse; sortKey: Date }
-  | { source: 'upload' | 'app'; kind: 'file'; upload: UserUpload; sortKey: Date }
+  | {
+      source: 'upload' | 'app';
+      kind: 'file';
+      upload: UserUpload;
+      sortKey: Date;
+    }
   | { source: 'dropbox'; kind: 'dropbox'; upload: DropboxUpload; sortKey: Date }
-  | { source: 'drive'; kind: 'drive'; upload: GoogleDriveUpload; sortKey: Date };
+  | {
+      source: 'drive';
+      kind: 'drive';
+      upload: GoogleDriveUpload;
+      sortKey: Date;
+    };
 
 const NOTION_TYPES = new Set(['page', 'database', 'conversion']);
 const EPOCH = new Date(0);
@@ -43,7 +53,7 @@ export function toDeckRows(
   jobs: JobResponse[],
   uploads: UserUpload[],
   dropboxUploads: DropboxUpload[],
-  googleDriveUploads: GoogleDriveUpload[],
+  googleDriveUploads: GoogleDriveUpload[]
 ): DeckRow[] {
   const suppressedUploadObjectIds = buildSuppressedObjectIds(jobs);
   const rows: DeckRow[] = [];
@@ -58,16 +68,35 @@ export function toDeckRows(
   }
 
   for (const upload of uploads) {
-    if (upload.object_id != null && suppressedUploadObjectIds.has(upload.object_id)) continue;
-    rows.push({ source: uploadSource(upload.source), kind: 'file', upload, sortKey: toSortKey(upload.created_at) });
+    if (
+      upload.object_id != null &&
+      suppressedUploadObjectIds.has(upload.object_id)
+    )
+      continue;
+    rows.push({
+      source: uploadSource(upload.source),
+      kind: 'file',
+      upload,
+      sortKey: toSortKey(upload.created_at),
+    });
   }
 
   for (const upload of dropboxUploads) {
-    rows.push({ source: 'dropbox', kind: 'dropbox', upload, sortKey: toSortKey(upload.created_at) });
+    rows.push({
+      source: 'dropbox',
+      kind: 'dropbox',
+      upload,
+      sortKey: toSortKey(upload.created_at),
+    });
   }
 
   for (const upload of googleDriveUploads) {
-    rows.push({ source: 'drive', kind: 'drive', upload, sortKey: toSortKey(upload.last_converted_at) });
+    rows.push({
+      source: 'drive',
+      kind: 'drive',
+      upload,
+      sortKey: toSortKey(upload.last_converted_at),
+    });
   }
 
   rows.sort((a, b) => b.sortKey.getTime() - a.sortKey.getTime());

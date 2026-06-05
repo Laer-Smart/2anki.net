@@ -39,9 +39,7 @@ describe('renderRichText', () => {
 
   it('renders inline LaTeX for equation items', () => {
     expect(
-      renderRichText([
-        { type: 'equation', equation: { expression: 'a < b' } },
-      ])
+      renderRichText([{ type: 'equation', equation: { expression: 'a < b' } }])
     ).toBe('\\(a &lt; b\\)');
   });
 });

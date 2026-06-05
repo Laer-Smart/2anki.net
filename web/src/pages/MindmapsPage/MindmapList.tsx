@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MindmapLimitModal } from './MindmapLimitModal';
-import { useMindmapList, useCreateMindmap, useDeleteMindmap } from './useMindmap';
+import {
+  useMindmapList,
+  useCreateMindmap,
+  useDeleteMindmap,
+} from './useMindmap';
 import shared from '../../styles/shared.module.css';
 import styles from './MindmapList.module.css';
 import TrashIcon from '../../components/icons/TrashIcon';
@@ -41,7 +45,12 @@ export function MindmapList() {
   if (isLoading) {
     return (
       <div className={shared.page}>
-        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+        <p
+          style={{
+            fontSize: 'var(--text-sm)',
+            color: 'var(--color-text-secondary)',
+          }}
+        >
           Reading your mind maps
         </p>
       </div>
@@ -50,10 +59,21 @@ export function MindmapList() {
 
   return (
     <div className={shared.page}>
-      <div className={shared.pageHeader} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+      <div
+        className={shared.pageHeader}
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          flexWrap: 'wrap',
+        }}
+      >
         <div>
           <h1 className={shared.title}>Mind maps</h1>
-          <p className={shared.subtitle}>Build a map, then download it as an Anki deck.</p>
+          <p className={shared.subtitle}>
+            Build a map, then download it as an Anki deck.
+          </p>
         </div>
         <button
           type="button"
@@ -65,14 +85,23 @@ export function MindmapList() {
       </div>
 
       {nearCap && !atCap && (
-        <div className={shared.notificationInfo} style={{ marginBottom: '1rem' }}>
+        <div
+          className={shared.notificationInfo}
+          style={{ marginBottom: '1rem' }}
+        >
           Your monthly limit: 3 mind maps. Upgrade for unlimited.
         </div>
       )}
 
       {data?.maps.length === 0 && (
         <div className={shared.emptyState}>
-          <p style={{ marginBottom: '1rem', color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)' }}>
+          <p
+            style={{
+              marginBottom: '1rem',
+              color: 'var(--color-text-primary)',
+              fontSize: 'var(--text-sm)',
+            }}
+          >
             No mind maps yet.
           </p>
           <button
@@ -92,10 +121,7 @@ export function MindmapList() {
           onClick={() => navigate(`/mindmaps/${map.id}`)}
           className={styles.mapRow}
         >
-          <span
-            className={styles.mapTitle}
-            title={map.title}
-          >
+          <span className={styles.mapTitle} title={map.title}>
             {map.title.length === 0 ? 'Untitled' : map.title}
           </span>
           <span className={styles.mapActions}>

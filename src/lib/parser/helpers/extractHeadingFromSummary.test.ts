@@ -5,8 +5,7 @@ import {
 
 describe('extractHeadingFromSummary', () => {
   it('returns the h3 markup when the details summary wraps an h3', () => {
-    const detailsInner =
-      '<summary><h3>Key point</h3></summary><div>body</div>';
+    const detailsInner = '<summary><h3>Key point</h3></summary><div>body</div>';
     expect(extractHeadingFromSummary(detailsInner)).toBe('<h3>Key point</h3>');
   });
 
@@ -16,8 +15,7 @@ describe('extractHeadingFromSummary', () => {
   });
 
   it('returns empty string when the summary has no heading element', () => {
-    const detailsInner =
-      '<summary>just plain question?</summary><p>answer</p>';
+    const detailsInner = '<summary>just plain question?</summary><p>answer</p>';
     expect(extractHeadingFromSummary(detailsInner)).toBe('');
   });
 

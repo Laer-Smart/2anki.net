@@ -43,7 +43,9 @@ describe('injectAdSenseScript', () => {
     const doc = makeDoc();
     expect(doc.getElementById(ADSENSE_SCRIPT_ID)).toBeNull();
     injectAdSenseScript(doc);
-    const script = doc.getElementById(ADSENSE_SCRIPT_ID) as HTMLScriptElement | null;
+    const script = doc.getElementById(
+      ADSENSE_SCRIPT_ID
+    ) as HTMLScriptElement | null;
     expect(script).not.toBeNull();
     expect(script?.tagName).toBe('SCRIPT');
     expect(script?.async).toBe(true);

@@ -17,7 +17,10 @@ export function parseCardCountHeader(headers: Headers): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-export function parseNonNegativeIntHeader(headers: Headers, name: string): number {
+export function parseNonNegativeIntHeader(
+  headers: Headers,
+  name: string
+): number {
   const raw = headers.get(name);
   if (!raw) return 0;
   const parsed = Number.parseInt(raw, 10);
@@ -64,7 +67,9 @@ export async function applyConversionSuccess(
   handlers.setDeckName(resolveDeckName(response.headers));
   const count = parseCardCountHeader(response.headers);
   handlers.setCardCount(count);
-  handlers.setMcqCount(parseNonNegativeIntHeader(response.headers, 'X-MCQ-Count'));
+  handlers.setMcqCount(
+    parseNonNegativeIntHeader(response.headers, 'X-MCQ-Count')
+  );
   handlers.setMcqSkippedCount(
     parseNonNegativeIntHeader(response.headers, 'X-MCQ-Skipped-Count')
   );

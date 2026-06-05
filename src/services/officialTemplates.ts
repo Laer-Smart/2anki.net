@@ -237,7 +237,8 @@ export function getOfficialTemplates(): OfficialStarter[] {
       file: 'n2a-cloze.json',
       id: 'official-n2a-cloze',
       name: 'Default (Cloze)',
-      description: 'Cloze deletion that matches the standard 2anki conversion output',
+      description:
+        'Cloze deletion that matches the standard 2anki conversion output',
       baseType: 'cloze',
       ankiType: 1,
       previewData: CLOZE_PREVIEW,
@@ -247,7 +248,8 @@ export function getOfficialTemplates(): OfficialStarter[] {
       file: 'n2a-input.json',
       id: 'official-n2a-input',
       name: 'Default (Type the answer)',
-      description: 'Type-in-the-answer note type from the 2anki conversion pipeline',
+      description:
+        'Type-in-the-answer note type from the 2anki conversion pipeline',
       baseType: 'basic',
       ankiType: 0,
       previewData: {
@@ -278,7 +280,8 @@ export function getOfficialTemplates(): OfficialStarter[] {
     styledFromJson({
       id: 'official-only-notion-basic',
       name: 'Only Notion (Basic)',
-      description: 'Notion-flavoured CSS only — strips the 2anki additions for a minimal Notion-native look',
+      description:
+        'Notion-flavoured CSS only — strips the 2anki additions for a minimal Notion-native look',
       baseType: 'basic',
       ankiType: 0,
       jsonFile: 'n2a-basic.json',
@@ -300,7 +303,8 @@ export function getOfficialTemplates(): OfficialStarter[] {
     styledFromJson({
       id: 'official-no-style-basic',
       name: 'Raw Note (no style)',
-      description: 'The bare note structure with no CSS applied — handy if you want to style it yourself',
+      description:
+        'The bare note structure with no CSS applied — handy if you want to style it yourself',
       baseType: 'basic',
       ankiType: 0,
       jsonFile: 'n2a-basic.json',
@@ -311,7 +315,8 @@ export function getOfficialTemplates(): OfficialStarter[] {
     variantStarter({
       id: 'official-abhiyan-basic',
       name: 'Abhiyan Bhandari (Night Mode)',
-      description: 'Dark, high-contrast Night Mode template by Abhiyan Bhandari',
+      description:
+        'Dark, high-contrast Night Mode template by Abhiyan Bhandari',
       baseType: 'basic',
       ankiType: 0,
       qfmtFile: 'abhiyan_basic_front.html',

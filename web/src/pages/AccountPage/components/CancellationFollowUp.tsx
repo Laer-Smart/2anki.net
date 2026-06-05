@@ -19,7 +19,11 @@ interface Props {
   readonly isSubmitting: boolean;
 }
 
-export function CancellationFollowUp({ onSubmit, onSkip, isSubmitting }: Props) {
+export function CancellationFollowUp({
+  onSubmit,
+  onSkip,
+  isSubmitting,
+}: Props) {
   const [reason, setReason] = useState<CancellationReason | ''>('');
   const [comment, setComment] = useState('');
 

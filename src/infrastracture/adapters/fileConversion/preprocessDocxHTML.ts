@@ -12,9 +12,15 @@ function stripAsterisk(text: string): string {
   return text.trim().replace(/^\*/, '');
 }
 
-function buildToggle(question: string, options: string[], correctAnswers: string[]): string {
+function buildToggle(
+  question: string,
+  options: string[],
+  correctAnswers: string[]
+): string {
   const optionsHTML = options.map((opt) => `<li>${opt}</li>`).join('');
-  const answerHTML = correctAnswers.map((a) => `<strong>${a}</strong>`).join('<br />');
+  const answerHTML = correctAnswers
+    .map((a) => `<strong>${a}</strong>`)
+    .join('<br />');
 
   return `<details><summary>${question}<br /><ul>${optionsHTML}</ul></summary>${answerHTML}</details>`;
 }
@@ -26,7 +32,10 @@ function looksLikeFlashcard(parts: string[]): boolean {
 }
 
 function processListItem(html: string): string | null {
-  const parts = html.split(/<br\s*\/?>/i).map((p) => p.trim()).filter(Boolean);
+  const parts = html
+    .split(/<br\s*\/?>/i)
+    .map((p) => p.trim())
+    .filter(Boolean);
 
   if (!looksLikeFlashcard(parts)) {
     return null;

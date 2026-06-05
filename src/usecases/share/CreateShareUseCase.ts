@@ -19,13 +19,22 @@ class CreateShareUseCase {
       throw new Error('Upload not found');
     }
 
-    const existing = await this.shareService.findActiveShareForOwnerAndKey(owner, uploadKey);
+    const existing = await this.shareService.findActiveShareForOwnerAndKey(
+      owner,
+      uploadKey
+    );
     if (existing != null) {
-      return { token: existing.token, url: this.shareService.buildShareUrl(existing.token) };
+      return {
+        token: existing.token,
+        url: this.shareService.buildShareUrl(existing.token),
+      };
     }
 
     const share = await this.shareService.createShare(owner, uploadKey);
-    return { token: share.token, url: this.shareService.buildShareUrl(share.token) };
+    return {
+      token: share.token,
+      url: this.shareService.buildShareUrl(share.token),
+    };
   }
 }
 

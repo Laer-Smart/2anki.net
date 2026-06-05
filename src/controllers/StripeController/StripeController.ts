@@ -53,16 +53,21 @@ export class StripeController {
       const token = extractTokenFromCookies(req.get('cookie'));
       const user = token ? await this.authService.getUserFrom(token) : null;
       if (!user) {
-        return res.status(401).json({ authenticated: false, hasActiveSubscription: false });
+        return res
+          .status(401)
+          .json({ authenticated: false, hasActiveSubscription: false });
       }
 
-      const activeSubscriptions = await SubscriptionService.getUserActiveSubscriptions(user.email);
-      let hasActiveSubscription = activeSubscriptions.length > 0 || user.patreon;
+      const activeSubscriptions =
+        await SubscriptionService.getUserActiveSubscriptions(user.email);
+      let hasActiveSubscription =
+        activeSubscriptions.length > 0 || user.patreon;
 
       if (!hasActiveSubscription) {
         const sessionId = req.query.session_id as string;
         if (sessionId) {
-          hasActiveSubscription = await this.persistStripeSessionUseCase.execute(sessionId);
+          hasActiveSubscription =
+            await this.persistStripeSessionUseCase.execute(sessionId);
         }
       }
 
@@ -72,12 +77,16 @@ export class StripeController {
         user: {
           email: user.email,
           name: user.name,
-          patreon: user.patreon
-        }
+          patreon: user.patreon,
+        },
       });
     } catch (error) {
       console.error('Error checking subscription status:', error);
-      return res.status(500).json({ authenticated: false, hasActiveSubscription: false, error: 'Internal server error' });
+      return res.status(500).json({
+        authenticated: false,
+        hasActiveSubscription: false,
+        error: 'Internal server error',
+      });
     }
   }
 

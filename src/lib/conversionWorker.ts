@@ -1,4 +1,7 @@
-import { runConversionInWorker, ConversionWorkerRequest } from './conversionPool';
+import {
+  runConversionInWorker,
+  ConversionWorkerRequest,
+} from './conversionPool';
 
 export default async function conversionWorker(
   request: ConversionWorkerRequest

@@ -147,8 +147,12 @@
 }
 
 @keyframes progressSlide {
-  0% { left: -40%; }
-  100% { left: 100%; }
+  0% {
+    left: -40%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

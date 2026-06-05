@@ -80,14 +80,20 @@ export class SubscriptionService {
       ? allSubs.filter((s) => s.status !== 'canceled')
       : allSubs;
 
-    console.log(`Found ${subs.length} active Stripe subscription(s) to process`);
+    console.log(
+      `Found ${subs.length} active Stripe subscription(s) to process`
+    );
 
     for (const sub of subs) {
       if (mode === 'immediate') {
         console.log(`Cancelling Stripe subscription ${sub.id} immediately`);
         await stripe.subscriptions.cancel(sub.id);
         if (sendEmail) {
-          await emailService.sendSubscriptionCancelledEmail(userEmail, '', sub.id);
+          await emailService.sendSubscriptionCancelledEmail(
+            userEmail,
+            '',
+            sub.id
+          );
         }
       } else {
         console.log(

@@ -8,9 +8,15 @@ import { isEmptyPayload } from '../../lib/misc/isEmptyPayload';
 import { preserveFilesForDebugging } from '../../lib/debug/preserveFilesForDebugging';
 import { shouldShareFilesForDebugging } from './shouldShareFilesForDebugging';
 import * as cheerio from 'cheerio';
-import { PythonExitError, toUploadErrorCode } from '../../lib/anki/buildPythonExitError';
+import {
+  PythonExitError,
+  toUploadErrorCode,
+} from '../../lib/anki/buildPythonExitError';
 import { toNotionUploadError } from '../../lib/notion/toNotionUploadError';
-import type { UploadErrorBody, UploadErrorCode } from '../../types/UploadErrorBody';
+import type {
+  UploadErrorBody,
+  UploadErrorCode,
+} from '../../types/UploadErrorBody';
 
 const transporter = nodemailer.createTransport({
   sendmail: true,
@@ -22,7 +28,9 @@ function buildFileSnippets(uploadedFiles: UploadedFile[]): string {
   if (!uploadedFiles || uploadedFiles.length === 0) return '';
   const lines: string[] = ['\n--- Uploaded Files ---'];
   for (const file of uploadedFiles) {
-    lines.push(`\nFile: ${file.originalname} (${file.mimetype}, ${file.size} bytes)`);
+    lines.push(
+      `\nFile: ${file.originalname} (${file.mimetype}, ${file.size} bytes)`
+    );
     try {
       const snippet = fs.readFileSync(file.path).slice(0, 500).toString('utf8');
       lines.push(`Snippet:\n${snippet}`);
@@ -104,7 +112,9 @@ export default async function ErrorHandler(
 
   if (err instanceof multer.MulterError) {
     const multerBody = toMulterErrorBody(err);
-    res.status(multerBody.status).json({ code: multerBody.code, message: multerBody.message });
+    res
+      .status(multerBody.status)
+      .json({ code: multerBody.code, message: multerBody.message });
     return;
   }
 
@@ -120,19 +130,25 @@ export default async function ErrorHandler(
   res.status(400).json(body);
 }
 
-function toMulterErrorBody(err: multer.MulterError): { status: number; code: UploadErrorCode; message: string } {
+function toMulterErrorBody(err: multer.MulterError): {
+  status: number;
+  code: UploadErrorCode;
+  message: string;
+} {
   if (err.code === 'LIMIT_FILE_SIZE') {
     return {
       status: 413,
       code: 'too_large',
-      message: 'Upload failed — file is over the 100 MB limit. Try splitting it.',
+      message:
+        'Upload failed — file is over the 100 MB limit. Try splitting it.',
     };
   }
   if (err.code === 'LIMIT_UNEXPECTED_FILE') {
     return {
       status: 415,
       code: 'unsupported_format',
-      message: 'This file type isn\'t supported. Use .zip, .html, .md, .csv, or .apkg.',
+      message:
+        "This file type isn't supported. Use .zip, .html, .md, .csv, or .apkg.",
     };
   }
   return { status: 400, code: 'unknown', message: err.message };

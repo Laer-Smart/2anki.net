@@ -4,7 +4,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import Backend, { GoogleDriveUpload } from '../../../lib/backend';
 import useGoogleDriveUploads from './useGoogleDriveUploads';
 
-function makeRow(overrides: Partial<GoogleDriveUpload> = {}): GoogleDriveUpload {
+function makeRow(
+  overrides: Partial<GoogleDriveUpload> = {}
+): GoogleDriveUpload {
   return {
     id: 'abc',
     iconUrl: 'https://drive-thirdparty.googleusercontent.com/16/type/pdf',

@@ -5,13 +5,7 @@ import os from 'os';
 import path from 'path';
 
 import { readString } from './protobuf';
-import {
-  Card,
-  Deck,
-  NormalizedCollection,
-  Note,
-  NoteType,
-} from './types';
+import { Card, Deck, NormalizedCollection, Note, NoteType } from './types';
 
 interface LegacyModelJson {
   id: number | string;
@@ -72,9 +66,7 @@ function openCollection(buffer: Buffer): {
 
 function hasTable(db: Database.Database, table: string): boolean {
   const row = db
-    .prepare(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name = ?"
-    )
+    .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name = ?")
     .get(table);
   return row != null;
 }
@@ -138,7 +130,9 @@ function safeQueryAll<T>(
   const existing = getTableColumns(db, table);
   const cols = wantedCols.filter((c) => existing.has(c));
   if (cols.length === 0) return [];
-  return db.prepare(`SELECT ${cols.join(', ')} FROM ${table} ${suffix}`).all() as T[];
+  return db
+    .prepare(`SELECT ${cols.join(', ')} FROM ${table} ${suffix}`)
+    .all() as T[];
 }
 
 function loadModernNoteTypes(db: Database.Database): Map<number, NoteType> {
@@ -216,7 +210,9 @@ function loadNotes(db: Database.Database): Map<number, Note> {
       "SELECT 1 FROM pragma_table_info('notes') WHERE name = 'guid' LIMIT 1"
     )
     .get();
-  const columns = hasGuidColumn ? 'id, mid, tags, flds, guid' : 'id, mid, tags, flds';
+  const columns = hasGuidColumn
+    ? 'id, mid, tags, flds, guid'
+    : 'id, mid, tags, flds';
   const rows = db.prepare(`SELECT ${columns} FROM notes`).all() as Array<{
     id: number;
     mid: number;

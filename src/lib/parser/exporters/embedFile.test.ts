@@ -29,7 +29,10 @@ describe('embedFile — filename-only fallback', () => {
     });
 
     expect(result).not.toBeNull();
-    expect(exporter.addMedia).toHaveBeenCalledWith(expect.any(String), 'img-data');
+    expect(exporter.addMedia).toHaveBeenCalledWith(
+      expect.any(String),
+      'img-data'
+    );
   });
 
   it('picks the file whose directory shares the most path segments with the request', () => {
@@ -65,7 +68,10 @@ describe('embedFile — filename-only fallback', () => {
       workspace: makeWorkspace(),
     });
 
-    expect(exporter.addMedia).toHaveBeenCalledWith(expect.any(String), fileA.contents);
+    expect(exporter.addMedia).toHaveBeenCalledWith(
+      expect.any(String),
+      fileA.contents
+    );
   });
 
   it('returns null when no file matches', () => {

@@ -19,7 +19,10 @@ vi.mock('../../lib/backend/get2ankiApi', () => ({
 }));
 
 vi.mock('react-router-dom', async () => {
-  const real = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+  const real =
+    await vi.importActual<typeof import('react-router-dom')>(
+      'react-router-dom'
+    );
   return { ...real, useNavigate: () => mockNavigate };
 });
 
@@ -29,10 +32,7 @@ global.IntersectionObserver = class IntersectionObserver {
   disconnect() {}
 } as unknown as typeof IntersectionObserver;
 
-function makeBlock(
-  id: string,
-  decision: 'card' | 'skip' | 'recurse' = 'card'
-) {
+function makeBlock(id: string, decision: 'card' | 'skip' | 'recurse' = 'card') {
   return {
     id,
     type: 'paragraph',
@@ -44,7 +44,14 @@ function makeBlock(
 }
 
 function makeStreamReturn(
-  blocks: { id: string; type: string; hasChildren: boolean; canExpand: boolean; html: string; decision?: string }[],
+  blocks: {
+    id: string;
+    type: string;
+    hasChildren: boolean;
+    canExpand: boolean;
+    html: string;
+    decision?: string;
+  }[],
   hasNextPage = false
 ) {
   return {
@@ -69,7 +76,9 @@ function makeStreamReturn(
 }
 
 function renderPreview(id = 'page-abc') {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[`/preview/${id}`]}>
@@ -162,7 +171,13 @@ describe('PreviewPage tally counts', () => {
   it('does not show tally when all decision fields are absent', () => {
     mockUsePreviewStream.mockReturnValue(
       makeStreamReturn([
-        { id: 'b1', type: 'paragraph', hasChildren: false, canExpand: false, html: '<p>hi</p>' },
+        {
+          id: 'b1',
+          type: 'paragraph',
+          hasChildren: false,
+          canExpand: false,
+          html: '<p>hi</p>',
+        },
       ])
     );
 
@@ -174,10 +189,7 @@ describe('PreviewPage tally counts', () => {
 
   it('shows plural sub-pages when count > 1', () => {
     mockUsePreviewStream.mockReturnValue(
-      makeStreamReturn([
-        makeBlock('b1', 'recurse'),
-        makeBlock('b2', 'recurse'),
-      ])
+      makeStreamReturn([makeBlock('b1', 'recurse'), makeBlock('b2', 'recurse')])
     );
 
     renderPreview();
@@ -256,7 +268,10 @@ describe('PreviewPage Convert to Anki CTA', () => {
   });
 
   it('re-enables button on error response', async () => {
-    mockConvert.mockResolvedValue({ status: 500, text: async () => 'Server error' });
+    mockConvert.mockResolvedValue({
+      status: 500,
+      text: async () => 'Server error',
+    });
     mockUsePreviewStream.mockReturnValue(makeStreamReturn([]));
 
     renderPreview();

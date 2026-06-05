@@ -29,7 +29,9 @@ Wrap the hidden segments in `<code>` tags and 2anki.net will convert them into A
 For explicit numbered clozes (and optional hints), use Anki's native syntax directly:
 
 ```html
-<div class="toggle">{{c1::Canberra::city}} was founded in {{c2::1913::year}}</div>
+<div class="toggle">
+  {{c1::Canberra::city}} was founded in {{c2::1913::year}}
+</div>
 ```
 
 ## Input cards

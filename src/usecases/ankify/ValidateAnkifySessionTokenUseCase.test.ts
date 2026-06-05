@@ -14,17 +14,20 @@ const makeRac = (overrides: Partial<RacService> = {}): RacService =>
     resolveTokenForProxy: jest.fn(async () => null),
     touchTokenLastUsed: jest.fn(async () => undefined),
     ...overrides,
-  } as unknown as RacService);
+  }) as unknown as RacService;
 
 const makeAuth = (overrides: Partial<AuthenticationService> = {}) =>
   ({
     getUserFrom: jest.fn(async () => null),
     ...overrides,
-  } as unknown as AuthenticationService);
+  }) as unknown as AuthenticationService;
 
 describe('ValidateAnkifySessionTokenUseCase', () => {
   test('rejects empty session token', async () => {
-    const useCase = new ValidateAnkifySessionTokenUseCase(makeRac(), makeAuth());
+    const useCase = new ValidateAnkifySessionTokenUseCase(
+      makeRac(),
+      makeAuth()
+    );
     const result = await useCase.execute({
       sessionToken: '',
       cookieToken: 'whatever',
@@ -114,7 +117,7 @@ describe('ValidateAnkifySessionTokenUseCase', () => {
             owner: 999,
             email: 'patron@example.com',
             patreon: true,
-          } as never)
+          }) as never
       ),
     });
     const useCase = new ValidateAnkifySessionTokenUseCase(rac, auth);
@@ -146,7 +149,7 @@ describe('ValidateAnkifySessionTokenUseCase', () => {
             owner: 42,
             email: 'someone-else@example.com',
             patreon: false,
-          } as never)
+          }) as never
       ),
     });
     const useCase = new ValidateAnkifySessionTokenUseCase(rac, auth);
@@ -180,7 +183,7 @@ describe('ValidateAnkifySessionTokenUseCase', () => {
             owner: 42,
             email: 'patron@example.com',
             patreon: true,
-          } as never)
+          }) as never
       ),
     });
     const useCase = new ValidateAnkifySessionTokenUseCase(rac, auth);

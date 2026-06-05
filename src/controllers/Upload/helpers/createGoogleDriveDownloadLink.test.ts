@@ -46,9 +46,7 @@ describe('createGoogleDriveExportLink', () => {
   });
 
   it('encodes the mime type correctly for PDF', () => {
-    expect(
-      createGoogleDriveExportLink(baseFile, 'application/pdf')
-    ).toBe(
+    expect(createGoogleDriveExportLink(baseFile, 'application/pdf')).toBe(
       'https://www.googleapis.com/drive/v3/files/file123/export?mimeType=application%2Fpdf'
     );
   });
@@ -56,22 +54,32 @@ describe('createGoogleDriveExportLink', () => {
 
 describe('NATIVE_GOOGLE_APPS_EXPORT_MIMES', () => {
   it('maps google-apps.document to docx mime with .docx extension', () => {
-    expect(NATIVE_GOOGLE_APPS_EXPORT_MIMES['application/vnd.google-apps.document']).toEqual({
-      exportMime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    expect(
+      NATIVE_GOOGLE_APPS_EXPORT_MIMES['application/vnd.google-apps.document']
+    ).toEqual({
+      exportMime:
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       extension: '.docx',
     });
   });
 
   it('maps google-apps.spreadsheet to text/csv with .csv extension', () => {
-    expect(NATIVE_GOOGLE_APPS_EXPORT_MIMES['application/vnd.google-apps.spreadsheet']).toEqual({
+    expect(
+      NATIVE_GOOGLE_APPS_EXPORT_MIMES['application/vnd.google-apps.spreadsheet']
+    ).toEqual({
       exportMime: 'text/csv',
       extension: '.csv',
     });
   });
 
   it('maps google-apps.presentation to pptx mime with .pptx extension', () => {
-    expect(NATIVE_GOOGLE_APPS_EXPORT_MIMES['application/vnd.google-apps.presentation']).toEqual({
-      exportMime: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    expect(
+      NATIVE_GOOGLE_APPS_EXPORT_MIMES[
+        'application/vnd.google-apps.presentation'
+      ]
+    ).toEqual({
+      exportMime:
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
       extension: '.pptx',
     });
   });

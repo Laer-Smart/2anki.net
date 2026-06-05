@@ -43,7 +43,11 @@ describe('runParserCanary', () => {
       expect(result.failures.length).toBeGreaterThan(0);
       const failure = result.failures[0];
       expect(failure.fixtureName).toBe('notion-html-2024');
-      expect(failure.expected).toEqual({ cardCount: 9999, imageCount: 9999, clozeCount: 9999 });
+      expect(failure.expected).toEqual({
+        cardCount: 9999,
+        imageCount: 9999,
+        clozeCount: 9999,
+      });
       expect(failure.actual.cardCount).not.toBe(9999);
     }
   });

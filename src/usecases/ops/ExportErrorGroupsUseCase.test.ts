@@ -99,14 +99,18 @@ const execute = async (
 describe('ExportErrorGroupsUseCase', () => {
   it('starts with the investigation preamble', async () => {
     const { markdown } = await execute([groupA], [sampleA]);
-    expect(markdown.startsWith(
-      'Investigate these production error groups from 2anki.net. For each: root cause, severity, recommended fix.'
-    )).toBe(true);
+    expect(
+      markdown.startsWith(
+        'Investigate these production error groups from 2anki.net. For each: root cause, severity, recommended fix.'
+      )
+    ).toBe(true);
   });
 
   it('renders one numbered section per group with message and counts', async () => {
     const { markdown } = await execute([groupA, groupB], [sampleA]);
-    expect(markdown).toContain('## 1. TypeError: Cannot read properties of null');
+    expect(markdown).toContain(
+      '## 1. TypeError: Cannot read properties of null'
+    );
     expect(markdown).toContain('## 2. Error: deck build failed');
     expect(markdown).toContain('- Occurrences: 12');
     expect(markdown).toContain('- Source: server');
@@ -134,7 +138,12 @@ describe('ExportErrorGroupsUseCase', () => {
   });
 
   it('passes status and source through and fetches samples per group hash', async () => {
-    const { repository } = await execute([groupA], [sampleA], 'resolved', 'web');
+    const { repository } = await execute(
+      [groupA],
+      [sampleA],
+      'resolved',
+      'web'
+    );
     expect(repository.listGroupsCalls).toEqual([
       {
         limit: 200,

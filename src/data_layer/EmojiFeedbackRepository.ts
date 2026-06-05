@@ -81,9 +81,7 @@ export class EmojiFeedbackRepository implements IEmojiFeedbackRepository {
   }
 }
 
-export class InMemoryEmojiFeedbackRepository
-  implements IEmojiFeedbackRepository
-{
+export class InMemoryEmojiFeedbackRepository implements IEmojiFeedbackRepository {
   private readonly rows: Array<{
     rating: number;
     comment: string | null;
@@ -110,8 +108,14 @@ export class InMemoryEmojiFeedbackRepository
   async recentComments(limit: number): Promise<EmojiFeedbackCommentEntry[]> {
     return this.rows
       .filter(
-        (r): r is { rating: number; comment: string; page: string; created_at: Date } =>
-          r.comment != null && r.comment !== ''
+        (
+          r
+        ): r is {
+          rating: number;
+          comment: string;
+          page: string;
+          created_at: Date;
+        } => r.comment != null && r.comment !== ''
       )
       .sort((a, b) => b.created_at.getTime() - a.created_at.getTime())
       .slice(0, limit)

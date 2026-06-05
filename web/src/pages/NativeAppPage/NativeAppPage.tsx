@@ -41,8 +41,8 @@ export default function NativeAppPage() {
       <h1 className={sharedStyles.title}>2anki for iPhone, iPad, and Mac</h1>
       <p className={styles.body}>
         A native app is in the works. Convert your notes to Anki decks on the
-        device you study with — no browser needed. Tap below and we'll count
-        you in when we decide what ships first.
+        device you study with — no browser needed. Tap below and we'll count you
+        in when we decide what ships first.
       </p>
       {interestRegistered ? (
         <p className={styles.noted}>Noted. Watch What's New for updates.</p>

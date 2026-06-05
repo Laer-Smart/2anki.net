@@ -1,7 +1,4 @@
-import {
-  ProvisionResult,
-  RacService,
-} from '../../services/ankify/RacService';
+import { ProvisionResult, RacService } from '../../services/ankify/RacService';
 
 class RespinAnkifyClientUseCase {
   constructor(private readonly rac: RacService) {}

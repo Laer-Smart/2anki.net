@@ -27,9 +27,9 @@ function makeReq(body: Record<string, unknown>): express.Request {
 }
 
 function makeUseCase() {
-  const execute = jest.fn().mockRejectedValue(
-    Object.assign(new Error('boom'), { status: 413 })
-  );
+  const execute = jest
+    .fn()
+    .mockRejectedValue(Object.assign(new Error('boom'), { status: 413 }));
   return { execute } as unknown as jest.Mocked<PhotoToFlashcardsUseCase> & {
     execute: jest.Mock;
   };
@@ -68,7 +68,10 @@ describe('PhotoToFlashcardsController density forwarding', () => {
   it('defaults to balanced when density is an unknown string', async () => {
     const useCase = makeUseCase();
     const controller = new PhotoToFlashcardsController(useCase);
-    await controller.create(makeReq({ ...baseBody, density: 'extra-dense' }), makeRes());
+    await controller.create(
+      makeReq({ ...baseBody, density: 'extra-dense' }),
+      makeRes()
+    );
     expect(useCase.execute).toHaveBeenCalledWith(
       expect.objectContaining({ density: 'balanced' })
     );
@@ -108,7 +111,10 @@ describe('PhotoToFlashcardsController mode forwarding', () => {
   it('defaults to generative when mode is an unknown string', async () => {
     const useCase = makeUseCase();
     const controller = new PhotoToFlashcardsController(useCase);
-    await controller.create(makeReq({ ...baseBody, mode: 'hallucinate' }), makeRes());
+    await controller.create(
+      makeReq({ ...baseBody, mode: 'hallucinate' }),
+      makeRes()
+    );
     expect(useCase.execute).toHaveBeenCalledWith(
       expect.objectContaining({ mode: 'generative' })
     );
@@ -117,9 +123,9 @@ describe('PhotoToFlashcardsController mode forwarding', () => {
 
 describe('PhotoToFlashcardsController media type detection', () => {
   function jpegBase64(): string {
-    return Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0]).toString(
-      'base64'
-    );
+    return Buffer.from([
+      0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ]).toString('base64');
   }
 
   it('uses the media type detected from the bytes, not the client-declared one', async () => {
@@ -188,9 +194,14 @@ describe('PhotoToFlashcardsController unreadable Vision response', () => {
 
   function makeUnreadableUseCase() {
     const execute = jest.fn().mockRejectedValue(
-      Object.assign(new Error("Couldn't read the cards from this photo. Try a clearer or less dense image."), {
-        status: 422,
-      })
+      Object.assign(
+        new Error(
+          "Couldn't read the cards from this photo. Try a clearer or less dense image."
+        ),
+        {
+          status: 422,
+        }
+      )
     );
     return { execute } as unknown as PhotoToFlashcardsUseCase & {
       execute: jest.Mock;
@@ -203,7 +214,8 @@ describe('PhotoToFlashcardsController unreadable Vision response', () => {
     await controller.create(makeReq(baseBody), res);
     expect(res.status).toHaveBeenCalledWith(422);
     expect(res.json).toHaveBeenCalledWith({
-      message: "Couldn't read the cards from this photo. Try a clearer or less dense image.",
+      message:
+        "Couldn't read the cards from this photo. Try a clearer or less dense image.",
     });
   });
 });

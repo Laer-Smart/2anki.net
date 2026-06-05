@@ -29,9 +29,14 @@ function makeFakeKnex() {
       return true;
     });
 
-  const buildBuilder = (rows: Record<string, unknown>[], where: Record<string, unknown>, fromTime: Date | null = null) => {
+  const buildBuilder = (
+    rows: Record<string, unknown>[],
+    where: Record<string, unknown>,
+    fromTime: Date | null = null
+  ) => {
     const builder: Record<string, unknown> = {};
-    builder.where = (filter: Record<string, unknown>) => buildBuilder(rows, { ...where, ...filter }, fromTime);
+    builder.where = (filter: Record<string, unknown>) =>
+      buildBuilder(rows, { ...where, ...filter }, fromTime);
     builder.andWhere = (col: string, op: string, val: Date) => {
       if (op === '>=') {
         return buildBuilder(rows, where, val);
@@ -51,11 +56,15 @@ function makeFakeKnex() {
         insert: (rows: Record<string, unknown>[]) => {
           store.calls.push(`request_logs insert ${rows.length}`);
           for (const row of rows) {
-            store.requests.push({ ...row, created_at: row.created_at ?? new Date() });
+            store.requests.push({
+              ...row,
+              created_at: row.created_at ?? new Date(),
+            });
           }
           return Promise.resolve(rows.length);
         },
-        where: (filter: Record<string, unknown> = {}) => buildBuilder(store.requests, filter),
+        where: (filter: Record<string, unknown> = {}) =>
+          buildBuilder(store.requests, filter),
         select: () => Promise.resolve(filterRows(store.requests, {}, null)),
       };
     }
@@ -64,11 +73,15 @@ function makeFakeKnex() {
         insert: (rows: Record<string, unknown>[]) => {
           store.calls.push(`outbound_call_logs insert ${rows.length}`);
           for (const row of rows) {
-            store.outbound.push({ ...row, created_at: row.created_at ?? new Date() });
+            store.outbound.push({
+              ...row,
+              created_at: row.created_at ?? new Date(),
+            });
           }
           return Promise.resolve(rows.length);
         },
-        where: (filter: Record<string, unknown> = {}) => buildBuilder(store.outbound, filter),
+        where: (filter: Record<string, unknown> = {}) =>
+          buildBuilder(store.outbound, filter),
         select: () => Promise.resolve(filterRows(store.outbound, {}, null)),
       };
     }
@@ -105,7 +118,10 @@ describe('ObservabilityRepository', () => {
   it('insertRequestLogs batches all rows in a single insert', async () => {
     const { db, store } = makeFakeKnex();
     const repo = new ObservabilityRepository(db);
-    await repo.insertRequestLogs([baseRequest, { ...baseRequest, status_code: 500 }]);
+    await repo.insertRequestLogs([
+      baseRequest,
+      { ...baseRequest, status_code: 500 },
+    ]);
     expect(store.calls).toEqual(['request_logs insert 2']);
     expect(store.requests).toHaveLength(2);
   });
@@ -120,7 +136,10 @@ describe('ObservabilityRepository', () => {
   it('insertOutboundCallLogs batches all rows in a single insert', async () => {
     const { db, store } = makeFakeKnex();
     const repo = new ObservabilityRepository(db);
-    await repo.insertOutboundCallLogs([baseOutbound, { ...baseOutbound, service: 'claude' }]);
+    await repo.insertOutboundCallLogs([
+      baseOutbound,
+      { ...baseOutbound, service: 'claude' },
+    ]);
     expect(store.calls).toEqual(['outbound_call_logs insert 2']);
     expect(store.outbound).toHaveLength(2);
   });

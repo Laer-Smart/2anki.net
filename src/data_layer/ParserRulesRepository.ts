@@ -60,9 +60,7 @@ class ParserRulesRepository implements IParserRulesRepository {
 
       if (result) {
         rules.setFlashcardTypes(result.flashcard_is.split(','));
-        const deckTypes = (result.deck_is ?? '')
-          .split(',')
-          .filter(Boolean);
+        const deckTypes = (result.deck_is ?? '').split(',').filter(Boolean);
         if (deckTypes.length > 0) {
           try {
             rules.setDeckTypes(deckTypes);

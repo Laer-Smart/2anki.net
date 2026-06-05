@@ -18,7 +18,9 @@ function dedent(text: string): string {
   const lines = text.split('\n');
   const nonEmptyLines = lines.filter((l) => l.trim().length > 0);
   if (nonEmptyLines.length === 0) return text;
-  const minIndent = Math.min(...nonEmptyLines.map((l) => /^[ \t]*/.exec(l)?.[0].length ?? 0));
+  const minIndent = Math.min(
+    ...nonEmptyLines.map((l) => /^[ \t]*/.exec(l)?.[0].length ?? 0)
+  );
   if (minIndent === 0) return text;
   return lines.map((l) => l.slice(minIndent)).join('\n');
 }
@@ -114,7 +116,9 @@ export const handleNestedBulletPointsInMarkdown = (
 
   decks.push(deck);
 
-  const lines = (contents ?? '').replace(/^<\/?aside[^>]*>\s*$/gim, '').split('\n');
+  const lines = (contents ?? '')
+    .replace(/^<\/?aside[^>]*>\s*$/gim, '')
+    .split('\n');
   let isCreating = false;
   let currentFront = '';
   let currentBack = '';

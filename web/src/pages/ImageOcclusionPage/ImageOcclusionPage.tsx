@@ -285,7 +285,6 @@ export function ImageOcclusionPage() {
           )
         );
       }
-
     },
     [isLoggedIn]
   );
@@ -494,7 +493,9 @@ export function ImageOcclusionPage() {
       )}
       <div className={pageStyles.pageChrome}>
         <h1 className={pageStyles.pageTitle}>Image occlusion</h1>
-        <p className={pageStyles.pageSubtitle}>Draw boxes over areas to hide — each box becomes one flashcard.</p>
+        <p className={pageStyles.pageSubtitle}>
+          Draw boxes over areas to hide — each box becomes one flashcard.
+        </p>
       </div>
       <div
         className={`${pageStyles.pageLayout} ${drawerOpen ? pageStyles.pageLayoutDrawerOpen : ''}`}
@@ -567,7 +568,9 @@ export function ImageOcclusionPage() {
           {activeEntry == null ? (
             <div className={pageStyles.emptyCanvas}>
               <p className={pageStyles.emptyCanvasTitle}>No image selected.</p>
-              <p className={pageStyles.emptyCanvasHint}>Upload an image from the panel on the left to start drawing.</p>
+              <p className={pageStyles.emptyCanvasHint}>
+                Upload an image from the panel on the left to start drawing.
+              </p>
             </div>
           ) : (
             <OcclusionCanvas

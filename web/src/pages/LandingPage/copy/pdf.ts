@@ -4,8 +4,14 @@ import { ankiFidelityProof } from './ankiFidelityProof';
 const pdfCopy: LandingCopy = {
   relatedLinks: [
     { label: 'Convert PowerPoint slides to Anki', href: '/powerpoint-to-anki' },
-    { label: 'Turn medical lecture slides into Anki cards', href: '/anki-from-medical-lecture-slides' },
-    { label: 'Convert Markdown and Obsidian notes to Anki', href: '/markdown-to-anki' },
+    {
+      label: 'Turn medical lecture slides into Anki cards',
+      href: '/anki-from-medical-lecture-slides',
+    },
+    {
+      label: 'Convert Markdown and Obsidian notes to Anki',
+      href: '/markdown-to-anki',
+    },
     { label: 'Convert Notion pages to Anki', href: '/notion-to-anki' },
     { label: 'Browse every converter', href: '/convert' },
   ],

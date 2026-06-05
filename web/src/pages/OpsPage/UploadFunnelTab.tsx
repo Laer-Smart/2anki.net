@@ -87,7 +87,10 @@ export default function UploadFunnelTab() {
 
       <div className={styles.tabHeader}>
         <div className={styles.controls}>
-          <label htmlFor="upload-funnel-window" className={styles.controlsLabel}>
+          <label
+            htmlFor="upload-funnel-window"
+            className={styles.controlsLabel}
+          >
             Window
           </label>
           <select

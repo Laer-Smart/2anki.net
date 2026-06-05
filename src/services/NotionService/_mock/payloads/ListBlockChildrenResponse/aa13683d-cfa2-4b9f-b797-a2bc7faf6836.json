@@ -1,52 +1,52 @@
 {
-    "object": "list",
-    "results": [
-        {
-            "object": "block",
-            "id": "4b4e4811-f0b8-401d-a708-03ff1305f1e3",
-            "parent": {
-                "type": "block_id",
-                "block_id": "aa13683d-cfa2-4b9f-b797-a2bc7faf6836"
+  "object": "list",
+  "results": [
+    {
+      "object": "block",
+      "id": "4b4e4811-f0b8-401d-a708-03ff1305f1e3",
+      "parent": {
+        "type": "block_id",
+        "block_id": "aa13683d-cfa2-4b9f-b797-a2bc7faf6836"
+      },
+      "created_time": "2021-10-06T19:04:00.000Z",
+      "last_edited_time": "2021-10-06T19:04:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+      },
+      "has_children": false,
+      "archived": false,
+      "type": "paragraph",
+      "paragraph": {
+        "rich_text": [
+          {
+            "type": "text",
+            "text": {
+              "content": "This should be ignored when the option is enabled",
+              "link": null
             },
-            "created_time": "2021-10-06T19:04:00.000Z",
-            "last_edited_time": "2021-10-06T19:04:00.000Z",
-            "created_by": {
-                "object": "user",
-                "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+            "annotations": {
+              "bold": false,
+              "italic": false,
+              "strikethrough": false,
+              "underline": false,
+              "code": false,
+              "color": "default"
             },
-            "last_edited_by": {
-                "object": "user",
-                "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
-            },
-            "has_children": false,
-            "archived": false,
-            "type": "paragraph",
-            "paragraph": {
-                "rich_text": [
-                    {
-                        "type": "text",
-                        "text": {
-                            "content": "This should be ignored when the option is enabled",
-                            "link": null
-                        },
-                        "annotations": {
-                            "bold": false,
-                            "italic": false,
-                            "strikethrough": false,
-                            "underline": false,
-                            "code": false,
-                            "color": "default"
-                        },
-                        "plain_text": "This should be ignored when the option is enabled",
-                        "href": null
-                    }
-                ],
-                "color": "default"
-            }
-        }
-    ],
-    "next_cursor": null,
-    "has_more": false,
-    "type": "block",
-    "block": {}
+            "plain_text": "This should be ignored when the option is enabled",
+            "href": null
+          }
+        ],
+        "color": "default"
+      }
+    }
+  ],
+  "next_cursor": null,
+  "has_more": false,
+  "type": "block",
+  "block": {}
 }

@@ -19,7 +19,9 @@ export function getUploadValidationError(
 
   for (const file of files) {
     if (!file.originalname) {
-      return new Error('The uploaded file appears to be invalid. Please try again.');
+      return new Error(
+        'The uploaded file appears to be invalid. Please try again.'
+      );
     }
 
     if (isEmptyFile(file)) {

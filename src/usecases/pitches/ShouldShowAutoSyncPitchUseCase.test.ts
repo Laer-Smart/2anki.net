@@ -11,27 +11,38 @@ function makeUserWithoutAccess() {
   return { patreon: false as boolean | null };
 }
 
-function makeJobRepo(priorJobs: Array<{ object_id: string; created_at: Date; type: string | null }>) {
+function makeJobRepo(
+  priorJobs: Array<{ object_id: string; created_at: Date; type: string | null }>
+) {
   return {
     async findPriorNotionJobByOwnerAndObjectId(
       _owner: string,
       objectId: string,
       _windowMs: number
     ) {
-      return priorJobs.find((j) => j.object_id === objectId && (j.type === 'page' || j.type === 'database'));
+      return priorJobs.find(
+        (j) =>
+          j.object_id === objectId &&
+          (j.type === 'page' || j.type === 'database')
+      );
     },
     async countRecentNotionJobsByOwner(
       _owner: string,
       _windowMs: number
     ): Promise<number> {
-      return priorJobs.filter(
-        (j) => j.type === 'page' || j.type === 'database'
-      ).length;
+      return priorJobs.filter((j) => j.type === 'page' || j.type === 'database')
+        .length;
     },
   };
 }
 
-function makeDismissalRepo(dismissals: Array<{ user_id: string; placement: PitchPlacement; dismissed_at: Date }>) {
+function makeDismissalRepo(
+  dismissals: Array<{
+    user_id: string;
+    placement: PitchPlacement;
+    dismissed_at: Date;
+  }>
+) {
   return {
     async findActiveDismissal(
       userId: string,
@@ -131,8 +142,16 @@ describe('ShouldShowAutoSyncPitchUseCase', () => {
 
   it('returns accountBanner true when user has more than 1 recent notion job', async () => {
     const jobs = [
-      { object_id: 'page-1', created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), type: 'page' },
-      { object_id: 'page-2', created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), type: 'page' },
+      {
+        object_id: 'page-1',
+        created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        type: 'page',
+      },
+      {
+        object_id: 'page-2',
+        created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        type: 'page',
+      },
     ];
     const useCase = new ShouldShowAutoSyncPitchUseCase(
       makeJobRepo(jobs),
@@ -151,7 +170,11 @@ describe('ShouldShowAutoSyncPitchUseCase', () => {
 
   it('returns accountBanner false when user has 1 or fewer recent notion jobs', async () => {
     const jobs = [
-      { object_id: 'page-1', created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), type: 'page' },
+      {
+        object_id: 'page-1',
+        created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        type: 'page',
+      },
     ];
     const useCase = new ShouldShowAutoSyncPitchUseCase(
       makeJobRepo(jobs),
@@ -170,8 +193,16 @@ describe('ShouldShowAutoSyncPitchUseCase', () => {
 
   it('returns accountBanner false when account_banner placement is dismissed within 60 days', async () => {
     const jobs = [
-      { object_id: 'page-1', created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), type: 'page' },
-      { object_id: 'page-2', created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), type: 'page' },
+      {
+        object_id: 'page-1',
+        created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        type: 'page',
+      },
+      {
+        object_id: 'page-2',
+        created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        type: 'page',
+      },
     ];
     const dismissal = {
       user_id: 'u1',

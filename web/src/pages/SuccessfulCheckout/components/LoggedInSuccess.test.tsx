@@ -6,7 +6,10 @@ import { LoggedInSuccess } from './LoggedInSuccess';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>(
+      'react-router-dom'
+    );
   return {
     ...actual,
     useNavigate: () => mockNavigate,
@@ -24,17 +27,23 @@ function renderComponent(firstName?: string) {
 describe('LoggedInSuccess', () => {
   it('shows the headline', () => {
     renderComponent();
-    expect(screen.getByRole('heading', { name: /You're on Unlimited/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /You're on Unlimited/i })
+    ).toBeInTheDocument();
   });
 
   it('shows personalized subhead when firstName is provided', () => {
     renderComponent('Alex');
-    expect(screen.getByText(/Thanks, Alex — your subscription is active\./)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Thanks, Alex — your subscription is active\./)
+    ).toBeInTheDocument();
   });
 
   it('shows fallback subhead when firstName is absent', () => {
     renderComponent();
-    expect(screen.getByText('Your subscription is active.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Your subscription is active.')
+    ).toBeInTheDocument();
   });
 
   it('navigates to /upload when Make a deck is clicked', () => {

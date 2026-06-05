@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
-import { UnlimitedCheckoutUseCase, UnlimitedInterval } from '../usecases/checkout/UnlimitedCheckoutUseCase';
+import {
+  UnlimitedCheckoutUseCase,
+  UnlimitedInterval,
+} from '../usecases/checkout/UnlimitedCheckoutUseCase';
 import { parsePricingVariant } from '../usecases/checkout/pricingVariant';
 import { parseCheckoutSurface } from '../usecases/checkout/checkoutSurface';
 import { parseGaClientId } from '../usecases/checkout/gaClientId';

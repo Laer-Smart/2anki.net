@@ -7,7 +7,11 @@ import {
   revokeDeckShare,
 } from './getSharedDeck';
 
-function jsonResponse(status: number, body: unknown, statusText = ''): Response {
+function jsonResponse(
+  status: number,
+  body: unknown,
+  statusText = ''
+): Response {
   return new Response(JSON.stringify(body), {
     status,
     statusText,
@@ -186,7 +190,9 @@ describe('getSharedDeck', () => {
     it('returns null when no share matches the key', async () => {
       vi.mocked(globalThis.fetch).mockResolvedValue(jsonResponse(200, []));
 
-      await expect(getActiveSharesForUploadKey('uploads/x.apkg')).resolves.toBeNull();
+      await expect(
+        getActiveSharesForUploadKey('uploads/x.apkg')
+      ).resolves.toBeNull();
     });
 
     it('returns null when the request fails', async () => {
@@ -194,7 +200,9 @@ describe('getSharedDeck', () => {
         new Response('', { status: 401 })
       );
 
-      await expect(getActiveSharesForUploadKey('uploads/x.apkg')).resolves.toBeNull();
+      await expect(
+        getActiveSharesForUploadKey('uploads/x.apkg')
+      ).resolves.toBeNull();
     });
   });
 });

@@ -4,7 +4,10 @@ const medicalLectureSlidesCopy: LandingCopy = {
   relatedLinks: [
     { label: 'Convert PowerPoint slides to Anki', href: '/powerpoint-to-anki' },
     { label: 'Build USMLE Anki decks from your notes', href: '/usmle-anki' },
-    { label: 'Make nursing flashcards from lecture slides', href: '/nursing-flashcards' },
+    {
+      label: 'Make nursing flashcards from lecture slides',
+      href: '/nursing-flashcards',
+    },
     { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
     { label: 'Enrich an AnKing deck', href: '/convert/enrich-anki-deck' },
     { label: 'Browse every converter', href: '/convert' },
@@ -27,7 +30,7 @@ const medicalLectureSlidesCopy: LandingCopy = {
     },
     {
       title: 'Bold and italic text',
-      body: 'Bolded terms and italicised definitions carry through to the card so your lecturer\'s emphasis guides your review.',
+      body: "Bolded terms and italicised definitions carry through to the card so your lecturer's emphasis guides your review.",
     },
     {
       title: 'Nested lists',
@@ -45,7 +48,7 @@ const medicalLectureSlidesCopy: LandingCopy = {
     },
     {
       q: 'Can it handle a full course of slides?',
-      a: "Yes. Upload one lecture or one topic block at a time rather than an entire course as a single file. Smaller decks are easier to schedule and review, and Anki performs better with focused 200–500 card decks than with one massive deck.",
+      a: 'Yes. Upload one lecture or one topic block at a time rather than an entire course as a single file. Smaller decks are easier to schedule and review, and Anki performs better with focused 200–500 card decks than with one massive deck.',
     },
     {
       q: 'How is this different from Quizlet?',

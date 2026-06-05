@@ -14,7 +14,9 @@ export const scheduleInactiveUserDeletions = (
   const tick = async () => {
     try {
       const result = await useCase.execute(false, limit);
-      console.info(`[inactivity-deletions] deleted ${result.count} inactive account(s)`);
+      console.info(
+        `[inactivity-deletions] deleted ${result.count} inactive account(s)`
+      );
       if (options.eventsSink != null) {
         options.eventsSink.record({
           name: 'inactive_users_deleted',

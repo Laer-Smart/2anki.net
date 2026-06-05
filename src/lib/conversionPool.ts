@@ -115,7 +115,11 @@ export async function runConversionInWorker(
   if (token == null) {
     const jobRepo = new JobRepository(database);
     const setJobFailed = new SetJobFailedUseCase(jobRepo);
-    await setJobFailed.execute(request.id, request.owner, NOTION_TOKEN_EXPIRED_REASON);
+    await setJobFailed.execute(
+      request.id,
+      request.owner,
+      NOTION_TOKEN_EXPIRED_REASON
+    );
     return;
   }
   const blocksCache = new BlocksCacheRepository(database);

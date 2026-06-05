@@ -24,7 +24,13 @@ jest.mock('dns', () => ({
 }));
 
 const scrape = jest.fn();
-jest.mock('metascraper', () => () => (...args: unknown[]) => scrape(...args));
+jest.mock(
+  'metascraper',
+  () =>
+    () =>
+    (...args: unknown[]) =>
+      scrape(...args)
+);
 jest.mock('metascraper-description', () => ({}), { virtual: true });
 jest.mock('metascraper-image', () => ({}), { virtual: true });
 jest.mock('metascraper-logo-favicon', () => ({}), { virtual: true });
@@ -42,7 +48,10 @@ describe('useMetadata', () => {
   });
 
   it('scrapes metadata for a normal public bookmark URL', async () => {
-    mockedAxios.get.mockResolvedValueOnce({ status: 200, data: '<html></html>' });
+    mockedAxios.get.mockResolvedValueOnce({
+      status: 200,
+      data: '<html></html>',
+    });
     scrape.mockResolvedValueOnce({
       title: 'Spaced repetition',
       description: 'A learning technique',
@@ -74,7 +83,9 @@ describe('useMetadata', () => {
   });
 
   it('refuses a cloud-metadata bookmark URL without making an outbound request', async () => {
-    const result = await useMetadata('https://169.254.169.254/latest/meta-data');
+    const result = await useMetadata(
+      'https://169.254.169.254/latest/meta-data'
+    );
 
     expect(mockedAxios.get).not.toHaveBeenCalled();
     expect(scrape).not.toHaveBeenCalled();

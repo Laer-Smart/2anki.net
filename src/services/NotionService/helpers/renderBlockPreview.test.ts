@@ -5,8 +5,16 @@ import {
 } from './renderBlockPreview';
 import { BlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 
-function makeBlock(type: string, data: Record<string, unknown>): BlockObjectResponse {
-  return { type, [type]: data, object: 'block', id: 'test-id' } as unknown as BlockObjectResponse; // minimal fixture; Notion SDK types require full shape
+function makeBlock(
+  type: string,
+  data: Record<string, unknown>
+): BlockObjectResponse {
+  return {
+    type,
+    [type]: data,
+    object: 'block',
+    id: 'test-id',
+  } as unknown as BlockObjectResponse; // minimal fixture; Notion SDK types require full shape
 }
 
 describe('isExpandable', () => {
@@ -26,7 +34,11 @@ describe('isExpandable', () => {
   });
 
   it('returns true for table', () => {
-    const block = makeBlock('table', { table_width: 2, has_column_header: false, has_row_header: false });
+    const block = makeBlock('table', {
+      table_width: 2,
+      has_column_header: false,
+      has_row_header: false,
+    });
     expect(isExpandable(block)).toBe(true);
   });
 
@@ -39,7 +51,9 @@ describe('isExpandable', () => {
 describe('renderBlockSummary', () => {
   it('returns Columns label for column_list', () => {
     const block = makeBlock('column_list', {});
-    expect(renderBlockSummary(block)).toBe('<p class="block-label">Columns</p>');
+    expect(renderBlockSummary(block)).toBe(
+      '<p class="block-label">Columns</p>'
+    );
   });
 
   it('returns Column label for column', () => {
@@ -54,18 +68,49 @@ describe('renderBlockSummary', () => {
 });
 
 describe('renderBlockPreview — expandable containers return empty string', () => {
-  it.each(['column_list', 'column', 'table'])('%s returns empty string', (type) => {
-    const block = makeBlock(type, {});
-    expect(renderBlockPreview(block)).toBe('');
-  });
+  it.each(['column_list', 'column', 'table'])(
+    '%s returns empty string',
+    (type) => {
+      const block = makeBlock(type, {});
+      expect(renderBlockPreview(block)).toBe('');
+    }
+  );
 });
 
 describe('renderBlockPreview — table_row', () => {
   it('joins cells with pipe separator', () => {
     const block = makeBlock('table_row', {
       cells: [
-        [{ type: 'text', plain_text: 'Front', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
-        [{ type: 'text', plain_text: 'Back', annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' }, href: null }],
+        [
+          {
+            type: 'text',
+            plain_text: 'Front',
+            annotations: {
+              bold: false,
+              italic: false,
+              strikethrough: false,
+              underline: false,
+              code: false,
+              color: 'default',
+            },
+            href: null,
+          },
+        ],
+        [
+          {
+            type: 'text',
+            plain_text: 'Back',
+            annotations: {
+              bold: false,
+              italic: false,
+              strikethrough: false,
+              underline: false,
+              code: false,
+              color: 'default',
+            },
+            href: null,
+          },
+        ],
       ],
     });
     expect(renderBlockPreview(block)).toBe('<p>Front | Back</p>');
@@ -98,14 +143,20 @@ describe('renderBlockPreview — embed', () => {
 
 describe('renderBlockPreview — video', () => {
   it('renders external video link', () => {
-    const block = makeBlock('video', { type: 'external', external: { url: 'https://youtube.com/watch?v=abc' } });
+    const block = makeBlock('video', {
+      type: 'external',
+      external: { url: 'https://youtube.com/watch?v=abc' },
+    });
     const html = renderBlockPreview(block);
     expect(html).toContain('href="https://youtube.com/watch?v=abc"');
     expect(html).toContain('Video:');
   });
 
   it('renders file video link', () => {
-    const block = makeBlock('video', { type: 'file', file: { url: 'https://s3.example.com/video.mp4', expiry_time: '' } });
+    const block = makeBlock('video', {
+      type: 'file',
+      file: { url: 'https://s3.example.com/video.mp4', expiry_time: '' },
+    });
     const html = renderBlockPreview(block);
     expect(html).toContain('Video:');
     expect(html).toContain('https://s3.example.com/video.mp4');
@@ -114,46 +165,67 @@ describe('renderBlockPreview — video', () => {
 
 describe('renderBlockPreview — pdf', () => {
   it('renders external PDF link', () => {
-    const block = makeBlock('pdf', { type: 'external', external: { url: 'https://example.com/doc.pdf' } });
+    const block = makeBlock('pdf', {
+      type: 'external',
+      external: { url: 'https://example.com/doc.pdf' },
+    });
     expect(renderBlockPreview(block)).toContain('PDF:');
   });
 
   it('renders file PDF link', () => {
-    const block = makeBlock('pdf', { type: 'file', file: { url: 'https://s3.example.com/doc.pdf', expiry_time: '' } });
+    const block = makeBlock('pdf', {
+      type: 'file',
+      file: { url: 'https://s3.example.com/doc.pdf', expiry_time: '' },
+    });
     expect(renderBlockPreview(block)).toContain('PDF:');
   });
 });
 
 describe('renderBlockPreview — audio', () => {
   it('renders external audio link', () => {
-    const block = makeBlock('audio', { type: 'external', external: { url: 'https://example.com/audio.mp3' } });
+    const block = makeBlock('audio', {
+      type: 'external',
+      external: { url: 'https://example.com/audio.mp3' },
+    });
     expect(renderBlockPreview(block)).toContain('Audio:');
   });
 });
 
 describe('renderBlockPreview — file', () => {
   it('renders external file link', () => {
-    const block = makeBlock('file', { type: 'external', external: { url: 'https://example.com/data.csv' } });
+    const block = makeBlock('file', {
+      type: 'external',
+      external: { url: 'https://example.com/data.csv' },
+    });
     expect(renderBlockPreview(block)).toContain('File:');
   });
 });
 
 describe('renderBlockPreview — link_to_page', () => {
   it('renders page_id link', () => {
-    const block = makeBlock('link_to_page', { type: 'page_id', page_id: 'abc-123' });
+    const block = makeBlock('link_to_page', {
+      type: 'page_id',
+      page_id: 'abc-123',
+    });
     const html = renderBlockPreview(block);
     expect(html).toContain('href="/notion/abc-123"');
     expect(html).toContain('Link to page');
   });
 
   it('renders database_id link', () => {
-    const block = makeBlock('link_to_page', { type: 'database_id', database_id: 'db-456' });
+    const block = makeBlock('link_to_page', {
+      type: 'database_id',
+      database_id: 'db-456',
+    });
     const html = renderBlockPreview(block);
     expect(html).toContain('href="/notion/db-456"');
   });
 
   it('escapes XSS in linked ID', () => {
-    const block = makeBlock('link_to_page', { type: 'page_id', page_id: '<script>bad</script>' });
+    const block = makeBlock('link_to_page', {
+      type: 'page_id',
+      page_id: '<script>bad</script>',
+    });
     const html = renderBlockPreview(block);
     expect(html).not.toContain('<script>');
     expect(html).toContain('&lt;script&gt;');
@@ -162,14 +234,18 @@ describe('renderBlockPreview — link_to_page', () => {
 
 describe('renderBlockPreview — link_preview', () => {
   it('renders a labeled link', () => {
-    const block = makeBlock('link_preview', { url: 'https://figma.com/file/abc' });
+    const block = makeBlock('link_preview', {
+      url: 'https://figma.com/file/abc',
+    });
     const html = renderBlockPreview(block);
     expect(html).toContain('Link preview:');
     expect(html).toContain('href="https://figma.com/file/abc"');
   });
 
   it('escapes XSS in URL', () => {
-    const block = makeBlock('link_preview', { url: 'https://x.com/"onload=alert(1)' });
+    const block = makeBlock('link_preview', {
+      url: 'https://x.com/"onload=alert(1)',
+    });
     expect(renderBlockPreview(block)).toContain('&quot;');
   });
 });
@@ -182,7 +258,9 @@ describe('renderBlockPreview — static placeholders', () => {
 
   it('table_of_contents renders placeholder', () => {
     const block = makeBlock('table_of_contents', { color: 'default' });
-    expect(renderBlockPreview(block)).toBe('<p><em>(table of contents)</em></p>');
+    expect(renderBlockPreview(block)).toBe(
+      '<p><em>(table of contents)</em></p>'
+    );
   });
 
   it('synced_block renders placeholder', () => {
@@ -197,6 +275,8 @@ describe('renderBlockPreview — static placeholders', () => {
 
   it('unsupported renders placeholder', () => {
     const block = makeBlock('unsupported', {});
-    expect(renderBlockPreview(block)).toBe('<p><em>(unsupported block)</em></p>');
+    expect(renderBlockPreview(block)).toBe(
+      '<p><em>(unsupported block)</em></p>'
+    );
   });
 });

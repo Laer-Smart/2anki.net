@@ -15,7 +15,10 @@ export function scheduleImportJobReaper(
 
   const tick = async () => {
     try {
-      const deleted = await jobRepository.deleteOldJobs('apkg_import', maxAgeMs);
+      const deleted = await jobRepository.deleteOldJobs(
+        'apkg_import',
+        maxAgeMs
+      );
       if (deleted > 0) {
         console.info(`[import-reaper] cleaned up ${deleted} old import jobs`);
       }

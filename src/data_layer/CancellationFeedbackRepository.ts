@@ -30,9 +30,7 @@ interface CommentRow {
 const toIso = (value: Date | string): string =>
   typeof value === 'string' ? value : value.toISOString();
 
-export class CancellationFeedbackRepository
-  implements ICancellationFeedbackRepository
-{
+export class CancellationFeedbackRepository implements ICancellationFeedbackRepository {
   private readonly table = 'cancellation_feedback';
 
   constructor(private readonly database: Knex) {}
@@ -65,9 +63,7 @@ export class CancellationFeedbackRepository
   }
 }
 
-export class InMemoryCancellationFeedbackRepository
-  implements ICancellationFeedbackRepository
-{
+export class InMemoryCancellationFeedbackRepository implements ICancellationFeedbackRepository {
   private readonly rows: Array<{
     reason: string;
     comment: string | null;

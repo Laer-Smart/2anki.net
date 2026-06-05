@@ -51,12 +51,12 @@ THE_HASHING_SECRET=replace-with-a-different-long-random-string
 
 Each integration adds a feature. You can run 2anki without any of them — the file-upload conversion path works on its own.
 
-| Integration | Env vars | Adds |
-|---|---|---|
-| Notion OAuth | `NOTION_CLIENT_ID`, `NOTION_CLIENT_SECRET`, `NOTION_REDIRECT_URI` | Connect Notion + Find pages picker |
-| Anthropic Claude | `ANTHROPIC_API_KEY` | AI flashcard generation from PDFs |
-| Stripe | `STRIPE_KEY`, `STRIPE_ENDPOINT_SECRET` | Paid plans (skip if you're running for yourself) |
-| SendGrid | `SENDGRID_API_KEY` | Transactional email (password reset, etc.) |
+| Integration                         | Env vars                                                                                                                      | Adds                                                                                                                                                                                            |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Notion OAuth                        | `NOTION_CLIENT_ID`, `NOTION_CLIENT_SECRET`, `NOTION_REDIRECT_URI`                                                             | Connect Notion + Find pages picker                                                                                                                                                              |
+| Anthropic Claude                    | `ANTHROPIC_API_KEY`                                                                                                           | AI flashcard generation from PDFs                                                                                                                                                               |
+| Stripe                              | `STRIPE_KEY`, `STRIPE_ENDPOINT_SECRET`                                                                                        | Paid plans (skip if you're running for yourself)                                                                                                                                                |
+| SendGrid                            | `SENDGRID_API_KEY`                                                                                                            | Transactional email (password reset, etc.)                                                                                                                                                      |
 | DigitalOcean Spaces (S3-compatible) | `SPACES_ENDPOINT`, `SPACES_REGION`, `SPACES_DEFAULT_BUCKET_NAME`, plus standard `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Remote storage for converted decks (needed for "My Decks" history and sync) and mindmap images. Mindmap image upload requires Spaces — without it, image uploads will fail at the API boundary. |
 
 ## Where to get help

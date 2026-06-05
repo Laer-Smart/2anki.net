@@ -1,4 +1,7 @@
-import { buildAttachmentBlocks, type ChatAttachment } from './buildAttachmentBlocks';
+import {
+  buildAttachmentBlocks,
+  type ChatAttachment,
+} from './buildAttachmentBlocks';
 
 const PDF_MIME = 'application/pdf';
 const PNG_MIME = 'image/png';
@@ -60,7 +63,9 @@ describe('buildAttachmentBlocks', () => {
     const buf = Buffer.from([0x25, 0x50, 0x44, 0x46]);
     const result = buildAttachmentBlocks([{ mimeType: PDF_MIME, data: buf }]);
     const expected = buf.toString('base64');
-    expect((result[0] as { source: { data: string } }).source.data).toBe(expected);
+    expect((result[0] as { source: { data: string } }).source.data).toBe(
+      expected
+    );
   });
 
   it('returns multiple blocks preserving order', () => {

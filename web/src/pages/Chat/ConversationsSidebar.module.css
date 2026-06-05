@@ -135,7 +135,7 @@
 }
 
 .item:hover .menuTrigger,
-.menuTrigger[aria-expanded="true"] {
+.menuTrigger[aria-expanded='true'] {
   opacity: 1;
 }
 

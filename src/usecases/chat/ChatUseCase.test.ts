@@ -19,7 +19,9 @@ jest.mock(
 
 import { convertDocxToHTML } from '../../infrastracture/adapters/fileConversion/convertDocxToHTML';
 
-const mockedConvertDocx = convertDocxToHTML as jest.MockedFunction<typeof convertDocxToHTML>;
+const mockedConvertDocx = convertDocxToHTML as jest.MockedFunction<
+  typeof convertDocxToHTML
+>;
 
 const ZIP_MIME = 'application/zip';
 const DOCX_MIME =
@@ -61,14 +63,20 @@ function buildAnthropicMockWithBlocks(content: unknown[]) {
 }
 
 function buildAnthropicMock(responseContent: string) {
-  return buildAnthropicMockWithBlocks([{ type: 'text', text: responseContent }]);
+  return buildAnthropicMockWithBlocks([
+    { type: 'text', text: responseContent },
+  ]);
 }
 
 function buildUseCase(responseContent: string) {
   const messagesRepo = new InMemoryChatMessagesRepository();
   const conversationsRepo = new InMemoryConversationsRepository();
   const anthropic = buildAnthropicMock(responseContent);
-  const useCase = new ChatUseCase(messagesRepo, conversationsRepo, anthropic as never);
+  const useCase = new ChatUseCase(
+    messagesRepo,
+    conversationsRepo,
+    anthropic as never
+  );
   return { messagesRepo, conversationsRepo, anthropic, useCase };
 }
 
@@ -76,7 +84,11 @@ function buildUseCaseWithBlocks(content: unknown[]) {
   const messagesRepo = new InMemoryChatMessagesRepository();
   const conversationsRepo = new InMemoryConversationsRepository();
   const anthropic = buildAnthropicMockWithBlocks(content);
-  const useCase = new ChatUseCase(messagesRepo, conversationsRepo, anthropic as never);
+  const useCase = new ChatUseCase(
+    messagesRepo,
+    conversationsRepo,
+    anthropic as never
+  );
   return { messagesRepo, conversationsRepo, anthropic, useCase };
 }
 
@@ -94,7 +106,11 @@ describe('ChatUseCase', () => {
       }
 
       await expect(
-        useCase.execute({ user: FREE_USER, content: 'another message', conversationHistory: [] })
+        useCase.execute({
+          user: FREE_USER,
+          content: 'another message',
+          conversationHistory: [],
+        })
       ).rejects.toBeInstanceOf(ChatRateLimitError);
     });
 
@@ -141,7 +157,11 @@ describe('ChatUseCase', () => {
     it('uses haiku model for free users', async () => {
       const { anthropic, useCase } = buildUseCase('answer');
 
-      await useCase.execute({ user: FREE_USER, content: 'question', conversationHistory: [] });
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'question',
+        conversationHistory: [],
+      });
 
       expect(anthropic.messages.stream).toHaveBeenCalledWith(
         expect.objectContaining({ model: 'claude-haiku-4-5-20251001' })
@@ -151,7 +171,11 @@ describe('ChatUseCase', () => {
     it('uses sonnet model for patreon users', async () => {
       const { anthropic, useCase } = buildUseCase('answer');
 
-      await useCase.execute({ user: PATREON_USER, content: 'question', conversationHistory: [] });
+      await useCase.execute({
+        user: PATREON_USER,
+        content: 'question',
+        conversationHistory: [],
+      });
 
       expect(anthropic.messages.stream).toHaveBeenCalledWith(
         expect.objectContaining({ model: 'claude-sonnet-4-6' })
@@ -161,7 +185,10 @@ describe('ChatUseCase', () => {
 
   describe('card extraction', () => {
     it('extracts cards when response contains a JSON code block', async () => {
-      const cards = [{ front: 'Q1', back: 'A1' }, { front: 'Q2', back: 'A2' }];
+      const cards = [
+        { front: 'Q1', back: 'A1' },
+        { front: 'Q2', back: 'A2' },
+      ];
       const responseText = `Here are your cards:\n\`\`\`json\n${JSON.stringify(cards)}\n\`\`\`\nHope that helps!`;
       const { useCase } = buildUseCase(responseText);
 
@@ -191,7 +218,9 @@ describe('ChatUseCase', () => {
     });
 
     it('returns no cards when response has no JSON block', async () => {
-      const { useCase } = buildUseCase('Photosynthesis is the process by which...');
+      const { useCase } = buildUseCase(
+        'Photosynthesis is the process by which...'
+      );
 
       const result = await useCase.execute({
         user: FREE_USER,
@@ -336,7 +365,9 @@ describe('ChatUseCase', () => {
     });
 
     it('normalizes stray cloze cards to plain front/back when templateSlug is basic', async () => {
-      const cards = [{ front: 'The capital of {{c1::France}} is Paris.', back: '' }];
+      const cards = [
+        { front: 'The capital of {{c1::France}} is Paris.', back: '' },
+      ];
       const responseText = `\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
       const { useCase } = buildUseCase(responseText);
 
@@ -354,7 +385,10 @@ describe('ChatUseCase', () => {
 
     it('joins multiple cloze answers on the back when templateSlug is basic', async () => {
       const cards = [
-        { front: '{{c1::Mitochondria}} is the {{c2::powerhouse}} of the cell.', back: '' },
+        {
+          front: '{{c1::Mitochondria}} is the {{c2::powerhouse}} of the cell.',
+          back: '',
+        },
       ];
       const responseText = `\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
       const { useCase } = buildUseCase(responseText);
@@ -367,12 +401,17 @@ describe('ChatUseCase', () => {
       });
 
       expect(result.cards).toEqual([
-        { front: '[...] is the [...] of the cell.', back: 'Mitochondria, powerhouse' },
+        {
+          front: '[...] is the [...] of the cell.',
+          back: 'Mitochondria, powerhouse',
+        },
       ]);
     });
 
     it('normalizes stray cloze when templateSlug is basic-and-reversed', async () => {
-      const cards = [{ front: 'The capital of {{c1::France}} is Paris.', back: '' }];
+      const cards = [
+        { front: 'The capital of {{c1::France}} is Paris.', back: '' },
+      ];
       const responseText = `\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
       const { useCase } = buildUseCase(responseText);
 
@@ -389,7 +428,9 @@ describe('ChatUseCase', () => {
     });
 
     it('passes cloze cards through untouched when templateSlug is cloze', async () => {
-      const cards = [{ front: 'The capital of {{c1::France}} is Paris.', back: '' }];
+      const cards = [
+        { front: 'The capital of {{c1::France}} is Paris.', back: '' },
+      ];
       const responseText = `\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
       const { useCase } = buildUseCase(responseText);
 
@@ -434,7 +475,10 @@ describe('ChatUseCase', () => {
   describe('draft auto-clear', () => {
     it('clears the conversation draft after a successful assistant reply', async () => {
       const { conversationsRepo, useCase } = buildUseCase('reply');
-      const id = await conversationsRepo.create({ userId: FREE_USER.owner, title: 'With draft' });
+      const id = await conversationsRepo.create({
+        userId: FREE_USER.owner,
+        title: 'With draft',
+      });
       await conversationsRepo.saveDraft({
         userId: FREE_USER.owner,
         conversationId: id,
@@ -501,7 +545,8 @@ describe('ChatUseCase', () => {
     });
 
     it('reuses an existing conversation when a valid conversationId is provided', async () => {
-      const { conversationsRepo, messagesRepo, useCase } = buildUseCase('reply');
+      const { conversationsRepo, messagesRepo, useCase } =
+        buildUseCase('reply');
       const existingId = await conversationsRepo.create({
         userId: FREE_USER.owner,
         title: 'Already here',
@@ -555,7 +600,10 @@ describe('ChatUseCase', () => {
   describe('attachments', () => {
     it('sends a mixed-content user turn when attachments are provided', async () => {
       const { anthropic, useCase } = buildUseCase('answer');
-      const attachment = { mimeType: 'image/png', data: Buffer.from([0x89, 0x50, 0x4e, 0x47]) };
+      const attachment = {
+        mimeType: 'image/png',
+        data: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
+      };
 
       await useCase.execute({
         user: FREE_USER,
@@ -569,7 +617,10 @@ describe('ChatUseCase', () => {
       expect(Array.isArray(lastMessage.content)).toBe(true);
       expect(lastMessage.content).toHaveLength(2);
       expect(lastMessage.content[0]).toMatchObject({ type: 'image' });
-      expect(lastMessage.content[1]).toMatchObject({ type: 'text', text: 'Explain this diagram' });
+      expect(lastMessage.content[1]).toMatchObject({
+        type: 'text',
+        text: 'Explain this diagram',
+      });
     });
 
     it('sends a plain string user turn when no attachments are provided', async () => {
@@ -590,7 +641,10 @@ describe('ChatUseCase', () => {
 
     it('stores plain text in chat_messages even when attachments are present', async () => {
       const { messagesRepo, useCase } = buildUseCase('answer');
-      const attachment = { mimeType: 'application/pdf', data: Buffer.from([0x25, 0x50, 0x44, 0x46]) };
+      const attachment = {
+        mimeType: 'application/pdf',
+        data: Buffer.from([0x25, 0x50, 0x44, 0x46]),
+      };
 
       await useCase.execute({
         user: FREE_USER,
@@ -620,7 +674,10 @@ describe('ChatUseCase', () => {
         attachments: [
           {
             mimeType: MARKDOWN_MIME,
-            data: Buffer.from('# Photosynthesis\n\nConverts light to energy.', 'utf8'),
+            data: Buffer.from(
+              '# Photosynthesis\n\nConverts light to energy.',
+              'utf8'
+            ),
             fileName: 'bio.md',
           },
         ],
@@ -679,7 +736,9 @@ describe('ChatUseCase', () => {
     });
 
     it('injects .docx attachment text into the prompt', async () => {
-      mockedConvertDocx.mockResolvedValue('<h1>Kinetics</h1><p>Rate of reaction.</p>');
+      mockedConvertDocx.mockResolvedValue(
+        '<h1>Kinetics</h1><p>Rate of reaction.</p>'
+      );
       const { anthropic, useCase } = buildUseCase('answer');
 
       await useCase.execute({
@@ -708,8 +767,16 @@ describe('ChatUseCase', () => {
         content: 'Combine these',
         conversationHistory: [],
         attachments: [
-          { mimeType: 'application/pdf', data: Buffer.from([0x25, 0x50, 0x44, 0x46]), fileName: 'slides.pdf' },
-          { mimeType: MARKDOWN_MIME, data: Buffer.from('extra md notes', 'utf8'), fileName: 'notes.md' },
+          {
+            mimeType: 'application/pdf',
+            data: Buffer.from([0x25, 0x50, 0x44, 0x46]),
+            fileName: 'slides.pdf',
+          },
+          {
+            mimeType: MARKDOWN_MIME,
+            data: Buffer.from('extra md notes', 'utf8'),
+            fileName: 'notes.md',
+          },
         ],
       });
 
@@ -728,7 +795,11 @@ describe('ChatUseCase', () => {
     it('passes system as an array with a cache_control ephemeral block', async () => {
       const { anthropic, useCase } = buildUseCase('answer');
 
-      await useCase.execute({ user: FREE_USER, content: 'question', conversationHistory: [] });
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'question',
+        conversationHistory: [],
+      });
 
       const callArg = anthropic.messages.stream.mock.calls[0][0];
       expect(Array.isArray(callArg.system)).toBe(true);
@@ -783,19 +854,30 @@ describe('ChatUseCase', () => {
         conversationHistory: [],
       });
       expect(result.cards).toHaveLength(1);
-      expect(result.cards![0]).toMatchObject({ front: 'valid q', back: 'valid a' });
+      expect(result.cards![0]).toMatchObject({
+        front: 'valid q',
+        back: 'valid a',
+      });
     });
 
     it('adds MCQ instructions to the system prompt for paying users', async () => {
       const { anthropic, useCase } = buildUseCase('reply');
-      await useCase.execute({ user: PATREON_USER, content: 'q', conversationHistory: [] });
+      await useCase.execute({
+        user: PATREON_USER,
+        content: 'q',
+        conversationHistory: [],
+      });
       const callArg = anthropic.messages.stream.mock.calls[0][0];
       expect(callArg.system[0].text).toMatch(/correct_index/);
     });
 
     it('does not add MCQ instructions to the system prompt for free users', async () => {
       const { anthropic, useCase } = buildUseCase('reply');
-      await useCase.execute({ user: FREE_USER, content: 'q', conversationHistory: [] });
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'q',
+        conversationHistory: [],
+      });
       const callArg = anthropic.messages.stream.mock.calls[0][0];
       expect(callArg.system[0].text).not.toMatch(/correct_index/);
     });
@@ -831,7 +913,10 @@ describe('ChatUseCase', () => {
       expect(callArg.tools).toEqual([
         expect.objectContaining({ name: 'emit_mcq_cards' }),
       ]);
-      expect(callArg.tool_choice).toEqual({ type: 'tool', name: 'emit_mcq_cards' });
+      expect(callArg.tool_choice).toEqual({
+        type: 'tool',
+        name: 'emit_mcq_cards',
+      });
     });
 
     it('raises max_tokens on the MCQ tool path so structured output is not truncated', async () => {
@@ -916,8 +1001,14 @@ describe('ChatUseCase', () => {
         mcqToolBlock({
           cards: [
             {
-              front: 'Spring Boot uses {{c1::auto-configuration}} to detect deps.',
-              options: ['auto-configuration', 'reflection', 'a build plugin', 'manual wiring'],
+              front:
+                'Spring Boot uses {{c1::auto-configuration}} to detect deps.',
+              options: [
+                'auto-configuration',
+                'reflection',
+                'a build plugin',
+                'manual wiring',
+              ],
               correct_index: 0,
               rationale: 'Auto-configuration wires beans from the classpath.',
             },
@@ -936,7 +1027,12 @@ describe('ChatUseCase', () => {
       expect(card.front).not.toContain('{{c');
       expect(card.front).not.toContain('auto-configuration');
       expect(card.front).toContain('_____');
-      expect(card.options).toEqual(['auto-configuration', 'reflection', 'a build plugin', 'manual wiring']);
+      expect(card.options).toEqual([
+        'auto-configuration',
+        'reflection',
+        'a build plugin',
+        'manual wiring',
+      ]);
       expect(card.correctIndex).toBe(0);
     });
 
@@ -1141,10 +1237,12 @@ describe('ChatUseCase', () => {
 
     it('does not add any suffix for basic template', async () => {
       const { anthropic, useCase } = buildUseCase('answer');
-      const baseLen = (await (() => {
-        const uc = buildUseCase('answer');
-        return uc.anthropic.messages.stream.mock.calls;
-      })()).length;
+      const baseLen = (
+        await (() => {
+          const uc = buildUseCase('answer');
+          return uc.anthropic.messages.stream.mock.calls;
+        })()
+      ).length;
       await useCase.execute({
         user: FREE_USER,
         content: 'question',
@@ -1172,12 +1270,17 @@ describe('ChatUseCase', () => {
 
   describe('rewriteAssistantContentWithTaggedCards', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { rewriteAssistantContentWithTaggedCards } = require('./ChatUseCase') as {
-      rewriteAssistantContentWithTaggedCards: (content: string, taggedCards: unknown[]) => string;
-    };
+    const { rewriteAssistantContentWithTaggedCards } =
+      require('./ChatUseCase') as {
+        rewriteAssistantContentWithTaggedCards: (
+          content: string,
+          taggedCards: unknown[]
+        ) => string;
+      };
 
     it('replaces the JSON fence body while preserving surrounding prose', () => {
-      const before = 'Here you go:\n\n```json\n[{"front":"q","back":"a"}]\n```\n\nLet me know.';
+      const before =
+        'Here you go:\n\n```json\n[{"front":"q","back":"a"}]\n```\n\nLet me know.';
       const tagged = [{ front: 'q', back: 'a', tags: ['x', 'y'] }];
       const after = rewriteAssistantContentWithTaggedCards(before, tagged);
       expect(after).toContain('Here you go:');
@@ -1201,13 +1304,21 @@ describe('ChatUseCase', () => {
       conversationsRepo: InMemoryConversationsRepository,
       userId: number
     ) {
-      const conversationId = await conversationsRepo.create({ userId, title: 'Seeded' });
+      const conversationId = await conversationsRepo.create({
+        userId,
+        title: 'Seeded',
+      });
       const turns: Array<{ role: 'user' | 'assistant'; content: string }> = [
         { role: 'user', content: 'first prompt' },
         { role: 'assistant', content: 'old assistant reply' },
       ];
       for (const turn of turns) {
-        await messagesRepo.insert({ userId, conversationId, role: turn.role, content: turn.content });
+        await messagesRepo.insert({
+          userId,
+          conversationId,
+          role: turn.role,
+          content: turn.content,
+        });
         conversationsRepo.recordMessage({
           userId,
           conversationId,
@@ -1219,8 +1330,14 @@ describe('ChatUseCase', () => {
     }
 
     it('deletes the last assistant message and streams a fresh turn', async () => {
-      const { messagesRepo, conversationsRepo, useCase } = buildUseCase('new assistant reply');
-      const conversationId = await seedConversation(messagesRepo, conversationsRepo, PATREON_USER.owner);
+      const { messagesRepo, conversationsRepo, useCase } = buildUseCase(
+        'new assistant reply'
+      );
+      const conversationId = await seedConversation(
+        messagesRepo,
+        conversationsRepo,
+        PATREON_USER.owner
+      );
 
       const result = await useCase.regenerate({
         user: PATREON_USER,
@@ -1231,7 +1348,9 @@ describe('ChatUseCase', () => {
       expect(result.content).toBe('new assistant reply');
       expect(result.conversationId).toBe(conversationId);
 
-      const remaining = messagesRepo.getAll().filter((r) => r.conversation_id === conversationId);
+      const remaining = messagesRepo
+        .getAll()
+        .filter((r) => r.conversation_id === conversationId);
       const assistantContents = remaining
         .filter((r) => r.role === 'assistant')
         .map((r) => r.content);
@@ -1239,8 +1358,13 @@ describe('ChatUseCase', () => {
     });
 
     it('leaves the prior user message untouched', async () => {
-      const { messagesRepo, conversationsRepo, useCase } = buildUseCase('regenerated');
-      const conversationId = await seedConversation(messagesRepo, conversationsRepo, PATREON_USER.owner);
+      const { messagesRepo, conversationsRepo, useCase } =
+        buildUseCase('regenerated');
+      const conversationId = await seedConversation(
+        messagesRepo,
+        conversationsRepo,
+        PATREON_USER.owner
+      );
 
       await useCase.regenerate({
         user: PATREON_USER,
@@ -1250,13 +1374,20 @@ describe('ChatUseCase', () => {
 
       const userMessages = messagesRepo
         .getAll()
-        .filter((r) => r.conversation_id === conversationId && r.role === 'user');
+        .filter(
+          (r) => r.conversation_id === conversationId && r.role === 'user'
+        );
       expect(userMessages.map((r) => r.content)).toEqual(['first prompt']);
     });
 
     it('passes the regenerate templateSlug to the model prompt, not the stored default', async () => {
-      const { messagesRepo, conversationsRepo, anthropic, useCase } = buildUseCase('regenerated');
-      const conversationId = await seedConversation(messagesRepo, conversationsRepo, PATREON_USER.owner);
+      const { messagesRepo, conversationsRepo, anthropic, useCase } =
+        buildUseCase('regenerated');
+      const conversationId = await seedConversation(
+        messagesRepo,
+        conversationsRepo,
+        PATREON_USER.owner
+      );
 
       await useCase.regenerate({
         user: PATREON_USER,
@@ -1271,7 +1402,11 @@ describe('ChatUseCase', () => {
     it('throws ChatConversationNotFoundError for an unknown conversation', async () => {
       const { useCase } = buildUseCase('x');
       await expect(
-        useCase.regenerate({ user: PATREON_USER, conversationId: 999, templateSlug: null })
+        useCase.regenerate({
+          user: PATREON_USER,
+          conversationId: 999,
+          templateSlug: null,
+        })
       ).rejects.toBeInstanceOf(ChatConversationNotFoundError);
     });
   });
@@ -1290,7 +1425,11 @@ describe('ChatUseCase', () => {
 
       let caughtError: ChatRateLimitError | null = null;
       try {
-        await useCase.execute({ user: FREE_USER, content: 'more', conversationHistory: [] });
+        await useCase.execute({
+          user: FREE_USER,
+          content: 'more',
+          conversationHistory: [],
+        });
       } catch (err) {
         if (err instanceof ChatRateLimitError) {
           caughtError = err;

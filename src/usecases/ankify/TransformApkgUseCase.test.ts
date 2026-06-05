@@ -24,7 +24,10 @@ jest.mock('../../lib/parser/exporters/CustomExporter', () => {
         addedMedia.length = 0;
         configuredDecks = [];
       }
-      constructor(public name: string, public workspaceLocation: string) {}
+      constructor(
+        public name: string,
+        public workspaceLocation: string
+      ) {}
       configure(decks: unknown[]): void {
         configuredDecks = decks;
       }
@@ -60,7 +63,8 @@ const FakeExporter = jest.requireMock(
 };
 
 beforeEach(() => {
-  process.env.WORKSPACE_BASE = process.env.WORKSPACE_BASE ?? '/tmp/2anki-transform-test';
+  process.env.WORKSPACE_BASE =
+    process.env.WORKSPACE_BASE ?? '/tmp/2anki-transform-test';
   FakeExporter.__reset();
 });
 
@@ -69,7 +73,12 @@ function makeParsed(
   unknown: string[] = [],
   sourceMedia: parseModule.SourceMediaFile[] = []
 ): parseModule.ParseApkgNotesResult {
-  return { notes, unknownModelNames: unknown, deckName: 'Pharmacology', sourceMedia };
+  return {
+    notes,
+    unknownModelNames: unknown,
+    deckName: 'Pharmacology',
+    sourceMedia,
+  };
 }
 
 function makeNote(id: string): ParsedNote {
@@ -83,7 +92,10 @@ function makeNote(id: string): ParsedNote {
   };
 }
 
-function transformed(id: string, overrides: Partial<TransformedNote> = {}): TransformedNote {
+function transformed(
+  id: string,
+  overrides: Partial<TransformedNote> = {}
+): TransformedNote {
   return {
     guid: id,
     modelKind: 'basic',
@@ -149,13 +161,15 @@ describe('TransformApkgUseCase', () => {
   });
 
   it('passes source-deck media through to the exporter', async () => {
-    jest.spyOn(parseModule, 'parseApkgNotes').mockResolvedValueOnce(
-      makeParsed(
-        [makeNote('a')],
-        [],
-        [{ filename: 'Chugoku.png', bytes: Buffer.from('chugoku-bytes') }]
-      )
-    );
+    jest
+      .spyOn(parseModule, 'parseApkgNotes')
+      .mockResolvedValueOnce(
+        makeParsed(
+          [makeNote('a')],
+          [],
+          [{ filename: 'Chugoku.png', bytes: Buffer.from('chugoku-bytes') }]
+        )
+      );
     jest.spyOn(transformModule, 'transformApkgNotes').mockResolvedValueOnce({
       notes: [transformed('a')],
       failures: [],
@@ -189,13 +203,15 @@ describe('TransformApkgUseCase', () => {
       fieldNames: ['Front', 'Back'],
       tags: [],
     };
-    jest.spyOn(parseModule, 'parseApkgNotes').mockResolvedValueOnce(
-      makeParsed(
-        [noteWithImage],
-        [],
-        [{ filename: 'Chugoku.png', bytes: Buffer.from('chugoku-bytes') }]
-      )
-    );
+    jest
+      .spyOn(parseModule, 'parseApkgNotes')
+      .mockResolvedValueOnce(
+        makeParsed(
+          [noteWithImage],
+          [],
+          [{ filename: 'Chugoku.png', bytes: Buffer.from('chugoku-bytes') }]
+        )
+      );
     jest.spyOn(transformModule, 'transformApkgNotes').mockResolvedValueOnce({
       notes: [
         transformed('a', {

@@ -9,15 +9,15 @@ const TABLE = 'ankify_export_schedules';
 
 export interface AnkifyExportSchedulesRepositoryInterface {
   findByOwner(owner: number): Promise<AnkifyExportSchedule | null>;
-  upsertByOwner(input: UpsertAnkifyExportSchedule): Promise<AnkifyExportSchedule>;
+  upsertByOwner(
+    input: UpsertAnkifyExportSchedule
+  ): Promise<AnkifyExportSchedule>;
   deleteByOwner(owner: number): Promise<void>;
   listEnabled(): Promise<AnkifyExportSchedule[]>;
   markRun(id: number): Promise<void>;
 }
 
-export class AnkifyExportSchedulesRepository
-  implements AnkifyExportSchedulesRepositoryInterface
-{
+export class AnkifyExportSchedulesRepository implements AnkifyExportSchedulesRepositoryInterface {
   constructor(private readonly database: Knex) {}
 
   async findByOwner(owner: number): Promise<AnkifyExportSchedule | null> {

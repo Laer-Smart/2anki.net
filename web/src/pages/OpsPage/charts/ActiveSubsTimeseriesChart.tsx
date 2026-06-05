@@ -68,7 +68,11 @@ export default function ActiveSubsTimeseriesChart({
           stroke={AXIS_STROKE}
           minTickGap={32}
         />
-        <YAxis tick={AXIS_TICK_STYLE} stroke={AXIS_STROKE} allowDecimals={false} />
+        <YAxis
+          tick={AXIS_TICK_STYLE}
+          stroke={AXIS_STROKE}
+          allowDecimals={false}
+        />
         <Tooltip content={ActiveSubsTooltip} cursor={TOOLTIP_CURSOR_FILL} />
         <Line
           type="monotone"

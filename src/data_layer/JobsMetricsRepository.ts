@@ -125,9 +125,7 @@ export class JobsMetricsRepository implements IJobsMetricsRepository {
       .where('jobs.created_at', '<', weekEnd)
       .whereIn('jobs.type', NOTION_CONVERSION_TYPES)
       .select(
-        this.database.raw(
-          `DATE_TRUNC('week', jobs.created_at) AS week_start`
-        ),
+        this.database.raw(`DATE_TRUNC('week', jobs.created_at) AS week_start`),
         this.database.raw('COUNT(*) as count')
       )
       .groupBy('week_start')

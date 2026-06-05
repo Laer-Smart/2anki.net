@@ -1,12 +1,16 @@
-import { buildPythonExitError, PythonExitError, toUploadErrorCode } from './buildPythonExitError';
+import {
+  buildPythonExitError,
+  PythonExitError,
+  toUploadErrorCode,
+} from './buildPythonExitError';
 
 describe('buildPythonExitError', () => {
-  it("classifies invalid HTML tag warnings as invalid-markup and tells the user to simplify the offending block", () => {
+  it('classifies invalid HTML tag warnings as invalid-markup and tells the user to simplify the offending block', () => {
     const error = buildPythonExitError({
       code: 1,
       stdout: '',
       stderr:
-        "UserWarning: Field contained the following invalid HTML tags and was cleaned. Please check the field for errors.\n  warnings.warn(",
+        'UserWarning: Field contained the following invalid HTML tags and was cleaned. Please check the field for errors.\n  warnings.warn(',
       jobId: 'job-123',
     });
     expect(error).toBeInstanceOf(PythonExitError);
@@ -98,8 +102,7 @@ describe('buildPythonExitError', () => {
       buildPythonExitError({
         code: 1,
         stdout: '',
-        stderr:
-          'UserWarning: Field contained the following invalid HTML tags',
+        stderr: 'UserWarning: Field contained the following invalid HTML tags',
         jobId: 'j1',
       }),
       buildPythonExitError({
@@ -167,7 +170,9 @@ describe('toUploadErrorCode', () => {
   });
 
   it('maps unsupported-data-source to malformed_notion', () => {
-    expect(toUploadErrorCode('unsupported-data-source')).toBe('malformed_notion');
+    expect(toUploadErrorCode('unsupported-data-source')).toBe(
+      'malformed_notion'
+    );
   });
 
   it('maps too-large to too_large', () => {

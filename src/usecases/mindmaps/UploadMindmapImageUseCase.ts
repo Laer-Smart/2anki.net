@@ -5,7 +5,12 @@ import imageSize from 'image-size';
 import StorageHandler from '../../lib/storage/StorageHandler';
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_MIME_TYPES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp']);
+const ALLOWED_MIME_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
+]);
 
 export class MindmapImageTooLargeError extends Error {
   constructor() {
@@ -70,11 +75,16 @@ export class UploadMindmapImageUseCase {
 
   private extensionFor(mimetype: string): string {
     switch (mimetype) {
-      case 'image/png': return '.png';
-      case 'image/jpeg': return '.jpg';
-      case 'image/gif': return '.gif';
-      case 'image/webp': return '.webp';
-      default: return '.bin';
+      case 'image/png':
+        return '.png';
+      case 'image/jpeg':
+        return '.jpg';
+      case 'image/gif':
+        return '.gif';
+      case 'image/webp':
+        return '.webp';
+      default:
+        return '.bin';
     }
   }
 }

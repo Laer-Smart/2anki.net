@@ -163,7 +163,9 @@ export function CardFrame({
   }
 
   return (
-    <section className={`${styles.card}${isDeleted ? ` ${styles.cardDeleted}` : ''}`}>
+    <section
+      className={`${styles.card}${isDeleted ? ` ${styles.cardDeleted}` : ''}`}
+    >
       <header className={styles.cardHeader}>
         <div className={styles.cardDeckPath}>
           {deckSegments.map((segment, idx) => (

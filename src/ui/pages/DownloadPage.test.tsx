@@ -5,15 +5,7 @@ function render(viewModel: DownloadPageViewModel): string {
   return DownloadPage(viewModel);
 }
 
-const BANNED_PATTERNS = [
-  /✅/,
-  /❌/,
-  /📦/,
-  /📄/,
-  /Success!/,
-  /Awesome/,
-  /!/,
-];
+const BANNED_PATTERNS = [/✅/, /❌/, /📦/, /📄/, /Success!/, /Awesome/, /!/];
 
 function assertNoBannedContent(html: string) {
   for (const pattern of BANNED_PATTERNS) {

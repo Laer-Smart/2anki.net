@@ -109,7 +109,11 @@ export class RacService {
       );
       const hasActive = await this.hasActiveSession(existing.id);
       return {
-        client: { ...existing, session_url: null, has_active_session: hasActive },
+        client: {
+          ...existing,
+          session_url: null,
+          has_active_session: hasActive,
+        },
         created: false,
       };
     }
@@ -155,10 +159,7 @@ export class RacService {
         ankifyVolumeNameForOwner(owner),
         ankiConnectApiKey
       );
-      console.info(
-        '[ankify-provision] container started id=%s',
-        container.id
-      );
+      console.info('[ankify-provision] container started id=%s', container.id);
     } catch (error) {
       console.error(
         '[ankify-provision] createAndStartContainer failed:',
@@ -176,10 +177,7 @@ export class RacService {
         containerName ?? 'null'
       );
     } catch (error) {
-      console.warn(
-        '[ankify-provision] inspect failed (non-fatal):',
-        error
-      );
+      console.warn('[ankify-provision] inspect failed (non-fatal):', error);
       containerName = null;
     }
 
@@ -251,7 +249,9 @@ export class RacService {
       ankiConnectApiKey
     );
     const inspect = await container.inspect().catch(() => ({}));
-    const containerName = stripLeadingSlash((inspect as { Name?: string }).Name);
+    const containerName = stripLeadingSlash(
+      (inspect as { Name?: string }).Name
+    );
 
     const client = await this.repo.create({
       owner,
@@ -508,10 +508,7 @@ export class RacService {
         container.id
       );
     } catch (error) {
-      console.error(
-        '[ankify-provision] docker.createContainer threw:',
-        error
-      );
+      console.error('[ankify-provision] docker.createContainer threw:', error);
       throw error;
     }
     try {

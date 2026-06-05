@@ -629,7 +629,8 @@ const options: swaggerJsdoc.Options = {
               properties: {
                 content: {
                   type: 'string',
-                  description: 'Full assistant reply, also reconstructable by concatenating `token` frames.',
+                  description:
+                    'Full assistant reply, also reconstructable by concatenating `token` frames.',
                 },
                 conversationId: {
                   type: 'integer',

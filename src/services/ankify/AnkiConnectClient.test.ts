@@ -133,9 +133,7 @@ describe('AnkiConnectClient', () => {
       ],
     });
 
-    const body = JSON.parse(
-      (fetchImpl as jest.Mock).mock.calls[0][1].body
-    );
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
     expect(body).toEqual({
       action: 'createModel',
       version: 6,

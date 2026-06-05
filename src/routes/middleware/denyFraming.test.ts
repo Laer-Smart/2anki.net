@@ -28,7 +28,9 @@ describe('denyFraming', () => {
     const res = mockRes();
     const next = jest.fn();
     denyFraming(mockReq(), res as unknown as Response, next as NextFunction);
-    expect(res.headers['Content-Security-Policy']).toBe("frame-ancestors 'none'");
+    expect(res.headers['Content-Security-Policy']).toBe(
+      "frame-ancestors 'none'"
+    );
     expect(next).toHaveBeenCalled();
   });
 });

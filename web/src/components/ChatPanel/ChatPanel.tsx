@@ -290,9 +290,7 @@ function AssistantMessage({
 }) {
   const hasCards = message.cards != null && message.cards.length > 0;
   const selectorOnlyPreview =
-    showSelectorWithoutCards === true &&
-    !hasCards &&
-    onTemplateChange != null;
+    showSelectorWithoutCards === true && !hasCards && onTemplateChange != null;
   const showCardPreview =
     (hasCards && onSave != null) ||
     isRegenerating === true ||

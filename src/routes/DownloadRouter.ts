@@ -12,7 +12,10 @@ const DownloadRouter = () => {
   const database = getDatabase();
   const repository = new DownloadRepository(database);
   const jobRepository = new JobRepository(database);
-  const controller = new DownloadController(new DownloadService(repository), jobRepository);
+  const controller = new DownloadController(
+    new DownloadService(repository),
+    jobRepository
+  );
   const router = express.Router();
 
   /**

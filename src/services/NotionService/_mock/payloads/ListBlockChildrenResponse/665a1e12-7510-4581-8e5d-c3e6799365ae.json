@@ -1,54 +1,54 @@
 {
-    "object": "list",
-    "results": [
-        {
-            "object": "block",
-            "id": "3d92c240-fe78-4f2c-8a09-7a3f3a8f3d1a",
-            "parent": {
-                "type": "block_id",
-                "block_id": "665a1e12-7510-4581-8e5d-c3e6799365ae"
+  "object": "list",
+  "results": [
+    {
+      "object": "block",
+      "id": "3d92c240-fe78-4f2c-8a09-7a3f3a8f3d1a",
+      "parent": {
+        "type": "block_id",
+        "block_id": "665a1e12-7510-4581-8e5d-c3e6799365ae"
+      },
+      "created_time": "2021-05-16T13:57:00.000Z",
+      "last_edited_time": "2021-05-16T13:57:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+      },
+      "has_children": true,
+      "archived": false,
+      "in_trash": false,
+      "type": "toggle",
+      "toggle": {
+        "rich_text": [
+          {
+            "type": "text",
+            "text": {
+              "content": "A is open",
+              "link": null
             },
-            "created_time": "2021-05-16T13:57:00.000Z",
-            "last_edited_time": "2021-05-16T13:57:00.000Z",
-            "created_by": {
-                "object": "user",
-                "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+            "annotations": {
+              "bold": false,
+              "italic": false,
+              "strikethrough": false,
+              "underline": false,
+              "code": false,
+              "color": "default"
             },
-            "last_edited_by": {
-                "object": "user",
-                "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
-            },
-            "has_children": true,
-            "archived": false,
-            "in_trash": false,
-            "type": "toggle",
-            "toggle": {
-                "rich_text": [
-                    {
-                        "type": "text",
-                        "text": {
-                            "content": "A is open",
-                            "link": null
-                        },
-                        "annotations": {
-                            "bold": false,
-                            "italic": false,
-                            "strikethrough": false,
-                            "underline": false,
-                            "code": false,
-                            "color": "default"
-                        },
-                        "plain_text": "A is open",
-                        "href": null
-                    }
-                ],
-                "color": "default"
-            }
-        }
-    ],
-    "next_cursor": null,
-    "has_more": false,
-    "type": "block",
-    "block": {},
-    "request_id": "58fd98e3-63fa-4766-876a-33be7a27e60c"
+            "plain_text": "A is open",
+            "href": null
+          }
+        ],
+        "color": "default"
+      }
+    }
+  ],
+  "next_cursor": null,
+  "has_more": false,
+  "type": "block",
+  "block": {},
+  "request_id": "58fd98e3-63fa-4766-876a-33be7a27e60c"
 }

@@ -45,7 +45,10 @@ export const sidebar: SidebarGroup[] = [
       { label: 'Note types and templates', slug: 'cards/templates' },
       { label: 'Markdown and Obsidian', slug: 'cards/markdown' },
       { label: 'HTML', slug: 'cards/html' },
-      { label: 'Edit cards before downloading', slug: 'cards/edit-before-download' },
+      {
+        label: 'Edit cards before downloading',
+        slug: 'cards/edit-before-download',
+      },
     ],
   },
   {
@@ -136,8 +139,7 @@ export function findAdjacent(slug: string) {
 
 export function findGroupForSlug(slug: string): SidebarGroup | null {
   return (
-    sidebar.find((group) =>
-      group.items.some((item) => item.slug === slug),
-    ) ?? null
+    sidebar.find((group) => group.items.some((item) => item.slug === slug)) ??
+    null
   );
 }

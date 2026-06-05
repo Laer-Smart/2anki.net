@@ -13,15 +13,15 @@ function renderLayout() {
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={['/upload']}>
-      <SidebarLayout
-        email="alexander@alemayhu.com"
-        locals={{ patreon: true, subscriber: false }}
-        features={{ kiUI: false, ops: false }}
-        onLogOut={onLogOut}
-      >
-        <div data-testid="page-content">hello</div>
-      </SidebarLayout>
-    </MemoryRouter>
+        <SidebarLayout
+          email="alexander@alemayhu.com"
+          locals={{ patreon: true, subscriber: false }}
+          features={{ kiUI: false, ops: false }}
+          onLogOut={onLogOut}
+        >
+          <div data-testid="page-content">hello</div>
+        </SidebarLayout>
+      </MemoryRouter>
     </QueryClientProvider>
   );
 }
@@ -30,12 +30,17 @@ describe('SidebarLayout drawer', () => {
   it('renders the page content next to the sidebar', () => {
     renderLayout();
     expect(screen.getByTestId('page-content')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Make flashcards' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Make flashcards' })
+    ).toBeInTheDocument();
   });
 
   it('exposes a burger that toggles the drawer aria-hidden state', () => {
     renderLayout();
-    const burger = screen.getByRole('button', { name: /open navigation/i, hidden: true });
+    const burger = screen.getByRole('button', {
+      name: /open navigation/i,
+      hidden: true,
+    });
     expect(burger).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(burger);
     expect(burger).toHaveAttribute('aria-expanded', 'true');
@@ -43,7 +48,10 @@ describe('SidebarLayout drawer', () => {
 
   it('closes the drawer when the backdrop is clicked', () => {
     renderLayout();
-    const burger = screen.getByRole('button', { name: /open navigation/i, hidden: true });
+    const burger = screen.getByRole('button', {
+      name: /open navigation/i,
+      hidden: true,
+    });
     fireEvent.click(burger);
     expect(burger).toHaveAttribute('aria-expanded', 'true');
     fireEvent.click(screen.getByTestId('sidebar-backdrop'));
@@ -52,7 +60,10 @@ describe('SidebarLayout drawer', () => {
 
   it('closes the drawer when Escape is pressed', () => {
     renderLayout();
-    const burger = screen.getByRole('button', { name: /open navigation/i, hidden: true });
+    const burger = screen.getByRole('button', {
+      name: /open navigation/i,
+      hidden: true,
+    });
     fireEvent.click(burger);
     expect(burger).toHaveAttribute('aria-expanded', 'true');
     fireEvent.keyDown(document, { key: 'Escape' });

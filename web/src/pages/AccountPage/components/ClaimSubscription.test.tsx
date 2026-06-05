@@ -22,8 +22,12 @@ describe('ClaimSubscription', () => {
   it('shows the helper text and button when expanded', () => {
     render(<ClaimSubscription />);
     fireEvent.click(screen.getByText('Paid with a different email?'));
-    expect(screen.getByText(/If you paid Stripe with another email address/)).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Send confirmation email' })).toBeTruthy();
+    expect(
+      screen.getByText(/If you paid Stripe with another email address/)
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Send confirmation email' })
+    ).toBeTruthy();
   });
 
   it('shows success toast after successful submission', async () => {
@@ -33,7 +37,9 @@ describe('ClaimSubscription', () => {
 
     const input = screen.getByLabelText('Email you paid with');
     fireEvent.change(input, { target: { value: 'payer@example.com' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Send confirmation email' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Send confirmation email' })
+    );
 
     await waitFor(() => {
       expect(screen.getByRole('status')).toBeTruthy();

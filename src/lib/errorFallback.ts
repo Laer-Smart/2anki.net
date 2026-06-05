@@ -22,7 +22,10 @@ function sha256(value: string): string {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
-export function writeFallbackError(payload: FallbackErrorPayload, logsDir?: string): void {
+export function writeFallbackError(
+  payload: FallbackErrorPayload,
+  logsDir?: string
+): void {
   try {
     const dir = resolveLogsDir(logsDir);
     fs.mkdirSync(dir, { recursive: true });
@@ -67,7 +70,10 @@ export async function drainFallbackFile(
       });
       inserted++;
     } catch {
-      console.error('[errorFallback] skipping malformed fallback line:', line.slice(0, 120));
+      console.error(
+        '[errorFallback] skipping malformed fallback line:',
+        line.slice(0, 120)
+      );
     }
   }
 

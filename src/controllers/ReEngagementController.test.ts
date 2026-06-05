@@ -78,7 +78,11 @@ describe('ReEngagementController.submitFeedback', () => {
 
   it('returns 404 when token is not found', async () => {
     const { controller, req, res } = buildMocks();
-    req.body = { token: 'bad-token', stoppedReason: 'Other', contentType: 'Notion' };
+    req.body = {
+      token: 'bad-token',
+      stoppedReason: 'Other',
+      contentType: 'Notion',
+    };
     await controller.submitFeedback(req, res);
     expect(res.status).toHaveBeenCalledWith(404);
   });
@@ -105,7 +109,11 @@ describe('ReEngagementController.submitFeedback', () => {
   it('passes null comment when comment is absent', async () => {
     const { controller, req, res, repo } = buildMocks();
     repo.findByToken.mockResolvedValue({ id: 5, userId: 3 });
-    req.body = { token: 'valid-token', stoppedReason: 'Other', contentType: 'PDF' };
+    req.body = {
+      token: 'valid-token',
+      stoppedReason: 'Other',
+      contentType: 'PDF',
+    };
     await controller.submitFeedback(req, res);
     expect(repo.saveResponse).toHaveBeenCalledWith(5, 'Other', 'PDF', null);
   });

@@ -89,9 +89,15 @@ function joinPlainText(items: PlainTextItem[]): string {
 
 function extractRowText(property: unknown): string {
   if (property == null || typeof property !== 'object') return '';
-  const p = property as { type?: string; title?: PlainTextItem[]; rich_text?: PlainTextItem[] };
-  if (p.type === 'title' && Array.isArray(p.title)) return joinPlainText(p.title);
-  if (p.type === 'rich_text' && Array.isArray(p.rich_text)) return joinPlainText(p.rich_text);
+  const p = property as {
+    type?: string;
+    title?: PlainTextItem[];
+    rich_text?: PlainTextItem[];
+  };
+  if (p.type === 'title' && Array.isArray(p.title))
+    return joinPlainText(p.title);
+  if (p.type === 'rich_text' && Array.isArray(p.rich_text))
+    return joinPlainText(p.rich_text);
   return '';
 }
 
@@ -296,8 +302,13 @@ class BlockHandler {
           const ankiNote = new Note(front, tableBack);
           ankiNote.cloze = isCloze;
           ankiNote.media = this.exporter.media;
-          ankiNote.notionLink = this.__notionLink(tableBlock.id, notionBaseLink);
-          ankiNote.notionId = this.settings.useNotionId ? tableBlock.id : undefined;
+          ankiNote.notionLink = this.__notionLink(
+            tableBlock.id,
+            notionBaseLink
+          );
+          ankiNote.notionId = this.settings.useNotionId
+            ? tableBlock.id
+            : undefined;
           ankiNote.tags =
             rules.TAGS === 'heading'
               ? headingTagsFor(tableBlock.id, headingTagMap)
@@ -328,11 +339,8 @@ class BlockHandler {
         back = await this.getBackSide(fullBlock);
       } else {
         // For non-toggle blocks, use the existing logic
-        name = await blockToStaticMarkup(
-          this,
-          block as BlockObjectResponse
-        );
-        
+        name = await blockToStaticMarkup(this, block as BlockObjectResponse);
+
         if (isColumnList(block) && rules.useColums()) {
           const secondColumn = await getColumn(block.id, this, 1);
           if (secondColumn) {
@@ -342,12 +350,12 @@ class BlockHandler {
           back = await this.getBackSide(block as BlockObjectResponse);
         }
       }
-      
+
       if (!name) {
         console.debug('name is not valid for front, skipping', name, back);
         continue;
       }
-      
+
       const ankiNote = new Note(name, back ?? '');
       ankiNote.media = this.exporter.media;
       let isBasicType = true;
@@ -449,7 +457,7 @@ class BlockHandler {
         c.tags = [...new Set(tags.concat(sanitizeTags(c.tags)))];
       });
     }
-    
+
     return cards; // .filter((c) => !c.isValid());
   }
 
@@ -533,7 +541,10 @@ class BlockHandler {
     return decks;
   }
 
-  async findFlashcardsFromPage(locator: Finder, globalSeenIds?: Set<string>): Promise<Deck[]> {
+  async findFlashcardsFromPage(
+    locator: Finder,
+    globalSeenIds?: Set<string>
+  ): Promise<Deck[]> {
     const { topLevelId, rules, parentName } = locator;
     if (!globalSeenIds) globalSeenIds = new Set<string>();
 
@@ -599,10 +610,12 @@ class BlockHandler {
         if (!isFullBlock(b)) {
           return false;
         }
-        return classifyBlock(
-          { type: b.type, hasToggleableHeading: isToggleHeading(b) },
-          classifyRules
-        ) === 'card';
+        return (
+          classifyBlock(
+            { type: b.type, hasToggleableHeading: isToggleHeading(b) },
+            classifyRules
+          ) === 'card'
+        );
       };
       const cBlocks = blocks.filter(isCardBlock);
       const headingTagMap =
@@ -629,8 +642,11 @@ class BlockHandler {
         headingTagMap,
         headingContextMap
       );
-      cards = cards.filter(card => {
-        if (typeof card.notionId === 'string' && globalSeenIds.has(card.notionId)) {
+      cards = cards.filter((card) => {
+        if (
+          typeof card.notionId === 'string' &&
+          globalSeenIds.has(card.notionId)
+        ) {
           return false;
         }
         if (typeof card.notionId === 'string') globalSeenIds.add(card.notionId);
@@ -652,13 +668,16 @@ class BlockHandler {
       if (isFullBlock(block) && block.type === 'child_page') {
         const subPage = await this.api.getPage(block.id);
         if (subPage) {
-          decks = await this.findFlashcardsFromPage({
-            parentType: block.type,
-            topLevelId: block.id,
-            rules,
-            decks,
-            parentName: currentDeckName,
-          }, globalSeenIds);
+          decks = await this.findFlashcardsFromPage(
+            {
+              parentType: block.type,
+              topLevelId: block.id,
+              rules,
+              decks,
+              parentName: currentDeckName,
+            },
+            globalSeenIds
+          );
         }
       }
     }
@@ -718,11 +737,15 @@ class BlockHandler {
             subHeadingContextMap
           );
           // Deduplicate by globalSeenIds
-          cards = cards.filter(card => {
-            if (typeof card.notionId === 'string' && globalSeenIds.has(card.notionId)) {
+          cards = cards.filter((card) => {
+            if (
+              typeof card.notionId === 'string' &&
+              globalSeenIds.has(card.notionId)
+            ) {
               return false;
             }
-            if (typeof card.notionId === 'string') globalSeenIds.add(card.notionId);
+            if (typeof card.notionId === 'string')
+              globalSeenIds.add(card.notionId);
             return true;
           });
           let subDeckName = getSubDeckName(sd);
@@ -744,13 +767,16 @@ class BlockHandler {
         }
         const subPage = await this.api.getPage(sd.id);
         if (subPage && isFullBlock(sd)) {
-          decks = await this.findFlashcardsFromPage({
-            parentType: sd.type,
-            topLevelId: sd.id,
-            rules,
-            decks,
-            parentName: currentDeckName,
-          }, globalSeenIds);
+          decks = await this.findFlashcardsFromPage(
+            {
+              parentType: sd.type,
+              topLevelId: sd.id,
+              rules,
+              decks,
+              parentName: currentDeckName,
+            },
+            globalSeenIds
+          );
         }
       }
     }

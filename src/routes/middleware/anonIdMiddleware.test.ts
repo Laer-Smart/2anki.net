@@ -50,10 +50,18 @@ describe('anonIdMiddleware', () => {
   });
 
   it('generates a different UUID on each call when no cookie exists', () => {
-    const { req: req1, res: res1, next: next1, setCookieArgs: c1 } =
-      makeReqRes();
-    const { req: req2, res: res2, next: next2, setCookieArgs: c2 } =
-      makeReqRes();
+    const {
+      req: req1,
+      res: res1,
+      next: next1,
+      setCookieArgs: c1,
+    } = makeReqRes();
+    const {
+      req: req2,
+      res: res2,
+      next: next2,
+      setCookieArgs: c2,
+    } = makeReqRes();
     anonIdMiddleware(req1, res1, next1);
     anonIdMiddleware(req2, res2, next2);
     expect(c1[0][1]).not.toBe(c2[0][1]);

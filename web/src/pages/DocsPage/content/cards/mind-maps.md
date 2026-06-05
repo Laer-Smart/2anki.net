@@ -18,12 +18,12 @@ The mind map editor at [2anki.net/mindmaps](https://2anki.net/mindmaps) lets you
 
 ## Keyboard model
 
-| Key | What it does |
-|-----|-------------|
-| Tab | Add a child node to the selected node |
-| Enter | Add a sibling node at the same level |
-| Backspace | Delete the selected node (confirmation required if it has children) |
-| Double-click or F2 | Edit the node label inline |
+| Key                | What it does                                                        |
+| ------------------ | ------------------------------------------------------------------- |
+| Tab                | Add a child node to the selected node                               |
+| Enter              | Add a sibling node at the same level                                |
+| Backspace          | Delete the selected node (confirmation required if it has children) |
+| Double-click or F2 | Edit the node label inline                                          |
 
 ## How cards are generated
 
@@ -34,11 +34,13 @@ The export modal offers three card types. **Cloze** is the default.
 Each root-to-leaf path becomes one cloze card. Every node along the path — except the final leaf — is wrapped in a cloze deletion. The leaf is the context anchor that ties the path together.
 
 A map with root **Science → Biology → Genetics** produces one card:
+
 ```
 {{c1::Science}} → {{c2::Biology}} → Genetics
 ```
 
 A star map — **Anatomy → Bone** and **Anatomy → Muscle** — produces two cards:
+
 ```
 {{c1::Anatomy}} → Bone
 {{c1::Anatomy}} → Muscle
@@ -51,6 +53,7 @@ The card count shown in the modal equals the number of leaf nodes (nodes with no
 Each **edge** (parent → child connection) becomes one Basic card: the parent label is the front, the child label is the back.
 
 A simple star map — one root with three children — produces three cards:
+
 - Root → Child A
 - Root → Child B
 - Root → Child C

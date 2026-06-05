@@ -62,7 +62,9 @@ export function useUploadFormState(onReset: () => void) {
   const [source, setSource] = useState<UploadSource>('local');
   const [showInlineChat, setShowInlineChat] = useState(false);
   const [showErrorInlineChat, setShowErrorInlineChat] = useState(false);
-  const [lockedPdfInfo, setLockedPdfInfo] = useState<LockedPdfInfo | null>(null);
+  const [lockedPdfInfo, setLockedPdfInfo] = useState<LockedPdfInfo | null>(
+    null
+  );
   const [pdfCredential, setPdfCredential] = useState('');
   const [pdfUnlockError, setPdfUnlockError] = useState<string | null>(null);
   const [pdfAttemptCount, setPdfAttemptCount] = useState(0);

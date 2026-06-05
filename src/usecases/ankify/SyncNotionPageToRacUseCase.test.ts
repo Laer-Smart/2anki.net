@@ -1,8 +1,5 @@
 import { SyncNotionPageToRacUseCase } from './SyncNotionPageToRacUseCase';
-import {
-  AnkifyClient,
-  AnkifyNotionSubscription,
-} from '../../entities/ankify';
+import { AnkifyClient, AnkifyNotionSubscription } from '../../entities/ankify';
 import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
 import { AnkifySyncMappingsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncMappingsRepository';
 import { AnkifySyncConflictsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncConflictsRepository';
@@ -84,7 +81,7 @@ const makeClients = (): jest.Mocked<AnkifyClientsRepositoryInterface> =>
     touchLastActiveAt: jest.fn(),
     reservedPorts: jest.fn(),
     listIdleSince: jest.fn(),
-  } as unknown as jest.Mocked<AnkifyClientsRepositoryInterface>);
+  }) as unknown as jest.Mocked<AnkifyClientsRepositoryInterface>;
 
 const makeMappings = (): jest.Mocked<AnkifySyncMappingsRepositoryInterface> =>
   ({
@@ -93,13 +90,13 @@ const makeMappings = (): jest.Mocked<AnkifySyncMappingsRepositoryInterface> =>
     listByClient: jest.fn(),
     findByAnkiNoteId: jest.fn(),
     deleteByAnkiNoteId: jest.fn(),
-  } as unknown as jest.Mocked<AnkifySyncMappingsRepositoryInterface>);
+  }) as unknown as jest.Mocked<AnkifySyncMappingsRepositoryInterface>;
 
 const makeConflicts = (): jest.Mocked<AnkifySyncConflictsRepositoryInterface> =>
   ({
     hasPending: jest.fn(async () => false),
     recordOrFindPending: jest.fn(),
-  } as unknown as jest.Mocked<AnkifySyncConflictsRepositoryInterface>);
+  }) as unknown as jest.Mocked<AnkifySyncConflictsRepositoryInterface>;
 
 const makeSubscriptionsRepo = (
   upsertResult: AnkifyNotionSubscription = sampleSubscription()
@@ -113,13 +110,13 @@ const makeSubscriptionsRepo = (
     setEnabled: jest.fn(),
     deleteById: jest.fn(),
     recordPoll: jest.fn(),
-  } as unknown as jest.Mocked<AnkifyNotionSubscriptionsRepositoryInterface>);
+  }) as unknown as jest.Mocked<AnkifyNotionSubscriptionsRepositoryInterface>;
 
 const makeLogs = (): jest.Mocked<AnkifySyncLogsRepositoryInterface> =>
   ({
     log: jest.fn(async () => undefined),
     listByOwner: jest.fn(),
-  } as unknown as jest.Mocked<AnkifySyncLogsRepositoryInterface>);
+  }) as unknown as jest.Mocked<AnkifySyncLogsRepositoryInterface>;
 
 const makeNotionRepo = (
   token: string | null = 'notion-token'
@@ -132,7 +129,7 @@ const makeNotionRepo = (
     deleteNotionData: jest.fn(),
     markTokenInvalid: jest.fn(async () => undefined),
     clearTokenInvalid: jest.fn(async () => undefined),
-  } as unknown as jest.Mocked<INotionRepository>);
+  }) as unknown as jest.Mocked<INotionRepository>;
 
 const makeAnkiConnectStub = () =>
   ({
@@ -146,7 +143,7 @@ const makeAnkiConnectStub = () =>
     updateModelStyling: jest.fn(async () => null),
     updateModelTemplates: jest.fn(async () => null),
     storeMediaFile: jest.fn(async () => 'stored.png'),
-  } as unknown as AnkiConnectClient & { [k: string]: jest.Mock });
+  }) as unknown as AnkiConnectClient & { [k: string]: jest.Mock };
 
 const makeRepos = () => ({
   clients: makeClients(),
@@ -165,7 +162,9 @@ describe('SyncNotionPageToRacUseCase', () => {
 
   beforeEach(() => {
     (walkNotionPageForFlashcards as jest.Mock).mockReset();
-    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue(emptyWalkResult());
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue(
+      emptyWalkResult()
+    );
   });
 
   test('persists icon returned by the page-meta fetcher on upsert', async () => {
@@ -250,7 +249,14 @@ describe('SyncNotionPageToRacUseCase', () => {
   });
 
   test('addNote uses the Ankify Basic model name', async () => {
-    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({ cards: [sampleCard()], diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } } });
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
     const repos = makeRepos();
     const ac = makeAnkiConnectStub();
     const useCase = new SyncNotionPageToRacUseCase(
@@ -279,7 +285,14 @@ describe('SyncNotionPageToRacUseCase', () => {
   });
 
   test('seeds Ankify note types before the first addNote call', async () => {
-    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({ cards: [sampleCard()], diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } } });
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
     const repos = makeRepos();
     const ac = makeAnkiConnectStub();
     const callOrder: string[] = [];
@@ -322,7 +335,14 @@ describe('SyncNotionPageToRacUseCase', () => {
   });
 
   test('addNote uses a per-page deck name nested under "Notion Sync"', async () => {
-    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({ cards: [sampleCard()], diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } } });
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
     const repos = makeRepos();
     repos.subscriptions = makeSubscriptionsRepo(
       sampleSubscription({ notion_page_title: 'Algebra Basics' })
@@ -364,7 +384,14 @@ describe('SyncNotionPageToRacUseCase', () => {
   });
 
   test('falls back to "Notion Sync::Untitled" when the page title is null', async () => {
-    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({ cards: [sampleCard()], diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } } });
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
     const repos = makeRepos();
     repos.subscriptions = makeSubscriptionsRepo(
       sampleSubscription({ notion_page_title: null })
@@ -394,7 +421,14 @@ describe('SyncNotionPageToRacUseCase', () => {
   });
 
   test('strips "::" from titles so users cannot accidentally nest deeper', async () => {
-    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({ cards: [sampleCard()], diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } } });
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
     const repos = makeRepos();
     repos.subscriptions = makeSubscriptionsRepo(
       sampleSubscription({ notion_page_title: '  Quick::Tricks  ' })
@@ -421,7 +455,14 @@ describe('SyncNotionPageToRacUseCase', () => {
   });
 
   test('refreshes model styling and templates after ensuring models exist', async () => {
-    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({ cards: [sampleCard()], diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } } });
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
     const repos = makeRepos();
     const ac = makeAnkiConnectStub();
     const useCase = new SyncNotionPageToRacUseCase(
@@ -481,7 +522,11 @@ describe('SyncNotionPageToRacUseCase', () => {
           ],
         }),
       ],
-      diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } },
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
     });
 
     const repos = makeRepos();
@@ -541,7 +586,11 @@ describe('SyncNotionPageToRacUseCase', () => {
           ],
         }),
       ],
-      diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } },
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
     });
     const repos = makeRepos();
     const ac = makeAnkiConnectStub();
@@ -585,7 +634,11 @@ describe('SyncNotionPageToRacUseCase', () => {
           ],
         }),
       ],
-      diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } },
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
     });
     const repos = makeRepos();
     const ac = makeAnkiConnectStub();
@@ -615,7 +668,14 @@ describe('SyncNotionPageToRacUseCase', () => {
   });
 
   test('orphan recovery: when a mapped Anki note no longer exists, drops the mapping and recreates the note', async () => {
-    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({ cards: [sampleCard()], diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } } });
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
     const repos = makeRepos();
     const existingMapping = {
       id: 1,
@@ -665,7 +725,14 @@ describe('SyncNotionPageToRacUseCase', () => {
   });
 
   test('a second sync for the same client reuses the cache and skips modelNames', async () => {
-    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({ cards: [sampleCard()], diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } } });
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
     const repos = makeRepos();
     const ac = makeAnkiConnectStub();
     const useCase = new SyncNotionPageToRacUseCase(
@@ -874,7 +941,11 @@ describe('SyncNotionPageToRacUseCase', () => {
         errorEventRepo
       );
 
-      await useCase.execute({ owner: 42, notionPageId: 'page-abc', trigger: 'manual' });
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-abc',
+        trigger: 'manual',
+      });
 
       expect(errorEventRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -914,7 +985,11 @@ describe('SyncNotionPageToRacUseCase', () => {
         errorEventRepo
       );
 
-      await useCase.execute({ owner: 42, notionPageId: 'page-empty', trigger: 'polling' });
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-empty',
+        trigger: 'polling',
+      });
 
       expect(errorEventRepo.insert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -929,7 +1004,11 @@ describe('SyncNotionPageToRacUseCase', () => {
       const errorEventRepo = makeErrorEventRepo();
       (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
         cards: [sampleCard()],
-        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } },
+        diagnostic: {
+          blocks_scanned: 1,
+          blocks_matched: 1,
+          pattern_hits: { toggle: 1 },
+        },
       });
 
       const useCase = new SyncNotionPageToRacUseCase(
@@ -946,7 +1025,11 @@ describe('SyncNotionPageToRacUseCase', () => {
         errorEventRepo
       );
 
-      await useCase.execute({ owner: 42, notionPageId: 'page-with-cards', trigger: 'manual' });
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-with-cards',
+        trigger: 'manual',
+      });
 
       expect(errorEventRepo.insert).not.toHaveBeenCalled();
     });
@@ -971,17 +1054,26 @@ describe('SyncNotionPageToRacUseCase', () => {
       );
 
       await expect(
-        useCase.execute({ owner: 42, notionPageId: 'page-no-repo', trigger: 'manual' })
+        useCase.execute({
+          owner: 42,
+          notionPageId: 'page-no-repo',
+          trigger: 'manual',
+        })
       ).resolves.not.toThrow();
     });
   });
 
   test('marks token invalid and disables subscription when Notion returns Unauthorized', async () => {
-    const unauthorizedError = Object.assign(new Error('API token is invalid.'), {
-      code: 'unauthorized',
-      status: 401,
-    });
-    (walkNotionPageForFlashcards as jest.Mock).mockRejectedValue(unauthorizedError);
+    const unauthorizedError = Object.assign(
+      new Error('API token is invalid.'),
+      {
+        code: 'unauthorized',
+        status: 401,
+      }
+    );
+    (walkNotionPageForFlashcards as jest.Mock).mockRejectedValue(
+      unauthorizedError
+    );
     const repos = makeRepos();
     const ac = makeAnkiConnectStub();
     const useCase = new SyncNotionPageToRacUseCase(
@@ -1045,7 +1137,11 @@ describe('SyncNotionPageToRacUseCase', () => {
     it('refuses a loopback media URL and stores no media', async () => {
       (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
         cards: [fileMediaCard('http://127.0.0.1/secret.png')],
-        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } },
+        diagnostic: {
+          blocks_scanned: 1,
+          blocks_matched: 1,
+          pattern_hits: { toggle: 1 },
+        },
       });
       const repos = makeRepos();
       const ac = makeAnkiConnectStub();
@@ -1066,7 +1162,11 @@ describe('SyncNotionPageToRacUseCase', () => {
     it('refuses a link-local metadata media URL and stores no media', async () => {
       (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
         cards: [fileMediaCard('http://169.254.169.254/latest/meta-data/')],
-        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } },
+        diagnostic: {
+          blocks_scanned: 1,
+          blocks_matched: 1,
+          pattern_hits: { toggle: 1 },
+        },
       });
       const repos = makeRepos();
       const ac = makeAnkiConnectStub();
@@ -1083,14 +1183,20 @@ describe('SyncNotionPageToRacUseCase', () => {
     });
 
     it('fetches a public media URL through the guard and stores the bytes', async () => {
-      mockDnsLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }]);
+      mockDnsLookup.mockResolvedValue([
+        { address: '93.184.216.34', family: 4 },
+      ]);
       mockAxiosGet.mockResolvedValue({
         status: 200,
         data: Buffer.from('PNGDATA'),
       });
       (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
         cards: [fileMediaCard('https://prod-files.notion.so/img.png?signed=1')],
-        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: { toggle: 1 } },
+        diagnostic: {
+          blocks_scanned: 1,
+          blocks_matched: 1,
+          pattern_hits: { toggle: 1 },
+        },
       });
       const repos = makeRepos();
       const ac = makeAnkiConnectStub();

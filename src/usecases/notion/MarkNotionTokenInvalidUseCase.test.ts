@@ -3,7 +3,9 @@ import { INotionRepository } from '../../data_layer/NotionRespository';
 import { IEmailService } from '../../services/EmailService/EmailService';
 import { IMarkNotionTokenInvalidUsers } from './MarkNotionTokenInvalidUseCase';
 
-function buildNotionRepo(overrides: Partial<INotionRepository> = {}): INotionRepository {
+function buildNotionRepo(
+  overrides: Partial<INotionRepository> = {}
+): INotionRepository {
   return {
     getNotionData: jest.fn(),
     saveNotionToken: jest.fn(),
@@ -24,7 +26,9 @@ function buildUsers(...args: [string?]): IMarkNotionTokenInvalidUsers {
   };
 }
 
-function buildEmailService(overrides: Partial<IEmailService> = {}): IEmailService {
+function buildEmailService(
+  overrides: Partial<IEmailService> = {}
+): IEmailService {
   return {
     sendResetEmail: jest.fn(),
     sendConversionEmail: jest.fn(),
@@ -49,7 +53,11 @@ describe('MarkNotionTokenInvalidUseCase', () => {
 
   it('calls markTokenInvalid on the repository', async () => {
     const notion = buildNotionRepo();
-    const useCase = new MarkNotionTokenInvalidUseCase(notion, buildUsers(), buildEmailService());
+    const useCase = new MarkNotionTokenInvalidUseCase(
+      notion,
+      buildUsers(),
+      buildEmailService()
+    );
 
     await useCase.execute(OWNER);
 
@@ -58,7 +66,11 @@ describe('MarkNotionTokenInvalidUseCase', () => {
 
   it('looks up the recipient via getEmailById', async () => {
     const users = buildUsers('alice@example.com');
-    const useCase = new MarkNotionTokenInvalidUseCase(buildNotionRepo(), users, buildEmailService());
+    const useCase = new MarkNotionTokenInvalidUseCase(
+      buildNotionRepo(),
+      users,
+      buildEmailService()
+    );
 
     await useCase.execute(OWNER);
 
@@ -78,7 +90,11 @@ describe('MarkNotionTokenInvalidUseCase', () => {
         sendOrder.push('send');
       }),
     });
-    const useCase = new MarkNotionTokenInvalidUseCase(notion, buildUsers(), emailService);
+    const useCase = new MarkNotionTokenInvalidUseCase(
+      notion,
+      buildUsers(),
+      emailService
+    );
 
     await useCase.execute(OWNER);
 
@@ -88,20 +104,26 @@ describe('MarkNotionTokenInvalidUseCase', () => {
   it('sends the email when the gate claim succeeds', async () => {
     const emailService = buildEmailService();
     const useCase = new MarkNotionTokenInvalidUseCase(
-      buildNotionRepo({ setReconnectEmailSent: jest.fn().mockResolvedValue(true) }),
+      buildNotionRepo({
+        setReconnectEmailSent: jest.fn().mockResolvedValue(true),
+      }),
       buildUsers('alice@example.com'),
       emailService
     );
 
     await useCase.execute(OWNER);
 
-    expect(emailService.sendNotionReconnectEmail).toHaveBeenCalledWith('alice@example.com');
+    expect(emailService.sendNotionReconnectEmail).toHaveBeenCalledWith(
+      'alice@example.com'
+    );
   });
 
   it('does NOT send when the gate claim returns false', async () => {
     const emailService = buildEmailService();
     const useCase = new MarkNotionTokenInvalidUseCase(
-      buildNotionRepo({ setReconnectEmailSent: jest.fn().mockResolvedValue(false) }),
+      buildNotionRepo({
+        setReconnectEmailSent: jest.fn().mockResolvedValue(false),
+      }),
       buildUsers(),
       emailService
     );
@@ -126,17 +148,27 @@ describe('MarkNotionTokenInvalidUseCase', () => {
 
   it('does NOT throw when email send fails — caller is fire-and-forget', async () => {
     const emailService = buildEmailService({
-      sendNotionReconnectEmail: jest.fn().mockRejectedValue(new Error('SendGrid down')),
+      sendNotionReconnectEmail: jest
+        .fn()
+        .mockRejectedValue(new Error('SendGrid down')),
     });
-    const useCase = new MarkNotionTokenInvalidUseCase(buildNotionRepo(), buildUsers(), emailService);
+    const useCase = new MarkNotionTokenInvalidUseCase(
+      buildNotionRepo(),
+      buildUsers(),
+      emailService
+    );
 
     await expect(useCase.execute(OWNER)).resolves.not.toThrow();
   });
 
   it('does NOT log the recipient email address on failure', async () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const warnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
     const emailService = buildEmailService({
-      sendNotionReconnectEmail: jest.fn().mockRejectedValue(new Error('SendGrid down')),
+      sendNotionReconnectEmail: jest
+        .fn()
+        .mockRejectedValue(new Error('SendGrid down')),
     });
     const useCase = new MarkNotionTokenInvalidUseCase(
       buildNotionRepo(),
@@ -154,7 +186,9 @@ describe('MarkNotionTokenInvalidUseCase', () => {
   });
 
   it('logs owner id and a reason code on every non-happy path', async () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const warnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
 
     const useCaseNoEmail = new MarkNotionTokenInvalidUseCase(
       buildNotionRepo(),

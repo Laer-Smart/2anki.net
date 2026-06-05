@@ -3,7 +3,10 @@ import type { Message } from '@anthropic-ai/sdk/resources/messages';
 import { jsonrepair } from 'jsonrepair';
 
 import { getAnthropicClient } from '../../lib/claude/ClaudeService';
-import { applyTransformedFields, TransformResultPayload } from '../../lib/ankify/transforms/applyTransformedFields';
+import {
+  applyTransformedFields,
+  TransformResultPayload,
+} from '../../lib/ankify/transforms/applyTransformedFields';
 import { buildTransformPrompt } from '../../lib/ankify/transforms/prompts';
 import {
   FieldSelection,
@@ -87,16 +90,32 @@ async function runTransformCall(
   transform: TransformName,
   targetLanguage: TargetLanguage | undefined,
   selection: FieldSelection
-): Promise<{ note: TransformedNote; inputTokens: number; outputTokens: number }> {
-  const { system, user } = buildTransformPrompt(transform, note, targetLanguage, selection);
+): Promise<{
+  note: TransformedNote;
+  inputTokens: number;
+  outputTokens: number;
+}> {
+  const { system, user } = buildTransformPrompt(
+    transform,
+    note,
+    targetLanguage,
+    selection
+  );
   const response = await client.messages.create({
     model: TRANSFORM_MODEL,
     max_tokens: TRANSFORM_MAX_TOKENS,
-    system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
+    system: [
+      { type: 'text', text: system, cache_control: { type: 'ephemeral' } },
+    ],
     messages: [{ role: 'user', content: user }],
   });
   const payload = parseJsonPayload(extractText(response));
-  const transformed = applyTransformedFields(note, transform, payload, selection);
+  const transformed = applyTransformedFields(
+    note,
+    transform,
+    payload,
+    selection
+  );
   return {
     note: transformed,
     inputTokens: response.usage?.input_tokens ?? 0,
@@ -112,14 +131,20 @@ export async function transformApkgNotes(
   const selection = input.selection ?? {};
   const t0 = Date.now();
 
-  const results: Array<TransformedNote | null> = new Array(input.notes.length).fill(null);
+  const results: Array<TransformedNote | null> = new Array(
+    input.notes.length
+  ).fill(null);
   const failures: Array<{ guid: string; reason: string }> = [];
   let inputTokens = 0;
   let outputTokens = 0;
 
   await mapWithConcurrency(input.notes, concurrency, async (note, index) => {
     try {
-      const { note: transformed, inputTokens: it, outputTokens: ot } = await runTransformCall(
+      const {
+        note: transformed,
+        inputTokens: it,
+        outputTokens: ot,
+      } = await runTransformCall(
         client,
         note,
         input.transform,

@@ -41,12 +41,14 @@ function ForgettingCurve() {
       aria-labelledby="forgetting-curve-title forgetting-curve-desc"
       className={styles.svg}
     >
-      <title id="forgetting-curve-title">Forgetting curve with 90% retention marker</title>
+      <title id="forgetting-curve-title">
+        Forgetting curve with 90% retention marker
+      </title>
       <desc id="forgetting-curve-desc">
         A curve showing recall probability decaying over time. A dashed
-        horizontal line at 0.90 marks the default FSRS retention target;
-        the curve crosses it after about a week, which is where the
-        next review would be scheduled.
+        horizontal line at 0.90 marks the default FSRS retention target; the
+        curve crosses it after about a week, which is where the next review
+        would be scheduled.
       </desc>
 
       {/* Axes */}
@@ -142,10 +144,10 @@ function RetentionWorkload() {
         Desired retention vs daily review workload
       </title>
       <desc id="retention-workload-desc">
-        A curve showing how relative reviews per day grow as desired
-        retention approaches 1.0. Markers at 0.85, 0.90 (default), and
-        0.95 show that raising retention from 0.90 to 0.95 roughly
-        doubles the review load, while dropping to 0.85 lightens it.
+        A curve showing how relative reviews per day grow as desired retention
+        approaches 1.0. Markers at 0.85, 0.90 (default), and 0.95 show that
+        raising retention from 0.90 to 0.95 roughly doubles the review load,
+        while dropping to 0.85 lightens it.
       </desc>
 
       {/* Axes */}

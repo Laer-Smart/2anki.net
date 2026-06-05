@@ -12,7 +12,10 @@ export interface PitchDismissal {
 class PitchDismissalsRepository {
   constructor(private readonly database: Knex) {}
 
-  async upsertDismissal(userId: string, placement: PitchPlacement): Promise<void> {
+  async upsertDismissal(
+    userId: string,
+    placement: PitchPlacement
+  ): Promise<void> {
     await this.database('pitch_dismissals')
       .insert({ user_id: userId, placement, dismissed_at: new Date() })
       .onConflict(['user_id', 'placement'])

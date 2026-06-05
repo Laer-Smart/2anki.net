@@ -31,7 +31,8 @@ describe('sendPurchaseEvent', () => {
     });
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    const [url, options] = (global.fetch as jest.MockedFunction<typeof fetch>).mock.calls[0];
+    const [url, options] = (global.fetch as jest.MockedFunction<typeof fetch>)
+      .mock.calls[0];
 
     expect(String(url)).toBe(
       `${GA4_ENDPOINT}?measurement_id=G-TEST123&api_secret=test-secret`
@@ -91,7 +92,8 @@ describe('sendPurchaseEvent', () => {
       stripeCustomerId: 'cus_fallback123',
     });
 
-    const [, options] = (global.fetch as jest.MockedFunction<typeof fetch>).mock.calls[0];
+    const [, options] = (global.fetch as jest.MockedFunction<typeof fetch>).mock
+      .calls[0];
     const body = JSON.parse((options as RequestInit).body as string);
     expect(body.client_id).toBe('cus_fallback123');
   });

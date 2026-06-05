@@ -3,7 +3,8 @@ import { getSafeFilename, truncateToBytes } from '../getSafeFilename';
 
 const APKG_EXTENSION = '.apkg';
 const MAX_BASENAME_BYTES = 200;
-const MAX_TITLE_BYTES = MAX_BASENAME_BYTES - Buffer.byteLength(APKG_EXTENSION, 'utf8');
+const MAX_TITLE_BYTES =
+  MAX_BASENAME_BYTES - Buffer.byteLength(APKG_EXTENSION, 'utf8');
 
 function isPackage(something: unknown): something is Package {
   return something instanceof Package;

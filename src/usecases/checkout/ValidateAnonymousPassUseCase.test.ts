@@ -13,16 +13,29 @@ describe('ValidateAnonymousPassUseCase', () => {
 
   it('returns valid=true and the pass for a valid unexpired token', async () => {
     const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    await repo.insert({ stripeSessionId: 'cs_valid', kind: '24h', expiresAt, paymentIntentId: 'pi_1' });
+    await repo.insert({
+      stripeSessionId: 'cs_valid',
+      kind: '24h',
+      expiresAt,
+      paymentIntentId: 'pi_1',
+    });
 
     const result = await useCase.execute('cs_valid', now);
     expect(result.valid).toBe(true);
-    expect(result.pass).toMatchObject({ stripe_session_id: 'cs_valid', kind: '24h' });
+    expect(result.pass).toMatchObject({
+      stripe_session_id: 'cs_valid',
+      kind: '24h',
+    });
   });
 
   it('returns valid=false for an expired token', async () => {
     const expiresAt = new Date(now.getTime() - 1000);
-    await repo.insert({ stripeSessionId: 'cs_expired', kind: '24h', expiresAt, paymentIntentId: 'pi_2' });
+    await repo.insert({
+      stripeSessionId: 'cs_expired',
+      kind: '24h',
+      expiresAt,
+      paymentIntentId: 'pi_2',
+    });
 
     const result = await useCase.execute('cs_expired', now);
     expect(result.valid).toBe(false);
@@ -59,7 +72,10 @@ describe('ValidateAnonymousPassUseCase', () => {
 
       expect(retrieve).toHaveBeenCalledWith('cs_new');
       expect(result.valid).toBe(true);
-      expect(result.pass).toMatchObject({ stripe_session_id: 'cs_new', kind: '24h' });
+      expect(result.pass).toMatchObject({
+        stripe_session_id: 'cs_new',
+        kind: '24h',
+      });
       expect(await repo.findBySessionId('cs_new')).not.toBeNull();
     });
 
@@ -91,7 +107,9 @@ describe('ValidateAnonymousPassUseCase', () => {
     });
 
     it('returns valid=false when Stripe retrieval throws', async () => {
-      const retrieve = jest.fn().mockRejectedValue(new Error('no such session'));
+      const retrieve = jest
+        .fn()
+        .mockRejectedValue(new Error('no such session'));
       const result = await useCaseWith(retrieve).execute('cs_boom', now);
 
       expect(result.valid).toBe(false);

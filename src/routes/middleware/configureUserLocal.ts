@@ -58,7 +58,10 @@ export async function configureUserLocal(
     res.locals.email = user.email;
     res.locals.patreon = user.patreon;
     res.locals.chat_consent_at = user.chat_consent_at ?? null;
-    const isSubscriber = await authService.getIsSubscriber(database, user.email);
+    const isSubscriber = await authService.getIsSubscriber(
+      database,
+      user.email
+    );
     let activePass: UserPass | null = null;
     if (isSubscriber) {
       res.locals.subscriber = true;
@@ -85,7 +88,8 @@ export async function configureUserLocal(
   if (typeof passToken === 'string' && passToken.length > 0) {
     const repo = anonPassRepo ?? new AnonymousPassRepository(database);
     const validator =
-      validateAnonymousPass ?? new ValidateAnonymousPassUseCase(repo, resolveStripe());
+      validateAnonymousPass ??
+      new ValidateAnonymousPassUseCase(repo, resolveStripe());
     const result = await validator.execute(passToken, now ?? new Date());
     if (result.valid && result.pass != null) {
       res.locals.subscriber = true;

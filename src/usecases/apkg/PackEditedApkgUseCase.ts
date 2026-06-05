@@ -24,7 +24,10 @@ function writeTempFile(buffer: Buffer, suffix: string): string {
   return p;
 }
 
-function buildEditedSqlite(collectionBuffer: Buffer, edits: CardEdit[]): Buffer {
+function buildEditedSqlite(
+  collectionBuffer: Buffer,
+  edits: CardEdit[]
+): Buffer {
   const deletedIndices = new Set<number>();
   const suspendedIndices = new Set<number>();
   const textEdits = new Map<number, { front?: string; back?: string }>();

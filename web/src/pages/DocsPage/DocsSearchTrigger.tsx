@@ -4,7 +4,9 @@ interface DocsSearchTriggerProps {
   onOpen: () => void;
 }
 
-export function DocsSearchTrigger({ onOpen }: Readonly<DocsSearchTriggerProps>) {
+export function DocsSearchTrigger({
+  onOpen,
+}: Readonly<DocsSearchTriggerProps>) {
   return (
     <button type="button" className={styles.searchTrigger} onClick={onOpen}>
       <span className={styles.searchTriggerIcon} aria-hidden="true">

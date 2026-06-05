@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { createDeckShare, revokeDeckShare, getActiveSharesForUploadKey, ActiveShare } from '../../lib/backend/getSharedDeck';
+import {
+  createDeckShare,
+  revokeDeckShare,
+  getActiveSharesForUploadKey,
+  ActiveShare,
+} from '../../lib/backend/getSharedDeck';
 import styles from './SharePopover.module.css';
 
 interface SharePopoverProps {
@@ -16,7 +21,15 @@ interface PopoverBodyProps {
   onKeepSharing: () => void;
 }
 
-function PopoverBody({ loading, share, showConfirm, onCopy, onStopRequest, onStopConfirm, onKeepSharing }: Readonly<PopoverBodyProps>) {
+function PopoverBody({
+  loading,
+  share,
+  showConfirm,
+  onCopy,
+  onStopRequest,
+  onStopConfirm,
+  onKeepSharing,
+}: Readonly<PopoverBodyProps>) {
   if (loading) {
     return <p className={styles.loadingText}>Creating link…</p>;
   }
@@ -39,7 +52,8 @@ function PopoverBody({ loading, share, showConfirm, onCopy, onStopRequest, onSto
         </button>
       </div>
       <p className={styles.helperText}>
-        Anyone with the link can preview the cards and download the deck. They can&apos;t edit it.
+        Anyone with the link can preview the cards and download the deck. They
+        can&apos;t edit it.
       </p>
       {showConfirm ? (
         <div className={styles.confirmDialog}>
@@ -47,10 +61,18 @@ function PopoverBody({ loading, share, showConfirm, onCopy, onStopRequest, onSto
             Stop sharing this deck? The link will stop working.
           </p>
           <div className={styles.confirmButtons}>
-            <button type="button" className={styles.stopButton} onClick={onStopConfirm}>
+            <button
+              type="button"
+              className={styles.stopButton}
+              onClick={onStopConfirm}
+            >
               Stop sharing
             </button>
-            <button type="button" className={styles.keepButton} onClick={onKeepSharing}>
+            <button
+              type="button"
+              className={styles.keepButton}
+              onClick={onKeepSharing}
+            >
               Keep sharing
             </button>
           </div>
@@ -86,7 +108,13 @@ export function SharePopover({ uploadKey }: Readonly<SharePopoverProps>) {
         if (existing == null) {
           return createDeckShare(uploadKey).then((result) => {
             if (cancelled) return;
-            setShare({ token: result.token, upload_key: uploadKey, url: result.url, created_at: new Date().toISOString(), view_count: 0 });
+            setShare({
+              token: result.token,
+              upload_key: uploadKey,
+              url: result.url,
+              created_at: new Date().toISOString(),
+              view_count: 0,
+            });
           });
         } else {
           setShare(existing);
@@ -96,7 +124,9 @@ export function SharePopover({ uploadKey }: Readonly<SharePopoverProps>) {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [open, uploadKey]);
 
   useEffect(() => {

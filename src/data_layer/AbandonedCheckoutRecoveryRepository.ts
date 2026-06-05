@@ -31,9 +31,7 @@ interface AbandonedCheckoutRecoveryRow {
   recovery_url_expires_at: Date | string | null;
 }
 
-export class AbandonedCheckoutRecoveryRepository
-  implements IAbandonedCheckoutRecoveryRepository
-{
+export class AbandonedCheckoutRecoveryRepository implements IAbandonedCheckoutRecoveryRepository {
   private readonly table = 'abandoned_checkout_recovery_emails';
 
   constructor(private readonly database: Knex) {}
@@ -74,7 +72,9 @@ export class AbandonedCheckoutRecoveryRepository
     return row != null;
   }
 
-  async getRecoveryByToken(token: string): Promise<CheckoutRecoveryLookup | null> {
+  async getRecoveryByToken(
+    token: string
+  ): Promise<CheckoutRecoveryLookup | null> {
     const row = await this.database<AbandonedCheckoutRecoveryRow>(this.table)
       .where('token', token)
       .first();
@@ -91,9 +91,7 @@ export class AbandonedCheckoutRecoveryRepository
   }
 }
 
-export class InMemoryAbandonedCheckoutRecoveryRepository
-  implements IAbandonedCheckoutRecoveryRepository
-{
+export class InMemoryAbandonedCheckoutRecoveryRepository implements IAbandonedCheckoutRecoveryRepository {
   private readonly claimed = new Set<string>();
   private readonly optedOut = new Set<string>();
   private readonly tokensByEmail = new Map<string, string>();
@@ -130,7 +128,9 @@ export class InMemoryAbandonedCheckoutRecoveryRepository
     return this.optedOut.has(userEmail);
   }
 
-  async getRecoveryByToken(token: string): Promise<CheckoutRecoveryLookup | null> {
+  async getRecoveryByToken(
+    token: string
+  ): Promise<CheckoutRecoveryLookup | null> {
     return this.recoveryByToken.get(token) ?? null;
   }
 

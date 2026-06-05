@@ -14,7 +14,7 @@ Every PR is checked against both — does it make the experience simpler/faster/
 - Express 5, Knex + Postgres (with `better-sqlite3` for local), multer for upload
 - Jest + ts-jest, `*.test.ts` colocated next to source
 - Notion (`@notionhq/client`), Anthropic, Stripe, SendGrid, AWS S3
-- SonarCloud quality gate; Biome lint runs in the `web/` workspace
+- SonarCloud quality gate; oxlint + oxfmt (Oxc) run across both workspaces
 
 ## Entry points
 

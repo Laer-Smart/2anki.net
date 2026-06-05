@@ -10,7 +10,9 @@ jest.mock('../../services/observability/instrumentedAxios', () => ({
 }));
 jest.mock('../../lib/storage/StorageHandler');
 
-const MockNotionAPIWrapper = NotionAPIWrapper as jest.MockedClass<typeof NotionAPIWrapper>;
+const MockNotionAPIWrapper = NotionAPIWrapper as jest.MockedClass<
+  typeof NotionAPIWrapper
+>;
 const mockGet = instrumentedAxios.get as jest.Mock;
 let mockStorage: jest.Mocked<StorageHandler>;
 let mockGetBlock: jest.Mock;
@@ -48,15 +50,21 @@ beforeEach(() => {
   );
   mockStorage = {
     uploadFile: jest.fn().mockResolvedValue({}),
-    getPresignedUrl: jest.fn().mockResolvedValue('https://presigned.example.com/img.png'),
+    getPresignedUrl: jest
+      .fn()
+      .mockResolvedValue('https://presigned.example.com/img.png'),
   } as unknown as jest.Mocked<StorageHandler>;
 });
 
 describe('ImportNotionImagesUseCase', () => {
   it('returns s3Key and presignedUrl for a valid image block', async () => {
     const useCase = new ImportNotionImagesUseCase(mockStorage);
-    mockGetBlock.mockResolvedValue(makeImageBlock('https://prod-files.s3.amazonaws.com/img.png'));
-    mockGet.mockResolvedValue(makeAxiosResponse('image/png', Buffer.from('png-data')));
+    mockGetBlock.mockResolvedValue(
+      makeImageBlock('https://prod-files.s3.amazonaws.com/img.png')
+    );
+    mockGet.mockResolvedValue(
+      makeAxiosResponse('image/png', Buffer.from('png-data'))
+    );
 
     const results = await useCase.execute([VALID_ID], USER_ID, TOKEN);
 
@@ -70,13 +78,17 @@ describe('ImportNotionImagesUseCase', () => {
 
   it('throws 401 when token is null', async () => {
     const useCase = new ImportNotionImagesUseCase(mockStorage);
-    await expect(useCase.execute([VALID_ID], USER_ID, null)).rejects.toMatchObject({ status: 401 });
+    await expect(
+      useCase.execute([VALID_ID], USER_ID, null)
+    ).rejects.toMatchObject({ status: 401 });
     expect(mockStorage.uploadFile).not.toHaveBeenCalled();
   });
 
   it('throws 400 for an invalid blockId', async () => {
     const useCase = new ImportNotionImagesUseCase(mockStorage);
-    await expect(useCase.execute(['not-a-uuid'], USER_ID, TOKEN)).rejects.toMatchObject({
+    await expect(
+      useCase.execute(['not-a-uuid'], USER_ID, TOKEN)
+    ).rejects.toMatchObject({
       status: 400,
     });
     expect(mockGetBlock).not.toHaveBeenCalled();
@@ -84,8 +96,12 @@ describe('ImportNotionImagesUseCase', () => {
 
   it('skips block when content-type is not an allowed image MIME', async () => {
     const useCase = new ImportNotionImagesUseCase(mockStorage);
-    mockGetBlock.mockResolvedValue(makeImageBlock('https://prod-files.s3.amazonaws.com/doc.pdf'));
-    mockGet.mockResolvedValue(makeAxiosResponse('application/pdf', Buffer.from('pdf-data')));
+    mockGetBlock.mockResolvedValue(
+      makeImageBlock('https://prod-files.s3.amazonaws.com/doc.pdf')
+    );
+    mockGet.mockResolvedValue(
+      makeAxiosResponse('application/pdf', Buffer.from('pdf-data'))
+    );
 
     const results = await useCase.execute([VALID_ID], USER_ID, TOKEN);
 
@@ -96,7 +112,9 @@ describe('ImportNotionImagesUseCase', () => {
   it('skips block when image exceeds size cap', async () => {
     const useCase = new ImportNotionImagesUseCase(mockStorage);
     const bigBuf = Buffer.alloc(11 * 1024 * 1024);
-    mockGetBlock.mockResolvedValue(makeImageBlock('https://prod-files.s3.amazonaws.com/big.png'));
+    mockGetBlock.mockResolvedValue(
+      makeImageBlock('https://prod-files.s3.amazonaws.com/big.png')
+    );
     mockGet.mockResolvedValue(makeAxiosResponse('image/png', bigBuf));
 
     const results = await useCase.execute([VALID_ID], USER_ID, TOKEN);

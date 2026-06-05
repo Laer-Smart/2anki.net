@@ -23,8 +23,7 @@ function isSyncedBlock(
   block: AnyBlock
 ): block is SyncedBlockBlockObjectResponse {
   return (
-    isFullBlock(block) &&
-    (block as BlockObjectResponse).type === 'synced_block'
+    isFullBlock(block) && (block as BlockObjectResponse).type === 'synced_block'
   );
 }
 
@@ -51,13 +50,7 @@ async function resolveSyncedBlockChildren(
       all: useAll,
       type: 'synced_block',
     });
-    return await expandInternal(
-      response.results,
-      api,
-      useAll,
-      seen,
-      depth + 1
-    );
+    return await expandInternal(response.results, api, useAll, seen, depth + 1);
   } catch (e: unknown) {
     console.error('[notion] failed to resolve synced_block source', e);
     return [];

@@ -44,10 +44,10 @@ describe('findAdjacent', () => {
 describe('findGroupForSlug', () => {
   it('returns the group the slug belongs to', () => {
     expect(findGroupForSlug('cards/card-options')?.label).toBe(
-      'Make better cards',
+      'Make better cards'
     );
     expect(findGroupForSlug('sync/how-it-works')?.label).toBe(
-      'Sync with Notion',
+      'Sync with Notion'
     );
   });
 
@@ -60,8 +60,8 @@ describe('redirects', () => {
   it('redirect targets all resolve to a real sidebar slug', () => {
     const validSlugs = new Set(
       sidebar.flatMap((group) =>
-        group.items.filter((item) => !item.href).map((item) => item.slug),
-      ),
+        group.items.filter((item) => !item.href).map((item) => item.slug)
+      )
     );
     for (const target of Object.values(redirects)) {
       expect(validSlugs.has(target)).toBe(true);
@@ -70,7 +70,7 @@ describe('redirects', () => {
 
   it('covers the legacy slugs the audit called out', () => {
     expect(redirects['guides/getting-started']).toBe(
-      'start-here/connect-notion',
+      'start-here/connect-notion'
     );
     expect(redirects['features/notion-support']).toBe('cards/notion-blocks');
     expect(redirects['troubleshooting/limits']).toBe('help/limits');

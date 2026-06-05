@@ -3,7 +3,10 @@ import ExportApkgToPdfUseCase, {
 } from './ExportApkgToPdfUseCase';
 import ApkgPreviewService from '../../services/ApkgPreviewService/ApkgPreviewService';
 import PdfRenderService from '../../services/PdfRenderService';
-import { RenderedCard, PreviewMeta } from '../../services/ApkgPreviewService/types';
+import {
+  RenderedCard,
+  PreviewMeta,
+} from '../../services/ApkgPreviewService/types';
 import { ParsedApkg } from '../../services/ApkgPreviewService/ApkgPreviewService';
 
 function makeCard(id: number): RenderedCard {
@@ -42,7 +45,14 @@ function makeParsed(cardCount: number): ParsedApkg {
 function makeMeta(totalCards: number): PreviewMeta {
   return {
     totalCards,
-    decks: [{ id: 1, fullName: 'Test Deck', path: ['Test Deck'], cardCount: totalCards }],
+    decks: [
+      {
+        id: 1,
+        fullName: 'Test Deck',
+        path: ['Test Deck'],
+        cardCount: totalCards,
+      },
+    ],
   };
 }
 
@@ -177,7 +187,11 @@ describe('ExportApkgToPdfUseCase', () => {
     const cards = [makeCard(1)];
     previewService.parse.mockResolvedValue(parsed);
     previewService.getMeta.mockReturnValue(makeMeta(1));
-    previewService.getCardsPage.mockReturnValueOnce({ cards, nextCursor: null, total: 1 });
+    previewService.getCardsPage.mockReturnValueOnce({
+      cards,
+      nextCursor: null,
+      total: 1,
+    });
     pdfRenderService.renderHtml.mockResolvedValue(Buffer.from('%PDF'));
 
     await useCase.execute(Buffer.from('fake-apkg'));
@@ -191,7 +205,11 @@ describe('ExportApkgToPdfUseCase', () => {
     const cards = [makeCard(1)];
     previewService.parse.mockResolvedValue(parsed);
     previewService.getMeta.mockReturnValue(makeMeta(1));
-    previewService.getCardsPage.mockReturnValueOnce({ cards, nextCursor: null, total: 1 });
+    previewService.getCardsPage.mockReturnValueOnce({
+      cards,
+      nextCursor: null,
+      total: 1,
+    });
     pdfRenderService.renderHtml.mockResolvedValue(Buffer.from('%PDF'));
 
     await useCase.execute(Buffer.from('fake-apkg'), false, {
@@ -210,7 +228,11 @@ describe('ExportApkgToPdfUseCase', () => {
     const cards = [makeCard(1)];
     previewService.parse.mockResolvedValue(parsed);
     previewService.getMeta.mockReturnValue(makeMeta(1));
-    previewService.getCardsPage.mockReturnValueOnce({ cards, nextCursor: null, total: 1 });
+    previewService.getCardsPage.mockReturnValueOnce({
+      cards,
+      nextCursor: null,
+      total: 1,
+    });
     pdfRenderService.renderHtml.mockResolvedValue(Buffer.from('%PDF'));
 
     const options = {

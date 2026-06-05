@@ -2,18 +2,26 @@ import { IObservabilityRepository } from '../../data_layer/ObservabilityReposito
 
 export type OpsMetricsWindow = '1h' | '24h' | '7d';
 
-export const OPS_METRICS_WINDOWS: readonly OpsMetricsWindow[] = ['1h', '24h', '7d'];
+export const OPS_METRICS_WINDOWS: readonly OpsMetricsWindow[] = [
+  '1h',
+  '24h',
+  '7d',
+];
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 const ONE_DAY_MS = 24 * ONE_HOUR_MS;
 
-export const OPS_METRICS_RANGE_MS_BY_WINDOW: Record<OpsMetricsWindow, number> = {
-  '1h': ONE_HOUR_MS,
-  '24h': ONE_DAY_MS,
-  '7d': 7 * ONE_DAY_MS,
-};
+export const OPS_METRICS_RANGE_MS_BY_WINDOW: Record<OpsMetricsWindow, number> =
+  {
+    '1h': ONE_HOUR_MS,
+    '24h': ONE_DAY_MS,
+    '7d': 7 * ONE_DAY_MS,
+  };
 
-export const OPS_METRICS_BUCKET_SECONDS_BY_WINDOW: Record<OpsMetricsWindow, number> = {
+export const OPS_METRICS_BUCKET_SECONDS_BY_WINDOW: Record<
+  OpsMetricsWindow,
+  number
+> = {
   '1h': 60,
   '24h': 5 * 60,
   '7d': 60 * 60,

@@ -189,7 +189,9 @@
   border-radius: var(--radius-lg);
   text-decoration: none;
   color: inherit;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .featureCard:hover {
@@ -328,7 +330,9 @@
   background: rgba(0, 0, 0, 0.55);
   border-radius: var(--radius-full);
   padding: 10px;
-  transition: background var(--transition-fast), transform var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .walkCard:hover .walkPlayBtn svg {
@@ -390,7 +394,9 @@
   color: var(--color-text-tertiary);
   font-size: var(--text-2xl);
   font-weight: var(--font-medium);
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .walkCard:hover .walkCtaIcon {

@@ -42,9 +42,7 @@ function isKeyChar(code: number | undefined): boolean {
 function isKeyStart(code: number | undefined): boolean {
   return (
     code !== undefined &&
-    ((code >= 65 && code <= 90) ||
-      (code >= 97 && code <= 122) ||
-      code === 95)
+    ((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code === 95)
   );
 }
 
@@ -66,8 +64,7 @@ function splitLines(input: string): string[] {
   for (let i = 0; i < input.length; i++) {
     const c = input.codePointAt(i);
     if (c === 10) {
-      const end =
-        i > start && input.codePointAt(i - 1) === 13 ? i - 1 : i;
+      const end = i > start && input.codePointAt(i - 1) === 13 ? i - 1 : i;
       lines.push(input.slice(start, end));
       start = i + 1;
     }
@@ -76,10 +73,7 @@ function splitLines(input: string): string[] {
   return lines;
 }
 
-function parseFrontmatter(
-  raw: string,
-  sourcePath: string,
-): LoadedDoc {
+function parseFrontmatter(raw: string, sourcePath: string): LoadedDoc {
   let offset: number;
   if (raw.startsWith('---\n')) offset = 4;
   else if (raw.startsWith('---\r\n')) offset = 5;

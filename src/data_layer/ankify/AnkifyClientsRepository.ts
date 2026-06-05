@@ -20,9 +20,7 @@ export interface AnkifyClientsRepositoryInterface {
   listIdleSince(cutoff: Date): Promise<AnkifyClient[]>;
 }
 
-export class AnkifyClientsRepository
-  implements AnkifyClientsRepositoryInterface
-{
+export class AnkifyClientsRepository implements AnkifyClientsRepositoryInterface {
   constructor(private readonly database: Knex) {}
 
   async create(input: NewAnkifyClient): Promise<AnkifyClient> {

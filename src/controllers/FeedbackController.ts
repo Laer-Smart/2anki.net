@@ -22,15 +22,19 @@ export class FeedbackController {
     const body = req.body as Record<string, unknown>;
 
     const story = typeof body.story === 'string' ? body.story.trim() : '';
-    const mainNeed = typeof body.mainNeed === 'string' ? body.mainNeed.trim() : '';
-    const secondItem = typeof body.secondItem === 'string' ? body.secondItem.trim() : '';
+    const mainNeed =
+      typeof body.mainNeed === 'string' ? body.mainNeed.trim() : '';
+    const secondItem =
+      typeof body.secondItem === 'string' ? body.secondItem.trim() : '';
 
     if (story.length < 10) {
       res.status(400).json({ message: 'story must be at least 10 characters' });
       return;
     }
     if (mainNeed.length < 10) {
-      res.status(400).json({ message: 'mainNeed must be at least 10 characters' });
+      res
+        .status(400)
+        .json({ message: 'mainNeed must be at least 10 characters' });
       return;
     }
 
@@ -47,12 +51,13 @@ export class FeedbackController {
       user.created_at instanceof Date
         ? user.created_at.toISOString().slice(0, 10)
         : typeof user.created_at === 'string'
-        ? (user.created_at as string).slice(0, 10)
-        : null;
+          ? (user.created_at as string).slice(0, 10)
+          : null;
 
-    const opportunities: Array<{ body: string; tag: 'opportunity' | 'insight' }> = [
-      { body: mainNeed, tag: 'opportunity' },
-    ];
+    const opportunities: Array<{
+      body: string;
+      tag: 'opportunity' | 'insight';
+    }> = [{ body: mainNeed, tag: 'opportunity' }];
     if (secondItem.length >= 10) {
       opportunities.push({ body: secondItem, tag: 'insight' });
     }

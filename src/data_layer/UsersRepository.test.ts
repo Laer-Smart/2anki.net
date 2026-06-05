@@ -7,7 +7,9 @@ function buildKnexMock() {
   const whereRawSpy = jest.fn().mockReturnValue({ update: updateSpy });
   const whereSpy = jest.fn().mockReturnValue({ update: updateSpy });
   const tableBuilder = { whereRaw: whereRawSpy, where: whereSpy };
-  const knex = jest.fn().mockReturnValue(tableBuilder) as unknown as jest.Mock & {
+  const knex = jest
+    .fn()
+    .mockReturnValue(tableBuilder) as unknown as jest.Mock & {
     whereRawSpy: jest.Mock;
     whereSpy: jest.Mock;
     updateSpy: jest.Mock;
@@ -62,17 +64,20 @@ describe('UsersRepository.createUser', () => {
 
 describe('UsersRepository.getByEmail', () => {
   it('uses LOWER(TRIM(email)) so mixed-case stored emails still match', async () => {
-    const firstSpy = jest.fn().mockResolvedValue({ id: 1, email: 'user@example.com' });
+    const firstSpy = jest
+      .fn()
+      .mockResolvedValue({ id: 1, email: 'user@example.com' });
     const whereRawSpy = jest.fn().mockReturnValue({ first: firstSpy });
-    const knex = jest.fn().mockReturnValue({ whereRaw: whereRawSpy }) as unknown as jest.Mock;
+    const knex = jest
+      .fn()
+      .mockReturnValue({ whereRaw: whereRawSpy }) as unknown as jest.Mock;
     const repo = new UsersRepository(knex as any);
 
     await repo.getByEmail('  User@Example.COM  ');
 
-    expect(whereRawSpy).toHaveBeenCalledWith(
-      'LOWER(TRIM(email)) = LOWER(?)',
-      ['  User@Example.COM  '.trim()]
-    );
+    expect(whereRawSpy).toHaveBeenCalledWith('LOWER(TRIM(email)) = LOWER(?)', [
+      '  User@Example.COM  '.trim(),
+    ]);
   });
 });
 
@@ -83,10 +88,9 @@ describe('UsersRepository.updatePatreonByEmail', () => {
 
     await repo.updatePatreonByEmail('  John@Example.COM ', true);
 
-    expect(knex.whereRawSpy).toHaveBeenCalledWith(
-      'TRIM(LOWER(email)) = ?',
-      ['john@example.com']
-    );
+    expect(knex.whereRawSpy).toHaveBeenCalledWith('TRIM(LOWER(email)) = ?', [
+      'john@example.com',
+    ]);
     expect(knex.updateSpy).toHaveBeenCalledWith({ patreon: true });
   });
 
@@ -254,7 +258,9 @@ describe('UsersRepository.countTotalUsers', () => {
   it('counts every row in the users table and coerces the string count to a number', async () => {
     const firstSpy = jest.fn().mockResolvedValue({ count: '19389' });
     const countSpy = jest.fn().mockReturnValue({ first: firstSpy });
-    const knex = jest.fn().mockReturnValue({ count: countSpy }) as unknown as jest.Mock;
+    const knex = jest
+      .fn()
+      .mockReturnValue({ count: countSpy }) as unknown as jest.Mock;
     const repo = new UsersRepository(knex as any);
 
     const total = await repo.countTotalUsers();
@@ -266,7 +272,9 @@ describe('UsersRepository.countTotalUsers', () => {
   it('returns 0 when the count row is missing', async () => {
     const firstSpy = jest.fn().mockResolvedValue(undefined);
     const countSpy = jest.fn().mockReturnValue({ first: firstSpy });
-    const knex = jest.fn().mockReturnValue({ count: countSpy }) as unknown as jest.Mock;
+    const knex = jest
+      .fn()
+      .mockReturnValue({ count: countSpy }) as unknown as jest.Mock;
     const repo = new UsersRepository(knex as any);
 
     const total = await repo.countTotalUsers();
@@ -280,7 +288,9 @@ describe('UsersRepository.countSignupsSince', () => {
     const firstSpy = jest.fn().mockResolvedValue({ count: '42' });
     const countSpy = jest.fn().mockReturnValue({ first: firstSpy });
     const whereSpy = jest.fn().mockReturnValue({ count: countSpy });
-    const knex = jest.fn().mockReturnValue({ where: whereSpy }) as unknown as jest.Mock;
+    const knex = jest
+      .fn()
+      .mockReturnValue({ where: whereSpy }) as unknown as jest.Mock;
     const repo = new UsersRepository(knex as any);
 
     const since = new Date('2026-05-30T14:32:07.000Z');
@@ -335,8 +345,12 @@ const RUN_INTEGRATION = process.env.DATABASE_URL != null;
       await repo.deleteUser(String(userId));
 
       const user = await db('users').where({ id: userId }).first();
-      const inactivity = await db('inactivity_emails').where({ user_id: userId }).first();
-      const reEngagement = await db('re_engagement_emails').where({ user_id: userId }).first();
+      const inactivity = await db('inactivity_emails')
+        .where({ user_id: userId })
+        .first();
+      const reEngagement = await db('re_engagement_emails')
+        .where({ user_id: userId })
+        .first();
 
       expect(user).toBeUndefined();
       expect(inactivity).toBeUndefined();

@@ -72,7 +72,8 @@ function sseWrite(res: Response, event: string, data: unknown): void {
 
 function parseConversationId(raw: unknown): number | null {
   if (raw == null) return null;
-  if (typeof raw === 'number' && Number.isSafeInteger(raw) && raw > 0) return raw;
+  if (typeof raw === 'number' && Number.isSafeInteger(raw) && raw > 0)
+    return raw;
   if (typeof raw === 'string' && /^[1-9]\d*$/.test(raw)) {
     const n = Number(raw);
     return Number.isSafeInteger(n) ? n : null;
@@ -84,19 +85,30 @@ type AttachmentValidation =
   | { ok: true; attachments: ChatAttachment[] }
   | { ok: false; error: string };
 
-function validateAttachments(rawFiles: Express.Multer.File[]): AttachmentValidation {
+function validateAttachments(
+  rawFiles: Express.Multer.File[]
+): AttachmentValidation {
   if (rawFiles.length > MAX_FILE_COUNT) {
-    return { ok: false, error: `Too many files. Maximum is ${MAX_FILE_COUNT} per message.` };
+    return {
+      ok: false,
+      error: `Too many files. Maximum is ${MAX_FILE_COUNT} per message.`,
+    };
   }
 
   for (const file of rawFiles) {
     const safeName = getSafeFilename(file.originalname);
     if (file.size > MAX_FILE_SIZE) {
       const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
-      return { ok: false, error: `${safeName} is ${sizeMB} MB. The per-file limit is 10 MB.` };
+      return {
+        ok: false,
+        error: `${safeName} is ${sizeMB} MB. The per-file limit is 10 MB.`,
+      };
     }
     if (!ALLOWED_MIMES.has(file.mimetype)) {
-      return { ok: false, error: `Can't attach ${safeName}. ${ATTACH_REJECTED_MESSAGE}` };
+      return {
+        ok: false,
+        error: `Can't attach ${safeName}. ${ATTACH_REJECTED_MESSAGE}`,
+      };
     }
   }
 
@@ -113,9 +125,16 @@ function validateAttachments(rawFiles: Express.Multer.File[]): AttachmentValidat
   for (const file of rawFiles) {
     const safeName = getSafeFilename(file.originalname);
     if (!contentMatchesMime(file.buffer, file.mimetype)) {
-      return { ok: false, error: `Can't attach ${safeName}. ${ATTACH_REJECTED_MESSAGE}` };
+      return {
+        ok: false,
+        error: `Can't attach ${safeName}. ${ATTACH_REJECTED_MESSAGE}`,
+      };
     }
-    attachments.push({ mimeType: file.mimetype, data: file.buffer, fileName: safeName });
+    attachments.push({
+      mimeType: file.mimetype,
+      data: file.buffer,
+      fileName: safeName,
+    });
   }
 
   return { ok: true, attachments };
@@ -140,7 +159,9 @@ function parseHistory(raw: unknown): HistoryEntry[] {
     }
   }
   if (!Array.isArray(parsed)) return [];
-  return parsed.filter(isHistoryEntry).map((m) => ({ role: m.role, content: m.content }));
+  return parsed
+    .filter(isHistoryEntry)
+    .map((m) => ({ role: m.role, content: m.content }));
 }
 
 function emitChatError(res: Response, err: unknown): void {
@@ -193,7 +214,9 @@ class ChatController {
       return;
     }
 
-    const rawFiles = Array.isArray(req.files) ? (req.files as Express.Multer.File[]) : [];
+    const rawFiles = Array.isArray(req.files)
+      ? (req.files as Express.Multer.File[])
+      : [];
     const validation = validateAttachments(rawFiles);
     if (!validation.ok) {
       res.status(400).json({ error: validation.error });
@@ -203,7 +226,8 @@ class ChatController {
     const conversationId = parseConversationId(req.body?.conversationId);
     const conversationHistory = parseHistory(req.body?.history);
     const rawTemplateSlug = req.body?.templateSlug;
-    const templateSlug = typeof rawTemplateSlug === 'string' ? rawTemplateSlug : null;
+    const templateSlug =
+      typeof rawTemplateSlug === 'string' ? rawTemplateSlug : null;
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -225,8 +249,12 @@ class ChatController {
         content: result.content,
         conversationId: result.conversationId,
         ...(result.cards != null ? { cards: result.cards } : {}),
-        ...(result.contentBefore != null ? { contentBefore: result.contentBefore } : {}),
-        ...(result.contentAfter != null ? { contentAfter: result.contentAfter } : {}),
+        ...(result.contentBefore != null
+          ? { contentBefore: result.contentBefore }
+          : {}),
+        ...(result.contentAfter != null
+          ? { contentAfter: result.contentAfter }
+          : {}),
         ...(result.deckName != null ? { deckName: result.deckName } : {}),
       });
     } catch (err) {
@@ -259,7 +287,8 @@ class ChatController {
     const isPremium = patreon || subscriber;
 
     const rawTemplateSlug = req.body?.templateSlug;
-    const templateSlug = typeof rawTemplateSlug === 'string' ? rawTemplateSlug : null;
+    const templateSlug =
+      typeof rawTemplateSlug === 'string' ? rawTemplateSlug : null;
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -278,8 +307,12 @@ class ChatController {
         content: result.content,
         conversationId: result.conversationId,
         ...(result.cards != null ? { cards: result.cards } : {}),
-        ...(result.contentBefore != null ? { contentBefore: result.contentBefore } : {}),
-        ...(result.contentAfter != null ? { contentAfter: result.contentAfter } : {}),
+        ...(result.contentBefore != null
+          ? { contentBefore: result.contentBefore }
+          : {}),
+        ...(result.contentAfter != null
+          ? { contentAfter: result.contentAfter }
+          : {}),
         ...(result.deckName != null ? { deckName: result.deckName } : {}),
       });
     } catch (err) {

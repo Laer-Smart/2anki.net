@@ -10,7 +10,8 @@ export function getEmptyDeckChatPrompt(
     return 'My file converted but produced 0 cards. Why might that be?';
   }
 
-  const ext = filename == null ? '' : (filename.split('.').pop()?.toLowerCase() ?? '');
+  const ext =
+    filename == null ? '' : (filename.split('.').pop()?.toLowerCase() ?? '');
 
   if (ext === 'pdf') {
     return 'My PDF converted but produced 0 cards. The PDF has [describe layout — bulleted, prose, tables]. What should I change?';

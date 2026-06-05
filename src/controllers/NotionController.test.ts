@@ -2,7 +2,10 @@ import express from 'express';
 import { APIErrorCode, APIResponseError } from '@notionhq/client';
 import NotionController from './NotionController';
 import NotionService from '../services/NotionService';
-import { InProgressJobError, JobLimitError } from '../lib/storage/jobs/helpers/errors';
+import {
+  InProgressJobError,
+  JobLimitError,
+} from '../lib/storage/jobs/helpers/errors';
 import { INotionRepository } from '../data_layer/NotionRespository';
 import { IEmailService } from '../services/EmailService/EmailService';
 import UsersRepository from '../data_layer/UsersRepository';
@@ -30,7 +33,9 @@ import { CheckJobLimitUseCase } from '../usecases/jobs/CheckJobLimitUseCase';
 import { CancelJobUseCase } from '../usecases/jobs/CancelJobUseCase';
 import { StartJobUseCase } from '../usecases/jobs/StartJobUseCase';
 
-function buildNotionRepo(overrides: Partial<INotionRepository> = {}): INotionRepository {
+function buildNotionRepo(
+  overrides: Partial<INotionRepository> = {}
+): INotionRepository {
   return {
     getNotionData: jest.fn(),
     saveNotionToken: jest.fn(),
@@ -92,12 +97,9 @@ describe('NotionController', () => {
     canStart = true,
     withinLimit = true,
   }: { canStart?: boolean; withinLimit?: boolean } = {}) {
-    (JobRepository as unknown as { TERMINAL_STATUSES: string[] }).TERMINAL_STATUSES = [
-      'done',
-      'failed',
-      'cancelled',
-      'interrupted',
-    ];
+    (
+      JobRepository as unknown as { TERMINAL_STATUSES: string[] }
+    ).TERMINAL_STATUSES = ['done', 'failed', 'cancelled', 'interrupted'];
     (JobRepository as unknown as jest.Mock).mockImplementation(() => ({}));
     (FindOrCreateJobUseCase as jest.Mock).mockImplementation(() => ({
       execute: jest.fn().mockResolvedValue({ id: 77, status: 'started' }),
@@ -276,12 +278,9 @@ describe('NotionController', () => {
     });
 
     it('returns restarted: true when re-converting a page whose job row is done', async () => {
-      (JobRepository as unknown as { TERMINAL_STATUSES: string[] }).TERMINAL_STATUSES = [
-        'done',
-        'failed',
-        'cancelled',
-        'interrupted',
-      ];
+      (
+        JobRepository as unknown as { TERMINAL_STATUSES: string[] }
+      ).TERMINAL_STATUSES = ['done', 'failed', 'cancelled', 'interrupted'];
       (JobRepository as unknown as jest.Mock).mockImplementation(() => ({}));
       (FindOrCreateJobUseCase as jest.Mock).mockImplementation(() => ({
         execute: jest.fn().mockResolvedValue({ id: 77, status: 'done' }),
@@ -318,12 +317,16 @@ describe('NotionController', () => {
       await controller.convert(req as express.Request, res as express.Response);
 
       expect(res.status).toHaveBeenCalledWith(402);
-      expect(res.json).toHaveBeenCalledWith({ reason: 'free_plan_one_at_a_time' });
+      expect(res.json).toHaveBeenCalledWith({
+        reason: 'free_plan_one_at_a_time',
+      });
     });
 
     it('fires runConversion without awaiting and catches worker rejections', async () => {
       setupConvertMocks();
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
       const workerError = new Error('worker boom');
       (runConversion as jest.Mock).mockRejectedValue(workerError);
 
@@ -332,7 +335,10 @@ describe('NotionController', () => {
       expect(res.status).toHaveBeenCalledWith(202);
 
       await new Promise((resolve) => setTimeout(resolve, 10));
-      expect(consoleErrorSpy).toHaveBeenCalledWith('notion convert worker:', workerError);
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'notion convert worker:',
+        workerError
+      );
       consoleErrorSpy.mockRestore();
     });
 
@@ -359,7 +365,9 @@ describe('NotionController', () => {
         getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
         search: jest.fn().mockRejectedValue(unauthorizedError),
         markTokenInvalid: jest.fn().mockResolvedValue(undefined),
-        getNotionAuthorizationLink: jest.fn().mockReturnValue('https://notion.so/oauth'),
+        getNotionAuthorizationLink: jest
+          .fn()
+          .mockReturnValue('https://notion.so/oauth'),
         getClientId: jest.fn().mockReturnValue('client-abc'),
       } as any;
       controller = new NotionController(service);
@@ -388,10 +396,17 @@ describe('NotionController', () => {
         getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
         search: jest.fn().mockRejectedValue(unauthorizedError),
         markTokenInvalid: jest.fn().mockResolvedValue(undefined),
-        getNotionAuthorizationLink: jest.fn().mockReturnValue('https://notion.so/oauth'),
+        getNotionAuthorizationLink: jest
+          .fn()
+          .mockReturnValue('https://notion.so/oauth'),
         getClientId: jest.fn().mockReturnValue('client-abc'),
       } as any;
-      controller = new NotionController(service, notionRepo, buildUsersRepo(), emailService);
+      controller = new NotionController(
+        service,
+        notionRepo,
+        buildUsersRepo(),
+        emailService
+      );
       req = { body: { query: 'test' }, params: {}, query: {} };
       res = { ...res, locals: { owner: 42 } } as any;
 
@@ -448,13 +463,18 @@ describe('NotionController', () => {
         getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
         searchTopLevelPages: jest.fn().mockRejectedValue(unauthorizedError),
         markTokenInvalid: jest.fn().mockResolvedValue(undefined),
-        getNotionAuthorizationLink: jest.fn().mockReturnValue('https://notion.so/oauth'),
+        getNotionAuthorizationLink: jest
+          .fn()
+          .mockReturnValue('https://notion.so/oauth'),
         getClientId: jest.fn().mockReturnValue('client-abc'),
       } as any;
       controller = new NotionController(service);
       req = { body: { query: 'test' }, params: {}, query: {} };
 
-      await controller.searchTopLevelPages(req as express.Request, res as express.Response);
+      await controller.searchTopLevelPages(
+        req as express.Request,
+        res as express.Response
+      );
 
       expect(res.status).toHaveBeenCalledWith(401);
       const body = (res.json as jest.Mock).mock.calls[0]?.[0];
@@ -477,14 +497,24 @@ describe('NotionController', () => {
         getNotionLinkInfo: jest.fn().mockResolvedValue({ isConnected: true }),
         searchTopLevelPages: jest.fn().mockRejectedValue(unauthorizedError),
         markTokenInvalid: jest.fn().mockResolvedValue(undefined),
-        getNotionAuthorizationLink: jest.fn().mockReturnValue('https://notion.so/oauth'),
+        getNotionAuthorizationLink: jest
+          .fn()
+          .mockReturnValue('https://notion.so/oauth'),
         getClientId: jest.fn().mockReturnValue('client-abc'),
       } as any;
-      controller = new NotionController(service, notionRepo, buildUsersRepo(), emailService);
+      controller = new NotionController(
+        service,
+        notionRepo,
+        buildUsersRepo(),
+        emailService
+      );
       req = { body: { query: 'test' }, params: {}, query: {} };
       res = { ...res, locals: { owner: 42 } } as any;
 
-      await controller.searchTopLevelPages(req as express.Request, res as express.Response);
+      await controller.searchTopLevelPages(
+        req as express.Request,
+        res as express.Response
+      );
 
       expect(notionRepo.markTokenInvalid).toHaveBeenCalledWith(42);
     });

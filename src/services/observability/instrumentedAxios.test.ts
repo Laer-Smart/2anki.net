@@ -1,7 +1,10 @@
 import axios, { AxiosError } from 'axios';
 import dns from 'dns';
 
-import { makeInstrumentedAxios, OBSERVABILITY_SERVICES } from './instrumentedAxios';
+import {
+  makeInstrumentedAxios,
+  OBSERVABILITY_SERVICES,
+} from './instrumentedAxios';
 import { ObservabilitySink } from './ObservabilitySink';
 import {
   IObservabilityRepository,
@@ -154,9 +157,17 @@ describe('instrumentedAxios', () => {
     mockedAxios.put.mockResolvedValueOnce({ status: 200, data: {} });
     mockedAxios.delete.mockResolvedValueOnce({ status: 204, data: '' });
 
-    await client.post('claude', 'https://api.anthropic.com/v1/messages', { x: 1 });
-    await client.put('dropbox', 'https://content.dropboxapi.com/2/files/upload');
-    await client.delete('google_drive', 'https://www.googleapis.com/drive/v3/files/abc');
+    await client.post('claude', 'https://api.anthropic.com/v1/messages', {
+      x: 1,
+    });
+    await client.put(
+      'dropbox',
+      'https://content.dropboxapi.com/2/files/upload'
+    );
+    await client.delete(
+      'google_drive',
+      'https://www.googleapis.com/drive/v3/files/abc'
+    );
 
     await sink.flush();
     expect(repo.outbound.map((r) => r.service)).toEqual([
@@ -169,7 +180,13 @@ describe('instrumentedAxios', () => {
 
   it('exposes the closed allowlist as OBSERVABILITY_SERVICES', () => {
     expect(OBSERVABILITY_SERVICES).toEqual(
-      expect.arrayContaining(['notion', 'claude', 'dropbox', 'google_drive', 'patreon'])
+      expect.arrayContaining([
+        'notion',
+        'claude',
+        'dropbox',
+        'google_drive',
+        'patreon',
+      ])
     );
   });
 
@@ -256,7 +273,9 @@ describe('instrumentedAxios', () => {
     const sink = new ObservabilitySink(repo);
     const client = makeInstrumentedAxios(sink);
 
-    await expect(client.get('notion', 'not a url')).rejects.toThrow(/invalid url/i);
+    await expect(client.get('notion', 'not a url')).rejects.toThrow(
+      /invalid url/i
+    );
     expect(mockedAxios.get).not.toHaveBeenCalled();
   });
 
@@ -392,7 +411,10 @@ describe('instrumentedAxios', () => {
     mockedAxios.get.mockResolvedValueOnce({ status: 200, data: 'ok' });
 
     await expect(
-      client.get('dropbox', 'https://uc8.dl.dropboxusercontent.com/cd/0/get/abc')
+      client.get(
+        'dropbox',
+        'https://uc8.dl.dropboxusercontent.com/cd/0/get/abc'
+      )
     ).resolves.toEqual({ status: 200, data: 'ok' });
 
     expect(mockedAxios.get).toHaveBeenCalledTimes(1);
@@ -436,7 +458,9 @@ describe('instrumentedAxios', () => {
     };
     const client = makeInstrumentedAxios(sink as never);
     mockedAxios.get.mockResolvedValueOnce({ status: 200, data: 'ok' });
-    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
 
     await expect(
       client.get('notion', 'https://api.notion.com/v1/pages/abc')

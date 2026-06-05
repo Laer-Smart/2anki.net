@@ -18,9 +18,10 @@ import {
 } from './createGoogleDriveDownloadLink';
 import instrumentedAxios from '../../../services/observability/instrumentedAxios';
 
-function resolveUrlAndName(
-  file: GoogleDriveFile
-): { url: string; originalname: string } {
+function resolveUrlAndName(file: GoogleDriveFile): {
+  url: string;
+  originalname: string;
+} {
   const exportSpec = NATIVE_GOOGLE_APPS_EXPORT_MIMES[file.mimeType];
   if (exportSpec) {
     const baseName = file.name.replace(/\.[^.]+$/, '');

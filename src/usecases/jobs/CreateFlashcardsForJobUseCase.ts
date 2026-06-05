@@ -19,7 +19,8 @@ export class CreateFlashcardsForJobUseCase {
   constructor(private readonly jobRepository: JobRepository) {}
 
   async execute(input: CreateFlashcardsForJobUseCaseInput): Promise<Deck[]> {
-    const { bl, id, rules, settings, owner, type, frontField, backField } = input;
+    const { bl, id, rules, settings, owner, type, frontField, backField } =
+      input;
     const updateJobStatus = await this.jobRepository.updateJobStatus(
       id,
       owner,

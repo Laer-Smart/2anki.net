@@ -13,11 +13,7 @@ export default function SignupCountriesChart({
   points,
   othersCount = 0,
 }: Readonly<SignupCountriesChartProps>) {
-  const max = Math.max(
-    1,
-    ...points.map((row) => row.count),
-    othersCount
-  );
+  const max = Math.max(1, ...points.map((row) => row.count), othersCount);
 
   return (
     <ul className={styles.statusList} aria-label="Signup country breakdown">

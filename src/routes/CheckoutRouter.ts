@@ -21,7 +21,9 @@ const CheckoutRouter = () => {
 
   const priceId = process.env.AUTO_SYNC_PRICE_ID ?? '';
   const productId = process.env.AUTO_SYNC_PRODUCT_ID ?? '';
-  const maxSubscribers = Number.parseInt(process.env.HOSTED_ANKI_MAX_SUBSCRIBERS ?? '', 10) || DEFAULT_MAX_SUBSCRIBERS;
+  const maxSubscribers =
+    Number.parseInt(process.env.HOSTED_ANKI_MAX_SUBSCRIBERS ?? '', 10) ||
+    DEFAULT_MAX_SUBSCRIBERS;
 
   router.post(
     '/api/checkout/auto-sync',
@@ -29,9 +31,16 @@ const CheckoutRouter = () => {
     express.json(),
     (req, res) => {
       if (priceId === '') {
-        return res.status(404).json({ message: 'Auto Sync checkout is not available' });
+        return res
+          .status(404)
+          .json({ message: 'Auto Sync checkout is not available' });
       }
-      const useCase = new AutoSyncCheckoutUseCase(getStripe(), priceId, productId, maxSubscribers);
+      const useCase = new AutoSyncCheckoutUseCase(
+        getStripe(),
+        priceId,
+        productId,
+        maxSubscribers
+      );
       const controller = new AutoSyncCheckoutController(useCase);
       return controller.createSession(req, res);
     }
@@ -46,7 +55,9 @@ const CheckoutRouter = () => {
     express.json(),
     (req, res) => {
       if (unlimitedMonthlyPriceId === '') {
-        return res.status(503).json({ message: 'Unlimited checkout is not available' });
+        return res
+          .status(503)
+          .json({ message: 'Unlimited checkout is not available' });
       }
       const useCase = new UnlimitedCheckoutUseCase(
         getStripe(),
@@ -65,9 +76,15 @@ const CheckoutRouter = () => {
     (req, res) => {
       const pass24hPriceId = process.env.PASS_24H_PRICE_ID ?? '';
       if (pass24hPriceId === '') {
-        return res.status(503).json({ message: 'Day Pass is not available right now.' });
+        return res
+          .status(503)
+          .json({ message: 'Day Pass is not available right now.' });
       }
-      const useCase = new CreatePassCheckoutUseCase(getStripe(), pass24hPriceId, '24h');
+      const useCase = new CreatePassCheckoutUseCase(
+        getStripe(),
+        pass24hPriceId,
+        '24h'
+      );
       const controller = new PassCheckoutController(useCase);
       return controller.createSession(req, res);
     }
@@ -80,9 +97,15 @@ const CheckoutRouter = () => {
     (req, res) => {
       const pass7dPriceId = process.env.PASS_7D_PRICE_ID ?? '';
       if (pass7dPriceId === '') {
-        return res.status(503).json({ message: 'Week Pass is not available right now.' });
+        return res
+          .status(503)
+          .json({ message: 'Week Pass is not available right now.' });
       }
-      const useCase = new CreatePassCheckoutUseCase(getStripe(), pass7dPriceId, '7d');
+      const useCase = new CreatePassCheckoutUseCase(
+        getStripe(),
+        pass7dPriceId,
+        '7d'
+      );
       const controller = new PassCheckoutController(useCase);
       return controller.createSession(req, res);
     }

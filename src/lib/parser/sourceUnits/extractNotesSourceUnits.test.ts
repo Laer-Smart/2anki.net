@@ -67,6 +67,10 @@ describe('extractNotesSourceUnits', () => {
 
     const units = extractNotesSourceUnits(md, 'md');
 
-    expect(units.map((u) => u.id)).toEqual(['section-1', 'section-2', 'section-3']);
+    expect(units.map((u) => u.id)).toEqual([
+      'section-1',
+      'section-2',
+      'section-3',
+    ]);
   });
 });

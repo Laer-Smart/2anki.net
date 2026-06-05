@@ -21,9 +21,13 @@ export interface FieldMapping {
   fields: FieldMappingEntry[];
 }
 
-export function buildFieldMappingPromptFragment(fieldMapping: FieldMapping | undefined): string {
+export function buildFieldMappingPromptFragment(
+  fieldMapping: FieldMapping | undefined
+): string {
   if (fieldMapping == null || fieldMapping.fields.length === 0) return '';
-  const lines = fieldMapping.fields.map((f) => `  - ${f.name}: ${f.instruction}`);
+  const lines = fieldMapping.fields.map(
+    (f) => `  - ${f.name}: ${f.instruction}`
+  );
   return `Target template: ${fieldMapping.templateName}\nField mapping (emit exactly these keys in each card's "fields" object):\n${lines.join('\n')}`;
 }
 
@@ -90,7 +94,8 @@ function causeMessage(err: unknown): string | undefined {
 }
 
 function causeCode(err: unknown): string | undefined {
-  if (err instanceof Error && 'code' in err) return String((err as NodeJS.ErrnoException).code);
+  if (err instanceof Error && 'code' in err)
+    return String((err as NodeJS.ErrnoException).code);
   return undefined;
 }
 
@@ -114,7 +119,7 @@ function stripHtmlBoilerplate(html: string): string {
   const $ = cheerio.load(html);
   $('style, script, head, link[rel="stylesheet"]').remove();
   const body = $('body');
-  return body.length ? body.html() ?? '' : $.html();
+  return body.length ? (body.html() ?? '') : $.html();
 }
 
 interface CompactCard {
@@ -159,11 +164,16 @@ export function normalizeTag(raw: string): string {
     .slice(0, 32);
 }
 
-function resolveMediaPath(claudePath: string, availableMediaFiles: string[]): string {
+function resolveMediaPath(
+  claudePath: string,
+  availableMediaFiles: string[]
+): string {
   const normalized = claudePath.replaceAll('\\', '/');
   if (availableMediaFiles.includes(normalized)) return normalized;
   const filename = normalized.split('/').pop() ?? normalized;
-  const match = availableMediaFiles.find((f) => f.replaceAll('\\', '/').endsWith('/' + filename));
+  const match = availableMediaFiles.find((f) =>
+    f.replaceAll('\\', '/').endsWith('/' + filename)
+  );
   return match ?? normalized;
 }
 
@@ -184,7 +194,7 @@ function stripPathsFromCardHtml(html: string): string {
     }
   });
   const body = $('body');
-  return body.length ? body.html() ?? html : html;
+  return body.length ? (body.html() ?? html) : html;
 }
 
 const AUDIO_EXTENSIONS = /\.(mp3|ogg|oga|opus|wav|flac|m4a|aac)$/i;
@@ -219,12 +229,16 @@ export function rewriteAudioAnchors(back: string): AudioRewriteResult {
   });
   if (!mutated) return { back, audioFilenames };
   const body = $('body');
-  const stripped = body.length ? body.html() ?? back : back;
+  const stripped = body.length ? (body.html() ?? back) : back;
   const tokens = audioFilenames.map((name) => `[sound:${name}]`).join('');
   return { back: stripped + tokens, audioFilenames };
 }
 
-function expandCompactDeckInfo(compact: CompactDeck[], availableMediaFiles: string[], style: string | null): DeckInfo[] {
+function expandCompactDeckInfo(
+  compact: CompactDeck[],
+  availableMediaFiles: string[],
+  style: string | null
+): DeckInfo[] {
   return compact.map((d) => ({
     name: d.deck,
     image: '',
@@ -273,7 +287,9 @@ export function getAnthropicClient(): Anthropic {
       apiKey: process.env.ANTHROPIC_API_KEY,
       defaultHeaders: { 'anthropic-beta': 'prompt-caching-2024-07-31' },
     }) as Anthropic;
-    console.log('[Claude] Client initialised', { apiKeySet: !!process.env.ANTHROPIC_API_KEY });
+    console.log('[Claude] Client initialised', {
+      apiKeySet: !!process.env.ANTHROPIC_API_KEY,
+    });
   }
   return _anthropicClient as Anthropic;
 }
@@ -334,7 +350,10 @@ export function dedupeCardsByFront(decks: DeckInfo[]): DeckInfo[] {
     });
     const removed = deck.cards.length - dedupedCards.length;
     if (removed > 0) {
-      console.warn('[Claude] dedupeCardsByFront', { deckName: deck.name, removed });
+      console.warn('[Claude] dedupeCardsByFront', {
+        deckName: deck.name,
+        removed,
+      });
     }
     return { ...deck, cards: dedupedCards };
   });
@@ -371,11 +390,13 @@ export function buildUserMessage(
     : '';
 
   const fieldMappingFragment = buildFieldMappingPromptFragment(fieldMapping);
-  const fieldMappingSection = fieldMappingFragment.length > 0 ? `\n\nField mapping:\n${fieldMappingFragment}` : '';
+  const fieldMappingSection =
+    fieldMappingFragment.length > 0
+      ? `\n\nField mapping:\n${fieldMappingFragment}`
+      : '';
 
-  const styleSection = cardStyleFragment.length > 0
-    ? `\n\nCard style: ${cardStyleFragment}`
-    : '';
+  const styleSection =
+    cardStyleFragment.length > 0 ? `\n\nCard style: ${cardStyleFragment}` : '';
 
   const sizeSuffix = getCardSizePromptSuffix(cardSize);
   const sizeSection = sizeSuffix.length > 0 ? `\n\n${sizeSuffix}` : '';
@@ -391,7 +412,11 @@ function extractJsonArray(text: string): string | null {
   return text.slice(start, end + 1);
 }
 
-type RedactedPayload = { length: number; prefix: string; sha256_prefix: string };
+type RedactedPayload = {
+  length: number;
+  prefix: string;
+  sha256_prefix: string;
+};
 
 function redactClaudePayload(text: string): RedactedPayload {
   return {
@@ -466,7 +491,9 @@ export function parseDeckResponse(
     const repaired = tryRepairDeckArray(toParse);
     if (repaired) {
       parsed = repaired;
-      console.log('[Claude] Recovered malformed JSON via jsonrepair', { chunkIndex });
+      console.log('[Claude] Recovered malformed JSON via jsonrepair', {
+        chunkIndex,
+      });
     } else {
       console.error('[Claude] Failed to parse response as JSON', {
         chunkIndex,
@@ -510,7 +537,14 @@ async function generateDeckInfoFromChunk(
   const client = getAnthropicClient();
 
   const cardStyleFragment = getCardStylePromptFragment(cardStyle);
-  const userMessage = buildUserMessage(strippedContent, availableMediaFiles, userInstructions, cardStyleFragment, cardSize, fieldMapping);
+  const userMessage = buildUserMessage(
+    strippedContent,
+    availableMediaFiles,
+    userInstructions,
+    cardStyleFragment,
+    cardSize,
+    fieldMapping
+  );
   const maxTokens = strippedContent.length > 20000 ? 16384 : 8192;
 
   onProgress?.(`claude:chunk:${chunkIndex + 1}:${totalChunks}`);
@@ -532,7 +566,13 @@ async function generateDeckInfoFromChunk(
     const stream = (client.messages as any).stream({
       model: 'claude-sonnet-4-5',
       max_tokens: maxTokens,
-      system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+      system: [
+        {
+          type: 'text',
+          text: SYSTEM_PROMPT,
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
       messages: [{ role: 'user', content: userMessage }],
     });
 
@@ -545,12 +585,13 @@ async function generateDeckInfoFromChunk(
       }
     });
 
-    response = await stream.finalMessage() as Message;
+    response = (await stream.finalMessage()) as Message;
   } catch (err) {
     const elapsedMs = Date.now() - tApi0;
     const error = err instanceof Error ? err : new Error(String(err));
     const cause = 'cause' in error ? error.cause : undefined;
-    const rootCause = cause instanceof Error && 'cause' in cause ? cause.cause : undefined;
+    const rootCause =
+      cause instanceof Error && 'cause' in cause ? cause.cause : undefined;
     console.error('[Claude] API request failed', {
       elapsedMs,
       chunkIndex,
@@ -583,7 +624,8 @@ async function generateDeckInfoFromChunk(
     usageCollector({
       input_tokens: response.usage.input_tokens ?? 0,
       output_tokens: response.usage.output_tokens ?? 0,
-      cache_creation_input_tokens: response.usage.cache_creation_input_tokens ?? 0,
+      cache_creation_input_tokens:
+        response.usage.cache_creation_input_tokens ?? 0,
       cache_read_input_tokens: response.usage.cache_read_input_tokens ?? 0,
     });
   }
@@ -613,7 +655,12 @@ async function generateDeckInfoFromChunk(
     inputCardCount > 0
       ? Math.round(
           parsed.reduce(
-            (sum, d) => sum + d.cards.reduce((s, c) => s + c.a.replace(/<[^>]*>/g, '').length, 0),
+            (sum, d) =>
+              sum +
+              d.cards.reduce(
+                (s, c) => s + c.a.replace(/<[^>]*>/g, '').length,
+                0
+              ),
             0
           ) / inputCardCount
         )
@@ -626,7 +673,12 @@ async function generateDeckInfoFromChunk(
     outputCardCount > 0
       ? Math.round(
           split.reduce(
-            (sum, d) => sum + d.cards.reduce((s, c) => s + c.a.replace(/<[^>]*>/g, '').length, 0),
+            (sum, d) =>
+              sum +
+              d.cards.reduce(
+                (s, c) => s + c.a.replace(/<[^>]*>/g, '').length,
+                0
+              ),
             0
           ) / outputCardCount
         )
@@ -640,7 +692,11 @@ async function generateDeckInfoFromChunk(
     chunkIndex,
   });
 
-  const deckInfo = expandCompactDeckInfo(split, availableMediaFiles, pageStyle || null);
+  const deckInfo = expandCompactDeckInfo(
+    split,
+    availableMediaFiles,
+    pageStyle || null
+  );
   const parseMs = Date.now() - tParse0;
   console.log('[Claude] chunk done', {
     chunkIndex,
@@ -686,8 +742,14 @@ function computeCostUsd(usages: ChunkUsage[]): number {
     const cacheWrite = u.cache_creation_input_tokens / 1_000_000;
     cost += input * FLOOR_V1_INPUT_TOKEN_PRICE_PER_MILLION;
     cost += output * FLOOR_V1_OUTPUT_TOKEN_PRICE_PER_MILLION;
-    cost += cacheRead * FLOOR_V1_INPUT_TOKEN_PRICE_PER_MILLION * FLOOR_V1_CACHE_READ_DISCOUNT;
-    cost += cacheWrite * FLOOR_V1_INPUT_TOKEN_PRICE_PER_MILLION * FLOOR_V1_CACHE_WRITE_PREMIUM;
+    cost +=
+      cacheRead *
+      FLOOR_V1_INPUT_TOKEN_PRICE_PER_MILLION *
+      FLOOR_V1_CACHE_READ_DISCOUNT;
+    cost +=
+      cacheWrite *
+      FLOOR_V1_INPUT_TOKEN_PRICE_PER_MILLION *
+      FLOOR_V1_CACHE_WRITE_PREMIUM;
   }
   return Math.round(cost * 10_000) / 10_000;
 }
@@ -753,7 +815,9 @@ function collectExistingFronts(decks: DeckInfo[]): string[] {
 }
 
 function buildTopUpInstruction(existingFronts: string[]): string {
-  const sample = existingFronts.slice(0, 80).map((f) => f.replace(/<[^>]*>/g, '').slice(0, 120));
+  const sample = existingFronts
+    .slice(0, 80)
+    .map((f) => f.replace(/<[^>]*>/g, '').slice(0, 120));
   const list = sample.map((s) => `- ${s}`).join('\n');
   return `Extract MORE single-fact cards from the same content. Do NOT repeat any of these fronts:\n${list}\n\nReturn only net-new cards.`;
 }
@@ -786,7 +850,9 @@ async function runChunkWithTruncationRetry(
   }
 }
 
-async function runChunks(thunks: Array<() => Promise<DeckInfo[]>>): Promise<DeckInfo[]> {
+async function runChunks(
+  thunks: Array<() => Promise<DeckInfo[]>>
+): Promise<DeckInfo[]> {
   const settled = await Promise.allSettled(thunks.map((fn) => fn()));
   const succeeded: DeckInfo[][] = [];
   const failures: Array<{ chunkIndex: number; reason: string }> = [];
@@ -835,9 +901,14 @@ export async function generateDeckInfo(
     originalBytes: htmlContent.length,
     strippedBytes: strippedContent.length,
     savedBytes: htmlContent.length - strippedContent.length,
-    savedPct: htmlContent.length > 0
-      ? (((htmlContent.length - strippedContent.length) / htmlContent.length) * 100).toFixed(1) + '%'
-      : 'N/A',
+    savedPct:
+      htmlContent.length > 0
+        ? (
+            ((htmlContent.length - strippedContent.length) /
+              htmlContent.length) *
+            100
+          ).toFixed(1) + '%'
+        : 'N/A',
     durationMs: Date.now() - tStrip0,
   });
 
@@ -848,25 +919,29 @@ export async function generateDeckInfo(
     const headings = detect('html', strippedContent);
     if (headings.length > 0) {
       const chunks = splitByHeadings(headings);
-      console.log('[Claude] heading-driven chunks', { headingCount: headings.length, chunkCount: chunks.length });
+      console.log('[Claude] heading-driven chunks', {
+        headingCount: headings.length,
+        chunkCount: chunks.length,
+      });
       const chunkResults = await runChunks(
-        chunks.map((chunk, i) => () =>
-          runChunkWithTruncationRetry(
-            `<h1>${chunk.anchor}</h1>\n${chunk.bodyChunk}`,
-            (content) =>
-              generateDeckInfoFromChunk(
-                content,
-                pageStyle,
-                availableMediaFiles,
-                userInstructions,
-                i,
-                chunks.length,
-                onProgress,
-                cardStyle,
-                cardSize,
-                fieldMapping
-              )
-          )
+        chunks.map(
+          (chunk, i) => () =>
+            runChunkWithTruncationRetry(
+              `<h1>${chunk.anchor}</h1>\n${chunk.bodyChunk}`,
+              (content) =>
+                generateDeckInfoFromChunk(
+                  content,
+                  pageStyle,
+                  availableMediaFiles,
+                  userInstructions,
+                  i,
+                  chunks.length,
+                  onProgress,
+                  cardStyle,
+                  cardSize,
+                  fieldMapping
+                )
+            )
         )
       );
       const deckInfo = mergeDeckInfoArrays(chunkResults);
@@ -877,11 +952,17 @@ export async function generateDeckInfo(
       });
       return deckInfo;
     }
-    console.log('[Claude] heading-driven:fallback', { reason: 'no headings detected', strippedBytes: strippedContent.length });
+    console.log('[Claude] heading-driven:fallback', {
+      reason: 'no headings detected',
+      strippedBytes: strippedContent.length,
+    });
   }
 
   const chunks = chunkHtmlByDetails(strippedContent);
-  console.log('[Claude] Chunked HTML', { chunks: chunks.length, strippedBytes: strippedContent.length });
+  console.log('[Claude] Chunked HTML', {
+    chunks: chunks.length,
+    strippedBytes: strippedContent.length,
+  });
 
   if (floorV1Active) {
     const result = await runFloorV1(
@@ -922,10 +1003,22 @@ export async function generateDeckInfo(
   }
 
   const chunkResults = await runChunks(
-    chunks.map((chunk, i) => () =>
-      runChunkWithTruncationRetry(chunk, (content) =>
-        generateDeckInfoFromChunk(content, pageStyle, availableMediaFiles, userInstructions, i, chunks.length, onProgress, cardStyle, cardSize, fieldMapping)
-      )
+    chunks.map(
+      (chunk, i) => () =>
+        runChunkWithTruncationRetry(chunk, (content) =>
+          generateDeckInfoFromChunk(
+            content,
+            pageStyle,
+            availableMediaFiles,
+            userInstructions,
+            i,
+            chunks.length,
+            onProgress,
+            cardStyle,
+            cardSize,
+            fieldMapping
+          )
+        )
     )
   );
 
@@ -960,22 +1053,23 @@ async function runFloorV1(
   const collect = (usage: ChunkUsage) => usages.push(usage);
 
   const firstRoundResults = await runWithSemaphore(
-    chunks.map((chunk, i) => () =>
-      runChunkWithTruncationRetry(chunk, (content) =>
-        generateDeckInfoFromChunk(
-          content,
-          pageStyle,
-          availableMediaFiles,
-          userInstructions,
-          i,
-          chunks.length,
-          onProgress,
-          cardStyle,
-          cardSize,
-          fieldMapping,
-          collect
-        )
-      ).then((decks) => stampChunkIndex(decks, i))
+    chunks.map(
+      (chunk, i) => () =>
+        runChunkWithTruncationRetry(chunk, (content) =>
+          generateDeckInfoFromChunk(
+            content,
+            pageStyle,
+            availableMediaFiles,
+            userInstructions,
+            i,
+            chunks.length,
+            onProgress,
+            cardStyle,
+            cardSize,
+            fieldMapping,
+            collect
+          )
+        ).then((decks) => stampChunkIndex(decks, i))
     ),
     FLOOR_V1_MAX_PARALLEL
   );
@@ -985,7 +1079,10 @@ async function runFloorV1(
     if (r.status === 'fulfilled') {
       initialDecks.push(...r.value);
     } else {
-      console.warn('[Claude] floor v1 chunk failed', { chunkIndex: i, reason: String(r.reason) });
+      console.warn('[Claude] floor v1 chunk failed', {
+        chunkIndex: i,
+        reason: String(r.reason),
+      });
     }
   });
 
@@ -1007,22 +1104,23 @@ async function runFloorV1(
       : topUpInstruction;
 
     const topUpResults = await runWithSemaphore(
-      targetChunks.map((idx) => () =>
-        runChunkWithTruncationRetry(chunks[idx], (content) =>
-          generateDeckInfoFromChunk(
-            content,
-            pageStyle,
-            availableMediaFiles,
-            combinedInstructions,
-            idx,
-            chunks.length,
-            onProgress,
-            cardStyle,
-            cardSize,
-            fieldMapping,
-            collect
-          )
-        ).then((decks) => stampChunkIndex(decks, idx))
+      targetChunks.map(
+        (idx) => () =>
+          runChunkWithTruncationRetry(chunks[idx], (content) =>
+            generateDeckInfoFromChunk(
+              content,
+              pageStyle,
+              availableMediaFiles,
+              combinedInstructions,
+              idx,
+              chunks.length,
+              onProgress,
+              cardStyle,
+              cardSize,
+              fieldMapping,
+              collect
+            )
+          ).then((decks) => stampChunkIndex(decks, idx))
       ),
       FLOOR_V1_MAX_PARALLEL
     );
@@ -1045,7 +1143,9 @@ async function runFloorV1(
     topUpRounds += 1;
 
     if (totalCardCount(merged) <= beforeCount) {
-      console.log('[Claude] floor v1 top-up stopped: zero net-new cards', { round: topUpRounds });
+      console.log('[Claude] floor v1 top-up stopped: zero net-new cards', {
+        round: topUpRounds,
+      });
       break;
     }
   }
@@ -1075,4 +1175,3 @@ function clampDeckTotal(decks: DeckInfo[], ceiling: number): DeckInfo[] {
   }
   return clamped;
 }
-

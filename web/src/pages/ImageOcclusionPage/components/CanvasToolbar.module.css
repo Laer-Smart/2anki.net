@@ -32,7 +32,9 @@
   color: var(--color-text-primary);
   font-size: 14px;
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
   white-space: nowrap;
 }
 

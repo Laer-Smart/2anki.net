@@ -4,7 +4,8 @@ const HEADING_LINE = /^(#{1,6})\s+(.+)$/;
 const INLINE_MD = /[*_`~[\]]/g;
 
 function stripInlineMarkdown(text: string): string {
-  return text.replace(/\*\*(.+?)\*\*/g, '$1')
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')
     .replace(/__(.+?)__/g, '$1')
     .replace(/_(.+?)_/g, '$1')

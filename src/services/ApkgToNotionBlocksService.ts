@@ -15,7 +15,15 @@ const EM_REGEX = /<em>(.*?)<\/em>/gi;
 const ALL_HTML_TAGS_REGEX = /<[^>]*>/g;
 const BR_REGEX = /<br\s*\/?>/gi;
 
-const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp']);
+const IMAGE_EXTENSIONS = new Set([
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+  'webp',
+  'svg',
+  'bmp',
+]);
 
 interface RichTextSegment {
   type: 'text';
@@ -72,7 +80,11 @@ interface ToggleHeading3Block {
   };
 }
 
-type NoteBlock = ToggleHeading3Block | ImageBlock | DividerBlock | ParagraphBlock;
+type NoteBlock =
+  | ToggleHeading3Block
+  | ImageBlock
+  | DividerBlock
+  | ParagraphBlock;
 
 export interface DeckPage {
   title: string;
@@ -96,10 +108,24 @@ export class NoteTooLargeError extends Error {
 
 const HTML_ENTITY_REGEX = /&(#(\d+)|#x([0-9a-fA-F]+)|(\w+));/g;
 const NAMED_ENTITIES: Record<string, string> = {
-  nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'",
-  ndash: '–', mdash: '—', lsquo: '‘', rsquo: '’',
-  ldquo: '“', rdquo: '”', hellip: '…', copy: '©',
-  reg: '®', trade: '™', times: '×', divide: '÷',
+  nbsp: ' ',
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  ndash: '–',
+  mdash: '—',
+  lsquo: '‘',
+  rsquo: '’',
+  ldquo: '“',
+  rdquo: '”',
+  hellip: '…',
+  copy: '©',
+  reg: '®',
+  trade: '™',
+  times: '×',
+  divide: '÷',
 };
 
 function decodeHtmlEntities(text: string): string {
@@ -161,7 +187,11 @@ function getPlainText(html: string): string {
 const NOTION_RICH_TEXT_LIMIT = 2000;
 const NOTION_RICH_TEXT_ARRAY_LIMIT = 100;
 
-function makeRichTextSegment(content: string, bold = false, italic = false): RichTextSegment {
+function makeRichTextSegment(
+  content: string,
+  bold = false,
+  italic = false
+): RichTextSegment {
   return {
     type: 'text',
     plain_text: content,
@@ -177,7 +207,11 @@ function makeRichTextSegment(content: string, bold = false, italic = false): Ric
   };
 }
 
-function makeRichText(content: string, bold = false, italic = false): RichTextSegment[] {
+function makeRichText(
+  content: string,
+  bold = false,
+  italic = false
+): RichTextSegment[] {
   const decoded = decodeHtmlEntities(content);
   if (decoded.length <= NOTION_RICH_TEXT_LIMIT) {
     return [makeRichTextSegment(decoded, bold, italic)];
@@ -185,7 +219,11 @@ function makeRichText(content: string, bold = false, italic = false): RichTextSe
   const segments: RichTextSegment[] = [];
   for (let i = 0; i < decoded.length; i += NOTION_RICH_TEXT_LIMIT) {
     segments.push(
-      makeRichTextSegment(decoded.slice(i, i + NOTION_RICH_TEXT_LIMIT), bold, italic)
+      makeRichTextSegment(
+        decoded.slice(i, i + NOTION_RICH_TEXT_LIMIT),
+        bold,
+        italic
+      )
     );
   }
   return segments;
@@ -220,7 +258,13 @@ function parseHtmlToRichText(html: string): RichTextSegment[] {
   let match: RegExpExecArray | null;
   let lastIndex = 0;
 
-  const allMatches: Array<{ index: number; end: number; text: string; bold: boolean; italic: boolean }> = [];
+  const allMatches: Array<{
+    index: number;
+    end: number;
+    text: string;
+    bold: boolean;
+    italic: boolean;
+  }> = [];
 
   while ((match = tagPattern.exec(withNewlines)) !== null) {
     const tag = match[1].toLowerCase();
@@ -245,7 +289,9 @@ function parseHtmlToRichText(html: string): RichTextSegment[] {
   }
 
   for (const m of allMatches) {
-    const before = withNewlines.slice(lastIndex, m.index).replace(ALL_HTML_TAGS_REGEX, '');
+    const before = withNewlines
+      .slice(lastIndex, m.index)
+      .replace(ALL_HTML_TAGS_REGEX, '');
     if (before.length > 0) {
       segments.push(...makeRichText(before));
     }
@@ -288,7 +334,9 @@ function fieldToBlocks(
   for (const filename of soundFiles) {
     const url = mediaUrlMap.get(filename);
     if (url) {
-      blocks.push(makeParagraph(makeRichText(`Audio: ${filename}`, false, true)));
+      blocks.push(
+        makeParagraph(makeRichText(`Audio: ${filename}`, false, true))
+      );
     }
   }
 
@@ -321,7 +369,9 @@ function isImageFirstNote(note: Note, noteType: NoteType): boolean {
   const front = note.fields[0] ?? '';
   const hasImage = extractImageFilenames(front).length > 0;
   if (!hasImage) return false;
-  const textOnly = stripMediaRefs(front).replace(ALL_HTML_TAGS_REGEX, '').trim();
+  const textOnly = stripMediaRefs(front)
+    .replace(ALL_HTML_TAGS_REGEX, '')
+    .trim();
   return textOnly.length <= IMAGE_FIRST_TEXT_THRESHOLD;
 }
 
@@ -366,14 +416,14 @@ function noteToImageLayout(
     answerChildren.push(makeParagraph(makeRichText(tagText, false, true)));
   }
 
-  const firstBackFieldName = noteType.fields.length > 1
-    ? noteType.fields[1].name
-    : null;
-  const toggleLabel = (
-    firstBackFieldName
-    && backFields.length === 1
-    && firstBackFieldName !== 'Back'
-  ) ? firstBackFieldName : 'Answer';
+  const firstBackFieldName =
+    noteType.fields.length > 1 ? noteType.fields[1].name : null;
+  const toggleLabel =
+    firstBackFieldName &&
+    backFields.length === 1 &&
+    firstBackFieldName !== 'Back'
+      ? firstBackFieldName
+      : 'Answer';
 
   blocks.push({
     type: 'heading_3',
@@ -518,7 +568,10 @@ function buildDeckTree(
     }
   }
 
-  const notesByDeckId = new Map<number, Array<{ note: Note; noteType: NoteType }>>();
+  const notesByDeckId = new Map<
+    number,
+    Array<{ note: Note; noteType: NoteType }>
+  >();
   const seenNotes = new Set<number>();
 
   for (const card of collection.cards) {

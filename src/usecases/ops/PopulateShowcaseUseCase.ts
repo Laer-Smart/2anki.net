@@ -1,9 +1,15 @@
 import { isFullBlock, isFullPage } from '@notionhq/client';
-import { BlockObjectResponse, PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import {
+  BlockObjectResponse,
+  PageObjectResponse,
+} from '@notionhq/client/build/src/api-endpoints';
 import { getNotionObjectTitle } from 'get-notion-object-title';
 
 import { IShowcaseRepository } from '../../data_layer/ShowcaseRepository';
-import { PreviewBlockPayload, toPreviewBlock } from '../../controllers/helpers/toPreviewBlock';
+import {
+  PreviewBlockPayload,
+  toPreviewBlock,
+} from '../../controllers/helpers/toPreviewBlock';
 import ParserRules from '../../lib/parser/ParserRules';
 import { renderBlockPreview } from '../../services/NotionService/helpers/renderBlockPreview';
 import instrumentedAxios from '../../services/observability/instrumentedAxios';
@@ -53,14 +59,23 @@ export class PopulateShowcaseUseCase {
     );
 
     const storage = new StorageHandler();
-    const body = await this.downloadService.getFileBody(owner, apkgKey, storage);
+    const body = await this.downloadService.getFileBody(
+      owner,
+      apkgKey,
+      storage
+    );
     if (body == null) {
       throw new Error(`APKG file not found for key: ${apkgKey}`);
     }
 
     const cacheKey = `showcase:${apkgKey}`;
     const parsed = await this.previewService.parse(cacheKey, body as Buffer);
-    const { cards: allCards } = this.previewService.getCardsPage(parsed, 0, MAX_CARDS * 3, '');
+    const { cards: allCards } = this.previewService.getCardsPage(
+      parsed,
+      0,
+      MAX_CARDS * 3,
+      ''
+    );
     const cards = allCards.slice(0, MAX_CARDS).map((card) => ({
       ...card,
       front: this.inlineApkgMedia(card.front, parsed),
@@ -81,7 +96,8 @@ export class PopulateShowcaseUseCase {
       const buffer = archiveName ? parsed.mediaEntries.get(archiveName) : null;
       if (buffer == null) return _match;
       const ext = src.split('.').pop()?.toLowerCase() ?? 'png';
-      const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : `image/${ext}`;
+      const mime =
+        ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : `image/${ext}`;
       const dataUri = `data:${mime};base64,${buffer.toString('base64')}`;
       return `<img src="${dataUri}"`;
     });
@@ -118,9 +134,10 @@ export class PopulateShowcaseUseCase {
           responseType: 'arraybuffer',
           timeout: 15_000,
         });
-        const contentType =
-          response.headers['content-type'] ?? 'image/png';
-        const base64 = Buffer.from(response.data as ArrayBuffer).toString('base64');
+        const contentType = response.headers['content-type'] ?? 'image/png';
+        const base64 = Buffer.from(response.data as ArrayBuffer).toString(
+          'base64'
+        );
         const dataUri = `data:${contentType};base64,${base64}`;
         result = result.replace(match[1], dataUri);
       } catch {

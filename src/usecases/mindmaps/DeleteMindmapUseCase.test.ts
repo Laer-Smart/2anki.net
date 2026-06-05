@@ -43,7 +43,9 @@ describe('DeleteMindmapUseCase', () => {
     await useCase.execute(ID, USER);
 
     expect(storage.listByPrefix).toHaveBeenCalledWith('mindmaps/99/map-uuid/');
-    expect(storage.deleteObjects).toHaveBeenCalledWith(['mindmaps/99/map-uuid/a.png']);
+    expect(storage.deleteObjects).toHaveBeenCalledWith([
+      'mindmaps/99/map-uuid/a.png',
+    ]);
   });
 
   it('skips deleteObjects when no objects exist', async () => {
@@ -69,7 +71,9 @@ describe('DeleteMindmapUseCase', () => {
 
   it('still deletes from DB when deleteObjects throws', async () => {
     const storage = makeStorage(['mindmaps/99/map-uuid/a.png']);
-    (storage.deleteObjects as jest.Mock).mockRejectedValue(new Error('S3 down'));
+    (storage.deleteObjects as jest.Mock).mockRejectedValue(
+      new Error('S3 down')
+    );
     const repo = makeRepo();
     const useCase = new DeleteMindmapUseCase(repo, storage);
 

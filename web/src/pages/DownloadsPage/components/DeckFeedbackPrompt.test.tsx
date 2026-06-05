@@ -21,7 +21,10 @@ vi.mock('../../../lib/analytics/track', () => ({
   track: (...args: unknown[]) => mockTrack(...args),
 }));
 
-import { DeckFeedbackPrompt, isDeckFeedbackSuppressed } from './DeckFeedbackPrompt';
+import {
+  DeckFeedbackPrompt,
+  isDeckFeedbackSuppressed,
+} from './DeckFeedbackPrompt';
 
 const SUPPRESSED_UNTIL_KEY = '2anki_deck_feedback_suppressed_until';
 
@@ -55,16 +58,26 @@ afterEach(() => {
 describe('DeckFeedbackPrompt', () => {
   it('shows the binary prompt by default', () => {
     render(<DeckFeedbackPrompt />);
-    expect(screen.getByText('Did this deck come out right?')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Yes, it worked' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Something was off' })).toBeInTheDocument();
+    expect(
+      screen.getByText('Did this deck come out right?')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Yes, it worked' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Something was off' })
+    ).toBeInTheDocument();
   });
 
   it('posts rating 5 with page="downloads/deck_done" when user confirms the deck worked', async () => {
     render(<DeckFeedbackPrompt />);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
     await waitFor(() => {
-      expect(submitEmojiFeedback).toHaveBeenCalledWith(5, 'downloads/deck_done', undefined);
+      expect(submitEmojiFeedback).toHaveBeenCalledWith(
+        5,
+        'downloads/deck_done',
+        undefined
+      );
     });
   });
 
@@ -84,7 +97,11 @@ describe('DeckFeedbackPrompt', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Send' }));
     await waitFor(() => {
-      expect(submitEmojiFeedback).toHaveBeenCalledWith(1, 'downloads/deck_done', 'images were missing');
+      expect(submitEmojiFeedback).toHaveBeenCalledWith(
+        1,
+        'downloads/deck_done',
+        'images were missing'
+      );
     });
     expect(await screen.findByText('Feedback received.')).toBeInTheDocument();
   });
@@ -94,7 +111,11 @@ describe('DeckFeedbackPrompt', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Something was off' }));
     fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
     await waitFor(() => {
-      expect(submitEmojiFeedback).toHaveBeenCalledWith(1, 'downloads/deck_done', undefined);
+      expect(submitEmojiFeedback).toHaveBeenCalledWith(
+        1,
+        'downloads/deck_done',
+        undefined
+      );
     });
     expect(await screen.findByText('Feedback received.')).toBeInTheDocument();
   });
@@ -118,7 +139,9 @@ describe('DeckFeedbackPrompt', () => {
     render(<DeckFeedbackPrompt />);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
     expect(await screen.findByText("Couldn't send that.")).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Try again' })
+    ).toBeInTheDocument();
   });
 
   it('isDeckFeedbackSuppressed returns false when no timestamp is stored', () => {
@@ -144,7 +167,9 @@ describe('DeckFeedbackPrompt — Day Pass offer after positive rating', () => {
     expect(
       screen.getByText('Keep going without the monthly limit — Day Pass, $4.')
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Get Day Pass' })
+    ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'See all plans' })).toHaveAttribute(
       'href',
       '/pricing?source=deck_feedback'
@@ -156,7 +181,9 @@ describe('DeckFeedbackPrompt — Day Pass offer after positive rating', () => {
     render(<DeckFeedbackPrompt />);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
     expect(await screen.findByText('Feedback received.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Get Day Pass' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Get Day Pass' })
+    ).not.toBeInTheDocument();
   });
 
   it('does not show the offer after a negative rating', async () => {
@@ -164,7 +191,9 @@ describe('DeckFeedbackPrompt — Day Pass offer after positive rating', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Something was off' }));
     fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
     expect(await screen.findByText('Feedback received.')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Get Day Pass' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Get Day Pass' })
+    ).not.toBeInTheDocument();
   });
 
   it('fires paywall_shown with surface=deck_feedback_sent when the offer renders', async () => {
@@ -178,7 +207,9 @@ describe('DeckFeedbackPrompt — Day Pass offer after positive rating', () => {
   });
 
   it('fires paywall_upgrade_clicked with plan=day_pass and redirects on Day Pass click', async () => {
-    startPassCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/day' });
+    startPassCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.com/day',
+    });
     Object.defineProperty(globalThis, 'location', {
       writable: true,
       value: { href: '' },
@@ -192,7 +223,11 @@ describe('DeckFeedbackPrompt — Day Pass offer after positive rating', () => {
         surface: 'deck_feedback_sent',
         plan: 'day_pass',
       });
-      expect(startPassCheckout).toHaveBeenCalledWith('24h', undefined, 'deck_feedback_sent');
+      expect(startPassCheckout).toHaveBeenCalledWith(
+        '24h',
+        undefined,
+        'deck_feedback_sent'
+      );
     });
   });
 
@@ -208,11 +243,15 @@ describe('DeckFeedbackPrompt — Day Pass offer after positive rating', () => {
     const cta = await screen.findByRole('button', { name: 'Get Day Pass' });
     fireEvent.click(cta);
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Redirecting…' })).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: 'Redirecting…' })
+      ).toBeDisabled();
     });
     resolveCheckout({ status: 'error' });
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Get Day Pass' })
+      ).toBeInTheDocument();
     });
   });
 });

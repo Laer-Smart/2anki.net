@@ -1,6 +1,4 @@
-import {
-  InMemoryAbandonedCheckoutRecoveryRepository,
-} from './AbandonedCheckoutRecoveryRepository';
+import { InMemoryAbandonedCheckoutRecoveryRepository } from './AbandonedCheckoutRecoveryRepository';
 
 describe('InMemoryAbandonedCheckoutRecoveryRepository', () => {
   let repo: InMemoryAbandonedCheckoutRecoveryRepository;
@@ -11,13 +9,21 @@ describe('InMemoryAbandonedCheckoutRecoveryRepository', () => {
 
   describe('claimSession', () => {
     it('returns true on first claim for a session', async () => {
-      const result = await repo.claimSession('cs_abc', 'alice@example.com', 'tok-1');
+      const result = await repo.claimSession(
+        'cs_abc',
+        'alice@example.com',
+        'tok-1'
+      );
       expect(result).toBe(true);
     });
 
     it('returns false on duplicate claim', async () => {
       await repo.claimSession('cs_abc', 'alice@example.com', 'tok-1');
-      const result = await repo.claimSession('cs_abc', 'alice@example.com', 'tok-2');
+      const result = await repo.claimSession(
+        'cs_abc',
+        'alice@example.com',
+        'tok-2'
+      );
       expect(result).toBe(false);
     });
 

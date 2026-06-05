@@ -8,8 +8,10 @@ const payloadBase = path.resolve(__dirname, '../payloads');
 
 const endpoints = {
   GetPageResponse: async (id: string) => notion.pages.retrieve({ page_id: id }),
-  ListBlockChildrenResponse: async (id: string) => notion.blocks.children.list({ block_id: id }),
-  GetBlockResponse: async (id: string) => notion.blocks.retrieve({ block_id: id }),
+  ListBlockChildrenResponse: async (id: string) =>
+    notion.blocks.children.list({ block_id: id }),
+  GetBlockResponse: async (id: string) =>
+    notion.blocks.retrieve({ block_id: id }),
   QueryDataSourceResponse: async (id: string) => {
     const database = await notion.databases.retrieve({ database_id: id });
     const dataSources = isFullDatabase(database) ? database.data_sources : [];

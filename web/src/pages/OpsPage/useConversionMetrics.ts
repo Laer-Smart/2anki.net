@@ -4,16 +4,15 @@ import { ConversionMetricsResponse } from './conversionTypes';
 
 const REFRESH_MS = 30_000;
 
-const fetchConversionMetrics =
-  async (): Promise<ConversionMetricsResponse> => {
-    const response = await fetch('/api/ops/conversion/metrics', {
-      credentials: 'include',
-    });
-    if (!response.ok) {
-      throw new Error(`${response.status} ${response.statusText}`);
-    }
-    return response.json();
-  };
+const fetchConversionMetrics = async (): Promise<ConversionMetricsResponse> => {
+  const response = await fetch('/api/ops/conversion/metrics', {
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    throw new Error(`${response.status} ${response.statusText}`);
+  }
+  return response.json();
+};
 
 export const useConversionMetrics = () => {
   return useQuery<ConversionMetricsResponse, Error>({

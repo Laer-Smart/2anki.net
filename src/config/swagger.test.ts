@@ -255,7 +255,8 @@ describe('Swagger Documentation Coverage', () => {
       const ok = op.responses['200'];
       expect(ok).toBeDefined();
       expect(ok.content).toHaveProperty('text/event-stream');
-      const props = op.requestBody.content['application/json'].schema.properties;
+      const props =
+        op.requestBody.content['application/json'].schema.properties;
       expect(props.templateSlug).toBeDefined();
     });
 
@@ -295,7 +296,9 @@ describe('Swagger Documentation Coverage', () => {
       const doneFrame = spec.components.schemas.ChatDoneFrame;
       const cards = doneFrame.properties.data.properties.cards;
       expect(cards.items.oneOf).toBeDefined();
-      const refs = cards.items.oneOf.map((entry: { $ref: string }) => entry.$ref);
+      const refs = cards.items.oneOf.map(
+        (entry: { $ref: string }) => entry.$ref
+      );
       expect(refs).toContain('#/components/schemas/ChatBasicCard');
       expect(refs).toContain('#/components/schemas/ChatMcqCard');
     });
@@ -305,7 +308,9 @@ describe('Swagger Documentation Coverage', () => {
       const cards =
         op.requestBody.content['application/json'].schema.properties.cards;
       expect(cards.items.oneOf).toBeDefined();
-      const refs = cards.items.oneOf.map((entry: { $ref: string }) => entry.$ref);
+      const refs = cards.items.oneOf.map(
+        (entry: { $ref: string }) => entry.$ref
+      );
       expect(refs).toContain('#/components/schemas/ChatBasicCard');
       expect(refs).toContain('#/components/schemas/ChatMcqCard');
     });

@@ -1,5 +1,8 @@
 import { Knex } from 'knex';
-import type { IUserVisibleErrorsRepository, ErrorSurfaceCount } from '../../data_layer/UserVisibleErrorsRepository';
+import type {
+  IUserVisibleErrorsRepository,
+  ErrorSurfaceCount,
+} from '../../data_layer/UserVisibleErrorsRepository';
 
 export interface JobDurationPercentiles {
   window: '24h' | '7d';
@@ -40,7 +43,7 @@ export interface PerformanceMetricsResponse {
 const TERMINAL_STATUSES = ['done', 'failed', 'cancelled', 'interrupted'];
 
 const DURATION_MS_SQL =
-  "EXTRACT(EPOCH FROM (last_edited_time - created_at)) * 1000";
+  'EXTRACT(EPOCH FROM (last_edited_time - created_at)) * 1000';
 
 const DONE_JOBS_SINCE_SQL = `status = 'done'
   AND last_edited_time >= NOW() - (? * INTERVAL '1 day')
@@ -53,15 +56,16 @@ export class PerformanceMetricsService {
   ) {}
 
   async getMetrics(): Promise<PerformanceMetricsResponse> {
-    const [d24, d7, statuses, slowest, countries, errors24h, errors7d] = await Promise.all([
-      this.getDurationPercentiles(1),
-      this.getDurationPercentiles(7),
-      this.getStatusBreakdown(1),
-      this.getSlowestJobs(1, 20),
-      this.getSignupCountries(7),
-      this.getUserVisibleErrorCounts(1),
-      this.getUserVisibleErrorCounts(7),
-    ]);
+    const [d24, d7, statuses, slowest, countries, errors24h, errors7d] =
+      await Promise.all([
+        this.getDurationPercentiles(1),
+        this.getDurationPercentiles(7),
+        this.getStatusBreakdown(1),
+        this.getSlowestJobs(1, 20),
+        this.getSignupCountries(7),
+        this.getUserVisibleErrorCounts(1),
+        this.getUserVisibleErrorCounts(7),
+      ]);
     return {
       generated_at: new Date().toISOString(),
       durations: [
@@ -76,7 +80,9 @@ export class PerformanceMetricsService {
     };
   }
 
-  async getUserVisibleErrorCounts(sinceDays: number): Promise<ErrorSurfaceCount[]> {
+  async getUserVisibleErrorCounts(
+    sinceDays: number
+  ): Promise<ErrorSurfaceCount[]> {
     if (this.userVisibleErrorsRepository == null) {
       return [];
     }
@@ -96,7 +102,14 @@ export class PerformanceMetricsService {
        WHERE ${DONE_JOBS_SINCE_SQL}
          AND last_edited_time IS NOT NULL`,
       [sinceDays]
-    )) as { rows: { p50: string | null; p95: string | null; p99: string | null; total: string }[] };
+    )) as {
+      rows: {
+        p50: string | null;
+        p95: string | null;
+        p99: string | null;
+        total: string;
+      }[];
+    };
     const row = result.rows[0];
     return {
       p50_ms: row?.p50 == null ? null : Math.round(Number(row.p50)),

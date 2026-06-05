@@ -8,7 +8,9 @@
   font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
   font-size: clamp(1.75rem, 3.5vw, 2.5rem);
   font-weight: 600;
-  font-variation-settings: 'opsz' 144, 'SOFT' 50;
+  font-variation-settings:
+    'opsz' 144,
+    'SOFT' 50;
   letter-spacing: -0.025em;
   color: var(--color-text-primary);
   text-align: center;
@@ -63,7 +65,9 @@
   top: 50%;
   left: 50%;
   background: var(--color-text-secondary);
-  transition: transform var(--transition-fast), opacity var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    opacity var(--transition-fast);
 }
 
 .icon::before {

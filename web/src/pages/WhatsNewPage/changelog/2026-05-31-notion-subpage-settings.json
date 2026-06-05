@@ -1,1 +1,6 @@
-{ "id": "2026-05-31-notion-subpage-settings", "date": "2026-05-31", "type": "fix", "title": "Notion sub-pages use their own deck name from the More panel when you convert" }
+{
+  "id": "2026-05-31-notion-subpage-settings",
+  "date": "2026-05-31",
+  "type": "fix",
+  "title": "Notion sub-pages use their own deck name from the More panel when you convert"
+}

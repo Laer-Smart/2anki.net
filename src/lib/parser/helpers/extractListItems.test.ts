@@ -83,8 +83,7 @@ describe('extractListItems', () => {
   });
 
   it('does not merge two lists separated by a paragraph', () => {
-    const html =
-      '<ol><li>first</li></ol><p>break</p><ol><li>second</li></ol>';
+    const html = '<ol><li>first</li></ol><p>break</p><ol><li>second</li></ol>';
     expect(extractListItems(html)).toEqual(['first']);
   });
 });

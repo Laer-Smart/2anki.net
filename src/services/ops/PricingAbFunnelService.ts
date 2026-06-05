@@ -100,7 +100,10 @@ export class PricingAbFunnelService {
       clicksByVariant.set(row.variant, row.click_count);
     }
 
-    const conversionsByVariant = new Map<string, { count: number; revenue: number }>();
+    const conversionsByVariant = new Map<
+      string,
+      { count: number; revenue: number }
+    >();
     for (const session of sessions) {
       if (session.variant == null || !session.paid) continue;
       const existing = conversionsByVariant.get(session.variant) ?? {
@@ -122,7 +125,10 @@ export class PricingAbFunnelService {
       const upgrade_clicks = clicksByVariant.get(variant) ?? 0;
       const upgrade_click_rate_pct =
         users_shown > 0 ? (upgrade_clicks / users_shown) * 100 : 0;
-      const conv = conversionsByVariant.get(variant) ?? { count: 0, revenue: 0 };
+      const conv = conversionsByVariant.get(variant) ?? {
+        count: 0,
+        revenue: 0,
+      };
       return {
         variant,
         users_shown,
@@ -143,10 +149,12 @@ export class PricingAbFunnelService {
       const existing = surfaceMap.get(row.surface) ?? 0;
       surfaceMap.set(row.surface, existing + row.distinct_users);
     }
-    return Array.from(surfaceMap.entries()).map(([surface, distinct_users]) => ({
-      surface,
-      distinct_users,
-    }));
+    return Array.from(surfaceMap.entries()).map(
+      ([surface, distinct_users]) => ({
+        surface,
+        distinct_users,
+      })
+    );
   }
 
   private async fetchSessions(since: Date): Promise<CheckoutSessionSummary[]> {
@@ -180,7 +188,7 @@ export class PricingAbFunnelService {
 
       hasMore = page.has_more === true && page.data.length > 0;
       startingAfter = hasMore
-        ? page.data[page.data.length - 1].id ?? undefined
+        ? (page.data[page.data.length - 1].id ?? undefined)
         : undefined;
     }
 

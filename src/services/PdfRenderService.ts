@@ -40,7 +40,12 @@ export default class PdfRenderService {
         format: options?.paperSize ?? 'A4',
         landscape: options?.orientation === 'landscape',
         printBackground: true,
-        margin: { top: marginValue, right: marginValue, bottom: marginValue, left: marginValue },
+        margin: {
+          top: marginValue,
+          right: marginValue,
+          bottom: marginValue,
+          left: marginValue,
+        },
         timeout: PDF_TIMEOUT_MS,
       });
       return Buffer.from(pdf);

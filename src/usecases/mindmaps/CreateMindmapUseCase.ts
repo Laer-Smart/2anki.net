@@ -1,4 +1,8 @@
-import { hasAnkifyAccess, AnkifyAccessUser, AnkifyAccessSubscription } from '../../lib/ankify/access';
+import {
+  hasAnkifyAccess,
+  AnkifyAccessUser,
+  AnkifyAccessSubscription,
+} from '../../lib/ankify/access';
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import Mindmaps from '../../data_layer/public/Mindmaps';
 import { UsersId } from '../../data_layer/public/Users';
@@ -24,7 +28,13 @@ export class CreateMindmapUseCase {
   constructor(private readonly repo: MindmapRepositoryInterface) {}
 
   async execute(input: CreateInput): Promise<Mindmaps> {
-    const { userId, title, user, subscriptions, autoSyncProductId = '' } = input;
+    const {
+      userId,
+      title,
+      user,
+      subscriptions,
+      autoSyncProductId = '',
+    } = input;
     const isUnlimited = hasAnkifyAccess(user, subscriptions, autoSyncProductId);
 
     if (!isUnlimited) {

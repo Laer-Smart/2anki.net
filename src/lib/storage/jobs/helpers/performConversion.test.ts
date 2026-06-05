@@ -16,9 +16,9 @@ jest.mock('../../../../data_layer/JobRepository');
 jest.mock('../../../../data_layer/UsersRepository');
 jest.mock('../../../../data_layer/NotionRespository');
 jest.mock('../../../../usecases/users/CheckMonthlyCardLimitUseCase', () => {
-  const actual = jest.requireActual<typeof import('../../../../usecases/users/CheckMonthlyCardLimitUseCase')>(
-    '../../../../usecases/users/CheckMonthlyCardLimitUseCase'
-  );
+  const actual = jest.requireActual<
+    typeof import('../../../../usecases/users/CheckMonthlyCardLimitUseCase')
+  >('../../../../usecases/users/CheckMonthlyCardLimitUseCase');
   return {
     ...actual,
     CheckMonthlyCardLimitUseCase: jest.fn(),
@@ -75,7 +75,10 @@ const baseRequest = {
 };
 
 function makeRealWorkspace(): { location: string } {
-  const location = path.join(os.tmpdir(), `perform-conversion-test-${randomUUID()}`);
+  const location = path.join(
+    os.tmpdir(),
+    `perform-conversion-test-${randomUUID()}`
+  );
   fs.mkdirSync(location, { recursive: true });
   fs.writeFileSync(path.join(location, 'deck.apkg'), 'fake-bytes');
   return { location };
@@ -233,7 +236,12 @@ describe('performConversion — heavy pipeline', () => {
     (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
       execute: jest.fn().mockResolvedValue([{ cards: [1, 2, 3] }]),
     }));
-    const limitError = new MonthlyLimitError(80, 100, 3, '2026-07-01T00:00:00.000Z');
+    const limitError = new MonthlyLimitError(
+      80,
+      100,
+      3,
+      '2026-07-01T00:00:00.000Z'
+    );
     (CheckMonthlyCardLimitUseCase as jest.Mock).mockImplementation(() => ({
       execute: jest.fn().mockRejectedValue(limitError),
     }));
@@ -303,7 +311,9 @@ describe('performConversion — heavy pipeline', () => {
       execute: jest.fn().mockResolvedValue(undefined),
     }));
     (BuildDeckForJobUseCase as jest.Mock).mockImplementation(() => ({
-      execute: jest.fn().mockResolvedValue({ size: 1, key: 'k', apkg: Buffer.from('') }),
+      execute: jest
+        .fn()
+        .mockResolvedValue({ size: 1, key: 'k', apkg: Buffer.from('') }),
     }));
     (NotifyUserUseCase as jest.Mock).mockImplementation(() => ({
       execute: jest.fn().mockResolvedValue(undefined),

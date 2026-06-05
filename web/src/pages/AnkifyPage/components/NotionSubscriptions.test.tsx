@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -7,10 +13,14 @@ import { MemoryRouter } from 'react-router-dom';
 import NotionSubscriptions from './NotionSubscriptions';
 import { Backend } from '../../../lib/backend/Backend';
 
-type Subscription = Awaited<ReturnType<Backend['listAnkifySubscriptions']>>[number];
+type Subscription = Awaited<
+  ReturnType<Backend['listAnkifySubscriptions']>
+>[number];
 type Schedule = Awaited<ReturnType<Backend['getAnkifyExportSchedule']>>;
 
-const sampleSubscription = (overrides: Partial<Subscription> = {}): Subscription => ({
+const sampleSubscription = (
+  overrides: Partial<Subscription> = {}
+): Subscription => ({
   id: 1,
   notion_page_id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
   notion_page_title: 'My deck',
@@ -23,7 +33,9 @@ const sampleSubscription = (overrides: Partial<Subscription> = {}): Subscription
   ...overrides,
 });
 
-const sampleSchedule = (overrides: Partial<NonNullable<Schedule>> = {}): Schedule => ({
+const sampleSchedule = (
+  overrides: Partial<NonNullable<Schedule>> = {}
+): Schedule => ({
   id: 10,
   owner: 42,
   database_id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -42,12 +54,9 @@ const makeBackend = (overrides: Partial<Backend> = {}): Backend =>
     subscribeAnkifyNotionPage: vi.fn(),
     searchTopLevelPages: vi.fn(async () => []),
     ...overrides,
-  } as unknown as Backend);
+  }) as unknown as Backend;
 
-const renderSubs = (
-  backend: Backend,
-  schedule: Schedule = null,
-) => {
+const renderSubs = (backend: Backend, schedule: Schedule = null) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -73,7 +82,9 @@ describe('NotionSubscriptions sync copy', () => {
     renderSubs(backend);
 
     await waitFor(() => {
-      const matches = screen.getAllByText(/checks notion for changes every 5 minutes\./i);
+      const matches = screen.getAllByText(
+        /checks notion for changes every 5 minutes\./i
+      );
       expect(matches).toHaveLength(1);
     });
   });
@@ -111,12 +122,8 @@ describe('NotionSubscriptions sync copy', () => {
     await waitFor(() =>
       expect(screen.getByText('My deck')).toBeInTheDocument()
     );
-    expect(
-      screen.queryByText(/last check failed/i)
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(/next export at/i)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/last check failed/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/next export at/i)).not.toBeInTheDocument();
   });
 
   test('renders the error line when last_error is set', async () => {
@@ -153,7 +160,11 @@ describe('NotionSubscriptions sync copy', () => {
 
     renderSubs(
       backend,
-      sampleSchedule({ database_id: matchingId, time_of_day: '09:15', enabled: true })
+      sampleSchedule({
+        database_id: matchingId,
+        time_of_day: '09:15',
+        enabled: true,
+      })
     );
 
     await waitFor(() =>
@@ -262,9 +273,7 @@ describe('NotionSubscriptions sync copy', () => {
     renderSubs(backend);
 
     await waitFor(() =>
-      expect(
-        screen.getByText(/preparing your first sync/i)
-      ).toBeInTheDocument()
+      expect(screen.getByText(/preparing your first sync/i)).toBeInTheDocument()
     );
   });
 
@@ -358,9 +367,7 @@ describe('NotionSubscriptions sync copy', () => {
       await screen.findByRole('menuitem', { name: /update my deck now/i })
     );
 
-    expect(
-      await screen.findByText(/no patterns found/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/no patterns found/i)).toBeInTheDocument();
     expect(
       await screen.findByRole('link', { name: /what ankify looks for/i })
     ).toBeInTheDocument();
@@ -397,9 +404,7 @@ describe('NotionSubscriptions sync copy', () => {
       await screen.findByRole('menuitem', { name: /update my deck now/i })
     );
 
-    expect(
-      await screen.findByText(/already up to date/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/already up to date/i)).toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: /what ankify looks for/i })
     ).not.toBeInTheDocument();
@@ -431,9 +436,7 @@ describe('NotionSubscriptions sync copy', () => {
       await screen.findByRole('menuitem', { name: /update my deck now/i })
     );
 
-    expect(
-      await screen.findByText(/already up to date/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/already up to date/i)).toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: /what ankify looks for/i })
     ).not.toBeInTheDocument();
@@ -462,9 +465,7 @@ describe('NotionSubscriptions sync copy', () => {
       await screen.findByRole('menuitem', { name: /update my deck now/i })
     );
 
-    expect(
-      await screen.findByText(/try again in 22s/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/try again in 22s/i)).toBeInTheDocument();
   });
 
   test('a refresh that produced conflicts points the user at the banner above', async () => {
@@ -595,7 +596,9 @@ describe('NotionSubscriptions sync copy', () => {
       await screen.findByRole('link', { name: /what ankify looks for/i })
     ).toBeInTheDocument();
     expect(
-      screen.getByText((_, el) => el?.tagName === 'STRONG' && el.textContent === '12')
+      screen.getByText(
+        (_, el) => el?.tagName === 'STRONG' && el.textContent === '12'
+      )
     ).toBeInTheDocument();
   });
 
@@ -666,9 +669,7 @@ describe('NotionSubscriptions sync copy', () => {
       await screen.findByRole('menuitem', { name: /update my deck now/i })
     );
 
-    expect(
-      await screen.findByText(/already up to date/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/already up to date/i)).toBeInTheDocument();
     expect(
       screen.queryByRole('link', { name: /what ankify looks for/i })
     ).not.toBeInTheDocument();
@@ -708,7 +709,9 @@ describe('NotionSubscriptions sync copy', () => {
     await waitFor(() =>
       expect(screen.getByText(/updated · 5 new cards/i)).toBeInTheDocument()
     );
-    expect(screen.queryByRole('link', { name: /what ankify looks for/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /what ankify looks for/i })
+    ).not.toBeInTheDocument();
   });
 
   test('error line takes precedence over next-export line', async () => {
@@ -742,23 +745,42 @@ describe('NotionSubscriptions subscribe error mapping', () => {
     Object.assign(new Error(message), { status });
 
   it.each([
-    [401, 'Unauthorized', "Auto Sync isn't active on this account.", 'Manage subscription'],
-    [403, 'Forbidden', "Auto Sync isn't active on this account.", 'Manage subscription'],
-  ])('status %d → paywall copy with manage link', async (status, message, expectedText, expectedLink) => {
-    const backend = makeBackend({
-      subscribeAnkifyNotionPage: vi.fn(async () => {
-        throw makeSubscribeError(message, status);
-      }),
-    });
-    renderSubs(backend);
+    [
+      401,
+      'Unauthorized',
+      "Auto Sync isn't active on this account.",
+      'Manage subscription',
+    ],
+    [
+      403,
+      'Forbidden',
+      "Auto Sync isn't active on this account.",
+      'Manage subscription',
+    ],
+  ])(
+    'status %d → paywall copy with manage link',
+    async (status, message, expectedText, expectedLink) => {
+      const backend = makeBackend({
+        subscribeAnkifyNotionPage: vi.fn(async () => {
+          throw makeSubscribeError(message, status);
+        }),
+      });
+      renderSubs(backend);
 
-    const input = await screen.findByPlaceholderText(/https:\/\/www\.notion\.so/i);
-    fireEvent.change(input, { target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) } });
-    fireEvent.submit(input.closest('form')!);
+      const input = await screen.findByPlaceholderText(
+        /https:\/\/www\.notion\.so/i
+      );
+      fireEvent.change(input, {
+        target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) },
+      });
+      fireEvent.submit(input.closest('form')!);
 
-    expect(await screen.findByText(expectedText)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: expectedLink })).toBeInTheDocument();
-  });
+      expect(await screen.findByText(expectedText)).toBeInTheDocument();
+      expect(
+        screen.getByRole('link', { name: expectedLink })
+      ).toBeInTheDocument();
+    }
+  );
 
   it('409 NotionNotConnected → Notion connect copy with link', async () => {
     const backend = makeBackend({
@@ -768,28 +790,47 @@ describe('NotionSubscriptions subscribe error mapping', () => {
     });
     renderSubs(backend);
 
-    const input = await screen.findByPlaceholderText(/https:\/\/www\.notion\.so/i);
-    fireEvent.change(input, { target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) } });
+    const input = await screen.findByPlaceholderText(
+      /https:\/\/www\.notion\.so/i
+    );
+    fireEvent.change(input, {
+      target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) },
+    });
     fireEvent.submit(input.closest('form')!);
 
-    expect(await screen.findByText("Notion isn't connected to 2anki.")).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Connect Notion' })).toBeInTheDocument();
+    expect(
+      await screen.findByText("Notion isn't connected to 2anki.")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Connect Notion' })
+    ).toBeInTheDocument();
   });
 
   it('409 NoActiveAnkifyClient → set up Anki copy with link', async () => {
     const backend = makeBackend({
       subscribeAnkifyNotionPage: vi.fn(async () => {
-        throw makeSubscribeError('No active Ankify client. Provision one before subscribing.', 409);
+        throw makeSubscribeError(
+          'No active Ankify client. Provision one before subscribing.',
+          409
+        );
       }),
     });
     renderSubs(backend);
 
-    const input = await screen.findByPlaceholderText(/https:\/\/www\.notion\.so/i);
-    fireEvent.change(input, { target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) } });
+    const input = await screen.findByPlaceholderText(
+      /https:\/\/www\.notion\.so/i
+    );
+    fireEvent.change(input, {
+      target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) },
+    });
     fireEvent.submit(input.closest('form')!);
 
-    expect(await screen.findByText("Your hosted Anki isn't set up yet.")).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Set up Anki' })).toBeInTheDocument();
+    expect(
+      await screen.findByText("Your hosted Anki isn't set up yet.")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Set up Anki' })
+    ).toBeInTheDocument();
   });
 
   it('503 → AnkiConnect unreachable copy (no link)', async () => {
@@ -800,11 +841,19 @@ describe('NotionSubscriptions subscribe error mapping', () => {
     });
     renderSubs(backend);
 
-    const input = await screen.findByPlaceholderText(/https:\/\/www\.notion\.so/i);
-    fireEvent.change(input, { target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) } });
+    const input = await screen.findByPlaceholderText(
+      /https:\/\/www\.notion\.so/i
+    );
+    fireEvent.change(input, {
+      target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) },
+    });
     fireEvent.submit(input.closest('form')!);
 
-    expect(await screen.findByText("Anki isn't responding right now. Try again in a moment.")).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        "Anki isn't responding right now. Try again in a moment."
+      )
+    ).toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
@@ -816,11 +865,19 @@ describe('NotionSubscriptions subscribe error mapping', () => {
     });
     renderSubs(backend);
 
-    const input = await screen.findByPlaceholderText(/https:\/\/www\.notion\.so/i);
-    fireEvent.change(input, { target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) } });
+    const input = await screen.findByPlaceholderText(
+      /https:\/\/www\.notion\.so/i
+    );
+    fireEvent.change(input, {
+      target: { value: 'https://www.notion.so/test-' + 'a'.repeat(32) },
+    });
     fireEvent.submit(input.closest('form')!);
 
-    expect(await screen.findByText('Something broke on our end. Try again, or email support@2anki.net.')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        'Something broke on our end. Try again, or email support@2anki.net.'
+      )
+    ).toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 });

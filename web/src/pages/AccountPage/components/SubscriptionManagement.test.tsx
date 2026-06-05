@@ -11,9 +11,8 @@ vi.mock('../../../lib/hooks/useStripeSubscriptions', () => ({
 
 import { useStripeSubscriptions } from '../../../lib/hooks/useStripeSubscriptions';
 
-const mockUseStripeSubscriptions = useStripeSubscriptions as unknown as ReturnType<
-  typeof vi.fn
->;
+const mockUseStripeSubscriptions =
+  useStripeSubscriptions as unknown as ReturnType<typeof vi.fn>;
 
 const user = { email: 'learner@example.com', name: 'Learner' };
 
@@ -59,7 +58,9 @@ describe('SubscriptionManagement', () => {
 
     expect(screen.getByText(/Billed through Apple/)).toBeTruthy();
     expect(screen.getByText(/Apple Account settings/)).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Cancel at period end' })).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'Cancel at period end' })
+    ).toBeNull();
     expect(screen.queryByLabelText('Subscription email')).toBeNull();
     expect(mockUseStripeSubscriptions).not.toHaveBeenCalled();
   });
@@ -75,7 +76,9 @@ describe('SubscriptionManagement', () => {
     );
 
     expect(screen.getByText(/Lifetime access/)).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Cancel at period end' })).toBeNull();
+    expect(
+      screen.queryByRole('button', { name: 'Cancel at period end' })
+    ).toBeNull();
     expect(screen.queryByLabelText('Subscription email')).toBeNull();
     expect(mockUseStripeSubscriptions).not.toHaveBeenCalled();
   });
@@ -94,7 +97,9 @@ describe('SubscriptionManagement', () => {
       )
     );
 
-    expect(screen.getByRole('button', { name: 'Cancel at period end' })).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Cancel at period end' })
+    ).toBeTruthy();
     expect(mockUseStripeSubscriptions).toHaveBeenCalledWith(true);
   });
 
@@ -112,7 +117,9 @@ describe('SubscriptionManagement', () => {
       )
     );
 
-    expect(screen.getByRole('button', { name: 'Cancel at period end' })).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Cancel at period end' })
+    ).toBeTruthy();
     expect(mockUseStripeSubscriptions).toHaveBeenCalledWith(true);
   });
 

@@ -26,7 +26,7 @@ const ES_SINGLE = [
 
 const FR_SINGLE = [
   "L'Étranger (Albert Camus)",
-  "- Votre surlignement à la page 7 | emplacement 50-52 | Ajouté le mercredi 6 janvier 2021 14:00:00",
+  '- Votre surlignement à la page 7 | emplacement 50-52 | Ajouté le mercredi 6 janvier 2021 14:00:00',
   '',
   "Aujourd'hui, maman est morte.",
   '==========',
@@ -154,7 +154,9 @@ describe('parseMyClippings', () => {
     const crlf = EN_SINGLE.replace(/\n/g, '\r\n');
     const { entries } = parseMyClippings(crlf);
     expect(entries).toHaveLength(1);
-    expect(entries[0].highlight).toBe('Cognitive revolution was a turning point.');
+    expect(entries[0].highlight).toBe(
+      'Cognitive revolution was a turning point.'
+    );
   });
 });
 

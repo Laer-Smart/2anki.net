@@ -86,9 +86,7 @@ export function ExploreCard() {
         <h2 id="explore-card-heading" className={styles.heading}>
           Make better decks
         </h2>
-        <p className={styles.sub}>
-          Three settings worth knowing about.
-        </p>
+        <p className={styles.sub}>Three settings worth knowing about.</p>
       </header>
       <ul className={styles.card}>
         <li className={styles.row}>
@@ -98,7 +96,8 @@ export function ExploreCard() {
           <div className={styles.rowText}>
             <p className={styles.rowTitle}>Multiple choice questions (MCQ)</p>
             <p className={styles.rowDescription}>
-              Turn on MCQ and your next conversion includes multiple-choice cards alongside standard ones.
+              Turn on MCQ and your next conversion includes multiple-choice
+              cards alongside standard ones.
             </p>
           </div>
           <div className={styles.rowAffordance}>
@@ -117,7 +116,8 @@ export function ExploreCard() {
           <div className={styles.rowText}>
             <p className={styles.rowTitle}>Photo to deck</p>
             <p className={styles.rowDescription}>
-              Snap a textbook page, lecture slide, or handwritten notes — 2anki builds the cards from the image.
+              Snap a textbook page, lecture slide, or handwritten notes — 2anki
+              builds the cards from the image.
             </p>
             {showFreePlanHint && (
               <p className={styles.rowHint}>Free plan: 5 photos per month</p>
@@ -142,7 +142,8 @@ export function ExploreCard() {
           <div className={styles.rowText}>
             <p className={styles.rowTitle}>Deck defaults</p>
             <p className={styles.rowDescription}>
-              Set the deck name, card style (cloze or Q&amp;A), card size (Short, Medium, Detailed), and AI options before you convert.
+              Set the deck name, card style (cloze or Q&amp;A), card size
+              (Short, Medium, Detailed), and AI options before you convert.
             </p>
           </div>
           <div className={styles.rowAffordance}>

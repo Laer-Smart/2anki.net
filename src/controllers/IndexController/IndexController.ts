@@ -26,9 +26,11 @@ class IndexController {
     });
 
     const emailService = getDefaultEmailService();
-    emailService.sendContactEmail(name, email, message, attachments).catch((err) => {
-      console.error('Failed to send contact email notification', err);
-    });
+    emailService
+      .sendContactEmail(name, email, message, attachments)
+      .catch((err) => {
+        console.error('Failed to send contact email notification', err);
+      });
 
     return res.status(200).send();
   }

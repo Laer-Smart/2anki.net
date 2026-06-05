@@ -36,14 +36,12 @@ export function detectUploadIssues(
     return {
       status: 'warning',
       title: 'Multiple HTML files — images may be missing',
-      body: "Safari sometimes unpacks Notion exports and leaves images behind. Re-download the zip from Notion in a different browser, or find the original zip in Downloads and upload that.",
+      body: 'Safari sometimes unpacks Notion exports and leaves images behind. Re-download the zip from Notion in a different browser, or find the original zip in Downloads and upload that.',
       continueLabel: 'Continue with these files',
     };
   }
 
-  const allPdf = fileArray.every((f) =>
-    f.name.toLowerCase().endsWith('.pdf')
-  );
+  const allPdf = fileArray.every((f) => f.name.toLowerCase().endsWith('.pdf'));
   if (allPdf) {
     if (aiOn) return null;
     return {
@@ -66,9 +64,7 @@ export function detectUploadIssues(
   const isClippings = fileArray.some((f) =>
     /(^|[/\\])my clippings\.txt$/i.test(f.name)
   );
-  const isEpub = fileArray.some((f) =>
-    f.name.toLowerCase().endsWith('.epub')
-  );
+  const isEpub = fileArray.some((f) => f.name.toLowerCase().endsWith('.epub'));
   if (isClippings || isEpub) {
     return {
       status: 'info',

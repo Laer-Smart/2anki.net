@@ -45,9 +45,7 @@ function buildLegacyCollectionBuffer(): Buffer {
         { name: 'Front', ord: 0 },
         { name: 'Back', ord: 1 },
       ],
-      tmpls: [
-        { name: 'Card 1', ord: 0, qfmt: '{{Front}}', afmt: '{{Back}}' },
-      ],
+      tmpls: [{ name: 'Card 1', ord: 0, qfmt: '{{Front}}', afmt: '{{Back}}' }],
     },
   };
   const decks = { '2': { id: 2, name: 'Demo' } };
@@ -78,7 +76,10 @@ async function buildApkgZip(
 
 describe('extractApkg + parseCollection composition', () => {
   it('parses notes from a real .apkg zip wrapping a legacy collection.anki2', async () => {
-    const apkg = await buildApkgZip('collection.anki2', buildLegacyCollectionBuffer());
+    const apkg = await buildApkgZip(
+      'collection.anki2',
+      buildLegacyCollectionBuffer()
+    );
 
     const archive = await extractApkg(apkg);
     const collection = parseCollection(archive.collectionBuffer);
@@ -89,7 +90,10 @@ describe('extractApkg + parseCollection composition', () => {
   });
 
   it('feeding the raw .apkg zip to parseCollection directly throws SQLITE_NOTADB (regression guard)', async () => {
-    const apkg = await buildApkgZip('collection.anki2', buildLegacyCollectionBuffer());
+    const apkg = await buildApkgZip(
+      'collection.anki2',
+      buildLegacyCollectionBuffer()
+    );
     expect(() => parseCollection(apkg)).toThrow(/not a database/i);
   });
 

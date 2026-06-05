@@ -150,7 +150,9 @@ function StripeSubscriptionManagement({
             <>
               <p className={styles.statusLine}>
                 {formatPlan(view.subscription) ?? 'Premium'} · Renews{' '}
-                <strong>{formatDate(view.subscription.current_period_end)}</strong>
+                <strong>
+                  {formatDate(view.subscription.current_period_end)}
+                </strong>
               </p>
               {view.subscription.plan?.amount != null &&
                 view.subscription.plan.amount < 600 && (
@@ -205,8 +207,8 @@ function StripeSubscriptionManagement({
 
           {view.kind === 'cancelled' && (
             <p className={styles.statusLineMuted}>
-              Ended{' '}
-              <strong>{formatDate(view.subscription.canceled_at)}</strong>.
+              Ended <strong>{formatDate(view.subscription.canceled_at)}</strong>
+              .
               {formatPlan(view.subscription) &&
                 ` Previous plan: ${formatPlan(view.subscription)}.`}
             </p>
@@ -219,7 +221,9 @@ function StripeSubscriptionManagement({
           )}
 
           {cancelError && <p className={styles.helpDanger}>{cancelError}</p>}
-          {cancelSuccess && <p className={styles.helpSuccess}>{cancelSuccess}</p>}
+          {cancelSuccess && (
+            <p className={styles.helpSuccess}>{cancelSuccess}</p>
+          )}
           {showFollowUp && (
             <CancellationFollowUp
               onSubmit={submitFeedback}

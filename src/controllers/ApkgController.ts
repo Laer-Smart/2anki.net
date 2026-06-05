@@ -85,7 +85,9 @@ const ALLOWED_PAPER_SIZES: PaperSize[] = ['A4', 'Letter', 'Legal'];
 const ALLOWED_ORIENTATIONS: Orientation[] = ['portrait', 'landscape'];
 const ALLOWED_MARGINS: Margins[] = ['narrow', 'normal', 'wide'];
 
-export function parsePdfOptions(body: Record<string, unknown>): PdfOptions | null {
+export function parsePdfOptions(
+  body: Record<string, unknown>
+): PdfOptions | null {
   const rawColor = body.backgroundColor;
   if (typeof rawColor === 'string' && !BACKGROUND_COLOR_REGEX.test(rawColor)) {
     return null;
@@ -97,19 +99,22 @@ export function parsePdfOptions(body: Record<string, unknown>): PdfOptions | nul
 
   const rawPaper = body.paperSize;
   const paperSize: PaperSize =
-    typeof rawPaper === 'string' && (ALLOWED_PAPER_SIZES as string[]).includes(rawPaper)
+    typeof rawPaper === 'string' &&
+    (ALLOWED_PAPER_SIZES as string[]).includes(rawPaper)
       ? (rawPaper as PaperSize)
       : DEFAULT_PDF_OPTIONS.paperSize;
 
   const rawOrientation = body.orientation;
   const orientation: Orientation =
-    typeof rawOrientation === 'string' && (ALLOWED_ORIENTATIONS as string[]).includes(rawOrientation)
+    typeof rawOrientation === 'string' &&
+    (ALLOWED_ORIENTATIONS as string[]).includes(rawOrientation)
       ? (rawOrientation as Orientation)
       : DEFAULT_PDF_OPTIONS.orientation;
 
   const rawMargins = body.margins;
   const margins: Margins =
-    typeof rawMargins === 'string' && (ALLOWED_MARGINS as string[]).includes(rawMargins)
+    typeof rawMargins === 'string' &&
+    (ALLOWED_MARGINS as string[]).includes(rawMargins)
       ? (rawMargins as Margins)
       : DEFAULT_PDF_OPTIONS.margins;
 
@@ -229,16 +234,22 @@ class ApkgController {
       }
       const pdfOptions = parsePdfOptions(req.body as Record<string, unknown>);
       if (pdfOptions == null) {
-        res.status(400).json({ message: 'Invalid background color. Use a six-digit hex value like #ffffff.' });
+        res.status(400).json({
+          message:
+            'Invalid background color. Use a six-digit hex value like #ffffff.',
+        });
         return;
       }
-      const ownerId = typeof res.locals.owner === 'number' ? res.locals.owner : null;
+      const ownerId =
+        typeof res.locals.owner === 'number' ? res.locals.owner : null;
       track('pdf_print_options_used', {
         userId: ownerId,
         props: {
-          backgroundColor: pdfOptions.backgroundColor !== DEFAULT_PDF_OPTIONS.backgroundColor,
+          backgroundColor:
+            pdfOptions.backgroundColor !== DEFAULT_PDF_OPTIONS.backgroundColor,
           paperSize: pdfOptions.paperSize !== DEFAULT_PDF_OPTIONS.paperSize,
-          orientation: pdfOptions.orientation !== DEFAULT_PDF_OPTIONS.orientation,
+          orientation:
+            pdfOptions.orientation !== DEFAULT_PDF_OPTIONS.orientation,
           margins: pdfOptions.margins !== DEFAULT_PDF_OPTIONS.margins,
         },
       });
@@ -253,12 +264,19 @@ class ApkgController {
         this.previewService,
         this.pdfRenderService
       );
-      const result = await useCase.execute(fileBuffer, isPaying(res.locals), pdfOptions);
+      const result = await useCase.execute(
+        fileBuffer,
+        isPaying(res.locals),
+        pdfOptions
+      );
       const safeName = file.originalname
         .replace(/\.apkg$/i, '')
         .replace(/[^\w\s.-]/g, '_');
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', buildContentDisposition(`${safeName}.pdf`));
+      res.setHeader(
+        'Content-Disposition',
+        buildContentDisposition(`${safeName}.pdf`)
+      );
       res.send(result.pdf);
     } catch (error) {
       if (error instanceof CardLimitExceededError) {
@@ -322,12 +340,14 @@ class ApkgController {
         return;
       }
 
-      const userIsPaying = res.locals.patreon === true || res.locals.subscriber === true;
+      const userIsPaying =
+        res.locals.patreon === true || res.locals.subscriber === true;
       const maxNotes = userIsPaying ? 5000 : 1000;
 
       const rawParentPageId = req.body?.parent_page_id;
       const hasExplicitParent =
-        typeof rawParentPageId === 'string' && rawParentPageId.trim().length > 0;
+        typeof rawParentPageId === 'string' &&
+        rawParentPageId.trim().length > 0;
 
       const { owner } = res.locals;
       const notionApi = await this.notionService.getNotionAPI(owner);
@@ -349,7 +369,12 @@ class ApkgController {
       }
 
       const jobId = randomUUID();
-      await this.jobRepository.create(jobId, owner, file.originalname, 'apkg_import');
+      await this.jobRepository.create(
+        jobId,
+        owner,
+        file.originalname,
+        'apkg_import'
+      );
 
       const blocksService = new ApkgToNotionBlocksService();
       const useCase = new ImportApkgToNotionUseCase(
@@ -358,21 +383,14 @@ class ApkgController {
         this.jobRepository
       );
 
-      void useCase.execute(
-        fileBuffer,
-        parentPageId,
-        owner,
-        notionApi,
-        jobId,
-        { isPaying: userIsPaying, maxNotes }
-      );
+      void useCase.execute(fileBuffer, parentPageId, owner, notionApi, jobId, {
+        isPaying: userIsPaying,
+        maxNotes,
+      });
 
       res.status(202).json({ job_id: jobId, status: 'queued' });
     } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === 'unauthorized'
-      ) {
+      if (error instanceof Error && error.message === 'unauthorized') {
         res.status(400).json({ message: 'Notion is not connected.' });
         return;
       }
@@ -401,7 +419,11 @@ class ApkgController {
       );
       const { owner } = res.locals;
       const storage = new StorageHandler();
-      const rawBody = await this.downloadService.getFileBody(owner, key, storage);
+      const rawBody = await this.downloadService.getFileBody(
+        owner,
+        key,
+        storage
+      );
       if (!rawBody) {
         res.status(404).json({ message: 'Upload not found.' });
         return;
@@ -413,7 +435,10 @@ class ApkgController {
         edits,
       });
       res.setHeader('Content-Type', 'application/octet-stream');
-      res.setHeader('Content-Disposition', buildContentDisposition(result.filename));
+      res.setHeader(
+        'Content-Disposition',
+        buildContentDisposition(result.filename)
+      );
       res.send(result.buffer);
     } catch (error) {
       if (this.downloadService.isMissingDownloadError(error)) {
@@ -474,7 +499,8 @@ class ApkgController {
       }
 
       const statusText =
-        job.status === 'processing' && job.job_reason_failure?.startsWith('uploading')
+        job.status === 'processing' &&
+        job.job_reason_failure?.startsWith('uploading')
           ? job.job_reason_failure
           : null;
 
@@ -507,7 +533,10 @@ function sendCsvDownload(
   const trimmed = originalName.replace(/\.apkg$/i, '') || 'deck';
   const safeName = getSafeFilename(trimmed);
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', buildContentDisposition(`${safeName}.csv`));
+  res.setHeader(
+    'Content-Disposition',
+    buildContentDisposition(`${safeName}.csv`)
+  );
   res.setHeader('X-Card-Count', String(noteCount));
   res.setHeader('Access-Control-Expose-Headers', 'X-Card-Count');
   res.send(csv);

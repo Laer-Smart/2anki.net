@@ -23,8 +23,10 @@ const makeResponse = (locals: Record<string, unknown> = {}) => {
 
 const makeUseCase = () =>
   ({
-    execute: jest.fn().mockResolvedValue({ url: 'https://checkout.stripe.com/test' }),
-  } as unknown as UnlimitedCheckoutUseCase);
+    execute: jest
+      .fn()
+      .mockResolvedValue({ url: 'https://checkout.stripe.com/test' }),
+  }) as unknown as UnlimitedCheckoutUseCase;
 
 describe('UnlimitedCheckoutController', () => {
   it('returns 400 when interval is missing', async () => {
@@ -59,8 +61,12 @@ describe('UnlimitedCheckoutController', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual({ url: 'https://checkout.stripe.com/test' });
-    expect((uc.execute as jest.Mock)).toHaveBeenCalledWith(
-      expect.objectContaining({ interval: 'month', userId: 42, userEmail: 'user@example.com' })
+    expect(uc.execute as jest.Mock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        interval: 'month',
+        userId: 42,
+        userEmail: 'user@example.com',
+      })
     );
   });
 
@@ -74,20 +80,27 @@ describe('UnlimitedCheckoutController', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual({ url: 'https://checkout.stripe.com/test' });
-    expect((uc.execute as jest.Mock)).toHaveBeenCalledWith(
-      expect.objectContaining({ interval: 'year', userId: 42, userEmail: 'user@example.com' })
+    expect(uc.execute as jest.Mock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        interval: 'year',
+        userId: 42,
+        userEmail: 'user@example.com',
+      })
     );
   });
 
   it('forwards the anon_id cookie to the use case when present', async () => {
-    const req = { body: { interval: 'month' }, cookies: { anon_id: 'anon-uuid-123' } } as unknown as Request;
+    const req = {
+      body: { interval: 'month' },
+      cookies: { anon_id: 'anon-uuid-123' },
+    } as unknown as Request;
     const res = makeResponse();
     const uc = makeUseCase();
     const controller = new UnlimitedCheckoutController(uc);
 
     await controller.createSession(req, res as unknown as Response);
 
-    expect((uc.execute as jest.Mock)).toHaveBeenCalledWith(
+    expect(uc.execute as jest.Mock).toHaveBeenCalledWith(
       expect.objectContaining({ anonId: 'anon-uuid-123' })
     );
   });
@@ -99,6 +112,8 @@ describe('UnlimitedCheckoutController', () => {
     const res = makeResponse();
     const controller = new UnlimitedCheckoutController(uc);
 
-    await expect(controller.createSession(req, res as unknown as Response)).rejects.toThrow('stripe down');
+    await expect(
+      controller.createSession(req, res as unknown as Response)
+    ).rejects.toThrow('stripe down');
   });
 });

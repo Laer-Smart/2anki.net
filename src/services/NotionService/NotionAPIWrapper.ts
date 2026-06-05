@@ -66,7 +66,10 @@ class NotionAPIWrapper {
     }
     return withRetry(() => this.notion.pages.retrieve({ page_id: id }), {
       label: 'pages.retrieve',
-    }).then((result) => { notionCallRingBuffer.record(); return result; });
+    }).then((result) => {
+      notionCallRingBuffer.record();
+      return result;
+    });
   }
 
   async getBlocks({
@@ -150,10 +153,9 @@ class NotionAPIWrapper {
   }
 
   getBlock(id: string): Promise<GetBlockResponse> {
-    return withRetry(
-      () => this.notion.blocks.retrieve({ block_id: id }),
-      { label: 'blocks.retrieve' }
-    );
+    return withRetry(() => this.notion.blocks.retrieve({ block_id: id }), {
+      label: 'blocks.retrieve',
+    });
   }
 
   /**
@@ -170,9 +172,7 @@ class NotionAPIWrapper {
         this.notion.blocks.children.list({
           block_id: id,
           page_size: options.pageSize ?? 15,
-          ...(options.startCursor
-            ? { start_cursor: options.startCursor }
-            : {}),
+          ...(options.startCursor ? { start_cursor: options.startCursor } : {}),
         }),
       { label: 'blocks.children.list:preview' }
     );
@@ -208,10 +208,7 @@ class NotionAPIWrapper {
     );
   }
 
-  createPage(
-    parentPageId: string,
-    title: string
-  ): Promise<CreatePageResponse> {
+  createPage(parentPageId: string, title: string): Promise<CreatePageResponse> {
     return withRetry(
       () =>
         this.notion.pages.create({

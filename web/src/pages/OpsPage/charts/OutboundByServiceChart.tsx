@@ -34,7 +34,9 @@ const colorFor = (service: string): string =>
 function ServiceTooltip({ active, payload, label }: TooltipContentProps) {
   if (!active || payload == null || payload.length === 0) return null;
   const row = payload[0].payload as OutboundBucketRow;
-  const services = Object.keys(row).filter((key) => key !== 'bucket' && key !== 'label');
+  const services = Object.keys(row).filter(
+    (key) => key !== 'bucket' && key !== 'label'
+  );
   return (
     <div className={styles.tooltip}>
       <div className={styles.tooltipTitle}>{String(label)}</div>
@@ -80,7 +82,10 @@ export default function OutboundByServiceChart({
             style: { fontSize: 11, fill: '#6b7280' },
           }}
         />
-        <Tooltip content={(props) => <ServiceTooltip {...props} />} cursor={{ stroke: '#e5e7eb' }} />
+        <Tooltip
+          content={(props) => <ServiceTooltip {...props} />}
+          cursor={{ stroke: '#e5e7eb' }}
+        />
         <Legend wrapperStyle={{ fontSize: 11 }} iconType="line" />
         {services.map((service) => (
           <Line

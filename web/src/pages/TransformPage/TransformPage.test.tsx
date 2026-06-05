@@ -62,7 +62,9 @@ describe('TransformPage', () => {
     expect(
       screen.getByText(/Drop a .apkg or click to pick a file/i)
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /^Transform$/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /^Transform$/i })
+    ).toBeInTheDocument();
   });
 
   it('shows the language selector when translate_back is picked', () => {
@@ -102,7 +104,9 @@ describe('TransformPage', () => {
       },
     });
     renderPage();
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
     const wrongFile = new File(['hello'], 'notes.html', { type: 'text/html' });
     fireEvent.change(input, { target: { files: [wrongFile] } });
     await waitFor(() => {

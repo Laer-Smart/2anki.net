@@ -88,19 +88,31 @@ export class AnkiConnectClient {
   }
 
   async createModel(params: AnkiConnectCreateModelParams): Promise<unknown> {
-    return this.invoke('createModel', params as unknown as Record<string, unknown>);
+    return this.invoke(
+      'createModel',
+      params as unknown as Record<string, unknown>
+    );
   }
 
-  async updateModelStyling(params: AnkiConnectUpdateStylingParams): Promise<null> {
+  async updateModelStyling(
+    params: AnkiConnectUpdateStylingParams
+  ): Promise<null> {
     return this.invoke('updateModelStyling', { model: params });
   }
 
-  async updateModelTemplates(params: AnkiConnectUpdateTemplatesParams): Promise<null> {
+  async updateModelTemplates(
+    params: AnkiConnectUpdateTemplatesParams
+  ): Promise<null> {
     return this.invoke('updateModelTemplates', { model: params });
   }
 
-  async storeMediaFile(params: AnkiConnectStoreMediaFileParams): Promise<string> {
-    return this.invoke('storeMediaFile', params as unknown as Record<string, unknown>);
+  async storeMediaFile(
+    params: AnkiConnectStoreMediaFileParams
+  ): Promise<string> {
+    return this.invoke(
+      'storeMediaFile',
+      params as unknown as Record<string, unknown>
+    );
   }
 
   async getNumCardsReviewedByDay(): Promise<Array<[string, number]>> {

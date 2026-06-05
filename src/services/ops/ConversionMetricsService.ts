@@ -77,18 +77,29 @@ export class ConversionMetricsService {
 
     const failedConversionsWeekly =
       failedConversionsWeeklyRows.status === 'fulfilled'
-        ? this.buildWeeklyTimeSeries(weekStarts, failedConversionsWeeklyRows.value)
+        ? this.buildWeeklyTimeSeries(
+            weekStarts,
+            failedConversionsWeeklyRows.value
+          )
         : null;
 
     return {
       free_conversions_7d:
-        freeConversions7d.status === 'fulfilled' ? freeConversions7d.value : null,
+        freeConversions7d.status === 'fulfilled'
+          ? freeConversions7d.value
+          : null,
       paid_conversions_7d:
-        paidConversions7d.status === 'fulfilled' ? paidConversions7d.value : null,
+        paidConversions7d.status === 'fulfilled'
+          ? paidConversions7d.value
+          : null,
       free_conversion_success_rate_7d:
-        freeSuccessRate7d.status === 'fulfilled' ? freeSuccessRate7d.value : null,
+        freeSuccessRate7d.status === 'fulfilled'
+          ? freeSuccessRate7d.value
+          : null,
       paid_conversion_success_rate_7d:
-        paidSuccessRate7d.status === 'fulfilled' ? paidSuccessRate7d.value : null,
+        paidSuccessRate7d.status === 'fulfilled'
+          ? paidSuccessRate7d.value
+          : null,
       conversion_errors_7d_top_reasons:
         topErrors7d.status === 'fulfilled' ? topErrors7d.value : null,
       failed_conversions_weekly: failedConversionsWeekly,

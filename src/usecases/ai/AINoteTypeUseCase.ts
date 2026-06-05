@@ -132,7 +132,12 @@ function advance(state: ScanState, char: string): ScanState {
 function findBareJson(text: string): string | null {
   const start = text.indexOf('{');
   if (start === -1) return null;
-  let state: ScanState = { depth: 0, inString: false, escape: false, done: false };
+  let state: ScanState = {
+    depth: 0,
+    inString: false,
+    escape: false,
+    done: false,
+  };
   for (let i = start; i < text.length; i += 1) {
     state = advance(state, text[i]);
     if (state.done) return text.slice(start, i + 1);
@@ -254,7 +259,11 @@ async function askClaude(messages: ClaudeMessage[]): Promise<string> {
     model: MODEL,
     max_tokens: MAX_TOKENS,
     system: [
-      { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+      {
+        type: 'text',
+        text: SYSTEM_PROMPT,
+        cache_control: { type: 'ephemeral' },
+      },
     ],
     messages: messages.map((m) => ({ role: m.role, content: m.content })),
   });

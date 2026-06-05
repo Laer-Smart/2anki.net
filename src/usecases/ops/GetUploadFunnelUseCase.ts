@@ -19,7 +19,8 @@ export class GetUploadFunnelUseCase {
   constructor(private readonly service: UploadFunnelService) {}
 
   execute(window: string | undefined): Promise<UploadFunnelResponse> {
-    const key = window != null && WINDOW_DAYS[window] != null ? window : DEFAULT_WINDOW;
+    const key =
+      window != null && WINDOW_DAYS[window] != null ? window : DEFAULT_WINDOW;
     const days = WINDOW_DAYS[key];
     const since = new Date(Date.now() - days * SECONDS_PER_DAY * 1000);
     return this.service.getMetrics(since);

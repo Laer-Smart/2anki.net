@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  UserNotice,
-  isIntentionalBackendNotice,
-} from './UserNotice';
+import { UserNotice, isIntentionalBackendNotice } from './UserNotice';
 
 describe('UserNotice', () => {
   it('is an Error instance', () => {

@@ -18,7 +18,9 @@ function makeRepository(): jest.Mocked<IUploadRepository> {
   };
 }
 
-function makeStorage(): jest.Mocked<Pick<StorageHandler, 'uniqify' | 'uploadFile' | 'delete'>> {
+function makeStorage(): jest.Mocked<
+  Pick<StorageHandler, 'uniqify' | 'uploadFile' | 'delete'>
+> {
   return {
     uniqify: jest.fn().mockReturnValue('app-123-deck.apkg'),
     uploadFile: jest.fn().mockResolvedValue(undefined),

@@ -13,27 +13,18 @@ describe('parseTagsResponse', () => {
   });
 
   it('lowercases, hyphenates spaces, strips junk', () => {
-    const out = parseTagsResponse(
-      '[["Cellular Biology","ATP!!"]]',
-      1
-    );
+    const out = parseTagsResponse('[["Cellular Biology","ATP!!"]]', 1);
     expect(out).toEqual([['cellular-biology', 'atp']]);
   });
 
   it('drops duplicates and caps at three per card', () => {
-    const out = parseTagsResponse(
-      '[["a","a","b","c","d","e"]]',
-      1
-    );
+    const out = parseTagsResponse('[["a","a","b","c","d","e"]]', 1);
     expect(out[0]).toHaveLength(3);
     expect(out[0]).toEqual(['a', 'b', 'c']);
   });
 
   it('strips fenced markdown wrapping', () => {
-    const out = parseTagsResponse(
-      '```json\n[["chemistry"]]\n```',
-      1
-    );
+    const out = parseTagsResponse('```json\n[["chemistry"]]\n```', 1);
     expect(out).toEqual([['chemistry']]);
   });
 
@@ -48,7 +39,10 @@ describe('parseTagsResponse', () => {
   });
 
   it('rejects tags that fail the slug pattern', () => {
-    const out = parseTagsResponse('[["-leading-dash","valid","this-is-way-too-long-to-keep-around"]]', 1);
+    const out = parseTagsResponse(
+      '[["-leading-dash","valid","this-is-way-too-long-to-keep-around"]]',
+      1
+    );
     expect(out[0]).toEqual(['valid']);
   });
 });
@@ -82,7 +76,8 @@ describe('TagCardsUseCase', () => {
       ],
     });
     expect(result.tags).toEqual([['geography'], ['math']]);
-    const create = (anthropic.messages as unknown as { create: jest.Mock }).create;
+    const create = (anthropic.messages as unknown as { create: jest.Mock })
+      .create;
     const call = create.mock.calls[0][0];
     expect(call.model).toBe('claude-haiku-4-5-20251001');
   });

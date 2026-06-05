@@ -30,10 +30,10 @@ Notion stays your source of truth for the question and answer. 2anki only writes
 
 The database needs these properties. Names must match exactly. Types in parentheses.
 
-| Property | Type |
-|---|---|
-| Date | Date |
-| Reviews | Number |
+| Property | Type   |
+| -------- | ------ |
+| Date     | Date   |
+| Reviews  | Number |
 
 You can have other properties on the database too — 2anki only writes the two above. The Ankify dashboard shows a green check next to databases that already have the right shape, so you can pick one without guessing.
 

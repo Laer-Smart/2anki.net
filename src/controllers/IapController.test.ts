@@ -53,7 +53,11 @@ describe('IapController', () => {
         owner: 42,
         patreon: false,
         subscriber: true,
-        subscriptionInfo: { active: false, email: 'a@b.test', linked_email: '' },
+        subscriptionInfo: {
+          active: false,
+          email: 'a@b.test',
+          linked_email: '',
+        },
         passExpiresAt: expiresAt.toISOString(),
         passKind: '24h',
       },
@@ -101,7 +105,8 @@ describe('IapController', () => {
     expect(res.status).toHaveBeenCalledWith(409);
     expect(res.json).toHaveBeenCalledWith({
       ok: false,
-      message: 'This pass is already active on your account — nothing more to do.',
+      message:
+        'This pass is already active on your account — nothing more to do.',
     });
   });
 
