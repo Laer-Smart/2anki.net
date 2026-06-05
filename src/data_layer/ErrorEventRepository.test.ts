@@ -1,6 +1,9 @@
+import knex from 'knex';
+
 import {
   ErrorEventRepository,
   ErrorEventInsert,
+  buildLatestSamplesQuery,
 } from './ErrorEventRepository';
 
 interface StoredRow {
@@ -241,5 +244,23 @@ describe('ErrorEventRepository.reopenGroup', () => {
 
     expect(whereSpy).toHaveBeenCalledWith('message_hash', 'b'.repeat(64));
     expect(delSpy).toHaveBeenCalled();
+  });
+});
+
+describe('buildLatestSamplesQuery — generated SQL shape', () => {
+  it('selects the latest row per message_hash without ip_hash', () => {
+    const pgKnex = knex({ client: 'pg' });
+    const sql = buildLatestSamplesQuery(pgKnex, [
+      'a'.repeat(64),
+      'b'.repeat(64),
+    ]).toString();
+    expect(sql).toContain(
+      'select "message_hash", "stack", "url", "user_agent", "release", "user_id" from "error_events"'
+    );
+    expect(sql).toContain('"id" in (select max("id") as "id" from "error_events"');
+    expect(sql).toContain(`"message_hash" in ('${'a'.repeat(64)}', '${'b'.repeat(64)}')`);
+    expect(sql).toContain('group by "message_hash"');
+    expect(sql).not.toContain('ip_hash');
+    pgKnex.destroy();
   });
 });

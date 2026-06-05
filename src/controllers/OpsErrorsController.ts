@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ListErrorGroupsUseCase } from '../usecases/ops/ListErrorGroupsUseCase';
+import { ExportErrorGroupsUseCase } from '../usecases/ops/ExportErrorGroupsUseCase';
 import { ResolveErrorGroupUseCase } from '../usecases/ops/ResolveErrorGroupUseCase';
 import { ReopenErrorGroupUseCase } from '../usecases/ops/ReopenErrorGroupUseCase';
 import { ResolutionStatus } from '../data_layer/ErrorEventRepository';
@@ -31,6 +32,7 @@ function parseResolvedBy(owner: unknown): number | null {
 export class OpsErrorsController {
   constructor(
     private readonly listErrorGroupsUseCase: ListErrorGroupsUseCase,
+    private readonly exportErrorGroupsUseCase: ExportErrorGroupsUseCase,
     private readonly resolveErrorGroupUseCase: ResolveErrorGroupUseCase,
     private readonly reopenErrorGroupUseCase: ReopenErrorGroupUseCase
   ) {}
@@ -54,6 +56,28 @@ export class OpsErrorsController {
     } catch (error) {
       console.error('[ops] list error groups failed', error);
       res.status(500).json({ message: 'Failed to load error groups' });
+    }
+  }
+
+  async exportMarkdown(req: Request, res: Response): Promise<void> {
+    const source = parseSource(req.query.source);
+    const status = parseStatus(req.query.status);
+
+    try {
+      const markdown = await this.exportErrorGroupsUseCase.execute({
+        source,
+        status,
+      });
+      const date = new Date().toISOString().slice(0, 10);
+      res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="2anki-errors-${date}.md"`
+      );
+      res.status(200).send(markdown);
+    } catch (error) {
+      console.error('[ops] export error groups failed', error);
+      res.status(500).json({ message: 'Failed to export error groups' });
     }
   }
 

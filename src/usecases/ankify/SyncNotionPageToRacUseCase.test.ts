@@ -846,6 +846,7 @@ describe('SyncNotionPageToRacUseCase', () => {
       existsWithinWindow: jest.fn().mockResolvedValue(false),
       listGroups: jest.fn().mockResolvedValue([]),
       countGroups: jest.fn().mockResolvedValue(0),
+      latestSamples: jest.fn().mockResolvedValue([]),
       resolveGroup: jest.fn().mockResolvedValue(undefined),
       reopenGroup: jest.fn().mockResolvedValue(undefined),
     });

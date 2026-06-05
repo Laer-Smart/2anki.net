@@ -39,13 +39,36 @@ export interface ListErrorGroupsOptions {
   status?: ResolutionStatus;
 }
 
+export interface ErrorSampleRow {
+  message_hash: string;
+  stack: string | null;
+  url: string | null;
+  user_agent: string | null;
+  release: string | null;
+  user_id: number | null;
+}
+
 export interface IErrorEventRepository {
   insert(row: ErrorEventInsert): Promise<void>;
   existsWithinWindow(messageHash: string, ipHash: string, windowMs: number): Promise<boolean>;
   listGroups(options: ListErrorGroupsOptions): Promise<ErrorGroupRow[]>;
   countGroups(source?: 'web' | 'server', status?: ResolutionStatus): Promise<number>;
+  latestSamples(messageHashes: string[]): Promise<ErrorSampleRow[]>;
   resolveGroup(messageHash: string, resolvedBy: number | null): Promise<void>;
   reopenGroup(messageHash: string): Promise<void>;
+}
+
+export function buildLatestSamplesQuery(
+  database: Knex,
+  messageHashes: string[]
+): Knex.QueryBuilder {
+  const latestIds = database('error_events')
+    .max('id as id')
+    .whereIn('message_hash', messageHashes)
+    .groupBy('message_hash');
+  return database('error_events')
+    .select('message_hash', 'stack', 'url', 'user_agent', 'release', 'user_id')
+    .whereIn('id', latestIds);
 }
 
 const RESOLVED_PREDICATE = 'MAX(r.resolved_at) >= MAX(e.created_at)';
@@ -156,6 +179,21 @@ export class ErrorEventRepository implements IErrorEventRepository {
       .from(inner.as('groups'))
       .first();
     return Number(result?.total ?? 0);
+  }
+
+  async latestSamples(messageHashes: string[]): Promise<ErrorSampleRow[]> {
+    if (messageHashes.length === 0) {
+      return [];
+    }
+    const rows = await buildLatestSamplesQuery(this.database, messageHashes);
+    return rows.map((r: Record<string, unknown>) => ({
+      message_hash: r.message_hash as string,
+      stack: (r.stack as string | null) ?? null,
+      url: (r.url as string | null) ?? null,
+      user_agent: (r.user_agent as string | null) ?? null,
+      release: (r.release as string | null) ?? null,
+      user_id: r.user_id == null ? null : Number(r.user_id),
+    }));
   }
 
   async resolveGroup(messageHash: string, resolvedBy: number | null): Promise<void> {

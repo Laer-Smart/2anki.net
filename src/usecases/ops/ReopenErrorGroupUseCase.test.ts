@@ -7,6 +7,7 @@ function makeRepo(): IErrorEventRepository {
     existsWithinWindow: jest.fn(async () => false),
     listGroups: jest.fn(async () => []),
     countGroups: jest.fn(async () => 0),
+    latestSamples: jest.fn(async () => []),
     resolveGroup: jest.fn(async () => {}),
     reopenGroup: jest.fn(async () => {}),
   };

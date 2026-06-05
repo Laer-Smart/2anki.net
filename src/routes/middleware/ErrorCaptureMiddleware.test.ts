@@ -22,6 +22,9 @@ function makeRepository(existsResult = false): IErrorEventRepository & { inserts
     async countGroups() {
       return 0;
     },
+    async latestSamples() {
+      return [];
+    },
     async resolveGroup() {},
     async reopenGroup() {},
   };
@@ -121,6 +124,7 @@ describe('makeErrorCaptureMiddleware', () => {
       async existsWithinWindow() { throw new Error('DB down'); },
       async listGroups() { return []; },
       async countGroups() { return 0; },
+      async latestSamples() { return []; },
       async resolveGroup() {},
       async reopenGroup() {},
     };
@@ -140,6 +144,7 @@ describe('makeErrorCaptureMiddleware', () => {
       async existsWithinWindow() { throw new Error('DB down'); },
       async listGroups() { return []; },
       async countGroups() { return 0; },
+      async latestSamples() { return []; },
       async resolveGroup() {},
       async reopenGroup() {},
     };

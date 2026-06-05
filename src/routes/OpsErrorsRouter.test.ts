@@ -31,10 +31,12 @@ jest.mock('./middleware/RequireOpsAccess', () => {
 
 const resolveGroupSpy = jest.fn(async () => {});
 const reopenGroupSpy = jest.fn(async () => {});
+const listGroupsSpy = jest.fn();
 
 jest.mock('../data_layer/ErrorEventRepository', () => ({
   ErrorEventRepository: class {
-    async listGroups() {
+    async listGroups(options: unknown) {
+      listGroupsSpy(options);
       return [
         {
           message_hash: 'a'.repeat(64),
@@ -55,6 +57,18 @@ jest.mock('../data_layer/ErrorEventRepository', () => ({
     }
     async countGroups() {
       return 1;
+    }
+    async latestSamples() {
+      return [
+        {
+          message_hash: 'a'.repeat(64),
+          stack: 'at App.tsx:10',
+          url: 'https://2anki.net',
+          user_agent: 'Mozilla/5.0',
+          release: 'abc12345',
+          user_id: 21770,
+        },
+      ];
     }
     async insert() {}
     async existsWithinWindow() { return false; }
@@ -137,6 +151,76 @@ describe('OpsErrorsRouter GET /api/ops/errors', () => {
         occurrences: expect.any(Number),
         resolved: expect.any(Boolean),
       });
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe('OpsErrorsRouter GET /api/ops/errors/export', () => {
+  beforeEach(() => {
+    listGroupsSpy.mockClear();
+  });
+
+  it('returns 401 without admin auth', async () => {
+    const { url, close } = await startServer(false);
+    try {
+      const res = await fetch(`${url}/api/ops/errors/export`);
+      expect(res.status).toBe(401);
+    } finally {
+      await close();
+    }
+  });
+
+  it('returns a markdown attachment with group and sample detail', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const res = await fetch(`${url}/api/ops/errors/export`);
+      expect(res.status).toBe(200);
+      expect(res.headers.get('content-type')).toContain('text/markdown');
+      expect(res.headers.get('content-disposition')).toMatch(
+        /^attachment; filename="2anki-errors-\d{4}-\d{2}-\d{2}\.md"$/
+      );
+      const body = await res.text();
+      expect(body).toContain('Investigate these production error groups from 2anki.net.');
+      expect(body).toContain('TypeError: x is null');
+      expect(body).toContain('- Occurrences: 3');
+      expect(body).toContain('at App.tsx:10');
+    } finally {
+      await close();
+    }
+  });
+
+  it('respects the status filter', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      await fetch(`${url}/api/ops/errors/export?status=resolved`);
+      expect(listGroupsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'resolved' })
+      );
+    } finally {
+      await close();
+    }
+  });
+
+  it('respects the source filter', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      await fetch(`${url}/api/ops/errors/export?source=server`);
+      expect(listGroupsSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ source: 'server' })
+      );
+    } finally {
+      await close();
+    }
+  });
+
+  it('never includes ip_hash in the export', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const res = await fetch(`${url}/api/ops/errors/export`);
+      const body = await res.text();
+      expect(body).not.toContain('ip_hash');
     } finally {
       await close();
     }

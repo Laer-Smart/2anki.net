@@ -47,6 +47,10 @@ class FakeRepository implements IErrorEventRepository {
     return this.total;
   }
 
+  async latestSamples(): Promise<[]> {
+    return [];
+  }
+
   async resolveGroup(): Promise<void> {}
 
   async reopenGroup(): Promise<void> {}
@@ -72,6 +76,7 @@ describe('ListErrorGroupsUseCase', () => {
       existsWithinWindow: jest.fn(async () => false),
       listGroups: listGroupsSpy,
       countGroups: countGroupsSpy,
+      latestSamples: jest.fn(async () => []),
       resolveGroup: jest.fn(),
       reopenGroup: jest.fn(),
     };
