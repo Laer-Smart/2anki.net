@@ -5,6 +5,8 @@ exports.up = async (knex) => {
   });
 };
 
+// destructive — recovery_url values cannot be restored without re-processing
+// Stripe checkout.session.expired webhook events
 exports.down = async (knex) => {
   await knex.schema.alterTable('abandoned_checkout_recovery_emails', (t) => {
     t.dropColumn('recovery_url');
