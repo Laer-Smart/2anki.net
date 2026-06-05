@@ -14,8 +14,12 @@ const base = {
   max_restarts: 10,
   min_uptime: '60s',
   // Window for src/server.ts graceful shutdown to drain HTTP, Piscina,
-  // and Knex before pm2 escalates to SIGKILL.
-  kill_timeout: 30000,
+  // and Knex before pm2 escalates to SIGKILL. Must stay above
+  // SHUTDOWN_TIMEOUT_MS in src/lib/gracefulShutdown.ts (currently 85s) so a slow
+  // large-deck conversion finishes instead of being force-killed at the swap.
+  // Safe to be generous: blue-green serves users on the new color while the old
+  // color drains, so this only delays reaping the retired process.
+  kill_timeout: 90000,
   node_args: '--max-old-space-size=16384',
 };
 

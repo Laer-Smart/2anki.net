@@ -30,6 +30,12 @@ export interface ConversionWorkerRequest {
 
 let pool: Piscina | null = null;
 
+export const POOL_CLOSE_TIMEOUT_MS = 80_000;
+
+export function resetConversionPoolForTesting(): void {
+  pool = null;
+}
+
 // CONVERSION_WORKERS caps concurrent Notion conversions (one per pool thread).
 // It composes with UPLOAD_BUILD_CONCURRENCY (per-conversion Python spawn cap)
 // — worst-case Python concurrency is the product. Defaults keep that at 16,
@@ -58,6 +64,7 @@ export function initConversionPool(): Piscina {
     maxThreads,
     minThreads: 1,
     resourceLimits: { maxOldGenerationSizeMb: 1024 },
+    closeTimeout: POOL_CLOSE_TIMEOUT_MS,
   });
   return pool;
 }
