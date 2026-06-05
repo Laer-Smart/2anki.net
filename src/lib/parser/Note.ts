@@ -37,6 +37,14 @@ export default class Note {
 
   customModelName?: string;
 
+  hierarchy?: boolean;
+
+  h1?: string;
+
+  h2?: string;
+
+  h3?: string;
+
   constructor(name: string, back: string) {
     this.name = name;
     this.back = back;
@@ -93,6 +101,10 @@ export default class Note {
     note.tags = input.tags;
     note.media = input.media;
     note.number = input.number + 0.5;
+    note.hierarchy = input.hierarchy;
+    note.h1 = input.h1;
+    note.h2 = input.h2;
+    note.h3 = input.h3;
     return note;
   }
 

@@ -1,6 +1,7 @@
 import {
   getDefaultTemplates,
   getBasicReversedNoteType,
+  getHierarchyNoteType,
   getInputNoteType,
 } from './DefaultTemplatesService';
 import { validateTemplateFields } from '../lib/templates/validateTemplateFields';
@@ -12,6 +13,10 @@ describe('getDefaultTemplates', () => {
     const ids = templates.map((t) => t.id);
     expect(ids).toContain('basic-reversed');
     expect(ids).toContain('input-type-the-answer');
+  });
+
+  it('surfaces the Hierarchy starter', () => {
+    expect(templates.map((t) => t.id)).toContain('hierarchy');
   });
 
   it('only references fields that exist on each note type', () => {
@@ -52,5 +57,34 @@ describe('getInputNoteType', () => {
 
   it('declares Front and Back fields only', () => {
     expect(noteType.flds.map((f) => f.name)).toEqual(['Front', 'Back']);
+  });
+});
+
+describe('getHierarchyNoteType', () => {
+  const noteType = getHierarchyNoteType();
+
+  it('declares H1, H2, H3, Question, and Answer fields in order', () => {
+    expect(noteType.flds.map((f) => f.name)).toEqual([
+      'H1',
+      'H2',
+      'H3',
+      'Question',
+      'Answer',
+    ]);
+  });
+
+  it('shows the breadcrumb and Question on the front, without the Answer', () => {
+    const qfmt = noteType.tmpls[0].qfmt;
+    expect(qfmt).toContain('{{#H1}}');
+    expect(qfmt).toContain('{{#H2}}');
+    expect(qfmt).toContain('{{#H3}}');
+    expect(qfmt).toContain('{{Question}}');
+    expect(qfmt).not.toContain('{{Answer}}');
+  });
+
+  it('adds the Answer on the back', () => {
+    const afmt = noteType.tmpls[0].afmt;
+    expect(afmt).toContain('{{Question}}');
+    expect(afmt).toContain('{{Answer}}');
   });
 });

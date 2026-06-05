@@ -915,6 +915,97 @@ input[type="text"] {
   });
 }
 
+const HIERARCHY_BREADCRUMB = `<div class="breadcrumb">{{#H1}}<span class="crumb">{{H1}}</span>{{/H1}}{{#H2}}<span class="crumb-sep">›</span><span class="crumb">{{H2}}</span>{{/H2}}{{#H3}}<span class="crumb-sep">›</span><span class="crumb">{{H3}}</span>{{/H3}}</div>`;
+
+function getHierarchyNoteType(): AnkiNoteType {
+  return noteType({
+    id: 1000000000018,
+    name: 'Hierarchy',
+    tmpls: [
+      {
+        name: 'Card 1',
+        ord: 0,
+        qfmt: `<div class="hierarchy-front">
+  ${HIERARCHY_BREADCRUMB}
+  <div class="question">{{Question}}</div>
+</div>`,
+        afmt: `<div class="hierarchy-back">
+  ${HIERARCHY_BREADCRUMB}
+  <div class="question-small">{{Question}}</div>
+  <hr id="answer">
+  <div class="answer">{{Answer}}</div>
+</div>`,
+      },
+    ],
+    flds: [
+      field('H1', 0, 'Inter', 14),
+      field('H2', 1, 'Inter', 14),
+      field('H3', 2, 'Inter', 14),
+      field('Question', 3),
+      field('Answer', 4),
+    ],
+    css: `.card {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 20px;
+  text-align: center;
+  color: #1f2937;
+  background: #ffffff;
+  min-height: 100vh;
+  padding: 40px;
+  margin: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card > * {
+  max-width: 600px;
+  width: 100%;
+}
+
+.breadcrumb {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-bottom: 16px;
+}
+
+.breadcrumb .crumb-sep {
+  margin: 0 6px;
+}
+
+.breadcrumb .crumb-sep:first-child {
+  display: none;
+}
+
+.question {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.question-small {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.answer {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin-top: 16px;
+}
+
+hr {
+  border: none;
+  height: 1px;
+  background: #e5e7eb;
+  margin: 16px 0;
+}`,
+  });
+}
+
 export function getDefaultTemplates(): DefaultTemplate[] {
   return [
     {
@@ -1037,8 +1128,23 @@ export function getDefaultTemplates(): DefaultTemplate[] {
       previewData: { Front: 'Capital of France?', Back: 'Paris' },
       tags: ['basic', 'input', 'type-the-answer'],
     },
+    {
+      id: 'hierarchy',
+      name: 'Hierarchy',
+      description: 'Question with its H1 › H2 › H3 breadcrumb — heading context on every card.',
+      baseType: 'basic',
+      noteType: getHierarchyNoteType(),
+      previewData: {
+        H1: 'Biology',
+        H2: 'Cell division',
+        H3: 'Mitosis',
+        Question: 'What happens during prophase?',
+        Answer: 'Chromosomes condense and the mitotic spindle begins to form',
+      },
+      tags: ['basic', 'hierarchy', 'structure'],
+    },
   ];
 }
 
-export { getBasicNoteType, getClozeNoteType, getVocabNoteType, getMedicalNoteType, getProgrammingNoteType, getMinimalNoteType, getQuoteNoteType, getMathNoteType, getBasicReversedNoteType, getInputNoteType };
+export { getBasicNoteType, getClozeNoteType, getVocabNoteType, getMedicalNoteType, getProgrammingNoteType, getMinimalNoteType, getQuoteNoteType, getMathNoteType, getBasicReversedNoteType, getInputNoteType, getHierarchyNoteType };
 export type { DefaultTemplate, AnkiNoteType, AnkiField, AnkiCardType };
