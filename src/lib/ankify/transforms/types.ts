@@ -20,6 +20,8 @@ export interface ParsedNote {
   modelName: string;
   fields: string[];
   fieldNames: string[];
+  frontFieldIndex?: number;
+  backFieldIndex?: number;
   tags: string[];
 }
 
@@ -29,6 +31,8 @@ export interface TransformedNote {
   modelName: string;
   fields: string[];
   fieldNames: string[];
+  frontFieldIndex?: number;
+  backFieldIndex?: number;
   tags: string[];
   hint?: string;
   media?: string[];
@@ -39,9 +43,11 @@ export interface FieldSelection {
   targetField?: number;
 }
 
-export const getFrontField = (note: ParsedNote): string => note.fields[0] ?? '';
+export const getFrontField = (note: ParsedNote): string =>
+  note.fields[note.frontFieldIndex ?? 0] ?? '';
 
-export const getBackField = (note: ParsedNote): string => note.fields[1] ?? '';
+export const getBackField = (note: ParsedNote): string =>
+  note.fields[note.backFieldIndex ?? 1] ?? '';
 
 export interface TransformOptions {
   transform: TransformName;

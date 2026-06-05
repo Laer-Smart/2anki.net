@@ -73,4 +73,44 @@ describe('applyTransformedFields', () => {
     expect(result.fields[0]).toBe(basicNote.fields[0]);
     expect(result.fields[1]).toBe(basicNote.fields[1]);
   });
+
+  describe('multi-field note type whose template back is not field 1', () => {
+    const vocabNote: ParsedNote = {
+      guid: 'g-2',
+      modelKind: 'basic',
+      modelName: 'Vocabulary',
+      fields: ['der Hund', '[hʊnt]', 'the dog'],
+      fieldNames: ['Word', 'Pronunciation', 'Meaning'],
+      frontFieldIndex: 0,
+      backFieldIndex: 2,
+      tags: [],
+    };
+
+    it('writes translate_back into the template back field, not field 1', () => {
+      const result = applyTransformedFields(vocabNote, 'translate_back', {
+        value: 'el perro',
+      });
+      expect(result.fields).toEqual(['der Hund', '[hʊnt]', 'el perro']);
+    });
+
+    it('appends add_example to the template back field, not field 1', () => {
+      const result = applyTransformedFields(vocabNote, 'add_example', {
+        example: 'Der Hund schläft.',
+      });
+      expect(result.fields[1]).toBe('[hʊnt]');
+      expect(result.fields[2]).toContain('the dog');
+      expect(result.fields[2]).toContain('Der Hund schläft.');
+    });
+
+    it('clears the template back field for cloze_front, preserving other columns', () => {
+      const result = applyTransformedFields(vocabNote, 'cloze_front', {
+        cloze: '{{c1::der Hund}} means the dog.',
+      });
+      expect(result.fields).toEqual([
+        '{{c1::der Hund}} means the dog.',
+        '[hʊnt]',
+        '',
+      ]);
+    });
+  });
 });

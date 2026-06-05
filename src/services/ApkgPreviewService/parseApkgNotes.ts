@@ -1,5 +1,9 @@
 import { extractApkg, parseMediaManifest } from './extractApkg';
 import { parseCollection } from './parseCollection';
+import {
+  resolveTemplateFieldIndices,
+  TemplateFieldIndices,
+} from './resolveTemplateFieldIndices';
 import { ParsedNote, SourceModelKind } from '../../lib/ankify/transforms/types';
 import { NormalizedCollection } from './types';
 
@@ -44,7 +48,8 @@ function pickDeckName(collection: NormalizedCollection): string {
 function buildNote(
   noteId: number,
   collection: NormalizedCollection,
-  unknownModelNames: Set<string>
+  unknownModelNames: Set<string>,
+  indicesByModel: Map<number, TemplateFieldIndices>
 ): ParsedNote | null {
   const note = collection.notes.get(noteId);
   if (!note) return null;
@@ -60,12 +65,19 @@ function buildNote(
   const fieldNames = [...model.fields]
     .sort((a, b) => a.ord - b.ord)
     .map((f) => f.name);
+  let indices = indicesByModel.get(model.id);
+  if (!indices) {
+    indices = resolveTemplateFieldIndices(model);
+    indicesByModel.set(model.id, indices);
+  }
   return {
     guid: note.guid ?? `id-${note.id}`,
     modelKind: kind,
     modelName: model.name,
     fields: [...fields],
     fieldNames,
+    frontFieldIndex: indices.frontFieldIndex,
+    backFieldIndex: indices.backFieldIndex,
     tags: note.tags
       .split(' ')
       .map((t) => t.trim())
@@ -80,8 +92,9 @@ export async function parseApkgNotes(
   const collection = parseCollection(archive.collectionBuffer);
   const unknown = new Set<string>();
   const notes: ParsedNote[] = [];
+  const indicesByModel = new Map<number, TemplateFieldIndices>();
   for (const id of collection.notes.keys()) {
-    const built = buildNote(id, collection, unknown);
+    const built = buildNote(id, collection, unknown, indicesByModel);
     if (built) notes.push(built);
   }
   return {

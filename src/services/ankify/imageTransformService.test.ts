@@ -57,6 +57,30 @@ describe('transformApkgWithImages', () => {
     expect(result.failures).toEqual([]);
   });
 
+  it('appends the image to the template back field on multi-field notes', async () => {
+    mockedFetch.mockResolvedValueOnce([hit('2anki-dog.jpg')]);
+
+    const result = await transformApkgWithImages({
+      notes: [
+        note({
+          fields: ['der Hund', '[hʊnt]', 'the dog'],
+          fieldNames: ['Word', 'Pronunciation', 'Meaning'],
+          frontFieldIndex: 0,
+          backFieldIndex: 2,
+        }),
+      ],
+      source: 'pexels',
+      pexelsApiKey: 'K',
+      concurrency: 1,
+    });
+
+    expect(result.notes[0].fields).toEqual([
+      'der Hund',
+      '[hʊnt]',
+      'the dog<br><img src="2anki-dog.jpg">',
+    ]);
+  });
+
   it('emits an empty back as just the <img> tag when the source back was empty', async () => {
     mockedFetch.mockResolvedValueOnce([hit('2anki-xyz.jpg')]);
 

@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-05-apkg-field-order",
+  "date": "2026-06-05",
+  "type": "fix",
+  "title": "Transformed Anki decks with 3 or more fields keep translations, examples, and images in the right field"
+}

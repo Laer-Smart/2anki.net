@@ -35,11 +35,11 @@ async function mapWithConcurrency<T>(
 }
 
 const resolveSourceIndex = (note: ParsedNote, selection: FieldSelection): number =>
-  selection.sourceField ?? 0;
+  selection.sourceField ?? note.frontFieldIndex ?? 0;
 
 const resolveTargetIndex = (note: ParsedNote, selection: FieldSelection): number => {
   if (selection.targetField != null) return selection.targetField;
-  return Math.max(1, Math.min(note.fields.length - 1, 1));
+  return note.backFieldIndex ?? Math.max(1, Math.min(note.fields.length - 1, 1));
 };
 
 const writeField = (
@@ -70,6 +70,8 @@ const appendImagesToField = (
     modelName: note.modelName,
     fields: writeField(note, targetIndex, updated),
     fieldNames: note.fieldNames,
+    frontFieldIndex: note.frontFieldIndex,
+    backFieldIndex: note.backFieldIndex,
     tags: note.tags,
     media: [...filenames],
   };
@@ -81,6 +83,8 @@ const passthrough = (note: ParsedNote): TransformedNote => ({
   modelName: note.modelName,
   fields: [...note.fields],
   fieldNames: note.fieldNames,
+  frontFieldIndex: note.frontFieldIndex,
+  backFieldIndex: note.backFieldIndex,
   tags: note.tags,
 });
 

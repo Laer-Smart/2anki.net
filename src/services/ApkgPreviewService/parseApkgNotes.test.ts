@@ -92,6 +92,8 @@ describe('parseApkgNotes', () => {
         modelName: 'Basic',
         fields: ['Q', 'A'],
         fieldNames: [],
+        frontFieldIndex: 0,
+        backFieldIndex: 1,
         tags: ['alpha', 'beta'],
       },
     ]);
@@ -197,6 +199,61 @@ describe('parseApkgNotes', () => {
     const result = await parseApkgNotes(Buffer.alloc(0));
 
     expect(result.notes[0]?.guid).toBe('id-555');
+  });
+
+  it('derives front and back field indices from the note type template', async () => {
+    stubCollection(
+      buildCollection({
+        noteTypes: [
+          noteType({
+            id: 7,
+            name: 'Vocabulary Basic',
+            type: 0,
+            fields: [
+              { name: 'Word', ord: 0 },
+              { name: 'Pronunciation', ord: 1 },
+              { name: 'Meaning', ord: 2 },
+            ],
+            templates: [
+              {
+                name: 'Card 1',
+                ord: 0,
+                qfmt: '{{Word}}',
+                afmt: '{{FrontSide}}<hr id="answer">{{Meaning}}',
+              },
+            ],
+          }),
+        ],
+        notes: [
+          note({ id: 700, mid: 7, fields: ['der Hund', '[hʊnt]', 'the dog'] }),
+        ],
+      })
+    );
+
+    const result = await parseApkgNotes(Buffer.alloc(0));
+
+    expect(result.notes[0]).toMatchObject({
+      fields: ['der Hund', '[hʊnt]', 'the dog'],
+      fieldNames: ['Word', 'Pronunciation', 'Meaning'],
+      frontFieldIndex: 0,
+      backFieldIndex: 2,
+    });
+  });
+
+  it('falls back to indices 0 and 1 when the model has no templates', async () => {
+    stubCollection(
+      buildCollection({
+        noteTypes: [noteType({ id: 1 })],
+        notes: [note({ id: 100 })],
+      })
+    );
+
+    const result = await parseApkgNotes(Buffer.alloc(0));
+
+    expect(result.notes[0]).toMatchObject({
+      frontFieldIndex: 0,
+      backFieldIndex: 1,
+    });
   });
 
   it('treats a missing back field as empty string', async () => {
