@@ -254,6 +254,10 @@ const TransformPage = lazyWithRetry(
   () => import('./pages/TransformPage'),
   './pages/TransformPage'
 );
+const NativeAppPage = lazyWithRetry(
+  () => import('./pages/NativeAppPage/NativeAppPage'),
+  './pages/NativeAppPage/NativeAppPage'
+);
 
 const queryClient = new QueryClient();
 
@@ -437,6 +441,7 @@ function AppContent({
           <Route path="/feedback" element={requireAuth(<FeedbackPage />)} />
           <Route path="/settings" element={requireAuth(<AccountPage />)} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/app" element={<NativeAppPage />} />
           <Route path="/security" element={<SecurityPage />} />
           <Route path="/status" element={<StatusPage />} />
           <Route path="/whats-new" element={<WhatsNewPage />} />
