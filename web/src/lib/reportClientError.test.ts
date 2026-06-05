@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { reportClientError } from './reportClientError';
 import { UserNotice } from './errors/UserNotice';
+import { getClientRelease } from './release';
+
+vi.mock('./release', () => ({
+  getClientRelease: vi.fn(),
+}));
+
+const mockedGetClientRelease = vi.mocked(getClientRelease);
 
 const fetchSpy = vi.fn(() =>
   Promise.resolve(new Response(null, { status: 202 }))
@@ -10,6 +17,7 @@ beforeEach(() => {
   vi.stubGlobal('fetch', fetchSpy);
   vi.stubGlobal('navigator', { userAgent: 'Vitest/1.0' });
   fetchSpy.mockClear();
+  mockedGetClientRelease.mockReturnValue('abc1234');
 });
 
 afterEach(() => {
@@ -82,6 +90,21 @@ describe('reportClientError', () => {
     } finally {
       document.documentElement.classList.remove('translated-ltr');
     }
+  });
+
+  it('includes the injected release in the payload', () => {
+    reportClientError(new Error('release test'));
+    const [, init] = getLastCall();
+    const body = JSON.parse(init.body as string) as Record<string, unknown>;
+    expect(body.release).toBe('abc1234');
+  });
+
+  it('omits release when none is available', () => {
+    mockedGetClientRelease.mockReturnValue(null);
+    reportClientError(new Error('no release'));
+    const [, init] = getLastCall();
+    const body = JSON.parse(init.body as string) as Record<string, unknown>;
+    expect(body).not.toHaveProperty('release');
   });
 
   it('swallows a fetch failure without throwing', () => {

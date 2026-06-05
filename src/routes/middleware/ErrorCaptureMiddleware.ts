@@ -12,7 +12,8 @@ type FallbackWriter = (payload: FallbackErrorPayload) => void;
 
 export const makeErrorCaptureMiddleware = (
   repository: IErrorEventRepository,
-  writeFallback?: FallbackWriter
+  writeFallback?: FallbackWriter,
+  release: string | null = null
 ) => {
   return async (
     err: Error,
@@ -39,6 +40,7 @@ export const makeErrorCaptureMiddleware = (
           message,
           stack: err?.stack ?? null,
           url: req.originalUrl ?? null,
+          release,
           ip_hash: ipHash,
           user_id: userId,
         };

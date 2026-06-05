@@ -2,6 +2,7 @@ import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import {
   emitAnswersPages,
   emitLandingPages,
@@ -9,6 +10,31 @@ import {
   emitNotionMarketplacePage,
 } from './scripts/prerenderLandingPages';
 import { keepManifestSameOrigin } from './scripts/keepManifestSameOrigin';
+
+const SHORT_SHA_LENGTH = 7;
+const FULL_SHA_PATTERN = /^[0-9a-f]{40}$/i;
+
+function shortenFullSha(value: string): string {
+  return FULL_SHA_PATTERN.test(value)
+    ? value.slice(0, SHORT_SHA_LENGTH)
+    : value;
+}
+
+function resolveRelease(envValue: string | undefined): string {
+  const fromEnv = envValue?.trim() ?? '';
+  if (fromEnv !== '') {
+    return shortenFullSha(fromEnv);
+  }
+  try {
+    const sha = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
+      encoding: 'utf8',
+      timeout: 5_000,
+    }).trim();
+    return shortenFullSha(sha);
+  } catch {
+    return '';
+  }
+}
 
 function landingPrerender(): Plugin {
   return {
@@ -176,6 +202,9 @@ export default defineConfig(({ command, mode }) => {
         }
         return prev;
       }, {}),
+      'process.env.REACT_APP_RELEASE': JSON.stringify(
+        resolveRelease(process.env.REACT_APP_RELEASE ?? env.REACT_APP_RELEASE)
+      ),
     },
 
     // Additional configuration

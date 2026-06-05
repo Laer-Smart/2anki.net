@@ -11,6 +11,7 @@ const RATE_WINDOW_MS = 60_000;
 const PER_IP_MAX = 10;
 const GLOBAL_MAX = 1000;
 const BOT_USER_AGENT_PATTERN = /bot|crawler|spider|slurp|applebot|leikibot/i;
+const MAX_RELEASE_LENGTH = 40;
 
 function isBotUserAgent(userAgent: string | null | undefined): boolean {
   return userAgent != null && BOT_USER_AGENT_PATTERN.test(userAgent);
@@ -29,7 +30,8 @@ function validatePayload(body: unknown): ErrorEventPayload | null {
     stack: typeof b.stack === 'string' ? b.stack : null,
     url: typeof b.url === 'string' ? b.url : null,
     userAgent: typeof b.userAgent === 'string' ? b.userAgent : null,
-    release: typeof b.release === 'string' ? b.release : null,
+    release:
+      typeof b.release === 'string' ? b.release.slice(0, MAX_RELEASE_LENGTH) : null,
     userId: typeof b.userId === 'number' ? b.userId : null,
     context:
       b.context != null && typeof b.context === 'object' && !Array.isArray(b.context)

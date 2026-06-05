@@ -196,6 +196,21 @@ describe('ErrorEventController.ingest', () => {
     );
   });
 
+  it('truncates an over-long release to 40 chars', async () => {
+    const useCase = makeIngestUseCase();
+    const executeSpy = jest.spyOn(useCase, 'execute');
+    const controller = new ErrorEventController(useCase);
+    const res = makeRes();
+    await controller.ingest(
+      makeReq({ ...VALID_BODY, release: 'a'.repeat(100) }),
+      res as unknown as Response
+    );
+    const callArg = executeSpy.mock.calls[0][0] as {
+      payload: { release: string | null };
+    };
+    expect(callArg.payload.release).toBe('a'.repeat(40));
+  });
+
   it('does not expose the raw IP in the response', async () => {
     const useCase = makeIngestUseCase();
     const executeSpy = jest.spyOn(useCase, 'execute');
