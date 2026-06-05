@@ -167,11 +167,11 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
               <span className={styles.badgeSuccess}>AI is on</span>
             </button>
             <span className={styles.aiOffBadgeBody}>
-              {' '}Cards are written by Claude.{' '}
+              <span>{' '}Cards are written by Claude.{' '}</span>
               <Link to="/card-options?returnTo=/upload#pdf-ai">
                 Manage in Settings
               </Link>
-              .
+              <span>.</span>
             </span>
           </>
         )}
@@ -187,8 +187,10 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
               <span className={styles.badgeWarning}>AI is off</span>
             </button>
             <span className={styles.aiOffBadgeBody}>
-              {' '}You&apos;ll get rule-based cards from your file&apos;s
-              structure. Turn on Claude cards.
+              <span>
+                {' '}You&apos;ll get rule-based cards from your file&apos;s
+                structure. Turn on Claude cards.
+              </span>
             </span>
           </>
         )}
@@ -196,15 +198,17 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
           <>
             <span className={styles.badgeWarning}>AI is off</span>
             <span className={styles.aiOffBadgeBody}>
-              {' '}You&apos;ll get rule-based cards from your file&apos;s
-              structure.{' '}
+              <span>
+                {' '}You&apos;ll get rule-based cards from your file&apos;s
+                structure.{' '}
+              </span>
               <Link
                 to="/pricing"
                 onClick={() => track('upload_ai_free_badge_clicked')}
               >
                 Upgrade to write cards with Claude
               </Link>
-              .
+              <span>.</span>
             </span>
           </>
         )}
@@ -219,7 +223,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
               >
                 Sign in to turn it on
               </Link>
-              .
+              <span>.</span>
             </span>
           </>
         )}
