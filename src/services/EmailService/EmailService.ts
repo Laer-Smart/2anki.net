@@ -304,7 +304,7 @@ class EmailService implements IEmailService {
 
   async sendAbandonedCheckoutRecoveryEmail(to: string, token: string): Promise<void> {
     const domain = process.env.DOMAIN ?? 'https://2anki.net';
-    const link = `${domain}/pricing?from=recovery`;
+    const link = `${domain}/checkout/resume?token=${encodeURIComponent(token)}`;
     const unsubscribeUrl = `${domain}/unsubscribe?uid=${token}`;
     const markup = ABANDONED_CHECKOUT_RECOVERY_TEMPLATE
       .replace('{{link}}', link)

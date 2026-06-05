@@ -50,6 +50,7 @@ export class CreatePassCheckoutUseCase {
       line_items: [{ price: this.priceId, quantity: 1 }],
       success_url: successUrl,
       cancel_url: `${appUrl}/pricing`,
+      after_expiration: { recovery: { enabled: true } },
       metadata,
     };
 

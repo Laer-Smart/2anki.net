@@ -31,6 +31,7 @@ function makeRepo(optedOut = false): jest.Mocked<IAbandonedCheckoutRecoveryRepos
     claimSession: jest.fn().mockResolvedValue(true),
     recordEmailSend: jest.fn().mockResolvedValue(undefined),
     isMarketingOptedOut: jest.fn().mockResolvedValue(optedOut),
+    getRecoveryByToken: jest.fn().mockResolvedValue(null),
   };
 }
 

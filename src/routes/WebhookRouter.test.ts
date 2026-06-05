@@ -372,6 +372,51 @@ describe('WebhookRouter — checkout_completed funnel join', () => {
     );
   });
 
+  it('marks checkout_completed as recovered when the session was recovered', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_recovered',
+          mode: 'subscription',
+          recovered_from: 'cs_expired_original',
+          metadata: { user_id: '42' },
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockTrack).toHaveBeenCalledWith(
+      'checkout_completed',
+      expect.objectContaining({
+        props: expect.objectContaining({ recovered: true }),
+      })
+    );
+  });
+
+  it('omits the recovered prop for a non-recovered session', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_not_recovered',
+          mode: 'subscription',
+          recovered_from: null,
+          metadata: { user_id: '42' },
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    const [, options] = mockTrack.mock.calls.find((c) => c[0] === 'checkout_completed') as [
+      string,
+      { props: Record<string, unknown> },
+    ];
+    expect(options.props).not.toHaveProperty('recovered');
+  });
+
   it('emits checkout_completed even when no pricing_variant is set', async () => {
     mockWebhookEvent = {
       type: 'checkout.session.completed',
@@ -588,8 +633,61 @@ describe('WebhookRouter — checkout.session.expired', () => {
 
     const res = await postWebhook();
     expect(res.status).toBe(200);
-    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_abc', 'buyer@example.com', expect.any(String));
+    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_abc', 'buyer@example.com', expect.any(String), null);
     expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('buyer@example.com', expect.any(String));
+  });
+
+  it('passes the Stripe recovery URL and expiry through to the claim', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.expired',
+      data: {
+        object: {
+          id: 'cs_expired_recovery',
+          customer_details: { email: 'buyer@example.com' },
+          after_expiration: {
+            recovery: {
+              enabled: true,
+              url: 'https://buy.stripe.com/r/live_abc123',
+              expires_at: 1781913600,
+            },
+          },
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockClaimSession).toHaveBeenCalledWith(
+      'cs_expired_recovery',
+      'buyer@example.com',
+      expect.any(String),
+      {
+        url: 'https://buy.stripe.com/r/live_abc123',
+        expiresAt: new Date(1781913600 * 1000),
+      }
+    );
+  });
+
+  it('passes a null recovery when Stripe omits the recovery URL', async () => {
+    mockWebhookEvent = {
+      type: 'checkout.session.expired',
+      data: {
+        object: {
+          id: 'cs_expired_no_url',
+          customer_details: { email: 'buyer@example.com' },
+          after_expiration: { recovery: { enabled: true, url: null, expires_at: null } },
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockClaimSession).toHaveBeenCalledWith(
+      'cs_expired_no_url',
+      'buyer@example.com',
+      expect.any(String),
+      null
+    );
   });
 
   it('does not send email when claim is a no-op (duplicate delivery)', async () => {
@@ -606,7 +704,7 @@ describe('WebhookRouter — checkout.session.expired', () => {
 
     const res = await postWebhook();
     expect(res.status).toBe(200);
-    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_dup', 'buyer@example.com', expect.any(String));
+    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_dup', 'buyer@example.com', expect.any(String), null);
     expect(mockSendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
   });
 
@@ -666,7 +764,7 @@ describe('WebhookRouter — checkout.session.expired', () => {
 
     const res = await postWebhook();
     expect(res.status).toBe(200);
-    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_fallback', 'fallback@example.com', expect.any(String));
+    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_fallback', 'fallback@example.com', expect.any(String), null);
     expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('fallback@example.com', expect.any(String));
   });
 });

@@ -1,9 +1,25 @@
 import type { Knex } from 'knex';
 
+export interface CheckoutRecoveryDetails {
+  url: string;
+  expiresAt: Date | null;
+}
+
+export interface CheckoutRecoveryLookup {
+  recoveryUrl: string | null;
+  recoveryUrlExpiresAt: Date | null;
+}
+
 export interface IAbandonedCheckoutRecoveryRepository {
-  claimSession(sessionId: string, userEmail: string, token: string): Promise<boolean>;
+  claimSession(
+    sessionId: string,
+    userEmail: string,
+    token: string,
+    recovery?: CheckoutRecoveryDetails | null
+  ): Promise<boolean>;
   recordEmailSend(userEmail: string, token: string): Promise<void>;
   isMarketingOptedOut(userEmail: string): Promise<boolean>;
+  getRecoveryByToken(token: string): Promise<CheckoutRecoveryLookup | null>;
 }
 
 interface AbandonedCheckoutRecoveryRow {
@@ -11,6 +27,8 @@ interface AbandonedCheckoutRecoveryRow {
   user_email: string;
   sent_at: Date;
   token: string | null;
+  recovery_url: string | null;
+  recovery_url_expires_at: Date | string | null;
 }
 
 export class AbandonedCheckoutRecoveryRepository
@@ -20,9 +38,20 @@ export class AbandonedCheckoutRecoveryRepository
 
   constructor(private readonly database: Knex) {}
 
-  async claimSession(sessionId: string, userEmail: string, token: string): Promise<boolean> {
+  async claimSession(
+    sessionId: string,
+    userEmail: string,
+    token: string,
+    recovery: CheckoutRecoveryDetails | null = null
+  ): Promise<boolean> {
     const rows = await this.database<AbandonedCheckoutRecoveryRow>(this.table)
-      .insert({ session_id: sessionId, user_email: userEmail, token })
+      .insert({
+        session_id: sessionId,
+        user_email: userEmail,
+        token,
+        recovery_url: recovery?.url ?? null,
+        recovery_url_expires_at: recovery?.expiresAt ?? null,
+      })
       .onConflict('session_id')
       .ignore()
       .returning('session_id');
@@ -44,6 +73,22 @@ export class AbandonedCheckoutRecoveryRepository
       .first();
     return row != null;
   }
+
+  async getRecoveryByToken(token: string): Promise<CheckoutRecoveryLookup | null> {
+    const row = await this.database<AbandonedCheckoutRecoveryRow>(this.table)
+      .where('token', token)
+      .first();
+    if (row == null) {
+      return null;
+    }
+    return {
+      recoveryUrl: row.recovery_url ?? null,
+      recoveryUrlExpiresAt:
+        row.recovery_url_expires_at == null
+          ? null
+          : new Date(row.recovery_url_expires_at),
+    };
+  }
 }
 
 export class InMemoryAbandonedCheckoutRecoveryRepository
@@ -53,22 +98,40 @@ export class InMemoryAbandonedCheckoutRecoveryRepository
   private readonly optedOut = new Set<string>();
   private readonly tokensByEmail = new Map<string, string>();
   private readonly tokensBySessionId = new Map<string, string>();
+  private readonly recoveryByToken = new Map<string, CheckoutRecoveryLookup>();
 
-  async claimSession(sessionId: string, _userEmail: string, token: string): Promise<boolean> {
+  async claimSession(
+    sessionId: string,
+    _userEmail: string,
+    token: string,
+    recovery: CheckoutRecoveryDetails | null = null
+  ): Promise<boolean> {
     if (this.claimed.has(sessionId)) {
       return false;
     }
     this.claimed.add(sessionId);
     this.tokensBySessionId.set(sessionId, token);
+    this.recoveryByToken.set(token, {
+      recoveryUrl: recovery?.url ?? null,
+      recoveryUrlExpiresAt: recovery?.expiresAt ?? null,
+    });
     return true;
   }
 
   async recordEmailSend(userEmail: string, token: string): Promise<void> {
     this.tokensByEmail.set(userEmail, token);
+    this.recoveryByToken.set(token, {
+      recoveryUrl: null,
+      recoveryUrlExpiresAt: null,
+    });
   }
 
   async isMarketingOptedOut(userEmail: string): Promise<boolean> {
     return this.optedOut.has(userEmail);
+  }
+
+  async getRecoveryByToken(token: string): Promise<CheckoutRecoveryLookup | null> {
+    return this.recoveryByToken.get(token) ?? null;
   }
 
   seedOptedOut(userEmail: string): void {
@@ -92,6 +155,7 @@ export class InMemoryAbandonedCheckoutRecoveryRepository
     this.optedOut.clear();
     this.tokensByEmail.clear();
     this.tokensBySessionId.clear();
+    this.recoveryByToken.clear();
   }
 }
 

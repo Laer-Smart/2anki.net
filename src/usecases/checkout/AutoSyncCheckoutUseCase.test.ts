@@ -77,6 +77,21 @@ describe('AutoSyncCheckoutUseCase', () => {
     );
   });
 
+  test('enables Stripe session recovery on expiry', async () => {
+    mockCountActive.mockResolvedValue(0);
+    mockGetUserActiveSubscriptions.mockResolvedValue([]);
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+
+    const uc = makeUseCase();
+    await uc.execute({ userEmail: 'user@example.com', userId: 42 });
+
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        after_expiration: { recovery: { enabled: true } },
+      })
+    );
+  });
+
   test('stamps anon_id into metadata when present', async () => {
     mockCountActive.mockResolvedValue(0);
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
