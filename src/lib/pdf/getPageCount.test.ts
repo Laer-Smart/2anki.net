@@ -1,8 +1,17 @@
-import { execSync } from 'child_process';
-import { getPageCount } from './getPageCount';
+import { EventEmitter } from 'events';
+import { execSync, spawn as realSpawn, type ChildProcess } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
+import { getPageCount } from './getPageCount';
+import { jobFailureReasonCode } from '../../usecases/jobs/jobFailureReason';
+
+jest.mock('child_process', () => {
+  const actual = jest.requireActual('child_process');
+  return { ...actual, spawn: jest.fn(actual.spawn) };
+});
+
+const spawnMock = realSpawn as jest.MockedFunction<typeof realSpawn>;
 
 const hasPdfinfo = (() => {
   try {
@@ -15,11 +24,44 @@ const hasPdfinfo = (() => {
 
 const itIfPdfinfo = hasPdfinfo ? it : it.skip;
 
+interface FakePdfinfoRun {
+  stdout?: string;
+  stderr?: string;
+  code?: number | null;
+  signal?: NodeJS.Signals | null;
+}
+
+function fakePdfinfo(run: FakePdfinfoRun) {
+  spawnMock.mockImplementationOnce((): ChildProcess => {
+    const proc = new EventEmitter() as ChildProcess;
+    const stdout = new EventEmitter();
+    const stderr = new EventEmitter();
+    (proc as unknown as { stdout: EventEmitter }).stdout = stdout;
+    (proc as unknown as { stderr: EventEmitter }).stderr = stderr;
+
+    setImmediate(() => {
+      if (run.stdout != null) {
+        stdout.emit('data', Buffer.from(run.stdout));
+      }
+      if (run.stderr != null) {
+        stderr.emit('data', Buffer.from(run.stderr));
+      }
+      proc.emit('close', run.code ?? 0, run.signal ?? null);
+    });
+
+    return proc;
+  });
+}
+
 describe('getPageCount', () => {
   let tmpDir: string;
+  let pdfPath: string;
 
   beforeEach(async () => {
+    spawnMock.mockClear();
     tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'getPageCount-test-'));
+    pdfPath = path.join(tmpDir, 'sample.pdf');
+    await fs.writeFile(pdfPath, '%PDF-1.4 placeholder');
   });
 
   afterEach(async () => {
@@ -56,4 +98,38 @@ describe('getPageCount', () => {
       expect(caught!.message).toContain('path=not-a-pdf.txt');
     }
   );
+
+  it('rejects encrypted PDFs with a message the failure classifier reads as pdf_password', async () => {
+    fakePdfinfo({
+      stderr: 'Command Line Error: Incorrect password\nEncrypted',
+      code: 1,
+    });
+
+    let caught: unknown = null;
+    try {
+      await getPageCount(pdfPath);
+    } catch (e) {
+      caught = e;
+    }
+
+    expect(caught).not.toBeNull();
+    expect(jobFailureReasonCode(caught)).toBe('pdf_password');
+  });
+
+  it('rejects zero-page PDFs with a message the failure classifier reads as pdf_unreadable', async () => {
+    fakePdfinfo({
+      stdout: 'Title:          Broken\nPages:          0\n',
+      code: 0,
+    });
+
+    let caught: unknown = null;
+    try {
+      await getPageCount(pdfPath);
+    } catch (e) {
+      caught = e;
+    }
+
+    expect(caught).not.toBeNull();
+    expect(jobFailureReasonCode(caught)).toBe('pdf_unreadable');
+  });
 });
