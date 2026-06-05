@@ -227,6 +227,7 @@ class ChatController {
         ...(result.cards != null ? { cards: result.cards } : {}),
         ...(result.contentBefore != null ? { contentBefore: result.contentBefore } : {}),
         ...(result.contentAfter != null ? { contentAfter: result.contentAfter } : {}),
+        ...(result.deckName != null ? { deckName: result.deckName } : {}),
       });
     } catch (err) {
       emitChatError(res, err);
@@ -279,6 +280,7 @@ class ChatController {
         ...(result.cards != null ? { cards: result.cards } : {}),
         ...(result.contentBefore != null ? { contentBefore: result.contentBefore } : {}),
         ...(result.contentAfter != null ? { contentAfter: result.contentAfter } : {}),
+        ...(result.deckName != null ? { deckName: result.deckName } : {}),
       });
     } catch (err) {
       emitChatError(res, err);

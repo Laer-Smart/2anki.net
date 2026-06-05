@@ -273,6 +273,68 @@ describe('ChatUseCase', () => {
       expect(result.contentAfter).toBeUndefined();
     });
 
+    it('extracts a trailing Deck: line as deckName and strips it from contentBefore', async () => {
+      const cards = [{ front: 'Q1', back: 'A1' }];
+      const responseText = `Here are your cards:\nDeck: Cell Biology — Mitosis\n\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
+      const { useCase } = buildUseCase(responseText);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: 'Make cards',
+        conversationHistory: [],
+      });
+
+      expect(result.deckName).toBe('Cell Biology — Mitosis');
+      expect(result.contentBefore).toBe('Here are your cards:');
+    });
+
+    it('returns deckName when the Deck: line is the only prose before the block', async () => {
+      const cards = [{ front: 'Q1', back: 'A1' }];
+      const responseText = `Deck: Spanish Verbs\n\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
+      const { useCase } = buildUseCase(responseText);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: 'Make cards',
+        conversationHistory: [],
+      });
+
+      expect(result.deckName).toBe('Spanish Verbs');
+      expect(result.contentBefore).toBeUndefined();
+    });
+
+    it('does not treat a mid-prose Deck: mention as the deck name', async () => {
+      const cards = [{ front: 'Q1', back: 'A1' }];
+      const responseText = `Deck: building is fun, as I always say.\nHere you go:\n\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
+      const { useCase } = buildUseCase(responseText);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: 'Make cards',
+        conversationHistory: [],
+      });
+
+      expect(result.deckName).toBeUndefined();
+      expect(result.contentBefore).toBe(
+        'Deck: building is fun, as I always say.\nHere you go:'
+      );
+    });
+
+    it('omits deckName when no Deck: line is present', async () => {
+      const cards = [{ front: 'Q1', back: 'A1' }];
+      const responseText = `Here are your cards:\n\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;
+      const { useCase } = buildUseCase(responseText);
+
+      const result = await useCase.execute({
+        user: FREE_USER,
+        content: 'Make cards',
+        conversationHistory: [],
+      });
+
+      expect(result.deckName).toBeUndefined();
+      expect(result.contentBefore).toBe('Here are your cards:');
+    });
+
     it('normalizes stray cloze cards to plain front/back when templateSlug is basic', async () => {
       const cards = [{ front: 'The capital of {{c1::France}} is Paris.', back: '' }];
       const responseText = `\`\`\`json\n${JSON.stringify(cards)}\n\`\`\``;

@@ -101,6 +101,8 @@ Use {{c1::...}}, {{c2::...}}, {{c3::...}} for separate blanks within the same ca
 
 Never output raw JSON without the code fence. Always include the opening \`\`\`json and closing \`\`\` markers.
 
+On the line immediately before the JSON code block, write \`Deck: <name>\` — a short, descriptive deck name (max 60 characters) for the cards, e.g. \`Deck: Cell Biology — Mitosis\`. Don't mention the deck name in the prose; that line is metadata, not conversation.
+
 Supported input on 2anki:
 - Best: Notion HTML export (.zip with toggles — toggles become front/back automatically)
 - Also: Markdown (.md), CSV, plain HTML, .apkg (existing Anki decks), PDF, .docx, .pptx, .xlsx
@@ -158,6 +160,9 @@ export interface SendMessageResult {
   contentBefore?: string;
   contentAfter?: string;
   cards?: ChatCard[];
+  /// Model-chosen deck name (see ExtractCardsResult.deckName). Only present
+  /// when the turn produced cards.
+  deckName?: string;
 }
 
 function buildAutoTitle(firstMessage: string): string {
@@ -187,6 +192,23 @@ export interface ExtractCardsResult {
   cards: ChatCard[] | undefined;
   contentBefore: string | undefined;
   contentAfter: string | undefined;
+  /// Model-chosen deck name, parsed from a trailing `Deck: <name>` line in
+  /// the prose before the JSON block (see the system prompt). Stripped from
+  /// `contentBefore` so it never renders as conversation text.
+  deckName: string | undefined;
+}
+
+/// Matches a `Deck: <name>` line at the very END of the (trimmed) prose that
+/// precedes the JSON block. Anchored at end-of-string so a "Deck:" mention
+/// mid-prose is left alone.
+const DECK_NAME_LINE = /(?:^|\n)\s*Deck:\s*(.{1,80})$/i;
+
+function splitDeckName(before: string): { deckName?: string; rest: string } {
+  const match = DECK_NAME_LINE.exec(before);
+  if (match == null) return { rest: before };
+  const deckName = match[1].trim();
+  if (deckName.length === 0) return { rest: before };
+  return { deckName, rest: before.slice(0, match.index).trim() };
 }
 
 function asMcqChatCard(item: Record<string, unknown>): ChatCard | null {
@@ -277,10 +299,12 @@ export function extractCards(text: string, mcqAllowed = false, forbidCloze = fal
     if (cards != null) {
       const before = text.slice(0, fencedMatch.index).trim();
       const after = text.slice(fencedMatch.index + fencedMatch[0].length).trim();
+      const { deckName, rest } = splitDeckName(before);
       return {
         cards,
-        contentBefore: before.length > 0 ? before : undefined,
+        contentBefore: rest.length > 0 ? rest : undefined,
         contentAfter: after.length > 0 ? after : undefined,
+        deckName,
       };
     }
   }
@@ -291,15 +315,22 @@ export function extractCards(text: string, mcqAllowed = false, forbidCloze = fal
     if (cards != null) {
       const before = text.slice(0, rawMatch.index).trim();
       const after = text.slice(rawMatch.index + rawMatch[0].length).trim();
+      const { deckName, rest } = splitDeckName(before);
       return {
         cards,
-        contentBefore: before.length > 0 ? before : undefined,
+        contentBefore: rest.length > 0 ? rest : undefined,
         contentAfter: after.length > 0 ? after : undefined,
+        deckName,
       };
     }
   }
 
-  return { cards: undefined, contentBefore: undefined, contentAfter: undefined };
+  return {
+    cards: undefined,
+    contentBefore: undefined,
+    contentAfter: undefined,
+    deckName: undefined,
+  };
 }
 
 export class ChatConversationNotFoundError extends Error {
@@ -544,7 +575,7 @@ export class ChatUseCase {
     await this.persistAssistantTurn(user.owner, conversationId, assistantContent);
 
     const forbidCloze = templateForbidsCloze(resolvedTemplate);
-    const { cards, contentBefore, contentAfter } = extractCards(
+    const { cards, contentBefore, contentAfter, deckName } = extractCards(
       assistantContent,
       mcqAllowed,
       forbidCloze
@@ -556,6 +587,7 @@ export class ChatUseCase {
       ...(cards != null ? { cards } : {}),
       ...(contentBefore != null ? { contentBefore } : {}),
       ...(contentAfter != null ? { contentAfter } : {}),
+      ...(deckName != null ? { deckName } : {}),
     };
   }
 
