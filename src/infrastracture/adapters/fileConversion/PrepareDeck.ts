@@ -14,7 +14,10 @@ import { convertPDFToHTML } from './convertPDFToHTML';
 import { convertPPTToPDF } from './ConvertPPTToPDF';
 import { convertImageToHTML } from './convertImageToHTML';
 import { convertPDFToImages } from './convertPDFToImages';
-import { convertPdfTextToHtml } from './convertPdfTextToHtml';
+import {
+  convertPdfTextToHtml,
+  convertPdfTextToHtmlAuto,
+} from './convertPdfTextToHtml';
 import { buildPdfPasswordSentinel } from '../../../lib/pdf/pdfPasswordSentinel';
 import { convertXLSXToHTML } from './convertXLSXToHTML';
 import { convertDocxToHTML } from './convertDocxToHTML';
@@ -134,49 +137,98 @@ async function convertFile(
   }
 
   if (isPDFFile(file.name) && input.settings.processPDFs !== false) {
-    const textResult = await convertPdfTextToHtml(
-      file.contents as Buffer,
-      file.name,
-      input.pdfCredential
-    );
-
-    if (textResult.needsCredential) {
-      throw new Error(buildPdfPasswordSentinel(file.name));
+    if (input.settings.pdfExtractText) {
+      return convertPdfByManualTextFlag(file, input, t0);
     }
+    return convertPdfByAutoDetection(file, input, t0);
+  }
 
-    if (
-      input.settings.pdfExtractText &&
-      !textResult.isDrmLocked &&
-      textResult.cardCount > 0
-    ) {
-      console.log('[PrepareDeck] convertFile pdf→text→html', {
-        file: file.name,
-        cardCount: textResult.cardCount,
-        durationMs: Date.now() - t0,
-      });
-      return { name: `${file.name}.html`, contents: Buffer.from(textResult.html) };
-    }
+  return null;
+}
 
-    console.log('[PrepareDeck] convertFile pdf→images (text fallback)', {
-      file: file.name,
-      isDrmLocked: textResult.isDrmLocked,
-      cardCount: textResult.cardCount,
-      durationMs: Date.now() - t0,
-    });
-    const result = {
-      name: `${file.name}.html`,
-      contents: Buffer.from(await convertPDFToImages({
+async function convertPdfPagesToImagesFile(
+  file: DeckParserInput['files'][number],
+  input: DeckParserInput
+) {
+  return {
+    name: `${file.name}.html`,
+    contents: Buffer.from(
+      await convertPDFToImages({
         name: file.name,
         workspace: input.workspace,
         noLimits: input.noLimits,
         contents: file.contents as Buffer,
         settings: input.settings,
-      })),
-    };
-    return result;
+      })
+    ),
+  };
+}
+
+async function convertPdfByManualTextFlag(
+  file: DeckParserInput['files'][number],
+  input: DeckParserInput,
+  t0: number
+) {
+  const textResult = await convertPdfTextToHtml(
+    file.contents as Buffer,
+    file.name,
+    input.pdfCredential
+  );
+
+  if (textResult.needsCredential) {
+    throw new Error(buildPdfPasswordSentinel(file.name));
   }
 
-  return null;
+  if (!textResult.isDrmLocked && textResult.cardCount > 0) {
+    console.log('[PrepareDeck] convertFile pdf→text→html', {
+      file: file.name,
+      cardCount: textResult.cardCount,
+      durationMs: Date.now() - t0,
+    });
+    return { name: `${file.name}.html`, contents: Buffer.from(textResult.html) };
+  }
+
+  console.log('[PrepareDeck] convertFile pdf→images (text fallback)', {
+    file: file.name,
+    isDrmLocked: textResult.isDrmLocked,
+    cardCount: textResult.cardCount,
+    durationMs: Date.now() - t0,
+  });
+  return convertPdfPagesToImagesFile(file, input);
+}
+
+async function convertPdfByAutoDetection(
+  file: DeckParserInput['files'][number],
+  input: DeckParserInput,
+  t0: number
+) {
+  const autoResult = await convertPdfTextToHtmlAuto(
+    file.contents as Buffer,
+    file.name,
+    input.pdfCredential
+  );
+
+  if (autoResult.needsCredential) {
+    throw new Error(buildPdfPasswordSentinel(file.name));
+  }
+
+  if (autoResult.isTextShaped && autoResult.cardCount > 0) {
+    console.log('[PrepareDeck] convertFile pdf→text→html (auto)', {
+      file: file.name,
+      cardCount: autoResult.cardCount,
+      durationMs: Date.now() - t0,
+    });
+    return { name: `${file.name}.html`, contents: Buffer.from(autoResult.html) };
+  }
+
+  console.log('[PrepareDeck] convertFile pdf→images (auto fallback)', {
+    file: file.name,
+    isTextShaped: autoResult.isTextShaped,
+    isDrmLocked: autoResult.isDrmLocked,
+    cardCount: autoResult.cardCount,
+    durationMs: Date.now() - t0,
+  });
+  return convertPdfPagesToImagesFile(file, input);
 }
 
 function deckPrefixFromFilePath(htmlFileName: string): string {
