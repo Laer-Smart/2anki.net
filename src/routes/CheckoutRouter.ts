@@ -3,11 +3,16 @@ import RequireAuthentication from './middleware/RequireAuthentication';
 import { optionalAuthMiddleware } from './middleware/optionalAuthMiddleware';
 import AutoSyncCheckoutController from '../controllers/AutoSyncCheckoutController';
 import PassCheckoutController from '../controllers/PassCheckoutController';
+import ResumeCheckoutController from '../controllers/ResumeCheckoutController';
 import UnlimitedCheckoutController from '../controllers/UnlimitedCheckoutController';
 import { AutoSyncCheckoutUseCase } from '../usecases/checkout/AutoSyncCheckoutUseCase';
 import { CreatePassCheckoutUseCase } from '../usecases/checkout/CreatePassCheckoutUseCase';
+import { ResumeAbandonedCheckoutUseCase } from '../usecases/checkout/ResumeAbandonedCheckoutUseCase';
 import { UnlimitedCheckoutUseCase } from '../usecases/checkout/UnlimitedCheckoutUseCase';
 import { getStripe } from '../lib/integrations/stripe';
+import { getDatabase } from '../data_layer';
+import AbandonedCheckoutRecoveryRepository from '../data_layer/AbandonedCheckoutRecoveryRepository';
+import { getEventsSink } from '../services/events/eventsSinkInstance';
 
 const DEFAULT_MAX_SUBSCRIBERS = 50;
 
@@ -82,6 +87,37 @@ const CheckoutRouter = () => {
       return controller.createSession(req, res);
     }
   );
+
+  /**
+   * @swagger
+   * /checkout/resume:
+   *   get:
+   *     summary: Resume an abandoned Stripe checkout
+   *     description: |
+   *       Redirects the recovery-email recipient back to their expired Stripe
+   *       Checkout session via the Stripe-hosted recovery URL. The token is the
+   *       single-use UUID minted when the recovery email was sent. Unknown,
+   *       malformed, or expired tokens fall back to the pricing page — the
+   *       endpoint never fails user-visibly.
+   *     tags: [Payments]
+   *     parameters:
+   *       - in: query
+   *         name: token
+   *         schema:
+   *           type: string
+   *           format: uuid
+   *         description: Recovery token from the abandoned-checkout email
+   *     responses:
+   *       302:
+   *         description: Redirect to the Stripe recovery URL or to /pricing
+   */
+  router.get('/checkout/resume', (req, res) => {
+    const useCase = new ResumeAbandonedCheckoutUseCase(
+      new AbandonedCheckoutRecoveryRepository(getDatabase())
+    );
+    const controller = new ResumeCheckoutController(useCase, getEventsSink());
+    return controller.resume(req, res);
+  });
 
   return router;
 };

@@ -201,6 +201,19 @@ describe('UnlimitedCheckoutUseCase', () => {
     );
   });
 
+  it('enables Stripe session recovery on expiry', async () => {
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+
+    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
+    await uc.execute({ userEmail: 'user@example.com', userId: 14, interval: 'month' });
+
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        after_expiration: { recovery: { enabled: true } },
+      })
+    );
+  });
+
   it('does not log raw Stripe customer IDs', async () => {
     mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
     const consoleSpy = jest.spyOn(console, 'info').mockImplementation(() => {});

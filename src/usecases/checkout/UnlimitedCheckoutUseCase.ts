@@ -37,6 +37,7 @@ export class UnlimitedCheckoutUseCase {
       cancel_url: `${appUrl}/pricing`,
       customer_email: input.stripeCustomerId == null ? input.userEmail : undefined,
       customer: input.stripeCustomerId ?? undefined,
+      after_expiration: { recovery: { enabled: true } },
       metadata: {
         user_id: String(input.userId),
         ...optionalMetadata({

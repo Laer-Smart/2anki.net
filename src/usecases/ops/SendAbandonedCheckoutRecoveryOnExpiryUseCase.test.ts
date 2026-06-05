@@ -17,6 +17,7 @@ function makeRepo(
     claimSession: jest.fn().mockResolvedValue(claimed),
     recordEmailSend: jest.fn().mockResolvedValue(undefined),
     isMarketingOptedOut: jest.fn().mockResolvedValue(optedOut),
+    getRecoveryByToken: jest.fn().mockResolvedValue(null),
   };
 }
 
@@ -50,12 +51,67 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
     expect(repo.claimSession).toHaveBeenCalledWith(
       'cs_test_abc123',
       'alice@example.com',
-      expect.any(String)
+      expect.any(String),
+      null
     );
     expect(emailService.sendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith(
       'alice@example.com',
       expect.any(String)
     );
+  });
+
+  it('passes recovery details through to claimSession when provided', async () => {
+    const repo = makeRepo(true);
+    const emailService = makeEmailService();
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+    const recovery = {
+      url: 'https://buy.stripe.com/r/live_abc',
+      expiresAt: new Date('2026-07-05T00:00:00Z'),
+    };
+
+    await useCase.execute('cs_with_recovery', 'alice@example.com', recovery);
+
+    expect(repo.claimSession).toHaveBeenCalledWith(
+      'cs_with_recovery',
+      'alice@example.com',
+      expect.any(String),
+      recovery
+    );
+  });
+
+  it('logs recovery URL presence without logging the URL itself', async () => {
+    const repo = makeRepo(true);
+    const emailService = makeEmailService();
+    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+
+    await useCase.execute('cs_log_check', 'alice@example.com', {
+      url: 'https://buy.stripe.com/r/live_secret',
+      expiresAt: null,
+    });
+
+    expect(infoSpy).toHaveBeenCalledWith('checkout.session.expired.recovery_url', {
+      present: true,
+      session_id_hash: 'hashed:cs_log_check',
+    });
+    const logged = infoSpy.mock.calls.map((c) => JSON.stringify(c)).join('\n');
+    expect(logged).not.toContain('live_secret');
+    infoSpy.mockRestore();
+  });
+
+  it('logs recovery URL absence when Stripe omitted it', async () => {
+    const repo = makeRepo(true);
+    const emailService = makeEmailService();
+    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);
+
+    await useCase.execute('cs_no_recovery', 'alice@example.com');
+
+    expect(infoSpy).toHaveBeenCalledWith('checkout.session.expired.recovery_url', {
+      present: false,
+      session_id_hash: 'hashed:cs_no_recovery',
+    });
+    infoSpy.mockRestore();
   });
 
   it('passes a non-empty token to the email service', async () => {
@@ -92,7 +148,8 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
     expect(repo.claimSession).toHaveBeenCalledWith(
       'cs_test_abc123',
       'alice@example.com',
-      expect.any(String)
+      expect.any(String),
+      null
     );
     expect(emailService.sendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
   });
@@ -134,6 +191,7 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
       }),
       recordEmailSend: jest.fn().mockResolvedValue(undefined),
       isMarketingOptedOut: jest.fn().mockResolvedValue(false),
+      getRecoveryByToken: jest.fn().mockResolvedValue(null),
     };
     const emailService = makeEmailService();
     const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(repo, emailService);

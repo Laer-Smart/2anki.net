@@ -27,6 +27,44 @@ describe('InMemoryAbandonedCheckoutRecoveryRepository', () => {
     });
   });
 
+  describe('getRecoveryByToken', () => {
+    it('returns null for an unknown token', async () => {
+      const result = await repo.getRecoveryByToken('missing-token');
+      expect(result).toBeNull();
+    });
+
+    it('returns the recovery details stored by claimSession', async () => {
+      const expiresAt = new Date('2026-07-05T00:00:00Z');
+      await repo.claimSession('cs_abc', 'alice@example.com', 'tok-1', {
+        url: 'https://buy.stripe.com/r/live_abc',
+        expiresAt,
+      });
+
+      const result = await repo.getRecoveryByToken('tok-1');
+
+      expect(result).toEqual({
+        recoveryUrl: 'https://buy.stripe.com/r/live_abc',
+        recoveryUrlExpiresAt: expiresAt,
+      });
+    });
+
+    it('returns a null recoveryUrl when claimSession had no recovery details', async () => {
+      await repo.claimSession('cs_abc', 'alice@example.com', 'tok-1');
+
+      const result = await repo.getRecoveryByToken('tok-1');
+
+      expect(result).toEqual({ recoveryUrl: null, recoveryUrlExpiresAt: null });
+    });
+
+    it('returns a null recoveryUrl for tokens recorded by bulk sends', async () => {
+      await repo.recordEmailSend('alice@example.com', 'bulk-tok');
+
+      const result = await repo.getRecoveryByToken('bulk-tok');
+
+      expect(result).toEqual({ recoveryUrl: null, recoveryUrlExpiresAt: null });
+    });
+  });
+
   describe('recordEmailSend', () => {
     it('stores the token against the email', async () => {
       await repo.recordEmailSend('alice@example.com', 'bulk-tok');

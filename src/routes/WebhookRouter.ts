@@ -246,6 +246,10 @@ const WebhooksRouter = () => {
               ...(surface != null && surface !== ''
                 ? { surface }
                 : {}),
+              ...(typeof session.recovered_from === 'string' &&
+              session.recovered_from !== ''
+                ? { recovered: true }
+                : {}),
             },
           });
 
@@ -411,14 +415,27 @@ const WebhooksRouter = () => {
             id: string;
             customer_details?: { email?: string | null } | null;
             customer_email?: string | null;
+            after_expiration?: {
+              recovery?: { url?: string | null; expires_at?: number | null } | null;
+            } | null;
           };
           const sessionEmail =
             expiredSession.customer_details?.email ??
             expiredSession.customer_email ??
             null;
+          const recoveryUrl = expiredSession.after_expiration?.recovery?.url ?? null;
+          const recoveryExpiresAtSeconds =
+            expiredSession.after_expiration?.recovery?.expires_at;
+          const recoveryExpiresAt =
+            recoveryExpiresAtSeconds == null
+              ? null
+              : new Date(recoveryExpiresAtSeconds * 1000);
           await abandonedCheckoutRecoveryUseCase.execute(
             expiredSession.id,
-            sessionEmail
+            sessionEmail,
+            recoveryUrl == null
+              ? null
+              : { url: recoveryUrl, expiresAt: recoveryExpiresAt }
           );
           break;
         }

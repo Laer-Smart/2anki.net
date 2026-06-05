@@ -65,6 +65,19 @@ describe('CreatePassCheckoutUseCase', () => {
     );
   });
 
+  it('enables Stripe session recovery on expiry', async () => {
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/24h' });
+
+    const uc = new CreatePassCheckoutUseCase(makeStripe(), 'price_24h', '24h');
+    await uc.execute({ userEmail: 'user@example.com', userId: 7 });
+
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        after_expiration: { recovery: { enabled: true } },
+      })
+    );
+  });
+
   it('uses APP_URL env var for success and cancel URLs', async () => {
     process.env.APP_URL = 'https://staging.2anki.net';
     mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
