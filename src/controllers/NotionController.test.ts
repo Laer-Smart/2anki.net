@@ -564,6 +564,33 @@ describe('NotionController', () => {
       expect(service.getNotionLinkInfo).not.toHaveBeenCalled();
     });
 
+    it('returns 401 for an anonymous caller when query.client is native', async () => {
+      service = {
+        getClientId: jest.fn().mockReturnValue('client-abc'),
+        getNotionLinkInfo: jest.fn(),
+      } as any;
+      controller = new NotionController(service);
+      req = { params: {}, query: { client: 'native' } };
+      res = {
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn().mockReturnThis(),
+        json: jest.fn().mockReturnThis(),
+        locals: {},
+      } as any;
+
+      await controller.getNotionLink(
+        req as express.Request,
+        res as express.Response
+      );
+
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith({
+        code: 'auth_required_for_native',
+        message: 'Authentication required for native app OAuth flow.',
+      });
+      expect(service.getNotionLinkInfo).not.toHaveBeenCalled();
+    });
+
     it('threads client=native into the link info when query.client is native', async () => {
       service = {
         getClientId: jest.fn().mockReturnValue('client-abc'),

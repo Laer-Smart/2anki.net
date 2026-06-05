@@ -212,12 +212,21 @@ class NotionController {
       return res.status(400).send();
     }
 
-    const linkInfo =
-      req.query.client === 'native'
-        ? await this.service.getNotionLinkInfo(res.locals.owner, {
-            client: 'native',
-          })
-        : await this.service.getNotionLinkInfo(res.locals.owner);
+    if (req.query.client === 'native') {
+      if (res.locals.owner == null) {
+        return res.status(401).json({
+          code: 'auth_required_for_native',
+          message: 'Authentication required for native app OAuth flow.',
+        });
+      }
+      const nativeLinkInfo = await this.service.getNotionLinkInfo(
+        res.locals.owner,
+        { client: 'native' }
+      );
+      return res.status(200).send(nativeLinkInfo);
+    }
+
+    const linkInfo = await this.service.getNotionLinkInfo(res.locals.owner);
     return res.status(200).send(linkInfo);
   }
 
