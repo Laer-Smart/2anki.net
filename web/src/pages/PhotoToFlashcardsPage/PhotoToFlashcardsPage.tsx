@@ -6,9 +6,20 @@ import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabe
 import { track } from '../../lib/analytics/track';
 import styles from '../../styles/shared.module.css';
 import pageStyles from './PhotoToFlashcardsPage.module.css';
-import { prepareImageForVision } from '../../lib/image/prepareImageForVision';
+import {
+  prepareImageForVision,
+  type PreparedImage,
+} from '../../lib/image/prepareImageForVision';
 
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/heic',
+  'image/heif',
+];
+const PICKER_ACCEPT = [...ALLOWED_TYPES, '.heic', '.heif'].join(',');
 const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 
 type Status = 'idle' | 'reading' | 'done';
@@ -73,11 +84,11 @@ function makePhotoId(): string {
 }
 
 function validatePhoto(file: File): string | null {
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    return 'Use JPEG, PNG, WebP, or GIF.';
-  }
   if (file.size > MAX_SIZE_BYTES) {
     return 'Photo is over the 10 MB limit. Try a smaller image.';
+  }
+  if (file.type !== '' && !ALLOWED_TYPES.includes(file.type)) {
+    return 'Use a photo format like JPEG, PNG, WebP, GIF, or HEIC.';
   }
   return null;
 }
@@ -209,7 +220,17 @@ export function PhotoToFlashcardsPage() {
     photo: SelectedPhoto,
     name: string
   ): Promise<{ cardCount: number } | { error: string }> => {
-    const prepared = await prepareImageForVision(photo.file);
+    let prepared: PreparedImage;
+    try {
+      prepared = await prepareImageForVision(photo.file);
+    } catch (decodeError) {
+      return {
+        error:
+          decodeError instanceof Error
+            ? decodeError.message
+            : 'Could not read the image',
+      };
+    }
 
     const res = await fetch('/api/image-occlusion/photo-to-deck', {
       method: 'POST',
@@ -406,7 +427,7 @@ export function PhotoToFlashcardsPage() {
             ref={cameraInputRef}
             id="photo-camera-input"
             type="file"
-            accept={ALLOWED_TYPES.join(',')}
+            accept={PICKER_ACCEPT}
             capture="environment"
             onChange={handleCameraInput}
             hidden
@@ -428,7 +449,8 @@ export function PhotoToFlashcardsPage() {
                 Drop photos, paste, or click to add
               </span>
               <span className={pageStyles.dropzoneHint}>
-                JPEG, PNG, WebP, GIF — up to 10 MB each. Add as many as you need.
+                JPEG, PNG, WebP, GIF, HEIC — up to 10 MB each. Add as many as
+                you need.
               </span>
             </>
           ) : (
@@ -445,7 +467,7 @@ export function PhotoToFlashcardsPage() {
             ref={fileInputRef}
             id="photo-file-input"
             type="file"
-            accept={ALLOWED_TYPES.join(',')}
+            accept={PICKER_ACCEPT}
             multiple
             onChange={handleFileInput}
             hidden
