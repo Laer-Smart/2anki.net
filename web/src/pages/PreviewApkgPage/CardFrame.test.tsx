@@ -6,7 +6,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ApkgPreviewCard } from '../../lib/backend/getApkgPreview';
 import { CardFrame } from './CardFrame';
 
@@ -61,6 +61,10 @@ describe('CardFrame sandbox', () => {
 });
 
 describe('CardFrame srcDoc', () => {
+  beforeEach(() => {
+    localStorage.removeItem('2anki-theme');
+  });
+
   it('does not inject hardcoded background or foreground colors', async () => {
     const card = buildCard({ css: '' });
     const { container } = render(
@@ -71,7 +75,8 @@ describe('CardFrame srcDoc', () => {
     expect(srcDoc).not.toContain('color: #111');
   });
 
-  it('includes color-scheme meta tag', async () => {
+  it('drives color-scheme from the app theme (light by default)', async () => {
+    localStorage.setItem('2anki-theme', 'light');
     const { container } = render(
       <CardFrame
         card={buildCard()}
@@ -81,7 +86,52 @@ describe('CardFrame srcDoc', () => {
       />
     );
     const srcDoc = await waitForSrcDoc(container);
-    expect(srcDoc).toContain('<meta name="color-scheme" content="light dark">');
+    expect(srcDoc).toContain('<meta name="color-scheme" content="light">');
+    expect(srcDoc).not.toContain('class="nightMode"');
+  });
+
+  it('renders dark cards with nightMode + dark color-scheme when app theme is dark', async () => {
+    localStorage.setItem('2anki-theme', 'dark');
+    const { container } = render(
+      <CardFrame
+        card={buildCard()}
+        cardIndex={0}
+        onEdit={noop}
+        isEditable={false}
+      />
+    );
+    const srcDoc = await waitForSrcDoc(container);
+    expect(srcDoc).toContain('<meta name="color-scheme" content="dark">');
+    expect(srcDoc).toContain('<body class="nightMode">');
+  });
+
+  it('treats the light-background themes (gold) as light, not dark', async () => {
+    localStorage.setItem('2anki-theme', 'gold');
+    const { container } = render(
+      <CardFrame
+        card={buildCard()}
+        cardIndex={0}
+        onEdit={noop}
+        isEditable={false}
+      />
+    );
+    const srcDoc = await waitForSrcDoc(container);
+    expect(srcDoc).toContain('<meta name="color-scheme" content="light">');
+    expect(srcDoc).not.toContain('nightMode');
+  });
+
+  it('shims sessionStorage and localStorage so opaque-origin template scripts do not throw', async () => {
+    const { container } = render(
+      <CardFrame
+        card={buildCard()}
+        cardIndex={0}
+        onEdit={noop}
+        isEditable={false}
+      />
+    );
+    const srcDoc = await waitForSrcDoc(container);
+    expect(srcDoc).toContain("['sessionStorage', 'localStorage'].forEach");
+    expect(srcDoc).toContain('Object.defineProperty(window, name');
   });
 
   it('includes the resize-observer script', async () => {
