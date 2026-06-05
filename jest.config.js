@@ -40,6 +40,6 @@ module.exports = {
     ],
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(\\.pnpm/)?(p-limit|yocto-queue)(@|/))',
+    '/node_modules/(?!(\\.pnpm/)?(archiver|is-stream|zip-stream|compress-commons|crc32-stream|p-limit|yocto-queue)(@|/))',
   ],
 };

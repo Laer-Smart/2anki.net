@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import archiver from 'archiver';
 import Database from 'better-sqlite3';
+import { createZipArchive } from '../../lib/archiver/createZipArchive';
 import { CardEdit } from '../../services/ApkgPreviewService/applyEditsToCards';
 import { extractApkg } from '../../services/ApkgPreviewService/extractApkg';
 
@@ -91,7 +91,7 @@ async function packApkg(
   mediaEntries: Map<string, Buffer>
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const archive = archiver('zip', { store: true });
+    const archive = createZipArchive({ store: true });
     const chunks: Buffer[] = [];
 
     archive.on('data', (chunk: Buffer) => chunks.push(chunk));
