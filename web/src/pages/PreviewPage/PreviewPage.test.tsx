@@ -194,6 +194,25 @@ describe('PreviewPage tally counts', () => {
   });
 });
 
+describe('PreviewPage empty state', () => {
+  it('teaches the toggle pattern and links to the toggles doc when there are no blocks', () => {
+    mockUsePreviewStream.mockReturnValue(makeStreamReturn([]));
+
+    renderPreview();
+
+    expect(
+      screen.getByText('Nothing to turn into cards yet')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/makes a card from every toggle on this page/i)
+    ).toBeInTheDocument();
+    const cta = screen.getByRole('link', {
+      name: 'See how toggles become cards',
+    });
+    expect(cta).toHaveAttribute('href', '/documentation/cards/notion-blocks');
+  });
+});
+
 describe('PreviewPage Convert to Anki CTA', () => {
   it('renders the Convert to Anki button', () => {
     mockUsePreviewStream.mockReturnValue(makeStreamReturn([]));

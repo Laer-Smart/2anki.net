@@ -34,6 +34,12 @@ describe('jobFailureReasonFromError', () => {
     expect(reason).toBe(EMPTY_DECK_FAILURE_REASON);
   });
 
+  it('keeps the ops-matched empty-deck prefix intact', () => {
+    expect(
+      EMPTY_DECK_FAILURE_REASON.startsWith('No cards in this deck yet.')
+    ).toBe(true);
+  });
+
   it('returns MARKDOWN_LIKELY_LOSSY_REASON for EmptyDeckError with markdown sourceFormat', () => {
     const reason = jobFailureReasonFromError(new EmptyDeckError('markdown'), 'job-md');
     expect(reason).toBe(MARKDOWN_LIKELY_LOSSY_REASON);

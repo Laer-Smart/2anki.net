@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-05-empty-deck-explains-toggles",
+  "date": "2026-06-05",
+  "type": "fix",
+  "title": "An empty deck or preview explains that every Notion toggle becomes a card, with a link to how it works"
+}
