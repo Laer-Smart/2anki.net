@@ -198,6 +198,54 @@ function computeSnapshot(values: {
   return JSON.stringify({ ...values, checkboxValues: sortedCheckboxes });
 }
 
+interface GatedClozeToggleRowProps {
+  id: string;
+  heading: string;
+  label: string;
+  helperText: string;
+  checked: boolean;
+  clozeEnabled: boolean;
+  onChange: (checked: boolean) => void;
+}
+
+function GatedClozeToggleRow({
+  id,
+  heading,
+  label,
+  helperText,
+  checked,
+  clozeEnabled,
+  onChange,
+}: Readonly<GatedClozeToggleRowProps>) {
+  return (
+    <div className={fieldStyles.optionGroup} id={id}>
+      <h3 className={fieldStyles.groupHeading}>{heading}</h3>
+      <div className={fieldStyles.section}>
+        <label className={fieldStyles.toggleRow}>
+          <span className={fieldStyles.toggleSwitch}>
+            <input
+              type="checkbox"
+              role="switch"
+              disabled={!clozeEnabled}
+              checked={checked}
+              onChange={(e) => onChange(e.target.checked)}
+            />
+            <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
+          </span>
+          <span className={fieldStyles.toggleLabel}>{label}</span>
+        </label>
+        {clozeEnabled ? (
+          <p className={fieldStyles.sectionHint}>{helperText}</p>
+        ) : (
+          <p className={fieldStyles.sectionHint}>
+            Turn on Cloze deletion cards first.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
   function CardOptionsForm(
     {
@@ -1003,90 +1051,30 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 </div>
               )}
               {isCardTypesGroup && (
-                <div
-                  className={fieldStyles.optionGroup}
+                <GatedClozeToggleRow
                   id="group-cloze-per-toggle"
-                >
-                  <h3 className={fieldStyles.groupHeading}>
-                    Group cloze blanks per toggle
-                  </h3>
-                  <div className={fieldStyles.section}>
-                    <label className={fieldStyles.toggleRow}>
-                      <span className={fieldStyles.toggleSwitch}>
-                        <input
-                          type="checkbox"
-                          role="switch"
-                          disabled={!(checkboxValues['cloze'] ?? true)}
-                          checked={
-                            checkboxValues['group-cloze-per-toggle'] ?? false
-                          }
-                          onChange={(e) =>
-                            toggleCheckbox(
-                              'group-cloze-per-toggle',
-                              e.target.checked
-                            )
-                          }
-                        />
-                        <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
-                      </span>
-                      <span className={fieldStyles.toggleLabel}>
-                        Group cloze blanks per toggle
-                      </span>
-                    </label>
-                    {(checkboxValues['cloze'] ?? true) ? (
-                      <p className={fieldStyles.sectionHint}>
-                        When one Notion toggle holds several :: blanks, put them
-                        all on a single card and reveal them together. Off by
-                        default — each :: makes its own card.
-                      </p>
-                    ) : (
-                      <p className={fieldStyles.sectionHint}>Turn on Cloze deletion cards first.</p>
-                    )}
-                  </div>
-                </div>
+                  heading="Group cloze blanks per toggle"
+                  label="Group cloze blanks per toggle"
+                  helperText="When one Notion toggle holds several :: blanks, put them all on a single card and reveal them together. Off by default — each :: makes its own card."
+                  checked={checkboxValues['group-cloze-per-toggle'] ?? false}
+                  clozeEnabled={checkboxValues['cloze'] ?? true}
+                  onChange={(checked) =>
+                    toggleCheckbox('group-cloze-per-toggle', checked)
+                  }
+                />
               )}
               {isCardTypesGroup && (
-                <div
-                  className={fieldStyles.optionGroup}
+                <GatedClozeToggleRow
                   id="cloze-from-toggle-content"
-                >
-                  <h3 className={fieldStyles.groupHeading}>
-                    Inline code toggles become cloze
-                  </h3>
-                  <div className={fieldStyles.section}>
-                    <label className={fieldStyles.toggleRow}>
-                      <span className={fieldStyles.toggleSwitch}>
-                        <input
-                          type="checkbox"
-                          role="switch"
-                          disabled={!(checkboxValues['cloze'] ?? true)}
-                          checked={
-                            checkboxValues['cloze-from-toggle-content'] ?? false
-                          }
-                          onChange={(e) =>
-                            toggleCheckbox(
-                              'cloze-from-toggle-content',
-                              e.target.checked
-                            )
-                          }
-                        />
-                        <span className={fieldStyles.toggleSwitchTrack} aria-hidden />
-                      </span>
-                      <span className={fieldStyles.toggleLabel}>
-                        Inline code toggles become cloze
-                      </span>
-                    </label>
-                    {(checkboxValues['cloze'] ?? true) ? (
-                      <p className={fieldStyles.sectionHint}>
-                        When a toggle&apos;s contents contain inline code, hide the
-                        code as a cloze and use the toggle header as the hint. Works
-                        only when Cloze deletion is on.
-                      </p>
-                    ) : (
-                      <p className={fieldStyles.sectionHint}>Turn on Cloze deletion cards first.</p>
-                    )}
-                  </div>
-                </div>
+                  heading="Inline code toggles become cloze"
+                  label="Inline code toggles become cloze"
+                  helperText="When a toggle's contents contain inline code, hide the code as a cloze and use the toggle header as the hint. Works only when Cloze deletion is on."
+                  checked={checkboxValues['cloze-from-toggle-content'] ?? false}
+                  clozeEnabled={checkboxValues['cloze'] ?? true}
+                  onChange={(checked) =>
+                    toggleCheckbox('cloze-from-toggle-content', checked)
+                  }
+                />
               )}
               {isCardTypesGroup && (
                 <div className={fieldStyles.optionGroup} id="audio">
