@@ -18,7 +18,6 @@ interface PrefsBody {
   cardOptions?: unknown;
   theme?: unknown;
   ankiWebAcknowledgedAt?: unknown;
-  uploadPrimerDismissedAt?: unknown;
 }
 
 function validatePrefsBody(body: PrefsBody, res: Response): boolean {
@@ -32,10 +31,6 @@ function validatePrefsBody(body: PrefsBody, res: Response): boolean {
   }
   if (body.ankiWebAcknowledgedAt !== undefined && !isValidTimestamp(body.ankiWebAcknowledgedAt)) {
     res.status(400).json({ message: 'ankiWebAcknowledgedAt must be a valid ISO timestamp.' });
-    return false;
-  }
-  if (body.uploadPrimerDismissedAt !== undefined && !isValidTimestamp(body.uploadPrimerDismissedAt)) {
-    res.status(400).json({ message: 'uploadPrimerDismissedAt must be a valid ISO timestamp.' });
     return false;
   }
   return true;
@@ -61,29 +56,27 @@ export class UserPreferencesController {
   }
 
   async patch(req: Request, res: Response): Promise<void> {
-    const { cardOptions, theme, ankiWebAcknowledgedAt, uploadPrimerDismissedAt } = req.body;
-    if (!validatePrefsBody({ cardOptions, theme, ankiWebAcknowledgedAt, uploadPrimerDismissedAt }, res)) return;
+    const { cardOptions, theme, ankiWebAcknowledgedAt } = req.body;
+    if (!validatePrefsBody({ cardOptions, theme, ankiWebAcknowledgedAt }, res)) return;
     const userId = res.locals.owner as number;
     const prefs = await this.patchUseCase.execute({
       userId,
       cardOptions,
       theme,
       ankiWebAcknowledgedAt,
-      uploadPrimerDismissedAt,
     });
     res.status(200).json(prefs);
   }
 
   async migrate(req: Request, res: Response): Promise<void> {
-    const { cardOptions, theme, ankiWebAcknowledgedAt, uploadPrimerDismissedAt } = req.body;
-    if (!validatePrefsBody({ cardOptions, theme, ankiWebAcknowledgedAt, uploadPrimerDismissedAt }, res)) return;
+    const { cardOptions, theme, ankiWebAcknowledgedAt } = req.body;
+    if (!validatePrefsBody({ cardOptions, theme, ankiWebAcknowledgedAt }, res)) return;
     const userId = res.locals.owner as number;
     const prefs = await this.migrateUseCase.execute({
       userId,
       cardOptions,
       theme,
       ankiWebAcknowledgedAt,
-      uploadPrimerDismissedAt,
     });
     res.status(200).json(prefs);
   }
