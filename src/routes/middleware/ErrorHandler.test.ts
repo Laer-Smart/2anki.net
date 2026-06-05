@@ -151,6 +151,25 @@ describe('ErrorHandler', () => {
     );
   });
 
+  test('never sends raw output to the client for an unknown PythonExitError', async () => {
+    const res = makeResponse(false);
+    const req = makeRequest();
+
+    const err = new PythonExitError('generic message', {
+      kind: 'unknown',
+      rawOutput: 'KeyError: /workspace/123/deck.html exploded',
+      code: 1,
+    });
+
+    await ErrorHandler(res as unknown as express.Response, req, err);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.json).toHaveBeenCalledWith({
+      code: 'unknown',
+      message: 'generic message',
+    });
+  });
+
   test('emits code=too_large for multer LIMIT_FILE_SIZE', async () => {
     const res = makeResponse(false);
     const req = makeRequest();

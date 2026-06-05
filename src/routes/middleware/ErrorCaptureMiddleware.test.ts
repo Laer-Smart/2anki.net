@@ -5,6 +5,7 @@ import {
   ErrorEventInsert,
 } from '../../data_layer/ErrorEventRepository';
 import { FallbackErrorPayload } from '../../lib/errorFallback';
+import { PythonExitError } from '../../lib/anki/buildPythonExitError';
 
 function makeRepository(
   existsResult = false
@@ -173,6 +174,53 @@ describe('makeErrorCaptureMiddleware', () => {
     ).resolves.not.toThrow();
 
     expect(next).toHaveBeenCalledWith(testError);
+  });
+
+  it('captures scrubbed raw output in context for an unknown PythonExitError', async () => {
+    const repo = makeRepository();
+    const middleware = makeErrorCaptureMiddleware(repo);
+    const next = makeNext();
+    const err = new PythonExitError('generic message', {
+      kind: 'unknown',
+      rawOutput: `KeyError: /workspace/123/deck.html exploded\n${'y'.repeat(2000)}`,
+      code: 1,
+    });
+
+    await middleware(err, makeReq(), makeRes(), next);
+
+    expect(repo.inserts).toHaveLength(1);
+    const context = repo.inserts[0].context as Record<string, unknown>;
+    expect(context.python_crash_kind).toBe('unknown');
+    expect(context.python_exit_code).toBe(1);
+    expect(context.python_raw_output).toMatch(/^KeyError: \[path\] exploded/);
+    expect((context.python_raw_output as string).length).toBeLessThanOrEqual(500);
+    expect(next).toHaveBeenCalledWith(err);
+  });
+
+  it('sets context to null for a classified PythonExitError', async () => {
+    const repo = makeRepository();
+    const middleware = makeErrorCaptureMiddleware(repo);
+    const next = makeNext();
+    const err = new PythonExitError('markup message', {
+      kind: 'invalid-markup',
+      rawOutput: 'UserWarning: Field contained the following invalid HTML tags',
+      code: 1,
+    });
+
+    await middleware(err, makeReq(), makeRes(), next);
+
+    expect(repo.inserts).toHaveLength(1);
+    expect(repo.inserts[0].context).toBeNull();
+  });
+
+  it('sets context to null for a plain Error', async () => {
+    const repo = makeRepository();
+    const middleware = makeErrorCaptureMiddleware(repo);
+    const next = makeNext();
+
+    await middleware(testError, makeReq(), makeRes(), next);
+
+    expect(repo.inserts[0].context).toBeNull();
   });
 
   it('calls writeFallback with db-outage phase when the repository insert fails', async () => {
