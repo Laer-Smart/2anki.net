@@ -152,6 +152,67 @@ describe('GeneratePackagesUseCase', () => {
     await expect(promise).rejects.toBeInstanceOf(EmptyDeckError);
   });
 
+  it('rejects with a non-empty parser-crash error when the worker error has no message', async () => {
+    const emitter = makeWorkerEmitter();
+    const useCase = new GeneratePackagesUseCase();
+
+    const promise = useCase.execute(
+      false,
+      [makeFile('garbled.html')],
+      makeSettings(),
+      makeWorkspace()
+    );
+
+    emitter.emit('message', { type: 'error' });
+
+    const err = await promise.catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).message.trim()).not.toBe('');
+    expect((err as Error & { code?: string }).code).toBe('PARSER_CRASH');
+  });
+
+  it('rejects with a non-empty parser-crash error when the worker error message is blank', async () => {
+    const emitter = makeWorkerEmitter();
+    const useCase = new GeneratePackagesUseCase();
+
+    const promise = useCase.execute(
+      false,
+      [makeFile('garbled.html')],
+      makeSettings(),
+      makeWorkspace()
+    );
+
+    emitter.emit('message', { type: 'error', message: '  ' });
+
+    const err = await promise.catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).message.trim()).not.toBe('');
+    expect((err as Error & { code?: string }).code).toBe('PARSER_CRASH');
+  });
+
+  it('preserves the markdown sourceFormat on EmptyDeckError across the worker boundary', async () => {
+    const emitter = makeWorkerEmitter();
+    const useCase = new GeneratePackagesUseCase();
+
+    const promise = useCase.execute(
+      false,
+      [makeFile('flat-export.md')],
+      makeSettings(),
+      makeWorkspace()
+    );
+
+    emitter.emit('message', {
+      type: 'error',
+      message: 'No cards found in your upload. Use .zip, .html, .md, or .csv.',
+      name: 'EmptyDeckError',
+      sourceFormat: 'markdown',
+    });
+
+    const err = await promise.catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(EmptyDeckError);
+    expect((err as EmptyDeckError).sourceFormat).toBe('markdown');
+  });
+
   it('preserves error name on the rejected Error for non-EmptyDeckError named errors', async () => {
     const emitter = makeWorkerEmitter();
     const useCase = new GeneratePackagesUseCase();

@@ -779,6 +779,58 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
     expect(updateMock).toHaveBeenCalledTimes(1);
     expect(updateMock.mock.calls[0][4]).toBeNull();
   });
+
+  async function runAsyncUploadThatRejects(rejection: unknown): Promise<jest.Mock> {
+    let resolveFailed!: () => void;
+    const failedRecorded = new Promise<void>((r) => {
+      resolveFailed = r;
+    });
+    const updateJobStatusMock = jest
+      .fn()
+      .mockImplementation((_id: string, _owner: string, status: string) => {
+        if (status === 'failed') {
+          resolveFailed();
+        }
+        return Promise.resolve(undefined);
+      });
+    const jobRepository = {
+      create: jest.fn().mockResolvedValue(undefined),
+      updateJobStatus: updateJobStatusMock,
+      findJobById: jest.fn().mockResolvedValue(null),
+      deleteJob: jest.fn().mockResolvedValue(undefined),
+    } as unknown as JobRepository;
+
+    MockGeneratePackagesUseCase.mockImplementation(() => ({
+      execute: jest.fn().mockRejectedValue(rejection),
+    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+
+    const service = new UploadService(buildRepository(), jobRepository, buildUsersRepo());
+    const req = buildRequest({ body: { 'claude-ai-flashcards': 'true' } });
+    const { res } = buildResponse();
+    (res.locals as Record<string, unknown>).owner = 42;
+
+    await service.handleUpload(req, res);
+    await failedRecorded;
+    return updateJobStatusMock;
+  }
+
+  it('records a non-empty failure reason when the worker rejects with an empty-message error', async () => {
+    const updateJobStatusMock = await runAsyncUploadThatRejects(new Error(''));
+
+    const failedCall = updateJobStatusMock.mock.calls.find((call) => call[2] === 'failed');
+    expect(failedCall).toBeDefined();
+    const reason = failedCall?.[3] as string;
+    expect(typeof reason).toBe('string');
+    expect(reason.trim()).not.toBe('');
+  });
+
+  it('records the designed empty-deck reason when the worker rejects with EmptyDeckError', async () => {
+    const updateJobStatusMock = await runAsyncUploadThatRejects(new EmptyDeckError());
+
+    const failedCall = updateJobStatusMock.mock.calls.find((call) => call[2] === 'failed');
+    expect(failedCall).toBeDefined();
+    expect(failedCall?.[3]).toMatch(/^No cards in this deck yet\./);
+  });
 });
 
 describe('UploadService.handleUpload — multi-deck batch', () => {

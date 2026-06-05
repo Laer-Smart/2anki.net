@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-05-empty-export-crash",
+  "date": "2026-06-05",
+  "type": "fix",
+  "title": "Uploads that produce no cards show what to fix instead of failing silently"
+}
