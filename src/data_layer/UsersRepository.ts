@@ -3,6 +3,7 @@ import { Knex } from 'knex';
 import Users from './public/Users';
 import Subscriptions from './public/Subscriptions';
 import { isNewMonth } from '../lib/User/isNewMonth';
+import { startOfMonthUtc } from '../lib/User/startOfMonthUtc';
 import DeletedUserUsageRepository from './DeletedUserUsageRepository';
 import { emailHash } from '../lib/emailHash';
 
@@ -21,6 +22,11 @@ export interface ISignupCountryRepository {
 export interface IUserSignupCountsRepository {
   countTotalUsers(): Promise<number>;
   countSignupsSince(since: Date): Promise<number>;
+}
+
+function toDateOrNull(value: Date | string | number | null): Date | null {
+  if (value == null) return null;
+  return value instanceof Date ? value : new Date(value);
 }
 
 class UsersRepository {
@@ -286,9 +292,17 @@ class UsersRepository {
     if (!row) {
       return { cards_used: 0, month_started_at: null };
     }
-    const startedAt: Date | null = row.cards_month_started_at ?? null;
+    const startedAt = toDateOrNull(row.cards_month_started_at ?? null);
     if (startedAt && isNewMonth(startedAt, new Date())) {
-      return { cards_used: 0, month_started_at: startedAt };
+      const monthStart = startOfMonthUtc(new Date());
+      await this.database(this.table)
+        .where({ id })
+        .where('cards_month_started_at', '<', monthStart)
+        .update({
+          cards_used_this_month: 0,
+          cards_month_started_at: monthStart,
+        });
+      return { cards_used: 0, month_started_at: monthStart };
     }
     return {
       cards_used: row.cards_used_this_month ?? 0,
@@ -361,15 +375,17 @@ class UsersRepository {
 
   incrementCardUsage(id: string | number, cardCount: number) {
     if (cardCount <= 0) return Promise.resolve(0);
+    const monthStart = startOfMonthUtc(new Date());
     return this.database(this.table)
       .where({ id })
       .update({
         cards_used_this_month: this.database.raw(
-          `CASE WHEN cards_month_started_at < date_trunc('month', NOW()) THEN ? ELSE cards_used_this_month + ? END`,
-          [cardCount, cardCount]
+          `CASE WHEN cards_month_started_at < ? THEN ? ELSE cards_used_this_month + ? END`,
+          [monthStart, cardCount, cardCount]
         ),
         cards_month_started_at: this.database.raw(
-          `CASE WHEN cards_month_started_at < date_trunc('month', NOW()) THEN date_trunc('month', NOW()) ELSE cards_month_started_at END`
+          `CASE WHEN cards_month_started_at < ? THEN ? ELSE cards_month_started_at END`,
+          [monthStart, monthStart]
         ),
       });
   }
