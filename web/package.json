@@ -64,7 +64,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
     "@vitest/coverage-v8": "^4.1.5",
-    "@vitest/ui": "^4.1.7",
+    "@vitest/ui": "^4.1.8",
     "concurrently": "^10.0.0",
     "cors": "^2.8.6",
     "cross-env": "^10.1.0",
@@ -72,13 +72,13 @@
     "express": "^5.2.1",
     "jsdom": "^29.1.1",
     "playwright": "^1.60.0",
-    "swagger-typescript-api": "^13.12.0",
+    "swagger-typescript-api": "^13.12.1",
     "swagger-ui-express": "^5.0.1",
     "terser": "^5.48.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.14",
+    "vite": "^8.0.16",
     "vite-plugin-svgr": "^5.2.0",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.8"
   },
   "browserslist": {
     "production": [
