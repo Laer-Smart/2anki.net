@@ -483,11 +483,11 @@ describe('DownloadsPage failure reason panel', () => {
     expect(screen.queryByText(/Your page title has a "\/" in it/)).not.toBeInTheDocument();
   });
 
-  it('renders failure panel content for empty deck errors', () => {
+  it('renders the toggle teaching copy and docs CTA for empty deck errors', () => {
     mockJobs = [
       buildJob({
         status: 'failed',
-        job_reason_failure: 'No cards in this deck yet. 2anki turns Notion toggle blocks into flashcards — the toggle title becomes the question, what\'s inside is the answer. Wrap your key terms in toggles in Notion, then convert again.',
+        job_reason_failure: 'No cards in this deck yet. 2anki makes a card from every Notion toggle — the toggle title becomes the question, what\'s inside becomes the answer. Wrap your key terms in toggles, then convert again.',
       }),
     ];
     renderAt('/downloads');
@@ -495,10 +495,12 @@ describe('DownloadsPage failure reason panel', () => {
     const statusButton = screen.getByRole('button', { name: /Show failure reason/i });
     fireEvent.click(statusButton);
 
-    expect(screen.queryByText(/Learn more/)).not.toBeInTheDocument();
+    expect(screen.getByText(/makes a card from every Notion toggle/i)).toBeInTheDocument();
+    const cta = screen.getByRole('link', { name: 'See how toggles become cards' });
+    expect(cta).toHaveAttribute('href', '/documentation/cards/notion-blocks');
   });
 
-  it('does not show Learn more link for non-empty-deck errors', () => {
+  it('does not show the toggles docs CTA for non-empty-deck errors', () => {
     mockJobs = [
       buildJob({
         status: 'failed',
@@ -510,7 +512,7 @@ describe('DownloadsPage failure reason panel', () => {
     const statusButton = screen.getByRole('button', { name: /Show failure reason/i });
     fireEvent.click(statusButton);
 
-    expect(screen.queryByText(/Learn more/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'See how toggles become cards' })).not.toBeInTheDocument();
   });
 });
 

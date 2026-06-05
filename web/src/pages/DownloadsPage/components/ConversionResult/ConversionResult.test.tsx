@@ -122,6 +122,27 @@ describe('ConversionResult — failed variant', () => {
     expect(screen.getByRole('link', { name: 'Reconnect Notion' })).toBeInTheDocument();
   });
 
+  it('shows the toggle teaching copy and docs CTA for an empty deck without falling through to Check status', () => {
+    const emptyDeckReason =
+      "No cards in this deck yet. 2anki makes a card from every Notion toggle — the toggle title becomes the question, what's inside becomes the answer. Wrap your key terms in toggles, then convert again.";
+    render(
+      <MemoryRouter>
+        <ConversionResult
+          variant="failed"
+          title="Empty Notion page"
+          failureReason={emptyDeckReason}
+          source="notion"
+          onMapColumns={vi.fn()}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/makes a card from every Notion toggle/i)).toBeInTheDocument();
+    const cta = screen.getByRole('link', { name: 'See how toggles become cards' });
+    expect(cta.getAttribute('href')).toBe('/documentation/cards/notion-blocks');
+    expect(screen.queryByText(/Check status/i)).toBeNull();
+  });
+
   it('shows a subpages recovery hint when the server reports a too-large OOM failure', () => {
     const tooLargeReason =
       'This page is too large for us to convert in one go. Split it into smaller pages — or convert it section by section — and try again.';

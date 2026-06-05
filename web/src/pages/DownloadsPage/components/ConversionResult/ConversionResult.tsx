@@ -10,6 +10,11 @@ import styles from './ConversionResult.module.css';
 type Source = 'notion' | 'upload' | 'dropbox' | 'drive';
 
 const NOTION_TOKEN_EXPIRED_REASON = 'notion_token_expired';
+const EMPTY_DECK_REASON_PREFIX = 'No cards in this deck yet.';
+const TOGGLES_DOCS_LABEL = 'See how toggles become cards';
+const TOGGLES_DOCS_HREF = '/documentation/cards/notion-blocks';
+const EMPTY_DECK_TEACHING_COPY =
+  "2anki makes a card from every Notion toggle — the toggle title becomes the question, what's inside becomes the answer. Wrap your key terms in toggles, then convert again.";
 
 interface ProcessingProps {
   variant: 'processing';
@@ -65,6 +70,20 @@ function FailedVariant({ failureReason, source, onMapColumns }: Omit<FailedProps
         <a href="/notion" className={sharedStyles.btnPrimary}>
           Reconnect Notion
         </a>
+      </div>
+    );
+  }
+
+  if (failureReason.startsWith(EMPTY_DECK_REASON_PREFIX)) {
+    return (
+      <div>
+        <p>{EMPTY_DECK_TEACHING_COPY}</p>
+        <Link
+          to={TOGGLES_DOCS_HREF}
+          className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
+        >
+          {TOGGLES_DOCS_LABEL}
+        </Link>
       </div>
     );
   }

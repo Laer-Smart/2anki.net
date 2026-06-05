@@ -1,4 +1,5 @@
 import { normalizeFailureReasons } from './normalizeFailureReasons';
+import { EMPTY_DECK_FAILURE_REASON } from '../usecases/jobs/jobFailureReason';
 
 describe('normalizeFailureReasons', () => {
   it('excludes monthly_limit quota blocks entirely', () => {
@@ -27,8 +28,7 @@ describe('normalizeFailureReasons', () => {
   it('buckets the empty-deck prose message to empty_deck', () => {
     const result = normalizeFailureReasons([
       {
-        reason:
-          "No cards in this deck yet. 2anki turns Notion toggle blocks into flashcards — the toggle title becomes the question, what's inside is the answer. Wrap your key terms in toggles in Notion, then convert again.",
+        reason: EMPTY_DECK_FAILURE_REASON,
         count: 4,
       },
     ]);

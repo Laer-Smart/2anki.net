@@ -244,8 +244,10 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
             {blocks.length === 0 && (
               <EmptyState
                 icon="📄"
-                title="Nothing to preview"
-                description="This page has no blocks to preview."
+                title="Nothing to turn into cards yet"
+                description="2anki makes a card from every toggle on this page — the toggle title becomes the question, what's inside becomes the answer. This page has no toggles yet. Add a few in Notion, then preview again."
+                actionLabel="See how toggles become cards"
+                actionHref="/documentation/cards/notion-blocks"
               />
             )}
             {blocks.map((block) => (
