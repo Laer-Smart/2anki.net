@@ -679,10 +679,16 @@ export class DeckParser {
         hasInlineClozeCode(card.back)
       ) {
         const header = card.name;
-        card.name = handleClozeDeletions(card.back);
+        card.name = handleClozeDeletions(
+          card.back,
+          this.settings.groupClozePerToggle
+        );
         card.back = header;
       } else {
-        card.name = handleClozeDeletions(card.name);
+        card.name = handleClozeDeletions(
+          card.name,
+          this.settings.groupClozePerToggle
+        );
       }
     }
 

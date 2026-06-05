@@ -30,9 +30,13 @@ function handleRegularCloze(content: string, num: number): string {
   return content.match(/c\d::/) ? `{{${content}}}` : `{{c${num}::${content}}}`;
 }
 
-export default function handleClozeDeletions(input: string) {
+export default function handleClozeDeletions(
+  input: string,
+  groupClozePerToggle = false
+) {
   const merged = mergeAdjacentCodeSiblingsInString(input);
   let num = findHighestClozeNumber(merged);
+  const next = () => (groupClozePerToggle ? num : num++);
   const dom = cheerio.load(merged);
   const clozeDeletions = dom('code');
   let mangle = merged;
@@ -49,7 +53,7 @@ export default function handleClozeDeletions(input: string) {
       mangle = replaceAll(
         mangle,
         old,
-        handleKatexCloze(v, num++, isStandalone)
+        handleKatexCloze(v, next(), isStandalone)
       );
       return;
     }
@@ -65,7 +69,7 @@ export default function handleClozeDeletions(input: string) {
       return;
     }
 
-    mangle = replaceAll(mangle, old, handleRegularCloze(v, num++));
+    mangle = replaceAll(mangle, old, handleRegularCloze(v, next()));
   });
 
   return mangle;

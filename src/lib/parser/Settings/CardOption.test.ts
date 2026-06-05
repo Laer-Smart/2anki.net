@@ -36,3 +36,21 @@ describe('CardOption downloadPdfs', () => {
     expect(CardOption.LoadDefaultOptions()['download-pdfs']).toBe('false');
   });
 });
+
+describe('CardOption groupClozePerToggle', () => {
+  it('defaults to false when the option is absent', () => {
+    const option = new CardOption({});
+    expect(option.groupClozePerToggle).toBe(false);
+  });
+
+  it('reads true from the payload', () => {
+    const option = new CardOption({ 'group-cloze-per-toggle': 'true' });
+    expect(option.groupClozePerToggle).toBe(true);
+  });
+
+  it('ships group-cloze-per-toggle as false in the default options payload', () => {
+    expect(CardOption.LoadDefaultOptions()['group-cloze-per-toggle']).toBe(
+      'false'
+    );
+  });
+});
