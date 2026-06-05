@@ -23,6 +23,7 @@ import {
   buildVocabDeckFromEpub,
   buildVocabDeckFromKindleClippings,
 } from './BuildVocabDeckUseCase';
+import { EmptyDeckError } from '../jobs/EmptyDeckError';
 
 interface GenerationData {
   paying: boolean;
@@ -202,6 +203,7 @@ if (workerData != null) {
         type: 'error',
         message: err instanceof Error ? err.message : String(err),
         name: err instanceof Error ? err.name : undefined,
+        sourceFormat: err instanceof EmptyDeckError ? err.sourceFormat : undefined,
       })
     );
 }

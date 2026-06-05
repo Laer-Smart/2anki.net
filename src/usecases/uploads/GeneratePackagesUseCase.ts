@@ -14,8 +14,34 @@ export interface PackageResult {
 
 type ProgressMessage = { type: 'progress'; step: string };
 type ResultMessage = { type: 'result'; packages: Package[]; warnings?: string[] };
-type ErrorMessage = { type: 'error'; message: string; name?: string };
+type ErrorMessage = {
+  type: 'error';
+  message?: string;
+  name?: string;
+  sourceFormat?: 'markdown';
+};
 type WorkerMessage = ProgressMessage | ResultMessage | ErrorMessage;
+
+function buildWorkerError(msg: ErrorMessage): Error {
+  if (msg.name === 'EmptyDeckError') {
+    return new EmptyDeckError(msg.sourceFormat);
+  }
+  if (msg.message != null && msg.message.trim() !== '') {
+    const e = new Error(msg.message);
+    if (msg.name != null) {
+      e.name = msg.name;
+    }
+    return e;
+  }
+  const fallback = new Error(
+    'Upload worker reported an error without a message'
+  ) as Error & { code: string };
+  fallback.code = 'PARSER_CRASH';
+  if (msg.name != null) {
+    fallback.name = msg.name;
+  }
+  return fallback;
+}
 
 class GeneratePackagesUseCase {
   execute(
@@ -43,15 +69,7 @@ class GeneratePackagesUseCase {
         if (msg.type === 'progress') {
           onProgress?.(msg.step);
         } else if (msg.type === 'error') {
-          if (msg.name === 'EmptyDeckError') {
-            reject(new EmptyDeckError());
-          } else {
-            const e = new Error(msg.message);
-            if (msg.name != null) {
-              e.name = msg.name;
-            }
-            reject(e);
-          }
+          reject(buildWorkerError(msg));
         } else {
           resolve({ packages: msg.packages ?? [], warnings: msg.warnings });
         }

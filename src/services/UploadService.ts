@@ -17,7 +17,10 @@ import { isLimitError } from '../lib/misc/isLimitError';
 import { handleUploadLimitError } from '../controllers/Upload/helpers/handleUploadLimitError';
 import { getUploadValidationError } from '../lib/upload/getUploadValidationError';
 import { EmptyDeckError } from '../usecases/jobs/EmptyDeckError';
-import { MARKDOWN_LIKELY_LOSSY_REASON } from '../usecases/jobs/jobFailureReason';
+import {
+  MARKDOWN_LIKELY_LOSSY_REASON,
+  jobFailureReasonFromError,
+} from '../usecases/jobs/jobFailureReason';
 import { DeckTooLargeError } from '../lib/parser/exporters/DeckTooLargeError';
 import { getOwner } from '../lib/User/getOwner';
 import { formatDeckName } from '../lib/formatDeckName';
@@ -104,6 +107,20 @@ function walkMediaFiles(dir: string): string[] {
     }
   }
   return results;
+}
+
+function resolveAsyncFailureReason(
+  err: unknown,
+  message: string,
+  jobId: string
+): string {
+  const isParserCrash =
+    err instanceof Error &&
+    (err as Error & { code?: string }).code === 'PARSER_CRASH';
+  if (err instanceof EmptyDeckError || isParserCrash || message.trim() === '') {
+    return jobFailureReasonFromError(err, jobId);
+  }
+  return message;
 }
 
 function logNoPackageDiagnostics(uploadedFiles: UploadedFile[]) {
@@ -398,7 +415,8 @@ class UploadService {
         } else {
           console.error('[UploadService] async job failed', { jobId: ws.id, message, err });
         }
-        await this.jobRepository.updateJobStatus(ws.id, owner, 'failed', message);
+        const reason = resolveAsyncFailureReason(err, message, ws.id);
+        await this.jobRepository.updateJobStatus(ws.id, owner, 'failed', reason);
       });
 
     return res.status(202).json({ jobId: ws.id });
