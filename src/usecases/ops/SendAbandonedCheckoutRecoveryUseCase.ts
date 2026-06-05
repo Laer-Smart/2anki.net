@@ -56,7 +56,10 @@ export class SendAbandonedCheckoutRecoveryUseCase {
           }
         }
         const token = crypto.randomUUID();
-        await this.emailService.sendAbandonedCheckoutRecoveryEmail(email, token);
+        await this.emailService.sendAbandonedCheckoutRecoveryEmail(
+          email,
+          token
+        );
         if (this.repository != null) {
           await this.repository.recordEmailSend(email, token);
         }

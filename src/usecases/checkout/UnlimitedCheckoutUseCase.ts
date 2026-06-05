@@ -25,9 +25,13 @@ export class UnlimitedCheckoutUseCase {
     surface?: string;
     gaClientId?: string;
   }): Promise<UnlimitedCheckoutResult> {
-    console.info('unlimited.checkout.started', { user_id: input.userId, interval: input.interval });
+    console.info('unlimited.checkout.started', {
+      user_id: input.userId,
+      interval: input.interval,
+    });
 
-    const priceId = input.interval === 'year' ? this.yearlyPriceId : this.monthlyPriceId;
+    const priceId =
+      input.interval === 'year' ? this.yearlyPriceId : this.monthlyPriceId;
     const appUrl = process.env.APP_URL ?? 'https://2anki.net';
 
     const sessionParams: StripeTypes.Checkout.SessionCreateParams = {
@@ -35,7 +39,8 @@ export class UnlimitedCheckoutUseCase {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${appUrl}/upload`,
       cancel_url: `${appUrl}/pricing`,
-      customer_email: input.stripeCustomerId == null ? input.userEmail : undefined,
+      customer_email:
+        input.stripeCustomerId == null ? input.userEmail : undefined,
       customer: input.stripeCustomerId ?? undefined,
       after_expiration: { recovery: { enabled: true } },
       metadata: {

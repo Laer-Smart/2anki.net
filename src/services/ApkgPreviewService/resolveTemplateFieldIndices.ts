@@ -44,8 +44,7 @@ export function resolveTemplateFieldIndices(
   const ordByName = new Map(
     noteType.fields.map((field) => [field.name, field.ord])
   );
-  const frontFieldIndex =
-    referencedFieldOrds(template.qfmt, ordByName)[0] ?? 0;
+  const frontFieldIndex = referencedFieldOrds(template.qfmt, ordByName)[0] ?? 0;
   const backFieldIndex =
     referencedFieldOrds(template.afmt, ordByName).find(
       (ord) => ord !== frontFieldIndex

@@ -110,12 +110,21 @@ describe('LimitPage', () => {
   });
 
   it('starts a Day Pass checkout when Get Day Pass is clicked', async () => {
-    mockStartPassCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/pass' });
-    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
+    mockStartPassCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.com/pass',
+    });
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
     renderPage();
     fireEvent.click(screen.getByRole('button', { name: 'Get Day Pass' }));
     await vi.waitFor(() => {
-      expect(mockStartPassCheckout).toHaveBeenCalledWith('24h', undefined, 'limit-wall');
+      expect(mockStartPassCheckout).toHaveBeenCalledWith(
+        '24h',
+        undefined,
+        'limit-wall'
+      );
       expect(globalThis.location.href).toBe('https://checkout.stripe.com/pass');
     });
   });
@@ -154,7 +163,9 @@ describe('LimitPage — anonymous variant', () => {
   it('shows a "Sign up free and finish converting" CTA pointing at /register', () => {
     renderPage();
     const cta = screen.getByText('Sign up free and finish converting');
-    expect(cta.closest('a')?.getAttribute('href')).toBe('/register?redirect=/upload');
+    expect(cta.closest('a')?.getAttribute('href')).toBe(
+      '/register?redirect=/upload'
+    );
   });
 
   it('lists the cap-fix benefit first', () => {
@@ -165,7 +176,9 @@ describe('LimitPage — anonymous variant', () => {
   it('keeps a secondary Sign in link', () => {
     renderPage();
     const signIn = screen.getByText('Sign in');
-    expect(signIn.closest('a')?.getAttribute('href')).toBe('/login?redirect=/upload');
+    expect(signIn.closest('a')?.getAttribute('href')).toBe(
+      '/login?redirect=/upload'
+    );
   });
 
   it('does not show the monthly-limit upgrade UI for anonymous users', () => {

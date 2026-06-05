@@ -6,13 +6,17 @@ interface SkeletonProps {
   radius?: string;
 }
 
-export function Skeleton({ width, height = '1rem', radius }: Readonly<SkeletonProps>) {
+export function Skeleton({
+  width,
+  height = '1rem',
+  radius,
+}: Readonly<SkeletonProps>) {
   return (
     <span
       className={styles.skeleton}
       aria-hidden="true"
       style={{
-        width: typeof width === 'number' ? `${width}px` : width ?? '100%',
+        width: typeof width === 'number' ? `${width}px` : (width ?? '100%'),
         height: typeof height === 'number' ? `${height}px` : height,
         borderRadius: radius,
       }}
@@ -34,7 +38,11 @@ export function SkeletonRow({
   return (
     <div className={styles.row}>
       <div className={styles.rowMeta}>
-        <Skeleton width={iconSize} height={iconSize} radius="var(--radius-sm)" />
+        <Skeleton
+          width={iconSize}
+          height={iconSize}
+          radius="var(--radius-sm)"
+        />
         <Skeleton width={titleWidth} height="1rem" />
       </div>
       <div className={styles.rowActions}>

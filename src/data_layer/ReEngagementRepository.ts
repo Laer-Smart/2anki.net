@@ -10,7 +10,9 @@ export interface IReEngagementRepository {
     comment: string | null
   ): Promise<void>;
   findByToken(token: string): Promise<{ id: number; userId: number } | null>;
-  getUsersToEmail(): Promise<Array<{ id: number; name: string; email: string }>>;
+  getUsersToEmail(): Promise<
+    Array<{ id: number; name: string; email: string }>
+  >;
 }
 
 interface EmailRow {
@@ -77,9 +79,15 @@ export class ReEngagementRepository implements IReEngagementRepository {
       return { id: inactivityRow.id, userId: inactivityRow.user_id };
     }
 
-    const abandonedRow = await this.database('abandoned_checkout_recovery_emails')
+    const abandonedRow = await this.database(
+      'abandoned_checkout_recovery_emails'
+    )
       .select('users.id as user_id')
-      .join('users', 'users.email', 'abandoned_checkout_recovery_emails.user_email')
+      .join(
+        'users',
+        'users.email',
+        'abandoned_checkout_recovery_emails.user_email'
+      )
       .where('abandoned_checkout_recovery_emails.token', token)
       .first<{ user_id: number }>();
     if (abandonedRow == null) {
@@ -119,9 +127,7 @@ export class ReEngagementRepository implements IReEngagementRepository {
   }
 }
 
-export class InMemoryReEngagementRepository
-  implements IReEngagementRepository
-{
+export class InMemoryReEngagementRepository implements IReEngagementRepository {
   private readonly sentUserIds = new Set<number>();
   private emails: Array<{ id: number; userId: number; token: string }> = [];
   private responses: Array<{
@@ -137,9 +143,7 @@ export class InMemoryReEngagementRepository
     email: string;
   }> = [];
 
-  seedUsers(
-    users: Array<{ id: number; name: string; email: string }>
-  ): void {
+  seedUsers(users: Array<{ id: number; name: string; email: string }>): void {
     this.usersToReturn = users;
   }
 

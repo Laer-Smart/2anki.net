@@ -41,7 +41,10 @@ function SettingsModal({
     >
       <div className={sharedStyles.modalCard}>
         <div className={sharedStyles.modalHeader}>
-          <div id="settings-modal-title" className={sharedStyles.modalHeaderTitle}>
+          <div
+            id="settings-modal-title"
+            className={sharedStyles.modalHeaderTitle}
+          >
             {getVisibleText('card.options')}
           </div>
           <div className={styles.headerActions}>

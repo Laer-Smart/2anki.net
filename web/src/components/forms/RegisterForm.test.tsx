@@ -38,7 +38,10 @@ function fillAndSubmit() {
 function renderForm(redirect?: string, setErrorMessage = vi.fn()) {
   render(
     <MemoryRouter initialEntries={['/register']}>
-      <RegisterForm setErrorMessage={setErrorMessage} redirect={redirect ?? null} />
+      <RegisterForm
+        setErrorMessage={setErrorMessage}
+        redirect={redirect ?? null}
+      />
     </MemoryRouter>
   );
   return setErrorMessage;
@@ -75,9 +78,9 @@ describe('RegisterForm', () => {
     fillAndSubmit();
 
     await waitFor(() => {
-      expect(globalThis.sessionStorage.getItem('signup_completed_tracked')).toBe(
-        '1'
-      );
+      expect(
+        globalThis.sessionStorage.getItem('signup_completed_tracked')
+      ).toBe('1');
     });
   });
 

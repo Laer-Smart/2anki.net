@@ -112,9 +112,7 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
             >
               {loading ? 'Saving…' : 'Reset password'}
             </button>
-            {resetError && (
-              <p className={styles.helpDanger}>{resetError}</p>
-            )}
+            {resetError && <p className={styles.helpDanger}>{resetError}</p>}
           </div>
         </form>
       </div>

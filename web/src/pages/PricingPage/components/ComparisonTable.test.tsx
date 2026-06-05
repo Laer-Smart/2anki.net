@@ -7,8 +7,16 @@ import { ComparisonTable } from './ComparisonTable';
 describe('ComparisonTable', () => {
   it('renders a column for every plan', () => {
     render(<ComparisonTable />);
-    for (const plan of ['Free', 'Day / Week pass', 'Unlimited', 'Auto Sync', 'Lifetime']) {
-      expect(screen.getByRole('columnheader', { name: new RegExp(plan) })).toBeInTheDocument();
+    for (const plan of [
+      'Free',
+      'Day / Week pass',
+      'Unlimited',
+      'Auto Sync',
+      'Lifetime',
+    ]) {
+      expect(
+        screen.getByRole('columnheader', { name: new RegExp(plan) })
+      ).toBeInTheDocument();
     }
   });
 
@@ -20,9 +28,15 @@ describe('ComparisonTable', () => {
 
   it('groups rows under category headers including AI', () => {
     render(<ComparisonTable />);
-    expect(screen.getByRole('columnheader', { name: 'Conversion limits' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'AI (Claude)' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Sync & support' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: 'Conversion limits' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: 'AI (Claude)' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: 'Sync & support' })
+    ).toBeInTheDocument();
   });
 
   it('gates AI multiple choice and AI flashcards to paid tiers', () => {

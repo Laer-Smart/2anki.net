@@ -2,17 +2,17 @@ import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs/promises';
 
-export function getPageCount(pdfPath: string, credential?: string): Promise<number> {
+export function getPageCount(
+  pdfPath: string,
+  credential?: string
+): Promise<number> {
   return new Promise((resolve, reject) => {
     const pdfinfoBin =
       process.platform === 'darwin'
         ? '/usr/local/bin/pdfinfo'
         : '/usr/bin/pdfinfo';
 
-    const args =
-      credential != null
-        ? ['-upw', credential, pdfPath]
-        : [pdfPath];
+    const args = credential != null ? ['-upw', credential, pdfPath] : [pdfPath];
 
     const pdfinfoProcess = spawn(pdfinfoBin, args);
 

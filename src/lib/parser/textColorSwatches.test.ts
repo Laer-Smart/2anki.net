@@ -1,7 +1,4 @@
-import {
-  TEXT_COLOR_SWATCHES,
-  isValidTextColor,
-} from './textColorSwatches';
+import { TEXT_COLOR_SWATCHES, isValidTextColor } from './textColorSwatches';
 
 describe('textColorSwatches', () => {
   it('leads with a Default no-op swatch carrying an empty hex', () => {
@@ -22,7 +19,9 @@ describe('textColorSwatches', () => {
   });
 
   it('gives every non-default swatch a 6-digit hex colour', () => {
-    const colours = TEXT_COLOR_SWATCHES.filter((swatch) => swatch.key !== 'default');
+    const colours = TEXT_COLOR_SWATCHES.filter(
+      (swatch) => swatch.key !== 'default'
+    );
     for (const swatch of colours) {
       expect(swatch.hex).toMatch(/^#[0-9a-f]{6}$/);
     }

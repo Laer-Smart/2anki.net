@@ -1,4 +1,7 @@
-async function send(messageHash: string, method: 'POST' | 'DELETE'): Promise<void> {
+async function send(
+  messageHash: string,
+  method: 'POST' | 'DELETE'
+): Promise<void> {
   const res = await fetch(`/api/ops/errors/${messageHash}/resolve`, { method });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
 }

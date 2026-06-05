@@ -152,14 +152,12 @@ class UsersRepository {
       trx
     );
     if (!seed) return;
-    await trx(this.table)
-      .where({ id })
-      .update({
-        cards_used_this_month: seed.cards_used_this_month,
-        cards_month_started_at: seed.cards_month_started_at,
-        pdf_prints_this_month: seed.pdf_prints_this_month,
-        prints_month_started_at: seed.prints_month_started_at,
-      });
+    await trx(this.table).where({ id }).update({
+      cards_used_this_month: seed.cards_used_this_month,
+      cards_month_started_at: seed.cards_month_started_at,
+      pdf_prints_this_month: seed.pdf_prints_this_month,
+      prints_month_started_at: seed.prints_month_started_at,
+    });
   }
 
   async deleteUser(owner: string) {
@@ -239,10 +237,9 @@ class UsersRepository {
     return subscription?.linked_email;
   }
 
-
   updateLastLoginAt(id: string) {
     return this.database(this.table).where({ id }).update({
-      last_login_at: this.database.fn.now()
+      last_login_at: this.database.fn.now(),
     });
   }
 
@@ -329,8 +326,9 @@ class UsersRepository {
       .where({ id })
       .select('signup_country')
       .first()
-      .then((row: { signup_country: string | null } | undefined) =>
-        row?.signup_country ?? null
+      .then(
+        (row: { signup_country: string | null } | undefined) =>
+          row?.signup_country ?? null
       );
   }
 
@@ -424,9 +422,15 @@ class UsersRepository {
       });
   }
 
-  setStripeCustomerId(id: string | number, stripeCustomerId: string, trx?: Knex.Transaction) {
+  setStripeCustomerId(
+    id: string | number,
+    stripeCustomerId: string,
+    trx?: Knex.Transaction
+  ) {
     const db = trx ?? this.database;
-    return db(this.table).where({ id }).update({ stripe_customer_id: stripeCustomerId });
+    return db(this.table)
+      .where({ id })
+      .update({ stripe_customer_id: stripeCustomerId });
   }
 
   getStripeCustomerId(id: string | number): Promise<string | null> {
@@ -434,7 +438,10 @@ class UsersRepository {
       .where({ id })
       .select('stripe_customer_id')
       .first()
-      .then((row: { stripe_customer_id: string | null } | undefined) => row?.stripe_customer_id ?? null);
+      .then(
+        (row: { stripe_customer_id: string | null } | undefined) =>
+          row?.stripe_customer_id ?? null
+      );
   }
 
   async countTotalUsers(): Promise<number> {
@@ -453,9 +460,7 @@ class UsersRepository {
   }
 }
 
-export class InMemoryUserSignupCountsRepository
-  implements IUserSignupCountsRepository
-{
+export class InMemoryUserSignupCountsRepository implements IUserSignupCountsRepository {
   private totalUsers = 0;
 
   private readonly signupDates: Date[] = [];

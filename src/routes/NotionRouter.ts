@@ -1,6 +1,8 @@
 import express from 'express';
 
-import RequireAuthentication, { OptionalAuthentication } from './middleware/RequireAuthentication';
+import RequireAuthentication, {
+  OptionalAuthentication,
+} from './middleware/RequireAuthentication';
 import RequirePaying from './middleware/RequirePaying';
 import NotionController from '../controllers/NotionController';
 import NotionRepository from '../data_layer/NotionRespository';
@@ -19,7 +21,11 @@ const NotionRouter = () => {
   const topLevelPagesRepository = new NotionTopLevelPagesRepository(database);
   const blocksCacheRepository = new BlocksCacheRepository(database);
   const controller = new NotionController(
-    new NotionService(repository, topLevelPagesRepository, blocksCacheRepository),
+    new NotionService(
+      repository,
+      topLevelPagesRepository,
+      blocksCacheRepository
+    ),
     repository,
     new UsersRepository(database),
     getDefaultEmailService()

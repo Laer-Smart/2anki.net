@@ -8,9 +8,7 @@ import { isFullBlock } from '@notionhq/client';
  * purposes so users don't need to enable heading_* in their rules just to
  * convert toggle-headings.
  */
-export function isToggleHeading(
-  block: BlockObjectResponse
-): boolean {
+export function isToggleHeading(block: BlockObjectResponse): boolean {
   if (!isFullBlock(block)) {
     return false;
   }

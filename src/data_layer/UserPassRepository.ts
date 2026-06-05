@@ -40,7 +40,10 @@ function toUserPass(row: UserPassRow): UserPass {
     id: row.id,
     user_id: row.user_id,
     kind: row.kind as PassKind,
-    expires_at: row.expires_at instanceof Date ? row.expires_at : new Date(row.expires_at),
+    expires_at:
+      row.expires_at instanceof Date
+        ? row.expires_at
+        : new Date(row.expires_at),
     stripe_payment_intent_id: row.stripe_payment_intent_id,
   };
 }
@@ -80,7 +83,8 @@ export class UserPassRepository implements IUserPassRepository {
       .first();
 
     const base = currentActive ? currentActive.expires_at : now;
-    const baseMs = base instanceof Date ? base.getTime() : new Date(base).getTime();
+    const baseMs =
+      base instanceof Date ? base.getTime() : new Date(base).getTime();
     const expiresAt = new Date(baseMs + durationMs);
 
     try {

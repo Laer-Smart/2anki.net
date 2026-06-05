@@ -60,7 +60,11 @@ export default function FailedPaymentsWeeklyChart({
       <BarChart data={data} margin={TIME_SERIES_CHART_MARGIN}>
         <CartesianGrid stroke={GRID_STROKE} vertical={false} />
         <XAxis dataKey="label" tick={AXIS_TICK_STYLE} stroke={AXIS_STROKE} />
-        <YAxis tick={AXIS_TICK_STYLE} stroke={AXIS_STROKE} allowDecimals={false} />
+        <YAxis
+          tick={AXIS_TICK_STYLE}
+          stroke={AXIS_STROKE}
+          allowDecimals={false}
+        />
         <Tooltip content={FailedPaymentsTooltip} cursor={TOOLTIP_CURSOR_FILL} />
         <Bar dataKey="count" fill={SERIES_RED} />
       </BarChart>

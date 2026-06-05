@@ -4,9 +4,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 const navigate = vi.fn();
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>(
-    'react-router-dom',
-  );
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>(
+      'react-router-dom'
+    );
   return { ...actual, useNavigate: () => navigate };
 });
 
@@ -16,7 +17,7 @@ function renderSearch(onClose = vi.fn()) {
   return render(
     <MemoryRouter>
       <DocsSearch isOpen onClose={onClose} />
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 }
 
@@ -25,14 +26,16 @@ describe('DocsSearch', () => {
     const { container } = render(
       <MemoryRouter>
         <DocsSearch isOpen={false} onClose={vi.fn()} />
-      </MemoryRouter>,
+      </MemoryRouter>
     );
     expect(container).toBeEmptyDOMElement();
   });
 
   it('shows popular docs before the user types', () => {
     renderSearch();
-    expect(screen.getByRole('option', { name: /Connect Notion/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: /Connect Notion/i })
+    ).toBeInTheDocument();
   });
 
   it('filters results as the user types', () => {
@@ -50,7 +53,9 @@ describe('DocsSearch', () => {
     const input = screen.getByLabelText('Search the docs');
     fireEvent.change(input, { target: { value: 'image occlusion' } });
     fireEvent.keyDown(input, { key: 'Enter' });
-    expect(navigate).toHaveBeenCalledWith('/documentation/cards/image-occlusion');
+    expect(navigate).toHaveBeenCalledWith(
+      '/documentation/cards/image-occlusion'
+    );
   });
 
   it('closes on Escape', () => {

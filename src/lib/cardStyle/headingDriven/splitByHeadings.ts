@@ -18,9 +18,12 @@ export function splitByHeadings(headings: Heading[]): ChunkPayload[] {
   if (headings.length === 0) return [];
 
   const deepest = findDeepestLevel(headings);
-  const leafHeadings = headings.filter((h) => h.level === deepest && headingHasContent(h));
+  const leafHeadings = headings.filter(
+    (h) => h.level === deepest && headingHasContent(h)
+  );
 
-  const candidates = leafHeadings.length > 0 ? leafHeadings : headings.filter(headingHasContent);
+  const candidates =
+    leafHeadings.length > 0 ? leafHeadings : headings.filter(headingHasContent);
 
   return candidates.map((heading) => ({
     anchor: stripHtml(heading.text).trim(),

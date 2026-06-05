@@ -21,34 +21,79 @@ const GROUPS: Group[] = [
   {
     name: 'Conversion limits',
     rows: [
-      { label: 'Cards per month', values: ['100', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
-      { label: 'Conversions at once', values: ['1', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
-      { label: 'PDF pages per file', values: ['100', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
-      { label: 'Max upload size', values: ['100 MB', '10 GB', '10 GB', '10 GB', '10 GB'] },
-      { label: 'Anki → Notion notes', values: ['1,000', '5,000', '5,000', '5,000', '5,000'] },
+      {
+        label: 'Cards per month',
+        values: ['100', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+      },
+      {
+        label: 'Conversions at once',
+        values: ['1', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+      },
+      {
+        label: 'PDF pages per file',
+        values: ['100', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+      },
+      {
+        label: 'Max upload size',
+        values: ['100 MB', '10 GB', '10 GB', '10 GB', '10 GB'],
+      },
+      {
+        label: 'Anki → Notion notes',
+        values: ['1,000', '5,000', '5,000', '5,000', '5,000'],
+      },
     ],
   },
   {
     name: 'AI (Claude)',
     rows: [
-      { label: 'AI flashcards from PDFs and docs', values: [false, true, true, true, true] },
-      { label: 'Photo to deck (Claude Vision)', values: ['5 / mo', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
-      { label: 'AI multiple choice (MCQ)', values: [false, true, true, true, true] },
-      { label: 'AI card-template drafting', values: ['3', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
+      {
+        label: 'AI flashcards from PDFs and docs',
+        values: [false, true, true, true, true],
+      },
+      {
+        label: 'Photo to deck (Claude Vision)',
+        values: ['5 / mo', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+      },
+      {
+        label: 'AI multiple choice (MCQ)',
+        values: [false, true, true, true, true],
+      },
+      {
+        label: 'AI card-template drafting',
+        values: ['3', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+      },
     ],
   },
   {
     name: 'Study tools',
     rows: [
-      { label: 'Image occlusion', values: ['3 images', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
-      { label: 'Mind maps', values: ['3', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
-      { label: 'Prints to PDF', values: ['1 / mo', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'] },
+      {
+        label: 'Image occlusion',
+        values: [
+          '3 images',
+          'Unlimited',
+          'Unlimited',
+          'Unlimited',
+          'Unlimited',
+        ],
+      },
+      {
+        label: 'Mind maps',
+        values: ['3', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+      },
+      {
+        label: 'Prints to PDF',
+        values: ['1 / mo', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+      },
     ],
   },
   {
     name: 'Sync & support',
     rows: [
-      { label: 'Auto Sync from Notion', values: [false, false, false, true, true] },
+      {
+        label: 'Auto Sync from Notion',
+        values: [false, false, false, true, true],
+      },
       { label: 'No ads', values: [false, true, true, true, true] },
       { label: 'Priority support', values: [false, false, true, true, true] },
     ],
@@ -63,7 +108,12 @@ const GROUPS: Group[] = [
 
 function CheckIcon() {
   return (
-    <svg className={styles.check} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <svg
+      className={styles.check}
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d="M3.5 8.5l3 3 6-6.5"
         stroke="currentColor"
@@ -122,7 +172,11 @@ export function ComparisonTable() {
             {GROUPS.map((group) => (
               <Fragment key={group.name}>
                 <tr className={styles.groupRow}>
-                  <th scope="colgroup" colSpan={PLANS.length + 1} className={styles.groupCell}>
+                  <th
+                    scope="colgroup"
+                    colSpan={PLANS.length + 1}
+                    className={styles.groupCell}
+                  >
                     {group.name}
                   </th>
                 </tr>

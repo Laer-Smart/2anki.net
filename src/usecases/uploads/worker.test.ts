@@ -50,7 +50,11 @@ describe('getFileContents', () => {
 
       expect(infoSpy).toHaveBeenCalledWith(
         '[upload] tempfile dwell',
-        expect.objectContaining({ dwellMs: expect.any(Number), mode: 'buffer', fileSizeBytes: 5 })
+        expect.objectContaining({
+          dwellMs: expect.any(Number),
+          mode: 'buffer',
+          fileSizeBytes: 5,
+        })
       );
       const logged = infoSpy.mock.calls[0][1] as { dwellMs: number };
       expect(logged.dwellMs).toBeGreaterThanOrEqual(0);
@@ -71,7 +75,11 @@ describe('getFileContents', () => {
 
       expect(infoSpy).toHaveBeenCalledWith(
         '[upload] tempfile dwell',
-        expect.objectContaining({ dwellMs: expect.any(Number), mode: 'disk', fileSizeBytes: 12 })
+        expect.objectContaining({
+          dwellMs: expect.any(Number),
+          mode: 'disk',
+          fileSizeBytes: 12,
+        })
       );
       const logged = infoSpy.mock.calls[0][1] as { dwellMs: number };
       expect(logged.dwellMs).toBeGreaterThanOrEqual(0);
@@ -81,7 +89,10 @@ describe('getFileContents', () => {
   });
 
   it('throws when path is set to a missing file and buffer is undefined', () => {
-    const file = makeFile({ path: '/tmp/upload-gone', buffer: undefined as never });
+    const file = makeFile({
+      path: '/tmp/upload-gone',
+      buffer: undefined as never,
+    });
     mockFs.existsSync = jest.fn().mockReturnValue(false);
 
     expect(() => getFileContents(file)).toThrow(

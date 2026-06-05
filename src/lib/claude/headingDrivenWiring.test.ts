@@ -1,7 +1,13 @@
 import { generateDeckInfo } from './ClaudeService';
 
 const FAKE_DECK_JSON = JSON.stringify([
-  { deck: 'Test Deck', cards: [{ q: 'Q1', a: 'A1' }, { q: 'Q2', a: 'A2' }] },
+  {
+    deck: 'Test Deck',
+    cards: [
+      { q: 'Q1', a: 'A1' },
+      { q: 'Q2', a: 'A2' },
+    ],
+  },
 ]);
 
 const mockStreamFn = jest.fn();
@@ -46,7 +52,13 @@ const htmlWithoutHeadings = `
 
 describe('generateDeckInfo — heading-driven wiring', () => {
   it('calls Claude with the heading-driven prompt fragment when cardStyle is heading-driven and headings exist', async () => {
-    await generateDeckInfo(htmlWithHeadings, [], undefined, undefined, 'heading-driven');
+    await generateDeckInfo(
+      htmlWithHeadings,
+      [],
+      undefined,
+      undefined,
+      'heading-driven'
+    );
 
     expect(mockStreamFn).toHaveBeenCalled();
     const callArgs = mockStreamFn.mock.calls[0][0];
@@ -58,10 +70,20 @@ describe('generateDeckInfo — heading-driven wiring', () => {
   it('logs heading-driven:fallback and still calls Claude when no headings are found', async () => {
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    await generateDeckInfo(htmlWithoutHeadings, [], undefined, undefined, 'heading-driven');
+    await generateDeckInfo(
+      htmlWithoutHeadings,
+      [],
+      undefined,
+      undefined,
+      'heading-driven'
+    );
 
-    const allLoggedArgs = consoleSpy.mock.calls.flatMap((args) => args.map(String));
-    const hasFallback = allLoggedArgs.some((s) => s.includes('heading-driven:fallback'));
+    const allLoggedArgs = consoleSpy.mock.calls.flatMap((args) =>
+      args.map(String)
+    );
+    const hasFallback = allLoggedArgs.some((s) =>
+      s.includes('heading-driven:fallback')
+    );
     expect(hasFallback).toBe(true);
 
     expect(mockStreamFn).toHaveBeenCalled();
@@ -69,7 +91,13 @@ describe('generateDeckInfo — heading-driven wiring', () => {
   });
 
   it('does not include the heading-driven prompt fragment when cardStyle is absent', async () => {
-    await generateDeckInfo(htmlWithHeadings, [], undefined, undefined, undefined);
+    await generateDeckInfo(
+      htmlWithHeadings,
+      [],
+      undefined,
+      undefined,
+      undefined
+    );
 
     expect(mockStreamFn).toHaveBeenCalled();
     const callArgs = mockStreamFn.mock.calls[0][0];

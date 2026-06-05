@@ -119,7 +119,10 @@ describe('ApkgController.downloadEdited', () => {
 
   it('returns 400 when key is not an .apkg', async () => {
     const controller = makeController();
-    const req = makeReq({ params: { key: 'notanapkg.zip' }, body: { edits: [] } }) as Request;
+    const req = makeReq({
+      params: { key: 'notanapkg.zip' },
+      body: { edits: [] },
+    }) as Request;
     const res = makeRes() as Response;
     await controller.downloadEdited(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
@@ -127,7 +130,10 @@ describe('ApkgController.downloadEdited', () => {
 
   it('returns 400 when edits is not an array', async () => {
     const controller = makeController();
-    const req = makeReq({ params: { key: 'deck.apkg' }, body: { edits: 'invalid' } }) as Request;
+    const req = makeReq({
+      params: { key: 'deck.apkg' },
+      body: { edits: 'invalid' },
+    }) as Request;
     const res = makeRes() as Response;
     await controller.downloadEdited(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
@@ -137,7 +143,10 @@ describe('ApkgController.downloadEdited', () => {
     const controller = makeController();
     const ds = controller['downloadService'] as jest.Mocked<DownloadService>;
     ds.getFileBody.mockResolvedValue(null);
-    const req = makeReq({ params: { key: 'deck.apkg' }, body: { edits: [] } }) as Request;
+    const req = makeReq({
+      params: { key: 'deck.apkg' },
+      body: { edits: [] },
+    }) as Request;
     const res = makeRes() as Response;
     await controller.downloadEdited(req, res);
     expect(res.status).toHaveBeenCalledWith(404);
@@ -159,9 +168,9 @@ describe('ApkgController.downloadEdited', () => {
     expect(executeMock).toHaveBeenCalledWith(
       expect.objectContaining({ edits: [{ cardIndex: 0, deleted: true }] })
     );
-    expect((res as unknown as Record<string, jest.Mock>).send).toHaveBeenCalledWith(
-      Buffer.from('fake-apkg')
-    );
+    expect(
+      (res as unknown as Record<string, jest.Mock>).send
+    ).toHaveBeenCalledWith(Buffer.from('fake-apkg'));
   });
 });
 
@@ -391,7 +400,10 @@ describe('ApkgController.exportCsv', () => {
   it('returns 400 when the file is not an .apkg by extension', async () => {
     const controller = makeController();
     const req = makeReq({
-      file: { ...(makeReq().file as Express.Multer.File), originalname: 'notes.zip' },
+      file: {
+        ...(makeReq().file as Express.Multer.File),
+        originalname: 'notes.zip',
+      },
     }) as Request;
     const res = makeCsvRes();
     await controller.exportCsv(req, res);
@@ -421,9 +433,9 @@ describe('ApkgController.exportCsv', () => {
       expect.stringContaining('deck.csv')
     );
     expect(setHeader).toHaveBeenCalledWith('X-Card-Count', '1');
-    expect(
-      (res as unknown as { send: jest.Mock }).send
-    ).toHaveBeenCalledWith(expect.any(Buffer));
+    expect((res as unknown as { send: jest.Mock }).send).toHaveBeenCalledWith(
+      expect.any(Buffer)
+    );
   });
 
   it('passes isPaying=false through to the use case for free users', async () => {

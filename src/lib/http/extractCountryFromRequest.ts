@@ -8,9 +8,7 @@ const readHeader = (req: express.Request, name: string): string | null => {
   return typeof value === 'string' ? value : null;
 };
 
-export function extractCountryFromRequest(
-  req: express.Request
-): string | null {
+export function extractCountryFromRequest(req: express.Request): string | null {
   const candidate =
     readHeader(req, 'cloudfront-viewer-country') ??
     readHeader(req, 'cf-ipcountry') ??

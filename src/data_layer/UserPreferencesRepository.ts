@@ -30,8 +30,14 @@ export interface UserPreferences {
 
 export interface IUserPreferencesRepository {
   get(userId: number): Promise<UserPreferences>;
-  patch(userId: number, prefs: Partial<UserPreferences>): Promise<UserPreferences>;
-  migrate(userId: number, prefs: Partial<UserPreferences>): Promise<UserPreferences>;
+  patch(
+    userId: number,
+    prefs: Partial<UserPreferences>
+  ): Promise<UserPreferences>;
+  migrate(
+    userId: number,
+    prefs: Partial<UserPreferences>
+  ): Promise<UserPreferences>;
   clearCardOptions(userId: number): Promise<UserPreferences>;
 }
 
@@ -80,11 +86,15 @@ export class UserPreferencesRepository implements IUserPreferencesRepository {
     return {
       cardOptions: row?.card_options ?? null,
       theme: row?.theme ?? null,
-      ankiWebAcknowledgedAt: row?.anki_web_acknowledged_at?.toISOString() ?? null,
+      ankiWebAcknowledgedAt:
+        row?.anki_web_acknowledged_at?.toISOString() ?? null,
     };
   }
 
-  async patch(userId: number, prefs: Partial<UserPreferences>): Promise<UserPreferences> {
+  async patch(
+    userId: number,
+    prefs: Partial<UserPreferences>
+  ): Promise<UserPreferences> {
     const update: Record<string, unknown> = {};
     if (prefs.cardOptions != null) {
       update.card_options = sanitizeCardOptions(prefs.cardOptions);
@@ -104,7 +114,10 @@ export class UserPreferencesRepository implements IUserPreferencesRepository {
     return this.get(userId);
   }
 
-  async migrate(userId: number, prefs: Partial<UserPreferences>): Promise<UserPreferences> {
+  async migrate(
+    userId: number,
+    prefs: Partial<UserPreferences>
+  ): Promise<UserPreferences> {
     const current = await this.get(userId);
     const update: Record<string, unknown> = {};
     if (prefs.cardOptions != null && current.cardOptions == null) {
@@ -113,7 +126,10 @@ export class UserPreferencesRepository implements IUserPreferencesRepository {
     if (prefs.theme != null && current.theme == null) {
       update.theme = prefs.theme;
     }
-    if (prefs.ankiWebAcknowledgedAt != null && current.ankiWebAcknowledgedAt == null) {
+    if (
+      prefs.ankiWebAcknowledgedAt != null &&
+      current.ankiWebAcknowledgedAt == null
+    ) {
       update.anki_web_acknowledged_at = prefs.ankiWebAcknowledgedAt;
     }
     if (Object.keys(update).length > 0) {
@@ -123,7 +139,9 @@ export class UserPreferencesRepository implements IUserPreferencesRepository {
   }
 
   async clearCardOptions(userId: number): Promise<UserPreferences> {
-    await this.database('users').where({ id: userId }).update({ card_options: null });
+    await this.database('users')
+      .where({ id: userId })
+      .update({ card_options: null });
     return this.get(userId);
   }
 }
@@ -146,25 +164,33 @@ export class InMemoryUserPreferencesRepository implements IUserPreferencesReposi
     );
   }
 
-  async patch(userId: number, prefs: Partial<UserPreferences>): Promise<UserPreferences> {
+  async patch(
+    userId: number,
+    prefs: Partial<UserPreferences>
+  ): Promise<UserPreferences> {
     const current = await this.get(userId);
     const next: UserPreferences = {
       cardOptions: prefs.cardOptions ?? current.cardOptions,
       theme: prefs.theme ?? current.theme,
-      ankiWebAcknowledgedAt: prefs.ankiWebAcknowledgedAt == null
-        ? current.ankiWebAcknowledgedAt
-        : laterOf(current.ankiWebAcknowledgedAt, prefs.ankiWebAcknowledgedAt),
+      ankiWebAcknowledgedAt:
+        prefs.ankiWebAcknowledgedAt == null
+          ? current.ankiWebAcknowledgedAt
+          : laterOf(current.ankiWebAcknowledgedAt, prefs.ankiWebAcknowledgedAt),
     };
     this.store.set(userId, next);
     return next;
   }
 
-  async migrate(userId: number, prefs: Partial<UserPreferences>): Promise<UserPreferences> {
+  async migrate(
+    userId: number,
+    prefs: Partial<UserPreferences>
+  ): Promise<UserPreferences> {
     const current = await this.get(userId);
     const next: UserPreferences = {
       cardOptions: current.cardOptions ?? prefs.cardOptions ?? null,
       theme: current.theme ?? prefs.theme ?? null,
-      ankiWebAcknowledgedAt: current.ankiWebAcknowledgedAt ?? prefs.ankiWebAcknowledgedAt ?? null,
+      ankiWebAcknowledgedAt:
+        current.ankiWebAcknowledgedAt ?? prefs.ankiWebAcknowledgedAt ?? null,
     };
     this.store.set(userId, next);
     return next;

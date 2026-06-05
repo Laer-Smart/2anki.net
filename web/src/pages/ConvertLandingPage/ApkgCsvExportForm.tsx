@@ -5,7 +5,13 @@ import styles from './ApkgCsvExportForm.module.css';
 type FormState =
   | { kind: 'idle' }
   | { kind: 'uploading' }
-  | { kind: 'success'; deckName: string; noteCount: number; csvName: string; csvUrl: string }
+  | {
+      kind: 'success';
+      deckName: string;
+      noteCount: number;
+      csvName: string;
+      csvUrl: string;
+    }
   | { kind: 'error'; message: string };
 
 interface ServerError {
@@ -24,7 +30,8 @@ async function readErrorMessage(response: Response): Promise<string> {
     // not JSON
   }
   if (response.status === 401) return 'Sign in to export your deck as a CSV.';
-  if (response.status === 413) return 'This file is over the 100 MB upload limit.';
+  if (response.status === 413)
+    return 'This file is over the 100 MB upload limit.';
   return "Couldn't read this .apkg file. Pick another deck and try again.";
 }
 
@@ -71,7 +78,8 @@ function ApkgCsvExportForm() {
     if (!/\.apkg$/i.test(file.name)) {
       setState({
         kind: 'error',
-        message: 'This file isn’t an .apkg. Export from Anki first, then upload that file.',
+        message:
+          'This file isn’t an .apkg. Export from Anki first, then upload that file.',
       });
       return;
     }
@@ -107,10 +115,16 @@ function ApkgCsvExportForm() {
   };
 
   const showFileLabel =
-    state.kind === 'idle' || state.kind === 'error' || state.kind === 'uploading';
+    state.kind === 'idle' ||
+    state.kind === 'error' ||
+    state.kind === 'uploading';
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit} aria-label="Export .apkg to CSV">
+    <form
+      className={styles.form}
+      onSubmit={handleSubmit}
+      aria-label="Export .apkg to CSV"
+    >
       {showFileLabel && (
         <div className={styles.row}>
           <label htmlFor="apkg-csv-file" className={styles.fileLabel}>
@@ -135,12 +149,15 @@ function ApkgCsvExportForm() {
             className={styles.submit}
             disabled={state.kind === 'uploading' || filename == null}
           >
-            {state.kind === 'uploading' ? 'Exporting your CSV' : 'Export to CSV'}
+            {state.kind === 'uploading'
+              ? 'Exporting your CSV'
+              : 'Export to CSV'}
           </button>
         </div>
       )}
       <p className={styles.helper}>
-        Sign in to export. Free accounts get 100 notes per file — upgrade for unlimited.
+        Sign in to export. Free accounts get 100 notes per file — upgrade for
+        unlimited.
       </p>
       {state.kind === 'error' && (
         <p className={styles.error} role="alert">
@@ -150,7 +167,9 @@ function ApkgCsvExportForm() {
       {state.kind === 'success' && (
         <>
           <p className={styles.success}>
-            Exported {state.noteCount} {state.noteCount === 1 ? 'note' : 'notes'} — {state.deckName}.csv saved to your downloads
+            Exported {state.noteCount}{' '}
+            {state.noteCount === 1 ? 'note' : 'notes'} — {state.deckName}.csv
+            saved to your downloads
           </p>
           <button
             type="button"

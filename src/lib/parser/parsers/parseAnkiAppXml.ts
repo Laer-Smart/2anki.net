@@ -92,7 +92,10 @@ function resolveFieldValue(
 ): { type: string; valueEl: Element } {
   const elementChildren = $(fieldEl).children().toArray();
   const onlyChild = elementChildren.length === 1 ? elementChildren[0] : null;
-  if (onlyChild != null && KNOWN_FIELD_TYPES.has(onlyChild.tagName.toLowerCase())) {
+  if (
+    onlyChild != null &&
+    KNOWN_FIELD_TYPES.has(onlyChild.tagName.toLowerCase())
+  ) {
     return { type: onlyChild.tagName.toLowerCase(), valueEl: onlyChild };
   }
   return { type: definition?.type ?? 'text', valueEl: fieldEl };
@@ -141,10 +144,7 @@ function joinParts(parts: RenderedField[]): string {
   return parts.map((part) => part.html).join('<br>');
 }
 
-function buildNote(
-  parts: RenderedField[],
-  tags: string[]
-): Note | null {
+function buildNote(parts: RenderedField[], tags: string[]): Note | null {
   const sided = splitBySides(parts) ?? {
     front: parts.slice(0, 1),
     back: parts.slice(1),

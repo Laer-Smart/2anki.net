@@ -11,14 +11,18 @@ let markmapViewBundleCache: string | null = null;
 function readD3Bundle(): string {
   if (d3BundleCache == null) {
     const d3Root = path.resolve(path.dirname(require.resolve('d3')), '..');
-    d3BundleCache = fs.readFileSync(path.join(d3Root, 'dist', 'd3.min.js'), 'utf-8');
+    d3BundleCache = fs.readFileSync(
+      path.join(d3Root, 'dist', 'd3.min.js'),
+      'utf-8'
+    );
   }
   return d3BundleCache;
 }
 
 function readMarkmapViewBundle(): string {
   if (markmapViewBundleCache == null) {
-    const markmapBrowser = require.resolve('markmap-view/dist/browser/index.js');
+    const markmapBrowser =
+      require.resolve('markmap-view/dist/browser/index.js');
     markmapViewBundleCache = fs.readFileSync(markmapBrowser, 'utf-8');
   }
   return markmapViewBundleCache;

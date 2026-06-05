@@ -53,7 +53,9 @@ function toAppleTransaction(row: AppleTransactionRow): AppleTransaction {
     environment: row.environment,
     expires_at: toDate(row.expires_at),
     created_at:
-      row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
+      row.created_at instanceof Date
+        ? row.created_at
+        : new Date(row.created_at),
   };
 }
 
@@ -88,9 +90,7 @@ export class AppleTransactionsRepository implements IAppleTransactionsRepository
   }
 }
 
-export class InMemoryAppleTransactionsRepository
-  implements IAppleTransactionsRepository
-{
+export class InMemoryAppleTransactionsRepository implements IAppleTransactionsRepository {
   private readonly rows: AppleTransaction[] = [];
   private nextId = 1;
 

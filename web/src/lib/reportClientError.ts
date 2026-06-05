@@ -33,12 +33,9 @@ export function reportClientError(
   if (isAbortError(error)) return;
   try {
     if (navigator.onLine === false) return;
-    const message =
-      error instanceof Error
-        ? error.message
-        : String(error);
+    const message = error instanceof Error ? error.message : String(error);
     if (isTransientNetworkMessage(message)) return;
-    const stack = error instanceof Error ? error.stack ?? null : null;
+    const stack = error instanceof Error ? (error.stack ?? null) : null;
     const release = getClientRelease();
     const root = document.documentElement;
     const lang = root.lang || navigator.language || null;

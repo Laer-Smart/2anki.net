@@ -19,7 +19,7 @@ const buildRepo = (
     },
     async get(key: string) {
       getCalls += 1;
-      return values.has(key) ? values.get(key) ?? null : null;
+      return values.has(key) ? (values.get(key) ?? null) : null;
     },
     async getAll() {
       return [];

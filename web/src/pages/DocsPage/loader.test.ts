@@ -4,13 +4,13 @@ import { hasDoc, loadDoc, resolveSlug } from './loader';
 describe('resolveSlug', () => {
   it('passes through unknown slugs unchanged', () => {
     expect(resolveSlug('start-here/connect-notion')).toBe(
-      'start-here/connect-notion',
+      'start-here/connect-notion'
     );
   });
 
   it('rewrites a redirect slug to its target', () => {
     expect(resolveSlug('guides/getting-started')).toBe(
-      'start-here/connect-notion',
+      'start-here/connect-notion'
     );
     expect(resolveSlug('features/notion-support')).toBe('cards/notion-blocks');
   });

@@ -42,7 +42,13 @@ function makeController() {
     { execute: reopenExecute } as unknown as ReopenErrorGroupUseCase
   );
 
-  return { controller, listExecute, exportExecute, resolveExecute, reopenExecute };
+  return {
+    controller,
+    listExecute,
+    exportExecute,
+    resolveExecute,
+    reopenExecute,
+  };
 }
 
 describe('OpsErrorsController.list', () => {

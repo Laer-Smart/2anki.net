@@ -21,7 +21,10 @@ export function useOcclusionHistory(initial: OcclusionRect[]) {
     const d = dataRef.current;
     const past = [...d.past, d.current];
     dataRef.current = {
-      past: past.length > MAX_HISTORY ? past.slice(past.length - MAX_HISTORY) : past,
+      past:
+        past.length > MAX_HISTORY
+          ? past.slice(past.length - MAX_HISTORY)
+          : past,
       current: newRects,
       future: [],
     };

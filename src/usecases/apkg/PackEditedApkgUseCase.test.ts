@@ -31,8 +31,14 @@ function buildCollectionBuffer(
   `);
   const models = {
     '1': {
-      id: 1, name: 'Basic', type: 0, css: '',
-      flds: [{ name: 'Front', ord: 0 }, { name: 'Back', ord: 1 }],
+      id: 1,
+      name: 'Basic',
+      type: 0,
+      css: '',
+      flds: [
+        { name: 'Front', ord: 0 },
+        { name: 'Back', ord: 1 },
+      ],
       tmpls: [{ name: 'Card 1', ord: 0, qfmt: '{{Front}}', afmt: '{{Back}}' }],
     },
   };
@@ -46,17 +52,25 @@ function buildCollectionBuffer(
     const cardId = i + 100;
     db.prepare(
       "INSERT INTO notes (id, guid, mid, tags, flds, sfld) VALUES (?, ?, 1, ' ', ?, ?)"
-    ).run(noteId, `guid${i}`, `${cards[i].front}\x1f${cards[i].back}`, cards[i].front);
-    db.prepare(
-      'INSERT INTO cards (id, nid, did, ord) VALUES (?, ?, 2, 0)'
-    ).run(cardId, noteId);
+    ).run(
+      noteId,
+      `guid${i}`,
+      `${cards[i].front}\x1f${cards[i].back}`,
+      cards[i].front
+    );
+    db.prepare('INSERT INTO cards (id, nid, did, ord) VALUES (?, ?, 2, 0)').run(
+      cardId,
+      noteId
+    );
   }
   const buf = Buffer.from(db.serialize());
   db.close();
   return buf;
 }
 
-async function buildApkgBuffer(cards: Array<{ front: string; back: string }>): Promise<Buffer> {
+async function buildApkgBuffer(
+  cards: Array<{ front: string; back: string }>
+): Promise<Buffer> {
   const col = buildCollectionBuffer(cards);
   const zip = new JSZip();
   zip.file('collection.anki2', col);
@@ -138,9 +152,9 @@ describe('PackEditedApkgUseCase', () => {
     const col = parseCollection(archive.collectionBuffer);
     const cardId = col.cards[0].id;
     const tmpDb = new Database(archive.collectionBuffer);
-    const row = tmpDb.prepare('SELECT queue FROM cards WHERE id = ?').get(cardId) as
-      | { queue: number }
-      | undefined;
+    const row = tmpDb
+      .prepare('SELECT queue FROM cards WHERE id = ?')
+      .get(cardId) as { queue: number } | undefined;
     tmpDb.close();
     expect(row?.queue).toBe(-1);
   });

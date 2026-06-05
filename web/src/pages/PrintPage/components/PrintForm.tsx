@@ -132,7 +132,9 @@ export default function PrintForm() {
     <form onSubmit={handleSubmit}>
       <div className={styles.optionsGrid}>
         <div>
-          <label htmlFor="print-paper-size" className={sharedStyles.fieldLabel}>Paper size</label>
+          <label htmlFor="print-paper-size" className={sharedStyles.fieldLabel}>
+            Paper size
+          </label>
           <select
             id="print-paper-size"
             className={sharedStyles.select}
@@ -145,7 +147,12 @@ export default function PrintForm() {
           </select>
         </div>
         <div>
-          <label htmlFor="print-orientation" className={sharedStyles.fieldLabel}>Orientation</label>
+          <label
+            htmlFor="print-orientation"
+            className={sharedStyles.fieldLabel}
+          >
+            Orientation
+          </label>
           <select
             id="print-orientation"
             className={sharedStyles.select}
@@ -157,7 +164,9 @@ export default function PrintForm() {
           </select>
         </div>
         <div>
-          <label htmlFor="print-margins" className={sharedStyles.fieldLabel}>Margins</label>
+          <label htmlFor="print-margins" className={sharedStyles.fieldLabel}>
+            Margins
+          </label>
           <select
             id="print-margins"
             className={sharedStyles.select}
@@ -170,7 +179,9 @@ export default function PrintForm() {
           </select>
         </div>
         <div>
-          <label htmlFor="print-bg-color" className={sharedStyles.fieldLabel}>Page background</label>
+          <label htmlFor="print-bg-color" className={sharedStyles.fieldLabel}>
+            Page background
+          </label>
           <div className={styles.colorField}>
             <input
               id="print-bg-color"
@@ -200,9 +211,7 @@ export default function PrintForm() {
         onDragLeave={() => setDropHover(false)}
         onDrop={handleDrop}
       >
-        <span className={styles.dropLabel}>
-          Drop an Anki deck (.apkg) here
-        </span>
+        <span className={styles.dropLabel}>Drop an Anki deck (.apkg) here</span>
         <span className={styles.dropHint}>or</span>
         <span className={styles.chooseButton}>
           {isUploading ? 'Making your PDF' : 'Select file'}
@@ -221,16 +230,24 @@ export default function PrintForm() {
       {isUploading && (
         <div
           className={sharedStyles.notificationInfo}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1rem' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            marginTop: '1rem',
+          }}
         >
           <div className={sharedStyles.spinnerSmall} />
-          <span>Making your PDF — keep this tab open until the download starts.</span>
+          <span>
+            Making your PDF — keep this tab open until the download starts.
+          </span>
         </div>
       )}
 
       {state === 'done' && (
         <p className={sharedStyles.notificationSuccess}>
-          Your flashcards as a PDF{cardCount == null ? '' : ` — ${cardCount} cards`}
+          Your flashcards as a PDF
+          {cardCount == null ? '' : ` — ${cardCount} cards`}
         </p>
       )}
 

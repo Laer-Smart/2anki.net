@@ -1,47 +1,47 @@
 {
-    "object": "page",
-    "id": "fb300010-f937-45e8-82e1-fd04e0cae6ef",
-    "created_time": "2022-04-15T12:14:00.000Z",
-    "last_edited_time": "2022-04-15T12:21:00.000Z",
-    "created_by": {
-        "object": "user",
-        "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
-    },
-    "last_edited_by": {
-        "object": "user",
-        "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
-    },
-    "cover": null,
-    "icon": null,
-    "parent": {
-        "type": "page_id",
-        "page_id": "05bb5fd7-4b94-4aea-aceb-a1e9e1d13354"
-    },
-    "archived": false,
-    "properties": {
-        "title": {
-            "id": "title",
-            "type": "title",
-            "title": [
-                {
-                    "type": "text",
-                    "text": {
-                        "content": "Basic and Reversed",
-                        "link": null
-                    },
-                    "annotations": {
-                        "bold": false,
-                        "italic": false,
-                        "strikethrough": false,
-                        "underline": false,
-                        "code": false,
-                        "color": "default"
-                    },
-                    "plain_text": "Basic and Reversed",
-                    "href": null
-                }
-            ]
+  "object": "page",
+  "id": "fb300010-f937-45e8-82e1-fd04e0cae6ef",
+  "created_time": "2022-04-15T12:14:00.000Z",
+  "last_edited_time": "2022-04-15T12:21:00.000Z",
+  "created_by": {
+    "object": "user",
+    "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+  },
+  "last_edited_by": {
+    "object": "user",
+    "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+  },
+  "cover": null,
+  "icon": null,
+  "parent": {
+    "type": "page_id",
+    "page_id": "05bb5fd7-4b94-4aea-aceb-a1e9e1d13354"
+  },
+  "archived": false,
+  "properties": {
+    "title": {
+      "id": "title",
+      "type": "title",
+      "title": [
+        {
+          "type": "text",
+          "text": {
+            "content": "Basic and Reversed",
+            "link": null
+          },
+          "annotations": {
+            "bold": false,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false,
+            "code": false,
+            "color": "default"
+          },
+          "plain_text": "Basic and Reversed",
+          "href": null
         }
-    },
-    "url": "https://www.notion.so/Basic-and-Reversed-fb300010f93745e882e1fd04e0cae6ef"
+      ]
+    }
+  },
+  "url": "https://www.notion.so/Basic-and-Reversed-fb300010f93745e882e1fd04e0cae6ef"
 }

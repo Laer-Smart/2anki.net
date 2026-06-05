@@ -91,12 +91,8 @@ export function extractNotesSourceUnits(
       : [stripHtmlTags(content)];
   } else {
     const hasHeadings = HEADING_MD.test(content);
-    rawSections = hasHeadings
-      ? splitMarkdownByHeadings(content)
-      : [content];
+    rawSections = hasHeadings ? splitMarkdownByHeadings(content) : [content];
   }
 
-  return rawSections
-    .filter((s) => s.trim())
-    .map((s, i) => buildUnit(i + 1, s));
+  return rawSections.filter((s) => s.trim()).map((s, i) => buildUnit(i + 1, s));
 }

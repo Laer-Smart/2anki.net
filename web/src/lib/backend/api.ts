@@ -143,7 +143,8 @@ async function throwForErrorResponse(
 
 export function pathOf(url: string): string {
   try {
-    return new URL(url, globalThis.location?.origin ?? 'http://localhost').pathname;
+    return new URL(url, globalThis.location?.origin ?? 'http://localhost')
+      .pathname;
   } catch {
     return url;
   }

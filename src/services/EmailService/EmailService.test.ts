@@ -23,13 +23,20 @@ describe('EmailService.sendNotionReconnectEmail', () => {
 
   function lastMessage() {
     const calls = send.mock.calls;
-    return calls[calls.length - 1][0] as { to: string; subject: string; html: string; text: string };
+    return calls[calls.length - 1][0] as {
+      to: string;
+      subject: string;
+      html: string;
+      text: string;
+    };
   }
 
   it('loads the notion-reconnect template without error', () => {
     expect(NOTION_RECONNECT_TEMPLATE).toContain('Reconnect Notion');
     expect(NOTION_RECONNECT_TEMPLATE).toContain('{{ctaUrl}}');
-    expect(NOTION_RECONNECT_TEMPLATE).toContain('2anki.net/mascot/navbar-logo.png');
+    expect(NOTION_RECONNECT_TEMPLATE).toContain(
+      '2anki.net/mascot/navbar-logo.png'
+    );
   });
 
   it('sends with the correct subject and recipient', async () => {
@@ -80,23 +87,36 @@ describe('EmailService.sendAbandonedCheckoutRecoveryEmail', () => {
 
   function lastMessage() {
     const calls = send.mock.calls;
-    return calls[calls.length - 1][0] as { to: string; subject: string; html: string; text: string };
+    return calls[calls.length - 1][0] as {
+      to: string;
+      subject: string;
+      html: string;
+      text: string;
+    };
   }
 
   it('links the CTA to the checkout resume endpoint with the token', async () => {
     const service = getDefaultEmailService();
 
-    await service.sendAbandonedCheckoutRecoveryEmail('buyer@example.com', 'tok-abc-123');
+    await service.sendAbandonedCheckoutRecoveryEmail(
+      'buyer@example.com',
+      'tok-abc-123'
+    );
 
     const msg = lastMessage();
-    expect(msg.html).toContain('https://2anki.net/checkout/resume?token=tok-abc-123');
+    expect(msg.html).toContain(
+      'https://2anki.net/checkout/resume?token=tok-abc-123'
+    );
     expect(msg.html).not.toContain('{{link}}');
   });
 
   it('keeps the unsubscribe link', async () => {
     const service = getDefaultEmailService();
 
-    await service.sendAbandonedCheckoutRecoveryEmail('buyer@example.com', 'tok-abc-123');
+    await service.sendAbandonedCheckoutRecoveryEmail(
+      'buyer@example.com',
+      'tok-abc-123'
+    );
 
     const msg = lastMessage();
     expect(msg.html).toContain('https://2anki.net/unsubscribe?uid=tok-abc-123');

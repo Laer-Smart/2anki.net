@@ -271,188 +271,195 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
-    <div className={styles.pageShell}>
-      <div className={sharedStyles.page}>
-        <header className={sharedStyles.pageHeader}>
-          <button
-            type="button"
-            onClick={handleBack}
-            className={styles.backLink}
-          >
-            {backLabel}
-          </button>
-          <div className={styles.headerRow}>
-            <div className={styles.headerText}>
-              <h1 className={sharedStyles.title} data-hj-suppress>
-                {headingTitle}
-              </h1>
-              <p className={sharedStyles.subtitle}>
-                Settings for this Notion page. Block rules decide what becomes a
-                deck or card. Card options shape the deck itself.
-              </p>
-            </div>
+      <div className={styles.pageShell}>
+        <div className={sharedStyles.page}>
+          <header className={sharedStyles.pageHeader}>
             <button
               type="button"
-              className={`${sharedStyles.btnIcon} ${favorite ? styles.favoriteActive : ''}`}
-              onClick={toggleFavorite}
-              disabled={isTogglingFavorite || isLoading}
-              aria-pressed={favorite}
-              aria-label={
-                favorite ? 'Remove from favorites' : 'Favorite this page'
-              }
-              title={favorite ? 'Remove from favorites' : 'Favorite this page'}
+              onClick={handleBack}
+              className={styles.backLink}
             >
-              <span aria-hidden="true">{favorite ? '★' : '☆'}</span>
+              {backLabel}
             </button>
-          </div>
-        </header>
-
-        {isLoading && (
-          <div className={`${styles.optionGroup} ${styles.loadingCard}`}>
-            <div className={sharedStyles.spinner} />
-          </div>
-        )}
-        {!isLoading && loadFailed && (
-          <div className={`${styles.optionGroup} ${styles.loadingCard}`}>
-            <p>
-              Couldn&apos;t load rules for this page. Check your connection and
-              try again.
-            </p>
-          </div>
-        )}
-        {!isLoading && !loadFailed && (
-          <>
-            <section className={styles.optionGroup}>
-              <div className={styles.groupHeader}>
-                <h2 className={styles.groupHeading}>Decks and sub-decks</h2>
-                <FieldHint text="Pick which Notion block types create a new deck, and which nest inside as sub-decks." />
+            <div className={styles.headerRow}>
+              <div className={styles.headerText}>
+                <h1 className={sharedStyles.title} data-hj-suppress>
+                  {headingTitle}
+                </h1>
+                <p className={sharedStyles.subtitle}>
+                  Settings for this Notion page. Block rules decide what becomes
+                  a deck or card. Card options shape the deck itself.
+                </p>
               </div>
-              <p className={styles.groupHint}>
-                By default, Notion pages and databases become decks. The blocks
-                below nest inside as sub-decks.
+              <button
+                type="button"
+                className={`${sharedStyles.btnIcon} ${favorite ? styles.favoriteActive : ''}`}
+                onClick={toggleFavorite}
+                disabled={isTogglingFavorite || isLoading}
+                aria-pressed={favorite}
+                aria-label={
+                  favorite ? 'Remove from favorites' : 'Favorite this page'
+                }
+                title={
+                  favorite ? 'Remove from favorites' : 'Favorite this page'
+                }
+              >
+                <span aria-hidden="true">{favorite ? '★' : '☆'}</span>
+              </button>
+            </div>
+          </header>
+
+          {isLoading && (
+            <div className={`${styles.optionGroup} ${styles.loadingCard}`}>
+              <div className={sharedStyles.spinner} />
+            </div>
+          )}
+          {!isLoading && loadFailed && (
+            <div className={`${styles.optionGroup} ${styles.loadingCard}`}>
+              <p>
+                Couldn&apos;t load rules for this page. Check your connection
+                and try again.
               </p>
+            </div>
+          )}
+          {!isLoading && !loadFailed && (
+            <>
+              <section className={styles.optionGroup}>
+                <div className={styles.groupHeader}>
+                  <h2 className={styles.groupHeading}>Decks and sub-decks</h2>
+                  <FieldHint text="Pick which Notion block types create a new deck, and which nest inside as sub-decks." />
+                </div>
+                <p className={styles.groupHint}>
+                  By default, Notion pages and databases become decks. The
+                  blocks below nest inside as sub-decks.
+                </p>
 
-              <div className={styles.section}>
-                <div className={styles.labelRow}>
-                  <span className={styles.sectionLabel}>Deck boundaries</span>
-                  <FieldHint text="Notion block types that start a new deck. Defaults to page and database." />
+                <div className={styles.section}>
+                  <div className={styles.labelRow}>
+                    <span className={styles.sectionLabel}>Deck boundaries</span>
+                    <FieldHint text="Notion block types that start a new deck. Defaults to page and database." />
+                  </div>
+                  <RuleDefinition
+                    value={rules.deck_is}
+                    options={deckOptions}
+                    onSelected={(fco) => toggleSelection('deck_is', fco)}
+                  />
+                </div>
+
+                <div className={styles.section}>
+                  <div className={styles.labelRow}>
+                    <span className={styles.sectionLabel}>Sub-decks</span>
+                    <FieldHint text="Notion block types that nest inside a deck as a sub-deck." />
+                  </div>
+                  <RuleDefinition
+                    value={rules.sub_deck_is}
+                    options={subDeckOptions}
+                    onSelected={(fco) => toggleSelection('sub_deck_is', fco)}
+                  />
+                </div>
+              </section>
+
+              <section className={styles.optionGroup}>
+                <div className={styles.groupHeader}>
+                  <h2 className={styles.groupHeading}>Flashcards</h2>
+                  <FieldHint text="Notion blocks that become individual cards." />
                 </div>
                 <RuleDefinition
-                  value={rules.deck_is}
-                  options={deckOptions}
-                  onSelected={(fco) => toggleSelection('deck_is', fco)}
+                  value={rules.flashcard_is}
+                  options={flashCardOptions}
+                  newOptions={newFlashCardOptions}
+                  onSelected={(fco) => toggleSelection('flashcard_is', fco)}
                 />
-              </div>
+              </section>
 
-              <div className={styles.section}>
-                <div className={styles.labelRow}>
-                  <span className={styles.sectionLabel}>Sub-decks</span>
-                  <FieldHint text="Notion block types that nest inside a deck as a sub-deck." />
+              <section className={styles.optionGroup}>
+                <div className={styles.groupHeader}>
+                  <h2 className={styles.groupHeading}>
+                    Tags and notifications
+                  </h2>
+                  <FieldHint text="How tags are detected and when 2anki emails you." />
                 </div>
-                <RuleDefinition
-                  value={rules.sub_deck_is}
-                  options={subDeckOptions}
-                  onSelected={(fco) => toggleSelection('sub_deck_is', fco)}
-                />
-              </div>
-            </section>
 
-            <section className={styles.optionGroup}>
-              <div className={styles.groupHeader}>
-                <h2 className={styles.groupHeading}>Flashcards</h2>
-                <FieldHint text="Notion blocks that become individual cards." />
+                <div className={styles.section}>
+                  <div className={styles.labelRow}>
+                    <label
+                      htmlFor="tags-format"
+                      className={styles.sectionLabel}
+                    >
+                      Tag format
+                    </label>
+                    <FieldHint text="The Notion styling that marks a block as a tag." />
+                  </div>
+                  <TemplateSelect
+                    data-hj-suppress
+                    pickedTemplate={(name: string) => setTags(name)}
+                    values={tagOptions.map((fco) => ({
+                      label: `Tags are ${fco}`,
+                      value: fco,
+                    }))}
+                    name="tags-format"
+                    value={tags}
+                  />
+                </div>
+
+                <div className={styles.switchRow}>
+                  <Switch
+                    id="email-notification"
+                    title="Email the deck when it's ready"
+                    checked={sendEmail}
+                    onSwitched={() => setSendEmail((prev) => !prev)}
+                  />
+                  <FieldHint text="Sends the .apkg as an attachment for decks under 24 MB. Larger decks always email a download link." />
+                </div>
+              </section>
+
+              <div className={styles.formHeader}>
+                <hr className={styles.divider} />
+                <h2 className={styles.formHeading}>Card options</h2>
+                <p className={sharedStyles.smallDescription}>
+                  Change the deck name, templates, and conversion for this page
+                  only. <Link to="/card-options">Edit your defaults</Link> to
+                  change every page.
+                </p>
               </div>
-              <RuleDefinition
-                value={rules.flashcard_is}
-                options={flashCardOptions}
-                newOptions={newFlashCardOptions}
-                onSelected={(fco) => toggleSelection('flashcard_is', fco)}
+              <CardOptionsForm
+                ref={cardOptionsRef}
+                pageId={id}
+                pageTitle={parent}
+                setError={setErrorMessage}
+                hideActions
               />
-            </section>
 
-            <section className={styles.optionGroup}>
-              <div className={styles.groupHeader}>
-                <h2 className={styles.groupHeading}>Tags and notifications</h2>
-                <FieldHint text="How tags are detected and when 2anki emails you." />
+              <div className={styles.saveBar}>
+                <button
+                  type="button"
+                  className={`${sharedStyles.btnSecondary} ${styles.actionButton}`}
+                  onClick={resetAll}
+                  disabled={isSaving || isResetting}
+                >
+                  {isResetting ? 'Resetting' : 'Reset to defaults'}
+                </button>
+                <button
+                  type="button"
+                  className={`${sharedStyles.btnSecondary} ${styles.actionButton}`}
+                  onClick={handleBack}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className={`${sharedStyles.btnPrimary} ${styles.actionButton}`}
+                  onClick={saveAll}
+                  disabled={isSaving}
+                >
+                  {isSaving ? 'Saving' : 'Save changes'}
+                </button>
               </div>
-
-              <div className={styles.section}>
-                <div className={styles.labelRow}>
-                  <label htmlFor="tags-format" className={styles.sectionLabel}>
-                    Tag format
-                  </label>
-                  <FieldHint text="The Notion styling that marks a block as a tag." />
-                </div>
-                <TemplateSelect
-                  data-hj-suppress
-                  pickedTemplate={(name: string) => setTags(name)}
-                  values={tagOptions.map((fco) => ({
-                    label: `Tags are ${fco}`,
-                    value: fco,
-                  }))}
-                  name="tags-format"
-                  value={tags}
-                />
-              </div>
-
-              <div className={styles.switchRow}>
-                <Switch
-                  id="email-notification"
-                  title="Email the deck when it's ready"
-                  checked={sendEmail}
-                  onSwitched={() => setSendEmail((prev) => !prev)}
-                />
-                <FieldHint text="Sends the .apkg as an attachment for decks under 24 MB. Larger decks always email a download link." />
-              </div>
-            </section>
-
-            <div className={styles.formHeader}>
-              <hr className={styles.divider} />
-              <h2 className={styles.formHeading}>Card options</h2>
-              <p className={sharedStyles.smallDescription}>
-                Change the deck name, templates, and conversion for this page
-                only. <Link to="/card-options">Edit your defaults</Link> to
-                change every page.
-              </p>
-            </div>
-            <CardOptionsForm
-              ref={cardOptionsRef}
-              pageId={id}
-              pageTitle={parent}
-              setError={setErrorMessage}
-              hideActions
-            />
-
-            <div className={styles.saveBar}>
-              <button
-                type="button"
-                className={`${sharedStyles.btnSecondary} ${styles.actionButton}`}
-                onClick={resetAll}
-                disabled={isSaving || isResetting}
-              >
-                {isResetting ? 'Resetting' : 'Reset to defaults'}
-              </button>
-              <button
-                type="button"
-                className={`${sharedStyles.btnSecondary} ${styles.actionButton}`}
-                onClick={handleBack}
-                disabled={isSaving}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={`${sharedStyles.btnPrimary} ${styles.actionButton}`}
-                onClick={saveAll}
-                disabled={isSaving}
-              >
-                {isSaving ? 'Saving' : 'Save changes'}
-              </button>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 }

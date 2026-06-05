@@ -27,7 +27,11 @@ async function makeDb(): Promise<Knex> {
   return db;
 }
 
-async function insertUser(db: Knex, id: string, stripeCustomerId: string | null) {
+async function insertUser(
+  db: Knex,
+  id: string,
+  stripeCustomerId: string | null
+) {
   await db('users').insert({ id, stripe_customer_id: stripeCustomerId });
 }
 
@@ -71,8 +75,16 @@ describe('JobsMetricsRepository — counts cover the real Notion job types', () 
 
   it('counts free conversions stored as type=page or type=database', async () => {
     await insertJob(db, { owner: 'free-user', object_id: 'p-1', type: 'page' });
-    await insertJob(db, { owner: 'free-user', object_id: 'p-2', type: 'database' });
-    await insertJob(db, { owner: 'free-user', object_id: 'p-3', type: 'conversion' });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'p-2',
+      type: 'database',
+    });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'p-3',
+      type: 'conversion',
+    });
 
     const count = await repo.countFreeConversions7d(sevenDaysAgo);
 
@@ -81,7 +93,11 @@ describe('JobsMetricsRepository — counts cover the real Notion job types', () 
 
   it('counts paid conversions stored as type=page or type=database', async () => {
     await insertJob(db, { owner: 'paid-user', object_id: 'p-4', type: 'page' });
-    await insertJob(db, { owner: 'paid-user', object_id: 'p-5', type: 'database' });
+    await insertJob(db, {
+      owner: 'paid-user',
+      object_id: 'p-5',
+      type: 'database',
+    });
 
     const count = await repo.countPaidConversions7d(sevenDaysAgo);
 
@@ -89,8 +105,16 @@ describe('JobsMetricsRepository — counts cover the real Notion job types', () 
   });
 
   it('ignores apkg_import and claude (ankify) jobs for free count', async () => {
-    await insertJob(db, { owner: 'free-user', object_id: 'a-1', type: 'apkg_import' });
-    await insertJob(db, { owner: 'free-user', object_id: 'a-2', type: 'claude' });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'a-1',
+      type: 'apkg_import',
+    });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'a-2',
+      type: 'claude',
+    });
 
     const count = await repo.countFreeConversions7d(sevenDaysAgo);
 
@@ -98,9 +122,24 @@ describe('JobsMetricsRepository — counts cover the real Notion job types', () 
   });
 
   it('computes free success rate over page+database+conversion jobs', async () => {
-    await insertJob(db, { owner: 'free-user', object_id: 's-1', type: 'page', status: 'done' });
-    await insertJob(db, { owner: 'free-user', object_id: 's-2', type: 'database', status: 'done' });
-    await insertJob(db, { owner: 'free-user', object_id: 's-3', type: 'page', status: 'failed' });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 's-1',
+      type: 'page',
+      status: 'done',
+    });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 's-2',
+      type: 'database',
+      status: 'done',
+    });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 's-3',
+      type: 'page',
+      status: 'failed',
+    });
 
     const rate = await repo.computeFreeSuccessRate7d(sevenDaysAgo);
 
@@ -206,7 +245,7 @@ describe('JobsMetricsRepository — tier join emits portable SQL on Postgres', (
     expect(sql).toContain('CAST(users.id AS TEXT) = "jobs"."owner"');
     expect(sql).toContain('"jobs"."type" in');
     expect(sql).toContain(`"jobs"."status" = 'done'`);
-    expect(sql).toContain("users.stripe_customer_id IS NOT NULL");
+    expect(sql).toContain('users.stripe_customer_id IS NOT NULL');
   });
 
   it('emits the text cast for the free success-rate query too', async () => {
@@ -218,6 +257,6 @@ describe('JobsMetricsRepository — tier join emits portable SQL on Postgres', (
 
     const sql = getSql();
     expect(sql).toContain('CAST(users.id AS TEXT) = "jobs"."owner"');
-    expect(sql).toContain("users.stripe_customer_id IS NULL");
+    expect(sql).toContain('users.stripe_customer_id IS NULL');
   });
 });

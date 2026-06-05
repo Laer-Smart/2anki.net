@@ -3,7 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
 import { getVisibleText } from '../../lib/text/getVisibleText';
-import { getPlanLabel, isPayingUser } from '../NavigationBar/helpers/getPlanLabel';
+import {
+  getPlanLabel,
+  isPayingUser,
+} from '../NavigationBar/helpers/getPlanLabel';
 import ArrowLeftIcon from '../icons/ArrowLeftIcon';
 import ArrowRightIcon from '../icons/ArrowRightIcon';
 import ArrowRightOnRectangleIcon from '../icons/ArrowRightOnRectangleIcon';
@@ -39,12 +42,14 @@ interface CardUsageCounterProps {
 function CardUsageCounter({ used, limit }: Readonly<CardUsageCounterProps>) {
   const atLimit = used >= limit;
   const approaching = !atLimit && used >= limit * 0.8;
-  const heroClass = approaching || atLimit
-    ? `${styles.identityUsageHero} ${styles.identityUsageWarning}`
-    : styles.identityUsageHero;
-  const restClass = approaching || atLimit
-    ? `${styles.identityUsageRest} ${styles.identityUsageWarning}`
-    : styles.identityUsageRest;
+  const heroClass =
+    approaching || atLimit
+      ? `${styles.identityUsageHero} ${styles.identityUsageWarning}`
+      : styles.identityUsageHero;
+  const restClass =
+    approaching || atLimit
+      ? `${styles.identityUsageRest} ${styles.identityUsageWarning}`
+      : styles.identityUsageRest;
   return (
     <span className={styles.identityUsage}>
       <span className={heroClass}>{used}</span>
@@ -211,7 +216,8 @@ export function Sidebar({
 }: Readonly<SidebarProps>) {
   const { pathname } = useLocation();
   const theme = useTheme();
-  const { collapsed, onToggleClick, onSidebarInteraction } = useSidebarCollapseState(pathname);
+  const { collapsed, onToggleClick, onSidebarInteraction } =
+    useSidebarCollapseState(pathname);
   const logoSrc = getLogoSrc(collapsed, theme);
   const showAnkify =
     locals?.patreon === true || locals?.autoSyncActive === true;
@@ -451,7 +457,10 @@ export function Sidebar({
           </span>
           <span className={styles.identityPlan}>{planLabel}</span>
           {showUsage && usage && (
-            <CardUsageCounter used={usage.cards_used} limit={usage.cards_limit} />
+            <CardUsageCounter
+              used={usage.cards_used}
+              limit={usage.cards_limit}
+            />
           )}
         </div>
         <div className={styles.sidebarGroup}>

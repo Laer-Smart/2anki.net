@@ -2,7 +2,10 @@ import { IServiceSettings } from '../../services/SettingsService';
 import CardOptionsController from './CardOptionsController';
 import { SettingsInitializer } from '../../data_layer/public/Settings';
 
-const FAKE_SAVED_PAYLOAD = { deckName: 'My Custom Deck', template: 'specialstyle' };
+const FAKE_SAVED_PAYLOAD = {
+  deckName: 'My Custom Deck',
+  template: 'specialstyle',
+};
 
 class FakeSettingsService implements IServiceSettings {
   create(settings: SettingsInitializer): Promise<number[]> {
@@ -20,9 +23,17 @@ class FakeSettingsService implements IServiceSettings {
     });
   }
 
-  getAllByOwner(owner: string): Promise<{ object_id: string; title: string | null; updated_at: Date | null }[]> {
+  getAllByOwner(
+    owner: string
+  ): Promise<
+    { object_id: string; title: string | null; updated_at: Date | null }[]
+  > {
     return Promise.resolve([
-      { object_id: 'page-abc', title: 'Organic Chemistry', updated_at: new Date('2026-01-01') },
+      {
+        object_id: 'page-abc',
+        title: 'Organic Chemistry',
+        updated_at: new Date('2026-01-01'),
+      },
       { object_id: 'page-xyz', title: null, updated_at: null },
     ]);
   }
@@ -47,12 +58,18 @@ describe('CardOptionsController.findSetting', () => {
   function makeMockFindRes() {
     const json = jest.fn();
     const status = jest.fn().mockReturnValue({ send: jest.fn() });
-    return { locals: {}, json, status } as unknown as import('express').Response;
+    return {
+      locals: {},
+      json,
+      status,
+    } as unknown as import('express').Response;
   }
 
   it('returns the inner payload object, not the full DB row', async () => {
     const controller = new CardOptionsController(new FakeSettingsService());
-    const req = { params: { id: 'page-123' } } as unknown as import('express').Request;
+    const req = {
+      params: { id: 'page-123' },
+    } as unknown as import('express').Request;
     const res = makeMockFindRes();
     await controller.findSetting(req, res);
     expect(res.json).toHaveBeenCalledWith({ payload: FAKE_SAVED_PAYLOAD });
@@ -65,7 +82,9 @@ describe('CardOptionsController.findSetting', () => {
       }
     }
     const controller = new CardOptionsController(new EmptySettingsService());
-    const req = { params: { id: 'page-unknown' } } as unknown as import('express').Request;
+    const req = {
+      params: { id: 'page-unknown' },
+    } as unknown as import('express').Request;
     const res = makeMockFindRes();
     await controller.findSetting(req, res);
     expect(res.json).toHaveBeenCalledWith({ payload: null });
@@ -90,7 +109,11 @@ describe('CardOptionsController.listSettings', () => {
     await controller.listSettings(req, res);
     expect(res.json).toHaveBeenCalledWith({
       items: [
-        { pageId: 'page-abc', title: 'Organic Chemistry', updatedAt: new Date('2026-01-01').toISOString() },
+        {
+          pageId: 'page-abc',
+          title: 'Organic Chemistry',
+          updatedAt: new Date('2026-01-01').toISOString(),
+        },
         { pageId: 'page-xyz', title: null, updatedAt: null },
       ],
     });

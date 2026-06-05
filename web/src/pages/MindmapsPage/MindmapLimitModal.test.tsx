@@ -7,16 +7,14 @@ function renderModal() {
   return render(
     <MemoryRouter>
       <MindmapLimitModal onClose={() => {}} />
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 }
 
 describe('MindmapLimitModal', () => {
   it('offers a generic upgrade line', () => {
     renderModal();
-    expect(
-      screen.getByText(/Upgrade for unlimited mind maps\./),
-    ).toBeDefined();
+    expect(screen.getByText(/Upgrade for unlimited mind maps\./)).toBeDefined();
   });
 
   it('does not mention Auto Sync', () => {

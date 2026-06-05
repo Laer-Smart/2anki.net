@@ -8,7 +8,12 @@ export interface ChatAttachment {
 
 type ImageMediaType = 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
 
-const IMAGE_MIMES = new Set<string>(['image/png', 'image/jpeg', 'image/gif', 'image/webp']);
+const IMAGE_MIMES = new Set<string>([
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
+]);
 
 function isImageMime(mime: string): mime is ImageMediaType {
   return IMAGE_MIMES.has(mime);

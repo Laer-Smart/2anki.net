@@ -158,13 +158,18 @@ export default function PreviewApkgPage({
   return (
     <div className={sharedStyles.page}>
       <header className={sharedStyles.pageHeader}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '0.5rem',
+          }}
+        >
           <Link to="/downloads" className={styles.backLink}>
             ← Back to downloads
           </Link>
-          {isApkgKey && (
-            <SharePopover uploadKey={key} />
-          )}
+          {isApkgKey && <SharePopover uploadKey={key} />}
         </div>
         <h1 className={sharedStyles.title} data-hj-suppress>
           Deck preview
@@ -212,13 +217,19 @@ export default function PreviewApkgPage({
               {deletedCount > 0 && (
                 <>
                   {' · '}
-                  <span className={styles.editStripCount}>{deletedCount}</span> deleted
+                  <span className={styles.editStripCount}>
+                    {deletedCount}
+                  </span>{' '}
+                  deleted
                 </>
               )}
               {suspendedCount > 0 && (
                 <>
                   {' · '}
-                  <span className={styles.editStripCount}>{suspendedCount}</span> suspended
+                  <span className={styles.editStripCount}>
+                    {suspendedCount}
+                  </span>{' '}
+                  suspended
                 </>
               )}
             </span>
@@ -268,11 +279,7 @@ export default function PreviewApkgPage({
         </div>
       )}
 
-      <div
-        ref={sentinelRef}
-        className={styles.sentinel}
-        aria-hidden="true"
-      />
+      <div ref={sentinelRef} className={styles.sentinel} aria-hidden="true" />
 
       {stream.isFetchingNextPage && (
         <div className={styles.loadingRow}>Loading more cards</div>

@@ -9,7 +9,8 @@ export function useTheme(): Theme {
       setTheme((e as CustomEvent<Theme>).detail);
     }
     globalThis.addEventListener(THEME_CHANGE_EVENT, handleChange);
-    return () => globalThis.removeEventListener(THEME_CHANGE_EVENT, handleChange);
+    return () =>
+      globalThis.removeEventListener(THEME_CHANGE_EVENT, handleChange);
   }, []);
 
   return theme;

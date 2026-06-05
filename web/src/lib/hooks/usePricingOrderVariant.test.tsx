@@ -11,7 +11,9 @@ afterEach(() => {
 describe('usePricingOrderVariant', () => {
   it('assigns one of the known variants', () => {
     const { result } = renderHook(() => usePricingOrderVariant());
-    expect(['passes-first', 'unlimited-first', 'minimal']).toContain(result.current);
+    expect(['passes-first', 'unlimited-first', 'minimal']).toContain(
+      result.current
+    );
   });
 
   it('persists the assignment so a returning visitor sees the same order', () => {

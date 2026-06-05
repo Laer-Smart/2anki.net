@@ -18,7 +18,7 @@ const samplePage = (overrides: Partial<NotionObject> = {}): NotionObject => ({
 const makeBackend = (pages: NotionObject[]): Backend =>
   ({
     searchTopLevelPages: vi.fn(async () => pages),
-  } as unknown as Backend);
+  }) as unknown as Backend;
 
 const renderPicker = (
   backend: Backend,
@@ -43,7 +43,10 @@ describe('NotionPagePicker — link to source Notion page', () => {
     const link = await screen.findByRole('link', {
       name: /open slash commands in notion/i,
     });
-    expect(link).toHaveAttribute('href', 'https://www.notion.so/Slash-commands-abc123');
+    expect(link).toHaveAttribute(
+      'href',
+      'https://www.notion.so/Slash-commands-abc123'
+    );
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noreferrer');
   });

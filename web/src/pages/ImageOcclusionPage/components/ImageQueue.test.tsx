@@ -11,11 +11,17 @@ function makeEntry(i: number): ImageEntry {
     imageName: `img${i}.jpg`,
     header: '',
     rects: [],
-    previewUrl: `blob:fake-${i}`, s3Key: null, uploading: false,
+    previewUrl: `blob:fake-${i}`,
+    s3Key: null,
+    uploading: false,
   };
 }
 
-function renderQueue(entries: ImageEntry[], isPaying: boolean, isNotionConnected = false) {
+function renderQueue(
+  entries: ImageEntry[],
+  isPaying: boolean,
+  isNotionConnected = false
+) {
   return render(
     <MemoryRouter>
       <ImageQueue

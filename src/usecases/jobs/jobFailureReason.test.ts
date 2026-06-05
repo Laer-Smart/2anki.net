@@ -41,7 +41,10 @@ describe('jobFailureReasonFromError', () => {
   });
 
   it('returns MARKDOWN_LIKELY_LOSSY_REASON for EmptyDeckError with markdown sourceFormat', () => {
-    const reason = jobFailureReasonFromError(new EmptyDeckError('markdown'), 'job-md');
+    const reason = jobFailureReasonFromError(
+      new EmptyDeckError('markdown'),
+      'job-md'
+    );
     expect(reason).toBe(MARKDOWN_LIKELY_LOSSY_REASON);
   });
 
@@ -70,12 +73,17 @@ describe('jobFailureReasonFromError', () => {
   });
 
   it('encodes COLUMNS_AMBIGUOUS error with columns and suggested mapping', () => {
-    const err = new Error('ambiguous') as Error & { code?: string; columns?: string[] };
+    const err = new Error('ambiguous') as Error & {
+      code?: string;
+      columns?: string[];
+    };
     err.code = 'NOTION_DATABASE_COLUMNS_AMBIGUOUS';
     err.columns = ['Term', 'Definition', 'Notes'];
     const reason = jobFailureReasonFromError(err, 'job-amb');
     expect(reason.startsWith(COLUMNS_AMBIGUOUS_PREFIX)).toBe(true);
-    const parsed = JSON.parse(reason.slice(COLUMNS_AMBIGUOUS_PREFIX.length)) as {
+    const parsed = JSON.parse(
+      reason.slice(COLUMNS_AMBIGUOUS_PREFIX.length)
+    ) as {
       columns: string[];
       suggested: { frontField: string | null; backField: string | null };
     };
@@ -85,12 +93,17 @@ describe('jobFailureReasonFromError', () => {
   });
 
   it('encodes COLUMNS_AMBIGUOUS with null suggestions when no canonical match', () => {
-    const err = new Error('ambiguous') as Error & { code?: string; columns?: string[] };
+    const err = new Error('ambiguous') as Error & {
+      code?: string;
+      columns?: string[];
+    };
     err.code = 'NOTION_DATABASE_COLUMNS_AMBIGUOUS';
     err.columns = ['Col1', 'Col2', 'Col3'];
     const reason = jobFailureReasonFromError(err, 'job-no-suggest');
     expect(reason.startsWith(COLUMNS_AMBIGUOUS_PREFIX)).toBe(true);
-    const parsed = JSON.parse(reason.slice(COLUMNS_AMBIGUOUS_PREFIX.length)) as {
+    const parsed = JSON.parse(
+      reason.slice(COLUMNS_AMBIGUOUS_PREFIX.length)
+    ) as {
       columns: string[];
       suggested: { frontField: string | null; backField: string | null };
     };
@@ -100,7 +113,10 @@ describe('jobFailureReasonFromError', () => {
   });
 
   it('returns NOTION_TOKEN_EXPIRED_REASON for an APIResponseError with unauthorized code', () => {
-    const reason = jobFailureReasonFromError(makeUnauthorizedError(), 'job-unauth');
+    const reason = jobFailureReasonFromError(
+      makeUnauthorizedError(),
+      'job-unauth'
+    );
     expect(reason).toBe(NOTION_TOKEN_EXPIRED_REASON);
   });
 
@@ -110,7 +126,12 @@ describe('jobFailureReasonFromError', () => {
 
   it('isNotionUnauthorizedError returns false for a non-unauthorized APIResponseError', () => {
     const err = Object.create(APIResponseError.prototype) as APIResponseError;
-    Object.assign(err, { name: 'APIResponseError', message: 'Not Found', code: 'object_not_found', status: 404 });
+    Object.assign(err, {
+      name: 'APIResponseError',
+      message: 'Not Found',
+      code: 'object_not_found',
+      status: 404,
+    });
     expect(isNotionUnauthorizedError(err)).toBe(false);
   });
 
@@ -125,7 +146,8 @@ describe('jobFailureReasonFromError', () => {
         buildPythonExitError({
           code: 1,
           stdout: '',
-          stderr: 'UserWarning: Field contained the following invalid HTML tags',
+          stderr:
+            'UserWarning: Field contained the following invalid HTML tags',
           jobId: 'j2',
         }),
         'j2'
@@ -202,7 +224,10 @@ describe('jobFailureReasonFromError', () => {
   });
 
   it('generic fallback includes status link', () => {
-    const reason = jobFailureReasonFromError(new Error('some unknown error'), 'job-unk');
+    const reason = jobFailureReasonFromError(
+      new Error('some unknown error'),
+      'job-unk'
+    );
     expect(reason).toContain('2anki.net/status');
   });
 });
@@ -267,7 +292,9 @@ describe('jobFailureReasonCode', () => {
 
   it('maps a Notion object-not-found error to notion_not_found', () => {
     expect(
-      jobFailureReasonCode(makeAPIResponseError(APIErrorCode.ObjectNotFound, 404))
+      jobFailureReasonCode(
+        makeAPIResponseError(APIErrorCode.ObjectNotFound, 404)
+      )
     ).toBe('notion_not_found');
   });
 

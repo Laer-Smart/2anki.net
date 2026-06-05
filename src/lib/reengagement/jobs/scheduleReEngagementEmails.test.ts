@@ -1,4 +1,7 @@
-import { scheduleReEngagementEmails, RE_ENGAGEMENT_INTERVAL_MS } from './scheduleReEngagementEmails';
+import {
+  scheduleReEngagementEmails,
+  RE_ENGAGEMENT_INTERVAL_MS,
+} from './scheduleReEngagementEmails';
 import type { IReEngagementRepository } from '../../../data_layer/ReEngagementRepository';
 import type { IEmailService } from '../../../services/EmailService/EmailService';
 import type { EventsSink } from '../../../services/events/EventsSink';
@@ -25,7 +28,12 @@ describe('scheduleReEngagementEmails', () => {
 
   it('fires sendReEngagementEmails after one interval', async () => {
     const sink = makeSink();
-    const handle = scheduleReEngagementEmails(mockRepo, mockEmailService, sink as unknown as EventsSink, { intervalMs: 1000 });
+    const handle = scheduleReEngagementEmails(
+      mockRepo,
+      mockEmailService,
+      sink as unknown as EventsSink,
+      { intervalMs: 1000 }
+    );
 
     jest.advanceTimersByTime(1000);
     await Promise.resolve();
@@ -36,7 +44,12 @@ describe('scheduleReEngagementEmails', () => {
 
   it('does not fire before the interval elapses', () => {
     const sink = makeSink();
-    const handle = scheduleReEngagementEmails(mockRepo, mockEmailService, sink as unknown as EventsSink, { intervalMs: 1000 });
+    const handle = scheduleReEngagementEmails(
+      mockRepo,
+      mockEmailService,
+      sink as unknown as EventsSink,
+      { intervalMs: 1000 }
+    );
 
     jest.advanceTimersByTime(999);
 
@@ -47,7 +60,12 @@ describe('scheduleReEngagementEmails', () => {
   it('emits email_batch_sent with campaign=reengagement and the returned count', async () => {
     (sendReEngagementEmails as jest.Mock).mockResolvedValueOnce({ count: 7 });
     const sink = makeSink();
-    const handle = scheduleReEngagementEmails(mockRepo, mockEmailService, sink as unknown as EventsSink, { intervalMs: 1000 });
+    const handle = scheduleReEngagementEmails(
+      mockRepo,
+      mockEmailService,
+      sink as unknown as EventsSink,
+      { intervalMs: 1000 }
+    );
 
     jest.advanceTimersByTime(1000);
     await Promise.resolve();
@@ -60,9 +78,16 @@ describe('scheduleReEngagementEmails', () => {
   });
 
   it('catches errors thrown by sendReEngagementEmails without rethrowing', async () => {
-    (sendReEngagementEmails as jest.Mock).mockRejectedValueOnce(new Error('db down'));
+    (sendReEngagementEmails as jest.Mock).mockRejectedValueOnce(
+      new Error('db down')
+    );
     const sink = makeSink();
-    const handle = scheduleReEngagementEmails(mockRepo, mockEmailService, sink as unknown as EventsSink, { intervalMs: 1000 });
+    const handle = scheduleReEngagementEmails(
+      mockRepo,
+      mockEmailService,
+      sink as unknown as EventsSink,
+      { intervalMs: 1000 }
+    );
 
     jest.advanceTimersByTime(1000);
     await expect(Promise.resolve()).resolves.toBeUndefined();

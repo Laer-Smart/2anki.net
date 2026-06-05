@@ -1,5 +1,8 @@
 import { hasAnkifyAccess } from '../../lib/ankify/access';
-import type { AnkifyAccessUser, AnkifyAccessSubscription } from '../../lib/ankify/access';
+import type {
+  AnkifyAccessUser,
+  AnkifyAccessSubscription,
+} from '../../lib/ankify/access';
 import type { PitchPlacement } from '../../data_layer/PitchDismissalsRepository';
 
 const NOTION_JOB_TYPES = new Set(['page', 'database']);
@@ -12,8 +15,14 @@ interface JobLookupPort {
     owner: string,
     objectId: string,
     windowMs: number
-  ): Promise<{ object_id: string; created_at: Date | null; type: string | null } | undefined>;
-  countRecentNotionJobsByOwner(owner: string, windowMs: number): Promise<number>;
+  ): Promise<
+    | { object_id: string; created_at: Date | null; type: string | null }
+    | undefined
+  >;
+  countRecentNotionJobsByOwner(
+    owner: string,
+    windowMs: number
+  ): Promise<number>;
 }
 
 interface DismissalLookupPort {
@@ -95,7 +104,10 @@ export class ShouldShowAutoSyncPitchUseCase {
       return false;
     }
 
-    const count = await this.jobRepo.countRecentNotionJobsByOwner(userId, MS_30_DAYS);
+    const count = await this.jobRepo.countRecentNotionJobsByOwner(
+      userId,
+      MS_30_DAYS
+    );
     return count > 1;
   }
 }

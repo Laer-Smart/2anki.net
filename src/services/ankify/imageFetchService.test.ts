@@ -92,7 +92,7 @@ describe('fetchImage', () => {
       expect(service).toBe('pexels');
       expect(url).toBe('https://api.pexels.com/v1/search');
       expect(
-        ((config as { headers: Record<string, string> }).headers).Authorization
+        (config as { headers: Record<string, string> }).headers.Authorization
       ).toBe('KEY_VAL');
     });
 

@@ -10,6 +10,8 @@ describe('ChunkReloadOverlay', () => {
     expect(overlay).toBeInTheDocument();
     expect(overlay.getAttribute('role')).toBe('status');
     expect(overlay.getAttribute('aria-live')).toBe('polite');
-    expect(screen.getByText('Updating to the latest version.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Updating to the latest version.')
+    ).toBeInTheDocument();
   });
 });

@@ -26,6 +26,21 @@ jobs:
         env:
           CI: true
 
+  lint:
+    name: lint (22.20.0)
+    runs-on: blacksmith
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
+      - name: Lint
+        run: pnpm lint
+        env:
+          CI: true
+      - name: Format check
+        run: pnpm format:check
+        env:
+          CI: true
+
   test:
     name: test (${{ matrix.shard }})
     if: ${{ github.actor != 'dependabot[bot]' }}

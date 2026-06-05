@@ -34,7 +34,11 @@ class IapController {
   async redeem(req: Request, res: Response): Promise<void> {
     const userId = res.locals.owner as number;
     const body = (req.body ?? {}) as Record<string, unknown>;
-    const jws = readString(body.jws, body.signedTransaction, body.signed_transaction_info);
+    const jws = readString(
+      body.jws,
+      body.signedTransaction,
+      body.signed_transaction_info
+    );
     const productId = readString(body.product_id, body.productId);
 
     if (jws == null || productId == null) {
@@ -67,12 +71,13 @@ class IapController {
     res: Response,
     pass: { kind: PassKind; expiresAt: Date }
   ): IapLocals {
-    const subscriptionInfo =
-      (res.locals.subscriptionInfo as SubscriptionInfo | undefined) ?? {
-        active: false,
-        email: '',
-        linked_email: '',
-      };
+    const subscriptionInfo = (res.locals.subscriptionInfo as
+      | SubscriptionInfo
+      | undefined) ?? {
+      active: false,
+      email: '',
+      linked_email: '',
+    };
     return {
       owner: res.locals.owner as number,
       patreon: Boolean(res.locals.patreon),

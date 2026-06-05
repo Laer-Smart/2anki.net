@@ -36,7 +36,9 @@ describe('withRetry', () => {
   it('retries on internal_server_error', async () => {
     const fn = jest
       .fn()
-      .mockRejectedValueOnce(makeApiError(APIErrorCode.InternalServerError, 500))
+      .mockRejectedValueOnce(
+        makeApiError(APIErrorCode.InternalServerError, 500)
+      )
       .mockResolvedValueOnce('ok');
     await withRetry(fn, { maxAttempts: 3, baseDelayMs: 1 });
     expect(fn).toHaveBeenCalledTimes(2);

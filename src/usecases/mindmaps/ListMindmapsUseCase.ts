@@ -1,4 +1,8 @@
-import { hasAnkifyAccess, AnkifyAccessUser, AnkifyAccessSubscription } from '../../lib/ankify/access';
+import {
+  hasAnkifyAccess,
+  AnkifyAccessUser,
+  AnkifyAccessSubscription,
+} from '../../lib/ankify/access';
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import Mindmaps from '../../data_layer/public/Mindmaps';
 import { UsersId } from '../../data_layer/public/Users';
@@ -33,7 +37,11 @@ export class ListMindmapsUseCase {
       this.repo.findByUserId(userId),
       this.repo.countByUserId(userId),
     ]);
-    const hasUnlimited = hasAnkifyAccess(user, subscriptions, autoSyncProductId);
+    const hasUnlimited = hasAnkifyAccess(
+      user,
+      subscriptions,
+      autoSyncProductId
+    );
     return {
       maps,
       access: {

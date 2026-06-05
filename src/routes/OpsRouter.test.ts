@@ -71,9 +71,9 @@ jest.mock('../services/events/track', () => ({
 }));
 
 jest.mock('./middleware/RequireOpsAccess', () => {
-  const state = (globalThis as unknown as {
+  const state = globalThis as unknown as {
     __opsAccessState?: { allow: boolean };
-  });
+  };
   if (state.__opsAccessState == null) {
     state.__opsAccessState = { allow: false };
   }
@@ -180,9 +180,11 @@ jest.mock('../data_layer/EventsRepository', () => {
 
 import OpsRouter from './OpsRouter';
 
-const opsAccessState = (globalThis as unknown as {
-  __opsAccessState: { allow: boolean };
-}).__opsAccessState;
+const opsAccessState = (
+  globalThis as unknown as {
+    __opsAccessState: { allow: boolean };
+  }
+).__opsAccessState;
 
 const setOwnerAccess = (allow: boolean) => {
   opsAccessState.allow = allow;
@@ -388,11 +390,14 @@ describe('OpsRouter /api/ops/flags', () => {
   it('PUT returns 404 for non-owner callers', async () => {
     const { url, close } = await startServer(false);
     try {
-      const response = await fetch(`${url}/api/ops/flags/ai-converter-floor-v1`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value: true }),
-      });
+      const response = await fetch(
+        `${url}/api/ops/flags/ai-converter-floor-v1`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: true }),
+        }
+      );
       expect(response.status).toBe(404);
     } finally {
       await close();
@@ -402,11 +407,14 @@ describe('OpsRouter /api/ops/flags', () => {
   it('PUT returns 400 when the body value is not a boolean', async () => {
     const { url, close } = await startServer(true);
     try {
-      const response = await fetch(`${url}/api/ops/flags/ai-converter-floor-v1`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value: 'yes' }),
-      });
+      const response = await fetch(
+        `${url}/api/ops/flags/ai-converter-floor-v1`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: 'yes' }),
+        }
+      );
       expect(response.status).toBe(400);
     } finally {
       await close();
@@ -430,11 +438,14 @@ describe('OpsRouter /api/ops/flags', () => {
   it('PUT updates the flag and returns the updated row', async () => {
     const { url, close } = await startServer(true);
     try {
-      const response = await fetch(`${url}/api/ops/flags/ai-converter-floor-v1`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ value: true }),
-      });
+      const response = await fetch(
+        `${url}/api/ops/flags/ai-converter-floor-v1`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: true }),
+        }
+      );
       expect(response.status).toBe(200);
       const body = await response.json();
       expect(body).toMatchObject({

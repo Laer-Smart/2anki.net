@@ -161,7 +161,9 @@ describe('ApkgPreviewService.getCardsPage', () => {
   describe('ord-out-of-range fallback', () => {
     it('emits a debug log when a card ord exceeds the noteType template count', () => {
       const parsed = makeParsed(makeBadOrdClozeCollection());
-      const debugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {});
+      const debugSpy = jest
+        .spyOn(console, 'debug')
+        .mockImplementation(() => {});
 
       service.getCardsPage(parsed, 0, 10, 'http://example.com');
 
@@ -182,7 +184,9 @@ describe('ApkgPreviewService.getCardsPage', () => {
       warnSpy.mockRestore();
 
       expect(result.cards).toHaveLength(2);
-      expect(result.cards.every((c) => c.noteTypeName === 'n2a-cloze')).toBe(true);
+      expect(result.cards.every((c) => c.noteTypeName === 'n2a-cloze')).toBe(
+        true
+      );
     });
 
     it('does not throw when a card ord exceeds the noteType template count', () => {
@@ -202,7 +206,9 @@ describe('ApkgPreviewService.getCardsPage', () => {
       const result = service.getCardsPage(parsed, 0, 10, 'http://example.com');
 
       expect(result.cards).toHaveLength(1);
-      expect(result.cards[0].front).toContain('Image Occlusion cards open with masks in Anki');
+      expect(result.cards[0].front).toContain(
+        'Image Occlusion cards open with masks in Anki'
+      );
     });
 
     it('does not include <canvas> in the rendered output', () => {

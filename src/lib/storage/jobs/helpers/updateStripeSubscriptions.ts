@@ -41,7 +41,12 @@ export async function mapWithConcurrency<T>(
  */
 function fetchSubscriptionBatch(startingAfter?: string) {
   return withStripeRetry(
-    () => stripe.subscriptions.list({ limit: 100, status: 'active', starting_after: startingAfter }),
+    () =>
+      stripe.subscriptions.list({
+        limit: 100,
+        status: 'active',
+        starting_after: startingAfter,
+      }),
     'fetchSubscriptionBatch'
   );
 }
@@ -60,10 +65,17 @@ async function getCustomer(
     if ('email' in customer && customer.email) {
       return customer as StripeTypes.Customer;
     }
-    console.warn('Customer does not have an email', `customer=${shortHash(customerId)}`);
+    console.warn(
+      'Customer does not have an email',
+      `customer=${shortHash(customerId)}`
+    );
     return null;
   } catch (error) {
-    console.error('Error retrieving customer', `customer=${shortHash(customerId)}`, error);
+    console.error(
+      'Error retrieving customer',
+      `customer=${shortHash(customerId)}`,
+      error
+    );
     return null;
   }
 }
@@ -118,15 +130,19 @@ async function updateExistingSubscription(
     console.info(
       `Updating subscription status for email=${shortHash(email)} to ${shouldRemainActive ? 'active' : 'inactive'}`
     );
-    await db
-      .table('subscriptions')
-      .where({ email })
-      .update({ active: shouldRemainActive, payload, stripe_product_id: stripeProductId });
+    await db.table('subscriptions').where({ email }).update({
+      active: shouldRemainActive,
+      payload,
+      stripe_product_id: stripeProductId,
+    });
   } else {
     console.info(
       `Subscription status for email=${shortHash(email)} remains ${shouldRemainActive ? 'active' : 'inactive'}`
     );
-    await db.table('subscriptions').where({ email }).update({ payload, stripe_product_id: stripeProductId });
+    await db
+      .table('subscriptions')
+      .where({ email })
+      .update({ payload, stripe_product_id: stripeProductId });
   }
 }
 

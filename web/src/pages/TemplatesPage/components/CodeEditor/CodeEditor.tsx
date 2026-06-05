@@ -47,7 +47,11 @@ interface FallbackProps {
   ariaLabel: string;
 }
 
-function PlainTextarea({ value, onChange, ariaLabel }: Readonly<FallbackProps>) {
+function PlainTextarea({
+  value,
+  onChange,
+  ariaLabel,
+}: Readonly<FallbackProps>) {
   return (
     <textarea
       className={styles.fallback}

@@ -3,8 +3,7 @@ import { PythonExitError } from '../../lib/anki/buildPythonExitError';
 import { EmptyDeckError } from './EmptyDeckError';
 import { inferColumnMapping } from '../../lib/notionDatabase/inferColumnMapping';
 
-export const NOTION_TOKEN_EXPIRED_REASON =
-  'notion_token_expired';
+export const NOTION_TOKEN_EXPIRED_REASON = 'notion_token_expired';
 
 export const EMPTY_DECK_FAILURE_REASON =
   "No cards in this deck yet. 2anki makes a card from every Notion toggle — the toggle title becomes the question, what's inside becomes the answer. Wrap your key terms in toggles, then convert again.";
@@ -50,8 +49,7 @@ function genericFailureReason(jobId = 'unavailable'): string {
 
 function hasCode(error: unknown, code: string): boolean {
   return (
-    error instanceof Error &&
-    (error as Error & { code?: string }).code === code
+    error instanceof Error && (error as Error & { code?: string }).code === code
   );
 }
 
@@ -92,10 +90,16 @@ export function jobFailureReasonCode(error: unknown): JobFailureReasonCode {
   if (hasCode(error, 'WORKER_TIMEOUT')) {
     return 'worker_timeout';
   }
-  if (error instanceof APIResponseError && error.code === APIErrorCode.RateLimited) {
+  if (
+    error instanceof APIResponseError &&
+    error.code === APIErrorCode.RateLimited
+  ) {
     return 'notion_rate_limited';
   }
-  if (error instanceof APIResponseError && error.code === APIErrorCode.ObjectNotFound) {
+  if (
+    error instanceof APIResponseError &&
+    error.code === APIErrorCode.ObjectNotFound
+  ) {
     return 'notion_not_found';
   }
   if (hasCode(error, 'APKG_TOO_LARGE')) {
@@ -107,7 +111,10 @@ export function jobFailureReasonCode(error: unknown): JobFailureReasonCode {
   if (error instanceof Error && error.message.startsWith('pdfinfo_password')) {
     return 'pdf_password';
   }
-  if (error instanceof Error && /^pdfinfo_(failed|spawn_failed)/.test(error.message)) {
+  if (
+    error instanceof Error &&
+    /^pdfinfo_(failed|spawn_failed)/.test(error.message)
+  ) {
     return 'pdf_unreadable';
   }
   return 'unknown';
@@ -156,10 +163,7 @@ export function jobFailureReasonFromError(
   if (hasCode(error, 'ZIP_INVALID')) {
     return "Couldn't read this zip. Make sure it's the Markdown & CSV export from Notion, not the HTML export.";
   }
-  if (
-    error instanceof Error &&
-    error.message.startsWith('pdfinfo_password')
-  ) {
+  if (error instanceof Error && error.message.startsWith('pdfinfo_password')) {
     return 'This PDF is password-protected. Remove the password and try again.';
   }
   if (

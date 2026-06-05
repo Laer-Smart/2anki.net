@@ -2,10 +2,17 @@ import { DismissPitchUseCase } from './DismissPitchUseCase';
 import type { PitchPlacement } from '../../data_layer/PitchDismissalsRepository';
 
 function makeInMemoryDismissalRepo() {
-  const store: Array<{ user_id: string; placement: PitchPlacement; dismissed_at: Date }> = [];
+  const store: Array<{
+    user_id: string;
+    placement: PitchPlacement;
+    dismissed_at: Date;
+  }> = [];
   return {
     store,
-    async upsertDismissal(userId: string, placement: PitchPlacement): Promise<void> {
+    async upsertDismissal(
+      userId: string,
+      placement: PitchPlacement
+    ): Promise<void> {
       const existing = store.findIndex(
         (d) => d.user_id === userId && d.placement === placement
       );
@@ -25,7 +32,10 @@ describe('DismissPitchUseCase', () => {
     const useCase = new DismissPitchUseCase(repo);
     await useCase.execute('u1', 'convert_success');
     expect(repo.store).toHaveLength(1);
-    expect(repo.store[0]).toMatchObject({ user_id: 'u1', placement: 'convert_success' });
+    expect(repo.store[0]).toMatchObject({
+      user_id: 'u1',
+      placement: 'convert_success',
+    });
   });
 
   it('upserts on repeat dismissal — does not create duplicate rows', async () => {

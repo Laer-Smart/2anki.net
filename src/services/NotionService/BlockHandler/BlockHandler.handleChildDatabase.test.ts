@@ -57,10 +57,9 @@ describe('BlockHandler.handleChildDatabase', () => {
     const api = makeApi({ rowCount: 1 });
     const handler = makeHandler(api);
 
-    await (handler as unknown as WithPrivateHandleChildDatabase).handleChildDatabase(
-      { id: 'embedded-db' },
-      new ParserRules()
-    );
+    await (
+      handler as unknown as WithPrivateHandleChildDatabase
+    ).handleChildDatabase({ id: 'embedded-db' }, new ParserRules());
 
     expect(api.queryDatabase).toHaveBeenCalledWith('embedded-db', true);
   });

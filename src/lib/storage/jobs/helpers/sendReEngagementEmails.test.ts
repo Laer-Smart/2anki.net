@@ -107,7 +107,9 @@ describe('sendReEngagementEmails', () => {
       .mockRejectedValueOnce(new Error('SendGrid error'))
       .mockResolvedValueOnce(undefined);
 
-    await expect(sendReEngagementEmails(repo, emailService)).resolves.toMatchObject({ count: expect.any(Number) });
+    await expect(
+      sendReEngagementEmails(repo, emailService)
+    ).resolves.toMatchObject({ count: expect.any(Number) });
     expect(emailService.sendReEngagementEmail).toHaveBeenCalledTimes(2);
   });
 });

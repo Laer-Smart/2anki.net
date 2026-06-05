@@ -1,6 +1,9 @@
 import crypto from 'node:crypto';
 import { Request, Response, NextFunction } from 'express';
-import { IErrorEventRepository, ErrorEventInsert } from '../../data_layer/ErrorEventRepository';
+import {
+  IErrorEventRepository,
+  ErrorEventInsert,
+} from '../../data_layer/ErrorEventRepository';
 import { FallbackErrorPayload } from '../../lib/errorFallback';
 import { resolveClientIp } from '../../lib/rateLimit/ipHelpers';
 
@@ -33,7 +36,8 @@ export const makeErrorCaptureMiddleware = (
       );
 
       if (!isDuplicate) {
-        const userId = typeof res.locals.owner === 'number' ? res.locals.owner : null;
+        const userId =
+          typeof res.locals.owner === 'number' ? res.locals.owner : null;
         const row: ErrorEventInsert = {
           source: 'server',
           message_hash: messageHash,

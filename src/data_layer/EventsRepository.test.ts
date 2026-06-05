@@ -114,7 +114,14 @@ describe('EventsRepository', () => {
   it('insertEvents preserves nullable user_id and anonymous_id', async () => {
     const { db, store } = makeFakeKnex();
     const repo = new EventsRepository(db);
-    await repo.insertEvents([{ name: 'upload_error_chat_shown', props: {}, user_id: null, anonymous_id: 'anon-uuid-1' }]);
+    await repo.insertEvents([
+      {
+        name: 'upload_error_chat_shown',
+        props: {},
+        user_id: null,
+        anonymous_id: 'anon-uuid-1',
+      },
+    ]);
     expect(store.rows[0].user_id).toBeNull();
     expect(store.rows[0].anonymous_id).toBe('anon-uuid-1');
   });
@@ -123,7 +130,12 @@ describe('EventsRepository', () => {
     const { db } = makeFakeKnex();
     const repo = new EventsRepository(db);
     const since = new Date('2026-01-01');
-    const result = await repo.countByNameForUser('upload_error_chat_engaged', since, null, null);
+    const result = await repo.countByNameForUser(
+      'upload_error_chat_engaged',
+      since,
+      null,
+      null
+    );
     expect(result).toBe(0);
   });
 });

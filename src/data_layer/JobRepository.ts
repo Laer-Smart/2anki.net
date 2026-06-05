@@ -24,7 +24,11 @@ class JobRepository {
       .leftJoin(latestUpload, 'latest_upload.object_id', 'jobs.object_id')
       .leftJoin('uploads', 'uploads.id', 'latest_upload.max_id')
       .where({ 'jobs.owner': owner })
-      .select('jobs.*', 'uploads.key as download_key', 'uploads.id as upload_id');
+      .select(
+        'jobs.*',
+        'uploads.key as download_key',
+        'uploads.id as upload_id'
+      );
   }
 
   deleteJob(id: string, owner: string) {
@@ -62,7 +66,9 @@ class JobRepository {
       .first();
   }
 
-  findJobByObjectId(objectId: string): Promise<Pick<Jobs, 'title' | 'created_at'> | undefined> {
+  findJobByObjectId(
+    objectId: string
+  ): Promise<Pick<Jobs, 'title' | 'created_at'> | undefined> {
     return this.database<Jobs>(this.tableName)
       .where({ object_id: objectId })
       .select('title', 'created_at')
@@ -83,7 +89,10 @@ class JobRepository {
       .first();
   }
 
-  countRecentNotionJobsByOwner(owner: string, windowMs: number): Promise<number> {
+  countRecentNotionJobsByOwner(
+    owner: string,
+    windowMs: number
+  ): Promise<number> {
     const cutoff = new Date(Date.now() - windowMs);
     return this.database(this.tableName)
       .where({ owner })
@@ -108,7 +117,12 @@ class JobRepository {
       .update({ status: 'interrupted', last_edited_time: new Date() });
   }
 
-  static readonly TERMINAL_STATUSES = ['done', 'failed', 'cancelled', 'interrupted'];
+  static readonly TERMINAL_STATUSES = [
+    'done',
+    'failed',
+    'cancelled',
+    'interrupted',
+  ];
 
   async restartJob(id: string, owner: string): Promise<Jobs | undefined> {
     const rows = await this.database(this.tableName)

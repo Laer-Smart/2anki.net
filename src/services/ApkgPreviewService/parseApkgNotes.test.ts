@@ -76,7 +76,13 @@ describe('parseApkgNotes', () => {
       buildCollection({
         noteTypes: [noteType({ id: 1, name: 'Basic', type: 0 })],
         notes: [
-          note({ id: 100, mid: 1, fields: ['Q', 'A'], tags: ' alpha  beta ', guid: 'g-1' }),
+          note({
+            id: 100,
+            mid: 1,
+            fields: ['Q', 'A'],
+            tags: ' alpha  beta ',
+            guid: 'g-1',
+          }),
         ],
         decks: [{ id: 9, name: 'Deck A' }],
         cards: [{ id: 1, nid: 100, did: 9, ord: 0 }],

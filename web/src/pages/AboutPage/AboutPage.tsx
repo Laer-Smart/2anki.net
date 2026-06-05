@@ -74,8 +74,8 @@ export default function AboutPage() {
             rel="noreferrer"
           >
             SuperMemo
-          </a>.
-
+          </a>
+          .
         </p>
         <p>
           Due to server costs there are quota limits on the free tier, but the

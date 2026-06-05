@@ -70,7 +70,9 @@ test('Highlighted text is rendered with background', async () => {
   );
   expect(flashcards.length).toBeGreaterThan(0);
   const card = flashcards[0];
-  expect(card.name).toContain('<span style="background-color:#DFAB01">highlighted </span>');
+  expect(card.name).toContain(
+    '<span style="background-color:#DFAB01">highlighted </span>'
+  );
 });
 import * as dotenv from 'dotenv';
 import CustomExporter from '../../../lib/parser/exporters/CustomExporter';
@@ -356,12 +358,12 @@ describe('BlockHandler', () => {
       new Workspace(true, 'fs'),
       new ParserRules()
     );
-    
+
     // Find the cloze card (should be the second card based on mock data)
     const clozeCard = flashcards.find((c) =>
       c.name.includes('{{c1::cloze deletion}}')
     );
-    
+
     expect(clozeCard).toBeTruthy();
     expect(clozeCard?.name).toContain('{{c1::cloze deletion}}');
   });
@@ -369,33 +371,33 @@ describe('BlockHandler', () => {
   test('Multi-line Toggle with Newlines (Basic)', async () => {
     // Test the basic (non-cloze) processing with the multi-line mock data
     const mockToggleBlock = {
-      object: "block" as const,
-      id: "0d29f785-320d-4fce-ae81-9bf0b02b81cc",
+      object: 'block' as const,
+      id: '0d29f785-320d-4fce-ae81-9bf0b02b81cc',
       parent: {
-        type: "page_id" as const,
-        page_id: "43df8b2d-4e00-4d2c-8848-07a60c2cc1cd"
+        type: 'page_id' as const,
+        page_id: '43df8b2d-4e00-4d2c-8848-07a60c2cc1cd',
       },
-      created_time: "2021-04-13T18:35:00.000Z",
-      last_edited_time: "2021-04-13T18:35:00.000Z",
+      created_time: '2021-04-13T18:35:00.000Z',
+      last_edited_time: '2021-04-13T18:35:00.000Z',
       created_by: {
-        object: "user" as const,
-        id: "1590db54-99fe-467c-a656-be319fe6ca8b"
+        object: 'user' as const,
+        id: '1590db54-99fe-467c-a656-be319fe6ca8b',
       },
       last_edited_by: {
-        object: "user" as const,
-        id: "1590db54-99fe-467c-a656-be319fe6ca8b"
+        object: 'user' as const,
+        id: '1590db54-99fe-467c-a656-be319fe6ca8b',
       },
       has_children: false,
       archived: false,
       in_trash: false,
-      type: "toggle" as const,
+      type: 'toggle' as const,
       toggle: {
         rich_text: [
           {
-            type: "text" as const,
+            type: 'text' as const,
             text: {
-              content: "Mult-line cloze \n",
-              link: null
+              content: 'Mult-line cloze \n',
+              link: null,
             },
             annotations: {
               bold: false,
@@ -403,16 +405,16 @@ describe('BlockHandler', () => {
               strikethrough: false,
               underline: false,
               code: false,
-              color: "default" as const
+              color: 'default' as const,
             },
-            plain_text: "Mult-line cloze \n",
-            href: null
+            plain_text: 'Mult-line cloze \n',
+            href: null,
           },
           {
-            type: "text" as const,
+            type: 'text' as const,
             text: {
-              content: "First",
-              link: null
+              content: 'First',
+              link: null,
             },
             annotations: {
               bold: false,
@@ -420,16 +422,16 @@ describe('BlockHandler', () => {
               strikethrough: false,
               underline: false,
               code: true,
-              color: "default" as const
+              color: 'default' as const,
             },
-            plain_text: "First",
-            href: null
+            plain_text: 'First',
+            href: null,
           },
           {
-            type: "text" as const,
+            type: 'text' as const,
             text: {
-              content: "\n",
-              link: null
+              content: '\n',
+              link: null,
             },
             annotations: {
               bold: false,
@@ -437,16 +439,16 @@ describe('BlockHandler', () => {
               strikethrough: false,
               underline: false,
               code: false,
-              color: "default" as const
+              color: 'default' as const,
             },
-            plain_text: "\n",
-            href: null
+            plain_text: '\n',
+            href: null,
           },
           {
-            type: "text" as const,
+            type: 'text' as const,
             text: {
-              content: "Second",
-              link: null
+              content: 'Second',
+              link: null,
             },
             annotations: {
               bold: false,
@@ -454,16 +456,16 @@ describe('BlockHandler', () => {
               strikethrough: false,
               underline: false,
               code: true,
-              color: "default" as const
+              color: 'default' as const,
             },
-            plain_text: "Second",
-            href: null
+            plain_text: 'Second',
+            href: null,
           },
           {
-            type: "text" as const,
+            type: 'text' as const,
             text: {
-              content: " \n",
-              link: null
+              content: ' \n',
+              link: null,
             },
             annotations: {
               bold: false,
@@ -471,16 +473,16 @@ describe('BlockHandler', () => {
               strikethrough: false,
               underline: false,
               code: false,
-              color: "default" as const
+              color: 'default' as const,
             },
-            plain_text: " \n",
-            href: null
+            plain_text: ' \n',
+            href: null,
           },
           {
-            type: "text" as const,
+            type: 'text' as const,
             text: {
-              content: "Third",
-              link: null
+              content: 'Third',
+              link: null,
             },
             annotations: {
               bold: false,
@@ -488,21 +490,21 @@ describe('BlockHandler', () => {
               strikethrough: false,
               underline: false,
               code: true,
-              color: "default" as const
+              color: 'default' as const,
             },
-            plain_text: "Third",
-            href: null
-          }
+            plain_text: 'Third',
+            href: null,
+          },
         ],
-        color: "default" as const
-      }
+        color: 'default' as const,
+      },
     };
 
     // Test with cloze enabled to match user's scenario
     const settings = new CardOption({ cloze: 'true' });
     const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
     const bl = new BlockHandler(exporter, api, settings);
-    
+
     // Process the block through getFlashcards
     const flashcards = await bl.getFlashcards(
       new ParserRules(),
@@ -510,10 +512,10 @@ describe('BlockHandler', () => {
       [],
       undefined
     );
-    
+
     expect(flashcards.length).toBeGreaterThan(0);
     const card = flashcards[0];
-    
+
     expect(card.name).toContain('{{c1::First}}');
     expect(card.name).toContain('{{c2::Second}}');
     expect(card.name).toContain('{{c3::Third}}');
@@ -537,9 +539,7 @@ describe('BlockHandler', () => {
 
   test('Cloze markers inside toggle content produce a cloze card with the header as Extra', async () => {
     const toggleId = 'content-cloze-toggle';
-    const mockToggleBlock = buildToggleBlock(toggleId, [
-      richText('Australia'),
-    ]);
+    const mockToggleBlock = buildToggleBlock(toggleId, [richText('Australia')]);
     const childApi = new ChildStubApi(api, toggleId, [
       paragraphBlock('child-para', [
         richText('The capital is '),
@@ -585,7 +585,11 @@ describe('BlockHandler', () => {
       ]),
     ]);
     const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
-    const bl = new BlockHandler(exporter, childApi, new CardOption({ cloze: 'true' }));
+    const bl = new BlockHandler(
+      exporter,
+      childApi,
+      new CardOption({ cloze: 'true' })
+    );
     const flashcards = await bl.getFlashcards(
       new ParserRules(),
       [mockToggleBlock],
@@ -647,7 +651,11 @@ describe('BlockHandler', () => {
       paragraphBlock('source-para', [richText('Source: Anki manual')]),
     ]);
     const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
-    const bl = new BlockHandler(exporter, childApi, new CardOption({ cloze: 'true' }));
+    const bl = new BlockHandler(
+      exporter,
+      childApi,
+      new CardOption({ cloze: 'true' })
+    );
     const flashcards = await bl.getFlashcards(
       new ParserRules(),
       [mockToggleBlock],
@@ -782,48 +790,84 @@ describe('BlockHandler', () => {
   test.todo('Download Media Files');
   test('Cloze respects preserve-newlines setting', async () => {
     const mockToggleBlock = {
-      object: "block" as const,
-      id: "preserve-nl-test",
-      parent: { type: "page_id" as const, page_id: "page-id" },
-      created_time: "",
-      last_edited_time: "",
-      created_by: { object: "user" as const, id: "user-id" },
-      last_edited_by: { object: "user" as const, id: "user-id" },
+      object: 'block' as const,
+      id: 'preserve-nl-test',
+      parent: { type: 'page_id' as const, page_id: 'page-id' },
+      created_time: '',
+      last_edited_time: '',
+      created_by: { object: 'user' as const, id: 'user-id' },
+      last_edited_by: { object: 'user' as const, id: 'user-id' },
       has_children: false,
       archived: false,
       in_trash: false,
-      type: "toggle" as const,
+      type: 'toggle' as const,
       toggle: {
         rich_text: [
           {
-            type: "text" as const,
-            text: { content: "Line one\n", link: null },
-            annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: "default" as const },
-            plain_text: "Line one\n",
-            href: null
+            type: 'text' as const,
+            text: { content: 'Line one\n', link: null },
+            annotations: {
+              bold: false,
+              italic: false,
+              strikethrough: false,
+              underline: false,
+              code: false,
+              color: 'default' as const,
+            },
+            plain_text: 'Line one\n',
+            href: null,
           },
           {
-            type: "text" as const,
-            text: { content: "Answer", link: null },
-            annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: true, color: "default" as const },
-            plain_text: "Answer",
-            href: null
-          }
+            type: 'text' as const,
+            text: { content: 'Answer', link: null },
+            annotations: {
+              bold: false,
+              italic: false,
+              strikethrough: false,
+              underline: false,
+              code: true,
+              color: 'default' as const,
+            },
+            plain_text: 'Answer',
+            href: null,
+          },
         ],
-        color: "default" as const
-      }
+        color: 'default' as const,
+      },
     };
 
-    const settingsOn = new CardOption({ cloze: 'true', 'perserve-newlines': 'true' });
-    const exporterOn = new CustomExporter('', new Workspace(true, 'fs').location);
+    const settingsOn = new CardOption({
+      cloze: 'true',
+      'perserve-newlines': 'true',
+    });
+    const exporterOn = new CustomExporter(
+      '',
+      new Workspace(true, 'fs').location
+    );
     const blOn = new BlockHandler(exporterOn, api, settingsOn);
-    const cardsOn = await blOn.getFlashcards(new ParserRules(), [mockToggleBlock], [], undefined);
+    const cardsOn = await blOn.getFlashcards(
+      new ParserRules(),
+      [mockToggleBlock],
+      [],
+      undefined
+    );
     expect(cardsOn[0].name).toContain('<br />');
 
-    const settingsOff = new CardOption({ cloze: 'true', 'perserve-newlines': 'false' });
-    const exporterOff = new CustomExporter('', new Workspace(true, 'fs').location);
+    const settingsOff = new CardOption({
+      cloze: 'true',
+      'perserve-newlines': 'false',
+    });
+    const exporterOff = new CustomExporter(
+      '',
+      new Workspace(true, 'fs').location
+    );
     const blOff = new BlockHandler(exporterOff, api, settingsOff);
-    const cardsOff = await blOff.getFlashcards(new ParserRules(), [mockToggleBlock], [], undefined);
+    const cardsOff = await blOff.getFlashcards(
+      new ParserRules(),
+      [mockToggleBlock],
+      [],
+      undefined
+    );
     expect(cardsOff[0].name).not.toContain('<br />');
   });
 
@@ -922,7 +966,10 @@ describe('BlockHandler', () => {
 
     const buildHandler = (settingsInput: Record<string, string> = {}) => {
       const settings = new CardOption(settingsInput);
-      const exporter = new CustomExporter('', new Workspace(true, 'fs').location);
+      const exporter = new CustomExporter(
+        '',
+        new Workspace(true, 'fs').location
+      );
       return new BlockHandler(exporter, api, settings);
     };
 

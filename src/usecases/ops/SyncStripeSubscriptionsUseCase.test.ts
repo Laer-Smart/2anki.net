@@ -16,9 +16,10 @@ describe('SyncStripeSubscriptionsUseCase', () => {
   it('rejects a second call while a sync is still running', () => {
     let resolveSync: () => void = () => undefined;
     const runSync = jest.fn(
-      () => new Promise<void>((resolve) => {
-        resolveSync = resolve;
-      })
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSync = resolve;
+        })
     );
     const useCase = new SyncStripeSubscriptionsUseCase(runSync);
 
@@ -35,9 +36,10 @@ describe('SyncStripeSubscriptionsUseCase', () => {
   it('allows a new sync once the previous run finishes', async () => {
     let resolveSync: () => void = () => undefined;
     const runSync = jest.fn(
-      () => new Promise<void>((resolve) => {
-        resolveSync = resolve;
-      })
+      () =>
+        new Promise<void>((resolve) => {
+          resolveSync = resolve;
+        })
     );
     const useCase = new SyncStripeSubscriptionsUseCase(runSync);
 

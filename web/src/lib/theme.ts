@@ -3,7 +3,13 @@ import { scheduleSync } from './data_layer/userPreferencesSync';
 export type Theme = 'light' | 'dark' | 'gold' | 'purple' | 'hotpink';
 
 const STORAGE_KEY = '2anki-theme';
-const VALID_THEMES: ReadonlySet<string> = new Set(['light', 'dark', 'gold', 'purple', 'hotpink']);
+const VALID_THEMES: ReadonlySet<string> = new Set([
+  'light',
+  'dark',
+  'gold',
+  'purple',
+  'hotpink',
+]);
 
 export const THEME_CHANGE_EVENT = '2anki-theme-change';
 
@@ -30,7 +36,9 @@ export function applyTheme(theme: Theme): void {
   }
   globalThis.localStorage?.setItem(STORAGE_KEY, theme);
   scheduleSync();
-  globalThis.dispatchEvent?.(new CustomEvent(THEME_CHANGE_EVENT, { detail: theme }));
+  globalThis.dispatchEvent?.(
+    new CustomEvent(THEME_CHANGE_EVENT, { detail: theme })
+  );
 }
 
 export function initTheme(): void {

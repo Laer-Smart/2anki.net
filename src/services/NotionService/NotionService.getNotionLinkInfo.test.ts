@@ -2,7 +2,9 @@ import { NotionService } from './NotionService';
 import type { INotionRepository } from '../../data_layer/NotionRespository';
 import { verifyNativeOAuthState } from './nativeOAuthState';
 
-function makeRepo(overrides: Partial<INotionRepository> = {}): INotionRepository {
+function makeRepo(
+  overrides: Partial<INotionRepository> = {}
+): INotionRepository {
   return {
     getNotionData: jest.fn().mockResolvedValue(null),
     saveNotionToken: jest.fn().mockResolvedValue(true),

@@ -18,7 +18,9 @@ describe('slugifyTitle', () => {
   });
 
   it('removes punctuation other than hyphens', () => {
-    expect(slugifyTitle('Chapter 1: Introduction!')).toBe('chapter-1-introduction');
+    expect(slugifyTitle('Chapter 1: Introduction!')).toBe(
+      'chapter-1-introduction'
+    );
   });
 
   it('collapses multiple spaces and hyphens into a single hyphen', () => {

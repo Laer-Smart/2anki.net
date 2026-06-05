@@ -57,12 +57,16 @@ describe('theme', () => {
 
     it('sets data-theme to purple', () => {
       applyTheme('purple');
-      expect(document.documentElement.getAttribute('data-theme')).toBe('purple');
+      expect(document.documentElement.getAttribute('data-theme')).toBe(
+        'purple'
+      );
     });
 
     it('sets data-theme to hotpink', () => {
       applyTheme('hotpink');
-      expect(document.documentElement.getAttribute('data-theme')).toBe('hotpink');
+      expect(document.documentElement.getAttribute('data-theme')).toBe(
+        'hotpink'
+      );
     });
 
     it('persists the choice to localStorage', () => {

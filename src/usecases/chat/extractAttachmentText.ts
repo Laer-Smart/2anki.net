@@ -3,7 +3,11 @@ import * as cheerio from 'cheerio';
 
 import type { ChatAttachment } from './buildAttachmentBlocks';
 import { convertDocxToHTML } from '../../infrastracture/adapters/fileConversion/convertDocxToHTML';
-import { isHiddenFileOrDirectory, isHTMLFile, isMarkdownFile } from '../../lib/storage/checks';
+import {
+  isHiddenFileOrDirectory,
+  isHTMLFile,
+  isMarkdownFile,
+} from '../../lib/storage/checks';
 
 export const ZIP_MIME = 'application/zip';
 export const DOCX_MIME =
@@ -41,7 +45,11 @@ function isUnsafeZipEntryName(name: string): boolean {
 function htmlToText(html: string): string {
   const $ = cheerio.load(html);
   $('script, style').remove();
-  return $.root().text().replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  return $.root()
+    .text()
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 function readZipEntryText(name: string, bytes: Uint8Array): string | null {
@@ -114,7 +122,9 @@ export async function extractAttachmentText(
   return out;
 }
 
-export function buildAttachmentTextBlock(extracted: ExtractedAttachmentText[]): string {
+export function buildAttachmentTextBlock(
+  extracted: ExtractedAttachmentText[]
+): string {
   if (extracted.length === 0) return '';
   return extracted
     .map((file) => `<file name="${file.fileName}">\n${file.text}\n</file>`)

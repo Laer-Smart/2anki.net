@@ -30,10 +30,16 @@ function StatsLine({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
   const columnsLabel = `${data.columns.length} ${data.columns.length === 1 ? 'column' : 'columns'}`;
   const mapping = data.mapping;
 
-  if (mapping.ambiguous || mapping.frontField == null || mapping.backField == null) {
+  if (
+    mapping.ambiguous ||
+    mapping.frontField == null ||
+    mapping.backField == null
+  ) {
     return (
       <p className={styles.stats} aria-live="polite">
-        <span>{rowsCopy} · {columnsLabel} · </span>
+        <span>
+          {rowsCopy} · {columnsLabel} ·{' '}
+        </span>
         <span className={styles.statsWarning}>Column mapping needed</span>
       </p>
     );
@@ -41,7 +47,8 @@ function StatsLine({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
 
   return (
     <p className={styles.stats} aria-live="polite">
-      {rowsCopy} · {columnsLabel} · Front: {mapping.frontField} · Back: {mapping.backField}
+      {rowsCopy} · {columnsLabel} · Front: {mapping.frontField} · Back:{' '}
+      {mapping.backField}
     </p>
   );
 }
@@ -49,7 +56,8 @@ function StatsLine({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
 function SampleFraming({ count }: Readonly<{ count: number }>) {
   return (
     <p className={styles.sampleFraming} aria-live="polite">
-      Preview of the first {count} {count === 1 ? 'row' : 'rows'}. Converting to Anki includes every row in this database.
+      Preview of the first {count} {count === 1 ? 'row' : 'rows'}. Converting to
+      Anki includes every row in this database.
     </p>
   );
 }
@@ -70,7 +78,9 @@ function PreviewTable({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
               return (
                 <th key={col} scope="col" title={tooltip}>
                   {(isFront || isBack) && (
-                    <span aria-hidden="true" className={styles.mappedDot}>●</span>
+                    <span aria-hidden="true" className={styles.mappedDot}>
+                      ●
+                    </span>
                   )}
                   {col}
                 </th>
@@ -104,7 +114,9 @@ function PreviewTable({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
   );
 }
 
-export default function DatabasePreviewPage({ setError }: Readonly<DatabasePreviewPageProps>) {
+export default function DatabasePreviewPage({
+  setError,
+}: Readonly<DatabasePreviewPageProps>) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [converting, setConverting] = useState(false);
@@ -261,7 +273,8 @@ export default function DatabasePreviewPage({ setError }: Readonly<DatabasePrevi
             <PreviewTable data={data} />
             {showSampleFraming && (
               <p className={styles.rowCapFooter}>
-                Showing {data.rowCount} {data.rowCount === 1 ? 'row' : 'rows'} here. Every row in this database is included when you convert.
+                Showing {data.rowCount} {data.rowCount === 1 ? 'row' : 'rows'}{' '}
+                here. Every row in this database is included when you convert.
               </p>
             )}
           </>

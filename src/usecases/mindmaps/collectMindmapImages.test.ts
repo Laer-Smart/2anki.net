@@ -26,7 +26,10 @@ function nodeWithImage(id: string, url: string) {
 
 describe('collectMindmapImages', () => {
   it('returns an empty array when no nodes have images', async () => {
-    const data: MindmapData = { nodes: [{ id: 'a', label: 'plain' }], edges: [] };
+    const data: MindmapData = {
+      nodes: [{ id: 'a', label: 'plain' }],
+      edges: [],
+    };
     const result = await collectMindmapImages(data, makeStorage());
     expect(result).toEqual([]);
   });
@@ -61,7 +64,11 @@ describe('collectMindmapImages', () => {
   it('skips missing images (url null or missing flag)', async () => {
     const data: MindmapData = {
       nodes: [
-        { id: 'a', label: '', image: { url: null, width: 10, height: 10, missing: true } },
+        {
+          id: 'a',
+          label: '',
+          image: { url: null, width: 10, height: 10, missing: true },
+        },
       ],
       edges: [],
     };
@@ -83,7 +90,9 @@ describe('collectMindmapImages', () => {
 
   it('skips images where getFileContents throws', async () => {
     const storage = makeStorage();
-    (storage.getFileContents as jest.Mock).mockRejectedValue(new Error('S3 down'));
+    (storage.getFileContents as jest.Mock).mockRejectedValue(
+      new Error('S3 down')
+    );
     const data: MindmapData = {
       nodes: [nodeWithImage('a', 'mindmaps/1/map-1/img.png')],
       edges: [],

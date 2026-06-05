@@ -18,7 +18,10 @@ import {
   ANKIFY_CLOZE_MODEL,
 } from '../../services/ankify/ankifyModels';
 import { ensureAnkifyModels } from '../../services/ankify/ensureAnkifyModels';
-import { NormalizedCollection, Note } from '../../services/ApkgPreviewService/types';
+import {
+  NormalizedCollection,
+  Note,
+} from '../../services/ApkgPreviewService/types';
 
 export class NoActiveAnkifyClientError extends Error {
   constructor() {
@@ -34,10 +37,7 @@ export class UploadNotFoundError extends Error {
   }
 }
 
-export type AnkiWebSyncStatus =
-  | 'synced'
-  | 'failed'
-  | 'skipped';
+export type AnkiWebSyncStatus = 'synced' | 'failed' | 'skipped';
 
 export interface SendUploadToRacResult {
   client: AnkifyClient;
@@ -157,7 +157,11 @@ export class SendUploadToRacUseCase {
     const collection = await this.parseApkg(buffer);
 
     const host = input.ankiConnectHost ?? 'localhost';
-    const ac = this.ankiConnect(host, client.anki_port, client.anki_connect_api_key);
+    const ac = this.ankiConnect(
+      host,
+      client.anki_port,
+      client.anki_connect_api_key
+    );
     const fallbackDeckName =
       (upload.filename ?? '').replace(/\.apkg$/i, '') || 'Imported';
 
@@ -336,7 +340,9 @@ export class SendUploadToRacUseCase {
       });
   }
 
-  private async upsertMapping(input: NewAnkifySyncMapping): Promise<AnkifySyncMapping> {
+  private async upsertMapping(
+    input: NewAnkifySyncMapping
+  ): Promise<AnkifySyncMapping> {
     return this.mappings.upsert(input);
   }
 }

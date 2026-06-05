@@ -220,8 +220,7 @@ export class BusinessMetricsService {
       deps.cancellationRepository ??
       new InMemoryCancellationFeedbackRepository();
     this.emojiFeedbackRepository =
-      deps.emojiFeedbackRepository ??
-      new InMemoryEmojiFeedbackRepository();
+      deps.emojiFeedbackRepository ?? new InMemoryEmojiFeedbackRepository();
     this.reengagementRepository =
       deps.reengagementRepository ??
       new InMemoryReEngagementFeedbackRepository();
@@ -254,7 +253,8 @@ export class BusinessMetricsService {
           usedEntries,
           freshEntries
         ).catch((error: unknown) => {
-          const message = error instanceof Error ? error.message : String(error);
+          const message =
+            error instanceof Error ? error.message : String(error);
           errors.push({ metric: key, message });
           return null;
         })
@@ -289,9 +289,13 @@ export class BusinessMetricsService {
       active_paying_subs: fromSubs((s) => computeActiveCount(s, now)),
       churn_30d_pct: fromSubs((s) => computeChurn30dPct(s, now)),
       failed_payments_7d: fromInvoices((i) => computeFailedPayments7d(i, now)),
-      new_paid_conversions_7d: fromSubs((s) => computeNewPaidConversions7d(s, now)),
+      new_paid_conversions_7d: fromSubs((s) =>
+        computeNewPaidConversions7d(s, now)
+      ),
       mrr_timeseries: fromSubs((s) => computeMrrTimeseries(s, now)),
-      active_subs_timeseries: fromSubs((s) => computeActiveSubsTimeseries(s, now)),
+      active_subs_timeseries: fromSubs((s) =>
+        computeActiveSubsTimeseries(s, now)
+      ),
       conversions_vs_churn_weekly: fromSubs((s) =>
         computeConversionsChurnWeekly(s, now)
       ),
@@ -304,20 +308,22 @@ export class BusinessMetricsService {
       cancellation_comments_recent: dbValueByKey.get(
         'cancellation_comments_recent'
       ) as CancellationCommentEntry[] | null,
-      emoji_feedback_ratings: dbValueByKey.get(
-        'emoji_feedback_ratings'
-      ) as EmojiFeedbackRatingCount[] | null,
-      emoji_feedback_comments: dbValueByKey.get(
-        'emoji_feedback_comments'
-      ) as EmojiFeedbackCommentEntry[] | null,
-      reengagement_reasons_top: dbValueByKey.get(
-        'reengagement_reasons_top'
-      ) as ReEngagementReasonCount[] | null,
+      emoji_feedback_ratings: dbValueByKey.get('emoji_feedback_ratings') as
+        | EmojiFeedbackRatingCount[]
+        | null,
+      emoji_feedback_comments: dbValueByKey.get('emoji_feedback_comments') as
+        | EmojiFeedbackCommentEntry[]
+        | null,
+      reengagement_reasons_top: dbValueByKey.get('reengagement_reasons_top') as
+        | ReEngagementReasonCount[]
+        | null,
       reengagement_comments_recent: dbValueByKey.get(
         'reengagement_comments_recent'
       ) as ReEngagementCommentEntry[] | null,
       signup_countries_90d: dbValueByKey.has('signup_countries_90d')
-        ? (dbValueByKey.get('signup_countries_90d') as SignupCountryCount[] | null)
+        ? (dbValueByKey.get('signup_countries_90d') as
+            | SignupCountryCount[]
+            | null)
         : null,
       total_users: dbValueByKey.has('total_users')
         ? (dbValueByKey.get('total_users') as number | null)
@@ -541,9 +547,7 @@ export class BusinessMetricsService {
     };
   }
 
-  private startOrJoinSourceRefresh(
-    now: Date
-  ): Promise<SourceRefreshResult> {
+  private startOrJoinSourceRefresh(now: Date): Promise<SourceRefreshResult> {
     if (this.inflightSourceRefresh != null) {
       return this.inflightSourceRefresh;
     }
@@ -565,12 +569,9 @@ export class BusinessMetricsService {
       this.fetchInvoices(now),
     ]);
 
-    const subs =
-      subsResult.status === 'fulfilled' ? subsResult.value : null;
+    const subs = subsResult.status === 'fulfilled' ? subsResult.value : null;
     const subsError =
-      subsResult.status === 'rejected'
-        ? messageOf(subsResult.reason)
-        : null;
+      subsResult.status === 'rejected' ? messageOf(subsResult.reason) : null;
     const invoices =
       invoicesResult.status === 'fulfilled' ? invoicesResult.value : null;
     const invoicesError =
@@ -600,10 +601,7 @@ export class BusinessMetricsService {
       try {
         await this.cacheRepository.upsertMany(toCache);
       } catch (error) {
-        console.error(
-          '[ops] business source cache upsert failed',
-          error
-        );
+        console.error('[ops] business source cache upsert failed', error);
       }
     }
 
@@ -726,9 +724,7 @@ const normalizeSubscription = (
   };
 };
 
-const normalizeInvoice = (
-  invoice: StripeTypes.Invoice
-): NormalizedInvoice => ({
+const normalizeInvoice = (invoice: StripeTypes.Invoice): NormalizedInvoice => ({
   id: invoice.id ?? '',
   status: invoice.status ?? '',
   attemptCount: invoice.attempt_count ?? 0,
@@ -746,10 +742,7 @@ const isActiveToday = (sub: NormalizedSubscription, nowMs: number): boolean => {
   return isActiveNow(sub.status);
 };
 
-const wasActiveOn = (
-  sub: NormalizedSubscription,
-  atMs: number
-): boolean => {
+const wasActiveOn = (sub: NormalizedSubscription, atMs: number): boolean => {
   if (sub.createdMs > atMs) return false;
   if (sub.endedAtMs != null && sub.endedAtMs <= atMs) return false;
   return isPayingHistorical(sub.status);
@@ -913,7 +906,9 @@ const computeConversionsChurnWeekly = (
     }
   }
 
-  return weekStarts.map((startMs) => weekIndex.get(startMs) as ConversionsChurnWeekPoint);
+  return weekStarts.map(
+    (startMs) => weekIndex.get(startMs) as ConversionsChurnWeekPoint
+  );
 };
 
 const computeFailedPaymentsWeekly = (
@@ -942,7 +937,9 @@ const computeFailedPaymentsWeekly = (
     }
   }
 
-  return weekStarts.map((startMs) => weekIndex.get(startMs) as FailedPaymentsWeekPoint);
+  return weekStarts.map(
+    (startMs) => weekIndex.get(startMs) as FailedPaymentsWeekPoint
+  );
 };
 
 const monthlyCentsForSubscription = (
@@ -979,7 +976,15 @@ const epochSecondsDaysAgo = (now: Date, days: number): number =>
 
 const startOfDayUtcMs = (atMs: number): number => {
   const d = new Date(atMs);
-  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0);
+  return Date.UTC(
+    d.getUTCFullYear(),
+    d.getUTCMonth(),
+    d.getUTCDate(),
+    0,
+    0,
+    0,
+    0
+  );
 };
 
 const lastNDayBucketsUtc = (now: Date, n: number): number[] => {

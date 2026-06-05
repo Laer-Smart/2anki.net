@@ -38,7 +38,10 @@ import {
 } from '../storage/checks';
 import { getFileContents } from './getFileContents';
 import { handleNestedBulletPointsInMarkdown } from './handleNestedBulletPointsInMarkdown';
-import { guessMarkdownCards, MarkdownHeuristicResult } from './guessMarkdownCards';
+import {
+  guessMarkdownCards,
+  MarkdownHeuristicResult,
+} from './guessMarkdownCards';
 import { getTitleFromMarkdown } from './getTitleFromMarkdown';
 import { extractStyles } from './extractStyles';
 import { withFontSize } from './withFontSize';
@@ -211,11 +214,19 @@ export class DeckParser {
     return result.trim();
   }
 
-  private applyHeuristic(heuristic: MarkdownHeuristicResult, contentsStr: string | undefined, name: string) {
+  private applyHeuristic(
+    heuristic: MarkdownHeuristicResult,
+    contentsStr: string | undefined,
+    name: string
+  ) {
     for (const note of heuristic.notes) {
       if (this.settings.embedImages) {
-        const { html: newName, media: namMedia } = this.embedImagesInHtml(note.name);
-        const { html: newBack, media: backMedia } = this.embedImagesInHtml(note.back);
+        const { html: newName, media: namMedia } = this.embedImagesInHtml(
+          note.name
+        );
+        const { html: newBack, media: backMedia } = this.embedImagesInHtml(
+          note.back
+        );
         note.name = newName;
         note.back = newBack;
         note.media = [...namMedia, ...backMedia];
@@ -293,12 +304,17 @@ export class DeckParser {
       .replace(/<li[^>]*>/g, '');
   }
 
-  private cleanupEmptyElements(html: string, isNewFormat: boolean = false): string {
-    let result = html
-      .replace(/<li><\/li>/g, '');
+  private cleanupEmptyElements(
+    html: string,
+    isNewFormat: boolean = false
+  ): string {
+    let result = html.replace(/<li><\/li>/g, '');
 
     if (isNewFormat) {
-      result = result.replace(/<summary[^>]*class="toggle"[^>]*><\/summary>/g, '');
+      result = result.replace(
+        /<summary[^>]*class="toggle"[^>]*><\/summary>/g,
+        ''
+      );
       result = result.replace(/<summary[^>]*><\/summary>/g, '');
       result = result.replaceAll('<summary class="toggle"></summary>', '');
     } else {
@@ -364,7 +380,10 @@ export class DeckParser {
       : themedNotionStyle;
     const style = withTextAlign(
       withTextColor(
-        withFontSize(`${baseStyle}\n${CODE_WRAP_STYLE}`, this.settings.fontSize),
+        withFontSize(
+          `${baseStyle}\n${CODE_WRAP_STYLE}`,
+          this.settings.fontSize
+        ),
         this.settings.textColor
       ),
       this.settings.textAlign
@@ -425,7 +444,14 @@ export class DeckParser {
 
     cards = cards.filter(Boolean);
 
-    const deck = new Deck(name, cards, image, style, get16DigitRandomId(), this.settings);
+    const deck = new Deck(
+      name,
+      cards,
+      image,
+      style,
+      get16DigitRandomId(),
+      this.settings
+    );
     deck.globalTags = fileGlobalTags;
     deck.mcqCount = extractResult.mcqCount;
     deck.mcqSkippedCount = extractResult.mcqSkippedCount;
@@ -561,7 +587,11 @@ export class DeckParser {
     return card;
   }
 
-  private embedImagesInCardContent(content: string, card: Note, ws: Workspace): string {
+  private embedImagesInCardContent(
+    content: string,
+    card: Note,
+    ws: Workspace
+  ): string {
     if (!content.includes('<img')) return content;
 
     const dom = cheerio.load(content);
@@ -740,7 +770,11 @@ export class DeckParser {
   }
 
   private buildOverlappingClozeNotes(card: Note): Note[] {
-    if (!this.overlappingClozeEnabled() || card.mcq || card.back.includes('{{c')) {
+    if (
+      !this.overlappingClozeEnabled() ||
+      card.mcq ||
+      card.back.includes('{{c')
+    ) {
       return [];
     }
 
@@ -783,7 +817,8 @@ export class DeckParser {
     const block = dom(blocks[0]);
     const tag = blocks[0].tagName?.toLowerCase();
     const isProse = tag === 'p' || tag === 'blockquote';
-    const hasStructure = block.find('ul, ol, details, table, img, iframe').length > 0;
+    const hasStructure =
+      block.find('ul, ol, details, table, img, iframe').length > 0;
     if (!isProse || hasStructure) {
       return null;
     }
@@ -819,7 +854,9 @@ export class DeckParser {
       .toArray()
       .filter((node) => {
         const $node = dom(node);
-        return $node.text().trim().length > 0 || $node.find('img, iframe').length > 0;
+        return (
+          $node.text().trim().length > 0 || $node.find('img, iframe').length > 0
+        );
       });
 
     const everyBlockIsProse = blocks.every((node) => {
@@ -829,7 +866,9 @@ export class DeckParser {
         tag === 'blockquote' ||
         dom(node).children('p, blockquote').length > 0;
       const hasStructure =
-        dom(node).find('ul, ol, details, table, h1, h2, h3, h4, h5, h6, img, iframe, figure').length > 0;
+        dom(node).find(
+          'ul, ol, details, table, h1, h2, h3, h4, h5, h6, img, iframe, figure'
+        ).length > 0;
       return isProse && !hasStructure;
     });
     if (!everyBlockIsProse) {
@@ -980,7 +1019,10 @@ export class DeckParser {
     );
   }
 
-  private loadAndNormalizeDOM(contents: string): { dom: cheerio.CheerioAPI; isNewFormat: boolean } {
+  private loadAndNormalizeDOM(contents: string): {
+    dom: cheerio.CheerioAPI;
+    isNewFormat: boolean;
+  } {
     const dom = this.loadDOM(contents);
     const isNewFormat = this.hasNotionNewExportFormat(dom);
     this.normalizeNotionNewExportFormat(dom);
@@ -1011,29 +1053,36 @@ export class DeckParser {
   }
 
   private preserveNestedTogglesBeforeFlattening(dom: cheerio.CheerioAPI): void {
-    dom('[style*="display:contents"] ul.toggle > li > details').each((_, details) => {
-      const $details = dom(details);
-      this.processNestedTogglesDepthFirst($details, dom);
-    });
+    dom('[style*="display:contents"] ul.toggle > li > details').each(
+      (_, details) => {
+        const $details = dom(details);
+        this.processNestedTogglesDepthFirst($details, dom);
+      }
+    );
   }
 
-  private processNestedTogglesDepthFirst($details: cheerio.Cheerio<Element>, dom: cheerio.CheerioAPI): void {
+  private processNestedTogglesDepthFirst(
+    $details: cheerio.Cheerio<Element>,
+    dom: cheerio.CheerioAPI
+  ): void {
     $details.find('[style*="display:contents"]').each((_, displayContents) => {
       const $displayContents = dom(displayContents);
       const $nestedUl = $displayContents.children('ul.toggle').first();
-      
+
       if ($nestedUl.length > 0) {
         const $li = $nestedUl.children('li').first();
         const $nestedDetails = $li.children('details').first();
-        
+
         if ($nestedDetails.length > 0) {
           this.processNestedTogglesDepthFirst($nestedDetails, dom);
-          
+
           const $summary = $nestedDetails.children('summary').first();
           const summaryHTML = $summary.html()?.trim();
 
           if (summaryHTML) {
-            const $contentAfterSummary = $nestedDetails.contents().not('summary');
+            const $contentAfterSummary = $nestedDetails
+              .contents()
+              .not('summary');
             let contentHTML = '';
 
             $contentAfterSummary.each((_, content) => {
@@ -1048,7 +1097,7 @@ export class DeckParser {
               <summary>${summaryHTML}</summary>
               ${contentHTML}
             </details>`;
-            
+
             $displayContents.replaceWith(nestedDetailsHTML);
           } else {
             $displayContents.replaceWith($displayContents.contents());
@@ -1135,7 +1184,9 @@ export class DeckParser {
     dom: cheerio.CheerioAPI,
     correctIndex: number
   ): Note {
-    const listItems = toggleElement.find('ul.to-do-list > li, ul.bulleted-list > li').toArray();
+    const listItems = toggleElement
+      .find('ul.to-do-list > li, ul.bulleted-list > li')
+      .toArray();
     const options = listItems.map((li) => {
       const $li = dom(li);
       $li.find('.checkbox').remove();
@@ -1155,7 +1206,11 @@ export class DeckParser {
     return note;
   }
 
-  private extractCards(dom: cheerio.CheerioAPI, toggleList: Element[], isNewFormat: boolean = false): {
+  private extractCards(
+    dom: cheerio.CheerioAPI,
+    toggleList: Element[],
+    isNewFormat: boolean = false
+  ): {
     cards: Note[];
     mcqCount: number;
     mcqSkippedCount: number;
@@ -1201,14 +1256,21 @@ export class DeckParser {
             if (toggleHTML) {
               const toggleEl = toggle.get(0);
               const mcqEnabled = this.settings.mcqEnabled;
-              const correctIndex = mcqEnabled && toggleEl ? isMCQ(toggleEl, dom) : -1;
-              const hasMCQShape = mcqEnabled && toggleEl != null && (
-                dom(toggleEl).find('ul.to-do-list > li').length >= 2 ||
-                dom(toggleEl).find('ul.bulleted-list > li').length >= 2
-              );
+              const correctIndex =
+                mcqEnabled && toggleEl ? isMCQ(toggleEl, dom) : -1;
+              const hasMCQShape =
+                mcqEnabled &&
+                toggleEl != null &&
+                (dom(toggleEl).find('ul.to-do-list > li').length >= 2 ||
+                  dom(toggleEl).find('ul.bulleted-list > li').length >= 2);
 
               if (hasMCQShape && correctIndex >= 0) {
-                const note = this.buildMCQNote(front || '', toggle, dom, correctIndex);
+                const note = this.buildMCQNote(
+                  front || '',
+                  toggle,
+                  dom,
+                  correctIndex
+                );
                 note.notionId = parentUL.attr('id');
                 mcqCount++;
                 if (
@@ -1299,5 +1361,4 @@ export class DeckParser {
 
     return cards;
   }
-
 }

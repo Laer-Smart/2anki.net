@@ -20,7 +20,24 @@ const fakeBlock = (id: string, type = 'paragraph') => ({
   created_by: { object: 'user' as const, id: 'u1' },
   last_edited_by: { object: 'user' as const, id: 'u1' },
   parent: { type: 'page_id' as const, page_id: 'p1' },
-  [type]: { rich_text: [{ type: 'text' as const, text: { content: `Block ${id}`, link: null }, plain_text: `Block ${id}`, annotations: { bold: false, italic: false, strikethrough: false, underline: false, code: false, color: 'default' as const }, href: null }] },
+  [type]: {
+    rich_text: [
+      {
+        type: 'text' as const,
+        text: { content: `Block ${id}`, link: null },
+        plain_text: `Block ${id}`,
+        annotations: {
+          bold: false,
+          italic: false,
+          strikethrough: false,
+          underline: false,
+          code: false,
+          color: 'default' as const,
+        },
+        href: null,
+      },
+    ],
+  },
 });
 
 const fakeRenderedCard = (id: number) => ({
@@ -35,27 +52,35 @@ const fakeRenderedCard = (id: number) => ({
   back: `<p>Back ${id}</p>`,
 });
 
-function buildUseCase(overrides: {
-  listBlocks?: () => Promise<unknown>;
-  getPage?: () => Promise<unknown>;
-  getFileBody?: () => Promise<unknown>;
-  parseApkg?: () => Promise<unknown>;
-  getCardsPage?: () => unknown;
-} = {}) {
+function buildUseCase(
+  overrides: {
+    listBlocks?: () => Promise<unknown>;
+    getPage?: () => Promise<unknown>;
+    getFileBody?: () => Promise<unknown>;
+    parseApkg?: () => Promise<unknown>;
+    getCardsPage?: () => unknown;
+  } = {}
+) {
   const repo = new InMemoryShowcaseRepository();
 
   const mockApi = {
-    listBlocksPage: overrides.listBlocks ?? jest.fn().mockResolvedValue({
-      results: [fakeBlock('b1'), fakeBlock('b2')],
-      next_cursor: null,
-      has_more: false,
-    }),
-    getPage: overrides.getPage ?? jest.fn().mockResolvedValue({
-      object: 'page',
-      id: 'p1',
-      url: 'https://notion.so/page',
-      properties: { title: { type: 'title', title: [{ plain_text: 'Test Page' }] } },
-    }),
+    listBlocksPage:
+      overrides.listBlocks ??
+      jest.fn().mockResolvedValue({
+        results: [fakeBlock('b1'), fakeBlock('b2')],
+        next_cursor: null,
+        has_more: false,
+      }),
+    getPage:
+      overrides.getPage ??
+      jest.fn().mockResolvedValue({
+        object: 'page',
+        id: 'p1',
+        url: 'https://notion.so/page',
+        properties: {
+          title: { type: 'title', title: [{ plain_text: 'Test Page' }] },
+        },
+      }),
   };
 
   const notionService = {
@@ -63,19 +88,30 @@ function buildUseCase(overrides: {
   } as any;
 
   const previewService = {
-    parse: overrides.parseApkg ?? jest.fn().mockResolvedValue({ collection: { cards: [] } }),
-    getCardsPage: overrides.getCardsPage ?? jest.fn().mockReturnValue({
-      cards: [fakeRenderedCard(1), fakeRenderedCard(2)],
-      nextCursor: null,
-      total: 2,
-    }),
+    parse:
+      overrides.parseApkg ??
+      jest.fn().mockResolvedValue({ collection: { cards: [] } }),
+    getCardsPage:
+      overrides.getCardsPage ??
+      jest.fn().mockReturnValue({
+        cards: [fakeRenderedCard(1), fakeRenderedCard(2)],
+        nextCursor: null,
+        total: 2,
+      }),
   } as any;
 
   const downloadService = {
-    getFileBody: overrides.getFileBody ?? jest.fn().mockResolvedValue(Buffer.from('fake-apkg')),
+    getFileBody:
+      overrides.getFileBody ??
+      jest.fn().mockResolvedValue(Buffer.from('fake-apkg')),
   } as any;
 
-  const useCase = new PopulateShowcaseUseCase(repo, notionService, previewService, downloadService);
+  const useCase = new PopulateShowcaseUseCase(
+    repo,
+    notionService,
+    previewService,
+    downloadService
+  );
   return { useCase, repo, notionService, downloadService, previewService };
 }
 
@@ -97,8 +133,9 @@ describe('PopulateShowcaseUseCase', () => {
       getFileBody: jest.fn().mockResolvedValue(null),
     });
 
-    await expect(useCase.execute('owner-1', 'page-id', 'missing.apkg'))
-      .rejects.toThrow('APKG file not found');
+    await expect(
+      useCase.execute('owner-1', 'page-id', 'missing.apkg')
+    ).rejects.toThrow('APKG file not found');
   });
 
   it('stores empty blocks when page has no content', async () => {

@@ -99,10 +99,7 @@ describe('detectUploadIssues', () => {
     const html = detectUploadIssues([fakeFile('n.html')]);
     expect(html!.continueLabel.length).toBeGreaterThan(0);
 
-    const safari = detectUploadIssues([
-      fakeFile('a.html'),
-      fakeFile('b.html'),
-    ]);
+    const safari = detectUploadIssues([fakeFile('a.html'), fakeFile('b.html')]);
     expect(safari!.continueLabel.length).toBeGreaterThan(0);
   });
 });

@@ -22,7 +22,9 @@ function buildCollection(overrides?: {
       { name: 'Front', ord: 0 },
       { name: 'Back', ord: 1 },
     ],
-    templates: [{ name: 'Card 1', ord: 0, qfmt: '{{Front}}', afmt: '{{Back}}' }],
+    templates: [
+      { name: 'Card 1', ord: 0, qfmt: '{{Front}}', afmt: '{{Back}}' },
+    ],
   };
 
   const defaultNote: Note = {
@@ -44,16 +46,19 @@ function buildCollection(overrides?: {
   };
 }
 
-function getToggle(blocks: ReturnType<typeof service.transform>['deckPages'][0]['children'], index = 0) {
+function getToggle(
+  blocks: ReturnType<typeof service.transform>['deckPages'][0]['children'],
+  index = 0
+) {
   const block = blocks[index];
-  if (block.type !== 'heading_3') throw new Error(`Expected heading_3 at index ${index}, got ${block.type}`);
+  if (block.type !== 'heading_3')
+    throw new Error(`Expected heading_3 at index ${index}, got ${block.type}`);
   return block;
 }
 
 const service = new ApkgToNotionBlocksService();
 
 describe('ApkgToNotionBlocksService', () => {
-
   describe('transform', () => {
     it('creates a deck page with toggle blocks for each note', () => {
       const collection = buildCollection();
@@ -76,7 +81,15 @@ describe('ApkgToNotionBlocksService', () => {
 
     it('strips HTML tags from fields', () => {
       const notes = new Map<number, Note>([
-        [100, { id: 100, mid: 1, tags: '', fields: ['<b>Bold</b> text', '<i>Italic</i> answer'] }],
+        [
+          100,
+          {
+            id: 100,
+            mid: 1,
+            tags: '',
+            fields: ['<b>Bold</b> text', '<i>Italic</i> answer'],
+          },
+        ],
       ]);
       const collection = buildCollection({ notes });
       const result = service.transform(collection);
@@ -87,12 +100,21 @@ describe('ApkgToNotionBlocksService', () => {
 
     it('preserves bold formatting from HTML', () => {
       const notes = new Map<number, Note>([
-        [100, { id: 100, mid: 1, tags: '', fields: ['Front', '<b>Important</b> detail'] }],
+        [
+          100,
+          {
+            id: 100,
+            mid: 1,
+            tags: '',
+            fields: ['Front', '<b>Important</b> detail'],
+          },
+        ],
       ]);
       const collection = buildCollection({ notes });
       const result = service.transform(collection);
 
-      const backChildren = getToggle(result.deckPages[0].children).heading_3.children;
+      const backChildren = getToggle(result.deckPages[0].children).heading_3
+        .children;
       const firstChild = backChildren[0];
       expect(firstChild.type).toBe('paragraph');
       if (firstChild.type === 'paragraph') {
@@ -106,12 +128,21 @@ describe('ApkgToNotionBlocksService', () => {
 
     it('preserves italic formatting from HTML', () => {
       const notes = new Map<number, Note>([
-        [100, { id: 100, mid: 1, tags: '', fields: ['Front', '<i>Emphasis</i> here'] }],
+        [
+          100,
+          {
+            id: 100,
+            mid: 1,
+            tags: '',
+            fields: ['Front', '<i>Emphasis</i> here'],
+          },
+        ],
       ]);
       const collection = buildCollection({ notes });
       const result = service.transform(collection);
 
-      const backChildren = getToggle(result.deckPages[0].children).heading_3.children;
+      const backChildren = getToggle(result.deckPages[0].children).heading_3
+        .children;
       const firstChild = backChildren[0];
       expect(firstChild.type).toBe('paragraph');
       if (firstChild.type === 'paragraph') {
@@ -128,9 +159,7 @@ describe('ApkgToNotionBlocksService', () => {
         [10, { id: 10, name: 'Bio' }],
         [11, { id: 11, name: 'Bio::Cell' }],
       ]);
-      const cards: Card[] = [
-        { id: 1000, nid: 100, did: 11, ord: 0 },
-      ];
+      const cards: Card[] = [{ id: 1000, nid: 100, did: 11, ord: 0 }];
       const collection = buildCollection({ decks, cards });
       const result = service.transform(collection);
 
@@ -147,7 +176,8 @@ describe('ApkgToNotionBlocksService', () => {
       const collection = buildCollection({ notes });
       const result = service.transform(collection);
 
-      const toggleChildren = getToggle(result.deckPages[0].children).heading_3.children;
+      const toggleChildren = getToggle(result.deckPages[0].children).heading_3
+        .children;
       const tagBlock = toggleChildren[toggleChildren.length - 1];
       expect(tagBlock.type).toBe('paragraph');
       if (tagBlock.type === 'paragraph') {
@@ -162,11 +192,29 @@ describe('ApkgToNotionBlocksService', () => {
         name: 'Cloze',
         type: 1,
         css: '',
-        fields: [{ name: 'Text', ord: 0 }, { name: 'Extra', ord: 1 }],
-        templates: [{ name: 'Cloze', ord: 0, qfmt: '{{cloze:Text}}', afmt: '{{cloze:Text}}' }],
+        fields: [
+          { name: 'Text', ord: 0 },
+          { name: 'Extra', ord: 1 },
+        ],
+        templates: [
+          {
+            name: 'Cloze',
+            ord: 0,
+            qfmt: '{{cloze:Text}}',
+            afmt: '{{cloze:Text}}',
+          },
+        ],
       };
       const notes = new Map<number, Note>([
-        [100, { id: 100, mid: 2, tags: '', fields: ['{{c1::Paris}} is the capital of France', ''] }],
+        [
+          100,
+          {
+            id: 100,
+            mid: 2,
+            tags: '',
+            fields: ['{{c1::Paris}} is the capital of France', ''],
+          },
+        ],
       ]);
       const noteTypes = new Map<number, NoteType>([[2, clozeNoteType]]);
       const collection = buildCollection({ noteTypes, notes });
@@ -192,22 +240,44 @@ describe('ApkgToNotionBlocksService', () => {
 
     it('decodes numeric and named HTML entities in back fields', () => {
       const notes = new Map<number, Note>([
-        [100, { id: 100, mid: 1, tags: '', fields: ['Q', '5 &gt; 3 &amp; 2 &lt; 4'] }],
+        [
+          100,
+          {
+            id: 100,
+            mid: 1,
+            tags: '',
+            fields: ['Q', '5 &gt; 3 &amp; 2 &lt; 4'],
+          },
+        ],
       ]);
       const collection = buildCollection({ notes });
       const result = service.transform(collection);
 
-      const backChildren = getToggle(result.deckPages[0].children).heading_3.children;
+      const backChildren = getToggle(result.deckPages[0].children).heading_3
+        .children;
       const firstChild = backChildren[0];
       expect(firstChild.type).toBe('paragraph');
       if (firstChild.type === 'paragraph') {
-        expect(firstChild.paragraph.rich_text[0].plain_text).toBe('5 > 3 & 2 < 4');
+        expect(firstChild.paragraph.rich_text[0].plain_text).toBe(
+          '5 > 3 & 2 < 4'
+        );
       }
     });
 
     it('strips media refs from text in text-heavy front fields', () => {
       const notes = new Map<number, Note>([
-        [100, { id: 100, mid: 1, tags: '', fields: ['What is this? <img src="image.png"> Identify the object shown above.', 'Answer [sound:audio.mp3]'] }],
+        [
+          100,
+          {
+            id: 100,
+            mid: 1,
+            tags: '',
+            fields: [
+              'What is this? <img src="image.png"> Identify the object shown above.',
+              'Answer [sound:audio.mp3]',
+            ],
+          },
+        ],
       ]);
       const collection = buildCollection({ notes });
       const result = service.transform(collection);
@@ -215,7 +285,9 @@ describe('ApkgToNotionBlocksService', () => {
       const toggle = result.deckPages[0].children[0];
       expect(toggle.type).toBe('heading_3');
       if (toggle.type === 'heading_3') {
-        expect(toggle.heading_3.rich_text[0].plain_text).toContain('What is this?');
+        expect(toggle.heading_3.rich_text[0].plain_text).toContain(
+          'What is this?'
+        );
       }
     });
 
@@ -233,11 +305,19 @@ describe('ApkgToNotionBlocksService', () => {
         templates: [{ name: 'Card 1', ord: 0, qfmt: '', afmt: '' }],
       };
       const notes = new Map<number, Note>([
-        [100, { id: 100, mid: 3, tags: '', fields: [
-          '<img src="bollard.jpg">',
-          'France',
-          'French bollards are super thick',
-        ]}],
+        [
+          100,
+          {
+            id: 100,
+            mid: 3,
+            tags: '',
+            fields: [
+              '<img src="bollard.jpg">',
+              'France',
+              'French bollards are super thick',
+            ],
+          },
+        ],
       ]);
       const collection = buildCollection({
         noteTypes: new Map([[3, noteType]]),
@@ -275,11 +355,19 @@ describe('ApkgToNotionBlocksService', () => {
         templates: [{ name: 'Card 1', ord: 0, qfmt: '', afmt: '' }],
       };
       const notes = new Map<number, Note>([
-        [100, { id: 100, mid: 3, tags: '', fields: [
-          '<img src="bollard.jpg">',
-          'France',
-          'French bollards are super thick',
-        ]}],
+        [
+          100,
+          {
+            id: 100,
+            mid: 3,
+            tags: '',
+            fields: [
+              '<img src="bollard.jpg">',
+              'France',
+              'French bollards are super thick',
+            ],
+          },
+        ],
       ]);
       const mediaUrlMap = new Map([
         ['bollard.jpg', 'https://cdn.example.com/bollard.jpg'],
@@ -295,7 +383,9 @@ describe('ApkgToNotionBlocksService', () => {
       expect(blocks[0].type).toBe('divider');
       expect(blocks[1].type).toBe('image');
       if (blocks[1].type === 'image' && blocks[1].image.type === 'external') {
-        expect(blocks[1].image.external.url).toBe('https://cdn.example.com/bollard.jpg');
+        expect(blocks[1].image.external.url).toBe(
+          'https://cdn.example.com/bollard.jpg'
+        );
       }
       expect(blocks[2].type).toBe('heading_3');
       if (blocks[2].type === 'heading_3') {
@@ -304,7 +394,15 @@ describe('ApkgToNotionBlocksService', () => {
         const answerChildren = blocks[2].heading_3.children;
         const texts = answerChildren
           .filter((c) => c.type === 'paragraph')
-          .map((c) => (c as { type: 'paragraph'; paragraph: { rich_text: { plain_text: string }[] } }).paragraph.rich_text[0]?.plain_text);
+          .map(
+            (c) =>
+              (
+                c as {
+                  type: 'paragraph';
+                  paragraph: { rich_text: { plain_text: string }[] };
+                }
+              ).paragraph.rich_text[0]?.plain_text
+          );
         expect(texts).toContain('France');
         expect(texts).toContain('French bollards are super thick');
       }
@@ -323,14 +421,25 @@ describe('ApkgToNotionBlocksService', () => {
         templates: [{ name: 'Card 1', ord: 0, qfmt: '', afmt: '' }],
       };
       const notes = new Map<number, Note>([
-        [100, { id: 100, mid: 4, tags: '', fields: ['<img src="flag.png">', 'Japan'] }],
+        [
+          100,
+          {
+            id: 100,
+            mid: 4,
+            tags: '',
+            fields: ['<img src="flag.png">', 'Japan'],
+          },
+        ],
       ]);
       const collection = buildCollection({
         noteTypes: new Map([[4, noteType]]),
         notes,
         cards: [{ id: 1000, nid: 100, did: 10, ord: 0 }],
       });
-      const result = service.transform(collection, new Map([['flag.png', 'https://cdn.example.com/flag.png']]));
+      const result = service.transform(
+        collection,
+        new Map([['flag.png', 'https://cdn.example.com/flag.png']])
+      );
 
       const toggleBlock = result.deckPages[0].children[2];
       expect(toggleBlock.type).toBe('heading_3');
@@ -341,27 +450,45 @@ describe('ApkgToNotionBlocksService', () => {
 
     it('keeps toggle layout for text-first notes with images', () => {
       const notes = new Map<number, Note>([
-        [100, { id: 100, mid: 1, tags: '', fields: [
-          'What does this bollard look like? <img src="hint.jpg">',
-          'France',
-        ]}],
+        [
+          100,
+          {
+            id: 100,
+            mid: 1,
+            tags: '',
+            fields: [
+              'What does this bollard look like? <img src="hint.jpg">',
+              'France',
+            ],
+          },
+        ],
       ]);
       const collection = buildCollection({ notes });
-      const result = service.transform(collection, new Map([['hint.jpg', 'https://cdn.example.com/hint.jpg']]));
+      const result = service.transform(
+        collection,
+        new Map([['hint.jpg', 'https://cdn.example.com/hint.jpg']])
+      );
 
       const block = result.deckPages[0].children[0];
       expect(block.type).toBe('heading_3');
       if (block.type === 'heading_3') {
-        expect(block.heading_3.rich_text[0].plain_text).toBe('What does this bollard look like?');
+        expect(block.heading_3.rich_text[0].plain_text).toBe(
+          'What does this bollard look like?'
+        );
       }
     });
 
     it('emits image blocks in image-first layout when media URL map is provided', () => {
       const notes = new Map<number, Note>([
-        [100, { id: 100, mid: 1, tags: '', fields: [
-          '<img src="bollard.jpg">',
-          'France',
-        ]}],
+        [
+          100,
+          {
+            id: 100,
+            mid: 1,
+            tags: '',
+            fields: ['<img src="bollard.jpg">', 'France'],
+          },
+        ],
       ]);
       const mediaUrlMap = new Map([
         ['bollard.jpg', 'https://cdn.example.com/imports/job-1/bollard.jpg'],
@@ -372,7 +499,10 @@ describe('ApkgToNotionBlocksService', () => {
       const blocks = result.deckPages[0].children;
       const imageBlock = blocks.find((b) => b.type === 'image');
       expect(imageBlock).toBeDefined();
-      if (imageBlock?.type === 'image' && imageBlock.image.type === 'external') {
+      if (
+        imageBlock?.type === 'image' &&
+        imageBlock.image.type === 'external'
+      ) {
         expect(imageBlock.image.external.url).toBe(
           'https://cdn.example.com/imports/job-1/bollard.jpg'
         );
@@ -415,7 +545,9 @@ describe('ApkgToNotionBlocksService', () => {
       }
       const collection = buildCollection({ notes, cards });
 
-      expect(() => service.transform(collection, new Map(), 5000)).toThrow(/too large/i);
+      expect(() => service.transform(collection, new Map(), 5000)).toThrow(
+        /too large/i
+      );
     });
 
     it('throws NoteTooLargeError with free-tier cap (1000) when deck exceeds it', () => {
@@ -427,7 +559,9 @@ describe('ApkgToNotionBlocksService', () => {
       }
       const collection = buildCollection({ notes, cards });
 
-      expect(() => service.transform(collection, new Map(), 1000)).toThrow(/too large/i);
+      expect(() => service.transform(collection, new Map(), 1000)).toThrow(
+        /too large/i
+      );
     });
 
     it('allows exactly 1000 notes when maxNotes is 1000', () => {
@@ -439,7 +573,9 @@ describe('ApkgToNotionBlocksService', () => {
       }
       const collection = buildCollection({ notes, cards });
 
-      expect(() => service.transform(collection, new Map(), 1000)).not.toThrow();
+      expect(() =>
+        service.transform(collection, new Map(), 1000)
+      ).not.toThrow();
     });
 
     it('skips empty decks like Default', () => {
@@ -450,9 +586,7 @@ describe('ApkgToNotionBlocksService', () => {
       const notes = new Map<number, Note>([
         [100, { id: 100, mid: 1, tags: '', fields: ['Hola', 'Hello'] }],
       ]);
-      const cards: Card[] = [
-        { id: 1000, nid: 100, did: 10, ord: 0 },
-      ];
+      const cards: Card[] = [{ id: 1000, nid: 100, did: 10, ord: 0 }];
       const collection = buildCollection({ decks, notes, cards });
       const result = service.transform(collection);
 
@@ -497,12 +631,20 @@ describe('ApkgToNotionBlocksService', () => {
         templates: [{ name: 'Card 1', ord: 0, qfmt: '', afmt: '' }],
       };
       const notes = new Map<number, Note>([
-        [100, { id: 100, mid: 5, tags: '', fields: [
-          '<img src="pic.jpg">',
-          'Austria, Slovenia',
-          'Similar Design: Montenegro has the same design',
-          'note: Snowpole on right found in Andorra',
-        ]}],
+        [
+          100,
+          {
+            id: 100,
+            mid: 5,
+            tags: '',
+            fields: [
+              '<img src="pic.jpg">',
+              'Austria, Slovenia',
+              'Similar Design: Montenegro has the same design',
+              'note: Snowpole on right found in Andorra',
+            ],
+          },
+        ],
       ]);
       const collection = buildCollection({
         noteTypes: new Map([[5, customType]]),
@@ -525,7 +667,9 @@ describe('ApkgToNotionBlocksService', () => {
           c.type === 'paragraph' ? c.paragraph.rich_text[0]?.plain_text : ''
         );
         expect(texts).toContain('Austria, Slovenia');
-        expect(texts).toContain('Similar Design: Montenegro has the same design');
+        expect(texts).toContain(
+          'Similar Design: Montenegro has the same design'
+        );
         expect(texts).toContain('note: Snowpole on right found in Andorra');
       }
     });

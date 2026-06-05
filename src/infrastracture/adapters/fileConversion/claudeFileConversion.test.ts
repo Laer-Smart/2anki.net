@@ -52,9 +52,7 @@ describe('convertWithClaude', () => {
       },
       beta: {
         messages: {
-          create: jest
-            .fn()
-            .mockRejectedValue(new Error('rate limit exceeded')),
+          create: jest.fn().mockRejectedValue(new Error('rate limit exceeded')),
         },
       },
     };

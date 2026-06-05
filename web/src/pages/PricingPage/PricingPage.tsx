@@ -142,9 +142,16 @@ export default function PricingPage({
       globalThis.location.href = '/login?redirect=/pricing';
       return;
     }
-    track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'auto_sync', variant: pricingOrder });
+    track('paywall_upgrade_clicked', {
+      surface: 'pricing_page',
+      plan: 'auto_sync',
+      variant: pricingOrder,
+    });
     setSubscribeError(null);
-    const result = await get2ankiApi().startAutoSyncCheckout(pricingOrder, 'pricing_page');
+    const result = await get2ankiApi().startAutoSyncCheckout(
+      pricingOrder,
+      'pricing_page'
+    );
     if ('url' in result) {
       globalThis.location.href = result.url;
       return;
@@ -177,7 +184,11 @@ export default function PricingPage({
     } else {
       setWeekPassState('pending');
     }
-    const result = await get2ankiApi().startPassCheckout(kind, pricingOrder, 'pricing_page');
+    const result = await get2ankiApi().startPassCheckout(
+      kind,
+      pricingOrder,
+      'pricing_page'
+    );
     if ('url' in result) {
       globalThis.location.href = result.url;
       return;
@@ -194,9 +205,17 @@ export default function PricingPage({
       globalThis.location.href = '/login?redirect=/pricing';
       return;
     }
-    track('paywall_upgrade_clicked', { surface: 'pricing_page', plan: 'unlimited', variant: pricingOrder });
+    track('paywall_upgrade_clicked', {
+      surface: 'pricing_page',
+      plan: 'unlimited',
+      variant: pricingOrder,
+    });
     setUnlimitedPending(true);
-    const result = await get2ankiApi().startUnlimitedCheckout(billingCycle, pricingOrder, 'pricing_page');
+    const result = await get2ankiApi().startUnlimitedCheckout(
+      billingCycle,
+      pricingOrder,
+      'pricing_page'
+    );
     if ('url' in result) {
       globalThis.location.href = result.url;
       return;
@@ -329,7 +348,9 @@ export default function PricingPage({
           </p>
         )}
         {!minimalHeader && (
-          <p className={styles.socialProof}>Trusted by 19,000+ learners worldwide</p>
+          <p className={styles.socialProof}>
+            Trusted by 19,000+ learners worldwide
+          </p>
         )}
       </div>
 

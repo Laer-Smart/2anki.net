@@ -53,9 +53,7 @@ describe('synthesizeCardsFromPdfHeadings', () => {
     const heading59 = 'H'.repeat(59);
     const line60 = 'B'.repeat(60);
     const body = 'C'.repeat(80);
-    const pages: PdfPage[] = [
-      { text: [heading59, line60, body].join('\n') },
-    ];
+    const pages: PdfPage[] = [{ text: [heading59, line60, body].join('\n') }];
 
     const cards = synthesizeCardsFromPdfHeadings(pages, 'Edge');
 

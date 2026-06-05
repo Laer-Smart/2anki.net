@@ -3,7 +3,10 @@ import type { Knex } from 'knex';
 
 import { updateStoreSubscription } from '../../lib/integrations/stripe';
 
-type StripeClient = Pick<StripeTypes, 'checkout' | 'subscriptions' | 'customers'>;
+type StripeClient = Pick<
+  StripeTypes,
+  'checkout' | 'subscriptions' | 'customers'
+>;
 
 export class PersistStripeSessionUseCase {
   constructor(
@@ -21,7 +24,8 @@ export class PersistStripeSessionUseCase {
         typeof session.subscription === 'string'
           ? session.subscription
           : session.subscription.id;
-      const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+      const subscription =
+        await this.stripe.subscriptions.retrieve(subscriptionId);
       const customerId =
         typeof subscription.customer === 'string'
           ? subscription.customer

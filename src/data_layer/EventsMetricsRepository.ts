@@ -73,11 +73,11 @@ export class EventsMetricsRepository implements IEventsMetricsRepository {
       .whereIn('name', ['upload_started', 'deck_downloaded'])
       .select(
         this.database.raw(
-          "count(distinct case when name = ? then COALESCE(user_id::text, anonymous_id) end) as uploaders",
+          'count(distinct case when name = ? then COALESCE(user_id::text, anonymous_id) end) as uploaders',
           ['upload_started']
         ),
         this.database.raw(
-          "count(distinct case when name = ? then COALESCE(user_id::text, anonymous_id) end) as downloaders",
+          'count(distinct case when name = ? then COALESCE(user_id::text, anonymous_id) end) as downloaders',
           ['deck_downloaded']
         )
       );

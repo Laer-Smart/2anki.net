@@ -51,9 +51,7 @@ describe('LoginForm', () => {
   it('shows the magic-link helper text under the email input', () => {
     renderLoginForm();
     expect(
-      screen.getByText(
-        "We'll email you a sign-in link — no password needed."
-      )
+      screen.getByText("We'll email you a sign-in link — no password needed.")
     ).toBeInTheDocument();
   });
 
@@ -135,9 +133,7 @@ describe('LoginForm', () => {
     renderLoginForm();
     fireEvent.click(screen.getByText('Use password instead'));
 
-    expect(
-      screen.getByText('Send a login link instead')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Send a login link instead')).toBeInTheDocument();
   });
 
   it('transitions to check-email step after clicking primary CTA', async () => {
@@ -170,10 +166,9 @@ describe('LoginForm', () => {
   it('shows create account button on the email step', () => {
     renderLoginForm();
     expect(screen.getByText("Sign up — it's free")).toBeInTheDocument();
-    expect(screen.getByText("Sign up — it's free").closest('a')).toHaveAttribute(
-      'href',
-      '/register'
-    );
+    expect(
+      screen.getByText("Sign up — it's free").closest('a')
+    ).toHaveAttribute('href', '/register');
   });
 
   it('shows forgot password link on the email step', () => {
@@ -207,7 +202,9 @@ describe('LoginForm', () => {
   it('restores email from localStorage', () => {
     localStorage.setItem('email', 'saved@example.com');
     renderLoginForm();
-    const emailInput = screen.getByRole('textbox', { name: 'Email' }) as HTMLInputElement;
+    const emailInput = screen.getByRole('textbox', {
+      name: 'Email',
+    }) as HTMLInputElement;
     expect(emailInput.value).toBe('saved@example.com');
   });
 });

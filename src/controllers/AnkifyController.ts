@@ -110,10 +110,7 @@ class AnkifyController {
         res.status(503).json({ message: 'No available host ports' });
         return;
       }
-      console.error(
-        '[ankify-controller] unhandled provision error:',
-        error
-      );
+      console.error('[ankify-controller] unhandled provision error:', error);
       res.status(500).json({
         message: `Provision failed: ${(error as Error).message ?? 'unknown'}`,
       });
@@ -351,8 +348,7 @@ class AnkifyController {
     } catch (error) {
       if (error instanceof NoActiveAnkifyClientError) {
         res.status(409).json({
-          message:
-            'No active Ankify client. Provision one before subscribing.',
+          message: 'No active Ankify client. Provision one before subscribing.',
         });
         return;
       }
@@ -421,8 +417,7 @@ class AnkifyController {
       }
       if (error instanceof NoActiveAnkifyClientError) {
         res.status(409).json({
-          message:
-            'No active Ankify client. Provision one before refreshing.',
+          message: 'No active Ankify client. Provision one before refreshing.',
         });
         return;
       }

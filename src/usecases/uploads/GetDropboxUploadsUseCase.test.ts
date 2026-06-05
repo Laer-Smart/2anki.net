@@ -1,5 +1,8 @@
 import { GetDropboxUploadsUseCase } from './GetDropboxUploadsUseCase';
-import { DropboxRepository, DropboxUploadRow } from '../../data_layer/DropboxRepository';
+import {
+  DropboxRepository,
+  DropboxUploadRow,
+} from '../../data_layer/DropboxRepository';
 
 describe('GetDropboxUploadsUseCase', () => {
   function makeRepo(rows: DropboxUploadRow[]): DropboxRepository {

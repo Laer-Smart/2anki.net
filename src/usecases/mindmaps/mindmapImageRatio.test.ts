@@ -43,7 +43,9 @@ describe('mindmapImageRatio', () => {
 
   it('treats a node with image.url === null as not having an image', () => {
     const mapWithNullUrl: MindmapData = {
-      nodes: [{ id: '1', label: 'A', image: { url: null, width: 0, height: 0 } }],
+      nodes: [
+        { id: '1', label: 'A', image: { url: null, width: 0, height: 0 } },
+      ],
       edges: [],
     };
     const result = mindmapImageRatio([mapWithNullUrl]);

@@ -46,7 +46,9 @@ function ErrorTooltip({ active, payload }: TooltipContentProps) {
       <div className={styles.tooltipTitle}>{row.fullLabel}</div>
       <div className={styles.tooltipRow}>
         <span>error rate</span>
-        <span className={styles.tooltipNumber}>{formatPercent(row.percent)}</span>
+        <span className={styles.tooltipNumber}>
+          {formatPercent(row.percent)}
+        </span>
       </div>
       <div className={styles.tooltipRow}>
         <span>errors</span>
@@ -94,7 +96,10 @@ function InnerErrorChart({ rows, emptyText }: Readonly<InnerErrorChartProps>) {
           stroke="#e5e7eb"
           interval={0}
         />
-        <Tooltip content={(props) => <ErrorTooltip {...props} />} cursor={{ fill: '#f9fafb' }} />
+        <Tooltip
+          content={(props) => <ErrorTooltip {...props} />}
+          cursor={{ fill: '#f9fafb' }}
+        />
         <Bar dataKey="percent" barSize={10}>
           {rows.map((row) => (
             <Cell key={row.key} fill={errorRateColor(row.percent)} />
@@ -105,9 +110,7 @@ function InnerErrorChart({ rows, emptyText }: Readonly<InnerErrorChartProps>) {
   );
 }
 
-const buildRouteRows = (
-  routes: OpsMetricsRouteErrorPoint[]
-): ErrorBarRow[] =>
+const buildRouteRows = (routes: OpsMetricsRouteErrorPoint[]): ErrorBarRow[] =>
   routes.map((route) => {
     const fullLabel = `${route.method} ${route.route}`;
     return {

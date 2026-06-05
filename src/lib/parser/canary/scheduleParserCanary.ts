@@ -1,5 +1,8 @@
 import { nextDailyRunAt } from '../../ankify/nextDailyRunAt';
-import { runParserCanary, CanaryResult } from '../../../usecases/canary/runParserCanary';
+import {
+  runParserCanary,
+  CanaryResult,
+} from '../../../usecases/canary/runParserCanary';
 import type { IEmailService } from '../../../services/EmailService/EmailService';
 import { SUPPORT_EMAIL_ADDRESS } from '../../constants';
 
@@ -11,12 +14,18 @@ function buildAlertText(failures: CanaryResult['failures']): string {
 
   for (const f of failures) {
     lines.push(`Fixture: ${f.fixtureName}`);
-    lines.push(`  Expected: cards=${f.expected.cardCount} images=${f.expected.imageCount} cloze=${f.expected.clozeCount}`);
-    lines.push(`  Actual:   cards=${f.actual.cardCount} images=${f.actual.imageCount} cloze=${f.actual.clozeCount}`);
+    lines.push(
+      `  Expected: cards=${f.expected.cardCount} images=${f.expected.imageCount} cloze=${f.expected.clozeCount}`
+    );
+    lines.push(
+      `  Actual:   cards=${f.actual.cardCount} images=${f.actual.imageCount} cloze=${f.actual.clozeCount}`
+    );
     lines.push('');
   }
 
-  lines.push('Run `npx tsx src/usecases/canary/updateSnapshots.ts` after fixing the parser to regenerate snapshots.');
+  lines.push(
+    'Run `npx tsx src/usecases/canary/updateSnapshots.ts` after fixing the parser to regenerate snapshots.'
+  );
   return lines.join('\n');
 }
 

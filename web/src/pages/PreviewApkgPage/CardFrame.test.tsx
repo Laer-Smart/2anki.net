@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, expect, it, vi } from 'vitest';
 import type { ApkgPreviewCard } from '../../lib/backend/getApkgPreview';
@@ -43,7 +49,12 @@ const getIframe = (container: HTMLElement): HTMLIFrameElement => {
 describe('CardFrame sandbox', () => {
   it('sets sandbox to allow-scripts only', () => {
     const { container } = render(
-      <CardFrame card={buildCard()} cardIndex={0} onEdit={noop} isEditable={false} />
+      <CardFrame
+        card={buildCard()}
+        cardIndex={0}
+        onEdit={noop}
+        isEditable={false}
+      />
     );
     expect(getIframe(container).getAttribute('sandbox')).toBe('allow-scripts');
   });
@@ -62,7 +73,12 @@ describe('CardFrame srcDoc', () => {
 
   it('includes color-scheme meta tag', async () => {
     const { container } = render(
-      <CardFrame card={buildCard()} cardIndex={0} onEdit={noop} isEditable={false} />
+      <CardFrame
+        card={buildCard()}
+        cardIndex={0}
+        onEdit={noop}
+        isEditable={false}
+      />
     );
     const srcDoc = await waitForSrcDoc(container);
     expect(srcDoc).toContain('<meta name="color-scheme" content="light dark">');
@@ -70,7 +86,12 @@ describe('CardFrame srcDoc', () => {
 
   it('includes the resize-observer script', async () => {
     const { container } = render(
-      <CardFrame card={buildCard()} cardIndex={0} onEdit={noop} isEditable={false} />
+      <CardFrame
+        card={buildCard()}
+        cardIndex={0}
+        onEdit={noop}
+        isEditable={false}
+      />
     );
     const srcDoc = await waitForSrcDoc(container);
     expect(srcDoc).toContain('ResizeObserver');
@@ -231,36 +252,68 @@ describe('CardFrame postMessage height update', () => {
 describe('CardFrame edit controls', () => {
   it('shows Delete and Suspend buttons when isEditable is true', () => {
     render(
-      <CardFrame card={buildCard()} cardIndex={0} onEdit={noop} isEditable={true} />
+      <CardFrame
+        card={buildCard()}
+        cardIndex={0}
+        onEdit={noop}
+        isEditable={true}
+      />
     );
     expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /suspend/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /suspend/i })
+    ).toBeInTheDocument();
   });
 
   it('does not show Delete or Suspend when isEditable is false', () => {
     render(
-      <CardFrame card={buildCard()} cardIndex={0} onEdit={noop} isEditable={false} />
+      <CardFrame
+        card={buildCard()}
+        cardIndex={0}
+        onEdit={noop}
+        isEditable={false}
+      />
     );
-    expect(screen.queryByRole('button', { name: /delete/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /suspend/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /delete/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /suspend/i })
+    ).not.toBeInTheDocument();
   });
 
   it('calls onEdit with deleted=true when Delete is clicked', () => {
     const onEdit = vi.fn();
     render(
-      <CardFrame card={buildCard()} cardIndex={2} onEdit={onEdit} isEditable={true} />
+      <CardFrame
+        card={buildCard()}
+        cardIndex={2}
+        onEdit={onEdit}
+        isEditable={true}
+      />
     );
     fireEvent.click(screen.getByRole('button', { name: /delete/i }));
-    expect(onEdit).toHaveBeenCalledWith(2, expect.objectContaining({ deleted: true }));
+    expect(onEdit).toHaveBeenCalledWith(
+      2,
+      expect.objectContaining({ deleted: true })
+    );
   });
 
   it('calls onEdit with suspended=true when Suspend is clicked', () => {
     const onEdit = vi.fn();
     render(
-      <CardFrame card={buildCard()} cardIndex={1} onEdit={onEdit} isEditable={true} />
+      <CardFrame
+        card={buildCard()}
+        cardIndex={1}
+        onEdit={onEdit}
+        isEditable={true}
+      />
     );
     fireEvent.click(screen.getByRole('button', { name: /suspend/i }));
-    expect(onEdit).toHaveBeenCalledWith(1, expect.objectContaining({ suspended: true }));
+    expect(onEdit).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ suspended: true })
+    );
   });
 
   it('shows Restore button when card is marked deleted', () => {
@@ -273,20 +326,36 @@ describe('CardFrame edit controls', () => {
         isEditable={true}
       />
     );
-    expect(screen.getByRole('button', { name: /restore/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /restore/i })
+    ).toBeInTheDocument();
   });
 
   it('shows Edit front and Edit back buttons when isEditable is true', () => {
     render(
-      <CardFrame card={buildCard()} cardIndex={0} onEdit={noop} isEditable={true} />
+      <CardFrame
+        card={buildCard()}
+        cardIndex={0}
+        onEdit={noop}
+        isEditable={true}
+      />
     );
-    expect(screen.getByRole('button', { name: /edit front/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /edit back/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /edit front/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /edit back/i })
+    ).toBeInTheDocument();
   });
 
   it('clicking Edit front shows a textarea with the current front text', () => {
     render(
-      <CardFrame card={buildCard({ front: 'original' })} cardIndex={0} onEdit={noop} isEditable={true} />
+      <CardFrame
+        card={buildCard({ front: 'original' })}
+        cardIndex={0}
+        onEdit={noop}
+        isEditable={true}
+      />
     );
     fireEvent.click(screen.getByRole('button', { name: /edit front/i }));
     const textarea = screen.getByRole('textbox', { name: /front/i });
@@ -297,24 +366,39 @@ describe('CardFrame edit controls', () => {
   it('pressing Escape on the front editor cancels the edit without calling onEdit', () => {
     const onEdit = vi.fn();
     render(
-      <CardFrame card={buildCard()} cardIndex={0} onEdit={onEdit} isEditable={true} />
+      <CardFrame
+        card={buildCard()}
+        cardIndex={0}
+        onEdit={onEdit}
+        isEditable={true}
+      />
     );
     fireEvent.click(screen.getByRole('button', { name: /edit front/i }));
     const textarea = screen.getByRole('textbox', { name: /front/i });
     fireEvent.keyDown(textarea, { key: 'Escape' });
-    expect(screen.queryByRole('textbox', { name: /front/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('textbox', { name: /front/i })
+    ).not.toBeInTheDocument();
     expect(onEdit).not.toHaveBeenCalled();
   });
 
   it('pressing Enter on the front editor commits the edit', () => {
     const onEdit = vi.fn();
     render(
-      <CardFrame card={buildCard()} cardIndex={3} onEdit={onEdit} isEditable={true} />
+      <CardFrame
+        card={buildCard()}
+        cardIndex={3}
+        onEdit={onEdit}
+        isEditable={true}
+      />
     );
     fireEvent.click(screen.getByRole('button', { name: /edit front/i }));
     const textarea = screen.getByRole('textbox', { name: /front/i });
     fireEvent.change(textarea, { target: { value: 'new front text' } });
     fireEvent.keyDown(textarea, { key: 'Enter' });
-    expect(onEdit).toHaveBeenCalledWith(3, expect.objectContaining({ front: 'new front text' }));
+    expect(onEdit).toHaveBeenCalledWith(
+      3,
+      expect.objectContaining({ front: 'new front text' })
+    );
   });
 });

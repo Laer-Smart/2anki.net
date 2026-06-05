@@ -13,7 +13,9 @@ interface FakeAPI {
 
 function fakeApi(overrides: Partial<FakeAPI> = {}): FakeAPI {
   return {
-    getDatabase: jest.fn().mockResolvedValue({ object: 'database', url: 'https://notion.so/abc' }),
+    getDatabase: jest
+      .fn()
+      .mockResolvedValue({ object: 'database', url: 'https://notion.so/abc' }),
     getDatabaseTitle: jest.fn().mockResolvedValue('Vocabulary'),
     queryDatabasePreview: jest.fn().mockResolvedValue({
       results: [] as QueryRow[],
@@ -131,7 +133,10 @@ describe('GetDatabasePreviewUseCase', () => {
   it('truncates samples to the preview cap and reports hasMore', async () => {
     const rows: QueryRow[] = Array.from({ length: 10 }, (_, i) => ({
       id: `row-${i}`,
-      properties: { Word: titleProp(`Term ${i}`), Definition: richTextProp(`Def ${i}`) },
+      properties: {
+        Word: titleProp(`Term ${i}`),
+        Definition: richTextProp(`Def ${i}`),
+      },
     }));
     const api = fakeApi({
       queryDatabasePreview: jest.fn().mockResolvedValue({

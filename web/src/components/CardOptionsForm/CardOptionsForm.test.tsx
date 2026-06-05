@@ -189,7 +189,9 @@ describe('CardOptionsForm code theme picker', () => {
     renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
     await screen.findByLabelText('Code theme');
     expect(screen.getByRole('option', { name: 'GitHub' })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'One Dark' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: 'One Dark' })
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('option', { name: 'Solarized' })
     ).toBeInTheDocument();
@@ -258,9 +260,7 @@ describe('CardOptionsForm overlapping cloze picker', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByLabelText(
-          'Preview: each card hides one line of the list'
-        )
+        screen.getByLabelText('Preview: each card hides one line of the list')
       ).toBeInTheDocument();
     });
   });
@@ -286,9 +286,7 @@ describe('CardOptionsForm manual TTS picker', () => {
     renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
     const langSelect = await screen.findByLabelText('Language');
 
-    expect(
-      screen.queryByRole('group', { name: 'Read aloud side' })
-    ).toBeNull();
+    expect(screen.queryByRole('group', { name: 'Read aloud side' })).toBeNull();
 
     fireEvent.change(langSelect, { target: { value: 'ja_JP' } });
 

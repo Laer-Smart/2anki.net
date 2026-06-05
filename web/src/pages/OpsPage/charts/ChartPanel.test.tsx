@@ -8,12 +8,7 @@ import styles from '../OpsPage.module.css';
 describe('ChartPanel', () => {
   test('renders the loading skeleton when isLoading', () => {
     const { container } = render(
-      <ChartPanel
-        title="Latency"
-        isLoading
-        isEmpty={false}
-        emptyText="No data"
-      >
+      <ChartPanel title="Latency" isLoading isEmpty={false} emptyText="No data">
         <div>actual content</div>
       </ChartPanel>
     );

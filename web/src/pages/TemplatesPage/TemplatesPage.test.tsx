@@ -106,9 +106,7 @@ describe('TemplatesPage', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: /note types/i })
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(/starter anki note types/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/starter anki note types/i)).toBeInTheDocument();
   });
 
   it('lists every starter returned by the API', async () => {
@@ -140,14 +138,14 @@ describe('TemplatesPage', () => {
     getDefaults.mockResolvedValue([]);
     renderPage();
 
-    expect(
-      await screen.findByText(/no note types yet/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/no note types yet/i)).toBeInTheDocument();
   });
 
   it('downloads the .apkg when the Download button is clicked', async () => {
     getDefaults.mockResolvedValue([sampleStarter]);
-    download.mockResolvedValue(new Blob(['apkg'], { type: 'application/octet-stream' }));
+    download.mockResolvedValue(
+      new Blob(['apkg'], { type: 'application/octet-stream' })
+    );
 
     renderPage();
 
@@ -178,9 +176,7 @@ describe('TemplatesPage', () => {
     });
     fireEvent.click(button);
 
-    expect(
-      await screen.findByText(/wasm missing/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/wasm missing/i)).toBeInTheDocument();
   });
 
   it('opens a preview dialog when the name is clicked', async () => {
@@ -192,7 +188,10 @@ describe('TemplatesPage', () => {
 
     const dialog = await screen.findByRole('dialog');
     expect(dialog).toBeInTheDocument();
-    expect(dialog).toHaveAttribute('aria-labelledby', 'note-type-preview-title');
+    expect(dialog).toHaveAttribute(
+      'aria-labelledby',
+      'note-type-preview-title'
+    );
     expect(screen.getByText('Front')).toBeInTheDocument();
     expect(screen.getByText('Back')).toBeInTheDocument();
   });
@@ -208,7 +207,10 @@ describe('TemplatesPage', () => {
 
     const dialog = await screen.findByRole('dialog');
     expect(dialog).toBeInTheDocument();
-    expect(dialog).toHaveAttribute('aria-labelledby', 'note-type-preview-title');
+    expect(dialog).toHaveAttribute(
+      'aria-labelledby',
+      'note-type-preview-title'
+    );
     expect(screen.getByText('Front')).toBeInTheDocument();
     expect(screen.getByText('Back')).toBeInTheDocument();
   });

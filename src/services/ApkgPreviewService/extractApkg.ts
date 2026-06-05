@@ -105,9 +105,7 @@ function parseProtobufMediaManifest(buf: Buffer): Map<string, string> {
   return map;
 }
 
-export function parseMediaManifest(
-  raw: Buffer | null
-): Map<string, string> {
+export function parseMediaManifest(raw: Buffer | null): Map<string, string> {
   if (!raw || raw.length === 0) return new Map();
   let buf = raw;
   if (isZstdCompressed(buf)) {

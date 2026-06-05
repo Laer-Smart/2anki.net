@@ -48,34 +48,34 @@ export function NoteTypePicker({
         onChange={(event) => onChange(event.target.value)}
         disabled={loading}
       >
-            <option value="">{placeholder}</option>
-            {groupedByOrigin.user.length > 0 && (
-              <optgroup label="Your note types">
-                {groupedByOrigin.user.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-            {groupedByOrigin.official.length > 0 && (
-              <optgroup label="Official 2anki templates">
-                {groupedByOrigin.official.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-            {groupedByOrigin.starter.length > 0 && (
-              <optgroup label="Starter note types">
-                {groupedByOrigin.starter.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </optgroup>
-            )}
+        <option value="">{placeholder}</option>
+        {groupedByOrigin.user.length > 0 && (
+          <optgroup label="Your note types">
+            {groupedByOrigin.user.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {groupedByOrigin.official.length > 0 && (
+          <optgroup label="Official 2anki templates">
+            {groupedByOrigin.official.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {groupedByOrigin.starter.length > 0 && (
+          <optgroup label="Starter note types">
+            {groupedByOrigin.starter.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </optgroup>
+        )}
         {selectedIsCustom && <option value={value}>{value} (custom)</option>}
       </select>
     </div>

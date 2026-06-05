@@ -58,7 +58,10 @@ class FakeRepository implements IErrorEventRepository {
 
 describe('ListErrorGroupsUseCase', () => {
   it('returns groups and totalGroups from the repository', async () => {
-    const groups = [makeGroup(), makeGroup({ message_hash: 'b'.repeat(64), occurrences: 7 })];
+    const groups = [
+      makeGroup(),
+      makeGroup({ message_hash: 'b'.repeat(64), occurrences: 7 }),
+    ];
     const repo = new FakeRepository(groups, 2);
     const useCase = new ListErrorGroupsUseCase(repo);
 
@@ -107,7 +110,11 @@ describe('ListErrorGroupsUseCase', () => {
     const repo = new FakeRepository(groups, 1);
     const useCase = new ListErrorGroupsUseCase(repo);
 
-    const result = await useCase.execute({ limit: 50, offset: 0, status: 'resolved' });
+    const result = await useCase.execute({
+      limit: 50,
+      offset: 0,
+      status: 'resolved',
+    });
 
     expect(result.groups[0]).toMatchObject({
       resolved: true,

@@ -14,7 +14,13 @@ const THROTTLE_MS = 350;
 const MAX_NOTES = 5000;
 
 const IMAGE_EXTENSIONS = new Set([
-  '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp',
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.gif',
+  '.webp',
+  '.svg',
+  '.bmp',
 ]);
 
 const MIME_TYPES: Record<string, string> = {
@@ -31,7 +37,11 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const SQLITE_ERROR_CODES = new Set(['SQLITE_NOTADB', 'SQLITE_CORRUPT', 'SQLITE_CANTOPEN']);
+const SQLITE_ERROR_CODES = new Set([
+  'SQLITE_NOTADB',
+  'SQLITE_CORRUPT',
+  'SQLITE_CANTOPEN',
+]);
 
 function resolveFailureMessage(error: unknown): string {
   if (error instanceof NoteTooLargeError) {
@@ -88,14 +98,21 @@ export default class ImportApkgToNotionUseCase {
       const cacheKey = `import:${owner}:${Date.now()}`;
       const parsed = await this.previewService.parse(cacheKey, fileBuffer);
 
-      const result = this.blocksService.transform(parsed.collection, new Map(), maxNotes);
+      const result = this.blocksService.transform(
+        parsed.collection,
+        new Map(),
+        maxNotes
+      );
       const totalNotes = result.totalNotes;
 
       let mediaUrlMap = new Map<string, string>();
       if (parsed.mediaMap.size > 0) {
         try {
           await this.jobRepository.updateJobStatus(
-            jobId, owner, 'processing', `uploading images`
+            jobId,
+            owner,
+            'processing',
+            `uploading images`
           );
           mediaUrlMap = await this.uploadMediaToNotion(
             parsed.mediaMap,
@@ -110,7 +127,10 @@ export default class ImportApkgToNotionUseCase {
             maxNotes
           ).deckPages;
         } catch (uploadError) {
-          console.error(`[apkg-import] job=${jobId} media upload failed, continuing without images:`, uploadError);
+          console.error(
+            `[apkg-import] job=${jobId} media upload failed, continuing without images:`,
+            uploadError
+          );
         }
       }
 
@@ -138,7 +158,7 @@ export default class ImportApkgToNotionUseCase {
       const pageResponse = await notionApi.getPage(parentPageId);
       const notionUrl =
         pageResponse && 'url' in pageResponse
-          ? (pageResponse as { url?: string }).url ?? null
+          ? ((pageResponse as { url?: string }).url ?? null)
           : null;
 
       await this.jobRepository.updateJobStatus(
@@ -190,7 +210,9 @@ export default class ImportApkgToNotionUseCase {
         idMap.set(originalName, fileUploadId);
         uploaded++;
         await this.jobRepository.updateJobStatus(
-          jobId, owner, 'processing',
+          jobId,
+          owner,
+          'processing',
           `uploading images ${uploaded}/${totalImages}`
         );
         await sleep(THROTTLE_MS);

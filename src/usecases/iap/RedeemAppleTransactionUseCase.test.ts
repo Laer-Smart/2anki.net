@@ -25,7 +25,9 @@ function decoded(
   };
 }
 
-function serviceReturning(value: DecodedAppleTransaction): IAppleStoreKitService {
+function serviceReturning(
+  value: DecodedAppleTransaction
+): IAppleStoreKitService {
   return { verifyTransaction: jest.fn().mockResolvedValue(value) };
 }
 
@@ -85,7 +87,9 @@ describe('RedeemAppleTransactionUseCase', () => {
 
   it('accumulates onto an existing active pass window', async () => {
     const { useCase, passes } = build(
-      serviceReturning(decoded({ productId: 'daypass.24h', transactionId: 't2' }))
+      serviceReturning(
+        decoded({ productId: 'daypass.24h', transactionId: 't2' })
+      )
     );
     passes.seed({
       user_id: USER_ID,
@@ -118,7 +122,11 @@ describe('RedeemAppleTransactionUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ userId: USER_ID, jws: 'signed', productId: 'daypass.24h' })
+      useCase.execute({
+        userId: USER_ID,
+        jws: 'signed',
+        productId: 'daypass.24h',
+      })
     ).rejects.toMatchObject({ status: 409 });
   });
 
@@ -149,7 +157,11 @@ describe('RedeemAppleTransactionUseCase', () => {
     const { useCase } = build(serviceThrowing(new AppleUnavailableError()));
 
     await expect(
-      useCase.execute({ userId: USER_ID, jws: 'signed', productId: 'daypass.24h' })
+      useCase.execute({
+        userId: USER_ID,
+        jws: 'signed',
+        productId: 'daypass.24h',
+      })
     ).rejects.toMatchObject({ status: 502 });
   });
 
@@ -159,7 +171,11 @@ describe('RedeemAppleTransactionUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ userId: USER_ID, jws: 'signed', productId: 'daypass.24h' })
+      useCase.execute({
+        userId: USER_ID,
+        jws: 'signed',
+        productId: 'daypass.24h',
+      })
     ).rejects.toMatchObject({ status: 400 });
   });
 

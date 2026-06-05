@@ -51,7 +51,9 @@ describe('transformApkgNotes', () => {
 
   it('appends an example for add_example', async () => {
     const client = makeClient(async () => ({
-      content: [{ type: 'text', text: '{"example":"Mitochondria multiply rapidly."}' }],
+      content: [
+        { type: 'text', text: '{"example":"Mitochondria multiply rapidly."}' },
+      ],
       usage: { input_tokens: 50, output_tokens: 15 },
     }));
 
@@ -62,12 +64,19 @@ describe('transformApkgNotes', () => {
     });
 
     expect(result.notes[0].fields[1]).toContain('Back a');
-    expect(result.notes[0].fields[1]).toContain('Mitochondria multiply rapidly.');
+    expect(result.notes[0].fields[1]).toContain(
+      'Mitochondria multiply rapidly.'
+    );
   });
 
   it('flips Basic to Cloze for cloze_front', async () => {
     const client = makeClient(async () => ({
-      content: [{ type: 'text', text: '{"cloze":"{{c1::Mitochondrion}} is the powerhouse."}' }],
+      content: [
+        {
+          type: 'text',
+          text: '{"cloze":"{{c1::Mitochondrion}} is the powerhouse."}',
+        },
+      ],
       usage: { input_tokens: 50, output_tokens: 15 },
     }));
 
@@ -130,7 +139,9 @@ describe('transformApkgNotes', () => {
 
     const client = makeClient((req) => {
       const index = Number(
-        (req as { messages: { content: string }[] }).messages[0].content.match(/\d+/)?.[0]
+        (req as { messages: { content: string }[] }).messages[0].content.match(
+          /\d+/
+        )?.[0]
       );
       inFlight += 1;
       peak = Math.max(peak, inFlight);

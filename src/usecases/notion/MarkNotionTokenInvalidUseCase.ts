@@ -20,7 +20,10 @@ export class MarkNotionTokenInvalidUseCase {
 
     const recipient = await this.users.getEmailById(owner);
     if (recipient == null) {
-      console.warn('[notion-reconnect] no_email_on_file', { owner, reason: 'no_email_on_file' });
+      console.warn('[notion-reconnect] no_email_on_file', {
+        owner,
+        reason: 'no_email_on_file',
+      });
       return;
     }
 

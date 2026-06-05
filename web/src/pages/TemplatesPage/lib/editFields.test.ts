@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { addField, removeField, renameField, setPreviewValue } from './editFields';
+import {
+  addField,
+  removeField,
+  renameField,
+  setPreviewValue,
+} from './editFields';
 import { buildEmptyNoteType } from './buildNoteType';
 
 describe('addField', () => {
@@ -54,7 +59,10 @@ describe('removeField', () => {
   it('removes the field and re-indexes ords', () => {
     const draft = addField(buildEmptyNoteType('basic'));
     const after = removeField(draft, 1);
-    expect(after.noteType.flds.map((f) => f.name)).toEqual(['Front', 'New field']);
+    expect(after.noteType.flds.map((f) => f.name)).toEqual([
+      'Front',
+      'New field',
+    ]);
     expect(after.noteType.flds.map((f) => f.ord)).toEqual([0, 1]);
   });
 

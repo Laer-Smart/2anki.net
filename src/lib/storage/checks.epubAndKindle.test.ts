@@ -10,15 +10,12 @@ describe('isEpubFile', () => {
     expect(isEpubFile(name)).toBeTruthy();
   });
 
-  it.each([
-    'book.txt',
-    'book.pdf',
-    'book.epub.zip',
-    'epub',
-    '',
-  ])('returns falsy for %s', (name) => {
-    expect(isEpubFile(name)).toBeFalsy();
-  });
+  it.each(['book.txt', 'book.pdf', 'book.epub.zip', 'epub', ''])(
+    'returns falsy for %s',
+    (name) => {
+      expect(isEpubFile(name)).toBeFalsy();
+    }
+  );
 });
 
 describe('isKindleClippingsFile', () => {

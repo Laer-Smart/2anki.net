@@ -84,8 +84,6 @@ describe('ContactMessagesTab acknowledge action', () => {
     });
     fireEvent.click(buttons[0]);
 
-    await waitFor(() =>
-      expect(screen.getAllByRole('alert')).toHaveLength(1)
-    );
+    await waitFor(() => expect(screen.getAllByRole('alert')).toHaveLength(1));
   });
 });

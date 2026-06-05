@@ -98,9 +98,7 @@ export default function TrackerParentPicker({
         aria-label="Search your Notion pages"
       />
 
-      {loading && (
-        <p className={styles.pickerStatus}>Looking up your pages…</p>
-      )}
+      {loading && <p className={styles.pickerStatus}>Looking up your pages…</p>}
 
       {error != null && (
         <p role="alert" className={sharedStyles.helpDanger}>
@@ -112,7 +110,7 @@ export default function TrackerParentPicker({
         <p className={styles.pickerStatus}>
           {query.trim().length > 0
             ? `No pages match "${query}". Make sure the page is shared with 2anki in Notion.`
-            : "No Notion pages here yet. In Notion, open a page and choose ··· → Connections → 2anki."}
+            : 'No Notion pages here yet. In Notion, open a page and choose ··· → Connections → 2anki.'}
         </p>
       )}
 

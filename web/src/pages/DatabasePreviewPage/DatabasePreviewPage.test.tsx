@@ -24,7 +24,10 @@ vi.mock('../../lib/analytics/track', () => ({
 }));
 
 vi.mock('react-router-dom', async () => {
-  const real = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+  const real =
+    await vi.importActual<typeof import('react-router-dom')>(
+      'react-router-dom'
+    );
   return { ...real, useNavigate: () => mockNavigate };
 });
 
@@ -36,7 +39,11 @@ const baseResponse: DatabasePreviewResponse = {
   samples: [
     {
       id: 'row-1',
-      values: { Word: 'Osmosis', Definition: 'Movement of water across a membrane', Tags: 'Biology' },
+      values: {
+        Word: 'Osmosis',
+        Definition: 'Movement of water across a membrane',
+        Tags: 'Biology',
+      },
     },
     {
       id: 'row-2',
@@ -48,7 +55,9 @@ const baseResponse: DatabasePreviewResponse = {
 };
 
 function renderPage(id = 'db-abc') {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={[`/preview/database/${id}`]}>
@@ -72,7 +81,9 @@ beforeEach(() => {
 
 describe('DatabasePreviewPage', () => {
   it('shows the loading copy while fetching', () => {
-    mockGetDatabasePreview.mockImplementation(() => new Promise(() => undefined));
+    mockGetDatabasePreview.mockImplementation(
+      () => new Promise(() => undefined)
+    );
     renderPage();
     expect(screen.getByText('Reading your database')).toBeInTheDocument();
   });
@@ -85,12 +96,16 @@ describe('DatabasePreviewPage', () => {
 
     expect(
       screen.getByText(
-        (_, node) => node?.textContent === '2+ rows · 3 columns · Front: Word · Back: Definition'
+        (_, node) =>
+          node?.textContent ===
+          '2+ rows · 3 columns · Front: Word · Back: Definition'
       )
     ).toBeInTheDocument();
 
     expect(screen.getByText('Osmosis')).toBeInTheDocument();
-    expect(screen.getByText('Movement of water across a membrane')).toBeInTheDocument();
+    expect(
+      screen.getByText('Movement of water across a membrane')
+    ).toBeInTheDocument();
 
     expect(
       screen.getByText(
@@ -107,17 +122,25 @@ describe('DatabasePreviewPage', () => {
     const wordHeader = screen.getByRole('columnheader', { name: /Word/ });
     expect(wordHeader.textContent).toContain('●');
 
-    expect(mockTrack).toHaveBeenCalledWith('database_preview_viewed', expect.any(Object));
+    expect(mockTrack).toHaveBeenCalledWith(
+      'database_preview_viewed',
+      expect.any(Object)
+    );
   });
 
   it('omits the sample framing when every row already fits in the preview', async () => {
-    mockGetDatabasePreview.mockResolvedValue({ ...baseResponse, hasMore: false });
+    mockGetDatabasePreview.mockResolvedValue({
+      ...baseResponse,
+      hasMore: false,
+    });
     renderPage();
 
     await screen.findByRole('heading', { name: 'Vocabulary' });
 
     expect(screen.queryByText(/Preview of the first/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Every row in this database/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Every row in this database/i)
+    ).not.toBeInTheDocument();
   });
 
   it('shows the ambiguous-mapping warning when inference fails', async () => {
@@ -144,11 +167,15 @@ describe('DatabasePreviewPage', () => {
     renderPage();
 
     await screen.findByRole('heading', { name: 'Empty DB' });
-    expect(screen.getByText('This database has no rows yet.')).toBeInTheDocument();
+    expect(
+      screen.getByText('This database has no rows yet.')
+    ).toBeInTheDocument();
   });
 
   it('shows the not-available state on 404', async () => {
-    mockGetDatabasePreview.mockRejectedValue(new Error('Failed: 404 not found'));
+    mockGetDatabasePreview.mockRejectedValue(
+      new Error('Failed: 404 not found')
+    );
     renderPage();
 
     const notice = await screen.findByText(/no longer available/i);
@@ -164,7 +191,11 @@ describe('DatabasePreviewPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
 
     await waitFor(() => {
-      expect(mockConvert).toHaveBeenCalledWith('db-abc', 'database', 'Vocabulary');
+      expect(mockConvert).toHaveBeenCalledWith(
+        'db-abc',
+        'database',
+        'Vocabulary'
+      );
     });
     expect(mockTrack).toHaveBeenCalledWith(
       'convert_clicked_from_preview',

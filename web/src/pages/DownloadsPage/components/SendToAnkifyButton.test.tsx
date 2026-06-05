@@ -12,7 +12,10 @@ const listClientsMock = vi.fn();
 const trackMock = vi.fn();
 
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>(
+      'react-router-dom'
+    );
   return {
     ...actual,
     useNavigate: () => navigateMock,
@@ -30,7 +33,9 @@ vi.mock('../../../lib/backend/get2ankiApi', () => ({
   }),
 }));
 
-let mockLocalsData: { locals: { patreon: boolean }; autoSyncActive: boolean } | undefined;
+let mockLocalsData:
+  | { locals: { patreon: boolean }; autoSyncActive: boolean }
+  | undefined;
 
 vi.mock('../../../lib/hooks/useUserLocals', () => ({
   useUserLocals: () => ({ data: mockLocalsData }),
@@ -56,7 +61,11 @@ describe('SendToAnkifyButton', () => {
     listClientsMock.mockReset();
     trackMock.mockReset();
     listClientsMock.mockResolvedValue([{ status: 'active' }]);
-    dispatchMock.mockResolvedValue({ created: 1, updated: 0, anki_web_sync: 'synced' });
+    dispatchMock.mockResolvedValue({
+      created: 1,
+      updated: 0,
+      anki_web_sync: 'synced',
+    });
   });
 
   afterEach(() => {

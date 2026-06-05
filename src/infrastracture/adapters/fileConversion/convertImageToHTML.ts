@@ -31,15 +31,19 @@ export const convertImageToHTML = async (
   imageData: string
 ): Promise<string> => {
   const client = getAnthropicClient();
-  const htmlContent = await convertWithClaude(client, IMAGE_TO_HTML_SYSTEM_PROMPT, [
-    {
-      type: 'image',
-      source: {
-        type: 'base64',
-        media_type: 'image/png',
-        data: imageData,
+  const htmlContent = await convertWithClaude(
+    client,
+    IMAGE_TO_HTML_SYSTEM_PROMPT,
+    [
+      {
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: 'image/png',
+          data: imageData,
+        },
       },
-    },
-  ]);
+    ]
+  );
   return removeFirstAndLastLine(htmlContent);
 };

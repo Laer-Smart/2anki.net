@@ -5,7 +5,10 @@ import multer from 'multer';
 import ErrorHandler from './ErrorHandler';
 import { PythonExitError } from '../../lib/anki/buildPythonExitError';
 
-const makeAPIResponseError = (code: string, status: number): APIResponseError => {
+const makeAPIResponseError = (
+  code: string,
+  status: number
+): APIResponseError => {
   const err = Object.create(APIResponseError.prototype) as APIResponseError;
   Object.assign(err, { name: 'APIResponseError', message: code, code, status });
   return err;
@@ -18,7 +21,7 @@ const makeRequest = (): express.Request =>
     method: 'POST',
     query: {},
     files: [],
-  } as unknown as express.Request);
+  }) as unknown as express.Request;
 
 interface FakeResponse {
   headersSent: boolean;
@@ -107,7 +110,10 @@ describe('ErrorHandler', () => {
 
     expect(res.statusCode).toBe(400);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ code: 'invalid_markup', message: 'markup error' })
+      expect.objectContaining({
+        code: 'invalid_markup',
+        message: 'markup error',
+      })
     );
   });
 

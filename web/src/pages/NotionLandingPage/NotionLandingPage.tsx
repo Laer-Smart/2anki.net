@@ -2,7 +2,10 @@ import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { track } from '../../lib/analytics/track';
 import { PricingCard } from '../PricingPage/components/PricingCard';
-import { MONTHLY_PRICE, MONTHLY_SUFFIX } from '../PricingPage/pricing.constants';
+import {
+  MONTHLY_PRICE,
+  MONTHLY_SUFFIX,
+} from '../PricingPage/pricing.constants';
 import styles from './NotionLandingPage.module.css';
 
 const REF = 'notion-marketplace';

@@ -35,9 +35,16 @@ const RUN_INTEGRATION = process.env.DATABASE_URL != null;
 
     it('create returns a row with the supplied title and data', async () => {
       const repo = new MindmapRepository(db);
-      const data: MindmapData = { nodes: [{ id: '1', label: 'Root' }], edges: [] };
+      const data: MindmapData = {
+        nodes: [{ id: '1', label: 'Root' }],
+        edges: [],
+      };
 
-      const result = await repo.create({ user_id: userId, title: 'Test map', data });
+      const result = await repo.create({
+        user_id: userId,
+        title: 'Test map',
+        data,
+      });
 
       expect(result.title).toBe('Test map');
       expect(result.data).toMatchObject(data);
@@ -46,7 +53,11 @@ const RUN_INTEGRATION = process.env.DATABASE_URL != null;
 
     it('findById returns the row after create', async () => {
       const repo = new MindmapRepository(db);
-      const created = await repo.create({ user_id: userId, title: 'Find me', data: { nodes: [], edges: [] } });
+      const created = await repo.create({
+        user_id: userId,
+        title: 'Find me',
+        data: { nodes: [], edges: [] },
+      });
 
       const found = await repo.findById(created.id, userId);
 
@@ -57,15 +68,26 @@ const RUN_INTEGRATION = process.env.DATABASE_URL != null;
     it('findById returns null when the row does not exist', async () => {
       const repo = new MindmapRepository(db);
 
-      const result = await repo.findById('00000000-0000-0000-0000-000000000000' as MindmapsId, userId);
+      const result = await repo.findById(
+        '00000000-0000-0000-0000-000000000000' as MindmapsId,
+        userId
+      );
 
       expect(result).toBeNull();
     });
 
     it('findByUserId returns only rows belonging to the given user', async () => {
       const repo = new MindmapRepository(db);
-      await repo.create({ user_id: userId, title: 'Map A', data: { nodes: [], edges: [] } });
-      await repo.create({ user_id: userId, title: 'Map B', data: { nodes: [], edges: [] } });
+      await repo.create({
+        user_id: userId,
+        title: 'Map A',
+        data: { nodes: [], edges: [] },
+      });
+      await repo.create({
+        user_id: userId,
+        title: 'Map B',
+        data: { nodes: [], edges: [] },
+      });
 
       const rows = await repo.findByUserId(userId);
 
@@ -75,10 +97,20 @@ const RUN_INTEGRATION = process.env.DATABASE_URL != null;
 
     it('update changes title and data, then findById reflects the change', async () => {
       const repo = new MindmapRepository(db);
-      const created = await repo.create({ user_id: userId, title: 'Before', data: { nodes: [], edges: [] } });
-      const newData: MindmapData = { nodes: [{ id: 'n1', label: 'Updated' }], edges: [] };
+      const created = await repo.create({
+        user_id: userId,
+        title: 'Before',
+        data: { nodes: [], edges: [] },
+      });
+      const newData: MindmapData = {
+        nodes: [{ id: 'n1', label: 'Updated' }],
+        edges: [],
+      };
 
-      const updated = await repo.update(created.id, userId, { title: 'After', data: newData });
+      const updated = await repo.update(created.id, userId, {
+        title: 'After',
+        data: newData,
+      });
 
       expect(updated?.title).toBe('After');
       expect(updated?.data).toMatchObject(newData);
@@ -101,7 +133,11 @@ const RUN_INTEGRATION = process.env.DATABASE_URL != null;
 
     it('delete removes the row so findById returns null', async () => {
       const repo = new MindmapRepository(db);
-      const created = await repo.create({ user_id: userId, title: 'Delete me', data: { nodes: [], edges: [] } });
+      const created = await repo.create({
+        user_id: userId,
+        title: 'Delete me',
+        data: { nodes: [], edges: [] },
+      });
 
       await repo.delete(created.id, userId);
 
@@ -112,28 +148,47 @@ const RUN_INTEGRATION = process.env.DATABASE_URL != null;
       const repo = new MindmapRepository(db);
 
       await expect(
-        repo.delete('00000000-0000-0000-0000-000000000000' as MindmapsId, userId)
+        repo.delete(
+          '00000000-0000-0000-0000-000000000000' as MindmapsId,
+          userId
+        )
       ).resolves.toBeUndefined();
     });
 
     it('countByUserId returns 1 after one create', async () => {
       const repo = new MindmapRepository(db);
-      await repo.create({ user_id: userId, title: 'One', data: { nodes: [], edges: [] } });
+      await repo.create({
+        user_id: userId,
+        title: 'One',
+        data: { nodes: [], edges: [] },
+      });
 
       expect(await repo.countByUserId(userId)).toBe(1);
     });
 
     it('countByUserId returns 2 after two creates', async () => {
       const repo = new MindmapRepository(db);
-      await repo.create({ user_id: userId, title: 'One', data: { nodes: [], edges: [] } });
-      await repo.create({ user_id: userId, title: 'Two', data: { nodes: [], edges: [] } });
+      await repo.create({
+        user_id: userId,
+        title: 'One',
+        data: { nodes: [], edges: [] },
+      });
+      await repo.create({
+        user_id: userId,
+        title: 'Two',
+        data: { nodes: [], edges: [] },
+      });
 
       expect(await repo.countByUserId(userId)).toBe(2);
     });
 
     it('cascade: deleting the user removes their mindmaps', async () => {
       const repo = new MindmapRepository(db);
-      const created = await repo.create({ user_id: userId, title: 'Cascade me', data: { nodes: [], edges: [] } });
+      const created = await repo.create({
+        user_id: userId,
+        title: 'Cascade me',
+        data: { nodes: [], edges: [] },
+      });
 
       await db('users').where({ id: userId }).del();
 

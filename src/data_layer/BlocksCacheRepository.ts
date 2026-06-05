@@ -18,7 +18,9 @@ export interface BlocksCacheSave {
 }
 
 export interface IBlocksCacheRepository {
-  get(lookup: BlocksCacheLookup): Promise<ListBlockChildrenResponse | undefined>;
+  get(
+    lookup: BlocksCacheLookup
+  ): Promise<ListBlockChildrenResponse | undefined>;
   save(entry: BlocksCacheSave): Promise<void>;
 }
 

@@ -29,7 +29,10 @@ describe('HomePage (anonymous)', () => {
   it('renders the primary h1', () => {
     renderHome();
     expect(
-      screen.getByRole('heading', { level: 1, name: /flashcards that work in anki/i })
+      screen.getByRole('heading', {
+        level: 1,
+        name: /flashcards that work in anki/i,
+      })
     ).toBeInTheDocument();
   });
 
@@ -76,7 +79,9 @@ describe('HomePage (anonymous)', () => {
 
   it('renders all 10 walkthrough play buttons after clicking expand', () => {
     renderHome();
-    const expandButton = screen.getByRole('button', { name: /show all 10 videos/i });
+    const expandButton = screen.getByRole('button', {
+      name: /show all 10 videos/i,
+    });
     fireEvent.click(expandButton);
     const playButtons = screen.getAllByRole('button', { name: /play:/i });
     expect(playButtons.length).toBe(10);

@@ -29,8 +29,13 @@ function validatePrefsBody(body: PrefsBody, res: Response): boolean {
     res.status(400).json({ message: 'theme must be a string.' });
     return false;
   }
-  if (body.ankiWebAcknowledgedAt !== undefined && !isValidTimestamp(body.ankiWebAcknowledgedAt)) {
-    res.status(400).json({ message: 'ankiWebAcknowledgedAt must be a valid ISO timestamp.' });
+  if (
+    body.ankiWebAcknowledgedAt !== undefined &&
+    !isValidTimestamp(body.ankiWebAcknowledgedAt)
+  ) {
+    res.status(400).json({
+      message: 'ankiWebAcknowledgedAt must be a valid ISO timestamp.',
+    });
     return false;
   }
   return true;
@@ -46,7 +51,9 @@ export class UserPreferencesController {
     this.getUseCase = new GetUserPreferencesUseCase(repo);
     this.patchUseCase = new PatchUserPreferencesUseCase(repo);
     this.migrateUseCase = new MigrateUserPreferencesUseCase(repo);
-    this.deleteCardOptionsUseCase = new DeleteUserPreferencesCardOptionsUseCase(repo);
+    this.deleteCardOptionsUseCase = new DeleteUserPreferencesCardOptionsUseCase(
+      repo
+    );
   }
 
   async get(_req: Request, res: Response): Promise<void> {
@@ -57,7 +64,8 @@ export class UserPreferencesController {
 
   async patch(req: Request, res: Response): Promise<void> {
     const { cardOptions, theme, ankiWebAcknowledgedAt } = req.body;
-    if (!validatePrefsBody({ cardOptions, theme, ankiWebAcknowledgedAt }, res)) return;
+    if (!validatePrefsBody({ cardOptions, theme, ankiWebAcknowledgedAt }, res))
+      return;
     const userId = res.locals.owner as number;
     const prefs = await this.patchUseCase.execute({
       userId,
@@ -70,7 +78,8 @@ export class UserPreferencesController {
 
   async migrate(req: Request, res: Response): Promise<void> {
     const { cardOptions, theme, ankiWebAcknowledgedAt } = req.body;
-    if (!validatePrefsBody({ cardOptions, theme, ankiWebAcknowledgedAt }, res)) return;
+    if (!validatePrefsBody({ cardOptions, theme, ankiWebAcknowledgedAt }, res))
+      return;
     const userId = res.locals.owner as number;
     const prefs = await this.migrateUseCase.execute({
       userId,

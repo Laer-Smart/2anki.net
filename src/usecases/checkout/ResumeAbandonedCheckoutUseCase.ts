@@ -37,7 +37,10 @@ export class ResumeAbandonedCheckoutUseCase {
     >
   ) {}
 
-  async execute(token: unknown, now: Date = new Date()): Promise<ResumeCheckoutResult> {
+  async execute(
+    token: unknown,
+    now: Date = new Date()
+  ): Promise<ResumeCheckoutResult> {
     if (typeof token !== 'string' || !TOKEN_PATTERN.test(token)) {
       return FALLBACK;
     }

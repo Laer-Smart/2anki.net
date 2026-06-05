@@ -6,6 +6,13 @@ interface Props {
   setErrorMessage: ErrorHandlerType;
 }
 
-export default function AnkiFromMedicalLectureSlides({ setErrorMessage }: Readonly<Props>) {
-  return <LandingPage copy={medicalLectureSlidesCopy} setErrorMessage={setErrorMessage} />;
+export default function AnkiFromMedicalLectureSlides({
+  setErrorMessage,
+}: Readonly<Props>) {
+  return (
+    <LandingPage
+      copy={medicalLectureSlidesCopy}
+      setErrorMessage={setErrorMessage}
+    />
+  );
 }

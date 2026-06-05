@@ -42,10 +42,13 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
     setFileError(message);
   }, []);
 
-  const handlePageSelected = useCallback((pageId: string, pageTitle: string) => {
-    setSelectedPageId(pageId);
-    setSelectedPageTitle(pageTitle);
-  }, []);
+  const handlePageSelected = useCallback(
+    (pageId: string, pageTitle: string) => {
+      setSelectedPageId(pageId);
+      setSelectedPageTitle(pageTitle);
+    },
+    []
+  );
 
   const handleStartImport = useCallback(async () => {
     if (file == null || selectedPageId == null) return;
@@ -97,8 +100,8 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
             Connect to Notion
           </a>
           <p className={styles.connectPrivacy}>
-            2anki only creates pages where you choose. It does not read or change
-            your existing Notion content.
+            2anki only creates pages where you choose. It does not read or
+            change your existing Notion content.
           </p>
         </div>
       </div>
@@ -113,9 +116,11 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
         </div>
         <div className={sharedStyles.notificationSuccess}>
           {job.progress.imported} cards added
-          {selectedPageTitle
-            ? <> to &ldquo;{selectedPageTitle}&rdquo;</>
-            : <> to your &ldquo;2anki Imports&rdquo; page</>}
+          {selectedPageTitle ? (
+            <> to &ldquo;{selectedPageTitle}&rdquo;</>
+          ) : (
+            <> to your &ldquo;2anki Imports&rdquo; page</>
+          )}
         </div>
         <div className={styles.completeActions}>
           {job.notionPageUrl && (
@@ -141,8 +146,13 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
   }
 
   if (isFailed) {
-    const isUpgradeError = job.errorMessage?.includes('Upgrade') || job.errorMessage?.includes('Free plan');
-    const partialProgress = !isUpgradeError && job.progress.total_notes > 0 && job.errorMessage == null;
+    const isUpgradeError =
+      job.errorMessage?.includes('Upgrade') ||
+      job.errorMessage?.includes('Free plan');
+    const partialProgress =
+      !isUpgradeError &&
+      job.progress.total_notes > 0 &&
+      job.errorMessage == null;
     return (
       <div className={sharedStyles.page}>
         <div className={sharedStyles.pageHeader}>
@@ -152,12 +162,16 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
           {isUpgradeError && job.errorMessage}
           {partialProgress &&
             `Imported ${job.progress.imported} of ${job.progress.total_notes} cards before something went wrong. The cards already created are still in your Notion page.`}
-          {!isUpgradeError && !partialProgress &&
+          {!isUpgradeError &&
+            !partialProgress &&
             (job.errorMessage ?? 'Something went wrong.')}
         </div>
         <div className={styles.errorActions}>
           {isUpgradeError ? (
-            <Link to="/pricing" className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}>
+            <Link
+              to="/pricing"
+              className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
+            >
               View plans
             </Link>
           ) : (
@@ -225,7 +239,9 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
         {fileError && <p className={styles.dropZoneError}>{fileError}</p>}
       </div>
 
-      <div className={`${styles.stepCard} ${file == null ? styles.stepCardDisabled : ''}`}>
+      <div
+        className={`${styles.stepCard} ${file == null ? styles.stepCardDisabled : ''}`}
+      >
         <div className={styles.stepCardHeader}>
           <span className={styles.stepNumber}>2</span>
           <p className={styles.stepTitle}>Pick a destination</p>
@@ -242,12 +258,15 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
               Quick import
             </button>
             <p className={styles.quickImportHelp}>
-              Creates a &ldquo;2anki Imports&rdquo; page in your Notion workspace
+              Creates a &ldquo;2anki Imports&rdquo; page in your Notion
+              workspace
             </p>
           </div>
 
           <div className={styles.quickImportDivider}>
-            <span className={styles.quickImportDividerText}>or choose a page</span>
+            <span className={styles.quickImportDividerText}>
+              or choose a page
+            </span>
           </div>
 
           <div className={styles.pagePickerBlock}>
@@ -257,8 +276,8 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
               disabled={file == null || isRunning}
             />
             <p className={styles.pagePickerHelp}>
-              Showing top-level pages shared with 2anki. Missing a page? Check your
-              Notion sharing settings.
+              Showing top-level pages shared with 2anki. Missing a page? Check
+              your Notion sharing settings.
             </p>
             <div className={styles.pagePickerActions}>
               <button

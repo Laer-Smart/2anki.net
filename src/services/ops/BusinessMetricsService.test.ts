@@ -135,11 +135,36 @@ describe('BusinessMetricsService', () => {
         ),
       ],
       invoices: [
-        { id: 'inv_1', status: 'open', attempt_count: 1, created: daysAgoEpoch(1) },
-        { id: 'inv_2', status: 'open', attempt_count: 1, created: daysAgoEpoch(2) },
-        { id: 'inv_3', status: 'open', attempt_count: 1, created: daysAgoEpoch(3) },
-        { id: 'inv_4', status: 'open', attempt_count: 1, created: daysAgoEpoch(6) },
-        { id: 'inv_paid', status: 'paid', attempt_count: 0, created: daysAgoEpoch(1) },
+        {
+          id: 'inv_1',
+          status: 'open',
+          attempt_count: 1,
+          created: daysAgoEpoch(1),
+        },
+        {
+          id: 'inv_2',
+          status: 'open',
+          attempt_count: 1,
+          created: daysAgoEpoch(2),
+        },
+        {
+          id: 'inv_3',
+          status: 'open',
+          attempt_count: 1,
+          created: daysAgoEpoch(3),
+        },
+        {
+          id: 'inv_4',
+          status: 'open',
+          attempt_count: 1,
+          created: daysAgoEpoch(6),
+        },
+        {
+          id: 'inv_paid',
+          status: 'paid',
+          attempt_count: 0,
+          created: daysAgoEpoch(1),
+        },
       ],
     });
 
@@ -321,10 +346,30 @@ describe('BusinessMetricsService', () => {
   it('counts only open invoices with attempts as failed payments', async () => {
     const stripe = buildFakeStripe({
       invoices: [
-        { id: 'inv_open_attempts', status: 'open', attempt_count: 2, created: daysAgoEpoch(1) },
-        { id: 'inv_open_no_attempt', status: 'open', attempt_count: 0, created: daysAgoEpoch(1) },
-        { id: 'inv_paid', status: 'paid', attempt_count: 3, created: daysAgoEpoch(1) },
-        { id: 'inv_void', status: 'void', attempt_count: 1, created: daysAgoEpoch(1) },
+        {
+          id: 'inv_open_attempts',
+          status: 'open',
+          attempt_count: 2,
+          created: daysAgoEpoch(1),
+        },
+        {
+          id: 'inv_open_no_attempt',
+          status: 'open',
+          attempt_count: 0,
+          created: daysAgoEpoch(1),
+        },
+        {
+          id: 'inv_paid',
+          status: 'paid',
+          attempt_count: 3,
+          created: daysAgoEpoch(1),
+        },
+        {
+          id: 'inv_void',
+          status: 'void',
+          attempt_count: 1,
+          created: daysAgoEpoch(1),
+        },
       ],
     });
     const service = new BusinessMetricsService({
@@ -455,10 +500,30 @@ describe('BusinessMetricsService', () => {
     it('failed_payments_weekly bins invoices by ISO week of created', async () => {
       const stripe = buildFakeStripe({
         invoices: [
-          { id: 'i1', status: 'open', attempt_count: 1, created: daysAgoEpoch(1) },
-          { id: 'i2', status: 'open', attempt_count: 2, created: daysAgoEpoch(2) },
-          { id: 'i3', status: 'open', attempt_count: 1, created: daysAgoEpoch(10) },
-          { id: 'i_paid', status: 'paid', attempt_count: 1, created: daysAgoEpoch(2) },
+          {
+            id: 'i1',
+            status: 'open',
+            attempt_count: 1,
+            created: daysAgoEpoch(1),
+          },
+          {
+            id: 'i2',
+            status: 'open',
+            attempt_count: 2,
+            created: daysAgoEpoch(2),
+          },
+          {
+            id: 'i3',
+            status: 'open',
+            attempt_count: 1,
+            created: daysAgoEpoch(10),
+          },
+          {
+            id: 'i_paid',
+            status: 'paid',
+            attempt_count: 1,
+            created: daysAgoEpoch(2),
+          },
         ],
       });
       const service = new BusinessMetricsService({
@@ -476,7 +541,12 @@ describe('BusinessMetricsService', () => {
       const stripe = buildFakeStripe({
         allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
         invoices: [
-          { id: 'i1', status: 'open', attempt_count: 1, created: daysAgoEpoch(1) },
+          {
+            id: 'i1',
+            status: 'open',
+            attempt_count: 1,
+            created: daysAgoEpoch(1),
+          },
         ],
       });
       const service = new BusinessMetricsService({
@@ -490,7 +560,9 @@ describe('BusinessMetricsService', () => {
       expect(stripe.subscriptions.list).toHaveBeenCalledTimes(1);
       expect(stripe.invoices.list).toHaveBeenCalledTimes(1);
       expect(second.mrr_timeseries).toEqual(first.mrr_timeseries);
-      expect(second.failed_payments_weekly).toEqual(first.failed_payments_weekly);
+      expect(second.failed_payments_weekly).toEqual(
+        first.failed_payments_weekly
+      );
     });
   });
 
@@ -499,7 +571,12 @@ describe('BusinessMetricsService', () => {
       const stripe = buildFakeStripe({
         allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
         invoices: [
-          { id: 'inv_1', status: 'open', attempt_count: 1, created: daysAgoEpoch(1) },
+          {
+            id: 'inv_1',
+            status: 'open',
+            attempt_count: 1,
+            created: daysAgoEpoch(1),
+          },
         ],
       });
       const cache = new InMemoryBusinessMetricsCacheRepository();
@@ -564,7 +641,12 @@ describe('BusinessMetricsService', () => {
     it('cold start with subs failing still returns invoice-derived metrics', async () => {
       const stripe = buildFakeStripe({
         invoices: [
-          { id: 'inv_1', status: 'open', attempt_count: 1, created: daysAgoEpoch(1) },
+          {
+            id: 'inv_1',
+            status: 'open',
+            attempt_count: 1,
+            created: daysAgoEpoch(1),
+          },
         ],
       });
       (stripe.subscriptions.list as jest.Mock).mockRejectedValueOnce(
@@ -594,8 +676,14 @@ describe('BusinessMetricsService', () => {
       const inWindow = new Date(NOW_MS - 5 * SECONDS_PER_DAY * 1000);
       const tooOld = new Date(NOW_MS - 100 * SECONDS_PER_DAY * 1000);
 
-      cancellationRepo.insert({ reason: 'Too expensive', created_at: inWindow });
-      cancellationRepo.insert({ reason: 'Too expensive', created_at: inWindow });
+      cancellationRepo.insert({
+        reason: 'Too expensive',
+        created_at: inWindow,
+      });
+      cancellationRepo.insert({
+        reason: 'Too expensive',
+        created_at: inWindow,
+      });
       cancellationRepo.insert({
         reason: "I don't use it enough",
         created_at: inWindow,
@@ -687,10 +775,14 @@ describe('BusinessMetricsService', () => {
       const stripe = buildFakeStripe({});
       const signupCountsRepo = new InMemoryUserSignupCountsRepository();
       signupCountsRepo.setTotalUsers(19389);
-      signupCountsRepo.addSignup(new Date(NOW_MS - 1 * SECONDS_PER_DAY * 1000 + 1000));
+      signupCountsRepo.addSignup(
+        new Date(NOW_MS - 1 * SECONDS_PER_DAY * 1000 + 1000)
+      );
       signupCountsRepo.addSignup(new Date(NOW_MS - 3 * SECONDS_PER_DAY * 1000));
       signupCountsRepo.addSignup(new Date(NOW_MS - 6 * SECONDS_PER_DAY * 1000));
-      signupCountsRepo.addSignup(new Date(NOW_MS - 10 * SECONDS_PER_DAY * 1000));
+      signupCountsRepo.addSignup(
+        new Date(NOW_MS - 10 * SECONDS_PER_DAY * 1000)
+      );
 
       const service = new BusinessMetricsService({
         stripeFactory: () => stripe as never,

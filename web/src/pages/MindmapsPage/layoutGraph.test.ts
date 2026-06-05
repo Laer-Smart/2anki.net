@@ -42,7 +42,9 @@ describe('layoutGraph', () => {
 
   it('disconnected nodes do not share the same x,y as each other', () => {
     const count = 5;
-    const nodes = Array.from({ length: count }, (_, i) => makeNode(`node-${i}`));
+    const nodes = Array.from({ length: count }, (_, i) =>
+      makeNode(`node-${i}`)
+    );
     const result = layoutGraph(nodes, []);
     const positions = result.map((n) => `${n.position.x},${n.position.y}`);
     const unique = new Set(positions);

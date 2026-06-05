@@ -1,8 +1,5 @@
 import { buildImageQuery, fetchImages } from './imageFetchService';
-import {
-  TransformApkgOutput,
-  TransformMediaFile,
-} from './transformService';
+import { TransformApkgOutput, TransformMediaFile } from './transformService';
 import {
   FieldSelection,
   ImageSource,
@@ -34,12 +31,19 @@ async function mapWithConcurrency<T>(
   }
 }
 
-const resolveSourceIndex = (note: ParsedNote, selection: FieldSelection): number =>
-  selection.sourceField ?? note.frontFieldIndex ?? 0;
+const resolveSourceIndex = (
+  note: ParsedNote,
+  selection: FieldSelection
+): number => selection.sourceField ?? note.frontFieldIndex ?? 0;
 
-const resolveTargetIndex = (note: ParsedNote, selection: FieldSelection): number => {
+const resolveTargetIndex = (
+  note: ParsedNote,
+  selection: FieldSelection
+): number => {
   if (selection.targetField != null) return selection.targetField;
-  return note.backFieldIndex ?? Math.max(1, Math.min(note.fields.length - 1, 1));
+  return (
+    note.backFieldIndex ?? Math.max(1, Math.min(note.fields.length - 1, 1))
+  );
 };
 
 const writeField = (
@@ -62,8 +66,7 @@ const appendImagesToField = (
   const imgTags = filenames
     .map((filename) => `<img src="${filename}">`)
     .join('<br>');
-  const updated =
-    existing.length > 0 ? `${existing}<br>${imgTags}` : imgTags;
+  const updated = existing.length > 0 ? `${existing}<br>${imgTags}` : imgTags;
   return {
     guid: note.guid,
     modelKind: note.modelKind,
@@ -130,11 +133,7 @@ export async function transformApkgWithImages(
           media.push({ filename: hit.filename, bytes: hit.bytes });
         }
       }
-      results[index] = appendImagesToField(
-        note,
-        filenamesForNote,
-        targetIndex
-      );
+      results[index] = appendImagesToField(note, filenamesForNote, targetIndex);
       imagesFound += hits.length;
     } catch (err) {
       results[index] = passthrough(note);

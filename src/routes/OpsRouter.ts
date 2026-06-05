@@ -246,8 +246,10 @@ const OpsRouter = () => {
    *       404:
    *         description: Not the ops owner
    */
-  router.post('/api/ops/send-inactivity-warnings', RequireOpsAccess, (req, res) =>
-    controller.sendInactivityWarnings(req, res)
+  router.post(
+    '/api/ops/send-inactivity-warnings',
+    RequireOpsAccess,
+    (req, res) => controller.sendInactivityWarnings(req, res)
   );
 
   /**
@@ -414,8 +416,10 @@ const OpsRouter = () => {
    *       404:
    *         description: Not the ops owner
    */
-  router.post('/api/ops/sync-stripe-subscriptions', RequireOpsAccess, (req, res) =>
-    controller.syncStripeSubscriptions(req, res)
+  router.post(
+    '/api/ops/sync-stripe-subscriptions',
+    RequireOpsAccess,
+    (req, res) => controller.syncStripeSubscriptions(req, res)
   );
 
   /**

@@ -18,12 +18,16 @@ function imageBlock(type: string, extra: object): ImageBlockObjectResponse {
 
 describe('getImageUrl', () => {
   test('returns url for external image', () => {
-    const block = imageBlock('external', { external: { url: 'https://example.com/img.png' } });
+    const block = imageBlock('external', {
+      external: { url: 'https://example.com/img.png' },
+    });
     expect(getImageUrl(block)).toBe('https://example.com/img.png');
   });
 
   test('returns url for hosted file image', () => {
-    const block = imageBlock('file', { file: { url: 'https://s3.example.com/img.png', expiry_time: '' } });
+    const block = imageBlock('file', {
+      file: { url: 'https://s3.example.com/img.png', expiry_time: '' },
+    });
     expect(getImageUrl(block)).toBe('https://s3.example.com/img.png');
   });
 

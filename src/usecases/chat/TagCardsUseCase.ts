@@ -1,7 +1,10 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import { logClaudeUsage } from '../../lib/claude/logClaudeUsage';
 import type { IChatMessagesRepository } from '../../data_layer/ChatMessagesRepository';
-import { rewriteAssistantContentWithTaggedCards, extractCards } from './ChatUseCase';
+import {
+  rewriteAssistantContentWithTaggedCards,
+  extractCards,
+} from './ChatUseCase';
 
 const TAGGING_MODEL = 'claude-haiku-4-5-20251001';
 const MAX_TOKENS = 1024;
@@ -55,10 +58,16 @@ function normalizeTagList(raw: unknown): string[] {
   return out;
 }
 
-export function parseTagsResponse(text: string, expectedLength: number): string[][] {
+export function parseTagsResponse(
+  text: string,
+  expectedLength: number
+): string[][] {
   const trimmed = text.trim();
   const stripped = trimmed.startsWith('```')
-    ? trimmed.replace(/^```[a-zA-Z]*\s*/, '').replace(/```$/, '').trim()
+    ? trimmed
+        .replace(/^```[a-zA-Z]*\s*/, '')
+        .replace(/```$/, '')
+        .trim()
     : trimmed;
   let parsed: unknown;
   try {

@@ -53,6 +53,8 @@ describe('resolveErrorGroup / reopenErrorGroup', () => {
       statusText: 'Internal Server Error',
     });
 
-    await expect(resolveErrorGroup(HASH)).rejects.toThrow('500 Internal Server Error');
+    await expect(resolveErrorGroup(HASH)).rejects.toThrow(
+      '500 Internal Server Error'
+    );
   });
 });

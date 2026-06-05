@@ -4,11 +4,13 @@ import JobRepository from '../../data_layer/JobRepository';
 describe('CheckJobLimitUseCase', () => {
   it('counts only active jobs toward the limit', async () => {
     const jobRepository = {
-      getJobsByOwner: jest.fn().mockResolvedValue([
-        { status: 'started' },
-        { status: 'done' },
-        { status: 'failed' },
-      ]),
+      getJobsByOwner: jest
+        .fn()
+        .mockResolvedValue([
+          { status: 'started' },
+          { status: 'done' },
+          { status: 'failed' },
+        ]),
     } as unknown as JobRepository;
 
     const useCase = new CheckJobLimitUseCase(jobRepository);
@@ -19,10 +21,9 @@ describe('CheckJobLimitUseCase', () => {
 
   it('blocks when active jobs exceed the limit', async () => {
     const jobRepository = {
-      getJobsByOwner: jest.fn().mockResolvedValue([
-        { status: 'started' },
-        { status: 'step1' },
-      ]),
+      getJobsByOwner: jest
+        .fn()
+        .mockResolvedValue([{ status: 'started' }, { status: 'step1' }]),
     } as unknown as JobRepository;
 
     const useCase = new CheckJobLimitUseCase(jobRepository);
@@ -33,12 +34,14 @@ describe('CheckJobLimitUseCase', () => {
 
   it('ignores all terminal statuses', async () => {
     const jobRepository = {
-      getJobsByOwner: jest.fn().mockResolvedValue([
-        { status: 'done' },
-        { status: 'failed' },
-        { status: 'cancelled' },
-        { status: 'interrupted' },
-      ]),
+      getJobsByOwner: jest
+        .fn()
+        .mockResolvedValue([
+          { status: 'done' },
+          { status: 'failed' },
+          { status: 'cancelled' },
+          { status: 'interrupted' },
+        ]),
     } as unknown as JobRepository;
 
     const useCase = new CheckJobLimitUseCase(jobRepository);

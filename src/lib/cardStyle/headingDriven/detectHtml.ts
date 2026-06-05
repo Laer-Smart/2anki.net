@@ -10,7 +10,10 @@ function headingLevel(tagName: string): Heading['level'] {
   return 1;
 }
 
-function collectBodyUntilNextHeading($: cheerio.CheerioAPI, headingEl: AnyNode): string {
+function collectBodyUntilNextHeading(
+  $: cheerio.CheerioAPI,
+  headingEl: AnyNode
+): string {
   const parts: string[] = [];
   let sibling = $(headingEl).next();
   while (sibling.length > 0 && !sibling.is(HEADING_SELECTOR)) {

@@ -15,8 +15,8 @@ describe('ListSearchResults Hotjar suppression', () => {
       />
     );
 
-    expect(screen.getByText('No pages found in “Pristine’s Notion”')).toHaveAttribute(
-      'data-hj-suppress'
-    );
+    expect(
+      screen.getByText('No pages found in “Pristine’s Notion”')
+    ).toHaveAttribute('data-hj-suppress');
   });
 });

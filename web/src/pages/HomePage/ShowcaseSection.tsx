@@ -4,7 +4,10 @@ import { ShowcaseBlock } from '../../lib/backend/getShowcase';
 import { CardFrame } from '../PreviewApkgPage/CardFrame';
 import styles from './ShowcaseSection.module.css';
 
-function NotionBlock({ block, defaultOpen }: Readonly<{ block: ShowcaseBlock; defaultOpen?: boolean }>) {
+function NotionBlock({
+  block,
+  defaultOpen,
+}: Readonly<{ block: ShowcaseBlock; defaultOpen?: boolean }>) {
   if (block.canExpand && block.summaryHtml) {
     return (
       <details className={styles.toggle} open={defaultOpen}>

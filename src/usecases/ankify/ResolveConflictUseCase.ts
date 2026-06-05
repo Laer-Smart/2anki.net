@@ -14,9 +14,7 @@ export class ConflictNotFoundError extends Error {
   }
 }
 
-export type NotionPageUpdateClientFactory = (
-  token: string
-) => {
+export type NotionPageUpdateClientFactory = (token: string) => {
   updateBlockContent(
     blockId: string,
     payload: { front: string; back: string }
@@ -63,12 +61,14 @@ export class ResolveConflictUseCase {
       client.anki_connect_api_key
     );
 
-    const notionSnapshot = conflict.notion_snapshot as
-      | { front?: string; back?: string }
-      | null;
-    const ankiSnapshot = conflict.anki_snapshot as
-      | { front?: string; back?: string }
-      | null;
+    const notionSnapshot = conflict.notion_snapshot as {
+      front?: string;
+      back?: string;
+    } | null;
+    const ankiSnapshot = conflict.anki_snapshot as {
+      front?: string;
+      back?: string;
+    } | null;
 
     if (input.resolution === 'keep_notion') {
       await ac.updateNoteFields(conflict.anki_note_id, {
@@ -115,4 +115,3 @@ export class ResolveConflictUseCase {
       .catch(() => undefined);
   }
 }
-

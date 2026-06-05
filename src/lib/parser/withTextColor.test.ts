@@ -19,7 +19,9 @@ describe('withTextColor', () => {
   });
 
   it('rejects a CSS-injection payload and emits no color rule', () => {
-    expect(withTextColor(baseStyle, 'red} body { display:none')).toBe(baseStyle);
+    expect(withTextColor(baseStyle, 'red} body { display:none')).toBe(
+      baseStyle
+    );
   });
 
   it('rejects an arbitrary hex outside the swatch set', () => {

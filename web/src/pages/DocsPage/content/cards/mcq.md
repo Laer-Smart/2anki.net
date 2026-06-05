@@ -23,6 +23,7 @@ The shape, written in Notion's markdown shortcuts:
 
 ```markdown
 > A 65-year-old man presents with crushing chest pain radiating to the jaw.
+
     - [x]  Acute MI
     - [ ]  Stable angina
     - [ ]  GERD
@@ -42,6 +43,7 @@ The shape:
 
 ```markdown
 > Which antibiotic class inhibits cell wall synthesis by blocking transpeptidase?
+
     - Fluoroquinolones
     - **Beta-lactams**
     - Macrolides
@@ -59,6 +61,7 @@ Anything inside the toggle that isn't a to-do or a bullet becomes the explanatio
 
 ```markdown
 > Which finding is most specific for PE on ECG?
+
     - [x]  S1Q3T3 pattern
     - [ ]  ST elevation in V1–V4
     - [ ]  Left bundle branch block
@@ -73,13 +76,13 @@ It renders on the card back under an **Explanation** heading.
 
 If the parser can't determine a single correct answer, it creates a standard toggle card instead (no MCQ behaviour, no error). These count toward the `{n} skipped, no answer marked` figure shown next to the badge after conversion.
 
-| Situation | Result |
-|-----------|--------|
+| Situation                                  | Result     |
+| ------------------------------------------ | ---------- |
 | Zero checkboxes checked, zero items bolded | Basic card |
-| Two or more checkboxes checked | Basic card |
-| Two or more items fully bolded | Basic card |
-| Only one option listed | Basic card |
-| Mixed to-do + bullets in the same toggle | Basic card |
+| Two or more checkboxes checked             | Basic card |
+| Two or more items fully bolded             | Basic card |
+| Only one option listed                     | Basic card |
+| Mixed to-do + bullets in the same toggle   | Basic card |
 
 **Fix:** in Notion, open the toggle, check the correct option (or bold it), export again, and re-upload.
 

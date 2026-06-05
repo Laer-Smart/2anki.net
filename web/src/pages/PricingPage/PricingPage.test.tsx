@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -53,7 +59,10 @@ type AnalyticsGlobals = {
   gtag?: ReturnType<typeof vi.fn>;
 };
 
-const renderAt = (path: string, props: Partial<Parameters<typeof PricingPage>[0]> = {}) => {
+const renderAt = (
+  path: string,
+  props: Partial<Parameters<typeof PricingPage>[0]> = {}
+) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -77,7 +86,9 @@ describe('PricingPage Unlimited benefits', () => {
   it('features the Day Pass with the Most popular badge', () => {
     renderAt('/pricing');
     expect(screen.getByText('Most popular')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Get Day Pass' })
+    ).toBeInTheDocument();
   });
 });
 
@@ -149,7 +160,9 @@ describe('PricingPage layout', () => {
     expect(
       screen.queryByText(/no account needed to start/)
     ).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Get Day Pass' })
+    ).toBeInTheDocument();
   });
 
   it('shows the risk-reversal reassurance strip', () => {
@@ -164,8 +177,12 @@ describe('PricingPage layout', () => {
 
   it('shows Day Pass and Week Pass as full cards with visible buttons', () => {
     renderAt('/pricing');
-    expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Get Week Pass' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Get Day Pass' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Get Week Pass' })
+    ).toBeInTheDocument();
   });
 
   it('shows philosophy line', () => {
@@ -177,7 +194,9 @@ describe('PricingPage layout', () => {
 
   it('shows the social-proof line under the hero', () => {
     renderAt('/pricing');
-    expect(screen.getByText('Trusted by 19,000+ learners worldwide')).toBeInTheDocument();
+    expect(
+      screen.getByText('Trusted by 19,000+ learners worldwide')
+    ).toBeInTheDocument();
   });
 
   it('renders the feature overview grid', () => {
@@ -236,12 +255,16 @@ describe('PricingPage paywall telemetry', () => {
 describe('PricingPage Auto Sync card', () => {
   it('shows Subscribe button for logged-in free user', () => {
     renderAt('/pricing', { isLoggedIn: true });
-    expect(screen.getByRole('button', { name: 'Get Auto Sync' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Get Auto Sync' })
+    ).toBeInTheDocument();
   });
 
   it('does not feature Auto Sync with the New — built for Notion badge', () => {
     renderAt('/pricing');
-    expect(screen.queryByText('New — built for Notion')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('New — built for Notion')
+    ).not.toBeInTheDocument();
   });
 
   it('redirects to login when logged-out user clicks Subscribe', () => {
@@ -263,17 +286,23 @@ describe('PricingPage Auto Sync card', () => {
 
   it('shows waitlist caption for waitlisted user', () => {
     renderAt('/pricing', { isLoggedIn: true, hostedAnkiRequested: true });
-    expect(screen.getByText('Waitlist is open — subscribe anytime.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Waitlist is open — subscribe anytime.')
+    ).toBeInTheDocument();
   });
 
   it('shows Included in Lifetime plan caption for patreon user and hides price', () => {
     renderAt('/pricing', { isLoggedIn: true, patreon: true });
-    expect(screen.getByText('Included in your Lifetime plan')).toBeInTheDocument();
+    expect(
+      screen.getByText('Included in your Lifetime plan')
+    ).toBeInTheDocument();
   });
 
   it('shows Join the waitlist when cap is reached', () => {
     renderAt('/pricing', { isLoggedIn: true, autoSyncCapReached: true });
-    expect(screen.getByRole('button', { name: 'Join the waitlist' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Join the waitlist' })
+    ).toBeInTheDocument();
   });
 
   it('shows the capacity caption when cap is reached', () => {
@@ -296,14 +325,18 @@ describe('PricingPage Auto Sync card', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("Couldn't start checkout. Try again, or email support@2anki.net.")
+        screen.getByText(
+          "Couldn't start checkout. Try again, or email support@2anki.net."
+        )
       ).toBeInTheDocument();
     });
     expect(globalThis.location.href).toBe(originalHref);
   });
 
   it('redirects to /ankify/setup when the user is already subscribed', async () => {
-    mockStartAutoSyncCheckout.mockResolvedValue({ status: 'already_subscribed' });
+    mockStartAutoSyncCheckout.mockResolvedValue({
+      status: 'already_subscribed',
+    });
     Object.defineProperty(globalThis, 'location', {
       writable: true,
       value: { href: '' },
@@ -325,7 +358,9 @@ describe('PricingPage Auto Sync card', () => {
   });
 
   it('calls startAutoSyncCheckout and redirects on url response', async () => {
-    mockStartAutoSyncCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/session' });
+    mockStartAutoSyncCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.com/session',
+    });
     Object.defineProperty(globalThis, 'location', {
       writable: true,
       value: { href: '' },
@@ -336,7 +371,9 @@ describe('PricingPage Auto Sync card', () => {
 
     await waitFor(() => {
       expect(mockStartAutoSyncCheckout).toHaveBeenCalled();
-      expect(globalThis.location.href).toBe('https://checkout.stripe.com/session');
+      expect(globalThis.location.href).toBe(
+        'https://checkout.stripe.com/session'
+      );
     });
   });
 
@@ -351,7 +388,9 @@ describe('PricingPage Auto Sync card', () => {
 describe('PricingPage pricing honesty', () => {
   it('does not mention Anki desktop in browser anywhere on the page', () => {
     renderAt('/pricing');
-    expect(screen.queryByText(/anki desktop in your browser/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/anki desktop in your browser/i)
+    ).not.toBeInTheDocument();
   });
 
   it('shows the accurate Anki → Notion note caps (1,000 free / 5,000 paid)', () => {
@@ -376,15 +415,23 @@ describe('PricingPage internal event tracking', () => {
 
     renderAt('/pricing');
 
-    expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'pricing_page', variant: 'passes-first' });
+    expect(trackMock).toHaveBeenCalledWith('paywall_shown', {
+      surface: 'pricing_page',
+      variant: 'passes-first',
+    });
   });
 
   it('tracks paywall_upgrade_clicked with plan=auto_sync when Subscribe is clicked', async () => {
     const { track } = await import('../../lib/analytics/track');
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
-    mockStartAutoSyncCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/session' });
-    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
+    mockStartAutoSyncCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.com/session',
+    });
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
 
     renderAt('/pricing', { isLoggedIn: true });
     fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
@@ -402,8 +449,13 @@ describe('PricingPage internal event tracking', () => {
     const { track } = await import('../../lib/analytics/track');
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
-    mockStartPassCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/day' });
-    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
+    mockStartPassCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.com/day',
+    });
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
 
     renderAt('/pricing', { isLoggedIn: true });
     fireEvent.click(screen.getByRole('button', { name: 'Get Day Pass' }));
@@ -421,8 +473,13 @@ describe('PricingPage internal event tracking', () => {
     const { track } = await import('../../lib/analytics/track');
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
-    mockStartPassCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/week' });
-    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
+    mockStartPassCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.com/week',
+    });
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
 
     renderAt('/pricing', { isLoggedIn: true });
     fireEvent.click(screen.getByRole('button', { name: 'Get Week Pass' }));
@@ -440,8 +497,13 @@ describe('PricingPage internal event tracking', () => {
     const { track } = await import('../../lib/analytics/track');
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
-    mockStartUnlimitedCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/unlimited' });
-    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
+    mockStartUnlimitedCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.com/unlimited',
+    });
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
 
     renderAt('/pricing', { isLoggedIn: true });
     fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
@@ -473,9 +535,13 @@ describe('PricingPage pricing_left telemetry', () => {
 
     const { unmount } = renderAt('/pricing');
     vi.advanceTimersByTime(8000);
-    act(() => { unmount(); });
+    act(() => {
+      unmount();
+    });
 
-    expect(trackMock).toHaveBeenCalledWith('pricing_left', { seconds_on_page: 8 });
+    expect(trackMock).toHaveBeenCalledWith('pricing_left', {
+      seconds_on_page: 8,
+    });
   });
 
   it('fires pricing_left with 0 seconds when unmounted immediately', async () => {
@@ -484,15 +550,24 @@ describe('PricingPage pricing_left telemetry', () => {
     trackMock.mockClear();
 
     const { unmount } = renderAt('/pricing');
-    act(() => { unmount(); });
+    act(() => {
+      unmount();
+    });
 
-    expect(trackMock).toHaveBeenCalledWith('pricing_left', { seconds_on_page: 0 });
+    expect(trackMock).toHaveBeenCalledWith('pricing_left', {
+      seconds_on_page: 0,
+    });
   });
 });
 
 describe('PricingPage quota_remaining in paywall_shown', () => {
   it('includes quota_remaining when card usage is available', async () => {
-    mockUseCardUsage.mockReturnValue({ cards_used: 60, cards_limit: 100, unlimited: false, loading: false });
+    mockUseCardUsage.mockReturnValue({
+      cards_used: 60,
+      cards_limit: 100,
+      unlimited: false,
+      loading: false,
+    });
     const { track } = await import('../../lib/analytics/track');
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
@@ -514,14 +589,19 @@ describe('PricingPage quota_remaining in paywall_shown', () => {
 
     renderAt('/pricing');
 
-    expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'pricing_page', variant: 'passes-first' });
+    expect(trackMock).toHaveBeenCalledWith('paywall_shown', {
+      surface: 'pricing_page',
+      variant: 'passes-first',
+    });
   });
 });
 
 describe('PricingPage Unlimited billing toggle', () => {
   it('does not render the billing toggle when yearlyAvailable is false', () => {
     renderAt('/pricing', { unlimitedYearlyAvailable: false });
-    expect(screen.queryByRole('radiogroup', { name: 'Billing cycle' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('radiogroup', { name: 'Billing cycle' })
+    ).not.toBeInTheDocument();
   });
 
   it('renders Monthly and Yearly options when yearlyAvailable is true', () => {
@@ -548,32 +628,53 @@ describe('PricingPage Unlimited billing toggle', () => {
   });
 
   it('calls startUnlimitedCheckout with month when Monthly is selected', async () => {
-    mockStartUnlimitedCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/month' });
-    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
+    mockStartUnlimitedCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.com/month',
+    });
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
 
     renderAt('/pricing', { isLoggedIn: true, unlimitedYearlyAvailable: true });
     fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {
-      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('month', 'passes-first', 'pricing_page');
+      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith(
+        'month',
+        'passes-first',
+        'pricing_page'
+      );
     });
   });
 
   it('calls startUnlimitedCheckout with year when Yearly is selected', async () => {
-    mockStartUnlimitedCheckout.mockResolvedValue({ url: 'https://checkout.stripe.com/year' });
-    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
+    mockStartUnlimitedCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.com/year',
+    });
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
 
     renderAt('/pricing', { isLoggedIn: true, unlimitedYearlyAvailable: true });
     fireEvent.click(screen.getByRole('radio', { name: 'Yearly' }));
     fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {
-      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith('year', 'passes-first', 'pricing_page');
+      expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith(
+        'year',
+        'passes-first',
+        'pricing_page'
+      );
     });
   });
 
   it('redirects to login when logged-out user clicks Upgrade', () => {
-    Object.defineProperty(globalThis, 'location', { writable: true, value: { href: '' } });
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
     renderAt('/pricing', { isLoggedIn: false, unlimitedYearlyAvailable: true });
     fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');

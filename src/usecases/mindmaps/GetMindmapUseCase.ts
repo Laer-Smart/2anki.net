@@ -26,16 +26,31 @@ async function resolveImage(
     return { ...image, missing: true, url: null };
   }
   if (isLegacyUrl(url)) {
-    return { url: null, width: image.width, height: image.height, missing: true };
+    return {
+      url: null,
+      width: image.width,
+      height: image.height,
+      missing: true,
+    };
   }
   if (isS3Key(url)) {
     const expectedPrefix = `${S3_KEY_PREFIX}${userId}/${mapId}/`;
     if (!url.startsWith(expectedPrefix)) {
-      return { url: null, width: image.width, height: image.height, missing: true };
+      return {
+        url: null,
+        width: image.width,
+        height: image.height,
+        missing: true,
+      };
     }
     const presignedUrl = await storage.getPresignedUrl(url).catch(() => null);
     if (presignedUrl == null) {
-      return { url: null, width: image.width, height: image.height, missing: true };
+      return {
+        url: null,
+        width: image.width,
+        height: image.height,
+        missing: true,
+      };
     }
     return { ...image, url: presignedUrl };
   }
@@ -56,7 +71,12 @@ export class GetMindmapUseCase {
     const resolvedNodes = await Promise.all(
       data.nodes.map(async (node) => {
         if (node.image == null) return node;
-        const resolvedImage = await resolveImage(node.image, this.storage, userId, id);
+        const resolvedImage = await resolveImage(
+          node.image,
+          this.storage,
+          userId,
+          id
+        );
         return { ...node, image: resolvedImage };
       })
     );

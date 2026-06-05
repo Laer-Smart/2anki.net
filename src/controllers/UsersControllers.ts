@@ -122,8 +122,13 @@ class UsersController {
 
       const isMatch = this.authService.comparePassword(password, user.password);
       if (!isMatch) {
-        if (typeof user.password === 'string' && !user.password.startsWith('$2b$')) {
-          return res.status(401).json({ message: 'Wrong email or password.', hint: 'google' });
+        if (
+          typeof user.password === 'string' &&
+          !user.password.startsWith('$2b$')
+        ) {
+          return res
+            .status(401)
+            .json({ message: 'Wrong email or password.', hint: 'google' });
         }
         return res.status(401).json({ message: 'Wrong email or password.' });
       }
@@ -150,10 +155,7 @@ class UsersController {
     res: express.Response,
     next: express.NextFunction
   ) {
-    if (
-      !req.body ||
-      !this.isValidUser(req.body.password, req.body.email)
-    ) {
+    if (!req.body || !this.isValidUser(req.body.password, req.body.email)) {
       res.status(400).json({
         message: 'Invalid user data. Required email and password!',
       });
@@ -275,18 +277,25 @@ class UsersController {
     // featureFlags.kiUI = user?.patreon || res.locals.subscriber;
 
     const autoSyncProductId = process.env.AUTO_SYNC_PRODUCT_ID ?? '';
-    const maxSubscribers = Number.parseInt(process.env.HOSTED_ANKI_MAX_SUBSCRIBERS ?? '', 10) || 50;
-    const autoSyncActiveCount = autoSyncProductId === ''
-      ? 0
-      : await SubscriptionService.countActiveByProductId(autoSyncProductId);
+    const maxSubscribers =
+      Number.parseInt(process.env.HOSTED_ANKI_MAX_SUBSCRIBERS ?? '', 10) || 50;
+    const autoSyncActiveCount =
+      autoSyncProductId === ''
+        ? 0
+        : await SubscriptionService.countActiveByProductId(autoSyncProductId);
     const autoSyncCapReached = autoSyncActiveCount >= maxSubscribers;
 
     const userSubs = user?.email
       ? await SubscriptionService.getUserActiveSubscriptions(user.email)
       : [];
-    const autoSyncActive = autoSyncProductId !== '' && userSubs.some(
-      (s) => s.active && (s as { stripe_product_id?: string | null }).stripe_product_id === autoSyncProductId
-    );
+    const autoSyncActive =
+      autoSyncProductId !== '' &&
+      userSubs.some(
+        (s) =>
+          s.active &&
+          (s as { stripe_product_id?: string | null }).stripe_product_id ===
+            autoSyncProductId
+      );
 
     let freePrintAvailable: boolean | null = null;
     if (user?.owner != null) {
@@ -393,7 +402,11 @@ class UsersController {
       }
 
       try {
-        await SubscriptionService.cancelUserSubscriptions(user.email, 'immediate', true);
+        await SubscriptionService.cancelUserSubscriptions(
+          user.email,
+          'immediate',
+          true
+        );
       } catch (cancelError) {
         console.error(
           'Subscription cancellation failed during account deletion:',
@@ -415,16 +428,20 @@ class UsersController {
   async #revokeAppleTokenForOwner(userId: UsersId) {
     try {
       const oauthIdentitiesRepo = new OauthIdentitiesRepository(this.db);
-      const refreshToken = await oauthIdentitiesRepo.findRefreshTokenByUserAndProvider(
-        userId,
-        'apple'
-      );
+      const refreshToken =
+        await oauthIdentitiesRepo.findRefreshTokenByUserAndProvider(
+          userId,
+          'apple'
+        );
       if (refreshToken == null) {
         return;
       }
       await this.authService.revokeAppleToken(refreshToken);
     } catch (revokeError) {
-      console.error('Apple token revocation failed during account deletion:', revokeError);
+      console.error(
+        'Apple token revocation failed during account deletion:',
+        revokeError
+      );
     }
   }
 
@@ -434,7 +451,8 @@ class UsersController {
       return res.status(401).json({ message: 'Authentication required' });
     }
 
-    const requestedMode = req.body?.mode === 'immediate' ? 'immediate' : 'period_end';
+    const requestedMode =
+      req.body?.mode === 'immediate' ? 'immediate' : 'period_end';
 
     try {
       const user = await this.userService.getUserById(owner);
@@ -596,7 +614,11 @@ class UsersController {
     console.debug('Login with google');
     const { code } = req.query;
     if (!code) {
-      await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_cancelled' });
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_google',
+        code: 'oauth_cancelled',
+      });
       return res.redirect('/login?error=google_signin_failed');
     }
 
@@ -605,14 +627,24 @@ class UsersController {
     if (loginRequest) {
       const { email, name } = loginRequest;
       if (email == null) {
-        await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_token_exchange_failed' });
+        await this.recordError?.execute({
+          userId: null,
+          surface: 'oauth_google',
+          code: 'oauth_token_exchange_failed',
+        });
         return res.redirect('/login?error=google_signin_failed');
       }
       let user = await this.userService.getUserFrom(email);
       const isNewUser = !user;
       if (!user) {
-        const hashedPassword = this.authService.getHashPassword(getRandomUUID());
-        await this.userService.register(name ?? email, hashedPassword, email, 'google');
+        const hashedPassword =
+          this.authService.getHashPassword(getRandomUUID());
+        await this.userService.register(
+          name ?? email,
+          hashedPassword,
+          email,
+          'google'
+        );
         user = await this.userService.getUserFrom(email);
       }
       if (isNewUser && user) {
@@ -631,7 +663,11 @@ class UsersController {
 
       if (!user) {
         console.info('Failed to create user');
-        await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_user_creation_failed' });
+        await this.recordError?.execute({
+          userId: null,
+          surface: 'oauth_google',
+          code: 'oauth_user_creation_failed',
+        });
         return res
           .status(400)
           .send('Unknown error. Please try again or register a new account.');
@@ -651,7 +687,11 @@ class UsersController {
       res.cookie('token', token, sessionCookieOptions());
       res.status(200).redirect(await this.landingForUser(req, user.id));
     } else {
-      await this.recordError?.execute({ userId: null, surface: 'oauth_google', code: 'oauth_token_exchange_failed' });
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_google',
+        code: 'oauth_token_exchange_failed',
+      });
       res.redirect('/login?error=google_signin_failed');
     }
   }
@@ -660,13 +700,23 @@ class UsersController {
     console.debug('Login with microsoft');
     const { code } = req.query;
     if (!code) {
-      await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_cancelled' });
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_microsoft',
+        code: 'oauth_cancelled',
+      });
       return res.redirect('/login?error=microsoft_signin_failed');
     }
 
-    const loginRequest = await this.authService.loginWithMicrosoft(code as string);
+    const loginRequest = await this.authService.loginWithMicrosoft(
+      code as string
+    );
     if (!loginRequest) {
-      await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_token_exchange_failed' });
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_microsoft',
+        code: 'oauth_token_exchange_failed',
+      });
       return res.redirect('/login?error=microsoft_signin_failed');
     }
 
@@ -684,20 +734,38 @@ class UsersController {
 
     if (!user) {
       if (!email) {
-        await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_email_missing' });
+        await this.recordError?.execute({
+          userId: null,
+          surface: 'oauth_microsoft',
+          code: 'oauth_email_missing',
+        });
         return res.redirect('/login?error=microsoft_signin_failed');
       }
       if (!emailVerified) {
-        await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_email_not_verified' });
+        await this.recordError?.execute({
+          userId: null,
+          surface: 'oauth_microsoft',
+          code: 'oauth_email_not_verified',
+        });
         return res.redirect('/login?error=microsoft_signin_failed');
       }
       const existingByEmail = await this.userService.getUserFrom(email);
       if (existingByEmail) {
-        await oauthIdentitiesRepo.link('microsoft', subject, existingByEmail.id);
+        await oauthIdentitiesRepo.link(
+          'microsoft',
+          subject,
+          existingByEmail.id
+        );
         user = existingByEmail;
       } else {
-        const hashedPassword = this.authService.getHashPassword(getRandomUUID());
-        await this.userService.register(name ?? email, hashedPassword, email, 'microsoft');
+        const hashedPassword =
+          this.authService.getHashPassword(getRandomUUID());
+        await this.userService.register(
+          name ?? email,
+          hashedPassword,
+          email,
+          'microsoft'
+        );
         user = await this.userService.getUserFrom(email);
         isNewUser = true;
         if (user) {
@@ -708,7 +776,11 @@ class UsersController {
 
     if (!user) {
       console.info('Failed to create user');
-      await this.recordError?.execute({ userId: null, surface: 'oauth_microsoft', code: 'oauth_user_creation_failed' });
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_microsoft',
+        code: 'oauth_user_creation_failed',
+      });
       return res
         .status(400)
         .send('Unknown error. Please try again or register a new account.');
@@ -748,42 +820,74 @@ class UsersController {
     const stateCookie = req.cookies?.apple_login_state as string | undefined;
 
     if (!stateCookie || !state || state !== stateCookie) {
-      await this.recordError?.execute({ userId: null, surface: 'oauth_apple', code: 'oauth_state_mismatch' });
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_apple',
+        code: 'oauth_state_mismatch',
+      });
       return res.redirect('/login');
     }
     res.clearCookie('apple_login_state');
 
     if (!code) {
-      await this.recordError?.execute({ userId: null, surface: 'oauth_apple', code: 'oauth_cancelled' });
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_apple',
+        code: 'oauth_cancelled',
+      });
       return res.redirect('/login');
     }
 
     const loginRequest = await this.authService.loginWithApple(code);
     if (!loginRequest) {
-      await this.recordError?.execute({ userId: null, surface: 'oauth_apple', code: 'oauth_token_exchange_failed' });
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_apple',
+        code: 'oauth_token_exchange_failed',
+      });
       return res.redirect('/login');
     }
 
     const { subject, email, refreshToken } = loginRequest;
     const rawName = this.parseAppleName(req.body);
-    const result = await this.#upsertAppleUser({ subject, email, rawName, refreshToken, req });
+    const result = await this.#upsertAppleUser({
+      subject,
+      email,
+      rawName,
+      refreshToken,
+      req,
+    });
 
     if (result === 'email_missing') {
-      await this.recordError?.execute({ userId: null, surface: 'oauth_apple', code: 'oauth_email_missing' });
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_apple',
+        code: 'oauth_email_missing',
+      });
       return res.redirect('/login');
     }
     if (result === 'user_creation_failed') {
       console.info('Failed to create user');
-      await this.recordError?.execute({ userId: null, surface: 'oauth_apple', code: 'oauth_user_creation_failed' });
-      return res.status(400).send('Unknown error. Please try again or register a new account.');
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_apple',
+        code: 'oauth_user_creation_failed',
+      });
+      return res
+        .status(400)
+        .send('Unknown error. Please try again or register a new account.');
     }
     if (result === 'token_failed') {
       console.info('Failed to create token');
-      return res.status(400).send('Unknown error. Please try again or register a new account.');
+      return res
+        .status(400)
+        .send('Unknown error. Please try again or register a new account.');
     }
 
     res.cookie('token', result.token, sessionCookieOptions());
-    return res.status(200).redirect(await this.landingForUser(req, result.user.id));
+    return res
+      .status(200)
+      .redirect(await this.landingForUser(req, result.user.id));
   }
 
   async loginWithAppleNative(req: express.Request, res: express.Response) {
@@ -797,15 +901,26 @@ class UsersController {
       return res.status(400).json({ error: 'missing_identity_token' });
     }
 
-    const validated = await this.authService.verifyAppleIdentityToken(body.identityToken);
+    const validated = await this.authService.verifyAppleIdentityToken(
+      body.identityToken
+    );
     if (!validated) {
-      await this.recordError?.execute({ userId: null, surface: 'oauth_apple_native', code: 'invalid_identity_token' });
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_apple_native',
+        code: 'invalid_identity_token',
+      });
       return res.status(401).json({ error: 'invalid_identity_token' });
     }
 
     const { subject, email } = validated;
     const rawName = this.parseNativeAppleName(body.fullName);
-    const result = await this.#upsertAppleUser({ subject, email, rawName, req });
+    const result = await this.#upsertAppleUser({
+      subject,
+      email,
+      rawName,
+      req,
+    });
 
     if (result === 'email_missing') {
       return res.status(401).json({ error: 'email_required_for_new_account' });
@@ -840,7 +955,10 @@ class UsersController {
     | 'token_failed'
   > {
     const oauthIdentitiesRepo = new OauthIdentitiesRepository(this.db);
-    const existingIdentity = await oauthIdentitiesRepo.findByProviderAndSubject('apple', subject);
+    const existingIdentity = await oauthIdentitiesRepo.findByProviderAndSubject(
+      'apple',
+      subject
+    );
 
     let user = existingIdentity
       ? await this.userService.getUserById(existingIdentity.user_id.toString())
@@ -848,7 +966,11 @@ class UsersController {
     let isNewUser = false;
 
     if (existingIdentity && refreshToken) {
-      await oauthIdentitiesRepo.updateRefreshToken('apple', subject, refreshToken);
+      await oauthIdentitiesRepo.updateRefreshToken(
+        'apple',
+        subject,
+        refreshToken
+      );
     }
 
     if (!user) {
@@ -857,15 +979,31 @@ class UsersController {
       }
       const existingByEmail = await this.userService.getUserFrom(email);
       if (existingByEmail) {
-        await oauthIdentitiesRepo.link('apple', subject, existingByEmail.id, refreshToken);
+        await oauthIdentitiesRepo.link(
+          'apple',
+          subject,
+          existingByEmail.id,
+          refreshToken
+        );
         user = existingByEmail;
       } else {
-        const hashedPassword = this.authService.getHashPassword(getRandomUUID());
-        await this.userService.register(rawName ?? email, hashedPassword, email, 'apple');
+        const hashedPassword =
+          this.authService.getHashPassword(getRandomUUID());
+        await this.userService.register(
+          rawName ?? email,
+          hashedPassword,
+          email,
+          'apple'
+        );
         user = await this.userService.getUserFrom(email);
         isNewUser = true;
         if (user) {
-          await oauthIdentitiesRepo.link('apple', subject, user.id, refreshToken);
+          await oauthIdentitiesRepo.link(
+            'apple',
+            subject,
+            user.id,
+            refreshToken
+          );
           if (rawName) {
             await new UsersRepository(this.db).updateName(user.id, rawName);
           }
@@ -881,7 +1019,10 @@ class UsersController {
       try {
         const country = extractCountryFromRequest(req);
         if (country != null) {
-          await new UsersRepository(this.db).setSignupCountryIfMissing(user.id, country);
+          await new UsersRepository(this.db).setSignupCountryIfMissing(
+            user.id,
+            country
+          );
         }
       } catch {
         // country capture is best-effort
@@ -901,15 +1042,25 @@ class UsersController {
     return { user, token };
   }
 
-  private parseAppleName(body: Record<string, string | undefined>): string | undefined {
+  private parseAppleName(
+    body: Record<string, string | undefined>
+  ): string | undefined {
     const userField = body.user;
     if (!userField) {
       return undefined;
     }
     try {
-      const parsed = JSON.parse(userField) as { name?: { firstName?: string; lastName?: string } };
-      const first = typeof parsed?.name?.firstName === 'string' ? parsed.name.firstName.trim() : '';
-      const last = typeof parsed?.name?.lastName === 'string' ? parsed.name.lastName.trim() : '';
+      const parsed = JSON.parse(userField) as {
+        name?: { firstName?: string; lastName?: string };
+      };
+      const first =
+        typeof parsed?.name?.firstName === 'string'
+          ? parsed.name.firstName.trim()
+          : '';
+      const last =
+        typeof parsed?.name?.lastName === 'string'
+          ? parsed.name.lastName.trim()
+          : '';
       const full = `${first} ${last}`.trim().slice(0, 200);
       return full.length > 0 ? full : undefined;
     } catch {
@@ -923,8 +1074,10 @@ class UsersController {
     if (!fullName) {
       return undefined;
     }
-    const first = typeof fullName.givenName === 'string' ? fullName.givenName.trim() : '';
-    const last = typeof fullName.familyName === 'string' ? fullName.familyName.trim() : '';
+    const first =
+      typeof fullName.givenName === 'string' ? fullName.givenName.trim() : '';
+    const last =
+      typeof fullName.familyName === 'string' ? fullName.familyName.trim() : '';
     const full = `${first} ${last}`.trim().slice(0, 200);
     return full.length > 0 ? full : undefined;
   }
@@ -932,13 +1085,21 @@ class UsersController {
   async loginWithNotion(req: express.Request, res: express.Response) {
     const { code } = req.query;
     if (!code) {
-      await this.recordError?.execute({ userId: null, surface: 'oauth_notion', code: 'oauth_cancelled' });
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_notion',
+        code: 'oauth_cancelled',
+      });
       return res.redirect('/login?error=notion_cancelled');
     }
 
     const loginRequest = await this.authService.loginWithNotion(code as string);
     if (!loginRequest) {
-      await this.recordError?.execute({ userId: null, surface: 'oauth_notion', code: 'oauth_token_exchange_failed' });
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_notion',
+        code: 'oauth_token_exchange_failed',
+      });
       return res.redirect('/login?error=notion_cancelled');
     }
 
@@ -947,7 +1108,12 @@ class UsersController {
     const isNewUser = !user;
     if (!user) {
       const hashedPassword = this.authService.getHashPassword(getRandomUUID());
-      await this.userService.register(name, hashedPassword, email, 'notion_oauth');
+      await this.userService.register(
+        name,
+        hashedPassword,
+        email,
+        'notion_oauth'
+      );
       user = await this.userService.getUserFrom(email);
     }
     if (isNewUser && user) {
@@ -962,14 +1128,22 @@ class UsersController {
 
     if (!user) {
       console.info('Failed to create user from Notion login');
-      await this.recordError?.execute({ userId: null, surface: 'oauth_notion', code: 'oauth_user_creation_failed' });
-      return res.status(400).send('Unknown error. Please try again or register a new account.');
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_notion',
+        code: 'oauth_user_creation_failed',
+      });
+      return res
+        .status(400)
+        .send('Unknown error. Please try again or register a new account.');
     }
 
     const token = await this.authService.newJWTToken(user);
     if (!token) {
       console.info('Failed to create token for Notion login');
-      return res.status(400).send('Unknown error. Please try again or register a new account.');
+      return res
+        .status(400)
+        .send('Unknown error. Please try again or register a new account.');
     }
 
     await this.authService.persistToken(token, user.id.toString());
@@ -990,7 +1164,11 @@ class UsersController {
     const { email, purpose: rawPurpose } = req.body;
     const purpose = rawPurpose ?? 'login';
 
-    if (email == null || typeof email !== 'string' || email.trim().length === 0) {
+    if (
+      email == null ||
+      typeof email !== 'string' ||
+      email.trim().length === 0
+    ) {
       return res.status(400).json({ message: 'Email is required' });
     }
     if (purpose !== 'login' && purpose !== 'password_reset') {
@@ -1070,7 +1248,9 @@ class UsersController {
       }
 
       if (result.purpose === 'password_reset') {
-        const user = await this.userService.getUserById(result.userId.toString());
+        const user = await this.userService.getUserById(
+          result.userId.toString()
+        );
         if (user == null) {
           return res
             .status(400)
@@ -1079,7 +1259,9 @@ class UsersController {
         const resetToken = crypto.randomUUID();
         await this.userService.updateResetToken(user.id.toString(), resetToken);
         await this.userService.markEmailVerified(user.id.toString());
-        return res.status(200).json({ purpose: 'password_reset', reset_token: resetToken });
+        return res
+          .status(200)
+          .json({ purpose: 'password_reset', reset_token: resetToken });
       }
 
       return res
@@ -1103,21 +1285,29 @@ class UsersController {
 
   private hasExplicitRedirect(req: express.Request): boolean {
     const queryRedirect = req.query.redirect?.toString();
-    const bodyRedirect = typeof req.body?.redirect === 'string' ? req.body.redirect : undefined;
-    return (queryRedirect != null && queryRedirect !== '') || (bodyRedirect != null && bodyRedirect !== '');
+    const bodyRedirect =
+      typeof req.body?.redirect === 'string' ? req.body.redirect : undefined;
+    return (
+      (queryRedirect != null && queryRedirect !== '') ||
+      (bodyRedirect != null && bodyRedirect !== '')
+    );
   }
 
-  private async landingForUser(req: express.Request, userId: number): Promise<string> {
+  private async landingForUser(
+    req: express.Request,
+    userId: number
+  ): Promise<string> {
     if (this.hasExplicitRedirect(req)) {
       return getRedirect(req);
     }
-    const notionData = await new NotionRepository(this.db).getNotionData(userId);
+    const notionData = await new NotionRepository(this.db).getNotionData(
+      userId
+    );
     if (notionData != null) {
       return '/notion';
     }
     return '/upload';
   }
-
 }
 
 export default UsersController;

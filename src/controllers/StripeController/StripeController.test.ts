@@ -29,8 +29,13 @@ type StripeMock = {
   checkout: { sessions: { retrieve: jest.Mock } };
 };
 
-const mockedExtractToken = extractTokenFromCookies as jest.MockedFunction<typeof extractTokenFromCookies>;
-const mockedGetActiveSubscriptions = SubscriptionService.getUserActiveSubscriptions as jest.MockedFunction<typeof SubscriptionService.getUserActiveSubscriptions>;
+const mockedExtractToken = extractTokenFromCookies as jest.MockedFunction<
+  typeof extractTokenFromCookies
+>;
+const mockedGetActiveSubscriptions =
+  SubscriptionService.getUserActiveSubscriptions as jest.MockedFunction<
+    typeof SubscriptionService.getUserActiveSubscriptions
+  >;
 
 function buildUser(overrides: Partial<UserWithOwner> = {}): UserWithOwner {
   return {
@@ -65,7 +70,9 @@ function buildUser(overrides: Partial<UserWithOwner> = {}): UserWithOwner {
   };
 }
 
-function buildSubscription(overrides: Partial<Subscriptions> = {}): Subscriptions {
+function buildSubscription(
+  overrides: Partial<Subscriptions> = {}
+): Subscriptions {
   return {
     id: 1 as SubscriptionsId,
     email: 'test@example.com',
@@ -94,7 +101,10 @@ function buildSession(
   };
 }
 
-function mockRequest(query: Record<string, string> = {}, cookies?: string): express.Request {
+function mockRequest(
+  query: Record<string, string> = {},
+  cookies?: string
+): express.Request {
   return {
     get: jest.fn().mockReturnValue(cookies || 'token=abc'),
     query,
@@ -137,7 +147,13 @@ function buildController(): ControllerHarness {
     persistStripeSessionUseCase as unknown as PersistStripeSessionUseCase,
     stripe as unknown as Pick<StripeTypes, 'checkout'>
   );
-  return { controller, authService, usersService, persistStripeSessionUseCase, stripe };
+  return {
+    controller,
+    authService,
+    usersService,
+    persistStripeSessionUseCase,
+    stripe,
+  };
 }
 
 describe('StripeController', () => {
@@ -158,7 +174,9 @@ describe('StripeController', () => {
 
       await h.controller.checkSubscriptionStatus(req, res);
 
-      expect(h.persistStripeSessionUseCase.execute).toHaveBeenCalledWith('cs_test_123');
+      expect(h.persistStripeSessionUseCase.execute).toHaveBeenCalledWith(
+        'cs_test_123'
+      );
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({ hasActiveSubscription: true })
       );
@@ -226,18 +244,21 @@ describe('StripeController', () => {
       h.stripe.checkout.sessions.retrieve.mockResolvedValue(
         buildSession('paypal@email.com')
       );
-      h.usersService.updateSubScriptionEmailUsingPrimaryEmail.mockResolvedValue(1);
+      h.usersService.updateSubScriptionEmailUsingPrimaryEmail.mockResolvedValue(
+        1
+      );
 
       const req = mockRequest({ session_id: 'cs_test_123' });
       const res = mockResponse();
 
       await h.controller.getSuccessfulCheckout(req, res);
 
-      expect(h.persistStripeSessionUseCase.execute).toHaveBeenCalledWith('cs_test_123');
-      expect(h.usersService.updateSubScriptionEmailUsingPrimaryEmail).toHaveBeenCalledWith(
-        'paypal@email.com',
-        'user@2anki.com'
+      expect(h.persistStripeSessionUseCase.execute).toHaveBeenCalledWith(
+        'cs_test_123'
       );
+      expect(
+        h.usersService.updateSubScriptionEmailUsingPrimaryEmail
+      ).toHaveBeenCalledWith('paypal@email.com', 'user@2anki.com');
     });
 
     it('does not link when session email matches the logged-in email', async () => {
@@ -253,7 +274,9 @@ describe('StripeController', () => {
 
       await h.controller.getSuccessfulCheckout(req, res);
 
-      expect(h.usersService.updateSubScriptionEmailUsingPrimaryEmail).not.toHaveBeenCalled();
+      expect(
+        h.usersService.updateSubScriptionEmailUsingPrimaryEmail
+      ).not.toHaveBeenCalled();
     });
 
     it('serves the page without error when no token present', async () => {

@@ -23,7 +23,7 @@ const makeFile = (overrides: Partial<UploadedFile>): UploadedFile =>
     stream: undefined as unknown as NodeJS.ReadableStream,
     key: '',
     ...overrides,
-  } as UploadedFile);
+  }) as UploadedFile;
 
 const findDebugDir = (before: string[]): string | undefined => {
   const entries = fs.readdirSync(path.join(os.tmpdir(), 'debug'));

@@ -52,10 +52,12 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
   const view = query.get('view');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [reattachFilename, setReattachFilename] = useState<string | null>(() => {
-    const stored = globalThis.sessionStorage?.getItem(REATTACH_KEY) ?? null;
-    return stored != null && stored.length > 0 ? stored : null;
-  });
+  const [reattachFilename, setReattachFilename] = useState<string | null>(
+    () => {
+      const stored = globalThis.sessionStorage?.getItem(REATTACH_KEY) ?? null;
+      return stored != null && stored.length > 0 ? stored : null;
+    }
+  );
   const { data: userLocals } = useUserLocals();
   const pageViewTracked = useRef(false);
   const signupTracked = useRef(false);
@@ -167,7 +169,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
               <span className={styles.badgeSuccess}>AI is on</span>
             </button>
             <span className={styles.aiOffBadgeBody}>
-              <span>{' '}Cards are written by Claude.{' '}</span>
+              <span> Cards are written by Claude. </span>
               <Link to="/card-options?returnTo=/upload#pdf-ai">
                 Manage in Settings
               </Link>
@@ -188,7 +190,8 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
             </button>
             <span className={styles.aiOffBadgeBody}>
               <span>
-                {' '}You&apos;ll get rule-based cards from your file&apos;s
+                {' '}
+                You&apos;ll get rule-based cards from your file&apos;s
                 structure. Turn on Claude cards.
               </span>
             </span>
@@ -199,7 +202,8 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
             <span className={styles.badgeWarning}>AI is off</span>
             <span className={styles.aiOffBadgeBody}>
               <span>
-                {' '}You&apos;ll get rule-based cards from your file&apos;s
+                {' '}
+                You&apos;ll get rule-based cards from your file&apos;s
                 structure.{' '}
               </span>
               <Link
@@ -233,16 +237,16 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       <ExploreCard />
       <section className={pageStyles.howItWorks}>
         <h2 className={pageStyles.howItWorksHeading}>How it works</h2>
-        <p className={pageStyles.footnote}>
-          Files are deleted after 2 hours.
-        </p>
+        <p className={pageStyles.footnote}>Files are deleted after 2 hours.</p>
         <div className={pageStyles.steps}>
           <div className={pageStyles.step}>
             <span className={pageStyles.stepNumber}>1</span>
             <div>
               <p className={pageStyles.stepTitle}>Drop or choose a file</p>
               <p className={pageStyles.stepBody}>
-                PDF, Word, Notion export, Markdown, HTML, Excel, CSV, or PowerPoint. In Word docs, headings become card fronts and the body text under each heading becomes the back.
+                PDF, Word, Notion export, Markdown, HTML, Excel, CSV, or
+                PowerPoint. In Word docs, headings become card fronts and the
+                body text under each heading becomes the back.
               </p>
               <p className={pageStyles.stepBody}>
                 Coming from Notion?{' '}
@@ -257,7 +261,8 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
             <div>
               <p className={pageStyles.stepTitle}>Your deck is built</p>
               <p className={pageStyles.stepBody}>
-                Images, code blocks, cloze, and formatting carry over. Usually a few seconds.
+                Images, code blocks, cloze, and formatting carry over. Usually a
+                few seconds.
               </p>
             </div>
           </div>
@@ -266,7 +271,8 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
             <div>
               <p className={pageStyles.stepTitle}>Open in Anki</p>
               <p className={pageStyles.stepBody}>
-                Your .apkg downloads automatically. Import it into Anki or AnkiDroid to start studying.
+                Your .apkg downloads automatically. Import it into Anki or
+                AnkiDroid to start studying.
               </p>
             </div>
           </div>
@@ -274,8 +280,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       </section>
       <section className={pageStyles.contactNudge} aria-label="Contact us">
         <p>
-          Something not working?{' '}
-          <Link to="/contact">Tell us</Link> or email{' '}
+          Something not working? <Link to="/contact">Tell us</Link> or email{' '}
           <a href="mailto:support@2anki.net">support@2anki.net</a>.
         </p>
       </section>

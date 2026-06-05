@@ -111,7 +111,11 @@ describe('Upload file', () => {
       clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
       setReconnectEmailSent: jest.fn().mockResolvedValue(true),
     };
-    const uploadService = new UploadService(repository, {} as JobRepository, buildUsersRepo());
+    const uploadService = new UploadService(
+      repository,
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const notionService = new NotionService(notionRepository);
     const uploadController = new UploadController(uploadService, notionService);
 
@@ -146,7 +150,11 @@ describe('Upload file — multer error handling', () => {
     const multerError = new multer.MulterError('LIMIT_FILE_SIZE');
     (getUploadHandler as jest.Mock).mockImplementation(
       () =>
-        (_req: express.Request, _res: express.Response, cb: (err?: unknown) => void) => {
+        (
+          _req: express.Request,
+          _res: express.Response,
+          cb: (err?: unknown) => void
+        ) => {
           cb(multerError);
         }
     );
@@ -170,13 +178,18 @@ describe('Upload file — multer error handling', () => {
       getNotionData: jest.fn() as INotionRepository['getNotionData'],
       saveNotionToken: jest.fn() as INotionRepository['saveNotionToken'],
       getNotionToken: jest.fn() as INotionRepository['getNotionToken'],
-      deleteBlocksByOwner: jest.fn() as INotionRepository['deleteBlocksByOwner'],
+      deleteBlocksByOwner:
+        jest.fn() as INotionRepository['deleteBlocksByOwner'],
       deleteNotionData: jest.fn() as INotionRepository['deleteNotionData'],
       markTokenInvalid: jest.fn().mockResolvedValue(undefined),
       clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
       setReconnectEmailSent: jest.fn().mockResolvedValue(true),
     };
-    const uploadService = new UploadService(repository, {} as JobRepository, buildUsersRepo());
+    const uploadService = new UploadService(
+      repository,
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const notionService = new NotionService(notionRepository);
     const controller = new UploadController(uploadService, notionService);
 
@@ -224,13 +237,18 @@ describe('UploadController.retryPdfWithCredential rate limit', () => {
       getNotionData: jest.fn() as INotionRepository['getNotionData'],
       saveNotionToken: jest.fn() as INotionRepository['saveNotionToken'],
       getNotionToken: jest.fn() as INotionRepository['getNotionToken'],
-      deleteBlocksByOwner: jest.fn() as INotionRepository['deleteBlocksByOwner'],
+      deleteBlocksByOwner:
+        jest.fn() as INotionRepository['deleteBlocksByOwner'],
       deleteNotionData: jest.fn() as INotionRepository['deleteNotionData'],
       markTokenInvalid: jest.fn().mockResolvedValue(undefined),
       clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
       setReconnectEmailSent: jest.fn().mockResolvedValue(true),
     };
-    const uploadService = new UploadService(repository, {} as JobRepository, buildUsersRepo());
+    const uploadService = new UploadService(
+      repository,
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const notionService = new NotionService(notionRepository);
 
     const blockingLimiter = { check: jest.fn().mockReturnValue(false) };
@@ -249,7 +267,10 @@ describe('UploadController.retryPdfWithCredential rate limit', () => {
     const capturedHeaders: Record<string, string> = {};
 
     const req = {
-      file: { path: '/tmp/does-not-need-to-exist.pdf', originalname: 'foo.pdf' },
+      file: {
+        path: '/tmp/does-not-need-to-exist.pdf',
+        originalname: 'foo.pdf',
+      },
       body: {},
       headers: { 'x-forwarded-for': '10.0.0.1' },
       socket: { remoteAddress: '10.0.0.1' },
@@ -296,13 +317,18 @@ describe('UploadController.retryPdfWithCredential rate limit', () => {
       getNotionData: jest.fn() as INotionRepository['getNotionData'],
       saveNotionToken: jest.fn() as INotionRepository['saveNotionToken'],
       getNotionToken: jest.fn() as INotionRepository['getNotionToken'],
-      deleteBlocksByOwner: jest.fn() as INotionRepository['deleteBlocksByOwner'],
+      deleteBlocksByOwner:
+        jest.fn() as INotionRepository['deleteBlocksByOwner'],
       deleteNotionData: jest.fn() as INotionRepository['deleteNotionData'],
       markTokenInvalid: jest.fn().mockResolvedValue(undefined),
       clearTokenInvalid: jest.fn().mockResolvedValue(undefined),
       setReconnectEmailSent: jest.fn().mockResolvedValue(true),
     };
-    const uploadService = new UploadService(repository, {} as JobRepository, buildUsersRepo());
+    const uploadService = new UploadService(
+      repository,
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const notionService = new NotionService(notionRepository);
 
     const blockingLimiter = { check: jest.fn().mockReturnValue(false) };

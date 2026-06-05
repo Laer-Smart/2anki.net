@@ -47,9 +47,12 @@ export async function extractPdfText(
 
   let result;
   try {
-    result = credential != null
-      ? await pdfParse(buffer, { userPassword: credential } as Parameters<typeof pdfParse>[1])
-      : await pdfParse(buffer);
+    result =
+      credential != null
+        ? await pdfParse(buffer, { userPassword: credential } as Parameters<
+            typeof pdfParse
+          >[1])
+        : await pdfParse(buffer);
   } catch (error) {
     if (isPasswordException(error)) {
       console.info('[extractPdfText] password-protected PDF detected', {
@@ -83,5 +86,11 @@ export async function extractPdfText(
     durationMs: Date.now() - t0,
   });
 
-  return { pages, pageCount, avgCharsPerPage, isDrmLocked, needsCredential: false };
+  return {
+    pages,
+    pageCount,
+    avgCharsPerPage,
+    isDrmLocked,
+    needsCredential: false,
+  };
 }

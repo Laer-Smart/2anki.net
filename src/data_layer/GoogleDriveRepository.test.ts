@@ -60,11 +60,7 @@ describe('GoogleDriveRepository.getByOwner owner guards', () => {
 
   it('returns empty list and skips query when owner is undefined', async () => {
     const { repo, calls } = makeRepo();
-    const result = await repo.getByOwner(
-      undefined as unknown as number,
-      10,
-      0
-    );
+    const result = await repo.getByOwner(undefined as unknown as number, 10, 0);
     expect(result).toEqual([]);
     expect(calls).toEqual([]);
     expect(warn).toHaveBeenCalled();
@@ -79,7 +75,11 @@ describe('GoogleDriveRepository.getByOwner owner guards', () => {
     const orderCall = calls.find((c) => c.method === 'orderByRaw');
 
     expect(whereCall?.args).toEqual([{ owner: 42 }]);
-    expect(andWhereCall?.args).toEqual(['mimeType', '!=', GOOGLE_DRIVE_FOLDER_MIME]);
+    expect(andWhereCall?.args).toEqual([
+      'mimeType',
+      '!=',
+      GOOGLE_DRIVE_FOLDER_MIME,
+    ]);
     expect(orderCall?.args?.[0]).toMatch(/last_converted_at DESC NULLS LAST/);
   });
 });
@@ -126,10 +126,7 @@ describe('GoogleDriveRepository.deleteByIdAndOwner owner guards', () => {
 
   it('returns 0 and skips query when id is null', async () => {
     const { repo, calls } = makeDeleteRepo();
-    const result = await repo.deleteByIdAndOwner(
-      null as unknown as string,
-      42
-    );
+    const result = await repo.deleteByIdAndOwner(null as unknown as string, 42);
     expect(result).toBe(0);
     expect(calls).toEqual([]);
     expect(warn).toHaveBeenCalled();

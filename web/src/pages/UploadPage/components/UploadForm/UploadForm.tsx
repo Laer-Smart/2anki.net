@@ -1,7 +1,10 @@
 import { type SyntheticEvent, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { classifyUploadError, ErrorHandlerType } from '../../../../components/errors/helpers/getErrorMessage';
+import {
+  classifyUploadError,
+  ErrorHandlerType,
+} from '../../../../components/errors/helpers/getErrorMessage';
 import handleRedirect from '../../../../lib/handleRedirect';
 import { getStoredPassToken } from '../../../../lib/anonymousPass';
 import type { UploadErrorBody } from '../../../../types/UploadErrorBody';
@@ -17,15 +20,15 @@ import { useDrag } from './hooks/useDrag';
 import { useUploadFormState } from './hooks/useUploadFormState';
 import { useFileValidation } from './hooks/useFileValidation';
 import { useDropboxChooser, type DropboxFile } from './hooks/useDropboxChooser';
-import {
-  useGooglePicker,
-  type GoogleDriveFile,
-} from './hooks/useGooglePicker';
+import { useGooglePicker, type GoogleDriveFile } from './hooks/useGooglePicker';
 import { UploadSourceChips, type UploadSource } from './UploadSourceChips';
 import { getStaleSourceState } from './helpers/getStaleSourceState';
 import { FeedbackWidget } from '../../../../components/FeedbackWidget/FeedbackWidget';
 import { useUserLocals } from '../../../../lib/hooks/useUserLocals';
-import { useCardUsage, CARD_USAGE_QUERY_KEY } from '../../../../lib/hooks/useCardUsage';
+import {
+  useCardUsage,
+  CARD_USAGE_QUERY_KEY,
+} from '../../../../lib/hooks/useCardUsage';
 import { get2ankiApi } from '../../../../lib/backend/get2ankiApi';
 import { fireAnalyticsEvent } from '../../../../lib/analytics/fireAnalyticsEvent';
 import { track } from '../../../../lib/analytics/track';
@@ -34,14 +37,31 @@ import { UpsellCard } from '../../../../components/UpsellCard';
 import formStyles from './UploadForm.module.css';
 import sharedStyles from '../../../../styles/shared.module.css';
 
-import type { ZoneState, LockedPdfInfo, LimitInfo } from './hooks/useUploadFormState';
+import type {
+  ZoneState,
+  LockedPdfInfo,
+  LimitInfo,
+} from './hooks/useUploadFormState';
 
 interface UploadFormProps {
   setErrorMessage: ErrorHandlerType;
   aiOn?: boolean;
 }
 
-const FORMATS = ['.zip', '.html', '.md', '.pdf', '.epub', 'My Clippings.txt', '.docx', '.xlsx', '.pptx', '.csv', '.opml', '.brainstorms.json'];
+const FORMATS = [
+  '.zip',
+  '.html',
+  '.md',
+  '.pdf',
+  '.epub',
+  'My Clippings.txt',
+  '.docx',
+  '.xlsx',
+  '.pptx',
+  '.csv',
+  '.opml',
+  '.brainstorms.json',
+];
 
 const INVITE_LINK = 'https://2anki.net/';
 
@@ -62,7 +82,9 @@ function isAnonymousLimit(url: URL): boolean {
 }
 
 function getLimitKind(url: URL): 'file_size' | 'card_count' {
-  return url.searchParams.get('kind') === 'card_count' ? 'card_count' : 'file_size';
+  return url.searchParams.get('kind') === 'card_count'
+    ? 'card_count'
+    : 'file_size';
 }
 
 function getLimitDescription(
@@ -70,10 +92,12 @@ function getLimitDescription(
   context: 'anonymous' | 'logged_in'
 ): string {
   if (kind === 'file_size') {
-    if (context === 'anonymous') return 'Create a free account to convert files of any size, or split the file and try again.';
+    if (context === 'anonymous')
+      return 'Create a free account to convert files of any size, or split the file and try again.';
     return 'Split the file, or upgrade to convert files of any size.';
   }
-  if (context === 'anonymous') return 'Create a free account to start converting, or upgrade for no monthly cap.';
+  if (context === 'anonymous')
+    return 'Create a free account to start converting, or upgrade for no monthly cap.';
   return 'Upgrade for no monthly cap, or wait until next month.';
 }
 
@@ -98,12 +122,18 @@ function toFriendlyThrownError(error: unknown): UploadErrorBody {
     error instanceof TypeError ||
     (error instanceof Error && /fetch|network/i.test(error.message));
   if (isNetworkError) return { code: 'unknown', message: NETWORK_FALLBACK };
-  if (error instanceof Error) return { code: 'unknown', message: error.message };
+  if (error instanceof Error)
+    return { code: 'unknown', message: error.message };
   return { code: 'unknown', message: REJECTED_FALLBACK };
 }
 
-function zoneStateForUploadError(message: UploadErrorBody): 'emptyDeck' | 'error' {
-  if (message.code === 'empty_export' || message.code === 'markdown_likely_lossy') {
+function zoneStateForUploadError(
+  message: UploadErrorBody
+): 'emptyDeck' | 'error' {
+  if (
+    message.code === 'empty_export' ||
+    message.code === 'markdown_likely_lossy'
+  ) {
     return 'emptyDeck';
   }
   return 'error';
@@ -207,12 +237,19 @@ function WarningIcon({ className }: Readonly<{ className?: string }>) {
   );
 }
 
-function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>) {
+function UploadForm({
+  setErrorMessage,
+  aiOn = false,
+}: Readonly<UploadFormProps>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const convertRef = useRef<HTMLButtonElement>(null);
   const downloadRef = useRef<HTMLAnchorElement>(null);
   const fallbackTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
-  const { validation, validate, reset: resetValidation } = useFileValidation(aiOn);
+  const {
+    validation,
+    validate,
+    reset: resetValidation,
+  } = useFileValidation(aiOn);
 
   const {
     zoneState,
@@ -325,22 +362,35 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     !cardUsage.unlimited &&
     !cardUsage.loading &&
     cardUsage.cards_used >= cardUsage.cards_limit;
-  const { openChooser, isConfigured: isDropboxConfigured } = useDropboxChooser(FORMATS);
-  const { openPicker, isConfigured: isGoogleDriveConfigured } = useGooglePicker();
+  const { openChooser, isConfigured: isDropboxConfigured } =
+    useDropboxChooser(FORMATS);
+  const { openPicker, isConfigured: isGoogleDriveConfigured } =
+    useGooglePicker();
 
   const handleDayPass = async () => {
     setDayPassError(null);
     setDayPassPending(true);
-    track('paywall_upgrade_clicked', { surface: 'upload_limit_wall', plan: 'day_pass' });
+    track('paywall_upgrade_clicked', {
+      surface: 'upload_limit_wall',
+      plan: 'day_pass',
+    });
     try {
-      const result = await get2ankiApi().startPassCheckout('24h', undefined, 'upload-limit-wall');
+      const result = await get2ankiApi().startPassCheckout(
+        '24h',
+        undefined,
+        'upload-limit-wall'
+      );
       if ('url' in result) {
         globalThis.location.href = result.url;
         return;
       }
-      setDayPassError("Couldn't start checkout. Try again, or email support@2anki.net.");
+      setDayPassError(
+        "Couldn't start checkout. Try again, or email support@2anki.net."
+      );
     } catch {
-      setDayPassError("Couldn't start checkout. Check your connection and try again.");
+      setDayPassError(
+        "Couldn't start checkout. Check your connection and try again."
+      );
     } finally {
       setDayPassPending(false);
     }
@@ -532,7 +582,8 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
           const kind = getLimitKind(redirectUrl);
           setLimitInfo({
             filename: first?.name ?? null,
-            fileSizeBytes: kind === 'file_size' ? (first?.sizeBytes ?? null) : null,
+            fileSizeBytes:
+              kind === 'file_size' ? (first?.sizeBytes ?? null) : null,
             kind,
           });
           setZoneState('limitReached');
@@ -587,7 +638,8 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     try {
       const formData = buildFormData(event.currentTarget as HTMLFormElement);
       const passToken = getStoredPassToken();
-      const uploadHeaders: HeadersInit = passToken == null ? {} : { 'X-Pass-Token': passToken };
+      const uploadHeaders: HeadersInit =
+        passToken == null ? {} : { 'X-Pass-Token': passToken };
       const request = await globalThis.fetch('/api/upload/file', {
         method: 'post',
         headers: uploadHeaders,
@@ -604,7 +656,8 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
           const kind = getLimitKind(redirectUrl);
           setLimitInfo({
             filename: firstFile?.name ?? null,
-            fileSizeBytes: kind === 'file_size' ? (firstFile?.size ?? null) : null,
+            fileSizeBytes:
+              kind === 'file_size' ? (firstFile?.size ?? null) : null,
             kind,
           });
           setZoneState('limitReached');
@@ -646,7 +699,10 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
         (error instanceof Error && /fetch|network/i.test(error.message));
       track('upload_failed', {
         reason: isNetworkError ? 'network' : 'other',
-        message: (error instanceof Error ? error.message : String(error)).slice(0, 200),
+        message: (error instanceof Error ? error.message : String(error)).slice(
+          0,
+          200
+        ),
         fileSizeBytes: fileInputRef.current?.files?.[0]?.size ?? null,
         fileExt: (() => {
           const name = fileInputRef.current?.files?.[0]?.name ?? '';
@@ -670,9 +726,13 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     formStyles.dropZone,
     dropHover && zoneState === 'idle' ? formStyles.dropZoneActive : '',
     zoneState === 'converting' ? formStyles.dropZoneConverting : '',
-    zoneState === 'success' || zoneState === 'multiDeck' ? formStyles.dropZoneSuccess : '',
+    zoneState === 'success' || zoneState === 'multiDeck'
+      ? formStyles.dropZoneSuccess
+      : '',
     zoneState === 'emptyDeck' ? formStyles.dropZoneEmpty : '',
-    zoneState === 'error' && !isExistingApkgReject ? formStyles.dropZoneError : '',
+    zoneState === 'error' && !isExistingApkgReject
+      ? formStyles.dropZoneError
+      : '',
     isExistingApkgReject ? formStyles.dropZoneRedirect : '',
     zoneState === 'limitReached' ? formStyles.dropZoneLimit : '',
     zoneState === 'lockedPdf' ? formStyles.dropZoneLocked : '',
@@ -755,7 +815,8 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       {mcqShowAnswer ? (
         <>
           <p className={formStyles.mcqDrawerQuestion}>
-            Open your downloaded deck in Anki to see the full question and correct answer highlighted.
+            Open your downloaded deck in Anki to see the full question and
+            correct answer highlighted.
           </p>
           <button
             type="button"
@@ -768,8 +829,10 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       ) : (
         <>
           <p className={formStyles.mcqDrawerQuestion}>
-            Your deck contains {mcqCount} multiple-choice {mcqCount === 1 ? 'card' : 'cards'}.
-            Each card shows a question stem with labelled options — tap the correct one in Anki to reveal the answer.
+            Your deck contains {mcqCount} multiple-choice{' '}
+            {mcqCount === 1 ? 'card' : 'cards'}. Each card shows a question stem
+            with labelled options — tap the correct one in Anki to reveal the
+            answer.
           </p>
           <button
             type="button"
@@ -935,9 +998,9 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     if (driveMimeType === 'application/vnd.google-apps.document') {
       return (
         <p className={formStyles.emptyBody}>
-          Your Doc converted, but we didn't see the bullet shape we turn into cards.
-          Restructure your Doc so each question is a top-level bullet with its answer
-          indented underneath, then try again.{' '}
+          Your Doc converted, but we didn't see the bullet shape we turn into
+          cards. Restructure your Doc so each question is a top-level bullet
+          with its answer indented underneath, then try again.{' '}
           <a href="/documentation/help/common-problems#my-google-doc-converted-to-0-cards">
             See a working example
           </a>
@@ -947,16 +1010,16 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     if (driveMimeType === 'application/vnd.google-apps.spreadsheet') {
       return (
         <p className={formStyles.emptyBody}>
-          Sheets need a column of questions and a column of answers. Make sure your
-          Sheet has at least two columns, then try again.
+          Sheets need a column of questions and a column of answers. Make sure
+          your Sheet has at least two columns, then try again.
         </p>
       );
     }
     if (driveMimeType === 'application/vnd.google-apps.presentation') {
       return (
         <p className={formStyles.emptyBody}>
-          Slides need a title and bullets per slide to produce cards. Add titles and
-          bullet points to your slides, then try again.
+          Slides need a title and bullets per slide to produce cards. Add titles
+          and bullet points to your slides, then try again.
         </p>
       );
     }
@@ -964,8 +1027,8 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
       <p className={formStyles.emptyBody}>
         No cards were found in this file. Most files need a toggle-list (Notion)
         or a question/answer pair to become cards. See{' '}
-        <a href="/documentation/help/common-problems">common problems</a> for the
-        formats that work.
+        <a href="/documentation/help/common-problems">common problems</a> for
+        the formats that work.
       </p>
     );
   };
@@ -974,7 +1037,8 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
     driveFilename ?? dropboxFilename ?? displayFilename(fileInputRef.current);
 
   const renderEmptyDeckState = () => {
-    const isGoogleDriveFile = driveMimeType?.startsWith('application/vnd.google-apps.') ?? false;
+    const isGoogleDriveFile =
+      driveMimeType?.startsWith('application/vnd.google-apps.') ?? false;
     const emptyTitle = isGoogleDriveFile
       ? `No cards found in ${driveFilename ?? 'your file'}`
       : 'No cards found in this file';
@@ -1052,7 +1116,9 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
             <Link
               to="/register?redirect=/upload"
               className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
-              onClick={() => saveFilenameForReattach(limitInfo?.filename ?? null)}
+              onClick={() =>
+                saveFilenameForReattach(limitInfo?.filename ?? null)
+              }
             >
               Create a free account
             </Link>
@@ -1201,10 +1267,13 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
         formData.append(key, value);
       }
 
-      const request = await globalThis.fetch('/api/upload/retry-with-credential', {
-        method: 'post',
-        body: formData,
-      });
+      const request = await globalThis.fetch(
+        '/api/upload/retry-with-credential',
+        {
+          method: 'post',
+          body: formData,
+        }
+      );
 
       if (request.status === 200) {
         setLockedPdfInfo(null);
@@ -1214,7 +1283,9 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
 
       const newAttemptCount = pdfAttemptCount + 1;
       setPdfAttemptCount(newAttemptCount);
-      setPdfUnlockError('That didn\'t open the file. Check for typos and try again.');
+      setPdfUnlockError(
+        "That didn't open the file. Check for typos and try again."
+      );
       setZoneState('lockedPdf');
     } catch (error) {
       setPdfUnlockError(toFriendlyThrownError(error).message);
@@ -1225,14 +1296,25 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
   const renderLockedPdfState = () => (
     <div className={formStyles.stateContent}>
       <span className={formStyles.lockedIcon} aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="40" height="40">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          width="40"
+          height="40"
+        >
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
       </span>
       <div className={formStyles.lockedBadge}>Locked</div>
       <p className={formStyles.lockedFilename}>{lockedPdfInfo?.filename}</p>
-      <p className={formStyles.lockedHeadline}>This PDF is password-protected</p>
+      <p className={formStyles.lockedHeadline}>
+        This PDF is password-protected
+      </p>
       <div className={formStyles.lockedInputRow}>
         <input
           type="password"
@@ -1241,7 +1323,9 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
           value={pdfCredential}
           autoFocus
           onChange={(e) => setPdfCredential(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleUnlock(); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleUnlock();
+          }}
           aria-label="PDF password"
         />
         <button
@@ -1254,11 +1338,15 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
         </button>
       </div>
       {pdfUnlockError && (
-        <p className={formStyles.lockedError} role="alert">{pdfUnlockError}</p>
+        <p className={formStyles.lockedError} role="alert">
+          {pdfUnlockError}
+        </p>
       )}
       {pdfAttemptCount >= 3 && (
         <p className={formStyles.lockedHint}>
-          Still stuck? Some PDFs have owner-only protection that can't be entered here — open the file in Preview or Adobe Reader, save a copy, and upload that.
+          Still stuck? Some PDFs have owner-only protection that can't be
+          entered here — open the file in Preview or Adobe Reader, save a copy,
+          and upload that.
         </p>
       )}
       <button
@@ -1415,7 +1503,12 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
             aria-expanded={showInlineChat}
             aria-controls="empty-deck-chat-panel"
           >
-            <i className={`${formStyles.inlineChatToggleChevron} ${showInlineChat ? formStyles.inlineChatToggleChevronOpen : ''}`} aria-hidden="true">›</i>
+            <i
+              className={`${formStyles.inlineChatToggleChevron} ${showInlineChat ? formStyles.inlineChatToggleChevronOpen : ''}`}
+              aria-hidden="true"
+            >
+              ›
+            </i>
             Ask Claude about this file
           </button>
           {showInlineChat && (
@@ -1435,7 +1528,10 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
               </p>
               <ChatPanel
                 key={currentFilename()}
-                initialPrompt={getEmptyDeckChatPrompt(driveMimeType, currentFilename())}
+                initialPrompt={getEmptyDeckChatPrompt(
+                  driveMimeType,
+                  currentFilename()
+                )}
                 cameFromUpload
               />
             </section>
@@ -1456,7 +1552,12 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
             aria-expanded={showErrorInlineChat}
             aria-controls="error-state-chat-panel"
           >
-            <i className={`${formStyles.inlineChatToggleChevron} ${showErrorInlineChat ? formStyles.inlineChatToggleChevronOpen : ''}`} aria-hidden="true">›</i>
+            <i
+              className={`${formStyles.inlineChatToggleChevron} ${showErrorInlineChat ? formStyles.inlineChatToggleChevronOpen : ''}`}
+              aria-hidden="true"
+            >
+              ›
+            </i>
             {showErrorInlineChat ? 'Hide chat' : 'Talk it through instead'}
           </button>
           {showErrorInlineChat && (
@@ -1546,7 +1647,8 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
               Pick a Doc, Sheet, Slide, or file from your Google Drive.
             </span>
             <span className={formStyles.shapeHint}>
-              Docs work best as a bulleted outline — top bullet asks, indented bullet answers.
+              Docs work best as a bulleted outline — top bullet asks, indented
+              bullet answers.
             </span>
             <button
               type="button"
@@ -1555,7 +1657,9 @@ function UploadForm({ setErrorMessage, aiOn = false }: Readonly<UploadFormProps>
               disabled={drivePending}
               aria-label="Choose from Google Drive"
             >
-              {drivePending ? 'Opening Google Drive' : 'Choose from Google Drive'}
+              {drivePending
+                ? 'Opening Google Drive'
+                : 'Choose from Google Drive'}
             </button>
             <div className={formStyles.formatList}>
               {FORMATS.map((fmt) => (

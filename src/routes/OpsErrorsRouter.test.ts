@@ -8,7 +8,7 @@ jest.mock('../data_layer', () => ({
 
 jest.mock('./middleware/RequireOpsAccess', () => {
   type State = { allow: boolean };
-  const state = (globalThis as unknown as { __opsErrorsState?: State });
+  const state = globalThis as unknown as { __opsErrorsState?: State };
   if (state.__opsErrorsState == null) {
     state.__opsErrorsState = { allow: false };
   }
@@ -71,7 +71,9 @@ jest.mock('../data_layer/ErrorEventRepository', () => ({
       ];
     }
     async insert() {}
-    async existsWithinWindow() { return false; }
+    async existsWithinWindow() {
+      return false;
+    }
     resolveGroup(...args: unknown[]) {
       return resolveGroupSpy(...(args as []));
     }
@@ -84,7 +86,8 @@ jest.mock('../data_layer/ErrorEventRepository', () => ({
 import OpsErrorsRouter from './OpsErrorsRouter';
 
 type GlobalWithState = { __opsErrorsState: { allow: boolean } };
-const opsErrorsState = (globalThis as unknown as GlobalWithState).__opsErrorsState;
+const opsErrorsState = (globalThis as unknown as GlobalWithState)
+  .__opsErrorsState;
 
 const startServer = async (allowOps: boolean) => {
   opsErrorsState.allow = allowOps;
@@ -141,7 +144,7 @@ describe('OpsErrorsRouter GET /api/ops/errors', () => {
     const { url, close } = await startServer(true);
     try {
       const res = await fetch(`${url}/api/ops/errors`);
-      const body = await res.json() as { groups: unknown[] };
+      const body = (await res.json()) as { groups: unknown[] };
       expect(body.groups[0]).toMatchObject({
         message_hash: expect.any(String),
         message: expect.any(String),
@@ -182,7 +185,9 @@ describe('OpsErrorsRouter GET /api/ops/errors/export', () => {
         /^attachment; filename="2anki-errors-\d{4}-\d{2}-\d{2}\.md"$/
       );
       const body = await res.text();
-      expect(body).toContain('Investigate these production error groups from 2anki.net.');
+      expect(body).toContain(
+        'Investigate these production error groups from 2anki.net.'
+      );
       expect(body).toContain('TypeError: x is null');
       expect(body).toContain('- Occurrences: 3');
       expect(body).toContain('at App.tsx:10');
@@ -238,7 +243,9 @@ describe('OpsErrorsRouter resolve / reopen', () => {
   it('returns 401 on resolve without admin auth', async () => {
     const { url, close } = await startServer(false);
     try {
-      const res = await fetch(`${url}/api/ops/errors/${hash}/resolve`, { method: 'POST' });
+      const res = await fetch(`${url}/api/ops/errors/${hash}/resolve`, {
+        method: 'POST',
+      });
       expect(res.status).toBe(401);
       expect(resolveGroupSpy).not.toHaveBeenCalled();
     } finally {
@@ -249,7 +256,9 @@ describe('OpsErrorsRouter resolve / reopen', () => {
   it('resolves a group for the ops owner', async () => {
     const { url, close } = await startServer(true);
     try {
-      const res = await fetch(`${url}/api/ops/errors/${hash}/resolve`, { method: 'POST' });
+      const res = await fetch(`${url}/api/ops/errors/${hash}/resolve`, {
+        method: 'POST',
+      });
       expect(res.status).toBe(204);
       expect(resolveGroupSpy).toHaveBeenCalledTimes(1);
     } finally {
@@ -260,7 +269,9 @@ describe('OpsErrorsRouter resolve / reopen', () => {
   it('rejects an invalid hash with 400', async () => {
     const { url, close } = await startServer(true);
     try {
-      const res = await fetch(`${url}/api/ops/errors/not-a-hash/resolve`, { method: 'POST' });
+      const res = await fetch(`${url}/api/ops/errors/not-a-hash/resolve`, {
+        method: 'POST',
+      });
       expect(res.status).toBe(400);
       expect(resolveGroupSpy).not.toHaveBeenCalled();
     } finally {
@@ -271,7 +282,9 @@ describe('OpsErrorsRouter resolve / reopen', () => {
   it('reopens a group via DELETE for the ops owner', async () => {
     const { url, close } = await startServer(true);
     try {
-      const res = await fetch(`${url}/api/ops/errors/${hash}/resolve`, { method: 'DELETE' });
+      const res = await fetch(`${url}/api/ops/errors/${hash}/resolve`, {
+        method: 'DELETE',
+      });
       expect(res.status).toBe(204);
       expect(reopenGroupSpy).toHaveBeenCalledTimes(1);
     } finally {

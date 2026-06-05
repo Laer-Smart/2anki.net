@@ -36,7 +36,10 @@ describe('ChatDeckController.generate', () => {
     const controller = new ChatDeckController(useCase as never);
     const res = buildRes();
 
-    await controller.generate(buildReq({ cards: validCards, deckName: '' }), res);
+    await controller.generate(
+      buildReq({ cards: validCards, deckName: '' }),
+      res
+    );
 
     expect(res.status).toHaveBeenCalledWith(400);
   });
@@ -46,7 +49,10 @@ describe('ChatDeckController.generate', () => {
     const controller = new ChatDeckController(useCase as never);
     const res = buildRes();
 
-    await controller.generate(buildReq({ cards: validCards, deckName: 'x'.repeat(121) }), res);
+    await controller.generate(
+      buildReq({ cards: validCards, deckName: 'x'.repeat(121) }),
+      res
+    );
 
     expect(res.status).toHaveBeenCalledWith(400);
   });
@@ -56,7 +62,10 @@ describe('ChatDeckController.generate', () => {
     const controller = new ChatDeckController(useCase as never);
     const res = buildRes();
 
-    await controller.generate(buildReq({ cards: 'not-an-array', deckName: 'My Deck' }), res);
+    await controller.generate(
+      buildReq({ cards: 'not-an-array', deckName: 'My Deck' }),
+      res
+    );
 
     expect(res.status).toHaveBeenCalledWith(400);
   });
@@ -66,7 +75,10 @@ describe('ChatDeckController.generate', () => {
     const controller = new ChatDeckController(useCase as never);
     const res = buildRes();
 
-    await controller.generate(buildReq({ cards: [], deckName: 'My Deck' }), res);
+    await controller.generate(
+      buildReq({ cards: [], deckName: 'My Deck' }),
+      res
+    );
 
     expect(res.status).toHaveBeenCalledWith(400);
   });
@@ -75,9 +87,15 @@ describe('ChatDeckController.generate', () => {
     const useCase = { execute: jest.fn() };
     const controller = new ChatDeckController(useCase as never);
     const res = buildRes();
-    const tooManyCards = Array.from({ length: 201 }, (_, i) => ({ front: `Q${i}`, back: `A${i}` }));
+    const tooManyCards = Array.from({ length: 201 }, (_, i) => ({
+      front: `Q${i}`,
+      back: `A${i}`,
+    }));
 
-    await controller.generate(buildReq({ cards: tooManyCards, deckName: 'My Deck' }), res);
+    await controller.generate(
+      buildReq({ cards: tooManyCards, deckName: 'My Deck' }),
+      res
+    );
 
     expect(res.status).toHaveBeenCalledWith(400);
   });
@@ -87,7 +105,10 @@ describe('ChatDeckController.generate', () => {
     const controller = new ChatDeckController(useCase as never);
     const res = buildRes();
 
-    await controller.generate(buildReq({ cards: [{ back: 'A1' }], deckName: 'My Deck' }), res);
+    await controller.generate(
+      buildReq({ cards: [{ back: 'A1' }], deckName: 'My Deck' }),
+      res
+    );
 
     expect(res.status).toHaveBeenCalledWith(400);
   });
@@ -97,7 +118,10 @@ describe('ChatDeckController.generate', () => {
     const controller = new ChatDeckController(useCase as never);
     const res = buildRes();
 
-    await controller.generate(buildReq({ cards: [{ front: 'Q1' }], deckName: 'My Deck' }), res);
+    await controller.generate(
+      buildReq({ cards: [{ front: 'Q1' }], deckName: 'My Deck' }),
+      res
+    );
 
     expect(res.status).toHaveBeenCalledWith(400);
   });
@@ -114,7 +138,10 @@ describe('ChatDeckController.generate', () => {
       rationale: 'Amylase.',
     };
 
-    await controller.generate(buildReq({ cards: [mcqCard], deckName: 'Quiz' }), res);
+    await controller.generate(
+      buildReq({ cards: [mcqCard], deckName: 'Quiz' }),
+      res
+    );
 
     expect(useCase.execute).toHaveBeenCalledWith({
       cards: [
@@ -142,7 +169,10 @@ describe('ChatDeckController.generate', () => {
       correctIndex: 0,
     };
 
-    await controller.generate(buildReq({ cards: [badMcq], deckName: 'Quiz' }), res);
+    await controller.generate(
+      buildReq({ cards: [badMcq], deckName: 'Quiz' }),
+      res
+    );
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(useCase.execute).not.toHaveBeenCalled();
@@ -158,7 +188,10 @@ describe('ChatDeckController.generate', () => {
       correctIndex: 9,
     };
 
-    await controller.generate(buildReq({ cards: [badMcq], deckName: 'Quiz' }), res);
+    await controller.generate(
+      buildReq({ cards: [badMcq], deckName: 'Quiz' }),
+      res
+    );
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(useCase.execute).not.toHaveBeenCalled();
@@ -170,13 +203,23 @@ describe('ChatDeckController.generate', () => {
     const controller = new ChatDeckController(useCase as never);
     const res = buildRes();
 
-    await controller.generate(buildReq({ cards: validCards, deckName: 'My Deck' }), res);
+    await controller.generate(
+      buildReq({ cards: validCards, deckName: 'My Deck' }),
+      res
+    );
 
-    expect(useCase.execute).toHaveBeenCalledWith({ cards: validCards, deckName: 'My Deck', templateSlug: null });
-    expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/octet-stream');
+    expect(useCase.execute).toHaveBeenCalledWith({
+      cards: validCards,
+      deckName: 'My Deck',
+      templateSlug: null,
+    });
+    expect(res.setHeader).toHaveBeenCalledWith(
+      'Content-Type',
+      'application/octet-stream'
+    );
     expect(res.setHeader).toHaveBeenCalledWith(
       'Content-Disposition',
-      "attachment; filename=\"My Deck.apkg\"; filename*=UTF-8''My%20Deck.apkg"
+      'attachment; filename="My Deck.apkg"; filename*=UTF-8\'\'My%20Deck.apkg'
     );
     expect(res.send).toHaveBeenCalledWith(fakeBuffer);
   });

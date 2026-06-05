@@ -13,7 +13,11 @@ export interface PackageResult {
 }
 
 type ProgressMessage = { type: 'progress'; step: string };
-type ResultMessage = { type: 'result'; packages: Package[]; warnings?: string[] };
+type ResultMessage = {
+  type: 'result';
+  packages: Package[];
+  warnings?: string[];
+};
 type ErrorMessage = {
   type: 'error';
   message?: string;
@@ -58,7 +62,9 @@ class GeneratePackagesUseCase {
       const workerTs = path.resolve(__dirname, './worker.ts');
       const workerJs = path.resolve(__dirname, './worker.js');
       const workerPath = fs.existsSync(workerTs) ? workerTs : workerJs;
-      const execArgv = workerPath.endsWith('.ts') ? ['--require', 'tsx/cjs'] : [];
+      const execArgv = workerPath.endsWith('.ts')
+        ? ['--require', 'tsx/cjs']
+        : [];
       const worker = new Worker(workerPath, {
         workerData: { data },
         execArgv,

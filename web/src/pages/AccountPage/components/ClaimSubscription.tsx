@@ -22,8 +22,10 @@ export function ClaimSubscription() {
       setStatus('success');
     } else {
       setStatus('error');
-      const body = await res.json().catch(() => ({})) as { message?: string };
-      setErrorMessage(body.message ?? 'Something went wrong. Try again in a moment.');
+      const body = (await res.json().catch(() => ({}))) as { message?: string };
+      setErrorMessage(
+        body.message ?? 'Something went wrong. Try again in a moment.'
+      );
     }
   };
 
@@ -34,7 +36,12 @@ export function ClaimSubscription() {
         className={sharedStyles.btnGhost}
         aria-expanded={expanded}
         onClick={() => setExpanded((v) => !v)}
-        style={{ fontWeight: 'var(--font-semibold)', width: '100%', textAlign: 'left', padding: 0 }}
+        style={{
+          fontWeight: 'var(--font-semibold)',
+          width: '100%',
+          textAlign: 'left',
+          padding: 0,
+        }}
       >
         Paid with a different email?
       </button>
@@ -47,10 +54,25 @@ export function ClaimSubscription() {
             </output>
           ) : (
             <>
-              <p style={{ margin: '0 0 1rem', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-                If you paid Stripe with another email address, enter it here. We'll send a confirmation link to that address to attach the subscription to this account.
+              <p
+                style={{
+                  margin: '0 0 1rem',
+                  fontSize: 'var(--text-sm)',
+                  color: 'var(--color-text-secondary)',
+                }}
+              >
+                If you paid Stripe with another email address, enter it here.
+                We'll send a confirmation link to that address to attach the
+                subscription to this account.
               </p>
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <form
+                onSubmit={handleSubmit}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
+                }}
+              >
                 <input
                   type="email"
                   value={email}
@@ -61,7 +83,14 @@ export function ClaimSubscription() {
                   aria-label="Email you paid with"
                 />
                 {status === 'error' && (
-                  <p role="alert" style={{ margin: 0, color: 'var(--color-danger)', fontSize: 'var(--text-sm)' }}>
+                  <p
+                    role="alert"
+                    style={{
+                      margin: 0,
+                      color: 'var(--color-danger)',
+                      fontSize: 'var(--text-sm)',
+                    }}
+                  >
                     {errorMessage}
                   </p>
                 )}
@@ -70,7 +99,9 @@ export function ClaimSubscription() {
                   className={sharedStyles.btnPrimary}
                   disabled={status === 'loading' || !email}
                 >
-                  {status === 'loading' ? 'Sending…' : 'Send confirmation email'}
+                  {status === 'loading'
+                    ? 'Sending…'
+                    : 'Send confirmation email'}
                 </button>
               </form>
             </>

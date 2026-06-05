@@ -46,7 +46,9 @@ function CheckYourEmail({
   purpose,
   onResend,
 }: Readonly<CheckYourEmailProps>) {
-  const [resendState, setResendState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [resendState, setResendState] = useState<
+    'idle' | 'sending' | 'sent' | 'error'
+  >('idle');
   const isLogin = purpose === 'login';
   const linkType = isLogin ? 'login link' : 'password reset link';
   const actionText = isLogin ? 'log in' : 'reset your password';
@@ -68,12 +70,15 @@ function CheckYourEmail({
       <div className={styles.formCard}>
         <h1 className={styles.formTitle}>Check your email</h1>
         <p className={sharedStyles.formDescription}>
-          A {linkType} was sent to <strong>{email}</strong>. Click the link to
-          {' '}{actionText}. It expires in 15 minutes.
+          A {linkType} was sent to <strong>{email}</strong>. Click the link to{' '}
+          {actionText}. It expires in 15 minutes.
         </p>
         <p className={styles.helpMuted}>Usually arrives within a minute.</p>
         {providerLinks.length > 0 && (
-          <div className={sharedStyles.flexRow} style={{ marginBottom: '1rem' }}>
+          <div
+            className={sharedStyles.flexRow}
+            style={{ marginBottom: '1rem' }}
+          >
             {providerLinks.map((link) => (
               <a
                 key={link.href}
@@ -116,7 +121,9 @@ function CheckYourEmail({
             )}
             {resendState === 'error' && (
               <p className={styles.helpDanger}>
-                {"Couldn't send another link right now. Check your inbox and spam, or email support@2anki.net."}
+                {
+                  "Couldn't send another link right now. Check your inbox and spam, or email support@2anki.net."
+                }
               </p>
             )}
           </div>
@@ -124,7 +131,7 @@ function CheckYourEmail({
         <p className={styles.helpMuted}>
           {'Still nothing after checking spam? Email '}
           <a href="mailto:support@2anki.net">support@2anki.net</a>
-          {' — we\'ll get you in.'}
+          {" — we'll get you in."}
         </p>
       </div>
     </div>

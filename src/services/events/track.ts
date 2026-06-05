@@ -25,7 +25,9 @@ export function track(name: KnownEvent, options: TrackOptions = {}): void {
   const safeProps = stripPiiKeys(props);
   const serialized = JSON.stringify(safeProps);
   if (serialized.length > PROPS_MAX_BYTES) {
-    console.error(`[events] dropping event "${name}": props exceed ${PROPS_MAX_BYTES} bytes`);
+    console.error(
+      `[events] dropping event "${name}": props exceed ${PROPS_MAX_BYTES} bytes`
+    );
     return;
   }
   getEventsSink().record({

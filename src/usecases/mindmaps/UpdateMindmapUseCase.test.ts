@@ -1,4 +1,7 @@
-import { UpdateMindmapUseCase, MindmapLimitError } from './UpdateMindmapUseCase';
+import {
+  UpdateMindmapUseCase,
+  MindmapLimitError,
+} from './UpdateMindmapUseCase';
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import Mindmaps, { MindmapsId } from '../../data_layer/public/Mindmaps';
 import { MindmapData } from './MindmapData';
@@ -19,7 +22,9 @@ function makeMap(nodeCount: number): Mindmaps {
   };
 }
 
-function makeRepo(updatedMap: Mindmaps | null = null): MindmapRepositoryInterface {
+function makeRepo(
+  updatedMap: Mindmaps | null = null
+): MindmapRepositoryInterface {
   return {
     create: jest.fn(),
     findById: jest.fn(),
@@ -41,7 +46,10 @@ describe('UpdateMindmapUseCase', () => {
     const useCase = new UpdateMindmapUseCase(repo);
 
     const data: MindmapData = {
-      nodes: Array.from({ length: 10 }, (_, i) => ({ id: String(i), label: `N${i}` })),
+      nodes: Array.from({ length: 10 }, (_, i) => ({
+        id: String(i),
+        label: `N${i}`,
+      })),
       edges: [],
     };
 
@@ -62,7 +70,10 @@ describe('UpdateMindmapUseCase', () => {
     const useCase = new UpdateMindmapUseCase(repo);
 
     const data: MindmapData = {
-      nodes: Array.from({ length: 51 }, (_, i) => ({ id: String(i), label: `N${i}` })),
+      nodes: Array.from({ length: 51 }, (_, i) => ({
+        id: String(i),
+        label: `N${i}`,
+      })),
       edges: [],
     };
 
@@ -84,7 +95,10 @@ describe('UpdateMindmapUseCase', () => {
     const useCase = new UpdateMindmapUseCase(repo);
 
     const data: MindmapData = {
-      nodes: Array.from({ length: 100 }, (_, i) => ({ id: String(i), label: `N${i}` })),
+      nodes: Array.from({ length: 100 }, (_, i) => ({
+        id: String(i),
+        label: `N${i}`,
+      })),
       edges: [],
     };
 
@@ -106,7 +120,10 @@ describe('UpdateMindmapUseCase', () => {
     const useCase = new UpdateMindmapUseCase(repo);
 
     const data: MindmapData = {
-      nodes: Array.from({ length: 50 }, (_, i) => ({ id: String(i), label: `N${i}` })),
+      nodes: Array.from({ length: 50 }, (_, i) => ({
+        id: String(i),
+        label: `N${i}`,
+      })),
       edges: [],
     };
 
@@ -131,14 +148,22 @@ describe('UpdateMindmapUseCase', () => {
       id: 'map-1' as MindmapsId,
       userId: 1 as UsersId,
       data: {
-        nodes: [{ id: 'a', label: 'n', image: { url: presigned, width: 10, height: 10 } }],
+        nodes: [
+          {
+            id: 'a',
+            label: 'n',
+            image: { url: presigned, width: 10, height: 10 },
+          },
+        ],
         edges: [],
       },
       user: FREE_USER,
       subscriptions: [],
     });
 
-    const saved = (repo.update as jest.Mock).mock.calls[0][2] as { data: MindmapData };
+    const saved = (repo.update as jest.Mock).mock.calls[0][2] as {
+      data: MindmapData;
+    };
     const savedImage = saved.data.nodes[0].image!;
     expect(savedImage.url).toBe(baseKey);
   });
@@ -151,14 +176,26 @@ describe('UpdateMindmapUseCase', () => {
       id: 'map-1' as MindmapsId,
       userId: 1 as UsersId,
       data: {
-        nodes: [{ id: 'a', label: 'n', image: { url: '/api/mindmaps/images/1/map-1/old.png', width: 10, height: 10 } }],
+        nodes: [
+          {
+            id: 'a',
+            label: 'n',
+            image: {
+              url: '/api/mindmaps/images/1/map-1/old.png',
+              width: 10,
+              height: 10,
+            },
+          },
+        ],
         edges: [],
       },
       user: FREE_USER,
       subscriptions: [],
     });
 
-    const saved = (repo.update as jest.Mock).mock.calls[0][2] as { data: MindmapData };
+    const saved = (repo.update as jest.Mock).mock.calls[0][2] as {
+      data: MindmapData;
+    };
     const savedImage = saved.data.nodes[0].image!;
     expect(savedImage.url).toBeNull();
     expect(savedImage.missing).toBe(true);
@@ -172,14 +209,22 @@ describe('UpdateMindmapUseCase', () => {
       id: 'map-1' as MindmapsId,
       userId: 1 as UsersId,
       data: {
-        nodes: [{ id: 'a', label: 'n', image: { url: 'mindmaps/1/map-1/uuid.png', width: 10, height: 10 } }],
+        nodes: [
+          {
+            id: 'a',
+            label: 'n',
+            image: { url: 'mindmaps/1/map-1/uuid.png', width: 10, height: 10 },
+          },
+        ],
         edges: [],
       },
       user: FREE_USER,
       subscriptions: [],
     });
 
-    const saved = (repo.update as jest.Mock).mock.calls[0][2] as { data: MindmapData };
+    const saved = (repo.update as jest.Mock).mock.calls[0][2] as {
+      data: MindmapData;
+    };
     const savedImage = saved.data.nodes[0].image!;
     expect(savedImage.url).toBe('mindmaps/1/map-1/uuid.png');
   });
@@ -192,21 +237,34 @@ describe('UpdateMindmapUseCase', () => {
       id: 'map-1' as MindmapsId,
       userId: 1 as UsersId,
       data: {
-        nodes: [{ id: 'a', label: 'n', image: { url: 'mindmaps/99/other-map/uuid.png', width: 10, height: 10 } }],
+        nodes: [
+          {
+            id: 'a',
+            label: 'n',
+            image: {
+              url: 'mindmaps/99/other-map/uuid.png',
+              width: 10,
+              height: 10,
+            },
+          },
+        ],
         edges: [],
       },
       user: FREE_USER,
       subscriptions: [],
     });
 
-    const saved = (repo.update as jest.Mock).mock.calls[0][2] as { data: MindmapData };
+    const saved = (repo.update as jest.Mock).mock.calls[0][2] as {
+      data: MindmapData;
+    };
     const savedImage = saved.data.nodes[0].image!;
     expect(savedImage.url).toBeNull();
     expect(savedImage.missing).toBe(true);
   });
 
   it('rejects cross-tenant presigned URL: key prefix for user 99', async () => {
-    const presigned = 'https://bucket.spaces.digitaloceanspaces.com/mindmaps/99/other-map/uuid.png?X-Amz-Signature=abc';
+    const presigned =
+      'https://bucket.spaces.digitaloceanspaces.com/mindmaps/99/other-map/uuid.png?X-Amz-Signature=abc';
     const repo = makeRepo(makeMap(1));
     const useCase = new UpdateMindmapUseCase(repo);
 
@@ -214,14 +272,22 @@ describe('UpdateMindmapUseCase', () => {
       id: 'map-1' as MindmapsId,
       userId: 1 as UsersId,
       data: {
-        nodes: [{ id: 'a', label: 'n', image: { url: presigned, width: 10, height: 10 } }],
+        nodes: [
+          {
+            id: 'a',
+            label: 'n',
+            image: { url: presigned, width: 10, height: 10 },
+          },
+        ],
         edges: [],
       },
       user: FREE_USER,
       subscriptions: [],
     });
 
-    const saved = (repo.update as jest.Mock).mock.calls[0][2] as { data: MindmapData };
+    const saved = (repo.update as jest.Mock).mock.calls[0][2] as {
+      data: MindmapData;
+    };
     const savedImage = saved.data.nodes[0].image!;
     expect(savedImage.url).toBeNull();
     expect(savedImage.missing).toBe(true);

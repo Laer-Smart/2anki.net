@@ -3,7 +3,9 @@ import { parseCheckoutSurface } from './checkoutSurface';
 describe('parseCheckoutSurface', () => {
   it('keeps a clean surface label', () => {
     expect(parseCheckoutSurface('limit-wall')).toBe('limit-wall');
-    expect(parseCheckoutSurface('upload_success_upsell')).toBe('upload_success_upsell');
+    expect(parseCheckoutSurface('upload_success_upsell')).toBe(
+      'upload_success_upsell'
+    );
     expect(parseCheckoutSurface('pricing_page')).toBe('pricing_page');
   });
 

@@ -1,4 +1,8 @@
-import { AINoteTypeUseCase, NoteTypeStarterInput, __test__ } from './AINoteTypeUseCase';
+import {
+  AINoteTypeUseCase,
+  NoteTypeStarterInput,
+  __test__,
+} from './AINoteTypeUseCase';
 import { getAnthropicClient } from '../../lib/claude/ClaudeService';
 
 jest.mock('../../lib/claude/ClaudeService', () => ({
@@ -96,7 +100,9 @@ describe('AINoteTypeUseCase.modify no-op detection', () => {
   });
 
   it('logs template_ai_modify.no_op when the result fingerprint matches the input', async () => {
-    mockCreate.mockResolvedValue(claudeReply(sampleStarter, 'No changes made.'));
+    mockCreate.mockResolvedValue(
+      claudeReply(sampleStarter, 'No changes made.')
+    );
 
     const useCase = new AINoteTypeUseCase();
     await useCase.modify(sampleStarter, 'make it pretty', []);
@@ -176,4 +182,3 @@ describe('AINoteTypeUseCase system prompt caching', () => {
     );
   });
 });
-

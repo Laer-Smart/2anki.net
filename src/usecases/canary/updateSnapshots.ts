@@ -15,11 +15,15 @@ async function main() {
     return;
   }
 
-  console.log('Updated snapshot values (copy into CANARY_FIXTURES in runParserCanary.ts):\n');
+  console.log(
+    'Updated snapshot values (copy into CANARY_FIXTURES in runParserCanary.ts):\n'
+  );
 
   for (const failure of result.failures) {
     console.log(`  // ${failure.fixtureName}`);
-    console.log(`  snapshot: { cardCount: ${failure.actual.cardCount}, imageCount: ${failure.actual.imageCount}, clozeCount: ${failure.actual.clozeCount} },`);
+    console.log(
+      `  snapshot: { cardCount: ${failure.actual.cardCount}, imageCount: ${failure.actual.imageCount}, clozeCount: ${failure.actual.clozeCount} },`
+    );
     console.log();
   }
 }

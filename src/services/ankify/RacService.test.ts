@@ -38,7 +38,7 @@ const makeRepo = (
     reservedPorts: jest.fn(async () => []),
     listIdleSince: jest.fn(async () => []),
     ...overrides,
-  } as jest.Mocked<AnkifyClientsRepositoryInterface>);
+  }) as jest.Mocked<AnkifyClientsRepositoryInterface>;
 
 interface TokenStore {
   rows: AnkifySessionToken[];
@@ -67,21 +67,23 @@ const makeTokens = (
       return row;
     }
   );
-  const findActiveByHash = jest.fn(async (tokenHash: string) =>
-    store.rows.find(
-      (row) =>
-        row.token_hash === tokenHash &&
-        row.revoked_at == null &&
-        row.expires_at.getTime() > Date.now()
-    ) ?? null
+  const findActiveByHash = jest.fn(
+    async (tokenHash: string) =>
+      store.rows.find(
+        (row) =>
+          row.token_hash === tokenHash &&
+          row.revoked_at == null &&
+          row.expires_at.getTime() > Date.now()
+      ) ?? null
   );
-  const findActiveByClientId = jest.fn(async (ankifyClientId: number) =>
-    store.rows.find(
-      (row) =>
-        row.ankify_client_id === ankifyClientId &&
-        row.revoked_at == null &&
-        row.expires_at.getTime() > Date.now()
-    ) ?? null
+  const findActiveByClientId = jest.fn(
+    async (ankifyClientId: number) =>
+      store.rows.find(
+        (row) =>
+          row.ankify_client_id === ankifyClientId &&
+          row.revoked_at == null &&
+          row.expires_at.getTime() > Date.now()
+      ) ?? null
   );
   const touchLastUsed = jest.fn(async (id: number) => {
     const row = store.rows.find((r) => r.id === id);
@@ -107,14 +109,17 @@ const makeTokens = (
   );
 };
 
-const makeContainer = (id: string, name = '/test-container'): DockerContainerLike =>
+const makeContainer = (
+  id: string,
+  name = '/test-container'
+): DockerContainerLike =>
   ({
     id,
     start: jest.fn(async () => undefined),
     inspect: jest.fn(async () => ({ Name: name })),
     stop: jest.fn(async () => undefined),
     remove: jest.fn(async () => undefined),
-  } as unknown as DockerContainerLike);
+  }) as unknown as DockerContainerLike;
 
 const makeDocker = (
   overrides: Partial<DockerLike> = {},
@@ -125,7 +130,7 @@ const makeDocker = (
     createContainer: jest.fn(async () => createdContainer),
     getContainer: jest.fn(() => createdContainer),
     ...overrides,
-  } as jest.Mocked<DockerLike>);
+  }) as jest.Mocked<DockerLike>;
 
 const makeService = (
   repo = makeRepo(),
@@ -166,8 +171,7 @@ describe('RacService.provision', () => {
 
     await service.provision(42);
 
-    const args = (docker.createContainer as jest.Mock).mock
-      .calls[0][0] as {
+    const args = (docker.createContainer as jest.Mock).mock.calls[0][0] as {
       ExposedPorts: Record<string, unknown>;
       HostConfig: {
         PortBindings: Record<string, { HostIp: string; HostPort: string }[]>;
@@ -198,9 +202,7 @@ describe('RacService.provision', () => {
     expect(stored.ankify_client_id).toBe(client.id);
     expect(stored.owner).toBe(42);
     // The plaintext appears in the URL; the DB stores the SHA-256 hash of it.
-    const plaintextMatch = client.session_url!.match(
-      /[A-Za-z0-9_-]{43}/
-    );
+    const plaintextMatch = client.session_url!.match(/[A-Za-z0-9_-]{43}/);
     expect(plaintextMatch).not.toBeNull();
     expect(stored.token_hash).toBe(hashToken(plaintextMatch![0]));
   });
@@ -214,7 +216,7 @@ describe('RacService.provision', () => {
       anki_port: 20000,
       vnc_port: 0,
       novnc_port: 22000,
-        anki_connect_api_key: null,
+      anki_connect_api_key: null,
       status: 'active',
       created_at: new Date(),
       last_active_at: new Date(),
@@ -378,7 +380,7 @@ describe('RacService.list', () => {
       anki_port: 20000,
       vnc_port: 0,
       novnc_port: 22000,
-        anki_connect_api_key: null,
+      anki_connect_api_key: null,
       status: 'active' as const,
       created_at: new Date(),
       last_active_at: new Date(),
@@ -459,7 +461,7 @@ describe('RacService.list', () => {
       anki_port: 20000,
       vnc_port: 0,
       novnc_port: 22000,
-        anki_connect_api_key: null,
+      anki_connect_api_key: null,
       status: 'active' as const,
       created_at: new Date(),
       last_active_at: new Date(),
@@ -603,9 +605,8 @@ describe('RacService.reissueSessionUrl', () => {
     const { service, tokens } = makeService(repo);
 
     const { client: provisioned } = await service.provision(42);
-    const firstPlaintext = provisioned.session_url!.match(
-      /[A-Za-z0-9_-]{43}/
-    )![0];
+    const firstPlaintext =
+      provisioned.session_url!.match(/[A-Za-z0-9_-]{43}/)![0];
 
     repo.findActiveById = jest.fn(async (_id: number, _owner: number) => ({
       id: provisioned.id,
@@ -626,9 +627,8 @@ describe('RacService.reissueSessionUrl', () => {
     expect(reissued).not.toBeNull();
     expect(reissued!.session_url).not.toBeNull();
     expect(reissued!.has_active_session).toBe(true);
-    const secondPlaintext = reissued!.session_url!.match(
-      /[A-Za-z0-9_-]{43}/
-    )![0];
+    const secondPlaintext =
+      reissued!.session_url!.match(/[A-Za-z0-9_-]{43}/)![0];
     expect(secondPlaintext).not.toBe(firstPlaintext);
 
     const firstRow = tokens.store.rows.find(
@@ -670,7 +670,7 @@ describe('RacService.reapIdle', () => {
           anki_port: 20000,
           vnc_port: 0,
           novnc_port: 22000,
-        anki_connect_api_key: null,
+          anki_connect_api_key: null,
           status: 'active' as const,
           created_at: new Date(),
           last_active_at: new Date(0),
@@ -683,7 +683,7 @@ describe('RacService.reapIdle', () => {
           anki_port: 20001,
           vnc_port: 0,
           novnc_port: 22001,
-        anki_connect_api_key: null,
+          anki_connect_api_key: null,
           status: 'active' as const,
           created_at: new Date(),
           last_active_at: new Date(0),
@@ -744,8 +744,7 @@ describe('RacService container hardening (slice 2)', () => {
 
     await service.provision(42);
 
-    const args = (docker.createContainer as jest.Mock).mock
-      .calls[0][0] as {
+    const args = (docker.createContainer as jest.Mock).mock.calls[0][0] as {
       HostConfig: {
         CapDrop: string[];
         SecurityOpt: string[];
@@ -837,7 +836,7 @@ describe('RacService — view shape passthrough', () => {
       anki_port: 20000,
       vnc_port: 0,
       novnc_port: 22000,
-        anki_connect_api_key: null,
+      anki_connect_api_key: null,
       status: 'active',
       created_at: new Date(),
       last_active_at: new Date(),

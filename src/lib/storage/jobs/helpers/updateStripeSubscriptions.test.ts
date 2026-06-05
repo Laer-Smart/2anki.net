@@ -15,7 +15,8 @@ const mockDbInstance = {
 
 jest.mock('../../../integrations/stripe', () => ({
   getStripe: () => mockStripeInstance,
-  extractProductId: jest.requireActual('../../../integrations/stripe').extractProductId,
+  extractProductId: jest.requireActual('../../../integrations/stripe')
+    .extractProductId,
 }));
 
 jest.mock('../../../../data_layer', () => ({
@@ -83,7 +84,11 @@ function setupDbMock(existingRow: Record<string, unknown> | null): Spies {
         }),
       };
     }
-    return { where: jest.fn().mockReturnThis(), update: jest.fn(), insert: jest.fn() };
+    return {
+      where: jest.fn().mockReturnThis(),
+      update: jest.fn(),
+      insert: jest.fn(),
+    };
   });
 
   return { insertSpy, updateSubscriptionSpy, updateUsersSpy };
@@ -247,7 +252,11 @@ describe('updateStripeSubscriptions — does not log raw email or customer id', 
             insert: jest.fn(),
           };
         }
-        return { where: jest.fn().mockReturnThis(), update: jest.fn(), insert: jest.fn() };
+        return {
+          where: jest.fn().mockReturnThis(),
+          update: jest.fn(),
+          insert: jest.fn(),
+        };
       }),
     };
     mockDbInstance.table.mockImplementation(failingDb.table);
@@ -277,7 +286,11 @@ describe('mapWithConcurrency', () => {
       inFlight -= 1;
     };
 
-    await mapWithConcurrency(Array.from({ length: 20 }, (_, i) => i), 5, worker);
+    await mapWithConcurrency(
+      Array.from({ length: 20 }, (_, i) => i),
+      5,
+      worker
+    );
 
     expect(maxInFlight).toBeLessThanOrEqual(5);
   });

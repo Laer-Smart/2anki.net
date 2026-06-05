@@ -1,24 +1,38 @@
-import express from "express";
-import multer from "multer";
-import RequireAuthentication from "./middleware/RequireAuthentication";
-import ImageOcclusionController from "../controllers/ImageOcclusionController";
-import { IoDraftController } from "../controllers/IoDraftController";
-import { PhotoToFlashcardsController } from "../controllers/PhotoToFlashcardsController";
-import { CreateImageOcclusionDeckUseCase } from "../usecases/imageOcclusion/CreateImageOcclusionDeckUseCase";
-import { PhotoToFlashcardsUseCase } from "../usecases/imageOcclusion/PhotoToFlashcardsUseCase";
-import { IoDraftRepository } from "../data_layer/IoDraftRepository";
-import NotionRepository from "../data_layer/NotionRespository";
-import { EventsRepository } from "../data_layer/EventsRepository";
-import { getDatabase } from "../data_layer";
-import StorageHandler from "../lib/storage/StorageHandler";
+import express from 'express';
+import multer from 'multer';
+import RequireAuthentication from './middleware/RequireAuthentication';
+import ImageOcclusionController from '../controllers/ImageOcclusionController';
+import { IoDraftController } from '../controllers/IoDraftController';
+import { PhotoToFlashcardsController } from '../controllers/PhotoToFlashcardsController';
+import { CreateImageOcclusionDeckUseCase } from '../usecases/imageOcclusion/CreateImageOcclusionDeckUseCase';
+import { PhotoToFlashcardsUseCase } from '../usecases/imageOcclusion/PhotoToFlashcardsUseCase';
+import { IoDraftRepository } from '../data_layer/IoDraftRepository';
+import NotionRepository from '../data_layer/NotionRespository';
+import { EventsRepository } from '../data_layer/EventsRepository';
+import { getDatabase } from '../data_layer';
+import StorageHandler from '../lib/storage/StorageHandler';
 
 const ImageOcclusionRouter = () => {
   const router = express.Router();
-  const ALLOWED = ["image/jpeg","image/png","image/webp","image/gif"];
-  const upload = multer({ dest:"/tmp", fileFilter:(_req,file,cb)=>{ cb(null,ALLOWED.includes(file.mimetype)); }, limits:{fileSize:10*1024*1024} });
-  const oc = new ImageOcclusionController(new CreateImageOcclusionDeckUseCase());
-  const dc = new IoDraftController(new IoDraftRepository(getDatabase()), new StorageHandler(), new NotionRepository(getDatabase()));
-  const ptf = new PhotoToFlashcardsController(new PhotoToFlashcardsUseCase(new EventsRepository(getDatabase())));
+  const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  const upload = multer({
+    dest: '/tmp',
+    fileFilter: (_req, file, cb) => {
+      cb(null, ALLOWED.includes(file.mimetype));
+    },
+    limits: { fileSize: 10 * 1024 * 1024 },
+  });
+  const oc = new ImageOcclusionController(
+    new CreateImageOcclusionDeckUseCase()
+  );
+  const dc = new IoDraftController(
+    new IoDraftRepository(getDatabase()),
+    new StorageHandler(),
+    new NotionRepository(getDatabase())
+  );
+  const ptf = new PhotoToFlashcardsController(
+    new PhotoToFlashcardsUseCase(new EventsRepository(getDatabase()))
+  );
 
   /**
    * @swagger
@@ -42,7 +56,9 @@ const ImageOcclusionRouter = () => {
    *       200:
    *         description: Anki deck generated
    */
-  router.post("/api/image-occlusion", upload.array("images",20), (req,res)=>oc.create(req,res));
+  router.post('/api/image-occlusion', upload.array('images', 20), (req, res) =>
+    oc.create(req, res)
+  );
 
   /**
    * @swagger
@@ -69,7 +85,12 @@ const ImageOcclusionRouter = () => {
    *       401:
    *         description: Authentication required
    */
-  router.post("/api/image-occlusion/draft/image", RequireAuthentication, upload.single("image"), (req,res)=>dc.uploadImage(req,res));
+  router.post(
+    '/api/image-occlusion/draft/image',
+    RequireAuthentication,
+    upload.single('image'),
+    (req, res) => dc.uploadImage(req, res)
+  );
 
   /**
    * @swagger
@@ -86,7 +107,12 @@ const ImageOcclusionRouter = () => {
    *       401:
    *         description: Authentication required
    */
-  router.post("/api/image-occlusion/draft", RequireAuthentication, express.json(), (req,res)=>dc.create(req,res));
+  router.post(
+    '/api/image-occlusion/draft',
+    RequireAuthentication,
+    express.json(),
+    (req, res) => dc.create(req, res)
+  );
 
   /**
    * @swagger
@@ -109,7 +135,12 @@ const ImageOcclusionRouter = () => {
    *       401:
    *         description: Authentication required
    */
-  router.put("/api/image-occlusion/draft/:id", RequireAuthentication, express.json(), (req,res)=>dc.update(req,res));
+  router.put(
+    '/api/image-occlusion/draft/:id',
+    RequireAuthentication,
+    express.json(),
+    (req, res) => dc.update(req, res)
+  );
 
   /**
    * @swagger
@@ -126,7 +157,9 @@ const ImageOcclusionRouter = () => {
    *       401:
    *         description: Authentication required
    */
-  router.get("/api/image-occlusion/drafts", RequireAuthentication, (req,res)=>dc.list(req,res));
+  router.get('/api/image-occlusion/drafts', RequireAuthentication, (req, res) =>
+    dc.list(req, res)
+  );
 
   /**
    * @swagger
@@ -151,7 +184,11 @@ const ImageOcclusionRouter = () => {
    *       404:
    *         description: Draft not found
    */
-  router.get("/api/image-occlusion/draft/:id", RequireAuthentication, (req,res)=>dc.get(req,res));
+  router.get(
+    '/api/image-occlusion/draft/:id',
+    RequireAuthentication,
+    (req, res) => dc.get(req, res)
+  );
 
   /**
    * @swagger
@@ -174,7 +211,11 @@ const ImageOcclusionRouter = () => {
    *       401:
    *         description: Authentication required
    */
-  router.delete("/api/image-occlusion/draft/:id", RequireAuthentication, (req,res)=>dc.remove(req,res));
+  router.delete(
+    '/api/image-occlusion/draft/:id',
+    RequireAuthentication,
+    (req, res) => dc.remove(req, res)
+  );
 
   /**
    * @swagger
@@ -214,7 +255,12 @@ const ImageOcclusionRouter = () => {
    *       413:
    *         description: Image too large
    */
-  router.post("/api/image-occlusion/photo-to-deck", RequireAuthentication, express.json({ limit: "20mb" }), (req,res)=>ptf.create(req,res));
+  router.post(
+    '/api/image-occlusion/photo-to-deck',
+    RequireAuthentication,
+    express.json({ limit: '20mb' }),
+    (req, res) => ptf.create(req, res)
+  );
 
   /**
    * @swagger
@@ -244,7 +290,12 @@ const ImageOcclusionRouter = () => {
    *       401:
    *         description: Authentication required or Notion not connected
    */
-  router.post("/api/image-occlusion/draft/notion-image", RequireAuthentication, express.json(), (req,res)=>dc.importFromNotion(req,res));
+  router.post(
+    '/api/image-occlusion/draft/notion-image',
+    RequireAuthentication,
+    express.json(),
+    (req, res) => dc.importFromNotion(req, res)
+  );
 
   return router;
 };

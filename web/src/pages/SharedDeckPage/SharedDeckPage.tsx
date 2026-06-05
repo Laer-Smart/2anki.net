@@ -15,7 +15,9 @@ function truncateDeckName(name: string): string {
 function RevokedPage() {
   return (
     <div className={styles.errorPage}>
-      <p className={styles.errorTitle}>This link was turned off by the owner.</p>
+      <p className={styles.errorTitle}>
+        This link was turned off by the owner.
+      </p>
       <p className={styles.errorSub}>
         Ask them for a new one, or make your own deck on 2anki.net.
       </p>
@@ -112,7 +114,11 @@ export default function SharedDeckPage() {
         <a href="https://2anki.net" className={styles.wordmark}>
           2anki
         </a>
-        <span className={styles.deckName} title={firstDeckName} data-hj-suppress>
+        <span
+          className={styles.deckName}
+          title={firstDeckName}
+          data-hj-suppress
+        >
           {headerName}
         </span>
         <span className={styles.tagline}>Shared via 2anki</span>

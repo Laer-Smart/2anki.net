@@ -62,9 +62,7 @@ class UploadRepository implements IUploadRepository {
 
   getUploadsByOwner(owner: number): Promise<Uploads[]> {
     if (owner == null) {
-      console.warn(
-        '[UploadRepository] getUploadsByOwner called with no owner'
-      );
+      console.warn('[UploadRepository] getUploadsByOwner called with no owner');
       return Promise.resolve([]);
     }
     return this.database(this.table)

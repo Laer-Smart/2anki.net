@@ -66,8 +66,18 @@ describe('InMemoryAnonymousPassRepository', () => {
 
   it('insert is idempotent on same payment_intent_id', async () => {
     const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-    await repo.insert({ stripeSessionId: 'cs_idem', kind: '24h', expiresAt, paymentIntentId: 'pi_idem' });
-    await repo.insert({ stripeSessionId: 'cs_idem', kind: '24h', expiresAt, paymentIntentId: 'pi_idem' });
+    await repo.insert({
+      stripeSessionId: 'cs_idem',
+      kind: '24h',
+      expiresAt,
+      paymentIntentId: 'pi_idem',
+    });
+    await repo.insert({
+      stripeSessionId: 'cs_idem',
+      kind: '24h',
+      expiresAt,
+      paymentIntentId: 'pi_idem',
+    });
 
     const found = await repo.findBySessionId('cs_idem');
     expect(found).not.toBeNull();

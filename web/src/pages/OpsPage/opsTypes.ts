@@ -55,7 +55,11 @@ export interface OpsMetricsResponse {
   error_rate_by_service: OpsMetricsServiceErrorPoint[];
 }
 
-export const OPS_METRICS_WINDOWS: readonly OpsMetricsWindow[] = ['1h', '24h', '7d'];
+export const OPS_METRICS_WINDOWS: readonly OpsMetricsWindow[] = [
+  '1h',
+  '24h',
+  '7d',
+];
 
 export const SERVICE_COLORS: Record<string, string> = {
   notion: '#000000',

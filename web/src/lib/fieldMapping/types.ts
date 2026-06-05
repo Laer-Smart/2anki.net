@@ -32,9 +32,7 @@ export function parseAmbiguousColumnsPayload(
       columns: unknown[];
       suggested?: { frontField?: unknown; backField?: unknown };
     };
-    const columns = p.columns.filter(
-      (c): c is string => typeof c === 'string'
-    );
+    const columns = p.columns.filter((c): c is string => typeof c === 'string');
     const suggested = {
       frontField:
         typeof p.suggested?.frontField === 'string'

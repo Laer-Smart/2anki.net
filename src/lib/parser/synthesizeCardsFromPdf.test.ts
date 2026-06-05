@@ -66,10 +66,7 @@ describe('synthesizeCardsFromPdf', () => {
   });
 
   it('uses deck name as prefix in card tags', () => {
-    const pages: PdfPage[] = [
-      { text: 'Question?' },
-      { text: 'Answer.' },
-    ];
+    const pages: PdfPage[] = [{ text: 'Question?' }, { text: 'Answer.' }];
 
     const cards = synthesizeCardsFromPdf(pages, 'My Deck');
 

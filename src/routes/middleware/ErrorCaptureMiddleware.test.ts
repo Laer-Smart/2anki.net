@@ -6,7 +6,9 @@ import {
 } from '../../data_layer/ErrorEventRepository';
 import { FallbackErrorPayload } from '../../lib/errorFallback';
 
-function makeRepository(existsResult = false): IErrorEventRepository & { inserts: ErrorEventInsert[] } {
+function makeRepository(
+  existsResult = false
+): IErrorEventRepository & { inserts: ErrorEventInsert[] } {
   const inserts: ErrorEventInsert[] = [];
   return {
     inserts,
@@ -81,7 +83,12 @@ describe('makeErrorCaptureMiddleware', () => {
     const middleware = makeErrorCaptureMiddleware(repo);
     const next = makeNext();
 
-    await middleware(testError, makeReq('/api/upload', '10.0.0.1'), makeRes(), next);
+    await middleware(
+      testError,
+      makeReq('/api/upload', '10.0.0.1'),
+      makeRes(),
+      next
+    );
 
     expect(repo.inserts[0].ip_hash).not.toBe('10.0.0.1');
     expect(repo.inserts[0].ip_hash).toHaveLength(64);
@@ -140,11 +147,21 @@ describe('makeErrorCaptureMiddleware', () => {
 
   it('calls next(err) even when the repository throws', async () => {
     const brokenRepo: IErrorEventRepository = {
-      async insert() { throw new Error('DB down'); },
-      async existsWithinWindow() { throw new Error('DB down'); },
-      async listGroups() { return []; },
-      async countGroups() { return 0; },
-      async latestSamples() { return []; },
+      async insert() {
+        throw new Error('DB down');
+      },
+      async existsWithinWindow() {
+        throw new Error('DB down');
+      },
+      async listGroups() {
+        return [];
+      },
+      async countGroups() {
+        return 0;
+      },
+      async latestSamples() {
+        return [];
+      },
       async resolveGroup() {},
       async reopenGroup() {},
     };
@@ -160,16 +177,28 @@ describe('makeErrorCaptureMiddleware', () => {
 
   it('calls writeFallback with db-outage phase when the repository insert fails', async () => {
     const brokenRepo: IErrorEventRepository = {
-      async insert() { throw new Error('DB down'); },
-      async existsWithinWindow() { throw new Error('DB down'); },
-      async listGroups() { return []; },
-      async countGroups() { return 0; },
-      async latestSamples() { return []; },
+      async insert() {
+        throw new Error('DB down');
+      },
+      async existsWithinWindow() {
+        throw new Error('DB down');
+      },
+      async listGroups() {
+        return [];
+      },
+      async countGroups() {
+        return 0;
+      },
+      async latestSamples() {
+        return [];
+      },
       async resolveGroup() {},
       async reopenGroup() {},
     };
     const captured: FallbackErrorPayload[] = [];
-    const writeFallback = (payload: FallbackErrorPayload) => { captured.push(payload); };
+    const writeFallback = (payload: FallbackErrorPayload) => {
+      captured.push(payload);
+    };
     const middleware = makeErrorCaptureMiddleware(brokenRepo, writeFallback);
     const next = makeNext();
 

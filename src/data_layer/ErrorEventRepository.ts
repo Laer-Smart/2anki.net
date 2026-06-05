@@ -50,9 +50,16 @@ export interface ErrorSampleRow {
 
 export interface IErrorEventRepository {
   insert(row: ErrorEventInsert): Promise<void>;
-  existsWithinWindow(messageHash: string, ipHash: string, windowMs: number): Promise<boolean>;
+  existsWithinWindow(
+    messageHash: string,
+    ipHash: string,
+    windowMs: number
+  ): Promise<boolean>;
   listGroups(options: ListErrorGroupsOptions): Promise<ErrorGroupRow[]>;
-  countGroups(source?: 'web' | 'server', status?: ResolutionStatus): Promise<number>;
+  countGroups(
+    source?: 'web' | 'server',
+    status?: ResolutionStatus
+  ): Promise<number>;
   latestSamples(messageHashes: string[]): Promise<ErrorSampleRow[]>;
   resolveGroup(messageHash: string, resolvedBy: number | null): Promise<void>;
   reopenGroup(messageHash: string): Promise<void>;
@@ -96,7 +103,11 @@ export class ErrorEventRepository implements IErrorEventRepository {
     await this.database(this.table).insert(row);
   }
 
-  async existsWithinWindow(messageHash: string, ipHash: string, windowMs: number): Promise<boolean> {
+  async existsWithinWindow(
+    messageHash: string,
+    ipHash: string,
+    windowMs: number
+  ): Promise<boolean> {
     const since = new Date(Date.now() - windowMs);
     const result = await this.database(this.table)
       .where('message_hash', messageHash)
@@ -112,7 +123,11 @@ export class ErrorEventRepository implements IErrorEventRepository {
     const orderCol = sort === 'occurrences' ? 'occurrences' : 'last_seen';
 
     const query = this.database(`${this.table} as e`)
-      .leftJoin(`${this.resolutionsTable} as r`, 'e.message_hash', 'r.message_hash')
+      .leftJoin(
+        `${this.resolutionsTable} as r`,
+        'e.message_hash',
+        'r.message_hash'
+      )
       .select(
         'e.message_hash as message_hash',
         'e.message as message',
@@ -149,8 +164,14 @@ export class ErrorEventRepository implements IErrorEventRepository {
       source: r.source as string,
       user_id: r.user_id == null ? null : Number(r.user_id),
       user_agent: r.user_agent as string | null,
-      first_seen: r.first_seen instanceof Date ? r.first_seen.toISOString() : String(r.first_seen),
-      last_seen: r.last_seen instanceof Date ? r.last_seen.toISOString() : String(r.last_seen),
+      first_seen:
+        r.first_seen instanceof Date
+          ? r.first_seen.toISOString()
+          : String(r.first_seen),
+      last_seen:
+        r.last_seen instanceof Date
+          ? r.last_seen.toISOString()
+          : String(r.last_seen),
       occurrences: Number(r.occurrences),
       resolved: r.resolved === true,
       resolved_at:
@@ -162,9 +183,16 @@ export class ErrorEventRepository implements IErrorEventRepository {
     }));
   }
 
-  async countGroups(source?: 'web' | 'server', status?: ResolutionStatus): Promise<number> {
+  async countGroups(
+    source?: 'web' | 'server',
+    status?: ResolutionStatus
+  ): Promise<number> {
     const inner = this.database(`${this.table} as e`)
-      .leftJoin(`${this.resolutionsTable} as r`, 'e.message_hash', 'r.message_hash')
+      .leftJoin(
+        `${this.resolutionsTable} as r`,
+        'e.message_hash',
+        'r.message_hash'
+      )
       .select('e.message_hash')
       .groupBy('e.message_hash', 'e.message', 'e.source');
 
@@ -196,7 +224,10 @@ export class ErrorEventRepository implements IErrorEventRepository {
     }));
   }
 
-  async resolveGroup(messageHash: string, resolvedBy: number | null): Promise<void> {
+  async resolveGroup(
+    messageHash: string,
+    resolvedBy: number | null
+  ): Promise<void> {
     await this.database(this.resolutionsTable)
       .insert({
         message_hash: messageHash,
@@ -208,6 +239,8 @@ export class ErrorEventRepository implements IErrorEventRepository {
   }
 
   async reopenGroup(messageHash: string): Promise<void> {
-    await this.database(this.resolutionsTable).where('message_hash', messageHash).del();
+    await this.database(this.resolutionsTable)
+      .where('message_hash', messageHash)
+      .del();
   }
 }

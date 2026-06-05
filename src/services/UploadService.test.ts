@@ -38,8 +38,12 @@ jest.mock('../lib/parser/WorkSpace', () => {
   return {
     __esModule: true,
     default: jest.fn().mockImplementation(() => ({
-      get id() { return mockWorkspaceId; },
-      get location() { return mockWorkspaceLocation; },
+      get id() {
+        return mockWorkspaceId;
+      },
+      get location() {
+        return mockWorkspaceLocation;
+      },
       getFirstAPKG: () => Promise.resolve(mockFirstApkg),
     })),
   };
@@ -71,7 +75,9 @@ import JobRepository from '../data_layer/JobRepository';
 import UsersRepository from '../data_layer/UsersRepository';
 import Uploads from '../data_layer/public/Uploads';
 
-const MockGeneratePackagesUseCase = GeneratePackagesUseCase as jest.MockedClass<typeof GeneratePackagesUseCase>;
+const MockGeneratePackagesUseCase = GeneratePackagesUseCase as jest.MockedClass<
+  typeof GeneratePackagesUseCase
+>;
 
 function buildRepository(): IUploadRepository {
   return {
@@ -109,9 +115,18 @@ function buildUsersRepo(
   } as unknown as UsersRepository;
 }
 
-function buildRequest(overrides: Partial<express.Request> = {}): express.Request {
+function buildRequest(
+  overrides: Partial<express.Request> = {}
+): express.Request {
   return {
-    files: [{ originalname: 'study-notes.zip', mimetype: 'application/zip', size: 1024, path: '/tmp/study-notes.zip' }],
+    files: [
+      {
+        originalname: 'study-notes.zip',
+        mimetype: 'application/zip',
+        size: 1024,
+        path: '/tmp/study-notes.zip',
+      },
+    ],
     body: {},
     path: '/api/upload/file',
     ...overrides,
@@ -182,11 +197,18 @@ describe('UploadService.handleUpload — error paths', () => {
   });
 
   it('emits upload_started and conversion_failed sharing the anonymous_id from the cookie', async () => {
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: jest.fn().mockResolvedValue({ packages: [] }),
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({ packages: [] }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
 
-    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const req = buildRequest({
       cookies: { anon_id: 'anon-upload-1' },
     } as Partial<express.Request>);
@@ -208,11 +230,18 @@ describe('UploadService.handleUpload — error paths', () => {
   });
 
   it('attributes source=dropbox when the request lands on the dropbox path with no explicit source', async () => {
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: jest.fn().mockResolvedValue({ packages: [] }),
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({ packages: [] }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
 
-    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const req = buildRequest({
       path: '/api/upload/dropbox',
     } as Partial<express.Request>);
@@ -229,11 +258,18 @@ describe('UploadService.handleUpload — error paths', () => {
   });
 
   it('returns 400 JSON with empty_export code, spec copy and docs link when no packages are produced', async () => {
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: jest.fn().mockResolvedValue({ packages: [] }),
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({ packages: [] }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
 
-    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const req = buildRequest();
     const { res, capturedStatus, capturedJson } = buildResponse();
 
@@ -259,11 +295,18 @@ describe('UploadService.handleUpload — error paths', () => {
   });
 
   it('EmptyDeckError response body contains no HTML tags', async () => {
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: jest.fn().mockResolvedValue({ packages: [] }),
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({ packages: [] }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
 
-    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const req = buildRequest();
     const { res, capturedJson } = buildResponse();
 
@@ -274,15 +317,26 @@ describe('UploadService.handleUpload — error paths', () => {
   });
 
   it('uses in-memory uploaded file contents for empty-deck diagnostics when no disk path exists', async () => {
-    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const infoSpy = jest
+      .spyOn(console, 'info')
+      .mockImplementation(() => undefined);
+    const errorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
 
     try {
-      MockGeneratePackagesUseCase.mockImplementation(() => ({
-        execute: jest.fn().mockResolvedValue({ packages: [] }),
-      }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+      MockGeneratePackagesUseCase.mockImplementation(
+        () =>
+          ({
+            execute: jest.fn().mockResolvedValue({ packages: [] }),
+          }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+      );
 
-      const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
+      const service = new UploadService(
+        buildRepository(),
+        {} as JobRepository,
+        buildUsersRepo()
+      );
       const req = buildRequest({
         files: [
           {
@@ -301,7 +355,9 @@ describe('UploadService.handleUpload — error paths', () => {
 
       expect(capturedStatus()).toBe(400);
       expect(errorSpy).not.toHaveBeenCalled();
-      expect(infoSpy).toHaveBeenCalledWith(expect.stringContaining('<details>'));
+      expect(infoSpy).toHaveBeenCalledWith(
+        expect.stringContaining('<details>')
+      );
     } finally {
       infoSpy.mockRestore();
       errorSpy.mockRestore();
@@ -309,11 +365,18 @@ describe('UploadService.handleUpload — error paths', () => {
   });
 
   it('returns 400 JSON when deck serialization overflows (DeckTooLargeError path)', async () => {
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: jest.fn().mockRejectedValue(new DeckTooLargeError()),
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockRejectedValue(new DeckTooLargeError()),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
 
-    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const req = buildRequest();
     const { res, capturedStatus, capturedJson } = buildResponse();
 
@@ -328,11 +391,18 @@ describe('UploadService.handleUpload — error paths', () => {
   });
 
   it('DeckTooLargeError response body contains no stack trace or V8 internals', async () => {
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: jest.fn().mockRejectedValue(new DeckTooLargeError()),
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockRejectedValue(new DeckTooLargeError()),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
 
-    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const req = buildRequest();
     const { res, capturedJson } = buildResponse();
 
@@ -344,19 +414,31 @@ describe('UploadService.handleUpload — error paths', () => {
   });
 
   it('returns 400 with code docx_processing_failed when convertDocxToHTML throws a docx_parse_failed error', async () => {
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: jest.fn().mockRejectedValue(
-        new Error('docx_parse_failed: Could not find the body element: are you sure this is a docx file?')
-      ),
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest
+            .fn()
+            .mockRejectedValue(
+              new Error(
+                'docx_parse_failed: Could not find the body element: are you sure this is a docx file?'
+              )
+            ),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
 
-    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const req = buildRequest({
       files: [
         {
           fieldname: 'files',
           originalname: 'notes.docx',
-          mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          mimetype:
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
           size: 1024,
           path: '/tmp/notes.docx',
           encoding: '7bit',
@@ -380,11 +462,18 @@ describe('UploadService.handleUpload — error paths', () => {
 
   it('rejects .apkg upload with 400 and the "already an Anki deck" message before reaching GeneratePackagesUseCase', async () => {
     const executeMock = jest.fn();
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: executeMock,
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: executeMock,
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
 
-    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const req = buildRequest({
       files: [
         {
@@ -432,9 +521,12 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
   });
 
   function mockPackages(packages: Array<{ name: string; cardCount: number }>) {
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: jest.fn().mockResolvedValue({ packages }),
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({ packages }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
   }
 
   function responseWithRedirect() {
@@ -476,14 +568,20 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
       'conversion_failed',
       expect.objectContaining({
         userId: 42,
-        props: expect.objectContaining({ reason: 'monthly_limit', source: 'upload' }),
+        props: expect.objectContaining({
+          reason: 'monthly_limit',
+          source: 'upload',
+        }),
       })
     );
     expect(trackMock).toHaveBeenCalledWith(
       'paywall_shown',
       expect.objectContaining({
         userId: 42,
-        props: expect.objectContaining({ kind: 'card_count', source: 'upload' }),
+        props: expect.objectContaining({
+          kind: 'card_count',
+          source: 'upload',
+        }),
       })
     );
   });
@@ -536,7 +634,10 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
       expect.objectContaining({
         userId: null,
         anonymousId: null,
-        props: expect.objectContaining({ reason: 'anonymous_cap', source: 'upload' }),
+        props: expect.objectContaining({
+          reason: 'anonymous_cap',
+          source: 'upload',
+        }),
       })
     );
     expect(trackMock).toHaveBeenCalledWith(
@@ -690,11 +791,15 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
     fs.writeFileSync(apkgPath, apkgContents);
 
     let resolveUpload!: () => void;
-    const uploadCalled = new Promise<void>((r) => { resolveUpload = r; });
-    mockStorageUploadFile.mockImplementationOnce((_key: string, _buf: Buffer) => {
-      resolveUpload();
-      return Promise.resolve(undefined);
+    const uploadCalled = new Promise<void>((r) => {
+      resolveUpload = r;
     });
+    mockStorageUploadFile.mockImplementationOnce(
+      (_key: string, _buf: Buffer) => {
+        resolveUpload();
+        return Promise.resolve(undefined);
+      }
+    );
 
     const repo: IUploadRepository = {
       ...buildRepository(),
@@ -707,11 +812,21 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
       deleteJob: jest.fn().mockResolvedValue(undefined),
     } as unknown as JobRepository;
 
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: jest.fn().mockResolvedValue({
-        packages: [{ name: 'my-deck', cardCount: 5, mcqCount: 0, mcqSkippedCount: 0 }],
-      }),
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({
+            packages: [
+              {
+                name: 'my-deck',
+                cardCount: 5,
+                mcqCount: 0,
+                mcqSkippedCount: 0,
+              },
+            ],
+          }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
 
     const service = new UploadService(repo, jobRepository, buildUsersRepo());
     const req = buildRequest({ body: { 'claude-ai-flashcards': 'true' } });
@@ -723,7 +838,10 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
     await uploadCalled;
 
     expect(mockStorageUploadFile).toHaveBeenCalledTimes(1);
-    const [, uploadedBuffer] = mockStorageUploadFile.mock.calls[0] as [string, Buffer];
+    const [, uploadedBuffer] = mockStorageUploadFile.mock.calls[0] as [
+      string,
+      Buffer,
+    ];
     expect(Buffer.compare(uploadedBuffer, apkgContents)).toBe(0);
   });
 
@@ -740,7 +858,10 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
       resolveUpdate();
       return Promise.resolve([]);
     });
-    const repo: IUploadRepository = { ...buildRepository(), update: updateMock };
+    const repo: IUploadRepository = {
+      ...buildRepository(),
+      update: updateMock,
+    };
     const jobRepository = {
       create: jest.fn().mockResolvedValue(undefined),
       updateJobStatus: jest.fn().mockResolvedValue(undefined),
@@ -748,14 +869,26 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
       deleteJob: jest.fn().mockResolvedValue(undefined),
     } as unknown as JobRepository;
 
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: jest.fn().mockResolvedValue({
-        packages: [{ name: 'my-deck', cardCount: 5, mcqCount: 0, mcqSkippedCount: 0 }],
-      }),
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({
+            packages: [
+              {
+                name: 'my-deck',
+                cardCount: 5,
+                mcqCount: 0,
+                mcqSkippedCount: 0,
+              },
+            ],
+          }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
 
     const service = new UploadService(repo, jobRepository, buildUsersRepo());
-    const req = buildRequest({ body: { 'claude-ai-flashcards': 'true', ...body } });
+    const req = buildRequest({
+      body: { 'claude-ai-flashcards': 'true', ...body },
+    });
     const { res } = buildResponse();
     (res.locals as Record<string, unknown>).owner = 42;
 
@@ -774,13 +907,17 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
   });
 
   it('persists null when the source is not on the allowlist', async () => {
-    const updateMock = await runAsyncUploadWithBody({ source: 'mobile-app-v2' });
+    const updateMock = await runAsyncUploadWithBody({
+      source: 'mobile-app-v2',
+    });
 
     expect(updateMock).toHaveBeenCalledTimes(1);
     expect(updateMock.mock.calls[0][4]).toBeNull();
   });
 
-  async function runAsyncUploadThatRejects(rejection: unknown): Promise<jest.Mock> {
+  async function runAsyncUploadThatRejects(
+    rejection: unknown
+  ): Promise<jest.Mock> {
     let resolveFailed!: () => void;
     const failedRecorded = new Promise<void>((r) => {
       resolveFailed = r;
@@ -800,11 +937,18 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
       deleteJob: jest.fn().mockResolvedValue(undefined),
     } as unknown as JobRepository;
 
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: jest.fn().mockRejectedValue(rejection),
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockRejectedValue(rejection),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
 
-    const service = new UploadService(buildRepository(), jobRepository, buildUsersRepo());
+    const service = new UploadService(
+      buildRepository(),
+      jobRepository,
+      buildUsersRepo()
+    );
     const req = buildRequest({ body: { 'claude-ai-flashcards': 'true' } });
     const { res } = buildResponse();
     (res.locals as Record<string, unknown>).owner = 42;
@@ -817,7 +961,9 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
   it('records a non-empty failure reason when the worker rejects with an empty-message error', async () => {
     const updateJobStatusMock = await runAsyncUploadThatRejects(new Error(''));
 
-    const failedCall = updateJobStatusMock.mock.calls.find((call) => call[2] === 'failed');
+    const failedCall = updateJobStatusMock.mock.calls.find(
+      (call) => call[2] === 'failed'
+    );
     expect(failedCall).toBeDefined();
     const reason = failedCall?.[3] as string;
     expect(typeof reason).toBe('string');
@@ -825,9 +971,13 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
   });
 
   it('records the designed empty-deck reason when the worker rejects with EmptyDeckError', async () => {
-    const updateJobStatusMock = await runAsyncUploadThatRejects(new EmptyDeckError());
+    const updateJobStatusMock = await runAsyncUploadThatRejects(
+      new EmptyDeckError()
+    );
 
-    const failedCall = updateJobStatusMock.mock.calls.find((call) => call[2] === 'failed');
+    const failedCall = updateJobStatusMock.mock.calls.find(
+      (call) => call[2] === 'failed'
+    );
     expect(failedCall).toBeDefined();
     expect(failedCall?.[3]).toMatch(/^No cards in this deck yet\./);
   });
@@ -861,17 +1011,34 @@ describe('UploadService.handleUpload — multi-deck batch', () => {
   });
 
   it('returns 200 JSON listing every deck instead of redirecting to /download', async () => {
-    MockGeneratePackagesUseCase.mockImplementation(() => ({
-      execute: jest.fn().mockResolvedValue({
-        packages: [
-          { name: 'Biology 101', cardCount: 3, mcqCount: 0, mcqSkippedCount: 0 },
-          { name: 'Chemistry', cardCount: 5, mcqCount: 0, mcqSkippedCount: 0 },
-        ],
-        warnings: [],
-      }),
-    }) as unknown as InstanceType<typeof GeneratePackagesUseCase>);
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({
+            packages: [
+              {
+                name: 'Biology 101',
+                cardCount: 3,
+                mcqCount: 0,
+                mcqSkippedCount: 0,
+              },
+              {
+                name: 'Chemistry',
+                cardCount: 5,
+                mcqCount: 0,
+                mcqSkippedCount: 0,
+              },
+            ],
+            warnings: [],
+          }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
 
-    const service = new UploadService(buildRepository(), {} as JobRepository, buildUsersRepo());
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
     const req = buildRequest();
     const { res, capturedStatus, capturedJson } = buildResponse();
 
@@ -906,7 +1073,9 @@ describe('UploadService.handleUpload — multi-deck batch', () => {
 
     expect(trackMock).toHaveBeenCalledWith(
       'conversion_succeeded',
-      expect.objectContaining({ props: expect.objectContaining({ source: 'upload' }) })
+      expect.objectContaining({
+        props: expect.objectContaining({ source: 'upload' }),
+      })
     );
   });
 });
@@ -918,7 +1087,9 @@ describe('UploadService.restartClaudeJob — concurrent restart guard', () => {
   let resolveDeckInfo: (() => void) | null = null;
 
   beforeAll(() => {
-    workspaceBase = fs.mkdtempSync(path.join(os.tmpdir(), 'restart-guard-base-'));
+    workspaceBase = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'restart-guard-base-')
+    );
     process.env.WORKSPACE_BASE = workspaceBase;
   });
 
@@ -948,7 +1119,10 @@ describe('UploadService.restartClaudeJob — concurrent restart guard', () => {
     });
     const workspaceDir = path.join(workspaceBase, 'job-obj-1');
     fs.mkdirSync(workspaceDir, { recursive: true });
-    fs.writeFileSync(path.join(workspaceDir, 'page.html'), '<html><body>Q/A</body></html>');
+    fs.writeFileSync(
+      path.join(workspaceDir, 'page.html'),
+      '<html><body>Q/A</body></html>'
+    );
   });
 
   afterEach(async () => {
@@ -957,7 +1131,10 @@ describe('UploadService.restartClaudeJob — concurrent restart guard', () => {
   });
 
   function buildRestartRequest() {
-    return { params: { jobId: 'job-obj-1' }, body: {} } as unknown as express.Request;
+    return {
+      params: { jobId: 'job-obj-1' },
+      body: {},
+    } as unknown as express.Request;
   }
 
   it('fires exactly one worker when two restart requests race on the same done job', async () => {
@@ -997,7 +1174,10 @@ describe('UploadService.restartClaudeJob — concurrent restart guard', () => {
 
     expect(mockGenerateDeckInfo).toHaveBeenCalledTimes(1);
 
-    const statuses = [firstResponse.capturedStatus(), secondResponse.capturedStatus()];
+    const statuses = [
+      firstResponse.capturedStatus(),
+      secondResponse.capturedStatus(),
+    ];
     expect(statuses).toContain(202);
     expect(statuses).toContain(409);
   });

@@ -8,7 +8,10 @@ describe('highlightCode', () => {
   });
 
   it('escapes plaintext safely when the language is unknown', () => {
-    const out = highlightCode('<script>alert(1)</script>', 'totally-not-a-language');
+    const out = highlightCode(
+      '<script>alert(1)</script>',
+      'totally-not-a-language'
+    );
     expect(out).toBe('&lt;script&gt;alert(1)&lt;/script&gt;');
   });
 

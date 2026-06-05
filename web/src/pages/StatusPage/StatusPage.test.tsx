@@ -25,13 +25,21 @@ describe('StatusPage', () => {
 
   it('shows "Checking services" while loading', () => {
     globalThis.fetch = vi.fn().mockReturnValue(new Promise(() => {}));
-    render(<MemoryRouter><StatusPage /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <StatusPage />
+      </MemoryRouter>
+    );
     expect(screen.getByText(/checking services/i)).toBeInTheDocument();
   });
 
   it('renders all four service rows on success', async () => {
     setupFetch(mockStatus);
-    render(<MemoryRouter><StatusPage /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <StatusPage />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       expect(screen.getByText('API')).toBeInTheDocument();
       expect(screen.getByText('Database')).toBeInTheDocument();
@@ -42,10 +50,16 @@ describe('StatusPage', () => {
 
   it('shows API-unreachable fallback when fetch rejects', async () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new Error('network'));
-    render(<MemoryRouter><StatusPage /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <StatusPage />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       expect(screen.getByText(/API unreachable/i)).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /r\/notion2anki/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('link', { name: /r\/notion2anki/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -53,13 +67,24 @@ describe('StatusPage', () => {
     const withIncident = {
       ...mockStatus,
       incidents: [
-        { id: '1', start: '2026-05-29T10:00:00Z', end: '2026-05-29T11:00:00Z', summary: 'Conversion service degraded' },
+        {
+          id: '1',
+          start: '2026-05-29T10:00:00Z',
+          end: '2026-05-29T11:00:00Z',
+          summary: 'Conversion service degraded',
+        },
       ],
     };
     setupFetch(withIncident);
-    render(<MemoryRouter><StatusPage /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <StatusPage />
+      </MemoryRouter>
+    );
     await waitFor(() => {
-      expect(screen.getByText('Conversion service degraded')).toBeInTheDocument();
+      expect(
+        screen.getByText('Conversion service degraded')
+      ).toBeInTheDocument();
     });
   });
 
@@ -67,11 +92,20 @@ describe('StatusPage', () => {
     const withOpenIncident = {
       ...mockStatus,
       incidents: [
-        { id: '1', start: '2026-05-29T10:00:00Z', end: null, summary: 'Upload delays' },
+        {
+          id: '1',
+          start: '2026-05-29T10:00:00Z',
+          end: null,
+          summary: 'Upload delays',
+        },
       ],
     };
     setupFetch(withOpenIncident);
-    render(<MemoryRouter><StatusPage /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <StatusPage />
+      </MemoryRouter>
+    );
     await waitFor(() => {
       expect(screen.getByText('ongoing')).toBeInTheDocument();
     });

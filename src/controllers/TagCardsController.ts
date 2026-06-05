@@ -18,7 +18,8 @@ function parseInputCard(item: unknown): TagCardInput | null {
 
 function parseConversationId(raw: unknown): number | null {
   if (raw == null) return null;
-  if (typeof raw === 'number' && Number.isSafeInteger(raw) && raw > 0) return raw;
+  if (typeof raw === 'number' && Number.isSafeInteger(raw) && raw > 0)
+    return raw;
   if (typeof raw === 'string' && /^[1-9]\d*$/.test(raw)) {
     const n = Number(raw);
     return Number.isSafeInteger(n) ? n : null;

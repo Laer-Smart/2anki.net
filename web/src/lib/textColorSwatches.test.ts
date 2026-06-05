@@ -20,7 +20,9 @@ describe('TEXT_COLOR_SWATCHES', () => {
   });
 
   it('gives every non-default swatch a 6-digit hex colour', () => {
-    const colours = TEXT_COLOR_SWATCHES.filter((swatch) => swatch.key !== 'default');
+    const colours = TEXT_COLOR_SWATCHES.filter(
+      (swatch) => swatch.key !== 'default'
+    );
     for (const swatch of colours) {
       expect(swatch.hex).toMatch(/^#[0-9a-f]{6}$/);
     }

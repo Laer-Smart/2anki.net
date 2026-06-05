@@ -36,22 +36,28 @@ interface FailedProps {
   onMapColumns: () => void;
 }
 
-type ConversionResultProps =
-  | ProcessingProps
-  | PaywalledProps
-  | FailedProps;
+type ConversionResultProps = ProcessingProps | PaywalledProps | FailedProps;
 
-function PaywalledVariant({ limit, email }: Omit<PaywalledProps, 'variant' | 'title'>) {
+function PaywalledVariant({
+  limit,
+  email,
+}: Omit<PaywalledProps, 'variant' | 'title'>) {
   const upgradeHref = `${getSubscribeLink(email)}&ref=downloads-paywall`;
 
   return (
     <div className={styles.paywalled}>
-      <p className={styles.paywallHeadline}>Your monthly limit: {limit} cards</p>
+      <p className={styles.paywallHeadline}>
+        Your monthly limit: {limit} cards
+      </p>
       <p className={styles.paywallBody}>
-        This conversion didn&apos;t finish. Upgrade to keep converting — no cap, no wait.
+        This conversion didn&apos;t finish. Upgrade to keep converting — no cap,
+        no wait.
       </p>
       <div className={styles.paywallActions}>
-        <a href={upgradeHref} className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}>
+        <a
+          href={upgradeHref}
+          className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
+        >
           Upgrade to Unlimited
         </a>
         <Link to="/pricing" className={styles.seeAllPlans}>
@@ -62,7 +68,11 @@ function PaywalledVariant({ limit, email }: Omit<PaywalledProps, 'variant' | 'ti
   );
 }
 
-function FailedVariant({ failureReason, source, onMapColumns }: Omit<FailedProps, 'variant' | 'title'>) {
+function FailedVariant({
+  failureReason,
+  source,
+  onMapColumns,
+}: Omit<FailedProps, 'variant' | 'title'>) {
   if (source === 'notion' && failureReason === NOTION_TOKEN_EXPIRED_REASON) {
     return (
       <div>
@@ -92,7 +102,8 @@ function FailedVariant({ failureReason, source, onMapColumns }: Omit<FailedProps
     return (
       <div>
         <p>
-          This database has more than two columns. Pick which column should be the front and back of each card.
+          This database has more than two columns. Pick which column should be
+          the front and back of each card.
         </p>
         <button
           type="button"
@@ -117,7 +128,9 @@ function FailedVariant({ failureReason, source, onMapColumns }: Omit<FailedProps
   return (
     <>
       <p>
-        {friendly.detail ? `${friendly.title} ${friendly.detail}` : friendly.title}
+        {friendly.detail
+          ? `${friendly.title} ${friendly.detail}`
+          : friendly.title}
       </p>
       <p>
         Something looks off? <Link to="/status">Check status.</Link>
@@ -132,12 +145,7 @@ export function ConversionResult(props: Readonly<ConversionResultProps>) {
   }
 
   if (props.variant === 'paywalled') {
-    return (
-      <PaywalledVariant
-        limit={props.limit}
-        email={props.email}
-      />
-    );
+    return <PaywalledVariant limit={props.limit} email={props.email} />;
   }
 
   return (

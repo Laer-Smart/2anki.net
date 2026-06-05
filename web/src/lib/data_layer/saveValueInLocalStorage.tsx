@@ -1,6 +1,10 @@
 import { scheduleSync } from './userPreferencesSync';
 
-export const saveValueInLocalStorage = (key: string, value: string, pageId: string | null) => {
+export const saveValueInLocalStorage = (
+  key: string,
+  value: string,
+  pageId: string | null
+) => {
   if (pageId) {
     return;
   }

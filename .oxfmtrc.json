@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 80,
+  "tabWidth": 2,
+  "singleQuote": true,
+  "jsxSingleQuote": false,
+  "trailingComma": "es5",
+  "semi": true,
+  "arrowParens": "always",
+  "bracketSpacing": true,
+  "endOfLine": "lf",
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/data_layer/public/**",
+    "**/templates/**",
+    "**/fixtures/**",
+    "**/generated/**",
+    "**/schemas/**",
+    "**/react-app-env.d.ts",
+    "**/*.html",
+    "**/*.min.js"
+  ]
+}

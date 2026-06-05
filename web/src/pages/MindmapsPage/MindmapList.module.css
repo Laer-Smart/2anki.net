@@ -10,7 +10,9 @@
   cursor: pointer;
   width: 100%;
   text-align: left;
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .mapRow:hover,
@@ -61,7 +63,9 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
   font-size: var(--text-sm);
 }
 

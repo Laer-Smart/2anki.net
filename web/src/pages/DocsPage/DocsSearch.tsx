@@ -48,7 +48,7 @@ export function DocsSearch({ isOpen, onClose }: Readonly<DocsSearchProps>) {
   const trimmed = query.trim();
   const results = useMemo<SearchResult[]>(
     () => (trimmed ? searchDocs(query) : popularResults()),
-    [query, trimmed],
+    [query, trimmed]
   );
 
   useEffect(() => {
@@ -82,10 +82,7 @@ export function DocsSearch({ isOpen, onClose }: Readonly<DocsSearchProps>) {
     onClose();
   };
 
-  const onResultClick = (
-    event: React.MouseEvent,
-    result: SearchResult,
-  ) => {
+  const onResultClick = (event: React.MouseEvent, result: SearchResult) => {
     if (
       event.metaKey ||
       event.ctrlKey ||
@@ -170,7 +167,8 @@ export function DocsSearch({ isOpen, onClose }: Readonly<DocsSearchProps>) {
         {noResults ? (
           <div className={styles.searchEmpty}>
             <p className={styles.searchEmptyTitle}>
-              No docs match <span className={styles.searchQuery}>{trimmed}</span>
+              No docs match{' '}
+              <span className={styles.searchQuery}>{trimmed}</span>
             </p>
             <p className={styles.searchEmptyBody}>
               Check the spelling, or{' '}
@@ -213,7 +211,9 @@ export function DocsSearch({ isOpen, onClose }: Readonly<DocsSearchProps>) {
                   <Highlighted text={result.title} terms={terms} />
                 </span>
                 <span className={styles.searchResultMeta}>
-                  <span className={styles.searchResultGroup}>{result.group}</span>
+                  <span className={styles.searchResultGroup}>
+                    {result.group}
+                  </span>
                   {result.snippet && (
                     <>
                       <span aria-hidden="true"> · </span>

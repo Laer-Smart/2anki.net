@@ -192,7 +192,9 @@ describe('ImportApkgToNotionUseCase', () => {
       (c) => c[2] === 'failed'
     );
     expect(failCall).toBeDefined();
-    expect(failCall![3]).toBe('Import failed. Please try again or contact support.');
+    expect(failCall![3]).toBe(
+      'Import failed. Please try again or contact support.'
+    );
   });
 
   function makeNotionError(code: string, status: number): APIResponseError {
@@ -213,10 +215,20 @@ describe('ImportApkgToNotionUseCase', () => {
       makeNotionError(APIErrorCode.Unauthorized, 401)
     );
 
-    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+    await useCase.execute(
+      Buffer.from('fake'),
+      'parent-page',
+      'user-1',
+      notionApi,
+      'job-1'
+    );
 
-    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
-    expect(failCall![3]).toBe('Notion sign-in expired. Reconnect Notion and try again.');
+    const failCall = jobRepository.updateJobStatus.mock.calls.find(
+      (c) => c[2] === 'failed'
+    );
+    expect(failCall![3]).toBe(
+      'Notion sign-in expired. Reconnect Notion and try again.'
+    );
   });
 
   it('surfaces a permissions message on Notion 403 restricted resource', async () => {
@@ -225,10 +237,20 @@ describe('ImportApkgToNotionUseCase', () => {
       makeNotionError(APIErrorCode.RestrictedResource, 403)
     );
 
-    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+    await useCase.execute(
+      Buffer.from('fake'),
+      'parent-page',
+      'user-1',
+      notionApi,
+      'job-1'
+    );
 
-    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
-    expect(failCall![3]).toBe("2anki can't write to this Notion page. Share it with the 2anki integration.");
+    const failCall = jobRepository.updateJobStatus.mock.calls.find(
+      (c) => c[2] === 'failed'
+    );
+    expect(failCall![3]).toBe(
+      "2anki can't write to this Notion page. Share it with the 2anki integration."
+    );
   });
 
   it('surfaces a page-deleted message on Notion 404 object not found', async () => {
@@ -237,10 +259,20 @@ describe('ImportApkgToNotionUseCase', () => {
       makeNotionError(APIErrorCode.ObjectNotFound, 404)
     );
 
-    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+    await useCase.execute(
+      Buffer.from('fake'),
+      'parent-page',
+      'user-1',
+      notionApi,
+      'job-1'
+    );
 
-    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
-    expect(failCall![3]).toBe('The Notion page is gone. Pick a different destination page.');
+    const failCall = jobRepository.updateJobStatus.mock.calls.find(
+      (c) => c[2] === 'failed'
+    );
+    expect(failCall![3]).toBe(
+      'The Notion page is gone. Pick a different destination page.'
+    );
   });
 
   it('surfaces a rate-limit message on Notion 429', async () => {
@@ -249,10 +281,20 @@ describe('ImportApkgToNotionUseCase', () => {
       makeNotionError(APIErrorCode.RateLimited, 429)
     );
 
-    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+    await useCase.execute(
+      Buffer.from('fake'),
+      'parent-page',
+      'user-1',
+      notionApi,
+      'job-1'
+    );
 
-    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
-    expect(failCall![3]).toBe('Notion is rate-limiting this account. Try again in a minute.');
+    const failCall = jobRepository.updateJobStatus.mock.calls.find(
+      (c) => c[2] === 'failed'
+    );
+    expect(failCall![3]).toBe(
+      'Notion is rate-limiting this account. Try again in a minute.'
+    );
   });
 
   it.each([
@@ -263,30 +305,65 @@ describe('ImportApkgToNotionUseCase', () => {
     previewService.parse.mockResolvedValue(makeParsed(1));
     notionApi.createPage.mockRejectedValue(makeNotionError(code, status));
 
-    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+    await useCase.execute(
+      Buffer.from('fake'),
+      'parent-page',
+      'user-1',
+      notionApi,
+      'job-1'
+    );
 
-    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
-    expect(failCall![3]).toBe('Notion is having issues. Try again in a few minutes.');
+    const failCall = jobRepository.updateJobStatus.mock.calls.find(
+      (c) => c[2] === 'failed'
+    );
+    expect(failCall![3]).toBe(
+      'Notion is having issues. Try again in a few minutes.'
+    );
   });
 
   it('surfaces a parse-error message when previewService.parse throws a sqlite error', async () => {
-    const sqliteError = Object.assign(new Error('file is not a database'), { code: 'SQLITE_NOTADB' });
+    const sqliteError = Object.assign(new Error('file is not a database'), {
+      code: 'SQLITE_NOTADB',
+    });
     previewService.parse.mockRejectedValue(sqliteError);
 
-    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+    await useCase.execute(
+      Buffer.from('fake'),
+      'parent-page',
+      'user-1',
+      notionApi,
+      'job-1'
+    );
 
-    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
-    expect(failCall![3]).toBe("Couldn't read this .apkg file. Export it again from Anki.");
+    const failCall = jobRepository.updateJobStatus.mock.calls.find(
+      (c) => c[2] === 'failed'
+    );
+    expect(failCall![3]).toBe(
+      "Couldn't read this .apkg file. Export it again from Anki."
+    );
   });
 
   it('surfaces a parse-error message when previewService.parse throws a generic parse error', async () => {
-    const parseError = Object.assign(new Error('No Anki collection found in zip'), { code: 'SQLITE_CANTOPEN' });
+    const parseError = Object.assign(
+      new Error('No Anki collection found in zip'),
+      { code: 'SQLITE_CANTOPEN' }
+    );
     previewService.parse.mockRejectedValue(parseError);
 
-    await useCase.execute(Buffer.from('fake'), 'parent-page', 'user-1', notionApi, 'job-1');
+    await useCase.execute(
+      Buffer.from('fake'),
+      'parent-page',
+      'user-1',
+      notionApi,
+      'job-1'
+    );
 
-    const failCall = jobRepository.updateJobStatus.mock.calls.find((c) => c[2] === 'failed');
-    expect(failCall![3]).toBe("Couldn't read this .apkg file. Export it again from Anki.");
+    const failCall = jobRepository.updateJobStatus.mock.calls.find(
+      (c) => c[2] === 'failed'
+    );
+    expect(failCall![3]).toBe(
+      "Couldn't read this .apkg file. Export it again from Anki."
+    );
   });
 
   it('handles sub-decks by creating nested pages', async () => {

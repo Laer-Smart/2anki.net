@@ -183,9 +183,10 @@ export function walkEpub(
     opfPath = findContainerOpfPath(decode(containerEntry));
   }
   if (opfPath == null) {
-    opfPath = Object.keys(entries).find((name) =>
-      name.toLowerCase().endsWith('.opf')
-    ) ?? null;
+    opfPath =
+      Object.keys(entries).find((name) =>
+        name.toLowerCase().endsWith('.opf')
+      ) ?? null;
   }
 
   let book = '';
@@ -203,9 +204,11 @@ export function walkEpub(
   for (const [name, bytes] of Object.entries(entries)) {
     const lower = name.toLowerCase();
     if (
-      !(lower.endsWith('.xhtml') ||
+      !(
+        lower.endsWith('.xhtml') ||
         lower.endsWith('.html') ||
-        lower.endsWith('.htm'))
+        lower.endsWith('.htm')
+      )
     ) {
       continue;
     }

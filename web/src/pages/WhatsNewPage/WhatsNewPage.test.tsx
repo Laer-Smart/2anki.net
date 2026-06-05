@@ -9,8 +9,18 @@ vi.mock('../../components/FeedbackWidget/FeedbackWidget', () => ({
 
 vi.mock('./changelog/index', () => ({
   changelog: [
-    { id: '2026-05-21-shipped-one', date: '2026-05-21', type: 'feature', title: 'Shipped one' },
-    { id: '2026-05-21-shipped-two', date: '2026-05-21', type: 'fix', title: 'Shipped two' },
+    {
+      id: '2026-05-21-shipped-one',
+      date: '2026-05-21',
+      type: 'feature',
+      title: 'Shipped one',
+    },
+    {
+      id: '2026-05-21-shipped-two',
+      date: '2026-05-21',
+      type: 'fix',
+      title: 'Shipped two',
+    },
   ],
 }));
 
@@ -39,7 +49,10 @@ describe('WhatsNewPage', () => {
   it('report an issue link points to github new issue and opens in new tab', async () => {
     await renderPage();
     const link = screen.getByRole('link', { name: /Report an issue/ });
-    expect(link).toHaveAttribute('href', 'https://github.com/2anki/server/issues/new');
+    expect(link).toHaveAttribute(
+      'href',
+      'https://github.com/2anki/server/issues/new'
+    );
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });

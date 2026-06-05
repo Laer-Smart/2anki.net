@@ -64,7 +64,9 @@ export async function convertAnkiAppDecksFromZip(
     );
     packages.push(new Package(result.deckName, result.cardCount, 0, 0));
     if (result.skippedMediaOnlyCount > 0) {
-      warnings.push(describeSkippedMediaOnlyCards(result.skippedMediaOnlyCount));
+      warnings.push(
+        describeSkippedMediaOnlyCards(result.skippedMediaOnlyCount)
+      );
     }
   }
 

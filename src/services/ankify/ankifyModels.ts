@@ -78,30 +78,32 @@ mark { background: rgba(255, 212, 0, 0.25); color: inherit; padding: 0 2px; bord
 
 const ANKIFY_CARD_STYLING = `${NOTION_STYLE}\n\n${ANKIFY_CARD_OVERRIDES}`;
 
-export const ankifyBasicCreateModelParams = (): AnkiConnectCreateModelParams => ({
-  modelName: ANKIFY_BASIC_MODEL,
-  inOrderFields: [...ANKIFY_BASIC_FIELDS],
-  css: ANKIFY_CARD_STYLING,
-  isCloze: false,
-  cardTemplates: [
-    {
-      Name: 'Card 1',
-      Front: '<span class="front-text-pre">{{Front}}</span>',
-      Back: '<span class="front-text-post">{{Front}}</span><hr id="answer"><span class="back-text">{{Back}}</span>',
-    },
-  ],
-});
+export const ankifyBasicCreateModelParams =
+  (): AnkiConnectCreateModelParams => ({
+    modelName: ANKIFY_BASIC_MODEL,
+    inOrderFields: [...ANKIFY_BASIC_FIELDS],
+    css: ANKIFY_CARD_STYLING,
+    isCloze: false,
+    cardTemplates: [
+      {
+        Name: 'Card 1',
+        Front: '<span class="front-text-pre">{{Front}}</span>',
+        Back: '<span class="front-text-post">{{Front}}</span><hr id="answer"><span class="back-text">{{Back}}</span>',
+      },
+    ],
+  });
 
-export const ankifyClozeCreateModelParams = (): AnkiConnectCreateModelParams => ({
-  modelName: ANKIFY_CLOZE_MODEL,
-  inOrderFields: [...ANKIFY_CLOZE_FIELDS],
-  css: ANKIFY_CARD_STYLING,
-  isCloze: true,
-  cardTemplates: [
-    {
-      Name: 'Cloze',
-      Front: '{{cloze:Text}}',
-      Back: '{{cloze:Text}}<hr id="answer"><span class="extra">{{Back Extra}}</span>',
-    },
-  ],
-});
+export const ankifyClozeCreateModelParams =
+  (): AnkiConnectCreateModelParams => ({
+    modelName: ANKIFY_CLOZE_MODEL,
+    inOrderFields: [...ANKIFY_CLOZE_FIELDS],
+    css: ANKIFY_CARD_STYLING,
+    isCloze: true,
+    cardTemplates: [
+      {
+        Name: 'Cloze',
+        Front: '{{cloze:Text}}',
+        Back: '{{cloze:Text}}<hr id="answer"><span class="extra">{{Back Extra}}</span>',
+      },
+    ],
+  });

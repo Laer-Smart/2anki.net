@@ -1,10 +1,14 @@
 import handleOverlappingCloze from './handleOverlappingCloze';
 
-const countClozes = (body: string) =>
-  (body.match(/\{\{c1::/g) || []).length;
+const countClozes = (body: string) => (body.match(/\{\{c1::/g) || []).length;
 
 describe('handleOverlappingCloze', () => {
-  const items = ['I pledge allegiance', 'to the flag', 'of the United States', 'of America'];
+  const items = [
+    'I pledge allegiance',
+    'to the flag',
+    'of the United States',
+    'of America',
+  ];
 
   describe('show-all', () => {
     it('returns one body per item', () => {
@@ -78,7 +82,10 @@ describe('handleOverlappingCloze', () => {
     });
 
     it('skips blank items when building bodies', () => {
-      const bodies = handleOverlappingCloze(['first', '   ', 'second'], 'show-all');
+      const bodies = handleOverlappingCloze(
+        ['first', '   ', 'second'],
+        'show-all'
+      );
       expect(bodies).toHaveLength(2);
       expect(bodies[0]).toContain('{{c1::first}}');
       expect(bodies[1]).toContain('{{c1::second}}');

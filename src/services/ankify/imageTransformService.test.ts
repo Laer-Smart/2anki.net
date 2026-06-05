@@ -121,9 +121,7 @@ describe('transformApkgWithImages', () => {
 
     expect(result.notes).toHaveLength(1);
     expect(result.notes[0].fields[1]).toBe('a small carnivorous mammal');
-    expect(result.failures).toEqual([
-      { guid: 'bang', reason: 'network down' },
-    ]);
+    expect(result.failures).toEqual([{ guid: 'bang', reason: 'network down' }]);
   });
 
   it('deduplicates identical filenames across notes', async () => {

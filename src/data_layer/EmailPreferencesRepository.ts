@@ -36,9 +36,7 @@ export class EmailPreferencesRepository implements IEmailPreferencesRepository {
   }
 }
 
-export class InMemoryEmailPreferencesRepository
-  implements IEmailPreferencesRepository
-{
+export class InMemoryEmailPreferencesRepository implements IEmailPreferencesRepository {
   private readonly prefs = new Map<number, boolean>();
 
   async isOptedOut(userId: number): Promise<boolean> {

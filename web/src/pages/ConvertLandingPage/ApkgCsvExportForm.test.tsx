@@ -33,11 +33,13 @@ describe('ApkgCsvExportForm', () => {
   });
 
   it('rejects a non-.apkg file with an inline error and never calls fetch', async () => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(null, { status: 200 })
-    );
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response(null, { status: 200 }));
     render(<ApkgCsvExportForm />);
-    const input = screen.getByLabelText(/Choose \.apkg file/i) as HTMLInputElement;
+    const input = screen.getByLabelText(
+      /Choose \.apkg file/i
+    ) as HTMLInputElement;
     const file = new File(['x'], 'notes.zip', { type: 'application/zip' });
     fireEvent.change(input, { target: { files: [file] } });
     fireEvent.submit(input.closest('form')!);
@@ -54,14 +56,18 @@ describe('ApkgCsvExportForm', () => {
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
           'Content-Disposition':
-            "attachment; filename=\"deck.csv\"; filename*=UTF-8''deck.csv",
+            'attachment; filename="deck.csv"; filename*=UTF-8\'\'deck.csv',
           'X-Card-Count': '42',
         },
       })
     );
     render(<ApkgCsvExportForm />);
-    const input = screen.getByLabelText(/Choose \.apkg file/i) as HTMLInputElement;
-    fireEvent.change(input, { target: { files: [makeApkgFile('Pharmacology.apkg')] } });
+    const input = screen.getByLabelText(
+      /Choose \.apkg file/i
+    ) as HTMLInputElement;
+    fireEvent.change(input, {
+      target: { files: [makeApkgFile('Pharmacology.apkg')] },
+    });
     fireEvent.submit(input.closest('form')!);
     await waitFor(() => {
       expect(screen.getByText(/Exported 42 notes/i)).toBeInTheDocument();
@@ -71,13 +77,19 @@ describe('ApkgCsvExportForm', () => {
     expect(url).toBe('/api/apkg/csv');
     expect((init as RequestInit).method).toBe('post');
     expect((init as RequestInit).body).toBeInstanceOf(FormData);
-    expect(mockTrack).toHaveBeenCalledWith('apkg_csv_exported', { noteCount: 42 });
+    expect(mockTrack).toHaveBeenCalledWith('apkg_csv_exported', {
+      noteCount: 42,
+    });
   });
 
   it('does not track an export when the server returns an error', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 401 }));
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(null, { status: 401 })
+    );
     render(<ApkgCsvExportForm />);
-    const input = screen.getByLabelText(/Choose \.apkg file/i) as HTMLInputElement;
+    const input = screen.getByLabelText(
+      /Choose \.apkg file/i
+    ) as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makeApkgFile()] } });
     fireEvent.submit(input.closest('form')!);
     await waitFor(() => {
@@ -90,17 +102,22 @@ describe('ApkgCsvExportForm', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       new Response(
         JSON.stringify({
-          message: '250 notes — over the free limit of 100. Upgrade for no monthly cap.',
+          message:
+            '250 notes — over the free limit of 100. Upgrade for no monthly cap.',
         }),
         { status: 402, headers: { 'Content-Type': 'application/json' } }
       )
     );
     render(<ApkgCsvExportForm />);
-    const input = screen.getByLabelText(/Choose \.apkg file/i) as HTMLInputElement;
+    const input = screen.getByLabelText(
+      /Choose \.apkg file/i
+    ) as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makeApkgFile()] } });
     fireEvent.submit(input.closest('form')!);
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent(/over the free limit of 100/i);
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        /over the free limit of 100/i
+      );
     });
   });
 
@@ -109,7 +126,9 @@ describe('ApkgCsvExportForm', () => {
       new Response(null, { status: 401 })
     );
     render(<ApkgCsvExportForm />);
-    const input = screen.getByLabelText(/Choose \.apkg file/i) as HTMLInputElement;
+    const input = screen.getByLabelText(
+      /Choose \.apkg file/i
+    ) as HTMLInputElement;
     fireEvent.change(input, { target: { files: [makeApkgFile()] } });
     fireEvent.submit(input.closest('form')!);
     await waitFor(() => {

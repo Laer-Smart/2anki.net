@@ -48,7 +48,9 @@ describe('parseTruncationPayload', () => {
   });
 
   it('accepts database jobs', () => {
-    expect(parseTruncationPayload(buildJob({ type: 'database' }))).not.toBeNull();
+    expect(
+      parseTruncationPayload(buildJob({ type: 'database' }))
+    ).not.toBeNull();
   });
 
   it.each([['apkg_import'], ['claude'], ['conversion'], [null]])(

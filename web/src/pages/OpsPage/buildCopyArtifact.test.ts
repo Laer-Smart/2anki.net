@@ -11,7 +11,8 @@ function makeGroup(overrides: Partial<ErrorGroup> = {}): ErrorGroup {
     release: 'abc1234500000000000000000000000000000000',
     source: 'web',
     user_id: 42,
-    user_agent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36',
+    user_agent:
+      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36',
     first_seen: '2026-05-01T08:00:00.000Z',
     last_seen: '2026-05-24T14:30:45.000Z',
     occurrences: 7,
@@ -43,7 +44,9 @@ describe('buildCopyArtifact', () => {
   });
 
   it('truncates release to 8 characters', () => {
-    const artifact = buildCopyArtifact(makeGroup({ release: 'abc1234500000000000000000000000000000000' }));
+    const artifact = buildCopyArtifact(
+      makeGroup({ release: 'abc1234500000000000000000000000000000000' })
+    );
     expect(artifact).toContain('Release:    abc12345');
     expect(artifact).not.toContain('Release:    abc1234500000000');
   });
@@ -79,7 +82,9 @@ describe('buildCopyArtifact', () => {
   });
 
   it('formats timestamp as YYYY-MM-DD HH:MM:SS UTC', () => {
-    const artifact = buildCopyArtifact(makeGroup({ last_seen: '2026-05-24T14:30:45.000Z' }));
+    const artifact = buildCopyArtifact(
+      makeGroup({ last_seen: '2026-05-24T14:30:45.000Z' })
+    );
     expect(artifact).toContain('2026-05-24 14:30:45 UTC');
   });
 });

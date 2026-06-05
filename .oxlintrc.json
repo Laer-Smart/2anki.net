@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "react"],
+  "categories": {
+    "correctness": "warn"
+  },
+  "rules": {
+    "no-nested-ternary": "warn",
+    "no-unneeded-ternary": "warn",
+    "for-direction": "warn",
+    "no-unused-labels": "warn",
+    "unicorn/no-negated-condition": "warn",
+    "typescript/prefer-optional-chain": "warn"
+  },
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/data_layer/public/**",
+    "**/migrations/**",
+    "**/templates/**",
+    "**/fixtures/**",
+    "**/generated/**",
+    "**/schemas/**",
+    "**/react-app-env.d.ts"
+  ]
+}

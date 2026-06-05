@@ -18,7 +18,9 @@ vi.mock('../../lib/backend/getSharedDeck', () => ({
 
 vi.mock('react-helmet-async', () => ({
   Helmet: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  HelmetProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  HelmetProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
 }));
 
 function makeQueryClient() {

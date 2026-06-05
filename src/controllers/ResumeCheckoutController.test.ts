@@ -9,7 +9,9 @@ const STRIPE_URL = 'https://buy.stripe.com/r/live_abc123';
 const FUTURE = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
 function makeRes(): jest.Mocked<Pick<Response, 'redirect'>> {
-  return { redirect: jest.fn() } as unknown as jest.Mocked<Pick<Response, 'redirect'>>;
+  return { redirect: jest.fn() } as unknown as jest.Mocked<
+    Pick<Response, 'redirect'>
+  >;
 }
 
 function makeReq(token?: unknown): Request {

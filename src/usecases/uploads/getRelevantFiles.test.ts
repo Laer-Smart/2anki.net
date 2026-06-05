@@ -4,8 +4,7 @@ import { getRelevantFiles } from './getRelevantFiles';
 beforeEach(() => setupTests());
 
 test('matches image files when HTML has Notion ID but image folder does not', () => {
-  const htmlName =
-    'Shared/My Topic ab12cd34ef56ab12cd34ef56ab12cd34.html';
+  const htmlName = 'Shared/My Topic ab12cd34ef56ab12cd34ef56ab12cd34.html';
   const allFiles = [
     { name: htmlName, contents: '<html></html>' },
     {
@@ -26,12 +25,8 @@ test('matches image files when HTML has Notion ID but image folder does not', ()
   expect(result.map((f) => f.name)).toContain(
     'Shared/My Topic/screenshot_1.png'
   );
-  expect(result.map((f) => f.name)).toContain(
-    'Shared/My Topic/image.png'
-  );
-  expect(result.map((f) => f.name)).not.toContain(
-    'Other Page/unrelated.png'
-  );
+  expect(result.map((f) => f.name)).toContain('Shared/My Topic/image.png');
+  expect(result.map((f) => f.name)).not.toContain('Other Page/unrelated.png');
 });
 
 test('still works when HTML has no Notion ID', () => {

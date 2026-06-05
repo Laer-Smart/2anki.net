@@ -28,6 +28,8 @@ describe('ChatConsentController.recordConsent', () => {
     const execute = jest.fn().mockRejectedValue(new Error('DB down'));
     const controller = new ChatConsentController({ execute } as never);
     const res = buildRes(3);
-    await expect(controller.recordConsent(buildReq(), res)).rejects.toThrow('DB down');
+    await expect(controller.recordConsent(buildReq(), res)).rejects.toThrow(
+      'DB down'
+    );
   });
 });

@@ -27,7 +27,8 @@ The lens contains a special polymer that absorbs horizontal light waves.
   });
 
   it('returns [] for a markdown document with no headings', () => {
-    const source = 'Just some plain text with no headings at all.\nAnother line here.';
+    const source =
+      'Just some plain text with no headings at all.\nAnother line here.';
     expect(detect('markdown', source)).toEqual([]);
   });
 
@@ -66,9 +67,15 @@ describe('detect — html', () => {
 <p>Describes the rate of enzymatic reactions.</p>`;
     const result = detect('html', source);
     expect(result).toHaveLength(2);
-    expect(result[0]).toMatchObject<Partial<Heading>>({ text: 'Enzymes', level: 1 });
+    expect(result[0]).toMatchObject<Partial<Heading>>({
+      text: 'Enzymes',
+      level: 1,
+    });
     expect(result[0].body).toContain('biological catalyst');
-    expect(result[1]).toMatchObject<Partial<Heading>>({ text: 'Michaelis-Menten Kinetics', level: 2 });
+    expect(result[1]).toMatchObject<Partial<Heading>>({
+      text: 'Michaelis-Menten Kinetics',
+      level: 2,
+    });
   });
 
   it('returns [] for HTML with no heading tags', () => {
@@ -93,8 +100,14 @@ describe('detect — notion-html', () => {
 <p>Organelles are specialized structures within cells.</p>`;
     const result = detect('notion-html', source);
     expect(result).toHaveLength(2);
-    expect(result[0]).toMatchObject<Partial<Heading>>({ text: 'Cell Biology', level: 1 });
-    expect(result[1]).toMatchObject<Partial<Heading>>({ text: 'Organelles', level: 2 });
+    expect(result[0]).toMatchObject<Partial<Heading>>({
+      text: 'Cell Biology',
+      level: 1,
+    });
+    expect(result[1]).toMatchObject<Partial<Heading>>({
+      text: 'Organelles',
+      level: 2,
+    });
   });
 
   it('returns [] for Notion HTML with no heading elements', () => {

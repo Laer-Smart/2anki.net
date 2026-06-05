@@ -37,7 +37,9 @@ export function BlockNode({ block, parentTitle }: Readonly<BlockNodeProps>) {
   );
 
   const rowClass = decisionClass(block.decision);
-  const tooltipText = block.decision ? DECISION_TOOLTIPS[block.decision] : undefined;
+  const tooltipText = block.decision
+    ? DECISION_TOOLTIPS[block.decision]
+    : undefined;
 
   if (block.type === 'child_page' && block.childPageId != null) {
     return (
@@ -47,9 +49,7 @@ export function BlockNode({ block, parentTitle }: Readonly<BlockNodeProps>) {
         title={tooltipText}
         state={{ parentTitle }}
       >
-            <span
-              dangerouslySetInnerHTML={{ __html: block.html }}
-            />
+        <span dangerouslySetInnerHTML={{ __html: block.html }} />
         <span className={styles.subPageLabel}>
           Sub-page <span className={styles.subPageChevron}>&rsaquo;</span>
         </span>
@@ -103,7 +103,9 @@ export function BlockNode({ block, parentTitle }: Readonly<BlockNodeProps>) {
     <details
       className={`${styles.toggleBlock} ${rowClass}`}
       title={tooltipText}
-      onToggle={(event) => setOpen((event.currentTarget as HTMLDetailsElement).open)}
+      onToggle={(event) =>
+        setOpen((event.currentTarget as HTMLDetailsElement).open)
+      }
     >
       <summary
         className={styles.toggleSummary}

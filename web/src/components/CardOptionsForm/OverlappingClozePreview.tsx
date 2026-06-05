@@ -18,7 +18,7 @@ function prefersReducedMotion(): boolean {
 function isInWindow(
   style: OverlappingClozeStyle,
   hiddenIndex: number,
-  lineIndex: number,
+  lineIndex: number
 ): boolean {
   if (style === 'show-all') return true;
   return Math.abs(lineIndex - hiddenIndex) <= 1;

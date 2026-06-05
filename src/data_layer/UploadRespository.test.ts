@@ -23,9 +23,7 @@ describe('UploadRepository owner guards', () => {
 
   it('returns empty list and skips query when owner is undefined', async () => {
     const { repo, called } = makeRepo();
-    const result = await repo.getUploadsByOwner(
-      undefined as unknown as number
-    );
+    const result = await repo.getUploadsByOwner(undefined as unknown as number);
     expect(result).toEqual([]);
     expect(called).toEqual([]);
     expect(warn).toHaveBeenCalled();

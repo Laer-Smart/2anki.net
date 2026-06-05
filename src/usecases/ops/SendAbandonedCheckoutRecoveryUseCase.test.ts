@@ -26,7 +26,9 @@ function makeEmailService(): jest.Mocked<IEmailService> {
   };
 }
 
-function makeRepo(optedOut = false): jest.Mocked<IAbandonedCheckoutRecoveryRepository> {
+function makeRepo(
+  optedOut = false
+): jest.Mocked<IAbandonedCheckoutRecoveryRepository> {
   return {
     claimSession: jest.fn().mockResolvedValue(true),
     recordEmailSend: jest.fn().mockResolvedValue(undefined),
@@ -80,7 +82,8 @@ describe('SendAbandonedCheckoutRecoveryUseCase', () => {
 
     await useCase.execute(['alice@example.com'], false);
 
-    const [, token] = emailService.sendAbandonedCheckoutRecoveryEmail.mock.calls[0];
+    const [, token] =
+      emailService.sendAbandonedCheckoutRecoveryEmail.mock.calls[0];
     expect(typeof token).toBe('string');
     expect(token.length).toBeGreaterThan(0);
   });
@@ -99,8 +102,8 @@ describe('SendAbandonedCheckoutRecoveryUseCase', () => {
 
   it('records failures and keeps going', async () => {
     const emailService = makeEmailService();
-    emailService.sendAbandonedCheckoutRecoveryEmail.mockImplementationOnce(
-      () => Promise.reject(new Error('SendGrid 500'))
+    emailService.sendAbandonedCheckoutRecoveryEmail.mockImplementationOnce(() =>
+      Promise.reject(new Error('SendGrid 500'))
     );
     const useCase = new SendAbandonedCheckoutRecoveryUseCase(emailService);
 
@@ -120,45 +123,63 @@ describe('SendAbandonedCheckoutRecoveryUseCase', () => {
   it('skips opted-out emails when a repository is provided', async () => {
     const emailService = makeEmailService();
     const repo = makeRepo(true);
-    const useCase = new SendAbandonedCheckoutRecoveryUseCase(emailService, repo);
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(
+      emailService,
+      repo
+    );
 
     const result = await useCase.execute(['optout@example.com'], false);
 
     expect(result.sent).toBe(0);
-    expect(emailService.sendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
+    expect(
+      emailService.sendAbandonedCheckoutRecoveryEmail
+    ).not.toHaveBeenCalled();
     expect(repo.isMarketingOptedOut).toHaveBeenCalledWith('optout@example.com');
   });
 
   it('sends to non-opted-out emails when a repository is provided', async () => {
     const emailService = makeEmailService();
     const repo = makeRepo(false);
-    const useCase = new SendAbandonedCheckoutRecoveryUseCase(emailService, repo);
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(
+      emailService,
+      repo
+    );
 
     const result = await useCase.execute(['active@example.com'], false);
 
     expect(result.sent).toBe(1);
-    expect(emailService.sendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledTimes(1);
+    expect(
+      emailService.sendAbandonedCheckoutRecoveryEmail
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('persists the token via recordEmailSend after a successful send', async () => {
     const emailService = makeEmailService();
     const repo = makeRepo(false);
-    const useCase = new SendAbandonedCheckoutRecoveryUseCase(emailService, repo);
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(
+      emailService,
+      repo
+    );
 
     await useCase.execute(['active@example.com'], false);
 
-    const [emailArg, tokenArg] = emailService.sendAbandonedCheckoutRecoveryEmail.mock.calls[0];
+    const [emailArg, tokenArg] =
+      emailService.sendAbandonedCheckoutRecoveryEmail.mock.calls[0];
     expect(repo.recordEmailSend).toHaveBeenCalledWith(emailArg, tokenArg);
   });
 
   it('stores a token that is a non-empty string', async () => {
     const emailService = makeEmailService();
     const repo = makeRepo(false);
-    const useCase = new SendAbandonedCheckoutRecoveryUseCase(emailService, repo);
+    const useCase = new SendAbandonedCheckoutRecoveryUseCase(
+      emailService,
+      repo
+    );
 
     await useCase.execute(['store@example.com'], false);
 
-    const [, persistedToken] = (repo.recordEmailSend as jest.Mock).mock.calls[0];
+    const [, persistedToken] = (repo.recordEmailSend as jest.Mock).mock
+      .calls[0];
     expect(typeof persistedToken).toBe('string');
     expect(persistedToken.length).toBeGreaterThan(0);
   });
@@ -212,8 +233,8 @@ describe('SendAbandonedCheckoutRecoveryUseCase', () => {
 
   it('emits the count of successful sends when some fail', async () => {
     const emailService = makeEmailService();
-    emailService.sendAbandonedCheckoutRecoveryEmail.mockImplementationOnce(
-      () => Promise.reject(new Error('SendGrid 500'))
+    emailService.sendAbandonedCheckoutRecoveryEmail.mockImplementationOnce(() =>
+      Promise.reject(new Error('SendGrid 500'))
     );
     const eventsSink = makeEventsSink();
     const useCase = new SendAbandonedCheckoutRecoveryUseCase(

@@ -19,7 +19,8 @@ export function buildCopyArtifact(group: ErrorGroup): string {
     ? '## Server error — triage request'
     : '## Frontend error — triage request';
 
-  const release = group.release == null ? '(unknown)' : group.release.slice(0, 8);
+  const release =
+    group.release == null ? '(unknown)' : group.release.slice(0, 8);
   const url = group.url ?? '(none)';
   const userId = group.user_id == null ? 'anonymous' : String(group.user_id);
   const stack = group.stack ?? '(none)';

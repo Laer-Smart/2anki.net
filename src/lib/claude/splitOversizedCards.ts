@@ -46,7 +46,7 @@ function groupSentencesUnderCeiling(sentences: string[]): string[] {
 function balanceHtmlTags(html: string): string {
   const $ = cheerio.load(html, { xmlMode: false });
   const body = $('body');
-  return body.length ? body.html() ?? html : html;
+  return body.length ? (body.html() ?? html) : html;
 }
 
 function splitCard(card: CompactCard): CompactCard[] {

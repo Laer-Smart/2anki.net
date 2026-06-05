@@ -6,7 +6,10 @@ interface Props {
   connectionLink: string;
 }
 
-export default function ConnectNotion({ ready, connectionLink }: Readonly<Props>) {
+export default function ConnectNotion({
+  ready,
+  connectionLink,
+}: Readonly<Props>) {
   if (!ready) return null;
 
   return (
@@ -14,8 +17,8 @@ export default function ConnectNotion({ ready, connectionLink }: Readonly<Props>
       <div className={styles.card}>
         <h3 className={styles.title}>Connect your Notion workspace</h3>
         <p className={styles.body}>
-          Search and convert pages directly. We only read the pages you
-          share with 2anki.
+          Search and convert pages directly. We only read the pages you share
+          with 2anki.
         </p>
         <a className={shared.btnPrimary} href={connectionLink}>
           Connect to Notion

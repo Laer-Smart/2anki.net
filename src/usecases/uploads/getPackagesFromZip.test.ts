@@ -8,21 +8,25 @@ jest.mock('../../lib/zip/zip');
 jest.mock('../../lib/anki/CardGenerator');
 jest.mock('../../lib/parser/WorkSpace');
 
-const mockPrepareDeck =
-  jest.requireMock<{ PrepareDeck: jest.Mock; prepareDeckInfoOnly: jest.Mock }>(
-    '../../infrastracture/adapters/fileConversion/PrepareDeck'
-  ).PrepareDeck;
+const mockPrepareDeck = jest.requireMock<{
+  PrepareDeck: jest.Mock;
+  prepareDeckInfoOnly: jest.Mock;
+}>('../../infrastracture/adapters/fileConversion/PrepareDeck').PrepareDeck;
 
-const mockPrepareDeckInfoOnly =
-  jest.requireMock<{ PrepareDeck: jest.Mock; prepareDeckInfoOnly: jest.Mock }>(
-    '../../infrastracture/adapters/fileConversion/PrepareDeck'
-  ).prepareDeckInfoOnly;
+const mockPrepareDeckInfoOnly = jest.requireMock<{
+  PrepareDeck: jest.Mock;
+  prepareDeckInfoOnly: jest.Mock;
+}>(
+  '../../infrastracture/adapters/fileConversion/PrepareDeck'
+).prepareDeckInfoOnly;
 
-const mockCardGeneratorClass =
-  jest.requireMock<{ default: jest.Mock }>('../../lib/anki/CardGenerator').default;
+const mockCardGeneratorClass = jest.requireMock<{ default: jest.Mock }>(
+  '../../lib/anki/CardGenerator'
+).default;
 
-const mockZipHandlerClass =
-  jest.requireMock<{ ZipHandler: jest.Mock }>('../../lib/zip/zip').ZipHandler;
+const mockZipHandlerClass = jest.requireMock<{ ZipHandler: jest.Mock }>(
+  '../../lib/zip/zip'
+).ZipHandler;
 
 const FAKE_WORKSPACE_LOCATION = '/fake/workspace';
 
@@ -42,7 +46,10 @@ beforeEach(() => {
 describe('getPackagesFromZip — batch concurrency', () => {
   it('returns all packages when batch mode resolves correctly', async () => {
     const fileCount = 8;
-    const fileNames = Array.from({ length: fileCount }, (_, i) => `deck${i}.html`);
+    const fileNames = Array.from(
+      { length: fileCount },
+      (_, i) => `deck${i}.html`
+    );
 
     mockZipHandlerClass.mockImplementation(() => ({
       build: jest.fn().mockResolvedValue(undefined),
@@ -63,12 +70,16 @@ describe('getPackagesFromZip — batch concurrency', () => {
     );
 
     mockCardGeneratorClass.mockImplementation(() => ({
-      runBatch: jest.fn().mockImplementation((entries: Array<{ output: string }>) =>
-        Promise.resolve(entries.map((e) => e.output))
-      ),
+      runBatch: jest
+        .fn()
+        .mockImplementation((entries: Array<{ output: string }>) =>
+          Promise.resolve(entries.map((e) => e.output))
+        ),
     }));
 
-    jest.spyOn(require('node:fs'), 'readFileSync').mockReturnValue(Buffer.from('fake-apkg'));
+    jest
+      .spyOn(require('node:fs'), 'readFileSync')
+      .mockReturnValue(Buffer.from('fake-apkg'));
 
     const settings = new CardOption({});
     const workspace = { location: FAKE_WORKSPACE_LOCATION } as Workspace;
@@ -105,9 +116,11 @@ describe('getPackagesFromZip — batch concurrency', () => {
     );
 
     mockCardGeneratorClass.mockImplementation(() => ({
-      runBatch: jest.fn().mockImplementation((entries: Array<{ output: string }>) =>
-        Promise.resolve(entries.map((e) => e.output))
-      ),
+      runBatch: jest
+        .fn()
+        .mockImplementation((entries: Array<{ output: string }>) =>
+          Promise.resolve(entries.map((e) => e.output))
+        ),
     }));
 
     process.env.UPLOAD_BUILD_CONCURRENCY = '1';
@@ -165,7 +178,10 @@ describe('getPackagesFromZip — batch concurrency', () => {
 
   it('caps batch chunks at UPLOAD_BUILD_CONCURRENCY (default 4)', async () => {
     const fileCount = 12;
-    const fileNames = Array.from({ length: fileCount }, (_, i) => `deck${i}.html`);
+    const fileNames = Array.from(
+      { length: fileCount },
+      (_, i) => `deck${i}.html`
+    );
 
     mockZipHandlerClass.mockImplementation(() => ({
       build: jest.fn().mockResolvedValue(undefined),
@@ -187,13 +203,17 @@ describe('getPackagesFromZip — batch concurrency', () => {
 
     let runBatchCallCount = 0;
     mockCardGeneratorClass.mockImplementation(() => ({
-      runBatch: jest.fn().mockImplementation((entries: Array<{ output: string }>) => {
-        runBatchCallCount += 1;
-        return Promise.resolve(entries.map((e) => e.output));
-      }),
+      runBatch: jest
+        .fn()
+        .mockImplementation((entries: Array<{ output: string }>) => {
+          runBatchCallCount += 1;
+          return Promise.resolve(entries.map((e) => e.output));
+        }),
     }));
 
-    jest.spyOn(require('node:fs'), 'readFileSync').mockReturnValue(Buffer.from('fake-apkg'));
+    jest
+      .spyOn(require('node:fs'), 'readFileSync')
+      .mockReturnValue(Buffer.from('fake-apkg'));
 
     delete process.env.UPLOAD_BUILD_CONCURRENCY;
 
@@ -214,7 +234,10 @@ describe('getPackagesFromZip — batch concurrency', () => {
     process.env.UPLOAD_BUILD_CONCURRENCY = '2';
 
     const fileCount = 6;
-    const fileNames = Array.from({ length: fileCount }, (_, i) => `deck${i}.html`);
+    const fileNames = Array.from(
+      { length: fileCount },
+      (_, i) => `deck${i}.html`
+    );
 
     mockZipHandlerClass.mockImplementation(() => ({
       build: jest.fn().mockResolvedValue(undefined),
@@ -236,13 +259,17 @@ describe('getPackagesFromZip — batch concurrency', () => {
 
     let runBatchCallCount = 0;
     mockCardGeneratorClass.mockImplementation(() => ({
-      runBatch: jest.fn().mockImplementation((entries: Array<{ output: string }>) => {
-        runBatchCallCount += 1;
-        return Promise.resolve(entries.map((e) => e.output));
-      }),
+      runBatch: jest
+        .fn()
+        .mockImplementation((entries: Array<{ output: string }>) => {
+          runBatchCallCount += 1;
+          return Promise.resolve(entries.map((e) => e.output));
+        }),
     }));
 
-    jest.spyOn(require('node:fs'), 'readFileSync').mockReturnValue(Buffer.from('fake-apkg'));
+    jest
+      .spyOn(require('node:fs'), 'readFileSync')
+      .mockReturnValue(Buffer.from('fake-apkg'));
 
     const settings = new CardOption({});
     const workspace = { location: FAKE_WORKSPACE_LOCATION } as Workspace;
@@ -261,7 +288,10 @@ describe('getPackagesFromZip — batch concurrency', () => {
 
   it('propagates errors from runBatch', async () => {
     const fileCount = 8;
-    const fileNames = Array.from({ length: fileCount }, (_, i) => `deck${i}.html`);
+    const fileNames = Array.from(
+      { length: fileCount },
+      (_, i) => `deck${i}.html`
+    );
 
     mockZipHandlerClass.mockImplementation(() => ({
       build: jest.fn().mockResolvedValue(undefined),
@@ -302,7 +332,12 @@ describe('getPackagesFromZip — batch concurrency', () => {
     const settings = new CardOption({});
     const workspace = { location: FAKE_WORKSPACE_LOCATION } as Workspace;
 
-    const result = await getPackagesFromZip(undefined, false, settings, workspace);
+    const result = await getPackagesFromZip(
+      undefined,
+      false,
+      settings,
+      workspace
+    );
 
     expect(result.packages).toEqual([]);
   });

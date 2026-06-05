@@ -53,7 +53,9 @@ describe('RootErrorBoundary', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: /something went wrong loading 2anki/i })
+      screen.getByRole('heading', {
+        name: /something went wrong loading 2anki/i,
+      })
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /^reload$/i })
@@ -126,7 +128,9 @@ describe('RootErrorBoundary', () => {
       })
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('heading', { name: /something went wrong loading 2anki/i })
+      screen.queryByRole('heading', {
+        name: /something went wrong loading 2anki/i,
+      })
     ).not.toBeInTheDocument();
   });
 });

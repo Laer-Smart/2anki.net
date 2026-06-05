@@ -90,9 +90,7 @@ const ReEngagementRouter = () => {
    *       404:
    *         description: Token not found
    */
-  router.get('/unsubscribe', (req, res) =>
-    controller.unsubscribe(req, res)
-  );
+  router.get('/unsubscribe', (req, res) => controller.unsubscribe(req, res));
 
   return router;
 };

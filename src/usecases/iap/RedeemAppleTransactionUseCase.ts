@@ -1,4 +1,7 @@
-import type { PassKind, IUserPassRepository } from '../../data_layer/UserPassRepository';
+import type {
+  PassKind,
+  IUserPassRepository,
+} from '../../data_layer/UserPassRepository';
 import {
   DuplicateAppleTransactionError,
   type IAppleTransactionsRepository,
@@ -50,7 +53,12 @@ export class RedeemAppleTransactionUseCase {
     const idempotencyKey = `apple:${decoded.transactionId}`;
     const pass =
       product.kind === 'subscription'
-        ? await this.grantSubscription(input.userId, product, decoded, idempotencyKey)
+        ? await this.grantSubscription(
+            input.userId,
+            product,
+            decoded,
+            idempotencyKey
+          )
         : await this.userPassRepository.upsertWithExtension(
             input.userId,
             product.passKind,

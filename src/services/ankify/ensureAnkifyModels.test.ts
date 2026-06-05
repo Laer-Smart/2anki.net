@@ -1,8 +1,5 @@
 import { ensureAnkifyModels } from './ensureAnkifyModels';
-import {
-  ANKIFY_BASIC_MODEL,
-  ANKIFY_CLOZE_MODEL,
-} from './ankifyModels';
+import { ANKIFY_BASIC_MODEL, ANKIFY_CLOZE_MODEL } from './ankifyModels';
 import { AnkiConnectClient } from './AnkiConnectClient';
 
 const makeStub = (modelNames: string[]) => {
@@ -15,11 +12,7 @@ const makeStub = (modelNames: string[]) => {
 
 describe('ensureAnkifyModels', () => {
   test('creates both Ankify models when AnkiConnect has neither', async () => {
-    const ac = makeStub([
-      'Kaishi 1.5k',
-      'JlabNote',
-      'PrettyYomitan',
-    ]);
+    const ac = makeStub(['Kaishi 1.5k', 'JlabNote', 'PrettyYomitan']);
     const cache = new Set<string>();
 
     await ensureAnkifyModels(ac, cache);

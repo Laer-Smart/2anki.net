@@ -113,9 +113,11 @@ const buildNotionExportClient = (token: string) => {
         data_source_id: dataSourceId,
       });
       const properties =
-        (dataSource as {
-          properties?: Record<string, { type: string; name?: string }>;
-        }).properties ?? {};
+        (
+          dataSource as {
+            properties?: Record<string, { type: string; name?: string }>;
+          }
+        ).properties ?? {};
       return { properties };
     },
   };
@@ -130,7 +132,10 @@ const extractNotionPageTitle = (
       title?: { plain_text?: string }[];
     };
     if (entry.type === 'title' && Array.isArray(entry.title)) {
-      const title = entry.title.map((t) => t.plain_text ?? '').join('').trim();
+      const title = entry.title
+        .map((t) => t.plain_text ?? '')
+        .join('')
+        .trim();
       return title.length === 0 ? null : title;
     }
   }
@@ -159,12 +164,11 @@ const extractNotionPageIcon = (icon: NotionPageIconBlock): string | null => {
 };
 
 const buildNotionPageMetaFetcher =
-  (token: string) =>
-  async (notionPageId: string) => {
+  (token: string) => async (notionPageId: string) => {
     const notion = new NotionClient({ auth: token });
     const page = await notion.pages.retrieve({ page_id: notionPageId });
-    const props = (page as { properties?: Record<string, unknown> })
-      .properties ?? {};
+    const props =
+      (page as { properties?: Record<string, unknown> }).properties ?? {};
     const title = extractNotionPageTitle(props);
     const url = (page as { url?: string }).url ?? null;
     const icon = extractNotionPageIcon(
@@ -238,8 +242,7 @@ const collectNotionDatabaseEntries = (
       (entry as { properties?: Record<string, { type: string }> }).properties ??
       {};
     const hasReviewShape =
-      properties.Date?.type === 'date' &&
-      properties.Reviews?.type === 'number';
+      properties.Date?.type === 'date' && properties.Reviews?.type === 'number';
     entries.push({
       id: (entry as { id: string }).id,
       title,
@@ -621,15 +624,11 @@ const AnkifyRouter = () => {
    *     summary: Cancel and remove the user's daily review-export schedule
    *     tags: [Ankify]
    */
-  router.get(
-    '/api/ankify/exports/schedule',
-    RequireAnkifyAccess,
-    (req, res) => controller.getSchedule(req, res)
+  router.get('/api/ankify/exports/schedule', RequireAnkifyAccess, (req, res) =>
+    controller.getSchedule(req, res)
   );
-  router.post(
-    '/api/ankify/exports/schedule',
-    RequireAnkifyAccess,
-    (req, res) => controller.configureSchedule(req, res)
+  router.post('/api/ankify/exports/schedule', RequireAnkifyAccess, (req, res) =>
+    controller.configureSchedule(req, res)
   );
   router.delete(
     '/api/ankify/exports/schedule',
@@ -769,15 +768,11 @@ const AnkifyRouter = () => {
    *               title:
    *                 type: string
    */
-  router.get(
-    '/api/ankify/notion/databases',
-    RequireAnkifyAccess,
-    (req, res) => controller.listNotionDatabases(req, res)
+  router.get('/api/ankify/notion/databases', RequireAnkifyAccess, (req, res) =>
+    controller.listNotionDatabases(req, res)
   );
-  router.post(
-    '/api/ankify/notion/databases',
-    RequireAnkifyAccess,
-    (req, res) => controller.createReviewTracker(req, res)
+  router.post('/api/ankify/notion/databases', RequireAnkifyAccess, (req, res) =>
+    controller.createReviewTracker(req, res)
   );
 
   /**

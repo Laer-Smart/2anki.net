@@ -9,8 +9,20 @@ describe('OutboundLatencyTable', () => {
     render(
       <OutboundLatencyTable
         rows={[
-          { service: 'notion', p50_ms: 110, p95_ms: 460, p99_ms: 820, count: 250 },
-          { service: 'claude', p50_ms: 380, p95_ms: 1200, p99_ms: 2100, count: 90 },
+          {
+            service: 'notion',
+            p50_ms: 110,
+            p95_ms: 460,
+            p99_ms: 820,
+            count: 250,
+          },
+          {
+            service: 'claude',
+            p50_ms: 380,
+            p95_ms: 1200,
+            p99_ms: 2100,
+            count: 90,
+          },
         ]}
       />
     );
@@ -27,7 +39,13 @@ describe('OutboundLatencyTable', () => {
     render(
       <OutboundLatencyTable
         rows={[
-          { service: 'notion', p50_ms: 80, p95_ms: 200, p99_ms: 500, count: 12450 },
+          {
+            service: 'notion',
+            p50_ms: 80,
+            p95_ms: 200,
+            p99_ms: 500,
+            count: 12450,
+          },
         ]}
       />
     );

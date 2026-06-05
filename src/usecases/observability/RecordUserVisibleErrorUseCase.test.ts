@@ -7,10 +7,16 @@ describe('RecordUserVisibleErrorUseCase', () => {
     const repo = new InMemoryUserVisibleErrorsRepository();
     const useCase = new RecordUserVisibleErrorUseCase(repo);
 
-    await useCase.execute({ userId: null, surface: 'oauth_google', code: 'oauth_cancelled' });
+    await useCase.execute({
+      userId: null,
+      surface: 'oauth_google',
+      code: 'oauth_cancelled',
+    });
 
     const counts = await repo.countBySurfaceAndCode(1);
-    expect(counts).toEqual([{ surface: 'oauth_google', code: 'oauth_cancelled', count: 1 }]);
+    expect(counts).toEqual([
+      { surface: 'oauth_google', code: 'oauth_cancelled', count: 1 },
+    ]);
   });
 
   it('swallows repository errors without re-throwing', async () => {
@@ -21,7 +27,13 @@ describe('RecordUserVisibleErrorUseCase', () => {
     const useCase = new RecordUserVisibleErrorUseCase(brokenRepo);
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    await expect(useCase.execute({ userId: null, surface: 'stripe_webhook', code: 'stripe_webhook_signature_invalid' })).resolves.toBeUndefined();
+    await expect(
+      useCase.execute({
+        userId: null,
+        surface: 'stripe_webhook',
+        code: 'stripe_webhook_signature_invalid',
+      })
+    ).resolves.toBeUndefined();
     expect(errorSpy).toHaveBeenCalledWith(
       'RecordUserVisibleErrorUseCase: failed to persist error record',
       expect.any(Error)

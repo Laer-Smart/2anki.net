@@ -27,7 +27,8 @@ describe('useSharedDeckMeta', () => {
   });
 
   it('does not fetch when token is undefined', async () => {
-    const { getSharedDeckMeta } = await import('../../lib/backend/getSharedDeck');
+    const { getSharedDeckMeta } =
+      await import('../../lib/backend/getSharedDeck');
 
     const { result } = renderHook(() => useSharedDeckMeta(undefined), {
       wrapper: buildWrapper(),
@@ -38,7 +39,8 @@ describe('useSharedDeckMeta', () => {
   });
 
   it('does not fetch when token is the empty string', async () => {
-    const { getSharedDeckMeta } = await import('../../lib/backend/getSharedDeck');
+    const { getSharedDeckMeta } =
+      await import('../../lib/backend/getSharedDeck');
 
     const { result } = renderHook(() => useSharedDeckMeta(''), {
       wrapper: buildWrapper(),
@@ -49,12 +51,11 @@ describe('useSharedDeckMeta', () => {
   });
 
   it('fetches the meta when token is present', async () => {
-    const { getSharedDeckMeta } = await import('../../lib/backend/getSharedDeck');
+    const { getSharedDeckMeta } =
+      await import('../../lib/backend/getSharedDeck');
     vi.mocked(getSharedDeckMeta).mockResolvedValue({
       totalCards: 7,
-      decks: [
-        { id: 1, fullName: 'Anatomy', path: ['Anatomy'], cardCount: 7 },
-      ],
+      decks: [{ id: 1, fullName: 'Anatomy', path: ['Anatomy'], cardCount: 7 }],
     });
 
     const { result } = renderHook(() => useSharedDeckMeta('tok'), {
@@ -77,7 +78,8 @@ describe('useSharedDeckStream', () => {
   });
 
   it('does not fetch when token is undefined', async () => {
-    const { getSharedDeckBatch } = await import('../../lib/backend/getSharedDeck');
+    const { getSharedDeckBatch } =
+      await import('../../lib/backend/getSharedDeck');
 
     const { result } = renderHook(() => useSharedDeckStream(undefined), {
       wrapper: buildWrapper(),
@@ -88,7 +90,8 @@ describe('useSharedDeckStream', () => {
   });
 
   it('passes deckId through to the batch fetcher', async () => {
-    const { getSharedDeckBatch } = await import('../../lib/backend/getSharedDeck');
+    const { getSharedDeckBatch } =
+      await import('../../lib/backend/getSharedDeck');
     vi.mocked(getSharedDeckBatch).mockResolvedValue({
       cards: [],
       nextCursor: null,
@@ -100,6 +103,8 @@ describe('useSharedDeckStream', () => {
     });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(getSharedDeckBatch).toHaveBeenCalledWith('tok', null, { deckId: 42 });
+    expect(getSharedDeckBatch).toHaveBeenCalledWith('tok', null, {
+      deckId: 42,
+    });
   });
 });

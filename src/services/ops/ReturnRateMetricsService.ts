@@ -80,7 +80,9 @@ export class ReturnRateMetricsService {
   }
 
   private fetchCohort(now: Date): Promise<CohortMember[]> {
-    const cutoff = new Date(now.getTime() - LOOKBACK_DAYS * SECONDS_PER_DAY * 1000);
+    const cutoff = new Date(
+      now.getTime() - LOOKBACK_DAYS * SECONDS_PER_DAY * 1000
+    );
     return this.database('jobs')
       .whereIn('type', CONVERSION_TYPES)
       .where('status', 'done')
@@ -94,7 +96,9 @@ export class ReturnRateMetricsService {
   }
 
   private async fetchReturns(now: Date): Promise<ReturnRecord[]> {
-    const cutoff = new Date(now.getTime() - LOOKBACK_DAYS * SECONDS_PER_DAY * 1000);
+    const cutoff = new Date(
+      now.getTime() - LOOKBACK_DAYS * SECONDS_PER_DAY * 1000
+    );
 
     const rows = (await this.database('jobs as j1')
       .whereIn('j1.type', CONVERSION_TYPES)
@@ -148,7 +152,8 @@ export class ReturnRateMetricsService {
     const returnMap = new Map<string, { gapMs: number }>();
     for (const r of returns) {
       const key = `${r.owner}::${r.source_type}`;
-      const gapMs = new Date(r.first_return_at).getTime() - new Date(r.anchor_at).getTime();
+      const gapMs =
+        new Date(r.first_return_at).getTime() - new Date(r.anchor_at).getTime();
       const existing = returnMap.get(key);
       if (existing == null || gapMs < existing.gapMs) {
         returnMap.set(key, { gapMs });

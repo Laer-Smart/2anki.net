@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { applyConversionSuccess, type ConversionSuccessHandlers } from './uploadResponse';
+import {
+  applyConversionSuccess,
+  type ConversionSuccessHandlers,
+} from './uploadResponse';
 
 type AnalyticsGlobals = {
   hj?: ReturnType<typeof vi.fn>;
@@ -38,7 +41,13 @@ function batchResponse(): Response {
         kind: 'batch',
         workspaceId: 'ws-1',
         deckCount: 1,
-        decks: [{ name: 'A', filename: 'A.apkg', downloadUrl: '/download/ws-1/A.apkg' }],
+        decks: [
+          {
+            name: 'A',
+            filename: 'A.apkg',
+            downloadUrl: '/download/ws-1/A.apkg',
+          },
+        ],
         bulkUrl: '/download/ws-1/bulk',
       }),
   } as unknown as Response;

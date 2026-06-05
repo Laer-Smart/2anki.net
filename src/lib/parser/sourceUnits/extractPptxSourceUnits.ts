@@ -103,7 +103,9 @@ export async function extractPptxSourceUnits(
     const slideXml = slideEntries.get(num)!;
     const notesXml = notesEntries.get(num) ?? '';
 
-    const visibleText = hasTextShapes(slideXml) ? extractSlideText(slideXml) : '';
+    const visibleText = hasTextShapes(slideXml)
+      ? extractSlideText(slideXml)
+      : '';
     const speakerNotes = notesXml ? extractNotesText(notesXml) : '';
     const role = inferRole(slideXml, visibleText);
 

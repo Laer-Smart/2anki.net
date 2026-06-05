@@ -17,7 +17,9 @@ function makeRepo(map: Mindmaps | null): MindmapRepositoryInterface {
   };
 }
 
-function makeStorage(presignedUrl = 'https://spaces.example.com/presigned'): StorageHandler {
+function makeStorage(
+  presignedUrl = 'https://spaces.example.com/presigned'
+): StorageHandler {
   return {
     getPresignedUrl: jest.fn().mockResolvedValue(presignedUrl),
     uploadFile: jest.fn(),
@@ -52,7 +54,13 @@ describe('GetMindmapUseCase', () => {
 
   it('resolves s3 key to presigned URL', async () => {
     const data: MindmapData = {
-      nodes: [{ id: 'a', label: 'Node', image: { url: 'mindmaps/1/map-1/uuid.png', width: 10, height: 10 } }],
+      nodes: [
+        {
+          id: 'a',
+          label: 'Node',
+          image: { url: 'mindmaps/1/map-1/uuid.png', width: 10, height: 10 },
+        },
+      ],
       edges: [],
     };
     const map = makeMap(data);
@@ -67,7 +75,17 @@ describe('GetMindmapUseCase', () => {
 
   it('marks legacy /api/mindmaps/images/ URLs as missing', async () => {
     const data: MindmapData = {
-      nodes: [{ id: 'b', label: 'Old', image: { url: '/api/mindmaps/images/1/map-1/old.png', width: 10, height: 10 } }],
+      nodes: [
+        {
+          id: 'b',
+          label: 'Old',
+          image: {
+            url: '/api/mindmaps/images/1/map-1/old.png',
+            width: 10,
+            height: 10,
+          },
+        },
+      ],
       edges: [],
     };
     const map = makeMap(data);
@@ -94,12 +112,20 @@ describe('GetMindmapUseCase', () => {
 
   it('marks image as missing when presigned URL generation fails', async () => {
     const data: MindmapData = {
-      nodes: [{ id: 'd', label: 'Node', image: { url: 'mindmaps/1/map-1/uuid.png', width: 10, height: 10 } }],
+      nodes: [
+        {
+          id: 'd',
+          label: 'Node',
+          image: { url: 'mindmaps/1/map-1/uuid.png', width: 10, height: 10 },
+        },
+      ],
       edges: [],
     };
     const map = makeMap(data);
     const storage = makeStorage();
-    (storage.getPresignedUrl as jest.Mock).mockRejectedValue(new Error('S3 down'));
+    (storage.getPresignedUrl as jest.Mock).mockRejectedValue(
+      new Error('S3 down')
+    );
     const useCase = new GetMindmapUseCase(makeRepo(map), storage);
 
     const result = await useCase.execute('map-1' as MindmapsId, 1 as UsersId);
@@ -110,7 +136,17 @@ describe('GetMindmapUseCase', () => {
 
   it('rejects cross-tenant s3Key: key belongs to user 99, map belongs to user 1', async () => {
     const data: MindmapData = {
-      nodes: [{ id: 'e', label: 'Node', image: { url: 'mindmaps/99/other-map/uuid.png', width: 10, height: 10 } }],
+      nodes: [
+        {
+          id: 'e',
+          label: 'Node',
+          image: {
+            url: 'mindmaps/99/other-map/uuid.png',
+            width: 10,
+            height: 10,
+          },
+        },
+      ],
       edges: [],
     };
     const map = makeMap(data);

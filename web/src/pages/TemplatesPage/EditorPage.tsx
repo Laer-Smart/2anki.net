@@ -19,7 +19,11 @@ import sharedStyles from '../../styles/shared.module.css';
 import editorStyles from './EditorPage.module.css';
 import galleryStyles from './TemplatesPage.module.css';
 import { CodeEditor } from './components/CodeEditor/CodeEditor';
-import { BaseType, buildEmptyNoteType, duplicateStarter } from './lib/buildNoteType';
+import {
+  BaseType,
+  buildEmptyNoteType,
+  duplicateStarter,
+} from './lib/buildNoteType';
 import {
   addField as addFieldOp,
   removeField as removeFieldOp,
@@ -78,7 +82,8 @@ function PresetPicker({
       <header className={sharedStyles.pageHeader}>
         <h1 className={sharedStyles.title}>Start a new note type</h1>
         <p className={sharedStyles.subtitle}>
-          Pick a starting point. You can rename, edit, and reshape it before saving.
+          Pick a starting point. You can rename, edit, and reshape it before
+          saving.
         </p>
       </header>
 
@@ -88,10 +93,7 @@ function PresetPicker({
         className={editorStyles.presetSection}
         aria-labelledby="preset-starter-heading"
       >
-        <h2
-          id="preset-starter-heading"
-          className={editorStyles.presetHeading}
-        >
+        <h2 id="preset-starter-heading" className={editorStyles.presetHeading}>
           From a starter
         </h2>
         {loading && (
@@ -227,10 +229,7 @@ function AIGenerateSection({ onGenerated }: Readonly<AIGenerateSectionProps>) {
           {quotaUpgradeUrl && (
             <>
               {' '}
-              <Link
-                to={quotaUpgradeUrl}
-                className={editorStyles.aiUpgradeLink}
-              >
+              <Link to={quotaUpgradeUrl} className={editorStyles.aiUpgradeLink}>
                 See pricing →
               </Link>
             </>
@@ -256,10 +255,7 @@ interface EditorBodyProps {
   shouldFork: boolean;
 }
 
-function EditorBody({
-  initialStarter,
-  shouldFork,
-}: Readonly<EditorBodyProps>) {
+function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
   const navigate = useNavigate();
   const [draft, setDraft] = useState<NoteTypeStarter>(initialStarter);
   const [pane, setPane] = useState<Pane>('front');
@@ -286,9 +282,15 @@ function EditorBody({
     [draft, previewSide]
   );
 
-  const updateNoteType = useCallback((updater: (n: AnkiNoteType) => AnkiNoteType) => {
-    setDraft((current) => ({ ...current, noteType: updater(current.noteType) }));
-  }, []);
+  const updateNoteType = useCallback(
+    (updater: (n: AnkiNoteType) => AnkiNoteType) => {
+      setDraft((current) => ({
+        ...current,
+        noteType: updater(current.noteType),
+      }));
+    },
+    []
+  );
 
   const setQfmt = (value: string) => {
     updateNoteType((n) => ({
@@ -404,7 +406,10 @@ function EditorBody({
 
   const handleDownload = async () => {
     try {
-      const blob = await downloadNoteTypeApkg(draft.noteType, draft.previewData);
+      const blob = await downloadNoteTypeApkg(
+        draft.noteType,
+        draft.previewData
+      );
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
@@ -502,7 +507,10 @@ function EditorBody({
         </div>
         <div className={editorStyles.fieldsList}>
           {draft.noteType.flds.map((field, index) => (
-            <div key={`${field.ord}-${field.name}`} className={editorStyles.fieldRow}>
+            <div
+              key={`${field.ord}-${field.name}`}
+              className={editorStyles.fieldRow}
+            >
               <input
                 className={editorStyles.fieldNameInput}
                 value={field.name}

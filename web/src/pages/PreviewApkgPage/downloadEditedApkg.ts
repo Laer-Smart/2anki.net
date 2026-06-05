@@ -24,8 +24,11 @@ export async function downloadEditedApkg(
   }
   const blob = await response.blob();
   const disposition = response.headers.get('Content-Disposition') ?? '';
-  const filenameMatch = disposition.match(/filename[^;=\n]*=(?:["']?)([^"';\n]+)/i);
-  const filename = filenameMatch?.[1]?.trim() ?? key.replace(/\.apkg$/i, '-edited.apkg');
+  const filenameMatch = disposition.match(
+    /filename[^;=\n]*=(?:["']?)([^"';\n]+)/i
+  );
+  const filename =
+    filenameMatch?.[1]?.trim() ?? key.replace(/\.apkg$/i, '-edited.apkg');
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

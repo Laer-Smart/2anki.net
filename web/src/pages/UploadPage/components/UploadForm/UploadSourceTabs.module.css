@@ -19,7 +19,9 @@
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast),
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
     box-shadow var(--transition-fast);
 }
 
@@ -36,7 +38,9 @@
 .tabActive {
   background: var(--color-bg-primary);
   color: var(--color-text-primary);
-  box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--color-border);
+  box-shadow:
+    var(--shadow-xs),
+    inset 0 0 0 1px var(--color-border);
 }
 
 .tabActive:hover {

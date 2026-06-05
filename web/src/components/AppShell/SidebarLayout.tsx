@@ -58,7 +58,7 @@ export function SidebarLayout({
         onClick={() => setIsDrawerOpen(false)}
       />
       <div className={styles.main}>
-<MobileTopBar
+        <MobileTopBar
           isOpen={isDrawerOpen}
           onOpen={() => setIsDrawerOpen(true)}
           onClose={() => setIsDrawerOpen(false)}

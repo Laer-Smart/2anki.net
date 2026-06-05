@@ -35,9 +35,19 @@ export interface ConversationWithMessages {
 export interface IConversationsRepository {
   create(input: { userId: number; title: string }): Promise<number>;
   listForUser(userId: number): Promise<ConversationSummary[]>;
-  findForUser(input: { userId: number; conversationId: number }): Promise<ConversationWithMessages | null>;
-  rename(input: { userId: number; conversationId: number; title: string }): Promise<boolean>;
-  softDelete(input: { userId: number; conversationId: number }): Promise<boolean>;
+  findForUser(input: {
+    userId: number;
+    conversationId: number;
+  }): Promise<ConversationWithMessages | null>;
+  rename(input: {
+    userId: number;
+    conversationId: number;
+    title: string;
+  }): Promise<boolean>;
+  softDelete(input: {
+    userId: number;
+    conversationId: number;
+  }): Promise<boolean>;
   touch(input: { userId: number; conversationId: number }): Promise<void>;
   saveDraft(input: {
     userId: number;
@@ -89,12 +99,14 @@ export class ConversationsRepository implements IConversationsRepository {
     const messages = await this.database('chat_messages')
       .where({ conversation_id: input.conversationId, user_id: input.userId })
       .orderBy('created_at', 'asc')
-      .select<{
-        id: number;
-        role: 'user' | 'assistant';
-        content: string;
-        created_at: Date;
-      }[]>('id', 'role', 'content', 'created_at');
+      .select<
+        {
+          id: number;
+          role: 'user' | 'assistant';
+          content: string;
+          created_at: Date;
+        }[]
+      >('id', 'role', 'content', 'created_at');
 
     return {
       id: conv.id,
@@ -142,7 +154,10 @@ export class ConversationsRepository implements IConversationsRepository {
     return updated > 0;
   }
 
-  async touch(input: { userId: number; conversationId: number }): Promise<void> {
+  async touch(input: {
+    userId: number;
+    conversationId: number;
+  }): Promise<void> {
     await this.database(this.table)
       .where({ id: input.conversationId, user_id: input.userId })
       .whereNull('deleted_at')
@@ -206,13 +221,25 @@ export class InMemoryConversationsRepository implements IConversationsRepository
     conversationId: number;
   }): Promise<ConversationWithMessages | null> {
     const conv = this.rows.find(
-      (r) => r.id === input.conversationId && r.user_id === input.userId && r.deleted_at == null
+      (r) =>
+        r.id === input.conversationId &&
+        r.user_id === input.userId &&
+        r.deleted_at == null
     );
     if (conv == null) return null;
     const messages = this.messages
-      .filter((m) => m.conversation_id === input.conversationId && m.user_id === input.userId)
+      .filter(
+        (m) =>
+          m.conversation_id === input.conversationId &&
+          m.user_id === input.userId
+      )
       .sort((a, b) => a.created_at.getTime() - b.created_at.getTime())
-      .map((m) => ({ id: m.id, role: m.role, content: m.content, created_at: m.created_at }));
+      .map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        created_at: m.created_at,
+      }));
     return {
       id: conv.id,
       title: conv.title,
@@ -230,7 +257,10 @@ export class InMemoryConversationsRepository implements IConversationsRepository
     title: string;
   }): Promise<boolean> {
     const conv = this.rows.find(
-      (r) => r.id === input.conversationId && r.user_id === input.userId && r.deleted_at == null
+      (r) =>
+        r.id === input.conversationId &&
+        r.user_id === input.userId &&
+        r.deleted_at == null
     );
     if (conv == null) return false;
     conv.title = input.title;
@@ -243,16 +273,25 @@ export class InMemoryConversationsRepository implements IConversationsRepository
     conversationId: number;
   }): Promise<boolean> {
     const conv = this.rows.find(
-      (r) => r.id === input.conversationId && r.user_id === input.userId && r.deleted_at == null
+      (r) =>
+        r.id === input.conversationId &&
+        r.user_id === input.userId &&
+        r.deleted_at == null
     );
     if (conv == null) return false;
     conv.deleted_at = new Date();
     return true;
   }
 
-  async touch(input: { userId: number; conversationId: number }): Promise<void> {
+  async touch(input: {
+    userId: number;
+    conversationId: number;
+  }): Promise<void> {
     const conv = this.rows.find(
-      (r) => r.id === input.conversationId && r.user_id === input.userId && r.deleted_at == null
+      (r) =>
+        r.id === input.conversationId &&
+        r.user_id === input.userId &&
+        r.deleted_at == null
     );
     if (conv != null) conv.updated_at = new Date();
   }
@@ -263,7 +302,10 @@ export class InMemoryConversationsRepository implements IConversationsRepository
     content: string | null;
   }): Promise<boolean> {
     const conv = this.rows.find(
-      (r) => r.id === input.conversationId && r.user_id === input.userId && r.deleted_at == null
+      (r) =>
+        r.id === input.conversationId &&
+        r.user_id === input.userId &&
+        r.deleted_at == null
     );
     if (conv == null) return false;
     conv.draft_content = input.content;
@@ -276,7 +318,10 @@ export class InMemoryConversationsRepository implements IConversationsRepository
     templateSlug: string | null;
   }): Promise<boolean> {
     const conv = this.rows.find(
-      (r) => r.id === input.conversationId && r.user_id === input.userId && r.deleted_at == null
+      (r) =>
+        r.id === input.conversationId &&
+        r.user_id === input.userId &&
+        r.deleted_at == null
     );
     if (conv == null) return false;
     conv.template_slug = input.templateSlug;

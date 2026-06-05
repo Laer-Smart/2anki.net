@@ -1,1 +1,6 @@
-{"id":"2026-05-23-photo-density-control","date":"2026-05-23","type":"feature","title":"Photo to deck — pick Sparse, Balanced, or Dense to control how many cards each image returns"}
+{
+  "id": "2026-05-23-photo-density-control",
+  "date": "2026-05-23",
+  "type": "feature",
+  "title": "Photo to deck — pick Sparse, Balanced, or Dense to control how many cards each image returns"
+}

@@ -7,5 +7,7 @@ interface Props {
 }
 
 export default function PowerpointToAnki({ setErrorMessage }: Readonly<Props>) {
-  return <LandingPage copy={powerpointCopy} setErrorMessage={setErrorMessage} />;
+  return (
+    <LandingPage copy={powerpointCopy} setErrorMessage={setErrorMessage} />
+  );
 }

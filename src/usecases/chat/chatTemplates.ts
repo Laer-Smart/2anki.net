@@ -1,8 +1,4 @@
-export type ChatCardTemplate =
-  | 'basic'
-  | 'basic-and-reversed'
-  | 'cloze'
-  | 'mcq';
+export type ChatCardTemplate = 'basic' | 'basic-and-reversed' | 'cloze' | 'mcq';
 
 export const VALID_TEMPLATE_SLUGS: ReadonlySet<ChatCardTemplate> = new Set([
   'basic',
@@ -12,7 +8,10 @@ export const VALID_TEMPLATE_SLUGS: ReadonlySet<ChatCardTemplate> = new Set([
 ]);
 
 export function isChatCardTemplate(value: unknown): value is ChatCardTemplate {
-  return typeof value === 'string' && (VALID_TEMPLATE_SLUGS as Set<string>).has(value);
+  return (
+    typeof value === 'string' &&
+    (VALID_TEMPLATE_SLUGS as Set<string>).has(value)
+  );
 }
 
 const TEMPLATE_PROMPT_SUFFIX: Record<ChatCardTemplate, string> = {
@@ -63,7 +62,6 @@ Rules:
 - The "front" stem must NOT contain cloze deletion syntax like {{c1::...}}; if basing a question on a cloze sentence, replace the deleted span with a blank (_____)
 - Do NOT emit any front/back Q&A pairs or cloze cards — only MCQ cards are valid in this conversation`,
 };
-
 
 export function templatePromptSuffix(slug: ChatCardTemplate): string {
   return TEMPLATE_PROMPT_SUFFIX[slug];

@@ -54,17 +54,17 @@ Use this when you want question generation tuned to a specific page-by-page rhyt
 
 AI conversions take longer than the standard parser — the deck builds in the background and is stored in your account so you can re-download it. Plan windows:
 
-| Plan | How long the AI deck is kept |
-|---|---|
-| Free | Falls back to standard parser (no AI) |
+| Plan         | How long the AI deck is kept           |
+| ------------ | -------------------------------------- |
+| Free         | Falls back to standard parser (no AI)  |
 | Subscription | Kept while your subscription is active |
-| Lifetime | Kept indefinitely |
+| Lifetime     | Kept indefinitely                      |
 
 We send the content to the model only to build your deck. We don't train on it. Full details on the [privacy policy](/documentation/reference/privacy).
 
 ## Common mistakes
 
-- **Empty PDF.** If the model can't find anything to turn into a card, the conversion fails with *Claude couldn't find any content to turn into flashcards in this Notion page* (the same message fires for PDFs). Check that the PDF has selectable text — scanned images won't work without OCR first.
+- **Empty PDF.** If the model can't find anything to turn into a card, the conversion fails with _Claude couldn't find any content to turn into flashcards in this Notion page_ (the same message fires for PDFs). Check that the PDF has selectable text — scanned images won't work without OCR first.
 - **Conflicting options.** Turning on both **Generate Flashcards with Claude AI** and the standard toggle options doesn't double the cards. Claude takes over for the whole document.
 - **Cost expectation.** Each AI conversion uses model credits on our end. We don't pass per-card pricing through, but very large PDFs may take several minutes to finish.
 

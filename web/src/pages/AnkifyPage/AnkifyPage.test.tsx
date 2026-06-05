@@ -69,7 +69,7 @@ const makeBackend = (overrides: Partial<Backend> = {}): Backend =>
       status: 'unlinked' as const,
     })),
     ...overrides,
-  } as unknown as Backend);
+  }) as unknown as Backend;
 
 describe('AnkifySetupPage', () => {
   beforeEach(() => {
@@ -154,9 +154,14 @@ describe('AnkifySetupPage', () => {
   });
 
   test('provision 503 → infra-specific error copy', async () => {
-    const provisionError = Object.assign(new Error('Docker daemon is unavailable on this host'), { status: 503 });
+    const provisionError = Object.assign(
+      new Error('Docker daemon is unavailable on this host'),
+      { status: 503 }
+    );
     const backend = makeBackend({
-      provisionAnkifyClient: vi.fn(async () => { throw provisionError; }),
+      provisionAnkifyClient: vi.fn(async () => {
+        throw provisionError;
+      }),
     });
 
     renderAt('/ankify/setup', backend);
@@ -165,14 +170,20 @@ describe('AnkifySetupPage', () => {
     btn.click();
 
     expect(
-      await screen.findByText(/anki couldn't start — usually a temporary infra issue/i)
+      await screen.findByText(
+        /anki couldn't start — usually a temporary infra issue/i
+      )
     ).toBeInTheDocument();
   });
 
   test('provision non-503 error → generic error copy', async () => {
-    const provisionError = Object.assign(new Error('Provision failed'), { status: 500 });
+    const provisionError = Object.assign(new Error('Provision failed'), {
+      status: 500,
+    });
     const backend = makeBackend({
-      provisionAnkifyClient: vi.fn(async () => { throw provisionError; }),
+      provisionAnkifyClient: vi.fn(async () => {
+        throw provisionError;
+      }),
     });
 
     renderAt('/ankify/setup', backend);
@@ -181,7 +192,9 @@ describe('AnkifySetupPage', () => {
     btn.click();
 
     expect(
-      await screen.findByText(/anki couldn't start\. try again, or email support@2anki\.net/i)
+      await screen.findByText(
+        /anki couldn't start\. try again, or email support@2anki\.net/i
+      )
     ).toBeInTheDocument();
   });
 });
@@ -191,7 +204,12 @@ describe('AnkifyPage workspace home', () => {
     globalThis.localStorage?.setItem(ANKI_WEB_ACK_KEY, 'true');
     vi.mocked(getUserLocals).mockResolvedValue({
       user: { ankify_welcome_seen: false } as never,
-      locals: { owner: 42, patreon: false, subscriber: false, subscriptionInfo: { active: false, email: '', linked_email: '' } },
+      locals: {
+        owner: 42,
+        patreon: false,
+        subscriber: false,
+        subscriptionInfo: { active: false, email: '', linked_email: '' },
+      },
       linked_email: '',
     });
   });
@@ -216,9 +234,7 @@ describe('AnkifyPage workspace home', () => {
         screen.getByRole('heading', { name: /^ankify$/i, level: 1 })
       ).toBeInTheDocument()
     );
-    expect(
-      screen.getByRole('tab', { name: /decks/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /decks/i })).toBeInTheDocument();
     expect(
       screen.getByRole('tab', { name: /find pages/i })
     ).toBeInTheDocument();
@@ -257,9 +273,7 @@ describe('AnkifyPage workspace home', () => {
     renderAt('/ankify', backend);
 
     await waitFor(() =>
-      expect(
-        screen.getByText(/you're synced/i)
-      ).toBeInTheDocument()
+      expect(screen.getByText(/you're synced/i)).toBeInTheDocument()
     );
     expect(
       screen.getByText(/ankify basic and ankify cloze/i)
@@ -269,9 +283,7 @@ describe('AnkifyPage workspace home', () => {
     dismiss.click();
 
     await waitFor(() =>
-      expect(
-        screen.queryByText(/you're synced/i)
-      ).not.toBeInTheDocument()
+      expect(screen.queryByText(/you're synced/i)).not.toBeInTheDocument()
     );
     expect(markSeen).toHaveBeenCalledTimes(1);
   });
@@ -279,7 +291,12 @@ describe('AnkifyPage workspace home', () => {
   test('does not show the welcome banner when server reports it as seen', async () => {
     vi.mocked(getUserLocals).mockResolvedValue({
       user: { ankify_welcome_seen: true } as never,
-      locals: { owner: 42, patreon: false, subscriber: false, subscriptionInfo: { active: false, email: '', linked_email: '' } },
+      locals: {
+        owner: 42,
+        patreon: false,
+        subscriber: false,
+        subscriptionInfo: { active: false, email: '', linked_email: '' },
+      },
       linked_email: '',
     });
     const backend = makeBackend({
@@ -345,9 +362,9 @@ describe('Ankify session URL — transparent recovery', () => {
 
     await waitFor(() => expect(reissue).toHaveBeenCalledWith(1));
     await waitFor(() =>
-      expect(
-        globalThis.localStorage?.getItem(`${SESSION_URL_PREFIX}1`)
-      ).toBe('https://2anki.net/v/FRESH/vnc.html')
+      expect(globalThis.localStorage?.getItem(`${SESSION_URL_PREFIX}1`)).toBe(
+        'https://2anki.net/v/FRESH/vnc.html'
+      )
     );
   });
 
@@ -362,9 +379,9 @@ describe('Ankify session URL — transparent recovery', () => {
 
     await waitFor(() => expect(reissue).toHaveBeenCalled());
     await waitFor(() =>
-      expect(
-        globalThis.localStorage?.getItem(`${SESSION_URL_PREFIX}1`)
-      ).toBe('https://2anki.net/v/FRESH/vnc.html')
+      expect(globalThis.localStorage?.getItem(`${SESSION_URL_PREFIX}1`)).toBe(
+        'https://2anki.net/v/FRESH/vnc.html'
+      )
     );
   });
 
@@ -379,9 +396,9 @@ describe('Ankify session URL — transparent recovery', () => {
 
     await waitFor(() => expect(reissue).toHaveBeenCalledWith(1));
     await waitFor(() =>
-      expect(
-        globalThis.localStorage?.getItem(`${SESSION_URL_PREFIX}1`)
-      ).toBe('https://2anki.net/v/FRESH/vnc.html')
+      expect(globalThis.localStorage?.getItem(`${SESSION_URL_PREFIX}1`)).toBe(
+        'https://2anki.net/v/FRESH/vnc.html'
+      )
     );
   });
 

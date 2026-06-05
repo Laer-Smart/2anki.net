@@ -1,4 +1,7 @@
-import type { FieldMapping, FieldMappingEntry } from '../../lib/cardFields/types';
+import type {
+  FieldMapping,
+  FieldMappingEntry,
+} from '../../lib/cardFields/types';
 
 const BASIC_FIELDS: FieldMappingEntry[] = [
   { name: 'Front', instruction: 'The question, term, or concept being tested' },
@@ -6,7 +9,10 @@ const BASIC_FIELDS: FieldMappingEntry[] = [
 ];
 
 const CLOZE_FIELDS: FieldMappingEntry[] = [
-  { name: 'Text', instruction: 'The sentence with cloze deletions using {{c1::...}} syntax' },
+  {
+    name: 'Text',
+    instruction: 'The sentence with cloze deletions using {{c1::...}} syntax',
+  },
   { name: 'Extra', instruction: 'Optional extra context or hint for the card' },
 ];
 
@@ -30,6 +36,8 @@ export const FIELD_MAPPING_DEFAULTS: Record<string, FieldMapping> = {
   alex_deluxe: { templateName: 'alex_deluxe', fields: BASIC_FIELDS },
 };
 
-export function getDefaultFieldMapping(templateName: string): FieldMapping | null {
+export function getDefaultFieldMapping(
+  templateName: string
+): FieldMapping | null {
   return FIELD_MAPPING_DEFAULTS[templateName] ?? null;
 }

@@ -12,10 +12,7 @@ function escapeHtml(input: string): string {
     .replaceAll("'", '&#39;');
 }
 
-function applyAnnotations(
-  item: RichTextItemResponse,
-  text: string
-): string {
+function applyAnnotations(item: RichTextItemResponse, text: string): string {
   let html = escapeHtml(text);
   const { annotations } = item;
   if (annotations.code) html = `<code>${html}</code>`;
@@ -31,14 +28,12 @@ function applyAnnotations(
 
 function richText(items: RichTextItemResponse[] | undefined): string {
   if (!items || items.length === 0) return '';
-  return items
-    .map((item) => applyAnnotations(item, item.plain_text))
-    .join('');
+  return items.map((item) => applyAnnotations(item, item.plain_text)).join('');
 }
 
-function imageUrl(block: Extract<BlockObjectResponse, { type: 'image' }>):
-  | string
-  | null {
+function imageUrl(
+  block: Extract<BlockObjectResponse, { type: 'image' }>
+): string | null {
   if (block.image.type === 'external') return block.image.external.url;
   if (block.image.type === 'file') return block.image.file.url;
   return null;
@@ -91,7 +86,9 @@ export function renderBlockSummary(block: BlockObjectResponse): string {
 }
 
 function fileOrExternalUrl(
-  block: { type: 'file'; file: { url: string } } | { type: 'external'; external: { url: string } }
+  block:
+    | { type: 'file'; file: { url: string } }
+    | { type: 'external'; external: { url: string } }
 ): string {
   if (block.type === 'file') return block.file.url;
   return block.external.url;

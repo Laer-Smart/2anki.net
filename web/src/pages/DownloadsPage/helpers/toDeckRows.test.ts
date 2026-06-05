@@ -34,7 +34,9 @@ const makeUpload = (overrides: Partial<UserUpload> = {}): UserUpload => ({
   ...overrides,
 });
 
-const makeDropboxUpload = (overrides: Partial<DropboxUpload> = {}): DropboxUpload => ({
+const makeDropboxUpload = (
+  overrides: Partial<DropboxUpload> = {}
+): DropboxUpload => ({
   id: 10,
   bytes: 1024,
   name: 'notes.html',
@@ -42,7 +44,9 @@ const makeDropboxUpload = (overrides: Partial<DropboxUpload> = {}): DropboxUploa
   ...overrides,
 });
 
-const makeGoogleDriveUpload = (overrides: Partial<GoogleDriveUpload> = {}): GoogleDriveUpload => ({
+const makeGoogleDriveUpload = (
+  overrides: Partial<GoogleDriveUpload> = {}
+): GoogleDriveUpload => ({
   id: 'gdrive-1',
   iconUrl: 'https://ssl.gstatic.com/icon.png',
   mimeType: 'text/html',
@@ -102,17 +106,37 @@ describe('toDeckRows — source mapping', () => {
 
 describe('toDeckRows — sorting', () => {
   it('sorts merged rows by sortKey descending (newest first)', () => {
-    const olderJob = makeJob({ id: 1 as JobsId, created_at: new Date('2026-05-08T00:00:00Z') });
-    const newerJob = makeJob({ id: 2 as JobsId, created_at: new Date('2026-05-10T00:00:00Z') });
+    const olderJob = makeJob({
+      id: 1 as JobsId,
+      created_at: new Date('2026-05-08T00:00:00Z'),
+    });
+    const newerJob = makeJob({
+      id: 2 as JobsId,
+      created_at: new Date('2026-05-10T00:00:00Z'),
+    });
     const rows = toDeckRows([olderJob, newerJob], [], [], []);
-    expect(rows[0].sortKey.getTime()).toBeGreaterThan(rows[1].sortKey.getTime());
+    expect(rows[0].sortKey.getTime()).toBeGreaterThan(
+      rows[1].sortKey.getTime()
+    );
   });
 
   it('places null created_at at the end', () => {
-    const jobWithDate = makeJob({ id: 1 as JobsId, created_at: new Date('2026-05-10T00:00:00Z') });
+    const jobWithDate = makeJob({
+      id: 1 as JobsId,
+      created_at: new Date('2026-05-10T00:00:00Z'),
+    });
     const jobNoDate = makeJob({ id: 2 as JobsId, created_at: null });
     const rows = toDeckRows([jobNoDate, jobWithDate], [], [], []);
-    expect((rows[0] as { source: string; kind: string; job: JobResponse; sortKey: Date }).job.id).toBe(1);
+    expect(
+      (
+        rows[0] as {
+          source: string;
+          kind: string;
+          job: JobResponse;
+          sortKey: Date;
+        }
+      ).job.id
+    ).toBe(1);
   });
 
   it('handles created_at when API returns it as an ISO string (not a Date)', () => {

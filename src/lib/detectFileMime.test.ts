@@ -6,7 +6,9 @@ function bufWith(sig: number[], extra: number = 16): Buffer {
 
 describe('detectFileMime', () => {
   it('detects PDF', () => {
-    expect(detectFileMime(bufWith([0x25, 0x50, 0x44, 0x46]))).toBe('application/pdf');
+    expect(detectFileMime(bufWith([0x25, 0x50, 0x44, 0x46]))).toBe(
+      'application/pdf'
+    );
   });
 
   it('detects PNG', () => {
@@ -20,11 +22,15 @@ describe('detectFileMime', () => {
   });
 
   it('detects GIF87a', () => {
-    expect(detectFileMime(bufWith([0x47, 0x49, 0x46, 0x38, 0x37, 0x61]))).toBe('image/gif');
+    expect(detectFileMime(bufWith([0x47, 0x49, 0x46, 0x38, 0x37, 0x61]))).toBe(
+      'image/gif'
+    );
   });
 
   it('detects GIF89a', () => {
-    expect(detectFileMime(bufWith([0x47, 0x49, 0x46, 0x38, 0x39, 0x61]))).toBe('image/gif');
+    expect(detectFileMime(bufWith([0x47, 0x49, 0x46, 0x38, 0x39, 0x61]))).toBe(
+      'image/gif'
+    );
   });
 
   it('detects WebP (RIFF + WEBP at offset 8)', () => {
@@ -48,7 +54,9 @@ describe('detectFileMime', () => {
   });
 
   it('returns null for unrecognized bytes', () => {
-    expect(detectFileMime(Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04, 0x05]))).toBeNull();
+    expect(
+      detectFileMime(Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04, 0x05]))
+    ).toBeNull();
   });
 
   it('returns null for an empty buffer', () => {

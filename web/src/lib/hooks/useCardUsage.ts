@@ -19,7 +19,12 @@ export const useCardUsage = (enabled: boolean): CardUsageState | null => {
   }
 
   if (data == null) {
-    return { cards_used: 0, cards_limit: 100, unlimited: false, loading: isFetching };
+    return {
+      cards_used: 0,
+      cards_limit: 100,
+      unlimited: false,
+      loading: isFetching,
+    };
   }
 
   return { ...data, loading: false };

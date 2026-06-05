@@ -44,7 +44,10 @@ function makeFakeKnex() {
       offset: (n: number) => typeof q;
       count: (_expr: string) => { first: () => Promise<{ count: number }> };
       first: () => Promise<StoredRow | undefined>;
-      then: (resolve: (rows: StoredRow[]) => void, reject: (err: unknown) => void) => void;
+      then: (
+        resolve: (rows: StoredRow[]) => void,
+        reject: (err: unknown) => void
+      ) => void;
     } = {
       where: (col: string, opOrVal: unknown, val?: unknown) => {
         const actualVal = val !== undefined ? val : opOrVal;
@@ -84,7 +87,10 @@ function makeFakeKnex() {
         if (filtered.length === 0) return Promise.resolve(undefined);
         return Promise.resolve(filtered[0]);
       },
-      then: (resolve: (rows: StoredRow[]) => void, reject: (err: unknown) => void) => {
+      then: (
+        resolve: (rows: StoredRow[]) => void,
+        reject: (err: unknown) => void
+      ) => {
         try {
           let result: StoredRow[] = filtered;
 
@@ -150,7 +156,9 @@ function makeFakeKnex() {
   const rawFn = jest.fn((sql: string) => ({ as: () => sql }));
 
   const db = Object.assign(
-    ((_name: string) => tableWithInsert()) as unknown as ReturnType<typeof import('knex').default>,
+    ((_name: string) => tableWithInsert()) as unknown as ReturnType<
+      typeof import('knex').default
+    >,
     {
       raw: rawFn,
       count: (_expr: string) => ({
@@ -215,7 +223,9 @@ describe('ErrorEventRepository.resolveGroup', () => {
     const mergeSpy = jest.fn().mockResolvedValue(undefined);
     const onConflictSpy = jest.fn().mockReturnValue({ merge: mergeSpy });
     const insertSpy = jest.fn().mockReturnValue({ onConflict: onConflictSpy });
-    const knex = jest.fn().mockReturnValue({ insert: insertSpy }) as unknown as jest.Mock & {
+    const knex = jest
+      .fn()
+      .mockReturnValue({ insert: insertSpy }) as unknown as jest.Mock & {
       fn: { now: () => string };
     };
     knex.fn = { now: () => 'NOW()' };
@@ -257,8 +267,12 @@ describe('buildLatestSamplesQuery — generated SQL shape', () => {
     expect(sql).toContain(
       'select "message_hash", "stack", "url", "user_agent", "release", "user_id" from "error_events"'
     );
-    expect(sql).toContain('"id" in (select max("id") as "id" from "error_events"');
-    expect(sql).toContain(`"message_hash" in ('${'a'.repeat(64)}', '${'b'.repeat(64)}')`);
+    expect(sql).toContain(
+      '"id" in (select max("id") as "id" from "error_events"'
+    );
+    expect(sql).toContain(
+      `"message_hash" in ('${'a'.repeat(64)}', '${'b'.repeat(64)}')`
+    );
     expect(sql).toContain('group by "message_hash"');
     expect(sql).not.toContain('ip_hash');
     pgKnex.destroy();

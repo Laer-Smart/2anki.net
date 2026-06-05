@@ -27,8 +27,7 @@ const formatRelative = (iso: string | null): string => {
   if (diffHours < 24)
     return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
   const diffDays = Math.round(diffHours / 24);
-  if (diffDays < 30)
-    return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+  if (diffDays < 30) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
   return new Date(iso).toLocaleDateString(undefined, {
     day: 'numeric',
     month: 'short',
@@ -114,8 +113,8 @@ export default function FlagsTab() {
       <p className={styles.panelTitle}>Flags</p>
       <p className={styles.panelSubtitle}>
         Runtime feature flags. Toggling is logged and takes effect within 5
-        seconds across the server. New flags get added via migration — this
-        page only flips existing flags.
+        seconds across the server. New flags get added via migration — this page
+        only flips existing flags.
       </p>
 
       {state === 'error' && error != null && (
@@ -155,10 +154,7 @@ export default function FlagsTab() {
               >
                 <div className={flagsStyles.row}>
                   <div className={flagsStyles.meta}>
-                    <label
-                      htmlFor={inputId}
-                      className={flagsStyles.keyLabel}
-                    >
+                    <label htmlFor={inputId} className={flagsStyles.keyLabel}>
                       {flag.key}
                     </label>
                     {flag.description != null && flag.description !== '' && (

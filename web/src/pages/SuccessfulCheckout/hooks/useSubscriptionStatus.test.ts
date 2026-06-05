@@ -57,7 +57,9 @@ describe('useSubscriptionStatus purchase event', () => {
       { timeout: 10000 }
     );
 
-    const purchaseCalls = trackMock.mock.calls.filter(([name]) => name === 'purchase');
+    const purchaseCalls = trackMock.mock.calls.filter(
+      ([name]) => name === 'purchase'
+    );
     expect(purchaseCalls).toHaveLength(1);
   }, 12000);
 

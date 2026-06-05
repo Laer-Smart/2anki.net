@@ -66,7 +66,9 @@ describe('downloadMediaOrSkip', () => {
     mockedAxios.get.mockRejectedValueOnce(makeAxiosError(403));
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-    const result = await downloadMediaOrSkip('https://example.test/expired.png');
+    const result = await downloadMediaOrSkip(
+      'https://example.test/expired.png'
+    );
 
     expect(result).toBeNull();
     warn.mockRestore();
@@ -76,7 +78,9 @@ describe('downloadMediaOrSkip', () => {
     mockedAxios.get.mockRejectedValueOnce(makeAxiosError(404));
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-    const result = await downloadMediaOrSkip('https://example.test/missing.png');
+    const result = await downloadMediaOrSkip(
+      'https://example.test/missing.png'
+    );
 
     expect(result).toBeNull();
     warn.mockRestore();
@@ -100,7 +104,9 @@ describe('downloadMediaOrSkip', () => {
 
   test('decodes a base64 data URI without fetching', async () => {
     const payload = Buffer.from('hello').toString('base64');
-    const result = await downloadMediaOrSkip(`data:image/png;base64,${payload}`);
+    const result = await downloadMediaOrSkip(
+      `data:image/png;base64,${payload}`
+    );
     expect(result).toEqual(Buffer.from('hello'));
     expect(mockedAxios.get).not.toHaveBeenCalled();
   });

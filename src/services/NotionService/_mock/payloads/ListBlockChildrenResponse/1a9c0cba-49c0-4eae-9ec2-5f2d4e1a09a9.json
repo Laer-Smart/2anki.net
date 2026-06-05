@@ -1,54 +1,54 @@
 {
-    "object": "list",
-    "results": [
-        {
-            "object": "block",
-            "id": "34c801ff-f91a-4d1c-8fc1-c4f4d8b8d32d",
-            "parent": {
-                "type": "block_id",
-                "block_id": "1a9c0cba-49c0-4eae-9ec2-5f2d4e1a09a9"
+  "object": "list",
+  "results": [
+    {
+      "object": "block",
+      "id": "34c801ff-f91a-4d1c-8fc1-c4f4d8b8d32d",
+      "parent": {
+        "type": "block_id",
+        "block_id": "1a9c0cba-49c0-4eae-9ec2-5f2d4e1a09a9"
+      },
+      "created_time": "2021-05-16T17:13:00.000Z",
+      "last_edited_time": "2021-05-16T17:13:00.000Z",
+      "created_by": {
+        "object": "user",
+        "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+      },
+      "last_edited_by": {
+        "object": "user",
+        "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+      },
+      "has_children": false,
+      "archived": false,
+      "in_trash": false,
+      "type": "paragraph",
+      "paragraph": {
+        "rich_text": [
+          {
+            "type": "text",
+            "text": {
+              "content": "This is the purple background.",
+              "link": null
             },
-            "created_time": "2021-05-16T17:13:00.000Z",
-            "last_edited_time": "2021-05-16T17:13:00.000Z",
-            "created_by": {
-                "object": "user",
-                "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+            "annotations": {
+              "bold": false,
+              "italic": false,
+              "strikethrough": false,
+              "underline": false,
+              "code": false,
+              "color": "default"
             },
-            "last_edited_by": {
-                "object": "user",
-                "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
-            },
-            "has_children": false,
-            "archived": false,
-            "in_trash": false,
-            "type": "paragraph",
-            "paragraph": {
-                "rich_text": [
-                    {
-                        "type": "text",
-                        "text": {
-                            "content": "This is the purple background.",
-                            "link": null
-                        },
-                        "annotations": {
-                            "bold": false,
-                            "italic": false,
-                            "strikethrough": false,
-                            "underline": false,
-                            "code": false,
-                            "color": "default"
-                        },
-                        "plain_text": "This is the purple background.",
-                        "href": null
-                    }
-                ],
-                "color": "default"
-            }
-        }
-    ],
-    "next_cursor": null,
-    "has_more": false,
-    "type": "block",
-    "block": {},
-    "request_id": "3e6f8356-b86b-470a-9a5f-556955687608"
+            "plain_text": "This is the purple background.",
+            "href": null
+          }
+        ],
+        "color": "default"
+      }
+    }
+  ],
+  "next_cursor": null,
+  "has_more": false,
+  "type": "block",
+  "block": {},
+  "request_id": "3e6f8356-b86b-470a-9a5f-556955687608"
 }

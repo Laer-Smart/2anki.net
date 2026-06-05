@@ -53,7 +53,8 @@ const {
 const { convertPDFToImages } = require('./convertPDFToImages');
 
 const { generateDeckInfo } = require('../../../lib/claude/ClaudeService');
-const CustomExporterMock = require('../../../lib/parser/exporters/CustomExporter').default;
+const CustomExporterMock =
+  require('../../../lib/parser/exporters/CustomExporter').default;
 
 function makeSettings(overrides: Record<string, string> = {}): CardOption {
   return new CardOption({ ...CardOption.LoadDefaultOptions(), ...overrides });
@@ -114,7 +115,9 @@ describe('PrepareDeck — Claude AI flashcards branch', () => {
       DeckParser: jest.fn().mockImplementation(() => ({
         totalCardCount: jest.fn().mockReturnValue(0),
         processFirstFile: jest.fn(),
-        tryExperimental: jest.fn().mockResolvedValue(Buffer.from('regular-apkg')),
+        tryExperimental: jest
+          .fn()
+          .mockResolvedValue(Buffer.from('regular-apkg')),
         name: 'test',
         payload: [],
       })),
@@ -232,8 +235,8 @@ describe('PrepareDeck — HTML generation concurrency window', () => {
     expect(generateDeckInfo).toHaveBeenCalledTimes(fileCount);
     expect(maxInFlight).toBe(3);
 
-    const configuredDecks = CustomExporterMock.mock.results[0].value.configure.mock
-      .calls[0][0] as Array<{ name: string }>;
+    const configuredDecks = CustomExporterMock.mock.results[0].value.configure
+      .mock.calls[0][0] as Array<{ name: string }>;
     expect(configuredDecks.map((d) => d.name)).toEqual([
       'page-0',
       'page-1',
@@ -337,7 +340,9 @@ describe('PrepareDeck — PDF text-vs-image gate', () => {
   });
 
   it('uses extracted text when pdf-extract-text is on', async () => {
-    expect(makeSettings({ 'pdf-extract-text': 'true' }).pdfExtractText).toBe(true);
+    expect(makeSettings({ 'pdf-extract-text': 'true' }).pdfExtractText).toBe(
+      true
+    );
     await runPdf(makeSettings({ 'pdf-extract-text': 'true' }));
     expect(convertPdfTextToHtml).toHaveBeenCalledTimes(1);
     expect(convertPdfTextToHtmlAuto).not.toHaveBeenCalled();
@@ -397,7 +402,13 @@ describe('PrepareDeck — diagnostic logging', () => {
       (args) => args[0] === '[PrepareDeck] convertFile start'
     );
     expect(startCalls).toHaveLength(2);
-    expect(startCalls[0][1]).toMatchObject({ name: 'anatomy.pdf', workspaceLocation: '/tmp/test-workspace' });
-    expect(startCalls[1][1]).toMatchObject({ name: 'anatomy.pdf', workspaceLocation: '/tmp/test-workspace' });
+    expect(startCalls[0][1]).toMatchObject({
+      name: 'anatomy.pdf',
+      workspaceLocation: '/tmp/test-workspace',
+    });
+    expect(startCalls[1][1]).toMatchObject({
+      name: 'anatomy.pdf',
+      workspaceLocation: '/tmp/test-workspace',
+    });
   });
 });

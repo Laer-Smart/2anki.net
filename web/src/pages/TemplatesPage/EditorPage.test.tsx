@@ -158,9 +158,7 @@ describe('EditorPage (edit)', () => {
 
   it('loads an existing starter and shows its name', async () => {
     renderEditor('edit', `/templates/edit/${sampleStarter.id}`);
-    expect(
-      await screen.findByDisplayValue('Clean Basic')
-    ).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Clean Basic')).toBeInTheDocument();
   });
 
   it('shows "Save as copy" when editing a default (not owned)', async () => {
@@ -223,7 +221,9 @@ describe('EditorPage chat (modify path)', () => {
   async function openChatReady() {
     renderEditor('edit', `/templates/edit/${sampleStarter.id}`);
     await screen.findByDisplayValue('Clean Basic');
-    return screen.getByRole('textbox', { name: /ask claude/i }) as HTMLInputElement;
+    return screen.getByRole('textbox', {
+      name: /ask claude/i,
+    }) as HTMLInputElement;
   }
 
   it('shows "Nothing changed" when Claude returns the same starter', async () => {
@@ -278,10 +278,7 @@ describe('EditorPage chat (modify path)', () => {
           ...sampleStarter,
           noteType: {
             ...sampleStarter.noteType,
-            flds: [
-              ...sampleStarter.noteType.flds,
-              { name: 'Hint', ord: 2 },
-            ],
+            flds: [...sampleStarter.noteType.flds, { name: 'Hint', ord: 2 }],
           },
         },
       });
@@ -295,9 +292,7 @@ describe('EditorPage chat (modify path)', () => {
 
     fireEvent.click(retry);
 
-    expect(
-      await screen.findByText(/added a hint field/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/added a hint field/i)).toBeInTheDocument();
     expect(modifySpy).toHaveBeenCalledTimes(2);
     expect(modifySpy.mock.calls[0][1]).toBe('add a hint field');
     expect(modifySpy.mock.calls[1][1]).toBe('add a hint field');
@@ -322,6 +317,8 @@ describe('EditorPage chat (modify path)', () => {
     expect(
       screen.queryByRole('button', { name: /try again/i })
     ).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /see pricing/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /see pricing/i })
+    ).toBeInTheDocument();
   });
 });

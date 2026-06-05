@@ -69,17 +69,27 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
     setAccountExists(false);
 
     try {
-      const res = await get2ankiApi().register('', email, password, signupOrigin);
+      const res = await get2ankiApi().register(
+        '',
+        email,
+        password,
+        signupOrigin
+      );
       if (res.status === 200) {
         track('signup_completed', { method: 'email' });
         globalThis.sessionStorage?.setItem(SIGNUP_FLAG_KEY, '1');
-        globalThis.sessionStorage?.setItem('email_verification_pending', 'true');
+        globalThis.sessionStorage?.setItem(
+          'email_verification_pending',
+          'true'
+        );
         try {
           globalThis.sessionStorage?.setItem('2anki_post_login', '1');
         } catch {
           // sessionStorage may be unavailable; the survey just won't arm.
         }
-        globalThis.location.href = redirect ? `/${redirect.replace(/^\//, '')}` : '/';
+        globalThis.location.href = redirect
+          ? `/${redirect.replace(/^\//, '')}`
+          : '/';
       } else {
         const body = await res.json().catch(() => null);
         const backendMessage =
@@ -92,7 +102,10 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
           setLoading(false);
           return;
         }
-        if (backendMessage != null && isIntentionalBackendNotice(backendMessage)) {
+        if (
+          backendMessage != null &&
+          isIntentionalBackendNotice(backendMessage)
+        ) {
           setErrorMessage(new UserNotice(backendMessage));
           setLoading(false);
           return;
@@ -132,7 +145,9 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
         <TopMessage />
         {accountExists && (
           <div className={styles.recovery} role="alert">
-            <p>This email already has an account — log in or reset your password.</p>
+            <p>
+              This email already has an account — log in or reset your password.
+            </p>
             <div className={styles.recoveryActions}>
               <Link to={loginHref(redirect)}>Log in</Link>
               <Link to="/forgot">Reset password</Link>

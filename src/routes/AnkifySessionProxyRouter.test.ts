@@ -39,7 +39,11 @@ const requestViaListen = (
   attach: (server: http.Server) => void,
   path: string,
   headers: Record<string, string> = {}
-): Promise<{ status: number; headers: http.IncomingHttpHeaders; body: string }> =>
+): Promise<{
+  status: number;
+  headers: http.IncomingHttpHeaders;
+  body: string;
+}> =>
   new Promise((resolve, reject) => {
     const server = http.createServer(app);
     attach(server);
@@ -95,9 +99,11 @@ describe('attachAnkifySessionProxy', () => {
     const server = http.createServer(app);
     attachAnkifySessionProxy(app, server, makeFakeValidate(54321));
 
-    const upgradeListeners = server.listeners(
-      'upgrade'
-    ) as ((req: http.IncomingMessage, socket: unknown, head: Buffer) => Promise<void>)[];
+    const upgradeListeners = server.listeners('upgrade') as ((
+      req: http.IncomingMessage,
+      socket: unknown,
+      head: Buffer
+    ) => Promise<void>)[];
     const ourHandler = upgradeListeners[0];
 
     const req = {
@@ -109,9 +115,9 @@ describe('attachAnkifySessionProxy', () => {
 
     await ourHandler(req, socket, head);
 
-    expect((req as unknown as { __ankifyNovncPort: number }).__ankifyNovncPort).toBe(
-      54321
-    );
+    expect(
+      (req as unknown as { __ankifyNovncPort: number }).__ankifyNovncPort
+    ).toBe(54321);
     expect(socket.destroy).not.toHaveBeenCalled();
   });
 
@@ -142,6 +148,8 @@ describe('attachAnkifySessionProxy', () => {
     );
 
     expect(result.status).toBe(401);
-    expect(result.body).toBe(JSON.stringify({ message: 'invalid_session_token' }));
+    expect(result.body).toBe(
+      JSON.stringify({ message: 'invalid_session_token' })
+    );
   });
 });

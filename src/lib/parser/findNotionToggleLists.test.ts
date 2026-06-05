@@ -80,8 +80,10 @@ describe('isMCQ', () => {
   });
 
   test('returns -1 when 8 or more options (exceeds cap)', () => {
-    const items = Array.from({ length: 8 }, (_, i) =>
-      `<li><span class="checkbox ${i === 0 ? 'checkbox-on' : 'checkbox-off'}"></span>Option ${i + 1}</li>`
+    const items = Array.from(
+      { length: 8 },
+      (_, i) =>
+        `<li><span class="checkbox ${i === 0 ? 'checkbox-on' : 'checkbox-off'}"></span>Option ${i + 1}</li>`
     ).join('');
     const { dom, details } = loadToggleDetails(`
       <details>

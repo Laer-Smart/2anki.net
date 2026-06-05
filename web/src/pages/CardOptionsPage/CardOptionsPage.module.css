@@ -108,7 +108,6 @@
   color: inherit;
 }
 
-
 .entryText {
   display: flex;
   flex-direction: column;
@@ -124,7 +123,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 
 .entryMeta:hover .entryTitle {
   color: var(--color-primary);
@@ -156,7 +154,9 @@
   color: var(--color-text-tertiary);
   cursor: pointer;
   text-decoration: none;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .actionButton:hover {
@@ -176,7 +176,9 @@
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   cursor: pointer;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .resetButton:hover {
@@ -208,7 +210,9 @@
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
 }
 
 .bulkResetButton:hover {

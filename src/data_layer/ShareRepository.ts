@@ -5,7 +5,10 @@ import { UsersId } from './public/Users';
 export interface IShareRepository {
   create(owner: UsersId, uploadKey: string, token: string): Promise<DeckShares>;
   findByToken(token: string): Promise<DeckShares | null>;
-  findByOwnerAndKey(owner: UsersId, uploadKey: string): Promise<DeckShares | null>;
+  findByOwnerAndKey(
+    owner: UsersId,
+    uploadKey: string
+  ): Promise<DeckShares | null>;
   findAllByOwner(owner: UsersId): Promise<DeckShares[]>;
   revoke(token: string, owner: UsersId): Promise<boolean>;
   incrementViewCount(id: DeckSharesId): Promise<void>;
@@ -17,7 +20,11 @@ class ShareRepository implements IShareRepository {
 
   constructor(private readonly database: Knex) {}
 
-  async create(owner: UsersId, uploadKey: string, token: string): Promise<DeckShares> {
+  async create(
+    owner: UsersId,
+    uploadKey: string,
+    token: string
+  ): Promise<DeckShares> {
     const [row] = await this.database<DeckShares>(this.table)
       .insert({ owner, upload_key: uploadKey, token })
       .returning('*');
@@ -31,7 +38,10 @@ class ShareRepository implements IShareRepository {
     return row ?? null;
   }
 
-  async findByOwnerAndKey(owner: UsersId, uploadKey: string): Promise<DeckShares | null> {
+  async findByOwnerAndKey(
+    owner: UsersId,
+    uploadKey: string
+  ): Promise<DeckShares | null> {
     const row = await this.database<DeckShares>(this.table)
       .where({ owner, upload_key: uploadKey })
       .whereNull('revoked_at')

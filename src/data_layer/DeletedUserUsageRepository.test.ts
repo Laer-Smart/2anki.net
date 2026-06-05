@@ -17,7 +17,10 @@ describe('DeletedUserUsageRepository.consumeIfCurrentMonth — unit', () => {
 
   it('returns null when no row exists', async () => {
     const repo = new DeletedUserUsageRepository(buildKnex(undefined));
-    const result = await repo.consumeIfCurrentMonth(HASH, new Date('2026-05-24T00:00:00Z'));
+    const result = await repo.consumeIfCurrentMonth(
+      HASH,
+      new Date('2026-05-24T00:00:00Z')
+    );
     expect(result).toBeNull();
   });
 
@@ -30,7 +33,10 @@ describe('DeletedUserUsageRepository.consumeIfCurrentMonth — unit', () => {
         prints_month_started_at: '2026-04-01T00:00:00Z',
       })
     );
-    const result = await repo.consumeIfCurrentMonth(HASH, new Date('2026-05-24T00:00:00Z'));
+    const result = await repo.consumeIfCurrentMonth(
+      HASH,
+      new Date('2026-05-24T00:00:00Z')
+    );
     expect(result).toBeNull();
   });
 
@@ -43,7 +49,10 @@ describe('DeletedUserUsageRepository.consumeIfCurrentMonth — unit', () => {
         prints_month_started_at: '2026-05-01T00:00:00Z',
       })
     );
-    const result = await repo.consumeIfCurrentMonth(HASH, new Date('2026-05-24T00:00:00Z'));
+    const result = await repo.consumeIfCurrentMonth(
+      HASH,
+      new Date('2026-05-24T00:00:00Z')
+    );
     expect(result).toEqual({
       cards_used_this_month: 80,
       cards_month_started_at: new Date('2026-05-01T00:00:00Z'),
@@ -61,7 +70,10 @@ describe('DeletedUserUsageRepository.consumeIfCurrentMonth — unit', () => {
         prints_month_started_at: '2026-05-01T00:00:00Z',
       })
     );
-    const result = await repo.consumeIfCurrentMonth(HASH, new Date('2026-05-24T00:00:00Z'));
+    const result = await repo.consumeIfCurrentMonth(
+      HASH,
+      new Date('2026-05-24T00:00:00Z')
+    );
     expect(result).toEqual({
       cards_used_this_month: 0,
       cards_month_started_at: null,
@@ -80,7 +92,9 @@ describe('DeletedUserUsageRepository.consumeIfCurrentMonth — unit', () => {
     });
     const whereBuilder = { first: firstSpy, del: deleteSpy };
     const tableBuilder = { where: jest.fn().mockReturnValue(whereBuilder) };
-    const knex = jest.fn().mockReturnValue(tableBuilder) as unknown as ReturnType<typeof Knex>;
+    const knex = jest
+      .fn()
+      .mockReturnValue(tableBuilder) as unknown as ReturnType<typeof Knex>;
 
     const repo = new DeletedUserUsageRepository(knex);
     await repo.consumeIfCurrentMonth(HASH, new Date('2026-05-24T00:00:00Z'));

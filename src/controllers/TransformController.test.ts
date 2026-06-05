@@ -154,7 +154,9 @@ describe('TransformController', () => {
   });
 
   it('maps DeckTooLargeError to a 413 with the cap in the message', async () => {
-    const execute = jest.fn().mockRejectedValue(new DeckTooLargeError(900, 250));
+    const execute = jest
+      .fn()
+      .mockRejectedValue(new DeckTooLargeError(900, 250));
     const useCase = { execute } as unknown as TransformApkgUseCase;
     const controller = new TransformController(useCase);
     const req = makeReq() as Request;

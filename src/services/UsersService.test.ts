@@ -205,9 +205,11 @@ describe('UsersService.requestHostedAnkiAccess', () => {
     const emailService = buildEmailService({
       sendHostedAnkiAccessRequestEmail,
     });
-    const getById = jest
-      .fn()
-      .mockResolvedValue({ id: 7, email: null, hosted_anki_requested_at: null });
+    const getById = jest.fn().mockResolvedValue({
+      id: 7,
+      email: null,
+      hosted_anki_requested_at: null,
+    });
     const service = new UsersService(
       buildAccessRepository({ getById }),
       emailService

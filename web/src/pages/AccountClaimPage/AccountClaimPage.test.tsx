@@ -49,7 +49,9 @@ describe('AccountClaimPage', () => {
     mockPost.mockResolvedValue({
       ok: false,
       status: 409,
-      json: vi.fn().mockResolvedValue({ message: 'This link is already used.' }),
+      json: vi
+        .fn()
+        .mockResolvedValue({ message: 'This link is already used.' }),
     });
     renderWithToken('used-token');
     await waitFor(() => {
@@ -61,11 +63,15 @@ describe('AccountClaimPage', () => {
     mockPost.mockResolvedValue({
       ok: false,
       status: 409,
-      json: vi.fn().mockResolvedValue({ message: 'This account already has an active subscription.' }),
+      json: vi.fn().mockResolvedValue({
+        message: 'This account already has an active subscription.',
+      }),
     });
     renderWithToken('some-token');
     await waitFor(() => {
-      expect(screen.getByText('Account already has a subscription.')).toBeTruthy();
+      expect(
+        screen.getByText('Account already has a subscription.')
+      ).toBeTruthy();
     });
   });
 
@@ -73,7 +79,9 @@ describe('AccountClaimPage', () => {
     mockPost.mockResolvedValue({
       ok: false,
       status: 400,
-      json: vi.fn().mockResolvedValue({ message: 'Invalid or expired confirmation link.' }),
+      json: vi.fn().mockResolvedValue({
+        message: 'Invalid or expired confirmation link.',
+      }),
     });
     renderWithToken('expired-token');
     await waitFor(() => {

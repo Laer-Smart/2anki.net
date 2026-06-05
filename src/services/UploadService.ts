@@ -31,7 +31,11 @@ import {
   ANONYMOUS_CARD_CAP,
   MONTHLY_CARD_LIMIT,
 } from '../usecases/users/CheckMonthlyCardLimitUseCase';
-import { generateDeckInfo, DeckInfo, ClaudeParseError } from '../lib/claude/ClaudeService';
+import {
+  generateDeckInfo,
+  DeckInfo,
+  ClaudeParseError,
+} from '../lib/claude/ClaudeService';
 import CustomExporter from '../lib/parser/exporters/CustomExporter';
 import Deck from '../lib/parser/Deck';
 import { isHTMLFile, isMarkdownFile } from '../lib/storage/checks';
@@ -102,7 +106,11 @@ function walkMediaFiles(dir: string): string[] {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       results.push(...walkMediaFiles(full));
-    } else if (!isHTMLFile(entry.name) && !isMarkdownFile(entry.name) && !entry.name.endsWith('.apkg')) {
+    } else if (
+      !isHTMLFile(entry.name) &&
+      !isMarkdownFile(entry.name) &&
+      !entry.name.endsWith('.apkg')
+    ) {
       results.push(entry.name);
     }
   }
@@ -126,7 +134,9 @@ function resolveAsyncFailureReason(
 function logNoPackageDiagnostics(uploadedFiles: UploadedFile[]) {
   console.info('[no-package] Zero packages produced. File diagnostics:');
   for (const file of uploadedFiles ?? []) {
-    console.info(`  name=${file.originalname} mimetype=${file.mimetype} size=${file.size}`);
+    console.info(
+      `  name=${file.originalname} mimetype=${file.mimetype} size=${file.size}`
+    );
     try {
       const contents = file.path ? fs.readFileSync(file.path) : file.buffer;
       if (!contents) {
@@ -138,7 +148,9 @@ function logNoPackageDiagnostics(uploadedFiles: UploadedFile[]) {
       const hasToggleClass = head.includes('class="toggle"');
       const hasDetails = head.includes('<details');
       console.info(`  snippet=${JSON.stringify(head.slice(0, 300))}`);
-      console.info(`  display:contents=${hasDisplayContents} .toggle=${hasToggleClass} <details=${hasDetails}`);
+      console.info(
+        `  display:contents=${hasDisplayContents} .toggle=${hasToggleClass} <details=${hasDetails}`
+      );
     } catch (readErr) {
       console.error(`  could not read file: ${readErr}`);
     }
@@ -166,9 +178,14 @@ class UploadService {
       return;
     }
 
-    const workspaceDir = path.join(process.env.WORKSPACE_BASE as string, job.object_id);
+    const workspaceDir = path.join(
+      process.env.WORKSPACE_BASE as string,
+      job.object_id
+    );
     if (!fs.existsSync(workspaceDir)) {
-      res.status(409).json({ error: 'Workspace files are no longer available' });
+      res
+        .status(409)
+        .json({ error: 'Workspace files are no longer available' });
       return;
     }
 
@@ -181,7 +198,12 @@ class UploadService {
     this.runClaudeRestart(job.object_id, owner, workspaceDir, async (step) => {
       await this.jobRepository.updateJobStatus(job.object_id, owner, step);
     }).catch(async (err: Error) => {
-      await this.jobRepository.updateJobStatus(job.object_id, owner, 'failed', err.message);
+      await this.jobRepository.updateJobStatus(
+        job.object_id,
+        owner,
+        'failed',
+        err.message
+      );
     });
 
     res.status(202).json({ jobId: job.object_id });
@@ -199,14 +221,25 @@ class UploadService {
     if (!apkgFilename) {
       throw new Error('No APKG file found in workspace');
     }
-    await this.jobRepository.updateJobStatus(objectId, owner, 'step3_building_deck', '');
+    await this.jobRepository.updateJobStatus(
+      objectId,
+      owner,
+      'step3_building_deck',
+      ''
+    );
     const apkgPath = path.join(workspaceDir, apkgFilename);
     const apkgBuffer = await fs.promises.readFile(apkgPath);
     const storage = new StorageHandler();
     const key = storage.uniqify(objectId, owner, 200, 'apkg');
     await storage.uploadFile(key, apkgBuffer);
     const sizeMb = FileSizeInMegaBytes(apkgPath);
-    await this.uploadRepository.update(Number(owner), apkgFilename, key, sizeMb, source);
+    await this.uploadRepository.update(
+      Number(owner),
+      apkgFilename,
+      key,
+      sizeMb,
+      source
+    );
     await this.usersRepository.incrementCardUsage(Number(owner), totalCards);
     const job = await this.jobRepository.findJobById(objectId, owner);
     if (job) {
@@ -230,7 +263,12 @@ class UploadService {
     const deckInfoArrays: DeckInfo[][] = [];
     for (const htmlFile of htmlFiles) {
       const content = await fs.promises.readFile(htmlFile, 'utf8');
-      const deckInfo = await generateDeckInfo(content, mediaFiles, undefined, onProgress);
+      const deckInfo = await generateDeckInfo(
+        content,
+        mediaFiles,
+        undefined,
+        onProgress
+      );
       deckInfoArrays.push(deckInfo);
     }
 
@@ -262,7 +300,9 @@ class UploadService {
 
   async handleUpload(req: express.Request, res: express.Response) {
     try {
-      const validationError = getUploadValidationError(req.files as UploadedFile[]);
+      const validationError = getUploadValidationError(
+        req.files as UploadedFile[]
+      );
       if (validationError) {
         res.status(400).contentType('text/plain').send(validationError.message);
         return;
@@ -283,7 +323,14 @@ class UploadService {
       });
 
       if (owner && settings.claudeAIFlashcards) {
-        return await this.handleAsyncUpload(req, res, settings, ws, String(owner), paying);
+        return await this.handleAsyncUpload(
+          req,
+          res,
+          settings,
+          ws,
+          String(owner),
+          paying
+        );
       }
 
       return await this.handleSyncUpload(req, res, settings, ws, paying);
@@ -343,7 +390,8 @@ class UploadService {
         return res.status(400).json(body);
       } else if (err instanceof DeckTooLargeError) {
         const body: DeckTooLargeResponse = {
-          message: 'This export is too large to process in one go. Try splitting it into smaller pages, removing embedded images, or enabling Claude AI in settings to process it in chunks.',
+          message:
+            'This export is too large to process in one go. Try splitting it into smaller pages, removing embedded images, or enabling Claude AI in settings to process it in chunks.',
         };
         return res.status(400).json(body);
       } else if (err instanceof Error && isPdfPasswordSentinel(err.message)) {
@@ -353,13 +401,19 @@ class UploadService {
           reason: 'missing_password',
           filename,
         });
-      } else if (err instanceof Error && /^pdfinfo_(failed|spawn_failed)/.test(err.message)) {
+      } else if (
+        err instanceof Error &&
+        /^pdfinfo_(failed|spawn_failed)/.test(err.message)
+      ) {
         return res.status(400).json({
           code: 'pdf_processing_failed',
           message:
             'We could not read this PDF. It may be corrupted, password-protected, or an unsupported variant. Try re-exporting the PDF or splitting it into smaller files.',
         });
-      } else if (err instanceof Error && /^docx_parse_failed/.test(err.message)) {
+      } else if (
+        err instanceof Error &&
+        /^docx_parse_failed/.test(err.message)
+      ) {
         return res.status(400).json({
           code: 'docx_processing_failed',
           message:
@@ -380,24 +434,47 @@ class UploadService {
     paying: boolean
   ) {
     const files = req.files as UploadedFile[];
-    const title = files.length === 1 ? files[0].originalname : `${files.length} files`;
+    const title =
+      files.length === 1 ? files[0].originalname : `${files.length} files`;
     await this.jobRepository.create(ws.id, owner, title, 'claude');
 
     const source = this.resolvePersistedSource(req);
     const useCase = new GeneratePackagesUseCase();
     const ownerNumeric = Number(owner);
-    const ownerId = Number.isFinite(ownerNumeric) && ownerNumeric > 0 ? ownerNumeric : null;
+    const ownerId =
+      Number.isFinite(ownerNumeric) && ownerNumeric > 0 ? ownerNumeric : null;
     useCase
-      .execute(paying, req.files as UploadedFile[], settings, ws, async (step) => {
-        await this.jobRepository.updateJobStatus(ws.id, owner, step);
-      }, ownerId)
+      .execute(
+        paying,
+        req.files as UploadedFile[],
+        settings,
+        ws,
+        async (step) => {
+          await this.jobRepository.updateJobStatus(ws.id, owner, step);
+        },
+        ownerId
+      )
       .then(async ({ packages }) => {
         if (packages.length > 0) {
-          const totalCards = packages.reduce((s, p) => s + (p.cardCount ?? 0), 0);
-          await this.promoteClaudeJobToUpload(ws.id, ws.location, owner, totalCards, source);
+          const totalCards = packages.reduce(
+            (s, p) => s + (p.cardCount ?? 0),
+            0
+          );
+          await this.promoteClaudeJobToUpload(
+            ws.id,
+            ws.location,
+            owner,
+            totalCards,
+            source
+          );
         } else {
           logNoPackageDiagnostics(req.files as UploadedFile[]);
-          await this.jobRepository.updateJobStatus(ws.id, owner, 'failed', 'No packages produced');
+          await this.jobRepository.updateJobStatus(
+            ws.id,
+            owner,
+            'failed',
+            'No packages produced'
+          );
         }
       })
       .catch(async (err: unknown) => {
@@ -413,10 +490,19 @@ class UploadService {
             kind: err instanceof Error ? err.name : 'unknown',
           });
         } else {
-          console.error('[UploadService] async job failed', { jobId: ws.id, message, err });
+          console.error('[UploadService] async job failed', {
+            jobId: ws.id,
+            message,
+            err,
+          });
         }
         const reason = resolveAsyncFailureReason(err, message, ws.id);
-        await this.jobRepository.updateJobStatus(ws.id, owner, 'failed', reason);
+        await this.jobRepository.updateJobStatus(
+          ws.id,
+          owner,
+          'failed',
+          reason
+        );
       });
 
     return res.status(202).json({ jobId: ws.id });
@@ -467,14 +553,25 @@ class UploadService {
         throw new Error(`Could not produce APKG for ${name}`);
       }
       const plen = Buffer.byteLength(apkg);
-      const totalMcqCount = packages.reduce((sum, p) => sum + (p.mcqCount ?? 0), 0);
-      const totalMcqSkippedCount = packages.reduce((sum, p) => sum + (p.mcqSkippedCount ?? 0), 0);
+      const totalMcqCount = packages.reduce(
+        (sum, p) => sum + (p.mcqCount ?? 0),
+        0
+      );
+      const totalMcqSkippedCount = packages.reduce(
+        (sum, p) => sum + (p.mcqSkippedCount ?? 0),
+        0
+      );
       res.set('Content-Type', 'application/apkg');
       res.set('Content-Length', plen.toString());
       res.set('X-Card-Count', totalCards.toString());
       res.set('X-MCQ-Count', totalMcqCount.toString());
       res.set('X-MCQ-Skipped-Count', totalMcqSkippedCount.toString());
-      const exposedHeaders = ['File-Name', 'X-Card-Count', 'X-MCQ-Count', 'X-MCQ-Skipped-Count'];
+      const exposedHeaders = [
+        'File-Name',
+        'X-Card-Count',
+        'X-MCQ-Count',
+        'X-MCQ-Skipped-Count',
+      ];
       if (warnings?.includes('markdown-heuristic')) {
         res.set(
           'X-Warning',
@@ -526,7 +623,9 @@ class UploadService {
     }
   }
 
-  private async buildBatchResponse(ws: Workspace): Promise<BatchUploadResponse> {
+  private async buildBatchResponse(
+    ws: Workspace
+  ): Promise<BatchUploadResponse> {
     const apkgFilenames = (await fs.promises.readdir(ws.location)).filter(
       (filename) => filename.endsWith('.apkg')
     );

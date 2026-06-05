@@ -2,10 +2,25 @@ import type Anthropic from '@anthropic-ai/sdk';
 import type { IChatMessagesRepository } from '../../data_layer/ChatMessagesRepository';
 import type { IConversationsRepository } from '../../data_layer/ConversationsRepository';
 import { logClaudeUsage } from '../../lib/claude/logClaudeUsage';
-import { buildAttachmentBlocks, type ChatAttachment } from './buildAttachmentBlocks';
-import { extractAttachmentText, buildAttachmentTextBlock } from './extractAttachmentText';
-import { isChatCardTemplate, templatePromptSuffix, templateForbidsCloze, type ChatCardTemplate } from './chatTemplates';
-import { looksLikeCloze, normalizeBasicCard, stripClozeFromStem } from './ChatDeckUseCase';
+import {
+  buildAttachmentBlocks,
+  type ChatAttachment,
+} from './buildAttachmentBlocks';
+import {
+  extractAttachmentText,
+  buildAttachmentTextBlock,
+} from './extractAttachmentText';
+import {
+  isChatCardTemplate,
+  templatePromptSuffix,
+  templateForbidsCloze,
+  type ChatCardTemplate,
+} from './chatTemplates';
+import {
+  looksLikeCloze,
+  normalizeBasicCard,
+  stripClozeFromStem,
+} from './ChatDeckUseCase';
 
 const REQUIRED_MCQ_OPTION_COUNT = 4;
 
@@ -52,7 +67,8 @@ const MCQ_TOOL: Anthropic.Tool = {
             },
             rationale: {
               type: 'string',
-              description: 'Brief explanation of why the correct option is right',
+              description:
+                'Brief explanation of why the correct option is right',
             },
           },
           required: ['front', 'options', 'correct_index'],
@@ -184,7 +200,9 @@ export class ChatRateLimitError extends Error {
 
 function firstOfNextMonth(): string {
   const now = new Date();
-  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  const next = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
+  );
   return next.toISOString();
 }
 
@@ -217,11 +235,16 @@ function asMcqChatCard(item: Record<string, unknown>): ChatCard | null {
   const options = item.options;
   if (!Array.isArray(options)) return null;
   if (options.length !== REQUIRED_MCQ_OPTION_COUNT) return null;
-  if (!options.every((opt): opt is string => typeof opt === 'string' && opt.trim().length > 0)) {
+  if (
+    !options.every(
+      (opt): opt is string => typeof opt === 'string' && opt.trim().length > 0
+    )
+  ) {
     return null;
   }
   const correctIndex = item.correct_index;
-  if (typeof correctIndex !== 'number' || !Number.isInteger(correctIndex)) return null;
+  if (typeof correctIndex !== 'number' || !Number.isInteger(correctIndex))
+    return null;
   if (correctIndex < 0 || correctIndex >= options.length) return null;
   const rationale = typeof item.rationale === 'string' ? item.rationale : '';
   return {
@@ -233,10 +256,15 @@ function asMcqChatCard(item: Record<string, unknown>): ChatCard | null {
   };
 }
 
-function parseCardItem(item: unknown, mcqAllowed: boolean, forbidCloze: boolean): ChatCard | null {
+function parseCardItem(
+  item: unknown,
+  mcqAllowed: boolean,
+  forbidCloze: boolean
+): ChatCard | null {
   if (item == null || typeof item !== 'object') return null;
   const record = item as Record<string, unknown>;
-  const looksLikeMcq = record.options !== undefined || record.correct_index !== undefined;
+  const looksLikeMcq =
+    record.options !== undefined || record.correct_index !== undefined;
   if (mcqAllowed && looksLikeMcq) {
     const mcq = asMcqChatCard(record);
     if (mcq == null) return null;
@@ -276,7 +304,11 @@ export function rewriteAssistantContentWithTaggedCards(
   return content;
 }
 
-function parseCardArray(raw: string, mcqAllowed: boolean, forbidCloze: boolean): ChatCard[] | undefined {
+function parseCardArray(
+  raw: string,
+  mcqAllowed: boolean,
+  forbidCloze: boolean
+): ChatCard[] | undefined {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw.trim());
@@ -292,13 +324,19 @@ function parseCardArray(raw: string, mcqAllowed: boolean, forbidCloze: boolean):
   return cards.length > 0 ? cards : undefined;
 }
 
-export function extractCards(text: string, mcqAllowed = false, forbidCloze = false): ExtractCardsResult {
+export function extractCards(
+  text: string,
+  mcqAllowed = false,
+  forbidCloze = false
+): ExtractCardsResult {
   const fencedMatch = /```json\s*([\s\S]*?)```/.exec(text);
   if (fencedMatch != null) {
     const cards = parseCardArray(fencedMatch[1], mcqAllowed, forbidCloze);
     if (cards != null) {
       const before = text.slice(0, fencedMatch.index).trim();
-      const after = text.slice(fencedMatch.index + fencedMatch[0].length).trim();
+      const after = text
+        .slice(fencedMatch.index + fencedMatch[0].length)
+        .trim();
       const { deckName, rest } = splitDeckName(before);
       return {
         cards,
@@ -359,7 +397,10 @@ function mcqCardToWireShape(card: ChatCard): Record<string, unknown> {
   };
 }
 
-export function embedMcqCardsAsJsonBlock(prose: string, cards: ChatCard[]): string {
+export function embedMcqCardsAsJsonBlock(
+  prose: string,
+  cards: ChatCard[]
+): string {
   const jsonArray = JSON.stringify(cards.map(mcqCardToWireShape));
   const block = `\`\`\`json\n${jsonArray}\n\`\`\``;
   const trimmedProse = prose.trim();
@@ -435,7 +476,9 @@ export class ChatUseCase {
     const extractedText = await extractAttachmentText(attachments);
     const attachmentTextBlock = buildAttachmentTextBlock(extractedText);
     const promptText =
-      attachmentTextBlock.length > 0 ? `${attachmentTextBlock}\n\n${content}` : content;
+      attachmentTextBlock.length > 0
+        ? `${attachmentTextBlock}\n\n${content}`
+        : content;
     const userContent: Anthropic.MessageParam['content'] =
       attachmentBlocks.length > 0
         ? [...attachmentBlocks, { type: 'text', text: promptText }]
@@ -452,7 +495,10 @@ export class ChatUseCase {
       user,
       conversationId,
       templateSlug: input.templateSlug,
-      historyMessages: recentHistory.map((m) => ({ role: m.role, content: m.content })),
+      historyMessages: recentHistory.map((m) => ({
+        role: m.role,
+        content: m.content,
+      })),
       userContent,
       onToken,
     });
@@ -474,10 +520,11 @@ export class ChatUseCase {
       throw new ChatConversationNotFoundError();
     }
 
-    const latestAssistant = await this.messagesRepo.findLatestAssistantInConversation({
-      userId: user.owner,
-      conversationId: conversation.id,
-    });
+    const latestAssistant =
+      await this.messagesRepo.findLatestAssistantInConversation({
+        userId: user.owner,
+        conversationId: conversation.id,
+      });
     if (latestAssistant != null) {
       await this.messagesRepo.deleteById({
         userId: user.owner,
@@ -490,7 +537,9 @@ export class ChatUseCase {
     );
     const lastUserIndex = priorMessages.map((m) => m.role).lastIndexOf('user');
     const upToLastUser =
-      lastUserIndex >= 0 ? priorMessages.slice(0, lastUserIndex + 1) : priorMessages;
+      lastUserIndex >= 0
+        ? priorMessages.slice(0, lastUserIndex + 1)
+        : priorMessages;
     const recentHistory = upToLastUser.slice(-(MAX_HISTORY_TURNS + 1));
     const historyHead = recentHistory.slice(0, -1);
     const lastTurn = recentHistory[recentHistory.length - 1];
@@ -499,7 +548,10 @@ export class ChatUseCase {
       user,
       conversationId: conversation.id,
       templateSlug: input.templateSlug,
-      historyMessages: historyHead.map((m) => ({ role: m.role, content: m.content })),
+      historyMessages: historyHead.map((m) => ({
+        role: m.role,
+        content: m.content,
+      })),
       userContent: lastTurn?.content ?? '',
       onToken,
     });
@@ -509,15 +561,21 @@ export class ChatUseCase {
     user: ChatUser;
     conversationId: number;
     templateSlug?: string | null;
-    historyMessages: Array<{ role: 'user' | 'assistant'; content: Anthropic.MessageParam['content'] }>;
+    historyMessages: Array<{
+      role: 'user' | 'assistant';
+      content: Anthropic.MessageParam['content'];
+    }>;
     userContent: Anthropic.MessageParam['content'];
     onToken?: (text: string) => void;
   }): Promise<SendMessageResult> {
-    const { user, conversationId, historyMessages, userContent, onToken } = params;
+    const { user, conversationId, historyMessages, userContent, onToken } =
+      params;
 
     const model = user.patreon ? PATREON_MODEL : FREE_MODEL;
 
-    const resolvedTemplate: ChatCardTemplate = isChatCardTemplate(params.templateSlug)
+    const resolvedTemplate: ChatCardTemplate = isChatCardTemplate(
+      params.templateSlug
+    )
       ? params.templateSlug
       : 'basic';
     const mcqForced = resolvedTemplate === 'mcq';
@@ -527,9 +585,10 @@ export class ChatUseCase {
     const baseSystemPrompt = mcqAllowed
       ? `${STUDY_ASSISTANT_SYSTEM_PROMPT}\n\n${MCQ_PROMPT_ADDITION}`
       : STUDY_ASSISTANT_SYSTEM_PROMPT;
-    const systemPromptText = templateSuffix.length > 0
-      ? `${baseSystemPrompt}\n\n${templateSuffix.trim()}`
-      : baseSystemPrompt;
+    const systemPromptText =
+      templateSuffix.length > 0
+        ? `${baseSystemPrompt}\n\n${templateSuffix.trim()}`
+        : baseSystemPrompt;
 
     const messages: Anthropic.MessageParam[] = [
       ...historyMessages.map((m) => ({ role: m.role, content: m.content })),
@@ -539,10 +598,19 @@ export class ChatUseCase {
     const stream = this.anthropic.messages.stream({
       model,
       max_tokens: mcqForced ? MCQ_MAX_TOKENS : MAX_TOKENS,
-      system: [{ type: 'text', text: systemPromptText, cache_control: { type: 'ephemeral' } }],
+      system: [
+        {
+          type: 'text',
+          text: systemPromptText,
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
       messages,
       ...(mcqForced
-        ? { tools: [MCQ_TOOL], tool_choice: { type: 'tool', name: MCQ_TOOL_NAME } }
+        ? {
+            tools: [MCQ_TOOL],
+            tool_choice: { type: 'tool', name: MCQ_TOOL_NAME },
+          }
         : {}),
     });
 
@@ -563,8 +631,15 @@ export class ChatUseCase {
       if (mcqCards == null) {
         throw new McqExtractionFailedError();
       }
-      const persistedContent = embedMcqCardsAsJsonBlock(assistantContent, mcqCards);
-      await this.persistAssistantTurn(user.owner, conversationId, persistedContent);
+      const persistedContent = embedMcqCardsAsJsonBlock(
+        assistantContent,
+        mcqCards
+      );
+      await this.persistAssistantTurn(
+        user.owner,
+        conversationId,
+        persistedContent
+      );
       return {
         content: persistedContent,
         conversationId,
@@ -572,7 +647,11 @@ export class ChatUseCase {
       };
     }
 
-    await this.persistAssistantTurn(user.owner, conversationId, assistantContent);
+    await this.persistAssistantTurn(
+      user.owner,
+      conversationId,
+      assistantContent
+    );
 
     const forbidCloze = templateForbidsCloze(resolvedTemplate);
     const { cards, contentBefore, contentAfter, deckName } = extractCards(
@@ -603,6 +682,10 @@ export class ChatUseCase {
       content,
     });
     await this.conversationsRepo.touch({ userId, conversationId });
-    await this.conversationsRepo.saveDraft({ userId, conversationId, content: null });
+    await this.conversationsRepo.saveDraft({
+      userId,
+      conversationId,
+      content: null,
+    });
   }
 }

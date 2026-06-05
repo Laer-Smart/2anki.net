@@ -1,26 +1,36 @@
 import { withStripeRetry } from './withStripeRetry';
 
-const rateLimitError = { type: 'StripeRateLimitError', message: 'rate limited' };
+const rateLimitError = {
+  type: 'StripeRateLimitError',
+  message: 'rate limited',
+};
 const genericError = new Error('something else');
 
 describe('withStripeRetry', () => {
   it('returns result when operation succeeds on first attempt', async () => {
     const operation = jest.fn().mockResolvedValue('ok');
-    await expect(withStripeRetry(operation, 'test', { baseDelayMs: 1 })).resolves.toBe('ok');
+    await expect(
+      withStripeRetry(operation, 'test', { baseDelayMs: 1 })
+    ).resolves.toBe('ok');
     expect(operation).toHaveBeenCalledTimes(1);
   });
 
   it('retries on StripeRateLimitError and returns result on second attempt', async () => {
-    const operation = jest.fn()
+    const operation = jest
+      .fn()
       .mockRejectedValueOnce(rateLimitError)
       .mockResolvedValueOnce('ok');
-    await expect(withStripeRetry(operation, 'test', { baseDelayMs: 1 })).resolves.toBe('ok');
+    await expect(
+      withStripeRetry(operation, 'test', { baseDelayMs: 1 })
+    ).resolves.toBe('ok');
     expect(operation).toHaveBeenCalledTimes(2);
   });
 
   it('throws immediately on non-rate-limit errors without retrying', async () => {
     const operation = jest.fn().mockRejectedValue(genericError);
-    await expect(withStripeRetry(operation, 'test', { baseDelayMs: 1 })).rejects.toBe(genericError);
+    await expect(
+      withStripeRetry(operation, 'test', { baseDelayMs: 1 })
+    ).rejects.toBe(genericError);
     expect(operation).toHaveBeenCalledTimes(1);
   });
 
@@ -33,7 +43,8 @@ describe('withStripeRetry', () => {
   });
 
   it('retries up to maxAttempts and succeeds on last attempt', async () => {
-    const operation = jest.fn()
+    const operation = jest
+      .fn()
       .mockRejectedValueOnce(rateLimitError)
       .mockRejectedValueOnce(rateLimitError)
       .mockResolvedValueOnce('recovered');

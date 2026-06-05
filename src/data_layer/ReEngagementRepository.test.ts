@@ -1,5 +1,8 @@
 import knex, { Knex } from 'knex';
-import { InMemoryReEngagementRepository, ReEngagementRepository } from './ReEngagementRepository';
+import {
+  InMemoryReEngagementRepository,
+  ReEngagementRepository,
+} from './ReEngagementRepository';
 
 describe('InMemoryReEngagementRepository', () => {
   describe('hasBeenSent', () => {
@@ -116,7 +119,9 @@ describe('InMemoryReEngagementRepository', () => {
 
     it('returns empty array when all users have been sent an email', async () => {
       const repo = new InMemoryReEngagementRepository();
-      repo.seedUsers([{ id: 5, name: 'Charlie', email: 'charlie@example.com' }]);
+      repo.seedUsers([
+        { id: 5, name: 'Charlie', email: 'charlie@example.com' },
+      ]);
       await repo.recordSend(5, 'charlie-token');
 
       const users = await repo.getUsersToEmail();
@@ -167,12 +172,15 @@ describe('ReEngagementRepository.findByToken — abandoned checkout path', () =>
       t.text('name').notNullable().defaultTo('');
     });
 
-    await database.schema.createTable('abandoned_checkout_recovery_emails', (t) => {
-      t.text('session_id').primary();
-      t.text('user_email').notNullable();
-      t.timestamp('sent_at').notNullable().defaultTo(database.fn.now());
-      t.string('token', 128).nullable().unique();
-    });
+    await database.schema.createTable(
+      'abandoned_checkout_recovery_emails',
+      (t) => {
+        t.text('session_id').primary();
+        t.text('user_email').notNullable();
+        t.timestamp('sent_at').notNullable().defaultTo(database.fn.now());
+        t.string('token', 128).nullable().unique();
+      }
+    );
 
     repo = new ReEngagementRepository(database);
   });
@@ -217,7 +225,10 @@ describe('ReEngagementRepository.findByToken — abandoned checkout path', () =>
   });
 
   it('does not find abandoned checkout token when searching other tables', async () => {
-    await database('users').insert({ email: 'buyer2@example.com', name: 'Buyer2' });
+    await database('users').insert({
+      email: 'buyer2@example.com',
+      name: 'Buyer2',
+    });
     await database('abandoned_checkout_recovery_emails').insert({
       session_id: 'cs_other',
       user_email: 'buyer2@example.com',

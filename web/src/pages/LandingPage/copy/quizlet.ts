@@ -3,9 +3,18 @@ import { ankiFidelityProof } from './ankiFidelityProof';
 
 const quizletCopy: LandingCopy = {
   relatedLinks: [
-    { label: 'Move Brainscape flashcards to Anki', href: '/convert/brainscape-to-anki' },
-    { label: 'Move StudyStack flashcards to Anki', href: '/convert/studystack-to-anki' },
-    { label: 'Convert a CSV or Excel sheet to Anki', href: '/convert/csv-to-anki' },
+    {
+      label: 'Move Brainscape flashcards to Anki',
+      href: '/convert/brainscape-to-anki',
+    },
+    {
+      label: 'Move StudyStack flashcards to Anki',
+      href: '/convert/studystack-to-anki',
+    },
+    {
+      label: 'Convert a CSV or Excel sheet to Anki',
+      href: '/convert/csv-to-anki',
+    },
     { label: 'Browse every converter', href: '/convert' },
   ],
   pathname: '/quizlet-to-anki',

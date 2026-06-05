@@ -7,7 +7,8 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
 const database = getDatabase();
 
-const SUBJECT = 'Action needed: your 2anki.net subscription is not linked to an account';
+const SUBJECT =
+  'Action needed: your 2anki.net subscription is not linked to an account';
 
 const BODY = (email: string) => `Hi,
 
@@ -27,7 +28,9 @@ The 2anki Team
 
 https://2anki.net/`;
 
-async function findUnlinkedSubscriptions(): Promise<{ email: string; linked_email: string | null }[]> {
+async function findUnlinkedSubscriptions(): Promise<
+  { email: string; linked_email: string | null }[]
+> {
   return database('subscriptions')
     .select('email', 'linked_email')
     .where('active', true)
@@ -43,9 +46,16 @@ async function findUnlinkedSubscriptions(): Promise<{ email: string; linked_emai
 async function cancelAndNotify(email: string): Promise<void> {
   console.info('Processing unlinked subscription row');
 
-  const cancelled = await SubscriptionService.cancelUserSubscriptions(email, 'immediate', false, false);
+  const cancelled = await SubscriptionService.cancelUserSubscriptions(
+    email,
+    'immediate',
+    false,
+    false
+  );
   if (cancelled === 0) {
-    console.warn('No active Stripe subscriptions found for this row — skipping email');
+    console.warn(
+      'No active Stripe subscriptions found for this row — skipping email'
+    );
     return;
   }
 

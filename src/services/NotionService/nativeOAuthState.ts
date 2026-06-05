@@ -24,7 +24,9 @@ export function buildNativeOAuthState(
 }
 
 export function isNativeOAuthState(state: string | undefined): boolean {
-  return state === NATIVE_PREFIX || (state?.startsWith(`${NATIVE_PREFIX}:`) ?? false);
+  return (
+    state === NATIVE_PREFIX || (state?.startsWith(`${NATIVE_PREFIX}:`) ?? false)
+  );
 }
 
 export function verifyNativeOAuthState(

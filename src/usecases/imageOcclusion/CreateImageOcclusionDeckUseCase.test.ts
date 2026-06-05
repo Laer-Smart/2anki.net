@@ -7,9 +7,13 @@ jest.mock('node:fs');
 jest.mock('node:child_process');
 
 const mockFs = jest.requireMock('node:fs') as typeof import('node:fs');
-const mockChild = jest.requireMock('node:child_process') as typeof import('node:child_process');
+const mockChild = jest.requireMock(
+  'node:child_process'
+) as typeof import('node:child_process');
 
-function buildInput(overrides: Partial<CreateImageOcclusionDeckInput> = {}): CreateImageOcclusionDeckInput {
+function buildInput(
+  overrides: Partial<CreateImageOcclusionDeckInput> = {}
+): CreateImageOcclusionDeckInput {
   return {
     deckName: 'Test Deck',
     mode: 'hide_all',
@@ -80,7 +84,11 @@ describe('CreateImageOcclusionDeckUseCase', () => {
 
       const useCase = new CreateImageOcclusionDeckUseCase();
       const promise = useCase.execute(
-        buildInput({ images: threeImages, imageFiles: threeFiles, isPaying: false })
+        buildInput({
+          images: threeImages,
+          imageFiles: threeFiles,
+          isPaying: false,
+        })
       );
 
       const closeHandler = mockProcess.on.mock.calls.find(
@@ -124,7 +132,11 @@ describe('CreateImageOcclusionDeckUseCase', () => {
 
       const useCase = new CreateImageOcclusionDeckUseCase();
       const promise = useCase.execute(
-        buildInput({ images: manyImages, imageFiles: manyFiles, isPaying: true })
+        buildInput({
+          images: manyImages,
+          imageFiles: manyFiles,
+          isPaying: true,
+        })
       );
 
       const closeHandler = mockProcess.on.mock.calls.find(

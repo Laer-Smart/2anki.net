@@ -27,10 +27,22 @@ describe('assertGoogleApiKeyShape', () => {
   });
 
   it('rejects empty input', () => {
-    expect(assertGoogleApiKeyShape('')).toMatchObject({ valid: false, reason: 'empty' });
-    expect(assertGoogleApiKeyShape(undefined)).toMatchObject({ valid: false, reason: 'empty' });
-    expect(assertGoogleApiKeyShape(null)).toMatchObject({ valid: false, reason: 'empty' });
-    expect(assertGoogleApiKeyShape('   ')).toMatchObject({ valid: false, reason: 'empty' });
+    expect(assertGoogleApiKeyShape('')).toMatchObject({
+      valid: false,
+      reason: 'empty',
+    });
+    expect(assertGoogleApiKeyShape(undefined)).toMatchObject({
+      valid: false,
+      reason: 'empty',
+    });
+    expect(assertGoogleApiKeyShape(null)).toMatchObject({
+      valid: false,
+      reason: 'empty',
+    });
+    expect(assertGoogleApiKeyShape('   ')).toMatchObject({
+      valid: false,
+      reason: 'empty',
+    });
   });
 
   it('rejects anything that does not start with AIza', () => {
@@ -43,7 +55,9 @@ describe('assertGoogleApiKeyShape', () => {
   });
 
   it('trims surrounding whitespace before evaluating', () => {
-    expect(assertGoogleApiKeyShape(`  ${FAKE_API_KEY_PREFIX}  `)).toMatchObject({ valid: true });
+    expect(assertGoogleApiKeyShape(`  ${FAKE_API_KEY_PREFIX}  `)).toMatchObject(
+      { valid: true }
+    );
     expect(assertGoogleApiKeyShape(` ${FAKE_OAUTH_SECRET} `)).toMatchObject({
       valid: false,
       reason: 'oauth-client-secret',

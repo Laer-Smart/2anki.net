@@ -5,7 +5,9 @@ import { NotionColumnMappingModal } from './NotionColumnMappingModal';
 const COLUMNS = ['Question', 'Answer', 'Tags', 'Source'];
 const SUGGESTED = { frontField: 'Question', backField: 'Answer' };
 
-function renderModal(props?: Partial<React.ComponentProps<typeof NotionColumnMappingModal>>) {
+function renderModal(
+  props?: Partial<React.ComponentProps<typeof NotionColumnMappingModal>>
+) {
   const defaults = {
     isOpen: true,
     columns: COLUMNS,
@@ -18,12 +20,16 @@ function renderModal(props?: Partial<React.ComponentProps<typeof NotionColumnMap
 
 describe('NotionColumnMappingModal', () => {
   beforeEach(() => {
-    HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) {
-      this.setAttribute('open', '');
-    });
-    HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
-      this.removeAttribute('open');
-    });
+    HTMLDialogElement.prototype.showModal = vi.fn(
+      function (this: HTMLDialogElement) {
+        this.setAttribute('open', '');
+      }
+    );
+    HTMLDialogElement.prototype.close = vi.fn(
+      function (this: HTMLDialogElement) {
+        this.removeAttribute('open');
+      }
+    );
   });
 
   it('renders the heading', () => {
@@ -88,17 +94,20 @@ describe('NotionColumnMappingModal', () => {
 
 describe('parseAmbiguousColumnsPayload', () => {
   it('returns null for null input', async () => {
-    const { parseAmbiguousColumnsPayload } = await import('../../lib/fieldMapping/types');
+    const { parseAmbiguousColumnsPayload } =
+      await import('../../lib/fieldMapping/types');
     expect(parseAmbiguousColumnsPayload(null)).toBeNull();
   });
 
   it('returns null for non-prefixed string', async () => {
-    const { parseAmbiguousColumnsPayload } = await import('../../lib/fieldMapping/types');
+    const { parseAmbiguousColumnsPayload } =
+      await import('../../lib/fieldMapping/types');
     expect(parseAmbiguousColumnsPayload('generic error')).toBeNull();
   });
 
   it('parses valid COLUMNS_AMBIGUOUS payload', async () => {
-    const { parseAmbiguousColumnsPayload, COLUMNS_AMBIGUOUS_PREFIX } = await import('../../lib/fieldMapping/types');
+    const { parseAmbiguousColumnsPayload, COLUMNS_AMBIGUOUS_PREFIX } =
+      await import('../../lib/fieldMapping/types');
     const payload = {
       columns: ['Q', 'A', 'Tags'],
       suggested: { frontField: 'Q', backField: 'A' },
@@ -108,7 +117,10 @@ describe('parseAmbiguousColumnsPayload', () => {
   });
 
   it('returns null for malformed JSON after prefix', async () => {
-    const { parseAmbiguousColumnsPayload, COLUMNS_AMBIGUOUS_PREFIX } = await import('../../lib/fieldMapping/types');
-    expect(parseAmbiguousColumnsPayload(`${COLUMNS_AMBIGUOUS_PREFIX}not-json`)).toBeNull();
+    const { parseAmbiguousColumnsPayload, COLUMNS_AMBIGUOUS_PREFIX } =
+      await import('../../lib/fieldMapping/types');
+    expect(
+      parseAmbiguousColumnsPayload(`${COLUMNS_AMBIGUOUS_PREFIX}not-json`)
+    ).toBeNull();
   });
 });

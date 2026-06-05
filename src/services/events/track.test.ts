@@ -15,7 +15,8 @@ import { track } from './track';
 
 function getRecorded() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (jest.requireMock('./eventsSinkInstance') as any).__recorded as unknown[];
+  return (jest.requireMock('./eventsSinkInstance') as any)
+    .__recorded as unknown[];
 }
 
 describe('track (server helper)', () => {

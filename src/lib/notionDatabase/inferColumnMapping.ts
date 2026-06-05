@@ -1,5 +1,17 @@
-export const FRONT_COLUMN_CANDIDATES = ['term', 'word', 'front', 'question', 'vocabulary'];
-export const BACK_COLUMN_CANDIDATES = ['definition', 'meaning', 'back', 'answer', 'translation'];
+export const FRONT_COLUMN_CANDIDATES = [
+  'term',
+  'word',
+  'front',
+  'question',
+  'vocabulary',
+];
+export const BACK_COLUMN_CANDIDATES = [
+  'definition',
+  'meaning',
+  'back',
+  'answer',
+  'translation',
+];
 
 export interface ColumnMapping {
   frontField: string | null;
@@ -17,7 +29,9 @@ function matchByCandidates(
     .filter((c): c is string => c != null);
 }
 
-export function inferColumnMapping(columnNames: readonly string[]): ColumnMapping {
+export function inferColumnMapping(
+  columnNames: readonly string[]
+): ColumnMapping {
   const frontMatches = matchByCandidates(columnNames, FRONT_COLUMN_CANDIDATES);
   const backMatches = matchByCandidates(columnNames, BACK_COLUMN_CANDIDATES);
 
@@ -25,7 +39,10 @@ export function inferColumnMapping(columnNames: readonly string[]): ColumnMappin
   const backField = backMatches.find((c) => c !== frontField) ?? null;
 
   const ambiguous =
-    frontField == null || backField == null || frontMatches.length > 1 || backMatches.length > 1;
+    frontField == null ||
+    backField == null ||
+    frontMatches.length > 1 ||
+    backMatches.length > 1;
 
   return { frontField, backField, ambiguous };
 }

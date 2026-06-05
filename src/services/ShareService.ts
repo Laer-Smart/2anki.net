@@ -19,7 +19,10 @@ class ShareService {
     return share;
   }
 
-  async findActiveShareForOwnerAndKey(owner: UsersId, uploadKey: string): Promise<DeckShares | null> {
+  async findActiveShareForOwnerAndKey(
+    owner: UsersId,
+    uploadKey: string
+  ): Promise<DeckShares | null> {
     return this.repository.findByOwnerAndKey(owner, uploadKey);
   }
 

@@ -42,10 +42,9 @@ describe('cancelSubscription', () => {
 
     await cancelSubscription();
 
-    expect(api.post).toHaveBeenCalledWith(
-      '/api/users/cancel-subscription',
-      { mode: 'period_end' }
-    );
+    expect(api.post).toHaveBeenCalledWith('/api/users/cancel-subscription', {
+      mode: 'period_end',
+    });
   });
 
   it('sends the requested mode in the body', async () => {
@@ -55,10 +54,9 @@ describe('cancelSubscription', () => {
 
     await cancelSubscription('immediate');
 
-    expect(api.post).toHaveBeenCalledWith(
-      '/api/users/cancel-subscription',
-      { mode: 'immediate' }
-    );
+    expect(api.post).toHaveBeenCalledWith('/api/users/cancel-subscription', {
+      mode: 'immediate',
+    });
   });
 
   it('throws the server message from a JSON error body', async () => {
@@ -80,9 +78,7 @@ describe('cancelSubscription', () => {
       createMockResponse(500, {}, 'Internal Server Error')
     );
 
-    await expect(cancelSubscription()).rejects.toThrow(
-      'Internal Server Error'
-    );
+    await expect(cancelSubscription()).rejects.toThrow('Internal Server Error');
   });
 
   it('does not send a reason or comment with the cancel request', async () => {
@@ -108,9 +104,9 @@ describe('submitCancellationFeedback', () => {
 
     await submitCancellationFeedback('Too expensive', 'details');
 
-    expect(api.post).toHaveBeenCalledWith(
-      '/api/users/cancellation-feedback',
-      { reason: 'Too expensive', comment: 'details' }
-    );
+    expect(api.post).toHaveBeenCalledWith('/api/users/cancellation-feedback', {
+      reason: 'Too expensive',
+      comment: 'details',
+    });
   });
 });

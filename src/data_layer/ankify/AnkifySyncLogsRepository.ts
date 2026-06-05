@@ -12,9 +12,7 @@ export interface AnkifySyncLogsRepositoryInterface {
   ): Promise<AnkifySyncLog[]>;
 }
 
-export class AnkifySyncLogsRepository
-  implements AnkifySyncLogsRepositoryInterface
-{
+export class AnkifySyncLogsRepository implements AnkifySyncLogsRepositoryInterface {
   constructor(private readonly database: Knex) {}
 
   async log(input: NewAnkifySyncLog): Promise<AnkifySyncLog> {

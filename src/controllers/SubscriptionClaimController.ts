@@ -58,18 +58,23 @@ export class SubscriptionClaimController {
 
     if (outcome.reason === 'already_consumed') {
       res.status(409).json({
-        message: 'This link is already used. Sign in and try again from /account if you need to reclaim.',
+        message:
+          'This link is already used. Sign in and try again from /account if you need to reclaim.',
       });
       return;
     }
 
     if (outcome.reason === 'user_has_active_sub') {
       res.status(409).json({
-        message: 'This account already has an active subscription. Cancel it first or contact support.',
+        message:
+          'This account already has an active subscription. Cancel it first or contact support.',
       });
       return;
     }
 
-    res.status(400).json({ message: 'Invalid or expired confirmation link. Start over from /account.' });
+    res.status(400).json({
+      message:
+        'Invalid or expired confirmation link. Start over from /account.',
+    });
   }
 }

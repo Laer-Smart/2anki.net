@@ -62,10 +62,13 @@ describe('readSignupOrigin', () => {
     '/usmle-anki',
     '/nursing-flashcards',
     '/anki-from-medical-lecture-slides',
-  ])('resolves %s from sessionStorage when query param is absent', (pathname) => {
-    const storage = buildStorage({ [SIGNUP_ORIGIN_KEY]: pathname });
-    expect(readSignupOrigin('', storage)).toBe(pathname);
-  });
+  ])(
+    'resolves %s from sessionStorage when query param is absent',
+    (pathname) => {
+      const storage = buildStorage({ [SIGNUP_ORIGIN_KEY]: pathname });
+      expect(readSignupOrigin('', storage)).toBe(pathname);
+    }
+  );
 });
 
 describe('persistSignupOrigin', () => {

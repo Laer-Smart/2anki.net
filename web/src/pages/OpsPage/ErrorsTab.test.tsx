@@ -38,7 +38,9 @@ describe('ErrorsTab download for Claude', () => {
 
   test('the download link carries the active filters', async () => {
     render(
-      <MemoryRouter initialEntries={['/ops/errors?status=resolved&source=server']}>
+      <MemoryRouter
+        initialEntries={['/ops/errors?status=resolved&source=server']}
+      >
         <ErrorsTab />
       </MemoryRouter>
     );

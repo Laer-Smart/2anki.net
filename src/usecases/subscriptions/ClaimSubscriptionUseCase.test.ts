@@ -1,4 +1,7 @@
-import { ClaimSubscriptionUseCase, CLAIM_INITIATE_MESSAGE } from './ClaimSubscriptionUseCase';
+import {
+  ClaimSubscriptionUseCase,
+  CLAIM_INITIATE_MESSAGE,
+} from './ClaimSubscriptionUseCase';
 import type { ISubscriptionClaimTokensRepository } from '../../data_layer/SubscriptionClaimTokensRepository';
 import type { ISubscriptionClaimAuditRepository } from '../../data_layer/SubscriptionClaimAuditRepository';
 import type { IEmailService } from '../../services/EmailService/EmailService';
@@ -10,7 +13,15 @@ process.env.THE_HASHING_SECRET = 'test-secret-for-jest';
 const makeTokensRepo = (
   overrides: Partial<ISubscriptionClaimTokensRepository> = {}
 ): ISubscriptionClaimTokensRepository => ({
-  insert: jest.fn().mockResolvedValue({ id: 1, token_hash: 'hash', user_id: 99, stripe_customer_id: 'cus_1', expires_at: new Date(), consumed_at: null, created_at: new Date() }),
+  insert: jest.fn().mockResolvedValue({
+    id: 1,
+    token_hash: 'hash',
+    user_id: 99,
+    stripe_customer_id: 'cus_1',
+    expires_at: new Date(),
+    consumed_at: null,
+    created_at: new Date(),
+  }),
   findByTokenHash: jest.fn().mockResolvedValue(null),
   markConsumed: jest.fn().mockResolvedValue(undefined),
   countRecentByUser: jest.fn().mockResolvedValue(0),
@@ -20,7 +31,14 @@ const makeTokensRepo = (
 const makeAuditRepo = (
   overrides: Partial<ISubscriptionClaimAuditRepository> = {}
 ): ISubscriptionClaimAuditRepository => ({
-  insert: jest.fn().mockResolvedValue({ id: 1, user_id: 99, email_hash: 'eh', ip_hash: 'ih', outcome: 'initiate', created_at: new Date() }),
+  insert: jest.fn().mockResolvedValue({
+    id: 1,
+    user_id: 99,
+    email_hash: 'eh',
+    ip_hash: 'ih',
+    outcome: 'initiate',
+    created_at: new Date(),
+  }),
   countRecentByIp: jest.fn().mockResolvedValue(0),
   ...overrides,
 });
@@ -45,7 +63,9 @@ const makeEmailService = (
   ...overrides,
 });
 
-const makeStripe = (customerEmail = 'payer@stripe.example.com'): jest.Mocked<StripeTypes> =>
+const makeStripe = (
+  customerEmail = 'payer@stripe.example.com'
+): jest.Mocked<StripeTypes> =>
   ({
     customers: {
       retrieve: jest.fn().mockResolvedValue({
@@ -53,12 +73,12 @@ const makeStripe = (customerEmail = 'payer@stripe.example.com'): jest.Mocked<Str
         email: customerEmail,
       }),
     },
-  } as unknown as jest.Mocked<StripeTypes>);
+  }) as unknown as jest.Mocked<StripeTypes>;
 
 const makeSubscriptionService = (subs: StripeTypes.Subscription[] = []) =>
   ({
     findActiveStripeSubscriptions: jest.fn().mockResolvedValue(subs),
-  } as unknown as typeof SubscriptionService);
+  }) as unknown as typeof SubscriptionService;
 
 const baseInput = {
   userId: 99,
@@ -96,7 +116,10 @@ describe('ClaimSubscriptionUseCase', () => {
     const stripeCustomerEmail = 'stripe-on-record@example.com';
     const emailService = makeEmailService();
     const tokensRepo = makeTokensRepo();
-    const fakeSub = { customer: 'cus_abc123', status: 'active' } as unknown as StripeTypes.Subscription;
+    const fakeSub = {
+      customer: 'cus_abc123',
+      status: 'active',
+    } as unknown as StripeTypes.Subscription;
     const useCase = new ClaimSubscriptionUseCase(
       tokensRepo,
       makeAuditRepo(),
@@ -119,10 +142,9 @@ describe('ClaimSubscriptionUseCase', () => {
       stripeCustomerEmail,
       expect.stringContaining('/account/claim?token=')
     );
-    expect(emailService.sendSubscriptionClaimConfirmation).not.toHaveBeenCalledWith(
-      baseInput.submittedEmail,
-      expect.anything()
-    );
+    expect(
+      emailService.sendSubscriptionClaimConfirmation
+    ).not.toHaveBeenCalledWith(baseInput.submittedEmail, expect.anything());
   });
 
   it('writes an audit row with outcome=initiate and hashed email + IP', async () => {
@@ -138,14 +160,22 @@ describe('ClaimSubscriptionUseCase', () => {
     await useCase.execute(baseInput);
 
     expect(auditRepo.insert).toHaveBeenCalledWith(
-      expect.objectContaining({ outcome: 'initiate', user_id: baseInput.userId })
+      expect.objectContaining({
+        outcome: 'initiate',
+        user_id: baseInput.userId,
+      })
     );
   });
 
   it('rate-limits the user at 12 attempts per hour', async () => {
     const emailService = makeEmailService();
-    const tokensRepo = makeTokensRepo({ countRecentByUser: jest.fn().mockResolvedValue(12) });
-    const fakeSub = { customer: 'cus_xyz', status: 'active' } as unknown as StripeTypes.Subscription;
+    const tokensRepo = makeTokensRepo({
+      countRecentByUser: jest.fn().mockResolvedValue(12),
+    });
+    const fakeSub = {
+      customer: 'cus_xyz',
+      status: 'active',
+    } as unknown as StripeTypes.Subscription;
     const useCase = new ClaimSubscriptionUseCase(
       tokensRepo,
       makeAuditRepo(),
@@ -157,13 +187,20 @@ describe('ClaimSubscriptionUseCase', () => {
     const result = await useCase.execute(baseInput);
 
     expect(result.message).toBe(CLAIM_INITIATE_MESSAGE);
-    expect(emailService.sendSubscriptionClaimConfirmation).not.toHaveBeenCalled();
+    expect(
+      emailService.sendSubscriptionClaimConfirmation
+    ).not.toHaveBeenCalled();
   });
 
   it('rate-limits the IP at 60 attempts per hour', async () => {
     const emailService = makeEmailService();
-    const auditRepo = makeAuditRepo({ countRecentByIp: jest.fn().mockResolvedValue(60) });
-    const fakeSub = { customer: 'cus_xyz', status: 'active' } as unknown as StripeTypes.Subscription;
+    const auditRepo = makeAuditRepo({
+      countRecentByIp: jest.fn().mockResolvedValue(60),
+    });
+    const fakeSub = {
+      customer: 'cus_xyz',
+      status: 'active',
+    } as unknown as StripeTypes.Subscription;
     const useCase = new ClaimSubscriptionUseCase(
       makeTokensRepo(),
       auditRepo,
@@ -175,7 +212,9 @@ describe('ClaimSubscriptionUseCase', () => {
     const result = await useCase.execute(baseInput);
 
     expect(result.message).toBe(CLAIM_INITIATE_MESSAGE);
-    expect(emailService.sendSubscriptionClaimConfirmation).not.toHaveBeenCalled();
+    expect(
+      emailService.sendSubscriptionClaimConfirmation
+    ).not.toHaveBeenCalled();
   });
 
   it('never passes the submitted email to the audit repo in plaintext', async () => {

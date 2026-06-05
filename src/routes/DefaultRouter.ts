@@ -155,8 +155,10 @@ const DefaultRouter = () => {
    *             schema:
    *               $ref: '#/components/schemas/Error'
    */
-  router.post('/api/contact-us', contactUpload.array('attachments'), (req, res) =>
-    controller.contactUs(req, res)
+  router.post(
+    '/api/contact-us',
+    contactUpload.array('attachments'),
+    (req, res) => controller.contactUs(req, res)
   );
 
   return router;

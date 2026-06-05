@@ -48,19 +48,36 @@ function checkCounter(
 
 function ipRateLimit(req: Request, res: Response, next: NextFunction) {
   const ip = resolveClientIp(req);
-  if (checkCounter(ipCounters, ip, MAX_REQUESTS_PER_IP_PER_MINUTE, ONE_MINUTE_MS)) {
+  if (
+    checkCounter(ipCounters, ip, MAX_REQUESTS_PER_IP_PER_MINUTE, ONE_MINUTE_MS)
+  ) {
     next();
   } else {
-    res.status(429).json({ message: 'Too many requests. Try again in a minute.' });
+    res
+      .status(429)
+      .json({ message: 'Too many requests. Try again in a minute.' });
   }
 }
 
-function tokenDownloadRateLimit(req: Request, res: Response, next: NextFunction) {
+function tokenDownloadRateLimit(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   const { token } = req.params;
-  if (checkCounter(tokenDownloadCounters, token, MAX_DOWNLOADS_PER_TOKEN_PER_HOUR, ONE_HOUR_MS)) {
+  if (
+    checkCounter(
+      tokenDownloadCounters,
+      token,
+      MAX_DOWNLOADS_PER_TOKEN_PER_HOUR,
+      ONE_HOUR_MS
+    )
+  ) {
     next();
   } else {
-    res.status(429).json({ message: 'Too many downloads for this link. Try again later.' });
+    res
+      .status(429)
+      .json({ message: 'Too many downloads for this link. Try again later.' });
   }
 }
 

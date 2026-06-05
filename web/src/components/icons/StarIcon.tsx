@@ -3,10 +3,7 @@ interface Props {
   height?: number;
 }
 
-export default function StarIcon({
-  width = 20,
-  height = 20,
-}: Readonly<Props>) {
+export default function StarIcon({ width = 20, height = 20 }: Readonly<Props>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

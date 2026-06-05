@@ -107,7 +107,9 @@ describe('UserSurveyController', () => {
       );
 
       expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Thanks for the input.' });
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Thanks for the input.',
+      });
       expect(repository.getData('42', 'post_login_v1')).toEqual({
         status: 'answered',
         improvement: 'More themes',

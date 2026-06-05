@@ -148,10 +148,8 @@ const ApkgRouter = () => {
    *       404:
    *         description: Media not found in archive
    */
-  router.get(
-    '/api/apkg/:key/media/:name',
-    RequireAuthentication,
-    (req, res) => controller.getMedia(req, res)
+  router.get('/api/apkg/:key/media/:name', RequireAuthentication, (req, res) =>
+    controller.getMedia(req, res)
   );
 
   /**

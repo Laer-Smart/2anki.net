@@ -4,7 +4,10 @@ import { ShouldShowAutoSyncPitchUseCase } from '../usecases/pitches/ShouldShowAu
 import SubscriptionService from '../services/SubscriptionService';
 import type { PitchPlacement } from '../data_layer/PitchDismissalsRepository';
 
-const VALID_PLACEMENTS: PitchPlacement[] = ['convert_success', 'account_banner'];
+const VALID_PLACEMENTS: PitchPlacement[] = [
+  'convert_success',
+  'account_banner',
+];
 
 export class PitchController {
   constructor(
@@ -16,7 +19,10 @@ export class PitchController {
     const userId: string = res.locals.owner;
     const { placement } = req.body as { placement?: unknown };
 
-    if (typeof placement !== 'string' || !VALID_PLACEMENTS.includes(placement as PitchPlacement)) {
+    if (
+      typeof placement !== 'string' ||
+      !VALID_PLACEMENTS.includes(placement as PitchPlacement)
+    ) {
       res.status(400).json({ message: 'Invalid placement' });
       return;
     }
@@ -25,17 +31,25 @@ export class PitchController {
     res.status(204).end();
   }
 
-  async autoSyncEligibility(req: express.Request, res: express.Response): Promise<void> {
+  async autoSyncEligibility(
+    req: express.Request,
+    res: express.Response
+  ): Promise<void> {
     const userId: string = res.locals.owner;
     const email: string | undefined = res.locals.email;
-    const { objectId, jobType } = req.query as { objectId?: string; jobType?: string };
+    const { objectId, jobType } = req.query as {
+      objectId?: string;
+      jobType?: string;
+    };
 
     const subscriptions = email
       ? await SubscriptionService.getUserActiveSubscriptions(email)
       : [];
 
     const result = await this.shouldShowUseCase.execute({
-      user: { patreon: (res.locals.patreon as boolean | null | undefined) ?? null },
+      user: {
+        patreon: (res.locals.patreon as boolean | null | undefined) ?? null,
+      },
       subscriptions,
       userId,
       objectId: objectId ?? '',

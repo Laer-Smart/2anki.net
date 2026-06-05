@@ -157,28 +157,27 @@ export const setupDatabase = async (database: Knex) => {
                 data_source_id: dataSourceId,
               });
               const properties =
-                (dataSource as {
-                  properties?: Record<
-                    string,
-                    { type: string; name?: string }
-                  >;
-                }).properties ?? {};
+                (
+                  dataSource as {
+                    properties?: Record<
+                      string,
+                      { type: string; name?: string }
+                    >;
+                  }
+                ).properties ?? {};
               return { properties };
             },
           };
         }
       );
-      const scheduler = new AnkifyExportScheduler(
-        schedulesRepo,
-        exportUseCase
-      );
+      const scheduler = new AnkifyExportScheduler(schedulesRepo, exportUseCase);
       setAnkifyExportScheduler(scheduler);
       const recovered = await scheduler.recoverAll();
-      console.info(
-        `Ankify scheduler recovered ${recovered} schedule(s)`
-      );
+      console.info(`Ankify scheduler recovered ${recovered} schedule(s)`);
 
-      const subscriptionsRepo = new AnkifyNotionSubscriptionsRepository(database);
+      const subscriptionsRepo = new AnkifyNotionSubscriptionsRepository(
+        database
+      );
       const mappingsRepo = new AnkifySyncMappingsRepository(database);
       const conflictsRepo = new AnkifySyncConflictsRepository(database);
       const logsRepo = new AnkifySyncLogsRepository(database);
@@ -216,13 +215,15 @@ export const setupDatabase = async (database: Knex) => {
               }
             }
             const url = (page as { url?: string }).url ?? null;
-            const rawIcon = (page as {
-              icon?:
-                | { type: 'emoji'; emoji: string }
-                | { type: 'external'; external: { url: string } }
-                | { type: 'file'; file: { url: string } }
-                | null;
-            }).icon;
+            const rawIcon = (
+              page as {
+                icon?:
+                  | { type: 'emoji'; emoji: string }
+                  | { type: 'external'; external: { url: string } }
+                  | { type: 'file'; file: { url: string } }
+                  | null;
+              }
+            ).icon;
             let icon: string | null = null;
             if (rawIcon != null) {
               if (rawIcon.type === 'emoji') {
@@ -269,7 +270,9 @@ export const setupDatabase = async (database: Knex) => {
 
     // Completed jobs become uploads. Any left during startup means they failed.
     // Claude jobs are handled separately by markInterruptedClaudeJobs to preserve restart capability.
-    await database.raw("UPDATE jobs SET status = 'failed' WHERE status NOT IN ('done', 'failed', 'cancelled', 'interrupted') AND type IS DISTINCT FROM 'claude';");
+    await database.raw(
+      "UPDATE jobs SET status = 'failed' WHERE status NOT IN ('done', 'failed', 'cancelled', 'interrupted') AND type IS DISTINCT FROM 'claude';"
+    );
   } catch (error) {
     console.error(error);
     process.exit(1);

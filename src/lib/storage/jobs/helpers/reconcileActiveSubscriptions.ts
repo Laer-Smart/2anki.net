@@ -23,7 +23,9 @@ function parseSubscriptionId(payload: unknown): string | null {
   return null;
 }
 
-function stripeReportsInactive(subscription: StripeTypes.Subscription): boolean {
+function stripeReportsInactive(
+  subscription: StripeTypes.Subscription
+): boolean {
   if (subscription.status !== 'active') return true;
 
   if (subscription.cancel_at_period_end && subscription.cancel_at) {
@@ -76,10 +78,7 @@ export async function reconcileActiveSubscriptions(
         await deactivateRow(db, row);
         continue;
       }
-      console.error(
-        `[stripe-sync] Failed to reconcile row ${row.id}:`,
-        error
-      );
+      console.error(`[stripe-sync] Failed to reconcile row ${row.id}:`, error);
     }
   }
 }

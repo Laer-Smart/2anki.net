@@ -84,7 +84,9 @@ function LocalStorageCard({
               <tr
                 key={key}
                 className={
-                  key === highlightKey ? debugStyles.dataRowHighlight : undefined
+                  key === highlightKey
+                    ? debugStyles.dataRowHighlight
+                    : undefined
                 }
               >
                 <td className={debugStyles.dataKey}>{key}</td>
@@ -129,10 +131,10 @@ export function DebugPage() {
         </div>
         <p className={debugStyles.shareDescription}>
           When a conversion fails, enabling this sends the uploaded files and
-          error details to the 2anki team so we can reproduce and fix the
-          issue. It is <strong>off by default</strong> to keep your notes
-          private. Turn it on before filing a bug report so your next failed
-          upload reaches us.
+          error details to the 2anki team so we can reproduce and fix the issue.
+          It is <strong>off by default</strong> to keep your notes private. Turn
+          it on before filing a bug report so your next failed upload reaches
+          us.
         </p>
         <div className={debugStyles.shareControls}>
           <label className={debugStyles.shareToggle}>

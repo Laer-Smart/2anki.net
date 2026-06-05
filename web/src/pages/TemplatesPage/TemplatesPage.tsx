@@ -26,7 +26,10 @@ function safeFilename(name: string): string {
 }
 
 async function triggerDownload(starter: NoteTypeStarter): Promise<void> {
-  const blob = await downloadNoteTypeApkg(starter.noteType, starter.previewData);
+  const blob = await downloadNoteTypeApkg(
+    starter.noteType,
+    starter.previewData
+  );
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
@@ -87,7 +90,9 @@ function NoteTypeCard({
             className={styles.downloadBtn}
             onClick={() => onDownload(starter)}
             disabled={busy}
-            aria-label={busy ? 'Preparing .apkg' : `Download ${starter.name} as .apkg`}
+            aria-label={
+              busy ? 'Preparing .apkg' : `Download ${starter.name} as .apkg`
+            }
           >
             <DownloadIcon width={14} height={14} />
             {busy ? 'Preparing…' : 'Download'}
@@ -105,7 +110,11 @@ function NoteTypeCard({
             <Link
               to={editHref}
               className={styles.ghostIconBtn}
-              aria-label={ownedByUser ? `Edit ${starter.name}` : `Customize ${starter.name}`}
+              aria-label={
+                ownedByUser
+                  ? `Edit ${starter.name}`
+                  : `Customize ${starter.name}`
+              }
               title={ownedByUser ? 'Edit' : 'Customize'}
             >
               <PencilIcon width={16} height={16} />
@@ -313,7 +322,8 @@ export function TemplatesPage() {
         <div>
           <h1 className={sharedStyles.title}>Note types</h1>
           <p className={sharedStyles.subtitle}>
-            Starter Anki note types you can drop in or customize. Open the .apkg in Anki to import.
+            Starter Anki note types you can drop in or customize. Open the .apkg
+            in Anki to import.
           </p>
         </div>
         <Link
@@ -357,10 +367,7 @@ export function TemplatesPage() {
           className={styles.section}
           aria-labelledby="your-note-types-heading"
         >
-          <h2
-            id="your-note-types-heading"
-            className={styles.sectionHeading}
-          >
+          <h2 id="your-note-types-heading" className={styles.sectionHeading}>
             Your note types
           </h2>
           <div className={styles.grid}>
@@ -383,10 +390,7 @@ export function TemplatesPage() {
           className={styles.section}
           aria-labelledby="starter-note-types-heading"
         >
-          <h2
-            id="starter-note-types-heading"
-            className={styles.sectionHeading}
-          >
+          <h2 id="starter-note-types-heading" className={styles.sectionHeading}>
             Starter note types
           </h2>
           <div className={styles.grid}>
@@ -430,10 +434,7 @@ export function TemplatesPage() {
       )}
 
       {previewed && (
-        <PreviewModal
-          starter={previewed}
-          onClose={() => setPreviewed(null)}
-        />
+        <PreviewModal starter={previewed} onClose={() => setPreviewed(null)} />
       )}
     </div>
   );

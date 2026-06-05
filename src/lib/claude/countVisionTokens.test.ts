@@ -9,11 +9,14 @@ describe('countVisionTokens', () => {
     { width: 512, height: 1024, expectedTiles: 2 },
     { width: 200, height: 800, expectedTiles: 2 },
     { width: 1, height: 1, expectedTiles: 1 },
-  ])('$width×$height → $expectedTiles tiles', ({ width, height, expectedTiles }) => {
-    const result = countVisionTokens({ width, height });
-    expect(result.tiles).toBe(expectedTiles);
-    expect(result.tokens).toBe(2833 + expectedTiles * 1601);
-  });
+  ])(
+    '$width×$height → $expectedTiles tiles',
+    ({ width, height, expectedTiles }) => {
+      const result = countVisionTokens({ width, height });
+      expect(result.tiles).toBe(expectedTiles);
+      expect(result.tokens).toBe(2833 + expectedTiles * 1601);
+    }
+  );
 
   it('scales 4000×3000 to fit within 1568×1568 before tiling', () => {
     const result = countVisionTokens({ width: 4000, height: 3000 });

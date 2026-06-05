@@ -100,7 +100,10 @@ export default function useImportJob() {
       });
 
       try {
-        const result = await get2ankiApi().startImportToNotion(file, notionPageId);
+        const result = await get2ankiApi().startImportToNotion(
+          file,
+          notionPageId
+        );
         setState((prev) => ({ ...prev, phase: 'polling' }));
         startPolling(result.job_id);
       } catch (err) {
@@ -109,7 +112,8 @@ export default function useImportJob() {
           progress: { total_notes: 0, imported: 0 },
           statusText: null,
           notionPageUrl: null,
-          errorMessage: err instanceof Error ? err.message : 'Failed to start import',
+          errorMessage:
+            err instanceof Error ? err.message : 'Failed to start import',
         });
       }
     },

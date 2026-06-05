@@ -79,7 +79,9 @@ function makePhotoId(): string {
     return crypto.randomUUID();
   }
   const bytes = crypto.getRandomValues(new Uint8Array(8));
-  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join(
+    ''
+  );
   return `photo-${Date.now()}-${hex}`;
 }
 
@@ -334,7 +336,9 @@ export function PhotoToFlashcardsPage() {
 
   const renderConvertLabel = (): string => {
     if (status === 'reading') {
-      return photoCount > 1 ? `Reading ${photoCount} photos` : 'Reading your photo';
+      return photoCount > 1
+        ? `Reading ${photoCount} photos`
+        : 'Reading your photo';
     }
     return photoCount > 1 ? `Get cards from ${photoCount} photos` : 'Get cards';
   };

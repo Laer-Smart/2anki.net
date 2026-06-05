@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, act, fireEvent, within } from '@testing-library/react';
+import {
+  render,
+  screen,
+  waitFor,
+  act,
+  fireEvent,
+  within,
+} from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -7,11 +14,12 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 const mockSetNodes = vi.fn();
 const mockSetEdges = vi.fn();
 
-const { mockUploadMindmapImage, mockUseMindmapById, mockUseUpdateMindmap } = vi.hoisted(() => ({
-  mockUploadMindmapImage: vi.fn(),
-  mockUseMindmapById: vi.fn(),
-  mockUseUpdateMindmap: vi.fn(),
-}));
+const { mockUploadMindmapImage, mockUseMindmapById, mockUseUpdateMindmap } =
+  vi.hoisted(() => ({
+    mockUploadMindmapImage: vi.fn(),
+    mockUseMindmapById: vi.fn(),
+    mockUseUpdateMindmap: vi.fn(),
+  }));
 
 vi.mock('./useMindmap', () => ({
   useMindmapById: mockUseMindmapById,
@@ -21,7 +29,8 @@ vi.mock('./useMindmap', () => ({
 }));
 
 vi.mock('@xyflow/react', () => ({
-  ReactFlow: ({ children }: { children?: ReactNode }) => createElement('div', { 'data-testid': 'react-flow' }, children),
+  ReactFlow: ({ children }: { children?: ReactNode }) =>
+    createElement('div', { 'data-testid': 'react-flow' }, children),
   Controls: () => null,
   Background: () => null,
   useNodesState: () => [[], mockSetNodes, vi.fn()],
@@ -48,8 +57,15 @@ vi.mock('dagre', () => ({
 }));
 
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
-  return { ...actual, useParams: () => ({ id: 'map-1' }), useNavigate: () => vi.fn() };
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>(
+      'react-router-dom'
+    );
+  return {
+    ...actual,
+    useParams: () => ({ id: 'map-1' }),
+    useNavigate: () => vi.fn(),
+  };
 });
 
 const baseMap = {
@@ -62,12 +78,18 @@ const baseMap = {
 };
 
 function wrapper({ children }: { children: ReactNode }) {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return createElement(
     QueryClientProvider,
     { client: queryClient },
-    createElement(MemoryRouter, { initialEntries: ['/mindmaps/map-1'] },
-      createElement(Routes, null,
+    createElement(
+      MemoryRouter,
+      { initialEntries: ['/mindmaps/map-1'] },
+      createElement(
+        Routes,
+        null,
         createElement(Route, { path: '/mindmaps/:id', element: children })
       )
     )
@@ -75,7 +97,11 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 function setInnerWidth(width: number) {
-  Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: width });
+  Object.defineProperty(window, 'innerWidth', {
+    configurable: true,
+    writable: true,
+    value: width,
+  });
 }
 
 describe('MindmapEditor', () => {
@@ -100,7 +126,10 @@ describe('MindmapEditor', () => {
         edges: [],
       },
     };
-    mockUseMindmapById.mockReturnValue({ data: mapWithNodes, isLoading: false });
+    mockUseMindmapById.mockReturnValue({
+      data: mapWithNodes,
+      isLoading: false,
+    });
 
     const { MindmapEditor } = await import('./MindmapEditor');
     const { rerender } = render(createElement(MindmapEditor), { wrapper });
@@ -118,7 +147,10 @@ describe('MindmapEditor', () => {
       ...mapWithNodes,
       updated_at: new Date(Date.now() + 1000).toISOString(),
     };
-    mockUseMindmapById.mockReturnValue({ data: refetchedMap, isLoading: false });
+    mockUseMindmapById.mockReturnValue({
+      data: refetchedMap,
+      isLoading: false,
+    });
 
     await act(async () => {
       rerender(createElement(MindmapEditor));
@@ -135,11 +167,17 @@ describe('MindmapEditor', () => {
   it('sidebar is rendered before the ReactFlow canvas (left-side layout)', async () => {
     const { MindmapEditor } = await import('./MindmapEditor');
     const { container } = render(createElement(MindmapEditor), { wrapper });
-    const root = container.querySelector('[data-testid="editor-root"]') as HTMLElement | null;
+    const root = container.querySelector(
+      '[data-testid="editor-root"]'
+    ) as HTMLElement | null;
     expect(root).not.toBeNull();
     const children = Array.from(root!.children);
-    const sidebarIndex = children.findIndex((el) => el.getAttribute('data-testid') === 'editor-sidebar');
-    const canvasIndex = children.findIndex((el) => el.getAttribute('data-testid') === 'editor-canvas');
+    const sidebarIndex = children.findIndex(
+      (el) => el.getAttribute('data-testid') === 'editor-sidebar'
+    );
+    const canvasIndex = children.findIndex(
+      (el) => el.getAttribute('data-testid') === 'editor-canvas'
+    );
     expect(sidebarIndex).toBeLessThan(canvasIndex);
   });
 
@@ -175,7 +213,9 @@ describe('MindmapEditor', () => {
     const details = screen.getByText('Keyboard shortcuts').closest('details');
     if (details != null) details.setAttribute('open', '');
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /markdown works/i })).toBeDefined();
+      expect(
+        screen.getByRole('button', { name: /markdown works/i })
+      ).toBeDefined();
     });
   });
 
@@ -198,14 +238,20 @@ describe('MindmapEditor', () => {
     render(createElement(MindmapEditor), { wrapper });
 
     const bar = await screen.findByTestId('editor-mobile-bar');
-    const downloadBtn = within(bar).getByRole('button', { name: /download deck/i });
+    const downloadBtn = within(bar).getByRole('button', {
+      name: /download deck/i,
+    });
     fireEvent.click(downloadBtn);
 
     expect(await screen.findByText(/card type/i)).toBeDefined();
   });
 
   it('paste image event triggers upload and node creation', async () => {
-    const imageResult = { url: '/api/mindmaps/images/42/map-1/abc.png', width: 100, height: 80 };
+    const imageResult = {
+      url: '/api/mindmaps/images/42/map-1/abc.png',
+      width: 100,
+      height: 80,
+    };
     mockUploadMindmapImage.mockResolvedValue(imageResult);
 
     const { MindmapEditor } = await import('./MindmapEditor');
@@ -225,7 +271,9 @@ describe('MindmapEditor', () => {
     };
 
     const pasteEvent = new Event('paste', { bubbles: true });
-    Object.defineProperty(pasteEvent, 'clipboardData', { value: mockClipboardData });
+    Object.defineProperty(pasteEvent, 'clipboardData', {
+      value: mockClipboardData,
+    });
     document.dispatchEvent(pasteEvent);
 
     await waitFor(() => {

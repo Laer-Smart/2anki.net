@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
 
 import { runConversion } from '../lib/conversionPool';
-import { InProgressJobError, JobLimitError } from '../lib/storage/jobs/helpers/errors';
+import {
+  InProgressJobError,
+  JobLimitError,
+} from '../lib/storage/jobs/helpers/errors';
 import JobRepository from '../data_layer/JobRepository';
 import { FindOrCreateJobUseCase } from '../usecases/jobs/FindOrCreateJobUseCase';
 import { CheckInProgressJobUseCase } from '../usecases/jobs/CheckInProgressJobUseCase';
@@ -56,7 +59,6 @@ function clampPageSize(input: unknown): number {
   return Math.min(parsed, MAX_PREVIEW_PAGE_SIZE);
 }
 
-
 type NotionAPI = Awaited<ReturnType<NotionService['getNotionAPI']>>;
 
 async function lookupPageMeta(
@@ -91,7 +93,11 @@ class NotionController {
   ) {}
 
   private markTokenInvalid(owner: number): void {
-    if (this.notionRepo != null && this.usersRepo != null && this.emailService != null) {
+    if (
+      this.notionRepo != null &&
+      this.usersRepo != null &&
+      this.emailService != null
+    ) {
       void new MarkNotionTokenInvalidUseCase(
         this.notionRepo,
         this.usersRepo,
@@ -116,7 +122,9 @@ class NotionController {
       if (!nonce || !expected || nonce !== expected) {
         return res.redirect('/login?error=notion_cancelled');
       }
-      return res.redirect(`/api/users/auth/notion?code=${encodeURIComponent(code as string)}`);
+      return res.redirect(
+        `/api/users/auth/notion?code=${encodeURIComponent(code as string)}`
+      );
     }
 
     const authorizationCode = code as string;
@@ -166,16 +174,25 @@ class NotionController {
     try {
       const linkInfo = await this.service.getNotionLinkInfo(res.locals.owner);
       if (!linkInfo.isConnected) {
-        return res.status(401).json({ code: 'notion_unauthorized', message: 'Notion is not connected.' });
+        return res.status(401).json({
+          code: 'notion_unauthorized',
+          message: 'Notion is not connected.',
+        });
       }
 
       const query = (req.body.query ?? '').toString();
       const result = await this.service.search(query, getOwner(res));
       res.json(result);
     } catch (err) {
-      if (err instanceof APIResponseError && err.code === APIErrorCode.Unauthorized) {
+      if (
+        err instanceof APIResponseError &&
+        err.code === APIErrorCode.Unauthorized
+      ) {
         this.markTokenInvalid(res.locals.owner);
-        return res.status(401).json({ code: 'notion_unauthorized', message: 'API token is invalid.' });
+        return res.status(401).json({
+          code: 'notion_unauthorized',
+          message: 'API token is invalid.',
+        });
       }
       sendErrorResponse(err, res);
     }
@@ -185,20 +202,28 @@ class NotionController {
     try {
       const linkInfo = await this.service.getNotionLinkInfo(res.locals.owner);
       if (!linkInfo.isConnected) {
-        return res.status(401).json({ code: 'notion_unauthorized', message: 'Notion is not connected.' });
+        return res.status(401).json({
+          code: 'notion_unauthorized',
+          message: 'Notion is not connected.',
+        });
       }
 
-      const query =
-        typeof req.body?.query === 'string' ? req.body.query : '';
+      const query = typeof req.body?.query === 'string' ? req.body.query : '';
       const result = await this.service.searchTopLevelPages(
         query,
         getOwner(res)
       );
       res.json(result);
     } catch (err) {
-      if (err instanceof APIResponseError && err.code === APIErrorCode.Unauthorized) {
+      if (
+        err instanceof APIResponseError &&
+        err.code === APIErrorCode.Unauthorized
+      ) {
         this.markTokenInvalid(res.locals.owner);
-        return res.status(401).json({ code: 'notion_unauthorized', message: 'API token is invalid.' });
+        return res.status(401).json({
+          code: 'notion_unauthorized',
+          message: 'API token is invalid.',
+        });
       }
       sendErrorResponse(err, res);
     }
@@ -281,7 +306,11 @@ class NotionController {
       const withinLimit = await checkLimit.execute({ owner, maxJobs });
       if (!withinLimit) {
         const cancelJob = new CancelJobUseCase(jobRepository);
-        await cancelJob.execute({ id, owner, reason: 'Free plan — one conversion at a time' });
+        await cancelJob.execute({
+          id,
+          owner,
+          reason: 'Free plan — one conversion at a time',
+        });
         console.info('[event] paywall_shown', { owner, attemptedJobId: id });
         throw new JobLimitError(owner);
       }
@@ -509,7 +538,8 @@ class NotionController {
         error.code === APIErrorCode.ObjectNotFound
       ) {
         return res.status(404).json({
-          message: "We couldn't find that Notion page. It may have been deleted or access was revoked.",
+          message:
+            "We couldn't find that Notion page. It may have been deleted or access was revoked.",
         });
       }
       console.info('Preview page failed');

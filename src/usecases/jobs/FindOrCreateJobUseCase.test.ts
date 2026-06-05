@@ -7,10 +7,22 @@ describe('FindOrCreateJobUseCase', () => {
     let idCounter = 1;
 
     const jobRepository = {
-      create: async (id: string, owner: string, title?: string | null, type?: string) => {
+      create: async (
+        id: string,
+        owner: string,
+        title?: string | null,
+        type?: string
+      ) => {
         const key = `${id}:${owner}`;
         if (!jobs[key]) {
-          jobs[key] = { id: idCounter++, object_id: id, owner, status: 'started', title, type };
+          jobs[key] = {
+            id: idCounter++,
+            object_id: id,
+            owner,
+            status: 'started',
+            title,
+            type,
+          };
         }
         return [jobs[key].id];
       },

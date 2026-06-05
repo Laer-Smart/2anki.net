@@ -39,7 +39,9 @@ export class AppleVerificationError extends Error {
 }
 
 export class AppleUnavailableError extends Error {
-  constructor(message = 'Apple App Store Server could not confirm the purchase') {
+  constructor(
+    message = 'Apple App Store Server could not confirm the purchase'
+  ) {
     super(message);
     this.name = 'AppleUnavailableError';
   }

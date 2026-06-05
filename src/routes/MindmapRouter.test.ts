@@ -12,7 +12,9 @@ const mockCount = jest.fn();
 const mockGetUserActiveSubscriptions = jest.fn();
 
 const mockUploadFile = jest.fn().mockResolvedValue(undefined);
-const mockGetPresignedUrl = jest.fn().mockResolvedValue('https://spaces.example.com/presigned');
+const mockGetPresignedUrl = jest
+  .fn()
+  .mockResolvedValue('https://spaces.example.com/presigned');
 const mockObjectExists = jest.fn().mockResolvedValue(false);
 const mockListByPrefix = jest.fn().mockResolvedValue([]);
 const mockDeleteObjects = jest.fn().mockResolvedValue(undefined);
@@ -102,7 +104,9 @@ describe('MindmapRouter', () => {
     jest.clearAllMocks();
     mockAuthOwner = 42;
     mockGetUserActiveSubscriptions.mockResolvedValue([]);
-    mockGetPresignedUrl.mockResolvedValue('https://spaces.example.com/presigned');
+    mockGetPresignedUrl.mockResolvedValue(
+      'https://spaces.example.com/presigned'
+    );
     mockObjectExists.mockResolvedValue(false);
     mockListByPrefix.mockResolvedValue([]);
   });
@@ -197,7 +201,9 @@ describe('MindmapRouter', () => {
     it('deletes and returns 204', async () => {
       mockDelete.mockResolvedValue(undefined);
 
-      const res = await fetch(`${url}/api/mindmaps/uuid-1`, { method: 'DELETE' });
+      const res = await fetch(`${url}/api/mindmaps/uuid-1`, {
+        method: 'DELETE',
+      });
       expect(res.status).toBe(204);
       expect(mockDelete).toHaveBeenCalledWith('uuid-1', 42);
     });
@@ -229,7 +235,9 @@ describe('MindmapRouter', () => {
       });
 
       expect(res.status).toBe(200);
-      expect(res.headers.get('content-type')).toContain('application/octet-stream');
+      expect(res.headers.get('content-type')).toContain(
+        'application/octet-stream'
+      );
     });
 
     it('defaults to basic card type when card_type is omitted', async () => {
@@ -254,7 +262,9 @@ describe('MindmapRouter', () => {
       });
 
       expect(res.status).toBe(200);
-      expect(res.headers.get('content-type')).toContain('application/octet-stream');
+      expect(res.headers.get('content-type')).toContain(
+        'application/octet-stream'
+      );
     });
 
     it('accepts card_type markmap and returns a deck', async () => {
@@ -267,7 +277,9 @@ describe('MindmapRouter', () => {
       });
 
       expect(res.status).toBe(200);
-      expect(res.headers.get('content-type')).toContain('application/octet-stream');
+      expect(res.headers.get('content-type')).toContain(
+        'application/octet-stream'
+      );
     });
 
     it('treats unknown card_type as basic', async () => {
@@ -291,7 +303,11 @@ describe('MindmapRouter', () => {
 
     it('returns 201 with url, width, height for a valid PNG', async () => {
       const form = new FormData();
-      form.append('image', new Blob([TINY_PNG], { type: 'image/png' }), 'test.png');
+      form.append(
+        'image',
+        new Blob([TINY_PNG], { type: 'image/png' }),
+        'test.png'
+      );
 
       const res = await fetch(`${url}/api/mindmaps/map-1/images`, {
         method: 'POST',
@@ -322,20 +338,26 @@ describe('MindmapRouter', () => {
   describe('GET /api/mindmaps/images/:userId/:mapId/:file', () => {
     it('returns 302 redirect when object exists in Spaces', async () => {
       mockObjectExists.mockResolvedValue(true);
-      mockGetPresignedUrl.mockResolvedValue('https://spaces.example.com/presigned-img');
+      mockGetPresignedUrl.mockResolvedValue(
+        'https://spaces.example.com/presigned-img'
+      );
 
       const res = await fetch(`${url}/api/mindmaps/images/42/map-1/img.png`, {
         redirect: 'manual',
       });
 
       expect(res.status).toBe(302);
-      expect(res.headers.get('location')).toBe('https://spaces.example.com/presigned-img');
+      expect(res.headers.get('location')).toBe(
+        'https://spaces.example.com/presigned-img'
+      );
     });
 
     it('returns 410 when object does not exist', async () => {
       mockObjectExists.mockResolvedValue(false);
 
-      const res = await fetch(`${url}/api/mindmaps/images/42/map-1/missing.png`);
+      const res = await fetch(
+        `${url}/api/mindmaps/images/42/map-1/missing.png`
+      );
 
       expect(res.status).toBe(410);
       const body = await res.json();
@@ -352,7 +374,9 @@ describe('MindmapRouter', () => {
 
     it('returns 403 cross-tenant: authenticated as user 42 but requesting user 99 image', async () => {
       mockObjectExists.mockResolvedValue(true);
-      mockGetPresignedUrl.mockResolvedValue('https://spaces.example.com/presigned-img');
+      mockGetPresignedUrl.mockResolvedValue(
+        'https://spaces.example.com/presigned-img'
+      );
 
       const res = await fetch(`${url}/api/mindmaps/images/99/map-1/img.png`, {
         redirect: 'manual',

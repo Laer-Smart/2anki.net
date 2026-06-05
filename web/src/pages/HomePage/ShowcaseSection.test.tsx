@@ -41,10 +41,26 @@ describe('ShowcaseSection', () => {
     mockGetShowcase.mockResolvedValue({
       pageTitle: 'Test Page',
       notionBlocks: [
-        { id: 'b1', type: 'paragraph', hasChildren: false, canExpand: false, html: '<p>Hello world</p>' },
+        {
+          id: 'b1',
+          type: 'paragraph',
+          hasChildren: false,
+          canExpand: false,
+          html: '<p>Hello world</p>',
+        },
       ],
       ankiCards: [
-        { id: 1, ord: 0, templateName: 'Basic', deckName: 'Test', deckPath: ['Test'], noteTypeName: 'Basic', css: '', front: '<p>Front</p>', back: '<p>Back</p>' },
+        {
+          id: 1,
+          ord: 0,
+          templateName: 'Basic',
+          deckName: 'Test',
+          deckPath: ['Test'],
+          noteTypeName: 'Basic',
+          css: '',
+          front: '<p>Front</p>',
+          back: '<p>Back</p>',
+        },
       ],
       populatedAt: '2026-05-16T00:00:00.000Z',
     });

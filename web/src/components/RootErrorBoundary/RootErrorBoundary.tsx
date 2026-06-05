@@ -114,9 +114,12 @@ export class RootErrorBoundary extends React.Component<
         <main className={styles.pageNarrow}>
           <section className={styles.card} role="alert" aria-live="assertive">
             <header className={styles.pageHeader}>
-              <h1 className={styles.title}>Something went wrong loading 2anki</h1>
+              <h1 className={styles.title}>
+                Something went wrong loading 2anki
+              </h1>
               <p className={styles.subtitle}>
-                Try reloading. If that doesn't help, reset local data and reload.
+                Try reloading. If that doesn't help, reset local data and
+                reload.
               </p>
             </header>
 

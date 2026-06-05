@@ -15,7 +15,11 @@ export interface FeatureFlagWithEmail extends FeatureFlag {
 export interface IFeatureFlagsRepository {
   getAll(): Promise<FeatureFlagWithEmail[]>;
   get(key: string): Promise<boolean | null>;
-  set(key: string, value: boolean, userId: number): Promise<FeatureFlagWithEmail | null>;
+  set(
+    key: string,
+    value: boolean,
+    userId: number
+  ): Promise<FeatureFlagWithEmail | null>;
 }
 
 interface FlagJoinRow {
@@ -76,9 +80,11 @@ export class FeatureFlagsRepository implements IFeatureFlagsRepository {
     value: boolean,
     userId: number
   ): Promise<FeatureFlagWithEmail | null> {
-    const updated = await this.database(this.table)
-      .where({ key })
-      .update({ value, updated_by: userId, updated_at: this.database.fn.now() });
+    const updated = await this.database(this.table).where({ key }).update({
+      value,
+      updated_by: userId,
+      updated_at: this.database.fn.now(),
+    });
     if (updated === 0) return null;
     const rows = (await this.database(`${this.table} as f`)
       .leftJoin(`${this.users} as u`, 'f.updated_by', 'u.id')

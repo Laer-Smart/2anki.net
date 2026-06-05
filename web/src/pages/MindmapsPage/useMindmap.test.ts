@@ -66,7 +66,15 @@ describe('useMindmapList', () => {
   });
 
   it('calls the correct API endpoint', async () => {
-    mockGet.mockResolvedValue({ maps: [], access: { hasUnlimited: false, currentCount: 0, freeMapLimit: 3, maxNodesPerMap: 50 } });
+    mockGet.mockResolvedValue({
+      maps: [],
+      access: {
+        hasUnlimited: false,
+        currentCount: 0,
+        freeMapLimit: 3,
+        maxNodesPerMap: 50,
+      },
+    });
 
     renderHook(() => useMindmapList(), { wrapper: createWrapper() });
 

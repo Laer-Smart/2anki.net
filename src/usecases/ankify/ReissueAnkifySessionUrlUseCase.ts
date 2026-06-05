@@ -1,7 +1,4 @@
-import {
-  AnkifyClientView,
-  RacService,
-} from '../../services/ankify/RacService';
+import { AnkifyClientView, RacService } from '../../services/ankify/RacService';
 
 class ReissueAnkifySessionUrlUseCase {
   constructor(private readonly rac: RacService) {}

@@ -29,7 +29,8 @@ interface MicrosoftJwk {
   use?: string;
 }
 
-let cachedMicrosoftJwks: { keys: MicrosoftJwk[]; fetchedAt: number } | null = null;
+let cachedMicrosoftJwks: { keys: MicrosoftJwk[]; fetchedAt: number } | null =
+  null;
 
 async function getMicrosoftJwks(): Promise<MicrosoftJwk[]> {
   const now = Date.now();
@@ -433,14 +434,9 @@ class AuthenticationService {
         id_token: string;
         refresh_token?: string;
         access_token?: string;
-      }>(
-        'apple_login',
-        APPLE_TOKEN_URL,
-        qs.stringify(values),
-        {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        }
-      );
+      }>('apple_login', APPLE_TOKEN_URL, qs.stringify(values), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
       const idToken = result.data.id_token;
       const refreshToken =
         typeof result.data.refresh_token === 'string'
@@ -474,7 +470,8 @@ class AuthenticationService {
         console.info("Couldn't login with Apple: missing sub claim");
         return undefined;
       }
-      const emailVerified = payload.email_verified === true || payload.email_verified === 'true';
+      const emailVerified =
+        payload.email_verified === true || payload.email_verified === 'true';
       if (!emailVerified) {
         console.info("Couldn't login with Apple: email not verified");
         return undefined;
@@ -504,16 +501,25 @@ class AuthenticationService {
         token: refreshToken,
         token_type_hint: 'refresh_token',
       };
-      await instrumentedAxios.post('apple_login', APPLE_REVOKE_URL, qs.stringify(values), {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      });
+      await instrumentedAxios.post(
+        'apple_login',
+        APPLE_REVOKE_URL,
+        qs.stringify(values),
+        {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        }
+      );
       return true;
     } catch (error) {
-      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      const status = axios.isAxiosError(error)
+        ? error.response?.status
+        : undefined;
       if (status === 400 || status === 401) {
         return true;
       }
-      console.info("Couldn't revoke Apple token", { status: status ?? 'unknown' });
+      console.info("Couldn't revoke Apple token", {
+        status: status ?? 'unknown',
+      });
       return false;
     }
   }

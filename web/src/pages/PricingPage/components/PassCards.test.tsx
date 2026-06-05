@@ -12,8 +12,12 @@ describe('PassCards', () => {
         weekPassPending={false}
       />
     );
-    expect(screen.getByRole('button', { name: 'Get Day Pass' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Get Week Pass' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Get Day Pass' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Get Week Pass' })
+    ).toBeInTheDocument();
   });
 
   it('does not hide the pass cards behind an accordion', () => {

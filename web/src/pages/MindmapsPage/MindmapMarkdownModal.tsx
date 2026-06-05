@@ -19,7 +19,9 @@ interface MindmapMarkdownModalProps {
   onClose: () => void;
 }
 
-export function MindmapMarkdownModal({ onClose }: Readonly<MindmapMarkdownModalProps>) {
+export function MindmapMarkdownModal({
+  onClose,
+}: Readonly<MindmapMarkdownModalProps>) {
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {

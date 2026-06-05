@@ -116,8 +116,7 @@ describe('BlocksCacheRepository', () => {
       lastEditedAt: '2024-01-02',
     });
 
-    const parsed =
-      typeof result === 'string' ? JSON.parse(result) : result;
+    const parsed = typeof result === 'string' ? JSON.parse(result) : result;
     expect(parsed).toEqual(payload);
   });
 

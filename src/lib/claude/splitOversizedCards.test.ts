@@ -19,7 +19,9 @@ describe('splitOversizedCards', () => {
 
   it('splits a long answer on sentence boundaries', () => {
     const longAnswer = Array(10)
-      .fill('This is a sentence that contains some interesting fact about biology.')
+      .fill(
+        'This is a sentence that contains some interesting fact about biology.'
+      )
       .join(' ');
     expect(plainLength(longAnswer)).toBeGreaterThan(CEILING);
 
@@ -59,7 +61,13 @@ describe('splitOversizedCards', () => {
     const decks = [
       {
         deck: 'Chem',
-        cards: [{ q: 'Enzyme function?', a: longAnswer, tags: ['biochem', 'enzymes'] }],
+        cards: [
+          {
+            q: 'Enzyme function?',
+            a: longAnswer,
+            tags: ['biochem', 'enzymes'],
+          },
+        ],
       },
     ];
     const result = splitOversizedCards(decks);
@@ -70,7 +78,9 @@ describe('splitOversizedCards', () => {
 
   it('never splits cloze cards', () => {
     const longAnswer = Array(8)
-      .fill('This cloze answer contains {{c1::important}} information about {{c2::biology}}.')
+      .fill(
+        'This cloze answer contains {{c1::important}} information about {{c2::biology}}.'
+      )
       .join(' ');
     const decks = [
       {
@@ -85,7 +95,9 @@ describe('splitOversizedCards', () => {
 
   it('preserves HTML tag balance across splits', () => {
     const sentences = Array(12)
-      .fill('The <strong>mitochondria</strong> is the powerhouse of the <em>cell</em>.')
+      .fill(
+        'The <strong>mitochondria</strong> is the powerhouse of the <em>cell</em>.'
+      )
       .join(' ');
     const decks = [
       {
@@ -105,9 +117,7 @@ describe('splitOversizedCards', () => {
   });
 
   it('clamps output to 3x the input card count (no runaway fragmentation)', () => {
-    const manyShortSentences = Array(30)
-      .fill('A.')
-      .join(' ');
+    const manyShortSentences = Array(30).fill('A.').join(' ');
     const decks = [
       {
         deck: 'Test',

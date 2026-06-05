@@ -13,13 +13,8 @@ export interface AnkifyNotionSubscriptionsRepositoryInterface {
   ): Promise<AnkifyNotionSubscription>;
   listByOwner(owner: number): Promise<AnkifyNotionSubscription[]>;
   listEnabled(): Promise<AnkifyNotionSubscription[]>;
-  findByPageId(
-    notionPageId: string
-  ): Promise<AnkifyNotionSubscription[]>;
-  findById(
-    id: number,
-    owner: number
-  ): Promise<AnkifyNotionSubscription | null>;
+  findByPageId(notionPageId: string): Promise<AnkifyNotionSubscription[]>;
+  findById(id: number, owner: number): Promise<AnkifyNotionSubscription | null>;
   setEnabled(id: number, enabled: boolean): Promise<void>;
   deleteById(id: number, owner: number): Promise<void>;
   recordPoll(
@@ -28,9 +23,7 @@ export interface AnkifyNotionSubscriptionsRepositoryInterface {
   ): Promise<void>;
 }
 
-export class AnkifyNotionSubscriptionsRepository
-  implements AnkifyNotionSubscriptionsRepositoryInterface
-{
+export class AnkifyNotionSubscriptionsRepository implements AnkifyNotionSubscriptionsRepositoryInterface {
   constructor(private readonly database: Knex) {}
 
   async upsert(
@@ -81,9 +74,7 @@ export class AnkifyNotionSubscriptionsRepository
       .where({ enabled: true });
   }
 
-  findByPageId(
-    notionPageId: string
-  ): Promise<AnkifyNotionSubscription[]> {
+  findByPageId(notionPageId: string): Promise<AnkifyNotionSubscription[]> {
     return this.database<AnkifyNotionSubscription>(TABLE)
       .select('*')
       .where({ notion_page_id: notionPageId, enabled: true });

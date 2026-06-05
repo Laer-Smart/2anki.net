@@ -91,10 +91,7 @@ function getBasicNoteType(): AnkiNoteType {
         afmt: '<div class="back">\n  <div class="question">{{Front}}</div>\n  <hr id="answer">\n  <div class="answer">{{Back}}</div>\n</div>',
       },
     ],
-    flds: [
-      field('Front', 0),
-      field('Back', 1),
-    ],
+    flds: [field('Front', 0), field('Back', 1)],
     css: `.card {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 20px;
@@ -165,10 +162,7 @@ function getClozeNoteType(): AnkiNoteType {
         afmt: '<div class="cloze-answer">\n  {{cloze:Text}}\n  {{#Extra}}\n    <div class="extra">{{Extra}}</div>\n  {{/Extra}}\n</div>',
       },
     ],
-    flds: [
-      field('Text', 0),
-      field('Extra', 1, 'Inter', 16),
-    ],
+    flds: [field('Text', 0), field('Extra', 1, 'Inter', 16)],
     css: `.card {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 20px;
@@ -520,10 +514,7 @@ function getMinimalNoteType(): AnkiNoteType {
 </div>`,
       },
     ],
-    flds: [
-      field('Front', 0),
-      field('Back', 1),
-    ],
+    flds: [field('Front', 0), field('Back', 1)],
     css: `.card {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background: #ffffff;
@@ -800,10 +791,7 @@ function getBasicReversedNoteType(): AnkiNoteType {
         afmt: '<div class="back">\n  <div class="question">{{Back}}</div>\n  <hr id="answer">\n  <div class="answer">{{Front}}</div>\n</div>',
       },
     ],
-    flds: [
-      field('Front', 0),
-      field('Back', 1),
-    ],
+    flds: [field('Front', 0), field('Back', 1)],
     css: `.card {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 20px;
@@ -867,10 +855,7 @@ function getInputNoteType(): AnkiNoteType {
         afmt: '<div class="back">\n  <div class="prompt">{{Front}}</div>\n  <div class="input-row">{{type:Back}}</div>\n</div>',
       },
     ],
-    flds: [
-      field('Front', 0),
-      field('Back', 1),
-    ],
+    flds: [field('Front', 0), field('Back', 1)],
     css: `.card {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 20px;
@@ -1032,7 +1017,8 @@ export function getDefaultTemplates(): DefaultTemplate[] {
     {
       id: 'vocab-language',
       name: 'Vocabulary Card',
-      description: 'Language learning — word, reading, meaning, example sentence',
+      description:
+        'Language learning — word, reading, meaning, example sentence',
       baseType: 'basic',
       noteType: getVocabNoteType(),
       previewData: {
@@ -1052,7 +1038,8 @@ export function getDefaultTemplates(): DefaultTemplate[] {
       noteType: getMedicalNoteType(),
       previewData: {
         Term: 'Mitral Valve',
-        Definition: 'The bicuspid valve between the left atrium and left ventricle of the heart',
+        Definition:
+          'The bicuspid valve between the left atrium and left ventricle of the heart',
         Mnemonic: 'MItral = left sIde (both have I)',
         Image: '',
       },
@@ -1066,8 +1053,10 @@ export function getDefaultTemplates(): DefaultTemplate[] {
       noteType: getProgrammingNoteType(),
       previewData: {
         Question: 'How do you reverse a string in Python?',
-        Answer: 's = "hello"\nreversed_s = s[::-1]\nprint(reversed_s)  # "olleh"',
-        Notes: 'Slice notation [start:stop:step] with step -1 iterates backwards.',
+        Answer:
+          's = "hello"\nreversed_s = s[::-1]\nprint(reversed_s)  # "olleh"',
+        Notes:
+          'Slice notation [start:stop:step] with step -1 iterates backwards.',
       },
       tags: ['programming', 'python', 'code'],
     },
@@ -1099,21 +1088,25 @@ export function getDefaultTemplates(): DefaultTemplate[] {
     {
       id: 'math-science',
       name: 'Math & Science',
-      description: 'MathJax-ready template for equations, proofs, and scientific notation',
+      description:
+        'MathJax-ready template for equations, proofs, and scientific notation',
       baseType: 'basic',
       noteType: getMathNoteType(),
       previewData: {
         Problem: 'Evaluate ∫₀^∞ e^(−x²) dx',
         Solution: '√π / 2',
-        Steps: 'Square the integral and convert to polar coordinates:<br>I² = ∫∫ e^(−(x²+y²)) dx dy → polar → π/4<br>Therefore I = √π / 2',
-        Context: 'Gaussian integral — probability, thermodynamics, quantum mechanics',
+        Steps:
+          'Square the integral and convert to polar coordinates:<br>I² = ∫∫ e^(−(x²+y²)) dx dy → polar → π/4<br>Therefore I = √π / 2',
+        Context:
+          'Gaussian integral — probability, thermodynamics, quantum mechanics',
       },
       tags: ['math', 'science', 'equations'],
     },
     {
       id: 'basic-reversed',
       name: 'Basic (Reversed)',
-      description: 'One note, two cards — forward and reverse. Standard for bidirectional language drills.',
+      description:
+        'One note, two cards — forward and reverse. Standard for bidirectional language drills.',
       baseType: 'basic',
       noteType: getBasicReversedNoteType(),
       previewData: { Front: '勉強', Back: 'study; to study' },
@@ -1122,7 +1115,8 @@ export function getDefaultTemplates(): DefaultTemplate[] {
     {
       id: 'input-type-the-answer',
       name: 'Type the answer',
-      description: 'Type your answer — Anki diffs it against the expected value. Standard for spelling and recall drills.',
+      description:
+        'Type your answer — Anki diffs it against the expected value. Standard for spelling and recall drills.',
       baseType: 'basic',
       noteType: getInputNoteType(),
       previewData: { Front: 'Capital of France?', Back: 'Paris' },
@@ -1131,7 +1125,8 @@ export function getDefaultTemplates(): DefaultTemplate[] {
     {
       id: 'hierarchy',
       name: 'Hierarchy',
-      description: 'Question with its H1 › H2 › H3 breadcrumb — heading context on every card.',
+      description:
+        'Question with its H1 › H2 › H3 breadcrumb — heading context on every card.',
       baseType: 'basic',
       noteType: getHierarchyNoteType(),
       previewData: {
@@ -1146,5 +1141,17 @@ export function getDefaultTemplates(): DefaultTemplate[] {
   ];
 }
 
-export { getBasicNoteType, getClozeNoteType, getVocabNoteType, getMedicalNoteType, getProgrammingNoteType, getMinimalNoteType, getQuoteNoteType, getMathNoteType, getBasicReversedNoteType, getInputNoteType, getHierarchyNoteType };
+export {
+  getBasicNoteType,
+  getClozeNoteType,
+  getVocabNoteType,
+  getMedicalNoteType,
+  getProgrammingNoteType,
+  getMinimalNoteType,
+  getQuoteNoteType,
+  getMathNoteType,
+  getBasicReversedNoteType,
+  getInputNoteType,
+  getHierarchyNoteType,
+};
 export type { DefaultTemplate, AnkiNoteType, AnkiField, AnkiCardType };

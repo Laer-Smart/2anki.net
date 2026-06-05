@@ -28,5 +28,6 @@ export const highlightCode = (code: string, language?: string): string => {
     return escapeHtml(code);
   }
 
-  return hljs.highlight(code, { language: normalized, ignoreIllegals: true }).value;
+  return hljs.highlight(code, { language: normalized, ignoreIllegals: true })
+    .value;
 };

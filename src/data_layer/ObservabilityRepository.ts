@@ -104,7 +104,9 @@ export class ObservabilityRepository implements IObservabilityRepository {
   }
 
   async deleteOlderThan(days: number): Promise<DeletedLogCounts> {
-    const cutoff = this.database.raw('NOW() - make_interval(days => ?)', [days]);
+    const cutoff = this.database.raw('NOW() - make_interval(days => ?)', [
+      days,
+    ]);
     const requestLogs = await this.database(this.requestTable)
       .where('created_at', '<', cutoff)
       .del();
@@ -118,9 +120,8 @@ export class ObservabilityRepository implements IObservabilityRepository {
     fromTime: Date,
     bucketSeconds: number
   ): Promise<AggregatedRequestRow[]> {
-    const result = await this.database
-      .raw(
-        `SELECT
+    const result = await this.database.raw(
+      `SELECT
            to_timestamp(floor(extract(epoch from created_at) / ?)::bigint * ?) AT TIME ZONE 'UTC' AS bucket,
            CASE
              WHEN status_code >= 500 THEN '5xx'
@@ -133,13 +134,15 @@ export class ObservabilityRepository implements IObservabilityRepository {
          WHERE created_at >= ?
          GROUP BY bucket, status_class
          ORDER BY bucket ASC`,
-        [bucketSeconds, bucketSeconds, fromTime]
-      );
-    return (result.rows ?? []).map((r: { bucket: Date; status_class: string; count: number }) => ({
-      bucket: new Date(r.bucket),
-      status_class: r.status_class as '2xx' | '3xx' | '4xx' | '5xx',
-      count: Number(r.count),
-    }));
+      [bucketSeconds, bucketSeconds, fromTime]
+    );
+    return (result.rows ?? []).map(
+      (r: { bucket: Date; status_class: string; count: number }) => ({
+        bucket: new Date(r.bucket),
+        status_class: r.status_class as '2xx' | '3xx' | '4xx' | '5xx',
+        count: Number(r.count),
+      })
+    );
   }
 
   async topRoutesByLatency(
@@ -161,7 +164,13 @@ export class ObservabilityRepository implements IObservabilityRepository {
       [fromTime, limit]
     );
     return (result.rows ?? []).map(
-      (r: { method: string; route: string; avg_ms: number; p95_ms: number; count: number }) => ({
+      (r: {
+        method: string;
+        route: string;
+        avg_ms: number;
+        p95_ms: number;
+        count: number;
+      }) => ({
         method: r.method,
         route: r.route,
         avg_ms: Math.round(Number(r.avg_ms)),
@@ -248,7 +257,12 @@ export class ObservabilityRepository implements IObservabilityRepository {
       [fromTime, limit]
     );
     return (result.rows ?? []).map(
-      (r: { method: string; route: string; total: number; errors: number }) => ({
+      (r: {
+        method: string;
+        route: string;
+        total: number;
+        errors: number;
+      }) => ({
         method: r.method,
         route: r.route,
         total: Number(r.total),

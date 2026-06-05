@@ -30,8 +30,7 @@ let fakeUser: FakeUser = null;
 let fakeLocals: { patreon?: boolean; subscriber?: boolean } | undefined;
 vi.mock('../../lib/hooks/useUserLocals', () => ({
   useUserLocals: () => ({
-    data:
-      fakeUser == null ? undefined : { user: fakeUser, locals: fakeLocals },
+    data: fakeUser == null ? undefined : { user: fakeUser, locals: fakeLocals },
     isLoading: false,
     error: null,
     isError: false,
@@ -59,7 +58,10 @@ const renderPage = () => {
   );
 };
 
-const renderPageWithSession = (sessionKey: string, sessionValue: string | null) => {
+const renderPageWithSession = (
+  sessionKey: string,
+  sessionValue: string | null
+) => {
   if (sessionValue == null) {
     globalThis.sessionStorage.removeItem(sessionKey);
   } else {
@@ -129,7 +131,9 @@ describe('UploadPage doc/docx hint', () => {
   it('renders the Word heading rule hint inside step 1', () => {
     renderPage();
     expect(
-      screen.getByText(/In Word docs, headings become card fronts and the body text under each heading becomes the back\./i)
+      screen.getByText(
+        /In Word docs, headings become card fronts and the body text under each heading becomes the back\./i
+      )
     ).toBeInTheDocument();
   });
 });
@@ -360,4 +364,3 @@ describe('UploadPage AI badge survives browser translation', () => {
     expect(collectUnwrappedTextNodes(badgeFor(/AI is off/))).toEqual([]);
   });
 });
-

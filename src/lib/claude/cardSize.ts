@@ -13,7 +13,9 @@ export function getCardSizePromptSuffix(size: string | undefined): string {
   return '';
 }
 
-export function validateCardSize(raw: string | undefined): 'short' | 'medium' | 'detailed' {
+export function validateCardSize(
+  raw: string | undefined
+): 'short' | 'medium' | 'detailed' {
   if (raw != null && VALID_SIZES.has(raw)) {
     return raw as 'short' | 'medium' | 'detailed';
   }

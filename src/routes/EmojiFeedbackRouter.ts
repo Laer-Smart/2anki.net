@@ -38,9 +38,7 @@ const EmojiFeedbackRouter = () => {
    *       400:
    *         description: Invalid input
    */
-  router.post('/api/emoji-feedback', (req, res) =>
-    controller.submit(req, res)
-  );
+  router.post('/api/emoji-feedback', (req, res) => controller.submit(req, res));
 
   return router;
 };

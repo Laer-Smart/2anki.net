@@ -59,7 +59,8 @@ export function AccessBanner({
     return (
       <output className={styles.banner}>
         <span className={styles.message}>
-          {passLabel} active — expires {formatExpiryDate(expiresAt)}. Convert as much as you want.
+          {passLabel} active — expires {formatExpiryDate(expiresAt)}. Convert as
+          much as you want.
         </span>
       </output>
     );
@@ -68,7 +69,8 @@ export function AccessBanner({
   return (
     <output className={styles.banner}>
       <span className={styles.warning}>
-        {passLabel} ends in {formatTimeRemaining(remainingMs)} — finish any pending conversions.
+        {passLabel} ends in {formatTimeRemaining(remainingMs)} — finish any
+        pending conversions.
       </span>
     </output>
   );

@@ -6,7 +6,9 @@ interface MindmapLimitModalProps {
   onClose: () => void;
 }
 
-export function MindmapLimitModal({ onClose }: Readonly<MindmapLimitModalProps>) {
+export function MindmapLimitModal({
+  onClose,
+}: Readonly<MindmapLimitModalProps>) {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -31,7 +33,11 @@ export function MindmapLimitModal({ onClose }: Readonly<MindmapLimitModalProps>)
         >
           Upgrade
         </Link>
-        <button type="button" onClick={onClose} className={sharedStyles.btnSecondary}>
+        <button
+          type="button"
+          onClick={onClose}
+          className={sharedStyles.btnSecondary}
+        >
           Not now
         </button>
       </div>

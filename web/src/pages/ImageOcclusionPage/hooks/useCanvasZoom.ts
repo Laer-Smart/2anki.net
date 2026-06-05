@@ -24,7 +24,12 @@ export function useCanvasZoom() {
   }, []);
 
   const fitZoom = useCallback(
-    (imgW: number, imgH: number, containerW: number, containerH: number): number => {
+    (
+      imgW: number,
+      imgH: number,
+      containerW: number,
+      containerH: number
+    ): number => {
       if (imgW === 0 || imgH === 0) return 1;
       const fit = clampZoom(Math.min(containerW / imgW, containerH / imgH));
       setZoomRaw(fit);
@@ -35,27 +40,28 @@ export function useCanvasZoom() {
     []
   );
 
-  const handleWheel = useCallback(
-    (e: WheelEvent, containerRect: DOMRect) => {
-      const isZoomGesture = e.ctrlKey || e.metaKey;
-      if (!isZoomGesture) return;
-      e.preventDefault();
+  const handleWheel = useCallback((e: WheelEvent, containerRect: DOMRect) => {
+    const isZoomGesture = e.ctrlKey || e.metaKey;
+    if (!isZoomGesture) return;
+    e.preventDefault();
 
-      const delta = -e.deltaY * 0.001;
-      setZoomRaw((prevZoom) => {
-        const newZoom = clampZoom(prevZoom + delta * prevZoom);
+    const delta = -e.deltaY * 0.001;
+    setZoomRaw((prevZoom) => {
+      const newZoom = clampZoom(prevZoom + delta * prevZoom);
 
-        const cursorX = e.clientX - containerRect.left;
-        const cursorY = e.clientY - containerRect.top;
+      const cursorX = e.clientX - containerRect.left;
+      const cursorY = e.clientY - containerRect.top;
 
-        setPanX((prevPanX) => cursorX - (cursorX - prevPanX) * (newZoom / prevZoom));
-        setPanY((prevPanY) => cursorY - (cursorY - prevPanY) * (newZoom / prevZoom));
+      setPanX(
+        (prevPanX) => cursorX - (cursorX - prevPanX) * (newZoom / prevZoom)
+      );
+      setPanY(
+        (prevPanY) => cursorY - (cursorY - prevPanY) * (newZoom / prevZoom)
+      );
 
-        return newZoom;
-      });
-    },
-    []
-  );
+      return newZoom;
+    });
+  }, []);
 
   return {
     zoom,

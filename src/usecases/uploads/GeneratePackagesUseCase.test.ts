@@ -70,7 +70,9 @@ describe('GeneratePackagesUseCase', () => {
 
     emitter.emit('message', {
       type: 'result',
-      packages: [{ name: 'notes.apkg', cardCount: 5, mcqCount: 0, mcqSkippedCount: 0 }],
+      packages: [
+        { name: 'notes.apkg', cardCount: 5, mcqCount: 0, mcqSkippedCount: 0 },
+      ],
       warnings: [],
     });
 
@@ -91,7 +93,11 @@ describe('GeneratePackagesUseCase', () => {
       makeWorkspace()
     );
 
-    emitter.emit('message', { type: 'result', packages: undefined, warnings: undefined });
+    emitter.emit('message', {
+      type: 'result',
+      packages: undefined,
+      warnings: undefined,
+    });
 
     const result = await promise;
     expect(result.packages).toEqual([]);
@@ -113,7 +119,9 @@ describe('GeneratePackagesUseCase', () => {
       message: "Cannot read properties of undefined (reading 'name')",
     });
 
-    await expect(promise).rejects.toThrow("Cannot read properties of undefined (reading 'name')");
+    await expect(promise).rejects.toThrow(
+      "Cannot read properties of undefined (reading 'name')"
+    );
   });
 
   it('rejects when the worker emits an error event', async () => {

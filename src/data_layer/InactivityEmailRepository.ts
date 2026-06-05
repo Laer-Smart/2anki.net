@@ -3,8 +3,12 @@ import type { Knex } from 'knex';
 export const INACTIVITY_DELETION_GRACE_DAYS = 14;
 
 export interface IInactivityEmailRepository {
-  getUsersToNotify(limit?: number): Promise<Array<{ id: number; name: string; email: string }>>;
-  getUsersToDelete(limit?: number): Promise<Array<{ id: number; email: string }>>;
+  getUsersToNotify(
+    limit?: number
+  ): Promise<Array<{ id: number; name: string; email: string }>>;
+  getUsersToDelete(
+    limit?: number
+  ): Promise<Array<{ id: number; email: string }>>;
   recordSend(userId: number, token: string): Promise<void>;
   findByToken(token: string): Promise<{ id: number; userId: number } | null>;
 }
@@ -25,9 +29,9 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
 
   constructor(private readonly database: Knex) {}
 
-  async getUsersToNotify(limit = 500): Promise<
-    Array<{ id: number; name: string; email: string }>
-  > {
+  async getUsersToNotify(
+    limit = 500
+  ): Promise<Array<{ id: number; name: string; email: string }>> {
     const rows = await this.database<UserRow>('users')
       .select('users.id', 'users.name', 'users.email')
       .where(function () {
@@ -59,7 +63,11 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
       )
       .limit(limit);
 
-    return rows.map((row) => ({ id: row.id, name: row.name, email: row.email }));
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+    }));
   }
 
   async getUsersToDelete(
@@ -95,7 +103,9 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
     await this.database(this.table).insert({ user_id: userId, token });
   }
 
-  async findByToken(token: string): Promise<{ id: number; userId: number } | null> {
+  async findByToken(
+    token: string
+  ): Promise<{ id: number; userId: number } | null> {
     const row = await this.database<InactivityEmailRow>(this.table)
       .select('id', 'user_id')
       .where({ token })
@@ -107,9 +117,7 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
   }
 }
 
-export class InMemoryInactivityEmailRepository
-  implements IInactivityEmailRepository
-{
+export class InMemoryInactivityEmailRepository implements IInactivityEmailRepository {
   private usersToReturn: Array<{ id: number; name: string; email: string }> =
     [];
   private usersToDelete: Array<{ id: number; email: string }> = [];
@@ -125,15 +133,17 @@ export class InMemoryInactivityEmailRepository
     this.usersToDelete = users;
   }
 
-  async getUsersToNotify(limit = 500): Promise<
-    Array<{ id: number; name: string; email: string }>
-  > {
-    return this.usersToReturn.filter((u) => !this.sentUserIds.has(u.id)).slice(0, limit);
+  async getUsersToNotify(
+    limit = 500
+  ): Promise<Array<{ id: number; name: string; email: string }>> {
+    return this.usersToReturn
+      .filter((u) => !this.sentUserIds.has(u.id))
+      .slice(0, limit);
   }
 
-  async getUsersToDelete(limit = 100): Promise<
-    Array<{ id: number; email: string }>
-  > {
+  async getUsersToDelete(
+    limit = 100
+  ): Promise<Array<{ id: number; email: string }>> {
     return this.usersToDelete.slice(0, limit);
   }
 
@@ -143,7 +153,9 @@ export class InMemoryInactivityEmailRepository
     this.sentUserIds.add(userId);
   }
 
-  async findByToken(token: string): Promise<{ id: number; userId: number } | null> {
+  async findByToken(
+    token: string
+  ): Promise<{ id: number; userId: number } | null> {
     const found = this.emails.find((e) => e.token === token);
     if (found == null) {
       return null;

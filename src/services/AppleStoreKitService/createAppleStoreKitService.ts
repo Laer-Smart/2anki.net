@@ -24,7 +24,9 @@ const KNOWN_ENVIRONMENTS: Record<string, Environment> = {
   sandbox: Environment.SANDBOX,
 };
 
-export function parseAcceptedEnvironments(raw: string | undefined): Environment[] {
+export function parseAcceptedEnvironments(
+  raw: string | undefined
+): Environment[] {
   if (raw == null || raw === '') {
     return [Environment.PRODUCTION];
   }

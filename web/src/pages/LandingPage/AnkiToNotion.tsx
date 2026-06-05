@@ -7,5 +7,7 @@ interface Props {
 }
 
 export default function AnkiToNotion({ setErrorMessage }: Readonly<Props>) {
-  return <LandingPage copy={ankiToNotionCopy} setErrorMessage={setErrorMessage} />;
+  return (
+    <LandingPage copy={ankiToNotionCopy} setErrorMessage={setErrorMessage} />
+  );
 }

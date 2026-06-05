@@ -22,7 +22,9 @@
   border-radius: var(--radius-md);
   text-decoration: none;
   box-shadow: var(--shadow-xs);
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .ctaButton:hover {

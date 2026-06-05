@@ -20,7 +20,7 @@ const sampleClient = (): AnkifyClient => ({
   anki_port: 20000,
   vnc_port: 21000,
   novnc_port: 22000,
-        anki_connect_api_key: null,
+  anki_connect_api_key: null,
   status: 'active',
   created_at: new Date(),
   last_active_at: new Date(),
@@ -40,7 +40,7 @@ const makeClientsRepo = (
     touchLastActiveAt: jest.fn(),
     reservedPorts: jest.fn(),
     listIdleSince: jest.fn(),
-  } as unknown as jest.Mocked<AnkifyClientsRepositoryInterface>);
+  }) as unknown as jest.Mocked<AnkifyClientsRepositoryInterface>;
 
 const makeNotionRepo = (token: string | null): jest.Mocked<INotionRepository> =>
   ({
@@ -51,7 +51,7 @@ const makeNotionRepo = (token: string | null): jest.Mocked<INotionRepository> =>
     deleteNotionData: jest.fn(),
     markTokenInvalid: jest.fn(async () => undefined),
     clearTokenInvalid: jest.fn(async () => undefined),
-  } as unknown as jest.Mocked<INotionRepository>);
+  }) as unknown as jest.Mocked<INotionRepository>;
 
 const makeAnkiConnect = (
   rows: Array<[string, number]>,
@@ -60,7 +60,7 @@ const makeAnkiConnect = (
   ({
     getNumCardsReviewedByDay: jest.fn(async () => rows),
     getReviewMinutesByDay: jest.fn(async () => minutesByDay),
-  } as unknown as AnkiConnectClient);
+  }) as unknown as AnkiConnectClient;
 
 const defaultSchema = (): TrackerSchema => ({
   properties: {
@@ -227,7 +227,10 @@ describe('ExportReviewDataToNotionUseCase', () => {
         'Time spent': { type: 'number' },
       },
     };
-    const { client: notion, create } = makeNotionClient([], schemaWithTimeSpent);
+    const { client: notion, create } = makeNotionClient(
+      [],
+      schemaWithTimeSpent
+    );
 
     const useCase = new ExportReviewDataToNotionUseCase(
       clients,
@@ -283,9 +286,7 @@ describe('findTrackerPropertyKey', () => {
       properties: { date: { type: 'date' }, Reviews: { type: 'number' } },
     };
     expect(findTrackerPropertyKey(schema, 'Date', 'date')).toBe('date');
-    expect(findTrackerPropertyKey(schema, 'reviews', 'number')).toBe(
-      'Reviews'
-    );
+    expect(findTrackerPropertyKey(schema, 'reviews', 'number')).toBe('Reviews');
   });
 
   test('falls back to the inner name field when keys differ from names', () => {

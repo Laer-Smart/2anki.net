@@ -3,7 +3,10 @@ interface IconProps {
   height?: number;
 }
 
-export default function TrashIcon({ width = 20, height = 20 }: Readonly<IconProps>) {
+export default function TrashIcon({
+  width = 20,
+  height = 20,
+}: Readonly<IconProps>) {
   return (
     <svg
       width={width}

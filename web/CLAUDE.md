@@ -26,7 +26,7 @@ This package lives inside the `2anki/server` monorepo as a pnpm workspace. The p
 - `pnpm test` — Vitest unit tests (`src/**/*.test.tsx`)
 - `pnpm test:e2e` — Playwright e2e tests (`tests/*.spec.ts`)
 - `pnpm test:e2e:with-mock` — Playwright + local mock API on :2020 (Swagger at `/docs`)
-- `pnpm typecheck`, `pnpm build`, `pnpm lint` (Biome — not ESLint/Prettier)
+- `pnpm typecheck`, `pnpm build`, `pnpm lint` (oxlint — not ESLint/Prettier/Biome), `pnpm lint:fix` (oxfmt)
 - If test output is truncated, rerun to get full output
 - When tests fail, provide the specific error message
 

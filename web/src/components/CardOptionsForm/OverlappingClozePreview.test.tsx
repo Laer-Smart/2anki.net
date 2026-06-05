@@ -6,19 +6,16 @@ const LINES = ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter'];
 const HIDDEN = '[ … ]';
 
 function setReducedMotion(reduced: boolean) {
-  vi.stubGlobal(
-    'matchMedia',
-    (query: string) => ({
-      matches: reduced && query.includes('prefers-reduced-motion'),
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }),
-  );
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: reduced && query.includes('prefers-reduced-motion'),
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
 }
 
 describe('OverlappingClozePreview', () => {
@@ -42,7 +39,7 @@ describe('OverlappingClozePreview', () => {
         expect(hiddenSlots).toHaveLength(1);
         expect(within(frame).queryByText(LINES[index])).toBeNull();
       });
-    },
+    }
   );
 
   it('keeps every other line visible on the show-all cards', () => {
@@ -69,14 +66,14 @@ describe('OverlappingClozePreview', () => {
 
   it('shows fewer lines per windowed card than per show-all card', () => {
     const { rerender } = render(<OverlappingClozePreview style="show-all" />);
-    const showAllMiddle = within(screen.getAllByTestId('frame')[2]).getAllByText(
-      /Mercury|Venus|Earth|Mars|Jupiter|\[ … \]/,
-    ).length;
+    const showAllMiddle = within(
+      screen.getAllByTestId('frame')[2]
+    ).getAllByText(/Mercury|Venus|Earth|Mars|Jupiter|\[ … \]/).length;
 
     rerender(<OverlappingClozePreview style="windowed" />);
-    const windowedMiddle = within(screen.getAllByTestId('frame')[2]).getAllByText(
-      /Mercury|Venus|Earth|Mars|Jupiter|\[ … \]/,
-    ).length;
+    const windowedMiddle = within(
+      screen.getAllByTestId('frame')[2]
+    ).getAllByText(/Mercury|Venus|Earth|Mars|Jupiter|\[ … \]/).length;
 
     expect(windowedMiddle).toBeLessThan(showAllMiddle);
   });
@@ -95,10 +92,10 @@ describe('OverlappingClozePreview', () => {
   it('labels the frame and shows the caption', () => {
     render(<OverlappingClozePreview style="show-all" />);
     expect(
-      screen.getByLabelText('Preview: each card hides one line of the list'),
+      screen.getByLabelText('Preview: each card hides one line of the list')
     ).toBeInTheDocument();
     expect(
-      screen.getByText('5 lines become 5 cards — each hides one'),
+      screen.getByText('5 lines become 5 cards — each hides one')
     ).toBeInTheDocument();
   });
 });

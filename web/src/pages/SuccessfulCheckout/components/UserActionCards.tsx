@@ -8,9 +8,7 @@ export const UserActionCards = () => {
     <div className={styles.columns2}>
       <div>
         <h3 className={styles.sectionTitle}>Existing user</h3>
-        <p>
-          Log in with the email address associated with your payment.
-        </p>
+        <p>Log in with the email address associated with your payment.</p>
         <a href={loginLink} className={styles.btnPrimary}>
           Log in
         </a>

@@ -20,9 +20,7 @@ function makeRules(emailNotification: boolean): ParserRules {
   return rules;
 }
 
-function makeUsersRepository(
-  email: string | undefined
-): UsersRepository {
+function makeUsersRepository(email: string | undefined): UsersRepository {
   return {
     getEmailById: jest.fn().mockResolvedValue(email),
   } as unknown as UsersRepository;

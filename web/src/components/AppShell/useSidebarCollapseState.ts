@@ -9,7 +9,11 @@ const WORKFLOW_ROUTE_PREFIXES = ['/upload', '/notion', '/downloads'];
 const WORKFLOW_ROUTE_PATTERNS = [/^\/mindmaps\/[^/]+/];
 
 function isWorkflowRoute(pathname: string): boolean {
-  if (WORKFLOW_ROUTE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+  if (
+    WORKFLOW_ROUTE_PREFIXES.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    )
+  ) {
     return true;
   }
   return WORKFLOW_ROUTE_PATTERNS.some((pattern) => pattern.test(pathname));
@@ -25,7 +29,10 @@ function readCollapsedFromStorage(): boolean {
 
 function writeCollapsedToStorage(next: boolean): void {
   try {
-    globalThis.localStorage?.setItem(COLLAPSED_STORAGE_KEY, next ? 'true' : 'false');
+    globalThis.localStorage?.setItem(
+      COLLAPSED_STORAGE_KEY,
+      next ? 'true' : 'false'
+    );
   } catch {
     // localStorage unavailable (private mode, blocked) — state still updates in memory
   }
@@ -37,8 +44,12 @@ export interface SidebarCollapseState {
   onSidebarInteraction: () => void;
 }
 
-export function useSidebarCollapseState(pathname: string): SidebarCollapseState {
-  const [persistedCollapsed, setPersistedCollapsed] = useState<boolean>(readCollapsedFromStorage);
+export function useSidebarCollapseState(
+  pathname: string
+): SidebarCollapseState {
+  const [persistedCollapsed, setPersistedCollapsed] = useState<boolean>(
+    readCollapsedFromStorage
+  );
   const [autoMinimized, setAutoMinimized] = useState(false);
   const [interactionTick, setInteractionTick] = useState(0);
   const pinnedRef = useRef(false);

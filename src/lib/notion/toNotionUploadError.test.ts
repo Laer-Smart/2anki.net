@@ -23,7 +23,8 @@ describe('toNotionUploadError', () => {
       status: 401,
       body: {
         code: 'notion_unauthorized',
-        message: 'Your Notion connection expired. Reconnect Notion and try again.',
+        message:
+          'Your Notion connection expired. Reconnect Notion and try again.',
       },
     });
   });
@@ -52,7 +53,8 @@ describe('toNotionUploadError', () => {
       status: 429,
       body: {
         code: 'notion_rate_limit',
-        message: 'Notion is rate-limiting us right now. Wait a minute and convert again.',
+        message:
+          'Notion is rate-limiting us right now. Wait a minute and convert again.',
       },
     });
   });
@@ -67,7 +69,9 @@ describe('toNotionUploadError', () => {
 
   it('returns null for other Notion API error codes', () => {
     expect(
-      toNotionUploadError(makeAPIResponseError(APIErrorCode.ValidationError, 400))
+      toNotionUploadError(
+        makeAPIResponseError(APIErrorCode.ValidationError, 400)
+      )
     ).toBeNull();
   });
 

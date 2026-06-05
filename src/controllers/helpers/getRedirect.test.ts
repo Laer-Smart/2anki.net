@@ -1,7 +1,10 @@
 import { Request } from 'express';
 import { getRedirect } from './getRedirect';
 
-const createMockRequest = (redirectParam?: string, bodyRedirect?: string): Request => {
+const createMockRequest = (
+  redirectParam?: string,
+  bodyRedirect?: string
+): Request => {
   return {
     query: redirectParam ? { redirect: redirectParam } : {},
     body: bodyRedirect ? { redirect: bodyRedirect } : {},
@@ -35,7 +38,7 @@ describe('getRedirect security tests', () => {
       '/card-options',
     ];
 
-    validPaths.forEach(path => {
+    validPaths.forEach((path) => {
       it(`should allow valid internal path: ${path}`, () => {
         const req = createMockRequest(path);
         expect(getRedirect(req)).toBe(path);
@@ -73,7 +76,7 @@ describe('getRedirect security tests', () => {
       'https://phishing-site.com',
     ];
 
-    maliciousUrls.forEach(url => {
+    maliciousUrls.forEach((url) => {
       it(`should block malicious URL: ${url}`, () => {
         const req = createMockRequest(url);
         expect(getRedirect(req)).toBe('/upload');
@@ -84,13 +87,13 @@ describe('getRedirect security tests', () => {
   describe('should allow legitimate external domains', () => {
     const legitimateUrls = [
       'https://2anki.net',
-      'https://app.2anki.net', 
+      'https://app.2anki.net',
       'https://notion.2anki.net',
       'https://staging.2anki.net',
       'https://templates.2anki.net',
     ];
 
-    legitimateUrls.forEach(url => {
+    legitimateUrls.forEach((url) => {
       it(`should allow legitimate domain: ${url}`, () => {
         const req = createMockRequest(url);
         expect(getRedirect(req)).toBe(url);
@@ -108,7 +111,7 @@ describe('getRedirect security tests', () => {
       '/malicious',
     ];
 
-    invalidPaths.forEach(path => {
+    invalidPaths.forEach((path) => {
       it(`should block invalid internal path: ${path}`, () => {
         const req = createMockRequest(path);
         expect(getRedirect(req)).toBe('/upload');

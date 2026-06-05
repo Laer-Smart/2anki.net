@@ -486,8 +486,10 @@ const UploadRouter = () => {
    *             schema:
    *               $ref: '#/components/schemas/Error'
    */
-  router.get('/api/upload/jobs/:jobId/download', RequireAuthentication, (req, res) =>
-    jobController.downloadJobResult(req, res)
+  router.get(
+    '/api/upload/jobs/:jobId/download',
+    RequireAuthentication,
+    (req, res) => jobController.downloadJobResult(req, res)
   );
 
   /**
@@ -528,8 +530,10 @@ const UploadRouter = () => {
    *             schema:
    *               $ref: '#/components/schemas/Error'
    */
-  router.post('/api/upload/jobs/:jobId/restart', RequireAuthentication, (req, res) =>
-    uploadController.restartJob(req, res)
+  router.post(
+    '/api/upload/jobs/:jobId/restart',
+    RequireAuthentication,
+    (req, res) => uploadController.restartJob(req, res)
   );
 
   /**
@@ -663,8 +667,10 @@ const UploadRouter = () => {
    *             schema:
    *               $ref: '#/components/schemas/Error'
    */
-  router.delete('/api/upload/dropbox/mine/:id', RequireAuthentication, (req, res) =>
-    uploadController.deleteDropboxUpload(req, res)
+  router.delete(
+    '/api/upload/dropbox/mine/:id',
+    RequireAuthentication,
+    (req, res) => uploadController.deleteDropboxUpload(req, res)
   );
 
   /**
@@ -718,8 +724,10 @@ const UploadRouter = () => {
    *             schema:
    *               $ref: '#/components/schemas/Error'
    */
-  router.get('/api/upload/google_drive/mine', RequireAuthentication, (req, res) =>
-    uploadController.getGoogleDriveUploads(req, res)
+  router.get(
+    '/api/upload/google_drive/mine',
+    RequireAuthentication,
+    (req, res) => uploadController.getGoogleDriveUploads(req, res)
   );
 
   /**
@@ -764,8 +772,10 @@ const UploadRouter = () => {
    *             schema:
    *               $ref: '#/components/schemas/Error'
    */
-  router.delete('/api/upload/google_drive/mine/:id', RequireAuthentication, (req, res) =>
-    uploadController.deleteGoogleDriveUpload(req, res)
+  router.delete(
+    '/api/upload/google_drive/mine/:id',
+    RequireAuthentication,
+    (req, res) => uploadController.deleteGoogleDriveUpload(req, res)
   );
 
   return router;

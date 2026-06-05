@@ -137,7 +137,9 @@
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
   box-shadow: var(--shadow-xs);
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .loginButton:hover {

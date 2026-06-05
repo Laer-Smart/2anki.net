@@ -1,76 +1,76 @@
 {
-    "object": "page",
-    "id": "6921b63c-d9e2-4fb7-9cb2-a3b5bd2c661f",
-    "created_time": "2021-05-16T17:12:00.000Z",
-    "last_edited_time": "2021-10-17T15:19:00.000Z",
-    "created_by": {
-        "object": "user",
-        "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
-    },
-    "last_edited_by": {
-        "object": "user",
-        "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
-    },
-    "cover": {
-        "type": "external",
-        "external": {
-            "url": "https://images.unsplash.com/photo-1495578942200-c5f5d2137def?ixlib=rb-1.2.1&q=85&fm=jpg&crop=entropy&cs=srgb"
+  "object": "page",
+  "id": "6921b63c-d9e2-4fb7-9cb2-a3b5bd2c661f",
+  "created_time": "2021-05-16T17:12:00.000Z",
+  "last_edited_time": "2021-10-17T15:19:00.000Z",
+  "created_by": {
+    "object": "user",
+    "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+  },
+  "last_edited_by": {
+    "object": "user",
+    "id": "1590db54-99fe-467c-a656-be319fe6ca8b"
+  },
+  "cover": {
+    "type": "external",
+    "external": {
+      "url": "https://images.unsplash.com/photo-1495578942200-c5f5d2137def?ixlib=rb-1.2.1&q=85&fm=jpg&crop=entropy&cs=srgb"
+    }
+  },
+  "icon": {
+    "type": "emoji",
+    "emoji": "🧱"
+  },
+  "parent": {
+    "type": "page_id",
+    "page_id": "3ce6b147-ac8a-425f-836b-51cc21825b85"
+  },
+  "archived": false,
+  "in_trash": false,
+  "is_locked": false,
+  "properties": {
+    "title": {
+      "id": "title",
+      "type": "title",
+      "title": [
+        {
+          "type": "text",
+          "text": {
+            "content": "Copy of ",
+            "link": null
+          },
+          "annotations": {
+            "bold": false,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false,
+            "code": false,
+            "color": "default"
+          },
+          "plain_text": "Copy of ",
+          "href": null
+        },
+        {
+          "type": "text",
+          "text": {
+            "content": "Feature parity with Notion",
+            "link": null
+          },
+          "annotations": {
+            "bold": false,
+            "italic": false,
+            "strikethrough": false,
+            "underline": false,
+            "code": false,
+            "color": "default"
+          },
+          "plain_text": "Feature parity with Notion",
+          "href": null
         }
-    },
-    "icon": {
-        "type": "emoji",
-        "emoji": "🧱"
-    },
-    "parent": {
-        "type": "page_id",
-        "page_id": "3ce6b147-ac8a-425f-836b-51cc21825b85"
-    },
-    "archived": false,
-    "in_trash": false,
-    "is_locked": false,
-    "properties": {
-        "title": {
-            "id": "title",
-            "type": "title",
-            "title": [
-                {
-                    "type": "text",
-                    "text": {
-                        "content": "Copy of ",
-                        "link": null
-                    },
-                    "annotations": {
-                        "bold": false,
-                        "italic": false,
-                        "strikethrough": false,
-                        "underline": false,
-                        "code": false,
-                        "color": "default"
-                    },
-                    "plain_text": "Copy of ",
-                    "href": null
-                },
-                {
-                    "type": "text",
-                    "text": {
-                        "content": "Feature parity with Notion",
-                        "link": null
-                    },
-                    "annotations": {
-                        "bold": false,
-                        "italic": false,
-                        "strikethrough": false,
-                        "underline": false,
-                        "code": false,
-                        "color": "default"
-                    },
-                    "plain_text": "Feature parity with Notion",
-                    "href": null
-                }
-            ]
-        }
-    },
-    "url": "https://www.notion.so/Copy-of-Feature-parity-with-Notion-6921b63cd9e24fb79cb2a3b5bd2c661f",
-    "public_url": "https://beryl-jaguar-018.notion.site/Copy-of-Feature-parity-with-Notion-6921b63cd9e24fb79cb2a3b5bd2c661f",
-    "request_id": "4a3a57d3-824a-4b1d-a3c1-9a3ba9e712d0"
+      ]
+    }
+  },
+  "url": "https://www.notion.so/Copy-of-Feature-parity-with-Notion-6921b63cd9e24fb79cb2a3b5bd2c661f",
+  "public_url": "https://beryl-jaguar-018.notion.site/Copy-of-Feature-parity-with-Notion-6921b63cd9e24fb79cb2a3b5bd2c661f",
+  "request_id": "4a3a57d3-824a-4b1d-a3c1-9a3ba9e712d0"
 }

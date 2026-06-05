@@ -64,7 +64,9 @@ function makeStripe(sessions: typeof SESSIONS, hasMore = false) {
   return {
     checkout: {
       sessions: {
-        list: jest.fn().mockResolvedValue({ data: sessions, has_more: hasMore }),
+        list: jest
+          .fn()
+          .mockResolvedValue({ data: sessions, has_more: hasMore }),
       },
     },
   };
@@ -206,9 +208,9 @@ describe('PricingAbFunnelService', () => {
 
     it('returns null fields when events repo throws', async () => {
       const repo = makeEventsRepo();
-      (repo.groupPaywallShownByVariantAndSurface as jest.Mock).mockRejectedValue(
-        new Error('DB down')
-      );
+      (
+        repo.groupPaywallShownByVariantAndSurface as jest.Mock
+      ).mockRejectedValue(new Error('DB down'));
       const stripe = makeStripe([]);
       const service = new PricingAbFunnelService({
         eventsRepo: repo,

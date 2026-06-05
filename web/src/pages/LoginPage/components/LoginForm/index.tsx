@@ -62,17 +62,11 @@ function LoginForm() {
 
   return (
     <div className={styles.formPage}>
-      <img
-        src="/mascot/Notion 1.png"
-        alt=""
-        className={loginStyles.mascot}
-      />
+      <img src="/mascot/Notion 1.png" alt="" className={loginStyles.mascot} />
       <div className={styles.formCard}>
         <TopMessage />
         <h1 className={styles.formTitle}>Log in to 2anki</h1>
-        <p className={loginStyles.subtitle}>
-          Turn your notes into Anki cards.
-        </p>
+        <p className={loginStyles.subtitle}>Turn your notes into Anki cards.</p>
         {isEmailStep ? (
           <>
             <div className={styles.field}>
@@ -212,9 +206,7 @@ function LoginForm() {
                   handleSendMagicLink();
                 }}
               >
-                {magicLinkLoading
-                  ? 'Sending'
-                  : 'Send a login link instead'}
+                {magicLinkLoading ? 'Sending' : 'Send a login link instead'}
               </a>
             </p>
           </form>

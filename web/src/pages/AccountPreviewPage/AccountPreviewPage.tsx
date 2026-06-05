@@ -20,7 +20,9 @@ const variants: Variant[] = [
     note: 'New signup via email or Google.',
     render: () => (
       <>
-        <UserProfile user={{ name: 'Alex Newcomer', email: 'alex@example.com' }} />
+        <UserProfile
+          user={{ name: 'Alex Newcomer', email: 'alex@example.com' }}
+        />
         <PlanDetails subscriptionType="free" />
         <AccountDeletion />
       </>
@@ -71,7 +73,9 @@ const variants: Variant[] = [
     note: 'Active on the legacy price; about to be told what they’d lose.',
     render: () => (
       <>
-        <UserProfile user={{ name: 'Dani Legacy', email: 'dani@example.com' }} />
+        <UserProfile
+          user={{ name: 'Dani Legacy', email: 'dani@example.com' }}
+        />
         <PlanDetails subscriptionType="subscriber" />
         <section className={accountStyles.section}>
           <p className={accountStyles.statusLine}>
@@ -98,7 +102,9 @@ const variants: Variant[] = [
     note: 'Has cancelled; still inside the paid window.',
     render: () => (
       <>
-        <UserProfile user={{ name: 'Jamie Leaving', email: 'jamie@example.com' }} />
+        <UserProfile
+          user={{ name: 'Jamie Leaving', email: 'jamie@example.com' }}
+        />
         <PlanDetails subscriptionType="subscriber" />
         <section className={accountStyles.section}>
           <p className={accountStyles.statusLine}>
@@ -135,7 +141,9 @@ const variants: Variant[] = [
     note: 'Bought the lifetime plan; nothing to manage.',
     render: () => (
       <>
-        <UserProfile user={{ name: 'Robin Forever', email: 'robin@example.com' }} />
+        <UserProfile
+          user={{ name: 'Robin Forever', email: 'robin@example.com' }}
+        />
         <PlanDetails subscriptionType="lifetime" />
         <AccountDeletion />
       </>

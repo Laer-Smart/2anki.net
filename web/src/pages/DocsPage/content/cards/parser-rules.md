@@ -76,7 +76,7 @@ The save bar at the bottom of the page has three actions:
 ## Common mistakes
 
 - **Empty deck after editing the rule.** If you turn off `toggle` without turning anything else on, 2anki has nothing to make cards from. Pick at least one block type under **Flashcards**.
-- **Sub-deck explosion.** Turning on `heading_1` *and* `heading_2` *and* `heading_3` for sub-decks produces deeply nested decks. Pick the heading level that matches the structure you actually have.
+- **Sub-deck explosion.** Turning on `heading_1` _and_ `heading_2` _and_ `heading_3` for sub-decks produces deeply nested decks. Pick the heading level that matches the structure you actually have.
 - **Rule on the wrong page.** Rules attach to the page ID you opened. Editing the rule on the parent page doesn't change sub-pages — they need their own rule if you want different behaviour.
 
 ## Related

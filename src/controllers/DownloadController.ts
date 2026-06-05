@@ -73,7 +73,9 @@ class DownloadController {
           : key.endsWith('.apkg')
             ? key
             : `${key}.apkg`;
-        const filename = basename.endsWith('.apkg') ? basename : `${basename}.apkg`;
+        const filename = basename.endsWith('.apkg')
+          ? basename
+          : `${basename}.apkg`;
         res.setHeader('Content-Type', 'application/octet-stream');
         res.setHeader('Content-Disposition', buildContentDisposition(filename));
         res.send(body);
@@ -142,7 +144,10 @@ class DownloadController {
         })
       );
 
-      const totalSizeBytes = fileViewModels.reduce((sum, f) => sum + f.sizeBytes, 0);
+      const totalSizeBytes = fileViewModels.reduce(
+        (sum, f) => sum + f.sizeBytes,
+        0
+      );
 
       const viewModel: DownloadPageViewModel = {
         id,
@@ -229,7 +234,10 @@ class DownloadController {
       });
 
       res.setHeader('Content-Type', 'application/zip');
-      res.setHeader('Content-Disposition', buildContentDisposition(`anki-decks-${id}.zip`));
+      res.setHeader(
+        'Content-Disposition',
+        buildContentDisposition(`anki-decks-${id}.zip`)
+      );
 
       const identity = resolveDownloadIdentity(req, res);
       track('deck_downloaded', {

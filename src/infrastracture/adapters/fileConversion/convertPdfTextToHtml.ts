@@ -36,8 +36,7 @@ export interface ConvertPdfTextToHtmlResult {
   needsCredential: boolean;
 }
 
-export interface ConvertPdfTextToHtmlAutoResult
-  extends ConvertPdfTextToHtmlResult {
+export interface ConvertPdfTextToHtmlAutoResult extends ConvertPdfTextToHtmlResult {
   isTextShaped: boolean;
 }
 
@@ -61,17 +60,32 @@ export async function convertPdfTextToHtml(
   const extraction = await extractPdfText(buffer, credential);
 
   if (extraction.needsCredential) {
-    return { html: '', cardCount: 0, isDrmLocked: false, needsCredential: true };
+    return {
+      html: '',
+      cardCount: 0,
+      isDrmLocked: false,
+      needsCredential: true,
+    };
   }
 
   if (extraction.isDrmLocked) {
-    return { html: '', cardCount: 0, isDrmLocked: true, needsCredential: false };
+    return {
+      html: '',
+      cardCount: 0,
+      isDrmLocked: true,
+      needsCredential: false,
+    };
   }
 
   const cards = synthesizeCardsFromPdf(extraction.pages, title);
   const html = renderCardsAsHtml(title, cards);
 
-  return { html, cardCount: cards.length, isDrmLocked: false, needsCredential: false };
+  return {
+    html,
+    cardCount: cards.length,
+    isDrmLocked: false,
+    needsCredential: false,
+  };
 }
 
 export async function convertPdfTextToHtmlAuto(

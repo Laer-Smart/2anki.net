@@ -4,10 +4,21 @@ import os, { homedir } from 'node:os';
 import { createHash, randomUUID } from 'node:crypto';
 import { spawn, execFileSync } from 'node:child_process';
 
-import { getAnthropicClient, normalizeTag } from '../../lib/claude/ClaudeService';
+import {
+  getAnthropicClient,
+  normalizeTag,
+} from '../../lib/claude/ClaudeService';
 import { ANKI_MATH_FRAGMENT } from '../../lib/claude/ankiMathFragment';
-import { countVisionTokens, VISION_TOKEN_CEILING, VisionMediaType } from '../../lib/claude/countVisionTokens';
-import { CREATE_DECK_DIR, CREATE_DECK_SCRIPT_PATH, TEMPLATE_DIR } from '../../lib/constants';
+import {
+  countVisionTokens,
+  VISION_TOKEN_CEILING,
+  VisionMediaType,
+} from '../../lib/claude/countVisionTokens';
+import {
+  CREATE_DECK_DIR,
+  CREATE_DECK_SCRIPT_PATH,
+  TEMPLATE_DIR,
+} from '../../lib/constants';
 import { track } from '../../services/events/track';
 import type { IEventsRepository } from '../../data_layer/EventsRepository';
 const REQUIRED_MCQ_OPTION_COUNT = 4;
@@ -166,7 +177,11 @@ function findPython(): string {
     }
   }
 
-  for (const p of ['/opt/homebrew/bin/python3', '/usr/local/bin/python3', '/usr/bin/python3']) {
+  for (const p of [
+    '/opt/homebrew/bin/python3',
+    '/usr/local/bin/python3',
+    '/usr/bin/python3',
+  ]) {
     if (fs.existsSync(p)) return p;
   }
 
@@ -190,13 +205,17 @@ function runDeckBridge(workspaceDir: string): Promise<string> {
     proc.on('close', (code) => {
       if (code !== 0) {
         const stderr = stderrChunks.join('');
-        return reject(new Error(`Deck builder exited with code ${code}: ${stderr}`));
+        return reject(
+          new Error(`Deck builder exited with code ${code}: ${stderr}`)
+        );
       }
       const output = stdoutChunks.join('').trim();
       const lastLine = output.split('\n').pop() ?? '';
       if (!lastLine.endsWith('.apkg')) {
         return reject(
-          new Error(`Deck builder did not return a valid .apkg path. stdout: ${output || '(empty)'}`)
+          new Error(
+            `Deck builder did not return a valid .apkg path. stdout: ${output || '(empty)'}`
+          )
         );
       }
       resolve(lastLine);
@@ -226,7 +245,10 @@ function makeUnreadableVisionResponseError(): Error & { status: number } {
   return err;
 }
 
-function makeFreeQuotaReachedError(used: number, limit: number): Error & {
+function makeFreeQuotaReachedError(
+  used: number,
+  limit: number
+): Error & {
   status: number;
   used: number;
   limit: number;
@@ -264,13 +286,21 @@ interface ValidMcqShape {
 function asValidMcq(card: CompactCard): ValidMcqShape | null {
   if (!Array.isArray(card.options)) return null;
   if (card.options.length !== REQUIRED_MCQ_OPTION_COUNT) return null;
-  if (!card.options.every((opt): opt is string => typeof opt === 'string' && opt.trim().length > 0)) {
+  if (
+    !card.options.every(
+      (opt): opt is string => typeof opt === 'string' && opt.trim().length > 0
+    )
+  ) {
     return null;
   }
-  if (typeof card.correct_index !== 'number' || !Number.isInteger(card.correct_index)) {
+  if (
+    typeof card.correct_index !== 'number' ||
+    !Number.isInteger(card.correct_index)
+  ) {
     return null;
   }
-  if (card.correct_index < 0 || card.correct_index >= card.options.length) return null;
+  if (card.correct_index < 0 || card.correct_index >= card.options.length)
+    return null;
   const rationale = typeof card.rationale === 'string' ? card.rationale : '';
   return { options: card.options, correctIndex: card.correct_index, rationale };
 }
@@ -280,12 +310,17 @@ function looksLikeMcqAttempt(card: CompactCard): boolean {
 }
 
 function logUnreadableVisionResponse(raw: string): void {
-  console.log(JSON.stringify({
-    event: 'vision_parse_failed',
-    source: 'photo',
-    response_length: raw.length,
-    response_sha256_prefix: createHash('sha256').update(raw).digest('hex').slice(0, 12),
-  }));
+  console.log(
+    JSON.stringify({
+      event: 'vision_parse_failed',
+      source: 'photo',
+      response_length: raw.length,
+      response_sha256_prefix: createHash('sha256')
+        .update(raw)
+        .digest('hex')
+        .slice(0, 12),
+    })
+  );
 }
 
 function parseClaudeVisionResponse(raw: string): CompactDeck[] {
@@ -336,7 +371,9 @@ function buildDeckInfo(
   const allCards = decks.flatMap((d) =>
     d.cards.map((c, i) => {
       const sourceImageTag =
-        sourceFilename == null ? '' : `<br><img src="${sourceFilename}" style="max-width:100%;height:auto;">`;
+        sourceFilename == null
+          ? ''
+          : `<br><img src="${sourceFilename}" style="max-width:100%;height:auto;">`;
       const tags = (c.tags ?? []).map(normalizeTag).filter((t) => t.length > 0);
       const baseFields = {
         tags,
@@ -350,7 +387,8 @@ function buildDeckInfo(
         const validMcq = asValidMcq(c);
         if (validMcq != null) {
           mcqCount += 1;
-          const rationaleBack = validMcq.rationale.length > 0 ? validMcq.rationale : c.a;
+          const rationaleBack =
+            validMcq.rationale.length > 0 ? validMcq.rationale : c.a;
           return {
             ...baseFields,
             name: c.q,
@@ -402,7 +440,9 @@ function buildDeckInfo(
 export class PhotoToFlashcardsUseCase {
   constructor(private readonly events?: IEventsRepository) {}
 
-  async execute(input: PhotoToFlashcardsInput): Promise<PhotoToFlashcardsResult> {
+  async execute(
+    input: PhotoToFlashcardsInput
+  ): Promise<PhotoToFlashcardsResult> {
     const userId = ownerToUserId(input.owner);
 
     if (!input.isPaying && this.events != null) {
@@ -465,11 +505,14 @@ export class PhotoToFlashcardsUseCase {
 
     let response = await createVisionMessage(VISION_MAX_TOKENS);
     if (response.stop_reason === 'max_tokens') {
-      console.warn('[Claude] Vision response truncated at max_tokens, retrying', {
-        source: 'photo',
-        maxTokens: VISION_MAX_TOKENS,
-        retryMaxTokens: VISION_RETRY_MAX_TOKENS,
-      });
+      console.warn(
+        '[Claude] Vision response truncated at max_tokens, retrying',
+        {
+          source: 'photo',
+          maxTokens: VISION_MAX_TOKENS,
+          retryMaxTokens: VISION_RETRY_MAX_TOKENS,
+        }
+      );
       response = await createVisionMessage(VISION_RETRY_MAX_TOKENS);
     }
 
@@ -522,18 +565,20 @@ export class PhotoToFlashcardsUseCase {
       throw err;
     }
 
-    console.log(JSON.stringify({
-      event: 'vision_call_success',
-      estimated_cost_usd: estimatedCostUsd,
-      tile_count: tiles,
-      media_type: input.mediaType,
-      card_count: cardCount,
-      input_tokens: inputTokens,
-      output_tokens: outputTokens,
-      mcq_count: mcqCount,
-      mcq_skipped_count: mcqSkippedCount,
-      source: 'photo',
-    }));
+    console.log(
+      JSON.stringify({
+        event: 'vision_call_success',
+        estimated_cost_usd: estimatedCostUsd,
+        tile_count: tiles,
+        media_type: input.mediaType,
+        card_count: cardCount,
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        mcq_count: mcqCount,
+        mcq_skipped_count: mcqSkippedCount,
+        source: 'photo',
+      })
+    );
 
     track(VISION_PHOTO_EVENT, {
       userId: ownerToUserId(input.owner),

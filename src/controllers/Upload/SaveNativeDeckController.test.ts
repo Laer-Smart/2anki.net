@@ -124,7 +124,10 @@ describe('SaveNativeDeckController', () => {
     await controller.save(makeRequest(apkgFile, {}), res);
 
     expect(useCase.execute).toHaveBeenCalledWith(
-      expect.objectContaining({ filename: 'Pharmacology.apkg', dedupeKey: null })
+      expect.objectContaining({
+        filename: 'Pharmacology.apkg',
+        dedupeKey: null,
+      })
     );
   });
 });

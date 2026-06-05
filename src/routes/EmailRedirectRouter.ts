@@ -5,7 +5,12 @@ import InactivityEmailRepository from '../data_layer/InactivityEmailRepository';
 import ReEngagementRepository from '../data_layer/ReEngagementRepository';
 import { getEventsSink } from '../services/events/eventsSinkInstance';
 
-const ALLOWED_EMAIL_DESTINATIONS = new Set(['/', '/upload', '/pricing', '/login']);
+const ALLOWED_EMAIL_DESTINATIONS = new Set([
+  '/',
+  '/upload',
+  '/pricing',
+  '/login',
+]);
 
 const EmailRedirectRouter = () => {
   const router = express.Router();
@@ -46,11 +51,13 @@ const EmailRedirectRouter = () => {
   router.get('/r/email', async (req, res) => {
     const token = typeof req.query.t === 'string' ? req.query.t : null;
     const campaign = typeof req.query.c === 'string' ? req.query.c : null;
-    const rawDestination = typeof req.query.to === 'string' ? req.query.to : null;
+    const rawDestination =
+      typeof req.query.to === 'string' ? req.query.to : null;
 
-    const destination = rawDestination != null && ALLOWED_EMAIL_DESTINATIONS.has(rawDestination)
-      ? rawDestination
-      : '/';
+    const destination =
+      rawDestination != null && ALLOWED_EMAIL_DESTINATIONS.has(rawDestination)
+        ? rawDestination
+        : '/';
 
     const domain = process.env.DOMAIN ?? 'https://2anki.net';
     const sink = getEventsSink();
@@ -62,13 +69,17 @@ const EmailRedirectRouter = () => {
       const database = getDatabase();
 
       if (campaign === 'inactivity') {
-        const result = await new InactivityEmailRepository(database).findByToken(token).catch(() => null);
+        const result = await new InactivityEmailRepository(database)
+          .findByToken(token)
+          .catch(() => null);
         if (result != null) {
           userId = result.userId;
           emailId = result.id;
         }
       } else if (campaign === 'reengagement') {
-        const result = await new ReEngagementRepository(database).findByToken(token).catch(() => null);
+        const result = await new ReEngagementRepository(database)
+          .findByToken(token)
+          .catch(() => null);
         if (result != null) {
           userId = result.userId;
           emailId = result.id;

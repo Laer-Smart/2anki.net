@@ -15,9 +15,9 @@ describe('classifyBlock — toggle-only-default fixture', () => {
   it.each(fixture)(
     'type=$type hasToggleableHeading=$hasToggleableHeading → $expectedDecision',
     ({ type, hasToggleableHeading, expectedDecision }) => {
-      expect(
-        classifyBlock({ type, hasToggleableHeading }, DEFAULT_RULES)
-      ).toBe(expectedDecision);
+      expect(classifyBlock({ type, hasToggleableHeading }, DEFAULT_RULES)).toBe(
+        expectedDecision
+      );
     }
   );
 });
@@ -28,9 +28,9 @@ describe('classifyBlock — headings-as-cards fixture', () => {
   it.each(fixture)(
     'type=$type hasToggleableHeading=$hasToggleableHeading → $expectedDecision',
     ({ type, hasToggleableHeading, expectedDecision }) => {
-      expect(
-        classifyBlock({ type, hasToggleableHeading }, HEADING_RULES)
-      ).toBe(expectedDecision);
+      expect(classifyBlock({ type, hasToggleableHeading }, HEADING_RULES)).toBe(
+        expectedDecision
+      );
     }
   );
 });
@@ -41,9 +41,9 @@ describe('classifyBlock — recursive-page fixture', () => {
   it.each(fixture)(
     'type=$type hasToggleableHeading=$hasToggleableHeading → $expectedDecision',
     ({ type, hasToggleableHeading, expectedDecision }) => {
-      expect(
-        classifyBlock({ type, hasToggleableHeading }, DEFAULT_RULES)
-      ).toBe(expectedDecision);
+      expect(classifyBlock({ type, hasToggleableHeading }, DEFAULT_RULES)).toBe(
+        expectedDecision
+      );
     }
   );
 });
@@ -57,11 +57,16 @@ describe('classifyBlock — parity with BlockHandler inline predicate', () => {
     const { flashcardTypes } = rules;
     if (type === 'child_page') return 'recurse';
     if (flashcardTypes.includes(type)) return 'card';
-    if (hasToggleableHeading && flashcardTypes.includes('toggle')) return 'card';
+    if (hasToggleableHeading && flashcardTypes.includes('toggle'))
+      return 'card';
     return 'skip';
   }
 
-  const fixtureSet: Array<{ name: string; file: string; rules: ClassifyRules }> = [
+  const fixtureSet: Array<{
+    name: string;
+    file: string;
+    rules: ClassifyRules;
+  }> = [
     {
       name: 'toggle-only-default',
       file: '../../../test/fixtures/preview-intent/toggle-only-default.json',

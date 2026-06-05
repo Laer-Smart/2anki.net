@@ -1,4 +1,7 @@
-import type { IUserVisibleErrorsRepository, RecordErrorInput } from '../../data_layer/UserVisibleErrorsRepository';
+import type {
+  IUserVisibleErrorsRepository,
+  RecordErrorInput,
+} from '../../data_layer/UserVisibleErrorsRepository';
 
 export class RecordUserVisibleErrorUseCase {
   constructor(private readonly repository: IUserVisibleErrorsRepository) {}
@@ -7,7 +10,10 @@ export class RecordUserVisibleErrorUseCase {
     try {
       await this.repository.record(input);
     } catch (err) {
-      console.error('RecordUserVisibleErrorUseCase: failed to persist error record', err);
+      console.error(
+        'RecordUserVisibleErrorUseCase: failed to persist error record',
+        err
+      );
     }
   }
 }

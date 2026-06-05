@@ -1,6 +1,8 @@
 import { createZipArchive } from './createZipArchive';
 
-function collectArchive(append: (archive: ReturnType<typeof createZipArchive>) => void): Promise<Buffer> {
+function collectArchive(
+  append: (archive: ReturnType<typeof createZipArchive>) => void
+): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const archive = createZipArchive({ zlib: { level: 9 } });
     const chunks: Buffer[] = [];
@@ -15,7 +17,9 @@ function collectArchive(append: (archive: ReturnType<typeof createZipArchive>) =
 describe('createZipArchive', () => {
   it('produces a zip with the local-file-header magic bytes', async () => {
     const buffer = await collectArchive((archive) => {
-      archive.append(Buffer.from('collection bytes'), { name: 'collection.anki2' });
+      archive.append(Buffer.from('collection bytes'), {
+        name: 'collection.anki2',
+      });
       archive.append(Buffer.from('{}'), { name: 'media' });
     });
 

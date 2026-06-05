@@ -63,7 +63,9 @@ export class GetRecentSourcesUseCase {
     }
 
     return sources
-      .sort((a, b) => toTime(new Date(b.updatedAt)) - toTime(new Date(a.updatedAt)))
+      .sort(
+        (a, b) => toTime(new Date(b.updatedAt)) - toTime(new Date(a.updatedAt))
+      )
       .slice(0, RECENT_LIMIT);
   }
 }

@@ -3,9 +3,11 @@ import { renderHook, waitFor } from '@testing-library/react';
 import useNotionData from './useNotionData';
 import Backend from '../../../lib/backend';
 
-const buildBackend = (
-  info: { isConnected?: boolean; link?: string; workspace?: string | null }
-) =>
+const buildBackend = (info: {
+  isConnected?: boolean;
+  link?: string;
+  workspace?: string | null;
+}) =>
   ({
     getNotionConnectionInfo: vi.fn().mockResolvedValue(info),
   }) as unknown as Backend;
@@ -55,9 +57,7 @@ describe('useNotionData', () => {
 
   it('falls back to an empty link when the request fails entirely', async () => {
     const backend = {
-      getNotionConnectionInfo: vi
-        .fn()
-        .mockRejectedValue(new Error('network')),
+      getNotionConnectionInfo: vi.fn().mockRejectedValue(new Error('network')),
     } as unknown as Backend;
 
     const { result } = renderHook(() => useNotionData(backend));

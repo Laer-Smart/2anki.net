@@ -5,7 +5,11 @@ import express from 'express';
 import { getAnthropicClient } from '../lib/claude/ClaudeService';
 import { logClaudeUsage } from '../lib/claude/logClaudeUsage';
 import type { InterviewSnapshotsRepository } from '../data_layer/InterviewSnapshotsRepository';
-import type { OstRepository, NewNodeInput, NodeType } from '../data_layer/OstRepository';
+import type {
+  OstRepository,
+  NewNodeInput,
+  NodeType,
+} from '../data_layer/OstRepository';
 
 const VALID_TYPES = new Set<string>([
   'outcome',
@@ -16,7 +20,8 @@ const VALID_TYPES = new Set<string>([
 
 const MIN_SNAPSHOTS = 5;
 
-const OST_SYSTEM_PROMPT = `You are a product discovery analyst using Teresa Torres's Opportunity Solution Tree framework.
+const OST_SYSTEM_PROMPT =
+  `You are a product discovery analyst using Teresa Torres's Opportunity Solution Tree framework.
 Your job: organize customer feedback into a structured tree.
 
 Output ONLY a JSON object — no markdown, no explanation, no code fences:

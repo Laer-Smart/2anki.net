@@ -30,9 +30,9 @@ describe('userPreferencesSync — anonymous user (no token cookie)', () => {
     setCookie('');
     localStorage.clear();
     localStorage.setItem('2anki-theme', 'dark');
-    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response('{}', { status: 200 })
-    );
+    fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('{}', { status: 200 }));
   });
 
   afterEach(() => {
@@ -79,9 +79,9 @@ describe('userPreferencesSync — authenticated user (token cookie present)', ()
     setCookie('token=abc123; other=value');
     localStorage.clear();
     localStorage.setItem('2anki-theme', 'dark');
-    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response('{}', { status: 200 })
-    );
+    fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('{}', { status: 200 }));
   });
 
   afterEach(() => {

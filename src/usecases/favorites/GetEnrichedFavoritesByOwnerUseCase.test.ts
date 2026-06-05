@@ -29,10 +29,7 @@ function makeRepository(favorites: Favorites[]): {
   return { repo, removed };
 }
 
-function makeFavorite(
-  object_id: string,
-  type: 'page' | 'database'
-): Favorites {
+function makeFavorite(object_id: string, type: 'page' | 'database'): Favorites {
   return { object_id, owner: OWNER, type } as unknown as Favorites;
 }
 
@@ -52,10 +49,10 @@ function makeApiResponseError(status: number): APIResponseError {
 describe('GetEnrichedFavoritesByOwnerUseCase', () => {
   it('returns [] when owner is empty', async () => {
     const { repo } = makeRepository([]);
-    const useCase = new GetEnrichedFavoritesByOwnerUseCase(
-      repo,
-      async () => ({ getPage: jest.fn(), getDatabase: jest.fn() })
-    );
+    const useCase = new GetEnrichedFavoritesByOwnerUseCase(repo, async () => ({
+      getPage: jest.fn(),
+      getDatabase: jest.fn(),
+    }));
     expect(await useCase.execute('')).toEqual([]);
     expect(repo.getAllByOwner).not.toHaveBeenCalled();
   });
@@ -76,9 +73,7 @@ describe('GetEnrichedFavoritesByOwnerUseCase', () => {
     ];
     const { repo } = makeRepository(favorites);
     const client: FavoriteEnrichmentClient = {
-      getPage: jest
-        .fn()
-        .mockResolvedValue({ id: 'page-1', kind: 'page' }),
+      getPage: jest.fn().mockResolvedValue({ id: 'page-1', kind: 'page' }),
       getDatabase: jest
         .fn()
         .mockResolvedValue({ id: 'db-1', kind: 'database' }),
@@ -105,12 +100,10 @@ describe('GetEnrichedFavoritesByOwnerUseCase', () => {
     ];
     const { repo, removed } = makeRepository(favorites);
     const client: FavoriteEnrichmentClient = {
-      getPage: jest
-        .fn()
-        .mockImplementation(async (id: string) => {
-          if (id === 'gone') throw makeApiResponseError(404);
-          return { id };
-        }),
+      getPage: jest.fn().mockImplementation(async (id: string) => {
+        if (id === 'gone') throw makeApiResponseError(404);
+        return { id };
+      }),
       getDatabase: jest.fn(),
     };
     const useCase = new GetEnrichedFavoritesByOwnerUseCase(

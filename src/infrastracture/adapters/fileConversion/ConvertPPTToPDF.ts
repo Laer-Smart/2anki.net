@@ -59,9 +59,7 @@ export function convertPPTToPDF(
               `PPT to PDF conversion failed with exit code ${code}:`,
               detail
             );
-            reject(
-              new Error(`Conversion failed with code ${code}: ${detail}`)
-            );
+            reject(new Error(`Conversion failed with code ${code}: ${detail}`));
           } else {
             resolve(await fs.readFile(pdfFile));
           }

@@ -16,7 +16,8 @@ const FALLBACK: FriendlyError = {
 
 const UPLOAD_FALLBACK: FriendlyError = {
   title: 'Something broke while reading this file.',
-  detail: 'Try again, or send the file to support@2anki.net so we can fix the parser.',
+  detail:
+    'Try again, or send the file to support@2anki.net so we can fix the parser.',
 };
 
 function toText(error: unknown): string {
@@ -91,8 +92,7 @@ export function classifyError(error: unknown): FriendlyError {
   if (lower.includes('rate_limited') || lower.includes('429')) {
     return {
       title: 'Too many requests.',
-      detail:
-        'Try again in a minute.',
+      detail: 'Try again in a minute.',
     };
   }
 
@@ -160,15 +160,18 @@ const PER_CODE_COPY: Partial<Record<UploadErrorBody['code'], FriendlyError>> = {
   },
   too_large: {
     title: 'This export is too large to convert in one go.',
-    detail: 'Split it into smaller Notion subpages and convert each one separately.',
+    detail:
+      'Split it into smaller Notion subpages and convert each one separately.',
   },
   password_protected_pdf: {
     title: 'This PDF is password-protected.',
-    detail: 'Remove the password in your PDF reader, save a copy, and upload that.',
+    detail:
+      'Remove the password in your PDF reader, save a copy, and upload that.',
   },
   invalid_markup: {
     title: "Part of this file has formatting we couldn't read.",
-    detail: 'Open the source, remove or simplify the block that broke, and try again.',
+    detail:
+      'Open the source, remove or simplify the block that broke, and try again.',
   },
   malformed_notion: {
     title: "This Notion export couldn't be parsed.",
@@ -183,7 +186,8 @@ const PER_CODE_COPY: Partial<Record<UploadErrorBody['code'], FriendlyError>> = {
     detail: 'Check the page has text or toggle blocks, then export again.',
   },
   markdown_likely_lossy: {
-    title: 'Notion Markdown exports flatten toggles — re-export this page as HTML and the toggles become flashcards.',
+    title:
+      'Notion Markdown exports flatten toggles — re-export this page as HTML and the toggles become flashcards.',
   },
   claude_parse_failed: {
     title: 'Something went wrong while making your cards.',
@@ -191,11 +195,13 @@ const PER_CODE_COPY: Partial<Record<UploadErrorBody['code'], FriendlyError>> = {
   },
   parser_crash: {
     title: "Couldn't read this file.",
-    detail: "It may be malformed or use a structure we don't recognise yet. Try re-exporting from the source app, or send the file to support@2anki.net.",
+    detail:
+      "It may be malformed or use a structure we don't recognise yet. Try re-exporting from the source app, or send the file to support@2anki.net.",
   },
   worker_timeout: {
     title: 'This conversion took longer than the time budget.',
-    detail: 'Try splitting the file into smaller pieces, or remove very large embedded images.',
+    detail:
+      'Try splitting the file into smaller pieces, or remove very large embedded images.',
   },
   notion_rate_limit: {
     title: 'Notion is rate-limiting us right now.',
@@ -207,11 +213,13 @@ const PER_CODE_COPY: Partial<Record<UploadErrorBody['code'], FriendlyError>> = {
   },
   apkg_too_large_for_anki: {
     title: "This deck is over Anki's upload limit.",
-    detail: 'Split it by toggling fewer pages, or upload directly to Anki desktop.',
+    detail:
+      'Split it by toggling fewer pages, or upload directly to Anki desktop.',
   },
   zip_invalid: {
     title: "Couldn't read this zip.",
-    detail: "Make sure it's the Markdown & CSV export from Notion, not the HTML export.",
+    detail:
+      "Make sure it's the Markdown & CSV export from Notion, not the HTML export.",
   },
 };
 

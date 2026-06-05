@@ -1,9 +1,6 @@
 import path from 'path';
 
-import {
-  isSafeEntryName,
-  resolveSafeEntryPath,
-} from './safeEntryPath';
+import { isSafeEntryName, resolveSafeEntryPath } from './safeEntryPath';
 
 const BASE = '/tmp/extracted';
 
@@ -43,9 +40,9 @@ describe('resolveSafeEntryPath', () => {
   it('rejects sibling-directory escape via prefix match', () => {
     // A naive `startsWith` check without `path.sep` would let
     // "extracted-evil/foo" pass when the base is "/tmp/extracted".
-    expect(() =>
-      resolveSafeEntryPath('../extracted-evil/foo', BASE)
-    ).toThrow(/resolves outside/);
+    expect(() => resolveSafeEntryPath('../extracted-evil/foo', BASE)).toThrow(
+      /resolves outside/
+    );
   });
 
   it('accepts the base directory itself (no entry name escape)', () => {

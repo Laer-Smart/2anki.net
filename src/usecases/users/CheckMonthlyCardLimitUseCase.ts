@@ -9,9 +9,7 @@ export class AnonymousCardCapError extends Error {
     public readonly cardsFound: number,
     public readonly cap: number
   ) {
-    super(
-      `Anonymous conversion produced ${cardsFound} cards; cap is ${cap}`
-    );
+    super(`Anonymous conversion produced ${cardsFound} cards; cap is ${cap}`);
     this.name = 'AnonymousCardCapError';
   }
 }

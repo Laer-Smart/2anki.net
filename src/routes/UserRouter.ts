@@ -33,7 +33,11 @@ const UserRouter = () => {
     new UserVisibleErrorsRepository(database)
   );
   const controller = new UsersController(
-    new UsersService(new UsersRepository(database), emailService, magicTokenRepository),
+    new UsersService(
+      new UsersRepository(database),
+      emailService,
+      magicTokenRepository
+    ),
     authService,
     database,
     recordErrorUseCase
@@ -436,8 +440,10 @@ const UserRouter = () => {
    *             schema:
    *               $ref: '#/components/schemas/Error'
    */
-  router.post('/api/users/cancel-subscription', RequireAuthentication, (req, res) =>
-    controller.cancelSubscription(req, res)
+  router.post(
+    '/api/users/cancel-subscription',
+    RequireAuthentication,
+    (req, res) => controller.cancelSubscription(req, res)
   );
 
   /**
@@ -458,8 +464,10 @@ const UserRouter = () => {
    *       401:
    *         description: Authentication required
    */
-  router.post('/api/users/cancellation-feedback', RequireAuthentication, (req, res) =>
-    controller.submitCancellationFeedback(req, res)
+  router.post(
+    '/api/users/cancellation-feedback',
+    RequireAuthentication,
+    (req, res) => controller.submitCancellationFeedback(req, res)
   );
 
   /**
@@ -497,8 +505,10 @@ const UserRouter = () => {
    *       401:
    *         description: Authentication required
    */
-  router.get('/api/users/subscription-status', RequireAuthentication, (req, res) =>
-    controller.getSubscriptionStatus(req, res)
+  router.get(
+    '/api/users/subscription-status',
+    RequireAuthentication,
+    (req, res) => controller.getSubscriptionStatus(req, res)
   );
 
   /**
@@ -718,7 +728,9 @@ const UserRouter = () => {
       scope: 'name email',
       state,
     });
-    return res.redirect(`https://appleid.apple.com/auth/authorize?${params.toString()}`);
+    return res.redirect(
+      `https://appleid.apple.com/auth/authorize?${params.toString()}`
+    );
   });
 
   /**
@@ -845,16 +857,59 @@ const UserRouter = () => {
     (req, res) => emailPreferencesController.update(req, res)
   );
 
-  router.get(
-    '/api/users/me/preferences',
-    RequireAuthentication,
-    (req, res) => userPreferencesController.get(req, res)
+  /**
+   * @swagger
+   * /api/users/me/preferences:
+   *   get:
+   *     summary: Get the signed-in user's preferences
+   *     description: Returns the user's stored card options, theme, and AnkiWeb acknowledgement timestamp.
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     responses:
+   *       200:
+   *         description: The user's preferences
+   *       401:
+   *         description: Not authenticated
+   */
+  router.get('/api/users/me/preferences', RequireAuthentication, (req, res) =>
+    userPreferencesController.get(req, res)
   );
 
-  router.patch(
-    '/api/users/me/preferences',
-    RequireAuthentication,
-    (req, res) => userPreferencesController.patch(req, res)
+  /**
+   * @swagger
+   * /api/users/me/preferences:
+   *   patch:
+   *     summary: Update the signed-in user's preferences
+   *     description: Updates any of card options, theme, or the AnkiWeb acknowledgement timestamp.
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               cardOptions:
+   *                 type: object
+   *               theme:
+   *                 type: string
+   *               ankiWebAcknowledgedAt:
+   *                 type: string
+   *                 format: date-time
+   *     responses:
+   *       200:
+   *         description: The updated preferences
+   *       400:
+   *         description: Invalid preference value
+   *       401:
+   *         description: Not authenticated
+   */
+  router.patch('/api/users/me/preferences', RequireAuthentication, (req, res) =>
+    userPreferencesController.patch(req, res)
   );
 
   router.post(
@@ -869,10 +924,24 @@ const UserRouter = () => {
     (req, res) => userPreferencesController.deleteCardOptions(req, res)
   );
 
-  router.patch(
-    '/api/users/me/onboarded',
-    RequireAuthentication,
-    (req, res) => controller.markOnboarded(req, res)
+  /**
+   * @swagger
+   * /api/users/me/onboarded:
+   *   patch:
+   *     summary: Mark the signed-in user as onboarded
+   *     description: Records that the user has completed the onboarding flow.
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     responses:
+   *       200:
+   *         description: Onboarding state recorded
+   *       401:
+   *         description: Not authenticated
+   */
+  router.patch('/api/users/me/onboarded', RequireAuthentication, (req, res) =>
+    controller.markOnboarded(req, res)
   );
 
   return router;

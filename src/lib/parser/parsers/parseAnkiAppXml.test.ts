@@ -52,7 +52,8 @@ describe('parseAnkiAppXml', () => {
   });
 
   it('throws the no-cards message for a deck without cards', () => {
-    const xml = '<deck name="Empty"><fields><text name="Front" sides="10"/></fields><cards></cards></deck>';
+    const xml =
+      '<deck name="Empty"><fields><text name="Front" sides="10"/></fields><cards></cards></deck>';
     expect(() => parseAnkiAppXml(xml)).toThrow(ANKI_APP_NO_CARDS_MESSAGE);
   });
 
@@ -189,7 +190,12 @@ describe('parseAnkiAppXml', () => {
 
     const deck = parseAnkiAppXml(xml);
 
-    expect(deck.notes[0].tags).toEqual(['deck_tag_1', 'deck_tag_2', 'tag1', 'tag2']);
+    expect(deck.notes[0].tags).toEqual([
+      'deck_tag_1',
+      'deck_tag_2',
+      'tag1',
+      'tag2',
+    ]);
   });
 
   it('uses the sides attribute to put shared fields on the front only', () => {

@@ -11,7 +11,9 @@ type UploadHandler = (
   callback: (error?: Error) => void
 ) => void;
 
-function withNormalizedFilenames(handler: express.RequestHandler): UploadHandler {
+function withNormalizedFilenames(
+  handler: express.RequestHandler
+): UploadHandler {
   return (req, res, callback) => {
     handler(req, res, (error?: unknown) => {
       if (error instanceof Error) {

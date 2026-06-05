@@ -1,25 +1,40 @@
-import { ChatDeckUseCase, looksLikeCloze, transformBlankToCloze, normalizeBasicCard, stripClozeFromStem, type ChatDeckCard } from './ChatDeckUseCase';
+import {
+  ChatDeckUseCase,
+  looksLikeCloze,
+  transformBlankToCloze,
+  normalizeBasicCard,
+  stripClozeFromStem,
+  type ChatDeckCard,
+} from './ChatDeckUseCase';
 import CustomExporter from '../../lib/parser/exporters/CustomExporter';
 
 jest.mock('../../lib/parser/exporters/CustomExporter');
 
 describe('stripClozeFromStem', () => {
   it('replaces a single cloze span with a blank', () => {
-    expect(stripClozeFromStem('Spring Boot uses {{c1::auto-configuration}} to detect deps.')).toBe(
-      'Spring Boot uses _____ to detect deps.'
-    );
+    expect(
+      stripClozeFromStem(
+        'Spring Boot uses {{c1::auto-configuration}} to detect deps.'
+      )
+    ).toBe('Spring Boot uses _____ to detect deps.');
   });
 
   it('replaces multiple cloze spans with separate blanks', () => {
-    expect(stripClozeFromStem('{{c1::HTTP}} runs over {{c2::TCP}}.')).toBe('_____ runs over _____.');
+    expect(stripClozeFromStem('{{c1::HTTP}} runs over {{c2::TCP}}.')).toBe(
+      '_____ runs over _____.'
+    );
   });
 
   it('leaves a stem without cloze syntax unchanged', () => {
-    expect(stripClozeFromStem('Which protocol runs over TCP?')).toBe('Which protocol runs over TCP?');
+    expect(stripClozeFromStem('Which protocol runs over TCP?')).toBe(
+      'Which protocol runs over TCP?'
+    );
   });
 
   it('does not reveal the deleted answer text', () => {
-    const out = stripClozeFromStem('Spring Boot uses {{c1::auto-configuration}} to detect deps.');
+    const out = stripClozeFromStem(
+      'Spring Boot uses {{c1::auto-configuration}} to detect deps.'
+    );
     expect(out).not.toContain('auto-configuration');
     expect(out).not.toContain('{{c');
   });
@@ -52,7 +67,12 @@ describe('ChatDeckUseCase.execute MCQ handling', () => {
     const Mock = CustomExporter as unknown as jest.Mock;
     const configure = Mock.mock.results[0].value.configure as jest.Mock;
     const deckInfo = configure.mock.calls[0][0] as Array<{
-      cards: Array<{ mcq?: boolean; options?: string[]; correctIndices?: number[]; back: string }>;
+      cards: Array<{
+        mcq?: boolean;
+        options?: string[];
+        correctIndices?: number[];
+        back: string;
+      }>;
     }>;
     expect(deckInfo[0].cards[0]).toMatchObject({
       mcq: true,
@@ -213,14 +233,19 @@ describe('ChatDeckUseCase.execute cloze content under a basic template label', (
       cards: Array<{ cloze: boolean; name: string }>;
     }>;
     expect(deckInfo[0].cards[0].cloze).toBe(true);
-    expect(deckInfo[0].cards[0].name).toBe('The capital of France is {{c1::Paris}}.');
+    expect(deckInfo[0].cards[0].name).toBe(
+      'The capital of France is {{c1::Paris}}.'
+    );
   });
 });
 
 describe('normalizeBasicCard', () => {
   it('converts a single cloze front into a blanked front with the answer on the back', () => {
     expect(
-      normalizeBasicCard({ front: 'The capital of {{c1::France}} is Paris.', back: '' })
+      normalizeBasicCard({
+        front: 'The capital of {{c1::France}} is Paris.',
+        back: '',
+      })
     ).toEqual({
       front: 'The capital of [...] is Paris.',
       back: 'France',
@@ -265,7 +290,9 @@ describe('looksLikeCloze', () => {
 
   it('returns true when more than one cloze marker is present', () => {
     expect(
-      looksLikeCloze('{{c1::mitochondria}} is the {{c2::powerhouse}} of the cell')
+      looksLikeCloze(
+        '{{c1::mitochondria}} is the {{c2::powerhouse}} of the cell'
+      )
     ).toBe(true);
   });
 

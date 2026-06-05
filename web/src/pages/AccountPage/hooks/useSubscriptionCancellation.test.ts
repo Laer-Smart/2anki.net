@@ -57,7 +57,9 @@ describe('useSubscriptionCancellation', () => {
     await waitFor(() => {
       expect(result.current.showFollowUp).toBe(true);
     });
-    expect(result.current.cancelSuccess).toMatch(/^Cancelled\. You keep access until /);
+    expect(result.current.cancelSuccess).toMatch(
+      /^Cancelled\. You keep access until /
+    );
     expect(result.current.cancelError).toBe('');
   });
 

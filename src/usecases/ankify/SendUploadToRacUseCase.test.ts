@@ -21,7 +21,7 @@ const sampleClient = (): AnkifyClient => ({
   anki_port: 20000,
   vnc_port: 21000,
   novnc_port: 22000,
-        anki_connect_api_key: null,
+  anki_connect_api_key: null,
   status: 'active',
   created_at: new Date(),
   last_active_at: new Date(),
@@ -38,7 +38,10 @@ const sampleUpload = () => ({
 });
 
 const buildCollection = (overrides: {
-  notes?: Map<number, { id: number; mid: number; tags: string; fields: string[]; guid?: string }>;
+  notes?: Map<
+    number,
+    { id: number; mid: number; tags: string; fields: string[]; guid?: string }
+  >;
   cards?: { id: number; nid: number; did: number; ord: number }[];
   decks?: Map<number, { id: number; name: string }>;
 }): NormalizedCollection => ({
@@ -59,8 +62,7 @@ const buildCollection = (overrides: {
       ])
   ),
   decks:
-    overrides.decks ??
-    new Map([[10, { id: 10, name: 'Imported::Subdeck' }]]),
+    overrides.decks ?? new Map([[10, { id: 10, name: 'Imported::Subdeck' }]]),
   cards: overrides.cards ?? [{ id: 1, nid: 100, did: 10, ord: 0 }],
 });
 
@@ -80,7 +82,9 @@ const makeRepos = (
   overrides: Partial<{
     activeClient: AnkifyClient | null;
     upload: ReturnType<typeof sampleUpload> | null;
-    findMapping: ReturnType<AnkifySyncMappingsRepositoryInterface['findBySourceId']>;
+    findMapping: ReturnType<
+      AnkifySyncMappingsRepositoryInterface['findBySourceId']
+    >;
   }> = {}
 ): {
   clients: jest.Mocked<AnkifyClientsRepositoryInterface>;
@@ -117,7 +121,10 @@ const makeRepos = (
     deleteUpload: jest.fn(),
     getUploadsByOwner: jest.fn(),
     findByIdAndOwner: jest.fn(
-      async () => (overrides.upload === undefined ? sampleUpload() : overrides.upload) as never
+      async () =>
+        (overrides.upload === undefined
+          ? sampleUpload()
+          : overrides.upload) as never
     ),
     update: jest.fn(),
   } as unknown as jest.Mocked<IUploadRepository>,
@@ -388,9 +395,9 @@ describe('SendUploadToRacUseCase', () => {
       () => ac
     );
 
-    await expect(useCase.execute({ uploadId: 7, owner: 42 })).rejects.toBeInstanceOf(
-      NoActiveAnkifyClientError
-    );
+    await expect(
+      useCase.execute({ uploadId: 7, owner: 42 })
+    ).rejects.toBeInstanceOf(NoActiveAnkifyClientError);
   });
 
   test('UploadNotFoundError when the upload does not belong to the owner', async () => {
@@ -405,9 +412,9 @@ describe('SendUploadToRacUseCase', () => {
       () => ac
     );
 
-    await expect(useCase.execute({ uploadId: 7, owner: 42 })).rejects.toBeInstanceOf(
-      UploadNotFoundError
-    );
+    await expect(
+      useCase.execute({ uploadId: 7, owner: 42 })
+    ).rejects.toBeInstanceOf(UploadNotFoundError);
   });
 
   test('per-note errors are collected without aborting the run', async () => {

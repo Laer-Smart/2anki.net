@@ -63,7 +63,9 @@ function buildSettingsRepository(
 ): ISettingsRepository {
   return {
     load: jest.fn(async () => buildSettings()),
-    loadIfExists: jest.fn(async (_owner: string, id: string) => rows[id] ?? null),
+    loadIfExists: jest.fn(
+      async (_owner: string, id: string) => rows[id] ?? null
+    ),
   };
 }
 

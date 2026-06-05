@@ -10,12 +10,9 @@ describe('isTruncatedBlockFetch', () => {
     [false, false, false],
     [true, true, false],
     [true, false, false],
-  ])(
-    'all=%s has_more=%s -> %s',
-    (all, hasMore, expected) => {
-      expect(isTruncatedBlockFetch(all, { has_more: hasMore })).toBe(expected);
-    }
-  );
+  ])('all=%s has_more=%s -> %s', (all, hasMore, expected) => {
+    expect(isTruncatedBlockFetch(all, { has_more: hasMore })).toBe(expected);
+  });
 });
 
 describe('hasRuleBasedSubDecks', () => {
@@ -27,14 +24,17 @@ describe('hasRuleBasedSubDecks', () => {
     expect(hasRuleBasedSubDecks({ SUB_DECKS: [] })).toBe(false);
   });
 
-  it.each([['toggle'], ['heading_1'], ['heading_2'], ['heading_3'], ['child_database']])(
-    'is true when %s is selected',
-    (type) => {
-      expect(hasRuleBasedSubDecks({ SUB_DECKS: ['child_page', type] })).toBe(
-        true
-      );
-    }
-  );
+  it.each([
+    ['toggle'],
+    ['heading_1'],
+    ['heading_2'],
+    ['heading_3'],
+    ['child_database'],
+  ])('is true when %s is selected', (type) => {
+    expect(hasRuleBasedSubDecks({ SUB_DECKS: ['child_page', type] })).toBe(
+      true
+    );
+  });
 });
 
 describe('buildNotionTruncationPayload', () => {

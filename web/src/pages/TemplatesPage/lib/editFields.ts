@@ -69,9 +69,7 @@ export function removeField(
   if (draft.noteType.flds.length <= 1) return draft;
   const removed = draft.noteType.flds[index];
   if (!removed) return draft;
-  const flds = reindexFields(
-    draft.noteType.flds.filter((_, i) => i !== index)
-  );
+  const flds = reindexFields(draft.noteType.flds.filter((_, i) => i !== index));
   const nextPreview: Record<string, string> = {};
   for (const [key, value] of Object.entries(draft.previewData)) {
     if (key !== removed.name) nextPreview[key] = value;

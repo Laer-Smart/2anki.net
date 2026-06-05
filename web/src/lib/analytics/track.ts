@@ -1,9 +1,6 @@
 import { KnownEvent } from './events';
 
-export function track(
-  name: KnownEvent,
-  props?: Record<string, unknown>
-): void {
+export function track(name: KnownEvent, props?: Record<string, unknown>): void {
   globalThis
     .fetch('/api/events/track', {
       method: 'POST',

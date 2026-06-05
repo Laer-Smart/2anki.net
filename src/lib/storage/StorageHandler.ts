@@ -82,7 +82,9 @@ class StorageHandler {
         }
         continuationToken = objects.NextContinuationToken;
         hasMore =
-          files.length < maxKeys && Boolean(objects.IsTruncated) && continuationToken != null;
+          files.length < maxKeys &&
+          Boolean(objects.IsTruncated) &&
+          continuationToken != null;
       }
     } catch (err) {
       console.info('Get contents failed');

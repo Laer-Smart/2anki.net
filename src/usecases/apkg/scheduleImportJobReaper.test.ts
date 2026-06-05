@@ -1,4 +1,7 @@
-import { scheduleImportJobReaper, IMPORT_JOB_MAX_AGE_MS } from './scheduleImportJobReaper';
+import {
+  scheduleImportJobReaper,
+  IMPORT_JOB_MAX_AGE_MS,
+} from './scheduleImportJobReaper';
 import JobRepository from '../../data_layer/JobRepository';
 
 describe('scheduleImportJobReaper', () => {

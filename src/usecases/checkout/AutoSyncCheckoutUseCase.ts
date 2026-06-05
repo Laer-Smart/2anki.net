@@ -32,7 +32,9 @@ export class AutoSyncCheckoutUseCase {
   }): Promise<AutoSyncCheckoutResult> {
     console.info('auto_sync.checkout.started', { user_id: input.userId });
 
-    const activeCount = await SubscriptionService.countActiveByProductId(this.productId);
+    const activeCount = await SubscriptionService.countActiveByProductId(
+      this.productId
+    );
     if (activeCount >= this.maxSubscribers) {
       console.info('auto_sync.checkout.cap_reached', {
         user_id: input.userId,
@@ -42,12 +44,19 @@ export class AutoSyncCheckoutUseCase {
       return { status: 'cap_reached' };
     }
 
-    const existingSubs = await SubscriptionService.getUserActiveSubscriptions(input.userEmail);
+    const existingSubs = await SubscriptionService.getUserActiveSubscriptions(
+      input.userEmail
+    );
     const alreadySubscribed = existingSubs.some(
-      (s) => s.active && (s as { stripe_product_id?: string | null }).stripe_product_id === this.productId
+      (s) =>
+        s.active &&
+        (s as { stripe_product_id?: string | null }).stripe_product_id ===
+          this.productId
     );
     if (alreadySubscribed) {
-      console.info('auto_sync.checkout.already_subscribed', { user_id: input.userId });
+      console.info('auto_sync.checkout.already_subscribed', {
+        user_id: input.userId,
+      });
       return { status: 'already_subscribed' };
     }
 
@@ -56,7 +65,8 @@ export class AutoSyncCheckoutUseCase {
       line_items: [{ price: this.priceId, quantity: 1 }],
       success_url: `${process.env.APP_URL ?? 'https://2anki.net'}/ankify/setup`,
       cancel_url: `${process.env.APP_URL ?? 'https://2anki.net'}/pricing`,
-      customer_email: input.stripeCustomerId == null ? input.userEmail : undefined,
+      customer_email:
+        input.stripeCustomerId == null ? input.userEmail : undefined,
       customer: input.stripeCustomerId ?? undefined,
       after_expiration: { recovery: { enabled: true } },
       metadata: {

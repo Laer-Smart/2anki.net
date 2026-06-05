@@ -1,5 +1,8 @@
 import { stripHtmlTags } from '../../../lib/text/stripHtmlTags';
-import type { UploadErrorBody, UploadErrorCode } from '../../../types/UploadErrorBody';
+import type {
+  UploadErrorBody,
+  UploadErrorCode,
+} from '../../../types/UploadErrorBody';
 
 const REJECTED_FALLBACK =
   'The server rejected the upload. Try again or email support@2anki.net.';
@@ -22,11 +25,10 @@ export async function extractErrorMessage(
 ): Promise<UploadErrorBody> {
   try {
     const body = await response.clone().json();
-    if (
-      typeof body?.message === 'string' &&
-      body.message.trim().length > 0
-    ) {
-      const code: UploadErrorCode = isValidCode(body.code) ? body.code : 'unknown';
+    if (typeof body?.message === 'string' && body.message.trim().length > 0) {
+      const code: UploadErrorCode = isValidCode(body.code)
+        ? body.code
+        : 'unknown';
       return { code, message: body.message };
     }
   } catch {

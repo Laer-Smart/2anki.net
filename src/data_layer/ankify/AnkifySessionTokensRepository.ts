@@ -17,9 +17,7 @@ export interface AnkifySessionTokensRepositoryInterface {
   revokeByClientId(ankifyClientId: number): Promise<void>;
 }
 
-export class AnkifySessionTokensRepository
-  implements AnkifySessionTokensRepositoryInterface
-{
+export class AnkifySessionTokensRepository implements AnkifySessionTokensRepositoryInterface {
   constructor(private readonly database: Knex) {}
 
   async insert(input: NewAnkifySessionToken): Promise<AnkifySessionToken> {

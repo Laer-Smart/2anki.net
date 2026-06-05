@@ -23,8 +23,7 @@ describe('OauthIdentitiesRepository', () => {
       t.increments('id').primary();
       t.text('provider').notNullable();
       t.text('subject').notNullable();
-      t
-        .integer('user_id')
+      t.integer('user_id')
         .notNullable()
         .references('id')
         .inTable('users')

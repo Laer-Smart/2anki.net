@@ -3,7 +3,7 @@ import AutoSyncCheckoutController from './AutoSyncCheckoutController';
 import { AutoSyncCheckoutUseCase } from '../usecases/checkout/AutoSyncCheckoutUseCase';
 
 const makeRequest = (locals: Record<string, unknown> = {}): Request =>
-  ({ locals } as unknown as Request);
+  ({ locals }) as unknown as Request;
 
 const makeResponse = () => {
   const res = {
@@ -24,10 +24,12 @@ const makeResponse = () => {
   return res;
 };
 
-const makeUseCase = (result: Awaited<ReturnType<AutoSyncCheckoutUseCase['execute']>>) =>
+const makeUseCase = (
+  result: Awaited<ReturnType<AutoSyncCheckoutUseCase['execute']>>
+) =>
   ({
     execute: jest.fn().mockResolvedValue(result),
-  } as unknown as AutoSyncCheckoutUseCase);
+  }) as unknown as AutoSyncCheckoutUseCase;
 
 describe('AutoSyncCheckoutController', () => {
   test('returns 200 with url on successful session creation', async () => {
@@ -75,7 +77,7 @@ describe('AutoSyncCheckoutController', () => {
 
     await controller.createSession(req, res as unknown as Response);
 
-    expect((uc.execute as jest.Mock)).toHaveBeenCalledWith(
+    expect(uc.execute as jest.Mock).toHaveBeenCalledWith(
       expect.objectContaining({ anonId: 'anon-uuid-123' })
     );
   });
@@ -89,7 +91,7 @@ describe('AutoSyncCheckoutController', () => {
 
     await controller.createSession(req, res as unknown as Response);
 
-    expect((uc.execute as jest.Mock)).toHaveBeenCalledWith(
+    expect(uc.execute as jest.Mock).toHaveBeenCalledWith(
       expect.objectContaining({ userId: 99, userEmail: 'alice@example.com' })
     );
   });

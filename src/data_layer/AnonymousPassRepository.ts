@@ -33,7 +33,10 @@ function toAnonymousPass(row: AnonymousPassRow): AnonymousPass {
     id: row.id,
     stripe_session_id: row.stripe_session_id,
     kind: row.kind as PassKind,
-    expires_at: row.expires_at instanceof Date ? row.expires_at : new Date(row.expires_at),
+    expires_at:
+      row.expires_at instanceof Date
+        ? row.expires_at
+        : new Date(row.expires_at),
     payment_intent_id: row.payment_intent_id,
   };
 }
@@ -43,14 +46,19 @@ export class AnonymousPassRepository implements IAnonymousPassRepository {
 
   constructor(private readonly database: Knex) {}
 
-  async findBySessionId(stripeSessionId: string): Promise<AnonymousPass | null> {
+  async findBySessionId(
+    stripeSessionId: string
+  ): Promise<AnonymousPass | null> {
     const row = await this.database<AnonymousPassRow>(this.table)
       .where('stripe_session_id', stripeSessionId)
       .first();
     return row ? toAnonymousPass(row) : null;
   }
 
-  async findActive(stripeSessionId: string, now: Date): Promise<AnonymousPass | null> {
+  async findActive(
+    stripeSessionId: string,
+    now: Date
+  ): Promise<AnonymousPass | null> {
     const row = await this.database<AnonymousPassRow>(this.table)
       .where('stripe_session_id', stripeSessionId)
       .where('expires_at', '>', now)
@@ -98,11 +106,18 @@ export class InMemoryAnonymousPassRepository implements IAnonymousPassRepository
   private readonly rows: AnonymousPass[] = [];
   private nextId = 1;
 
-  async findBySessionId(stripeSessionId: string): Promise<AnonymousPass | null> {
-    return this.rows.find((r) => r.stripe_session_id === stripeSessionId) ?? null;
+  async findBySessionId(
+    stripeSessionId: string
+  ): Promise<AnonymousPass | null> {
+    return (
+      this.rows.find((r) => r.stripe_session_id === stripeSessionId) ?? null
+    );
   }
 
-  async findActive(stripeSessionId: string, now: Date): Promise<AnonymousPass | null> {
+  async findActive(
+    stripeSessionId: string,
+    now: Date
+  ): Promise<AnonymousPass | null> {
     const row = this.rows.find(
       (r) => r.stripe_session_id === stripeSessionId && r.expires_at > now
     );
@@ -115,7 +130,9 @@ export class InMemoryAnonymousPassRepository implements IAnonymousPassRepository
     expiresAt: Date;
     paymentIntentId: string;
   }): Promise<AnonymousPass> {
-    const existing = this.rows.find((r) => r.stripe_session_id === params.stripeSessionId);
+    const existing = this.rows.find(
+      (r) => r.stripe_session_id === params.stripeSessionId
+    );
     if (existing) return existing;
 
     const entry: AnonymousPass = {

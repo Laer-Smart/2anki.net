@@ -41,7 +41,11 @@ const cloze: AnkiNoteType = {
 
 describe('renderCardSide', () => {
   it('substitutes simple {{Field}} placeholders on the front', () => {
-    const result = renderCardSide(basic, { Front: 'Hello', Back: 'World' }, 'front');
+    const result = renderCardSide(
+      basic,
+      { Front: 'Hello', Back: 'World' },
+      'front'
+    );
     expect(result).toBe('Hello');
   });
 
@@ -152,7 +156,11 @@ describe('conditional blocks', () => {
         { name: 'Hint', ord: 2 },
       ],
     };
-    const empty = renderCardSide(inverse, { Front: 'Q', Back: 'A', Hint: '' }, 'front');
+    const empty = renderCardSide(
+      inverse,
+      { Front: 'Q', Back: 'A', Hint: '' },
+      'front'
+    );
     expect(empty).toContain('<em>no hint</em>');
     const filled = renderCardSide(
       inverse,
@@ -163,11 +171,7 @@ describe('conditional blocks', () => {
   });
 
   it('strips conditional tokens that reference unknown fields', () => {
-    const result = renderCardSide(
-      conditional,
-      { Front: 'Q' },
-      'front'
-    );
+    const result = renderCardSide(conditional, { Front: 'Q' }, 'front');
     expect(result).not.toContain('{{#');
     expect(result).not.toContain('{{/');
     expect(result).toBe('Q');

@@ -5,7 +5,11 @@ import type { Knex } from 'knex';
 const VERSIONS_TABLE = 'ost_versions';
 const NODES_TABLE = 'opportunity_tree_nodes';
 
-export type NodeType = 'outcome' | 'opportunity' | 'sub_opportunity' | 'solution';
+export type NodeType =
+  | 'outcome'
+  | 'opportunity'
+  | 'sub_opportunity'
+  | 'solution';
 
 export interface OstNode {
   id: string;

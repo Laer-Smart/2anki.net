@@ -1,4 +1,7 @@
-import { ObservabilitySink, OBSERVABILITY_FLUSH_THRESHOLD } from './ObservabilitySink';
+import {
+  ObservabilitySink,
+  OBSERVABILITY_FLUSH_THRESHOLD,
+} from './ObservabilitySink';
 import {
   IObservabilityRepository,
   RequestLogRow,
@@ -35,7 +38,9 @@ class FakeRepo implements IObservabilityRepository {
   errorRateByService = async () => [];
 }
 
-const sampleRequest = (overrides: Partial<RequestLogRow> = {}): RequestLogRow => ({
+const sampleRequest = (
+  overrides: Partial<RequestLogRow> = {}
+): RequestLogRow => ({
   method: 'GET',
   route: '/api/upload',
   status_code: 200,
@@ -44,7 +49,9 @@ const sampleRequest = (overrides: Partial<RequestLogRow> = {}): RequestLogRow =>
   ...overrides,
 });
 
-const sampleOutbound = (overrides: Partial<OutboundCallLogRow> = {}): OutboundCallLogRow => ({
+const sampleOutbound = (
+  overrides: Partial<OutboundCallLogRow> = {}
+): OutboundCallLogRow => ({
   service: 'notion',
   endpoint: 'api.notion.com/v1/pages',
   status_code: 200,
@@ -97,7 +104,9 @@ describe('ObservabilitySink', () => {
   it('drops the batch and logs to stderr when an insert fails (never blocks recording)', async () => {
     const repo = new FakeRepo();
     const sink = new ObservabilitySink(repo);
-    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
 
     repo.failNext = true;
     sink.recordRequest(sampleRequest());

@@ -8,7 +8,9 @@ const ORIGINAL_KEY = process.env.REACT_APP_DROPBOX_APP_KEY;
 afterEach(() => {
   process.env.REACT_APP_DROPBOX_APP_KEY = ORIGINAL_KEY;
   delete (window as unknown as { Dropbox?: unknown }).Dropbox;
-  document.querySelectorAll('script#dropboxjs').forEach((node) => node.remove());
+  document
+    .querySelectorAll('script#dropboxjs')
+    .forEach((node) => node.remove());
 });
 
 describe('useDropboxChooser', () => {

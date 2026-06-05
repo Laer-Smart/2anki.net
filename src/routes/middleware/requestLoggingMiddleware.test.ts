@@ -132,7 +132,9 @@ describe('requestLoggingMiddleware', () => {
     const req = makeReq({ route: { path: '/api/upload/:id' } });
     const res = makeRes(500);
     const next = jest.fn();
-    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
 
     middleware(req as never, res as never, next);
     expect(() => res.emit('finish')).not.toThrow();

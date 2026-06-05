@@ -90,7 +90,9 @@ describe('getOfficialTemplates', () => {
   });
 
   it('exposes an Image field on Abhiyan basic and references it in the template', () => {
-    const abhiyanBasic = templates.find((t) => t.id === 'official-abhiyan-basic');
+    const abhiyanBasic = templates.find(
+      (t) => t.id === 'official-abhiyan-basic'
+    );
     expect(abhiyanBasic?.noteType.flds.map((f) => f.name)).toContain('Image');
     expect(abhiyanBasic?.noteType.tmpls[0].qfmt).toContain('{{#Image}}');
     expect(abhiyanBasic?.noteType.tmpls[0].qfmt).toContain('{{Image}}');
@@ -98,7 +100,9 @@ describe('getOfficialTemplates', () => {
   });
 
   it('exposes an Image field on Abhiyan cloze and references it in the template', () => {
-    const abhiyanCloze = templates.find((t) => t.id === 'official-abhiyan-cloze');
+    const abhiyanCloze = templates.find(
+      (t) => t.id === 'official-abhiyan-cloze'
+    );
     expect(abhiyanCloze?.noteType.flds.map((f) => f.name)).toContain('Image');
     expect(abhiyanCloze?.noteType.tmpls[0].qfmt).toContain('{{#Image}}');
     expect(abhiyanCloze?.noteType.tmpls[0].afmt).toContain('{{#Image}}');

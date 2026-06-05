@@ -127,7 +127,9 @@
   border-radius: var(--radius-full);
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--transition-fast), opacity var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    opacity var(--transition-fast);
 }
 
 .downloadBtn:hover:not(:disabled) {
@@ -157,7 +159,9 @@
   border-radius: var(--radius-full);
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .previewBtn:hover {
@@ -201,7 +205,9 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
   text-decoration: none;
 }
 

@@ -34,7 +34,8 @@ const TRANSFORMS: TransformChoice[] = [
   {
     id: 'translate_back',
     label: 'Translate the back field',
-    description: 'Pick a target language. Front stays as-is, back is translated.',
+    description:
+      'Pick a target language. Front stays as-is, back is translated.',
   },
   {
     id: 'add_example',
@@ -44,7 +45,8 @@ const TRANSFORMS: TransformChoice[] = [
   {
     id: 'cloze_front',
     label: 'Cloze-ify the front field',
-    description: 'Rewrites the front as a fill-in-the-blank card. Good for definitions and vocabulary.',
+    description:
+      'Rewrites the front as a fill-in-the-blank card. Good for definitions and vocabulary.',
   },
   {
     id: 'add_hint',
@@ -63,12 +65,14 @@ const IMAGE_SOURCES: ImageSourceChoice[] = [
   {
     id: 'pexels',
     label: 'Photos (Pexels)',
-    description: 'Good for language learning — everyday nouns, places, food, animals.',
+    description:
+      'Good for language learning — everyday nouns, places, food, animals.',
   },
   {
     id: 'wikimedia',
     label: 'Diagrams (Wikipedia)',
-    description: 'Good for medicine, biology, anatomy, historical figures, specialty terms.',
+    description:
+      'Good for medicine, biology, anatomy, historical figures, specialty terms.',
   },
 ];
 
@@ -125,7 +129,8 @@ export function TransformPage() {
 
   const [file, setFile] = useState<File | null>(incomingFile);
   const [transform, setTransform] = useState<TransformName>('add_hint');
-  const [language, setLanguage] = useState<(typeof LANGUAGES)[number]>('English');
+  const [language, setLanguage] =
+    useState<(typeof LANGUAGES)[number]>('English');
   const [imageSource, setImageSource] = useState<ImageSource>('pexels');
   const [imageCount, setImageCount] = useState<number>(1);
   const [status, setStatus] = useState<Status>('idle');
@@ -136,7 +141,9 @@ export function TransformPage() {
   const [targetField, setTargetField] = useState<number>(1);
   const [previewNoteCount, setPreviewNoteCount] = useState<number | null>(null);
   const [noteCap, setNoteCap] = useState<number>(250);
-  const [transformStartedAt, setTransformStartedAt] = useState<number | null>(null);
+  const [transformStartedAt, setTransformStartedAt] = useState<number | null>(
+    null
+  );
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
   const [tags, setTags] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -189,32 +196,42 @@ export function TransformPage() {
       credentials: 'include',
       signal: controller.signal,
     })
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
-      .then((payload: { fieldNames?: unknown; noteCount?: unknown; noteCap?: unknown }) => {
-        const names = Array.isArray(payload.fieldNames)
-          ? payload.fieldNames.filter((v): v is string => typeof v === 'string')
-          : [];
-        setFieldNames(names);
-        if (names.length > 0) {
-          setSourceField(0);
-          setTargetField(Math.max(0, names.length - 1));
+      .then((res) =>
+        res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))
+      )
+      .then(
+        (payload: {
+          fieldNames?: unknown;
+          noteCount?: unknown;
+          noteCap?: unknown;
+        }) => {
+          const names = Array.isArray(payload.fieldNames)
+            ? payload.fieldNames.filter(
+                (v): v is string => typeof v === 'string'
+              )
+            : [];
+          setFieldNames(names);
+          if (names.length > 0) {
+            setSourceField(0);
+            setTargetField(Math.max(0, names.length - 1));
+          }
+          const nextCount =
+            typeof payload.noteCount === 'number' ? payload.noteCount : null;
+          const nextCap =
+            typeof payload.noteCap === 'number' && payload.noteCap > 0
+              ? payload.noteCap
+              : noteCap;
+          if (nextCount != null) setPreviewNoteCount(nextCount);
+          if (typeof payload.noteCap === 'number' && payload.noteCap > 0) {
+            setNoteCap(payload.noteCap);
+          }
+          if (nextCount != null && nextCount > nextCap) {
+            track('transform_apkg_over_cap', {
+              props: { note_count: nextCount, cap: nextCap, transform },
+            });
+          }
         }
-        const nextCount =
-          typeof payload.noteCount === 'number' ? payload.noteCount : null;
-        const nextCap =
-          typeof payload.noteCap === 'number' && payload.noteCap > 0
-            ? payload.noteCap
-            : noteCap;
-        if (nextCount != null) setPreviewNoteCount(nextCount);
-        if (typeof payload.noteCap === 'number' && payload.noteCap > 0) {
-          setNoteCap(payload.noteCap);
-        }
-        if (nextCount != null && nextCount > nextCap) {
-          track('transform_apkg_over_cap', {
-            props: { note_count: nextCount, cap: nextCap, transform },
-          });
-        }
-      })
+      )
       .catch(() => {
         setFieldNames([]);
         setPreviewNoteCount(null);
@@ -245,7 +262,9 @@ export function TransformPage() {
       return;
     }
     if (!next.name.toLowerCase().endsWith('.apkg')) {
-      setError('Only .apkg files are supported. Pick an Anki deck file and try again.');
+      setError(
+        'Only .apkg files are supported. Pick an Anki deck file and try again.'
+      );
       setFile(null);
       setStatus('error');
       return;
@@ -262,7 +281,8 @@ export function TransformPage() {
     setCardCount(0);
     setTransformStartedAt(Date.now());
     const trimmedTags = tags.trim().replace(/\s+/g, ' ');
-    const tagCount = trimmedTags.length === 0 ? 0 : trimmedTags.split(' ').length;
+    const tagCount =
+      trimmedTags.length === 0 ? 0 : trimmedTags.split(' ').length;
     track('transform_apkg_submitted', {
       props: { transform, tag_count: tagCount },
     });
@@ -289,7 +309,9 @@ export function TransformPage() {
       });
 
       if (response.status === 402) {
-        setError('Transform is on the paid plan. Upgrade to transform existing decks.');
+        setError(
+          'Transform is on the paid plan. Upgrade to transform existing decks.'
+        );
         setStatus('error');
         setTransformStartedAt(null);
         track('transform_apkg_failed', {
@@ -312,13 +334,18 @@ export function TransformPage() {
       setCardCount(Number.isFinite(count) ? count : 0);
       const filename = response.headers.get('File-Name');
       const blob = await response.blob();
-      const decodedName = filename ? decodeURIComponent(filename) : `${file.name.replace(/\.apkg$/i, '')}-transformed.apkg`;
+      const decodedName = filename
+        ? decodeURIComponent(filename)
+        : `${file.name.replace(/\.apkg$/i, '')}-transformed.apkg`;
       downloadBlob(blob, decodedName);
       setStatus('done');
       setTransformStartedAt(null);
-      track('transform_apkg_succeeded', { props: { transform, card_count: count } });
+      track('transform_apkg_succeeded', {
+        props: { transform, card_count: count },
+      });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Transform failed. Try again.';
+      const message =
+        err instanceof Error ? err.message : 'Transform failed. Try again.';
       setError(message);
       setStatus('error');
       setTransformStartedAt(null);
@@ -367,7 +394,8 @@ export function TransformPage() {
       <header className={styles.pageHeader}>
         <h1 className={styles.title}>Transform an existing deck</h1>
         <p className={styles.subtitle}>
-          Upload a .apkg, pick a transform, get a new deck back. Basic and Cloze decks only in v1.
+          Upload a .apkg, pick a transform, get a new deck back. Basic and Cloze
+          decks only in v1.
         </p>
       </header>
 
@@ -419,7 +447,9 @@ export function TransformPage() {
             Target language
             <select
               value={language}
-              onChange={(e) => setLanguage(e.target.value as (typeof LANGUAGES)[number])}
+              onChange={(e) =>
+                setLanguage(e.target.value as (typeof LANGUAGES)[number])
+              }
             >
               {LANGUAGES.map((lang) => (
                 <option key={lang} value={lang}>
@@ -571,7 +601,11 @@ export function TransformPage() {
           <p className={pageStyles.doneBody}>
             Check your Downloads folder for the new .apkg.
           </p>
-          <button type="button" className={pageStyles.linkButton} onClick={reset}>
+          <button
+            type="button"
+            className={pageStyles.linkButton}
+            onClick={reset}
+          >
             Transform another deck
           </button>
         </div>

@@ -136,7 +136,8 @@ class ConversationsController {
       return;
     }
     const rawSlug = req.body?.templateSlug;
-    const templateSlug = rawSlug === null || rawSlug === undefined ? null : rawSlug;
+    const templateSlug =
+      rawSlug === null || rawSlug === undefined ? null : rawSlug;
     if (templateSlug !== null && typeof templateSlug !== 'string') {
       res.status(400).json({ error: 'templateSlug must be a string or null' });
       return;
@@ -154,7 +155,9 @@ class ConversationsController {
       res.status(204).end();
     } catch (err) {
       if (err instanceof InvalidTemplateError) {
-        res.status(400).json({ error: 'templateSlug must be basic, basic-and-reversed, or cloze' });
+        res.status(400).json({
+          error: 'templateSlug must be basic, basic-and-reversed, or cloze',
+        });
         return;
       }
       throw err;
@@ -168,7 +171,10 @@ class ConversationsController {
       res.status(400).json({ error: 'invalid conversation id' });
       return;
     }
-    const deleted = await this.useCase.delete({ userId: owner, conversationId: id });
+    const deleted = await this.useCase.delete({
+      userId: owner,
+      conversationId: id,
+    });
     if (!deleted) {
       res.status(404).json({ error: 'conversation not found' });
       return;

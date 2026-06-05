@@ -10,9 +10,9 @@ describe('replaceAll', () => {
   });
 
   it('does not treat a pipe in the search value as alternation', () => {
-    expect(replaceAll('<code>x|y</code>', '<code>x|y</code>', '{{c1::x|y}}')).toBe(
-      '{{c1::x|y}}'
-    );
+    expect(
+      replaceAll('<code>x|y</code>', '<code>x|y</code>', '{{c1::x|y}}')
+    ).toBe('{{c1::x|y}}');
   });
 
   it('does not split on pipes when other text matches the right side', () => {

@@ -70,11 +70,7 @@ export default function EmojiFeedbackChart({
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={data} margin={MARGIN}>
         <CartesianGrid stroke={GRID_STROKE} vertical={false} />
-        <XAxis
-          dataKey="label"
-          tick={{ fontSize: 20 }}
-          stroke={AXIS_STROKE}
-        />
+        <XAxis dataKey="label" tick={{ fontSize: 20 }} stroke={AXIS_STROKE} />
         <YAxis
           tick={AXIS_TICK_STYLE}
           stroke={AXIS_STROKE}

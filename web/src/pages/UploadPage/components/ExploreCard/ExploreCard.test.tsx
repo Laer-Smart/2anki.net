@@ -47,7 +47,9 @@ describe('ExploreCard', () => {
 
   it('renders the section heading and subtitle', () => {
     renderCard({ paying: false });
-    expect(screen.getByRole('heading', { name: 'Make better decks' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Make better decks' })
+    ).toBeInTheDocument();
     expect(
       screen.getByText('Three settings worth knowing about.')
     ).toBeInTheDocument();
@@ -55,7 +57,9 @@ describe('ExploreCard', () => {
 
   it('renders the three row titles', () => {
     renderCard({ paying: false });
-    expect(screen.getByText('Multiple choice questions (MCQ)')).toBeInTheDocument();
+    expect(
+      screen.getByText('Multiple choice questions (MCQ)')
+    ).toBeInTheDocument();
     expect(screen.getAllByText('Photo to deck').length).toBeGreaterThan(0);
     expect(screen.getByText('Deck defaults')).toBeInTheDocument();
   });
@@ -83,14 +87,14 @@ describe('ExploreCard', () => {
 
   it('mentions card size in the Deck defaults row', () => {
     renderCard({ paying: false });
-    expect(
-      screen.getByText(/Short, Medium, Detailed/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Short, Medium, Detailed/i)).toBeInTheDocument();
   });
 
   it('shows the free-plan hint for non-paying users', () => {
     renderCard({ paying: false });
-    expect(screen.getByText('Free plan: 5 photos per month')).toBeInTheDocument();
+    expect(
+      screen.getByText('Free plan: 5 photos per month')
+    ).toBeInTheDocument();
   });
 
   it('hides the free-plan hint for paying users', () => {

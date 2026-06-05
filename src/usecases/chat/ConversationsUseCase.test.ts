@@ -10,7 +10,7 @@ const USER_B = 2;
 
 describe('ConversationsUseCase', () => {
   describe('list', () => {
-    it('returns only the calling user\'s conversations, newest first', async () => {
+    it("returns only the calling user's conversations, newest first", async () => {
       const repo = new InMemoryConversationsRepository();
       const useCase = new ConversationsUseCase(repo);
 
@@ -36,7 +36,7 @@ describe('ConversationsUseCase', () => {
   });
 
   describe('get', () => {
-    it('returns null for another user\'s conversation', async () => {
+    it("returns null for another user's conversation", async () => {
       const repo = new InMemoryConversationsRepository();
       const useCase = new ConversationsUseCase(repo);
 
@@ -51,8 +51,18 @@ describe('ConversationsUseCase', () => {
       const useCase = new ConversationsUseCase(repo);
 
       const id = await repo.create({ userId: USER_A, title: 'Conversation' });
-      repo.recordMessage({ userId: USER_A, conversationId: id, role: 'user', content: 'hello' });
-      repo.recordMessage({ userId: USER_A, conversationId: id, role: 'assistant', content: 'hi' });
+      repo.recordMessage({
+        userId: USER_A,
+        conversationId: id,
+        role: 'user',
+        content: 'hello',
+      });
+      repo.recordMessage({
+        userId: USER_A,
+        conversationId: id,
+        role: 'assistant',
+        content: 'hi',
+      });
 
       const result = await useCase.get({ userId: USER_A, conversationId: id });
       expect(result?.messages).toEqual([
@@ -65,7 +75,12 @@ describe('ConversationsUseCase', () => {
       const repo = new InMemoryConversationsRepository();
       const useCase = new ConversationsUseCase(repo);
       const id = await repo.create({ userId: USER_A, title: 'Cards' });
-      repo.recordMessage({ userId: USER_A, conversationId: id, role: 'user', content: 'make cards' });
+      repo.recordMessage({
+        userId: USER_A,
+        conversationId: id,
+        role: 'user',
+        content: 'make cards',
+      });
       const assistantContent =
         'Here are your cards:\n```json\n[{"front":"Q1","back":"A1"},{"front":"Q2","back":"A2"}]\n```\nHope that helps!';
       repo.recordMessage({
@@ -119,7 +134,8 @@ describe('ConversationsUseCase', () => {
         userId: USER_A,
         conversationId: id,
         role: 'user',
-        content: 'Turn this into cards:\n```json\n[{"front":"X","back":"Y"}]\n```',
+        content:
+          'Turn this into cards:\n```json\n[{"front":"X","back":"Y"}]\n```',
       });
 
       const result = await useCase.get({ userId: USER_A, conversationId: id });
@@ -141,8 +157,12 @@ describe('ConversationsUseCase', () => {
       const result = await useCase.get({ userId: USER_A, conversationId: id });
       const assistant = result?.messages.find((m) => m.role === 'assistant');
       expect((assistant as { cards?: unknown }).cards).toBeUndefined();
-      expect((assistant as { contentBefore?: unknown }).contentBefore).toBeUndefined();
-      expect((assistant as { contentAfter?: unknown }).contentAfter).toBeUndefined();
+      expect(
+        (assistant as { contentBefore?: unknown }).contentBefore
+      ).toBeUndefined();
+      expect(
+        (assistant as { contentAfter?: unknown }).contentAfter
+      ).toBeUndefined();
     });
   });
 
@@ -163,7 +183,11 @@ describe('ConversationsUseCase', () => {
       const id = await repo.create({ userId: USER_A, title: 'old' });
 
       await expect(
-        useCase.rename({ userId: USER_A, conversationId: id, title: 'x'.repeat(121) })
+        useCase.rename({
+          userId: USER_A,
+          conversationId: id,
+          title: 'x'.repeat(121),
+        })
       ).rejects.toBeInstanceOf(InvalidTitleError);
     });
 
@@ -172,18 +196,26 @@ describe('ConversationsUseCase', () => {
       const useCase = new ConversationsUseCase(repo);
       const id = await repo.create({ userId: USER_A, title: 'old' });
 
-      const ok = await useCase.rename({ userId: USER_A, conversationId: id, title: '  fresh title  ' });
+      const ok = await useCase.rename({
+        userId: USER_A,
+        conversationId: id,
+        title: '  fresh title  ',
+      });
       expect(ok).toBe(true);
       const conv = await useCase.get({ userId: USER_A, conversationId: id });
       expect(conv?.title).toBe('fresh title');
     });
 
-    it('returns false when renaming another user\'s conversation', async () => {
+    it("returns false when renaming another user's conversation", async () => {
       const repo = new InMemoryConversationsRepository();
       const useCase = new ConversationsUseCase(repo);
       const id = await repo.create({ userId: USER_B, title: 'theirs' });
 
-      const ok = await useCase.rename({ userId: USER_A, conversationId: id, title: 'mine now' });
+      const ok = await useCase.rename({
+        userId: USER_A,
+        conversationId: id,
+        title: 'mine now',
+      });
       expect(ok).toBe(false);
     });
   });
@@ -209,9 +241,17 @@ describe('ConversationsUseCase', () => {
       const repo = new InMemoryConversationsRepository();
       const useCase = new ConversationsUseCase(repo);
       const id = await repo.create({ userId: USER_A, title: 'Working' });
-      await useCase.saveDraft({ userId: USER_A, conversationId: id, content: 'hello' });
+      await useCase.saveDraft({
+        userId: USER_A,
+        conversationId: id,
+        content: 'hello',
+      });
 
-      await useCase.saveDraft({ userId: USER_A, conversationId: id, content: '' });
+      await useCase.saveDraft({
+        userId: USER_A,
+        conversationId: id,
+        content: '',
+      });
 
       const view = await useCase.get({ userId: USER_A, conversationId: id });
       expect(view?.draft).toBeNull();
@@ -221,9 +261,17 @@ describe('ConversationsUseCase', () => {
       const repo = new InMemoryConversationsRepository();
       const useCase = new ConversationsUseCase(repo);
       const id = await repo.create({ userId: USER_A, title: 'Working' });
-      await useCase.saveDraft({ userId: USER_A, conversationId: id, content: 'hello' });
+      await useCase.saveDraft({
+        userId: USER_A,
+        conversationId: id,
+        content: 'hello',
+      });
 
-      await useCase.saveDraft({ userId: USER_A, conversationId: id, content: null });
+      await useCase.saveDraft({
+        userId: USER_A,
+        conversationId: id,
+        content: null,
+      });
 
       const view = await useCase.get({ userId: USER_A, conversationId: id });
       expect(view?.draft).toBeNull();
@@ -235,11 +283,15 @@ describe('ConversationsUseCase', () => {
       const id = await repo.create({ userId: USER_A, title: 'Working' });
 
       await expect(
-        useCase.saveDraft({ userId: USER_A, conversationId: id, content: 'x'.repeat(100_001) })
+        useCase.saveDraft({
+          userId: USER_A,
+          conversationId: id,
+          content: 'x'.repeat(100_001),
+        })
       ).rejects.toBeInstanceOf(InvalidDraftError);
     });
 
-    it('returns false when saving to another user\'s conversation', async () => {
+    it("returns false when saving to another user's conversation", async () => {
       const repo = new InMemoryConversationsRepository();
       const useCase = new ConversationsUseCase(repo);
       const id = await repo.create({ userId: USER_B, title: 'Theirs' });
@@ -265,7 +317,7 @@ describe('ConversationsUseCase', () => {
       expect(await useCase.list(USER_A)).toEqual([]);
     });
 
-    it('returns false when deleting another user\'s conversation', async () => {
+    it("returns false when deleting another user's conversation", async () => {
       const repo = new InMemoryConversationsRepository();
       const useCase = new ConversationsUseCase(repo);
       const id = await repo.create({ userId: USER_B, title: 'theirs' });
@@ -280,7 +332,10 @@ describe('ConversationsUseCase', () => {
       const id = await repo.create({ userId: USER_A, title: 'gone' });
 
       await useCase.delete({ userId: USER_A, conversationId: id });
-      const second = await useCase.delete({ userId: USER_A, conversationId: id });
+      const second = await useCase.delete({
+        userId: USER_A,
+        conversationId: id,
+      });
       expect(second).toBe(false);
     });
   });

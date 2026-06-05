@@ -11,7 +11,14 @@ const MAX_CARDS = 1000;
 
 const SOUND_TAG_REGEX = /\[sound:([^\]]+)\]/g;
 const AUDIO_EXTENSIONS = new Set([
-  'mp3', 'ogg', 'oga', 'wav', 'flac', 'm4a', 'aac', 'opus',
+  'mp3',
+  'ogg',
+  'oga',
+  'wav',
+  'flac',
+  'm4a',
+  'aac',
+  'opus',
 ]);
 const VIDEO_EXTENSIONS = new Set(['mp4', 'webm', 'mov']);
 
@@ -50,10 +57,7 @@ function replaceSoundTokens(html: string): string {
   });
 }
 
-function replaceMediaWithBase64(
-  html: string,
-  parsed: ParsedApkg
-): string {
+function replaceMediaWithBase64(html: string, parsed: ParsedApkg): string {
   const SRC_REGEX = /\b(src)="([^"]+)"/g;
   return html.replace(SRC_REGEX, (_match, attr: string, value: string) => {
     if (value.startsWith('data:') || /^https?:\/\//i.test(value)) {
@@ -120,7 +124,12 @@ function collectAllCards(
   const mediaBaseUrl = '';
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (true) {
-    const page = previewService.getCardsPage(parsed, cursor, pageSize, mediaBaseUrl);
+    const page = previewService.getCardsPage(
+      parsed,
+      cursor,
+      pageSize,
+      mediaBaseUrl
+    );
     all.push(...page.cards);
     if (page.nextCursor == null) break;
     cursor = page.nextCursor;
@@ -136,7 +145,12 @@ window.MathJax = {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>`;
 
-function buildHtml(deckName: string, cards: RenderedCard[], parsed: ParsedApkg, backgroundColor: string): string {
+function buildHtml(
+  deckName: string,
+  cards: RenderedCard[],
+  parsed: ParsedApkg,
+  backgroundColor: string
+): string {
   const rows = cards.map((card) => buildCardRow(card, parsed)).join('\n');
   return `<!DOCTYPE html>
 <html lang="en">

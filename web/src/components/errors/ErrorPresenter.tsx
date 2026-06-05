@@ -8,7 +8,10 @@ interface ErrorPresenterProps {
   onRetry?: () => void;
 }
 
-export function ErrorPresenter({ error, onRetry }: Readonly<ErrorPresenterProps>) {
+export function ErrorPresenter({
+  error,
+  onRetry,
+}: Readonly<ErrorPresenterProps>) {
   const { dismissed, setDismissed } = useDismissed(error);
 
   if (!error || dismissed) {
@@ -27,7 +30,11 @@ export function ErrorPresenter({ error, onRetry }: Readonly<ErrorPresenterProps>
       </div>
       <div className={styles.modalFooter}>
         {actionLink && (
-          <Link to={actionLink.to} className={styles.btnPrimary} onClick={() => setDismissed(true)}>
+          <Link
+            to={actionLink.to}
+            className={styles.btnPrimary}
+            onClick={() => setDismissed(true)}
+          >
             {actionLink.text}
           </Link>
         )}

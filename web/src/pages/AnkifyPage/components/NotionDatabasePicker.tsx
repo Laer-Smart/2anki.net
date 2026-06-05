@@ -15,7 +15,10 @@ export interface NotionDatabaseOption {
 interface Props {
   readonly backend: Backend;
   readonly value: string;
-  readonly onChange: (databaseId: string, picked?: NotionDatabaseOption) => void;
+  readonly onChange: (
+    databaseId: string,
+    picked?: NotionDatabaseOption
+  ) => void;
   readonly onWantToCreate: () => void;
 }
 

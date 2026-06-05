@@ -3,8 +3,14 @@ import { ankiFidelityProof } from './ankiFidelityProof';
 
 const notionCopy: LandingCopy = {
   relatedLinks: [
-    { label: 'Convert Notion tables to Anki', href: '/convert/notion-tables-to-anki' },
-    { label: 'Convert Markdown and Obsidian notes to Anki', href: '/markdown-to-anki' },
+    {
+      label: 'Convert Notion tables to Anki',
+      href: '/convert/notion-tables-to-anki',
+    },
+    {
+      label: 'Convert Markdown and Obsidian notes to Anki',
+      href: '/markdown-to-anki',
+    },
     { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
     { label: 'Browse every converter', href: '/convert' },
   ],
@@ -13,7 +19,8 @@ const notionCopy: LandingCopy = {
   description:
     'Convert any Notion page to an Anki deck that opens clean — cloze stays clickable, images render, toggles become cards. Paste a link, get a .apkg.',
   h1: 'Notion to Anki — free, no add-on required',
-  subhead: 'Connect Notion once, paste any page link, get a .apkg deck. No software to install.',
+  subhead:
+    'Connect Notion once, paste any page link, get a .apkg deck. No software to install.',
   whatComesAcross: ankiFidelityProof,
   faqs: [
     {
@@ -22,7 +29,7 @@ const notionCopy: LandingCopy = {
     },
     {
       q: 'Do I need a Notion integration token?',
-      a: "Yes — connect Notion once on the upload page. We use the token only to read the pages you pick, and you can revoke it from your Notion settings any time.",
+      a: 'Yes — connect Notion once on the upload page. We use the token only to read the pages you pick, and you can revoke it from your Notion settings any time.',
     },
     {
       q: 'What happens to images and code blocks?',

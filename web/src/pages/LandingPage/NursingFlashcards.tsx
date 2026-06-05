@@ -6,6 +6,8 @@ interface Props {
   setErrorMessage: ErrorHandlerType;
 }
 
-export default function NursingFlashcards({ setErrorMessage }: Readonly<Props>) {
+export default function NursingFlashcards({
+  setErrorMessage,
+}: Readonly<Props>) {
   return <LandingPage copy={nursingCopy} setErrorMessage={setErrorMessage} />;
 }

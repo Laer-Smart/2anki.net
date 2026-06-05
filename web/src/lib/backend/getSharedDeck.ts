@@ -23,7 +23,9 @@ async function fetchShareApi<T>(url: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function getSharedDeckMeta(token: string): Promise<ApkgPreviewMeta> {
+export async function getSharedDeckMeta(
+  token: string
+): Promise<ApkgPreviewMeta> {
   return fetchShareApi(`/api/shares/${encodeURIComponent(token)}/meta`);
 }
 
@@ -47,7 +49,9 @@ export interface CreateShareResponse {
   url: string;
 }
 
-export async function createDeckShare(uploadKey: string): Promise<CreateShareResponse> {
+export async function createDeckShare(
+  uploadKey: string
+): Promise<CreateShareResponse> {
   const response = await fetch('/api/shares', {
     method: 'POST',
     credentials: 'include',
@@ -78,7 +82,9 @@ export interface ActiveShare {
   view_count: number;
 }
 
-export async function getActiveSharesForUploadKey(uploadKey: string): Promise<ActiveShare | null> {
+export async function getActiveSharesForUploadKey(
+  uploadKey: string
+): Promise<ActiveShare | null> {
   const response = await fetch('/api/shares', { credentials: 'include' });
   if (!response.ok) return null;
   const shares = (await response.json()) as ActiveShare[];

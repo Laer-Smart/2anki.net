@@ -12,8 +12,7 @@ export interface TemplateSpecials {
 // Applied to Anki template strings (qfmt/afmt) loaded from the deck's
 // own note-type config — not from HTTP input. Negated classes bound the
 // captures, so there's no unbounded backtracking window.
-const TAG_REGEX =
-  /\{\{([#^/])?([a-zA-Z][a-zA-Z0-9_-]*:)?([^{}]+?)\}\}/g; // NOSONAR
+const TAG_REGEX = /\{\{([#^/])?([a-zA-Z][a-zA-Z0-9_-]*:)?([^{}]+?)\}\}/g; // NOSONAR
 
 const FURIGANA_REGEX = /([^\s[\]]+)\[([^[\]]+)\]/g;
 

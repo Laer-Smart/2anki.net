@@ -3,7 +3,7 @@ title: Community
 description: Links from the Anki community
 ---
 
-The Anki community is huge and diverse. You can find lots of stuff around the web. 
+The Anki community is huge and diverse. You can find lots of stuff around the web.
 
 ## Subreddits
 

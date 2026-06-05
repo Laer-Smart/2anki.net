@@ -54,7 +54,7 @@ export const updateStoreSubscription = async (
   const customerId =
     typeof subscription.customer === 'string'
       ? subscription.customer
-      : subscription.customer?.id ?? null;
+      : (subscription.customer?.id ?? null);
 
   await db('subscriptions')
     .insert({

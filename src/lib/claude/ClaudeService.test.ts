@@ -84,17 +84,22 @@ describe('parseDeckResponse', () => {
   });
 
   it('parses [] followed by explanation text as an empty deck (downstream no-cards error handles it)', () => {
-    const cleaned = '[]\n\nThe document appears to be a course overview with no actual Q&A content to convert. I cannot find any flashcard material.';
+    const cleaned =
+      '[]\n\nThe document appears to be a course overview with no actual Q&A content to convert. I cannot find any flashcard material.';
     expect(parseDeckResponse(cleaned, cleaned, 0)).toEqual([]);
   });
 
   it('throws ClaudeParseError for truncated/invalid JSON', () => {
     const cleaned = '[{"deck":"Bio","cards":[{"q":"What is';
-    expect(() => parseDeckResponse(cleaned, cleaned, 0)).toThrow(ClaudeParseError);
+    expect(() => parseDeckResponse(cleaned, cleaned, 0)).toThrow(
+      ClaudeParseError
+    );
   });
 
   it('throws ClaudeParseError when there is no ] at all', () => {
-    expect(() => parseDeckResponse('not json', 'not json', 0)).toThrow(ClaudeParseError);
+    expect(() => parseDeckResponse('not json', 'not json', 0)).toThrow(
+      ClaudeParseError
+    );
   });
 
   it('recovers a card whose value contains an unescaped ASCII " (the German-quote prod failure)', () => {
@@ -113,7 +118,9 @@ describe('parseDeckResponse', () => {
 
   it('still throws ClaudeParseError when jsonrepair cannot recover the response', () => {
     const unrepairable = '[{"deck":"X","cards":[{"q":"a","a"';
-    expect(() => parseDeckResponse(unrepairable, unrepairable, 0)).toThrow(ClaudeParseError);
+    expect(() => parseDeckResponse(unrepairable, unrepairable, 0)).toThrow(
+      ClaudeParseError
+    );
   });
 
   it('recovers a cloze-only deck where every card has a: "" (cloze cards legitimately have no answer field)', () => {
@@ -122,7 +129,8 @@ describe('parseDeckResponse', () => {
     expect(() => JSON.parse(broken)).not.toThrow();
     const withRepair = broken.slice(0, -2);
     expect(() => JSON.parse(withRepair)).toThrow();
-    const clozeOnly = '[{"deck":"Cloze Test","cards":[{"q":"The {{c1::mitochondria}} is the powerhouse","a":"","cloze":true}]}';
+    const clozeOnly =
+      '[{"deck":"Cloze Test","cards":[{"q":"The {{c1::mitochondria}} is the powerhouse","a":"","cloze":true}]}';
     const parsed = parseDeckResponse(clozeOnly, clozeOnly, 0);
     expect(parsed).toHaveLength(1);
     expect(parsed[0].deck).toBe('Cloze Test');
@@ -152,7 +160,10 @@ describe('parseDeckResponse', () => {
       parseDeckResponse(cleaned, cleaned, 7);
       expect(warnSpy).toHaveBeenCalledWith(
         '[Claude] Trailing prose stripped',
-        expect.objectContaining({ chunkIndex: 7, strippedBytes: expect.any(Number) })
+        expect.objectContaining({
+          chunkIndex: 7,
+          strippedBytes: expect.any(Number),
+        })
       );
       const callArg = warnSpy.mock.calls.find(
         ([msg]) => msg === '[Claude] Trailing prose stripped'
@@ -185,19 +196,26 @@ describe('parseDeckResponse', () => {
   });
 
   it('recovers a fenced response with leading prose before the opening fence', () => {
-    const withProse = 'Here are your flashcards:\n\n```json\n' + deckJson + '\n```';
-    const cleaned = withProse.replace(/^```json\n?|^```\n?|```\s*$/gm, '').trim();
+    const withProse =
+      'Here are your flashcards:\n\n```json\n' + deckJson + '\n```';
+    const cleaned = withProse
+      .replace(/^```json\n?|^```\n?|```\s*$/gm, '')
+      .trim();
     expect(parseDeckResponse(cleaned, withProse, 0)).toEqual(deck);
   });
 
   it('recovers a fenced response with trailing prose after the closing fence', () => {
-    const withTrailing = '```json\n' + deckJson + '\n```\n\nI hope these are helpful.';
-    const cleaned = withTrailing.replace(/^```json\n?|^```\n?|```\s*$/gm, '').trim();
+    const withTrailing =
+      '```json\n' + deckJson + '\n```\n\nI hope these are helpful.';
+    const cleaned = withTrailing
+      .replace(/^```json\n?|^```\n?|```\s*$/gm, '')
+      .trim();
     expect(parseDeckResponse(cleaned, withTrailing, 0)).toEqual(deck);
   });
 
   it('preserves backticks inside a card answer field after fence stripping', () => {
-    const cardWithBacktick = '[{"deck":"Shell","cards":[{"q":"List files","a":"Run `ls -la` to see all files"}]}]';
+    const cardWithBacktick =
+      '[{"deck":"Shell","cards":[{"q":"List files","a":"Run `ls -la` to see all files"}]}]';
     const fenced = '```json\n' + cardWithBacktick + '\n```';
     const cleaned = fenced.replace(/^```json\n?|^```\n?|```\s*$/gm, '').trim();
     const parsed = parseDeckResponse(cleaned, fenced, 0);
@@ -205,10 +223,17 @@ describe('parseDeckResponse', () => {
   });
 
   it('throws ClaudeParseError with message "claude_parse_failed" when unrecoverable', () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
     try {
-      expect(() => parseDeckResponse('no json here at all', 'no json here at all', 0)).toThrow(
-        expect.objectContaining({ message: 'claude_parse_failed', name: 'ClaudeParseError' })
+      expect(() =>
+        parseDeckResponse('no json here at all', 'no json here at all', 0)
+      ).toThrow(
+        expect.objectContaining({
+          message: 'claude_parse_failed',
+          name: 'ClaudeParseError',
+        })
       );
     } finally {
       errorSpy.mockRestore();
@@ -216,8 +241,11 @@ describe('parseDeckResponse', () => {
   });
 
   it('thrown ClaudeParseError message does not contain any substring of the input payload', () => {
-    const payload = '[{"deck":"Secret","cards":[{"q":"sensitive question","a":"sensitive answer"}';
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const payload =
+      '[{"deck":"Secret","cards":[{"q":"sensitive question","a":"sensitive answer"}';
+    const errorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
     try {
       let caughtMessage = '';
       try {
@@ -235,7 +263,9 @@ describe('parseDeckResponse', () => {
   });
 
   it('emits exactly one console.error with redacted payload shape (no raw content) on parse failure', () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const errorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
     try {
       try {
         parseDeckResponse('not valid json at all', 'not valid json at all', 3);
@@ -246,9 +276,21 @@ describe('parseDeckResponse', () => {
       const [, loggedObj] = errorSpy.mock.calls[0];
       expect(loggedObj).toMatchObject({
         chunkIndex: 3,
-        raw: expect.objectContaining({ length: expect.any(Number), prefix: expect.any(String), sha256_prefix: expect.any(String) }),
-        cleaned: expect.objectContaining({ length: expect.any(Number), prefix: expect.any(String), sha256_prefix: expect.any(String) }),
-        toParse: expect.objectContaining({ length: expect.any(Number), prefix: expect.any(String), sha256_prefix: expect.any(String) }),
+        raw: expect.objectContaining({
+          length: expect.any(Number),
+          prefix: expect.any(String),
+          sha256_prefix: expect.any(String),
+        }),
+        cleaned: expect.objectContaining({
+          length: expect.any(Number),
+          prefix: expect.any(String),
+          sha256_prefix: expect.any(String),
+        }),
+        toParse: expect.objectContaining({
+          length: expect.any(Number),
+          prefix: expect.any(String),
+          sha256_prefix: expect.any(String),
+        }),
       });
       const rawVal = loggedObj.raw as Record<string, unknown>;
       expect(typeof rawVal.raw).toBe('undefined');
@@ -364,7 +406,9 @@ describe('normalizeTag', () => {
   });
 
   it('converts a mixed-case tag with spaces into normalized form', () => {
-    expect(normalizeTag('Michaelis Menten Kinetics')).toBe('michaelis_menten_kinetics');
+    expect(normalizeTag('Michaelis Menten Kinetics')).toBe(
+      'michaelis_menten_kinetics'
+    );
   });
 
   it('returns an empty string for a tag that is all punctuation', () => {
@@ -378,7 +422,11 @@ describe('parseDeckResponse — tags', () => {
       {
         deck: 'Biochemistry',
         cards: [
-          { q: 'What is an enzyme?', a: 'A biological catalyst', tags: ['enzymes', 'kinetics'] },
+          {
+            q: 'What is an enzyme?',
+            a: 'A biological catalyst',
+            tags: ['enzymes', 'kinetics'],
+          },
           { q: 'What is ATP?', a: 'Adenosine triphosphate' },
         ],
       },
@@ -430,7 +478,9 @@ describe('buildFieldMappingPromptFragment', () => {
   });
 
   it('returns empty string when fields array is empty', () => {
-    expect(buildFieldMappingPromptFragment({ templateName: 'n2a-basic', fields: [] })).toBe('');
+    expect(
+      buildFieldMappingPromptFragment({ templateName: 'n2a-basic', fields: [] })
+    ).toBe('');
   });
 
   it('includes each field name and instruction', () => {
@@ -474,15 +524,32 @@ describe('buildUserMessage — field mapping', () => {
   });
 
   it('omits field mapping section when fieldMapping is undefined', () => {
-    const msg = buildUserMessage(content, noMedia, undefined, '', undefined, undefined);
+    const msg = buildUserMessage(
+      content,
+      noMedia,
+      undefined,
+      '',
+      undefined,
+      undefined
+    );
     expect(msg).not.toContain('Field mapping');
   });
 
   it('places field mapping after additional instructions when both are present', () => {
-    const msg = buildUserMessage(content, noMedia, 'Custom rule.', '', undefined, {
-      templateName: 'n2a-basic',
-      fields: [{ name: 'Front', instruction: 'term' }, { name: 'Back', instruction: 'def' }],
-    });
+    const msg = buildUserMessage(
+      content,
+      noMedia,
+      'Custom rule.',
+      '',
+      undefined,
+      {
+        templateName: 'n2a-basic',
+        fields: [
+          { name: 'Front', instruction: 'term' },
+          { name: 'Back', instruction: 'def' },
+        ],
+      }
+    );
     const instrIdx = msg.indexOf('Additional instructions:');
     const mappingIdx = msg.indexOf('Field mapping');
     expect(instrIdx).toBeGreaterThan(-1);
@@ -548,7 +615,9 @@ describe('generateDeckInfo — partial chunk success (default)', () => {
       .mockResolvedValueOnce(fakeResponse())
       .mockRejectedValueOnce(new Error('chunk 1 parse error'));
 
-    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    const infoSpy = jest
+      .spyOn(console, 'info')
+      .mockImplementation(() => undefined);
     try {
       const result = await generateDeckInfo(htmlTwoChunks, []);
       expect(result.length).toBeGreaterThan(0);
@@ -558,7 +627,8 @@ describe('generateDeckInfo — partial chunk success (default)', () => {
         expect.objectContaining({ ok: 1, total: 2 })
       );
       const callArg = infoSpy.mock.calls.find(
-        ([msg]) => msg === '[Claude] Some chunks failed; continuing with the rest'
+        ([msg]) =>
+          msg === '[Claude] Some chunks failed; continuing with the rest'
       )![1] as { failures: Array<{ chunkIndex: number; reason: string }> };
       expect(callArg.failures).toHaveLength(1);
       expect(callArg.failures[0].reason).toBe('chunk 1 parse error');
@@ -572,13 +642,19 @@ describe('generateDeckInfo — partial chunk success (default)', () => {
       .mockRejectedValueOnce(new Error('chunk 0 failed'))
       .mockRejectedValueOnce(new Error('chunk 1 failed'));
 
-    await expect(generateDeckInfo(htmlTwoChunks, [])).rejects.toThrow('chunk 0 failed');
+    await expect(generateDeckInfo(htmlTwoChunks, [])).rejects.toThrow(
+      'chunk 0 failed'
+    );
   });
 });
 
 describe('generateDeckInfo — truncated chunk retry', () => {
   const htmlOneChunk =
-    '<details>' + 'x'.repeat(10_000) + '</details><details>' + 'y'.repeat(10_000) + '</details>';
+    '<details>' +
+    'x'.repeat(10_000) +
+    '</details><details>' +
+    'y'.repeat(10_000) +
+    '</details>';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -616,7 +692,9 @@ describe('generateDeckInfo — truncated chunk retry', () => {
       .mockResolvedValueOnce(truncatedResponse())
       .mockResolvedValueOnce(truncatedResponse());
 
-    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    const infoSpy = jest
+      .spyOn(console, 'info')
+      .mockImplementation(() => undefined);
     try {
       const result = await generateDeckInfo(htmlTwoChunks, []);
       expect(result.length).toBeGreaterThan(0);
@@ -627,7 +705,10 @@ describe('generateDeckInfo — truncated chunk retry', () => {
   });
 });
 
-function makeDeck(name: string, cards: Array<{ name: string; back: string }>): DeckInfo {
+function makeDeck(
+  name: string,
+  cards: Array<{ name: string; back: string }>
+): DeckInfo {
   return {
     name,
     image: '',
@@ -687,8 +768,12 @@ describe('dedupeCardsByFront', () => {
   });
 
   it('dedupes per-deck independently — same front in two different decks is kept in each', () => {
-    const deckA = makeDeck('DeckA', [{ name: 'Shared front', back: 'Answer A' }]);
-    const deckB = makeDeck('DeckB', [{ name: 'Shared front', back: 'Answer B' }]);
+    const deckA = makeDeck('DeckA', [
+      { name: 'Shared front', back: 'Answer A' },
+    ]);
+    const deckB = makeDeck('DeckB', [
+      { name: 'Shared front', back: 'Answer B' },
+    ]);
     const result = dedupeCardsByFront([deckA, deckB]);
     expect(result).toHaveLength(2);
     expect(result[0].cards).toHaveLength(1);
@@ -702,7 +787,9 @@ describe('dedupeCardsByFront', () => {
   });
 
   it('logs the number of removed duplicates when dedup occurs', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const warnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
     try {
       const deck = makeDeck('Bio', [
         { name: 'What is a cell?', back: 'Basic unit of life' },
@@ -722,13 +809,19 @@ describe('dedupeCardsByFront', () => {
 describe('generateDeckInfo — floor v1 (comprehensive CardOption)', () => {
   const sixChunkHtml = '<p>' + 'x'.repeat(40_000 * 5 + 100) + '</p>';
 
-  function deckResponse(cardCount: number, frontPrefix = 'Card', deckName = 'Test Deck') {
+  function deckResponse(
+    cardCount: number,
+    frontPrefix = 'Card',
+    deckName = 'Test Deck'
+  ) {
     const cards = Array.from({ length: cardCount }, (_, i) => ({
       q: `${frontPrefix} ${i}`,
       a: `Answer ${i}`,
     }));
     return {
-      content: [{ type: 'text', text: JSON.stringify([{ deck: deckName, cards }]) }],
+      content: [
+        { type: 'text', text: JSON.stringify([{ deck: deckName, cards }]) },
+      ],
       stop_reason: 'end_turn',
       usage: { input_tokens: 1000, output_tokens: 500 },
     };
@@ -742,13 +835,19 @@ describe('generateDeckInfo — floor v1 (comprehensive CardOption)', () => {
 
   it('comprehensive off — existing behavior preserved: no top-up, no provenance stamps', async () => {
     let call = 0;
-    mockStream.finalMessage.mockImplementation(async () => deckResponse(5, `C${call++}`));
+    mockStream.finalMessage.mockImplementation(async () =>
+      deckResponse(5, `C${call++}`)
+    );
 
     const result = await generateDeckInfo(sixChunkHtml, []);
 
     expect(mockStream.finalMessage).toHaveBeenCalledTimes(6);
     expect(result[0].cards.length).toBe(30);
-    expect(result[0].cards.every((c) => (c as { chunkIndex?: number }).chunkIndex === undefined)).toBe(true);
+    expect(
+      result[0].cards.every(
+        (c) => (c as { chunkIndex?: number }).chunkIndex === undefined
+      )
+    ).toBe(true);
   });
 
   it('comprehensive on — caps in-flight calls at 4 (semaphore)', async () => {
@@ -763,11 +862,20 @@ describe('generateDeckInfo — floor v1 (comprehensive CardOption)', () => {
       return deckResponse(60, `C${call++}`);
     });
 
-    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
-      isPaying: true,
-      userId: 42,
-      comprehensive: true,
-    });
+    await generateDeckInfo(
+      sixChunkHtml,
+      [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      {
+        isPaying: true,
+        userId: 42,
+        comprehensive: true,
+      }
+    );
 
     expect(maxInFlight).toBeLessThanOrEqual(4);
     expect(mockStream.finalMessage).toHaveBeenCalledTimes(6);
@@ -775,28 +883,52 @@ describe('generateDeckInfo — floor v1 (comprehensive CardOption)', () => {
 
   it('comprehensive on — stamps chunkIndex provenance on every card', async () => {
     let call = 0;
-    mockStream.finalMessage.mockImplementation(async () => deckResponse(60, `C${call++}`));
+    mockStream.finalMessage.mockImplementation(async () =>
+      deckResponse(60, `C${call++}`)
+    );
 
-    const result = await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
-      isPaying: true,
-      userId: 42,
-      comprehensive: true,
-    });
+    const result = await generateDeckInfo(
+      sixChunkHtml,
+      [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      {
+        isPaying: true,
+        userId: 42,
+        comprehensive: true,
+      }
+    );
 
     for (const card of result[0].cards) {
-      expect(typeof (card as { chunkIndex?: number }).chunkIndex).toBe('number');
+      expect(typeof (card as { chunkIndex?: number }).chunkIndex).toBe(
+        'number'
+      );
     }
   });
 
   it('comprehensive on — total ≥ floor after first round skips top-up', async () => {
     let call = 0;
-    mockStream.finalMessage.mockImplementation(async () => deckResponse(60, `C${call++}`));
+    mockStream.finalMessage.mockImplementation(async () =>
+      deckResponse(60, `C${call++}`)
+    );
 
-    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
-      isPaying: true,
-      userId: 42,
-      comprehensive: true,
-    });
+    await generateDeckInfo(
+      sixChunkHtml,
+      [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      {
+        isPaying: true,
+        userId: 42,
+        comprehensive: true,
+      }
+    );
 
     expect(mockStream.finalMessage).toHaveBeenCalledTimes(6);
   });
@@ -809,75 +941,135 @@ describe('generateDeckInfo — floor v1 (comprehensive CardOption)', () => {
       return deckResponse(50, `Topup${c}`);
     });
 
-    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
-      isPaying: true,
-      userId: 42,
-      comprehensive: true,
-    });
+    await generateDeckInfo(
+      sixChunkHtml,
+      [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      {
+        isPaying: true,
+        userId: 42,
+        comprehensive: true,
+      }
+    );
 
     expect(mockStream.finalMessage.mock.calls.length).toBeGreaterThan(6);
-    expect(mockStream.finalMessage.mock.calls.length).toBeLessThanOrEqual(6 + 6 + 6);
+    expect(mockStream.finalMessage.mock.calls.length).toBeLessThanOrEqual(
+      6 + 6 + 6
+    );
   });
 
   it('comprehensive on — top-up loop runs at most 2 rounds even when never reaching floor', async () => {
     let call = 0;
-    mockStream.finalMessage.mockImplementation(async () => deckResponse(5, `Round${call++}`));
+    mockStream.finalMessage.mockImplementation(async () =>
+      deckResponse(5, `Round${call++}`)
+    );
 
-    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
-      isPaying: true,
-      userId: 42,
-      comprehensive: true,
-    });
+    await generateDeckInfo(
+      sixChunkHtml,
+      [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      {
+        isPaying: true,
+        userId: 42,
+        comprehensive: true,
+      }
+    );
 
-    expect(mockStream.finalMessage.mock.calls.length).toBeLessThanOrEqual(6 + 6 + 6);
+    expect(mockStream.finalMessage.mock.calls.length).toBeLessThanOrEqual(
+      6 + 6 + 6
+    );
   });
 
   it('comprehensive on but isPaying=false — no top-up, no floor enforcement', async () => {
     let call = 0;
-    mockStream.finalMessage.mockImplementation(async () => deckResponse(5, `C${call++}`));
+    mockStream.finalMessage.mockImplementation(async () =>
+      deckResponse(5, `C${call++}`)
+    );
 
-    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
-      isPaying: false,
-      userId: 42,
-      comprehensive: true,
-    });
+    await generateDeckInfo(
+      sixChunkHtml,
+      [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      {
+        isPaying: false,
+        userId: 42,
+        comprehensive: true,
+      }
+    );
 
     expect(mockStream.finalMessage).toHaveBeenCalledTimes(6);
   });
 
   it('isPaying=true but comprehensive off — no top-up, no floor enforcement', async () => {
     let call = 0;
-    mockStream.finalMessage.mockImplementation(async () => deckResponse(5, `C${call++}`));
+    mockStream.finalMessage.mockImplementation(async () =>
+      deckResponse(5, `C${call++}`)
+    );
 
-    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
-      isPaying: true,
-      userId: 42,
-      comprehensive: false,
-    });
+    await generateDeckInfo(
+      sixChunkHtml,
+      [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      {
+        isPaying: true,
+        userId: 42,
+        comprehensive: false,
+      }
+    );
 
     expect(mockStream.finalMessage).toHaveBeenCalledTimes(6);
   });
 
   it('comprehensive on — emits ai_conversion_completed event with required fields including comprehensive', async () => {
     let call = 0;
-    mockStream.finalMessage.mockImplementation(async () => deckResponse(50, `C${call++}`));
+    mockStream.finalMessage.mockImplementation(async () =>
+      deckResponse(50, `C${call++}`)
+    );
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const trackMod = require('../../services/events/track');
-    const trackSpy = jest.spyOn(trackMod, 'track').mockImplementation(() => undefined);
+    const trackSpy = jest
+      .spyOn(trackMod, 'track')
+      .mockImplementation(() => undefined);
 
     try {
-      await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
-        isPaying: true,
-        userId: 42,
-        comprehensive: true,
-      });
+      await generateDeckInfo(
+        sixChunkHtml,
+        [],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        {
+          isPaying: true,
+          userId: 42,
+          comprehensive: true,
+        }
+      );
 
       const completedCall = trackSpy.mock.calls.find(
         (call: unknown[]) => call[0] === 'ai_conversion_completed'
       );
       expect(completedCall).toBeDefined();
-      const props = (completedCall![1] as { props?: Record<string, unknown> }).props;
+      const props = (completedCall![1] as { props?: Record<string, unknown> })
+        .props;
       expect(props).toMatchObject({
         card_count: expect.any(Number),
         chunks: expect.any(Number),
@@ -893,11 +1085,15 @@ describe('generateDeckInfo — floor v1 (comprehensive CardOption)', () => {
 
   it('comprehensive off — does NOT emit ai_conversion_completed event', async () => {
     let call = 0;
-    mockStream.finalMessage.mockImplementation(async () => deckResponse(5, `C${call++}`));
+    mockStream.finalMessage.mockImplementation(async () =>
+      deckResponse(5, `C${call++}`)
+    );
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const trackMod = require('../../services/events/track');
-    const trackSpy = jest.spyOn(trackMod, 'track').mockImplementation(() => undefined);
+    const trackSpy = jest
+      .spyOn(trackMod, 'track')
+      .mockImplementation(() => undefined);
 
     try {
       await generateDeckInfo(sixChunkHtml, []);
@@ -919,11 +1115,20 @@ describe('generateDeckInfo — floor v1 (comprehensive CardOption)', () => {
       return deckResponse(10, 'Initial0');
     });
 
-    await generateDeckInfo(sixChunkHtml, [], undefined, undefined, undefined, undefined, undefined, {
-      isPaying: true,
-      userId: 42,
-      comprehensive: true,
-    });
+    await generateDeckInfo(
+      sixChunkHtml,
+      [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      {
+        isPaying: true,
+        userId: 42,
+        comprehensive: true,
+      }
+    );
 
     expect(mockStream.finalMessage.mock.calls.length).toBeLessThan(6 + 6 + 6);
   });

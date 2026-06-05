@@ -23,9 +23,7 @@ const KNOWN_APP_PREFIXES = [
 const LINK_RE = /(?<!!)\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
 
 function stripCode(body: string): string {
-  return body
-    .replace(/```[\s\S]*?```/g, '')
-    .replace(/`[^`\n]+`/g, '');
+  return body.replace(/```[\s\S]*?```/g, '').replace(/`[^`\n]+`/g, '');
 }
 
 type LinkKind = 'external' | 'anchor' | 'doc' | 'app' | 'relative';
@@ -83,7 +81,7 @@ describe('docs content link integrity', () => {
 
   it('no link starts with /documentation/documentation/', () => {
     const doubled = allLinks.filter((l) =>
-      l.href.startsWith('/documentation/documentation/'),
+      l.href.startsWith('/documentation/documentation/')
     );
     expect(doubled).toEqual([]);
   });
@@ -93,7 +91,7 @@ describe('docs content link integrity', () => {
       if (classify(l.href) !== 'app') return false;
       const path = l.href.split(/[?#]/)[0];
       return !KNOWN_APP_PREFIXES.some(
-        (prefix) => path === prefix || path.startsWith(`${prefix}/`),
+        (prefix) => path === prefix || path.startsWith(`${prefix}/`)
       );
     });
     expect(unknown).toEqual([]);

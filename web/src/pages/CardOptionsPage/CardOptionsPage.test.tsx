@@ -36,7 +36,10 @@ vi.mock('../../components/CardOptionsForm/CardOptionsForm', () => ({
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>(
+      'react-router-dom'
+    );
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
@@ -72,7 +75,9 @@ describe('CardOptionsPage per-page list', () => {
     await waitFor(() => {
       expect(screen.getByTestId('card-options-form')).toBeInTheDocument();
     });
-    expect(screen.queryByText('Pages with custom settings')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Pages with custom settings')
+    ).not.toBeInTheDocument();
   });
 
   it('renders the form and a device-local notice for anonymous users', async () => {
@@ -109,7 +114,9 @@ describe('CardOptionsPage per-page list', () => {
   it('shows the pages section with empty state when arriving from /notion', async () => {
     renderPage('?returnTo=/notion');
     await waitFor(() => {
-      expect(screen.getByText('Pages with custom settings')).toBeInTheDocument();
+      expect(
+        screen.getByText('Pages with custom settings')
+      ).toBeInTheDocument();
       expect(
         screen.getByText(/When you save options for a specific Notion page/i)
       ).toBeInTheDocument();
@@ -122,7 +129,9 @@ describe('CardOptionsPage per-page list', () => {
     });
     renderPage();
     await waitFor(() => {
-      expect(screen.getByText('Pages with custom settings')).toBeInTheDocument();
+      expect(
+        screen.getByText('Pages with custom settings')
+      ).toBeInTheDocument();
     });
   });
 
@@ -148,7 +157,11 @@ describe('CardOptionsPage per-page list', () => {
   it('renders a row for each saved per-page override linking to rules page', async () => {
     mockApi.listSettings.mockResolvedValue({
       items: [
-        { pageId: 'abc-123', title: null, updatedAt: '2026-01-15T10:00:00.000Z' },
+        {
+          pageId: 'abc-123',
+          title: null,
+          updatedAt: '2026-01-15T10:00:00.000Z',
+        },
         { pageId: 'def-456', title: null, updatedAt: null },
       ],
     });
@@ -171,30 +184,46 @@ describe('CardOptionsPage per-page list', () => {
     });
     renderPage('?pageId=abc-123');
     await waitFor(() => {
-      expect(screen.queryByText('Pages with custom settings')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('Pages with custom settings')
+      ).not.toBeInTheDocument();
     });
   });
 
   it('renders a Reset button for each saved page row', async () => {
     mockApi.listSettings.mockResolvedValue({
       items: [
-        { pageId: 'abc-123', title: 'Organic Chemistry', updatedAt: '2026-01-15T10:00:00.000Z' },
+        {
+          pageId: 'abc-123',
+          title: 'Organic Chemistry',
+          updatedAt: '2026-01-15T10:00:00.000Z',
+        },
       ],
     });
     renderPage();
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Reset Organic Chemistry to defaults/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', {
+          name: /Reset Organic Chemistry to defaults/i,
+        })
+      ).toBeInTheDocument();
     });
   });
 
   it('removes the row from the list after a successful row reset', async () => {
     mockApi.listSettings.mockResolvedValue({
       items: [
-        { pageId: 'abc-123', title: 'Organic Chemistry', updatedAt: '2026-01-15T10:00:00.000Z' },
+        {
+          pageId: 'abc-123',
+          title: 'Organic Chemistry',
+          updatedAt: '2026-01-15T10:00:00.000Z',
+        },
       ],
     });
     renderPage();
-    const resetButton = await screen.findByRole('button', { name: /Reset Organic Chemistry to defaults/i });
+    const resetButton = await screen.findByRole('button', {
+      name: /Reset Organic Chemistry to defaults/i,
+    });
     fireEvent.click(resetButton);
     await waitFor(() => {
       expect(screen.queryByText('Organic Chemistry')).not.toBeInTheDocument();
@@ -204,22 +233,26 @@ describe('CardOptionsPage per-page list', () => {
   it('shows error strip when row reset fails', async () => {
     mockApi.deleteSettings.mockRejectedValue(new Error('network'));
     mockApi.listSettings.mockResolvedValue({
-      items: [
-        { pageId: 'abc-123', title: 'Page A', updatedAt: null },
-      ],
+      items: [{ pageId: 'abc-123', title: 'Page A', updatedAt: null }],
     });
     renderPage();
-    const resetButton = await screen.findByRole('button', { name: /Reset Page A to defaults/i });
+    const resetButton = await screen.findByRole('button', {
+      name: /Reset Page A to defaults/i,
+    });
     fireEvent.click(resetButton);
     await waitFor(() => {
-      expect(screen.getByText("Couldn't reset. Try again.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Couldn't reset. Try again.")
+      ).toBeInTheDocument();
     });
   });
 
   it('hides bulk reset button when list is empty', async () => {
     renderPage();
     await waitFor(() => {
-      expect(screen.queryByRole('button', { name: /Reset all to defaults/i })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /Reset all to defaults/i })
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -232,7 +265,9 @@ describe('CardOptionsPage per-page list', () => {
     });
     renderPage();
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Reset all to defaults/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /Reset all to defaults/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -244,10 +279,14 @@ describe('CardOptionsPage per-page list', () => {
       ],
     });
     renderPage();
-    const bulkButton = await screen.findByRole('button', { name: /Reset all to defaults/i });
+    const bulkButton = await screen.findByRole('button', {
+      name: /Reset all to defaults/i,
+    });
     fireEvent.click(bulkButton);
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Reset 2 pages' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Reset 2 pages' })
+      ).toBeInTheDocument();
     });
   });
 
@@ -259,9 +298,13 @@ describe('CardOptionsPage per-page list', () => {
       .mockResolvedValueOnce({ items: [] });
 
     renderPage();
-    const bulkButton = await screen.findByRole('button', { name: /Reset all to defaults/i });
+    const bulkButton = await screen.findByRole('button', {
+      name: /Reset all to defaults/i,
+    });
     fireEvent.click(bulkButton);
-    const confirmButton = await screen.findByRole('button', { name: 'Reset 1 page' });
+    const confirmButton = await screen.findByRole('button', {
+      name: 'Reset 1 page',
+    });
     fireEvent.click(confirmButton);
 
     await waitFor(() => {
@@ -273,7 +316,9 @@ describe('CardOptionsPage per-page list', () => {
   it('wires onSaved to return to /upload when arriving with ?returnTo=/upload', async () => {
     renderPage('?returnTo=/upload');
     await screen.findByTestId('card-options-form');
-    const props = cardOptionsFormProps.mock.calls.at(-1)?.[0] as { onSaved?: () => void };
+    const props = cardOptionsFormProps.mock.calls.at(-1)?.[0] as {
+      onSaved?: () => void;
+    };
     expect(props.onSaved).toBeDefined();
     props.onSaved!();
     expect(mockNavigate).toHaveBeenCalledWith('/upload');
@@ -282,14 +327,18 @@ describe('CardOptionsPage per-page list', () => {
   it('leaves onSaved undefined for direct nav to /card-options', async () => {
     renderPage();
     await screen.findByTestId('card-options-form');
-    const props = cardOptionsFormProps.mock.calls.at(-1)?.[0] as { onSaved?: () => void };
+    const props = cardOptionsFormProps.mock.calls.at(-1)?.[0] as {
+      onSaved?: () => void;
+    };
     expect(props.onSaved).toBeUndefined();
   });
 
   it('keeps onSaved wired when viewing a specific page', async () => {
     renderPage('?pageId=abc-123');
     await screen.findByTestId('card-options-form');
-    const props = cardOptionsFormProps.mock.calls.at(-1)?.[0] as { onSaved?: () => void };
+    const props = cardOptionsFormProps.mock.calls.at(-1)?.[0] as {
+      onSaved?: () => void;
+    };
     expect(props.onSaved).toBeDefined();
     props.onSaved!();
     expect(mockNavigate).toHaveBeenCalledWith('/upload');
@@ -301,13 +350,19 @@ describe('CardOptionsPage per-page list', () => {
       items: [{ pageId: 'abc-123', title: 'Page A', updatedAt: null }],
     });
     renderPage();
-    const bulkButton = await screen.findByRole('button', { name: /Reset all to defaults/i });
+    const bulkButton = await screen.findByRole('button', {
+      name: /Reset all to defaults/i,
+    });
     fireEvent.click(bulkButton);
-    const confirmButton = await screen.findByRole('button', { name: 'Reset 1 page' });
+    const confirmButton = await screen.findByRole('button', {
+      name: 'Reset 1 page',
+    });
     fireEvent.click(confirmButton);
     await waitFor(() => {
       expect(
-        screen.getByText("Couldn't reset all pages. Some may have been reset — refresh to check.")
+        screen.getByText(
+          "Couldn't reset all pages. Some may have been reset — refresh to check."
+        )
       ).toBeInTheDocument();
     });
   });

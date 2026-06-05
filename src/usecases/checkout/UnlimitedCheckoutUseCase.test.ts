@@ -5,7 +5,7 @@ import { UnlimitedCheckoutUseCase } from './UnlimitedCheckoutUseCase';
 const mockStripeCreateSession = jest.fn();
 
 const makeStripe = () =>
-  ({ checkout: { sessions: { create: mockStripeCreateSession } } } as never);
+  ({ checkout: { sessions: { create: mockStripeCreateSession } } }) as never;
 
 const MONTHLY_PRICE_ID = 'price_unlimited_monthly';
 const YEARLY_PRICE_ID = 'price_unlimited_yearly';
@@ -16,10 +16,20 @@ beforeEach(() => {
 
 describe('UnlimitedCheckoutUseCase', () => {
   it('creates a Checkout session with the monthly price ID when interval is month', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/month' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/month',
+    });
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
-    const result = await uc.execute({ userEmail: 'user@example.com', userId: 1, interval: 'month' });
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
+    const result = await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 1,
+      interval: 'month',
+    });
 
     expect(result).toEqual({ url: 'https://checkout.stripe.com/month' });
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
@@ -32,10 +42,20 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('creates a Checkout session with the yearly price ID when interval is year', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/year' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/year',
+    });
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
-    const result = await uc.execute({ userEmail: 'user@example.com', userId: 2, interval: 'year' });
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
+    const result = await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 2,
+      interval: 'year',
+    });
 
     expect(result).toEqual({ url: 'https://checkout.stripe.com/year' });
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
@@ -48,10 +68,20 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('returns the success and cancel URLs', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
-    await uc.execute({ userEmail: 'user@example.com', userId: 3, interval: 'month' });
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 3,
+      interval: 'month',
+    });
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -62,9 +92,15 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('passes stripeCustomerId as customer when present', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
     await uc.execute({
       userEmail: 'user@example.com',
       userId: 4,
@@ -81,10 +117,20 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('uses customer_email when no stripeCustomerId', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
-    await uc.execute({ userEmail: 'new@example.com', userId: 5, interval: 'month' });
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
+    await uc.execute({
+      userEmail: 'new@example.com',
+      userId: 5,
+      interval: 'month',
+    });
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -95,11 +141,21 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('emits unlimited.checkout.session_created structured log', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
     const consoleSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
-    await uc.execute({ userEmail: 'user@example.com', userId: 6, interval: 'month' });
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 6,
+      interval: 'month',
+    });
 
     expect(consoleSpy).toHaveBeenCalledWith(
       expect.stringContaining('unlimited.checkout.session_created'),
@@ -109,9 +165,15 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('stamps anon_id into metadata when present', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
     await uc.execute({
       userEmail: 'user@example.com',
       userId: 8,
@@ -127,10 +189,20 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('omits anon_id from metadata when absent', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
-    await uc.execute({ userEmail: 'user@example.com', userId: 9, interval: 'month' });
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 9,
+      interval: 'month',
+    });
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -140,9 +212,15 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('stamps surface into metadata when provided', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
     await uc.execute({
       userEmail: 'user@example.com',
       userId: 10,
@@ -158,10 +236,20 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('omits surface from metadata when absent', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
-    await uc.execute({ userEmail: 'user@example.com', userId: 11, interval: 'month' });
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 11,
+      interval: 'month',
+    });
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -171,9 +259,15 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('stamps ga_client_id into metadata when provided', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
     await uc.execute({
       userEmail: 'user@example.com',
       userId: 12,
@@ -189,10 +283,20 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('omits ga_client_id from metadata when absent', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
-    await uc.execute({ userEmail: 'user@example.com', userId: 13, interval: 'month' });
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 13,
+      interval: 'month',
+    });
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -202,10 +306,20 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('enables Stripe session recovery on expiry', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
-    await uc.execute({ userEmail: 'user@example.com', userId: 14, interval: 'month' });
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 14,
+      interval: 'month',
+    });
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -215,10 +329,16 @@ describe('UnlimitedCheckoutUseCase', () => {
   });
 
   it('does not log raw Stripe customer IDs', async () => {
-    mockStripeCreateSession.mockResolvedValue({ url: 'https://checkout.stripe.com/test' });
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/test',
+    });
     const consoleSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
 
-    const uc = new UnlimitedCheckoutUseCase(makeStripe(), MONTHLY_PRICE_ID, YEARLY_PRICE_ID);
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID
+    );
     await uc.execute({
       userEmail: 'user@example.com',
       userId: 7,

@@ -33,7 +33,13 @@ async function makeDb(): Promise<Knex> {
 
 async function insertJob(
   db: Knex,
-  attrs: { owner: string; object_id: string; status?: string; title?: string; type?: string }
+  attrs: {
+    owner: string;
+    object_id: string;
+    status?: string;
+    title?: string;
+    type?: string;
+  }
 ) {
   return db('jobs').insert({
     owner: attrs.owner,
@@ -47,7 +53,12 @@ async function insertJob(
 
 async function insertUpload(
   db: Knex,
-  attrs: { owner: number; object_id: string | null; key: string; filename?: string }
+  attrs: {
+    owner: number;
+    object_id: string | null;
+    key: string;
+    filename?: string;
+  }
 ) {
   return db('uploads').insert({
     owner: attrs.owner,
@@ -106,7 +117,11 @@ describe('JobRepository.getJobsByOwner', () => {
 
   it('keeps owner-scoping: another owner with the same object_id does not leak across', async () => {
     await insertJob(db, { owner: '1', object_id: 'page-shared' });
-    await insertUpload(db, { owner: 2, object_id: 'page-shared', key: 'other.apkg' });
+    await insertUpload(db, {
+      owner: 2,
+      object_id: 'page-shared',
+      key: 'other.apkg',
+    });
 
     const repo = new JobRepository(db);
     const rows = await repo.getJobsByOwner('1');
@@ -137,7 +152,9 @@ describe('JobRepository.getJobsByOwner', () => {
     const rows = await repo.getJobsByOwner('1');
 
     expect(rows).toHaveLength(2);
-    const byTitle = Object.fromEntries(rows.map((r) => [r.title, r.download_key]));
+    const byTitle = Object.fromEntries(
+      rows.map((r) => [r.title, r.download_key])
+    );
     expect(byTitle.A).toBe('a.apkg');
     expect(byTitle.B).toBe('b-2.apkg');
   });
@@ -201,28 +218,55 @@ describe('JobRepository.findPriorNotionJobByOwnerAndObjectId', () => {
   });
 
   it('returns job when a matching prior notion job exists within window', async () => {
-    await insertJob(db, { owner: 'u1', object_id: 'page-a', type: 'page', status: 'done' });
+    await insertJob(db, {
+      owner: 'u1',
+      object_id: 'page-a',
+      type: 'page',
+      status: 'done',
+    });
     const repo = new JobRepository(db);
 
-    const result = await repo.findPriorNotionJobByOwnerAndObjectId('u1', 'page-a', 90 * 24 * 60 * 60 * 1000);
+    const result = await repo.findPriorNotionJobByOwnerAndObjectId(
+      'u1',
+      'page-a',
+      90 * 24 * 60 * 60 * 1000
+    );
 
     expect(result).toMatchObject({ object_id: 'page-a', type: 'page' });
   });
 
   it('returns undefined when no job matches for the owner', async () => {
-    await insertJob(db, { owner: 'u2', object_id: 'page-a', type: 'page', status: 'done' });
+    await insertJob(db, {
+      owner: 'u2',
+      object_id: 'page-a',
+      type: 'page',
+      status: 'done',
+    });
     const repo = new JobRepository(db);
 
-    const result = await repo.findPriorNotionJobByOwnerAndObjectId('u1', 'page-a', 90 * 24 * 60 * 60 * 1000);
+    const result = await repo.findPriorNotionJobByOwnerAndObjectId(
+      'u1',
+      'page-a',
+      90 * 24 * 60 * 60 * 1000
+    );
 
     expect(result).toBeUndefined();
   });
 
   it('returns undefined when job type is not a notion type', async () => {
-    await insertJob(db, { owner: 'u1', object_id: 'file-a', type: 'upload', status: 'done' });
+    await insertJob(db, {
+      owner: 'u1',
+      object_id: 'file-a',
+      type: 'upload',
+      status: 'done',
+    });
     const repo = new JobRepository(db);
 
-    const result = await repo.findPriorNotionJobByOwnerAndObjectId('u1', 'file-a', 90 * 24 * 60 * 60 * 1000);
+    const result = await repo.findPriorNotionJobByOwnerAndObjectId(
+      'u1',
+      'file-a',
+      90 * 24 * 60 * 60 * 1000
+    );
 
     expect(result).toBeUndefined();
   });
@@ -240,12 +284,30 @@ describe('JobRepository.countRecentNotionJobsByOwner', () => {
   });
 
   it('counts only notion-type jobs for the owner', async () => {
-    await insertJob(db, { owner: 'u1', object_id: 'page-a', type: 'page', status: 'done' });
-    await insertJob(db, { owner: 'u1', object_id: 'page-b', type: 'database', status: 'done' });
-    await insertJob(db, { owner: 'u1', object_id: 'file-c', type: 'upload', status: 'done' });
+    await insertJob(db, {
+      owner: 'u1',
+      object_id: 'page-a',
+      type: 'page',
+      status: 'done',
+    });
+    await insertJob(db, {
+      owner: 'u1',
+      object_id: 'page-b',
+      type: 'database',
+      status: 'done',
+    });
+    await insertJob(db, {
+      owner: 'u1',
+      object_id: 'file-c',
+      type: 'upload',
+      status: 'done',
+    });
     const repo = new JobRepository(db);
 
-    const count = await repo.countRecentNotionJobsByOwner('u1', 30 * 24 * 60 * 60 * 1000);
+    const count = await repo.countRecentNotionJobsByOwner(
+      'u1',
+      30 * 24 * 60 * 60 * 1000
+    );
 
     expect(count).toBe(2);
   });
@@ -253,7 +315,10 @@ describe('JobRepository.countRecentNotionJobsByOwner', () => {
   it('returns 0 when no notion jobs exist for the owner', async () => {
     const repo = new JobRepository(db);
 
-    const count = await repo.countRecentNotionJobsByOwner('u1', 30 * 24 * 60 * 60 * 1000);
+    const count = await repo.countRecentNotionJobsByOwner(
+      'u1',
+      30 * 24 * 60 * 60 * 1000
+    );
 
     expect(count).toBe(0);
   });
@@ -272,7 +337,7 @@ describe('JobRepository — generated SQL shape', () => {
       .toString();
     expect(sql).toContain('where "owner" = \'u1\'');
     expect(sql).toContain('"object_id" = \'page-a\'');
-    expect(sql).toContain('"type" in (\'page\', \'database\')');
+    expect(sql).toContain("\"type\" in ('page', 'database')");
     expect(sql).toContain('"created_at" >=');
     pgKnex.destroy();
   });
@@ -288,7 +353,7 @@ describe('JobRepository — generated SQL shape', () => {
       .first()
       .toString();
     expect(sql).toContain('count(*) as "count"');
-    expect(sql).toContain('"type" in (\'page\', \'database\')');
+    expect(sql).toContain("\"type\" in ('page', 'database')");
     expect(sql).toContain('"created_at" >=');
     pgKnex.destroy();
   });

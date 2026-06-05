@@ -16,13 +16,19 @@ describe('pdfPasswordSentinel', () => {
   });
 
   it('preserves filenames containing the literal prefix', () => {
-    const sentinel = buildPdfPasswordSentinel('PDF_NEEDS_PASSWORD-research.pdf');
-    expect(parsePdfPasswordSentinel(sentinel)).toBe('PDF_NEEDS_PASSWORD-research.pdf');
+    const sentinel = buildPdfPasswordSentinel(
+      'PDF_NEEDS_PASSWORD-research.pdf'
+    );
+    expect(parsePdfPasswordSentinel(sentinel)).toBe(
+      'PDF_NEEDS_PASSWORD-research.pdf'
+    );
   });
 
   it('returns null for unrelated messages', () => {
     expect(parsePdfPasswordSentinel('Some other error')).toBeNull();
-    expect(parsePdfPasswordSentinel('PDF_NEEDS_PASSWORD:legacy.pdf')).toBeNull();
+    expect(
+      parsePdfPasswordSentinel('PDF_NEEDS_PASSWORD:legacy.pdf')
+    ).toBeNull();
   });
 
   it('detects sentinel messages via isPdfPasswordSentinel', () => {

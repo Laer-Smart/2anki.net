@@ -4,11 +4,15 @@ const aiFlashcardGeneratorCopy: LandingCopy = {
   relatedLinks: [
     { label: 'Convert Notion pages to Anki', href: '/notion-to-anki' },
     { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
-    { label: 'Convert Markdown and Obsidian notes to Anki', href: '/markdown-to-anki' },
+    {
+      label: 'Convert Markdown and Obsidian notes to Anki',
+      href: '/markdown-to-anki',
+    },
     { label: 'Browse every converter', href: '/convert' },
   ],
   pathname: '/ai-flashcard-generator',
-  title: 'AI flashcard generator for Anki — your notes in, real cards out | 2anki',
+  title:
+    'AI flashcard generator for Anki — your notes in, real cards out | 2anki',
   description:
     'Turn your own notes into Anki cards. 2anki reads what you upload and builds a deck — no hallucinated cards, no invented facts.',
   h1: 'Turn your notes into Anki cards',

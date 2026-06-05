@@ -4,7 +4,9 @@ import type { IUserVisibleErrorsRepository } from '../../data_layer/UserVisibleE
 
 function buildMockDb() {
   return {
-    raw: jest.fn().mockResolvedValue({ rows: [{ p50: null, p95: null, p99: null, total: '0' }] }),
+    raw: jest.fn().mockResolvedValue({
+      rows: [{ p50: null, p95: null, p99: null, total: '0' }],
+    }),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any;
 }
@@ -20,9 +22,21 @@ describe('PerformanceMetricsService.getUserVisibleErrorCounts', () => {
 
   it('returns counts from the repository', async () => {
     const repo = new InMemoryUserVisibleErrorsRepository();
-    await repo.record({ userId: null, surface: 'oauth_google', code: 'oauth_cancelled' });
-    await repo.record({ userId: null, surface: 'oauth_google', code: 'oauth_cancelled' });
-    await repo.record({ userId: null, surface: 'stripe_webhook', code: 'stripe_webhook_signature_invalid' });
+    await repo.record({
+      userId: null,
+      surface: 'oauth_google',
+      code: 'oauth_cancelled',
+    });
+    await repo.record({
+      userId: null,
+      surface: 'oauth_google',
+      code: 'oauth_cancelled',
+    });
+    await repo.record({
+      userId: null,
+      surface: 'stripe_webhook',
+      code: 'stripe_webhook_signature_invalid',
+    });
 
     const service = new PerformanceMetricsService(buildMockDb(), repo);
 
@@ -30,18 +44,29 @@ describe('PerformanceMetricsService.getUserVisibleErrorCounts', () => {
 
     expect(result).toEqual([
       { surface: 'oauth_google', code: 'oauth_cancelled', count: 2 },
-      { surface: 'stripe_webhook', code: 'stripe_webhook_signature_invalid', count: 1 },
+      {
+        surface: 'stripe_webhook',
+        code: 'stripe_webhook_signature_invalid',
+        count: 1,
+      },
     ]);
   });
 
   it('respects the sinceDays window (24h vs 7d filter)', async () => {
     const repo: IUserVisibleErrorsRepository = {
       record: jest.fn(),
-      countBySurfaceAndCode: jest.fn()
-        .mockResolvedValueOnce([{ surface: 'oauth_google', code: 'oauth_cancelled', count: 3 }])
+      countBySurfaceAndCode: jest
+        .fn()
+        .mockResolvedValueOnce([
+          { surface: 'oauth_google', code: 'oauth_cancelled', count: 3 },
+        ])
         .mockResolvedValueOnce([
           { surface: 'oauth_google', code: 'oauth_cancelled', count: 10 },
-          { surface: 'stripe_webhook', code: 'stripe_webhook_signature_invalid', count: 5 },
+          {
+            surface: 'stripe_webhook',
+            code: 'stripe_webhook_signature_invalid',
+            count: 5,
+          },
         ]),
     };
 

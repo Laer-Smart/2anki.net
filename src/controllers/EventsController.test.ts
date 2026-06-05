@@ -18,10 +18,7 @@ function makeFakeRepository(): IEventsRepository {
   };
 }
 
-function buildMocks(opts: {
-  userId?: number | null;
-  anonId?: string | null;
-}) {
+function buildMocks(opts: { userId?: number | null; anonId?: string | null }) {
   const repo = makeFakeRepository();
   const sink = new EventsSink(repo);
   const useCase = new TrackEventUseCase(sink);
@@ -83,7 +80,10 @@ describe('EventsController', () => {
   });
 
   it('returns 202 with a valid known event', () => {
-    const { controller, req, res } = buildMocks({ userId: 5, anonId: 'anon-x' });
+    const { controller, req, res } = buildMocks({
+      userId: 5,
+      anonId: 'anon-x',
+    });
     req.body = { name: 'deck_downloaded' };
     controller.track(req, res);
     expect(res.status).toHaveBeenCalledWith(202);
@@ -217,10 +217,13 @@ describe('EventsController — regression: all client events return 202 (AC #5)'
     .map((m) => m[1])
     .filter((n) => n !== 'as');
 
-  it.each(clientEventNames)('server returns 202 for client event: %s', (eventName) => {
-    const { controller, req, res } = buildMocks({ userId: 1 });
-    req.body = { name: eventName };
-    controller.track(req, res);
-    expect(res.status).toHaveBeenCalledWith(202);
-  });
+  it.each(clientEventNames)(
+    'server returns 202 for client event: %s',
+    (eventName) => {
+      const { controller, req, res } = buildMocks({ userId: 1 });
+      req.body = { name: eventName };
+      controller.track(req, res);
+      expect(res.status).toHaveBeenCalledWith(202);
+    }
+  );
 });

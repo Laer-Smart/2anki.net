@@ -64,7 +64,10 @@ describe('InMemoryMagicTokenRepository', () => {
       await repo.create('t2', 5, 'login', FIFTEEN_MINUTES_LATER);
       await repo.create('t3', 99, 'login', FIFTEEN_MINUTES_LATER);
 
-      const count = await repo.countRecentByOwner(5, new Date('2026-05-12T11:00:00Z'));
+      const count = await repo.countRecentByOwner(
+        5,
+        new Date('2026-05-12T11:00:00Z')
+      );
 
       expect(count).toBe(2);
     });
@@ -77,7 +80,10 @@ describe('InMemoryMagicTokenRepository', () => {
       repo.setNow(NOW);
       await repo.create('new-tok', 5, 'login', FIFTEEN_MINUTES_LATER);
 
-      const count = await repo.countRecentByOwner(5, new Date('2026-05-12T11:00:00Z'));
+      const count = await repo.countRecentByOwner(
+        5,
+        new Date('2026-05-12T11:00:00Z')
+      );
 
       expect(count).toBe(1);
     });
@@ -85,7 +91,10 @@ describe('InMemoryMagicTokenRepository', () => {
     it('returns zero when no tokens match', async () => {
       const repo = buildRepo();
 
-      const count = await repo.countRecentByOwner(42, new Date('2026-05-12T11:00:00Z'));
+      const count = await repo.countRecentByOwner(
+        42,
+        new Date('2026-05-12T11:00:00Z')
+      );
 
       expect(count).toBe(0);
     });

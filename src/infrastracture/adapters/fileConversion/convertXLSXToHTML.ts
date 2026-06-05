@@ -16,7 +16,9 @@ function cellLooksLikeHeader(cell: unknown): boolean {
 }
 
 export function looksLikeHeaderRow(row: XLSXRow): boolean {
-  const cells = row.filter((cell) => cell != null && String(cell).trim() !== '');
+  const cells = row.filter(
+    (cell) => cell != null && String(cell).trim() !== ''
+  );
   if (cells.length === 0) return false;
   return cells.every(cellLooksLikeHeader);
 }

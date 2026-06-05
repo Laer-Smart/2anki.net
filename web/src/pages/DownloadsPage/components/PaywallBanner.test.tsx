@@ -1,6 +1,14 @@
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { PaywallBanner } from './PaywallBanner';
 import JobResponse from '../../../schemas/public/JobResponse';
@@ -86,13 +94,18 @@ describe('PaywallBanner', () => {
     ).toBeInTheDocument();
     expect(getUpgradeButton()).toBeInTheDocument();
     const seeAllPlans = screen.getByRole('link', { name: 'See all plans' });
-    expect(seeAllPlans).toHaveAttribute('href', '/pricing?source=paywall-cancel');
+    expect(seeAllPlans).toHaveAttribute(
+      'href',
+      '/pricing?source=paywall-cancel'
+    );
   });
 
   it('shows in-progress job title and relative start time when inProgressJob is provided', () => {
     render(
       <MemoryRouter>
-        <PaywallBanner inProgressJob={buildJob({ title: 'Biology Chapter 1' })} />
+        <PaywallBanner
+          inProgressJob={buildJob({ title: 'Biology Chapter 1' })}
+        />
       </MemoryRouter>
     );
 
@@ -113,7 +126,9 @@ describe('PaywallBanner', () => {
   });
 
   it('fires paywall_shown on mount and paywall_clicked_upgrade when the button is clicked', async () => {
-    startUnlimitedCheckout.mockResolvedValue({ url: 'https://checkout.test/s' });
+    startUnlimitedCheckout.mockResolvedValue({
+      url: 'https://checkout.test/s',
+    });
     const hj = (globalThis as AnalyticsGlobals).hj!;
     const gtag = (globalThis as AnalyticsGlobals).gtag!;
 
@@ -148,11 +163,15 @@ describe('PaywallBanner', () => {
       </MemoryRouter>
     );
 
-    expect(trackMock).toHaveBeenCalledWith('paywall_shown', { surface: 'downloads_banner' });
+    expect(trackMock).toHaveBeenCalledWith('paywall_shown', {
+      surface: 'downloads_banner',
+    });
   });
 
   it('tracks paywall_upgrade_clicked with surface=downloads_banner when the button is clicked', async () => {
-    startUnlimitedCheckout.mockResolvedValue({ url: 'https://checkout.test/s' });
+    startUnlimitedCheckout.mockResolvedValue({
+      url: 'https://checkout.test/s',
+    });
     const { track } = await import('../../../lib/analytics/track');
     const trackMock = vi.mocked(track);
     trackMock.mockClear();

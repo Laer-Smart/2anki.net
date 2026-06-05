@@ -115,7 +115,8 @@
   border-radius: 3px;
   padding: 0.2em 0.4em;
   font-size: 100%;
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+  font-family:
+    'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
   color: #c0392b;
 }
 

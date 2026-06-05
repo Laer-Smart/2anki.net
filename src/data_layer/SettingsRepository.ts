@@ -38,7 +38,9 @@ class SettingsRepository implements ISettingsRepository {
       .first();
   }
 
-  getAllByOwner(owner: string): Promise<Pick<Settings, 'object_id' | 'title' | 'updated_at'>[]> {
+  getAllByOwner(
+    owner: string
+  ): Promise<Pick<Settings, 'object_id' | 'title' | 'updated_at'>[]> {
     return this.database(this.table)
       .select('object_id', 'title', 'updated_at')
       .where({ owner })
@@ -46,9 +48,7 @@ class SettingsRepository implements ISettingsRepository {
   }
 
   updateTitle(object_id: string, title: string): Promise<void> {
-    return this.database(this.table)
-      .where({ object_id })
-      .update({ title });
+    return this.database(this.table).where({ object_id }).update({ title });
   }
 
   deleteAllByOwner(owner: string): Promise<number> {

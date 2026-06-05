@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
-import { IngestErrorEventUseCase, ErrorEventPayload } from '../usecases/events/IngestErrorEventUseCase';
+import {
+  IngestErrorEventUseCase,
+  ErrorEventPayload,
+} from '../usecases/events/IngestErrorEventUseCase';
 import {
   InMemoryRateLimiter,
   RateLimiter,
@@ -31,10 +34,14 @@ function validatePayload(body: unknown): ErrorEventPayload | null {
     url: typeof b.url === 'string' ? b.url : null,
     userAgent: typeof b.userAgent === 'string' ? b.userAgent : null,
     release:
-      typeof b.release === 'string' ? b.release.slice(0, MAX_RELEASE_LENGTH) : null,
+      typeof b.release === 'string'
+        ? b.release.slice(0, MAX_RELEASE_LENGTH)
+        : null,
     userId: typeof b.userId === 'number' ? b.userId : null,
     context:
-      b.context != null && typeof b.context === 'object' && !Array.isArray(b.context)
+      b.context != null &&
+      typeof b.context === 'object' &&
+      !Array.isArray(b.context)
         ? (b.context as Record<string, unknown>)
         : null,
   };

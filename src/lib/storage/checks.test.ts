@@ -70,8 +70,14 @@ test('isXmlFile matches .xml regardless of case', () => {
 
 test('isAnkiAppExportXml detects a deck root element regardless of filename', () => {
   expect(isAnkiAppExportXml('<deck name="French">...</deck>')).toBe(true);
-  expect(isAnkiAppExportXml('\uFEFF<?xml version="1.0"?>\n<!-- export -->\n<deck name="x">')).toBe(true);
-  expect(isAnkiAppExportXml(Buffer.from('<deck name="x"><cards/></deck>'))).toBe(true);
+  expect(
+    isAnkiAppExportXml(
+      '\uFEFF<?xml version="1.0"?>\n<!-- export -->\n<deck name="x">'
+    )
+  ).toBe(true);
+  expect(
+    isAnkiAppExportXml(Buffer.from('<deck name="x"><cards/></deck>'))
+  ).toBe(true);
 });
 
 test('isAnkiAppExportXml rejects non-deck content', () => {

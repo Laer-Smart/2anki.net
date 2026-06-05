@@ -3,13 +3,17 @@ import { ErrorEventController } from './ErrorEventController';
 import { RateLimiter } from '../lib/rateLimit/InMemoryRateLimiter';
 import { IngestErrorEventUseCase } from '../usecases/events/IngestErrorEventUseCase';
 
-function makeIngestUseCase(result: 'accepted' | 'duplicate' = 'accepted'): IngestErrorEventUseCase {
+function makeIngestUseCase(
+  result: 'accepted' | 'duplicate' = 'accepted'
+): IngestErrorEventUseCase {
   return {
     execute: jest.fn(async () => result),
   } as unknown as IngestErrorEventUseCase;
 }
 
-function makeRes(): jest.Mocked<Pick<Response, 'status' | 'json' | 'end' | 'set'>> & {
+function makeRes(): jest.Mocked<
+  Pick<Response, 'status' | 'json' | 'end' | 'set'>
+> & {
   _statusCode?: number;
   _body?: unknown;
   _headers: Record<string, string>;
@@ -36,7 +40,11 @@ function makeRes(): jest.Mocked<Pick<Response, 'status' | 'json' | 'end' | 'set'
   };
   return res as unknown as jest.Mocked<
     Pick<Response, 'status' | 'json' | 'end' | 'set'>
-  > & { _statusCode?: number; _body?: unknown; _headers: Record<string, string> };
+  > & {
+    _statusCode?: number;
+    _body?: unknown;
+    _headers: Record<string, string>;
+  };
 }
 
 function makeReq(body: unknown, remoteAddress = '127.0.0.1'): Request {
@@ -66,7 +74,10 @@ describe('ErrorEventController.ingest', () => {
   it('returns 400 on missing message', async () => {
     const controller = new ErrorEventController(makeIngestUseCase());
     const res = makeRes();
-    await controller.ingest(makeReq({ stack: 'foo' }), res as unknown as Response);
+    await controller.ingest(
+      makeReq({ stack: 'foo' }),
+      res as unknown as Response
+    );
     expect(res._statusCode).toBe(400);
   });
 
@@ -80,13 +91,19 @@ describe('ErrorEventController.ingest', () => {
   it('returns 413 on oversized payload', async () => {
     const controller = new ErrorEventController(makeIngestUseCase());
     const res = makeRes();
-    await controller.ingest(makeReq({ message: 'x'.repeat(11_000) }), res as unknown as Response);
+    await controller.ingest(
+      makeReq({ message: 'x'.repeat(11_000) }),
+      res as unknown as Response
+    );
     expect(res._statusCode).toBe(413);
   });
 
   it('returns 429 when rate limiter denies the request', async () => {
     const exhaustedLimiter: RateLimiter = { check: () => false };
-    const controller = new ErrorEventController(makeIngestUseCase(), exhaustedLimiter);
+    const controller = new ErrorEventController(
+      makeIngestUseCase(),
+      exhaustedLimiter
+    );
     const res = makeRes();
     await controller.ingest(makeReq(VALID_BODY), res as unknown as Response);
     expect(res._statusCode).toBe(429);
@@ -94,7 +111,10 @@ describe('ErrorEventController.ingest', () => {
 
   it('sets Retry-After: 60 on a 429 response', async () => {
     const exhaustedLimiter: RateLimiter = { check: () => false };
-    const controller = new ErrorEventController(makeIngestUseCase(), exhaustedLimiter);
+    const controller = new ErrorEventController(
+      makeIngestUseCase(),
+      exhaustedLimiter
+    );
     const res = makeRes();
     await controller.ingest(makeReq(VALID_BODY), res as unknown as Response);
     expect(res._headers['Retry-After']).toBe('60');
@@ -116,17 +136,20 @@ describe('ErrorEventController.ingest', () => {
     'SomeCrawler/1.0',
     'BaiduSpider/3.0',
     'Yahoo! Slurp',
-  ])('responds 202 without storing when user agent is %s', async (userAgent) => {
-    const useCase = makeIngestUseCase();
-    const controller = new ErrorEventController(useCase);
-    const res = makeRes();
-    await controller.ingest(
-      makeReq({ ...VALID_BODY, userAgent }),
-      res as unknown as Response
-    );
-    expect(res._statusCode).toBe(202);
-    expect(useCase.execute).not.toHaveBeenCalled();
-  });
+  ])(
+    'responds 202 without storing when user agent is %s',
+    async (userAgent) => {
+      const useCase = makeIngestUseCase();
+      const controller = new ErrorEventController(useCase);
+      const res = makeRes();
+      await controller.ingest(
+        makeReq({ ...VALID_BODY, userAgent }),
+        res as unknown as Response
+      );
+      expect(res._statusCode).toBe(202);
+      expect(useCase.execute).not.toHaveBeenCalled();
+    }
+  );
 
   it('stores events from a normal browser user agent', async () => {
     const useCase = makeIngestUseCase();
@@ -160,7 +183,8 @@ describe('ErrorEventController.ingest', () => {
     const useCase = makeIngestUseCase();
     const controller = new ErrorEventController(useCase);
     const req = makeReq({ message: 'TypeError: x is null' });
-    (req.headers as Record<string, string>).referer = 'https://2anki.net/upload';
+    (req.headers as Record<string, string>).referer =
+      'https://2anki.net/upload';
     await controller.ingest(req, makeRes() as unknown as Response);
     expect(useCase.execute).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -216,8 +240,14 @@ describe('ErrorEventController.ingest', () => {
     const executeSpy = jest.spyOn(useCase, 'execute');
     const controller = new ErrorEventController(useCase);
     const res = makeRes();
-    await controller.ingest(makeReq(VALID_BODY, '192.168.1.1'), res as unknown as Response);
-    const callArg = (executeSpy.mock.calls[0][0] as { ipHash: string; payload: unknown });
+    await controller.ingest(
+      makeReq(VALID_BODY, '192.168.1.1'),
+      res as unknown as Response
+    );
+    const callArg = executeSpy.mock.calls[0][0] as {
+      ipHash: string;
+      payload: unknown;
+    };
     expect(callArg.ipHash).not.toBe('192.168.1.1');
     expect(callArg.ipHash).toHaveLength(64);
   });

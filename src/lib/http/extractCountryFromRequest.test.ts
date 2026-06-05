@@ -1,28 +1,24 @@
 import { extractCountryFromRequest } from './extractCountryFromRequest';
 
 const reqWith = (headers: Record<string, string | string[] | undefined>) =>
-  ({ headers } as unknown as Parameters<typeof extractCountryFromRequest>[0]);
+  ({ headers }) as unknown as Parameters<typeof extractCountryFromRequest>[0];
 
 describe('extractCountryFromRequest', () => {
   it('reads CloudFront-Viewer-Country', () => {
     expect(
-      extractCountryFromRequest(
-        reqWith({ 'cloudfront-viewer-country': 'US' })
-      )
+      extractCountryFromRequest(reqWith({ 'cloudfront-viewer-country': 'US' }))
     ).toBe('US');
   });
 
   it('falls back to CF-IPCountry', () => {
-    expect(
-      extractCountryFromRequest(reqWith({ 'cf-ipcountry': 'de' }))
-    ).toBe('DE');
+    expect(extractCountryFromRequest(reqWith({ 'cf-ipcountry': 'de' }))).toBe(
+      'DE'
+    );
   });
 
   it('uppercases lowercase header values', () => {
     expect(
-      extractCountryFromRequest(
-        reqWith({ 'cloudfront-viewer-country': 'gb' })
-      )
+      extractCountryFromRequest(reqWith({ 'cloudfront-viewer-country': 'gb' }))
     ).toBe('GB');
   });
 
@@ -32,14 +28,10 @@ describe('extractCountryFromRequest', () => {
 
   it('returns null for non-ISO values', () => {
     expect(
-      extractCountryFromRequest(
-        reqWith({ 'cloudfront-viewer-country': 'XX1' })
-      )
+      extractCountryFromRequest(reqWith({ 'cloudfront-viewer-country': 'XX1' }))
     ).toBeNull();
     expect(
-      extractCountryFromRequest(
-        reqWith({ 'cloudfront-viewer-country': '' })
-      )
+      extractCountryFromRequest(reqWith({ 'cloudfront-viewer-country': '' }))
     ).toBeNull();
   });
 

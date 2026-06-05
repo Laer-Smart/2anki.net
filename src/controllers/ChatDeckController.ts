@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
-import { ChatDeckUseCase, type ChatDeckCard } from '../usecases/chat/ChatDeckUseCase';
+import {
+  ChatDeckUseCase,
+  type ChatDeckCard,
+} from '../usecases/chat/ChatDeckUseCase';
 import { buildContentDisposition } from '../lib/buildContentDisposition';
 
 const MAX_DECK_NAME_LENGTH = 120;
@@ -30,14 +33,21 @@ function parseTags(raw: unknown): string[] | undefined {
 function asMcqShape(record: Record<string, unknown>): ChatDeckCard | null {
   if (typeof record.front !== 'string') return null;
   const options = record.options;
-  if (!Array.isArray(options) || options.length !== REQUIRED_MCQ_OPTION_COUNT) return null;
-  if (!options.every((opt): opt is string => typeof opt === 'string' && opt.trim().length > 0)) {
+  if (!Array.isArray(options) || options.length !== REQUIRED_MCQ_OPTION_COUNT)
+    return null;
+  if (
+    !options.every(
+      (opt): opt is string => typeof opt === 'string' && opt.trim().length > 0
+    )
+  ) {
     return null;
   }
   const correctIndex = record.correctIndex;
-  if (typeof correctIndex !== 'number' || !Number.isInteger(correctIndex)) return null;
+  if (typeof correctIndex !== 'number' || !Number.isInteger(correctIndex))
+    return null;
   if (correctIndex < 0 || correctIndex >= options.length) return null;
-  const rationale = typeof record.rationale === 'string' ? record.rationale : '';
+  const rationale =
+    typeof record.rationale === 'string' ? record.rationale : '';
   const tags = parseTags(record.tags);
   return {
     front: record.front,
@@ -79,7 +89,9 @@ class ChatDeckController {
     }
 
     if (deckName.length > MAX_DECK_NAME_LENGTH) {
-      res.status(400).json({ error: `deckName must be ${MAX_DECK_NAME_LENGTH} characters or fewer` });
+      res.status(400).json({
+        error: `deckName must be ${MAX_DECK_NAME_LENGTH} characters or fewer`,
+      });
       return;
     }
 
@@ -96,18 +108,24 @@ class ChatDeckController {
     }
 
     if (rawCards.length > MAX_CARDS) {
-      res.status(400).json({ error: `cards must have at most ${MAX_CARDS} items` });
+      res
+        .status(400)
+        .json({ error: `cards must have at most ${MAX_CARDS} items` });
       return;
     }
 
     const parsedCards = rawCards.map(parseCard);
     if (parsedCards.some((c) => c == null)) {
-      res.status(400).json({ error: 'each card must have string front and back fields, or a valid MCQ shape' });
+      res.status(400).json({
+        error:
+          'each card must have string front and back fields, or a valid MCQ shape',
+      });
       return;
     }
 
     const rawTemplateSlug = req.body?.templateSlug;
-    const templateSlug = typeof rawTemplateSlug === 'string' ? rawTemplateSlug : null;
+    const templateSlug =
+      typeof rawTemplateSlug === 'string' ? rawTemplateSlug : null;
 
     const buffer = await this.useCase.execute({
       cards: parsedCards as ChatDeckCard[],
@@ -116,7 +134,10 @@ class ChatDeckController {
     });
 
     res.setHeader('Content-Type', 'application/octet-stream');
-    res.setHeader('Content-Disposition', buildContentDisposition(`${deckName}.apkg`));
+    res.setHeader(
+      'Content-Disposition',
+      buildContentDisposition(`${deckName}.apkg`)
+    );
     res.send(buffer);
   }
 }

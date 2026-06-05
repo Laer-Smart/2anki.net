@@ -16,7 +16,9 @@ const mockSessionsRetrieve = jest.fn();
 jest.mock('../lib/integrations/stripe', () => ({
   getStripe: jest.fn().mockReturnValue({
     webhooks: {
-      constructEvent: jest.fn((_body: Buffer, _sig: string) => mockWebhookEvent),
+      constructEvent: jest.fn(
+        (_body: Buffer, _sig: string) => mockWebhookEvent
+      ),
     },
     customers: { retrieve: mockCustomersRetrieve },
     checkout: { sessions: { retrieve: mockSessionsRetrieve } },
@@ -37,7 +39,9 @@ jest.mock('../data_layer/AbandonedCheckoutRecoveryRepository', () => ({
   })),
 }));
 
-const mockSendAbandonedCheckoutRecoveryEmail = jest.fn().mockResolvedValue(undefined);
+const mockSendAbandonedCheckoutRecoveryEmail = jest
+  .fn()
+  .mockResolvedValue(undefined);
 jest.mock('../services/EmailService/EmailService', () => ({
   getDefaultEmailService: jest.fn().mockReturnValue({
     sendAbandonedCheckoutRecoveryEmail: mockSendAbandonedCheckoutRecoveryEmail,
@@ -58,16 +62,22 @@ jest.mock('../services/EmailService/EmailService', () => ({
 }));
 
 jest.mock('../data_layer/UserPassRepository', () => {
-  const { InMemoryUserPassRepository: Mem } = jest.requireActual('../data_layer/UserPassRepository');
+  const { InMemoryUserPassRepository: Mem } = jest.requireActual(
+    '../data_layer/UserPassRepository'
+  );
   return {
     __esModule: true,
-    default: jest.fn().mockImplementation(() => ({ upsertWithExtension: mockUpsert })),
+    default: jest
+      .fn()
+      .mockImplementation(() => ({ upsertWithExtension: mockUpsert })),
     InMemoryUserPassRepository: Mem,
   };
 });
 
 jest.mock('../data_layer/AnonymousPassRepository', () => {
-  const { InMemoryAnonymousPassRepository: AnonMem } = jest.requireActual('../data_layer/AnonymousPassRepository');
+  const { InMemoryAnonymousPassRepository: AnonMem } = jest.requireActual(
+    '../data_layer/AnonymousPassRepository'
+  );
   return {
     __esModule: true,
     default: jest.fn().mockImplementation(() => ({ insert: mockAnonInsert })),
@@ -106,7 +116,10 @@ jest.mock('../usecases/observability/RecordUserVisibleErrorUseCase', () => ({
   })),
 }));
 
-let mockWebhookEvent: { type: string; data: { object: Record<string, unknown> } };
+let mockWebhookEvent: {
+  type: string;
+  data: { object: Record<string, unknown> };
+};
 
 async function buildServer() {
   const { default: WebhooksRouter } = await import('./WebhookRouter');
@@ -152,7 +165,10 @@ describe('WebhookRouter — pass grant', () => {
   function postWebhook() {
     return fetch(`${url}/webhook`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'stripe-signature': 'sig_test' },
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': 'sig_test',
+      },
       body: JSON.stringify({}),
     });
   }
@@ -160,7 +176,9 @@ describe('WebhookRouter — pass grant', () => {
   it('grants 24h pass on checkout.session.completed with pass_kind=24h', async () => {
     mockWebhookEvent = makePassSessionEvent();
     mockUpsert.mockResolvedValue({
-      id: 1, user_id: 42, kind: '24h',
+      id: 1,
+      user_id: 42,
+      kind: '24h',
       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
       stripe_payment_intent_id: 'pi_test_123',
     });
@@ -168,14 +186,23 @@ describe('WebhookRouter — pass grant', () => {
     const res = await postWebhook();
     expect(res.status).toBe(200);
     expect(mockUpsert).toHaveBeenCalledWith(
-      42, '24h', 24 * 60 * 60 * 1000, 'pi_test_123', expect.any(Date)
+      42,
+      '24h',
+      24 * 60 * 60 * 1000,
+      'pi_test_123',
+      expect.any(Date)
     );
   });
 
   it('grants 7d pass on checkout.session.completed with pass_kind=7d', async () => {
-    mockWebhookEvent = makePassSessionEvent({ metadata: { user_id: '7', pass_kind: '7d' }, payment_intent: 'pi_7d' });
+    mockWebhookEvent = makePassSessionEvent({
+      metadata: { user_id: '7', pass_kind: '7d' },
+      payment_intent: 'pi_7d',
+    });
     mockUpsert.mockResolvedValue({
-      id: 2, user_id: 7, kind: '7d',
+      id: 2,
+      user_id: 7,
+      kind: '7d',
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       stripe_payment_intent_id: 'pi_7d',
     });
@@ -183,7 +210,11 @@ describe('WebhookRouter — pass grant', () => {
     const res = await postWebhook();
     expect(res.status).toBe(200);
     expect(mockUpsert).toHaveBeenCalledWith(
-      7, '7d', 7 * 24 * 60 * 60 * 1000, 'pi_7d', expect.any(Date)
+      7,
+      '7d',
+      7 * 24 * 60 * 60 * 1000,
+      'pi_7d',
+      expect.any(Date)
     );
   });
 
@@ -194,12 +225,17 @@ describe('WebhookRouter — pass grant', () => {
     const res = await postWebhook();
     expect(res.status).toBe(200);
     expect(mockUpsert).not.toHaveBeenCalled();
-    expect(warnSpy).toHaveBeenCalledWith('pass.webhook.missing_metadata', expect.anything());
+    expect(warnSpy).toHaveBeenCalledWith(
+      'pass.webhook.missing_metadata',
+      expect.anything()
+    );
     warnSpy.mockRestore();
   });
 
   it('returns 200 without calling upsert when user_id is not a valid integer', async () => {
-    mockWebhookEvent = makePassSessionEvent({ metadata: { user_id: 'not-a-number', pass_kind: '24h' } });
+    mockWebhookEvent = makePassSessionEvent({
+      metadata: { user_id: 'not-a-number', pass_kind: '24h' },
+    });
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     const res = await postWebhook();
@@ -212,12 +248,18 @@ describe('WebhookRouter — pass grant', () => {
     mockWebhookEvent = makePassSessionEvent();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     mockUpsert.mockResolvedValue({
-      id: 1, user_id: 42, kind: '24h', expires_at: expiresAt, stripe_payment_intent_id: 'pi_test_123',
+      id: 1,
+      user_id: 42,
+      kind: '24h',
+      expires_at: expiresAt,
+      stripe_payment_intent_id: 'pi_test_123',
     });
     const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
 
     await postWebhook();
-    const passGrantedCall = infoSpy.mock.calls.find(([msg]) => msg === 'pass.granted');
+    const passGrantedCall = infoSpy.mock.calls.find(
+      ([msg]) => msg === 'pass.granted'
+    );
     expect(passGrantedCall).toBeDefined();
     const logData = passGrantedCall?.[1] as Record<string, unknown>;
     expect(logData.payment_intent_id_hash).toBe('hashed:pi_test_123');
@@ -319,7 +361,10 @@ describe('WebhookRouter — checkout_completed funnel join', () => {
   function postWebhook() {
     return fetch(`${url}/webhook`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'stripe-signature': 'sig_test' },
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': 'sig_test',
+      },
       body: JSON.stringify({}),
     });
   }
@@ -352,7 +397,11 @@ describe('WebhookRouter — checkout_completed funnel join', () => {
           id: 'cs_anon_join',
           mode: 'payment',
           payment_intent: 'pi_anon_join',
-          metadata: { pass_kind: '24h', pass_anonymous: '1', anon_id: 'anon-uuid-456' },
+          metadata: {
+            pass_kind: '24h',
+            pass_anonymous: '1',
+            anon_id: 'anon-uuid-456',
+          },
         },
       },
     };
@@ -410,10 +459,9 @@ describe('WebhookRouter — checkout_completed funnel join', () => {
 
     const res = await postWebhook();
     expect(res.status).toBe(200);
-    const [, options] = mockTrack.mock.calls.find((c) => c[0] === 'checkout_completed') as [
-      string,
-      { props: Record<string, unknown> },
-    ];
+    const [, options] = mockTrack.mock.calls.find(
+      (c) => c[0] === 'checkout_completed'
+    ) as [string, { props: Record<string, unknown> }];
     expect(options.props).not.toHaveProperty('recovered');
   });
 
@@ -453,7 +501,11 @@ describe('WebhookRouter — checkout_completed funnel join', () => {
     expect(res.status).toBe(200);
     expect(mockTrack).toHaveBeenCalledWith(
       'checkout_completed',
-      expect.objectContaining({ userId: 9, anonymousId: null, props: expect.objectContaining({ variant: 'minimal' }) })
+      expect.objectContaining({
+        userId: 9,
+        anonymousId: null,
+        props: expect.objectContaining({ variant: 'minimal' }),
+      })
     );
   });
 
@@ -494,7 +546,9 @@ describe('WebhookRouter — checkout_completed funnel join', () => {
 
     const res = await postWebhook();
     expect(res.status).toBe(200);
-    const call = mockTrack.mock.calls.find((c) => c[0] === 'checkout_completed');
+    const call = mockTrack.mock.calls.find(
+      (c) => c[0] === 'checkout_completed'
+    );
     expect(call?.[1].props.surface).toBeUndefined();
   });
 });
@@ -514,7 +568,10 @@ describe('WebhookRouter — lifetime product-ID allowlist', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.LIFETIME_PRICE_IDS = LIFETIME_PRODUCT_ID;
-    mockCustomersRetrieve.mockResolvedValue({ id: 'cus_abc', email: 'user@example.com' });
+    mockCustomersRetrieve.mockResolvedValue({
+      id: 'cus_abc',
+      email: 'user@example.com',
+    });
     mockUpdatePatreonByEmail.mockResolvedValue(1);
   });
 
@@ -541,7 +598,10 @@ describe('WebhookRouter — lifetime product-ID allowlist', () => {
   function postWebhookLifetime() {
     return fetch(`${url}/webhook`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'stripe-signature': 'sig_test' },
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': 'sig_test',
+      },
       body: JSON.stringify({}),
     });
   }
@@ -555,7 +615,10 @@ describe('WebhookRouter — lifetime product-ID allowlist', () => {
 
     const res = await postWebhookLifetime();
     expect(res.status).toBe(200);
-    expect(mockUpdatePatreonByEmail).toHaveBeenCalledWith('user@example.com', true);
+    expect(mockUpdatePatreonByEmail).toHaveBeenCalledWith(
+      'user@example.com',
+      true
+    );
   });
 
   it('does not grant lifetime access when product is NOT in LIFETIME_PRICE_IDS', async () => {
@@ -593,7 +656,10 @@ describe('WebhookRouter — lifetime product-ID allowlist', () => {
 
     const res = await postWebhookLifetime();
     expect(res.status).toBe(200);
-    expect(mockUpdatePatreonByEmail).toHaveBeenCalledWith('user@example.com', true);
+    expect(mockUpdatePatreonByEmail).toHaveBeenCalledWith(
+      'user@example.com',
+      true
+    );
   });
 });
 
@@ -615,7 +681,10 @@ describe('WebhookRouter — checkout.session.expired', () => {
   function postWebhook() {
     return fetch(`${url}/webhook`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'stripe-signature': 'sig_test' },
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': 'sig_test',
+      },
       body: JSON.stringify({}),
     });
   }
@@ -633,8 +702,16 @@ describe('WebhookRouter — checkout.session.expired', () => {
 
     const res = await postWebhook();
     expect(res.status).toBe(200);
-    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_abc', 'buyer@example.com', expect.any(String), null);
-    expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('buyer@example.com', expect.any(String));
+    expect(mockClaimSession).toHaveBeenCalledWith(
+      'cs_expired_abc',
+      'buyer@example.com',
+      expect.any(String),
+      null
+    );
+    expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith(
+      'buyer@example.com',
+      expect.any(String)
+    );
   });
 
   it('passes the Stripe recovery URL and expiry through to the claim', async () => {
@@ -675,7 +752,9 @@ describe('WebhookRouter — checkout.session.expired', () => {
         object: {
           id: 'cs_expired_no_url',
           customer_details: { email: 'buyer@example.com' },
-          after_expiration: { recovery: { enabled: true, url: null, expires_at: null } },
+          after_expiration: {
+            recovery: { enabled: true, url: null, expires_at: null },
+          },
         },
       },
     };
@@ -704,7 +783,12 @@ describe('WebhookRouter — checkout.session.expired', () => {
 
     const res = await postWebhook();
     expect(res.status).toBe(200);
-    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_dup', 'buyer@example.com', expect.any(String), null);
+    expect(mockClaimSession).toHaveBeenCalledWith(
+      'cs_expired_dup',
+      'buyer@example.com',
+      expect.any(String),
+      null
+    );
     expect(mockSendAbandonedCheckoutRecoveryEmail).not.toHaveBeenCalled();
   });
 
@@ -739,7 +823,9 @@ describe('WebhookRouter — checkout.session.expired', () => {
     getStripe.mockReturnValueOnce({
       webhooks: {
         constructEvent: jest.fn(() => {
-          throw new Error('No signatures found matching the expected signature for payload');
+          throw new Error(
+            'No signatures found matching the expected signature for payload'
+          );
         }),
       },
     });
@@ -764,8 +850,16 @@ describe('WebhookRouter — checkout.session.expired', () => {
 
     const res = await postWebhook();
     expect(res.status).toBe(200);
-    expect(mockClaimSession).toHaveBeenCalledWith('cs_expired_fallback', 'fallback@example.com', expect.any(String), null);
-    expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith('fallback@example.com', expect.any(String));
+    expect(mockClaimSession).toHaveBeenCalledWith(
+      'cs_expired_fallback',
+      'fallback@example.com',
+      expect.any(String),
+      null
+    );
+    expect(mockSendAbandonedCheckoutRecoveryEmail).toHaveBeenCalledWith(
+      'fallback@example.com',
+      expect.any(String)
+    );
   });
 });
 
@@ -790,14 +884,19 @@ describe('WebhookRouter — stripe signature invalid error recording', () => {
     getStripe.mockReturnValueOnce({
       webhooks: {
         constructEvent: jest.fn(() => {
-          throw new Error('No signatures found matching the expected signature for payload');
+          throw new Error(
+            'No signatures found matching the expected signature for payload'
+          );
         }),
       },
     });
 
     const res = await fetch(`${url}/webhook`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'stripe-signature': 'bad_sig' },
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': 'bad_sig',
+      },
       body: JSON.stringify({}),
     });
 
@@ -824,11 +923,17 @@ describe('WebhookRouter — stripe signature invalid error recording', () => {
 
     await fetch(`${url}/webhook`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'stripe-signature': 'raw_secret_sig' },
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': 'raw_secret_sig',
+      },
       body: JSON.stringify({}),
     });
 
-    const callArgs = mockRecordError.mock.calls[0][0] as Record<string, unknown>;
+    const callArgs = mockRecordError.mock.calls[0][0] as Record<
+      string,
+      unknown
+    >;
     const context = callArgs.context as Record<string, unknown>;
     expect(context).not.toHaveProperty('raw_secret_sig');
     expect(context).not.toHaveProperty('stripe-signature');
@@ -848,19 +953,27 @@ describe('WebhookRouter — customer.subscription.created', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCustomersRetrieve.mockResolvedValue({ id: 'cus_abc', email: 'subscriber@example.com' });
+    mockCustomersRetrieve.mockResolvedValue({
+      id: 'cus_abc',
+      email: 'subscriber@example.com',
+    });
   });
 
   function postWebhook() {
     return fetch(`${url}/webhook`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'stripe-signature': 'sig_test' },
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': 'sig_test',
+      },
       body: JSON.stringify({}),
     });
   }
 
   it('calls updateStoreSubscription when a new subscription is created with active status', async () => {
-    const { updateStoreSubscription } = jest.requireMock('../lib/integrations/stripe') as {
+    const { updateStoreSubscription } = jest.requireMock(
+      '../lib/integrations/stripe'
+    ) as {
       updateStoreSubscription: jest.Mock;
     };
     mockWebhookEvent = {
@@ -888,10 +1001,14 @@ describe('WebhookRouter — customer.subscription.created', () => {
   });
 
   it('returns 200 and skips provisioning when customer ID is absent', async () => {
-    const { updateStoreSubscription } = jest.requireMock('../lib/integrations/stripe') as {
+    const { updateStoreSubscription } = jest.requireMock(
+      '../lib/integrations/stripe'
+    ) as {
       updateStoreSubscription: jest.Mock;
     };
-    const { getCustomerId } = jest.requireMock('../lib/integrations/stripe') as {
+    const { getCustomerId } = jest.requireMock(
+      '../lib/integrations/stripe'
+    ) as {
       getCustomerId: jest.Mock;
     };
     getCustomerId.mockReturnValueOnce(undefined);

@@ -50,8 +50,14 @@ function stripMarkdown(body: string): string {
     .trim();
 }
 
-function buildSidebarLookup(): Map<string, { title: string; group: string; order: number }> {
-  const lookup = new Map<string, { title: string; group: string; order: number }>();
+function buildSidebarLookup(): Map<
+  string,
+  { title: string; group: string; order: number }
+> {
+  const lookup = new Map<
+    string,
+    { title: string; group: string; order: number }
+  >();
   let order = 0;
   for (const group of sidebar) {
     for (const item of group.items) {
@@ -182,7 +188,10 @@ export function popularResults(): SearchResult[] {
   return results;
 }
 
-export function splitHighlight(text: string, terms: string[]): HighlightSegment[] {
+export function splitHighlight(
+  text: string,
+  terms: string[]
+): HighlightSegment[] {
   if (terms.length === 0 || text.length === 0) {
     return [{ text, hit: false }];
   }

@@ -11,9 +11,8 @@ export const getGoogleSignInUrl = () => {
     prompt: 'consent',
     scope: [
       'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile'
-    ].join(' ')
+      'https://www.googleapis.com/auth/userinfo.profile',
+    ].join(' '),
   };
   return `${oauthUrl}?${new URLSearchParams(options).toString()}`;
 };
-

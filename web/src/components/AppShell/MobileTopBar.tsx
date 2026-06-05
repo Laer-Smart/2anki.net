@@ -14,7 +14,8 @@ export function MobileTopBar({
 }: Readonly<MobileTopBarProps>) {
   const onClick = isOpen ? onClose : onOpen;
   const theme = useTheme();
-  const logoSrc = theme === 'light' ? '/mascot/navbar-logo.png' : '/mascot/Notion 1.png';
+  const logoSrc =
+    theme === 'light' ? '/mascot/navbar-logo.png' : '/mascot/Notion 1.png';
   return (
     <div className={styles.mobileTopBar}>
       <button

@@ -80,7 +80,10 @@ const HealthRouter = (database: Knex) => {
    *         description: Status snapshot
    */
   router.get('/api/status', async (_req, res) => {
-    const dbOk = await database.raw('select 1').then(() => true).catch(() => false);
+    const dbOk = await database
+      .raw('select 1')
+      .then(() => true)
+      .catch(() => false);
     const notionLastCallAt = notionCallRingBuffer.lastSuccessAt();
     const stripeLastWebhookAt = getLastStripeWebhookAt();
     const incidents = loadIncidents();

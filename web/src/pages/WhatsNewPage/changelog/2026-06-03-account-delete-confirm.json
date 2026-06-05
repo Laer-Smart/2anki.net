@@ -1,1 +1,6 @@
-{ "id": "2026-06-03-account-delete-confirm", "date": "2026-06-03", "type": "style", "title": "Delete account confirmation now matches the app theme and language" }
+{
+  "id": "2026-06-03-account-delete-confirm",
+  "date": "2026-06-03",
+  "type": "style",
+  "title": "Delete account confirmation now matches the app theme and language"
+}

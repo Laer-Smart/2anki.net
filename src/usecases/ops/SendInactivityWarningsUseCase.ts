@@ -9,17 +9,37 @@ export interface SendInactivityWarningsResult {
 }
 
 class NoOpUploadRepository implements IUploadRepository {
-  deleteUpload(): Promise<number> { return Promise.resolve(0); }
-  getUploadsByOwner(): Promise<never[]> { return Promise.resolve([]); }
-  findByIdAndOwner(): Promise<null> { return Promise.resolve(null); }
-  findByKey(): Promise<null> { return Promise.resolve(null); }
-  findAllByObjectIdAndOwner(): Promise<never[]> { return Promise.resolve([]); }
-  update(): Promise<never[]> { return Promise.resolve([]); }
-  getLastUploadForUser(): Promise<null> { return Promise.resolve(null); }
-  getLastReconvertibleUpload(): Promise<null> { return Promise.resolve(null); }
-  findByOwnerAndDedupeKey(): Promise<null> { return Promise.resolve(null); }
+  deleteUpload(): Promise<number> {
+    return Promise.resolve(0);
+  }
+  getUploadsByOwner(): Promise<never[]> {
+    return Promise.resolve([]);
+  }
+  findByIdAndOwner(): Promise<null> {
+    return Promise.resolve(null);
+  }
+  findByKey(): Promise<null> {
+    return Promise.resolve(null);
+  }
+  findAllByObjectIdAndOwner(): Promise<never[]> {
+    return Promise.resolve([]);
+  }
+  update(): Promise<never[]> {
+    return Promise.resolve([]);
+  }
+  getLastUploadForUser(): Promise<null> {
+    return Promise.resolve(null);
+  }
+  getLastReconvertibleUpload(): Promise<null> {
+    return Promise.resolve(null);
+  }
+  findByOwnerAndDedupeKey(): Promise<null> {
+    return Promise.resolve(null);
+  }
   insertNativeDeck(): Promise<never> {
-    return Promise.reject(new Error('NoOpUploadRepository does not support insertNativeDeck'));
+    return Promise.reject(
+      new Error('NoOpUploadRepository does not support insertNativeDeck')
+    );
   }
 }
 
@@ -34,7 +54,10 @@ export class SendInactivityWarningsUseCase {
     this.uploadsRepo = uploadsRepo ?? new NoOpUploadRepository();
   }
 
-  async execute(dryRun: boolean, limit = 500): Promise<SendInactivityWarningsResult> {
+  async execute(
+    dryRun: boolean,
+    limit = 500
+  ): Promise<SendInactivityWarningsResult> {
     const users = await this.repo.getUsersToNotify(limit);
 
     if (dryRun) {
@@ -47,10 +70,20 @@ export class SendInactivityWarningsUseCase {
       await this.repo.recordSend(user.id, token);
       try {
         const lastUpload = await this.uploadsRepo.getLastUploadForUser(user.id);
-        const lastConversion = lastUpload != null
-          ? { deckName: path.basename(lastUpload.filename, path.extname(lastUpload.filename)) }
-          : null;
-        await this.emailService.sendInactivityWarningEmail(user.email, token, lastConversion);
+        const lastConversion =
+          lastUpload != null
+            ? {
+                deckName: path.basename(
+                  lastUpload.filename,
+                  path.extname(lastUpload.filename)
+                ),
+              }
+            : null;
+        await this.emailService.sendInactivityWarningEmail(
+          user.email,
+          token,
+          lastConversion
+        );
         sent++;
       } catch (error) {
         console.error(`[inactivity] failed to email user ${user.id}:`, error);

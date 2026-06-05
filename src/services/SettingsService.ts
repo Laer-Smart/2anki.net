@@ -5,7 +5,11 @@ export interface IServiceSettings {
   create: (settings: SettingsInitializer) => Promise<number[]>;
   delete: (owner: string, id: string) => Promise<void>;
   getById: (id: string) => Promise<SettingsInitializer>;
-  getAllByOwner: (owner: string) => Promise<{ object_id: string; title: string | null; updated_at: Date | null }[]>;
+  getAllByOwner: (
+    owner: string
+  ) => Promise<
+    { object_id: string; title: string | null; updated_at: Date | null }[]
+  >;
   updateTitle: (object_id: string, title: string) => Promise<void>;
 }
 

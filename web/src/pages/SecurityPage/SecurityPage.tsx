@@ -31,9 +31,9 @@ export default function SecurityPage() {
           Out of scope: third-party services we integrate with (Notion, Stripe,
           Anthropic, AnkiWeb), social engineering, physical attacks, denial of
           service without a working amplification proof of concept, automated
-          scanner output without a reproducible exploit, missing security headers
-          or version disclosure without demonstrated impact, and findings on
-          forks or preview deploys.
+          scanner output without a reproducible exploit, missing security
+          headers or version disclosure without demonstrated impact, and
+          findings on forks or preview deploys.
         </p>
       </section>
 
@@ -41,9 +41,9 @@ export default function SecurityPage() {
         <h2>Response time</h2>
         <p>
           We acknowledge reports within 5 business days. We aim to resolve
-          critical issues within 30 days. This is best-effort — 2anki is a
-          small team. If you have not heard back in a week, follow up at the
-          same address.
+          critical issues within 30 days. This is best-effort — 2anki is a small
+          team. If you have not heard back in a week, follow up at the same
+          address.
         </p>
       </section>
 

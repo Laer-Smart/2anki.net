@@ -49,9 +49,12 @@ export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
 
   const dismissWelcome = () => {
     setDismissed(true);
-    api.markAnkifyWelcomeSeen().then(() => {
-      queryClient.invalidateQueries({ queryKey: ['userLocals'] });
-    }).catch(() => {});
+    api
+      .markAnkifyWelcomeSeen()
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['userLocals'] });
+      })
+      .catch(() => {});
   };
 
   const { data, isLoading } = useQuery<AnkifyClient[]>({
@@ -120,9 +123,7 @@ export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
 
       {conflictCount > 0 && (
         <output className={styles.conflictsBanner}>
-          <span>
-            {conflictCount} to resolve.
-          </span>
+          <span>{conflictCount} to resolve.</span>
           <button
             type="button"
             className={styles.conflictsBannerLink}

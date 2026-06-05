@@ -4,7 +4,9 @@ const SHORT_SHA_LENGTH = 7;
 const MAX_RELEASE_LENGTH = 40;
 const FULL_SHA_PATTERN = /^[0-9a-f]{40}$/i;
 
-export function normalizeRelease(raw: string | null | undefined): string | null {
+export function normalizeRelease(
+  raw: string | null | undefined
+): string | null {
   const trimmed = raw?.trim() ?? '';
   if (trimmed === '') {
     return null;

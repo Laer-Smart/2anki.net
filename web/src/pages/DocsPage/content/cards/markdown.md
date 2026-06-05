@@ -19,6 +19,7 @@ This card option enables conversion of bullet and sub bullet points in Markdown.
 ### Cloze flashcard
 
 Note that you can choose to have the cloze number or not but backticks (``) are required.
+
 ```
 - The capital of `France` is `{{c1::Paris}}`!
 ```

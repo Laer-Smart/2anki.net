@@ -15,7 +15,11 @@ function getPillClass(step: StepIndex, currentStep: StepIndex): string {
   return styles.pillPending;
 }
 
-export function StepIndicator({ currentStep, substep, compact = false }: Props) {
+export function StepIndicator({
+  currentStep,
+  substep,
+  compact = false,
+}: Props) {
   if (compact) {
     const label = STEP_LABELS[currentStep - 1];
     return (
@@ -27,9 +31,7 @@ export function StepIndicator({ currentStep, substep, compact = false }: Props) 
           <span className={styles.dot} />
           {label}
           {substep && <span className={styles.substep}>({substep})</span>}
-          <span className={styles.compactRest}>
-            {' '}/ {STEP_LABELS.length}
-          </span>
+          <span className={styles.compactRest}> / {STEP_LABELS.length}</span>
         </li>
       </ol>
     );

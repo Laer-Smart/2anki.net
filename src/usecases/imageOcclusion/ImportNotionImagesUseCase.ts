@@ -7,7 +7,12 @@ import { isValidNotionId } from '../../services/NotionService/isValidNotionId';
 import StorageHandler from '../../lib/storage/StorageHandler';
 import instrumentedAxios from '../../services/observability/instrumentedAxios';
 
-const ALLOWED_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+const ALLOWED_MIMES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+]);
 const SIZE_CAP = 10 * 1024 * 1024;
 
 const MIME_EXT: Record<string, string> = {
@@ -31,12 +36,16 @@ export class ImportNotionImagesUseCase {
     token: string | null
   ): Promise<NotionImageResult[]> {
     if (token == null) {
-      throw Object.assign(new Error('Notion connection required.'), { status: 401 });
+      throw Object.assign(new Error('Notion connection required.'), {
+        status: 401,
+      });
     }
 
     for (const id of blockIds) {
       if (!isValidNotionId(id)) {
-        throw Object.assign(new Error(`Invalid block ID: ${id}`), { status: 400 });
+        throw Object.assign(new Error(`Invalid block ID: ${id}`), {
+          status: 400,
+        });
       }
     }
 
@@ -54,7 +63,9 @@ export class ImportNotionImagesUseCase {
         maxContentLength: SIZE_CAP,
       });
 
-      const contentType = String(response.headers['content-type'] ?? '').split(';')[0].trim();
+      const contentType = String(response.headers['content-type'] ?? '')
+        .split(';')[0]
+        .trim();
       if (!ALLOWED_MIMES.has(contentType)) continue;
 
       const buf = Buffer.from(response.data as ArrayBuffer);
@@ -64,7 +75,10 @@ export class ImportNotionImagesUseCase {
       const s3Key = `io-drafts/${userId}/${randomUUID()}${ext}`;
 
       await this.storage.uploadFile(s3Key, buf);
-      results.push({ s3Key, presignedUrl: await this.storage.getPresignedUrl(s3Key) });
+      results.push({
+        s3Key,
+        presignedUrl: await this.storage.getPresignedUrl(s3Key),
+      });
     }
 
     return results;

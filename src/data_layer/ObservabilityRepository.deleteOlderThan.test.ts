@@ -5,7 +5,11 @@ describe('ObservabilityRepository.deleteOlderThan — generated SQL shape', () =
   it('builds a PG DELETE on request_logs with a created_at interval cutoff', () => {
     const pgKnex = knex({ client: 'pg' });
     const sql = pgKnex('request_logs')
-      .where('created_at', '<', pgKnex.raw('NOW() - make_interval(days => ?)', [30]))
+      .where(
+        'created_at',
+        '<',
+        pgKnex.raw('NOW() - make_interval(days => ?)', [30])
+      )
       .del()
       .toString();
     expect(sql).toContain('delete from "request_logs"');
@@ -17,7 +21,11 @@ describe('ObservabilityRepository.deleteOlderThan — generated SQL shape', () =
   it('builds a PG DELETE on outbound_call_logs with a created_at interval cutoff', () => {
     const pgKnex = knex({ client: 'pg' });
     const sql = pgKnex('outbound_call_logs')
-      .where('created_at', '<', pgKnex.raw('NOW() - make_interval(days => ?)', [30]))
+      .where(
+        'created_at',
+        '<',
+        pgKnex.raw('NOW() - make_interval(days => ?)', [30])
+      )
       .del()
       .toString();
     expect(sql).toContain('delete from "outbound_call_logs"');
@@ -29,7 +37,11 @@ describe('ObservabilityRepository.deleteOlderThan — generated SQL shape', () =
   it('parameterizes the day count rather than concatenating it', () => {
     const pgKnex = knex({ client: 'pg' });
     const compiled = pgKnex('request_logs')
-      .where('created_at', '<', pgKnex.raw('NOW() - make_interval(days => ?)', [30]))
+      .where(
+        'created_at',
+        '<',
+        pgKnex.raw('NOW() - make_interval(days => ?)', [30])
+      )
       .del()
       .toSQL()
       .toNative();
@@ -58,7 +70,9 @@ describe('ObservabilityRepository.deleteOlderThan — generated SQL shape', () =
       { raw: (sql: string, bindings: unknown[]) => ({ sql, bindings }) }
     );
     const repo = new ObservabilityRepository(
-      fakeDb as unknown as ConstructorParameters<typeof ObservabilityRepository>[0]
+      fakeDb as unknown as ConstructorParameters<
+        typeof ObservabilityRepository
+      >[0]
     );
 
     const result = await repo.deleteOlderThan(30);

@@ -113,7 +113,9 @@ describe('loginWithNotion', () => {
       ...notionResponse,
       owner: { user: { person: { email: 'bob@example.com' } } },
     };
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: responseWithoutName });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: responseWithoutName });
 
     const service = createService();
     const result = await service.loginWithNotion('auth-code');
@@ -155,7 +157,9 @@ describe('loginWithNotion', () => {
 });
 
 describe('loginWithGoogle', () => {
-  const MockedOAuth2Client = OAuth2Client as jest.MockedClass<typeof OAuth2Client>;
+  const MockedOAuth2Client = OAuth2Client as jest.MockedClass<
+    typeof OAuth2Client
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -231,7 +235,13 @@ describe('loginWithMicrosoft', () => {
   const KID = 'test-key-id';
   const CLIENT_ID = 'test-microsoft-client-id';
   let privateKey: crypto.KeyObject;
-  let publicJwk: { kid: string; kty: string; n: string; e: string; alg: string };
+  let publicJwk: {
+    kid: string;
+    kty: string;
+    n: string;
+    e: string;
+    alg: string;
+  };
 
   const signIdToken = (payload: Record<string, unknown>): string =>
     jwt.sign(payload, privateKey.export({ type: 'pkcs8', format: 'pem' }), {
@@ -275,7 +285,9 @@ describe('loginWithMicrosoft', () => {
       xms_edov: true,
       name: 'Microsoft User',
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
@@ -297,7 +309,9 @@ describe('loginWithMicrosoft', () => {
       email_verified: true,
       name: 'Alice',
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
@@ -319,7 +333,9 @@ describe('loginWithMicrosoft', () => {
       email: 'maybe@example.com',
       name: 'Bob',
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
@@ -341,7 +357,9 @@ describe('loginWithMicrosoft', () => {
       email: 'msa-user@hotmail.com',
       name: 'MSA User',
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
@@ -362,7 +380,9 @@ describe('loginWithMicrosoft', () => {
       xms_edov: true,
       name: 'No Email User',
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
@@ -382,7 +402,9 @@ describe('loginWithMicrosoft', () => {
       email: 'user@outlook.com',
       xms_edov: true,
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
@@ -397,7 +419,9 @@ describe('loginWithMicrosoft', () => {
       email: 'user@outlook.com',
       name: 'User',
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
@@ -416,7 +440,9 @@ describe('loginWithMicrosoft', () => {
       otherKey.privateKey.export({ type: 'pkcs8', format: 'pem' }),
       { algorithm: 'RS256', header: { alg: 'RS256', kid: KID } }
     );
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
@@ -430,7 +456,9 @@ describe('loginWithMicrosoft', () => {
       aud: 'a-different-app',
       email: 'user@outlook.com',
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
@@ -448,7 +476,9 @@ describe('loginWithMicrosoft', () => {
       privateKey.export({ type: 'pkcs8', format: 'pem' }),
       { algorithm: 'RS256', header: { alg: 'RS256', kid: 'unknown-kid' } }
     );
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithMicrosoft('auth-code');
@@ -474,8 +504,13 @@ describe('mintAppleClientSecret', () => {
   let privateKeyB64: string;
 
   beforeAll(() => {
-    const { privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
-    privateKeyPem = privateKey.export({ type: 'pkcs8', format: 'pem' }) as string;
+    const { privateKey } = crypto.generateKeyPairSync('ec', {
+      namedCurve: 'prime256v1',
+    });
+    privateKeyPem = privateKey.export({
+      type: 'pkcs8',
+      format: 'pem',
+    }) as string;
     privateKeyB64 = Buffer.from(privateKeyPem).toString('base64');
   });
 
@@ -512,7 +547,9 @@ describe('mintAppleClientSecret', () => {
   it('throws when APPLE_PRIVATE_KEY_B64 is missing', () => {
     delete process.env.APPLE_PRIVATE_KEY_B64;
     const service = createService();
-    expect(() => service.mintAppleClientSecret()).toThrow('Apple OAuth env vars are not configured');
+    expect(() => service.mintAppleClientSecret()).toThrow(
+      'Apple OAuth env vars are not configured'
+    );
   });
 
   it('throws when any required env var is missing', () => {
@@ -537,7 +574,10 @@ describe('loginWithApple', () => {
   beforeAll(() => {
     const pair = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
     privateKey = pair.privateKey;
-    publicJwk = pair.publicKey.export({ format: 'jwk' }) as Record<string, unknown>;
+    publicJwk = pair.publicKey.export({ format: 'jwk' }) as Record<
+      string,
+      unknown
+    >;
     publicJwk['kid'] = KID;
     publicJwk['alg'] = 'RS256';
     publicJwk['use'] = 'sig';
@@ -549,11 +589,15 @@ describe('loginWithApple', () => {
     process.env.APPLE_CLIENT_ID = SERVICES_ID;
     process.env.APPLE_TEAM_ID = 'TEAMID1234';
     process.env.APPLE_KEY_ID = 'KEYID56789';
-    const { privateKey: sk } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+    const { privateKey: sk } = crypto.generateKeyPairSync('ec', {
+      namedCurve: 'prime256v1',
+    });
     process.env.APPLE_PRIVATE_KEY_B64 = Buffer.from(
       sk.export({ type: 'pkcs8', format: 'pem' }) as string
     ).toString('base64');
-    mockedAxios.get = jest.fn().mockResolvedValue({ data: { keys: [publicJwk] } });
+    mockedAxios.get = jest
+      .fn()
+      .mockResolvedValue({ data: { keys: [publicJwk] } });
   });
 
   it('returns subject and email when id_token is valid', async () => {
@@ -587,12 +631,17 @@ describe('loginWithApple', () => {
       email: 'user@example.com',
       email_verified: true,
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithApple('auth-code');
 
-    expect(result).toMatchObject({ subject: 'apple-sub-001b', refreshToken: undefined });
+    expect(result).toMatchObject({
+      subject: 'apple-sub-001b',
+      refreshToken: undefined,
+    });
   });
 
   it('accepts email_verified as the string "true"', async () => {
@@ -603,12 +652,17 @@ describe('loginWithApple', () => {
       email: 'hidden@privaterelay.appleid.com',
       email_verified: 'true',
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithApple('auth-code');
 
-    expect(result).toMatchObject({ subject: 'apple-sub-002', emailVerified: true });
+    expect(result).toMatchObject({
+      subject: 'apple-sub-002',
+      emailVerified: true,
+    });
   });
 
   it('returns undefined when email_verified is false', async () => {
@@ -619,7 +673,9 @@ describe('loginWithApple', () => {
       email: 'user@example.com',
       email_verified: false,
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithApple('auth-code');
@@ -635,7 +691,9 @@ describe('loginWithApple', () => {
       email: 'user@example.com',
       email_verified: true,
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithApple('auth-code');
@@ -651,7 +709,9 @@ describe('loginWithApple', () => {
       email: 'user@example.com',
       email_verified: true,
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithApple('auth-code');
@@ -660,7 +720,9 @@ describe('loginWithApple', () => {
   });
 
   it('returns undefined when the signature is invalid', async () => {
-    const wrongPair = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+    const wrongPair = crypto.generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+    });
     const idToken = jwt.sign(
       {
         iss: 'https://appleid.apple.com',
@@ -672,7 +734,9 @@ describe('loginWithApple', () => {
       wrongPair.privateKey.export({ type: 'pkcs8', format: 'pem' }),
       { algorithm: 'RS256', header: { alg: 'RS256', kid: KID } }
     );
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithApple('auth-code');
@@ -692,7 +756,9 @@ describe('loginWithApple', () => {
       privateKey.export({ type: 'pkcs8', format: 'pem' }),
       { algorithm: 'RS256', header: { alg: 'RS256', kid: 'unknown-kid' } }
     );
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithApple('auth-code');
@@ -716,7 +782,9 @@ describe('loginWithApple', () => {
       email: 'user@example.com',
       email_verified: true,
     });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithApple('auth-code');
@@ -739,7 +807,9 @@ describe('loginWithApple algorithm pin', () => {
     const rawJwk = rsaPair.publicKey.export({ format: 'jwk' });
     rsaPublicJwk = { ...rawJwk, kid: KID, alg: 'RS256', use: 'sig' };
 
-    const ecPair = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+    const ecPair = crypto.generateKeyPairSync('ec', {
+      namedCurve: 'prime256v1',
+    });
     ecPrivateKey = ecPair.privateKey;
     const rawEcJwk = ecPair.publicKey.export({ format: 'jwk' });
     ecPublicJwk = { ...rawEcJwk, kid: KID, alg: 'ES256', use: 'sig' };
@@ -752,8 +822,13 @@ describe('loginWithApple algorithm pin', () => {
     process.env.APPLE_REDIRECT_URI = 'https://2anki.net/api/users/auth/apple';
     process.env.APPLE_TEAM_ID = 'TEAMID1234';
     process.env.APPLE_KEY_ID = 'KEYID56789';
-    const { privateKey: sk } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
-    process.env.APPLE_PRIVATE_KEY = sk.export({ type: 'pkcs8', format: 'pem' }) as string;
+    const { privateKey: sk } = crypto.generateKeyPairSync('ec', {
+      namedCurve: 'prime256v1',
+    });
+    process.env.APPLE_PRIVATE_KEY = sk.export({
+      type: 'pkcs8',
+      format: 'pem',
+    }) as string;
   });
 
   it('accepts an RS256-signed id_token (Apple production algorithm)', async () => {
@@ -768,8 +843,12 @@ describe('loginWithApple algorithm pin', () => {
       rsaPrivateKey.export({ type: 'pkcs8', format: 'pem' }),
       { algorithm: 'RS256', header: { alg: 'RS256', kid: KID } }
     );
-    mockedAxios.get = jest.fn().mockResolvedValue({ data: { keys: [rsaPublicJwk] } });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.get = jest
+      .fn()
+      .mockResolvedValue({ data: { keys: [rsaPublicJwk] } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithApple('auth-code');
@@ -793,8 +872,12 @@ describe('loginWithApple algorithm pin', () => {
       ecPrivateKey.export({ type: 'pkcs8', format: 'pem' }),
       { algorithm: 'ES256', header: { alg: 'ES256', kid: KID } }
     );
-    mockedAxios.get = jest.fn().mockResolvedValue({ data: { keys: [ecPublicJwk] } });
-    mockedAxios.post = jest.fn().mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.get = jest
+      .fn()
+      .mockResolvedValue({ data: { keys: [ecPublicJwk] } });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithApple('auth-code');
@@ -809,7 +892,9 @@ describe('revokeAppleToken', () => {
     process.env.APPLE_CLIENT_ID = 'com.example.2anki';
     process.env.APPLE_TEAM_ID = 'TEAMID1234';
     process.env.APPLE_KEY_ID = 'KEYID56789';
-    const { privateKey: sk } = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+    const { privateKey: sk } = crypto.generateKeyPairSync('ec', {
+      namedCurve: 'prime256v1',
+    });
     process.env.APPLE_PRIVATE_KEY_B64 = Buffer.from(
       sk.export({ type: 'pkcs8', format: 'pem' }) as string
     ).toString('base64');
@@ -878,7 +963,10 @@ describe('verifyAppleIdentityToken', () => {
   beforeAll(() => {
     const pair = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
     privateKey = pair.privateKey;
-    publicJwk = pair.publicKey.export({ format: 'jwk' }) as Record<string, unknown>;
+    publicJwk = pair.publicKey.export({ format: 'jwk' }) as Record<
+      string,
+      unknown
+    >;
     publicJwk['kid'] = KID;
     publicJwk['alg'] = 'RS256';
     publicJwk['use'] = 'sig';
@@ -888,7 +976,9 @@ describe('verifyAppleIdentityToken', () => {
     jest.clearAllMocks();
     __resetAppleJwksCacheForTests();
     process.env.APPLE_NATIVE_CLIENT_ID = NATIVE_CLIENT_ID;
-    mockedAxios.get = jest.fn().mockResolvedValue({ data: { keys: [publicJwk] } });
+    mockedAxios.get = jest
+      .fn()
+      .mockResolvedValue({ data: { keys: [publicJwk] } });
   });
 
   it('returns subject and email for a valid identity token signed for the native audience', async () => {
@@ -903,7 +993,10 @@ describe('verifyAppleIdentityToken', () => {
     const service = createService();
     const result = await service.verifyAppleIdentityToken(idToken);
 
-    expect(result).toEqual({ subject: 'native-sub-001', email: 'native@example.com' });
+    expect(result).toEqual({
+      subject: 'native-sub-001',
+      email: 'native@example.com',
+    });
   });
 
   it('returns subject without email when email claim is absent', async () => {
@@ -951,7 +1044,9 @@ describe('verifyAppleIdentityToken', () => {
   });
 
   it('returns undefined when the signature is invalid', async () => {
-    const wrongPair = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+    const wrongPair = crypto.generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+    });
     const idToken = jwt.sign(
       {
         iss: 'https://appleid.apple.com',
@@ -1020,14 +1115,21 @@ describe('verifyAppleIdentityToken', () => {
   });
 
   it('rejects ES256-signed tokens (algorithm substitution defense)', async () => {
-    const ecPair = crypto.generateKeyPairSync('ec', { namedCurve: 'prime256v1' });
+    const ecPair = crypto.generateKeyPairSync('ec', {
+      namedCurve: 'prime256v1',
+    });
     const ecPublicJwk = {
-      ...ecPair.publicKey.export({ format: 'jwk' }) as Record<string, unknown>,
+      ...(ecPair.publicKey.export({ format: 'jwk' }) as Record<
+        string,
+        unknown
+      >),
       kid: KID,
       alg: 'ES256',
       use: 'sig',
     };
-    mockedAxios.get = jest.fn().mockResolvedValue({ data: { keys: [ecPublicJwk] } });
+    mockedAxios.get = jest
+      .fn()
+      .mockResolvedValue({ data: { keys: [ecPublicJwk] } });
     const idToken = jwt.sign(
       {
         iss: 'https://appleid.apple.com',

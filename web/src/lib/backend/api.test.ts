@@ -71,10 +71,9 @@ describe('api.get error tagging', () => {
 
   it('throws UserNotice for an intentional backend message', async () => {
     fetchSpy.mockResolvedValueOnce(
-      new Response(
-        JSON.stringify({ message: 'Notion is not connected.' }),
-        { status: 409 }
-      )
+      new Response(JSON.stringify({ message: 'Notion is not connected.' }), {
+        status: 409,
+      })
     );
 
     await expect(get('http://localhost/api/notion/me')).rejects.toBeInstanceOf(
@@ -83,7 +82,11 @@ describe('api.get error tagging', () => {
   });
 
   it('a notion_unauthorized 401 keeps the session — no /login bounce, code preserved', async () => {
-    const location = { origin: 'http://localhost', pathname: '/notion', href: '' };
+    const location = {
+      origin: 'http://localhost',
+      pathname: '/notion',
+      href: '',
+    };
     vi.stubGlobal('location', location);
     fetchSpy.mockResolvedValueOnce(
       new Response(
@@ -108,7 +111,11 @@ describe('api.get error tagging', () => {
   });
 
   it('a bare 401 still redirects to /login', async () => {
-    const location = { origin: 'http://localhost', pathname: '/search', href: '' };
+    const location = {
+      origin: 'http://localhost',
+      pathname: '/search',
+      href: '',
+    };
     vi.stubGlobal('location', location);
     fetchSpy.mockResolvedValueOnce(
       new Response(JSON.stringify({ message: 'Authentication required' }), {
@@ -116,9 +123,9 @@ describe('api.get error tagging', () => {
       })
     );
 
-    await expect(get('http://localhost/api/notion/search')).rejects.toBeInstanceOf(
-      UserNotice
-    );
+    await expect(
+      get('http://localhost/api/notion/search')
+    ).rejects.toBeInstanceOf(UserNotice);
     expect(location.href).toBe('/login');
   });
 

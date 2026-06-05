@@ -20,7 +20,10 @@ import { StatusTag, JobStatus } from './components/ListJobs/StatusTag';
 import { StepIndicator } from '../../components/StepIndicator/StepIndicator';
 import { jobStepFromStatus } from '../../components/StepIndicator/jobStepFromStatus';
 import SendToAnkifyButton from './components/SendToAnkifyButton';
-import { DeckFeedbackPrompt, isDeckFeedbackSuppressed } from './components/DeckFeedbackPrompt';
+import {
+  DeckFeedbackPrompt,
+  isDeckFeedbackSuppressed,
+} from './components/DeckFeedbackPrompt';
 import { useActiveShares } from './hooks/useActiveShares';
 import { fireAnalyticsEvent } from '../../lib/analytics/fireAnalyticsEvent';
 import { track } from '../../lib/analytics/track';
@@ -29,7 +32,10 @@ import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabe
 import { UpsellCard } from '../../components/UpsellCard';
 import JobResponse from '../../schemas/public/JobResponse';
 import { NotionColumnMappingModal } from '../../components/NotionColumnMappingModal/NotionColumnMappingModal';
-import { parseAmbiguousColumnsPayload, type FieldMapping } from '../../lib/fieldMapping/types';
+import {
+  parseAmbiguousColumnsPayload,
+  type FieldMapping,
+} from '../../lib/fieldMapping/types';
 import { ConversionResult } from './components/ConversionResult/ConversionResult';
 import { TruncationNotice } from './components/TruncationNotice';
 import { parseTruncationPayload } from './helpers/parseTruncationPayload';
@@ -41,9 +47,22 @@ interface DownloadsPageProps {
   setError: ErrorHandlerType;
 }
 
-type FilterValue = 'all' | 'ready' | 'in-progress' | 'failed' | 'dropbox' | 'drive';
+type FilterValue =
+  | 'all'
+  | 'ready'
+  | 'in-progress'
+  | 'failed'
+  | 'dropbox'
+  | 'drive';
 
-const VALID_FILTERS = new Set<FilterValue>(['all', 'ready', 'in-progress', 'failed', 'dropbox', 'drive']);
+const VALID_FILTERS = new Set<FilterValue>([
+  'all',
+  'ready',
+  'in-progress',
+  'failed',
+  'dropbox',
+  'drive',
+]);
 const APKG_PATTERN = /\.apkg$/i;
 const ACTIVE_STATUSES = new Set(['done', 'failed', 'cancelled', 'interrupted']);
 
@@ -60,16 +79,24 @@ function isDoneJob(status: string): boolean {
 }
 
 function isGeneratingStatus(status: string): boolean {
-  return status === 'step2_creating_flashcards' || /^claude:chunk:\d+:\d+$/.test(status);
+  return (
+    status === 'step2_creating_flashcards' ||
+    /^claude:chunk:\d+:\d+$/.test(status)
+  );
 }
 
 function getSourceLabel(source: DeckRow['source']): string {
   switch (source) {
-    case 'notion': return 'Notion';
-    case 'upload': return 'Upload';
-    case 'app': return 'From the app';
-    case 'dropbox': return 'Dropbox';
-    case 'drive': return 'Drive';
+    case 'notion':
+      return 'Notion';
+    case 'upload':
+      return 'Upload';
+    case 'app':
+      return 'From the app';
+    case 'dropbox':
+      return 'Dropbox';
+    case 'drive':
+      return 'Drive';
   }
 }
 
@@ -106,11 +133,18 @@ export function renderJobStatusCell(j: JobResponse, onDownload?: () => void) {
       try {
         const parsed = JSON.parse(j.job_reason_failure ?? '');
         notionUrl = parsed.notion_page_url ?? null;
-      } catch { /* not JSON */ }
+      } catch {
+        /* not JSON */
+      }
       return notionUrl == null ? (
         <span>Done</span>
       ) : (
-        <a href={notionUrl} target="_blank" rel="noopener noreferrer" className={styles.downloadButton}>
+        <a
+          href={notionUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.downloadButton}
+        >
           Open in Notion
         </a>
       );
@@ -144,18 +178,26 @@ export function renderJobStatusCell(j: JobResponse, onDownload?: () => void) {
   return <StepIndicator currentStep={step} substep={substep} compact />;
 }
 
-function renderJobStatusWithToggle({ job, isExpanded, onToggle }: RenderJobStatusOptions) {
+function renderJobStatusWithToggle({
+  job,
+  isExpanded,
+  onToggle,
+}: RenderJobStatusOptions) {
   if (isFailedJob(job.status)) {
     return (
       <button
         type="button"
         className={styles.statusToggle}
         onClick={onToggle}
-        aria-label={isExpanded ? 'Collapse failure reason' : 'Show failure reason'}
+        aria-label={
+          isExpanded ? 'Collapse failure reason' : 'Show failure reason'
+        }
         aria-expanded={isExpanded}
       >
         <StatusTag status={job.status as JobStatus} />
-        <span className={`${styles.statusChevron} ${isExpanded ? styles.statusChevronExpanded : ''}`}>
+        <span
+          className={`${styles.statusChevron} ${isExpanded ? styles.statusChevronExpanded : ''}`}
+        >
           ▾
         </span>
       </button>
@@ -166,7 +208,10 @@ function renderJobStatusWithToggle({ job, isExpanded, onToggle }: RenderJobStatu
 
 const NOTION_TOKEN_EXPIRED_REASON = 'notion_token_expired';
 
-function isNotionTokenExpired(source: DeckRow['source'], reason: string | null): boolean {
+function isNotionTokenExpired(
+  source: DeckRow['source'],
+  reason: string | null
+): boolean {
   return source === 'notion' && reason === NOTION_TOKEN_EXPIRED_REASON;
 }
 
@@ -217,7 +262,11 @@ function FilterChip({
   return (
     <button
       type="button"
-      className={active ? `${sharedStyles.chip} ${sharedStyles.chipActive}` : sharedStyles.chip}
+      className={
+        active
+          ? `${sharedStyles.chip} ${sharedStyles.chipActive}`
+          : sharedStyles.chip
+      }
       onClick={() => onSelect(value)}
       aria-pressed={active}
     >
@@ -228,10 +277,16 @@ function FilterChip({
 
 export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
   const backend = get2ankiApi();
-  const { deleteUpload, loading, uploads, error, refreshUploads } = useUploads(backend);
-  const { jobs, deleteJob, restartJob, refreshJobs, lastFetchedAt } = useJobs(backend, setError);
-  const { uploads: dropboxUploads, deleteUpload: deleteDropboxUpload } = useDropboxUploads(backend);
-  const { uploads: googleDriveUploads, deleteUpload: deleteGoogleDriveUpload } = useGoogleDriveUploads(backend);
+  const { deleteUpload, loading, uploads, error, refreshUploads } =
+    useUploads(backend);
+  const { jobs, deleteJob, restartJob, refreshJobs, lastFetchedAt } = useJobs(
+    backend,
+    setError
+  );
+  const { uploads: dropboxUploads, deleteUpload: deleteDropboxUpload } =
+    useDropboxUploads(backend);
+  const { uploads: googleDriveUploads, deleteUpload: deleteGoogleDriveUpload } =
+    useGoogleDriveUploads(backend);
   const { data } = useUserLocals();
   const showUpgradeFooter = !isPayingUser(data?.locals);
   const activeShares = useActiveShares();
@@ -242,8 +297,12 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
   const [showVerifiedBanner, setShowVerifiedBanner] = useState(
     searchParams.get('verified') === '1'
   );
-  const [expandedFailureJobId, setExpandedFailureJobId] = useState<number | string | null>(null);
-  const [mappingModalJob, setMappingModalJob] = useState<JobResponse | null>(null);
+  const [expandedFailureJobId, setExpandedFailureJobId] = useState<
+    number | string | null
+  >(null);
+  const [mappingModalJob, setMappingModalJob] = useState<JobResponse | null>(
+    null
+  );
   const [hasDownloaded, setHasDownloaded] = useState(false);
   const navigate = useNavigate();
 
@@ -333,7 +392,12 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
     return null;
   }
 
-  const allRows = toDeckRows(jobs, uploads ?? [], dropboxUploads, googleDriveUploads);
+  const allRows = toDeckRows(
+    jobs,
+    uploads ?? [],
+    dropboxUploads,
+    googleDriveUploads
+  );
   const filteredRows = applyFilter(allRows, activeFilter);
 
   const totalCount = allRows.length;
@@ -343,7 +407,11 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
   return (
     <div className={sharedStyles.page}>
       {showVerifiedBanner && (
-        <div className={sharedStyles.alertSuccess} role="status" aria-live="polite">
+        <div
+          className={sharedStyles.alertSuccess}
+          role="status"
+          aria-live="polite"
+        >
           Email verified. You&apos;re all set.
         </div>
       )}
@@ -362,17 +430,52 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
             <PaywallBanner inProgressJob={activeJobs[0] ?? null} />
           )}
 
-          <EmptyDownloadsSection isEmpty={isGloballyEmpty && activeFilter === 'all'} />
+          <EmptyDownloadsSection
+            isEmpty={isGloballyEmpty && activeFilter === 'all'}
+          />
 
           {(!isGloballyEmpty || activeFilter !== 'all') && (
             <div className={styles.section}>
-              <div className={sharedStyles.flexWrap} style={{ marginBottom: '1rem' }}>
-                <FilterChip label="All" value="all" active={activeFilter === 'all'} onSelect={setFilter} />
-                <FilterChip label="Ready" value="ready" active={activeFilter === 'ready'} onSelect={setFilter} />
-                <FilterChip label="In progress" value="in-progress" active={activeFilter === 'in-progress'} onSelect={setFilter} />
-                <FilterChip label="Failed" value="failed" active={activeFilter === 'failed'} onSelect={setFilter} />
-                <FilterChip label="From Dropbox" value="dropbox" active={activeFilter === 'dropbox'} onSelect={setFilter} />
-                <FilterChip label="From Drive" value="drive" active={activeFilter === 'drive'} onSelect={setFilter} />
+              <div
+                className={sharedStyles.flexWrap}
+                style={{ marginBottom: '1rem' }}
+              >
+                <FilterChip
+                  label="All"
+                  value="all"
+                  active={activeFilter === 'all'}
+                  onSelect={setFilter}
+                />
+                <FilterChip
+                  label="Ready"
+                  value="ready"
+                  active={activeFilter === 'ready'}
+                  onSelect={setFilter}
+                />
+                <FilterChip
+                  label="In progress"
+                  value="in-progress"
+                  active={activeFilter === 'in-progress'}
+                  onSelect={setFilter}
+                />
+                <FilterChip
+                  label="Failed"
+                  value="failed"
+                  active={activeFilter === 'failed'}
+                  onSelect={setFilter}
+                />
+                <FilterChip
+                  label="From Dropbox"
+                  value="dropbox"
+                  active={activeFilter === 'dropbox'}
+                  onSelect={setFilter}
+                />
+                <FilterChip
+                  label="From Drive"
+                  value="drive"
+                  active={activeFilter === 'drive'}
+                  onSelect={setFilter}
+                />
               </div>
 
               <div className={styles.card}>
@@ -383,37 +486,56 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                         <th>Name</th>
                         <th>Source</th>
                         <th>Created</th>
-                        <th className={sharedStyles.actionColumnWide}>Actions</th>
+                        <th className={sharedStyles.actionColumnWide}>
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredRows.length === 0 && (
                         <tr>
-                          <td colSpan={4} style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: '2rem 1rem' }}>
+                          <td
+                            colSpan={4}
+                            style={{
+                              textAlign: 'center',
+                              color: 'var(--color-text-secondary)',
+                              padding: '2rem 1rem',
+                            }}
+                          >
                             No decks match this filter.
                           </td>
                         </tr>
                       )}
                       {filteredRows.map((row) => {
                         if (row.kind === 'job') {
-                          const isExpanded = expandedFailureJobId === row.job.id;
+                          const isExpanded =
+                            expandedFailureJobId === row.job.id;
                           const isFailed = isFailedJob(row.job.status);
                           const truncation = parseTruncationPayload(row.job);
                           const toggleFailurePanel = () => {
-                            setExpandedFailureJobId(isExpanded ? null : row.job.id);
+                            setExpandedFailureJobId(
+                              isExpanded ? null : row.job.id
+                            );
                           };
 
                           return (
                             <>
-                              <tr key={`job-${row.job.id}`} className={isFailed ? styles.failedRow : ''}>
+                              <tr
+                                key={`job-${row.job.id}`}
+                                className={isFailed ? styles.failedRow : ''}
+                              >
                                 <td>
-                                  <span data-hj-suppress className={styles.fileName}>
+                                  <span
+                                    data-hj-suppress
+                                    className={styles.fileName}
+                                  >
                                     {row.job.title ?? '—'}
                                   </span>
                                 </td>
                                 <td>
                                   <span className={sharedStyles.badge}>
-                                    {row.source === 'upload' && row.job.type === 'claude'
+                                    {row.source === 'upload' &&
+                                    row.job.type === 'claude'
                                       ? 'AI-generated from upload'
                                       : getSourceLabel(row.source)}
                                   </span>
@@ -435,17 +557,29 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                       })
                                     ) : (
                                       <>
-                                        {renderJobStatusCell(row.job, () => setHasDownloaded(true))}
+                                        {renderJobStatusCell(row.job, () =>
+                                          setHasDownloaded(true)
+                                        )}
                                         {truncation != null && (
                                           <button
                                             type="button"
                                             className={styles.statusToggle}
                                             onClick={toggleFailurePanel}
-                                            aria-label={isExpanded ? 'Collapse conversion note' : 'Show conversion note'}
+                                            aria-label={
+                                              isExpanded
+                                                ? 'Collapse conversion note'
+                                                : 'Show conversion note'
+                                            }
                                             aria-expanded={isExpanded}
                                           >
-                                            <span className={sharedStyles.badge}>Partial</span>
-                                            <span className={`${styles.statusChevron} ${isExpanded ? styles.statusChevronExpanded : ''}`}>
+                                            <span
+                                              className={sharedStyles.badge}
+                                            >
+                                              Partial
+                                            </span>
+                                            <span
+                                              className={`${styles.statusChevron} ${isExpanded ? styles.statusChevronExpanded : ''}`}
+                                            >
                                               ▾
                                             </span>
                                           </button>
@@ -453,35 +587,55 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                       </>
                                     )}
                                     <div className={styles.secondaryActions}>
-                                      {isDoneJob(row.job.status) && row.job.download_key != null && APKG_PATTERN.test(row.job.download_key) && (
-                                        <Link
-                                          to={`/preview/apkg/${encodeURIComponent(row.job.download_key)}`}
-                                          className={styles.iconButton}
-                                          aria-label={`Preview ${row.job.title ?? 'deck'}`}
-                                          title="Preview"
-                                        >
-                                          <EyeIcon width={16} height={16} />
-                                        </Link>
-                                      )}
-                                      {row.source === 'notion' && isDoneJob(row.job.status) && row.job.upload_id != null && (
-                                        <SendToAnkifyButton uploadId={row.job.upload_id} filename={row.job.title} />
-                                      )}
-                                      {isFailed && row.job.restartable && !isNotionTokenExpired(row.source, row.job.job_reason_failure) && (
-                                        <button
-                                          type="button"
-                                          onClick={() => restartJob(row.job)}
-                                          className={styles.iconButton}
-                                          aria-label="Restart job"
-                                          title="Restart"
-                                        >
-                                          ↺
-                                        </button>
-                                      )}
+                                      {isDoneJob(row.job.status) &&
+                                        row.job.download_key != null &&
+                                        APKG_PATTERN.test(
+                                          row.job.download_key
+                                        ) && (
+                                          <Link
+                                            to={`/preview/apkg/${encodeURIComponent(row.job.download_key)}`}
+                                            className={styles.iconButton}
+                                            aria-label={`Preview ${row.job.title ?? 'deck'}`}
+                                            title="Preview"
+                                          >
+                                            <EyeIcon width={16} height={16} />
+                                          </Link>
+                                        )}
+                                      {row.source === 'notion' &&
+                                        isDoneJob(row.job.status) &&
+                                        row.job.upload_id != null && (
+                                          <SendToAnkifyButton
+                                            uploadId={row.job.upload_id}
+                                            filename={row.job.title}
+                                          />
+                                        )}
+                                      {isFailed &&
+                                        row.job.restartable &&
+                                        !isNotionTokenExpired(
+                                          row.source,
+                                          row.job.job_reason_failure
+                                        ) && (
+                                          <button
+                                            type="button"
+                                            onClick={() => restartJob(row.job)}
+                                            className={styles.iconButton}
+                                            aria-label="Restart job"
+                                            title="Restart"
+                                          >
+                                            ↺
+                                          </button>
+                                        )}
                                       <button
                                         type="button"
-                                        onClick={() => handleDeleteJob(row.job.id)}
+                                        onClick={() =>
+                                          handleDeleteJob(row.job.id)
+                                        }
                                         className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-                                        aria-label={isFailed || isDoneJob(row.job.status) ? `Delete ${row.job.title}` : `Cancel ${row.job.title}`}
+                                        aria-label={
+                                          isFailed || isDoneJob(row.job.status)
+                                            ? `Delete ${row.job.title}`
+                                            : `Cancel ${row.job.title}`
+                                        }
                                         title={isFailed ? 'Delete' : 'Cancel'}
                                       >
                                         <TrashIcon width={16} height={16} />
@@ -490,28 +644,42 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                   </div>
                                 </td>
                               </tr>
-                              {isFailed && isExpanded && row.job.job_reason_failure != null && (
-                                <tr key={`job-${row.job.id}-panel`}>
-                                  <td colSpan={4} className={styles.failurePanel}>
-                                    {renderFailurePanelContent(
-                                      row.source,
-                                      row.job.job_reason_failure,
-                                      () => setMappingModalJob(row.job),
-                                      data?.user?.email ?? undefined
-                                    )}
-                                  </td>
-                                </tr>
-                              )}
-                              {!isFailed && isExpanded && truncation != null && (
-                                <tr key={`job-${row.job.id}-truncation`}>
-                                  <td colSpan={4} className={styles.failurePanel}>
-                                    <TruncationNotice
-                                      blocksConverted={truncation.blocksConverted}
-                                      subDeckRulesSkipped={truncation.subDeckRulesSkipped}
-                                    />
-                                  </td>
-                                </tr>
-                              )}
+                              {isFailed &&
+                                isExpanded &&
+                                row.job.job_reason_failure != null && (
+                                  <tr key={`job-${row.job.id}-panel`}>
+                                    <td
+                                      colSpan={4}
+                                      className={styles.failurePanel}
+                                    >
+                                      {renderFailurePanelContent(
+                                        row.source,
+                                        row.job.job_reason_failure,
+                                        () => setMappingModalJob(row.job),
+                                        data?.user?.email ?? undefined
+                                      )}
+                                    </td>
+                                  </tr>
+                                )}
+                              {!isFailed &&
+                                isExpanded &&
+                                truncation != null && (
+                                  <tr key={`job-${row.job.id}-truncation`}>
+                                    <td
+                                      colSpan={4}
+                                      className={styles.failurePanel}
+                                    >
+                                      <TruncationNotice
+                                        blocksConverted={
+                                          truncation.blocksConverted
+                                        }
+                                        subDeckRulesSkipped={
+                                          truncation.subDeckRulesSkipped
+                                        }
+                                      />
+                                    </td>
+                                  </tr>
+                                )}
                             </>
                           );
                         }
@@ -523,14 +691,20 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                           return (
                             <tr key={`upload-${u.key}`}>
                               <td>
-                                <span data-hj-suppress className={styles.fileName}>
+                                <span
+                                  data-hj-suppress
+                                  className={styles.fileName}
+                                >
                                   {u.filename}
                                 </span>
                                 {isShared && (
                                   <Link
                                     to={sharePreviewUrl}
                                     className={sharedStyles.badge}
-                                    style={{ marginLeft: '0.5rem', textDecoration: 'none' }}
+                                    style={{
+                                      marginLeft: '0.5rem',
+                                      textDecoration: 'none',
+                                    }}
                                     title="Shared — click to open preview"
                                   >
                                     Shared
@@ -538,7 +712,9 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                 )}
                               </td>
                               <td>
-                                <span className={sharedStyles.badge}>{getSourceLabel(row.source)}</span>
+                                <span className={sharedStyles.badge}>
+                                  {getSourceLabel(row.source)}
+                                </span>
                               </td>
                               <td>
                                 {u.created_at != null && (
@@ -554,7 +730,11 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                     className={styles.downloadAction}
                                     aria-label={`Download ${u.filename}`}
                                     title="Download"
-                                    onClick={() => { setHasDownloaded(true); fireAnalyticsEvent('deck_downloaded'); track('deck_downloaded'); }}
+                                    onClick={() => {
+                                      setHasDownloaded(true);
+                                      fireAnalyticsEvent('deck_downloaded');
+                                      track('deck_downloaded');
+                                    }}
                                   >
                                     <DownloadIcon width={16} height={16} />
                                   </a>
@@ -570,7 +750,10 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                       </Link>
                                     )}
                                     {APKG_PATTERN.test(u.key) && (
-                                      <SendToAnkifyButton uploadId={u.id} filename={u.filename} />
+                                      <SendToAnkifyButton
+                                        uploadId={u.id}
+                                        filename={u.filename}
+                                      />
                                     )}
                                     <button
                                       type="button"
@@ -593,12 +776,20 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                           return (
                             <tr key={`dropbox-${d.id}`}>
                               <td>
-                                <span data-hj-suppress className={styles.fileName} title={d.name}>
-                                  {d.name.length > 40 ? `${d.name.slice(0, 40)}…` : d.name}
+                                <span
+                                  data-hj-suppress
+                                  className={styles.fileName}
+                                  title={d.name}
+                                >
+                                  {d.name.length > 40
+                                    ? `${d.name.slice(0, 40)}…`
+                                    : d.name}
                                 </span>
                               </td>
                               <td>
-                                <span className={sharedStyles.badge}>Dropbox</span>
+                                <span className={sharedStyles.badge}>
+                                  Dropbox
+                                </span>
                               </td>
                               <td>
                                 {d.created_at != null && (
@@ -631,12 +822,20 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                           return (
                             <tr key={`drive-${g.id}`}>
                               <td>
-                                <span data-hj-suppress className={styles.fileName} title={g.name}>
-                                  {g.name.length > 40 ? `${g.name.slice(0, 40)}…` : g.name}
+                                <span
+                                  data-hj-suppress
+                                  className={styles.fileName}
+                                  title={g.name}
+                                >
+                                  {g.name.length > 40
+                                    ? `${g.name.slice(0, 40)}…`
+                                    : g.name}
                                 </span>
                               </td>
                               <td>
-                                <span className={sharedStyles.badge}>Drive</span>
+                                <span className={sharedStyles.badge}>
+                                  Drive
+                                </span>
                               </td>
                               <td>
                                 {g.last_converted_at != null && (
@@ -651,7 +850,9 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                     <button
                                       type="button"
                                       className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-                                      onClick={() => deleteGoogleDriveUpload(g.id)}
+                                      onClick={() =>
+                                        deleteGoogleDriveUpload(g.id)
+                                      }
                                       aria-label={`Remove ${g.name}`}
                                       title="Remove"
                                     >
@@ -694,26 +895,36 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
 
               {showDeckFeedback && <DeckFeedbackPrompt />}
 
-              <div style={{ textAlign: 'right', marginTop: '0.5rem', fontSize: 'var(--text-xs)', color: 'var(--color-text-tertiary)' }}>
+              <div
+                style={{
+                  textAlign: 'right',
+                  marginTop: '0.5rem',
+                  fontSize: 'var(--text-xs)',
+                  color: 'var(--color-text-tertiary)',
+                }}
+              >
                 {formatUpdatedLabel(lastFetchedAt)}
               </div>
             </div>
           )}
         </>
       )}
-      {mappingModalJob != null && (() => {
-        const payload = parseAmbiguousColumnsPayload(mappingModalJob.job_reason_failure);
-        if (payload == null) return null;
-        return (
-          <NotionColumnMappingModal
-            isOpen
-            columns={payload.columns}
-            suggested={payload.suggested}
-            onSubmit={handleMappingSubmit}
-            onCancel={() => setMappingModalJob(null)}
-          />
-        );
-      })()}
+      {mappingModalJob != null &&
+        (() => {
+          const payload = parseAmbiguousColumnsPayload(
+            mappingModalJob.job_reason_failure
+          );
+          if (payload == null) return null;
+          return (
+            <NotionColumnMappingModal
+              isOpen
+              columns={payload.columns}
+              suggested={payload.suggested}
+              onSubmit={handleMappingSubmit}
+              onCancel={() => setMappingModalJob(null)}
+            />
+          );
+        })()}
     </div>
   );
 }

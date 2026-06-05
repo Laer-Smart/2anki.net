@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useDialog } from '../../lib/hooks/useDialog';
-import type { AmbiguousColumnsPayload, FieldMapping } from '../../lib/fieldMapping/types';
+import type {
+  AmbiguousColumnsPayload,
+  FieldMapping,
+} from '../../lib/fieldMapping/types';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './NotionColumnMappingModal.module.css';
 
@@ -46,7 +49,10 @@ export function NotionColumnMappingModal({
     >
       <div className={sharedStyles.modalCard}>
         <div className={sharedStyles.modalHeader}>
-          <span id="column-mapping-title" className={sharedStyles.modalHeaderTitle}>
+          <span
+            id="column-mapping-title"
+            className={sharedStyles.modalHeaderTitle}
+          >
             Map your columns
           </span>
           <button

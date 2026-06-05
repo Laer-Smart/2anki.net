@@ -29,7 +29,9 @@ describe('CodeBlock', () => {
 
   it('renders a Copy button in the header', () => {
     render(<CodeBlock language="python" code="print('x')" />);
-    expect(screen.getByRole('button', { name: 'Copy code' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Copy code' })
+    ).toBeInTheDocument();
   });
 
   it('clicking Copy calls navigator.clipboard.writeText with the code', async () => {

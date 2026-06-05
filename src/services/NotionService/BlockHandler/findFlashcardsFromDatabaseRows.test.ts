@@ -38,9 +38,24 @@ describe('BlockHandler.findFlashcardsFromDatabaseRows', () => {
   it('emits one note per row using auto-inferred Term/Definition mapping', async () => {
     const api = makeApi({
       rows: [
-        { properties: { Term: titleProp('aller'), Definition: richTextProp('to go') } },
-        { properties: { Term: titleProp('manger'), Definition: richTextProp('to eat') } },
-        { properties: { Term: titleProp('dormir'), Definition: richTextProp('to sleep') } },
+        {
+          properties: {
+            Term: titleProp('aller'),
+            Definition: richTextProp('to go'),
+          },
+        },
+        {
+          properties: {
+            Term: titleProp('manger'),
+            Definition: richTextProp('to eat'),
+          },
+        },
+        {
+          properties: {
+            Term: titleProp('dormir'),
+            Definition: richTextProp('to sleep'),
+          },
+        },
       ],
     });
     const bl = makeHandler(api);
@@ -92,10 +107,30 @@ describe('BlockHandler.findFlashcardsFromDatabaseRows', () => {
   it('skips rows missing either front or back text', async () => {
     const api = makeApi({
       rows: [
-        { properties: { Term: titleProp('aller'), Definition: richTextProp('to go') } },
-        { properties: { Term: titleProp(''), Definition: richTextProp('to eat') } },
-        { properties: { Term: titleProp('dormir'), Definition: richTextProp('') } },
-        { properties: { Term: titleProp('parler'), Definition: richTextProp('to speak') } },
+        {
+          properties: {
+            Term: titleProp('aller'),
+            Definition: richTextProp('to go'),
+          },
+        },
+        {
+          properties: {
+            Term: titleProp(''),
+            Definition: richTextProp('to eat'),
+          },
+        },
+        {
+          properties: {
+            Term: titleProp('dormir'),
+            Definition: richTextProp(''),
+          },
+        },
+        {
+          properties: {
+            Term: titleProp('parler'),
+            Definition: richTextProp('to speak'),
+          },
+        },
       ],
     });
     const decks = await makeHandler(api).findFlashcards({
@@ -157,7 +192,9 @@ describe('BlockHandler.findFlashcardsFromDatabaseRows', () => {
 
   it('rejects explicit fields that do not exist in the database', async () => {
     const api = makeApi({
-      rows: [{ properties: { Term: titleProp('x'), Definition: richTextProp('y') } }],
+      rows: [
+        { properties: { Term: titleProp('x'), Definition: richTextProp('y') } },
+      ],
     });
     await expect(
       makeHandler(api).findFlashcards({

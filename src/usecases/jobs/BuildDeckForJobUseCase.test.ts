@@ -90,7 +90,9 @@ describe('BuildDeckForJobUseCase', () => {
   });
 
   describe('prior-upload prune on re-conversion', () => {
-    const MockCardGenerator = CardGenerator as jest.MockedClass<typeof CardGenerator>;
+    const MockCardGenerator = CardGenerator as jest.MockedClass<
+      typeof CardGenerator
+    >;
     const mockReadFile = fsPromises.readFile as jest.Mock;
     const mockGetDatabase = getDatabase as jest.Mock;
 
@@ -119,7 +121,10 @@ describe('BuildDeckForJobUseCase', () => {
         { id: 2, owner: 7, key: 'old-2.apkg', object_id: 'page-x' } as Uploads,
       ]);
 
-      const useCase = new BuildDeckForJobUseCase(jobRepository, uploadRepository);
+      const useCase = new BuildDeckForJobUseCase(
+        jobRepository,
+        uploadRepository
+      );
       await useCase.execute({
         bl,
         exporter,
@@ -137,8 +142,14 @@ describe('BuildDeckForJobUseCase', () => {
       );
       expect(storage.delete).toHaveBeenCalledWith('old-1.apkg');
       expect(storage.delete).toHaveBeenCalledWith('old-2.apkg');
-      expect(uploadRepository.deleteUpload).toHaveBeenCalledWith(7, 'old-1.apkg');
-      expect(uploadRepository.deleteUpload).toHaveBeenCalledWith(7, 'old-2.apkg');
+      expect(uploadRepository.deleteUpload).toHaveBeenCalledWith(
+        7,
+        'old-1.apkg'
+      );
+      expect(uploadRepository.deleteUpload).toHaveBeenCalledWith(
+        7,
+        'old-2.apkg'
+      );
     });
 
     it('makes no prune calls when there are no prior uploads', async () => {
@@ -149,7 +160,10 @@ describe('BuildDeckForJobUseCase', () => {
       } as unknown as StorageHandler;
       const uploadRepository = buildUploadRepository();
 
-      const useCase = new BuildDeckForJobUseCase(jobRepository, uploadRepository);
+      const useCase = new BuildDeckForJobUseCase(
+        jobRepository,
+        uploadRepository
+      );
       await useCase.execute({
         bl,
         exporter,
@@ -169,16 +183,24 @@ describe('BuildDeckForJobUseCase', () => {
       const storage = {
         uniqify: jest.fn().mockReturnValue('new-key.apkg'),
         uploadFile: jest.fn().mockResolvedValue(undefined),
-        delete: jest.fn().mockRejectedValueOnce(new Error('s3 boom')).mockResolvedValue(true),
+        delete: jest
+          .fn()
+          .mockRejectedValueOnce(new Error('s3 boom'))
+          .mockResolvedValue(true),
       } as unknown as StorageHandler;
       const uploadRepository = buildUploadRepository();
       uploadRepository.findAllByObjectIdAndOwner.mockResolvedValue([
         { id: 1, owner: 7, key: 'old-1.apkg', object_id: 'page-x' } as Uploads,
         { id: 2, owner: 7, key: 'old-2.apkg', object_id: 'page-x' } as Uploads,
       ]);
-      const consoleErr = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      const consoleErr = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
 
-      const useCase = new BuildDeckForJobUseCase(jobRepository, uploadRepository);
+      const useCase = new BuildDeckForJobUseCase(
+        jobRepository,
+        uploadRepository
+      );
       await useCase.execute({
         bl,
         exporter,
@@ -191,7 +213,10 @@ describe('BuildDeckForJobUseCase', () => {
       });
 
       expect(storage.delete).toHaveBeenCalledWith('old-2.apkg');
-      expect(uploadRepository.deleteUpload).toHaveBeenCalledWith(7, 'old-2.apkg');
+      expect(uploadRepository.deleteUpload).toHaveBeenCalledWith(
+        7,
+        'old-2.apkg'
+      );
       consoleErr.mockRestore();
     });
   });

@@ -49,8 +49,14 @@ function ConversionsChurnTooltip({ active, payload }: TooltipContentProps) {
   const row = payload[0].payload as WeekRow;
   return (
     <TimeSeriesTooltipShell title={row.label}>
-      <TimeSeriesTooltipRow label="new" value={row.new_paying.toLocaleString()} />
-      <TimeSeriesTooltipRow label="churned" value={row.churned.toLocaleString()} />
+      <TimeSeriesTooltipRow
+        label="new"
+        value={row.new_paying.toLocaleString()}
+      />
+      <TimeSeriesTooltipRow
+        label="churned"
+        value={row.churned.toLocaleString()}
+      />
     </TimeSeriesTooltipShell>
   );
 }
@@ -65,8 +71,15 @@ export default function ConversionsChurnChart({
       <BarChart data={data} margin={TIME_SERIES_CHART_MARGIN}>
         <CartesianGrid stroke={GRID_STROKE} vertical={false} />
         <XAxis dataKey="label" tick={AXIS_TICK_STYLE} stroke={AXIS_STROKE} />
-        <YAxis tick={AXIS_TICK_STYLE} stroke={AXIS_STROKE} allowDecimals={false} />
-        <Tooltip content={ConversionsChurnTooltip} cursor={TOOLTIP_CURSOR_FILL} />
+        <YAxis
+          tick={AXIS_TICK_STYLE}
+          stroke={AXIS_STROKE}
+          allowDecimals={false}
+        />
+        <Tooltip
+          content={ConversionsChurnTooltip}
+          cursor={TOOLTIP_CURSOR_FILL}
+        />
         <Legend wrapperStyle={{ fontSize: 11 }} />
         <Bar dataKey="new_paying" fill={SERIES_GREEN} name="new" />
         <Bar dataKey="churned" fill={SERIES_RED} name="churned" />

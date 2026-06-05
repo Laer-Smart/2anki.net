@@ -9,7 +9,9 @@ import {
 import { getDatabase } from '../data_layer';
 import { StripeController } from '../controllers/StripeController/StripeController';
 import UsersRepository from '../data_layer/UsersRepository';
-import UserPassRepository, { type PassKind } from '../data_layer/UserPassRepository';
+import UserPassRepository, {
+  type PassKind,
+} from '../data_layer/UserPassRepository';
 import AnonymousPassRepository from '../data_layer/AnonymousPassRepository';
 import TokenRepository from '../data_layer/TokenRepository';
 import AuthenticationService from '../services/AuthenticationService';
@@ -34,20 +36,30 @@ const WebhooksRouter = () => {
   const stripe = getStripe();
   const usersRepository = new UsersRepository(database);
   const tokenRepository = new TokenRepository(database);
-  const authService = new AuthenticationService(tokenRepository, usersRepository);
-  const usersService = new UsersService(usersRepository, getDefaultEmailService());
-  const persistStripeSessionUseCase = new PersistStripeSessionUseCase(stripe, database);
+  const authService = new AuthenticationService(
+    tokenRepository,
+    usersRepository
+  );
+  const usersService = new UsersService(
+    usersRepository,
+    getDefaultEmailService()
+  );
+  const persistStripeSessionUseCase = new PersistStripeSessionUseCase(
+    stripe,
+    database
+  );
   const controller = new StripeController(
     authService,
     usersService,
     persistStripeSessionUseCase,
     stripe
   );
-  const abandonedCheckoutRecoveryUseCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
-    new AbandonedCheckoutRecoveryRepository(database),
-    getDefaultEmailService(),
-    getEventsSink()
-  );
+  const abandonedCheckoutRecoveryUseCase =
+    new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      new AbandonedCheckoutRecoveryRepository(database),
+      getDefaultEmailService(),
+      getEventsSink()
+    );
   const recordErrorUseCase = new RecordUserVisibleErrorUseCase(
     new UserVisibleErrorsRepository(database)
   );
@@ -139,7 +151,8 @@ const WebhooksRouter = () => {
       // Handle the event
       switch (event.type) {
         case 'customer.subscription.created': {
-          const subscriptionCreated = event.data.object as StripeTypes.Subscription;
+          const subscriptionCreated = event.data
+            .object as StripeTypes.Subscription;
           await provisionSubscription(subscriptionCreated);
           break;
         }
@@ -161,17 +174,25 @@ const WebhooksRouter = () => {
           );
 
           {
-            const updatedProductId = customerSubscriptionUpdated.items?.data?.[0]?.price?.product;
+            const updatedProductId =
+              customerSubscriptionUpdated.items?.data?.[0]?.price?.product;
             const autoSyncProductId = process.env.AUTO_SYNC_PRODUCT_ID;
-            if (autoSyncProductId != null && updatedProductId === autoSyncProductId) {
+            if (
+              autoSyncProductId != null &&
+              updatedProductId === autoSyncProductId
+            ) {
               if (customerSubscriptionUpdated.status === 'active') {
                 console.info('auto_sync.subscription.activated', {
                   subscription_status: customerSubscriptionUpdated.status,
                 });
-              } else if (customerSubscriptionUpdated.cancel_at_period_end === true) {
+              } else if (
+                customerSubscriptionUpdated.cancel_at_period_end === true
+              ) {
                 console.info('auto_sync.subscription.canceled', {
                   subscription_status: customerSubscriptionUpdated.status,
-                  access_until: new Date((customerSubscriptionUpdated.cancel_at ?? 0) * 1000).toISOString(),
+                  access_until: new Date(
+                    (customerSubscriptionUpdated.cancel_at ?? 0) * 1000
+                  ).toISOString(),
                 });
               }
             }
@@ -215,9 +236,13 @@ const WebhooksRouter = () => {
               customerSubscriptionDeleted
             );
 
-            const deletedProductId = customerSubscriptionDeleted.items?.data?.[0]?.price?.product;
+            const deletedProductId =
+              customerSubscriptionDeleted.items?.data?.[0]?.price?.product;
             const autoSyncProductIdForDelete = process.env.AUTO_SYNC_PRODUCT_ID;
-            if (autoSyncProductIdForDelete != null && deletedProductId === autoSyncProductIdForDelete) {
+            if (
+              autoSyncProductIdForDelete != null &&
+              deletedProductId === autoSyncProductIdForDelete
+            ) {
               console.info('auto_sync.subscription.canceled', {
                 subscription_status: 'deleted',
               });
@@ -226,7 +251,10 @@ const WebhooksRouter = () => {
           break;
         case 'checkout.session.completed': {
           const session: StripeTypes.Checkout.Session = event.data.object;
-          const sessionMeta = (session.metadata ?? {}) as Record<string, string>;
+          const sessionMeta = (session.metadata ?? {}) as Record<
+            string,
+            string
+          >;
           const passKind = sessionMeta.pass_kind as PassKind | undefined;
 
           const pricingVariant = sessionMeta.pricing_variant;
@@ -243,9 +271,7 @@ const WebhooksRouter = () => {
               ...(pricingVariant != null && pricingVariant !== ''
                 ? { variant: pricingVariant }
                 : {}),
-              ...(surface != null && surface !== ''
-                ? { surface }
-                : {}),
+              ...(surface != null && surface !== '' ? { surface } : {}),
               ...(typeof session.recovered_from === 'string' &&
               session.recovered_from !== ''
                 ? { recovered: true }
@@ -254,10 +280,12 @@ const WebhooksRouter = () => {
           });
 
           if (passKind === '24h' || passKind === '7d') {
-            const paymentIntentId = typeof session.payment_intent === 'string'
-              ? session.payment_intent
-              : null;
-            const durationMs = passKind === '24h' ? DURATION_24H_MS : DURATION_7D_MS;
+            const paymentIntentId =
+              typeof session.payment_intent === 'string'
+                ? session.payment_intent
+                : null;
+            const durationMs =
+              passKind === '24h' ? DURATION_24H_MS : DURATION_7D_MS;
             const now = new Date();
 
             if (sessionMeta.pass_anonymous === '1') {
@@ -292,7 +320,8 @@ const WebhooksRouter = () => {
             }
 
             const rawUserId = sessionMeta.user_id;
-            const passUserId = rawUserId == null ? Number.NaN : Number.parseInt(rawUserId, 10);
+            const passUserId =
+              rawUserId == null ? Number.NaN : Number.parseInt(rawUserId, 10);
             if (Number.isNaN(passUserId) || passUserId <= 0) {
               console.warn('pass.webhook.missing_metadata', {
                 raw_user_id: rawUserId,
@@ -395,13 +424,16 @@ const WebhooksRouter = () => {
           }
 
           try {
-            const { sendPurchaseEvent } = await import('../services/GA4Service');
+            const { sendPurchaseEvent } =
+              await import('../services/GA4Service');
             await sendPurchaseEvent({
               transactionId: session.id,
               valueCents: session.amount_total ?? 0,
               currency: session.currency ?? 'usd',
-              stripeCustomerId: typeof session.customer === 'string' ? session.customer : '',
-              clientId: (session.metadata as Record<string, string> | null)?.ga_client_id,
+              stripeCustomerId:
+                typeof session.customer === 'string' ? session.customer : '',
+              clientId: (session.metadata as Record<string, string> | null)
+                ?.ga_client_id,
             });
           } catch (ga4Error) {
             console.error('[ga4] failed to send purchase event', ga4Error);
@@ -416,14 +448,18 @@ const WebhooksRouter = () => {
             customer_details?: { email?: string | null } | null;
             customer_email?: string | null;
             after_expiration?: {
-              recovery?: { url?: string | null; expires_at?: number | null } | null;
+              recovery?: {
+                url?: string | null;
+                expires_at?: number | null;
+              } | null;
             } | null;
           };
           const sessionEmail =
             expiredSession.customer_details?.email ??
             expiredSession.customer_email ??
             null;
-          const recoveryUrl = expiredSession.after_expiration?.recovery?.url ?? null;
+          const recoveryUrl =
+            expiredSession.after_expiration?.recovery?.url ?? null;
           const recoveryExpiresAtSeconds =
             expiredSession.after_expiration?.recovery?.expires_at;
           const recoveryExpiresAt =

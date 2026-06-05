@@ -61,7 +61,9 @@ const getFile = (
   if (filename) {
     const matches = files.filter((f) => {
       const normalizedName = f.name.replaceAll('\\', '/');
-      return normalizedName === filename || normalizedName.endsWith('/' + filename);
+      return (
+        normalizedName === filename || normalizedName.endsWith('/' + filename)
+      );
     });
     if (matches.length === 1) {
       return matches[0];
@@ -69,11 +71,19 @@ const getFile = (
     if (matches.length > 1) {
       const requestDir = normalizedFilePath.split('/').slice(0, -1).join('/');
       const scored = matches.map((f) => {
-        const fDir = f.name.replaceAll('\\', '/').split('/').slice(0, -1).join('/');
+        const fDir = f.name
+          .replaceAll('\\', '/')
+          .split('/')
+          .slice(0, -1)
+          .join('/');
         const reqParts = requestDir.split('/');
         const fParts = fDir.split('/');
         let shared = 0;
-        while (shared < reqParts.length && shared < fParts.length && reqParts[shared] === fParts[shared]) {
+        while (
+          shared < reqParts.length &&
+          shared < fParts.length &&
+          reqParts[shared] === fParts[shared]
+        ) {
           shared++;
         }
         return { file: f, shared };

@@ -1,4 +1,8 @@
-import { classifyError, getErrorMessage, classifyUploadError } from './getErrorMessage';
+import {
+  classifyError,
+  getErrorMessage,
+  classifyUploadError,
+} from './getErrorMessage';
 import type { UploadErrorBody } from '../../../types/UploadErrorBody';
 
 describe('classifyError', () => {
@@ -27,7 +31,10 @@ describe('classifyError', () => {
 
   test('session-expiry error has a Sign in actionLink pointing to /login', () => {
     const result = classifyError(new Error('Authentication required'));
-    expect(result.actionLink).toMatchObject({ text: 'Sign in', to: expect.stringContaining('/login') });
+    expect(result.actionLink).toMatchObject({
+      text: 'Sign in',
+      to: expect.stringContaining('/login'),
+    });
   });
 
   test('object_not_found gives a Notion-page hint, not a workspace reconnect', () => {
@@ -71,15 +78,13 @@ describe('classifyError', () => {
   });
 
   test('upload_limit_exceeded suggests upgrading', () => {
-    expect(
-      classifyError(new Error('upload_limit_exceeded')).detail
-    ).toMatch(/upgrade/i);
+    expect(classifyError(new Error('upload_limit_exceeded')).detail).toMatch(
+      /upgrade/i
+    );
   });
 
   test('rate_limited tells the user to wait', () => {
-    expect(classifyError(new Error('rate_limited')).title).toMatch(
-      /too many/i
-    );
+    expect(classifyError(new Error('rate_limited')).title).toMatch(/too many/i);
   });
 
   test('falls back to a short server message when one is provided', () => {
@@ -100,12 +105,9 @@ describe('classifyError', () => {
   });
 
   test('short HTML-wrapped error is stripped and shown to the user', () => {
-    const htmlError =
-      '<p>Could not create a deck using your file</p>';
+    const htmlError = '<p>Could not create a deck using your file</p>';
     const result = classifyError(new Error(htmlError));
-    expect(result.title).toBe(
-      'Could not create a deck using your file'
-    );
+    expect(result.title).toBe('Could not create a deck using your file');
   });
 
   test('rich HTML error with links is stripped to plain text', () => {
@@ -118,20 +120,30 @@ describe('classifyError', () => {
 
 describe('classifyError — notion_unauthorized', () => {
   it('new structured code returns reconnect copy', () => {
-    const result = classifyError({ code: 'notion_unauthorized', message: 'API token is invalid.' });
+    const result = classifyError({
+      code: 'notion_unauthorized',
+      message: 'API token is invalid.',
+    });
     expect(result.title).toBe('Your Notion connection expired');
-    expect(result.detail).toBe('Sign in to Notion again to keep converting your pages.');
+    expect(result.detail).toBe(
+      'Sign in to Notion again to keep converting your pages.'
+    );
   });
 
   it('legacy text "api token is invalid" (case-insensitive) returns reconnect copy', () => {
     const result = classifyError(new Error('API token is invalid.'));
     expect(result.title).toBe('Your Notion connection expired');
-    expect(result.detail).toBe('Sign in to Notion again to keep converting your pages.');
+    expect(result.detail).toBe(
+      'Sign in to Notion again to keep converting your pages.'
+    );
   });
 
   it('action link points to the Notion connect page', () => {
     const result = classifyError({ code: 'notion_unauthorized', message: '' });
-    expect(result.actionLink).toEqual({ text: 'Reconnect Notion', to: '/notion' });
+    expect(result.actionLink).toEqual({
+      text: 'Reconnect Notion',
+      to: '/notion',
+    });
   });
 });
 
@@ -144,10 +156,15 @@ describe('getErrorMessage', () => {
 
 describe('classifyUploadError', () => {
   test('unsupported_format returns specific copy about file type', () => {
-    const body: UploadErrorBody = { code: 'unsupported_format', message: 'original' };
+    const body: UploadErrorBody = {
+      code: 'unsupported_format',
+      message: 'original',
+    };
     const result = classifyUploadError(body);
     expect(result.title).toBe("This file type isn't supported.");
-    expect(result.detail).toBe('Use .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, .csv, or .xml.');
+    expect(result.detail).toBe(
+      'Use .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, .csv, or .xml.'
+    );
   });
 
   test('too_large returns copy about splitting into subpages', () => {
@@ -158,49 +175,80 @@ describe('classifyUploadError', () => {
   });
 
   test('password_protected_pdf returns specific copy about removing the password', () => {
-    const body: UploadErrorBody = { code: 'password_protected_pdf', message: 'original' };
+    const body: UploadErrorBody = {
+      code: 'password_protected_pdf',
+      message: 'original',
+    };
     const result = classifyUploadError(body);
     expect(result.title).toMatch(/password/i);
   });
 
   test('invalid_markup returns specific copy about simplifying the block', () => {
-    const body: UploadErrorBody = { code: 'invalid_markup', message: 'original' };
+    const body: UploadErrorBody = {
+      code: 'invalid_markup',
+      message: 'original',
+    };
     const result = classifyUploadError(body);
-    expect(result.title).toBe("Part of this file has formatting we couldn't read.");
-    expect(result.detail).toBe('Open the source, remove or simplify the block that broke, and try again.');
+    expect(result.title).toBe(
+      "Part of this file has formatting we couldn't read."
+    );
+    expect(result.detail).toBe(
+      'Open the source, remove or simplify the block that broke, and try again.'
+    );
   });
 
   test('unknown falls back to the server message', () => {
-    const body: UploadErrorBody = { code: 'unknown', message: 'Something broke.' };
+    const body: UploadErrorBody = {
+      code: 'unknown',
+      message: 'Something broke.',
+    };
     const result = classifyUploadError(body);
     expect(result.title).toBe('Something broke.');
   });
 
   test('malformed_notion returns specific copy (not the server message)', () => {
-    const body: UploadErrorBody = { code: 'malformed_notion', message: 'Notion error.' };
+    const body: UploadErrorBody = {
+      code: 'malformed_notion',
+      message: 'Notion error.',
+    };
     const result = classifyUploadError(body);
     expect(result.title).toBe("This Notion export couldn't be parsed.");
   });
 
   it('malformed_notion returns specific copy about re-exporting from Notion', () => {
-    const body: UploadErrorBody = { code: 'malformed_notion', message: 'raw server text' };
+    const body: UploadErrorBody = {
+      code: 'malformed_notion',
+      message: 'raw server text',
+    };
     const result = classifyUploadError(body);
     expect(result.title).toBe("This Notion export couldn't be parsed.");
     expect(result.detail).toBe('Re-export the page from Notion and try again.');
   });
 
   it('corrupted_apkg returns specific copy about re-exporting from Anki', () => {
-    const body: UploadErrorBody = { code: 'corrupted_apkg', message: 'raw server text' };
+    const body: UploadErrorBody = {
+      code: 'corrupted_apkg',
+      message: 'raw server text',
+    };
     const result = classifyUploadError(body);
     expect(result.title).toBe('This .apkg file is damaged.');
-    expect(result.detail).toBe('Re-export it from Anki, or send it to support@2anki.net.');
+    expect(result.detail).toBe(
+      'Re-export it from Anki, or send it to support@2anki.net.'
+    );
   });
 
   it('empty_export returns specific copy about checking page content', () => {
-    const body: UploadErrorBody = { code: 'empty_export', message: 'raw server text' };
+    const body: UploadErrorBody = {
+      code: 'empty_export',
+      message: 'raw server text',
+    };
     const result = classifyUploadError(body);
-    expect(result.title).toBe("This export has no content we can turn into cards.");
-    expect(result.detail).toBe('Check the page has text or toggle blocks, then export again.');
+    expect(result.title).toBe(
+      'This export has no content we can turn into cards.'
+    );
+    expect(result.detail).toBe(
+      'Check the page has text or toggle blocks, then export again.'
+    );
   });
 
   test('empty message under an unknown code returns the parser-error spec copy', () => {
@@ -213,14 +261,22 @@ describe('classifyUploadError', () => {
   });
 
   it('claude_parse_failed returns the designer copy instead of falling through to UPLOAD_FALLBACK', () => {
-    const body: UploadErrorBody = { code: 'claude_parse_failed', message: 'claude_parse_failed' };
+    const body: UploadErrorBody = {
+      code: 'claude_parse_failed',
+      message: 'claude_parse_failed',
+    };
     const result = classifyUploadError(body);
     expect(result.title).toBe('Something went wrong while making your cards.');
-    expect(result.detail).toBe('Try again — if it keeps happening, email support@2anki.net.');
+    expect(result.detail).toBe(
+      'Try again — if it keeps happening, email support@2anki.net.'
+    );
   });
 
   it('markdown_likely_lossy returns the Notion toggle-flatten copy', () => {
-    const body: UploadErrorBody = { code: 'markdown_likely_lossy', message: 'raw server text' };
+    const body: UploadErrorBody = {
+      code: 'markdown_likely_lossy',
+      message: 'raw server text',
+    };
     const result = classifyUploadError(body);
     expect(result.title).toBe(
       'Notion Markdown exports flatten toggles — re-export this page as HTML and the toggles become flashcards.'
@@ -234,14 +290,16 @@ describe('classifyUploadError — new error codes', () => {
     const body: UploadErrorBody = { code: 'parser_crash', message: 'raw' };
     const result = classifyUploadError(body);
     expect(result.title).toBe("Couldn't read this file.");
-    expect(result.detail).toContain("malformed or use a structure");
+    expect(result.detail).toContain('malformed or use a structure');
     expect(result.detail).toContain('support@2anki.net');
   });
 
   it('worker_timeout returns the time-budget copy', () => {
     const body: UploadErrorBody = { code: 'worker_timeout', message: 'raw' };
     const result = classifyUploadError(body);
-    expect(result.title).toBe('This conversion took longer than the time budget.');
+    expect(result.title).toBe(
+      'This conversion took longer than the time budget.'
+    );
     expect(result.detail).toContain('smaller pieces');
   });
 
@@ -253,14 +311,20 @@ describe('classifyUploadError — new error codes', () => {
   });
 
   it('notion_object_not_found returns the page-not-found copy', () => {
-    const body: UploadErrorBody = { code: 'notion_object_not_found', message: 'raw' };
+    const body: UploadErrorBody = {
+      code: 'notion_object_not_found',
+      message: 'raw',
+    };
     const result = classifyUploadError(body);
     expect(result.title).toBe("We couldn't open that Notion page.");
     expect(result.detail).toContain('Share it with the 2anki integration');
   });
 
   it('apkg_too_large_for_anki returns the upload-limit copy', () => {
-    const body: UploadErrorBody = { code: 'apkg_too_large_for_anki', message: 'raw' };
+    const body: UploadErrorBody = {
+      code: 'apkg_too_large_for_anki',
+      message: 'raw',
+    };
     const result = classifyUploadError(body);
     expect(result.title).toContain("Anki's upload limit");
     expect(result.detail).toContain('Anki desktop');

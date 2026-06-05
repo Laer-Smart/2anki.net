@@ -34,27 +34,19 @@ describe('renderTemplate', () => {
 
   it('renders {{#Field}} block only when field is non-empty', () => {
     const map = buildFieldMap(['front', '', ''], basicNoteType);
-    const out = renderTemplate(
-      '{{Front}}{{#Back}} / {{Back}}{{/Back}}',
-      map
-    );
+    const out = renderTemplate('{{Front}}{{#Back}} / {{Back}}{{/Back}}', map);
     expect(out).toBe('front');
   });
 
   it('treats HTML-only fields as empty for conditionals', () => {
     const map = buildFieldMap(['front', '<br>', ''], basicNoteType);
-    const out = renderTemplate(
-      '{{Front}}{{#Back}} / {{Back}}{{/Back}}',
-      map
-    );
+    const out = renderTemplate('{{Front}}{{#Back}} / {{Back}}{{/Back}}', map);
     expect(out).toBe('front');
   });
 
   it('renders {{^Field}} block only when field is empty', () => {
     const map = buildFieldMap(['front', '', ''], basicNoteType);
-    expect(
-      renderTemplate('{{^Back}}no back{{/Back}}', map)
-    ).toBe('no back');
+    expect(renderTemplate('{{^Back}}no back{{/Back}}', map)).toBe('no back');
   });
 
   it('strips HTML with the text: modifier', () => {
@@ -64,11 +56,9 @@ describe('renderTemplate', () => {
 
   it('substitutes {{FrontSide}} via specials', () => {
     const map = buildFieldMap(['hi', '', ''], basicNoteType);
-    const out = renderTemplate(
-      '<div>{{FrontSide}}<hr>{{Front}}</div>',
-      map,
-      { FrontSide: '<p>hi</p>' }
-    );
+    const out = renderTemplate('<div>{{FrontSide}}<hr>{{Front}}</div>', map, {
+      FrontSide: '<p>hi</p>',
+    });
     expect(out).toBe('<div><p>hi</p><hr>hi</div>');
   });
 

@@ -12,7 +12,9 @@ describe('CancellationFollowUp', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: 'Send feedback' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Send feedback' })
+    ).toBeDisabled();
 
     fireEvent.click(screen.getByLabelText('Too expensive'));
 

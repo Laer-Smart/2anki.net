@@ -1,9 +1,9 @@
 import JobService from './JobService';
-import JobRepository, {
-  JobWithDownloadKey,
-} from '../data_layer/JobRepository';
+import JobRepository, { JobWithDownloadKey } from '../data_layer/JobRepository';
 
-function makeJob(overrides: Partial<JobWithDownloadKey> = {}): JobWithDownloadKey {
+function makeJob(
+  overrides: Partial<JobWithDownloadKey> = {}
+): JobWithDownloadKey {
   return {
     id: 42,
     owner: '1',
@@ -20,7 +20,6 @@ function makeJob(overrides: Partial<JobWithDownloadKey> = {}): JobWithDownloadKe
     ...overrides,
   } as unknown as JobWithDownloadKey;
 }
-
 
 describe('JobService.deleteJobById', () => {
   let repository: jest.Mocked<JobRepository>;

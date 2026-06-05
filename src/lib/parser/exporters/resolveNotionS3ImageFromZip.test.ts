@@ -2,7 +2,7 @@ import { resolveNotionS3ImageFromZip } from './resolveNotionS3ImageFromZip';
 import { File } from '../../zip/zip';
 
 const makeFile = (name: string, contents: string): File =>
-  ({ name, contents } as File);
+  ({ name, contents }) as File;
 
 describe('resolveNotionS3ImageFromZip', () => {
   const zipFiles: File[] = [
@@ -15,7 +15,9 @@ describe('resolveNotionS3ImageFromZip', () => {
     const url =
       'https://prod-files-secure.s3.us-west-2.amazonaws.com/workspace-id/file-id/screenshot_1.png?X-Amz-Expires=3600&X-Amz-Signature=abc';
     const result = resolveNotionS3ImageFromZip(url, zipFiles);
-    expect(result).toEqual(makeFile('My Topic/screenshot_1.png', 'png-bytes-1'));
+    expect(result).toEqual(
+      makeFile('My Topic/screenshot_1.png', 'png-bytes-1')
+    );
   });
 
   it('returns null for a non-Notion URL', () => {

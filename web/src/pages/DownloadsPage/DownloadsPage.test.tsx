@@ -70,9 +70,31 @@ type AnalyticsGlobals = {
 };
 
 let mockJobs: JobResponse[] = [];
-let mockUploads: { id: string; size_mb: number; owner: number; key: string; filename: string; object_id: string; created_at: string | null; source?: string | null }[] = [];
-let mockDropboxUploads: { id: number; bytes: number; name: string; created_at: string | null }[] = [];
-let mockGoogleDriveUploads: { id: string; iconUrl: string; mimeType: string; name: string; sizeBytes: string | null; url: string; last_converted_at: string | null }[] = [];
+let mockUploads: {
+  id: string;
+  size_mb: number;
+  owner: number;
+  key: string;
+  filename: string;
+  object_id: string;
+  created_at: string | null;
+  source?: string | null;
+}[] = [];
+let mockDropboxUploads: {
+  id: number;
+  bytes: number;
+  name: string;
+  created_at: string | null;
+}[] = [];
+let mockGoogleDriveUploads: {
+  id: string;
+  iconUrl: string;
+  mimeType: string;
+  name: string;
+  sizeBytes: string | null;
+  url: string;
+  last_converted_at: string | null;
+}[] = [];
 
 const buildJob = (overrides: Partial<JobResponse> = {}): JobResponse => ({
   id: 1 as JobsId,
@@ -93,7 +115,9 @@ const buildJob = (overrides: Partial<JobResponse> = {}): JobResponse => ({
 const renderAt = (path: string) =>
   render(
     <QueryClientProvider
-      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      client={
+        new QueryClient({ defaultOptions: { queries: { retry: false } } })
+      }
     >
       <MemoryRouter initialEntries={[path]}>
         <DownloadsPage setError={vi.fn()} />
@@ -174,7 +198,15 @@ describe('DownloadsPage empty state', () => {
 
   it('hides empty state when uploads has entries', () => {
     mockUploads = [
-      { id: 'u1', size_mb: 1, owner: 1, key: 'k1', filename: 'deck.apkg', object_id: 'o1', created_at: '2026-05-18T10:00:00Z' },
+      {
+        id: 'u1',
+        size_mb: 1,
+        owner: 1,
+        key: 'k1',
+        filename: 'deck.apkg',
+        object_id: 'o1',
+        created_at: '2026-05-18T10:00:00Z',
+      },
     ];
     renderAt('/downloads');
     expect(screen.queryByText('No decks yet')).not.toBeInTheDocument();
@@ -189,7 +221,12 @@ describe('DownloadsPage chip filters', () => {
     (globalThis as AnalyticsGlobals).gtag = vi.fn();
     mockUploads = [];
     mockDropboxUploads = [
-      { id: 10, bytes: 1024, name: 'notes.html', created_at: '2026-05-17T08:00:00Z' },
+      {
+        id: 10,
+        bytes: 1024,
+        name: 'notes.html',
+        created_at: '2026-05-17T08:00:00Z',
+      },
     ];
     mockGoogleDriveUploads = [];
   });
@@ -243,13 +280,17 @@ describe('DownloadsPage source labels', () => {
   });
 
   it('shows "AI-generated from upload" label for claude jobs', () => {
-    mockJobs = [buildJob({ type: 'claude', status: 'done', title: 'Claude deck' })];
+    mockJobs = [
+      buildJob({ type: 'claude', status: 'done', title: 'Claude deck' }),
+    ];
     renderAt('/downloads');
     expect(screen.getByText('AI-generated from upload')).toBeInTheDocument();
   });
 
   it('shows "Notion" source label for notion jobs', () => {
-    mockJobs = [buildJob({ type: 'page', status: 'done', title: 'Notion deck' })];
+    mockJobs = [
+      buildJob({ type: 'page', status: 'done', title: 'Notion deck' }),
+    ];
     renderAt('/downloads');
     expect(screen.getAllByText('Notion').length).toBeGreaterThan(0);
   });
@@ -301,7 +342,9 @@ describe('DownloadsPage preview button on done job rows', () => {
     renderAt('/downloads');
     const previewLink = screen.getByLabelText('Preview Pharmacology Ch. 4');
     expect(previewLink).toBeInTheDocument();
-    expect(previewLink.getAttribute('href')).toBe('/preview/apkg/deck-abc123.apkg');
+    expect(previewLink.getAttribute('href')).toBe(
+      '/preview/apkg/deck-abc123.apkg'
+    );
   });
 
   it('does not render the preview link when download_key does not end with .apkg', () => {
@@ -314,7 +357,9 @@ describe('DownloadsPage preview button on done job rows', () => {
       }),
     ];
     renderAt('/downloads');
-    expect(screen.queryByLabelText('Preview Some deck')).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText('Preview Some deck')
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -344,7 +389,11 @@ describe('renderJobStatusCell — URL construction', () => {
   });
 
   it('renders in-progress indicator for non-terminal status', () => {
-    const job = buildJob({ status: 'started', download_key: null, upload_id: null });
+    const job = buildJob({
+      status: 'started',
+      download_key: null,
+      upload_id: null,
+    });
     const result = renderJobStatusCell(job);
     expect(result).not.toBeNull();
   });
@@ -427,33 +476,47 @@ describe('DownloadsPage failure reason panel', () => {
       buildJob({
         status: 'failed',
         title: 'Failed deck',
-        job_reason_failure: 'Your page title has a "/" in it, which we can\'t save as a filename. Rename the page in Notion (try a dash or "and") and convert again.',
+        job_reason_failure:
+          'Your page title has a "/" in it, which we can\'t save as a filename. Rename the page in Notion (try a dash or "and") and convert again.',
       }),
     ];
     renderAt('/downloads');
 
-    const statusButton = screen.getByRole('button', { name: /Show failure reason/i });
+    const statusButton = screen.getByRole('button', {
+      name: /Show failure reason/i,
+    });
     fireEvent.click(statusButton);
 
-    expect(screen.getByText(/Your page title has a "\/" in it/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Your page title has a "\/" in it/)
+    ).toBeInTheDocument();
   });
 
   it('collapses panel when clicking chevron again', () => {
     mockJobs = [
       buildJob({
         status: 'failed',
-        job_reason_failure: 'Your page title has a "/" in it, which we can\'t save as a filename. Rename the page in Notion (try a dash or "and") and convert again.',
+        job_reason_failure:
+          'Your page title has a "/" in it, which we can\'t save as a filename. Rename the page in Notion (try a dash or "and") and convert again.',
       }),
     ];
     renderAt('/downloads');
 
-    const statusButton = screen.getByRole('button', { name: /Show failure reason/i });
+    const statusButton = screen.getByRole('button', {
+      name: /Show failure reason/i,
+    });
     fireEvent.click(statusButton);
-    expect(screen.getByText(/Your page title has a "\/" in it/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Your page title has a "\/" in it/)
+    ).toBeInTheDocument();
 
-    const collapseButton = screen.getByRole('button', { name: /Collapse failure reason/i });
+    const collapseButton = screen.getByRole('button', {
+      name: /Collapse failure reason/i,
+    });
     fireEvent.click(collapseButton);
-    expect(screen.queryByText(/Your page title has a "\/" in it/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Your page title has a "\/" in it/)
+    ).not.toBeInTheDocument();
   });
 
   it('auto-expands most recent failed job if last_edited_time is within 10 minutes', () => {
@@ -462,12 +525,15 @@ describe('DownloadsPage failure reason panel', () => {
         id: 1 as JobsId,
         status: 'failed',
         last_edited_time: new Date('2026-05-19T11:55:00Z'),
-        job_reason_failure: 'Your page title has a "/" in it, which we can\'t save as a filename. Rename the page in Notion (try a dash or "and") and convert again.',
+        job_reason_failure:
+          'Your page title has a "/" in it, which we can\'t save as a filename. Rename the page in Notion (try a dash or "and") and convert again.',
       }),
     ];
     renderAt('/downloads');
 
-    expect(screen.getByText(/Your page title has a "\/" in it/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Your page title has a "\/" in it/)
+    ).toBeInTheDocument();
   });
 
   it('does not auto-expand if last_edited_time is older than 10 minutes', () => {
@@ -475,28 +541,38 @@ describe('DownloadsPage failure reason panel', () => {
       buildJob({
         status: 'failed',
         last_edited_time: new Date('2026-05-19T11:45:00Z'),
-        job_reason_failure: 'Your page title has a "/" in it, which we can\'t save as a filename. Rename the page in Notion (try a dash or "and") and convert again.',
+        job_reason_failure:
+          'Your page title has a "/" in it, which we can\'t save as a filename. Rename the page in Notion (try a dash or "and") and convert again.',
       }),
     ];
     renderAt('/downloads');
 
-    expect(screen.queryByText(/Your page title has a "\/" in it/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Your page title has a "\/" in it/)
+    ).not.toBeInTheDocument();
   });
 
   it('renders the toggle teaching copy and docs CTA for empty deck errors', () => {
     mockJobs = [
       buildJob({
         status: 'failed',
-        job_reason_failure: 'No cards in this deck yet. 2anki makes a card from every Notion toggle — the toggle title becomes the question, what\'s inside becomes the answer. Wrap your key terms in toggles, then convert again.',
+        job_reason_failure:
+          "No cards in this deck yet. 2anki makes a card from every Notion toggle — the toggle title becomes the question, what's inside becomes the answer. Wrap your key terms in toggles, then convert again.",
       }),
     ];
     renderAt('/downloads');
 
-    const statusButton = screen.getByRole('button', { name: /Show failure reason/i });
+    const statusButton = screen.getByRole('button', {
+      name: /Show failure reason/i,
+    });
     fireEvent.click(statusButton);
 
-    expect(screen.getByText(/makes a card from every Notion toggle/i)).toBeInTheDocument();
-    const cta = screen.getByRole('link', { name: 'See how toggles become cards' });
+    expect(
+      screen.getByText(/makes a card from every Notion toggle/i)
+    ).toBeInTheDocument();
+    const cta = screen.getByRole('link', {
+      name: 'See how toggles become cards',
+    });
     expect(cta).toHaveAttribute('href', '/documentation/cards/notion-blocks');
   });
 
@@ -504,15 +580,20 @@ describe('DownloadsPage failure reason panel', () => {
     mockJobs = [
       buildJob({
         status: 'failed',
-        job_reason_failure: 'Your page title has a "/" in it, which we can\'t save as a filename. Rename the page in Notion (try a dash or "and") and convert again.',
+        job_reason_failure:
+          'Your page title has a "/" in it, which we can\'t save as a filename. Rename the page in Notion (try a dash or "and") and convert again.',
       }),
     ];
     renderAt('/downloads');
 
-    const statusButton = screen.getByRole('button', { name: /Show failure reason/i });
+    const statusButton = screen.getByRole('button', {
+      name: /Show failure reason/i,
+    });
     fireEvent.click(statusButton);
 
-    expect(screen.queryByRole('link', { name: 'See how toggles become cards' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'See how toggles become cards' })
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -544,8 +625,14 @@ describe('DownloadsPage notion_token_expired failure panel', () => {
     ];
     renderAt('/downloads');
 
-    expect(screen.getByText('Notion connection expired. Reconnect to keep converting pages.')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Reconnect Notion' })).toHaveAttribute('href', '/notion');
+    expect(
+      screen.getByText(
+        'Notion connection expired. Reconnect to keep converting pages.'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Reconnect Notion' })
+    ).toHaveAttribute('href', '/notion');
   });
 
   it('does not show a restart button for notion_token_expired failure', () => {
@@ -560,7 +647,9 @@ describe('DownloadsPage notion_token_expired failure panel', () => {
     ];
     renderAt('/downloads');
 
-    expect(screen.queryByRole('button', { name: /Restart job/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Restart job/i })
+    ).not.toBeInTheDocument();
   });
 
   it('does not show reconnect CTA for a file-upload job with notion_token_expired reason', () => {
@@ -574,8 +663,14 @@ describe('DownloadsPage notion_token_expired failure panel', () => {
     ];
     renderAt('/downloads');
 
-    expect(screen.queryByRole('link', { name: 'Reconnect Notion' })).not.toBeInTheDocument();
-    expect(screen.queryByText('Notion connection expired. Reconnect to keep converting pages.')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Reconnect Notion' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        'Notion connection expired. Reconnect to keep converting pages.'
+      )
+    ).not.toBeInTheDocument();
   });
 
   it('does not show reconnect CTA for a Notion job with a generic failure reason', () => {
@@ -589,10 +684,14 @@ describe('DownloadsPage notion_token_expired failure panel', () => {
     ];
     renderAt('/downloads');
 
-    const statusButton = screen.getByRole('button', { name: /Show failure reason/i });
+    const statusButton = screen.getByRole('button', {
+      name: /Show failure reason/i,
+    });
     fireEvent.click(statusButton);
 
-    expect(screen.queryByRole('link', { name: 'Reconnect Notion' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Reconnect Notion' })
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -605,14 +704,21 @@ describe('DownloadsPage cancel_during_generating telemetry', () => {
     fetchCalls = [];
     (globalThis as AnalyticsGlobals).hj = vi.fn();
     (globalThis as AnalyticsGlobals).gtag = vi.fn();
-    globalThis.fetch = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
-      if (typeof url === 'string') {
-        try {
-          fetchCalls.push({ url, body: JSON.parse((init?.body as string) ?? '{}') });
-        } catch { /* ignore */ }
-      }
-      return Promise.resolve(new Response(null, { status: 200 }));
-    });
+    globalThis.fetch = vi
+      .fn()
+      .mockImplementation((url: string, init?: RequestInit) => {
+        if (typeof url === 'string') {
+          try {
+            fetchCalls.push({
+              url,
+              body: JSON.parse((init?.body as string) ?? '{}'),
+            });
+          } catch {
+            /* ignore */
+          }
+        }
+        return Promise.resolve(new Response(null, { status: 200 }));
+      });
     mockUploads = [];
     mockDropboxUploads = [];
     mockGoogleDriveUploads = [];
@@ -626,27 +732,48 @@ describe('DownloadsPage cancel_during_generating telemetry', () => {
   });
 
   it('fires cancel_during_generating when cancel is clicked on a step2_creating_flashcards job', () => {
-    mockJobs = [buildJob({ id: 42 as JobsId, status: 'step2_creating_flashcards', title: 'PDF notes' })];
+    mockJobs = [
+      buildJob({
+        id: 42 as JobsId,
+        status: 'step2_creating_flashcards',
+        title: 'PDF notes',
+      }),
+    ];
     renderAt('/downloads');
 
-    const cancelButton = screen.getByRole('button', { name: /Cancel PDF notes/i });
+    const cancelButton = screen.getByRole('button', {
+      name: /Cancel PDF notes/i,
+    });
     fireEvent.click(cancelButton);
 
     const analyticsCall = fetchCalls.find(
-      (c) => c.url === '/api/events/track' && c.body?.name === 'cancel_during_generating'
+      (c) =>
+        c.url === '/api/events/track' &&
+        c.body?.name === 'cancel_during_generating'
     );
     expect(analyticsCall).toBeDefined();
   });
 
   it('does not fire cancel_during_generating when cancel is clicked on a done job', () => {
-    mockJobs = [buildJob({ id: 43 as JobsId, status: 'done', title: 'Done deck', download_key: 'deck.apkg' })];
+    mockJobs = [
+      buildJob({
+        id: 43 as JobsId,
+        status: 'done',
+        title: 'Done deck',
+        download_key: 'deck.apkg',
+      }),
+    ];
     renderAt('/downloads');
 
-    const deleteButton = screen.getByRole('button', { name: /Delete Done deck/i });
+    const deleteButton = screen.getByRole('button', {
+      name: /Delete Done deck/i,
+    });
     fireEvent.click(deleteButton);
 
     const analyticsCall = fetchCalls.find(
-      (c) => c.url === '/api/events/track' && c.body?.name === 'cancel_during_generating'
+      (c) =>
+        c.url === '/api/events/track' &&
+        c.body?.name === 'cancel_during_generating'
     );
     expect(analyticsCall).toBeUndefined();
   });
@@ -663,11 +790,16 @@ describe('DownloadsPage make another deck CTA', () => {
   const renderWithLocation = () =>
     render(
       <QueryClientProvider
-        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+        client={
+          new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        }
       >
         <MemoryRouter initialEntries={['/downloads']}>
           <Routes>
-            <Route path="/downloads" element={<DownloadsPage setError={vi.fn()} />} />
+            <Route
+              path="/downloads"
+              element={<DownloadsPage setError={vi.fn()} />}
+            />
             <Route path="/upload" element={<LocationDisplay />} />
           </Routes>
         </MemoryRouter>
@@ -680,14 +812,21 @@ describe('DownloadsPage make another deck CTA', () => {
     fetchCalls = [];
     (globalThis as AnalyticsGlobals).hj = vi.fn();
     (globalThis as AnalyticsGlobals).gtag = vi.fn();
-    globalThis.fetch = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
-      if (typeof url === 'string') {
-        try {
-          fetchCalls.push({ url, body: JSON.parse((init?.body as string) ?? '{}') });
-        } catch { /* ignore */ }
-      }
-      return Promise.resolve(new Response(null, { status: 200 }));
-    });
+    globalThis.fetch = vi
+      .fn()
+      .mockImplementation((url: string, init?: RequestInit) => {
+        if (typeof url === 'string') {
+          try {
+            fetchCalls.push({
+              url,
+              body: JSON.parse((init?.body as string) ?? '{}'),
+            });
+          } catch {
+            /* ignore */
+          }
+        }
+        return Promise.resolve(new Response(null, { status: 200 }));
+      });
     localStorage.clear();
     mockUploads = [];
     mockDropboxUploads = [];
@@ -733,7 +872,9 @@ describe('DownloadsPage make another deck CTA', () => {
 
     expect(gtag).toHaveBeenCalledWith('event', 'make_another_deck_clicked');
     const trackCall = fetchCalls.find(
-      (c) => c.url === '/api/events/track' && c.body?.name === 'make_another_deck_clicked'
+      (c) =>
+        c.url === '/api/events/track' &&
+        c.body?.name === 'make_another_deck_clicked'
     );
     expect(trackCall).toBeDefined();
     expect(screen.getByTestId('location-display').textContent).toBe('/upload');
@@ -781,9 +922,13 @@ describe('DownloadsPage truncation notice', () => {
 
   it('expands the truncation note with the upgrade link on toggle', () => {
     renderAt('/downloads');
-    fireEvent.click(screen.getByRole('button', { name: 'Show conversion note' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Show conversion note' })
+    );
     expect(
-      screen.getByText(/Converted the first 100 blocks\. The free plan stops there/)
+      screen.getByText(
+        /Converted the first 100 blocks\. The free plan stops there/
+      )
     ).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: 'upgrade to convert the whole page' })
@@ -796,9 +941,13 @@ describe('DownloadsPage truncation notice', () => {
   it('adds the sub-deck rules line when they were skipped', () => {
     mockJobs = [truncatedJob(true)];
     renderAt('/downloads');
-    fireEvent.click(screen.getByRole('button', { name: 'Show conversion note' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Show conversion note' })
+    );
     expect(
-      screen.getByText(/Sub-deck rules from toggles, headings, and databases apply on paid plans/)
+      screen.getByText(
+        /Sub-deck rules from toggles, headings, and databases apply on paid plans/
+      )
     ).toBeInTheDocument();
   });
 

@@ -4,7 +4,10 @@ const ankiToNotionCopy: LandingCopy = {
   relatedLinks: [
     { label: 'Convert Notion pages to Anki', href: '/notion-to-anki' },
     { label: 'Export an Anki deck to CSV', href: '/convert/apkg-to-csv' },
-    { label: 'Convert Notion tables to Anki', href: '/convert/notion-tables-to-anki' },
+    {
+      label: 'Convert Notion tables to Anki',
+      href: '/convert/notion-tables-to-anki',
+    },
     { label: 'Browse every converter', href: '/convert' },
   ],
   pathname: '/anki-to-notion',
@@ -17,10 +20,19 @@ const ankiToNotionCopy: LandingCopy = {
   ctaLabel: 'Start free import',
   ctaHref: '/register?source=/anki-to-notion',
   whatComesAcross: [
-    { title: 'Card fronts and backs', body: 'Each card becomes a toggle heading (front) with the back as its body.' },
+    {
+      title: 'Card fronts and backs',
+      body: 'Each card becomes a toggle heading (front) with the back as its body.',
+    },
     { title: 'Images', body: 'Images embed inline inside the toggle.' },
-    { title: 'Cloze deletions', body: 'Cloze answers stay wrapped in {{...}} so they remain readable.' },
-    { title: 'Tags', body: 'Card tags appear as italicised text at the bottom of each toggle.' },
+    {
+      title: 'Cloze deletions',
+      body: 'Cloze answers stay wrapped in {{...}} so they remain readable.',
+    },
+    {
+      title: 'Tags',
+      body: 'Card tags appear as italicised text at the bottom of each toggle.',
+    },
     { title: 'Subdecks', body: 'Each subdeck becomes a nested Notion page.' },
   ],
   faqs: [

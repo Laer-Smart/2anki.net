@@ -11,7 +11,9 @@ describe('StartJobUseCase', () => {
   ): JobRepository {
     return {
       findJobById: jest.fn(),
-      updateJobStatus: jest.fn().mockResolvedValue({ id: 1, status: 'started' }),
+      updateJobStatus: jest
+        .fn()
+        .mockResolvedValue({ id: 1, status: 'started' }),
       restartJob: jest.fn().mockResolvedValue({ id: 1, status: 'started' }),
       ...overrides,
     } as unknown as JobRepository;

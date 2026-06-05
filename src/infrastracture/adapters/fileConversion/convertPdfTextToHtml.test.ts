@@ -9,8 +9,12 @@ jest.mock('../../../lib/parser/synthesizeCardsFromPdf');
 import { extractPdfText } from '../../../lib/parser/extractPdfText';
 import { synthesizeCardsFromPdf } from '../../../lib/parser/synthesizeCardsFromPdf';
 
-const mockExtract = extractPdfText as jest.MockedFunction<typeof extractPdfText>;
-const mockSynthesize = synthesizeCardsFromPdf as jest.MockedFunction<typeof synthesizeCardsFromPdf>;
+const mockExtract = extractPdfText as jest.MockedFunction<
+  typeof extractPdfText
+>;
+const mockSynthesize = synthesizeCardsFromPdf as jest.MockedFunction<
+  typeof synthesizeCardsFromPdf
+>;
 
 describe('convertPdfTextToHtml', () => {
   beforeEach(() => {
@@ -28,7 +32,12 @@ describe('convertPdfTextToHtml', () => {
 
     const result = await convertPdfTextToHtml(Buffer.from('x'), 'locked.pdf');
 
-    expect(result).toEqual({ html: '', cardCount: 0, isDrmLocked: true, needsCredential: false });
+    expect(result).toEqual({
+      html: '',
+      cardCount: 0,
+      isDrmLocked: true,
+      needsCredential: false,
+    });
     expect(mockSynthesize).not.toHaveBeenCalled();
   });
 
@@ -41,9 +50,17 @@ describe('convertPdfTextToHtml', () => {
       needsCredential: true,
     });
 
-    const result = await convertPdfTextToHtml(Buffer.from('x'), 'protected.pdf');
+    const result = await convertPdfTextToHtml(
+      Buffer.from('x'),
+      'protected.pdf'
+    );
 
-    expect(result).toEqual({ html: '', cardCount: 0, isDrmLocked: false, needsCredential: true });
+    expect(result).toEqual({
+      html: '',
+      cardCount: 0,
+      isDrmLocked: false,
+      needsCredential: true,
+    });
     expect(mockSynthesize).not.toHaveBeenCalled();
   });
 
@@ -86,7 +103,9 @@ describe('convertPdfTextToHtml', () => {
     const result = await convertPdfTextToHtml(Buffer.from('x'), 'unsafe.pdf');
 
     expect(result.html).not.toContain('<script>alert');
-    expect(result.html).toContain('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;');
+    expect(result.html).toContain(
+      '&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;'
+    );
     expect(result.html).toContain('a &amp; b');
   });
 
@@ -98,7 +117,9 @@ describe('convertPdfTextToHtml', () => {
       isDrmLocked: false,
       needsCredential: false,
     });
-    mockSynthesize.mockReturnValue([{ front: 'line1\nline2', back: 'b', tags: [] }]);
+    mockSynthesize.mockReturnValue([
+      { front: 'line1\nline2', back: 'b', tags: [] },
+    ]);
 
     const result = await convertPdfTextToHtml(Buffer.from('x'), 'multi.pdf');
 
@@ -115,7 +136,10 @@ describe('convertPdfTextToHtml', () => {
     });
     mockSynthesize.mockReturnValue([{ front: 'q', back: 'a', tags: [] }]);
 
-    const result = await convertPdfTextToHtml(Buffer.from('x'), 'Chapter 3.PDF');
+    const result = await convertPdfTextToHtml(
+      Buffer.from('x'),
+      'Chapter 3.PDF'
+    );
 
     expect(result.html).toContain('<title>Chapter 3</title>');
   });

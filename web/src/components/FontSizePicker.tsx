@@ -2,7 +2,8 @@ import styles from '../styles/shared.module.css';
 import { FieldHint } from './FieldHint';
 import localStyles from './FontSizePicker.module.css';
 
-const DESCRIPTION = 'Controls the base font size in your generated cards. Range: 10–100 px.';
+const DESCRIPTION =
+  'Controls the base font size in your generated cards. Range: 10–100 px.';
 
 interface FontPickerDelegate {
   fontSize: string;
@@ -21,7 +22,10 @@ function FontSizePicker(delegate: Readonly<FontPickerDelegate>) {
         </label>
         <FieldHint text={DESCRIPTION} />
       </div>
-      <div className={styles.flexRow} style={{ width: '100%', gap: '0.75rem', alignItems: 'center' }}>
+      <div
+        className={styles.flexRow}
+        style={{ width: '100%', gap: '0.75rem', alignItems: 'center' }}
+      >
         <input
           id="font-size"
           name="font-size"
@@ -32,7 +36,15 @@ function FontSizePicker(delegate: Readonly<FontPickerDelegate>) {
           onChange={(event) => pickedFontSize(event.target.value)}
           style={{ flex: 1, accentColor: 'var(--color-primary)' }}
         />
-        <span style={{ minWidth: '3.5rem', textAlign: 'right', fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)', fontVariantNumeric: 'tabular-nums' }}>
+        <span
+          style={{
+            minWidth: '3.5rem',
+            textAlign: 'right',
+            fontSize: 'var(--text-sm)',
+            color: 'var(--color-text-primary)',
+            fontVariantNumeric: 'tabular-nums',
+          }}
+        >
           {displayValue} px
         </span>
       </div>

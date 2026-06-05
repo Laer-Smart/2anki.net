@@ -89,7 +89,8 @@ describe('SubscriptionService.findActiveStripeSubscriptions', () => {
     });
     stripe.subscriptions.list.mockResolvedValue({ data: [activeSub] });
 
-    const result = await SubscriptionService.findActiveStripeSubscriptions(email);
+    const result =
+      await SubscriptionService.findActiveStripeSubscriptions(email);
 
     expect(stripe.customers.list).toHaveBeenCalledWith({
       email,
@@ -106,7 +107,8 @@ describe('SubscriptionService.findActiveStripeSubscriptions', () => {
   it('returns an empty array when Stripe has no customer for the email', async () => {
     stripe.customers.list.mockResolvedValue({ data: [] });
 
-    const result = await SubscriptionService.findActiveStripeSubscriptions(email);
+    const result =
+      await SubscriptionService.findActiveStripeSubscriptions(email);
 
     expect(result).toEqual([]);
     expect(stripe.subscriptions.list).not.toHaveBeenCalled();
@@ -118,10 +120,13 @@ describe('SubscriptionService.findActiveStripeSubscriptions', () => {
     );
     stripe.customers.list
       .mockResolvedValueOnce({ data: [] })
-      .mockResolvedValueOnce({ data: [{ id: 'cus_2', email: 'stripe@example.com' }] });
+      .mockResolvedValueOnce({
+        data: [{ id: 'cus_2', email: 'stripe@example.com' }],
+      });
     stripe.subscriptions.list.mockResolvedValue({ data: [activeSub] });
 
-    const result = await SubscriptionService.findActiveStripeSubscriptions(email);
+    const result =
+      await SubscriptionService.findActiveStripeSubscriptions(email);
 
     expect(stripe.customers.list).toHaveBeenCalledWith({
       email: 'stripe@example.com',
@@ -139,7 +144,8 @@ describe('SubscriptionService.findActiveStripeSubscriptions', () => {
     });
     stripe.subscriptions.list.mockResolvedValue({ data: [activeSub] });
 
-    const result = await SubscriptionService.findActiveStripeSubscriptions(email);
+    const result =
+      await SubscriptionService.findActiveStripeSubscriptions(email);
 
     expect(result).toHaveLength(1);
   });
@@ -171,9 +177,8 @@ describe('SubscriptionService.findRecentStripeSubscriptions', () => {
       data: [activeSub, canceled],
     });
 
-    const result = await SubscriptionService.findRecentStripeSubscriptions(
-      email
-    );
+    const result =
+      await SubscriptionService.findRecentStripeSubscriptions(email);
 
     expect(stripe.subscriptions.list).toHaveBeenCalledWith({
       customer: 'cus_1',
@@ -186,9 +191,8 @@ describe('SubscriptionService.findRecentStripeSubscriptions', () => {
   it('returns empty array when Stripe has no customer for email', async () => {
     stripe.customers.list.mockResolvedValue({ data: [] });
 
-    const result = await SubscriptionService.findRecentStripeSubscriptions(
-      email
-    );
+    const result =
+      await SubscriptionService.findRecentStripeSubscriptions(email);
 
     expect(result).toEqual([]);
   });

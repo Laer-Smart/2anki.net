@@ -9,5 +9,4 @@ const ENTITIES: Record<string, string> = {
 export const escapeHtml = (input: string): string =>
   input.replace(/[&<>"']/g, (ch) => ENTITIES[ch] ?? ch);
 
-export const escapeAttribute = (input: string): string =>
-  escapeHtml(input);
+export const escapeAttribute = (input: string): string => escapeHtml(input);

@@ -71,7 +71,9 @@ const EventsRouter = () => {
    *       429:
    *         description: Rate limit exceeded
    */
-  router.post('/api/events/errors', (req, res) => errorController.ingest(req, res));
+  router.post('/api/events/errors', (req, res) =>
+    errorController.ingest(req, res)
+  );
 
   return router;
 };
