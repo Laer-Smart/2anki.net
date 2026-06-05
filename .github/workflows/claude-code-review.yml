@@ -12,11 +12,9 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+    # Bot-authored PRs (dependabot) make claude-code-action fail with
+    # "Workflow initiated by non-human actor", blocking the merge gate.
+    if: github.event.pull_request.user.type != 'Bot'
 
     runs-on: ubuntu-latest
     permissions:
