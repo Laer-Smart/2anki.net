@@ -118,6 +118,26 @@ describe('makeErrorCaptureMiddleware', () => {
     expect(repo.inserts[0].user_id).toBeNull();
   });
 
+  it('stamps the release on inserted rows when provided', async () => {
+    const repo = makeRepository();
+    const middleware = makeErrorCaptureMiddleware(repo, undefined, 'abc1234');
+    const next = makeNext();
+
+    await middleware(testError, makeReq(), makeRes(), next);
+
+    expect(repo.inserts[0].release).toBe('abc1234');
+  });
+
+  it('sets release to null when no release is provided', async () => {
+    const repo = makeRepository();
+    const middleware = makeErrorCaptureMiddleware(repo);
+    const next = makeNext();
+
+    await middleware(testError, makeReq(), makeRes(), next);
+
+    expect(repo.inserts[0].release).toBeNull();
+  });
+
   it('calls next(err) even when the repository throws', async () => {
     const brokenRepo: IErrorEventRepository = {
       async insert() { throw new Error('DB down'); },

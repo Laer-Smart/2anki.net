@@ -60,7 +60,7 @@ jobs:
             aws --version
 
             pnpm --dir ${SERVER_DIR} run build
-            ASSET_BASE_URL="$ASSET_BASE_URL" pnpm --filter 2anki-web -C ${SERVER_DIR} build
+            ASSET_BASE_URL="$ASSET_BASE_URL" REACT_APP_RELEASE="$GIT_SHA" pnpm --filter 2anki-web -C ${SERVER_DIR} build
 
             echo "Syncing web/build/assets/ to s3://${SPACES_ASSETS_BUCKET}/assets/..."
             AWS_ACCESS_KEY_ID="$SPACES_ASSETS_ACCESS_KEY_ID" \

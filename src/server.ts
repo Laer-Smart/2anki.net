@@ -19,6 +19,7 @@ import ErrorHandler from './routes/middleware/ErrorHandler';
 import { makeErrorCaptureMiddleware } from './routes/middleware/ErrorCaptureMiddleware';
 import { ErrorEventRepository } from './data_layer/ErrorEventRepository';
 import { writeFallbackError, drainFallbackFile } from './lib/errorFallback';
+import { getRelease } from './lib/release';
 
 // Server Endpoints
 import settingsRouter from './routes/SettingsRouter';
@@ -197,7 +198,7 @@ const serve = async () => {
   app.use(rejectScannerProbes);
   app.use(defaultRouter());
   const errorEventRepo = new ErrorEventRepository(database);
-  app.use(makeErrorCaptureMiddleware(errorEventRepo, writeFallbackError));
+  app.use(makeErrorCaptureMiddleware(errorEventRepo, writeFallbackError, getRelease()));
   app.use(
     (
       err: Error,

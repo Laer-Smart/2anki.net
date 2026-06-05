@@ -1,4 +1,5 @@
 import { UserNotice } from './errors/UserNotice';
+import { getClientRelease } from './release';
 
 const ENDPOINT = '/api/events/errors';
 
@@ -38,7 +39,7 @@ export function reportClientError(
         : String(error);
     if (isTransientNetworkMessage(message)) return;
     const stack = error instanceof Error ? error.stack ?? null : null;
-    const release = process.env.REACT_APP_RELEASE ?? null;
+    const release = getClientRelease();
     const root = document.documentElement;
     const lang = root.lang || navigator.language || null;
     const translated =
