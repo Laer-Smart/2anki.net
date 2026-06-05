@@ -1,8 +1,15 @@
+import { APIErrorCode, APIResponseError } from '@notionhq/client';
 import express from 'express';
 import multer from 'multer';
 
 import ErrorHandler from './ErrorHandler';
 import { PythonExitError } from '../../lib/anki/buildPythonExitError';
+
+const makeAPIResponseError = (code: string, status: number): APIResponseError => {
+  const err = Object.create(APIResponseError.prototype) as APIResponseError;
+  Object.assign(err, { name: 'APIResponseError', message: code, code, status });
+  return err;
+};
 
 const makeRequest = (): express.Request =>
   ({
@@ -179,6 +186,45 @@ describe('ErrorHandler', () => {
     const err = new multer.MulterError('LIMIT_PART_COUNT');
 
     await ErrorHandler(res as unknown as express.Response, req, err);
+
+    expect(res.statusCode).toBe(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ code: 'unknown' })
+    );
+  });
+
+  test.each([
+    [APIErrorCode.Unauthorized, 401, 'notion_unauthorized'],
+    [APIErrorCode.ObjectNotFound, 404, 'notion_object_not_found'],
+    [APIErrorCode.RateLimited, 429, 'notion_rate_limit'],
+  ] as const)(
+    'emits %s as status %i with code %s',
+    async (apiCode, status, uploadCode) => {
+      const res = makeResponse(false);
+      const req = makeRequest();
+
+      await ErrorHandler(
+        res as unknown as express.Response,
+        req,
+        makeAPIResponseError(apiCode, status)
+      );
+
+      expect(res.statusCode).toBe(status);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ code: uploadCode })
+      );
+    }
+  );
+
+  test('keeps code=unknown for unmapped Notion API errors', async () => {
+    const res = makeResponse(false);
+    const req = makeRequest();
+
+    await ErrorHandler(
+      res as unknown as express.Response,
+      req,
+      makeAPIResponseError(APIErrorCode.ValidationError, 400)
+    );
 
     expect(res.statusCode).toBe(400);
     expect(res.json).toHaveBeenCalledWith(
