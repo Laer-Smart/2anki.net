@@ -4,6 +4,7 @@ import {
   Heading1BlockObjectResponse,
   Heading2BlockObjectResponse,
   Heading3BlockObjectResponse,
+  Heading4BlockObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints';
 
 export const getHeadingColor = (block: BlockObjectResponse) => {
@@ -17,6 +18,8 @@ export const getHeadingColor = (block: BlockObjectResponse) => {
       return (block as Heading2BlockObjectResponse).heading_2.color;
     case 'heading_3':
       return (block as Heading3BlockObjectResponse).heading_3.color;
+    case 'heading_4':
+      return (block as Heading4BlockObjectResponse).heading_4.color;
     default:
       return 'default';
   }

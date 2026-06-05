@@ -109,6 +109,9 @@ export const blockToStaticMarkup = async (
     case 'heading_3':
       back += await BlockHeading('heading_3', c, handler);
       break;
+    case 'heading_4':
+      back += await BlockHeading('heading_4', c, handler);
+      break;
     case 'quote':
       back += BlockQuote(c, handler);
       break;
@@ -166,12 +169,6 @@ export const blockToStaticMarkup = async (
       back += renderLinkPreview(c);
       break;
     default:
-      back += `unsupported: ${c.type}`;
-      back += BlockDivider();
-      back += `
-          <pre>
-          ${JSON.stringify(c, null, 4)}
-          </pre>`;
       console.debug(`unsupported ${c.type}`);
   }
   return back;

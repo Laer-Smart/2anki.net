@@ -11,7 +11,7 @@ Toggle blocks are the primary way to build flashcards — the summary becomes th
 These blocks are rendered in the exported deck.
 
 - [x] [Paragraph](https://developers.notion.com/reference/block#paragraph-blocks)
-- [x] [Heading 1 / 2 / 3](https://developers.notion.com/reference/block#heading-one-blocks)
+- [x] [Heading 1 / 2 / 3 / 4](https://developers.notion.com/reference/block#heading-one-blocks) — heading 4 renders at the heading 3 size
 - [x] [Bulleted list item](https://developers.notion.com/reference/block#bulleted-list-item-blocks)
 - [x] [Numbered list item](https://developers.notion.com/reference/block#numbered-list-item-blocks)
 - [x] [To-do](https://developers.notion.com/reference/block#to-do-blocks)
@@ -31,6 +31,9 @@ These blocks are rendered in the exported deck.
 - [x] [Child page](https://developers.notion.com/reference/block#child-page-blocks) — also usable as a sub-deck via [Parser rules](/documentation/cards/parser-rules).
 - [x] [Column list and column](https://developers.notion.com/reference/block#column-list-and-column-blocks)
 - [x] [Table](https://developers.notion.com/reference/block#table-blocks) and [Table row](https://developers.notion.com/reference/block#table-row-blocks) — one row, one card. Column 1 is the front, column 2 is the back. Turn on the **Table** chip in your rule to opt in. If the table has a header row, the first row is skipped. Columns 3 and beyond show up on the back as a small inline table.
+- [x] [Synced block](https://developers.notion.com/reference/block#synced-block-blocks) — the synced content renders inline
+- [x] [Link preview](https://developers.notion.com/reference/block#link-preview-blocks) — renders as a clickable link
+- [x] [PDF](https://developers.notion.com/reference/block#pdf-blocks) — renders as a clickable link. Turn on **Download PDFs as Anki media** in deck options to bundle the file inside the deck instead.
 
 ## Sub-deck-only
 
@@ -40,15 +43,11 @@ These blocks don't render as cards, but they can structure your deck when used i
 
 ## Unsupported
 
-These blocks are skipped or rendered as a fallback. If one of them shows up on a card as raw text like `unsupported: <type>`, that's the fallback firing.
+These blocks are skipped — they don't appear on cards at all.
 
-- [ ] [PDF](https://developers.notion.com/reference/block#pdf-blocks) — Notion's embedded PDF block. Upload the PDF file directly through the [upload page](/documentation/start-here/upload-a-file) instead.
-- [ ] [Heading 4](https://developers.notion.com/reference/block#heading) — Notion's deepest heading level. H1, H2, and H3 work; H4 doesn't.
 - [ ] [Table of contents](https://developers.notion.com/reference/block#table-of-contents-blocks)
 - [ ] [Breadcrumb](https://developers.notion.com/reference/block#breadcrumb-blocks)
-- [ ] [Link preview](https://developers.notion.com/reference/block#link-preview-blocks)
 - [ ] [Template](https://developers.notion.com/reference/block#template-blocks)
-- [ ] [Synced block](https://developers.notion.com/reference/block#synced-block-blocks)
 - [ ] [Meeting notes](https://developers.notion.com/reference/block#meeting-notes) — Notion's AI-meeting block.
 - [ ] [Tab](https://developers.notion.com/reference/block#tab) — Notion's tab block.
 - [ ] [Transcription](https://developers.notion.com/reference/block#transcription) — Notion's AI transcription block.
