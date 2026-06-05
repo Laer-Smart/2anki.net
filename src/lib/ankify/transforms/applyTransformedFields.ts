@@ -26,7 +26,7 @@ const writeField = (
 };
 
 const defaultBackIndex = (note: ParsedNote): number =>
-  Math.max(1, Math.min(note.fields.length - 1, 1));
+  note.backFieldIndex ?? Math.max(1, Math.min(note.fields.length - 1, 1));
 
 export function applyTransformedFields(
   note: ParsedNote,
@@ -61,7 +61,7 @@ export function applyTransformedFields(
     if (cloze == null || cloze.length === 0) {
       throw new Error('cloze_front result missing "cloze"');
     }
-    const targetIndex = selection.sourceField ?? 0;
+    const targetIndex = selection.sourceField ?? note.frontFieldIndex ?? 0;
     const cleared = writeField(note, targetIndex, cloze);
     const backIndex = defaultBackIndex(note);
     if (backIndex !== targetIndex) {

@@ -26,6 +26,20 @@ describe('buildTransformPrompt', () => {
         buildTransformPrompt('translate_back', basicNote, undefined)
       ).toThrow('translate_back requires targetLanguage');
     });
+
+    it('reads the template back field as the default source on multi-field notes', () => {
+      const vocabNote: ParsedNote = {
+        ...basicNote,
+        fields: ['der Hund', '[hʊnt]', 'the dog'],
+        fieldNames: ['Word', 'Pronunciation', 'Meaning'],
+        frontFieldIndex: 0,
+        backFieldIndex: 2,
+      };
+      const result = buildTransformPrompt('translate_back', vocabNote, 'Spanish');
+      const payload = JSON.parse(result.user);
+      expect(payload.field_to_translate).toBe('the dog');
+      expect(payload.context_front).toBe('der Hund');
+    });
   });
 
   describe('add_example', () => {

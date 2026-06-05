@@ -42,11 +42,20 @@ jest.mock('../../lib/parser/exporters/CustomExporter', () => {
   };
 });
 
+interface ConfiguredCard {
+  name: string;
+  back: string;
+  media: string[];
+  tags: string[];
+  customFields?: string[];
+  customFieldNames?: string[];
+}
+
 const FakeExporter = jest.requireMock(
   '../../lib/parser/exporters/CustomExporter'
 ).default as {
   __addedMedia(): Array<{ filename: string; bytes: Buffer }>;
-  __configuredDecks(): Array<{ cards: Array<{ media: string[]; tags: string[] }> }>;
+  __configuredDecks(): Array<{ cards: ConfiguredCard[] }>;
   __reset(): void;
 };
 
@@ -249,6 +258,60 @@ describe('TransformApkgUseCase', () => {
       'original-tag',
       'exam_block_3',
       'spanish',
+    ]);
+  });
+
+  it('maps front and back from the template field indices, not ordinals', async () => {
+    const vocabNote: ParsedNote = {
+      guid: 'a',
+      modelKind: 'basic',
+      modelName: 'Vocabulary',
+      fields: ['der Hund', '[hʊnt]', 'the dog'],
+      fieldNames: ['Word', 'Pronunciation', 'Meaning'],
+      frontFieldIndex: 0,
+      backFieldIndex: 2,
+      tags: [],
+    };
+    jest
+      .spyOn(parseModule, 'parseApkgNotes')
+      .mockResolvedValueOnce(makeParsed([vocabNote]));
+    jest.spyOn(transformModule, 'transformApkgNotes').mockResolvedValueOnce({
+      notes: [
+        transformed('a', {
+          fields: ['der Hund', '[hʊnt]', 'el perro'],
+          fieldNames: ['Word', 'Pronunciation', 'Meaning'],
+          frontFieldIndex: 0,
+          backFieldIndex: 2,
+        }),
+      ],
+      failures: [],
+      usage: {
+        inputTokens: 0,
+        outputTokens: 0,
+        estimatedCostUsd: 0,
+        totalCalls: 1,
+        elapsedMs: 1,
+      },
+    });
+
+    await new TransformApkgUseCase().execute({
+      bytes: Buffer.from('x'),
+      transform: 'translate_back',
+      targetLanguage: 'Spanish',
+    });
+
+    const decks = FakeExporter.__configuredDecks();
+    expect(decks[0].cards[0].name).toBe('der Hund');
+    expect(decks[0].cards[0].back).toBe('el perro');
+    expect(decks[0].cards[0].customFields).toEqual([
+      'der Hund',
+      '[hʊnt]',
+      'el perro',
+    ]);
+    expect(decks[0].cards[0].customFieldNames).toEqual([
+      'Word',
+      'Pronunciation',
+      'Meaning',
     ]);
   });
 

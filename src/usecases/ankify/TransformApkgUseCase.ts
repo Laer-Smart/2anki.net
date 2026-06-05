@@ -77,8 +77,8 @@ function isCustomNoteType(transformed: TransformedNote): boolean {
 }
 
 function toAnkiNote(transformed: TransformedNote): Note {
-  const front = transformed.fields[0] ?? '';
-  const back = transformed.fields[1] ?? '';
+  const front = transformed.fields[transformed.frontFieldIndex ?? 0] ?? '';
+  const back = transformed.fields[transformed.backFieldIndex ?? 1] ?? '';
   if (transformed.modelKind === 'cloze') {
     const note = new Note(front, back);
     note.cloze = true;
