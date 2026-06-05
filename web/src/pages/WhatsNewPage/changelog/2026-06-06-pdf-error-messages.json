@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-06-pdf-error-messages",
+  "date": "2026-06-06",
+  "type": "fix",
+  "title": "Password-protected and unreadable PDFs say what to do next instead of a generic error"
+}

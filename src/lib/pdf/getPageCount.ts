@@ -53,7 +53,7 @@ export function getPageCount(
 
       if (code !== 0) {
         if (stderr.includes('Encrypted') || stderr.includes('password')) {
-          reject(new Error('PDF_NEEDS_PASSWORD'));
+          reject(new Error(`pdfinfo_password path=${basename}`));
           return;
         }
         const trimmed = stderr.trim();
@@ -73,7 +73,11 @@ export function getPageCount(
       );
 
       if (!pageCount) {
-        reject(new Error('Failed to get page count'));
+        reject(
+          new Error(
+            `pdfinfo_failed code=${code ?? 'null'} signal=${signal ?? 'none'} path=${basename} stderr=no_page_count`
+          )
+        );
         return;
       }
 
