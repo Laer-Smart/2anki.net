@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-05-monthly-limit-rollover",
+  "date": "2026-06-05",
+  "type": "fix",
+  "title": "Monthly card limit resets correctly when a new month starts"
+}
