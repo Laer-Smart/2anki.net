@@ -34,6 +34,9 @@ describe('Footer', () => {
       'href',
       '/contact'
     );
+    expect(
+      screen.getByRole('link', { name: 'iOS and macOS app' })
+    ).toHaveAttribute('href', '/app');
     expect(screen.getByRole('link', { name: 'Terms' })).toHaveAttribute(
       'href',
       '/documentation/misc/terms-of-service'

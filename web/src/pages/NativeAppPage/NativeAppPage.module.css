@@ -1,0 +1,27 @@
+/* Local .page: shared.page has no flex/gap (see web/CLAUDE.md) */
+.page {
+  composes: pageNarrow from '../../styles/shared.module.css';
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.mascot {
+  display: block;
+  width: 96px;
+  height: 96px;
+}
+
+.body {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.noted {
+  margin: 0;
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+}

@@ -15,6 +15,7 @@ function Footer() {
         <div className={styles.group}>
           <span className={styles.groupTitle}>Product</span>
           <a href="/about">{getVisibleText('navigation.legal.about')}</a>
+          <a href="/app">iOS and macOS app</a>
           <a href="/documentation">{getVisibleText('navigation.docs')}</a>
           <a href="/contact">{getVisibleText('navigation.contact')}</a>
         </div>
