@@ -9,19 +9,19 @@ export interface Entitlement {
   planSource: PlanSource;
 }
 
-const PASS_KINDS: readonly PassKind[] = ['24h', '7d', 'unlimited'];
-const PLAN_SOURCES: readonly Exclude<PlanSource, null>[] = [
+const PASS_KINDS: ReadonlySet<PassKind> = new Set(['24h', '7d', 'unlimited']);
+const PLAN_SOURCES: ReadonlySet<Exclude<PlanSource, null>> = new Set([
   'stripe',
   'apple',
   'lifetime',
-];
+]);
 
 function readPassKind(value: unknown): PassKind | null {
-  return PASS_KINDS.includes(value as PassKind) ? (value as PassKind) : null;
+  return PASS_KINDS.has(value as PassKind) ? (value as PassKind) : null;
 }
 
 function readPlanSource(value: unknown): PlanSource {
-  return PLAN_SOURCES.includes(value as Exclude<PlanSource, null>)
+  return PLAN_SOURCES.has(value as Exclude<PlanSource, null>)
     ? (value as PlanSource)
     : null;
 }
