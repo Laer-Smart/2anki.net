@@ -21,12 +21,19 @@ import {
 import { isValidDeckName, addDeckNameSuffix } from '../../lib/anki/format';
 import { ClientResponse } from '@sendgrid/mail';
 import { SUPPORT_EMAIL_ADDRESS } from '../../lib/constants';
+import { emailHash } from '../../lib/emailHash';
+import { getDatabase } from '../../data_layer';
+import SuppressionEventsRepository from '../../data_layer/SuppressionEventsRepository';
 
 type EmailResponse = { didSend: boolean; error?: Error };
 
 export interface IEmailService {
   sendResetEmail(email: string, token: string): Promise<void>;
-  sendConversionEmail(email: string, filename: string, contents: Buffer): void;
+  sendConversionEmail(
+    email: string,
+    filename: string,
+    contents: Buffer
+  ): Promise<[ClientResponse, {}] | null> | void;
   sendConversionLinkEmail(email: string, filename: string, link: string): void;
   sendContactEmail(
     name: string,
@@ -68,12 +75,48 @@ export interface IEmailService {
   ): Promise<void>;
 }
 
-class EmailService implements IEmailService {
+type SgMessage = Exclude<Parameters<typeof sgMail.send>[0], unknown[]>;
+type IsEmailSuppressed = (email: string) => Promise<boolean>;
+
+function firstRecipient(to: SgMessage['to']): string | null {
+  if (typeof to === 'string') {
+    return to;
+  }
+  if (Array.isArray(to)) {
+    const first = to[0];
+    return typeof first === 'string' ? first : (first?.email ?? null);
+  }
+  return to?.email ?? null;
+}
+
+export class EmailService implements IEmailService {
   constructor(
     apiKey: string,
-    readonly defaultSender: string
+    readonly defaultSender: string,
+    private readonly isEmailSuppressed: IsEmailSuppressed = async () => false
   ) {
     sgMail.setApiKey(apiKey);
+  }
+
+  private async deliver(msg: SgMessage): Promise<[ClientResponse, {}] | null> {
+    const recipient = firstRecipient(msg.to);
+    if (recipient != null) {
+      let suppressed = false;
+      try {
+        suppressed = await this.isEmailSuppressed(recipient);
+      } catch {
+        console.error('[email] suppression lookup failed, sending anyway', {
+          recipient_hash: emailHash(recipient),
+        });
+      }
+      if (suppressed) {
+        console.info('email.send.suppressed', {
+          recipient_hash: emailHash(recipient),
+        });
+        return null;
+      }
+    }
+    return sgMail.send(msg);
   }
 
   async sendResetEmail(email: string, token: string): Promise<void> {
@@ -89,7 +132,7 @@ class EmailService implements IEmailService {
     };
 
     try {
-      await sgMail.send(msg);
+      await this.deliver(msg);
     } catch (error) {
       console.error('Failed to send password reset email:', error);
       throw error;
@@ -100,7 +143,7 @@ class EmailService implements IEmailService {
     email: string,
     filename: string,
     contents: Buffer
-  ): Promise<[ClientResponse, {}]> {
+  ): Promise<[ClientResponse, {}] | null> {
     const markup = CONVERT_TEMPLATE;
 
     let attachedFilename = filename;
@@ -124,7 +167,7 @@ class EmailService implements IEmailService {
       ],
     };
 
-    return sgMail.send(msg);
+    return this.deliver(msg);
   }
 
   async sendConversionLinkEmail(email: string, filename: string, link: string) {
@@ -138,7 +181,7 @@ class EmailService implements IEmailService {
       replyTo: 'support@2anki.net',
     };
 
-    await sgMail.send(msg);
+    await this.deliver(msg);
   }
 
   async sendContactEmail(
@@ -229,7 +272,7 @@ class EmailService implements IEmailService {
     };
 
     try {
-      await sgMail.send(msg);
+      await this.deliver(msg);
     } catch (error) {
       console.error('Failed to send magic link email:', error);
       throw error;
@@ -353,7 +396,7 @@ class EmailService implements IEmailService {
       replyTo: 'support@2anki.net',
     };
     try {
-      await sgMail.send(msg);
+      await this.deliver(msg);
     } catch (error) {
       console.error(
         'Failed to send subscription claim confirmation email:',
@@ -428,7 +471,7 @@ class EmailService implements IEmailService {
     };
 
     try {
-      await sgMail.send(msg);
+      await this.deliver(msg);
       this.saveCancellationSent(subscriptionId);
       console.log(`Successfully sent cancellation confirmation to ${email}`);
     } catch (error) {
@@ -469,7 +512,7 @@ class EmailService implements IEmailService {
     };
 
     try {
-      await sgMail.send(msg);
+      await this.deliver(msg);
       console.log(
         `Successfully sent scheduled cancellation notification to ${email}`
       );
@@ -511,7 +554,7 @@ class EmailService implements IEmailService {
     };
 
     try {
-      await sgMail.send(msg);
+      await this.deliver(msg);
     } catch (error) {
       console.error(
         '[notion-reconnect] failed to send reconnect email:',
@@ -639,7 +682,14 @@ export class UnimplementedEmailService implements IEmailService {
 
 export const getDefaultEmailService = () => {
   if (process.env.SENDGRID_API_KEY !== undefined) {
-    return new EmailService(process.env.SENDGRID_API_KEY!, DEFAULT_SENDER);
+    const suppressionRepository = new SuppressionEventsRepository(
+      getDatabase()
+    );
+    return new EmailService(
+      process.env.SENDGRID_API_KEY!,
+      DEFAULT_SENDER,
+      (email) => suppressionRepository.isSuppressed(emailHash(email))
+    );
   }
   return new UnimplementedEmailService();
 };
