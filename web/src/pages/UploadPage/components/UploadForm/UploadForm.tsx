@@ -931,7 +931,7 @@ function UploadForm({
 
   const renderMultiDeckState = () => {
     if (batchResult == null) return null;
-    const { decks, bulkUrl, deckCount } = batchResult;
+    const { decks, bulkUrl, deckCount, warning } = batchResult;
     const onDeckDownload = () => {
       fireAnalyticsEvent('deck_downloaded');
       track('deck_downloaded');
@@ -942,6 +942,7 @@ function UploadForm({
         <p className={formStyles.successPrimary}>
           {deckCount} {deckCount === 1 ? 'deck' : 'decks'} ready
         </p>
+        {warning && <p className={formStyles.warningInline}>{warning}</p>}
         <ul className={formStyles.deckList}>
           {decks.map((deck) => (
             <li key={deck.filename} className={formStyles.deckRow}>

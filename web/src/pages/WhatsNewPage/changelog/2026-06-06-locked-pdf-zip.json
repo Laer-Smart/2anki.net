@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-06-locked-pdf-zip",
+  "date": "2026-06-06",
+  "type": "fix",
+  "title": "A zip with several password-protected PDFs converts the rest and names the ones it skipped"
+}

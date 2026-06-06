@@ -23,6 +23,7 @@ export interface BatchResult {
   deckCount: number;
   decks: BatchDeck[];
   bulkUrl: string;
+  warning?: string;
 }
 
 export interface LockedPdfInfo {

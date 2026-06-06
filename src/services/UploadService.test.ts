@@ -520,11 +520,14 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
     mockWorkspaceId = 'test-ws-id';
   });
 
-  function mockPackages(packages: Array<{ name: string; cardCount: number }>) {
+  function mockPackages(
+    packages: Array<{ name: string; cardCount: number }>,
+    warnings?: string[]
+  ) {
     MockGeneratePackagesUseCase.mockImplementation(
       () =>
         ({
-          execute: jest.fn().mockResolvedValue({ packages }),
+          execute: jest.fn().mockResolvedValue({ packages, warnings }),
         }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
     );
   }
@@ -668,6 +671,26 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
 
     expect(redirectedTo()).toBe('/limit?kind=card_count');
     expect(capturedSend()).toBeNull();
+  });
+
+  it('surfaces a skipped-locked-PDF note on X-Warning when a ZIP entry stays locked', async () => {
+    const lockedWarning =
+      '2 password-protected PDFs were skipped: Ch1.pdf, Ch2.pdf. Unlock each in Preview or Adobe Reader, save a copy, and upload them on their own.';
+    mockPackages([{ name: 'notes.html', cardCount: 12 }], [lockedWarning]);
+    const usersRepo = buildUsersRepo();
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      usersRepo
+    );
+    const req = buildRequest();
+    const { res, capturedStatus } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(capturedStatus()).toBe(200);
+    expect(res.set).toHaveBeenCalledWith('X-Warning', lockedWarning);
   });
 
   it('sends the deck for an anonymous conversion at or under 21 cards without incrementing usage', async () => {
