@@ -94,6 +94,22 @@ describe('getPackagesFromZip — batch concurrency', () => {
     expect(result.packages).toHaveLength(fileCount);
   });
 
+  const previousMaxPython = process.env.MAX_PYTHON_WORKERS;
+  const previousConversionWorkers = process.env.CONVERSION_WORKERS;
+
+  afterEach(() => {
+    if (previousMaxPython === undefined) {
+      delete process.env.MAX_PYTHON_WORKERS;
+    } else {
+      process.env.MAX_PYTHON_WORKERS = previousMaxPython;
+    }
+    if (previousConversionWorkers === undefined) {
+      delete process.env.CONVERSION_WORKERS;
+    } else {
+      process.env.CONVERSION_WORKERS = previousConversionWorkers;
+    }
+  });
+
   it('passes parent workspace as outputWorkspace so .apkg files land where the downloader looks', async () => {
     const fileNames = ['deck0.html', 'deck1.html', 'deck2.html'];
 
@@ -123,7 +139,7 @@ describe('getPackagesFromZip — batch concurrency', () => {
         ),
     }));
 
-    process.env.UPLOAD_BUILD_CONCURRENCY = '1';
+    process.env.MAX_PYTHON_WORKERS = '1';
 
     const settings = new CardOption({});
     const workspace = { location: FAKE_WORKSPACE_LOCATION } as Workspace;
@@ -134,8 +150,6 @@ describe('getPackagesFromZip — batch concurrency', () => {
       settings,
       workspace
     );
-
-    delete process.env.UPLOAD_BUILD_CONCURRENCY;
 
     expect(mockPrepareDeckInfoOnly).toHaveBeenCalled();
     for (const call of mockPrepareDeckInfoOnly.mock.calls) {
@@ -176,7 +190,7 @@ describe('getPackagesFromZip — batch concurrency', () => {
     expect(mockPrepareDeckInfoOnly).not.toHaveBeenCalled();
   });
 
-  it('caps batch chunks at UPLOAD_BUILD_CONCURRENCY (default 4)', async () => {
+  it('caps batch chunks at the derived per-worker Python budget (default 2)', async () => {
     const fileCount = 12;
     const fileNames = Array.from(
       { length: fileCount },
@@ -215,7 +229,8 @@ describe('getPackagesFromZip — batch concurrency', () => {
       .spyOn(require('node:fs'), 'readFileSync')
       .mockReturnValue(Buffer.from('fake-apkg'));
 
-    delete process.env.UPLOAD_BUILD_CONCURRENCY;
+    delete process.env.MAX_PYTHON_WORKERS;
+    delete process.env.CONVERSION_WORKERS;
 
     const settings = new CardOption({});
     const workspace = { location: FAKE_WORKSPACE_LOCATION } as Workspace;
@@ -227,11 +242,12 @@ describe('getPackagesFromZip — batch concurrency', () => {
       workspace
     );
 
-    expect(runBatchCallCount).toBeLessThanOrEqual(4);
+    expect(runBatchCallCount).toBeLessThanOrEqual(2);
   });
 
-  it('respects UPLOAD_BUILD_CONCURRENCY env override', async () => {
-    process.env.UPLOAD_BUILD_CONCURRENCY = '2';
+  it('respects the derived per-worker cap from MAX_PYTHON_WORKERS and pool size', async () => {
+    process.env.MAX_PYTHON_WORKERS = '4';
+    process.env.CONVERSION_WORKERS = '2';
 
     const fileCount = 6;
     const fileNames = Array.from(
@@ -282,8 +298,6 @@ describe('getPackagesFromZip — batch concurrency', () => {
     );
 
     expect(runBatchCallCount).toBeLessThanOrEqual(2);
-
-    delete process.env.UPLOAD_BUILD_CONCURRENCY;
   });
 
   it('propagates errors from runBatch', async () => {
