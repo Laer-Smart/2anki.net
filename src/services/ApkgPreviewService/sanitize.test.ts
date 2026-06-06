@@ -38,6 +38,36 @@ describe('sanitizeCardHtml', () => {
     expect(sanitizeCardHtml('<script>alert(1)</script>')).toBe('');
   });
 
+  it('strips canvas tags used by the Image Occlusion template', () => {
+    expect(
+      sanitizeCardHtml('<canvas id="image-occlusion-canvas"></canvas>')
+    ).toBe('');
+  });
+
+  it('strips on* event handlers from allowed elements', () => {
+    const result = sanitizeCardHtml(
+      '<rect x="0" y="0" onclick="alert(1)" onload="x()" />'
+    );
+    expect(result).not.toMatch(/\son[a-z]+=/i);
+  });
+
+  it('preserves static inline SVG occlusion primitives', () => {
+    const svg =
+      '<svg class="apkg-io-overlay" viewBox="0 0 1 1" preserveAspectRatio="none">' +
+      '<image href="brain.png" x="0" y="0" width="1" height="1" preserveAspectRatio="none" />' +
+      '<g><rect x="0.1" y="0.2" width="0.3" height="0.4" fill="#ffeba2" stroke="#e6a900" stroke-width="0.004" />' +
+      '<ellipse cx="0.35" cy="0.35" rx="0.1" ry="0.05" fill="#ffeba2" />' +
+      '<polygon points="0.1,0.2 0.3,0.4 0.5,0.1" fill="#ffeba2" /></g></svg>';
+    const result = sanitizeCardHtml(svg);
+    expect(result).toContain('<svg');
+    expect(result).toContain('viewBox="0 0 1 1"');
+    expect(result).toContain('<image');
+    expect(result).toContain('href="brain.png"');
+    expect(result).toContain('<rect');
+    expect(result).toContain('<ellipse');
+    expect(result).toContain('<polygon');
+  });
+
   it('preserves basic formatting tags', () => {
     const html = '<p><strong>bold</strong> and <em>italic</em></p>';
     expect(sanitizeCardHtml(html)).toBe(html);

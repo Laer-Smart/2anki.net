@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-06-image-occlusion-preview",
+  "date": "2026-06-06",
+  "type": "feature",
+  "title": "Image Occlusion cards show their masked image in the deck preview, not a download-only note"
+}

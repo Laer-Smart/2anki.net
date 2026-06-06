@@ -1,5 +1,7 @@
+import { composeOcclusionSvg } from './composeOcclusionSvg';
 import { extractApkg, parseMediaManifest } from './extractApkg';
 import { parseCollection } from './parseCollection';
+import { parseOcclusionField } from './parseOcclusionField';
 import { applyClozeToFields } from './renderCloze';
 import {
   buildFieldMap,
@@ -11,6 +13,8 @@ import { sanitizeCardHtml, sanitizeCss } from './sanitize';
 import {
   DeckMeta,
   NormalizedCollection,
+  Note,
+  NoteType,
   PreviewMeta,
   RenderedCard,
 } from './types';
@@ -108,13 +112,27 @@ export default class ApkgPreviewService {
     return qfmt.includes('image-occlusion-canvas');
   }
 
-  private buildIoFallback(
+  private renderIoCard(
     card: { id: number; ord: number },
-    noteType: { name: string; css: string; templates: { name: string }[] },
-    deck: { id: number; name: string } | undefined
+    note: Note,
+    noteType: NoteType,
+    deck: { id: number; name: string } | undefined,
+    mediaMap: Map<string, string>,
+    mediaBaseUrl: string
   ): RenderedCard {
+    const fieldMap = buildFieldMap(note.fields, noteType);
+    const imageField = rewriteMediaRefs(
+      fieldMap.get('Image') ?? '',
+      mediaMap,
+      mediaBaseUrl
+    );
+    const occlusion = composeOcclusionSvg(
+      imageField,
+      parseOcclusionField(fieldMap.get('Occlusion') ?? '')
+    );
     const fallback =
       '<div class="apkg-preview-fallback">Image Occlusion cards open with masks in Anki. Download the deck to study them.</div>';
+    const masked = occlusion ? sanitizeCardHtml(occlusion) : fallback;
     const deckPath = deck?.name ? deck.name.split('::') : [];
     return {
       id: card.id,
@@ -124,8 +142,8 @@ export default class ApkgPreviewService {
       deckPath,
       noteTypeName: noteType.name,
       css: sanitizeCss(noteType.css),
-      front: fallback,
-      back: fallback,
+      front: masked,
+      back: masked,
     };
   }
 
@@ -168,7 +186,14 @@ export default class ApkgPreviewService {
     const deck = parsed.collection.decks.get(card.did);
 
     if (this.isImageOcclusionTemplate(template.qfmt)) {
-      return this.buildIoFallback(card, noteType, deck);
+      return this.renderIoCard(
+        card,
+        note,
+        noteType,
+        deck,
+        parsed.mediaMap,
+        mediaBaseUrl
+      );
     }
 
     const activeClozeNumber = noteType.type === 1 ? card.ord + 1 : null;

@@ -29,7 +29,11 @@ function makeIoCollection(): NormalizedCollection {
     id: 10,
     mid: 1,
     tags: '',
-    fields: ['[[oc1::shape]]', '<img src="study.png">', 'Chapter 1'],
+    fields: [
+      'rect:left=0.1:top=0.2:width=0.3:height=0.4:oi=1',
+      '<img src="study.png">',
+      'Chapter 1',
+    ],
   };
 
   return {
@@ -200,19 +204,47 @@ describe('ApkgPreviewService.getCardsPage', () => {
     });
   });
 
-  describe('Image Occlusion fallback', () => {
-    it('renders a fallback block instead of raw canvas markup', () => {
-      const parsed = makeParsed(makeIoCollection());
-      const result = service.getCardsPage(parsed, 0, 10, 'http://example.com');
+  describe('Image Occlusion masked preview', () => {
+    function makeIoParsed() {
+      return {
+        collection: makeIoCollection(),
+        mediaMap: new Map<string, string>([['study.png', '0']]),
+        mediaEntries: new Map<string, Buffer>(),
+        parsedAt: Date.now(),
+      };
+    }
+
+    it('renders the masked image as an inline SVG over the base image', () => {
+      const parsed = makeIoParsed();
+      const result = service.getCardsPage(
+        parsed,
+        0,
+        10,
+        'http://example.com/media/'
+      );
 
       expect(result.cards).toHaveLength(1);
+      expect(result.cards[0].front).toContain('<svg');
+      expect(result.cards[0].front).toContain('<image');
+      expect(result.cards[0].front).toContain('<rect');
+    });
+
+    it('points the base image at the bundled media url, not a raw filename', () => {
+      const parsed = makeIoParsed();
+      const result = service.getCardsPage(
+        parsed,
+        0,
+        10,
+        'http://example.com/media/'
+      );
+
       expect(result.cards[0].front).toContain(
-        'Image Occlusion cards open with masks in Anki'
+        'href="http://example.com/media/study.png"'
       );
     });
 
     it('does not include <canvas> in the rendered output', () => {
-      const parsed = makeParsed(makeIoCollection());
+      const parsed = makeIoParsed();
       const result = service.getCardsPage(parsed, 0, 10, 'http://example.com');
 
       expect(result.cards[0].front).not.toContain('<canvas');
@@ -220,7 +252,7 @@ describe('ApkgPreviewService.getCardsPage', () => {
     });
 
     it('does not include <script> in the rendered output', () => {
-      const parsed = makeParsed(makeIoCollection());
+      const parsed = makeIoParsed();
       const result = service.getCardsPage(parsed, 0, 10, 'http://example.com');
 
       expect(result.cards[0].front).not.toContain('<script');
@@ -228,7 +260,7 @@ describe('ApkgPreviewService.getCardsPage', () => {
     });
 
     it('still includes the IO card in the deck list — does not drop it', () => {
-      const parsed = makeParsed(makeIoCollection());
+      const parsed = makeIoParsed();
       const result = service.getCardsPage(parsed, 0, 10, 'http://example.com');
 
       expect(result.total).toBe(1);
