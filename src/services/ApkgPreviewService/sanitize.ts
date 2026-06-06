@@ -44,6 +44,12 @@ const ALLOWED_TAGS = [
   'tr',
   'u',
   'ul',
+  'svg',
+  'g',
+  'image',
+  'rect',
+  'ellipse',
+  'polygon',
 ];
 
 const ALLOWED_ATTRS: sanitizeHtml.IOptions['allowedAttributes'] = {
@@ -55,6 +61,11 @@ const ALLOWED_ATTRS: sanitizeHtml.IOptions['allowedAttributes'] = {
   source: ['src', 'type'],
   td: ['colspan', 'rowspan'],
   th: ['colspan', 'rowspan', 'scope'],
+  svg: ['class', 'viewBox', 'preserveAspectRatio', 'xmlns'],
+  image: ['href', 'src', 'x', 'y', 'width', 'height', 'preserveAspectRatio'],
+  rect: ['x', 'y', 'width', 'height', 'fill', 'stroke', 'stroke-width'],
+  ellipse: ['cx', 'cy', 'rx', 'ry', 'fill', 'stroke', 'stroke-width'],
+  polygon: ['points', 'fill', 'stroke', 'stroke-width'],
 };
 
 export function sanitizeCardHtml(html: string): string {
@@ -64,6 +75,7 @@ export function sanitizeCardHtml(html: string): string {
     allowedSchemes: ['http', 'https', 'mailto', 'data'],
     allowedSchemesAppliedToAttributes: ['href', 'src'],
     disallowedTagsMode: 'discard',
+    parser: { lowerCaseTags: true, lowerCaseAttributeNames: false },
   });
 }
 
