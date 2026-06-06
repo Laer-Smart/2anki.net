@@ -350,7 +350,7 @@ describe('PrepareDeck — PDF text-vs-image gate', () => {
   });
 });
 
-describe('PrepareDeck — diagnostic logging', () => {
+describe('PrepareDeck — duplicate-name dedup', () => {
   let infoSpy: jest.SpyInstance;
 
   beforeEach(() => {
@@ -362,7 +362,7 @@ describe('PrepareDeck — diagnostic logging', () => {
     infoSpy.mockRestore();
   });
 
-  it('logs received file list with count, names, and sources when two same-named entries are present', async () => {
+  it('collapses two same-named entries to a single received file', async () => {
     const settings = makeSettings();
     await PrepareDeck({
       name: 'anatomy.pdf',
@@ -378,14 +378,14 @@ describe('PrepareDeck — diagnostic logging', () => {
     expect(infoSpy).toHaveBeenCalledWith(
       '[PrepareDeck] received',
       expect.objectContaining({
-        count: 2,
-        names: ['anatomy.pdf', 'anatomy.pdf'],
-        sources: expect.arrayContaining(['anatomy.pdf']),
+        count: 1,
+        names: ['anatomy.pdf'],
+        sources: ['anatomy.pdf'],
       })
     );
   });
 
-  it('logs a convertFile start line for each same-named entry', async () => {
+  it('converts a same-named PDF once instead of fanning out two conversions', async () => {
     const settings = makeSettings();
     await PrepareDeck({
       name: 'anatomy.pdf',
@@ -401,14 +401,33 @@ describe('PrepareDeck — diagnostic logging', () => {
     const startCalls = infoSpy.mock.calls.filter(
       (args) => args[0] === '[PrepareDeck] convertFile start'
     );
-    expect(startCalls).toHaveLength(2);
+    expect(startCalls).toHaveLength(1);
     expect(startCalls[0][1]).toMatchObject({
       name: 'anatomy.pdf',
       workspaceLocation: '/tmp/test-workspace',
     });
-    expect(startCalls[1][1]).toMatchObject({
-      name: 'anatomy.pdf',
-      workspaceLocation: '/tmp/test-workspace',
-    });
+  });
+
+  it('keeps distinct-named PDFs as separate conversions', async () => {
+    const settings = makeSettings();
+    await PrepareDeck({
+      name: 'export.zip',
+      files: [
+        { name: 'anatomy.pdf', contents: Buffer.from('%PDF-1.4 a') },
+        { name: 'histology.pdf', contents: Buffer.from('%PDF-1.4 b') },
+      ],
+      settings,
+      noLimits: true,
+      workspace: makeWorkspace(),
+    }).catch(() => undefined);
+
+    const startCalls = infoSpy.mock.calls.filter(
+      (args) => args[0] === '[PrepareDeck] convertFile start'
+    );
+    expect(startCalls).toHaveLength(2);
+    expect(startCalls.map((c) => c[1].name)).toEqual([
+      'anatomy.pdf',
+      'histology.pdf',
+    ]);
   });
 });

@@ -1,10 +1,11 @@
 import { writeFile } from 'fs/promises';
 import path from 'path';
+import crypto from 'crypto';
+import { promises as fs } from 'fs';
 import Workspace from '../../../lib/parser/WorkSpace';
 import { getPageCount } from '../../../lib/pdf/getPageCount';
 import { convertPage } from '../../../lib/pdf/convertPage';
 import { combineIntoHTML } from '../../../lib/pdf/combineIntoHTML';
-import { existsSync } from 'fs';
 import CardOption from '../../../lib/parser/Settings/CardOption';
 
 interface ConvertPDFToImagesInput {
@@ -30,11 +31,12 @@ export async function convertPDFToImages(
   const fileName = name
     ? path.basename(name).replace(/\.pptx?$/i, '.pdf')
     : 'Default.pdf';
-  const pdfPath = path.join(workspace.location, fileName);
 
-  if (!existsSync(pdfPath)) {
-    await writeFile(pdfPath, Buffer.from(contents as Buffer));
-  }
+  const callDir = path.join(workspace.location, `pdf-${crypto.randomUUID()}`);
+  await fs.mkdir(callDir, { recursive: true });
+  const pdfPath = path.join(callDir, fileName);
+
+  await writeFile(pdfPath, Buffer.from(contents as Buffer));
 
   const pageCount = await getPageCount(pdfPath);
   const title = path.basename(pdfPath);
@@ -48,5 +50,5 @@ export async function convertPDFToImages(
     )
   );
 
-  return combineIntoHTML(imagePaths, title);
+  return combineIntoHTML(imagePaths, title, workspace.location);
 }
