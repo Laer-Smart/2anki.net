@@ -21,7 +21,12 @@ import {
 } from '../../lib/constants';
 import { track } from '../../services/events/track';
 import type { IEventsRepository } from '../../data_layer/EventsRepository';
-const REQUIRED_MCQ_OPTION_COUNT = 4;
+import {
+  asValidMcq,
+  classifyVerbatimShape,
+  looksLikeMcqAttempt,
+  type VerbatimCard,
+} from '../../lib/vision/classifyVerbatimShape';
 
 const MCQ_PROMPT_RULES = `- If the page shows a multiple-choice question with four options and a single correct answer, use: {"q":"question stem","options":["A","B","C","D"],"correct_index":0,"rationale":"why the correct option is right (optional)"}
 - correct_index is the 0-based position of the right option; the options array must have exactly four entries
@@ -262,51 +267,11 @@ function makeFreeQuotaReachedError(
   return err;
 }
 
-interface CompactCard {
-  q: string;
-  a: string;
-  tags?: string[];
-  cloze?: boolean;
-  options?: unknown;
-  correct_index?: unknown;
-  rationale?: unknown;
-}
+type CompactCard = VerbatimCard;
 
 interface CompactDeck {
   deck: string;
   cards: CompactCard[];
-}
-
-interface ValidMcqShape {
-  options: string[];
-  correctIndex: number;
-  rationale: string;
-}
-
-function asValidMcq(card: CompactCard): ValidMcqShape | null {
-  if (!Array.isArray(card.options)) return null;
-  if (card.options.length !== REQUIRED_MCQ_OPTION_COUNT) return null;
-  if (
-    !card.options.every(
-      (opt): opt is string => typeof opt === 'string' && opt.trim().length > 0
-    )
-  ) {
-    return null;
-  }
-  if (
-    typeof card.correct_index !== 'number' ||
-    !Number.isInteger(card.correct_index)
-  ) {
-    return null;
-  }
-  if (card.correct_index < 0 || card.correct_index >= card.options.length)
-    return null;
-  const rationale = typeof card.rationale === 'string' ? card.rationale : '';
-  return { options: card.options, correctIndex: card.correct_index, rationale };
-}
-
-function looksLikeMcqAttempt(card: CompactCard): boolean {
-  return card.options !== undefined || card.correct_index !== undefined;
 }
 
 function logUnreadableVisionResponse(raw: string): void {
@@ -359,58 +324,126 @@ interface BuildDeckInfoResult {
   mcqSkippedCount: number;
 }
 
+interface CardBaseFields {
+  tags: string[];
+  number: number;
+  enableInput: boolean;
+  answer: string;
+  media: string[];
+}
+
+function buildBaseFields(
+  card: CompactCard,
+  index: number,
+  sourceFilename: string | null
+): CardBaseFields {
+  return {
+    tags: (card.tags ?? []).map(normalizeTag).filter((t) => t.length > 0),
+    number: index,
+    enableInput: false,
+    answer: '',
+    media: sourceFilename == null ? [] : [sourceFilename],
+  };
+}
+
+function buildMcqCard(
+  card: CompactCard,
+  base: CardBaseFields,
+  sourceImageTag: string
+) {
+  const validMcq = asValidMcq(card);
+  if (validMcq == null) return null;
+  const rationaleBack =
+    validMcq.rationale.length > 0 ? validMcq.rationale : card.a;
+  return {
+    ...base,
+    name: card.q,
+    back: `${rationaleBack}${sourceImageTag}`,
+    cloze: false,
+    mcq: true,
+    options: validMcq.options,
+    correctIndices: [validMcq.correctIndex],
+  };
+}
+
+function buildBasicCard(
+  card: CompactCard,
+  base: CardBaseFields,
+  sourceImageTag: string,
+  cloze: boolean
+) {
+  return {
+    ...base,
+    name: card.q,
+    back: `${card.a}${sourceImageTag}`,
+    cloze,
+  };
+}
+
+function sourceImageTagFor(sourceFilename: string | null): string {
+  return sourceFilename == null
+    ? ''
+    : `<br><img src="${sourceFilename}" style="max-width:100%;height:auto;">`;
+}
+
+function buildDeckCards(
+  decks: CompactDeck[],
+  sourceFilename: string | null,
+  mode: PhotoMode,
+  mcqEnabled: boolean
+): {
+  cards: Record<string, unknown>[];
+  mcqCount: number;
+  mcqSkippedCount: number;
+} {
+  let mcqCount = 0;
+  let mcqSkippedCount = 0;
+
+  const cards = decks.flatMap((d) =>
+    d.cards.map((c, i) => {
+      const base = buildBaseFields(c, i, sourceFilename);
+      const sourceImageTag = sourceImageTagFor(sourceFilename);
+
+      if (mode === 'verbatim') {
+        const shape = classifyVerbatimShape(c);
+        const mcqCard =
+          shape === 'mcq' ? buildMcqCard(c, base, sourceImageTag) : null;
+        if (mcqCard != null) {
+          mcqCount += 1;
+          return mcqCard;
+        }
+        if (shape === 'basic' && looksLikeMcqAttempt(c)) mcqSkippedCount += 1;
+        return buildBasicCard(c, base, sourceImageTag, shape === 'cloze');
+      }
+
+      if (mcqEnabled) {
+        const mcqCard = buildMcqCard(c, base, sourceImageTag);
+        if (mcqCard != null) {
+          mcqCount += 1;
+          return mcqCard;
+        }
+        if (looksLikeMcqAttempt(c)) mcqSkippedCount += 1;
+      }
+
+      return buildBasicCard(c, base, sourceImageTag, c.cloze ?? false);
+    })
+  );
+
+  return { cards, mcqCount, mcqSkippedCount };
+}
+
 function buildDeckInfo(
   deckName: string,
   decks: CompactDeck[],
   sourceFilename: string | null,
+  mode: PhotoMode,
   mcqEnabled: boolean
 ): BuildDeckInfoResult {
-  let mcqCount = 0;
-  let mcqSkippedCount = 0;
-
-  const allCards = decks.flatMap((d) =>
-    d.cards.map((c, i) => {
-      const sourceImageTag =
-        sourceFilename == null
-          ? ''
-          : `<br><img src="${sourceFilename}" style="max-width:100%;height:auto;">`;
-      const tags = (c.tags ?? []).map(normalizeTag).filter((t) => t.length > 0);
-      const baseFields = {
-        tags,
-        number: i,
-        enableInput: false,
-        answer: '',
-        media: sourceFilename == null ? [] : [sourceFilename],
-      };
-
-      if (mcqEnabled) {
-        const validMcq = asValidMcq(c);
-        if (validMcq != null) {
-          mcqCount += 1;
-          const rationaleBack =
-            validMcq.rationale.length > 0 ? validMcq.rationale : c.a;
-          return {
-            ...baseFields,
-            name: c.q,
-            back: `${rationaleBack}${sourceImageTag}`,
-            cloze: false,
-            mcq: true,
-            options: validMcq.options,
-            correctIndices: [validMcq.correctIndex],
-          };
-        }
-        if (looksLikeMcqAttempt(c)) {
-          mcqSkippedCount += 1;
-        }
-      }
-
-      return {
-        ...baseFields,
-        name: c.q,
-        back: `${c.a}${sourceImageTag}`,
-        cloze: c.cloze ?? false,
-      };
-    })
+  const { cards, mcqCount, mcqSkippedCount } = buildDeckCards(
+    decks,
+    sourceFilename,
+    mode,
+    mcqEnabled
   );
 
   return {
@@ -422,7 +455,7 @@ function buildDeckInfo(
           0
         )
       ),
-      cards: allCards,
+      cards,
       style: null,
       settings: {
         template: 'specialstyle',
@@ -543,6 +576,7 @@ export class PhotoToFlashcardsUseCase {
       deckName,
       decks,
       sourceFilename,
+      mode,
       mcqEnabled
     );
 

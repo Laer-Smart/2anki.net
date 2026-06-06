@@ -916,6 +916,143 @@ describe('PhotoToFlashcardsUseCase', () => {
     });
   });
 
+  describe('verbatim template auto-detect', () => {
+    const VERBATIM_MIX_RESPONSE = JSON.stringify([
+      {
+        deck: 'Study sheet',
+        cards: [
+          {
+            q: 'Which enzyme breaks down starch?',
+            options: ['Lipase', 'Amylase', 'Protease', 'Lactase'],
+            correct_index: 1,
+          },
+          { q: 'The capital of France is {{c1::Paris}}', a: '' },
+          { q: 'What is ATP?', a: 'Energy currency' },
+        ],
+      },
+    ]);
+
+    function readDeckPayload(): Array<{
+      cards: Array<{
+        mcq?: boolean;
+        cloze?: boolean;
+        options?: string[];
+        correctIndices?: number[];
+      }>;
+    }> {
+      const writeCall = (mockFs.writeFileSync as jest.Mock).mock.calls.find(
+        ([p]) =>
+          typeof p === 'string' && (p as string).endsWith('deck_info.json')
+      );
+      return JSON.parse(writeCall![1] as string);
+    }
+
+    it('routes MCQ, cloze, and Q&A verbatim cards into their matching templates', async () => {
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [{ type: 'text', text: VERBATIM_MIX_RESPONSE }],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      const result = await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        mode: 'verbatim',
+      });
+
+      const cards = readDeckPayload()[0].cards;
+      expect(cards[0].mcq).toBe(true);
+      expect(cards[0].options).toEqual([
+        'Lipase',
+        'Amylase',
+        'Protease',
+        'Lactase',
+      ]);
+      expect(cards[0].correctIndices).toEqual([1]);
+      expect(cards[1].mcq).toBeFalsy();
+      expect(cards[1].cloze).toBe(true);
+      expect(cards[2].mcq).toBeFalsy();
+      expect(cards[2].cloze).toBe(false);
+      expect(result.mcqCount).toBe(1);
+      expect(result.mcqSkippedCount).toBe(0);
+    });
+
+    it('emits a verbatim MCQ card without the generative mcqEnabled toggle', async () => {
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [{ type: 'text', text: VERBATIM_MIX_RESPONSE }],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        mode: 'verbatim',
+        mcqEnabled: false,
+      });
+      expect(readDeckPayload()[0].cards[0].mcq).toBe(true);
+    });
+
+    it('falls back to a basic card when a verbatim MCQ fails strict validation', async () => {
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify([
+              {
+                deck: 'Study sheet',
+                cards: [
+                  {
+                    q: 'Pick one',
+                    a: 'B',
+                    options: ['A', 'B', 'C'],
+                    correct_index: 1,
+                  },
+                ],
+              },
+            ]),
+          },
+        ],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      const result = await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        mode: 'verbatim',
+      });
+      const card = readDeckPayload()[0].cards[0];
+      expect(card.mcq).toBeFalsy();
+      expect(card.cloze).toBe(false);
+      expect(result.mcqCount).toBe(0);
+      expect(result.mcqSkippedCount).toBe(1);
+    });
+
+    it('leaves the generative path on plain basic cards (no verbatim routing)', async () => {
+      mockMessageCreate.mockResolvedValueOnce({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify([
+              {
+                deck: 'Study sheet',
+                cards: [{ q: 'Cloze {{c1::leak}}?', a: 'no' }],
+              },
+            ]),
+          },
+        ],
+        usage: { input_tokens: 100, output_tokens: 50 },
+      });
+      const useCase = new PhotoToFlashcardsUseCase(makeEventsStub());
+      await useCase.execute({
+        ...BASE_INPUT,
+        isPaying: true,
+        mode: 'generative',
+      });
+      const card = readDeckPayload()[0].cards[0];
+      expect(card.cloze).toBe(false);
+      expect(card.mcq).toBeFalsy();
+    });
+  });
+
   describe('malformed Claude Vision response', () => {
     it('throws a 422 conversion-failure error when the JSON is truncated', async () => {
       mockMessageCreate.mockResolvedValueOnce({
