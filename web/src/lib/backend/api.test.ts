@@ -129,6 +129,82 @@ describe('api.get error tagging', () => {
     expect(location.href).toBe('/login');
   });
 
+  it('a 401 on the password reset page does not bounce to /login', async () => {
+    const location = {
+      origin: 'http://localhost',
+      pathname: '/users/r/abc123resettoken',
+      href: '',
+    };
+    vi.stubGlobal('location', location);
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: 'Authentication required' }), {
+        status: 401,
+      })
+    );
+
+    await expect(get('http://localhost/api/users/me')).rejects.toBeInstanceOf(
+      UserNotice
+    );
+    expect(location.href).toBe('');
+  });
+
+  it('a 401 on the bare reset path does not bounce to /login', async () => {
+    const location = {
+      origin: 'http://localhost',
+      pathname: '/users/r',
+      href: '',
+    };
+    vi.stubGlobal('location', location);
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: 'Authentication required' }), {
+        status: 401,
+      })
+    );
+
+    await expect(get('http://localhost/api/users/me')).rejects.toBeInstanceOf(
+      UserNotice
+    );
+    expect(location.href).toBe('');
+  });
+
+  it('a 401 on an authed path that merely shares the reset prefix still bounces', async () => {
+    const location = {
+      origin: 'http://localhost',
+      pathname: '/users/recent',
+      href: '',
+    };
+    vi.stubGlobal('location', location);
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: 'Authentication required' }), {
+        status: 401,
+      })
+    );
+
+    await expect(get('http://localhost/api/users/me')).rejects.toBeInstanceOf(
+      UserNotice
+    );
+    expect(location.href).toBe('/login');
+  });
+
+  it('a 401 on the account page bounces to /login', async () => {
+    const location = {
+      origin: 'http://localhost',
+      pathname: '/account',
+      href: '',
+    };
+    vi.stubGlobal('location', location);
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: 'Authentication required' }), {
+        status: 401,
+      })
+    );
+
+    await expect(get('http://localhost/api/users/me')).rejects.toBeInstanceOf(
+      UserNotice
+    );
+    expect(location.href).toBe('/login');
+  });
+
   it('throws UserNotice with code when present', async () => {
     fetchSpy.mockResolvedValueOnce(
       new Response(
