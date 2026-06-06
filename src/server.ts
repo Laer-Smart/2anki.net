@@ -47,6 +47,7 @@ import { redirectNonCanonicalHosts } from './routes/middleware/redirectNonCanoni
 import { redirectConvertDuplicates } from './routes/middleware/redirectConvertDuplicates';
 import webhookRouter from './routes/WebhookRouter';
 import ankifyWebhookRouter from './routes/AnkifyWebhookRouter';
+import sendgridWebhookRouter from './routes/SendgridWebhookRouter';
 import swaggerRouter from './routes/SwaggerRouter';
 import opsRouter from './routes/OpsRouter';
 import opsErrorsRouter from './routes/OpsErrorsRouter';
@@ -139,6 +140,7 @@ const serve = async () => {
 
   app.use(webhookRouter());
   app.use(ankifyWebhookRouter());
+  app.use(sendgridWebhookRouter());
   app.use(redirectNonCanonicalHosts);
   app.use(express.json({ limit: '50mb' }) as RequestHandler);
   app.use(cookieParser());

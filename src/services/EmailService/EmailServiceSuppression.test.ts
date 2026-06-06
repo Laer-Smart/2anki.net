@@ -1,0 +1,67 @@
+const send = jest.fn().mockResolvedValue([{ statusCode: 202 }, {}]);
+
+jest.mock('@sendgrid/mail', () => ({
+  setApiKey: jest.fn(),
+  send,
+}));
+
+import { EmailService } from './EmailService';
+import { DEFAULT_SENDER } from './constants';
+
+describe('EmailService suppression gate', () => {
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.DOMAIN = 'https://2anki.net';
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  it('does not call SendGrid when the recipient is suppressed', async () => {
+    const isSuppressed = jest.fn().mockResolvedValue(true);
+    const service = new EmailService('test-key', DEFAULT_SENDER, isSuppressed);
+
+    await service.sendResetEmail('blocked@example.com', 'tok-1');
+
+    expect(isSuppressed).toHaveBeenCalledWith('blocked@example.com');
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('sends when the recipient is not suppressed', async () => {
+    const isSuppressed = jest.fn().mockResolvedValue(false);
+    const service = new EmailService('test-key', DEFAULT_SENDER, isSuppressed);
+
+    await service.sendResetEmail('ok@example.com', 'tok-1');
+
+    expect(send).toHaveBeenCalledTimes(1);
+    const msg = send.mock.calls[0][0] as { to: string };
+    expect(msg.to).toBe('ok@example.com');
+  });
+
+  it('sends when the suppression lookup itself fails (fail-open)', async () => {
+    const isSuppressed = jest
+      .fn()
+      .mockRejectedValue(new Error('lookup unavailable'));
+    const service = new EmailService('test-key', DEFAULT_SENDER, isSuppressed);
+
+    await service.sendMagicLinkEmail('ok@example.com', 'tok-2', 'login');
+
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it('blocks the deck-ready conversion email for a suppressed recipient', async () => {
+    const isSuppressed = jest.fn().mockResolvedValue(true);
+    const service = new EmailService('test-key', DEFAULT_SENDER, isSuppressed);
+
+    await service.sendConversionLinkEmail(
+      'blocked@example.com',
+      'Pharmacology',
+      'https://2anki.net/d/abc'
+    );
+
+    expect(send).not.toHaveBeenCalled();
+  });
+});
