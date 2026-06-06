@@ -1,7 +1,6 @@
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
-import { promises as fs } from 'fs';
 import Workspace from '../../../lib/parser/WorkSpace';
 import { getPageCount } from '../../../lib/pdf/getPageCount';
 import { convertPage } from '../../../lib/pdf/convertPage';
@@ -33,7 +32,7 @@ export async function convertPDFToImages(
     : 'Default.pdf';
 
   const callDir = path.join(workspace.location, `pdf-${crypto.randomUUID()}`);
-  await fs.mkdir(callDir, { recursive: true });
+  await mkdir(callDir, { recursive: true });
   const pdfPath = path.join(callDir, fileName);
 
   await writeFile(pdfPath, Buffer.from(contents as Buffer));

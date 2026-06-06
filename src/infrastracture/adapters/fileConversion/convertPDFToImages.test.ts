@@ -5,14 +5,7 @@ import CardOption from '../../../lib/parser/Settings/CardOption';
 jest.mock('fs/promises', () => ({
   __esModule: true,
   writeFile: jest.fn().mockResolvedValue(undefined),
-}));
-
-jest.mock('fs', () => ({
-  __esModule: true,
-  ...jest.requireActual('fs'),
-  promises: {
-    mkdir: jest.fn().mockResolvedValue(undefined),
-  },
+  mkdir: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../../lib/pdf/getPageCount', () => ({
@@ -27,8 +20,7 @@ jest.mock('../../../lib/pdf/convertPage', () => ({
     ),
 }));
 
-const { writeFile } = require('fs/promises');
-const fs = require('fs');
+const { writeFile, mkdir } = require('fs/promises');
 const { getPageCount } = require('../../../lib/pdf/getPageCount');
 const { convertPage } = require('../../../lib/pdf/convertPage');
 
@@ -98,7 +90,7 @@ describe('convertPDFToImages — concurrent-run isolation', () => {
       settings: makeSettings(),
     });
 
-    const mkdirCalls = (fs.promises.mkdir as jest.Mock).mock.calls;
+    const mkdirCalls = (mkdir as jest.Mock).mock.calls;
     expect(mkdirCalls).toHaveLength(1);
     const createdDir = mkdirCalls[0][0] as string;
     expect(path.dirname(createdDir)).toEqual(WORKSPACE_LOCATION);
