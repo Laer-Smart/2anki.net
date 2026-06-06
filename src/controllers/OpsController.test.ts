@@ -144,7 +144,6 @@ describe('OpsController.getReturnRateMetrics', () => {
       undefined,
       undefined,
       undefined,
-      undefined,
       returnRateUseCase
     );
     const req = {} as unknown as express.Request;
@@ -164,7 +163,6 @@ describe('OpsController.getReturnRateMetrics', () => {
     } as unknown as GetReturnRateMetricsUseCase;
     const controller = new OpsController(
       opsUseCase,
-      undefined,
       undefined,
       undefined,
       undefined,
@@ -224,7 +222,6 @@ describe('OpsController.getMindmapImageStats', () => {
       undefined,
       undefined,
       undefined,
-      undefined,
       imageStatsUseCase
     );
     const req = {} as unknown as express.Request;
@@ -244,7 +241,6 @@ describe('OpsController.getMindmapImageStats', () => {
     } as unknown as GetMindmapImageStatsUseCase;
     const controller = new OpsController(
       opsUseCase,
-      undefined,
       undefined,
       undefined,
       undefined,
@@ -274,7 +270,6 @@ describe('OpsController.deleteInactiveUsers', () => {
   const buildController = (useCase: DeleteInactiveUsersUseCase) =>
     new OpsController(
       {} as unknown as GetOpsMetricsUseCase,
-      undefined,
       undefined,
       undefined,
       undefined,

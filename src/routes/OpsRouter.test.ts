@@ -273,6 +273,25 @@ describe('OpsRouter /api/ops/sync-stripe-subscriptions', () => {
   });
 });
 
+describe('OpsRouter /api/ops/send-abandoned-checkout-recovery', () => {
+  it('returns 404 for the ops owner because the route is retired', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(
+        `${url}/api/ops/send-abandoned-checkout-recovery`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ emails: ['user@example.com'], dryRun: true }),
+        }
+      );
+      expect(response.status).toBe(404);
+    } finally {
+      await close();
+    }
+  });
+});
+
 describe('OpsRouter /api/ops/upload-funnel', () => {
   it('returns 404 for non-owner callers', async () => {
     const { url, close } = await startServer(false);
