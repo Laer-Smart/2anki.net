@@ -64,7 +64,7 @@ The following four templates contain an upgrade or upsell pitch — each is subj
 1. `re-engagement.html` — uses `{{unsubscribeUrl}}`; send path: `sendReEngagementEmails` helper
 2. `inactivity-warning.html` — uses `{{unsubscribeUrl}}`; send path: `SendInactivityWarningsUseCase`
 3. `trial-ended.html` — uses `{{unsubscribeUrl}}`; send path: `SendTrialEndedEmailsUseCase`
-4. `abandoned-checkout-recovery.html` — uses `{{unsubscribeUrl}}`; send paths: `SendAbandonedCheckoutRecoveryOnExpiryUseCase` and `SendAbandonedCheckoutRecoveryUseCase`
+4. `abandoned-checkout-recovery.html` — uses `{{unsubscribeUrl}}`; send path: `SendAbandonedCheckoutRecoveryOnExpiryUseCase` (triggered by the `checkout.session.expired` webhook)
 
 The transactional templates (magic-link, reset, convert, convert-link, subscription-cancelled, subscription-scheduled-cancellation) are not marketing emails and do not need the unsubscribe footer.
 

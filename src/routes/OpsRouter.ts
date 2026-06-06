@@ -9,7 +9,6 @@ import { GetReturnRateMetricsUseCase } from '../usecases/ops/GetReturnRateMetric
 import { GetMindmapStorageMetricsUseCase } from '../usecases/ops/GetMindmapStorageMetricsUseCase';
 import { MindmapStorageMetricsService } from '../services/ops/MindmapStorageMetricsService';
 import StorageHandler from '../lib/storage/StorageHandler';
-import { SendAbandonedCheckoutRecoveryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryUseCase';
 import { PopulateShowcaseUseCase } from '../usecases/ops/PopulateShowcaseUseCase';
 import { ObservabilityRepository } from '../data_layer/ObservabilityRepository';
 import { ObservabilityQueryService } from '../services/observability/ObservabilityQueryService';
@@ -30,10 +29,8 @@ import DownloadService from '../services/DownloadService';
 import ApkgPreviewService from '../services/ApkgPreviewService/ApkgPreviewService';
 import { NotionService } from '../services/NotionService/NotionService';
 import { getDatabase } from '../data_layer';
-import { getEventsSink } from '../services/events/eventsSinkInstance';
 import RequireOpsAccess from './middleware/RequireOpsAccess';
 import InactivityEmailRepository from '../data_layer/InactivityEmailRepository';
-import AbandonedCheckoutRecoveryRepository from '../data_layer/AbandonedCheckoutRecoveryRepository';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
 import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
@@ -107,11 +104,6 @@ const OpsRouter = () => {
       emailService
     ),
     new GetPerformanceMetricsUseCase(performanceMetricsService),
-    new SendAbandonedCheckoutRecoveryUseCase(
-      emailService,
-      new AbandonedCheckoutRecoveryRepository(database),
-      getEventsSink()
-    ),
     new GetReturnRateMetricsUseCase(new ReturnRateMetricsService(database)),
     new GetMindmapImageStatsUseCase(new MindmapRepository(database)),
     new GetMindmapStorageMetricsUseCase(mindmapStorageService),
@@ -297,41 +289,6 @@ const OpsRouter = () => {
    */
   router.get('/api/ops/performance/metrics', RequireOpsAccess, (req, res) =>
     controller.getPerformanceMetrics(req, res)
-  );
-
-  /**
-   * @swagger
-   * /api/ops/send-abandoned-checkout-recovery:
-   *   post:
-   *     summary: Send abandoned-checkout recovery emails
-   *     description: |
-   *       Mail the supplied list of email addresses with the abandoned-checkout recovery template. Pass `dryRun: false` in the body to actually send; defaults to true. Run manually only.
-   *     tags: [Ops]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required: [emails]
-   *             properties:
-   *               emails:
-   *                 type: array
-   *                 items: { type: string }
-   *               dryRun:
-   *                 type: boolean
-   *     responses:
-   *       200:
-   *         description: Result with sent/failed counts and dryRun flag
-   *       400:
-   *         description: emails missing or invalid
-   *       404:
-   *         description: Not the ops owner
-   */
-  router.post(
-    '/api/ops/send-abandoned-checkout-recovery',
-    RequireOpsAccess,
-    (req, res) => controller.sendAbandonedCheckoutRecovery(req, res)
   );
 
   /**

@@ -9,7 +9,6 @@ import { GetMindmapStorageMetricsUseCase } from '../usecases/ops/GetMindmapStora
 import { PopulateShowcaseUseCase } from '../usecases/ops/PopulateShowcaseUseCase';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
 import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
-import { SendAbandonedCheckoutRecoveryUseCase } from '../usecases/ops/SendAbandonedCheckoutRecoveryUseCase';
 import { IShowcaseRepository } from '../data_layer/ShowcaseRepository';
 import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
 import { SyncStripeSubscriptionsUseCase } from '../usecases/ops/SyncStripeSubscriptionsUseCase';
@@ -30,7 +29,6 @@ class OpsController {
     private readonly showcaseRepo?: IShowcaseRepository,
     private readonly sendInactivityWarningsUseCase?: SendInactivityWarningsUseCase,
     private readonly getPerformanceMetricsUseCase?: GetPerformanceMetricsUseCase,
-    private readonly sendAbandonedCheckoutRecoveryUseCase?: SendAbandonedCheckoutRecoveryUseCase,
     private readonly getReturnRateMetricsUseCase?: GetReturnRateMetricsUseCase,
     private readonly getMindmapImageStatsUseCase?: GetMindmapImageStatsUseCase,
     private readonly getMindmapStorageMetricsUseCase?: GetMindmapStorageMetricsUseCase,
@@ -133,39 +131,6 @@ class OpsController {
     } catch (error) {
       console.error('[ops] getPerformanceMetrics failed', error);
       res.status(500).json({ message: 'Failed to load performance metrics' });
-    }
-  }
-
-  async sendAbandonedCheckoutRecovery(
-    req: express.Request,
-    res: express.Response
-  ) {
-    if (this.sendAbandonedCheckoutRecoveryUseCase == null) {
-      res
-        .status(500)
-        .json({ message: 'Abandoned-checkout recovery not configured' });
-      return;
-    }
-    const body = req.body as { emails?: unknown; dryRun?: unknown };
-    if (!Array.isArray(body.emails)) {
-      res.status(400).json({ message: 'emails must be an array of strings' });
-      return;
-    }
-    const emails = body.emails.filter(
-      (e): e is string => typeof e === 'string' && e.includes('@')
-    );
-    const dryRun = body.dryRun !== false;
-    try {
-      const result = await this.sendAbandonedCheckoutRecoveryUseCase.execute(
-        emails,
-        dryRun
-      );
-      res.status(200).json(result);
-    } catch (error) {
-      console.error('[ops] sendAbandonedCheckoutRecovery failed', error);
-      res
-        .status(500)
-        .json({ message: 'Failed to run abandoned-checkout recovery' });
     }
   }
 
