@@ -496,11 +496,12 @@ export async function prepareDeckInfoOnly(
   deckSubWorkspace: Workspace,
   outputWorkspace: Workspace
 ): Promise<DeckInfoOnlyResult> {
+  const files = dedupeFilesByName(input.files);
   const results = await Promise.all(
-    input.files.map((file) => convertFile(file, input))
+    files.map((file) => convertFile(file, input))
   );
   const convertedFiles = results.flatMap((r) => (r ? [r] : []));
-  const allFiles = [...input.files, ...convertedFiles];
+  const allFiles = [...files, ...convertedFiles];
 
   const parser = new DeckParser({ ...input, files: allFiles });
 
