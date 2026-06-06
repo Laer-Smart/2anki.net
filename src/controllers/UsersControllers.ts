@@ -24,6 +24,7 @@ import hashToken from '../lib/misc/hashToken';
 import { extractCountryFromRequest } from '../lib/http/extractCountryFromRequest';
 import { RecordUserVisibleErrorUseCase } from '../usecases/observability/RecordUserVisibleErrorUseCase';
 import { track } from '../services/events/track';
+import { mapEntitlement } from './helpers/mapEntitlement';
 
 class UsersController {
   constructor(
@@ -319,6 +320,7 @@ class UsersController {
         onboarded_at: user?.onboarded_at ?? null,
       },
       locals,
+      entitlement: mapEntitlement(locals),
       linked_email: linkedEmail,
       features: featureFlags,
       hostedAnkiRequested: user?.hosted_anki_requested_at != null,

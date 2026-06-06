@@ -2383,6 +2383,167 @@ describe('UsersController.getLocals', () => {
     expect(payload.user.chat_consent_at).toBeNull();
   });
 
+  it('maps a Day Pass holder to a typed entitlement with passKind 24h and a future expiry', async () => {
+    const mockUser = {
+      id: 5,
+      email: 'pass@example.com',
+      email_verified: true,
+      patreon: false,
+      ankify_welcome_seen: false,
+      hosted_anki_requested_at: null,
+      owner: 5,
+    };
+    const userService = {
+      getSubscriptionLinkedEmail: jest.fn().mockResolvedValue(null),
+    } as unknown as UsersService;
+    const authService = {
+      getUserFrom: jest.fn().mockResolvedValue(mockUser),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    const req = { cookies: { token: 'valid' } } as unknown as express.Request;
+    const res = {
+      locals: {
+        subscriber: true,
+        passKind: '24h',
+        passExpiresAt: '2026-06-07T00:00:00.000Z',
+        planSource: 'apple',
+      },
+      json: jest.fn(),
+    } as unknown as express.Response & { json: jest.Mock };
+
+    await controller.getLocals(req, res);
+
+    const payload = res.json.mock.calls[0][0];
+    expect(payload.entitlement).toEqual({
+      passKind: '24h',
+      passExpiresAt: '2026-06-07T00:00:00.000Z',
+      planSource: 'apple',
+    });
+  });
+
+  it('maps an unlimited subscriber to entitlement passKind unlimited with stripe planSource', async () => {
+    const mockUser = {
+      id: 6,
+      email: 'sub@example.com',
+      email_verified: true,
+      patreon: false,
+      ankify_welcome_seen: false,
+      hosted_anki_requested_at: null,
+      owner: 6,
+    };
+    const userService = {
+      getSubscriptionLinkedEmail: jest.fn().mockResolvedValue(null),
+    } as unknown as UsersService;
+    const authService = {
+      getUserFrom: jest.fn().mockResolvedValue(mockUser),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    const req = { cookies: { token: 'valid' } } as unknown as express.Request;
+    const res = {
+      locals: {
+        subscriber: true,
+        planSource: 'stripe',
+      },
+      json: jest.fn(),
+    } as unknown as express.Response & { json: jest.Mock };
+
+    await controller.getLocals(req, res);
+
+    const payload = res.json.mock.calls[0][0];
+    expect(payload.entitlement).toEqual({
+      passKind: 'unlimited',
+      passExpiresAt: null,
+      planSource: 'stripe',
+    });
+  });
+
+  it('maps a Week Pass holder to entitlement passKind 7d', async () => {
+    const mockUser = {
+      id: 7,
+      email: 'week@example.com',
+      email_verified: true,
+      patreon: false,
+      ankify_welcome_seen: false,
+      hosted_anki_requested_at: null,
+      owner: 7,
+    };
+    const userService = {
+      getSubscriptionLinkedEmail: jest.fn().mockResolvedValue(null),
+    } as unknown as UsersService;
+    const authService = {
+      getUserFrom: jest.fn().mockResolvedValue(mockUser),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    const req = { cookies: { token: 'valid' } } as unknown as express.Request;
+    const res = {
+      locals: {
+        subscriber: true,
+        passKind: '7d',
+        passExpiresAt: '2026-06-12T00:00:00.000Z',
+        planSource: 'apple',
+      },
+      json: jest.fn(),
+    } as unknown as express.Response & { json: jest.Mock };
+
+    await controller.getLocals(req, res);
+
+    const payload = res.json.mock.calls[0][0];
+    expect(payload.entitlement).toEqual({
+      passKind: '7d',
+      passExpiresAt: '2026-06-12T00:00:00.000Z',
+      planSource: 'apple',
+    });
+  });
+
+  it('returns an all-null entitlement for a free user', async () => {
+    const mockUser = {
+      id: 8,
+      email: 'free@example.com',
+      email_verified: true,
+      patreon: false,
+      ankify_welcome_seen: false,
+      hosted_anki_requested_at: null,
+      owner: 8,
+    };
+    const userService = {
+      getSubscriptionLinkedEmail: jest.fn().mockResolvedValue(null),
+    } as unknown as UsersService;
+    const authService = {
+      getUserFrom: jest.fn().mockResolvedValue(mockUser),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    const req = { cookies: { token: 'valid' } } as unknown as express.Request;
+    const res = {
+      locals: {},
+      json: jest.fn(),
+    } as unknown as express.Response & { json: jest.Mock };
+
+    await controller.getLocals(req, res);
+
+    const payload = res.json.mock.calls[0][0];
+    expect(payload.entitlement).toEqual({
+      passKind: null,
+      passExpiresAt: null,
+      planSource: null,
+    });
+  });
+
   it('defaults email_verified to false when user has no value', async () => {
     const mockUser = {
       id: 2,
