@@ -1,40 +1,453 @@
-interface AnkiField {
-  name: string;
-  ord: number;
-  sticky: boolean;
-  rtl: boolean;
-  font: string;
-  size: number;
-}
+import fs from 'node:fs';
+import path from 'node:path';
 
-interface AnkiCardType {
+const TEMPLATES_DIR = path.join(__dirname, '..', 'templates');
+
+export type StarterSurface = 'editor' | 'conversion' | 'both';
+
+export interface StarterCardTemplate {
   name: string;
   ord: number;
   qfmt: string;
   afmt: string;
 }
 
-interface AnkiNoteType {
+export interface StarterField {
+  name: string;
+  ord: number;
+  sticky?: boolean;
+  rtl?: boolean;
+  font?: string;
+  size?: number;
+}
+
+export interface StarterNoteType {
   id: number;
   name: string;
   type: number;
-  mod: number;
-  usn: number;
-  sortf: number;
-  tmpls: AnkiCardType[];
-  flds: AnkiField[];
+  mod?: number;
+  usn?: number;
+  sortf?: number;
+  tmpls: StarterCardTemplate[];
+  flds: StarterField[];
   css: string;
-  tags: string[];
+  tags?: string[];
 }
 
-interface DefaultTemplate {
+export interface Starter {
   id: string;
   name: string;
   description: string;
   baseType: string;
-  noteType: AnkiNoteType;
+  noteType: StarterNoteType;
   previewData: Record<string, string>;
   tags: string[];
+  surface: StarterSurface;
+}
+
+interface RawJsonTemplate {
+  parent: string;
+  name: string;
+  front: string;
+  back: string;
+  fields: Array<{ name: string }>;
+  styling: string;
+}
+
+function readText(filename: string): string {
+  return fs.readFileSync(path.join(TEMPLATES_DIR, filename), 'utf8');
+}
+
+function safeRead(filename: string): string | null {
+  try {
+    return readText(filename);
+  } catch {
+    return null;
+  }
+}
+
+const STABLE_ID_BASE = Date.parse('2026-01-01');
+let idOffset = 0;
+function nextNoteTypeId(): number {
+  idOffset += 1;
+  return STABLE_ID_BASE + idOffset;
+}
+
+interface JsonStarterSpec {
+  file: string;
+  id: string;
+  name: string;
+  description: string;
+  baseType: string;
+  ankiType: number;
+  previewData: Record<string, string>;
+  tags: string[];
+}
+
+function jsonStarter(spec: JsonStarterSpec): Starter | null {
+  const text = safeRead(spec.file);
+  if (text == null) return null;
+  let raw: RawJsonTemplate;
+  try {
+    raw = JSON.parse(text) as RawJsonTemplate;
+  } catch {
+    return null;
+  }
+  return {
+    id: spec.id,
+    name: spec.name,
+    description: spec.description,
+    baseType: spec.baseType,
+    noteType: {
+      id: nextNoteTypeId(),
+      name: raw.name ?? spec.name,
+      type: spec.ankiType,
+      tmpls: [
+        {
+          name: raw.parent ?? 'Card 1',
+          ord: 0,
+          qfmt: raw.front,
+          afmt: raw.back,
+        },
+      ],
+      flds: raw.fields.map((f, i) => ({ name: f.name, ord: i })),
+      css: raw.styling,
+    },
+    previewData: spec.previewData,
+    tags: spec.tags,
+    surface: 'conversion',
+  };
+}
+
+interface VariantSpec {
+  id: string;
+  name: string;
+  description: string;
+  baseType: string;
+  ankiType: number;
+  qfmtFile: string;
+  afmtFile: string;
+  cssFile: string;
+  flds: Array<{ name: string; ord: number }>;
+  previewData: Record<string, string>;
+  tags: string[];
+  modelName?: string;
+}
+
+function variantStarter(spec: VariantSpec): Starter | null {
+  const qfmt = safeRead(spec.qfmtFile);
+  const afmt = safeRead(spec.afmtFile);
+  const css = safeRead(spec.cssFile);
+  if (qfmt == null || afmt == null || css == null) return null;
+  return {
+    id: spec.id,
+    name: spec.name,
+    description: spec.description,
+    baseType: spec.baseType,
+    noteType: {
+      id: nextNoteTypeId(),
+      name: spec.modelName ?? spec.name,
+      type: spec.ankiType,
+      tmpls: [{ name: 'Card 1', ord: 0, qfmt, afmt }],
+      flds: spec.flds,
+      css,
+    },
+    previewData: spec.previewData,
+    tags: spec.tags,
+    surface: 'conversion',
+  };
+}
+
+interface StyledJsonSpec {
+  id: string;
+  name: string;
+  description: string;
+  baseType: string;
+  ankiType: number;
+  jsonFile: string;
+  cssFile: string | null;
+  previewData: Record<string, string>;
+  tags: string[];
+}
+
+function styledFromJson(spec: StyledJsonSpec): Starter | null {
+  const text = safeRead(spec.jsonFile);
+  if (text == null) return null;
+  let raw: RawJsonTemplate;
+  try {
+    raw = JSON.parse(text) as RawJsonTemplate;
+  } catch {
+    return null;
+  }
+  const css = spec.cssFile == null ? '' : (safeRead(spec.cssFile) ?? '');
+  return {
+    id: spec.id,
+    name: spec.name,
+    description: spec.description,
+    baseType: spec.baseType,
+    noteType: {
+      id: nextNoteTypeId(),
+      name: spec.name,
+      type: spec.ankiType,
+      tmpls: [
+        {
+          name: raw.parent ?? 'Card 1',
+          ord: 0,
+          qfmt: raw.front,
+          afmt: raw.back,
+        },
+      ],
+      flds: raw.fields.map((f, i) => ({ name: f.name, ord: i })),
+      css,
+    },
+    previewData: spec.previewData,
+    tags: spec.tags,
+    surface: 'conversion',
+  };
+}
+
+const BASIC_PREVIEW = {
+  Front: 'What is the capital of France?',
+  Back: 'Paris',
+  MyMedia: '',
+};
+
+const CLOZE_PREVIEW = {
+  Text: 'The capital of {{c1::France}} is {{c2::Paris}}',
+  Extra: 'European geography',
+  MyMedia: '',
+};
+
+const ABHIYAN_BASIC_FLDS = [
+  { name: 'Front', ord: 0 },
+  { name: 'Back', ord: 1 },
+  { name: 'Image', ord: 2 },
+  { name: 'Tags', ord: 3 },
+];
+
+const ABHIYAN_CLOZE_FLDS = [
+  { name: 'Text', ord: 0 },
+  { name: 'Extra', ord: 1 },
+  { name: 'Image', ord: 2 },
+  { name: 'Tags', ord: 3 },
+];
+
+const ALEX_BASIC_FLDS = [
+  { name: 'Front', ord: 0 },
+  { name: 'Back', ord: 1 },
+];
+
+const ALEX_CLOZE_FLDS = [
+  { name: 'Text', ord: 0 },
+  { name: 'Extra', ord: 1 },
+];
+
+function buildConversionStarters(): Starter[] {
+  idOffset = 0;
+  const starters: Array<Starter | null> = [
+    jsonStarter({
+      file: 'n2a-basic.json',
+      id: 'official-n2a-basic',
+      name: 'Default (Basic)',
+      description:
+        'The classic 2anki look — Notion-styled basic note type, used by every standard conversion',
+      baseType: 'basic',
+      ankiType: 0,
+      previewData: BASIC_PREVIEW,
+      tags: ['default', 'basic', 'notion'],
+    }),
+    jsonStarter({
+      file: 'n2a-cloze.json',
+      id: 'official-n2a-cloze',
+      name: 'Default (Cloze)',
+      description:
+        'Cloze deletion that matches the standard 2anki conversion output',
+      baseType: 'cloze',
+      ankiType: 1,
+      previewData: CLOZE_PREVIEW,
+      tags: ['default', 'cloze', 'notion'],
+    }),
+    jsonStarter({
+      file: 'n2a-input.json',
+      id: 'official-n2a-input',
+      name: 'Default (Type the answer)',
+      description:
+        'Type-in-the-answer note type from the 2anki conversion pipeline',
+      baseType: 'basic',
+      ankiType: 0,
+      previewData: {
+        Front: 'Capital of France?',
+        Back: 'Paris',
+        Input: 'Paris',
+        MyMedia: '',
+      },
+      tags: ['default', 'input', 'type-the-answer'],
+    }),
+    jsonStarter({
+      file: 'n2a-io.json',
+      id: 'official-n2a-io',
+      name: 'Image Occlusion',
+      description:
+        "Anki's image-occlusion note type, kept in sync with the 2anki conversion target",
+      baseType: 'cloze',
+      ankiType: 1,
+      previewData: {
+        Header: 'Cell anatomy',
+        Image: '',
+        Occlusion: '{{c1::Nucleus}}',
+        'Back Extra': 'Mitochondria is the powerhouse of the cell.',
+        Comments: '',
+      },
+      tags: ['image-occlusion'],
+    }),
+    styledFromJson({
+      id: 'official-only-notion-basic',
+      name: 'Only Notion (Basic)',
+      description:
+        'Notion-flavoured CSS only — strips the 2anki additions for a minimal Notion-native look',
+      baseType: 'basic',
+      ankiType: 0,
+      jsonFile: 'n2a-basic.json',
+      cssFile: 'notion.css',
+      previewData: BASIC_PREVIEW,
+      tags: ['notionstyle', 'notion'],
+    }),
+    styledFromJson({
+      id: 'official-only-notion-cloze',
+      name: 'Only Notion (Cloze)',
+      description: 'Notion-only styling on the cloze base type',
+      baseType: 'cloze',
+      ankiType: 1,
+      jsonFile: 'n2a-cloze.json',
+      cssFile: 'notion.css',
+      previewData: CLOZE_PREVIEW,
+      tags: ['notionstyle', 'notion', 'cloze'],
+    }),
+    styledFromJson({
+      id: 'official-no-style-basic',
+      name: 'Raw Note (no style)',
+      description:
+        'The bare note structure with no CSS applied — handy if you want to style it yourself',
+      baseType: 'basic',
+      ankiType: 0,
+      jsonFile: 'n2a-basic.json',
+      cssFile: null,
+      previewData: BASIC_PREVIEW,
+      tags: ['nostyle'],
+    }),
+    variantStarter({
+      id: 'official-abhiyan-basic',
+      name: 'Abhiyan Bhandari (Night Mode)',
+      description:
+        'Dark, high-contrast Night Mode template by Abhiyan Bhandari',
+      baseType: 'basic',
+      ankiType: 0,
+      qfmtFile: 'abhiyan_basic_front.html',
+      afmtFile: 'abhiyan_basic_back.html',
+      cssFile: 'abhiyan.css',
+      flds: ABHIYAN_BASIC_FLDS,
+      previewData: {
+        Front: 'What is the capital of France?',
+        Back: 'Paris',
+        Image: '',
+        Tags: '',
+      },
+      tags: ['abhiyan', 'night-mode'],
+      modelName: 'Abhiyan Basic',
+    }),
+    variantStarter({
+      id: 'official-abhiyan-cloze',
+      name: 'Abhiyan Bhandari (Night Mode — Cloze)',
+      description: 'Night Mode applied to cloze deletions',
+      baseType: 'cloze',
+      ankiType: 1,
+      qfmtFile: 'abhiyan_cloze_front.html',
+      afmtFile: 'abhiyan_cloze_back.html',
+      cssFile: 'abhiyan_cloze_style.css',
+      flds: ABHIYAN_CLOZE_FLDS,
+      previewData: {
+        Text: 'The capital of {{c1::France}} is {{c2::Paris}}',
+        Extra: 'European geography',
+        Image: '',
+        Tags: '',
+      },
+      tags: ['abhiyan', 'night-mode', 'cloze'],
+      modelName: 'Abhiyan Cloze',
+    }),
+    variantStarter({
+      id: 'official-alex-deluxe-basic',
+      name: 'Alexander Deluxe (Blue)',
+      description: 'A blue, deluxe basic template by Alexander',
+      baseType: 'basic',
+      ankiType: 0,
+      qfmtFile: 'alex_deluxe_basic_front.html',
+      afmtFile: 'alex_deluxe_basic_back.html',
+      cssFile: 'alex_deluxe.css',
+      flds: ALEX_BASIC_FLDS,
+      previewData: { Front: 'What is the capital of France?', Back: 'Paris' },
+      tags: ['alex_deluxe', 'blue'],
+      modelName: 'Alex Deluxe Basic',
+    }),
+    variantStarter({
+      id: 'official-alex-deluxe-cloze',
+      name: 'Alexander Deluxe (Blue — Cloze)',
+      description: 'Cloze variant of the Alexander Deluxe template',
+      baseType: 'cloze',
+      ankiType: 1,
+      qfmtFile: 'alex_deluxe_cloze_front.html',
+      afmtFile: 'alex_deluxe_cloze_back.html',
+      cssFile: 'alex_deluxe_cloze_style.css',
+      flds: ALEX_CLOZE_FLDS,
+      previewData: {
+        Text: 'The capital of {{c1::France}} is {{c2::Paris}}',
+        Extra: 'European geography',
+      },
+      tags: ['alex_deluxe', 'blue', 'cloze'],
+      modelName: 'Alex Deluxe Cloze',
+    }),
+    variantStarter({
+      id: 'official-material-basic',
+      name: 'Material (Basic)',
+      description:
+        'Clean Material Design card — elevated surface, Roboto type, primary-blue answer accent. Light and dark ready',
+      baseType: 'basic',
+      ankiType: 0,
+      qfmtFile: 'material_basic_front.html',
+      afmtFile: 'material_basic_back.html',
+      cssFile: 'material.css',
+      flds: ABHIYAN_BASIC_FLDS,
+      previewData: {
+        Front: 'What is the capital of France?',
+        Back: 'Paris',
+        Image: '',
+        Tags: '',
+      },
+      tags: ['material', 'material-design'],
+      modelName: 'Material Basic',
+    }),
+    variantStarter({
+      id: 'official-material-cloze',
+      name: 'Material (Cloze)',
+      description:
+        'Material Design cloze deletion — blanks highlighted in primary blue, readable on light and dark backgrounds',
+      baseType: 'cloze',
+      ankiType: 1,
+      qfmtFile: 'material_cloze_front.html',
+      afmtFile: 'material_cloze_back.html',
+      cssFile: 'material_cloze_style.css',
+      flds: ABHIYAN_CLOZE_FLDS,
+      previewData: {
+        Text: 'The capital of {{c1::France}} is {{c2::Paris}}',
+        Extra: 'European geography',
+        Image: '',
+        Tags: '',
+      },
+      tags: ['material', 'material-design', 'cloze'],
+      modelName: 'Material Cloze',
+    }),
+  ];
+
+  return starters.filter((s): s is Starter => s !== null);
 }
 
 function field(
@@ -42,21 +455,21 @@ function field(
   ord: number,
   font = 'Inter',
   size = 20
-): AnkiField {
+): StarterField {
   return { name, ord, sticky: false, rtl: false, font, size };
 }
 
-interface NoteTypeInput {
+interface InlineNoteTypeInput {
   id: number;
   name: string;
   type?: number;
-  tmpls: AnkiCardType[];
-  flds: AnkiField[];
+  tmpls: StarterCardTemplate[];
+  flds: StarterField[];
   css: string;
   tags?: string[];
 }
 
-function noteType({
+function inlineNoteType({
   id,
   name,
   type = 0,
@@ -64,7 +477,7 @@ function noteType({
   flds,
   css,
   tags = [],
-}: NoteTypeInput): AnkiNoteType {
+}: InlineNoteTypeInput): StarterNoteType {
   return {
     id,
     name,
@@ -79,8 +492,8 @@ function noteType({
   };
 }
 
-function getBasicNoteType(): AnkiNoteType {
-  return noteType({
+function getBasicNoteType(): StarterNoteType {
+  return inlineNoteType({
     id: 1000000000000,
     name: 'Basic',
     tmpls: [
@@ -149,8 +562,8 @@ hr {
   });
 }
 
-function getClozeNoteType(): AnkiNoteType {
-  return noteType({
+function getClozeNoteType(): StarterNoteType {
+  return inlineNoteType({
     id: 1000000000001,
     name: 'Cloze',
     type: 1,
@@ -206,8 +619,8 @@ function getClozeNoteType(): AnkiNoteType {
   });
 }
 
-function getVocabNoteType(): AnkiNoteType {
-  return noteType({
+function getVocabNoteType(): StarterNoteType {
+  return inlineNoteType({
     id: 1000000000010,
     name: 'Vocabulary',
     tmpls: [
@@ -310,8 +723,8 @@ function getVocabNoteType(): AnkiNoteType {
   });
 }
 
-function getMedicalNoteType(): AnkiNoteType {
-  return noteType({
+function getMedicalNoteType(): StarterNoteType {
+  return inlineNoteType({
     id: 1000000000011,
     name: 'Medical Term',
     tmpls: [
@@ -411,8 +824,8 @@ function getMedicalNoteType(): AnkiNoteType {
   });
 }
 
-function getProgrammingNoteType(): AnkiNoteType {
-  return noteType({
+function getProgrammingNoteType(): StarterNoteType {
+  return inlineNoteType({
     id: 1000000000012,
     name: 'Code Card',
     tmpls: [
@@ -497,8 +910,8 @@ function getProgrammingNoteType(): AnkiNoteType {
   });
 }
 
-function getMinimalNoteType(): AnkiNoteType {
-  return noteType({
+function getMinimalNoteType(): StarterNoteType {
+  return inlineNoteType({
     id: 1000000000013,
     name: 'Minimal',
     tmpls: [
@@ -558,8 +971,8 @@ function getMinimalNoteType(): AnkiNoteType {
   });
 }
 
-function getQuoteNoteType(): AnkiNoteType {
-  return noteType({
+function getQuoteNoteType(): StarterNoteType {
+  return inlineNoteType({
     id: 1000000000014,
     name: 'Quote',
     tmpls: [
@@ -642,8 +1055,8 @@ function getQuoteNoteType(): AnkiNoteType {
   });
 }
 
-function getMathNoteType(): AnkiNoteType {
-  return noteType({
+function getMathNoteType(): StarterNoteType {
+  return inlineNoteType({
     id: 1000000000015,
     name: 'Math & Science',
     tmpls: [
@@ -773,8 +1186,8 @@ mjx-container {
   });
 }
 
-function getBasicReversedNoteType(): AnkiNoteType {
-  return noteType({
+function getBasicReversedNoteType(): StarterNoteType {
+  return inlineNoteType({
     id: 1000000000016,
     name: 'Basic (Reversed)',
     tmpls: [
@@ -843,8 +1256,8 @@ hr {
   });
 }
 
-function getInputNoteType(): AnkiNoteType {
-  return noteType({
+function getInputNoteType(): StarterNoteType {
+  return inlineNoteType({
     id: 1000000000017,
     name: 'Type the answer',
     tmpls: [
@@ -902,8 +1315,8 @@ input[type="text"] {
 
 const HIERARCHY_BREADCRUMB = `<div class="breadcrumb">{{#H1}}<span class="crumb">{{H1}}</span>{{/H1}}{{#H2}}<span class="crumb-sep">›</span><span class="crumb">{{H2}}</span>{{/H2}}{{#H3}}<span class="crumb-sep">›</span><span class="crumb">{{H3}}</span>{{/H3}}</div>`;
 
-function getHierarchyNoteType(): AnkiNoteType {
-  return noteType({
+function getHierarchyNoteType(): StarterNoteType {
+  return inlineNoteType({
     id: 1000000000018,
     name: 'Hierarchy',
     tmpls: [
@@ -991,7 +1404,7 @@ hr {
   });
 }
 
-export function getDefaultTemplates(): DefaultTemplate[] {
+function buildEditorStarters(): Starter[] {
   return [
     {
       id: 'basic-clean',
@@ -1001,6 +1414,7 @@ export function getDefaultTemplates(): DefaultTemplate[] {
       noteType: getBasicNoteType(),
       previewData: { Front: 'What is the capital of France?', Back: 'Paris' },
       tags: ['basic', 'minimal'],
+      surface: 'editor',
     },
     {
       id: 'cloze-modern',
@@ -1013,6 +1427,7 @@ export function getDefaultTemplates(): DefaultTemplate[] {
         Extra: 'France is located in Western Europe.',
       },
       tags: ['cloze', 'geography'],
+      surface: 'editor',
     },
     {
       id: 'vocab-language',
@@ -1029,6 +1444,7 @@ export function getDefaultTemplates(): DefaultTemplate[] {
         ExampleTranslation: 'I study Japanese every day.',
       },
       tags: ['language', 'vocabulary', 'japanese'],
+      surface: 'editor',
     },
     {
       id: 'medical-term',
@@ -1044,6 +1460,7 @@ export function getDefaultTemplates(): DefaultTemplate[] {
         Image: '',
       },
       tags: ['medical', 'anatomy'],
+      surface: 'editor',
     },
     {
       id: 'programming-snippet',
@@ -1059,6 +1476,7 @@ export function getDefaultTemplates(): DefaultTemplate[] {
           'Slice notation [start:stop:step] with step -1 iterates backwards.',
       },
       tags: ['programming', 'python', 'code'],
+      surface: 'editor',
     },
     {
       id: 'minimal-white',
@@ -1071,6 +1489,7 @@ export function getDefaultTemplates(): DefaultTemplate[] {
         Back: 'The mitochondria',
       },
       tags: ['minimal', 'clean'],
+      surface: 'editor',
     },
     {
       id: 'quote-card',
@@ -1084,6 +1503,7 @@ export function getDefaultTemplates(): DefaultTemplate[] {
         Context: 'Stanford Commencement Address, 2005',
       },
       tags: ['quotes', 'inspiration'],
+      surface: 'editor',
     },
     {
       id: 'math-science',
@@ -1101,6 +1521,7 @@ export function getDefaultTemplates(): DefaultTemplate[] {
           'Gaussian integral — probability, thermodynamics, quantum mechanics',
       },
       tags: ['math', 'science', 'equations'],
+      surface: 'editor',
     },
     {
       id: 'basic-reversed',
@@ -1111,6 +1532,7 @@ export function getDefaultTemplates(): DefaultTemplate[] {
       noteType: getBasicReversedNoteType(),
       previewData: { Front: '勉強', Back: 'study; to study' },
       tags: ['basic', 'reversed', 'language'],
+      surface: 'editor',
     },
     {
       id: 'input-type-the-answer',
@@ -1121,6 +1543,7 @@ export function getDefaultTemplates(): DefaultTemplate[] {
       noteType: getInputNoteType(),
       previewData: { Front: 'Capital of France?', Back: 'Paris' },
       tags: ['basic', 'input', 'type-the-answer'],
+      surface: 'editor',
     },
     {
       id: 'hierarchy',
@@ -1137,8 +1560,21 @@ export function getDefaultTemplates(): DefaultTemplate[] {
         Answer: 'Chromosomes condense and the mitotic spindle begins to form',
       },
       tags: ['basic', 'hierarchy', 'structure'],
+      surface: 'editor',
     },
   ];
+}
+
+export function getStarters(): Starter[] {
+  return [...buildConversionStarters(), ...buildEditorStarters()];
+}
+
+export function listConversionStarters(): Starter[] {
+  return getStarters().filter((s) => s.surface !== 'editor');
+}
+
+export function listEditorStarters(): Starter[] {
+  return getStarters().filter((s) => s.surface !== 'conversion');
 }
 
 export {
@@ -1154,4 +1590,3 @@ export {
   getInputNoteType,
   getHierarchyNoteType,
 };
-export type { DefaultTemplate, AnkiNoteType, AnkiField, AnkiCardType };
