@@ -15,11 +15,7 @@ import { convertAnkiAppDecksFromZip } from './convertAnkiAppDecksFromZip';
 import { getRelevantFiles } from './getRelevantFiles';
 import { enableMarkdownForMarkdownUploads } from './enableMarkdownForMarkdownUploads';
 import CardGenerator from '../../lib/anki/CardGenerator';
-
-const resolveBuildConcurrency = (): number => {
-  const raw = Number.parseInt(process.env.UPLOAD_BUILD_CONCURRENCY ?? '', 10);
-  return Number.isFinite(raw) && raw >= 1 ? raw : 4;
-};
+import { resolvePerWorkerPythonCap } from '../../lib/pythonWorkerBudget';
 
 function chunkArray<T>(arr: T[], size: number): T[][] {
   const chunks: T[][] = [];
@@ -252,7 +248,7 @@ export const getPackagesFromZip = async (
     );
   }
 
-  const cap = resolveBuildConcurrency();
+  const cap = resolvePerWorkerPythonCap();
   const batchSize = Math.ceil(supportedFileNames.length / cap);
 
   if (supportedFileNames.length <= 1 || batchSize <= 1) {

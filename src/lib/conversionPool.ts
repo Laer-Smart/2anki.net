@@ -15,6 +15,9 @@ import BlocksCacheRepository from '../data_layer/BlocksCacheRepository';
 import JobRepository from '../data_layer/JobRepository';
 import { SetJobFailedUseCase } from '../usecases/jobs/SetJobFailedUseCase';
 import { NOTION_TOKEN_EXPIRED_REASON } from '../usecases/jobs/jobFailureReason';
+import { resolveConversionWorkers } from './pythonWorkerBudget';
+
+export { resolveConversionWorkers } from './pythonWorkerBudget';
 
 export interface ConversionWorkerRequest {
   id: string;
@@ -34,16 +37,6 @@ export const POOL_CLOSE_TIMEOUT_MS = 80_000;
 
 export function resetConversionPoolForTesting(): void {
   pool = null;
-}
-
-// CONVERSION_WORKERS caps concurrent Notion conversions (one per pool thread).
-// It composes with UPLOAD_BUILD_CONCURRENCY (per-conversion Python spawn cap)
-// — worst-case Python concurrency is the product. Defaults keep that at 16,
-// matching today's behavior; rationalizing the two into one budget is a
-// separate follow-up.
-export function resolveConversionWorkers(): number {
-  const raw = Number.parseInt(process.env.CONVERSION_WORKERS ?? '', 10);
-  return Number.isFinite(raw) && raw >= 1 ? raw : 4;
 }
 
 function workerEntry(): { filename: string; execArgv: string[] } {
