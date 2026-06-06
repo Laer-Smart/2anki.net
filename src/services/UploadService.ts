@@ -80,6 +80,22 @@ interface BatchUploadResponse {
   deckCount: number;
   decks: BatchDeckResult[];
   bulkUrl: string;
+  warning?: string;
+}
+
+const MARKDOWN_HEURISTIC_WARNING =
+  'Your Markdown file was processed using heuristic detection. For reliable results, use the nested bullet format or enable Claude AI in settings.';
+
+function resolveUploadWarning(warnings: string[] | undefined): string | null {
+  if (!warnings || warnings.length === 0) return null;
+  const passwordWarning = warnings.find((w) =>
+    w.includes('password-protected')
+  );
+  if (passwordWarning) return passwordWarning;
+  if (warnings.includes('markdown-heuristic')) {
+    return MARKDOWN_HEURISTIC_WARNING;
+  }
+  return null;
 }
 
 function hasSessionToken(req: express.Request): boolean {
@@ -572,11 +588,9 @@ class UploadService {
         'X-MCQ-Count',
         'X-MCQ-Skipped-Count',
       ];
-      if (warnings?.includes('markdown-heuristic')) {
-        res.set(
-          'X-Warning',
-          'Your Markdown file was processed using heuristic detection. For reliable results, use the nested bullet format or enable Claude AI in settings.'
-        );
+      const warningText = resolveUploadWarning(warnings);
+      if (warningText) {
+        res.set('X-Warning', warningText);
         exposedHeaders.push('X-Warning');
       }
       res.set('Access-Control-Expose-Headers', exposedHeaders.join(', '));
@@ -611,7 +625,11 @@ class UploadService {
       if (owner != null) {
         await this.usersRepository.incrementCardUsage(owner, totalCards);
       }
-      return res.status(200).json(await this.buildBatchResponse(ws));
+      return res
+        .status(200)
+        .json(
+          await this.buildBatchResponse(ws, resolveUploadWarning(warnings))
+        );
     } else {
       logNoPackageDiagnostics(req.files as UploadedFile[]);
       track('conversion_failed', {
@@ -624,7 +642,8 @@ class UploadService {
   }
 
   private async buildBatchResponse(
-    ws: Workspace
+    ws: Workspace,
+    warning: string | null = null
   ): Promise<BatchUploadResponse> {
     const apkgFilenames = (await fs.promises.readdir(ws.location)).filter(
       (filename) => filename.endsWith('.apkg')
@@ -640,6 +659,7 @@ class UploadService {
       deckCount: decks.length,
       decks,
       bulkUrl: `/download/${ws.id}/bulk`,
+      ...(warning ? { warning } : {}),
     };
   }
 

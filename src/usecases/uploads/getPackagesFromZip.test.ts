@@ -356,3 +356,160 @@ describe('getPackagesFromZip — batch concurrency', () => {
     expect(result.packages).toEqual([]);
   });
 });
+
+describe('getPackagesFromZip — encrypted PDFs', () => {
+  const PASSWORD_SENTINEL_PREFIX = 'PDF_NEEDS_PASSWORD\x00';
+
+  const previousMaxPython = process.env.MAX_PYTHON_WORKERS;
+  const previousConversionWorkers = process.env.CONVERSION_WORKERS;
+
+  afterEach(() => {
+    if (previousMaxPython === undefined) {
+      delete process.env.MAX_PYTHON_WORKERS;
+    } else {
+      process.env.MAX_PYTHON_WORKERS = previousMaxPython;
+    }
+    if (previousConversionWorkers === undefined) {
+      delete process.env.CONVERSION_WORKERS;
+    } else {
+      process.env.CONVERSION_WORKERS = previousConversionWorkers;
+    }
+  });
+
+  it('skips every locked PDF and still converts the rest, warning once per locked file', async () => {
+    process.env.MAX_PYTHON_WORKERS = '8';
+    process.env.CONVERSION_WORKERS = '1';
+
+    const fileNames = ['Ch1.pdf', 'notes.html', 'Ch2.pdf'];
+
+    mockZipHandlerClass.mockImplementation(() => ({
+      build: jest.fn().mockResolvedValue(undefined),
+      getFileNames: jest.fn().mockReturnValue(fileNames),
+      files: fileNames.map((name) => ({ name, contents: Buffer.from(name) })),
+    }));
+
+    mockPrepareDeck.mockImplementation(({ name }: { name: string }) => {
+      if (name.endsWith('.pdf')) {
+        return Promise.reject(new Error(`${PASSWORD_SENTINEL_PREFIX}${name}`));
+      }
+      return Promise.resolve({
+        name,
+        apkg: Buffer.from(''),
+        deck: [],
+        cardCount: 4,
+        mcqCount: 0,
+        mcqSkippedCount: 0,
+      });
+    });
+
+    const settings = new CardOption({});
+    const workspace = { location: FAKE_WORKSPACE_LOCATION } as Workspace;
+
+    const result = await getPackagesFromZip(
+      Buffer.from('fake-zip') as unknown as Uint8Array,
+      false,
+      settings,
+      workspace
+    );
+
+    expect(result.packages).toHaveLength(1);
+    expect(result.packages[0].name).toBe('notes.html');
+    expect(result.warnings).toEqual([
+      '2 password-protected PDFs were skipped: Ch1.pdf, Ch2.pdf. Unlock each in Preview or Adobe Reader, save a copy, and upload them on their own.',
+    ]);
+  });
+
+  it('skips locked PDFs in the batch path without aborting the whole job', async () => {
+    process.env.MAX_PYTHON_WORKERS = '2';
+    process.env.CONVERSION_WORKERS = '1';
+
+    const fileNames = ['Ch1.pdf', 'Ch2.pdf', 'Ch3.pdf', 'good.html'];
+
+    mockZipHandlerClass.mockImplementation(() => ({
+      build: jest.fn().mockResolvedValue(undefined),
+      getFileNames: jest.fn().mockReturnValue(fileNames),
+      files: fileNames.map((name) => ({ name, contents: Buffer.from(name) })),
+    }));
+
+    mockPrepareDeckInfoOnly.mockImplementation(({ name }: { name: string }) => {
+      if (name.endsWith('.pdf')) {
+        return Promise.reject(new Error(`${PASSWORD_SENTINEL_PREFIX}${name}`));
+      }
+      return Promise.resolve({
+        deckInfoPath: `/fake/${name}/deck_info.json`,
+        outputPath: `/fake/${name}/out.apkg`,
+        name,
+        inputFileName: name,
+        deck: [],
+        cardCount: 2,
+        mcqCount: 0,
+        mcqSkippedCount: 0,
+        needsIndividualBuild: false,
+      });
+    });
+
+    mockCardGeneratorClass.mockImplementation(() => ({
+      runBatch: jest
+        .fn()
+        .mockImplementation((entries: Array<{ output: string }>) =>
+          Promise.resolve(entries.map((e) => e.output))
+        ),
+    }));
+
+    jest
+      .spyOn(require('node:fs'), 'readFileSync')
+      .mockReturnValue(Buffer.from('fake-apkg'));
+
+    const settings = new CardOption({});
+    const workspace = { location: FAKE_WORKSPACE_LOCATION } as Workspace;
+
+    const result = await getPackagesFromZip(
+      Buffer.from('fake-zip') as unknown as Uint8Array,
+      false,
+      settings,
+      workspace
+    );
+
+    expect(result.packages.map((p) => p.name)).toEqual(['good.html']);
+    expect(result.warnings).toContain(
+      '3 password-protected PDFs were skipped: Ch1.pdf, Ch2.pdf, Ch3.pdf. Unlock each in Preview or Adobe Reader, save a copy, and upload them on their own.'
+    );
+  });
+
+  it('still rejects on a non-password error from a zip entry', async () => {
+    process.env.MAX_PYTHON_WORKERS = '8';
+    process.env.CONVERSION_WORKERS = '1';
+
+    const fileNames = ['notes.html', 'broken.pdf'];
+
+    mockZipHandlerClass.mockImplementation(() => ({
+      build: jest.fn().mockResolvedValue(undefined),
+      getFileNames: jest.fn().mockReturnValue(fileNames),
+      files: fileNames.map((name) => ({ name, contents: Buffer.from(name) })),
+    }));
+
+    mockPrepareDeck.mockImplementation(({ name }: { name: string }) => {
+      if (name === 'broken.pdf') {
+        return Promise.reject(new Error('pdfinfo_failed: corrupt stream'));
+      }
+      return Promise.resolve({
+        name,
+        apkg: Buffer.from(''),
+        deck: [],
+        cardCount: 1,
+      });
+    });
+
+    const settings = new CardOption({});
+    const workspace = { location: FAKE_WORKSPACE_LOCATION } as Workspace;
+
+    await expect(
+      getPackagesFromZip(
+        Buffer.from('fake-zip') as unknown as Uint8Array,
+        false,
+        settings,
+        workspace
+      )
+    ).rejects.toThrow('pdfinfo_failed');
+  });
+});

@@ -4,6 +4,7 @@ import { ZipHandler } from '../../lib/zip/zip';
 import {
   PrepareDeck,
   prepareDeckInfoOnly,
+  DeckInfoOnlyResult,
 } from '../../infrastracture/adapters/fileConversion/PrepareDeck';
 import Package from '../../lib/parser/Package';
 import { PackageResult } from './GeneratePackagesUseCase';
@@ -16,6 +17,43 @@ import { getRelevantFiles } from './getRelevantFiles';
 import { enableMarkdownForMarkdownUploads } from './enableMarkdownForMarkdownUploads';
 import CardGenerator from '../../lib/anki/CardGenerator';
 import { resolvePerWorkerPythonCap } from '../../lib/pythonWorkerBudget';
+import {
+  isPdfPasswordSentinel,
+  parsePdfPasswordSentinel,
+} from '../../lib/pdf/pdfPasswordSentinel';
+import { buildLockedPdfWarning } from '../../lib/pdf/lockedPdfWarning';
+
+const LOCKED_PDF = Symbol('locked-pdf');
+
+interface LockedPdfEntry {
+  marker: typeof LOCKED_PDF;
+  filename: string;
+}
+
+function isLockedPdfEntry(value: unknown): value is LockedPdfEntry {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    (value as LockedPdfEntry).marker === LOCKED_PDF
+  );
+}
+
+async function convertSkippingLockedPdf<T>(
+  fileName: string,
+  convert: () => Promise<T>
+): Promise<T | LockedPdfEntry> {
+  try {
+    return await convert();
+  } catch (error) {
+    if (error instanceof Error && isPdfPasswordSentinel(error.message)) {
+      return {
+        marker: LOCKED_PDF,
+        filename: parsePdfPasswordSentinel(error.message) ?? fileName,
+      };
+    }
+    throw error;
+  }
+}
 
 function chunkArray<T>(arr: T[], size: number): T[][] {
   const chunks: T[][] = [];
@@ -31,27 +69,39 @@ async function buildDeckBatch(
   settings: CardOption,
   paying: boolean,
   workspace: Workspace
-): Promise<{ packages: Package[]; warnings: string[] }> {
+): Promise<{ packages: Package[]; warnings: string[]; lockedPdfs: string[] }> {
   const packages: Package[] = [];
   const warnings: string[] = [];
 
-  const preparedResults = await Promise.all(
+  const outcomes = await Promise.all(
     fileNames.map((fileName) => {
       const relevantFiles = getRelevantFiles(fileName, zipHandler.files);
       const deckSubWorkspace = Workspace.subdir(workspace.location);
-      return prepareDeckInfoOnly(
-        {
-          name: fileName,
-          files: relevantFiles,
-          settings,
-          noLimits: paying,
-          workspace: deckSubWorkspace,
-        },
-        deckSubWorkspace,
-        workspace
+      return convertSkippingLockedPdf(fileName, () =>
+        prepareDeckInfoOnly(
+          {
+            name: fileName,
+            files: relevantFiles,
+            settings,
+            noLimits: paying,
+            workspace: deckSubWorkspace,
+          },
+          deckSubWorkspace,
+          workspace
+        )
       );
     })
   );
+
+  const lockedPdfs: string[] = [];
+  const preparedResults: DeckInfoOnlyResult[] = [];
+  for (const outcome of outcomes) {
+    if (isLockedPdfEntry(outcome)) {
+      lockedPdfs.push(outcome.filename);
+    } else {
+      preparedResults.push(outcome);
+    }
+  }
 
   const batchEntries = preparedResults
     .filter((r) => !r.needsIndividualBuild)
@@ -87,8 +137,9 @@ async function buildDeckBatch(
   );
   packages.push(...stragglerOutcomes.packages);
   warnings.push(...stragglerOutcomes.warnings);
+  lockedPdfs.push(...stragglerOutcomes.lockedPdfs);
 
-  return { packages, warnings };
+  return { packages, warnings, lockedPdfs };
 }
 
 async function buildStragglerDecks(
@@ -97,36 +148,43 @@ async function buildStragglerDecks(
   settings: CardOption,
   paying: boolean,
   workspace: Workspace
-): Promise<{ packages: Package[]; warnings: string[] }> {
+): Promise<{ packages: Package[]; warnings: string[]; lockedPdfs: string[] }> {
   const packages: Package[] = [];
   const warnings: string[] = [];
+  const lockedPdfs: string[] = [];
 
   for (const straggler of stragglers) {
     const relevantFiles = getRelevantFiles(
       straggler.inputFileName,
       zipHandler.files
     );
-    const deck = await PrepareDeck({
-      name: straggler.inputFileName,
-      files: relevantFiles,
-      settings,
-      noLimits: paying,
-      workspace,
-    });
-    if (deck) {
+    const outcome = await convertSkippingLockedPdf(
+      straggler.inputFileName,
+      () =>
+        PrepareDeck({
+          name: straggler.inputFileName,
+          files: relevantFiles,
+          settings,
+          noLimits: paying,
+          workspace,
+        })
+    );
+    if (isLockedPdfEntry(outcome)) {
+      lockedPdfs.push(outcome.filename);
+    } else if (outcome) {
       packages.push(
         new Package(
-          deck.name,
-          deck.cardCount ?? 0,
-          deck.mcqCount ?? 0,
-          deck.mcqSkippedCount ?? 0
+          outcome.name,
+          outcome.cardCount ?? 0,
+          outcome.mcqCount ?? 0,
+          outcome.mcqSkippedCount ?? 0
         )
       );
-      if (deck.warning) warnings.push(deck.warning);
+      if (outcome.warning) warnings.push(outcome.warning);
     }
   }
 
-  return { packages, warnings };
+  return { packages, warnings, lockedPdfs };
 }
 
 async function buildClaudeFlashcardDeck(
@@ -173,37 +231,48 @@ async function buildAllInOneSlot(
   cap: number
 ): Promise<PackageResult> {
   const limit = pLimit(cap);
-  const results = await Promise.all(
+  const outcomes = await Promise.all(
     supportedFileNames.map((fileName) =>
       limit(() => {
         const relevantFiles = getRelevantFiles(fileName, zipHandler.files);
-        return PrepareDeck({
-          name: fileName,
-          files: relevantFiles,
-          settings,
-          noLimits: paying,
-          workspace,
-        });
+        return convertSkippingLockedPdf(fileName, () =>
+          PrepareDeck({
+            name: fileName,
+            files: relevantFiles,
+            settings,
+            noLimits: paying,
+            workspace,
+          })
+        );
       })
     )
   );
 
   const packages: Package[] = [];
   const warnings: string[] = [];
-  for (const deck of results) {
-    if (deck) {
+  const lockedPdfs: string[] = [];
+  for (const outcome of outcomes) {
+    if (isLockedPdfEntry(outcome)) {
+      lockedPdfs.push(outcome.filename);
+    } else if (outcome) {
       packages.push(
         new Package(
-          deck.name,
-          deck.cardCount ?? 0,
-          deck.mcqCount ?? 0,
-          deck.mcqSkippedCount ?? 0
+          outcome.name,
+          outcome.cardCount ?? 0,
+          outcome.mcqCount ?? 0,
+          outcome.mcqSkippedCount ?? 0
         )
       );
-      if (deck.warning) warnings.push(deck.warning);
+      if (outcome.warning) warnings.push(outcome.warning);
     }
   }
+  appendLockedPdfWarning(warnings, lockedPdfs);
   return { packages, warnings };
+}
+
+function appendLockedPdfWarning(warnings: string[], lockedPdfs: string[]) {
+  const lockedWarning = buildLockedPdfWarning(lockedPdfs);
+  if (lockedWarning) warnings.push(lockedWarning);
 }
 
 export const getPackagesFromZip = async (
@@ -275,10 +344,13 @@ export const getPackagesFromZip = async (
 
   const packages: Package[] = [];
   const warnings: string[] = [];
+  const lockedPdfs: string[] = [];
   for (const result of batchResults) {
     packages.push(...result.packages);
     if (result.warnings) warnings.push(...result.warnings);
+    lockedPdfs.push(...result.lockedPdfs);
   }
+  appendLockedPdfWarning(warnings, lockedPdfs);
 
   return { packages, warnings };
 };
