@@ -1,7 +1,7 @@
 import { PlanSource } from '../../routes/middleware/configureUserLocal';
 import { PassKind } from '../../data_layer/UserPassRepository';
 
-export type EntitlementPassKind = PassKind | 'unlimited' | null;
+export type EntitlementPassKind = PassKind | null;
 
 export interface Entitlement {
   passKind: EntitlementPassKind;

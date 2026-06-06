@@ -1,17 +1,32 @@
 import { mapEntitlement } from './mapEntitlement';
 
 describe('mapEntitlement', () => {
-  it('maps an explicit Day Pass from locals', () => {
+  it('passes through an explicit Day Pass with the planSource set in locals', () => {
     expect(
       mapEntitlement({
         subscriber: true,
         passKind: '24h',
         passExpiresAt: '2026-06-07T00:00:00.000Z',
-        planSource: 'apple',
+        planSource: null,
       })
     ).toEqual({
       passKind: '24h',
       passExpiresAt: '2026-06-07T00:00:00.000Z',
+      planSource: null,
+    });
+  });
+
+  it('maps an unlimited Apple pass to planSource apple', () => {
+    expect(
+      mapEntitlement({
+        subscriber: true,
+        passKind: 'unlimited',
+        passExpiresAt: '2026-07-01T00:00:00.000Z',
+        planSource: 'apple',
+      })
+    ).toEqual({
+      passKind: 'unlimited',
+      passExpiresAt: '2026-07-01T00:00:00.000Z',
       planSource: 'apple',
     });
   });
