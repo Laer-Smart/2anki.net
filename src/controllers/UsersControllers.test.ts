@@ -2383,7 +2383,7 @@ describe('UsersController.getLocals', () => {
     expect(payload.user.chat_consent_at).toBeNull();
   });
 
-  it('maps a Day Pass holder to a typed entitlement with passKind 24h and a future expiry', async () => {
+  it('maps a Day Pass holder to passKind 24h with a future expiry and null planSource', async () => {
     const mockUser = {
       id: 5,
       email: 'pass@example.com',
@@ -2410,7 +2410,7 @@ describe('UsersController.getLocals', () => {
         subscriber: true,
         passKind: '24h',
         passExpiresAt: '2026-06-07T00:00:00.000Z',
-        planSource: 'apple',
+        planSource: null,
       },
       json: jest.fn(),
     } as unknown as express.Response & { json: jest.Mock };
@@ -2421,7 +2421,7 @@ describe('UsersController.getLocals', () => {
     expect(payload.entitlement).toEqual({
       passKind: '24h',
       passExpiresAt: '2026-06-07T00:00:00.000Z',
-      planSource: 'apple',
+      planSource: null,
     });
   });
 
@@ -2492,7 +2492,7 @@ describe('UsersController.getLocals', () => {
         subscriber: true,
         passKind: '7d',
         passExpiresAt: '2026-06-12T00:00:00.000Z',
-        planSource: 'apple',
+        planSource: null,
       },
       json: jest.fn(),
     } as unknown as express.Response & { json: jest.Mock };
@@ -2503,7 +2503,7 @@ describe('UsersController.getLocals', () => {
     expect(payload.entitlement).toEqual({
       passKind: '7d',
       passExpiresAt: '2026-06-12T00:00:00.000Z',
-      planSource: 'apple',
+      planSource: null,
     });
   });
 
