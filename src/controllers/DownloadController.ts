@@ -79,9 +79,14 @@ class DownloadController {
         res.setHeader('Content-Type', 'application/octet-stream');
         res.setHeader('Content-Disposition', buildContentDisposition(filename));
         res.send(body);
-      } else {
-        throw new Error(`File not found: ${key}`);
+        return;
       }
+      console.info('Download link expired', { owner });
+      res
+        .status(404)
+        .send(
+          "Download link expire, try converting again <a href='/upload'>upload</a>"
+        );
     } catch (error) {
       if (this.service.isMissingDownloadError(error)) {
         this.service.deleteMissingFile(owner, key);

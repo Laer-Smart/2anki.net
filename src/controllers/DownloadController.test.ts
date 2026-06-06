@@ -459,4 +459,53 @@ describe('DownloadController.getFile storage error handling', () => {
       .join('');
     expect(sent).not.toContain('weird internal detail');
   });
+
+  it('still logs an error for a genuinely unexpected failure', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const error = new Error('weird internal detail user must not see');
+    const service = makeServiceThatThrows(error);
+    const controller = new DownloadController(service as never);
+    const req = { params: { key: 'deck.apkg' } } as unknown as Request;
+    const res = mockResponse();
+
+    await controller.getFile(req, res, {} as never);
+
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+});
+
+describe('DownloadController.getFile expired link logging', () => {
+  it('returns the 404 expire page when the file is absent', async () => {
+    const service = makeService({
+      getFileBody: jest.fn().mockResolvedValue(null),
+      isTransientStorageError: () => false,
+    });
+    const controller = new DownloadController(service as never);
+    const req = { params: { key: 'expired-deck.apkg' } } as unknown as Request;
+    const res = mockResponse();
+
+    await controller.getFile(req, res, {} as never);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.send).toHaveBeenCalledWith(
+      "Download link expire, try converting again <a href='/upload'>upload</a>"
+    );
+  });
+
+  it('does not log an error for an absent file (expected expired link)', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const service = makeService({
+      getFileBody: jest.fn().mockResolvedValue(null),
+      isTransientStorageError: () => false,
+    });
+    const controller = new DownloadController(service as never);
+    const req = { params: { key: 'expired-deck.apkg' } } as unknown as Request;
+    const res = mockResponse();
+
+    await controller.getFile(req, res, {} as never);
+
+    expect(errorSpy).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
 });
