@@ -1,0 +1,1158 @@
+{
+  "official": [
+    {
+      "id": "official-n2a-basic",
+      "name": "Default (Basic)",
+      "description": "The classic 2anki look — Notion-styled basic note type, used by every standard conversion",
+      "baseType": "basic",
+      "noteType": {
+        "name": "n2a-basic",
+        "type": 0,
+        "tmpls": [
+          {
+            "name": "Basic",
+            "ord": 0,
+            "qfmt": "<span class=\"front-text-pre\">{{Front}}</span>",
+            "afmt": "<span class=\"front-text-post\">{{Front}}</span><hr id=\"answer\"><span class=\"back-text\">{{Back}}</span>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Front",
+            "ord": 0
+          },
+          {
+            "name": "Back",
+            "ord": 1
+          },
+          {
+            "name": "MyMedia",
+            "ord": 2
+          }
+        ],
+        "css": "\r\n/* webkit printing magic: print all background colors */\r\nhtml {\r\n\t-webkit-print-color-adjust: exact;\r\n}\r\n* {\r\n\tbox-sizing: border-box;\r\n\t-webkit-print-color-adjust: exact;\r\n}\r\n\r\nhtml,\r\nbody {\r\n\tmargin: 0;\r\n\tpadding: 0;\r\n}\r\n@media only screen {\r\n\tbody {\r\n\t\tmargin: 2em auto;\r\n\t\tmax-width: 900px;\r\n\t\tcolor: rgb(55, 53, 47);\r\n\t}\r\n}\r\n\r\nbody {\r\n\tline-height: 1.5;\r\n\t\r\n}\r\n\r\na,\r\na.visited {\r\n\tcolor: inherit;\r\n\ttext-decoration: underline;\r\n}\r\n\r\n.pdf-relative-link-path {\r\n\tfont-size: 80%;\r\n\tcolor: #444;\r\n}\r\n\r\nh1,\r\nh2,\r\nh3 {\r\n\tletter-spacing: -0.01em;\r\n\tline-height: 1.2;\r\n\tfont-weight: 600;\r\n\tmargin-bottom: 0;\r\n}\r\n\r\n.page-title {\r\n\tfont-size: 2.5rem;\r\n\tfont-weight: 700;\r\n\tmargin-top: 0;\r\n\tmargin-bottom: 0.75em;\r\n}\r\n\r\nh1 {\r\n\tfont-size: 1.875rem;\r\n\tmargin-top: 1.875rem;\r\n}\r\n\r\nh2 {\r\n\tfont-size: 1.5rem;\r\n\tmargin-top: 1.5rem;\r\n}\r\n\r\nh3 {\r\n\tfont-size: 1.25rem;\r\n\tmargin-top: 1.25rem;\r\n}\r\n\r\n.source {\r\n\tborder: 1px solid #ddd;\r\n\tborder-radius: 3px;\r\n\tpadding: 1.5em;\r\n\tword-break: break-all;\r\n}\r\n\r\n.callout {\r\n\tborder-radius: 3px;\r\n\tpadding: 1rem;\r\n}\r\n\r\nfigure {\r\n\tmargin: 1.25em 0;\r\n\tpage-break-inside: avoid;\r\n}\r\n\r\nfigcaption {\r\n\topacity: 0.5;\r\n\tfont-size: 85%;\r\n\tmargin-top: 0.5em;\r\n}\r\n\r\nmark {\r\n\tbackground-color: transparent;\r\n}\r\n\r\n.indented {\r\n\tpadding-left: 1.5em;\r\n}\r\n\r\nhr {\r\n\tbackground: transparent;\r\n\tdisplay: block;\r\n\twidth: 100%;\r\n\theight: 1px;\r\n\tvisibility: visible;\r\n\tborder: none;\r\n\tborder-bottom: 1px solid rgba(55, 53, 47, 0.09);\r\n}\r\n\r\nimg {\r\n\tmax-width: 100%;\r\n}\r\n\r\n@media only print {\r\n\timg {\r\n\t\tmax-height: 100vh;\r\n\t\tobject-fit: contain;\r\n\t}\r\n}\r\n\r\n@page {\r\n\tmargin: 1in;\r\n}\r\n\r\n.collection-content {\r\n\tfont-size: 0.875rem;\r\n}\r\n\r\n.column-list {\r\n\tdisplay: flex;\r\n\tjustify-content: space-between;\r\n}\r\n\r\n.column {\r\n\tpadding: 0 1em;\r\n}\r\n\r\n.column:first-child {\r\n\tpadding-left: 0;\r\n}\r\n\r\n.column:last-child {\r\n\tpadding-right: 0;\r\n}\r\n\r\n.table_of_contents-item {\r\n\tdisplay: block;\r\n\tfont-size: 0.875rem;\r\n\tline-height: 1.3;\r\n\tpadding: 0.125rem;\r\n}\r\n\r\n.table_of_contents-indent-1 {\r\n\tmargin-left: 1.5rem;\r\n}\r\n\r\n.table_of_contents-indent-2 {\r\n\tmargin-left: 3rem;\r\n}\r\n\r\n.table_of_contents-indent-3 {\r\n\tmargin-left: 4.5rem;\r\n}\r\n\r\n.table_of_contents-link {\r\n\ttext-decoration: none;\r\n\topacity: 0.7;\r\n\tborder-bottom: 1px solid rgba(55, 53, 47, 0.18);\r\n}\r\n\r\ntable,\r\nth,\r\ntd {\r\n\tborder: 1px solid rgba(55, 53, 47, 0.09);\r\n\tborder-collapse: collapse;\r\n}\r\n\r\ntable {\r\n\tborder-left: none;\r\n\tborder-right: none;\r\n}\r\n\r\nth,\r\ntd {\r\n\tfont-weight: normal;\r\n\tpadding: 0.25em 0.5em;\r\n\tline-height: 1.5;\r\n\tmin-height: 1.5em;\r\n\ttext-align: left;\r\n}\r\n\r\nth {\r\n\tcolor: rgba(55, 53, 47, 0.6);\r\n}\r\n\r\nol,\r\nul {\r\n\tmargin: 0;\r\n\tmargin-block-start: 0.6em;\r\n\tmargin-block-end: 0.6em;\r\n}\r\n\r\nli > ol:first-child,\r\nli > ul:first-child {\r\n\tmargin-block-start: 0.6em;\r\n}\r\n\r\nul > li {\r\n\tlist-style: disc;\r\n}\r\n\r\nul.to-do-list {\r\n\ttext-indent: -1.7em;\r\n}\r\n\r\nul.to-do-list > li {\r\n\tlist-style: none;\r\n}\r\n\r\n.to-do-children-checked {\r\n\ttext-decoration: line-through;\r\n\topacity: 0.375;\r\n}\r\n\r\nul.toggle > li {\r\n\tlist-style: none;\r\n}\r\n\r\nul {\r\n\tpadding-inline-start: 1.7em;\r\n}\r\n\r\nul > li {\r\n\tpadding-left: 0.1em;\r\n}\r\n\r\nol {\r\n\tpadding-inline-start: 1.6em;\r\n}\r\n\r\nol > li {\r\n\tpadding-left: 0.2em;\r\n}\r\n\r\n.mono ol {\r\n\tpadding-inline-start: 2em;\r\n}\r\n\r\n.mono ol > li {\r\n\ttext-indent: -0.4em;\r\n}\r\n\r\n.toggle {\r\n\tpadding-inline-start: 0em;\r\n\tlist-style-type: none;\r\n}\r\n\r\n/* Indent toggle children */\r\n.toggle > li > details {\r\n\tpadding-left: 1.7em;\r\n}\r\n\r\n.toggle > li > details > summary {\r\n\tmargin-left: -1.1em;\r\n}\r\n\r\n.selected-value {\r\n\tdisplay: inline-block;\r\n\tpadding: 0 0.5em;\r\n\tbackground: rgba(206, 205, 202, 0.5);\r\n\tborder-radius: 3px;\r\n\tmargin-right: 0.5em;\r\n\tmargin-top: 0.3em;\r\n\tmargin-bottom: 0.3em;\r\n\twhite-space: nowrap;\r\n}\r\n\r\n.collection-title {\r\n\tdisplay: inline-block;\r\n\tmargin-right: 1em;\r\n}\r\n\r\ntime {\r\n\topacity: 0.5;\r\n}\r\n\r\n.icon {\r\n\tdisplay: inline-block;\r\n\tmax-width: 1.2em;\r\n\tmax-height: 1.2em;\r\n\ttext-decoration: none;\r\n\tvertical-align: text-bottom;\r\n\tmargin-right: 0.5em;\r\n}\r\n\r\nimg.icon {\r\n\tborder-radius: 3px;\r\n}\r\n\r\n.user-icon {\r\n\twidth: 1.5em;\r\n\theight: 1.5em;\r\n\tborder-radius: 100%;\r\n\tmargin-right: 0.5rem;\r\n}\r\n\r\n.user-icon-inner {\r\n\tfont-size: 0.8em;\r\n}\r\n\r\n.text-icon {\r\n\tborder: 1px solid #000;\r\n\ttext-align: center;\r\n}\r\n\r\n.page-cover-image {\r\n\tdisplay: block;\r\n\tobject-fit: cover;\r\n\twidth: 100%;\r\n\theight: 30vh;\r\n}\r\n\r\n.page-header-icon {\r\n\tfont-size: 3rem;\r\n\tmargin-bottom: 1rem;\r\n}\r\n\r\n.page-header-icon-with-cover {\r\n\tmargin-top: -0.72em;\r\n\tmargin-left: 0.07em;\r\n}\r\n\r\n.page-header-icon img {\r\n\tborder-radius: 3px;\r\n}\r\n\r\n.link-to-page {\r\n\tmargin: 1em 0;\r\n\tpadding: 0;\r\n\tborder: none;\r\n\tfont-weight: 500;\r\n}\r\n\r\np > .user {\r\n\topacity: 0.5;\r\n}\r\n\r\ntd > .user,\r\ntd > time {\r\n\twhite-space: nowrap;\r\n}\r\n\r\ninput[type=\"checkbox\"] {\r\n\ttransform: scale(1.5);\r\n\tmargin-right: 0.6em;\r\n\tvertical-align: middle;\r\n}\r\n\r\np {\r\n\tmargin-top: 0.5em;\r\n\tmargin-bottom: 0.5em;\r\n}\r\n\r\n.image {\r\n\tborder: none;\r\n\tmargin: 1.5em 0;\r\n\tpadding: 0;\r\n\tborder-radius: 0;\r\n\ttext-align: center;\r\n}\r\n\r\n.code,\r\ncode {\r\n\tbackground: rgba(135, 131, 120, 0.15);\r\n\tborder-radius: 3px;\r\n\tpadding: 0.2em 0.4em;\r\n\tborder-radius: 3px;\r\n\tfont-size: 85%;\r\n\ttab-size: 2;\r\n}\r\n\r\ncode {\r\n\tcolor: #eb5757;\r\n}\r\n\r\n.code {\r\n\tpadding: 1.5em 1em;\r\n}\r\n\r\n.code-wrap {\r\n\t\r\n\tword-break: break-all;\r\n}\r\n\r\n.code > code {\r\n\tbackground: none;\r\n\tpadding: 0;\r\n\tfont-size: 100%;\r\n\tcolor: inherit;\r\n}\r\n\r\nblockquote {\r\n\tfont-size: 1.25em;\r\n\tmargin: 1em 0;\r\n\tpadding-left: 1em;\r\n\tborder-left: 3px solid rgb(55, 53, 47);\r\n}\r\n\r\n.bookmark {\r\n\ttext-decoration: none;\r\n\tmax-height: 8em;\r\n\tpadding: 0;\r\n\tdisplay: flex;\r\n\twidth: 100%;\r\n\talign-items: stretch;\r\n}\r\n\r\n.bookmark-title {\r\n\tfont-size: 0.85em;\r\n\toverflow: hidden;\r\n\ttext-overflow: ellipsis;\r\n\theight: 1.75em;\r\n\twhite-space: nowrap;\r\n}\r\n\r\n.bookmark-text {\r\n\tdisplay: flex;\r\n\tflex-direction: column;\r\n}\r\n\r\n.bookmark-info {\r\n\tflex: 4 1 180px;\r\n\tpadding: 12px 14px 14px;\r\n\tdisplay: flex;\r\n\tflex-direction: column;\r\n\tjustify-content: space-between;\r\n}\r\n\r\n.bookmark-image {\r\n\twidth: 33%;\r\n\tflex: 1 1 180px;\r\n\tdisplay: block;\r\n\tposition: relative;\r\n\tobject-fit: cover;\r\n\tborder-radius: 1px;\r\n}\r\n\r\n.bookmark-description {\r\n\tcolor: rgba(55, 53, 47, 0.6);\r\n\tfont-size: 0.75em;\r\n\toverflow: hidden;\r\n\tmax-height: 4.5em;\r\n\tword-break: break-word;\r\n}\r\n\r\n.bookmark-href {\r\n\tfont-size: 0.75em;\r\n\tmargin-top: 0.25em;\r\n}\r\n\r\n.sans { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\"; }\r\n.code { font-family: \"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, Courier, monospace; }\r\n.serif { font-family: Lyon-Text, Georgia, YuMincho, \"Yu Mincho\", \"Hiragino Mincho ProN\", \"Hiragino Mincho Pro\", \"Songti TC\", \"Songti SC\", \"SimSun\", \"Nanum Myeongjo\", NanumMyeongjo, Batang, serif; }\r\n.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }\r\n.pdf .sans { font-family: Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans CJK SC\", \"Noto Sans CJK KR\"; }\r\n\r\n.pdf .code { font-family: Source Code Pro, \"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, Courier, monospace, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans Mono CJK SC\", \"Noto Sans Mono CJK KR\"; }\r\n\r\n.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, YuMincho, \"Yu Mincho\", \"Hiragino Mincho ProN\", \"Hiragino Mincho Pro\", \"Songti TC\", \"Songti SC\", \"SimSun\", \"Nanum Myeongjo\", NanumMyeongjo, Batang, serif, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans CJK SC\", \"Noto Sans CJK KR\"; }\r\n\r\n.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans Mono CJK SC\", \"Noto Sans Mono CJK KR\"; }\r\n\r\n.highlight-default {\r\n}\r\n.highlight-gray {\r\n\tcolor: rgb(155,154,151);\r\n}\r\n.highlight-brown {\r\n\tcolor: rgb(100,71,58);\r\n}\r\n.highlight-orange {\r\n\tcolor: rgb(217,115,13);\r\n}\r\n.highlight-yellow {\r\n\tcolor: rgb(223,171,1);\r\n}\r\n.highlight-teal {\r\n\tcolor: rgb(15,123,108);\r\n}\r\n.highlight-blue {\r\n\tcolor: rgb(11,110,153);\r\n}\r\n.highlight-purple {\r\n\tcolor: rgb(105,64,165);\r\n}\r\n.highlight-pink {\r\n\tcolor: rgb(173,26,114);\r\n}\r\n.highlight-red {\r\n\tcolor: rgb(224,62,62);\r\n}\r\n.highlight-gray_background {\r\n\tbackground: rgb(235,236,237);\r\n}\r\n.highlight-brown_background {\r\n\tbackground: rgb(233,229,227);\r\n}\r\n.highlight-orange_background {\r\n\tbackground: rgb(250,235,221);\r\n}\r\n.highlight-yellow_background {\r\n\tbackground: rgb(251,243,219);\r\n}\r\n.highlight-teal_background {\r\n\tbackground: rgb(221,237,234);\r\n}\r\n.highlight-blue_background {\r\n\tbackground: rgb(221,235,241);\r\n}\r\n.highlight-purple_background {\r\n\tbackground: rgb(234,228,242);\r\n}\r\n.highlight-pink_background {\r\n\tbackground: rgb(244,223,235);\r\n}\r\n.highlight-red_background {\r\n\tbackground: rgb(251,228,228);\r\n}\r\n.block-color-default {\r\n\tcolor: inherit;\r\n\tfill: inherit;\r\n}\r\n.block-color-gray {\r\n\tcolor: rgba(55, 53, 47, 0.6);\r\n\tfill: rgba(55, 53, 47, 0.6);\r\n}\r\n.block-color-brown {\r\n\tcolor: rgb(100,71,58);\r\n\tfill: rgb(100,71,58);\r\n}\r\n.block-color-orange {\r\n\tcolor: rgb(217,115,13);\r\n\tfill: rgb(217,115,13);\r\n}\r\n.block-color-yellow {\r\n\tcolor: rgb(223,171,1);\r\n\tfill: rgb(223,171,1);\r\n}\r\n.block-color-teal {\r\n\tcolor: rgb(15,123,108);\r\n\tfill: rgb(15,123,108);\r\n}\r\n.block-color-blue {\r\n\tcolor: rgb(11,110,153);\r\n\tfill: rgb(11,110,153);\r\n}\r\n.block-color-purple {\r\n\tcolor: rgb(105,64,165);\r\n\tfill: rgb(105,64,165);\r\n}\r\n.block-color-pink {\r\n\tcolor: rgb(173,26,114);\r\n\tfill: rgb(173,26,114);\r\n}\r\n.block-color-red {\r\n\tcolor: rgb(224,62,62);\r\n\tfill: rgb(224,62,62);\r\n}\r\n.block-color-gray_background {\r\n\tbackground: rgb(235,236,237);\r\n}\r\n.block-color-brown_background {\r\n\tbackground: rgb(233,229,227);\r\n}\r\n.block-color-orange_background {\r\n\tbackground: rgb(250,235,221);\r\n}\r\n.block-color-yellow_background {\r\n\tbackground: rgb(251,243,219);\r\n}\r\n.block-color-teal_background {\r\n\tbackground: rgb(221,237,234);\r\n}\r\n.block-color-blue_background {\r\n\tbackground: rgb(221,235,241);\r\n}\r\n.block-color-purple_background {\r\n\tbackground: rgb(234,228,242);\r\n}\r\n.block-color-pink_background {\r\n\tbackground: rgb(244,223,235);\r\n}\r\n.block-color-red_background {\r\n\tbackground: rgb(251,228,228);\r\n}\r\n.select-value-color-default { background-color: rgba(206,205,202,0.5); }\r\n.select-value-color-gray { background-color: rgba(155,154,151, 0.4); }\r\n.select-value-color-brown { background-color: rgba(140,46,0,0.2); }\r\n.select-value-color-orange { background-color: rgba(245,93,0,0.2); }\r\n.select-value-color-yellow { background-color: rgba(233,168,0,0.2); }\r\n.select-value-color-green { background-color: rgba(0,135,107,0.2); }\r\n.select-value-color-blue { background-color: rgba(0,120,223,0.2); }\r\n.select-value-color-purple { background-color: rgba(103,36,222,0.2); }\r\n.select-value-color-pink { background-color: rgba(221,0,129,0.2); }\r\n.select-value-color-red { background-color: rgba(255,0,26,0.2); }\r\n\r\n.checkbox {\r\n\tdisplay: inline-flex;\r\n\tvertical-align: text-bottom;\r\n\twidth: 16;\r\n\theight: 16;\r\n\tbackground-size: 16px;\r\n\tmargin-left: 2px;\r\n\tmargin-right: 5px;\r\n}\r\n\r\n.checkbox-on {\r\n\tbackground-image: url(\"data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E\");\r\n}\r\n\r\n.checkbox-off {\r\n\tbackground-image: url(\"data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E\");\r\n}\r\n\t\r\nhtml,\r\nbody {\r\n  text-align: center;\r\n}\r\n\r\n.card {\r\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica,\r\n    \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\";\r\n  color: black;\r\n  background-color: white;\r\n  border: lightgray 1px solid;\r\n  padding: 16px;\r\n  border-radius: 8px;\r\n  margin: 16px;\r\n  width: 80%;\r\n  display: inline-block;\r\n}\r\n\r\n.card:hover {\r\n  box-shadow: 0 0 8px #ccc;\r\n  border: 1px solid #fff;\r\n}\r\n\r\n.front-text-pre {\r\n  font-size: 1.5rem;\r\n}\r\n\r\n.front-text-post {\r\n  color: gray;\r\n  font-size: 1rem;\r\n}\r\n\r\n.back-text {\r\n  font-size: 1.5rem;\r\n  text-align: left;\r\n}\r\n\r\n.extra {\r\n  color: gray;\r\n}\r\n"
+      },
+      "previewData": {
+        "Front": "What is the capital of France?",
+        "Back": "Paris",
+        "MyMedia": ""
+      },
+      "tags": ["default", "basic", "notion"]
+    },
+    {
+      "id": "official-n2a-cloze",
+      "name": "Default (Cloze)",
+      "description": "Cloze deletion that matches the standard 2anki conversion output",
+      "baseType": "cloze",
+      "noteType": {
+        "name": "n2a-cloze",
+        "type": 1,
+        "tmpls": [
+          {
+            "name": "Cloze",
+            "ord": 0,
+            "qfmt": "<span class=\"front-text-pre\">{{cloze:Text}}</span>",
+            "afmt": "<span class=\"front-text-pre\">{{cloze:Text}}</span><br><span class=\"extra\">{{Extra}}</span>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Text",
+            "ord": 0
+          },
+          {
+            "name": "Extra",
+            "ord": 1
+          },
+          {
+            "name": "MyMedia",
+            "ord": 2
+          }
+        ],
+        "css": ".card {\r\n  font-family: arial;\r\n  font-size: 20px;\r\n  text-align: center;\r\n  color: black;\r\n  background-color: white;\r\n}\r\n\r\n.front-text-pre {\r\n  text-align: center;\r\n}\r\n\r\n.extra {\r\n  text-align: left;\r\n}\r\n\r\n.cloze {\r\n  background: rgba(135, 131, 120, 0.15);\r\n  padding: 0.2em 0.4em;\r\n  border-radius: 3px;\r\n  font-weight: bold;\r\n  color: blue;\r\n}\r\n.nightMode .cloze {\r\n  color: lightblue;\r\n}\r\n\r\n\r\n/* webkit printing magic: print all background colors */\r\nhtml {\r\n\t-webkit-print-color-adjust: exact;\r\n}\r\n* {\r\n\tbox-sizing: border-box;\r\n\t-webkit-print-color-adjust: exact;\r\n}\r\n\r\nhtml,\r\nbody {\r\n\tmargin: 0;\r\n\tpadding: 0;\r\n}\r\n@media only screen {\r\n\tbody {\r\n\t\tmargin: 2em auto;\r\n\t\tmax-width: 900px;\r\n\t\tcolor: rgb(55, 53, 47);\r\n\t}\r\n}\r\n\r\nbody {\r\n\tline-height: 1.5;\r\n\t\r\n}\r\n\r\na,\r\na.visited {\r\n\tcolor: inherit;\r\n\ttext-decoration: underline;\r\n}\r\n\r\n.pdf-relative-link-path {\r\n\tfont-size: 80%;\r\n\tcolor: #444;\r\n}\r\n\r\nh1,\r\nh2,\r\nh3 {\r\n\tletter-spacing: -0.01em;\r\n\tline-height: 1.2;\r\n\tfont-weight: 600;\r\n\tmargin-bottom: 0;\r\n}\r\n\r\n.page-title {\r\n\tfont-size: 2.5rem;\r\n\tfont-weight: 700;\r\n\tmargin-top: 0;\r\n\tmargin-bottom: 0.75em;\r\n}\r\n\r\nh1 {\r\n\tfont-size: 1.875rem;\r\n\tmargin-top: 1.875rem;\r\n}\r\n\r\nh2 {\r\n\tfont-size: 1.5rem;\r\n\tmargin-top: 1.5rem;\r\n}\r\n\r\nh3 {\r\n\tfont-size: 1.25rem;\r\n\tmargin-top: 1.25rem;\r\n}\r\n\r\n.source {\r\n\tborder: 1px solid #ddd;\r\n\tborder-radius: 3px;\r\n\tpadding: 1.5em;\r\n\tword-break: break-all;\r\n}\r\n\r\n.callout {\r\n\tborder-radius: 3px;\r\n\tpadding: 1rem;\r\n}\r\n\r\nfigure {\r\n\tmargin: 1.25em 0;\r\n\tpage-break-inside: avoid;\r\n}\r\n\r\nfigcaption {\r\n\topacity: 0.5;\r\n\tfont-size: 85%;\r\n\tmargin-top: 0.5em;\r\n}\r\n\r\nmark {\r\n\tbackground-color: transparent;\r\n}\r\n\r\n.indented {\r\n\tpadding-left: 1.5em;\r\n}\r\n\r\nhr {\r\n\tbackground: transparent;\r\n\tdisplay: block;\r\n\twidth: 100%;\r\n\theight: 1px;\r\n\tvisibility: visible;\r\n\tborder: none;\r\n\tborder-bottom: 1px solid rgba(55, 53, 47, 0.09);\r\n}\r\n\r\nimg {\r\n\tmax-width: 100%;\r\n}\r\n\r\n@media only print {\r\n\timg {\r\n\t\tmax-height: 100vh;\r\n\t\tobject-fit: contain;\r\n\t}\r\n}\r\n\r\n@page {\r\n\tmargin: 1in;\r\n}\r\n\r\n.collection-content {\r\n\tfont-size: 0.875rem;\r\n}\r\n\r\n.column-list {\r\n\tdisplay: flex;\r\n\tjustify-content: space-between;\r\n}\r\n\r\n.column {\r\n\tpadding: 0 1em;\r\n}\r\n\r\n.column:first-child {\r\n\tpadding-left: 0;\r\n}\r\n\r\n.column:last-child {\r\n\tpadding-right: 0;\r\n}\r\n\r\n.table_of_contents-item {\r\n\tdisplay: block;\r\n\tfont-size: 0.875rem;\r\n\tline-height: 1.3;\r\n\tpadding: 0.125rem;\r\n}\r\n\r\n.table_of_contents-indent-1 {\r\n\tmargin-left: 1.5rem;\r\n}\r\n\r\n.table_of_contents-indent-2 {\r\n\tmargin-left: 3rem;\r\n}\r\n\r\n.table_of_contents-indent-3 {\r\n\tmargin-left: 4.5rem;\r\n}\r\n\r\n.table_of_contents-link {\r\n\ttext-decoration: none;\r\n\topacity: 0.7;\r\n\tborder-bottom: 1px solid rgba(55, 53, 47, 0.18);\r\n}\r\n\r\ntable,\r\nth,\r\ntd {\r\n\tborder: 1px solid rgba(55, 53, 47, 0.09);\r\n\tborder-collapse: collapse;\r\n}\r\n\r\ntable {\r\n\tborder-left: none;\r\n\tborder-right: none;\r\n}\r\n\r\nth,\r\ntd {\r\n\tfont-weight: normal;\r\n\tpadding: 0.25em 0.5em;\r\n\tline-height: 1.5;\r\n\tmin-height: 1.5em;\r\n\ttext-align: left;\r\n}\r\n\r\nth {\r\n\tcolor: rgba(55, 53, 47, 0.6);\r\n}\r\n\r\nol,\r\nul {\r\n\tmargin: 0;\r\n\tmargin-block-start: 0.6em;\r\n\tmargin-block-end: 0.6em;\r\n}\r\n\r\nli > ol:first-child,\r\nli > ul:first-child {\r\n\tmargin-block-start: 0.6em;\r\n}\r\n\r\nul > li {\r\n\tlist-style: disc;\r\n}\r\n\r\nul.to-do-list {\r\n\ttext-indent: -1.7em;\r\n}\r\n\r\nul.to-do-list > li {\r\n\tlist-style: none;\r\n}\r\n\r\n.to-do-children-checked {\r\n\ttext-decoration: line-through;\r\n\topacity: 0.375;\r\n}\r\n\r\nul.toggle > li {\r\n\tlist-style: none;\r\n}\r\n\r\nul {\r\n\tpadding-inline-start: 1.7em;\r\n}\r\n\r\nul > li {\r\n\tpadding-left: 0.1em;\r\n}\r\n\r\nol {\r\n\tpadding-inline-start: 1.6em;\r\n}\r\n\r\nol > li {\r\n\tpadding-left: 0.2em;\r\n}\r\n\r\n.mono ol {\r\n\tpadding-inline-start: 2em;\r\n}\r\n\r\n.mono ol > li {\r\n\ttext-indent: -0.4em;\r\n}\r\n\r\n.toggle {\r\n\tpadding-inline-start: 0em;\r\n\tlist-style-type: none;\r\n}\r\n\r\n/* Indent toggle children */\r\n.toggle > li > details {\r\n\tpadding-left: 1.7em;\r\n}\r\n\r\n.toggle > li > details > summary {\r\n\tmargin-left: -1.1em;\r\n}\r\n\r\n.selected-value {\r\n\tdisplay: inline-block;\r\n\tpadding: 0 0.5em;\r\n\tbackground: rgba(206, 205, 202, 0.5);\r\n\tborder-radius: 3px;\r\n\tmargin-right: 0.5em;\r\n\tmargin-top: 0.3em;\r\n\tmargin-bottom: 0.3em;\r\n\twhite-space: nowrap;\r\n}\r\n\r\n.collection-title {\r\n\tdisplay: inline-block;\r\n\tmargin-right: 1em;\r\n}\r\n\r\ntime {\r\n\topacity: 0.5;\r\n}\r\n\r\n.icon {\r\n\tdisplay: inline-block;\r\n\tmax-width: 1.2em;\r\n\tmax-height: 1.2em;\r\n\ttext-decoration: none;\r\n\tvertical-align: text-bottom;\r\n\tmargin-right: 0.5em;\r\n}\r\n\r\nimg.icon {\r\n\tborder-radius: 3px;\r\n}\r\n\r\n.user-icon {\r\n\twidth: 1.5em;\r\n\theight: 1.5em;\r\n\tborder-radius: 100%;\r\n\tmargin-right: 0.5rem;\r\n}\r\n\r\n.user-icon-inner {\r\n\tfont-size: 0.8em;\r\n}\r\n\r\n.text-icon {\r\n\tborder: 1px solid #000;\r\n\ttext-align: center;\r\n}\r\n\r\n.page-cover-image {\r\n\tdisplay: block;\r\n\tobject-fit: cover;\r\n\twidth: 100%;\r\n\theight: 30vh;\r\n}\r\n\r\n.page-header-icon {\r\n\tfont-size: 3rem;\r\n\tmargin-bottom: 1rem;\r\n}\r\n\r\n.page-header-icon-with-cover {\r\n\tmargin-top: -0.72em;\r\n\tmargin-left: 0.07em;\r\n}\r\n\r\n.page-header-icon img {\r\n\tborder-radius: 3px;\r\n}\r\n\r\n.link-to-page {\r\n\tmargin: 1em 0;\r\n\tpadding: 0;\r\n\tborder: none;\r\n\tfont-weight: 500;\r\n}\r\n\r\np > .user {\r\n\topacity: 0.5;\r\n}\r\n\r\ntd > .user,\r\ntd > time {\r\n\twhite-space: nowrap;\r\n}\r\n\r\ninput[type=\"checkbox\"] {\r\n\ttransform: scale(1.5);\r\n\tmargin-right: 0.6em;\r\n\tvertical-align: middle;\r\n}\r\n\r\np {\r\n\tmargin-top: 0.5em;\r\n\tmargin-bottom: 0.5em;\r\n}\r\n\r\n.image {\r\n\tborder: none;\r\n\tmargin: 1.5em 0;\r\n\tpadding: 0;\r\n\tborder-radius: 0;\r\n\ttext-align: center;\r\n}\r\n\r\n.code,\r\ncode {\r\n\tbackground: rgba(135, 131, 120, 0.15);\r\n\tborder-radius: 3px;\r\n\tpadding: 0.2em 0.4em;\r\n\tborder-radius: 3px;\r\n\tfont-size: 85%;\r\n\ttab-size: 2;\r\n}\r\n\r\ncode {\r\n\tcolor: #eb5757;\r\n}\r\n\r\n.code {\r\n\tpadding: 1.5em 1em;\r\n}\r\n\r\n.code-wrap {\r\n\t\r\n\tword-break: break-all;\r\n}\r\n\r\n.code > code {\r\n\tbackground: none;\r\n\tpadding: 0;\r\n\tfont-size: 100%;\r\n\tcolor: inherit;\r\n}\r\n\r\nblockquote {\r\n\tfont-size: 1.25em;\r\n\tmargin: 1em 0;\r\n\tpadding-left: 1em;\r\n\tborder-left: 3px solid rgb(55, 53, 47);\r\n}\r\n\r\n.bookmark {\r\n\ttext-decoration: none;\r\n\tmax-height: 8em;\r\n\tpadding: 0;\r\n\tdisplay: flex;\r\n\twidth: 100%;\r\n\talign-items: stretch;\r\n}\r\n\r\n.bookmark-title {\r\n\tfont-size: 0.85em;\r\n\toverflow: hidden;\r\n\ttext-overflow: ellipsis;\r\n\theight: 1.75em;\r\n\twhite-space: nowrap;\r\n}\r\n\r\n.bookmark-text {\r\n\tdisplay: flex;\r\n\tflex-direction: column;\r\n}\r\n\r\n.bookmark-info {\r\n\tflex: 4 1 180px;\r\n\tpadding: 12px 14px 14px;\r\n\tdisplay: flex;\r\n\tflex-direction: column;\r\n\tjustify-content: space-between;\r\n}\r\n\r\n.bookmark-image {\r\n\twidth: 33%;\r\n\tflex: 1 1 180px;\r\n\tdisplay: block;\r\n\tposition: relative;\r\n\tobject-fit: cover;\r\n\tborder-radius: 1px;\r\n}\r\n\r\n.bookmark-description {\r\n\tcolor: rgba(55, 53, 47, 0.6);\r\n\tfont-size: 0.75em;\r\n\toverflow: hidden;\r\n\tmax-height: 4.5em;\r\n\tword-break: break-word;\r\n}\r\n\r\n.bookmark-href {\r\n\tfont-size: 0.75em;\r\n\tmargin-top: 0.25em;\r\n}\r\n\r\n.sans { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\"; }\r\n.code { font-family: \"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, Courier, monospace; }\r\n.serif { font-family: Lyon-Text, Georgia, YuMincho, \"Yu Mincho\", \"Hiragino Mincho ProN\", \"Hiragino Mincho Pro\", \"Songti TC\", \"Songti SC\", \"SimSun\", \"Nanum Myeongjo\", NanumMyeongjo, Batang, serif; }\r\n.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }\r\n.pdf .sans { font-family: Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans CJK SC\", \"Noto Sans CJK KR\"; }\r\n\r\n.pdf .code { font-family: Source Code Pro, \"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, Courier, monospace, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans Mono CJK SC\", \"Noto Sans Mono CJK KR\"; }\r\n\r\n.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, YuMincho, \"Yu Mincho\", \"Hiragino Mincho ProN\", \"Hiragino Mincho Pro\", \"Songti TC\", \"Songti SC\", \"SimSun\", \"Nanum Myeongjo\", NanumMyeongjo, Batang, serif, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans CJK SC\", \"Noto Sans CJK KR\"; }\r\n\r\n.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans Mono CJK SC\", \"Noto Sans Mono CJK KR\"; }\r\n\r\n.highlight-default {\r\n}\r\n.highlight-gray {\r\n\tcolor: rgb(155,154,151);\r\n}\r\n.highlight-brown {\r\n\tcolor: rgb(100,71,58);\r\n}\r\n.highlight-orange {\r\n\tcolor: rgb(217,115,13);\r\n}\r\n.highlight-yellow {\r\n\tcolor: rgb(223,171,1);\r\n}\r\n.highlight-teal {\r\n\tcolor: rgb(15,123,108);\r\n}\r\n.highlight-blue {\r\n\tcolor: rgb(11,110,153);\r\n}\r\n.highlight-purple {\r\n\tcolor: rgb(105,64,165);\r\n}\r\n.highlight-pink {\r\n\tcolor: rgb(173,26,114);\r\n}\r\n.highlight-red {\r\n\tcolor: rgb(224,62,62);\r\n}\r\n.highlight-gray_background {\r\n\tbackground: rgb(235,236,237);\r\n}\r\n.highlight-brown_background {\r\n\tbackground: rgb(233,229,227);\r\n}\r\n.highlight-orange_background {\r\n\tbackground: rgb(250,235,221);\r\n}\r\n.highlight-yellow_background {\r\n\tbackground: rgb(251,243,219);\r\n}\r\n.highlight-teal_background {\r\n\tbackground: rgb(221,237,234);\r\n}\r\n.highlight-blue_background {\r\n\tbackground: rgb(221,235,241);\r\n}\r\n.highlight-purple_background {\r\n\tbackground: rgb(234,228,242);\r\n}\r\n.highlight-pink_background {\r\n\tbackground: rgb(244,223,235);\r\n}\r\n.highlight-red_background {\r\n\tbackground: rgb(251,228,228);\r\n}\r\n.block-color-default {\r\n\tcolor: inherit;\r\n\tfill: inherit;\r\n}\r\n.block-color-gray {\r\n\tcolor: rgba(55, 53, 47, 0.6);\r\n\tfill: rgba(55, 53, 47, 0.6);\r\n}\r\n.block-color-brown {\r\n\tcolor: rgb(100,71,58);\r\n\tfill: rgb(100,71,58);\r\n}\r\n.block-color-orange {\r\n\tcolor: rgb(217,115,13);\r\n\tfill: rgb(217,115,13);\r\n}\r\n.block-color-yellow {\r\n\tcolor: rgb(223,171,1);\r\n\tfill: rgb(223,171,1);\r\n}\r\n.block-color-teal {\r\n\tcolor: rgb(15,123,108);\r\n\tfill: rgb(15,123,108);\r\n}\r\n.block-color-blue {\r\n\tcolor: rgb(11,110,153);\r\n\tfill: rgb(11,110,153);\r\n}\r\n.block-color-purple {\r\n\tcolor: rgb(105,64,165);\r\n\tfill: rgb(105,64,165);\r\n}\r\n.block-color-pink {\r\n\tcolor: rgb(173,26,114);\r\n\tfill: rgb(173,26,114);\r\n}\r\n.block-color-red {\r\n\tcolor: rgb(224,62,62);\r\n\tfill: rgb(224,62,62);\r\n}\r\n.block-color-gray_background {\r\n\tbackground: rgb(235,236,237);\r\n}\r\n.block-color-brown_background {\r\n\tbackground: rgb(233,229,227);\r\n}\r\n.block-color-orange_background {\r\n\tbackground: rgb(250,235,221);\r\n}\r\n.block-color-yellow_background {\r\n\tbackground: rgb(251,243,219);\r\n}\r\n.block-color-teal_background {\r\n\tbackground: rgb(221,237,234);\r\n}\r\n.block-color-blue_background {\r\n\tbackground: rgb(221,235,241);\r\n}\r\n.block-color-purple_background {\r\n\tbackground: rgb(234,228,242);\r\n}\r\n.block-color-pink_background {\r\n\tbackground: rgb(244,223,235);\r\n}\r\n.block-color-red_background {\r\n\tbackground: rgb(251,228,228);\r\n}\r\n.select-value-color-default { background-color: rgba(206,205,202,0.5); }\r\n.select-value-color-gray { background-color: rgba(155,154,151, 0.4); }\r\n.select-value-color-brown { background-color: rgba(140,46,0,0.2); }\r\n.select-value-color-orange { background-color: rgba(245,93,0,0.2); }\r\n.select-value-color-yellow { background-color: rgba(233,168,0,0.2); }\r\n.select-value-color-green { background-color: rgba(0,135,107,0.2); }\r\n.select-value-color-blue { background-color: rgba(0,120,223,0.2); }\r\n.select-value-color-purple { background-color: rgba(103,36,222,0.2); }\r\n.select-value-color-pink { background-color: rgba(221,0,129,0.2); }\r\n.select-value-color-red { background-color: rgba(255,0,26,0.2); }\r\n\r\n.checkbox {\r\n\tdisplay: inline-flex;\r\n\tvertical-align: text-bottom;\r\n\twidth: 16;\r\n\theight: 16;\r\n\tbackground-size: 16px;\r\n\tmargin-left: 2px;\r\n\tmargin-right: 5px;\r\n}\r\n\r\n.checkbox-on {\r\n\tbackground-image: url(\"data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E\");\r\n}\r\n\r\n.checkbox-off {\r\n\tbackground-image: url(\"data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E\");\r\n}\r\n\t\r\nhtml,\r\nbody {\r\n  text-align: center;\r\n}\r\n\r\n.card {\r\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica,\r\n    \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\";\r\n  color: black;\r\n  background-color: white;\r\n  border: lightgray 1px solid;\r\n  padding: 16px;\r\n  border-radius: 8px;\r\n  margin: 16px;\r\n  width: 80%;\r\n  display: inline-block;\r\n}\r\n\r\n.card:hover {\r\n  box-shadow: 0 0 8px #ccc;\r\n  border: 1px solid #fff;\r\n}\r\n\r\n.front-text-pre {\r\n  font-size: 1.5rem;\r\n}\r\n\r\n.front-text-post {\r\n  color: gray;\r\n  font-size: 1rem;\r\n}\r\n\r\n.back-text {\r\n  font-size: 1.5rem;\r\n  text-align: left;\r\n}\r\n\r\n.extra {\r\n  color: gray;\r\n}\r\n"
+      },
+      "previewData": {
+        "Text": "The capital of {{c1::France}} is {{c2::Paris}}",
+        "Extra": "European geography",
+        "MyMedia": ""
+      },
+      "tags": ["default", "cloze", "notion"]
+    },
+    {
+      "id": "official-n2a-input",
+      "name": "Default (Type the answer)",
+      "description": "Type-in-the-answer note type from the 2anki conversion pipeline",
+      "baseType": "basic",
+      "noteType": {
+        "name": "n2a-input",
+        "type": 0,
+        "tmpls": [
+          {
+            "name": "Input",
+            "ord": 0,
+            "qfmt": "{{Front}}<br>{{type:Input}}",
+            "afmt": "{{FrontSide}}<hr id=\"answer\">{{Back}}"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Front",
+            "ord": 0
+          },
+          {
+            "name": "Back",
+            "ord": 1
+          },
+          {
+            "name": "Input",
+            "ord": 2
+          },
+          {
+            "name": "MyMedia",
+            "ord": 3
+          }
+        ],
+        "css": "\r\n/* webkit printing magic: print all background colors */\r\nhtml {\r\n\t-webkit-print-color-adjust: exact;\r\n}\r\n* {\r\n\tbox-sizing: border-box;\r\n\t-webkit-print-color-adjust: exact;\r\n}\r\n\r\nhtml,\r\nbody {\r\n\tmargin: 0;\r\n\tpadding: 0;\r\n}\r\n@media only screen {\r\n\tbody {\r\n\t\tmargin: 2em auto;\r\n\t\tmax-width: 900px;\r\n\t\tcolor: rgb(55, 53, 47);\r\n\t}\r\n}\r\n\r\nbody {\r\n\tline-height: 1.5;\r\n\t\r\n}\r\n\r\na,\r\na.visited {\r\n\tcolor: inherit;\r\n\ttext-decoration: underline;\r\n}\r\n\r\n.pdf-relative-link-path {\r\n\tfont-size: 80%;\r\n\tcolor: #444;\r\n}\r\n\r\nh1,\r\nh2,\r\nh3 {\r\n\tletter-spacing: -0.01em;\r\n\tline-height: 1.2;\r\n\tfont-weight: 600;\r\n\tmargin-bottom: 0;\r\n}\r\n\r\n.page-title {\r\n\tfont-size: 2.5rem;\r\n\tfont-weight: 700;\r\n\tmargin-top: 0;\r\n\tmargin-bottom: 0.75em;\r\n}\r\n\r\nh1 {\r\n\tfont-size: 1.875rem;\r\n\tmargin-top: 1.875rem;\r\n}\r\n\r\nh2 {\r\n\tfont-size: 1.5rem;\r\n\tmargin-top: 1.5rem;\r\n}\r\n\r\nh3 {\r\n\tfont-size: 1.25rem;\r\n\tmargin-top: 1.25rem;\r\n}\r\n\r\n.source {\r\n\tborder: 1px solid #ddd;\r\n\tborder-radius: 3px;\r\n\tpadding: 1.5em;\r\n\tword-break: break-all;\r\n}\r\n\r\n.callout {\r\n\tborder-radius: 3px;\r\n\tpadding: 1rem;\r\n}\r\n\r\nfigure {\r\n\tmargin: 1.25em 0;\r\n\tpage-break-inside: avoid;\r\n}\r\n\r\nfigcaption {\r\n\topacity: 0.5;\r\n\tfont-size: 85%;\r\n\tmargin-top: 0.5em;\r\n}\r\n\r\nmark {\r\n\tbackground-color: transparent;\r\n}\r\n\r\n.indented {\r\n\tpadding-left: 1.5em;\r\n}\r\n\r\nhr {\r\n\tbackground: transparent;\r\n\tdisplay: block;\r\n\twidth: 100%;\r\n\theight: 1px;\r\n\tvisibility: visible;\r\n\tborder: none;\r\n\tborder-bottom: 1px solid rgba(55, 53, 47, 0.09);\r\n}\r\n\r\nimg {\r\n\tmax-width: 100%;\r\n}\r\n\r\n@media only print {\r\n\timg {\r\n\t\tmax-height: 100vh;\r\n\t\tobject-fit: contain;\r\n\t}\r\n}\r\n\r\n@page {\r\n\tmargin: 1in;\r\n}\r\n\r\n.collection-content {\r\n\tfont-size: 0.875rem;\r\n}\r\n\r\n.column-list {\r\n\tdisplay: flex;\r\n\tjustify-content: space-between;\r\n}\r\n\r\n.column {\r\n\tpadding: 0 1em;\r\n}\r\n\r\n.column:first-child {\r\n\tpadding-left: 0;\r\n}\r\n\r\n.column:last-child {\r\n\tpadding-right: 0;\r\n}\r\n\r\n.table_of_contents-item {\r\n\tdisplay: block;\r\n\tfont-size: 0.875rem;\r\n\tline-height: 1.3;\r\n\tpadding: 0.125rem;\r\n}\r\n\r\n.table_of_contents-indent-1 {\r\n\tmargin-left: 1.5rem;\r\n}\r\n\r\n.table_of_contents-indent-2 {\r\n\tmargin-left: 3rem;\r\n}\r\n\r\n.table_of_contents-indent-3 {\r\n\tmargin-left: 4.5rem;\r\n}\r\n\r\n.table_of_contents-link {\r\n\ttext-decoration: none;\r\n\topacity: 0.7;\r\n\tborder-bottom: 1px solid rgba(55, 53, 47, 0.18);\r\n}\r\n\r\ntable,\r\nth,\r\ntd {\r\n\tborder: 1px solid rgba(55, 53, 47, 0.09);\r\n\tborder-collapse: collapse;\r\n}\r\n\r\ntable {\r\n\tborder-left: none;\r\n\tborder-right: none;\r\n}\r\n\r\nth,\r\ntd {\r\n\tfont-weight: normal;\r\n\tpadding: 0.25em 0.5em;\r\n\tline-height: 1.5;\r\n\tmin-height: 1.5em;\r\n\ttext-align: left;\r\n}\r\n\r\nth {\r\n\tcolor: rgba(55, 53, 47, 0.6);\r\n}\r\n\r\nol,\r\nul {\r\n\tmargin: 0;\r\n\tmargin-block-start: 0.6em;\r\n\tmargin-block-end: 0.6em;\r\n}\r\n\r\nli > ol:first-child,\r\nli > ul:first-child {\r\n\tmargin-block-start: 0.6em;\r\n}\r\n\r\nul > li {\r\n\tlist-style: disc;\r\n}\r\n\r\nul.to-do-list {\r\n\ttext-indent: -1.7em;\r\n}\r\n\r\nul.to-do-list > li {\r\n\tlist-style: none;\r\n}\r\n\r\n.to-do-children-checked {\r\n\ttext-decoration: line-through;\r\n\topacity: 0.375;\r\n}\r\n\r\nul.toggle > li {\r\n\tlist-style: none;\r\n}\r\n\r\nul {\r\n\tpadding-inline-start: 1.7em;\r\n}\r\n\r\nul > li {\r\n\tpadding-left: 0.1em;\r\n}\r\n\r\nol {\r\n\tpadding-inline-start: 1.6em;\r\n}\r\n\r\nol > li {\r\n\tpadding-left: 0.2em;\r\n}\r\n\r\n.mono ol {\r\n\tpadding-inline-start: 2em;\r\n}\r\n\r\n.mono ol > li {\r\n\ttext-indent: -0.4em;\r\n}\r\n\r\n.toggle {\r\n\tpadding-inline-start: 0em;\r\n\tlist-style-type: none;\r\n}\r\n\r\n/* Indent toggle children */\r\n.toggle > li > details {\r\n\tpadding-left: 1.7em;\r\n}\r\n\r\n.toggle > li > details > summary {\r\n\tmargin-left: -1.1em;\r\n}\r\n\r\n.selected-value {\r\n\tdisplay: inline-block;\r\n\tpadding: 0 0.5em;\r\n\tbackground: rgba(206, 205, 202, 0.5);\r\n\tborder-radius: 3px;\r\n\tmargin-right: 0.5em;\r\n\tmargin-top: 0.3em;\r\n\tmargin-bottom: 0.3em;\r\n\twhite-space: nowrap;\r\n}\r\n\r\n.collection-title {\r\n\tdisplay: inline-block;\r\n\tmargin-right: 1em;\r\n}\r\n\r\ntime {\r\n\topacity: 0.5;\r\n}\r\n\r\n.icon {\r\n\tdisplay: inline-block;\r\n\tmax-width: 1.2em;\r\n\tmax-height: 1.2em;\r\n\ttext-decoration: none;\r\n\tvertical-align: text-bottom;\r\n\tmargin-right: 0.5em;\r\n}\r\n\r\nimg.icon {\r\n\tborder-radius: 3px;\r\n}\r\n\r\n.user-icon {\r\n\twidth: 1.5em;\r\n\theight: 1.5em;\r\n\tborder-radius: 100%;\r\n\tmargin-right: 0.5rem;\r\n}\r\n\r\n.user-icon-inner {\r\n\tfont-size: 0.8em;\r\n}\r\n\r\n.text-icon {\r\n\tborder: 1px solid #000;\r\n\ttext-align: center;\r\n}\r\n\r\n.page-cover-image {\r\n\tdisplay: block;\r\n\tobject-fit: cover;\r\n\twidth: 100%;\r\n\theight: 30vh;\r\n}\r\n\r\n.page-header-icon {\r\n\tfont-size: 3rem;\r\n\tmargin-bottom: 1rem;\r\n}\r\n\r\n.page-header-icon-with-cover {\r\n\tmargin-top: -0.72em;\r\n\tmargin-left: 0.07em;\r\n}\r\n\r\n.page-header-icon img {\r\n\tborder-radius: 3px;\r\n}\r\n\r\n.link-to-page {\r\n\tmargin: 1em 0;\r\n\tpadding: 0;\r\n\tborder: none;\r\n\tfont-weight: 500;\r\n}\r\n\r\np > .user {\r\n\topacity: 0.5;\r\n}\r\n\r\ntd > .user,\r\ntd > time {\r\n\twhite-space: nowrap;\r\n}\r\n\r\ninput[type=\"checkbox\"] {\r\n\ttransform: scale(1.5);\r\n\tmargin-right: 0.6em;\r\n\tvertical-align: middle;\r\n}\r\n\r\np {\r\n\tmargin-top: 0.5em;\r\n\tmargin-bottom: 0.5em;\r\n}\r\n\r\n.image {\r\n\tborder: none;\r\n\tmargin: 1.5em 0;\r\n\tpadding: 0;\r\n\tborder-radius: 0;\r\n\ttext-align: center;\r\n}\r\n\r\n.code,\r\ncode {\r\n\tbackground: rgba(135, 131, 120, 0.15);\r\n\tborder-radius: 3px;\r\n\tpadding: 0.2em 0.4em;\r\n\tborder-radius: 3px;\r\n\tfont-size: 85%;\r\n\ttab-size: 2;\r\n}\r\n\r\ncode {\r\n\tcolor: #eb5757;\r\n}\r\n\r\n.code {\r\n\tpadding: 1.5em 1em;\r\n}\r\n\r\n.code-wrap {\r\n\t\r\n\tword-break: break-all;\r\n}\r\n\r\n.code > code {\r\n\tbackground: none;\r\n\tpadding: 0;\r\n\tfont-size: 100%;\r\n\tcolor: inherit;\r\n}\r\n\r\nblockquote {\r\n\tfont-size: 1.25em;\r\n\tmargin: 1em 0;\r\n\tpadding-left: 1em;\r\n\tborder-left: 3px solid rgb(55, 53, 47);\r\n}\r\n\r\n.bookmark {\r\n\ttext-decoration: none;\r\n\tmax-height: 8em;\r\n\tpadding: 0;\r\n\tdisplay: flex;\r\n\twidth: 100%;\r\n\talign-items: stretch;\r\n}\r\n\r\n.bookmark-title {\r\n\tfont-size: 0.85em;\r\n\toverflow: hidden;\r\n\ttext-overflow: ellipsis;\r\n\theight: 1.75em;\r\n\twhite-space: nowrap;\r\n}\r\n\r\n.bookmark-text {\r\n\tdisplay: flex;\r\n\tflex-direction: column;\r\n}\r\n\r\n.bookmark-info {\r\n\tflex: 4 1 180px;\r\n\tpadding: 12px 14px 14px;\r\n\tdisplay: flex;\r\n\tflex-direction: column;\r\n\tjustify-content: space-between;\r\n}\r\n\r\n.bookmark-image {\r\n\twidth: 33%;\r\n\tflex: 1 1 180px;\r\n\tdisplay: block;\r\n\tposition: relative;\r\n\tobject-fit: cover;\r\n\tborder-radius: 1px;\r\n}\r\n\r\n.bookmark-description {\r\n\tcolor: rgba(55, 53, 47, 0.6);\r\n\tfont-size: 0.75em;\r\n\toverflow: hidden;\r\n\tmax-height: 4.5em;\r\n\tword-break: break-word;\r\n}\r\n\r\n.bookmark-href {\r\n\tfont-size: 0.75em;\r\n\tmargin-top: 0.25em;\r\n}\r\n\r\n.sans { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\"; }\r\n.code { font-family: \"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, Courier, monospace; }\r\n.serif { font-family: Lyon-Text, Georgia, YuMincho, \"Yu Mincho\", \"Hiragino Mincho ProN\", \"Hiragino Mincho Pro\", \"Songti TC\", \"Songti SC\", \"SimSun\", \"Nanum Myeongjo\", NanumMyeongjo, Batang, serif; }\r\n.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }\r\n.pdf .sans { font-family: Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans CJK SC\", \"Noto Sans CJK KR\"; }\r\n\r\n.pdf .code { font-family: Source Code Pro, \"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, Courier, monospace, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans Mono CJK SC\", \"Noto Sans Mono CJK KR\"; }\r\n\r\n.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, YuMincho, \"Yu Mincho\", \"Hiragino Mincho ProN\", \"Hiragino Mincho Pro\", \"Songti TC\", \"Songti SC\", \"SimSun\", \"Nanum Myeongjo\", NanumMyeongjo, Batang, serif, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans CJK SC\", \"Noto Sans CJK KR\"; }\r\n\r\n.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans Mono CJK SC\", \"Noto Sans Mono CJK KR\"; }\r\n\r\n.highlight-default {\r\n}\r\n.highlight-gray {\r\n\tcolor: rgb(155,154,151);\r\n}\r\n.highlight-brown {\r\n\tcolor: rgb(100,71,58);\r\n}\r\n.highlight-orange {\r\n\tcolor: rgb(217,115,13);\r\n}\r\n.highlight-yellow {\r\n\tcolor: rgb(223,171,1);\r\n}\r\n.highlight-teal {\r\n\tcolor: rgb(15,123,108);\r\n}\r\n.highlight-blue {\r\n\tcolor: rgb(11,110,153);\r\n}\r\n.highlight-purple {\r\n\tcolor: rgb(105,64,165);\r\n}\r\n.highlight-pink {\r\n\tcolor: rgb(173,26,114);\r\n}\r\n.highlight-red {\r\n\tcolor: rgb(224,62,62);\r\n}\r\n.highlight-gray_background {\r\n\tbackground: rgb(235,236,237);\r\n}\r\n.highlight-brown_background {\r\n\tbackground: rgb(233,229,227);\r\n}\r\n.highlight-orange_background {\r\n\tbackground: rgb(250,235,221);\r\n}\r\n.highlight-yellow_background {\r\n\tbackground: rgb(251,243,219);\r\n}\r\n.highlight-teal_background {\r\n\tbackground: rgb(221,237,234);\r\n}\r\n.highlight-blue_background {\r\n\tbackground: rgb(221,235,241);\r\n}\r\n.highlight-purple_background {\r\n\tbackground: rgb(234,228,242);\r\n}\r\n.highlight-pink_background {\r\n\tbackground: rgb(244,223,235);\r\n}\r\n.highlight-red_background {\r\n\tbackground: rgb(251,228,228);\r\n}\r\n.block-color-default {\r\n\tcolor: inherit;\r\n\tfill: inherit;\r\n}\r\n.block-color-gray {\r\n\tcolor: rgba(55, 53, 47, 0.6);\r\n\tfill: rgba(55, 53, 47, 0.6);\r\n}\r\n.block-color-brown {\r\n\tcolor: rgb(100,71,58);\r\n\tfill: rgb(100,71,58);\r\n}\r\n.block-color-orange {\r\n\tcolor: rgb(217,115,13);\r\n\tfill: rgb(217,115,13);\r\n}\r\n.block-color-yellow {\r\n\tcolor: rgb(223,171,1);\r\n\tfill: rgb(223,171,1);\r\n}\r\n.block-color-teal {\r\n\tcolor: rgb(15,123,108);\r\n\tfill: rgb(15,123,108);\r\n}\r\n.block-color-blue {\r\n\tcolor: rgb(11,110,153);\r\n\tfill: rgb(11,110,153);\r\n}\r\n.block-color-purple {\r\n\tcolor: rgb(105,64,165);\r\n\tfill: rgb(105,64,165);\r\n}\r\n.block-color-pink {\r\n\tcolor: rgb(173,26,114);\r\n\tfill: rgb(173,26,114);\r\n}\r\n.block-color-red {\r\n\tcolor: rgb(224,62,62);\r\n\tfill: rgb(224,62,62);\r\n}\r\n.block-color-gray_background {\r\n\tbackground: rgb(235,236,237);\r\n}\r\n.block-color-brown_background {\r\n\tbackground: rgb(233,229,227);\r\n}\r\n.block-color-orange_background {\r\n\tbackground: rgb(250,235,221);\r\n}\r\n.block-color-yellow_background {\r\n\tbackground: rgb(251,243,219);\r\n}\r\n.block-color-teal_background {\r\n\tbackground: rgb(221,237,234);\r\n}\r\n.block-color-blue_background {\r\n\tbackground: rgb(221,235,241);\r\n}\r\n.block-color-purple_background {\r\n\tbackground: rgb(234,228,242);\r\n}\r\n.block-color-pink_background {\r\n\tbackground: rgb(244,223,235);\r\n}\r\n.block-color-red_background {\r\n\tbackground: rgb(251,228,228);\r\n}\r\n.select-value-color-default { background-color: rgba(206,205,202,0.5); }\r\n.select-value-color-gray { background-color: rgba(155,154,151, 0.4); }\r\n.select-value-color-brown { background-color: rgba(140,46,0,0.2); }\r\n.select-value-color-orange { background-color: rgba(245,93,0,0.2); }\r\n.select-value-color-yellow { background-color: rgba(233,168,0,0.2); }\r\n.select-value-color-green { background-color: rgba(0,135,107,0.2); }\r\n.select-value-color-blue { background-color: rgba(0,120,223,0.2); }\r\n.select-value-color-purple { background-color: rgba(103,36,222,0.2); }\r\n.select-value-color-pink { background-color: rgba(221,0,129,0.2); }\r\n.select-value-color-red { background-color: rgba(255,0,26,0.2); }\r\n\r\n.checkbox {\r\n\tdisplay: inline-flex;\r\n\tvertical-align: text-bottom;\r\n\twidth: 16;\r\n\theight: 16;\r\n\tbackground-size: 16px;\r\n\tmargin-left: 2px;\r\n\tmargin-right: 5px;\r\n}\r\n\r\n.checkbox-on {\r\n\tbackground-image: url(\"data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E\");\r\n}\r\n\r\n.checkbox-off {\r\n\tbackground-image: url(\"data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E\");\r\n}\r\n\t\r\nhtml,\r\nbody {\r\n  text-align: center;\r\n}\r\n\r\n.card {\r\n  font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica,\r\n    \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\";\r\n  color: black;\r\n  background-color: white;\r\n  border: lightgray 1px solid;\r\n  padding: 16px;\r\n  border-radius: 8px;\r\n  margin: 16px;\r\n  width: 80%;\r\n  display: inline-block;\r\n}\r\n\r\n.card:hover {\r\n  box-shadow: 0 0 8px #ccc;\r\n  border: 1px solid #fff;\r\n}\r\n\r\n.front-text-pre {\r\n  font-size: 1.5rem;\r\n}\r\n\r\n.front-text-post {\r\n  color: gray;\r\n  font-size: 1rem;\r\n}\r\n\r\n.back-text {\r\n  font-size: 1.5rem;\r\n  text-align: left;\r\n}\r\n\r\n.extra {\r\n  color: gray;\r\n}\r\n"
+      },
+      "previewData": {
+        "Front": "Capital of France?",
+        "Back": "Paris",
+        "Input": "Paris",
+        "MyMedia": ""
+      },
+      "tags": ["default", "input", "type-the-answer"]
+    },
+    {
+      "id": "official-n2a-io",
+      "name": "Image Occlusion",
+      "description": "Anki's image-occlusion note type, kept in sync with the 2anki conversion target",
+      "baseType": "cloze",
+      "noteType": {
+        "name": "Image Occlusion",
+        "type": 1,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "{{#Header}}<div>{{Header}}</div>{{/Header}}\n<div style=\"display: none\">{{cloze:Occlusion}}</div>\n<div id=\"err\"></div>\n<div id=\"image-occlusion-container\">\n{{Image}}\n<canvas id=\"image-occlusion-canvas\"></canvas>\n</div>\n<script>\ntry {\n    anki.imageOcclusion.setup();\n} catch (exc) {\n    document.getElementById(\"err\").innerHTML = `Error loading image occlusion.<br><br>${exc}`;\n}\n</script>",
+            "afmt": "{{#Header}}<div>{{Header}}</div>{{/Header}}\n<div style=\"display: none\">{{cloze:Occlusion}}</div>\n<div id=\"err\"></div>\n<div id=\"image-occlusion-container\">\n{{Image}}\n<canvas id=\"image-occlusion-canvas\"></canvas>\n</div>\n<script>\ntry {\n    anki.imageOcclusion.setup();\n} catch (exc) {\n    document.getElementById(\"err\").innerHTML = `Error loading image occlusion.<br><br>${exc}`;\n}\n</script>\n<div><button id=\"toggle\">Toggle Masks</button></div>\n{{#Back Extra}}<div>{{Back Extra}}</div>{{/Back Extra}}"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Occlusion",
+            "ord": 0
+          },
+          {
+            "name": "Image",
+            "ord": 1
+          },
+          {
+            "name": "Header",
+            "ord": 2
+          },
+          {
+            "name": "Back Extra",
+            "ord": 3
+          },
+          {
+            "name": "Comments",
+            "ord": 4
+          }
+        ],
+        "css": "#image-occlusion-canvas {\n    --inactive-shape-color: #ffeba2;\n    --active-shape-color: #ff8e8e;\n    --inactive-shape-border: 1px #212121;\n    --active-shape-border: 1px #212121;\n    --highlight-shape-color: #ff8e8e00;\n    --highlight-shape-border: 1px #ff8e8e;\n}\n.card { font-family: arial; font-size: 20px; text-align: center; color: black; background-color: white; }"
+      },
+      "previewData": {
+        "Header": "Cell anatomy",
+        "Image": "",
+        "Occlusion": "{{c1::Nucleus}}",
+        "Back Extra": "Mitochondria is the powerhouse of the cell.",
+        "Comments": ""
+      },
+      "tags": ["image-occlusion"]
+    },
+    {
+      "id": "official-only-notion-basic",
+      "name": "Only Notion (Basic)",
+      "description": "Notion-flavoured CSS only — strips the 2anki additions for a minimal Notion-native look",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Only Notion (Basic)",
+        "type": 0,
+        "tmpls": [
+          {
+            "name": "Basic",
+            "ord": 0,
+            "qfmt": "<span class=\"front-text-pre\">{{Front}}</span>",
+            "afmt": "<span class=\"front-text-post\">{{Front}}</span><hr id=\"answer\"><span class=\"back-text\">{{Back}}</span>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Front",
+            "ord": 0
+          },
+          {
+            "name": "Back",
+            "ord": 1
+          },
+          {
+            "name": "MyMedia",
+            "ord": 2
+          }
+        ],
+        "css": "\n/* webkit printing magic: print all background colors */\nhtml {\n\t-webkit-print-color-adjust: exact;\n}\n* {\n\tbox-sizing: border-box;\n\t-webkit-print-color-adjust: exact;\n}\n\nhtml,\nbody {\n\tmargin: 0;\n\tpadding: 0;\n}\n@media only screen {\n\tbody {\n\t\tmargin: 2em auto;\n\t\tmax-width: 900px;\n\t\tcolor: rgb(55, 53, 47);\n\t}\n}\n\nbody {\n\tline-height: 1.5;\n\t\n}\n\na,\na.visited {\n\tcolor: inherit;\n\ttext-decoration: underline;\n}\n\n.pdf-relative-link-path {\n\tfont-size: 80%;\n\tcolor: #444;\n}\n\nh1,\nh2,\nh3 {\n\tletter-spacing: -0.01em;\n\tline-height: 1.2;\n\tfont-weight: 600;\n\tmargin-bottom: 0;\n}\n\n.page-title {\n\tfont-size: 2.5rem;\n\tfont-weight: 700;\n\tmargin-top: 0;\n\tmargin-bottom: 0.75em;\n}\n\nh1 {\n\tfont-size: 1.875rem;\n\tmargin-top: 1.875rem;\n}\n\nh2 {\n\tfont-size: 1.5rem;\n\tmargin-top: 1.5rem;\n}\n\nh3 {\n\tfont-size: 1.25rem;\n\tmargin-top: 1.25rem;\n}\n\n.source {\n\tborder: 1px solid #ddd;\n\tborder-radius: 3px;\n\tpadding: 1.5em;\n\tword-break: break-all;\n}\n\n.callout {\n\tborder-radius: 3px;\n\tpadding: 1rem;\n}\n\nfigure {\n\tmargin: 1.25em 0;\n\tpage-break-inside: avoid;\n}\n\nfigcaption {\n\topacity: 0.5;\n\tfont-size: 85%;\n\tmargin-top: 0.5em;\n}\n\nmark {\n\tbackground-color: transparent;\n}\n\n.indented {\n\tpadding-left: 1.5em;\n}\n\nhr {\n\tbackground: transparent;\n\tdisplay: block;\n\twidth: 100%;\n\theight: 1px;\n\tvisibility: visible;\n\tborder: none;\n\tborder-bottom: 1px solid rgba(55, 53, 47, 0.09);\n}\n\nimg {\n\tmax-width: 100%;\n}\n\n@media only print {\n\timg {\n\t\tmax-height: 100vh;\n\t\tobject-fit: contain;\n\t}\n}\n\n@page {\n\tmargin: 1in;\n}\n\n.collection-content {\n\tfont-size: 0.875rem;\n}\n\n.column-list {\n\tdisplay: flex;\n\tjustify-content: space-between;\n}\n\n.column {\n\tpadding: 0 1em;\n}\n\n.column:first-child {\n\tpadding-left: 0;\n}\n\n.column:last-child {\n\tpadding-right: 0;\n}\n\n.table_of_contents-item {\n\tdisplay: block;\n\tfont-size: 0.875rem;\n\tline-height: 1.3;\n\tpadding: 0.125rem;\n}\n\n.table_of_contents-indent-1 {\n\tmargin-left: 1.5rem;\n}\n\n.table_of_contents-indent-2 {\n\tmargin-left: 3rem;\n}\n\n.table_of_contents-indent-3 {\n\tmargin-left: 4.5rem;\n}\n\n.table_of_contents-link {\n\ttext-decoration: none;\n\topacity: 0.7;\n\tborder-bottom: 1px solid rgba(55, 53, 47, 0.18);\n}\n\ntable,\nth,\ntd {\n\tborder: 1px solid rgba(55, 53, 47, 0.09);\n\tborder-collapse: collapse;\n}\n\ntable {\n\tborder-left: none;\n\tborder-right: none;\n}\n\nth,\ntd {\n\tfont-weight: normal;\n\tpadding: 0.25em 0.5em;\n\tline-height: 1.5;\n\tmin-height: 1.5em;\n\ttext-align: left;\n}\n\nth {\n\tcolor: rgba(55, 53, 47, 0.6);\n}\n\nol,\nul {\n\tmargin: 0;\n\tmargin-block-start: 0.6em;\n\tmargin-block-end: 0.6em;\n}\n\nli > ol:first-child,\nli > ul:first-child {\n\tmargin-block-start: 0.6em;\n}\n\nul > li {\n\tlist-style: disc;\n}\n\nul.to-do-list {\n\ttext-indent: -1.7em;\n}\n\nul.to-do-list > li {\n\tlist-style: none;\n}\n\n.to-do-children-checked {\n\ttext-decoration: line-through;\n\topacity: 0.375;\n}\n\nul.toggle > li {\n\tlist-style: none;\n}\n\nul {\n\tpadding-inline-start: 1.7em;\n}\n\nul > li {\n\tpadding-left: 0.1em;\n}\n\nol {\n\tpadding-inline-start: 1.6em;\n}\n\nol > li {\n\tpadding-left: 0.2em;\n}\n\n.mono ol {\n\tpadding-inline-start: 2em;\n}\n\n.mono ol > li {\n\ttext-indent: -0.4em;\n}\n\n.toggle {\n\tpadding-inline-start: 0em;\n\tlist-style-type: none;\n}\n\n/* Indent toggle children */\n.toggle > li > details {\n\tpadding-left: 1.7em;\n}\n\n.toggle > li > details > summary {\n\tmargin-left: -1.1em;\n}\n\n.selected-value {\n\tdisplay: inline-block;\n\tpadding: 0 0.5em;\n\tbackground: rgba(206, 205, 202, 0.5);\n\tborder-radius: 3px;\n\tmargin-right: 0.5em;\n\tmargin-top: 0.3em;\n\tmargin-bottom: 0.3em;\n\twhite-space: nowrap;\n}\n\n.collection-title {\n\tdisplay: inline-block;\n\tmargin-right: 1em;\n}\n\ntime {\n\topacity: 0.5;\n}\n\n.icon {\n\tdisplay: inline-block;\n\tmax-width: 1.2em;\n\tmax-height: 1.2em;\n\ttext-decoration: none;\n\tvertical-align: text-bottom;\n\tmargin-right: 0.5em;\n}\n\nimg.icon {\n\tborder-radius: 3px;\n}\n\n.user-icon {\n\twidth: 1.5em;\n\theight: 1.5em;\n\tborder-radius: 100%;\n\tmargin-right: 0.5rem;\n}\n\n.user-icon-inner {\n\tfont-size: 0.8em;\n}\n\n.text-icon {\n\tborder: 1px solid #000;\n\ttext-align: center;\n}\n\n.page-cover-image {\n\tdisplay: block;\n\tobject-fit: cover;\n\twidth: 100%;\n\theight: 30vh;\n}\n\n.page-header-icon {\n\tfont-size: 3rem;\n\tmargin-bottom: 1rem;\n}\n\n.page-header-icon-with-cover {\n\tmargin-top: -0.72em;\n\tmargin-left: 0.07em;\n}\n\n.page-header-icon img {\n\tborder-radius: 3px;\n}\n\n.link-to-page {\n\tmargin: 1em 0;\n\tpadding: 0;\n\tborder: none;\n\tfont-weight: 500;\n}\n\np > .user {\n\topacity: 0.5;\n}\n\ntd > .user,\ntd > time {\n\twhite-space: nowrap;\n}\n\ninput[type=\"checkbox\"] {\n\ttransform: scale(1.5);\n\tmargin-right: 0.6em;\n\tvertical-align: middle;\n}\n\np {\n\tmargin-top: 0.5em;\n\tmargin-bottom: 0.5em;\n}\n\n.image {\n\tborder: none;\n\tmargin: 1.5em 0;\n\tpadding: 0;\n\tborder-radius: 0;\n\ttext-align: center;\n}\n\n.code,\ncode {\n\tbackground: rgba(135, 131, 120, 0.15);\n\tborder-radius: 3px;\n\tpadding: 0.2em 0.4em;\n\tborder-radius: 3px;\n\tfont-size: 85%;\n\ttab-size: 2;\n}\n\ncode {\n\tcolor: #eb5757;\n}\n\n.code {\n\tpadding: 1.5em 1em;\n}\n\n.code-wrap {\n\t\n\tword-break: break-all;\n}\n\n.code > code {\n\tbackground: none;\n\tpadding: 0;\n\tfont-size: 100%;\n\tcolor: inherit;\n}\n\nblockquote {\n\tfont-size: 1.25em;\n\tmargin: 1em 0;\n\tpadding-left: 1em;\n\tborder-left: 3px solid rgb(55, 53, 47);\n}\n\n.bookmark {\n\ttext-decoration: none;\n\tmax-height: 8em;\n\tpadding: 0;\n\tdisplay: flex;\n\twidth: 100%;\n\talign-items: stretch;\n}\n\n.bookmark-title {\n\tfont-size: 0.85em;\n\toverflow: hidden;\n\ttext-overflow: ellipsis;\n\theight: 1.75em;\n\twhite-space: nowrap;\n}\n\n.bookmark-text {\n\tdisplay: flex;\n\tflex-direction: column;\n}\n\n.bookmark-info {\n\tflex: 4 1 180px;\n\tpadding: 12px 14px 14px;\n\tdisplay: flex;\n\tflex-direction: column;\n\tjustify-content: space-between;\n}\n\n.bookmark-image {\n\twidth: 33%;\n\tflex: 1 1 180px;\n\tdisplay: block;\n\tposition: relative;\n\tobject-fit: cover;\n\tborder-radius: 1px;\n}\n\n.bookmark-description {\n\tcolor: rgba(55, 53, 47, 0.6);\n\tfont-size: 0.75em;\n\toverflow: hidden;\n\tmax-height: 4.5em;\n\tword-break: break-word;\n}\n\n.bookmark-href {\n\tfont-size: 0.75em;\n\tmargin-top: 0.25em;\n}\n\n.sans { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\"; }\n.code { font-family: \"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, Courier, monospace; }\n.serif { font-family: Lyon-Text, Georgia, YuMincho, \"Yu Mincho\", \"Hiragino Mincho ProN\", \"Hiragino Mincho Pro\", \"Songti TC\", \"Songti SC\", \"SimSun\", \"Nanum Myeongjo\", NanumMyeongjo, Batang, serif; }\n.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }\n.pdf .sans { font-family: Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans CJK SC\", \"Noto Sans CJK KR\"; }\n\n.pdf .code { font-family: Source Code Pro, \"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, Courier, monospace, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans Mono CJK SC\", \"Noto Sans Mono CJK KR\"; }\n\n.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, YuMincho, \"Yu Mincho\", \"Hiragino Mincho ProN\", \"Hiragino Mincho Pro\", \"Songti TC\", \"Songti SC\", \"SimSun\", \"Nanum Myeongjo\", NanumMyeongjo, Batang, serif, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans CJK SC\", \"Noto Sans CJK KR\"; }\n\n.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans Mono CJK SC\", \"Noto Sans Mono CJK KR\"; }\n\n.highlight-default {\n}\n.highlight-gray {\n\tcolor: rgb(155,154,151);\n}\n.highlight-brown {\n\tcolor: rgb(100,71,58);\n}\n.highlight-orange {\n\tcolor: rgb(217,115,13);\n}\n.highlight-yellow {\n\tcolor: rgb(223,171,1);\n}\n.highlight-teal {\n\tcolor: rgb(15,123,108);\n}\n.highlight-blue {\n\tcolor: rgb(11,110,153);\n}\n.highlight-purple {\n\tcolor: rgb(105,64,165);\n}\n.highlight-pink {\n\tcolor: rgb(173,26,114);\n}\n.highlight-red {\n\tcolor: rgb(224,62,62);\n}\n.highlight-gray_background {\n\tbackground: rgb(235,236,237);\n}\n.highlight-brown_background {\n\tbackground: rgb(233,229,227);\n}\n.highlight-orange_background {\n\tbackground: rgb(250,235,221);\n}\n.highlight-yellow_background {\n\tbackground: rgb(251,243,219);\n}\n.highlight-teal_background {\n\tbackground: rgb(221,237,234);\n}\n.highlight-blue_background {\n\tbackground: rgb(221,235,241);\n}\n.highlight-purple_background {\n\tbackground: rgb(234,228,242);\n}\n.highlight-pink_background {\n\tbackground: rgb(244,223,235);\n}\n.highlight-red_background {\n\tbackground: rgb(251,228,228);\n}\n.block-color-default {\n\tcolor: inherit;\n\tfill: inherit;\n}\n.block-color-gray {\n\tcolor: rgba(55, 53, 47, 0.6);\n\tfill: rgba(55, 53, 47, 0.6);\n}\n.block-color-brown {\n\tcolor: rgb(100,71,58);\n\tfill: rgb(100,71,58);\n}\n.block-color-orange {\n\tcolor: rgb(217,115,13);\n\tfill: rgb(217,115,13);\n}\n.block-color-yellow {\n\tcolor: rgb(223,171,1);\n\tfill: rgb(223,171,1);\n}\n.block-color-teal {\n\tcolor: rgb(15,123,108);\n\tfill: rgb(15,123,108);\n}\n.block-color-blue {\n\tcolor: rgb(11,110,153);\n\tfill: rgb(11,110,153);\n}\n.block-color-purple {\n\tcolor: rgb(105,64,165);\n\tfill: rgb(105,64,165);\n}\n.block-color-pink {\n\tcolor: rgb(173,26,114);\n\tfill: rgb(173,26,114);\n}\n.block-color-red {\n\tcolor: rgb(224,62,62);\n\tfill: rgb(224,62,62);\n}\n.block-color-gray_background {\n\tbackground: rgb(235,236,237);\n}\n.block-color-brown_background {\n\tbackground: rgb(233,229,227);\n}\n.block-color-orange_background {\n\tbackground: rgb(250,235,221);\n}\n.block-color-yellow_background {\n\tbackground: rgb(251,243,219);\n}\n.block-color-teal_background {\n\tbackground: rgb(221,237,234);\n}\n.block-color-blue_background {\n\tbackground: rgb(221,235,241);\n}\n.block-color-purple_background {\n\tbackground: rgb(234,228,242);\n}\n.block-color-pink_background {\n\tbackground: rgb(244,223,235);\n}\n.block-color-red_background {\n\tbackground: rgb(251,228,228);\n}\n.select-value-color-default { background-color: rgba(206,205,202,0.5); }\n.select-value-color-gray { background-color: rgba(155,154,151, 0.4); }\n.select-value-color-brown { background-color: rgba(140,46,0,0.2); }\n.select-value-color-orange { background-color: rgba(245,93,0,0.2); }\n.select-value-color-yellow { background-color: rgba(233,168,0,0.2); }\n.select-value-color-green { background-color: rgba(0,135,107,0.2); }\n.select-value-color-blue { background-color: rgba(0,120,223,0.2); }\n.select-value-color-purple { background-color: rgba(103,36,222,0.2); }\n.select-value-color-pink { background-color: rgba(221,0,129,0.2); }\n.select-value-color-red { background-color: rgba(255,0,26,0.2); }\n\n.checkbox {\n\tdisplay: inline-flex;\n\tvertical-align: text-bottom;\n\twidth: 16;\n\theight: 16;\n\tbackground-size: 16px;\n\tmargin-left: 2px;\n\tmargin-right: 5px;\n}\n\n.checkbox-on {\n\tbackground-image: url(\"data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E\");\n}\n\n.checkbox-off {\n\tbackground-image: url(\"data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E\");\n}\n\t\n.n2a-highlight-default { color: #37352F; }\n.n2a-highlight-gray { color: #9B9A97; }\n.n2a-highlight-brown { color: #64473A; }\n.n2a-highlight-orange { color: #D9730D; }\n.n2a-highlight-yellow { color: #DFAB01; }\n.n2a-highlight-green { color: #0F7B6C; }\n.n2a-highlight-blue { color: #0B6E99; }\n.n2a-highlight-purple { color: #6940A5; }\n.n2a-highlight-pink { color: #AD1A72; }\n.n2a-highlight-red { color: #E03E3E; }\n.n2a-highlight-gray_background { background-color: rgb(241, 241, 239); }\n.n2a-highlight-brown_background { background-color: rgb(244, 238, 238); }\n.n2a-highlight-orange_background { background-color: rgb(251, 236, 221); }\n.n2a-highlight-yellow_background { background-color: rgb(251, 243, 219); }\n.n2a-highlight-green_background { background-color: rgb(237, 243, 236); }\n.n2a-highlight-blue_background { background-color: rgb(231, 243, 248); }\n.n2a-highlight-purple_background { background-color: rgba(244, 240, 247, 0.8); }\n.n2a-highlight-pink_background { background-color: rgba(249, 238, 243, 0.8); }\n\n/* highlight.js code-block container (token colors live in hljs-themes/*) */\npre code.hljs {\n\tdisplay: block;\n\toverflow-x: auto;\n\tpadding: 1em;\n}\ncode.hljs {\n\tpadding: 3px 5px;\n}\n.n2a-highlight-red_background { background-color: rgb(253, 235, 236); }"
+      },
+      "previewData": {
+        "Front": "What is the capital of France?",
+        "Back": "Paris",
+        "MyMedia": ""
+      },
+      "tags": ["notionstyle", "notion"]
+    },
+    {
+      "id": "official-only-notion-cloze",
+      "name": "Only Notion (Cloze)",
+      "description": "Notion-only styling on the cloze base type",
+      "baseType": "cloze",
+      "noteType": {
+        "name": "Only Notion (Cloze)",
+        "type": 1,
+        "tmpls": [
+          {
+            "name": "Cloze",
+            "ord": 0,
+            "qfmt": "<span class=\"front-text-pre\">{{cloze:Text}}</span>",
+            "afmt": "<span class=\"front-text-pre\">{{cloze:Text}}</span><br><span class=\"extra\">{{Extra}}</span>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Text",
+            "ord": 0
+          },
+          {
+            "name": "Extra",
+            "ord": 1
+          },
+          {
+            "name": "MyMedia",
+            "ord": 2
+          }
+        ],
+        "css": "\n/* webkit printing magic: print all background colors */\nhtml {\n\t-webkit-print-color-adjust: exact;\n}\n* {\n\tbox-sizing: border-box;\n\t-webkit-print-color-adjust: exact;\n}\n\nhtml,\nbody {\n\tmargin: 0;\n\tpadding: 0;\n}\n@media only screen {\n\tbody {\n\t\tmargin: 2em auto;\n\t\tmax-width: 900px;\n\t\tcolor: rgb(55, 53, 47);\n\t}\n}\n\nbody {\n\tline-height: 1.5;\n\t\n}\n\na,\na.visited {\n\tcolor: inherit;\n\ttext-decoration: underline;\n}\n\n.pdf-relative-link-path {\n\tfont-size: 80%;\n\tcolor: #444;\n}\n\nh1,\nh2,\nh3 {\n\tletter-spacing: -0.01em;\n\tline-height: 1.2;\n\tfont-weight: 600;\n\tmargin-bottom: 0;\n}\n\n.page-title {\n\tfont-size: 2.5rem;\n\tfont-weight: 700;\n\tmargin-top: 0;\n\tmargin-bottom: 0.75em;\n}\n\nh1 {\n\tfont-size: 1.875rem;\n\tmargin-top: 1.875rem;\n}\n\nh2 {\n\tfont-size: 1.5rem;\n\tmargin-top: 1.5rem;\n}\n\nh3 {\n\tfont-size: 1.25rem;\n\tmargin-top: 1.25rem;\n}\n\n.source {\n\tborder: 1px solid #ddd;\n\tborder-radius: 3px;\n\tpadding: 1.5em;\n\tword-break: break-all;\n}\n\n.callout {\n\tborder-radius: 3px;\n\tpadding: 1rem;\n}\n\nfigure {\n\tmargin: 1.25em 0;\n\tpage-break-inside: avoid;\n}\n\nfigcaption {\n\topacity: 0.5;\n\tfont-size: 85%;\n\tmargin-top: 0.5em;\n}\n\nmark {\n\tbackground-color: transparent;\n}\n\n.indented {\n\tpadding-left: 1.5em;\n}\n\nhr {\n\tbackground: transparent;\n\tdisplay: block;\n\twidth: 100%;\n\theight: 1px;\n\tvisibility: visible;\n\tborder: none;\n\tborder-bottom: 1px solid rgba(55, 53, 47, 0.09);\n}\n\nimg {\n\tmax-width: 100%;\n}\n\n@media only print {\n\timg {\n\t\tmax-height: 100vh;\n\t\tobject-fit: contain;\n\t}\n}\n\n@page {\n\tmargin: 1in;\n}\n\n.collection-content {\n\tfont-size: 0.875rem;\n}\n\n.column-list {\n\tdisplay: flex;\n\tjustify-content: space-between;\n}\n\n.column {\n\tpadding: 0 1em;\n}\n\n.column:first-child {\n\tpadding-left: 0;\n}\n\n.column:last-child {\n\tpadding-right: 0;\n}\n\n.table_of_contents-item {\n\tdisplay: block;\n\tfont-size: 0.875rem;\n\tline-height: 1.3;\n\tpadding: 0.125rem;\n}\n\n.table_of_contents-indent-1 {\n\tmargin-left: 1.5rem;\n}\n\n.table_of_contents-indent-2 {\n\tmargin-left: 3rem;\n}\n\n.table_of_contents-indent-3 {\n\tmargin-left: 4.5rem;\n}\n\n.table_of_contents-link {\n\ttext-decoration: none;\n\topacity: 0.7;\n\tborder-bottom: 1px solid rgba(55, 53, 47, 0.18);\n}\n\ntable,\nth,\ntd {\n\tborder: 1px solid rgba(55, 53, 47, 0.09);\n\tborder-collapse: collapse;\n}\n\ntable {\n\tborder-left: none;\n\tborder-right: none;\n}\n\nth,\ntd {\n\tfont-weight: normal;\n\tpadding: 0.25em 0.5em;\n\tline-height: 1.5;\n\tmin-height: 1.5em;\n\ttext-align: left;\n}\n\nth {\n\tcolor: rgba(55, 53, 47, 0.6);\n}\n\nol,\nul {\n\tmargin: 0;\n\tmargin-block-start: 0.6em;\n\tmargin-block-end: 0.6em;\n}\n\nli > ol:first-child,\nli > ul:first-child {\n\tmargin-block-start: 0.6em;\n}\n\nul > li {\n\tlist-style: disc;\n}\n\nul.to-do-list {\n\ttext-indent: -1.7em;\n}\n\nul.to-do-list > li {\n\tlist-style: none;\n}\n\n.to-do-children-checked {\n\ttext-decoration: line-through;\n\topacity: 0.375;\n}\n\nul.toggle > li {\n\tlist-style: none;\n}\n\nul {\n\tpadding-inline-start: 1.7em;\n}\n\nul > li {\n\tpadding-left: 0.1em;\n}\n\nol {\n\tpadding-inline-start: 1.6em;\n}\n\nol > li {\n\tpadding-left: 0.2em;\n}\n\n.mono ol {\n\tpadding-inline-start: 2em;\n}\n\n.mono ol > li {\n\ttext-indent: -0.4em;\n}\n\n.toggle {\n\tpadding-inline-start: 0em;\n\tlist-style-type: none;\n}\n\n/* Indent toggle children */\n.toggle > li > details {\n\tpadding-left: 1.7em;\n}\n\n.toggle > li > details > summary {\n\tmargin-left: -1.1em;\n}\n\n.selected-value {\n\tdisplay: inline-block;\n\tpadding: 0 0.5em;\n\tbackground: rgba(206, 205, 202, 0.5);\n\tborder-radius: 3px;\n\tmargin-right: 0.5em;\n\tmargin-top: 0.3em;\n\tmargin-bottom: 0.3em;\n\twhite-space: nowrap;\n}\n\n.collection-title {\n\tdisplay: inline-block;\n\tmargin-right: 1em;\n}\n\ntime {\n\topacity: 0.5;\n}\n\n.icon {\n\tdisplay: inline-block;\n\tmax-width: 1.2em;\n\tmax-height: 1.2em;\n\ttext-decoration: none;\n\tvertical-align: text-bottom;\n\tmargin-right: 0.5em;\n}\n\nimg.icon {\n\tborder-radius: 3px;\n}\n\n.user-icon {\n\twidth: 1.5em;\n\theight: 1.5em;\n\tborder-radius: 100%;\n\tmargin-right: 0.5rem;\n}\n\n.user-icon-inner {\n\tfont-size: 0.8em;\n}\n\n.text-icon {\n\tborder: 1px solid #000;\n\ttext-align: center;\n}\n\n.page-cover-image {\n\tdisplay: block;\n\tobject-fit: cover;\n\twidth: 100%;\n\theight: 30vh;\n}\n\n.page-header-icon {\n\tfont-size: 3rem;\n\tmargin-bottom: 1rem;\n}\n\n.page-header-icon-with-cover {\n\tmargin-top: -0.72em;\n\tmargin-left: 0.07em;\n}\n\n.page-header-icon img {\n\tborder-radius: 3px;\n}\n\n.link-to-page {\n\tmargin: 1em 0;\n\tpadding: 0;\n\tborder: none;\n\tfont-weight: 500;\n}\n\np > .user {\n\topacity: 0.5;\n}\n\ntd > .user,\ntd > time {\n\twhite-space: nowrap;\n}\n\ninput[type=\"checkbox\"] {\n\ttransform: scale(1.5);\n\tmargin-right: 0.6em;\n\tvertical-align: middle;\n}\n\np {\n\tmargin-top: 0.5em;\n\tmargin-bottom: 0.5em;\n}\n\n.image {\n\tborder: none;\n\tmargin: 1.5em 0;\n\tpadding: 0;\n\tborder-radius: 0;\n\ttext-align: center;\n}\n\n.code,\ncode {\n\tbackground: rgba(135, 131, 120, 0.15);\n\tborder-radius: 3px;\n\tpadding: 0.2em 0.4em;\n\tborder-radius: 3px;\n\tfont-size: 85%;\n\ttab-size: 2;\n}\n\ncode {\n\tcolor: #eb5757;\n}\n\n.code {\n\tpadding: 1.5em 1em;\n}\n\n.code-wrap {\n\t\n\tword-break: break-all;\n}\n\n.code > code {\n\tbackground: none;\n\tpadding: 0;\n\tfont-size: 100%;\n\tcolor: inherit;\n}\n\nblockquote {\n\tfont-size: 1.25em;\n\tmargin: 1em 0;\n\tpadding-left: 1em;\n\tborder-left: 3px solid rgb(55, 53, 47);\n}\n\n.bookmark {\n\ttext-decoration: none;\n\tmax-height: 8em;\n\tpadding: 0;\n\tdisplay: flex;\n\twidth: 100%;\n\talign-items: stretch;\n}\n\n.bookmark-title {\n\tfont-size: 0.85em;\n\toverflow: hidden;\n\ttext-overflow: ellipsis;\n\theight: 1.75em;\n\twhite-space: nowrap;\n}\n\n.bookmark-text {\n\tdisplay: flex;\n\tflex-direction: column;\n}\n\n.bookmark-info {\n\tflex: 4 1 180px;\n\tpadding: 12px 14px 14px;\n\tdisplay: flex;\n\tflex-direction: column;\n\tjustify-content: space-between;\n}\n\n.bookmark-image {\n\twidth: 33%;\n\tflex: 1 1 180px;\n\tdisplay: block;\n\tposition: relative;\n\tobject-fit: cover;\n\tborder-radius: 1px;\n}\n\n.bookmark-description {\n\tcolor: rgba(55, 53, 47, 0.6);\n\tfont-size: 0.75em;\n\toverflow: hidden;\n\tmax-height: 4.5em;\n\tword-break: break-word;\n}\n\n.bookmark-href {\n\tfont-size: 0.75em;\n\tmargin-top: 0.25em;\n}\n\n.sans { font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\"; }\n.code { font-family: \"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, Courier, monospace; }\n.serif { font-family: Lyon-Text, Georgia, YuMincho, \"Yu Mincho\", \"Hiragino Mincho ProN\", \"Hiragino Mincho Pro\", \"Songti TC\", \"Songti SC\", \"SimSun\", \"Nanum Myeongjo\", NanumMyeongjo, Batang, serif; }\n.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }\n.pdf .sans { font-family: Inter, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Helvetica, \"Apple Color Emoji\", Arial, sans-serif, \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans CJK SC\", \"Noto Sans CJK KR\"; }\n\n.pdf .code { font-family: Source Code Pro, \"SFMono-Regular\", Consolas, \"Liberation Mono\", Menlo, Courier, monospace, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans Mono CJK SC\", \"Noto Sans Mono CJK KR\"; }\n\n.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, YuMincho, \"Yu Mincho\", \"Hiragino Mincho ProN\", \"Hiragino Mincho Pro\", \"Songti TC\", \"Songti SC\", \"SimSun\", \"Nanum Myeongjo\", NanumMyeongjo, Batang, serif, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans CJK SC\", \"Noto Sans CJK KR\"; }\n\n.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, \"Twemoji\", \"Noto Color Emoji\", \"Noto Sans Mono CJK SC\", \"Noto Sans Mono CJK KR\"; }\n\n.highlight-default {\n}\n.highlight-gray {\n\tcolor: rgb(155,154,151);\n}\n.highlight-brown {\n\tcolor: rgb(100,71,58);\n}\n.highlight-orange {\n\tcolor: rgb(217,115,13);\n}\n.highlight-yellow {\n\tcolor: rgb(223,171,1);\n}\n.highlight-teal {\n\tcolor: rgb(15,123,108);\n}\n.highlight-blue {\n\tcolor: rgb(11,110,153);\n}\n.highlight-purple {\n\tcolor: rgb(105,64,165);\n}\n.highlight-pink {\n\tcolor: rgb(173,26,114);\n}\n.highlight-red {\n\tcolor: rgb(224,62,62);\n}\n.highlight-gray_background {\n\tbackground: rgb(235,236,237);\n}\n.highlight-brown_background {\n\tbackground: rgb(233,229,227);\n}\n.highlight-orange_background {\n\tbackground: rgb(250,235,221);\n}\n.highlight-yellow_background {\n\tbackground: rgb(251,243,219);\n}\n.highlight-teal_background {\n\tbackground: rgb(221,237,234);\n}\n.highlight-blue_background {\n\tbackground: rgb(221,235,241);\n}\n.highlight-purple_background {\n\tbackground: rgb(234,228,242);\n}\n.highlight-pink_background {\n\tbackground: rgb(244,223,235);\n}\n.highlight-red_background {\n\tbackground: rgb(251,228,228);\n}\n.block-color-default {\n\tcolor: inherit;\n\tfill: inherit;\n}\n.block-color-gray {\n\tcolor: rgba(55, 53, 47, 0.6);\n\tfill: rgba(55, 53, 47, 0.6);\n}\n.block-color-brown {\n\tcolor: rgb(100,71,58);\n\tfill: rgb(100,71,58);\n}\n.block-color-orange {\n\tcolor: rgb(217,115,13);\n\tfill: rgb(217,115,13);\n}\n.block-color-yellow {\n\tcolor: rgb(223,171,1);\n\tfill: rgb(223,171,1);\n}\n.block-color-teal {\n\tcolor: rgb(15,123,108);\n\tfill: rgb(15,123,108);\n}\n.block-color-blue {\n\tcolor: rgb(11,110,153);\n\tfill: rgb(11,110,153);\n}\n.block-color-purple {\n\tcolor: rgb(105,64,165);\n\tfill: rgb(105,64,165);\n}\n.block-color-pink {\n\tcolor: rgb(173,26,114);\n\tfill: rgb(173,26,114);\n}\n.block-color-red {\n\tcolor: rgb(224,62,62);\n\tfill: rgb(224,62,62);\n}\n.block-color-gray_background {\n\tbackground: rgb(235,236,237);\n}\n.block-color-brown_background {\n\tbackground: rgb(233,229,227);\n}\n.block-color-orange_background {\n\tbackground: rgb(250,235,221);\n}\n.block-color-yellow_background {\n\tbackground: rgb(251,243,219);\n}\n.block-color-teal_background {\n\tbackground: rgb(221,237,234);\n}\n.block-color-blue_background {\n\tbackground: rgb(221,235,241);\n}\n.block-color-purple_background {\n\tbackground: rgb(234,228,242);\n}\n.block-color-pink_background {\n\tbackground: rgb(244,223,235);\n}\n.block-color-red_background {\n\tbackground: rgb(251,228,228);\n}\n.select-value-color-default { background-color: rgba(206,205,202,0.5); }\n.select-value-color-gray { background-color: rgba(155,154,151, 0.4); }\n.select-value-color-brown { background-color: rgba(140,46,0,0.2); }\n.select-value-color-orange { background-color: rgba(245,93,0,0.2); }\n.select-value-color-yellow { background-color: rgba(233,168,0,0.2); }\n.select-value-color-green { background-color: rgba(0,135,107,0.2); }\n.select-value-color-blue { background-color: rgba(0,120,223,0.2); }\n.select-value-color-purple { background-color: rgba(103,36,222,0.2); }\n.select-value-color-pink { background-color: rgba(221,0,129,0.2); }\n.select-value-color-red { background-color: rgba(255,0,26,0.2); }\n\n.checkbox {\n\tdisplay: inline-flex;\n\tvertical-align: text-bottom;\n\twidth: 16;\n\theight: 16;\n\tbackground-size: 16px;\n\tmargin-left: 2px;\n\tmargin-right: 5px;\n}\n\n.checkbox-on {\n\tbackground-image: url(\"data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E\");\n}\n\n.checkbox-off {\n\tbackground-image: url(\"data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E\");\n}\n\t\n.n2a-highlight-default { color: #37352F; }\n.n2a-highlight-gray { color: #9B9A97; }\n.n2a-highlight-brown { color: #64473A; }\n.n2a-highlight-orange { color: #D9730D; }\n.n2a-highlight-yellow { color: #DFAB01; }\n.n2a-highlight-green { color: #0F7B6C; }\n.n2a-highlight-blue { color: #0B6E99; }\n.n2a-highlight-purple { color: #6940A5; }\n.n2a-highlight-pink { color: #AD1A72; }\n.n2a-highlight-red { color: #E03E3E; }\n.n2a-highlight-gray_background { background-color: rgb(241, 241, 239); }\n.n2a-highlight-brown_background { background-color: rgb(244, 238, 238); }\n.n2a-highlight-orange_background { background-color: rgb(251, 236, 221); }\n.n2a-highlight-yellow_background { background-color: rgb(251, 243, 219); }\n.n2a-highlight-green_background { background-color: rgb(237, 243, 236); }\n.n2a-highlight-blue_background { background-color: rgb(231, 243, 248); }\n.n2a-highlight-purple_background { background-color: rgba(244, 240, 247, 0.8); }\n.n2a-highlight-pink_background { background-color: rgba(249, 238, 243, 0.8); }\n\n/* highlight.js code-block container (token colors live in hljs-themes/*) */\npre code.hljs {\n\tdisplay: block;\n\toverflow-x: auto;\n\tpadding: 1em;\n}\ncode.hljs {\n\tpadding: 3px 5px;\n}\n.n2a-highlight-red_background { background-color: rgb(253, 235, 236); }"
+      },
+      "previewData": {
+        "Text": "The capital of {{c1::France}} is {{c2::Paris}}",
+        "Extra": "European geography",
+        "MyMedia": ""
+      },
+      "tags": ["notionstyle", "notion", "cloze"]
+    },
+    {
+      "id": "official-no-style-basic",
+      "name": "Raw Note (no style)",
+      "description": "The bare note structure with no CSS applied — handy if you want to style it yourself",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Raw Note (no style)",
+        "type": 0,
+        "tmpls": [
+          {
+            "name": "Basic",
+            "ord": 0,
+            "qfmt": "<span class=\"front-text-pre\">{{Front}}</span>",
+            "afmt": "<span class=\"front-text-post\">{{Front}}</span><hr id=\"answer\"><span class=\"back-text\">{{Back}}</span>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Front",
+            "ord": 0
+          },
+          {
+            "name": "Back",
+            "ord": 1
+          },
+          {
+            "name": "MyMedia",
+            "ord": 2
+          }
+        ],
+        "css": ""
+      },
+      "previewData": {
+        "Front": "What is the capital of France?",
+        "Back": "Paris",
+        "MyMedia": ""
+      },
+      "tags": ["nostyle"]
+    },
+    {
+      "id": "official-abhiyan-basic",
+      "name": "Abhiyan Bhandari (Night Mode)",
+      "description": "Dark, high-contrast Night Mode template by Abhiyan Bhandari",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Abhiyan Basic",
+        "type": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<script>\n    /* SPLIT HIERARCHICAL TAGS */\n    var tagEl = document.querySelector('.tags');\n    if (tagEl) {\n        var tags = tagEl.innerHTML.split(' ');\n        var html = '';\n        tags.forEach(function(tag) {\n            if (tag.includes('::')) {\n                var topleveltag = tag.substring(0, tag.indexOf(\"::\"));\n                var bottomleveltag = tag.substring(tag.lastIndexOf(\"::\") + 2);\n            } else {\n                var bottomleveltag = tag;\n            }\n            var newTag = '<span class=\"tag ' + topleveltag + ' ' + bottomleveltag + '\">' + bottomleveltag + '</span>';\n            html += newTag;\n        });\n        tagEl.innerHTML = html;\n    }\n</script>\n\n<div class=\"note\">\n    <div class=\"front k\">\n        {{#Tags}}\n        <div class=\"tags row\">{{Tags}}</div>{{/Tags}}\n        <div class=\"question row\">\n            {{Front}}\n        </div>\n        {{#Image}}\n        <div class=\"image row\">{{Image}}</div>\n        {{/Image}}\n    </div>\n</div>\n\n<div class=\"note backonly\">\n    <div class=\"back k\">\n        <div class=\"row\">{{Back}}</div>\n    </div>\n</div>",
+            "afmt": "<div class=\"backtemplate\">{{FrontSide}}</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Front",
+            "ord": 0
+          },
+          {
+            "name": "Back",
+            "ord": 1
+          },
+          {
+            "name": "Image",
+            "ord": 2
+          },
+          {
+            "name": "Tags",
+            "ord": 3
+          }
+        ],
+        "css": "/* From: https://www.notion.so/Beautiful-Anki-cards-080205ad81454b9a859d3c2825a52cad */\n\n\n/* BODY */\n\nhtml {\n    background-color: black !important;\n}\n\nhtml,\nbody {\n    margin: 0 !important;\n    padding: 0;\n    height: 101%;\n    /* may need to be adjusted based on platform */\n    max-height: 100vh;\n    /* may need to be adjusted based on platform */\n    width: 100%;\n    max-width: 100vw;\n}\n\nhtml.mobile,\nbody.mobile {\n    height: 86vh;\n    /* may need to be adjusted based on platform */\n}\n\nbody {\n    font-family: San Francisco, \"Noto Sans KR\", Helvetica, Arial;\n    font-weight: 400;\n    font-size: 18px;\n    word-break: keep-all;\n    text-align: left;\n    position: relative;\n    bottom: 1em;\n    padding-top: 1em;\n    height: 100%;\n    /* may need to be adjusted based on platform */\n    max-height: 100vh;\n    /* may need to be adjusted based on platform */\n    width: 100%;\n    max-width: 100vw;\n    z-index: -2;\n    overflow: auto;\n}\n\nbody::after {\n    background-color: black;\n    content: \"\";\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    height: 101%;\n    /* may need to be adjusted based on platform */\n    max-height: 101vh;\n    /* may need to be adjusted based on platform */\n    position: absolute;\n    z-index: -1;\n}\n\n\n/* CARD */\n\n.note {\n    border-radius: 1em;\n    margin: 0 auto;\n    width: 100%;\n    box-sizing: border-box;\n    padding: 0 1.5vh;\n    max-width: 55em;\n    position: relative;\n}\n\n.front,\n.back,\n.onesided {\n    padding: 0 2em 1em 2em;\n    backdrop-filter: blur(10px);\n    overflow: auto;\n    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);\n}\n\n.front {\n    line-height: 1.5;\n    background-color: rgb(25, 26, 28);\n    color: rgb(255, 255, 255);\n    margin: 1em 0 0 0;\n    border-top-left-radius: 1.2em;\n    border-top-right-radius: 1.2em;\n}\n\n.front a,\n.front a:link,\n.front a:visited,\n.front a:hover,\n.front a:active {\n    color: red;\n    text-decoration: none;\n}\n\n.back {\n    line-height: 1.5;\n    background-color: rgb(35, 36, 41);\n    color: rgb(255, 255, 255);\n    z-index: 10;\n    border-bottom-left-radius: 1.2em;\n    border-bottom-right-radius: 1.2em;\n    margin: 0;\n}\n\n.onesided {\n    border-radius: 1.2em;\n    margin: 1em 0;\n}\n\n.row {\n    padding: 1em 0 0 0;\n}\n\n\n/* TAGS */\n\n.tags {\n    margin-bottom: -1em;\n}\n\n.tablecontainer+.onesided .tags {\n    padding-bottom: 0;\n}\n\n.tag {\n    font-size: 0.8em;\n    padding: .4em .8em .4em .8em;\n    display: inline-block;\n    border-radius: 1.5em;\n    border-color: rgb(78, 78, 84);\n    border-style: solid;\n    border-width: 1.5px;\n    margin: .5em .5em .5em 0;\n    position: relative;\n    bottom: .5em;\n    color: rgb(109, 199, 255);\n    /* background-color: rgb(23, 91, 191); */\n}\n\n\n/* IMAGES */\n\nimg {\n    object-fit: contain;\n    margin: 0 auto;\n    width: auto;\n    max-width: 100%;\n    /* fix for Anki */\n}\n\n.image {\n    text-align: center;\n}\n\n\n/* ANKI TEMPLATE WIZARDRY */\n\n :not(.backtemplate) .backonly {\n    display: none;\n}\n\n.backtemplate .backonly {\n    display: block;\n}\n\n.backtemplate .frontonly {\n    display: none;\n}\n\n\n/* MY ADDITIONAL */\n\n.extra {\n    padding: 2em 2em 2em 2em;\n    overflow: auto;\n    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);\n    background-color: rgb(35, 36, 41);\n    color: rgb(134, 134, 142);\n    margin: 1em 0 0 0;\n    border-top-left-radius: 1.2em;\n    border-top-right-radius: 1.2em;\n    border-bottom-left-radius: 1.2em;\n    border-bottom-right-radius: 1.2em;\n    font-family: San Francisco, \"Noto Sans KR\", Helvetica, Arial;\n    font-size: 16px;\n    line-height: 1.5;\n    word-break: keep-all;\n    text-align: left;\n}\n\n\n/*@import url(\"_beautiful2.css\");*/\n\n\n/*Start of style added by resize image add-on. Don't edit directly or the edition will be lost. Edit via the add-on configuration */\n\n.mobile .card img {\n    height: unset !important;\n    width: unset !important;\n}\n\n\n/*End of style added by resize image add-on*/"
+      },
+      "previewData": {
+        "Front": "What is the capital of France?",
+        "Back": "Paris",
+        "Image": "",
+        "Tags": ""
+      },
+      "tags": ["abhiyan", "night-mode"]
+    },
+    {
+      "id": "official-abhiyan-cloze",
+      "name": "Abhiyan Bhandari (Night Mode — Cloze)",
+      "description": "Night Mode applied to cloze deletions",
+      "baseType": "cloze",
+      "noteType": {
+        "name": "Abhiyan Cloze",
+        "type": 1,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<script>\n    /* SPLIT HIERARCHICAL TAGS */\n    var tagEl = document.querySelector('.tags');\n    if (tagEl) {\n        var tags = tagEl.innerHTML.split(' ');\n        var html = '';\n        tags.forEach(function(tag) {\n            if (tag.includes('::')) {\n                var topleveltag = tag.substring(0, tag.indexOf(\"::\"));\n                var bottomleveltag = tag.substring(tag.lastIndexOf(\"::\") + 2);\n            } else {\n                var bottomleveltag = tag;\n            }\n            var newTag = '<span class=\"tag ' + topleveltag + ' ' + bottomleveltag + '\">' + bottomleveltag + '</span>';\n            html += newTag;\n        });\n        tagEl.innerHTML = html;\n    }\n</script>\n\n\n<div class=\"note\">\n    <div class=\"front k\">\n        {{#Tags}}\n        <div class=\"tags row\">{{Tags}}</div>{{/Tags}}\n        <div class=\"question row\">\n            {{cloze:Text}}\n        </div>\n        {{#Image}}\n        <div class=\"image row\">{{Image}}</div>\n        {{/Image}}\n    </div>\n</div>",
+            "afmt": "<script>\n    /* SPLIT HIERARCHICAL TAGS */\n    var tagEl = document.querySelector('.tags');\n    if (tagEl) {\n        var tags = tagEl.innerHTML.split(' ');\n        var html = '';\n        tags.forEach(function(tag) {\n            if (tag.includes('::')) {\n                var topleveltag = tag.substring(0, tag.indexOf(\"::\"));\n                var bottomleveltag = tag.substring(tag.lastIndexOf(\"::\") + 2);\n            } else {\n                var bottomleveltag = tag;\n            }\n            var newTag = '<span class=\"tag ' + topleveltag + ' ' + bottomleveltag + '\">' + bottomleveltag + '</span>';\n            html += newTag;\n        });\n        tagEl.innerHTML = html;\n    }\n</script>\n\n<div class=\"note\">\n    <div class=\"front k\">\n        {{#Tags}}\n        <div class=\"tags row\">{{Tags}}</div>{{/Tags}}\n        <div class=\"question row\">\n            {{cloze:Text}}\n        </div>\n        {{#Image}}\n        <div class=\"image row\">{{Image}}</div>\n        {{/Image}}\n    </div>\n</div>\n{{#Extra}}\n<div class=\"note\">\n    <div class=\"front extra\">\n        {{Extra}}\n    </div>\n</div>\n{{/Extra}}"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Text",
+            "ord": 0
+          },
+          {
+            "name": "Extra",
+            "ord": 1
+          },
+          {
+            "name": "Image",
+            "ord": 2
+          },
+          {
+            "name": "Tags",
+            "ord": 3
+          }
+        ],
+        "css": "/* From: https://www.notion.so/Beautiful-Anki-cards-080205ad81454b9a859d3c2825a52cad */\n\n\n/* BODY */\n\nhtml {\n    background-color: black !important;\n}\n\nhtml,\nbody {\n    margin: 0 !important;\n    padding: 0;\n    height: 101%;\n    /* may need to be adjusted based on platform */\n    max-height: 100vh;\n    /* may need to be adjusted based on platform */\n    width: 100%;\n    max-width: 100vw;\n}\n\nhtml.mobile,\nbody.mobile {\n    height: 86vh;\n    /* may need to be adjusted based on platform */\n}\n\nbody {\n    font-family: San Francisco, \"Noto Sans KR\", Helvetica, Arial;\n    font-weight: 400;\n    font-size: 18px;\n    word-break: keep-all;\n    text-align: left;\n    overflow: hidden;\n    position: relative;\n    bottom: 1em;\n    padding-top: 1em;\n    height: 101%;\n    /* may need to be adjusted based on platform */\n    max-height: 101vh;\n    /* may need to be adjusted based on platform */\n    width: 100%;\n    max-width: 100vw;\n    z-index: -2;\n}\n\nbody::after {\n    background-color: black;\n    content: \"\";\n    top: 0;\n    bottom: 0;\n    left: 0;\n    right: 0;\n    height: 101%;\n    /* may need to be adjusted based on platform */\n    max-height: 101vh;\n    /* may need to be adjusted based on platform */\n    position: absolute;\n    z-index: -1;\n}\n\n\n/* CARD */\n\n.note {\n    border-radius: 1em;\n    margin: 0 auto;\n    width: 100%;\n    box-sizing: border-box;\n    padding: 0 1.5vh;\n    max-width: 55em;\n    position: relative;\n}\n\n.front,\n.back,\n.onesided {\n    padding: 0 2em 1em 2em;\n    backdrop-filter: blur(10px);\n    overflow: auto;\n    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);\n}\n\n.front {\n    line-height: 1.5;\n    background-color: rgb(25, 26, 28);\n    color: rgb(255, 255, 255);\n    margin: 1em 0 0 0;\n    border-top-left-radius: 1.2em;\n    border-top-right-radius: 1.2em;\n    border-bottom-left-radius: 1.2em;\n    border-bottom-right-radius: 1.2em;\n}\n\n.front a,\n.front a:link,\n.front a:visited,\n.front a:hover,\n.front a:active {\n    color: red;\n    text-decoration: none;\n}\n\n.back {\n    line-height: 1.5;\n    background-color: rgb(35, 36, 41);\n    color: rgb(255, 255, 255);\n    z-index: 10;\n    border-bottom-left-radius: 1.2em;\n    border-bottom-right-radius: 1.2em;\n    margin: 0;\n}\n\n.onesided {\n    border-radius: 1.2em;\n    margin: 1em 0;\n}\n\n.row {\n    padding: 1em 0 0 0;\n}\n\n\n/* TAGS */\n\n.tags {\n    margin-bottom: -1em;\n}\n\n.tablecontainer+.onesided .tags {\n    padding-bottom: 0;\n}\n\n.tag {\n    font-size: 0.8em;\n    padding: .4em .8em .4em .8em;\n    display: inline-block;\n    border-radius: 1.5em;\n    border-color: rgb(78, 78, 84);\n    border-style: solid;\n    border-width: 1.5px;\n    margin: .5em .5em .5em 0;\n    position: relative;\n    bottom: .5em;\n    color: rgb(109, 199, 255);\n    /* background-color: rgb(23, 91, 191); */\n}\n\n\n/* IMAGES */\n\nimg {\n    object-fit: contain;\n    margin: 0 auto;\n    width: auto;\n    max-width: 100%;\n    /* fix for Anki */\n}\n\n.image {\n    text-align: center;\n}\n\n\n/* ANKI TEMPLATE WIZARDRY */\n\n :not(.backtemplate) .backonly {\n    display: none;\n}\n\n.backtemplate .backonly {\n    display: block;\n}\n\n.backtemplate .frontonly {\n    display: none;\n}\n\n\n/* MY ADDITIONAL */\n\n.extra {\n    padding: 2em 2em 2em 2em;\n    overflow: auto;\n    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);\n    background-color: rgb(35, 36, 41);\n    color: rgb(134, 134, 142);\n    margin: 1em 0 0 0;\n    border-top-left-radius: 1.2em;\n    border-top-right-radius: 1.2em;\n    border-bottom-left-radius: 1.2em;\n    border-bottom-right-radius: 1.2em;\n    font-family: San Francisco, \"Noto Sans KR\", Helvetica, Arial;\n    font-size: 16px;\n    line-height: 1.5;\n    word-break: keep-all;\n    text-align: left;\n}\n\n.cloze {\n    font-weight: bold;\n    color: rgb(109, 199, 255);\n    line-height: 1.5;\n}\n\n\n/*Start of style added by resize image add-on. Don't edit directly or the edition will be lost. Edit via the add-on configuration */\n\n.mobile .card img {\n    height: unset !important;\n    width: unset !important;\n}\n\n\n/*End of style added by resize image add-on*/"
+      },
+      "previewData": {
+        "Text": "The capital of {{c1::France}} is {{c2::Paris}}",
+        "Extra": "European geography",
+        "Image": "",
+        "Tags": ""
+      },
+      "tags": ["abhiyan", "night-mode", "cloze"]
+    },
+    {
+      "id": "official-alex-deluxe-basic",
+      "name": "Alexander Deluxe (Blue)",
+      "description": "A blue, deluxe basic template by Alexander",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Alex Deluxe Basic",
+        "type": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<div class=container-front>\n    <h1>{{Front}}</h1>\n</div>",
+            "afmt": "<div class=container-back>\n\t<h1>{{Front}}</h1>\n\t{{#Back}}\n\t<hr id=\"answer\">\n\t<h2>{{Back}}</h2>\n\t{{/Back}}\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Front",
+            "ord": 0
+          },
+          {
+            "name": "Back",
+            "ord": 1
+          }
+        ],
+        "css": "html,\nbody {\n  background: #5397f5;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  flex-direction: column;\n  height: 90vh;\n}\n\n.container-front {\n  padding: 1rem;\n  background: #5397f5;\n  max-width: 80vw;\n  width: 100%;\n  margin: 0 auto;\n  color: white;\n  font-size: 3.5vw;\n}\n\n.container-back {\n  padding: 1rem;\n  background: #5397f5;\n  width: 80vw;\n  margin: 0 auto;\n  color: white;\n  font-size: 3.5vw;\n}\n\nhr {\n  background-color: white;\n  color: white;\n  border-color: white;\n}\n\ndiv a {\n  color: black !important;\n  font-weight: bold;\n  background: white;\n  padding: 0.2rem 0.3rem;\n}\n"
+      },
+      "previewData": {
+        "Front": "What is the capital of France?",
+        "Back": "Paris"
+      },
+      "tags": ["alex_deluxe", "blue"]
+    },
+    {
+      "id": "official-alex-deluxe-cloze",
+      "name": "Alexander Deluxe (Blue — Cloze)",
+      "description": "Cloze variant of the Alexander Deluxe template",
+      "baseType": "cloze",
+      "noteType": {
+        "name": "Alex Deluxe Cloze",
+        "type": 1,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<div class=container-front>\n    <h1>{{cloze:Text}}</h1>\n</div>",
+            "afmt": "<div class=container-back>\n    <h1>{{cloze:Text}}</h1>\n    {{#Extra}}\n    <hr>\n    <h2>{{Extra}}</h2>\n    {{/Extra}}\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Text",
+            "ord": 0
+          },
+          {
+            "name": "Extra",
+            "ord": 1
+          }
+        ],
+        "css": "span {\n  color: white !important;\n}\n\nhtml,\nbody {\n  background: #5397f5;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  flex-direction: column;\n  height: 80vh;\n}\n\n.container-front,\n.container-back {\n  font-size: 2.81em;\n  padding: 1rem;\n  background: #5397f5;\n  max-width: 80vw;\n  width: 100%;\n  margin: 0 auto;\n  color: white;\n}\n\nhr {\n  background-color: white;\n  color: white;\n  border-color: white;\n}\n\na {\n  color: white;\n}\n\n.container-back .cloze {\n  text-decoration: underline;\n}\n\nhr {\n  background-color: white;\n  color: white;\n  border-color: white;\n}\n\ndiv a {\n  color: black !important;\n  font-weight: bold;\n  border: 0.9px solid white;\n  background: white;\n  padding: 0.2rem 0.3rem;\n  border-radius: 6px;\n}\n\ndiv a:hover {\n  background: blue;\n  color: pink !important;\n}\n"
+      },
+      "previewData": {
+        "Text": "The capital of {{c1::France}} is {{c2::Paris}}",
+        "Extra": "European geography"
+      },
+      "tags": ["alex_deluxe", "blue", "cloze"]
+    },
+    {
+      "id": "official-material-basic",
+      "name": "Material (Basic)",
+      "description": "Clean Material Design card — elevated surface, Roboto type, primary-blue answer accent. Light and dark ready",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Material Basic",
+        "type": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<script>\n    /* SPLIT HIERARCHICAL TAGS */\n    var tagEl = document.querySelector('.tags');\n    if (tagEl) {\n        var tags = tagEl.innerHTML.split(' ');\n        var html = '';\n        tags.forEach(function(tag) {\n            if (tag.includes('::')) {\n                var topleveltag = tag.substring(0, tag.indexOf(\"::\"));\n                var bottomleveltag = tag.substring(tag.lastIndexOf(\"::\") + 2);\n            } else {\n                var bottomleveltag = tag;\n            }\n            var newTag = '<span class=\"tag ' + topleveltag + ' ' + bottomleveltag + '\">' + bottomleveltag + '</span>';\n            html += newTag;\n        });\n        tagEl.innerHTML = html;\n    }\n</script>\n\n<div class=\"md-surface\">\n    <div class=\"md-card front\">\n        {{#Tags}}\n        <div class=\"tags md-row\">{{Tags}}</div>{{/Tags}}\n        <div class=\"md-label\">Question</div>\n        <div class=\"question md-row md-headline\">\n            {{Front}}\n        </div>\n    </div>\n</div>\n\n<div class=\"md-surface backonly\">\n    <div class=\"md-card back\">\n        <div class=\"md-label md-label-accent\">Answer</div>\n        <div class=\"md-row md-body\">{{Back}}</div>\n    </div>\n</div>\n",
+            "afmt": "<div class=\"backtemplate\">{{FrontSide}}</div>\n"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Front",
+            "ord": 0
+          },
+          {
+            "name": "Back",
+            "ord": 1
+          },
+          {
+            "name": "Image",
+            "ord": 2
+          },
+          {
+            "name": "Tags",
+            "ord": 3
+          }
+        ],
+        "css": "/* Material Design basic card for 2anki.\n   Renders offline — no @import, no web-font fetch.\n   Light and Anki night mode both handled via .nightMode / .night_mode. */\n\n/* DESIGN TOKENS (light) */\n:root {\n    --md-bg: #f1f3f4;\n    --md-card: #ffffff;\n    --md-on-surface: #202124;\n    --md-on-surface-muted: #5f6368;\n    --md-primary: #1a73e8;\n    --md-divider: #e0e0e0;\n    --md-radius: 12px;\n    --md-elevation: 0 1px 2px rgba(60, 64, 67, 0.30),\n                    0 2px 6px 2px rgba(60, 64, 67, 0.15);\n}\n\n/* BODY */\nhtml,\nbody {\n    margin: 0;\n    padding: 0;\n    width: 100%;\n    box-sizing: border-box;\n}\n\nbody {\n    font-family: Roboto, \"Helvetica Neue\", -apple-system, BlinkMacSystemFont,\n        \"Segoe UI\", \"Noto Sans\", \"Noto Sans KR\", Arial, sans-serif;\n    font-weight: 400;\n    font-size: 18px;\n    line-height: 1.6;\n    text-align: left;\n    background-color: var(--md-bg);\n    color: var(--md-on-surface);\n    -webkit-font-smoothing: antialiased;\n    padding: 16px;\n    min-height: 100vh;\n}\n\n/* SURFACE + CARD */\n.md-surface {\n    margin: 0 auto 16px auto;\n    width: 100%;\n    max-width: 42em;\n    box-sizing: border-box;\n}\n\n.md-card {\n    background-color: var(--md-card);\n    color: var(--md-on-surface);\n    border-radius: var(--md-radius);\n    box-shadow: var(--md-elevation);\n    padding: 24px;\n    box-sizing: border-box;\n    overflow-wrap: anywhere;\n}\n\n.md-card.back {\n    border-top: 3px solid var(--md-primary);\n}\n\n/* TYPE SCALE */\n.md-label {\n    font-size: 0.72em;\n    font-weight: 500;\n    letter-spacing: 0.08em;\n    text-transform: uppercase;\n    color: var(--md-on-surface-muted);\n    margin-bottom: 8px;\n}\n\n.md-label-accent {\n    color: var(--md-primary);\n}\n\n.md-headline {\n    font-size: 1.25em;\n    font-weight: 500;\n    line-height: 1.4;\n}\n\n.md-body {\n    font-size: 1em;\n    font-weight: 400;\n}\n\n.md-row {\n    margin: 0;\n}\n\n.md-row + .md-row {\n    margin-top: 12px;\n}\n\n/* LINKS — Material primary, no underline until hover */\n.md-card a,\n.md-card a:link,\n.md-card a:visited {\n    color: var(--md-primary);\n    text-decoration: none;\n}\n\n.md-card a:hover,\n.md-card a:active {\n    text-decoration: underline;\n}\n\n/* TAGS — Material outlined chips */\n.tags {\n    margin-bottom: 16px;\n}\n\n.tag {\n    font-size: 0.72em;\n    font-weight: 500;\n    padding: 5px 12px;\n    display: inline-block;\n    border-radius: 16px;\n    border: 1px solid var(--md-divider);\n    color: var(--md-on-surface-muted);\n    margin: 0 8px 8px 0;\n    line-height: 1.2;\n}\n\n/* IMAGES */\nimg {\n    object-fit: contain;\n    margin: 8px auto 0 auto;\n    display: block;\n    width: auto;\n    max-width: 100%;\n    border-radius: 8px;\n}\n\n/* ANKI TEMPLATE WIZARDRY */\n:not(.backtemplate) .backonly {\n    display: none;\n}\n\n.backtemplate .backonly {\n    display: block;\n}\n\n.backtemplate .frontonly {\n    display: none;\n}\n\n/* NIGHT MODE — Material dark surfaces */\n.nightMode,\n.night_mode {\n    --md-bg: #121212;\n    --md-card: #1e1e1e;\n    --md-on-surface: #e8eaed;\n    --md-on-surface-muted: #9aa0a6;\n    --md-primary: #8ab4f8;\n    --md-divider: #3c4043;\n    --md-elevation: 0 1px 2px rgba(0, 0, 0, 0.60),\n                    0 2px 6px 2px rgba(0, 0, 0, 0.40);\n}\n\n.nightMode body,\n.night_mode body {\n    background-color: var(--md-bg);\n    color: var(--md-on-surface);\n}\n\n/* Resize image add-on compatibility (matches abhiyan) */\n.mobile .card img {\n    height: unset !important;\n    width: unset !important;\n}\n"
+      },
+      "previewData": {
+        "Front": "What is the capital of France?",
+        "Back": "Paris",
+        "Image": "",
+        "Tags": ""
+      },
+      "tags": ["material", "material-design"]
+    },
+    {
+      "id": "official-material-cloze",
+      "name": "Material (Cloze)",
+      "description": "Material Design cloze deletion — blanks highlighted in primary blue, readable on light and dark backgrounds",
+      "baseType": "cloze",
+      "noteType": {
+        "name": "Material Cloze",
+        "type": 1,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<script>\n    /* SPLIT HIERARCHICAL TAGS */\n    var tagEl = document.querySelector('.tags');\n    if (tagEl) {\n        var tags = tagEl.innerHTML.split(' ');\n        var html = '';\n        tags.forEach(function(tag) {\n            if (tag.includes('::')) {\n                var topleveltag = tag.substring(0, tag.indexOf(\"::\"));\n                var bottomleveltag = tag.substring(tag.lastIndexOf(\"::\") + 2);\n            } else {\n                var bottomleveltag = tag;\n            }\n            var newTag = '<span class=\"tag ' + topleveltag + ' ' + bottomleveltag + '\">' + bottomleveltag + '</span>';\n            html += newTag;\n        });\n        tagEl.innerHTML = html;\n    }\n</script>\n\n<div class=\"md-surface\">\n    <div class=\"md-card front\">\n        {{#Tags}}\n        <div class=\"tags md-row\">{{Tags}}</div>{{/Tags}}\n        <div class=\"question md-row md-headline\">\n            {{cloze:Text}}\n        </div>\n    </div>\n</div>\n",
+            "afmt": "<script>\n    /* SPLIT HIERARCHICAL TAGS */\n    var tagEl = document.querySelector('.tags');\n    if (tagEl) {\n        var tags = tagEl.innerHTML.split(' ');\n        var html = '';\n        tags.forEach(function(tag) {\n            if (tag.includes('::')) {\n                var topleveltag = tag.substring(0, tag.indexOf(\"::\"));\n                var bottomleveltag = tag.substring(tag.lastIndexOf(\"::\") + 2);\n            } else {\n                var bottomleveltag = tag;\n            }\n            var newTag = '<span class=\"tag ' + topleveltag + ' ' + bottomleveltag + '\">' + bottomleveltag + '</span>';\n            html += newTag;\n        });\n        tagEl.innerHTML = html;\n    }\n</script>\n\n<div class=\"md-surface\">\n    <div class=\"md-card front\">\n        {{#Tags}}\n        <div class=\"tags md-row\">{{Tags}}</div>{{/Tags}}\n        <div class=\"question md-row md-headline\">\n            {{cloze:Text}}\n        </div>\n    </div>\n</div>\n{{#Extra}}\n<div class=\"md-surface\">\n    <div class=\"md-card extra\">\n        <div class=\"md-label\">Notes</div>\n        {{Extra}}\n    </div>\n</div>\n{{/Extra}}\n"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Text",
+            "ord": 0
+          },
+          {
+            "name": "Extra",
+            "ord": 1
+          },
+          {
+            "name": "Image",
+            "ord": 2
+          },
+          {
+            "name": "Tags",
+            "ord": 3
+          }
+        ],
+        "css": "/* Material Design cloze card for 2anki.\n   Renders offline — no @import, no web-font fetch.\n   Light and Anki night mode both handled via .nightMode / .night_mode. */\n\n/* DESIGN TOKENS (light) */\n:root {\n    --md-bg: #f1f3f4;\n    --md-card: #ffffff;\n    --md-on-surface: #202124;\n    --md-on-surface-muted: #5f6368;\n    --md-primary: #1a73e8;\n    --md-cloze: #1a73e8;\n    --md-cloze-bg: rgba(26, 115, 232, 0.12);\n    --md-divider: #e0e0e0;\n    --md-radius: 12px;\n    --md-elevation: 0 1px 2px rgba(60, 64, 67, 0.30),\n                    0 2px 6px 2px rgba(60, 64, 67, 0.15);\n}\n\n/* BODY */\nhtml,\nbody {\n    margin: 0;\n    padding: 0;\n    width: 100%;\n    box-sizing: border-box;\n}\n\nbody {\n    font-family: Roboto, \"Helvetica Neue\", -apple-system, BlinkMacSystemFont,\n        \"Segoe UI\", \"Noto Sans\", \"Noto Sans KR\", Arial, sans-serif;\n    font-weight: 400;\n    font-size: 18px;\n    line-height: 1.6;\n    text-align: left;\n    background-color: var(--md-bg);\n    color: var(--md-on-surface);\n    -webkit-font-smoothing: antialiased;\n    padding: 16px;\n    min-height: 100vh;\n}\n\n/* SURFACE + CARD */\n.md-surface {\n    margin: 0 auto 16px auto;\n    width: 100%;\n    max-width: 42em;\n    box-sizing: border-box;\n}\n\n.md-card {\n    background-color: var(--md-card);\n    color: var(--md-on-surface);\n    border-radius: var(--md-radius);\n    box-shadow: var(--md-elevation);\n    padding: 24px;\n    box-sizing: border-box;\n    overflow-wrap: anywhere;\n}\n\n.md-card.extra {\n    color: var(--md-on-surface-muted);\n    font-size: 0.95em;\n}\n\n/* TYPE SCALE */\n.md-label {\n    font-size: 0.72em;\n    font-weight: 500;\n    letter-spacing: 0.08em;\n    text-transform: uppercase;\n    color: var(--md-on-surface-muted);\n    margin-bottom: 8px;\n}\n\n.md-headline {\n    font-size: 1.25em;\n    font-weight: 500;\n    line-height: 1.4;\n}\n\n.md-row {\n    margin: 0;\n}\n\n/* LINKS */\n.md-card a,\n.md-card a:link,\n.md-card a:visited {\n    color: var(--md-primary);\n    text-decoration: none;\n}\n\n.md-card a:hover,\n.md-card a:active {\n    text-decoration: underline;\n}\n\n/* CLOZE — Material primary pill, reads on light and dark */\n.cloze {\n    font-weight: 600;\n    color: var(--md-cloze);\n    background-color: var(--md-cloze-bg);\n    border-radius: 6px;\n    padding: 1px 6px;\n}\n\n/* TAGS — Material outlined chips */\n.tags {\n    margin-bottom: 16px;\n}\n\n.tag {\n    font-size: 0.72em;\n    font-weight: 500;\n    padding: 5px 12px;\n    display: inline-block;\n    border-radius: 16px;\n    border: 1px solid var(--md-divider);\n    color: var(--md-on-surface-muted);\n    margin: 0 8px 8px 0;\n    line-height: 1.2;\n}\n\n/* IMAGES */\nimg {\n    object-fit: contain;\n    margin: 8px auto 0 auto;\n    display: block;\n    width: auto;\n    max-width: 100%;\n    border-radius: 8px;\n}\n\n/* NIGHT MODE — Material dark surfaces */\n.nightMode,\n.night_mode {\n    --md-bg: #121212;\n    --md-card: #1e1e1e;\n    --md-on-surface: #e8eaed;\n    --md-on-surface-muted: #9aa0a6;\n    --md-primary: #8ab4f8;\n    --md-cloze: #8ab4f8;\n    --md-cloze-bg: rgba(138, 180, 248, 0.16);\n    --md-divider: #3c4043;\n    --md-elevation: 0 1px 2px rgba(0, 0, 0, 0.60),\n                    0 2px 6px 2px rgba(0, 0, 0, 0.40);\n}\n\n.nightMode body,\n.night_mode body {\n    background-color: var(--md-bg);\n    color: var(--md-on-surface);\n}\n\n/* Resize image add-on compatibility (matches abhiyan) */\n.mobile .card img {\n    height: unset !important;\n    width: unset !important;\n}\n"
+      },
+      "previewData": {
+        "Text": "The capital of {{c1::France}} is {{c2::Paris}}",
+        "Extra": "European geography",
+        "Image": "",
+        "Tags": ""
+      },
+      "tags": ["material", "material-design", "cloze"]
+    }
+  ],
+  "defaults": [
+    {
+      "id": "basic-clean",
+      "name": "Clean Basic",
+      "description": "A minimal, clean basic note type",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Basic",
+        "type": 0,
+        "mod": 0,
+        "usn": -1,
+        "sortf": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<div class=\"front\">\n  <h1>{{Front}}</h1>\n</div>",
+            "afmt": "<div class=\"back\">\n  <div class=\"question\">{{Front}}</div>\n  <hr id=\"answer\">\n  <div class=\"answer\">{{Back}}</div>\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Front",
+            "ord": 0,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Back",
+            "ord": 1,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          }
+        ],
+        "css": ".card {\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n  font-size: 20px;\n  text-align: center;\n  color: #1f2937;\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  background-size: cover;\n  background-repeat: no-repeat;\n  min-height: 100vh;\n  padding: 40px;\n  margin: 0;\n  box-sizing: border-box;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.card > * {\n  max-width: 600px;\n  width: 100%;\n}\n\n.front h1 {\n  font-size: 2.5rem;\n  font-weight: 700;\n  color: white;\n  margin: 0;\n  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);\n}\n\n.back {\n  color: white;\n}\n\n.question {\n  font-size: 1.5rem;\n  font-weight: 600;\n  margin-bottom: 20px;\n  opacity: 0.8;\n}\n\n.answer {\n  font-size: 2rem;\n  font-weight: 700;\n  margin-top: 20px;\n}\n\nhr {\n  border: none;\n  height: 2px;\n  background: rgba(255, 255, 255, 0.3);\n  margin: 20px 0;\n  border-radius: 1px;\n}",
+        "tags": []
+      },
+      "previewData": {
+        "Front": "What is the capital of France?",
+        "Back": "Paris"
+      },
+      "tags": ["basic", "minimal"]
+    },
+    {
+      "id": "cloze-modern",
+      "name": "Modern Cloze",
+      "description": "A stylish cloze deletion template",
+      "baseType": "cloze",
+      "noteType": {
+        "name": "Cloze",
+        "type": 1,
+        "mod": 0,
+        "usn": -1,
+        "sortf": 0,
+        "tmpls": [
+          {
+            "name": "Cloze",
+            "ord": 0,
+            "qfmt": "<div class=\"cloze-question\">\n  {{cloze:Text}}\n</div>",
+            "afmt": "<div class=\"cloze-answer\">\n  {{cloze:Text}}\n  {{#Extra}}\n    <div class=\"extra\">{{Extra}}</div>\n  {{/Extra}}\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Text",
+            "ord": 0,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Extra",
+            "ord": 1,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 16
+          }
+        ],
+        "css": ".card {\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n  font-size: 20px;\n  text-align: center;\n  color: #ffffff;\n  background: linear-gradient(135deg, #1e3a5f 0%, #0f2027 100%);\n  min-height: 100%;\n  padding: 40px;\n  margin: 0;\n  box-sizing: border-box;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  flex-direction: column;\n}\n\n.cloze-question, .cloze-answer {\n  color: #e2e8f0;\n  line-height: 1.8;\n  font-size: 1.3rem;\n}\n\n.cloze {\n  font-weight: 700;\n  background: rgba(99, 179, 237, 0.2);\n  color: #63b3ed;\n  padding: 4px 10px;\n  border-radius: 6px;\n  border-bottom: 2px solid #63b3ed;\n}\n\n.extra {\n  margin-top: 30px;\n  padding: 20px;\n  background: rgba(255, 255, 255, 0.08);\n  border-radius: 12px;\n  font-size: 16px;\n  color: rgba(255, 255, 255, 0.75);\n  border-left: 4px solid #63b3ed;\n}",
+        "tags": []
+      },
+      "previewData": {
+        "Text": "The capital of {{c1::France}} is {{c2::Paris}}.",
+        "Extra": "France is located in Western Europe."
+      },
+      "tags": ["cloze", "geography"]
+    },
+    {
+      "id": "vocab-language",
+      "name": "Vocabulary Card",
+      "description": "Language learning — word, reading, meaning, example sentence",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Vocabulary",
+        "type": 0,
+        "mod": 0,
+        "usn": -1,
+        "sortf": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<div class=\"vocab-front\">\n  <div class=\"word\">{{Word}}</div>\n  <div class=\"reading\">{{Reading}}</div>\n</div>",
+            "afmt": "<div class=\"vocab-back\">\n  <div class=\"word\">{{Word}}</div>\n  <div class=\"reading\">{{Reading}}</div>\n  <hr class=\"divider\">\n  <div class=\"meaning\">{{Meaning}}</div>\n  {{#Example}}\n  <div class=\"example\">\n    <div class=\"example-sentence\">{{Example}}</div>\n    <div class=\"example-translation\">{{ExampleTranslation}}</div>\n  </div>\n  {{/Example}}\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Word",
+            "ord": 0,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Reading",
+            "ord": 1,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 16
+          },
+          {
+            "name": "Meaning",
+            "ord": 2,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Example",
+            "ord": 3,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 16
+          },
+          {
+            "name": "ExampleTranslation",
+            "ord": 4,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 16
+          }
+        ],
+        "css": ".card {\n  font-family: 'Noto Sans', 'Hiragino Sans', 'Yu Gothic', 'Inter', sans-serif;\n  background: #fafaf9;\n  min-height: 100%;\n  margin: 0;\n  padding: 32px 24px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  box-sizing: border-box;\n}\n\n.vocab-front, .vocab-back {\n  width: 100%;\n  max-width: 480px;\n  text-align: center;\n}\n\n.word {\n  font-size: 2.8rem;\n  font-weight: 700;\n  color: #1c1917;\n  line-height: 1.2;\n  margin-bottom: 8px;\n}\n\n.reading {\n  font-size: 1.1rem;\n  color: #78716c;\n  letter-spacing: 0.05em;\n  margin-bottom: 4px;\n}\n\n.divider {\n  border: none;\n  height: 1px;\n  background: #e7e5e4;\n  margin: 24px auto;\n  width: 60%;\n}\n\n.meaning {\n  font-size: 1.3rem;\n  color: #292524;\n  font-weight: 500;\n  margin-bottom: 20px;\n}\n\n.example {\n  background: #f5f5f4;\n  border-radius: 12px;\n  padding: 16px 20px;\n  border-left: 3px solid #a78bfa;\n  text-align: left;\n}\n\n.example-sentence {\n  font-size: 1rem;\n  color: #1c1917;\n  margin-bottom: 6px;\n  line-height: 1.6;\n}\n\n.example-translation {\n  font-size: 0.9rem;\n  color: #78716c;\n  font-style: italic;\n}",
+        "tags": []
+      },
+      "previewData": {
+        "Word": "勉強",
+        "Reading": "べんきょう",
+        "Meaning": "study; to study",
+        "Example": "毎日日本語を勉強しています。",
+        "ExampleTranslation": "I study Japanese every day."
+      },
+      "tags": ["language", "vocabulary", "japanese"]
+    },
+    {
+      "id": "medical-term",
+      "name": "Medical Term",
+      "description": "Anatomy / medical — term, definition, mnemonic",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Medical Term",
+        "type": 0,
+        "mod": 0,
+        "usn": -1,
+        "sortf": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<div class=\"medical-front\">\n  <div class=\"label\">Define</div>\n  <div class=\"term\">{{Term}}</div>\n</div>",
+            "afmt": "<div class=\"medical-back\">\n  <div class=\"term-small\">{{Term}}</div>\n  <div class=\"definition\">{{Definition}}</div>\n  {{#Mnemonic}}\n  <div class=\"mnemonic\">\n    <span class=\"mnemonic-label\">Mnemonic</span>\n    {{Mnemonic}}\n  </div>\n  {{/Mnemonic}}\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Term",
+            "ord": 0,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Definition",
+            "ord": 1,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 16
+          },
+          {
+            "name": "Mnemonic",
+            "ord": 2,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 16
+          },
+          {
+            "name": "Image",
+            "ord": 3,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 16
+          }
+        ],
+        "css": ".card {\n  font-family: 'Inter', -apple-system, sans-serif;\n  background: #f0f9ff;\n  min-height: 100%;\n  margin: 0;\n  padding: 32px 24px;\n  box-sizing: border-box;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.medical-front, .medical-back {\n  width: 100%;\n  max-width: 480px;\n  text-align: center;\n}\n\n.label {\n  font-size: 0.75rem;\n  font-weight: 600;\n  text-transform: uppercase;\n  letter-spacing: 0.1em;\n  color: #0284c7;\n  margin-bottom: 12px;\n}\n\n.term {\n  font-size: 2.2rem;\n  font-weight: 700;\n  color: #0c4a6e;\n  line-height: 1.2;\n}\n\n.term-small {\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #0284c7;\n  margin-bottom: 16px;\n}\n\n.definition {\n  font-size: 1.1rem;\n  color: #1e3a5f;\n  line-height: 1.7;\n  margin-bottom: 20px;\n}\n\n.mnemonic {\n  background: #fff7ed;\n  border: 1px solid #fed7aa;\n  border-radius: 10px;\n  padding: 14px 18px;\n  font-size: 0.95rem;\n  color: #9a3412;\n  line-height: 1.5;\n  text-align: left;\n}\n\n.mnemonic-label {\n  display: block;\n  font-size: 0.7rem;\n  font-weight: 700;\n  text-transform: uppercase;\n  letter-spacing: 0.08em;\n  color: #c2410c;\n  margin-bottom: 4px;\n}",
+        "tags": []
+      },
+      "previewData": {
+        "Term": "Mitral Valve",
+        "Definition": "The bicuspid valve between the left atrium and left ventricle of the heart",
+        "Mnemonic": "MItral = left sIde (both have I)",
+        "Image": ""
+      },
+      "tags": ["medical", "anatomy"]
+    },
+    {
+      "id": "programming-snippet",
+      "name": "Code Card",
+      "description": "Programming — question with code block answer",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Code Card",
+        "type": 0,
+        "mod": 0,
+        "usn": -1,
+        "sortf": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<div class=\"code-front\">\n  <div class=\"question\">{{Question}}</div>\n</div>",
+            "afmt": "<div class=\"code-back\">\n  <div class=\"question-small\">{{Question}}</div>\n  <pre class=\"code-block\"><code>{{Answer}}</code></pre>\n  {{#Notes}}\n  <div class=\"notes\">{{Notes}}</div>\n  {{/Notes}}\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Question",
+            "ord": 0,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Answer",
+            "ord": 1,
+            "sticky": false,
+            "rtl": false,
+            "font": "Fira Code",
+            "size": 14
+          },
+          {
+            "name": "Notes",
+            "ord": 2,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 14
+          }
+        ],
+        "css": ".card {\n  font-family: 'Inter', -apple-system, sans-serif;\n  background: #0f172a;\n  color: #e2e8f0;\n  min-height: 100%;\n  margin: 0;\n  padding: 28px 20px;\n  box-sizing: border-box;\n}\n\n.code-front, .code-back {\n  max-width: 560px;\n  margin: 0 auto;\n}\n\n.question {\n  font-size: 1.25rem;\n  font-weight: 600;\n  color: #f1f5f9;\n  line-height: 1.5;\n  margin-bottom: 8px;\n  text-align: center;\n}\n\n.question-small {\n  font-size: 0.9rem;\n  color: #94a3b8;\n  margin-bottom: 16px;\n  text-align: center;\n}\n\n.code-block {\n  background: #1e293b;\n  border: 1px solid #334155;\n  border-radius: 10px;\n  padding: 20px;\n  margin: 0 0 16px;\n  overflow-x: auto;\n  text-align: left;\n}\n\n.code-block code {\n  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Consolas', monospace;\n  font-size: 0.9rem;\n  color: #7dd3fc;\n  white-space: pre;\n  line-height: 1.7;\n}\n\n.notes {\n  background: #1e293b;\n  border-left: 3px solid #818cf8;\n  border-radius: 0 8px 8px 0;\n  padding: 12px 16px;\n  font-size: 0.88rem;\n  color: #cbd5e1;\n  line-height: 1.6;\n}",
+        "tags": []
+      },
+      "previewData": {
+        "Question": "How do you reverse a string in Python?",
+        "Answer": "s = \"hello\"\nreversed_s = s[::-1]\nprint(reversed_s)  # \"olleh\"",
+        "Notes": "Slice notation [start:stop:step] with step -1 iterates backwards."
+      },
+      "tags": ["programming", "python", "code"]
+    },
+    {
+      "id": "minimal-white",
+      "name": "Minimal",
+      "description": "Clean white card — distraction-free reading",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Minimal",
+        "type": 0,
+        "mod": 0,
+        "usn": -1,
+        "sortf": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<div class=\"minimal-front\">\n  <div class=\"question\">{{Front}}</div>\n</div>",
+            "afmt": "<div class=\"minimal-back\">\n  <div class=\"question-repeat\">{{Front}}</div>\n  <div class=\"answer\">{{Back}}</div>\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Front",
+            "ord": 0,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Back",
+            "ord": 1,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          }
+        ],
+        "css": ".card {\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;\n  background: #ffffff;\n  min-height: 100%;\n  margin: 0;\n  padding: 40px 32px;\n  box-sizing: border-box;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.minimal-front, .minimal-back {\n  width: 100%;\n  max-width: 480px;\n  text-align: center;\n}\n\n.question {\n  font-size: 1.5rem;\n  font-weight: 500;\n  color: #111827;\n  line-height: 1.5;\n}\n\n.question-repeat {\n  font-size: 1rem;\n  color: #9ca3af;\n  margin-bottom: 24px;\n  line-height: 1.5;\n}\n\n.answer {\n  font-size: 1.6rem;\n  font-weight: 600;\n  color: #111827;\n  line-height: 1.4;\n  padding-top: 24px;\n  border-top: 1px solid #f3f4f6;\n}",
+        "tags": []
+      },
+      "previewData": {
+        "Front": "What is the powerhouse of the cell?",
+        "Back": "The mitochondria"
+      },
+      "tags": ["minimal", "clean"]
+    },
+    {
+      "id": "quote-card",
+      "name": "Quote",
+      "description": "A large featured quote with author attribution",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Quote",
+        "type": 0,
+        "mod": 0,
+        "usn": -1,
+        "sortf": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<div class=\"quote-front\">\n  <div class=\"quotemark\">\"</div>\n  <blockquote class=\"quote-text\">{{Quote}}</blockquote>\n</div>",
+            "afmt": "<div class=\"quote-back\">\n  <div class=\"quotemark\">\"</div>\n  <blockquote class=\"quote-text\">{{Quote}}</blockquote>\n  <div class=\"attribution\">\n    <span class=\"author\">— {{Author}}</span>\n    {{#Context}}<span class=\"context\">{{Context}}</span>{{/Context}}\n  </div>\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Quote",
+            "ord": 0,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Author",
+            "ord": 1,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 16
+          },
+          {
+            "name": "Context",
+            "ord": 2,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 14
+          }
+        ],
+        "css": ".card {\n  font-family: 'Georgia', 'Palatino', serif;\n  background: #1c1917;\n  min-height: 100%;\n  margin: 0;\n  padding: 40px 32px;\n  box-sizing: border-box;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.quote-front, .quote-back {\n  width: 100%;\n  max-width: 500px;\n  text-align: center;\n}\n\n.quotemark {\n  font-size: 6rem;\n  line-height: 0.5;\n  color: #a78bfa;\n  margin-bottom: 16px;\n  font-family: Georgia, serif;\n}\n\n.quote-text {\n  font-size: 1.25rem;\n  font-style: italic;\n  color: #f5f5f4;\n  line-height: 1.8;\n  margin: 0 0 24px;\n}\n\n.attribution {\n  display: flex;\n  flex-direction: column;\n  gap: 4px;\n}\n\n.author {\n  font-size: 1rem;\n  font-weight: 600;\n  color: #a78bfa;\n  font-style: normal;\n  font-family: 'Inter', sans-serif;\n}\n\n.context {\n  font-size: 0.82rem;\n  color: #78716c;\n  font-style: normal;\n  font-family: 'Inter', sans-serif;\n}",
+        "tags": []
+      },
+      "previewData": {
+        "Quote": "The only way to do great work is to love what you do.",
+        "Author": "Steve Jobs",
+        "Context": "Stanford Commencement Address, 2005"
+      },
+      "tags": ["quotes", "inspiration"]
+    },
+    {
+      "id": "math-science",
+      "name": "Math & Science",
+      "description": "MathJax-ready template for equations, proofs, and scientific notation",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Math & Science",
+        "type": 0,
+        "mod": 0,
+        "usn": -1,
+        "sortf": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<div class=\"math-front\">\n  <div class=\"label\">Problem</div>\n  <div class=\"problem\">{{Problem}}</div>\n  {{#Context}}\n  <div class=\"context\">{{Context}}</div>\n  {{/Context}}\n</div>",
+            "afmt": "<div class=\"math-back\">\n  <div class=\"problem-echo\">{{Problem}}</div>\n  <hr class=\"divider\">\n  <div class=\"solution\">{{Solution}}</div>\n  {{#Steps}}\n  <div class=\"steps\">\n    <div class=\"steps-label\">Derivation</div>\n    {{Steps}}\n  </div>\n  {{/Steps}}\n  {{#Context}}\n  <div class=\"context\">{{Context}}</div>\n  {{/Context}}\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Problem",
+            "ord": 0,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Solution",
+            "ord": 1,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Steps",
+            "ord": 2,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 16
+          },
+          {
+            "name": "Context",
+            "ord": 3,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 14
+          }
+        ],
+        "css": ".card {\n  font-family: 'Inter', -apple-system, sans-serif;\n  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);\n  min-height: 100%;\n  margin: 0;\n  padding: 32px 24px;\n  box-sizing: border-box;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: #e2e8f0;\n}\n\n.math-front, .math-back {\n  width: 100%;\n  max-width: 520px;\n  text-align: center;\n}\n\n.label {\n  font-size: 0.65rem;\n  font-weight: 600;\n  text-transform: uppercase;\n  letter-spacing: 0.14em;\n  color: #7dd3fc;\n  margin-bottom: 14px;\n}\n\n.problem {\n  font-size: 1.3rem;\n  color: #f1f5f9;\n  line-height: 1.6;\n  font-weight: 400;\n}\n\n.problem-echo {\n  font-size: 0.9rem;\n  color: #94a3b8;\n  margin-bottom: 16px;\n  line-height: 1.5;\n}\n\n.divider {\n  border: none;\n  border-top: 1px solid #334155;\n  margin: 16px 0;\n}\n\n.solution {\n  font-size: 1.4rem;\n  font-weight: 500;\n  color: #4ade80;\n  background: rgba(74, 222, 128, 0.08);\n  border: 1px solid rgba(74, 222, 128, 0.2);\n  border-radius: 10px;\n  padding: 16px 20px;\n  margin-bottom: 16px;\n  line-height: 1.6;\n}\n\n.steps {\n  background: rgba(125, 211, 252, 0.06);\n  border: 1px solid rgba(125, 211, 252, 0.15);\n  border-radius: 10px;\n  padding: 14px 18px;\n  font-size: 0.88rem;\n  color: #cbd5e1;\n  line-height: 1.8;\n  text-align: left;\n  margin-bottom: 12px;\n}\n\n.steps-label {\n  font-size: 0.62rem;\n  font-weight: 600;\n  text-transform: uppercase;\n  letter-spacing: 0.12em;\n  color: #7dd3fc;\n  margin-bottom: 8px;\n}\n\n.context {\n  font-size: 0.78rem;\n  color: #64748b;\n  margin-top: 10px;\n  font-style: italic;\n}\n\nmjx-container {\n  color: inherit !important;\n}",
+        "tags": []
+      },
+      "previewData": {
+        "Problem": "Evaluate ∫₀^∞ e^(−x²) dx",
+        "Solution": "√π / 2",
+        "Steps": "Square the integral and convert to polar coordinates:<br>I² = ∫∫ e^(−(x²+y²)) dx dy → polar → π/4<br>Therefore I = √π / 2",
+        "Context": "Gaussian integral — probability, thermodynamics, quantum mechanics"
+      },
+      "tags": ["math", "science", "equations"]
+    },
+    {
+      "id": "basic-reversed",
+      "name": "Basic (Reversed)",
+      "description": "One note, two cards — forward and reverse. Standard for bidirectional language drills.",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Basic (Reversed)",
+        "type": 0,
+        "mod": 0,
+        "usn": -1,
+        "sortf": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<div class=\"front\">\n  <h1>{{Front}}</h1>\n</div>",
+            "afmt": "<div class=\"back\">\n  <div class=\"question\">{{Front}}</div>\n  <hr id=\"answer\">\n  <div class=\"answer\">{{Back}}</div>\n</div>"
+          },
+          {
+            "name": "Card 2",
+            "ord": 1,
+            "qfmt": "<div class=\"front\">\n  <h1>{{Back}}</h1>\n</div>",
+            "afmt": "<div class=\"back\">\n  <div class=\"question\">{{Back}}</div>\n  <hr id=\"answer\">\n  <div class=\"answer\">{{Front}}</div>\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Front",
+            "ord": 0,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Back",
+            "ord": 1,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          }
+        ],
+        "css": ".card {\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n  font-size: 20px;\n  text-align: center;\n  color: #1f2937;\n  background: #ffffff;\n  min-height: 100vh;\n  padding: 40px;\n  margin: 0;\n  box-sizing: border-box;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.card > * {\n  max-width: 600px;\n  width: 100%;\n}\n\n.front h1 {\n  font-size: 2.5rem;\n  font-weight: 700;\n  color: #111827;\n  margin: 0;\n}\n\n.question {\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #6b7280;\n  margin-bottom: 20px;\n}\n\n.answer {\n  font-size: 2rem;\n  font-weight: 700;\n  color: #111827;\n  margin-top: 20px;\n}\n\nhr {\n  border: none;\n  height: 2px;\n  background: #e5e7eb;\n  margin: 20px 0;\n  border-radius: 1px;\n}",
+        "tags": []
+      },
+      "previewData": {
+        "Front": "勉強",
+        "Back": "study; to study"
+      },
+      "tags": ["basic", "reversed", "language"]
+    },
+    {
+      "id": "input-type-the-answer",
+      "name": "Type the answer",
+      "description": "Type your answer — Anki diffs it against the expected value. Standard for spelling and recall drills.",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Type the answer",
+        "type": 0,
+        "mod": 0,
+        "usn": -1,
+        "sortf": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<div class=\"front\">\n  <div class=\"prompt\">{{Front}}</div>\n  <div class=\"input-row\">{{type:Back}}</div>\n</div>",
+            "afmt": "<div class=\"back\">\n  <div class=\"prompt\">{{Front}}</div>\n  <div class=\"input-row\">{{type:Back}}</div>\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "Front",
+            "ord": 0,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Back",
+            "ord": 1,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          }
+        ],
+        "css": ".card {\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n  font-size: 20px;\n  text-align: center;\n  color: #1f2937;\n  background: #ffffff;\n  min-height: 100vh;\n  padding: 40px;\n  margin: 0;\n  box-sizing: border-box;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.card > * {\n  max-width: 600px;\n  width: 100%;\n}\n\n.prompt {\n  font-size: 1.8rem;\n  font-weight: 600;\n  color: #111827;\n  margin-bottom: 24px;\n}\n\n.input-row {\n  font-size: 1.4rem;\n}\n\ninput[type=\"text\"] {\n  font-family: inherit;\n  font-size: 1.4rem;\n  padding: 12px 16px;\n  border: 2px solid #d1d5db;\n  border-radius: 8px;\n  width: 100%;\n  max-width: 400px;\n  box-sizing: border-box;\n}",
+        "tags": []
+      },
+      "previewData": {
+        "Front": "Capital of France?",
+        "Back": "Paris"
+      },
+      "tags": ["basic", "input", "type-the-answer"]
+    },
+    {
+      "id": "hierarchy",
+      "name": "Hierarchy",
+      "description": "Question with its H1 › H2 › H3 breadcrumb — heading context on every card.",
+      "baseType": "basic",
+      "noteType": {
+        "name": "Hierarchy",
+        "type": 0,
+        "mod": 0,
+        "usn": -1,
+        "sortf": 0,
+        "tmpls": [
+          {
+            "name": "Card 1",
+            "ord": 0,
+            "qfmt": "<div class=\"hierarchy-front\">\n  <div class=\"breadcrumb\">{{#H1}}<span class=\"crumb\">{{H1}}</span>{{/H1}}{{#H2}}<span class=\"crumb-sep\">›</span><span class=\"crumb\">{{H2}}</span>{{/H2}}{{#H3}}<span class=\"crumb-sep\">›</span><span class=\"crumb\">{{H3}}</span>{{/H3}}</div>\n  <div class=\"question\">{{Question}}</div>\n</div>",
+            "afmt": "<div class=\"hierarchy-back\">\n  <div class=\"breadcrumb\">{{#H1}}<span class=\"crumb\">{{H1}}</span>{{/H1}}{{#H2}}<span class=\"crumb-sep\">›</span><span class=\"crumb\">{{H2}}</span>{{/H2}}{{#H3}}<span class=\"crumb-sep\">›</span><span class=\"crumb\">{{H3}}</span>{{/H3}}</div>\n  <div class=\"question-small\">{{Question}}</div>\n  <hr id=\"answer\">\n  <div class=\"answer\">{{Answer}}</div>\n</div>"
+          }
+        ],
+        "flds": [
+          {
+            "name": "H1",
+            "ord": 0,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 14
+          },
+          {
+            "name": "H2",
+            "ord": 1,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 14
+          },
+          {
+            "name": "H3",
+            "ord": 2,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 14
+          },
+          {
+            "name": "Question",
+            "ord": 3,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          },
+          {
+            "name": "Answer",
+            "ord": 4,
+            "sticky": false,
+            "rtl": false,
+            "font": "Inter",
+            "size": 20
+          }
+        ],
+        "css": ".card {\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;\n  font-size: 20px;\n  text-align: center;\n  color: #1f2937;\n  background: #ffffff;\n  min-height: 100vh;\n  padding: 40px;\n  margin: 0;\n  box-sizing: border-box;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.card > * {\n  max-width: 600px;\n  width: 100%;\n}\n\n.breadcrumb {\n  font-size: 0.8rem;\n  color: #9ca3af;\n  margin-bottom: 16px;\n}\n\n.breadcrumb .crumb-sep {\n  margin: 0 6px;\n}\n\n.breadcrumb .crumb-sep:first-child {\n  display: none;\n}\n\n.question {\n  font-size: 1.8rem;\n  font-weight: 600;\n  color: #111827;\n}\n\n.question-small {\n  font-size: 1.1rem;\n  color: #6b7280;\n  margin-bottom: 16px;\n}\n\n.answer {\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #111827;\n  margin-top: 16px;\n}\n\nhr {\n  border: none;\n  height: 1px;\n  background: #e5e7eb;\n  margin: 16px 0;\n}",
+        "tags": []
+      },
+      "previewData": {
+        "H1": "Biology",
+        "H2": "Cell division",
+        "H3": "Mitosis",
+        "Question": "What happens during prophase?",
+        "Answer": "Chromosomes condense and the mitotic spindle begins to form"
+      },
+      "tags": ["basic", "hierarchy", "structure"]
+    }
+  ]
+}

@@ -350,6 +350,25 @@ describe('TemplatesController.listDefaultTemplates', () => {
       noteType: expect.any(Object),
       previewData: expect.any(Object),
     });
+    expect(payload[0]).not.toHaveProperty('surface');
+    expect(payload.map((p: { id: string }) => p.id)).toContain('basic-clean');
+  });
+});
+
+describe('TemplatesController.listOfficialTemplates', () => {
+  it('returns the official starters without the internal surface flag', () => {
+    const controller = new TemplatesController(buildService() as never);
+    const res = buildRes();
+
+    controller.listOfficialTemplates(buildReq({}), res);
+
+    expect(res.json).toHaveBeenCalledTimes(1);
+    const payload = (res.json as jest.Mock).mock.calls[0][0];
+    expect(Array.isArray(payload)).toBe(true);
+    expect(payload.map((p: { id: string }) => p.id)).toContain(
+      'official-n2a-basic'
+    );
+    expect(payload[0]).not.toHaveProperty('surface');
   });
 });
 

@@ -7,8 +7,11 @@ import {
   exportNoteTypeToApkg,
 } from '../lib/templates/exportNoteTypeToApkg';
 import { validateTemplateFields } from '../lib/templates/validateTemplateFields';
-import { getDefaultTemplates } from '../services/DefaultTemplatesService';
-import { getOfficialTemplates } from '../services/officialTemplates';
+import {
+  Starter,
+  listConversionStarters,
+  listEditorStarters,
+} from '../services/starters';
 import {
   AINoteTypeUseCase,
   ChatMessage,
@@ -22,6 +25,18 @@ import {
 import TemplatesService from '../services/TemplatesService';
 
 const EMPTY_USER_PAYLOAD = { templates: [], hiddenIds: [] } as const;
+
+function toStarterResponse(starter: Starter): Omit<Starter, 'surface'> {
+  return {
+    id: starter.id,
+    name: starter.name,
+    description: starter.description,
+    baseType: starter.baseType,
+    noteType: starter.noteType,
+    previewData: starter.previewData,
+    tags: starter.tags,
+  };
+}
 
 function isValidNoteType(value: unknown): value is AnkiNoteType {
   if (!value || typeof value !== 'object') return false;
@@ -165,11 +180,11 @@ class TemplatesController {
   }
 
   listDefaultTemplates(_req: Request, res: Response) {
-    res.json(getDefaultTemplates());
+    res.json(listEditorStarters().map(toStarterResponse));
   }
 
   listOfficialTemplates(_req: Request, res: Response) {
-    res.json(getOfficialTemplates());
+    res.json(listConversionStarters().map(toStarterResponse));
   }
 
   async aiGenerate(req: Request, res: Response) {
