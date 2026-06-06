@@ -1,4 +1,4 @@
-import { PrepareDeck } from './PrepareDeck';
+import { PrepareDeck, prepareDeckInfoOnly } from './PrepareDeck';
 import CardOption from '../../../lib/parser/Settings/CardOption';
 
 jest.mock('../../../lib/claude/ClaudeService', () => ({
@@ -398,14 +398,7 @@ describe('PrepareDeck — duplicate-name dedup', () => {
       workspace: makeWorkspace(),
     }).catch(() => undefined);
 
-    const startCalls = infoSpy.mock.calls.filter(
-      (args) => args[0] === '[PrepareDeck] convertFile start'
-    );
-    expect(startCalls).toHaveLength(1);
-    expect(startCalls[0][1]).toMatchObject({
-      name: 'anatomy.pdf',
-      workspaceLocation: '/tmp/test-workspace',
-    });
+    expect(convertPDFToImages).toHaveBeenCalledTimes(1);
   });
 
   it('keeps distinct-named PDFs as separate conversions', async () => {
@@ -421,13 +414,52 @@ describe('PrepareDeck — duplicate-name dedup', () => {
       workspace: makeWorkspace(),
     }).catch(() => undefined);
 
-    const startCalls = infoSpy.mock.calls.filter(
-      (args) => args[0] === '[PrepareDeck] convertFile start'
-    );
-    expect(startCalls).toHaveLength(2);
-    expect(startCalls.map((c) => c[1].name)).toEqual([
-      'anatomy.pdf',
-      'histology.pdf',
-    ]);
+    expect(convertPDFToImages).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('prepareDeckInfoOnly — duplicate-name dedup', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('converts a same-named PDF once instead of fanning out two conversions', async () => {
+    const settings = makeSettings();
+    await prepareDeckInfoOnly(
+      {
+        name: 'anatomy.pdf',
+        files: [
+          { name: 'anatomy.pdf', contents: Buffer.from('%PDF-1.4 a') },
+          { name: 'anatomy.pdf', contents: Buffer.from('%PDF-1.4 b') },
+        ],
+        settings,
+        noLimits: true,
+        workspace: makeWorkspace(),
+      },
+      makeWorkspace(),
+      makeWorkspace()
+    ).catch(() => undefined);
+
+    expect(convertPDFToImages).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps distinct-named PDFs as separate conversions', async () => {
+    const settings = makeSettings();
+    await prepareDeckInfoOnly(
+      {
+        name: 'export.zip',
+        files: [
+          { name: 'anatomy.pdf', contents: Buffer.from('%PDF-1.4 a') },
+          { name: 'histology.pdf', contents: Buffer.from('%PDF-1.4 b') },
+        ],
+        settings,
+        noLimits: true,
+        workspace: makeWorkspace(),
+      },
+      makeWorkspace(),
+      makeWorkspace()
+    ).catch(() => undefined);
+
+    expect(convertPDFToImages).toHaveBeenCalledTimes(2);
   });
 });
