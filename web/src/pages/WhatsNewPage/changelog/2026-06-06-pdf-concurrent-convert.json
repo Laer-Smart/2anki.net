@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-06-pdf-concurrent-convert",
+  "date": "2026-06-06",
+  "type": "fix",
+  "title": "Uploading the same PDF more than once in a batch converts reliably instead of intermittently failing"
+}

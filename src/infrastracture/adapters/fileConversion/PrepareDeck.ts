@@ -48,6 +48,17 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
+function dedupeFilesByName(
+  files: DeckParserInput['files']
+): DeckParserInput['files'] {
+  const seen = new Set<string>();
+  return files.filter((file) => {
+    if (seen.has(file.name)) return false;
+    seen.add(file.name);
+    return true;
+  });
+}
+
 interface PrepareDeckResult {
   name: string;
   apkg: Buffer;
@@ -298,23 +309,25 @@ export async function PrepareDeck(
 ): Promise<PrepareDeckResult> {
   const tTotal = Date.now();
 
+  const files = dedupeFilesByName(input.files);
+
   console.info('[PrepareDeck] received', {
-    count: input.files.length,
-    names: input.files.map((f) => f.name),
-    sources: input.files.map((f) => f.name.slice(0, 60)),
+    count: files.length,
+    names: files.map((f) => f.name),
+    sources: files.map((f) => f.name.slice(0, 60)),
   });
 
   console.log('[PrepareDeck] start', {
     name: input.name,
-    fileCount: input.files.length,
-    fileNames: input.files.map((f) => f.name),
+    fileCount: files.length,
+    fileNames: files.map((f) => f.name),
     claudeEnabled: input.settings.claudeAIFlashcards,
     noLimits: input.noLimits,
   });
 
   const tConvert = Date.now();
   const results = await Promise.all(
-    input.files.map((file) => convertFile(file, input))
+    files.map((file) => convertFile(file, input))
   );
   const convertedFiles = results.flatMap((r) => (r ? [r] : []));
   console.log('[PrepareDeck] file conversions done', {
@@ -322,7 +335,7 @@ export async function PrepareDeck(
     durationMs: Date.now() - tConvert,
   });
 
-  const allFiles = [...input.files, ...convertedFiles];
+  const allFiles = [...files, ...convertedFiles];
 
   if (input.settings.claudeAIFlashcards && input.noLimits) {
     console.log('[PrepareDeck] Claude branch: collecting HTML content');
