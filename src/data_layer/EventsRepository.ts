@@ -40,6 +40,7 @@ const UPLOAD_FUNNEL_STAGES = [
 
 export interface IEventsRepository {
   insertEvents(rows: EventRow[]): Promise<void>;
+  lastEventAt(name: string, campaign?: string): Promise<Date | null>;
   countByName(name: string, since: Date): Promise<number>;
   countDistinctUsers(name: string, since: Date): Promise<number>;
   countByNameForUser(
@@ -65,6 +66,21 @@ export class EventsRepository implements IEventsRepository {
   async insertEvents(rows: EventRow[]): Promise<void> {
     if (rows.length === 0) return;
     await this.database(this.table).insert(rows);
+  }
+
+  async lastEventAt(name: string, campaign?: string): Promise<Date | null> {
+    const query = this.database(this.table).where('name', name);
+
+    if (campaign != null) {
+      query.whereRaw("props->>'campaign' = ?", [campaign]);
+    }
+
+    const row = (await query.max('created_at as last_at').first()) as
+      | { last_at: Date | string | null }
+      | undefined;
+
+    if (row?.last_at != null) return new Date(row.last_at);
+    return null;
   }
 
   async countByName(name: string, since: Date): Promise<number> {

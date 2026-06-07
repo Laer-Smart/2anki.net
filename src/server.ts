@@ -85,6 +85,7 @@ import { updateStripeSubscriptions } from './lib/storage/jobs/helpers/updateStri
 import { scheduleReEngagementEmails } from './lib/reengagement/jobs/scheduleReEngagementEmails';
 import { scheduleInactivityWarnings } from './lib/inactivity/jobs/scheduleInactivityWarnings';
 import { scheduleInactiveUserDeletions } from './lib/inactivity/jobs/scheduleInactiveUserDeletions';
+import { EventsRepository } from './data_layer/EventsRepository';
 import { scheduleParserCanary } from './lib/parser/canary/scheduleParserCanary';
 import { scheduleObservabilityCleanup } from './lib/observability/jobs/scheduleObservabilityCleanup';
 import { ObservabilityRepository } from './data_layer/ObservabilityRepository';
@@ -278,6 +279,7 @@ const serve = async () => {
   const emailService = getDefaultEmailService();
   scheduleReEngagementEmails(reEngagementRepo, emailService, eventsSink);
 
+  const eventsRepo = new EventsRepository(database);
   const inactivityEmailRepo = new InactivityEmailRepository(database);
   const uploadRepo = new UploadRepository(database);
   const sendInactivityWarningsUseCase = new SendInactivityWarningsUseCase(
@@ -285,13 +287,23 @@ const serve = async () => {
     emailService,
     uploadRepo
   );
-  scheduleInactivityWarnings(sendInactivityWarningsUseCase, { eventsSink });
+  scheduleInactivityWarnings(sendInactivityWarningsUseCase, {
+    eventsSink,
+    lastRunAt: () => eventsRepo.lastEventAt('email_batch_sent', 'inactivity'),
+  }).catch((error) => {
+    console.error('[inactivity-warnings] failed to schedule:', error);
+  });
 
   const deleteInactiveUsersUseCase = new DeleteInactiveUsersUseCase(
     inactivityEmailRepo,
     new UsersRepository(database)
   );
-  scheduleInactiveUserDeletions(deleteInactiveUsersUseCase, { eventsSink });
+  scheduleInactiveUserDeletions(deleteInactiveUsersUseCase, {
+    eventsSink,
+    lastRunAt: () => eventsRepo.lastEventAt('inactive_users_deleted'),
+  }).catch((error) => {
+    console.error('[inactivity-deletions] failed to schedule:', error);
+  });
 
   scheduleParserCanary(emailService);
 
