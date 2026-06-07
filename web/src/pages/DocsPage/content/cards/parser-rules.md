@@ -38,6 +38,19 @@ Pick zero or more. If you pick none, the whole page is one deck.
 
 The toggle, heading, and database sub-deck options apply on paid plans. Sub-pages nest as sub-decks on every plan.
 
+#### Advanced deck types
+
+Under **Deck boundaries** there's a collapsed **Advanced deck types** disclosure. Open it to turn extra Notion blocks into their own top-level decks instead of cards or sub-decks. Available choices:
+
+- Toggle, Heading 1, Heading 2, Heading 3
+- Bulleted list, Numbered list, Quote
+- Columns
+- Database inside a page
+
+Each type you turn on splits its content into a separate deck sourced from that block's children. This is off by default — pages and databases already become decks, so most pages never need it. When a block type is set as both a flashcard and a deck, it becomes a deck.
+
+Turning these on re-splits the page into more decks on the next conversion. Turn them off to go back to one deck per page.
+
 ### Flashcards
 
 Which Notion block types become individual cards. Default is just `toggle`. Available choices:
