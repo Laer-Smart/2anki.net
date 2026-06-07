@@ -10,6 +10,7 @@ function makeRepo(rows: UploadFunnelStageRow[]): IEventsRepository {
     countByName: jest.fn(),
     countDistinctUsers: jest.fn(),
     countByNameForUser: jest.fn(),
+    lastEventAt: jest.fn(),
     groupPaywallShownByVariantAndSurface: jest.fn(),
     groupPaywallClicksByVariant: jest.fn(),
     groupUploadFunnel: jest.fn().mockResolvedValue(rows),
