@@ -98,6 +98,33 @@
   width: auto;
 }
 
+.actionButton[aria-busy='true'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.actionButton[aria-busy='true'] > span {
+  width: 1rem;
+  height: 1rem;
+  border-width: 2px;
+}
+
+.savedStatus {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  margin-right: auto;
+}
+
+.saveError {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-danger);
+  margin-right: auto;
+}
+
 @media (max-width: 600px) {
   .saveBar {
     flex-direction: column;
@@ -105,6 +132,10 @@
   }
   .actionButton {
     width: 100%;
+  }
+  .savedStatus,
+  .saveError {
+    margin-right: 0;
   }
 }
 

@@ -10,13 +10,15 @@ import CardOptionModel from '../../lib/data_layer/model/CardOption';
 const mockResetUserCardOptions = vi.fn();
 const mockGetSettingsCardOptions = vi.fn();
 const mockUseUserLocals = vi.fn();
+const mockSaveSettings = vi.fn();
+const mockGetSettings = vi.fn();
 
 vi.mock('../../lib/backend/get2ankiApi', () => ({
   get2ankiApi: () => ({
     resetUserCardOptions: mockResetUserCardOptions,
     deleteSettings: vi.fn().mockResolvedValue(undefined),
-    saveSettings: vi.fn().mockResolvedValue(undefined),
-    getSettings: vi.fn().mockResolvedValue({}),
+    saveSettings: (...args: unknown[]) => mockSaveSettings(...args),
+    getSettings: (...args: unknown[]) => mockGetSettings(...args),
   }),
 }));
 
@@ -65,6 +67,36 @@ function renderForm(
       </MemoryRouter>
     </QueryClientProvider>
   );
+}
+
+function renderPageForm(spies: {
+  setError: () => void;
+  onSaved?: () => void;
+}) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={client}>
+      <MemoryRouter>
+        <CardOptionsForm
+          pageId="page-1"
+          pageTitle="Pharmacology"
+          isLoggedIn
+          onSaved={spies.onSaved}
+          setError={spies.setError}
+        />
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+}
+
+async function makeDirty() {
+  const deckInput = await screen.findByPlaceholderText(
+    'Enter deck name (optional)'
+  );
+  fireEvent.change(deckInput, { target: { value: 'Pharmacology II' } });
+  return screen.findByRole('button', { name: 'Save defaults' });
 }
 
 describe('CardOptionsForm reset for the account-default view', () => {
@@ -417,5 +449,103 @@ describe('CardOptionsForm ai-comprehensive toggle (paid-only)', () => {
       expect(localStorage.getItem('ai-comprehensive')).toBe('true');
     });
     expect(toggle).toBeChecked();
+  });
+});
+
+describe('CardOptionsForm save defaults feedback', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setUserLocalsPaying(false);
+    localStorage.clear();
+    mockGetSettingsCardOptions.mockResolvedValue([]);
+    mockGetSettings.mockResolvedValue({});
+    mockSaveSettings.mockResolvedValue(undefined);
+  });
+
+  it('disables the button and shows Saving while the save is in flight', async () => {
+    let resolveSave: () => void = () => {};
+    mockSaveSettings.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveSave = resolve;
+      })
+    );
+    renderPageForm({ setError: vi.fn() });
+    const saveButton = await makeDirty();
+
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Saving' })).toBeDisabled();
+    });
+
+    resolveSave();
+  });
+
+  it('shows a Defaults saved status that survives the button unmounting', async () => {
+    renderPageForm({ setError: vi.fn() });
+    const saveButton = await makeDirty();
+
+    fireEvent.click(saveButton);
+
+    const status = await screen.findByRole('status');
+    expect(status).toHaveTextContent('Defaults saved');
+    expect(screen.queryByRole('button', { name: 'Save defaults' })).toBeNull();
+
+    await waitFor(
+      () => {
+        expect(screen.queryByRole('status')).toBeNull();
+      },
+      { timeout: 4000 }
+    );
+  });
+
+  it('shows an inline error and keeps the button enabled when the save fails', async () => {
+    const setError = vi.fn();
+    mockSaveSettings.mockRejectedValue(new Error('network down'));
+    renderPageForm({ setError });
+    const saveButton = await makeDirty();
+
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        "Couldn't save your defaults. Try again."
+      );
+    });
+    expect(setError).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Save defaults' })).toBeEnabled();
+  });
+
+  it('saves once when the button is clicked twice in quick succession', async () => {
+    let resolveSave: () => void = () => {};
+    mockSaveSettings.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveSave = resolve;
+      })
+    );
+    renderPageForm({ setError: vi.fn() });
+    const saveButton = await makeDirty();
+
+    fireEvent.click(saveButton);
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(mockSaveSettings).toHaveBeenCalledTimes(1);
+    });
+
+    resolveSave();
+  });
+
+  it('does not show the saved status when onSaved navigates away', async () => {
+    const onSaved = vi.fn();
+    renderPageForm({ setError: vi.fn(), onSaved });
+    const saveButton = await makeDirty();
+
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(onSaved).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.queryByRole('status')).toBeNull();
   });
 });

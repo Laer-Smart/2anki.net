@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { Link } from 'react-router-dom';
@@ -358,6 +359,10 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       )
     );
     const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [justSaved, setJustSaved] = useState(false);
+    const [saveFailed, setSaveFailed] = useState(false);
+    const savingRef = useRef(false);
 
     useEffect(() => {
       if (!options) return;
@@ -566,6 +571,12 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       currentSnapshot,
     ]);
 
+    useEffect(() => {
+      if (!justSaved) return;
+      const timer = setTimeout(() => setJustSaved(false), 2500);
+      return () => clearTimeout(timer);
+    }, [justSaved]);
+
     const toggleCheckbox = (key: string, checked: boolean) => {
       setCheckboxValues((prev) => ({ ...prev, [key]: checked }));
       saveValueInLocalStorage(key, checked.toString(), pageId);
@@ -618,6 +629,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
 
     const serverSave = async (): Promise<boolean> => {
       if (!pageId) return true;
+      if (savingRef.current) return false;
+      savingRef.current = true;
       const payload: { [key: string]: string } = {};
       Object.entries(checkboxValues).forEach(([key, value]) => {
         payload[key] = value.toString();
@@ -647,6 +660,8 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         payload['field-mapping'] = JSON.stringify(fieldMapping);
       }
 
+      setIsSaving(true);
+      setSaveFailed(false);
       try {
         await get2ankiApi().saveSettings({
           object_id: pageId,
@@ -654,10 +669,15 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           payload,
         });
         setInitialSnapshot(currentSnapshot);
+        if (onSaved == null) setJustSaved(true);
         return true;
       } catch (error) {
+        setSaveFailed(true);
         setError(error);
         return false;
+      } finally {
+        savingRef.current = false;
+        setIsSaving(false);
       }
     };
 
@@ -726,16 +746,36 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
 
     const showResetButton = !hideActions && pageId == null;
     const showSaveButton = !hideActions && isDirty;
+    const showSavedStatus = !hideActions && justSaved;
+    const showSaveError = !hideActions && saveFailed;
 
     return (
       <div className={fieldStyles.form}>
-        {(showResetButton || showSaveButton) && (
+        {(showResetButton ||
+          showSaveButton ||
+          showSavedStatus ||
+          showSaveError) && (
           <div className={fieldStyles.saveBar}>
+            {showSaveError && (
+              <span role="alert" className={fieldStyles.saveError}>
+                Couldn&apos;t save your defaults. Try again.
+              </span>
+            )}
+            {showSavedStatus && (
+              <span
+                role="status"
+                aria-live="polite"
+                className={fieldStyles.savedStatus}
+              >
+                Defaults saved
+              </span>
+            )}
             {showResetButton && (
               <button
                 type="button"
                 className={`${sharedStyles.btnSecondary} ${fieldStyles.actionButton}`}
                 onClick={resetStore}
+                disabled={isSaving}
               >
                 Reset to defaults
               </button>
@@ -745,8 +785,13 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 type="button"
                 className={`${sharedStyles.btnPrimary} ${fieldStyles.actionButton}`}
                 onClick={onSubmit}
+                disabled={isSaving}
+                aria-busy={isSaving}
               >
-                Save defaults
+                {isSaving && (
+                  <span className={sharedStyles.spinnerSmall} aria-hidden />
+                )}
+                {isSaving ? 'Saving' : 'Save defaults'}
               </button>
             )}
           </div>
