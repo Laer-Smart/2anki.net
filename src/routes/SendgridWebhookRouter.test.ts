@@ -3,9 +3,7 @@ import express from 'express';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 
-import {
-  InMemorySuppressionEventsRepository,
-} from '../data_layer/SuppressionEventsRepository';
+import { InMemorySuppressionEventsRepository } from '../data_layer/SuppressionEventsRepository';
 import { emailHash } from '../lib/emailHash';
 import { ProcessSendgridEventsUseCase } from '../usecases/email/ProcessSendgridEventsUseCase';
 import SendgridWebhookRouter from './SendgridWebhookRouter';
@@ -22,7 +20,11 @@ function makeKeyPair() {
   return { publicKeyBase64, privateKey };
 }
 
-function sign(privateKey: crypto.KeyObject, timestamp: string, payload: string) {
+function sign(
+  privateKey: crypto.KeyObject,
+  timestamp: string,
+  payload: string
+) {
   return crypto
     .sign('sha256', Buffer.from(timestamp + payload, 'utf8'), {
       key: privateKey,
