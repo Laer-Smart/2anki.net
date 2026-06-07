@@ -69,10 +69,7 @@ function renderForm(
   );
 }
 
-function renderPageForm(spies: {
-  setError: () => void;
-  onSaved?: () => void;
-}) {
+function renderPageForm(spies: { setError: () => void; onSaved?: () => void }) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
