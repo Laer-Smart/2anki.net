@@ -1,6 +1,7 @@
 import {
   scheduleInactiveUserDeletions,
   INACTIVE_USER_DELETION_DAILY_LIMIT,
+  INACTIVE_USER_DELETION_INTERVAL_MS,
 } from './scheduleInactiveUserDeletions';
 import type { DeleteInactiveUsersUseCase } from '../../../usecases/ops/DeleteInactiveUsersUseCase';
 
@@ -17,16 +18,64 @@ describe('scheduleInactiveUserDeletions', () => {
     jest.clearAllMocks();
   });
 
-  it('calls execute with dryRun=false and the default limit after one interval', async () => {
+  it('ticks on startup when the job has never run', async () => {
     const useCase = makeUseCase();
-    const handle = scheduleInactiveUserDeletions(
+    const lastRunAt = jest.fn().mockResolvedValue(null);
+
+    const handle = await scheduleInactiveUserDeletions(
       useCase as unknown as DeleteInactiveUsersUseCase,
-      { intervalMs: 1000 }
+      { intervalMs: 1000, lastRunAt }
     );
+
+    expect(useCase.execute).toHaveBeenCalledTimes(1);
+    expect(useCase.execute).toHaveBeenCalledWith(
+      false,
+      INACTIVE_USER_DELETION_DAILY_LIMIT
+    );
+    clearInterval(handle);
+  });
+
+  it('ticks on startup when the last run is older than the interval', async () => {
+    const useCase = makeUseCase();
+    const lastRunAt = jest.fn().mockResolvedValue(new Date(Date.now() - 2000));
+
+    const handle = await scheduleInactiveUserDeletions(
+      useCase as unknown as DeleteInactiveUsersUseCase,
+      { intervalMs: 1000, lastRunAt }
+    );
+
+    expect(useCase.execute).toHaveBeenCalledTimes(1);
+    clearInterval(handle);
+  });
+
+  it('does not tick on startup when the last run is within the interval', async () => {
+    const useCase = makeUseCase();
+    const lastRunAt = jest.fn().mockResolvedValue(new Date(Date.now() - 500));
+
+    const handle = await scheduleInactiveUserDeletions(
+      useCase as unknown as DeleteInactiveUsersUseCase,
+      { intervalMs: 1000, lastRunAt }
+    );
+
+    expect(useCase.execute).not.toHaveBeenCalled();
+    clearInterval(handle);
+  });
+
+  it('arms the interval after the startup check so later windows still fire', async () => {
+    const useCase = makeUseCase();
+    const lastRunAt = jest.fn().mockResolvedValue(new Date(Date.now() - 500));
+
+    const handle = await scheduleInactiveUserDeletions(
+      useCase as unknown as DeleteInactiveUsersUseCase,
+      { intervalMs: 1000, lastRunAt }
+    );
+
+    expect(useCase.execute).not.toHaveBeenCalled();
 
     jest.advanceTimersByTime(1000);
     await Promise.resolve();
 
+    expect(useCase.execute).toHaveBeenCalledTimes(1);
     expect(useCase.execute).toHaveBeenCalledWith(
       false,
       INACTIVE_USER_DELETION_DAILY_LIMIT
@@ -36,28 +85,18 @@ describe('scheduleInactiveUserDeletions', () => {
 
   it('respects a custom limit passed via options', async () => {
     const useCase = makeUseCase();
-    const handle = scheduleInactiveUserDeletions(
-      useCase as unknown as DeleteInactiveUsersUseCase,
-      { intervalMs: 1000, limit: 25 }
-    );
+    const lastRunAt = jest.fn().mockResolvedValue(null);
 
-    jest.advanceTimersByTime(1000);
-    await Promise.resolve();
+    const handle = await scheduleInactiveUserDeletions(
+      useCase as unknown as DeleteInactiveUsersUseCase,
+      { intervalMs: 1000, limit: 25, lastRunAt }
+    );
 
     expect(useCase.execute).toHaveBeenCalledWith(false, 25);
     clearInterval(handle);
   });
 
-  it('does not fire before the interval elapses', () => {
-    const useCase = makeUseCase();
-    const handle = scheduleInactiveUserDeletions(
-      useCase as unknown as DeleteInactiveUsersUseCase,
-      { intervalMs: 1000 }
-    );
-
-    jest.advanceTimersByTime(999);
-
-    expect(useCase.execute).not.toHaveBeenCalled();
-    clearInterval(handle);
+  it('defaults to the 24h interval', () => {
+    expect(INACTIVE_USER_DELETION_INTERVAL_MS).toBe(24 * 60 * 60 * 1000);
   });
 });

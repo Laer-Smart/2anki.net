@@ -219,4 +219,27 @@ describe('EventsRepository SQL generation', () => {
     const sql = getSql();
     expect(sql).toContain("'account_created'");
   });
+
+  it('lastEventAt selects the max created_at filtered by name', async () => {
+    const { db, getSql } = captureGeneratedSql();
+    const repo = new EventsRepository(db);
+
+    await repo.lastEventAt('inactive_users_deleted');
+
+    const sql = getSql();
+    expect(sql).toContain('max("created_at") as "last_at"');
+    expect(sql).toContain('"name" = \'inactive_users_deleted\'');
+    expect(sql).not.toContain('campaign');
+  });
+
+  it('lastEventAt filters on the campaign jsonb prop when given', async () => {
+    const { db, getSql } = captureGeneratedSql();
+    const repo = new EventsRepository(db);
+
+    await repo.lastEventAt('email_batch_sent', 'inactivity');
+
+    const sql = getSql();
+    expect(sql).toContain('max("created_at") as "last_at"');
+    expect(sql).toContain("props->>'campaign' = 'inactivity'");
+  });
 });
