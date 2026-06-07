@@ -51,6 +51,29 @@ const subDeckOptions = [
   'heading_3',
 ];
 const deckOptions = ['page', 'database'];
+const advancedDeckOptions = [
+  'toggle',
+  'heading_1',
+  'heading_2',
+  'heading_3',
+  'bulleted_list_item',
+  'numbered_list_item',
+  'quote',
+  'column_list',
+  'child_database',
+];
+const advancedDeckLabels: Record<string, string> = {
+  toggle: 'Toggle',
+  heading_1: 'Heading 1',
+  heading_2: 'Heading 2',
+  heading_3: 'Heading 3',
+  bulleted_list_item: 'Bulleted list',
+  numbered_list_item: 'Numbered list',
+  quote: 'Quote',
+  column_list: 'Columns',
+  child_database: 'Database inside a page',
+};
+const allowedDeckTypes = [...deckOptions, ...advancedDeckOptions];
 
 const defaultRules: NewRule = {
   id: 0,
@@ -69,8 +92,12 @@ function loadDeckSelection(raw: string | null | undefined): string[] {
   if (raw == null || raw.length === 0) {
     return [...deckOptions];
   }
-  const allowed = raw.split(',').filter((v) => deckOptions.includes(v));
+  const allowed = raw.split(',').filter((v) => allowedDeckTypes.includes(v));
   return allowed.length > 0 ? allowed : [...deckOptions];
+}
+
+function hasAdvancedDeckType(deckTypes: string[]): boolean {
+  return deckTypes.some((type) => advancedDeckOptions.includes(type));
 }
 
 const byLocale = (a: string, b: string) => a.localeCompare(b);
@@ -105,6 +132,7 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [initialSnapshot, setInitialSnapshot] = useState('');
   const [isResetting, setIsResetting] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const cardOptionsRef = useRef<CardOptionsFormHandle>(null);
 
@@ -146,6 +174,7 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
         setRules(loaded);
         setSendEmail(loaded.email_notification);
         setTags(loaded.tags_is);
+        setAdvancedOpen(hasAdvancedDeckType(loaded.deck_is));
         setFavorite(favorites.some((f) => f.id === id));
         setInitialSnapshot(
           snapshot(loaded, loaded.tags_is, loaded.email_notification)
@@ -174,6 +203,7 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
       setRules(defaultRules);
       setTags(defaultRules.tags_is);
       setSendEmail(defaultRules.email_notification);
+      setAdvancedOpen(false);
       setInitialSnapshot(
         snapshot(
           defaultRules,
@@ -345,6 +375,42 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
                     onSelected={(fco) => toggleSelection('deck_is', fco)}
                   />
                 </div>
+
+                <details
+                  className={styles.advanced}
+                  open={advancedOpen}
+                  onToggle={(event) =>
+                    setAdvancedOpen(event.currentTarget.open)
+                  }
+                >
+                  <summary className={styles.advancedSummary}>
+                    <span className={styles.advancedCaret} aria-hidden="true">
+                      ›
+                    </span>
+                    Advanced deck types
+                    <FieldHint text="Turn extra Notion blocks into their own decks. Most pages don't need this — pages and databases already become decks." />
+                  </summary>
+                  <div className={styles.advancedBody}>
+                    <p className={styles.advancedHint}>
+                      Each block type you turn on splits its content into a
+                      separate deck. This changes how this page is organized in
+                      Anki. Turn one on only if you want that split.
+                    </p>
+                    <RuleDefinition
+                      value={rules.deck_is}
+                      options={advancedDeckOptions}
+                      labels={advancedDeckLabels}
+                      onSelected={(fco) => toggleSelection('deck_is', fco)}
+                    />
+                    {hasAdvancedDeckType(rules.deck_is) && (
+                      <p className={styles.advancedWarning}>
+                        Heads up — saving with these on will re-split this page
+                        into more decks the next time it converts. Turn them off
+                        to keep one deck per page.
+                      </p>
+                    )}
+                  </div>
+                </details>
 
                 <div className={styles.section}>
                   <div className={styles.labelRow}>

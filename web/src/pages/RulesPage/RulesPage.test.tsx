@@ -165,3 +165,127 @@ describe('RulesPage deck boundaries', () => {
     expect(call[2]).toEqual(['database']);
   });
 });
+
+describe('RulesPage advanced deck types', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockApi.getRules.mockResolvedValue(null);
+    mockApi.getFavorites.mockResolvedValue([]);
+    mockApi.saveRules.mockResolvedValue(undefined);
+  });
+
+  it('keeps the advanced disclosure collapsed by default', async () => {
+    renderPage();
+    await waitFor(() => {
+      expect(screen.getByText('Deck boundaries')).toBeInTheDocument();
+    });
+    const summary = screen.getByText('Advanced deck types');
+    const details = summary.closest('details');
+    expect(details).not.toBeNull();
+    expect(details).not.toHaveAttribute('open');
+  });
+
+  it('opens the disclosure on load when a saved advanced type is present', async () => {
+    mockApi.getRules.mockResolvedValue({
+      id: 2,
+      object_id: 'page-advanced',
+      flashcard_is: 'toggle',
+      sub_deck_is: 'child_page',
+      tags_is: 'strikethrough',
+      deck_is: 'page,database,toggle',
+      owner: 1,
+      email_notification: false,
+    });
+    renderPage('page-advanced');
+    await waitFor(() => {
+      expect(screen.getByText('Deck boundaries')).toBeInTheDocument();
+    });
+    const details = screen.getByText('Advanced deck types').closest('details');
+    expect(details).toHaveAttribute('open');
+    expect(
+      screen.getByRole('button', { name: 'Toggle' })
+    ).toBeInTheDocument();
+  });
+
+  it('adds an advanced block type to deck_is when its chip is toggled', async () => {
+    mockApi.getRules.mockResolvedValue({
+      id: 3,
+      object_id: 'page-advanced-toggle',
+      flashcard_is: 'toggle',
+      sub_deck_is: 'child_page',
+      tags_is: 'strikethrough',
+      deck_is: 'page,database,toggle',
+      owner: 1,
+      email_notification: false,
+    });
+    renderPage('page-advanced-toggle');
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Heading 1' })
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Heading 1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
+
+    await waitFor(() => {
+      expect(mockApi.saveRules).toHaveBeenCalled();
+    });
+    const call = mockApi.saveRules.mock.calls[0];
+    expect(call[2]).toEqual(['page', 'database', 'toggle', 'heading_1']);
+  });
+
+  it('hides the re-split warning when no advanced type is selected', async () => {
+    renderPage();
+    await waitFor(() => {
+      expect(screen.getByText('Deck boundaries')).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/re-split this page/i)).toBeNull();
+  });
+
+  it('shows the re-split warning when a saved advanced type is present', async () => {
+    mockApi.getRules.mockResolvedValue({
+      id: 4,
+      object_id: 'page-warn',
+      flashcard_is: 'toggle',
+      sub_deck_is: 'child_page',
+      tags_is: 'strikethrough',
+      deck_is: 'page,database,toggle',
+      owner: 1,
+      email_notification: false,
+    });
+    renderPage('page-warn');
+    await waitFor(() => {
+      expect(screen.getByText(/re-split this page/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows the re-split warning after a user turns on an advanced type', async () => {
+    mockApi.getRules.mockResolvedValue({
+      id: 5,
+      object_id: 'page-warn-toggle',
+      flashcard_is: 'toggle',
+      sub_deck_is: 'child_page',
+      tags_is: 'strikethrough',
+      deck_is: 'page,database,toggle',
+      owner: 1,
+      email_notification: false,
+    });
+    renderPage('page-warn-toggle');
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Toggle' })
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle' }));
+    await waitFor(() => {
+      expect(screen.queryByText(/re-split this page/i)).toBeNull();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Quote' }));
+    await waitFor(() => {
+      expect(screen.getByText(/re-split this page/i)).toBeInTheDocument();
+    });
+  });
+});
