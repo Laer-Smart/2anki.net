@@ -13,6 +13,10 @@ export default interface AbandonedCheckoutRecoveryEmails {
   sent_at: Date;
 
   token: string | null;
+
+  recovery_url: string | null;
+
+  recovery_url_expires_at: Date | null;
 }
 
 /** Represents the initializer for the table public.abandoned_checkout_recovery_emails */
@@ -25,6 +29,10 @@ export interface AbandonedCheckoutRecoveryEmailsInitializer {
   sent_at?: Date;
 
   token?: string | null;
+
+  recovery_url?: string | null;
+
+  recovery_url_expires_at?: Date | null;
 }
 
 /** Represents the mutator for the table public.abandoned_checkout_recovery_emails */
@@ -36,4 +44,8 @@ export interface AbandonedCheckoutRecoveryEmailsMutator {
   sent_at?: Date;
 
   token?: string | null;
+
+  recovery_url?: string | null;
+
+  recovery_url_expires_at?: Date | null;
 }
