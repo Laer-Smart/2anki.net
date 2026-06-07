@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-07-empty-deck-message",
+  "date": "2026-06-07",
+  "type": "fix",
+  "title": "Uploads that produce no cards tell you why and what to change instead of returning an empty deck"
+}
