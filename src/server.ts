@@ -78,6 +78,7 @@ import { getEventsSink } from './services/events/eventsSinkInstance';
 import { getDatabase, setupDatabase } from './data_layer';
 import JobRepository from './data_layer/JobRepository';
 import { MagicTokenRepository } from './data_layer/MagicTokenRepository';
+import TokenRepository from './data_layer/TokenRepository';
 import ReEngagementRepository from './data_layer/ReEngagementRepository';
 import InactivityEmailRepository from './data_layer/InactivityEmailRepository';
 import UploadRepository from './data_layer/UploadRespository';
@@ -264,6 +265,12 @@ const serve = async () => {
   new MagicTokenRepository(database).deleteExpired().then((count) => {
     if (count > 0) {
       console.info(`Cleaned up ${count} expired magic token(s)`);
+    }
+  });
+
+  new TokenRepository(database).deleteExpired().then((count) => {
+    if (count > 0) {
+      console.info(`Cleaned up ${count} expired access token(s)`);
     }
   });
 
