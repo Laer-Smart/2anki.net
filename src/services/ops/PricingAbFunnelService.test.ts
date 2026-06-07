@@ -84,6 +84,7 @@ function makeEventsRepo(
     countByName: jest.fn(),
     countDistinctUsers: jest.fn(),
     countByNameForUser: jest.fn(),
+    lastEventAt: jest.fn(),
     groupPaywallShownByVariantAndSurface: jest
       .fn()
       .mockResolvedValue(shownRows),

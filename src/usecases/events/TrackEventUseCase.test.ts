@@ -11,6 +11,7 @@ function makeFakeRepository() {
     countByName: jest.fn(async () => 0),
     countDistinctUsers: jest.fn(async () => 0),
     countByNameForUser: jest.fn(async () => 0),
+    lastEventAt: jest.fn(async () => null),
     groupPaywallShownByVariantAndSurface: jest.fn(async () => []),
     groupPaywallClicksByVariant: jest.fn(async () => []),
     groupUploadFunnel: jest.fn(async () => []),
