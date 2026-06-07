@@ -228,6 +228,79 @@ describe('UploadPage AI toggle', () => {
     ).toBeInTheDocument();
     expect(callsFor('upload_ai_turned_off')).toHaveLength(1);
   });
+
+  it('turns AI on from the inline "Turn on Claude cards" button in the off state', async () => {
+    fakeUser = { id: 42 };
+    fakeLocals = { patreon: true, subscriber: false };
+    renderPage();
+    const turnOn = screen.getByRole('button', {
+      name: /turn on claude cards/i,
+    });
+    turnOn.click();
+    await waitFor(() => {
+      expect(globalThis.localStorage.getItem('claude-ai-flashcards')).toBe(
+        'true'
+      );
+    });
+    expect(
+      screen.getByRole('button', { name: /turn ai off/i })
+    ).toBeInTheDocument();
+    expect(callsFor('upload_ai_turned_on')).toHaveLength(1);
+  });
+});
+
+describe('UploadPage AI badge settings link', () => {
+  beforeEach(() => {
+    trackMock.mockClear();
+    fakeUser = null;
+    fakeLocals = undefined;
+    globalThis.localStorage.clear();
+    globalThis.sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    fakeUser = null;
+    fakeLocals = undefined;
+    globalThis.localStorage.clear();
+  });
+
+  it('shows a Manage in Settings link in the off state pointing at card-options without the pdf-ai anchor', () => {
+    fakeUser = { id: 42 };
+    fakeLocals = { patreon: true, subscriber: false };
+    renderPage();
+    const settings = screen.getByRole('link', { name: /manage in settings/i });
+    expect(settings).toHaveAttribute('href', '/card-options?returnTo=/upload');
+  });
+
+  it('shows both the upgrade link and a Manage in Settings link in the free state', () => {
+    fakeUser = { id: 42 };
+    fakeLocals = { patreon: false, subscriber: false };
+    renderPage();
+    expect(
+      screen.getByRole('link', { name: /upgrade to write cards with claude/i })
+    ).toHaveAttribute('href', '/pricing');
+    expect(
+      screen.getByRole('link', { name: /manage in settings/i })
+    ).toHaveAttribute('href', '/card-options?returnTo=/upload');
+  });
+
+  it('keeps the on state Manage in Settings link anchored at pdf-ai', () => {
+    fakeUser = { id: 42 };
+    fakeLocals = { patreon: true, subscriber: false };
+    globalThis.localStorage.setItem('claude-ai-flashcards', 'true');
+    renderPage();
+    expect(
+      screen.getByRole('link', { name: /manage in settings/i })
+    ).toHaveAttribute('href', '/card-options?returnTo=/upload#pdf-ai');
+  });
+
+  it('does not add a settings link in the anon state', () => {
+    fakeUser = null;
+    renderPage();
+    expect(
+      screen.queryByRole('link', { name: /manage in settings/i })
+    ).not.toBeInTheDocument();
+  });
 });
 
 const SIGNUP_FLAG_KEY = 'signup_completed_tracked';
