@@ -791,7 +791,7 @@ function UploadForm({
     const remoteSource = remoteSourceLabel();
     return (
       <div className={formStyles.stateContent}>
-        <p className={formStyles.filename}>
+        <p className={formStyles.filename} data-hj-suppress>
           {remoteFilename ?? displayFilename(fileInputRef.current)}
         </p>
         <div className={formStyles.progressTrack}>
@@ -1100,7 +1100,11 @@ function UploadForm({
         <p className={formStyles.limitTitle}>{title}</p>
         <p className={formStyles.limitDescription}>{description}</p>
         {displayedFilename && (
-          <span className={formStyles.limitFilename} title={displayedFilename}>
+          <span
+            className={formStyles.limitFilename}
+            title={displayedFilename}
+            data-hj-suppress
+          >
             {displayedFilename}
             {isFileSize && limitInfo?.fileSizeBytes != null && (
               <> &mdash; {formatFileSize(limitInfo.fileSizeBytes)}</>
@@ -1312,7 +1316,9 @@ function UploadForm({
         </svg>
       </span>
       <div className={formStyles.lockedBadge}>Locked</div>
-      <p className={formStyles.lockedFilename}>{lockedPdfInfo?.filename}</p>
+      <p className={formStyles.lockedFilename} data-hj-suppress>
+        {lockedPdfInfo?.filename}
+      </p>
       <p className={formStyles.lockedHeadline}>
         This PDF is password-protected
       </p>
