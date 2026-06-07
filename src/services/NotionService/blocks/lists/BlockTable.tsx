@@ -4,6 +4,7 @@ import {
   TableBlockObjectResponse,
   TableRowBlockObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints';
+import { inferColumnMapping } from '../../../../lib/notionDatabase/inferColumnMapping';
 import handleClozeDeletions from '../../../../lib/parser/helpers/handleClozeDeletions';
 import hasInlineClozeCode from '../../../../lib/parser/helpers/hasInlineClozeCode';
 import BlockHandler from '../../BlockHandler/BlockHandler';
@@ -14,6 +15,13 @@ interface TableCard {
   back: string;
   isCloze: boolean;
 }
+
+interface ColumnRoles {
+  frontIndex: number;
+  backIndex: number;
+}
+
+const DEFAULT_COLUMN_ROLES: ColumnRoles = { frontIndex: 0, backIndex: 1 };
 
 function toClozeCard(front: string, back: string): TableCard {
   if (hasInlineClozeCode(front)) {
@@ -42,6 +50,42 @@ function buildExtraColumnsTable(
   return `<table><tbody><tr>${tds}</tr></tbody></table>`;
 }
 
+function resolveColumnRoles(
+  rows: readonly TableRowBlockObjectResponse[],
+  hasColumnHeader: boolean,
+  handler: BlockHandler
+): ColumnRoles {
+  const headerRow = rows[0];
+  if (!hasColumnHeader || headerRow == null) {
+    return DEFAULT_COLUMN_ROLES;
+  }
+
+  const columnNames = headerRow.table_row.cells.map((cell) =>
+    renderCell(cell, handler).trim()
+  );
+  const mapping = inferColumnMapping(columnNames);
+  if (mapping.frontField == null || mapping.backField == null) {
+    return DEFAULT_COLUMN_ROLES;
+  }
+
+  const frontIndex = columnNames.indexOf(mapping.frontField);
+  const backIndex = columnNames.indexOf(mapping.backField);
+  if (frontIndex < 0 || backIndex < 0 || frontIndex === backIndex) {
+    return DEFAULT_COLUMN_ROLES;
+  }
+
+  return { frontIndex, backIndex };
+}
+
+function extraColumnCells(
+  cells: RichTextItemResponse[][],
+  roles: ColumnRoles
+): RichTextItemResponse[][] {
+  return cells.filter(
+    (_cell, index) => index !== roles.frontIndex && index !== roles.backIndex
+  );
+}
+
 export function tableRowsToCards(
   block: TableBlockObjectResponse,
   children: ListBlockChildrenResponse,
@@ -57,6 +101,11 @@ export function tableRowsToCards(
     return [];
   }
 
+  const roles = resolveColumnRoles(
+    rows,
+    block.table.has_column_header,
+    handler
+  );
   const dataRows = block.table.has_column_header ? rows.slice(1) : rows;
 
   let skippedCount = 0;
@@ -64,19 +113,19 @@ export function tableRowsToCards(
 
   for (const row of dataRows) {
     const cells = row.table_row.cells;
-    const front = renderCell(cells[0] ?? [], handler);
-    const col2 = renderCell(cells[1] ?? [], handler);
+    const front = renderCell(cells[roles.frontIndex] ?? [], handler);
+    const backColumn = renderCell(cells[roles.backIndex] ?? [], handler);
 
-    if (!front || !col2) {
+    if (!front || !backColumn) {
       skippedCount++;
       continue;
     }
 
-    const extraCells = cells.slice(2);
+    const extraCells = extraColumnCells(cells, roles);
     const back =
       extraCells.length > 0
-        ? col2 + buildExtraColumnsTable(extraCells, handler)
-        : col2;
+        ? backColumn + buildExtraColumnsTable(extraCells, handler)
+        : backColumn;
 
     if (handler.settings.isCloze) {
       cards.push(toClozeCard(front, back));
@@ -87,7 +136,7 @@ export function tableRowsToCards(
 
   if (skippedCount > 0) {
     console.debug(
-      `tableRowsToCards: skipped ${skippedCount} row(s) with empty col1 or col2`,
+      `tableRowsToCards: skipped ${skippedCount} row(s) with empty front or back column`,
       block.id
     );
   }

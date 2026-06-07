@@ -255,6 +255,96 @@ describe('tableRowsToCards', () => {
     expect(cards[0].isCloze).toBe(false);
   });
 
+  it('maps front/back by header names when columns are reversed', () => {
+    const block = tableBlock('tr1', 2, true);
+    const rows = [
+      tableRow('r1', [[textRun('Definition')], [textRun('Term')]]),
+      tableRow('r2', [[textRun('a flightless bird')], [textRun('penguin')]]),
+    ];
+    const handler = makeHandler();
+    const cards = tableRowsToCards(block, childrenResponse(rows), handler);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toContain('penguin');
+    expect(cards[0].back).toContain('a flightless bird');
+  });
+
+  it('maps front/back by explicit Front/Back headers when reversed', () => {
+    const block = tableBlock('tr2', 2, true);
+    const rows = [
+      tableRow('r1', [[textRun('Back')], [textRun('Front')]]),
+      tableRow('r2', [[textRun('answer text')], [textRun('question text')]]),
+    ];
+    const handler = makeHandler();
+    const cards = tableRowsToCards(block, childrenResponse(rows), handler);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toContain('question text');
+    expect(cards[0].back).toContain('answer text');
+  });
+
+  it('keeps front=col0 back=col1 for explicit Front/Back headers in order', () => {
+    const block = tableBlock('tr3', 2, true);
+    const rows = [
+      tableRow('r1', [[textRun('Front')], [textRun('Back')]]),
+      tableRow('r2', [[textRun('question text')], [textRun('answer text')]]),
+    ];
+    const handler = makeHandler();
+    const cards = tableRowsToCards(block, childrenResponse(rows), handler);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toContain('question text');
+    expect(cards[0].back).toContain('answer text');
+  });
+
+  it('keeps positional mapping when there is no header row', () => {
+    const block = tableBlock('tr4', 2, false);
+    const rows = [
+      tableRow('r1', [[textRun('Definition')], [textRun('Term')]]),
+      tableRow('r2', [[textRun('a flightless bird')], [textRun('penguin')]]),
+    ];
+    const handler = makeHandler();
+    const cards = tableRowsToCards(block, childrenResponse(rows), handler);
+    expect(cards).toHaveLength(2);
+    expect(cards[0].front).toContain('Definition');
+    expect(cards[0].back).toContain('Term');
+    expect(cards[1].front).toContain('a flightless bird');
+    expect(cards[1].back).toContain('penguin');
+  });
+
+  it('falls back to positional when header names are unrecognized', () => {
+    const block = tableBlock('tr5', 2, true);
+    const rows = [
+      tableRow('r1', [[textRun('Foo')], [textRun('Bar')]]),
+      tableRow('r2', [[textRun('left value')], [textRun('right value')]]),
+    ];
+    const handler = makeHandler();
+    const cards = tableRowsToCards(block, childrenResponse(rows), handler);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toContain('left value');
+    expect(cards[0].back).toContain('right value');
+  });
+
+  it('puts non-front/back columns as the inline sub-table on the resolved back', () => {
+    const block = tableBlock('tr6', 3, true);
+    const rows = [
+      tableRow('r1', [
+        [textRun('Definition')],
+        [textRun('Term')],
+        [textRun('Notes')],
+      ]),
+      tableRow('r2', [
+        [textRun('a flightless bird')],
+        [textRun('penguin')],
+        [textRun('antarctic')],
+      ]),
+    ];
+    const handler = makeHandler();
+    const cards = tableRowsToCards(block, childrenResponse(rows), handler);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toContain('penguin');
+    expect(cards[0].back).toContain('a flightless bird');
+    expect(cards[0].back).toContain('<table');
+    expect(cards[0].back).toContain('antarctic');
+  });
+
   it('keeps code markup as-is when cloze is disabled in settings', () => {
     const block = tableBlock('t11', 2, false);
     const rows = [
