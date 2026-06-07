@@ -2,7 +2,20 @@ import { getDatabase } from '../../data_layer';
 import addHeadings from './helpers/addHeadings';
 
 class ParserRules {
-  static readonly DECK_TYPE_ALLOWLIST: readonly string[] = ['page', 'database'];
+  static readonly DECK_TYPE_ALLOWLIST: readonly string[] = [
+    'page',
+    'database',
+    'child_page',
+    'child_database',
+    'toggle',
+    'heading_1',
+    'heading_2',
+    'heading_3',
+    'bulleted_list_item',
+    'numbered_list_item',
+    'quote',
+    'column_list',
+  ];
 
   private FLASHCARD = ['toggle'];
 
@@ -58,6 +71,10 @@ class ParserRules {
    */
   flashcardTypes(): string[] {
     return this.FLASHCARD;
+  }
+
+  deckTypes(): string[] {
+    return this.DECK;
   }
 
   /**

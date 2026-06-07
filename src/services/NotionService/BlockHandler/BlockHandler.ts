@@ -76,6 +76,14 @@ interface Finder {
   backField?: string;
 }
 
+const PAGE_LIKE_DECK_TYPES = new Set(['page', 'database', 'child_page']);
+
+function activeNonPageDeckTypes(rules: ParserRules): Set<string> {
+  return new Set(
+    rules.deckTypes().filter((type) => !PAGE_LIKE_DECK_TYPES.has(type))
+  );
+}
+
 interface PlainTextItem {
   plain_text?: string;
 }
@@ -602,12 +610,16 @@ class BlockHandler {
     }
 
     const currentDeckName = toText(getDeckName(parentName, title));
+    const nonPageDeckTypes = activeNonPageDeckTypes(rules);
 
     // Depth-first traversal: process current page, then children
     if (rules.permitsDeckAsPage() && page) {
       const classifyRules = { flashcardTypes: flashCardTypes };
       const isCardBlock = (b: GetBlockResponse): boolean => {
         if (!isFullBlock(b)) {
+          return false;
+        }
+        if (nonPageDeckTypes.has(b.type)) {
           return false;
         }
         return (
@@ -699,68 +711,13 @@ class BlockHandler {
             continue;
           }
 
-          const res = await this.api.getBlocks({
-            createdAt: sd.created_time,
-            lastEditedAt: sd.last_edited_time,
-            id: sd.id,
-            all: this.useAll,
-            type: sd.type,
-          });
-          const subBlocks = await expandSyncedBlocks(
-            res.results,
-            this.api,
-            this.useAll
-          );
-          const toggleHeadingsEnabled = flashCardTypes.includes('toggle');
-          const isSubCardBlock = (b: GetBlockResponse): boolean => {
-            if (!isFullBlock(b)) return false;
-            if (flashCardTypes.includes(b.type)) return true;
-            return toggleHeadingsEnabled && isToggleHeading(b);
-          };
-          let cBlocks = subBlocks.filter(isSubCardBlock);
-          const subHeadingTagMap =
-            rules.TAGS === 'heading'
-              ? buildHeadingTagMap(subBlocks, isSubCardBlock)
-              : new Map<string, string>();
-          const subHeadingContextMap =
-            this.settings.template === 'hierarchy'
-              ? buildHeadingContextMap(subBlocks, isSubCardBlock)
-              : new Map<string, HeadingContext>();
-
-          this.settings.parentBlockId = sd.id;
-          let cards = await this.getFlashcards(
-            rules,
-            cBlocks,
-            tags,
-            undefined,
-            subHeadingTagMap,
-            subHeadingContextMap
-          );
-          // Deduplicate by globalSeenIds
-          cards = cards.filter((card) => {
-            if (
-              typeof card.notionId === 'string' &&
-              globalSeenIds.has(card.notionId)
-            ) {
-              return false;
-            }
-            if (typeof card.notionId === 'string')
-              globalSeenIds.add(card.notionId);
-            return true;
-          });
-          let subDeckName = getSubDeckName(sd);
-
           decks.push(
-            new Deck(
-              getDeckName(
-                this.settings.deckName || this.firstPageTitle,
-                subDeckName
-              ),
-              cards,
-              undefined,
-              this.buildDeckStyle(),
-              get16DigitRandomId(),
-              this.settings
+            await this.buildDeckFromBlockChildren(
+              sd,
+              rules,
+              tags,
+              flashCardTypes,
+              globalSeenIds
             )
           );
           continue;
@@ -779,8 +736,92 @@ class BlockHandler {
           );
         }
       }
+
+      const nonPageDeckBlocks = blocks.filter(
+        (b): b is BlockObjectResponse =>
+          isFullBlock(b) && nonPageDeckTypes.has(b.type)
+      );
+      for (const deckBlock of nonPageDeckBlocks) {
+        decks.push(
+          await this.buildDeckFromBlockChildren(
+            deckBlock,
+            rules,
+            tags,
+            flashCardTypes,
+            globalSeenIds
+          )
+        );
+      }
     }
     return decks;
+  }
+
+  private async buildDeckFromBlockChildren(
+    block: BlockObjectResponse,
+    rules: ParserRules,
+    tags: string[],
+    flashCardTypes: string[],
+    globalSeenIds: Set<string>
+  ): Promise<Deck> {
+    const res = await this.api.getBlocks({
+      createdAt: block.created_time,
+      lastEditedAt: block.last_edited_time,
+      id: block.id,
+      all: this.useAll,
+      type: block.type,
+    });
+    const childBlocks = await expandSyncedBlocks(
+      res.results,
+      this.api,
+      this.useAll
+    );
+    const toggleHeadingsEnabled = flashCardTypes.includes('toggle');
+    const isChildCardBlock = (b: GetBlockResponse): boolean => {
+      if (!isFullBlock(b)) return false;
+      if (flashCardTypes.includes(b.type)) return true;
+      return toggleHeadingsEnabled && isToggleHeading(b);
+    };
+    const cardBlocks = childBlocks.filter(isChildCardBlock);
+    const childHeadingTagMap =
+      rules.TAGS === 'heading'
+        ? buildHeadingTagMap(childBlocks, isChildCardBlock)
+        : new Map<string, string>();
+    const childHeadingContextMap =
+      this.settings.template === 'hierarchy'
+        ? buildHeadingContextMap(childBlocks, isChildCardBlock)
+        : new Map<string, HeadingContext>();
+
+    this.settings.parentBlockId = block.id;
+    let cards = await this.getFlashcards(
+      rules,
+      cardBlocks,
+      tags,
+      undefined,
+      childHeadingTagMap,
+      childHeadingContextMap
+    );
+    cards = cards.filter((card) => {
+      if (
+        typeof card.notionId === 'string' &&
+        globalSeenIds.has(card.notionId)
+      ) {
+        return false;
+      }
+      if (typeof card.notionId === 'string') globalSeenIds.add(card.notionId);
+      return true;
+    });
+
+    return new Deck(
+      getDeckName(
+        this.settings.deckName || this.firstPageTitle || '',
+        getSubDeckName(block)
+      ),
+      cards,
+      undefined,
+      this.buildDeckStyle(),
+      get16DigitRandomId(),
+      this.settings
+    );
   }
 
   private recordTruncation(
