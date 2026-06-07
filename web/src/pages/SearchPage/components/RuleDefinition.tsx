@@ -5,6 +5,7 @@ interface RuleDefinitionProps {
   options: string[];
   value: string[];
   newOptions?: string[];
+  labels?: Record<string, string>;
   onSelected: (value: string) => void;
 }
 
@@ -12,6 +13,7 @@ export default function RuleDefinition({
   options,
   value,
   newOptions,
+  labels,
   onSelected,
 }: Readonly<RuleDefinitionProps>) {
   return (
@@ -21,6 +23,7 @@ export default function RuleDefinition({
           key={fco}
           active={value.includes(fco)}
           name={fco}
+          label={labels?.[fco]}
           isNew={newOptions?.includes(fco) ?? false}
           onSwitch={(name) => onSelected(name)}
         />

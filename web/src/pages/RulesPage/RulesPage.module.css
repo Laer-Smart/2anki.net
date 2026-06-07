@@ -92,6 +92,68 @@
   gap: 0.5rem;
 }
 
+.groupHint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.advanced {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.advancedSummary {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.advancedSummary::-webkit-details-marker {
+  display: none;
+}
+
+.advancedSummary:hover {
+  color: var(--color-text-primary);
+}
+
+.advancedCaret {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.advanced[open] .advancedCaret {
+  transform: rotate(90deg);
+}
+
+.advancedBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+}
+
+.advancedHint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.advancedWarning {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-warning-text);
+  background: var(--color-warning-light);
+  border-left: 3px solid var(--color-warning);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+}
+
 .loadingCard {
   align-items: center;
   justify-content: center;
