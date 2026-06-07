@@ -73,7 +73,7 @@ const advancedDeckLabels: Record<string, string> = {
   column_list: 'Columns',
   child_database: 'Database inside a page',
 };
-const allowedDeckTypes = [...deckOptions, ...advancedDeckOptions];
+const allowedDeckTypes = new Set([...deckOptions, ...advancedDeckOptions]);
 
 const defaultRules: NewRule = {
   id: 0,
@@ -92,7 +92,7 @@ function loadDeckSelection(raw: string | null | undefined): string[] {
   if (raw == null || raw.length === 0) {
     return [...deckOptions];
   }
-  const allowed = raw.split(',').filter((v) => allowedDeckTypes.includes(v));
+  const allowed = raw.split(',').filter((v) => allowedDeckTypes.has(v));
   return allowed.length > 0 ? allowed : [...deckOptions];
 }
 
