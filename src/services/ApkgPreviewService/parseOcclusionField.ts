@@ -47,8 +47,7 @@ function readNumber(values: Map<string, string>, key: string): number | null {
 }
 
 function readIndex(values: Map<string, string>): number {
-  const oi = readNumber(values, 'oi');
-  return oi == null ? 0 : oi;
+  return readNumber(values, 'oi') ?? 0;
 }
 
 function parseRect(values: Map<string, string>): OcclusionRect | null {
