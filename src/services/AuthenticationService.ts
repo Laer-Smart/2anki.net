@@ -180,6 +180,14 @@ class AuthenticationService {
     return this.tokenRepository.deleteAccessToken(token);
   }
 
+  async revokeSessionsByResetToken(resetToken: string): Promise<number> {
+    const user = await this.usersRepository.getByResetToken(resetToken);
+    if (user?.id == null) {
+      return 0;
+    }
+    return this.tokenRepository.deleteAllForOwner(user.id.toString());
+  }
+
   isValidLogin(email: string, password: string) {
     return email && password && password.length >= 8;
   }

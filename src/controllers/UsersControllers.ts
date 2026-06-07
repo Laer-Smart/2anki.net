@@ -47,6 +47,7 @@ class UsersController {
     }
 
     try {
+      await this.authService.revokeSessionsByResetToken(resetToken);
       await this.userService.updatePassword(
         this.authService.getHashPassword(password),
         resetToken

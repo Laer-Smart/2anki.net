@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 
 import jwt from 'jsonwebtoken';
+import knex, { Knex } from 'knex';
 
 import AuthenticationService, {
   __resetMicrosoftJwksCacheForTests,
@@ -1170,5 +1171,86 @@ describe('isNewPasswordValid', () => {
   it('returns true (invalid) for a non-string reset token', () => {
     const service = createService();
     expect(service.isNewPasswordValid(null, 'password123')).toBe(true);
+  });
+});
+
+describe('revokeSessionsByResetToken', () => {
+  let database: Knex;
+  let service: AuthenticationService;
+
+  beforeEach(async () => {
+    database = knex({
+      client: 'better-sqlite3',
+      connection: { filename: ':memory:' },
+      useNullAsDefault: true,
+    });
+    await database.schema.createTable('users', (t) => {
+      t.increments('id').primary();
+      t.text('email').notNullable();
+      t.text('reset_token').nullable();
+    });
+    await database.schema.createTable('access_tokens', (t) => {
+      t.integer('owner').notNullable().index();
+      t.text('token').notNullable().index();
+      t.timestamp('created_at').defaultTo(database.fn.now());
+    });
+    service = new AuthenticationService(
+      new TokenRepository(database),
+      new UsersRepository(database)
+    );
+  });
+
+  afterEach(async () => {
+    await database.destroy();
+  });
+
+  it('deletes every session of the user matching the reset token', async () => {
+    const [{ id }] = await database('users')
+      .insert({ email: 'a@example.com', reset_token: 'reset-1' })
+      .returning('id');
+    await database('access_tokens').insert([
+      { token: 'web', owner: id },
+      { token: 'app', owner: id },
+    ]);
+
+    const deleted = await service.revokeSessionsByResetToken('reset-1');
+
+    expect(deleted).toBe(2);
+    expect(await database('access_tokens').select('token')).toEqual([]);
+  });
+
+  it('leaves other users sessions untouched', async () => {
+    const [{ id: resetUserId }] = await database('users')
+      .insert({ email: 'a@example.com', reset_token: 'reset-1' })
+      .returning('id');
+    const [{ id: otherUserId }] = await database('users')
+      .insert({ email: 'b@example.com' })
+      .returning('id');
+    await database('access_tokens').insert([
+      { token: 'reset-user-session', owner: resetUserId },
+      { token: 'other-user-session', owner: otherUserId },
+    ]);
+
+    await service.revokeSessionsByResetToken('reset-1');
+
+    const tokens = (await database('access_tokens').select('token')).map(
+      (row) => row.token
+    );
+    expect(tokens).toEqual(['other-user-session']);
+  });
+
+  it('deletes nothing when the reset token matches no user', async () => {
+    const [{ id }] = await database('users')
+      .insert({ email: 'a@example.com', reset_token: 'reset-1' })
+      .returning('id');
+    await database('access_tokens').insert({ token: 'web', owner: id });
+
+    const deleted = await service.revokeSessionsByResetToken('wrong-token');
+
+    expect(deleted).toBe(0);
+    const tokens = (await database('access_tokens').select('token')).map(
+      (row) => row.token
+    );
+    expect(tokens).toEqual(['web']);
   });
 });
