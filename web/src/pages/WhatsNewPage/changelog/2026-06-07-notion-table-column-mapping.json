@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-07-notion-table-column-mapping",
+  "date": "2026-06-07",
+  "type": "fix",
+  "title": "Notion tables with labeled columns map the term and definition to the right side of the card"
+}
