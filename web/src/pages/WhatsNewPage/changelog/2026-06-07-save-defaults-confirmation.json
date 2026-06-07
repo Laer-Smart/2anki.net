@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-07-save-defaults-confirmation",
+  "date": "2026-06-07",
+  "type": "fix",
+  "title": "Card options — saving your defaults shows a spinner, then confirms Defaults saved"
+}
