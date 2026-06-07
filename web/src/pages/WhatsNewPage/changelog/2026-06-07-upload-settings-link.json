@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-07-upload-settings-link",
+  "date": "2026-06-07",
+  "type": "fix",
+  "title": "Upload page — reach card settings whether or not Claude cards are on, and turn Claude cards on with one click"
+}

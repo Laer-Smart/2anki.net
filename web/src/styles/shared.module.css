@@ -273,6 +273,25 @@
   text-decoration: underline;
 }
 
+.aiInlineLink {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  color: var(--color-text-link);
+}
+
+.aiInlineLink:hover {
+  color: var(--color-text-link-hover);
+  text-decoration: underline;
+}
+
+.aiInlineLink:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .notification {
   padding: 1rem 1.25rem;
   border-radius: var(--radius-lg);

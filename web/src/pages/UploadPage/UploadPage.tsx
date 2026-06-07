@@ -192,8 +192,20 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
               <span>
                 {' '}
                 You&apos;ll get rule-based cards from your file&apos;s
-                structure. Turn on Claude cards.
+                structure.{' '}
               </span>
+              <button
+                type="button"
+                className={styles.aiInlineLink}
+                onClick={toggleAi}
+              >
+                Turn on Claude cards
+              </button>
+              <span>. </span>
+              <Link to="/card-options?returnTo=/upload">
+                Manage in Settings
+              </Link>
+              <span>.</span>
             </span>
           </>
         )}
@@ -211,6 +223,10 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
                 onClick={() => track('upload_ai_free_badge_clicked')}
               >
                 Upgrade to write cards with Claude
+              </Link>
+              <span>. </span>
+              <Link to="/card-options?returnTo=/upload">
+                Manage in Settings
               </Link>
               <span>.</span>
             </span>
