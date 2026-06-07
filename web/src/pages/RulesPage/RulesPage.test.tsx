@@ -202,9 +202,7 @@ describe('RulesPage advanced deck types', () => {
     });
     const details = screen.getByText('Advanced deck types').closest('details');
     expect(details).toHaveAttribute('open');
-    expect(
-      screen.getByRole('button', { name: 'Toggle' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Toggle' })).toBeInTheDocument();
   });
 
   it('adds an advanced block type to deck_is when its chip is toggled', async () => {

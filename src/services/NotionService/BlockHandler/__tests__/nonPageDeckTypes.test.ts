@@ -49,7 +49,9 @@ function toggle(id: string, summary: string, hasChildren = false): FakeBlock {
   };
 }
 
-function buildApi(blocksByParent: Record<string, FakeBlock[]>): NotionAPIWrapper {
+function buildApi(
+  blocksByParent: Record<string, FakeBlock[]>
+): NotionAPIWrapper {
   const api = {
     getPage: jest.fn(async (id: string) => ({
       id,
