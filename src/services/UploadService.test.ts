@@ -712,6 +712,55 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
     expect(capturedSend()).not.toBeNull();
     expect(incrementSpy).not.toHaveBeenCalled();
   });
+
+  it('returns 400 empty_export instead of a silent empty deck when the single package has 0 cards', async () => {
+    mockPackages([{ name: 'deck', cardCount: 0 }]);
+    const usersRepo = buildUsersRepo();
+    const incrementSpy = usersRepo.incrementCardUsage as jest.Mock;
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      usersRepo
+    );
+    const req = buildRequest();
+    const { res, capturedStatus, capturedSend, capturedJson } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(capturedStatus()).toBe(400);
+    expect(capturedSend()).toBeNull();
+    const body = capturedJson() as { code: string };
+    expect(body.code).toBe('empty_export');
+    expect(incrementSpy).not.toHaveBeenCalled();
+    expect(trackMock).toHaveBeenCalledWith(
+      'conversion_failed',
+      expect.objectContaining({
+        props: expect.objectContaining({ reason: 'empty_deck' }),
+      })
+    );
+  });
+
+  it('returns 400 empty_export when every package across a batch has 0 cards', async () => {
+    mockPackages([
+      { name: 'deck-a', cardCount: 0 },
+      { name: 'deck-b', cardCount: 0 },
+    ]);
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
+    const req = buildRequest();
+    const { res, capturedStatus, capturedJson } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(capturedStatus()).toBe(400);
+    const body = capturedJson() as { code: string };
+    expect(body.code).toBe('empty_export');
+  });
 });
 
 describe('UploadService.deleteUpload — cascade', () => {
@@ -1003,6 +1052,63 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
     );
     expect(failedCall).toBeDefined();
     expect(failedCall?.[3]).toMatch(/^No cards in this deck yet\./);
+  });
+
+  it('marks a Claude job failed with the empty-deck reason when the only package has 0 cards', async () => {
+    let resolveFailed!: () => void;
+    const failedRecorded = new Promise<void>((r) => {
+      resolveFailed = r;
+    });
+    const updateJobStatusMock = jest
+      .fn()
+      .mockImplementation((_id: string, _owner: string, status: string) => {
+        if (status === 'failed') {
+          resolveFailed();
+        }
+        return Promise.resolve(undefined);
+      });
+    const jobRepository = {
+      create: jest.fn().mockResolvedValue(undefined),
+      updateJobStatus: updateJobStatusMock,
+      findJobById: jest.fn().mockResolvedValue(null),
+      deleteJob: jest.fn().mockResolvedValue(undefined),
+    } as unknown as JobRepository;
+    const updateSpy = jest.fn().mockResolvedValue([]);
+    const repo: IUploadRepository = {
+      ...buildRepository(),
+      update: updateSpy,
+    };
+
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({
+            packages: [
+              {
+                name: 'my-deck',
+                cardCount: 0,
+                mcqCount: 0,
+                mcqSkippedCount: 0,
+              },
+            ],
+          }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
+
+    const service = new UploadService(repo, jobRepository, buildUsersRepo());
+    const req = buildRequest({ body: { 'claude-ai-flashcards': 'true' } });
+    const { res } = buildResponse();
+    (res.locals as Record<string, unknown>).owner = 42;
+
+    await service.handleUpload(req, res);
+    await failedRecorded;
+
+    const failedCall = updateJobStatusMock.mock.calls.find(
+      (call) => call[2] === 'failed'
+    );
+    expect(failedCall).toBeDefined();
+    expect(failedCall?.[3]).toMatch(/^No cards in this deck yet\./);
+    expect(updateSpy).not.toHaveBeenCalled();
   });
 });
 

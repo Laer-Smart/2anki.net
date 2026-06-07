@@ -471,11 +471,8 @@ class UploadService {
         ownerId
       )
       .then(async ({ packages }) => {
-        if (packages.length > 0) {
-          const totalCards = packages.reduce(
-            (s, p) => s + (p.cardCount ?? 0),
-            0
-          );
+        const totalCards = packages.reduce((s, p) => s + (p.cardCount ?? 0), 0);
+        if (totalCards > 0) {
           await this.promoteClaudeJobToUpload(
             ws.id,
             ws.location,
@@ -489,7 +486,7 @@ class UploadService {
             ws.id,
             owner,
             'failed',
-            'No packages produced'
+            jobFailureReasonFromError(new EmptyDeckError(), ws.id)
           );
         }
       })
@@ -542,6 +539,16 @@ class UploadService {
     const totalCards = packages.reduce((s, p) => s + (p.cardCount ?? 0), 0);
     const owner = getOwner(res);
     const authenticated = hasSessionToken(req);
+
+    if (totalCards === 0) {
+      logNoPackageDiagnostics(req.files as UploadedFile[]);
+      track('conversion_failed', {
+        userId: owner != null ? Number(owner) : null,
+        anonymousId: this.resolveAnonId(req),
+        props: { source: this.resolveUploadSource(req), reason: 'empty_deck' },
+      });
+      throw new EmptyDeckError();
+    }
 
     if (owner != null) {
       await new CheckMonthlyCardLimitUseCase(this.usersRepository).execute({
@@ -613,32 +620,22 @@ class UploadService {
         await this.usersRepository.incrementCardUsage(owner, totalCards);
       }
       return res.status(200).send(apkg);
-    } else if (packages.length > 1) {
-      track('conversion_succeeded', {
-        userId: owner != null ? Number(owner) : null,
-        anonymousId: this.resolveAnonId(req),
-        props: {
-          source: this.resolveUploadSource(req),
-          card_count_bucket: this.toCardCountBucket(totalCards),
-        },
-      });
-      if (owner != null) {
-        await this.usersRepository.incrementCardUsage(owner, totalCards);
-      }
-      return res
-        .status(200)
-        .json(
-          await this.buildBatchResponse(ws, resolveUploadWarning(warnings))
-        );
-    } else {
-      logNoPackageDiagnostics(req.files as UploadedFile[]);
-      track('conversion_failed', {
-        userId: getOwner(res) != null ? Number(getOwner(res)) : null,
-        anonymousId: this.resolveAnonId(req),
-        props: { source: this.resolveUploadSource(req), reason: 'empty_deck' },
-      });
-      throw new EmptyDeckError();
     }
+
+    track('conversion_succeeded', {
+      userId: owner != null ? Number(owner) : null,
+      anonymousId: this.resolveAnonId(req),
+      props: {
+        source: this.resolveUploadSource(req),
+        card_count_bucket: this.toCardCountBucket(totalCards),
+      },
+    });
+    if (owner != null) {
+      await this.usersRepository.incrementCardUsage(owner, totalCards);
+    }
+    return res
+      .status(200)
+      .json(await this.buildBatchResponse(ws, resolveUploadWarning(warnings)));
   }
 
   private async buildBatchResponse(
