@@ -1,5 +1,28 @@
 import { getAnthropicClient } from '../../../lib/claude/ClaudeService';
+import { detectFileMime } from '../../../lib/detectFileMime';
 import { convertWithClaude } from './claudeFileConversion';
+
+type ImageMediaType = 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp';
+
+const SUPPORTED_IMAGE_MEDIA_TYPES = new Set<ImageMediaType>([
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
+]);
+
+function isSupportedImageMediaType(value: string): value is ImageMediaType {
+  return SUPPORTED_IMAGE_MEDIA_TYPES.has(value as ImageMediaType);
+}
+
+export function detectImageMediaType(imageData: string): ImageMediaType {
+  const header = Buffer.from(imageData.slice(0, 24), 'base64');
+  const sniffed = detectFileMime(header);
+  if (sniffed != null && isSupportedImageMediaType(sniffed)) {
+    return sniffed;
+  }
+  return 'image/png';
+}
 
 const IMAGE_TO_HTML_SYSTEM_PROMPT = `Convert the text in this image to the following format for (every question is their own ul):
 
@@ -39,7 +62,7 @@ export const convertImageToHTML = async (
         type: 'image',
         source: {
           type: 'base64',
-          media_type: 'image/png',
+          media_type: detectImageMediaType(imageData),
           data: imageData,
         },
       },

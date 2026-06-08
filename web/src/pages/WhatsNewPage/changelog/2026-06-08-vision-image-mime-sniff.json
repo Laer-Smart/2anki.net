@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-08-vision-image-mime-sniff",
+  "date": "2026-06-08",
+  "type": "fix",
+  "title": "Uploaded images with mismatched formats convert instead of failing"
+}
