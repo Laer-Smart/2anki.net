@@ -1,4 +1,7 @@
-import { AnkiConnectClient, AnkiConnectCreateModelParams } from './AnkiConnectClient';
+import {
+  AnkiConnectClient,
+  AnkiConnectCreateModelParams,
+} from './AnkiConnectClient';
 import {
   ankifyBasicCreateModelParams,
   ankifyClozeCreateModelParams,
@@ -35,7 +38,10 @@ const resolveBasicParams = (
   overrides: AnkifyTemplateOverrides | null
 ): AnkiConnectCreateModelParams =>
   overrides
-    ? buildBasicModelFromTemplate(overrides.basicTemplate, overrides.basicModelName)
+    ? buildBasicModelFromTemplate(
+        overrides.basicTemplate,
+        overrides.basicModelName
+      )
     : ankifyBasicCreateModelParams();
 
 export const ensureAnkifyModels = async (

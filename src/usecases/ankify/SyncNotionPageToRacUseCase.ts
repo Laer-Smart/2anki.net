@@ -445,8 +445,7 @@ export class SyncNotionPageToRacUseCase {
     back: string;
     overrides: AnkifyTemplateOverrides | null;
   }) {
-    const modelName =
-      args.overrides?.basicModelName ?? ANKIFY_BASIC_MODEL;
+    const modelName = args.overrides?.basicModelName ?? ANKIFY_BASIC_MODEL;
     const fields: Record<string, string> = {
       [FRONT_FIELD_BASIC]: args.front,
       [BACK_FIELD_BASIC]: args.back,

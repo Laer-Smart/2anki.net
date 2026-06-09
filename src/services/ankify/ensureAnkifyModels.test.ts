@@ -87,7 +87,8 @@ describe('ensureAnkifyModels', () => {
     await ensureAnkifyModels(ac, cache, overrides);
 
     const created = (ac.createModel as jest.Mock).mock.calls.map(
-      (args) => args[0] as { modelName: string; inOrderFields: string[]; css: string }
+      (args) =>
+        args[0] as { modelName: string; inOrderFields: string[]; css: string }
     );
     const basic = created.find((c) => c.modelName === 'ATTI BASIC');
     expect(basic).toBeDefined();

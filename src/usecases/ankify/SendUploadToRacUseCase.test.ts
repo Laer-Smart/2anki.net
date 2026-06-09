@@ -527,7 +527,11 @@ describe('SendUploadToRacUseCase', () => {
       filename: 'audio.mp3',
       data: Buffer.from('audio-bytes').toString('base64'),
     });
-    expect(callOrder).toEqual(['store:image.png', 'store:audio.mp3', 'addNote']);
+    expect(callOrder).toEqual([
+      'store:image.png',
+      'store:audio.mp3',
+      'addNote',
+    ]);
     expect(result.errors).toEqual([]);
   });
 

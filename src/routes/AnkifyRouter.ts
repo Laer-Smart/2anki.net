@@ -44,7 +44,10 @@ import { Client as NotionClient } from '@notionhq/client';
 import NotionRepository from '../data_layer/NotionRespository';
 import StorageHandler from '../lib/storage/StorageHandler';
 import { parseCollection } from '../services/ApkgPreviewService/parseCollection';
-import { extractApkg, parseMediaManifest } from '../services/ApkgPreviewService/extractApkg';
+import {
+  extractApkg,
+  parseMediaManifest,
+} from '../services/ApkgPreviewService/extractApkg';
 import SettingsRepository from '../data_layer/SettingsRepository';
 import RequireAnkifyAccess from './middleware/RequireAnkifyAccess';
 import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';

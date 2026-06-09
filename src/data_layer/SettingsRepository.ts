@@ -130,9 +130,9 @@ class SettingsRepository implements ISettingsRepository {
         return null;
       }
 
-      const settingsPayload = parseJsonColumn(settingsRow.payload) as
-        | { payload?: Record<string, string> }
-        | null;
+      const settingsPayload = parseJsonColumn(settingsRow.payload) as {
+        payload?: Record<string, string>;
+      } | null;
       const cardOption = new CardOption(settingsPayload?.payload ?? {});
       if (cardOption.template !== 'custom') {
         return null;
