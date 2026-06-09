@@ -196,7 +196,10 @@ describe('SyncNotionPageToRacUseCase', () => {
 
     const repos = makeRepos();
     const ac = makeAnkiConnectStub();
-    const databasePages = jest.fn(async () => [{ id: 'row-1' }, { id: 'row-2' }]);
+    const databasePages = jest.fn(async () => [
+      { id: 'row-1' },
+      { id: 'row-2' },
+    ]);
     const useCase = new SyncNotionPageToRacUseCase(
       repos.clients,
       repos.mappings,
