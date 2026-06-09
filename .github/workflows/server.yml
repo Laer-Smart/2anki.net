@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  typecheck:
-    name: typecheck (22.20.0)
+  static:
+    name: static (22.20.0)
     runs-on: blacksmith
     steps:
       - uses: actions/checkout@v6
@@ -25,13 +25,6 @@ jobs:
         run: pnpm typecheck
         env:
           CI: true
-
-  lint:
-    name: lint (22.20.0)
-    runs-on: blacksmith
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup
       - name: Lint
         run: pnpm lint
         env:
@@ -42,18 +35,14 @@ jobs:
           CI: true
 
   test:
-    name: test (${{ matrix.shard }})
+    name: test (22.20.0)
     if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: blacksmith
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: ['1/3', '2/3', '3/3']
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup
       - name: Test
-        run: pnpm test --shard=${{ matrix.shard }}
+        run: pnpm test
         env:
           CI: true
           NOTION_KEY: ${{ secrets.NOTION_KEY }}

@@ -17,8 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: lint (22.20.0)
+  build:
+    name: build (22.20.0)
     runs-on: blacksmith
     steps:
       - uses: actions/checkout@v6
@@ -27,13 +27,6 @@ jobs:
         run: pnpm --filter 2anki-web lint
         env:
           CI: true
-
-  build:
-    name: build (22.20.0)
-    runs-on: blacksmith
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup
       - name: Typecheck
         run: pnpm --filter 2anki-web typecheck
         env:
