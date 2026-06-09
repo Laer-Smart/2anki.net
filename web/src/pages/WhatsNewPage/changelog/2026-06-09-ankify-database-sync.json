@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-09-ankify-database-sync",
+  "date": "2026-06-09",
+  "type": "feature",
+  "title": "Auto-sync a Notion database — every row's toggles become cards, not just a single page"
+}

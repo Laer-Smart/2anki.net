@@ -28,11 +28,17 @@ import {
 } from '../../services/ankify/templateOverrides';
 import {
   walkNotionPageForFlashcards,
+  walkNotionDatabaseForFlashcards,
   NotionBlockChildrenFetcher,
+  WalkNotionPageResult,
   WalkedNotionFlashcard,
   WalkedNotionMediaRef,
   SyncDiagnostic,
 } from '../../services/ankify/notionPageWalker';
+import {
+  notionDatabasePagesFetcherFactory,
+  NotionDatabasePagesFetcherFactory,
+} from '../../services/ankify/notionDatabasePagesFetcher';
 import { NoActiveAnkifyClientError } from './SendUploadToRacUseCase';
 import { NotionNotConnectedError } from './ExportReviewDataToNotionUseCase';
 
@@ -160,6 +166,18 @@ function isNotionUnauthorizedError(error: unknown): boolean {
   );
 }
 
+function isNotionDatabaseNotPageError(error: unknown): boolean {
+  if (error == null || typeof error !== 'object') {
+    return false;
+  }
+  const { code, message } = error as { code?: unknown; message?: unknown };
+  return (
+    code === 'validation_error' &&
+    typeof message === 'string' &&
+    message.includes('is a database, not a page')
+  );
+}
+
 export class SyncNotionPageToRacUseCase {
   private readonly modelCacheByClient = new Map<number, Set<string>>();
 
@@ -176,7 +194,8 @@ export class SyncNotionPageToRacUseCase {
     private readonly mediaFetcher: AnkifyMediaFetcher = guardedMediaFetcher,
     private readonly errorEvents?: IErrorEventRepository,
     private readonly onTokenInvalid?: OnTokenInvalidFn,
-    private readonly templateOverridesProvider?: AnkifyTemplateOverridesProvider
+    private readonly templateOverridesProvider?: AnkifyTemplateOverridesProvider,
+    private readonly databasePagesFetcher: NotionDatabasePagesFetcherFactory = notionDatabasePagesFetcherFactory
   ) {}
 
   private modelCache(clientId: number): Set<string> {
@@ -331,8 +350,9 @@ export class SyncNotionPageToRacUseCase {
   }): Promise<void> {
     const { input, token, client, subscription, result } = args;
     const fetchChildren = this.notionFetcher(token);
-    const { cards, diagnostic } = await walkNotionPageForFlashcards(
+    const { cards, diagnostic } = await this.walkSource(
       input.notionPageId,
+      token,
       fetchChildren
     );
     result.diagnostic = diagnostic;
@@ -367,6 +387,25 @@ export class SyncNotionPageToRacUseCase {
     }
 
     await this.runFinalAnkiWebSync(ac, result);
+  }
+
+  private async walkSource(
+    notionId: string,
+    token: string,
+    fetchChildren: NotionBlockChildrenFetcher
+  ): Promise<WalkNotionPageResult> {
+    try {
+      return await walkNotionPageForFlashcards(notionId, fetchChildren);
+    } catch (error) {
+      if (isNotionDatabaseNotPageError(error)) {
+        return walkNotionDatabaseForFlashcards(
+          notionId,
+          fetchChildren,
+          this.databasePagesFetcher(token)
+        );
+      }
+      throw error;
+    }
   }
 
   private async uploadCardMedia(

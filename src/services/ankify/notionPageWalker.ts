@@ -45,8 +45,17 @@ export type NotionBlockChildrenFetcher = (
   blockId: string
 ) => Promise<NotionRenderableBlock[]>;
 
+export interface NotionDatabasePageRef {
+  id: string;
+}
+
+export type NotionDatabasePagesFetcher = (
+  databaseId: string
+) => Promise<NotionDatabasePageRef[]>;
+
 const MAX_BLOCKS_SCANNED = 1000;
 const MAX_UNMATCHED_SAMPLES = 3;
+const MAX_DATABASE_PAGES = 250;
 
 const renderRichText = (items: RichTextItem[] | undefined): string => {
   if (items == null) return '';
@@ -122,6 +131,48 @@ export const walkNotionPageForFlashcards = async (
 
   const diagnostic: SyncDiagnostic = {
     blocks_scanned: limit,
+    blocks_matched: cards.length,
+    pattern_hits: patternHits,
+  };
+
+  if (unmatchedSamples.length > 0) {
+    diagnostic.unmatched_samples = unmatchedSamples;
+  }
+
+  return { cards, diagnostic };
+};
+
+export const walkNotionDatabaseForFlashcards = async (
+  databaseId: string,
+  fetchChildren: NotionBlockChildrenFetcher,
+  fetchDatabasePages: NotionDatabasePagesFetcher
+): Promise<WalkNotionPageResult> => {
+  const pages = await fetchDatabasePages(databaseId);
+  const limit = Math.min(pages.length, MAX_DATABASE_PAGES);
+
+  const cards: WalkedNotionFlashcard[] = [];
+  const patternHits: Record<string, number> = {};
+  const unmatchedSamples: string[] = [];
+  let blocksScanned = 0;
+
+  for (let i = 0; i < limit; i++) {
+    const page = await walkNotionPageForFlashcards(pages[i].id, fetchChildren);
+    cards.push(...page.cards);
+    blocksScanned += page.diagnostic.blocks_scanned;
+    for (const [pattern, count] of Object.entries(
+      page.diagnostic.pattern_hits
+    )) {
+      patternHits[pattern] = (patternHits[pattern] ?? 0) + count;
+    }
+    for (const sample of page.diagnostic.unmatched_samples ?? []) {
+      if (unmatchedSamples.length < MAX_UNMATCHED_SAMPLES) {
+        unmatchedSamples.push(sample);
+      }
+    }
+  }
+
+  const diagnostic: SyncDiagnostic = {
+    blocks_scanned: blocksScanned,
     blocks_matched: cards.length,
     pattern_hits: patternHits,
   };
