@@ -284,6 +284,62 @@ describe('SyncNotionPageToRacUseCase', () => {
     );
   });
 
+  test('addNote uses the user’s custom basic model name when templateOverridesProvider returns an override', async () => {
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+    const repos = makeRepos();
+    const ac = makeAnkiConnectStub();
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      async () => ({
+        basicModelName: 'ATTI BASIC',
+        basicTemplate: {
+          parent: 'Basic',
+          name: 'ATTI BASIC',
+          storageKey: 'n2a-basic',
+          front: '{{Front}}',
+          back: '{{Back}}',
+          styling: '.card { color: tomato; }',
+        },
+      })
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'page-id',
+      trigger: 'manual',
+    });
+
+    expect(ac.addNote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        modelName: 'ATTI BASIC',
+        fields: { Front: 'Front text', Back: 'Back text', MyMedia: '' },
+      })
+    );
+    const createdNames = (ac.createModel as jest.Mock).mock.calls.map(
+      (args) => (args[0] as { modelName: string }).modelName
+    );
+    expect(createdNames).toContain('ATTI BASIC');
+    expect(createdNames).not.toContain('Ankify Basic');
+  });
+
   test('seeds Ankify note types before the first addNote call', async () => {
     (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
       cards: [sampleCard()],

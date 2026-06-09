@@ -1,10 +1,15 @@
-import { AnkiConnectClient } from './AnkiConnectClient';
 import {
-  ANKIFY_BASIC_MODEL,
-  ANKIFY_CLOZE_MODEL,
+  AnkiConnectClient,
+  AnkiConnectCreateModelParams,
+} from './AnkiConnectClient';
+import {
   ankifyBasicCreateModelParams,
   ankifyClozeCreateModelParams,
 } from './ankifyModels';
+import {
+  AnkifyTemplateOverrides,
+  buildBasicModelFromTemplate,
+} from './templateOverrides';
 
 const ALREADY_EXISTS_PATTERN = /already\s+exists/i;
 
@@ -14,7 +19,7 @@ const isAlreadyExistsError = (error: unknown): boolean =>
 const ensureSingleModel = async (
   ac: AnkiConnectClient,
   cache: Set<string>,
-  params: ReturnType<typeof ankifyBasicCreateModelParams>
+  params: AnkiConnectCreateModelParams
 ): Promise<void> => {
   if (cache.has(params.modelName)) {
     return;
@@ -29,21 +34,35 @@ const ensureSingleModel = async (
   cache.add(params.modelName);
 };
 
+const resolveBasicParams = (
+  overrides: AnkifyTemplateOverrides | null
+): AnkiConnectCreateModelParams =>
+  overrides
+    ? buildBasicModelFromTemplate(
+        overrides.basicTemplate,
+        overrides.basicModelName
+      )
+    : ankifyBasicCreateModelParams();
+
 export const ensureAnkifyModels = async (
   ac: AnkiConnectClient,
-  cache: Set<string>
+  cache: Set<string>,
+  overrides: AnkifyTemplateOverrides | null = null
 ): Promise<void> => {
-  if (cache.has(ANKIFY_BASIC_MODEL) && cache.has(ANKIFY_CLOZE_MODEL)) {
+  const basicParams = resolveBasicParams(overrides);
+  const clozeParams = ankifyClozeCreateModelParams();
+
+  if (cache.has(basicParams.modelName) && cache.has(clozeParams.modelName)) {
     return;
   }
 
   const existing = new Set(await ac.modelNames());
   for (const name of existing) {
-    if (name === ANKIFY_BASIC_MODEL || name === ANKIFY_CLOZE_MODEL) {
+    if (name === basicParams.modelName || name === clozeParams.modelName) {
       cache.add(name);
     }
   }
 
-  await ensureSingleModel(ac, cache, ankifyBasicCreateModelParams());
-  await ensureSingleModel(ac, cache, ankifyClozeCreateModelParams());
+  await ensureSingleModel(ac, cache, basicParams);
+  await ensureSingleModel(ac, cache, clozeParams);
 };

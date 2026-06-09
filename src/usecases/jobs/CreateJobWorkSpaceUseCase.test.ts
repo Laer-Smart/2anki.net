@@ -21,6 +21,7 @@ describe('CreateJobWorkSpaceUseCase', () => {
     loadIfExists: jest
       .fn()
       .mockResolvedValue(new CardOption(CardOption.LoadDefaultOptions())),
+    loadAnkifyTemplateOverrides: jest.fn().mockResolvedValue(null),
   };
 
   const parserRulesRepository: IParserRulesRepository = {

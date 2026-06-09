@@ -1,6 +1,8 @@
 import { ensureAnkifyModels } from './ensureAnkifyModels';
 import { ANKIFY_BASIC_MODEL, ANKIFY_CLOZE_MODEL } from './ankifyModels';
 import { AnkiConnectClient } from './AnkiConnectClient';
+import { AnkifyTemplateOverrides } from './templateOverrides';
+import { TemplateFile } from '../../lib/parser/Settings/types';
 
 const makeStub = (modelNames: string[]) => {
   const stub = {
@@ -64,5 +66,35 @@ describe('ensureAnkifyModels', () => {
 
     expect(cache.has(ANKIFY_BASIC_MODEL)).toBe(true);
     expect(cache.has(ANKIFY_CLOZE_MODEL)).toBe(true);
+  });
+
+  test('creates the basic model from the user template when overrides are present', async () => {
+    const ac = makeStub([]);
+    const cache = new Set<string>();
+    const customTemplate: TemplateFile = {
+      parent: 'Basic',
+      name: 'ATTI BASIC',
+      storageKey: 'n2a-basic',
+      front: '<div class="atti-front">{{Front}}</div>',
+      back: '<div class="atti-back">{{Back}}</div>',
+      styling: '.atti-front { color: tomato; }',
+    };
+    const overrides: AnkifyTemplateOverrides = {
+      basicModelName: 'ATTI BASIC',
+      basicTemplate: customTemplate,
+    };
+
+    await ensureAnkifyModels(ac, cache, overrides);
+
+    const created = (ac.createModel as jest.Mock).mock.calls.map(
+      (args) =>
+        args[0] as { modelName: string; inOrderFields: string[]; css: string }
+    );
+    const basic = created.find((c) => c.modelName === 'ATTI BASIC');
+    expect(basic).toBeDefined();
+    expect(basic?.inOrderFields).toEqual(['Front', 'Back', 'MyMedia']);
+    expect(basic?.css).toContain('tomato');
+    expect(cache.has('ATTI BASIC')).toBe(true);
+    expect(created.some((c) => c.modelName === ANKIFY_BASIC_MODEL)).toBe(false);
   });
 });

@@ -44,7 +44,11 @@ import { Client as NotionClient } from '@notionhq/client';
 import NotionRepository from '../data_layer/NotionRespository';
 import StorageHandler from '../lib/storage/StorageHandler';
 import { parseCollection } from '../services/ApkgPreviewService/parseCollection';
-import { extractApkg, parseMediaManifest } from '../services/ApkgPreviewService/extractApkg';
+import {
+  extractApkg,
+  parseMediaManifest,
+} from '../services/ApkgPreviewService/extractApkg';
+import SettingsRepository from '../data_layer/SettingsRepository';
 import RequireAnkifyAccess from './middleware/RequireAnkifyAccess';
 import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
@@ -337,6 +341,9 @@ const AnkifyRouter = () => {
   };
 
   const ankifyNotionRepo = new NotionRepository(db);
+  const settingsRepo = new SettingsRepository(db);
+  const templateOverridesProvider = (owner: number) =>
+    settingsRepo.loadAnkifyTemplateOverrides(String(owner));
   const syncNotionPageUseCase = new SyncNotionPageToRacUseCase(
     repo,
     mappings,
@@ -354,7 +361,8 @@ const AnkifyRouter = () => {
         ankifyNotionRepo,
         new UsersRepository(db),
         getDefaultEmailService()
-      ).execute(owner)
+      ).execute(owner),
+    templateOverridesProvider
   );
 
   const controller = new AnkifyController(
@@ -375,7 +383,8 @@ const AnkifyRouter = () => {
         };
       },
       ankiConnectFactory,
-      logsRepo
+      logsRepo,
+      templateOverridesProvider
     ),
     new RespinAnkifyClientUseCase(rac),
     new ExportReviewDataToNotionUseCase(

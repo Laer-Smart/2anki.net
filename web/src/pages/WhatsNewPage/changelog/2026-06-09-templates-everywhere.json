@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-09-templates-everywhere",
+  "date": "2026-06-09",
+  "type": "fix",
+  "title": "Custom note types you save in Templates settings now apply to synced cards too, not just decks you download"
+}

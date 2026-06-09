@@ -2,10 +2,25 @@ import { Knex } from 'knex';
 import Settings, { SettingsInitializer } from './public/Settings';
 import CardOption from '../lib/parser/Settings/CardOption';
 import { getCustomTemplate } from '../lib/parser/Settings/helpers/getCustomTemplate';
+import { AnkifyTemplateOverrides } from '../services/ankify/templateOverrides';
 
 export interface ISettingsRepository {
   load(owner: string, id: string): Promise<CardOption>;
   loadIfExists(owner: string, id: string): Promise<CardOption | null>;
+  loadAnkifyTemplateOverrides(
+    owner: string
+  ): Promise<AnkifyTemplateOverrides | null>;
+}
+
+function parseJsonColumn(value: unknown): unknown {
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+  return value;
 }
 
 class SettingsRepository implements ISettingsRepository {
@@ -98,6 +113,54 @@ class SettingsRepository implements ISettingsRepository {
       return settings;
     } catch (error: unknown) {
       console.info('Load settings from database failed');
+      console.error(error);
+      return null;
+    }
+  }
+
+  async loadAnkifyTemplateOverrides(
+    owner: string
+  ): Promise<AnkifyTemplateOverrides | null> {
+    try {
+      const settingsRow = await this.database(this.table)
+        .where({ owner })
+        .orderBy('updated_at', 'desc')
+        .first();
+      if (!settingsRow) {
+        return null;
+      }
+
+      const settingsPayload = parseJsonColumn(settingsRow.payload) as {
+        payload?: Record<string, string>;
+      } | null;
+      const cardOption = new CardOption(settingsPayload?.payload ?? {});
+      if (cardOption.template !== 'custom') {
+        return null;
+      }
+
+      const templatesRow = await this.database('templates')
+        .where({ owner })
+        .first();
+      if (!templatesRow) {
+        return null;
+      }
+
+      const templatesPayload = parseJsonColumn(templatesRow.payload);
+      if (!Array.isArray(templatesPayload)) {
+        return null;
+      }
+
+      const basicTemplate = getCustomTemplate('n2a-basic', templatesPayload);
+      if (!basicTemplate) {
+        return null;
+      }
+
+      return {
+        basicModelName: cardOption.basicModelName,
+        basicTemplate,
+      };
+    } catch (error: unknown) {
+      console.info('Load Ankify template overrides failed');
       console.error(error);
       return null;
     }
