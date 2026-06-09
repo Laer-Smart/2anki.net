@@ -568,4 +568,63 @@ describe('SendUploadToRacUseCase', () => {
     expect(result.errors[0]).toContain('disk full');
     expect(ac.addNote).toHaveBeenCalledTimes(1);
   });
+
+  test('uses the user’s custom basic model name when templateOverridesProvider returns an override', async () => {
+    const { clients, mappings, uploads } = makeRepos();
+    const ac = makeAnkiConnectStub();
+    const useCase = new SendUploadToRacUseCase(
+      clients,
+      mappings,
+      uploads,
+      async () => Buffer.from('fake'),
+      async () => buildParsed({}),
+      () => ac,
+      undefined,
+      async () => ({
+        basicModelName: 'ATTI BASIC',
+        basicTemplate: {
+          parent: 'Basic',
+          name: 'ATTI BASIC',
+          storageKey: 'n2a-basic',
+          front: '{{Front}}',
+          back: '{{Back}}',
+          styling: '.card {}',
+        },
+      })
+    );
+
+    const result = await useCase.execute({ uploadId: 7, owner: 42 });
+
+    expect(result.created).toBe(1);
+    expect(ac.addNote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        modelName: 'ATTI BASIC',
+        fields: { Front: 'front text', Back: 'back text', MyMedia: '' },
+      })
+    );
+  });
+
+  test('falls back to Ankify Basic when templateOverridesProvider returns null', async () => {
+    const { clients, mappings, uploads } = makeRepos();
+    const ac = makeAnkiConnectStub();
+    const useCase = new SendUploadToRacUseCase(
+      clients,
+      mappings,
+      uploads,
+      async () => Buffer.from('fake'),
+      async () => buildParsed({}),
+      () => ac,
+      undefined,
+      async () => null
+    );
+
+    await useCase.execute({ uploadId: 7, owner: 42 });
+
+    expect(ac.addNote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        modelName: 'Ankify Basic',
+        fields: { Front: 'front text', Back: 'back text' },
+      })
+    );
+  });
 });

@@ -66,6 +66,7 @@ function buildSettingsRepository(
     loadIfExists: jest.fn(
       async (_owner: string, id: string) => rows[id] ?? null
     ),
+    loadAnkifyTemplateOverrides: jest.fn(async () => null),
   };
 }
 

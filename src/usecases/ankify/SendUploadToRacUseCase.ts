@@ -19,6 +19,10 @@ import {
 } from '../../services/ankify/ankifyModels';
 import { ensureAnkifyModels } from '../../services/ankify/ensureAnkifyModels';
 import {
+  AnkifyTemplateOverrides,
+  AnkifyTemplateOverridesProvider,
+} from '../../services/ankify/templateOverrides';
+import {
   NormalizedCollection,
   Note,
 } from '../../services/ApkgPreviewService/types';
@@ -74,6 +78,7 @@ const buildAnkiConnectNoteFromApkgNote = (input: {
   fields: string[];
   tags: string;
   deckName: string;
+  overrides: AnkifyTemplateOverrides | null;
 }): AnkiConnectNote => {
   const trimmedTags = input.tags
     .split(/\s+/)
@@ -91,13 +96,18 @@ const buildAnkiConnectNoteFromApkgNote = (input: {
       options: { allowDuplicate: true },
     };
   }
+  const basicModelName = input.overrides?.basicModelName ?? ANKIFY_BASIC_MODEL;
+  const basicFields: Record<string, string> = {
+    Front: input.fields[0] ?? '',
+    Back: input.fields[1] ?? '',
+  };
+  if (input.overrides) {
+    basicFields.MyMedia = '';
+  }
   return {
     deckName: input.deckName,
-    modelName: ANKIFY_BASIC_MODEL,
-    fields: {
-      Front: input.fields[0] ?? '',
-      Back: input.fields[1] ?? '',
-    },
+    modelName: basicModelName,
+    fields: basicFields,
     tags: trimmedTags,
     options: { allowDuplicate: true },
   };
@@ -132,7 +142,8 @@ export class SendUploadToRacUseCase {
     private readonly fetchApkgBytes: ApkgFetcher,
     private readonly parseApkg: ApkgParser,
     private readonly ankiConnect: AnkiConnectFactory,
-    private readonly logs?: AnkifySyncLogsRepositoryInterface
+    private readonly logs?: AnkifySyncLogsRepositoryInterface,
+    private readonly templateOverridesProvider?: AnkifyTemplateOverridesProvider
   ) {}
 
   private modelCache(clientId: number): Set<string> {
@@ -183,7 +194,9 @@ export class SendUploadToRacUseCase {
       ankiWebSyncError: null,
     };
 
-    await ensureAnkifyModels(ac, this.modelCache(client.id));
+    const overrides =
+      (await this.templateOverridesProvider?.(input.owner)) ?? null;
+    await ensureAnkifyModels(ac, this.modelCache(client.id), overrides);
     await this.uploadAllMedia(ac, parsed, result);
 
     for (const [noteId, note] of collection.notes) {
@@ -196,6 +209,7 @@ export class SendUploadToRacUseCase {
         fallbackDeckName,
         seenDeckNames,
         result,
+        overrides,
       });
     }
 
@@ -216,6 +230,7 @@ export class SendUploadToRacUseCase {
     fallbackDeckName: string;
     seenDeckNames: Set<string>;
     result: SendUploadToRacResult;
+    overrides: AnkifyTemplateOverrides | null;
   }): Promise<void> {
     const {
       noteId,
@@ -226,6 +241,7 @@ export class SendUploadToRacUseCase {
       fallbackDeckName,
       seenDeckNames,
       result,
+      overrides,
     } = args;
     try {
       const deckName = resolveDeckNameForNote(
@@ -244,6 +260,7 @@ export class SendUploadToRacUseCase {
         fields: note.fields,
         tags: note.tags,
         deckName,
+        overrides,
       });
 
       const existing = await this.mappings.findBySourceId(client.id, sourceId);

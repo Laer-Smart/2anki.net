@@ -22,6 +22,11 @@ import {
 } from '../../services/ankify/ankifyModels';
 import { ensureAnkifyModels } from '../../services/ankify/ensureAnkifyModels';
 import {
+  AnkifyTemplateOverrides,
+  AnkifyTemplateOverridesProvider,
+  buildBasicModelFromTemplate,
+} from '../../services/ankify/templateOverrides';
+import {
   walkNotionPageForFlashcards,
   NotionBlockChildrenFetcher,
   WalkedNotionFlashcard,
@@ -170,7 +175,8 @@ export class SyncNotionPageToRacUseCase {
     private readonly notionPageMeta?: NotionPageMetaFetcher,
     private readonly mediaFetcher: AnkifyMediaFetcher = guardedMediaFetcher,
     private readonly errorEvents?: IErrorEventRepository,
-    private readonly onTokenInvalid?: OnTokenInvalidFn
+    private readonly onTokenInvalid?: OnTokenInvalidFn,
+    private readonly templateOverridesProvider?: AnkifyTemplateOverridesProvider
   ) {}
 
   private modelCache(clientId: number): Set<string> {
@@ -342,8 +348,10 @@ export class SyncNotionPageToRacUseCase {
     );
     const deckName = buildDeckName(subscription.notion_page_title);
     await ac.createDeck(deckName);
-    await ensureAnkifyModels(ac, this.modelCache(client.id));
-    await this.refreshAnkifyModelStyling(ac);
+    const overrides =
+      (await this.templateOverridesProvider?.(input.owner)) ?? null;
+    await ensureAnkifyModels(ac, this.modelCache(client.id), overrides);
+    await this.refreshAnkifyModelStyling(ac, overrides);
 
     for (const card of cards) {
       await this.processCard({
@@ -354,6 +362,7 @@ export class SyncNotionPageToRacUseCase {
         input,
         result,
         deckName,
+        overrides,
       });
     }
 
@@ -398,9 +407,15 @@ export class SyncNotionPageToRacUseCase {
   }
 
   private async refreshAnkifyModelStyling(
-    ac: AnkiConnectClient
+    ac: AnkiConnectClient,
+    overrides: AnkifyTemplateOverrides | null
   ): Promise<void> {
-    const basic = ankifyBasicCreateModelParams();
+    const basic = overrides
+      ? buildBasicModelFromTemplate(
+          overrides.basicTemplate,
+          overrides.basicModelName
+        )
+      : ankifyBasicCreateModelParams();
     const cloze = ankifyClozeCreateModelParams();
     await ac.updateModelStyling({ name: basic.modelName, css: basic.css });
     await ac.updateModelStyling({ name: cloze.modelName, css: cloze.css });
@@ -424,6 +439,30 @@ export class SyncNotionPageToRacUseCase {
     });
   }
 
+  private buildBasicNote(args: {
+    deckName: string;
+    front: string;
+    back: string;
+    overrides: AnkifyTemplateOverrides | null;
+  }) {
+    const modelName =
+      args.overrides?.basicModelName ?? ANKIFY_BASIC_MODEL;
+    const fields: Record<string, string> = {
+      [FRONT_FIELD_BASIC]: args.front,
+      [BACK_FIELD_BASIC]: args.back,
+    };
+    if (args.overrides) {
+      fields.MyMedia = '';
+    }
+    return {
+      deckName: args.deckName,
+      modelName,
+      fields,
+      tags: ['ankify-notion-sync'],
+      options: { allowDuplicate: true },
+    };
+  }
+
   private async processCard(args: {
     card: WalkedNotionFlashcard;
     client: AnkifyClient;
@@ -432,8 +471,18 @@ export class SyncNotionPageToRacUseCase {
     input: SyncNotionPageInput;
     result: SyncNotionPageResult;
     deckName: string;
+    overrides: AnkifyTemplateOverrides | null;
   }): Promise<void> {
-    const { card, client, subscription, ac, input, result, deckName } = args;
+    const {
+      card,
+      client,
+      subscription,
+      ac,
+      input,
+      result,
+      deckName,
+      overrides,
+    } = args;
     try {
       await this.uploadCardMedia(ac, card, result);
       const existing = await this.mappings.findBySourceId(
@@ -441,16 +490,14 @@ export class SyncNotionPageToRacUseCase {
         card.notion_block_id
       );
       if (existing == null) {
-        const ankiNoteId = await ac.addNote({
-          deckName,
-          modelName: ANKIFY_BASIC_MODEL,
-          fields: {
-            [FRONT_FIELD_BASIC]: card.front,
-            [BACK_FIELD_BASIC]: card.back,
-          },
-          tags: ['ankify-notion-sync'],
-          options: { allowDuplicate: true },
-        });
+        const ankiNoteId = await ac.addNote(
+          this.buildBasicNote({
+            deckName,
+            front: card.front,
+            back: card.back,
+            overrides,
+          })
+        );
         await this.mappings.upsert({
           ankify_client_id: client.id,
           source_id: card.notion_block_id,
@@ -480,6 +527,7 @@ export class SyncNotionPageToRacUseCase {
         input,
         result,
         deckName,
+        overrides,
       });
     } catch (error) {
       result.errors.push(
@@ -497,24 +545,23 @@ export class SyncNotionPageToRacUseCase {
     input: SyncNotionPageInput;
     result: SyncNotionPageResult;
     deckName: string;
+    overrides: AnkifyTemplateOverrides | null;
   }): Promise<void> {
-    const { card, existing, client, ac, result, deckName } = args;
+    const { card, existing, client, ac, result, deckName, overrides } = args;
     const lastSyncedAt = existing.last_synced_at;
     const ankiInfo = await ac.notesInfo([existing.anki_note_id]);
     const ankiNote = ankiInfo[0];
 
     if (ankiNote?.noteId == null) {
       await this.mappings.deleteByAnkiNoteId(client.id, existing.anki_note_id);
-      const ankiNoteId = await ac.addNote({
-        deckName,
-        modelName: ANKIFY_BASIC_MODEL,
-        fields: {
-          [FRONT_FIELD_BASIC]: card.front,
-          [BACK_FIELD_BASIC]: card.back,
-        },
-        tags: ['ankify-notion-sync'],
-        options: { allowDuplicate: true },
-      });
+      const ankiNoteId = await ac.addNote(
+        this.buildBasicNote({
+          deckName,
+          front: card.front,
+          back: card.back,
+          overrides,
+        })
+      );
       await this.mappings.upsert({
         ankify_client_id: client.id,
         source_id: card.notion_block_id,
