@@ -57,7 +57,13 @@ export type AnkiConnectFactory = (
 
 export type ApkgFetcher = (key: string) => Promise<Buffer>;
 
-export type ApkgParser = (buffer: Buffer) => Promise<NormalizedCollection>;
+export interface ParsedApkgForSend {
+  collection: NormalizedCollection;
+  mediaMap: Map<string, string>;
+  mediaEntries: Map<string, Buffer>;
+}
+
+export type ApkgParser = (buffer: Buffer) => Promise<ParsedApkgForSend>;
 
 const CLOZE_PATTERN = /\{\{c\d+::/;
 
@@ -154,7 +160,8 @@ export class SendUploadToRacUseCase {
     await this.clients.touchLastActiveAt(client.id);
 
     const buffer = await this.fetchApkgBytes(upload.key);
-    const collection = await this.parseApkg(buffer);
+    const parsed = await this.parseApkg(buffer);
+    const collection = parsed.collection;
 
     const host = input.ankiConnectHost ?? 'localhost';
     const ac = this.ankiConnect(
@@ -177,6 +184,7 @@ export class SendUploadToRacUseCase {
     };
 
     await ensureAnkifyModels(ac, this.modelCache(client.id));
+    await this.uploadAllMedia(ac, parsed, result);
 
     for (const [noteId, note] of collection.notes) {
       await this.processNote({
@@ -292,6 +300,29 @@ export class SendUploadToRacUseCase {
         result.errors.push(`Note ${noteId}: ${error.message}`);
       } else {
         result.errors.push(`Note ${noteId}: ${(error as Error).message}`);
+      }
+    }
+  }
+
+  private async uploadAllMedia(
+    ac: AnkiConnectClient,
+    parsed: ParsedApkgForSend,
+    result: SendUploadToRacResult
+  ): Promise<void> {
+    for (const [originalName, archiveName] of parsed.mediaMap) {
+      const bytes = parsed.mediaEntries.get(archiveName);
+      if (bytes == null) {
+        continue;
+      }
+      try {
+        await ac.storeMediaFile({
+          filename: originalName,
+          data: bytes.toString('base64'),
+        });
+      } catch (error) {
+        result.errors.push(
+          `Media ${originalName}: ${(error as Error).message}`
+        );
       }
     }
   }
