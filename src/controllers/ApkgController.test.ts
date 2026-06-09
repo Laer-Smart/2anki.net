@@ -196,7 +196,7 @@ describe('ApkgController.importToNotion', () => {
     expect(executeCall[5]).toMatchObject({ isPaying: false, maxNotes: 1000 });
   });
 
-  it('gives a paying user maxNotes=5000', async () => {
+  it('gives a paying user maxNotes=10000', async () => {
     const controller = makeController();
     const req = makeReq() as Request;
     const res = makeRes({ patreon: true, subscriber: false }) as Response;
@@ -205,10 +205,10 @@ describe('ApkgController.importToNotion', () => {
 
     expect(res.status).toHaveBeenCalledWith(202);
     const executeCall = executeMock.mock.calls[0];
-    expect(executeCall[5]).toMatchObject({ isPaying: true, maxNotes: 5000 });
+    expect(executeCall[5]).toMatchObject({ isPaying: true, maxNotes: 10000 });
   });
 
-  it('gives a subscriber user maxNotes=5000', async () => {
+  it('gives a subscriber user maxNotes=10000', async () => {
     const controller = makeController();
     const req = makeReq() as Request;
     const res = makeRes({ patreon: false, subscriber: true }) as Response;
@@ -217,7 +217,7 @@ describe('ApkgController.importToNotion', () => {
 
     expect(res.status).toHaveBeenCalledWith(202);
     const executeCall = executeMock.mock.calls[0];
-    expect(executeCall[5]).toMatchObject({ isPaying: true, maxNotes: 5000 });
+    expect(executeCall[5]).toMatchObject({ isPaying: true, maxNotes: 10000 });
   });
 });
 
