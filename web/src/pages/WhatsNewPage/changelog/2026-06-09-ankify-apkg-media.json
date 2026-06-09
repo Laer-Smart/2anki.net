@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-09-ankify-apkg-media",
+  "date": "2026-06-09",
+  "type": "fix",
+  "title": "Ankify .apkg uploads carry their images and audio to Anki, so synced cards render media instead of broken links"
+}

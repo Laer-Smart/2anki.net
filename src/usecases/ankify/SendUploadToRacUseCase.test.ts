@@ -1,5 +1,6 @@
 import {
   NoActiveAnkifyClientError,
+  ParsedApkgForSend,
   SendUploadToRacUseCase,
   UploadNotFoundError,
 } from './SendUploadToRacUseCase';
@@ -64,6 +65,18 @@ const buildCollection = (overrides: {
   cards: overrides.cards ?? [{ id: 1, nid: 100, did: 10, ord: 0 }],
 });
 
+const buildParsed = (
+  overrides: Parameters<typeof buildCollection>[0] = {},
+  media: {
+    mediaMap?: Map<string, string>;
+    mediaEntries?: Map<string, Buffer>;
+  } = {}
+): ParsedApkgForSend => ({
+  collection: buildCollection(overrides),
+  mediaMap: media.mediaMap ?? new Map(),
+  mediaEntries: media.mediaEntries ?? new Map(),
+});
+
 const makeAnkiConnectStub = () => {
   const stub = {
     createDeck: jest.fn(async (_d: string) => 1),
@@ -72,6 +85,7 @@ const makeAnkiConnectStub = () => {
     sync: jest.fn(async () => null),
     modelNames: jest.fn(async () => [] as string[]),
     createModel: jest.fn(async (_p: unknown) => ({ id: 1 })),
+    storeMediaFile: jest.fn(async (_p: unknown) => 'ok'),
   };
   return stub as unknown as AnkiConnectClient & typeof stub;
 };
@@ -132,7 +146,7 @@ describe('SendUploadToRacUseCase', () => {
       mappings,
       uploads,
       async () => Buffer.from('fake'),
-      async () => buildCollection({}),
+      async () => buildParsed({}),
       () => ac
     );
 
@@ -174,7 +188,7 @@ describe('SendUploadToRacUseCase', () => {
       mappings,
       uploads,
       async () => Buffer.from('fake'),
-      async () => buildCollection({}),
+      async () => buildParsed({}),
       () => ac
     );
 
@@ -194,7 +208,7 @@ describe('SendUploadToRacUseCase', () => {
       uploads,
       async () => Buffer.from('fake'),
       async () =>
-        buildCollection({
+        buildParsed({
           notes: new Map(),
           cards: [],
         }),
@@ -226,7 +240,7 @@ describe('SendUploadToRacUseCase', () => {
       mappings,
       uploads,
       async () => Buffer.from('fake'),
-      async () => buildCollection({}),
+      async () => buildParsed({}),
       () => ac
     );
 
@@ -265,7 +279,7 @@ describe('SendUploadToRacUseCase', () => {
       mappings,
       uploads,
       async () => Buffer.from('fake'),
-      async () => buildCollection({}),
+      async () => buildParsed({}),
       () => ac
     );
 
@@ -290,7 +304,7 @@ describe('SendUploadToRacUseCase', () => {
       uploads,
       async () => Buffer.from('fake'),
       async () =>
-        buildCollection({
+        buildParsed({
           notes: new Map([
             [
               100,
@@ -329,7 +343,7 @@ describe('SendUploadToRacUseCase', () => {
       uploads,
       async () => Buffer.from('fake'),
       async () =>
-        buildCollection({
+        buildParsed({
           notes: new Map([
             [
               100,
@@ -384,7 +398,7 @@ describe('SendUploadToRacUseCase', () => {
       mappings,
       uploads,
       async () => Buffer.from(''),
-      async () => buildCollection({}),
+      async () => buildParsed({}),
       () => ac
     );
 
@@ -401,7 +415,7 @@ describe('SendUploadToRacUseCase', () => {
       mappings,
       uploads,
       async () => Buffer.from(''),
-      async () => buildCollection({}),
+      async () => buildParsed({}),
       () => ac
     );
 
@@ -422,7 +436,7 @@ describe('SendUploadToRacUseCase', () => {
       uploads,
       async () => Buffer.from('fake'),
       async () =>
-        buildCollection({
+        buildParsed({
           notes: new Map([
             [
               100,
@@ -458,5 +472,93 @@ describe('SendUploadToRacUseCase', () => {
     expect(result.created).toBe(1);
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0]).toContain('first failed');
+  });
+
+  test('uploads each media file via storeMediaFile before adding notes', async () => {
+    const { clients, mappings, uploads } = makeRepos();
+    const ac = makeAnkiConnectStub();
+    const callOrder: string[] = [];
+    (ac.storeMediaFile as jest.Mock).mockImplementation(async (params) => {
+      callOrder.push(`store:${(params as { filename: string }).filename}`);
+      return 'ok';
+    });
+    (ac.addNote as jest.Mock).mockImplementation(async () => {
+      callOrder.push('addNote');
+      return 9_876_543_210;
+    });
+
+    const useCase = new SendUploadToRacUseCase(
+      clients,
+      mappings,
+      uploads,
+      async () => Buffer.from('fake'),
+      async () =>
+        buildParsed(
+          {},
+          {
+            mediaMap: new Map([
+              ['image.png', '0'],
+              ['audio.mp3', '1'],
+            ]),
+            mediaEntries: new Map([
+              ['0', Buffer.from('img-bytes')],
+              ['1', Buffer.from('audio-bytes')],
+            ]),
+          }
+        ),
+      () => ac
+    );
+
+    const result = await useCase.execute({ uploadId: 7, owner: 42 });
+
+    expect(ac.storeMediaFile).toHaveBeenCalledTimes(2);
+    expect(ac.storeMediaFile).toHaveBeenCalledWith({
+      filename: 'image.png',
+      data: Buffer.from('img-bytes').toString('base64'),
+    });
+    expect(ac.storeMediaFile).toHaveBeenCalledWith({
+      filename: 'audio.mp3',
+      data: Buffer.from('audio-bytes').toString('base64'),
+    });
+    expect(callOrder).toEqual(['store:image.png', 'store:audio.mp3', 'addNote']);
+    expect(result.errors).toEqual([]);
+  });
+
+  test('per-file storeMediaFile failure is recorded but does not abort dispatch', async () => {
+    const { clients, mappings, uploads } = makeRepos();
+    const ac = makeAnkiConnectStub();
+    (ac.storeMediaFile as jest.Mock)
+      .mockRejectedValueOnce(new Error('disk full'))
+      .mockResolvedValueOnce('ok');
+
+    const useCase = new SendUploadToRacUseCase(
+      clients,
+      mappings,
+      uploads,
+      async () => Buffer.from('fake'),
+      async () =>
+        buildParsed(
+          {},
+          {
+            mediaMap: new Map([
+              ['broken.png', '0'],
+              ['ok.png', '1'],
+            ]),
+            mediaEntries: new Map([
+              ['0', Buffer.from('a')],
+              ['1', Buffer.from('b')],
+            ]),
+          }
+        ),
+      () => ac
+    );
+
+    const result = await useCase.execute({ uploadId: 7, owner: 42 });
+
+    expect(result.created).toBe(1);
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0]).toContain('Media broken.png');
+    expect(result.errors[0]).toContain('disk full');
+    expect(ac.addNote).toHaveBeenCalledTimes(1);
   });
 });
