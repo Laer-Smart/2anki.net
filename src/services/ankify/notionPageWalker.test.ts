@@ -1,4 +1,7 @@
-import { walkNotionPageForFlashcards } from './notionPageWalker';
+import {
+  walkNotionPageForFlashcards,
+  walkNotionDatabaseForFlashcards,
+} from './notionPageWalker';
 
 const toggleBlock = (overrides: Record<string, unknown> = {}) => ({
   id: 'toggle-1',
@@ -359,5 +362,71 @@ describe('walkNotionPageForFlashcards diagnostic', () => {
 
     expect(diagnostic.blocks_matched).toBe(0);
     expect(diagnostic.unmatched_samples).toEqual(['Introduction']);
+  });
+});
+
+describe('walkNotionDatabaseForFlashcards', () => {
+  const rowToggle = (id: string, front: string) => ({
+    id: `${id}-toggle`,
+    type: 'toggle',
+    has_children: true,
+    last_edited_time: '2026-05-09T12:00:00.000Z',
+    toggle: { rich_text: [{ plain_text: front }] },
+  });
+
+  test('walks every database row-page and aggregates the cards', async () => {
+    const fetchChildren = jest.fn(async (blockId: string) => {
+      if (blockId === 'row-1') return [rowToggle('row-1', 'Front 1')];
+      if (blockId === 'row-2') return [rowToggle('row-2', 'Front 2')];
+      if (blockId === 'row-1-toggle') return [paragraphChild('Back 1')];
+      if (blockId === 'row-2-toggle') return [paragraphChild('Back 2')];
+      return [];
+    });
+    const fetchDatabasePages = jest.fn(async () => [
+      { id: 'row-1' },
+      { id: 'row-2' },
+    ]);
+
+    const { cards, diagnostic } = await walkNotionDatabaseForFlashcards(
+      'database-id',
+      fetchChildren as never,
+      fetchDatabasePages
+    );
+
+    expect(fetchDatabasePages).toHaveBeenCalledWith('database-id');
+    expect(cards.map((c) => c.front)).toEqual(['Front 1', 'Front 2']);
+    expect(cards[0].back).toContain('Back 1');
+    expect(cards[1].back).toContain('Back 2');
+    expect(diagnostic.blocks_matched).toBe(2);
+    expect(diagnostic.pattern_hits).toEqual({ toggle: 2 });
+  });
+
+  test('caps the number of database rows walked at 250', async () => {
+    const pages = Array.from({ length: 300 }, (_v, i) => ({ id: `row-${i}` }));
+    const fetchChildren = jest.fn(async () => []);
+    const fetchDatabasePages = jest.fn(async () => pages);
+
+    await walkNotionDatabaseForFlashcards(
+      'database-id',
+      fetchChildren as never,
+      fetchDatabasePages
+    );
+
+    expect(fetchChildren).toHaveBeenCalledTimes(250);
+  });
+
+  test('returns zero cards for an empty database', async () => {
+    const fetchChildren = jest.fn(async () => []);
+    const fetchDatabasePages = jest.fn(async () => []);
+
+    const { cards, diagnostic } = await walkNotionDatabaseForFlashcards(
+      'database-id',
+      fetchChildren as never,
+      fetchDatabasePages
+    );
+
+    expect(cards).toEqual([]);
+    expect(diagnostic.blocks_scanned).toBe(0);
+    expect(diagnostic.blocks_matched).toBe(0);
   });
 });

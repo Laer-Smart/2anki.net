@@ -12,6 +12,7 @@ import { WalkedNotionFlashcard } from '../../services/ankify/notionPageWalker';
 
 jest.mock('../../services/ankify/notionPageWalker', () => ({
   walkNotionPageForFlashcards: jest.fn(),
+  walkNotionDatabaseForFlashcards: jest.fn(),
 }));
 
 jest.mock('axios');
@@ -22,7 +23,10 @@ jest.mock('node:dns', () => ({
 
 import axios from 'axios';
 import dns from 'node:dns';
-import { walkNotionPageForFlashcards } from '../../services/ankify/notionPageWalker';
+import {
+  walkNotionPageForFlashcards,
+  walkNotionDatabaseForFlashcards,
+} from '../../services/ankify/notionPageWalker';
 
 const mockAxiosGet = axios.get as jest.Mock;
 const mockDnsLookup = dns.promises.lookup as jest.Mock;
@@ -165,6 +169,102 @@ describe('SyncNotionPageToRacUseCase', () => {
     (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue(
       emptyWalkResult()
     );
+    (walkNotionDatabaseForFlashcards as jest.Mock).mockReset();
+    (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue(
+      emptyWalkResult()
+    );
+  });
+
+  test('falls back to a database walk when the subscribed id is a Notion database', async () => {
+    const databaseNotPageError = Object.assign(
+      new Error(
+        'Provided ID 379cbac1 is a database, not a page. Use the retrieve database API instead.'
+      ),
+      { code: 'validation_error' }
+    );
+    (walkNotionPageForFlashcards as jest.Mock).mockRejectedValue(
+      databaseNotPageError
+    );
+    (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 4,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+
+    const repos = makeRepos();
+    const ac = makeAnkiConnectStub();
+    const databasePages = jest.fn(async () => [{ id: 'row-1' }, { id: 'row-2' }]);
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      () => databasePages
+    );
+
+    const result = await useCase.execute({
+      owner: 42,
+      notionPageId: 'database-id',
+      trigger: 'polling',
+    });
+
+    expect(walkNotionDatabaseForFlashcards).toHaveBeenCalledWith(
+      'database-id',
+      expect.any(Function),
+      databasePages
+    );
+    expect(ac.addNote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fields: { Front: 'Front text', Back: 'Back text' },
+      })
+    );
+    expect(result.created).toBe(1);
+    expect(repos.subscriptions.setEnabled).not.toHaveBeenCalled();
+    expect(repos.subscriptions.recordPoll).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ synced: true })
+    );
+  });
+
+  test('propagates a non-database validation error without a database walk', async () => {
+    const otherError = Object.assign(new Error('Something else broke'), {
+      code: 'validation_error',
+    });
+    (walkNotionPageForFlashcards as jest.Mock).mockRejectedValue(otherError);
+
+    const repos = makeRepos();
+    const ac = makeAnkiConnectStub();
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => []
+    );
+
+    await expect(
+      useCase.execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'polling',
+      })
+    ).rejects.toThrow('Something else broke');
+    expect(walkNotionDatabaseForFlashcards).not.toHaveBeenCalled();
   });
 
   test('persists icon returned by the page-meta fetcher on upsert', async () => {
