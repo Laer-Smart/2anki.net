@@ -31,9 +31,12 @@ import { NotionService } from '../services/NotionService/NotionService';
 import { getDatabase } from '../data_layer';
 import RequireOpsAccess from './middleware/RequireOpsAccess';
 import InactivityEmailRepository from '../data_layer/InactivityEmailRepository';
+import PriceLockInEmailRepository from '../data_layer/PriceLockInEmailRepository';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
+import { SendPriceLockInEmailsUseCase } from '../usecases/ops/SendPriceLockInEmailsUseCase';
 import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
+import { getEventsSink } from '../services/events/eventsSinkInstance';
 import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepository';
 import { MindmapRepository } from '../data_layer/MindmapRepository';
 import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
@@ -119,6 +122,11 @@ const OpsRouter = () => {
     new SetFeatureFlagUseCase(new FeatureFlagsRepository(database)),
     new GetUploadFunnelUseCase(
       new UploadFunnelService({ eventsRepo: new EventsRepository(database) })
+    ),
+    new SendPriceLockInEmailsUseCase(
+      new PriceLockInEmailRepository(database),
+      emailService,
+      getEventsSink()
     )
   );
 
@@ -271,6 +279,41 @@ const OpsRouter = () => {
    */
   router.post('/api/ops/delete-inactive-users', RequireOpsAccess, (req, res) =>
     controller.deleteInactiveUsers(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/send-price-lock-in-emails:
+   *   post:
+   *     summary: Send the one-time price lock-in email to free accounts
+   *     description: |
+   *       Finds free accounts (no active subscription, no active pass, not lifetime,
+   *       account older than 14 days, not opted out of marketing) and sends the
+   *       price lock-in commercial email. Suppressed recipients are skipped at send
+   *       time. Dedupes by recorded send so repeated invocations walk the full
+   *       segment without double-sending. Send is MANUAL — trigger only on the
+   *       agreed go. Pass { "dryRun": true } (the default) to count the segment
+   *       without sending; pass { "dryRun": false, "limit": 500 } to send a batch.
+   *       Do not put on a cron.
+   *     tags: [Ops]
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               dryRun: { type: boolean }
+   *               limit: { type: integer }
+   *     responses:
+   *       200:
+   *         description: Result with count, variant split, and dryRun flag
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.post(
+    '/api/ops/send-price-lock-in-emails',
+    RequireOpsAccess,
+    (req, res) => controller.sendPriceLockInEmails(req, res)
   );
 
   /**
