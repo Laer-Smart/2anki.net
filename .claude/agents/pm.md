@@ -111,6 +111,8 @@ Default frame: Impact vs Effort, with goal alignment as tiebreaker.
 |------|--------|--------|---------------------|----------|
 | ... | H/M/L | H/M/L | ... | 1/2/3 |
 
+Friction-kill bias: at equal impact, removing a step from the first-conversion path outranks adding a capability — the only intervention that ever moved acquisition in six years of history was a friction removal (the 2021 Notion-connect OAuth step), never a new feature.
+
 State what's NOT making the cut and why.
 
 ### 4. Writing specs
