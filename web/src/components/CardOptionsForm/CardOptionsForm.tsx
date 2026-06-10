@@ -106,7 +106,13 @@ const DEFAULT_USER_INSTRUCTIONS = `Some extra rules and explanations:
 const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
   {
     label: 'Content',
-    keys: ['all', 'paragraph', 'max-one-toggle-per-card', 'perserve-newlines'],
+    keys: [
+      'all',
+      'paragraph',
+      'max-one-toggle-per-card',
+      'perserve-newlines',
+      'split-sections-into-decks',
+    ],
   },
   {
     label: 'Card types',

@@ -76,12 +76,23 @@ interface Finder {
   backField?: string;
 }
 
-const PAGE_LIKE_DECK_TYPES = new Set(['page', 'database', 'child_page']);
+const PAGE_LIKE_DECK_TYPES = new Set([
+  'page',
+  'database',
+  'child_page',
+  'child_database',
+]);
 
-function activeNonPageDeckTypes(rules: ParserRules): Set<string> {
-  return new Set(
-    rules.deckTypes().filter((type) => !PAGE_LIKE_DECK_TYPES.has(type))
-  );
+function activeNonPageDeckTypes(
+  rules: ParserRules,
+  splitSectionsIntoDecks: boolean
+): Set<string> {
+  if (splitSectionsIntoDecks) {
+    return new Set(
+      rules.deckTypes().filter((type) => !PAGE_LIKE_DECK_TYPES.has(type))
+    );
+  }
+  return new Set();
 }
 
 interface PlainTextItem {
@@ -610,7 +621,10 @@ class BlockHandler {
     }
 
     const currentDeckName = toText(getDeckName(parentName, title));
-    const nonPageDeckTypes = activeNonPageDeckTypes(rules);
+    const nonPageDeckTypes = activeNonPageDeckTypes(
+      rules,
+      this.settings.splitSectionsIntoDecks
+    );
 
     // Depth-first traversal: process current page, then children
     if (rules.permitsDeckAsPage() && page) {
