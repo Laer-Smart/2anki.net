@@ -7,8 +7,30 @@ import {
   createPricingV2Prices,
   CreatePricingV2PricesResponse,
 } from './createPricingV2Prices';
+import {
+  sendPriceLockInEmails,
+  SendPriceLockInEmailsResponse,
+} from './sendPriceLockInEmails';
+import {
+  deleteInactiveUsers,
+  DeleteInactiveUsersResponse,
+} from './deleteInactiveUsers';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
+
+function formatDeleteResult(result: DeleteInactiveUsersResponse): string {
+  if (result.dryRun) {
+    return `${result.count} account${result.count === 1 ? '' : 's'} would be deleted.`;
+  }
+  return `Deleted ${result.count} account${result.count === 1 ? '' : 's'}.`;
+}
+
+function formatLockInResult(result: SendPriceLockInEmailsResponse): string {
+  if (result.dryRun) {
+    return `${result.count} recipient${result.count === 1 ? '' : 's'} in segment, sends nothing.`;
+  }
+  return `Sent ${result.count}; click again for the next batch.`;
+}
 
 function formatPricesResult(result: CreatePricingV2PricesResponse): string {
   const mode = result.livemode ? 'live' : 'test';
@@ -44,6 +66,10 @@ export default function CommandsTab() {
   const [syncMessage, setSyncMessage] = useState('');
   const [pricesStatus, setPricesStatus] = useState<Status>('idle');
   const [pricesMessage, setPricesMessage] = useState('');
+  const [lockInStatus, setLockInStatus] = useState<Status>('idle');
+  const [lockInMessage, setLockInMessage] = useState('');
+  const [deleteStatus, setDeleteStatus] = useState<Status>('idle');
+  const [deleteMessage, setDeleteMessage] = useState('');
 
   const run = async (dryRun: boolean) => {
     setStatus('loading');
@@ -84,6 +110,36 @@ export default function CommandsTab() {
     } catch (error) {
       setPricesStatus('error');
       setPricesMessage(
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+  };
+
+  const runLockIn = async (dryRun: boolean) => {
+    setLockInStatus('loading');
+    setLockInMessage('');
+    try {
+      const result = await sendPriceLockInEmails(dryRun);
+      setLockInStatus('success');
+      setLockInMessage(formatLockInResult(result));
+    } catch (error) {
+      setLockInStatus('error');
+      setLockInMessage(
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+  };
+
+  const runDelete = async (dryRun: boolean) => {
+    setDeleteStatus('loading');
+    setDeleteMessage('');
+    try {
+      const result = await deleteInactiveUsers(dryRun);
+      setDeleteStatus('success');
+      setDeleteMessage(formatDeleteResult(result));
+    } catch (error) {
+      setDeleteStatus('error');
+      setDeleteMessage(
         error instanceof Error ? error.message : 'Unknown error'
       );
     }
@@ -191,6 +247,82 @@ export default function CommandsTab() {
       {pricesStatus === 'error' && pricesMessage && (
         <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
           {pricesMessage}
+        </div>
+      )}
+
+      <section className={`${sharedStyles.surface} ${styles.card}`}>
+        <h2 className={styles.cardTitle}>Price lock-in emails</h2>
+        <p className={styles.panelSubtitle}>
+          One-time price lock-in offer to free accounts older than 14 days.
+          Dry-run first; each send delivers up to 500.
+        </p>
+        <div className={styles.controls}>
+          <button
+            type="button"
+            className={sharedStyles.btnSmall}
+            onClick={() => runLockIn(true)}
+            disabled={lockInStatus === 'loading'}
+          >
+            {lockInStatus === 'loading' ? 'Working…' : 'Check segment'}
+          </button>
+          <button
+            type="button"
+            className={sharedStyles.btnSmall}
+            onClick={() => runLockIn(false)}
+            disabled={lockInStatus === 'loading'}
+          >
+            Send batch of 500
+          </button>
+        </div>
+      </section>
+
+      {lockInStatus === 'success' && lockInMessage && (
+        <div className={`${sharedStyles.alertSuccess} ${styles.banner}`}>
+          {lockInMessage}
+        </div>
+      )}
+      {lockInStatus === 'error' && lockInMessage && (
+        <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
+          {lockInMessage}
+        </div>
+      )}
+
+      <section className={`${sharedStyles.surface} ${styles.card}`}>
+        <h2 className={styles.cardTitle}>Delete inactive accounts</h2>
+        <p className={styles.panelSubtitle}>
+          Permanently deletes free accounts that were warned 14+ days ago and
+          have not logged in since. Excludes lifetime and active subscribers.
+          Capped at 100 per run. Check candidates first — deletion cannot be
+          undone.
+        </p>
+        <div className={styles.controls}>
+          <button
+            type="button"
+            className={sharedStyles.btnSmall}
+            onClick={() => runDelete(true)}
+            disabled={deleteStatus === 'loading'}
+          >
+            {deleteStatus === 'loading' ? 'Working…' : 'Check candidates'}
+          </button>
+          <button
+            type="button"
+            className={sharedStyles.btnDanger}
+            onClick={() => runDelete(false)}
+            disabled={deleteStatus === 'loading'}
+          >
+            Delete inactive accounts
+          </button>
+        </div>
+      </section>
+
+      {deleteStatus === 'success' && deleteMessage && (
+        <div className={`${sharedStyles.alertSuccess} ${styles.banner}`}>
+          {deleteMessage}
+        </div>
+      )}
+      {deleteStatus === 'error' && deleteMessage && (
+        <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
+          {deleteMessage}
         </div>
       )}
     </>
