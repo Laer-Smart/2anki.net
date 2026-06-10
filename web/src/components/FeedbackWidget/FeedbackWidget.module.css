@@ -9,7 +9,7 @@
 .widgetCompact {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
 }
 
@@ -55,7 +55,8 @@
   transform: scale(1.12);
 }
 
-.commentInput {
+.commentInput,
+.emailInput {
   width: 100%;
   max-width: 360px;
   padding: 0.625rem 0.75rem;
@@ -65,15 +66,20 @@
   font-family: inherit;
   color: var(--color-text-primary);
   background: var(--color-bg-primary);
-  resize: vertical;
   transition: border-color var(--transition-fast);
 }
 
-.commentInput::placeholder {
+.commentInput {
+  resize: vertical;
+}
+
+.commentInput::placeholder,
+.emailInput::placeholder {
   color: var(--color-text-tertiary);
 }
 
-.commentInput:focus {
+.commentInput:focus,
+.emailInput:focus {
   outline: none;
   border-color: var(--color-primary);
 }
@@ -129,6 +135,13 @@
   color: var(--color-text-secondary);
   margin: 0;
   text-align: center;
+}
+
+.emailHint {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: -0.375rem 0 0;
+  max-width: 360px;
 }
 
 .nudgeLink {

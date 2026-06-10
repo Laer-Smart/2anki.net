@@ -922,12 +922,14 @@ export class Backend {
   async submitEmojiFeedback(
     rating: number,
     page: string,
-    comment?: string
+    comment?: string,
+    email?: string
   ): Promise<void> {
     const response = await post(`${this.baseURL}emoji-feedback`, {
       rating,
       page,
       comment: comment ?? null,
+      email: email ?? null,
     });
     if (!response.ok) {
       throw new Error('Failed to submit feedback');

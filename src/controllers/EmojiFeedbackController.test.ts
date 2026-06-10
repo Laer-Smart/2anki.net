@@ -56,6 +56,7 @@ describe('EmojiFeedbackController', () => {
       rating: 4,
       comment: null,
       page: '/upload',
+      email: null,
     });
   });
 
@@ -68,7 +69,36 @@ describe('EmojiFeedbackController', () => {
       rating: 5,
       comment: 'Great tool!',
       page: '/notion',
+      email: null,
     });
+  });
+
+  it('stores null email when none is provided', async () => {
+    const { controller, req, res, repo } = buildMocks();
+    req.body = { rating: 4, page: '/whats-new' };
+    await controller.submit(req, res);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(repo.insert.mock.calls[0][0].email).toBeNull();
+  });
+
+  it('persists a trimmed valid email when provided', async () => {
+    const { controller, req, res, repo } = buildMocks();
+    req.body = {
+      rating: 5,
+      page: '/whats-new',
+      email: '  learner@example.com  ',
+    };
+    await controller.submit(req, res);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(repo.insert.mock.calls[0][0].email).toBe('learner@example.com');
+  });
+
+  it('stores null when the email is malformed', async () => {
+    const { controller, req, res, repo } = buildMocks();
+    req.body = { rating: 3, page: '/whats-new', email: 'not-an-email' };
+    await controller.submit(req, res);
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(repo.insert.mock.calls[0][0].email).toBeNull();
   });
 
   it('truncates long comments to 2000 chars', async () => {

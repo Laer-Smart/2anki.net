@@ -4,6 +4,7 @@ interface EmojiFeedbackEntry {
   rating: number;
   comment: string | null;
   page: string;
+  email: string | null;
 }
 
 export interface EmojiFeedbackRatingCount {
@@ -49,6 +50,7 @@ export class EmojiFeedbackRepository implements IEmojiFeedbackRepository {
       rating: entry.rating,
       comment: entry.comment,
       page: entry.page,
+      email: entry.email,
     });
   }
 
@@ -86,6 +88,7 @@ export class InMemoryEmojiFeedbackRepository implements IEmojiFeedbackRepository
     rating: number;
     comment: string | null;
     page: string;
+    email: string | null;
     created_at: Date;
   }> = [];
 
@@ -114,6 +117,7 @@ export class InMemoryEmojiFeedbackRepository implements IEmojiFeedbackRepository
           rating: number;
           comment: string;
           page: string;
+          email: string | null;
           created_at: Date;
         } => r.comment != null && r.comment !== ''
       )
