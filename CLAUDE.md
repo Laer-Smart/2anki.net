@@ -6,7 +6,13 @@ Express/TypeScript server that converts Notion pages and uploaded files (HTML, m
 
 Mission: give people the simplest, fastest way to turn what they're studying into beautiful Anki flashcards. Drop something in, get a clean deck back.
 Scale: grow 2anki.net past 300K users.
-Every PR is checked against both — does it make the experience simpler/faster/more beautiful, and does it move us toward scale?
+Revenue: grow MRR past $5K — ARPU and retention are the levers; user count follows. The system sat at its mathematical ceiling (adds ÷ churn) at $2.24 ARPU until the June 2026 reprice; never again let user-count work crowd out revenue work.
+Every PR is checked against all three — does it make the experience simpler/faster/more beautiful, does it move us toward scale, and does it (for user-facing changes) state which funnel or revenue metric it should move?
+
+### Business baseline (as of 2026-06-10 — weekly-retro updates this block)
+
+MRR $1,710 · 763 paying subs · ARPU $2.24 · 18.9%/mo churn (79% lifecycle, not price) · 34 new paid/wk trailing · ~19,580 registered. Read live at `/api/ops/business/metrics` (ops-gated) and Stripe; funnel events at `/api/ops/metrics`.
+Pricing v2 shipped 2026-06-10: $7.99/mo + $64/yr for new members, legacy $6/$60 lock-in until 21 Jun, annual default. Scheduled reads: v2 funnel week of 15 Jun (targets: ≥70 new paid/wk, page→checkout ≥10%, checkout→paid ≥50%); minimal-layout CTR guardrail 24 Jun.
 
 ## Tech stack
 
@@ -108,7 +114,7 @@ Default: `pm` produces a spec → `designer` validates UX (only if user-facing) 
 
 **Supporting cast** (specialists, invoke by name):
 
-- **conversion-funnel-analyst** (sonnet) — weekly funnel pull; names the biggest drop-off between landing → signup → upload → download → paid. Use before prioritization.
+- **conversion-funnel-analyst** (sonnet) — weekly funnel pull; names the biggest drop-off between landing → signup → upload → download → paid, plus churn cohorts and the cancel-flow funnel. Use before prioritization.
 - **seo-content** (opus) — landing-page content, topical clusters, internal linking, sitemap proposals. Designer owns in-product voice; this owns search-driven copy.
 - **seo-specialist** (opus) — technical SEO: crawlability, Core Web Vitals, structured data, SERP/AI-overview features, Search Console analysis. seo-content owns the words; this owns the search infrastructure under them.
 - **prod-incident-responder** (opus, worktree) — turns a recurring prod error into a single fix PR with a regression test. Use when logs show a repeat crash with no open PR.
@@ -129,6 +135,7 @@ For any task that changes user-facing behavior, invoke `pm`, `designer`, and `en
 - UI/UX changes, copy that users see
 - Pricing, limits, quotas, or API surface changes
 - Onboarding, signup, payment, or core conversion flows
+- Cancellation and churn surfaces — any cancel-flow change must weigh a retention offer (pause, downgrade, legacy-rate reminder); 79% of churn is lifecycle, and this surface owns it
 - Refactors that change user-visible behavior
 
 **Trio optional (proceed unless you sense a product question):**
@@ -142,6 +149,7 @@ For any task that changes user-facing behavior, invoke `pm`, `designer`, and `en
 - Where they agree
 - Where they conflict, and how the conflict was resolved
 - The resulting plan
+- Expected MRR/funnel impact — which metric should move, where it is read, and when (one line; "none — internal" is a valid answer, silence is not)
 
 **When the trio disagrees on a visual direction, don't pick silently — ship a preview.** Build a `/dev/<surface>-preview` route that renders each candidate side by side with prefilled state for every variant the surface supports (free / paid / lifetime user, loading / error / empty, etc.). Use direct prop injection on the existing components — don't re-mock the data hooks. No auth gate, no nav link, no analytics. Push it as part of the draft PR so the user can open it locally with `pnpm dev` and choose from visuals. The preview route stays in the repo after merge as a regression check; remove only if the surface is deleted. Example: `/dev/account-preview` and `/dev/notion-preview` shipped with `style/account-redesign`.
 
