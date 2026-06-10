@@ -31,6 +31,10 @@ Acquisition is only half the job: most churn is lifecycle ("finished what I need
 
 If churn moved more than the worst funnel transition, the churn line IS the recommendation.
 
+## Per-surface adoption (monthly)
+
+Once a month, report usage events per 2026-era surface — chat, mindmaps, photo-to-deck, transform, print, quizlet import, image occlusion, ankify — over the last 30 days. One row per surface: event count this period, prior period, and days since last event. **Flag any surface with no event in 30 days as a removal candidate** and hand the list to PM (a removal candidate isn't a removal — PM decides). The point is that an unused surface is a maintenance tax with no users behind it; 8+ surfaces shipped in May 2026 and most never earned their keep. First verdicts due on quizlet import, photo-to-deck, transform, and print.
+
 ## Workflow
 
 1. **Pull last 7 days + the prior 7 days.** Distinct users per stage. Read production aggregates — local dev has no real data, so never use the local dev DB for business numbers. Get them from the ops endpoints (`/api/ops/business/metrics`, `/api/ops/metrics`) with Alexander's authenticated session; if no authenticated path is wired into this environment, ask Alexander to paste the JSON (mirroring `.claude/commands/weekly-retro.md`). For aggregate-only queries, read-only `psql` over SSH against the prod box (the `/deploy-status` pattern) is acceptable. If no production source is reachable, surface that and stop.

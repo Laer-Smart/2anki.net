@@ -7,6 +7,7 @@ Express/TypeScript server that converts Notion pages and uploaded files (HTML, m
 Mission: give people the simplest, fastest way to turn what they're studying into beautiful Anki flashcards. Drop something in, get a clean deck back.
 Scale: grow 2anki.net past 300K users.
 Revenue: grow MRR past $5K — ARPU and retention are the levers; user count follows. The system sat at its mathematical ceiling (adds ÷ churn) at $2.24 ARPU until the June 2026 reprice; never again let user-count work crowd out revenue work.
+Allocation: every week ships at least one acquisition-facing change — landing pages, SEO, onboarding, or signup/first-conversion friction — and it ships **before** any new product surface starts that week. Acquisition is the only lane that creates users; starve it and the 300K goal stalls no matter how much else moves. History note: 2026 ran 6% acquisition work and 2023-25 ran 0% across 36 months — both starved the only lane that makes users.
 Every PR is checked against all three — does it make the experience simpler/faster/more beautiful, does it move us toward scale, and does it (for user-facing changes) state which funnel or revenue metric it should move?
 
 ### Business baseline (as of 2026-06-10 — weekly-retro updates this block)
@@ -136,6 +137,7 @@ For any task that changes user-facing behavior, invoke `pm`, `designer`, and `en
 - Pricing, limits, quotas, or API surface changes
 - Onboarding, signup, payment, or core conversion flows
 - Cancellation and churn surfaces — any cancel-flow change must weigh a retention offer (pause, downgrade, legacy-rate reminder); 79% of churn is lifecycle, and this surface owns it
+- New product surfaces — the synthesis must state the usage event that ships in the same PR, the day-7 prod check, and the T+30d adoption-review issue (see Surface lifecycle)
 - Refactors that change user-visible behavior
 
 **Trio optional (proceed unless you sense a product question):**
@@ -174,6 +176,12 @@ Specs live in `Documentation/specs/` only while a feature is in flight. Workflow
 3. Before the final push, `git rm Documentation/specs/<slug>.md` in a `chore: remove implemented spec for …` commit. The spec text stays recoverable via `git log -p -- Documentation/specs/<slug>.md` (and lives in the original `docs: add spec for …` commit on the branch). The folder stays small.
 
 Do not open a separate implementation PR alongside a spec PR. Do not let `Documentation/specs/` collect specs for already-shipped work.
+
+## Surface lifecycle
+
+A new `feat:` surface (a distinct user-facing capability — chat, mindmaps, photo-to-deck, transform, print, quizlet import, image occlusion, ankify) ships with two things in the same PR: a usage analytics event that fires when the surface is used, and a T+30d adoption-review GitHub issue created at merge with the review date in the title. At that review the verdict is binary — **keep or remove**. Silence is removal, not maintenance; an unused surface is a maintenance tax with no offsetting users. History: 8+ surfaces shipped in May 2026 with usage evidence for only 2-3, and one (quizlet import) went silent within days and nobody noticed.
+
+One new surface in flight at a time. The next surface does not start until the previous one has a day-7 prod check and a usage signal. Six years of unmeasured parallel bets (Imba, Electron, KI, avatars, Gemini, Quizlet) is why this gate exists — breadth without evidence is how the backlog filled with surfaces no one uses.
 
 ## Changelog
 

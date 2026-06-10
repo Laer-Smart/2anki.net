@@ -53,22 +53,33 @@ The data can be distorted by a crawler surge faster than the GA4 admin UI can fi
 - Gap between actual and required.
 - **Traffic Sources table**: which channels grew, which shrank, which drove engaged users vs bounce-and-leave.
 
-## 5. Identify the single biggest gap
+## 5. Work-mix and treadmill check
+
+Two standing checks on the week's merged PRs — both run every retro, both report a number:
+
+- **Work-mix report.** Classify every PR merged in the last 7 days into one of: acquisition (landing, SEO, onboarding, signup/first-conversion friction), monetization (pricing, paywall, retention, billing), core-quality (conversion correctness, performance, reliability of the existing pipeline), new-surface (a distinct new user-facing capability), or process (chore/ci/test/docs/deps). Report the count and share per bucket. **Flag if acquisition < 25%** — that's the bucket the `CLAUDE.md` allocation rule protects, and the only lane that creates users. State the flag in one line in the output.
+- **Treadmill alarm.** Compare the chore+fix share of commits week-over-week against signups and new-paid. **Flag when chore+fix share rises while weekly signups and weekly new-paid are both flat or down** — that pattern is the 2023-25 stagnation signature (busy commit graph, zero acquisition work, no user growth for 36 months). Name it as such when it fires.
+
+## 6. Write back the business-baseline block in `CLAUDE.md`
+
+You already pulled MRR, paying subs, ARPU, churn, new-paid/wk, and registered users in section 1 — write them into the `### Business baseline` block in `CLAUDE.md` (update the date in the header and every number on the line). This is the one place the baseline is allowed to change; every other agent reads it frozen. If a field couldn't be pulled this run, leave its prior value and note the staleness in "Gaps to close before next retro" — never blank it.
+
+## 7. Identify the single biggest gap
 
 Not three. One.
 
-## 6. Tie it to the goal in `CLAUDE.md`
+## 8. Tie it to the goal in `CLAUDE.md`
 
 Does the gap come from making the product simpler/faster/more beautiful, or from scale? Be specific.
 
-## 7. Recommend one priority shift for the next 7 days
+## 9. Recommend one priority shift for the next 7 days
 
 Either:
 - Spec X this week (and which spec).
 - Ship Y (and which spec is ready).
 - Pause Z to focus on the gap.
 
-## 8. Emit a "Gaps to close before next retro" section
+## 10. Emit a "Gaps to close before next retro" section
 
 Any DB field, support theme, or GA4 check that was skipped this run goes here so the next retro doesn't repeat the same blind spot. If nothing was skipped, omit the section.
 
@@ -77,5 +88,6 @@ Any DB field, support theme, or GA4 check that was skipped this run goes here so
 - Two screens max.
 - Numbers in tables.
 - "Numbers" section (DB) and "Traffic Sources" section (GA4) both required.
+- Work-mix bucket shares and the treadmill flag are required output, even when nothing is flagged ("acquisition 40% — no flag").
 - Recommendation in one paragraph.
 - Do not list five things. The point of the retro is to force a single decision.
