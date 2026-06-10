@@ -27,9 +27,13 @@ From the JSON:
 - **Files** — list of changed paths.
 - **Labels** — surface any `security` label.
 
-## Step 2 — belt-and-suspenders hard-block check
+## Step 2 — belt-and-suspenders needs-eyes check
 
-Even though the dispatcher filtered, re-check the file list against the hard-block set from `.claude/commands/batch.md`:
+Even though the dispatcher filtered, re-check the PR against the full needs-eyes set before considering a merge. A PR is **needs-eyes** if ANY of the following hold.
+
+### 2a — hard-block paths (security-review)
+
+Re-check the file list against the hard-block set from `.claude/commands/batch.md`:
 
 - `src/services/StripeService/**`
 - `src/services/AuthenticationService/**`
@@ -43,6 +47,22 @@ gh pr comment <n> --body "Routed away from auto-merge — touches a hard-block p
 ```
 
 Return status `needs-review` to the dispatcher.
+
+### 2b — dependency-rules hold checks (`.claude/rules/dependencies.md`)
+
+Inspect the bumped package (from the title) and the file list. Hold — comment + `needs-review` — if ANY are true:
+
+- **Pinned override** — touches a package listed in `pnpm.overrides` (`package.json`): `path-to-regexp`, `picomatch`, `rollup`, `yaml`, `@types/express`, `@types/express-serve-static-core`. Bumping these can silently re-open a CVE we've worked around.
+- **Built dependency** — touches anything in `pnpm.onlyBuiltDependencies` (currently `better-sqlite3`). Build-step deps need a manual smoke run.
+- **Security-sensitive surface** — touches `bcryptjs`, `jsonwebtoken`, `sanitize-html`, `multer`, `express`, `stripe`, `@notionhq/client`, `@anthropic-ai/sdk`, `@sendgrid/mail`, `axios`, `knex`, or anything matching `node-*`. Even minors here get a manual look.
+
+For any 2b hold, comment with the reason and a changelog link so the next reviewer can decide in 30 seconds, then exit `needs-review`:
+
+```
+gh pr comment <n> --body "Held for manual review (<reason>) · bump: <patch|minor|major>. Changelog: <url>"
+```
+
+The changelog URL is usually in the PR body under "Release notes" or "Commits" — extract the GitHub release link if present, otherwise the dep's releases page.
 
 ## Step 3 — check out the PR in your worktree
 
@@ -73,7 +93,7 @@ Decision matrix:
 gh pr merge <n> --squash --delete-branch
 ```
 
-Only ever from the `patch + green + no security` row. Never from any other row.
+Only ever from the `patch + green + no security` row, and only when Step 2 raised no hold. Never from any other row.
 
 **Comment call (any `needs-review` exit):**
 
@@ -104,3 +124,14 @@ Return one of these exact status strings to the dispatcher:
 (`open` and `timeout` are dispatcher-side statuses; you never produce them.)
 
 Include the PR number and the head branch name in your return payload so the dispatcher can render its table.
+
+## Rules
+
+- **Never** bypass the queue with `gh pr merge --admin`. The `check-merge-status.py` hook is the gate.
+- **Never** rebase or push to the Dependabot branch yourself — comment `@dependabot rebase` if needed; the bot owns the branch.
+- **Never** close a held PR without merging. The Dependabot workflow expects merge or label, not close (`.claude/rules/dependencies.md`).
+- **Do not** read or edit `pnpm-lock.yaml` directly. If a held major needs lockfile attention, surface it in your `needs-review` comment for a manual `pnpm install`.
+
+## When held majors pile up
+
+This worker handles one PR, but if the dispatcher reports five or more held PRs accumulating across a run, surface the list to Al with the upgrade impact (transitive bloat via `pnpm why`, breaking-change notes from the changelog) so a batch decision can be made. Do not start auto-upgrading majors.
