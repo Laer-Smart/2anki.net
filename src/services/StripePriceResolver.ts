@@ -1,12 +1,16 @@
 import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
 
-export class StripePriceResolver {
-  private readonly cache = new Map<string, string>();
+const resolvedPriceIdCache = new Map<string, string>();
 
+export const clearResolvedPriceIdCache = (): void => {
+  resolvedPriceIdCache.clear();
+};
+
+export class StripePriceResolver {
   constructor(private readonly stripe: Pick<StripeTypes, 'prices'>) {}
 
   async resolveByLookupKey(lookupKey: string): Promise<string | null> {
-    const cached = this.cache.get(lookupKey);
+    const cached = resolvedPriceIdCache.get(lookupKey);
     if (cached != null) return cached;
 
     try {
@@ -20,7 +24,7 @@ export class StripePriceResolver {
         console.warn('pricing.resolve.miss', { lookup_key: lookupKey });
         return null;
       }
-      this.cache.set(lookupKey, priceId);
+      resolvedPriceIdCache.set(lookupKey, priceId);
       return priceId;
     } catch (error) {
       console.error('pricing.resolve.failed', {

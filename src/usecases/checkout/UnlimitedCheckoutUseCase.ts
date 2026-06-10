@@ -37,9 +37,11 @@ export class UnlimitedCheckoutUseCase {
       interval === 'year' ? V2_ANNUAL_LOOKUP_KEY : V2_MONTHLY_LOOKUP_KEY;
     const resolved = await this.priceResolver.resolveByLookupKey(lookupKey);
     if (resolved == null) {
-      console.warn('unlimited.checkout.v2_resolve_fallback', {
+      console.error('unlimited.checkout.v2_resolve_fallback', {
+        cohort,
         interval,
         lookup_key: lookupKey,
+        reason: 'lookup_key resolution returned null, serving legacy price id',
       });
       return legacyId;
     }

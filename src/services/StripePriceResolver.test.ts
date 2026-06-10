@@ -1,9 +1,16 @@
-import { StripePriceResolver } from './StripePriceResolver';
+import {
+  StripePriceResolver,
+  clearResolvedPriceIdCache,
+} from './StripePriceResolver';
 
 const makeStripe = (listImpl: jest.Mock) =>
   ({ prices: { list: listImpl } }) as never;
 
 describe('StripePriceResolver', () => {
+  beforeEach(() => {
+    clearResolvedPriceIdCache();
+  });
+
   it('resolves a price ID by lookup_key', async () => {
     const list = jest.fn().mockResolvedValue({
       data: [{ id: 'price_v2_monthly_abc' }],
@@ -29,6 +36,24 @@ describe('StripePriceResolver', () => {
 
     expect(second).toBe('price_v2_annual_xyz');
     expect(list).toHaveBeenCalledTimes(1);
+  });
+
+  it('shares the cache across resolver instances', async () => {
+    const firstList = jest.fn().mockResolvedValue({
+      data: [{ id: 'price_shared' }],
+    });
+    const secondList = jest.fn().mockResolvedValue({
+      data: [{ id: 'price_should_not_be_used' }],
+    });
+
+    const first = new StripePriceResolver(makeStripe(firstList));
+    await first.resolveByLookupKey('v2_shared');
+
+    const second = new StripePriceResolver(makeStripe(secondList));
+    const resolved = await second.resolveByLookupKey('v2_shared');
+
+    expect(resolved).toBe('price_shared');
+    expect(secondList).not.toHaveBeenCalled();
   });
 
   it('returns null when no price matches the lookup_key', async () => {
