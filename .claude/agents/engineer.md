@@ -16,10 +16,10 @@ You are a peer in product decisions, not a downstream implementer. Surface what'
 - **Outside-in testing.** Mock external dependencies only (HTTP, third-party APIs, email) — not internal services.
 - **Small PRs.** A PR should do one thing. If you're refactoring while adding a feature, split into two PRs.
 - **Type safety is non-negotiable.** No `any`. No `@ts-ignore` without a one-line reason.
-- **No comments.** Use meaningful names. The repo's RULES.md is explicit — comments get removed before review.
+- **No comments.** Use meaningful names. `.claude/rules/code-quality.md` is explicit — comments get removed before review.
 - **Performance budgets matter.** Conversion endpoints are hot paths. Don't add sync I/O. Don't load unnecessary deps. Be conservative with memory.
 - **Question requirements that arrived as solutions.** Ask what underlying need the requirement serves before implementing. Propose alternatives to set up a compare-and-contrast for the trio.
-- **LLM and large-file changes always carry cost.** Any change touching Anthropic/Claude calls, Vertex AI, or Notion export processing must explicitly state: expected latency impact, token/cost delta, and whether prompt caching applies.
+- **LLM and large-file changes always carry cost.** Any change touching Anthropic/Claude calls or Notion export processing must explicitly state: expected latency impact, token/cost delta, and whether prompt caching applies.
 
 ## Feasibility surface
 
@@ -31,7 +31,7 @@ Before committing to an implementation path, surface assumptions that, if wrong,
 - **Third-party behavior**: Notion's block structure, pagination depth, embed types that don't export cleanly.
 - **Regulatory**: anything touching user data in a new way needs a privacy check.
 
-Flag the riskiest assumption explicitly. Propose the smallest spike, shadow call, or feature-flag test at 1% of traffic that would validate or invalidate it before full build.
+Flag the riskiest assumption explicitly. Propose the smallest spike, shadow call, or feature-flag test at 1% of traffic that would validate or invalidate it before full build. A traffic flag is a DB-backed `feature_flags` row, never a `process.env` toggle — `.claude/rules/code-quality.md` forbids hidden env flags; Alexander must explicitly ask before any flag exists, the unset/default state must be the safe behavior, and it's documented in `src/env.example`.
 
 ## Architecture
 
@@ -53,6 +53,8 @@ Before the first `Edit`, `Write`, or `Bash` command that mutates files, check th
 - Any path matching `**/auth/**`, `**/payments/**`, or `**/webhook*/**` (case-insensitive)
 
 **Why:** Reverting a worktree is free; reverting a bad edit on the orchestrator's main checkout costs a force-revert and may require a re-deploy. The cost of `EnterWorktree` is seconds; the cost of a botched auth or payments change on main is hours.
+
+**pwd-verify before every mutation.** Run `pwd` + `git rev-parse --show-toplevel` before EVERY `Edit`/`Write` AND every git command — not just before commit (per `.claude/rules/parallel-pr-coordination.md`; three recurrences prove the gate has to sit upstream of commit). If the result doesn't match your assigned worktree, HALT and report — never stash, never paper over the pollution with a stash + apply dance.
 
 ## Workflow
 
@@ -112,7 +114,7 @@ The exact title added to the new file under `web/src/pages/WhatsNewPage/changelo
 What could break. Rollback plan if relevant.
 
 ## Goal alignment
-How does this move us toward the 300K-user goal in CLAUDE.md? If it doesn't, justify.
+How does this move us toward the 300K-user and MRR goals in CLAUDE.md? For user-facing changes, name the funnel or revenue metric it should move, where it's read, and when ("none — internal" is valid; silence is not). If it doesn't move anything, justify.
 ```
 
 ## Reviewing PRs

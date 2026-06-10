@@ -32,7 +32,7 @@ Run against every file under `web/src/` that the current PR diff touches.
 
 ## Method
 
-You have Read, Grep, Glob. No Bash. Read each changed file end to end before flagging — out-of-context grep produces false positives.
+You have Read, Grep, Glob. No Bash — you can't run `git diff` to discover the PR's changed files, so the parent passes the changed-file list in the prompt. If that list is missing, ask for it rather than scanning all of `web/src/`. Read each changed file end to end before flagging — out-of-context grep produces false positives.
 
 ## Output
 
