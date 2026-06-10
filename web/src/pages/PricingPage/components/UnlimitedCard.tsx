@@ -68,7 +68,7 @@ export function UnlimitedCard({
   const monthlyTotal = formatMonthly(monthlyCents);
 
   const terms = isYearly
-    ? `${annualTotal}/year, renews annually. Cancel anytime.`
+    ? `${annualTotal}/year, renews yearly. Cancel anytime — keeps access through the year you paid for.`
     : `${monthlyTotal}/month, renews monthly. Cancel anytime.`;
 
   function getButtonLabel(): string {

@@ -33,7 +33,7 @@ export const PRICING_FAQ: PricingFaqItem[] = [
   {
     question: 'Can I cancel anytime?',
     answer:
-      'Subscriptions cancel in one click from your account — no need to email support. Passes are one-time, so there is nothing to cancel.',
+      'Cancel in one click from your account — no need to email support. On a yearly plan, cancelling stops the next renewal and your access stays through the year you already paid for; unused time is not refunded. Passes are one-time, so there is nothing to cancel.',
   },
   {
     question: 'What happens to my decks if I stop paying?',
