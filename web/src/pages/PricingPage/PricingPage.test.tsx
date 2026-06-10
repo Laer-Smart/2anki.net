@@ -579,7 +579,7 @@ describe('PricingPage anonymous upgrade-click tracking', () => {
     expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
       surface: 'pricing_page',
       plan: 'auto_sync',
-      variant: 'passes-first',
+      variant: 'minimal',
     });
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
     expect(mockStartAutoSyncCheckout).not.toHaveBeenCalled();
@@ -601,7 +601,7 @@ describe('PricingPage anonymous upgrade-click tracking', () => {
     expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
       surface: 'pricing_page',
       plan: 'day_pass',
-      variant: 'passes-first',
+      variant: 'minimal',
     });
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
     expect(mockStartPassCheckout).not.toHaveBeenCalled();
@@ -623,7 +623,7 @@ describe('PricingPage anonymous upgrade-click tracking', () => {
     expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
       surface: 'pricing_page',
       plan: 'week_pass',
-      variant: 'passes-first',
+      variant: 'minimal',
     });
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
     expect(mockStartPassCheckout).not.toHaveBeenCalled();
@@ -645,7 +645,7 @@ describe('PricingPage anonymous upgrade-click tracking', () => {
     expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
       surface: 'pricing_page',
       plan: 'unlimited',
-      variant: 'passes-first',
+      variant: 'minimal',
     });
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
     expect(mockStartUnlimitedCheckout).not.toHaveBeenCalled();
