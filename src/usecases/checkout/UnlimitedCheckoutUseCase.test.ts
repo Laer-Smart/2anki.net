@@ -31,7 +31,10 @@ describe('UnlimitedCheckoutUseCase', () => {
       interval: 'month',
     });
 
-    expect(result).toEqual({ url: 'https://checkout.stripe.com/month', cohort: 'legacy' });
+    expect(result).toEqual({
+      url: 'https://checkout.stripe.com/month',
+      cohort: 'legacy',
+    });
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: 'subscription',
@@ -57,7 +60,10 @@ describe('UnlimitedCheckoutUseCase', () => {
       interval: 'year',
     });
 
-    expect(result).toEqual({ url: 'https://checkout.stripe.com/year', cohort: 'legacy' });
+    expect(result).toEqual({
+      url: 'https://checkout.stripe.com/year',
+      cohort: 'legacy',
+    });
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: 'subscription',
@@ -277,7 +283,11 @@ describe('UnlimitedCheckoutUseCase', () => {
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        metadata: { user_id: '12', cohort: 'legacy', ga_client_id: '1234567890.987654321' },
+        metadata: {
+          user_id: '12',
+          cohort: 'legacy',
+          ga_client_id: '1234567890.987654321',
+        },
       })
     );
   });

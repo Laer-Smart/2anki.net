@@ -18,7 +18,8 @@ export function resolvePricingForUser(input: {
   now: Date;
 }): PricingForUserResult {
   const cohort = resolveCohort(input);
-  const amounts = cohort === 'legacy' ? PRICING_AMOUNTS.legacy : PRICING_AMOUNTS.v2;
+  const amounts =
+    cohort === 'legacy' ? PRICING_AMOUNTS.legacy : PRICING_AMOUNTS.v2;
   const showsLockIn =
     input.flagOn &&
     cohort === 'legacy' &&
@@ -27,6 +28,8 @@ export function resolvePricingForUser(input: {
     cohort,
     monthlyCents: amounts.monthly,
     annualCents: amounts.annual,
-    lockInDeadline: showsLockIn ? LEGACY_LOCK_IN_WINDOW_END.toISOString() : null,
+    lockInDeadline: showsLockIn
+      ? LEGACY_LOCK_IN_WINDOW_END.toISOString()
+      : null,
   };
 }

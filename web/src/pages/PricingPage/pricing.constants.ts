@@ -19,9 +19,7 @@ export const LEGACY_UNLIMITED_PRICING: UnlimitedPricing = {
 
 function formatDollars(cents: number): string {
   const dollars = cents / 100;
-  return Number.isInteger(dollars)
-    ? `$${dollars}`
-    : `$${dollars.toFixed(2)}`;
+  return Number.isInteger(dollars) ? `$${dollars}` : `$${dollars.toFixed(2)}`;
 }
 
 export function formatMonthly(cents: number): string {

@@ -13,9 +13,10 @@ vi.mock('../../lib/backend/get2ankiApi', () => ({
 vi.mock('../../lib/analytics/track', () => ({ track: vi.fn() }));
 
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>(
-    'react-router-dom'
-  );
+  const actual =
+    await vi.importActual<typeof import('react-router-dom')>(
+      'react-router-dom'
+    );
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
@@ -58,9 +59,7 @@ describe('LockInBanner', () => {
     mockGetCheckoutPrices.mockResolvedValue(legacyInWindow);
     renderBanner(false, true);
 
-    await waitFor(() =>
-      expect(mockGetCheckoutPrices).not.toHaveBeenCalled()
-    );
+    await waitFor(() => expect(mockGetCheckoutPrices).not.toHaveBeenCalled());
     expect(screen.queryByText(/Lock in/)).not.toBeInTheDocument();
   });
 
@@ -68,9 +67,7 @@ describe('LockInBanner', () => {
     mockGetCheckoutPrices.mockResolvedValue(legacyInWindow);
     renderBanner(true, false);
 
-    await waitFor(() =>
-      expect(mockGetCheckoutPrices).not.toHaveBeenCalled()
-    );
+    await waitFor(() => expect(mockGetCheckoutPrices).not.toHaveBeenCalled());
     expect(screen.queryByText(/Lock in/)).not.toBeInTheDocument();
   });
 
@@ -110,9 +107,7 @@ describe('LockInBanner', () => {
     mockGetCheckoutPrices.mockResolvedValue(legacyInWindow);
     renderBanner(true, true);
 
-    await waitFor(() =>
-      expect(mockGetCheckoutPrices).not.toHaveBeenCalled()
-    );
+    await waitFor(() => expect(mockGetCheckoutPrices).not.toHaveBeenCalled());
     expect(screen.queryByText(/Lock in/)).not.toBeInTheDocument();
   });
 });

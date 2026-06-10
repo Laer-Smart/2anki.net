@@ -39,7 +39,9 @@ const resolvePricingV2Flag = async (): Promise<boolean> => {
 const getUserCreatedAt = async (userId: number): Promise<Date | null> => {
   const repo = new UsersRepository(getDatabase());
   const user = await repo.getById(String(userId));
-  return toCreatedAt((user as { created_at?: unknown } | undefined)?.created_at);
+  return toCreatedAt(
+    (user as { created_at?: unknown } | undefined)?.created_at
+  );
 };
 
 const CheckoutRouter = () => {
@@ -101,13 +103,33 @@ const CheckoutRouter = () => {
     }
   );
 
-  router.get('/api/checkout/prices', optionalAuthMiddleware, async (_req, res) => {
-    const controller = new PricingController({
-      pricingV2On: await resolvePricingV2Flag(),
-      getUserCreatedAt,
-    });
-    return controller.getPrices(_req, res);
-  });
+  /**
+   * @swagger
+   * /api/checkout/prices:
+   *   get:
+   *     summary: Get the Unlimited plan prices for the current visitor
+   *     description: |
+   *       Returns the monthly and annual Unlimited prices the visitor would
+   *       pay at checkout. Accounts created before the pricing-v2 cutover see
+   *       legacy prices until the lock-in window closes; everyone else sees
+   *       v2 prices once the pricing_v2 flag is on. Anonymous visitors are
+   *       always quoted the new-member prices.
+   *     tags: [Payments]
+   *     responses:
+   *       200:
+   *         description: Effective prices and lock-in window for the visitor
+   */
+  router.get(
+    '/api/checkout/prices',
+    optionalAuthMiddleware,
+    async (_req, res) => {
+      const controller = new PricingController({
+        pricingV2On: await resolvePricingV2Flag(),
+        getUserCreatedAt,
+      });
+      return controller.getPrices(_req, res);
+    }
+  );
 
   router.post(
     '/api/checkout/pass/24h',
