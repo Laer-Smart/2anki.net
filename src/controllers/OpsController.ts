@@ -20,6 +20,7 @@ import {
 } from '../usecases/ops/SetFeatureFlagUseCase';
 import { GetUploadFunnelUseCase } from '../usecases/ops/GetUploadFunnelUseCase';
 import { SendPriceLockInEmailsUseCase } from '../usecases/ops/SendPriceLockInEmailsUseCase';
+import { CreatePricingV2PricesUseCase } from '../usecases/ops/CreatePricingV2PricesUseCase';
 
 const PRICE_LOCK_IN_MAX_BATCH = 500;
 
@@ -49,7 +50,8 @@ class OpsController {
     private readonly listFeatureFlagsUseCase?: ListFeatureFlagsUseCase,
     private readonly setFeatureFlagUseCase?: SetFeatureFlagUseCase,
     private readonly getUploadFunnelUseCase?: GetUploadFunnelUseCase,
-    private readonly sendPriceLockInEmailsUseCase?: SendPriceLockInEmailsUseCase
+    private readonly sendPriceLockInEmailsUseCase?: SendPriceLockInEmailsUseCase,
+    private readonly createPricingV2PricesUseCase?: CreatePricingV2PricesUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -221,6 +223,31 @@ class OpsController {
       res
         .status(500)
         .json({ message: 'Failed to start Stripe subscription sync' });
+    }
+  }
+
+  async createPricingV2Prices(_req: express.Request, res: express.Response) {
+    if (this.createPricingV2PricesUseCase == null) {
+      res
+        .status(500)
+        .json({ message: 'Pricing v2 price creation not configured' });
+      return;
+    }
+    try {
+      const result = await this.createPricingV2PricesUseCase.execute();
+      res.status(200).json({
+        livemode: result.livemode,
+        prices: result.prices.map((price) => ({
+          lookupKey: price.lookupKey,
+          status: price.status,
+          priceId: price.priceId,
+          unitAmount: price.unitAmount,
+          interval: price.interval,
+        })),
+      });
+    } catch (error) {
+      console.error('[ops] createPricingV2Prices failed', error);
+      res.status(500).json({ message: 'Failed to create pricing v2 prices' });
     }
   }
 

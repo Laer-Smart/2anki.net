@@ -1,34 +1,6 @@
 import Stripe from 'stripe';
 import readline from 'node:readline';
-import {
-  PRICING_AMOUNTS,
-  V2_ANNUAL_LOOKUP_KEY,
-  V2_MONTHLY_LOOKUP_KEY,
-} from '../src/usecases/checkout/pricingV2';
-
-interface PlannedPrice {
-  lookupKey: string;
-  nickname: string;
-  unitAmount: number;
-  interval: 'month' | 'year';
-}
-
-const PLANNED_PRICES: PlannedPrice[] = [
-  {
-    lookupKey: V2_MONTHLY_LOOKUP_KEY,
-    nickname: 'Unlimited Monthly v2',
-    unitAmount: PRICING_AMOUNTS.v2.monthly,
-    interval: 'month',
-  },
-  {
-    lookupKey: V2_ANNUAL_LOOKUP_KEY,
-    nickname: 'Unlimited Annual v2',
-    unitAmount: PRICING_AMOUNTS.v2.annual,
-    interval: 'year',
-  },
-];
-
-const PRICE_METADATA = { version: 'v2', created: '2026-06' };
+import { CreatePricingV2PricesUseCase } from '../src/usecases/ops/CreatePricingV2PricesUseCase';
 
 function detectMode(key: string): 'test' | 'live' | 'unknown' {
   if (key.startsWith('sk_test_')) return 'test';
@@ -63,7 +35,9 @@ async function printCatalog(stripe: Stripe): Promise<void> {
     });
     for (const price of prices.data) {
       const amount =
-        price.unit_amount == null ? 'n/a' : (price.unit_amount / 100).toFixed(2);
+        price.unit_amount == null
+          ? 'n/a'
+          : (price.unit_amount / 100).toFixed(2);
       const interval = price.recurring?.interval ?? 'one-time';
       console.log(
         `  Price ${price.id} — ${amount} ${price.currency} / ${interval}` +
@@ -72,64 +46,6 @@ async function printCatalog(stripe: Stripe): Promise<void> {
     }
   }
   console.log('=== end catalog ===\n');
-}
-
-async function findExistingPriceByLookupKey(
-  stripe: Stripe,
-  lookupKey: string
-): Promise<Stripe.Price | null> {
-  const result = await stripe.prices.list({
-    lookup_keys: [lookupKey],
-    limit: 1,
-  });
-  return result.data[0] ?? null;
-}
-
-async function resolveTargetProductId(stripe: Stripe): Promise<string> {
-  const products = await stripe.products.list({ active: true, limit: 100 });
-  const unlimited = products.data.find((p) =>
-    p.name.toLowerCase().includes('unlimited')
-  );
-  if (unlimited != null) {
-    console.log(
-      `Reusing existing product ${unlimited.id} (${unlimited.name}) for v2 prices.`
-    );
-    return unlimited.id;
-  }
-  const created = await stripe.products.create({
-    name: 'Unlimited',
-    metadata: PRICE_METADATA,
-  });
-  console.log(`Created product ${created.id} (Unlimited).`);
-  return created.id;
-}
-
-async function ensurePrice(
-  stripe: Stripe,
-  productId: string,
-  planned: PlannedPrice
-): Promise<void> {
-  const existing = await findExistingPriceByLookupKey(stripe, planned.lookupKey);
-  if (existing != null) {
-    console.log(
-      `Skip ${planned.lookupKey}: already exists as ${existing.id}` +
-        ` (${(existing.unit_amount ?? 0) / 100} ${existing.currency}).`
-    );
-    return;
-  }
-  const price = await stripe.prices.create({
-    product: productId,
-    currency: 'usd',
-    unit_amount: planned.unitAmount,
-    nickname: planned.nickname,
-    lookup_key: planned.lookupKey,
-    recurring: { interval: planned.interval },
-    metadata: PRICE_METADATA,
-  });
-  console.log(
-    `Created ${planned.lookupKey}: ${price.id}` +
-      ` (${planned.unitAmount / 100} usd / ${planned.interval}).`
-  );
 }
 
 async function main(): Promise<void> {
@@ -170,11 +86,23 @@ async function main(): Promise<void> {
     }
   }
 
-  const productId = await resolveTargetProductId(stripe);
-  for (const planned of PLANNED_PRICES) {
-    await ensurePrice(stripe, productId, planned);
+  const result = await new CreatePricingV2PricesUseCase(stripe).execute();
+  for (const price of result.prices) {
+    if (price.status === 'already_exists') {
+      console.log(
+        `Skip ${price.lookupKey}: already exists as ${price.priceId}.`
+      );
+    } else {
+      console.log(
+        `Created ${price.lookupKey}: ${price.priceId}` +
+          ` (${price.unitAmount / 100} usd / ${price.interval}).`
+      );
+    }
   }
-  console.log('\nDone. Re-run is safe — existing lookup_keys are skipped.');
+  console.log(
+    `\nDone (${result.livemode ? 'live' : 'test'} mode).` +
+      ' Re-run is safe — existing lookup_keys are skipped.'
+  );
 }
 
 main().catch((error) => {

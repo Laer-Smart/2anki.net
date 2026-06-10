@@ -3,7 +3,18 @@ import http from 'node:http';
 import { AddressInfo } from 'node:net';
 
 jest.mock('../lib/integrations/stripe', () => ({
-  getStripe: jest.fn(),
+  getStripe: jest.fn(() => ({
+    products: {
+      list: jest.fn().mockResolvedValue({
+        data: [{ id: 'prod_unlimited', name: 'Unlimited' }],
+      }),
+      create: jest.fn(),
+    },
+    prices: {
+      list: jest.fn().mockResolvedValue({ data: [] }),
+      create: jest.fn().mockResolvedValue({ id: 'price_new', livemode: false }),
+    },
+  })),
 }));
 
 jest.mock('../services/events/eventsSinkInstance', () => ({
@@ -267,6 +278,52 @@ describe('OpsRouter /api/ops/sync-stripe-subscriptions', () => {
       expect(body).toEqual(
         expect.objectContaining({ message: expect.any(String) })
       );
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe('OpsRouter /api/ops/create-pricing-v2-prices', () => {
+  it('returns 404 for non-owner callers', async () => {
+    const { url, close } = await startServer(false);
+    try {
+      const response = await fetch(`${url}/api/ops/create-pricing-v2-prices`, {
+        method: 'POST',
+      });
+      expect(response.status).toBe(404);
+    } finally {
+      await close();
+    }
+  });
+
+  it('returns 200 with per-key results and livemode for the ops owner', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(`${url}/api/ops/create-pricing-v2-prices`, {
+        method: 'POST',
+      });
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body).toEqual({
+        livemode: false,
+        prices: [
+          {
+            lookupKey: 'v2_monthly',
+            status: 'created',
+            priceId: 'price_new',
+            unitAmount: 799,
+            interval: 'month',
+          },
+          {
+            lookupKey: 'v2_annual',
+            status: 'created',
+            priceId: 'price_new',
+            unitAmount: 6400,
+            interval: 'year',
+          },
+        ],
+      });
     } finally {
       await close();
     }
