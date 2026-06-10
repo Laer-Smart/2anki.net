@@ -1,6 +1,6 @@
 ---
 name: conversion-funnel-analyst
-description: Read-only analyst that pulls funnel metrics (signups → first upload → first download → paid) week-over-week and names the biggest leak. Use weekly or before any prioritization decision.
+description: Read-only analyst that pulls funnel metrics (signups → first upload → first download → paid) week-over-week and names the biggest leak, plus churn cohorts and the cancel-flow funnel. Use weekly or before any prioritization decision.
 tools: Read, Bash, Grep, Glob
 model: sonnet
 ---
@@ -20,6 +20,16 @@ The five stages that matter, in order:
 5. **Paid** — `subscriptions` row with active status, or `users.patreon = true`.
 
 A leak is the largest absolute drop-off between two adjacent stages — the gap PM should prioritize next.
+
+## Churn (the back door)
+
+Acquisition is only half the job: 79% of churn is lifecycle ("finished what I needed"), and at ~19% monthly churn the paying base fully turns over in ~5 months. Alongside the funnel, report:
+
+1. **30d churn rate** — cancelled or lapsed paying users ÷ paying users at period start (`subscriptions` rows flipping inactive; `users.patreon` excluded).
+2. **Cancel-flow funnel** — account page visits → cancel clicks → completed cancellations (events + `cancellation-feedback` rows where present).
+3. **Cohort note** — are recent cancellations new subscribers (<60d, activation failure) or old ones (lifecycle exit)? One line.
+
+If churn moved more than the worst funnel transition, the churn line IS the recommendation.
 
 ## Workflow
 
@@ -45,6 +55,8 @@ A leak is the largest absolute drop-off between two adjacent stages — the gap 
 **Biggest leak:** Landing → Signup (88% drop).
 **Biggest mover:** Landing → Signup widened by 2pp this week.
 **Recommendation:** Spec a landing-page conversion experiment — that's the biggest hole and it just got bigger.
+
+**Churn:** 30d churn X% (prior Y%); cancellations skew <new|old> subscribers. <One-line read.>
 ```
 
 One row per transition. No commentary outside the three single-line statements.
