@@ -7,8 +7,19 @@ import {
   createPricingV2Prices,
   CreatePricingV2PricesResponse,
 } from './createPricingV2Prices';
+import {
+  sendPriceLockInEmails,
+  SendPriceLockInEmailsResponse,
+} from './sendPriceLockInEmails';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
+
+function formatLockInResult(result: SendPriceLockInEmailsResponse): string {
+  if (result.dryRun) {
+    return `${result.count} recipient${result.count === 1 ? '' : 's'} in segment, sends nothing.`;
+  }
+  return `Sent ${result.count}; click again for the next batch.`;
+}
 
 function formatPricesResult(result: CreatePricingV2PricesResponse): string {
   const mode = result.livemode ? 'live' : 'test';
@@ -44,6 +55,8 @@ export default function CommandsTab() {
   const [syncMessage, setSyncMessage] = useState('');
   const [pricesStatus, setPricesStatus] = useState<Status>('idle');
   const [pricesMessage, setPricesMessage] = useState('');
+  const [lockInStatus, setLockInStatus] = useState<Status>('idle');
+  const [lockInMessage, setLockInMessage] = useState('');
 
   const run = async (dryRun: boolean) => {
     setStatus('loading');
@@ -84,6 +97,21 @@ export default function CommandsTab() {
     } catch (error) {
       setPricesStatus('error');
       setPricesMessage(
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+  };
+
+  const runLockIn = async (dryRun: boolean) => {
+    setLockInStatus('loading');
+    setLockInMessage('');
+    try {
+      const result = await sendPriceLockInEmails(dryRun);
+      setLockInStatus('success');
+      setLockInMessage(formatLockInResult(result));
+    } catch (error) {
+      setLockInStatus('error');
+      setLockInMessage(
         error instanceof Error ? error.message : 'Unknown error'
       );
     }
@@ -191,6 +219,43 @@ export default function CommandsTab() {
       {pricesStatus === 'error' && pricesMessage && (
         <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
           {pricesMessage}
+        </div>
+      )}
+
+      <section className={`${sharedStyles.surface} ${styles.card}`}>
+        <h2 className={styles.cardTitle}>Price lock-in emails</h2>
+        <p className={styles.panelSubtitle}>
+          One-time price lock-in offer to free accounts older than 14 days.
+          Dry-run first; each send delivers up to 500.
+        </p>
+        <div className={styles.controls}>
+          <button
+            type="button"
+            className={sharedStyles.btnSmall}
+            onClick={() => runLockIn(true)}
+            disabled={lockInStatus === 'loading'}
+          >
+            {lockInStatus === 'loading' ? 'Working…' : 'Check segment'}
+          </button>
+          <button
+            type="button"
+            className={sharedStyles.btnSmall}
+            onClick={() => runLockIn(false)}
+            disabled={lockInStatus === 'loading'}
+          >
+            Send batch of 500
+          </button>
+        </div>
+      </section>
+
+      {lockInStatus === 'success' && lockInMessage && (
+        <div className={`${sharedStyles.alertSuccess} ${styles.banner}`}>
+          {lockInMessage}
+        </div>
+      )}
+      {lockInStatus === 'error' && lockInMessage && (
+        <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
+          {lockInMessage}
         </div>
       )}
     </>
