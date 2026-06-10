@@ -536,6 +536,146 @@ describe('PricingPage internal event tracking', () => {
       });
     });
   });
+
+  it('fires paywall_upgrade_clicked exactly once for a logged-in Auto Sync click', async () => {
+    const { track } = await import('../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+    mockStartAutoSyncCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.com/session',
+    });
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
+
+    renderAt('/pricing', { isLoggedIn: true });
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
+
+    await waitFor(() => {
+      expect(globalThis.location.href).toBe(
+        'https://checkout.stripe.com/session'
+      );
+    });
+    expect(
+      trackMock.mock.calls.filter(
+        ([event]) => event === 'paywall_upgrade_clicked'
+      )
+    ).toHaveLength(1);
+  });
+});
+
+describe('PricingPage anonymous upgrade-click tracking', () => {
+  beforeEach(() => {
+    mockUseCardUsage.mockReturnValue(null);
+  });
+
+  it('tracks paywall_upgrade_clicked then redirects to login for an anonymous Auto Sync click', async () => {
+    const { track } = await import('../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+    mockStartAutoSyncCheckout.mockClear();
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
+
+    renderAt('/pricing', { isLoggedIn: false });
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
+
+    expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
+      surface: 'pricing_page',
+      plan: 'auto_sync',
+      variant: 'passes-first',
+    });
+    expect(globalThis.location.href).toBe('/login?redirect=/pricing');
+    expect(mockStartAutoSyncCheckout).not.toHaveBeenCalled();
+  });
+
+  it('tracks paywall_upgrade_clicked then redirects to login for an anonymous Day Pass click', async () => {
+    const { track } = await import('../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+    mockStartPassCheckout.mockClear();
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
+
+    renderAt('/pricing', { isLoggedIn: false });
+    fireEvent.click(screen.getByRole('button', { name: 'Get Day Pass' }));
+
+    expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
+      surface: 'pricing_page',
+      plan: 'day_pass',
+      variant: 'passes-first',
+    });
+    expect(globalThis.location.href).toBe('/login?redirect=/pricing');
+    expect(mockStartPassCheckout).not.toHaveBeenCalled();
+  });
+
+  it('tracks paywall_upgrade_clicked then redirects to login for an anonymous Week Pass click', async () => {
+    const { track } = await import('../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+    mockStartPassCheckout.mockClear();
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
+
+    renderAt('/pricing', { isLoggedIn: false });
+    fireEvent.click(screen.getByRole('button', { name: 'Get Week Pass' }));
+
+    expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
+      surface: 'pricing_page',
+      plan: 'week_pass',
+      variant: 'passes-first',
+    });
+    expect(globalThis.location.href).toBe('/login?redirect=/pricing');
+    expect(mockStartPassCheckout).not.toHaveBeenCalled();
+  });
+
+  it('tracks paywall_upgrade_clicked then redirects to login for an anonymous Unlimited click', async () => {
+    const { track } = await import('../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+    mockStartUnlimitedCheckout.mockClear();
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
+
+    renderAt('/pricing', { isLoggedIn: false });
+    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
+
+    expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
+      surface: 'pricing_page',
+      plan: 'unlimited',
+      variant: 'passes-first',
+    });
+    expect(globalThis.location.href).toBe('/login?redirect=/pricing');
+    expect(mockStartUnlimitedCheckout).not.toHaveBeenCalled();
+  });
+
+  it('fires paywall_upgrade_clicked exactly once for an anonymous Auto Sync click', async () => {
+    const { track } = await import('../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+    Object.defineProperty(globalThis, 'location', {
+      writable: true,
+      value: { href: '' },
+    });
+
+    renderAt('/pricing', { isLoggedIn: false });
+    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
+
+    expect(
+      trackMock.mock.calls.filter(
+        ([event]) => event === 'paywall_upgrade_clicked'
+      )
+    ).toHaveLength(1);
+  });
 });
 
 describe('PricingPage pricing_left telemetry', () => {

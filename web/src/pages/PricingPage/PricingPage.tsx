@@ -164,15 +164,15 @@ export default function PricingPage({
   };
 
   const handleAutoSyncSubscribe = async () => {
-    if (!isLoggedIn) {
-      globalThis.location.href = '/login?redirect=/pricing';
-      return;
-    }
     track('paywall_upgrade_clicked', {
       surface: 'pricing_page',
       plan: 'auto_sync',
       variant: pricingOrder,
     });
+    if (!isLoggedIn) {
+      globalThis.location.href = '/login?redirect=/pricing';
+      return;
+    }
     setSubscribeError(null);
     const result = await get2ankiApi().startAutoSyncCheckout(
       pricingOrder,
@@ -196,15 +196,15 @@ export default function PricingPage({
   };
 
   const handlePassCheckout = async (kind: '24h' | '7d') => {
-    if (!isLoggedIn) {
-      globalThis.location.href = '/login?redirect=/pricing';
-      return;
-    }
     track('paywall_upgrade_clicked', {
       surface: 'pricing_page',
       plan: kind === '24h' ? 'day_pass' : 'week_pass',
       variant: pricingOrder,
     });
+    if (!isLoggedIn) {
+      globalThis.location.href = '/login?redirect=/pricing';
+      return;
+    }
     if (kind === '24h') {
       setDayPassState('pending');
     } else {
@@ -227,15 +227,15 @@ export default function PricingPage({
   };
 
   const handleUnlimitedUpgrade = async () => {
-    if (!isLoggedIn) {
-      globalThis.location.href = '/login?redirect=/pricing';
-      return;
-    }
     track('paywall_upgrade_clicked', {
       surface: 'pricing_page',
       plan: 'unlimited',
       variant: pricingOrder,
     });
+    if (!isLoggedIn) {
+      globalThis.location.href = '/login?redirect=/pricing';
+      return;
+    }
     setUnlimitedError(false);
     setUnlimitedPending(true);
     const result = await get2ankiApi().startUnlimitedCheckout(
