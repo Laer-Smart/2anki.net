@@ -78,6 +78,22 @@ class TestPassThrough(unittest.TestCase):
         self.assertEqual(result["result"], "allow")
         self.assertEqual(result["checks"], [])
 
+    def test_inline_skip_in_command_allows(self):
+        result = run_hook(
+            "CLAUDE_SKIP_TYPECHECK=1 git push -u origin feat/x",
+            ts_files=["web/src/App.tsx"],
+        )
+        self.assertEqual(result["result"], "allow")
+        self.assertEqual(result["checks"], [])
+
+    def test_inline_skip_safety_in_command_allows(self):
+        result = run_hook(
+            "CLAUDE_SKIP_SAFETY=1 git push -u origin feat/x",
+            ts_files=["src/server.ts"],
+        )
+        self.assertEqual(result["result"], "allow")
+        self.assertEqual(result["checks"], [])
+
     def test_no_ts_changes_allows_without_checks(self):
         result = run_hook("git push -u origin docs/x", ts_files=[])
         self.assertEqual(result["result"], "allow")
@@ -106,7 +122,7 @@ class TestWebScope(unittest.TestCase):
     def test_web_change_runs_web_checks_not_server(self):
         result = run_hook("git push -u origin feat/x", ts_files=["web/src/App.tsx"])
         self.assertEqual(result["result"], "allow")
-        self.assertEqual(result["checks"], ["web typecheck", "web lint (Biome)"])
+        self.assertEqual(result["checks"], ["web typecheck", "web lint (oxlint)"])
 
     def test_web_typecheck_failure_denies_before_lint(self):
         result = run_hook(
@@ -122,12 +138,53 @@ class TestWebScope(unittest.TestCase):
         result = run_hook(
             "git push -u origin feat/x",
             ts_files=["web/src/App.tsx"],
-            check_results={"web lint (Biome)": "App.tsx:9 noNestedTernary"},
+            check_results={"web lint (oxlint)": "App.tsx:9 no-nested-ternary"},
         )
         self.assertEqual(result["result"], "deny")
-        self.assertIn("web lint (Biome)", result["reason"])
-        self.assertIn("noNestedTernary", result["reason"])
-        self.assertEqual(result["checks"], ["web typecheck", "web lint (Biome)"])
+        self.assertIn("web lint (oxlint)", result["reason"])
+        self.assertIn("no-nested-ternary", result["reason"])
+        self.assertEqual(result["checks"], ["web typecheck", "web lint (oxlint)"])
+
+
+class TestNotInstalled(unittest.TestCase):
+    def test_lint_not_installed_warns_and_allows(self):
+        result = run_hook(
+            "git push -u origin feat/x",
+            ts_files=["web/src/App.tsx"],
+            check_results={"web lint (oxlint)": hook.NOT_INSTALLED_RESULT},
+        )
+        self.assertEqual(result["result"], "allow")
+        self.assertEqual(result["checks"], ["web typecheck", "web lint (oxlint)"])
+
+    def test_run_check_maps_enoent_output_to_not_installed(self):
+        class FakeResult:
+            returncode = 1
+            stdout = ""
+            stderr = "sh: oxlint: command not found"
+
+        with patch("subprocess.run", return_value=FakeResult()):
+            result = hook.run_check("web lint (oxlint)", ["pnpm", "lint"], ".", 60)
+        self.assertEqual(result, hook.NOT_INSTALLED_RESULT)
+
+    def test_run_check_maps_spawn_enoent_to_not_installed(self):
+        class FakeResult:
+            returncode = 1
+            stdout = "Error: spawn oxlint ENOENT"
+            stderr = ""
+
+        with patch("subprocess.run", return_value=FakeResult()):
+            result = hook.run_check("web lint (oxlint)", ["pnpm", "lint"], ".", 60)
+        self.assertEqual(result, hook.NOT_INSTALLED_RESULT)
+
+    def test_run_check_real_lint_failure_is_error_string(self):
+        class FakeResult:
+            returncode = 1
+            stdout = "App.tsx:9:1 no-nested-ternary"
+            stderr = ""
+
+        with patch("subprocess.run", return_value=FakeResult()):
+            result = hook.run_check("web lint (oxlint)", ["pnpm", "lint"], ".", 60)
+        self.assertEqual(result, "App.tsx:9:1 no-nested-ternary")
 
 
 class TestBothScopes(unittest.TestCase):
@@ -139,7 +196,7 @@ class TestBothScopes(unittest.TestCase):
         self.assertEqual(result["result"], "allow")
         self.assertEqual(
             result["checks"],
-            ["server tsc --noEmit", "web typecheck", "web lint (Biome)"],
+            ["server tsc --noEmit", "web typecheck", "web lint (oxlint)"],
         )
 
     def test_unknown_diff_runs_all_three(self):
@@ -147,7 +204,7 @@ class TestBothScopes(unittest.TestCase):
         self.assertEqual(result["result"], "allow")
         self.assertEqual(
             result["checks"],
-            ["server tsc --noEmit", "web typecheck", "web lint (Biome)"],
+            ["server tsc --noEmit", "web typecheck", "web lint (oxlint)"],
         )
 
 

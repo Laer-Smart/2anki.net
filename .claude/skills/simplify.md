@@ -13,7 +13,7 @@ Process:
    - **Is there an existing helper that already does this?** Grep for likely names. The repo prefers reuse — but only after the third occurrence, not the second (`.claude/rules/code-quality.md`).
    - **Is this an abstraction the codebase doesn't need yet?** Two similar lines is fine. Three is the trigger. A new factory/strategy/options-bag introduced for one call site is dead weight.
    - **Is there scaffolding left behind?** `console.log`, `debugger`, commented-out code, "removed because…" notes, `_unused` renames, backwards-compat shims.
-   - **Is there a simpler spelling?** Negation + else (Sonar S7735), nested ternaries (Biome `noNestedTernary`), boolean parameter explosion.
+   - **Is there a simpler spelling?** Negation + else (Sonar S7735), nested ternaries (oxlint `no-nested-ternary`), boolean parameter explosion.
    - **Did a comment sneak in?** The repo strips comments — flag every new one with a rename suggestion.
 4. Group findings by file. For each, propose the one-line concrete fix. Do not edit — surface, don't patch.
 
