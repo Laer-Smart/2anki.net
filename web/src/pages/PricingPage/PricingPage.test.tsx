@@ -44,7 +44,7 @@ vi.mock('../../lib/hooks/useCardUsage', () => ({
 
 const { mockPricingVariant } = vi.hoisted(() => ({
   mockPricingVariant: {
-    current: 'passes-first' as 'passes-first' | 'unlimited-first' | 'minimal',
+    current: 'minimal' as 'minimal' | 'unlimited-first' | 'minimal',
   },
 }));
 
@@ -53,7 +53,7 @@ vi.mock('../../lib/hooks/usePricingOrderVariant', () => ({
 }));
 
 beforeEach(() => {
-  mockPricingVariant.current = 'passes-first';
+  mockPricingVariant.current = 'minimal';
   mockGetCheckoutPrices.mockResolvedValue(null);
 });
 
@@ -209,13 +209,6 @@ describe('PricingPage layout', () => {
     renderAt('/pricing');
     expect(
       screen.getByText('Free works forever. Paid plans support 2anki.net.')
-    ).toBeInTheDocument();
-  });
-
-  it('shows the social-proof line under the hero', () => {
-    renderAt('/pricing');
-    expect(
-      screen.getByText('Trusted by 19,000+ learners worldwide')
     ).toBeInTheDocument();
   });
 
@@ -437,7 +430,7 @@ describe('PricingPage internal event tracking', () => {
 
     expect(trackMock).toHaveBeenCalledWith('paywall_shown', {
       surface: 'pricing_page',
-      variant: 'passes-first',
+      variant: 'minimal',
     });
   });
 
@@ -460,7 +453,7 @@ describe('PricingPage internal event tracking', () => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
         surface: 'pricing_page',
         plan: 'auto_sync',
-        variant: 'passes-first',
+        variant: 'minimal',
       });
     });
   });
@@ -484,7 +477,7 @@ describe('PricingPage internal event tracking', () => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
         surface: 'pricing_page',
         plan: 'day_pass',
-        variant: 'passes-first',
+        variant: 'minimal',
       });
     });
   });
@@ -508,7 +501,7 @@ describe('PricingPage internal event tracking', () => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
         surface: 'pricing_page',
         plan: 'week_pass',
-        variant: 'passes-first',
+        variant: 'minimal',
       });
     });
   });
@@ -532,7 +525,7 @@ describe('PricingPage internal event tracking', () => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
         surface: 'pricing_page',
         plan: 'unlimited',
-        variant: 'passes-first',
+        variant: 'minimal',
       });
     });
   });
@@ -597,7 +590,7 @@ describe('PricingPage quota_remaining in paywall_shown', () => {
     expect(trackMock).toHaveBeenCalledWith('paywall_shown', {
       surface: 'pricing_page',
       quota_remaining: 40,
-      variant: 'passes-first',
+      variant: 'minimal',
     });
   });
 
@@ -611,7 +604,7 @@ describe('PricingPage quota_remaining in paywall_shown', () => {
 
     expect(trackMock).toHaveBeenCalledWith('paywall_shown', {
       surface: 'pricing_page',
-      variant: 'passes-first',
+      variant: 'minimal',
     });
   });
 });
@@ -664,7 +657,7 @@ describe('PricingPage Unlimited billing toggle', () => {
     await waitFor(() => {
       expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith(
         'month',
-        'passes-first',
+        'minimal',
         'pricing_page'
       );
     });
@@ -685,7 +678,7 @@ describe('PricingPage Unlimited billing toggle', () => {
     await waitFor(() => {
       expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith(
         'year',
-        'passes-first',
+        'minimal',
         'pricing_page'
       );
     });

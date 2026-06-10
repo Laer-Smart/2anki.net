@@ -6,23 +6,16 @@ const VARIANTS: PricingOrder[] = ['passes-first', 'unlimited-first', 'minimal'];
 
 const STORAGE_KEY = 'pricing_order_variant';
 
+const DEFAULT_ORDER: PricingOrder = 'minimal';
+
 function isPricingOrder(value: unknown): value is PricingOrder {
   return typeof value === 'string' && (VARIANTS as string[]).includes(value);
 }
 
-function readStored(): PricingOrder | null {
-  try {
-    const stored = globalThis.localStorage?.getItem(STORAGE_KEY);
-    return isPricingOrder(stored) ? stored : null;
-  } catch {
-    return null;
-  }
-}
-
 /**
- * `?variant=passes-first` / `?variant=unlimited-first` forces a layout for
- * preview and QA. It does not persist, so it never changes the visitor's
- * real assignment or the experiment buckets.
+ * `?variant=` forces a layout for QA without persisting. The pricing-page A/B
+ * test concluded on `minimal`, so every real visitor gets that order and any
+ * old stored assignment is ignored.
  */
 function readOverride(): PricingOrder | null {
   try {
@@ -35,33 +28,18 @@ function readOverride(): PricingOrder | null {
   }
 }
 
-function assignVariant(): PricingOrder {
-  const cryptoObj = globalThis.crypto;
-  if (cryptoObj?.getRandomValues == null) {
-    return 'passes-first';
+function clearStaleAssignment(): void {
+  try {
+    globalThis.localStorage?.removeItem(STORAGE_KEY);
+  } catch {
+    // Storage unavailable (private mode, SSR) — nothing to clear.
   }
-  const byte = cryptoObj.getRandomValues(new Uint8Array(1))[0];
-  return VARIANTS[byte % VARIANTS.length];
 }
 
-/**
- * Stable 50/50 assignment to one of two pricing-page layouts, persisted per
- * device so a visitor always sees the same order. Anonymous-friendly: most
- * pricing traffic is logged out, so localStorage is the right store here.
- */
 export function usePricingOrderVariant(): PricingOrder {
   const [variant] = useState<PricingOrder>(() => {
-    const override = readOverride();
-    if (override != null) return override;
-    const stored = readStored();
-    if (stored != null) return stored;
-    const assigned = assignVariant();
-    try {
-      globalThis.localStorage?.setItem(STORAGE_KEY, assigned);
-    } catch {
-      // Storage unavailable (private mode, SSR) — fall back to the default order.
-    }
-    return assigned;
+    clearStaleAssignment();
+    return readOverride() ?? DEFAULT_ORDER;
   });
 
   return variant;
