@@ -48,9 +48,7 @@ describe('EmailService.sendPriceLockInEmail', () => {
 
     await service.sendPriceLockInEmail('user@example.com', 'tok-a', 'a');
 
-    expect(lastMessage().subject).toBe(
-      'Lock in $6/month before prices go up'
-    );
+    expect(lastMessage().subject).toBe('Lock in $6/month before prices go up');
   });
 
   it('uses subject B for variant b', async () => {
@@ -81,9 +79,7 @@ describe('EmailService.sendPriceLockInEmail', () => {
     await service.sendPriceLockInEmail('user@example.com', 'tok-unsub', 'b');
 
     const msg = lastMessage();
-    expect(msg.html).toContain(
-      'https://2anki.net/unsubscribe?uid=tok-unsub'
-    );
+    expect(msg.html).toContain('https://2anki.net/unsubscribe?uid=tok-unsub');
     expect(msg.html).not.toContain('{{unsubscribeUrl}}');
   });
 

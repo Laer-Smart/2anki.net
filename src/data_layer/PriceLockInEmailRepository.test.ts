@@ -197,9 +197,11 @@ describe('PriceLockInEmailRepository generated SQL (postgres dialect)', () => {
 
   it('builds valid count SQL with the four exclusion subqueries', () => {
     const repo = new PriceLockInEmailRepository(pg);
-    const sql = (repo as unknown as {
-      buildSegmentQuery: () => Knex.QueryBuilder;
-    })
+    const sql = (
+      repo as unknown as {
+        buildSegmentQuery: () => Knex.QueryBuilder;
+      }
+    )
       .buildSegmentQuery()
       .countDistinct('users.email as count')
       .toString();
@@ -216,9 +218,11 @@ describe('PriceLockInEmailRepository generated SQL (postgres dialect)', () => {
 
   it('builds dedupe-by-email selection SQL', () => {
     const repo = new PriceLockInEmailRepository(pg);
-    const sql = (repo as unknown as {
-      buildSegmentQuery: () => Knex.QueryBuilder;
-    })
+    const sql = (
+      repo as unknown as {
+        buildSegmentQuery: () => Knex.QueryBuilder;
+      }
+    )
       .buildSegmentQuery()
       .groupBy('users.email')
       .select('users.email')

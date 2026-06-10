@@ -118,7 +118,12 @@ describe('SendPriceLockInEmailsUseCase', () => {
     expect(events).toHaveLength(1);
     expect(events[0]).toMatchObject({
       name: 'email_batch_sent',
-      props: { campaign: 'price_lock_in', count: 2, variant_a: 1, variant_b: 1 },
+      props: {
+        campaign: 'price_lock_in',
+        count: 2,
+        variant_a: 1,
+        variant_b: 1,
+      },
     });
   });
 
