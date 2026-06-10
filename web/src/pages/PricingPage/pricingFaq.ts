@@ -18,7 +18,7 @@ export const PRICING_FAQ: PricingFaqItem[] = [
   {
     question: 'What is the Unlimited plan?',
     answer:
-      'Unlimited is $6 per month. It removes the 100-card limit, adds PDF support, lets you run multiple conversions at once, and includes unlimited Anki to Notion imports.',
+      'Unlimited removes the 100-card limit, adds PDF support, lets you run multiple conversions at once, and includes unlimited Anki to Notion imports. Pricing is on the cards above.',
   },
   {
     question: 'What is Auto Sync?',

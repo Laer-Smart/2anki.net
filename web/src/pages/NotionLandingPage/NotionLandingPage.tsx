@@ -2,10 +2,6 @@ import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { track } from '../../lib/analytics/track';
 import { PricingCard } from '../PricingPage/components/PricingCard';
-import {
-  MONTHLY_PRICE,
-  MONTHLY_SUFFIX,
-} from '../PricingPage/pricing.constants';
 import styles from './NotionLandingPage.module.css';
 
 const REF = 'notion-marketplace';
@@ -16,7 +12,7 @@ const UNLIMITED_HREF = `/pricing?ref=${REF}`;
 const DAY_PASS_HREF = `/pricing?ref=${REF}`;
 
 const META_DESCRIPTION =
-  'Turn your Notion pages into Anki flashcards. Unlimited cards for $6/mo, or pay once with a Day Pass. No exports, no zips.';
+  'Turn your Notion pages into Anki flashcards. Unlimited cards on a monthly plan, or pay once with a Day Pass. No exports, no zips.';
 
 const UNLIMITED_BENEFITS = [
   'Unlimited flashcards from your Notion pages',
@@ -79,8 +75,7 @@ export function NotionLandingPage() {
           <PricingCard
             badge="Recommended"
             title="Unlimited"
-            price={MONTHLY_PRICE}
-            priceSuffix={MONTHLY_SUFFIX}
+            priceChip="See pricing"
             benefits={UNLIMITED_BENEFITS}
             link={UNLIMITED_HREF}
             linkText="Get Unlimited"

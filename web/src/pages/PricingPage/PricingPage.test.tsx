@@ -116,6 +116,23 @@ describe('PricingPage layout', () => {
     expect(screen.getAllByText('From $345').length).toBeGreaterThan(0);
   });
 
+  it('shows the legacy Unlimited price in the comparison table by default', async () => {
+    renderAt('/pricing');
+    expect(await screen.findByText('$6 / mo')).toBeInTheDocument();
+  });
+
+  it('shows the fetched v2 Unlimited price in the comparison table', async () => {
+    mockGetCheckoutPrices.mockResolvedValue({
+      monthly: { cents: 799 },
+      annual: { cents: 6400 },
+      legacy: false,
+      lockInDeadline: null,
+    });
+    renderAt('/pricing');
+    expect(await screen.findByText('$7.99 / mo')).toBeInTheDocument();
+    expect(screen.queryByText('$6 / mo')).not.toBeInTheDocument();
+  });
+
   it('shows the Pay once section label', () => {
     renderAt('/pricing');
     expect(screen.getByText('Pay once — no subscription')).toBeInTheDocument();

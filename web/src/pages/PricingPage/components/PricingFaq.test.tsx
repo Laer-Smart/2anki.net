@@ -27,6 +27,14 @@ describe('PricingFaq', () => {
     ).toBeInTheDocument();
   });
 
+  it('keeps the Unlimited answer price-neutral so it is true for every cohort', () => {
+    const unlimited = PRICING_FAQ.find(
+      (item) => item.question === 'What is the Unlimited plan?'
+    );
+    expect(unlimited?.answer).not.toMatch(/\$\d/);
+    expect(unlimited?.answer).toContain('removes the 100-card limit');
+  });
+
   it('shows answers in collapsible details elements', () => {
     const { container } = render(<PricingFaq />);
     expect(container.querySelectorAll('details').length).toBe(

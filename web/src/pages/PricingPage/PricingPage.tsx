@@ -17,7 +17,7 @@ import { PricingFaq } from './components/PricingFaq';
 import { UnlimitedCard } from './components/UnlimitedCard';
 import styles from './PricingPage.module.css';
 import { getLifetimeLink } from './payment.links';
-import { LEGACY_UNLIMITED_PRICING } from './pricing.constants';
+import { formatMonthly, LEGACY_UNLIMITED_PRICING } from './pricing.constants';
 import { PRICING_FAQ } from './pricingFaq';
 
 interface PricingPageProps {
@@ -427,7 +427,9 @@ export default function PricingPage({
 
       <FeatureGrid />
 
-      <ComparisonTable />
+      <ComparisonTable
+        unlimitedMonthlyPrice={formatMonthly(pricing.monthlyCents)}
+      />
 
       <PricingFaq />
 

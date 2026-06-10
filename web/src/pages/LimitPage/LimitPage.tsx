@@ -6,10 +6,6 @@ import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { getSubscribeLink } from '../PricingPage/payment.links';
 import { PassCards } from '../PricingPage/components/PassCards';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
-import {
-  MONTHLY_PRICE,
-  MONTHLY_SUFFIX,
-} from '../PricingPage/pricing.constants';
 import styles from './LimitPage.module.css';
 
 const REF = 'limit-wall';
@@ -178,10 +174,6 @@ export function LimitPage() {
       <div className={styles.singlePlan}>
         <div className={styles.planCard}>
           <p className={styles.planTitle}>Unlimited</p>
-          <p className={styles.planPrice}>
-            {MONTHLY_PRICE}
-            <span className={styles.planPriceSuffix}>{MONTHLY_SUFFIX}</span>
-          </p>
           <ul className={styles.planBenefits}>
             {UNLIMITED_BENEFITS.map((b) => (
               <li key={b} className={styles.planBenefit}>

@@ -6,10 +6,6 @@ import { getDistance } from '../../../lib/getDistance';
 import { firePaywallEvent } from '../../../lib/analytics/firePaywallEvent';
 import { track } from '../../../lib/analytics/track';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
-import {
-  MONTHLY_PRICE,
-  MONTHLY_SUFFIX,
-} from '../../PricingPage/pricing.constants';
 import styles from './PaywallBanner.module.css';
 
 interface PaywallBannerProps {
@@ -65,9 +61,7 @@ export function PaywallBanner({ inProgressJob }: PaywallBannerProps) {
           onClick={handleUpgrade}
           disabled={pending}
         >
-          {pending
-            ? 'Opening checkout'
-            : `Upgrade to Unlimited — ${MONTHLY_PRICE} ${MONTHLY_SUFFIX}`}
+          {pending ? 'Opening checkout' : 'Upgrade to Unlimited'}
         </button>
         {inProgressJob != null && startedDistance != null && hasTitle && (
           <span className={styles.secondary}>

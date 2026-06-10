@@ -6,7 +6,7 @@ import { ComparisonTable } from './ComparisonTable';
 
 describe('ComparisonTable', () => {
   it('renders a column for every plan', () => {
-    render(<ComparisonTable />);
+    render(<ComparisonTable unlimitedMonthlyPrice="$7.99" />);
     for (const plan of [
       'Free',
       'Day / Week pass',
@@ -20,14 +20,26 @@ describe('ComparisonTable', () => {
     }
   });
 
+  it('shows the v2 cohort Unlimited price in the header', () => {
+    render(<ComparisonTable unlimitedMonthlyPrice="$7.99" />);
+    expect(screen.getByText('$7.99 / mo')).toBeInTheDocument();
+    expect(screen.queryByText('$6 / mo')).not.toBeInTheDocument();
+  });
+
+  it('shows the legacy cohort Unlimited price in the header', () => {
+    render(<ComparisonTable unlimitedMonthlyPrice="$6" />);
+    expect(screen.getByText('$6 / mo')).toBeInTheDocument();
+    expect(screen.queryByText('$7.99 / mo')).not.toBeInTheDocument();
+  });
+
   it('shows the free plan card limit and the paid Unlimited value', () => {
-    render(<ComparisonTable />);
+    render(<ComparisonTable unlimitedMonthlyPrice="$7.99" />);
     expect(screen.getAllByText('100').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Unlimited').length).toBeGreaterThan(0);
   });
 
   it('groups rows under category headers including AI', () => {
-    render(<ComparisonTable />);
+    render(<ComparisonTable unlimitedMonthlyPrice="$7.99" />);
     expect(
       screen.getByRole('columnheader', { name: 'Conversion limits' })
     ).toBeInTheDocument();
@@ -40,21 +52,21 @@ describe('ComparisonTable', () => {
   });
 
   it('gates AI multiple choice and AI flashcards to paid tiers', () => {
-    render(<ComparisonTable />);
+    render(<ComparisonTable unlimitedMonthlyPrice="$7.99" />);
     const mcq = screen.getByRole('row', { name: /AI multiple choice/ });
     expect(within(mcq).getAllByText('Included').length).toBe(4);
     expect(within(mcq).getAllByText('Not included').length).toBe(1);
   });
 
   it('exposes Auto Sync included/not included state to assistive tech', () => {
-    render(<ComparisonTable />);
+    render(<ComparisonTable unlimitedMonthlyPrice="$7.99" />);
     const row = screen.getByRole('row', { name: /Auto Sync from Notion/ });
     expect(within(row).getAllByText('Included').length).toBe(2);
     expect(within(row).getAllByText('Not included').length).toBe(3);
   });
 
   it('shows priority support as a paid-tier differentiator', () => {
-    render(<ComparisonTable />);
+    render(<ComparisonTable unlimitedMonthlyPrice="$7.99" />);
     const row = screen.getByRole('row', { name: /Priority support/ });
     expect(within(row).getAllByText('Included').length).toBe(3);
     expect(within(row).getAllByText('Not included').length).toBe(2);

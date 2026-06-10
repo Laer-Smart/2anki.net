@@ -123,7 +123,7 @@ const pdfToAnki: AnswerConfig = {
     },
     {
       heading: 'Large PDFs and textbooks',
-      body: 'Large PDFs work — a whole textbook uploads fine. Big files take longer and create large decks. Uploading one chapter at a time keeps decks easier to review and share. The free plan covers 100 cards per month; the Unlimited plan ($6/month) has no card limit.',
+      body: 'Large PDFs work — a whole textbook uploads fine. Big files take longer and create large decks. Uploading one chapter at a time keeps decks easier to review and share. The free plan covers 100 cards per month; the Unlimited plan has no card limit.',
     },
   ],
   relatedLinks: [
