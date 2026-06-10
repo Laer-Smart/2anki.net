@@ -126,9 +126,14 @@ export class InMemoryPriceLockInEmailRepository implements IPriceLockInEmailRepo
     variant: PriceLockInVariant;
   }> = [];
   private nextId = 1;
+  private readonly recordSendFailures = new Map<number, unknown>();
 
   seedUsers(users: PriceLockInRecipient[]): void {
     this.usersToReturn = users;
+  }
+
+  failRecordSendFor(userId: number, error: unknown): void {
+    this.recordSendFailures.set(userId, error);
   }
 
   async getUsersToNotify(limit = 500): Promise<PriceLockInRecipient[]> {
@@ -146,6 +151,10 @@ export class InMemoryPriceLockInEmailRepository implements IPriceLockInEmailRepo
     token: string,
     variant: PriceLockInVariant
   ): Promise<void> {
+    const failure = this.recordSendFailures.get(userId);
+    if (failure != null) {
+      throw failure;
+    }
     const id = this.nextId++;
     this.emails.push({ id, userId, token, variant });
     this.sentUserIds.add(userId);
@@ -170,6 +179,7 @@ export class InMemoryPriceLockInEmailRepository implements IPriceLockInEmailRepo
     this.sentUserIds.clear();
     this.emails = [];
     this.nextId = 1;
+    this.recordSendFailures.clear();
   }
 }
 

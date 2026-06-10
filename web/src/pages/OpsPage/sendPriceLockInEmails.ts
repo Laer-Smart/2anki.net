@@ -1,5 +1,6 @@
 export interface SendPriceLockInEmailsResponse {
   count: number;
+  skipped: number;
   dryRun: boolean;
   variantA: number;
   variantB: number;

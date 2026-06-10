@@ -42,6 +42,7 @@ describe('SendPriceLockInEmailsUseCase', () => {
 
     expect(result).toEqual({
       count: 2,
+      skipped: 0,
       dryRun: true,
       variantA: 0,
       variantB: 0,
@@ -141,7 +142,57 @@ describe('SendPriceLockInEmailsUseCase', () => {
     const result = await useCase.execute(false);
 
     expect(result.count).toBe(0);
+    expect(result.skipped).toBe(0);
     expect(repo.getSentEmails()).toHaveLength(1);
     expect(await repo.getUsersToNotify()).toHaveLength(0);
+  });
+
+  it('skips a user deleted mid-batch and finishes the rest', async () => {
+    const repo = new InMemoryPriceLockInEmailRepository();
+    repo.seedUsers([
+      { id: 2, email: 'a@example.com' },
+      { id: 643, email: 'gone@example.com' },
+      { id: 4, email: 'c@example.com' },
+    ]);
+    const fkError = Object.assign(
+      new Error('insert violates foreign key constraint'),
+      { code: '23503' }
+    );
+    repo.failRecordSendFor(643, fkError);
+    const { service, sent } = buildEmailService();
+    const { sink, events } = buildSink();
+    const useCase = new SendPriceLockInEmailsUseCase(repo, service, sink);
+
+    const result = await useCase.execute(false);
+
+    expect(result.count).toBe(2);
+    expect(result.skipped).toBe(1);
+    expect(sent.map((s) => s.to).sort()).toEqual([
+      'a@example.com',
+      'c@example.com',
+    ]);
+    expect(events[0]).toMatchObject({
+      props: { count: 2 },
+    });
+  });
+
+  it('rethrows when every user fails for a non-FK reason', async () => {
+    const repo = new InMemoryPriceLockInEmailRepository();
+    repo.seedUsers([
+      { id: 2, email: 'a@example.com' },
+      { id: 4, email: 'b@example.com' },
+    ]);
+    const dbDown = Object.assign(new Error('connection terminated'), {
+      code: '08006',
+    });
+    repo.failRecordSendFor(2, dbDown);
+    repo.failRecordSendFor(4, dbDown);
+    const { service } = buildEmailService();
+    const { sink } = buildSink();
+    const useCase = new SendPriceLockInEmailsUseCase(repo, service, sink);
+
+    await expect(useCase.execute(false)).rejects.toThrow(
+      'connection terminated'
+    );
   });
 });
