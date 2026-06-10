@@ -110,6 +110,7 @@ Default: `pm` produces a spec → `designer` validates UX (only if user-facing) 
 
 - **conversion-funnel-analyst** (sonnet) — weekly funnel pull; names the biggest drop-off between landing → signup → upload → download → paid. Use before prioritization.
 - **seo-content** (opus) — landing-page content, topical clusters, internal linking, sitemap proposals. Designer owns in-product voice; this owns search-driven copy.
+- **seo-specialist** (opus) — technical SEO: crawlability, Core Web Vitals, structured data, SERP/AI-overview features, Search Console analysis. seo-content owns the words; this owns the search infrastructure under them.
 - **prod-incident-responder** (opus, worktree) — turns a recurring prod error into a single fix PR with a regression test. Use when logs show a repeat crash with no open PR.
 - **migration-reviewer** (sonnet) — read-only safety review of a Knex migration before flip-ready: locking, backfill, rollback, kanel.
 - **support-triage** (sonnet) — classify inbound `.eml` into bug / feature-request / billing / how-to / spam / urgent; route to the right next action. Reply itself stays in `/support-reply`.
