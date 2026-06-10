@@ -617,15 +617,8 @@ describe('PricingPage quota_remaining in paywall_shown', () => {
 });
 
 describe('PricingPage Unlimited billing toggle', () => {
-  it('does not render the billing toggle when yearlyAvailable is false', () => {
-    renderAt('/pricing', { unlimitedYearlyAvailable: false });
-    expect(
-      screen.queryByRole('radiogroup', { name: 'Billing cycle' })
-    ).not.toBeInTheDocument();
-  });
-
-  it('renders Monthly and Yearly options when yearlyAvailable is true', () => {
-    renderAt('/pricing', { unlimitedYearlyAvailable: true });
+  it('renders the billing toggle with both options by default', () => {
+    renderAt('/pricing');
     const group = screen.getByRole('radiogroup', { name: 'Billing cycle' });
     expect(group).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Monthly' })).toBeInTheDocument();
@@ -634,20 +627,25 @@ describe('PricingPage Unlimited billing toggle', () => {
     ).toBeInTheDocument();
   });
 
-  it('defaults to the annual per-month hero price', () => {
-    renderAt('/pricing', { unlimitedYearlyAvailable: true });
-    const price = screen.getByText('$5.00');
-    expect(price).toBeInTheDocument();
+  it('selects Yearly by default with the annual per-month hero price', () => {
+    renderAt('/pricing');
+    expect(
+      screen.getByRole('radio', { name: 'Yearly · save 17%' })
+    ).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByText('$5.00')).toBeInTheDocument();
     expect(
       screen.getByText('$60/year billed yearly · save 17%')
     ).toBeInTheDocument();
   });
 
-  it('shows the monthly hero price after selecting Monthly', () => {
-    renderAt('/pricing', { unlimitedYearlyAvailable: true });
+  it('switches the hero to the monthly price and terms after selecting Monthly', () => {
+    renderAt('/pricing');
     fireEvent.click(screen.getByRole('radio', { name: 'Monthly' }));
     expect(screen.getByText('$6')).toBeInTheDocument();
     expect(screen.getByText('billed monthly')).toBeInTheDocument();
+    expect(
+      screen.getByText('$6/month, renews monthly. Cancel anytime.')
+    ).toBeInTheDocument();
   });
 
   it('calls startUnlimitedCheckout with month when Monthly is selected', async () => {
@@ -659,7 +657,7 @@ describe('PricingPage Unlimited billing toggle', () => {
       value: { href: '' },
     });
 
-    renderAt('/pricing', { isLoggedIn: true, unlimitedYearlyAvailable: true });
+    renderAt('/pricing', { isLoggedIn: true });
     fireEvent.click(screen.getByRole('radio', { name: 'Monthly' }));
     fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
@@ -681,7 +679,7 @@ describe('PricingPage Unlimited billing toggle', () => {
       value: { href: '' },
     });
 
-    renderAt('/pricing', { isLoggedIn: true, unlimitedYearlyAvailable: true });
+    renderAt('/pricing', { isLoggedIn: true });
     fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {
@@ -698,7 +696,7 @@ describe('PricingPage Unlimited billing toggle', () => {
       writable: true,
       value: { href: '' },
     });
-    renderAt('/pricing', { isLoggedIn: false, unlimitedYearlyAvailable: true });
+    renderAt('/pricing', { isLoggedIn: false });
     fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
   });
