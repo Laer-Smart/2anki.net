@@ -181,8 +181,7 @@ class CardOption {
     }
 
     this.nestedBulletPoints = input['markdown-nested-bullet-points'] === 'true';
-    this.splitSectionsIntoDecks =
-      input['split-sections-into-decks'] === 'true';
+    this.splitSectionsIntoDecks = input['split-sections-into-decks'] === 'true';
     this.userInstructions =
       input['user-instructions'] ?? getDefaultUserInstructions();
     this.cardStyle = validateCardStylePicker(input['card-style']);
