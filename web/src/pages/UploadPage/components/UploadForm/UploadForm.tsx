@@ -1474,6 +1474,7 @@ function UploadForm({
       <label
         htmlFor="pakker"
         id="upload-panel-local"
+        translate="no"
         className={`${zoneClassName} ${showLocalPanel ? '' : formStyles.panelHidden}`}
         aria-hidden={!showLocalPanel}
       >

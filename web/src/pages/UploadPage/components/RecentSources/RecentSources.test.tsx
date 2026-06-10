@@ -71,6 +71,20 @@ describe('RecentSources', () => {
     expect(links[0]).toHaveAttribute('href', '/preview/a');
   });
 
+  it('opts the recent list out of browser translation', async () => {
+    getRecentSourcesMock.mockResolvedValue([
+      source({ id: 'a', title: 'Anatomy', convertUrl: '/preview/a' }),
+    ]);
+
+    const { container } = renderRecentSources();
+
+    await screen.findByText('Anatomy');
+    expect(container.querySelector('section')).toHaveAttribute(
+      'translate',
+      'no'
+    );
+  });
+
   it('fires recent_page_reconvert_clicked with the source type on click', async () => {
     getRecentSourcesMock.mockResolvedValue([
       source({ id: 'a', type: 'remote_upload', convertUrl: '/preview/apkg/a' }),

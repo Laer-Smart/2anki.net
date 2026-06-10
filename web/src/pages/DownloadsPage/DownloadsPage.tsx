@@ -491,7 +491,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                         </th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody translate="no">
                       {filteredRows.length === 0 && (
                         <tr>
                           <td
