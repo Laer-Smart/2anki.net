@@ -9,25 +9,21 @@ afterEach(() => {
 });
 
 describe('usePricingOrderVariant', () => {
-  it('assigns one of the known variants', () => {
+  it('returns minimal by default', () => {
     const { result } = renderHook(() => usePricingOrderVariant());
-    expect(['passes-first', 'unlimited-first', 'minimal']).toContain(
-      result.current
-    );
+    expect(result.current).toBe('minimal');
   });
 
-  it('persists the assignment so a returning visitor sees the same order', () => {
+  it('ignores an old stored assignment and still returns minimal', () => {
     localStorage.setItem('pricing_order_variant', 'unlimited-first');
     const { result } = renderHook(() => usePricingOrderVariant());
-    expect(result.current).toBe('unlimited-first');
+    expect(result.current).toBe('minimal');
   });
 
-  it('writes the assigned variant to storage on first visit', () => {
-    expect(localStorage.getItem('pricing_order_variant')).toBeNull();
+  it('clears the stale assignment key from storage', () => {
+    localStorage.setItem('pricing_order_variant', 'unlimited-first');
     renderHook(() => usePricingOrderVariant());
-    expect(['passes-first', 'unlimited-first', 'minimal']).toContain(
-      localStorage.getItem('pricing_order_variant')
-    );
+    expect(localStorage.getItem('pricing_order_variant')).toBeNull();
   });
 
   it('honours the ?variant= preview override without persisting it', () => {
