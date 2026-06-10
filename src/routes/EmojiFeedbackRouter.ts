@@ -30,6 +30,8 @@ const EmojiFeedbackRouter = () => {
    *                 maximum: 5
    *               comment:
    *                 type: string
+   *               email:
+   *                 type: string
    *               page:
    *                 type: string
    *     responses:
