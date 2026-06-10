@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-10-split-sections-into-decks",
+  "date": "2026-06-10",
+  "type": "fix",
+  "title": "Notion pages stay one deck — split each section into its own deck only when you turn it on"
+}

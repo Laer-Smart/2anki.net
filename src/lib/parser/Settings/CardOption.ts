@@ -79,6 +79,8 @@ class CardOption {
 
   readonly nestedBulletPoints: boolean;
 
+  readonly splitSectionsIntoDecks: boolean;
+
   readonly vertexAIPDFQuestions: boolean;
   readonly disableIndentedBulletPoints: boolean;
 
@@ -179,6 +181,8 @@ class CardOption {
     }
 
     this.nestedBulletPoints = input['markdown-nested-bullet-points'] === 'true';
+    this.splitSectionsIntoDecks =
+      input['split-sections-into-decks'] === 'true';
     this.userInstructions =
       input['user-instructions'] ?? getDefaultUserInstructions();
     this.cardStyle = validateCardStylePicker(input['card-style']);
@@ -232,6 +236,7 @@ class CardOption {
       'image-quiz-html-to-anki': 'false',
       'embed-images': 'true',
       'markdown-nested-bullet-points': 'true',
+      'split-sections-into-decks': 'false',
       'claude-ai-flashcards': 'false',
       'ai-comprehensive': 'false',
       'share-files-for-debugging': 'false',

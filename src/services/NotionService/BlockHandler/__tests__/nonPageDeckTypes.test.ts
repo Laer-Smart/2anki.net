@@ -83,6 +83,25 @@ function rulesWithDeckTypes(deckTypes: string[]): ParserRules {
   return rules;
 }
 
+function settingsWithSplit(splitSectionsIntoDecks: boolean): CardOption {
+  return new CardOption({
+    ...CardOption.LoadDefaultOptions(),
+    'split-sections-into-decks': splitSectionsIntoDecks ? 'true' : 'false',
+  });
+}
+
+function heading(id: string, text: string, hasChildren = true): FakeBlock {
+  return {
+    object: 'block',
+    id,
+    type: 'heading_1',
+    has_children: hasChildren,
+    created_time: TS,
+    last_edited_time: TS,
+    heading_1: { rich_text: richText(text), color: 'default' },
+  };
+}
+
 describe('findFlashcardsFromPage non-page deck types', () => {
   it('turns a toggle into a top-level deck sourced from its children', async () => {
     const childCard = toggle('child-card', 'Question on the toggle');
@@ -91,7 +110,7 @@ describe('findFlashcardsFromPage non-page deck types', () => {
       root: [deckToggle],
       'deck-toggle': [childCard],
     });
-    const settings = new CardOption(CardOption.LoadDefaultOptions());
+    const settings = settingsWithSplit(true);
     const handler = newHandler(api, settings);
 
     const decks = await handler.findFlashcardsFromPage({
@@ -132,7 +151,7 @@ describe('findFlashcardsFromPage non-page deck types', () => {
         root: [deckBlock],
         'deck-block': [childCard],
       });
-      const settings = new CardOption(CardOption.LoadDefaultOptions());
+      const settings = settingsWithSplit(true);
       const handler = newHandler(api, settings);
 
       const decks = await handler.findFlashcardsFromPage({
@@ -156,7 +175,7 @@ describe('findFlashcardsFromPage non-page deck types', () => {
       root: [deckToggle],
       'deck-toggle': [childCard],
     });
-    const settings = new CardOption(CardOption.LoadDefaultOptions());
+    const settings = settingsWithSplit(true);
     const handler = newHandler(api, settings);
 
     const rules = rulesWithDeckTypes(['page', 'database', 'toggle']);
@@ -183,7 +202,7 @@ describe('findFlashcardsFromPage non-page deck types', () => {
       root: [deckToggle],
       'deck-toggle': [childCard],
     });
-    const settings = new CardOption(CardOption.LoadDefaultOptions());
+    const settings = settingsWithSplit(false);
     const handler = newHandler(api, settings);
 
     const decks = await handler.findFlashcardsFromPage({
@@ -197,5 +216,54 @@ describe('findFlashcardsFromPage non-page deck types', () => {
     expect(decks.map((d) => d.name)).toEqual(['Root page']);
     const rootDeck = decks[0];
     expect(rootDeck.cards.map((c) => c.name)).toEqual(['A toggle']);
+  });
+
+  it('keeps two headings on one page as a single deck when the option is off', async () => {
+    const firstCard = toggle('card-1', 'German question');
+    const secondCard = toggle('card-2', 'Maths question');
+    const germanHeading = heading('german', 'German');
+    const mathsHeading = heading('maths', 'Maths');
+    const api = buildApi({
+      root: [germanHeading, mathsHeading],
+      german: [firstCard],
+      maths: [secondCard],
+    });
+    const handler = newHandler(api, settingsWithSplit(false));
+
+    const decks = await handler.findFlashcardsFromPage({
+      parentType: 'page',
+      topLevelId: 'root',
+      rules: rulesWithDeckTypes(['page', 'database', 'heading_1']),
+      decks: [],
+      parentName: '',
+    });
+
+    expect(decks.map((d) => d.name)).toEqual(['Root page']);
+  });
+
+  it('splits two headings into separate top-level decks when the option is on', async () => {
+    const firstCard = toggle('card-1', 'German question');
+    const secondCard = toggle('card-2', 'Maths question');
+    const germanHeading = heading('german', 'German');
+    const mathsHeading = heading('maths', 'Maths');
+    const api = buildApi({
+      root: [germanHeading, mathsHeading],
+      german: [firstCard],
+      maths: [secondCard],
+    });
+    const handler = newHandler(api, settingsWithSplit(true));
+
+    const decks = await handler.findFlashcardsFromPage({
+      parentType: 'page',
+      topLevelId: 'root',
+      rules: rulesWithDeckTypes(['page', 'database', 'heading_1']),
+      decks: [],
+      parentName: '',
+    });
+
+    const germanDeck = decks.find((d) => d.name.includes('German'));
+    const mathsDeck = decks.find((d) => d.name.includes('Maths'));
+    expect(germanDeck?.cards.map((c) => c.name)).toEqual(['German question']);
+    expect(mathsDeck?.cards.map((c) => c.name)).toEqual(['Maths question']);
   });
 });
