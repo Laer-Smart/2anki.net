@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ChatPanel, { type Message } from '../../components/ChatPanel/ChatPanel';
 import { del, get, patch } from '../../lib/backend/api';
@@ -61,6 +61,8 @@ export default function ChatPage() {
     templateSlug: null,
   });
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   useEffect(() => {
     get('/api/chat/conversations', { redirect: false })
@@ -87,6 +89,7 @@ export default function ChatPage() {
   }
 
   async function handleSelectConversation(id: number) {
+    setSidebarOpen(false);
     if (id === activeConversationId) return;
     setLoadError(null);
     setActiveConversationId(id);
@@ -119,6 +122,7 @@ export default function ChatPage() {
   }
 
   function handleNewConversation() {
+    setSidebarOpen(false);
     setActiveConversationId(null);
     setPanelSeed({
       key: `new-${Date.now()}`,
@@ -177,8 +181,44 @@ export default function ChatPage() {
         onNew={handleNewConversation}
         onRename={handleRenameConversation}
         onDelete={handleDeleteConversation}
+        isOpen={sidebarOpen}
+        onClose={closeSidebar}
       />
       <div className={styles.container}>
+        <div className={styles.mobileBar}>
+          <button
+            type="button"
+            className={styles.mobileBarBtn}
+            onClick={() => setSidebarOpen(true)}
+            aria-haspopup="dialog"
+            aria-expanded={sidebarOpen}
+            aria-controls="conversations-sidebar"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+            Past chats
+          </button>
+          <button
+            type="button"
+            className={styles.mobileBarNew}
+            onClick={handleNewConversation}
+          >
+            New chat
+          </button>
+        </div>
         {loadError != null && (
           <p
             style={{
