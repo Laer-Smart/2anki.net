@@ -150,101 +150,103 @@ export default function ConversationsSidebar({
         aria-label="Conversations"
       >
         <button type="button" className={styles.newChatBtn} onClick={onNew}>
-        New chat
-      </button>
+          New chat
+        </button>
 
-      {conversations.length === 0 ? (
-        <p className={styles.empty}>No conversations yet. Start one below.</p>
-      ) : (
-        <ul className={styles.list}>
-          {conversations.map((c) => {
-            const isActive = c.id === activeId;
-            const isRenaming = c.id === renamingId;
-            return (
-              <li
-                key={c.id}
-                className={`${styles.item} ${isActive ? styles.itemActive : ''}`}
-              >
-                {isRenaming ? (
-                  <input
-                    ref={renameInputRef}
-                    type="text"
-                    className={styles.renameInput}
-                    value={renameDraft}
-                    onChange={(e) => setRenameDraft(e.target.value)}
-                    onBlur={() => commitRename(c.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        commitRename(c.id);
-                      } else if (e.key === 'Escape') {
-                        e.preventDefault();
-                        cancelRename();
-                      }
-                    }}
-                    aria-label="Conversation title"
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    className={styles.itemMain}
-                    onClick={() => onSelect(c.id)}
-                    title={c.title}
-                  >
-                    <span className={styles.itemTitle}>{c.title}</span>
-                    <span className={styles.itemMeta}>
-                      {formatRelativeTime(c.updatedAt)}
-                    </span>
-                  </button>
-                )}
-
-                {!isRenaming && (
-                  <div
-                    className={styles.menuWrapper}
-                    ref={menuOpenFor === c.id ? menuRef : undefined}
-                  >
+        {conversations.length === 0 ? (
+          <p className={styles.empty}>No conversations yet. Start one below.</p>
+        ) : (
+          <ul className={styles.list}>
+            {conversations.map((c) => {
+              const isActive = c.id === activeId;
+              const isRenaming = c.id === renamingId;
+              return (
+                <li
+                  key={c.id}
+                  className={`${styles.item} ${isActive ? styles.itemActive : ''}`}
+                >
+                  {isRenaming ? (
+                    <input
+                      ref={renameInputRef}
+                      type="text"
+                      className={styles.renameInput}
+                      value={renameDraft}
+                      onChange={(e) => setRenameDraft(e.target.value)}
+                      onBlur={() => commitRename(c.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          commitRename(c.id);
+                        } else if (e.key === 'Escape') {
+                          e.preventDefault();
+                          cancelRename();
+                        }
+                      }}
+                      aria-label="Conversation title"
+                    />
+                  ) : (
                     <button
                       type="button"
-                      className={styles.menuTrigger}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setMenuOpenFor((prev) => (prev === c.id ? null : c.id));
-                      }}
-                      aria-label={`Options for ${c.title}`}
-                      aria-haspopup="menu"
-                      aria-expanded={menuOpenFor === c.id}
+                      className={styles.itemMain}
+                      onClick={() => onSelect(c.id)}
+                      title={c.title}
                     >
-                      <span aria-hidden="true">⋯</span>
+                      <span className={styles.itemTitle}>{c.title}</span>
+                      <span className={styles.itemMeta}>
+                        {formatRelativeTime(c.updatedAt)}
+                      </span>
                     </button>
+                  )}
 
-                    {menuOpenFor === c.id && (
-                      <div className={styles.menu} role="menu">
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className={styles.menuItem}
-                          onClick={() => startRename(c.id, c.title)}
-                        >
-                          Rename
-                        </button>
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className={`${styles.menuItem} ${styles.menuItemDanger}`}
-                          onClick={() => {
-                            setMenuOpenFor(null);
-                            onDelete(c.id);
-                          }}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </li>
-            );
-          })}
+                  {!isRenaming && (
+                    <div
+                      className={styles.menuWrapper}
+                      ref={menuOpenFor === c.id ? menuRef : undefined}
+                    >
+                      <button
+                        type="button"
+                        className={styles.menuTrigger}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setMenuOpenFor((prev) =>
+                            prev === c.id ? null : c.id
+                          );
+                        }}
+                        aria-label={`Options for ${c.title}`}
+                        aria-haspopup="menu"
+                        aria-expanded={menuOpenFor === c.id}
+                      >
+                        <span aria-hidden="true">⋯</span>
+                      </button>
+
+                      {menuOpenFor === c.id && (
+                        <div className={styles.menu} role="menu">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className={styles.menuItem}
+                            onClick={() => startRename(c.id, c.title)}
+                          >
+                            Rename
+                          </button>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className={`${styles.menuItem} ${styles.menuItemDanger}`}
+                            onClick={() => {
+                              setMenuOpenFor(null);
+                              onDelete(c.id);
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </aside>

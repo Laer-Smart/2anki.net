@@ -10,7 +10,9 @@ const conversations: ConversationSummary[] = [
   { id: 2, title: 'French verbs', updatedAt: '2026-06-09T00:00:00.000Z' },
 ];
 
-function renderSidebar(overrides: Partial<Parameters<typeof ConversationsSidebar>[0]> = {}) {
+function renderSidebar(
+  overrides: Partial<Parameters<typeof ConversationsSidebar>[0]> = {}
+) {
   const props = {
     conversations,
     activeId: null,
