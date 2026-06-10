@@ -14,6 +14,16 @@ interface Props {
   onNew: () => void;
   onRename: (id: number, title: string) => void;
   onDelete: (id: number) => void;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+function focusableElements(root: HTMLElement): HTMLElement[] {
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(
+      'button, [href], input, [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter((el) => !el.hasAttribute('disabled'));
 }
 
 function formatRelativeTime(iso: string): string {
@@ -40,12 +50,47 @@ export default function ConversationsSidebar({
   onNew,
   onRename,
   onDelete,
+  isOpen,
+  onClose,
 }: Props) {
   const [menuOpenFor, setMenuOpenFor] = useState<number | null>(null);
   const [renamingId, setRenamingId] = useState<number | null>(null);
   const [renameDraft, setRenameDraft] = useState('');
   const menuRef = useRef<HTMLDivElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
+  const asideRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const aside = asideRef.current;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    focusableElements(aside ?? document.body)[0]?.focus();
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || aside == null) return;
+      const focusables = focusableElements(aside);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      previouslyFocused?.focus();
+    };
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (menuOpenFor == null) return;
@@ -89,8 +134,22 @@ export default function ConversationsSidebar({
   }
 
   return (
-    <aside className={styles.sidebar} aria-label="Conversations">
-      <button type="button" className={styles.newChatBtn} onClick={onNew}>
+    <>
+      {isOpen && (
+        <button
+          type="button"
+          className={styles.scrim}
+          aria-label="Close conversations"
+          onClick={onClose}
+        />
+      )}
+      <aside
+        ref={asideRef}
+        id="conversations-sidebar"
+        className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}
+        aria-label="Conversations"
+      >
+        <button type="button" className={styles.newChatBtn} onClick={onNew}>
         New chat
       </button>
 
@@ -186,8 +245,9 @@ export default function ConversationsSidebar({
               </li>
             );
           })}
-        </ul>
-      )}
-    </aside>
+          </ul>
+        )}
+      </aside>
+    </>
   );
 }

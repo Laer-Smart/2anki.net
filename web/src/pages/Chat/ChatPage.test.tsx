@@ -408,3 +408,84 @@ describe('ChatPage — query-param handling', () => {
     ).toBeInTheDocument();
   });
 });
+
+describe('ChatPage — mobile conversation drawer', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+    mockGet.mockResolvedValue({ used: 0, limit: 20 });
+  });
+
+  it('exposes Past chats and New chat in the mobile bar', () => {
+    renderChatPage();
+    expect(
+      screen.getByRole('button', { name: 'Past chats' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('button', { name: 'New chat' }).length
+    ).toBeGreaterThanOrEqual(1);
+  });
+
+  it('opens the conversation drawer when Past chats is tapped', () => {
+    renderChatPage();
+    expect(
+      screen.queryByRole('button', { name: 'Close conversations' })
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Past chats' }));
+    expect(
+      screen.getByRole('button', { name: 'Close conversations' })
+    ).toBeInTheDocument();
+  });
+
+  it('closes the drawer when the scrim is tapped', () => {
+    renderChatPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Past chats' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Close conversations' })
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Close conversations' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('closes the drawer after selecting a conversation', async () => {
+    mockGet.mockImplementation((url: string) => {
+      if (url === '/api/chat/conversations') {
+        return Promise.resolve({
+          conversations: [
+            { id: 7, title: 'Krebs cycle', updatedAt: '2026-06-10T00:00:00.000Z' },
+          ],
+        });
+      }
+      if (url === '/api/chat/conversations/7') {
+        return Promise.resolve({
+          id: 7,
+          title: 'Krebs cycle',
+          draft: null,
+          templateSlug: null,
+          createdAt: '2026-06-10T00:00:00.000Z',
+          updatedAt: '2026-06-10T00:00:00.000Z',
+          messages: [],
+        });
+      }
+      return Promise.resolve({ used: 0, limit: 20 });
+    });
+
+    renderChatPage();
+    await waitFor(() => {
+      expect(screen.getByText('Krebs cycle')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Past chats' }));
+    expect(
+      screen.getByRole('button', { name: 'Close conversations' })
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Krebs cycle'));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('button', { name: 'Close conversations' })
+      ).not.toBeInTheDocument();
+    });
+  });
+});
