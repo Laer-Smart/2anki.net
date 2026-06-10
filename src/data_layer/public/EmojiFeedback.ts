@@ -15,6 +15,8 @@ export default interface EmojiFeedback {
   page: string;
 
   created_at: Date;
+
+  email: string | null;
 }
 
 /** Represents the initializer for the table public.emoji_feedback */
@@ -30,6 +32,9 @@ export interface EmojiFeedbackInitializer {
 
   /** Default value: CURRENT_TIMESTAMP */
   created_at?: Date;
+
+  /** Default value: NULL::character varying */
+  email?: string | null;
 }
 
 /** Represents the mutator for the table public.emoji_feedback */
@@ -43,4 +48,6 @@ export interface EmojiFeedbackMutator {
   page?: string;
 
   created_at?: Date;
+
+  email?: string | null;
 }
