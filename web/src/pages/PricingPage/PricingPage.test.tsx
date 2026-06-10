@@ -16,6 +16,7 @@ const mockStartAutoSyncCheckout = vi.fn();
 const mockRequestHostedAnkiAccess = vi.fn();
 const mockStartPassCheckout = vi.fn();
 const mockStartUnlimitedCheckout = vi.fn();
+const mockGetCheckoutPrices = vi.fn();
 
 vi.mock('../../lib/backend/get2ankiApi', () => ({
   get2ankiApi: () => ({
@@ -23,6 +24,7 @@ vi.mock('../../lib/backend/get2ankiApi', () => ({
     startAutoSyncCheckout: mockStartAutoSyncCheckout,
     startPassCheckout: mockStartPassCheckout,
     startUnlimitedCheckout: mockStartUnlimitedCheckout,
+    getCheckoutPrices: mockGetCheckoutPrices,
   }),
 }));
 
@@ -52,6 +54,7 @@ vi.mock('../../lib/hooks/usePricingOrderVariant', () => ({
 
 beforeEach(() => {
   mockPricingVariant.current = 'passes-first';
+  mockGetCheckoutPrices.mockResolvedValue(null);
 });
 
 type AnalyticsGlobals = {
@@ -609,22 +612,25 @@ describe('PricingPage Unlimited billing toggle', () => {
     const group = screen.getByRole('radiogroup', { name: 'Billing cycle' });
     expect(group).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Monthly' })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'Yearly' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('radio', { name: 'Yearly · save 17%' })
+    ).toBeInTheDocument();
   });
 
-  it('shows $6 / mo by default', () => {
+  it('defaults to the annual per-month hero price', () => {
     renderAt('/pricing', { unlimitedYearlyAvailable: true });
-    const price = screen.getByText('$6');
+    const price = screen.getByText('$5.00');
     expect(price).toBeInTheDocument();
-    expect(price.parentElement?.textContent ?? '').toContain('/ mo');
+    expect(
+      screen.getByText('$60/year billed yearly · save 17%')
+    ).toBeInTheDocument();
   });
 
-  it('shows $60 / yr and 2 months free after selecting Yearly', () => {
+  it('shows the monthly hero price after selecting Monthly', () => {
     renderAt('/pricing', { unlimitedYearlyAvailable: true });
-    fireEvent.click(screen.getByRole('radio', { name: 'Yearly' }));
-    expect(screen.getByText('$60')).toBeInTheDocument();
-    expect(screen.getByText('/ yr')).toBeInTheDocument();
-    expect(screen.getByText('2 months free')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: 'Monthly' }));
+    expect(screen.getByText('$6')).toBeInTheDocument();
+    expect(screen.getByText('billed monthly')).toBeInTheDocument();
   });
 
   it('calls startUnlimitedCheckout with month when Monthly is selected', async () => {
@@ -637,6 +643,7 @@ describe('PricingPage Unlimited billing toggle', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: true, unlimitedYearlyAvailable: true });
+    fireEvent.click(screen.getByRole('radio', { name: 'Monthly' }));
     fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {
@@ -648,7 +655,7 @@ describe('PricingPage Unlimited billing toggle', () => {
     });
   });
 
-  it('calls startUnlimitedCheckout with year when Yearly is selected', async () => {
+  it('calls startUnlimitedCheckout with year by default', async () => {
     mockStartUnlimitedCheckout.mockResolvedValue({
       url: 'https://checkout.stripe.com/year',
     });
@@ -658,7 +665,6 @@ describe('PricingPage Unlimited billing toggle', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: true, unlimitedYearlyAvailable: true });
-    fireEvent.click(screen.getByRole('radio', { name: 'Yearly' }));
     fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
 
     await waitFor(() => {

@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
-import UnlimitedCheckoutController from './UnlimitedCheckoutController';
+import UnlimitedCheckoutController, {
+  UnlimitedCheckoutContext,
+} from './UnlimitedCheckoutController';
 import { UnlimitedCheckoutUseCase } from '../usecases/checkout/UnlimitedCheckoutUseCase';
 
 const makeResponse = (locals: Record<string, unknown> = {}) => {
@@ -21,18 +23,32 @@ const makeResponse = (locals: Record<string, unknown> = {}) => {
   return res;
 };
 
-const makeUseCase = () =>
+const makeUseCase = (cohort: 'legacy' | 'v2' = 'legacy') =>
   ({
     execute: jest
       .fn()
-      .mockResolvedValue({ url: 'https://checkout.stripe.com/test' }),
+      .mockResolvedValue({ url: 'https://checkout.stripe.com/test', cohort }),
   }) as unknown as UnlimitedCheckoutUseCase;
+
+const makeContext = (
+  overrides: Partial<UnlimitedCheckoutContext> = {}
+): UnlimitedCheckoutContext => ({
+  pricingV2On: false,
+  getUserCreatedAt: jest.fn().mockResolvedValue(null),
+  ...overrides,
+});
+
+const makeSink = () => ({ record: jest.fn() });
 
 describe('UnlimitedCheckoutController', () => {
   it('returns 400 when interval is missing', async () => {
     const req = { body: {} } as Request;
     const res = makeResponse();
-    const controller = new UnlimitedCheckoutController(makeUseCase());
+    const controller = new UnlimitedCheckoutController(
+      makeUseCase(),
+      makeContext(),
+      makeSink()
+    );
 
     await controller.createSession(req, res as unknown as Response);
 
@@ -43,7 +59,11 @@ describe('UnlimitedCheckoutController', () => {
   it('returns 400 when interval is invalid', async () => {
     const req = { body: { interval: 'weekly' } } as Request;
     const res = makeResponse();
-    const controller = new UnlimitedCheckoutController(makeUseCase());
+    const controller = new UnlimitedCheckoutController(
+      makeUseCase(),
+      makeContext(),
+      makeSink()
+    );
 
     await controller.createSession(req, res as unknown as Response);
 
@@ -51,11 +71,16 @@ describe('UnlimitedCheckoutController', () => {
     expect(res.body).toMatchObject({ message: expect.any(String) });
   });
 
-  it('returns 200 with url when interval is month', async () => {
+  it('returns 200 with url and passes the flag and createdAt to the use case', async () => {
     const req = { body: { interval: 'month' } } as Request;
     const res = makeResponse();
     const uc = makeUseCase();
-    const controller = new UnlimitedCheckoutController(uc);
+    const createdAt = new Date('2026-06-10T00:00:00Z');
+    const context = makeContext({
+      pricingV2On: true,
+      getUserCreatedAt: jest.fn().mockResolvedValue(createdAt),
+    });
+    const controller = new UnlimitedCheckoutController(uc, context, makeSink());
 
     await controller.createSession(req, res as unknown as Response);
 
@@ -66,27 +91,29 @@ describe('UnlimitedCheckoutController', () => {
         interval: 'month',
         userId: 42,
         userEmail: 'user@example.com',
+        pricingV2On: true,
+        createdAt,
       })
     );
   });
 
-  it('returns 200 with url when interval is year', async () => {
+  it('records a checkout_started event with the resolved cohort', async () => {
     const req = { body: { interval: 'year' } } as Request;
     const res = makeResponse();
-    const uc = makeUseCase();
-    const controller = new UnlimitedCheckoutController(uc);
+    const sink = makeSink();
+    const controller = new UnlimitedCheckoutController(
+      makeUseCase('v2'),
+      makeContext({ pricingV2On: true }),
+      sink
+    );
 
     await controller.createSession(req, res as unknown as Response);
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual({ url: 'https://checkout.stripe.com/test' });
-    expect(uc.execute as jest.Mock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        interval: 'year',
-        userId: 42,
-        userEmail: 'user@example.com',
-      })
-    );
+    expect(sink.record).toHaveBeenCalledWith({
+      name: 'checkout_started',
+      user_id: 42,
+      props: { plan: 'unlimited', interval: 'year', cohort: 'v2' },
+    });
   });
 
   it('forwards the anon_id cookie to the use case when present', async () => {
@@ -96,7 +123,11 @@ describe('UnlimitedCheckoutController', () => {
     } as unknown as Request;
     const res = makeResponse();
     const uc = makeUseCase();
-    const controller = new UnlimitedCheckoutController(uc);
+    const controller = new UnlimitedCheckoutController(
+      uc,
+      makeContext(),
+      makeSink()
+    );
 
     await controller.createSession(req, res as unknown as Response);
 
@@ -110,7 +141,11 @@ describe('UnlimitedCheckoutController', () => {
     const uc = { execute } as unknown as UnlimitedCheckoutUseCase;
     const req = { body: { interval: 'month' } } as Request;
     const res = makeResponse();
-    const controller = new UnlimitedCheckoutController(uc);
+    const controller = new UnlimitedCheckoutController(
+      uc,
+      makeContext(),
+      makeSink()
+    );
 
     await expect(
       controller.createSession(req, res as unknown as Response)

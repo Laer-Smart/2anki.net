@@ -1,4 +1,10 @@
 import styles from '../PricingPage.module.css';
+import {
+  annualSavingsPercent,
+  formatAnnual,
+  formatAnnualPerMonth,
+  formatMonthly,
+} from '../pricing.constants';
 
 interface UnlimitedCardProps {
   isLoggedIn: boolean;
@@ -7,7 +13,9 @@ interface UnlimitedCardProps {
   yearlyAvailable: boolean;
   onUpgrade: () => void;
   pending: boolean;
-  featured?: boolean;
+  monthlyCents: number;
+  annualCents: number;
+  error?: boolean;
 }
 
 function CheckIcon() {
@@ -47,25 +55,63 @@ export function UnlimitedCard({
   yearlyAvailable,
   onUpgrade,
   pending,
-  featured = false,
+  monthlyCents,
+  annualCents,
+  error = false,
 }: Readonly<UnlimitedCardProps>) {
   const isYearly = billingCycle === 'year';
-  const price = isYearly ? '$60' : '$6';
-  const priceSuffix = isYearly ? '/ yr' : '/ mo';
+  const savings = annualSavingsPercent(monthlyCents, annualCents);
+  const heroPrice = isYearly
+    ? formatAnnualPerMonth(annualCents)
+    : formatMonthly(monthlyCents);
+  const annualTotal = formatAnnual(annualCents);
+  const monthlyTotal = formatMonthly(monthlyCents);
+
+  const terms = isYearly
+    ? `${annualTotal}/year, renews annually. Cancel anytime.`
+    : `${monthlyTotal}/month, renews monthly. Cancel anytime.`;
+
+  function getButtonLabel(): string {
+    if (error) return 'Try again';
+    if (pending) return 'Starting checkout';
+    return 'Get Unlimited';
+  }
 
   return (
-    <div
-      className={featured ? `${styles.card} ${styles.cardPro}` : styles.card}
-    >
-      {featured && <span className={styles.cardBadge}>Most popular</span>}
+    <div className={`${styles.card} ${styles.cardPro}`}>
+      <span className={styles.cardBadge}>Most popular</span>
       <div className={styles.cardHeader}>
         <p className={styles.cardTitle}>Unlimited</p>
+        <span className={styles.cardPriceLine}>
+          <span className={styles.cardPrice}>{heroPrice}</span>
+          <span className={styles.cardPriceSuffix}>/ mo</span>
+        </span>
+        {isYearly ? (
+          <p className={styles.yearlyHint}>
+            {annualTotal}/year billed yearly · save {savings}%
+          </p>
+        ) : (
+          <p className={styles.yearlyHint}>billed monthly</p>
+        )}
         {yearlyAvailable && (
           <div
             role="radiogroup"
             aria-label="Billing cycle"
             className={styles.billingToggle}
           >
+            <button
+              type="button"
+              role="radio"
+              aria-checked={isYearly}
+              className={
+                isYearly
+                  ? styles.billingToggleOptionActive
+                  : styles.billingToggleOption
+              }
+              onClick={() => onBillingCycleChange('year')}
+            >
+              Yearly · save {savings}%
+            </button>
             <button
               type="button"
               role="radio"
@@ -79,26 +125,8 @@ export function UnlimitedCard({
             >
               Monthly
             </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={isYearly}
-              className={
-                isYearly
-                  ? styles.billingToggleOptionActive
-                  : styles.billingToggleOption
-              }
-              onClick={() => onBillingCycleChange('year')}
-            >
-              Yearly
-            </button>
           </div>
         )}
-        <span className={styles.cardPriceLine}>
-          <span className={styles.cardPrice}>{price}</span>
-          <span className={styles.cardPriceSuffix}>{priceSuffix}</span>
-        </span>
-        {isYearly && <p className={styles.yearlyHint}>2 months free</p>}
       </div>
       <div className={styles.cardBody}>
         {BENEFITS.map((benefit) => (
@@ -115,8 +143,15 @@ export function UnlimitedCard({
           onClick={onUpgrade}
           disabled={pending}
         >
-          {pending ? 'Starting checkout' : 'Get Unlimited'}
+          {getButtonLabel()}
         </button>
+        {error ? (
+          <p className={styles.cardCaption}>
+            Couldn't start checkout. Try again, or email support@2anki.net.
+          </p>
+        ) : (
+          <p className={styles.cardTerms}>{terms}</p>
+        )}
       </div>
     </div>
   );

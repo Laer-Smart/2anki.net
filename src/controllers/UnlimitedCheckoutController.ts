@@ -6,11 +6,21 @@ import {
 import { parsePricingVariant } from '../usecases/checkout/pricingVariant';
 import { parseCheckoutSurface } from '../usecases/checkout/checkoutSurface';
 import { parseGaClientId } from '../usecases/checkout/gaClientId';
+import type { EventsSink } from '../services/events/EventsSink';
 
 const VALID_INTERVALS: ReadonlySet<string> = new Set(['month', 'year']);
 
+export interface UnlimitedCheckoutContext {
+  pricingV2On: boolean;
+  getUserCreatedAt: (userId: number) => Promise<Date | null>;
+}
+
 class UnlimitedCheckoutController {
-  constructor(private readonly useCase: UnlimitedCheckoutUseCase) {}
+  constructor(
+    private readonly useCase: UnlimitedCheckoutUseCase,
+    private readonly context: UnlimitedCheckoutContext,
+    private readonly eventsSink: Pick<EventsSink, 'record'>
+  ) {}
 
   async createSession(req: Request, res: Response): Promise<void> {
     const interval = req.body?.interval;
@@ -23,6 +33,7 @@ class UnlimitedCheckoutController {
     const userEmail = res.locals.email as string;
     const anonId = (req.cookies?.anon_id as string | undefined) ?? undefined;
     const gaClientId = parseGaClientId(req.cookies?._ga);
+    const createdAt = await this.context.getUserCreatedAt(userId);
 
     const result = await this.useCase.execute({
       userId,
@@ -32,8 +43,21 @@ class UnlimitedCheckoutController {
       anonId,
       surface: parseCheckoutSurface(req.body?.surface),
       gaClientId,
+      pricingV2On: this.context.pricingV2On,
+      createdAt,
     });
-    res.json(result);
+
+    this.eventsSink.record({
+      name: 'checkout_started',
+      user_id: userId,
+      props: {
+        plan: 'unlimited',
+        interval,
+        cohort: result.cohort,
+      },
+    });
+
+    res.json({ url: result.url });
   }
 }
 

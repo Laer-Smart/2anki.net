@@ -17,6 +17,7 @@ import { PricingFaq } from './components/PricingFaq';
 import { UnlimitedCard } from './components/UnlimitedCard';
 import styles from './PricingPage.module.css';
 import { getLifetimeLink } from './payment.links';
+import { LEGACY_UNLIMITED_PRICING } from './pricing.constants';
 import { PRICING_FAQ } from './pricingFaq';
 
 interface PricingPageProps {
@@ -66,8 +67,10 @@ export default function PricingPage({
   const [subscribeError, setSubscribeError] = useState<string | null>(null);
   const [dayPassState, setDayPassState] = useState<PassState>('idle');
   const [weekPassState, setWeekPassState] = useState<PassState>('idle');
-  const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('month');
+  const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('year');
   const [unlimitedPending, setUnlimitedPending] = useState(false);
+  const [unlimitedError, setUnlimitedError] = useState(false);
+  const [pricing, setPricing] = useState(LEGACY_UNLIMITED_PRICING);
   const [searchParams] = useSearchParams();
   const fromPaywall = searchParams.get('source') === 'paywall-cancel';
   const fromContext = searchParams.get('from');
@@ -83,6 +86,30 @@ export default function PricingPage({
       : null;
 
   const isLifetime = patreon === true;
+
+  useEffect(() => {
+    let cancelled = false;
+    get2ankiApi()
+      .getCheckoutPrices()
+      .then((result) => {
+        if (cancelled || result == null) return;
+        setPricing({
+          monthlyCents: result.monthly.cents,
+          annualCents: result.annual.cents,
+          legacy: result.legacy,
+          lockInDeadline: result.lockInDeadline,
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const selectBillingCycle = (cycle: 'month' | 'year') => {
+    setBillingCycle(cycle);
+    track('plan_interval_selected', { interval: cycle });
+  };
 
   useEffect(() => {
     if (shownFiredRef.current) return;
@@ -210,6 +237,7 @@ export default function PricingPage({
       plan: 'unlimited',
       variant: pricingOrder,
     });
+    setUnlimitedError(false);
     setUnlimitedPending(true);
     const result = await get2ankiApi().startUnlimitedCheckout(
       billingCycle,
@@ -221,6 +249,7 @@ export default function PricingPage({
       return;
     }
     setUnlimitedPending(false);
+    setUnlimitedError(true);
   };
 
   const autoSyncCaptionText =
@@ -262,7 +291,7 @@ export default function PricingPage({
       onWeekPass={() => handlePassCheckout('7d')}
       dayPassPending={dayPassState === 'pending'}
       weekPassPending={weekPassState === 'pending'}
-      featureDayPass={!unlimitedFirst}
+      featureDayPass={false}
     />
   );
 
@@ -271,11 +300,13 @@ export default function PricingPage({
       <UnlimitedCard
         isLoggedIn={isLoggedIn}
         billingCycle={billingCycle}
-        onBillingCycleChange={setBillingCycle}
+        onBillingCycleChange={selectBillingCycle}
         yearlyAvailable={unlimitedYearlyAvailable}
         onUpgrade={handleUnlimitedUpgrade}
         pending={unlimitedPending}
-        featured={unlimitedFirst}
+        monthlyCents={pricing.monthlyCents}
+        annualCents={pricing.annualCents}
+        error={unlimitedError}
       />
 
       <div id="auto-sync">
