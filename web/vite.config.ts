@@ -9,7 +9,7 @@ import {
   emitMetaOnlyPages,
   emitNotionMarketplacePage,
 } from './scripts/prerenderLandingPages';
-import { keepManifestSameOrigin } from './scripts/keepManifestSameOrigin';
+import { keepRootAssetsSameOrigin } from './scripts/keepRootAssetsSameOrigin';
 
 const SHORT_SHA_LENGTH = 7;
 const FULL_SHA_PATTERN = /^[0-9a-f]{40}$/i;
@@ -50,12 +50,12 @@ function landingPrerender(): Plugin {
   };
 }
 
-function manifestSameOrigin(): Plugin {
+function rootAssetsSameOrigin(): Plugin {
   return {
-    name: '2anki-manifest-same-origin',
+    name: '2anki-root-assets-same-origin',
     enforce: 'post',
     transformIndexHtml(html) {
-      return keepManifestSameOrigin(html);
+      return keepRootAssetsSameOrigin(html);
     },
   };
 }
@@ -84,7 +84,7 @@ export default defineConfig(({ command, mode }) => {
         include: '**/*.svg',
       }),
       landingPrerender(),
-      manifestSameOrigin(),
+      rootAssetsSameOrigin(),
     ],
 
     // Test configuration
