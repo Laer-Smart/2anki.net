@@ -84,9 +84,10 @@ describe('LimitPage', () => {
     expect(screen.queryByText('Get Auto Sync')).toBeNull();
   });
 
-  it('shows the Unlimited price', () => {
+  it('does not show a hardcoded Unlimited monthly price', () => {
     renderPage();
-    expect(screen.getByText('$6')).toBeTruthy();
+    expect(screen.queryByText('$6')).toBeNull();
+    expect(screen.getByText('Upgrade to Unlimited')).toBeTruthy();
   });
 
   it('shows a back link to /upload', () => {

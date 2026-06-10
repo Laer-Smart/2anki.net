@@ -3,7 +3,6 @@ import { Fragment } from 'react';
 import styles from './ComparisonTable.module.css';
 
 const PLANS = ['Free', 'Day / Week pass', 'Unlimited', 'Auto Sync', 'Lifetime'];
-const PLAN_PRICES = ['$0', '$4 / $9', '$6 / mo', '$30 / mo', 'From $345'];
 
 type Cell = boolean | string;
 
@@ -147,7 +146,21 @@ function renderCell(value: Cell) {
   return value;
 }
 
-export function ComparisonTable() {
+interface ComparisonTableProps {
+  unlimitedMonthlyPrice: string;
+}
+
+export function ComparisonTable({
+  unlimitedMonthlyPrice,
+}: Readonly<ComparisonTableProps>) {
+  const planPrices = [
+    '$0',
+    '$4 / $9',
+    `${unlimitedMonthlyPrice} / mo`,
+    '$30 / mo',
+    'From $345',
+  ];
+
   return (
     <section className={styles.section} aria-labelledby="comparison-heading">
       <h2 id="comparison-heading" className={styles.heading}>
@@ -163,7 +176,7 @@ export function ComparisonTable() {
               {PLANS.map((plan, i) => (
                 <th key={plan} scope="col" className={styles.planCell}>
                   <span className={styles.planName}>{plan}</span>
-                  <span className={styles.planPrice}>{PLAN_PRICES[i]}</span>
+                  <span className={styles.planPrice}>{planPrices[i]}</span>
                 </th>
               ))}
             </tr>

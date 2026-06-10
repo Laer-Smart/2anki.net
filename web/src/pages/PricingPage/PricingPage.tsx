@@ -17,7 +17,7 @@ import { PricingFaq } from './components/PricingFaq';
 import { UnlimitedCard } from './components/UnlimitedCard';
 import styles from './PricingPage.module.css';
 import { getLifetimeLink } from './payment.links';
-import { LEGACY_UNLIMITED_PRICING } from './pricing.constants';
+import { formatMonthly, LEGACY_UNLIMITED_PRICING } from './pricing.constants';
 import { PRICING_FAQ } from './pricingFaq';
 
 interface PricingPageProps {
@@ -28,7 +28,6 @@ interface PricingPageProps {
   signupCountry?: string | null;
   autoSyncCapReached?: boolean;
   autoSyncActive?: boolean;
-  unlimitedYearlyAvailable?: boolean;
 }
 
 type RequestState = 'idle' | 'pending' | 'sent' | 'error';
@@ -59,7 +58,6 @@ export default function PricingPage({
   signupCountry,
   autoSyncCapReached = false,
   autoSyncActive = false,
-  unlimitedYearlyAvailable = false,
 }: Readonly<PricingPageProps>) {
   const isUS = signupCountry === 'US';
   const lifetimeLink = getLifetimeLink();
@@ -86,6 +84,7 @@ export default function PricingPage({
       : null;
 
   const isLifetime = patreon === true;
+  const yearlyAvailable = pricing.annualCents > 0;
 
   useEffect(() => {
     let cancelled = false;
@@ -301,7 +300,7 @@ export default function PricingPage({
         isLoggedIn={isLoggedIn}
         billingCycle={billingCycle}
         onBillingCycleChange={selectBillingCycle}
-        yearlyAvailable={unlimitedYearlyAvailable}
+        yearlyAvailable={yearlyAvailable}
         onUpgrade={handleUnlimitedUpgrade}
         pending={unlimitedPending}
         monthlyCents={pricing.monthlyCents}
@@ -427,7 +426,9 @@ export default function PricingPage({
 
       <FeatureGrid />
 
-      <ComparisonTable />
+      <ComparisonTable
+        unlimitedMonthlyPrice={formatMonthly(pricing.monthlyCents)}
+      />
 
       <PricingFaq />
 

@@ -47,7 +47,7 @@ function buildJob(overrides: Partial<JobResponse> = {}): JobResponse {
 
 function getUpgradeButton() {
   return screen.getByRole('button', {
-    name: /Upgrade to Unlimited — \$6 \/ mo/,
+    name: /Upgrade to Unlimited/,
   });
 }
 

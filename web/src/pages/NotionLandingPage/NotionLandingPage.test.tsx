@@ -38,10 +38,11 @@ describe('NotionLandingPage', () => {
     );
   });
 
-  it('features the Unlimited plan card', () => {
+  it('features the Unlimited plan card without a hardcoded monthly price', () => {
     renderPage();
     expect(screen.getByText('Unlimited')).toBeInTheDocument();
-    expect(screen.getByText('$6')).toBeInTheDocument();
+    expect(screen.getByText('See pricing')).toBeInTheDocument();
+    expect(screen.queryByText('$6')).not.toBeInTheDocument();
     expect(screen.getByText('Recommended')).toBeInTheDocument();
   });
 
