@@ -13,7 +13,7 @@ Patterns the SonarCloud quality gate, the project RULES.md, and review history h
 | Do not skip layers (controller → repository, route → service). | Route → controller → use case → service → data layer. Each layer's CLAUDE.md says what belongs there. | — |
 | Do not put business logic in routes or controllers. | Controllers shape HTTP; use cases orchestrate; services hold reusable domain logic. | — |
 | Do not import `knex` outside `src/data_layer/`. | Take a repository interface in the constructor; tests inject a fake. | — |
-| Do not use chained nested ternaries. | Extract to a function with named branches; Biome's `noNestedTernary` will fail the web lint anyway. | — |
+| Do not use chained nested ternaries. | Extract to a function with named branches; oxlint's `no-nested-ternary` will fail the web lint anyway. | — |
 | Do not add a flag-on-flag option to a function (`opts.x`, `opts.skipX`, `opts.forceX`). | Two functions, or two call sites. Boolean parameter explosion is a code smell. | — |
 | Do not catch an error only to rethrow the same error. | Drop the try/catch; let it propagate to `ErrorHandler`. | CWE-755 |
 | Do not stack PRs (feature B branched off feature A's branch). | One PR per feature off `main`. The deploy pipeline ships a single branch. | — |

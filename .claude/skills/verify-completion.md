@@ -18,7 +18,7 @@ Before marking a task complete, prove the work is shippable. Run, in this order,
 4. **Web tests**
    `pnpm --filter 2anki-web test:run`
 
-5. **Web lint** (Biome — mirrors SonarCloud rules locally)
+5. **Web lint** (oxlint — mirrors SonarCloud rules locally)
    `pnpm --filter 2anki-web lint`
 
 6. **Working tree clean of scaffolding**
