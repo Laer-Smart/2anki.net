@@ -62,7 +62,12 @@ export class SendPriceLockInEmailsUseCase {
     const count = variantA + variantB;
     this.eventsSink?.record({
       name: 'email_batch_sent',
-      props: { campaign: 'price_lock_in', count, variant_a: variantA, variant_b: variantB },
+      props: {
+        campaign: 'price_lock_in',
+        count,
+        variant_a: variantA,
+        variant_b: variantB,
+      },
     });
 
     return { count, dryRun: false, variantA, variantB };

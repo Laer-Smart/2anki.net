@@ -30,9 +30,7 @@ interface EmailRow {
   user_id: number;
 }
 
-export class PriceLockInEmailRepository
-  implements IPriceLockInEmailRepository
-{
+export class PriceLockInEmailRepository implements IPriceLockInEmailRepository {
   private readonly table = 'price_lock_in_emails';
 
   constructor(private readonly database: Knex) {}
@@ -40,8 +38,7 @@ export class PriceLockInEmailRepository
   private buildSegmentQuery() {
     const now = new Date();
     const ageCutoff = new Date(
-      now.getTime() -
-        PRICE_LOCK_IN_MIN_ACCOUNT_AGE_DAYS * 24 * 60 * 60 * 1000
+      now.getTime() - PRICE_LOCK_IN_MIN_ACCOUNT_AGE_DAYS * 24 * 60 * 60 * 1000
     );
 
     return this.database<UserRow>('users')
@@ -119,9 +116,7 @@ export class PriceLockInEmailRepository
   }
 }
 
-export class InMemoryPriceLockInEmailRepository
-  implements IPriceLockInEmailRepository
-{
+export class InMemoryPriceLockInEmailRepository implements IPriceLockInEmailRepository {
   private usersToReturn: PriceLockInRecipient[] = [];
   private readonly sentUserIds = new Set<number>();
   private emails: Array<{
