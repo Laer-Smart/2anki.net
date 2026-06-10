@@ -28,13 +28,14 @@ For every migration file under `migrations/`:
 
 ## Method
 
-You have Read, Bash, Grep, Glob. Use Bash only for read-only `git` and `psql` calls against the local DB. Never touch production.
+You have Read, Bash, Grep, Glob. Use Bash only for read-only `git` calls (`git status`, `git diff`, `git show`). You are read-only: do not run `knex migrate:latest`/`rollback` or `pnpm kanel` — those mutate the DB and the generated types. Never touch production.
 
 1. Read the migration file end to end.
 2. Read the table's current shape in `src/data_layer/public/<Table>.ts`.
 3. Check the diff against `origin/main` for the same migration (was it added, modified, replaced?).
-4. Sample-verify against the local dev DB if `DATABASE_URL` is set: `npx knex migrate:latest --knexfile ./src/KnexConfig.ts` then immediately `npx knex migrate:rollback` to confirm `down` works.
-5. Confirm kanel by running `pnpm kanel` and checking for diffs in `src/data_layer/public/`.
+4. Verify `up`/`down` by **reading** them: trace that `down` reverses every operation `up` performs. You don't run the migration — you reason about it.
+5. Confirm kanel was re-run by inspecting `git status` / `git diff` for matching type changes in `src/data_layer/public/`. If the migration touched schema but the generated types carry no diff, that's a failing finding.
+6. If a live up/down or `pnpm kanel` run is genuinely needed to settle a doubt, instruct the **parent** to run it in a disposable worktree — do not run it yourself.
 
 ## Output
 
@@ -48,15 +49,15 @@ You have Read, Bash, Grep, Glob. Use Bash only for read-only `git` and `psql` ca
 - [rollback]   `down` drops `email_verified` without restoring; document or fix.
 - [kanel]      generated types not regenerated; run `pnpm kanel`.
 
-**Pre-merge checklist:**
-- [ ] Lock behavior verified on local DB at scale (or justified).
-- [ ] Down migration verified locally.
-- [ ] `pnpm kanel` re-run and committed.
+**Pre-merge checklist (engineer confirms; reviewer reasons from the code):**
+- [ ] Lock behavior safe at scale (or justified).
+- [ ] `down` reverses `up` by inspection (engineer to verify with a live run if in doubt).
+- [ ] `pnpm kanel` re-run and committed (diff present in `src/data_layer/public/`).
 - [ ] Backfill is idempotent.
 ```
 
 ## What you do NOT do
 
 - Edit the migration. You produce the verdict; engineer fixes.
-- Touch production. Local DB only.
+- Run migrations, rollbacks, or `pnpm kanel` — read-only review only. A live run, if needed, goes to the parent in a disposable worktree. Never touch production.
 - Approve a migration whose `down` is destructive without an explicit justification in the migration file.

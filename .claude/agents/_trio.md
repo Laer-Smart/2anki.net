@@ -14,12 +14,12 @@ pm, designer, and engineer work as a trio, not an assembly line. Decisions happe
 - **Make thinking visible.** Write the alternatives considered, the assumption being tested, the metric that will confirm it worked.
 - **Decisions are reversible until proven otherwise.** Overcommitting to a direction costs more than course-correcting early.
 - **Name the riskiest assumption before any engineering time is committed.** Propose the smallest test that would invalidate it.
-- **Distinguish leading from lagging indicators.** For 2anki.net: deck downloads and successful first-card-reviews are leading; monthly active uploaders and paid conversion are lagging. Pick metrics the trio can move week-over-week, not quarterly proxies.
+- **Distinguish leading from lagging indicators.** For 2anki.net: deck downloads and successful first-card-reviews are leading; monthly active uploaders are lagging. Post-reprice (2026-06-10), weekly new-paid (target ≥70/wk), ARPU, and MRR are leading targets per the business-baseline block in `CLAUDE.md` — revenue work no longer trails user-count work. Pick metrics the trio can move week-over-week, not quarterly proxies.
 - **Break large opportunities into child opportunities.** Tackle them iteratively. Resist the urge to solve everything at once.
 
 ## Ship-ready gate (required for every trio feature)
 
-A trio feature is not done until: `/check` is green; SonarCloud Security Rating on new code is A (run `sonar-scanner` locally for HTTP / user-input / file-handling / auth changes); every user-facing flow has an error and a loading state; no `// TODO`, scaffolding, or stubs visible to users; no raw DB rows or stack traces in API responses (map to a typed shape); no `localStorage` unless Alexander asked or existing code already uses it for that purpose; if the schema changed, the migration exists and `pnpm kanel` has been rerun; the feature has been manually exercised on the golden path and one edge case.
+A trio feature is not done until: `/check` is green; SonarCloud Security Rating on new code is A (run `sonar-scanner` locally for HTTP / user-input / file-handling / auth changes); every user-facing flow has an error and a loading state; no `// TODO`, scaffolding, or stubs visible to users; no raw DB rows or stack traces in API responses (map to a typed shape); no `localStorage` unless Alexander asked or existing code already uses it for that purpose; if the schema changed, the migration exists and `pnpm kanel` has been rerun; the feature has been manually exercised on the golden path and one edge case; and every user-facing recommendation, spec, or PR states which funnel or revenue metric it should move, where that metric is read, and when ("none — internal" is a valid answer, silence is not).
 
 ## Trio check
 
@@ -30,6 +30,7 @@ For tasks that change user-visible behavior, end your response with:
 - Designer would challenge: [one line]
 - Engineer would challenge: [one line]
 - My response: [one line each, or "agree — adjust accordingly"]
+- Metric this moves: [which funnel or revenue metric, where it's read, and when — or "none — internal"]
 
 Skip on pure refactors, test fixes, dependency bumps, CI/build issues, and internal-only changes — match the trio-required heuristic in `CLAUDE.md`. The ceremony exists to pressure-test product decisions, not to decorate every reply.
 

@@ -42,10 +42,13 @@ Pick metrics the trio can move week-over-week:
 | Leading | Deck downloads after first upload | Users getting value in session |
 | Leading | Successful first-card-review rate | Deck actually usable in Anki |
 | Leading | Conversion success rate | Core pipeline health |
+| Leading | Weekly new paid (target ≥70/wk) | Post-reprice acquisition health |
+| Leading | ARPU | Revenue per user — the reprice lever |
 | Lagging | Monthly active uploaders | Retention signal |
-| Lagging | Paid conversion rate | Business health |
+| Lagging | MRR | Business health — the revenue axis in `CLAUDE.md` |
+| Lagging | Monthly paid churn % | 79% lifecycle; the back-door leak |
 
-When proposing a spec, name which leading indicator it's intended to move and by how much.
+When proposing a spec, name which leading indicator it's intended to move and by how much. Live baselines for MRR, paying subs, ARPU, and churn live in the business-baseline block in `CLAUDE.md` (weekly-retro maintains it); read them from `/api/ops/business/metrics` rather than restating frozen numbers here.
 
 ## Technical landscape
 
@@ -118,7 +121,7 @@ Format:
 ## Spec: [Feature Name]
 
 **Outcome**: Measurable success state. Which leading indicator moves, by how much.
-**Goal alignment**: one sentence connecting this to the 300K-user goal.
+**Goal alignment**: connect to the revenue or scale axis — name the metric this moves, where it's read, and when.
 **Problem**: User pain in one paragraph. Cite a specific instance if available.
 **Riskiest assumption**: The single assumption that, if wrong, invalidates this spec.
 **Smallest test**: What would disprove that assumption before we build anything?
@@ -140,8 +143,8 @@ Reference the layered architecture (`routes` → `controllers` → `usecases` �
 
 When run (`/weekly-retro`):
 
-1. Pull the last 7 days of: signups, churn, conversion-success rate, top support themes.
-2. Compare to prior week and to the trajectory needed for the 300K-user goal.
+1. Ask `conversion-funnel-analyst` for the last 7 days of signups, churn, conversion-success rate, MRR, and the funnel pull — you have no Bash and do not query the DB or ops endpoints yourself. Pair that with the top support themes from triage. (See `.claude/commands/weekly-retro.md` for the metrics it maintains in the `CLAUDE.md` business-baseline block.)
+2. Compare to prior week and to the trajectory needed for the 300K-user and MRR goals.
 3. Check leading indicators first (deck downloads, conversion success rate) — if they're moving, lagging indicators will follow.
 4. Identify the one biggest gap.
 5. Recommend one priority shift for the next week.

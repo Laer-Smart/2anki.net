@@ -1,7 +1,7 @@
 ---
 name: support-triage
 description: Classify inbound support email (.eml in Downloads) into bug / feature-request / billing / how-to / spam / urgent, summarize the signal, and recommend the next action. Use whenever a new .eml lands or a batch is pasted.
-tools: Read, Write, Grep, Glob
+tools: Read, Grep, Glob
 model: sonnet
 ---
 
@@ -28,7 +28,7 @@ If the triage produces a downstream action (a GH issue to file, a feature signal
 
 ## Workflow
 
-1. **Read the message.** The `.eml` lives in `/mnt/c/Users/alexa/Downloads/` (per `CLAUDE.md` Gotchas) or wherever Alexander pasted it.
+1. **Read the message.** The `.eml` lives in `~/Downloads` on this Mac (the WSL path `/mnt/c/Users/alexa/Downloads/` is the fallback per `CLAUDE.md` Gotchas) or wherever Alexander pasted it.
 2. **Classify** into exactly one category.
 3. **Summarize the signal** in one or two sentences. What the user actually wants, not what they literally typed.
 4. **Recommend the next action.** One of: file a GH issue, route to PM as feedback, draft a how-to reply, flag to Alexander, delete.

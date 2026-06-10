@@ -1,6 +1,6 @@
 ---
 name: dead-code-auditor
-description: Read-only scan for unused exports, unreferenced files, dead imports, and unreachable branches in src/ and web/src/. Returns a prioritized list. Never edits anything.
+description: Read-only scan for unused exports, unreferenced files, dead imports, and unreachable branches in src/ and web/src/. Returns a prioritized list. Never edits anything. Run quarterly (see `.claude/rules/dependencies.md` update rhythm).
 tools: Read, Grep, Glob
 model: haiku
 ---
@@ -22,7 +22,7 @@ Read-only. You produce a list; you do not delete.
 - Anything under `migrations/`, `seeds/`, `scripts/` — entry-point-ish.
 - Type-only exports consumed only by `.d.ts` declarations or `tsconfig` paths.
 - Anything explicitly marked with `// keep` comment-style waivers.
-- Ankify code paths (`src/lib/ankify/`, `src/services/ankify/`) gated behind the allowlist — they're "unused in prod" by design until the beta widens.
+- Ankify code paths (`src/lib/ankify/`, `src/services/ankify/`) are a live paid surface, not a beta. The gate is `hasAnkifyAccess` (users.patreon OR an active Auto Sync subscription, `src/lib/ankify/access.ts`) — these paths are reachable in prod for paying users; do not flag them as dead just because most accounts don't hit them.
 - `create_deck/` — Python workspace, not part of the TypeScript module graph. Dead code there requires `pylint` or manual `pytest` analysis, not TS import tracing.
 
 ## Method

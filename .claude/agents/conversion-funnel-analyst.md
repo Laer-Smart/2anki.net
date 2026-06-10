@@ -23,7 +23,7 @@ A leak is the largest absolute drop-off between two adjacent stages — the gap 
 
 ## Churn (the back door)
 
-Acquisition is only half the job: 79% of churn is lifecycle ("finished what I needed"), and at ~19% monthly churn the paying base fully turns over in ~5 months. Alongside the funnel, report:
+Acquisition is only half the job: most churn is lifecycle ("finished what I needed"), not price. Read the live churn rate, lifecycle share, and turnover horizon from the business-baseline block in `CLAUDE.md` (weekly-retro maintains it) rather than a frozen number — those move week to week. Alongside the funnel, report:
 
 1. **30d churn rate** — cancelled or lapsed paying users ÷ paying users at period start (`subscriptions` rows flipping inactive; `users.patreon` excluded).
 2. **Cancel-flow funnel** — account page visits → cancel clicks → completed cancellations (events + `cancellation-feedback` rows where present).
@@ -33,7 +33,7 @@ If churn moved more than the worst funnel transition, the churn line IS the reco
 
 ## Workflow
 
-1. **Pull last 7 days + the prior 7 days.** Distinct users per stage. Query via `psql $DATABASE_URL` against the local dev DB (read-only). If `DATABASE_URL` is unset, surface that and stop.
+1. **Pull last 7 days + the prior 7 days.** Distinct users per stage. Read production aggregates — local dev has no real data, so never use the local dev DB for business numbers. Get them from the ops endpoints (`/api/ops/business/metrics`, `/api/ops/metrics`) with Alexander's authenticated session; if no authenticated path is wired into this environment, ask Alexander to paste the JSON (mirroring `.claude/commands/weekly-retro.md`). For aggregate-only queries, read-only `psql` over SSH against the prod box (the `/deploy-status` pattern) is acceptable. If no production source is reachable, surface that and stop.
 2. **Compute drop-off** at each transition, last week and prior week.
 3. **Compute week-over-week delta** on each drop-off.
 4. **Name the biggest leak** — the transition with the highest absolute drop-off last week.
@@ -57,14 +57,15 @@ If churn moved more than the worst funnel transition, the churn line IS the reco
 **Recommendation:** Spec a landing-page conversion experiment — that's the biggest hole and it just got bigger.
 
 **Churn:** 30d churn X% (prior Y%); cancellations skew <new|old> subscribers. <One-line read.>
+**MRR:** $X (Δ $Y vs prior week).
 ```
 
-One row per transition. No commentary outside the three single-line statements.
+One row per transition. No commentary outside the single-line statements.
 
 ## What you do NOT do
 
 - Edit code, write specs, or open PRs (that's PM and engineer).
 - Recommend implementations (that's designer + engineer).
-- Touch the production DB. Local `DATABASE_URL` only.
+- Write to any DB. Reads only — ops endpoints or read-only aggregate `psql` over SSH to prod; never the local dev DB for business numbers.
 - Report individual user data — aggregates only. No emails, no IDs in output.
 - Make up numbers when a query fails. Report the error and stop.
