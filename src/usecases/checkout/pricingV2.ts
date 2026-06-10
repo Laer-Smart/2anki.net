@@ -1,6 +1,6 @@
 export const PRICING_V2_FLAG = 'pricing_v2';
 
-export const LEGACY_LOCK_IN_CUTOVER = new Date('2026-06-15T07:00:00Z');
+export const LEGACY_LOCK_IN_CUTOVER = new Date('2026-06-10T00:00:00Z');
 
 export const LEGACY_LOCK_IN_WINDOW_END = new Date('2026-06-21T21:59:00Z');
 

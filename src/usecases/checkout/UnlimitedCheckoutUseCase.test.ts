@@ -363,7 +363,7 @@ describe('UnlimitedCheckoutUseCase', () => {
     consoleSpy.mockRestore();
   });
 
-  const beforeCutover = new Date('2026-06-10T00:00:00Z');
+  const beforeCutover = new Date('2026-06-09T00:00:00Z');
   const afterCutover = new Date('2026-06-16T00:00:00Z');
   const insideWindow = new Date('2026-06-18T00:00:00Z');
   const afterWindow = new Date('2026-06-22T00:00:00Z');
