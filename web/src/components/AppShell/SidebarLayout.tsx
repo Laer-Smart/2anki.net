@@ -4,6 +4,7 @@ import { MobileTopBar } from './MobileTopBar';
 import { SkeletonPage } from '../Skeleton/Skeleton';
 import { ErrorPresenter } from '../errors/ErrorPresenter';
 import { AccessBanner } from '../AccessBanner/AccessBanner';
+import { LockInBanner } from '../LockInBanner/LockInBanner';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './AppShell.module.css';
 
@@ -66,6 +67,15 @@ export function SidebarLayout({
         <AccessBanner
           passExpiresAt={locals?.passExpiresAt}
           passKind={locals?.passKind}
+        />
+        <LockInBanner
+          isLoggedIn={email != null}
+          isFree={
+            locals?.patreon !== true &&
+            locals?.subscriber !== true &&
+            locals?.autoSyncActive !== true &&
+            locals?.passKind == null
+          }
         />
         {error && <ErrorPresenter error={error} />}
         <main id="main-content" className={sharedStyles.flexGrow}>

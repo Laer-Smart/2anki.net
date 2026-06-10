@@ -65,6 +65,10 @@ export const KNOWN_EVENTS = new Set([
   'recent_page_reconvert_clicked',
   'native_app_page_viewed',
   'native_app_interest_clicked',
+  'checkout_started',
+  'plan_interval_selected',
+  'lock_in_banner_shown',
+  'lock_in_banner_clicked',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;

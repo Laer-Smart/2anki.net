@@ -28,6 +28,14 @@ export class TrackerSchemaError extends Error {
 
 export type AnkiWebSyncStatus = 'synced' | 'failed' | 'skipped';
 
+export interface CheckoutPrices {
+  cohort: 'legacy' | 'v2';
+  legacy: boolean;
+  monthly: { cents: number };
+  annual: { cents: number };
+  lockInDeadline: string | null;
+}
+
 export class Backend {
   public baseURL = '/api/';
 
@@ -472,6 +480,32 @@ export class Backend {
       return { status: 'error' };
     } catch {
       return { status: 'error' };
+    }
+  }
+
+  async getCheckoutPrices(): Promise<CheckoutPrices | null> {
+    try {
+      const body = (await get(`${this.baseURL}checkout/prices`)) as unknown;
+      if (body == null || typeof body !== 'object') {
+        return null;
+      }
+      const parsed = body as Partial<CheckoutPrices>;
+      if (
+        parsed.monthly?.cents == null ||
+        parsed.annual?.cents == null ||
+        typeof parsed.legacy !== 'boolean'
+      ) {
+        return null;
+      }
+      return {
+        cohort: parsed.cohort === 'legacy' ? 'legacy' : 'v2',
+        legacy: parsed.legacy,
+        monthly: { cents: parsed.monthly.cents },
+        annual: { cents: parsed.annual.cents },
+        lockInDeadline: parsed.lockInDeadline ?? null,
+      };
+    } catch {
+      return null;
     }
   }
 

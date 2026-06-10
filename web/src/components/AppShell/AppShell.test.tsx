@@ -87,6 +87,7 @@ describe('AppShell logout', () => {
     logoutSpy = vi.fn();
     vi.spyOn(get2ankiApiModule, 'get2ankiApi').mockReturnValue({
       logout: logoutSpy,
+      getCheckoutPrices: vi.fn().mockResolvedValue(null),
     } as unknown as ReturnType<typeof get2ankiApiModule.get2ankiApi>);
     confirmSpy = vi.spyOn(globalThis, 'confirm');
   });

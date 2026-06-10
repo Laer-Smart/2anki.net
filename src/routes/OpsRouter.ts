@@ -52,6 +52,8 @@ import EventsRepository from '../data_layer/EventsRepository';
 import { FeatureFlagsRepository } from '../data_layer/FeatureFlagsRepository';
 import { ListFeatureFlagsUseCase } from '../usecases/ops/ListFeatureFlagsUseCase';
 import { SetFeatureFlagUseCase } from '../usecases/ops/SetFeatureFlagUseCase';
+import { CreatePricingV2PricesUseCase } from '../usecases/ops/CreatePricingV2PricesUseCase';
+import { getStripe } from '../lib/integrations/stripe';
 
 const OpsRouter = () => {
   const router = express.Router();
@@ -127,7 +129,8 @@ const OpsRouter = () => {
       new PriceLockInEmailRepository(database),
       emailService,
       getEventsSink()
-    )
+    ),
+    new CreatePricingV2PricesUseCase(getStripe())
   );
 
   /**
@@ -420,6 +423,31 @@ const OpsRouter = () => {
     '/api/ops/sync-stripe-subscriptions',
     RequireOpsAccess,
     (req, res) => controller.syncStripeSubscriptions(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/create-pricing-v2-prices:
+   *   post:
+   *     summary: Create the v2 Stripe prices on the Unlimited product
+   *     description: |
+   *       Idempotently creates the $7.99/mo and $64/yr v2 prices on the existing
+   *       Unlimited product. Each price is looked up by its lookup_key first and
+   *       created only when absent — re-running is safe and never mutates, updates,
+   *       or deletes existing prices, products, or subscriptions. Uses the server's
+   *       configured Stripe key, so the live/test mode follows that key. Locked to
+   *       the ops owner — returns 404 for everyone else.
+   *     tags: [Ops]
+   *     responses:
+   *       200:
+   *         description: Per-key result (created or already_exists) with price IDs and livemode
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.post(
+    '/api/ops/create-pricing-v2-prices',
+    RequireOpsAccess,
+    (req, res) => controller.createPricingV2Prices(req, res)
   );
 
   /**

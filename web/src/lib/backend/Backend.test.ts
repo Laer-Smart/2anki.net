@@ -205,6 +205,67 @@ describe('Backend', () => {
     });
   });
 
+  describe('getCheckoutPrices', () => {
+    it('returns the parsed prices when the api helper resolves a v2 body', async () => {
+      vi.mocked(api.get).mockResolvedValue({
+        cohort: 'v2',
+        legacy: false,
+        monthly: { cents: 799 },
+        annual: { cents: 6400 },
+        lockInDeadline: null,
+      });
+
+      const prices = await backend.getCheckoutPrices();
+
+      expect(prices).toEqual({
+        cohort: 'v2',
+        legacy: false,
+        monthly: { cents: 799 },
+        annual: { cents: 6400 },
+        lockInDeadline: null,
+      });
+      expect(api.get).toHaveBeenCalledWith('/api/checkout/prices');
+    });
+
+    it('preserves the legacy cohort and lock-in deadline', async () => {
+      vi.mocked(api.get).mockResolvedValue({
+        cohort: 'legacy',
+        legacy: true,
+        monthly: { cents: 600 },
+        annual: { cents: 6000 },
+        lockInDeadline: '2026-06-21T21:59:00.000Z',
+      });
+
+      const prices = await backend.getCheckoutPrices();
+
+      expect(prices).toEqual({
+        cohort: 'legacy',
+        legacy: true,
+        monthly: { cents: 600 },
+        annual: { cents: 6000 },
+        lockInDeadline: '2026-06-21T21:59:00.000Z',
+      });
+    });
+
+    it('returns null when the api helper resolves undefined', async () => {
+      vi.mocked(api.get).mockResolvedValue(undefined);
+
+      await expect(backend.getCheckoutPrices()).resolves.toBeNull();
+    });
+
+    it('returns null when required fields are missing', async () => {
+      vi.mocked(api.get).mockResolvedValue({ legacy: true });
+
+      await expect(backend.getCheckoutPrices()).resolves.toBeNull();
+    });
+
+    it('returns null when the api helper throws', async () => {
+      vi.mocked(api.get).mockRejectedValue(new Error('network down'));
+
+      await expect(backend.getCheckoutPrices()).resolves.toBeNull();
+    });
+  });
+
   describe('deleteRules', () => {
     it('calls DELETE on the rules endpoint with the page id', async () => {
       const mockResponse = createMockResponse(204, true);

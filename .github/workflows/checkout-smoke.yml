@@ -1,0 +1,41 @@
+name: Checkout smoke
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  checkout-smoke:
+    name: checkout smoke (22.20.0)
+    runs-on: blacksmith
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+      - name: Install Playwright Browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter 2anki-web exec playwright install --with-deps chromium
+      - name: Build the application
+        run: pnpm --filter 2anki-web build
+      - name: Run checkout spec
+        working-directory: web
+        run: pnpm exec playwright test checkout.spec.ts
+        env:
+          PLAYWRIGHT_WITH_MOCK: true
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: checkout-smoke-report
+          path: web/playwright-report/
+          retention-days: 7

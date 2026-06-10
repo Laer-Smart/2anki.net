@@ -1,0 +1,99 @@
+import { test, expect } from '@playwright/test';
+
+const loggedInFreeLocals = {
+  user: {
+    id: 1,
+    email: 'free@example.com',
+    patreon: false,
+    created_at: '2026-06-16T00:00:00Z',
+  },
+  locals: { owner: 1, patreon: false, subscriber: false },
+  features: {},
+  autoSyncCapReached: false,
+  autoSyncActive: false,
+};
+
+const legacyPrices = {
+  cohort: 'legacy',
+  legacy: true,
+  monthly: { cents: 600 },
+  annual: { cents: 6000 },
+  lockInDeadline: null,
+};
+
+const v2Prices = {
+  cohort: 'v2',
+  legacy: false,
+  monthly: { cents: 799 },
+  annual: { cents: 6400 },
+  lockInDeadline: null,
+};
+
+const routePrices = (
+  page: import('@playwright/test').Page,
+  prices: typeof legacyPrices | typeof v2Prices
+) =>
+  page.route('**/api/checkout/prices', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(prices),
+    })
+  );
+
+test.describe('Unlimited checkout', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.route('**/api/users/debug/locals**', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(loggedInFreeLocals),
+      })
+    );
+  });
+
+  test('flag-off prices show the legacy per-month hero and no v2 numbers', async ({
+    page,
+  }) => {
+    await routePrices(page, legacyPrices);
+    await page.goto('/pricing');
+
+    await expect(page.getByText('$5.00').first()).toBeVisible();
+    await expect(
+      page.getByText('$60/year billed yearly · save 17%')
+    ).toBeVisible();
+    await expect(page.getByText('$5.33')).toBeHidden();
+  });
+
+  test('annual is selected by default with the v2 per-month hero price', async ({
+    page,
+  }) => {
+    await routePrices(page, v2Prices);
+    await page.goto('/pricing');
+
+    await expect(page.getByText('$5.33')).toBeVisible();
+    await expect(
+      page.getByText('$64/year billed yearly · save 33%')
+    ).toBeVisible();
+  });
+
+  test('Get Unlimited starts an annual checkout and redirects to Stripe', async ({
+    page,
+  }) => {
+    await routePrices(page, v2Prices);
+    let checkoutBody: { interval?: string } = {};
+    await page.route('**/api/checkout/unlimited', async (route) => {
+      checkoutBody = JSON.parse(route.request().postData() ?? '{}');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ url: 'https://checkout.stripe.com/c/pay/test' }),
+      });
+    });
+
+    await page.goto('/pricing');
+    await page.getByRole('button', { name: 'Get Unlimited' }).click();
+
+    await expect.poll(() => checkoutBody.interval).toBe('year');
+  });
+});

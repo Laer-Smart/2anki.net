@@ -13,8 +13,36 @@ import { getStripe } from '../lib/integrations/stripe';
 import { getDatabase } from '../data_layer';
 import AbandonedCheckoutRecoveryRepository from '../data_layer/AbandonedCheckoutRecoveryRepository';
 import { getEventsSink } from '../services/events/eventsSinkInstance';
+import { FeatureFlagsRepository } from '../data_layer/FeatureFlagsRepository';
+import UsersRepository from '../data_layer/UsersRepository';
+import { StripePriceResolver } from '../services/StripePriceResolver';
+import { PRICING_V2_FLAG } from '../usecases/checkout/pricingV2';
+import PricingController from '../controllers/PricingController';
 
 const DEFAULT_MAX_SUBSCRIBERS = 50;
+
+const toCreatedAt = (value: unknown): Date | null => {
+  if (value == null) return null;
+  if (value instanceof Date) return value;
+  if (typeof value === 'string' || typeof value === 'number') {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+  return null;
+};
+
+const resolvePricingV2Flag = async (): Promise<boolean> => {
+  const repo = new FeatureFlagsRepository(getDatabase());
+  return (await repo.get(PRICING_V2_FLAG)) === true;
+};
+
+const getUserCreatedAt = async (userId: number): Promise<Date | null> => {
+  const repo = new UsersRepository(getDatabase());
+  const user = await repo.getById(String(userId));
+  return toCreatedAt(
+    (user as { created_at?: unknown } | undefined)?.created_at
+  );
+};
 
 const CheckoutRouter = () => {
   const router = express.Router();
@@ -48,12 +76,13 @@ const CheckoutRouter = () => {
 
   const unlimitedMonthlyPriceId = process.env.UNLIMITED_MONTHLY_PRICE_ID ?? '';
   const unlimitedYearlyPriceId = process.env.UNLIMITED_YEARLY_PRICE_ID ?? '';
+  const priceResolver = new StripePriceResolver(getStripe());
 
   router.post(
     '/api/checkout/unlimited',
     RequireAuthentication,
     express.json(),
-    (req, res) => {
+    async (req, res) => {
       if (unlimitedMonthlyPriceId === '') {
         return res
           .status(503)
@@ -62,10 +91,43 @@ const CheckoutRouter = () => {
       const useCase = new UnlimitedCheckoutUseCase(
         getStripe(),
         unlimitedMonthlyPriceId,
-        unlimitedYearlyPriceId
+        unlimitedYearlyPriceId,
+        priceResolver
       );
-      const controller = new UnlimitedCheckoutController(useCase);
+      const controller = new UnlimitedCheckoutController(
+        useCase,
+        { pricingV2On: await resolvePricingV2Flag(), getUserCreatedAt },
+        getEventsSink()
+      );
       return controller.createSession(req, res);
+    }
+  );
+
+  /**
+   * @swagger
+   * /api/checkout/prices:
+   *   get:
+   *     summary: Get the Unlimited plan prices for the current visitor
+   *     description: |
+   *       Returns the monthly and annual Unlimited prices the visitor would
+   *       pay at checkout. Accounts created before the pricing-v2 cutover see
+   *       legacy prices until the lock-in window closes; everyone else sees
+   *       v2 prices once the pricing_v2 flag is on. Anonymous visitors are
+   *       always quoted the new-member prices.
+   *     tags: [Payments]
+   *     responses:
+   *       200:
+   *         description: Effective prices and lock-in window for the visitor
+   */
+  router.get(
+    '/api/checkout/prices',
+    optionalAuthMiddleware,
+    async (_req, res) => {
+      const controller = new PricingController({
+        pricingV2On: await resolvePricingV2Flag(),
+        getUserCreatedAt,
+      });
+      return controller.getPrices(_req, res);
     }
   );
 

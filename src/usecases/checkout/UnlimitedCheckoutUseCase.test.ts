@@ -31,12 +31,15 @@ describe('UnlimitedCheckoutUseCase', () => {
       interval: 'month',
     });
 
-    expect(result).toEqual({ url: 'https://checkout.stripe.com/month' });
+    expect(result).toEqual({
+      url: 'https://checkout.stripe.com/month',
+      cohort: 'legacy',
+    });
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: 'subscription',
         line_items: [{ price: MONTHLY_PRICE_ID, quantity: 1 }],
-        metadata: { user_id: '1' },
+        metadata: { user_id: '1', cohort: 'legacy' },
       })
     );
   });
@@ -57,12 +60,15 @@ describe('UnlimitedCheckoutUseCase', () => {
       interval: 'year',
     });
 
-    expect(result).toEqual({ url: 'https://checkout.stripe.com/year' });
+    expect(result).toEqual({
+      url: 'https://checkout.stripe.com/year',
+      cohort: 'legacy',
+    });
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
         mode: 'subscription',
         line_items: [{ price: YEARLY_PRICE_ID, quantity: 1 }],
-        metadata: { user_id: '2' },
+        metadata: { user_id: '2', cohort: 'legacy' },
       })
     );
   });
@@ -183,7 +189,7 @@ describe('UnlimitedCheckoutUseCase', () => {
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        metadata: { user_id: '8', anon_id: 'anon-uuid-123' },
+        metadata: { user_id: '8', cohort: 'legacy', anon_id: 'anon-uuid-123' },
       })
     );
   });
@@ -206,7 +212,7 @@ describe('UnlimitedCheckoutUseCase', () => {
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        metadata: { user_id: '9' },
+        metadata: { user_id: '9', cohort: 'legacy' },
       })
     );
   });
@@ -230,7 +236,7 @@ describe('UnlimitedCheckoutUseCase', () => {
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        metadata: { user_id: '10', surface: 'pricing_page' },
+        metadata: { user_id: '10', cohort: 'legacy', surface: 'pricing_page' },
       })
     );
   });
@@ -253,7 +259,7 @@ describe('UnlimitedCheckoutUseCase', () => {
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        metadata: { user_id: '11' },
+        metadata: { user_id: '11', cohort: 'legacy' },
       })
     );
   });
@@ -277,7 +283,11 @@ describe('UnlimitedCheckoutUseCase', () => {
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        metadata: { user_id: '12', ga_client_id: '1234567890.987654321' },
+        metadata: {
+          user_id: '12',
+          cohort: 'legacy',
+          ga_client_id: '1234567890.987654321',
+        },
       })
     );
   });
@@ -300,7 +310,7 @@ describe('UnlimitedCheckoutUseCase', () => {
 
     expect(mockStripeCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        metadata: { user_id: '13' },
+        metadata: { user_id: '13', cohort: 'legacy' },
       })
     );
   });
@@ -351,5 +361,153 @@ describe('UnlimitedCheckoutUseCase', () => {
       expect(call).not.toContain('cus_secret_id');
     }
     consoleSpy.mockRestore();
+  });
+
+  const beforeCutover = new Date('2026-06-09T00:00:00Z');
+  const afterCutover = new Date('2026-06-16T00:00:00Z');
+  const insideWindow = new Date('2026-06-18T00:00:00Z');
+  const afterWindow = new Date('2026-06-22T00:00:00Z');
+
+  const makeResolver = (id: string | null) => ({
+    resolveByLookupKey: jest.fn().mockResolvedValue(id),
+  });
+
+  it('uses the legacy env price for a pre-cutover user inside the lock-in window when flag on', async () => {
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://x' });
+    const resolver = makeResolver('price_v2_monthly');
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID,
+      resolver as never
+    );
+
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 20,
+      interval: 'month',
+      pricingV2On: true,
+      createdAt: beforeCutover,
+      now: insideWindow,
+    });
+
+    expect(resolver.resolveByLookupKey).not.toHaveBeenCalled();
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [{ price: MONTHLY_PRICE_ID, quantity: 1 }],
+        metadata: { user_id: '20', cohort: 'legacy' },
+      })
+    );
+  });
+
+  it('resolves the v2 price for a pre-cutover user after the window when flag on', async () => {
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://x' });
+    const resolver = makeResolver('price_v2_annual');
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID,
+      resolver as never
+    );
+
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 21,
+      interval: 'year',
+      pricingV2On: true,
+      createdAt: beforeCutover,
+      now: afterWindow,
+    });
+
+    expect(resolver.resolveByLookupKey).toHaveBeenCalledWith('v2_annual');
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [{ price: 'price_v2_annual', quantity: 1 }],
+        metadata: { user_id: '21', cohort: 'v2' },
+      })
+    );
+  });
+
+  it('resolves the v2 price for a post-cutover user when flag on', async () => {
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://x' });
+    const resolver = makeResolver('price_v2_monthly');
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID,
+      resolver as never
+    );
+
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 22,
+      interval: 'month',
+      pricingV2On: true,
+      createdAt: afterCutover,
+      now: insideWindow,
+    });
+
+    expect(resolver.resolveByLookupKey).toHaveBeenCalledWith('v2_monthly');
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [{ price: 'price_v2_monthly', quantity: 1 }],
+        metadata: { user_id: '22', cohort: 'v2' },
+      })
+    );
+  });
+
+  it('falls back to the legacy env price when v2 resolution fails', async () => {
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://x' });
+    const resolver = makeResolver(null);
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID,
+      resolver as never
+    );
+
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 23,
+      interval: 'month',
+      pricingV2On: true,
+      createdAt: afterCutover,
+      now: insideWindow,
+    });
+
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [{ price: MONTHLY_PRICE_ID, quantity: 1 }],
+        metadata: { user_id: '23', cohort: 'v2' },
+      })
+    );
+  });
+
+  it('uses legacy env prices for everyone when the flag is off', async () => {
+    mockStripeCreateSession.mockResolvedValue({ url: 'https://x' });
+    const resolver = makeResolver('price_v2_monthly');
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID,
+      resolver as never
+    );
+
+    await uc.execute({
+      userEmail: 'user@example.com',
+      userId: 24,
+      interval: 'month',
+      pricingV2On: false,
+      createdAt: afterCutover,
+      now: insideWindow,
+    });
+
+    expect(resolver.resolveByLookupKey).not.toHaveBeenCalled();
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [{ price: MONTHLY_PRICE_ID, quantity: 1 }],
+        metadata: { user_id: '24', cohort: 'legacy' },
+      })
+    );
   });
 });
