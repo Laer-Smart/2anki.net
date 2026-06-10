@@ -236,6 +236,28 @@ app.post('/api/notion/convert', (req, res) => {
   res.json({ success: true, jobId: newJob.id });
 });
 
+const LEGACY_CHECKOUT_PRICES = {
+  cohort: 'legacy',
+  legacy: true,
+  monthly: { cents: 600 },
+  annual: { cents: 6000 },
+  lockInDeadline: null,
+};
+
+const V2_CHECKOUT_PRICES = {
+  cohort: 'v2',
+  legacy: false,
+  monthly: { cents: 799 },
+  annual: { cents: 6400 },
+  lockInDeadline: null,
+};
+
+app.get('/api/checkout/prices', (req, res) => {
+  const cohort =
+    req.query.cohort === 'v2' ? V2_CHECKOUT_PRICES : LEGACY_CHECKOUT_PRICES;
+  res.json(cohort);
+});
+
 app.get('/api/upload/jobs', (req, res) => {
   res.json(mockJobs);
 });

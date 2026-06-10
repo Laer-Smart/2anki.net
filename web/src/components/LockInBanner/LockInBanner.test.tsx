@@ -85,6 +85,22 @@ describe('LockInBanner', () => {
     expect(screen.queryByText(/Lock in/)).not.toBeInTheDocument();
   });
 
+  it('does not render when the prices fetch returns null', async () => {
+    mockGetCheckoutPrices.mockResolvedValue(null);
+    renderBanner(true, true);
+
+    await waitFor(() => expect(mockGetCheckoutPrices).toHaveBeenCalled());
+    expect(screen.queryByText(/Lock in/)).not.toBeInTheDocument();
+  });
+
+  it('does not render when the prices fetch rejects', async () => {
+    mockGetCheckoutPrices.mockRejectedValue(new Error('network down'));
+    renderBanner(true, true);
+
+    await waitFor(() => expect(mockGetCheckoutPrices).toHaveBeenCalled());
+    expect(screen.queryByText(/Lock in/)).not.toBeInTheDocument();
+  });
+
   it('navigates to /pricing when See plans is clicked', async () => {
     mockGetCheckoutPrices.mockResolvedValue(legacyInWindow);
     renderBanner(true, true);

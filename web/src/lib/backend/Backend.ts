@@ -485,11 +485,7 @@ export class Backend {
 
   async getCheckoutPrices(): Promise<CheckoutPrices | null> {
     try {
-      const response = await get(`${this.baseURL}checkout/prices`);
-      if (response == null || !response.ok) {
-        return null;
-      }
-      const body = (await response.json().catch(() => null)) as unknown;
+      const body = (await get(`${this.baseURL}checkout/prices`)) as unknown;
       if (body == null || typeof body !== 'object') {
         return null;
       }
