@@ -15,7 +15,13 @@ describe('sendPriceLockInEmails', () => {
   });
 
   test('POSTs dryRun true and returns the segment count', async () => {
-    const payload = { count: 18800, dryRun: true, variantA: 0, variantB: 0 };
+    const payload = {
+      count: 18800,
+      skipped: 0,
+      dryRun: true,
+      variantA: 0,
+      variantB: 0,
+    };
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,
@@ -38,7 +44,13 @@ describe('sendPriceLockInEmails', () => {
   });
 
   test('POSTs dryRun false for a real send and returns the sent count', async () => {
-    const payload = { count: 500, dryRun: false, variantA: 250, variantB: 250 };
+    const payload = {
+      count: 480,
+      skipped: 20,
+      dryRun: false,
+      variantA: 240,
+      variantB: 240,
+    };
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       status: 200,

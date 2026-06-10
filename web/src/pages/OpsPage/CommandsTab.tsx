@@ -29,6 +29,11 @@ function formatLockInResult(result: SendPriceLockInEmailsResponse): string {
   if (result.dryRun) {
     return `${result.count} recipient${result.count === 1 ? '' : 's'} in segment, sends nothing.`;
   }
+  if (result.skipped > 0) {
+    return `Sent ${result.count}, skipped ${result.skipped} deleted account${
+      result.skipped === 1 ? '' : 's'
+    }; click again for the next batch.`;
+  }
   return `Sent ${result.count}; click again for the next batch.`;
 }
 
