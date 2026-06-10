@@ -12,6 +12,7 @@ import {
   MAGIC_LINK_TEMPLATE,
   NOTION_RECONNECT_TEMPLATE,
   PASSWORD_RESET_TEMPLATE,
+  PRICE_LOCK_IN_TEMPLATE,
   RE_ENGAGEMENT_TEMPLATE,
   SUBSCRIPTION_CANCELLED_TEMPLATE,
   SUBSCRIPTION_CANCELLATIONS_LOG_PATH,
@@ -73,7 +74,17 @@ export interface IEmailService {
     to: string,
     claimUrl: string
   ): Promise<void>;
+  sendPriceLockInEmail(
+    to: string,
+    token: string,
+    variant: 'a' | 'b'
+  ): Promise<void>;
 }
+
+export const PRICE_LOCK_IN_SUBJECTS: Record<'a' | 'b', string> = {
+  a: 'Lock in $6/month before prices go up',
+  b: 'Your current rate is grandfathered until Sunday',
+};
 
 type SgMessage = Exclude<Parameters<typeof sgMail.send>[0], unknown[]>;
 type IsEmailSuppressed = (email: string) => Promise<boolean>;
@@ -563,6 +574,39 @@ export class EmailService implements IEmailService {
       throw error;
     }
   }
+
+  async sendPriceLockInEmail(
+    to: string,
+    token: string,
+    variant: 'a' | 'b'
+  ): Promise<void> {
+    const domain = process.env.DOMAIN ?? 'https://2anki.net';
+    const ctaUrl = `${domain}/r/email?t=${encodeURIComponent(token)}&c=price_lock_in&to=/pricing`;
+    const unsubscribeUrl = `${domain}/unsubscribe?uid=${token}`;
+    const markup = PRICE_LOCK_IN_TEMPLATE.replace('{{ctaUrl}}', ctaUrl).replace(
+      '{{unsubscribeUrl}}',
+      unsubscribeUrl
+    );
+
+    const $ = cheerio.load(markup);
+    const text = $('body').text().replace(/\s+/g, ' ').trim();
+
+    const msg = {
+      to,
+      from: this.defaultSender,
+      subject: PRICE_LOCK_IN_SUBJECTS[variant],
+      text,
+      html: markup,
+      replyTo: 'support@2anki.net',
+    };
+
+    try {
+      await this.deliver(msg);
+    } catch (error) {
+      console.error(`Failed to send price lock-in email to ${to}:`, error);
+      throw error;
+    }
+  }
 }
 
 export class UnimplementedEmailService implements IEmailService {
@@ -677,6 +721,14 @@ export class UnimplementedEmailService implements IEmailService {
     _claimUrl: string
   ): Promise<void> {
     console.info('sendSubscriptionClaimConfirmation not handled');
+  }
+
+  async sendPriceLockInEmail(
+    to: string,
+    token: string,
+    variant: 'a' | 'b'
+  ): Promise<void> {
+    console.info('sendPriceLockInEmail not handled', to, token, variant);
   }
 }
 

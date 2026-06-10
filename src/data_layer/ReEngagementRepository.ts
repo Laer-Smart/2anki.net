@@ -79,6 +79,14 @@ export class ReEngagementRepository implements IReEngagementRepository {
       return { id: inactivityRow.id, userId: inactivityRow.user_id };
     }
 
+    const priceLockInRow = await this.database<EmailRow>('price_lock_in_emails')
+      .select('id', 'user_id')
+      .where({ token })
+      .first();
+    if (priceLockInRow != null) {
+      return { id: priceLockInRow.id, userId: priceLockInRow.user_id };
+    }
+
     const abandonedRow = await this.database(
       'abandoned_checkout_recovery_emails'
     )

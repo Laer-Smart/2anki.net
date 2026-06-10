@@ -59,12 +59,13 @@ All templates live in `src/services/EmailService/templates/`. The reference is `
 
 ## Commercial templates (must carry unsubscribe footer + marketing_opt_out filter)
 
-The following four templates contain an upgrade or upsell pitch — each is subject to the commercial email rule:
+The following templates contain an upgrade or upsell pitch — each is subject to the commercial email rule:
 
 1. `re-engagement.html` — uses `{{unsubscribeUrl}}`; send path: `sendReEngagementEmails` helper
 2. `inactivity-warning.html` — uses `{{unsubscribeUrl}}`; send path: `SendInactivityWarningsUseCase`
 3. `trial-ended.html` — uses `{{unsubscribeUrl}}`; send path: `SendTrialEndedEmailsUseCase`
 4. `abandoned-checkout-recovery.html` — uses `{{unsubscribeUrl}}`; send path: `SendAbandonedCheckoutRecoveryOnExpiryUseCase` (triggered by the `checkout.session.expired` webhook)
+5. `price-lock-in.html` — uses `{{unsubscribeUrl}}`; send path: `SendPriceLockInEmailsUseCase` (one-time, manual ops trigger; segment excludes `marketing_opt_out` and suppressed recipients)
 
 The transactional templates (magic-link, reset, convert, convert-link, subscription-cancelled, subscription-scheduled-cancellation) are not marketing emails and do not need the unsubscribe footer.
 

@@ -19,6 +19,17 @@ import {
   SetFeatureFlagUseCase,
 } from '../usecases/ops/SetFeatureFlagUseCase';
 import { GetUploadFunnelUseCase } from '../usecases/ops/GetUploadFunnelUseCase';
+import { SendPriceLockInEmailsUseCase } from '../usecases/ops/SendPriceLockInEmailsUseCase';
+
+const PRICE_LOCK_IN_MAX_BATCH = 500;
+
+function parsePositiveLimit(raw: unknown): number {
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value <= 0) {
+    return PRICE_LOCK_IN_MAX_BATCH;
+  }
+  return Math.min(value, PRICE_LOCK_IN_MAX_BATCH);
+}
 
 class OpsController {
   constructor(
@@ -37,7 +48,8 @@ class OpsController {
     private readonly getPricingAbFunnelUseCase?: GetPricingAbFunnelUseCase,
     private readonly listFeatureFlagsUseCase?: ListFeatureFlagsUseCase,
     private readonly setFeatureFlagUseCase?: SetFeatureFlagUseCase,
-    private readonly getUploadFunnelUseCase?: GetUploadFunnelUseCase
+    private readonly getUploadFunnelUseCase?: GetUploadFunnelUseCase,
+    private readonly sendPriceLockInEmailsUseCase?: SendPriceLockInEmailsUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -146,6 +158,25 @@ class OpsController {
     } catch (error) {
       console.error('[ops] sendInactivityWarnings failed', error);
       res.status(500).json({ message: 'Failed to run inactivity warnings' });
+    }
+  }
+
+  async sendPriceLockInEmails(req: express.Request, res: express.Response) {
+    if (this.sendPriceLockInEmailsUseCase == null) {
+      res.status(500).json({ message: 'Price lock-in emails not configured' });
+      return;
+    }
+    try {
+      const dryRun = req.body?.dryRun !== false;
+      const limit = parsePositiveLimit(req.body?.limit);
+      const result = await this.sendPriceLockInEmailsUseCase.execute(
+        dryRun,
+        limit
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('[ops] sendPriceLockInEmails failed', error);
+      res.status(500).json({ message: 'Failed to run price lock-in emails' });
     }
   }
 

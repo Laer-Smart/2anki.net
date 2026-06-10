@@ -166,6 +166,12 @@ describe('ReEngagementRepository.findByToken — abandoned checkout path', () =>
       t.text('token').unique();
     });
 
+    await database.schema.createTable('price_lock_in_emails', (t) => {
+      t.increments('id').primary();
+      t.integer('user_id').notNullable();
+      t.text('token').unique();
+    });
+
     await database.schema.createTable('users', (t) => {
       t.increments('id').primary();
       t.text('email').notNullable().unique();
@@ -222,6 +228,17 @@ describe('ReEngagementRepository.findByToken — abandoned checkout path', () =>
     const result = await repo.findByToken('orphan-tok');
 
     expect(result).toBeNull();
+  });
+
+  it('resolves a price lock-in token to its userId', async () => {
+    await database('price_lock_in_emails').insert({
+      user_id: 99,
+      token: 'price-lock-tok',
+    });
+
+    const result = await repo.findByToken('price-lock-tok');
+
+    expect(result).toEqual({ id: expect.any(Number), userId: 99 });
   });
 
   it('does not find abandoned checkout token when searching other tables', async () => {
