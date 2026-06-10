@@ -167,6 +167,30 @@ describe('DownloadsPage paywall query param', () => {
   });
 });
 
+describe('DownloadsPage translation safety', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-10T12:00:00Z'));
+    (globalThis as AnalyticsGlobals).hj = vi.fn();
+    (globalThis as AnalyticsGlobals).gtag = vi.fn();
+    mockJobs = [buildJob()];
+    mockUploads = [];
+    mockDropboxUploads = [];
+    mockGoogleDriveUploads = [];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    delete (globalThis as AnalyticsGlobals).hj;
+    delete (globalThis as AnalyticsGlobals).gtag;
+  });
+
+  it('opts the polling job rows out of browser translation', () => {
+    const { container } = renderAt('/downloads');
+    expect(container.querySelector('tbody')).toHaveAttribute('translate', 'no');
+  });
+});
+
 describe('DownloadsPage empty state', () => {
   beforeEach(() => {
     vi.useFakeTimers();

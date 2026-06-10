@@ -69,6 +69,16 @@ describe('UploadForm', () => {
     expect(container.querySelector('.null')).toBeNull();
   });
 
+  test('opts the drop zone out of browser translation', () => {
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
+    expect(container.querySelector('#upload-panel-local')).toHaveAttribute(
+      'translate',
+      'no'
+    );
+  });
+
   test('renders the Google Drive chip enabled when env vars are configured', () => {
     const previousClient = process.env.REACT_APP_GOOGLE_CLIENT_ID;
     const previousKey = process.env.REACT_APP_GOOGLE_API_KEY;

@@ -41,7 +41,7 @@ export function RecentSources() {
   }
 
   return (
-    <section className={styles.section} aria-label="Recent">
+    <section className={styles.section} aria-label="Recent" translate="no">
       <h2 className={styles.heading}>Recent</h2>
       <ul className={styles.list}>
         {sources.map((source) => (

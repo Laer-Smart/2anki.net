@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-10-upload-translate-crash",
+  "date": "2026-06-10",
+  "type": "fix",
+  "title": "Upload and downloads pages keep working while your browser auto-translates them"
+}
