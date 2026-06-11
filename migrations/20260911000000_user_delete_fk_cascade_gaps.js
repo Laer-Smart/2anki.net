@@ -1,8 +1,6 @@
 exports.up = async (knex) => {
   await knex.schema.table('email_preferences', (table) => {
     table.dropForeign(['user_id']);
-  });
-  await knex.schema.table('email_preferences', (table) => {
     table
       .foreign('user_id')
       .references('id')
@@ -12,24 +10,28 @@ exports.up = async (knex) => {
 
   await knex.schema.table('favorites', (table) => {
     table.dropForeign(['owner']);
-  });
-  await knex.schema.table('favorites', (table) => {
     table.foreign('owner').references('id').inTable('users').onDelete('CASCADE');
   });
+
+  await knex.raw(
+    'CREATE INDEX IF NOT EXISTS favorites_owner_index ON favorites (owner)'
+  );
 };
 
 exports.down = async (knex) => {
+  await knex.raw('DROP INDEX IF EXISTS favorites_owner_index');
+
   await knex.schema.table('email_preferences', (table) => {
     table.dropForeign(['user_id']);
-  });
-  await knex.schema.table('email_preferences', (table) => {
-    table.foreign('user_id').references('id').inTable('users');
+    table
+      .foreign('user_id')
+      .references('id')
+      .inTable('users')
+      .onDelete('NO ACTION');
   });
 
   await knex.schema.table('favorites', (table) => {
     table.dropForeign(['owner']);
-  });
-  await knex.schema.table('favorites', (table) => {
-    table.foreign('owner').references('id').inTable('users');
+    table.foreign('owner').references('id').inTable('users').onDelete('NO ACTION');
   });
 };

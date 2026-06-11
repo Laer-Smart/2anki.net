@@ -2,5 +2,5 @@
   "id": "2026-06-11-account-deletion-fk",
   "date": "2026-06-11",
   "type": "fix",
-  "title": "Deleting your account works even when you have email preferences saved"
+  "title": "Deleting your account works even when you have saved favorites or email preferences"
 }
