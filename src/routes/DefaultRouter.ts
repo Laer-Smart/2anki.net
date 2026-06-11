@@ -3,6 +3,7 @@ import multer from 'multer';
 
 import IndexController from '../controllers/IndexController/IndexController';
 import { ensureIsLoggedIn } from './middleware/ensureIsLoggedIn';
+import { isKnownAppRoute } from './knownRoutes';
 
 const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024 },
@@ -96,7 +97,12 @@ const DefaultRouter = () => {
    *               type: string
    *               description: HTML application page
    */
-  router.get(/^\/(?!api).*/, (req, res) => controller.getIndex(req, res));
+  router.get(/^\/(?!api).*/, (req, res) => {
+    if (!isKnownAppRoute(req.path)) {
+      res.status(404);
+    }
+    controller.getIndex(req, res);
+  });
 
   /**
    * @swagger
