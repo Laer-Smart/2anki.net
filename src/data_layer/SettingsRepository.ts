@@ -2,6 +2,7 @@ import { Knex } from 'knex';
 import Settings, { SettingsInitializer } from './public/Settings';
 import CardOption from '../lib/parser/Settings/CardOption';
 import { getCustomTemplate } from '../lib/parser/Settings/helpers/getCustomTemplate';
+import { unwrapStoredSettingsPayload } from '../lib/parser/Settings/unwrapStoredSettingsPayload';
 import { AnkifyTemplateOverrides } from '../services/ankify/templateOverrides';
 
 export interface ISettingsRepository {
@@ -90,7 +91,9 @@ class SettingsRepository implements ISettingsRepository {
         return null;
       }
 
-      const settings = new CardOption(result.payload.payload);
+      const settings = new CardOption(
+        unwrapStoredSettingsPayload(result.payload)
+      );
       const templates = await this.database('templates')
         .where({ owner })
         .returning(['payload'])
@@ -125,10 +128,7 @@ class SettingsRepository implements ISettingsRepository {
     if (!row) {
       return null;
     }
-    const settingsPayload = parseJsonColumn(row.payload) as {
-      payload?: Record<string, string>;
-    } | null;
-    const cardOption = new CardOption(settingsPayload?.payload ?? {});
+    const cardOption = new CardOption(unwrapStoredSettingsPayload(row.payload));
     if (cardOption.template === 'custom') {
       return cardOption.basicModelName;
     }
@@ -152,11 +152,8 @@ class SettingsRepository implements ISettingsRepository {
       .select('card_options')
       .where({ id: owner })
       .first();
-    const globalOptions = parseJsonColumn(userRow?.card_options) as {
-      template?: string;
-      basic_model_name?: string;
-    } | null;
-    if (globalOptions?.template === 'custom') {
+    const globalOptions = unwrapStoredSettingsPayload(userRow?.card_options);
+    if (globalOptions.template === 'custom') {
       return new CardOption(globalOptions).basicModelName;
     }
     return null;

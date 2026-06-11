@@ -5,6 +5,7 @@ import { NotionService } from '../../services/NotionService/NotionService';
 import { getOwner } from '../../lib/User/getOwner';
 import supportedOptions from './supportedOptions';
 import CardOption from '../../lib/parser/Settings/CardOption';
+import { unwrapStoredSettingsPayload } from '../../lib/parser/Settings/unwrapStoredSettingsPayload';
 import { CardOptionDetail } from './CardOptionDetail';
 
 interface DeleteAllUseCase {
@@ -26,7 +27,7 @@ class CardOptionsController {
     try {
       await this.service.create({
         owner: owner,
-        payload: settings,
+        payload: settings.payload,
         object_id: settings.object_id,
         title: settings.title ?? null,
       });
@@ -62,7 +63,12 @@ class CardOptionsController {
 
     try {
       const storedSettings = await this.service.getById(id);
-      return res.json({ payload: storedSettings?.payload ?? null });
+      if (storedSettings?.payload == null) {
+        return res.json({ payload: null });
+      }
+      return res.json({
+        payload: unwrapStoredSettingsPayload(storedSettings.payload),
+      });
     } catch (error) {
       console.info('Get setting failed');
       console.error(error);
