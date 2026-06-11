@@ -152,12 +152,14 @@ class UsersRepository {
       trx
     );
     if (!seed) return;
-    await trx(this.table).where({ id }).update({
-      cards_used_this_month: seed.cards_used_this_month,
-      cards_month_started_at: seed.cards_month_started_at,
-      pdf_prints_this_month: seed.pdf_prints_this_month,
-      prints_month_started_at: seed.prints_month_started_at,
-    });
+    await trx(this.table)
+      .where({ id })
+      .update({
+        cards_used_this_month: seed.cards_used_this_month,
+        cards_month_started_at: seed.cards_month_started_at ?? now,
+        pdf_prints_this_month: seed.pdf_prints_this_month,
+        prints_month_started_at: seed.prints_month_started_at ?? now,
+      });
   }
 
   async deleteUser(owner: string) {
