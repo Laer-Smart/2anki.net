@@ -147,9 +147,72 @@ describe('SettingsRepository.loadAnkifyTemplateOverrides', () => {
       payload: JSON.stringify(TEMPLATES_PAYLOAD),
     });
 
-    const overrides = await repo.loadAnkifyTemplateOverrides('13574');
+    const overrides = await repo.loadAnkifyTemplateOverrides('13574', 'page-a');
 
     expect(overrides?.basicModelName).toBe('PAGE NAME');
+  });
+
+  test('honors the synced page row even when a newer non-custom row for another page exists', async () => {
+    await db('settings').insert({
+      owner: '42',
+      object_id: 'synced-page',
+      title: 'Synced',
+      payload: JSON.stringify({
+        payload: { template: 'custom', basic_model_name: 'ATTI BASIC' },
+      }),
+      updated_at: '2026-06-01 00:00:00',
+    });
+    await db('settings').insert({
+      owner: '42',
+      object_id: 'other-page',
+      title: 'Other',
+      payload: JSON.stringify({
+        payload: { template: 'specialstyle1' },
+      }),
+      updated_at: '2026-06-10 00:00:00',
+    });
+    await db('templates').insert({
+      owner: '42',
+      payload: JSON.stringify(TEMPLATES_PAYLOAD),
+    });
+
+    const overrides = await repo.loadAnkifyTemplateOverrides(
+      '42',
+      'synced-page'
+    );
+
+    expect(overrides).not.toBeNull();
+    expect(overrides?.basicModelName).toBe('ATTI BASIC');
+  });
+
+  test('falls back to global card_options when the synced page has no custom row', async () => {
+    await db('users').insert({
+      id: 42,
+      card_options: JSON.stringify({
+        template: 'custom',
+        basic_model_name: 'GLOBAL NAME',
+      }),
+    });
+    await db('settings').insert({
+      owner: '42',
+      object_id: 'synced-page',
+      title: 'Synced',
+      payload: JSON.stringify({
+        payload: { template: 'specialstyle1' },
+      }),
+      updated_at: '2026-06-10 00:00:00',
+    });
+    await db('templates').insert({
+      owner: '42',
+      payload: JSON.stringify(TEMPLATES_PAYLOAD),
+    });
+
+    const overrides = await repo.loadAnkifyTemplateOverrides(
+      '42',
+      'synced-page'
+    );
+
+    expect(overrides?.basicModelName).toBe('GLOBAL NAME');
   });
 
   test('returns null when global card_options template is not custom', async () => {
