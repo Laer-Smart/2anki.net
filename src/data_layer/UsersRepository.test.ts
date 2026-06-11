@@ -173,6 +173,33 @@ describe('UsersRepository.createUserAndSeedFromTombstone', () => {
       prints_month_started_at: seed.prints_month_started_at,
     });
   });
+
+  it('falls back to now for null month-start values so the NOT NULL columns never receive null', async () => {
+    const now = new Date('2026-05-24T00:00:00Z');
+    const seed = {
+      cards_used_this_month: 0,
+      cards_month_started_at: null,
+      pdf_prints_this_month: 0,
+      prints_month_started_at: null,
+    };
+    const { knex, tombstoneRepo, updateSpy } = buildTrxKnex(seed);
+    const repo = new UsersRepository(knex as any, tombstoneRepo as any);
+
+    await repo.createUserAndSeedFromTombstone(
+      'al',
+      SAMPLE_HASH,
+      'al@example.com',
+      null,
+      now
+    );
+
+    expect(updateSpy).toHaveBeenCalledWith({
+      cards_used_this_month: 0,
+      cards_month_started_at: now,
+      pdf_prints_this_month: 0,
+      prints_month_started_at: now,
+    });
+  });
 });
 
 describe('UsersRepository.deleteUser', () => {
