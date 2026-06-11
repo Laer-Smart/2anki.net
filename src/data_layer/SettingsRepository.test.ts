@@ -33,6 +33,10 @@ describe('SettingsRepository.loadAnkifyTemplateOverrides', () => {
       t.string('owner');
       t.json('payload');
     });
+    await db.schema.createTable('users', (t) => {
+      t.integer('id');
+      t.json('card_options');
+    });
     repo = new SettingsRepository(db);
   });
 
@@ -99,6 +103,70 @@ describe('SettingsRepository.loadAnkifyTemplateOverrides', () => {
 
   test('returns null when the owner has no settings rows at all', async () => {
     const overrides = await repo.loadAnkifyTemplateOverrides('99');
+    expect(overrides).toBeNull();
+  });
+
+  test('falls back to users.card_options when the owner has no settings row but set a custom template globally', async () => {
+    await db('users').insert({
+      id: 13574,
+      card_options: JSON.stringify({
+        template: 'custom',
+        basic_model_name: 'ATTI BASIC',
+      }),
+    });
+    await db('templates').insert({
+      owner: '13574',
+      payload: JSON.stringify(TEMPLATES_PAYLOAD),
+    });
+
+    const overrides = await repo.loadAnkifyTemplateOverrides('13574');
+
+    expect(overrides).not.toBeNull();
+    expect(overrides?.basicModelName).toBe('ATTI BASIC');
+    expect(overrides?.basicTemplate.front).toContain('atti');
+  });
+
+  test('prefers a per-page settings row over global card_options', async () => {
+    await db('users').insert({
+      id: 13574,
+      card_options: JSON.stringify({
+        template: 'custom',
+        basic_model_name: 'GLOBAL NAME',
+      }),
+    });
+    await db('settings').insert({
+      owner: '13574',
+      object_id: 'page-a',
+      title: 'A',
+      payload: JSON.stringify({
+        payload: { template: 'custom', basic_model_name: 'PAGE NAME' },
+      }),
+    });
+    await db('templates').insert({
+      owner: '13574',
+      payload: JSON.stringify(TEMPLATES_PAYLOAD),
+    });
+
+    const overrides = await repo.loadAnkifyTemplateOverrides('13574');
+
+    expect(overrides?.basicModelName).toBe('PAGE NAME');
+  });
+
+  test('returns null when global card_options template is not custom', async () => {
+    await db('users').insert({
+      id: 13574,
+      card_options: JSON.stringify({
+        template: 'specialstyle1',
+        basic_model_name: 'ATTI BASIC',
+      }),
+    });
+    await db('templates').insert({
+      owner: '13574',
+      payload: JSON.stringify(TEMPLATES_PAYLOAD),
+    });
+
+    const overrides = await repo.loadAnkifyTemplateOverrides('13574');
+
     expect(overrides).toBeNull();
   });
 });
