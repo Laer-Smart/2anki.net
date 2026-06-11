@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-cloze-code-styles",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Cloze deletions work on inline code that carries styling"
+}
