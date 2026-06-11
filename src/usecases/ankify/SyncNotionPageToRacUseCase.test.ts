@@ -55,6 +55,7 @@ const sampleSubscription = (
   notion_page_title: null,
   notion_page_url: null,
   notion_page_icon: null,
+  target_deck: null,
   enabled: true,
   last_polled_at: null,
   last_synced_at: null,
@@ -140,6 +141,7 @@ const makeAnkiConnectStub = () =>
     createDeck: jest.fn(async () => 1),
     addNote: jest.fn(async () => 7),
     notesInfo: jest.fn(async () => []),
+    changeDeck: jest.fn(async () => null),
     updateNoteFields: jest.fn(async () => null),
     sync: jest.fn(async () => null),
     modelNames: jest.fn(async () => [] as string[]),
@@ -851,6 +853,169 @@ describe('SyncNotionPageToRacUseCase', () => {
     });
 
     expect(ac.createDeck).toHaveBeenCalledWith('Notion Sync::QuickTricks');
+  });
+
+  test('builds the deck from target_deck when set, not the Notion Sync default', async () => {
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+    const repos = makeRepos();
+    repos.subscriptions = makeSubscriptionsRepo(
+      sampleSubscription({
+        notion_page_title: 'Small Bowel Cancer',
+        target_deck: 'MS3::General Surgery::Small Bowel, IBD::Cancer',
+      })
+    );
+    const ac = makeAnkiConnectStub();
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => []
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'page-id',
+      trigger: 'manual',
+    });
+
+    expect(ac.createDeck).toHaveBeenCalledWith(
+      'MS3::General Surgery::Small Bowel, IBD::Cancer'
+    );
+    expect(ac.createDeck).not.toHaveBeenCalledWith(
+      'Notion Sync::Small Bowel Cancer'
+    );
+    expect(ac.addNote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deckName: 'MS3::General Surgery::Small Bowel, IBD::Cancer',
+      })
+    );
+    expect(repos.mappings.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deck_name: 'MS3::General Surgery::Small Bowel, IBD::Cancer',
+      })
+    );
+  });
+
+  test('moves already-mapped cards into the target deck and rewrites their mapping', async () => {
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard({ notion_block_id: 'block-1' })],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+    const repos = makeRepos();
+    repos.subscriptions = makeSubscriptionsRepo(
+      sampleSubscription({
+        notion_page_title: 'Pharmacology',
+        target_deck: 'MS3::Pharmacology',
+      })
+    );
+    const existingMapping = {
+      id: 5,
+      ankify_client_id: 1,
+      source_id: 'block-1',
+      source_type: 'notion_block' as const,
+      anki_note_id: 900,
+      deck_name: 'Notion Sync::Pharmacology',
+      last_synced_at: new Date(2020, 0, 1),
+    };
+    repos.mappings.findBySourceId = jest.fn(
+      async (_clientId: number, _sourceId: string) => existingMapping
+    );
+    const ac = makeAnkiConnectStub();
+    (ac.notesInfo as jest.Mock).mockImplementation(async (notes: number[]) => {
+      if (notes.includes(900)) {
+        return [
+          {
+            noteId: 900,
+            modelName: 'Ankify Basic',
+            tags: [],
+            fields: {
+              Front: { value: 'Front text', order: 0 },
+              Back: { value: 'Back text', order: 1 },
+            },
+            cards: [9001, 9002],
+            mod: Math.floor(new Date(2020, 0, 1).getTime() / 1000),
+          },
+        ];
+      }
+      return [];
+    });
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => []
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'page-id',
+      trigger: 'polling',
+    });
+
+    expect(ac.changeDeck).toHaveBeenCalledWith(
+      [9001, 9002],
+      'MS3::Pharmacology'
+    );
+    expect(repos.mappings.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_id: 'block-1',
+        anki_note_id: 900,
+        deck_name: 'MS3::Pharmacology',
+      })
+    );
+  });
+
+  test('does not call changeDeck when no target_deck is set', async () => {
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+    const repos = makeRepos();
+    repos.subscriptions = makeSubscriptionsRepo(
+      sampleSubscription({ notion_page_title: 'Algebra', target_deck: null })
+    );
+    const ac = makeAnkiConnectStub();
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => []
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'page-id',
+      trigger: 'manual',
+    });
+
+    expect(ac.changeDeck).not.toHaveBeenCalled();
   });
 
   test('refreshes model styling and templates after ensuring models exist', async () => {

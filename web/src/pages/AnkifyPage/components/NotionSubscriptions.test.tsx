@@ -26,6 +26,7 @@ const sampleSubscription = (
   notion_page_title: 'My deck',
   notion_page_url: 'https://notion.so/My-deck',
   notion_page_icon: null,
+  target_deck: null,
   enabled: true,
   last_polled_at: null,
   last_synced_at: new Date().toISOString(),
@@ -879,5 +880,68 @@ describe('NotionSubscriptions subscribe error mapping', () => {
       )
     ).toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+});
+
+describe('NotionSubscriptions deck location', () => {
+  test('saving a deck location calls the API with the page id and entered path', async () => {
+    const subscribe = vi.fn(async () => ({
+      created: 0,
+      updated: 0,
+      conflicts: 0,
+      unchanged: 0,
+      errors: [],
+      anki_web_sync: 'skipped' as const,
+      anki_web_sync_error: null,
+      diagnostic: null,
+    }));
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({ id: 21, notion_page_id: 'a'.repeat(32) }),
+      ]),
+      subscribeAnkifyNotionPage: subscribe,
+    });
+
+    renderSubs(backend);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /options for my deck/i })
+    );
+    fireEvent.click(
+      await screen.findByRole('menuitem', {
+        name: /set deck location for my deck/i,
+      })
+    );
+
+    const input = await screen.findByLabelText(/anki deck location/i);
+    fireEvent.change(input, {
+      target: { value: 'MS3::Surgery::Small Bowel' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /save location/i }));
+
+    await waitFor(() =>
+      expect(subscribe).toHaveBeenCalledWith({
+        notionPageId: 'a'.repeat(32),
+        targetDeck: 'MS3::Surgery::Small Bowel',
+      })
+    );
+  });
+
+  test('shows the In Anki line when a non-default target_deck is set', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({
+          id: 22,
+          notion_page_id: 'b'.repeat(32),
+          target_deck: 'MS3::Pharmacology',
+        }),
+      ]),
+    });
+
+    renderSubs(backend);
+
+    expect(
+      await screen.findByText(/In Anki: MS3::Pharmacology/i)
+    ).toBeInTheDocument();
   });
 });

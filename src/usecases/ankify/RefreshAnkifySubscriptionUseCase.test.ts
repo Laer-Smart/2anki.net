@@ -17,6 +17,7 @@ const sampleSubscription = (
   notion_page_title: 'My Notes',
   notion_page_url: 'https://notion.so/page-abc',
   notion_page_icon: '📓',
+  target_deck: null,
   enabled: true,
   last_polled_at: null,
   last_synced_at: null,

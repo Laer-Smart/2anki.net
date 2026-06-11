@@ -47,6 +47,15 @@ import {
   NoAvailablePortError,
 } from '../services/ankify/RacService';
 import { AnkiConnectUnreachableError } from '../services/ankify/AnkiConnectClient';
+import { sanitizeDeckPath } from '../lib/ankify/transforms/tags';
+
+function parseTargetDeckField(raw: unknown): string | null | undefined {
+  if (typeof raw !== 'string') {
+    return undefined;
+  }
+  const cleaned = sanitizeDeckPath(raw);
+  return cleaned.length > 0 ? cleaned : null;
+}
 
 class AnkifyController {
   constructor(
@@ -325,6 +334,7 @@ class AnkifyController {
       typeof rawIcon === 'string' && rawIcon.trim().length > 0
         ? rawIcon.trim()
         : undefined;
+    const targetDeck = parseTargetDeckField(req.body?.target_deck);
     try {
       const result = await this.syncNotionPageUseCase.execute({
         owner,
@@ -332,6 +342,7 @@ class AnkifyController {
         notionPageTitle,
         notionPageUrl,
         notionPageIcon,
+        targetDeck,
         trigger: 'manual',
       });
       res.status(200).json({

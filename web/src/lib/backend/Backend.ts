@@ -669,6 +669,7 @@ export class Backend {
       notion_page_title: string | null;
       notion_page_url: string | null;
       notion_page_icon: string | null;
+      target_deck: string | null;
       enabled: boolean;
       last_polled_at: string | null;
       last_synced_at: string | null;
@@ -684,6 +685,7 @@ export class Backend {
     notionPageTitle?: string | null;
     notionPageUrl?: string | null;
     notionPageIcon?: string | null;
+    targetDeck?: string | null;
   }): Promise<{
     created: number;
     updated: number;
@@ -704,6 +706,9 @@ export class Backend {
       notion_page_title: input.notionPageTitle,
       notion_page_url: input.notionPageUrl,
       notion_page_icon: input.notionPageIcon,
+      ...(input.targetDeck === undefined
+        ? {}
+        : { target_deck: input.targetDeck ?? '' }),
     });
     if (!response.ok) {
       const body = await response

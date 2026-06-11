@@ -13,6 +13,7 @@ const sampleSubscription = (
   notion_page_title: null,
   notion_page_url: null,
   notion_page_icon: null,
+  target_deck: null,
   enabled: true,
   last_polled_at: null,
   last_synced_at: null,

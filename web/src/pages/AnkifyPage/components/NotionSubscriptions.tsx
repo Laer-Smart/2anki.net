@@ -154,6 +154,15 @@ const errorFlashFor = (
   return { kind: 'error', text: "Couldn't update. Try again in a moment." };
 };
 
+const MIDDLE_TRUNCATE_LIMIT = 32;
+
+const truncateMiddle = (value: string): string => {
+  if (value.length <= MIDDLE_TRUNCATE_LIMIT) return value;
+  const head = value.slice(0, 16);
+  const tail = value.slice(-13);
+  return `${head}…${tail}`;
+};
+
 const extractNotionId = (input: string): string => {
   const trimmed = input.trim();
   const urlMatch =
@@ -193,6 +202,10 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
   const [activeTab, setActiveTab] = useState<'decks' | 'find' | null>(null);
   const [search, setSearch] = useState('');
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const [deckLocationEditorId, setDeckLocationEditorId] = useState<
+    number | null
+  >(null);
+  const [deckLocationInput, setDeckLocationInput] = useState('');
   const menuContainerRef = useRef<HTMLUListElement | null>(null);
   const [refreshingIds, setRefreshingIds] = useState<Set<number>>(
     () => new Set()
@@ -312,6 +325,7 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
         notion_page_title: args.notionPageTitle ?? null,
         notion_page_url: args.notionPageUrl ?? null,
         notion_page_icon: args.notionPageIcon ?? null,
+        target_deck: null,
         enabled: true,
         last_polled_at: null,
         last_synced_at: null,
@@ -348,6 +362,25 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: SUBSCRIPTIONS_KEY }),
   });
+
+  const saveDeckLocation = useMutation({
+    mutationFn: (args: { notionPageId: string; targetDeck: string }) =>
+      api.subscribeAnkifyNotionPage({
+        notionPageId: args.notionPageId,
+        targetDeck: args.targetDeck,
+      }),
+    onSuccess: () => {
+      setDeckLocationEditorId(null);
+      setDeckLocationInput('');
+      queryClient.invalidateQueries({ queryKey: SUBSCRIPTIONS_KEY });
+    },
+  });
+
+  const openDeckLocationEditor = (id: number, current: string | null) => {
+    setOpenMenuId(null);
+    setDeckLocationEditorId(id);
+    setDeckLocationInput(current ?? '');
+  };
 
   const handlePick = (
     id: string,
@@ -649,6 +682,15 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                           displayTitle
                         )}
                         {secondLine}
+                        {sub.target_deck != null &&
+                          sub.target_deck.length > 0 && (
+                            <span
+                              className={styles.decksItemDeckPath}
+                              title={sub.target_deck}
+                            >
+                              In Anki: {truncateMiddle(sub.target_deck)}
+                            </span>
+                          )}
                       </span>
                       <span className={styles.decksItemTime} aria-live="polite">
                         {(() => {
@@ -701,6 +743,17 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                               type="button"
                               role="menuitem"
                               className={styles.decksItemMenuItem}
+                              aria-label={`Set deck location for ${displayTitle}`}
+                              onClick={() =>
+                                openDeckLocationEditor(sub.id, sub.target_deck)
+                              }
+                            >
+                              Set deck location
+                            </button>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              className={styles.decksItemMenuItem}
                               onClick={() => {
                                 setOpenMenuId(null);
                                 unsubscribe.mutate(sub.id);
@@ -713,6 +766,62 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                         )}
                       </div>
                     </li>
+                    {deckLocationEditorId === sub.id && (
+                      <li className={styles.zeroBanner}>
+                        <form
+                          className={styles.deckLocationForm}
+                          onSubmit={(event) => {
+                            event.preventDefault();
+                            saveDeckLocation.mutate({
+                              notionPageId: sub.notion_page_id,
+                              targetDeck: deckLocationInput.trim(),
+                            });
+                          }}
+                        >
+                          <label htmlFor={`deck-location-${sub.id}`}>
+                            Anki deck location
+                          </label>
+                          <input
+                            id={`deck-location-${sub.id}`}
+                            type="text"
+                            value={deckLocationInput}
+                            onChange={(event) =>
+                              setDeckLocationInput(event.target.value)
+                            }
+                            placeholder="Notion Sync::Small Bowel Cancer"
+                          />
+                          <p className={styles.deckLocationHelp}>
+                            Use :: to nest. New cards land here; cards you
+                            already moved stay put.
+                          </p>
+                          <div className={styles.deckLocationActions}>
+                            <button
+                              type="submit"
+                              className={sharedStyles.btnPrimary}
+                              disabled={saveDeckLocation.isPending}
+                            >
+                              Save location
+                            </button>
+                            <button
+                              type="button"
+                              className={sharedStyles.btnGhost}
+                              onClick={() => {
+                                setDeckLocationEditorId(null);
+                                setDeckLocationInput('');
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                          {saveDeckLocation.isError && (
+                            <p role="alert" className={sharedStyles.helpDanger}>
+                              Couldn't save the deck location. Try again in a
+                              moment.
+                            </p>
+                          )}
+                        </form>
+                      </li>
+                    )}
                     {zeroBanner != null && (
                       <li className={styles.zeroBanner} aria-live="polite">
                         <p className={styles.zeroBannerText}>

@@ -75,6 +75,10 @@ export class AnkiConnectClient {
     return this.invoke('notesInfo', { notes });
   }
 
+  async changeDeck(cards: number[], deck: string): Promise<null> {
+    return this.invoke('changeDeck', { cards, deck });
+  }
+
   async deckNames(): Promise<string[]> {
     return this.invoke('deckNames');
   }
