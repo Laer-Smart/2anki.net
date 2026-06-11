@@ -336,7 +336,7 @@ class NotionAPIWrapper {
   ): Promise<{
     results: Array<{
       id: string;
-      object: 'page';
+      object: 'page' | 'database';
       url: string | null;
       icon: unknown;
       title: string;
@@ -347,7 +347,7 @@ class NotionAPIWrapper {
     const maxPages = opts.maxPages ?? 20;
     const collected: Array<{
       id: string;
-      object: 'page';
+      object: 'page' | 'database';
       url: string | null;
       icon: unknown;
       title: string;
@@ -404,7 +404,79 @@ class NotionAPIWrapper {
       }
       cursor = response.next_cursor;
     }
+
+    const databases = await this.searchTopLevelDatabases(query, maxResults);
+    collected.push(...databases);
+
     return { results: collected };
+  }
+
+  private async searchTopLevelDatabases(
+    query: string,
+    maxResults: number
+  ): Promise<
+    Array<{
+      id: string;
+      object: 'database';
+      url: string | null;
+      icon: unknown;
+      title: string;
+      parent: { type: string };
+    }>
+  > {
+    const response: SearchResponse = await withRetry(
+      () =>
+        this.notion.search({
+          page_size: DEFAULT_PAGE_SIZE_LIMIT,
+          query,
+          filter: { value: 'data_source', property: 'object' },
+          sort: {
+            direction: 'descending',
+            timestamp: 'last_edited_time',
+          },
+        }),
+      { label: 'searchTopLevelDatabases' }
+    );
+
+    const collapsed = collapseDataSourcesToDatabases(response);
+    const databases: Array<{
+      id: string;
+      object: 'database';
+      url: string | null;
+      icon: unknown;
+      title: string;
+      parent: { type: string };
+    }> = [];
+    for (const entry of collapsed.results) {
+      const e = entry as {
+        id: string;
+        object: string;
+        url?: string;
+        icon?: unknown;
+        parent?: { type?: string };
+      };
+      if (e.object !== 'database') {
+        continue;
+      }
+      const title = (
+        getNotionObjectTitle(entry as never, { emoji: false }) ?? ''
+      ).trim();
+      if (title.length === 0) {
+        continue;
+      }
+      databases.push({
+        id: e.id,
+        object: 'database',
+        url: e.url ?? null,
+        icon: e.icon,
+        title,
+        parent: { type: e.parent?.type ?? 'workspace' },
+      });
+      if (databases.length >= maxResults) {
+        break;
+      }
+    }
+    return databases;
   }
 
   async search(query: string) {

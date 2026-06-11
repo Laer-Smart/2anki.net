@@ -30,22 +30,42 @@ const UNTITLED_TOP_LEVEL_PAGE = (id: string) => ({
   },
 });
 
+const DATA_SOURCE = (databaseId: string, title: string) => ({
+  object: 'data_source',
+  id: `${databaseId}-ds`,
+  url: `https://www.notion.so/${databaseId}`,
+  parent: { type: 'database_id', database_id: databaseId },
+  title: [{ plain_text: title }],
+});
+
 const installSearchStub = (
   wrapper: NotionAPIWrapper,
-  pages: ReadonlyArray<{ results: unknown[]; next_cursor: string | null }>
+  pages: ReadonlyArray<{ results: unknown[]; next_cursor: string | null }>,
+  databaseResults: unknown[] = []
 ) => {
   let call = 0;
-  const search = jest.fn(async () => {
-    const page = pages[call] ?? { results: [], next_cursor: null };
-    call += 1;
-    return {
-      object: 'list',
-      type: 'page_or_database',
-      results: page.results,
-      has_more: page.next_cursor != null,
-      next_cursor: page.next_cursor,
-    };
-  });
+  const search = jest.fn(
+    async (params: { filter?: { value?: string } } = {}) => {
+      if (params.filter?.value === 'data_source') {
+        return {
+          object: 'list',
+          type: 'page_or_data_source',
+          results: databaseResults,
+          has_more: false,
+          next_cursor: null,
+        };
+      }
+      const page = pages[call] ?? { results: [], next_cursor: null };
+      call += 1;
+      return {
+        object: 'list',
+        type: 'page_or_database',
+        results: page.results,
+        has_more: page.next_cursor != null,
+        next_cursor: page.next_cursor,
+      };
+    }
+  );
   (wrapper as unknown as { notion: { search: unknown } }).notion = {
     search,
   } as unknown as NotionAPIWrapper['notion' & keyof NotionAPIWrapper];
@@ -102,6 +122,26 @@ describe('NotionAPIWrapper.searchTopLevelPages', () => {
     expect(search).toHaveBeenCalledTimes(3);
   });
 
+  test('surfaces shared Notion databases labelled as database, keyed on the database id', async () => {
+    const wrapper = new NotionAPIWrapper('test-token', '1');
+    installSearchStub(
+      wrapper,
+      [{ results: [PAGE_WITH_TITLE('aaa', 'stats')], next_cursor: null }],
+      [DATA_SOURCE('db-1', 'Pharmacology')]
+    );
+
+    const result = await wrapper.searchTopLevelPages('');
+
+    expect(result.results).toEqual([
+      expect.objectContaining({ id: 'aaa', object: 'page', title: 'stats' }),
+      expect.objectContaining({
+        id: 'db-1',
+        object: 'database',
+        title: 'Pharmacology',
+      }),
+    ]);
+  });
+
   test('stops at maxPages even if more results are available', async () => {
     const wrapper = new NotionAPIWrapper('test-token', '1');
     const search = installSearchStub(wrapper, [
@@ -116,6 +156,6 @@ describe('NotionAPIWrapper.searchTopLevelPages', () => {
     });
 
     expect(result.results).toEqual([]);
-    expect(search).toHaveBeenCalledTimes(2);
+    expect(search).toHaveBeenCalledTimes(3);
   });
 });
