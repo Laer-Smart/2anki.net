@@ -18,10 +18,10 @@ class FakeSettingsService implements IServiceSettings {
     return Promise.resolve();
   }
 
-  getById(id: string): Promise<SettingsInitializer> {
+  getById(owner: string, id: string): Promise<SettingsInitializer> {
     return Promise.resolve({
-      object_id: '1',
-      owner: '1',
+      object_id: id,
+      owner,
       payload: FLAT_OPTIONS,
     });
   }
@@ -58,11 +58,11 @@ function testDefaultSettings(
 }
 
 describe('CardOptionsController.findSetting', () => {
-  function makeMockFindRes() {
+  function makeMockFindRes(owner = 'user-1') {
     const json = jest.fn();
     const status = jest.fn().mockReturnValue({ send: jest.fn() });
     return {
-      locals: {},
+      locals: { owner },
       json,
       status,
     } as unknown as import('express').Response;
@@ -101,9 +101,26 @@ describe('CardOptionsController.findSetting', () => {
     expect(res.json).toHaveBeenCalledWith({ payload: FLAT_OPTIONS });
   });
 
+  it('scopes the lookup to the authenticated owner', async () => {
+    const getById = jest.fn().mockResolvedValue({
+      object_id: 'page-123',
+      owner: 'user-7',
+      payload: FLAT_OPTIONS,
+    });
+    const service = new FakeSettingsService();
+    service.getById = getById;
+    const controller = new CardOptionsController(service);
+    const req = {
+      params: { id: 'page-123' },
+    } as unknown as import('express').Request;
+    const res = makeMockFindRes('user-7');
+    await controller.findSetting(req, res);
+    expect(getById).toHaveBeenCalledWith('user-7', 'page-123');
+  });
+
   it('returns null payload when no settings are found', async () => {
     class EmptySettingsService extends FakeSettingsService {
-      getById(_id: string): Promise<SettingsInitializer> {
+      getById(_owner: string, _id: string): Promise<SettingsInitializer> {
         return Promise.resolve(null as unknown as SettingsInitializer);
       }
     }

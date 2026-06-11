@@ -56,13 +56,14 @@ class CardOptionsController {
   async findSetting(req: Request, res: Response) {
     console.debug(`find settings ${req.params.id}`);
     const { id } = req.params;
+    const owner = getOwner(res);
 
     if (!id) {
       return res.status(400).send();
     }
 
     try {
-      const storedSettings = await this.service.getById(id);
+      const storedSettings = await this.service.getById(owner, id);
       if (storedSettings?.payload == null) {
         return res.json({ payload: null });
       }
