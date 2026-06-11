@@ -5,6 +5,7 @@ import { validateCardSize } from '../../claude/cardSize';
 import type { FieldMapping } from '../../claude/ClaudeService';
 
 import { UserSuppliedTemplateFile } from './types';
+import { CARD_OPTION_DEFAULTS } from './cardOptionDefaults';
 
 class CardOption {
   readonly deckName: string | undefined;
@@ -131,7 +132,7 @@ class CardOption {
     if (this.deckName && !this.deckName.trim()) {
       this.deckName = undefined;
     }
-    this.useInput = input['enable-input'] !== 'false';
+    this.useInput = input['enable-input'] === 'true';
     this.maxOne = input['max-one-toggle-per-card'] === 'true';
     this.noUnderline = input['no-underline'] === 'true';
     this.isCherry = input.cherry === 'true';
@@ -211,44 +212,7 @@ class CardOption {
   }
 
   static LoadDefaultOptions(): { [key: string]: string } {
-    return {
-      'add-notion-link': 'false',
-      'use-notion-id': 'true',
-      all: 'true',
-      paragraph: 'false',
-      cherry: 'false',
-      avocado: 'false',
-      tags: 'true',
-      cloze: 'true',
-      'cloze-from-toggle-content': 'false',
-      'group-cloze-per-toggle': 'false',
-      'enable-input': 'false',
-      'basic-reversed': 'false',
-      reversed: 'false',
-      'no-underline': 'false',
-      'max-one-toggle-per-card': 'true',
-      'perserve-newlines': 'false',
-      'process-pdfs': 'true',
-      'pdf-extract-text': 'false',
-      'download-pdfs': 'false',
-      'page-emoji': 'first_emoji',
-      'image-quiz-html-to-anki': 'false',
-      'embed-images': 'true',
-      'markdown-nested-bullet-points': 'true',
-      'split-sections-into-decks': 'false',
-      'claude-ai-flashcards': 'false',
-      'ai-comprehensive': 'false',
-      'share-files-for-debugging': 'false',
-      'mcq-enabled': 'false',
-      'mcq-tts-question': '',
-      'mcq-tts-correct-answer': '',
-      'mcq-tts-extra': '',
-      'tts-auto-detect': 'false',
-      'tts-manual-lang': '',
-      'tts-manual-side': 'front',
-      'overlapping-cloze': 'off',
-      'code-theme': 'github',
-    };
+    return CARD_OPTION_DEFAULTS;
   }
 }
 
