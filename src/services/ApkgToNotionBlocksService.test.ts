@@ -724,11 +724,13 @@ describe('buildTruncationNoticeBlocks', () => {
       paidCap: 10000,
     });
 
-    const [headline] = plainText(blocks);
+    const [headline, contact] = plainText(blocks);
     expect(headline).toBe(
-      'Imported the first 10 000 of 12 000 notes. 10 000 notes is the largest import 2anki supports — the remaining 2000 notes were not imported.'
+      'Imported the first 10 000 of 12 000 notes. The remaining 2000 notes were not imported — your plan imports up to 10 000 notes at a time.'
     );
-    expect(plainText(blocks)).toHaveLength(1);
+    expect(contact).toBe(
+      'Need a higher limit? Email support@2anki.net and we will raise it for you.'
+    );
     expect(headline).not.toContain('pricing');
     expect(blocks[blocks.length - 1].type).toBe('divider');
   });

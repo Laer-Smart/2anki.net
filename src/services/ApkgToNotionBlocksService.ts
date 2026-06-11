@@ -663,9 +663,17 @@ export function buildTruncationNoticeBlocks(
           rich_text: [
             ...headline,
             ...makeRichText(
-              ` ${imported} notes is the largest import 2anki supports — the remaining ${remaining} notes were not imported.`
+              ` The remaining ${remaining} notes were not imported — your plan imports up to ${imported} notes at a time.`
             ),
           ],
+        },
+      },
+      {
+        type: 'paragraph',
+        paragraph: {
+          rich_text: makeRichText(
+            'Need a higher limit? Email support@2anki.net and we will raise it for you.'
+          ),
         },
       },
       { type: 'divider', divider: {} },
