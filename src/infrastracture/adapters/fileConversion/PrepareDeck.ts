@@ -525,7 +525,7 @@ export async function prepareDeckInfoOnly(
     outputWorkspace.location,
     `${getDeckFilename(parser.name)}`
   );
-  const deckInfoPath = parser.writeDeckInfo(deckSubWorkspace);
+  const deckInfoPath = await parser.writeDeckInfo(deckSubWorkspace);
 
   const mcqCount = parser.payload.reduce((sum, d) => sum + d.mcqCount, 0);
   const mcqSkippedCount = parser.payload.reduce(

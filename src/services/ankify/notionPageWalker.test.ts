@@ -58,7 +58,7 @@ describe('walkNotionPageForFlashcards', () => {
     ]);
   });
 
-  test('keeps external-hosted image URLs as-is in the back HTML', async () => {
+  test('rewrites external-hosted image URLs to a local filename in the back HTML', async () => {
     const fetchChildren = jest.fn(async (blockId: string) => {
       if (blockId === 'page-id') {
         return [toggleBlock()];
@@ -80,15 +80,14 @@ describe('walkNotionPageForFlashcards', () => {
       fetchChildren as never
     );
 
-    expect(cards[0].back).toContain(
-      '<img src="https://cdn.example.com/diagram.png">'
-    );
+    expect(cards[0].back).toContain('<img src="ankify-img-block-ext.png">');
     expect(cards[0].media).toEqual([
       {
         block_id: 'img-block-ext',
         kind: 'image',
         source: 'external',
         url: 'https://cdn.example.com/diagram.png',
+        filename: 'ankify-img-block-ext.png',
       },
     ]);
   });

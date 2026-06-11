@@ -28,6 +28,8 @@ import { isValidAudioFile } from '../anki/format';
 import FallbackParser from './experimental/FallbackParser';
 import { embedFile } from './exporters/embedFile';
 import { resolveNotionS3ImageFromZip } from './exporters/resolveNotionS3ImageFromZip';
+import { downloadMediaOrSkip } from '../../services/NotionService/helpers/downloadMediaOrSkip';
+import getUniqueFileName from '../misc/getUniqueFileName';
 import getYouTubeEmbedLink from './helpers/getYouTubeEmbedLink';
 import getYouTubeID from './helpers/getYouTubeID';
 import { isFileNameEqual } from '../storage/types';
@@ -86,6 +88,17 @@ export interface DeckParserInput {
 function hasNestedBullets(content: string | undefined): boolean {
   if (content == null || content === '') return false;
   return /^[ \t]+[-*+][ \t]/m.test(content);
+}
+
+function remoteImageExtension(url: string): string {
+  const cleaned = url.split('?')[0];
+  const match = /\.([a-zA-Z0-9]{1,5})$/.exec(cleaned);
+  if (match == null) return 'png';
+  return match[1].toLowerCase();
+}
+
+function remoteImageFilename(url: string, bytes: Buffer): string {
+  return `${getUniqueFileName(bytes.toString('binary'))}.${remoteImageExtension(url)}`;
 }
 
 export class DeckParser {
@@ -587,64 +600,107 @@ export class DeckParser {
     return card;
   }
 
-  private embedImagesInCardContent(
+  private embedLocalOrZipImage(
+    dom: cheerio.CheerioAPI,
+    elem: Element,
+    originalName: string,
+    card: Note,
+    ws: Workspace
+  ): boolean {
+    if (isImageFileEmbedable(originalName)) {
+      const decodedPath = decodeURIComponent(originalName);
+      const newName = embedFile({
+        exporter: this.customExporter,
+        files: this.files,
+        filePath: decodedPath,
+        workspace: ws,
+      });
+      if (newName) {
+        dom(elem).attr('src', newName);
+        card.media.push(newName);
+      } else {
+        dom(elem).attr('src', decodedPath.split('/').pop() ?? originalName);
+      }
+      return true;
+    }
+
+    const zipFile = resolveNotionS3ImageFromZip(originalName, this.files);
+    if (zipFile) {
+      const newName = embedFile({
+        exporter: this.customExporter,
+        files: this.files,
+        filePath: zipFile.name,
+        workspace: ws,
+      });
+      if (newName) {
+        dom(elem).attr('src', newName);
+        card.media.push(newName);
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  private async embedRemoteImage(
+    dom: cheerio.CheerioAPI,
+    elem: Element,
+    url: string,
+    card: Note
+  ): Promise<void> {
+    let bytes: Buffer | null = null;
+    try {
+      bytes = await downloadMediaOrSkip(url);
+    } catch (error) {
+      console.warn(`Failed to fetch remote image ${url}`);
+      console.error(error);
+    }
+    if (bytes == null) return;
+
+    const newName = remoteImageFilename(url, bytes);
+    this.customExporter.addMedia(newName, bytes);
+    dom(elem).attr('src', newName);
+    card.media.push(newName);
+  }
+
+  private async embedImagesInCardContent(
     content: string,
     card: Note,
     ws: Workspace
-  ): string {
+  ): Promise<string> {
     if (!content.includes('<img')) return content;
 
     const dom = cheerio.load(content);
-    const images = dom('img');
+    const images = dom('img').toArray();
     if (images.length === 0) return content;
 
-    images.each((_i, elem) => {
+    for (const elem of images) {
       const originalName = dom(elem).attr('src');
-      if (!originalName) return;
+      if (!originalName) continue;
 
-      if (isImageFileEmbedable(originalName)) {
-        const decodedPath = decodeURIComponent(originalName);
-        const newName = embedFile({
-          exporter: this.customExporter,
-          files: this.files,
-          filePath: decodedPath,
-          workspace: ws,
-        });
-        if (newName) {
-          dom(elem).attr('src', newName);
-          card.media.push(newName);
-        } else {
-          dom(elem).attr('src', decodedPath.split('/').pop() ?? originalName);
-        }
-        return;
-      }
+      const handled = this.embedLocalOrZipImage(
+        dom,
+        elem,
+        originalName,
+        card,
+        ws
+      );
+      if (handled) continue;
 
-      const zipFile = resolveNotionS3ImageFromZip(originalName, this.files);
-      if (zipFile) {
-        const newName = embedFile({
-          exporter: this.customExporter,
-          files: this.files,
-          filePath: zipFile.name,
-          workspace: ws,
-        });
-        if (newName) {
-          dom(elem).attr('src', newName);
-          card.media.push(newName);
-        }
-      }
-    });
+      await this.embedRemoteImage(dom, elem, originalName, card);
+    }
     return dom.html();
   }
 
-  private embedCardImages(card: Note, ws: Workspace) {
+  private async embedCardImages(card: Note, ws: Workspace): Promise<void> {
     if (!this.settings.embedImages) {
       return;
     }
     if (card.name) {
-      card.name = this.embedImagesInCardContent(card.name, card, ws);
+      card.name = await this.embedImagesInCardContent(card.name, card, ws);
     }
     if (card.back) {
-      card.back = this.embedImagesInCardContent(card.back, card, ws);
+      card.back = await this.embedImagesInCardContent(card.back, card, ws);
     }
   }
 
@@ -687,7 +743,11 @@ export class DeckParser {
     }
   }
 
-  private transformCard(card: Note, counter: number, ws: Workspace) {
+  private async transformCard(
+    card: Note,
+    counter: number,
+    ws: Workspace
+  ): Promise<void> {
     card.number = counter;
 
     if (card.mcq) {
@@ -729,7 +789,7 @@ export class DeckParser {
     }
 
     card.media = [];
-    this.embedCardImages(card, ws);
+    await this.embedCardImages(card, ws);
     this.embedCardAudio(card, ws);
     this.appendCardVideoEmbeds(card);
 
@@ -910,7 +970,7 @@ export class DeckParser {
     return this.notesFromOverlappingItems(lines);
   }
 
-  private processPayload(ws: Workspace) {
+  private async processPayload(ws: Workspace): Promise<void> {
     for (const d of this.payload) {
       const deck = d;
       deck.id = get16DigitRandomId();
@@ -920,7 +980,7 @@ export class DeckParser {
       const replaced = new Set<Note>();
       for (const c of deck.cards) {
         let card = c;
-        this.transformCard(card, counter++, ws);
+        await this.transformCard(card, counter++, ws);
 
         if (this.settings.useTags) {
           card = this.locateTags(card, deck.globalTags);
@@ -965,23 +1025,23 @@ export class DeckParser {
     this.customExporter.configure(this.payload);
   }
 
-  build(ws: Workspace) {
+  async build(ws: Workspace): Promise<Buffer> {
     if (ws.location !== this.workspace.location) {
       console.debug('workspace location changed for build');
       console.debug(ws.location);
       this.customExporter = new CustomExporter(this.firstDeckName, ws.location);
     }
 
-    this.processPayload(ws);
+    await this.processPayload(ws);
     return this.customExporter.save();
   }
 
-  writeDeckInfo(ws: Workspace): string {
+  async writeDeckInfo(ws: Workspace): Promise<string> {
     if (ws.location !== this.workspace.location) {
       this.customExporter = new CustomExporter(this.firstDeckName, ws.location);
     }
 
-    this.processPayload(ws);
+    await this.processPayload(ws);
     return this.customExporter.deckInfoPath();
   }
 

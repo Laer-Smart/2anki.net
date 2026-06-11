@@ -89,20 +89,11 @@ const renderImageBlock = (
   if (content == null || block.id == null) return '';
   const url = mediaUrl(content);
   if (url == null) return '';
-  if (content.type === 'external') {
-    media.push({
-      block_id: block.id,
-      kind: 'image',
-      source: 'external',
-      url,
-    });
-    return `<img src="${escapeAttribute(url)}">${renderCaption(content.caption)}`;
-  }
   const filename = buildMediaFilename(block, url, 'png');
   media.push({
     block_id: block.id,
     kind: 'image',
-    source: 'file',
+    source: content.type,
     url,
     filename,
   });

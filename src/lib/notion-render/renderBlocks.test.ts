@@ -198,20 +198,21 @@ describe('renderNotionBlocks — recursion', () => {
 });
 
 describe('renderNotionBlocks — media', () => {
-  it('emits an external image as <img> and one external media ref', async () => {
+  it('rewrites an external image to a local filename and emits a media ref carrying that filename', async () => {
     const block: NotionRenderableBlock = {
       id: 'img1',
       type: 'image',
       image: { type: 'external', external: { url: 'https://x/i.png' } },
     };
     const out = await renderNotionBlocks([block], noChildren);
-    expect(out.html).toBe('<img src="https://x/i.png">');
+    expect(out.html).toBe('<img src="ankify-img1.png">');
     expect(out.media).toEqual([
       {
         block_id: 'img1',
         kind: 'image',
         source: 'external',
         url: 'https://x/i.png',
+        filename: 'ankify-img1.png',
       },
     ]);
   });

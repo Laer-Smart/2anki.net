@@ -920,17 +920,22 @@ describe('SyncNotionPageToRacUseCase', () => {
     );
   });
 
-  test('skips storeMediaFile for external-hosted images and still proceeds', async () => {
+  test('downloads and stores external-hosted images so the card renders offline', async () => {
+    const externalFetch = jest.fn(async () => ({
+      status: 200,
+      data: Buffer.from('PNGDATA'),
+    }));
     (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
       cards: [
         sampleCard({
-          back: '<img src="https://cdn.example.com/x.png">',
+          back: '<img src="ankify-img-ext.png">',
           media: [
             {
               block_id: 'img-ext',
               kind: 'image',
               source: 'external',
               url: 'https://cdn.example.com/x.png',
+              filename: 'ankify-img-ext.png',
             },
           ],
         }),
@@ -951,7 +956,9 @@ describe('SyncNotionPageToRacUseCase', () => {
       repos.logs,
       repos.notionRepo,
       () => ac,
-      () => async () => []
+      () => async () => [],
+      undefined,
+      externalFetch
     );
 
     await useCase.execute({
@@ -960,7 +967,13 @@ describe('SyncNotionPageToRacUseCase', () => {
       trigger: 'manual',
     });
 
-    expect(ac.storeMediaFile).not.toHaveBeenCalled();
+    expect(externalFetch).toHaveBeenCalledWith('https://cdn.example.com/x.png');
+    expect(ac.storeMediaFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filename: 'ankify-img-ext.png',
+        data: expect.any(String),
+      })
+    );
     expect(ac.addNote).toHaveBeenCalled();
   });
 

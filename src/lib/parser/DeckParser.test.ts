@@ -8,7 +8,18 @@ import { DeckParser } from './DeckParser';
 import Workspace from './WorkSpace';
 import { EmptyDeckError } from '../../usecases/jobs/EmptyDeckError';
 
-beforeEach(() => setupTests());
+const downloadMediaOrSkipMock = jest.fn<Promise<Buffer | null>, [string]>();
+
+jest.mock('../../services/NotionService/helpers/downloadMediaOrSkip', () => ({
+  __esModule: true,
+  downloadMediaOrSkip: (url: string) => downloadMediaOrSkipMock(url),
+}));
+
+beforeEach(() => {
+  setupTests();
+  downloadMediaOrSkipMock.mockReset();
+  downloadMediaOrSkipMock.mockResolvedValue(Buffer.from('fake-remote-bytes'));
+});
 
 test('YouTube embeds are responsive so they fit narrow screens', async () => {
   const html = `<html><head><title>Video</title></head>
@@ -295,7 +306,7 @@ async function buildPledgeDeck(overlapping: string) {
     noLimits: true,
     workspace,
   });
-  parser.writeDeckInfo(workspace);
+  await parser.writeDeckInfo(workspace);
   return parser.payload[0];
 }
 
@@ -360,7 +371,7 @@ test('overlapping cloze falls back to one card when the list has under 2 items',
     noLimits: true,
     workspace,
   });
-  parser.writeDeckInfo(workspace);
+  await parser.writeDeckInfo(workspace);
   const deck = parser.payload[0];
   expect(deck.cards.length).toBe(1);
   expect(deck.cards[0].name).toContain('Single');
@@ -385,7 +396,7 @@ async function buildFragmentedListDeck(overlapping: string) {
     noLimits: true,
     workspace,
   });
-  parser.writeDeckInfo(workspace);
+  await parser.writeDeckInfo(workspace);
   return parser.payload[0];
 }
 
@@ -422,7 +433,7 @@ test('overlapping cloze off leaves a fragmented page list as one card per item',
   expect(deck.cards[4].name).toContain('Jupiter');
 });
 
-function buildPageDeck(fixture: string, overlapping: string) {
+async function buildPageDeck(fixture: string, overlapping: string) {
   const fixturePath = path.join(__dirname, '../../test/fixtures', fixture);
   const contents = fs.readFileSync(fixturePath).toString();
   const workspace = new Workspace(true, 'fs');
@@ -437,12 +448,12 @@ function buildPageDeck(fixture: string, overlapping: string) {
     noLimits: true,
     workspace,
   });
-  parser.writeDeckInfo(workspace);
+  await parser.writeDeckInfo(workspace);
   return parser.payload[0];
 }
 
 test('overlapping cloze show-all turns a single prose paragraph into N cloze notes', async () => {
-  const deck = buildPageDeck('notion-single-paragraph.html', 'show-all');
+  const deck = await buildPageDeck('notion-single-paragraph.html', 'show-all');
   expect(deck.cards.length).toBe(3);
   for (const card of deck.cards) {
     expect(card.cloze).toBe(true);
@@ -456,14 +467,14 @@ test('overlapping cloze show-all turns a single prose paragraph into N cloze not
 });
 
 test('overlapping cloze off leaves a single prose paragraph as one card', async () => {
-  const deck = buildPageDeck('notion-single-paragraph.html', 'off');
+  const deck = await buildPageDeck('notion-single-paragraph.html', 'off');
   expect(deck.cards.length).toBe(1);
   expect(deck.cards[0].name).toContain('You should not bother others');
   expect(deck.cards[0].name).not.toContain('{{c1::');
 });
 
 test('overlapping cloze leaves a multi-paragraph page untouched', async () => {
-  const deck = buildPageDeck('notion-multi-paragraph.html', 'show-all');
+  const deck = await buildPageDeck('notion-multi-paragraph.html', 'show-all');
   for (const card of deck.cards) {
     expect(card.name).not.toContain('{{c1::');
   }
@@ -472,8 +483,8 @@ test('overlapping cloze leaves a multi-paragraph page untouched', async () => {
   ).toBe(true);
 });
 
-test('overlapping cloze show-all turns a poem of one-line blocks into N cloze notes', () => {
-  const deck = buildPageDeck('notion-poem-lines.html', 'show-all');
+test('overlapping cloze show-all turns a poem of one-line blocks into N cloze notes', async () => {
+  const deck = await buildPageDeck('notion-poem-lines.html', 'show-all');
   expect(deck.cards.length).toBe(7);
   for (const card of deck.cards) {
     expect(card.cloze).toBe(true);
@@ -487,8 +498,8 @@ test('overlapping cloze show-all turns a poem of one-line blocks into N cloze no
   );
 });
 
-test('overlapping cloze windowed limits a poem to neighbouring lines', () => {
-  const deck = buildPageDeck('notion-poem-lines.html', 'windowed');
+test('overlapping cloze windowed limits a poem to neighbouring lines', async () => {
+  const deck = await buildPageDeck('notion-poem-lines.html', 'windowed');
   expect(deck.cards.length).toBe(7);
   for (const card of deck.cards) {
     expect(card.cloze).toBe(true);
@@ -496,8 +507,8 @@ test('overlapping cloze windowed limits a poem to neighbouring lines', () => {
   }
 });
 
-test('overlapping cloze off leaves a poem as one basic card per line', () => {
-  const deck = buildPageDeck('notion-poem-lines.html', 'off');
+test('overlapping cloze off leaves a poem as one basic card per line', async () => {
+  const deck = await buildPageDeck('notion-poem-lines.html', 'off');
   expect(deck.cards.length).toBe(7);
   for (const card of deck.cards) {
     expect(card.name).not.toContain('{{c1::');
@@ -505,8 +516,8 @@ test('overlapping cloze off leaves a poem as one basic card per line', () => {
   expect(deck.cards[0].name).toContain('Over the hills we go');
 });
 
-test('overlapping cloze leaves a multi-line prose page untouched', () => {
-  const deck = buildPageDeck('notion-prose-lines.html', 'show-all');
+test('overlapping cloze leaves a multi-line prose page untouched', async () => {
+  const deck = await buildPageDeck('notion-prose-lines.html', 'show-all');
   for (const card of deck.cards) {
     expect(card.name).not.toContain('{{c1::');
   }
@@ -515,14 +526,14 @@ test('overlapping cloze leaves a multi-line prose page untouched', () => {
   ).toBe(true);
 });
 
-test('overlapping cloze skips a page that mixes lines with a heading', () => {
-  const deck = buildPageDeck('notion-mixed-lines.html', 'show-all');
+test('overlapping cloze skips a page that mixes lines with a heading', async () => {
+  const deck = await buildPageDeck('notion-mixed-lines.html', 'show-all');
   for (const card of deck.cards) {
     expect(card.name).not.toContain('{{c1::');
   }
 });
 
-function buildDeckFromFiles(
+async function buildDeckFromFiles(
   entryName: string,
   files: { name: string; contents: string }[],
   overlapping: string
@@ -539,12 +550,15 @@ function buildDeckFromFiles(
     noLimits: true,
     workspace,
   });
-  parser.writeDeckInfo(workspace);
+  await parser.writeDeckInfo(workspace);
   return parser.payload;
 }
 
-test('overlapping cloze fires on the real Notion list wrapper, not just idealized HTML', () => {
-  const deck = buildPageDeck('notion-real-numbered-list.html', 'show-all');
+test('overlapping cloze fires on the real Notion list wrapper, not just idealized HTML', async () => {
+  const deck = await buildPageDeck(
+    'notion-real-numbered-list.html',
+    'show-all'
+  );
   expect(deck.cards.length).toBe(5);
   for (const card of deck.cards) {
     expect(card.cloze).toBe(true);
@@ -555,8 +569,8 @@ test('overlapping cloze fires on the real Notion list wrapper, not just idealize
   expect(deck.cards[4].name).toContain('{{c1::Jupiter}}');
 });
 
-test('the real Notion list wrapper stays basic when overlapping cloze is off', () => {
-  const deck = buildPageDeck('notion-real-numbered-list.html', 'off');
+test('the real Notion list wrapper stays basic when overlapping cloze is off', async () => {
+  const deck = await buildPageDeck('notion-real-numbered-list.html', 'off');
   expect(deck.cards.length).toBe(5);
   for (const card of deck.cards) {
     expect(card.name).not.toContain('{{c1::');
@@ -565,7 +579,7 @@ test('the real Notion list wrapper stays basic when overlapping cloze is off', (
   expect(deck.cards[0].name).not.toContain('Venus');
 });
 
-test('overlapping cloze reaches a real Notion subpage through link recursion', () => {
+test('overlapping cloze reaches a real Notion subpage through link recursion', async () => {
   const parentPath = path.join(
     __dirname,
     '../../test/fixtures/notion-real-parent-with-link.html'
@@ -576,7 +590,7 @@ test('overlapping cloze reaches a real Notion subpage through link recursion', (
   );
   const parent = fs.readFileSync(parentPath).toString();
   const subpage = fs.readFileSync(subpagePath).toString();
-  const decks = buildDeckFromFiles(
+  const decks = await buildDeckFromFiles(
     'Solar System 3727ab29a11e805099c5efe852c0ce3c.html',
     [
       {
@@ -933,7 +947,7 @@ test('Notion figure image: embeds image when file found via backslash path (Wind
   expect(deck.cards[0].back).not.toContain('src="Test Deck/');
 });
 
-test('Notion figure image: resolves S3 presigned URL from local ZIP entry', () => {
+test('Notion figure image: resolves S3 presigned URL from local ZIP entry', async () => {
   const html = `<html><head><title>Deck</title></head><body><article>
 <ul class="toggle"><li><details open="">
   <summary>Question</summary>
@@ -954,7 +968,7 @@ test('Notion figure image: resolves S3 presigned URL from local ZIP entry', () =
     workspace: ws,
   });
 
-  parser.writeDeckInfo(ws);
+  await parser.writeDeckInfo(ws);
   const deck = parser.payload[0];
 
   expect(deck.cards.length).toBe(1);
@@ -1571,12 +1585,12 @@ describe('embed-images opt-out', () => {
     });
   }
 
-  test('default (embed-images on) attaches image bytes to card media', () => {
+  test('default (embed-images on) attaches image bytes to card media', async () => {
     const ws = new Workspace(true, 'fs');
     const parser = buildParser(
       new CardOption({ 'max-one-toggle-per-card': 'true', cherry: 'false' })
     );
-    parser.writeDeckInfo(ws);
+    await parser.writeDeckInfo(ws);
 
     const cardWithMedia = parser.payload[0].cards.find(
       (c) => c.media.length > 0
@@ -1584,7 +1598,7 @@ describe('embed-images opt-out', () => {
     expect(cardWithMedia).toBeDefined();
   });
 
-  test('embed-images off leaves every card with an empty media list', () => {
+  test('embed-images off leaves every card with an empty media list', async () => {
     const ws = new Workspace(true, 'fs');
     const parser = buildParser(
       new CardOption({
@@ -1593,7 +1607,7 @@ describe('embed-images opt-out', () => {
         'embed-images': 'false',
       })
     );
-    parser.writeDeckInfo(ws);
+    await parser.writeDeckInfo(ws);
 
     for (const card of parser.payload[0].cards) {
       expect(card.media).toHaveLength(0);
@@ -1609,7 +1623,7 @@ describe('embed-images opt-out', () => {
     '    ',
   ].join('\n');
 
-  test('embed-images off skips embed in markdown bullet path', () => {
+  test('embed-images off skips embed in markdown bullet path', async () => {
     const workspace = new Workspace(true, 'fs');
     const parser = new DeckParser({
       name: 'notes.md',
@@ -1625,14 +1639,14 @@ describe('embed-images opt-out', () => {
       noLimits: true,
       workspace,
     });
-    parser.writeDeckInfo(workspace);
+    await parser.writeDeckInfo(workspace);
 
     for (const card of parser.payload[0].cards) {
       expect(card.media).toHaveLength(0);
     }
   });
 
-  test('embed-images on (default) embeds image in markdown bullet path', () => {
+  test('embed-images on (default) embeds image in markdown bullet path', async () => {
     const workspace = new Workspace(true, 'fs');
     const parser = new DeckParser({
       name: 'notes.md',
@@ -1647,11 +1661,60 @@ describe('embed-images opt-out', () => {
       noLimits: true,
       workspace,
     });
-    parser.writeDeckInfo(workspace);
+    await parser.writeDeckInfo(workspace);
 
     const cardWithMedia = parser.payload[0].cards.find(
       (c) => c.media.length > 0
     );
     expect(cardWithMedia).toBeDefined();
+  });
+});
+
+describe('remote image rehosting', () => {
+  const signedUrl =
+    'https://prod-files-secure.s3.us-west-2.amazonaws.com/ws/file/diagram.png?X-Amz-Expires=3600&X-Amz-Signature=abc';
+
+  function buildRemoteImageParser() {
+    const html = `<html><head><title>Deck</title></head><body><article>
+<ul class="toggle"><li><details open="">
+  <summary>Question</summary>
+  <div><img src="${signedUrl}" /></div>
+</details></li></ul>
+</article></body></html>`;
+    const workspace = new Workspace(true, 'fs');
+    return new DeckParser({
+      name: 'deck.html',
+      settings: new CardOption({ cherry: 'false' }),
+      files: [{ name: 'deck.html', contents: html }],
+      noLimits: true,
+      workspace,
+    });
+  }
+
+  test('downloads a signed image not present in the export and rewrites the src to a local filename', async () => {
+    const ws = new Workspace(true, 'fs');
+    const parser = buildRemoteImageParser();
+    await parser.writeDeckInfo(ws);
+
+    expect(downloadMediaOrSkipMock).toHaveBeenCalledWith(signedUrl);
+    const card = parser.payload[0].cards[0];
+    expect(card.back).not.toContain('prod-files-secure.s3');
+    const match = /src="([^"]+\.png)"/.exec(card.back);
+    expect(match).not.toBeNull();
+    const localName = match![1];
+    expect(card.media).toContain(localName);
+  });
+
+  test('keeps the original URL when the download fails so the card is never worse', async () => {
+    downloadMediaOrSkipMock.mockResolvedValueOnce(null);
+    const ws = new Workspace(true, 'fs');
+    const parser = buildRemoteImageParser();
+    await parser.writeDeckInfo(ws);
+
+    const card = parser.payload[0].cards[0];
+    expect(card.back).toContain(
+      'prod-files-secure.s3.us-west-2.amazonaws.com/ws/file/diagram.png'
+    );
+    expect(card.media).toHaveLength(0);
   });
 });
