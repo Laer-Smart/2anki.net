@@ -937,13 +937,17 @@ export class DeckParser {
         }
 
         const refreshIconRequested = card.hasRefreshIcon();
-        if (this.settings.basicReversed || refreshIconRequested) {
+        const reversible = card.isReversibleBasic();
+        if (
+          (this.settings.basicReversed || refreshIconRequested) &&
+          reversible
+        ) {
           const note = card.reversed(card);
           note.number = counter++;
           addThese.push(note);
         }
 
-        if (this.settings.reversed) {
+        if (this.settings.reversed && reversible) {
           const tmp = card.back;
           card.back = card.name;
           card.name = tmp;

@@ -230,7 +230,9 @@ test('Grouped cloze deletions', async () => {
     })
   );
   expect(deck.name).toBe('Grouped Cloze Deletions');
-  expect(deck.cards.length).toBe(20);
+  expect(deck.cards.length).toBe(10);
+  expect(deck.cards.every((card) => card.cloze)).toBe(true);
+  expect(deck.cards.some((card) => card.back.includes('{{c'))).toBe(false);
 });
 
 test('Cloze Deletions', async () => {
@@ -242,24 +244,21 @@ test('Cloze Deletions', async () => {
       'basic-reversed': 'true',
     })
   );
-  expect(deck.cards[0].back).toBe(
+  expect(deck.cards).toHaveLength(4);
+  expect(deck.cards.every((card) => card.cloze)).toBe(true);
+  expect(deck.cards[0].name).toBe(
     "<div class='toggle'>{{c2::Canberra}} was founded in {{c1::1913}}.</div>"
   );
-  expect(deck.cards[1].back).toBe(
+  expect(deck.cards[1].name).toBe(
     "<div class='toggle'>{{c1::Canberra::city}} was founded in {{c2::1913::year}}</div>"
   );
-  expect(deck.cards[2].back).toBe(
+  expect(deck.cards[2].name).toBe(
     "<div class='toggle'>{{c1::Canberra::city}} was founded in {{c2::1913}}</div>"
   );
-  expect(deck.cards[3].back).toBe(
+  expect(deck.cards[3].name).toBe(
     "<div class='toggle'>{{c1::This}} is a {{c2::cloze deletion}}</div>"
   );
-  expect(deck.cards[4].back).toBe(
-    "<div class='toggle'>{{c2::Canberra}} was founded in {{c1::1913}}.</div>"
-  );
-  expect(deck.cards[5].back).toEqual(
-    "<div class='toggle'>{{c1::Canberra::city}} was founded in {{c2::1913::year}}</div>"
-  );
+  expect(deck.cards.some((card) => card.back.includes('{{c'))).toBe(false);
 });
 
 const pledgeHTML = `<!DOCTYPE html><html><head><title>Pledge</title></head>
@@ -624,7 +623,10 @@ test('Nested Toggles', async () => {
       'basic-reversed': 'true',
     })
   );
-  expect(deck.cards.length).toBe(12);
+  expect(deck.cards.length).toBe(8);
+  expect(
+    deck.cards.some((card) => !card.cloze && card.back.includes('{{c'))
+  ).toBe(false);
 });
 
 test('Global Tags', async () => {
