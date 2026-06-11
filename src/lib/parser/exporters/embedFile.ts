@@ -7,19 +7,44 @@ import getUniqueFileName from '../../misc/getUniqueFileName';
 import CustomExporter from './CustomExporter';
 import Workspace from '../WorkSpace';
 
-const getFile = (
-  exporter: CustomExporter,
-  files: File[],
-  filePath: string,
-  workspace: Workspace
+const readFromWorkspaceLocation = (
+  location: string,
+  filePath: string
 ): File | undefined => {
-  const fullPath = path.resolve(workspace.location, filePath);
-  if (fullPath.startsWith(workspace.location) && existsSync(fullPath)) {
+  const fullPath = path.resolve(location, filePath);
+  if (fullPath.startsWith(location) && existsSync(fullPath)) {
     const buffer = fs.readFileSync(fullPath);
     return {
       name: fullPath,
       contents: buffer,
     } as File;
+  }
+  return undefined;
+};
+
+const getFile = (
+  exporter: CustomExporter,
+  files: File[],
+  filePath: string,
+  workspace: Workspace,
+  fallbackWorkspaceLocation?: string
+): File | undefined => {
+  const fromWorkspace = readFromWorkspaceLocation(workspace.location, filePath);
+  if (fromWorkspace) {
+    return fromWorkspace;
+  }
+
+  if (
+    fallbackWorkspaceLocation &&
+    fallbackWorkspaceLocation !== workspace.location
+  ) {
+    const fromFallback = readFromWorkspaceLocation(
+      fallbackWorkspaceLocation,
+      filePath
+    );
+    if (fromFallback) {
+      return fromFallback;
+    }
   }
 
   const asRootFile = files.find((f) => f.name === filePath);
@@ -101,13 +126,21 @@ interface EmbedFileInput {
   files: File[];
   filePath: string;
   workspace: Workspace;
+  fallbackWorkspaceLocation?: string;
 }
 
 export const embedFile = (input: EmbedFileInput): string | null => {
-  const { exporter, files, filePath, workspace } = input;
+  const { exporter, files, filePath, workspace, fallbackWorkspaceLocation } =
+    input;
 
   const suffix = SuffixFrom(filePath);
-  const file = getFile(exporter, files, filePath, workspace);
+  const file = getFile(
+    exporter,
+    files,
+    filePath,
+    workspace,
+    fallbackWorkspaceLocation
+  );
 
   /**
    * The found file can be a file path in the workspace or a file in the zip or url.

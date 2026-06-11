@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-batch-markdown-images",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Images in markdown files survive multi-deck conversions"
+}
