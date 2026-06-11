@@ -329,11 +329,24 @@ const RUN_INTEGRATION = process.env.DATABASE_URL != null;
         user_id: userId,
         token: `reengagement-tok-${userId}`,
       });
+
+      await db('email_preferences').insert({
+        user_id: userId,
+        marketing_opt_out: false,
+      });
+
+      await db('favorites').insert({
+        owner: userId,
+        object_id: `fav-obj-${userId}`,
+        type: 'page',
+      });
     });
 
     afterEach(async () => {
       await db('inactivity_emails').where({ user_id: userId }).del();
       await db('re_engagement_emails').where({ user_id: userId }).del();
+      await db('email_preferences').where({ user_id: userId }).del();
+      await db('favorites').where({ owner: userId }).del();
       await db('users').where({ id: userId }).del();
     });
 
@@ -355,6 +368,30 @@ const RUN_INTEGRATION = process.env.DATABASE_URL != null;
       expect(user).toBeUndefined();
       expect(inactivity).toBeUndefined();
       expect(reEngagement).toBeUndefined();
+    });
+
+    it('deletes a user that has an email_preferences row without an FK violation', async () => {
+      const repo = new UsersRepository(db);
+
+      await repo.deleteUser(String(userId));
+
+      const user = await db('users').where({ id: userId }).first();
+      const preferences = await db('email_preferences')
+        .where({ user_id: userId })
+        .first();
+
+      expect(user).toBeUndefined();
+      expect(preferences).toBeUndefined();
+    });
+
+    it('cascades to favorites when the user is deleted', async () => {
+      const repo = new UsersRepository(db);
+
+      await repo.deleteUser(String(userId));
+
+      const favorite = await db('favorites').where({ owner: userId }).first();
+
+      expect(favorite).toBeUndefined();
     });
   }
 );
