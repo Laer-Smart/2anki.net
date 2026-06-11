@@ -296,9 +296,10 @@ export default function CommandsTab() {
         <h2 className={styles.cardTitle}>Delete inactive accounts</h2>
         <p className={styles.panelSubtitle}>
           Permanently deletes free accounts that were warned 14+ days ago and
-          have not logged in since. Excludes lifetime and active subscribers.
-          Capped at 100 per run. Check candidates first — deletion cannot be
-          undone.
+          have not logged in since, plus inactive free accounts whose email
+          address hard-bounced or was dropped — the warning email can never
+          reach them. Excludes lifetime and active subscribers. Capped at 100
+          per run. Check candidates first — deletion cannot be undone.
         </p>
         <div className={styles.controls}>
           <button
