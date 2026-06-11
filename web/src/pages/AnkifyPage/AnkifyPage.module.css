@@ -1273,3 +1273,42 @@
 .btnLink:hover {
   color: var(--color-text-primary);
 }
+
+.decksItemDeckPath {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0.125rem 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deckLocationForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.deckLocationForm label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+}
+
+.deckLocationForm input {
+  width: 100%;
+}
+
+.deckLocationHelp {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: var(--leading-normal);
+}
+
+.deckLocationActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}

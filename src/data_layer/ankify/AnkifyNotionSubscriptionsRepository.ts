@@ -57,6 +57,10 @@ export class AnkifyNotionSubscriptionsRepository implements AnkifyNotionSubscrip
       insertPayload.notion_page_icon = input.notion_page_icon;
       mergePayload.notion_page_icon = input.notion_page_icon;
     }
+    if (input.target_deck !== undefined) {
+      insertPayload.target_deck = input.target_deck;
+      mergePayload.target_deck = input.target_deck;
+    }
     const [row] = await this.database<AnkifyNotionSubscription>(TABLE)
       .insert(insertPayload)
       .onConflict(['owner', 'notion_page_id'])

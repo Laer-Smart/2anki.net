@@ -42,6 +42,7 @@ import {
 import { NoActiveAnkifyClientError } from './SendUploadToRacUseCase';
 import { NotionNotConnectedError } from './ExportReviewDataToNotionUseCase';
 import { isNotionDatabaseNotPageError } from '../../services/NotionService/helpers/isNotionDatabaseNotPageError';
+import { sanitizeDeckPath } from '../../lib/ankify/transforms/tags';
 
 export { NotionNotConnectedError } from './ExportReviewDataToNotionUseCase';
 
@@ -51,6 +52,7 @@ export interface SyncNotionPageInput {
   notionPageTitle?: string | null;
   notionPageUrl?: string | null;
   notionPageIcon?: string | null;
+  targetDeck?: string | null;
   trigger: 'manual' | 'polling' | 'webhook';
   ankiConnectHost?: string;
 }
@@ -138,8 +140,16 @@ const sanitizeDeckTitle = (title: string | null | undefined): string => {
   return cleaned;
 };
 
-const buildDeckName = (title: string | null | undefined): string =>
-  `${DECK_PARENT}::${sanitizeDeckTitle(title)}`;
+const buildDeckName = (
+  override: string | null | undefined,
+  title: string | null | undefined
+): string => {
+  const overridePath = sanitizeDeckPath(override);
+  if (overridePath.length > 0) {
+    return overridePath;
+  }
+  return `${DECK_PARENT}::${sanitizeDeckTitle(title)}`;
+};
 
 const summarizeCardErrors = (errors: string[]): string | null => {
   if (errors.length === 0) {
@@ -220,6 +230,7 @@ export class SyncNotionPageToRacUseCase {
       notion_page_title: pageTitle,
       notion_page_url: pageUrl,
       notion_page_icon: pageIcon,
+      target_deck: input.targetDeck,
       enabled: true,
     });
 
@@ -355,7 +366,10 @@ export class SyncNotionPageToRacUseCase {
       client.anki_port,
       client.anki_connect_api_key
     );
-    const deckName = buildDeckName(subscription.notion_page_title);
+    const deckName = buildDeckName(
+      subscription.target_deck,
+      subscription.notion_page_title
+    );
     await ac.createDeck(deckName);
     const overrides =
       (await this.templateOverridesProvider?.(
@@ -378,7 +392,104 @@ export class SyncNotionPageToRacUseCase {
       });
     }
 
+    await this.consolidateMappedNotes({
+      cards,
+      client,
+      subscription,
+      ac,
+      input,
+      result,
+      deckName,
+    });
+
     await this.runFinalAnkiWebSync(ac, result);
+  }
+
+  private async consolidateMappedNotes(args: {
+    cards: WalkedNotionFlashcard[];
+    client: AnkifyClient;
+    subscription: AnkifyNotionSubscription;
+    ac: AnkiConnectClient;
+    input: SyncNotionPageInput;
+    result: SyncNotionPageResult;
+    deckName: string;
+  }): Promise<void> {
+    const { cards, client, subscription, ac, input, result, deckName } = args;
+    if (sanitizeDeckPath(subscription.target_deck).length === 0) {
+      return;
+    }
+
+    const misplaced: AnkifySyncMapping[] = [];
+    for (const card of cards) {
+      const mapping = await this.mappings.findBySourceId(
+        client.id,
+        card.notion_block_id
+      );
+      if (mapping != null && mapping.deck_name !== deckName) {
+        misplaced.push(mapping);
+      }
+    }
+    if (misplaced.length === 0) {
+      return;
+    }
+
+    const noteIds = misplaced.map((m) => m.anki_note_id);
+    const info = await ac.notesInfo(noteIds);
+    const cardIds = info.flatMap((note) => note.cards ?? []);
+    if (cardIds.length > 0) {
+      await ac.changeDeck(cardIds, deckName);
+    }
+
+    for (const mapping of misplaced) {
+      await this.mappings.upsert({
+        ankify_client_id: client.id,
+        source_id: mapping.source_id,
+        source_type: mapping.source_type,
+        anki_note_id: mapping.anki_note_id,
+        deck_name: deckName,
+      });
+    }
+
+    this.emitFollowedDeckEvent(input, deckName, misplaced.length);
+    result.updated += misplaced.length;
+  }
+
+  private emitFollowedDeckEvent(
+    input: SyncNotionPageInput,
+    deckName: string,
+    movedNotes: number
+  ): void {
+    if (this.errorEvents == null) {
+      return;
+    }
+    const pageIdHash = crypto
+      .createHash('sha256')
+      .update(input.notionPageId)
+      .digest('hex');
+    const deckHash = crypto.createHash('sha256').update(deckName).digest('hex');
+    this.errorEvents
+      .insert({
+        source: 'server',
+        message: 'ankify.sync_followed_deck',
+        message_hash: crypto
+          .createHash('sha256')
+          .update(`ankify.sync_followed_deck:${pageIdHash}:${input.owner}`)
+          .digest('hex'),
+        context: {
+          user_id: input.owner,
+          source_type: 'notion_page',
+          file_hash: pageIdHash,
+          deck_hash: deckHash,
+          moved_notes: movedNotes,
+          trigger: input.trigger,
+        },
+      })
+      .catch((err) => {
+        console.error(
+          '[ankify-sync] failed to emit sync_followed_deck event',
+          err
+        );
+      });
   }
 
   private async walkSource(

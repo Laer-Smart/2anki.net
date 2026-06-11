@@ -49,6 +49,20 @@ describe('AnkiConnectClient', () => {
     });
   });
 
+  test('changeDeck sends the card ids and target deck', async () => {
+    const fetchImpl = makeFetch({ result: null, error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    await client.changeDeck([9001, 9002], 'MS3::Pharmacology');
+
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'changeDeck',
+      version: 6,
+      params: { cards: [9001, 9002], deck: 'MS3::Pharmacology' },
+    });
+  });
+
   test('omits params for parameterless actions like version/sync', async () => {
     const fetchImpl = makeFetch({ result: 6, error: null });
     const client = new AnkiConnectClient('http://x', fetchImpl);
