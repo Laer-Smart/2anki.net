@@ -13,6 +13,10 @@ export type CardOptions = Partial<{
   input_model_name: string;
   'user-instructions': string;
   'skip-defaults': string;
+  'overlapping-cloze': string;
+  'code-theme': string;
+  'card-size': string;
+  'field-mapping': string;
   'mcq-enabled': string;
   'mcq-tts-question': string;
   'mcq-tts-correct-answer': string;
@@ -20,6 +24,35 @@ export type CardOptions = Partial<{
   'tts-auto-detect': string;
   'tts-manual-lang': string;
   'tts-manual-side': string;
+  'add-notion-link': string;
+  'use-notion-id': string;
+  all: string;
+  paragraph: string;
+  cherry: string;
+  avocado: string;
+  tags: string;
+  cloze: string;
+  'cloze-from-toggle-content': string;
+  'group-cloze-per-toggle': string;
+  'enable-input': string;
+  'basic-reversed': string;
+  reversed: string;
+  'no-underline': string;
+  'max-one-toggle-per-card': string;
+  'remove-mp3-links': string;
+  'perserve-newlines': string;
+  'process-pdfs': string;
+  'pdf-extract-text': string;
+  'download-pdfs': string;
+  'markdown-nested-bullet-points': string;
+  'split-sections-into-decks': string;
+  'vertex-ai-pdf-questions': string;
+  'disable-indented-bullets': string;
+  'image-quiz-html-to-anki': string;
+  'embed-images': string;
+  'claude-ai-flashcards': string;
+  'ai-comprehensive': string;
+  'share-files-for-debugging': string;
 }>;
 
 export interface UserPreferences {
@@ -41,7 +74,7 @@ export interface IUserPreferencesRepository {
   clearCardOptions(userId: number): Promise<UserPreferences>;
 }
 
-const ALLOWED_CARD_OPTION_KEYS = new Set([
+export const ALLOWED_CARD_OPTION_KEYS = new Set([
   'deckName',
   'font-size',
   'text-color',
@@ -54,6 +87,10 @@ const ALLOWED_CARD_OPTION_KEYS = new Set([
   'input_model_name',
   'user-instructions',
   'skip-defaults',
+  'overlapping-cloze',
+  'code-theme',
+  'card-size',
+  'field-mapping',
   'mcq-enabled',
   'mcq-tts-question',
   'mcq-tts-correct-answer',
@@ -61,9 +98,38 @@ const ALLOWED_CARD_OPTION_KEYS = new Set([
   'tts-auto-detect',
   'tts-manual-lang',
   'tts-manual-side',
+  'add-notion-link',
+  'use-notion-id',
+  'all',
+  'paragraph',
+  'cherry',
+  'avocado',
+  'tags',
+  'cloze',
+  'cloze-from-toggle-content',
+  'group-cloze-per-toggle',
+  'enable-input',
+  'basic-reversed',
+  'reversed',
+  'no-underline',
+  'max-one-toggle-per-card',
+  'remove-mp3-links',
+  'perserve-newlines',
+  'process-pdfs',
+  'pdf-extract-text',
+  'download-pdfs',
+  'markdown-nested-bullet-points',
+  'split-sections-into-decks',
+  'vertex-ai-pdf-questions',
+  'disable-indented-bullets',
+  'image-quiz-html-to-anki',
+  'embed-images',
+  'claude-ai-flashcards',
+  'ai-comprehensive',
+  'share-files-for-debugging',
 ]);
 
-function sanitizeCardOptions(raw: CardOptions): CardOptions {
+export function sanitizeCardOptions(raw: CardOptions): CardOptions {
   const result: CardOptions = {};
   for (const key of ALLOWED_CARD_OPTION_KEYS) {
     const typedKey = key as keyof CardOptions;
