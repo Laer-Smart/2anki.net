@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../NavigationBar/helpers/getPlanLabel';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
-import { clearStoredCardOptions } from '../../lib/data_layer/clearStoredCardOptions';
+import { resetStoredCardOptions } from '../../lib/data_layer/resetStoredCardOptions';
 import { getLocalStorageBooleanValue } from '../../lib/data_layer/getLocalStorageBooleanValue';
 import { getLocalStorageValue } from '../../lib/data_layer/getLocalStorageValue';
 import CardOption from '../../lib/data_layer/model/CardOption';
@@ -56,7 +56,6 @@ export interface CardOptionsFormHandle {
 const DEFAULT_TEMPLATE = 'specialstyle';
 const DEFAULT_TOGGLE_MODE = 'close_toggle';
 const DEFAULT_PAGE_EMOJI = 'first_emoji';
-const DEFAULT_FONT_SIZE = '20';
 const DEFAULT_MCQ_ENABLED = false;
 const DEFAULT_MCQ_TTS_LANG = '';
 const DEFAULT_TTS_MANUAL_LANG = '';
@@ -599,11 +598,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           return;
         }
       }
-      if (options) clearStoredCardOptions(options);
-      localStorage.removeItem('page-emoji');
-      localStorage.removeItem('user-instructions');
+      resetStoredCardOptions(options ?? []);
       setDeckName('');
-      setFontSize(DEFAULT_FONT_SIZE);
+      setFontSize('');
       setTextColor('');
       setTextAlign('');
       setToggleMode(DEFAULT_TOGGLE_MODE);
@@ -615,12 +612,14 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       setClozeName('');
       setInputName('');
       setUserInstructions(DEFAULT_USER_INSTRUCTIONS);
+      setMcqEnabled(DEFAULT_MCQ_ENABLED);
       setMcqTtsQuestion(DEFAULT_MCQ_TTS_LANG);
       setMcqTtsCorrectAnswer(DEFAULT_MCQ_TTS_LANG);
       setMcqTtsExtra(DEFAULT_MCQ_TTS_LANG);
       setTtsAutoDetect(false);
       setTtsManualLang(DEFAULT_TTS_MANUAL_LANG);
       setTtsManualSide(DEFAULT_TTS_MANUAL_SIDE);
+      setCardSize(DEFAULT_CARD_SIZE);
       setFieldMapping(getDefaultFieldMapping(DEFAULT_TEMPLATE));
       if (options) {
         const reset: Record<string, boolean> = {};
