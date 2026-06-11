@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -132,6 +138,81 @@ describe('CardOptionsForm reset for the account-default view', () => {
       expect(mockResetUserCardOptions).toHaveBeenCalledTimes(1);
     });
     expect(setError).not.toHaveBeenCalled();
+  });
+});
+
+describe('CardOptionsForm reset clears all stored card options', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockResetUserCardOptions.mockResolvedValue(undefined);
+    setUserLocalsPaying(false);
+    localStorage.clear();
+    mockGetSettingsCardOptions.mockResolvedValue([
+      new CardOptionModel(
+        'cloze',
+        'Cloze deletion cards',
+        'Turn code spans into cloze deletions.',
+        true
+      ),
+    ]);
+  });
+
+  it('removes the non-checkbox card-option keys from localStorage', async () => {
+    localStorage.setItem('deckName', 'Pharmacology');
+    localStorage.setItem('font-size', '32');
+    localStorage.setItem('template', 'custom');
+    localStorage.setItem('mcq-enabled', 'true');
+    localStorage.setItem('card-size', 'detailed');
+    localStorage.setItem('text-color', '#ff0000');
+    localStorage.setItem('toggle-mode', 'open_toggle');
+    localStorage.setItem('token', 'session-keep');
+
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const resetButton = await screen.findByRole('button', {
+      name: 'Reset to defaults',
+    });
+    fireEvent.click(resetButton);
+
+    await waitFor(() => {
+      expect(localStorage.getItem('deckName')).toBeNull();
+    });
+    expect(localStorage.getItem('font-size')).toBeNull();
+    expect(localStorage.getItem('template')).toBeNull();
+    expect(localStorage.getItem('mcq-enabled')).toBeNull();
+    expect(localStorage.getItem('card-size')).toBeNull();
+    expect(localStorage.getItem('text-color')).toBeNull();
+    expect(localStorage.getItem('toggle-mode')).toBeNull();
+    expect(localStorage.getItem('token')).toBe('session-keep');
+  });
+
+  it('turns MCQ off and card size back to medium in the UI after reset', async () => {
+    localStorage.setItem('mcq-enabled', 'true');
+    localStorage.setItem('card-size', 'detailed');
+
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+
+    const mcqGroup = await screen.findByRole('group', {
+      name: 'Enable multiple choice questions',
+    });
+    expect(within(mcqGroup).getByRole('button', { name: 'On' })).toHaveClass(
+      /segmentActive/
+    );
+
+    const sizeGroup = screen.getByRole('group', { name: 'Card size' });
+    expect(
+      within(sizeGroup).getByRole('button', { name: 'Detailed' })
+    ).toHaveAttribute('aria-pressed', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset to defaults' }));
+
+    await waitFor(() => {
+      expect(within(mcqGroup).getByRole('button', { name: 'Off' })).toHaveClass(
+        /segmentActive/
+      );
+    });
+    expect(
+      within(sizeGroup).getByRole('button', { name: 'Medium' })
+    ).toHaveAttribute('aria-pressed', 'true');
   });
 });
 

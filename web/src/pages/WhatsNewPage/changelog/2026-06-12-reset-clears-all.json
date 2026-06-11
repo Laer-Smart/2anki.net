@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-reset-clears-all",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Reset to defaults clears every card option — deck name, font, template, MCQ, and card size, not just the checkboxes"
+}
