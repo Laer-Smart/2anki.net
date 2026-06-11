@@ -14,6 +14,7 @@ interface Annotations {
 
 interface HandleBlockAnnotationsOptions {
   noUnderline?: boolean;
+  tagRegistry?: TagRegistry;
 }
 
 const HandleBlockAnnotations = (
@@ -26,13 +27,12 @@ const HandleBlockAnnotations = (
   }
   const content = text.plain_text;
   const color = annotations.color;
-  // Compose all styles, allowing background + bold/italic/etc
   let styledContent: React.ReactNode = content;
   if (annotations.code) {
     styledContent = <code>{styledContent}</code>;
   }
   if (annotations.strikethrough) {
-    TagRegistry.getInstance().addStrikethrough(content);
+    options.tagRegistry?.addStrikethrough(content);
     styledContent = <del>{styledContent}</del>;
   }
   if (annotations.italic) {

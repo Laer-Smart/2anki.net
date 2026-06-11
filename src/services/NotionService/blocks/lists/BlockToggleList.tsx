@@ -37,7 +37,11 @@ export async function BlockToggleList(
           <Details>
             <summary
               dangerouslySetInnerHTML={{
-                __html: renderTextChildren(richText, handler.settings),
+                __html: renderTextChildren(
+                  richText,
+                  handler.settings,
+                  handler.tagRegistry
+                ),
               }}
             ></summary>
             <div dangerouslySetInnerHTML={{ __html: backSide }} />

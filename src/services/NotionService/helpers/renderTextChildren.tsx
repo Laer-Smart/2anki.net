@@ -4,6 +4,7 @@ import {
 } from '@notionhq/client/build/src/api-endpoints';
 import ReactDOMServer from 'react-dom/server';
 import CardOption from '../../../lib/parser/Settings';
+import TagRegistry from '../../../lib/parser/TagRegistry';
 
 import { renderInlineEquation } from '../blocks/BlockEquation';
 import HandleBlockAnnotations from '../blocks/HandleBlockAnnotations';
@@ -14,7 +15,8 @@ import preserveNewlinesIfApplicable from './preserveNewlinesIfApplicable';
 
 export default function renderTextChildren(
   text: RichTextItemResponse[] | undefined,
-  settings: CardOption
+  settings: CardOption,
+  tagRegistry?: TagRegistry
 ): string {
   if (!text || text?.length === 0) {
     return '';
@@ -30,6 +32,7 @@ export default function renderTextChildren(
           <>
             {HandleBlockAnnotations(t.annotations, t, {
               noUnderline: settings.noUnderline,
+              tagRegistry,
             })}
           </>
         );

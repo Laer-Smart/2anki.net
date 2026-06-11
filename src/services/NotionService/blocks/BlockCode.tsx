@@ -22,6 +22,7 @@ const BlockCode = (block: CodeBlockObjectResponse, handler: BlockHandler) => {
           const { annotations } = t;
           return HandleBlockAnnotations(annotations, t, {
             noUnderline: handler.settings?.noUnderline,
+            tagRegistry: handler.tagRegistry,
           });
         })}
       </code>

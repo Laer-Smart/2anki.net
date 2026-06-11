@@ -20,7 +20,9 @@ export const BlockQuote = (
     <blockquote className={styleWithColors(quote.color)} id={block.id}>
       {richText.map((t) => {
         const { annotations } = t;
-        return HandleBlockAnnotations(annotations, t);
+        return HandleBlockAnnotations(annotations, t, {
+          tagRegistry: handler.tagRegistry,
+        });
       })}
     </blockquote>
   );
