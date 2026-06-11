@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-11-ankify-custom-note-type",
+  "date": "2026-06-11",
+  "type": "fix",
+  "title": "Ankify-synced cards use your custom note type when you set it in card options"
+}
