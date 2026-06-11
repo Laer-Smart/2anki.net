@@ -517,6 +517,56 @@ describe('SyncNotionPageToRacUseCase', () => {
     expect(createdNames).not.toContain('Ankify Basic');
   });
 
+  test('resolves the template override for the synced page, not just the owner', async () => {
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+    const repos = makeRepos();
+    const ac = makeAnkiConnectStub();
+    const templateOverridesProvider = jest.fn(async () => ({
+      basicModelName: 'ATTI BASIC',
+      basicTemplate: {
+        parent: 'Basic',
+        name: 'ATTI BASIC',
+        storageKey: 'n2a-basic',
+        front: '{{Front}}',
+        back: '{{Back}}',
+        styling: '.card { color: tomato; }',
+      },
+    }));
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      templateOverridesProvider
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'synced-page-id',
+      trigger: 'polling',
+    });
+
+    expect(templateOverridesProvider).toHaveBeenCalledWith(
+      42,
+      'synced-page-id'
+    );
+  });
+
   test('seeds Ankify note types before the first addNote call', async () => {
     (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
       cards: [sampleCard()],

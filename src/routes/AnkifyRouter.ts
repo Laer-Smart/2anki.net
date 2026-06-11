@@ -289,8 +289,8 @@ const AnkifyRouter = () => {
 
   const ankifyNotionRepo = new NotionRepository(db);
   const settingsRepo = new SettingsRepository(db);
-  const templateOverridesProvider = (owner: number) =>
-    settingsRepo.loadAnkifyTemplateOverrides(String(owner));
+  const templateOverridesProvider = (owner: number, pageId?: string) =>
+    settingsRepo.loadAnkifyTemplateOverrides(String(owner), pageId);
   const syncNotionPageUseCase = new SyncNotionPageToRacUseCase(
     repo,
     mappings,

@@ -8,7 +8,8 @@ export interface ISettingsRepository {
   load(owner: string, id: string): Promise<CardOption>;
   loadIfExists(owner: string, id: string): Promise<CardOption | null>;
   loadAnkifyTemplateOverrides(
-    owner: string
+    owner: string,
+    pageId?: string
   ): Promise<AnkifyTemplateOverrides | null>;
 }
 
@@ -118,23 +119,35 @@ class SettingsRepository implements ISettingsRepository {
     }
   }
 
-  private async resolveCustomBasicModelName(
+  private customBasicModelNameFromSettingsRow(
+    row: { payload?: unknown } | undefined
+  ): string | null {
+    if (!row) {
+      return null;
+    }
+    const settingsPayload = parseJsonColumn(row.payload) as {
+      payload?: Record<string, string>;
+    } | null;
+    const cardOption = new CardOption(settingsPayload?.payload ?? {});
+    if (cardOption.template === 'custom') {
+      return cardOption.basicModelName;
+    }
+    return null;
+  }
+
+  private async customBasicModelNameForPage(
+    owner: string,
+    pageId: string
+  ): Promise<string | null> {
+    const pageRow = await this.database(this.table)
+      .where({ owner, object_id: pageId })
+      .first();
+    return this.customBasicModelNameFromSettingsRow(pageRow);
+  }
+
+  private async customBasicModelNameFromGlobal(
     owner: string
   ): Promise<string | null> {
-    const settingsRow = await this.database(this.table)
-      .where({ owner })
-      .orderBy('updated_at', 'desc')
-      .first();
-    if (settingsRow) {
-      const settingsPayload = parseJsonColumn(settingsRow.payload) as {
-        payload?: Record<string, string>;
-      } | null;
-      const cardOption = new CardOption(settingsPayload?.payload ?? {});
-      if (cardOption.template === 'custom') {
-        return cardOption.basicModelName;
-      }
-    }
-
     const userRow = await this.database('users')
       .select('card_options')
       .where({ id: owner })
@@ -146,15 +159,47 @@ class SettingsRepository implements ISettingsRepository {
     if (globalOptions?.template === 'custom') {
       return new CardOption(globalOptions).basicModelName;
     }
-
     return null;
   }
 
-  async loadAnkifyTemplateOverrides(
+  private async customBasicModelNameFromMostRecent(
     owner: string
+  ): Promise<string | null> {
+    const settingsRow = await this.database(this.table)
+      .where({ owner })
+      .orderBy('updated_at', 'desc')
+      .first();
+    return this.customBasicModelNameFromSettingsRow(settingsRow);
+  }
+
+  private async resolveCustomBasicModelName(
+    owner: string,
+    pageId?: string
+  ): Promise<string | null> {
+    if (pageId != null) {
+      const fromPage = await this.customBasicModelNameForPage(owner, pageId);
+      if (fromPage != null) {
+        return fromPage;
+      }
+    }
+
+    const fromGlobal = await this.customBasicModelNameFromGlobal(owner);
+    if (fromGlobal != null) {
+      return fromGlobal;
+    }
+
+    return this.customBasicModelNameFromMostRecent(owner);
+  }
+
+  async loadAnkifyTemplateOverrides(
+    owner: string,
+    pageId?: string
   ): Promise<AnkifyTemplateOverrides | null> {
     try {
-      const basicModelName = await this.resolveCustomBasicModelName(owner);
+      const basicModelName = await this.resolveCustomBasicModelName(
+        owner,
+        pageId
+      );
       if (basicModelName == null) {
         return null;
       }

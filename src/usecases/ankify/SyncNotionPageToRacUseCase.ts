@@ -358,7 +358,10 @@ export class SyncNotionPageToRacUseCase {
     const deckName = buildDeckName(subscription.notion_page_title);
     await ac.createDeck(deckName);
     const overrides =
-      (await this.templateOverridesProvider?.(input.owner)) ?? null;
+      (await this.templateOverridesProvider?.(
+        input.owner,
+        input.notionPageId
+      )) ?? null;
     await ensureAnkifyModels(ac, this.modelCache(client.id), overrides);
     await this.refreshAnkifyModelStyling(ac, overrides);
 
