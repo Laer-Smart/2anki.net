@@ -188,10 +188,14 @@ describe('ImportApkgToNotionUseCase', () => {
       .paragraph!.rich_text.map((s) => s.plain_text)
       .join('');
     expect(noticeText).toBe(
-      'Imported the first 3 of 4 notes. 3 notes is the largest import 2anki supports — the remaining 1 notes were not imported.'
+      'Imported the first 3 of 4 notes. The remaining 1 notes were not imported — your plan imports up to 3 notes at a time.'
     );
     expect(noticeText).not.toContain('pricing');
-    expect(firstBatch[1].type).toBe('divider');
+    const contactText = firstBatch[1].paragraph!.rich_text[0].plain_text;
+    expect(contactText).toBe(
+      'Need a higher limit? Email support@2anki.net and we will raise it for you.'
+    );
+    expect(firstBatch[2].type).toBe('divider');
   });
 
   it('adds no notice when the deck is under the cap', async () => {
