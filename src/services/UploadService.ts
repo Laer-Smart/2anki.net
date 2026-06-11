@@ -138,6 +138,14 @@ function resolveAsyncFailureReason(
   message: string,
   jobId: string
 ): string {
+  if (err instanceof MonthlyLimitError) {
+    return JSON.stringify({
+      code: 'monthly_limit',
+      cards_used: err.cards_used,
+      limit: err.limit,
+      reset_on: err.reset_on,
+    });
+  }
   const isParserCrash =
     err instanceof Error &&
     (err as Error & { code?: string }).code === 'PARSER_CRASH';
@@ -211,14 +219,21 @@ class UploadService {
       return;
     }
 
-    this.runClaudeRestart(job.object_id, owner, workspaceDir, async (step) => {
-      await this.jobRepository.updateJobStatus(job.object_id, owner, step);
-    }).catch(async (err: Error) => {
+    const paying = isPaying(res.locals);
+    this.runClaudeRestart(
+      job.object_id,
+      owner,
+      workspaceDir,
+      paying,
+      async (step) => {
+        await this.jobRepository.updateJobStatus(job.object_id, owner, step);
+      }
+    ).catch(async (err: Error) => {
       await this.jobRepository.updateJobStatus(
         job.object_id,
         owner,
         'failed',
-        err.message
+        resolveAsyncFailureReason(err, err.message, job.object_id)
       );
     });
 
@@ -230,8 +245,14 @@ class UploadService {
     workspaceDir: string,
     owner: string,
     totalCards = 0,
-    source: UploadSource | null = null
+    source: UploadSource | null = null,
+    paying = false
   ): Promise<void> {
+    await new CheckMonthlyCardLimitUseCase(this.usersRepository).execute({
+      userId: owner,
+      candidateCardCount: totalCards,
+      isPaying: paying,
+    });
     const files = await fs.promises.readdir(workspaceDir);
     const apkgFilename = files.find((f) => f.endsWith('.apkg'));
     if (!apkgFilename) {
@@ -267,6 +288,7 @@ class UploadService {
     objectId: string,
     owner: string,
     workspaceDir: string,
+    paying: boolean,
     onProgress: (step: string) => Promise<void>
   ) {
     const htmlFiles = walkHtmlFiles(workspaceDir);
@@ -293,12 +315,20 @@ class UploadService {
       throw new Error('No packages produced');
     }
 
+    const totalCards = deckInfo.reduce((sum, d) => sum + d.cards.length, 0);
     const deckName = deckInfo[0].name;
     const exporter = new CustomExporter(deckName, workspaceDir);
     exporter.configure(deckInfo as unknown as Deck[]);
     await exporter.save();
 
-    await this.promoteClaudeJobToUpload(objectId, workspaceDir, owner);
+    await this.promoteClaudeJobToUpload(
+      objectId,
+      workspaceDir,
+      owner,
+      totalCards,
+      null,
+      paying
+    );
   }
 
   async deleteUpload(owner: number, key: string) {
@@ -338,7 +368,7 @@ class UploadService {
         },
       });
 
-      if (owner && settings.claudeAIFlashcards) {
+      if (owner != null && paying && settings.claudeAIFlashcards) {
         return await this.handleAsyncUpload(
           req,
           res,
@@ -478,7 +508,8 @@ class UploadService {
             ws.location,
             owner,
             totalCards,
-            source
+            source,
+            paying
           );
         } else {
           logNoPackageDiagnostics(req.files as UploadedFile[]);

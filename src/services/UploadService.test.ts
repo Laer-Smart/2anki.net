@@ -49,6 +49,14 @@ jest.mock('../lib/parser/WorkSpace', () => {
   };
 });
 
+jest.mock('../lib/parser/exporters/CustomExporter', () => ({
+  __esModule: true,
+  default: jest.fn().mockImplementation(() => ({
+    configure: jest.fn(),
+    save: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
 const mockStorageDelete = jest.fn().mockResolvedValue(true);
 const mockStorageUploadFile = jest.fn().mockResolvedValue(undefined);
 const mockStorageUniqify = jest.fn().mockReturnValue('test-key.apkg');
@@ -904,6 +912,7 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
     const req = buildRequest({ body: { 'claude-ai-flashcards': 'true' } });
     const { res } = buildResponse();
     (res.locals as Record<string, unknown>).owner = 42;
+    (res.locals as Record<string, unknown>).subscriber = true;
 
     await service.handleUpload(req, res);
 
@@ -963,6 +972,7 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
     });
     const { res } = buildResponse();
     (res.locals as Record<string, unknown>).owner = 42;
+    (res.locals as Record<string, unknown>).subscriber = true;
 
     await service.handleUpload(req, res);
     await updateCalled;
@@ -1024,6 +1034,7 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
     const req = buildRequest({ body: { 'claude-ai-flashcards': 'true' } });
     const { res } = buildResponse();
     (res.locals as Record<string, unknown>).owner = 42;
+    (res.locals as Record<string, unknown>).subscriber = true;
 
     await service.handleUpload(req, res);
     await failedRecorded;
@@ -1099,6 +1110,7 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
     const req = buildRequest({ body: { 'claude-ai-flashcards': 'true' } });
     const { res } = buildResponse();
     (res.locals as Record<string, unknown>).owner = 42;
+    (res.locals as Record<string, unknown>).subscriber = true;
 
     await service.handleUpload(req, res);
     await failedRecorded;
@@ -1332,5 +1344,228 @@ describe('UploadService.restartClaudeJob — concurrent restart guard', () => {
 
     expect(mockGenerateDeckInfo).not.toHaveBeenCalled();
     expect(capturedStatus()).toBe(409);
+  });
+});
+
+describe('UploadService.handleUpload — claude flag does not bypass the card limit', () => {
+  const originalWorkspaceBase = process.env.WORKSPACE_BASE;
+
+  beforeAll(() => {
+    process.env.WORKSPACE_BASE = path.join(os.tmpdir(), 'upload-service-test');
+  });
+
+  afterAll(() => {
+    process.env.WORKSPACE_BASE = originalWorkspaceBase;
+  });
+
+  beforeEach(() => {
+    MockGeneratePackagesUseCase.mockClear();
+    trackMock.mockClear();
+    mockFirstApkg = Buffer.from('fake-apkg');
+    mockWorkspaceId = 'test-ws-id';
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({
+            packages: [{ name: 'deck', cardCount: 30 }],
+          }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
+  });
+
+  function buildJobRepo(): { repo: JobRepository; create: jest.Mock } {
+    const create = jest.fn().mockResolvedValue(undefined);
+    return {
+      repo: {
+        create,
+        updateJobStatus: jest.fn().mockResolvedValue(undefined),
+        findJobById: jest.fn().mockResolvedValue(null),
+        deleteJob: jest.fn().mockResolvedValue(undefined),
+      } as unknown as JobRepository,
+      create,
+    };
+  }
+
+  it('routes a free user with the claude flag through the sync path and enforces the limit', async () => {
+    const usersRepo = buildUsersRepo({
+      getCardUsage: jest
+        .fn()
+        .mockResolvedValue({ cards_used: 80, month_started_at: new Date() }),
+    });
+    const incrementSpy = usersRepo.incrementCardUsage as jest.Mock;
+    const { repo: jobRepo, create } = buildJobRepo();
+
+    const service = new UploadService(buildRepository(), jobRepo, usersRepo);
+    const req = buildRequest({ body: { 'claude-ai-flashcards': 'true' } });
+    const built = buildResponse();
+    let redirectedTo: string | null = null;
+    (built.res.redirect as unknown as jest.Mock).mockImplementation(
+      (url: string) => {
+        redirectedTo = url;
+        return built.res;
+      }
+    );
+    (built.res.locals as Record<string, unknown>).owner = 42;
+
+    await service.handleUpload(req, built.res);
+
+    expect(create).not.toHaveBeenCalled();
+    expect(built.capturedStatus()).not.toBe(202);
+    expect(redirectedTo).toBe('/limit?kind=card_count');
+    expect(incrementSpy).not.toHaveBeenCalled();
+  });
+
+  it('serves a free user with the claude flag a sync deck when under the limit', async () => {
+    const usersRepo = buildUsersRepo({
+      getCardUsage: jest
+        .fn()
+        .mockResolvedValue({ cards_used: 10, month_started_at: new Date() }),
+    });
+    const incrementSpy = usersRepo.incrementCardUsage as jest.Mock;
+    const { repo: jobRepo, create } = buildJobRepo();
+
+    const service = new UploadService(buildRepository(), jobRepo, usersRepo);
+    const req = buildRequest({ body: { 'claude-ai-flashcards': 'true' } });
+    const { res, capturedStatus, capturedSend } = buildResponse();
+    (res.locals as Record<string, unknown>).owner = 42;
+
+    await service.handleUpload(req, res);
+
+    expect(create).not.toHaveBeenCalled();
+    expect(capturedStatus()).toBe(200);
+    expect(capturedSend()).not.toBeNull();
+    expect(incrementSpy).toHaveBeenCalledWith(42, 30);
+  });
+
+  it('keeps the async path for a paying user with the claude flag', async () => {
+    const usersRepo = buildUsersRepo();
+    const { repo: jobRepo, create } = buildJobRepo();
+
+    const service = new UploadService(buildRepository(), jobRepo, usersRepo);
+    const req = buildRequest({ body: { 'claude-ai-flashcards': 'true' } });
+    const { res, capturedStatus, capturedJson } = buildResponse();
+    (res.locals as Record<string, unknown>).owner = 42;
+    (res.locals as Record<string, unknown>).subscriber = true;
+
+    await service.handleUpload(req, res);
+
+    expect(create).toHaveBeenCalled();
+    expect(capturedStatus()).toBe(202);
+    expect(capturedJson()).toEqual({ jobId: 'test-ws-id' });
+  });
+});
+
+describe('UploadService.restartClaudeJob — card-limit enforcement', () => {
+  const originalWorkspaceBase = process.env.WORKSPACE_BASE;
+  let db: Knex;
+  let workspaceBase: string;
+
+  beforeAll(() => {
+    workspaceBase = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'restart-limit-base-')
+    );
+    process.env.WORKSPACE_BASE = workspaceBase;
+  });
+
+  afterAll(() => {
+    process.env.WORKSPACE_BASE = originalWorkspaceBase;
+    fs.rmSync(workspaceBase, { recursive: true, force: true });
+  });
+
+  beforeEach(async () => {
+    mockGenerateDeckInfo.mockReset();
+    mockStorageUploadFile.mockClear();
+    db = knex({
+      client: 'better-sqlite3',
+      connection: { filename: ':memory:' },
+      useNullAsDefault: true,
+    });
+    await db.schema.createTable('jobs', (t) => {
+      t.increments('id');
+      t.string('owner').notNullable();
+      t.string('object_id').notNullable();
+      t.string('title');
+      t.string('type');
+      t.string('status');
+      t.timestamp('created_at').defaultTo(db.fn.now());
+      t.timestamp('last_edited_time');
+      t.string('job_reason_failure');
+      t.integer('card_count');
+    });
+    const workspaceDir = path.join(workspaceBase, 'job-obj-limit');
+    fs.mkdirSync(workspaceDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(workspaceDir, 'page.html'),
+      '<html><body>Q/A</body></html>'
+    );
+  });
+
+  afterEach(async () => {
+    await db.destroy();
+  });
+
+  async function waitForFailedJob(): Promise<{
+    status: string;
+    job_reason_failure: string;
+  }> {
+    for (let i = 0; i < 200; i++) {
+      const row = await db('jobs')
+        .where({ object_id: 'job-obj-limit' })
+        .first();
+      if (row?.status === 'failed') {
+        return row as { status: string; job_reason_failure: string };
+      }
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    throw new Error('job never reached failed status');
+  }
+
+  it('fails a free user restart over the monthly limit with a monthly_limit reason and no delivery', async () => {
+    await db('jobs').insert({
+      owner: '42',
+      object_id: 'job-obj-limit',
+      title: 'Deck',
+      type: 'claude',
+      status: 'done',
+      last_edited_time: new Date(),
+    });
+    mockGenerateDeckInfo.mockResolvedValue([
+      {
+        name: 'Deck',
+        cards: new Array(150).fill({ front: 'q', back: 'a' }),
+      },
+    ]);
+    const usersRepo = buildUsersRepo({
+      getCardUsage: jest
+        .fn()
+        .mockResolvedValue({ cards_used: 80, month_started_at: new Date() }),
+    });
+    const incrementSpy = usersRepo.incrementCardUsage as jest.Mock;
+
+    const service = new UploadService(
+      buildRepository(),
+      new JobRepository(db),
+      usersRepo
+    );
+    const req = {
+      params: { jobId: 'job-obj-limit' },
+      body: {},
+    } as unknown as express.Request;
+    const { res } = buildResponse();
+    (res.locals as Record<string, unknown>).owner = 42;
+
+    await service.restartClaudeJob(req, res);
+
+    const failed = await waitForFailedJob();
+    const reason = JSON.parse(failed.job_reason_failure) as {
+      code: string;
+      cards_used: number;
+      limit: number;
+    };
+    expect(reason.code).toBe('monthly_limit');
+    expect(reason.cards_used).toBe(80);
+    expect(reason.limit).toBe(100);
+    expect(incrementSpy).not.toHaveBeenCalled();
+    expect(mockStorageUploadFile).not.toHaveBeenCalled();
   });
 });
