@@ -40,7 +40,7 @@ function buildNoteFromBack(
   embedImages: boolean
 ): BuildNoteResult {
   const convertedBack = markdownToHTML(dedent(rawBack), true);
-  const dom = cheerio.load(convertedBack, { xmlMode: true });
+  const dom = cheerio.load(convertedBack, null, false);
   const media: string[] = [];
 
   if (embedImages) {
