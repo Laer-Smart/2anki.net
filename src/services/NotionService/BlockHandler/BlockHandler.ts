@@ -257,6 +257,24 @@ class BlockHandler {
     return `<embed src="${newName}" />`;
   }
 
+  async getToggleFrontMedia(block: BlockObjectResponse): Promise<string> {
+    const children = await this.api.getBlocks({
+      createdAt: block.created_time,
+      lastEditedAt: block.last_edited_time,
+      id: block.id,
+      all: this.useAll,
+      type: block.type,
+    });
+    const first = children.results[0];
+    if (first == null || !isFullBlock(first)) {
+      return '';
+    }
+    if (first.type === 'image' || first.type === 'audio') {
+      return blockToStaticMarkup(this, first);
+    }
+    return '';
+  }
+
   /**
    * Retrieve the back side of a toggle
    * @param block
@@ -360,6 +378,9 @@ class BlockHandler {
           this.settings,
           this.tagRegistry
         ).replaceAll('\n', '<br />');
+        if (!name) {
+          name = await this.getToggleFrontMedia(fullBlock);
+        }
         back = await this.getBackSide(fullBlock);
       } else {
         // For non-toggle blocks, use the existing logic
