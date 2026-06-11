@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-honest-option-defaults",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Card option defaults shown in settings now match what conversions actually do"
+}
