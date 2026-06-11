@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-toggle-edge-cases",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Toggles with image-only headers and repeated identical toggles convert to separate cards"
+}

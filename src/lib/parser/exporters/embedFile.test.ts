@@ -85,4 +85,34 @@ describe('embedFile — filename-only fallback', () => {
 
     expect(result).toBeNull();
   });
+
+  it('does not append the literal "null" for extensionless files', () => {
+    const exporter = makeExporter();
+    const result = embedFile({
+      exporter,
+      files: [{ name: 'attachment', contents: 'binary-data' }],
+      filePath: 'attachment',
+      workspace: makeWorkspace(),
+    });
+
+    expect(result).not.toBeNull();
+    expect(result).not.toMatch(/null$/);
+    expect(exporter.addMedia).toHaveBeenCalledWith(
+      expect.any(String),
+      'binary-data'
+    );
+  });
+
+  it('returns null without referencing media when contents are empty', () => {
+    const exporter = makeExporter();
+    const result = embedFile({
+      exporter,
+      files: [{ name: 'image.png', contents: '' }],
+      filePath: 'image.png',
+      workspace: makeWorkspace(),
+    });
+
+    expect(result).toBeNull();
+    expect(exporter.addMedia).not.toHaveBeenCalled();
+  });
 });

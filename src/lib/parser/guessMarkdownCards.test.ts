@@ -116,6 +116,20 @@ describe('guessMarkdownCards', () => {
       const md = `https://example.com::not a card`;
       expect(guessMarkdownCards(md)).toBeNull();
     });
+
+    it('does not split a line on a :: inside an Anki cloze marker', () => {
+      const md = `The {{c1::mitochondrion}} is the powerhouse of the cell`;
+      expect(guessMarkdownCards(md)).toBeNull();
+    });
+
+    it('keeps real :: pairs while ignoring cloze-only lines', () => {
+      const md = `Photosynthesis::Process by which plants convert light\nThe {{c1::nucleus}} stores DNA`;
+      const result = guessMarkdownCards(md);
+      expect(result).not.toBeNull();
+      expect(result!.formatDetected).toBe('inline-double-colon');
+      expect(result!.notes).toHaveLength(1);
+      expect(result!.notes[0].name).toContain('Photosynthesis');
+    });
   });
 
   describe('priority order', () => {

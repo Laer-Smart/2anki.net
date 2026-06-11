@@ -38,10 +38,12 @@ class FallbackParser {
       return result;
     }
 
-    const elem = $('ul, ol');
+    const topLevelLists = $('ul, ol').filter(
+      (_, element) => $(element).parents('ul, ol').length === 0
+    );
     let items: string[] = [];
-    elem.each((_, element) => {
-      const listItems = $(element).find('li');
+    topLevelLists.each((_, element) => {
+      const listItems = $(element).children('li');
       const listText = processListItems(listItems);
       items.push(listText);
     });
@@ -193,7 +195,6 @@ class FallbackParser {
 
   run(settings: CardOption) {
     const decks = [];
-    let clean = true;
 
     for (const file of this.files) {
       const contents = file.contents?.toString();
@@ -216,9 +217,7 @@ class FallbackParser {
         continue;
       }
 
-      if (result.clean === false) {
-        clean = false;
-      }
+      const clean = result.clean !== false;
 
       decks.push(
         new Deck(

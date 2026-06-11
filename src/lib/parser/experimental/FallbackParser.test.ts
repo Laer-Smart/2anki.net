@@ -82,3 +82,14 @@ describe('FallbackParser tab-separated text', () => {
     expect(decks[0].cards[0].back).toBe('Back1');
   });
 });
+
+describe('FallbackParser nested lists', () => {
+  it('does not double-count items in a nested list', () => {
+    const parser = new FallbackParser([]);
+    const html = `<ul><li>Outer<ul><li>Inner</li></ul></li></ul>`;
+    const result = parser.htmlToTextWithNewlines(html);
+
+    const innerOccurrences = result.join('\n').split('Inner').length - 1;
+    expect(innerOccurrences).toBe(1);
+  });
+});

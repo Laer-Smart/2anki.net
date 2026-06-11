@@ -198,8 +198,13 @@ export class DeckParser {
   }
 
   noteHasAvocado(note: Note) {
-    const avocado = '&#x1F951';
-    return note.name.includes(avocado) || note.name.includes('🥑');
+    const avocado = '&#x1F951;';
+    return (
+      note.name.includes(avocado) ||
+      note.back.includes(avocado) ||
+      note.name.includes('🥑') ||
+      note.back.includes('🥑')
+    );
   }
 
   findIndentedToggleLists(dom: cheerio.CheerioAPI): Element[] {
@@ -974,6 +979,13 @@ export class DeckParser {
   }
 
   private async processPayload(ws: Workspace): Promise<void> {
+    if (this.payload.length === 0) {
+      const markdownSourced =
+        isMarkdownFile(this.firstDeckName) ||
+        isMarkdownSourcedFiles(this.files);
+      throw new EmptyDeckError(markdownSourced ? 'markdown' : undefined);
+    }
+
     for (const d of this.payload) {
       const deck = d;
       deck.id = get16DigitRandomId();
@@ -1225,13 +1237,14 @@ export class DeckParser {
     // Remove duplicate toggles caused by merged ul.toggle
     const uniqueToggles: Element[] = [];
     const seen = new Set();
-    for (const t of foundToggleLists) {
-      const id = dom(t).attr('id') || dom(t).html();
-      if (!seen.has(id)) {
+    foundToggleLists.forEach((t, index) => {
+      const explicitId = dom(t).attr('id');
+      const key = explicitId ?? `${index}:${dom(t).html()}`;
+      if (!seen.has(key)) {
         uniqueToggles.push(t);
-        seen.add(id);
+        seen.add(key);
       }
-    }
+    });
 
     const convertedToggleLists =
       uniqueToggles.length === 0 && details.length > 0
@@ -1300,8 +1313,8 @@ export class DeckParser {
       }
 
       if (parentUL) {
-        dom('details').addClass(parentClass);
-        dom('summary').addClass(parentClass);
+        parentUL.find('details').addClass(parentClass);
+        parentUL.find('summary').addClass(parentClass);
         const summary = parentUL.find('summary').first();
         let toggle = parentUL.find('details').first();
 
@@ -1309,7 +1322,9 @@ export class DeckParser {
           toggle = parentUL.find('.indented');
         }
 
-        if (summary && summary.text()) {
+        const summaryHasMedia =
+          summary.find('img, figure, audio, video').length > 0;
+        if (summary && (summary.text() || summaryHasMedia)) {
           const validSummary = (() =>
             preserveNewlinesIfApplicable(
               summary.html() || '',

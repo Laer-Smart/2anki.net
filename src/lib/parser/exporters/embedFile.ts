@@ -133,7 +133,7 @@ export const embedFile = (input: EmbedFileInput): string | null => {
   const { exporter, files, filePath, workspace, fallbackWorkspaceLocation } =
     input;
 
-  const suffix = SuffixFrom(filePath);
+  const suffix = SuffixFrom(filePath) ?? '';
   const file = getFile(
     exporter,
     files,
@@ -147,12 +147,10 @@ export const embedFile = (input: EmbedFileInput): string | null => {
    * The contents is used first to avoid name conflicts. URL can have conflicts but so far
    * no bug reports.
    */
-  if (file) {
+  if (file && file.contents) {
     const contents = file.contents as string;
-    const newName = getUniqueFileName(contents ?? filePath) + suffix;
-    if (contents) {
-      exporter.addMedia(newName, contents);
-    }
+    const newName = getUniqueFileName(contents) + suffix;
+    exporter.addMedia(newName, contents);
     return newName;
   }
 
