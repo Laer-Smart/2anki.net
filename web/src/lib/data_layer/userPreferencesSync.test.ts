@@ -99,4 +99,54 @@ describe('userPreferencesSync — authenticated user (token cookie present)', ()
       expect.objectContaining({ method: 'PATCH' })
     );
   });
+
+  it('scheduleSync collects boolean toggle keys saved as defaults', async () => {
+    localStorage.setItem('basic-reversed', 'true');
+    localStorage.setItem('download-pdfs', 'true');
+    localStorage.setItem('field-mapping', '{"front":"Term"}');
+
+    scheduleSync();
+    await flushDebounce();
+
+    const body = JSON.parse(
+      (fetchSpy.mock.calls[0][1] as { body: string }).body
+    );
+    expect(body.cardOptions).toMatchObject({
+      'basic-reversed': 'true',
+      'download-pdfs': 'true',
+      'field-mapping': '{"front":"Term"}',
+    });
+  });
+});
+
+describe('userPreferencesSync — hydrate (authenticated)', () => {
+  let fetchSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    setCookie('token=abc123');
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    fetchSpy.mockRestore();
+    localStorage.clear();
+  });
+
+  it('writes boolean toggle keys from the server back to localStorage', async () => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          cardOptions: { 'basic-reversed': 'true', cherry: 'true' },
+          theme: null,
+          ankiWebAcknowledgedAt: null,
+        }),
+        { status: 200 }
+      )
+    );
+
+    await hydrateFromServer();
+
+    expect(localStorage.getItem('basic-reversed')).toBe('true');
+    expect(localStorage.getItem('cherry')).toBe('true');
+  });
 });
