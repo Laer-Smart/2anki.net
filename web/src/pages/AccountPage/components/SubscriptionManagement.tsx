@@ -37,6 +37,17 @@ const formatDate = (seconds: number | null): string => {
   });
 };
 
+const V2_MONTHLY_AMOUNT = 799;
+const V2_YEARLY_AMOUNT = 6400;
+
+const isLegacyRate = (sub: StripeSubscriptionSummary): boolean => {
+  const plan = sub.plan;
+  if (plan?.amount == null) return false;
+  const v2Amount =
+    plan.interval === 'year' ? V2_YEARLY_AMOUNT : V2_MONTHLY_AMOUNT;
+  return plan.amount < v2Amount;
+};
+
 const formatPlan = (sub: StripeSubscriptionSummary): string | null => {
   const plan = sub.plan;
   if (plan?.amount == null || !plan?.currency) return null;
@@ -154,12 +165,11 @@ function StripeSubscriptionManagement({
                   {formatDate(view.subscription.current_period_end)}
                 </strong>
               </p>
-              {view.subscription.plan?.amount != null &&
-                view.subscription.plan.amount < 600 && (
-                  <p className={styles.legacyNote}>
-                    Cancelling forfeits this legacy rate.
-                  </p>
-                )}
+              {isLegacyRate(view.subscription) && (
+                <p className={styles.legacyNote}>
+                  Cancelling forfeits this legacy rate.
+                </p>
+              )}
               <div className={styles.actions}>
                 <button
                   type="button"
