@@ -4,7 +4,7 @@ Background-job factories and pure helpers for the Ankify product (separate from 
 
 ## What's here
 
-- `jobs/scheduleAnkifyPolling.ts` — schedules the Notion poll loop (5-min cadence; webhook story is deferred per `Documentation/ankify/notion-webhooks-deferred.md`).
+- `jobs/scheduleAnkifyPolling.ts` — schedules the Notion poll loop (5-min cadence; webhook story is deferred per `Documentation/ankify/notion-webhooks-deferred.md`). Before syncing each subscription from the enabled snapshot, the tick re-checks the row still exists via `findByOwnerAndPageId`; a deck the user deleted between the snapshot and its turn is skipped, so deletion sticks instead of being re-registered by `SyncNotionPageToRacUseCase`'s upsert.
 - `jobs/scheduleAnkifyReaper.ts` — cleans up dead/expired sessions and tokens.
 - `scheduler/instance.ts` — singleton scheduler; survives one process lifetime.
 - `nextDailyRunAt.ts` — pure cron-ish next-run calculation. Heavily tested.

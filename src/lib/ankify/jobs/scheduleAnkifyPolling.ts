@@ -25,6 +25,13 @@ export const scheduleAnkifyPolling = (
     const seenOwners = new Set<number>();
     for (const sub of active) {
       try {
+        const current = await subscriptions.findByOwnerAndPageId(
+          sub.owner,
+          sub.notion_page_id
+        );
+        if (current == null) {
+          continue;
+        }
         await useCase.execute({
           owner: sub.owner,
           notionPageId: sub.notion_page_id,
