@@ -1,9 +1,11 @@
 import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
 import { AnkifySyncMappingsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncMappingsRepository';
 import { AnkifySyncConflictsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncConflictsRepository';
+import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/ankify/AnkifyNotionSubscriptionsRepository';
 import { AnkifySyncLogsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncLogsRepository';
 import { INotionRepository } from '../../data_layer/NotionRespository';
 import { AnkifyConflictResolution } from '../../entities/ankify';
+import { buildDeckName } from '../../lib/ankify/transforms/deckName';
 import { AnkiConnectFactory } from './SyncNotionPageToRacUseCase';
 import { NotionNotConnectedError } from './ExportReviewDataToNotionUseCase';
 
@@ -33,6 +35,7 @@ export class ResolveConflictUseCase {
     private readonly clients: AnkifyClientsRepositoryInterface,
     private readonly mappings: AnkifySyncMappingsRepositoryInterface,
     private readonly conflicts: AnkifySyncConflictsRepositoryInterface,
+    private readonly subscriptions: AnkifyNotionSubscriptionsRepositoryInterface,
     private readonly logs: AnkifySyncLogsRepositoryInterface,
     private readonly notionRepo: INotionRepository,
     private readonly ankiConnect: AnkiConnectFactory,
@@ -88,12 +91,23 @@ export class ResolveConflictUseCase {
       });
     }
 
+    const subscription =
+      conflict.subscription_id == null
+        ? null
+        : await this.subscriptions.findById(
+            conflict.subscription_id,
+            input.owner
+          );
+
     await this.mappings.upsert({
       ankify_client_id: client.id,
       source_id: conflict.source_id,
       source_type: 'notion_block',
       anki_note_id: conflict.anki_note_id,
-      deck_name: 'Notion Sync',
+      deck_name: buildDeckName(
+        subscription?.target_deck ?? null,
+        subscription?.notion_page_title ?? null
+      ),
     });
 
     await this.conflicts.resolve(input.id, input.owner, input.resolution);
