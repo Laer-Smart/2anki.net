@@ -47,7 +47,8 @@ export default function getListItems(
             dangerouslySetInnerHTML={{
               __html: renderTextChildren(
                 getRichTextFromBlock(list),
-                handler.settings
+                handler.settings,
+                handler.tagRegistry
               ),
             }}
           />

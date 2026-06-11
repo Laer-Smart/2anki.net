@@ -18,7 +18,11 @@ const BlockParagraph = (
       className={styleWithColors(paragraph.color)}
       id={block.id}
       dangerouslySetInnerHTML={{
-        __html: renderTextChildren(richText, handler.settings),
+        __html: renderTextChildren(
+          richText,
+          handler.settings,
+          handler.tagRegistry
+        ),
       }}
     ></p>
   );

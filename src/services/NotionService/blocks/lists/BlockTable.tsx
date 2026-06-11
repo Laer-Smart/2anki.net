@@ -37,7 +37,7 @@ function renderCell(
   cell: RichTextItemResponse[],
   handler: BlockHandler
 ): string {
-  return renderTextChildren(cell, handler.settings);
+  return renderTextChildren(cell, handler.settings, handler.tagRegistry);
 }
 
 function buildExtraColumnsTable(

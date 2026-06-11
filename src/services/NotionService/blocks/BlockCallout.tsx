@@ -36,6 +36,7 @@ export const BlockCallout = (
           const { annotations } = t;
           return HandleBlockAnnotations(annotations, t, {
             noUnderline: handler.settings?.noUnderline,
+            tagRegistry: handler.tagRegistry,
           });
         })}
       </div>

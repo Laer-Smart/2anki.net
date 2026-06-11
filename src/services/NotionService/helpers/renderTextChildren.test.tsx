@@ -1,6 +1,7 @@
 import { RichTextItemResponse } from '@notionhq/client/build/src/api-endpoints';
 import renderTextChildren from './renderTextChildren';
 import CardOption from '../../../lib/parser/Settings';
+import TagRegistry from '../../../lib/parser/TagRegistry';
 
 const baseAnnotations = {
   bold: false,
@@ -28,6 +29,59 @@ function makeMention(
     },
   } as unknown as RichTextItemResponse;
 }
+
+function makeText(
+  plainText: string,
+  annotations: Partial<typeof baseAnnotations> = {}
+): RichTextItemResponse {
+  return {
+    type: 'text',
+    plain_text: plainText,
+    href: null,
+    annotations: { ...baseAnnotations, ...annotations },
+    text: { content: plainText, link: null },
+  } as unknown as RichTextItemResponse;
+}
+
+describe('renderTextChildren — strikethrough tag collection', () => {
+  it('records strikethrough text into the registry it is handed', () => {
+    const registry = new TagRegistry();
+    const items: RichTextItemResponse[] = [
+      makeText('keep', { strikethrough: true }),
+    ];
+
+    renderTextChildren(items, defaultSettings, registry);
+
+    expect(registry.strikethroughs).toEqual(['keep']);
+  });
+
+  it('keeps two conversions strikethroughs apart when run interleaved', () => {
+    const conversionA = new TagRegistry();
+    const conversionB = new TagRegistry();
+
+    renderTextChildren(
+      [makeText('a-tag', { strikethrough: true })],
+      defaultSettings,
+      conversionA
+    );
+    renderTextChildren(
+      [makeText('b-tag', { strikethrough: true })],
+      defaultSettings,
+      conversionB
+    );
+
+    expect(conversionA.strikethroughs).toEqual(['a-tag']);
+    expect(conversionB.strikethroughs).toEqual(['b-tag']);
+  });
+
+  it('leaves the registry empty when no text is struck through', () => {
+    const registry = new TagRegistry();
+
+    renderTextChildren([makeText('plain')], defaultSettings, registry);
+
+    expect(registry.strikethroughs).toEqual([]);
+  });
+});
 
 describe('renderTextChildren — mention support', () => {
   it('renders the plain_text of an annotated mention', () => {

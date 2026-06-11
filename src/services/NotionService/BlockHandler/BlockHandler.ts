@@ -160,6 +160,8 @@ class BlockHandler {
 
   owner?: string;
 
+  tagRegistry: TagRegistry;
+
   constructor(
     exporter: CustomExporter,
     api: NotionAPIWrapper,
@@ -173,6 +175,7 @@ class BlockHandler {
     this.settings = settings;
     this.settingsRepository = settingsRepository;
     this.owner = owner;
+    this.tagRegistry = new TagRegistry();
   }
 
   private buildDeckStyle(): string {
@@ -332,14 +335,14 @@ class BlockHandler {
           ankiNote.tags =
             rules.TAGS === 'heading'
               ? headingTagsFor(tableBlock.id, headingTagMap)
-              : TagRegistry.getInstance().strikethroughs;
+              : this.tagRegistry.strikethroughs;
           ankiNote.number = counter++;
           if (hierarchyEnabled) {
             applyHierarchyFields(ankiNote, tableBlock.id, headingContextMap);
           }
           cards.push(ankiNote);
         }
-        TagRegistry.getInstance().clear();
+        this.tagRegistry.clear();
         continue;
       }
 
@@ -352,10 +355,11 @@ class BlockHandler {
         : null;
       if (fullBlock && toggleSummary) {
         // Always preserve newlines in toggle summaries by converting \n to <br />
-        name = renderTextChildren(toggleSummary, this.settings).replaceAll(
-          '\n',
-          '<br />'
-        );
+        name = renderTextChildren(
+          toggleSummary,
+          this.settings,
+          this.tagRegistry
+        ).replaceAll('\n', '<br />');
         back = await this.getBackSide(fullBlock);
       } else {
         // For non-toggle blocks, use the existing logic
@@ -427,7 +431,7 @@ class BlockHandler {
       ankiNote.media = this.exporter.media;
       this.exporter.media = [];
 
-      const tr = TagRegistry.getInstance();
+      const tr = this.tagRegistry;
       ankiNote.tags =
         rules.TAGS === 'heading'
           ? headingTagsFor(block.id, headingTagMap)

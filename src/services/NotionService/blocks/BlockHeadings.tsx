@@ -66,7 +66,9 @@ export const BlockHeading = (
     >
       {headingText.map((t: RichTextItemResponse) => {
         const { annotations } = t;
-        return HandleBlockAnnotations(annotations, t);
+        return HandleBlockAnnotations(annotations, t, {
+          tagRegistry: handler.tagRegistry,
+        });
       })}
     </Heading>
   );

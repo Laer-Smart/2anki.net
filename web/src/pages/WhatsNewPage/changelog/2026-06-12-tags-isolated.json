@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-tags-isolated",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Strikethrough tags stay on the deck they came from when several conversions run at once"
+}
