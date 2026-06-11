@@ -14,6 +14,10 @@ export interface AnkifyNotionSubscriptionsRepositoryInterface {
   listByOwner(owner: number): Promise<AnkifyNotionSubscription[]>;
   listEnabled(): Promise<AnkifyNotionSubscription[]>;
   findByPageId(notionPageId: string): Promise<AnkifyNotionSubscription[]>;
+  findByOwnerAndPageId(
+    owner: number,
+    notionPageId: string
+  ): Promise<AnkifyNotionSubscription | null>;
   findById(id: number, owner: number): Promise<AnkifyNotionSubscription | null>;
   setEnabled(id: number, enabled: boolean): Promise<void>;
   deleteById(id: number, owner: number): Promise<void>;
@@ -78,6 +82,17 @@ export class AnkifyNotionSubscriptionsRepository implements AnkifyNotionSubscrip
     return this.database<AnkifyNotionSubscription>(TABLE)
       .select('*')
       .where({ notion_page_id: notionPageId, enabled: true });
+  }
+
+  async findByOwnerAndPageId(
+    owner: number,
+    notionPageId: string
+  ): Promise<AnkifyNotionSubscription | null> {
+    const row = await this.database<AnkifyNotionSubscription>(TABLE)
+      .select('*')
+      .where({ owner, notion_page_id: notionPageId })
+      .first();
+    return row ?? null;
   }
 
   async findById(

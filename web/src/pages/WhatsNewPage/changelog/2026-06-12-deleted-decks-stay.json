@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-deleted-decks-stay",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Decks you stop syncing in Ankify stay removed instead of reappearing on the next poll"
+}
