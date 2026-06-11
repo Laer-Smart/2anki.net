@@ -231,7 +231,7 @@ class CardOption {
       'process-pdfs': 'true',
       'pdf-extract-text': 'false',
       'download-pdfs': 'false',
-      'page-emoji': 'first-emoji',
+      'page-emoji': 'first_emoji',
       'image-quiz-html-to-anki': 'false',
       'embed-images': 'true',
       'markdown-nested-bullet-points': 'true',

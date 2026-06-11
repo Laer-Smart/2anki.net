@@ -1,4 +1,5 @@
 import { extractName } from './extractDeckName';
+import CardOption from './parser/Settings/CardOption';
 
 const createInput = (
   name: string,
@@ -66,5 +67,16 @@ describe('extractDeckName', () => {
     it(description, () => {
       expect(extractName(input)).toBe(expected);
     });
+  });
+
+  it('puts the page emoji first on the default options path', () => {
+    const settings = new CardOption(CardOption.LoadDefaultOptions());
+    const name = extractName({
+      name: 'My Deck',
+      pageIcon: '📘',
+      decksCount: 0,
+      settings,
+    });
+    expect(name).toBe('📘 My Deck');
   });
 });
