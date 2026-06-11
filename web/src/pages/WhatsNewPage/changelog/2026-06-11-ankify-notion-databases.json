@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-11-ankify-notion-databases",
+  "date": "2026-06-11",
+  "type": "fix",
+  "title": "Ankify finds and syncs Notion databases — they show in search and decks carry the database title and cards"
+}

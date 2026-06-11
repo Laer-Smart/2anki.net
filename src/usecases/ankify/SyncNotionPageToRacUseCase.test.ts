@@ -241,6 +241,80 @@ describe('SyncNotionPageToRacUseCase', () => {
     );
   });
 
+  test('names the deck after the database title and produces cards for a database added by link', async () => {
+    const databaseNotPageError = Object.assign(
+      new Error(
+        'xyz is a database, not a page. Use the retrieve database API.'
+      ),
+      { code: 'validation_error' }
+    );
+    (walkNotionPageForFlashcards as jest.Mock).mockRejectedValue(
+      databaseNotPageError
+    );
+    (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 6,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+
+    const repos = makeRepos();
+    const ac = makeAnkiConnectStub();
+    const insert = jest.fn().mockResolvedValue(undefined);
+    const errorEvents = {
+      insert,
+      existsWithinWindow: jest.fn().mockResolvedValue(false),
+      listGroups: jest.fn().mockResolvedValue([]),
+      countGroups: jest.fn().mockResolvedValue(0),
+      latestSamples: jest.fn().mockResolvedValue([]),
+      resolveGroup: jest.fn().mockResolvedValue(undefined),
+      reopenGroup: jest.fn().mockResolvedValue(undefined),
+    } as unknown as IErrorEventRepository;
+    const databasePages = jest.fn(async () => [{ id: 'row-1' }]);
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      (_token: string) => async (_id: string) => ({
+        title: 'Pharmacology',
+        url: 'https://www.notion.so/db-1',
+        icon: '🧪',
+      }),
+      undefined,
+      errorEvents,
+      undefined,
+      undefined,
+      () => databasePages
+    );
+
+    const result = await useCase.execute({
+      owner: 42,
+      notionPageId: 'db-1',
+      trigger: 'manual',
+    });
+
+    expect(repos.subscriptions.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        notion_page_id: 'db-1',
+        notion_page_title: 'Pharmacology',
+      })
+    );
+    expect(walkNotionDatabaseForFlashcards).toHaveBeenCalledWith(
+      'db-1',
+      expect.any(Function),
+      databasePages
+    );
+    expect(result.created).toBe(1);
+    expect(insert).not.toHaveBeenCalled();
+  });
+
   test('propagates a non-database validation error without a database walk', async () => {
     const otherError = Object.assign(new Error('Something else broke'), {
       code: 'validation_error',

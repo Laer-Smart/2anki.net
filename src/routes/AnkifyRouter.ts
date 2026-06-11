@@ -53,6 +53,7 @@ import RequireAnkifyAccess from './middleware/RequireAnkifyAccess';
 import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { MarkNotionTokenInvalidUseCase } from '../usecases/notion/MarkNotionTokenInvalidUseCase';
+import { buildNotionPageMetaFetcher } from '../services/ankify/buildNotionPageMetaFetcher';
 
 const buildNotionExportClient = (token: string) => {
   const notion = new NotionClient({ auth: token });
@@ -126,60 +127,6 @@ const buildNotionExportClient = (token: string) => {
     },
   };
 };
-
-const extractNotionPageTitle = (
-  props: Record<string, unknown>
-): string | null => {
-  for (const value of Object.values(props)) {
-    const entry = value as {
-      type?: string;
-      title?: { plain_text?: string }[];
-    };
-    if (entry.type === 'title' && Array.isArray(entry.title)) {
-      const title = entry.title
-        .map((t) => t.plain_text ?? '')
-        .join('')
-        .trim();
-      return title.length === 0 ? null : title;
-    }
-  }
-  return null;
-};
-
-type NotionPageIconBlock =
-  | { type: 'emoji'; emoji: string }
-  | { type: 'external'; external: { url: string } }
-  | { type: 'file'; file: { url: string } }
-  | null
-  | undefined;
-
-const extractNotionPageIcon = (icon: NotionPageIconBlock): string | null => {
-  if (icon == null) return null;
-  switch (icon.type) {
-    case 'emoji':
-      return icon.emoji;
-    case 'external':
-      return icon.external.url;
-    case 'file':
-      return icon.file.url;
-    default:
-      return null;
-  }
-};
-
-const buildNotionPageMetaFetcher =
-  (token: string) => async (notionPageId: string) => {
-    const notion = new NotionClient({ auth: token });
-    const page = await notion.pages.retrieve({ page_id: notionPageId });
-    const props =
-      (page as { properties?: Record<string, unknown> }).properties ?? {};
-    const title = extractNotionPageTitle(props);
-    const url = (page as { url?: string }).url ?? null;
-    const icon = extractNotionPageIcon(
-      (page as { icon?: NotionPageIconBlock }).icon
-    );
-    return { title, url, icon };
-  };
 
 const buildNotionConflictResolver = (token: string) => {
   const notion = new NotionClient({ auth: token });

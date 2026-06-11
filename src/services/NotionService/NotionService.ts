@@ -29,7 +29,7 @@ export const TOP_LEVEL_PAGES_STALE_AFTER_MS = 5 * 60 * 1000;
 interface TopLevelPagesResult {
   results: Array<{
     id: string;
-    object: 'page';
+    object: 'page' | 'database';
     url: string | null;
     icon: unknown;
     title: string;
