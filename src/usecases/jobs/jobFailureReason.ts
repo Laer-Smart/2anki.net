@@ -2,6 +2,10 @@ import { APIResponseError, APIErrorCode } from '@notionhq/client';
 import { PythonExitError } from '../../lib/anki/buildPythonExitError';
 import { EmptyDeckError } from './EmptyDeckError';
 import { inferColumnMapping } from '../../lib/notionDatabase/inferColumnMapping';
+import { isNotionDatabaseNotPageError } from '../../services/NotionService/helpers/isNotionDatabaseNotPageError';
+
+export const NOTION_DATABASE_NOT_PAGE_REASON =
+  'This Notion link points to a database. We read the database rows as cards — share the database with the 2anki integration in Notion, then convert again.';
 
 export const NOTION_TOKEN_EXPIRED_REASON = 'notion_token_expired';
 
@@ -63,6 +67,7 @@ export type JobFailureReasonCode =
   | 'worker_timeout'
   | 'notion_rate_limited'
   | 'notion_not_found'
+  | 'notion_database_not_page'
   | 'apkg_too_large'
   | 'zip_invalid'
   | 'pdf_password'
@@ -101,6 +106,9 @@ export function jobFailureReasonCode(error: unknown): JobFailureReasonCode {
     error.code === APIErrorCode.ObjectNotFound
   ) {
     return 'notion_not_found';
+  }
+  if (isNotionDatabaseNotPageError(error)) {
+    return 'notion_database_not_page';
   }
   if (hasCode(error, 'APKG_TOO_LARGE')) {
     return 'apkg_too_large';
@@ -156,6 +164,9 @@ export function jobFailureReasonFromError(
     error.code === APIErrorCode.ObjectNotFound
   ) {
     return "We couldn't open that Notion page. Share it with the 2anki integration in Notion, then try again.";
+  }
+  if (isNotionDatabaseNotPageError(error)) {
+    return NOTION_DATABASE_NOT_PAGE_REASON;
   }
   if (hasCode(error, 'APKG_TOO_LARGE')) {
     return "This deck is over Anki's 100 MB upload limit. Split it by toggling fewer pages, or upload directly to Anki desktop.";

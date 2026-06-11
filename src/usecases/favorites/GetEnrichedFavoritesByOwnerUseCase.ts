@@ -4,6 +4,7 @@ import { FavoritesRepository } from '../../data_layer/FavoritesRepository';
 import Favorites from '../../data_layer/public/Favorites';
 import DeleteFavoriteUseCase from './DeleteFavoriteUseCase';
 import GetAllFavoritesByOwnerUseCase from './GetAllFavoritesByOwnerUseCase';
+import { isNotionDatabaseNotPageError } from '../../services/NotionService/helpers/isNotionDatabaseNotPageError';
 
 /**
  * Structural slice of `NotionAPIWrapper` that we depend on for enrichment.
@@ -52,8 +53,10 @@ class GetEnrichedFavoritesByOwnerUseCase {
         : client.getDatabase(favorite.object_id);
 
     return fetcher.catch((error: unknown) => {
+      if (isNotionDatabaseNotPageError(error)) {
+        return client.getDatabase(favorite.object_id).catch(() => undefined);
+      }
       if (error instanceof APIResponseError) {
-        // Fire-and-forget cleanup of stale favorite rows.
         void this.cleanupStale(favorite.object_id, owner);
         return undefined;
       }
