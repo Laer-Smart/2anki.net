@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-markdown-entities",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Markdown cards keep special characters like non-breaking spaces instead of showing raw &nbsp; text"
+}

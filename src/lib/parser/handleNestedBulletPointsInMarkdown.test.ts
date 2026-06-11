@@ -87,6 +87,22 @@ describe('handleNestedBulletPointsInMarkdown', () => {
     });
   });
 
+  describe('named HTML entities on card backs (regression: #3234)', () => {
+    it('keeps non-breaking spaces as &nbsp; instead of re-escaping them', () => {
+      const contents = [
+        '- Front question',
+        '    Answer&nbsp;with&nbsp;spaces',
+      ].join('\n');
+
+      const decks = makeDecks(contents);
+      const back = decks[0].cards[0].back;
+
+      expect(back).not.toContain('&amp;nbsp;');
+      expect(back).not.toContain('&#xa0;');
+      expect(back).toContain('&nbsp;');
+    });
+  });
+
   it('embeds images referenced in markdown', () => {
     const workspace = new Workspace(true, 'fs');
     const exporter = new CustomExporter('test', workspace.location);
