@@ -65,20 +65,20 @@ describe('emitLandingPages', () => {
       true
     );
     expect(files.some((p) => p.endsWith('usmle-anki/index.html'))).toBe(true);
-    expect(
-      files.some((p) => p.endsWith('nursing-flashcards/index.html'))
-    ).toBe(true);
+    expect(files.some((p) => p.endsWith('nursing-flashcards/index.html'))).toBe(
+      true
+    );
     expect(
       files.some((p) =>
         p.endsWith('anki-from-medical-lecture-slides/index.html')
       )
     ).toBe(true);
-    expect(
-      files.some((p) => p.endsWith('powerpoint-to-anki/index.html'))
-    ).toBe(true);
-    expect(
-      files.some((p) => p.endsWith('goodnotes-to-anki/index.html'))
-    ).toBe(true);
+    expect(files.some((p) => p.endsWith('powerpoint-to-anki/index.html'))).toBe(
+      true
+    );
+    expect(files.some((p) => p.endsWith('goodnotes-to-anki/index.html'))).toBe(
+      true
+    );
     expect(
       files.some((p) => p.endsWith('ai-flashcard-generator/index.html'))
     ).toBe(true);
@@ -152,7 +152,7 @@ describe('emitLandingPages', () => {
       'utf8'
     );
     expect(html).toContain(
-      '<link rel="canonical" href="https://2anki.net/pdf-to-anki">'
+      '<link rel="canonical" href="https://2anki.net/pdf-to-anki/">'
     );
   });
 
@@ -213,17 +213,28 @@ describe('emitMetaOnlyPages', () => {
   it('sets a unique title per route', () => {
     emitMetaOnlyPages(buildDir);
     const upload = readFileSync(join(buildDir, 'upload', 'index.html'), 'utf8');
-    const pricing = readFileSync(join(buildDir, 'pricing', 'index.html'), 'utf8');
+    const pricing = readFileSync(
+      join(buildDir, 'pricing', 'index.html'),
+      'utf8'
+    );
     const about = readFileSync(join(buildDir, 'about', 'index.html'), 'utf8');
-    expect(upload).toContain('<title>Upload notes and get an Anki deck — 2anki</title>');
-    expect(pricing).toContain('<title>Pricing — Free, Day Pass, Unlimited, Auto Sync | 2anki</title>');
-    expect(about).toContain('<title>About 2anki — open-source Notion to Anki converter</title>');
+    expect(upload).toContain(
+      '<title>Upload notes and get an Anki deck — 2anki</title>'
+    );
+    expect(pricing).toContain(
+      '<title>Pricing — Free, Day Pass, Unlimited, Auto Sync | 2anki</title>'
+    );
+    expect(about).toContain(
+      '<title>About 2anki — open-source Notion to Anki converter</title>'
+    );
   });
 
   it('points the canonical link at the route URL', () => {
     emitMetaOnlyPages(buildDir);
     const html = readFileSync(join(buildDir, 'pricing', 'index.html'), 'utf8');
-    expect(html).toContain('<link rel="canonical" href="https://2anki.net/pricing">');
+    expect(html).toContain(
+      '<link rel="canonical" href="https://2anki.net/pricing/">'
+    );
   });
 
   it('leaves the root div empty so React mounts without a flash', () => {
@@ -248,8 +259,12 @@ describe('emitNotionMarketplacePage', () => {
       join(buildDir, 'notion-marketplace', 'index.html'),
       'utf8'
     );
-    expect(html).toContain('<title>Notion to Anki — automatic sync | 2anki</title>');
-    expect(html).toContain('<link rel="canonical" href="https://2anki.net/notion-marketplace">');
+    expect(html).toContain(
+      '<title>Notion to Anki — automatic sync | 2anki</title>'
+    );
+    expect(html).toContain(
+      '<link rel="canonical" href="https://2anki.net/notion-marketplace/">'
+    );
     expect(html).toContain('Your Notion notes become Anki cards');
   });
 });
@@ -289,7 +304,7 @@ describe('emitAnswersPages', () => {
       'utf8'
     );
     expect(html).toContain(
-      '<link rel="canonical" href="https://2anki.net/answers/pdf-to-anki">'
+      '<link rel="canonical" href="https://2anki.net/answers/pdf-to-anki/">'
     );
   });
 
