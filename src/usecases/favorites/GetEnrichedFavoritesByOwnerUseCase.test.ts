@@ -119,6 +119,30 @@ describe('GetEnrichedFavoritesByOwnerUseCase', () => {
     expect(removed).toEqual([{ id: 'gone', owner: OWNER }]);
   });
 
+  it('self-heals a database favorited as a page by fetching the database', async () => {
+    const { repo, removed } = makeRepository([
+      makeFavorite('actually-a-db', 'page'),
+    ]);
+    const client: FavoriteEnrichmentClient = {
+      getPage: jest.fn().mockRejectedValue({
+        code: 'validation_error',
+        message: 'actually-a-db is a database, not a page',
+      }),
+      getDatabase: jest.fn().mockResolvedValue({ id: 'actually-a-db' }),
+    };
+    const useCase = new GetEnrichedFavoritesByOwnerUseCase(
+      repo,
+      async () => client
+    );
+
+    const result = await useCase.execute(OWNER);
+
+    expect(result).toEqual([{ id: 'actually-a-db' }]);
+    expect(client.getDatabase).toHaveBeenCalledWith('actually-a-db');
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(removed).toEqual([]);
+  });
+
   it('swallows non-APIResponseError failures without cleanup', async () => {
     const { repo, removed } = makeRepository([makeFavorite('p1', 'page')]);
     const client: FavoriteEnrichmentClient = {

@@ -54,6 +54,7 @@ import hasInlineClozeCode from '../../../lib/parser/helpers/hasInlineClozeCode';
 import getColumn from '../helpers/getColumn';
 import { getFileUrl } from '../helpers/getFileUrl';
 import { getImageUrl } from '../helpers/getImageUrl';
+import { isNotionDatabaseNotPageError } from '../helpers/isNotionDatabaseNotPageError';
 import getInputCard from '../helpers/getInputCard';
 import isColumnList from '../helpers/isColumnList';
 import isTesting from '../helpers/isTesting';
@@ -483,7 +484,14 @@ class BlockHandler {
   async findFlashcards(locator: Finder): Promise<Deck[]> {
     const { parentType, topLevelId, rules, decks } = locator;
     if (parentType === 'page') {
-      return this.findFlashcardsFromPage(locator);
+      try {
+        return await this.findFlashcardsFromPage(locator);
+      } catch (error) {
+        if (isNotionDatabaseNotPageError(error)) {
+          return this.findFlashcardsFromDatabaseRows(locator);
+        }
+        throw error;
+      }
     }
     if (
       parentType === 'notion-database' ||

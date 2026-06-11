@@ -93,6 +93,34 @@ describe('BlockHandler.findFlashcards — parentType routing', () => {
     expect(decks.length).toBeGreaterThanOrEqual(1);
   });
 
+  it('falls back to database rows when a page link is actually a database', async () => {
+    const api = makeDataSourceApi();
+    const databaseNotPage = {
+      code: 'validation_error',
+      message:
+        ' ds-1 is a database, not a page. Use the Retrieve a database endpoint.',
+    };
+    (api.getPage as jest.Mock).mockRejectedValue(databaseNotPage);
+    const bl = makeHandler(api);
+
+    const decks = await bl.findFlashcards({
+      parentType: 'page',
+      topLevelId: 'ds-1',
+      rules: new ParserRules(),
+      decks: [],
+      parentName: '',
+    });
+
+    expect(decks).toHaveLength(1);
+    expect(decks[0].name).toBe('Study Deck');
+    expect(decks[0].cards.map((c) => [c.name, c.back])).toEqual([
+      [
+        'What is spaced repetition?',
+        'A learning method that spaces reviews over time.',
+      ],
+    ]);
+  });
+
   it('returns empty decks and logs once for an unknown parentType, does not throw', async () => {
     const api = makeDataSourceApi();
     const bl = makeHandler(api);

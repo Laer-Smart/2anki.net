@@ -6,6 +6,7 @@ import {
   EMPTY_DECK_FAILURE_REASON,
   MARKDOWN_LIKELY_LOSSY_REASON,
   NOTION_TOKEN_EXPIRED_REASON,
+  NOTION_DATABASE_NOT_PAGE_REASON,
   isNotionUnauthorizedError,
   jobFailureReasonCode,
   jobFailureReasonFromError,
@@ -200,6 +201,16 @@ describe('jobFailureReasonFromError', () => {
     expect(reason).toContain('Share it with the 2anki integration');
   });
 
+  it('classifies a database-not-page validation_error as the database reason', () => {
+    const err = {
+      code: 'validation_error',
+      message: 'x is a database, not a page',
+    };
+    expect(jobFailureReasonFromError(err, 'job-db')).toBe(
+      NOTION_DATABASE_NOT_PAGE_REASON
+    );
+  });
+
   it('classifies APKG_TOO_LARGE code as size limit message', () => {
     const err = new Error('too large') as Error & { code?: string };
     err.code = 'APKG_TOO_LARGE';
@@ -296,6 +307,15 @@ describe('jobFailureReasonCode', () => {
         makeAPIResponseError(APIErrorCode.ObjectNotFound, 404)
       )
     ).toBe('notion_not_found');
+  });
+
+  it('maps a database-not-page validation_error to notion_database_not_page', () => {
+    expect(
+      jobFailureReasonCode({
+        code: 'validation_error',
+        message: 'x is a database, not a page',
+      })
+    ).toBe('notion_database_not_page');
   });
 
   it('maps a pdfinfo_password error to pdf_password', () => {
