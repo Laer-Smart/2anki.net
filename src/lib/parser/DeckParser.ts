@@ -614,6 +614,7 @@ export class DeckParser {
         files: this.files,
         filePath: decodedPath,
         workspace: ws,
+        fallbackWorkspaceLocation: this.workspace.location,
       });
       if (newName) {
         dom(elem).attr('src', newName);
@@ -631,6 +632,7 @@ export class DeckParser {
         files: this.files,
         filePath: zipFile.name,
         workspace: ws,
+        fallbackWorkspaceLocation: this.workspace.location,
       });
       if (newName) {
         dom(elem).attr('src', newName);
@@ -719,6 +721,7 @@ export class DeckParser {
       files: this.files,
       filePath: global.decodeURIComponent(audiofile),
       workspace: ws,
+      fallbackWorkspaceLocation: this.workspace.location,
     });
     if (newFileName) {
       card.back += `[sound:${newFileName}]`;
