@@ -234,7 +234,7 @@ describe('SettingsRepository.loadAnkifyTemplateOverrides', () => {
   });
 });
 
-describe('SettingsRepository.loadIfExists', () => {
+describe('SettingsRepository owner scoping and payload shapes', () => {
   let db: Knex;
   let repo: SettingsRepository;
 
@@ -245,11 +245,13 @@ describe('SettingsRepository.loadIfExists', () => {
       useNullAsDefault: true,
     });
     await db.schema.createTable('settings', (t) => {
-      t.string('owner');
-      t.string('object_id');
+      t.increments('id');
+      t.string('owner').notNullable();
+      t.string('object_id').notNullable();
       t.string('title');
-      t.json('payload');
+      t.json('payload').notNullable();
       t.timestamp('updated_at').defaultTo(db.fn.now());
+      t.unique(['owner', 'object_id']);
     });
     await db.schema.createTable('templates', (t) => {
       t.string('owner');
@@ -295,5 +297,102 @@ describe('SettingsRepository.loadIfExists', () => {
   test('returns null when no row exists for the owner and page', async () => {
     const settings = await repo.loadIfExists('42', 'missing');
     expect(settings).toBeNull();
+  });
+
+  test('two owners saving the same object_id keep separate rows', async () => {
+    await repo.create({
+      owner: 'owner-a',
+      object_id: 'shared-page',
+      payload: JSON.stringify({ payload: { deck_name: 'Deck A' } }),
+      title: 'A',
+    });
+    await repo.create({
+      owner: 'owner-b',
+      object_id: 'shared-page',
+      payload: JSON.stringify({ payload: { deck_name: 'Deck B' } }),
+      title: 'B',
+    });
+
+    const rows = await db('settings')
+      .where({ object_id: 'shared-page' })
+      .orderBy('owner');
+
+    expect(rows).toHaveLength(2);
+    expect(rows.map((r) => r.owner)).toEqual(['owner-a', 'owner-b']);
+  });
+
+  test('re-saving the same owner + object_id updates that owner row in place', async () => {
+    await repo.create({
+      owner: 'owner-a',
+      object_id: 'shared-page',
+      payload: JSON.stringify({ payload: { deck_name: 'First' } }),
+      title: 'First',
+    });
+    await repo.create({
+      owner: 'owner-a',
+      object_id: 'shared-page',
+      payload: JSON.stringify({ payload: { deck_name: 'Second' } }),
+      title: 'Second',
+    });
+
+    const rows = await db('settings').where({ owner: 'owner-a' });
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].title).toBe('Second');
+  });
+
+  test('one owner saving cannot overwrite another owner row', async () => {
+    await repo.create({
+      owner: 'owner-a',
+      object_id: 'shared-page',
+      payload: JSON.stringify({ payload: { deck_name: 'Deck A' } }),
+      title: 'A',
+    });
+    await repo.create({
+      owner: 'owner-b',
+      object_id: 'shared-page',
+      payload: JSON.stringify({ payload: { deck_name: 'Deck B' } }),
+      title: 'B',
+    });
+
+    const ownerARow = await db('settings')
+      .where({ owner: 'owner-a', object_id: 'shared-page' })
+      .first();
+
+    expect(ownerARow.title).toBe('A');
+  });
+
+  test('getById scoped by owner returns only that owner row', async () => {
+    await repo.create({
+      owner: 'owner-a',
+      object_id: 'shared-page',
+      payload: JSON.stringify({ payload: { deck_name: 'Deck A' } }),
+      title: 'A',
+    });
+    await repo.create({
+      owner: 'owner-b',
+      object_id: 'shared-page',
+      payload: JSON.stringify({ payload: { deck_name: 'Deck B' } }),
+      title: 'B',
+    });
+
+    const ownerBResult = await repo.getById('owner-b', 'shared-page');
+
+    expect(JSON.parse(ownerBResult.payload)).toEqual({
+      payload: { deck_name: 'Deck B' },
+    });
+  });
+
+  test('getById returns undefined when the page belongs to another owner', async () => {
+    await repo.create({
+      owner: 'owner-a',
+      object_id: 'shared-page',
+      payload: JSON.stringify({ payload: { deck_name: 'Deck A' } }),
+      title: 'A',
+    });
+
+    const result = await repo.getById('owner-b', 'shared-page');
+
+    expect(result).toBeUndefined();
   });
 });

@@ -4,7 +4,7 @@ import { SettingsInitializer } from '../data_layer/public/Settings';
 export interface IServiceSettings {
   create: (settings: SettingsInitializer) => Promise<number[]>;
   delete: (owner: string, id: string) => Promise<void>;
-  getById: (id: string) => Promise<SettingsInitializer>;
+  getById: (owner: string, id: string) => Promise<SettingsInitializer>;
   getAllByOwner: (
     owner: string
   ) => Promise<
@@ -45,8 +45,8 @@ class SettingsService implements IServiceSettings {
     });
   }
 
-  getById(id: string) {
-    return this.repository.getById(id);
+  getById(owner: string, id: string) {
+    return this.repository.getById(owner, id);
   }
 
   getAllByOwner(owner: string) {
