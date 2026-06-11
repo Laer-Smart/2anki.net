@@ -1,8 +1,6 @@
 import ImportApkgToNotionUseCase from './ImportApkgToNotionUseCase';
 import ApkgPreviewService from '../../services/ApkgPreviewService/ApkgPreviewService';
-import ApkgToNotionBlocksService, {
-  NoteTooLargeError,
-} from '../../services/ApkgToNotionBlocksService';
+import ApkgToNotionBlocksService from '../../services/ApkgToNotionBlocksService';
 import NotionAPIWrapper from '../../services/NotionService/NotionAPIWrapper';
 import JobRepository from '../../data_layer/JobRepository';
 import { NormalizedCollection } from '../../services/ApkgPreviewService/types';
@@ -108,7 +106,8 @@ describe('ImportApkgToNotionUseCase', () => {
       'parent-page',
       'user-1',
       notionApi,
-      'job-1'
+      'job-1',
+      { maxNotes: 10000 }
     );
 
     expect(notionApi.createPage).toHaveBeenCalledWith(
@@ -128,34 +127,95 @@ describe('ImportApkgToNotionUseCase', () => {
     expect(result.notion_page_url).toBe('https://notion.so/page-123');
   });
 
-  it('marks the job as failed when transform throws NoteTooLargeError', async () => {
-    previewService.parse.mockResolvedValue(makeParsed(2));
+  it('imports up to the cap and prepends a truncation notice for free users', async () => {
+    previewService.parse.mockResolvedValue(makeParsed(5));
 
-    const throwingBlocksService = {
-      transform: () => {
-        throw new NoteTooLargeError(5001, 5000);
-      },
-    } as unknown as ApkgToNotionBlocksService;
-
-    const useCaseWithLimit = new ImportApkgToNotionUseCase(
-      previewService,
-      throwingBlocksService,
-      jobRepository
-    );
-
-    await useCaseWithLimit.execute(
+    await useCase.execute(
       Buffer.from('fake'),
       'parent-page',
       'user-1',
       notionApi,
-      'job-1'
+      'job-1',
+      { isPaying: false, maxNotes: 2 }
     );
 
-    const failCall = jobRepository.updateJobStatus.mock.calls.find(
-      (c) => c[2] === 'failed'
+    const firstBatch = notionApi.appendBlocks.mock
+      .calls[0][1] as unknown as Array<{
+      type: string;
+      paragraph?: { rich_text: Array<{ plain_text: string }> };
+    }>;
+    expect(firstBatch[0].type).toBe('paragraph');
+    expect(firstBatch[0].paragraph!.rich_text[0].plain_text).toBe(
+      'Imported the first 2 of 5 notes.'
     );
-    expect(failCall).toBeDefined();
-    expect(failCall![3]).toContain('5001');
+    const upsell = firstBatch[1].paragraph!.rich_text[0].plain_text;
+    expect(upsell).toContain('Upgrade at 2anki.net/pricing');
+    expect(firstBatch[2].type).toBe('divider');
+
+    const noteToggles = firstBatch.filter((b) => b.type === 'heading_3');
+    expect(noteToggles).toHaveLength(2);
+
+    const finalUpdate =
+      jobRepository.updateJobStatus.mock.calls[
+        jobRepository.updateJobStatus.mock.calls.length - 1
+      ];
+    expect(finalUpdate[2]).toBe('done');
+    const result = JSON.parse(finalUpdate[3] as string);
+    expect(result.imported).toBe(2);
+    expect(result.total_notes).toBe(5);
+    expect(result.truncated).toBe(true);
+    expect(result.note_cap).toBe(2);
+  });
+
+  it('writes no truncation notice for paying users without an upgrade pitch', async () => {
+    previewService.parse.mockResolvedValue(makeParsed(4));
+
+    await useCase.execute(
+      Buffer.from('fake'),
+      'parent-page',
+      'user-1',
+      notionApi,
+      'job-1',
+      { isPaying: true, maxNotes: 3 }
+    );
+
+    const firstBatch = notionApi.appendBlocks.mock
+      .calls[0][1] as unknown as Array<{
+      type: string;
+      paragraph?: { rich_text: Array<{ plain_text: string }> };
+    }>;
+    const noticeText = firstBatch[0]
+      .paragraph!.rich_text.map((s) => s.plain_text)
+      .join('');
+    expect(noticeText).toBe(
+      'Imported the first 3 of 4 notes. 3 notes is the largest import 2anki supports — the remaining 1 notes were not imported.'
+    );
+    expect(noticeText).not.toContain('pricing');
+    expect(firstBatch[1].type).toBe('divider');
+  });
+
+  it('adds no notice when the deck is under the cap', async () => {
+    previewService.parse.mockResolvedValue(makeParsed(2));
+
+    await useCase.execute(
+      Buffer.from('fake'),
+      'parent-page',
+      'user-1',
+      notionApi,
+      'job-1',
+      { maxNotes: 10000 }
+    );
+
+    const firstBatch = notionApi.appendBlocks.mock
+      .calls[0][1] as unknown as Array<{ type: string }>;
+    expect(firstBatch.every((b) => b.type === 'heading_3')).toBe(true);
+
+    const finalUpdate =
+      jobRepository.updateJobStatus.mock.calls[
+        jobRepository.updateJobStatus.mock.calls.length - 1
+      ];
+    const result = JSON.parse(finalUpdate[3] as string);
+    expect(result.truncated).toBe(false);
   });
 
   it('tracks progress during batch writes', async () => {
@@ -166,7 +226,8 @@ describe('ImportApkgToNotionUseCase', () => {
       'parent-page',
       'user-1',
       notionApi,
-      'job-1'
+      'job-1',
+      { maxNotes: 10000 }
     );
 
     const progressCalls = jobRepository.updateJobStatus.mock.calls.filter(
@@ -185,7 +246,8 @@ describe('ImportApkgToNotionUseCase', () => {
       'parent-page',
       'user-1',
       notionApi,
-      'job-1'
+      'job-1',
+      { maxNotes: 10000 }
     );
 
     const failCall = jobRepository.updateJobStatus.mock.calls.find(
@@ -220,7 +282,8 @@ describe('ImportApkgToNotionUseCase', () => {
       'parent-page',
       'user-1',
       notionApi,
-      'job-1'
+      'job-1',
+      { maxNotes: 10000 }
     );
 
     const failCall = jobRepository.updateJobStatus.mock.calls.find(
@@ -242,7 +305,8 @@ describe('ImportApkgToNotionUseCase', () => {
       'parent-page',
       'user-1',
       notionApi,
-      'job-1'
+      'job-1',
+      { maxNotes: 10000 }
     );
 
     const failCall = jobRepository.updateJobStatus.mock.calls.find(
@@ -264,7 +328,8 @@ describe('ImportApkgToNotionUseCase', () => {
       'parent-page',
       'user-1',
       notionApi,
-      'job-1'
+      'job-1',
+      { maxNotes: 10000 }
     );
 
     const failCall = jobRepository.updateJobStatus.mock.calls.find(
@@ -286,7 +351,8 @@ describe('ImportApkgToNotionUseCase', () => {
       'parent-page',
       'user-1',
       notionApi,
-      'job-1'
+      'job-1',
+      { maxNotes: 10000 }
     );
 
     const failCall = jobRepository.updateJobStatus.mock.calls.find(
@@ -310,7 +376,8 @@ describe('ImportApkgToNotionUseCase', () => {
       'parent-page',
       'user-1',
       notionApi,
-      'job-1'
+      'job-1',
+      { maxNotes: 10000 }
     );
 
     const failCall = jobRepository.updateJobStatus.mock.calls.find(
@@ -332,7 +399,8 @@ describe('ImportApkgToNotionUseCase', () => {
       'parent-page',
       'user-1',
       notionApi,
-      'job-1'
+      'job-1',
+      { maxNotes: 10000 }
     );
 
     const failCall = jobRepository.updateJobStatus.mock.calls.find(
@@ -355,7 +423,8 @@ describe('ImportApkgToNotionUseCase', () => {
       'parent-page',
       'user-1',
       notionApi,
-      'job-1'
+      'job-1',
+      { maxNotes: 10000 }
     );
 
     const failCall = jobRepository.updateJobStatus.mock.calls.find(
@@ -390,7 +459,8 @@ describe('ImportApkgToNotionUseCase', () => {
       'parent-page',
       'user-1',
       notionApi,
-      'job-1'
+      'job-1',
+      { maxNotes: 10000 }
     );
 
     expect(notionApi.createPage).toHaveBeenCalledTimes(3);

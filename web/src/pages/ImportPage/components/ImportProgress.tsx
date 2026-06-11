@@ -41,7 +41,7 @@ export default function ImportProgress({
               'uploading images ',
               'Uploading images: '
             )
-          : `${imported} of ${total} cards`}
+          : `${imported} of ${total} notes`}
       </p>
       <p className={styles.progressReassurance}>
         {isUploadingImages

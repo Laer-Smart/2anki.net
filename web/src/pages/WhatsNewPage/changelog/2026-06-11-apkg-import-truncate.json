@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-11-apkg-import-truncate",
+  "date": "2026-06-11",
+  "type": "fix",
+  "title": "Anki decks over the Notion import limit now import up to the limit instead of failing"
+}

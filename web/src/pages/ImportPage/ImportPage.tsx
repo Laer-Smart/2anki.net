@@ -115,11 +115,21 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
           <h1 className={sharedStyles.title}>Import to Notion</h1>
         </div>
         <div className={sharedStyles.notificationSuccess}>
-          {job.progress.imported} cards added
-          {selectedPageTitle ? (
-            <> to &ldquo;{selectedPageTitle}&rdquo;</>
+          {job.truncated ? (
+            <>
+              Imported {job.progress.imported} of {job.progress.total_notes}{' '}
+              notes — import limit reached. See the note at the top of your
+              Notion page.
+            </>
           ) : (
-            <> to your &ldquo;2anki Imports&rdquo; page</>
+            <>
+              {job.progress.imported} notes added
+              {selectedPageTitle ? (
+                <> to &ldquo;{selectedPageTitle}&rdquo;</>
+              ) : (
+                <> to your &ldquo;2anki Imports&rdquo; page</>
+              )}
+            </>
           )}
         </div>
         <div className={styles.completeActions}>
@@ -161,7 +171,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
         <div className={sharedStyles.notificationDanger}>
           {isUpgradeError && job.errorMessage}
           {partialProgress &&
-            `Imported ${job.progress.imported} of ${job.progress.total_notes} cards before something went wrong. The cards already created are still in your Notion page.`}
+            `Imported ${job.progress.imported} of ${job.progress.total_notes} notes before something went wrong. The notes already created are still in your Notion page.`}
           {!isUpgradeError &&
             !partialProgress &&
             (job.errorMessage ?? 'Something went wrong.')}
