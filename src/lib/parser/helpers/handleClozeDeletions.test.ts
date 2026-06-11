@@ -199,6 +199,27 @@ describe('#1094 — code tags become cloze deletions', () => {
   });
 });
 
+describe('#3245 — cloze on attributed inline code', () => {
+  it('inline code carrying a class attribute still becomes a cloze', () => {
+    const input =
+      '<p>The capital is <code class="language-js">Paris</code></p>';
+    const result = handleClozeDeletions(input);
+    expect(result).toBe('<p>The capital is {{c1::Paris}}</p>');
+  });
+
+  it('explicit cloze on attributed code wraps the right element, not an earlier empty code', () => {
+    const input = '<p>a <code></code> b <code>c1::answer</code> c</p>';
+    const result = handleClozeDeletions(input);
+    expect(result).toBe('<p>a <code></code> b {{c1::answer}} c</p>');
+  });
+
+  it('explicit cloze on a class-attributed code element gets the braces', () => {
+    const input = '<p><code class="hl">c1::answer</code></p>';
+    const result = handleClozeDeletions(input);
+    expect(result).toBe('<p>{{c1::answer}}</p>');
+  });
+});
+
 describe('#2501 — group cloze blanks per toggle', () => {
   const threeBlanks =
     '<p><code>alpha</code> and <code>beta</code> and <code>gamma</code></p>';

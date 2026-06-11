@@ -30,6 +30,12 @@ function handleRegularCloze(content: string, num: number): string {
   return content.match(/c\d::/) ? `{{${content}}}` : `{{c${num}::${content}}}`;
 }
 
+function handleExplicitCloze(content: string): string {
+  const prefix = content.includes('{{') ? '' : '{{';
+  const suffix = content.endsWith('}}') ? '' : '}}';
+  return `${prefix}${content}${suffix}`;
+}
+
 export default function handleClozeDeletions(
   input: string,
   groupClozePerToggle = false
@@ -46,7 +52,7 @@ export default function handleClozeDeletions(
     const v = dom(elem).html();
     if (!v) return;
 
-    const old = `<code>${v}</code>`;
+    const old = dom.html(elem);
 
     if (v.includes('KaTex')) {
       const isStandalone = totalCodeBlocks === 1;
@@ -64,8 +70,7 @@ export default function handleClozeDeletions(
     }
 
     if (v.match(/c\d::/)) {
-      mangle = mangle.replace('<code>', v.includes('{{') ? '' : '{{');
-      mangle = mangle.replace('</code>', v.endsWith('}}') ? '' : '}}');
+      mangle = replaceAll(mangle, old, handleExplicitCloze(v));
       return;
     }
 
