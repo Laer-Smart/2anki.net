@@ -24,8 +24,8 @@ import { convertDocxToHTML } from './convertDocxToHTML';
 import { generateDeckInfo, DeckInfo } from '../../../lib/claude/ClaudeService';
 import CustomExporter from '../../../lib/parser/exporters/CustomExporter';
 import Workspace from '../../../lib/parser/WorkSpace';
-import fs from 'fs';
 import path from 'path';
+import { writeWorkspaceFile } from './writeWorkspaceFile';
 
 const HTML_GENERATION_CONCURRENCY = 3;
 
@@ -351,16 +351,12 @@ export async function PrepareDeck(
     await Promise.all(
       allFiles
         .filter((file) => file.contents)
-        .map(async (file) => {
-          const dest = path.join(input.workspace.location, file.name);
-          await fs.promises.mkdir(path.dirname(dest), { recursive: true });
-          await fs.promises.writeFile(
-            dest,
-            Buffer.isBuffer(file.contents)
-              ? file.contents
-              : Buffer.from(file.contents as string)
-          );
-        })
+        .map((file) =>
+          writeWorkspaceFile(input.workspace.location, {
+            name: file.name,
+            contents: file.contents,
+          })
+        )
     );
     console.log('[PrepareDeck] Claude branch: files written', {
       durationMs: Date.now() - tWrite,

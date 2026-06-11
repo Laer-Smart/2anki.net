@@ -9,6 +9,7 @@ import {
   isPDFFile,
 } from '../storage/checks';
 import { processAndPrepareArchiveData } from './fallback/processAndPrepareArchiveData';
+import { isSafeZipEntryName } from './isSafeZipEntryName';
 import CardOption from '../parser/Settings';
 import { getRandomUUID } from '../../shared/helpers/getRandomUUID';
 import { convertImageToHTML } from '../../infrastracture/adapters/fileConversion/convertImageToHTML';
@@ -95,6 +96,11 @@ class ZipHandler {
     settings: CardOption
   ) {
     if (name.includes('__MACOSX/')) return;
+
+    if (!isSafeZipEntryName(name)) {
+      console.warn('Skipped zip entry with unsafe path of length', name.length);
+      return;
+    }
 
     if (name.endsWith('.zip')) {
       this.zipFileCount++;
