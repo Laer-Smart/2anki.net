@@ -403,7 +403,7 @@ export class SyncNotionPageToRacUseCase {
     result: SyncNotionPageResult
   ): Promise<void> {
     for (const ref of card.media) {
-      if (ref.source !== 'file' || ref.filename == null) {
+      if (ref.filename == null) {
         continue;
       }
       await this.uploadSingleMediaRef(ac, ref, result);
