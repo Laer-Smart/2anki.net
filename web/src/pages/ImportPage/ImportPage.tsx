@@ -16,6 +16,39 @@ interface ImportPageProps {
   setError: (error: unknown) => void;
 }
 
+interface CompletedNoticeProps {
+  truncated: boolean;
+  imported: number;
+  totalNotes: number;
+  pageTitle: string;
+}
+
+function CompletedNotice({
+  truncated,
+  imported,
+  totalNotes,
+  pageTitle,
+}: Readonly<CompletedNoticeProps>) {
+  if (truncated) {
+    return (
+      <>
+        Imported {imported} of {totalNotes} notes — import limit reached. See
+        the note at the top of your Notion page.
+      </>
+    );
+  }
+  return (
+    <>
+      {imported} notes added
+      {pageTitle ? (
+        <> to &ldquo;{pageTitle}&rdquo;</>
+      ) : (
+        <> to your &ldquo;2anki Imports&rdquo; page</>
+      )}
+    </>
+  );
+}
+
 export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -115,22 +148,12 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
           <h1 className={sharedStyles.title}>Import to Notion</h1>
         </div>
         <div className={sharedStyles.notificationSuccess}>
-          {job.truncated ? (
-            <>
-              Imported {job.progress.imported} of {job.progress.total_notes}{' '}
-              notes — import limit reached. See the note at the top of your
-              Notion page.
-            </>
-          ) : (
-            <>
-              {job.progress.imported} notes added
-              {selectedPageTitle ? (
-                <> to &ldquo;{selectedPageTitle}&rdquo;</>
-              ) : (
-                <> to your &ldquo;2anki Imports&rdquo; page</>
-              )}
-            </>
-          )}
+          <CompletedNotice
+            truncated={job.truncated}
+            imported={job.progress.imported}
+            totalNotes={job.progress.total_notes}
+            pageTitle={selectedPageTitle}
+          />
         </div>
         <div className={styles.completeActions}>
           {job.notionPageUrl && (
