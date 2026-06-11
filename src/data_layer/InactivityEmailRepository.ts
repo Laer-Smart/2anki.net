@@ -2,11 +2,16 @@ import type { Knex } from 'knex';
 
 export const INACTIVITY_DELETION_GRACE_DAYS = 14;
 
+export const INACTIVITY_WINDOW = '6 months';
+
 export interface IInactivityEmailRepository {
   getUsersToNotify(
     limit?: number
   ): Promise<Array<{ id: number; name: string; email: string }>>;
   getUsersToDelete(
+    limit?: number
+  ): Promise<Array<{ id: number; email: string }>>;
+  getDeadAddressCandidates(
     limit?: number
   ): Promise<Array<{ id: number; email: string }>>;
   recordSend(userId: number, token: string): Promise<void>;
@@ -36,9 +41,9 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
       .select('users.id', 'users.name', 'users.email')
       .where(function () {
         this.whereRaw(
-          "users.last_login_at < now() - interval '6 months'"
+          `users.last_login_at < now() - interval '${INACTIVITY_WINDOW}'`
         ).orWhereRaw(
-          "users.last_login_at IS NULL AND users.created_at < now() - interval '6 months'"
+          `users.last_login_at IS NULL AND users.created_at < now() - interval '${INACTIVITY_WINDOW}'`
         );
       })
       .whereRaw('users.patreon IS NOT TRUE')
@@ -99,6 +104,38 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
     return rows.map((row) => ({ id: row.id, email: row.email }));
   }
 
+  buildDeadAddressCandidatesQuery(
+    limit: number
+  ): Knex.QueryBuilder<UserRow, UserRow[]> {
+    return this.database<UserRow>('users as u')
+      .select('u.id', 'u.email')
+      .where(function () {
+        this.whereRaw(
+          `u.last_login_at < now() - interval '${INACTIVITY_WINDOW}'`
+        ).orWhereRaw(
+          `u.last_login_at IS NULL AND u.created_at < now() - interval '${INACTIVITY_WINDOW}'`
+        );
+      })
+      .whereRaw('u.patreon IS NOT TRUE')
+      .whereNotExists(
+        this.database('subscriptions')
+          .where('subscriptions.active', true)
+          .whereRaw(
+            '(subscriptions.email = u.email OR subscriptions.linked_email = u.email)'
+          )
+          .limit(1)
+      )
+      .orderBy('u.id', 'asc')
+      .limit(limit);
+  }
+
+  async getDeadAddressCandidates(
+    limit = 100
+  ): Promise<Array<{ id: number; email: string }>> {
+    const rows = await this.buildDeadAddressCandidatesQuery(limit);
+    return rows.map((row) => ({ id: row.id, email: row.email }));
+  }
+
   async recordSend(userId: number, token: string): Promise<void> {
     await this.database(this.table).insert({ user_id: userId, token });
   }
@@ -121,6 +158,7 @@ export class InMemoryInactivityEmailRepository implements IInactivityEmailReposi
   private usersToReturn: Array<{ id: number; name: string; email: string }> =
     [];
   private usersToDelete: Array<{ id: number; email: string }> = [];
+  private deadAddressCandidates: Array<{ id: number; email: string }> = [];
   private readonly sentUserIds = new Set<number>();
   private emails: Array<{ id: number; userId: number; token: string }> = [];
   private nextId = 1;
@@ -131,6 +169,10 @@ export class InMemoryInactivityEmailRepository implements IInactivityEmailReposi
 
   seedUsersToDelete(users: Array<{ id: number; email: string }>): void {
     this.usersToDelete = users;
+  }
+
+  seedDeadAddressCandidates(users: Array<{ id: number; email: string }>): void {
+    this.deadAddressCandidates = users;
   }
 
   async getUsersToNotify(
@@ -145,6 +187,12 @@ export class InMemoryInactivityEmailRepository implements IInactivityEmailReposi
     limit = 100
   ): Promise<Array<{ id: number; email: string }>> {
     return this.usersToDelete.slice(0, limit);
+  }
+
+  async getDeadAddressCandidates(
+    limit = 100
+  ): Promise<Array<{ id: number; email: string }>> {
+    return this.deadAddressCandidates.slice(0, limit);
   }
 
   async recordSend(userId: number, token: string): Promise<void> {
@@ -170,6 +218,7 @@ export class InMemoryInactivityEmailRepository implements IInactivityEmailReposi
   clear(): void {
     this.usersToReturn = [];
     this.usersToDelete = [];
+    this.deadAddressCandidates = [];
     this.sentUserIds.clear();
     this.emails = [];
     this.nextId = 1;

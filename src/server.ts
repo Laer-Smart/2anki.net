@@ -94,6 +94,7 @@ import { getDefaultEmailService } from './services/EmailService/EmailService';
 import { SendInactivityWarningsUseCase } from './usecases/ops/SendInactivityWarningsUseCase';
 import { DeleteInactiveUsersUseCase } from './usecases/ops/DeleteInactiveUsersUseCase';
 import UsersRepository from './data_layer/UsersRepository';
+import SuppressionEventsRepository from './data_layer/SuppressionEventsRepository';
 import { initConversionPool } from './lib/conversionPool';
 import { gracefulShutdown } from './lib/gracefulShutdown';
 
@@ -303,7 +304,8 @@ const serve = async () => {
 
   const deleteInactiveUsersUseCase = new DeleteInactiveUsersUseCase(
     inactivityEmailRepo,
-    new UsersRepository(database)
+    new UsersRepository(database),
+    new SuppressionEventsRepository(database)
   );
   scheduleInactiveUserDeletions(deleteInactiveUsersUseCase, {
     eventsSink,

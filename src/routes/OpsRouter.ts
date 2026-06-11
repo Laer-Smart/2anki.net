@@ -21,6 +21,7 @@ import { CancellationFeedbackRepository } from '../data_layer/CancellationFeedba
 import { EmojiFeedbackRepository } from '../data_layer/EmojiFeedbackRepository';
 import { ReEngagementFeedbackRepository } from '../data_layer/ReEngagementFeedbackRepository';
 import UsersRepository from '../data_layer/UsersRepository';
+import SuppressionEventsRepository from '../data_layer/SuppressionEventsRepository';
 import { ShowcaseRepository } from '../data_layer/ShowcaseRepository';
 import DownloadRepository from '../data_layer/DownloadRepository';
 import NotionRepository from '../data_layer/NotionRespository';
@@ -114,7 +115,8 @@ const OpsRouter = () => {
     new GetMindmapStorageMetricsUseCase(mindmapStorageService),
     new DeleteInactiveUsersUseCase(
       new InactivityEmailRepository(database),
-      new UsersRepository(database)
+      new UsersRepository(database),
+      new SuppressionEventsRepository(database)
     ),
     new SyncStripeSubscriptionsUseCase(() => updateStripeSubscriptions()),
     new GetPricingAbFunnelUseCase(
