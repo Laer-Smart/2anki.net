@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-database-pages-convert",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Notion databases convert the pages inside them — every page's toggles become cards"
+}
