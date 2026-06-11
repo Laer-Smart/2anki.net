@@ -38,6 +38,11 @@ const escapeHtml = (value: string): string =>
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
+const canonicalUrl = (pathname: string): string => {
+  const withTrailingSlash = pathname.endsWith('/') ? pathname : `${pathname}/`;
+  return `https://2anki.net${withTrailingSlash}`;
+};
+
 function buildHeroFragment(copy: LandingCopy): string {
   return [
     '<section id="upload" style="background:var(--color-bg-secondary);padding:4rem 1.5rem 3rem;">',
@@ -53,7 +58,12 @@ function buildHeroFragment(copy: LandingCopy): string {
   ].join('');
 }
 
-const REPLACED_OG_PROPERTIES = ['og:title', 'og:description', 'og:url', 'og:type'];
+const REPLACED_OG_PROPERTIES = [
+  'og:title',
+  'og:description',
+  'og:url',
+  'og:type',
+];
 const REPLACED_TWITTER_NAMES = ['twitter:title', 'twitter:description'];
 
 function stripExistingMeta(html: string): string {
@@ -73,7 +83,7 @@ function stripExistingMeta(html: string): string {
 }
 
 function rewriteHead(html: string, copy: LandingCopy): string {
-  const canonical = `https://2anki.net${copy.pathname}`;
+  const canonical = canonicalUrl(copy.pathname);
   const titleTag = `<title>${escapeHtml(copy.title)}</title>`;
   const descriptionTag = `<meta name="description" content="${escapeHtml(
     copy.description
@@ -92,28 +102,19 @@ function rewriteHead(html: string, copy: LandingCopy): string {
   ].join('\n  ');
 
   let next = html.replace(/<title>[\s\S]*?<\/title>/, titleTag);
-  next = next.replace(
-    /<meta\s+name="description"[^>]*>/,
-    descriptionTag
-  );
+  next = next.replace(/<meta\s+name="description"[^>]*>/, descriptionTag);
   next = next.replace(
     /<link\s+rel="canonical"[^>]*>/,
     `<link rel="canonical" href="${canonical}">`
   );
   next = stripExistingMeta(next);
-  next = next.replace(
-    /<\/head>/,
-    `  ${ogTags}\n</head>`
-  );
+  next = next.replace(/<\/head>/, `  ${ogTags}\n</head>`);
   return next;
 }
 
 function rewriteRoot(html: string, copy: LandingCopy): string {
   const hero = buildHeroFragment(copy);
-  return html.replace(
-    /<div id="root"><\/div>/,
-    `<div id="root">${hero}</div>`
-  );
+  return html.replace(/<div id="root"><\/div>/, `<div id="root">${hero}</div>`);
 }
 
 const NOTION_MARKETPLACE_META = {
@@ -122,7 +123,8 @@ const NOTION_MARKETPLACE_META = {
   description:
     'Connect your Notion workspace and your notes become Anki flashcards automatically. No exports, no zips. Auto Sync $30/mo, Unlimited $6/mo.',
   h1: 'Your Notion notes become Anki cards — automatically',
-  subhead: 'Connect your workspace in 5 minutes. No exports, no zips, no manual steps.',
+  subhead:
+    'Connect your workspace in 5 minutes. No exports, no zips, no manual steps.',
 };
 
 function buildNotionMarketplaceFragment(): string {
@@ -140,7 +142,7 @@ export function emitNotionMarketplacePage(buildDir: string): string {
   const meta = NOTION_MARKETPLACE_META;
   const indexPath = join(buildDir, 'index.html');
   const source = readFileSync(indexPath, 'utf8');
-  const canonical = `https://2anki.net${meta.pathname}`;
+  const canonical = canonicalUrl(meta.pathname);
   const slug = meta.pathname.replace(/^\//, '');
   const outDir = join(buildDir, slug);
   const outPath = join(outDir, 'index.html');
@@ -157,7 +159,10 @@ export function emitNotionMarketplacePage(buildDir: string): string {
 
   let html = source.replace(/<title>[\s\S]*?<\/title>/, titleTag);
   html = html.replace(/<meta\s+name="description"[^>]*>/, descriptionTag);
-  html = html.replace(/<link\s+rel="canonical"[^>]*>/, `<link rel="canonical" href="${canonical}">`);
+  html = html.replace(
+    /<link\s+rel="canonical"[^>]*>/,
+    `<link rel="canonical" href="${canonical}">`
+  );
   html = stripExistingMeta(html);
   html = html.replace(/<\/head>/, `  ${ogTags}\n</head>`);
   html = html.replace(
@@ -250,7 +255,7 @@ export function emitMetaOnlyPages(buildDir: string): string[] {
   const emitted: string[] = [];
 
   for (const meta of META_ONLY_PAGES) {
-    const canonical = `https://2anki.net${meta.pathname}`;
+    const canonical = canonicalUrl(meta.pathname);
     const slug = meta.pathname.replace(/^\//, '');
     const outDir = join(buildDir, slug);
     const outPath = join(outDir, 'index.html');
@@ -269,7 +274,10 @@ export function emitMetaOnlyPages(buildDir: string): string[] {
 
     let html = source.replace(/<title>[\s\S]*?<\/title>/, titleTag);
     html = html.replace(/<meta\s+name="description"[^>]*>/, descriptionTag);
-    html = html.replace(/<link\s+rel="canonical"[^>]*>/, `<link rel="canonical" href="${canonical}">`);
+    html = html.replace(
+      /<link\s+rel="canonical"[^>]*>/,
+      `<link rel="canonical" href="${canonical}">`
+    );
     html = stripExistingMeta(html);
     html = html.replace(/<\/head>/, `  ${ogTags}\n</head>`);
 
