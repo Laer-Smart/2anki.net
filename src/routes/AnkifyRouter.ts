@@ -356,6 +356,7 @@ const AnkifyRouter = () => {
       repo,
       mappings,
       conflictsRepo,
+      subscriptionsRepo,
       logsRepo,
       new NotionRepository(db),
       ankiConnectFactory,

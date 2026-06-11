@@ -43,6 +43,7 @@ import { NoActiveAnkifyClientError } from './SendUploadToRacUseCase';
 import { NotionNotConnectedError } from './ExportReviewDataToNotionUseCase';
 import { isNotionDatabaseNotPageError } from '../../services/NotionService/helpers/isNotionDatabaseNotPageError';
 import { sanitizeDeckPath } from '../../lib/ankify/transforms/tags';
+import { buildDeckName } from '../../lib/ankify/transforms/deckName';
 
 export { NotionNotConnectedError } from './ExportReviewDataToNotionUseCase';
 
@@ -94,8 +95,6 @@ export type NotionFetcherFactory = (
 
 const FRONT_FIELD_BASIC = 'Front';
 const BACK_FIELD_BASIC = 'Back';
-const DECK_PARENT = 'Notion Sync';
-const DECK_TITLE_FALLBACK = 'Untitled';
 
 export interface AnkifyMediaResponse {
   status: number;
@@ -127,28 +126,6 @@ const deriveReasonCode = (diagnostic: SyncDiagnostic): AnkifyZeroReasonCode => {
     return 'all_blocks_unmatched';
   }
   return 'no_matching_blocks';
-};
-
-const sanitizeDeckTitle = (title: string | null | undefined): string => {
-  if (title == null) {
-    return DECK_TITLE_FALLBACK;
-  }
-  const cleaned = title.split('::').join('').trim();
-  if (cleaned.length === 0) {
-    return DECK_TITLE_FALLBACK;
-  }
-  return cleaned;
-};
-
-const buildDeckName = (
-  override: string | null | undefined,
-  title: string | null | undefined
-): string => {
-  const overridePath = sanitizeDeckPath(override);
-  if (overridePath.length > 0) {
-    return overridePath;
-  }
-  return `${DECK_PARENT}::${sanitizeDeckTitle(title)}`;
 };
 
 const summarizeCardErrors = (errors: string[]): string | null => {
