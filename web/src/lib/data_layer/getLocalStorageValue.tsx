@@ -6,7 +6,9 @@ export const getLocalStorageValue = (
   theSettings: SettingsPayload
 ) => {
   if (theSettings && key in theSettings) {
-    return theSettings[key] || defaultValue;
+    const fromSettings = theSettings[key];
+    return fromSettings == null ? defaultValue : fromSettings;
   }
-  return localStorage.getItem(key) || defaultValue;
+  const fromStorage = localStorage.getItem(key);
+  return fromStorage == null ? defaultValue : fromStorage;
 };

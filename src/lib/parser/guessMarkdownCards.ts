@@ -106,11 +106,24 @@ function trySeparatorPattern(content: string): Note[] {
   return notes;
 }
 
+function indexOfSeparatorColon(line: string): number {
+  let idx = line.indexOf('::');
+  while (idx !== -1) {
+    const before = line.slice(0, idx);
+    const insideCloze = /\{\{c\d+$/.test(before);
+    if (!insideCloze) {
+      return idx;
+    }
+    idx = line.indexOf('::', idx + 2);
+  }
+  return -1;
+}
+
 function tryInlineDoubleColonPattern(content: string): Note[] {
   const lines = content.split('\n');
   const notes: Note[] = [];
   for (const line of lines) {
-    const idx = line.indexOf('::');
+    const idx = indexOfSeparatorColon(line);
     if (idx === -1) continue;
     const front = line.slice(0, idx).trim();
     const back = line.slice(idx + 2).trim();
