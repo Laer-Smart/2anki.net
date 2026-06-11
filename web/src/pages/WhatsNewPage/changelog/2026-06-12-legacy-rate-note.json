@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-legacy-rate-note",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "The cancel flow now reminds everyone on a legacy price what they would give up"
+}

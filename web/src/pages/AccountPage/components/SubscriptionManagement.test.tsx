@@ -21,7 +21,11 @@ function withQueryClient(ui: ReactNode) {
   return <QueryClientProvider client={client}>{ui}</QueryClientProvider>;
 }
 
-function stubStripeActive() {
+function stubStripeActive(plan?: {
+  amount: number | null;
+  currency: string | null;
+  interval: string | null;
+}) {
   mockUseStripeSubscriptions.mockReturnValue({
     subscriptions: [],
     view: {
@@ -33,12 +37,25 @@ function stubStripeActive() {
         current_period_end: 1893456000,
         cancel_at: null,
         canceled_at: null,
-        plan: { amount: 1000, currency: 'usd', interval: 'month' },
+        plan: plan ?? { amount: 1000, currency: 'usd', interval: 'month' },
       },
     },
     isLoading: false,
     refetch: vi.fn().mockResolvedValue(undefined),
   } as unknown as StripeSubscriptionsState);
+}
+
+function renderStripeManagement() {
+  return render(
+    withQueryClient(
+      <SubscriptionManagement
+        user={user}
+        locals={{ subscriber: true, planSource: 'stripe' }}
+        hasActivePlan
+        onRefetch={vi.fn().mockResolvedValue(undefined)}
+      />
+    )
+  );
 }
 
 describe('SubscriptionManagement', () => {
@@ -121,6 +138,33 @@ describe('SubscriptionManagement', () => {
       screen.getByRole('button', { name: 'Cancel at period end' })
     ).toBeTruthy();
     expect(mockUseStripeSubscriptions).toHaveBeenCalledWith(true);
+  });
+
+  it.each([
+    ['legacy monthly $6', { amount: 600, interval: 'month' }],
+    ['legacy yearly $60', { amount: 6000, interval: 'year' }],
+    ['unknown interval below monthly v2', { amount: 600, interval: null }],
+  ])('shows the legacy-rate note for %s', (_label, plan) => {
+    stubStripeActive({ currency: 'usd', ...plan });
+
+    renderStripeManagement();
+
+    expect(
+      screen.getByText('Cancelling forfeits this legacy rate.')
+    ).toBeTruthy();
+  });
+
+  it.each([
+    ['v2 monthly $7.99', { amount: 799, interval: 'month' }],
+    ['v2 yearly $64', { amount: 6400, interval: 'year' }],
+  ])('hides the legacy-rate note for %s', (_label, plan) => {
+    stubStripeActive({ currency: 'usd', ...plan });
+
+    renderStripeManagement();
+
+    expect(
+      screen.queryByText('Cancelling forfeits this legacy rate.')
+    ).toBeNull();
   });
 
   it('renders nothing when the user is not a subscriber', () => {
