@@ -2,13 +2,16 @@ import { IServiceSettings } from '../../services/SettingsService';
 import CardOptionsController from './CardOptionsController';
 import { SettingsInitializer } from '../../data_layer/public/Settings';
 
-const FAKE_SAVED_PAYLOAD = {
+const FLAT_OPTIONS = {
   deckName: 'My Custom Deck',
   template: 'specialstyle',
 };
 
 class FakeSettingsService implements IServiceSettings {
+  public lastCreate: SettingsInitializer | null = null;
+
   create(settings: SettingsInitializer): Promise<number[]> {
+    this.lastCreate = settings;
     return Promise.resolve([]);
   }
   delete(owner: string, id: string): Promise<void> {
@@ -19,7 +22,7 @@ class FakeSettingsService implements IServiceSettings {
     return Promise.resolve({
       object_id: '1',
       owner: '1',
-      payload: FAKE_SAVED_PAYLOAD,
+      payload: FLAT_OPTIONS,
     });
   }
 
@@ -65,14 +68,37 @@ describe('CardOptionsController.findSetting', () => {
     } as unknown as import('express').Response;
   }
 
-  it('returns the inner payload object, not the full DB row', async () => {
+  it('returns the flat options for a new-shape row', async () => {
     const controller = new CardOptionsController(new FakeSettingsService());
     const req = {
       params: { id: 'page-123' },
     } as unknown as import('express').Request;
     const res = makeMockFindRes();
     await controller.findSetting(req, res);
-    expect(res.json).toHaveBeenCalledWith({ payload: FAKE_SAVED_PAYLOAD });
+    expect(res.json).toHaveBeenCalledWith({ payload: FLAT_OPTIONS });
+  });
+
+  it('unwraps a legacy wrapper row down to the flat options', async () => {
+    class LegacyWrapperService extends FakeSettingsService {
+      getById(_id: string): Promise<SettingsInitializer> {
+        return Promise.resolve({
+          object_id: '1',
+          owner: '1',
+          payload: {
+            object_id: 'page-123',
+            title: 'A',
+            payload: FLAT_OPTIONS,
+          },
+        } as unknown as SettingsInitializer);
+      }
+    }
+    const controller = new CardOptionsController(new LegacyWrapperService());
+    const req = {
+      params: { id: 'page-123' },
+    } as unknown as import('express').Request;
+    const res = makeMockFindRes();
+    await controller.findSetting(req, res);
+    expect(res.json).toHaveBeenCalledWith({ payload: FLAT_OPTIONS });
   });
 
   it('returns null payload when no settings are found', async () => {
@@ -88,6 +114,43 @@ describe('CardOptionsController.findSetting', () => {
     const res = makeMockFindRes();
     await controller.findSetting(req, res);
     expect(res.json).toHaveBeenCalledWith({ payload: null });
+  });
+});
+
+describe('CardOptionsController.createSetting', () => {
+  function makeMockCreateRes() {
+    const send = jest.fn();
+    const status = jest.fn().mockReturnValue({ send });
+    return {
+      locals: { owner: 'user-1' },
+      status,
+      send,
+    } as unknown as import('express').Response;
+  }
+
+  it('persists the flat options map, not the request wrapper', async () => {
+    const service = new FakeSettingsService();
+    const controller = new CardOptionsController(service);
+    const req = {
+      params: { id: 'page-123' },
+      body: {
+        settings: {
+          object_id: 'page-123',
+          title: 'Pharmacology',
+          payload: FLAT_OPTIONS,
+        },
+      },
+    } as unknown as import('express').Request;
+    const res = makeMockCreateRes();
+
+    await controller.createSetting(req, res);
+
+    expect(service.lastCreate).toEqual({
+      owner: 'user-1',
+      payload: FLAT_OPTIONS,
+      object_id: 'page-123',
+      title: 'Pharmacology',
+    });
   });
 });
 

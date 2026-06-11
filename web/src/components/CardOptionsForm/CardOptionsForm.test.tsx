@@ -530,6 +530,57 @@ describe('CardOptionsForm ai-comprehensive toggle (paid-only)', () => {
   });
 });
 
+describe('CardOptionsForm loads a saved per-page payload', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setUserLocalsPaying(false);
+    localStorage.clear();
+    mockSaveSettings.mockResolvedValue(undefined);
+    mockGetSettingsCardOptions.mockResolvedValue([
+      new CardOptionModel(
+        'no-underline',
+        'Remove underlines',
+        'Strip underline formatting from card text.',
+        false
+      ),
+    ]);
+  });
+
+  it('shows the saved deck name and code theme from a flat payload', async () => {
+    mockGetSettings.mockResolvedValue({
+      deckName: 'Saved Pharmacology Deck',
+      'code-theme': 'dracula',
+    });
+
+    renderPageForm({ setError: vi.fn() });
+
+    const deckInput = (await screen.findByPlaceholderText(
+      'Enter deck name (optional)'
+    )) as HTMLInputElement;
+    await waitFor(() => {
+      expect(deckInput.value).toBe('Saved Pharmacology Deck');
+    });
+
+    const codeTheme = (await screen.findByLabelText(
+      'Code theme'
+    )) as HTMLSelectElement;
+    expect(codeTheme.value).toBe('dracula');
+  });
+
+  it('ticks a saved checkbox option from a flat payload', async () => {
+    mockGetSettings.mockResolvedValue({ 'no-underline': 'true' });
+
+    renderPageForm({ setError: vi.fn() });
+
+    const toggle = await screen.findByRole('checkbox', {
+      name: 'Remove underlines',
+    });
+    await waitFor(() => {
+      expect(toggle).toBeChecked();
+    });
+  });
+});
+
 describe('CardOptionsForm save defaults feedback', () => {
   beforeEach(() => {
     vi.clearAllMocks();

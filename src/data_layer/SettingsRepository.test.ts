@@ -233,3 +233,67 @@ describe('SettingsRepository.loadAnkifyTemplateOverrides', () => {
     expect(overrides).toBeNull();
   });
 });
+
+describe('SettingsRepository.loadIfExists', () => {
+  let db: Knex;
+  let repo: SettingsRepository;
+
+  beforeEach(async () => {
+    db = knexLib({
+      client: 'better-sqlite3',
+      connection: { filename: ':memory:' },
+      useNullAsDefault: true,
+    });
+    await db.schema.createTable('settings', (t) => {
+      t.string('owner');
+      t.string('object_id');
+      t.string('title');
+      t.json('payload');
+      t.timestamp('updated_at').defaultTo(db.fn.now());
+    });
+    await db.schema.createTable('templates', (t) => {
+      t.string('owner');
+      t.json('payload');
+    });
+    repo = new SettingsRepository(db);
+  });
+
+  afterEach(async () => {
+    await db.destroy();
+  });
+
+  test('reads the deck name from a legacy wrapper row', async () => {
+    await db('settings').insert({
+      owner: '42',
+      object_id: 'page-a',
+      title: 'A',
+      payload: JSON.stringify({
+        object_id: 'page-a',
+        title: 'A',
+        payload: { deckName: 'Wrapped Deck' },
+      }),
+    });
+
+    const settings = await repo.loadIfExists('42', 'page-a');
+
+    expect(settings?.deckName).toBe('Wrapped Deck');
+  });
+
+  test('reads the deck name from a new flat row', async () => {
+    await db('settings').insert({
+      owner: '42',
+      object_id: 'page-b',
+      title: 'B',
+      payload: JSON.stringify({ deckName: 'Flat Deck' }),
+    });
+
+    const settings = await repo.loadIfExists('42', 'page-b');
+
+    expect(settings?.deckName).toBe('Flat Deck');
+  });
+
+  test('returns null when no row exists for the owner and page', async () => {
+    const settings = await repo.loadIfExists('42', 'missing');
+    expect(settings).toBeNull();
+  });
+});
