@@ -4,7 +4,6 @@ import {
   NoteType,
 } from './ApkgPreviewService/types';
 
-const MAX_NOTES = 5000;
 const CLOZE_REGEX = /\{\{c\d+::([^}]*?)(?:::[^}]*)?\}\}/g;
 const SOUND_TAG_REGEX = /\[sound:([^\]]+)\]/g;
 const IMG_SRC_REGEX = /<img\s[^>]*?\bsrc=["']([^"']+)["'][^>]*>/gi;
@@ -95,15 +94,15 @@ export interface DeckPage {
 export interface TransformResult {
   deckPages: DeckPage[];
   totalNotes: number;
+  importedNotes: number;
+  truncated: boolean;
 }
 
-export class NoteTooLargeError extends Error {
-  constructor(count: number, limit: number) {
-    super(
-      `This deck has ${count} notes. Import supports up to ${limit} notes — it is too large to import.`
-    );
-    this.name = 'NoteTooLargeError';
-  }
+export interface TruncationNoticeInput {
+  importedNotes: number;
+  totalNotes: number;
+  isPaying: boolean;
+  paidCap: number;
 }
 
 const HTML_ENTITY_REGEX = /&(#(\d+)|#x([0-9a-fA-F]+)|(\w+));/g;
@@ -637,23 +636,94 @@ function deckNodeToDeckPage(
   };
 }
 
+function formatNoteCount(count: number): string {
+  if (count < 10000) {
+    return String(count);
+  }
+  return count.toLocaleString('en-US').replaceAll(',', ' ');
+}
+
+export function buildTruncationNoticeBlocks(
+  input: TruncationNoticeInput
+): NoteBlock[] {
+  const imported = formatNoteCount(input.importedNotes);
+  const total = formatNoteCount(input.totalNotes);
+  const paidCap = formatNoteCount(input.paidCap);
+  const headline = makeRichText(
+    `Imported the first ${imported} of ${total} notes.`,
+    true
+  );
+
+  if (input.isPaying) {
+    const remaining = formatNoteCount(input.totalNotes - input.importedNotes);
+    return [
+      {
+        type: 'paragraph',
+        paragraph: {
+          rich_text: [
+            ...headline,
+            ...makeRichText(
+              ` ${imported} notes is the largest import 2anki supports — the remaining ${remaining} notes were not imported.`
+            ),
+          ],
+        },
+      },
+      { type: 'divider', divider: {} },
+    ];
+  }
+
+  return [
+    {
+      type: 'paragraph',
+      paragraph: {
+        rich_text: [
+          ...headline,
+          ...makeRichText(
+            ` The free plan stops at ${imported} notes per import.`
+          ),
+        ],
+      },
+    },
+    {
+      type: 'paragraph',
+      paragraph: {
+        rich_text: makeRichText(
+          `Paid plans import up to ${paidCap} notes. Upgrade at 2anki.net/pricing`
+        ),
+      },
+    },
+    { type: 'divider', divider: {} },
+  ];
+}
+
 export default class ApkgToNotionBlocksService {
   transform(
     collection: NormalizedCollection,
-    mediaUrlMap: Map<string, string> = new Map(),
-    maxNotes: number = MAX_NOTES
+    mediaUrlMap: Map<string, string>,
+    maxNotes: number
   ): TransformResult {
     const seenNotes = new Set<number>();
     for (const card of collection.cards) {
       seenNotes.add(card.nid);
     }
     const totalNotes = seenNotes.size;
+    const truncated = totalNotes > maxNotes;
 
-    if (totalNotes > maxNotes) {
-      throw new NoteTooLargeError(totalNotes, maxNotes);
+    let workingCollection = collection;
+    if (truncated) {
+      const keptNids = new Set<number>();
+      for (const card of collection.cards) {
+        if (keptNids.has(card.nid)) continue;
+        if (keptNids.size === maxNotes) continue;
+        keptNids.add(card.nid);
+      }
+      workingCollection = {
+        ...collection,
+        cards: collection.cards.filter((card) => keptNids.has(card.nid)),
+      };
     }
 
-    const tree = buildDeckTree(collection);
+    const tree = buildDeckTree(workingCollection);
     const deckPages: DeckPage[] = [];
 
     for (const [, node] of tree) {
@@ -662,6 +732,11 @@ export default class ApkgToNotionBlocksService {
       }
     }
 
-    return { deckPages, totalNotes };
+    return {
+      deckPages,
+      totalNotes,
+      importedNotes: Math.min(totalNotes, maxNotes),
+      truncated,
+    };
   }
 }

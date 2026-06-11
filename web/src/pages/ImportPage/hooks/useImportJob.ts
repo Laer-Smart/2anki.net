@@ -14,6 +14,7 @@ interface ImportJobState {
   statusText: string | null;
   notionPageUrl: string | null;
   errorMessage: string | null;
+  truncated: boolean;
 }
 
 const POLL_INTERVAL_MS = 2000;
@@ -25,6 +26,7 @@ export default function useImportJob() {
     statusText: null,
     notionPageUrl: null,
     errorMessage: null,
+    truncated: false,
   });
 
   const jobIdRef = useRef<string | null>(null);
@@ -52,6 +54,7 @@ export default function useImportJob() {
           statusText: null,
           notionPageUrl: result.notion_page_url ?? null,
           errorMessage: null,
+          truncated: result.truncated === true,
         });
       } else if (result.status === 'failed') {
         stopPolling();
@@ -61,6 +64,7 @@ export default function useImportJob() {
           statusText: null,
           notionPageUrl: null,
           errorMessage: result.error ?? 'Import failed',
+          truncated: false,
         });
       } else {
         setState((prev) => ({
@@ -97,6 +101,7 @@ export default function useImportJob() {
         statusText: null,
         notionPageUrl: null,
         errorMessage: null,
+        truncated: false,
       });
 
       try {
@@ -114,6 +119,7 @@ export default function useImportJob() {
           notionPageUrl: null,
           errorMessage:
             err instanceof Error ? err.message : 'Failed to start import',
+          truncated: false,
         });
       }
     },
@@ -129,6 +135,7 @@ export default function useImportJob() {
       statusText: null,
       notionPageUrl: null,
       errorMessage: null,
+      truncated: false,
     });
   }, [stopPolling]);
 

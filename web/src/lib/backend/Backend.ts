@@ -926,6 +926,7 @@ export class Backend {
     status_text?: string;
     notion_page_url?: string;
     error?: string;
+    truncated?: boolean;
   }> {
     return get(`${this.baseURL}apkg/import/${jobId}/status`);
   }

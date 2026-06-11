@@ -2,8 +2,9 @@ import path from 'path';
 import ApkgPreviewService from '../../services/ApkgPreviewService/ApkgPreviewService';
 import ApkgToNotionBlocksService, {
   DeckPage,
-  NoteTooLargeError,
+  buildTruncationNoticeBlocks,
 } from '../../services/ApkgToNotionBlocksService';
+import { APKG_IMPORT_NOTE_CAP_PAID } from '../../lib/apkg/importLimits';
 import NotionAPIWrapper from '../../services/NotionService/NotionAPIWrapper';
 import JobRepository from '../../data_layer/JobRepository';
 import { BlockObjectRequest } from '@notionhq/client/build/src/api-endpoints';
@@ -11,7 +12,6 @@ import { APIErrorCode, APIResponseError } from '@notionhq/client';
 
 const BATCH_SIZE = 50;
 const THROTTLE_MS = 350;
-const MAX_NOTES = 5000;
 
 const IMAGE_EXTENSIONS = new Set([
   '.jpg',
@@ -44,9 +44,6 @@ const SQLITE_ERROR_CODES = new Set([
 ]);
 
 function resolveFailureMessage(error: unknown): string {
-  if (error instanceof NoteTooLargeError) {
-    return error.message;
-  }
   if (error instanceof Error && error.message.includes('Upgrade')) {
     return error.message;
   }
@@ -91,9 +88,9 @@ export default class ImportApkgToNotionUseCase {
     owner: string,
     notionApi: NotionAPIWrapper,
     jobId: string,
-    options: { isPaying?: boolean; maxNotes?: number } = {}
+    options: { isPaying?: boolean; maxNotes: number }
   ): Promise<void> {
-    const maxNotes = options.maxNotes ?? MAX_NOTES;
+    const maxNotes = options.maxNotes;
     try {
       const cacheKey = `import:${owner}:${Date.now()}`;
       const parsed = await this.previewService.parse(cacheKey, fileBuffer);
@@ -103,7 +100,6 @@ export default class ImportApkgToNotionUseCase {
         new Map(),
         maxNotes
       );
-      const totalNotes = result.totalNotes;
 
       let mediaUrlMap = new Map<string, string>();
       if (parsed.mediaMap.size > 0) {
@@ -134,11 +130,22 @@ export default class ImportApkgToNotionUseCase {
         }
       }
 
+      if (result.truncated && result.deckPages.length > 0) {
+        result.deckPages[0].children.unshift(
+          ...buildTruncationNoticeBlocks({
+            importedNotes: result.importedNotes,
+            totalNotes: result.totalNotes,
+            isPaying: options.isPaying ?? false,
+            paidCap: APKG_IMPORT_NOTE_CAP_PAID,
+          })
+        );
+      }
+
       await this.jobRepository.updateJobStatus(
         jobId,
         owner,
         'processing',
-        `0/${totalNotes} notes`
+        `0/${result.importedNotes} notes`
       );
 
       let imported = 0;
@@ -151,7 +158,7 @@ export default class ImportApkgToNotionUseCase {
           jobId,
           owner,
           imported,
-          result.totalNotes
+          result.importedNotes
         );
       }
 
@@ -166,8 +173,10 @@ export default class ImportApkgToNotionUseCase {
         owner,
         'done',
         JSON.stringify({
-          imported,
+          imported: result.importedNotes,
           total_notes: result.totalNotes,
+          truncated: result.truncated,
+          note_cap: maxNotes,
           notion_page_url: notionUrl,
         })
       );

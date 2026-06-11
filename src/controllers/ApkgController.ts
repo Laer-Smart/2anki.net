@@ -26,6 +26,7 @@ import { NotionService } from '../services/NotionService/NotionService';
 import JobRepository from '../data_layer/JobRepository';
 import sendErrorResponse from '../lib/sendErrorResponse';
 import { isPaying } from '../lib/isPaying';
+import { getApkgImportNoteCap } from '../lib/apkg/importLimits';
 import { buildContentDisposition } from '../lib/buildContentDisposition';
 import { getSafeFilename } from '../lib/getSafeFilename';
 import { track } from '../services/events/track';
@@ -342,7 +343,7 @@ class ApkgController {
 
       const userIsPaying =
         res.locals.patreon === true || res.locals.subscriber === true;
-      const maxNotes = userIsPaying ? 10000 : 1000;
+      const maxNotes = getApkgImportNoteCap(userIsPaying);
 
       const rawParentPageId = req.body?.parent_page_id;
       const hasExplicitParent =
@@ -474,6 +475,7 @@ class ApkgController {
       let progress = { total_notes: 0, imported: 0 };
       let notionPageUrl: string | null = null;
       let errorMessage: string | null = null;
+      let truncated = false;
 
       if (job.status === 'done' && job.job_reason_failure) {
         try {
@@ -483,6 +485,7 @@ class ApkgController {
             imported: parsed.imported ?? 0,
           };
           notionPageUrl = parsed.notion_page_url ?? null;
+          truncated = parsed.truncated === true;
         } catch {
           // job_reason_failure is not JSON, ignore
         }
@@ -510,6 +513,7 @@ class ApkgController {
         status_text: statusText,
         notion_page_url: notionPageUrl,
         error: errorMessage,
+        truncated,
       });
     } catch (error) {
       console.error(error);
