@@ -4,9 +4,7 @@
 import type { UsersId } from './Users';
 
 /** Identifier type for public.price_lock_in_emails */
-export type PriceLockInEmailsId = number & {
-  __brand: 'public.price_lock_in_emails';
-};
+export type PriceLockInEmailsId = number & { __brand: 'public.price_lock_in_emails' };
 
 /** Represents the table public.price_lock_in_emails */
 export default interface PriceLockInEmails {

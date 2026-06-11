@@ -31,6 +31,8 @@ export default interface AnkifyNotionSubscriptions {
   notion_page_url: string | null;
 
   notion_page_icon: string | null;
+
+  target_deck: string | null;
 }
 
 /** Represents the initializer for the table public.ankify_notion_subscriptions */
@@ -64,6 +66,8 @@ export interface AnkifyNotionSubscriptionsInitializer {
   notion_page_url?: string | null;
 
   notion_page_icon?: string | null;
+
+  target_deck?: string | null;
 }
 
 /** Represents the mutator for the table public.ankify_notion_subscriptions */
@@ -93,4 +97,6 @@ export interface AnkifyNotionSubscriptionsMutator {
   notion_page_url?: string | null;
 
   notion_page_icon?: string | null;
+
+  target_deck?: string | null;
 }
