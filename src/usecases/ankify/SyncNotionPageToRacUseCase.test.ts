@@ -315,6 +315,122 @@ describe('SyncNotionPageToRacUseCase', () => {
     expect(insert).not.toHaveBeenCalled();
   });
 
+  test('walks the database child pages when the page walk finds no blocks of its own', async () => {
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue(
+      emptyWalkResult()
+    );
+    (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 8,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+
+    const repos = makeRepos();
+    const ac = makeAnkiConnectStub();
+    const insert = jest.fn().mockResolvedValue(undefined);
+    const errorEvents = {
+      insert,
+      existsWithinWindow: jest.fn().mockResolvedValue(false),
+      listGroups: jest.fn().mockResolvedValue([]),
+      countGroups: jest.fn().mockResolvedValue(0),
+      latestSamples: jest.fn().mockResolvedValue([]),
+      resolveGroup: jest.fn().mockResolvedValue(undefined),
+      reopenGroup: jest.fn().mockResolvedValue(undefined),
+    } as unknown as IErrorEventRepository;
+    const databasePages = jest.fn(async () => [
+      { id: 'row-1' },
+      { id: 'row-2' },
+    ]);
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      undefined,
+      undefined,
+      errorEvents,
+      undefined,
+      undefined,
+      () => databasePages
+    );
+
+    const result = await useCase.execute({
+      owner: 42,
+      notionPageId: 'database-id',
+      trigger: 'polling',
+    });
+
+    expect(walkNotionDatabaseForFlashcards).toHaveBeenCalledWith(
+      'database-id',
+      expect.any(Function),
+      databasePages
+    );
+    expect(result.created).toBe(1);
+    expect(insert).not.toHaveBeenCalled();
+  });
+
+  test('keeps the empty-page result when the database probe finds no child pages', async () => {
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue(
+      emptyWalkResult()
+    );
+    (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue(
+      emptyWalkResult()
+    );
+
+    const repos = makeRepos();
+    const ac = makeAnkiConnectStub();
+    const insert = jest.fn().mockResolvedValue(undefined);
+    const errorEvents = {
+      insert,
+      existsWithinWindow: jest.fn().mockResolvedValue(false),
+      listGroups: jest.fn().mockResolvedValue([]),
+      countGroups: jest.fn().mockResolvedValue(0),
+      latestSamples: jest.fn().mockResolvedValue([]),
+      resolveGroup: jest.fn().mockResolvedValue(undefined),
+      reopenGroup: jest.fn().mockResolvedValue(undefined),
+    } as unknown as IErrorEventRepository;
+    const databasePages = jest.fn(async () => {
+      throw Object.assign(
+        new Error('page-id is not a database. Use the retrieve a page API.'),
+        { code: 'validation_error' }
+      );
+    });
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      undefined,
+      undefined,
+      errorEvents,
+      undefined,
+      undefined,
+      () => databasePages
+    );
+
+    const result = await useCase.execute({
+      owner: 42,
+      notionPageId: 'page-id',
+      trigger: 'polling',
+    });
+
+    expect(result.created).toBe(0);
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'ankify.zero_cards' })
+    );
+  });
+
   test('propagates a non-database validation error without a database walk', async () => {
     const otherError = Object.assign(new Error('Something else broke'), {
       code: 'validation_error',

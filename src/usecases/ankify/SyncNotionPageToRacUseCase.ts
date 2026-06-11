@@ -383,8 +383,9 @@ export class SyncNotionPageToRacUseCase {
     token: string,
     fetchChildren: NotionBlockChildrenFetcher
   ): Promise<WalkNotionPageResult> {
+    let pageResult: WalkNotionPageResult;
     try {
-      return await walkNotionPageForFlashcards(notionId, fetchChildren);
+      pageResult = await walkNotionPageForFlashcards(notionId, fetchChildren);
     } catch (error) {
       if (isNotionDatabaseNotPageError(error)) {
         return walkNotionDatabaseForFlashcards(
@@ -394,6 +395,36 @@ export class SyncNotionPageToRacUseCase {
         );
       }
       throw error;
+    }
+    if (pageResult.cards.length > 0) {
+      return pageResult;
+    }
+    return this.walkDatabaseOrFallback(
+      notionId,
+      token,
+      fetchChildren,
+      pageResult
+    );
+  }
+
+  private async walkDatabaseOrFallback(
+    notionId: string,
+    token: string,
+    fetchChildren: NotionBlockChildrenFetcher,
+    pageResult: WalkNotionPageResult
+  ): Promise<WalkNotionPageResult> {
+    try {
+      const databaseResult = await walkNotionDatabaseForFlashcards(
+        notionId,
+        fetchChildren,
+        this.databasePagesFetcher(token)
+      );
+      if (databaseResult.cards.length > 0) {
+        return databaseResult;
+      }
+      return pageResult;
+    } catch {
+      return pageResult;
     }
   }
 
