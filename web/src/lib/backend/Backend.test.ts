@@ -266,6 +266,169 @@ describe('Backend', () => {
     });
   });
 
+  describe('get()-based methods consume the parsed body', () => {
+    it('listAnkifyClients returns the resolved array', async () => {
+      vi.mocked(api.get).mockResolvedValue([{ id: 1 }, { id: 2 }]);
+
+      const clients = await backend.listAnkifyClients();
+
+      expect(clients).toEqual([{ id: 1 }, { id: 2 }]);
+      expect(api.get).toHaveBeenCalledWith('/api/ankify/clients');
+    });
+
+    it('listAnkifyClients falls back to an empty array on undefined', async () => {
+      vi.mocked(api.get).mockResolvedValue(undefined);
+
+      await expect(backend.listAnkifyClients()).resolves.toEqual([]);
+    });
+
+    it('getAnkifyExportSchedule returns the resolved schedule', async () => {
+      const schedule = {
+        id: 7,
+        owner: 42,
+        database_id: 'db-1',
+        time_of_day: '08:00',
+        timezone: 'UTC',
+        date_range_days: null,
+        enabled: true,
+        last_run_at: null,
+      };
+      vi.mocked(api.get).mockResolvedValue(schedule);
+
+      await expect(backend.getAnkifyExportSchedule()).resolves.toEqual(
+        schedule
+      );
+      expect(api.get).toHaveBeenCalledWith('/api/ankify/exports/schedule');
+    });
+
+    it('getAnkifyExportSchedule falls back to null on undefined', async () => {
+      vi.mocked(api.get).mockResolvedValue(undefined);
+
+      await expect(backend.getAnkifyExportSchedule()).resolves.toBeNull();
+    });
+
+    it('listAnkifySubscriptions returns the resolved array', async () => {
+      const subscriptions = [
+        {
+          id: 1,
+          notion_page_id: 'page-1',
+          notion_page_title: 'Tracker',
+          notion_page_url: null,
+          notion_page_icon: null,
+          enabled: true,
+          last_polled_at: null,
+          last_synced_at: null,
+          last_error: null,
+        },
+      ];
+      vi.mocked(api.get).mockResolvedValue(subscriptions);
+
+      await expect(backend.listAnkifySubscriptions()).resolves.toEqual(
+        subscriptions
+      );
+      expect(api.get).toHaveBeenCalledWith('/api/ankify/subscriptions');
+    });
+
+    it('listAnkifyConflicts returns the resolved array', async () => {
+      const conflicts = [
+        {
+          id: 3,
+          source_id: 'src-1',
+          anki_note_id: 99,
+          kind: 'content',
+          notion_snapshot: { front: 'Q', back: 'A' },
+          anki_snapshot: { front: 'Q', back: 'B' },
+          created_at: '2026-06-11T00:00:00.000Z',
+        },
+      ];
+      vi.mocked(api.get).mockResolvedValue(conflicts);
+
+      await expect(backend.listAnkifyConflicts()).resolves.toEqual(conflicts);
+      expect(api.get).toHaveBeenCalledWith(
+        '/api/ankify/conflicts?status=pending'
+      );
+    });
+
+    it('checkAnkifyActiveClientReady returns the resolved status', async () => {
+      vi.mocked(api.get).mockResolvedValue({ ready: true });
+
+      await expect(backend.checkAnkifyActiveClientReady()).resolves.toEqual({
+        ready: true,
+      });
+      expect(api.get).toHaveBeenCalledWith('/api/ankify/clients/active/ready');
+    });
+
+    it('checkAnkifyActiveClientReady falls back to unreachable on undefined', async () => {
+      vi.mocked(api.get).mockResolvedValue(undefined);
+
+      await expect(backend.checkAnkifyActiveClientReady()).resolves.toEqual({
+        ready: false,
+        reason: 'unreachable',
+      });
+    });
+
+    it('checkAnkifyAnkiWebStatus returns the resolved status', async () => {
+      vi.mocked(api.get).mockResolvedValue({ status: 'linked' });
+
+      await expect(backend.checkAnkifyAnkiWebStatus()).resolves.toEqual({
+        status: 'linked',
+      });
+    });
+
+    it('checkAnkifyAnkiWebStatus falls back to unreachable on undefined', async () => {
+      vi.mocked(api.get).mockResolvedValue(undefined);
+
+      await expect(backend.checkAnkifyAnkiWebStatus()).resolves.toEqual({
+        status: 'unreachable',
+      });
+    });
+
+    it('listAnkifyNotionDatabases returns the resolved array', async () => {
+      const databases = [
+        { id: 'db-1', title: 'Reviews', url: null, has_review_shape: true },
+      ];
+      vi.mocked(api.get).mockResolvedValue(databases);
+
+      await expect(backend.listAnkifyNotionDatabases()).resolves.toEqual(
+        databases
+      );
+      expect(api.get).toHaveBeenCalledWith('/api/ankify/notion/databases');
+    });
+
+    it('getSettings returns the payload from the resolved body', async () => {
+      vi.mocked(api.get).mockResolvedValue({
+        payload: { FLASHCARD: 'toggle' },
+      });
+
+      await expect(backend.getSettings('page-1')).resolves.toEqual({
+        FLASHCARD: 'toggle',
+      });
+      expect(api.get).toHaveBeenCalledWith('/api/settings/find/page-1');
+    });
+
+    it('getSettings returns null when the body is undefined', async () => {
+      vi.mocked(api.get).mockResolvedValue(undefined);
+
+      await expect(backend.getSettings('page-1')).resolves.toBeNull();
+    });
+
+    it('listSettings returns the resolved body', async () => {
+      const body = {
+        items: [{ pageId: 'p1', title: 'A', updatedAt: null }],
+      };
+      vi.mocked(api.get).mockResolvedValue(body);
+
+      await expect(backend.listSettings()).resolves.toEqual(body);
+      expect(api.get).toHaveBeenCalledWith('/api/settings/list');
+    });
+
+    it('listSettings falls back to an empty items list on undefined', async () => {
+      vi.mocked(api.get).mockResolvedValue(undefined);
+
+      await expect(backend.listSettings()).resolves.toEqual({ items: [] });
+    });
+  });
+
   describe('deleteRules', () => {
     it('calls DELETE on the rules endpoint with the page id', async () => {
       const mockResponse = createMockResponse(204, true);
