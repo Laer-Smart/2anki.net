@@ -118,23 +118,44 @@ class SettingsRepository implements ISettingsRepository {
     }
   }
 
-  async loadAnkifyTemplateOverrides(
+  private async resolveCustomBasicModelName(
     owner: string
-  ): Promise<AnkifyTemplateOverrides | null> {
-    try {
-      const settingsRow = await this.database(this.table)
-        .where({ owner })
-        .orderBy('updated_at', 'desc')
-        .first();
-      if (!settingsRow) {
-        return null;
-      }
-
+  ): Promise<string | null> {
+    const settingsRow = await this.database(this.table)
+      .where({ owner })
+      .orderBy('updated_at', 'desc')
+      .first();
+    if (settingsRow) {
       const settingsPayload = parseJsonColumn(settingsRow.payload) as {
         payload?: Record<string, string>;
       } | null;
       const cardOption = new CardOption(settingsPayload?.payload ?? {});
-      if (cardOption.template !== 'custom') {
+      if (cardOption.template === 'custom') {
+        return cardOption.basicModelName;
+      }
+    }
+
+    const userRow = await this.database('users')
+      .select('card_options')
+      .where({ id: owner })
+      .first();
+    const globalOptions = parseJsonColumn(userRow?.card_options) as {
+      template?: string;
+      basic_model_name?: string;
+    } | null;
+    if (globalOptions?.template === 'custom') {
+      return new CardOption(globalOptions).basicModelName;
+    }
+
+    return null;
+  }
+
+  async loadAnkifyTemplateOverrides(
+    owner: string
+  ): Promise<AnkifyTemplateOverrides | null> {
+    try {
+      const basicModelName = await this.resolveCustomBasicModelName(owner);
+      if (basicModelName == null) {
         return null;
       }
 
@@ -156,7 +177,7 @@ class SettingsRepository implements ISettingsRepository {
       }
 
       return {
-        basicModelName: cardOption.basicModelName,
+        basicModelName,
         basicTemplate,
       };
     } catch (error: unknown) {
