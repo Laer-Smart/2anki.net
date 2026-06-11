@@ -131,4 +131,12 @@ export default class Note {
   isValidInputNote() {
     return this.enableInput && this.name && this.answer && this.answer.trim();
   }
+
+  hasClozeDeletion(): boolean {
+    return this.name.includes('{{c') || this.back.includes('{{c');
+  }
+
+  isReversibleBasic(): boolean {
+    return !this.mcq && !this.isValidInputNote() && !this.hasClozeDeletion();
+  }
 }

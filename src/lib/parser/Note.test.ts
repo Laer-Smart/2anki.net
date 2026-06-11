@@ -31,6 +31,28 @@ describe('Note', () => {
       expect(face).not.toContain('&#x1F504');
     }
   });
+  test('a plain front/back note is reversible', () => {
+    const note = new Note('the front', 'the back');
+    expect(note.isReversibleBasic()).toBe(true);
+  });
+  test('a cloze note is not reversible', () => {
+    const note = new Note('Mitochondria is the {{c1::powerhouse}}', '');
+    note.cloze = true;
+    expect(note.isReversibleBasic()).toBe(false);
+  });
+  test('an mcq note is not reversible', () => {
+    const note = new Note('Which is a noble gas?', '');
+    note.mcq = true;
+    note.options = ['Helium', 'Oxygen'];
+    note.correctIndices = [0];
+    expect(note.isReversibleBasic()).toBe(false);
+  });
+  test('an input note is not reversible', () => {
+    const note = new Note('Capital of France', '');
+    note.enableInput = true;
+    note.answer = 'Paris';
+    expect(note.isReversibleBasic()).toBe(false);
+  });
   test('refresh marker in HTML-entity form is stripped from both faces', () => {
     const note = new Note('&#x1F504; the front', 'the back');
     expect(note.hasRefreshIcon()).toBe(true);

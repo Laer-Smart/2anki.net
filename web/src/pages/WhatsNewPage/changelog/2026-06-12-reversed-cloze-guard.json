@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-reversed-cloze-guard",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Reversed cards no longer scramble cloze or multiple-choice notes from file uploads"
+}
