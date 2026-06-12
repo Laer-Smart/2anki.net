@@ -141,8 +141,6 @@ export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
         backend={backend}
       />
 
-      <StudyStatsSection backend={api} />
-
       <NotionSubscriptions
         backend={backend}
         schedule={exportSchedule.data ?? null}
@@ -175,6 +173,8 @@ export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
           </>
         )}
       </div>
+
+      <StudyStatsSection backend={api} />
     </main>
   );
 }

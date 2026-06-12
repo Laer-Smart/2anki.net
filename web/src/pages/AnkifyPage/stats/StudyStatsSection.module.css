@@ -91,9 +91,7 @@
 }
 
 .heatmapGrid {
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(7, 12px);
+  display: flex;
   gap: 3px;
 }
 
