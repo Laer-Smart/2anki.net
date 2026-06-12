@@ -511,8 +511,7 @@ describe('EMPTY_CONTENT_USER_MESSAGE', () => {
 
 describe('isImageOnlyContent', () => {
   it('detects HTML whose only content is images', () => {
-    const html =
-      '<div><img src="a.png"><img src="b.png"></div>';
+    const html = '<div><img src="a.png"><img src="b.png"></div>';
     expect(isImageOnlyContent(html)).toBe(true);
   });
 
