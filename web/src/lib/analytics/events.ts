@@ -33,6 +33,7 @@ export const KNOWN_EVENTS = new Set([
   'home_card_options_link_clicked',
   'paywall_dismissed',
   'pricing_left',
+  'pricing_try_clicked',
   'upload_failed',
   'cancel_during_generating',
   'transform_apkg_submitted',

@@ -48,6 +48,7 @@ export const KNOWN_EVENTS = new Set([
   'tts_lang_injected',
   'paywall_dismissed',
   'pricing_left',
+  'pricing_try_clicked',
   'upload_failed',
   'cancel_during_generating',
   'pdf_print_options_used',

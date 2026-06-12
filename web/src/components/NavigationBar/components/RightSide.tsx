@@ -5,9 +5,10 @@ import styles from '../NavigationBar.module.css';
 
 interface RightSideProps {
   path: string;
+  isLoggedIn: boolean;
 }
 
-export function RightSide({ path }: Readonly<RightSideProps>) {
+export function RightSide({ path, isLoggedIn }: Readonly<RightSideProps>) {
   return (
     <div className={styles.navEnd}>
       <NavbarItem href="/upload" path={path}>
@@ -19,9 +20,11 @@ export function RightSide({ path }: Readonly<RightSideProps>) {
       <NavbarItem href="/documentation" path={path}>
         {getVisibleText('navigation.docs')}
       </NavbarItem>
-      <NavbarItem href="/pricing" path={path}>
-        {getVisibleText('navigation.pricing')}
-      </NavbarItem>
+      {isLoggedIn && (
+        <NavbarItem href="/pricing" path={path}>
+          {getVisibleText('navigation.pricing')}
+        </NavbarItem>
+      )}
       <NavbarItem href="/login#login" path={path}>
         {getVisibleText('navigation.login')}
       </NavbarItem>
