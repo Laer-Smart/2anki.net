@@ -13,6 +13,19 @@ export type AnkifyTemplateOverridesProvider = (
   fallbackPageId?: string
 ) => Promise<AnkifyTemplateOverrides | null>;
 
+export interface AnkifyTemplateOverridesSource {
+  loadAnkifyTemplateOverrides(
+    owner: string,
+    pageId?: string,
+    fallbackPageId?: string
+  ): Promise<AnkifyTemplateOverrides | null>;
+}
+
+export const makeAnkifyTemplateOverridesProvider =
+  (settings: AnkifyTemplateOverridesSource): AnkifyTemplateOverridesProvider =>
+  (owner, pageId, fallbackPageId) =>
+    settings.loadAnkifyTemplateOverrides(String(owner), pageId, fallbackPageId);
+
 const BASIC_FIELDS_FROM_TEMPLATE = ['Front', 'Back', 'MyMedia'];
 
 export const buildBasicModelFromTemplate = (

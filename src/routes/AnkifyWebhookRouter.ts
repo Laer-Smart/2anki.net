@@ -17,6 +17,8 @@ import SubscriptionService from '../services/SubscriptionService';
 import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { MarkNotionTokenInvalidUseCase } from '../usecases/notion/MarkNotionTokenInvalidUseCase';
+import { makeAnkifyTemplateOverridesProvider } from '../services/ankify/templateOverrides';
+import SettingsRepository from '../data_layer/SettingsRepository';
 
 const AnkifyWebhookRouter = () => {
   const router = express.Router();
@@ -46,7 +48,8 @@ const AnkifyWebhookRouter = () => {
         notionRepo,
         usersRepo,
         getDefaultEmailService()
-      ).execute(owner)
+      ).execute(owner),
+    makeAnkifyTemplateOverridesProvider(new SettingsRepository(db))
   );
 
   router.post(

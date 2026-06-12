@@ -22,6 +22,8 @@ import { AnkifySyncConflictsRepository } from './ankify/AnkifySyncConflictsRepos
 import { AnkifySyncLogsRepository } from './ankify/AnkifySyncLogsRepository';
 import { ankiConnectFactory } from '../services/ankify/buildAnkiConnectClient';
 import { notionBlockChildrenFetcherFactory } from '../services/ankify/notionBlockChildrenFetcher';
+import { makeAnkifyTemplateOverridesProvider } from '../services/ankify/templateOverrides';
+import SettingsRepository from './SettingsRepository';
 import NotionRepository from './NotionRespository';
 import NotionTopLevelPagesRepository from './NotionTopLevelPagesRepository';
 import BlocksCacheRepository from './BlocksCacheRepository';
@@ -244,7 +246,8 @@ export const setupDatabase = async (database: Knex) => {
             notionRepo,
             new UsersRepository(database),
             getDefaultEmailService()
-          ).execute(owner)
+          ).execute(owner),
+        makeAnkifyTemplateOverridesProvider(new SettingsRepository(database))
       );
       const topLevelPagesRepo = new NotionTopLevelPagesRepository(database);
       const blocksCacheRepo = new BlocksCacheRepository(database);
