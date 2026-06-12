@@ -1,3 +1,5 @@
+import { Fragment } from 'react';
+
 import sharedStyles from '../../../styles/shared.module.css';
 import styles from './StudyStatsSection.module.css';
 import { Backend } from '../../../lib/backend/Backend';
@@ -6,7 +8,7 @@ import ReviewStreakHeatmap from './ReviewStreakHeatmap';
 import DeckBreakdownChart from './DeckBreakdownChart';
 import { AnkifyStatsConnected } from './types';
 
-const THIN_SPACE = ' ';
+const THIN_SPACE = ' ';
 
 const formatCount = (value: number): string => {
   if (value < 10000) {
@@ -17,17 +19,35 @@ const formatCount = (value: number): string => {
 
 const todayDayKey = (): string => new Date().toISOString().slice(0, 10);
 
-interface HeroProps {
+const dailyAverage = (stats: AnkifyStatsConnected): number => {
+  const studied = stats.reviewsByDay.filter((entry) => entry.count > 0);
+  if (studied.length === 0) {
+    return 0;
+  }
+  const total = studied.reduce((sum, entry) => sum + entry.count, 0);
+  return Math.round(total / studied.length);
+};
+
+interface SummaryStat {
   value: number;
   label: string;
 }
 
-function Hero({ value, label }: Readonly<HeroProps>) {
+function SummaryLine({ stats }: Readonly<{ stats: SummaryStat[] }>) {
   return (
-    <div className={styles.hero}>
-      <span className={styles.heroValue}>{formatCount(value)}</span>
-      <span className={styles.heroLabel}>{label}</span>
-    </div>
+    <p className={styles.summary}>
+      {stats.map((stat, index) => (
+        <Fragment key={stat.label}>
+          {index > 0 && <span className={styles.summarySeparator}>·</span>}
+          <span className={styles.summaryStat}>
+            <span className={styles.summaryValue}>
+              {formatCount(stat.value)}
+            </span>
+            <span className={styles.summaryLabel}>{stat.label}</span>
+          </span>
+        </Fragment>
+      ))}
+    </p>
   );
 }
 
@@ -46,22 +66,28 @@ function SectionShell({ children }: Readonly<{ children: React.ReactNode }>) {
 function ConnectedStats({ stats }: Readonly<{ stats: AnkifyStatsConnected }>) {
   const today = todayDayKey();
   const hasReviews = stats.reviewsByDay.some((entry) => entry.count > 0);
+  const summary: SummaryStat[] = [
+    { value: stats.currentStreak, label: 'day streak' },
+    { value: dailyAverage(stats), label: 'daily average' },
+    { value: stats.reviewedThisYear, label: 'reviews this year' },
+  ];
   return (
     <>
-      <div className={styles.heroRow}>
-        <Hero value={stats.reviewedToday} label="reviewed today" />
-        <Hero value={stats.currentStreak} label="day streak" />
-        <Hero value={stats.reviewedThisYear} label="reviewed this year" />
-      </div>
-      <div className={styles.heatmapWrap}>
-        <ReviewStreakHeatmap reviewsByDay={stats.reviewsByDay} today={today} />
+      <div className={styles.activityBlock}>
+        <SummaryLine stats={summary} />
+        <ReviewStreakHeatmap
+          reviewsByDay={stats.reviewsByDay}
+          today={today}
+          currentStreak={stats.currentStreak}
+          reviewsThisYear={stats.reviewedThisYear}
+        />
         {!hasReviews && (
           <p className={styles.stateText}>
-            No reviews yet. Open Anki and study a deck — your streak starts on
-            day one.
+            No reviews yet. Study a deck in Anki and your activity shows up here.
           </p>
         )}
       </div>
+      <div className={sharedStyles.surfaceDivider} />
       <DeckBreakdownChart decks={stats.decks} />
     </>
   );
@@ -79,7 +105,7 @@ export default function StudyStatsSection({
   if (isLoading || data == null) {
     return (
       <SectionShell>
-        <p className={styles.stateText}>Reading your stats from Anki</p>
+        <p className={styles.stateText}>Reading your reviews from Anki</p>
       </SectionShell>
     );
   }

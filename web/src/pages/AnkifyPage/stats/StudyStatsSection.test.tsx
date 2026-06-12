@@ -25,7 +25,7 @@ describe('StudyStatsSection', () => {
   test('shows the loading copy while the request is in flight', () => {
     const backend = makeBackend(() => new Promise(() => {}));
     renderSection(backend);
-    expect(screen.getByText('Reading your stats from Anki')).toBeVisible();
+    expect(screen.getByText('Reading your reviews from Anki')).toBeVisible();
   });
 
   test('shows the offline copy when not connected', async () => {
@@ -49,28 +49,38 @@ describe('StudyStatsSection', () => {
     renderSection(backend);
     await waitFor(() =>
       expect(
-        screen.getByText(/No reviews yet. Open Anki and study a deck/)
+        screen.getByText(
+          /No reviews yet. Study a deck in Anki and your activity shows up here/
+        )
       ).toBeVisible()
     );
-    expect(screen.getByText('day streak')).toBeVisible();
   });
 
-  test('renders heroes and the by-deck bar when data is present', async () => {
+  test('renders the summary line with daily average and the by-deck bar', async () => {
     const backend = makeBackend(async () => ({
       connected: true,
       reviewedToday: 12,
-      reviewedThisYear: 3450,
+      reviewedThisYear: 60,
       currentStreak: 6,
       longestStreak: 20,
-      reviewsByDay: [{ date: '2026-06-12', count: 12 }],
+      reviewsByDay: [
+        { date: '2026-06-10', count: 20 },
+        { date: '2026-06-11', count: 0 },
+        { date: '2026-06-12', count: 40 },
+      ],
       decks: [
         { name: 'Pharmacology', new: 5, learning: 2, review: 11, total: 120 },
       ],
     }));
     renderSection(backend);
-    await waitFor(() => expect(screen.getByText('12')).toBeVisible());
-    expect(screen.getByText('reviewed today')).toBeVisible();
+    await waitFor(() => expect(screen.getByText('6')).toBeVisible());
+    expect(screen.getByText('day streak')).toBeVisible();
+    expect(screen.getByText('30')).toBeVisible();
+    expect(screen.getByText('daily average')).toBeVisible();
+    expect(screen.getByText('60')).toBeVisible();
+    expect(screen.getByText('reviews this year')).toBeVisible();
     expect(screen.getByText('By deck')).toBeVisible();
     expect(screen.queryByText(/No reviews yet/)).not.toBeInTheDocument();
+    expect(screen.queryByText('reviewed today')).not.toBeInTheDocument();
   });
 });
