@@ -647,76 +647,81 @@ class UsersController {
 
     const loginRequest = await this.authService.loginWithGoogle(code as string);
 
-    if (loginRequest) {
-      const { email, name } = loginRequest;
-      if (email == null) {
-        await this.recordError?.execute({
-          userId: null,
-          surface: 'oauth_google',
-          code: 'oauth_token_exchange_failed',
-        });
-        return res.redirect('/login?error=google_signin_failed');
-      }
-      let user = await this.userService.getUserFrom(email);
-      const isNewUser = !user;
-      if (!user) {
-        const hashedPassword =
-          this.authService.getHashPassword(getRandomUUID());
-        await this.userService.register(
-          name ?? email,
-          hashedPassword,
-          email,
-          'google'
-        );
-        user = await this.userService.getUserFrom(email);
-      }
-      if (isNewUser && user) {
-        try {
-          const country = extractCountryFromRequest(req);
-          if (country != null) {
-            await new UsersRepository(this.db).setSignupCountryIfMissing(
-              user.id,
-              country
-            );
-          }
-        } catch {
-          // country capture is best-effort
-        }
-      }
-
-      if (!user) {
-        console.info('Failed to create user');
-        await this.recordError?.execute({
-          userId: null,
-          surface: 'oauth_google',
-          code: 'oauth_user_creation_failed',
-        });
-        return res
-          .status(400)
-          .send('Unknown error. Please try again or register a new account.');
-      }
-
-      await this.userService.markEmailVerified(user.id.toString());
-
-      const token = await this.authService.newJWTToken(user);
-      if (!token) {
-        console.info('Failed to create token');
-        return res
-          .status(400)
-          .send('Unknown error. Please try again or register a new account.');
-      }
-      await this.authService.persistToken(token, user.id.toString());
-      await this.userService.updateLastLoginAt(user.id.toString());
-      res.cookie('token', token, sessionCookieOptions());
-      res.status(200).redirect(await this.landingForUser(req, user.id));
-    } else {
+    if (!loginRequest.ok) {
       await this.recordError?.execute({
         userId: null,
         surface: 'oauth_google',
         code: 'oauth_token_exchange_failed',
+        context: {
+          reason: loginRequest.reason,
+          message: loginRequest.message,
+        },
       });
-      res.redirect('/login?error=google_signin_failed');
+      return res.redirect('/login?error=google_signin_failed');
     }
+
+    const { email, name } = loginRequest;
+    if (email == null) {
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_google',
+        code: 'oauth_token_exchange_failed',
+        context: { reason: 'missing_email_claim' },
+      });
+      return res.redirect('/login?error=google_signin_failed');
+    }
+
+    let user = await this.userService.getUserFrom(email);
+    const isNewUser = !user;
+    if (!user) {
+      const hashedPassword = this.authService.getHashPassword(getRandomUUID());
+      await this.userService.register(
+        name ?? email,
+        hashedPassword,
+        email,
+        'google'
+      );
+      user = await this.userService.getUserFrom(email);
+    }
+    if (isNewUser && user) {
+      try {
+        const country = extractCountryFromRequest(req);
+        if (country != null) {
+          await new UsersRepository(this.db).setSignupCountryIfMissing(
+            user.id,
+            country
+          );
+        }
+      } catch {
+        // country capture is best-effort
+      }
+    }
+
+    if (!user) {
+      console.info('Failed to create user');
+      await this.recordError?.execute({
+        userId: null,
+        surface: 'oauth_google',
+        code: 'oauth_user_creation_failed',
+      });
+      return res
+        .status(400)
+        .send('Unknown error. Please try again or register a new account.');
+    }
+
+    await this.userService.markEmailVerified(user.id.toString());
+
+    const token = await this.authService.newJWTToken(user);
+    if (!token) {
+      console.info('Failed to create token');
+      return res
+        .status(400)
+        .send('Unknown error. Please try again or register a new account.');
+    }
+    await this.authService.persistToken(token, user.id.toString());
+    await this.userService.updateLastLoginAt(user.id.toString());
+    res.cookie('token', token, sessionCookieOptions());
+    res.status(200).redirect(await this.landingForUser(req, user.id));
   }
 
   async loginWithMicrosoft(req: express.Request, res: express.Response) {

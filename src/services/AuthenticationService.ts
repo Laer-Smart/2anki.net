@@ -4,7 +4,6 @@ import crypto from 'crypto';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { OAuth2Client } from 'google-auth-library';
 
 import TokenRepository from '../data_layer/TokenRepository';
 import UsersRepository from '../data_layer/UsersRepository';
@@ -13,14 +12,7 @@ import { Knex } from 'knex';
 import instrumentedAxios from './observability/instrumentedAxios';
 import { SESSION_JWT_EXPIRY } from '../shared/session';
 
-const MICROSOFT_JWKS_URL =
-  'https://login.microsoftonline.com/common/discovery/v2.0/keys';
-const MICROSOFT_JWKS_TTL_MS = 60 * 60 * 1000;
-const MICROSOFT_ISSUER_REGEX =
-  /^https:\/\/login\.microsoftonline\.com\/[^/]+\/v2\.0$/;
-const MICROSOFT_CONSUMER_TENANT_ID = '9188040d-6c67-4c5b-b112-36a304b66dad';
-
-interface MicrosoftJwk {
+interface RsaJwk {
   kid: string;
   kty: string;
   n: string;
@@ -28,6 +20,41 @@ interface MicrosoftJwk {
   alg?: string;
   use?: string;
 }
+
+const describeError = (error: unknown): string => {
+  if (error instanceof Error) {
+    return `${error.name}: ${error.message}`.slice(0, 200);
+  }
+  return String(error).slice(0, 200);
+};
+
+const resolveRsaSigningKey = (
+  idToken: string,
+  jwks: RsaJwk[]
+): crypto.KeyObject | null => {
+  const decoded = jwt.decode(idToken, { complete: true });
+  if (!decoded || typeof decoded === 'string') {
+    return null;
+  }
+  const { kid, alg } = decoded.header;
+  if (alg !== 'RS256' || typeof kid !== 'string') {
+    return null;
+  }
+  const jwk = jwks.find((k) => k.kid === kid);
+  if (!jwk) {
+    return null;
+  }
+  return crypto.createPublicKey({ key: jwk, format: 'jwk' });
+};
+
+const MICROSOFT_JWKS_URL =
+  'https://login.microsoftonline.com/common/discovery/v2.0/keys';
+const MICROSOFT_JWKS_TTL_MS = 60 * 60 * 1000;
+const MICROSOFT_ISSUER_REGEX =
+  /^https:\/\/login\.microsoftonline\.com\/[^/]+\/v2\.0$/;
+const MICROSOFT_CONSUMER_TENANT_ID = '9188040d-6c67-4c5b-b112-36a304b66dad';
+
+type MicrosoftJwk = RsaJwk;
 
 let cachedMicrosoftJwks: { keys: MicrosoftJwk[]; fetchedAt: number } | null =
   null;
@@ -88,6 +115,39 @@ async function getAppleJwks(): Promise<AppleJwk[]> {
 export const __resetAppleJwksCacheForTests = () => {
   cachedAppleJwks = null;
 };
+
+const GOOGLE_JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
+const GOOGLE_JWKS_TTL_MS = 60 * 60 * 1000;
+const GOOGLE_ISSUERS: [string, ...string[]] = [
+  'https://accounts.google.com',
+  'accounts.google.com',
+];
+
+let cachedGoogleJwks: { keys: RsaJwk[]; fetchedAt: number } | null = null;
+
+async function getGoogleJwks(): Promise<RsaJwk[]> {
+  const now = Date.now();
+  if (
+    cachedGoogleJwks &&
+    now - cachedGoogleJwks.fetchedAt < GOOGLE_JWKS_TTL_MS
+  ) {
+    return cachedGoogleJwks.keys;
+  }
+  const result = await instrumentedAxios.get<{ keys: RsaJwk[] }>(
+    'google_drive',
+    GOOGLE_JWKS_URL
+  );
+  cachedGoogleJwks = { keys: result.data.keys, fetchedAt: now };
+  return result.data.keys;
+}
+
+export const __resetGoogleJwksCacheForTests = () => {
+  cachedGoogleJwks = null;
+};
+
+export type GoogleLoginResult =
+  | { ok: true; email?: string; name?: string }
+  | { ok: false; reason: string; message: string };
 
 export interface UserWithOwner extends Users {
   owner: number;
@@ -292,7 +352,7 @@ class AuthenticationService {
     }
   }
 
-  async loginWithGoogle(code: string) {
+  async loginWithGoogle(code: string): Promise<GoogleLoginResult> {
     const url = 'https://oauth2.googleapis.com/token';
     const values = {
       code,
@@ -301,6 +361,8 @@ class AuthenticationService {
       redirect_uri: process.env.GOOGLE_REDIRECT_URI,
       grant_type: 'authorization_code',
     };
+
+    let idToken: string;
     try {
       const result = await instrumentedAxios.post<{ id_token: string }>(
         'google_drive',
@@ -312,20 +374,49 @@ class AuthenticationService {
           },
         }
       );
-      const idToken = result.data.id_token;
-      const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-      const ticket = await client.verifyIdToken({
-        idToken,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-      const payload = ticket.getPayload();
-      return {
-        email: payload?.email,
-        name: payload?.name,
-      };
+      idToken = result.data.id_token;
     } catch (error) {
-      console.info("Couldn't login with Google");
-      console.error(error);
+      return {
+        ok: false,
+        reason: 'token_exchange_failed',
+        message: describeError(error),
+      };
+    }
+
+    try {
+      const jwks = await getGoogleJwks();
+      const publicKey = resolveRsaSigningKey(idToken, jwks);
+      if (!publicKey) {
+        return {
+          ok: false,
+          reason: 'unknown_signing_key',
+          message: 'no matching RS256 signing key in Google JWKS',
+        };
+      }
+      const payload = jwt.verify(idToken, publicKey, {
+        algorithms: ['RS256'],
+        audience: process.env.GOOGLE_CLIENT_ID,
+        issuer: GOOGLE_ISSUERS,
+      });
+      if (typeof payload === 'string') {
+        return {
+          ok: false,
+          reason: 'verify_failed',
+          message: 'unexpected string payload',
+        };
+      }
+      const email =
+        typeof payload.email === 'string' && payload.email.length > 0
+          ? payload.email
+          : undefined;
+      const name = typeof payload.name === 'string' ? payload.name : undefined;
+      return { ok: true, email, name };
+    } catch (error) {
+      return {
+        ok: false,
+        reason: 'verify_failed',
+        message: describeError(error),
+      };
     }
   }
 
