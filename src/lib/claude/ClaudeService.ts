@@ -69,6 +69,20 @@ ${ANKI_MATH_FRAGMENT}
 export const EMPTY_CONTENT_USER_MESSAGE =
   "Claude couldn't find any content to turn into flashcards in this Notion page. The page looks empty or only contains layout elements like buttons or placeholders. Try adding headings with explanations, toggle lists, or question-and-answer text, then convert again.";
 
+export const IMAGE_ONLY_USER_MESSAGE =
+  "This file only contains images — there's no text to turn into cards. Export your notes with text, or paste the text directly, then convert again.";
+
+const MIN_TEXT_CHARS_FOR_CONVERSION = 2;
+
+export function isImageOnlyContent(html: string): boolean {
+  const $ = cheerio.load(html);
+  $('style, script, head, link[rel="stylesheet"]').remove();
+  const hasImages = $('img').length > 0;
+  if (!hasImages) return false;
+  const text = $('body').text().replace(/\s+/g, ' ').trim();
+  return text.length < MIN_TEXT_CHARS_FOR_CONVERSION;
+}
+
 const EMPTY_CONTENT_SIGNALS = [
   'no actual',
   'no extractable',
@@ -430,6 +444,13 @@ export class ClaudeParseError extends Error {
   constructor() {
     super('claude_parse_failed');
     this.name = 'ClaudeParseError';
+  }
+}
+
+export class ImageOnlyContentError extends Error {
+  constructor() {
+    super(IMAGE_ONLY_USER_MESSAGE);
+    this.name = 'ImageOnlyContentError';
   }
 }
 
@@ -906,6 +927,13 @@ export async function generateDeckInfo(
   options?: GenerateDeckInfoOptions
 ): Promise<DeckInfo[]> {
   const t0 = Date.now();
+
+  if (isImageOnlyContent(htmlContent)) {
+    console.info('[Claude] Skipping conversion: image-only input', {
+      originalBytes: htmlContent.length,
+    });
+    throw new ImageOnlyContentError();
+  }
 
   const tStrip0 = Date.now();
   const pageStyle = extractStyleFromHtml(htmlContent);

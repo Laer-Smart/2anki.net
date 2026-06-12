@@ -12,6 +12,9 @@ import {
   dedupeCardsByFront,
   generateDeckInfo,
   ClaudeParseError,
+  ImageOnlyContentError,
+  IMAGE_ONLY_USER_MESSAGE,
+  isImageOnlyContent,
   type DeckInfo,
 } from './ClaudeService';
 
@@ -503,6 +506,78 @@ describe('EMPTY_CONTENT_USER_MESSAGE', () => {
     expect(EMPTY_CONTENT_USER_MESSAGE.toLowerCase()).toMatch(
       /empty|layout element/
     );
+  });
+});
+
+describe('isImageOnlyContent', () => {
+  it('detects HTML whose only content is images', () => {
+    const html =
+      '<div><img src="a.png"><img src="b.png"></div>';
+    expect(isImageOnlyContent(html)).toBe(true);
+  });
+
+  it('detects images wrapped in figures with empty captions', () => {
+    const html =
+      '<figure><img src="screenshot.png"><figcaption>   </figcaption></figure>';
+    expect(isImageOnlyContent(html)).toBe(true);
+  });
+
+  it('returns false when meaningful text accompanies the images', () => {
+    const html =
+      '<h1>Photosynthesis</h1><p>Plants convert light into energy.</p><img src="diagram.png">';
+    expect(isImageOnlyContent(html)).toBe(false);
+  });
+
+  it('returns false for text-only HTML with no images', () => {
+    const html = '<p>Just some notes with no pictures at all.</p>';
+    expect(isImageOnlyContent(html)).toBe(false);
+  });
+
+  it('returns false for empty HTML with no images', () => {
+    expect(isImageOnlyContent('<div></div>')).toBe(false);
+  });
+});
+
+describe('IMAGE_ONLY_USER_MESSAGE', () => {
+  it('says what happened and what to do, free of jargon', () => {
+    expect(IMAGE_ONLY_USER_MESSAGE.toLowerCase()).toContain('image');
+    expect(IMAGE_ONLY_USER_MESSAGE.toLowerCase()).toContain('text');
+    expect(IMAGE_ONLY_USER_MESSAGE.toLowerCase()).not.toMatch(
+      /<img|html|dom|parse/
+    );
+  });
+});
+
+describe('generateDeckInfo — image-only input', () => {
+  const imageOnlyHtml =
+    '<html><body><div><img src="a.png"><img src="b.png"></div></body></html>';
+  const textHtml =
+    '<html><body><h1>Cells</h1><p>The cell is the basic unit of life.</p><img src="c.png"></body></html>';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockStreamFn.mockReturnValue(mockStream);
+    mockStream.on.mockReturnThis();
+    mockStream.finalMessage.mockResolvedValue(fakeResponse());
+  });
+
+  it('rejects with the friendly message and never calls Claude', async () => {
+    await expect(generateDeckInfo(imageOnlyHtml, [])).rejects.toBeInstanceOf(
+      ImageOnlyContentError
+    );
+    expect(mockStreamFn).not.toHaveBeenCalled();
+  });
+
+  it('carries the user-facing message on the error', async () => {
+    await expect(generateDeckInfo(imageOnlyHtml, [])).rejects.toThrow(
+      IMAGE_ONLY_USER_MESSAGE
+    );
+  });
+
+  it('proceeds normally when text accompanies images', async () => {
+    const result = await generateDeckInfo(textHtml, []);
+    expect(result.length).toBeGreaterThan(0);
+    expect(mockStreamFn).toHaveBeenCalled();
   });
 });
 
