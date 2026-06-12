@@ -12,6 +12,7 @@ import isOfflineMode from '../isOfflineMode';
 import getObjectIcon, { ObjectIcon } from '../notion/getObjectIcon';
 import { Rules, Settings } from '../types';
 import { UserNotice, isIntentionalBackendNotice } from '../errors/UserNotice';
+import { AnkifyStats } from '../../pages/AnkifyPage/stats/types';
 import { del, get, getLoginURL, post } from './api';
 import { getResourceUrl } from './getResourceUrl';
 import { CONFLICT, OK } from './http';
@@ -821,6 +822,11 @@ export class Backend {
       `${this.baseURL}ankify/clients/active/anki-web-status`
     );
     return result ?? { status: 'unreachable' };
+  }
+
+  async getAnkifyStats(): Promise<AnkifyStats> {
+    const result = await get(`${this.baseURL}ankify/stats`);
+    return result ?? { connected: false };
   }
 
   async listAnkifyNotionDatabases(): Promise<

@@ -55,6 +55,7 @@ export const sidebar: SidebarGroup[] = [
     label: 'Sync with Notion',
     items: [
       { label: 'How sync works', slug: 'sync/how-it-works' },
+      { label: 'See your study stats', slug: 'sync/study-stats' },
       {
         label: 'Send your reviews back to Notion',
         slug: 'sync/review-export',

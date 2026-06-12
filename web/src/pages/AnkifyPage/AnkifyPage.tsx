@@ -10,6 +10,7 @@ import { Backend } from '../../lib/backend/Backend';
 import NotionSubscriptions from './components/NotionSubscriptions';
 import WorkspaceBar from './components/WorkspaceBar';
 import ConflictsModal from './components/ConflictsModal';
+import StudyStatsSection from './stats/StudyStatsSection';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 
 const QUERY_KEY = ['ankify-clients'];
@@ -139,6 +140,8 @@ export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
         onClose={() => setConflictsOpen(false)}
         backend={backend}
       />
+
+      <StudyStatsSection backend={api} />
 
       <NotionSubscriptions
         backend={backend}
