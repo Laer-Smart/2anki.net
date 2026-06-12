@@ -68,7 +68,9 @@ describe('EmailService.sendSubscriptionRecoveryEmail', () => {
     );
 
     const msg = lastMessage();
-    expect(msg.subject).toBe('Connect your 2anki subscription to your account');
+    expect(msg.subject).toBe(
+      "Your 2anki payment isn't linked to an account yet"
+    );
     expect(msg.html).toContain('The 2anki Team');
   });
 });

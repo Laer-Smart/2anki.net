@@ -84,7 +84,7 @@ export interface IEmailService {
 }
 
 export const SUBSCRIPTION_RECOVERY_SUBJECT =
-  'Connect your 2anki subscription to your account';
+  "Your 2anki payment isn't linked to an account yet";
 
 export const PRICE_LOCK_IN_SUBJECTS: Record<'a' | 'b', string> = {
   a: 'Lock in $6/month before prices go up',
@@ -618,7 +618,7 @@ export class EmailService implements IEmailService {
     paidEmail: string
   ): Promise<void> {
     const domain = process.env.DOMAIN ?? 'https://2anki.net';
-    const registerUrl = `${domain}/register`;
+    const registerUrl = `${domain}/register?email=${encodeURIComponent(paidEmail)}`;
     const accountUrl = `${domain}/account`;
 
     const markup = SUBSCRIPTION_RECOVERY_TEMPLATE.replaceAll(
