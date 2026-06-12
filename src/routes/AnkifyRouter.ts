@@ -772,7 +772,7 @@ const AnkifyRouter = () => {
    * /api/ankify/stats:
    *   get:
    *     summary: Live study stats from the user's hosted Anki
-   *     description: Allowlisted endpoint. Pings AnkiConnect, then returns reviewed-today, the per-day review history, computed streaks, and per-deck backlog for the user's synced decks. Always 200 — returns { connected: false } when no active client exists or AnkiConnect is unreachable.
+   *     description: "Allowlisted endpoint. Pings AnkiConnect, then returns reviewed-today, the per-day review history, computed streaks, and per-deck backlog for the user's synced decks. Always 200 — returns connected: false when no active client exists or AnkiConnect is unreachable."
    *     tags: [Ankify]
    *     responses:
    *       200:
