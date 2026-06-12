@@ -153,7 +153,7 @@
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
   color: var(--color-bg-primary);
-  background: var(--color-primary);
+  background: var(--color-primary-hover);
   border: none;
   border-radius: var(--radius-md);
   text-decoration: none;
@@ -162,8 +162,16 @@
   width: 100%;
 }
 
+:global([data-theme='hotpink']) .planCtaPrimary {
+  background: #be185d;
+}
+
 .planCtaPrimary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
+  background: color-mix(in srgb, var(--color-primary-hover) 85%, black);
+}
+
+:global([data-theme='hotpink']) .planCtaPrimary:hover:not(:disabled) {
+  background: color-mix(in srgb, #be185d 85%, black);
 }
 
 .planCtaPrimary:disabled {
