@@ -54,6 +54,16 @@ export class Backend {
     globalThis.location.href = '/';
   }
 
+  async logoutEverywhere() {
+    cancelPendingSync();
+    await post(`${this.baseURL}users/logout-everywhere`, {});
+    localStorage.clear();
+    sessionStorage.clear();
+    const cookies = new Cookies();
+    cookies.remove('token');
+    globalThis.location.href = '/login';
+  }
+
   async getNotionConnectionInfo(): Promise<ConnectionInfo> {
     return get(`${this.baseURL}notion/get-notion-link`);
   }

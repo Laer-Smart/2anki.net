@@ -1254,3 +1254,53 @@ describe('revokeSessionsByResetToken', () => {
     expect(tokens).toEqual(['web']);
   });
 });
+
+describe('logOutEverywhere', () => {
+  let database: Knex;
+  let service: AuthenticationService;
+
+  beforeEach(async () => {
+    database = knex({
+      client: 'better-sqlite3',
+      connection: { filename: ':memory:' },
+      useNullAsDefault: true,
+    });
+    await database.schema.createTable('access_tokens', (t) => {
+      t.integer('owner').notNullable().index();
+      t.text('token').notNullable().index();
+      t.timestamp('created_at').defaultTo(database.fn.now());
+    });
+    service = new AuthenticationService(
+      new TokenRepository(database),
+      new UsersRepository(database)
+    );
+  });
+
+  afterEach(async () => {
+    await database.destroy();
+  });
+
+  it('deletes every session owned by the given owner', async () => {
+    await database('access_tokens').insert([
+      { token: 'web', owner: 7 },
+      { token: 'app', owner: 7 },
+      { token: 'other', owner: 8 },
+    ]);
+
+    const deleted = await service.logOutEverywhere(7);
+
+    expect(deleted).toBe(2);
+    const tokens = (await database('access_tokens').select('token')).map(
+      (row) => row.token
+    );
+    expect(tokens).toEqual(['other']);
+  });
+
+  it('accepts a numeric owner and coerces it for the lookup', async () => {
+    await database('access_tokens').insert({ token: 'web', owner: 7 });
+
+    const deleted = await service.logOutEverywhere(7);
+
+    expect(deleted).toBe(1);
+  });
+});

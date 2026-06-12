@@ -333,3 +333,63 @@
   color: var(--color-text-primary);
   text-decoration: underline;
 }
+
+.sessionsTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  margin: 0 0 0.75rem;
+}
+
+.sessionsNotice {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: 0.75rem;
+  line-height: var(--leading-normal);
+}
+
+.sessionsButton {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sessionsButton:hover {
+  background: var(--color-bg-secondary);
+}
+
+.sessionsButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.sessionsButtonGhost {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sessionsButtonGhost:hover {
+  color: var(--color-text-primary);
+}
+
+.sessionsButtonGhost:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
