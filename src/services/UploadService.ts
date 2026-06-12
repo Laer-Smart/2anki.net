@@ -5,6 +5,7 @@ import path from 'node:path';
 import { IUploadRepository } from '../data_layer/UploadRespository';
 import JobRepository from '../data_layer/JobRepository';
 import UsersRepository from '../data_layer/UsersRepository';
+import { ISettingsRepository } from '../data_layer/SettingsRepository';
 import ErrorHandler from '../routes/middleware/ErrorHandler';
 import CardOption from '../lib/parser/Settings';
 import Workspace from '../lib/parser/WorkSpace';
@@ -189,7 +190,8 @@ class UploadService {
   constructor(
     private readonly uploadRepository: IUploadRepository,
     private readonly jobRepository: JobRepository,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: UsersRepository,
+    private readonly settingsRepository?: ISettingsRepository
   ) {}
 
   async restartClaudeJob(req: express.Request, res: express.Response) {
@@ -358,6 +360,13 @@ class UploadService {
       const ws = new Workspace(true, 'fs');
       const owner = getOwner(res);
       const paying = isPaying(res.locals);
+
+      if (owner != null && settings.n2aBasic == null) {
+        await this.settingsRepository?.attachCustomTemplates(
+          String(owner),
+          settings
+        );
+      }
 
       track('upload_started', {
         userId: owner != null ? Number(owner) : null,

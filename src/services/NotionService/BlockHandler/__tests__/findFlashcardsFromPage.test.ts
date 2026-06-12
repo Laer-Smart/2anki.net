@@ -67,6 +67,7 @@ function buildSettingsRepository(
       async (_owner: string, id: string) => rows[id] ?? null
     ),
     loadAnkifyTemplateOverrides: jest.fn(async () => null),
+    attachCustomTemplates: jest.fn(async () => undefined),
   };
 }
 

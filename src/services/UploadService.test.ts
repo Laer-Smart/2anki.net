@@ -81,6 +81,7 @@ const trackMock = track as jest.Mock;
 import { IUploadRepository } from '../data_layer/UploadRespository';
 import JobRepository from '../data_layer/JobRepository';
 import UsersRepository from '../data_layer/UsersRepository';
+import { ISettingsRepository } from '../data_layer/SettingsRepository';
 import Uploads from '../data_layer/public/Uploads';
 
 const MockGeneratePackagesUseCase = GeneratePackagesUseCase as jest.MockedClass<
@@ -235,6 +236,64 @@ describe('UploadService.handleUpload — error paths', () => {
         props: expect.objectContaining({ reason: 'empty_deck' }),
       })
     );
+  });
+
+  it('attaches the saved custom templates for a signed-in upload before generating packages', async () => {
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({ packages: [] }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
+
+    const attachCustomTemplates = jest.fn().mockResolvedValue(undefined);
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo(),
+      {
+        attachCustomTemplates,
+      } as unknown as ISettingsRepository
+    );
+    const req = buildRequest({
+      body: { template: 'custom' },
+    } as Partial<express.Request>);
+    const { res } = buildResponse();
+    res.locals.owner = 42;
+
+    await service.handleUpload(req, res);
+
+    expect(attachCustomTemplates).toHaveBeenCalledWith(
+      '42',
+      expect.objectContaining({ template: 'custom' })
+    );
+  });
+
+  it('does not look up templates for anonymous uploads', async () => {
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({ packages: [] }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
+
+    const attachCustomTemplates = jest.fn().mockResolvedValue(undefined);
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo(),
+      {
+        attachCustomTemplates,
+      } as unknown as ISettingsRepository
+    );
+    const req = buildRequest({
+      body: { template: 'custom' },
+    } as Partial<express.Request>);
+    const { res } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(attachCustomTemplates).not.toHaveBeenCalled();
   });
 
   it('attributes source=dropbox when the request lands on the dropbox path with no explicit source', async () => {

@@ -27,6 +27,9 @@ export interface WalkedNotionFlashcard {
   front: string;
   back: string;
   media: WalkedNotionMediaRef[];
+  /** Set only for cards walked out of a database child page. */
+  notion_page_id?: string;
+  notion_page_title?: string | null;
 }
 
 export interface SyncDiagnostic {
@@ -47,6 +50,7 @@ export type NotionBlockChildrenFetcher = (
 
 export interface NotionDatabasePageRef {
   id: string;
+  title?: string | null;
 }
 
 export type NotionDatabasePagesFetcher = (
@@ -157,7 +161,13 @@ export const walkNotionDatabaseForFlashcards = async (
 
   for (let i = 0; i < limit; i++) {
     const page = await walkNotionPageForFlashcards(pages[i].id, fetchChildren);
-    cards.push(...page.cards);
+    for (const card of page.cards) {
+      cards.push({
+        ...card,
+        notion_page_id: pages[i].id,
+        notion_page_title: pages[i].title ?? null,
+      });
+    }
     blocksScanned += page.diagnostic.blocks_scanned;
     for (const [pattern, count] of Object.entries(
       page.diagnostic.pattern_hits

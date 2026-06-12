@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-database-sync-order",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Cards synced from a Notion database follow the page order instead of arriving shuffled"
+}

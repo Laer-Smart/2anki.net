@@ -24,3 +24,8 @@ export const buildDeckName = (
   }
   return `${DECK_PARENT}::${sanitizeDeckTitle(title)}`;
 };
+
+export const buildChildDeckName = (
+  parentDeck: string,
+  childTitle: string | null | undefined
+): string => `${parentDeck}::${sanitizeDeckTitle(childTitle)}`;

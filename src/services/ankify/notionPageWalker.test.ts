@@ -400,6 +400,60 @@ describe('walkNotionDatabaseForFlashcards', () => {
     expect(diagnostic.pattern_hits).toEqual({ toggle: 2 });
   });
 
+  test('tags every card with the child page id and title', async () => {
+    const fetchChildren = jest.fn(async (blockId: string) => {
+      if (blockId === 'row-1') return [rowToggle('row-1', 'Front 1')];
+      if (blockId === 'row-2') return [rowToggle('row-2', 'Front 2')];
+      return [];
+    });
+    const fetchDatabasePages = jest.fn(async () => [
+      { id: 'row-1', title: 'Cell Biology' },
+      { id: 'row-2', title: null },
+    ]);
+
+    const { cards } = await walkNotionDatabaseForFlashcards(
+      'database-id',
+      fetchChildren as never,
+      fetchDatabasePages
+    );
+
+    expect(
+      cards.map((c) => ({
+        page_id: c.notion_page_id,
+        page_title: c.notion_page_title,
+      }))
+    ).toEqual([
+      { page_id: 'row-1', page_title: 'Cell Biology' },
+      { page_id: 'row-2', page_title: null },
+    ]);
+  });
+
+  test('keeps the cards in the order the pages were returned', async () => {
+    const fetchChildren = jest.fn(async (blockId: string) => {
+      if (blockId === 'row-1') return [rowToggle('row-1', 'Front 1')];
+      if (blockId === 'row-2') return [rowToggle('row-2', 'Front 2')];
+      if (blockId === 'row-3') return [rowToggle('row-3', 'Front 3')];
+      return [];
+    });
+    const fetchDatabasePages = jest.fn(async () => [
+      { id: 'row-2' },
+      { id: 'row-3' },
+      { id: 'row-1' },
+    ]);
+
+    const { cards } = await walkNotionDatabaseForFlashcards(
+      'database-id',
+      fetchChildren as never,
+      fetchDatabasePages
+    );
+
+    expect(cards.map((c) => c.front)).toEqual([
+      'Front 2',
+      'Front 3',
+      'Front 1',
+    ]);
+  });
+
   test('caps the number of database rows walked at 250', async () => {
     const pages = Array.from({ length: 300 }, (_v, i) => ({ id: `row-${i}` }));
     const fetchChildren = jest.fn(async () => []);
