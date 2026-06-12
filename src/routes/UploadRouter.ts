@@ -254,6 +254,7 @@ const UploadRouter = () => {
   router.post(
     '/api/upload/dropbox',
     RequireAllowedOrigin,
+    RequireAuthentication,
     multer({ dest: '/tmp' }).none(),
     (req, res) => uploadController.dropbox(req, res)
   );

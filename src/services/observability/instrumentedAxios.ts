@@ -40,13 +40,26 @@ const FIXED_HOST_ALLOWLIST: Record<
   ],
 };
 
+const DOMAIN_SUFFIX_ALLOWLIST: Partial<
+  Record<ObservabilityService, readonly string[]>
+> = {
+  dropbox: ['dropboxusercontent.com'],
+};
+
+const matchesDomainSuffix = (lowered: string, suffix: string): boolean =>
+  lowered === suffix || lowered.endsWith(`.${suffix}`);
+
 const isHostOnFixedAllowlist = (
   host: string,
   service: ObservabilityService
 ): boolean => {
+  const lowered = host.toLowerCase();
+  const suffixes = DOMAIN_SUFFIX_ALLOWLIST[service];
+  if (suffixes != null) {
+    return suffixes.some((suffix) => matchesDomainSuffix(lowered, suffix));
+  }
   const allowlist = FIXED_HOST_ALLOWLIST[service];
   if (allowlist == null) return true;
-  const lowered = host.toLowerCase();
   return allowlist.includes(lowered);
 };
 
@@ -259,12 +272,52 @@ const extractStatusFromError = (error: unknown): number | null => {
   return null;
 };
 
-const mergeLookupOption = (
+const MAX_REDIRECTS = 5;
+
+const mergeRequestOptions = (
   config: AxiosRequestConfig | undefined,
   lookup: AxiosLookup
-): AxiosRequestConfig => {
-  if (config == null) return { lookup };
-  return { ...config, lookup };
+): AxiosRequestConfig => ({
+  ...config,
+  lookup,
+  maxRedirects: 0,
+});
+
+const isRedirectStatus = (status: number): boolean =>
+  status >= 300 && status < 400;
+
+const headerValue = (
+  headers: AxiosResponse['headers'] | undefined,
+  name: string
+): string | null => {
+  if (headers == null) return null;
+  const raw = (headers as Record<string, unknown>)[name];
+  if (typeof raw === 'string') return raw;
+  if (Array.isArray(raw) && typeof raw[0] === 'string') return raw[0];
+  return null;
+};
+
+const redirectLocationFromResponse = (
+  response: AxiosResponse | undefined,
+  baseUrl: string
+): string | null => {
+  if (response == null) return null;
+  if (!isRedirectStatus(response.status)) return null;
+  const location = headerValue(response.headers, 'location');
+  if (location == null) return null;
+  try {
+    return new URL(location, baseUrl).toString();
+  } catch {
+    throw new Error(`[observability] invalid redirect location: ${location}`);
+  }
+};
+
+const redirectLocationFromError = (
+  error: unknown,
+  baseUrl: string
+): string | null => {
+  if (!axios.isAxiosError(error)) return null;
+  return redirectLocationFromResponse(error.response, baseUrl);
 };
 
 export interface InstrumentedAxios {
@@ -292,54 +345,97 @@ export interface InstrumentedAxios {
   ): Promise<AxiosResponse<T>>;
 }
 
+const resolveNextHop = async (
+  nextUrl: string,
+  service: ObservabilityService
+): Promise<{ currentUrl: string; endpoint: string; lookup: AxiosLookup }> => {
+  const parsed = parseRequestUrl(nextUrl);
+  const { endpoint, lookup } = await validateAndResolveUrl(parsed, service);
+  return { currentUrl: nextUrl, endpoint, lookup };
+};
+
 const measure = async <T>(
   sink: ObservabilitySink,
   service: string,
   url: string,
-  exec: (lookup: AxiosLookup) => Promise<AxiosResponse<T>>
+  exec: (hopUrl: string, lookup: AxiosLookup) => Promise<AxiosResponse<T>>
 ): Promise<AxiosResponse<T>> => {
   if (!isAllowedService(service)) {
     throw new Error(
       `[observability] unknown service "${service}". Allowed: ${OBSERVABILITY_SERVICES.join(', ')}`
     );
   }
-  const parsed = parseRequestUrl(url);
-  const { endpoint, lookup } = await validateAndResolveUrl(parsed, service);
-  const start = Date.now();
-  try {
-    const response = await exec(lookup);
+  const firstParsed = parseRequestUrl(url);
+  const { endpoint: firstEndpoint, lookup: firstLookup } =
+    await validateAndResolveUrl(firstParsed, service);
+
+  let currentUrl = url;
+  let endpoint = firstEndpoint;
+  let lookup = firstLookup;
+
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    const start = Date.now();
+    let response: AxiosResponse<T>;
+    try {
+      response = await exec(currentUrl, lookup);
+    } catch (error) {
+      const redirectTarget = redirectLocationFromError(error, currentUrl);
+      recordSafely(
+        sink,
+        service,
+        endpoint,
+        extractStatusFromError(error),
+        Date.now() - start
+      );
+      if (redirectTarget == null) throw error;
+      ({ currentUrl, endpoint, lookup } = await resolveNextHop(
+        redirectTarget,
+        service
+      ));
+      continue;
+    }
+
+    const redirectTarget = redirectLocationFromResponse(response, currentUrl);
+    if (redirectTarget == null) {
+      recordSafely(
+        sink,
+        service,
+        endpoint,
+        response.status,
+        Date.now() - start
+      );
+      return response;
+    }
     recordSafely(sink, service, endpoint, response.status, Date.now() - start);
-    return response;
-  } catch (error) {
-    recordSafely(
-      sink,
-      service,
-      endpoint,
-      extractStatusFromError(error),
-      Date.now() - start
-    );
-    throw error;
+    ({ currentUrl, endpoint, lookup } = await resolveNextHop(
+      redirectTarget,
+      service
+    ));
   }
+
+  throw new Error(
+    `[observability] too many redirects for service "${service}" (max ${MAX_REDIRECTS})`
+  );
 };
 
 export const makeInstrumentedAxios = (
   sink: ObservabilitySink
 ): InstrumentedAxios => ({
   get: (service, url, config) =>
-    measure(sink, service, url, (lookup) =>
-      axios.get(url, mergeLookupOption(config, lookup))
+    measure(sink, service, url, (hopUrl, lookup) =>
+      axios.get(hopUrl, mergeRequestOptions(config, lookup))
     ),
   post: (service, url, data, config) =>
-    measure(sink, service, url, (lookup) =>
-      axios.post(url, data, mergeLookupOption(config, lookup))
+    measure(sink, service, url, (hopUrl, lookup) =>
+      axios.post(hopUrl, data, mergeRequestOptions(config, lookup))
     ),
   put: (service, url, data, config) =>
-    measure(sink, service, url, (lookup) =>
-      axios.put(url, data, mergeLookupOption(config, lookup))
+    measure(sink, service, url, (hopUrl, lookup) =>
+      axios.put(hopUrl, data, mergeRequestOptions(config, lookup))
     ),
   delete: (service, url, config) =>
-    measure(sink, service, url, (lookup) =>
-      axios.delete(url, mergeLookupOption(config, lookup))
+    measure(sink, service, url, (hopUrl, lookup) =>
+      axios.delete(hopUrl, mergeRequestOptions(config, lookup))
     ),
 });
 

@@ -162,7 +162,7 @@ describe('instrumentedAxios', () => {
     });
     await client.put(
       'dropbox',
-      'https://content.dropboxapi.com/2/files/upload'
+      'https://uc8.dl.dropboxusercontent.com/cd/0/put/abc'
     );
     await client.delete(
       'google_drive',
@@ -235,7 +235,7 @@ describe('instrumentedAxios', () => {
     expect(mockedAxios.get).not.toHaveBeenCalled();
   });
 
-  it('allows arbitrary public hosts for variable-host services (notion media, dropbox files)', async () => {
+  it('allows arbitrary public hosts for notion media and the dropbox content family', async () => {
     const repo = new FakeRepo();
     const sink = new ObservabilitySink(repo);
     const client = makeInstrumentedAxios(sink);
@@ -289,7 +289,7 @@ describe('instrumentedAxios', () => {
     const cases: Array<[Parameters<typeof client.get>[0], string]> = [
       ['notion', 'https://api.notion.com/v1/pages/abc'],
       ['claude', 'https://api.anthropic.com/v1/messages'],
-      ['dropbox', 'https://content.dropboxapi.com/2/files/upload'],
+      ['dropbox', 'https://uc8.dl.dropboxusercontent.com/cd/0/get/abc'],
       ['google_drive', 'https://www.googleapis.com/drive/v3/files/abc'],
       ['google_drive', 'https://oauth2.googleapis.com/token'],
       ['patreon', 'https://www.patreon.com/api/oauth2/v2/identity'],
@@ -361,7 +361,7 @@ describe('instrumentedAxios', () => {
     ).rejects.toThrow(/resolved IP .* is private\/loopback\/link-local/i);
 
     await expect(
-      client.get('dropbox', 'https://imds.attacker.example/file')
+      client.get('dropbox', 'https://rebind.dl.dropboxusercontent.com/file')
     ).rejects.toThrow(/resolved IP .* is private\/loopback\/link-local/i);
 
     expect(mockedAxios.get).not.toHaveBeenCalled();
@@ -448,6 +448,225 @@ describe('instrumentedAxios', () => {
       ).rejects.toThrow(/private\/loopback\/link-local/i);
     }
     expect(mockedAxios.get).not.toHaveBeenCalled();
+  });
+
+  const makeRedirect = (location: string) => ({
+    status: 302,
+    data: '',
+    headers: { location },
+  });
+
+  const makeRedirectError = (location: string): AxiosError => {
+    const err = new Error('status 302') as AxiosError;
+    err.isAxiosError = true;
+    err.response = {
+      status: 302,
+      statusText: '',
+      headers: { location },
+      config: {} as never,
+      data: null,
+    };
+    return err;
+  };
+
+  it('re-validates a redirect surfaced as an axios error (maxRedirects: 0 production path)', async () => {
+    const repo = new FakeRepo();
+    const sink = new ObservabilitySink(repo);
+    const client = makeInstrumentedAxios(sink);
+
+    mockedAxios.get.mockRejectedValueOnce(
+      makeRedirectError('https://127.0.0.1/internal')
+    );
+    mockPublicLookup();
+
+    await expect(
+      client.get(
+        'dropbox',
+        'https://uc8.dl.dropboxusercontent.com/cd/0/get/abc'
+      )
+    ).rejects.toThrow(/private\/loopback address/i);
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('follows a redirect surfaced as an axios error to its allowed target', async () => {
+    const repo = new FakeRepo();
+    const sink = new ObservabilitySink(repo);
+    const client = makeInstrumentedAxios(sink);
+
+    mockedAxios.get
+      .mockRejectedValueOnce(
+        makeRedirectError('https://uc9.dl.dropboxusercontent.com/cd/0/final')
+      )
+      .mockResolvedValueOnce({ status: 200, data: 'bytes' });
+    mockPublicLookup();
+
+    await expect(
+      client.get(
+        'dropbox',
+        'https://uc8.dl.dropboxusercontent.com/cd/0/get/abc'
+      )
+    ).resolves.toEqual({ status: 200, data: 'bytes' });
+    expect(mockedAxios.get).toHaveBeenCalledTimes(2);
+  });
+
+  it('passes maxRedirects: 0 to axios so the wrapper owns redirect following', async () => {
+    const repo = new FakeRepo();
+    const sink = new ObservabilitySink(repo);
+    const client = makeInstrumentedAxios(sink);
+
+    mockedAxios.get.mockResolvedValueOnce({ status: 200, data: 'ok' });
+    mockPublicLookup();
+
+    await client.get(
+      'dropbox',
+      'https://uc8.dl.dropboxusercontent.com/cd/0/get/abc'
+    );
+
+    const opts = mockedAxios.get.mock.calls[0][1] as { maxRedirects: number };
+    expect(opts.maxRedirects).toBe(0);
+  });
+
+  it('re-validates the redirect target and rejects a hop to a private host', async () => {
+    const repo = new FakeRepo();
+    const sink = new ObservabilitySink(repo);
+    const client = makeInstrumentedAxios(sink);
+
+    mockedAxios.get.mockResolvedValueOnce(
+      makeRedirect('https://rebind.dl.dropboxusercontent.com/file')
+    );
+    mockedLookup.mockImplementation(async (host: string) => {
+      if (host === 'rebind.dl.dropboxusercontent.com') {
+        return [{ address: '169.254.169.254', family: 4 }];
+      }
+      return [{ address: '13.224.0.1', family: 4 }];
+    });
+
+    await expect(
+      client.get(
+        'dropbox',
+        'https://uc8.dl.dropboxusercontent.com/cd/0/get/abc'
+      )
+    ).rejects.toThrow(/private\/loopback\/link-local/i);
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-validates the redirect target and rejects a hop to an IP-literal private host', async () => {
+    const repo = new FakeRepo();
+    const sink = new ObservabilitySink(repo);
+    const client = makeInstrumentedAxios(sink);
+
+    mockedAxios.get.mockResolvedValueOnce(
+      makeRedirect('https://127.0.0.1/internal')
+    );
+    mockPublicLookup();
+
+    await expect(
+      client.get(
+        'dropbox',
+        'https://uc8.dl.dropboxusercontent.com/cd/0/get/abc'
+      )
+    ).rejects.toThrow(/private\/loopback address/i);
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-validates the redirect target against the service allowlist', async () => {
+    const repo = new FakeRepo();
+    const sink = new ObservabilitySink(repo);
+    const client = makeInstrumentedAxios(sink);
+
+    mockedAxios.get.mockResolvedValueOnce(
+      makeRedirect('https://api.notion.com/v1/pages/abc')
+    );
+    mockPublicLookup();
+
+    await expect(
+      client.get('claude', 'https://api.anthropic.com/v1/messages')
+    ).rejects.toThrow(/host.*not allowed.*claude/i);
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects a non-https redirect target', async () => {
+    const repo = new FakeRepo();
+    const sink = new ObservabilitySink(repo);
+    const client = makeInstrumentedAxios(sink);
+
+    mockedAxios.get.mockResolvedValueOnce(
+      makeRedirect('http://uc8.dl.dropboxusercontent.com/cd/0/get/abc')
+    );
+    mockPublicLookup();
+
+    await expect(
+      client.get(
+        'dropbox',
+        'https://uc8.dl.dropboxusercontent.com/cd/0/get/abc'
+      )
+    ).rejects.toThrow(/https/i);
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('follows an allowed redirect hop and returns the final response', async () => {
+    const repo = new FakeRepo();
+    const sink = new ObservabilitySink(repo);
+    const client = makeInstrumentedAxios(sink);
+
+    mockedAxios.get
+      .mockResolvedValueOnce(
+        makeRedirect('https://uc9.dl.dropboxusercontent.com/cd/0/final')
+      )
+      .mockResolvedValueOnce({ status: 200, data: 'bytes' });
+    mockPublicLookup();
+
+    await expect(
+      client.get(
+        'dropbox',
+        'https://uc8.dl.dropboxusercontent.com/cd/0/get/abc'
+      )
+    ).resolves.toEqual({ status: 200, data: 'bytes' });
+    expect(mockedAxios.get).toHaveBeenCalledTimes(2);
+  });
+
+  it('stops following after the redirect cap is exceeded', async () => {
+    const repo = new FakeRepo();
+    const sink = new ObservabilitySink(repo);
+    const client = makeInstrumentedAxios(sink);
+
+    mockedAxios.get.mockResolvedValue(
+      makeRedirect('https://uc9.dl.dropboxusercontent.com/cd/0/loop')
+    );
+    mockPublicLookup();
+
+    await expect(
+      client.get(
+        'dropbox',
+        'https://uc8.dl.dropboxusercontent.com/cd/0/get/abc'
+      )
+    ).rejects.toThrow(/too many redirects/i);
+  });
+
+  it('constrains the dropbox allowlist to dropboxusercontent content hosts', async () => {
+    const repo = new FakeRepo();
+    const sink = new ObservabilitySink(repo);
+    const client = makeInstrumentedAxios(sink);
+
+    mockPublicLookup();
+
+    await expect(
+      client.get('dropbox', 'https://attacker.example.com/exfil')
+    ).rejects.toThrow(/host.*not allowed.*dropbox/i);
+
+    await expect(
+      client.get('dropbox', 'https://www.dropbox.com/s/abc/file?dl=1')
+    ).rejects.toThrow(/host.*not allowed.*dropbox/i);
+
+    expect(mockedAxios.get).not.toHaveBeenCalled();
+
+    mockedAxios.get.mockResolvedValue({ status: 200, data: 'ok' });
+    await expect(
+      client.get(
+        'dropbox',
+        'https://uc8a13.dl.dropboxusercontent.com/cd/0/get/abc'
+      )
+    ).resolves.toEqual({ status: 200, data: 'ok' });
   });
 
   it('does not throw when sink itself rejects (instrumentation must never break the caller)', async () => {

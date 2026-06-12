@@ -9,12 +9,14 @@ Express controllers used to call `axios.get(...)` directly with user-controlled 
 1. Validates the URL is `https`, not a private/loopback host, and not an IPv4-mapped IPv6 address.
 2. Resolves the host once via `dns.promises.lookup`, refuses any private IP in the answer set, and pins the resolved address through `axios`'s `lookup` option so the connection cannot be re-targeted at request time.
 3. Records latency, status, and error class into `ObservabilitySink` so `OpsController` can render service health without scraping logs.
+4. Sets `maxRedirects: 0` and follows redirects itself, re-running the full validation (scheme + private-host + allowlist + DNS pin) on every hop up to `MAX_REDIRECTS`. An allowlisted origin that 302s to a private/internal host or an off-allowlist host is rejected on the hop, not followed. A 3xx arrives either as a resolved response or — under axios's default `validateStatus` — as a rejected error carrying `error.response`; both paths read the `Location` header and re-validate.
 
 ## Public surface
 
 - `instrumentedAxios(service, config)` — drop-in replacement for `axios(...)`. `service` must be one of `OBSERVABILITY_SERVICES`.
 - `OBSERVABILITY_SERVICES` — frozen list. Adding a new outbound integration means **adding it here first**, then writing the wrapper.
-- `FIXED_HOST_ALLOWLIST` — per-service host pin. Set to `null` for services that need wildcard hosts (e.g. Notion's per-tenant CDNs); set to an explicit list for services that only ever talk to one or two endpoints.
+- `FIXED_HOST_ALLOWLIST` — per-service exact-host pin. Set to `null` for services that need wildcard hosts (e.g. Notion's per-tenant CDNs); set to an explicit list for services that only ever talk to one or two endpoints.
+- `DOMAIN_SUFFIX_ALLOWLIST` — per-service domain-suffix pin for services whose content hosts vary by subdomain but share a registrable domain. `dropbox` is pinned to `dropboxusercontent.com` (the Chooser's `linkType: 'direct'` links resolve to `*.dl.dropboxusercontent.com`); this is what stops the upload route from being an arbitrary-public-host GET. A suffix entry takes precedence over the service's `FIXED_HOST_ALLOWLIST` row.
 - `getObservabilitySink()` / `ObservabilitySinkInstance` — singleton sink. The query service (`ObservabilityQueryService`) reads from it.
 - `ObservabilityQueryService.getMetrics(window)` — read API for `/ops`. Aggregates inbound volume + route latency, outbound volume + per-service latency percentiles (p50/p95/p99), and route/service error rates over a `1h | 24h | 7d` window. Adding a new aggregation means extending `IObservabilityRepository`, the `OpsMetricsResponse` shape, and the engineering tab in one PR.
 
