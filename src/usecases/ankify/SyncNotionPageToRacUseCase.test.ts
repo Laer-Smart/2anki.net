@@ -2653,19 +2653,18 @@ describe('SyncNotionPageToRacUseCase', () => {
         { noteId: 900, mod: lastSyncedSeconds - 10 },
         { noteId: 901, mod: lastSyncedSeconds - 10 },
       ]);
-      (ac.notesInfo as jest.Mock).mockImplementation(
-        async (notes: number[]) =>
-          notes.map((noteId) => ({
-            noteId,
-            modelName: 'Ankify Basic',
-            tags: [],
-            fields: {
-              Front: { value: 'stale', order: 0 },
-              Back: { value: 'Back text', order: 1 },
-            },
-            cards: [noteId + 9000],
-            mod: lastSyncedSeconds - 10,
-          }))
+      (ac.notesInfo as jest.Mock).mockImplementation(async (notes: number[]) =>
+        notes.map((noteId) => ({
+          noteId,
+          modelName: 'Ankify Basic',
+          tags: [],
+          fields: {
+            Front: { value: 'stale', order: 0 },
+            Back: { value: 'Back text', order: 1 },
+          },
+          cards: [noteId + 9000],
+          mod: lastSyncedSeconds - 10,
+        }))
       );
       const useCase = new SyncNotionPageToRacUseCase(
         repos.clients,
