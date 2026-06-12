@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-notion-toggle-media",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Notion pages with an unusual image, audio, or file block convert instead of stalling"
+}
