@@ -32,7 +32,7 @@ jobs:
   playwright:
     name: playwright (22.20.0)
     if: ${{ github.actor != 'dependabot[bot]' }}
-    runs-on: blacksmith
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
