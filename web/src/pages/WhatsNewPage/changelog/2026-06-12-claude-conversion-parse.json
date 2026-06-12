@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-claude-conversion-parse",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "AI conversions recover when card text contains quotes or special characters"
+}
