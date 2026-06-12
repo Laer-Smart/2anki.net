@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-notion-media-expiry",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Images, audio, and files stay in the deck on large Notion pages instead of dropping out mid-conversion"
+}
