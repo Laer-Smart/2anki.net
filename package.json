@@ -147,7 +147,8 @@
       "jsdom": "29.1.1",
       "picomatch": ">=4.0.4",
       "path-to-regexp": ">=8.4.0",
-      "2anki-web>yaml": ">=2.8.3"
+      "2anki-web>yaml": ">=2.8.3",
+      "@xmldom/xmldom": ">=0.8.13 <0.9.0"
     },
     "onlyBuiltDependencies": [
       "better-sqlite3"
