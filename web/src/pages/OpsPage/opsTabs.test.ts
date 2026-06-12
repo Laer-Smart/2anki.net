@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { OPS_TABS } from './opsTabs';
 
 describe('OPS_TABS', () => {
-  it('lists all 12 ops tabs with the Engineering index first', () => {
-    expect(OPS_TABS).toHaveLength(12);
+  it('lists all 14 ops tabs with the Engineering index first', () => {
+    expect(OPS_TABS).toHaveLength(14);
     expect(OPS_TABS[0]).toMatchObject({ to: '/ops', label: 'Engineering' });
   });
 

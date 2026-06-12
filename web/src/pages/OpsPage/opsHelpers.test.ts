@@ -4,7 +4,9 @@ import {
   errorRateColor,
   errorRatePercent,
   formatBucketLabel,
+  formatBytes,
   formatPercent,
+  formatRatio,
   groupInboundByBucket,
   groupOutboundByBucket,
   truncateRoute,
@@ -94,6 +96,23 @@ describe('groupInboundByBucket', () => {
         '5xx': 0,
       },
     ]);
+  });
+});
+
+describe('formatBytes', () => {
+  it('uses 1024-based consumer labels', () => {
+    expect(formatBytes(512)).toBe('512 B');
+    expect(formatBytes(850 * 1024)).toBe('850 KB');
+    expect(formatBytes(Math.round(4.2 * 1024 * 1024))).toBe('4.2 MB');
+    expect(formatBytes(Math.round(1.1 * 1024 * 1024 * 1024))).toBe('1.1 GB');
+  });
+});
+
+describe('formatRatio', () => {
+  it('renders a 0-1 ratio as a one-decimal percent and null as a dash', () => {
+    expect(formatRatio(0.4231)).toBe('42.3%');
+    expect(formatRatio(0)).toBe('0.0%');
+    expect(formatRatio(null)).toBe('—');
   });
 });
 
