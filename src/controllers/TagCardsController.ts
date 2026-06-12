@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { TagCardsUseCase } from '../usecases/chat/TagCardsUseCase';
+import { ChatRateLimitError } from '../usecases/chat/ChatUseCase';
 
 const MAX_CARDS = 200;
 
@@ -54,14 +55,27 @@ class TagCardsController {
     }
 
     const owner = res.locals.owner as number;
+    const patreon = (res.locals.patreon as boolean) ?? false;
+    const subscriber = (res.locals.subscriber as boolean) ?? false;
     const conversationId = parseConversationId(req.body?.conversationId);
 
-    const result = await this.useCase.execute({
-      cards: parsedCards as TagCardInput[],
-      userId: owner,
-      conversationId,
-    });
-    res.status(200).json(result);
+    try {
+      const result = await this.useCase.execute({
+        cards: parsedCards as TagCardInput[],
+        userId: owner,
+        patreon: patreon || subscriber,
+        conversationId,
+      });
+      res.status(200).json(result);
+    } catch (err) {
+      if (err instanceof ChatRateLimitError) {
+        res
+          .status(429)
+          .json({ error: 'Message limit reached', resetDate: err.resetDate });
+        return;
+      }
+      throw err;
+    }
   }
 }
 

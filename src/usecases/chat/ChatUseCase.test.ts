@@ -1409,6 +1409,52 @@ describe('ChatUseCase', () => {
         })
       ).rejects.toBeInstanceOf(ChatConversationNotFoundError);
     });
+
+    it('rejects a free user over the monthly cap without calling Claude', async () => {
+      const { messagesRepo, conversationsRepo, anthropic, useCase } =
+        buildUseCase('should not be produced');
+      const conversationId = await seedConversation(
+        messagesRepo,
+        conversationsRepo,
+        FREE_USER.owner
+      );
+      for (let i = 0; i < 20; i++) {
+        await messagesRepo.insert({
+          userId: FREE_USER.owner,
+          conversationId,
+          role: 'user',
+          content: `filler ${i}`,
+        });
+      }
+
+      await expect(
+        useCase.regenerate({
+          user: FREE_USER,
+          conversationId,
+          templateSlug: null,
+        })
+      ).rejects.toBeInstanceOf(ChatRateLimitError);
+      expect(anthropic.messages.stream).not.toHaveBeenCalled();
+    });
+
+    it('lets a free user under the monthly cap regenerate', async () => {
+      const { messagesRepo, conversationsRepo, anthropic, useCase } =
+        buildUseCase('fresh reply');
+      const conversationId = await seedConversation(
+        messagesRepo,
+        conversationsRepo,
+        FREE_USER.owner
+      );
+
+      const result = await useCase.regenerate({
+        user: FREE_USER,
+        conversationId,
+        templateSlug: null,
+      });
+
+      expect(result.content).toBe('fresh reply');
+      expect(anthropic.messages.stream).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('ChatRateLimitError', () => {
