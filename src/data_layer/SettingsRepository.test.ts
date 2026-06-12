@@ -13,6 +13,38 @@ const TEMPLATES_PAYLOAD = [
   },
 ];
 
+const NOTE_TYPE_EDITOR_PAYLOAD = {
+  templates: [
+    {
+      id: 'user-60392fd1-619c-43b2-8cab-20395a71b9cf',
+      name: 'ATTI BASIC',
+      description: '',
+      baseType: 'basic',
+      noteType: {
+        id: 1780929933237,
+        name: 'ATTI BASIC',
+        type: 0,
+        tmpls: [
+          {
+            name: 'Card 1',
+            ord: 0,
+            qfmt: '<span class="atti-front">{{Front}}</span>',
+            afmt: '<span class="atti-front">{{Front}}</span><hr>{{Back}}',
+          },
+        ],
+        flds: [
+          { name: 'Front', ord: 0 },
+          { name: 'Back', ord: 1 },
+        ],
+        css: '.atti-front { color: teal; }',
+      },
+      previewData: { Front: 'Q', Back: 'A' },
+      tags: [],
+    },
+  ],
+  hiddenIds: [],
+};
+
 describe('SettingsRepository.loadAnkifyTemplateOverrides', () => {
   let db: Knex;
   let repo: SettingsRepository;
@@ -281,6 +313,27 @@ describe('SettingsRepository.loadAnkifyTemplateOverrides', () => {
     expect(overrides?.basicModelName).toBe('CHILD NAME');
   });
 
+  test('resolves a template saved by the note-type editor payload shape', async () => {
+    await db('users').insert({
+      id: 13574,
+      card_options: JSON.stringify({
+        template: 'custom',
+        basic_model_name: 'ATTI BASIC',
+      }),
+    });
+    await db('templates').insert({
+      owner: '13574',
+      payload: JSON.stringify(NOTE_TYPE_EDITOR_PAYLOAD),
+    });
+
+    const overrides = await repo.loadAnkifyTemplateOverrides('13574');
+
+    expect(overrides).not.toBeNull();
+    expect(overrides?.basicModelName).toBe('ATTI BASIC');
+    expect(overrides?.basicTemplate.front).toContain('atti-front');
+    expect(overrides?.basicTemplate.styling).toContain('teal');
+  });
+
   test('returns null when global card_options template is not custom', async () => {
     await db('users').insert({
       id: 13574,
@@ -335,6 +388,24 @@ describe('SettingsRepository.attachCustomTemplates', () => {
     await repo.attachCustomTemplates('42', settings);
 
     expect(settings.n2aBasic?.styling).toContain('tomato');
+    expect(settings.n2aBasic?.name).toBe('ATTI BASIC');
+  });
+
+  test('attaches templates saved by the note-type editor payload shape', async () => {
+    await db('templates').insert({
+      owner: '42',
+      payload: JSON.stringify(NOTE_TYPE_EDITOR_PAYLOAD),
+    });
+    const settings = new CardOption({
+      ...CardOption.LoadDefaultOptions(),
+      template: 'custom',
+      basic_model_name: 'ATTI BASIC',
+    });
+
+    await repo.attachCustomTemplates('42', settings);
+
+    expect(settings.n2aBasic?.front).toContain('atti-front');
+    expect(settings.n2aBasic?.styling).toContain('teal');
     expect(settings.n2aBasic?.name).toBe('ATTI BASIC');
   });
 
