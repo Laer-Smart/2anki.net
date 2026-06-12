@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-note-type-editor-templates-apply",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Note types built in the template editor apply to Ankify syncs and zip uploads"
+}

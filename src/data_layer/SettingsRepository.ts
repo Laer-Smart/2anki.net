@@ -1,7 +1,10 @@
 import { Knex } from 'knex';
 import Settings, { SettingsInitializer } from './public/Settings';
 import CardOption from '../lib/parser/Settings/CardOption';
-import { getCustomTemplate } from '../lib/parser/Settings/helpers/getCustomTemplate';
+import {
+  normalizeStoredTemplates,
+  pickCustomTemplate,
+} from '../lib/parser/Settings/helpers/normalizeStoredTemplates';
 import { unwrapStoredSettingsPayload } from '../lib/parser/Settings/unwrapStoredSettingsPayload';
 import { AnkifyTemplateOverrides } from '../services/ankify/templateOverrides';
 
@@ -116,14 +119,28 @@ class SettingsRepository implements ISettingsRepository {
       .where({ owner })
       .returning(['payload'])
       .first();
-    const templatesPayload = parseJsonColumn(templates?.payload);
-    if (!Array.isArray(templatesPayload)) {
+    const templateFiles = normalizeStoredTemplates(
+      parseJsonColumn(templates?.payload)
+    );
+    if (templateFiles.length === 0) {
       return;
     }
 
-    settings.n2aBasic = getCustomTemplate('n2a-basic', templatesPayload);
-    settings.n2aCloze = getCustomTemplate('n2a-cloze', templatesPayload);
-    settings.n2aInput = getCustomTemplate('n2a-input', templatesPayload);
+    settings.n2aBasic = pickCustomTemplate(
+      templateFiles,
+      'n2a-basic',
+      settings.basicModelName
+    );
+    settings.n2aCloze = pickCustomTemplate(
+      templateFiles,
+      'n2a-cloze',
+      settings.clozeModelName
+    );
+    settings.n2aInput = pickCustomTemplate(
+      templateFiles,
+      'n2a-input',
+      settings.inputModelName
+    );
 
     if (settings.n2aBasic) {
       settings.n2aBasic.name = settings.basicModelName;
@@ -228,12 +245,14 @@ class SettingsRepository implements ISettingsRepository {
         return null;
       }
 
-      const templatesPayload = parseJsonColumn(templatesRow.payload);
-      if (!Array.isArray(templatesPayload)) {
-        return null;
-      }
-
-      const basicTemplate = getCustomTemplate('n2a-basic', templatesPayload);
+      const templateFiles = normalizeStoredTemplates(
+        parseJsonColumn(templatesRow.payload)
+      );
+      const basicTemplate = pickCustomTemplate(
+        templateFiles,
+        'n2a-basic',
+        basicModelName
+      );
       if (!basicTemplate) {
         return null;
       }
