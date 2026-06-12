@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-template-editor-load",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Template editor syntax highlighting and code hints load reliably"
+}
