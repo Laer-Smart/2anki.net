@@ -18,6 +18,13 @@ const { parseCollection } = jest.requireMock('./parseCollection') as {
   parseCollection: jest.Mock;
 };
 
+const { extractApkg, parseMediaManifest } = jest.requireMock(
+  './extractApkg'
+) as {
+  extractApkg: jest.Mock;
+  parseMediaManifest: jest.Mock;
+};
+
 const noteType = (overrides: Partial<NoteType> = {}): NoteType => ({
   id: 1,
   name: 'Basic',
@@ -275,5 +282,66 @@ describe('parseApkgNotes', () => {
     expect(result.notes[0]).toEqual(
       expect.objectContaining({ fields: ['only-front'] })
     );
+  });
+});
+
+describe('parseApkgNotes source media sanitization', () => {
+  afterEach(() => {
+    extractApkg.mockResolvedValue({
+      collectionBuffer: Buffer.from('stub'),
+      mediaManifestRaw: null,
+      mediaEntries: new Map(),
+    });
+    parseMediaManifest.mockReturnValue(new Map());
+  });
+
+  it('strips path segments from a traversal media name to its basename', async () => {
+    stubCollection(buildCollection({}));
+    extractApkg.mockResolvedValue({
+      collectionBuffer: Buffer.from('stub'),
+      mediaManifestRaw: Buffer.from('stub'),
+      mediaEntries: new Map([['0', Buffer.from('payload')]]),
+    });
+    parseMediaManifest.mockReturnValue(
+      new Map([['../../../dist/escape.js', '0']])
+    );
+
+    const result = await parseApkgNotes(Buffer.alloc(0));
+
+    expect(result.sourceMedia).toEqual([
+      { filename: 'escape.js', bytes: Buffer.from('payload') },
+    ]);
+  });
+
+  it('keeps a normal media filename intact', async () => {
+    stubCollection(buildCollection({}));
+    extractApkg.mockResolvedValue({
+      collectionBuffer: Buffer.from('stub'),
+      mediaManifestRaw: Buffer.from('stub'),
+      mediaEntries: new Map([['0', Buffer.from('img')]]),
+    });
+    parseMediaManifest.mockReturnValue(
+      new Map([['2anki-abcdef.png', '0']])
+    );
+
+    const result = await parseApkgNotes(Buffer.alloc(0));
+
+    expect(result.sourceMedia).toEqual([
+      { filename: '2anki-abcdef.png', bytes: Buffer.from('img') },
+    ]);
+  });
+
+  it('drops a media entry whose name is only path separators', async () => {
+    stubCollection(buildCollection({}));
+    extractApkg.mockResolvedValue({
+      collectionBuffer: Buffer.from('stub'),
+      mediaManifestRaw: Buffer.from('stub'),
+      mediaEntries: new Map([['0', Buffer.from('payload')]]),
+    });
+    parseMediaManifest.mockReturnValue(new Map([['/', '0']]));
+
+    const result = await parseApkgNotes(Buffer.alloc(0));
+
+    expect(result.sourceMedia).toEqual([]);
   });
 });

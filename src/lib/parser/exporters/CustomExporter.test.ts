@@ -170,3 +170,45 @@ describe('CustomExporter.configure', () => {
     expect(parsed[0].settings.ttsManualLang).toBe('es_ES');
   });
 });
+
+describe('CustomExporter.addMedia', () => {
+  it('writes a normal media file inside the workspace and returns its path', () => {
+    const dir = tempDir();
+    const exporter = new CustomExporter('test-deck', dir);
+
+    const written = exporter.addMedia('2anki-abc123.png', Buffer.from('x'));
+
+    expect(written).toBe(path.join(dir, '2anki-abc123.png'));
+    expect(fs.readFileSync(written, 'utf8')).toBe('x');
+    expect(exporter.media).toContain(written);
+  });
+
+  it('neutralizes a traversal media name and writes inside the workspace only', () => {
+    const root = tempDir();
+    const dir = fs.mkdtempSync(path.join(root, 'ws-'));
+    const escapeMarker = path.join(root, 'escape.js');
+    const exporter = new CustomExporter('test-deck', dir);
+
+    const written = exporter.addMedia(
+      '../../escape.js',
+      Buffer.from('payload')
+    );
+
+    expect(written).toBe(path.join(dir, 'escape.js'));
+    expect(fs.existsSync(escapeMarker)).toBe(false);
+    expect(fs.readFileSync(written, 'utf8')).toBe('payload');
+  });
+
+  it('neutralizes an absolute media path to a basename inside the workspace', () => {
+    const root = tempDir();
+    const dir = fs.mkdtempSync(path.join(root, 'ws-'));
+    const target = path.join(root, 'absolute-escape.js');
+    const exporter = new CustomExporter('test-deck', dir);
+
+    const written = exporter.addMedia(target, Buffer.from('payload'));
+
+    expect(written).toBe(path.join(dir, 'absolute-escape.js'));
+    expect(fs.existsSync(target)).toBe(false);
+    expect(fs.readFileSync(written, 'utf8')).toBe('payload');
+  });
+});

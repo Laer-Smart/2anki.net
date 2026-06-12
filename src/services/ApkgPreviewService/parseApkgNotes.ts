@@ -1,3 +1,5 @@
+import path from 'path';
+
 import { extractApkg, parseMediaManifest } from './extractApkg';
 import { parseCollection } from './parseCollection';
 import {
@@ -113,7 +115,10 @@ function collectSourceMedia(archive: {
   const out: SourceMediaFile[] = [];
   for (const [originalName, archiveName] of manifest.entries()) {
     const bytes = archive.mediaEntries.get(archiveName);
-    if (bytes != null) out.push({ filename: originalName, bytes });
+    const safeName = path.basename(originalName);
+    if (bytes != null && safeName.length > 0) {
+      out.push({ filename: safeName, bytes });
+    }
   }
   return out;
 }

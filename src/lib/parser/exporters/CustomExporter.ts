@@ -4,6 +4,7 @@ import fs, { PathLike } from 'fs';
 import CardGenerator from '../../anki/CardGenerator';
 import { detectFrontLanguage } from '../../anki/detectCardLanguage';
 import { track } from '../../../services/events/track';
+import { resolveSafeEntryPath } from '../../vocab/safeEntryPath';
 import Deck from '../Deck';
 import { DeckTooLargeError } from './DeckTooLargeError';
 
@@ -46,8 +47,7 @@ class CustomExporter {
   }
 
   addMedia(newName: string, contents: string | Buffer) {
-    console.debug(`Adding media: ${newName}`);
-    const abs = path.join(this.workspace, newName);
+    const abs = resolveSafeEntryPath(path.basename(newName), this.workspace);
     this.media.push(abs);
     fs.writeFileSync(abs, contents);
     return abs;
