@@ -54,6 +54,7 @@ Pricing v2 shipped 2026-06-10: $7.99/mo + $64/yr for new members, legacy $6/$60 
 @.claude/rules/parallel-pr-coordination.md
 @.claude/rules/support-confidentiality.md
 @.claude/rules/browser-attestation.md
+@.claude/rules/first-time-fix.md
 
 ## Git
 
