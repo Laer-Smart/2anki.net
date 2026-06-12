@@ -12,7 +12,7 @@ concurrency:
 jobs:
   checkout-smoke:
     name: checkout smoke (22.20.0)
-    runs-on: blacksmith
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6

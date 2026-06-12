@@ -19,7 +19,7 @@ concurrency:
 jobs:
   build:
     name: build (22.20.0)
-    runs-on: blacksmith
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup
@@ -45,7 +45,7 @@ jobs:
 
   test:
     name: test (22.20.0)
-    runs-on: blacksmith
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup
