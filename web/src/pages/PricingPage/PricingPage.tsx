@@ -149,6 +149,13 @@ export default function PricingPage({
     }
   }, [fromPaywall]);
 
+  const handleTryFreeClick = () => {
+    track('pricing_try_clicked', {
+      surface: 'pricing_page',
+      variant: pricingOrder,
+    });
+  };
+
   const handleWaitlistRequest = async () => {
     if (!isLoggedIn) {
       globalThis.location.href = '/login?redirect=/pricing';
@@ -364,18 +371,16 @@ export default function PricingPage({
             {isUS
               ? 'Built for spaced repetition — MCAT, USMLE, bar exam, and language prep. Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start.'
               : 'Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start. Sign up free for 100 cards per month, then pay once by the day or week.'}
-            {!isLoggedIn && (
-              <>
-                {' '}
-                <a href="/register" className={styles.introLink}>
-                  Start free{' '}
-                  <span className={styles.introArrow} aria-hidden="true">
-                    →
-                  </span>
-                </a>
-              </>
-            )}
           </p>
+        )}
+        {!isLoggedIn && (
+          <a
+            href="/upload"
+            className={styles.tryFreeCta}
+            onClick={handleTryFreeClick}
+          >
+            Convert a deck free
+          </a>
         )}
         {!minimalHeader && (
           <p className={styles.socialProof}>

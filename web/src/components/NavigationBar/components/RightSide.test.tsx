@@ -10,29 +10,40 @@ function getNavLinks() {
 }
 
 describe('RightSide (anonymous nav)', () => {
-  it('renders Upload, Docs, Pricing, and Login in order', () => {
-    render(<RightSide path="/" />);
+  it('renders Upload, Docs, and Login in order', () => {
+    render(<RightSide path="/" isLoggedIn={false} />);
     const upload = screen.getByRole('link', { name: 'Make flashcards' });
     const docs = screen.getByRole('link', { name: 'Docs' });
-    const pricing = screen.getByRole('link', { name: 'Pricing' });
     const login = screen.getByRole('link', { name: 'Log in' });
 
     expect(upload).toBeInTheDocument();
     expect(docs).toBeInTheDocument();
-    expect(pricing).toBeInTheDocument();
     expect(login).toBeInTheDocument();
 
     const positions = getNavLinks().map((a) => a.textContent);
     const uploadIdx = positions.indexOf('Make flashcards');
     const docsIdx = positions.indexOf('Docs');
-    const pricingIdx = positions.indexOf('Pricing');
     expect(uploadIdx).toBeGreaterThanOrEqual(0);
     expect(docsIdx).toBeGreaterThan(uploadIdx);
-    expect(pricingIdx).toBeGreaterThan(docsIdx);
+  });
+
+  it('omits the Pricing link for logged-out visitors', () => {
+    render(<RightSide path="/" isLoggedIn={false} />);
+    expect(
+      screen.queryByRole('link', { name: 'Pricing' })
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps the Pricing link for logged-in visitors', () => {
+    render(<RightSide path="/" isLoggedIn />);
+    expect(screen.getByRole('link', { name: 'Pricing' })).toHaveAttribute(
+      'href',
+      '/pricing'
+    );
   });
 
   it('Docs link points to /documentation', () => {
-    render(<RightSide path="/" />);
+    render(<RightSide path="/" isLoggedIn={false} />);
     expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute(
       'href',
       '/documentation'
@@ -40,7 +51,7 @@ describe('RightSide (anonymous nav)', () => {
   });
 
   it('does not render the legacy Documentation label', () => {
-    render(<RightSide path="/" />);
+    render(<RightSide path="/" isLoggedIn={false} />);
     expect(
       screen.queryByRole('link', { name: 'Documentation' })
     ).not.toBeInTheDocument();

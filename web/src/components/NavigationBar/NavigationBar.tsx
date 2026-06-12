@@ -44,7 +44,7 @@ function NavigationBar({ isLoggedIn }: Readonly<NavigationBarProps>) {
       </div>
 
       <div className={active ? styles.menuActive : styles.menu}>
-        {isResolved && <RightSide path={path} />}
+        {isResolved && <RightSide path={path} isLoggedIn={isLoggedIn} />}
       </div>
     </nav>
   );
