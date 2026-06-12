@@ -11,6 +11,7 @@ import {
 } from 'react-router-dom';
 import { AppShell } from './components/AppShell/AppShell';
 import { ChunkReloadOverlay } from './components/ChunkReloadOverlay/ChunkReloadOverlay';
+import { DomRecoveryBoundary } from './components/DomRecoveryBoundary/DomRecoveryBoundary';
 import { getErrorMessage } from './components/errors/helpers/getErrorMessage';
 import { SkeletonPage } from './components/Skeleton/Skeleton';
 import PostLoginSurvey from './components/PostLoginSurvey/PostLoginSurvey';
@@ -376,7 +377,24 @@ function AppContent({
           />
           <Route
             path="/upload"
-            element={<UploadPage setErrorMessage={setErrorMessage} />}
+            element={
+              <DomRecoveryBoundary
+                onError={(error, errorInfo) =>
+                  reportClientError(error, {
+                    surface: 'upload',
+                    componentStack: errorInfo.componentStack,
+                  })
+                }
+                onRecover={(error) =>
+                  reportClientError(error, {
+                    surface: 'upload',
+                    recovered: true,
+                  })
+                }
+              >
+                <UploadPage setErrorMessage={setErrorMessage} />
+              </DomRecoveryBoundary>
+            }
           />
           <Route path="/print" element={<PrintPage />} />
           <Route path="/image-occlusion" element={<ImageOcclusionPage />} />

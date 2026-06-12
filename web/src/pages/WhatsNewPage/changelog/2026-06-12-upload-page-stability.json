@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-upload-page-stability",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Upload page recovers automatically when a browser extension interferes with it"
+}
