@@ -295,6 +295,21 @@ describe('AnkiConnectClient', () => {
     });
   });
 
+  test('guiBrowse posts the query and returns the matched card ids', async () => {
+    const fetchImpl = makeFetch({ result: [1502298033753], error: null });
+    const client = new AnkiConnectClient('http://localhost:8765', fetchImpl);
+
+    const cardIds = await client.guiBrowse('nid:1502298033753');
+
+    expect(cardIds).toEqual([1502298033753]);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'guiBrowse',
+      version: 6,
+      params: { query: 'nid:1502298033753' },
+    });
+  });
+
   test('throws AnkiConnectUnreachableError when fetch rejects', async () => {
     const fetchImpl = jest.fn(async () => {
       throw new Error('connect ECONNREFUSED');

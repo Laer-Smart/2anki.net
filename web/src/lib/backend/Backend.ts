@@ -800,6 +800,21 @@ export class Backend {
     }
   }
 
+  async openAnkifyConflictInAnki(id: number): Promise<{ opened: boolean }> {
+    const response = await post(
+      `${this.baseURL}ankify/conflicts/${id}/open-in-anki`,
+      {}
+    );
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ message: response.statusText }));
+      throw new Error(error.message ?? 'Failed to open in Anki');
+    }
+    const body = await response.json().catch(() => ({ opened: false }));
+    return { opened: body.opened === true };
+  }
+
   async checkAnkifyActiveClientReady(): Promise<{
     ready: boolean;
     reason?: 'no_active_client' | 'unreachable' | 'error';
