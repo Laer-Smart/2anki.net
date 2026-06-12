@@ -48,6 +48,16 @@ export function resolveTemplateFieldIndices(
   const backFieldIndex =
     referencedFieldOrds(template.afmt, ordByName).find(
       (ord) => ord !== frontFieldIndex
-    ) ?? (frontFieldIndex === 1 ? 0 : 1);
+    ) ?? firstFieldOrdExcept(noteType.fields, frontFieldIndex);
   return { frontFieldIndex, backFieldIndex };
+}
+
+function firstFieldOrdExcept(
+  fields: NoteType['fields'],
+  excludedOrd: number
+): number {
+  const sorted = [...fields].sort((a, b) => a.ord - b.ord);
+  const fallback = sorted.find((field) => field.ord !== excludedOrd);
+  if (fallback) return fallback.ord;
+  return excludedOrd === 1 ? 0 : 1;
 }
