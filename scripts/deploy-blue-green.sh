@@ -20,6 +20,12 @@ LOCK_FILE="${DEPLOY_LOCK_FILE:-$HOME/.2anki-deploy.lock}"
 ECOSYSTEM="${ECOSYSTEM:-$SERVER_DIR/ecosystem.blue-green.config.js}"
 PUBLIC_HEALTH_URL="${PUBLIC_HEALTH_URL:-https://2anki.net/api/version}"
 HEALTH_PATH="/api/version"
+# Seconds to let Apache's pre-reload worker children — which `apachectl graceful`
+# keeps alive on the OLD config until they finish their current request — drain
+# against the still-live old color before we kill it. Without this pause the old
+# color disappears while those children are still proxying to its port, and they
+# return 503 (AH00957 "Connection refused") to whoever they were serving.
+OLD_COLOR_DRAIN_SECONDS="${OLD_COLOR_DRAIN_SECONDS:-15}"
 DRY_RUN="${DRY_RUN:-0}"
 
 : "${GIT_SHA:?GIT_SHA must be exported to the sha being deployed}"
@@ -117,9 +123,21 @@ if ! wait_for_sha "$PUBLIC_HEALTH_URL"; then
   exit 1
 fi
 
-# New color is live and verified. Drain the old color via SIGINT -> the
-# graceful-shutdown handler (bounded by kill_timeout), then remove it. A missing
-# old color (first-run bootstrap leaves it named "server") is not fatal here.
+# New color is live and verified, but `apachectl graceful` keeps the pre-reload
+# worker children alive on the OLD config until they finish their current
+# request — those children still proxy to :$CURRENT_PORT. Wait for them to turn
+# over before killing the old color, or they hit a dead port and return 503
+# (the AH00957 "Connection refused" seen in the Apache error log at swap time).
+if [ "$DRY_RUN" = "1" ]; then
+  log "DRY_RUN: skip ${OLD_COLOR_DRAIN_SECONDS}s old-config drain"
+else
+  log "letting Apache's old-config workers drain for ${OLD_COLOR_DRAIN_SECONDS}s before retiring :$CURRENT_PORT"
+  sleep "$OLD_COLOR_DRAIN_SECONDS"
+fi
+
+# Drain the old color via SIGINT -> the graceful-shutdown handler (bounded by
+# kill_timeout), then remove it. A missing old color (first-run bootstrap leaves
+# it named "server") is not fatal here.
 run pm2 stop "server-$CURRENT" || log "could not stop server-$CURRENT (already gone?)"
 run pm2 delete "server-$CURRENT" || log "could not delete server-$CURRENT (already gone?)"
 run pm2 save
