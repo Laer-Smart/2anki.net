@@ -11,6 +11,6 @@ export const getAudioUrl = (block: AudioBlockObjectResponse): string | null => {
     case 'file':
       return block.audio.file.url;
     default:
-      return 'unsupported audio: ' + JSON.stringify(block);
+      return null;
   }
 };
