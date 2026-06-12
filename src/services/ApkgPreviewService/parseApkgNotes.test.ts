@@ -320,9 +320,7 @@ describe('parseApkgNotes source media sanitization', () => {
       mediaManifestRaw: Buffer.from('stub'),
       mediaEntries: new Map([['0', Buffer.from('img')]]),
     });
-    parseMediaManifest.mockReturnValue(
-      new Map([['2anki-abcdef.png', '0']])
-    );
+    parseMediaManifest.mockReturnValue(new Map([['2anki-abcdef.png', '0']]));
 
     const result = await parseApkgNotes(Buffer.alloc(0));
 
