@@ -21,6 +21,8 @@ import {
 import { GetUploadFunnelUseCase } from '../usecases/ops/GetUploadFunnelUseCase';
 import { SendPriceLockInEmailsUseCase } from '../usecases/ops/SendPriceLockInEmailsUseCase';
 import { CreatePricingV2PricesUseCase } from '../usecases/ops/CreatePricingV2PricesUseCase';
+import { GetOrphanedSubscriptionsUseCase } from '../usecases/ops/GetOrphanedSubscriptionsUseCase';
+import { ReconcileOrphanedSubscriptionsUseCase } from '../usecases/ops/ReconcileOrphanedSubscriptionsUseCase';
 
 const PRICE_LOCK_IN_MAX_BATCH = 500;
 
@@ -51,7 +53,9 @@ class OpsController {
     private readonly setFeatureFlagUseCase?: SetFeatureFlagUseCase,
     private readonly getUploadFunnelUseCase?: GetUploadFunnelUseCase,
     private readonly sendPriceLockInEmailsUseCase?: SendPriceLockInEmailsUseCase,
-    private readonly createPricingV2PricesUseCase?: CreatePricingV2PricesUseCase
+    private readonly createPricingV2PricesUseCase?: CreatePricingV2PricesUseCase,
+    private readonly getOrphanedSubscriptionsUseCase?: GetOrphanedSubscriptionsUseCase,
+    private readonly reconcileOrphanedSubscriptionsUseCase?: ReconcileOrphanedSubscriptionsUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -391,6 +395,60 @@ class OpsController {
     } catch (error) {
       console.error('[ops] getUploadFunnel failed', error);
       res.status(500).json({ message: 'Failed to load upload funnel' });
+    }
+  }
+
+  async getOrphanedSubscriptions(_req: express.Request, res: express.Response) {
+    if (this.getOrphanedSubscriptionsUseCase == null) {
+      res
+        .status(500)
+        .json({ message: 'Orphaned subscriptions not configured' });
+      return;
+    }
+    try {
+      const orphans = await this.getOrphanedSubscriptionsUseCase.execute();
+      res.status(200).json({
+        count: orphans.length,
+        orphans: orphans.map((orphan) => ({
+          id: orphan.id,
+          email: orphan.email,
+          stripeProductId: orphan.stripeProductId,
+          createdAt:
+            orphan.createdAt == null ? null : orphan.createdAt.toISOString(),
+          customerId: orphan.customerId,
+        })),
+      });
+    } catch (error) {
+      console.error('[ops] getOrphanedSubscriptions failed', error);
+      res
+        .status(500)
+        .json({ message: 'Failed to load orphaned subscriptions' });
+    }
+  }
+
+  async reconcileOrphanedSubscriptions(
+    _req: express.Request,
+    res: express.Response
+  ) {
+    if (this.reconcileOrphanedSubscriptionsUseCase == null) {
+      res
+        .status(500)
+        .json({ message: 'Orphaned subscription reconcile not configured' });
+      return;
+    }
+    try {
+      const result = await this.reconcileOrphanedSubscriptionsUseCase.execute();
+      res.status(200).json({
+        found: result.found,
+        emailed: result.emailed,
+        skippedRecentlyNotified: result.skippedRecentlyNotified,
+        skippedNoEmail: result.skippedNoEmail,
+      });
+    } catch (error) {
+      console.error('[ops] reconcileOrphanedSubscriptions failed', error);
+      res
+        .status(500)
+        .json({ message: 'Failed to reconcile orphaned subscriptions' });
     }
   }
 }

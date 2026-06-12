@@ -15,6 +15,12 @@ import {
   deleteInactiveUsers,
   DeleteInactiveUsersResponse,
 } from './deleteInactiveUsers';
+import {
+  getOrphanedSubscriptions,
+  reconcileOrphanedSubscriptions,
+  OrphanedSubscriptionsResponse,
+  ReconcileOrphanedSubscriptionsResponse,
+} from './orphanedSubscriptions';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
@@ -48,6 +54,12 @@ function formatPricesResult(result: CreatePricingV2PricesResponse): string {
   return `${mode} mode — ${lines.join('; ')}`;
 }
 
+function formatReconcileResult(
+  result: ReconcileOrphanedSubscriptionsResponse
+): string {
+  return `${result.found} found, ${result.emailed} emailed, ${result.skippedRecentlyNotified} skipped (notified in last 14 days), ${result.skippedNoEmail} skipped (no email).`;
+}
+
 async function callInactivityWarnings(
   dryRun: boolean
 ): Promise<{ count: number; dryRun: boolean }> {
@@ -75,6 +87,11 @@ export default function CommandsTab() {
   const [lockInMessage, setLockInMessage] = useState('');
   const [deleteStatus, setDeleteStatus] = useState<Status>('idle');
   const [deleteMessage, setDeleteMessage] = useState('');
+  const [orphanStatus, setOrphanStatus] = useState<Status>('idle');
+  const [orphanMessage, setOrphanMessage] = useState('');
+  const [orphans, setOrphans] = useState<
+    OrphanedSubscriptionsResponse['orphans']
+  >([]);
 
   const run = async (dryRun: boolean) => {
     setStatus('loading');
@@ -145,6 +162,41 @@ export default function CommandsTab() {
     } catch (error) {
       setDeleteStatus('error');
       setDeleteMessage(
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+  };
+
+  const runOrphanPreview = async () => {
+    setOrphanStatus('loading');
+    setOrphanMessage('');
+    try {
+      const result = await getOrphanedSubscriptions();
+      setOrphans(result.orphans);
+      setOrphanStatus('success');
+      setOrphanMessage(
+        `${result.count} orphaned active subscription${
+          result.count === 1 ? '' : 's'
+        }.`
+      );
+    } catch (error) {
+      setOrphanStatus('error');
+      setOrphanMessage(
+        error instanceof Error ? error.message : 'Unknown error'
+      );
+    }
+  };
+
+  const runOrphanReconcile = async () => {
+    setOrphanStatus('loading');
+    setOrphanMessage('');
+    try {
+      const result = await reconcileOrphanedSubscriptions();
+      setOrphanStatus('success');
+      setOrphanMessage(formatReconcileResult(result));
+    } catch (error) {
+      setOrphanStatus('error');
+      setOrphanMessage(
         error instanceof Error ? error.message : 'Unknown error'
       );
     }
@@ -329,6 +381,56 @@ export default function CommandsTab() {
       {deleteStatus === 'error' && deleteMessage && (
         <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
           {deleteMessage}
+        </div>
+      )}
+
+      <section className={`${sharedStyles.surface} ${styles.card}`}>
+        <h2 className={styles.cardTitle}>Orphaned subscriptions</h2>
+        <p className={styles.panelSubtitle}>
+          Finds active subscriptions where the paid email, linked email, and
+          Stripe customer id match no account — so the payer is not getting
+          premium. Preview first, then email each payer how to connect their
+          subscription. Nothing is auto-created or auto-linked. An address
+          emailed in the last 14 days is skipped.
+        </p>
+        <div className={styles.controls}>
+          <button
+            type="button"
+            className={sharedStyles.btnSmall}
+            onClick={runOrphanPreview}
+            disabled={orphanStatus === 'loading'}
+          >
+            {orphanStatus === 'loading' ? 'Working…' : 'Preview orphans'}
+          </button>
+          <button
+            type="button"
+            className={sharedStyles.btnSmall}
+            onClick={runOrphanReconcile}
+            disabled={orphanStatus === 'loading'}
+          >
+            Send recovery emails
+          </button>
+        </div>
+        {orphans.length > 0 && (
+          <ul className={styles.panelSubtitle}>
+            {orphans.map((orphan) => (
+              <li key={orphan.id} style={{ fontWeight: 500 }}>
+                <span data-hj-suppress>{orphan.email}</span>
+                {orphan.stripeProductId ? ` — ${orphan.stripeProductId}` : ''}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {orphanStatus === 'success' && orphanMessage && (
+        <div className={`${sharedStyles.alertSuccess} ${styles.banner}`}>
+          {orphanMessage}
+        </div>
+      )}
+      {orphanStatus === 'error' && orphanMessage && (
+        <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
+          {orphanMessage}
         </div>
       )}
     </>

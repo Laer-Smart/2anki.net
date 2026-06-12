@@ -55,6 +55,10 @@ import { ListFeatureFlagsUseCase } from '../usecases/ops/ListFeatureFlagsUseCase
 import { SetFeatureFlagUseCase } from '../usecases/ops/SetFeatureFlagUseCase';
 import { CreatePricingV2PricesUseCase } from '../usecases/ops/CreatePricingV2PricesUseCase';
 import { getStripe } from '../lib/integrations/stripe';
+import { OrphanedSubscriptionsRepository } from '../data_layer/OrphanedSubscriptionsRepository';
+import { SubscriptionRecoveryNotificationsRepository } from '../data_layer/SubscriptionRecoveryNotificationsRepository';
+import { GetOrphanedSubscriptionsUseCase } from '../usecases/ops/GetOrphanedSubscriptionsUseCase';
+import { ReconcileOrphanedSubscriptionsUseCase } from '../usecases/ops/ReconcileOrphanedSubscriptionsUseCase';
 
 const OpsRouter = () => {
   const router = express.Router();
@@ -132,7 +136,15 @@ const OpsRouter = () => {
       emailService,
       getEventsSink()
     ),
-    new CreatePricingV2PricesUseCase(getStripe())
+    new CreatePricingV2PricesUseCase(getStripe()),
+    new GetOrphanedSubscriptionsUseCase(
+      new OrphanedSubscriptionsRepository(database)
+    ),
+    new ReconcileOrphanedSubscriptionsUseCase(
+      new OrphanedSubscriptionsRepository(database),
+      new SubscriptionRecoveryNotificationsRepository(database),
+      emailService
+    )
   );
 
   /**
@@ -564,6 +576,52 @@ const OpsRouter = () => {
    */
   router.get('/api/ops/upload-funnel', RequireOpsAccess, (req, res) =>
     controller.getUploadFunnel(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/subscriptions/orphaned:
+   *   get:
+   *     summary: List active subscriptions with no account receiving premium
+   *     description: |
+   *       Returns active subscriptions whose paid email, linked email, and Stripe
+   *       customer id match no 2anki account, so the payer is not getting premium.
+   *       Read-only preview — sends nothing. Internal endpoint locked to the ops
+   *       owner — returns 404 for everyone else.
+   *     tags: [Ops]
+   *     responses:
+   *       200:
+   *         description: Orphan count and list
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.get('/api/ops/subscriptions/orphaned', RequireOpsAccess, (req, res) =>
+    controller.getOrphanedSubscriptions(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/subscriptions/reconcile:
+   *   post:
+   *     summary: Email orphaned subscribers a recovery path
+   *     description: |
+   *       Finds active subscriptions with no account receiving premium and emails
+   *       each payer how to connect their subscription — register with the paid
+   *       email, or link from an existing account. Idempotent: an email address
+   *       notified within the last 14 days is skipped. Never auto-creates or
+   *       auto-links accounts. Internal endpoint locked to the ops owner — returns
+   *       404 for everyone else.
+   *     tags: [Ops]
+   *     responses:
+   *       200:
+   *         description: Summary with found, emailed, skippedRecentlyNotified, skippedNoEmail
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.post(
+    '/api/ops/subscriptions/reconcile',
+    RequireOpsAccess,
+    (req, res) => controller.reconcileOrphanedSubscriptions(req, res)
   );
 
   return router;
