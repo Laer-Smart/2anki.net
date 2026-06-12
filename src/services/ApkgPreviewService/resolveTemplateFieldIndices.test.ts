@@ -154,4 +154,26 @@ describe('resolveTemplateFieldIndices', () => {
       backFieldIndex: 0,
     });
   });
+
+  it('falls back to the first non-front field when the front is past field 1', () => {
+    const noteType = makeNoteType({
+      fields: [
+        { name: 'Audio', ord: 0 },
+        { name: 'Word', ord: 1 },
+        { name: 'Meaning', ord: 2 },
+      ],
+      templates: [
+        {
+          name: 'Listening',
+          ord: 0,
+          qfmt: '{{Meaning}}',
+          afmt: '{{FrontSide}}',
+        },
+      ],
+    });
+    expect(resolveTemplateFieldIndices(noteType)).toEqual({
+      frontFieldIndex: 2,
+      backFieldIndex: 0,
+    });
+  });
 });
