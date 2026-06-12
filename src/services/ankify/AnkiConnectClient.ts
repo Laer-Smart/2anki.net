@@ -169,6 +169,10 @@ export class AnkiConnectClient {
     return this.invoke('version');
   }
 
+  async guiBrowse(query: string): Promise<number[]> {
+    return this.invoke('guiBrowse', { query });
+  }
+
   private async invoke<T>(
     action: string,
     params?: Record<string, unknown>

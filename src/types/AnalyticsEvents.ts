@@ -70,6 +70,7 @@ export const KNOWN_EVENTS = new Set([
   'lock_in_banner_shown',
   'lock_in_banner_clicked',
   'ankify_stats_viewed',
+  'ankify_open_in_anki_clicked',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;

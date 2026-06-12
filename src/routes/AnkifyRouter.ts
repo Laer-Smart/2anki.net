@@ -28,6 +28,7 @@ import { ListNotionSubscriptionsUseCase } from '../usecases/ankify/ListNotionSub
 import { DeleteNotionSubscriptionUseCase } from '../usecases/ankify/DeleteNotionSubscriptionUseCase';
 import { ListConflictsUseCase } from '../usecases/ankify/ListConflictsUseCase';
 import { ResolveConflictUseCase } from '../usecases/ankify/ResolveConflictUseCase';
+import { OpenConflictInAnkiUseCase } from '../usecases/ankify/OpenConflictInAnkiUseCase';
 import { ListNotionDatabasesUseCase } from '../usecases/ankify/ListNotionDatabasesUseCase';
 import { CreateReviewTrackerDatabaseUseCase } from '../usecases/ankify/CreateReviewTrackerDatabaseUseCase';
 import { CheckActiveClientReadinessUseCase } from '../usecases/ankify/CheckActiveClientReadinessUseCase';
@@ -364,6 +365,7 @@ const AnkifyRouter = () => {
       ankiConnectFactory,
       buildNotionConflictResolver
     ),
+    new OpenConflictInAnkiUseCase(repo, conflictsRepo, ankiConnectFactory),
     new ListNotionDatabasesUseCase(new NotionRepository(db), {
       listDatabases: listNotionDatabasesViaSearch,
     }),
@@ -706,6 +708,33 @@ const AnkifyRouter = () => {
     '/api/ankify/conflicts/:id/resolve',
     RequireAnkifyAccess,
     (req, res) => controller.resolveConflict(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/conflicts/{id}/open-in-anki:
+   *   post:
+   *     summary: Open the conflicting note in the user's hosted Anki browser
+   *     description: Allowlisted endpoint. Looks up the owner's conflict row, derives its Anki note id, and invokes AnkiConnect guiBrowse(nid:<id>) so Anki's browser focuses that note. Returns { opened: false } when the client is offline.
+   *     tags: [Ankify]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: '{ opened: boolean } — opened is false when Anki is offline'
+   *       400:
+   *         description: Invalid conflict id
+   *       404:
+   *         description: Conflict not found for this user
+   */
+  router.post(
+    '/api/ankify/conflicts/:id/open-in-anki',
+    RequireAnkifyAccess,
+    (req, res) => controller.openConflictInAnki(req, res)
   );
 
   /**
