@@ -376,7 +376,7 @@ const AnkifyRouter = () => {
     new CheckAnkiWebStatusUseCase(repo, ankiConnectFactory),
     new ReissueAnkifySessionUrlUseCase(rac),
     new ValidateAnkifySessionTokenUseCase(rac, authService),
-    new GetAnkifyStatsUseCase(repo, mappings, ankiConnectFactory)
+    new GetAnkifyStatsUseCase(repo, ankiConnectFactory)
   );
 
   /**
