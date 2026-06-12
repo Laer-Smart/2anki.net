@@ -18,6 +18,7 @@ import {
 import {
   AnkiConnectClient,
   AnkiConnectUnreachableError,
+  AnkiNoteInfo,
 } from '../../services/ankify/AnkiConnectClient';
 import {
   ANKIFY_BASIC_MODEL,
@@ -106,6 +107,12 @@ export interface SyncNotionPageResult {
   ankiWebSync: AnkiWebSyncStatus;
   ankiWebSyncError: string | null;
   diagnostic: SyncDiagnostic | null;
+}
+
+interface ModTimePrefilter {
+  mappingsByBlock: Map<string, AnkifySyncMapping>;
+  skipBlockIds: Set<string>;
+  infoByNoteId: Map<number, AnkiNoteInfo>;
 }
 
 export type AnkiConnectFactory = (
@@ -443,6 +450,7 @@ export class SyncNotionPageToRacUseCase {
     await this.ensureModelsForOverrides(ac, client, overridesByPage);
 
     const existingMediaNames = await this.loadExistingMediaNames(ac);
+    const prefilter = await this.buildModTimePrefilter(ac, client, cards);
 
     for (const card of cards) {
       await this.processCard({
@@ -459,6 +467,9 @@ export class SyncNotionPageToRacUseCase {
           card,
           input.notionPageId
         ),
+        existing: prefilter.mappingsByBlock.get(card.notion_block_id) ?? null,
+        unchangedByModTime: prefilter.skipBlockIds.has(card.notion_block_id),
+        prefetchedInfo: prefilter.infoByNoteId,
       });
     }
 
@@ -473,6 +484,98 @@ export class SyncNotionPageToRacUseCase {
     });
 
     await this.runFinalAnkiWebSync(ac, result);
+  }
+
+  private async probeAnkiConnectActions(
+    ac: AnkiConnectClient
+  ): Promise<Set<string>> {
+    try {
+      const actions = await ac.apiReflect();
+      return new Set(actions);
+    } catch {
+      return new Set<string>();
+    }
+  }
+
+  private async buildModTimePrefilter(
+    ac: AnkiConnectClient,
+    client: AnkifyClient,
+    cards: WalkedNotionFlashcard[]
+  ): Promise<ModTimePrefilter> {
+    const mappingsByBlock = await this.loadExistingMappings(client, cards);
+    const skipBlockIds = new Set<string>();
+    const infoByNoteId = new Map<number, AnkiNoteInfo>();
+    if (mappingsByBlock.size === 0) {
+      return { mappingsByBlock, skipBlockIds, infoByNoteId };
+    }
+
+    const actions = await this.probeAnkiConnectActions(ac);
+    if (!actions.has('notesModTime')) {
+      return { mappingsByBlock, skipBlockIds, infoByNoteId };
+    }
+
+    const noteIds = [...mappingsByBlock.values()].map((m) => m.anki_note_id);
+    const modTimes = await ac.notesModTime(noteIds);
+    const modByNoteId = new Map(modTimes.map((m) => [m.noteId, m.mod]));
+    const cardByBlock = new Map(cards.map((c) => [c.notion_block_id, c]));
+
+    const changedNoteIds: number[] = [];
+    for (const [blockId, mapping] of mappingsByBlock) {
+      const card = cardByBlock.get(blockId);
+      if (card == null) {
+        continue;
+      }
+      if (this.isUnchangedSinceLastSync(card, mapping, modByNoteId)) {
+        skipBlockIds.add(blockId);
+      } else {
+        changedNoteIds.push(mapping.anki_note_id);
+      }
+    }
+
+    if (changedNoteIds.length > 0) {
+      const infos = await ac.notesInfo(changedNoteIds);
+      for (const info of infos) {
+        if (info?.noteId != null) {
+          infoByNoteId.set(info.noteId, info);
+        }
+      }
+    }
+    return { mappingsByBlock, skipBlockIds, infoByNoteId };
+  }
+
+  private async loadExistingMappings(
+    client: AnkifyClient,
+    cards: WalkedNotionFlashcard[]
+  ): Promise<Map<string, AnkifySyncMapping>> {
+    const mappingsByBlock = new Map<string, AnkifySyncMapping>();
+    for (const card of cards) {
+      const mapping = await this.mappings.findBySourceId(
+        client.id,
+        card.notion_block_id
+      );
+      if (mapping != null) {
+        mappingsByBlock.set(card.notion_block_id, mapping);
+      }
+    }
+    return mappingsByBlock;
+  }
+
+  private isUnchangedSinceLastSync(
+    card: WalkedNotionFlashcard,
+    mapping: AnkifySyncMapping,
+    modByNoteId: Map<number, number>
+  ): boolean {
+    const ankiMod = modByNoteId.get(mapping.anki_note_id);
+    if (ankiMod == null) {
+      return false;
+    }
+    const lastSyncedSeconds = Math.floor(
+      mapping.last_synced_at.getTime() / 1000
+    );
+    const notionUnchanged =
+      card.notion_last_edited_at.getTime() <= mapping.last_synced_at.getTime();
+    const ankiUnchanged = ankiMod <= lastSyncedSeconds;
+    return notionUnchanged && ankiUnchanged;
   }
 
   private cardDeckName(
@@ -832,6 +935,9 @@ export class SyncNotionPageToRacUseCase {
     existingMediaNames: Set<string>;
     deckName: string;
     overrides: AnkifyTemplateOverrides | null;
+    existing: AnkifySyncMapping | null;
+    unchangedByModTime: boolean;
+    prefetchedInfo: Map<number, AnkiNoteInfo>;
   }): Promise<void> {
     const {
       card,
@@ -843,13 +949,16 @@ export class SyncNotionPageToRacUseCase {
       existingMediaNames,
       deckName,
       overrides,
+      existing,
+      unchangedByModTime,
+      prefetchedInfo,
     } = args;
+    if (existing != null && unchangedByModTime) {
+      result.unchanged += 1;
+      return;
+    }
     try {
       await this.uploadCardMedia(ac, card, result, existingMediaNames);
-      const existing = await this.mappings.findBySourceId(
-        client.id,
-        card.notion_block_id
-      );
       if (existing == null) {
         const ankiNoteId = await ac.addNote(
           this.buildBasicNote({
@@ -889,6 +998,7 @@ export class SyncNotionPageToRacUseCase {
         result,
         deckName,
         overrides,
+        prefetchedInfo,
       });
     } catch (error) {
       result.errors.push(
@@ -907,11 +1017,13 @@ export class SyncNotionPageToRacUseCase {
     result: SyncNotionPageResult;
     deckName: string;
     overrides: AnkifyTemplateOverrides | null;
+    prefetchedInfo: Map<number, AnkiNoteInfo>;
   }): Promise<void> {
     const { card, existing, client, ac, result, deckName, overrides } = args;
     const lastSyncedAt = existing.last_synced_at;
-    const ankiInfo = await ac.notesInfo([existing.anki_note_id]);
-    const ankiNote = ankiInfo[0];
+    const ankiNote =
+      args.prefetchedInfo.get(existing.anki_note_id) ??
+      (await ac.notesInfo([existing.anki_note_id]))[0];
 
     if (ankiNote?.noteId == null) {
       await this.mappings.deleteByAnkiNoteId(client.id, existing.anki_note_id);

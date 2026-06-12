@@ -310,6 +310,92 @@ describe('AnkiConnectClient', () => {
     });
   });
 
+  test('apiReflect posts the scopes+actions payload and returns the action names', async () => {
+    const fetchImpl = makeFetch({
+      result: { scopes: ['actions'], actions: ['notesModTime', 'multi'] },
+      error: null,
+    });
+    const client = new AnkiConnectClient('http://localhost:8765', fetchImpl);
+
+    const actions = await client.apiReflect();
+
+    expect(actions).toEqual(['notesModTime', 'multi']);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'apiReflect',
+      version: 6,
+      params: { scopes: ['actions'], actions: null },
+    });
+  });
+
+  test('apiReflect returns an empty list when the result lacks an actions array', async () => {
+    const fetchImpl = makeFetch({
+      result: { scopes: ['actions'] },
+      error: null,
+    });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const actions = await client.apiReflect();
+
+    expect(actions).toEqual([]);
+  });
+
+  test('notesModTime posts the note ids and returns id+mod pairs', async () => {
+    const fetchImpl = makeFetch({
+      result: [
+        { noteId: 900, mod: 1700000000 },
+        { noteId: 0, mod: 1700000005 },
+      ],
+      error: null,
+    });
+    const client = new AnkiConnectClient('http://localhost:8765', fetchImpl);
+
+    const modTimes = await client.notesModTime([900, 0]);
+
+    expect(modTimes).toEqual([
+      { noteId: 900, mod: 1700000000 },
+      { noteId: 0, mod: 1700000005 },
+    ]);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'notesModTime',
+      version: 6,
+      params: { notes: [900, 0] },
+    });
+  });
+
+  test('multi posts the wrapped actions array and returns per-action results in order', async () => {
+    const fetchImpl = makeFetch({
+      result: [
+        { result: 111, error: null },
+        { result: null, error: 'cannot create note because it is a duplicate' },
+      ],
+      error: null,
+    });
+    const client = new AnkiConnectClient('http://localhost:8765', fetchImpl);
+
+    const results = await client.multi([
+      { action: 'addNote', params: { note: { deckName: 'D' } } },
+      { action: 'addNote', params: { note: { deckName: 'E' } } },
+    ]);
+
+    expect(results).toEqual([
+      { result: 111, error: null },
+      { result: null, error: 'cannot create note because it is a duplicate' },
+    ]);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'multi',
+      version: 6,
+      params: {
+        actions: [
+          { action: 'addNote', params: { note: { deckName: 'D' } } },
+          { action: 'addNote', params: { note: { deckName: 'E' } } },
+        ],
+      },
+    });
+  });
+
   test('throws AnkiConnectUnreachableError when fetch rejects', async () => {
     const fetchImpl = jest.fn(async () => {
       throw new Error('connect ECONNREFUSED');

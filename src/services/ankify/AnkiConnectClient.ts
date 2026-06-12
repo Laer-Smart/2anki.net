@@ -173,6 +173,22 @@ export class AnkiConnectClient {
     return this.invoke('guiBrowse', { query });
   }
 
+  async apiReflect(): Promise<string[]> {
+    const reflection = await this.invoke<AnkiApiReflection>('apiReflect', {
+      scopes: ['actions'],
+      actions: null,
+    });
+    return Array.isArray(reflection?.actions) ? reflection.actions : [];
+  }
+
+  async notesModTime(notes: number[]): Promise<AnkiNoteModTime[]> {
+    return this.invoke('notesModTime', { notes });
+  }
+
+  async multi(actions: AnkiConnectMultiAction[]): Promise<unknown[]> {
+    return this.invoke('multi', { actions });
+  }
+
   private async invoke<T>(
     action: string,
     params?: Record<string, unknown>
@@ -265,6 +281,26 @@ export interface AnkiNoteInfo {
   fields: Record<string, { value: string; order: number }>;
   cards?: number[];
   mod?: number;
+}
+
+export interface AnkiApiReflection {
+  scopes: string[];
+  actions: string[];
+}
+
+export interface AnkiNoteModTime {
+  noteId: number;
+  mod: number;
+}
+
+export interface AnkiConnectMultiAction {
+  action: string;
+  params?: Record<string, unknown>;
+}
+
+export interface AnkiConnectMultiResult<T = unknown> {
+  result: T;
+  error: string | null;
 }
 
 export const buildAnkiConnectUrl = (host: string, port: number): string =>
