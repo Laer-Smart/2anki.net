@@ -44,6 +44,10 @@ import {
   ConflictNotFoundError,
   ResolveConflictUseCase,
 } from '../usecases/ankify/ResolveConflictUseCase';
+import {
+  ConflictNotFoundForOpenError,
+  OpenConflictInAnkiUseCase,
+} from '../usecases/ankify/OpenConflictInAnkiUseCase';
 import { AnkifyConflictResolution } from '../entities/ankify';
 import {
   DockerUnavailableError,
@@ -82,6 +86,7 @@ class AnkifyController {
     private readonly refreshSubscriptionUseCase: RefreshAnkifySubscriptionUseCase,
     private readonly listConflictsUseCase: ListConflictsUseCase,
     private readonly resolveConflictUseCase: ResolveConflictUseCase,
+    private readonly openConflictInAnkiUseCase: OpenConflictInAnkiUseCase,
     private readonly listNotionDatabasesUseCase: ListNotionDatabasesUseCase,
     private readonly createReviewTrackerUseCase: CreateReviewTrackerDatabaseUseCase,
     private readonly checkReadinessUseCase: CheckActiveClientReadinessUseCase,
@@ -495,6 +500,32 @@ class AnkifyController {
       res.status(204).send();
     } catch (error) {
       if (error instanceof ConflictNotFoundError) {
+        res.status(404).json({ message: 'Conflict not found' });
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async openConflictInAnki(req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const id = Number.parseInt(req.params.id, 10);
+    if (!Number.isInteger(id)) {
+      res.status(400).json({ message: 'Invalid conflict id' });
+      return;
+    }
+    try {
+      const result = await this.openConflictInAnkiUseCase.execute({
+        id,
+        owner,
+      });
+      track('ankify_open_in_anki_clicked', {
+        userId: owner,
+        props: { opened: result.opened },
+      });
+      res.status(200).json({ opened: result.opened });
+    } catch (error) {
+      if (error instanceof ConflictNotFoundForOpenError) {
         res.status(404).json({ message: 'Conflict not found' });
         return;
       }

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import sharedStyles from '../../../styles/shared.module.css';
@@ -12,10 +13,15 @@ interface Props {
 
 const CONFLICTS_KEY = ['ankify-conflicts'];
 const SUBSCRIPTIONS_KEY = ['ankify-subscriptions'];
+const ANKI_OFFLINE_MESSAGE =
+  "Anki isn't connected right now. Open Anki and try again.";
 
 export default function SyncConflicts({ backend, embedded = false }: Props) {
   const api = backend ?? get2ankiApi();
   const queryClient = useQueryClient();
+  const [offlineConflictId, setOfflineConflictId] = useState<number | null>(
+    null
+  );
 
   const conflicts = useQuery({
     queryKey: CONFLICTS_KEY,
@@ -37,6 +43,14 @@ export default function SyncConflicts({ backend, embedded = false }: Props) {
       resolution: 'keep_notion' | 'keep_anki' | 'dismissed';
     }) => api.resolveAnkifyConflict(id, resolution),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: CONFLICTS_KEY }),
+  });
+
+  const openInAnki = useMutation({
+    mutationFn: (id: number) => api.openAnkifyConflictInAnki(id),
+    onSuccess: (result, id) => {
+      setOfflineConflictId(result.opened ? null : id);
+    },
+    onError: (_error, id) => setOfflineConflictId(id),
   });
 
   const items = conflicts.data ?? [];
@@ -121,7 +135,23 @@ export default function SyncConflicts({ backend, embedded = false }: Props) {
               >
                 Decide later
               </button>
+              <button
+                type="button"
+                className={`${sharedStyles.btnSmall} ${styles.inlineButton}`}
+                onClick={() => openInAnki.mutate(conflict.id)}
+                disabled={
+                  openInAnki.isPending &&
+                  openInAnki.variables === conflict.id
+                }
+              >
+                Open in Anki
+              </button>
             </div>
+            {offlineConflictId === conflict.id && (
+              <p className={styles.emptyLine} role="status">
+                {ANKI_OFFLINE_MESSAGE}
+              </p>
+            )}
           </article>
         );
       })}
