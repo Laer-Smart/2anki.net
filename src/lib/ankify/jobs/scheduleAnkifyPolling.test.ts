@@ -35,6 +35,7 @@ const makeSubscriptions =
       setEnabled: jest.fn(),
       deleteById: jest.fn(),
       recordPoll: jest.fn(),
+      recordObjectType: jest.fn(),
     }) as unknown as jest.Mocked<AnkifyNotionSubscriptionsRepositoryInterface>;
 
 const makeUseCase = (): jest.Mocked<
@@ -91,6 +92,37 @@ describe('scheduleAnkifyPolling', () => {
     expect(useCase.execute).toHaveBeenCalledWith({
       owner: 42,
       notionPageId: 'live-page',
+      knownObjectType: null,
+      trigger: 'polling',
+    });
+
+    clearInterval(timer);
+  });
+
+  test('passes the remembered object type so the sync can skip the doomed page lookup', async () => {
+    const subscriptions = makeSubscriptions();
+    const useCase = makeUseCase();
+
+    const sub = sampleSubscription({
+      id: 9,
+      notion_page_id: 'database-page',
+      notion_object_type: 'database',
+    });
+    subscriptions.listEnabled.mockResolvedValue([sub]);
+    subscriptions.findByOwnerAndPageId.mockResolvedValue(sub);
+
+    const timer = scheduleAnkifyPolling(
+      subscriptions,
+      useCase as unknown as SyncNotionPageToRacUseCase,
+      { intervalMs: 5 }
+    );
+
+    await waitForTick();
+
+    expect(useCase.execute).toHaveBeenCalledWith({
+      owner: 42,
+      notionPageId: 'database-page',
+      knownObjectType: 'database',
       trigger: 'polling',
     });
 

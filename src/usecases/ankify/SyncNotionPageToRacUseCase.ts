@@ -13,8 +13,12 @@ import {
   AnkifyClient,
   AnkifyNotionSubscription,
   AnkifySyncMapping,
+  NotionObjectType,
 } from '../../entities/ankify';
-import { AnkiConnectClient } from '../../services/ankify/AnkiConnectClient';
+import {
+  AnkiConnectClient,
+  AnkiConnectUnreachableError,
+} from '../../services/ankify/AnkiConnectClient';
 import {
   ANKIFY_BASIC_MODEL,
   ankifyBasicCreateModelParams,
@@ -57,8 +61,23 @@ export interface SyncNotionPageInput {
   notionPageUrl?: string | null;
   notionPageIcon?: string | null;
   targetDeck?: string | null;
+  knownObjectType?: NotionObjectType | null;
   trigger: 'manual' | 'polling' | 'webhook';
   ankiConnectHost?: string;
+}
+
+export const ANKI_OFFLINE_SKIP_MESSAGE =
+  'Anki client offline — will retry next tick';
+
+export class AnkifyClientOfflineSkip {
+  readonly skipped = true as const;
+  constructor(public readonly subscriptionId: number | null) {}
+}
+
+export function isAnkifyClientOfflineSkip(
+  value: SyncNotionPageResult | AnkifyClientOfflineSkip
+): value is AnkifyClientOfflineSkip {
+  return value instanceof AnkifyClientOfflineSkip;
 }
 
 export interface NotionPageMeta {
@@ -69,7 +88,10 @@ export interface NotionPageMeta {
 
 export type NotionPageMetaFetcher = (
   token: string
-) => (notionPageId: string) => Promise<NotionPageMeta>;
+) => (
+  notionPageId: string,
+  knownObjectType?: NotionObjectType | null
+) => Promise<NotionPageMeta>;
 
 export type AnkiWebSyncStatus = 'synced' | 'failed' | 'skipped';
 
@@ -186,12 +208,23 @@ export class SyncNotionPageToRacUseCase {
     return cache;
   }
 
-  async execute(input: SyncNotionPageInput): Promise<SyncNotionPageResult> {
+  async execute(
+    input: SyncNotionPageInput
+  ): Promise<SyncNotionPageResult | AnkifyClientOfflineSkip> {
     const client = await this.clients.findActiveByOwner(input.owner);
     if (client == null) {
       throw new NoActiveAnkifyClientError();
     }
     await this.clients.touchLastActiveAt(client.id);
+
+    const ac = this.buildAnkiConnect(input, client);
+
+    if (
+      input.trigger === 'polling' &&
+      !(await this.isAnkiConnectReachable(ac))
+    ) {
+      return this.skipOfflinePoll(input);
+    }
 
     const token = await this.notionRepo.getNotionToken(String(input.owner));
     if (token == null || token.trim().length === 0) {
@@ -228,7 +261,7 @@ export class SyncNotionPageToRacUseCase {
     };
 
     try {
-      await this.runSync({ input, token, client, subscription, result });
+      await this.runSync({ input, token, client, subscription, result, ac });
       await this.subscriptions.recordPoll(subscription.id, {
         synced: true,
         error: summarizeCardErrors(result.errors),
@@ -258,6 +291,49 @@ export class SyncNotionPageToRacUseCase {
     return result;
   }
 
+  private buildAnkiConnect(
+    input: SyncNotionPageInput,
+    client: AnkifyClient
+  ): AnkiConnectClient {
+    return this.ankiConnect(
+      input.ankiConnectHost ?? 'localhost',
+      client.anki_port,
+      client.anki_connect_api_key
+    );
+  }
+
+  private async isAnkiConnectReachable(
+    ac: AnkiConnectClient
+  ): Promise<boolean> {
+    try {
+      await ac.ping();
+      return true;
+    } catch (error) {
+      if (error instanceof AnkiConnectUnreachableError) {
+        return false;
+      }
+      throw error;
+    }
+  }
+
+  private async skipOfflinePoll(
+    input: SyncNotionPageInput
+  ): Promise<AnkifyClientOfflineSkip> {
+    const existing = await this.subscriptions.findByOwnerAndPageId(
+      input.owner,
+      input.notionPageId
+    );
+    if (existing != null) {
+      await this.subscriptions.recordPoll(existing.id, {
+        error: ANKI_OFFLINE_SKIP_MESSAGE,
+      });
+    }
+    console.info(
+      `[ankify-polling] Anki client offline for owner ${input.owner}; skipped Notion fetch`
+    );
+    return new AnkifyClientOfflineSkip(existing?.id ?? null);
+  }
+
   private async resolvePageMeta(
     token: string,
     input: SyncNotionPageInput
@@ -273,7 +349,10 @@ export class SyncNotionPageToRacUseCase {
       return { pageTitle, pageUrl, pageIcon };
     }
     try {
-      const meta = await this.notionPageMeta(token)(input.notionPageId);
+      const meta = await this.notionPageMeta(token)(
+        input.notionPageId,
+        input.knownObjectType ?? null
+      );
       pageTitle = meta.title;
       pageUrl = meta.url;
       pageIcon = meta.icon;
@@ -327,13 +406,15 @@ export class SyncNotionPageToRacUseCase {
     client: AnkifyClient;
     subscription: AnkifyNotionSubscription;
     result: SyncNotionPageResult;
+    ac: AnkiConnectClient;
   }): Promise<void> {
-    const { input, token, client, subscription, result } = args;
+    const { input, token, client, subscription, result, ac } = args;
     const fetchChildren = this.notionFetcher(token);
     const { cards, diagnostic } = await this.walkSource(
       input.notionPageId,
       token,
-      fetchChildren
+      fetchChildren,
+      subscription
     );
     result.diagnostic = diagnostic;
 
@@ -341,11 +422,6 @@ export class SyncNotionPageToRacUseCase {
       this.emitZeroCardsEvent(input, diagnostic);
     }
 
-    const ac = this.ankiConnect(
-      input.ankiConnectHost ?? 'localhost',
-      client.anki_port,
-      client.anki_connect_api_key
-    );
     const parentDeckName = buildDeckName(
       subscription.target_deck,
       subscription.notion_page_title
@@ -565,13 +641,22 @@ export class SyncNotionPageToRacUseCase {
   private async walkSource(
     notionId: string,
     token: string,
-    fetchChildren: NotionBlockChildrenFetcher
+    fetchChildren: NotionBlockChildrenFetcher,
+    subscription: AnkifyNotionSubscription
   ): Promise<WalkNotionPageResult> {
+    if (subscription.notion_object_type === 'database') {
+      return walkNotionDatabaseForFlashcards(
+        notionId,
+        fetchChildren,
+        this.databasePagesFetcher(token)
+      );
+    }
     let pageResult: WalkNotionPageResult;
     try {
       pageResult = await walkNotionPageForFlashcards(notionId, fetchChildren);
     } catch (error) {
       if (isNotionDatabaseNotPageError(error)) {
+        await this.rememberObjectType(subscription, 'database');
         return walkNotionDatabaseForFlashcards(
           notionId,
           fetchChildren,
@@ -581,6 +666,7 @@ export class SyncNotionPageToRacUseCase {
       throw error;
     }
     if (pageResult.cards.length > 0) {
+      await this.rememberObjectType(subscription, 'page');
       return pageResult;
     }
     return this.walkDatabaseOrFallback(
@@ -589,6 +675,17 @@ export class SyncNotionPageToRacUseCase {
       fetchChildren,
       pageResult
     );
+  }
+
+  private async rememberObjectType(
+    subscription: AnkifyNotionSubscription,
+    objectType: NotionObjectType
+  ): Promise<void> {
+    if (subscription.notion_object_type === objectType) {
+      return;
+    }
+    subscription.notion_object_type = objectType;
+    await this.subscriptions.recordObjectType(subscription.id, objectType);
   }
 
   private async walkDatabaseOrFallback(

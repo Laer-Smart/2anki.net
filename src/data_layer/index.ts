@@ -22,6 +22,7 @@ import { AnkifySyncConflictsRepository } from './ankify/AnkifySyncConflictsRepos
 import { AnkifySyncLogsRepository } from './ankify/AnkifySyncLogsRepository';
 import { ankiConnectFactory } from '../services/ankify/buildAnkiConnectClient';
 import { notionBlockChildrenFetcherFactory } from '../services/ankify/notionBlockChildrenFetcher';
+import { buildNotionPageMetaFetcher } from '../services/ankify/buildNotionPageMetaFetcher';
 import { makeAnkifyTemplateOverridesProvider } from '../services/ankify/templateOverrides';
 import SettingsRepository from './SettingsRepository';
 import NotionRepository from './NotionRespository';
@@ -192,53 +193,7 @@ export const setupDatabase = async (database: Knex) => {
         notionRepo,
         ankiConnectFactory,
         notionBlockChildrenFetcherFactory,
-        (token) => {
-          const notion = new NotionClient({ auth: token });
-          return async (notionPageId) => {
-            const page = await notion.pages.retrieve({
-              page_id: notionPageId,
-            });
-            const props =
-              (page as { properties?: Record<string, unknown> }).properties ??
-              {};
-            let title: string | null = null;
-            for (const value of Object.values(props)) {
-              const entry = value as {
-                type?: string;
-                title?: { plain_text?: string }[];
-              };
-              if (entry.type === 'title' && Array.isArray(entry.title)) {
-                title = entry.title
-                  .map((t) => t.plain_text ?? '')
-                  .join('')
-                  .trim();
-                if (title.length === 0) title = null;
-                break;
-              }
-            }
-            const url = (page as { url?: string }).url ?? null;
-            const rawIcon = (
-              page as {
-                icon?:
-                  | { type: 'emoji'; emoji: string }
-                  | { type: 'external'; external: { url: string } }
-                  | { type: 'file'; file: { url: string } }
-                  | null;
-              }
-            ).icon;
-            let icon: string | null = null;
-            if (rawIcon != null) {
-              if (rawIcon.type === 'emoji') {
-                icon = rawIcon.emoji;
-              } else if (rawIcon.type === 'external') {
-                icon = rawIcon.external.url;
-              } else if (rawIcon.type === 'file') {
-                icon = rawIcon.file.url;
-              }
-            }
-            return { title, url, icon };
-          };
-        },
+        (token) => buildNotionPageMetaFetcher(token),
         undefined,
         undefined,
         (owner: number) =>

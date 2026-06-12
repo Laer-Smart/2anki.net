@@ -35,6 +35,7 @@ export const scheduleAnkifyPolling = (
         await useCase.execute({
           owner: sub.owner,
           notionPageId: sub.notion_page_id,
+          knownObjectType: current.notion_object_type ?? null,
           trigger: 'polling',
         });
       } catch (error) {

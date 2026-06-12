@@ -1,5 +1,6 @@
 import { Client as NotionClient } from '@notionhq/client';
 
+import { NotionObjectType } from '../../entities/ankify';
 import { isNotionDatabaseNotPageError } from '../NotionService/helpers/isNotionDatabaseNotPageError';
 
 export interface NotionPageMeta {
@@ -87,24 +88,37 @@ const fetchDatabaseMeta = async (
   return { title, url, icon };
 };
 
+const fetchPageMeta = async (
+  client: NotionMetaClient,
+  notionPageId: string
+): Promise<NotionPageMeta> => {
+  const page = await client.pages.retrieve({ page_id: notionPageId });
+  const props =
+    (page as { properties?: Record<string, unknown> }).properties ?? {};
+  const title = extractNotionPageTitle(props);
+  const url = (page as { url?: string }).url ?? null;
+  const icon = extractNotionPageIcon(
+    (page as { icon?: NotionPageIconBlock }).icon
+  );
+  return { title, url, icon };
+};
+
 export const buildNotionPageMetaFetcher =
   (
     token: string,
     clientFactory: (auth: string) => NotionMetaClient = (auth) =>
       new NotionClient({ auth }) as unknown as NotionMetaClient
   ) =>
-  async (notionPageId: string): Promise<NotionPageMeta> => {
+  async (
+    notionPageId: string,
+    knownObjectType?: NotionObjectType | null
+  ): Promise<NotionPageMeta> => {
     const notion = clientFactory(token);
+    if (knownObjectType === 'database') {
+      return fetchDatabaseMeta(notion, notionPageId);
+    }
     try {
-      const page = await notion.pages.retrieve({ page_id: notionPageId });
-      const props =
-        (page as { properties?: Record<string, unknown> }).properties ?? {};
-      const title = extractNotionPageTitle(props);
-      const url = (page as { url?: string }).url ?? null;
-      const icon = extractNotionPageIcon(
-        (page as { icon?: NotionPageIconBlock }).icon
-      );
-      return { title, url, icon };
+      return await fetchPageMeta(notion, notionPageId);
     } catch (error) {
       if (isNotionDatabaseNotPageError(error)) {
         return fetchDatabaseMeta(notion, notionPageId);
