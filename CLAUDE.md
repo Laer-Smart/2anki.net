@@ -94,6 +94,7 @@ Pricing v2 shipped 2026-06-10: $7.99/mo + $64/yr for new members, legacy $6/$60 
 ## Gotchas
 
 - **Stripe sync is manual only** — never put `updateStripeSubscriptions` on a cron or `setInterval`.
+- **The local git `pre-push` hook must NOT run `npm run lint:fix`.** `.git/hooks/` is untracked (never cloned), so this is per-machine. A `lint:fix` line there whole-tree-autofixes on every push, dirtying unrelated files (`DeckParser.ts`, `extractApkg.ts`, `UploadService.ts` recurred all session) whose fixes aren't staged and never ship — pure pollution that forces a `git checkout --` dance before each rebase/commit. Lint/format are already enforced non-destructively by CI (`pnpm lint` + `format:check`) and the Claude pre-push hooks (`oxfmt --check` / `oxlint` on changed files). If a fresh clone or teammate re-adds the `lint:fix` line, strip it.
 - **Never edit `src/data_layer/public/`** — Kanel-generated; rerun `pnpm kanel` instead.
 - Lead with the positive in `if/else` (`if (ready)` not `if (!ready)`) — Sonar S7735.
 - Use `value == null` to test "is the ID present?" — `!value` rejects falsy IDs like `0`.
