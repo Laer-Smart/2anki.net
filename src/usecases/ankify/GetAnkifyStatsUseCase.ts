@@ -1,0 +1,138 @@
+import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
+import { AnkifySyncMappingsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncMappingsRepository';
+import {
+  AnkiConnectClient,
+  AnkiConnectUnreachableError,
+  AnkiDeckStat,
+} from '../../services/ankify/AnkiConnectClient';
+import { computeReviewStreaks } from './ankifyStreak';
+
+export type AnkiConnectFactory = (
+  host: string,
+  port: number,
+  apiKey: string | null
+) => AnkiConnectClient;
+
+export interface AnkifyStatsDeck {
+  name: string;
+  new: number;
+  learning: number;
+  review: number;
+  total: number;
+}
+
+export interface AnkifyStatsReviewDay {
+  date: string;
+  count: number;
+}
+
+export interface AnkifyStatsOffline {
+  connected: false;
+}
+
+export interface AnkifyStatsConnected {
+  connected: true;
+  reviewedToday: number;
+  reviewedThisYear: number;
+  currentStreak: number;
+  longestStreak: number;
+  reviewsByDay: AnkifyStatsReviewDay[];
+  decks: AnkifyStatsDeck[];
+}
+
+export type AnkifyStatsResult = AnkifyStatsOffline | AnkifyStatsConnected;
+
+const oneYearAgo = (today: string): string => {
+  const cutoff = new Date(`${today}T00:00:00Z`);
+  cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 1);
+  return cutoff.toISOString().slice(0, 10);
+};
+
+export class GetAnkifyStatsUseCase {
+  constructor(
+    private readonly clients: AnkifyClientsRepositoryInterface,
+    private readonly mappings: AnkifySyncMappingsRepositoryInterface,
+    private readonly ankiConnect: AnkiConnectFactory
+  ) {}
+
+  async execute(
+    owner: number,
+    options: { today: string; ankiConnectHost?: string }
+  ): Promise<AnkifyStatsResult> {
+    const client = await this.clients.findActiveByOwner(owner);
+    if (client == null) {
+      return { connected: false };
+    }
+
+    const ac = this.ankiConnect(
+      options.ankiConnectHost ?? 'localhost',
+      client.anki_port,
+      client.anki_connect_api_key
+    );
+
+    try {
+      await ac.ping();
+    } catch (error) {
+      if (error instanceof AnkiConnectUnreachableError) {
+        return { connected: false };
+      }
+      throw error;
+    }
+
+    const deckNames = await this.distinctSyncedDeckNames(client.id);
+
+    const [reviewedToday, reviewsByDayRaw, deckStats] = await Promise.all([
+      ac.getNumCardsReviewedToday(),
+      ac.getNumCardsReviewedByDay(),
+      deckNames.length > 0
+        ? ac.getDeckStats(deckNames)
+        : Promise.resolve<Record<string, AnkiDeckStat>>({}),
+    ]);
+
+    const reviewsByDay = reviewsByDayRaw.map(([date, count]) => ({
+      date,
+      count,
+    }));
+    const { currentStreak, longestStreak } = computeReviewStreaks(
+      reviewsByDayRaw,
+      options.today
+    );
+    const yearCutoff = oneYearAgo(options.today);
+    const reviewedThisYear = reviewsByDay
+      .filter((entry) => entry.date >= yearCutoff)
+      .reduce((sum, entry) => sum + entry.count, 0);
+
+    const decks: AnkifyStatsDeck[] = Object.values(deckStats).map((stat) => ({
+      name: stat.name,
+      new: stat.new_count,
+      learning: stat.learn_count,
+      review: stat.review_count,
+      total: stat.total_in_deck ?? 0,
+    }));
+
+    return {
+      connected: true,
+      reviewedToday,
+      reviewedThisYear,
+      currentStreak,
+      longestStreak,
+      reviewsByDay,
+      decks,
+    };
+  }
+
+  private async distinctSyncedDeckNames(clientId: number): Promise<string[]> {
+    const rows = await this.mappings.listByClient(clientId);
+    const seen = new Set<string>();
+    const names: string[] = [];
+    for (const row of rows) {
+      const deck = row.deck_name?.trim();
+      if (deck == null || deck.length === 0 || seen.has(deck)) {
+        continue;
+      }
+      seen.add(deck);
+      names.push(deck);
+    }
+    return names;
+  }
+}

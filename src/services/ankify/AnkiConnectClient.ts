@@ -123,6 +123,14 @@ export class AnkiConnectClient {
     return this.invoke('getNumCardsReviewedByDay');
   }
 
+  async getNumCardsReviewedToday(): Promise<number> {
+    return this.invoke('getNumCardsReviewedToday');
+  }
+
+  async getDeckStats(decks: string[]): Promise<Record<string, AnkiDeckStat>> {
+    return this.invoke('getDeckStats', { decks });
+  }
+
   async cardReviews(deck: string, startID: number): Promise<number[][]> {
     return this.invoke('cardReviews', { deck, startID });
   }
@@ -231,6 +239,15 @@ export interface AnkiConnectUpdateTemplatesParams {
 export interface AnkiConnectStoreMediaFileParams {
   filename: string;
   data: string;
+}
+
+export interface AnkiDeckStat {
+  deck_id: number;
+  name: string;
+  new_count: number;
+  learn_count: number;
+  review_count: number;
+  total_in_deck?: number;
 }
 
 export interface AnkiNoteInfo {

@@ -34,6 +34,7 @@ import { CheckActiveClientReadinessUseCase } from '../usecases/ankify/CheckActiv
 import { CheckAnkiWebStatusUseCase } from '../usecases/ankify/CheckAnkiWebStatusUseCase';
 import ReissueAnkifySessionUrlUseCase from '../usecases/ankify/ReissueAnkifySessionUrlUseCase';
 import { ValidateAnkifySessionTokenUseCase } from '../usecases/ankify/ValidateAnkifySessionTokenUseCase';
+import { GetAnkifyStatsUseCase } from '../usecases/ankify/GetAnkifyStatsUseCase';
 import { AnkifyExportSchedulesRepository } from '../data_layer/ankify/AnkifyExportSchedulesRepository';
 import { getAnkifyExportScheduler } from '../lib/ankify/scheduler/instance';
 import { AnkifySessionTokensRepository } from '../data_layer/ankify/AnkifySessionTokensRepository';
@@ -372,7 +373,8 @@ const AnkifyRouter = () => {
     new CheckActiveClientReadinessUseCase(repo, ankiConnectFactory),
     new CheckAnkiWebStatusUseCase(repo, ankiConnectFactory),
     new ReissueAnkifySessionUrlUseCase(rac),
-    new ValidateAnkifySessionTokenUseCase(rac, authService)
+    new ValidateAnkifySessionTokenUseCase(rac, authService),
+    new GetAnkifyStatsUseCase(repo, mappings, ankiConnectFactory)
   );
 
   /**
@@ -763,6 +765,25 @@ const AnkifyRouter = () => {
     '/api/ankify/clients/active/anki-web-status',
     RequireAnkifyAccess,
     (req, res) => controller.checkAnkiWebStatus(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/stats:
+   *   get:
+   *     summary: Live study stats from the user's hosted Anki
+   *     description: Allowlisted endpoint. Pings AnkiConnect, then returns reviewed-today, the per-day review history, computed streaks, and per-deck backlog for the user's synced decks. Always 200 — returns { connected: false } when no active client exists or AnkiConnect is unreachable.
+   *     tags: [Ankify]
+   *     responses:
+   *       200:
+   *         description: Stats payload (connected true|false)
+   *       401:
+   *         description: Authentication required
+   *       403:
+   *         description: User is not on the ankify allowlist
+   */
+  router.get('/api/ankify/stats', RequireAnkifyAccess, (req, res) =>
+    controller.getStats(req, res)
   );
 
   return router;
