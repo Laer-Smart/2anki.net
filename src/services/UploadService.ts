@@ -521,6 +521,14 @@ class UploadService {
             source,
             paying
           );
+          track('conversion_succeeded', {
+            userId: Number(owner),
+            anonymousId: this.resolveAnonId(req),
+            props: {
+              source: this.resolveUploadSource(req),
+              card_count_bucket: this.toCardCountBucket(totalCards),
+            },
+          });
         } else {
           logNoPackageDiagnostics(req.files as UploadedFile[]);
           await this.jobRepository.updateJobStatus(

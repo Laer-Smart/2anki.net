@@ -15,6 +15,10 @@ jest.mock('../lib/conversionPool', () => ({
   __esModule: true,
   runConversion: jest.fn().mockResolvedValue(undefined),
 }));
+jest.mock('../services/events/track', () => ({
+  __esModule: true,
+  track: jest.fn(),
+}));
 jest.mock('../data_layer', () => ({
   getDatabase: jest.fn().mockReturnValue({}),
 }));
@@ -26,6 +30,7 @@ jest.mock('../usecases/jobs/CancelJobUseCase');
 jest.mock('../usecases/jobs/StartJobUseCase');
 
 import { runConversion } from '../lib/conversionPool';
+import { track } from '../services/events/track';
 import JobRepository from '../data_layer/JobRepository';
 import { FindOrCreateJobUseCase } from '../usecases/jobs/FindOrCreateJobUseCase';
 import { CheckInProgressJobUseCase } from '../usecases/jobs/CheckInProgressJobUseCase';
@@ -277,6 +282,35 @@ describe('NotionController', () => {
 
       expect(res.status).toHaveBeenCalledWith(202);
       expect(res.json).toHaveBeenCalledWith({ jobId: 77, restarted: false });
+    });
+
+    it('emits upload_started so the Notion path enters the upload→download funnel', async () => {
+      setupConvertMocks();
+
+      await controller.convert(req as express.Request, res as express.Response);
+
+      expect(track).toHaveBeenCalledWith(
+        'upload_started',
+        expect.objectContaining({
+          userId: null,
+          props: expect.objectContaining({ source: 'notion' }),
+        })
+      );
+    });
+
+    it('emits upload_started at funnel entry even when a free user is over the limit', async () => {
+      setupConvertMocks();
+      jest
+        .spyOn(UsersRepository.prototype, 'getCardUsage')
+        .mockResolvedValue({ cards_used: 200, month_started_at: new Date() });
+
+      await controller.convert(req as express.Request, res as express.Response);
+
+      expect(res.status).toHaveBeenCalledWith(402);
+      expect(track).toHaveBeenCalledWith(
+        'upload_started',
+        expect.objectContaining({ props: expect.objectContaining({ source: 'notion' }) })
+      );
     });
 
     it('returns restarted: true when re-converting a page whose job row is done', async () => {

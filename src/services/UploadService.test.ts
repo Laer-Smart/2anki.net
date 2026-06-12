@@ -985,6 +985,58 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
     expect(Buffer.compare(uploadedBuffer, apkgContents)).toBe(0);
   });
 
+  it('emits conversion_succeeded so the async Claude path matches the sync funnel', async () => {
+    fs.writeFileSync(path.join(tmpDir, 'my-deck.apkg'), Buffer.from('apkg'));
+
+    let resolveFind!: () => void;
+    const findCalled = new Promise<void>((r) => {
+      resolveFind = r;
+    });
+    const repo: IUploadRepository = {
+      ...buildRepository(),
+      update: jest.fn().mockResolvedValue([]),
+    };
+    const jobRepository = {
+      create: jest.fn().mockResolvedValue(undefined),
+      updateJobStatus: jest.fn().mockResolvedValue(undefined),
+      findJobById: jest.fn().mockImplementation(() => {
+        resolveFind();
+        return Promise.resolve(null);
+      }),
+      deleteJob: jest.fn().mockResolvedValue(undefined),
+    } as unknown as JobRepository;
+
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({
+            packages: [{ name: 'my-deck', cardCount: 7 }],
+          }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
+
+    const service = new UploadService(repo, jobRepository, buildUsersRepo());
+    const req = buildRequest({
+      body: { 'claude-ai-flashcards': 'true' },
+      cookies: { anon_id: 'anon-async-1' },
+    } as Partial<express.Request>);
+    const { res } = buildResponse();
+    (res.locals as Record<string, unknown>).owner = 42;
+    (res.locals as Record<string, unknown>).subscriber = true;
+
+    await service.handleUpload(req, res);
+    await findCalled;
+    await new Promise((r) => setImmediate(r));
+
+    expect(trackMock).toHaveBeenCalledWith(
+      'conversion_succeeded',
+      expect.objectContaining({
+        userId: 42,
+        props: expect.objectContaining({ card_count_bucket: '<50' }),
+      })
+    );
+  });
+
   async function runAsyncUploadWithBody(
     body: Record<string, unknown>
   ): Promise<jest.Mock> {
