@@ -164,7 +164,8 @@ describe('parseDeckResponse', () => {
         // expected
       }
       const fullDump = errorSpy.mock.calls.find(
-        ([msg]) => msg === '[Claude] Unrecoverable parse failure — full response'
+        ([msg]) =>
+          msg === '[Claude] Unrecoverable parse failure — full response'
       );
       expect(fullDump).toBeDefined();
       const payload = fullDump![1] as { chunkIndex: number; raw: string };
