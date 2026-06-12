@@ -230,6 +230,24 @@ describe('AnkiConnectClient', () => {
     });
   });
 
+  test('getMediaFilesNames posts the action with the pattern and returns the names', async () => {
+    const fetchImpl = makeFetch({
+      result: ['ankify-a.png', 'ankify-b.jpg'],
+      error: null,
+    });
+    const client = new AnkiConnectClient('http://localhost:8765', fetchImpl);
+
+    const names = await client.getMediaFilesNames('ankify-*');
+
+    expect(names).toEqual(['ankify-a.png', 'ankify-b.jpg']);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'getMediaFilesNames',
+      version: 6,
+      params: { pattern: 'ankify-*' },
+    });
+  });
+
   test('getNumCardsReviewedToday posts the action and returns the count', async () => {
     const fetchImpl = makeFetch({ result: 42, error: null });
     const client = new AnkiConnectClient('http://localhost:8765', fetchImpl);
