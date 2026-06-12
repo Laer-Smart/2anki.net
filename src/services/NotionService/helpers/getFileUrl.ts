@@ -4,6 +4,8 @@ import {
 } from '@notionhq/client/build/src/api-endpoints';
 import { isFullBlock } from '@notionhq/client';
 
+import { MediaSourceType } from './downloadWithFreshUrlRetry';
+
 export const getFileUrl = (
   block: FileBlockObjectResponse | PdfBlockObjectResponse
 ): string | null => {
@@ -19,4 +21,11 @@ export const getFileUrl = (
     default:
       return null;
   }
+};
+
+export const getFileSourceType = (
+  block: FileBlockObjectResponse | PdfBlockObjectResponse
+): MediaSourceType => {
+  const source = block.type === 'pdf' ? block.pdf : block.file;
+  return source.type === 'file' ? 'file' : 'external';
 };
