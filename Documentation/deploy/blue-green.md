@@ -6,11 +6,12 @@ Apache. No application code is involved. Full rationale (and why not pm2 cluster
 mode) is in the original spec — recover it with
 `git log -p -- Documentation/specs/blue-green-deploys.md`.
 
-**Status: not wired into the automated deploy.** The live
-`.github/workflows/deploy.2anki.net.yml` still runs the single-color
-`pm2 startOrRestart ecosystem.config.js`. This page covers the manual validation
-that has to happen first. Flipping the workflow is a later PR — see
-[Rollout](#rollout).
+**Status: live.** `.github/workflows/deploy.2anki.net.yml` runs
+`scripts/deploy-blue-green.sh` on every deploy (wired in by #2800); prod
+alternates `server-blue` (:3000) and `server-green` (:3001). The
+[Rollout](#rollout) and bootstrap sections below are kept as the runbook for the
+manual cutovers that preceded the switch and for re-bootstrapping after an
+incident.
 
 ## Pieces
 
@@ -134,9 +135,19 @@ scripts/deploy-blue-green.sh
 What it does: reads `~/.deploy_color`, starts the other color, waits up to 30s
 for its `/api/version` to report `GIT_SHA`, rewrites both Apache includes (HTTP
 and WebSocket) to the new port, `apachectl graceful` once, verifies
-`https://2anki.net/api/version` reports the new sha, then drains and deletes the
-old color (SIGINT → the graceful-shutdown handler, bounded by `kill_timeout`),
-and writes the new color to `~/.deploy_color`.
+`https://2anki.net/api/version` reports the new sha, waits
+`OLD_COLOR_DRAIN_SECONDS` (default 15) for Apache's pre-reload worker children to
+turn over, then drains and deletes the old color (SIGINT → the graceful-shutdown
+handler, bounded by `kill_timeout`), and writes the new color to
+`~/.deploy_color`.
+
+The drain wait closes the only zero-downtime gap in the cutover: `apachectl
+graceful` does not switch every Apache worker at once — pre-reload children keep
+serving with the OLD config (still proxying to the old color's port) until they
+finish their current request. Killing the old color the instant the public
+health check passes left those children pointed at a dead port, so they returned
+503 with `(111)Connection refused: AH00957` in the Apache error log. Pausing
+before the kill lets them retire against a still-live backend.
 
 If the new color fails its health check, the script deletes it and exits non-zero
 — the current color never stopped serving. If the post-swap public check fails,
@@ -173,6 +184,7 @@ GIT_SHA=<sha> scripts/deploy-blue-green.sh
 | `WS_UPSTREAM_CONF` | `/etc/apache2/conf-2anki-ws-upstream.conf` | generated WebSocket (`/v/*`) include |
 | `ECOSYSTEM` | `$SERVER_DIR/ecosystem.blue-green.config.js` | pm2 app definitions |
 | `PUBLIC_HEALTH_URL` | `https://2anki.net/api/version` | post-swap verification URL |
+| `OLD_COLOR_DRAIN_SECONDS` | `15` | pause after the verified swap so Apache's pre-reload workers drain off the old color before it's killed |
 | `DEPLOY_LOCK_FILE` | `~/.2anki-deploy.lock` | flock target |
 | `DRY_RUN` | `0` | `1` prints actions instead of running them |
 
