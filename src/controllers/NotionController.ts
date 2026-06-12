@@ -283,7 +283,8 @@ class NotionController {
     const anonId = cookies?.anon_id;
     track('upload_started', {
       userId: funnelUserId(owner),
-      anonymousId: typeof anonId === 'string' && anonId.length > 0 ? anonId : null,
+      anonymousId:
+        typeof anonId === 'string' && anonId.length > 0 ? anonId : null,
       props: {
         source: conversionSourceFromType(type),
         device: classifyDevice(req.headers?.['user-agent']),
