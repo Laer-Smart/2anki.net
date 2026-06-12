@@ -120,6 +120,7 @@ export type NotionFetcherFactory = (
 
 const FRONT_FIELD_BASIC = 'Front';
 const BACK_FIELD_BASIC = 'Back';
+const ANKIFY_MEDIA_PATTERN = 'ankify-*';
 
 export interface AnkifyMediaResponse {
   status: number;
@@ -441,6 +442,8 @@ export class SyncNotionPageToRacUseCase {
     );
     await this.ensureModelsForOverrides(ac, client, overridesByPage);
 
+    const existingMediaNames = await this.loadExistingMediaNames(ac);
+
     for (const card of cards) {
       await this.processCard({
         card,
@@ -449,6 +452,7 @@ export class SyncNotionPageToRacUseCase {
         ac,
         input,
         result,
+        existingMediaNames,
         deckName: this.cardDeckName(parentDeckName, card),
         overrides: this.overridesForCard(
           overridesByPage,
@@ -709,16 +713,32 @@ export class SyncNotionPageToRacUseCase {
     }
   }
 
+  private async loadExistingMediaNames(
+    ac: AnkiConnectClient
+  ): Promise<Set<string>> {
+    try {
+      const names = await ac.getMediaFilesNames(ANKIFY_MEDIA_PATTERN);
+      return new Set(names);
+    } catch {
+      return new Set<string>();
+    }
+  }
+
   private async uploadCardMedia(
     ac: AnkiConnectClient,
     card: WalkedNotionFlashcard,
-    result: SyncNotionPageResult
+    result: SyncNotionPageResult,
+    existingMediaNames: Set<string>
   ): Promise<void> {
     for (const ref of card.media) {
       if (ref.filename == null) {
         continue;
       }
+      if (existingMediaNames.has(ref.filename)) {
+        continue;
+      }
       await this.uploadSingleMediaRef(ac, ref, result);
+      existingMediaNames.add(ref.filename);
     }
   }
 
@@ -809,6 +829,7 @@ export class SyncNotionPageToRacUseCase {
     ac: AnkiConnectClient;
     input: SyncNotionPageInput;
     result: SyncNotionPageResult;
+    existingMediaNames: Set<string>;
     deckName: string;
     overrides: AnkifyTemplateOverrides | null;
   }): Promise<void> {
@@ -819,11 +840,12 @@ export class SyncNotionPageToRacUseCase {
       ac,
       input,
       result,
+      existingMediaNames,
       deckName,
       overrides,
     } = args;
     try {
-      await this.uploadCardMedia(ac, card, result);
+      await this.uploadCardMedia(ac, card, result, existingMediaNames);
       const existing = await this.mappings.findBySourceId(
         client.id,
         card.notion_block_id

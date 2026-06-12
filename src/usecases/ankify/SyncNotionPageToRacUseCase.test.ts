@@ -164,6 +164,7 @@ const makeAnkiConnectStub = () =>
     updateNoteFields: jest.fn(async () => null),
     sync: jest.fn(async () => null),
     modelNames: jest.fn(async () => [] as string[]),
+    getMediaFilesNames: jest.fn(async () => [] as string[]),
     createModel: jest.fn(async (_p: unknown) => ({ id: 1 })),
     updateModelStyling: jest.fn(async () => null),
     updateModelTemplates: jest.fn(async () => null),
@@ -1521,6 +1522,184 @@ describe('SyncNotionPageToRacUseCase', () => {
       })
     );
     expect(ac.addNote).toHaveBeenCalled();
+  });
+
+  test('skips fetching and storing media already present in the Anki collection', async () => {
+    const sampleFetcher = jest.fn(async () => ({
+      status: 200,
+      data: Buffer.from('PNGDATA'),
+    }));
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [
+        sampleCard({
+          back: 'See <img src="ankify-already.png">',
+          media: [
+            {
+              block_id: 'already',
+              kind: 'image',
+              source: 'file',
+              url: 'https://prod-files.notion.so/already.png?signed=1',
+              filename: 'ankify-already.png',
+            },
+          ],
+        }),
+      ],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+    const repos = makeRepos();
+    const ac = makeAnkiConnectStub();
+    (ac.getMediaFilesNames as jest.Mock).mockResolvedValue([
+      'ankify-already.png',
+    ]);
+
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      undefined,
+      sampleFetcher
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'page-id',
+      trigger: 'polling',
+    });
+
+    expect(ac.getMediaFilesNames).toHaveBeenCalledWith('ankify-*');
+    expect(sampleFetcher).not.toHaveBeenCalled();
+    expect(ac.storeMediaFile).not.toHaveBeenCalled();
+    expect(ac.addNote).toHaveBeenCalled();
+  });
+
+  test('fetches and stores media that is not yet in the Anki collection', async () => {
+    const sampleFetcher = jest.fn(async () => ({
+      status: 200,
+      data: Buffer.from('PNGDATA'),
+    }));
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [
+        sampleCard({
+          back: 'See <img src="ankify-new.png">',
+          media: [
+            {
+              block_id: 'new',
+              kind: 'image',
+              source: 'file',
+              url: 'https://prod-files.notion.so/new.png?signed=1',
+              filename: 'ankify-new.png',
+            },
+          ],
+        }),
+      ],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+    const repos = makeRepos();
+    const ac = makeAnkiConnectStub();
+    (ac.getMediaFilesNames as jest.Mock).mockResolvedValue([
+      'ankify-something-else.png',
+    ]);
+
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      undefined,
+      sampleFetcher
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'page-id',
+      trigger: 'polling',
+    });
+
+    expect(sampleFetcher).toHaveBeenCalledWith(
+      'https://prod-files.notion.so/new.png?signed=1'
+    );
+    expect(ac.storeMediaFile).toHaveBeenCalledWith(
+      expect.objectContaining({ filename: 'ankify-new.png' })
+    );
+  });
+
+  test('falls back to fetching everything when getMediaFilesNames fails', async () => {
+    const sampleFetcher = jest.fn(async () => ({
+      status: 200,
+      data: Buffer.from('PNGDATA'),
+    }));
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [
+        sampleCard({
+          back: 'See <img src="ankify-fallback.png">',
+          media: [
+            {
+              block_id: 'fallback',
+              kind: 'image',
+              source: 'file',
+              url: 'https://prod-files.notion.so/fallback.png?signed=1',
+              filename: 'ankify-fallback.png',
+            },
+          ],
+        }),
+      ],
+      diagnostic: {
+        blocks_scanned: 1,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+    const repos = makeRepos();
+    const ac = makeAnkiConnectStub();
+    (ac.getMediaFilesNames as jest.Mock).mockRejectedValue(
+      new Error('unknown action getMediaFilesNames')
+    );
+
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      undefined,
+      sampleFetcher
+    );
+
+    const result = expectSyncResult(
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'polling',
+      })
+    );
+
+    expect(sampleFetcher).toHaveBeenCalledWith(
+      'https://prod-files.notion.so/fallback.png?signed=1'
+    );
+    expect(ac.storeMediaFile).toHaveBeenCalledWith(
+      expect.objectContaining({ filename: 'ankify-fallback.png' })
+    );
+    expect(result.created).toBe(1);
   });
 
   test('records sync_logs error but does not fail when image download fails', async () => {
