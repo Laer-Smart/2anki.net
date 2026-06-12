@@ -1,4 +1,6 @@
 import { parseTagsResponse, TagCardsUseCase } from './TagCardsUseCase';
+import { ChatRateLimitError } from './ChatUseCase';
+import { InMemoryChatMessagesRepository } from '../../data_layer/ChatMessagesRepository';
 
 describe('parseTagsResponse', () => {
   it('returns one normalized list per card', () => {
@@ -134,5 +136,71 @@ describe('TagCardsUseCase', () => {
     });
     expect(repo.findLatestAssistantInConversation).not.toHaveBeenCalled();
     expect(repo.updateContent).not.toHaveBeenCalled();
+  });
+
+  describe('monthly quota enforcement', () => {
+    async function repoAtCount(userId: number, count: number) {
+      const repo = new InMemoryChatMessagesRepository();
+      for (let i = 0; i < count; i++) {
+        await repo.insert({
+          userId,
+          conversationId: null,
+          role: 'user',
+          content: `msg ${i}`,
+        });
+      }
+      return repo;
+    }
+
+    it('rejects a free user over the monthly cap without calling Claude', async () => {
+      const anthropic = makeAnthropic('[["geography"]]');
+      const create = (anthropic.messages as unknown as { create: jest.Mock })
+        .create;
+      const repo = await repoAtCount(7, 20);
+      const useCase = new TagCardsUseCase(anthropic, repo);
+
+      await expect(
+        useCase.execute({
+          cards: [{ front: 'q', back: 'a' }],
+          userId: 7,
+          patreon: false,
+        })
+      ).rejects.toBeInstanceOf(ChatRateLimitError);
+      expect(create).not.toHaveBeenCalled();
+    });
+
+    it('lets a free user under the monthly cap tag cards', async () => {
+      const anthropic = makeAnthropic('[["geography"]]');
+      const create = (anthropic.messages as unknown as { create: jest.Mock })
+        .create;
+      const repo = await repoAtCount(7, 19);
+      const useCase = new TagCardsUseCase(anthropic, repo);
+
+      const result = await useCase.execute({
+        cards: [{ front: 'q', back: 'a' }],
+        userId: 7,
+        patreon: false,
+      });
+
+      expect(result.tags).toEqual([['geography']]);
+      expect(create).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not cap a patreon user over the free limit', async () => {
+      const anthropic = makeAnthropic('[["geography"]]');
+      const create = (anthropic.messages as unknown as { create: jest.Mock })
+        .create;
+      const repo = await repoAtCount(7, 50);
+      const useCase = new TagCardsUseCase(anthropic, repo);
+
+      const result = await useCase.execute({
+        cards: [{ front: 'q', back: 'a' }],
+        userId: 7,
+        patreon: true,
+      });
+
+      expect(result.tags).toEqual([['geography']]);
+      expect(create).toHaveBeenCalledTimes(1);
+    });
   });
 });

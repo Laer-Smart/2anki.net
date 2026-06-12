@@ -206,6 +206,17 @@ function firstOfNextMonth(): string {
   return next.toISOString();
 }
 
+export async function assertWithinMonthlyQuota(
+  messagesRepo: Pick<IChatMessagesRepository, 'countThisMonth'>,
+  user: ChatUser
+): Promise<void> {
+  if (user.patreon) return;
+  const count = await messagesRepo.countThisMonth(user.owner);
+  if (count >= FREE_MONTHLY_LIMIT) {
+    throw new ChatRateLimitError(firstOfNextMonth());
+  }
+}
+
 export interface ExtractCardsResult {
   cards: ChatCard[] | undefined;
   contentBefore: string | undefined;
@@ -447,12 +458,7 @@ export class ChatUseCase {
     const { user, content, conversationHistory, onToken } = input;
     const attachments = input.attachments ?? [];
 
-    if (!user.patreon) {
-      const count = await this.messagesRepo.countThisMonth(user.owner);
-      if (count >= FREE_MONTHLY_LIMIT) {
-        throw new ChatRateLimitError(firstOfNextMonth());
-      }
-    }
+    await assertWithinMonthlyQuota(this.messagesRepo, user);
 
     let conversationId: number;
     if (input.conversationId != null) {
@@ -511,6 +517,8 @@ export class ChatUseCase {
     onToken?: (text: string) => void;
   }): Promise<SendMessageResult> {
     const { user, onToken } = input;
+
+    await assertWithinMonthlyQuota(this.messagesRepo, user);
 
     const conversation = await this.conversationsRepo.findForUser({
       userId: user.owner,
