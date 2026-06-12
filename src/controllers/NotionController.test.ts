@@ -309,7 +309,9 @@ describe('NotionController', () => {
       expect(res.status).toHaveBeenCalledWith(402);
       expect(track).toHaveBeenCalledWith(
         'upload_started',
-        expect.objectContaining({ props: expect.objectContaining({ source: 'notion' }) })
+        expect.objectContaining({
+          props: expect.objectContaining({ source: 'notion' }),
+        })
       );
     });
 
