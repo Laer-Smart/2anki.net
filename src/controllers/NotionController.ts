@@ -45,10 +45,20 @@ import { MarkNotionTokenInvalidUseCase } from '../usecases/notion/MarkNotionToke
 import { INotionRepository } from '../data_layer/NotionRespository';
 import { IEmailService } from '../services/EmailService/EmailService';
 import UsersRepository from '../data_layer/UsersRepository';
+import { track } from '../services/events/track';
+import { classifyDevice } from '../lib/analytics/classifyDevice';
 
 const DEFAULT_PREVIEW_PAGE_SIZE = 15;
 const MAX_PREVIEW_PAGE_SIZE = 50;
 const NATIVE_NOTION_RETURN_URL = 'twoanki://x-callback-url/notion-connected';
+
+function conversionSourceFromType(type?: string): 'notion' | 'google_drive' {
+  return type === 'google_drive' ? 'google_drive' : 'notion';
+}
+
+function funnelUserId(owner: string): number | null {
+  return Number.isFinite(Number(owner)) ? Number(owner) : null;
+}
 
 function clampPageSize(input: unknown): number {
   const raw = typeof input === 'string' ? input : '';
@@ -269,6 +279,17 @@ class NotionController {
     const owner = res.locals.owner as string;
     const database = getDatabase();
 
+    const cookies = req.cookies as Record<string, unknown> | undefined;
+    const anonId = cookies?.anon_id;
+    track('upload_started', {
+      userId: funnelUserId(owner),
+      anonymousId: typeof anonId === 'string' && anonId.length > 0 ? anonId : null,
+      props: {
+        source: conversionSourceFromType(type),
+        device: classifyDevice(req.headers?.['user-agent']),
+      },
+    });
+
     try {
       if (!paying) {
         const usersRepository = new UsersRepository(database);
@@ -321,8 +342,6 @@ class NotionController {
       const safeString = (v: unknown): string | undefined =>
         typeof v === 'string' && v.length > 0 ? v : undefined;
 
-      const cookies = req.cookies as Record<string, unknown> | undefined;
-
       runConversion({
         id,
         type,
@@ -332,7 +351,7 @@ class NotionController {
         jobDbId: job.id,
         frontField: safeString(frontField),
         backField: safeString(backField),
-        anonId: safeString(cookies?.anon_id),
+        anonId: safeString(anonId),
       }).catch((err: unknown) => {
         console.error('notion convert worker:', err);
       });
