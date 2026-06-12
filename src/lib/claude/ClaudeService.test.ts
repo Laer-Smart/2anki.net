@@ -123,6 +123,58 @@ describe('parseDeckResponse', () => {
     );
   });
 
+  it.each([
+    ['SOH 0x01', 0x01],
+    ['BEL 0x07', 0x07],
+    ['VT 0x0b', 0x0b],
+    ['ESC 0x1b', 0x1b],
+    ['US 0x1f', 0x1f],
+  ])(
+    'recovers a card whose value contains a stray %s control char (PDF-extraction prod failure)',
+    (_label, code) => {
+      const ctrl = String.fromCharCode(code);
+      const broken = `[{"deck":"Politisches System","cards":[{"q":"Was ist${ctrl}Gewaltenteilung?","a":"Die Trennung der Gewalten"}]}]`;
+      expect(() => JSON.parse(broken)).toThrow();
+      const parsed = parseDeckResponse(broken, broken, 0);
+      expect(parsed).toHaveLength(1);
+      expect(parsed[0].cards).toHaveLength(1);
+      expect(parsed[0].cards[0].q).toContain('Gewaltenteilung');
+      expect(parsed[0].cards[0].a).toBe('Die Trennung der Gewalten');
+    }
+  );
+
+  it('preserves legal newlines and tabs while escaping stray control chars', () => {
+    const ctrl = String.fromCharCode(0x0b);
+    const broken = `[{"deck":"D","cards":[{"q":"Line one\nLine${ctrl}two","a":"Tab\there"}]}]`;
+    expect(() => JSON.parse(broken)).toThrow();
+    const parsed = parseDeckResponse(broken, broken, 0);
+    expect(parsed[0].cards[0].q).toContain('Line one\nLine');
+    expect(parsed[0].cards[0].a).toBe('Tab\there');
+  });
+
+  it('logs the full raw response body on unrecoverable parse failure for reproducibility', () => {
+    const errorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    try {
+      const raw = '[{"deck":"X","cards":[{"q":"a","a"';
+      try {
+        parseDeckResponse(raw, raw, 0);
+      } catch {
+        // expected
+      }
+      const fullDump = errorSpy.mock.calls.find(
+        ([msg]) => msg === '[Claude] Unrecoverable parse failure — full response'
+      );
+      expect(fullDump).toBeDefined();
+      const payload = fullDump![1] as { chunkIndex: number; raw: string };
+      expect(payload.chunkIndex).toBe(0);
+      expect(payload.raw).toBe(raw);
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
   it('recovers a cloze-only deck where every card has a: "" (cloze cards legitimately have no answer field)', () => {
     const broken =
       '[{"deck":"Cloze Test","cards":[{"q":"{{c1::Paris}} is the capital of France","a":"","cloze":true}]}]';
@@ -262,7 +314,7 @@ describe('parseDeckResponse', () => {
     }
   });
 
-  it('emits exactly one console.error with redacted payload shape (no raw content) on parse failure', () => {
+  it('emits a redacted payload-shape summary (no raw content in that line) on parse failure', () => {
     const errorSpy = jest
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
@@ -272,8 +324,11 @@ describe('parseDeckResponse', () => {
       } catch {
         // expected
       }
-      expect(errorSpy).toHaveBeenCalledTimes(1);
-      const [, loggedObj] = errorSpy.mock.calls[0];
+      const summary = errorSpy.mock.calls.find(
+        ([msg]) => msg === '[Claude] Failed to parse response as JSON'
+      );
+      expect(summary).toBeDefined();
+      const loggedObj = summary![1] as Record<string, unknown>;
       expect(loggedObj).toMatchObject({
         chunkIndex: 3,
         raw: expect.objectContaining({

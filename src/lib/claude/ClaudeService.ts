@@ -440,10 +440,19 @@ export class ClaudeTruncatedError extends Error {
   }
 }
 
+const STRAY_CONTROL_CHARS = /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g;
+
+function escapeStrayControlChars(text: string): string {
+  return text.replace(STRAY_CONTROL_CHARS, (ch) => {
+    const code = ch.charCodeAt(0).toString(16).padStart(4, '0');
+    return `\\u${code}`;
+  });
+}
+
 function tryRepairDeckArray(toParse: string): unknown[] | null {
   let candidate: unknown;
   try {
-    candidate = JSON.parse(jsonrepair(toParse));
+    candidate = JSON.parse(jsonrepair(escapeStrayControlChars(toParse)));
   } catch {
     return null;
   }
@@ -500,6 +509,10 @@ export function parseDeckResponse(
         raw: redactClaudePayload(raw),
         cleaned: redactClaudePayload(cleaned),
         toParse: redactClaudePayload(toParse),
+      });
+      console.error('[Claude] Unrecoverable parse failure — full response', {
+        chunkIndex,
+        raw,
       });
       if (looksLikeEmptyContentExplanation(cleaned)) {
         throw new Error(EMPTY_CONTENT_USER_MESSAGE);
