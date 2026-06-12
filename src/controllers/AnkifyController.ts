@@ -51,6 +51,10 @@ import {
 } from '../services/ankify/RacService';
 import { AnkiConnectUnreachableError } from '../services/ankify/AnkiConnectClient';
 import { sanitizeDeckPath } from '../lib/ankify/transforms/tags';
+import { GetAnkifyStatsUseCase } from '../usecases/ankify/GetAnkifyStatsUseCase';
+import { track } from '../services/events/track';
+
+const todayUtcDayKey = (): string => new Date().toISOString().slice(0, 10);
 
 function parseTargetDeckField(raw: unknown): string | null | undefined {
   if (typeof raw !== 'string') {
@@ -83,7 +87,8 @@ class AnkifyController {
     private readonly checkReadinessUseCase: CheckActiveClientReadinessUseCase,
     private readonly checkAnkiWebStatusUseCase: CheckAnkiWebStatusUseCase,
     private readonly reissueSessionUrlUseCase: ReissueAnkifySessionUrlUseCase,
-    private readonly validateSessionTokenUseCase: ValidateAnkifySessionTokenUseCase
+    private readonly validateSessionTokenUseCase: ValidateAnkifySessionTokenUseCase,
+    private readonly getStatsUseCase: GetAnkifyStatsUseCase
   ) {}
 
   async list(_req: Request, res: Response) {
@@ -495,6 +500,35 @@ class AnkifyController {
       }
       throw error;
     }
+  }
+
+  async getStats(_req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const stats = await this.getStatsUseCase.execute(owner, {
+      today: todayUtcDayKey(),
+    });
+    if (stats.connected) {
+      track('ankify_stats_viewed', {
+        userId: owner,
+        props: {
+          reachable: true,
+          streak_days: stats.currentStreak,
+          reviewed_today: stats.reviewedToday,
+          synced_deck_count: stats.decks.length,
+        },
+      });
+    } else {
+      track('ankify_stats_viewed', {
+        userId: owner,
+        props: {
+          reachable: false,
+          streak_days: 0,
+          reviewed_today: 0,
+          synced_deck_count: 0,
+        },
+      });
+    }
+    res.status(200).json(stats);
   }
 
   async checkActiveClientReady(_req: Request, res: Response) {

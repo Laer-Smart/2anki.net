@@ -230,6 +230,53 @@ describe('AnkiConnectClient', () => {
     });
   });
 
+  test('getNumCardsReviewedToday posts the action and returns the count', async () => {
+    const fetchImpl = makeFetch({ result: 42, error: null });
+    const client = new AnkiConnectClient('http://localhost:8765', fetchImpl);
+
+    const count = await client.getNumCardsReviewedToday();
+
+    expect(count).toBe(42);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({ action: 'getNumCardsReviewedToday', version: 6 });
+  });
+
+  test('getDeckStats posts the deck names and returns mapped stat rows', async () => {
+    const fetchImpl = makeFetch({
+      result: {
+        '1651445861967': {
+          deck_id: 1651445861967,
+          name: 'Pharmacology',
+          new_count: 5,
+          learn_count: 2,
+          review_count: 11,
+          total_in_deck: 120,
+        },
+      },
+      error: null,
+    });
+    const client = new AnkiConnectClient('http://localhost:8765', fetchImpl);
+
+    const stats = await client.getDeckStats(['Pharmacology']);
+
+    expect(stats).toEqual({
+      '1651445861967': {
+        deck_id: 1651445861967,
+        name: 'Pharmacology',
+        new_count: 5,
+        learn_count: 2,
+        review_count: 11,
+        total_in_deck: 120,
+      },
+    });
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'getDeckStats',
+      version: 6,
+      params: { decks: ['Pharmacology'] },
+    });
+  });
+
   test('throws AnkiConnectUnreachableError when fetch rejects', async () => {
     const fetchImpl = jest.fn(async () => {
       throw new Error('connect ECONNREFUSED');
