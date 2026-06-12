@@ -26,9 +26,7 @@ describe('LogOutEverywhere', () => {
   it('revokes every session when the confirm step is clicked', async () => {
     render(<LogOutEverywhere />);
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Log out everywhere' })
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Log out everywhere' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
 
     expect(logoutEverywhere).toHaveBeenCalledTimes(1);
@@ -37,9 +35,7 @@ describe('LogOutEverywhere', () => {
   it('does nothing when the confirm step is cancelled', () => {
     render(<LogOutEverywhere />);
 
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Log out everywhere' })
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Log out everywhere' }));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(logoutEverywhere).not.toHaveBeenCalled();
