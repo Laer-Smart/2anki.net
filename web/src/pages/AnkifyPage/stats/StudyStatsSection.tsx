@@ -83,7 +83,8 @@ function ConnectedStats({ stats }: Readonly<{ stats: AnkifyStatsConnected }>) {
         />
         {!hasReviews && (
           <p className={styles.stateText}>
-            No reviews yet. Study a deck in Anki and your activity shows up here.
+            No reviews yet. Study a deck in Anki and your activity shows up
+            here.
           </p>
         )}
       </div>
