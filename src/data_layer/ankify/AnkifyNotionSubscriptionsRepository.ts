@@ -2,6 +2,7 @@ import { Knex } from 'knex';
 
 import {
   AnkifyNotionSubscription,
+  NotionObjectType,
   UpsertAnkifyNotionSubscription,
 } from '../../entities/ankify';
 
@@ -25,6 +26,7 @@ export interface AnkifyNotionSubscriptionsRepositoryInterface {
     id: number,
     options: { synced?: boolean; error?: string | null }
   ): Promise<void>;
+  recordObjectType(id: number, objectType: NotionObjectType): Promise<void>;
 }
 
 export class AnkifyNotionSubscriptionsRepository implements AnkifyNotionSubscriptionsRepositoryInterface {
@@ -136,5 +138,17 @@ export class AnkifyNotionSubscriptionsRepository implements AnkifyNotionSubscrip
       update.last_synced_at = this.database.fn.now();
     }
     await this.database(TABLE).update(update).where({ id });
+  }
+
+  async recordObjectType(
+    id: number,
+    objectType: NotionObjectType
+  ): Promise<void> {
+    await this.database(TABLE)
+      .update({
+        notion_object_type: objectType,
+        updated_at: this.database.fn.now() as unknown as Date,
+      })
+      .where({ id });
   }
 }

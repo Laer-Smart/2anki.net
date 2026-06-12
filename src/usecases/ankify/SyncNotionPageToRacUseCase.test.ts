@@ -1,4 +1,11 @@
-import { SyncNotionPageToRacUseCase } from './SyncNotionPageToRacUseCase';
+import {
+  AnkifyClientOfflineSkip,
+  ANKI_OFFLINE_SKIP_MESSAGE,
+  isAnkifyClientOfflineSkip,
+  SyncNotionPageResult,
+  SyncNotionPageToRacUseCase,
+} from './SyncNotionPageToRacUseCase';
+import { AnkiConnectUnreachableError } from '../../services/ankify/AnkiConnectClient';
 import { AnkifyClient, AnkifyNotionSubscription } from '../../entities/ankify';
 import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
 import { AnkifySyncMappingsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncMappingsRepository';
@@ -111,11 +118,22 @@ const makeSubscriptionsRepo = (
     listByOwner: jest.fn(),
     listEnabled: jest.fn(),
     findByPageId: jest.fn(),
+    findByOwnerAndPageId: jest.fn(async () => upsertResult),
     findById: jest.fn(),
     setEnabled: jest.fn(),
     deleteById: jest.fn(),
     recordPoll: jest.fn(),
+    recordObjectType: jest.fn(),
   }) as unknown as jest.Mocked<AnkifyNotionSubscriptionsRepositoryInterface>;
+
+const expectSyncResult = (
+  result: SyncNotionPageResult | AnkifyClientOfflineSkip
+): SyncNotionPageResult => {
+  if (isAnkifyClientOfflineSkip(result)) {
+    throw new Error('expected a sync result, got an offline skip');
+  }
+  return result;
+};
 
 const makeLogs = (): jest.Mocked<AnkifySyncLogsRepositoryInterface> =>
   ({
@@ -138,6 +156,7 @@ const makeNotionRepo = (
 
 const makeAnkiConnectStub = () =>
   ({
+    ping: jest.fn(async () => 6),
     createDeck: jest.fn(async () => 1),
     addNote: jest.fn(async () => 7),
     notesInfo: jest.fn(async () => []),
@@ -219,11 +238,13 @@ describe('SyncNotionPageToRacUseCase', () => {
       () => databasePages
     );
 
-    const result = await useCase.execute({
-      owner: 42,
-      notionPageId: 'database-id',
-      trigger: 'polling',
-    });
+    const result = expectSyncResult(
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'database-id',
+        trigger: 'polling',
+      })
+    );
 
     expect(walkNotionDatabaseForFlashcards).toHaveBeenCalledWith(
       'database-id',
@@ -296,11 +317,13 @@ describe('SyncNotionPageToRacUseCase', () => {
       () => databasePages
     );
 
-    const result = await useCase.execute({
-      owner: 42,
-      notionPageId: 'db-1',
-      trigger: 'manual',
-    });
+    const result = expectSyncResult(
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'db-1',
+        trigger: 'manual',
+      })
+    );
 
     expect(repos.subscriptions.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -363,11 +386,13 @@ describe('SyncNotionPageToRacUseCase', () => {
       () => databasePages
     );
 
-    const result = await useCase.execute({
-      owner: 42,
-      notionPageId: 'database-id',
-      trigger: 'polling',
-    });
+    const result = expectSyncResult(
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'database-id',
+        trigger: 'polling',
+      })
+    );
 
     expect(walkNotionDatabaseForFlashcards).toHaveBeenCalledWith(
       'database-id',
@@ -421,11 +446,13 @@ describe('SyncNotionPageToRacUseCase', () => {
       () => databasePages
     );
 
-    const result = await useCase.execute({
-      owner: 42,
-      notionPageId: 'page-id',
-      trigger: 'polling',
-    });
+    const result = expectSyncResult(
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'polling',
+      })
+    );
 
     expect(result.created).toBe(0);
     expect(insert).toHaveBeenCalledWith(
@@ -1536,11 +1563,13 @@ describe('SyncNotionPageToRacUseCase', () => {
       failingFetch
     );
 
-    const result = await useCase.execute({
-      owner: 42,
-      notionPageId: 'page-id',
-      trigger: 'manual',
-    });
+    const result = expectSyncResult(
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'manual',
+      })
+    );
 
     expect(ac.storeMediaFile).not.toHaveBeenCalled();
     expect(ac.addNote).toHaveBeenCalled();
@@ -1589,11 +1618,13 @@ describe('SyncNotionPageToRacUseCase', () => {
       () => async () => []
     );
 
-    const result = await useCase.execute({
-      owner: 42,
-      notionPageId: 'page-id',
-      trigger: 'polling',
-    });
+    const result = expectSyncResult(
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'polling',
+      })
+    );
 
     expect(repos.mappings.deleteByAnkiNoteId).toHaveBeenCalledWith(1, 9999);
     expect(ac.addNote).toHaveBeenCalled();
@@ -1705,11 +1736,13 @@ describe('SyncNotionPageToRacUseCase', () => {
       () => async () => []
     );
 
-    const result = await useCase.execute({
-      owner: 42,
-      notionPageId: 'page-id',
-      trigger: 'manual',
-    });
+    const result = expectSyncResult(
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'manual',
+      })
+    );
 
     expect(result.diagnostic).toEqual({
       blocks_scanned: 5,
@@ -2027,11 +2060,13 @@ describe('SyncNotionPageToRacUseCase', () => {
       const repos = makeRepos();
       const ac = makeAnkiConnectStub();
 
-      const result = await buildUseCase(repos, ac).execute({
-        owner: 42,
-        notionPageId: 'page-id',
-        trigger: 'manual',
-      });
+      const result = expectSyncResult(
+        await buildUseCase(repos, ac).execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'manual',
+        })
+      );
 
       expect(mockAxiosGet).not.toHaveBeenCalled();
       expect(ac.storeMediaFile).not.toHaveBeenCalled();
@@ -2052,11 +2087,13 @@ describe('SyncNotionPageToRacUseCase', () => {
       const repos = makeRepos();
       const ac = makeAnkiConnectStub();
 
-      const result = await buildUseCase(repos, ac).execute({
-        owner: 42,
-        notionPageId: 'page-id',
-        trigger: 'manual',
-      });
+      const result = expectSyncResult(
+        await buildUseCase(repos, ac).execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'manual',
+        })
+      );
 
       expect(mockAxiosGet).not.toHaveBeenCalled();
       expect(ac.storeMediaFile).not.toHaveBeenCalled();
@@ -2082,11 +2119,13 @@ describe('SyncNotionPageToRacUseCase', () => {
       const repos = makeRepos();
       const ac = makeAnkiConnectStub();
 
-      const result = await buildUseCase(repos, ac).execute({
-        owner: 42,
-        notionPageId: 'page-id',
-        trigger: 'manual',
-      });
+      const result = expectSyncResult(
+        await buildUseCase(repos, ac).execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'manual',
+        })
+      );
 
       expect(mockAxiosGet).toHaveBeenCalledWith(
         'https://prod-files.notion.so/img.png?signed=1',
@@ -2099,6 +2138,150 @@ describe('SyncNotionPageToRacUseCase', () => {
         })
       );
       expect(result.errors).toEqual([]);
+    });
+  });
+
+  describe('object-type memory and offline pre-check', () => {
+    test('records the resolved object type as database after the not-page fallback', async () => {
+      const databaseNotPageError = Object.assign(
+        new Error('Provided ID is a database, not a page.'),
+        { code: 'validation_error' }
+      );
+      (walkNotionPageForFlashcards as jest.Mock).mockRejectedValue(
+        databaseNotPageError
+      );
+      (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [sampleCard()],
+        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: {} },
+      });
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => [],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        () => async () => [{ id: 'row-1' }]
+      );
+
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'database-id',
+        trigger: 'polling',
+      });
+
+      expect(repos.subscriptions.recordObjectType).toHaveBeenCalledWith(
+        1,
+        'database'
+      );
+    });
+
+    test('skips the page walk entirely when the object type is already known to be a database', async () => {
+      (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [sampleCard()],
+        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: {} },
+      });
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+      repos.subscriptions.upsert.mockResolvedValue(
+        sampleSubscription({ notion_object_type: 'database' })
+      );
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => [],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        () => async () => [{ id: 'row-1' }]
+      );
+
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'database-id',
+        knownObjectType: 'database',
+        trigger: 'polling',
+      });
+
+      expect(walkNotionPageForFlashcards).not.toHaveBeenCalled();
+      expect(walkNotionDatabaseForFlashcards).toHaveBeenCalledTimes(1);
+    });
+
+    test('skips the Notion fetch and records a calm last_error when AnkiConnect is offline on a poll', async () => {
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+      (ac.ping as jest.Mock).mockRejectedValue(
+        new AnkiConnectUnreachableError('http://localhost:20000', null)
+      );
+      repos.subscriptions.findByOwnerAndPageId.mockResolvedValue(
+        sampleSubscription({ id: 55 })
+      );
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      const result = await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'polling',
+      });
+
+      expect(isAnkifyClientOfflineSkip(result)).toBe(true);
+      expect(walkNotionPageForFlashcards).not.toHaveBeenCalled();
+      expect(walkNotionDatabaseForFlashcards).not.toHaveBeenCalled();
+      expect(repos.subscriptions.recordPoll).toHaveBeenCalledWith(55, {
+        error: ANKI_OFFLINE_SKIP_MESSAGE,
+      });
+      expect(repos.subscriptions.upsert).not.toHaveBeenCalled();
+    });
+
+    test('does not pre-empt a manual sync when AnkiConnect is offline — the sync proceeds and surfaces the error naturally', async () => {
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+      (ac.ping as jest.Mock).mockRejectedValue(
+        new AnkiConnectUnreachableError('http://localhost:20000', null)
+      );
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'manual',
+      });
+
+      expect(walkNotionPageForFlashcards).toHaveBeenCalledTimes(1);
     });
   });
 });

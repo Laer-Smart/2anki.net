@@ -64,6 +64,29 @@ describe('buildNotionPageMetaFetcher', () => {
     });
   });
 
+  test('skips the page lookup entirely when the object type is already known to be a database', async () => {
+    const pagesRetrieve = jest.fn();
+    const databasesRetrieve = jest.fn().mockResolvedValue({
+      url: 'https://www.notion.so/db-1',
+      icon: { type: 'emoji', emoji: '🧪' },
+      title: [{ plain_text: 'Pharmacology' }],
+    });
+    const client = makeNotionClient({ pagesRetrieve, databasesRetrieve });
+
+    const meta = await buildNotionPageMetaFetcher('token', () => client)(
+      'db-1',
+      'database'
+    );
+
+    expect(pagesRetrieve).not.toHaveBeenCalled();
+    expect(databasesRetrieve).toHaveBeenCalledWith({ database_id: 'db-1' });
+    expect(meta).toEqual({
+      title: 'Pharmacology',
+      url: 'https://www.notion.so/db-1',
+      icon: '🧪',
+    });
+  });
+
   test('rethrows errors that are not the database-not-page validation error', async () => {
     const client = makeNotionClient({
       pagesRetrieve: jest.fn().mockRejectedValue(new Error('boom')),

@@ -28,7 +28,10 @@ import { CheckActiveClientReadinessUseCase } from '../usecases/ankify/CheckActiv
 import { CheckAnkiWebStatusUseCase } from '../usecases/ankify/CheckAnkiWebStatusUseCase';
 import ReissueAnkifySessionUrlUseCase from '../usecases/ankify/ReissueAnkifySessionUrlUseCase';
 import { ValidateAnkifySessionTokenUseCase } from '../usecases/ankify/ValidateAnkifySessionTokenUseCase';
-import { SyncNotionPageToRacUseCase } from '../usecases/ankify/SyncNotionPageToRacUseCase';
+import {
+  isAnkifyClientOfflineSkip,
+  SyncNotionPageToRacUseCase,
+} from '../usecases/ankify/SyncNotionPageToRacUseCase';
 import {
   RefreshAnkifySubscriptionUseCase,
   RefreshCooldownError,
@@ -345,6 +348,10 @@ class AnkifyController {
         targetDeck,
         trigger: 'manual',
       });
+      if (isAnkifyClientOfflineSkip(result)) {
+        res.status(503).json({ message: 'AnkiConnect is unreachable.' });
+        return;
+      }
       res.status(200).json({
         subscription: result.subscription,
         created: result.created,

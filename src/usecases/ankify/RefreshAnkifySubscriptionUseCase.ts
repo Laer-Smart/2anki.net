@@ -1,5 +1,7 @@
 import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/ankify/AnkifyNotionSubscriptionsRepository';
+import { AnkiConnectUnreachableError } from '../../services/ankify/AnkiConnectClient';
 import {
+  isAnkifyClientOfflineSkip,
   SyncNotionPageResult,
   SyncNotionPageToRacUseCase,
 } from './SyncNotionPageToRacUseCase';
@@ -61,14 +63,22 @@ export class RefreshAnkifySubscriptionUseCase {
     }
     this.lastRunAtBySubscription.set(subscription.id, startedAt);
 
-    return this.syncNotionPageUseCase.execute({
+    const result = await this.syncNotionPageUseCase.execute({
       owner: input.owner,
       notionPageId: subscription.notion_page_id,
       notionPageTitle: subscription.notion_page_title,
       notionPageUrl: subscription.notion_page_url,
       notionPageIcon: subscription.notion_page_icon,
+      knownObjectType: subscription.notion_object_type ?? null,
       trigger: 'manual',
       ankiConnectHost: input.ankiConnectHost,
     });
+    if (isAnkifyClientOfflineSkip(result)) {
+      throw new AnkiConnectUnreachableError(
+        input.ankiConnectHost ?? 'localhost',
+        null
+      );
+    }
+    return result;
   }
 }

@@ -4,7 +4,11 @@ import {
   SubscriptionNotFoundError,
 } from './RefreshAnkifySubscriptionUseCase';
 import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/ankify/AnkifyNotionSubscriptionsRepository';
-import { SyncNotionPageToRacUseCase } from './SyncNotionPageToRacUseCase';
+import {
+  AnkifyClientOfflineSkip,
+  SyncNotionPageToRacUseCase,
+} from './SyncNotionPageToRacUseCase';
+import { AnkiConnectUnreachableError } from '../../services/ankify/AnkiConnectClient';
 import { AnkifyNotionSubscription } from '../../entities/ankify';
 
 const sampleSubscription = (
@@ -95,10 +99,27 @@ describe('RefreshAnkifySubscriptionUseCase', () => {
       notionPageTitle: 'My Notes',
       notionPageUrl: 'https://notion.so/page-abc',
       notionPageIcon: '📓',
+      knownObjectType: null,
       trigger: 'manual',
       ankiConnectHost: 'localhost',
     });
     expect(result.created).toBe(2);
+  });
+
+  it('surfaces an unreachable AnkiConnect when the sync reports the client offline', async () => {
+    const subscription = sampleSubscription({ id: 7, owner: 42 });
+    const subs = makeSubscriptionsRepo(subscription);
+    const sync = {
+      execute: jest.fn(async () => new AnkifyClientOfflineSkip(7)),
+    };
+    const useCase = new RefreshAnkifySubscriptionUseCase(
+      subs,
+      sync as unknown as SyncNotionPageToRacUseCase
+    );
+
+    await expect(useCase.execute({ id: 7, owner: 42 })).rejects.toBeInstanceOf(
+      AnkiConnectUnreachableError
+    );
   });
 
   it('throws RefreshCooldownError on a second call inside the cooldown window', async () => {

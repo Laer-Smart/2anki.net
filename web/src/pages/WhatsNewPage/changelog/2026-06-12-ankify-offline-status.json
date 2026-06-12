@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-ankify-offline-status",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Notion sync shows a calm \"Anki client offline\" status instead of failed-card errors when Anki is closed"
+}

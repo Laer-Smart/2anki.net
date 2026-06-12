@@ -113,6 +113,8 @@ export interface NewAnkifySyncLog {
   payload?: unknown;
 }
 
+export type NotionObjectType = 'page' | 'database';
+
 export interface AnkifyNotionSubscription {
   id: number;
   owner: number;
@@ -122,6 +124,7 @@ export interface AnkifyNotionSubscription {
   notion_page_url: string | null;
   notion_page_icon: string | null;
   target_deck: string | null;
+  notion_object_type?: NotionObjectType | null;
   enabled: boolean;
   last_polled_at: Date | null;
   last_synced_at: Date | null;
