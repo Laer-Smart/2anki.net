@@ -169,6 +169,9 @@ const makeAnkiConnectStub = () =>
     updateModelStyling: jest.fn(async () => null),
     updateModelTemplates: jest.fn(async () => null),
     storeMediaFile: jest.fn(async () => 'stored.png'),
+    apiReflect: jest.fn(async () => [] as string[]),
+    notesModTime: jest.fn(async () => [] as { noteId: number; mod: number }[]),
+    multi: jest.fn(async () => [] as unknown[]),
   }) as unknown as AnkiConnectClient & { [k: string]: jest.Mock };
 
 const makeRepos = () => ({
@@ -2461,6 +2464,322 @@ describe('SyncNotionPageToRacUseCase', () => {
       });
 
       expect(walkNotionPageForFlashcards).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('batch mod-time prefilter', () => {
+    const unchangedMapping = () => ({
+      id: 5,
+      ankify_client_id: 1,
+      source_id: 'block-1',
+      source_type: 'notion_block' as const,
+      anki_note_id: 900,
+      deck_name: 'Notion Sync::Algebra',
+      last_synced_at: new Date('2026-01-01T00:00:00Z'),
+    });
+
+    const reflectingStub = (actions: string[]) => {
+      const ac = makeAnkiConnectStub();
+      (ac.apiReflect as jest.Mock).mockResolvedValue(actions);
+      return ac;
+    };
+
+    test('skips the full notesInfo fetch when both Notion and Anki are unchanged', async () => {
+      const lastSyncedSeconds = Math.floor(
+        new Date('2026-01-01T00:00:00Z').getTime() / 1000
+      );
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [
+          sampleCard({
+            notion_block_id: 'block-1',
+            notion_last_edited_at: new Date('2025-12-01T00:00:00Z'),
+          }),
+        ],
+        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: {} },
+      });
+      const repos = makeRepos();
+      repos.subscriptions = makeSubscriptionsRepo(
+        sampleSubscription({ notion_page_title: 'Algebra' })
+      );
+      repos.mappings.findBySourceId = jest.fn(
+        async (_clientId: number, sourceId: string) => ({
+          ...unchangedMapping(),
+          source_id: sourceId,
+        })
+      );
+      const ac = reflectingStub(['notesModTime', 'multi']);
+      (ac.notesModTime as jest.Mock).mockResolvedValue([
+        { noteId: 900, mod: lastSyncedSeconds - 10 },
+      ]);
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      const result = expectSyncResult(
+        await useCase.execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'polling',
+        })
+      );
+
+      expect(ac.notesModTime).toHaveBeenCalledWith([900]);
+      expect(ac.notesInfo).not.toHaveBeenCalled();
+      expect(result.unchanged).toBe(1);
+      expect(result.updated).toBe(0);
+    });
+
+    test('fetches full info only for the note whose Anki mod advanced past last sync', async () => {
+      const lastSyncedSeconds = Math.floor(
+        new Date('2026-01-01T00:00:00Z').getTime() / 1000
+      );
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [
+          sampleCard({
+            notion_block_id: 'block-1',
+            notion_last_edited_at: new Date('2025-12-01T00:00:00Z'),
+          }),
+          sampleCard({
+            notion_block_id: 'block-2',
+            front: 'Front 2',
+            back: 'Back 2',
+            notion_last_edited_at: new Date('2025-12-01T00:00:00Z'),
+          }),
+        ],
+        diagnostic: { blocks_scanned: 2, blocks_matched: 2, pattern_hits: {} },
+      });
+      const repos = makeRepos();
+      repos.subscriptions = makeSubscriptionsRepo(
+        sampleSubscription({ notion_page_title: 'Algebra' })
+      );
+      repos.mappings.findBySourceId = jest.fn(
+        async (_clientId: number, sourceId: string) => ({
+          ...unchangedMapping(),
+          source_id: sourceId,
+          anki_note_id: sourceId === 'block-1' ? 900 : 901,
+        })
+      );
+      const ac = reflectingStub(['notesModTime', 'multi']);
+      (ac.notesModTime as jest.Mock).mockResolvedValue([
+        { noteId: 900, mod: lastSyncedSeconds - 10 },
+        { noteId: 901, mod: lastSyncedSeconds + 50 },
+      ]);
+      (ac.notesInfo as jest.Mock).mockImplementation(
+        async (notes: number[]) => {
+          if (notes.includes(901)) {
+            return [
+              {
+                noteId: 901,
+                modelName: 'Ankify Basic',
+                tags: [],
+                fields: {
+                  Front: { value: 'stale front', order: 0 },
+                  Back: { value: 'stale back', order: 1 },
+                },
+                cards: [9101],
+                mod: lastSyncedSeconds + 50,
+              },
+            ];
+          }
+          return [];
+        }
+      );
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      expectSyncResult(
+        await useCase.execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'polling',
+        })
+      );
+
+      const fetchedNoteIds = (ac.notesInfo as jest.Mock).mock.calls.flatMap(
+        (call) => call[0] as number[]
+      );
+      expect(ac.notesModTime).toHaveBeenCalledTimes(1);
+      expect(fetchedNoteIds).toContain(901);
+      expect(fetchedNoteIds).not.toContain(900);
+    });
+
+    test('batches changed-note full info into a single notesInfo call', async () => {
+      const lastSyncedSeconds = Math.floor(
+        new Date('2026-01-01T00:00:00Z').getTime() / 1000
+      );
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [
+          sampleCard({
+            notion_block_id: 'block-1',
+            front: 'New front 1',
+            notion_last_edited_at: new Date('2026-02-01T00:00:00Z'),
+          }),
+          sampleCard({
+            notion_block_id: 'block-2',
+            front: 'New front 2',
+            notion_last_edited_at: new Date('2026-02-01T00:00:00Z'),
+          }),
+        ],
+        diagnostic: { blocks_scanned: 2, blocks_matched: 2, pattern_hits: {} },
+      });
+      const repos = makeRepos();
+      repos.subscriptions = makeSubscriptionsRepo(
+        sampleSubscription({ notion_page_title: 'Algebra' })
+      );
+      repos.mappings.findBySourceId = jest.fn(
+        async (_clientId: number, sourceId: string) => ({
+          ...unchangedMapping(),
+          source_id: sourceId,
+          anki_note_id: sourceId === 'block-1' ? 900 : 901,
+        })
+      );
+      const ac = reflectingStub(['notesModTime', 'multi']);
+      (ac.notesModTime as jest.Mock).mockResolvedValue([
+        { noteId: 900, mod: lastSyncedSeconds - 10 },
+        { noteId: 901, mod: lastSyncedSeconds - 10 },
+      ]);
+      (ac.notesInfo as jest.Mock).mockImplementation(
+        async (notes: number[]) =>
+          notes.map((noteId) => ({
+            noteId,
+            modelName: 'Ankify Basic',
+            tags: [],
+            fields: {
+              Front: { value: 'stale', order: 0 },
+              Back: { value: 'Back text', order: 1 },
+            },
+            cards: [noteId + 9000],
+            mod: lastSyncedSeconds - 10,
+          }))
+      );
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      const result = expectSyncResult(
+        await useCase.execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'polling',
+        })
+      );
+
+      expect(ac.notesInfo).toHaveBeenCalledTimes(1);
+      expect(ac.notesInfo).toHaveBeenCalledWith([900, 901]);
+      expect(result.updated).toBe(2);
+    });
+
+    test('falls back to per-note notesInfo when notesModTime is absent from apiReflect', async () => {
+      const lastSyncedSeconds = Math.floor(
+        new Date('2026-01-01T00:00:00Z').getTime() / 1000
+      );
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [
+          sampleCard({
+            notion_block_id: 'block-1',
+            notion_last_edited_at: new Date('2025-12-01T00:00:00Z'),
+          }),
+        ],
+        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: {} },
+      });
+      const repos = makeRepos();
+      repos.subscriptions = makeSubscriptionsRepo(
+        sampleSubscription({ notion_page_title: 'Algebra' })
+      );
+      repos.mappings.findBySourceId = jest.fn(
+        async (_clientId: number, sourceId: string) => ({
+          ...unchangedMapping(),
+          source_id: sourceId,
+        })
+      );
+      const ac = reflectingStub(['deckNames', 'addNote']);
+      (ac.notesInfo as jest.Mock).mockResolvedValue([
+        {
+          noteId: 900,
+          modelName: 'Ankify Basic',
+          tags: [],
+          fields: {
+            Front: { value: 'Front text', order: 0 },
+            Back: { value: 'Back text', order: 1 },
+          },
+          cards: [9001],
+          mod: lastSyncedSeconds - 10,
+        },
+      ]);
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      const result = expectSyncResult(
+        await useCase.execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'polling',
+        })
+      );
+
+      expect(ac.notesModTime).not.toHaveBeenCalled();
+      expect(ac.notesInfo).toHaveBeenCalledWith([900]);
+      expect(result.unchanged).toBe(1);
+    });
+
+    test('skips the prefilter when there are no existing mappings', async () => {
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [sampleCard({ notion_block_id: 'block-1' })],
+        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: {} },
+      });
+      const repos = makeRepos();
+      const ac = reflectingStub(['notesModTime', 'multi']);
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      const result = expectSyncResult(
+        await useCase.execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'polling',
+        })
+      );
+
+      expect(ac.notesModTime).not.toHaveBeenCalled();
+      expect(result.created).toBe(1);
     });
   });
 });
