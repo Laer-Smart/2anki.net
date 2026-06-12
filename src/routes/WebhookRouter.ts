@@ -2,6 +2,7 @@ import express from 'express';
 import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
 
 import {
+  extractProductId,
   getCustomerId,
   getStripe,
   updateStoreSubscription,
@@ -131,6 +132,30 @@ const WebhooksRouter = () => {
 
       recordStripeWebhook();
 
+      const alertUnlinkedPayment = async (
+        customer: StripeTypes.Customer,
+        subscription: StripeTypes.Subscription,
+        customerId: string | null
+      ): Promise<void> => {
+        await recordErrorUseCase.execute({
+          userId: null,
+          surface: 'stripe_provisioning',
+          code: 'unlinked_payment',
+          context: {
+            email_hash:
+              customer.email != null ? hashToken(customer.email) : null,
+            customer_id_hash: customerId != null ? hashToken(customerId) : null,
+            product_id: extractProductId(subscription),
+          },
+        });
+        console.error(
+          '[webhook] unlinked payment: no account resolved for active subscription',
+          {
+            customer_id_hash: customerId != null ? hashToken(customerId) : null,
+          }
+        );
+      };
+
       const provisionSubscription = async (
         subscription: StripeTypes.Subscription
       ): Promise<boolean> => {
@@ -139,12 +164,17 @@ const WebhooksRouter = () => {
           console.error('No customer ID found');
           return false;
         }
-        const customer = await stripe.customers.retrieve(customerId);
-        await updateStoreSubscription(
+        const customer = (await stripe.customers.retrieve(
+          customerId
+        )) as StripeTypes.Customer;
+        const provisionResult = await updateStoreSubscription(
           getDatabase(),
-          customer as StripeTypes.Customer,
+          customer,
           subscription
         );
+        if (provisionResult.status === 'unlinked') {
+          await alertUnlinkedPayment(customer, subscription, customerId);
+        }
         return true;
       };
 
@@ -165,13 +195,27 @@ const WebhooksRouter = () => {
             console.error('No customer ID found');
             return;
           }
-          const customer = await stripe.customers.retrieve(customerId);
+          const customer = (await stripe.customers.retrieve(
+            customerId
+          )) as StripeTypes.Customer;
 
-          await updateStoreSubscription(
-            getDatabase(),
-            customer as StripeTypes.Customer,
-            customerSubscriptionUpdated
-          );
+          {
+            const updatedProvisionResult = await updateStoreSubscription(
+              getDatabase(),
+              customer,
+              customerSubscriptionUpdated
+            );
+            if (
+              updatedProvisionResult.status === 'unlinked' &&
+              customerSubscriptionUpdated.status === 'active'
+            ) {
+              await alertUnlinkedPayment(
+                customer,
+                customerSubscriptionUpdated,
+                customerId
+              );
+            }
+          }
 
           {
             const updatedProductId =
@@ -401,8 +445,19 @@ const WebhooksRouter = () => {
                     true
                   );
                   if (rowsAffected === 0) {
+                    await recordErrorUseCase.execute({
+                      userId: null,
+                      surface: 'stripe_provisioning',
+                      code: 'unlinked_lifetime_payment',
+                      context: {
+                        email_hash: hashToken(lifeTimeEmail),
+                        customer_id_hash: hashToken(lifeTimeCustomer.id),
+                      },
+                    });
                     console.error(
-                      `[webhook] checkout.session.completed: no user row matched email=${lifeTimeEmail} for lifetime purchase; quota NOT unlocked. Check for email casing or whitespace mismatch.`
+                      `[webhook] checkout.session.completed: no user row matched a lifetime purchase email (hash=${hashToken(
+                        lifeTimeEmail
+                      )}); quota NOT unlocked.`
                     );
                   } else {
                     console.info(

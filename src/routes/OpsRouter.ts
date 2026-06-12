@@ -143,7 +143,11 @@ const OpsRouter = () => {
     new ReconcileOrphanedSubscriptionsUseCase(
       new OrphanedSubscriptionsRepository(database),
       new SubscriptionRecoveryNotificationsRepository(database),
-      emailService
+      emailService,
+      async (customerId: string) => {
+        const customer = await getStripe().customers.retrieve(customerId);
+        return 'email' in customer ? (customer.email ?? null) : null;
+      }
     )
   );
 

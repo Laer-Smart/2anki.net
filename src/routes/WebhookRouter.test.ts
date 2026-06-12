@@ -24,7 +24,10 @@ jest.mock('../lib/integrations/stripe', () => ({
     checkout: { sessions: { retrieve: mockSessionsRetrieve } },
   }),
   getCustomerId: jest.fn().mockReturnValue('cus_abc'),
-  updateStoreSubscription: jest.fn(),
+  extractProductId: jest.fn().mockReturnValue('prod_test'),
+  updateStoreSubscription: jest
+    .fn()
+    .mockResolvedValue({ status: 'linked', resolvedUserId: 1 }),
 }));
 
 jest.mock('../data_layer', () => ({ getDatabase: jest.fn() }));
@@ -999,6 +1002,38 @@ describe('WebhookRouter — customer.subscription.created', () => {
       undefined,
       { id: 'cus_abc', email: 'subscriber@example.com' },
       expect.objectContaining({ id: 'sub_new_123', status: 'active' })
+    );
+  });
+
+  it('records an unlinked_payment alert when no account resolves', async () => {
+    const { updateStoreSubscription } = jest.requireMock(
+      '../lib/integrations/stripe'
+    ) as { updateStoreSubscription: jest.Mock };
+    updateStoreSubscription.mockResolvedValueOnce({
+      status: 'unlinked',
+      resolvedUserId: null,
+    });
+    mockWebhookEvent = {
+      type: 'customer.subscription.created',
+      data: {
+        object: {
+          id: 'sub_orphan_1',
+          customer: 'cus_abc',
+          status: 'active',
+          items: { data: [{ price: { product: 'prod_unlimited' } }] },
+          cancel_at_period_end: false,
+          cancel_at: null,
+        },
+      },
+    };
+
+    const res = await postWebhook();
+    expect(res.status).toBe(200);
+    expect(mockRecordError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        surface: 'stripe_provisioning',
+        code: 'unlinked_payment',
+      })
     );
   });
 

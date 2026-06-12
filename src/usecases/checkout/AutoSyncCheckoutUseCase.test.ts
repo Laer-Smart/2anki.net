@@ -85,6 +85,7 @@ describe('AutoSyncCheckoutUseCase', () => {
         success_url: expect.stringContaining('/ankify/setup'),
         cancel_url: expect.stringContaining('/pricing'),
         metadata: { user_id: '42' },
+        subscription_data: { metadata: { user_id: '42' } },
       })
     );
   });
