@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import styles from './CodeEditor.module.css';
+import { crossOriginWorker } from './crossOriginWorker';
 
 const MonacoEditor = lazy(async () => {
   const [{ default: Editor, loader }, monaco] = await Promise.all([
@@ -7,25 +8,25 @@ const MonacoEditor = lazy(async () => {
     import('monaco-editor'),
   ]);
 
-  const editorWorker = (
-    await import('monaco-editor/esm/vs/editor/editor.worker?worker&inline')
+  const editorWorkerUrl = (
+    await import('monaco-editor/esm/vs/editor/editor.worker?worker&url')
   ).default;
-  const cssWorker = (
-    await import('monaco-editor/esm/vs/language/css/css.worker?worker&inline')
+  const cssWorkerUrl = (
+    await import('monaco-editor/esm/vs/language/css/css.worker?worker&url')
   ).default;
-  const htmlWorker = (
-    await import('monaco-editor/esm/vs/language/html/html.worker?worker&inline')
+  const htmlWorkerUrl = (
+    await import('monaco-editor/esm/vs/language/html/html.worker?worker&url')
   ).default;
 
   (globalThis as unknown as { MonacoEnvironment: object }).MonacoEnvironment = {
     getWorker(_workerId: string, label: string) {
       if (label === 'css' || label === 'scss' || label === 'less') {
-        return new cssWorker();
+        return crossOriginWorker(cssWorkerUrl);
       }
       if (label === 'html' || label === 'handlebars' || label === 'razor') {
-        return new htmlWorker();
+        return crossOriginWorker(htmlWorkerUrl);
       }
-      return new editorWorker();
+      return crossOriginWorker(editorWorkerUrl);
     },
   };
 
