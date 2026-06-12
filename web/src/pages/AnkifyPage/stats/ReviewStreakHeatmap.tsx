@@ -1,3 +1,6 @@
+import { useState } from 'react';
+
+import TimeSeriesTooltipShell from '../../OpsPage/charts/TimeSeriesTooltipShell';
 import styles from './StudyStatsSection.module.css';
 import { AnkifyStatsReviewDay } from './types';
 import { buildHeatmapWeeks, HeatmapCell } from './heatmap';
@@ -25,36 +28,122 @@ const MONTHS = [
   'Dec',
 ];
 
-const formatCellTitle = (cell: HeatmapCell): string => {
+const WEEKDAY_GUTTER = [
+  { row: 2, label: 'Mon' },
+  { row: 4, label: 'Wed' },
+  { row: 6, label: 'Fri' },
+];
+
+const formatCellLabel = (cell: HeatmapCell): string => {
   const [year, month, day] = cell.date.split('-');
-  const label = `${Number(day)} ${MONTHS[Number(month) - 1]} ${year}`;
+  const when = `${Number(day)} ${MONTHS[Number(month) - 1]} ${year}`;
+  if (cell.count === 0) {
+    return `No reviews on ${when}`;
+  }
   const unit = cell.count === 1 ? 'review' : 'reviews';
-  return `${cell.count} ${unit} on ${label}`;
+  return `${cell.count} ${unit} on ${when}`;
+};
+
+interface MonthLabel {
+  column: number;
+  text: string;
+}
+
+const buildMonthLabels = (weeks: HeatmapCell[][]): MonthLabel[] => {
+  const labels: MonthLabel[] = [];
+  let lastMonth = '';
+  weeks.forEach((week, index) => {
+    const firstOfMonth = week.find((cell) => cell.date.endsWith('-01'));
+    if (firstOfMonth == null) {
+      return;
+    }
+    const month = firstOfMonth.date.slice(5, 7);
+    if (month !== lastMonth) {
+      lastMonth = month;
+      labels.push({ column: index + 1, text: MONTHS[Number(month) - 1] });
+    }
+  });
+  return labels;
 };
 
 interface ReviewStreakHeatmapProps {
   reviewsByDay: AnkifyStatsReviewDay[];
   today: string;
+  currentStreak: number;
+  reviewsThisYear: number;
 }
 
 export default function ReviewStreakHeatmap({
   reviewsByDay,
   today,
+  currentStreak,
+  reviewsThisYear,
 }: Readonly<ReviewStreakHeatmapProps>) {
+  const [hovered, setHovered] = useState<string | null>(null);
   const weeks = buildHeatmapWeeks(reviewsByDay, today);
+  const monthLabels = buildMonthLabels(weeks);
+  const summary = `Review activity over the past year: ${currentStreak}-day streak, ${reviewsThisYear} reviews this year`;
+
   return (
-    <div className={styles.heatmapGrid} role="img" aria-label="Review activity">
-      {weeks.map((week) => (
-        <div key={week[0].date} className={styles.heatmapColumn}>
-          {week.map((cell) => (
-            <div
-              key={cell.date}
-              className={`${styles.cell} ${BUCKET_CLASS[cell.bucket]}`}
-              title={formatCellTitle(cell)}
-            />
+    <div className={styles.heatmap}>
+      <div className={styles.monthRow} aria-hidden="true">
+        {monthLabels.map((label) => (
+          <span
+            key={`${label.text}-${label.column}`}
+            className={styles.monthLabel}
+            style={{ gridColumnStart: label.column }}
+          >
+            {label.text}
+          </span>
+        ))}
+      </div>
+      <div className={styles.gridArea}>
+        <div className={styles.weekdayGutter} aria-hidden="true">
+          {WEEKDAY_GUTTER.map((day) => (
+            <span
+              key={day.label}
+              className={styles.weekdayLabel}
+              style={{ gridRowStart: day.row }}
+            >
+              {day.label}
+            </span>
           ))}
         </div>
-      ))}
+        <div className={styles.heatmapGrid} role="img" aria-label={summary}>
+          {weeks.map((week) => (
+            <div key={week[0].date} className={styles.heatmapColumn}>
+              {week.map((cell) => (
+                <div
+                  key={cell.date}
+                  className={`${styles.cell} ${BUCKET_CLASS[cell.bucket]}`}
+                  title={formatCellLabel(cell)}
+                  onMouseEnter={() => setHovered(cell.date)}
+                  onMouseLeave={() => setHovered(null)}
+                >
+                  {hovered === cell.date && (
+                    <span className={styles.cellTooltip}>
+                      <TimeSeriesTooltipShell title={formatCellLabel(cell)}>
+                        {null}
+                      </TimeSeriesTooltipShell>
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className={styles.heatmapLegend}>
+        <span>Less</span>
+        {[0, 1, 2, 3, 4].map((bucket) => (
+          <span
+            key={bucket}
+            className={`${styles.legendCell} ${BUCKET_CLASS[bucket]}`}
+            aria-hidden="true"
+          />
+        ))}
+        <span>More</span>
+      </div>
     </div>
   );
 }
