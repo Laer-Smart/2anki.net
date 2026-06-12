@@ -48,7 +48,7 @@ export class DomRecoveryBoundary extends React.Component<
     }
   }
 
-  private readonly defaultReload = () => window.location.reload();
+  private readonly defaultReload = () => globalThis.location.reload();
 
   private readonly reloadPage = () => {
     (this.props.reloadPage ?? this.defaultReload)();
