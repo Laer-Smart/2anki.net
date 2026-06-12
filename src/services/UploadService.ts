@@ -36,6 +36,7 @@ import {
   generateDeckInfo,
   DeckInfo,
   ClaudeParseError,
+  ImageOnlyContentError,
 } from '../lib/claude/ClaudeService';
 import CustomExporter from '../lib/parser/exporters/CustomExporter';
 import Deck from '../lib/parser/Deck';
@@ -535,6 +536,7 @@ class UploadService {
         const isExpectedState =
           err instanceof EmptyDeckError ||
           err instanceof ClaudeParseError ||
+          err instanceof ImageOnlyContentError ||
           (err instanceof Error && isPdfPasswordSentinel(err.message)) ||
           (err instanceof Error && /^docx_parse_failed/.test(err.message));
         if (isExpectedState) {

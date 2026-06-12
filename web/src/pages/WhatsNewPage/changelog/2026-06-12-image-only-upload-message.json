@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-image-only-upload-message",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Uploads that only contain images explain what to do instead of failing silently"
+}
