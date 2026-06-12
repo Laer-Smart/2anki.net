@@ -140,8 +140,7 @@ export default function SyncConflicts({ backend, embedded = false }: Props) {
                 className={`${sharedStyles.btnSmall} ${styles.inlineButton}`}
                 onClick={() => openInAnki.mutate(conflict.id)}
                 disabled={
-                  openInAnki.isPending &&
-                  openInAnki.variables === conflict.id
+                  openInAnki.isPending && openInAnki.variables === conflict.id
                 }
               >
                 Open in Anki
