@@ -1,5 +1,4 @@
 import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
-import { AnkifySyncMappingsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncMappingsRepository';
 import {
   AnkiConnectClient,
   AnkiConnectUnreachableError,
@@ -51,7 +50,6 @@ const oneYearAgo = (today: string): string => {
 export class GetAnkifyStatsUseCase {
   constructor(
     private readonly clients: AnkifyClientsRepositoryInterface,
-    private readonly mappings: AnkifySyncMappingsRepositoryInterface,
     private readonly ankiConnect: AnkiConnectFactory
   ) {}
 
@@ -79,7 +77,7 @@ export class GetAnkifyStatsUseCase {
       throw error;
     }
 
-    const deckNames = await this.distinctSyncedDeckNames(client.id);
+    const deckNames = await ac.deckNames();
 
     const [reviewedToday, reviewsByDayRaw, deckStats] = await Promise.all([
       ac.getNumCardsReviewedToday(),
@@ -102,13 +100,17 @@ export class GetAnkifyStatsUseCase {
       .filter((entry) => entry.date >= yearCutoff)
       .reduce((sum, entry) => sum + entry.count, 0);
 
-    const decks: AnkifyStatsDeck[] = Object.values(deckStats).map((stat) => ({
-      name: stat.name,
-      new: stat.new_count,
-      learning: stat.learn_count,
-      review: stat.review_count,
-      total: stat.total_in_deck ?? 0,
-    }));
+    const decks: AnkifyStatsDeck[] = Object.values(deckStats)
+      .map((stat) => ({
+        name: stat.name,
+        new: stat.new_count,
+        learning: stat.learn_count,
+        review: stat.review_count,
+        total: stat.total_in_deck ?? 0,
+      }))
+      .sort((a, b) =>
+        b.total === a.total ? a.name.localeCompare(b.name) : b.total - a.total
+      );
 
     return {
       connected: true,
@@ -119,20 +121,5 @@ export class GetAnkifyStatsUseCase {
       reviewsByDay,
       decks,
     };
-  }
-
-  private async distinctSyncedDeckNames(clientId: number): Promise<string[]> {
-    const rows = await this.mappings.listByClient(clientId);
-    const seen = new Set<string>();
-    const names: string[] = [];
-    for (const row of rows) {
-      const deck = row.deck_name?.trim();
-      if (deck == null || deck.length === 0 || seen.has(deck)) {
-        continue;
-      }
-      seen.add(deck);
-      names.push(deck);
-    }
-    return names;
   }
 }
