@@ -26,6 +26,16 @@ export const OPS_TABS: OpsTab[] = [
     match: (path) => path.startsWith('/ops/conversions'),
   },
   {
+    to: '/ops/return-rate',
+    label: 'Return rate',
+    match: (path) => path.startsWith('/ops/return-rate'),
+  },
+  {
+    to: '/ops/mindmaps',
+    label: 'Mindmaps',
+    match: (path) => path.startsWith('/ops/mindmaps'),
+  },
+  {
     to: '/ops/upload-funnel',
     label: 'Upload funnel',
     match: (path) => path.startsWith('/ops/upload-funnel'),

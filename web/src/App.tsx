@@ -147,6 +147,14 @@ const ConversionsTab = lazyWithRetry(
   () => import('./pages/OpsPage/ConversionsTab'),
   './pages/OpsPage/ConversionsTab'
 );
+const ReturnRateTab = lazyWithRetry(
+  () => import('./pages/OpsPage/ReturnRateTab'),
+  './pages/OpsPage/ReturnRateTab'
+);
+const MindmapsTab = lazyWithRetry(
+  () => import('./pages/OpsPage/MindmapsTab'),
+  './pages/OpsPage/MindmapsTab'
+);
 const BusinessTab = lazyWithRetry(
   () => import('./pages/OpsPage/BusinessTab'),
   './pages/OpsPage/BusinessTab'
@@ -493,6 +501,8 @@ function AppContent({
             <Route path="errors" element={<ErrorsTab />} />
             <Route path="performance" element={<PerformanceTab />} />
             <Route path="conversions" element={<ConversionsTab />} />
+            <Route path="return-rate" element={<ReturnRateTab />} />
+            <Route path="mindmaps" element={<MindmapsTab />} />
             <Route path="upload-funnel" element={<UploadFunnelTab />} />
             <Route path="business" element={<BusinessTab />} />
             <Route path="showcase" element={<ShowcaseTab />} />
