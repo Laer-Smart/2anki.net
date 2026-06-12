@@ -40,6 +40,7 @@ describe('UnlimitedCheckoutUseCase', () => {
         mode: 'subscription',
         line_items: [{ price: MONTHLY_PRICE_ID, quantity: 1 }],
         metadata: { user_id: '1', cohort: 'legacy' },
+        subscription_data: { metadata: { user_id: '1' } },
       })
     );
   });

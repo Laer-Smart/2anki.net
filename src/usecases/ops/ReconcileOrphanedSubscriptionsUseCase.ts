@@ -12,12 +12,39 @@ export interface ReconcileOrphanedSubscriptionsResult {
   skippedNoEmail: number;
 }
 
+export type LiveCustomerEmailFetcher = (
+  customerId: string
+) => Promise<string | null>;
+
 export class ReconcileOrphanedSubscriptionsUseCase {
   constructor(
     private readonly orphansRepo: IOrphanedSubscriptionsRepository,
     private readonly notificationsRepo: ISubscriptionRecoveryNotificationsRepository,
-    private readonly emailService: IEmailService
+    private readonly emailService: IEmailService,
+    private readonly fetchLiveCustomerEmail?: LiveCustomerEmailFetcher
   ) {}
+
+  private async resolveRecipientEmail(
+    storedEmail: string | null,
+    customerId: string | null
+  ): Promise<string | null> {
+    const stored = storedEmail?.trim() ?? null;
+    const storedOrNull = stored != null && stored.length > 0 ? stored : null;
+    if (this.fetchLiveCustomerEmail == null || customerId == null) {
+      return storedOrNull;
+    }
+    try {
+      const live = (await this.fetchLiveCustomerEmail(customerId))?.trim();
+      if (live != null && live.length > 0) {
+        return live;
+      }
+    } catch (error) {
+      console.error('[ops] live customer email lookup failed', {
+        reason: (error as Error).message,
+      });
+    }
+    return storedOrNull;
+  }
 
   async execute(): Promise<ReconcileOrphanedSubscriptionsResult> {
     const orphans = await this.orphansRepo.findOrphanedActiveSubscriptions();
@@ -33,7 +60,10 @@ export class ReconcileOrphanedSubscriptionsUseCase {
     };
 
     for (const orphan of orphans) {
-      const email = orphan.email?.trim();
+      const email = await this.resolveRecipientEmail(
+        orphan.email,
+        orphan.customer_id
+      );
       if (email == null || email.length === 0) {
         result.skippedNoEmail++;
         continue;

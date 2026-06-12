@@ -140,4 +140,59 @@ describe('ReconcileOrphanedSubscriptionsUseCase', () => {
     });
     expect(email.recoveryCalls).toEqual([['a@example.com', 'a@example.com']]);
   });
+
+  it('prefers the live Stripe customer email over the stale stored email', async () => {
+    const orphansRepo = new FakeOrphansRepo([
+      orphan({ id: 1, email: 'stale@example.com', customer_id: 'cus_live' }),
+    ]);
+    const notificationsRepo =
+      new InMemorySubscriptionRecoveryNotificationsRepository();
+    const email = makeEmailSpy();
+    const fetchLive = async (customerId: string) =>
+      customerId === 'cus_live' ? 'fresh@example.com' : null;
+    const useCase = new ReconcileOrphanedSubscriptionsUseCase(
+      orphansRepo,
+      notificationsRepo,
+      email,
+      fetchLive
+    );
+
+    const result = await useCase.execute();
+
+    expect(result.emailed).toBe(1);
+    expect(email.recoveryCalls).toEqual([
+      ['fresh@example.com', 'fresh@example.com'],
+    ]);
+    expect(
+      await notificationsRepo.wasNotifiedSince(
+        emailHash('fresh@example.com'),
+        new Date(0)
+      )
+    ).toBe(true);
+  });
+
+  it('falls back to the stored email when the live lookup throws', async () => {
+    const orphansRepo = new FakeOrphansRepo([
+      orphan({ id: 1, email: 'stored@example.com', customer_id: 'cus_x' }),
+    ]);
+    const notificationsRepo =
+      new InMemorySubscriptionRecoveryNotificationsRepository();
+    const email = makeEmailSpy();
+    const fetchLive = async () => {
+      throw new Error('stripe down');
+    };
+    const useCase = new ReconcileOrphanedSubscriptionsUseCase(
+      orphansRepo,
+      notificationsRepo,
+      email,
+      fetchLive
+    );
+
+    const result = await useCase.execute();
+
+    expect(result.emailed).toBe(1);
+    expect(email.recoveryCalls).toEqual([
+      ['stored@example.com', 'stored@example.com'],
+    ]);
+  });
 });

@@ -85,6 +85,7 @@ export class UnlimitedCheckoutUseCase {
         input.stripeCustomerId == null ? input.userEmail : undefined,
       customer: input.stripeCustomerId ?? undefined,
       after_expiration: { recovery: { enabled: true } },
+      subscription_data: { metadata: { user_id: String(input.userId) } },
       metadata: {
         user_id: String(input.userId),
         cohort,

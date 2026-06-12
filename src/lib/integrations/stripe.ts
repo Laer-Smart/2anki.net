@@ -33,12 +33,75 @@ export const extractProductId = (
   return product.id;
 };
 
+export interface ResolvedAccount {
+  id: number;
+  email: string | null;
+}
+
+export type ProvisionStatus = 'linked' | 'unlinked';
+
+export interface ProvisionResult {
+  status: ProvisionStatus;
+  resolvedUserId: number | null;
+}
+
+const normalizeEmail = (email: string | null | undefined): string | null => {
+  if (email == null) {
+    return null;
+  }
+  const normalized = email.toLowerCase().trim();
+  return normalized.length > 0 ? normalized : null;
+};
+
+export const resolveAccountForSubscription = async (
+  db: Knex,
+  subscription: StripeTypes.Subscription,
+  customerId: string | null,
+  stripeEmail: string | null
+): Promise<ResolvedAccount | null> => {
+  const metaUserId = subscription.metadata?.user_id;
+  if (metaUserId != null && metaUserId.trim().length > 0) {
+    const parsed = Number.parseInt(metaUserId, 10);
+    if (!Number.isNaN(parsed) && parsed > 0) {
+      const byId = await db('users')
+        .where({ id: parsed })
+        .select('id', 'email')
+        .first();
+      if (byId != null) {
+        return { id: byId.id, email: byId.email ?? null };
+      }
+    }
+  }
+
+  if (customerId != null) {
+    const byCustomer = await db('users')
+      .where({ stripe_customer_id: customerId })
+      .select('id', 'email')
+      .first();
+    if (byCustomer != null) {
+      return { id: byCustomer.id, email: byCustomer.email ?? null };
+    }
+  }
+
+  if (stripeEmail != null) {
+    const byEmail = await db('users')
+      .whereRaw('lower(trim(email)) = ?', [stripeEmail])
+      .select('id', 'email')
+      .first();
+    if (byEmail != null) {
+      return { id: byEmail.id, email: byEmail.email ?? null };
+    }
+  }
+
+  return null;
+};
+
 export const updateStoreSubscription = async (
   db: Knex,
   customer: StripeTypes.Customer,
   subscription: StripeTypes.Subscription
-) => {
-  const email = customer.email;
+): Promise<ProvisionResult> => {
+  const stripeEmail = normalizeEmail(customer.email);
   const isActive = subscription.status === 'active';
   const isCancelScheduled = subscription.cancel_at_period_end === true;
 
@@ -56,19 +119,49 @@ export const updateStoreSubscription = async (
       ? subscription.customer
       : (subscription.customer?.id ?? null);
 
-  await db('subscriptions')
-    .insert({
-      email: email?.toLowerCase(),
-      active: shouldRemainActive,
-      payload: JSON.stringify(subscription),
-      stripe_product_id: stripeProductId,
-    })
-    .onConflict('email')
-    .merge(['active', 'payload', 'stripe_product_id']);
+  const account = await resolveAccountForSubscription(
+    db,
+    subscription,
+    customerId,
+    stripeEmail
+  );
 
-  if (email != null && customerId != null) {
+  const accountEmail = normalizeEmail(account?.email);
+  const linkedEmail =
+    accountEmail != null && accountEmail !== stripeEmail ? accountEmail : null;
+
+  const insertRow: Record<string, unknown> = {
+    email: stripeEmail,
+    active: shouldRemainActive,
+    payload: JSON.stringify(subscription),
+    stripe_product_id: stripeProductId,
+  };
+  if (linkedEmail != null) {
+    insertRow.linked_email = linkedEmail;
+  }
+
+  const mergeColumns: Record<string, unknown> = {
+    active: shouldRemainActive,
+    payload: JSON.stringify(subscription),
+    stripe_product_id: stripeProductId,
+  };
+  if (linkedEmail != null) {
+    mergeColumns.linked_email = linkedEmail;
+  }
+
+  await db('subscriptions')
+    .insert(insertRow)
+    .onConflict('email')
+    .merge(mergeColumns);
+
+  if (account != null && customerId != null) {
     await db('users')
-      .where({ email: email.toLowerCase() })
+      .where({ id: account.id })
       .update({ stripe_customer_id: customerId });
   }
+
+  if (account != null) {
+    return { status: 'linked', resolvedUserId: account.id };
+  }
+  return { status: 'unlinked', resolvedUserId: null };
 };
