@@ -715,7 +715,7 @@ const AnkifyRouter = () => {
    * /api/ankify/conflicts/{id}/open-in-anki:
    *   post:
    *     summary: Open the conflicting note in the user's hosted Anki browser
-   *     description: Allowlisted endpoint. Looks up the owner's conflict row, derives its Anki note id, and invokes AnkiConnect guiBrowse(nid:<id>) so Anki's browser focuses that note. Returns { opened: false } when the client is offline.
+   *     description: "Allowlisted endpoint. Looks up the owner's conflict row, derives its Anki note id, and invokes AnkiConnect guiBrowse(nid:<id>) so Anki's browser focuses that note. Returns { opened: false } when the client is offline."
    *     tags: [Ankify]
    *     parameters:
    *       - in: path
