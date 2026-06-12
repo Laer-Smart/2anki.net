@@ -180,6 +180,10 @@ class AuthenticationService {
     return this.tokenRepository.deleteAccessToken(token);
   }
 
+  logOutEverywhere(owner: string | number): Promise<number> {
+    return this.tokenRepository.deleteAllForOwner(owner.toString());
+  }
+
   async revokeSessionsByResetToken(resetToken: string): Promise<number> {
     const user = await this.usersRepository.getByResetToken(resetToken);
     if (user?.id == null) {

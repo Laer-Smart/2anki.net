@@ -103,6 +103,26 @@ class UsersController {
     }
   }
 
+  async logOutEverywhere(
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) {
+    const { owner } = res.locals;
+
+    if (owner == null) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    try {
+      await this.authService.logOutEverywhere(owner);
+      res.clearCookie('token');
+      return res.status(200).json({ message: 'ok' });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   async login(
     req: express.Request,
     res: express.Response,

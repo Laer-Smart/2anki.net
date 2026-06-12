@@ -8,6 +8,7 @@ import {
   ClaimSubscription,
   SubscriptionManagement,
   AccountDeletion,
+  LogOutEverywhere,
 } from './components';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './AccountPage.module.css';
@@ -91,6 +92,8 @@ export default function AccountPage() {
         hasActivePlan={hasActivePlan}
         onRefetch={refetch}
       />
+
+      <LogOutEverywhere />
 
       <AccountDeletion />
 

@@ -2945,3 +2945,64 @@ describe('UsersController.submitCancellationFeedback', () => {
     expect(insert).not.toHaveBeenCalled();
   });
 });
+
+describe('UsersController.logOutEverywhere', () => {
+  const buildLogOutEverywhereController = (logOutEverywhere: jest.Mock) => {
+    const authService = {
+      logOutEverywhere,
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      {} as UsersService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    return { controller };
+  };
+
+  const buildResWithLocals = (owner: number | null) => {
+    const json = jest.fn();
+    const status = jest.fn().mockReturnValue({ json });
+    const clearCookie = jest.fn();
+    return {
+      json,
+      status,
+      clearCookie,
+      locals: { owner },
+    } as unknown as express.Response & {
+      json: jest.Mock;
+      status: jest.Mock;
+      clearCookie: jest.Mock;
+    };
+  };
+
+  it('revokes every session for the session owner and clears the cookie', async () => {
+    const logOutEverywhere = jest.fn().mockResolvedValue(3);
+    const { controller } = buildLogOutEverywhereController(logOutEverywhere);
+    const req = {
+      body: { owner: 999 },
+    } as unknown as express.Request;
+    const res = buildResWithLocals(7);
+    const next = jest.fn();
+
+    await controller.logOutEverywhere(req, res, next);
+
+    expect(logOutEverywhere).toHaveBeenCalledWith(7);
+    expect(logOutEverywhere).not.toHaveBeenCalledWith(999);
+    expect(res.clearCookie).toHaveBeenCalledWith('token');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it('rejects when there is no session owner and never revokes', async () => {
+    const logOutEverywhere = jest.fn();
+    const { controller } = buildLogOutEverywhereController(logOutEverywhere);
+    const req = {} as express.Request;
+    const res = buildResWithLocals(null);
+    const next = jest.fn();
+
+    await controller.logOutEverywhere(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(logOutEverywhere).not.toHaveBeenCalled();
+  });
+});

@@ -249,6 +249,36 @@ const UserRouter = () => {
 
   /**
    * @swagger
+   * /api/users/logout-everywhere:
+   *   post:
+   *     summary: Revoke every session for the authenticated user
+   *     description: Deletes all access tokens owned by the signed-in user, including the current session. Derives the owner from the session, never from the request body.
+   *     tags: [Authentication]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     responses:
+   *       200:
+   *         description: All sessions revoked
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Success'
+   *       401:
+   *         description: Authentication required
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   */
+  router.post(
+    '/api/users/logout-everywhere',
+    RequireAuthentication,
+    (req, res, next) => controller.logOutEverywhere(req, res, next)
+  );
+
+  /**
+   * @swagger
    * /api/users/login:
    *   post:
    *     summary: Login user

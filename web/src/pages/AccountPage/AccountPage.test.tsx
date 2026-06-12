@@ -21,6 +21,7 @@ vi.mock('./components', () => ({
   ClaimSubscription: () => <div>Paid with a different email?</div>,
   SubscriptionManagement: () => null,
   AccountDeletion: () => null,
+  LogOutEverywhere: () => null,
 }));
 
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
