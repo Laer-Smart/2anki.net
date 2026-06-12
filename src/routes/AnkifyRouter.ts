@@ -54,6 +54,7 @@ import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { MarkNotionTokenInvalidUseCase } from '../usecases/notion/MarkNotionTokenInvalidUseCase';
 import { buildNotionPageMetaFetcher } from '../services/ankify/buildNotionPageMetaFetcher';
+import { makeAnkifyTemplateOverridesProvider } from '../services/ankify/templateOverrides';
 
 const buildNotionExportClient = (token: string) => {
   const notion = new NotionClient({ auth: token });
@@ -289,8 +290,8 @@ const AnkifyRouter = () => {
 
   const ankifyNotionRepo = new NotionRepository(db);
   const settingsRepo = new SettingsRepository(db);
-  const templateOverridesProvider = (owner: number, pageId?: string) =>
-    settingsRepo.loadAnkifyTemplateOverrides(String(owner), pageId);
+  const templateOverridesProvider =
+    makeAnkifyTemplateOverridesProvider(settingsRepo);
   const syncNotionPageUseCase = new SyncNotionPageToRacUseCase(
     repo,
     mappings,
