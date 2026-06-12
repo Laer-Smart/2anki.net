@@ -17,6 +17,6 @@ export const getFileUrl = (
     case 'file':
       return source.file.url;
     default:
-      return 'unsupported file: ' + JSON.stringify(block);
+      return null;
   }
 };
