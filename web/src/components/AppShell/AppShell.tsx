@@ -6,6 +6,7 @@ import {
   removeAdSenseScript,
 } from '../AdSense/AdSenseScript';
 import { PageLayout } from '../Layout/PageLayout';
+import { isEmbeddedAppWebView } from './isEmbeddedAppWebView';
 import { SidebarFeatures, SidebarLocals } from './Sidebar';
 import { SidebarLayout } from './SidebarLayout';
 
@@ -39,7 +40,10 @@ export function AppShell({
   useEffect(() => {
     if (isLoggedIn == null) return;
     const isPricingRoute = pathname === '/pricing';
-    const shouldShowAds = !isLoggedIn && !isPricingRoute;
+    const shouldShowAds =
+      !isLoggedIn &&
+      !isPricingRoute &&
+      !isEmbeddedAppWebView(navigator.userAgent);
     if (shouldShowAds) {
       injectAdSenseScript();
     } else {
