@@ -91,6 +91,10 @@ export class AnkiConnectClient {
     return this.invoke('modelFieldNames', { modelName });
   }
 
+  async getMediaFilesNames(pattern: string): Promise<string[]> {
+    return this.invoke('getMediaFilesNames', { pattern });
+  }
+
   async createModel(params: AnkiConnectCreateModelParams): Promise<unknown> {
     return this.invoke(
       'createModel',
