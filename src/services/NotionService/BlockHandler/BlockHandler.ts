@@ -45,15 +45,15 @@ import {
   hasRuleBasedSubDecks,
   isTruncatedBlockFetch,
 } from '../helpers/conversionTruncation';
-import { downloadMediaOrSkip } from '../helpers/downloadMediaOrSkip';
+import { downloadWithFreshUrlRetry } from '../helpers/downloadWithFreshUrlRetry';
 import { expandSyncedBlocks } from '../helpers/expandSyncedBlocks';
-import { getAudioUrl } from '../helpers/getAudioUrl';
+import { getAudioSourceType, getAudioUrl } from '../helpers/getAudioUrl';
 import getClozeDeletionCard from '../helpers/getClozeDeletionCard';
 import handleClozeDeletions from '../../../lib/parser/helpers/handleClozeDeletions';
 import hasInlineClozeCode from '../../../lib/parser/helpers/hasInlineClozeCode';
 import getColumn from '../helpers/getColumn';
-import { getFileUrl } from '../helpers/getFileUrl';
-import { getImageUrl } from '../helpers/getImageUrl';
+import { getFileSourceType, getFileUrl } from '../helpers/getFileUrl';
+import { getImageSourceType, getImageUrl } from '../helpers/getImageUrl';
 import { isNotionDatabaseNotPageError } from '../helpers/isNotionDatabaseNotPageError';
 import getInputCard from '../helpers/getInputCard';
 import isColumnList from '../helpers/isColumnList';
@@ -206,7 +206,8 @@ class BlockHandler {
   }
 
   async embedImage(c: BlockObjectResponse): Promise<string> {
-    const url = getImageUrl(c as ImageBlockObjectResponse);
+    const image = c as ImageBlockObjectResponse;
+    const url = getImageUrl(image);
     if (
       !this.settings.embedImages ||
       this.settings.isTextOnlyBack ||
@@ -218,7 +219,14 @@ class BlockHandler {
 
     const suffix = SuffixFrom(S3FileName(url));
     const newName = getUniqueFileName(url) + (suffix ?? '');
-    const contents = await downloadMediaOrSkip(url);
+    const contents = await downloadWithFreshUrlRetry({
+      api: this.api,
+      blockId: image.id,
+      url,
+      sourceType: getImageSourceType(image),
+      extractFreshUrl: (fresh) =>
+        getImageUrl(fresh as ImageBlockObjectResponse),
+    });
     if (contents == null) {
       return '';
     }
@@ -233,7 +241,14 @@ class BlockHandler {
     }
     const newName = getUniqueFileName(url);
 
-    const contents = await downloadMediaOrSkip(url);
+    const contents = await downloadWithFreshUrlRetry({
+      api: this.api,
+      blockId: c.id,
+      url,
+      sourceType: getAudioSourceType(c),
+      extractFreshUrl: (fresh) =>
+        getAudioUrl(fresh as AudioBlockObjectResponse),
+    });
     if (contents == null) {
       return '';
     }
@@ -249,7 +264,14 @@ class BlockHandler {
       return '';
     }
     const newName = getUniqueFileName(url);
-    const contents = await downloadMediaOrSkip(url);
+    const contents = await downloadWithFreshUrlRetry({
+      api: this.api,
+      blockId: block.id,
+      url,
+      sourceType: getFileSourceType(block),
+      extractFreshUrl: (fresh) =>
+        getFileUrl(fresh as FileBlockObjectResponse | PdfBlockObjectResponse),
+    });
     if (contents == null) {
       return '';
     }

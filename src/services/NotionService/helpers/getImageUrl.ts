@@ -1,6 +1,8 @@
 import { ImageBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import { isFullBlock } from '@notionhq/client';
 
+import { MediaSourceType } from './downloadWithFreshUrlRetry';
+
 export const getImageUrl = (block: ImageBlockObjectResponse): string | null => {
   if (!isFullBlock(block)) {
     return null;
@@ -14,3 +16,7 @@ export const getImageUrl = (block: ImageBlockObjectResponse): string | null => {
       return null;
   }
 };
+
+export const getImageSourceType = (
+  block: ImageBlockObjectResponse
+): MediaSourceType => (block.image.type === 'file' ? 'file' : 'external');

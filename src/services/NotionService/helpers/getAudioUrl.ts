@@ -1,6 +1,8 @@
 import { AudioBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import { isFullBlock } from '@notionhq/client';
 
+import { MediaSourceType } from './downloadWithFreshUrlRetry';
+
 export const getAudioUrl = (block: AudioBlockObjectResponse): string | null => {
   if (!isFullBlock(block)) {
     return null;
@@ -14,3 +16,7 @@ export const getAudioUrl = (block: AudioBlockObjectResponse): string | null => {
       return null;
   }
 };
+
+export const getAudioSourceType = (
+  block: AudioBlockObjectResponse
+): MediaSourceType => (block.audio.type === 'file' ? 'file' : 'external');
