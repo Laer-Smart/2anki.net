@@ -19,6 +19,7 @@ function buildEmailService(): jest.Mocked<IEmailService> {
     sendNotionReconnectEmail: jest.fn().mockResolvedValue(undefined),
     sendSubscriptionClaimConfirmation: jest.fn().mockResolvedValue(undefined),
     sendPriceLockInEmail: jest.fn().mockResolvedValue(undefined),
+    sendSubscriptionRecoveryEmail: jest.fn().mockResolvedValue(undefined),
   };
 }
 

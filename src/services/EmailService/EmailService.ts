@@ -17,6 +17,7 @@ import {
   SUBSCRIPTION_CANCELLED_TEMPLATE,
   SUBSCRIPTION_CANCELLATIONS_LOG_PATH,
   SUBSCRIPTION_CLAIM_CONFIRMATION_TEMPLATE,
+  SUBSCRIPTION_RECOVERY_TEMPLATE,
   SUBSCRIPTION_SCHEDULED_CANCELLATION_TEMPLATE,
 } from './constants';
 import { isValidDeckName, addDeckNameSuffix } from '../../lib/anki/format';
@@ -79,7 +80,11 @@ export interface IEmailService {
     token: string,
     variant: 'a' | 'b'
   ): Promise<void>;
+  sendSubscriptionRecoveryEmail(to: string, paidEmail: string): Promise<void>;
 }
+
+export const SUBSCRIPTION_RECOVERY_SUBJECT =
+  'Connect your 2anki subscription to your account';
 
 export const PRICE_LOCK_IN_SUBJECTS: Record<'a' | 'b', string> = {
   a: 'Lock in $6/month before prices go up',
@@ -607,6 +612,44 @@ export class EmailService implements IEmailService {
       throw error;
     }
   }
+
+  async sendSubscriptionRecoveryEmail(
+    to: string,
+    paidEmail: string
+  ): Promise<void> {
+    const domain = process.env.DOMAIN ?? 'https://2anki.net';
+    const registerUrl = `${domain}/register`;
+    const accountUrl = `${domain}/account`;
+
+    const markup = SUBSCRIPTION_RECOVERY_TEMPLATE.replaceAll(
+      '{{paidEmail}}',
+      paidEmail
+    )
+      .replaceAll('{{registerUrl}}', registerUrl)
+      .replaceAll('{{accountUrl}}', accountUrl);
+
+    const $ = cheerio.load(markup);
+    const text = $('body').text().replace(/\s+/g, ' ').trim();
+
+    const msg = {
+      to,
+      from: this.defaultSender,
+      subject: SUBSCRIPTION_RECOVERY_SUBJECT,
+      text,
+      html: markup,
+      replyTo: 'support@2anki.net',
+    };
+
+    try {
+      await this.deliver(msg);
+    } catch (error) {
+      console.error(
+        `Failed to send subscription recovery email to ${emailHash(to)}:`,
+        error
+      );
+      throw error;
+    }
+  }
 }
 
 export class UnimplementedEmailService implements IEmailService {
@@ -729,6 +772,13 @@ export class UnimplementedEmailService implements IEmailService {
     variant: 'a' | 'b'
   ): Promise<void> {
     console.info('sendPriceLockInEmail not handled', to, token, variant);
+  }
+
+  async sendSubscriptionRecoveryEmail(
+    to: string,
+    paidEmail: string
+  ): Promise<void> {
+    console.info('sendSubscriptionRecoveryEmail not handled', to, paidEmail);
   }
 }
 

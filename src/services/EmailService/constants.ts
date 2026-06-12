@@ -74,3 +74,8 @@ export const SUBSCRIPTION_CLAIM_CONFIRMATION_TEMPLATE = fs.readFileSync(
   path.join(EMAIL_TEMPLATES_DIRECTORY, 'subscription-claim-confirmation.html'),
   'utf8'
 );
+
+export const SUBSCRIPTION_RECOVERY_TEMPLATE = fs.readFileSync(
+  path.join(EMAIL_TEMPLATES_DIRECTORY, 'subscription-recovery.html'),
+  'utf8'
+);

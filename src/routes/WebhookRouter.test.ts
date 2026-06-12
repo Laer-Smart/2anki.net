@@ -59,6 +59,7 @@ jest.mock('../services/EmailService/EmailService', () => ({
     sendNotionReconnectEmail: jest.fn().mockResolvedValue(undefined),
     sendSubscriptionClaimConfirmation: jest.fn().mockResolvedValue(undefined),
     sendPriceLockInEmail: jest.fn().mockResolvedValue(undefined),
+    sendSubscriptionRecoveryEmail: jest.fn().mockResolvedValue(undefined),
   }),
 }));
 

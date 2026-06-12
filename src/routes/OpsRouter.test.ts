@@ -81,6 +81,39 @@ jest.mock('../services/events/track', () => ({
   track: jest.fn(),
 }));
 
+jest.mock('../data_layer/OrphanedSubscriptionsRepository', () => ({
+  OrphanedSubscriptionsRepository: class {
+    async findOrphanedActiveSubscriptions() {
+      return [
+        {
+          id: 9,
+          email: 'payer@example.com',
+          stripe_product_id: 'prod_unlimited',
+          created_at: new Date('2026-05-01T00:00:00.000Z'),
+          customer_id: 'cus_123',
+        },
+      ];
+    }
+  },
+}));
+
+jest.mock('../data_layer/SubscriptionRecoveryNotificationsRepository', () => ({
+  SubscriptionRecoveryNotificationsRepository: class {
+    async wasNotifiedSince() {
+      return false;
+    }
+    async recordNotified() {}
+  },
+}));
+
+jest.mock('../services/EmailService/EmailService', () => ({
+  getDefaultEmailService: () => ({
+    sendInactivityWarningEmail: jest.fn().mockResolvedValue(undefined),
+    sendPriceLockInEmail: jest.fn().mockResolvedValue(undefined),
+    sendSubscriptionRecoveryEmail: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 jest.mock('./middleware/RequireOpsAccess', () => {
   const state = globalThis as unknown as {
     __opsAccessState?: { allow: boolean };
@@ -530,6 +563,74 @@ describe('OpsRouter /api/ops/flags', () => {
         updated_by_email: 'alex@example.com',
       });
       expect(body).not.toHaveProperty('updated_by');
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe('OpsRouter /api/ops/subscriptions/orphaned', () => {
+  it('returns 404 for non-owner callers', async () => {
+    const { url, close } = await startServer(false);
+    try {
+      const response = await fetch(`${url}/api/ops/subscriptions/orphaned`);
+      expect(response.status).toBe(404);
+    } finally {
+      await close();
+    }
+  });
+
+  it('returns 200 with the orphan count and a typed list for the ops owner', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(`${url}/api/ops/subscriptions/orphaned`);
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body).toEqual({
+        count: 1,
+        orphans: [
+          {
+            id: 9,
+            email: 'payer@example.com',
+            stripeProductId: 'prod_unlimited',
+            createdAt: '2026-05-01T00:00:00.000Z',
+            customerId: 'cus_123',
+          },
+        ],
+      });
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe('OpsRouter /api/ops/subscriptions/reconcile', () => {
+  it('returns 404 for non-owner callers', async () => {
+    const { url, close } = await startServer(false);
+    try {
+      const response = await fetch(`${url}/api/ops/subscriptions/reconcile`, {
+        method: 'POST',
+      });
+      expect(response.status).toBe(404);
+    } finally {
+      await close();
+    }
+  });
+
+  it('returns 200 with the reconcile summary for the ops owner', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(`${url}/api/ops/subscriptions/reconcile`, {
+        method: 'POST',
+      });
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body).toEqual({
+        found: 1,
+        emailed: 1,
+        skippedRecentlyNotified: 0,
+        skippedNoEmail: 0,
+      });
     } finally {
       await close();
     }
