@@ -5,6 +5,30 @@ export type NotionDatabasePagesFetcherFactory = (
   token: string
 ) => (databaseId: string) => Promise<NotionDatabasePageRef[]>;
 
+interface TitlePropertyValue {
+  type?: string;
+  title?: { plain_text?: string }[];
+}
+
+const extractRowTitle = (row: Record<string, unknown>): string | null => {
+  const properties = row.properties;
+  if (properties == null || typeof properties !== 'object') {
+    return null;
+  }
+  for (const value of Object.values(properties as Record<string, unknown>)) {
+    const property = value as TitlePropertyValue;
+    if (property?.type !== 'title' || !Array.isArray(property.title)) {
+      continue;
+    }
+    const text = property.title
+      .map((item) => item.plain_text ?? '')
+      .join('')
+      .trim();
+    return text.length > 0 ? text : null;
+  }
+  return null;
+};
+
 export const notionDatabasePagesFetcherFactory: NotionDatabasePagesFetcherFactory =
   (token: string) => {
     const notion = new NotionClient({ auth: token });
@@ -33,12 +57,16 @@ export const notionDatabasePagesFetcherFactory: NotionDatabasePagesFetcherFactor
         const response = await notion.dataSources.query({
           data_source_id: dataSourceId,
           page_size: 100,
+          sorts: [{ timestamp: 'created_time', direction: 'ascending' }],
           ...(cursor == null ? {} : { start_cursor: cursor }),
         });
         for (const row of response.results) {
           const id = (row as { id?: unknown }).id;
           if (typeof id === 'string') {
-            aggregated.push({ id });
+            aggregated.push({
+              id,
+              title: extractRowTitle(row as Record<string, unknown>),
+            });
           }
         }
         cursor = response.next_cursor ?? undefined;

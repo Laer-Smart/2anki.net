@@ -43,7 +43,10 @@ import { NoActiveAnkifyClientError } from './SendUploadToRacUseCase';
 import { NotionNotConnectedError } from './ExportReviewDataToNotionUseCase';
 import { isNotionDatabaseNotPageError } from '../../services/NotionService/helpers/isNotionDatabaseNotPageError';
 import { sanitizeDeckPath } from '../../lib/ankify/transforms/tags';
-import { buildDeckName } from '../../lib/ankify/transforms/deckName';
+import {
+  buildChildDeckName,
+  buildDeckName,
+} from '../../lib/ankify/transforms/deckName';
 
 export { NotionNotConnectedError } from './ExportReviewDataToNotionUseCase';
 
@@ -343,18 +346,24 @@ export class SyncNotionPageToRacUseCase {
       client.anki_port,
       client.anki_connect_api_key
     );
-    const deckName = buildDeckName(
+    const parentDeckName = buildDeckName(
       subscription.target_deck,
       subscription.notion_page_title
     );
-    await ac.createDeck(deckName);
-    const overrides =
-      (await this.templateOverridesProvider?.(
-        input.owner,
-        input.notionPageId
-      )) ?? null;
-    await ensureAnkifyModels(ac, this.modelCache(client.id), overrides);
-    await this.refreshAnkifyModelStyling(ac, overrides);
+    const deckNames = new Set<string>([parentDeckName]);
+    for (const card of cards) {
+      deckNames.add(this.cardDeckName(parentDeckName, card));
+    }
+    for (const name of deckNames) {
+      await ac.createDeck(name);
+    }
+
+    const overridesByPage = await this.resolveCardOverrides(
+      input.owner,
+      input.notionPageId,
+      cards
+    );
+    await this.ensureModelsForOverrides(ac, client, overridesByPage);
 
     for (const card of cards) {
       await this.processCard({
@@ -364,8 +373,12 @@ export class SyncNotionPageToRacUseCase {
         ac,
         input,
         result,
-        deckName,
-        overrides,
+        deckName: this.cardDeckName(parentDeckName, card),
+        overrides: this.overridesForCard(
+          overridesByPage,
+          card,
+          input.notionPageId
+        ),
       });
     }
 
@@ -376,10 +389,96 @@ export class SyncNotionPageToRacUseCase {
       ac,
       input,
       result,
-      deckName,
+      parentDeckName,
     });
 
     await this.runFinalAnkiWebSync(ac, result);
+  }
+
+  private cardDeckName(
+    parentDeckName: string,
+    card: WalkedNotionFlashcard
+  ): string {
+    if (card.notion_page_id == null) {
+      return parentDeckName;
+    }
+    return buildChildDeckName(parentDeckName, card.notion_page_title);
+  }
+
+  private overridesForCard(
+    overridesByPage: Map<string, AnkifyTemplateOverrides | null>,
+    card: WalkedNotionFlashcard,
+    rootPageId: string
+  ): AnkifyTemplateOverrides | null {
+    return overridesByPage.get(card.notion_page_id ?? rootPageId) ?? null;
+  }
+
+  private async resolveCardOverrides(
+    owner: number,
+    rootPageId: string,
+    cards: WalkedNotionFlashcard[]
+  ): Promise<Map<string, AnkifyTemplateOverrides | null>> {
+    const overridesByPage = new Map<string, AnkifyTemplateOverrides | null>();
+    overridesByPage.set(
+      rootPageId,
+      (await this.templateOverridesProvider?.(owner, rootPageId)) ?? null
+    );
+    for (const card of cards) {
+      const pageId = card.notion_page_id;
+      if (pageId == null || overridesByPage.has(pageId)) {
+        continue;
+      }
+      overridesByPage.set(
+        pageId,
+        (await this.templateOverridesProvider?.(owner, pageId, rootPageId)) ??
+          null
+      );
+    }
+    return overridesByPage;
+  }
+
+  private async ensureModelsForOverrides(
+    ac: AnkiConnectClient,
+    client: AnkifyClient,
+    overridesByPage: Map<string, AnkifyTemplateOverrides | null>
+  ): Promise<void> {
+    const seenModels = new Set<string>();
+    for (const overrides of overridesByPage.values()) {
+      const modelName = overrides?.basicModelName ?? ANKIFY_BASIC_MODEL;
+      if (seenModels.has(modelName)) {
+        continue;
+      }
+      seenModels.add(modelName);
+      await ensureAnkifyModels(ac, this.modelCache(client.id), overrides);
+      await this.refreshAnkifyModelStyling(ac, overrides);
+    }
+  }
+
+  private async findMisplacedMappingsByDeck(args: {
+    cards: WalkedNotionFlashcard[];
+    client: AnkifyClient;
+    parentDeckName: string;
+    targetDeckSet: boolean;
+  }): Promise<Map<string, AnkifySyncMapping[]>> {
+    const { cards, client, parentDeckName, targetDeckSet } = args;
+    const misplacedByDeck = new Map<string, AnkifySyncMapping[]>();
+    for (const card of cards) {
+      if (card.notion_page_id == null && !targetDeckSet) {
+        continue;
+      }
+      const expectedDeck = this.cardDeckName(parentDeckName, card);
+      const mapping = await this.mappings.findBySourceId(
+        client.id,
+        card.notion_block_id
+      );
+      if (mapping == null || mapping.deck_name === expectedDeck) {
+        continue;
+      }
+      const group = misplacedByDeck.get(expectedDeck) ?? [];
+      group.push(mapping);
+      misplacedByDeck.set(expectedDeck, group);
+    }
+    return misplacedByDeck;
   }
 
   private async consolidateMappedNotes(args: {
@@ -389,46 +488,40 @@ export class SyncNotionPageToRacUseCase {
     ac: AnkiConnectClient;
     input: SyncNotionPageInput;
     result: SyncNotionPageResult;
-    deckName: string;
+    parentDeckName: string;
   }): Promise<void> {
-    const { cards, client, subscription, ac, input, result, deckName } = args;
-    if (sanitizeDeckPath(subscription.target_deck).length === 0) {
-      return;
-    }
+    const { cards, client, subscription, ac, input, result, parentDeckName } =
+      args;
+    const targetDeckSet = sanitizeDeckPath(subscription.target_deck).length > 0;
 
-    const misplaced: AnkifySyncMapping[] = [];
-    for (const card of cards) {
-      const mapping = await this.mappings.findBySourceId(
-        client.id,
-        card.notion_block_id
-      );
-      if (mapping != null && mapping.deck_name !== deckName) {
-        misplaced.push(mapping);
+    const misplacedByDeck = await this.findMisplacedMappingsByDeck({
+      cards,
+      client,
+      parentDeckName,
+      targetDeckSet,
+    });
+
+    for (const [deckName, misplaced] of misplacedByDeck) {
+      const noteIds = misplaced.map((m) => m.anki_note_id);
+      const info = await ac.notesInfo(noteIds);
+      const cardIds = info.flatMap((note) => note.cards ?? []);
+      if (cardIds.length > 0) {
+        await ac.changeDeck(cardIds, deckName);
       }
-    }
-    if (misplaced.length === 0) {
-      return;
-    }
 
-    const noteIds = misplaced.map((m) => m.anki_note_id);
-    const info = await ac.notesInfo(noteIds);
-    const cardIds = info.flatMap((note) => note.cards ?? []);
-    if (cardIds.length > 0) {
-      await ac.changeDeck(cardIds, deckName);
-    }
+      for (const mapping of misplaced) {
+        await this.mappings.upsert({
+          ankify_client_id: client.id,
+          source_id: mapping.source_id,
+          source_type: mapping.source_type,
+          anki_note_id: mapping.anki_note_id,
+          deck_name: deckName,
+        });
+      }
 
-    for (const mapping of misplaced) {
-      await this.mappings.upsert({
-        ankify_client_id: client.id,
-        source_id: mapping.source_id,
-        source_type: mapping.source_type,
-        anki_note_id: mapping.anki_note_id,
-        deck_name: deckName,
-      });
+      this.emitFollowedDeckEvent(input, deckName, misplaced.length);
+      result.updated += misplaced.length;
     }
-
-    this.emitFollowedDeckEvent(input, deckName, misplaced.length);
-    result.updated += misplaced.length;
   }
 
   private emitFollowedDeckEvent(

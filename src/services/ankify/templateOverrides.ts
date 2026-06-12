@@ -9,7 +9,8 @@ export interface AnkifyTemplateOverrides {
 
 export type AnkifyTemplateOverridesProvider = (
   owner: number,
-  pageId?: string
+  pageId?: string,
+  fallbackPageId?: string
 ) => Promise<AnkifyTemplateOverrides | null>;
 
 const BASIC_FIELDS_FROM_TEMPLATE = ['Front', 'Back', 'MyMedia'];

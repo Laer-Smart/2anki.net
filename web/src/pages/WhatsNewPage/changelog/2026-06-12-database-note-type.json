@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-12-database-note-type",
+  "date": "2026-06-12",
+  "type": "fix",
+  "title": "Custom note types apply to cards synced from pages inside a Notion database"
+}

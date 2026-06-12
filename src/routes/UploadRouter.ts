@@ -17,6 +17,7 @@ import UploadService from '../services/UploadService';
 import { getDatabase } from '../data_layer';
 import UploadRepository from '../data_layer/UploadRespository';
 import UsersRepository from '../data_layer/UsersRepository';
+import SettingsRepository from '../data_layer/SettingsRepository';
 import NotionRepository from '../data_layer/NotionRespository';
 import BlocksCacheRepository from '../data_layer/BlocksCacheRepository';
 import NotionService from '../services/NotionService';
@@ -39,7 +40,8 @@ const UploadRouter = () => {
   const uploadService = new UploadService(
     new UploadRepository(database),
     jobRepository,
-    new UsersRepository(database)
+    new UsersRepository(database),
+    new SettingsRepository(database)
   );
   const jobController = new JobController(
     jobService,

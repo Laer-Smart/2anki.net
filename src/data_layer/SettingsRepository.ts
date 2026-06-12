@@ -8,9 +8,11 @@ import { AnkifyTemplateOverrides } from '../services/ankify/templateOverrides';
 export interface ISettingsRepository {
   load(owner: string, id: string): Promise<CardOption>;
   loadIfExists(owner: string, id: string): Promise<CardOption | null>;
+  attachCustomTemplates(owner: string, settings: CardOption): Promise<void>;
   loadAnkifyTemplateOverrides(
     owner: string,
-    pageId?: string
+    pageId?: string,
+    fallbackPageId?: string
   ): Promise<AnkifyTemplateOverrides | null>;
 }
 
@@ -94,31 +96,43 @@ class SettingsRepository implements ISettingsRepository {
       const settings = new CardOption(
         unwrapStoredSettingsPayload(result.payload)
       );
-      const templates = await this.database('templates')
-        .where({ owner })
-        .returning(['payload'])
-        .first();
-
-      if (templates && settings.template === 'custom') {
-        settings.n2aBasic = getCustomTemplate('n2a-basic', templates.payload);
-        settings.n2aCloze = getCustomTemplate('n2a-cloze', templates.payload);
-        settings.n2aInput = getCustomTemplate('n2a-input', templates.payload);
-
-        if (settings.n2aBasic) {
-          settings.n2aBasic.name = settings.basicModelName;
-        }
-        if (settings.n2aCloze) {
-          settings.n2aCloze.name = settings.clozeModelName;
-        }
-        if (settings.n2aInput) {
-          settings.n2aInput.name = settings.inputModelName;
-        }
-      }
+      await this.attachCustomTemplates(owner, settings);
       return settings;
     } catch (error: unknown) {
       console.info('Load settings from database failed');
       console.error(error);
       return null;
+    }
+  }
+
+  async attachCustomTemplates(
+    owner: string,
+    settings: CardOption
+  ): Promise<void> {
+    if (settings.template !== 'custom') {
+      return;
+    }
+    const templates = await this.database('templates')
+      .where({ owner })
+      .returning(['payload'])
+      .first();
+    const templatesPayload = parseJsonColumn(templates?.payload);
+    if (!Array.isArray(templatesPayload)) {
+      return;
+    }
+
+    settings.n2aBasic = getCustomTemplate('n2a-basic', templatesPayload);
+    settings.n2aCloze = getCustomTemplate('n2a-cloze', templatesPayload);
+    settings.n2aInput = getCustomTemplate('n2a-input', templatesPayload);
+
+    if (settings.n2aBasic) {
+      settings.n2aBasic.name = settings.basicModelName;
+    }
+    if (settings.n2aCloze) {
+      settings.n2aCloze.name = settings.clozeModelName;
+    }
+    if (settings.n2aInput) {
+      settings.n2aInput.name = settings.inputModelName;
     }
   }
 
@@ -171,10 +185,14 @@ class SettingsRepository implements ISettingsRepository {
 
   private async resolveCustomBasicModelName(
     owner: string,
-    pageId?: string
+    pageId?: string,
+    fallbackPageId?: string
   ): Promise<string | null> {
-    if (pageId != null) {
-      const fromPage = await this.customBasicModelNameForPage(owner, pageId);
+    const pageCandidates = [pageId, fallbackPageId].filter(
+      (candidate): candidate is string => candidate != null
+    );
+    for (const candidate of pageCandidates) {
+      const fromPage = await this.customBasicModelNameForPage(owner, candidate);
       if (fromPage != null) {
         return fromPage;
       }
@@ -190,12 +208,14 @@ class SettingsRepository implements ISettingsRepository {
 
   async loadAnkifyTemplateOverrides(
     owner: string,
-    pageId?: string
+    pageId?: string,
+    fallbackPageId?: string
   ): Promise<AnkifyTemplateOverrides | null> {
     try {
       const basicModelName = await this.resolveCustomBasicModelName(
         owner,
-        pageId
+        pageId,
+        fallbackPageId
       );
       if (basicModelName == null) {
         return null;

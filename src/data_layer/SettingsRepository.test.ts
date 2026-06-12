@@ -1,5 +1,6 @@
 import knexLib, { Knex } from 'knex';
 import SettingsRepository from './SettingsRepository';
+import CardOption from '../lib/parser/Settings/CardOption';
 
 const TEMPLATES_PAYLOAD = [
   {
@@ -215,6 +216,71 @@ describe('SettingsRepository.loadAnkifyTemplateOverrides', () => {
     expect(overrides?.basicModelName).toBe('GLOBAL NAME');
   });
 
+  test('falls back to the database row when a database child page has no row of its own', async () => {
+    await db('settings').insert({
+      owner: '42',
+      object_id: 'database-id',
+      title: 'Database',
+      payload: JSON.stringify({
+        payload: { template: 'custom', basic_model_name: 'ATTI BASIC' },
+      }),
+      updated_at: '2026-06-01 00:00:00',
+    });
+    await db('settings').insert({
+      owner: '42',
+      object_id: 'other-page',
+      title: 'Other',
+      payload: JSON.stringify({
+        payload: { template: 'specialstyle1' },
+      }),
+      updated_at: '2026-06-10 00:00:00',
+    });
+    await db('templates').insert({
+      owner: '42',
+      payload: JSON.stringify(TEMPLATES_PAYLOAD),
+    });
+
+    const overrides = await repo.loadAnkifyTemplateOverrides(
+      '42',
+      'child-page-without-row',
+      'database-id'
+    );
+
+    expect(overrides).not.toBeNull();
+    expect(overrides?.basicModelName).toBe('ATTI BASIC');
+  });
+
+  test('prefers the child page row over the database fallback row', async () => {
+    await db('settings').insert({
+      owner: '42',
+      object_id: 'database-id',
+      title: 'Database',
+      payload: JSON.stringify({
+        payload: { template: 'custom', basic_model_name: 'DATABASE NAME' },
+      }),
+    });
+    await db('settings').insert({
+      owner: '42',
+      object_id: 'child-page',
+      title: 'Child',
+      payload: JSON.stringify({
+        payload: { template: 'custom', basic_model_name: 'CHILD NAME' },
+      }),
+    });
+    await db('templates').insert({
+      owner: '42',
+      payload: JSON.stringify(TEMPLATES_PAYLOAD),
+    });
+
+    const overrides = await repo.loadAnkifyTemplateOverrides(
+      '42',
+      'child-page',
+      'database-id'
+    );
+
+    expect(overrides?.basicModelName).toBe('CHILD NAME');
+  });
+
   test('returns null when global card_options template is not custom', async () => {
     await db('users').insert({
       id: 13574,
@@ -231,6 +297,71 @@ describe('SettingsRepository.loadAnkifyTemplateOverrides', () => {
     const overrides = await repo.loadAnkifyTemplateOverrides('13574');
 
     expect(overrides).toBeNull();
+  });
+});
+
+describe('SettingsRepository.attachCustomTemplates', () => {
+  let db: Knex;
+  let repo: SettingsRepository;
+
+  beforeEach(async () => {
+    db = knexLib({
+      client: 'better-sqlite3',
+      connection: { filename: ':memory:' },
+      useNullAsDefault: true,
+    });
+    await db.schema.createTable('templates', (t) => {
+      t.string('owner');
+      t.json('payload');
+    });
+    repo = new SettingsRepository(db);
+  });
+
+  afterEach(async () => {
+    await db.destroy();
+  });
+
+  test('attaches the saved custom templates when template is "custom"', async () => {
+    await db('templates').insert({
+      owner: '42',
+      payload: JSON.stringify(TEMPLATES_PAYLOAD),
+    });
+    const settings = new CardOption({
+      ...CardOption.LoadDefaultOptions(),
+      template: 'custom',
+      basic_model_name: 'ATTI BASIC',
+    });
+
+    await repo.attachCustomTemplates('42', settings);
+
+    expect(settings.n2aBasic?.styling).toContain('tomato');
+    expect(settings.n2aBasic?.name).toBe('ATTI BASIC');
+  });
+
+  test('leaves the settings untouched when template is not "custom"', async () => {
+    await db('templates').insert({
+      owner: '42',
+      payload: JSON.stringify(TEMPLATES_PAYLOAD),
+    });
+    const settings = new CardOption({
+      ...CardOption.LoadDefaultOptions(),
+      template: 'specialstyle',
+    });
+
+    await repo.attachCustomTemplates('42', settings);
+
+    expect(settings.n2aBasic).toBeUndefined();
+  });
+
+  test('leaves the settings untouched when the owner has no templates row', async () => {
+    const settings = new CardOption({
+      ...CardOption.LoadDefaultOptions(),
+      template: 'custom',
+    });
+
+    await repo.attachCustomTemplates('42', settings);
+
+    expect(settings.n2aBasic).toBeUndefined();
   });
 });
 

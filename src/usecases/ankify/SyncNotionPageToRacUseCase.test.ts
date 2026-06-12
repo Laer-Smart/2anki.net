@@ -984,6 +984,310 @@ describe('SyncNotionPageToRacUseCase', () => {
     );
   });
 
+  test('puts each database child page into its own subdeck under the database deck', async () => {
+    const databaseNotPageError = Object.assign(
+      new Error('db-1 is a database, not a page.'),
+      { code: 'validation_error' }
+    );
+    (walkNotionPageForFlashcards as jest.Mock).mockRejectedValue(
+      databaseNotPageError
+    );
+    (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [
+        sampleCard({
+          notion_block_id: 'block-1',
+          notion_page_id: 'row-1',
+          notion_page_title: 'Cell Biology',
+        }),
+        sampleCard({
+          notion_block_id: 'block-2',
+          notion_page_id: 'row-2',
+          notion_page_title: 'Genetics',
+        }),
+      ],
+      diagnostic: {
+        blocks_scanned: 4,
+        blocks_matched: 2,
+        pattern_hits: { toggle: 2 },
+      },
+    });
+
+    const repos = makeRepos();
+    repos.subscriptions = makeSubscriptionsRepo(
+      sampleSubscription({
+        notion_page_id: 'db-1',
+        notion_page_title: 'Histology',
+      })
+    );
+    const ac = makeAnkiConnectStub();
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      () => async () => [{ id: 'row-1' }, { id: 'row-2' }]
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'db-1',
+      trigger: 'polling',
+    });
+
+    expect(ac.createDeck).toHaveBeenCalledWith('Notion Sync::Histology');
+    expect(ac.createDeck).toHaveBeenCalledWith(
+      'Notion Sync::Histology::Cell Biology'
+    );
+    expect(ac.createDeck).toHaveBeenCalledWith(
+      'Notion Sync::Histology::Genetics'
+    );
+    expect(ac.addNote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deckName: 'Notion Sync::Histology::Cell Biology',
+      })
+    );
+    expect(repos.mappings.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_id: 'block-2',
+        deck_name: 'Notion Sync::Histology::Genetics',
+      })
+    );
+  });
+
+  test('nests database child subdecks under the target deck override', async () => {
+    const databaseNotPageError = Object.assign(
+      new Error('db-1 is a database, not a page.'),
+      { code: 'validation_error' }
+    );
+    (walkNotionPageForFlashcards as jest.Mock).mockRejectedValue(
+      databaseNotPageError
+    );
+    (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [
+        sampleCard({
+          notion_page_id: 'row-1',
+          notion_page_title: 'Cell Biology',
+        }),
+      ],
+      diagnostic: {
+        blocks_scanned: 2,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+
+    const repos = makeRepos();
+    repos.subscriptions = makeSubscriptionsRepo(
+      sampleSubscription({
+        notion_page_id: 'db-1',
+        notion_page_title: 'Histology',
+        target_deck: 'MS3::Histology',
+      })
+    );
+    const ac = makeAnkiConnectStub();
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      () => async () => [{ id: 'row-1' }]
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'db-1',
+      trigger: 'manual',
+    });
+
+    expect(ac.addNote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        deckName: 'MS3::Histology::Cell Biology',
+      })
+    );
+  });
+
+  test('resolves the template override per database child page with the database as fallback', async () => {
+    const databaseNotPageError = Object.assign(
+      new Error('db-1 is a database, not a page.'),
+      { code: 'validation_error' }
+    );
+    (walkNotionPageForFlashcards as jest.Mock).mockRejectedValue(
+      databaseNotPageError
+    );
+    (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [
+        sampleCard({
+          notion_block_id: 'block-1',
+          notion_page_id: 'row-1',
+          notion_page_title: 'Cell Biology',
+        }),
+      ],
+      diagnostic: {
+        blocks_scanned: 2,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+
+    const repos = makeRepos();
+    const ac = makeAnkiConnectStub();
+    const templateOverridesProvider = jest.fn(async () => ({
+      basicModelName: 'ATTI BASIC',
+      basicTemplate: {
+        parent: 'Basic',
+        name: 'ATTI BASIC',
+        storageKey: 'n2a-basic',
+        front: '{{Front}}',
+        back: '{{Back}}',
+        styling: '.card { color: tomato; }',
+      },
+    }));
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      templateOverridesProvider,
+      () => async () => [{ id: 'row-1' }]
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'db-1',
+      trigger: 'polling',
+    });
+
+    expect(templateOverridesProvider).toHaveBeenCalledWith(42, 'db-1');
+    expect(templateOverridesProvider).toHaveBeenCalledWith(42, 'row-1', 'db-1');
+    expect(ac.addNote).toHaveBeenCalledWith(
+      expect.objectContaining({ modelName: 'ATTI BASIC' })
+    );
+  });
+
+  test('moves existing parent-deck cards into their page subdeck even without a target deck', async () => {
+    const databaseNotPageError = Object.assign(
+      new Error('db-1 is a database, not a page.'),
+      { code: 'validation_error' }
+    );
+    (walkNotionPageForFlashcards as jest.Mock).mockRejectedValue(
+      databaseNotPageError
+    );
+    (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [
+        sampleCard({
+          notion_block_id: 'block-1',
+          notion_page_id: 'row-1',
+          notion_page_title: 'Cell Biology',
+        }),
+      ],
+      diagnostic: {
+        blocks_scanned: 2,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+
+    const repos = makeRepos();
+    repos.subscriptions = makeSubscriptionsRepo(
+      sampleSubscription({
+        notion_page_id: 'db-1',
+        notion_page_title: 'Histology',
+        target_deck: null,
+      })
+    );
+    const existingMapping = {
+      id: 5,
+      ankify_client_id: 1,
+      source_id: 'block-1',
+      source_type: 'notion_block' as const,
+      anki_note_id: 900,
+      deck_name: 'Notion Sync::Histology',
+      last_synced_at: new Date(2020, 0, 1),
+    };
+    repos.mappings.findBySourceId = jest.fn(
+      async (_clientId: number, _sourceId: string) => existingMapping
+    );
+    const ac = makeAnkiConnectStub();
+    (ac.notesInfo as jest.Mock).mockImplementation(async (notes: number[]) => {
+      if (notes.includes(900)) {
+        return [
+          {
+            noteId: 900,
+            modelName: 'Ankify Basic',
+            tags: [],
+            fields: {
+              Front: { value: 'Front text', order: 0 },
+              Back: { value: 'Back text', order: 1 },
+            },
+            cards: [9001],
+            mod: Math.floor(new Date(2020, 0, 1).getTime() / 1000),
+          },
+        ];
+      }
+      return [];
+    });
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      () => async () => [{ id: 'row-1' }]
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'db-1',
+      trigger: 'polling',
+    });
+
+    expect(ac.changeDeck).toHaveBeenCalledWith(
+      [9001],
+      'Notion Sync::Histology::Cell Biology'
+    );
+    expect(repos.mappings.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_id: 'block-1',
+        anki_note_id: 900,
+        deck_name: 'Notion Sync::Histology::Cell Biology',
+      })
+    );
+  });
+
   test('does not call changeDeck when no target_deck is set', async () => {
     (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
       cards: [sampleCard()],
