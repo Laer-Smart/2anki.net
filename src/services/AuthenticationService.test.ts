@@ -6,15 +6,14 @@ import knex, { Knex } from 'knex';
 import AuthenticationService, {
   __resetMicrosoftJwksCacheForTests,
   __resetAppleJwksCacheForTests,
+  __resetGoogleJwksCacheForTests,
 } from './AuthenticationService';
 import TokenRepository from '../data_layer/TokenRepository';
 import UsersRepository from '../data_layer/UsersRepository';
 import { SESSION_MAX_AGE_MS } from '../shared/session';
 import instrumentedAxios from './observability/instrumentedAxios';
-import { OAuth2Client } from 'google-auth-library';
 
 jest.mock('./observability/instrumentedAxios');
-jest.mock('google-auth-library');
 
 const SECRET = 'test-secret';
 
@@ -158,77 +157,246 @@ describe('loginWithNotion', () => {
 });
 
 describe('loginWithGoogle', () => {
-  const MockedOAuth2Client = OAuth2Client as jest.MockedClass<
-    typeof OAuth2Client
-  >;
+  const KID = 'google-key-id-001';
+  const CLIENT_ID = 'test-google-client-id';
+  let privateKey: crypto.KeyObject;
+  let publicJwk: {
+    kid: string;
+    kty: string;
+    n: string;
+    e: string;
+    alg: string;
+  };
+
+  const signIdToken = (payload: Record<string, unknown>): string =>
+    jwt.sign(payload, privateKey.export({ type: 'pkcs8', format: 'pem' }), {
+      algorithm: 'RS256',
+      header: { alg: 'RS256', kid: KID },
+    });
+
+  beforeAll(() => {
+    const { privateKey: priv, publicKey } = crypto.generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+    });
+    privateKey = priv;
+    const jwk = publicKey.export({ format: 'jwk' });
+    publicJwk = {
+      kid: KID,
+      kty: jwk.kty as string,
+      n: jwk.n as string,
+      e: jwk.e as string,
+      alg: 'RS256',
+    };
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.GOOGLE_CLIENT_ID = 'test-google-client-id';
+    __resetGoogleJwksCacheForTests();
+    process.env.GOOGLE_CLIENT_ID = CLIENT_ID;
     process.env.GOOGLE_CLIENT_SECRET = 'test-google-client-secret';
     process.env.GOOGLE_REDIRECT_URI = 'http://localhost:2020/api/auth/google';
+    mockedAxios.get = jest.fn().mockResolvedValue({
+      data: { keys: [publicJwk] },
+    });
   });
 
   it('returns email and name when the ID token is valid', async () => {
-    mockedAxios.post = jest.fn().mockResolvedValue({
-      data: { id_token: 'valid.id.token' },
-    });
-
-    const mockGetPayload = jest.fn().mockReturnValue({
+    const idToken = signIdToken({
+      iss: 'https://accounts.google.com',
+      aud: CLIENT_ID,
+      sub: 'google-sub-001',
       email: 'user@example.com',
       name: 'Test User',
     });
-    MockedOAuth2Client.prototype.verifyIdToken = jest.fn().mockResolvedValue({
-      getPayload: mockGetPayload,
-    });
-
-    const service = createService();
-    const result = await service.loginWithGoogle('auth-code');
-
-    expect(result).toEqual({ email: 'user@example.com', name: 'Test User' });
-    expect(MockedOAuth2Client.prototype.verifyIdToken).toHaveBeenCalledWith({
-      idToken: 'valid.id.token',
-      audience: 'test-google-client-id',
-    });
-  });
-
-  it('returns undefined when the ID token fails verification', async () => {
-    mockedAxios.post = jest.fn().mockResolvedValue({
-      data: { id_token: 'tampered.token' },
-    });
-
-    MockedOAuth2Client.prototype.verifyIdToken = jest
+    mockedAxios.post = jest
       .fn()
-      .mockRejectedValue(new Error('Token used too late'));
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithGoogle('auth-code');
 
-    expect(result).toBeUndefined();
-  });
-
-  it('returns undefined when the audience claim does not match', async () => {
-    mockedAxios.post = jest.fn().mockResolvedValue({
-      data: { id_token: 'wrong.audience.token' },
+    expect(result).toEqual({
+      ok: true,
+      email: 'user@example.com',
+      name: 'Test User',
     });
-
-    MockedOAuth2Client.prototype.verifyIdToken = jest
-      .fn()
-      .mockRejectedValue(new Error('Wrong recipient'));
-
-    const service = createService();
-    const result = await service.loginWithGoogle('auth-code');
-
-    expect(result).toBeUndefined();
   });
 
-  it('returns undefined when the token exchange call fails', async () => {
-    mockedAxios.post = jest.fn().mockRejectedValue(new Error('network error'));
+  it('fetches the Google JWKS through instrumentedAxios', async () => {
+    const idToken = signIdToken({
+      iss: 'accounts.google.com',
+      aud: CLIENT_ID,
+      sub: 'google-sub-002',
+      email: 'user@example.com',
+    });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    await service.loginWithGoogle('auth-code');
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(
+      'google_drive',
+      'https://www.googleapis.com/oauth2/v3/certs'
+    );
+  });
+
+  it('returns a failure reason when the ID token signature is invalid', async () => {
+    const otherKey = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
+    const idToken = jwt.sign(
+      {
+        iss: 'https://accounts.google.com',
+        aud: CLIENT_ID,
+        sub: 'google-sub-003',
+        email: 'user@example.com',
+      },
+      otherKey.privateKey.export({ type: 'pkcs8', format: 'pem' }),
+      { algorithm: 'RS256', header: { alg: 'RS256', kid: KID } }
+    );
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
 
     const service = createService();
     const result = await service.loginWithGoogle('auth-code');
 
-    expect(result).toBeUndefined();
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reason).toBe('verify_failed');
+      expect(typeof result.message).toBe('string');
+      expect(result.message.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('returns a failure reason when the audience does not match the client id', async () => {
+    const idToken = signIdToken({
+      iss: 'https://accounts.google.com',
+      aud: 'a-different-app',
+      sub: 'google-sub-004',
+      email: 'user@example.com',
+    });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithGoogle('auth-code');
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reason).toBe('verify_failed');
+    }
+  });
+
+  it('returns a failure reason when the issuer is not Google', async () => {
+    const idToken = signIdToken({
+      iss: 'https://evil.example.com',
+      aud: CLIENT_ID,
+      sub: 'google-sub-005',
+      email: 'user@example.com',
+    });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithGoogle('auth-code');
+
+    expect(result.ok).toBe(false);
+  });
+
+  it('returns a failure reason when the kid is not in the JWKS', async () => {
+    const idToken = jwt.sign(
+      {
+        iss: 'https://accounts.google.com',
+        aud: CLIENT_ID,
+        sub: 'google-sub-006',
+        email: 'user@example.com',
+      },
+      privateKey.export({ type: 'pkcs8', format: 'pem' }),
+      { algorithm: 'RS256', header: { alg: 'RS256', kid: 'unknown-kid' } }
+    );
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithGoogle('auth-code');
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reason).toBe('unknown_signing_key');
+    }
+  });
+
+  it('returns a failure reason when the JWKS fetch fails', async () => {
+    const idToken = signIdToken({
+      iss: 'https://accounts.google.com',
+      aud: CLIENT_ID,
+      sub: 'google-sub-007',
+      email: 'user@example.com',
+    });
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
+    mockedAxios.get = jest.fn().mockRejectedValue(new Error('jwks down'));
+
+    const service = createService();
+    const result = await service.loginWithGoogle('auth-code');
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reason).toBe('verify_failed');
+    }
+  });
+
+  it('returns a failure reason when the token exchange call fails', async () => {
+    mockedAxios.post = jest.fn().mockRejectedValue(new Error('invalid_grant'));
+
+    const service = createService();
+    const result = await service.loginWithGoogle('auth-code');
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reason).toBe('token_exchange_failed');
+    }
+  });
+
+  it('rejects an ES256-signed id_token (algorithm substitution defense)', async () => {
+    const ecPair = crypto.generateKeyPairSync('ec', {
+      namedCurve: 'prime256v1',
+    });
+    const ecPublicJwk = {
+      ...(ecPair.publicKey.export({ format: 'jwk' }) as Record<
+        string,
+        unknown
+      >),
+      kid: KID,
+      alg: 'ES256',
+      use: 'sig',
+    };
+    mockedAxios.get = jest
+      .fn()
+      .mockResolvedValue({ data: { keys: [ecPublicJwk] } });
+    const idToken = jwt.sign(
+      {
+        iss: 'https://accounts.google.com',
+        aud: CLIENT_ID,
+        sub: 'google-sub-008',
+        email: 'user@example.com',
+      },
+      ecPair.privateKey.export({ type: 'pkcs8', format: 'pem' }),
+      { algorithm: 'ES256', header: { alg: 'ES256', kid: KID } }
+    );
+    mockedAxios.post = jest
+      .fn()
+      .mockResolvedValue({ data: { id_token: idToken } });
+
+    const service = createService();
+    const result = await service.loginWithGoogle('auth-code');
+
+    expect(result.ok).toBe(false);
   });
 });
 

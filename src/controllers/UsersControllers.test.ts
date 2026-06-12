@@ -809,9 +809,11 @@ describe('UsersController.loginWithGoogle', () => {
     const authService = {
       loginWithGoogle:
         overrides?.loginWithGoogle ??
-        jest
-          .fn()
-          .mockResolvedValue({ email: 'g@example.com', name: 'Google User' }),
+        jest.fn().mockResolvedValue({
+          ok: true,
+          email: 'g@example.com',
+          name: 'Google User',
+        }),
       getHashPassword: jest.fn().mockReturnValue('hashed'),
       newJWTToken:
         overrides?.newJWTToken ?? jest.fn().mockResolvedValue('google-jwt'),
@@ -875,7 +877,11 @@ describe('UsersController.loginWithGoogle', () => {
   });
 
   it('redirects with error=google_signin_failed when the token exchange fails', async () => {
-    const loginWithGoogle = jest.fn().mockResolvedValue(null);
+    const loginWithGoogle = jest.fn().mockResolvedValue({
+      ok: false,
+      reason: 'token_exchange_failed',
+      message: 'Error: invalid_grant',
+    });
     const { controller } = buildGoogleController({ loginWithGoogle });
     const req = {
       query: { code: 'gauth-code' },
@@ -1775,8 +1781,12 @@ describe('UsersController.loginWithGoogle — error recording', () => {
     );
   });
 
-  it('records oauth_token_exchange_failed when loginWithGoogle returns null', async () => {
-    const { controller, recordExecute } = buildOAuthController(null);
+  it('records the real failure reason when loginWithGoogle reports a verify failure', async () => {
+    const { controller, recordExecute } = buildOAuthController({
+      ok: false,
+      reason: 'verify_failed',
+      message: 'JsonWebTokenError: invalid signature',
+    });
     const req = {
       query: { code: 'auth-code-123' },
     } as unknown as express.Request;
@@ -1788,6 +1798,10 @@ describe('UsersController.loginWithGoogle — error recording', () => {
       userId: null,
       surface: 'oauth_google',
       code: 'oauth_token_exchange_failed',
+      context: {
+        reason: 'verify_failed',
+        message: 'JsonWebTokenError: invalid signature',
+      },
     });
     expect(res.redirect).toHaveBeenCalledWith(
       '/login?error=google_signin_failed'
@@ -1796,7 +1810,7 @@ describe('UsersController.loginWithGoogle — error recording', () => {
 
   it('records oauth_user_creation_failed when user lookup returns null after register', async () => {
     const { controller, recordExecute } = buildOAuthController(
-      { email: 'x@google.com', name: 'X' },
+      { ok: true, email: 'x@google.com', name: 'X' },
       null
     );
     const req = {
@@ -2059,7 +2073,7 @@ describe('UsersController cookie options — 30-day persistent session', () => {
     const authService = {
       loginWithGoogle: jest
         .fn()
-        .mockResolvedValue({ email: 'g@example.com', name: 'G' }),
+        .mockResolvedValue({ ok: true, email: 'g@example.com', name: 'G' }),
       getHashPassword: jest.fn().mockReturnValue('hashed'),
       newJWTToken,
       persistToken: jest.fn().mockResolvedValue(undefined),
