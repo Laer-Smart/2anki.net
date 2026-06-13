@@ -1,6 +1,8 @@
 import {
+  ANKI_CONNECT_SYNC_TIMEOUT_MS,
   AnkiConnectClient,
   AnkiConnectError,
+  AnkiConnectTimeoutError,
   AnkiConnectUnreachableError,
 } from './AnkiConnectClient';
 
@@ -405,5 +407,47 @@ describe('AnkiConnectClient', () => {
     await expect(client.deckNames()).rejects.toBeInstanceOf(
       AnkiConnectUnreachableError
     );
+  });
+
+  const makeHangingFetch = () =>
+    jest.fn(
+      (_url: string, init: { signal: AbortSignal }) =>
+        new Promise((_resolve, reject) => {
+          init.signal.addEventListener('abort', () =>
+            reject(new Error('aborted'))
+          );
+        })
+    ) as unknown as typeof fetch;
+
+  test('throws AnkiConnectTimeoutError (a subclass of unreachable) when a call exceeds its deadline', async () => {
+    const fetchImpl = makeHangingFetch();
+    const client = new AnkiConnectClient('http://x', fetchImpl, 5);
+
+    const err = await client.deckNames().catch((e) => e);
+
+    expect(err).toBeInstanceOf(AnkiConnectTimeoutError);
+    // Existing offline-skip paths catch the parent class — keep that working.
+    expect(err).toBeInstanceOf(AnkiConnectUnreachableError);
+    expect(err.action).toBe('deckNames');
+    expect(err.timeoutMs).toBe(5);
+    expect(err.message).toContain('timed out');
+  });
+
+  test('sync aborts on the longer sync timeout, not the per-call default', async () => {
+    jest.useFakeTimers();
+    try {
+      const fetchImpl = makeHangingFetch();
+      const client = new AnkiConnectClient('http://x', fetchImpl);
+
+      const pending = client.sync().catch((e) => e);
+      await jest.advanceTimersByTimeAsync(ANKI_CONNECT_SYNC_TIMEOUT_MS);
+      const err = await pending;
+
+      expect(err).toBeInstanceOf(AnkiConnectTimeoutError);
+      expect(err.action).toBe('sync');
+      expect(err.timeoutMs).toBe(ANKI_CONNECT_SYNC_TIMEOUT_MS);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
