@@ -175,13 +175,40 @@ const extractNotionId = (input: string): string => {
 const normalizeId = (id: string): string =>
   id.replaceAll('-', '').toLowerCase();
 
+const OFFLINE_ERROR = 'Anki client offline — will retry next tick';
+
+const isCalmOfflineError = (lastError: string | null | undefined): boolean =>
+  lastError != null && lastError.startsWith('Anki client offline');
+
+type DeckStatus = 'success' | 'syncing' | 'error' | 'offline';
+
+const deckStatusFor = (
+  lastError: string | null | undefined,
+  isUpdating: boolean
+): DeckStatus => {
+  if (isUpdating) return 'syncing';
+  if (isCalmOfflineError(lastError)) return 'offline';
+  if (lastError != null) return 'error';
+  return 'success';
+};
+
+const dotClassFor = (status: DeckStatus): string => {
+  if (status === 'syncing') return styles.decksItemDotSyncing;
+  if (status === 'error') return styles.decksItemDotError;
+  if (status === 'offline') return styles.decksItemDotOffline;
+  return styles.decksItemDotSuccess;
+};
+
 const renderSecondLine = (
   lastError: string | null | undefined,
   nextExportLabel: string | null
 ): ReactNode => {
+  if (isCalmOfflineError(lastError)) {
+    return <p className={styles.decksItemError}>{OFFLINE_ERROR}</p>;
+  }
   if (lastError != null) {
     return (
-      <p className={styles.decksItemError}>
+      <p className={styles.decksItemErrorDanger}>
         Last check failed — we'll try again soon
       </p>
     );
@@ -654,9 +681,17 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                   );
                 }
                 const iconValue = sub.notion_page_icon ?? '';
+                const rowStatus = deckStatusFor(
+                  sub.last_error,
+                  isUpdatingThisRow
+                );
                 return (
                   <Fragment key={sub.id}>
                     <li className={styles.decksItem}>
+                      <span
+                        className={`${styles.decksItemDot} ${dotClassFor(rowStatus)}`}
+                        aria-hidden="true"
+                      />
                       {iconValue.length > 0 && (
                         <span
                           className={styles.decksItemIcon}
@@ -682,6 +717,8 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                           displayTitle
                         )}
                         {secondLine}
+                      </span>
+                      <span className={styles.decksItemData} aria-live="polite">
                         {sub.target_deck != null &&
                           sub.target_deck.length > 0 && (
                             <span
@@ -691,8 +728,6 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                               In Anki: {truncateMiddle(sub.target_deck)}
                             </span>
                           )}
-                      </span>
-                      <span className={styles.decksItemTime} aria-live="polite">
                         {(() => {
                           if (isUpdatingThisRow)
                             return <span>Updating now…</span>;
@@ -702,7 +737,7 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                                 className={
                                   flash.kind === 'success'
                                     ? styles.muted
-                                    : styles.decksItemError
+                                    : styles.decksItemErrorDanger
                                 }
                               >
                                 {flash.text}

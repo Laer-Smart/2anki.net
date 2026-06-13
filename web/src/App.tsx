@@ -75,9 +75,6 @@ const AccountPreviewPage = import.meta.env.DEV
 const NotionPreviewPage = import.meta.env.DEV
   ? lazy(() => import('./pages/NotionPreviewPage/NotionPreviewPage'))
   : null;
-const AnkifyPreviewPage = import.meta.env.DEV
-  ? lazy(() => import('./pages/AnkifyPreviewPage/AnkifyPreviewPage'))
-  : null;
 const SuccessfulCheckoutPage = lazyWithRetry(
   () => import('./pages/SuccessfulCheckout/SuccessfulCheckout'),
   './pages/SuccessfulCheckout/SuccessfulCheckout'
@@ -485,9 +482,6 @@ function AppContent({
           )}
           {NotionPreviewPage && (
             <Route path="/dev/notion-preview" element={<NotionPreviewPage />} />
-          )}
-          {AnkifyPreviewPage && (
-            <Route path="/dev/ankify-preview" element={<AnkifyPreviewPage />} />
           )}
           <Route
             path="/import"

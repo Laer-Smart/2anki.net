@@ -2,11 +2,13 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import sharedStyles from '../../../styles/shared.module.css';
 import styles from '../AnkifyPage.module.css';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import { Backend } from '../../../lib/backend/Backend';
 import AnkifyClient from '../../../lib/interfaces/AnkifyClient';
+import ExternalLinkIcon from '../../../components/icons/ExternalLinkIcon';
+import RefreshIcon from '../../../components/icons/RefreshIcon';
+import ArrowRightOnRectangleIcon from '../../../components/icons/ArrowRightOnRectangleIcon';
 import DotsHorizontal from '../../../components/icons/DotsHorizontal';
 
 const QUERY_KEY = ['ankify-clients'];
@@ -36,11 +38,13 @@ const writeCachedSessionUrl = (clientId: number, url: string | null) => {
 interface Props {
   readonly backend?: Backend;
   readonly showWorkspaceLink?: boolean;
+  readonly title?: string;
 }
 
 export default function WorkspaceBar({
   backend,
   showWorkspaceLink = false,
+  title,
 }: Props) {
   const api = backend ?? get2ankiApi();
   const queryClient = useQueryClient();
@@ -180,27 +184,189 @@ export default function WorkspaceBar({
     return null;
   }
 
-  let statusContent: ReactNode;
+  let statusDot: ReactNode;
+  let statusLabel: string;
   if (!containerReady) {
-    statusContent = (
-      <>
-        <span className={styles.workspaceBarDotStarting} aria-hidden="true" />
-        <span>Starting…</span>
-      </>
+    statusDot = (
+      <span className={styles.workspaceBarDotStarting} aria-hidden="true" />
     );
+    statusLabel = 'Starting…';
   } else if (ankiWebLinked) {
-    statusContent = (
-      <>
-        <span className={styles.workspaceBarDotRunning} aria-hidden="true" />
-        <span>Anki running</span>
-      </>
+    statusDot = (
+      <span className={styles.workspaceBarDotRunning} aria-hidden="true" />
     );
+    statusLabel = 'Anki running';
   } else {
-    statusContent = (
-      <>
-        <span className={styles.workspaceBarDotWarning} aria-hidden="true" />
-        <span>Almost there</span>
-      </>
+    statusDot = (
+      <span className={styles.workspaceBarDotWarning} aria-hidden="true" />
+    );
+    statusLabel = 'Almost there';
+  }
+
+  const openControl =
+    sessionUrl == null ? (
+      <button
+        type="button"
+        className={`${styles.workspaceBarIconButton} ${styles.workspaceBarIconPrimary}`}
+        aria-label="Open Anki"
+        title="Opening…"
+        disabled
+      >
+        <ExternalLinkIcon width={18} height={18} />
+      </button>
+    ) : (
+      <a
+        href={sessionUrl}
+        target="_blank"
+        rel="noreferrer"
+        className={`${styles.workspaceBarIconButton} ${styles.workspaceBarIconPrimary}`}
+        aria-label="Open Anki"
+        title={sessionUrl}
+      >
+        <ExternalLinkIcon width={18} height={18} />
+      </a>
+    );
+
+  const onRestart = () => {
+    setMenuOpen(false);
+    respin.mutate();
+  };
+
+  const onShutDown = () => {
+    setMenuOpen(false);
+    setConfirmShutdown(true);
+  };
+
+  const actions = (
+    <div className={styles.workspaceBarActions}>
+      {openControl}
+      <span className={styles.workspaceBarInlineActions}>
+        <button
+          type="button"
+          className={styles.workspaceBarIconButton}
+          aria-label="Restart Anki"
+          title="Restart Anki"
+          onClick={onRestart}
+          disabled={respin.isPending}
+        >
+          <RefreshIcon width={18} height={18} />
+        </button>
+        <button
+          type="button"
+          className={styles.workspaceBarIconButton}
+          aria-label="Shut down Anki"
+          title="Shut down Anki"
+          onClick={onShutDown}
+        >
+          <ArrowRightOnRectangleIcon width={18} height={18} />
+        </button>
+      </span>
+      <div className={styles.workspaceBarMenuWrapper} ref={menuRef}>
+        <button
+          type="button"
+          className={styles.workspaceBarIconButton}
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          aria-label="More Anki session options"
+          title="More"
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          <DotsHorizontal width={18} height={18} />
+        </button>
+        {menuOpen && (
+          <div role="menu" className={styles.workspaceBarMenu}>
+            <button
+              type="button"
+              role="menuitem"
+              className={styles.workspaceBarMenuItem}
+              aria-label="Restart Anki"
+              onClick={onRestart}
+              disabled={respin.isPending}
+            >
+              {respin.isPending ? 'Restarting…' : 'Restart Anki'}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className={styles.workspaceBarMenuItem}
+              aria-label="Shut down Anki"
+              onClick={onShutDown}
+            >
+              Shut down Anki
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const confirmCard = confirmShutdown && (
+    <div
+      className={styles.workspaceBarConfirm}
+      role="alertdialog"
+      aria-modal="true"
+    >
+      <div className={styles.workspaceBarConfirmCard}>
+        <p className={styles.workspaceBarConfirmTitle}>Shut your Anki down?</p>
+        <p className={styles.workspaceBarConfirmBody}>
+          Your collection stays safe in AnkiWeb.
+        </p>
+        <div className={styles.workspaceBarConfirmActions}>
+          <button
+            type="button"
+            className={styles.workspaceBarConfirmCancel}
+            onClick={() => setConfirmShutdown(false)}
+            disabled={stop.isPending}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className={styles.workspaceBarConfirmDanger}
+            onClick={() => {
+              stop.mutate(activeClient.id, {
+                onSuccess: () => setConfirmShutdown(false),
+              });
+            }}
+            disabled={stop.isPending}
+          >
+            {stop.isPending ? 'Shutting down…' : 'Shut down'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const status = (
+    <span className={styles.workspaceBarStatus}>
+      {statusDot}
+      <span>{statusLabel}</span>
+      {sessionUrl != null && (
+        <>
+          <span className={styles.workspaceBarStatusSep} aria-hidden="true">
+            ·
+          </span>
+          <span className={styles.workspaceBarSession} title={sessionUrl}>
+            Session active
+          </span>
+        </>
+      )}
+    </span>
+  );
+
+  if (title != null) {
+    return (
+      <header className={styles.workspaceHeader}>
+        <div className={styles.workspaceHeaderLeft}>
+          <h1 className={styles.workspaceHeaderTitle}>{title}</h1>
+          <span className={styles.workspaceHeaderDash} aria-hidden="true">
+            —
+          </span>
+          {status}
+        </div>
+        {actions}
+        {confirmCard}
+      </header>
     );
   }
 
@@ -211,109 +377,9 @@ export default function WorkspaceBar({
           ← Workspace
         </Link>
       )}
-      <span className={styles.workspaceBarStatus}>{statusContent}</span>
-      {sessionUrl != null && (
-        <span className={styles.workspaceBarSession} title={sessionUrl}>
-          Session active
-        </span>
-      )}
-      <div className={styles.workspaceBarActions}>
-        {sessionUrl == null ? (
-          <button
-            type="button"
-            className={`${sharedStyles.btnPrimary} ${styles.inlineButton}`}
-            disabled
-          >
-            Opening…
-          </button>
-        ) : (
-          <a
-            href={sessionUrl}
-            target="_blank"
-            rel="noreferrer"
-            className={`${sharedStyles.btnPrimary} ${styles.inlineButton}`}
-          >
-            Open Anki
-          </a>
-        )}
-        <div className={styles.workspaceBarMenuWrapper} ref={menuRef}>
-          <button
-            type="button"
-            className={`${sharedStyles.btnIcon} ${styles.workspaceBarMenuButton}`}
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
-            aria-label="Workspace options"
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            <DotsHorizontal width={16} height={16} />
-          </button>
-          {menuOpen && (
-            <div role="menu" className={styles.workspaceBarMenu}>
-              <button
-                type="button"
-                role="menuitem"
-                className={styles.workspaceBarMenuItem}
-                onClick={() => {
-                  setMenuOpen(false);
-                  respin.mutate();
-                }}
-                disabled={respin.isPending}
-              >
-                {respin.isPending ? 'Restarting…' : 'Restart'}
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                className={styles.workspaceBarMenuItem}
-                onClick={() => {
-                  setMenuOpen(false);
-                  setConfirmShutdown(true);
-                }}
-              >
-                Shut down
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-      {confirmShutdown && (
-        <div
-          className={styles.workspaceBarConfirm}
-          role="alertdialog"
-          aria-modal="true"
-        >
-          <div className={styles.workspaceBarConfirmCard}>
-            <p className={styles.workspaceBarConfirmTitle}>
-              Shut your Anki down?
-            </p>
-            <p className={styles.workspaceBarConfirmBody}>
-              Your collection stays safe in AnkiWeb.
-            </p>
-            <div className={styles.workspaceBarConfirmActions}>
-              <button
-                type="button"
-                className={`${sharedStyles.btnSecondary} ${styles.inlineButton}`}
-                onClick={() => setConfirmShutdown(false)}
-                disabled={stop.isPending}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={`${sharedStyles.btnPrimary} ${styles.inlineButton}`}
-                onClick={() => {
-                  stop.mutate(activeClient.id, {
-                    onSuccess: () => setConfirmShutdown(false),
-                  });
-                }}
-                disabled={stop.isPending}
-              >
-                {stop.isPending ? 'Shutting down…' : 'Shut down'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {status}
+      {actions}
+      {confirmCard}
     </div>
   );
 }
