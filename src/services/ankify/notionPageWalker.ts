@@ -1,20 +1,21 @@
 import {
   NotionRenderableBlock,
+  NotionRichTextItem,
   WalkedMediaKind,
   WalkedNotionMediaRef,
   renderNotionBlocks,
+  renderRichText,
 } from '../../lib/notion-render';
+import { wrapWithColorClass } from '../../lib/notion-render/richText';
 
-interface RichTextItem {
-  plain_text?: string;
-}
+type RichTextItem = NotionRichTextItem;
 
 interface NotionToggleBlock {
   id: string;
   type: 'toggle';
   last_edited_time: string;
   has_children: boolean;
-  toggle: { rich_text: RichTextItem[] };
+  toggle: { rich_text: RichTextItem[]; color?: string };
 }
 
 type NotionTopLevelBlock = NotionToggleBlock | { type: string; id?: string };
@@ -60,14 +61,6 @@ export type NotionDatabasePagesFetcher = (
 const MAX_BLOCKS_SCANNED = 1000;
 const MAX_UNMATCHED_SAMPLES = 3;
 const MAX_DATABASE_PAGES = 250;
-
-const renderRichText = (items: RichTextItem[] | undefined): string => {
-  if (items == null) return '';
-  return items
-    .map((item) => item.plain_text ?? '')
-    .join('')
-    .trim();
-};
 
 const renderToggleBack = async (
   toggle: NotionToggleBlock,
@@ -118,10 +111,17 @@ export const walkNotionPageForFlashcards = async (
       continue;
     }
     const toggle = block as NotionToggleBlock;
-    const front = renderRichText(toggle.toggle.rich_text);
-    if (front.length === 0) {
+    const frontText = toggle.toggle.rich_text
+      .map((item) => item.plain_text ?? '')
+      .join('')
+      .trim();
+    if (frontText.length === 0) {
       continue;
     }
+    const front = wrapWithColorClass(
+      toggle.toggle.color,
+      renderRichText(toggle.toggle.rich_text)
+    );
     patternHits['toggle'] = (patternHits['toggle'] ?? 0) + 1;
     const { back, media } = await renderToggleBack(toggle, fetchChildren);
     cards.push({

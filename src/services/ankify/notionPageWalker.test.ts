@@ -246,6 +246,38 @@ describe('walkNotionPageForFlashcards', () => {
     expect(cards).toHaveLength(1);
     expect(cards[0].notion_block_id).toBe('t-real');
   });
+
+  test('carries front text color from rich-text annotation and toggle block color', async () => {
+    const fetchChildren = jest.fn(async (blockId: string) => {
+      if (blockId === 'page-id') {
+        return [
+          toggleBlock({
+            id: 't-inline',
+            toggle: {
+              rich_text: [
+                { plain_text: 'red word', annotations: { color: 'red' } },
+              ],
+            },
+          }),
+          toggleBlock({
+            id: 't-block',
+            toggle: { rich_text: [{ plain_text: 'blue line' }], color: 'blue' },
+          }),
+        ];
+      }
+      return [paragraphChild('answer')];
+    });
+
+    const { cards } = await walkNotionPageForFlashcards(
+      'page-id',
+      fetchChildren as never
+    );
+
+    expect(cards.map((c) => c.front)).toEqual([
+      '<span class="n2a-highlight-red">red word</span>',
+      '<span class="n2a-highlight-blue">blue line</span>',
+    ]);
+  });
 });
 
 describe('walkNotionPageForFlashcards diagnostic', () => {
