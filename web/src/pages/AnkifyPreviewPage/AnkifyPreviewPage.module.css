@@ -49,23 +49,39 @@
   letter-spacing: var(--tracking-tight);
 }
 
-.workspaceBar {
+.pageHeader {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  min-height: 56px;
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-primary);
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.wbStatus {
+.pageHeaderLeft {
   display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.pageHeaderDash {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-lg);
+}
+
+.pageHeaderStatus {
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
+}
+
+.statusSep {
+  color: var(--color-text-tertiary);
 }
 
 .wbDot {
@@ -73,16 +89,6 @@
   height: 0.5rem;
   border-radius: var(--radius-full);
   background: var(--color-success);
-}
-
-.wbSession {
-  flex: 1;
-  min-width: 0;
-  font-size: var(--text-xs);
-  color: var(--color-text-tertiary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .wbActions {
