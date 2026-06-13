@@ -65,7 +65,7 @@ describe('FullStatsPanel', () => {
     const frame = (await screen.findByTitle(
       'Anki collection stats'
     )) as HTMLIFrameElement;
-    expect(frame.getAttribute('sandbox')).toBe('');
+    expect(frame.getAttribute('sandbox')).toBe('allow-scripts');
     expect(frame.getAttribute('srcdoc')).toContain('<p>stats</p>');
   });
 

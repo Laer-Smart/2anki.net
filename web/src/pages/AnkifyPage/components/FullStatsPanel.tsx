@@ -53,7 +53,7 @@ export default function FullStatsPanel({ backend }: Props) {
             )}
             <iframe
               title="Anki collection stats"
-              sandbox=""
+              sandbox="allow-scripts"
               srcDoc={html}
               className={styles.fullStatsFrame}
             />
