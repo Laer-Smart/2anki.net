@@ -450,4 +450,113 @@ describe('AnkiConnectClient', () => {
       jest.useRealTimers();
     }
   });
+
+  test('getActiveProfile posts getActiveProfile and returns the profile name', async () => {
+    const fetchImpl = makeFetch({ result: 'User 1', error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const profile = await client.getActiveProfile();
+
+    expect(profile).toBe('User 1');
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({ action: 'getActiveProfile', version: 6 });
+  });
+
+  test('guiDeckOverview posts the deck name and returns the boolean', async () => {
+    const fetchImpl = makeFetch({ result: true, error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const opened = await client.guiDeckOverview('Notion Sync::Pharmacology');
+
+    expect(opened).toBe(true);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'guiDeckOverview',
+      version: 6,
+      params: { name: 'Notion Sync::Pharmacology' },
+    });
+  });
+
+  test('getCollectionStatsHTML defaults wholeCollection to true', async () => {
+    const fetchImpl = makeFetch({ result: '<div>stats</div>', error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const html = await client.getCollectionStatsHTML();
+
+    expect(html).toBe('<div>stats</div>');
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'getCollectionStatsHTML',
+      version: 6,
+      params: { wholeCollection: true },
+    });
+  });
+
+  test('getEaseFactors posts the card ids and returns the factors', async () => {
+    const fetchImpl = makeFetch({ result: [2500, 1800], error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const factors = await client.getEaseFactors([101, 102]);
+
+    expect(factors).toEqual([2500, 1800]);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'getEaseFactors',
+      version: 6,
+      params: { cards: [101, 102] },
+    });
+  });
+
+  test('getIntervals defaults complete to false and returns the intervals', async () => {
+    const fetchImpl = makeFetch({ result: [21, 4], error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const intervals = await client.getIntervals([101, 102]);
+
+    expect(intervals).toEqual([21, 4]);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'getIntervals',
+      version: 6,
+      params: { cards: [101, 102], complete: false },
+    });
+  });
+
+  test('exportPackage posts the deck, path, and includeSched flag', async () => {
+    const fetchImpl = makeFetch({ result: true, error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const ok = await client.exportPackage(
+      'Notion Sync::Pharmacology',
+      '/data/abc.apkg',
+      false
+    );
+
+    expect(ok).toBe(true);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'exportPackage',
+      version: 6,
+      params: {
+        deck: 'Notion Sync::Pharmacology',
+        path: '/data/abc.apkg',
+        includeSched: false,
+      },
+    });
+  });
+
+  test('findCards posts the query and returns matching card ids', async () => {
+    const fetchImpl = makeFetch({ result: [1, 2, 3], error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const cards = await client.findCards('deck:"X" -is:new');
+
+    expect(cards).toEqual([1, 2, 3]);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'findCards',
+      version: 6,
+      params: { query: 'deck:"X" -is:new' },
+    });
+  });
 });
