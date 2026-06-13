@@ -419,6 +419,15 @@ select:focus {
   box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
+button:focus-visible,
+a:focus-visible,
+[role='button']:focus-visible,
+[role='menuitem']:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 input::placeholder,
 textarea::placeholder {
   color: var(--color-text-tertiary);
