@@ -34,7 +34,7 @@ const makeResponse = (): CapturingResponse => {
 };
 
 const makeController = (openUseCase: OpenConflictInAnkiUseCase) => {
-  const stubs = Array.from({ length: 24 }, () => ({}));
+  const stubs = Array.from({ length: 30 }, () => ({}));
   stubs[16] = openUseCase;
   return new AnkifyController(
     ...(stubs as ConstructorParameters<typeof AnkifyController>)

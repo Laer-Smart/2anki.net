@@ -56,7 +56,38 @@ import {
 import { AnkiConnectUnreachableError } from '../services/ankify/AnkiConnectClient';
 import { sanitizeDeckPath } from '../lib/ankify/transforms/tags';
 import { GetAnkifyStatsUseCase } from '../usecases/ankify/GetAnkifyStatsUseCase';
+import {
+  GetAnkifyActiveProfileUseCase,
+  NoActiveAnkifyClientForProfileError,
+} from '../usecases/ankify/GetAnkifyActiveProfileUseCase';
+import {
+  NoActiveAnkifyClientForSyncError,
+  SyncToAnkiWebUseCase,
+} from '../usecases/ankify/SyncToAnkiWebUseCase';
+import {
+  DeckNotOwnedError,
+  OpenDeckInAnkiUseCase,
+} from '../usecases/ankify/OpenDeckInAnkiUseCase';
+import { GetCollectionStatsHtmlUseCase } from '../usecases/ankify/GetCollectionStatsHtmlUseCase';
+import { GetDeckMaturityUseCase } from '../usecases/ankify/GetDeckMaturityUseCase';
+import {
+  DeckExportFailedError,
+  ExportDeckPackageUseCase,
+  NoActiveAnkifyClientForExportError,
+} from '../usecases/ankify/ExportDeckPackageUseCase';
+import { ExportVolumeUnavailableError } from '../services/ankify/buildExportedDeckReader';
+import { buildContentDisposition } from '../lib/buildContentDisposition';
+import { getSafeFilename } from '../lib/getSafeFilename';
 import { track } from '../services/events/track';
+
+const ANKI_CONNECT_UNREACHABLE_MESSAGE =
+  'AnkiConnect is unreachable. Make sure the hosted Anki container is healthy.';
+
+const apkgFilenameForDeck = (deck: string): string => {
+  const lastSegment = deck.split('::').pop() ?? deck;
+  const base = getSafeFilename(lastSegment);
+  return base.endsWith('.apkg') ? base : `${base}.apkg`;
+};
 
 const todayUtcDayKey = (): string => new Date().toISOString().slice(0, 10);
 
@@ -66,6 +97,14 @@ function parseTargetDeckField(raw: unknown): string | null | undefined {
   }
   const cleaned = sanitizeDeckPath(raw);
   return cleaned.length > 0 ? cleaned : null;
+}
+
+function readDeckField(raw: unknown): string | null {
+  if (typeof raw !== 'string') {
+    return null;
+  }
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
 }
 
 class AnkifyController {
@@ -93,7 +132,13 @@ class AnkifyController {
     private readonly checkAnkiWebStatusUseCase: CheckAnkiWebStatusUseCase,
     private readonly reissueSessionUrlUseCase: ReissueAnkifySessionUrlUseCase,
     private readonly validateSessionTokenUseCase: ValidateAnkifySessionTokenUseCase,
-    private readonly getStatsUseCase: GetAnkifyStatsUseCase
+    private readonly getStatsUseCase: GetAnkifyStatsUseCase,
+    private readonly getActiveProfileUseCase: GetAnkifyActiveProfileUseCase,
+    private readonly syncToAnkiWebUseCase: SyncToAnkiWebUseCase,
+    private readonly openDeckInAnkiUseCase: OpenDeckInAnkiUseCase,
+    private readonly getCollectionStatsHtmlUseCase: GetCollectionStatsHtmlUseCase,
+    private readonly getDeckMaturityUseCase: GetDeckMaturityUseCase,
+    private readonly exportDeckPackageUseCase: ExportDeckPackageUseCase
   ) {}
 
   async list(_req: Request, res: Response) {
@@ -663,6 +708,147 @@ class AnkifyController {
           message:
             'AnkiConnect is unreachable. Make sure the hosted Anki container is healthy.',
         });
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async getActiveProfile(_req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    try {
+      const result = await this.getActiveProfileUseCase.execute(owner);
+      res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof NoActiveAnkifyClientForProfileError) {
+        res.status(409).json({
+          message: 'No active Ankify client. Provision one first.',
+        });
+        return;
+      }
+      if (error instanceof AnkiConnectUnreachableError) {
+        res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async syncToAnkiWeb(_req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    try {
+      await this.syncToAnkiWebUseCase.execute(owner);
+      track('ankify_sync_ankiweb', { userId: owner });
+      res.status(200).json({ ok: true });
+    } catch (error) {
+      if (error instanceof NoActiveAnkifyClientForSyncError) {
+        res.status(409).json({
+          message: 'No active Ankify client. Provision one first.',
+        });
+        return;
+      }
+      if (error instanceof AnkiConnectUnreachableError) {
+        res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async openDeckInAnki(req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const deck = readDeckField(req.body?.deck);
+    if (deck == null) {
+      res.status(400).json({ message: 'deck is required' });
+      return;
+    }
+    try {
+      const result = await this.openDeckInAnkiUseCase.execute({ owner, deck });
+      track('ankify_open_in_anki', { userId: owner, props: { in_anki: true } });
+      res.status(200).json({ opened: result.opened });
+    } catch (error) {
+      if (error instanceof DeckNotOwnedError) {
+        res.status(403).json({ message: 'Deck not found for this user' });
+        return;
+      }
+      if (error instanceof AnkiConnectUnreachableError) {
+        res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async getCollectionStatsHtml(_req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const result = await this.getCollectionStatsHtmlUseCase.execute(owner);
+    if (result.connected) {
+      track('ankify_view_full_stats', { userId: owner });
+      res.status(200).json({ html: result.html, truncated: result.truncated });
+      return;
+    }
+    res.status(200).json({ html: null, truncated: false });
+  }
+
+  async getDeckMaturity(req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const deck = readDeckField(req.query?.deck);
+    if (deck == null) {
+      res.status(400).json({ message: 'deck is required' });
+      return;
+    }
+    try {
+      const result = await this.getDeckMaturityUseCase.execute({ owner, deck });
+      res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof DeckNotOwnedError) {
+        res.status(403).json({ message: 'Deck not found for this user' });
+        return;
+      }
+      if (error instanceof AnkiConnectUnreachableError) {
+        res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async exportDeckPackage(req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const deck = readDeckField(req.body?.deck);
+    if (deck == null) {
+      res.status(400).json({ message: 'deck is required' });
+      return;
+    }
+    try {
+      const result = await this.exportDeckPackageUseCase.execute({
+        owner,
+        deck,
+      });
+      track('ankify_export_apkg', { userId: owner });
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader(
+        'Content-Disposition',
+        buildContentDisposition(apkgFilenameForDeck(result.deck))
+      );
+      res.status(200).send(result.bytes);
+    } catch (error) {
+      if (error instanceof DeckNotOwnedError) {
+        res.status(403).json({ message: 'Deck not found for this user' });
+        return;
+      }
+      if (error instanceof NoActiveAnkifyClientForExportError) {
+        res.status(409).json({
+          message: 'No active Ankify client. Provision one first.',
+        });
+        return;
+      }
+      if (
+        error instanceof AnkiConnectUnreachableError ||
+        error instanceof ExportVolumeUnavailableError ||
+        error instanceof DeckExportFailedError
+      ) {
+        res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
         return;
       }
       throw error;
