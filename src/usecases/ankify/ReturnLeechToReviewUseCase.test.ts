@@ -1,0 +1,110 @@
+import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
+import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/ankify/AnkifyNotionSubscriptionsRepository';
+import { AnkiConnectClient } from '../../services/ankify/AnkiConnectClient';
+import { ReturnLeechToReviewUseCase } from './ReturnLeechToReviewUseCase';
+import { NoteNotOwnedError } from './assertNoteOwned';
+
+const activeClient = {
+  id: 1,
+  owner: 42,
+  anki_port: 8765,
+  anki_connect_api_key: 'k',
+} as unknown as Awaited<
+  ReturnType<AnkifyClientsRepositoryInterface['findActiveByOwner']>
+>;
+
+const clientsRepo = (
+  client: Awaited<
+    ReturnType<AnkifyClientsRepositoryInterface['findActiveByOwner']>
+  >
+): AnkifyClientsRepositoryInterface =>
+  ({
+    findActiveByOwner: jest.fn(async () => client),
+  }) as unknown as AnkifyClientsRepositoryInterface;
+
+const subsRepo = (
+  rows: { target_deck: string | null; notion_page_title: string | null }[]
+): AnkifyNotionSubscriptionsRepositoryInterface =>
+  ({
+    listByOwner: jest.fn(async () => rows),
+  }) as unknown as AnkifyNotionSubscriptionsRepositoryInterface;
+
+describe('ReturnLeechToReviewUseCase', () => {
+  test('unsuspends the cards and drops the leech tag', async () => {
+    const unsuspend = jest.fn(async () => true);
+    const removeTags = jest.fn(async () => null);
+    const factory = jest.fn(
+      () =>
+        ({
+          ping: jest.fn(async () => 6),
+          findNotes: jest.fn(async () => [7001]),
+          notesInfo: jest.fn(async () => [
+            { noteId: 7001, modelName: 'Basic', tags: ['leech'], fields: {}, cards: [11, 12] },
+          ]),
+          unsuspend,
+          removeTags,
+        }) as unknown as AnkiConnectClient
+    );
+    const useCase = new ReturnLeechToReviewUseCase(
+      clientsRepo(activeClient),
+      subsRepo([{ target_deck: 'Notion Sync::Pharma', notion_page_title: null }]),
+      factory
+    );
+
+    const result = await useCase.execute({ owner: 42, noteId: 7001 });
+
+    expect(unsuspend).toHaveBeenCalledWith([11, 12]);
+    expect(removeTags).toHaveBeenCalledWith([7001], 'leech');
+    expect(result).toEqual({ noteId: 7001, unsuspended: true, tagRemoved: true });
+  });
+
+  test('unsuspend returning false still counts as success', async () => {
+    const factory = jest.fn(
+      () =>
+        ({
+          ping: jest.fn(async () => 6),
+          findNotes: jest.fn(async () => [7001]),
+          notesInfo: jest.fn(async () => [
+            { noteId: 7001, modelName: 'Basic', tags: ['leech'], fields: {}, cards: [11] },
+          ]),
+          unsuspend: jest.fn(async () => false),
+          removeTags: jest.fn(async () => null),
+        }) as unknown as AnkiConnectClient
+    );
+    const useCase = new ReturnLeechToReviewUseCase(
+      clientsRepo(activeClient),
+      subsRepo([{ target_deck: 'Notion Sync::Pharma', notion_page_title: null }]),
+      factory
+    );
+
+    const result = await useCase.execute({ owner: 42, noteId: 7001 });
+
+    expect(result).toEqual({ noteId: 7001, unsuspended: false, tagRemoved: true });
+  });
+
+  test('rejects a note in an unowned deck and never mutates', async () => {
+    const unsuspend = jest.fn(async () => true);
+    const removeTags = jest.fn(async () => null);
+    const factory = jest.fn(
+      () =>
+        ({
+          ping: jest.fn(async () => 6),
+          findNotes: jest.fn(async () => []),
+          notesInfo: jest.fn(),
+          unsuspend,
+          removeTags,
+        }) as unknown as AnkiConnectClient
+    );
+    const useCase = new ReturnLeechToReviewUseCase(
+      clientsRepo(activeClient),
+      subsRepo([{ target_deck: 'Notion Sync::Torts', notion_page_title: null }]),
+      factory
+    );
+
+    await expect(
+      useCase.execute({ owner: 42, noteId: 9999 })
+    ).rejects.toBeInstanceOf(NoteNotOwnedError);
+    expect(unsuspend).not.toHaveBeenCalled();
+    expect(removeTags).not.toHaveBeenCalled();
+  });
+});

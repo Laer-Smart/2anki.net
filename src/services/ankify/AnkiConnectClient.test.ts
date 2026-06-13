@@ -559,4 +559,90 @@ describe('AnkiConnectClient', () => {
       params: { query: 'deck:"X" -is:new' },
     });
   });
+
+  test('deleteNotes posts the note ids', async () => {
+    const fetchImpl = makeFetch({ result: null, error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const result = await client.deleteNotes([5001, 5002]);
+
+    expect(result).toBeNull();
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'deleteNotes',
+      version: 6,
+      params: { notes: [5001, 5002] },
+    });
+  });
+
+  test('unsuspend posts the card ids and returns the boolean result', async () => {
+    const fetchImpl = makeFetch({ result: true, error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const changed = await client.unsuspend([9001, 9002]);
+
+    expect(changed).toBe(true);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'unsuspend',
+      version: 6,
+      params: { cards: [9001, 9002] },
+    });
+  });
+
+  test('unsuspend returns false when nothing changed', async () => {
+    const fetchImpl = makeFetch({ result: false, error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    expect(await client.unsuspend([9001])).toBe(false);
+  });
+
+  test('removeTags posts the note ids and the space-separated tag string', async () => {
+    const fetchImpl = makeFetch({ result: null, error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const result = await client.removeTags([7001, 7002], 'leech');
+
+    expect(result).toBeNull();
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'removeTags',
+      version: 6,
+      params: { notes: [7001, 7002], tags: 'leech' },
+    });
+  });
+
+  test('cardsInfo posts the card ids and returns deck + lapse + queue per card', async () => {
+    const fetchImpl = makeFetch({
+      result: [
+        {
+          cardId: 11,
+          note: 7001,
+          deckName: 'Notion Sync::Pharmacology',
+          lapses: 9,
+          queue: -1,
+        },
+      ],
+      error: null,
+    });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const info = await client.cardsInfo([11]);
+
+    expect(info).toEqual([
+      {
+        cardId: 11,
+        note: 7001,
+        deckName: 'Notion Sync::Pharmacology',
+        lapses: 9,
+        queue: -1,
+      },
+    ]);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'cardsInfo',
+      version: 6,
+      params: { cards: [11] },
+    });
+  });
 });
