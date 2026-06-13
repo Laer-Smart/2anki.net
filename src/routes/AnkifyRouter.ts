@@ -36,6 +36,13 @@ import { CheckAnkiWebStatusUseCase } from '../usecases/ankify/CheckAnkiWebStatus
 import ReissueAnkifySessionUrlUseCase from '../usecases/ankify/ReissueAnkifySessionUrlUseCase';
 import { ValidateAnkifySessionTokenUseCase } from '../usecases/ankify/ValidateAnkifySessionTokenUseCase';
 import { GetAnkifyStatsUseCase } from '../usecases/ankify/GetAnkifyStatsUseCase';
+import { GetAnkifyActiveProfileUseCase } from '../usecases/ankify/GetAnkifyActiveProfileUseCase';
+import { SyncToAnkiWebUseCase } from '../usecases/ankify/SyncToAnkiWebUseCase';
+import { OpenDeckInAnkiUseCase } from '../usecases/ankify/OpenDeckInAnkiUseCase';
+import { GetCollectionStatsHtmlUseCase } from '../usecases/ankify/GetCollectionStatsHtmlUseCase';
+import { GetDeckMaturityUseCase } from '../usecases/ankify/GetDeckMaturityUseCase';
+import { ExportDeckPackageUseCase } from '../usecases/ankify/ExportDeckPackageUseCase';
+import { buildExportedDeckReader } from '../services/ankify/buildExportedDeckReader';
 import { AnkifyExportSchedulesRepository } from '../data_layer/ankify/AnkifyExportSchedulesRepository';
 import { getAnkifyExportScheduler } from '../lib/ankify/scheduler/instance';
 import { AnkifySessionTokensRepository } from '../data_layer/ankify/AnkifySessionTokensRepository';
@@ -376,7 +383,18 @@ const AnkifyRouter = () => {
     new CheckAnkiWebStatusUseCase(repo, ankiConnectFactory),
     new ReissueAnkifySessionUrlUseCase(rac),
     new ValidateAnkifySessionTokenUseCase(rac, authService),
-    new GetAnkifyStatsUseCase(repo, ankiConnectFactory)
+    new GetAnkifyStatsUseCase(repo, ankiConnectFactory),
+    new GetAnkifyActiveProfileUseCase(repo, ankiConnectFactory),
+    new SyncToAnkiWebUseCase(repo, ankiConnectFactory),
+    new OpenDeckInAnkiUseCase(repo, subscriptionsRepo, ankiConnectFactory),
+    new GetCollectionStatsHtmlUseCase(repo, ankiConnectFactory),
+    new GetDeckMaturityUseCase(repo, subscriptionsRepo, ankiConnectFactory),
+    new ExportDeckPackageUseCase(
+      repo,
+      subscriptionsRepo,
+      ankiConnectFactory,
+      buildExportedDeckReader(docker)
+    )
   );
 
   /**
@@ -813,6 +831,108 @@ const AnkifyRouter = () => {
    */
   router.get('/api/ankify/stats', RequireAnkifyAccess, (req, res) =>
     controller.getStats(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/active-profile:
+   *   get:
+   *     summary: The synced Anki profile name on the user's hosted client
+   *     description: Allowlisted endpoint. Returns { profile }. 409 when no active client, 503 when AnkiConnect is unreachable.
+   *     tags: [Ankify]
+   */
+  router.get('/api/ankify/active-profile', RequireAnkifyAccess, (req, res) =>
+    controller.getActiveProfile(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/sync-to-ankiweb:
+   *   post:
+   *     summary: Trigger an AnkiWeb sync on the user's hosted Anki
+   *     description: Allowlisted endpoint. Returns { ok: true }. 409 when no active client, 503 when AnkiConnect is unreachable.
+   *     tags: [Ankify]
+   */
+  router.post('/api/ankify/sync-to-ankiweb', RequireAnkifyAccess, (req, res) =>
+    controller.syncToAnkiWeb(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/gui-deck-overview:
+   *   post:
+   *     summary: Jump the user's hosted Anki to a deck's overview
+   *     description: Allowlisted endpoint. Body { deck }. The deck must belong to one of the caller's Notion subscriptions. 403 when the deck is not owned, 503 when AnkiConnect is unreachable.
+   *     tags: [Ankify]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [deck]
+   *             properties:
+   *               deck:
+   *                 type: string
+   */
+  router.post(
+    '/api/ankify/gui-deck-overview',
+    RequireAnkifyAccess,
+    (req, res) => controller.openDeckInAnki(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/collection-stats-html:
+   *   get:
+   *     summary: Anki's native collection stats report as HTML
+   *     description: Allowlisted endpoint. Returns { html, truncated }; html is null when no active client or AnkiConnect is unreachable. The frontend sandboxes the HTML in an iframe.
+   *     tags: [Ankify]
+   */
+  router.get(
+    '/api/ankify/collection-stats-html',
+    RequireAnkifyAccess,
+    (req, res) => controller.getCollectionStatsHtml(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/deck-maturity:
+   *   get:
+   *     summary: Maturity breakdown for one of the user's synced decks
+   *     description: Allowlisted endpoint. Query { deck }. Returns { connected, matureCount, total, avgIntervalDays } (mature = interval ≥ 21 days). The deck must belong to the caller. 403 when not owned, 503 when AnkiConnect is unreachable.
+   *     tags: [Ankify]
+   *     parameters:
+   *       - in: query
+   *         name: deck
+   *         required: true
+   *         schema:
+   *           type: string
+   */
+  router.get('/api/ankify/deck-maturity', RequireAnkifyAccess, (req, res) =>
+    controller.getDeckMaturity(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/export-package:
+   *   post:
+   *     summary: Export one of the user's synced decks as an .apkg download
+   *     description: Allowlisted endpoint. Body { deck }. The server generates the export path itself; no client path is accepted. The deck must belong to the caller. Streams the .apkg back with a Content-Disposition header. 403 when not owned, 409 when no active client, 503 when the export can't be retrieved.
+   *     tags: [Ankify]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [deck]
+   *             properties:
+   *               deck:
+   *                 type: string
+   */
+  router.post('/api/ankify/export-package', RequireAnkifyAccess, (req, res) =>
+    controller.exportDeckPackage(req, res)
   );
 
   return router;
