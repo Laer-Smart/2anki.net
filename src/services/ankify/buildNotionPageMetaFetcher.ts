@@ -7,6 +7,7 @@ export interface NotionPageMeta {
   title: string | null;
   url: string | null;
   icon: string | null;
+  objectType?: NotionObjectType | null;
 }
 
 type NotionPageIconBlock =
@@ -85,7 +86,7 @@ const fetchDatabaseMeta = async (
   const icon = extractNotionPageIcon(
     (database as { icon?: NotionPageIconBlock }).icon
   );
-  return { title, url, icon };
+  return { title, url, icon, objectType: 'database' };
 };
 
 const fetchPageMeta = async (
@@ -100,7 +101,7 @@ const fetchPageMeta = async (
   const icon = extractNotionPageIcon(
     (page as { icon?: NotionPageIconBlock }).icon
   );
-  return { title, url, icon };
+  return { title, url, icon, objectType: 'page' };
 };
 
 export const buildNotionPageMetaFetcher =
