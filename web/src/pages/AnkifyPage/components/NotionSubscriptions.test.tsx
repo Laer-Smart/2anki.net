@@ -715,6 +715,48 @@ describe('NotionSubscriptions sync copy', () => {
     ).not.toBeInTheDocument();
   });
 
+  test('a calm offline last_error renders the muted offline line, not the danger line', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({
+          id: 1,
+          notion_page_id: 'a'.repeat(32),
+          last_error: 'Anki client offline — will retry next tick',
+        }),
+      ]),
+    });
+
+    renderSubs(backend);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/anki client offline — will retry next tick/i)
+      ).toBeInTheDocument()
+    );
+    expect(screen.queryByText(/last check failed/i)).not.toBeInTheDocument();
+  });
+
+  test('a genuine last_error renders the "last check failed" line', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({
+          id: 1,
+          notion_page_id: 'a'.repeat(32),
+          last_error: 'AnkiConnect returned HTTP 500',
+        }),
+      ]),
+    });
+
+    renderSubs(backend);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/last check failed — we'll try again soon/i)
+      ).toBeInTheDocument()
+    );
+    expect(screen.queryByText(/anki client offline/i)).not.toBeInTheDocument();
+  });
+
   test('error line takes precedence over next-export line', async () => {
     const matchingId = 'a'.repeat(32);
     const backend = makeBackend({

@@ -99,8 +99,7 @@ export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
 
   return (
     <main className={sharedStyles.page}>
-      <WorkspaceBar backend={backend} />
-      <h1 className={styles.workspaceTitle}>Ankify</h1>
+      <WorkspaceBar backend={backend} title="Ankify" />
 
       {!welcomeSeen && !dismissed && (
         <div
