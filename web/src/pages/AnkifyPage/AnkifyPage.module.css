@@ -757,6 +757,12 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .workspaceBarDotStarting {
+    animation: none;
+  }
+}
+
 .workspaceBarSession {
   flex: 1;
   min-width: 0;
