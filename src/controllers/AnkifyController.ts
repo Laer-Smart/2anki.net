@@ -738,7 +738,6 @@ class AnkifyController {
     const owner = res.locals.owner as number;
     try {
       await this.syncToAnkiWebUseCase.execute(owner);
-      track('ankify_sync_ankiweb', { userId: owner });
       res.status(200).json({ ok: true });
     } catch (error) {
       if (error instanceof NoActiveAnkifyClientForSyncError) {
@@ -764,7 +763,6 @@ class AnkifyController {
     }
     try {
       const result = await this.openDeckInAnkiUseCase.execute({ owner, deck });
-      track('ankify_open_in_anki', { userId: owner, props: { in_anki: true } });
       res.status(200).json({ opened: result.opened });
     } catch (error) {
       if (error instanceof DeckNotOwnedError) {
@@ -783,7 +781,6 @@ class AnkifyController {
     const owner = res.locals.owner as number;
     const result = await this.getCollectionStatsHtmlUseCase.execute(owner);
     if (result.connected) {
-      track('ankify_view_full_stats', { userId: owner });
       res.status(200).json({ html: result.html, truncated: result.truncated });
       return;
     }
@@ -825,7 +822,6 @@ class AnkifyController {
         owner,
         deck,
       });
-      track('ankify_export_apkg', { userId: owner });
       res.setHeader('Content-Type', 'application/octet-stream');
       res.setHeader(
         'Content-Disposition',
