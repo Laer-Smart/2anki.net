@@ -233,6 +233,22 @@ export class AnkiConnectClient {
     return this.invoke('findCards', { query });
   }
 
+  async deleteNotes(notes: number[]): Promise<null> {
+    return this.invoke('deleteNotes', { notes });
+  }
+
+  async unsuspend(cards: number[]): Promise<boolean> {
+    return this.invoke('unsuspend', { cards });
+  }
+
+  async removeTags(notes: number[], tags: string): Promise<null> {
+    return this.invoke('removeTags', { notes, tags });
+  }
+
+  async cardsInfo(cards: number[]): Promise<AnkiCardInfo[]> {
+    return this.invoke('cardsInfo', { cards });
+  }
+
   private async invoke<T>(
     action: string,
     params?: Record<string, unknown>,
@@ -334,6 +350,14 @@ export interface AnkiNoteInfo {
   fields: Record<string, { value: string; order: number }>;
   cards?: number[];
   mod?: number;
+}
+
+export interface AnkiCardInfo {
+  cardId: number;
+  note: number;
+  deckName: string;
+  lapses: number;
+  queue: number;
 }
 
 export interface AnkiApiReflection {
