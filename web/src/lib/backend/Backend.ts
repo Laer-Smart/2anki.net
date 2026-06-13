@@ -29,6 +29,15 @@ export class TrackerSchemaError extends Error {
 
 export type AnkiWebSyncStatus = 'synced' | 'failed' | 'skipped';
 
+export type DeckMaturity =
+  | { connected: false }
+  | {
+      connected: true;
+      matureCount: number;
+      total: number;
+      avgIntervalDays: number;
+    };
+
 export interface CheckoutPrices {
   cohort: 'legacy' | 'v2';
   legacy: boolean;
@@ -852,6 +861,86 @@ export class Backend {
   async getAnkifyStats(): Promise<AnkifyStats> {
     const result = await get(`${this.baseURL}ankify/stats`);
     return result ?? { connected: false };
+  }
+
+  async getAnkifyActiveProfile(): Promise<string | null> {
+    try {
+      const result = await get(`${this.baseURL}ankify/active-profile`, {
+        redirect: false,
+      });
+      const profile = result?.profile;
+      return typeof profile === 'string' && profile.length > 0 ? profile : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async syncAnkifyToAnkiWeb(): Promise<void> {
+    const response = await post(`${this.baseURL}ankify/sync-to-ankiweb`, {});
+    if (!response.ok) {
+      const body = await response
+        .json()
+        .catch(() => ({ message: response.statusText }));
+      throw new Error(body.message ?? 'Failed to sync to AnkiWeb');
+    }
+  }
+
+  async openAnkifyDeckInAnki(deck: string): Promise<{ opened: boolean }> {
+    const response = await post(`${this.baseURL}ankify/gui-deck-overview`, {
+      deck,
+    });
+    if (!response.ok) {
+      const body = await response
+        .json()
+        .catch(() => ({ message: response.statusText }));
+      throw new Error(body.message ?? 'Failed to open in Anki');
+    }
+    const body = await response.json().catch(() => ({ opened: false }));
+    return { opened: body.opened === true };
+  }
+
+  async getAnkifyCollectionStatsHtml(): Promise<{
+    html: string | null;
+    truncated: boolean;
+  }> {
+    const result = await get(`${this.baseURL}ankify/collection-stats-html`);
+    return {
+      html: typeof result?.html === 'string' ? result.html : null,
+      truncated: result?.truncated === true,
+    };
+  }
+
+  async getAnkifyDeckMaturity(deck: string): Promise<DeckMaturity> {
+    try {
+      const result = await get(
+        `${this.baseURL}ankify/deck-maturity?deck=${encodeURIComponent(deck)}`,
+        { redirect: false }
+      );
+      if (result?.connected === true) {
+        return {
+          connected: true,
+          matureCount: Number(result.matureCount ?? 0),
+          total: Number(result.total ?? 0),
+          avgIntervalDays: Number(result.avgIntervalDays ?? 0),
+        };
+      }
+      return { connected: false };
+    } catch {
+      return { connected: false };
+    }
+  }
+
+  async exportAnkifyDeckPackage(deck: string): Promise<Blob> {
+    const response = await post(`${this.baseURL}ankify/export-package`, {
+      deck,
+    });
+    if (!response.ok) {
+      const body = await response
+        .json()
+        .catch(() => ({ message: response.statusText }));
+      throw new Error(body.message ?? 'Failed to export deck');
+    }
+    return response.blob();
   }
 
   async listAnkifyNotionDatabases(): Promise<

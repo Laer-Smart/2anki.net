@@ -9,7 +9,9 @@ import AnkifyClient from '../../../lib/interfaces/AnkifyClient';
 import ExternalLinkIcon from '../../../components/icons/ExternalLinkIcon';
 import RefreshIcon from '../../../components/icons/RefreshIcon';
 import ArrowRightOnRectangleIcon from '../../../components/icons/ArrowRightOnRectangleIcon';
+import ArrowUpTrayIcon from '../../../components/icons/ArrowUpTrayIcon';
 import DotsHorizontal from '../../../components/icons/DotsHorizontal';
+import { track } from '../../../lib/analytics/track';
 
 const QUERY_KEY = ['ankify-clients'];
 const ANKI_WEB_ACK_KEY = 'ankify_anki_web_acknowledged';
@@ -84,6 +86,37 @@ export default function WorkspaceBar({
 
   const containerReady = readiness.data?.ready === true;
   const ankiWebLinked = ankiWebStatus.data?.status === 'linked';
+
+  const activeProfile = useQuery({
+    queryKey: ['ankify-active-profile'],
+    queryFn: () => api.getAnkifyActiveProfile(),
+    enabled: hasActiveClient && containerReady,
+  });
+
+  const [syncFlash, setSyncFlash] = useState<'done' | 'error' | null>(null);
+  const syncFlashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (syncFlashTimer.current != null) clearTimeout(syncFlashTimer.current);
+    },
+    []
+  );
+
+  const flashSync = (outcome: 'done' | 'error') => {
+    setSyncFlash(outcome);
+    if (syncFlashTimer.current != null) clearTimeout(syncFlashTimer.current);
+    syncFlashTimer.current = setTimeout(() => setSyncFlash(null), 4_000);
+  };
+
+  const syncToAnkiWeb = useMutation({
+    mutationFn: () => api.syncAnkifyToAnkiWeb(),
+    onSuccess: () => {
+      flashSync('done');
+      queryClient.invalidateQueries({ queryKey: ['ankify-anki-web-status'] });
+    },
+    onError: () => flashSync('error'),
+  });
 
   const stop = useMutation({
     mutationFn: (id: number) => api.stopAnkifyClient(id),
@@ -237,10 +270,26 @@ export default function WorkspaceBar({
     setConfirmShutdown(true);
   };
 
+  const onSyncToAnkiWeb = () => {
+    setMenuOpen(false);
+    track('ankify_sync_ankiweb');
+    syncToAnkiWeb.mutate();
+  };
+
   const actions = (
     <div className={styles.workspaceBarActions}>
       {openControl}
       <span className={styles.workspaceBarInlineActions}>
+        <button
+          type="button"
+          className={styles.workspaceBarIconButton}
+          aria-label="Sync to AnkiWeb"
+          title="Sync to AnkiWeb"
+          onClick={onSyncToAnkiWeb}
+          disabled={syncToAnkiWeb.isPending || !containerReady}
+        >
+          <ArrowUpTrayIcon width={18} height={18} />
+        </button>
         <button
           type="button"
           className={styles.workspaceBarIconButton}
@@ -275,6 +324,16 @@ export default function WorkspaceBar({
         </button>
         {menuOpen && (
           <div role="menu" className={styles.workspaceBarMenu}>
+            <button
+              type="button"
+              role="menuitem"
+              className={styles.workspaceBarMenuItem}
+              aria-label="Sync to AnkiWeb"
+              onClick={onSyncToAnkiWeb}
+              disabled={syncToAnkiWeb.isPending || !containerReady}
+            >
+              {syncToAnkiWeb.isPending ? 'Syncing…' : 'Sync to AnkiWeb'}
+            </button>
             <button
               type="button"
               role="menuitem"
@@ -337,10 +396,37 @@ export default function WorkspaceBar({
     </div>
   );
 
+  const profileName =
+    activeProfile.data != null && activeProfile.data.length > 0
+      ? activeProfile.data
+      : null;
+
+  let syncStatusText: string | null = null;
+  if (syncToAnkiWeb.isPending) {
+    syncStatusText = 'Syncing to AnkiWeb…';
+  } else if (syncFlash === 'done') {
+    syncStatusText = 'Synced to AnkiWeb';
+  } else if (syncFlash === 'error') {
+    syncStatusText = "Couldn't reach AnkiWeb. Try again in a moment.";
+  }
+
   const status = (
     <span className={styles.workspaceBarStatus}>
       {statusDot}
       <span>{statusLabel}</span>
+      {profileName != null && (
+        <>
+          <span className={styles.workspaceBarStatusSep} aria-hidden="true">
+            ·
+          </span>
+          <span
+            className={styles.workspaceBarProfile}
+            title={`Anki profile ${profileName}`}
+          >
+            Profile {profileName}
+          </span>
+        </>
+      )}
       {sessionUrl != null && (
         <>
           <span className={styles.workspaceBarStatusSep} aria-hidden="true">
@@ -348,6 +434,23 @@ export default function WorkspaceBar({
           </span>
           <span className={styles.workspaceBarSession} title={sessionUrl}>
             Session active
+          </span>
+        </>
+      )}
+      {syncStatusText != null && (
+        <>
+          <span className={styles.workspaceBarStatusSep} aria-hidden="true">
+            ·
+          </span>
+          <span
+            className={
+              syncFlash === 'error'
+                ? styles.workspaceBarSyncError
+                : styles.workspaceBarSync
+            }
+            aria-live="polite"
+          >
+            {syncStatusText}
           </span>
         </>
       )}
