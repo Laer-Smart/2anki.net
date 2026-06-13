@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-13-ankify-sync-timeout",
+  "date": "2026-06-13",
+  "type": "fix",
+  "title": "Notion → Anki sync waits out a slow AnkiWeb sync instead of reporting your Anki as offline"
+}

@@ -1,5 +1,8 @@
 export const ANKI_CONNECT_VERSION = 6;
 export const ANKI_CONNECT_DEFAULT_TIMEOUT_MS = 10_000;
+// `sync` triggers a blocking AnkiWeb round-trip inside the container; it
+// routinely needs far longer than a cheap action like `version` or `addNote`.
+export const ANKI_CONNECT_SYNC_TIMEOUT_MS = 60_000;
 
 export interface AnkiConnectNoteFields {
   [key: string]: string;
@@ -35,6 +38,23 @@ export class AnkiConnectUnreachableError extends Error {
     if (cause instanceof Error) {
       this.stack = cause.stack;
     }
+  }
+}
+
+// A call that exceeded its own deadline, not a dead container. Extends
+// AnkiConnectUnreachableError so existing `instanceof` checks keep treating it
+// as offline, while the name + message say what actually happened (a slow call,
+// usually `sync`, after a pre-flight `ping` already proved the container was up).
+export class AnkiConnectTimeoutError extends AnkiConnectUnreachableError {
+  constructor(
+    readonly url: string,
+    readonly action: string,
+    readonly timeoutMs: number,
+    cause: unknown
+  ) {
+    super(url, cause);
+    this.name = 'AnkiConnectTimeoutError';
+    this.message = `AnkiConnect call '${action}' timed out after ${timeoutMs}ms at ${url}`;
   }
 }
 
@@ -162,7 +182,7 @@ export class AnkiConnectClient {
   }
 
   async sync(): Promise<null> {
-    return this.invoke('sync');
+    return this.invoke('sync', undefined, ANKI_CONNECT_SYNC_TIMEOUT_MS);
   }
 
   async ping(): Promise<number> {
@@ -191,10 +211,11 @@ export class AnkiConnectClient {
 
   private async invoke<T>(
     action: string,
-    params?: Record<string, unknown>
+    params?: Record<string, unknown>,
+    timeoutMs: number = this.timeoutMs
   ): Promise<T> {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
 
     let response: Response;
     try {
@@ -212,6 +233,14 @@ export class AnkiConnectClient {
         signal: controller.signal,
       });
     } catch (error) {
+      if (controller.signal.aborted) {
+        throw new AnkiConnectTimeoutError(
+          this.baseUrl,
+          action,
+          timeoutMs,
+          error
+        );
+      }
       throw new AnkiConnectUnreachableError(this.baseUrl, error);
     } finally {
       clearTimeout(timer);
