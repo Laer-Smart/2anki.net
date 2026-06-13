@@ -159,12 +159,21 @@ const AnkifyPreviewPage = (): ReactElement => {
         ))}
       </div>
 
-      <div className={styles.workspaceBar}>
-        <span className={styles.wbStatus}>
-          <span className={styles.wbDot} aria-hidden="true" />
-          Anki running
-        </span>
-        <span className={styles.wbSession}>Session active</span>
+      <header className={styles.pageHeader}>
+        <div className={styles.pageHeaderLeft}>
+          <h1 className={styles.title}>Ankify</h1>
+          <span className={styles.pageHeaderDash} aria-hidden="true">
+            —
+          </span>
+          <span className={styles.pageHeaderStatus}>
+            <span className={styles.wbDot} aria-hidden="true" />
+            Anki running
+            <span className={styles.statusSep} aria-hidden="true">
+              ·
+            </span>
+            Session active
+          </span>
+        </div>
         <span className={styles.wbActions}>
           <button
             type="button"
@@ -219,9 +228,7 @@ const AnkifyPreviewPage = (): ReactElement => {
             </div>
           </span>
         </span>
-      </div>
-
-      <h1 className={styles.title}>Ankify</h1>
+      </header>
 
       {variant === 'mixed' && (
         <div className={styles.conflictsBanner}>
