@@ -1,0 +1,190 @@
+.panel {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.barDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-success);
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem 0.5rem;
+}
+
+.headingTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.cadence {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  padding: 0.625rem 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.rowMain {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.menuTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.menuTrigger:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.menu {
+  margin: 0.5rem 0 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  width: max-content;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  box-shadow: var(--shadow-md);
+  padding: 0.25rem;
+}
+
+.menuItem {
+  text-align: left;
+  white-space: nowrap;
+  background: transparent;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.dotRunning {
+  background: var(--color-success);
+}
+
+.dotSyncing {
+  background: var(--color-warning);
+}
+
+.dotError {
+  background: var(--color-text-danger);
+}
+
+.dotOffline {
+  background: var(--color-text-tertiary);
+}
+
+.name {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.name a:hover {
+  text-decoration: underline;
+}
+
+/* Signature move: monospaced, tabular, right-aligned data column. */
+.data {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: flex-end;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.dataPath {
+  color: var(--color-text-secondary);
+}
+
+.dataBacklog {
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.subline {
+  font-size: var(--text-xs);
+  margin: 0.25rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.sublineError {
+  color: var(--color-text-danger);
+}
+
+.sublineOffline {
+  color: var(--color-text-tertiary);
+}
+
+.empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}

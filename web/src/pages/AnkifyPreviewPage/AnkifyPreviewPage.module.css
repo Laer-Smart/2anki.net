@@ -1,0 +1,272 @@
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.switcher {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.switcherLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 0.25rem;
+}
+
+.switchBtn {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.switchBtnActive {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  letter-spacing: var(--tracking-tight);
+}
+
+.workspaceBar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 56px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-primary);
+}
+
+.wbStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.wbDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-success);
+}
+
+.wbSession {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wbActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  position: relative;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.iconBtn:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.iconBtnPrimary {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.iconBtnPrimary:hover {
+  background: var(--color-primary-hover);
+  color: #ffffff;
+}
+
+/* Secondary actions sit inline when there's room; the overflow "more"
+   button only appears when there isn't. Production would measure with a
+   ResizeObserver; the preview approximates with a width breakpoint. */
+.wbSecondary {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.wbMoreWrap {
+  display: none;
+  position: relative;
+}
+
+@media (max-width: 560px) {
+  .wbSecondary {
+    display: none;
+  }
+  .wbMoreWrap {
+    display: block;
+  }
+}
+
+.wbMenu {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  width: max-content;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  box-shadow: var(--shadow-md);
+  padding: 0.25rem;
+  z-index: 5;
+}
+
+.wbMenuItem {
+  text-align: left;
+  white-space: nowrap;
+  background: transparent;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.tabBar {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tab {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  padding: 0.625rem 0.25rem;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tabActive {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.conflictsBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+  color: var(--color-warning-text);
+  background: var(--color-warning-light);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+}
+
+.historyFooter {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.statsSection {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+}
+
+.statsHead {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.statsLead {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0.125rem 0 1rem;
+}
+
+/* Signature move extended to stats: counts in mono tabular figures. */
+.summary {
+  display: flex;
+  gap: 2rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.summaryStat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.summaryValue {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.1;
+}
+
+.summaryLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.stateText {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0.5rem 0 0;
+}
+
+.block {
+  margin-top: 1rem;
+}

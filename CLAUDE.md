@@ -10,6 +10,16 @@ Revenue: grow MRR past $5K — ARPU and retention are the levers; user count fol
 Allocation: every week ships at least one acquisition-facing change — landing pages, SEO, onboarding, or signup/first-conversion friction — and it ships **before** any new product surface starts that week. Acquisition is the only lane that creates users; starve it and the 300K goal stalls no matter how much else moves. History note: 2026 ran 6% acquisition work and 2023-25 ran 0% across 36 months — both starved the only lane that makes users.
 Every PR is checked against all three — does it make the experience simpler/faster/more beautiful, does it move us toward scale, and does it (for user-facing changes) state which funnel or revenue metric it should move?
 
+## Design Context
+- **Register**: product
+- **Surface(s)**: `/ankify` (sync control panel) — first adopter of the locked DNA; widen as other surfaces follow
+- **Purpose**: let paid power users see at a glance that their Notion→Anki sync is healthy and manage where decks land
+- **Audience**: lifetime / Auto-Sync subscribers — serious med/law learners running a live 5-min sync
+- **Personality**: precise, trustworthy, technical
+- **DNA**: Swiss Panel — Swiss/International layout + a monospaced tabular data voice; signature move = the right-hand mono data column. See DESIGN.md.
+- **Color**: reuse `web/src/styles/base.css` tokens (5 themes), one blue accent + the status triad — no new ramp
+- **Constraints**: React, WCAG AA, the 5-theme token system, product restraint (one signature move exempt)
+
 ### Business baseline (as of 2026-06-10 — weekly-retro updates this block)
 
 MRR $1,710 · 763 paying subs · ARPU $2.24 · 18.9%/mo churn (79% lifecycle, not price) · 34 new paid/wk trailing · ~19,580 registered. Read live at `/api/ops/business/metrics` (ops-gated) and Stripe; funnel events at `/api/ops/metrics`.
