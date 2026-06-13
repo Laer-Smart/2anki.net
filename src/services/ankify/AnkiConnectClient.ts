@@ -209,6 +209,38 @@ export class AnkiConnectClient {
     return this.invoke('multi', { actions });
   }
 
+  async getActiveProfile(): Promise<string> {
+    return this.invoke('getActiveProfile');
+  }
+
+  async guiDeckOverview(name: string): Promise<boolean> {
+    return this.invoke('guiDeckOverview', { name });
+  }
+
+  async getCollectionStatsHTML(wholeCollection = true): Promise<string> {
+    return this.invoke('getCollectionStatsHTML', { wholeCollection });
+  }
+
+  async getEaseFactors(cards: number[]): Promise<number[]> {
+    return this.invoke('getEaseFactors', { cards });
+  }
+
+  async getIntervals(cards: number[], complete = false): Promise<number[]> {
+    return this.invoke('getIntervals', { cards, complete });
+  }
+
+  async exportPackage(
+    deck: string,
+    path: string,
+    includeSched = false
+  ): Promise<boolean> {
+    return this.invoke('exportPackage', { deck, path, includeSched });
+  }
+
+  async findCards(query: string): Promise<number[]> {
+    return this.invoke('findCards', { query });
+  }
+
   private async invoke<T>(
     action: string,
     params?: Record<string, unknown>,
