@@ -85,6 +85,7 @@ export interface NotionPageMeta {
   title: string | null;
   url: string | null;
   icon: string | null;
+  objectType?: NotionObjectType | null;
 }
 
 export type NotionPageMetaFetcher = (
@@ -239,10 +240,8 @@ export class SyncNotionPageToRacUseCase {
       throw new NotionNotConnectedError();
     }
 
-    const { pageTitle, pageUrl, pageIcon } = await this.resolvePageMeta(
-      token,
-      input
-    );
+    const { pageTitle, pageUrl, pageIcon, resolvedObjectType } =
+      await this.resolvePageMeta(token, input);
 
     const subscription = await this.subscriptions.upsert({
       owner: input.owner,
@@ -254,6 +253,10 @@ export class SyncNotionPageToRacUseCase {
       target_deck: input.targetDeck,
       enabled: true,
     });
+
+    if (resolvedObjectType != null) {
+      await this.rememberObjectType(subscription, resolvedObjectType);
+    }
 
     const result: SyncNotionPageResult = {
       client,
@@ -349,12 +352,13 @@ export class SyncNotionPageToRacUseCase {
     pageTitle: string | null | undefined;
     pageUrl: string | null | undefined;
     pageIcon: string | null | undefined;
+    resolvedObjectType: NotionObjectType | null;
   }> {
     let pageTitle: string | null | undefined = input.notionPageTitle;
     let pageUrl: string | null | undefined = input.notionPageUrl;
     let pageIcon: string | null | undefined = input.notionPageIcon;
     if (this.notionPageMeta == null) {
-      return { pageTitle, pageUrl, pageIcon };
+      return { pageTitle, pageUrl, pageIcon, resolvedObjectType: null };
     }
     try {
       const meta = await this.notionPageMeta(token)(
@@ -364,10 +368,15 @@ export class SyncNotionPageToRacUseCase {
       pageTitle = meta.title;
       pageUrl = meta.url;
       pageIcon = meta.icon;
+      return {
+        pageTitle,
+        pageUrl,
+        pageIcon,
+        resolvedObjectType: meta.objectType ?? null,
+      };
     } catch {
-      // Notion API hiccup — keep whatever the input or DB already has.
+      return { pageTitle, pageUrl, pageIcon, resolvedObjectType: null };
     }
-    return { pageTitle, pageUrl, pageIcon };
   }
 
   private emitZeroCardsEvent(

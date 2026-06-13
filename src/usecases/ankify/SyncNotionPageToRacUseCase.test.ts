@@ -407,6 +407,125 @@ describe('SyncNotionPageToRacUseCase', () => {
     expect(insert).not.toHaveBeenCalled();
   });
 
+  test('records the database object type when the meta fetch resolves a null-typed id as a database', async () => {
+    (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue(
+      emptyWalkResult()
+    );
+    (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 8,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+
+    const repos = makeRepos();
+    repos.subscriptions = makeSubscriptionsRepo(
+      sampleSubscription({
+        id: 5,
+        notion_page_id: 'database-id',
+        notion_object_type: null,
+      })
+    );
+    const ac = makeAnkiConnectStub();
+    const databasePages = jest.fn(async () => [{ id: 'row-1' }]);
+    const metaFetch = jest.fn(
+      async (_id: string, _knownObjectType?: 'page' | 'database' | null) => ({
+        title: 'Pharmacology',
+        url: 'https://www.notion.so/db-1',
+        icon: '🧪',
+        objectType: 'database' as const,
+      })
+    );
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      () => metaFetch,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      () => databasePages
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'database-id',
+      knownObjectType: null,
+      trigger: 'polling',
+    });
+
+    expect(metaFetch).toHaveBeenCalledWith('database-id', null);
+    expect(repos.subscriptions.recordObjectType).toHaveBeenCalledWith(
+      5,
+      'database'
+    );
+  });
+
+  test('skips the page-meta retrieve on the next tick once the database type is known', async () => {
+    (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue({
+      cards: [sampleCard()],
+      diagnostic: {
+        blocks_scanned: 8,
+        blocks_matched: 1,
+        pattern_hits: { toggle: 1 },
+      },
+    });
+
+    const repos = makeRepos();
+    repos.subscriptions = makeSubscriptionsRepo(
+      sampleSubscription({
+        id: 5,
+        notion_page_id: 'database-id',
+        notion_object_type: 'database',
+      })
+    );
+    const ac = makeAnkiConnectStub();
+    const databasePages = jest.fn(async () => [{ id: 'row-1' }]);
+    const metaFetch = jest.fn(
+      async (_id: string, _knownObjectType?: 'page' | 'database' | null) => ({
+        title: 'Pharmacology',
+        url: 'https://www.notion.so/db-1',
+        icon: '🧪',
+        objectType: 'database' as const,
+      })
+    );
+    const useCase = new SyncNotionPageToRacUseCase(
+      repos.clients,
+      repos.mappings,
+      repos.conflicts,
+      repos.subscriptions,
+      repos.logs,
+      repos.notionRepo,
+      () => ac,
+      () => async () => [],
+      () => metaFetch,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      () => databasePages
+    );
+
+    await useCase.execute({
+      owner: 42,
+      notionPageId: 'database-id',
+      knownObjectType: 'database',
+      trigger: 'polling',
+    });
+
+    expect(metaFetch).toHaveBeenCalledWith('database-id', 'database');
+    expect(walkNotionPageForFlashcards).not.toHaveBeenCalled();
+    expect(repos.subscriptions.recordObjectType).not.toHaveBeenCalled();
+  });
+
   test('keeps the empty-page result when the database probe finds no child pages', async () => {
     (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue(
       emptyWalkResult()

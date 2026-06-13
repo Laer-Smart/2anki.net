@@ -37,6 +37,7 @@ describe('buildNotionPageMetaFetcher', () => {
       title: 'Pharmacology notes',
       url: 'https://www.notion.so/page-1',
       icon: '📘',
+      objectType: 'page',
     });
   });
 
@@ -61,6 +62,7 @@ describe('buildNotionPageMetaFetcher', () => {
       title: 'Pharmacology',
       url: 'https://www.notion.so/db-1',
       icon: '🧪',
+      objectType: 'database',
     });
   });
 
@@ -84,6 +86,7 @@ describe('buildNotionPageMetaFetcher', () => {
       title: 'Pharmacology',
       url: 'https://www.notion.so/db-1',
       icon: '🧪',
+      objectType: 'database',
     });
   });
 
