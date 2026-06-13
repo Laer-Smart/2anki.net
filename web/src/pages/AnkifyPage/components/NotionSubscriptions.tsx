@@ -18,6 +18,17 @@ import NotionPagePicker from './NotionPagePicker';
 import DotsHorizontal from '../../../components/icons/DotsHorizontal';
 import { BlockIcon } from '../../SearchPage/components/BlockIcon';
 import { mapSubscribeError } from './mapSubscribeError';
+import { useAnkifyStats } from '../stats/useAnkifyStats';
+import { buildDeckName } from '../lib/deckName';
+import {
+  formatBacklog,
+  formatMaturity,
+  sumDeckBacklog,
+} from '../lib/deckBacklog';
+import { track } from '../../../lib/analytics/track';
+import { downloadDeckPackage } from '../lib/downloadDeckPackage';
+import { useDeckMaturity } from '../lib/useDeckMaturity';
+import { AnkifyStatsDeck } from '../stats/types';
 
 const formatRelativeTime = (iso: string | null | undefined): string | null => {
   if (iso == null || iso.length === 0) return null;
@@ -72,6 +83,7 @@ const SUBSCRIPTIONS_KEY = ['ankify-subscriptions'];
 const CONFLICTS_KEY = ['ankify-conflicts'];
 const SEARCH_THRESHOLD = 10;
 const FLASH_DURATION_MS = 4_000;
+const EMPTY_DECKS: AnkifyStatsDeck[] = [];
 
 interface RowFlash {
   kind: 'success' | 'error' | 'conflict';
@@ -322,6 +334,51 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
     queryKey: SUBSCRIPTIONS_KEY,
     queryFn: () => api.listAnkifySubscriptions(),
   });
+
+  const stats = useAnkifyStats(api);
+  const statsDecks =
+    stats.data?.connected === true ? stats.data.decks : EMPTY_DECKS;
+
+  const ownedDeckNames = (subs.data ?? []).map((sub) =>
+    buildDeckName(sub.target_deck, sub.notion_page_title)
+  );
+  const maturityByDeck = useDeckMaturity(api, ownedDeckNames);
+
+  const handleOpenInAnki = useCallback(
+    async (id: number, deck: string) => {
+      setOpenMenuId(null);
+      track('ankify_open_in_anki');
+      try {
+        const result = await api.openAnkifyDeckInAnki(deck);
+        showFlash(id, {
+          kind: result.opened ? 'success' : 'error',
+          text: result.opened ? 'Opened in Anki' : 'Open Anki and try again',
+        });
+      } catch {
+        showFlash(id, { kind: 'error', text: 'Open Anki and try again' });
+      }
+    },
+    [api, showFlash]
+  );
+
+  const handleDownloadApkg = useCallback(
+    async (id: number, deck: string) => {
+      setOpenMenuId(null);
+      track('ankify_export_apkg');
+      showFlash(id, { kind: 'success', text: 'Building .apkg…' });
+      try {
+        const blob = await api.exportAnkifyDeckPackage(deck);
+        downloadDeckPackage(blob, deck);
+        showFlash(id, { kind: 'success', text: 'Downloaded .apkg' });
+      } catch {
+        showFlash(id, {
+          kind: 'error',
+          text: "Couldn't export. Open Anki and try again.",
+        });
+      }
+    },
+    [api, showFlash]
+  );
 
   type SubscriptionRow = Awaited<
     ReturnType<typeof api.listAnkifySubscriptions>
@@ -685,6 +742,18 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                   sub.last_error,
                   isUpdatingThisRow
                 );
+                const deckName = buildDeckName(
+                  sub.target_deck,
+                  sub.notion_page_title
+                );
+                const backlogLabel = formatBacklog(
+                  sumDeckBacklog(deckName, statsDecks)
+                );
+                const maturity = maturityByDeck.get(deckName);
+                const maturityLabel =
+                  maturity?.connected === true
+                    ? formatMaturity(maturity.matureCount, maturity.total)
+                    : null;
                 return (
                   <Fragment key={sub.id}>
                     <li className={styles.decksItem}>
@@ -728,6 +797,16 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                               In Anki: {truncateMiddle(sub.target_deck)}
                             </span>
                           )}
+                        {backlogLabel != null && (
+                          <span className={styles.decksItemBacklog}>
+                            {backlogLabel}
+                          </span>
+                        )}
+                        {maturityLabel != null && (
+                          <span className={styles.decksItemMaturity}>
+                            {maturityLabel}
+                          </span>
+                        )}
                         {(() => {
                           if (isUpdatingThisRow)
                             return <span>Updating now…</span>;
@@ -773,6 +852,26 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                               disabled={isUpdatingThisRow}
                             >
                               Update now
+                            </button>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              className={styles.decksItemMenuItem}
+                              aria-label={`Open ${displayTitle} in Anki`}
+                              onClick={() => handleOpenInAnki(sub.id, deckName)}
+                            >
+                              Open in Anki
+                            </button>
+                            <button
+                              type="button"
+                              role="menuitem"
+                              className={styles.decksItemMenuItem}
+                              aria-label={`Download ${displayTitle} as .apkg`}
+                              onClick={() =>
+                                handleDownloadApkg(sub.id, deckName)
+                              }
+                            >
+                              Download .apkg
                             </button>
                             <button
                               type="button"

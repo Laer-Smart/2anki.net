@@ -12,6 +12,11 @@ import { MemoryRouter } from 'react-router-dom';
 
 import NotionSubscriptions from './NotionSubscriptions';
 import { Backend } from '../../../lib/backend/Backend';
+import { track } from '../../../lib/analytics/track';
+
+vi.mock('../../../lib/analytics/track', () => ({
+  track: vi.fn(),
+}));
 
 type Subscription = Awaited<
   ReturnType<Backend['listAnkifySubscriptions']>
@@ -54,6 +59,10 @@ const makeBackend = (overrides: Partial<Backend> = {}): Backend =>
     deleteAnkifySubscription: vi.fn(),
     subscribeAnkifyNotionPage: vi.fn(),
     searchTopLevelPages: vi.fn(async () => []),
+    getAnkifyStats: vi.fn(async () => ({ connected: false }) as const),
+    getAnkifyDeckMaturity: vi.fn(async () => ({ connected: false }) as const),
+    openAnkifyDeckInAnki: vi.fn(async () => ({ opened: true })),
+    exportAnkifyDeckPackage: vi.fn(async () => new Blob(['apkg'])),
     ...overrides,
   }) as unknown as Backend;
 
@@ -984,6 +993,236 @@ describe('NotionSubscriptions deck location', () => {
 
     expect(
       await screen.findByText(/In Anki: MS3::Pharmacology/i)
+    ).toBeInTheDocument();
+  });
+});
+
+describe('NotionSubscriptions cockpit data column', () => {
+  beforeEach(() => {
+    vi.mocked(track).mockClear();
+  });
+
+  test('shows backlog matched to the deck by derived name', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({
+          id: 30,
+          notion_page_id: 'a'.repeat(32),
+          target_deck: 'MS3::Pharmacology',
+        }),
+      ]),
+      getAnkifyStats: vi.fn(async () => ({
+        connected: true as const,
+        reviewedToday: 0,
+        reviewedThisYear: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        reviewsByDay: [],
+        decks: [
+          {
+            name: 'MS3::Pharmacology',
+            new: 3,
+            learning: 2,
+            review: 5,
+            total: 10,
+          },
+        ],
+      })),
+    });
+
+    renderSubs(backend);
+
+    expect(await screen.findByText('▲7 · +3 new')).toBeInTheDocument();
+  });
+
+  test('shows nothing extra when no deck matches', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({
+          id: 31,
+          notion_page_id: 'a'.repeat(32),
+          target_deck: 'MS3::Pharmacology',
+        }),
+      ]),
+      getAnkifyStats: vi.fn(async () => ({
+        connected: true as const,
+        reviewedToday: 0,
+        reviewedThisYear: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        reviewsByDay: [],
+        decks: [
+          { name: 'Other::Deck', new: 9, learning: 9, review: 9, total: 27 },
+        ],
+      })),
+    });
+
+    renderSubs(backend);
+
+    await waitFor(() =>
+      expect(screen.getByText('My deck')).toBeInTheDocument()
+    );
+    expect(screen.queryByText(/▲/)).not.toBeInTheDocument();
+  });
+
+  test('shows the maturity percentage for a connected deck', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({
+          id: 32,
+          notion_page_id: 'a'.repeat(32),
+          target_deck: 'MS3::Pharmacology',
+        }),
+      ]),
+      getAnkifyDeckMaturity: vi.fn(async () => ({
+        connected: true as const,
+        matureCount: 30,
+        total: 120,
+        avgIntervalDays: 40,
+      })),
+    });
+
+    renderSubs(backend);
+
+    expect(await screen.findByText('25% mature')).toBeInTheDocument();
+  });
+
+  test('shows no maturity when the deck is offline', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({
+          id: 33,
+          notion_page_id: 'a'.repeat(32),
+          target_deck: 'MS3::Pharmacology',
+        }),
+      ]),
+      getAnkifyDeckMaturity: vi.fn(async () => ({ connected: false }) as const),
+    });
+
+    renderSubs(backend);
+
+    await waitFor(() =>
+      expect(screen.getByText('My deck')).toBeInTheDocument()
+    );
+    expect(screen.queryByText(/mature/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('NotionSubscriptions cockpit row actions', () => {
+  beforeEach(() => {
+    vi.mocked(track).mockClear();
+  });
+
+  const openMenu = async () => {
+    fireEvent.click(
+      await screen.findByRole('button', { name: /options for my deck/i })
+    );
+  };
+
+  test('Open in Anki sends the derived deck name and fires the event', async () => {
+    const open = vi.fn(async () => ({ opened: true }));
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({
+          id: 40,
+          notion_page_id: 'a'.repeat(32),
+          target_deck: 'MS3::Pharmacology',
+        }),
+      ]),
+      openAnkifyDeckInAnki: open,
+    });
+
+    renderSubs(backend);
+    await openMenu();
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: /open my deck in anki/i })
+    );
+
+    await waitFor(() => expect(open).toHaveBeenCalledWith('MS3::Pharmacology'));
+    expect(track).toHaveBeenCalledWith('ankify_open_in_anki');
+    expect(await screen.findByText(/opened in anki/i)).toBeInTheDocument();
+  });
+
+  test('Open in Anki degrades calmly on a 503', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({ id: 41, notion_page_id: 'a'.repeat(32) }),
+      ]),
+      openAnkifyDeckInAnki: vi.fn(async () => {
+        throw new Error('Anki is unreachable');
+      }),
+    });
+
+    renderSubs(backend);
+    await openMenu();
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: /open my deck in anki/i })
+    );
+
+    expect(
+      await screen.findByText(/open anki and try again/i)
+    ).toBeInTheDocument();
+  });
+
+  test('Download .apkg fetches the blob and fires the event', async () => {
+    const exportPkg = vi.fn(async () => new Blob(['apkg-bytes']));
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({
+          id: 42,
+          notion_page_id: 'a'.repeat(32),
+          target_deck: 'MS3::Pharmacology',
+        }),
+      ]),
+      exportAnkifyDeckPackage: exportPkg,
+    });
+
+    const createObjectURL = vi.fn(() => 'blob:fake');
+    const revokeObjectURL = vi.fn();
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: createObjectURL,
+      configurable: true,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      value: revokeObjectURL,
+      configurable: true,
+    });
+
+    renderSubs(backend);
+    await openMenu();
+    fireEvent.click(
+      await screen.findByRole('menuitem', {
+        name: /download my deck as \.apkg/i,
+      })
+    );
+
+    await waitFor(() =>
+      expect(exportPkg).toHaveBeenCalledWith('MS3::Pharmacology')
+    );
+    expect(track).toHaveBeenCalledWith('ankify_export_apkg');
+    expect(await screen.findByText(/downloaded \.apkg/i)).toBeInTheDocument();
+  });
+
+  test('Download .apkg degrades calmly on a 403', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({ id: 43, notion_page_id: 'a'.repeat(32) }),
+      ]),
+      exportAnkifyDeckPackage: vi.fn(async () => {
+        throw new Error('Deck not found for this user');
+      }),
+    });
+
+    renderSubs(backend);
+    await openMenu();
+    fireEvent.click(
+      await screen.findByRole('menuitem', {
+        name: /download my deck as \.apkg/i,
+      })
+    );
+
+    expect(
+      await screen.findByText(/couldn't export\. open anki and try again\./i)
     ).toBeInTheDocument();
   });
 });

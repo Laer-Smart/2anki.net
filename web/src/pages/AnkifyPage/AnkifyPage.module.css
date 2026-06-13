@@ -770,6 +770,61 @@
   text-overflow: ellipsis;
 }
 
+.workspaceBarProfile {
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 14rem;
+}
+
+.workspaceBarSync {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.workspaceBarSyncError {
+  font-size: var(--text-sm);
+  color: var(--color-text-danger);
+  white-space: normal;
+}
+
+.fullStats {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
+}
+
+.fullStatsSummary {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.fullStatsBody {
+  margin-top: 0.75rem;
+}
+
+.fullStatsTruncated {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: 0 0 0.5rem;
+}
+
+.fullStatsFrame {
+  width: 100%;
+  min-height: 28rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+}
+
 .workspaceHeader {
   display: flex;
   align-items: center;
@@ -1416,6 +1471,16 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 18rem;
+}
+
+.decksItemBacklog {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.decksItemMaturity {
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
 }
 
 .deckLocationForm {
