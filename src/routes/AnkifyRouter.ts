@@ -41,8 +41,6 @@ import { SyncToAnkiWebUseCase } from '../usecases/ankify/SyncToAnkiWebUseCase';
 import { OpenDeckInAnkiUseCase } from '../usecases/ankify/OpenDeckInAnkiUseCase';
 import { GetCollectionStatsHtmlUseCase } from '../usecases/ankify/GetCollectionStatsHtmlUseCase';
 import { GetDeckMaturityUseCase } from '../usecases/ankify/GetDeckMaturityUseCase';
-import { ExportDeckPackageUseCase } from '../usecases/ankify/ExportDeckPackageUseCase';
-import { buildExportedDeckReader } from '../services/ankify/buildExportedDeckReader';
 import { AnkifyExportSchedulesRepository } from '../data_layer/ankify/AnkifyExportSchedulesRepository';
 import { getAnkifyExportScheduler } from '../lib/ankify/scheduler/instance';
 import { AnkifySessionTokensRepository } from '../data_layer/ankify/AnkifySessionTokensRepository';
@@ -388,13 +386,7 @@ const AnkifyRouter = () => {
     new SyncToAnkiWebUseCase(repo, ankiConnectFactory),
     new OpenDeckInAnkiUseCase(repo, subscriptionsRepo, ankiConnectFactory),
     new GetCollectionStatsHtmlUseCase(repo, ankiConnectFactory),
-    new GetDeckMaturityUseCase(repo, subscriptionsRepo, ankiConnectFactory),
-    new ExportDeckPackageUseCase(
-      repo,
-      subscriptionsRepo,
-      ankiConnectFactory,
-      buildExportedDeckReader(docker)
-    )
+    new GetDeckMaturityUseCase(repo, subscriptionsRepo, ankiConnectFactory)
   );
 
   /**
@@ -911,28 +903,6 @@ const AnkifyRouter = () => {
    */
   router.get('/api/ankify/deck-maturity', RequireAnkifyAccess, (req, res) =>
     controller.getDeckMaturity(req, res)
-  );
-
-  /**
-   * @swagger
-   * /api/ankify/export-package:
-   *   post:
-   *     summary: Export one of the user's synced decks as an .apkg download
-   *     description: Allowlisted endpoint. Body { deck }. The server generates the export path itself; no client path is accepted. The deck must belong to the caller. Streams the .apkg back with a Content-Disposition header. 403 when not owned, 409 when no active client, 503 when the export can't be retrieved.
-   *     tags: [Ankify]
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required: [deck]
-   *             properties:
-   *               deck:
-   *                 type: string
-   */
-  router.post('/api/ankify/export-package', RequireAnkifyAccess, (req, res) =>
-    controller.exportDeckPackage(req, res)
   );
 
   return router;

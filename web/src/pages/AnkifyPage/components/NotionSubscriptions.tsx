@@ -26,7 +26,6 @@ import {
   sumDeckBacklog,
 } from '../lib/deckBacklog';
 import { track } from '../../../lib/analytics/track';
-import { downloadDeckPackage } from '../lib/downloadDeckPackage';
 import { useDeckMaturity } from '../lib/useDeckMaturity';
 import { AnkifyStatsDeck } from '../stats/types';
 
@@ -356,25 +355,6 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
         });
       } catch {
         showFlash(id, { kind: 'error', text: 'Open Anki and try again' });
-      }
-    },
-    [api, showFlash]
-  );
-
-  const handleDownloadApkg = useCallback(
-    async (id: number, deck: string) => {
-      setOpenMenuId(null);
-      track('ankify_export_apkg');
-      showFlash(id, { kind: 'success', text: 'Building .apkg…' });
-      try {
-        const blob = await api.exportAnkifyDeckPackage(deck);
-        downloadDeckPackage(blob, deck);
-        showFlash(id, { kind: 'success', text: 'Downloaded .apkg' });
-      } catch {
-        showFlash(id, {
-          kind: 'error',
-          text: "Couldn't export. Open Anki and try again.",
-        });
       }
     },
     [api, showFlash]
@@ -861,17 +841,6 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                               onClick={() => handleOpenInAnki(sub.id, deckName)}
                             >
                               Open in Anki
-                            </button>
-                            <button
-                              type="button"
-                              role="menuitem"
-                              className={styles.decksItemMenuItem}
-                              aria-label={`Download ${displayTitle} as .apkg`}
-                              onClick={() =>
-                                handleDownloadApkg(sub.id, deckName)
-                              }
-                            >
-                              Download .apkg
                             </button>
                             <button
                               type="button"

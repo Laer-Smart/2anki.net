@@ -5,10 +5,6 @@ import { AnkiConnectUnreachableError } from '../services/ankify/AnkiConnectClien
 import { NoActiveAnkifyClientForProfileError } from '../usecases/ankify/GetAnkifyActiveProfileUseCase';
 import { NoActiveAnkifyClientForSyncError } from '../usecases/ankify/SyncToAnkiWebUseCase';
 import { DeckNotOwnedError } from '../usecases/ankify/OpenDeckInAnkiUseCase';
-import {
-  DeckExportFailedError,
-  NoActiveAnkifyClientForExportError,
-} from '../usecases/ankify/ExportDeckPackageUseCase';
 
 interface CapturingResponse {
   res: Response;
@@ -54,10 +50,9 @@ const SYNC_INDEX = 25;
 const OPEN_DECK_INDEX = 26;
 const STATS_HTML_INDEX = 27;
 const MATURITY_INDEX = 28;
-const EXPORT_INDEX = 29;
 
 const makeController = (index: number, useCase: { execute: jest.Mock }) => {
-  const stubs = Array.from({ length: 30 }, () => ({}));
+  const stubs = Array.from({ length: 29 }, () => ({}));
   stubs[index] = useCase;
   return new AnkifyController(
     ...(stubs as ConstructorParameters<typeof AnkifyController>)
@@ -228,52 +223,5 @@ describe('AnkifyController cockpit handlers', () => {
     expect(execute).toHaveBeenCalledWith({ owner: 42, deck: 'MS3::Pharma' });
     expect(capture.statusCode).toBe(200);
     expect(capture.body).toMatchObject({ matureCount: 2, total: 4 });
-  });
-
-  test('exportDeckPackage streams the apkg with a download header', async () => {
-    const bytes = Buffer.from('apkg');
-    const execute = jest.fn(async () => ({ bytes, deck: 'MS3::Pharma' }));
-    const controller = makeController(EXPORT_INDEX, { execute });
-    const capture = makeResponse();
-
-    await controller.exportDeckPackage(
-      { body: { deck: 'MS3::Pharma' } } as unknown as Request,
-      capture.res
-    );
-
-    expect(capture.statusCode).toBe(200);
-    expect(capture.sent).toBe(bytes);
-    expect(capture.headers['Content-Type']).toBe('application/octet-stream');
-    expect(capture.headers['Content-Disposition']).toContain('Pharma.apkg');
-  });
-
-  test('exportDeckPackage maps no active client to 409', async () => {
-    const execute = jest.fn(async () => {
-      throw new NoActiveAnkifyClientForExportError();
-    });
-    const controller = makeController(EXPORT_INDEX, { execute });
-    const capture = makeResponse();
-
-    await controller.exportDeckPackage(
-      { body: { deck: 'MS3::Pharma' } } as unknown as Request,
-      capture.res
-    );
-
-    expect(capture.statusCode).toBe(409);
-  });
-
-  test('exportDeckPackage maps an export failure to 503', async () => {
-    const execute = jest.fn(async () => {
-      throw new DeckExportFailedError();
-    });
-    const controller = makeController(EXPORT_INDEX, { execute });
-    const capture = makeResponse();
-
-    await controller.exportDeckPackage(
-      { body: { deck: 'MS3::Pharma' } } as unknown as Request,
-      capture.res
-    );
-
-    expect(capture.statusCode).toBe(503);
   });
 });

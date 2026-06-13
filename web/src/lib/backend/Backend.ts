@@ -930,19 +930,6 @@ export class Backend {
     }
   }
 
-  async exportAnkifyDeckPackage(deck: string): Promise<Blob> {
-    const response = await post(`${this.baseURL}ankify/export-package`, {
-      deck,
-    });
-    if (!response.ok) {
-      const body = await response
-        .json()
-        .catch(() => ({ message: response.statusText }));
-      throw new Error(body.message ?? 'Failed to export deck');
-    }
-    return response.blob();
-  }
-
   async listAnkifyNotionDatabases(): Promise<
     Array<{
       id: string;

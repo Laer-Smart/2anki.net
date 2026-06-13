@@ -62,7 +62,6 @@ const makeBackend = (overrides: Partial<Backend> = {}): Backend =>
     getAnkifyStats: vi.fn(async () => ({ connected: false }) as const),
     getAnkifyDeckMaturity: vi.fn(async () => ({ connected: false }) as const),
     openAnkifyDeckInAnki: vi.fn(async () => ({ opened: true })),
-    exportAnkifyDeckPackage: vi.fn(async () => new Blob(['apkg'])),
     ...overrides,
   }) as unknown as Backend;
 
@@ -1161,68 +1160,6 @@ describe('NotionSubscriptions cockpit row actions', () => {
 
     expect(
       await screen.findByText(/open anki and try again/i)
-    ).toBeInTheDocument();
-  });
-
-  test('Download .apkg fetches the blob and fires the event', async () => {
-    const exportPkg = vi.fn(async () => new Blob(['apkg-bytes']));
-    const backend = makeBackend({
-      listAnkifySubscriptions: vi.fn(async () => [
-        sampleSubscription({
-          id: 42,
-          notion_page_id: 'a'.repeat(32),
-          target_deck: 'MS3::Pharmacology',
-        }),
-      ]),
-      exportAnkifyDeckPackage: exportPkg,
-    });
-
-    const createObjectURL = vi.fn(() => 'blob:fake');
-    const revokeObjectURL = vi.fn();
-    Object.defineProperty(URL, 'createObjectURL', {
-      value: createObjectURL,
-      configurable: true,
-    });
-    Object.defineProperty(URL, 'revokeObjectURL', {
-      value: revokeObjectURL,
-      configurable: true,
-    });
-
-    renderSubs(backend);
-    await openMenu();
-    fireEvent.click(
-      await screen.findByRole('menuitem', {
-        name: /download my deck as \.apkg/i,
-      })
-    );
-
-    await waitFor(() =>
-      expect(exportPkg).toHaveBeenCalledWith('MS3::Pharmacology')
-    );
-    expect(track).toHaveBeenCalledWith('ankify_export_apkg');
-    expect(await screen.findByText(/downloaded \.apkg/i)).toBeInTheDocument();
-  });
-
-  test('Download .apkg degrades calmly on a 403', async () => {
-    const backend = makeBackend({
-      listAnkifySubscriptions: vi.fn(async () => [
-        sampleSubscription({ id: 43, notion_page_id: 'a'.repeat(32) }),
-      ]),
-      exportAnkifyDeckPackage: vi.fn(async () => {
-        throw new Error('Deck not found for this user');
-      }),
-    });
-
-    renderSubs(backend);
-    await openMenu();
-    fireEvent.click(
-      await screen.findByRole('menuitem', {
-        name: /download my deck as \.apkg/i,
-      })
-    );
-
-    expect(
-      await screen.findByText(/couldn't export\. open anki and try again\./i)
     ).toBeInTheDocument();
   });
 });

@@ -70,24 +70,10 @@ import {
 } from '../usecases/ankify/OpenDeckInAnkiUseCase';
 import { GetCollectionStatsHtmlUseCase } from '../usecases/ankify/GetCollectionStatsHtmlUseCase';
 import { GetDeckMaturityUseCase } from '../usecases/ankify/GetDeckMaturityUseCase';
-import {
-  DeckExportFailedError,
-  ExportDeckPackageUseCase,
-  NoActiveAnkifyClientForExportError,
-} from '../usecases/ankify/ExportDeckPackageUseCase';
-import { ExportVolumeUnavailableError } from '../services/ankify/buildExportedDeckReader';
-import { buildContentDisposition } from '../lib/buildContentDisposition';
-import { getSafeFilename } from '../lib/getSafeFilename';
 import { track } from '../services/events/track';
 
 const ANKI_CONNECT_UNREACHABLE_MESSAGE =
   'AnkiConnect is unreachable. Make sure the hosted Anki container is healthy.';
-
-const apkgFilenameForDeck = (deck: string): string => {
-  const lastSegment = deck.split('::').pop() ?? deck;
-  const base = getSafeFilename(lastSegment);
-  return base.endsWith('.apkg') ? base : `${base}.apkg`;
-};
 
 const todayUtcDayKey = (): string => new Date().toISOString().slice(0, 10);
 
@@ -137,8 +123,7 @@ class AnkifyController {
     private readonly syncToAnkiWebUseCase: SyncToAnkiWebUseCase,
     private readonly openDeckInAnkiUseCase: OpenDeckInAnkiUseCase,
     private readonly getCollectionStatsHtmlUseCase: GetCollectionStatsHtmlUseCase,
-    private readonly getDeckMaturityUseCase: GetDeckMaturityUseCase,
-    private readonly exportDeckPackageUseCase: ExportDeckPackageUseCase
+    private readonly getDeckMaturityUseCase: GetDeckMaturityUseCase
   ) {}
 
   async list(_req: Request, res: Response) {
@@ -803,47 +788,6 @@ class AnkifyController {
         return;
       }
       if (error instanceof AnkiConnectUnreachableError) {
-        res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
-        return;
-      }
-      throw error;
-    }
-  }
-
-  async exportDeckPackage(req: Request, res: Response) {
-    const owner = res.locals.owner as number;
-    const deck = readDeckField(req.body?.deck);
-    if (deck == null) {
-      res.status(400).json({ message: 'deck is required' });
-      return;
-    }
-    try {
-      const result = await this.exportDeckPackageUseCase.execute({
-        owner,
-        deck,
-      });
-      res.setHeader('Content-Type', 'application/octet-stream');
-      res.setHeader(
-        'Content-Disposition',
-        buildContentDisposition(apkgFilenameForDeck(result.deck))
-      );
-      res.status(200).send(result.bytes);
-    } catch (error) {
-      if (error instanceof DeckNotOwnedError) {
-        res.status(403).json({ message: 'Deck not found for this user' });
-        return;
-      }
-      if (error instanceof NoActiveAnkifyClientForExportError) {
-        res.status(409).json({
-          message: 'No active Ankify client. Provision one first.',
-        });
-        return;
-      }
-      if (
-        error instanceof AnkiConnectUnreachableError ||
-        error instanceof ExportVolumeUnavailableError ||
-        error instanceof DeckExportFailedError
-      ) {
         res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
         return;
       }
