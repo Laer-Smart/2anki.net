@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "type": "module",
   "private": true,
+  "engines": {
+    "node": ">=22.20.0"
+  },
   "packageManager": "pnpm@10.18.2",
   "scripts": {
     "start": "cross-env REACT_SKIP_SENTRY=true vite",
