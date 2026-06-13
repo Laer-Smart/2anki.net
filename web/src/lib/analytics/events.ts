@@ -55,6 +55,10 @@ export const KNOWN_EVENTS = new Set([
   'plan_interval_selected',
   'lock_in_banner_shown',
   'lock_in_banner_clicked',
+  'ankify_open_in_anki',
+  'ankify_sync_ankiweb',
+  'ankify_export_apkg',
+  'ankify_view_full_stats',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;
