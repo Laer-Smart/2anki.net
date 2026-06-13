@@ -57,9 +57,8 @@ Actions offered:
 - **Open in Anki (per deck)** — `guiDeckOverview(name)` jumps Anki straight to that deck (row menu), better than the generic Open.
 - **Sync to AnkiWeb now** — `sync` as a header button.
 - **Shut down Anki** — `guiExitAnki` wired to the header Shut-down control.
-- **Download .apkg (per deck)** — `exportPackage(deck, path, includeSched)` → retrieve → download. Closes 2anki's loop (Notion → live Anki → portable .apkg); the most identity-aligned action.
 
-Out of scope (keep this a sync panel, not an Anki clone): per-card scheduling (`suspend`/`setDueDate`/`forgetCards`), `deleteDecks`, full model/template editing.
+Out of scope (keep this a sync panel, not an Anki clone): per-card scheduling (`suspend`/`setDueDate`/`forgetCards`), `deleteDecks`, full model/template editing. Per-deck .apkg export was cut — `exportPackage` writes the file into a root-only named Docker volume that the non-root server can't read back, so the download always 503'd.
 
 ## Open questions
 - Dark "Mission Control" (candidate C) is parked, not killed — if the dark theme proves the most-used on this surface, revisit a console-grade dark treatment as a theme-specific signature.
