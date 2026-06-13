@@ -29,6 +29,45 @@ describe('renderRichText', () => {
     ).toBe('<u><del><em><strong><code>hi</code></strong></em></del></u>');
   });
 
+  it('wraps text in a color class for non-default text colors', () => {
+    expect(
+      renderRichText([{ plain_text: 'red', annotations: { color: 'red' } }])
+    ).toBe('<span class="n2a-highlight-red">red</span>');
+  });
+
+  it('wraps text in a background color class', () => {
+    expect(
+      renderRichText([
+        { plain_text: 'hl', annotations: { color: 'blue_background' } },
+      ])
+    ).toBe('<span class="n2a-highlight-blue_background">hl</span>');
+  });
+
+  it('keeps color inside bold and link wrapping', () => {
+    expect(
+      renderRichText([
+        {
+          plain_text: 'word',
+          href: 'https://example.com',
+          annotations: { bold: true, color: 'purple' },
+        },
+      ])
+    ).toBe(
+      '<a href="https://example.com"><span class="n2a-highlight-purple"><strong>word</strong></span></a>'
+    );
+  });
+
+  it('does not wrap default color or unknown color names', () => {
+    expect(
+      renderRichText([{ plain_text: 'a', annotations: { color: 'default' } }])
+    ).toBe('a');
+    expect(
+      renderRichText([
+        { plain_text: 'b', annotations: { color: 'chartreuse' } },
+      ])
+    ).toBe('b');
+  });
+
   it('renders an anchor tag when href is present', () => {
     expect(
       renderRichText([

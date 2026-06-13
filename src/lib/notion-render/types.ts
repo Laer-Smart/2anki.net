@@ -15,6 +15,7 @@ export interface NotionRichTextItem {
 
 interface RichTextHolder {
   rich_text?: NotionRichTextItem[];
+  color?: string;
 }
 
 interface MediaContent {
@@ -29,7 +30,7 @@ export interface NotionRenderableBlock {
   id?: string;
   type: string;
   has_children?: boolean;
-  paragraph?: RichTextHolder & { color?: string };
+  paragraph?: RichTextHolder;
   heading_1?: RichTextHolder;
   heading_2?: RichTextHolder;
   heading_3?: RichTextHolder;

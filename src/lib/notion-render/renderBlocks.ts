@@ -1,7 +1,11 @@
 import { escapeAttribute, escapeHtml } from './escape';
 import { highlightCode } from './highlightCode';
 import { resolveEmbedUrl, resolveVideoUrl } from './embedUrl';
-import { renderPlainText, renderRichText } from './richText';
+import {
+  renderPlainText,
+  renderRichText,
+  wrapWithColorClass,
+} from './richText';
 import {
   NotionBlockChildrenFetcher,
   NotionRenderableBlock,
@@ -225,20 +229,20 @@ const renderHeading = (
         : block.heading_3;
   const inner = renderRichText(holder?.rich_text);
   if (inner === '') return '';
-  return `<h${level}>${inner}</h${level}>`;
+  return `<h${level}>${wrapWithColorClass(holder?.color, inner)}</h${level}>`;
 };
 
 const renderTodo = (block: NotionRenderableBlock): string => {
   const inner = renderRichText(block.to_do?.rich_text);
   if (inner === '') return '';
   const mark = block.to_do?.checked === true ? '☑' : '☐';
-  return `<div class="todo">${mark} ${inner}</div>`;
+  return `<div class="todo">${mark} ${wrapWithColorClass(block.to_do?.color, inner)}</div>`;
 };
 
 const renderQuote = (block: NotionRenderableBlock): string => {
   const inner = renderRichText(block.quote?.rich_text);
   if (inner === '') return '';
-  return `<blockquote>${inner}</blockquote>`;
+  return `<blockquote>${wrapWithColorClass(block.quote?.color, inner)}</blockquote>`;
 };
 
 const renderCode = (block: NotionRenderableBlock): string => {
@@ -289,7 +293,7 @@ const renderCallout = async (
       : '';
   const childrenHtml = await renderChildren(block, ctx, depth);
   const head = emoji === '' ? inner : `${escapeHtml(emoji)} ${inner}`;
-  return `<div class="callout">${head}${childrenHtml}</div>`;
+  return `<div class="callout">${wrapWithColorClass(block.callout?.color, head)}${childrenHtml}</div>`;
 };
 
 const renderChildren = async (
@@ -323,7 +327,10 @@ const renderBlockList = async (
     switch (block.type) {
       case 'paragraph': {
         const inner = renderRichText(block.paragraph?.rich_text);
-        if (inner !== '') out.push(`<p>${inner}</p>`);
+        if (inner !== '')
+          out.push(
+            `<p>${wrapWithColorClass(block.paragraph?.color, inner)}</p>`
+          );
         break;
       }
       case 'heading_1':
@@ -337,13 +344,17 @@ const renderBlockList = async (
         out.push(renderHeading(3, block));
         break;
       case 'bulleted_list_item': {
-        const inner = renderRichText(block.bulleted_list_item?.rich_text);
-        if (inner !== '') pushListItem(buf, 'ul', inner, out);
+        const holder = block.bulleted_list_item;
+        const text = renderRichText(holder?.rich_text);
+        if (text !== '')
+          pushListItem(buf, 'ul', wrapWithColorClass(holder?.color, text), out);
         break;
       }
       case 'numbered_list_item': {
-        const inner = renderRichText(block.numbered_list_item?.rich_text);
-        if (inner !== '') pushListItem(buf, 'ol', inner, out);
+        const holder = block.numbered_list_item;
+        const text = renderRichText(holder?.rich_text);
+        if (text !== '')
+          pushListItem(buf, 'ol', wrapWithColorClass(holder?.color, text), out);
         break;
       }
       case 'to_do':

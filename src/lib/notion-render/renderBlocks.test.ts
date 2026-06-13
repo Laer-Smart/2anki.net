@@ -21,6 +21,45 @@ describe('renderNotionBlocks — text blocks', () => {
     expect(out.media).toEqual([]);
   });
 
+  it('wraps a block-colored paragraph, heading, and list item in a color class', async () => {
+    const blocks: NotionRenderableBlock[] = [
+      {
+        type: 'paragraph',
+        paragraph: { rich_text: [{ plain_text: 'p' }], color: 'red' },
+      },
+      {
+        type: 'heading_2',
+        heading_2: { rich_text: [{ plain_text: 'h' }], color: 'blue' },
+      },
+      {
+        type: 'numbered_list_item',
+        numbered_list_item: {
+          rich_text: [{ plain_text: 'n' }],
+          color: 'purple',
+        },
+      },
+    ];
+    const out = await renderNotionBlocks(blocks, noChildren);
+    expect(out.html).toBe(
+      '<p><span class="n2a-highlight-red">p</span></p>\n' +
+        '<h2><span class="n2a-highlight-blue">h</span></h2>\n' +
+        '<ol><li><span class="n2a-highlight-purple">n</span></li></ol>'
+    );
+  });
+
+  it('leaves a default-colored block unwrapped', async () => {
+    const out = await renderNotionBlocks(
+      [
+        {
+          type: 'paragraph',
+          paragraph: { rich_text: [{ plain_text: 'x' }], color: 'default' },
+        },
+      ],
+      noChildren
+    );
+    expect(out.html).toBe('<p>x</p>');
+  });
+
   it('renders headings 1/2/3 (and folds heading_4 into h3)', async () => {
     const blocks: NotionRenderableBlock[] = [
       { type: 'heading_1', heading_1: { rich_text: [{ plain_text: 'A' }] } },

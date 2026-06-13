@@ -1,8 +1,21 @@
 import { escapeAttribute, escapeHtml } from './escape';
 import { NotionRichTextItem } from './types';
+import { NOTION_COLORS } from '../../services/NotionService/NotionColors';
+
+const COLOR_NAMES = new Set(NOTION_COLORS.map((c) => c.name));
 
 const wrap = (open: string, close: string, inner: string): string =>
   `${open}${inner}${close}`;
+
+export const wrapWithColorClass = (
+  color: string | undefined,
+  inner: string
+): string => {
+  if (color == null || color === 'default' || !COLOR_NAMES.has(color)) {
+    return inner;
+  }
+  return `<span class="n2a-highlight-${color}">${inner}</span>`;
+};
 
 export const renderRichTextItem = (item: NotionRichTextItem): string => {
   if (item.type === 'equation' && item.equation?.expression != null) {
@@ -15,6 +28,7 @@ export const renderRichTextItem = (item: NotionRichTextItem): string => {
   if (a.italic) inner = wrap('<em>', '</em>', inner);
   if (a.strikethrough) inner = wrap('<del>', '</del>', inner);
   if (a.underline) inner = wrap('<u>', '</u>', inner);
+  inner = wrapWithColorClass(a.color, inner);
   if (item.href != null && item.href !== '') {
     inner = `<a href="${escapeAttribute(item.href)}">${inner}</a>`;
   }
