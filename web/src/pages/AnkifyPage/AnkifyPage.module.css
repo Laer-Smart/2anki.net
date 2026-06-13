@@ -765,7 +765,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1049,7 +1048,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .decksItem:last-child {
@@ -1077,11 +1076,21 @@
 .decksItemTitle {
   flex: 1;
   font-size: var(--text-sm);
+  font-weight: var(--font-medium);
   color: var(--color-text-primary);
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.decksItemTitle a {
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.decksItemTitle a:hover {
+  text-decoration: underline;
 }
 
 .decksItemTime {
@@ -1100,21 +1109,8 @@
 
 .decksItemRowMenu {
   position: relative;
-  opacity: 0.55;
+  opacity: 1;
   transition: opacity var(--transition-fast);
-}
-
-@media (hover: hover) {
-  .decksItem:hover .decksItemRowMenu,
-  .decksItem:focus-within .decksItemRowMenu {
-    opacity: 1;
-  }
-}
-
-@media (hover: none) {
-  .decksItemRowMenu {
-    opacity: 1;
-  }
 }
 
 .decksItemMenu {
