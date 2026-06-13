@@ -33,16 +33,6 @@ const writeCachedSessionUrl = (clientId: number, url: string | null) => {
   } catch {}
 };
 
-const formatSessionLabel = (url: string): string => {
-  try {
-    const parsed = new URL(url);
-    const path = parsed.pathname.replace(/\/$/, '');
-    return `${parsed.host}${path}`;
-  } catch {
-    return url;
-  }
-};
-
 interface Props {
   readonly backend?: Backend;
   readonly showWorkspaceLink?: boolean;
@@ -224,7 +214,7 @@ export default function WorkspaceBar({
       <span className={styles.workspaceBarStatus}>{statusContent}</span>
       {sessionUrl != null && (
         <span className={styles.workspaceBarSession} title={sessionUrl}>
-          {formatSessionLabel(sessionUrl)}
+          Session active
         </span>
       )}
       <div className={styles.workspaceBarActions}>
