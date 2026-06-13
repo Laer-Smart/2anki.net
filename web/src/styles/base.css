@@ -1,7 +1,7 @@
 :root {
   --color-text-primary: #1f2937;
   --color-text-secondary: #6b7280;
-  --color-text-tertiary: #6b7280;
+  --color-text-tertiary: #838b99;
   --color-text-danger: #dc2626;
   --color-text-success: #059669;
   --color-text-link: #2563eb;
@@ -120,7 +120,7 @@
 [data-theme='dark'] {
   --color-text-primary: #f9fafb;
   --color-text-secondary: #9ca3af;
-  --color-text-tertiary: #9ca3af;
+  --color-text-tertiary: #7b8494;
   --color-text-danger: #f87171;
   --color-text-success: #34d399;
   --color-text-link: #60a5fa;
@@ -304,7 +304,7 @@
 [data-theme='hotpink'] {
   --color-text-primary: #1a0a10;
   --color-text-secondary: #831843;
-  --color-text-tertiary: #9d174d;
+  --color-text-tertiary: #bd4f7c;
   --color-text-danger: #dc2626;
   --color-text-success: #059669;
   --color-text-link: #db2777;
