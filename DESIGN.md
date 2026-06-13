@@ -8,8 +8,11 @@ Scope: this DNA governs the `/ankify` surface first (the sync control panel). It
 ## Direction
 A precise, trustworthy instrument panel for power users who run an ongoing Notion→Anki sync (lifetime / Auto-Sync subscribers, the serious med/law learner). It should read at a glance — what synced, where it landed, is it healthy — like a well-set status readout, not a marketing card grid. Sage gravity: data-led, muted, no decoration. The credibility this surface earns is retention.
 
+## Scope on the page
+The DNA governs the whole `/ankify` surface, not just the deck list: the workspace status bar, the deck list, **and the "Your reviews" stats block (summary counts, the review-streak heatmap, the per-deck breakdown chart).** The stats block is the most on-DNA part of the page — a heatmap + tabular figures *is* the instrument panel. It is restyled to match, never left in the old visual language; drift between list and stats is the failure mode this section exists to prevent.
+
 ## Signature move
-**The right-hand data column is monospaced and tabular.** Every deck row ends in a fixed, right-aligned readout — target deck path, last-sync age, backlog count — set in `ui-monospace` with `font-variant-numeric: tabular-nums`, columns vertically aligned across rows like a terminal status table. Prose (deck titles, labels) stays in the sans body face; only the *data* is mono. This is the one authored move and is exempt from product restraint — it carries the cockpit identity by itself.
+**Every number is monospaced and tabular.** Two expressions of one move: (1) each deck row ends in a fixed, right-aligned readout — target deck path, last-sync age, backlog count — columns vertically aligned across rows like a terminal status table; (2) the "Your reviews" summary figures (streak, daily average, reviews this year) use the same `ui-monospace` + `font-variant-numeric: tabular-nums` treatment, rendered one size up as the hero (VOICE.md counts rule). Prose (deck titles, labels) stays sans; only *data* is mono. The review-streak heatmap is the page's data-viz centerpiece and reads as the cockpit's primary instrument. This is the one authored move, exempt from product restraint — it carries the identity by itself.
 
 ## Type
 - Display: existing `--font-sans` system stack (no display face — product restraint; hierarchy comes from scale + weight, Swiss discipline).
@@ -39,6 +42,24 @@ Contrast: inherited from base.css (audited per theme in #3341 — tertiary clear
 - No mono for prose — data column only; titles/labels stay sans (mono long-form is illegal under the remix harmony check).
 - No glassmorphism, no gradient-as-default, no bounce easing (ai-tells).
 - No exposing internal/session URLs as status text (the VNC-URL noise removed in #3342 — don't reintroduce).
+
+## Live Anki data & actions (AnkiConnect)
+
+The cockpit gets its substance from AnkiConnect. The mono data column and the actions below are all backed by real API calls (verified against the foosoft/anki-connect plugin), routed through `AnkiConnectClient` with the existing polling/offline-skip handling. Every new *action* ships a usage event (Surface lifecycle). Read counts in the mono/tabular voice.
+
+Data shown:
+- **Per-deck backlog + new count** — `getDeckStats` (already fetched for the stats block), matched to each subscription by `target_deck` deck name. Column becomes `path · synced 2m · ▲7 · +3 new`.
+- **Active Anki profile** — `getActiveProfile` in the header (kills "synced to the wrong profile" confusion).
+- **Deck maturity** — `getEaseFactors` / `getIntervals` → avg interval / % mature per deck (health beyond due count).
+- **Full collection stats** — `getCollectionStatsHTML` behind a "Full stats" expander, sandboxed (Anki-internal HTML).
+
+Actions offered:
+- **Open in Anki (per deck)** — `guiDeckOverview(name)` jumps Anki straight to that deck (row menu), better than the generic Open.
+- **Sync to AnkiWeb now** — `sync` as a header button.
+- **Shut down Anki** — `guiExitAnki` wired to the header Shut-down control.
+- **Download .apkg (per deck)** — `exportPackage(deck, path, includeSched)` → retrieve → download. Closes 2anki's loop (Notion → live Anki → portable .apkg); the most identity-aligned action.
+
+Out of scope (keep this a sync panel, not an Anki clone): per-card scheduling (`suspend`/`setDueDate`/`forgetCards`), `deleteDecks`, full model/template editing.
 
 ## Open questions
 - Dark "Mission Control" (candidate C) is parked, not killed — if the dark theme proves the most-used on this surface, revisit a console-grade dark treatment as a theme-specific signature.
