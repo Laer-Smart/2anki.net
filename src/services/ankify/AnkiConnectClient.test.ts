@@ -522,29 +522,6 @@ describe('AnkiConnectClient', () => {
     });
   });
 
-  test('exportPackage posts the deck, path, and includeSched flag', async () => {
-    const fetchImpl = makeFetch({ result: true, error: null });
-    const client = new AnkiConnectClient('http://x', fetchImpl);
-
-    const ok = await client.exportPackage(
-      'Notion Sync::Pharmacology',
-      '/data/abc.apkg',
-      false
-    );
-
-    expect(ok).toBe(true);
-    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
-    expect(body).toEqual({
-      action: 'exportPackage',
-      version: 6,
-      params: {
-        deck: 'Notion Sync::Pharmacology',
-        path: '/data/abc.apkg',
-        includeSched: false,
-      },
-    });
-  });
-
   test('findCards posts the query and returns matching card ids', async () => {
     const fetchImpl = makeFetch({ result: [1, 2, 3], error: null });
     const client = new AnkiConnectClient('http://x', fetchImpl);

@@ -74,7 +74,6 @@ export const KNOWN_EVENTS = new Set([
   'ankify_open_in_anki_clicked',
   'ankify_open_in_anki',
   'ankify_sync_ankiweb',
-  'ankify_export_apkg',
   'ankify_view_full_stats',
 ] as const);
 

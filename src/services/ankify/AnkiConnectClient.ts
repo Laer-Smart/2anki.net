@@ -229,14 +229,6 @@ export class AnkiConnectClient {
     return this.invoke('getIntervals', { cards, complete });
   }
 
-  async exportPackage(
-    deck: string,
-    path: string,
-    includeSched = false
-  ): Promise<boolean> {
-    return this.invoke('exportPackage', { deck, path, includeSched });
-  }
-
   async findCards(query: string): Promise<number[]> {
     return this.invoke('findCards', { query });
   }
