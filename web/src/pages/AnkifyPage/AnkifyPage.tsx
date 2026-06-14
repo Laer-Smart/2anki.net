@@ -47,6 +47,9 @@ export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
   const { data: userLocals } = useUserLocals();
   const welcomeSeen = userLocals?.user?.ankify_welcome_seen === true;
   const [dismissed, setDismissed] = useState(false);
+  const [ankifyTab, setAnkifyTab] = useState<
+    'decks' | 'find' | 'leeches' | 'review'
+  >('decks');
 
   const dismissWelcome = () => {
     setDismissed(true);
@@ -143,37 +146,44 @@ export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
       <NotionSubscriptions
         backend={backend}
         schedule={exportSchedule.data ?? null}
+        onTabChange={setAnkifyTab}
       />
 
-      <div className={styles.historyFooter}>
-        {hasTracker ? (
-          <>
-            <Link to="/ankify/history" className={styles.historyFooterLink}>
-              Study history →
-            </Link>
-            <span>
-              {trackerTitle.length > 0 ? trackerTitle : 'Anki review tracker'}
-            </span>
-            {trackerUrl.length > 0 && (
+      {ankifyTab === 'decks' && (
+        <>
+          <div className={styles.historyFooter}>
+            {hasTracker ? (
               <>
-                <span aria-hidden="true">·</span>
-                <a href={trackerUrl} target="_blank" rel="noreferrer">
-                  Open
-                </a>
+                <Link to="/ankify/history" className={styles.historyFooterLink}>
+                  Study history →
+                </Link>
+                <span>
+                  {trackerTitle.length > 0
+                    ? trackerTitle
+                    : 'Anki review tracker'}
+                </span>
+                {trackerUrl.length > 0 && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <a href={trackerUrl} target="_blank" rel="noreferrer">
+                      Open
+                    </a>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <span>Study history goes to a Notion database.</span>
+                <Link to="/ankify/history" className={styles.historyFooterLink}>
+                  Set it up →
+                </Link>
               </>
             )}
-          </>
-        ) : (
-          <>
-            <span>Study history goes to a Notion database.</span>
-            <Link to="/ankify/history" className={styles.historyFooterLink}>
-              Set it up →
-            </Link>
-          </>
-        )}
-      </div>
+          </div>
 
-      <StudyStatsSection backend={api} />
+          <StudyStatsSection backend={api} />
+        </>
+      )}
     </main>
   );
 }
