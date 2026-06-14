@@ -43,6 +43,15 @@ const GRADES = [
 
 const MAX_INDENT_DEPTH = 4;
 
+function hasCollapsedAncestor(
+  fullName: string,
+  collapsed: Set<string>
+): boolean {
+  return Array.from(collapsed).some((collapsedName) =>
+    fullName.startsWith(`${collapsedName}::`)
+  );
+}
+
 export function DeckPicker({
   decks,
   onReview,
@@ -51,52 +60,90 @@ export function DeckPicker({
   readonly onReview: (deckName: string) => void;
 }) {
   const tree = buildDeckTree(decks);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+  const toggle = (fullName: string) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(fullName)) {
+        next.delete(fullName);
+      } else {
+        next.add(fullName);
+      }
+      return next;
+    });
+  };
+
   return (
     <ul className={styles.decksList}>
-      {tree.map((node) => {
-        const due = node.aggregateDue;
-        const muted = due === 0;
-        const label =
-          node.deck.name.length > 0 ? node.deck.name : 'Untitled deck';
-        return (
-          <li
-            key={node.deck.fullName}
-            className={
-              muted
-                ? `${styles.decksItem} ${reviewStyles.deckRowMuted}`
-                : styles.decksItem
-            }
-          >
-            <span
-              className={styles.decksItemTitle}
-              title={node.deck.fullName}
-              style={
-                {
-                  ['--depth' as string]: Math.min(node.depth, MAX_INDENT_DEPTH),
-                } as CSSProperties
+      {tree
+        .filter((node) => !hasCollapsedAncestor(node.deck.fullName, collapsed))
+        .map((node) => {
+          const due = node.aggregateDue;
+          const muted = due === 0;
+          const leaf =
+            node.deck.name.length > 0 ? node.deck.name : 'Untitled deck';
+          const isCollapsed = collapsed.has(node.deck.fullName);
+          return (
+            <li
+              key={node.deck.fullName}
+              className={
+                muted
+                  ? `${styles.decksItem} ${reviewStyles.deckRowMuted}`
+                  : styles.decksItem
               }
             >
-              {label}
-            </span>
-            <span className={reviewStyles.deckCounts}>
-              <span className={reviewStyles.deckDue}>
-                <span aria-hidden="true">▲</span>
-                {due} due
+              <span
+                className={styles.decksItemTitle}
+                title={node.deck.fullName}
+                style={
+                  {
+                    ['--depth' as string]: Math.min(
+                      node.depth,
+                      MAX_INDENT_DEPTH
+                    ),
+                  } as CSSProperties
+                }
+              >
+                {node.hasChildren ? (
+                  <button
+                    type="button"
+                    className={reviewStyles.deckDisclosure}
+                    aria-expanded={!isCollapsed}
+                    aria-label={
+                      isCollapsed ? `Expand ${leaf}` : `Collapse ${leaf}`
+                    }
+                    onClick={() => toggle(node.deck.fullName)}
+                  >
+                    <span aria-hidden="true">{isCollapsed ? '▸' : '▾'}</span>
+                  </button>
+                ) : (
+                  <span
+                    className={reviewStyles.deckDisclosureSpacer}
+                    aria-hidden="true"
+                  />
+                )}
+                {leaf}
               </span>
-              <span>{node.aggregateLearning} learning</span>
-              <span>+{node.aggregateNew} new</span>
-            </span>
-            <button
-              type="button"
-              className={reviewStyles.deckReview}
-              disabled={muted}
-              onClick={() => onReview(node.deck.fullName)}
-            >
-              Review
-            </button>
-          </li>
-        );
-      })}
+              <span className={reviewStyles.deckCounts}>
+                <span className={reviewStyles.deckDue}>
+                  <span aria-hidden="true">▲</span>
+                  {due} due
+                </span>
+                <span>{node.aggregateLearning} learning</span>
+                <span>+{node.aggregateNew} new</span>
+              </span>
+              <button
+                type="button"
+                className={reviewStyles.deckReview}
+                disabled={muted}
+                onClick={() => onReview(node.deck.fullName)}
+              >
+                Review
+              </button>
+            </li>
+          );
+        })}
     </ul>
   );
 }
@@ -104,7 +151,7 @@ export function DeckPicker({
 const MIN_CARD_FRAME_HEIGHT = 128;
 
 function buildSrcDoc(css: string, body: string): string {
-  const sizingScript = `<script>(function(){function post(){parent.postMessage({type:'n2a-review-height',height:document.documentElement.scrollHeight},'*');}window.addEventListener('load',post);document.querySelectorAll('img').forEach(function(img){img.addEventListener('load',post);img.addEventListener('error',post);});if(window.ResizeObserver){new ResizeObserver(post).observe(document.documentElement);}post();})();</script>`;
+  const sizingScript = `<script>(function(){function post(){parent.postMessage({type:'n2a-review-height',height:document.documentElement.scrollHeight},'*');}window.addEventListener('load',post);document.querySelectorAll('img').forEach(function(img){img.addEventListener('load',post);img.addEventListener('error',post);});if(window.ResizeObserver){new ResizeObserver(post).observe(document.documentElement);}post();var __a=document.querySelector('audio');if(__a){__a.play().catch(function(){});}})();</script>`;
   return `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body class="card">${body}${sizingScript}</body></html>`;
 }
 
@@ -141,6 +188,7 @@ export function CardFrame({ srcDoc }: { readonly srcDoc: string }) {
       title="Card preview"
       className={reviewStyles.cardFrame}
       sandbox="allow-scripts"
+      allow="autoplay"
       srcDoc={srcDoc}
       style={{ height: `${height}px` }}
     />
