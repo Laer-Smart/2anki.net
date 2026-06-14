@@ -26,7 +26,6 @@ import {
   formatMaturity,
   sumDeckBacklog,
 } from '../lib/deckBacklog';
-import { track } from '../../../lib/analytics/track';
 import { useDeckMaturity } from '../lib/useDeckMaturity';
 import { AnkifyStatsDeck } from '../stats/types';
 
@@ -352,23 +351,6 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
     buildDeckName(sub.target_deck, sub.notion_page_title)
   );
   const maturityByDeck = useDeckMaturity(api, ownedDeckNames);
-
-  const handleOpenInAnki = useCallback(
-    async (id: number, deck: string) => {
-      setOpenMenuId(null);
-      track('ankify_open_in_anki');
-      try {
-        const result = await api.openAnkifyDeckInAnki(deck);
-        showFlash(id, {
-          kind: result.opened ? 'success' : 'error',
-          text: result.opened ? 'Opened in Anki' : 'Open Anki and try again',
-        });
-      } catch {
-        showFlash(id, { kind: 'error', text: 'Open Anki and try again' });
-      }
-    },
-    [api, showFlash]
-  );
 
   type SubscriptionRow = Awaited<
     ReturnType<typeof api.listAnkifySubscriptions>
@@ -862,15 +844,6 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                               disabled={isUpdatingThisRow}
                             >
                               Update now
-                            </button>
-                            <button
-                              type="button"
-                              role="menuitem"
-                              className={styles.decksItemMenuItem}
-                              aria-label={`Open ${displayTitle} in Anki`}
-                              onClick={() => handleOpenInAnki(sub.id, deckName)}
-                            >
-                              Open in Anki
                             </button>
                             {sub.notion_page_url != null &&
                               sub.notion_page_url.length > 0 && (
