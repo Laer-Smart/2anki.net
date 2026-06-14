@@ -50,13 +50,24 @@ def deny(reason):
     sys.exit(0)
 
 
+def commit_heredoc_message(command):
+    # A heredoc is the commit message only when it actually feeds `git commit`
+    # (e.g. `git commit -F- <<EOF`), not when it writes a file (`cat > x <<EOF`)
+    # or supplies an unrelated body (`gh pr create` with a here-doc).
+    for match in HEREDOC.finditer(command):
+        line_start = command.rfind("\n", 0, match.start()) + 1
+        prefix = command[line_start:match.start()]
+        if "git commit" in prefix and ">" not in prefix and "tee" not in prefix:
+            return match.group(2)
+    return None
+
+
 def extract_message(command):
-    heredoc = HEREDOC.search(command)
-    if heredoc:
-        return heredoc.group(2)
-    plain = DASH_M_QUOTED.search(command)
-    if plain:
-        return plain.group(2)
+    # Join every -m: git treats the first as the subject and each subsequent
+    # one as a body paragraph, so the hook must read them all (not just -m #1).
+    dash_m = DASH_M_QUOTED.findall(command)
+    if dash_m:
+        return "\n\n".join(value for _quote, value in dash_m)
     eq = LONG_FLAG.search(command)
     if eq:
         return eq.group(2)
@@ -77,13 +88,22 @@ def main():
 
     command = data.get("tool_input", {}).get("command", "")
 
-    if "git commit" not in command:
-        allow()
+    # A heredoc feeding `git commit` is the message; otherwise strip heredoc
+    # bodies so unrelated content (a changelog being written, a PR body that
+    # merely mentions committing, example -m flags in prose) can't be mistaken
+    # for the command structure or the message.
+    message = commit_heredoc_message(command)
+    if message is None:
+        stripped = HEREDOC.sub("", command)
 
-    if any(flag in command for flag in ["--amend", "--no-edit", "--squash", "--fixup"]):
-        allow()
+        if "git commit" not in stripped:
+            allow()
 
-    message = extract_message(command)
+        if any(flag in stripped for flag in ["--amend", "--no-edit", "--squash", "--fixup"]):
+            allow()
+
+        message = extract_message(stripped)
+
     if message is None:
         allow()
 

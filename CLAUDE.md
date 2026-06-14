@@ -68,11 +68,13 @@ Pricing v2 shipped 2026-06-10: $7.99/mo + $64/yr for new members, legacy $6/$60 
 
 ## Git
 
-- Conventional commit prefixes: `feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`, `perf:`, `ci:`, `build:`, `style:`, `revert:`. Keep the **subject ≤ 72 characters** — a commit-message hook rejects longer subjects; push the detail into the body.
+- Conventional commit prefixes: `feat:`, `fix:`, `chore:`, `refactor:`, `test:`, `docs:`, `perf:`, `ci:`, `build:`, `style:`, `revert:`. Keep the **subject ≤ 72 characters** — a commit-message hook rejects longer subjects; push the detail into the body, which must carry a real **why** (≥40 chars of non-trailer text).
+- **Commit-message mechanics — avoid the hook fighting you.** Use `git commit -m "<type>: subject" -m "<why body>"` (the hook reads *every* `-m`: subject = first, body = the rest), or `git commit -F <file>` where the file was written in a **separate** Bash call. **Never put a `cat <<EOF` heredoc in the same Bash call as `git commit`** — a *failed* commit-msg check reverts the working tree and deletes the untracked file you just wrote (e.g. a changelog). Two calls: (1) write files, (2) `git add <paths> && git commit …`. See `.claude/hooks/check-commit-message.py`.
 - Suggest a branch name before starting code changes; format `<type>/<short-slug>`.
 - Always rebase on `origin/main` before opening a PR.
 - One PR per feature. Never stack PRs — the deploy pipeline pulls a single branch.
 - Push pattern: `git push -u origin <branch>` — never bare `git push`, never to `main`. The `safety.py` hook blocks both.
+- **Open PRs with `gh pr create --repo 2anki/server --base main --head <branch>`.** Bare `gh pr create` resolves the base to the upstream fork parent and fails with `No commits between Laer-Smart:main and 2anki:<branch>`; the explicit `--repo`/`--base`/`--head` form is the reliable one. (The PR URL prints as `Laer-Smart/2anki.net` — that's the canonical remote; same repo.) Same `--repo 2anki/server` for `gh pr view`/`merge`/`list`.
 - When a unit of work is done, ship it: commit, push, and open the PR **ready for review** with `gh pr create` — not `--draft`. A finished unit of work handed to Alexander is something he's meant to look at, so it goes up ready. Reserve `--draft` for work that genuinely isn't reviewable yet: a `/spec-draft-pr` spec awaiting `/implement`, or a WIP you've explicitly flagged as WIP.
 - **Before flipping a PR ready (or before pushing a non-trivial code change), run `sonar-scanner` locally.** `/check` does not run SonarCloud's rule engine; cognitive complexity, nesting depth, redundant type assertions, and a11y smells only surface after the push. See `.claude/rules/sonar.md` for setup and the exact command. Skip only for pure doc/dep/test/typo changes.
 - Before `gh pr merge`: every `statusCheckRollup` entry must be non-FAILURE (not just required ones). The `check-merge-status.py` hook enforces this.
