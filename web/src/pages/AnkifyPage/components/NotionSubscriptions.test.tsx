@@ -1134,3 +1134,60 @@ describe('NotionSubscriptions cockpit data column', () => {
     expect(screen.queryByText(/mature/i)).not.toBeInTheDocument();
   });
 });
+
+describe('NotionSubscriptions onTabChange', () => {
+  const renderWithTabChange = (
+    backend: Backend,
+    onTabChange: (tab: 'decks' | 'find' | 'leeches' | 'review') => void
+  ) => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    return render(
+      <MemoryRouter>
+        <QueryClientProvider client={queryClient}>
+          <NotionSubscriptions
+            backend={backend}
+            schedule={null}
+            onTabChange={onTabChange}
+          />
+        </QueryClientProvider>
+      </MemoryRouter>
+    );
+  };
+
+  test('fires decks on default mount when subscriptions exist', async () => {
+    const onTabChange = vi.fn();
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [sampleSubscription()]),
+    });
+
+    renderWithTabChange(backend, onTabChange);
+
+    await waitFor(() => expect(onTabChange).toHaveBeenCalledWith('decks'));
+  });
+
+  test('fires find on default mount when there are no subscriptions', async () => {
+    const onTabChange = vi.fn();
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => []),
+    });
+
+    renderWithTabChange(backend, onTabChange);
+
+    await waitFor(() => expect(onTabChange).toHaveBeenCalledWith('find'));
+  });
+
+  test('fires the clicked tab when the user switches tabs', async () => {
+    const onTabChange = vi.fn();
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [sampleSubscription()]),
+    });
+
+    renderWithTabChange(backend, onTabChange);
+
+    await waitFor(() => expect(onTabChange).toHaveBeenCalledWith('decks'));
+    fireEvent.click(screen.getByRole('tab', { name: /find pages/i }));
+    await waitFor(() => expect(onTabChange).toHaveBeenCalledWith('find'));
+  });
+});

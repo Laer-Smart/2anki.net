@@ -42,6 +42,7 @@ type Schedule = Awaited<ReturnType<Backend['getAnkifyExportSchedule']>>;
 interface Props {
   readonly backend?: Backend;
   readonly schedule?: Schedule;
+  readonly onTabChange?: (tab: 'decks' | 'find' | 'leeches' | 'review') => void;
 }
 
 const formatScheduleTime = (
@@ -233,7 +234,11 @@ const renderSecondLine = (
   return null;
 };
 
-export default function NotionSubscriptions({ backend, schedule }: Props) {
+export default function NotionSubscriptions({
+  backend,
+  schedule,
+  onTabChange,
+}: Props) {
   const api = backend ?? get2ankiApi();
   const queryClient = useQueryClient();
   const [advancedInput, setAdvancedInput] = useState('');
@@ -487,6 +492,10 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
 
   const effectiveTab: 'decks' | 'find' | 'leeches' | 'review' =
     activeTab ?? (subscriptions.length === 0 ? 'find' : 'decks');
+
+  useEffect(() => {
+    onTabChange?.(effectiveTab);
+  }, [effectiveTab, onTabChange]);
   const showSearch = subscriptions.length >= SEARCH_THRESHOLD;
   const filteredSubscriptions =
     search.trim().length === 0
