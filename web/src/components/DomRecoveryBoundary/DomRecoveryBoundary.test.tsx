@@ -1,5 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import React, { type ReactElement } from 'react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -125,6 +126,29 @@ describe('DomRecoveryBoundary', () => {
     expect(
       screen.getByRole('heading', { name: /something went wrong/i })
     ).toBeInTheDocument();
+  });
+
+  it('catches a DOM error thrown from a non-upload route and shows recovery UI', () => {
+    const onError = vi.fn();
+
+    function ThrowsDomError(): ReactElement {
+      throw makeNotFoundError();
+    }
+
+    render(
+      <MemoryRouter initialEntries={['/pricing']}>
+        <DomRecoveryBoundary onError={onError}>
+          <Routes>
+            <Route path="/pricing" element={<ThrowsDomError />} />
+          </Routes>
+        </DomRecoveryBoundary>
+      </MemoryRouter>
+    );
+
+    expect(
+      screen.getByRole('heading', { name: /something went wrong/i })
+    ).toBeInTheDocument();
+    expect(onError).toHaveBeenCalled();
   });
 
   it('reloads the page when the user clicks Reload on the fallback', () => {

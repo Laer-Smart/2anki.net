@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-14-extension-crash-recovery",
+  "date": "2026-06-14",
+  "type": "fix",
+  "title": "Pages recover instead of going blank when a browser translation extension rewrites the text"
+}
