@@ -71,7 +71,7 @@
 }
 
 .planCard {
-  background: var(--color-bg-card);
+  background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: 1.75rem 1.5rem 1.5rem;
@@ -153,7 +153,7 @@
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
   color: var(--color-bg-primary);
-  background: var(--color-primary-hover);
+  background: var(--color-primary);
   border: none;
   border-radius: var(--radius-md);
   text-decoration: none;
@@ -162,16 +162,8 @@
   width: 100%;
 }
 
-:global([data-theme='hotpink']) .planCtaPrimary {
-  background: #be185d;
-}
-
 .planCtaPrimary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-primary-hover) 85%, black);
-}
-
-:global([data-theme='hotpink']) .planCtaPrimary:hover:not(:disabled) {
-  background: color-mix(in srgb, #be185d 85%, black);
+  background: var(--color-primary-hover);
 }
 
 .planCtaPrimary:disabled {
@@ -207,7 +199,7 @@
 
 .planError {
   font-size: var(--text-sm);
-  color: var(--color-error, #dc2626);
+  color: var(--color-text-danger);
   margin: 0.5rem 0 0;
   text-align: center;
 }

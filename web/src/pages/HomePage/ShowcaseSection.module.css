@@ -111,13 +111,13 @@
 
 .toggle code,
 .notionBlock code {
-  background: rgba(135, 131, 120, 0.15);
+  background: var(--color-bg-tertiary);
   border-radius: 3px;
   padding: 0.2em 0.4em;
   font-size: 100%;
   font-family:
     'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-  color: #c0392b;
+  color: var(--color-text-danger);
 }
 
 .ankiCards {

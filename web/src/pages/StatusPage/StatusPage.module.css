@@ -14,7 +14,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border);
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
 }
@@ -31,15 +31,15 @@
 }
 
 .dotGreen {
-  background-color: #22c55e;
+  background-color: var(--color-success);
 }
 
 .dotRed {
-  background-color: #ef4444;
+  background-color: var(--color-text-danger);
 }
 
 .dotGray {
-  background-color: #9ca3af;
+  background-color: var(--color-text-tertiary);
 }
 
 .label {
@@ -62,7 +62,7 @@
 
 .incident {
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--color-border-subtle);
+  border-bottom: 1px solid var(--color-border);
   font-size: var(--text-sm);
 }
 
@@ -82,7 +82,7 @@
 }
 
 .incidentOpen {
-  color: #ef4444;
+  color: var(--color-text-danger);
   font-size: var(--text-xs);
   font-weight: var(--font-medium);
 }

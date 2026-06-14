@@ -984,7 +984,7 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
                         y1={last.y * svgSize.h}
                         x2={cursorPt.x}
                         y2={cursorPt.y}
-                        stroke="#4f46e5"
+                        stroke="var(--color-primary)"
                         strokeWidth={1.5}
                         strokeDasharray="5 3"
                         style={{ pointerEvents: 'none' }}
@@ -1007,7 +1007,7 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
                       cy={first.y * svgSize.h}
                       r={POLYGON_CLOSE_DIST / 2}
                       fill="rgba(79,70,229,0.25)"
-                      stroke="#4f46e5"
+                      stroke="var(--color-primary)"
                       strokeWidth={1.5}
                       style={{ pointerEvents: 'none' }}
                     />

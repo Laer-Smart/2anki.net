@@ -5,7 +5,7 @@
   min-height: 320px;
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: #1e1e1e;
+  background: var(--color-code-bg);
 }
 
 .fallback {
@@ -17,8 +17,8 @@
     ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, Consolas, monospace;
   font-size: 0.85rem;
   line-height: 1.55;
-  color: #d4d4d4;
-  background: #1e1e1e;
+  color: var(--color-code-text);
+  background: var(--color-code-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   resize: vertical;

@@ -69,7 +69,7 @@
 }
 
 .statsWarning {
-  color: var(--color-warning, #b45309);
+  color: var(--color-warning-text);
   font-weight: var(--font-medium);
 }
 

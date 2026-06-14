@@ -15,6 +15,10 @@
   box-shadow: var(--shadow-xs);
 }
 
+.mainCard {
+  composes: sectionCard from '../../styles/shared.module.css';
+}
+
 .name {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);

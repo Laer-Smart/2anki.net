@@ -125,35 +125,19 @@
 }
 
 .cell1 {
-  background: #9be9a8;
+  background: var(--color-heatmap-1);
 }
 
 .cell2 {
-  background: #40c463;
+  background: var(--color-heatmap-2);
 }
 
 .cell3 {
-  background: #30a14e;
+  background: var(--color-heatmap-3);
 }
 
 .cell4 {
-  background: #216e3a;
-}
-
-:global([data-theme='dark']) .cell1 {
-  background: #0e4429;
-}
-
-:global([data-theme='dark']) .cell2 {
-  background: #006d32;
-}
-
-:global([data-theme='dark']) .cell3 {
-  background: #26a641;
-}
-
-:global([data-theme='dark']) .cell4 {
-  background: #39d353;
+  background: var(--color-heatmap-4);
 }
 
 .heatmapLegend {

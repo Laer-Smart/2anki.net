@@ -201,7 +201,7 @@
     width: 280px;
     max-width: 85vw;
     transform: translateX(-100%);
-    transition: transform var(--transition-base);
+    transition: transform var(--transition-normal);
     box-shadow: var(--shadow-md);
   }
 

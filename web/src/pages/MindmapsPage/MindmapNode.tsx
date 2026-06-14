@@ -195,7 +195,7 @@ export function MindmapNode({ data, selected }: NodeProps) {
               title="Delete"
               aria-label="Delete"
               onClick={() => nodeData.onDelete?.()}
-              style={{ ...toolbarButtonStyle, color: '#ef4444' }}
+              style={{ ...toolbarButtonStyle, color: 'var(--color-danger)' }}
             >
               <TrashIcon width={16} height={16} />
             </button>
