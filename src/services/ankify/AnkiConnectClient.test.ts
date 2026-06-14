@@ -320,6 +320,32 @@ describe('AnkiConnectClient', () => {
     });
   });
 
+  test('deckNamesAndIds posts the action and returns the full-name to id map', async () => {
+    const fetchImpl = makeFetch({
+      result: {
+        Default: 1,
+        "Jlab's beginner course": 1651445861967,
+        "Jlab's beginner course::Part 1: Listening comprehension": 1651445861999,
+      },
+      error: null,
+    });
+    const client = new AnkiConnectClient('http://localhost:8765', fetchImpl);
+
+    const map = await client.deckNamesAndIds();
+
+    expect(map).toEqual({
+      Default: 1,
+      "Jlab's beginner course": 1651445861967,
+      "Jlab's beginner course::Part 1: Listening comprehension": 1651445861999,
+    });
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'deckNamesAndIds',
+      version: 6,
+      params: {},
+    });
+  });
+
   test('guiBrowse posts the query and returns the matched card ids', async () => {
     const fetchImpl = makeFetch({ result: [1502298033753], error: null });
     const client = new AnkiConnectClient('http://localhost:8765', fetchImpl);

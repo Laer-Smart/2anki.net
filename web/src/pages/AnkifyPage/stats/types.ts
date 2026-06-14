@@ -1,5 +1,7 @@
 export interface AnkifyStatsDeck {
+  fullName: string;
   name: string;
+  depth: number;
   new: number;
   learning: number;
   review: number;
