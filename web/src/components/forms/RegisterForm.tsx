@@ -134,7 +134,7 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
 
   const passwordHelpText = (() => {
     if (passwordMeetsMinimum) {
-      return '✓ Good';
+      return 'Good';
     }
     return 'Use at least 8 characters.';
   })();
@@ -158,11 +158,11 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
           {getVisibleText('navigation.register.title')}
         </h1>
         <div className={styles.oauthGrid}>
-          <WithNotionLink variant="card" text="Continue with Notion" />
           <WithGoogleLink
             variant="card"
             text={getVisibleText('navigation.register.google')}
           />
+          <WithNotionLink variant="card" text="Continue with Notion" />
           <WithMicrosoftLink
             variant="card"
             text={getVisibleText('navigation.register.microsoft')}

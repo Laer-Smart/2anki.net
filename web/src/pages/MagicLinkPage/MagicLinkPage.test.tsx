@@ -33,13 +33,23 @@ describe('MagicLinkPage', () => {
   it('shows error when no token is present', () => {
     renderMagicLinkPage('');
     expect(screen.getByText('Link expired or invalid')).toBeInTheDocument();
-    expect(screen.getByText(/No token found/)).toBeInTheDocument();
+    expect(
+      screen.getByText('This link is invalid or has expired. Request a new one.')
+    ).toBeInTheDocument();
   });
 
   it('shows loading state while validating token', () => {
     mockValidateMagicToken.mockReturnValue(new Promise(() => {}));
     renderMagicLinkPage('?token=abc123');
-    expect(screen.getByText('Verifying your link')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Verifying your link' })
+    ).toBeInTheDocument();
+  });
+
+  it('announces the verifying state to screen readers', () => {
+    mockValidateMagicToken.mockReturnValue(new Promise(() => {}));
+    renderMagicLinkPage('?token=abc123');
+    expect(screen.getByRole('status')).toHaveTextContent('Verifying your link');
   });
 
   it('shows error state on failed validation', async () => {

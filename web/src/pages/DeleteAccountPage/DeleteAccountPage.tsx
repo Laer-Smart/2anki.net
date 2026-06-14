@@ -52,7 +52,7 @@ export function DeleteAccountPage({ setError }: Readonly<Prop>) {
         </p>
 
         {isDeleting && (
-          <div className={sharedStyles.infoBox}>
+          <div className={sharedStyles.infoBox} role="status">
             Deleting your account and cancelling subscriptions
           </div>
         )}

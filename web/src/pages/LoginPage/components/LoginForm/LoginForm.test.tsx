@@ -5,12 +5,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { CookiesProvider } from 'react-cookie';
 import LoginForm from './index';
 
+const mockLogin = vi.fn();
+
 vi.mock('../../../../lib/backend/get2ankiApi', () => ({
   get2ankiApi: () => ({
-    login: vi.fn().mockResolvedValue({
-      status: 200,
-      json: () => Promise.resolve({ token: 'test-token' }),
-    }),
+    login: mockLogin,
     requestMagicLink: vi.fn().mockResolvedValue({ ok: true }),
   }),
 }));
@@ -28,6 +27,11 @@ function renderLoginForm() {
 describe('LoginForm', () => {
   beforeEach(() => {
     localStorage.clear();
+    mockLogin.mockReset();
+    mockLogin.mockResolvedValue({
+      status: 200,
+      json: () => Promise.resolve({ token: 'test-token' }),
+    });
   });
 
   it('renders email step with email input and primary CTA', () => {
@@ -206,5 +210,31 @@ describe('LoginForm', () => {
       name: 'Email',
     }) as HTMLInputElement;
     expect(emailInput.value).toBe('saved@example.com');
+  });
+
+  it('announces a failed login via role=alert wired to the submit button', async () => {
+    mockLogin.mockResolvedValue({
+      status: 401,
+      json: () => Promise.resolve({}),
+    });
+    renderLoginForm();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.click(screen.getByText('Use password instead'));
+    fireEvent.change(screen.getByPlaceholderText('Password'), {
+      target: { value: 'wrongpassword' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Log in' }));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(
+      'Wrong email or password. Try again or reset your password.'
+    );
+    expect(alert).toHaveAttribute('id', 'login-error');
+    expect(screen.getByRole('button', { name: 'Log in' })).toHaveAttribute(
+      'aria-describedby',
+      'login-error'
+    );
   });
 });

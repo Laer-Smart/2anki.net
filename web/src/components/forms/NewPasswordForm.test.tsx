@@ -47,6 +47,48 @@ describe('NewPasswordForm', () => {
     });
   });
 
+  it('shows a mismatch message when both fields are touched and differ', () => {
+    renderForm();
+
+    fireEvent.change(screen.getByPlaceholderText('New password'), {
+      target: { value: 'validpassword' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Re-enter new password'), {
+      target: { value: 'different' },
+    });
+
+    const message = screen.getByText("Passwords don't match.");
+    expect(message).toBeInTheDocument();
+    expect(message).toHaveAttribute('id', 'confirm-password-help');
+    expect(screen.getByPlaceholderText('Re-enter new password')).toHaveAttribute(
+      'aria-describedby',
+      'confirm-password-help'
+    );
+  });
+
+  it('hides the mismatch message when the fields match', () => {
+    renderForm();
+
+    fireEvent.change(screen.getByPlaceholderText('New password'), {
+      target: { value: 'validpassword' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Re-enter new password'), {
+      target: { value: 'validpassword' },
+    });
+
+    expect(screen.queryByText("Passwords don't match.")).toBeNull();
+  });
+
+  it('does not show the mismatch message before the confirm field is touched', () => {
+    renderForm();
+
+    fireEvent.change(screen.getByPlaceholderText('New password'), {
+      target: { value: 'validpassword' },
+    });
+
+    expect(screen.queryByText("Passwords don't match.")).toBeNull();
+  });
+
   it('redirects to /login on a 200 response', async () => {
     mockNewPassword.mockResolvedValue({ status: 200 });
     renderForm();

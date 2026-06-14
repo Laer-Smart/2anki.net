@@ -100,10 +100,15 @@ function LoginForm() {
                 className={styles.submitButton}
                 disabled={email.length === 0 || magicLinkLoading}
                 onClick={handleSendMagicLink}
+                aria-describedby={error ? 'login-error' : undefined}
               >
                 {magicLinkLoading ? 'Sending' : 'Email me a sign-in link'}
               </button>
-              {error && <p className={styles.helpDanger}>{error}</p>}
+              {error && (
+                <p id="login-error" role="alert" className={styles.helpDanger}>
+                  {error}
+                </p>
+              )}
             </div>
             <p className={styles.footerText}>
               <a
@@ -188,10 +193,15 @@ function LoginForm() {
                 type="submit"
                 className={styles.submitButton}
                 disabled={!isValidCredentials(email, password) || loading}
+                aria-describedby={error ? 'login-error' : undefined}
               >
-                {loading ? 'Logging in…' : 'Log in'}
+                {loading ? 'Logging in' : 'Log in'}
               </button>
-              {error && <p className={styles.helpDanger}>{error}</p>}
+              {error && (
+                <p id="login-error" role="alert" className={styles.helpDanger}>
+                  {error}
+                </p>
+              )}
             </div>
             <p className={styles.footerText}>
               <a rel="noreferrer" href="/forgot">
