@@ -117,7 +117,69 @@ describe('ReviewPanel', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
 
-    expect(await screen.findByText('All caught up.')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        'All caught up. No cards due across your decks right now.'
+      )
+    ).toBeInTheDocument();
+  });
+
+  test('shows the offline state with Try again when the queue reports offline', async () => {
+    const getAnkifyReviewQueue = vi.fn(async () => ({
+      connected: false as const,
+      reason: 'offline' as const,
+    }));
+    renderPanel(makeBackend({ getAnkifyReviewQueue }));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+
+    expect(
+      await screen.findByText(
+        "Anki isn't connected. Open Anki on your computer and try again."
+      )
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    await waitFor(() => expect(getAnkifyReviewQueue).toHaveBeenCalledTimes(2));
+  });
+
+  test('shows the error state with Try again when the queue reports error', async () => {
+    const getAnkifyReviewQueue = vi.fn(async () => ({
+      connected: false as const,
+      reason: 'error' as const,
+    }));
+    renderPanel(makeBackend({ getAnkifyReviewQueue }));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+
+    expect(
+      await screen.findByText(
+        'Something broke while loading this deck. Try again in a moment.'
+      )
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    await waitFor(() => expect(getAnkifyReviewQueue).toHaveBeenCalledTimes(2));
+  });
+
+  test('shows the empty-decks state when stats has no decks', async () => {
+    renderPanel(
+      makeBackend({
+        getAnkifyStats: vi.fn(async () => ({
+          connected: true as const,
+          reviewedToday: 0,
+          reviewedThisYear: 0,
+          currentStreak: 0,
+          longestStreak: 0,
+          reviewsByDay: [],
+          decks: [],
+        })),
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        'No decks to review yet. Sync a Notion page to start building cards.'
+      )
+    ).toBeInTheDocument();
   });
 
   test('disables the Review button for a deck with no due cards', async () => {
