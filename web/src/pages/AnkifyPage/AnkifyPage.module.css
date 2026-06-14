@@ -446,6 +446,12 @@
   width: auto;
 }
 
+.offlineActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
 .firstRunBlock {
   display: flex;
   flex-direction: column;

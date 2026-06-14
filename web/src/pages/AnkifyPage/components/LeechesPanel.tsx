@@ -213,8 +213,17 @@ export default function LeechesPanel({ backend }: Props) {
         className={styles.tabPanel}
       >
         <p className={styles.emptyLine}>
-          Leeches load once Anki is running. Open Anki, then try again.
+          Anki isn&apos;t connected. Open Anki on your computer and try again.
         </p>
+        <div className={styles.offlineActions}>
+          <button
+            type="button"
+            className={sharedStyles.btnGhost}
+            onClick={() => leeches.refetch()}
+          >
+            Try again
+          </button>
+        </div>
       </div>
     );
   }
