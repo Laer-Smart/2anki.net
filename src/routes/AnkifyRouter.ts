@@ -395,8 +395,8 @@ const AnkifyRouter = () => {
     new EditLeechNoteUseCase(repo, subscriptionsRepo, ankiConnectFactory),
     new DeleteLeechNoteUseCase(repo, subscriptionsRepo, ankiConnectFactory),
     new ReturnLeechToReviewUseCase(repo, subscriptionsRepo, ankiConnectFactory),
-    new GetReviewQueueUseCase(repo, subscriptionsRepo, ankiConnectFactory),
-    new GradeReviewCardUseCase(repo, subscriptionsRepo, ankiConnectFactory)
+    new GetReviewQueueUseCase(repo, ankiConnectFactory),
+    new GradeReviewCardUseCase(repo, ankiConnectFactory)
   );
 
   /**
@@ -987,8 +987,8 @@ const AnkifyRouter = () => {
    * @swagger
    * /api/ankify/review-queue:
    *   get:
-   *     summary: Snapshot the due cards for one of the user's synced decks
-   *     description: "Allowlisted endpoint. Query deck. Returns the due-card snapshot for an owned deck as connected plus an array of { cardId, questionHtml, answerHtml, css }. Always 200 when reachable — returns connected false when no active client exists or AnkiConnect is unreachable. 403 when the deck is not owned."
+   *     summary: Snapshot the due cards for one of the user's Anki decks
+   *     description: "Allowlisted endpoint. Query deck. Returns the due-card snapshot for any deck in the user's own hosted Anki as connected plus an array of { cardId, questionHtml, answerHtml, css }. Always 200 when reachable — returns connected false when no active client exists or AnkiConnect is unreachable."
    *     tags: [Ankify]
    *     parameters:
    *       - in: query
@@ -1001,8 +1001,6 @@ const AnkifyRouter = () => {
    *         description: "Due-card snapshot (connected true|false)"
    *       400:
    *         description: deck is required
-   *       403:
-   *         description: Deck not owned by this user
    */
   router.get('/api/ankify/review-queue', RequireAnkifyAccess, (req, res) =>
     controller.getReviewQueue(req, res)
@@ -1012,8 +1010,8 @@ const AnkifyRouter = () => {
    * @swagger
    * /api/ankify/review-grade:
    *   post:
-   *     summary: Grade one card in an owned deck via AnkiConnect answerCards
-   *     description: "Allowlisted endpoint. Body cardId and ease (1-4). Re-checks the card belongs to one of the caller's owned decks via a cid: query and validates ease before grading. 200 on success, 400 on invalid ease or cardId, 403 when the card is not owned, 503 when AnkiConnect is unreachable."
+   *     summary: Grade one card in the user's Anki via AnkiConnect answerCards
+   *     description: "Allowlisted endpoint. Body cardId and ease (1-4). Validates ease, then probes the card exists in the caller's own hosted Anki via a cid: query before grading. 200 on success, 400 on invalid ease or cardId, 404 when the card does not exist, 503 when AnkiConnect is unreachable."
    *     tags: [Ankify]
    *     requestBody:
    *       required: true
@@ -1033,8 +1031,8 @@ const AnkifyRouter = () => {
    *         description: Card graded
    *       400:
    *         description: Invalid cardId or ease
-   *       403:
-   *         description: Card not owned by this user
+   *       404:
+   *         description: Card not found in the user's Anki
    *       503:
    *         description: AnkiConnect unreachable
    */

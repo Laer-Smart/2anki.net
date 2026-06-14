@@ -1,8 +1,6 @@
 import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
-import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/ankify/AnkifyNotionSubscriptionsRepository';
 import { AnkiConnectClient } from '../../services/ankify/AnkiConnectClient';
 import { GetReviewQueueUseCase } from './GetReviewQueueUseCase';
-import { DeckNotOwnedError } from './OpenDeckInAnkiUseCase';
 
 const activeClient = {
   id: 1,
@@ -22,40 +20,52 @@ const clientsRepo = (
     findActiveByOwner: jest.fn(async () => client),
   }) as unknown as AnkifyClientsRepositoryInterface;
 
-const subsRepo = (
-  rows: { target_deck: string | null; notion_page_title: string | null }[]
-): AnkifyNotionSubscriptionsRepositoryInterface =>
-  ({
-    listByOwner: jest.fn(async () => rows),
-  }) as unknown as AnkifyNotionSubscriptionsRepositoryInterface;
-
-const ownedSubs = subsRepo([
-  { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
-]);
-
 describe('GetReviewQueueUseCase', () => {
-  it('rejects a deck the user does not own', async () => {
-    const factory = jest.fn();
+  it('returns due cards for a deck the user never synced from Notion', async () => {
+    const findCards = jest.fn(async () => [9001]);
+    const cardsInfo = jest.fn(async () => [
+      {
+        cardId: 9001,
+        note: 5,
+        deckName: 'My Own Deck',
+        lapses: 0,
+        queue: 2,
+        question: '<p>Q1</p>',
+        answer: '<p>A1</p>',
+        css: '.card { color: black; }',
+      },
+    ]);
+    const factory = jest.fn(
+      () =>
+        ({
+          ping: jest.fn(async () => 6),
+          findCards,
+          cardsInfo,
+        }) as unknown as AnkiConnectClient
+    );
     const useCase = new GetReviewQueueUseCase(
       clientsRepo(activeClient),
-      subsRepo([
-        { target_deck: 'Notion Sync::Torts', notion_page_title: null },
-      ]),
       factory
     );
 
-    await expect(
-      useCase.execute({ owner: 42, deck: 'Notion Sync::Pharma' })
-    ).rejects.toBeInstanceOf(DeckNotOwnedError);
-    expect(factory).not.toHaveBeenCalled();
+    const result = await useCase.execute({ owner: 42, deck: 'My Own Deck' });
+
+    expect(findCards).toHaveBeenCalledWith('"deck:My Own Deck" is:due');
+    expect(result).toEqual({
+      connected: true,
+      cards: [
+        {
+          cardId: 9001,
+          questionHtml: '<p>Q1</p>',
+          answerHtml: '<p>A1</p>',
+          css: '.card { color: black; }',
+        },
+      ],
+    });
   });
 
   it('returns connected:false with no cards when no active client', async () => {
-    const useCase = new GetReviewQueueUseCase(
-      clientsRepo(null),
-      ownedSubs,
-      jest.fn()
-    );
+    const useCase = new GetReviewQueueUseCase(clientsRepo(null), jest.fn());
 
     const result = await useCase.execute({
       owner: 42,
@@ -65,7 +75,7 @@ describe('GetReviewQueueUseCase', () => {
     expect(result).toEqual({ connected: false, cards: [] });
   });
 
-  it('scopes findCards to the escaped owned deck with is:due and maps card info', async () => {
+  it('scopes findCards to the escaped deck with is:due and maps card info', async () => {
     const findCards = jest.fn(async () => [9001, 9002]);
     const cardsInfo = jest.fn(async () => [
       {
@@ -99,7 +109,6 @@ describe('GetReviewQueueUseCase', () => {
     );
     const useCase = new GetReviewQueueUseCase(
       clientsRepo(activeClient),
-      ownedSubs,
       factory
     );
 
@@ -141,7 +150,6 @@ describe('GetReviewQueueUseCase', () => {
     );
     const useCase = new GetReviewQueueUseCase(
       clientsRepo(activeClient),
-      ownedSubs,
       factory
     );
 
@@ -154,7 +162,7 @@ describe('GetReviewQueueUseCase', () => {
     expect(cardsInfo).not.toHaveBeenCalled();
   });
 
-  it('scopes the due query to a :: hierarchy deck', async () => {
+  it('escapes quotes and backslashes in the deck name', async () => {
     const findCards = jest.fn(async () => []);
     const factory = jest.fn(
       () =>
@@ -166,12 +174,11 @@ describe('GetReviewQueueUseCase', () => {
     );
     const useCase = new GetReviewQueueUseCase(
       clientsRepo(activeClient),
-      subsRepo([{ target_deck: 'MS3::Pharma', notion_page_title: null }]),
       factory
     );
 
-    await useCase.execute({ owner: 42, deck: 'MS3::Pharma' });
+    await useCase.execute({ owner: 42, deck: 'Week "18"\\x' });
 
-    expect(findCards).toHaveBeenCalledWith('"deck:MS3::Pharma" is:due');
+    expect(findCards).toHaveBeenCalledWith('"deck:Week \\"18\\"\\\\x" is:due');
   });
 });

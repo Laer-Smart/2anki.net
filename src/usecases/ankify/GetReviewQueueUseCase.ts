@@ -1,8 +1,5 @@
 import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
-import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/ankify/AnkifyNotionSubscriptionsRepository';
-import { userOwnsDeck } from '../../lib/ankify/deckOwnership';
 import { AnkiConnectFactory } from './GetAnkifyStatsUseCase';
-import { DeckNotOwnedError } from './OpenDeckInAnkiUseCase';
 import { buildDueCardsQuery } from './reviewQueries';
 
 export interface ReviewQueueCard {
@@ -26,16 +23,10 @@ export interface GetReviewQueueInput {
 export class GetReviewQueueUseCase {
   constructor(
     private readonly clients: AnkifyClientsRepositoryInterface,
-    private readonly subscriptions: AnkifyNotionSubscriptionsRepositoryInterface,
     private readonly ankiConnect: AnkiConnectFactory
   ) {}
 
   async execute(input: GetReviewQueueInput): Promise<GetReviewQueueResult> {
-    const owned = await this.subscriptions.listByOwner(input.owner);
-    if (!userOwnsDeck(input.deck, owned)) {
-      throw new DeckNotOwnedError();
-    }
-
     const client = await this.clients.findActiveByOwner(input.owner);
     if (client == null) {
       return { connected: false, cards: [] };

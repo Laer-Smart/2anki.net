@@ -2,10 +2,10 @@ import { Request, Response } from 'express';
 
 import AnkifyController from './AnkifyController';
 import { AnkiConnectUnreachableError } from '../services/ankify/AnkiConnectClient';
-import { DeckNotOwnedError } from '../usecases/ankify/OpenDeckInAnkiUseCase';
 import {
   InvalidReviewEaseError,
   NoActiveAnkifyClientForReviewError,
+  ReviewCardNotFoundError,
 } from '../usecases/ankify/GradeReviewCardUseCase';
 
 interface CapturingResponse {
@@ -91,9 +91,9 @@ describe('AnkifyController review handlers', () => {
     expect(capture.statusCode).toBe(400);
   });
 
-  test('getReviewQueue maps DeckNotOwnedError to 403', async () => {
+  test('getReviewQueue maps AnkiConnectUnreachableError to 503', async () => {
     const execute = jest.fn(async () => {
-      throw new DeckNotOwnedError();
+      throw new AnkiConnectUnreachableError('http://x', new Error('down'));
     });
     const controller = makeController(QUEUE_INDEX, { execute });
     const capture = makeResponse();
@@ -103,7 +103,7 @@ describe('AnkifyController review handlers', () => {
       capture.res
     );
 
-    expect(capture.statusCode).toBe(403);
+    expect(capture.statusCode).toBe(503);
   });
 
   test('gradeReviewCard grades and returns 200', async () => {
@@ -150,9 +150,9 @@ describe('AnkifyController review handlers', () => {
     expect(capture.statusCode).toBe(400);
   });
 
-  test('gradeReviewCard maps DeckNotOwnedError to 403', async () => {
+  test('gradeReviewCard maps ReviewCardNotFoundError to 404', async () => {
     const execute = jest.fn(async () => {
-      throw new DeckNotOwnedError();
+      throw new ReviewCardNotFoundError();
     });
     const controller = makeController(GRADE_INDEX, { execute });
     const capture = makeResponse();
@@ -162,7 +162,7 @@ describe('AnkifyController review handlers', () => {
       capture.res
     );
 
-    expect(capture.statusCode).toBe(403);
+    expect(capture.statusCode).toBe(404);
   });
 
   test('gradeReviewCard maps an offline client to 503', async () => {
