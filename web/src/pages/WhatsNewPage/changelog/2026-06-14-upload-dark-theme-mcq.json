@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-14-upload-dark-theme-mcq",
+  "date": "2026-06-14",
+  "type": "fix",
+  "title": "The correct answer in a multiple-choice preview no longer glares on dark themes"
+}
