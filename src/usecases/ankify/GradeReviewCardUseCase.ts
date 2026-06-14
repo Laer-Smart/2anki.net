@@ -1,9 +1,6 @@
 import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
-import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/ankify/AnkifyNotionSubscriptionsRepository';
-import { ownedDeckNames } from '../../lib/ankify/deckOwnership';
 import { AnkiConnectFactory } from './GetAnkifyStatsUseCase';
-import { DeckNotOwnedError } from './OpenDeckInAnkiUseCase';
-import { buildCardOwnershipQuery } from './reviewQueries';
+import { buildCardExistsQuery } from './reviewQueries';
 
 export class InvalidReviewEaseError extends Error {
   constructor() {
@@ -16,6 +13,13 @@ export class NoActiveAnkifyClientForReviewError extends Error {
   constructor() {
     super('No active Ankify client');
     this.name = 'NoActiveAnkifyClientForReviewError';
+  }
+}
+
+export class ReviewCardNotFoundError extends Error {
+  constructor() {
+    super('Card not found in the requesting user Anki');
+    this.name = 'ReviewCardNotFoundError';
   }
 }
 
@@ -36,7 +40,6 @@ const isValidEase = (ease: number): boolean =>
 export class GradeReviewCardUseCase {
   constructor(
     private readonly clients: AnkifyClientsRepositoryInterface,
-    private readonly subscriptions: AnkifyNotionSubscriptionsRepositoryInterface,
     private readonly ankiConnect: AnkiConnectFactory
   ) {}
 
@@ -50,12 +53,6 @@ export class GradeReviewCardUseCase {
       throw new NoActiveAnkifyClientForReviewError();
     }
 
-    const owned = await this.subscriptions.listByOwner(input.owner);
-    const query = buildCardOwnershipQuery(input.cardId, ownedDeckNames(owned));
-    if (query == null) {
-      throw new DeckNotOwnedError();
-    }
-
     const ac = this.ankiConnect(
       input.ankiConnectHost ?? 'localhost',
       client.anki_port,
@@ -64,9 +61,9 @@ export class GradeReviewCardUseCase {
 
     await ac.ping();
 
-    const matches = await ac.findCards(query);
+    const matches = await ac.findCards(buildCardExistsQuery(input.cardId));
     if (!matches.includes(input.cardId)) {
-      throw new DeckNotOwnedError();
+      throw new ReviewCardNotFoundError();
     }
 
     await ac.answerCards([{ cardId: input.cardId, ease: input.ease }]);

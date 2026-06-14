@@ -1,4 +1,4 @@
-import { buildCardOwnershipQuery, buildDueCardsQuery } from './reviewQueries';
+import { buildCardExistsQuery, buildDueCardsQuery } from './reviewQueries';
 
 describe('reviewQueries', () => {
   describe('buildDueCardsQuery', () => {
@@ -21,32 +21,9 @@ describe('reviewQueries', () => {
     });
   });
 
-  describe('buildCardOwnershipQuery', () => {
-    it('constrains a card id to a single owned deck with cid:', () => {
-      expect(buildCardOwnershipQuery(9001, ['Notion Sync::Pharma'])).toBe(
-        'cid:9001 ("deck:Notion Sync::Pharma")'
-      );
-    });
-
-    it('ORs multiple owned decks', () => {
-      expect(
-        buildCardOwnershipQuery(9001, [
-          'Notion Sync::Pharma',
-          'Notion Sync::Torts',
-        ])
-      ).toBe(
-        'cid:9001 ("deck:Notion Sync::Pharma" OR "deck:Notion Sync::Torts")'
-      );
-    });
-
-    it('escapes quotes and backslashes', () => {
-      expect(buildCardOwnershipQuery(42, ['Week "18"\\x'])).toBe(
-        'cid:42 ("deck:Week \\"18\\"\\\\x")'
-      );
-    });
-
-    it('returns null when there are no owned decks', () => {
-      expect(buildCardOwnershipQuery(9001, [])).toBeNull();
+  describe('buildCardExistsQuery', () => {
+    it('matches a single card id with cid:', () => {
+      expect(buildCardExistsQuery(9001)).toBe('cid:9001');
     });
   });
 });

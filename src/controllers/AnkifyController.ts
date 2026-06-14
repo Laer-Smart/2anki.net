@@ -82,6 +82,7 @@ import {
   GradeReviewCardUseCase,
   InvalidReviewEaseError,
   NoActiveAnkifyClientForReviewError,
+  ReviewCardNotFoundError,
 } from '../usecases/ankify/GradeReviewCardUseCase';
 
 const ANKI_CONNECT_UNREACHABLE_MESSAGE =
@@ -931,10 +932,6 @@ class AnkifyController {
       const result = await this.getReviewQueueUseCase.execute({ owner, deck });
       res.status(200).json(result);
     } catch (error) {
-      if (error instanceof DeckNotOwnedError) {
-        res.status(403).json({ message: 'Deck not found for this user' });
-        return;
-      }
       if (error instanceof AnkiConnectUnreachableError) {
         res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
         return;
@@ -962,8 +959,8 @@ class AnkifyController {
         res.status(400).json({ message: 'ease must be an integer 1-4' });
         return;
       }
-      if (error instanceof DeckNotOwnedError) {
-        res.status(403).json({ message: 'Card not found for this user' });
+      if (error instanceof ReviewCardNotFoundError) {
+        res.status(404).json({ message: 'Card not found for this user' });
         return;
       }
       if (error instanceof NoActiveAnkifyClientForReviewError) {
