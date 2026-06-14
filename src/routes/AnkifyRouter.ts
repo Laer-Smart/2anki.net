@@ -42,6 +42,10 @@ import { OpenDeckInAnkiUseCase } from '../usecases/ankify/OpenDeckInAnkiUseCase'
 import { GetCollectionStatsHtmlUseCase } from '../usecases/ankify/GetCollectionStatsHtmlUseCase';
 import { GetDeckMaturityUseCase } from '../usecases/ankify/GetDeckMaturityUseCase';
 import { ExportDeckPackageUseCase } from '../usecases/ankify/ExportDeckPackageUseCase';
+import { ListLeechesUseCase } from '../usecases/ankify/ListLeechesUseCase';
+import { EditLeechNoteUseCase } from '../usecases/ankify/EditLeechNoteUseCase';
+import { DeleteLeechNoteUseCase } from '../usecases/ankify/DeleteLeechNoteUseCase';
+import { ReturnLeechToReviewUseCase } from '../usecases/ankify/ReturnLeechToReviewUseCase';
 import { buildExportedDeckReader } from '../services/ankify/buildExportedDeckReader';
 import { AnkifyExportSchedulesRepository } from '../data_layer/ankify/AnkifyExportSchedulesRepository';
 import { getAnkifyExportScheduler } from '../lib/ankify/scheduler/instance';
@@ -394,7 +398,11 @@ const AnkifyRouter = () => {
       subscriptionsRepo,
       ankiConnectFactory,
       buildExportedDeckReader(docker)
-    )
+    ),
+    new ListLeechesUseCase(repo, subscriptionsRepo, ankiConnectFactory),
+    new EditLeechNoteUseCase(repo, subscriptionsRepo, ankiConnectFactory),
+    new DeleteLeechNoteUseCase(repo, subscriptionsRepo, ankiConnectFactory),
+    new ReturnLeechToReviewUseCase(repo, subscriptionsRepo, ankiConnectFactory)
   );
 
   /**
@@ -933,6 +941,90 @@ const AnkifyRouter = () => {
    */
   router.post('/api/ankify/export-package', RequireAnkifyAccess, (req, res) =>
     controller.exportDeckPackage(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/leeches:
+   *   get:
+   *     summary: List leech cards in the user's owned synced decks
+   *     description: "Allowlisted endpoint. Returns every tag:leech note scoped to the caller's owned decks, sorted most-lapses-first. Always 200 — returns connected: false when no active client exists or AnkiConnect is unreachable."
+   *     tags: [Ankify]
+   *     responses:
+   *       200:
+   *         description: "Leech list (connected true|false)"
+   *       401:
+   *         description: Authentication required
+   *       403:
+   *         description: User is not on the ankify allowlist
+   */
+  router.get('/api/ankify/leeches', RequireAnkifyAccess, (req, res) =>
+    controller.listLeeches(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/leeches/{noteId}:
+   *   patch:
+   *     summary: Edit a leech note's fields
+   *     description: "Allowlisted endpoint. Re-validates the note's deck ownership before writing. Body { fields }. 204 on success, 400 on invalid note id or fields, 403 when the note is not owned, 409 when no active client, 503 when AnkiConnect is unreachable."
+   *     tags: [Ankify]
+   *     parameters:
+   *       - in: path
+   *         name: noteId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [fields]
+   *             properties:
+   *               fields:
+   *                 type: object
+   *   delete:
+   *     summary: Delete a leech note
+   *     description: "Allowlisted endpoint. Re-validates the note's deck ownership before deleting. 204 on success, 400 on invalid note id, 403 when the note is not owned, 409 when no active client, 503 when AnkiConnect is unreachable."
+   *     tags: [Ankify]
+   *     parameters:
+   *       - in: path
+   *         name: noteId
+   *         required: true
+   *         schema:
+   *           type: integer
+   */
+  router.patch(
+    '/api/ankify/leeches/:noteId',
+    RequireAnkifyAccess,
+    (req, res) => controller.editLeech(req, res)
+  );
+  router.delete(
+    '/api/ankify/leeches/:noteId',
+    RequireAnkifyAccess,
+    (req, res) => controller.deleteLeech(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/leeches/{noteId}/return-to-review:
+   *   post:
+   *     summary: Return a leech note to review
+   *     description: "Allowlisted endpoint. Re-validates the note's deck ownership, then unsuspends the note's cards and removes the leech tag. 200 with the result, 400 on invalid note id, 403 when the note is not owned, 409 when no active client, 503 when AnkiConnect is unreachable."
+   *     tags: [Ankify]
+   *     parameters:
+   *       - in: path
+   *         name: noteId
+   *         required: true
+   *         schema:
+   *           type: integer
+   */
+  router.post(
+    '/api/ankify/leeches/:noteId/return-to-review',
+    RequireAnkifyAccess,
+    (req, res) => controller.returnLeechToReview(req, res)
   );
 
   return router;

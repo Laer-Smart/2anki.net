@@ -79,6 +79,13 @@ import { ExportVolumeUnavailableError } from '../services/ankify/buildExportedDe
 import { buildContentDisposition } from '../lib/buildContentDisposition';
 import { getSafeFilename } from '../lib/getSafeFilename';
 import { track } from '../services/events/track';
+import { ListLeechesUseCase } from '../usecases/ankify/ListLeechesUseCase';
+import { EditLeechNoteUseCase } from '../usecases/ankify/EditLeechNoteUseCase';
+import { DeleteLeechNoteUseCase } from '../usecases/ankify/DeleteLeechNoteUseCase';
+import { ReturnLeechToReviewUseCase } from '../usecases/ankify/ReturnLeechToReviewUseCase';
+import { NoteNotOwnedError } from '../usecases/ankify/assertNoteOwned';
+import { NoActiveAnkifyClientForLeechError } from '../usecases/ankify/leechClient';
+import { AnkiConnectNoteFields } from '../services/ankify/AnkiConnectClient';
 
 const ANKI_CONNECT_UNREACHABLE_MESSAGE =
   'AnkiConnect is unreachable. Make sure the hosted Anki container is healthy.';
@@ -105,6 +112,31 @@ function readDeckField(raw: unknown): string | null {
   }
   const trimmed = raw.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function parseNoteId(raw: string): number | null {
+  if (!/^\d+$/.test(raw)) {
+    return null;
+  }
+  const noteId = Number(raw);
+  if (!Number.isSafeInteger(noteId)) {
+    return null;
+  }
+  return noteId;
+}
+
+function parseLeechFields(raw: unknown): AnkiConnectNoteFields | null {
+  if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) {
+    return null;
+  }
+  const fields: AnkiConnectNoteFields = {};
+  for (const [name, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof value !== 'string') {
+      return null;
+    }
+    fields[name] = value;
+  }
+  return Object.keys(fields).length > 0 ? fields : null;
 }
 
 class AnkifyController {
@@ -138,7 +170,11 @@ class AnkifyController {
     private readonly openDeckInAnkiUseCase: OpenDeckInAnkiUseCase,
     private readonly getCollectionStatsHtmlUseCase: GetCollectionStatsHtmlUseCase,
     private readonly getDeckMaturityUseCase: GetDeckMaturityUseCase,
-    private readonly exportDeckPackageUseCase: ExportDeckPackageUseCase
+    private readonly exportDeckPackageUseCase: ExportDeckPackageUseCase,
+    private readonly listLeechesUseCase: ListLeechesUseCase,
+    private readonly editLeechNoteUseCase: EditLeechNoteUseCase,
+    private readonly deleteLeechNoteUseCase: DeleteLeechNoteUseCase,
+    private readonly returnLeechToReviewUseCase: ReturnLeechToReviewUseCase
   ) {}
 
   async list(_req: Request, res: Response) {
@@ -845,6 +881,92 @@ class AnkifyController {
         error instanceof DeckExportFailedError
       ) {
         res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
+        return;
+      }
+      throw error;
+    }
+  }
+
+  private mapLeechActionError(error: unknown, res: Response): boolean {
+    if (error instanceof NoteNotOwnedError) {
+      res.status(403).json({ message: 'Card not found for this user' });
+      return true;
+    }
+    if (error instanceof NoActiveAnkifyClientForLeechError) {
+      res.status(409).json({
+        message: 'No active Ankify client. Provision one first.',
+      });
+      return true;
+    }
+    if (error instanceof AnkiConnectUnreachableError) {
+      res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
+      return true;
+    }
+    return false;
+  }
+
+  async listLeeches(_req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const result = await this.listLeechesUseCase.execute({ owner });
+    res.status(200).json(result);
+  }
+
+  async editLeech(req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const noteId = parseNoteId(req.params.noteId);
+    if (noteId == null) {
+      res.status(400).json({ message: 'Invalid note id' });
+      return;
+    }
+    const fields = parseLeechFields(req.body?.fields);
+    if (fields == null) {
+      res.status(400).json({ message: 'fields is required' });
+      return;
+    }
+    try {
+      await this.editLeechNoteUseCase.execute({ owner, noteId, fields });
+      res.status(204).send();
+    } catch (error) {
+      if (this.mapLeechActionError(error, res)) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async deleteLeech(req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const noteId = parseNoteId(req.params.noteId);
+    if (noteId == null) {
+      res.status(400).json({ message: 'Invalid note id' });
+      return;
+    }
+    try {
+      await this.deleteLeechNoteUseCase.execute({ owner, noteId });
+      res.status(204).send();
+    } catch (error) {
+      if (this.mapLeechActionError(error, res)) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async returnLeechToReview(req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const noteId = parseNoteId(req.params.noteId);
+    if (noteId == null) {
+      res.status(400).json({ message: 'Invalid note id' });
+      return;
+    }
+    try {
+      const result = await this.returnLeechToReviewUseCase.execute({
+        owner,
+        noteId,
+      });
+      res.status(200).json(result);
+    } catch (error) {
+      if (this.mapLeechActionError(error, res)) {
         return;
       }
       throw error;
