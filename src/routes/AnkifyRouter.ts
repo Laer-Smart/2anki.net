@@ -996,10 +996,8 @@ const AnkifyRouter = () => {
    *         schema:
    *           type: integer
    */
-  router.patch(
-    '/api/ankify/leeches/:noteId',
-    RequireAnkifyAccess,
-    (req, res) => controller.editLeech(req, res)
+  router.patch('/api/ankify/leeches/:noteId', RequireAnkifyAccess, (req, res) =>
+    controller.editLeech(req, res)
   );
   router.delete(
     '/api/ankify/leeches/:noteId',

@@ -15,6 +15,7 @@ import styles from '../AnkifyPage.module.css';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import { Backend } from '../../../lib/backend/Backend';
 import NotionPagePicker from './NotionPagePicker';
+import LeechesPanel from './LeechesPanel';
 import DotsHorizontal from '../../../components/icons/DotsHorizontal';
 import { BlockIcon } from '../../SearchPage/components/BlockIcon';
 import { mapSubscribeError } from './mapSubscribeError';
@@ -238,7 +239,9 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
   const queryClient = useQueryClient();
   const [advancedInput, setAdvancedInput] = useState('');
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'decks' | 'find' | null>(null);
+  const [activeTab, setActiveTab] = useState<
+    'decks' | 'find' | 'leeches' | null
+  >(null);
   const [search, setSearch] = useState('');
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [deckLocationEditorId, setDeckLocationEditorId] = useState<
@@ -334,6 +337,13 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
     queryKey: SUBSCRIPTIONS_KEY,
     queryFn: () => api.listAnkifySubscriptions(),
   });
+
+  const leeches = useQuery({
+    queryKey: ['ankify-leeches'],
+    queryFn: () => api.listAnkifyLeeches(),
+  });
+  const leechCount =
+    leeches.data?.connected === true ? leeches.data.leeches.length : 0;
 
   const stats = useAnkifyStats(api);
   const statsDecks =
@@ -512,7 +522,7 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
     return undefined;
   }, [openMenuId]);
 
-  const effectiveTab: 'decks' | 'find' =
+  const effectiveTab: 'decks' | 'find' | 'leeches' =
     activeTab ?? (subscriptions.length === 0 ? 'find' : 'decks');
   const showSearch = subscriptions.length >= SEARCH_THRESHOLD;
   const filteredSubscriptions =
@@ -560,7 +570,27 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
         >
           Find pages
         </button>
+        <button
+          type="button"
+          role="tab"
+          id="ankify-tab-leeches"
+          aria-selected={effectiveTab === 'leeches'}
+          aria-controls="ankify-tabpanel-leeches"
+          className={
+            effectiveTab === 'leeches'
+              ? `${styles.tab} ${styles.tabActive}`
+              : styles.tab
+          }
+          onClick={() => setActiveTab('leeches')}
+        >
+          Leeches{' '}
+          {leechCount > 0 && (
+            <span className={styles.tabCount}>{leechCount}</span>
+          )}
+        </button>
       </div>
+
+      {effectiveTab === 'leeches' && <LeechesPanel backend={backend} />}
 
       {effectiveTab === 'find' && (
         <div
