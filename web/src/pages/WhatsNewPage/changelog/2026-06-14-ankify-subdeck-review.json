@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-14-ankify-subdeck-review",
+  "date": "2026-06-14",
+  "type": "fix",
+  "title": "Reviewing a subdeck now loads its due cards, and the Review list mirrors your Anki deck tree"
+}
