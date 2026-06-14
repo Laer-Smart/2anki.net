@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-14-ankify-review-deck-query",
+  "date": "2026-06-14",
+  "type": "fix",
+  "title": "Decks with spaces or colons in their name now load their due cards in the reviewer"
+}
