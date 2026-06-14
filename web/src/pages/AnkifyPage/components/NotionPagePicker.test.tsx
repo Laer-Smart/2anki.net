@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 
 import NotionPagePicker from './NotionPagePicker';
 import { Backend } from '../../../lib/backend/Backend';
@@ -25,14 +26,16 @@ const renderPicker = (
   onSelect: (id: string, page?: NotionObject) => void = vi.fn()
 ) =>
   render(
-    <NotionPagePicker
-      backend={backend}
-      onSelect={onSelect}
-      busyId={null}
-      selectLabel="Make this a deck"
-      busyLabel="Subscribing…"
-      subscribedLabel="Subscribed"
-    />
+    <MemoryRouter>
+      <NotionPagePicker
+        backend={backend}
+        onSelect={onSelect}
+        busyId={null}
+        selectLabel="Make this a deck"
+        busyLabel="Subscribing…"
+        subscribedLabel="Subscribed"
+      />
+    </MemoryRouter>
   );
 
 describe('NotionPagePicker — link to source Notion page', () => {
@@ -49,6 +52,16 @@ describe('NotionPagePicker — link to source Notion page', () => {
     );
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noreferrer');
+  });
+
+  test('renders a "Set rules" link to /rules/<page id> using the same id as make-deck', async () => {
+    const backend = makeBackend([samplePage({ id: 'page-xyz' })]);
+    renderPicker(backend);
+
+    const setRules = await screen.findByRole('link', {
+      name: /set rules for slash commands before making a deck/i,
+    });
+    expect(setRules).toHaveAttribute('href', '/rules/page-xyz');
   });
 
   test('aria-label and title include the page title and "(new tab)"', async () => {
