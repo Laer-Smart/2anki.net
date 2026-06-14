@@ -311,6 +311,34 @@ describe('NotionSubscriptions sync copy', () => {
     );
   });
 
+  test('kebab menu links "Open in Notion" to the page URL and "Edit settings" to the rules editor', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => [
+        sampleSubscription({
+          id: 11,
+          notion_page_id: 'a'.repeat(32),
+          notion_page_url: 'https://notion.so/My-deck',
+        }),
+      ]),
+    });
+
+    renderSubs(backend);
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: /options for my deck/i })
+    );
+
+    const openInNotion = await screen.findByRole('menuitem', {
+      name: /open my deck in notion/i,
+    });
+    expect(openInNotion).toHaveAttribute('href', 'https://notion.so/My-deck');
+
+    const editSettings = screen.getByRole('menuitem', {
+      name: /edit settings for my deck/i,
+    });
+    expect(editSettings).toHaveAttribute('href', `/rules/${'a'.repeat(32)}`);
+  });
+
   test('clicking "Update now" calls refreshAnkifySubscription with the row id and shows a success flash', async () => {
     const refresh = vi.fn(async (_id: number) => ({
       created: 3,

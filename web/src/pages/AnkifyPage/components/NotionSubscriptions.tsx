@@ -872,6 +872,29 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
                             >
                               Open in Anki
                             </button>
+                            {sub.notion_page_url != null &&
+                              sub.notion_page_url.length > 0 && (
+                                <a
+                                  role="menuitem"
+                                  className={styles.decksItemMenuItem}
+                                  href={sub.notion_page_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label={`Open ${displayTitle} in Notion`}
+                                  onClick={() => setOpenMenuId(null)}
+                                >
+                                  Open in Notion
+                                </a>
+                              )}
+                            <Link
+                              role="menuitem"
+                              className={styles.decksItemMenuItem}
+                              to={`/rules/${sub.notion_page_id}`}
+                              aria-label={`Edit settings for ${displayTitle}`}
+                              onClick={() => setOpenMenuId(null)}
+                            >
+                              Edit settings
+                            </Link>
                             <button
                               type="button"
                               role="menuitem"
