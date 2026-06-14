@@ -24,6 +24,7 @@ const TODAY = '2026-06-12';
 interface FakeAnkiConnect {
   ping: jest.Mock;
   deckNames: jest.Mock;
+  deckNamesAndIds: jest.Mock;
   getNumCardsReviewedToday: jest.Mock;
   getNumCardsReviewedByDay: jest.Mock;
   getDeckStats: jest.Mock;
@@ -36,6 +37,7 @@ const makeAnkiConnect = (
 ): FakeAnkiConnect => ({
   ping: jest.fn(async () => 6),
   deckNames: jest.fn(async () => [] as string[]),
+  deckNamesAndIds: jest.fn(async () => ({}) as Record<string, number>),
   getNumCardsReviewedToday: jest.fn(async () => 0),
   getNumCardsReviewedByDay: jest.fn(async () => [] as Array<[string, number]>),
   getDeckStats: jest.fn(async () => ({}) as Record<string, AnkiDeckStat>),
@@ -101,13 +103,13 @@ describe('GetAnkifyStatsUseCase', () => {
     });
   });
 
-  test('fetches deck stats for the full collection and sorts decks by total desc', async () => {
+  test('recovers full deck paths from deckNamesAndIds and sorts decks by total desc', async () => {
     const ac = makeAnkiConnect({
-      deckNames: jest.fn(async () => [
-        'Default',
-        'Pharmacology',
-        'Spanish::Verbs',
-      ]),
+      deckNamesAndIds: jest.fn(async () => ({
+        Default: 1,
+        Pharmacology: 111,
+        'Spanish::Verbs': 222,
+      })),
       getNumCardsReviewedToday: jest.fn(async () => 12),
       getNumCardsReviewedByDay: jest.fn(async () => [
         ['2026-06-12', 12],
@@ -132,7 +134,7 @@ describe('GetAnkifyStatsUseCase', () => {
         },
         '222': {
           deck_id: 222,
-          name: 'Spanish::Verbs',
+          name: 'Verbs',
           new_count: 1,
           learn_count: 0,
           review_count: 4,
@@ -147,7 +149,8 @@ describe('GetAnkifyStatsUseCase', () => {
 
     const result = await useCase.execute(1, { today: TODAY });
 
-    expect(ac.deckNames).toHaveBeenCalledTimes(1);
+    expect(ac.deckNamesAndIds).toHaveBeenCalledTimes(1);
+    expect(ac.deckNames).not.toHaveBeenCalled();
     expect(ac.getDeckStats).toHaveBeenCalledWith([
       'Default',
       'Pharmacology',
@@ -166,16 +169,115 @@ describe('GetAnkifyStatsUseCase', () => {
         { date: '2026-06-11', count: 8 },
       ],
       decks: [
-        { name: 'Spanish::Verbs', new: 1, learning: 0, review: 4, total: 300 },
-        { name: 'Pharmacology', new: 5, learning: 2, review: 11, total: 120 },
-        { name: 'Default', new: 0, learning: 0, review: 0, total: 0 },
+        {
+          fullName: 'Spanish::Verbs',
+          name: 'Verbs',
+          depth: 1,
+          new: 1,
+          learning: 0,
+          review: 4,
+          total: 300,
+        },
+        {
+          fullName: 'Pharmacology',
+          name: 'Pharmacology',
+          depth: 0,
+          new: 5,
+          learning: 2,
+          review: 11,
+          total: 120,
+        },
+        {
+          fullName: 'Default',
+          name: 'Default',
+          depth: 0,
+          new: 0,
+          learning: 0,
+          review: 0,
+          total: 0,
+        },
+      ],
+    });
+  });
+
+  test('recovers the full path for a database-child subdeck whose stats name is the leaf', async () => {
+    const ac = makeAnkiConnect({
+      deckNamesAndIds: jest.fn(async () => ({
+        "Jlab's beginner course": 100,
+        "Jlab's beginner course::Part 1: Listening comprehension": 200,
+      })),
+      getDeckStats: jest.fn(async () => ({
+        '200': {
+          deck_id: 200,
+          name: 'Part 1: Listening comprehension',
+          new_count: 2,
+          learn_count: 1,
+          review_count: 7,
+          total_in_deck: 40,
+        },
+      })),
+    });
+    const useCase = new GetAnkifyStatsUseCase(
+      makeClientsRepo(activeClient),
+      () => ac as never
+    );
+
+    const result = await useCase.execute(1, { today: TODAY });
+
+    expect(result).toMatchObject({
+      connected: true,
+      decks: [
+        {
+          fullName: "Jlab's beginner course::Part 1: Listening comprehension",
+          name: 'Part 1: Listening comprehension',
+          depth: 1,
+          new: 2,
+          learning: 1,
+          review: 7,
+          total: 40,
+        },
+      ],
+    });
+  });
+
+  test('falls back to the stat name when the deck_id is absent from the names map', async () => {
+    const ac = makeAnkiConnect({
+      deckNamesAndIds: jest.fn(async () => ({ Anatomy: 2 })),
+      getDeckStats: jest.fn(async () => ({
+        '999': {
+          deck_id: 999,
+          name: 'Orphan::Leaf',
+          new_count: 0,
+          learn_count: 0,
+          review_count: 1,
+          total_in_deck: 5,
+        },
+      })),
+    });
+    const useCase = new GetAnkifyStatsUseCase(
+      makeClientsRepo(activeClient),
+      () => ac as never
+    );
+
+    const result = await useCase.execute(1, { today: TODAY });
+
+    expect(result).toMatchObject({
+      connected: true,
+      decks: [
+        {
+          fullName: 'Orphan::Leaf',
+          name: 'Leaf',
+          depth: 1,
+          review: 1,
+          total: 5,
+        },
       ],
     });
   });
 
   test('tie-breaks decks with equal totals by name ascending', async () => {
     const ac = makeAnkiConnect({
-      deckNames: jest.fn(async () => ['Zoology', 'Anatomy']),
+      deckNamesAndIds: jest.fn(async () => ({ Zoology: 1, Anatomy: 2 })),
       getDeckStats: jest.fn(async () => ({
         '1': {
           deck_id: 1,

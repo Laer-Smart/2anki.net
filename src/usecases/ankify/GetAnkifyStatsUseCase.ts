@@ -13,12 +13,21 @@ export type AnkiConnectFactory = (
 ) => AnkiConnectClient;
 
 export interface AnkifyStatsDeck {
+  fullName: string;
   name: string;
+  depth: number;
   new: number;
   learning: number;
   review: number;
   total: number;
 }
+
+const leafName = (fullName: string): string => {
+  const segments = fullName.split('::');
+  return segments[segments.length - 1];
+};
+
+const deckDepth = (fullName: string): number => fullName.split('::').length - 1;
 
 export interface AnkifyStatsReviewDay {
   date: string;
@@ -77,7 +86,12 @@ export class GetAnkifyStatsUseCase {
       throw error;
     }
 
-    const deckNames = await ac.deckNames();
+    const deckNamesAndIds = await ac.deckNamesAndIds();
+    const deckNames = Object.keys(deckNamesAndIds);
+    const fullNameById = new Map<number, string>();
+    for (const [fullName, id] of Object.entries(deckNamesAndIds)) {
+      fullNameById.set(id, fullName);
+    }
 
     const [reviewedToday, reviewsByDayRaw, deckStats] = await Promise.all([
       ac.getNumCardsReviewedToday(),
@@ -101,13 +115,18 @@ export class GetAnkifyStatsUseCase {
       .reduce((sum, entry) => sum + entry.count, 0);
 
     const decks: AnkifyStatsDeck[] = Object.values(deckStats)
-      .map((stat) => ({
-        name: stat.name,
-        new: stat.new_count,
-        learning: stat.learn_count,
-        review: stat.review_count,
-        total: stat.total_in_deck ?? 0,
-      }))
+      .map((stat) => {
+        const fullName = fullNameById.get(stat.deck_id) ?? stat.name;
+        return {
+          fullName,
+          name: leafName(fullName),
+          depth: deckDepth(fullName),
+          new: stat.new_count,
+          learning: stat.learn_count,
+          review: stat.review_count,
+          total: stat.total_in_deck ?? 0,
+        };
+      })
       .sort((a, b) =>
         b.total === a.total ? a.name.localeCompare(b.name) : b.total - a.total
       );

@@ -103,6 +103,10 @@ export class AnkiConnectClient {
     return this.invoke('deckNames');
   }
 
+  async deckNamesAndIds(): Promise<Record<string, number>> {
+    return this.invoke('deckNamesAndIds', {});
+  }
+
   async modelNames(): Promise<string[]> {
     return this.invoke('modelNames');
   }
