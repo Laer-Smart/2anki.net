@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-14-ankify-leeches-offline",
+  "date": "2026-06-14",
+  "type": "fix",
+  "title": "Leeches load calmly when Anki is briefly unreachable instead of showing an error"
+}
