@@ -37,6 +37,10 @@ export const sidebar: SidebarGroup[] = [
       { label: 'Notion blocks we support', slug: 'cards/notion-blocks' },
       { label: 'What is a deck?', slug: 'cards/decks' },
       { label: 'Parser rules', slug: 'cards/parser-rules' },
+      {
+        label: 'Notion → Anki for Japanese',
+        slug: 'cards/notion-to-anki-japanese',
+      },
       { label: 'AI flashcard generation', slug: 'cards/ai-flashcards' },
       { label: 'Image occlusion', slug: 'cards/image-occlusion' },
       { label: 'Photo to deck', slug: 'cards/photo-to-deck' },

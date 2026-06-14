@@ -12,6 +12,7 @@ const notionCopy: LandingCopy = {
       href: '/markdown-to-anki',
     },
     { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
+    { label: 'Anki for Japanese learners', href: '/anki-for-japanese' },
     { label: 'Browse every converter', href: '/convert' },
   ],
   pathname: '/notion-to-anki',

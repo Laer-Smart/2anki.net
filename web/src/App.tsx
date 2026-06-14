@@ -220,6 +220,10 @@ const NursingFlashcards = lazyWithRetry(
   () => import('./pages/LandingPage/NursingFlashcards'),
   './pages/LandingPage/NursingFlashcards'
 );
+const Japanese = lazyWithRetry(
+  () => import('./pages/LandingPage/Japanese'),
+  './pages/LandingPage/Japanese'
+);
 const AnkiFromMedicalLectureSlides = lazyWithRetry(
   () => import('./pages/LandingPage/AnkiFromMedicalLectureSlides'),
   './pages/LandingPage/AnkiFromMedicalLectureSlides'
@@ -622,6 +626,10 @@ function AppContent({
             <Route
               path="/nursing-flashcards"
               element={<NursingFlashcards setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/anki-for-japanese"
+              element={<Japanese setErrorMessage={setErrorMessage} />}
             />
             <Route
               path="/anki-from-medical-lecture-slides"
