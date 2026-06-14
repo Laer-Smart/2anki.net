@@ -13,7 +13,7 @@ import getObjectIcon, { ObjectIcon } from '../notion/getObjectIcon';
 import { Rules, Settings } from '../types';
 import { UserNotice, isIntentionalBackendNotice } from '../errors/UserNotice';
 import { AnkifyStats } from '../../pages/AnkifyPage/stats/types';
-import { del, get, getLoginURL, post } from './api';
+import { del, get, getLoginURL, patch, post } from './api';
 import { getResourceUrl } from './getResourceUrl';
 import { CONFLICT, OK } from './http';
 
@@ -37,6 +37,25 @@ export type DeckMaturity =
       total: number;
       avgIntervalDays: number;
     };
+
+export interface LeechNoteField {
+  name: string;
+  value: string;
+}
+
+export interface LeechNote {
+  noteId: number;
+  deckName: string;
+  modelName: string;
+  fields: LeechNoteField[];
+  tags: string[];
+  lapses: number;
+  suspended: boolean;
+}
+
+export type LeechList =
+  | { connected: false }
+  | { connected: true; leeches: LeechNote[] };
 
 export interface CheckoutPrices {
   cohort: 'legacy' | 'v2';
@@ -927,6 +946,65 @@ export class Backend {
       return { connected: false };
     } catch {
       return { connected: false };
+    }
+  }
+
+  async listAnkifyLeeches(): Promise<LeechList> {
+    const result = await get(`${this.baseURL}ankify/leeches`);
+    if (result?.connected === true && Array.isArray(result.leeches)) {
+      return { connected: true, leeches: result.leeches };
+    }
+    return { connected: false };
+  }
+
+  async editAnkifyLeech(
+    noteId: number,
+    fields: Record<string, string>
+  ): Promise<void> {
+    const response = await patch(`${this.baseURL}ankify/leeches/${noteId}`, {
+      fields,
+    });
+    if (!response.ok) {
+      const body = await response
+        .json()
+        .catch(() => ({ message: response.statusText }));
+      const error = new Error(
+        body.message ?? 'Failed to edit card'
+      ) as Error & {
+        status?: number;
+      };
+      error.status = response.status;
+      throw error;
+    }
+  }
+
+  async deleteAnkifyLeech(noteId: number): Promise<void> {
+    const response = await del(`${this.baseURL}ankify/leeches/${noteId}`);
+    if (!response?.ok) {
+      const error = new Error('Failed to delete card') as Error & {
+        status?: number;
+      };
+      error.status = response?.status;
+      throw error;
+    }
+  }
+
+  async returnAnkifyLeechToReview(noteId: number): Promise<void> {
+    const response = await post(
+      `${this.baseURL}ankify/leeches/${noteId}/return-to-review`,
+      {}
+    );
+    if (!response.ok) {
+      const body = await response
+        .json()
+        .catch(() => ({ message: response.statusText }));
+      const error = new Error(
+        body.message ?? 'Failed to return card to review'
+      ) as Error & {
+        status?: number;
+      };
+      error.status = response.status;
+      throw error;
     }
   }
 
