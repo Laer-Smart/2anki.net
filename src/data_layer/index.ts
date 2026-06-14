@@ -195,7 +195,6 @@ export const setupDatabase = async (database: Knex) => {
         notionBlockChildrenFetcherFactory,
         (token) => buildNotionPageMetaFetcher(token),
         undefined,
-        undefined,
         (owner: number) =>
           new MarkNotionTokenInvalidUseCase(
             notionRepo,

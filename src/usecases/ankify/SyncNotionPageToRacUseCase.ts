@@ -6,7 +6,7 @@ import { AnkifySyncConflictsRepositoryInterface } from '../../data_layer/ankify/
 import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/ankify/AnkifyNotionSubscriptionsRepository';
 import { AnkifySyncLogsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncLogsRepository';
 import { INotionRepository } from '../../data_layer/NotionRespository';
-import { IErrorEventRepository } from '../../data_layer/ErrorEventRepository';
+import { track } from '../../services/events/track';
 
 export type OnTokenInvalidFn = (owner: number) => Promise<void>;
 import {
@@ -202,7 +202,6 @@ export class SyncNotionPageToRacUseCase {
     private readonly notionFetcher: NotionFetcherFactory,
     private readonly notionPageMeta?: NotionPageMetaFetcher,
     private readonly mediaFetcher: AnkifyMediaFetcher = guardedMediaFetcher,
-    private readonly errorEvents?: IErrorEventRepository,
     private readonly onTokenInvalid?: OnTokenInvalidFn,
     private readonly templateOverridesProvider?: AnkifyTemplateOverridesProvider,
     private readonly databasePagesFetcher: NotionDatabasePagesFetcherFactory = notionDatabasePagesFetcherFactory
@@ -383,38 +382,23 @@ export class SyncNotionPageToRacUseCase {
     input: SyncNotionPageInput,
     diagnostic: SyncDiagnostic
   ): void {
-    if (this.errorEvents == null) {
-      return;
-    }
     const reasonCode = deriveReasonCode(diagnostic);
     const pageIdHash = crypto
       .createHash('sha256')
       .update(input.notionPageId)
       .digest('hex');
-    this.errorEvents
-      .insert({
-        source: 'server',
-        message: 'ankify.zero_cards',
-        message_hash: crypto
-          .createHash('sha256')
-          .update(`ankify.zero_cards:${pageIdHash}:${input.owner}`)
-          .digest('hex'),
-        context: {
-          user_id: input.owner,
-          source_type: 'notion_page',
-          file_hash: pageIdHash,
-          input_chars: diagnostic.blocks_scanned,
-          ai_response_chars: 0,
-          parser_path: 'ankify/notionPageWalker',
-          reason_code: reasonCode,
-          blocks_scanned: diagnostic.blocks_scanned,
-          blocks_matched: diagnostic.blocks_matched,
-          trigger: input.trigger,
-        },
-      })
-      .catch((err) => {
-        console.error('[ankify-sync] failed to emit zero_cards event', err);
-      });
+    track('ankify_zero_cards', {
+      userId: input.owner,
+      props: {
+        source_type: 'notion_page',
+        file_hash: pageIdHash,
+        parser_path: 'ankify/notionPageWalker',
+        reason_code: reasonCode,
+        blocks_scanned: diagnostic.blocks_scanned,
+        blocks_matched: diagnostic.blocks_matched,
+        trigger: input.trigger,
+      },
+    });
   }
 
   private async runSync(args: {
@@ -721,37 +705,21 @@ export class SyncNotionPageToRacUseCase {
     deckName: string,
     movedNotes: number
   ): void {
-    if (this.errorEvents == null) {
-      return;
-    }
     const pageIdHash = crypto
       .createHash('sha256')
       .update(input.notionPageId)
       .digest('hex');
     const deckHash = crypto.createHash('sha256').update(deckName).digest('hex');
-    this.errorEvents
-      .insert({
-        source: 'server',
-        message: 'ankify.sync_followed_deck',
-        message_hash: crypto
-          .createHash('sha256')
-          .update(`ankify.sync_followed_deck:${pageIdHash}:${input.owner}`)
-          .digest('hex'),
-        context: {
-          user_id: input.owner,
-          source_type: 'notion_page',
-          file_hash: pageIdHash,
-          deck_hash: deckHash,
-          moved_notes: movedNotes,
-          trigger: input.trigger,
-        },
-      })
-      .catch((err) => {
-        console.error(
-          '[ankify-sync] failed to emit sync_followed_deck event',
-          err
-        );
-      });
+    track('ankify_sync_followed_deck', {
+      userId: input.owner,
+      props: {
+        source_type: 'notion_page',
+        file_hash: pageIdHash,
+        deck_hash: deckHash,
+        moved_notes: movedNotes,
+        trigger: input.trigger,
+      },
+    });
   }
 
   private async walkSource(
