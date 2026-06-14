@@ -102,7 +102,7 @@
 
 .cardFrame {
   width: 100%;
-  min-height: 8rem;
+  height: clamp(8rem, 50vh, 32rem);
   border: none;
   background: transparent;
 }
