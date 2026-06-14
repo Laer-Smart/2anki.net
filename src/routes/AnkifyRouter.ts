@@ -39,7 +39,6 @@ import { GetAnkifyStatsUseCase } from '../usecases/ankify/GetAnkifyStatsUseCase'
 import { GetAnkifyActiveProfileUseCase } from '../usecases/ankify/GetAnkifyActiveProfileUseCase';
 import { SyncToAnkiWebUseCase } from '../usecases/ankify/SyncToAnkiWebUseCase';
 import { OpenDeckInAnkiUseCase } from '../usecases/ankify/OpenDeckInAnkiUseCase';
-import { GetCollectionStatsHtmlUseCase } from '../usecases/ankify/GetCollectionStatsHtmlUseCase';
 import { GetDeckMaturityUseCase } from '../usecases/ankify/GetDeckMaturityUseCase';
 import { ListLeechesUseCase } from '../usecases/ankify/ListLeechesUseCase';
 import { EditLeechNoteUseCase } from '../usecases/ankify/EditLeechNoteUseCase';
@@ -389,7 +388,6 @@ const AnkifyRouter = () => {
     new GetAnkifyActiveProfileUseCase(repo, ankiConnectFactory),
     new SyncToAnkiWebUseCase(repo, ankiConnectFactory),
     new OpenDeckInAnkiUseCase(repo, subscriptionsRepo, ankiConnectFactory),
-    new GetCollectionStatsHtmlUseCase(repo, ankiConnectFactory),
     new GetDeckMaturityUseCase(repo, subscriptionsRepo, ankiConnectFactory),
     new ListLeechesUseCase(repo, subscriptionsRepo, ankiConnectFactory),
     new EditLeechNoteUseCase(repo, subscriptionsRepo, ankiConnectFactory),
@@ -879,20 +877,6 @@ const AnkifyRouter = () => {
     '/api/ankify/gui-deck-overview',
     RequireAnkifyAccess,
     (req, res) => controller.openDeckInAnki(req, res)
-  );
-
-  /**
-   * @swagger
-   * /api/ankify/collection-stats-html:
-   *   get:
-   *     summary: Anki's native collection stats report as HTML
-   *     description: Allowlisted endpoint. Returns { html, truncated }; html is null when no active client or AnkiConnect is unreachable. The frontend sandboxes the HTML in an iframe.
-   *     tags: [Ankify]
-   */
-  router.get(
-    '/api/ankify/collection-stats-html',
-    RequireAnkifyAccess,
-    (req, res) => controller.getCollectionStatsHtml(req, res)
   );
 
   /**

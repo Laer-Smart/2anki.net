@@ -38,13 +38,13 @@ const makeResponse = (): CapturingResponse => {
   return capture;
 };
 
-const LIST_INDEX = 29;
-const EDIT_INDEX = 30;
-const DELETE_INDEX = 31;
-const RETURN_INDEX = 32;
+const LIST_INDEX = 28;
+const EDIT_INDEX = 29;
+const DELETE_INDEX = 30;
+const RETURN_INDEX = 31;
 
 const makeController = (index: number, useCase: { execute: jest.Mock }) => {
-  const stubs = Array.from({ length: 33 }, () => ({}));
+  const stubs = Array.from({ length: 32 }, () => ({}));
   stubs[index] = useCase;
   return new AnkifyController(
     ...(stubs as ConstructorParameters<typeof AnkifyController>)

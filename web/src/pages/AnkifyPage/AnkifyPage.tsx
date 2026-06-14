@@ -11,7 +11,6 @@ import NotionSubscriptions from './components/NotionSubscriptions';
 import WorkspaceBar from './components/WorkspaceBar';
 import ConflictsModal from './components/ConflictsModal';
 import StudyStatsSection from './stats/StudyStatsSection';
-import FullStatsPanel from './components/FullStatsPanel';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 
 const QUERY_KEY = ['ankify-clients'];
@@ -175,8 +174,6 @@ export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
       </div>
 
       <StudyStatsSection backend={api} />
-
-      <FullStatsPanel backend={backend} />
     </main>
   );
 }

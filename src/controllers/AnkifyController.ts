@@ -68,7 +68,6 @@ import {
   DeckNotOwnedError,
   OpenDeckInAnkiUseCase,
 } from '../usecases/ankify/OpenDeckInAnkiUseCase';
-import { GetCollectionStatsHtmlUseCase } from '../usecases/ankify/GetCollectionStatsHtmlUseCase';
 import { GetDeckMaturityUseCase } from '../usecases/ankify/GetDeckMaturityUseCase';
 import { track } from '../services/events/track';
 import { ListLeechesUseCase } from '../usecases/ankify/ListLeechesUseCase';
@@ -154,7 +153,6 @@ class AnkifyController {
     private readonly getActiveProfileUseCase: GetAnkifyActiveProfileUseCase,
     private readonly syncToAnkiWebUseCase: SyncToAnkiWebUseCase,
     private readonly openDeckInAnkiUseCase: OpenDeckInAnkiUseCase,
-    private readonly getCollectionStatsHtmlUseCase: GetCollectionStatsHtmlUseCase,
     private readonly getDeckMaturityUseCase: GetDeckMaturityUseCase,
     private readonly listLeechesUseCase: ListLeechesUseCase,
     private readonly editLeechNoteUseCase: EditLeechNoteUseCase,
@@ -796,16 +794,6 @@ class AnkifyController {
       }
       throw error;
     }
-  }
-
-  async getCollectionStatsHtml(_req: Request, res: Response) {
-    const owner = res.locals.owner as number;
-    const result = await this.getCollectionStatsHtmlUseCase.execute(owner);
-    if (result.connected) {
-      res.status(200).json({ html: result.html, truncated: result.truncated });
-      return;
-    }
-    res.status(200).json({ html: null, truncated: false });
   }
 
   async getDeckMaturity(req: Request, res: Response) {

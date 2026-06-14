@@ -217,10 +217,6 @@ export class AnkiConnectClient {
     return this.invoke('guiDeckOverview', { name });
   }
 
-  async getCollectionStatsHTML(wholeCollection = true): Promise<string> {
-    return this.invoke('getCollectionStatsHTML', { wholeCollection });
-  }
-
   async getEaseFactors(cards: number[]): Promise<number[]> {
     return this.invoke('getEaseFactors', { cards });
   }

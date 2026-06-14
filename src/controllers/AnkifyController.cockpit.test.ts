@@ -48,11 +48,10 @@ const makeResponse = (): CapturingResponse => {
 const PROFILE_INDEX = 24;
 const SYNC_INDEX = 25;
 const OPEN_DECK_INDEX = 26;
-const STATS_HTML_INDEX = 27;
-const MATURITY_INDEX = 28;
+const MATURITY_INDEX = 27;
 
 const makeController = (index: number, useCase: { execute: jest.Mock }) => {
-  const stubs = Array.from({ length: 29 }, () => ({}));
+  const stubs = Array.from({ length: 28 }, () => ({}));
   stubs[index] = useCase;
   return new AnkifyController(
     ...(stubs as ConstructorParameters<typeof AnkifyController>)
@@ -160,35 +159,6 @@ describe('AnkifyController cockpit handlers', () => {
     );
 
     expect(capture.statusCode).toBe(403);
-  });
-
-  test('getCollectionStatsHtml returns the html when connected', async () => {
-    const execute = jest.fn(async () => ({
-      connected: true,
-      html: '<div>stats</div>',
-      truncated: false,
-    }));
-    const controller = makeController(STATS_HTML_INDEX, { execute });
-    const capture = makeResponse();
-
-    await controller.getCollectionStatsHtml({} as Request, capture.res);
-
-    expect(capture.statusCode).toBe(200);
-    expect(capture.body).toEqual({
-      html: '<div>stats</div>',
-      truncated: false,
-    });
-  });
-
-  test('getCollectionStatsHtml returns null html when offline', async () => {
-    const execute = jest.fn(async () => ({ connected: false }));
-    const controller = makeController(STATS_HTML_INDEX, { execute });
-    const capture = makeResponse();
-
-    await controller.getCollectionStatsHtml({} as Request, capture.res);
-
-    expect(capture.statusCode).toBe(200);
-    expect(capture.body).toEqual({ html: null, truncated: false });
   });
 
   test('getDeckMaturity 400 when deck query is missing', async () => {
