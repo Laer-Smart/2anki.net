@@ -13,13 +13,16 @@ import { AnkifySyncConflictsRepositoryInterface } from '../../data_layer/ankify/
 import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/ankify/AnkifyNotionSubscriptionsRepository';
 import { AnkifySyncLogsRepositoryInterface } from '../../data_layer/ankify/AnkifySyncLogsRepository';
 import { INotionRepository } from '../../data_layer/NotionRespository';
-import { IErrorEventRepository } from '../../data_layer/ErrorEventRepository';
 import { AnkiConnectClient } from '../../services/ankify/AnkiConnectClient';
 import { WalkedNotionFlashcard } from '../../services/ankify/notionPageWalker';
 
 jest.mock('../../services/ankify/notionPageWalker', () => ({
   walkNotionPageForFlashcards: jest.fn(),
   walkNotionDatabaseForFlashcards: jest.fn(),
+}));
+
+jest.mock('../../services/events/track', () => ({
+  track: jest.fn(),
 }));
 
 jest.mock('axios');
@@ -34,9 +37,11 @@ import {
   walkNotionPageForFlashcards,
   walkNotionDatabaseForFlashcards,
 } from '../../services/ankify/notionPageWalker';
+import { track } from '../../services/events/track';
 
 const mockAxiosGet = axios.get as jest.Mock;
 const mockDnsLookup = dns.promises.lookup as jest.Mock;
+const mockTrack = track as jest.Mock;
 
 const sampleClient = (): AnkifyClient => ({
   id: 1,
@@ -198,6 +203,7 @@ describe('SyncNotionPageToRacUseCase', () => {
     (walkNotionDatabaseForFlashcards as jest.Mock).mockResolvedValue(
       emptyWalkResult()
     );
+    mockTrack.mockClear();
   });
 
   test('falls back to a database walk when the subscribed id is a Notion database', async () => {
@@ -234,7 +240,6 @@ describe('SyncNotionPageToRacUseCase', () => {
       repos.notionRepo,
       () => ac,
       () => async () => [],
-      undefined,
       undefined,
       undefined,
       undefined,
@@ -289,16 +294,6 @@ describe('SyncNotionPageToRacUseCase', () => {
 
     const repos = makeRepos();
     const ac = makeAnkiConnectStub();
-    const insert = jest.fn().mockResolvedValue(undefined);
-    const errorEvents = {
-      insert,
-      existsWithinWindow: jest.fn().mockResolvedValue(false),
-      listGroups: jest.fn().mockResolvedValue([]),
-      countGroups: jest.fn().mockResolvedValue(0),
-      latestSamples: jest.fn().mockResolvedValue([]),
-      resolveGroup: jest.fn().mockResolvedValue(undefined),
-      reopenGroup: jest.fn().mockResolvedValue(undefined),
-    } as unknown as IErrorEventRepository;
     const databasePages = jest.fn(async () => [{ id: 'row-1' }]);
     const useCase = new SyncNotionPageToRacUseCase(
       repos.clients,
@@ -315,7 +310,6 @@ describe('SyncNotionPageToRacUseCase', () => {
         icon: '🧪',
       }),
       undefined,
-      errorEvents,
       undefined,
       undefined,
       () => databasePages
@@ -341,7 +335,10 @@ describe('SyncNotionPageToRacUseCase', () => {
       databasePages
     );
     expect(result.created).toBe(1);
-    expect(insert).not.toHaveBeenCalled();
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      'ankify_zero_cards',
+      expect.anything()
+    );
   });
 
   test('walks the database child pages when the page walk finds no blocks of its own', async () => {
@@ -359,16 +356,6 @@ describe('SyncNotionPageToRacUseCase', () => {
 
     const repos = makeRepos();
     const ac = makeAnkiConnectStub();
-    const insert = jest.fn().mockResolvedValue(undefined);
-    const errorEvents = {
-      insert,
-      existsWithinWindow: jest.fn().mockResolvedValue(false),
-      listGroups: jest.fn().mockResolvedValue([]),
-      countGroups: jest.fn().mockResolvedValue(0),
-      latestSamples: jest.fn().mockResolvedValue([]),
-      resolveGroup: jest.fn().mockResolvedValue(undefined),
-      reopenGroup: jest.fn().mockResolvedValue(undefined),
-    } as unknown as IErrorEventRepository;
     const databasePages = jest.fn(async () => [
       { id: 'row-1' },
       { id: 'row-2' },
@@ -384,7 +371,6 @@ describe('SyncNotionPageToRacUseCase', () => {
       () => async () => [],
       undefined,
       undefined,
-      errorEvents,
       undefined,
       undefined,
       () => databasePages
@@ -404,7 +390,10 @@ describe('SyncNotionPageToRacUseCase', () => {
       databasePages
     );
     expect(result.created).toBe(1);
-    expect(insert).not.toHaveBeenCalled();
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      'ankify_zero_cards',
+      expect.anything()
+    );
   });
 
   test('records the database object type when the meta fetch resolves a null-typed id as a database', async () => {
@@ -448,7 +437,6 @@ describe('SyncNotionPageToRacUseCase', () => {
       () => ac,
       () => async () => [],
       () => metaFetch,
-      undefined,
       undefined,
       undefined,
       undefined,
@@ -510,7 +498,6 @@ describe('SyncNotionPageToRacUseCase', () => {
       undefined,
       undefined,
       undefined,
-      undefined,
       () => databasePages
     );
 
@@ -536,16 +523,6 @@ describe('SyncNotionPageToRacUseCase', () => {
 
     const repos = makeRepos();
     const ac = makeAnkiConnectStub();
-    const insert = jest.fn().mockResolvedValue(undefined);
-    const errorEvents = {
-      insert,
-      existsWithinWindow: jest.fn().mockResolvedValue(false),
-      listGroups: jest.fn().mockResolvedValue([]),
-      countGroups: jest.fn().mockResolvedValue(0),
-      latestSamples: jest.fn().mockResolvedValue([]),
-      resolveGroup: jest.fn().mockResolvedValue(undefined),
-      reopenGroup: jest.fn().mockResolvedValue(undefined),
-    } as unknown as IErrorEventRepository;
     const databasePages = jest.fn(async () => {
       throw Object.assign(
         new Error('page-id is not a database. Use the retrieve a page API.'),
@@ -563,7 +540,6 @@ describe('SyncNotionPageToRacUseCase', () => {
       () => async () => [],
       undefined,
       undefined,
-      errorEvents,
       undefined,
       undefined,
       () => databasePages
@@ -578,8 +554,9 @@ describe('SyncNotionPageToRacUseCase', () => {
     );
 
     expect(result.created).toBe(0);
-    expect(insert).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'ankify.zero_cards' })
+    expect(mockTrack).toHaveBeenCalledWith(
+      'ankify_zero_cards',
+      expect.anything()
     );
   });
 
@@ -752,7 +729,6 @@ describe('SyncNotionPageToRacUseCase', () => {
       undefined,
       undefined,
       undefined,
-      undefined,
       async () => ({
         basicModelName: 'ATTI BASIC',
         basicTemplate: {
@@ -816,7 +792,6 @@ describe('SyncNotionPageToRacUseCase', () => {
       repos.notionRepo,
       () => ac,
       () => async () => [],
-      undefined,
       undefined,
       undefined,
       undefined,
@@ -1132,6 +1107,14 @@ describe('SyncNotionPageToRacUseCase', () => {
         deck_name: 'MS3::Pharmacology',
       })
     );
+    expect(mockTrack).toHaveBeenCalledWith('ankify_sync_followed_deck', {
+      userId: 42,
+      props: expect.objectContaining({
+        source_type: 'notion_page',
+        moved_notes: 1,
+        trigger: 'polling',
+      }),
+    });
   });
 
   test('puts each database child page into its own subdeck under the database deck', async () => {
@@ -1179,7 +1162,6 @@ describe('SyncNotionPageToRacUseCase', () => {
       repos.notionRepo,
       () => ac,
       () => async () => [],
-      undefined,
       undefined,
       undefined,
       undefined,
@@ -1257,7 +1239,6 @@ describe('SyncNotionPageToRacUseCase', () => {
       undefined,
       undefined,
       undefined,
-      undefined,
       () => async () => [{ id: 'row-1' }]
     );
 
@@ -1319,7 +1300,6 @@ describe('SyncNotionPageToRacUseCase', () => {
       repos.notionRepo,
       () => ac,
       () => async () => [],
-      undefined,
       undefined,
       undefined,
       undefined,
@@ -1411,7 +1391,6 @@ describe('SyncNotionPageToRacUseCase', () => {
       repos.notionRepo,
       () => ac,
       () => async () => [],
-      undefined,
       undefined,
       undefined,
       undefined,
@@ -2123,20 +2102,9 @@ describe('SyncNotionPageToRacUseCase', () => {
   });
 
   describe('zero-card structured event emission', () => {
-    const makeErrorEventRepo = (): jest.Mocked<IErrorEventRepository> => ({
-      insert: jest.fn().mockResolvedValue(undefined),
-      existsWithinWindow: jest.fn().mockResolvedValue(false),
-      listGroups: jest.fn().mockResolvedValue([]),
-      countGroups: jest.fn().mockResolvedValue(0),
-      latestSamples: jest.fn().mockResolvedValue([]),
-      resolveGroup: jest.fn().mockResolvedValue(undefined),
-      reopenGroup: jest.fn().mockResolvedValue(undefined),
-    });
-
-    it('emits ankify.zero_cards event when page produces no cards', async () => {
+    it('tracks ankify_zero_cards analytics event when page produces no cards', async () => {
       const repos = makeRepos();
       const ac = makeAnkiConnectStub();
-      const errorEventRepo = makeErrorEventRepo();
       (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
         cards: [],
         diagnostic: { blocks_scanned: 5, blocks_matched: 0, pattern_hits: {} },
@@ -2150,10 +2118,7 @@ describe('SyncNotionPageToRacUseCase', () => {
         repos.logs,
         repos.notionRepo,
         () => ac,
-        () => async () => [],
-        undefined,
-        undefined,
-        errorEventRepo
+        () => async () => []
       );
 
       await useCase.execute({
@@ -2162,25 +2127,21 @@ describe('SyncNotionPageToRacUseCase', () => {
         trigger: 'manual',
       });
 
-      expect(errorEventRepo.insert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          source: 'server',
-          message: 'ankify.zero_cards',
-          context: expect.objectContaining({
-            user_id: 42,
-            source_type: 'notion_page',
-            parser_path: 'ankify/notionPageWalker',
-            reason_code: 'all_blocks_unmatched',
-            blocks_scanned: 5,
-          }),
-        })
-      );
+      expect(mockTrack).toHaveBeenCalledWith('ankify_zero_cards', {
+        userId: 42,
+        props: expect.objectContaining({
+          source_type: 'notion_page',
+          parser_path: 'ankify/notionPageWalker',
+          reason_code: 'all_blocks_unmatched',
+          blocks_scanned: 5,
+          trigger: 'manual',
+        }),
+      });
     });
 
     it('derives reason_code empty_page when blocks_scanned is zero', async () => {
       const repos = makeRepos();
       const ac = makeAnkiConnectStub();
-      const errorEventRepo = makeErrorEventRepo();
       (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
         cards: [],
         diagnostic: { blocks_scanned: 0, blocks_matched: 0, pattern_hits: {} },
@@ -2194,10 +2155,7 @@ describe('SyncNotionPageToRacUseCase', () => {
         repos.logs,
         repos.notionRepo,
         () => ac,
-        () => async () => [],
-        undefined,
-        undefined,
-        errorEventRepo
+        () => async () => []
       );
 
       await useCase.execute({
@@ -2206,17 +2164,17 @@ describe('SyncNotionPageToRacUseCase', () => {
         trigger: 'polling',
       });
 
-      expect(errorEventRepo.insert).toHaveBeenCalledWith(
+      expect(mockTrack).toHaveBeenCalledWith(
+        'ankify_zero_cards',
         expect.objectContaining({
-          context: expect.objectContaining({ reason_code: 'empty_page' }),
+          props: expect.objectContaining({ reason_code: 'empty_page' }),
         })
       );
     });
 
-    it('does not emit zero_cards event when cards are produced', async () => {
+    it('does not track ankify_zero_cards when cards are produced', async () => {
       const repos = makeRepos();
       const ac = makeAnkiConnectStub();
-      const errorEventRepo = makeErrorEventRepo();
       (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
         cards: [sampleCard()],
         diagnostic: {
@@ -2234,10 +2192,7 @@ describe('SyncNotionPageToRacUseCase', () => {
         repos.logs,
         repos.notionRepo,
         () => ac,
-        () => async () => [],
-        undefined,
-        undefined,
-        errorEventRepo
+        () => async () => []
       );
 
       await useCase.execute({
@@ -2246,10 +2201,13 @@ describe('SyncNotionPageToRacUseCase', () => {
         trigger: 'manual',
       });
 
-      expect(errorEventRepo.insert).not.toHaveBeenCalled();
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        'ankify_zero_cards',
+        expect.anything()
+      );
     });
 
-    it('does not throw if errorEventRepo is not provided', async () => {
+    it('does not route the zero-card diagnostic to the error dashboard', async () => {
       const repos = makeRepos();
       const ac = makeAnkiConnectStub();
       (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
@@ -2268,13 +2226,15 @@ describe('SyncNotionPageToRacUseCase', () => {
         () => async () => []
       );
 
-      await expect(
-        useCase.execute({
-          owner: 42,
-          notionPageId: 'page-no-repo',
-          trigger: 'manual',
-        })
-      ).resolves.not.toThrow();
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-no-repo',
+        trigger: 'manual',
+      });
+
+      const trackedNames = mockTrack.mock.calls.map((call) => call[0]);
+      expect(trackedNames).toContain('ankify_zero_cards');
+      expect(trackedNames).not.toContain('ankify.zero_cards');
     });
   });
 
@@ -2470,7 +2430,6 @@ describe('SyncNotionPageToRacUseCase', () => {
         undefined,
         undefined,
         undefined,
-        undefined,
         () => async () => [{ id: 'row-1' }]
       );
 
@@ -2505,7 +2464,6 @@ describe('SyncNotionPageToRacUseCase', () => {
         repos.notionRepo,
         () => ac,
         () => async () => [],
-        undefined,
         undefined,
         undefined,
         undefined,

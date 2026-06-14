@@ -14,7 +14,6 @@ import { verifyNotionWebhookSignature } from '../lib/ankify/notionWebhookSignatu
 import { hasAnkifyAccess } from '../lib/ankify/access';
 import UsersRepository from '../data_layer/UsersRepository';
 import SubscriptionService from '../services/SubscriptionService';
-import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { MarkNotionTokenInvalidUseCase } from '../usecases/notion/MarkNotionTokenInvalidUseCase';
 import { makeAnkifyTemplateOverridesProvider } from '../services/ankify/templateOverrides';
@@ -42,7 +41,6 @@ const AnkifyWebhookRouter = () => {
     notionBlockChildrenFetcherFactory,
     undefined,
     undefined,
-    new ErrorEventRepository(db),
     (owner: number) =>
       new MarkNotionTokenInvalidUseCase(
         notionRepo,

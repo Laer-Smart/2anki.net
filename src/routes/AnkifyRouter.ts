@@ -63,7 +63,6 @@ import {
 } from '../services/ApkgPreviewService/extractApkg';
 import SettingsRepository from '../data_layer/SettingsRepository';
 import RequireAnkifyAccess from './middleware/RequireAnkifyAccess';
-import { ErrorEventRepository } from '../data_layer/ErrorEventRepository';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { MarkNotionTokenInvalidUseCase } from '../usecases/notion/MarkNotionTokenInvalidUseCase';
 import { buildNotionPageMetaFetcher } from '../services/ankify/buildNotionPageMetaFetcher';
@@ -316,7 +315,6 @@ const AnkifyRouter = () => {
     notionBlockChildrenFetcherFactory,
     buildNotionPageMetaFetcher,
     undefined,
-    new ErrorEventRepository(db),
     (owner: number) =>
       new MarkNotionTokenInvalidUseCase(
         ankifyNotionRepo,
