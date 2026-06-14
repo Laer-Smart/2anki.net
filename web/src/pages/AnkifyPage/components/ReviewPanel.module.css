@@ -60,12 +60,34 @@
   transition: width 120ms ease;
 }
 
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1rem;
+}
+
+.exitButton {
+  font-size: var(--text-xs);
+  color: var(--color-text-link);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.exitButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .progressLabel {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-variant-numeric: tabular-nums;
   font-size: var(--text-xs);
   color: var(--color-text-tertiary);
-  margin: 0 0 1rem;
+  margin: 0;
   text-align: right;
 }
 
