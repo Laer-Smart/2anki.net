@@ -317,6 +317,36 @@ const NativeAppPage = lazyWithRetry(
 
 const queryClient = new QueryClient();
 
+function surfaceFromPathname(pathname: string): string {
+  const segment = pathname.split('/').filter(Boolean)[0];
+  return segment ?? 'home';
+}
+
+function RouteRecoveryBoundary({
+  children,
+}: Readonly<{ children: ReactElement }>) {
+  const location = useLocation();
+  const surface = surfaceFromPathname(location.pathname);
+  return (
+    <DomRecoveryBoundary
+      onError={(error, errorInfo) =>
+        reportClientError(error, {
+          surface,
+          componentStack: errorInfo.componentStack,
+        })
+      }
+      onRecover={(error) =>
+        reportClientError(error, {
+          surface,
+          recovered: true,
+        })
+      }
+    >
+      {children}
+    </DomRecoveryBoundary>
+  );
+}
+
 function RequireAuth({
   isLoggedIn,
   isLoading,
@@ -375,258 +405,257 @@ function AppContent({
       >
         {isLoggedInResolved && <PostLoginSurvey />}
         <VerifyEmailNotice emailVerified={data?.user?.email_verified} />
-        <Routes>
-          <Route
-            path="/favorites"
-            element={requireAuth(<FavoritesPage setError={setErrorMessage} />)}
-          />
-          <Route
-            path="/downloads"
-            element={requireAuth(<DownloadsPage setError={setErrorMessage} />)}
-          />
-          <Route
-            path="/uploads"
-            element={<Navigate to="/downloads" replace />}
-          />
-          <Route
-            path="/upload"
-            element={
-              <DomRecoveryBoundary
-                onError={(error, errorInfo) =>
-                  reportClientError(error, {
-                    surface: 'upload',
-                    componentStack: errorInfo.componentStack,
-                  })
-                }
-                onRecover={(error) =>
-                  reportClientError(error, {
-                    surface: 'upload',
-                    recovered: true,
-                  })
-                }
-              >
-                <UploadPage setErrorMessage={setErrorMessage} />
-              </DomRecoveryBoundary>
-            }
-          />
-          <Route path="/print" element={<PrintPage />} />
-          <Route path="/image-occlusion" element={<ImageOcclusionPage />} />
-          <Route
-            path="/photo-to-deck"
-            element={requireAuth(<PhotoToFlashcardsPage />)}
-          />
-          <Route path="/mindmaps" element={requireAuth(<MindmapsPage />)} />
-          <Route path="/transform" element={requireAuth(<TransformPage />)} />
-          <Route path="/mindmaps/:id" element={requireAuth(<MindmapsPage />)} />
-          <Route path="/chat" element={requireAuth(<ChatPage />)} />
-          <Route
-            path="/register"
-            element={<RegisterPage setErrorMessage={setErrorMessage} />}
-          />
-          <Route
-            path="/notion"
-            element={requireAuth(<SearchPage setError={setErrorMessage} />)}
-          />
-          <Route path="/search" element={<Navigate to="/notion" replace />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/auth/magic" element={<MagicLinkPage />} />
-          <Route
-            path="/forgot"
-            element={<ForgotPasswordPage setErrorMessage={setErrorMessage} />}
-          />
-          <Route
-            path="/users/r/:id"
-            element={<NewPasswordPage setErrorMessage={setErrorMessage} />}
-          />
-          <Route path="/debug" element={<DebugPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route
-            path="/delete-account"
-            element={requireAuth(
-              <DeleteAccountPage setError={setErrorMessage} />
-            )}
-          />
-          <Route
-            path="/pricing"
-            element={
-              <PricingPage
-                isLoggedIn={isLoggedInResolved}
-                email={data?.user?.email}
-                hostedAnkiRequested={data?.hostedAnkiRequested === true}
-                patreon={data?.user?.patreon ?? null}
-                signupCountry={data?.user?.signup_country ?? null}
-                autoSyncCapReached={data?.autoSyncCapReached === true}
-                autoSyncActive={data?.autoSyncActive === true}
-              />
-            }
-          />
-          <Route
-            path="/"
-            element={
-              <HomePage
-                setErrorMessage={setErrorMessage}
-                isLoggedIn={isLoggedInResolved}
-              />
-            }
-          />
-          <Route
-            path="/successful-checkout"
-            element={<SuccessfulCheckoutPage />}
-          />
-          <Route path="/limit" element={<LimitPage />} />
-          <Route path="/account" element={requireAuth(<AccountPage />)} />
-          <Route
-            path="/account/claim"
-            element={requireAuth(<AccountClaimPage />)}
-          />
-          {AccountPreviewPage && (
+        <RouteRecoveryBoundary>
+          <Routes>
             <Route
-              path="/dev/account-preview"
-              element={<AccountPreviewPage />}
+              path="/favorites"
+              element={requireAuth(
+                <FavoritesPage setError={setErrorMessage} />
+              )}
             />
-          )}
-          {NotionPreviewPage && (
-            <Route path="/dev/notion-preview" element={<NotionPreviewPage />} />
-          )}
-          {AnkifyReviewPreviewPage && (
             <Route
-              path="/dev/ankify-review-preview"
-              element={<AnkifyReviewPreviewPage />}
+              path="/downloads"
+              element={requireAuth(
+                <DownloadsPage setError={setErrorMessage} />
+              )}
             />
-          )}
-          <Route
-            path="/import"
-            element={requireAuth(<ImportPage setError={setErrorMessage} />)}
-          />
-          <Route path="/ankify" element={requireAuth(<AnkifyPage />)} />
-          <Route
-            path="/ankify/setup"
-            element={requireAuth(<AnkifySetupPage />)}
-          />
-          <Route
-            path="/ankify/history"
-            element={requireAuth(<AnkifyHistoryPage />)}
-          />
-          <Route path="/ops" element={requireAuth(<OpsLayout />)}>
-            <Route index element={<EngineeringTab />} />
-            <Route path="errors" element={<ErrorsTab />} />
-            <Route path="performance" element={<PerformanceTab />} />
-            <Route path="conversions" element={<ConversionsTab />} />
-            <Route path="return-rate" element={<ReturnRateTab />} />
-            <Route path="mindmaps" element={<MindmapsTab />} />
-            <Route path="upload-funnel" element={<UploadFunnelTab />} />
-            <Route path="business" element={<BusinessTab />} />
-            <Route path="showcase" element={<ShowcaseTab />} />
-            <Route path="interviews" element={<InterviewsTab />} />
-            <Route path="messages" element={<ContactMessagesTab />} />
-            <Route path="commands" element={<CommandsTab />} />
-            <Route path="flags" element={<FlagsTab />} />
-            <Route path="pricing-ab" element={<PricingAbFunnelTab />} />
-          </Route>
-          <Route path="/feedback" element={requireAuth(<FeedbackPage />)} />
-          <Route path="/settings" element={requireAuth(<AccountPage />)} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/app" element={<NativeAppPage />} />
-          <Route path="/security" element={<SecurityPage />} />
-          <Route path="/status" element={<StatusPage />} />
-          <Route path="/whats-new" element={<WhatsNewPage />} />
-          <Route path="/documentation" element={<DocsPage />} />
-          <Route path="/documentation/*" element={<DocsPage />} />
-          <Route
-            path="/settings/card-options"
-            element={<Navigate to="/card-options" replace />}
-          />
-          <Route
-            path="/card-options"
-            element={<CardOptionsPage setErrorMessage={setErrorMessage} />}
-          />
-          <Route path="/templates" element={<TemplatesPage />} />
-          <Route
-            path="/templates/new"
-            element={requireAuth(<TemplatesEditorPage mode="new" />)}
-          />
-          <Route
-            path="/templates/edit/:id"
-            element={requireAuth(<TemplatesEditorPage mode="edit" />)}
-          />
-          <Route
-            path="/rules/:id"
-            element={requireAuth(
-              <RulesPage setErrorMessage={setErrorMessage} />
+            <Route
+              path="/uploads"
+              element={<Navigate to="/downloads" replace />}
+            />
+            <Route
+              path="/upload"
+              element={<UploadPage setErrorMessage={setErrorMessage} />}
+            />
+            <Route path="/print" element={<PrintPage />} />
+            <Route path="/image-occlusion" element={<ImageOcclusionPage />} />
+            <Route
+              path="/photo-to-deck"
+              element={requireAuth(<PhotoToFlashcardsPage />)}
+            />
+            <Route path="/mindmaps" element={requireAuth(<MindmapsPage />)} />
+            <Route path="/transform" element={requireAuth(<TransformPage />)} />
+            <Route
+              path="/mindmaps/:id"
+              element={requireAuth(<MindmapsPage />)}
+            />
+            <Route path="/chat" element={requireAuth(<ChatPage />)} />
+            <Route
+              path="/register"
+              element={<RegisterPage setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/notion"
+              element={requireAuth(<SearchPage setError={setErrorMessage} />)}
+            />
+            <Route path="/search" element={<Navigate to="/notion" replace />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/auth/magic" element={<MagicLinkPage />} />
+            <Route
+              path="/forgot"
+              element={<ForgotPasswordPage setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/users/r/:id"
+              element={<NewPasswordPage setErrorMessage={setErrorMessage} />}
+            />
+            <Route path="/debug" element={<DebugPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route
+              path="/delete-account"
+              element={requireAuth(
+                <DeleteAccountPage setError={setErrorMessage} />
+              )}
+            />
+            <Route
+              path="/pricing"
+              element={
+                <PricingPage
+                  isLoggedIn={isLoggedInResolved}
+                  email={data?.user?.email}
+                  hostedAnkiRequested={data?.hostedAnkiRequested === true}
+                  patreon={data?.user?.patreon ?? null}
+                  signupCountry={data?.user?.signup_country ?? null}
+                  autoSyncCapReached={data?.autoSyncCapReached === true}
+                  autoSyncActive={data?.autoSyncActive === true}
+                />
+              }
+            />
+            <Route
+              path="/"
+              element={
+                <HomePage
+                  setErrorMessage={setErrorMessage}
+                  isLoggedIn={isLoggedInResolved}
+                />
+              }
+            />
+            <Route
+              path="/successful-checkout"
+              element={<SuccessfulCheckoutPage />}
+            />
+            <Route path="/limit" element={<LimitPage />} />
+            <Route path="/account" element={requireAuth(<AccountPage />)} />
+            <Route
+              path="/account/claim"
+              element={requireAuth(<AccountClaimPage />)}
+            />
+            {AccountPreviewPage && (
+              <Route
+                path="/dev/account-preview"
+                element={<AccountPreviewPage />}
+              />
             )}
-          />
-          <Route
-            path="/preview/:id"
-            element={requireAuth(<PreviewPage setError={setErrorMessage} />)}
-          />
-          <Route
-            path="/preview/database/:id"
-            element={requireAuth(
-              <DatabasePreviewPage setError={setErrorMessage} />
+            {NotionPreviewPage && (
+              <Route
+                path="/dev/notion-preview"
+                element={<NotionPreviewPage />}
+              />
             )}
-          />
-          <Route
-            path="/preview/apkg/:key"
-            element={requireAuth(
-              <PreviewApkgPage setError={setErrorMessage} />
+            {AnkifyReviewPreviewPage && (
+              <Route
+                path="/dev/ankify-review-preview"
+                element={<AnkifyReviewPreviewPage />}
+              />
             )}
-          />
-          <Route
-            path="/notion-to-anki"
-            element={<NotionToAnki setErrorMessage={setErrorMessage} />}
-          />
-          <Route
-            path="/anki-to-notion"
-            element={<AnkiToNotion setErrorMessage={setErrorMessage} />}
-          />
-          <Route
-            path="/quizlet-to-anki"
-            element={<QuizletToAnki setErrorMessage={setErrorMessage} />}
-          />
-          <Route
-            path="/markdown-to-anki"
-            element={<MarkdownToAnki setErrorMessage={setErrorMessage} />}
-          />
-          <Route
-            path="/pdf-to-anki"
-            element={<PdfToAnki setErrorMessage={setErrorMessage} />}
-          />
-          <Route
-            path="/usmle-anki"
-            element={<UsmleAnki setErrorMessage={setErrorMessage} />}
-          />
-          <Route
-            path="/nursing-flashcards"
-            element={<NursingFlashcards setErrorMessage={setErrorMessage} />}
-          />
-          <Route
-            path="/anki-from-medical-lecture-slides"
-            element={
-              <AnkiFromMedicalLectureSlides setErrorMessage={setErrorMessage} />
-            }
-          />
-          <Route
-            path="/powerpoint-to-anki"
-            element={<PowerpointToAnki setErrorMessage={setErrorMessage} />}
-          />
-          <Route
-            path="/goodnotes-to-anki"
-            element={<GoodnotesToAnki setErrorMessage={setErrorMessage} />}
-          />
-          <Route
-            path="/ai-flashcard-generator"
-            element={<AiFlashcardGenerator setErrorMessage={setErrorMessage} />}
-          />
-          <Route path="/notion-marketplace" element={<NotionLandingPage />} />
-          <Route path="/answers/:slug" element={<AnswersPage />} />
-          <Route path="/convert" element={<ConvertHubPage />} />
-          <Route
-            path="/convert/:slug"
-            element={<ConvertLandingPage setErrorMessage={setErrorMessage} />}
-          />
-          <Route path="/s/:token" element={<SharedDeckPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+            <Route
+              path="/import"
+              element={requireAuth(<ImportPage setError={setErrorMessage} />)}
+            />
+            <Route path="/ankify" element={requireAuth(<AnkifyPage />)} />
+            <Route
+              path="/ankify/setup"
+              element={requireAuth(<AnkifySetupPage />)}
+            />
+            <Route
+              path="/ankify/history"
+              element={requireAuth(<AnkifyHistoryPage />)}
+            />
+            <Route path="/ops" element={requireAuth(<OpsLayout />)}>
+              <Route index element={<EngineeringTab />} />
+              <Route path="errors" element={<ErrorsTab />} />
+              <Route path="performance" element={<PerformanceTab />} />
+              <Route path="conversions" element={<ConversionsTab />} />
+              <Route path="return-rate" element={<ReturnRateTab />} />
+              <Route path="mindmaps" element={<MindmapsTab />} />
+              <Route path="upload-funnel" element={<UploadFunnelTab />} />
+              <Route path="business" element={<BusinessTab />} />
+              <Route path="showcase" element={<ShowcaseTab />} />
+              <Route path="interviews" element={<InterviewsTab />} />
+              <Route path="messages" element={<ContactMessagesTab />} />
+              <Route path="commands" element={<CommandsTab />} />
+              <Route path="flags" element={<FlagsTab />} />
+              <Route path="pricing-ab" element={<PricingAbFunnelTab />} />
+            </Route>
+            <Route path="/feedback" element={requireAuth(<FeedbackPage />)} />
+            <Route path="/settings" element={requireAuth(<AccountPage />)} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/app" element={<NativeAppPage />} />
+            <Route path="/security" element={<SecurityPage />} />
+            <Route path="/status" element={<StatusPage />} />
+            <Route path="/whats-new" element={<WhatsNewPage />} />
+            <Route path="/documentation" element={<DocsPage />} />
+            <Route path="/documentation/*" element={<DocsPage />} />
+            <Route
+              path="/settings/card-options"
+              element={<Navigate to="/card-options" replace />}
+            />
+            <Route
+              path="/card-options"
+              element={<CardOptionsPage setErrorMessage={setErrorMessage} />}
+            />
+            <Route path="/templates" element={<TemplatesPage />} />
+            <Route
+              path="/templates/new"
+              element={requireAuth(<TemplatesEditorPage mode="new" />)}
+            />
+            <Route
+              path="/templates/edit/:id"
+              element={requireAuth(<TemplatesEditorPage mode="edit" />)}
+            />
+            <Route
+              path="/rules/:id"
+              element={requireAuth(
+                <RulesPage setErrorMessage={setErrorMessage} />
+              )}
+            />
+            <Route
+              path="/preview/:id"
+              element={requireAuth(<PreviewPage setError={setErrorMessage} />)}
+            />
+            <Route
+              path="/preview/database/:id"
+              element={requireAuth(
+                <DatabasePreviewPage setError={setErrorMessage} />
+              )}
+            />
+            <Route
+              path="/preview/apkg/:key"
+              element={requireAuth(
+                <PreviewApkgPage setError={setErrorMessage} />
+              )}
+            />
+            <Route
+              path="/notion-to-anki"
+              element={<NotionToAnki setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/anki-to-notion"
+              element={<AnkiToNotion setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/quizlet-to-anki"
+              element={<QuizletToAnki setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/markdown-to-anki"
+              element={<MarkdownToAnki setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/pdf-to-anki"
+              element={<PdfToAnki setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/usmle-anki"
+              element={<UsmleAnki setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/nursing-flashcards"
+              element={<NursingFlashcards setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/anki-from-medical-lecture-slides"
+              element={
+                <AnkiFromMedicalLectureSlides
+                  setErrorMessage={setErrorMessage}
+                />
+              }
+            />
+            <Route
+              path="/powerpoint-to-anki"
+              element={<PowerpointToAnki setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/goodnotes-to-anki"
+              element={<GoodnotesToAnki setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/ai-flashcard-generator"
+              element={
+                <AiFlashcardGenerator setErrorMessage={setErrorMessage} />
+              }
+            />
+            <Route path="/notion-marketplace" element={<NotionLandingPage />} />
+            <Route path="/answers/:slug" element={<AnswersPage />} />
+            <Route path="/convert" element={<ConvertHubPage />} />
+            <Route
+              path="/convert/:slug"
+              element={<ConvertLandingPage setErrorMessage={setErrorMessage} />}
+            />
+            <Route path="/s/:token" element={<SharedDeckPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </RouteRecoveryBoundary>
       </AppShell>
     </BrowserRouter>
   );
