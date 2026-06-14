@@ -229,7 +229,9 @@ export default function LeechesPanel({ backend }: Props) {
         aria-labelledby="ankify-tab-leeches"
         className={styles.tabPanel}
       >
-        <p className={styles.emptyLine}>No leeches — every card is sticking.</p>
+        <p className={styles.emptyLine}>
+          No leeches yet. Anki flags a card after you fail it 8 times in review.
+        </p>
       </div>
     );
   }

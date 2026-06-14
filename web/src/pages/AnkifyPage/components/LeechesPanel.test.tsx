@@ -76,7 +76,7 @@ describe('LeechesPanel', () => {
     renderPanel(backend);
 
     expect(
-      await screen.findByText(/no leeches — every card is sticking/i)
+      await screen.findByText(/no leeches yet\. anki flags a card/i)
     ).toBeInTheDocument();
   });
 
