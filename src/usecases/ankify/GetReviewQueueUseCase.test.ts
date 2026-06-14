@@ -39,7 +39,7 @@ describe('GetReviewQueueUseCase', () => {
 
     const result = await useCase.execute({ owner: 42, deck: 'My Own Deck' });
 
-    expect(findCards).toHaveBeenCalledWith('"deck:My Own Deck" is:due');
+    expect(findCards).toHaveBeenCalledWith('deck:"My Own Deck" is:due');
     expect(result).toEqual({ connected: true, cardIds: [9001, 9002] });
     expect(cardsInfo).not.toHaveBeenCalled();
   });
@@ -95,6 +95,6 @@ describe('GetReviewQueueUseCase', () => {
 
     await useCase.execute({ owner: 42, deck: 'Week "18"\\x' });
 
-    expect(findCards).toHaveBeenCalledWith('"deck:Week \\"18\\"\\\\x" is:due');
+    expect(findCards).toHaveBeenCalledWith('deck:"Week \\"18\\"\\\\x" is:due');
   });
 });

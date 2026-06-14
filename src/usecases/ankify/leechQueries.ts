@@ -6,7 +6,7 @@ const buildDeckScope = (ownedDeckNames: string[]): string | null => {
     return null;
   }
   return ownedDeckNames
-    .map((deck) => `"deck:${escapeDeckQueryValue(deck)}"`)
+    .map((deck) => `deck:"${escapeDeckQueryValue(deck)}"`)
     .join(' OR ');
 };
 

@@ -12,7 +12,7 @@ describe('assertNoteOwned', () => {
     await assertNoteOwned(ac, ['Notion Sync::Pharma'], 7001);
 
     expect(findNotes).toHaveBeenCalledWith(
-      'nid:7001 ("deck:Notion Sync::Pharma")'
+      'nid:7001 (deck:"Notion Sync::Pharma")'
     );
   });
 
