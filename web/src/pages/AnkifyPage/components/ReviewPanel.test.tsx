@@ -104,6 +104,25 @@ describe('ReviewPanel', () => {
     );
   });
 
+  test('exits a review session back to the deck picker', async () => {
+    renderPanel(makeBackend());
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+    await screen.findByRole('button', { name: 'Show answer' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to decks' }));
+
+    expect(
+      await screen.findByText(
+        'Pick a deck to review its due cards without opening Anki.'
+      )
+    ).toBeInTheDocument();
+    expect(trackMock).toHaveBeenCalledWith(
+      'ankify_review_session_exited',
+      expect.objectContaining({ deck: 'Notion Sync::Pharma', graded: 0 })
+    );
+  });
+
   test('shows the all-caught-up state when no cards are due', async () => {
     renderPanel(
       makeBackend({

@@ -65,6 +65,7 @@ export default function AnkifyReviewPreviewPage() {
           deckName="Notion Sync::Pharmacology"
           onGrade={async () => {}}
           onDone={() => {}}
+          onExit={() => {}}
         />
       )}
       {cell('Reviewer — done', <ReviewSummary graded={47} onBack={() => {}} />)}

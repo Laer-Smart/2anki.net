@@ -84,11 +84,13 @@ export function Reviewer({
   deckName,
   onGrade,
   onDone,
+  onExit,
 }: {
   readonly cards: ReviewQueueCard[];
   readonly deckName: string;
   readonly onGrade: (cardId: number, ease: number) => Promise<void>;
   readonly onDone: (graded: number) => void;
+  readonly onExit: () => void;
 }) {
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
@@ -179,9 +181,25 @@ export function Reviewer({
           style={{ width: `${(index / total) * 100}%` }}
         />
       </div>
-      <p className={reviewStyles.progressLabel}>
-        {index + 1} / {total}
-      </p>
+      <div className={reviewStyles.reviewHeader}>
+        <button
+          type="button"
+          className={reviewStyles.exitButton}
+          aria-label="Back to decks"
+          onClick={() => {
+            track('ankify_review_session_exited', {
+              deck: deckName,
+              graded: history.length,
+            });
+            onExit();
+          }}
+        >
+          ← Decks
+        </button>
+        <p className={reviewStyles.progressLabel}>
+          {index + 1} / {total}
+        </p>
+      </div>
       <div className={reviewStyles.cardArea}>
         <iframe
           title="Card preview"
@@ -353,6 +371,7 @@ export default function ReviewPanel({ backend }: Props) {
           onDone={(graded) =>
             setStage({ kind: 'summary', deck: stage.deck, graded })
           }
+          onExit={() => setStage({ kind: 'picker' })}
         />
       );
     }
