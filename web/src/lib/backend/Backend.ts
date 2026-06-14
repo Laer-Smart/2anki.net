@@ -918,17 +918,6 @@ export class Backend {
     return { opened: body.opened === true };
   }
 
-  async getAnkifyCollectionStatsHtml(): Promise<{
-    html: string | null;
-    truncated: boolean;
-  }> {
-    const result = await get(`${this.baseURL}ankify/collection-stats-html`);
-    return {
-      html: typeof result?.html === 'string' ? result.html : null,
-      truncated: result?.truncated === true,
-    };
-  }
-
   async getAnkifyDeckMaturity(deck: string): Promise<DeckMaturity> {
     try {
       const result = await get(

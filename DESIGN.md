@@ -51,14 +51,13 @@ Data shown:
 - **Per-deck backlog + new count** — `getDeckStats` (already fetched for the stats block), matched to each subscription by `target_deck` deck name. Column becomes `path · synced 2m · ▲7 · +3 new`.
 - **Active Anki profile** — `getActiveProfile` in the header (kills "synced to the wrong profile" confusion).
 - **Deck maturity** — `getEaseFactors` / `getIntervals` → avg interval / % mature per deck (health beyond due count).
-- **Full collection stats** — `getCollectionStatsHTML` behind a "Full stats" expander, sandboxed (Anki-internal HTML).
 
 Actions offered:
 - **Open in Anki (per deck)** — `guiDeckOverview(name)` jumps Anki straight to that deck (row menu), better than the generic Open.
 - **Sync to AnkiWeb now** — `sync` as a header button.
 - **Shut down Anki** — `guiExitAnki` wired to the header Shut-down control.
 
-Out of scope (keep this a sync panel, not an Anki clone): per-card scheduling (`suspend`/`setDueDate`/`forgetCards`), `deleteDecks`, full model/template editing. Per-deck .apkg export was cut — `exportPackage` writes the file into a root-only named Docker volume that the non-root server can't read back, so the download always 503'd.
+Out of scope (keep this a sync panel, not an Anki clone): per-card scheduling (`suspend`/`setDueDate`/`forgetCards`), `deleteDecks`, full model/template editing. Per-deck .apkg export was cut — `exportPackage` writes the file into a root-only named Docker volume that the non-root server can't read back, so the download always 503'd. The full-collection-stats embed was cut — `getCollectionStatsHTML` returns legacy HTML that depends on jQuery and flot, neither present in the API output, so the charts can't render in the sandboxed iframe.
 
 ## Open questions
 - Dark "Mission Control" (candidate C) is parked, not killed — if the dark theme proves the most-used on this surface, revisit a console-grade dark treatment as a theme-specific signature.

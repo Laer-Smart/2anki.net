@@ -477,21 +477,6 @@ describe('AnkiConnectClient', () => {
     });
   });
 
-  test('getCollectionStatsHTML defaults wholeCollection to true', async () => {
-    const fetchImpl = makeFetch({ result: '<div>stats</div>', error: null });
-    const client = new AnkiConnectClient('http://x', fetchImpl);
-
-    const html = await client.getCollectionStatsHTML();
-
-    expect(html).toBe('<div>stats</div>');
-    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
-    expect(body).toEqual({
-      action: 'getCollectionStatsHTML',
-      version: 6,
-      params: { wholeCollection: true },
-    });
-  });
-
   test('getEaseFactors posts the card ids and returns the factors', async () => {
     const fetchImpl = makeFetch({ result: [2500, 1800], error: null });
     const client = new AnkiConnectClient('http://x', fetchImpl);
