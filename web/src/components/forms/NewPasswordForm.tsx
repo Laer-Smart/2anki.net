@@ -19,6 +19,8 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
   const passwordTouched = password.length > 0;
   const passwordMeetsMinimum = password.length >= MIN_PASSWORD_LENGTH;
   const passwordsMatch = password === confirmPassword;
+  const confirmTouched = confirmPassword.length > 0;
+  const showMismatch = passwordTouched && confirmTouched && !passwordsMatch;
 
   const isValid = () =>
     passwordsMatch && passwordMeetsMinimum && password.length < 256;
@@ -101,8 +103,20 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
                 autoComplete="new-password"
                 placeholder="Re-enter new password"
                 required
+                aria-describedby={
+                  showMismatch ? 'confirm-password-help' : undefined
+                }
               />
             </label>
+            {showMismatch && (
+              <p
+                id="confirm-password-help"
+                role="alert"
+                className={styles.helpDanger}
+              >
+                Passwords don&apos;t match.
+              </p>
+            )}
           </div>
           <div className={styles.field}>
             <button
@@ -110,7 +124,7 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
               className={styles.submitButton}
               disabled={!isValid() || loading}
             >
-              {loading ? 'Saving…' : 'Reset password'}
+              {loading ? 'Saving' : 'Reset password'}
             </button>
             {resetError && <p className={styles.helpDanger}>{resetError}</p>}
           </div>

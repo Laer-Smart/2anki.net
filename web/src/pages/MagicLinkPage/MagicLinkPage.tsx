@@ -29,7 +29,7 @@ function MagicLinkPage() {
     if (token == null) {
       setState({
         status: 'error',
-        message: 'No token found. The link may be invalid or expired.',
+        message: 'This link is invalid or has expired. Request a new one.',
       });
       return;
     }
@@ -105,8 +105,9 @@ function MagicLinkPage() {
       <div className={styles.formPage}>
         <div className={styles.formCard}>
           <h1 className={styles.formTitle}>Verifying your link</h1>
-          <div className={sharedStyles.flexCenter}>
+          <div className={sharedStyles.flexCenter} role="status">
             <div className={sharedStyles.spinner} />
+            <span className={sharedStyles.srOnly}>Verifying your link</span>
           </div>
         </div>
       </div>

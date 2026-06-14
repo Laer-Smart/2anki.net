@@ -76,7 +76,7 @@ function ForgotPasswordForm({ setError }: Readonly<ForgotPasswordProps>) {
               className={styles.submitButton}
               disabled={loading || email.length === 0}
             >
-              {loading ? 'Sending…' : 'Send reset link'}
+              {loading ? 'Sending' : 'Send reset link'}
             </button>
           </div>
         </form>

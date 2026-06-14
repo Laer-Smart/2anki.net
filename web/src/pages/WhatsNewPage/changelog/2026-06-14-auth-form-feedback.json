@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-14-auth-form-feedback",
+  "date": "2026-06-14",
+  "type": "fix",
+  "title": "Sign-in and password forms tell you what went wrong, and screen readers announce it"
+}
