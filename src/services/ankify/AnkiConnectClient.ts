@@ -245,6 +245,12 @@ export class AnkiConnectClient {
     return this.invoke('cardsInfo', { cards });
   }
 
+  async answerCards(
+    answers: { cardId: number; ease: number }[]
+  ): Promise<boolean[]> {
+    return this.invoke('answerCards', { answers });
+  }
+
   private async invoke<T>(
     action: string,
     params?: Record<string, unknown>,
@@ -354,6 +360,10 @@ export interface AnkiCardInfo {
   deckName: string;
   lapses: number;
   queue: number;
+  question?: string;
+  answer?: string;
+  css?: string;
+  due?: number;
 }
 
 export interface AnkiApiReflection {

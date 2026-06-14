@@ -44,6 +44,8 @@ import { ListLeechesUseCase } from '../usecases/ankify/ListLeechesUseCase';
 import { EditLeechNoteUseCase } from '../usecases/ankify/EditLeechNoteUseCase';
 import { DeleteLeechNoteUseCase } from '../usecases/ankify/DeleteLeechNoteUseCase';
 import { ReturnLeechToReviewUseCase } from '../usecases/ankify/ReturnLeechToReviewUseCase';
+import { GetReviewQueueUseCase } from '../usecases/ankify/GetReviewQueueUseCase';
+import { GradeReviewCardUseCase } from '../usecases/ankify/GradeReviewCardUseCase';
 import { AnkifyExportSchedulesRepository } from '../data_layer/ankify/AnkifyExportSchedulesRepository';
 import { getAnkifyExportScheduler } from '../lib/ankify/scheduler/instance';
 import { AnkifySessionTokensRepository } from '../data_layer/ankify/AnkifySessionTokensRepository';
@@ -392,7 +394,9 @@ const AnkifyRouter = () => {
     new ListLeechesUseCase(repo, subscriptionsRepo, ankiConnectFactory),
     new EditLeechNoteUseCase(repo, subscriptionsRepo, ankiConnectFactory),
     new DeleteLeechNoteUseCase(repo, subscriptionsRepo, ankiConnectFactory),
-    new ReturnLeechToReviewUseCase(repo, subscriptionsRepo, ankiConnectFactory)
+    new ReturnLeechToReviewUseCase(repo, subscriptionsRepo, ankiConnectFactory),
+    new GetReviewQueueUseCase(repo, subscriptionsRepo, ankiConnectFactory),
+    new GradeReviewCardUseCase(repo, subscriptionsRepo, ankiConnectFactory)
   );
 
   /**
@@ -977,6 +981,65 @@ const AnkifyRouter = () => {
     '/api/ankify/leeches/:noteId/return-to-review',
     RequireAnkifyAccess,
     (req, res) => controller.returnLeechToReview(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/review-queue:
+   *   get:
+   *     summary: Snapshot the due cards for one of the user's synced decks
+   *     description: "Allowlisted endpoint. Query deck. Returns the due-card snapshot for an owned deck as connected plus an array of { cardId, questionHtml, answerHtml, css }. Always 200 when reachable — returns connected false when no active client exists or AnkiConnect is unreachable. 403 when the deck is not owned."
+   *     tags: [Ankify]
+   *     parameters:
+   *       - in: query
+   *         name: deck
+   *         required: true
+   *         schema:
+   *           type: string
+   *     responses:
+   *       200:
+   *         description: "Due-card snapshot (connected true|false)"
+   *       400:
+   *         description: deck is required
+   *       403:
+   *         description: Deck not owned by this user
+   */
+  router.get('/api/ankify/review-queue', RequireAnkifyAccess, (req, res) =>
+    controller.getReviewQueue(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/review-grade:
+   *   post:
+   *     summary: Grade one card in an owned deck via AnkiConnect answerCards
+   *     description: "Allowlisted endpoint. Body cardId and ease (1-4). Re-checks the card belongs to one of the caller's owned decks via a cid: query and validates ease before grading. 200 on success, 400 on invalid ease or cardId, 403 when the card is not owned, 503 when AnkiConnect is unreachable."
+   *     tags: [Ankify]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [cardId, ease]
+   *             properties:
+   *               cardId:
+   *                 type: integer
+   *               ease:
+   *                 type: integer
+   *                 enum: [1, 2, 3, 4]
+   *     responses:
+   *       200:
+   *         description: Card graded
+   *       400:
+   *         description: Invalid cardId or ease
+   *       403:
+   *         description: Card not owned by this user
+   *       503:
+   *         description: AnkiConnect unreachable
+   */
+  router.post('/api/ankify/review-grade', RequireAnkifyAccess, (req, res) =>
+    controller.gradeReviewCard(req, res)
   );
 
   return router;

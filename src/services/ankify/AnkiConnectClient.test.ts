@@ -250,6 +250,29 @@ describe('AnkiConnectClient', () => {
     });
   });
 
+  test('answerCards posts the answerCards action with the answers param', async () => {
+    const fetchImpl = makeFetch({ result: [true, true], error: null });
+    const client = new AnkiConnectClient('http://localhost:8765', fetchImpl);
+
+    const result = await client.answerCards([
+      { cardId: 9001, ease: 3 },
+      { cardId: 9002, ease: 1 },
+    ]);
+
+    expect(result).toEqual([true, true]);
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'answerCards',
+      version: 6,
+      params: {
+        answers: [
+          { cardId: 9001, ease: 3 },
+          { cardId: 9002, ease: 1 },
+        ],
+      },
+    });
+  });
+
   test('getNumCardsReviewedToday posts the action and returns the count', async () => {
     const fetchImpl = makeFetch({ result: 42, error: null });
     const client = new AnkiConnectClient('http://localhost:8765', fetchImpl);
