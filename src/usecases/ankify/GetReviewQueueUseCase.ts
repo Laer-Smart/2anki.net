@@ -1,6 +1,13 @@
 import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
 import { AnkiConnectFactory } from './GetAnkifyStatsUseCase';
+import { inlineReviewMedia } from './inlineReviewMedia';
 import { buildDueCardsQuery } from './reviewQueries';
+
+const REVIEW_MEDIA_CSS =
+  'img{max-width:100%!important;height:auto!important;max-height:60vh!important;object-fit:contain;display:block;margin-inline:auto}' +
+  'audio{display:block;width:100%;max-width:320px;margin-inline:auto}' +
+  'body.card{overflow-x:hidden}' +
+  '.n2a-review-missing{display:inline-block;font-size:.75rem;color:#6b7280;background:#f1f1ef;border-radius:.25rem;padding:.125rem .375rem}';
 
 export interface ReviewQueueCard {
   cardId: number;
@@ -46,12 +53,25 @@ export class GetReviewQueueUseCase {
     }
 
     const info = await ac.cardsInfo(cardIds);
-    const cards = info.map((card) => ({
-      cardId: card.cardId,
-      questionHtml: card.question ?? '',
-      answerHtml: card.answer ?? '',
-      css: card.css ?? '',
-    }));
+    const cache = new Map<string, string | null>();
+    const fetchMedia = (filename: string) => ac.retrieveMediaFile(filename);
+
+    const cards = await Promise.all(
+      info.map(async (card) => ({
+        cardId: card.cardId,
+        questionHtml: await inlineReviewMedia(
+          card.question ?? '',
+          fetchMedia,
+          cache
+        ),
+        answerHtml: await inlineReviewMedia(
+          card.answer ?? '',
+          fetchMedia,
+          cache
+        ),
+        css: (card.css ?? '') + REVIEW_MEDIA_CSS,
+      }))
+    );
 
     return { connected: true, cards };
   }
