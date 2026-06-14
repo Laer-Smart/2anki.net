@@ -41,7 +41,7 @@ describe('renderRichText', () => {
         { plain_text: 'hl', annotations: { color: 'blue_background' } },
       ])
     ).toBe(
-      '<span class="n2a-highlight-blue_background" style="background-color: #0B6E99">hl</span>'
+      '<span class="n2a-highlight-blue_background" style="background-color: rgb(231, 243, 248)">hl</span>'
     );
   });
 

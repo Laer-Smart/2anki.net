@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-14-ankify-notion-background-colours",
+  "date": "2026-06-14",
+  "type": "fix",
+  "title": "Notion highlight backgrounds now use the right tint, not a solid colour"
+}
