@@ -57,6 +57,18 @@ export type LeechList =
   | { connected: false }
   | { connected: true; leeches: LeechNote[] };
 
+export interface ReviewQueueCard {
+  cardId: number;
+  questionHtml: string;
+  answerHtml: string;
+  css: string;
+}
+
+export interface ReviewQueue {
+  connected: boolean;
+  cards: ReviewQueueCard[];
+}
+
 export interface CheckoutPrices {
   cohort: 'legacy' | 'v2';
   legacy: boolean;
@@ -974,6 +986,36 @@ export class Backend {
         status?: number;
       };
       error.status = response?.status;
+      throw error;
+    }
+  }
+
+  async getAnkifyReviewQueue(deck: string): Promise<ReviewQueue> {
+    const result = await get(
+      `${this.baseURL}ankify/review-queue?deck=${encodeURIComponent(deck)}`,
+      { redirect: false }
+    );
+    if (result?.connected === true && Array.isArray(result.cards)) {
+      return { connected: true, cards: result.cards };
+    }
+    return { connected: false, cards: [] };
+  }
+
+  async gradeAnkifyReviewCard(cardId: number, ease: number): Promise<void> {
+    const response = await post(`${this.baseURL}ankify/review-grade`, {
+      cardId,
+      ease,
+    });
+    if (!response.ok) {
+      const body = await response
+        .json()
+        .catch(() => ({ message: response.statusText }));
+      const error = new Error(
+        body.message ?? 'Failed to grade card'
+      ) as Error & {
+        status?: number;
+      };
+      error.status = response.status;
       throw error;
     }
   }
