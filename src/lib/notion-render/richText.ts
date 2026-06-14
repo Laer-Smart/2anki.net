@@ -3,12 +3,21 @@ import { NotionRichTextItem } from './types';
 import notionColorToHex, {
   NOTION_COLORS,
   isNotionColorBackground,
+  notionBackgroundColor,
 } from '../../services/NotionService/NotionColors';
 
 const COLOR_NAMES = new Set(NOTION_COLORS.map((c) => c.name));
 
 const wrap = (open: string, close: string, inner: string): string =>
   `${open}${inner}${close}`;
+
+const colorStyle = (color: string): string | null => {
+  if (isNotionColorBackground(color)) {
+    const background = notionBackgroundColor(color);
+    return background == null ? null : `background-color: ${background}`;
+  }
+  return `color: ${notionColorToHex(color)}`;
+};
 
 export const wrapWithColorClass = (
   color: string | undefined,
@@ -17,11 +26,11 @@ export const wrapWithColorClass = (
   if (color == null || color === 'default' || !COLOR_NAMES.has(color)) {
     return inner;
   }
-  const property = isNotionColorBackground(color)
-    ? 'background-color'
-    : 'color';
-  const hex = notionColorToHex(color);
-  return `<span class="n2a-highlight-${color}" style="${property}: ${hex}">${inner}</span>`;
+  const style = colorStyle(color);
+  if (style == null) {
+    return inner;
+  }
+  return `<span class="n2a-highlight-${color}" style="${style}">${inner}</span>`;
 };
 
 export const renderRichTextItem = (item: NotionRichTextItem): string => {

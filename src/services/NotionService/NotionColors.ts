@@ -29,6 +29,25 @@ export function isNotionColorBackground(color: string) {
   return color.endsWith('_background');
 }
 
+// Notion's background highlight tints differ from its text colours; these
+// mirror the .n2a-highlight-*_background rules in src/templates/notion.css
+// (the bundled Notion export CSS) so inline styles match the legacy path.
+export const NOTION_BACKGROUND_COLORS: Record<string, string> = {
+  gray_background: 'rgb(241, 241, 239)',
+  brown_background: 'rgb(244, 238, 238)',
+  orange_background: 'rgb(251, 236, 221)',
+  yellow_background: 'rgb(251, 243, 219)',
+  green_background: 'rgb(237, 243, 236)',
+  blue_background: 'rgb(231, 243, 248)',
+  purple_background: 'rgba(244, 240, 247, 0.8)',
+  pink_background: 'rgba(249, 238, 243, 0.8)',
+  red_background: 'rgb(253, 235, 236)',
+};
+
+export function notionBackgroundColor(color: string): string | null {
+  return NOTION_BACKGROUND_COLORS[color] ?? null;
+}
+
 export function styleWithColors(color?: string): string {
   if (!color || color === 'default') {
     return '';
