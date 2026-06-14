@@ -69,6 +69,29 @@ describe('buildDeckTree', () => {
     });
   });
 
+  test('marks a node with descendants as hasChildren and a leaf as not', () => {
+    const tree = buildDeckTree([
+      deck('Spanish'),
+      deck('Spanish::Verbs'),
+      deck('Anatomy'),
+    ]);
+
+    const parent = tree.find((node) => node.deck.fullName === 'Spanish');
+    const child = tree.find((node) => node.deck.fullName === 'Spanish::Verbs');
+    const standalone = tree.find((node) => node.deck.fullName === 'Anatomy');
+
+    expect(parent?.hasChildren).toBe(true);
+    expect(child?.hasChildren).toBe(false);
+    expect(standalone?.hasChildren).toBe(false);
+  });
+
+  test('a bare-prefix sibling does not count as a child', () => {
+    const tree = buildDeckTree([deck('Spanish'), deck('Spanish Advanced')]);
+
+    const parent = tree.find((node) => node.deck.fullName === 'Spanish');
+    expect(parent?.hasChildren).toBe(false);
+  });
+
   test('a bare-prefix sibling is NOT absorbed into the parent aggregate', () => {
     const tree = buildDeckTree([
       deck('Spanish', { review: 1 }),
