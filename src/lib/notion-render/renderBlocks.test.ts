@@ -41,9 +41,9 @@ describe('renderNotionBlocks — text blocks', () => {
     ];
     const out = await renderNotionBlocks(blocks, noChildren);
     expect(out.html).toBe(
-      '<p><span class="n2a-highlight-red">p</span></p>\n' +
-        '<h2><span class="n2a-highlight-blue">h</span></h2>\n' +
-        '<ol><li><span class="n2a-highlight-purple">n</span></li></ol>'
+      '<p><span class="n2a-highlight-red" style="color: #E03E3E">p</span></p>\n' +
+        '<h2><span class="n2a-highlight-blue" style="color: #0B6E99">h</span></h2>\n' +
+        '<ol><li><span class="n2a-highlight-purple" style="color: #6940A5">n</span></li></ol>'
     );
   });
 

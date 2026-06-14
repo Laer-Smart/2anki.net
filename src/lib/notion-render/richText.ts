@@ -1,6 +1,9 @@
 import { escapeAttribute, escapeHtml } from './escape';
 import { NotionRichTextItem } from './types';
-import { NOTION_COLORS } from '../../services/NotionService/NotionColors';
+import notionColorToHex, {
+  NOTION_COLORS,
+  isNotionColorBackground,
+} from '../../services/NotionService/NotionColors';
 
 const COLOR_NAMES = new Set(NOTION_COLORS.map((c) => c.name));
 
@@ -14,7 +17,11 @@ export const wrapWithColorClass = (
   if (color == null || color === 'default' || !COLOR_NAMES.has(color)) {
     return inner;
   }
-  return `<span class="n2a-highlight-${color}">${inner}</span>`;
+  const property = isNotionColorBackground(color)
+    ? 'background-color'
+    : 'color';
+  const hex = notionColorToHex(color);
+  return `<span class="n2a-highlight-${color}" style="${property}: ${hex}">${inner}</span>`;
 };
 
 export const renderRichTextItem = (item: NotionRichTextItem): string => {

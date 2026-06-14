@@ -274,8 +274,8 @@ describe('walkNotionPageForFlashcards', () => {
     );
 
     expect(cards.map((c) => c.front)).toEqual([
-      '<span class="n2a-highlight-red">red word</span>',
-      '<span class="n2a-highlight-blue">blue line</span>',
+      '<span class="n2a-highlight-red" style="color: #E03E3E">red word</span>',
+      '<span class="n2a-highlight-blue" style="color: #0B6E99">blue line</span>',
     ]);
   });
 });
