@@ -40,7 +40,7 @@ const truncate = (name: string): string =>
   name.length > 40 ? `${name.slice(0, 40)}…` : name;
 
 interface DeckRow {
-  name: string;
+  fullName: string;
   new: number;
   learning: number;
   review: number;
@@ -51,7 +51,7 @@ function DeckTooltip({ active, payload }: TooltipContentProps) {
   if (!active || payload == null || payload.length === 0) return null;
   const row = payload[0].payload as DeckRow;
   return (
-    <TimeSeriesTooltipShell title={row.name}>
+    <TimeSeriesTooltipShell title={row.fullName}>
       <TimeSeriesTooltipRow label="New" value={row.new.toLocaleString()} />
       <TimeSeriesTooltipRow
         label="Learning"
@@ -77,7 +77,7 @@ export default function DeckBreakdownChart({
   const rows: DeckRow[] = decks
     .filter((deck) => deck.total > 0)
     .map((deck) => ({
-      name: deck.name,
+      fullName: deck.fullName,
       new: deck.new,
       learning: deck.learning,
       review: deck.review,
@@ -133,7 +133,7 @@ export default function DeckBreakdownChart({
             />
             <YAxis
               type="category"
-              dataKey="name"
+              dataKey="fullName"
               tick={AXIS_TICK_STYLE}
               stroke={AXIS_STROKE}
               width={160}

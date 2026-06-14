@@ -69,7 +69,15 @@ describe('StudyStatsSection', () => {
         { date: '2026-06-12', count: 40 },
       ],
       decks: [
-        { name: 'Pharmacology', new: 5, learning: 2, review: 11, total: 120 },
+        {
+          fullName: 'Pharmacology',
+          name: 'Pharmacology',
+          depth: 0,
+          new: 5,
+          learning: 2,
+          review: 11,
+          total: 120,
+        },
       ],
     }));
     renderSection(backend);

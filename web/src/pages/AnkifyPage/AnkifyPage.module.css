@@ -1235,6 +1235,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-left: calc(min(var(--depth, 0), 4) * var(--space-4));
 }
 
 .decksItemTitle a {

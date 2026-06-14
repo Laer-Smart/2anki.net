@@ -4,16 +4,21 @@ import { formatBacklog, formatMaturity, sumDeckBacklog } from './deckBacklog';
 import { AnkifyStatsDeck } from '../stats/types';
 
 const deck = (
-  name: string,
+  fullName: string,
   partial: Partial<AnkifyStatsDeck> = {}
-): AnkifyStatsDeck => ({
-  name,
-  new: 0,
-  learning: 0,
-  review: 0,
-  total: 0,
-  ...partial,
-});
+): AnkifyStatsDeck => {
+  const segments = fullName.split('::');
+  return {
+    fullName,
+    name: segments[segments.length - 1],
+    depth: segments.length - 1,
+    new: 0,
+    learning: 0,
+    review: 0,
+    total: 0,
+    ...partial,
+  };
+};
 
 describe('sumDeckBacklog', () => {
   test('matches the deck itself', () => {

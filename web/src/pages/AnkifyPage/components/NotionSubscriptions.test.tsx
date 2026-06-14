@@ -1047,7 +1047,9 @@ describe('NotionSubscriptions cockpit data column', () => {
         reviewsByDay: [],
         decks: [
           {
-            name: 'MS3::Pharmacology',
+            fullName: 'MS3::Pharmacology',
+            name: 'Pharmacology',
+            depth: 1,
             new: 3,
             learning: 2,
             review: 5,
@@ -1079,7 +1081,15 @@ describe('NotionSubscriptions cockpit data column', () => {
         longestStreak: 0,
         reviewsByDay: [],
         decks: [
-          { name: 'Other::Deck', new: 9, learning: 9, review: 9, total: 27 },
+          {
+            fullName: 'Other::Deck',
+            name: 'Deck',
+            depth: 1,
+            new: 9,
+            learning: 9,
+            review: 9,
+            total: 27,
+          },
         ],
       })),
     });
