@@ -107,6 +107,14 @@ describe('GetReviewCardUseCase', () => {
         css: '.card {}',
       },
     ]);
+    const notesInfo = jest.fn(async () => [
+      {
+        noteId: 5,
+        modelName: 'JlabNote-JlabConverted-1',
+        tags: [],
+        fields: { Audio: { value: '[sound:b.mp3]', order: 0 } },
+      },
+    ]);
     const retrieveMediaFile = jest.fn(async () =>
       Buffer.from('BYTES', 'utf-8').toString('base64')
     );
@@ -116,6 +124,7 @@ describe('GetReviewCardUseCase', () => {
           ping: jest.fn(async () => 6),
           findCards,
           cardsInfo,
+          notesInfo,
           retrieveMediaFile,
         }) as unknown as AnkiConnectClient
     );
@@ -127,10 +136,99 @@ describe('GetReviewCardUseCase', () => {
     const result = await useCase.execute({ owner: 42, cardId: 9001 });
 
     expect(result.card?.questionHtml).toContain('data:image/jpeg;base64,');
+    expect(result.card?.questionHtml).toContain('<audio');
     expect(result.card?.answerHtml).toContain('<audio');
     expect(result.card?.answerHtml).toContain('data:audio/mpeg;base64,');
     expect(result.card?.questionHtml).not.toContain('[anki:play:');
     expect(result.card?.answerHtml).not.toContain('[sound:');
+  });
+
+  it('resolves [anki:play] directives to audio from the note field sounds', async () => {
+    const findCards = jest.fn(async () => [9001]);
+    const cardsInfo = jest.fn(async () => [
+      {
+        cardId: 9001,
+        note: 77,
+        deckName: 'Notion Sync::JP',
+        lapses: 0,
+        queue: 2,
+        question: '日本語 [anki:play:q:0]',
+        answer: 'translation',
+        css: '.card {}',
+      },
+    ]);
+    const notesInfo = jest.fn(async () => [
+      {
+        noteId: 77,
+        modelName: 'JlabNote-JlabConverted-1',
+        tags: [],
+        fields: {
+          Expression: { value: '日本語', order: 0 },
+          Audio: { value: '[sound:1600420050000.mp3]', order: 1 },
+          Meaning: { value: 'Japanese', order: 2 },
+        },
+      },
+    ]);
+    const retrieveMediaFile = jest.fn(async () =>
+      Buffer.from('MP3BYTES', 'utf-8').toString('base64')
+    );
+    const factory = jest.fn(
+      () =>
+        ({
+          ping: jest.fn(async () => 6),
+          findCards,
+          cardsInfo,
+          notesInfo,
+          retrieveMediaFile,
+        }) as unknown as AnkiConnectClient
+    );
+    const useCase = new GetReviewCardUseCase(
+      clientsRepo(activeClient),
+      factory
+    );
+
+    const result = await useCase.execute({ owner: 42, cardId: 9001 });
+
+    expect(notesInfo).toHaveBeenCalledWith([77]);
+    expect(retrieveMediaFile).toHaveBeenCalledWith('1600420050000.mp3');
+    expect(result.card?.questionHtml).toContain('<audio');
+    expect(result.card?.questionHtml).toContain('data:audio/mpeg;base64,');
+    expect(result.card?.questionHtml).not.toContain('[anki:play:');
+  });
+
+  it('does not fetch note info for a card without [anki:play] directives', async () => {
+    const findCards = jest.fn(async () => [9001]);
+    const cardsInfo = jest.fn(async () => [
+      {
+        cardId: 9001,
+        note: 5,
+        deckName: 'Notion Sync::Pharma',
+        lapses: 0,
+        queue: 2,
+        question: '<p>Q1</p>',
+        answer: '<p>A1</p>',
+        css: '',
+      },
+    ]);
+    const notesInfo = jest.fn();
+    const factory = jest.fn(
+      () =>
+        ({
+          ping: jest.fn(async () => 6),
+          findCards,
+          cardsInfo,
+          notesInfo,
+          retrieveMediaFile: jest.fn(),
+        }) as unknown as AnkiConnectClient
+    );
+    const useCase = new GetReviewCardUseCase(
+      clientsRepo(activeClient),
+      factory
+    );
+
+    await useCase.execute({ owner: 42, cardId: 9001 });
+
+    expect(notesInfo).not.toHaveBeenCalled();
   });
 
   it('fetches a media file shared across front and back only once', async () => {

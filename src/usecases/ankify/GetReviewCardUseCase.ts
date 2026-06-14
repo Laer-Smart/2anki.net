@@ -55,22 +55,53 @@ export class GetReviewCardUseCase {
     const cache = new Map<string, string | null>();
     const fetchMedia = (filename: string) => ac.retrieveMediaFile(filename);
 
+    const question = card.question ?? '';
+    const answer = card.answer ?? '';
+    const noteSounds = await this.collectNoteSounds(ac, card.note, [
+      question,
+      answer,
+    ]);
+
     return {
       connected: true,
       card: {
         cardId: card.cardId,
         questionHtml: await inlineReviewMedia(
-          card.question ?? '',
+          question,
           fetchMedia,
-          cache
+          cache,
+          noteSounds
         ),
         answerHtml: await inlineReviewMedia(
-          card.answer ?? '',
+          answer,
           fetchMedia,
-          cache
+          cache,
+          noteSounds
         ),
         css: (card.css ?? '') + REVIEW_MEDIA_CSS,
       },
     };
+  }
+
+  private async collectNoteSounds(
+    ac: ReturnType<AnkiConnectFactory>,
+    noteId: number,
+    sides: string[]
+  ): Promise<string[]> {
+    const hasPlayDirective = sides.some((side) => side.includes('[anki:play:'));
+    if (!hasPlayDirective) {
+      return [];
+    }
+
+    const notes = await ac.notesInfo([noteId]);
+    const note = notes[0];
+    if (note == null) {
+      return [];
+    }
+
+    return Object.values(note.fields)
+      .sort((a, b) => a.order - b.order)
+      .flatMap((field) => [...field.value.matchAll(/\[sound:([^\]]+)\]/g)])
+      .map((match) => match[1]);
   }
 }

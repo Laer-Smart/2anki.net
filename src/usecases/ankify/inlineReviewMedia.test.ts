@@ -105,6 +105,51 @@ describe('inlineReviewMedia', () => {
     expect(out).toBe('Q A');
   });
 
+  it('resolves [anki:play:q:0] to an audio element using note-field sounds', async () => {
+    const fetchMedia = jest.fn(async () => base64Of('MP3'));
+    const cache = new Map<string, string | null>();
+
+    const out = await inlineReviewMedia(
+      'listen [anki:play:q:0]',
+      fetchMedia,
+      cache,
+      ['1600420050000.mp3']
+    );
+
+    expect(out).toContain(
+      `<audio controls preload="none" src="data:audio/mpeg;base64,${base64Of('MP3')}"></audio>`
+    );
+    expect(out).not.toContain('[anki:play:');
+    expect(fetchMedia).toHaveBeenCalledWith('1600420050000.mp3');
+  });
+
+  it('strips [anki:play:q:0] when noteSounds is empty', async () => {
+    const fetchMedia = jest.fn(async () => base64Of('MP3'));
+    const cache = new Map<string, string | null>();
+
+    const out = await inlineReviewMedia(
+      'listen [anki:play:q:0]',
+      fetchMedia,
+      cache,
+      []
+    );
+
+    expect(out).toBe('listen ');
+    expect(out).not.toContain('[anki:play:');
+    expect(out).not.toContain('<audio');
+    expect(fetchMedia).not.toHaveBeenCalled();
+  });
+
+  it('fetches a note-field sound shared by q and a sides only once', async () => {
+    const fetchMedia = jest.fn(async () => base64Of('MP3'));
+    const cache = new Map<string, string | null>();
+
+    await inlineReviewMedia('[anki:play:q:0]', fetchMedia, cache, ['s.mp3']);
+    await inlineReviewMedia('[anki:play:a:0]', fetchMedia, cache, ['s.mp3']);
+
+    expect(fetchMedia).toHaveBeenCalledTimes(1);
+  });
+
   it('leaves no raw [sound: or [anki:play: token in the output', async () => {
     const cache = new Map<string, string | null>();
     const out = await inlineReviewMedia(

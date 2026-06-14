@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-14-ankify-review-jlab-audio",
+  "date": "2026-06-14",
+  "type": "fix",
+  "title": "Card audio plays in the reviewer for decks that store sound in a separate field"
+}
