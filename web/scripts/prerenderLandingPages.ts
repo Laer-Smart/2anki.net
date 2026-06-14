@@ -7,6 +7,7 @@ import pdfCopy from '../src/pages/LandingPage/copy/pdf';
 import ankiToNotionCopy from '../src/pages/LandingPage/copy/ankiToNotion';
 import usmleCopy from '../src/pages/LandingPage/copy/usmle';
 import nursingCopy from '../src/pages/LandingPage/copy/nursing';
+import japaneseCopy from '../src/pages/LandingPage/copy/japanese';
 import medicalLectureSlidesCopy from '../src/pages/LandingPage/copy/medical-lecture-slides';
 import powerpointCopy from '../src/pages/LandingPage/copy/powerpoint';
 import goodnotesCopy from '../src/pages/LandingPage/copy/goodnotes';
@@ -23,6 +24,7 @@ const LANDING_COPIES: LandingCopy[] = [
   ankiToNotionCopy,
   usmleCopy,
   nursingCopy,
+  japaneseCopy,
   medicalLectureSlidesCopy,
   powerpointCopy,
   goodnotesCopy,

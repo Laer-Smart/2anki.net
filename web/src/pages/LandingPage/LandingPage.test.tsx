@@ -11,6 +11,7 @@ import pdfCopy from './copy/pdf';
 import markdownCopy from './copy/markdown';
 import usmleCopy from './copy/usmle';
 import nursingCopy from './copy/nursing';
+import japaneseCopy from './copy/japanese';
 import medicalLectureSlidesCopy from './copy/medical-lecture-slides';
 import { ankiFidelityProof } from './copy/ankiFidelityProof';
 import powerpointCopy from './copy/powerpoint';
@@ -116,6 +117,23 @@ describe('LandingPage', () => {
       'href',
       `/register?source=${encodeURIComponent(nursingCopy.pathname)}`
     );
+  });
+
+  it('renders the Japanese h1, the source-wired CTA, and a FAQ', () => {
+    renderLandingPage(
+      <LandingPage copy={japaneseCopy} setErrorMessage={vi.fn()} />
+    );
+    expect(
+      screen.getByRole('heading', { level: 1, name: japaneseCopy.h1 })
+    ).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: /sign up free/i });
+    expect(link).toHaveAttribute(
+      'href',
+      `/register?source=${encodeURIComponent(japaneseCopy.pathname)}`
+    );
+    expect(
+      screen.getByText('Can I mine sentences from Notion?')
+    ).toBeInTheDocument();
   });
 
   it('renders the medical lecture slides h1 and links CTA to the correct source', () => {

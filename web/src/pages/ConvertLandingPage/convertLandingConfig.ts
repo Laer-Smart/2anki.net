@@ -421,6 +421,10 @@ const plecoToAnki: LandingCopy = {
       label: 'Convert a CSV or Excel sheet to Anki',
       href: '/convert/csv-to-anki',
     },
+    {
+      label: 'Build Japanese Anki cards from Notion',
+      href: '/anki-for-japanese',
+    },
     { label: 'Browse every converter', href: '/convert' },
   ],
   pathname: '/convert/pleco-to-anki',
@@ -500,6 +504,10 @@ const languageReactorToAnki: LandingCopy = {
     },
     { label: 'Move Pleco flashcards to Anki', href: '/convert/pleco-to-anki' },
     { label: 'Convert EPUB highlights to Anki', href: '/convert/epub-to-anki' },
+    {
+      label: 'Anki for Japanese — JLPT, kanji, vocab',
+      href: '/anki-for-japanese',
+    },
     { label: 'Browse every converter', href: '/convert' },
   ],
   pathname: '/convert/language-reactor-to-anki',

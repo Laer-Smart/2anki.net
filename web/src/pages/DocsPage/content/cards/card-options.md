@@ -94,6 +94,8 @@ Anki reads cards aloud with its on-device voice. No audio file is added to the d
 
 If the picked language has no installed voice on the Anki device, the audio stays silent.
 
+Studying Japanese? See [Notion → Anki for Japanese](/documentation/cards/notion-to-anki-japanese) for how mined sentences, readings, and attached audio come across.
+
 ## Multiple choice
 
 These only fire when **Enable MCQ** is on. See [Multiple choice questions](/documentation/cards/mcq) for the full guide.
