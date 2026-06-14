@@ -1,4 +1,11 @@
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  CSSProperties,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import confetti from 'canvas-confetti';
 
@@ -8,6 +15,7 @@ import sharedStyles from '../../../styles/shared.module.css';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import { Backend, ReviewCard } from '../../../lib/backend/Backend';
 import { AnkifyStatsDeck } from '../stats/types';
+import { buildDeckTree } from './buildDeckTree';
 import { track } from '../../../lib/analytics/track';
 
 interface Props {
@@ -33,6 +41,8 @@ const GRADES = [
   { ease: 4, label: 'Easy', interval: '4d', className: reviewStyles.gradeEasy },
 ];
 
+const MAX_INDENT_DEPTH = 4;
+
 export function DeckPicker({
   decks,
   onReview,
@@ -40,36 +50,47 @@ export function DeckPicker({
   readonly decks: AnkifyStatsDeck[];
   readonly onReview: (deckName: string) => void;
 }) {
+  const tree = buildDeckTree(decks);
   return (
     <ul className={styles.decksList}>
-      {decks.map((deck) => {
-        const due = deck.review;
+      {tree.map((node) => {
+        const due = node.aggregateDue;
         const muted = due === 0;
+        const label =
+          node.deck.name.length > 0 ? node.deck.name : 'Untitled deck';
         return (
           <li
-            key={deck.name}
+            key={node.deck.fullName}
             className={
               muted
                 ? `${styles.decksItem} ${reviewStyles.deckRowMuted}`
                 : styles.decksItem
             }
           >
-            <span className={styles.decksItemTitle} title={deck.name}>
-              {deck.name}
+            <span
+              className={styles.decksItemTitle}
+              title={node.deck.fullName}
+              style={
+                {
+                  ['--depth' as string]: Math.min(node.depth, MAX_INDENT_DEPTH),
+                } as CSSProperties
+              }
+            >
+              {label}
             </span>
             <span className={reviewStyles.deckCounts}>
               <span className={reviewStyles.deckDue}>
                 <span aria-hidden="true">▲</span>
                 {due} due
               </span>
-              <span>{deck.learning} learning</span>
-              <span>+{deck.new} new</span>
+              <span>{node.aggregateLearning} learning</span>
+              <span>+{node.aggregateNew} new</span>
             </span>
             <button
               type="button"
               className={reviewStyles.deckReview}
               disabled={muted}
-              onClick={() => onReview(deck.name)}
+              onClick={() => onReview(node.deck.fullName)}
             >
               Review
             </button>

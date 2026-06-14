@@ -36,7 +36,15 @@ const statsWithDeck = (review: number): AnkifyStats => ({
   longestStreak: 0,
   reviewsByDay: [],
   decks: [
-    { name: 'Notion Sync::Pharma', new: 3, learning: 1, review, total: 120 },
+    {
+      fullName: 'Notion Sync::Pharma',
+      name: 'Pharma',
+      depth: 1,
+      new: 3,
+      learning: 1,
+      review,
+      total: 120,
+    },
   ],
 });
 
@@ -297,6 +305,88 @@ describe('ReviewPanel', () => {
 
     const reviewButton = await screen.findByRole('button', { name: 'Review' });
     expect(reviewButton).toBeDisabled();
+  });
+
+  test('sends the full deck path to the review queue for a subdeck', async () => {
+    const subdeckStats: AnkifyStats = {
+      connected: true,
+      reviewedToday: 0,
+      reviewedThisYear: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      reviewsByDay: [],
+      decks: [
+        {
+          fullName: "Jlab's beginner course::Part 1: Listening comprehension",
+          name: 'Part 1: Listening comprehension',
+          depth: 1,
+          new: 0,
+          learning: 0,
+          review: 5,
+          total: 40,
+        },
+      ],
+    };
+    const getAnkifyReviewQueue = vi.fn(async () => ({
+      connected: true as const,
+      cardIds: [9001],
+    }));
+    renderPanel(
+      makeBackend({
+        getAnkifyStats: vi.fn(async () => subdeckStats),
+        getAnkifyReviewQueue,
+      })
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+
+    await waitFor(() =>
+      expect(getAnkifyReviewQueue).toHaveBeenCalledWith(
+        "Jlab's beginner course::Part 1: Listening comprehension"
+      )
+    );
+  });
+
+  test('shows aggregate counts on a parent and keeps it reviewable via a due child', async () => {
+    const treeStats: AnkifyStats = {
+      connected: true,
+      reviewedToday: 0,
+      reviewedThisYear: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      reviewsByDay: [],
+      decks: [
+        {
+          fullName: 'Spanish',
+          name: 'Spanish',
+          depth: 0,
+          new: 1,
+          learning: 0,
+          review: 0,
+          total: 10,
+        },
+        {
+          fullName: 'Spanish::Verbs',
+          name: 'Verbs',
+          depth: 1,
+          new: 2,
+          learning: 3,
+          review: 4,
+          total: 20,
+        },
+      ],
+    };
+    renderPanel(makeBackend({ getAnkifyStats: vi.fn(async () => treeStats) }));
+
+    const items = await screen.findAllByRole('listitem');
+    expect(items).toHaveLength(2);
+    const parent = items[0];
+    expect(parent).toHaveTextContent('Spanish');
+    expect(parent).toHaveTextContent('4 due');
+    expect(parent).toHaveTextContent('3 learning');
+    expect(parent).toHaveTextContent('+3 new');
+    const parentReview = parent.querySelector('button');
+    expect(parentReview).not.toBeDisabled();
   });
 
   test('shows the offline state when Anki is not connected', async () => {

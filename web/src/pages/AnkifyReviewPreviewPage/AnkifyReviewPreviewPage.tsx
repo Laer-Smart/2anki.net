@@ -11,24 +11,53 @@ import { AnkifyStatsDeck } from '../AnkifyPage/stats/types';
 
 const decksWithDue: AnkifyStatsDeck[] = [
   {
-    name: 'Notion Sync::Pharmacology',
+    fullName: 'Notion Sync::Pharmacology',
+    name: 'Pharmacology',
+    depth: 1,
     new: 12,
     learning: 3,
     review: 47,
     total: 420,
   },
-  { name: 'Notion Sync::Torts', new: 0, learning: 1, review: 8, total: 90 },
+  {
+    fullName: 'Notion Sync::Pharmacology::Antibiotics',
+    name: 'Antibiotics',
+    depth: 2,
+    new: 4,
+    learning: 1,
+    review: 12,
+    total: 80,
+  },
+  {
+    fullName: 'Notion Sync::Torts',
+    name: 'Torts',
+    depth: 1,
+    new: 0,
+    learning: 1,
+    review: 8,
+    total: 90,
+  },
 ];
 
 const decksCaughtUp: AnkifyStatsDeck[] = [
   {
-    name: 'Notion Sync::Pharmacology',
+    fullName: 'Notion Sync::Pharmacology',
+    name: 'Pharmacology',
+    depth: 1,
     new: 0,
     learning: 0,
     review: 0,
     total: 420,
   },
-  { name: 'Notion Sync::Torts', new: 0, learning: 0, review: 0, total: 90 },
+  {
+    fullName: 'Notion Sync::Torts',
+    name: 'Torts',
+    depth: 1,
+    new: 0,
+    learning: 0,
+    review: 0,
+    total: 90,
+  },
 ];
 
 const previewCard: ReviewQueueCard = {

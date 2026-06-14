@@ -13,7 +13,7 @@ export const sumDeckBacklog = (
   let due = 0;
   let fresh = 0;
   for (const deck of decks) {
-    if (isSelfOrDescendantDeck(deck.name, ownedDeck)) {
+    if (isSelfOrDescendantDeck(deck.fullName, ownedDeck)) {
       due += deck.review + deck.learning;
       fresh += deck.new;
     }
