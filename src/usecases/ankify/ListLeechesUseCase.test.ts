@@ -117,7 +117,7 @@ describe('ListLeechesUseCase', () => {
     const result = await useCase.execute({ owner: 42 });
 
     expect(findNotes).toHaveBeenCalledWith(
-      'tag:leech ("deck:Notion Sync::Pharma")'
+      'tag:leech (deck:"Notion Sync::Pharma")'
     );
     expect(result).toEqual({
       connected: true,

@@ -19,7 +19,13 @@ describe('leechQueries', () => {
   describe('buildLeechListQuery', () => {
     it('scopes tag:leech to a single owned deck', () => {
       expect(buildLeechListQuery(['Notion Sync::Pharmacology'])).toBe(
-        'tag:leech ("deck:Notion Sync::Pharmacology")'
+        'tag:leech (deck:"Notion Sync::Pharmacology")'
+      );
+    });
+
+    it('matches a deck name with a space and a colon', () => {
+      expect(buildLeechListQuery(['Part 1: Listening comprehension'])).toBe(
+        'tag:leech (deck:"Part 1: Listening comprehension")'
       );
     });
 
@@ -27,13 +33,13 @@ describe('leechQueries', () => {
       expect(
         buildLeechListQuery(['Notion Sync::Pharma', 'Notion Sync::Torts'])
       ).toBe(
-        'tag:leech ("deck:Notion Sync::Pharma" OR "deck:Notion Sync::Torts")'
+        'tag:leech (deck:"Notion Sync::Pharma" OR deck:"Notion Sync::Torts")'
       );
     });
 
     it('escapes deck names with quotes and backslashes', () => {
       expect(buildLeechListQuery(['Week "18"\\x'])).toBe(
-        'tag:leech ("deck:Week \\"18\\"\\\\x")'
+        'tag:leech (deck:"Week \\"18\\"\\\\x")'
       );
     });
 
@@ -45,8 +51,14 @@ describe('leechQueries', () => {
   describe('buildNoteOwnershipQuery', () => {
     it('constrains a note id to a single owned deck', () => {
       expect(buildNoteOwnershipQuery(7001, ['Notion Sync::Pharma'])).toBe(
-        'nid:7001 ("deck:Notion Sync::Pharma")'
+        'nid:7001 (deck:"Notion Sync::Pharma")'
       );
+    });
+
+    it('matches a deck name with a space and a colon', () => {
+      expect(
+        buildNoteOwnershipQuery(7001, ['Part 1: Listening comprehension'])
+      ).toBe('nid:7001 (deck:"Part 1: Listening comprehension")');
     });
 
     it('ORs multiple owned decks', () => {
@@ -56,13 +68,13 @@ describe('leechQueries', () => {
           'Notion Sync::Torts',
         ])
       ).toBe(
-        'nid:7001 ("deck:Notion Sync::Pharma" OR "deck:Notion Sync::Torts")'
+        'nid:7001 (deck:"Notion Sync::Pharma" OR deck:"Notion Sync::Torts")'
       );
     });
 
     it('escapes deck names with quotes and backslashes', () => {
       expect(buildNoteOwnershipQuery(42, ['Week "18"\\x'])).toBe(
-        'nid:42 ("deck:Week \\"18\\"\\\\x")'
+        'nid:42 (deck:"Week \\"18\\"\\\\x")'
       );
     });
 

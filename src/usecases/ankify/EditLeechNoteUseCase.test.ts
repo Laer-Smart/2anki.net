@@ -57,7 +57,7 @@ describe('EditLeechNoteUseCase', () => {
     });
 
     expect(findNotes).toHaveBeenCalledWith(
-      'nid:7001 ("deck:Notion Sync::Pharma")'
+      'nid:7001 (deck:"Notion Sync::Pharma")'
     );
     expect(updateNoteFields).toHaveBeenCalledWith(7001, { Front: 'new front' });
   });
