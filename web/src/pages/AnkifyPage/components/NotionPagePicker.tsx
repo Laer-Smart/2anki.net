@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import sharedStyles from '../../../styles/shared.module.css';
 import styles from '../AnkifyPage.module.css';
@@ -135,6 +136,14 @@ export default function NotionPagePicker({
                       />
                     </a>
                   )}
+                  <Link
+                    to={`/rules/${page.id}`}
+                    className={`${sharedStyles.btnSmall} ${styles.inlineButton}`}
+                    aria-label={`Set rules for ${page.title} before making a deck`}
+                    title="Set conversion rules before making a deck"
+                  >
+                    Set rules
+                  </Link>
                   <button
                     type="button"
                     className={`${sharedStyles.btnSmall} ${styles.inlineButton}`}
