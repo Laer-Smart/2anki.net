@@ -45,6 +45,7 @@ import { EditLeechNoteUseCase } from '../usecases/ankify/EditLeechNoteUseCase';
 import { DeleteLeechNoteUseCase } from '../usecases/ankify/DeleteLeechNoteUseCase';
 import { ReturnLeechToReviewUseCase } from '../usecases/ankify/ReturnLeechToReviewUseCase';
 import { GetReviewQueueUseCase } from '../usecases/ankify/GetReviewQueueUseCase';
+import { GetReviewCardUseCase } from '../usecases/ankify/GetReviewCardUseCase';
 import { GradeReviewCardUseCase } from '../usecases/ankify/GradeReviewCardUseCase';
 import { AnkifyExportSchedulesRepository } from '../data_layer/ankify/AnkifyExportSchedulesRepository';
 import { getAnkifyExportScheduler } from '../lib/ankify/scheduler/instance';
@@ -396,6 +397,7 @@ const AnkifyRouter = () => {
     new DeleteLeechNoteUseCase(repo, subscriptionsRepo, ankiConnectFactory),
     new ReturnLeechToReviewUseCase(repo, subscriptionsRepo, ankiConnectFactory),
     new GetReviewQueueUseCase(repo, ankiConnectFactory),
+    new GetReviewCardUseCase(repo, ankiConnectFactory),
     new GradeReviewCardUseCase(repo, ankiConnectFactory)
   );
 
@@ -987,8 +989,8 @@ const AnkifyRouter = () => {
    * @swagger
    * /api/ankify/review-queue:
    *   get:
-   *     summary: Snapshot the due cards for one of the user's Anki decks
-   *     description: "Allowlisted endpoint. Query deck. Returns the due-card snapshot for any deck in the user's own hosted Anki as connected plus an array of { cardId, questionHtml, answerHtml, css }. Always 200 when reachable — returns connected false when no active client exists or AnkiConnect is unreachable."
+   *     summary: List the due card ids for one of the user's Anki decks
+   *     description: "Allowlisted endpoint. Query deck. Returns the due card ids for any deck in the user's own hosted Anki as connected plus an array of cardIds. Cards are loaded one at a time via review-card so large decks stay instant. Always 200 when reachable — returns connected false when no active client exists or AnkiConnect is unreachable."
    *     tags: [Ankify]
    *     parameters:
    *       - in: query
@@ -998,12 +1000,37 @@ const AnkifyRouter = () => {
    *           type: string
    *     responses:
    *       200:
-   *         description: "Due-card snapshot (connected true|false)"
+   *         description: "Due card ids (connected true|false)"
    *       400:
    *         description: deck is required
    */
   router.get('/api/ankify/review-queue', RequireAnkifyAccess, (req, res) =>
     controller.getReviewQueue(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ankify/review-card:
+   *   get:
+   *     summary: Load one due card's rendered HTML and media for review
+   *     description: "Allowlisted endpoint. Query cardId. Probes the card exists in the caller's own hosted Anki, then returns { connected, card } where card is { cardId, questionHtml, answerHtml, css } with media inlined as data URIs, or null when the card is gone. 503 when AnkiConnect is unreachable."
+   *     tags: [Ankify]
+   *     parameters:
+   *       - in: query
+   *         name: cardId
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     responses:
+   *       200:
+   *         description: "Rendered card (card may be null when gone)"
+   *       400:
+   *         description: cardId is required
+   *       503:
+   *         description: AnkiConnect unreachable
+   */
+  router.get('/api/ankify/review-card', RequireAnkifyAccess, (req, res) =>
+    controller.getReviewCard(req, res)
   );
 
   /**

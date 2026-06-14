@@ -12,6 +12,11 @@ vi.mock('../../../lib/analytics/track', () => ({
   track: (...args: unknown[]) => trackMock(...args),
 }));
 
+const confettiMock = vi.fn();
+vi.mock('canvas-confetti', () => ({
+  default: (...args: unknown[]) => confettiMock(...args),
+}));
+
 const renderPanel = (backend: Backend) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -35,27 +40,31 @@ const statsWithDeck = (review: number): AnkifyStats => ({
   ],
 });
 
-const cards: ReviewQueueCard[] = [
-  {
+const cardById: Record<number, ReviewQueueCard> = {
+  9001: {
     cardId: 9001,
     questionHtml: '<p>Q1</p>',
     answerHtml: '<p>A1</p>',
     css: '',
   },
-  {
+  9002: {
     cardId: 9002,
     questionHtml: '<p>Q2</p>',
     answerHtml: '<p>A2</p>',
     css: '',
   },
-];
+};
 
 const makeBackend = (overrides: Partial<Backend> = {}): Backend =>
   ({
     getAnkifyStats: vi.fn(async () => statsWithDeck(2)),
     getAnkifyReviewQueue: vi.fn(async () => ({
       connected: true as const,
-      cards,
+      cardIds: [9001, 9002],
+    })),
+    getAnkifyReviewCard: vi.fn(async (cardId: number) => ({
+      connected: true as const,
+      card: cardById[cardId] ?? null,
     })),
     gradeAnkifyReviewCard: vi.fn(async () => {}),
     ...overrides,
@@ -63,6 +72,15 @@ const makeBackend = (overrides: Partial<Backend> = {}): Backend =>
 
 beforeEach(() => {
   trackMock.mockClear();
+  confettiMock.mockClear();
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn(() => ({ matches: false }))
+  );
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe('ReviewPanel', () => {
@@ -104,6 +122,54 @@ describe('ReviewPanel', () => {
     );
   });
 
+  test('fires confetti on a finished session and respects reduced motion', async () => {
+    renderPanel(makeBackend());
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Show answer' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Good/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Show answer' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Good/ }));
+
+    expect(await screen.findByText('2 cards. Done.')).toBeInTheDocument();
+    await waitFor(() => expect(confettiMock).toHaveBeenCalledTimes(1));
+  });
+
+  test('skips confetti when prefers-reduced-motion is set', async () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => ({ matches: true }))
+    );
+    renderPanel(makeBackend());
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Show answer' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Good/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Show answer' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Good/ }));
+
+    expect(await screen.findByText('2 cards. Done.')).toBeInTheDocument();
+    expect(confettiMock).not.toHaveBeenCalled();
+  });
+
+  test('skips a card that has gone missing', async () => {
+    const getAnkifyReviewCard = vi.fn(async (cardId: number) => {
+      if (cardId === 9001) {
+        return { connected: true as const, card: null };
+      }
+      return { connected: true as const, card: cardById[cardId] ?? null };
+    });
+    renderPanel(makeBackend({ getAnkifyReviewCard }));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+
+    const frame = (await screen.findByTitle(
+      'Card preview'
+    )) as HTMLIFrameElement;
+    await waitFor(() => expect(frame.srcdoc).toContain('Q2'));
+    expect(getAnkifyReviewCard).toHaveBeenCalledWith(9002);
+  });
+
   test('exits a review session back to the deck picker', async () => {
     renderPanel(makeBackend());
 
@@ -129,7 +195,7 @@ describe('ReviewPanel', () => {
         getAnkifyStats: vi.fn(async () => statsWithDeck(5)),
         getAnkifyReviewQueue: vi.fn(async () => ({
           connected: true as const,
-          cards: [],
+          cardIds: [],
         })),
       })
     );

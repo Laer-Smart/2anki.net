@@ -37,10 +37,11 @@ const makeResponse = (): CapturingResponse => {
 };
 
 const QUEUE_INDEX = 32;
-const GRADE_INDEX = 33;
+const CARD_INDEX = 33;
+const GRADE_INDEX = 34;
 
 const makeController = (index: number, useCase: { execute: jest.Mock }) => {
-  const stubs = Array.from({ length: 34 }, () => ({}));
+  const stubs = Array.from({ length: 35 }, () => ({}));
   stubs[index] = useCase;
   return new AnkifyController(
     ...(stubs as ConstructorParameters<typeof AnkifyController>)
@@ -48,18 +49,8 @@ const makeController = (index: number, useCase: { execute: jest.Mock }) => {
 };
 
 describe('AnkifyController review handlers', () => {
-  test('getReviewQueue returns the snapshot for an owned deck', async () => {
-    const result = {
-      connected: true,
-      cards: [
-        {
-          cardId: 9001,
-          questionHtml: '<p>Q</p>',
-          answerHtml: '<p>A</p>',
-          css: '.card{}',
-        },
-      ],
-    };
+  test('getReviewQueue returns the due card ids for an owned deck', async () => {
+    const result = { connected: true, cardIds: [9001, 9002] };
     const execute = jest.fn(async () => result);
     const controller = makeController(QUEUE_INDEX, { execute });
     const capture = makeResponse();
@@ -100,6 +91,83 @@ describe('AnkifyController review handlers', () => {
 
     await controller.getReviewQueue(
       { query: { deck: 'Other::Deck' } } as unknown as Request,
+      capture.res
+    );
+
+    expect(capture.statusCode).toBe(503);
+  });
+
+  test('getReviewCard returns the rendered card for a valid cardId', async () => {
+    const card = {
+      cardId: 9001,
+      questionHtml: '<p>Q</p>',
+      answerHtml: '<p>A</p>',
+      css: '.card{}',
+    };
+    const execute = jest.fn(async () => ({ connected: true, card }));
+    const controller = makeController(CARD_INDEX, { execute });
+    const capture = makeResponse();
+
+    await controller.getReviewCard(
+      { query: { cardId: '9001' } } as unknown as Request,
+      capture.res
+    );
+
+    expect(execute).toHaveBeenCalledWith({ owner: 42, cardId: 9001 });
+    expect(capture.statusCode).toBe(200);
+    expect(capture.body).toEqual({ connected: true, card });
+  });
+
+  test('getReviewCard returns card:null when the card is gone', async () => {
+    const execute = jest.fn(async () => ({ connected: true, card: null }));
+    const controller = makeController(CARD_INDEX, { execute });
+    const capture = makeResponse();
+
+    await controller.getReviewCard(
+      { query: { cardId: '9001' } } as unknown as Request,
+      capture.res
+    );
+
+    expect(capture.statusCode).toBe(200);
+    expect(capture.body).toEqual({ connected: true, card: null });
+  });
+
+  test('getReviewCard rejects a missing cardId with 400', async () => {
+    const execute = jest.fn();
+    const controller = makeController(CARD_INDEX, { execute });
+    const capture = makeResponse();
+
+    await controller.getReviewCard(
+      { query: {} } as unknown as Request,
+      capture.res
+    );
+
+    expect(execute).not.toHaveBeenCalled();
+    expect(capture.statusCode).toBe(400);
+  });
+
+  test('getReviewCard maps an offline client to 503', async () => {
+    const execute = jest.fn(async () => ({ connected: false, card: null }));
+    const controller = makeController(CARD_INDEX, { execute });
+    const capture = makeResponse();
+
+    await controller.getReviewCard(
+      { query: { cardId: '9001' } } as unknown as Request,
+      capture.res
+    );
+
+    expect(capture.statusCode).toBe(503);
+  });
+
+  test('getReviewCard maps AnkiConnectUnreachableError to 503', async () => {
+    const execute = jest.fn(async () => {
+      throw new AnkiConnectUnreachableError('http://x', new Error('down'));
+    });
+    const controller = makeController(CARD_INDEX, { execute });
+    const capture = makeResponse();
+
+    await controller.getReviewCard(
+      { query: { cardId: '9001' } } as unknown as Request,
       capture.res
     );
 

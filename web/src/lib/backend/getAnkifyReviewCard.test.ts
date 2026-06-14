@@ -14,30 +14,33 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('Backend.getAnkifyReviewQueue', () => {
-  it('returns connected with the card ids on 200', async () => {
-    const cardIds = [9001, 9002];
+describe('Backend.getAnkifyReviewCard', () => {
+  it('returns connected with the card on 200', async () => {
+    const card = {
+      cardId: 9001,
+      questionHtml: '<p>Q</p>',
+      answerHtml: '<p>A</p>',
+      css: '',
+    };
     fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify({ connected: true, cardIds }), {
-        status: 200,
-      })
+      new Response(JSON.stringify({ connected: true, card }), { status: 200 })
     );
 
-    const result = await new Backend().getAnkifyReviewQueue('My Deck');
+    const result = await new Backend().getAnkifyReviewCard(9001);
 
-    expect(result).toEqual({ connected: true, cardIds });
+    expect(result).toEqual({ connected: true, card });
   });
 
-  it('returns connected with an empty array on 200 with no due cards', async () => {
+  it('returns connected with card null when the card is gone', async () => {
     fetchSpy.mockResolvedValueOnce(
-      new Response(JSON.stringify({ connected: true, cardIds: [] }), {
+      new Response(JSON.stringify({ connected: true, card: null }), {
         status: 200,
       })
     );
 
-    const result = await new Backend().getAnkifyReviewQueue('My Deck');
+    const result = await new Backend().getAnkifyReviewCard(9001);
 
-    expect(result).toEqual({ connected: true, cardIds: [] });
+    expect(result).toEqual({ connected: true, card: null });
   });
 
   it('maps a 503 to the offline reason', async () => {
@@ -47,7 +50,7 @@ describe('Backend.getAnkifyReviewQueue', () => {
       })
     );
 
-    const result = await new Backend().getAnkifyReviewQueue('My Deck');
+    const result = await new Backend().getAnkifyReviewCard(9001);
 
     expect(result).toEqual({ connected: false, reason: 'offline' });
   });
@@ -55,7 +58,7 @@ describe('Backend.getAnkifyReviewQueue', () => {
   it('maps a network error to the offline reason', async () => {
     fetchSpy.mockRejectedValueOnce(new Error('Failed to fetch'));
 
-    const result = await new Backend().getAnkifyReviewQueue('My Deck');
+    const result = await new Backend().getAnkifyReviewCard(9001);
 
     expect(result).toEqual({ connected: false, reason: 'offline' });
   });
@@ -65,7 +68,7 @@ describe('Backend.getAnkifyReviewQueue', () => {
       new Response(JSON.stringify({ message: 'boom' }), { status: 500 })
     );
 
-    const result = await new Backend().getAnkifyReviewQueue('My Deck');
+    const result = await new Backend().getAnkifyReviewCard(9001);
 
     expect(result).toEqual({ connected: false, reason: 'error' });
   });
