@@ -80,16 +80,23 @@ describe('LeechesPanel', () => {
     ).toBeInTheDocument();
   });
 
-  test('offline degrades calmly without crashing', async () => {
-    const backend = makeBackend({
-      listAnkifyLeeches: vi.fn(async () => ({ connected: false as const })),
-    });
+  test('offline degrades calmly with a Try again refetch control', async () => {
+    const listAnkifyLeeches = vi.fn(async () => ({
+      connected: false as const,
+    }));
+    const backend = makeBackend({ listAnkifyLeeches });
 
     renderPanel(backend);
 
     expect(
-      await screen.findByText(/leeches load once anki is running/i)
+      await screen.findByText(
+        "Anki isn't connected. Open Anki on your computer and try again."
+      )
     ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+
+    await waitFor(() => expect(listAnkifyLeeches).toHaveBeenCalledTimes(2));
   });
 
   test('editing fires the leech_action event and calls the edit endpoint', async () => {

@@ -3,6 +3,7 @@ import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/a
 import { ownedDeckNames } from '../../lib/ankify/deckOwnership';
 import {
   AnkiCardInfo,
+  AnkiConnectUnreachableError,
   AnkiNoteInfo,
 } from '../../services/ankify/AnkiConnectClient';
 import { AnkiConnectFactory } from './GetAnkifyStatsUseCase';
@@ -72,25 +73,32 @@ export class ListLeechesUseCase {
       client.anki_connect_api_key
     );
 
-    await ac.ping();
+    try {
+      await ac.ping();
 
-    const noteIds = await ac.findNotes(query);
-    if (noteIds.length === 0) {
-      return { connected: true, leeches: [] };
+      const noteIds = await ac.findNotes(query);
+      if (noteIds.length === 0) {
+        return { connected: true, leeches: [] };
+      }
+
+      const notes = await ac.notesInfo(noteIds);
+      const cardIds = notes.flatMap((note) => note.cards ?? []);
+      const cards = cardIds.length > 0 ? await ac.cardsInfo(cardIds) : [];
+      const cardById = new Map<number, AnkiCardInfo>(
+        cards.map((card) => [card.cardId, card])
+      );
+
+      const leeches = notes
+        .map((note) => this.toLeechNote(note, cardById))
+        .sort((a, b) => b.lapses - a.lapses);
+
+      return { connected: true, leeches };
+    } catch (error) {
+      if (error instanceof AnkiConnectUnreachableError) {
+        return { connected: false };
+      }
+      throw error;
     }
-
-    const notes = await ac.notesInfo(noteIds);
-    const cardIds = notes.flatMap((note) => note.cards ?? []);
-    const cards = cardIds.length > 0 ? await ac.cardsInfo(cardIds) : [];
-    const cardById = new Map<number, AnkiCardInfo>(
-      cards.map((card) => [card.cardId, card])
-    );
-
-    const leeches = notes
-      .map((note) => this.toLeechNote(note, cardById))
-      .sort((a, b) => b.lapses - a.lapses);
-
-    return { connected: true, leeches };
   }
 
   private toLeechNote(

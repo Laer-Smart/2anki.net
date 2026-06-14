@@ -2,6 +2,7 @@ import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/Ankify
 import { AnkifyNotionSubscriptionsRepositoryInterface } from '../../data_layer/ankify/AnkifyNotionSubscriptionsRepository';
 import {
   AnkiConnectClient,
+  AnkiConnectTimeoutError,
   AnkiConnectUnreachableError,
 } from '../../services/ankify/AnkiConnectClient';
 import { ListLeechesUseCase } from './ListLeechesUseCase';
@@ -175,7 +176,8 @@ describe('ListLeechesUseCase', () => {
     });
   });
 
-  test('propagates AnkiConnectUnreachableError from the ping', async () => {
+  test('degrades to connected:false when AnkiConnect is unreachable on ping', async () => {
+    const findNotes = jest.fn();
     const factory = jest.fn(
       () =>
         ({
@@ -184,6 +186,58 @@ describe('ListLeechesUseCase', () => {
               'http://x',
               new Error('down')
             );
+          }),
+          findNotes,
+          notesInfo: jest.fn(),
+          cardsInfo: jest.fn(),
+        }) as unknown as AnkiConnectClient
+    );
+    const useCase = new ListLeechesUseCase(
+      clientsRepo(activeClient),
+      subsRepo([
+        { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
+      ]),
+      factory
+    );
+
+    expect(await useCase.execute({ owner: 42 })).toEqual({ connected: false });
+    expect(findNotes).not.toHaveBeenCalled();
+  });
+
+  test('degrades to connected:false when a timeout subclass is thrown', async () => {
+    const factory = jest.fn(
+      () =>
+        ({
+          ping: jest.fn(async () => 6),
+          findNotes: jest.fn(async () => {
+            throw new AnkiConnectTimeoutError(
+              'http://x',
+              'findNotes',
+              10_000,
+              new Error('slow')
+            );
+          }),
+          notesInfo: jest.fn(),
+          cardsInfo: jest.fn(),
+        }) as unknown as AnkiConnectClient
+    );
+    const useCase = new ListLeechesUseCase(
+      clientsRepo(activeClient),
+      subsRepo([
+        { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
+      ]),
+      factory
+    );
+
+    expect(await useCase.execute({ owner: 42 })).toEqual({ connected: false });
+  });
+
+  test('rethrows a non-AnkiConnect error so real bugs surface', async () => {
+    const factory = jest.fn(
+      () =>
+        ({
+          ping: jest.fn(async () => {
+            throw new Error('unexpected');
           }),
           findNotes: jest.fn(),
           notesInfo: jest.fn(),
@@ -198,8 +252,6 @@ describe('ListLeechesUseCase', () => {
       factory
     );
 
-    await expect(useCase.execute({ owner: 42 })).rejects.toBeInstanceOf(
-      AnkiConnectUnreachableError
-    );
+    await expect(useCase.execute({ owner: 42 })).rejects.toThrow('unexpected');
   });
 });
