@@ -74,6 +74,7 @@ const LANDING_SLUGS = new Set<string>([
   'powerpoint-to-anki',
   'goodnotes-to-anki',
   'ai-flashcard-generator',
+  'anki-for-japanese',
 ]);
 
 const CONVERT_SLUGS = new Set<string>([
