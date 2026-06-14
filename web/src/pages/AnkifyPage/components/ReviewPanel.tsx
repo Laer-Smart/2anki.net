@@ -345,7 +345,7 @@ export function Reviewer({
 }
 
 function fireConfetti() {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) {
     return;
   }
   confetti({

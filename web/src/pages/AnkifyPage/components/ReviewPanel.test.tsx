@@ -73,9 +73,8 @@ const makeBackend = (overrides: Partial<Backend> = {}): Backend =>
 beforeEach(() => {
   trackMock.mockClear();
   confettiMock.mockClear();
-  vi.stubGlobal(
-    'matchMedia',
-    vi.fn(() => ({ matches: false }))
+  window.matchMedia = vi.fn(
+    () => ({ matches: false }) as unknown as MediaQueryList
   );
 });
 
@@ -136,9 +135,8 @@ describe('ReviewPanel', () => {
   });
 
   test('skips confetti when prefers-reduced-motion is set', async () => {
-    vi.stubGlobal(
-      'matchMedia',
-      vi.fn(() => ({ matches: true }))
+    window.matchMedia = vi.fn(
+      () => ({ matches: true }) as unknown as MediaQueryList
     );
     renderPanel(makeBackend());
 
