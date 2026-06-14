@@ -421,6 +421,28 @@ describe('AnkiConnectClient', () => {
     });
   });
 
+  test('retrieveMediaFile posts the filename and returns the base64 string', async () => {
+    const fetchImpl = makeFetch({ result: 'UEFTREFUQQ==', error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const data = await client.retrieveMediaFile('foo.jpg');
+
+    expect(data).toBe('UEFTREFUQQ==');
+    const body = JSON.parse((fetchImpl as jest.Mock).mock.calls[0][1].body);
+    expect(body).toEqual({
+      action: 'retrieveMediaFile',
+      version: 6,
+      params: { filename: 'foo.jpg' },
+    });
+  });
+
+  test('retrieveMediaFile returns false when the file is missing', async () => {
+    const fetchImpl = makeFetch({ result: false, error: null });
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    expect(await client.retrieveMediaFile('missing.png')).toBe(false);
+  });
+
   test('throws AnkiConnectUnreachableError when fetch rejects', async () => {
     const fetchImpl = jest.fn(async () => {
       throw new Error('connect ECONNREFUSED');

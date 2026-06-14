@@ -245,6 +245,10 @@ export class AnkiConnectClient {
     return this.invoke('cardsInfo', { cards });
   }
 
+  async retrieveMediaFile(filename: string): Promise<string | false> {
+    return this.invoke('retrieveMediaFile', { filename });
+  }
+
   async answerCards(
     answers: { cardId: number; ease: number }[]
   ): Promise<boolean[]> {
