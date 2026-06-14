@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-14-ankify-review-bigdeck",
+  "date": "2026-06-14",
+  "type": "fix",
+  "title": "Large review decks load reliably and review cards size to fit without an inner scrollbar"
+}
