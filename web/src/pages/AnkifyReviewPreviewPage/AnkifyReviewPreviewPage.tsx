@@ -31,14 +31,12 @@ const decksCaughtUp: AnkifyStatsDeck[] = [
   { name: 'Notion Sync::Torts', new: 0, learning: 0, review: 0, total: 90 },
 ];
 
-const cards: ReviewQueueCard[] = [
-  {
-    cardId: 9001,
-    questionHtml: '<p>What is the half-life of caffeine?</p>',
-    answerHtml: '<p>About 5 hours.</p>',
-    css: '.card { font-family: sans-serif; text-align: center; }',
-  },
-];
+const previewCard: ReviewQueueCard = {
+  cardId: 9001,
+  questionHtml: '<p>What is the half-life of caffeine?</p>',
+  answerHtml: '<p>About 5 hours.</p>',
+  css: '.card { font-family: sans-serif; text-align: center; }',
+};
 
 const cell = (label: string, node: ReactNode) => (
   <div className={reviewStyles.previewCell}>
@@ -61,8 +59,9 @@ export default function AnkifyReviewPreviewPage() {
       {cell(
         'Reviewer — front',
         <Reviewer
-          cards={cards}
+          cardIds={[previewCard.cardId]}
           deckName="Notion Sync::Pharmacology"
+          loadCard={async () => ({ connected: true, card: previewCard })}
           onGrade={async () => {}}
           onDone={() => {}}
           onExit={() => {}}

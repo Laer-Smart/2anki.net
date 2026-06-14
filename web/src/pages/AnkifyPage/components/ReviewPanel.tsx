@@ -1,11 +1,12 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import confetti from 'canvas-confetti';
 
 import styles from '../AnkifyPage.module.css';
 import reviewStyles from './ReviewPanel.module.css';
 import sharedStyles from '../../../styles/shared.module.css';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
-import { Backend, ReviewQueueCard } from '../../../lib/backend/Backend';
+import { Backend, ReviewCard } from '../../../lib/backend/Backend';
 import { AnkifyStatsDeck } from '../stats/types';
 import { track } from '../../../lib/analytics/track';
 
@@ -79,61 +80,143 @@ export function DeckPicker({
   );
 }
 
+const MIN_CARD_FRAME_HEIGHT = 128;
+
+function buildSrcDoc(css: string, body: string): string {
+  const sizingScript = `<script>(function(){function post(){parent.postMessage({type:'n2a-review-height',height:document.documentElement.scrollHeight},'*');}window.addEventListener('load',post);document.querySelectorAll('img').forEach(function(img){img.addEventListener('load',post);img.addEventListener('error',post);});if(window.ResizeObserver){new ResizeObserver(post).observe(document.documentElement);}post();})();</script>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body class="card">${body}${sizingScript}</body></html>`;
+}
+
+export function CardFrame({ srcDoc }: { readonly srcDoc: string }) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [height, setHeight] = useState(MIN_CARD_FRAME_HEIGHT);
+
+  useEffect(() => {
+    setHeight(MIN_CARD_FRAME_HEIGHT);
+  }, [srcDoc]);
+
+  useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      if (event.source !== iframeRef.current?.contentWindow) {
+        return;
+      }
+      const data = event.data as { type?: string; height?: number };
+      if (
+        data?.type !== 'n2a-review-height' ||
+        typeof data.height !== 'number' ||
+        !Number.isFinite(data.height)
+      ) {
+        return;
+      }
+      setHeight(Math.max(MIN_CARD_FRAME_HEIGHT, data.height));
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, []);
+
+  return (
+    <iframe
+      ref={iframeRef}
+      title="Card preview"
+      className={reviewStyles.cardFrame}
+      sandbox="allow-scripts"
+      srcDoc={srcDoc}
+      style={{ height: `${height}px` }}
+    />
+  );
+}
+
 export function Reviewer({
-  cards,
+  cardIds,
   deckName,
+  loadCard,
   onGrade,
   onDone,
   onExit,
 }: {
-  readonly cards: ReviewQueueCard[];
+  readonly cardIds: number[];
   readonly deckName: string;
+  readonly loadCard: (cardId: number) => Promise<ReviewCard>;
   readonly onGrade: (cardId: number, ease: number) => Promise<void>;
   readonly onDone: (graded: number) => void;
   readonly onExit: () => void;
 }) {
+  const queryClient = useQueryClient();
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [history, setHistory] = useState<
-    { index: number; revealed: boolean }[]
-  >([]);
+  const [history, setHistory] = useState<number[]>([]);
+  const gradedCountRef = useRef(0);
   const startedRef = useRef(false);
 
   useEffect(() => {
-    if (!startedRef.current && cards.length > 0) {
+    if (!startedRef.current && cardIds.length > 0) {
       startedRef.current = true;
       track('ankify_review_session_started', { deck: deckName });
     }
-  }, [cards.length, deckName]);
+  }, [cardIds.length, deckName]);
 
-  const total = cards.length;
-  const current = cards[index];
+  const total = cardIds.length;
+  const currentId = cardIds[index];
+
+  const cardQuery = useQuery({
+    queryKey: ['ankify-review-card', currentId],
+    queryFn: () => loadCard(currentId),
+    enabled: currentId != null,
+  });
+
+  const nextId = cardIds[index + 1];
+  useEffect(() => {
+    if (nextId == null) {
+      return;
+    }
+    queryClient.prefetchQuery({
+      queryKey: ['ankify-review-card', nextId],
+      queryFn: () => loadCard(nextId),
+    });
+  }, [loadCard, nextId, queryClient]);
+
+  const advance = useCallback(() => {
+    const next = index + 1;
+    if (next >= total) {
+      track('ankify_review_completed', {
+        deck: deckName,
+        graded: gradedCountRef.current,
+      });
+      onDone(gradedCountRef.current);
+      return;
+    }
+    setIndex(next);
+    setRevealed(false);
+  }, [deckName, index, onDone, total]);
+
+  const card =
+    cardQuery.data?.connected === true ? cardQuery.data.card : undefined;
+
+  useEffect(() => {
+    if (cardQuery.data?.connected === true && cardQuery.data.card === null) {
+      advance();
+    }
+  }, [advance, cardQuery.data]);
 
   const reveal = useCallback(() => setRevealed(true), []);
 
   const grade = useCallback(
     async (ease: number) => {
-      if (current == null || busy) {
+      if (card == null || busy) {
         return;
       }
       setBusy(true);
       try {
-        await onGrade(current.cardId, ease);
-        setHistory((prev) => [...prev, { index, revealed: true }]);
-        const next = index + 1;
-        if (next >= total) {
-          track('ankify_review_completed', { deck: deckName, graded: total });
-          onDone(total);
-          return;
-        }
-        setIndex(next);
-        setRevealed(false);
+        await onGrade(card.cardId, ease);
+        gradedCountRef.current += 1;
+        setHistory((prev) => [...prev, index]);
+        advance();
       } finally {
         setBusy(false);
       }
     },
-    [busy, current, deckName, index, onDone, onGrade, total]
+    [advance, busy, card, index, onGrade]
   );
 
   const undo = useCallback(() => {
@@ -141,9 +224,9 @@ export function Reviewer({
       if (prev.length === 0) {
         return prev;
       }
-      const last = prev[prev.length - 1];
-      setIndex(last.index);
+      setIndex(prev[prev.length - 1]);
       setRevealed(true);
+      gradedCountRef.current = Math.max(0, gradedCountRef.current - 1);
       return prev.slice(0, -1);
     });
   }, []);
@@ -167,13 +250,7 @@ export function Reviewer({
     return () => document.removeEventListener('keydown', onKey);
   }, [grade, reveal, revealed]);
 
-  if (current == null) {
-    return null;
-  }
-
-  const srcDoc = `<!doctype html><html><head><meta charset="utf-8"><style>${current.css}</style></head><body class="card">${revealed ? current.answerHtml : current.questionHtml}</body></html>`;
-
-  return (
+  const reviewChrome = (children: ReactNode) => (
     <div>
       <div className={reviewStyles.progressTrack}>
         <span
@@ -189,7 +266,7 @@ export function Reviewer({
           onClick={() => {
             track('ankify_review_session_exited', {
               deck: deckName,
-              graded: history.length,
+              graded: gradedCountRef.current,
             });
             onExit();
           }}
@@ -200,64 +277,84 @@ export function Reviewer({
           {index + 1} / {total}
         </p>
       </div>
-      <div className={reviewStyles.cardArea}>
-        <iframe
-          title="Card preview"
-          className={reviewStyles.cardFrame}
-          sandbox="allow-scripts"
-          srcDoc={srcDoc}
-        />
-        {revealed ? (
-          <>
-            <hr className={reviewStyles.cardDivider} />
-            <div className={reviewStyles.grades}>
-              {GRADES.map((g) => (
-                <button
-                  key={g.ease}
-                  type="button"
-                  className={`${reviewStyles.gradeButton} ${g.className}`}
-                  disabled={busy}
-                  onClick={() => grade(g.ease)}
-                >
-                  {g.label}
-                  <span
-                    className={reviewStyles.gradeInterval}
-                    aria-hidden="true"
-                  >
-                    <span className={reviewStyles.gradeShortcut}>{g.ease}</span>{' '}
-                    {g.interval}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </>
-        ) : (
-          <button
-            type="button"
-            className={reviewStyles.showAnswer}
-            onClick={reveal}
-          >
-            Show answer
-            <span className={reviewStyles.shortcutHint} aria-hidden="true">
-              Space
-            </span>
-          </button>
-        )}
-        {history.length > 0 && (
-          <div className={reviewStyles.undoBar}>
-            <button
-              type="button"
-              className={reviewStyles.undoButton}
-              onClick={undo}
-              disabled={busy}
-            >
-              Undo last grade
-            </button>
-          </div>
-        )}
-      </div>
+      {children}
     </div>
   );
+
+  if (card == null) {
+    return reviewChrome(
+      <p className={styles.emptyLine}>Loading your cards.</p>
+    );
+  }
+
+  const srcDoc = buildSrcDoc(
+    card.css,
+    revealed ? card.answerHtml : card.questionHtml
+  );
+
+  return reviewChrome(
+    <div className={reviewStyles.cardArea}>
+      <CardFrame srcDoc={srcDoc} />
+      {revealed ? (
+        <>
+          <hr className={reviewStyles.cardDivider} />
+          <div className={reviewStyles.grades}>
+            {GRADES.map((g) => (
+              <button
+                key={g.ease}
+                type="button"
+                className={`${reviewStyles.gradeButton} ${g.className}`}
+                disabled={busy}
+                onClick={() => grade(g.ease)}
+              >
+                {g.label}
+                <span className={reviewStyles.gradeInterval} aria-hidden="true">
+                  <span className={reviewStyles.gradeShortcut}>{g.ease}</span>{' '}
+                  {g.interval}
+                </span>
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <button
+          type="button"
+          className={reviewStyles.showAnswer}
+          onClick={reveal}
+        >
+          Show answer
+          <span className={reviewStyles.shortcutHint} aria-hidden="true">
+            Space
+          </span>
+        </button>
+      )}
+      {history.length > 0 && (
+        <div className={reviewStyles.undoBar}>
+          <button
+            type="button"
+            className={reviewStyles.undoButton}
+            onClick={undo}
+            disabled={busy}
+          >
+            Undo last grade
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function fireConfetti() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return;
+  }
+  confetti({
+    particleCount: 80,
+    spread: 70,
+    startVelocity: 32,
+    origin: { y: 0.6 },
+    disableForReducedMotion: true,
+  });
 }
 
 export function ReviewSummary({
@@ -267,6 +364,12 @@ export function ReviewSummary({
   readonly graded: number;
   readonly onBack: () => void;
 }) {
+  useEffect(() => {
+    if (graded > 0) {
+      fireConfetti();
+    }
+  }, [graded]);
+
   return (
     <div className={reviewStyles.summary}>
       <p className={reviewStyles.summaryHeadline}>
@@ -314,6 +417,11 @@ export default function ReviewPanel({ backend }: Props) {
     enabled: stage.kind === 'reviewing',
   });
 
+  const loadCard = useCallback(
+    (cardId: number) => api.getAnkifyReviewCard(cardId),
+    [api]
+  );
+
   const grade = useCallback(
     (cardId: number, ease: number) => api.gradeAnkifyReviewCard(cardId, ease),
     [api]
@@ -356,7 +464,7 @@ export default function ReviewPanel({ backend }: Props) {
       return panel(<p className={styles.emptyLine}>Loading your cards.</p>);
     }
     if (queue.data?.connected === true) {
-      if (queue.data.cards.length === 0) {
+      if (queue.data.cardIds.length === 0) {
         return panel(
           <p className={styles.emptyLine}>
             All caught up. No cards due across your decks right now.
@@ -365,8 +473,9 @@ export default function ReviewPanel({ backend }: Props) {
       }
       return panel(
         <Reviewer
-          cards={queue.data.cards}
+          cardIds={queue.data.cardIds}
           deckName={stage.deck}
+          loadCard={loadCard}
           onGrade={grade}
           onDone={(graded) =>
             setStage({ kind: 'summary', deck: stage.deck, graded })

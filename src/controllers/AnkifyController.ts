@@ -78,6 +78,7 @@ import { NoteNotOwnedError } from '../usecases/ankify/assertNoteOwned';
 import { NoActiveAnkifyClientForLeechError } from '../usecases/ankify/leechClient';
 import { AnkiConnectNoteFields } from '../services/ankify/AnkiConnectClient';
 import { GetReviewQueueUseCase } from '../usecases/ankify/GetReviewQueueUseCase';
+import { GetReviewCardUseCase } from '../usecases/ankify/GetReviewCardUseCase';
 import {
   GradeReviewCardUseCase,
   InvalidReviewEaseError,
@@ -173,6 +174,7 @@ class AnkifyController {
     private readonly deleteLeechNoteUseCase: DeleteLeechNoteUseCase,
     private readonly returnLeechToReviewUseCase: ReturnLeechToReviewUseCase,
     private readonly getReviewQueueUseCase: GetReviewQueueUseCase,
+    private readonly getReviewCardUseCase: GetReviewCardUseCase,
     private readonly gradeReviewCardUseCase: GradeReviewCardUseCase
   ) {}
 
@@ -931,6 +933,30 @@ class AnkifyController {
     try {
       const result = await this.getReviewQueueUseCase.execute({ owner, deck });
       res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof AnkiConnectUnreachableError) {
+        res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async getReviewCard(req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const raw = req.query?.cardId;
+    const cardId = parseCardId(typeof raw === 'string' ? Number(raw) : raw);
+    if (cardId == null) {
+      res.status(400).json({ message: 'cardId is required' });
+      return;
+    }
+    try {
+      const result = await this.getReviewCardUseCase.execute({ owner, cardId });
+      if (!result.connected) {
+        res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
+        return;
+      }
+      res.status(200).json({ connected: true, card: result.card });
     } catch (error) {
       if (error instanceof AnkiConnectUnreachableError) {
         res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
