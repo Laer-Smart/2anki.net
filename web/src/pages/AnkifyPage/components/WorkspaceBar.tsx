@@ -7,9 +7,9 @@ import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import { Backend } from '../../../lib/backend/Backend';
 import AnkifyClient from '../../../lib/interfaces/AnkifyClient';
 import ExternalLinkIcon from '../../../components/icons/ExternalLinkIcon';
-import RefreshIcon from '../../../components/icons/RefreshIcon';
+import PowerIcon from '../../../components/icons/PowerIcon';
 import ArrowRightOnRectangleIcon from '../../../components/icons/ArrowRightOnRectangleIcon';
-import ArrowUpTrayIcon from '../../../components/icons/ArrowUpTrayIcon';
+import CloudArrowUpIcon from '../../../components/icons/CloudArrowUpIcon';
 import DotsHorizontal from '../../../components/icons/DotsHorizontal';
 import { track } from '../../../lib/analytics/track';
 
@@ -288,7 +288,7 @@ export default function WorkspaceBar({
           onClick={onSyncToAnkiWeb}
           disabled={syncToAnkiWeb.isPending || !containerReady}
         >
-          <ArrowUpTrayIcon width={18} height={18} />
+          <CloudArrowUpIcon width={18} height={18} />
         </button>
         <button
           type="button"
@@ -298,7 +298,7 @@ export default function WorkspaceBar({
           onClick={onRestart}
           disabled={respin.isPending}
         >
-          <RefreshIcon width={18} height={18} />
+          <PowerIcon width={18} height={18} />
         </button>
         <button
           type="button"
