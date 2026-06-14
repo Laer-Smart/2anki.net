@@ -32,7 +32,7 @@ describe('renderRichText', () => {
   it('wraps text in a color class for non-default text colors', () => {
     expect(
       renderRichText([{ plain_text: 'red', annotations: { color: 'red' } }])
-    ).toBe('<span class="n2a-highlight-red">red</span>');
+    ).toBe('<span class="n2a-highlight-red" style="color: #E03E3E">red</span>');
   });
 
   it('wraps text in a background color class', () => {
@@ -40,7 +40,9 @@ describe('renderRichText', () => {
       renderRichText([
         { plain_text: 'hl', annotations: { color: 'blue_background' } },
       ])
-    ).toBe('<span class="n2a-highlight-blue_background">hl</span>');
+    ).toBe(
+      '<span class="n2a-highlight-blue_background" style="background-color: #0B6E99">hl</span>'
+    );
   });
 
   it('keeps color inside bold and link wrapping', () => {
@@ -53,7 +55,7 @@ describe('renderRichText', () => {
         },
       ])
     ).toBe(
-      '<a href="https://example.com"><span class="n2a-highlight-purple"><strong>word</strong></span></a>'
+      '<a href="https://example.com"><span class="n2a-highlight-purple" style="color: #6940A5"><strong>word</strong></span></a>'
     );
   });
 
