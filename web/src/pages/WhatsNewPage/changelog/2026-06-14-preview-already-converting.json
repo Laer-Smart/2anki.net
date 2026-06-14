@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-14-preview-already-converting",
+  "date": "2026-06-14",
+  "type": "fix",
+  "title": "Converting a page that's already running shows a clear message instead of a raw error"
+}

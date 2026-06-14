@@ -86,14 +86,24 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
     setConverting(true);
     get2ankiApi()
       .convert(id, 'page', pageTitle)
-      .then(async (response) => {
+      .then((response) => {
         if (response.status === 202) {
           navigate('/downloads');
-        } else {
-          const text = await response.text().catch(() => '');
-          if (text) setError(new Error(text));
-          setConverting(false);
+          return;
         }
+        if (response.status === 409) {
+          setError(
+            new Error(
+              'This page is already converting — check Downloads in a moment.'
+            )
+          );
+          setConverting(false);
+          return;
+        }
+        setError(
+          new Error('Could not start the conversion. Try again in a moment.')
+        );
+        setConverting(false);
       })
       .catch((err: unknown) => {
         setError(err as Error);

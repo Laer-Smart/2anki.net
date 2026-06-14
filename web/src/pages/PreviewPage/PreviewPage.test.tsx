@@ -284,4 +284,69 @@ describe('PreviewPage Convert to Anki CTA', () => {
       ).not.toBeDisabled();
     });
   });
+
+  function renderPreviewWithError(setError: (error: unknown) => void) {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    return render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={['/preview/page-abc']}>
+          <Routes>
+            <Route
+              path="/preview/:id"
+              element={<PreviewPage setError={setError} />}
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+  }
+
+  it('shows friendly copy and not raw JSON on a 409 already_in_progress', async () => {
+    const setError = vi.fn();
+    mockConvert.mockResolvedValue({
+      status: 409,
+      text: async () => '{"reason":"already_in_progress"}',
+    });
+    mockUsePreviewStream.mockReturnValue(makeStreamReturn([]));
+
+    renderPreviewWithError(setError);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
+
+    await waitFor(() => {
+      expect(setError).toHaveBeenCalled();
+    });
+
+    const passedError = setError.mock.calls[0][0] as Error;
+    expect(passedError.message).toBe(
+      'This page is already converting — check Downloads in a moment.'
+    );
+    expect(passedError.message).not.toContain('already_in_progress');
+    expect(passedError.message).not.toContain('{');
+  });
+
+  it('surfaces a readable message and not a raw JSON body on other errors', async () => {
+    const setError = vi.fn();
+    mockConvert.mockResolvedValue({
+      status: 500,
+      text: async () => '{"error":"boom"}',
+    });
+    mockUsePreviewStream.mockReturnValue(makeStreamReturn([]));
+
+    renderPreviewWithError(setError);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
+
+    await waitFor(() => {
+      expect(setError).toHaveBeenCalled();
+    });
+
+    const passedError = setError.mock.calls[0][0] as Error;
+    expect(passedError.message).not.toContain('{');
+    expect(passedError.message).toBe(
+      'Could not start the conversion. Try again in a moment.'
+    );
+  });
 });
