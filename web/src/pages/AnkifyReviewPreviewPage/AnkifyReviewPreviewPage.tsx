@@ -67,14 +67,7 @@ export default function AnkifyReviewPreviewPage() {
           onDone={() => {}}
         />
       )}
-      {cell(
-        'Reviewer — done',
-        <ReviewSummary
-          deckName="Notion Sync::Pharmacology"
-          graded={47}
-          onBack={() => {}}
-        />
-      )}
+      {cell('Reviewer — done', <ReviewSummary graded={47} onBack={() => {}} />)}
       {cell(
         'Reviewer — offline',
         <p style={{ color: 'var(--color-text-tertiary)' }}>

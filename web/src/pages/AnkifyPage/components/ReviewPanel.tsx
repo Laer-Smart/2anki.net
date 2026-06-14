@@ -57,7 +57,10 @@ export function DeckPicker({
               {deck.name}
             </span>
             <span className={reviewStyles.deckCounts}>
-              <span className={reviewStyles.deckDue}>▲{due} due</span>
+              <span className={reviewStyles.deckDue}>
+                <span aria-hidden="true">▲</span>
+                {due} due
+              </span>
               <span>{deck.learning} learning</span>
               <span>+{deck.new} new</span>
             </span>
@@ -199,7 +202,11 @@ export function Reviewer({
                   onClick={() => grade(g.ease)}
                 >
                   {g.label}
-                  <span className={reviewStyles.gradeInterval}>
+                  <span
+                    className={reviewStyles.gradeInterval}
+                    aria-hidden="true"
+                  >
+                    <span className={reviewStyles.gradeShortcut}>{g.ease}</span>{' '}
                     {g.interval}
                   </span>
                 </button>
@@ -213,6 +220,9 @@ export function Reviewer({
             onClick={reveal}
           >
             Show answer
+            <span className={reviewStyles.shortcutHint} aria-hidden="true">
+              Space
+            </span>
           </button>
         )}
         {history.length > 0 && (
@@ -233,19 +243,16 @@ export function Reviewer({
 }
 
 export function ReviewSummary({
-  deckName,
   graded,
   onBack,
 }: {
-  readonly deckName: string;
   readonly graded: number;
   readonly onBack: () => void;
 }) {
   return (
     <div className={reviewStyles.summary}>
-      <p className={reviewStyles.summaryHeadline}>{graded} cards. Done.</p>
-      <p className={reviewStyles.summaryStreak}>
-        Your review streak in {deckName} just moved forward.
+      <p className={reviewStyles.summaryHeadline}>
+        {graded} card{graded === 1 ? '' : 's'}. Done.
       </p>
       <div className={reviewStyles.summaryActions}>
         <button
@@ -305,7 +312,6 @@ export default function ReviewPanel({ backend }: Props) {
   if (stage.kind === 'summary') {
     return panel(
       <ReviewSummary
-        deckName={stage.deck}
         graded={stage.graded}
         onBack={() => setStage({ kind: 'picker' })}
       />
