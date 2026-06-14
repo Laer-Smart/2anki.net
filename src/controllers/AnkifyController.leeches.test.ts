@@ -44,7 +44,7 @@ const DELETE_INDEX = 30;
 const RETURN_INDEX = 31;
 
 const makeController = (index: number, useCase: { execute: jest.Mock }) => {
-  const stubs = Array.from({ length: 32 }, () => ({}));
+  const stubs = Array.from({ length: 34 }, () => ({}));
   stubs[index] = useCase;
   return new AnkifyController(
     ...(stubs as ConstructorParameters<typeof AnkifyController>)

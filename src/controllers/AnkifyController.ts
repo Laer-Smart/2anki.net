@@ -77,6 +77,12 @@ import { ReturnLeechToReviewUseCase } from '../usecases/ankify/ReturnLeechToRevi
 import { NoteNotOwnedError } from '../usecases/ankify/assertNoteOwned';
 import { NoActiveAnkifyClientForLeechError } from '../usecases/ankify/leechClient';
 import { AnkiConnectNoteFields } from '../services/ankify/AnkiConnectClient';
+import { GetReviewQueueUseCase } from '../usecases/ankify/GetReviewQueueUseCase';
+import {
+  GradeReviewCardUseCase,
+  InvalidReviewEaseError,
+  NoActiveAnkifyClientForReviewError,
+} from '../usecases/ankify/GradeReviewCardUseCase';
 
 const ANKI_CONNECT_UNREACHABLE_MESSAGE =
   'AnkiConnect is unreachable. Make sure the hosted Anki container is healthy.';
@@ -108,6 +114,13 @@ function parseNoteId(raw: string): number | null {
     return null;
   }
   return noteId;
+}
+
+function parseCardId(raw: unknown): number | null {
+  if (typeof raw !== 'number' || !Number.isSafeInteger(raw) || raw <= 0) {
+    return null;
+  }
+  return raw;
 }
 
 function parseLeechFields(raw: unknown): AnkiConnectNoteFields | null {
@@ -157,7 +170,9 @@ class AnkifyController {
     private readonly listLeechesUseCase: ListLeechesUseCase,
     private readonly editLeechNoteUseCase: EditLeechNoteUseCase,
     private readonly deleteLeechNoteUseCase: DeleteLeechNoteUseCase,
-    private readonly returnLeechToReviewUseCase: ReturnLeechToReviewUseCase
+    private readonly returnLeechToReviewUseCase: ReturnLeechToReviewUseCase,
+    private readonly getReviewQueueUseCase: GetReviewQueueUseCase,
+    private readonly gradeReviewCardUseCase: GradeReviewCardUseCase
   ) {}
 
   async list(_req: Request, res: Response) {
@@ -899,6 +914,64 @@ class AnkifyController {
       res.status(200).json(result);
     } catch (error) {
       if (this.mapLeechActionError(error, res)) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async getReviewQueue(req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const deck = readDeckField(req.query?.deck);
+    if (deck == null) {
+      res.status(400).json({ message: 'deck is required' });
+      return;
+    }
+    try {
+      const result = await this.getReviewQueueUseCase.execute({ owner, deck });
+      res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof DeckNotOwnedError) {
+        res.status(403).json({ message: 'Deck not found for this user' });
+        return;
+      }
+      if (error instanceof AnkiConnectUnreachableError) {
+        res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async gradeReviewCard(req: Request, res: Response) {
+    const owner = res.locals.owner as number;
+    const cardId = parseCardId(req.body?.cardId);
+    if (cardId == null) {
+      res.status(400).json({ message: 'cardId is required' });
+      return;
+    }
+    try {
+      await this.gradeReviewCardUseCase.execute({
+        owner,
+        cardId,
+        ease: req.body?.ease,
+      });
+      res.status(200).json({ graded: true });
+    } catch (error) {
+      if (error instanceof InvalidReviewEaseError) {
+        res.status(400).json({ message: 'ease must be an integer 1-4' });
+        return;
+      }
+      if (error instanceof DeckNotOwnedError) {
+        res.status(403).json({ message: 'Card not found for this user' });
+        return;
+      }
+      if (error instanceof NoActiveAnkifyClientForReviewError) {
+        res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
+        return;
+      }
+      if (error instanceof AnkiConnectUnreachableError) {
+        res.status(503).json({ message: ANKI_CONNECT_UNREACHABLE_MESSAGE });
         return;
       }
       throw error;
