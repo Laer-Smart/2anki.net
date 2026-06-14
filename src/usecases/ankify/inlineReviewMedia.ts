@@ -122,12 +122,52 @@ const replaceSounds = async (
   return result;
 };
 
+const replacePlayDirectives = async (
+  html: string,
+  fetchMedia: MediaFetcher,
+  cache: Map<string, string | null>,
+  noteSounds: string[]
+): Promise<string> => {
+  const refs = [...html.matchAll(/\[anki:play:[qa]:(\d+)\]/g)];
+  let result = html;
+
+  for (const match of refs) {
+    const token = match[0];
+    const index = Number(match[1]);
+    const filename = noteSounds[index];
+    if (filename == null) {
+      result = result.replace(token, '');
+      continue;
+    }
+
+    const dataUri = await resolveDataUri(filename, fetchMedia, cache);
+    if (dataUri == null) {
+      result = result.replace(token, '');
+      continue;
+    }
+
+    result = result.replace(
+      token,
+      `<audio controls preload="none" src="${dataUri}"></audio>`
+    );
+  }
+
+  return result;
+};
+
 export async function inlineReviewMedia(
   html: string,
   fetchMedia: MediaFetcher,
-  cache: Map<string, string | null>
+  cache: Map<string, string | null>,
+  noteSounds?: string[]
 ): Promise<string> {
   const withImages = await replaceImages(html, fetchMedia, cache);
   const withAudio = await replaceSounds(withImages, fetchMedia, cache);
-  return withAudio.replace(/\[anki:play:[qa]:\d+\]/g, '');
+  const withPlay = await replacePlayDirectives(
+    withAudio,
+    fetchMedia,
+    cache,
+    noteSounds ?? []
+  );
+  return withPlay.replace(/\[anki:play:[qa]:\d+\]/g, '');
 }
