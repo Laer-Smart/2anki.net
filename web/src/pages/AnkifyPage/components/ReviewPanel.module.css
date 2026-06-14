@@ -1,3 +1,32 @@
+.deckDisclosure {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.25rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: var(--text-xs);
+  line-height: 1;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+}
+
+.deckDisclosure:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.deckDisclosureSpacer {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.25rem;
+  vertical-align: middle;
+}
+
 .deckReview {
   display: inline-flex;
   align-items: center;
