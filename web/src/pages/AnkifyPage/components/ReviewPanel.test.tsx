@@ -389,6 +389,115 @@ describe('ReviewPanel', () => {
     expect(parentReview).not.toBeDisabled();
   });
 
+  test('renders the card iframe with allow="autoplay"', async () => {
+    renderPanel(makeBackend());
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+
+    const frame = (await screen.findByTitle(
+      'Card preview'
+    )) as HTMLIFrameElement;
+    expect(frame.getAttribute('allow')).toBe('autoplay');
+  });
+
+  test('wires first-audio autoplay into the front and post-reveal srcDoc', async () => {
+    const audioCard: ReviewQueueCard = {
+      cardId: 9001,
+      questionHtml:
+        '<p>Q</p><audio controls src="data:audio/mp3;base64,AA"></audio>',
+      answerHtml:
+        '<p>A</p><audio controls src="data:audio/mp3;base64,BB"></audio>',
+      css: '',
+    };
+    renderPanel(
+      makeBackend({
+        getAnkifyReviewCard: vi.fn(async () => ({
+          connected: true as const,
+          card: audioCard,
+        })),
+        getAnkifyReviewQueue: vi.fn(async () => ({
+          connected: true as const,
+          cardIds: [9001],
+        })),
+      })
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+
+    const frame = (await screen.findByTitle(
+      'Card preview'
+    )) as HTMLIFrameElement;
+    await waitFor(() => expect(frame.srcdoc).toContain('Q'));
+    expect(frame.srcdoc).toContain("querySelector('audio')");
+    expect(frame.srcdoc).toContain('.play().catch(');
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Show answer' }));
+
+    await waitFor(() => expect(frame.srcdoc).toContain('A'));
+    expect(frame.srcdoc).toContain("querySelector('audio')");
+    expect(frame.srcdoc).toContain('.play().catch(');
+  });
+
+  test('collapses and expands a parent deck group', async () => {
+    const treeStats: AnkifyStats = {
+      connected: true,
+      reviewedToday: 0,
+      reviewedThisYear: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      reviewsByDay: [],
+      decks: [
+        {
+          fullName: 'Spanish',
+          name: 'Spanish',
+          depth: 0,
+          new: 1,
+          learning: 0,
+          review: 2,
+          total: 10,
+        },
+        {
+          fullName: 'Spanish::Verbs',
+          name: 'Verbs',
+          depth: 1,
+          new: 2,
+          learning: 3,
+          review: 4,
+          total: 20,
+        },
+      ],
+    };
+    renderPanel(makeBackend({ getAnkifyStats: vi.fn(async () => treeStats) }));
+
+    expect(await screen.findAllByRole('listitem')).toHaveLength(2);
+
+    const collapse = screen.getByRole('button', { name: 'Collapse Spanish' });
+    expect(collapse).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(collapse);
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    const expand = screen.getByRole('button', { name: 'Expand Spanish' });
+    expect(expand).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(expand);
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    expect(
+      screen.getByRole('button', { name: 'Collapse Spanish' })
+    ).toBeInTheDocument();
+  });
+
+  test('does not show a disclosure control on a leaf deck', async () => {
+    renderPanel(makeBackend());
+
+    await screen.findByRole('button', { name: 'Review' });
+    expect(
+      screen.queryByRole('button', { name: /^Collapse / })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /^Expand / })
+    ).not.toBeInTheDocument();
+  });
+
   test('shows the offline state when Anki is not connected', async () => {
     renderPanel(
       makeBackend({
