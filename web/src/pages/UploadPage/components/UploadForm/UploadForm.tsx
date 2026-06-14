@@ -1233,9 +1233,7 @@ function UploadForm({
 
   const renderIdleState = () => (
     <div className={formStyles.stateContent}>
-      <UploadCloudIcon
-        className={`${formStyles.icon} ${dropHover ? formStyles.iconBob : ''}`}
-      />
+      <UploadCloudIcon className={formStyles.icon} />
       <span className={formStyles.dropText}>
         {dropHover ? 'Drop it right here' : 'Drop your files here'}
       </span>
