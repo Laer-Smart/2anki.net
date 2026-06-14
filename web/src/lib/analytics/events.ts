@@ -59,6 +59,8 @@ export const KNOWN_EVENTS = new Set([
   'ankify_sync_ankiweb',
   'ankify_leeches_viewed',
   'ankify_leech_action',
+  'ankify_review_session_started',
+  'ankify_review_completed',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;

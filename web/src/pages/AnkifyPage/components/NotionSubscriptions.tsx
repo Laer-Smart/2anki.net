@@ -16,6 +16,7 @@ import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import { Backend } from '../../../lib/backend/Backend';
 import NotionPagePicker from './NotionPagePicker';
 import LeechesPanel from './LeechesPanel';
+import ReviewPanel from './ReviewPanel';
 import DotsHorizontal from '../../../components/icons/DotsHorizontal';
 import { BlockIcon } from '../../SearchPage/components/BlockIcon';
 import { mapSubscribeError } from './mapSubscribeError';
@@ -238,7 +239,7 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
   const [advancedInput, setAdvancedInput] = useState('');
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
-    'decks' | 'find' | 'leeches' | null
+    'decks' | 'find' | 'leeches' | 'review' | null
   >(null);
   const [search, setSearch] = useState('');
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -484,7 +485,7 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
     return undefined;
   }, [openMenuId]);
 
-  const effectiveTab: 'decks' | 'find' | 'leeches' =
+  const effectiveTab: 'decks' | 'find' | 'leeches' | 'review' =
     activeTab ?? (subscriptions.length === 0 ? 'find' : 'decks');
   const showSearch = subscriptions.length >= SEARCH_THRESHOLD;
   const filteredSubscriptions =
@@ -550,9 +551,26 @@ export default function NotionSubscriptions({ backend, schedule }: Props) {
             <span className={styles.tabCount}>{leechCount}</span>
           )}
         </button>
+        <button
+          type="button"
+          role="tab"
+          id="ankify-tab-review"
+          aria-selected={effectiveTab === 'review'}
+          aria-controls="ankify-tabpanel-review"
+          className={
+            effectiveTab === 'review'
+              ? `${styles.tab} ${styles.tabActive}`
+              : styles.tab
+          }
+          onClick={() => setActiveTab('review')}
+        >
+          Review
+        </button>
       </div>
 
       {effectiveTab === 'leeches' && <LeechesPanel backend={backend} />}
+
+      {effectiveTab === 'review' && <ReviewPanel backend={backend} />}
 
       {effectiveTab === 'find' && (
         <div
