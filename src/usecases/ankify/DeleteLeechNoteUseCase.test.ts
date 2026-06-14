@@ -42,7 +42,9 @@ describe('DeleteLeechNoteUseCase', () => {
     );
     const useCase = new DeleteLeechNoteUseCase(
       clientsRepo(activeClient),
-      subsRepo([{ target_deck: 'Notion Sync::Pharma', notion_page_title: null }]),
+      subsRepo([
+        { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
+      ]),
       factory
     );
 
@@ -63,7 +65,9 @@ describe('DeleteLeechNoteUseCase', () => {
     );
     const useCase = new DeleteLeechNoteUseCase(
       clientsRepo(activeClient),
-      subsRepo([{ target_deck: 'Notion Sync::Torts', notion_page_title: null }]),
+      subsRepo([
+        { target_deck: 'Notion Sync::Torts', notion_page_title: null },
+      ]),
       factory
     );
 
@@ -85,7 +89,9 @@ describe('DeleteLeechNoteUseCase', () => {
     );
     const useCase = new DeleteLeechNoteUseCase(
       clientsRepo(activeClient),
-      subsRepo([{ target_deck: 'Notion Sync::Pharma', notion_page_title: null }]),
+      subsRepo([
+        { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
+      ]),
       factory
     );
 
