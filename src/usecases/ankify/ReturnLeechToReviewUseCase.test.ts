@@ -39,7 +39,13 @@ describe('ReturnLeechToReviewUseCase', () => {
           ping: jest.fn(async () => 6),
           findNotes: jest.fn(async () => [7001]),
           notesInfo: jest.fn(async () => [
-            { noteId: 7001, modelName: 'Basic', tags: ['leech'], fields: {}, cards: [11, 12] },
+            {
+              noteId: 7001,
+              modelName: 'Basic',
+              tags: ['leech'],
+              fields: {},
+              cards: [11, 12],
+            },
           ]),
           unsuspend,
           removeTags,
@@ -47,7 +53,9 @@ describe('ReturnLeechToReviewUseCase', () => {
     );
     const useCase = new ReturnLeechToReviewUseCase(
       clientsRepo(activeClient),
-      subsRepo([{ target_deck: 'Notion Sync::Pharma', notion_page_title: null }]),
+      subsRepo([
+        { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
+      ]),
       factory
     );
 
@@ -55,7 +63,11 @@ describe('ReturnLeechToReviewUseCase', () => {
 
     expect(unsuspend).toHaveBeenCalledWith([11, 12]);
     expect(removeTags).toHaveBeenCalledWith([7001], 'leech');
-    expect(result).toEqual({ noteId: 7001, unsuspended: true, tagRemoved: true });
+    expect(result).toEqual({
+      noteId: 7001,
+      unsuspended: true,
+      tagRemoved: true,
+    });
   });
 
   test('unsuspend returning false still counts as success', async () => {
@@ -65,7 +77,13 @@ describe('ReturnLeechToReviewUseCase', () => {
           ping: jest.fn(async () => 6),
           findNotes: jest.fn(async () => [7001]),
           notesInfo: jest.fn(async () => [
-            { noteId: 7001, modelName: 'Basic', tags: ['leech'], fields: {}, cards: [11] },
+            {
+              noteId: 7001,
+              modelName: 'Basic',
+              tags: ['leech'],
+              fields: {},
+              cards: [11],
+            },
           ]),
           unsuspend: jest.fn(async () => false),
           removeTags: jest.fn(async () => null),
@@ -73,13 +91,19 @@ describe('ReturnLeechToReviewUseCase', () => {
     );
     const useCase = new ReturnLeechToReviewUseCase(
       clientsRepo(activeClient),
-      subsRepo([{ target_deck: 'Notion Sync::Pharma', notion_page_title: null }]),
+      subsRepo([
+        { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
+      ]),
       factory
     );
 
     const result = await useCase.execute({ owner: 42, noteId: 7001 });
 
-    expect(result).toEqual({ noteId: 7001, unsuspended: false, tagRemoved: true });
+    expect(result).toEqual({
+      noteId: 7001,
+      unsuspended: false,
+      tagRemoved: true,
+    });
   });
 
   test('rejects a note in an unowned deck and never mutates', async () => {
@@ -97,7 +121,9 @@ describe('ReturnLeechToReviewUseCase', () => {
     );
     const useCase = new ReturnLeechToReviewUseCase(
       clientsRepo(activeClient),
-      subsRepo([{ target_deck: 'Notion Sync::Torts', notion_page_title: null }]),
+      subsRepo([
+        { target_deck: 'Notion Sync::Torts', notion_page_title: null },
+      ]),
       factory
     );
 

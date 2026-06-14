@@ -26,7 +26,9 @@ describe('leechQueries', () => {
     it('ORs multiple owned decks', () => {
       expect(
         buildLeechListQuery(['Notion Sync::Pharma', 'Notion Sync::Torts'])
-      ).toBe('tag:leech ("deck:Notion Sync::Pharma" OR "deck:Notion Sync::Torts")');
+      ).toBe(
+        'tag:leech ("deck:Notion Sync::Pharma" OR "deck:Notion Sync::Torts")'
+      );
     });
 
     it('escapes deck names with quotes and backslashes', () => {
@@ -49,7 +51,10 @@ describe('leechQueries', () => {
 
     it('ORs multiple owned decks', () => {
       expect(
-        buildNoteOwnershipQuery(7001, ['Notion Sync::Pharma', 'Notion Sync::Torts'])
+        buildNoteOwnershipQuery(7001, [
+          'Notion Sync::Pharma',
+          'Notion Sync::Torts',
+        ])
       ).toBe(
         'nid:7001 ("deck:Notion Sync::Pharma" OR "deck:Notion Sync::Torts")'
       );

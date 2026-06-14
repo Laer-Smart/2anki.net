@@ -108,7 +108,9 @@ describe('ListLeechesUseCase', () => {
     );
     const useCase = new ListLeechesUseCase(
       clientsRepo(activeClient),
-      subsRepo([{ target_deck: 'Notion Sync::Pharma', notion_page_title: null }]),
+      subsRepo([
+        { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
+      ]),
       factory
     );
 
@@ -161,7 +163,9 @@ describe('ListLeechesUseCase', () => {
     );
     const useCase = new ListLeechesUseCase(
       clientsRepo(activeClient),
-      subsRepo([{ target_deck: 'Notion Sync::Pharma', notion_page_title: null }]),
+      subsRepo([
+        { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
+      ]),
       factory
     );
 
@@ -176,7 +180,10 @@ describe('ListLeechesUseCase', () => {
       () =>
         ({
           ping: jest.fn(async () => {
-            throw new AnkiConnectUnreachableError('http://x', new Error('down'));
+            throw new AnkiConnectUnreachableError(
+              'http://x',
+              new Error('down')
+            );
           }),
           findNotes: jest.fn(),
           notesInfo: jest.fn(),
@@ -185,7 +192,9 @@ describe('ListLeechesUseCase', () => {
     );
     const useCase = new ListLeechesUseCase(
       clientsRepo(activeClient),
-      subsRepo([{ target_deck: 'Notion Sync::Pharma', notion_page_title: null }]),
+      subsRepo([
+        { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
+      ]),
       factory
     );
 

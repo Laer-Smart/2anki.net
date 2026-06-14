@@ -44,7 +44,9 @@ describe('EditLeechNoteUseCase', () => {
     );
     const useCase = new EditLeechNoteUseCase(
       clientsRepo(activeClient),
-      subsRepo([{ target_deck: 'Notion Sync::Pharma', notion_page_title: null }]),
+      subsRepo([
+        { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
+      ]),
       factory
     );
 
@@ -73,7 +75,9 @@ describe('EditLeechNoteUseCase', () => {
     );
     const useCase = new EditLeechNoteUseCase(
       clientsRepo(activeClient),
-      subsRepo([{ target_deck: 'Notion Sync::Torts', notion_page_title: null }]),
+      subsRepo([
+        { target_deck: 'Notion Sync::Torts', notion_page_title: null },
+      ]),
       factory
     );
 
@@ -86,7 +90,9 @@ describe('EditLeechNoteUseCase', () => {
   test('throws when there is no active client', async () => {
     const useCase = new EditLeechNoteUseCase(
       clientsRepo(null),
-      subsRepo([{ target_deck: 'Notion Sync::Pharma', notion_page_title: null }]),
+      subsRepo([
+        { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
+      ]),
       jest.fn()
     );
 
