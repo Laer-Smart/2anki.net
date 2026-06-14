@@ -447,6 +447,19 @@ export default function ReviewPanel({ backend }: Props) {
     );
   }
 
+  const backToDecks = (
+    <div className={reviewStyles.reviewHeader}>
+      <button
+        type="button"
+        className={reviewStyles.exitButton}
+        aria-label="Back to decks"
+        onClick={() => setStage({ kind: 'picker' })}
+      >
+        ← Decks
+      </button>
+    </div>
+  );
+
   const retry = (
     <div className={reviewStyles.summaryActions}>
       <button
@@ -466,9 +479,12 @@ export default function ReviewPanel({ backend }: Props) {
     if (queue.data?.connected === true) {
       if (queue.data.cardIds.length === 0) {
         return panel(
-          <p className={styles.emptyLine}>
-            All caught up. No cards due across your decks right now.
-          </p>
+          <>
+            <p className={styles.emptyLine}>
+              All caught up. No cards due across your decks right now.
+            </p>
+            {backToDecks}
+          </>
         );
       }
       return panel(
@@ -491,6 +507,7 @@ export default function ReviewPanel({ backend }: Props) {
             Something broke while loading this deck. Try again in a moment.
           </p>
           {retry}
+          {backToDecks}
         </>
       );
     }
@@ -500,6 +517,7 @@ export default function ReviewPanel({ backend }: Props) {
           Anki isn&apos;t connected. Open Anki on your computer and try again.
         </p>
         {retry}
+        {backToDecks}
       </>
     );
   }

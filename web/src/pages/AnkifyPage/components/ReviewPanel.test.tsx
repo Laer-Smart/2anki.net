@@ -207,6 +207,31 @@ describe('ReviewPanel', () => {
     ).toBeInTheDocument();
   });
 
+  test('returns to the deck picker from the all-caught-up state', async () => {
+    renderPanel(
+      makeBackend({
+        getAnkifyStats: vi.fn(async () => statsWithDeck(5)),
+        getAnkifyReviewQueue: vi.fn(async () => ({
+          connected: true as const,
+          cardIds: [],
+        })),
+      })
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+    await screen.findByText(
+      'All caught up. No cards due across your decks right now.'
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to decks' }));
+
+    expect(
+      await screen.findByText(
+        'Pick a deck to review its due cards without opening Anki.'
+      )
+    ).toBeInTheDocument();
+  });
+
   test('shows the offline state with Try again when the queue reports offline', async () => {
     const getAnkifyReviewQueue = vi.fn(async () => ({
       connected: false as const,
