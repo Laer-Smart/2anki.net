@@ -289,7 +289,10 @@ export default function ReviewPanel({ backend }: Props) {
     queryFn: () =>
       stage.kind === 'reviewing'
         ? api.getAnkifyReviewQueue(stage.deck)
-        : Promise.resolve({ connected: false, cards: [] }),
+        : Promise.resolve({
+            connected: false as const,
+            reason: 'offline' as const,
+          }),
     enabled: stage.kind === 'reviewing',
   });
 
@@ -318,27 +321,58 @@ export default function ReviewPanel({ backend }: Props) {
     );
   }
 
+  const retry = (
+    <div className={reviewStyles.summaryActions}>
+      <button
+        type="button"
+        className={sharedStyles.btnGhost}
+        onClick={() => queue.refetch()}
+      >
+        Try again
+      </button>
+    </div>
+  );
+
   if (stage.kind === 'reviewing') {
     if (queue.isLoading) {
       return panel(<p className={styles.emptyLine}>Loading your cards.</p>);
     }
-    if (queue.data?.connected !== true) {
+    if (queue.data?.connected === true) {
+      if (queue.data.cards.length === 0) {
+        return panel(
+          <p className={styles.emptyLine}>
+            All caught up. No cards due across your decks right now.
+          </p>
+        );
+      }
       return panel(
-        <p className={styles.emptyLine}>Anki isn&apos;t connected.</p>
+        <Reviewer
+          cards={queue.data.cards}
+          deckName={stage.deck}
+          onGrade={grade}
+          onDone={(graded) =>
+            setStage({ kind: 'summary', deck: stage.deck, graded })
+          }
+        />
       );
     }
-    if (queue.data.cards.length === 0) {
-      return panel(<p className={styles.emptyLine}>All caught up.</p>);
+    if (queue.data?.reason === 'error') {
+      return panel(
+        <>
+          <p className={styles.emptyLine}>
+            Something broke while loading this deck. Try again in a moment.
+          </p>
+          {retry}
+        </>
+      );
     }
     return panel(
-      <Reviewer
-        cards={queue.data.cards}
-        deckName={stage.deck}
-        onGrade={grade}
-        onDone={(graded) =>
-          setStage({ kind: 'summary', deck: stage.deck, graded })
-        }
-      />
+      <>
+        <p className={styles.emptyLine}>
+          Anki isn&apos;t connected. Open Anki on your computer and try again.
+        </p>
+        {retry}
+      </>
     );
   }
 
@@ -351,7 +385,11 @@ export default function ReviewPanel({ backend }: Props) {
     );
   }
   if (stats.data.decks.length === 0) {
-    return panel(<p className={styles.emptyLine}>All caught up.</p>);
+    return panel(
+      <p className={styles.emptyLine}>
+        No decks to review yet. Sync a Notion page to start building cards.
+      </p>
+    );
   }
 
   return panel(

@@ -64,10 +64,10 @@ export interface ReviewQueueCard {
   css: string;
 }
 
-export interface ReviewQueue {
-  connected: boolean;
-  cards: ReviewQueueCard[];
-}
+export type ReviewQueue =
+  | { connected: true; cards: ReviewQueueCard[] }
+  | { connected: false; reason: 'offline' }
+  | { connected: false; reason: 'error' };
 
 export interface CheckoutPrices {
   cohort: 'legacy' | 'v2';
@@ -991,14 +991,22 @@ export class Backend {
   }
 
   async getAnkifyReviewQueue(deck: string): Promise<ReviewQueue> {
-    const result = await get(
-      `${this.baseURL}ankify/review-queue?deck=${encodeURIComponent(deck)}`,
-      { redirect: false }
-    );
-    if (result?.connected === true && Array.isArray(result.cards)) {
-      return { connected: true, cards: result.cards };
+    try {
+      const result = await get(
+        `${this.baseURL}ankify/review-queue?deck=${encodeURIComponent(deck)}`,
+        { redirect: false }
+      );
+      if (result?.connected === true && Array.isArray(result.cards)) {
+        return { connected: true, cards: result.cards };
+      }
+      return { connected: false, reason: 'offline' };
+    } catch (cause) {
+      const status = (cause as { status?: number }).status;
+      if (status === 503 || status === 0) {
+        return { connected: false, reason: 'offline' };
+      }
+      return { connected: false, reason: 'error' };
     }
-    return { connected: false, cards: [] };
   }
 
   async gradeAnkifyReviewCard(cardId: number, ease: number): Promise<void> {
