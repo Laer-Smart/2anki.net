@@ -1343,6 +1343,64 @@
   background: var(--color-bg-secondary);
 }
 
+.decksItemMenuItemDanger {
+  composes: decksItemMenuItem;
+  color: var(--color-text-danger);
+}
+
+.leechBack {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: var(--text-xs);
+  font-weight: var(--font-normal);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leechLapses {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.leechField {
+  width: 100%;
+  min-height: 4rem;
+  font: inherit;
+  resize: vertical;
+}
+
+.leechConfirm {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  flex-wrap: wrap;
+}
+
+.leechConfirmDanger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--color-text-danger);
+  border-radius: var(--radius-md);
+  background: var(--color-text-danger);
+  color: #ffffff;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+}
+
+.leechConfirmDanger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .addDeckDisclosure {
   margin-top: 0.5rem;
 }

@@ -95,7 +95,10 @@ describe('AnkifyController leech handlers', () => {
     const capture = makeResponse();
 
     await controller.editLeech(
-      { params: { noteId: 'abc' }, body: { fields: { Front: 'x' } } } as unknown as Request,
+      {
+        params: { noteId: 'abc' },
+        body: { fields: { Front: 'x' } },
+      } as unknown as Request,
       capture.res
     );
 
