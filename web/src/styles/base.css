@@ -112,6 +112,12 @@
   /* Accent palette — Pro card gradients */
   --color-indigo: #6366f1;
   --color-indigo-dark: #4f46e5;
+
+  /* Study heatmap ramp (4 activity steps; cell0 uses --color-bg-tertiary) */
+  --color-heatmap-1: #9be9a8;
+  --color-heatmap-2: #40c463;
+  --color-heatmap-3: #30a14e;
+  --color-heatmap-4: #216e3a;
 }
 
 /* =====================================================================
@@ -172,6 +178,10 @@
   --color-code-text: #e5e7eb;
   --color-indigo: #818cf8;
   --color-indigo-dark: #6366f1;
+  --color-heatmap-1: #0e4429;
+  --color-heatmap-2: #006d32;
+  --color-heatmap-3: #26a641;
+  --color-heatmap-4: #39d353;
 }
 
 /* =====================================================================
@@ -233,6 +243,10 @@
   --color-gold-shadow: rgba(176, 138, 62, 0.25);
   --color-indigo: #7a5b22;
   --color-indigo-dark: #4a3a1f;
+  --color-heatmap-1: #ead8b8;
+  --color-heatmap-2: #c9a96e;
+  --color-heatmap-3: #9a7a3a;
+  --color-heatmap-4: #4a3a1f;
 }
 
 /* =====================================================================
@@ -296,6 +310,10 @@
   --color-code-text: #e0ddef;
   --color-indigo: #9b8fd8;
   --color-indigo-dark: #7c6cc4;
+  --color-heatmap-1: #ddd8ec;
+  --color-heatmap-2: #b5a8e0;
+  --color-heatmap-3: #7c6cc4;
+  --color-heatmap-4: #4c3f86;
 }
 
 /* =====================================================================
@@ -357,6 +375,10 @@
   --color-gold-shadow: rgba(236, 72, 153, 0.2);
   --color-indigo: #f472b6;
   --color-indigo-dark: #ec4899;
+  --color-heatmap-1: #fbcfe8;
+  --color-heatmap-2: #f9a8d4;
+  --color-heatmap-3: #ec4899;
+  --color-heatmap-4: #9d174d;
 }
 
 *,

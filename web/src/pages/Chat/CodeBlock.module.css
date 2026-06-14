@@ -5,7 +5,7 @@
 }
 
 .header {
-  background: #111827;
+  background: var(--color-code-bg);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -15,14 +15,14 @@
 .language {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: color-mix(in srgb, var(--color-code-text) 60%, transparent);
   text-transform: lowercase;
 }
 
 .copyBtn {
   font-size: 0.75rem;
   font-family: inherit;
-  color: #9ca3af;
+  color: color-mix(in srgb, var(--color-code-text) 60%, transparent);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -32,7 +32,7 @@
 }
 
 .copyBtn:hover {
-  color: #f9fafb;
+  color: var(--color-code-text);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -44,7 +44,7 @@
 .pre {
   margin: 0;
   padding: 0.75rem;
-  background: #1f2937;
+  background: var(--color-code-bg);
   overflow-x: auto;
   font-size: 0.8125rem;
   line-height: var(--leading-normal);
@@ -52,7 +52,7 @@
 
 .pre code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  color: #f9fafb;
+  color: var(--color-code-text);
   background: transparent;
   padding: 0;
   border-radius: 0;
