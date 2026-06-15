@@ -12,6 +12,7 @@ export type SubscriptionViewState =
 
 export interface StripeSubscriptionsState {
   subscriptions: StripeSubscriptionSummary[];
+  activeSubscriptions: StripeSubscriptionSummary[];
   view: SubscriptionViewState;
   isLoading: boolean;
   refetch: () => Promise<unknown>;
@@ -46,9 +47,13 @@ export function useStripeSubscriptions(
   });
 
   const subscriptions = data?.subscriptions ?? [];
+  const activeSubscriptions = subscriptions.filter(
+    (sub) => sub.status === 'active'
+  );
 
   return {
     subscriptions,
+    activeSubscriptions,
     view: deriveView(subscriptions),
     isLoading,
     refetch,

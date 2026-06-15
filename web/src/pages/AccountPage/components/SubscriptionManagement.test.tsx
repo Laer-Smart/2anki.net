@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { SubscriptionManagement } from './SubscriptionManagement';
@@ -9,7 +15,14 @@ vi.mock('../../../lib/hooks/useStripeSubscriptions', () => ({
   useStripeSubscriptions: vi.fn(),
 }));
 
+vi.mock('../../../lib/backend/cancelSubscription', () => ({
+  cancelSubscription: vi.fn(),
+  cancelSubscriptionById: vi.fn(),
+  submitCancellationFeedback: vi.fn(),
+}));
+
 import { useStripeSubscriptions } from '../../../lib/hooks/useStripeSubscriptions';
+import { cancelSubscriptionById } from '../../../lib/backend/cancelSubscription';
 
 const mockUseStripeSubscriptions =
   useStripeSubscriptions as unknown as ReturnType<typeof vi.fn>;
@@ -26,20 +39,19 @@ function stubStripeActive(plan?: {
   currency: string | null;
   interval: string | null;
 }) {
+  const subscription = {
+    id: 'sub_1',
+    status: 'active',
+    cancel_at_period_end: false,
+    current_period_end: 1893456000,
+    cancel_at: null,
+    canceled_at: null,
+    plan: plan ?? { amount: 1000, currency: 'usd', interval: 'month' },
+  };
   mockUseStripeSubscriptions.mockReturnValue({
-    subscriptions: [],
-    view: {
-      kind: 'active',
-      subscription: {
-        id: 'sub_1',
-        status: 'active',
-        cancel_at_period_end: false,
-        current_period_end: 1893456000,
-        cancel_at: null,
-        canceled_at: null,
-        plan: plan ?? { amount: 1000, currency: 'usd', interval: 'month' },
-      },
-    },
+    subscriptions: [subscription],
+    activeSubscriptions: [subscription],
+    view: { kind: 'active', subscription },
     isLoading: false,
     refetch: vi.fn().mockResolvedValue(undefined),
   } as unknown as StripeSubscriptionsState);
@@ -165,6 +177,96 @@ describe('SubscriptionManagement', () => {
     expect(
       screen.queryByText('Cancelling forfeits this legacy rate.')
     ).toBeNull();
+  });
+
+  it('renders the duplicate-subscription heads-up and one row per active sub when there are 2+', () => {
+    const subs = [
+      {
+        id: 'sub_early',
+        status: 'active',
+        cancel_at_period_end: false,
+        current_period_end: 1893456000,
+        cancel_at: null,
+        canceled_at: null,
+        plan: { amount: 799, currency: 'usd', interval: 'month' },
+      },
+      {
+        id: 'sub_late',
+        status: 'active',
+        cancel_at_period_end: false,
+        current_period_end: 1900000000,
+        cancel_at: null,
+        canceled_at: null,
+        plan: { amount: 6400, currency: 'usd', interval: 'year' },
+      },
+    ];
+    mockUseStripeSubscriptions.mockReturnValue({
+      subscriptions: subs,
+      activeSubscriptions: subs,
+      view: { kind: 'active', subscription: subs[0] },
+      isLoading: false,
+      refetch: vi.fn().mockResolvedValue(undefined),
+    } as unknown as StripeSubscriptionsState);
+
+    renderStripeManagement();
+
+    expect(screen.getByText(/You have 2 active subscriptions/)).toBeTruthy();
+    expect(
+      screen.getAllByRole('button', { name: 'Cancel this plan' })
+    ).toHaveLength(2);
+    expect(
+      screen.queryByText('Cancelling forfeits this legacy rate.')
+    ).toBeNull();
+  });
+
+  it('cancels the targeted subscription immediately after inline confirm', async () => {
+    const refetch = vi.fn().mockResolvedValue(undefined);
+    const subs = [
+      {
+        id: 'sub_early',
+        status: 'active',
+        cancel_at_period_end: false,
+        current_period_end: 1893456000,
+        cancel_at: null,
+        canceled_at: null,
+        plan: { amount: 799, currency: 'usd', interval: 'month' },
+      },
+      {
+        id: 'sub_late',
+        status: 'active',
+        cancel_at_period_end: false,
+        current_period_end: 1900000000,
+        cancel_at: null,
+        canceled_at: null,
+        plan: { amount: 6400, currency: 'usd', interval: 'year' },
+      },
+    ];
+    mockUseStripeSubscriptions.mockReturnValue({
+      subscriptions: subs,
+      activeSubscriptions: subs,
+      view: { kind: 'active', subscription: subs[0] },
+      isLoading: false,
+      refetch,
+    } as unknown as StripeSubscriptionsState);
+    vi.mocked(cancelSubscriptionById).mockResolvedValue({ message: 'ok' });
+
+    renderStripeManagement();
+
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Cancel this plan' })[1]
+    );
+
+    const panel = screen.getByRole('group', { name: 'Cancel this plan now' });
+    fireEvent.click(
+      within(panel).getByRole('button', { name: 'Cancel this plan' })
+    );
+
+    await waitFor(() =>
+      expect(cancelSubscriptionById).toHaveBeenCalledWith(
+        'sub_late',
+        'immediate'
+      )
+    );
   });
 
   it('renders nothing when the user is not a subscriber', () => {

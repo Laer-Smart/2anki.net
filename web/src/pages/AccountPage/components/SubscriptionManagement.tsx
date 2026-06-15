@@ -1,6 +1,7 @@
 import React, { ChangeEvent, useEffect } from 'react';
 import { useEmailLinking } from '../hooks/useEmailLinking';
 import { useSubscriptionCancellation } from '../hooks/useSubscriptionCancellation';
+import { usePerSubscriptionCancellation } from '../hooks/usePerSubscriptionCancellation';
 import { useStripeSubscriptions } from '../../../lib/hooks/useStripeSubscriptions';
 import { StripeSubscriptionSummary } from '../../../lib/backend/getSubscriptionStatus';
 import { CancellationFollowUp } from './CancellationFollowUp';
@@ -57,6 +58,146 @@ const formatPlan = (sub: StripeSubscriptionSummary): string | null => {
   });
   return plan.interval ? `${price} / ${plan.interval}` : price;
 };
+
+const byNextChargeAsc = (
+  a: StripeSubscriptionSummary,
+  b: StripeSubscriptionSummary
+): number => (a.current_period_end ?? 0) - (b.current_period_end ?? 0);
+
+function MultipleSubscriptionsRow({
+  sub,
+  confirmingSubId,
+  errorSubId,
+  cancelError,
+  isCancelling,
+  onOpenConfirm,
+  onConfirmCancel,
+  onDismiss,
+}: {
+  readonly sub: StripeSubscriptionSummary;
+  readonly confirmingSubId: string | null;
+  readonly errorSubId: string | null;
+  readonly cancelError: string;
+  readonly isCancelling: boolean;
+  readonly onOpenConfirm: (id: string) => void;
+  readonly onConfirmCancel: (id: string) => void;
+  readonly onDismiss: () => void;
+}) {
+  const planLabel = formatPlan(sub);
+  const isScheduled = sub.cancel_at_period_end;
+  const isConfirming = confirmingSubId === sub.id;
+
+  if (isScheduled) {
+    return (
+      <div className={styles.section}>
+        <p className={styles.statusLine}>
+          {planLabel ?? 'Premium'} · Ends{' '}
+          <strong>{formatDate(sub.cancel_at)}</strong>. Access continues until
+          then.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.section}>
+      <p className={styles.statusLine}>
+        <span style={{ fontWeight: 500 }}>{planLabel ?? 'Premium'}</span> ·
+        Renews <strong>{formatDate(sub.current_period_end)}</strong>
+      </p>
+      {!isConfirming && (
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => onOpenConfirm(sub.id)}
+          >
+            Cancel this plan
+          </button>
+        </div>
+      )}
+      {isConfirming && (
+        <div
+          className={styles.dangerSection}
+          role="group"
+          aria-label="Cancel this plan now"
+        >
+          <p className={styles.dangerTitle}>Cancel this plan now</p>
+          <p className={styles.dangerNotice}>
+            {planLabel
+              ? `Cancels the ${planLabel} plan right away. Your card won't be charged the ${planLabel} due ${formatDate(sub.current_period_end)}. This can't be undone.`
+              : "Cancels this plan right away. This can't be undone."}
+          </p>
+          <div className={styles.buttonRow}>
+            <button
+              type="button"
+              className={styles.dangerButton}
+              onClick={() => onConfirmCancel(sub.id)}
+              disabled={isCancelling}
+            >
+              {isCancelling ? 'Processing…' : 'Cancel this plan'}
+            </button>
+            <button
+              type="button"
+              className={styles.textButton}
+              onClick={onDismiss}
+              disabled={isCancelling}
+            >
+              Keep it
+            </button>
+          </div>
+        </div>
+      )}
+      {errorSubId === sub.id && cancelError && (
+        <p className={styles.helpDanger}>{cancelError}</p>
+      )}
+    </div>
+  );
+}
+
+function MultipleSubscriptions({
+  subscriptions,
+  onRefetch,
+}: {
+  readonly subscriptions: StripeSubscriptionSummary[];
+  readonly onRefetch: () => Promise<unknown>;
+}) {
+  const {
+    confirmingSubId,
+    errorSubId,
+    cancelError,
+    isCancelling,
+    openConfirm,
+    dismissConfirm,
+    confirmCancel,
+  } = usePerSubscriptionCancellation(() => {
+    void onRefetch();
+  });
+
+  const ordered = [...subscriptions].sort(byNextChargeAsc);
+
+  return (
+    <section className={styles.section}>
+      <p className={styles.scheduledBadge}>
+        You have {subscriptions.length} active subscriptions. You're likely
+        being charged twice — cancel the one you don't want to keep.
+      </p>
+      {ordered.map((sub) => (
+        <MultipleSubscriptionsRow
+          key={sub.id}
+          sub={sub}
+          confirmingSubId={confirmingSubId}
+          errorSubId={errorSubId}
+          cancelError={cancelError}
+          isCancelling={isCancelling}
+          onOpenConfirm={openConfirm}
+          onConfirmCancel={confirmCancel}
+          onDismiss={dismissConfirm}
+        />
+      ))}
+    </section>
+  );
+}
 
 function AppleSubscriptionManagement() {
   return (
@@ -151,11 +292,19 @@ function StripeSubscriptionManagement({
     return null;
   }
 
-  const { view } = stripeStatus;
+  const { view, activeSubscriptions } = stripeStatus;
+  const hasMultipleActive = activeSubscriptions.length > 1;
 
   return (
     <section className={styles.section}>
-      {locals?.subscriber && (
+      {hasMultipleActive && (
+        <MultipleSubscriptions
+          subscriptions={activeSubscriptions}
+          onRefetch={refetchAll}
+        />
+      )}
+
+      {!hasMultipleActive && locals?.subscriber && (
         <div>
           {view.kind === 'active' && (
             <>

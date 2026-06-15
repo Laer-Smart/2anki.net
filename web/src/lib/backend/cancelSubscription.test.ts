@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   cancelSubscription,
+  cancelSubscriptionById,
   submitCancellationFeedback,
 } from './cancelSubscription';
 import * as api from './api';
@@ -91,6 +92,60 @@ describe('cancelSubscription', () => {
     expect(api.post).toHaveBeenCalledWith('/api/users/cancel-subscription', {
       mode: 'period_end',
     });
+  });
+});
+
+describe('cancelSubscriptionById', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('posts the mode to the per-subscription endpoint with the id in the path', async () => {
+    vi.mocked(api.post).mockResolvedValue(
+      createMockResponse(200, { message: 'cancelled' })
+    );
+
+    await cancelSubscriptionById('sub_owned', 'immediate');
+
+    expect(api.post).toHaveBeenCalledWith(
+      '/api/users/subscriptions/sub_owned/cancel',
+      { mode: 'immediate' }
+    );
+  });
+
+  it('returns the success payload on 200', async () => {
+    vi.mocked(api.post).mockResolvedValue(
+      createMockResponse(200, { message: 'cancelled' })
+    );
+
+    await expect(
+      cancelSubscriptionById('sub_owned', 'immediate')
+    ).resolves.toEqual({ message: 'cancelled' });
+  });
+
+  it('redirects to login on 401', async () => {
+    const original = globalThis.location.href;
+    vi.mocked(api.post).mockResolvedValue(createMockResponse(401, {}));
+
+    await expect(
+      cancelSubscriptionById('sub_owned', 'immediate')
+    ).rejects.toThrow('Authentication required');
+
+    globalThis.location.href = original;
+  });
+
+  it('throws the server message on a non-200 response', async () => {
+    vi.mocked(api.post).mockResolvedValue(
+      createMockResponse(
+        403,
+        { message: 'Subscription not found' },
+        'Forbidden'
+      )
+    );
+
+    await expect(
+      cancelSubscriptionById('sub_other', 'immediate')
+    ).rejects.toThrow('Subscription not found');
   });
 });
 
