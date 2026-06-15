@@ -755,8 +755,6 @@
   position: absolute;
   inset: 0;
   background: var(--color-backdrop);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   border: none;
   padding: 0;
   cursor: pointer;
