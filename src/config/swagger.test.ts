@@ -364,11 +364,13 @@ describe('Swagger Documentation Coverage', () => {
       );
       expect(ankifyPaths.length).toBeGreaterThan(0);
       ankifyPaths.forEach((p) => {
-        Object.values(spec.paths[p]).forEach((op: { description?: unknown }) => {
-          if (op.description != null) {
-            expect(typeof op.description).toBe('string');
+        Object.values(spec.paths[p]).forEach(
+          (op: { description?: unknown }) => {
+            if (op.description != null) {
+              expect(typeof op.description).toBe('string');
+            }
           }
-        });
+        );
       });
     });
   });
