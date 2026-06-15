@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-15-login-link-suppressed",
+  "date": "2026-06-15",
+  "type": "fix",
+  "title": "The sign-in link request now tells you when your email can't receive mail and how to restore it"
+}

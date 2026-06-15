@@ -29,6 +29,8 @@ import SuppressionEventsRepository from '../../data_layer/SuppressionEventsRepos
 
 type EmailResponse = { didSend: boolean; error?: Error };
 
+export type MagicLinkSendResult = { suppressed: boolean };
+
 export interface IEmailService {
   sendResetEmail(email: string, token: string): Promise<void>;
   sendConversionEmail(
@@ -61,7 +63,7 @@ export interface IEmailService {
     email: string,
     token: string,
     purpose: 'login' | 'password_reset'
-  ): Promise<void>;
+  ): Promise<MagicLinkSendResult>;
   sendReEngagementEmail(to: string, name: string, token: string): Promise<void>;
   sendInactivityWarningEmail(
     to: string,
@@ -254,7 +256,7 @@ export class EmailService implements IEmailService {
     email: string,
     token: string,
     purpose: 'login' | 'password_reset'
-  ): Promise<void> {
+  ): Promise<MagicLinkSendResult> {
     const link = `${process.env.DOMAIN ?? 'https://2anki.net'}/auth/magic?token=${token}`;
     const isLogin = purpose === 'login';
     const subject = isLogin
@@ -288,7 +290,8 @@ export class EmailService implements IEmailService {
     };
 
     try {
-      await this.deliver(msg);
+      const result = await this.deliver(msg);
+      return { suppressed: result == null };
     } catch (error) {
       console.error('Failed to send magic link email:', error);
       throw error;
@@ -719,8 +722,9 @@ export class UnimplementedEmailService implements IEmailService {
     email: string,
     token: string,
     purpose: 'login' | 'password_reset'
-  ): Promise<void> {
+  ): Promise<MagicLinkSendResult> {
     console.info('sendMagicLinkEmail not handled');
+    return { suppressed: false };
   }
 
   async sendReEngagementEmail(

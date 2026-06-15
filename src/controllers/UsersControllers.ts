@@ -15,7 +15,10 @@ import SubscriptionService, {
   SubscriptionNotOwnedError,
 } from '../services/SubscriptionService';
 import { OPS_OWNER_EMAIL } from '../routes/middleware/RequireOpsAccess';
-import { MagicLinkRateLimitError } from '../services/UsersService';
+import {
+  MagicLinkRateLimitError,
+  MagicLinkSuppressedError,
+} from '../services/UsersService';
 import { MONTHLY_CARD_LIMIT } from '../usecases/users/CheckMonthlyCardLimitUseCase';
 import UsersRepository from '../data_layer/UsersRepository';
 import OauthIdentitiesRepository from '../data_layer/OauthIdentitiesRepository';
@@ -1247,6 +1250,11 @@ class UsersController {
     } catch (error) {
       if (error instanceof MagicLinkRateLimitError) {
         return res.status(200).json({ message: 'ok' });
+      }
+      if (error instanceof MagicLinkSuppressedError) {
+        return res
+          .status(200)
+          .json({ message: 'suppressed', suppressed: true });
       }
       return next(error);
     }

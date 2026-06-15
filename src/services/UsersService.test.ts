@@ -1,4 +1,7 @@
-import UsersService, { MagicLinkRateLimitError } from './UsersService';
+import UsersService, {
+  MagicLinkRateLimitError,
+  MagicLinkSuppressedError,
+} from './UsersService';
 import type UsersRepository from '../data_layer/UsersRepository';
 import type { IEmailService } from './EmailService/EmailService';
 import type AuthenticationService from './AuthenticationService';
@@ -19,7 +22,7 @@ function buildEmailService(
     sendHostedAnkiAccessRequestEmail: jest
       .fn()
       .mockResolvedValue({ didSend: true }),
-    sendMagicLinkEmail: jest.fn().mockResolvedValue(undefined),
+    sendMagicLinkEmail: jest.fn().mockResolvedValue({ suppressed: false }),
     sendReEngagementEmail: jest.fn().mockResolvedValue(undefined),
     sendInactivityWarningEmail: jest.fn().mockResolvedValue(undefined),
     ...overrides,
@@ -278,6 +281,22 @@ describe('UsersService.requestMagicLink', () => {
     await service.requestMagicLink('nobody@example.com', 'login');
 
     expect(emailService.sendMagicLinkEmail).not.toHaveBeenCalled();
+  });
+
+  it('throws MagicLinkSuppressedError when the recipient is suppressed', async () => {
+    const getByEmail = jest
+      .fn()
+      .mockResolvedValue({ id: 9, email: 'blocked@example.com' });
+    const repository = { getByEmail } as unknown as UsersRepository;
+    const emailService = buildEmailService({
+      sendMagicLinkEmail: jest.fn().mockResolvedValue({ suppressed: true }),
+    });
+    const magicTokenRepo = new InMemoryMagicTokenRepository();
+    const service = new UsersService(repository, emailService, magicTokenRepo);
+
+    await expect(
+      service.requestMagicLink('blocked@example.com', 'login')
+    ).rejects.toThrow(MagicLinkSuppressedError);
   });
 
   it('throws MagicLinkRateLimitError after 5 requests in an hour', async () => {

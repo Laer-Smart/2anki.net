@@ -41,6 +41,34 @@ describe('EmailService suppression gate', () => {
     expect(msg.to).toBe('ok@example.com');
   });
 
+  it('reports suppressed for a magic link to a suppressed recipient', async () => {
+    const isSuppressed = jest.fn().mockResolvedValue(true);
+    const service = new EmailService('test-key', DEFAULT_SENDER, isSuppressed);
+
+    const result = await service.sendMagicLinkEmail(
+      'blocked@example.com',
+      'tok-3',
+      'login'
+    );
+
+    expect(result).toEqual({ suppressed: true });
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('reports not suppressed for a magic link that sends', async () => {
+    const isSuppressed = jest.fn().mockResolvedValue(false);
+    const service = new EmailService('test-key', DEFAULT_SENDER, isSuppressed);
+
+    const result = await service.sendMagicLinkEmail(
+      'ok@example.com',
+      'tok-4',
+      'login'
+    );
+
+    expect(result).toEqual({ suppressed: false });
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
   it('sends when the suppression lookup itself fails (fail-open)', async () => {
     const isSuppressed = jest
       .fn()
