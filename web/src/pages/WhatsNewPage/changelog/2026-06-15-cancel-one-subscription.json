@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-15-cancel-one-subscription",
+  "date": "2026-06-15",
+  "type": "fix",
+  "title": "Cancel a single subscription when your account has more than one"
+}

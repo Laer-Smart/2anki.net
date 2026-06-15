@@ -27,6 +27,32 @@ export const cancelSubscription = async (
   return response.json();
 };
 
+export const cancelSubscriptionById = async (
+  id: string,
+  mode: CancelMode
+): Promise<{ message: string }> => {
+  const response = await post(
+    `/api/users/subscriptions/${encodeURIComponent(id)}/cancel`,
+    { mode }
+  );
+
+  if (response?.status === UNAUTHORIZED) {
+    globalThis.location.href = '/login';
+    throw new Error('Authentication required');
+  }
+
+  if (response?.status !== OK) {
+    const fallback = response?.statusText || 'Unknown error';
+    const message = await response
+      ?.json()
+      .then((body: { message?: string }) => body?.message ?? fallback)
+      .catch(() => fallback);
+    throw new Error(message);
+  }
+
+  return response.json();
+};
+
 export const submitCancellationFeedback = async (
   reason: string,
   comment: string
