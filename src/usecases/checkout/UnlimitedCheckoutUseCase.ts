@@ -3,11 +3,13 @@ import hashToken from '../../lib/misc/hashToken';
 import { optionalMetadata } from './checkoutMetadata';
 import { StripePriceResolver } from '../../services/StripePriceResolver';
 import {
+  LEGACY_LOCK_IN_WINDOW_END,
   PricingCohort,
   resolveCohort,
   V2_ANNUAL_LOOKUP_KEY,
   V2_MONTHLY_LOOKUP_KEY,
 } from './pricingV2';
+import { PricingResolutionError } from './PricingResolutionError';
 
 export type UnlimitedInterval = 'month' | 'year';
 
@@ -26,7 +28,8 @@ export class UnlimitedCheckoutUseCase {
 
   private async resolvePriceId(
     interval: UnlimitedInterval,
-    cohort: PricingCohort
+    cohort: PricingCohort,
+    now: Date
   ): Promise<string> {
     const legacyId =
       interval === 'year' ? this.yearlyPriceId : this.monthlyPriceId;
@@ -36,7 +39,12 @@ export class UnlimitedCheckoutUseCase {
     const lookupKey =
       interval === 'year' ? V2_ANNUAL_LOOKUP_KEY : V2_MONTHLY_LOOKUP_KEY;
     const resolved = await this.priceResolver.resolveByLookupKey(lookupKey);
-    if (resolved == null) {
+    if (resolved != null) {
+      return resolved;
+    }
+    const legacyStillActive =
+      now.getTime() < LEGACY_LOCK_IN_WINDOW_END.getTime();
+    if (legacyStillActive) {
       console.error('unlimited.checkout.v2_resolve_fallback', {
         cohort,
         interval,
@@ -45,7 +53,14 @@ export class UnlimitedCheckoutUseCase {
       });
       return legacyId;
     }
-    return resolved;
+    console.error('unlimited.checkout.v2_resolve_failed', {
+      cohort,
+      interval,
+      lookup_key: lookupKey,
+      reason:
+        'lookup_key resolution returned null after the lock-in window; legacy price is archived, refusing to serve it',
+    });
+    throw new PricingResolutionError(lookupKey);
   }
 
   async execute(input: {
@@ -61,10 +76,11 @@ export class UnlimitedCheckoutUseCase {
     createdAt?: Date | null;
     now?: Date;
   }): Promise<UnlimitedCheckoutResult> {
+    const now = input.now ?? new Date();
     const cohort = resolveCohort({
       flagOn: input.pricingV2On === true,
       createdAt: input.createdAt ?? null,
-      now: input.now ?? new Date(),
+      now,
     });
 
     console.info('unlimited.checkout.started', {
@@ -73,7 +89,7 @@ export class UnlimitedCheckoutUseCase {
       cohort,
     });
 
-    const priceId = await this.resolvePriceId(input.interval, cohort);
+    const priceId = await this.resolvePriceId(input.interval, cohort, now);
     const appUrl = process.env.APP_URL ?? 'https://2anki.net';
 
     const sessionParams: StripeTypes.Checkout.SessionCreateParams = {

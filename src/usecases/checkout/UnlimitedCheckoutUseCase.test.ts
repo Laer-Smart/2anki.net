@@ -1,6 +1,7 @@
 jest.mock('../../lib/misc/hashToken', () => (s: string) => `hashed:${s}`);
 
 import { UnlimitedCheckoutUseCase } from './UnlimitedCheckoutUseCase';
+import { PricingResolutionError } from './PricingResolutionError';
 
 const mockStripeCreateSession = jest.fn();
 
@@ -482,6 +483,29 @@ describe('UnlimitedCheckoutUseCase', () => {
         metadata: { user_id: '23', cohort: 'v2' },
       })
     );
+  });
+
+  it('throws and creates no session when v2 resolution fails after the window', async () => {
+    const resolver = makeResolver(null);
+    const uc = new UnlimitedCheckoutUseCase(
+      makeStripe(),
+      MONTHLY_PRICE_ID,
+      YEARLY_PRICE_ID,
+      resolver as never
+    );
+
+    await expect(
+      uc.execute({
+        userEmail: 'user@example.com',
+        userId: 25,
+        interval: 'month',
+        pricingV2On: true,
+        createdAt: afterCutover,
+        now: afterWindow,
+      })
+    ).rejects.toBeInstanceOf(PricingResolutionError);
+
+    expect(mockStripeCreateSession).not.toHaveBeenCalled();
   });
 
   it('uses legacy env prices for everyone when the flag is off', async () => {

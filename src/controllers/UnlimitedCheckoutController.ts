@@ -6,6 +6,7 @@ import {
 import { parsePricingVariant } from '../usecases/checkout/pricingVariant';
 import { parseCheckoutSurface } from '../usecases/checkout/checkoutSurface';
 import { parseGaClientId } from '../usecases/checkout/gaClientId';
+import { PricingResolutionError } from '../usecases/checkout/PricingResolutionError';
 import type { EventsSink } from '../services/events/EventsSink';
 
 const VALID_INTERVALS: ReadonlySet<string> = new Set(['month', 'year']);
@@ -35,17 +36,29 @@ class UnlimitedCheckoutController {
     const gaClientId = parseGaClientId(req.cookies?._ga);
     const createdAt = await this.context.getUserCreatedAt(userId);
 
-    const result = await this.useCase.execute({
-      userId,
-      userEmail,
-      interval: interval as UnlimitedInterval,
-      variant: parsePricingVariant(req.body?.variant),
-      anonId,
-      surface: parseCheckoutSurface(req.body?.surface),
-      gaClientId,
-      pricingV2On: this.context.pricingV2On,
-      createdAt,
-    });
+    let result;
+    try {
+      result = await this.useCase.execute({
+        userId,
+        userEmail,
+        interval: interval as UnlimitedInterval,
+        variant: parsePricingVariant(req.body?.variant),
+        anonId,
+        surface: parseCheckoutSurface(req.body?.surface),
+        gaClientId,
+        pricingV2On: this.context.pricingV2On,
+        createdAt,
+      });
+    } catch (error) {
+      if (error instanceof PricingResolutionError) {
+        res.status(503).json({
+          message:
+            'Checkout is temporarily unavailable. Try again in a moment.',
+        });
+        return;
+      }
+      throw error;
+    }
 
     this.eventsSink.record({
       name: 'checkout_started',

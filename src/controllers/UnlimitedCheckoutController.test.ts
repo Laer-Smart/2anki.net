@@ -3,6 +3,7 @@ import UnlimitedCheckoutController, {
   UnlimitedCheckoutContext,
 } from './UnlimitedCheckoutController';
 import { UnlimitedCheckoutUseCase } from '../usecases/checkout/UnlimitedCheckoutUseCase';
+import { PricingResolutionError } from '../usecases/checkout/PricingResolutionError';
 
 const makeResponse = (locals: Record<string, unknown> = {}) => {
   const res = {
@@ -134,6 +135,27 @@ describe('UnlimitedCheckoutController', () => {
     expect(uc.execute as jest.Mock).toHaveBeenCalledWith(
       expect.objectContaining({ anonId: 'anon-uuid-123' })
     );
+  });
+
+  it('returns 503 and records no event when pricing resolution fails', async () => {
+    const execute = jest
+      .fn()
+      .mockRejectedValue(new PricingResolutionError('v2_monthly'));
+    const uc = { execute } as unknown as UnlimitedCheckoutUseCase;
+    const req = { body: { interval: 'month' } } as Request;
+    const res = makeResponse();
+    const sink = makeSink();
+    const controller = new UnlimitedCheckoutController(
+      uc,
+      makeContext({ pricingV2On: true }),
+      sink
+    );
+
+    await controller.createSession(req, res as unknown as Response);
+
+    expect(res.statusCode).toBe(503);
+    expect(res.body).toMatchObject({ message: expect.any(String) });
+    expect(sink.record).not.toHaveBeenCalled();
   });
 
   it('propagates use case errors', async () => {
