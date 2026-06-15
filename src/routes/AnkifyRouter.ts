@@ -793,7 +793,7 @@ const AnkifyRouter = () => {
    * /api/ankify/clients/active/ready:
    *   get:
    *     summary: Probe whether the active hosted Anki container is reachable
-   *     description: Allowlisted endpoint. Returns { ready, reason? } where ready is true if AnkiConnect responds inside the container. Used by the UI to show a skeleton while a freshly-provisioned container is still booting.
+   *     description: "Allowlisted endpoint. Returns { ready, reason? } where ready is true if AnkiConnect responds inside the container. Used by the UI to show a skeleton while a freshly-provisioned container is still booting."
    *     tags: [Ankify]
    */
   router.get(
@@ -840,7 +840,7 @@ const AnkifyRouter = () => {
    * /api/ankify/active-profile:
    *   get:
    *     summary: The synced Anki profile name on the user's hosted client
-   *     description: Allowlisted endpoint. Returns { profile }. 409 when no active client, 503 when AnkiConnect is unreachable.
+   *     description: "Allowlisted endpoint. Returns { profile }. 409 when no active client, 503 when AnkiConnect is unreachable."
    *     tags: [Ankify]
    */
   router.get('/api/ankify/active-profile', RequireAnkifyAccess, (req, res) =>
@@ -864,7 +864,7 @@ const AnkifyRouter = () => {
    * /api/ankify/gui-deck-overview:
    *   post:
    *     summary: Jump the user's hosted Anki to a deck's overview
-   *     description: Allowlisted endpoint. Body { deck }. The deck must belong to one of the caller's Notion subscriptions. 403 when the deck is not owned, 503 when AnkiConnect is unreachable.
+   *     description: "Allowlisted endpoint. Body { deck }. The deck must belong to one of the caller's Notion subscriptions. 403 when the deck is not owned, 503 when AnkiConnect is unreachable."
    *     tags: [Ankify]
    *     requestBody:
    *       required: true
@@ -888,7 +888,7 @@ const AnkifyRouter = () => {
    * /api/ankify/deck-maturity:
    *   get:
    *     summary: Maturity breakdown for one of the user's synced decks
-   *     description: Allowlisted endpoint. Query { deck }. Returns { connected, matureCount, total, avgIntervalDays } (mature = interval ≥ 21 days). The deck must belong to the caller. 403 when not owned, 503 when AnkiConnect is unreachable.
+   *     description: "Allowlisted endpoint. Query { deck }. Returns { connected, matureCount, total, avgIntervalDays } (mature = interval ≥ 21 days). The deck must belong to the caller. 403 when not owned, 503 when AnkiConnect is unreachable."
    *     tags: [Ankify]
    *     parameters:
    *       - in: query
