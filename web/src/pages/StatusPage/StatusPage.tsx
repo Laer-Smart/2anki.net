@@ -30,6 +30,13 @@ function formatRelative(ms: number | null): string {
   return `${days} day${days === 1 ? '' : 's'} ago`;
 }
 
+function formatRelativeFromIso(iso: string | null): string {
+  if (iso == null) return 'no data';
+  const ms = Date.parse(iso);
+  if (Number.isNaN(ms)) return 'no data';
+  return formatRelative(ms);
+}
+
 function dotClass(ok: boolean | null): string {
   if (ok == null) return pageStyles.dotGray;
   return ok ? pageStyles.dotGreen : pageStyles.dotRed;
@@ -117,17 +124,12 @@ export default function StatusPage() {
             </div>
           </section>
 
-          {status.lastDeploy.sha != null && (
+          {status.lastDeploy.time != null && (
             <section className={pageStyles.section}>
               <h2>Last deploy</h2>
               <div className={pageStyles.signalRow}>
-                <span className={pageStyles.label}>Version</span>
-                <span>{status.lastDeploy.sha.slice(0, 7)}</span>
-                {status.lastDeploy.time != null && (
-                  <span className={pageStyles.meta}>
-                    {status.lastDeploy.time}
-                  </span>
-                )}
+                <span className={pageStyles.label}>Updated</span>
+                <span>{formatRelativeFromIso(status.lastDeploy.time)}</span>
               </div>
             </section>
           )}
@@ -141,7 +143,7 @@ export default function StatusPage() {
                     {incident.summary}
                   </p>
                   <p className={pageStyles.incidentTime}>
-                    Started {new Date(incident.start).toLocaleString()}
+                    Started {formatRelativeFromIso(incident.start)}
                     {incident.end == null ? (
                       <>
                         {' '}
@@ -151,8 +153,7 @@ export default function StatusPage() {
                     ) : (
                       <>
                         {' '}
-                        &mdash; resolved{' '}
-                        {new Date(incident.end).toLocaleString()}
+                        &mdash; resolved {formatRelativeFromIso(incident.end)}
                       </>
                     )}
                   </p>
