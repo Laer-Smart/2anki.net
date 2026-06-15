@@ -34,7 +34,9 @@ describe('MagicLinkPage', () => {
     renderMagicLinkPage('');
     expect(screen.getByText('Link expired or invalid')).toBeInTheDocument();
     expect(
-      screen.getByText('This link is invalid or has expired. Request a new one.')
+      screen.getByText(
+        'This link is invalid or has expired. Request a new one.'
+      )
     ).toBeInTheDocument();
   });
 
