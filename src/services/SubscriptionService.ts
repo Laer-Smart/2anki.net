@@ -6,6 +6,13 @@ import Subscriptions from '../data_layer/public/Subscriptions';
 
 export type CancelMode = 'immediate' | 'period_end';
 
+export class SubscriptionNotOwnedError extends Error {
+  constructor() {
+    super('Subscription not found');
+    this.name = 'SubscriptionNotOwnedError';
+  }
+}
+
 async function collectCandidateEmails(userEmail: string): Promise<string[]> {
   const normalized = userEmail.toLowerCase();
   const db = getDatabase();
@@ -126,6 +133,30 @@ export class SubscriptionService {
     }
 
     return subs.length;
+  }
+
+  static async cancelSubscriptionById(
+    callerEmail: string,
+    id: string,
+    mode: CancelMode
+  ): Promise<void> {
+    const owned = await this.findRecentStripeSubscriptions(callerEmail);
+    const isOwned = owned.some((sub) => sub.id === id);
+    if (!isOwned) {
+      throw new SubscriptionNotOwnedError();
+    }
+
+    const stripe = getStripe();
+
+    if (mode === 'immediate') {
+      await stripe.subscriptions.cancel(id);
+      const db = getDatabase();
+      await db('subscriptions').whereRaw("payload->>'id' = ?", [id]).delete();
+    } else {
+      await stripe.subscriptions.update(id, { cancel_at_period_end: true });
+    }
+
+    console.log('subscription_self_serve_extra_cancel');
   }
 
   static async getUserActiveSubscriptions(

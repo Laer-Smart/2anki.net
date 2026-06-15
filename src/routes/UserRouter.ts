@@ -478,6 +478,52 @@ const UserRouter = () => {
 
   /**
    * @swagger
+   * /api/users/subscriptions/{id}/cancel:
+   *   post:
+   *     summary: "Cancel one Stripe subscription by id"
+   *     description: "Cancels a single subscription the caller owns. The id must resolve to one of the caller's Stripe subscriptions; otherwise the request is rejected with 403."
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: "Stripe subscription id"
+   *     requestBody:
+   *       required: false
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               mode:
+   *                 type: string
+   *                 enum: [immediate, period_end]
+   *                 default: immediate
+   *     responses:
+   *       200:
+   *         description: "Subscription cancelled"
+   *       400:
+   *         description: "A subscription id is required"
+   *       401:
+   *         description: "Authentication required"
+   *       403:
+   *         description: "Subscription not found for this account"
+   *       404:
+   *         description: "User not found"
+   */
+  router.post(
+    '/api/users/subscriptions/:id/cancel',
+    RequireAuthentication,
+    (req, res) => controller.cancelSubscriptionById(req, res)
+  );
+
+  /**
+   * @swagger
    * /api/users/cancellation-feedback:
    *   post:
    *     summary: Record why a user cancelled

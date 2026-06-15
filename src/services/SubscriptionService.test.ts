@@ -13,17 +13,22 @@ jest.mock('./EmailService/EmailService', () => ({
 import { getDatabase } from '../data_layer';
 import { getStripe } from '../lib/integrations/stripe';
 import { getDefaultEmailService } from './EmailService/EmailService';
-import SubscriptionService from './SubscriptionService';
+import SubscriptionService, {
+  SubscriptionNotOwnedError,
+} from './SubscriptionService';
 
 function buildDbMock(linkedRows: Array<{ email: string }> = []): jest.Mock & {
   updateSpy: jest.Mock;
   deleteSpy: jest.Mock;
+  whereRawSpy: jest.Mock;
 } {
   const updateSpy = jest.fn().mockResolvedValue(0);
   const deleteSpy = jest.fn().mockResolvedValue(0);
+  const whereRawSpy = jest.fn().mockReturnThis();
   const queryBuilder: Record<string, unknown> = {
     select: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
+    whereRaw: whereRawSpy,
     andWhere: jest.fn().mockReturnThis(),
     orWhere: jest.fn().mockReturnThis(),
     update: updateSpy,
@@ -33,9 +38,11 @@ function buildDbMock(linkedRows: Array<{ email: string }> = []): jest.Mock & {
   const db = jest.fn().mockReturnValue(queryBuilder) as jest.Mock & {
     updateSpy: jest.Mock;
     deleteSpy: jest.Mock;
+    whereRawSpy: jest.Mock;
   };
   db.updateSpy = updateSpy;
   db.deleteSpy = deleteSpy;
+  db.whereRawSpy = whereRawSpy;
   return db;
 }
 
@@ -339,6 +346,113 @@ describe('SubscriptionService.cancelUserSubscriptions', () => {
         args.some((arg) => typeof arg === 'string' && arg.includes(email))
       );
       expect(leakedEmail).toBe(false);
+    } finally {
+      logSpy.mockRestore();
+    }
+  });
+});
+
+describe('SubscriptionService.cancelSubscriptionById', () => {
+  let stripe: StripeMock;
+
+  const ownedSub = { ...activeSub, id: 'sub_owned' };
+  const siblingSub = { ...activeSub, id: 'sub_sibling' };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    stripe = buildStripeMock();
+    (getStripe as jest.Mock).mockReturnValue(stripe);
+    (getDatabase as jest.Mock).mockReturnValue(buildDbMock());
+    (getDefaultEmailService as jest.Mock).mockReturnValue({});
+
+    stripe.customers.list.mockResolvedValue({ data: [{ id: 'cus_1', email }] });
+    stripe.subscriptions.list.mockResolvedValue({
+      data: [ownedSub, siblingSub],
+    });
+  });
+
+  it('cancels the matching subscription immediately', async () => {
+    await SubscriptionService.cancelSubscriptionById(
+      email,
+      'sub_owned',
+      'immediate'
+    );
+
+    expect(stripe.subscriptions.cancel).toHaveBeenCalledWith('sub_owned');
+    expect(stripe.subscriptions.cancel).not.toHaveBeenCalledWith('sub_sibling');
+    expect(stripe.subscriptions.update).not.toHaveBeenCalled();
+  });
+
+  it('schedules cancellation at period end when mode is period_end', async () => {
+    await SubscriptionService.cancelSubscriptionById(
+      email,
+      'sub_owned',
+      'period_end'
+    );
+
+    expect(stripe.subscriptions.update).toHaveBeenCalledWith('sub_owned', {
+      cancel_at_period_end: true,
+    });
+    expect(stripe.subscriptions.cancel).not.toHaveBeenCalled();
+  });
+
+  it('throws SubscriptionNotOwnedError and never calls Stripe when the id is not owned', async () => {
+    await expect(
+      SubscriptionService.cancelSubscriptionById(
+        email,
+        'sub_other',
+        'immediate'
+      )
+    ).rejects.toBeInstanceOf(SubscriptionNotOwnedError);
+
+    expect(stripe.subscriptions.cancel).not.toHaveBeenCalled();
+    expect(stripe.subscriptions.update).not.toHaveBeenCalled();
+  });
+
+  it('deletes only the targeted DB row scoped by the Stripe id on immediate cancel', async () => {
+    const db = buildDbMock();
+    (getDatabase as jest.Mock).mockReturnValue(db);
+
+    await SubscriptionService.cancelSubscriptionById(
+      email,
+      'sub_owned',
+      'immediate'
+    );
+
+    expect(db.whereRawSpy).toHaveBeenCalledWith("payload->>'id' = ?", [
+      'sub_owned',
+    ]);
+    expect(db.deleteSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not touch the DB for period_end cancel', async () => {
+    const db = buildDbMock();
+    (getDatabase as jest.Mock).mockReturnValue(db);
+
+    await SubscriptionService.cancelSubscriptionById(
+      email,
+      'sub_owned',
+      'period_end'
+    );
+
+    expect(db.deleteSpy).not.toHaveBeenCalled();
+    expect(db.whereRawSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not write the Stripe id to the logs', async () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    try {
+      await SubscriptionService.cancelSubscriptionById(
+        email,
+        'sub_owned',
+        'immediate'
+      );
+
+      const leakedId = logSpy.mock.calls.some((args) =>
+        args.some((arg) => typeof arg === 'string' && arg.includes('sub_owned'))
+      );
+      expect(leakedId).toBe(false);
     } finally {
       logSpy.mockRestore();
     }
