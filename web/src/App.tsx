@@ -14,7 +14,6 @@ import { ChunkReloadOverlay } from './components/ChunkReloadOverlay/ChunkReloadO
 import { DomRecoveryBoundary } from './components/DomRecoveryBoundary/DomRecoveryBoundary';
 import { getErrorMessage } from './components/errors/helpers/getErrorMessage';
 import { SkeletonPage } from './components/Skeleton/Skeleton';
-import PostLoginSurvey from './components/PostLoginSurvey/PostLoginSurvey';
 import { VerifyEmailNotice } from './components/VerifyEmailNotice/VerifyEmailNotice';
 import {
   clearReloadingFlag,
@@ -407,7 +406,6 @@ function AppContent({
         }
         features={data?.features}
       >
-        {isLoggedInResolved && <PostLoginSurvey />}
         <VerifyEmailNotice emailVerified={data?.user?.email_verified} />
         <RouteRecoveryBoundary>
           <Routes>

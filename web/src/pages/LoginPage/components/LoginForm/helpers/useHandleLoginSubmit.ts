@@ -52,11 +52,6 @@ export const useHandleLoginSubmit = (onError: ErrorHandlerType): LoginState => {
         setCookie('token', token);
         await migrateToServer();
         await hydrateFromServer();
-        try {
-          globalThis.sessionStorage?.setItem('2anki_post_login', '1');
-        } catch {
-          // sessionStorage may be unavailable; the survey just won't arm.
-        }
         globalThis.location.href =
           redirect ?? getUrlRedirect() ?? getSearchPath('anki');
       } else if (res.status === 401) {
