@@ -754,6 +754,13 @@
   animation: shimmer 1.4s infinite linear;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .gallerySkeletonTile {
+    animation: none;
+    background: var(--color-bg-secondary);
+  }
+}
+
 .galleryTile {
   position: relative;
   border: 2px solid var(--color-border);

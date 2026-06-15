@@ -111,17 +111,6 @@
 
 .searchInput[data-searching='true'] {
   border-bottom-color: var(--color-primary);
-  animation: searchPulse 1.4s ease-in-out infinite;
-}
-
-@keyframes searchPulse {
-  0%,
-  100% {
-    border-bottom-color: var(--color-primary);
-  }
-  50% {
-    border-bottom-color: var(--color-border);
-  }
 }
 
 .workspaceLine {
