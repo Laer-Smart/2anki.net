@@ -5,6 +5,7 @@ import { SkeletonList } from '../../components/Skeleton/Skeleton';
 import { ErrorPresenter } from '../../components/errors/ErrorPresenter';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
+import { UserNotice } from '../../lib/errors/UserNotice';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './PreviewPage.module.css';
 import { usePreviewStream } from './usePreviewStream';
@@ -93,15 +94,20 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
         }
         if (response.status === 409) {
           setError(
-            new Error(
+            new UserNotice(
               'This page is already converting — check Downloads in a moment.'
             )
           );
           setConverting(false);
           return;
         }
+        const fallbackMessage =
+          'Could not start the conversion. Try again in a moment.';
+        const isServerError = response.status >= 500;
         setError(
-          new Error('Could not start the conversion. Try again in a moment.')
+          isServerError
+            ? new Error(fallbackMessage)
+            : new UserNotice(fallbackMessage)
         );
         setConverting(false);
       })

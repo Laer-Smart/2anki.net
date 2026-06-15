@@ -19,6 +19,12 @@ window.addEventListener('unhandledrejection', (event) => {
   recoverFromChunkError(event.reason);
 });
 
+window.addEventListener('vite:preloadError', (event) => {
+  event.preventDefault();
+  const preloadError = (event as Event & { payload?: unknown }).payload;
+  recoverFromChunkError(preloadError);
+});
+
 function main() {
   initTheme();
 
