@@ -232,6 +232,40 @@ describe('ListLeechesUseCase', () => {
     expect(await useCase.execute({ owner: 42 })).toEqual({ connected: false });
   });
 
+  test('degrades to connected:false when the body read fails mid-stream', async () => {
+    const fetchImpl = jest.fn(async (_url: string, init: { body: string }) => {
+      const action = JSON.parse(init.body).action as string;
+      if (action === 'version') {
+        return {
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          json: async () => ({ result: 6, error: null }),
+        };
+      }
+      return {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => {
+          throw new TypeError('fetch failed');
+        },
+      };
+    }) as unknown as typeof fetch;
+    const factory = jest.fn(
+      () => new AnkiConnectClient('http://x', fetchImpl, 5000)
+    );
+    const useCase = new ListLeechesUseCase(
+      clientsRepo(activeClient),
+      subsRepo([
+        { target_deck: 'Notion Sync::Pharma', notion_page_title: null },
+      ]),
+      factory
+    );
+
+    expect(await useCase.execute({ owner: 42 })).toEqual({ connected: false });
+  });
+
   test('rethrows a non-AnkiConnect error so real bugs surface', async () => {
     const factory = jest.fn(
       () =>
