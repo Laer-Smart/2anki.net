@@ -2238,6 +2238,115 @@ describe('SyncNotionPageToRacUseCase', () => {
     });
   });
 
+  describe('benign sync diagnostics never reach the error feed', () => {
+    const ERROR_FEED_MESSAGES = [
+      'ankify.zero_cards',
+      'ankify.sync_followed_deck',
+    ];
+
+    const followedDeckSubscription = () =>
+      makeSubscriptionsRepo(
+        sampleSubscription({
+          notion_page_title: 'Pharmacology',
+          target_deck: 'MS3::Pharmacology',
+        })
+      );
+
+    const followedDeckMapping = {
+      id: 5,
+      ankify_client_id: 1,
+      source_id: 'block-1',
+      source_type: 'notion_block' as const,
+      anki_note_id: 900,
+      deck_name: 'Notion Sync::Pharmacology',
+      last_synced_at: new Date(2020, 0, 1),
+    };
+
+    const stubFollowedDeckNotesInfo = (ac: AnkiConnectClient) => {
+      (ac.notesInfo as jest.Mock).mockImplementation(
+        async (notes: number[]) => {
+          if (notes.includes(900)) {
+            return [
+              {
+                noteId: 900,
+                modelName: 'Ankify Basic',
+                tags: [],
+                fields: {
+                  Front: { value: 'Front text', order: 0 },
+                  Back: { value: 'Back text', order: 1 },
+                },
+                cards: [9001, 9002],
+                mod: Math.floor(new Date(2020, 0, 1).getTime() / 1000),
+              },
+            ];
+          }
+          return [];
+        }
+      );
+    };
+
+    it('routes the followed-deck diagnostic to analytics, not the error feed', async () => {
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [sampleCard()],
+        diagnostic: {
+          blocks_scanned: 1,
+          blocks_matched: 1,
+          pattern_hits: { toggle: 1 },
+        },
+      });
+      const repos = makeRepos();
+      repos.subscriptions = followedDeckSubscription();
+      repos.mappings.findBySourceId = jest.fn(
+        async (_clientId: number, _sourceId: string) => followedDeckMapping
+      );
+      const ac = makeAnkiConnectStub();
+      stubFollowedDeckNotesInfo(ac);
+
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'polling',
+      });
+
+      const trackedNames = mockTrack.mock.calls.map((call) => call[0]);
+      expect(trackedNames).toContain('ankify_sync_followed_deck');
+      for (const message of ERROR_FEED_MESSAGES) {
+        expect(trackedNames).not.toContain(message);
+      }
+    });
+
+    it('builds the production use case without an error-event sink', () => {
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      expect(useCase).toBeInstanceOf(SyncNotionPageToRacUseCase);
+      const sink = (useCase as unknown as Record<string, unknown>).errorEvents;
+      expect(sink).toBeUndefined();
+    });
+  });
+
   test('marks token invalid and disables subscription when Notion returns Unauthorized', async () => {
     const unauthorizedError = Object.assign(
       new Error('API token is invalid.'),
