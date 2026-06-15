@@ -82,11 +82,6 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
           'email_verification_pending',
           'true'
         );
-        try {
-          globalThis.sessionStorage?.setItem('2anki_post_login', '1');
-        } catch {
-          // sessionStorage may be unavailable; the survey just won't arm.
-        }
         globalThis.location.href = redirect
           ? `/${redirect.replace(/^\//, '')}`
           : '/';

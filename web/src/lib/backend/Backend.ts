@@ -1224,22 +1224,6 @@ export class Backend {
     }
   }
 
-  async getPostLoginSurveyStatus(): Promise<{ shouldShow: boolean }> {
-    return get(`${this.baseURL}surveys/post-login`);
-  }
-
-  async submitPostLoginSurvey(
-    status: 'answered' | 'dismissed',
-    improvement?: string,
-    studying?: string
-  ): Promise<void> {
-    await post(`${this.baseURL}surveys/post-login`, {
-      status,
-      improvement,
-      studying,
-    });
-  }
-
   async listContactMessages(): Promise<ContactMessage[]> {
     return get(`${this.baseURL}ops/contact-messages`);
   }
