@@ -156,4 +156,30 @@ describe('reportClientError', () => {
     reportClientError(new Error('Parser said: Load failed is not a card'));
     expect(fetchSpy).toHaveBeenCalledOnce();
   });
+
+  it.each([
+    "Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.",
+    "Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.",
+  ])('skips DOM-manipulation error %s', (message) => {
+    const domError = new Error(message);
+    domError.name = 'NotFoundError';
+    reportClientError(domError);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('skips a HierarchyRequestError from extension-driven DOM mutation', () => {
+    const domError = new Error('appendChild failure');
+    domError.name = 'HierarchyRequestError';
+    reportClientError(domError);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('skips an Unable to preload CSS chunk error', () => {
+    reportClientError(
+      new Error(
+        'Unable to preload CSS for https://cdn.2anki.net/assets/index-abc123.css'
+      )
+    );
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
 });

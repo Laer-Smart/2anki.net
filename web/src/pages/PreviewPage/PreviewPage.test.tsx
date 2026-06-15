@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import PreviewPage from './PreviewPage';
+import { UserNotice } from '../../lib/errors/UserNotice';
 
 const mockUsePreviewStream = vi.fn();
 const mockConvert = vi.fn();
@@ -325,9 +326,34 @@ describe('PreviewPage Convert to Anki CTA', () => {
     );
     expect(passedError.message).not.toContain('already_in_progress');
     expect(passedError.message).not.toContain('{');
+    expect(passedError).toBeInstanceOf(UserNotice);
   });
 
-  it('surfaces a readable message and not a raw JSON body on other errors', async () => {
+  it('shows a readable message on other 4xx errors without reporting them', async () => {
+    const setError = vi.fn();
+    mockConvert.mockResolvedValue({
+      status: 400,
+      text: async () => '{"error":"bad request"}',
+    });
+    mockUsePreviewStream.mockReturnValue(makeStreamReturn([]));
+
+    renderPreviewWithError(setError);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Convert to Anki' }));
+
+    await waitFor(() => {
+      expect(setError).toHaveBeenCalled();
+    });
+
+    const passedError = setError.mock.calls[0][0] as Error;
+    expect(passedError.message).toBe(
+      'Could not start the conversion. Try again in a moment.'
+    );
+    expect(passedError.message).not.toContain('{');
+    expect(passedError).toBeInstanceOf(UserNotice);
+  });
+
+  it('reports a genuine 5xx failure as a plain Error', async () => {
     const setError = vi.fn();
     mockConvert.mockResolvedValue({
       status: 500,
@@ -348,5 +374,6 @@ describe('PreviewPage Convert to Anki CTA', () => {
     expect(passedError.message).toBe(
       'Could not start the conversion. Try again in a moment.'
     );
+    expect(passedError).not.toBeInstanceOf(UserNotice);
   });
 });

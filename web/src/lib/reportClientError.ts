@@ -1,4 +1,5 @@
 import { UserNotice } from './errors/UserNotice';
+import { isDomManipulationError } from './isDomManipulationError';
 import { getClientRelease } from './release';
 
 const ENDPOINT = '/api/events/errors';
@@ -8,6 +9,7 @@ const TRANSIENT_MESSAGE_PREFIXES = [
   'NetworkError when attempting to fetch resource.',
   'Load failed',
   'Network error on ',
+  'Unable to preload',
 ];
 
 function isTransientNetworkMessage(message: string): boolean {
@@ -31,6 +33,7 @@ export function reportClientError(
 ): void {
   if (error instanceof UserNotice) return;
   if (isAbortError(error)) return;
+  if (isDomManipulationError(error)) return;
   try {
     if (navigator.onLine === false) return;
     const message = error instanceof Error ? error.message : String(error);
