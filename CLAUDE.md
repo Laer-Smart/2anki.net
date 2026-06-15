@@ -88,6 +88,7 @@ Pricing v2 shipped 2026-06-10: $7.99/mo + $64/yr for new members, legacy $6/$60 
 
 ## Working speed
 
+- **Default to inline. Reach for a subagent only for parallelism, isolation, or context hygiene — never for single-task speed.** For ONE sequential task, inline is *faster*: a subagent pays a tax inline doesn't — fresh-worktree `pnpm install` (both workspaces), cold context re-reading every file from scratch, and a branch reconcile at the end. Same coding work, more setup. Subagents earn their cost only when the work is genuinely parallel (N independent tasks at once — a trio, a multi-PR fan-out), when isolation is required (risky auth/payments/migration edits in a worktree), or when keeping the main context lean matters. If you already know the files and the change is a single edit-and-test loop, do it inline.
 - For research spanning 3+ queries (where is X defined, what touches Y), spawn `Agent(subagent_type=Explore)`. If the result isn't immediately needed, run it with `run_in_background: true` and keep editing.
 - For risky changes (auth, payments, migrations, deploy pipeline), **must** use `EnterWorktree` — reverting a worktree is free. See `.claude/agents/engineer.md` for the enforced path list.
 - For "wait until X" (long builds, CI, deploys baking on prod), use `ScheduleWakeup` (270s if cache-warm matters, 1200s+ for genuine waits). Never busy-poll with sleep.
