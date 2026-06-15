@@ -1719,7 +1719,6 @@ describe('remote image rehosting', () => {
   });
 });
 
-
 describe('Notion export image with host glued to relative path', () => {
   function buildParser(imgSrc: string) {
     const html = `<html><head><title>Deck</title></head><body><article>
