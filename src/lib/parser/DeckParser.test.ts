@@ -1718,3 +1718,63 @@ describe('remote image rehosting', () => {
     expect(card.media).toHaveLength(0);
   });
 });
+
+
+describe('Notion export image with host glued to relative path', () => {
+  function buildParser(imgSrc: string) {
+    const html = `<html><head><title>Deck</title></head><body><article>
+<ul class="toggle"><li><details open="">
+  <summary>What is the management?</summary>
+  <div><img src="${imgSrc}" /></div>
+</details></li></ul>
+</article></body></html>`;
+    const workspace = new Workspace(true, 'fs');
+    return new DeckParser({
+      name: 'Export-abc/deck.html',
+      settings: new CardOption({ cherry: 'false' }),
+      files: [
+        { name: 'Export-abc/deck.html', contents: html },
+        {
+          name: 'Export-abc/Obstetrics 1/image 1.png',
+          contents: Buffer.from('fake-png-bytes'),
+        },
+      ],
+      noLimits: true,
+      workspace,
+    });
+  }
+
+  test('embeds the subfolder image from the zip instead of dropping it', async () => {
+    // In prod the malformed URL throws an invalid-URL error in the SSRF guard,
+    // so the remote fetch can never rescue the image. Mirror that here so the
+    // image can only survive via the zip-recovery path.
+    downloadMediaOrSkipMock.mockRejectedValue(
+      new Error('[observability] invalid URL')
+    );
+    const ws = new Workspace(true, 'fs');
+    // Notion's export glues the host onto the relative subfolder path with no
+    // slash, producing an invalid URL that cannot be fetched.
+    const parser = buildParser(
+      'https://app.notion.comObstetrics%201/image%201.png'
+    );
+
+    await parser.writeDeckInfo(ws);
+
+    const card = parser.payload[0].cards[0];
+    expect(card.back).not.toContain('app.notion.com');
+    expect(card.media).toHaveLength(1);
+    const match = /src="([^"]+\.png)"/.exec(card.back);
+    expect(match).not.toBeNull();
+    expect(card.media).toContain(match![1]);
+  });
+
+  test('never tries to fetch the malformed URL over the network', async () => {
+    const ws = new Workspace(true, 'fs');
+    const parser = buildParser(
+      'https://app.notion.comObstetrics%201/image%201.png'
+    );
+
+    await expect(parser.writeDeckInfo(ws)).resolves.not.toThrow();
+    expect(downloadMediaOrSkipMock).not.toHaveBeenCalled();
+  });
+});

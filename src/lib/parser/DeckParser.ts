@@ -28,6 +28,7 @@ import { isValidAudioFile } from '../anki/format';
 import FallbackParser from './experimental/FallbackParser';
 import { embedFile } from './exporters/embedFile';
 import { resolveNotionS3ImageFromZip } from './exporters/resolveNotionS3ImageFromZip';
+import { recoverNotionExportImageFromZip } from './exporters/recoverNotionExportImageFromZip';
 import { downloadMediaOrSkip } from '../../services/NotionService/helpers/downloadMediaOrSkip';
 import getUniqueFileName from '../misc/getUniqueFileName';
 import getYouTubeEmbedLink from './helpers/getYouTubeEmbedLink';
@@ -630,7 +631,9 @@ export class DeckParser {
       return true;
     }
 
-    const zipFile = resolveNotionS3ImageFromZip(originalName, this.files);
+    const zipFile =
+      resolveNotionS3ImageFromZip(originalName, this.files) ??
+      recoverNotionExportImageFromZip(originalName, this.files);
     if (zipFile) {
       const newName = embedFile({
         exporter: this.customExporter,
@@ -658,9 +661,8 @@ export class DeckParser {
     let bytes: Buffer | null = null;
     try {
       bytes = await downloadMediaOrSkip(url);
-    } catch (error) {
+    } catch {
       console.warn(`Failed to fetch remote image ${url}`);
-      console.error(error);
     }
     if (bytes == null) return;
 

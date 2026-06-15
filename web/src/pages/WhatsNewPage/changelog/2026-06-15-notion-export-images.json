@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-15-notion-export-images",
+  "date": "2026-06-15",
+  "type": "fix",
+  "title": "Images in Notion exports stored in a subfolder come through instead of going missing"
+}
