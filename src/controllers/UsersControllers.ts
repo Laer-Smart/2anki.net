@@ -11,7 +11,9 @@ import { sessionCookieOptions } from '../shared/session';
 
 import { sendIndex } from './IndexController/sendIndex';
 import { getRandomUUID } from '../shared/helpers/getRandomUUID';
-import SubscriptionService from '../services/SubscriptionService';
+import SubscriptionService, {
+  SubscriptionNotOwnedError,
+} from '../services/SubscriptionService';
 import { OPS_OWNER_EMAIL } from '../routes/middleware/RequireOpsAccess';
 import { MagicLinkRateLimitError } from '../services/UsersService';
 import { MONTHLY_CARD_LIMIT } from '../usecases/users/CheckMonthlyCardLimitUseCase';
@@ -503,6 +505,43 @@ class UsersController {
       res.status(200).json({ message });
     } catch (error) {
       console.info('Cancel subscription failed');
+      console.error(error);
+      return res.status(500).json({ message: 'Failed to cancel subscription' });
+    }
+  }
+
+  async cancelSubscriptionById(req: express.Request, res: express.Response) {
+    const { owner } = res.locals;
+    if (!owner) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const id = req.params.id;
+    if (id == null || typeof id !== 'string' || id.trim().length === 0) {
+      return res.status(400).json({ message: 'A subscription id is required' });
+    }
+
+    const requestedMode =
+      req.body?.mode === 'period_end' ? 'period_end' : 'immediate';
+
+    try {
+      const user = await this.userService.getUserById(owner);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      await SubscriptionService.cancelSubscriptionById(
+        user.email,
+        id,
+        requestedMode
+      );
+
+      return res.status(200).json({ message: 'This plan has been cancelled.' });
+    } catch (error) {
+      if (error instanceof SubscriptionNotOwnedError) {
+        return res.status(403).json({ message: 'Subscription not found' });
+      }
+      console.info('Cancel subscription by id failed');
       console.error(error);
       return res.status(500).json({ message: 'Failed to cancel subscription' });
     }

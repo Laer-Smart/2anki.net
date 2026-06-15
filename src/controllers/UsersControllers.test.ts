@@ -12,15 +12,25 @@ jest.mock('../lib/integrations/stripe', () => ({
   updateStoreSubscription: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('../services/SubscriptionService', () => ({
-  __esModule: true,
-  default: {
-    cancelUserSubscriptions: jest.fn(),
-    findRecentStripeSubscriptions: jest.fn(),
-    countActiveByProductId: jest.fn().mockResolvedValue(0),
-    getUserActiveSubscriptions: jest.fn().mockResolvedValue([]),
-  },
-}));
+jest.mock('../services/SubscriptionService', () => {
+  class SubscriptionNotOwnedError extends Error {
+    constructor() {
+      super('Subscription not found');
+      this.name = 'SubscriptionNotOwnedError';
+    }
+  }
+  return {
+    __esModule: true,
+    SubscriptionNotOwnedError,
+    default: {
+      cancelUserSubscriptions: jest.fn(),
+      cancelSubscriptionById: jest.fn(),
+      findRecentStripeSubscriptions: jest.fn(),
+      countActiveByProductId: jest.fn().mockResolvedValue(0),
+      getUserActiveSubscriptions: jest.fn().mockResolvedValue([]),
+    },
+  };
+});
 
 jest.mock('../lib/misc/hashToken', () => ({
   __esModule: true,
@@ -49,7 +59,9 @@ import UsersService, {
   MagicLinkRateLimitError,
 } from '../services/UsersService';
 import AuthenticationService from '../services/AuthenticationService';
-import SubscriptionService from '../services/SubscriptionService';
+import SubscriptionService, {
+  SubscriptionNotOwnedError,
+} from '../services/SubscriptionService';
 import OauthIdentitiesRepository from '../data_layer/OauthIdentitiesRepository';
 import NotionRepository from '../data_layer/NotionRespository';
 import { SESSION_MAX_AGE_MS } from '../shared/session';
@@ -2681,6 +2693,119 @@ describe('UsersController.cancelSubscription', () => {
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(SubscriptionService.cancelUserSubscriptions).not.toHaveBeenCalled();
+  });
+});
+
+describe('UsersController.cancelSubscriptionById', () => {
+  const buildByIdController = (getUserById?: jest.Mock) => {
+    const userService = {
+      getUserById:
+        getUserById ??
+        jest.fn().mockResolvedValue({ id: 1, email: 'sub@example.com' }),
+    } as unknown as UsersService;
+    const controller = new UsersController(
+      userService,
+      {} as AuthenticationService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    return { controller };
+  };
+
+  const buildResWithLocals = (owner: number | null = 1) => {
+    const json = jest.fn();
+    const status = jest.fn().mockReturnValue({ json });
+    return {
+      json,
+      status,
+      locals: { owner },
+    } as unknown as express.Response & {
+      json: jest.Mock;
+      status: jest.Mock;
+    };
+  };
+
+  beforeEach(() => {
+    (SubscriptionService.cancelSubscriptionById as jest.Mock).mockReset();
+  });
+
+  it('returns 401 when there is no authenticated owner', async () => {
+    const { controller } = buildByIdController();
+    const req = {
+      params: { id: 'sub_1' },
+      body: { mode: 'immediate' },
+    } as unknown as express.Request;
+    const res = buildResWithLocals(null);
+
+    await controller.cancelSubscriptionById(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(SubscriptionService.cancelSubscriptionById).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when the user is not found', async () => {
+    const getUserById = jest.fn().mockResolvedValue(null);
+    const { controller } = buildByIdController(getUserById);
+    const req = {
+      params: { id: 'sub_1' },
+      body: { mode: 'immediate' },
+    } as unknown as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscriptionById(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(SubscriptionService.cancelSubscriptionById).not.toHaveBeenCalled();
+  });
+
+  it('returns 400 when the subscription id is missing', async () => {
+    const { controller } = buildByIdController();
+    const req = {
+      params: {},
+      body: { mode: 'immediate' },
+    } as unknown as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscriptionById(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(SubscriptionService.cancelSubscriptionById).not.toHaveBeenCalled();
+  });
+
+  it('returns 403 and never invokes Stripe when the subscription is not owned', async () => {
+    (SubscriptionService.cancelSubscriptionById as jest.Mock).mockRejectedValue(
+      new SubscriptionNotOwnedError()
+    );
+    const { controller } = buildByIdController();
+    const req = {
+      params: { id: 'sub_other' },
+      body: { mode: 'immediate' },
+    } as unknown as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscriptionById(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+  });
+
+  it('returns 200 when a subscription is cancelled by id', async () => {
+    (SubscriptionService.cancelSubscriptionById as jest.Mock).mockResolvedValue(
+      undefined
+    );
+    const { controller } = buildByIdController();
+    const req = {
+      params: { id: 'sub_owned' },
+      body: { mode: 'immediate' },
+    } as unknown as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscriptionById(req, res);
+
+    expect(SubscriptionService.cancelSubscriptionById).toHaveBeenCalledWith(
+      'sub@example.com',
+      'sub_owned',
+      'immediate'
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 });
 
