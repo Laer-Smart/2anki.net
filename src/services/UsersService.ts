@@ -18,6 +18,13 @@ export class MagicLinkRateLimitError extends Error {
   }
 }
 
+export class MagicLinkSuppressedError extends Error {
+  constructor() {
+    super('Recipient address is on the suppression list');
+    this.name = 'MagicLinkSuppressedError';
+  }
+}
+
 class UsersService {
   constructor(
     private readonly repository: UsersRepository,
@@ -173,8 +180,13 @@ class UsersService {
     const token = crypto.randomBytes(64).toString('hex');
     const expiresAt = new Date(Date.now() + MAGIC_LINK_EXPIRY_MS);
     await this.magicTokenRepository.create(token, user.id, purpose, expiresAt);
+    let sendResult;
     try {
-      await this.emailService.sendMagicLinkEmail(email, token, purpose);
+      sendResult = await this.emailService.sendMagicLinkEmail(
+        email,
+        token,
+        purpose
+      );
     } catch (error) {
       console.info('password_reset.magic_link', {
         outcome: 'send_failed',
@@ -183,6 +195,14 @@ class UsersService {
         error: error instanceof Error ? error.constructor.name : 'UnknownError',
       });
       throw error;
+    }
+    if (sendResult.suppressed) {
+      console.info('password_reset.magic_link', {
+        outcome: 'suppressed',
+        purpose,
+        user_id_hash: userIdHash,
+      });
+      throw new MagicLinkSuppressedError();
     }
     console.info('password_reset.magic_link', {
       outcome: 'sent',

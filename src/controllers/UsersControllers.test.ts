@@ -57,6 +57,7 @@ jest.mock('../data_layer/UsersRepository', () => {
 import UsersController from './UsersControllers';
 import UsersService, {
   MagicLinkRateLimitError,
+  MagicLinkSuppressedError,
 } from '../services/UsersService';
 import AuthenticationService from '../services/AuthenticationService';
 import SubscriptionService, {
@@ -576,6 +577,27 @@ describe('UsersController.requestMagicLink', () => {
     await controller.requestMagicLink(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  it('returns 200 with suppressed flag when the address is on the suppression list', async () => {
+    const requestMagicLink = jest
+      .fn()
+      .mockRejectedValue(new MagicLinkSuppressedError());
+    const { controller } = buildMagicController({ requestMagicLink });
+    const req = {
+      body: { email: 'blocked@example.com', purpose: 'login' },
+    } as express.Request;
+    const res = buildRes();
+    const next = jest.fn();
+
+    await controller.requestMagicLink(req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'suppressed',
+      suppressed: true,
+    });
+    expect(next).not.toHaveBeenCalled();
   });
 
   it('forwards infrastructure errors to next() so ErrorHandler can surface them', async () => {

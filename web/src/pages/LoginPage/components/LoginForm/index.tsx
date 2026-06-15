@@ -32,7 +32,14 @@ function LoginForm() {
     setMagicLinkLoading(true);
     setError(null);
     try {
-      await get2ankiApi().requestMagicLink(email, 'login');
+      const response = await get2ankiApi().requestMagicLink(email, 'login');
+      const body = await response.json().catch(() => ({}));
+      if (body?.suppressed) {
+        setError(
+          "We can't email this address — it bounced or was unsubscribed earlier. Contact support@2anki.net to restore it, or use your password below."
+        );
+        return;
+      }
       setStep('check-email');
     } catch {
       setError(

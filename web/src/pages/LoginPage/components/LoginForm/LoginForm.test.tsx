@@ -6,11 +6,12 @@ import { CookiesProvider } from 'react-cookie';
 import LoginForm from './index';
 
 const mockLogin = vi.fn();
+const mockRequestMagicLink = vi.fn();
 
 vi.mock('../../../../lib/backend/get2ankiApi', () => ({
   get2ankiApi: () => ({
     login: mockLogin,
-    requestMagicLink: vi.fn().mockResolvedValue({ ok: true }),
+    requestMagicLink: mockRequestMagicLink,
   }),
 }));
 
@@ -31,6 +32,11 @@ describe('LoginForm', () => {
     mockLogin.mockResolvedValue({
       status: 200,
       json: () => Promise.resolve({ token: 'test-token' }),
+    });
+    mockRequestMagicLink.mockReset();
+    mockRequestMagicLink.mockResolvedValue({
+      status: 200,
+      json: () => Promise.resolve({ message: 'ok' }),
     });
   });
 
@@ -165,6 +171,26 @@ describe('LoginForm', () => {
     await waitFor(() => {
       expect(screen.getByText('Check your email')).toBeInTheDocument();
     });
+  });
+
+  it('shows a recovery message instead of check-email when the address is suppressed', async () => {
+    mockRequestMagicLink.mockResolvedValue({
+      status: 200,
+      json: () => Promise.resolve({ message: 'suppressed', suppressed: true }),
+    });
+    renderLoginForm();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), {
+      target: { value: 'blocked@example.com' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Email me a sign-in link' })
+    );
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(
+      "We can't email this address — it bounced or was unsubscribed earlier. Contact support@2anki.net to restore it, or use your password below."
+    );
+    expect(screen.queryByText('Check your email')).toBeNull();
   });
 
   it('shows create account button on the email step', () => {
