@@ -60,10 +60,9 @@ describe('NewPasswordForm', () => {
     const message = screen.getByText("Passwords don't match.");
     expect(message).toBeInTheDocument();
     expect(message).toHaveAttribute('id', 'confirm-password-help');
-    expect(screen.getByPlaceholderText('Re-enter new password')).toHaveAttribute(
-      'aria-describedby',
-      'confirm-password-help'
-    );
+    expect(
+      screen.getByPlaceholderText('Re-enter new password')
+    ).toHaveAttribute('aria-describedby', 'confirm-password-help');
   });
 
   it('hides the mismatch message when the fields match', () => {
