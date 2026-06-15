@@ -110,4 +110,58 @@ describe('StatusPage', () => {
       expect(screen.getByText('ongoing')).toBeInTheDocument();
     });
   });
+
+  it('renders the last deploy as a relative time, never a raw git SHA', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(
+      new Date('2026-05-29T13:00:00Z').getTime()
+    );
+    const withDeploy = {
+      ...mockStatus,
+      lastDeploy: {
+        sha: '693f569bc826abc0001122334455667788990011',
+        time: '2026-05-29T11:00:00Z',
+      },
+    };
+    setupFetch(withDeploy);
+    render(
+      <MemoryRouter>
+        <StatusPage />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByText('2 hours ago')).toBeInTheDocument();
+    });
+    const body = document.body.textContent ?? '';
+    expect(body).not.toMatch(/\b[0-9a-f]{7,40}\b/);
+  });
+
+  it('renders incident timestamps as relative time, not toLocaleString output', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(
+      new Date('2026-05-29T13:00:00Z').getTime()
+    );
+    const withIncident = {
+      ...mockStatus,
+      incidents: [
+        {
+          id: '1',
+          start: '2026-05-29T10:00:00Z',
+          end: '2026-05-29T11:00:00Z',
+          summary: 'Conversion service degraded',
+        },
+      ],
+    };
+    setupFetch(withIncident);
+    render(
+      <MemoryRouter>
+        <StatusPage />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByText(/Started 3 hours ago/)).toBeInTheDocument();
+    });
+    const body = document.body.textContent ?? '';
+    const localeSample = new Date('2026-05-29T10:00:00Z').toLocaleString();
+    expect(body).not.toContain(localeSample);
+    expect(screen.getByText(/resolved 2 hours ago/)).toBeInTheDocument();
+  });
 });

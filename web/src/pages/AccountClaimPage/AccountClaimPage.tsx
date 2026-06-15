@@ -55,52 +55,56 @@ export default function AccountClaimPage() {
   if (state === 'loading') return <SkeletonPage rows={2} />;
 
   return (
-    <div style={{ maxWidth: 480, margin: '4rem auto', padding: '0 1.5rem' }}>
-      {state === 'success' && (
-        <>
-          <h1>Subscription claimed.</h1>
-          <p>Your subscription is now attached to this account.</p>
-          <a href="/account" className={sharedStyles.btnPrimary}>
-            Go to account
-          </a>
-        </>
-      )}
-      {(state === 'expired' || state === 'error') && (
-        <>
-          <h1>Invalid or expired link.</h1>
-          <p>
-            This confirmation link is no longer valid. Start over from your
-            account to request a new one.
-          </p>
-          <a href="/account" className={sharedStyles.btnPrimary}>
-            Go to account
-          </a>
-        </>
-      )}
-      {state === 'already_claimed' && (
-        <>
-          <h1>Link already used.</h1>
-          <p>
-            This link is already used. Sign in and try again from /account if
-            you need to reclaim.
-          </p>
-          <a href="/account" className={sharedStyles.btnPrimary}>
-            Go to account
-          </a>
-        </>
-      )}
-      {state === 'active_sub' && (
-        <>
-          <h1>Account already has a subscription.</h1>
-          <p>
-            This account already has an active subscription. Cancel it first or
-            contact support.
-          </p>
-          <a href="/account" className={sharedStyles.btnPrimary}>
-            Go to account
-          </a>
-        </>
-      )}
+    <div className={sharedStyles.pageNarrow}>
+      <div className={sharedStyles.card}>
+        {state === 'success' && (
+          <>
+            <h1 className={sharedStyles.title}>Subscription claimed.</h1>
+            <p>Your subscription is now attached to this account.</p>
+            <a href="/account" className={sharedStyles.btnPrimary}>
+              Go to account
+            </a>
+          </>
+        )}
+        {(state === 'expired' || state === 'error') && (
+          <>
+            <h1 className={sharedStyles.title}>Invalid or expired link.</h1>
+            <p>
+              This confirmation link is no longer valid. Start over from your
+              account to request a new one.
+            </p>
+            <a href="/account" className={sharedStyles.btnPrimary}>
+              Go to account
+            </a>
+          </>
+        )}
+        {state === 'already_claimed' && (
+          <>
+            <h1 className={sharedStyles.title}>Link already used.</h1>
+            <p>
+              This link is already used. Sign in and try again from your account
+              page if you need to reclaim.
+            </p>
+            <a href="/account" className={sharedStyles.btnPrimary}>
+              Go to account
+            </a>
+          </>
+        )}
+        {state === 'active_sub' && (
+          <>
+            <h1 className={sharedStyles.title}>
+              Account already has a subscription.
+            </h1>
+            <p>
+              This account already has an active subscription. Cancel it first
+              or contact support.
+            </p>
+            <a href="/account" className={sharedStyles.btnPrimary}>
+              Go to account
+            </a>
+          </>
+        )}
+      </div>
     </div>
   );
 }

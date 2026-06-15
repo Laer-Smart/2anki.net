@@ -12,8 +12,6 @@ export const UserActionCards = () => {
         <a href={loginLink} className={styles.btnPrimary}>
           Log in
         </a>
-        <br />
-        <a href={loginLink}>{loginLink}</a> (link for reference)
       </div>
 
       <div>
@@ -24,8 +22,6 @@ export const UserActionCards = () => {
         <a href={registerLink} className={styles.btnPrimary}>
           Sign up
         </a>
-        <br />
-        <a href={registerLink}>{registerLink}</a> (link for reference)
       </div>
     </div>
   );

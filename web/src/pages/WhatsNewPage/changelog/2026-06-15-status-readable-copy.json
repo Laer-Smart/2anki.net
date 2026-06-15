@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-15-status-readable-copy",
+  "date": "2026-06-15",
+  "type": "fix",
+  "title": "The status page shows when things last updated in plain language, and the post-checkout screen drops the raw link text"
+}
