@@ -852,7 +852,7 @@ const AnkifyRouter = () => {
    * /api/ankify/sync-to-ankiweb:
    *   post:
    *     summary: Trigger an AnkiWeb sync on the user's hosted Anki
-   *     description: Allowlisted endpoint. Returns { ok: true }. 409 when no active client, 503 when AnkiConnect is unreachable.
+   *     description: "Allowlisted endpoint. Returns { ok: true }. 409 when no active client, 503 when AnkiConnect is unreachable."
    *     tags: [Ankify]
    */
   router.post('/api/ankify/sync-to-ankiweb', RequireAnkifyAccess, (req, res) =>

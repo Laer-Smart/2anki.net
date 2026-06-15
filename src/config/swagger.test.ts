@@ -346,4 +346,30 @@ describe('Swagger Documentation Coverage', () => {
       expect(op.description).toMatch(/get-notion-link/);
     });
   });
+
+  describe('Ankify swagger descriptions parse as YAML', () => {
+    const spec = swaggerSpec as SwaggerSpec;
+
+    it('registers /api/ankify/sync-to-ankiweb with its full description string', () => {
+      const op = spec.paths['/api/ankify/sync-to-ankiweb']?.post;
+      expect(op).toBeDefined();
+      expect(op.description).toBe(
+        'Allowlisted endpoint. Returns { ok: true }. 409 when no active client, 503 when AnkiConnect is unreachable.'
+      );
+    });
+
+    it('keeps every Ankify description as a string, never a parsed mapping', () => {
+      const ankifyPaths = Object.keys(spec.paths).filter((p) =>
+        p.startsWith('/api/ankify/')
+      );
+      expect(ankifyPaths.length).toBeGreaterThan(0);
+      ankifyPaths.forEach((p) => {
+        Object.values(spec.paths[p]).forEach((op: { description?: unknown }) => {
+          if (op.description != null) {
+            expect(typeof op.description).toBe('string');
+          }
+        });
+      });
+    });
+  });
 });
