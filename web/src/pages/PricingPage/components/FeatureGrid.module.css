@@ -3,7 +3,7 @@
 }
 
 .heading {
-  font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: clamp(1.75rem, 3.5vw, 2.5rem);
   font-weight: 600;
   font-variation-settings:
