@@ -480,6 +480,23 @@ describe('AnkiConnectClient', () => {
     );
   });
 
+  test('throws AnkiConnectUnreachableError when the body read fails mid-stream', async () => {
+    const fetchImpl = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => {
+        throw new TypeError('fetch failed');
+      },
+    })) as unknown as typeof fetch;
+    const client = new AnkiConnectClient('http://x', fetchImpl);
+
+    const err = await client.findNotes('deck:"X"').catch((e) => e);
+
+    expect(err).toBeInstanceOf(AnkiConnectUnreachableError);
+    expect(err).not.toBeInstanceOf(AnkiConnectError);
+  });
+
   const makeHangingFetch = () =>
     jest.fn(
       (_url: string, init: { signal: AbortSignal }) =>

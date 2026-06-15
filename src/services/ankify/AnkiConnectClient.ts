@@ -302,7 +302,20 @@ export class AnkiConnectClient {
       );
     }
 
-    const body = (await response.json()) as AnkiConnectResponse<T>;
+    let body: AnkiConnectResponse<T>;
+    try {
+      body = (await response.json()) as AnkiConnectResponse<T>;
+    } catch (error) {
+      if (controller.signal.aborted) {
+        throw new AnkiConnectTimeoutError(
+          this.baseUrl,
+          action,
+          timeoutMs,
+          error
+        );
+      }
+      throw new AnkiConnectUnreachableError(this.baseUrl, error);
+    }
     if (body.error != null) {
       throw new AnkiConnectError(body.error);
     }
