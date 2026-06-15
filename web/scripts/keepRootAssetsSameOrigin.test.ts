@@ -49,10 +49,10 @@ describe('keepRootAssetsSameOrigin', () => {
     expect(result).not.toContain(CDN);
   });
 
-  it('leaves non-icon links such as canonical and preconnect untouched', () => {
+  it('leaves non-icon links such as canonical and the same-origin font preload untouched', () => {
     const input = [
       '<link rel="canonical" href="https://2anki.net" />',
-      '<link rel="preconnect" href="https://fonts.googleapis.com">',
+      '<link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/Fraunces/Fraunces-600.woff2">',
     ].join('\n');
     expect(keepRootAssetsSameOrigin(input)).toBe(input);
   });

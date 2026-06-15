@@ -1,4 +1,5 @@
 .heroTitle {
+  font-family: var(--font-display);
   font-size: var(--text-8xl);
   font-weight: var(--font-bold);
   letter-spacing: var(--tracking-tight);

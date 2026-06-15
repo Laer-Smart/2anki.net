@@ -15,9 +15,10 @@ The DNA governs the whole `/ankify` surface, not just the deck list: the workspa
 **Every number is monospaced and tabular.** Two expressions of one move: (1) each deck row ends in a fixed, right-aligned readout — target deck path, last-sync age, backlog count — columns vertically aligned across rows like a terminal status table; (2) the "Your reviews" summary figures (streak, daily average, reviews this year) use the same `ui-monospace` + `font-variant-numeric: tabular-nums` treatment, rendered one size up as the hero (VOICE.md counts rule). Prose (deck titles, labels) stays sans; only *data* is mono. The review-streak heatmap is the page's data-viz centerpiece and reads as the cockpit's primary instrument. This is the one authored move, exempt from product restraint — it carries the identity by itself.
 
 ## Type
-- Display: existing `--font-sans` system stack (no display face — product restraint; hierarchy comes from scale + weight, Swiss discipline).
+- Display: `--font-display` (Fraunces), marketing/pricing headings `--text-3xl`+ only; banned in all product chrome, data columns, tables, counts, and below `--text-3xl`.
 - Body: `--font-sans`.
 - Data voice: `ui-monospace, SFMono-Regular, Menlo, monospace` — data column + counts only.
+- `--font-display` and `--font-mono` are now tokens in `web/src/styles/base.css` `:root` (alongside `--font-sans`); themes don't override fonts.
 - Scale: existing token scale (`--text-xs` 12px · `--text-sm` 14px · `--text-base` 18px · `--text-lg` 20px · `--text-2xl` 24px). Deck title steps up to `--text-base`/medium so the name dominates its metadata (fixes the audit's flat-plateau finding).
 - Leading: `--leading-normal` (1.5) prose · tight on the data column. Weights: 400 body, 500 deck titles, 600 headings.
 

@@ -12,6 +12,7 @@
 }
 
 .heroTitle {
+  font-family: var(--font-display);
   font-size: clamp(2.25rem, 6vw, 3.5rem);
   font-weight: var(--font-bold);
   letter-spacing: -0.03em;
