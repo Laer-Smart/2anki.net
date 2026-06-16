@@ -28,6 +28,27 @@ interface PdfJsOps {
   [opName: string]: number;
 }
 
+interface PdfJsModule {
+  OPS?: PdfJsOps;
+  disableFontFace?: boolean;
+}
+
+// pdf.js binds web fonts through a FontLoader that reaches for the browser
+// `document` global. In Node that throws `ReferenceError: document is not
+// defined` on every page render — harmless to extraction but it floods the
+// logs. Disabling font face skips the rule-insertion path entirely.
+function loadPdfJs(): PdfJsModule | null {
+  try {
+    const pdfjs = require(
+      `pdf-parse/lib/pdf.js/${PDFJS_BUILD}/build/pdf.js`
+    ) as PdfJsModule;
+    pdfjs.disableFontFace = true;
+    return pdfjs;
+  } catch {
+    return null;
+  }
+}
+
 interface PdfJsPageProxy {
   getTextContent(options: {
     normalizeWhitespace: boolean;
@@ -38,16 +59,11 @@ interface PdfJsPageProxy {
 
 function resolveRasterImageOpcodes(): Set<number> {
   const opcodes = new Set<number>();
-  try {
-    const pdfjs = require(`pdf-parse/lib/pdf.js/${PDFJS_BUILD}/build/pdf.js`);
-    const ops = pdfjs.OPS as PdfJsOps | undefined;
-    if (ops == null) return opcodes;
-    for (const name of RASTER_IMAGE_OPS) {
-      const code = ops[name];
-      if (typeof code === 'number') opcodes.add(code);
-    }
-  } catch {
-    return opcodes;
+  const ops = loadPdfJs()?.OPS;
+  if (ops == null) return opcodes;
+  for (const name of RASTER_IMAGE_OPS) {
+    const code = ops[name];
+    if (typeof code === 'number') opcodes.add(code);
   }
   return opcodes;
 }
