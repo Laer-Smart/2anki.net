@@ -57,8 +57,6 @@ describe('createWorkspaceDocxImageMediaSink', () => {
 
   it('rejects empty image bytes', () => {
     const sink = createWorkspaceDocxImageMediaSink(workspace);
-    expect(() => sink.write(Buffer.alloc(0), 'image/png')).toThrow(
-      /empty/
-    );
+    expect(() => sink.write(Buffer.alloc(0), 'image/png')).toThrow(/empty/);
   });
 });
