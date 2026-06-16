@@ -285,7 +285,10 @@ describe('convertPdfTextToHtmlAuto', () => {
       needsCredential: false,
     });
 
-    const result = await convertPdfTextToHtmlAuto(Buffer.from('x'), 'cards.pdf');
+    const result = await convertPdfTextToHtmlAuto(
+      Buffer.from('x'),
+      'cards.pdf'
+    );
 
     expect(result.isTextShaped).toBe(false);
     expect(result.cardCount).toBe(0);
