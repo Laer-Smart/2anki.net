@@ -263,7 +263,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
                 PDF, Word, Notion export, Markdown, HTML, Excel, CSV, or
                 PowerPoint. In Word docs, headings become card fronts and the
                 body text under each heading becomes the back. Images land on
-                the back, and tags aren&apos;t read from the document yet.
+                the back, and strikethrough text on a card becomes an Anki tag.
               </p>
               <p className={pageStyles.stepBody}>
                 Coming from Notion?{' '}

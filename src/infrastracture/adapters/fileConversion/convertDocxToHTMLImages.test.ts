@@ -42,7 +42,9 @@ describe('convertDocxToHTML image media handling', () => {
 
     await convertDocxToHTML(Buffer.from('docx'));
 
-    expect(mockedConvert.mock.calls[0][1]).toBeUndefined();
+    const options = mockedConvert.mock.calls[0][1];
+    expect(options.convertImage).toBeUndefined();
+    expect(options.styleMap).toEqual(['strike => del']);
   });
 
   it('writes bytes to the sink and emits a plain filename src, not a data URI', async () => {
