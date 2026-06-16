@@ -66,7 +66,7 @@ describe('convertPdfTextToHtml', () => {
 
   it('wraps each synthesized card in a toggle and reports the count', async () => {
     mockExtract.mockResolvedValue({
-      pages: [{ text: 'page one' }],
+      pages: [{ text: 'page one', imagePaintCount: 0 }],
       pageCount: 1,
       avgCharsPerPage: 60,
       isDrmLocked: false,
@@ -90,7 +90,7 @@ describe('convertPdfTextToHtml', () => {
 
   it('escapes HTML-sensitive characters in card content', async () => {
     mockExtract.mockResolvedValue({
-      pages: [{ text: 'p' }],
+      pages: [{ text: 'p', imagePaintCount: 0 }],
       pageCount: 1,
       avgCharsPerPage: 60,
       isDrmLocked: false,
@@ -111,7 +111,7 @@ describe('convertPdfTextToHtml', () => {
 
   it('preserves line breaks inside cards by converting newlines to <br>', async () => {
     mockExtract.mockResolvedValue({
-      pages: [{ text: 'p' }],
+      pages: [{ text: 'p', imagePaintCount: 0 }],
       pageCount: 1,
       avgCharsPerPage: 60,
       isDrmLocked: false,
@@ -128,7 +128,7 @@ describe('convertPdfTextToHtml', () => {
 
   it('uses the basename without extension as the page title', async () => {
     mockExtract.mockResolvedValue({
-      pages: [{ text: 'p' }],
+      pages: [{ text: 'p', imagePaintCount: 0 }],
       pageCount: 1,
       avgCharsPerPage: 60,
       isDrmLocked: false,
@@ -156,6 +156,7 @@ describe('convertPdfTextToHtmlAuto', () => {
         'What is osmosis?',
         'Movement of water across a semipermeable membrane down a gradient.',
       ].join('\n'),
+      imagePaintCount: 0,
     }));
   }
 
@@ -182,8 +183,11 @@ describe('convertPdfTextToHtmlAuto', () => {
   it('reports not text-shaped when most pages have no text', async () => {
     mockExtract.mockResolvedValue({
       pages: [
-        { text: 'Only the cover page has any extractable text on it here.' },
-        ...Array.from({ length: 4 }, () => ({ text: '' })),
+        {
+          text: 'Only the cover page has any extractable text on it here.',
+          imagePaintCount: 0,
+        },
+        ...Array.from({ length: 4 }, () => ({ text: '', imagePaintCount: 0 })),
       ],
       pageCount: 5,
       avgCharsPerPage: 320,
@@ -263,12 +267,42 @@ describe('convertPdfTextToHtmlAuto', () => {
     });
   });
 
+  it('reports not text-shaped for a scanned card deck so it routes to the image-pair path', async () => {
+    const front =
+      'Pharmacology term and a full definition spelled out clearly here.';
+    const back =
+      'The matching answer side, also spelled out at a similar length here.';
+    const pages = Array.from({ length: 228 }, (_, i) => ({
+      text: i % 2 === 0 ? front : back,
+      imagePaintCount: 1,
+    }));
+    const totalChars = pages.reduce((sum, p) => sum + p.text.length, 0);
+    mockExtract.mockResolvedValue({
+      pages,
+      pageCount: 228,
+      avgCharsPerPage: totalChars / 228,
+      isDrmLocked: false,
+      needsCredential: false,
+    });
+
+    const result = await convertPdfTextToHtmlAuto(
+      Buffer.from('x'),
+      'cards.pdf'
+    );
+
+    expect(result.isTextShaped).toBe(false);
+    expect(result.cardCount).toBe(0);
+    expect(result.html).toBe('');
+    expect(mockSynthesize).not.toHaveBeenCalled();
+  });
+
   it('reports text-shaped with zero cards when no heading structure exists', async () => {
     const longLine =
       'Every line in this export is a long flowing paragraph well over the heading limit.';
     mockExtract.mockResolvedValue({
       pages: Array.from({ length: 5 }, () => ({
         text: [longLine, longLine].join('\n'),
+        imagePaintCount: 0,
       })),
       pageCount: 5,
       avgCharsPerPage: 320,

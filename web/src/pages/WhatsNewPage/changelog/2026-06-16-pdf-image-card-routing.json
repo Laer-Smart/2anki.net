@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-16-pdf-image-card-routing",
+  "date": "2026-06-16",
+  "type": "fix",
+  "title": "PDFs of pre-made cards — one page per side — now convert to the right number of cards"
+}
