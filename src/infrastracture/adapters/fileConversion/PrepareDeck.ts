@@ -21,6 +21,7 @@ import {
 import { buildPdfPasswordSentinel } from '../../../lib/pdf/pdfPasswordSentinel';
 import { convertXLSXToHTML } from './convertXLSXToHTML';
 import { convertDocxToHTML } from './convertDocxToHTML';
+import { createWorkspaceDocxImageMediaSink } from './docxImageMediaSink';
 import { generateDeckInfo, DeckInfo } from '../../../lib/claude/ClaudeService';
 import CustomExporter from '../../../lib/parser/exporters/CustomExporter';
 import Workspace from '../../../lib/parser/WorkSpace';
@@ -98,9 +99,14 @@ async function convertFile(
   }
 
   if (isDocxFile(file.name)) {
+    const mediaSink = createWorkspaceDocxImageMediaSink(
+      input.workspace.location
+    );
     const result = {
       name: `${file.name}.html`,
-      contents: Buffer.from(await convertDocxToHTML(file.contents as Buffer)),
+      contents: Buffer.from(
+        await convertDocxToHTML(file.contents as Buffer, mediaSink)
+      ),
     };
     console.log('[PrepareDeck] convertFile docx', {
       file: file.name,
