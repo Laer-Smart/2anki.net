@@ -137,11 +137,11 @@ describe('UploadPage doc/docx hint', () => {
     ).toBeInTheDocument();
   });
 
-  it('states the docx image and tag limits in the same place', () => {
+  it('states the docx image limit and strikethrough-tag rule in the same place', () => {
     renderPage();
     expect(
       screen.getByText(
-        /Images land on the back, and tags aren't read from the document yet\./i
+        /Images land on the back, and strikethrough text on a card becomes an Anki tag\./i
       )
     ).toBeInTheDocument();
   });

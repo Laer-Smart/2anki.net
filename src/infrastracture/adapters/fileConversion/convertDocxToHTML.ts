@@ -3,6 +3,8 @@ import mammoth from 'mammoth';
 import { preprocessDocxHTML } from './preprocessDocxHTML';
 import { DocxImageMediaSink } from './docxImageMediaSink';
 
+const STRIKETHROUGH_TO_TAG_STYLE_MAP = ['strike => del'];
+
 function buildImgElementConverter(mediaSink: DocxImageMediaSink) {
   return mammoth.images.imgElement(async (image) => {
     const bytes = await image.readAsBuffer();
@@ -18,8 +20,11 @@ export async function convertDocxToHTML(
   let result;
   try {
     const options = mediaSink
-      ? { convertImage: buildImgElementConverter(mediaSink) }
-      : undefined;
+      ? {
+          styleMap: STRIKETHROUGH_TO_TAG_STYLE_MAP,
+          convertImage: buildImgElementConverter(mediaSink),
+        }
+      : { styleMap: STRIKETHROUGH_TO_TAG_STYLE_MAP };
     result = await mammoth.convertToHtml({ buffer: contents }, options);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
