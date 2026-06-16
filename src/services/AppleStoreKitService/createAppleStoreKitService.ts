@@ -19,26 +19,16 @@ function loadRootCertificates(dir: string): Buffer[] {
     .map((file) => fs.readFileSync(path.join(dir, file)));
 }
 
-const KNOWN_ENVIRONMENTS: Record<string, Environment> = {
-  production: Environment.PRODUCTION,
-  sandbox: Environment.SANDBOX,
-};
-
-export function parseAcceptedEnvironments(
-  raw: string | undefined
-): Environment[] {
-  if (raw == null || raw === '') {
-    return [Environment.PRODUCTION];
-  }
-  const seen = new Set<Environment>();
-  for (const token of raw.split(',')) {
-    const environment = KNOWN_ENVIRONMENTS[token.trim().toLowerCase()];
-    if (environment != null) {
-      seen.add(environment);
-    }
-  }
-  return seen.size > 0 ? [...seen] : [Environment.PRODUCTION];
-}
+// Always verify against both environments. Production credits real App Store
+// buyers; Sandbox credits App Review and TestFlight testers, who exercise IAP
+// with Sandbox transactions even against the live app. verifyTransaction
+// iterates verifiers and skips the non-matching one on INVALID_ENVIRONMENT, so
+// each JWS only validates against its own environment. Gating this on an env
+// var let production reject every real purchase when it was set to Sandbox only.
+export const VERIFIED_ENVIRONMENTS: Environment[] = [
+  Environment.PRODUCTION,
+  Environment.SANDBOX,
+];
 
 export function createAppleStoreKitService(): IAppleStoreKitService {
   const bundleId = process.env.APPLE_IAP_BUNDLE_ID;
@@ -75,9 +65,7 @@ export function createAppleStoreKitService(): IAppleStoreKitService {
       : undefined;
 
   const enableOnlineChecks = true;
-  const verifiers = parseAcceptedEnvironments(
-    process.env.APPLE_IAP_ENVIRONMENT
-  ).map(
+  const verifiers = VERIFIED_ENVIRONMENTS.map(
     (environment) =>
       new SignedDataVerifier(
         rootCertificates,
