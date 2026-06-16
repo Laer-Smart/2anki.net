@@ -136,6 +136,15 @@ describe('UploadPage doc/docx hint', () => {
       )
     ).toBeInTheDocument();
   });
+
+  it('states the docx image and tag limits in the same place', () => {
+    renderPage();
+    expect(
+      screen.getByText(
+        /Images land on the back, and tags aren't read from the document yet\./i
+      )
+    ).toBeInTheDocument();
+  });
 });
 
 describe('UploadPage AI badge anon link', () => {
