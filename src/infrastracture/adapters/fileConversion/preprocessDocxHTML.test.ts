@@ -106,4 +106,57 @@ describe('preprocessDocxHTML', () => {
     expect(result).toContain('<summary>Another Heading</summary>');
     expect(result).not.toContain('<summary>Title Only</summary>');
   });
+
+  it('produces a card from an image-only heading with the image on the front', () => {
+    const input =
+      '<h2><img src="diagram.png" /></h2><p>The heart pumps blood.</p>';
+
+    const result = preprocessDocxHTML(input);
+
+    expect(result).toContain('<details>');
+    expect(result).toContain('<summary><img src="diagram.png"></summary>');
+    expect(result).toContain('The heart pumps blood.');
+  });
+
+  it('keeps both text and image on the front of an image heading', () => {
+    const input =
+      '<h2>Figure 1 <img src="aorta.png" /></h2><p>Largest artery in the body.</p>';
+
+    const result = preprocessDocxHTML(input);
+
+    expect(result).toContain(
+      '<summary>Figure 1 <img src="aorta.png"></summary>'
+    );
+    expect(result).toContain('Largest artery in the body.');
+  });
+
+  it('produces no card from an image heading with no following body', () => {
+    const input = '<h2><img src="orphan.png" /></h2><h2>Next</h2><p>Body.</p>';
+
+    const result = preprocessDocxHTML(input);
+
+    expect(result).not.toContain('<summary><img src="orphan.png"></summary>');
+    expect(result).toContain('<h2><img src="orphan.png"></h2>');
+    expect(result).toContain('<summary>Next</summary>');
+  });
+
+  it('produces byte-identical output for a plain text-only heading', () => {
+    const input = '<h2>Blood Vessels</h2><p>body</p>';
+
+    const result = preprocessDocxHTML(input);
+
+    expect(result).toBe(
+      '<html><head></head><body><details><summary>Blood Vessels</summary><p>body</p></details></body></html>'
+    );
+  });
+
+  it('produces byte-identical output for a formatted text-only heading', () => {
+    const input = '<h2><strong>Blood</strong> Vessels</h2><p>body</p>';
+
+    const result = preprocessDocxHTML(input);
+
+    expect(result).toBe(
+      '<html><head></head><body><details><summary>Blood Vessels</summary><p>body</p></details></body></html>'
+    );
+  });
 });

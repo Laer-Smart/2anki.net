@@ -75,7 +75,10 @@ function convertHeadingsToToggles($: any, originalHTML: string): string {
   headings.each((_: number, heading: any) => {
     const $heading = $(heading);
     const headingText = $heading.text().trim();
-    if (!headingText) return;
+    const hasImage = $heading.find('img').length > 0;
+    if (!headingText && !hasImage) return;
+
+    const summary = hasImage ? ($heading.html() ?? headingText) : headingText;
 
     const contentParts: string[] = [];
     let sibling = $heading.next();
@@ -88,7 +91,7 @@ function convertHeadingsToToggles($: any, originalHTML: string): string {
 
     if (contentParts.length === 0) return;
 
-    const toggle = `<details><summary>${headingText}</summary>${contentParts.join('')}</details>`;
+    const toggle = `<details><summary>${summary}</summary>${contentParts.join('')}</details>`;
 
     contentParts.forEach(() => {
       const next = $heading.next();
