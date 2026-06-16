@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-16-docx-card-model-help",
+  "date": "2026-06-16",
+  "type": "fix",
+  "title": "The upload page now explains how Word documents become cards — each heading is a front, the text under it is the back"
+}
