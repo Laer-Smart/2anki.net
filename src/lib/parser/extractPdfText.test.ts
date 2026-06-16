@@ -101,6 +101,11 @@ describe('extractPdfText', () => {
     );
   });
 
+  it('disables pdf.js font face so Node renders without touching document', () => {
+    const pdfjs = require('pdf-parse/lib/pdf.js/v1.10.100/build/pdf.js');
+    expect(pdfjs.disableFontFace).toBe(true);
+  });
+
   it('passes credential to pdfParse as userPassword option', async () => {
     mockPdfParse.mockResolvedValueOnce({
       numpages: 2,
