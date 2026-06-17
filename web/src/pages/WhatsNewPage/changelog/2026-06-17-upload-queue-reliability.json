@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-17-upload-queue-reliability",
+  "date": "2026-06-17",
+  "type": "fix",
+  "title": "Uploads that wait in a busy conversion queue convert instead of failing"
+}
