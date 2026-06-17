@@ -6,6 +6,7 @@ import Workspace from '../../lib/parser/WorkSpace';
 import { EmptyDeckError } from '../jobs/EmptyDeckError';
 import { runUploadGeneration } from '../../lib/conversionPool';
 import { UploadGenerationFailure } from './uploadGenerationTypes';
+import { ensureUploadBytes } from './ensureUploadBytes';
 
 export interface PackageResult {
   packages: Package[];
@@ -42,6 +43,7 @@ class GeneratePackagesUseCase {
     onProgress?: (step: string) => void,
     userId: number | null = null
   ): Promise<PackageResult> {
+    ensureUploadBytes(files);
     const enqueuedAt = Date.now();
     const channel = onProgress ? new MessageChannel() : null;
     channel?.port1.on('message', (step: string) => onProgress?.(step));
