@@ -20,8 +20,26 @@
   line-height: var(--leading-relaxed);
 }
 
-.noted {
+.badges {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 5px;
+}
+
+.badge img {
+  display: block;
+  height: 48px;
+  width: auto;
+}
+
+.caption {
   margin: 0;
-  font-weight: var(--font-medium);
-  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
 }

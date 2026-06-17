@@ -5,6 +5,7 @@ import JobResponse from '../../schemas/public/JobResponse';
 import { JobsId } from '../../schemas/public/Jobs';
 import { cancelPendingSync } from '../data_layer/userPreferencesSync';
 import AnkifyClient from '../interfaces/AnkifyClient';
+import { AppStoreLinks } from '../interfaces/AppStoreLinks';
 import { ConnectionInfo } from '../interfaces/ConnectionInfo';
 import NotionObject from '../interfaces/NotionObject';
 import UserUpload from '../interfaces/UserUpload';
@@ -111,6 +112,10 @@ export class Backend {
 
   async getNotionConnectionInfo(): Promise<ConnectionInfo> {
     return get(`${this.baseURL}notion/get-notion-link`);
+  }
+
+  async getAppStoreLinks(): Promise<AppStoreLinks> {
+    return get(`${this.baseURL}app-store`);
   }
 
   saveSettings(settings: Settings) {

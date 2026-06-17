@@ -1,20 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { track } from '../../lib/analytics/track';
+import { get2ankiApi } from '../../lib/backend/get2ankiApi';
+import { AppStoreLinks } from '../../lib/interfaces/AppStoreLinks';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './NativeAppPage.module.css';
 
-const INTEREST_KEY = 'native_app_interest_clicked';
-
-function hasRegisteredInterest(): boolean {
-  return globalThis.localStorage?.getItem(INTEREST_KEY) != null;
-}
-
 export default function NativeAppPage() {
   const pageViewTracked = useRef(false);
-  const [interestRegistered, setInterestRegistered] = useState(
-    hasRegisteredInterest
-  );
+  const [links, setLinks] = useState<AppStoreLinks | null>(null);
 
   useEffect(() => {
     if (pageViewTracked.current) return;
@@ -22,14 +16,23 @@ export default function NativeAppPage() {
     track('native_app_page_viewed');
   }, []);
 
-  const registerInterest = () => {
-    if (hasRegisteredInterest()) {
-      setInterestRegistered(true);
-      return;
-    }
-    track('native_app_interest_clicked');
-    globalThis.localStorage?.setItem(INTEREST_KEY, '1');
-    setInterestRegistered(true);
+  useEffect(() => {
+    let active = true;
+    get2ankiApi()
+      .getAppStoreLinks()
+      .then((result) => {
+        if (active) setLinks(result);
+      })
+      .catch(() => {
+        if (active) setLinks({ available: false });
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const trackStoreClick = (store: 'ios' | 'mac') => {
+    track('native_app_store_clicked', { store });
   };
 
   return (
@@ -40,20 +43,45 @@ export default function NativeAppPage() {
       <img src="/mascot/Notion 1.png" alt="" className={styles.mascot} />
       <h1 className={sharedStyles.title}>2anki for iPhone, iPad, and Mac</h1>
       <p className={styles.body}>
-        A native app is in the works. Convert your notes to Anki decks on the
-        device you study with — no browser needed. Tap below and we'll count you
-        in when we decide what ships first.
+        Convert your notes into Anki decks on the device you study with — no
+        browser needed.
       </p>
-      {interestRegistered ? (
-        <p className={styles.noted}>Noted. Watch What's New for updates.</p>
-      ) : (
-        <button
-          type="button"
-          className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
-          onClick={registerInterest}
-        >
-          I want this
-        </button>
+      {links?.available && (
+        <>
+          <div className={styles.badges}>
+            <a
+              className={styles.badge}
+              href={links.iosUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackStoreClick('ios')}
+            >
+              <img
+                src="/badges/app-store.svg"
+                alt="Download on the App Store"
+              />
+            </a>
+            <a
+              className={styles.badge}
+              href={links.macUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackStoreClick('mac')}
+            >
+              <img
+                src="/badges/mac-app-store.svg"
+                alt="Download on the Mac App Store"
+              />
+            </a>
+          </div>
+          <p className={styles.caption}>One app for iPhone, iPad, and Mac.</p>
+        </>
+      )}
+      {links?.available === false && (
+        <p className={styles.body}>
+          Coming to the App Store shortly. Check What&apos;s New for the release
+          date.
+        </p>
       )}
     </div>
   );
