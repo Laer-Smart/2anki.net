@@ -1,20 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Link } from 'react-router-dom';
 import { track } from '../../lib/analytics/track';
-import sharedStyles from '../../styles/shared.module.css';
+import { get2ankiApi } from '../../lib/backend/get2ankiApi';
+import { AppStoreLinks } from '../../lib/interfaces/AppStoreLinks';
 import styles from './NativeAppPage.module.css';
-
-const INTEREST_KEY = 'native_app_interest_clicked';
-
-function hasRegisteredInterest(): boolean {
-  return globalThis.localStorage?.getItem(INTEREST_KEY) != null;
-}
+import sharedStyles from '../../styles/shared.module.css';
 
 export default function NativeAppPage() {
   const pageViewTracked = useRef(false);
-  const [interestRegistered, setInterestRegistered] = useState(
-    hasRegisteredInterest
-  );
+  const [links, setLinks] = useState<AppStoreLinks | null>(null);
 
   useEffect(() => {
     if (pageViewTracked.current) return;
@@ -22,15 +17,20 @@ export default function NativeAppPage() {
     track('native_app_page_viewed');
   }, []);
 
-  const registerInterest = () => {
-    if (hasRegisteredInterest()) {
-      setInterestRegistered(true);
-      return;
-    }
-    track('native_app_interest_clicked');
-    globalThis.localStorage?.setItem(INTEREST_KEY, '1');
-    setInterestRegistered(true);
-  };
+  useEffect(() => {
+    let active = true;
+    get2ankiApi()
+      .getAppStoreLinks()
+      .then((result) => {
+        if (active) setLinks(result);
+      })
+      .catch(() => {
+        if (active) setLinks({ available: false });
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className={styles.page}>
@@ -38,22 +38,38 @@ export default function NativeAppPage() {
         <title>2anki for iPhone, iPad, and Mac</title>
       </Helmet>
       <img src="/mascot/Notion 1.png" alt="" className={styles.mascot} />
-      <h1 className={sharedStyles.title}>2anki for iPhone, iPad, and Mac</h1>
+      <h1 className={styles.title}>2anki for iPhone, iPad, and Mac</h1>
       <p className={styles.body}>
-        A native app is in the works. Convert your notes to Anki decks on the
-        device you study with — no browser needed. Tap below and we'll count you
-        in when we decide what ships first.
+        Convert your notes into Anki decks on the device you study with — no
+        browser needed.
       </p>
-      {interestRegistered ? (
-        <p className={styles.noted}>Noted. Watch What's New for updates.</p>
-      ) : (
-        <button
-          type="button"
-          className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
-          onClick={registerInterest}
-        >
-          I want this
-        </button>
+      {links?.available && (
+        <>
+          <a
+            className={styles.badge}
+            href={links.iosUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => track('native_app_store_clicked', { store: 'ios' })}
+          >
+            <img src="/badges/app-store.svg" alt="Download on the App Store" />
+          </a>
+          <p className={styles.caption}>
+            Free on the App Store — iPhone, iPad, and Mac.
+          </p>
+        </>
+      )}
+      {links?.available === false && (
+        <div className={styles.notice}>
+          <p className={styles.noticeTitle}>Coming soon to the App Store</p>
+          <p className={styles.noticeBody}>
+            The app is in final review. Keep using 2anki on the web in the
+            meantime.
+          </p>
+          <Link to="/" className={sharedStyles.btnPrimary}>
+            Convert a deck on the web
+          </Link>
+        </div>
       )}
     </div>
   );
