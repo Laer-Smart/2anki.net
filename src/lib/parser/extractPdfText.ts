@@ -28,21 +28,67 @@ interface PdfJsOps {
   [opName: string]: number;
 }
 
-interface PdfJsModule {
-  OPS?: PdfJsOps;
+interface PdfJsGlobalSettings {
   disableFontFace?: boolean;
 }
 
-// pdf.js binds web fonts through a FontLoader that reaches for the browser
-// `document` global. In Node that throws `ReferenceError: document is not
-// defined` on every page render — harmless to extraction but it floods the
-// logs. Disabling font face skips the rule-insertion path entirely.
+interface PdfJsModule {
+  OPS?: PdfJsOps;
+  // pdf.js reads font settings from `globalScope.PDFJS`, re-exported here.
+  PDFJS?: PdfJsGlobalSettings;
+  disableFontFace?: boolean;
+}
+
+interface NodeImageStubLike {
+  onload: (() => void) | null;
+  onerror: (() => void) | null;
+  src: string;
+}
+
+// pdf.js (v1.10) assumes a browser DOM. With no worker, its loopback transport
+// reaches for two browser globals that don't exist in Node, throwing on every
+// page that uses them — harmless to extraction, but it floods the error log:
+//   - FontLoader binds web fonts via the `document` global. Fixed by setting
+//     `disableFontFace` on the real settings object (`globalScope.PDFJS`), NOT
+//     the top-level module — `getDefaultSetting` only reads the former.
+//   - `loadJpegStream` decodes JPEG XObjects via `new Image()`. pdf-parse calls
+//     `getDocument(buffer)` with no params, so `nativeImageDecoderSupport` can't
+//     be set to skip that path. Instead we install a no-op `Image` stub: it
+//     resolves the image object via `onload` (we never render, so the decoded
+//     bytes are unused) without throwing or emitting pdf.js's own warn.
+function installNodeImageGlobalShim(): void {
+  if (typeof (globalThis as { Image?: unknown }).Image !== 'undefined') return;
+
+  class NodeImageStub implements NodeImageStubLike {
+    onload: (() => void) | null = null;
+    onerror: (() => void) | null = null;
+    private currentSrc = '';
+
+    get src(): string {
+      return this.currentSrc;
+    }
+
+    set src(value: string) {
+      this.currentSrc = value;
+      const handler = this.onload;
+      if (typeof handler === 'function') {
+        queueMicrotask(handler);
+      }
+    }
+  }
+
+  (globalThis as { Image?: unknown }).Image = NodeImageStub;
+}
+
+installNodeImageGlobalShim();
+
 function loadPdfJs(): PdfJsModule | null {
   try {
     const pdfjs = require(
       `pdf-parse/lib/pdf.js/${PDFJS_BUILD}/build/pdf.js`
     ) as PdfJsModule;
-    pdfjs.disableFontFace = true;
+    const settings: PdfJsGlobalSettings = pdfjs.PDFJS ?? pdfjs;
+    settings.disableFontFace = true;
     return pdfjs;
   } catch {
     return null;
