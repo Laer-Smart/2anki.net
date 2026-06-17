@@ -101,9 +101,31 @@ describe('extractPdfText', () => {
     );
   });
 
-  it('disables pdf.js font face so Node renders without touching document', () => {
+  it('disables font face on the pdf.js global settings object Node actually reads', () => {
     const pdfjs = require('pdf-parse/lib/pdf.js/v1.10.100/build/pdf.js');
-    expect(pdfjs.disableFontFace).toBe(true);
+    // pdf.js resolves `disableFontFace` from `globalScope.PDFJS`, re-exported as
+    // `pdfjs.PDFJS` — a different object from the module root. Setting the flag
+    // on the module root (the prior fix) is a silent no-op, so the FontLoader
+    // still touches `document` and floods the log. Assert the object the engine
+    // reads, not the one that merely looks set.
+    expect(pdfjs.PDFJS).not.toBe(pdfjs);
+    expect(pdfjs.PDFJS.disableFontFace).toBe(true);
+  });
+
+  it('installs a no-op Image global so JPEG decode never throws in Node', async () => {
+    const globalWithImage = globalThis as {
+      Image?: new () => { onload: (() => void) | null; src: string };
+    };
+    expect(typeof globalWithImage.Image).toBe('function');
+
+    const img = new globalWithImage.Image!();
+    const resolved = new Promise<void>((resolve) => {
+      img.onload = () => resolve();
+    });
+    expect(() => {
+      img.src = 'data:image/jpeg;base64,/9j/';
+    }).not.toThrow();
+    await expect(resolved).resolves.toBeUndefined();
   });
 
   it('passes credential to pdfParse as userPassword option', async () => {
