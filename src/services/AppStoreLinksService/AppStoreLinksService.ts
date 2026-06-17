@@ -4,15 +4,18 @@ export interface AppStoreLinks {
   macUrl?: string;
 }
 
-// The native app ships from one universal App Store record, so iOS and Mac
-// share the numeric Apple ID. The ID lives only in the server env
-// (APPLE_IAP_APP_APPLE_ID, also used by AppleStoreKitService) — never baked into
-// the web bundle — so the Download page reads it through this service. When the
-// ID is unset the page degrades to its coming-soon state instead of rendering a
-// dead link.
+// The native app ships from one universal App Store record (bundle
+// no.laersmart.-anki), so iOS, iPad, and Mac share one numeric Apple ID. The ID
+// is a public identifier — it appears in every apps.apple.com URL — so it lives
+// here as a stable default. APPLE_IAP_APP_APPLE_ID (also used by
+// AppleStoreKitService) overrides it without a redeploy if the record ever
+// changes. The page only falls back to its coming-soon state if both are empty.
+export const DEFAULT_APP_STORE_APPLE_ID = '6775249373';
+
 export default class AppStoreLinksService {
   getLinks(
-    appleId: string | undefined = process.env.APPLE_IAP_APP_APPLE_ID
+    appleId: string | undefined = process.env.APPLE_IAP_APP_APPLE_ID ||
+      DEFAULT_APP_STORE_APPLE_ID
   ): AppStoreLinks {
     if (appleId == null || appleId === '') {
       return { available: false };

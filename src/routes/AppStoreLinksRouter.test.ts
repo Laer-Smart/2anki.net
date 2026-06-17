@@ -37,14 +37,15 @@ describe('GET /api/app-store', () => {
     }
   });
 
-  it('reports unavailable when the Apple ID is unset', async () => {
+  it('falls back to the default Apple ID when the env var is unset', async () => {
     delete process.env.APPLE_IAP_APP_APPLE_ID;
     const { server, url } = await buildServer();
     try {
       const res = await fetch(`${url}/api/app-store`);
       const body = await res.json();
       expect(res.status).toBe(200);
-      expect(body).toEqual({ available: false });
+      expect(body.available).toBe(true);
+      expect(body.iosUrl).toMatch(/^https:\/\/apps\.apple\.com\/app\/id\d+$/);
     } finally {
       server.close();
     }

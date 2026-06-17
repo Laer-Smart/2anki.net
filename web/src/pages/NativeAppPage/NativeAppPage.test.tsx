@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { HelmetProvider } from 'react-helmet-async';
+import { MemoryRouter } from 'react-router-dom';
 import NativeAppPage from './NativeAppPage';
 import { AppStoreLinks } from '../../lib/interfaces/AppStoreLinks';
 
@@ -18,7 +19,9 @@ vi.mock('../../lib/backend/get2ankiApi', () => ({
 const renderPage = () =>
   render(
     <HelmetProvider>
-      <NativeAppPage />
+      <MemoryRouter>
+        <NativeAppPage />
+      </MemoryRouter>
     </HelmetProvider>
   );
 
@@ -27,8 +30,8 @@ const callsFor = (name: string) =>
 
 const links: AppStoreLinks = {
   available: true,
-  iosUrl: 'https://apps.apple.com/app/id1234567890',
-  macUrl: 'https://apps.apple.com/app/id1234567890?mt=12',
+  iosUrl: 'https://apps.apple.com/app/id6775249373',
+  macUrl: 'https://apps.apple.com/app/id6775249373?mt=12',
 };
 
 describe('NativeAppPage', () => {
@@ -56,21 +59,20 @@ describe('NativeAppPage', () => {
     expect(callsFor('native_app_page_viewed')).toHaveLength(1);
   });
 
-  it('renders both store badges with the resolved links', async () => {
+  it('renders the App Store badge and availability caption when links resolve', async () => {
     getAppStoreLinksMock.mockResolvedValue(links);
     renderPage();
 
-    const ios = await screen.findByRole('link', {
+    const badge = await screen.findByRole('link', {
       name: 'Download on the App Store',
     });
-    const mac = screen.getByRole('link', {
-      name: 'Download on the Mac App Store',
-    });
-    expect(ios).toHaveAttribute('href', links.iosUrl);
-    expect(mac).toHaveAttribute('href', links.macUrl);
+    expect(badge).toHaveAttribute('href', links.iosUrl);
+    expect(
+      screen.getByText('Free on the App Store — iPhone, iPad, and Mac.')
+    ).toBeInTheDocument();
   });
 
-  it('fires native_app_store_clicked with the platform on a badge click', async () => {
+  it('fires native_app_store_clicked on a badge click', async () => {
     getAppStoreLinksMock.mockResolvedValue(links);
     renderPage();
 
@@ -82,13 +84,17 @@ describe('NativeAppPage', () => {
     ]);
   });
 
-  it('shows the coming-soon fallback when store links are unavailable', async () => {
+  it('shows the coming-soon notice card with a web CTA when unavailable', async () => {
     getAppStoreLinksMock.mockResolvedValue({ available: false });
     renderPage();
 
     expect(
-      await screen.findByText(/Coming to the App Store shortly/)
+      await screen.findByText('Coming soon to the App Store')
     ).toBeInTheDocument();
-    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    const cta = screen.getByRole('link', { name: 'Convert a deck on the web' });
+    expect(cta).toHaveAttribute('href', '/');
+    expect(
+      screen.queryByRole('link', { name: 'Download on the App Store' })
+    ).not.toBeInTheDocument();
   });
 });

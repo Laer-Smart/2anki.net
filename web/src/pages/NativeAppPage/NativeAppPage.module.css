@@ -4,27 +4,30 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
   text-align: center;
+  max-width: 420px;
 }
 
 .mascot {
   display: block;
-  width: 96px;
-  height: 96px;
+  width: 128px;
+  height: 128px;
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  composes: title from '../../styles/shared.module.css';
+  font-size: var(--text-4xl);
+  line-height: var(--leading-tight);
+  margin: 0;
 }
 
 .body {
   margin: 0;
+  max-width: 34ch;
   color: var(--color-text-secondary);
   line-height: var(--leading-relaxed);
-}
-
-.badges {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
 }
 
 .badge {
@@ -34,7 +37,7 @@
 
 .badge img {
   display: block;
-  height: 48px;
+  height: 52px;
   width: auto;
 }
 
@@ -42,4 +45,30 @@
   margin: 0;
   font-size: var(--text-sm);
   color: var(--color-text-tertiary);
+}
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+}
+
+.noticeTitle {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+.noticeBody {
+  margin: 0;
+  max-width: 34ch;
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
 }
