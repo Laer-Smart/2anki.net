@@ -15,9 +15,8 @@
  *   knex value-import outside data_layer: 0 (conversionPool — allowlisted infra)
  *   circular dependencies:                27 (mostly hubbed on data_layer/index.ts)
  *   data_layer importing upward:          2  (data_layer/index.ts wiring barrel)
- *   routes/controllers -> data_layer:     ~447 import edges, deliberately NOT
- *     encoded — see the PR body. Enforcing the prose "no layer skip" rule needs
- *     a product decision (enforce or relax), not a 447-warning firehose.
+ *   routes/controllers -> data_layer:     ~447 import edges (warn — debt frozen,
+ *     not blocked; new code should go through a use case or service).
  */
 module.exports = {
   forbidden: [
@@ -55,6 +54,14 @@ module.exports = {
       severity: 'warn',
       from: { path: '^src/data_layer' },
       to: { path: '^src/(routes|controllers|usecases)' },
+    },
+    {
+      name: 'no-layer-skip-to-data-layer',
+      comment:
+        'Route -> controller -> use case -> service -> data layer. Routes and controllers should not reach into data_layer directly. ~447 existing skip edges document the debt; surfaced as warn so the count is visible and new code goes through a use case or service instead of growing it.',
+      severity: 'warn',
+      from: { path: '^src/(routes|controllers)' },
+      to: { path: '^src/data_layer' },
     },
   ],
   options: {
