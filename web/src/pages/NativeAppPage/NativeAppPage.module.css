@@ -64,12 +64,25 @@
 .badge {
   display: inline-flex;
   padding: 5px;
+  border-radius: var(--radius-md);
 }
 
 .badge img {
   display: block;
   height: 52px;
   width: auto;
+}
+
+.badgeDark {
+  display: none;
+}
+
+[data-theme='dark'] .badgeLight {
+  display: none;
+}
+
+[data-theme='dark'] .badgeDark {
+  display: block;
 }
 
 .macLink {
@@ -87,7 +100,7 @@
 .caption {
   margin: 0;
   font-size: var(--text-sm);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
 }
 
 .notice {
@@ -126,7 +139,7 @@
   margin: 0 0 1rem;
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: var(--color-text-tertiary);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -175,11 +188,6 @@
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-}
-
-.featureIcon {
-  font-size: 1.75rem;
-  line-height: 1;
 }
 
 .featureTitle {

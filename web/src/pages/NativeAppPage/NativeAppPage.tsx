@@ -9,23 +9,20 @@ import sharedStyles from '../../styles/shared.module.css';
 
 const CANONICAL = 'https://2anki.net/app';
 const META_DESCRIPTION =
-  'Convert your notes and files into Anki decks on iPhone, iPad, and Mac. Markdown, PDF, Notion, CSV, OPML, Kindle — parsed on your device. Free on the App Store.';
+  'Convert your notes and files into Anki decks on iPhone, iPad, and Mac. Markdown, PDF, Notion, CSV, OPML, Kindle — parsed on your device. On the App Store for iPhone, iPad, and Mac.';
 
 const FORMATS = ['Markdown', 'PDF', 'Notion', 'CSV', 'OPML', 'Kindle', '.apkg'];
 
 const FEATURES = [
   {
-    icon: '🔒',
     title: 'Parsed on your device',
     body: 'Your files never leave your Mac, iPhone, or iPad to become cards. Markdown, PDFs, and exports are converted locally — private by default.',
   },
   {
-    icon: '✨',
     title: 'Build decks with AI chat',
     body: 'Paste a topic or a wall of notes and let chat draft the cards. Preview every front and back before anything reaches Anki.',
   },
   {
-    icon: '📦',
     title: 'Every format, one tap to Anki',
     body: 'Markdown, PDF, Notion exports, CSV, OPML, and Kindle highlights all land as a clean .apkg you open straight in Anki.',
   },
@@ -68,7 +65,7 @@ const FAQS = [
   },
   {
     q: 'Does it run on Mac and iPhone?',
-    a: 'It is a universal app — one download covers iPhone, iPad, and Mac with the same on-device conversion.',
+    a: 'One download covers iPhone, iPad, and Mac — the same on-device conversion on all three.',
   },
 ];
 
@@ -170,6 +167,7 @@ export default function NativeAppPage() {
       <div className={styles.ctaGroup}>
         <a
           className={styles.badge}
+          aria-label="Download on the App Store"
           href={links.iosUrl}
           target="_blank"
           rel="noopener noreferrer"
@@ -177,7 +175,16 @@ export default function NativeAppPage() {
             track('native_app_store_clicked', { store: 'ios', placement })
           }
         >
-          <img src="/badges/app-store.svg" alt="Download on the App Store" />
+          <img
+            className={styles.badgeLight}
+            src="/badges/app-store.svg"
+            alt=""
+          />
+          <img
+            className={styles.badgeDark}
+            src="/badges/app-store-white.svg"
+            alt=""
+          />
         </a>
         {links.macUrl && (
           <a
@@ -189,7 +196,7 @@ export default function NativeAppPage() {
               track('native_app_store_clicked', { store: 'mac', placement })
             }
           >
-            Also on the Mac App Store →
+            Also on the Mac App Store <span aria-hidden="true">→</span>
           </a>
         )}
       </div>
@@ -218,15 +225,15 @@ export default function NativeAppPage() {
           {downloadCta('hero')}
           {links?.available && (
             <p className={styles.caption}>
-              Free on the App Store — iPhone, iPad, and Mac.
+              On the App Store for iPhone, iPad, and Mac.
             </p>
           )}
           {links?.available === false && (
             <div className={styles.notice}>
               <p className={styles.noticeTitle}>Coming soon to the App Store</p>
               <p className={styles.noticeBody}>
-                The app is in final review. Keep using 2anki on the web in the
-                meantime.
+                The app lands on the App Store soon. Convert your notes on the
+                web in the meantime.
               </p>
               <Link to="/" className={sharedStyles.btnPrimary}>
                 Convert a deck on the web
@@ -255,9 +262,6 @@ export default function NativeAppPage() {
       <section className={styles.features}>
         {FEATURES.map((feature) => (
           <div key={feature.title} className={styles.featureCard}>
-            <span className={styles.featureIcon} aria-hidden="true">
-              {feature.icon}
-            </span>
             <h2 className={styles.featureTitle}>{feature.title}</h2>
             <p className={styles.featureBody}>{feature.body}</p>
           </div>
@@ -285,8 +289,8 @@ export default function NativeAppPage() {
             Your whole deck library, on the desktop
           </h2>
           <p className={styles.showcaseBody}>
-            Build on your phone on the train, polish on your Mac at the desk.
-            The same on-device engine, the same decks, everywhere you study.
+            Draft on your phone, polish on your Mac. The same on-device engine,
+            the same decks, everywhere you study.
           </p>
         </div>
         <div className={styles.showcaseArt}>
@@ -295,7 +299,7 @@ export default function NativeAppPage() {
       </section>
 
       <section className={styles.faq}>
-        <h2 className={styles.sectionHeading}>Questions</h2>
+        <h2 className={styles.sectionHeading}>Common questions</h2>
         <div className={styles.faqList}>
           {FAQS.map((faq) => (
             <details key={faq.q} className={styles.faqItem}>
@@ -309,7 +313,7 @@ export default function NativeAppPage() {
       <section className={styles.finalCta}>
         <h2 className={styles.finalTitle}>Start building decks today</h2>
         <p className={styles.finalBody}>
-          Free to download. Convert your first file in seconds.
+          Free to start — convert your first file in seconds.
         </p>
         {downloadCta('footer')}
         {links?.available === false && (
