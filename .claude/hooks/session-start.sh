@@ -16,7 +16,7 @@ TODOS=$(git ls-files 'src/*.ts' 'src/*.tsx' 2>/dev/null \
   | grep -v -E '\.test\.tsx?$' \
   | xargs grep -nE '\b(TODO|FIXME|XXX|HACK)\b' 2>/dev/null \
   | head -n 15)
-TODO_COUNT=$(printf '%s\n' "$TODOS" | grep -c . 2>/dev/null || echo 0)
+TODO_COUNT=$(printf '%s' "$TODOS" | grep -c .)
 
 cat <<EOF
 ## Session start
