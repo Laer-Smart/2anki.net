@@ -25,6 +25,7 @@
     "generate:api-types": "swagger-typescript-api generate -p http://localhost:2020/docs/swagger.json -o ./src/generated --modular",
     "mock-server": "node mock-server/server.js",
     "test:e2e": "playwright test",
+    "test:golden-path": "playwright test golden-path.spec.ts",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:with-mock": "cross-env PLAYWRIGHT_WITH_MOCK=true playwright test",

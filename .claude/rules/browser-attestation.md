@@ -50,6 +50,25 @@ The hook exits 0 (allow) without checking the body when:
 
 The hook does not auto-write or modify the PR body. Attestation is honor-system — the gate confirms the words are there, not that the engineer ran the app.
 
+## Machine-backed attestation — the golden-path spec
+
+`web/tests/golden-path.spec.ts` turns the two checkboxes into a real run. It drives the golden path at a 375px viewport with the backend mocked at the network edge, and fails on any console error or uncaught page error — exactly what the checkboxes claim. Run it as the evidence behind the attestation:
+
+```
+pnpm --filter 2anki-web test:golden-path
+```
+
+A green run is the substance behind ticking `- [x] Golden path on localhost:3000` and `- [x] No console errors at 375px`. The spec is deterministic (every `/api/**` call is fulfilled from a fixture — no real Notion/Stripe/backend, no secrets), so it can be run locally or in CI.
+
+### Decision: warn, not block (for now)
+
+The spec is **not** wired into the merge gate as a hard requirement, and the hook stays **honor-system and fail-open** (see above). A flaky e2e that blocks every `web/src/` merge is worse than the honor-system gap it would close. The path to blocking:
+
+1. The spec runs green across N consecutive web PRs (run it by hand, or add it as a **non-required** CI job first).
+2. Once flakiness is ruled out, promote it: a required CI check, or teach `check-browser-attestation.py` to confirm a recorded pass rather than just the words.
+
+Until then it is an *available, trusted* run an engineer can point to — not a blocker. Do not change the hook's blocking behaviour or its fail-open property as part of adding the spec.
+
 ## Connection to CLAUDE.md
 
 CLAUDE.md already mandates "use the feature in a browser" before opening a PR. This gate makes that instruction machine-checkable at merge time. It does not replace the judgment call — it enforces the moment of confirmation.
