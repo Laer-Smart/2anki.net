@@ -21,6 +21,13 @@ or connect a Notion workspace, download a deck, open it in Anki or AnkiDroid.
 Standard Anki .apkg files compatible with Anki desktop, AnkiDroid, and AnkiMobile.
 Cards preserve images, audio, code blocks, and cloze deletions from the source.
 
+## Native app (iPhone, iPad, Mac)
+
+2anki is also a native app for iPhone, iPad, and Mac — free on the App Store.
+Files are parsed on-device; sign in for AI deck generation and Notion sync. The
+same free/paid limits apply, with the passes sold as Apple in-app purchases
+(Day Pass, Week Pass, Unlimited). Details: https://2anki.net/app
+
 ## How cards are built from Notion
 
 Toggle blocks become cards: the toggle heading is the front, the body is the back.
@@ -50,6 +57,7 @@ minutes. No exports, no manual steps. $30/month.
 ## Canonical URLs
 
 - Homepage: https://2anki.net
+- Native app (iPhone, iPad, Mac): https://2anki.net/app
 - Pricing: https://2anki.net/pricing
 - Notion to Anki guide: https://2anki.net/answers/convert-notion-to-anki
 - Notion Auto Sync: https://2anki.net/answers/notion-to-anki-sync

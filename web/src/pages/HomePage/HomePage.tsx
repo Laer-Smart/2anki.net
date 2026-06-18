@@ -228,6 +228,13 @@ export function HomePage({
           >
             Card options
           </Link>
+          <Link
+            to="/app"
+            className={styles.cardOptionsLink}
+            onClick={() => track('home_native_app_link_clicked')}
+          >
+            Also on iPhone, iPad &amp; Mac →
+          </Link>
         </div>
         <UploadForm setErrorMessage={setErrorMessage} />
       </section>

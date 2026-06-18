@@ -45,6 +45,7 @@ export const KNOWN_EVENTS = new Set([
   'home_ai_anon_badge_viewed',
   'home_ai_anon_badge_clicked',
   'home_card_options_link_clicked',
+  'home_native_app_link_clicked',
   'tts_lang_injected',
   'paywall_dismissed',
   'pricing_left',
