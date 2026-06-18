@@ -54,6 +54,17 @@ describe('NativeAppPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('renders the marketing sections', () => {
+    renderPage();
+    expect(
+      screen.getByRole('heading', {
+        name: 'From file to deck in three steps',
+      })
+    ).toBeInTheDocument();
+    expect(screen.getByText('Parsed on your device')).toBeInTheDocument();
+    expect(screen.getByText('Is the app free?')).toBeInTheDocument();
+  });
+
   it('tracks native_app_page_viewed once on mount', () => {
     renderPage();
     expect(callsFor('native_app_page_viewed')).toHaveLength(1);
@@ -63,24 +74,38 @@ describe('NativeAppPage', () => {
     getAppStoreLinksMock.mockResolvedValue(links);
     renderPage();
 
-    const badge = await screen.findByRole('link', {
+    const badges = await screen.findAllByRole('link', {
       name: 'Download on the App Store',
     });
-    expect(badge).toHaveAttribute('href', links.iosUrl);
+    expect(badges[0]).toHaveAttribute('href', links.iosUrl);
     expect(
       screen.getByText('Free on the App Store — iPhone, iPad, and Mac.')
     ).toBeInTheDocument();
   });
 
-  it('fires native_app_store_clicked on a badge click', async () => {
+  it('renders the Mac App Store link when macUrl is present', async () => {
+    getAppStoreLinksMock.mockResolvedValue(links);
+    renderPage();
+
+    const macLinks = await screen.findAllByRole('link', {
+      name: 'Also on the Mac App Store →',
+    });
+    expect(macLinks[0]).toHaveAttribute('href', links.macUrl);
+  });
+
+  it('fires native_app_store_clicked with placement on a badge click', async () => {
     getAppStoreLinksMock.mockResolvedValue(links);
     renderPage();
 
     fireEvent.click(
-      await screen.findByRole('link', { name: 'Download on the App Store' })
+      (
+        await screen.findAllByRole('link', {
+          name: 'Download on the App Store',
+        })
+      )[0]
     );
     expect(callsFor('native_app_store_clicked')).toEqual([
-      ['native_app_store_clicked', { store: 'ios' }],
+      ['native_app_store_clicked', { store: 'ios', placement: 'hero' }],
     ]);
   });
 
@@ -91,8 +116,10 @@ describe('NativeAppPage', () => {
     expect(
       await screen.findByText('Coming soon to the App Store')
     ).toBeInTheDocument();
-    const cta = screen.getByRole('link', { name: 'Convert a deck on the web' });
-    expect(cta).toHaveAttribute('href', '/');
+    const ctas = screen.getAllByRole('link', {
+      name: 'Convert a deck on the web',
+    });
+    expect(ctas[0]).toHaveAttribute('href', '/');
     expect(
       screen.queryByRole('link', { name: 'Download on the App Store' })
     ).not.toBeInTheDocument();
