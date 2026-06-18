@@ -11,15 +11,7 @@ const CANONICAL = 'https://2anki.net/app';
 const META_DESCRIPTION =
   'Convert your notes and files into Anki decks on iPhone, iPad, and Mac. Markdown, PDF, Notion, CSV, OPML, Kindle — parsed on your device. Free on the App Store.';
 
-const FORMATS = [
-  'Markdown',
-  'PDF',
-  'Notion',
-  'CSV',
-  'OPML',
-  'Kindle',
-  '.apkg',
-];
+const FORMATS = ['Markdown', 'PDF', 'Notion', 'CSV', 'OPML', 'Kindle', '.apkg'];
 
 const FEATURES = [
   {
@@ -248,7 +240,9 @@ export default function NativeAppPage() {
       </section>
 
       <section className={styles.formats}>
-        <p className={styles.formatsLabel}>Converts the files you already have</p>
+        <p className={styles.formatsLabel}>
+          Converts the files you already have
+        </p>
         <div className={styles.formatsRow}>
           {FORMATS.map((f) => (
             <span key={f} className={styles.formatChip}>
@@ -271,7 +265,9 @@ export default function NativeAppPage() {
       </section>
 
       <section className={styles.steps}>
-        <h2 className={styles.sectionHeading}>From file to deck in three steps</h2>
+        <h2 className={styles.sectionHeading}>
+          From file to deck in three steps
+        </h2>
         <div className={styles.stepsRow}>
           {STEPS.map((step) => (
             <div key={step.n} className={styles.stepCard}>
