@@ -218,6 +218,20 @@ describe('EventsController', () => {
       expect.objectContaining({ name: eventName, unknown: false })
     );
   });
+
+  it.each([
+    'native_app_page_viewed',
+    'native_app_interest_clicked',
+    'native_app_store_clicked',
+  ])('accepts native-app event %s as known, not unknown', (eventName) => {
+    const { controller, req, res, executeSpy } = buildMocks({ userId: 1 });
+    req.body = { name: eventName };
+    controller.track(req, res);
+    expect(res.status).toHaveBeenCalledWith(202);
+    expect(executeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ name: eventName, unknown: false })
+    );
+  });
 });
 
 describe('EventsController — regression: all client events return 202 (AC #5)', () => {
