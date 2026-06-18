@@ -78,8 +78,10 @@ describe('NativeAppPage', () => {
       name: 'Download on the App Store',
     });
     expect(badges[0]).toHaveAttribute('href', links.iosUrl);
+    expect(badges[0]).toHaveAttribute('target', '_blank');
+    expect(badges[0]).toHaveAttribute('rel', 'noopener noreferrer');
     expect(
-      screen.getByText('Free on the App Store — iPhone, iPad, and Mac.')
+      screen.getByText('On the App Store for iPhone, iPad, and Mac.')
     ).toBeInTheDocument();
   });
 
@@ -88,9 +90,10 @@ describe('NativeAppPage', () => {
     renderPage();
 
     const macLinks = await screen.findAllByRole('link', {
-      name: 'Also on the Mac App Store →',
+      name: 'Also on the Mac App Store',
     });
     expect(macLinks[0]).toHaveAttribute('href', links.macUrl);
+    expect(macLinks[0]).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
   it('fires native_app_store_clicked with placement on a badge click', async () => {
@@ -106,6 +109,26 @@ describe('NativeAppPage', () => {
     );
     expect(callsFor('native_app_store_clicked')).toEqual([
       ['native_app_store_clicked', { store: 'ios', placement: 'hero' }],
+    ]);
+  });
+
+  it('fires native_app_store_clicked for the footer badge and the Mac link', async () => {
+    getAppStoreLinksMock.mockResolvedValue(links);
+    renderPage();
+
+    const footerBadge = (
+      await screen.findAllByRole('link', { name: 'Download on the App Store' })
+    )[1];
+    fireEvent.click(footerBadge);
+
+    const macLink = screen.getAllByRole('link', {
+      name: 'Also on the Mac App Store',
+    })[0];
+    fireEvent.click(macLink);
+
+    expect(callsFor('native_app_store_clicked')).toEqual([
+      ['native_app_store_clicked', { store: 'ios', placement: 'footer' }],
+      ['native_app_store_clicked', { store: 'mac', placement: 'hero' }],
     ]);
   });
 
