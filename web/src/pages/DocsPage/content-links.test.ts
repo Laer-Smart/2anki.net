@@ -8,6 +8,7 @@ const modules = import.meta.glob('./content/**/*.{md,mdx}', {
 }) as Record<string, string>;
 
 const KNOWN_APP_PREFIXES = [
+  '/app',
   '/pricing',
   '/debug',
   '/api',

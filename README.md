@@ -17,6 +17,10 @@ We're not replacing Anki or Notion — we're building a bridge between them. Dro
 - Self-hostable if you hit the free-tier quota
 - No VC funding — sustained by paying subscribers and lifetime users
 
+## Apps
+
+2anki runs in any browser, and there's a native app for **iPhone, iPad, and Mac** — free on the App Store. Files are parsed on-device; sign in for AI deck generation and Notion sync. See [2anki.net/app](https://2anki.net/app).
+
 ## Getting started
 
 ```bash

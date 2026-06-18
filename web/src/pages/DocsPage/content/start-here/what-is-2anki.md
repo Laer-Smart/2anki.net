@@ -20,6 +20,8 @@ The full list with limits and quirks is on [File formats](/documentation/referen
 
 A standard Anki `.apkg` file. Open it on Anki desktop, AnkiMobile, AnkiDroid, or AnkiWeb — see [Open your deck in Anki](/documentation/start-here/open-in-anki).
 
+2anki works in any browser, and there's a native app for iPhone, iPad, and Mac — free on the App Store, with files parsed on-device. See [2anki for iPhone, iPad, and Mac](/app).
+
 Inside the deck:
 
 - One card per toggle (or per bullet pair, or per CSV row).

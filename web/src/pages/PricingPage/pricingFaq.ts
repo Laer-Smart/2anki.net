@@ -36,6 +36,11 @@ export const PRICING_FAQ: PricingFaqItem[] = [
       'Cancel in one click from your account — no need to email support. On a yearly plan, cancelling stops the next renewal and your access stays through the year you already paid for; unused time is not refunded. Passes are one-time, so there is nothing to cancel.',
   },
   {
+    question: 'Is there an app?',
+    answer:
+      'Yes — 2anki is free on the App Store for iPhone, iPad, and Mac, alongside the web app. Files are parsed on-device. The same plans apply: Day Pass, Week Pass, and Unlimited are available as in-app purchases.',
+  },
+  {
     question: 'What happens to my decks if I stop paying?',
     answer:
       'They stay yours. Every deck exports as a native .apkg that works in any Anki client, offline, with no lock-in.',
