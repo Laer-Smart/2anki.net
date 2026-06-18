@@ -1,17 +1,20 @@
 ---
-description: Parallel server tsc + web typecheck + web vitest + web lint
+description: Parallel server tsc + server arch + web typecheck + web vitest + web lint
 allowed-tools: Bash
 ---
 
-Run all four checks in parallel via a single Bash call:
+Run all checks in parallel via a single Bash call:
 
 ```bash
 pnpm --filter notion2anki-server build & \
+pnpm --filter notion2anki-server arch & \
 pnpm --filter 2anki-web typecheck & \
 pnpm --filter 2anki-web test:run & \
 pnpm --filter 2anki-web lint & \
 wait
 ```
+
+`arch` is the dependency-cruiser architecture-fitness sensor (`.dependency-cruiser.cjs`). It exits non-zero only on `error`-severity rules — today that is one: a value-import of the knex query builder outside `src/data_layer/`. Circular-dependency and data-layer-leaf violations ride as `warn` (reported, non-blocking).
 
 If any fails, print one line per failure with the file:line and the error message — nothing else. If all pass, say "all clean" and stop.
 
