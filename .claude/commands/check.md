@@ -14,7 +14,7 @@ pnpm --filter 2anki-web lint & \
 wait
 ```
 
-`arch` is the dependency-cruiser architecture-fitness sensor (`.dependency-cruiser.cjs`). It exits non-zero only on `error`-severity rules — today that is one: a value-import of the knex query builder outside `src/data_layer/`. Circular-dependency and data-layer-leaf violations ride as `warn` (reported, non-blocking).
+`arch` is the dependency-cruiser architecture-fitness sensor (`.dependency-cruiser.cjs`). It exits non-zero only on `error`-severity rules — today that is one: a value-import of the knex query builder outside `src/data_layer/`. Circular-dependency, data-layer-leaf, and layer-skip (route/controller reaching `data_layer` directly) violations ride as `warn` (reported, non-blocking) — they document existing debt that should shrink, not grow.
 
 If any fails, print one line per failure with the file:line and the error message — nothing else. If all pass, say "all clean" and stop.
 
