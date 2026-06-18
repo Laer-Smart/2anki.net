@@ -104,9 +104,7 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
     return rows.map((row) => ({ id: row.id, email: row.email }));
   }
 
-  buildDeadAddressCandidatesQuery(
-    limit: number
-  ): Knex.QueryBuilder<UserRow, UserRow[]> {
+  buildDeadAddressCandidatesQuery(limit: number) {
     return this.database<UserRow>('users as u')
       .select('u.id', 'u.email')
       .where(function () {
