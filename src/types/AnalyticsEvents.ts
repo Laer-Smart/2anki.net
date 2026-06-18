@@ -66,6 +66,7 @@ export const KNOWN_EVENTS = new Set([
   'recent_page_reconvert_clicked',
   'native_app_page_viewed',
   'native_app_interest_clicked',
+  'native_app_store_clicked',
   'checkout_started',
   'plan_interval_selected',
   'lock_in_banner_shown',
