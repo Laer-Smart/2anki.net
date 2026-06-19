@@ -69,7 +69,10 @@ You can combine these. If you turn on both `toggle` and `bulleted_list_item`, bo
 
 **Tag format** — how 2anki finds tags inside your content:
 
-- **strikethrough** (default) — strikethrough text becomes a tag. Strikethrough inside a toggle is a tag local to that card; strikethrough at the page level is a global tag.
+- **strikethrough** (default) — strikethrough text becomes a tag. Where you put it sets which cards get the tag:
+  - inside a card's toggle → tags only that card
+  - a struck-through line under a parent toggle → tags every card nested under it (use this to tag a whole chapter at once). Turn on **Tag a whole section** alongside **Cherry-pick** for this scope
+  - at the page level → tags every card on the page
 - **heading** — H1/H2/H3 headings become tags. Useful when your notes already have a heading hierarchy you want to keep as tags.
 
 **Email the deck when it's ready** — when on, the finished `.apkg` is emailed to your account address. Decks under 24 MB go as an attachment; larger decks include a download link instead.

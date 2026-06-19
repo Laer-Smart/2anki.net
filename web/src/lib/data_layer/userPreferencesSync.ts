@@ -29,6 +29,7 @@ export const CARD_OPTION_KEYS = [
   'cherry',
   'avocado',
   'tags',
+  'section-tags',
   'cloze',
   'cloze-from-toggle-content',
   'group-cloze-per-toggle',
