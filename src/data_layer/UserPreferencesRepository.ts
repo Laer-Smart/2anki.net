@@ -31,6 +31,7 @@ export type CardOptions = Partial<{
   cherry: string;
   avocado: string;
   tags: string;
+  'section-tags': string;
   cloze: string;
   'cloze-from-toggle-content': string;
   'group-cloze-per-toggle': string;
@@ -105,6 +106,7 @@ export const ALLOWED_CARD_OPTION_KEYS = new Set([
   'cherry',
   'avocado',
   'tags',
+  'section-tags',
   'cloze',
   'cloze-from-toggle-content',
   'group-cloze-per-toggle',

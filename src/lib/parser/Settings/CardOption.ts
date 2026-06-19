@@ -42,6 +42,8 @@ class CardOption {
 
   readonly useTags: boolean;
 
+  readonly useSectionTags: boolean;
+
   readonly basicReversed: boolean;
 
   readonly reversed: boolean;
@@ -150,6 +152,7 @@ class CardOption {
     this.clozeFromToggleContent = input['cloze-from-toggle-content'] === 'true';
     this.groupClozePerToggle = input['group-cloze-per-toggle'] === 'true';
     this.useTags = input.tags !== 'false';
+    this.useSectionTags = input['section-tags'] === 'true';
     this.basicReversed = input['basic-reversed'] === 'true';
     this.reversed = input.reversed === 'true';
     this.removeMP3Links = input['remove-mp3-links'] === 'true' || false;
