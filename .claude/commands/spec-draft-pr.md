@@ -31,8 +31,10 @@ Launch the following three agents **simultaneously** using the Agent tool (one m
 - Verdict: changes needed to the pm's scope, or "no UI changes required"
 
 **engineer** — given the same input, produce a technical pre-flight:
+- **Verify, do not trust, any code-map claim in the issue/source** ("the fix lives in X", "Y is not in the live path", "both paths share Z"). Grep/read the named symbols before repeating them in the spec — a wrong claim propagated into the spec becomes a wrong v1 floor. (Issue #3180 claimed the live Notion-sync path used `DeckParser`/`TagRegistry` interchangeably and that `TagRegistry` was "not in the live tag path"; both false — the sync path is a separate engine that can't host the feature at all. Only caught at implement, after a full spec round.)
 - Which layers are touched (`routes` / `controllers` / `usecases` / `services` / `data_layer` / `web`)
 - Files likely in play (list them)
+- **If the feature has two delivery paths (file upload via `DeckParser` vs live Notion sync via `BlockHandler`), confirm each path can actually host the feature** — they are independent engines with different tag/card-extraction code; a feature meaningful on one may be a structural no-op on the other.
 - Any cross-language coordination needed (TypeScript ↔ Python)
 - Estimated effort: S / M / L and why
 - Any security, testing, or migration concerns to address before work starts
