@@ -8,7 +8,7 @@ Patterns the SonarCloud quality gate, the project RULES.md, and review history h
 | Do not write `if (!ready) { … } else { … }`. | Lead with the positive: `if (ready) { … } else { … }` (Sonar S7735). Negation + else forces mental inversion. | — |
 | Do not deduplicate code on the second occurrence. | Wait for the third. Premature abstraction is harder to undo than three honest copies. | — |
 | Do not introduce `any`, `as any`, or `@ts-ignore` without a one-line justification on the same line. | Reach for a real type; if it is genuinely unknown, use `unknown` and narrow at the boundary. | CWE-704 |
-| Do not edit anything under `src/data_layer/public/`. | Run `pnpm kanel` after migrations — those files regenerate. | — |
+| Do not edit anything under `src/data_layer/public/`. | Run `pnpm kanel` after migrations — those files regenerate. (Write/Edit to this path is blocked by `.claude/hooks/pre-write-secret-scan.py`.) | — |
 | Do not leave `console.log`, `debugger`, or `xdescribe` in committed code. | Strip before pushing. The Stop hook nudges; review will block. | CWE-489 |
 | Do not skip layers (controller → repository, route → service). | Route → controller → use case → service → data layer. Each layer's CLAUDE.md says what belongs there. | — |
 | Do not put business logic in routes or controllers. | Controllers shape HTTP; use cases orchestrate; services hold reusable domain logic. | — |

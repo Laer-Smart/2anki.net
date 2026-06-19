@@ -13,8 +13,23 @@ Bypass: CLAUDE_SKIP_STOP_CHECK=1 (env on the wrapping process).
 """
 import json
 import os
+import re
 import subprocess
 import sys
+
+
+DEBUG_ARTIFACT_PATTERNS = [
+    ("console.log", re.compile(r"\bconsole\.log\s*\(")),
+    ("debugger", re.compile(r"\bdebugger\b")),
+]
+
+TEST_ISOLATION_PATTERNS = [
+    ("focused test (.only)", re.compile(r"\.only\s*\(")),
+    ("xdescribe", re.compile(r"\bxdescribe\b")),
+    ("xit", re.compile(r"\bxit\b")),
+    ("fdescribe", re.compile(r"\bfdescribe\b")),
+    ("fit", re.compile(r"\bfit\s*\(")),
+]
 
 
 def quiet_pass():
@@ -88,6 +103,32 @@ def expected_test(path):
     return path[:-3] + ".test.ts"
 
 
+def is_ts_under_src(path):
+    if not (path.startswith("src/") or path.startswith("web/src/")):
+        return False
+    if not (path.endswith(".ts") or path.endswith(".tsx")):
+        return False
+    return not path.endswith(".d.ts")
+
+
+def debug_artifacts(changed):
+    offenders = []
+    for path in changed:
+        if not is_ts_under_src(path) or not os.path.isfile(path):
+            continue
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                content = handle.read()
+        except (OSError, UnicodeDecodeError):
+            continue
+        is_test = ".test." in path
+        patterns = TEST_ISOLATION_PATTERNS if is_test else DEBUG_ARTIFACT_PATTERNS
+        hits = [label for label, pat in patterns if pat.search(content)]
+        if hits:
+            offenders.append((path, hits))
+    return offenders
+
+
 def main():
     if os.environ.get("CLAUDE_SKIP_STOP_CHECK"):
         quiet_pass()
@@ -137,6 +178,17 @@ def main():
             "FEATURE.md was updated. If responsibilities, layering, or constraints "
             "shifted, take a moment to refresh the relevant doc — the next session "
             "starts cold from these files."
+        )
+
+    offenders = debug_artifacts(changed)
+    if offenders:
+        lines = "\n".join(
+            f"  - {path}: {', '.join(hits)}" for path, hits in offenders
+        )
+        nudges.append(
+            "Debug/scaffolding artifacts left in changed files — strip before pushing "
+            "(code-quality.md, testing.md):\n"
+            f"{lines}"
         )
 
     if nudges:
