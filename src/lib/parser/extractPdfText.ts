@@ -28,8 +28,12 @@ interface PdfJsOps {
   [opName: string]: number;
 }
 
+// pdf.js v1.10 VerbosityLevel: ERRORS = 0, WARNINGS = 1, INFOS = 5.
+const PDFJS_VERBOSITY_ERRORS = 0;
+
 interface PdfJsGlobalSettings {
   disableFontFace?: boolean;
+  verbosity?: number;
 }
 
 interface PdfJsModule {
@@ -89,6 +93,10 @@ function loadPdfJs(): PdfJsModule | null {
     ) as PdfJsModule;
     const settings: PdfJsGlobalSettings = pdfjs.PDFJS ?? pdfjs;
     settings.disableFontFace = true;
+    // Silence benign per-page warnings ("Unimplemented annotation type
+    // FreeText/Ink", "TT: undefined function") that pdf.js prints for ordinary
+    // PDFs; they aren't actionable and flood the logs during conversion.
+    settings.verbosity = PDFJS_VERBOSITY_ERRORS;
     return pdfjs;
   } catch {
     return null;

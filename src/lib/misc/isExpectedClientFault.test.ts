@@ -1,0 +1,30 @@
+import { isExpectedClientFault } from './isExpectedClientFault';
+
+describe('isExpectedClientFault', () => {
+  it('returns false for undefined', () => {
+    expect(isExpectedClientFault(undefined)).toBe(false);
+  });
+
+  it('returns true for a body-parser malformed-JSON error', () => {
+    const err = Object.assign(new SyntaxError('bad json'), {
+      type: 'entity.parse.failed',
+    });
+    expect(isExpectedClientFault(err)).toBe(true);
+  });
+
+  it('returns true for an AnkiAppExportError by name', () => {
+    const err = new Error('No cards found in this AnkiApp export.');
+    err.name = 'AnkiAppExportError';
+    expect(isExpectedClientFault(err)).toBe(true);
+  });
+
+  it('returns false for an ordinary error', () => {
+    expect(isExpectedClientFault(new Error('database exploded'))).toBe(false);
+  });
+
+  it('returns false for a SyntaxError without the body-parser type tag', () => {
+    expect(isExpectedClientFault(new SyntaxError('thrown by our code'))).toBe(
+      false
+    );
+  });
+});

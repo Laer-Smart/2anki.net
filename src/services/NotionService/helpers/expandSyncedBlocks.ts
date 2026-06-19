@@ -52,7 +52,9 @@ async function resolveSyncedBlockChildren(
     });
     return await expandInternal(response.results, api, useAll, seen, depth + 1);
   } catch (e: unknown) {
-    console.error('[notion] failed to resolve synced_block source', e);
+    // Expected when the user hasn't shared the synced block's source with the
+    // integration — we recover by returning no children, not an error.
+    console.warn('[notion] failed to resolve synced_block source', e);
     return [];
   }
 }
