@@ -14,6 +14,16 @@ function sha256(value: string): string {
 
 type FallbackWriter = (payload: FallbackErrorPayload) => void;
 
+/**
+ * body-parser tags a request with an unparseable JSON body as
+ * `entity.parse.failed`. These are overwhelmingly scanner probes POSTing
+ * garbage to exploit paths (/_bulk, /jeecg-boot/..., telemetry endpoints) —
+ * a client fault, not a server error. Recording them buries real crashes in
+ * the error dashboard. ErrorHandler still returns 400 to the caller.
+ */
+const isMalformedRequestBody = (err: Error): boolean =>
+  (err as { type?: string })?.type === 'entity.parse.failed';
+
 export const makeErrorCaptureMiddleware = (
   repository: IErrorEventRepository,
   writeFallback?: FallbackWriter,
@@ -25,6 +35,10 @@ export const makeErrorCaptureMiddleware = (
     res: Response,
     next: NextFunction
   ): Promise<void> => {
+    if (isMalformedRequestBody(err)) {
+      next(err);
+      return;
+    }
     try {
       const message = err?.message ?? String(err);
       const messageHash = sha256(message);

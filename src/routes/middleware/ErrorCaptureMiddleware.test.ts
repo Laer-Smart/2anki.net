@@ -225,6 +225,38 @@ describe('makeErrorCaptureMiddleware', () => {
     expect(repo.inserts[0].context).toBeNull();
   });
 
+  it('does not record a malformed-JSON body-parser error (scanner noise)', async () => {
+    const repo = makeRepository();
+    const middleware = makeErrorCaptureMiddleware(repo);
+    const next = makeNext();
+    const parseError = Object.assign(
+      new SyntaxError('Unexpected token t in JSON at position 0'),
+      {
+        type: 'entity.parse.failed',
+        status: 400,
+        statusCode: 400,
+        expose: true,
+      }
+    );
+
+    await middleware(parseError, makeReq('/_bulk'), makeRes(), next);
+
+    expect(repo.inserts).toHaveLength(0);
+    expect(next).toHaveBeenCalledWith(parseError);
+  });
+
+  it('still records a genuine SyntaxError without the body-parser type tag', async () => {
+    const repo = makeRepository();
+    const middleware = makeErrorCaptureMiddleware(repo);
+    const next = makeNext();
+    const realError = new SyntaxError('thrown by our own code');
+
+    await middleware(realError, makeReq('/api/upload'), makeRes(), next);
+
+    expect(repo.inserts).toHaveLength(1);
+    expect(next).toHaveBeenCalledWith(realError);
+  });
+
   it('calls writeFallback with db-outage phase when the repository insert fails', async () => {
     const brokenRepo: IErrorEventRepository = {
       async insert() {
