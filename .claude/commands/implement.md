@@ -36,6 +36,7 @@ When `$ARGUMENTS` is a PR number or URL (or you can find a draft PR titled `spec
 6. **Add a changelog entry if this PR changes user-visible behavior.** See CLAUDE.md > Changelog for the rules (file path, when to add, voice). One line, user-facing prose — no implementation details. If you can't write the entry without referencing internal code, the PR probably doesn't need one. Commit as `chore: add changelog entry for <feature>`.
 7. **Update user docs if this PR adds or changes a user-visible feature.** User docs live at `web/src/pages/DocsPage/content/` (rendered in-app at 2anki.net/docs). Add a new MDX file or update an existing one whenever you ship: a new input format, a new converter capability, a changed flow the existing docs already describe, or a new account-level feature. The trigger is stricter than the changelog rule — skip when: pure bug fix (the docs were already correct), internal refactor, copy-only tweak, or a change so small a user would never look it up. Follow VOICE.md for prose; sentence-case headings; no implementation details. If you add a new MDX page, register it in `web/src/pages/DocsPage/sidebar.ts` so it shows up in navigation. Commit as `docs: update user docs for <feature>`.
 8. Run `/check` (parallel tsc + web typecheck + web vitest + web lint). All green before flipping the PR.
+8b. **If the PR is user-facing, run the `designer` review NOW — before flipping ready — and commit any must-fix it returns.** Designer validates UX *before* the PR ships, per the trio policy; do not defer it to the pre-merge checklist below. A must-fix found *after* `gh pr ready` can race a merge — Alexander may merge a ready PR before the follow-up lands (this happened with #3446: the silent-no-op gating fix raced the merge and had to ship as a separate follow-up #3447). The PR is not ready until designer-clean.
 9. Graduate the PR from draft to ready, and rename the title to match the implementation prefix:
    ```
    gh pr edit <n> --title "<type>: <feature name>"   # feat: / fix: / refactor: / ...
@@ -48,7 +49,7 @@ Before merging:
 - All checks green.
 - Changelog entry added if the PR is user-visible (or explicit note in the PR body that no entry is warranted).
 - User docs updated if the PR adds or changes a user-visible feature (or explicit note in the PR body that none are needed).
-- If user-facing, ping the `designer` agent for a review pass.
+- Designer review is done pre-ready (step 8b), not here. Re-ping the `designer` agent only if the diff changed materially after flipping ready.
 - If the change touches auth, payments, or external-API integration, run `/security-review` first.
 - Note goal alignment in the PR body (per `CLAUDE.md`).
 
