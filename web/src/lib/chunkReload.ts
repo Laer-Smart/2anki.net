@@ -71,6 +71,26 @@ export function isReloadingForFreshChunks(): boolean {
   }
 }
 
+function reloadOnceForChunk<T>(
+  chunkKey: string,
+  error: Error
+): Promise<{ default: T }> {
+  const perChunkKey = `${PER_CHUNK_KEY_PREFIX}${chunkKey}`;
+  if (sessionStorage.getItem(perChunkKey) != null) {
+    throw error;
+  }
+  if (
+    typeof document !== 'undefined' &&
+    document.visibilityState !== 'visible'
+  ) {
+    throw error;
+  }
+  sessionStorage.setItem(perChunkKey, String(Date.now()));
+  markReloading();
+  location.reload();
+  return new Promise<{ default: T }>(() => {});
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- React.lazy's generic requires ComponentType<any> to preserve route component prop shapes.
 export function lazyWithRetry<T extends ComponentType<any>>(
   factory: () => Promise<{ default: T }>,
@@ -78,25 +98,19 @@ export function lazyWithRetry<T extends ComponentType<any>>(
 ): LazyExoticComponent<T> {
   return lazy<T>(async () => {
     try {
-      return await factory();
+      const mod = await factory();
+      if (mod == null || (mod as { default?: T }).default == null) {
+        return reloadOnceForChunk<T>(
+          chunkKey,
+          new Error('Importing a module script failed.')
+        );
+      }
+      return mod;
     } catch (error) {
       if (!isChunkLoadError(error)) {
         throw error;
       }
-      const perChunkKey = `${PER_CHUNK_KEY_PREFIX}${chunkKey}`;
-      if (sessionStorage.getItem(perChunkKey) != null) {
-        throw error;
-      }
-      if (
-        typeof document !== 'undefined' &&
-        document.visibilityState !== 'visible'
-      ) {
-        throw error;
-      }
-      sessionStorage.setItem(perChunkKey, String(Date.now()));
-      markReloading();
-      location.reload();
-      return new Promise<{ default: T }>(() => {});
+      return reloadOnceForChunk<T>(chunkKey, error as Error);
     }
   });
 }

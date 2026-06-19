@@ -264,6 +264,48 @@ describe('lazyWithRetry', () => {
     ).toBeNull();
   });
 
+  it('reloads once when the chunk loads but is missing a default export', async () => {
+    const factory = vi.fn(async () => ({}) as { default: React.ComponentType });
+    const Component = lazyWithRetry(factory, './pages/Foo');
+
+    void readLazyFactory(Component);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(reloadMock).toHaveBeenCalledOnce();
+    expect(
+      sessionStorage.getItem(`${PER_CHUNK_KEY_PREFIX}./pages/Foo`)
+    ).not.toBeNull();
+    expect(sessionStorage.getItem(RELOADING_FLAG_KEY)).toBe('1');
+  });
+
+  it('reloads once when the chunk resolves to a null module', async () => {
+    const factory = vi.fn(
+      async () => null as unknown as { default: React.ComponentType }
+    );
+    const Component = lazyWithRetry(factory, './pages/Foo');
+
+    void readLazyFactory(Component);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(reloadMock).toHaveBeenCalledOnce();
+  });
+
+  it('throws a chunk-load error on a second missing-default load → no reload', async () => {
+    sessionStorage.setItem(
+      `${PER_CHUNK_KEY_PREFIX}./pages/Foo`,
+      String(Date.now())
+    );
+    const factory = vi.fn(async () => ({}) as { default: React.ComponentType });
+    const Component = lazyWithRetry(factory, './pages/Foo');
+
+    await expect(readLazyFactory(Component)).rejects.toSatisfy(
+      isChunkLoadError
+    );
+    expect(reloadMock).not.toHaveBeenCalled();
+  });
+
   it('reloads independently for a different chunk key on the same session', async () => {
     sessionStorage.setItem(
       `${PER_CHUNK_KEY_PREFIX}./pages/Foo`,
