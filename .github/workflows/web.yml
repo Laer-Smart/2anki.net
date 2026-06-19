@@ -21,7 +21,7 @@ jobs:
     name: build (22.20.0)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Lint
         run: pnpm --filter 2anki-web lint
@@ -47,7 +47,7 @@ jobs:
     name: test (22.20.0)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Test
         run: pnpm --filter 2anki-web test

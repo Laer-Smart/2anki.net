@@ -14,7 +14,7 @@ jobs:
       run:
         working-directory: create_deck
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
@@ -38,7 +38,7 @@ jobs:
       matrix:
         python-version: ['3.11', '3.12', '3.14']
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
