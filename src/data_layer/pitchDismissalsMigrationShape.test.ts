@@ -15,9 +15,15 @@ describe('20260805000000_add_pitch_dismissals migration DDL shape', () => {
     const sql = db.schema
       .createTable('pitch_dismissals', (t) => {
         t.increments('id').primary();
-        t.integer('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
+        t.integer('user_id')
+          .notNullable()
+          .references('id')
+          .inTable('users')
+          .onDelete('CASCADE');
         t.text('placement').notNullable();
-        t.timestamp('dismissed_at', { useTz: true }).notNullable().defaultTo(db.fn.now());
+        t.timestamp('dismissed_at', { useTz: true })
+          .notNullable()
+          .defaultTo(db.fn.now());
         t.unique(['user_id', 'placement']);
         t.index('user_id');
       })
@@ -37,7 +43,11 @@ describe('20260805000000_add_pitch_dismissals migration DDL shape', () => {
 
     const pitchSql = db.schema
       .createTable('pitch_dismissals', (t) => {
-        t.integer('user_id').notNullable().references('id').inTable('users').onDelete('CASCADE');
+        t.integer('user_id')
+          .notNullable()
+          .references('id')
+          .inTable('users')
+          .onDelete('CASCADE');
       })
       .toSQL();
 
