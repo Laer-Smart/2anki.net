@@ -175,12 +175,12 @@ describe('expandSyncedBlocks', () => {
         throw new Error('not found');
       }),
     } as unknown as NotionAPIWrapper;
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     const result = await expandSyncedBlocks([reference], api, true);
 
     expect(result).toEqual([]);
-    expect(errorSpy).toHaveBeenCalled();
-    errorSpy.mockRestore();
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
   });
 });

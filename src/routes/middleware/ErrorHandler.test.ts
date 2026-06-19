@@ -257,6 +257,55 @@ describe('ErrorHandler', () => {
     );
   });
 
+  test('does not log a stack for a malformed-JSON scanner probe, still returns 400', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const res = makeResponse(false);
+    const req = makeRequest();
+    const probe = Object.assign(new SyntaxError('bad json'), {
+      type: 'entity.parse.failed',
+    });
+
+    await ErrorHandler(res as unknown as express.Response, req, probe);
+
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(400);
+    errorSpy.mockRestore();
+  });
+
+  test('does not log a stack for an AnkiAppExportError, still returns 400', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const res = makeResponse(false);
+    const req = makeRequest();
+    const err = new Error('No cards found in this AnkiApp export.');
+    err.name = 'AnkiAppExportError';
+
+    await ErrorHandler(res as unknown as express.Response, req, err);
+
+    expect(errorSpy).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'No cards found in this AnkiApp export.',
+      })
+    );
+    errorSpy.mockRestore();
+  });
+
+  test('still logs a stack for a genuine server error', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const res = makeResponse(false);
+    const req = makeRequest();
+
+    await ErrorHandler(
+      res as unknown as express.Response,
+      req,
+      new Error('database connection lost')
+    );
+
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
   test('does not throw when headers have already been sent', async () => {
     const res = makeResponse(true);
     const req = makeRequest();

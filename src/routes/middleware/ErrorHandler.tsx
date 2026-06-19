@@ -4,6 +4,7 @@ import multer from 'multer';
 import nodemailer from 'nodemailer';
 import { UploadedFile } from '../../lib/storage/types';
 import { isLimitError } from '../../lib/misc/isLimitError';
+import { isExpectedClientFault } from '../../lib/misc/isExpectedClientFault';
 import { isEmptyPayload } from '../../lib/misc/isEmptyPayload';
 import { preserveFilesForDebugging } from '../../lib/debug/preserveFilesForDebugging';
 import { shouldShareFilesForDebugging } from './shouldShareFilesForDebugging';
@@ -86,9 +87,10 @@ export default async function ErrorHandler(
   err: Error
 ) {
   const uploadedFiles = req.files as UploadedFile[];
-  const skipError = isLimitError(err);
+  const isLimit = isLimitError(err);
+  const quietError = isLimit || isExpectedClientFault(err);
 
-  if (!skipError) {
+  if (!quietError) {
     console.info('Send error');
     console.error(err);
     const canShareFiles = shouldShareFilesForDebugging(req.body);
@@ -101,7 +103,7 @@ export default async function ErrorHandler(
     } catch (emailErr) {
       console.error('Failed to send error email:', emailErr);
     }
-  } else {
+  } else if (isLimit) {
     console.info('User no limit reached');
   }
 
