@@ -88,6 +88,11 @@ def get_content(data):
     return None, None
 
 
+def is_generated_data_layer(path):
+    norm = (path or "").replace("\\", "/")
+    return "src/data_layer/public/" in norm
+
+
 def is_test_or_fixture(path):
     p = path.lower()
     return (
@@ -112,6 +117,16 @@ def main():
         allow()
 
     path, content = get_content(data)
+
+    if is_generated_data_layer(path):
+        deny(
+            f"Refusing to write to {path}: this is Kanel-generated code under "
+            "src/data_layer/public/.\n"
+            "Hand-edits are silently overwritten on the next `pnpm kanel`.\n"
+            "Change the migration and re-run `pnpm kanel` to regenerate these types instead.\n"
+            "If you genuinely must touch it, set CLAUDE_SKIP_SAFETY=1 for this call."
+        )
+
     if content is None or not content.strip():
         allow()
 

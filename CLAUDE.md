@@ -203,7 +203,7 @@ One new surface in flight at a time. The next surface does not start until the p
 
 ## Changelog
 
-User-visible changes ship with a changelog entry in the **same PR**. The entry lands as a new JSON file in `web/src/pages/WhatsNewPage/changelog/` and renders in the in-app "What's New" page. One entry = one file, so parallel PRs never conflict.
+User-visible changes ship with a changelog entry in the **same PR**. The entry lands as a new JSON file in `web/src/pages/WhatsNewPage/changelog/` and renders in the in-app "What's New" page. One entry = one file, so parallel PRs never conflict. Enforced at merge: `.claude/hooks/check-changelog-on-merge.py` blocks `gh pr merge` when a `feat:`/`fix:` commit touches source but adds no changelog JSON and the PR body has no "no changelog entry" out-clause.
 
 **When to add an entry.** Add one if a real user would notice the change. Don't add one if they wouldn't.
 
