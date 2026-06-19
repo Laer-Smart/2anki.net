@@ -142,6 +142,29 @@ describe('reportClientError', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it.each([400, 404, 409, 429])(
+    'skips expected client-fault errors carrying a %s status',
+    (status) => {
+      const err = Object.assign(new Error('Resource not found'), { status });
+      reportClientError(err);
+      expect(fetchSpy).not.toHaveBeenCalled();
+    }
+  );
+
+  it('still reports a server-fault error carrying a 500 status', () => {
+    const err = Object.assign(new Error('HTTP error! status: 500'), {
+      status: 500,
+    });
+    reportClientError(err);
+    expect(fetchSpy).toHaveBeenCalledOnce();
+  });
+
+  it('still reports an error with a 0 status (network failure shape)', () => {
+    const err = Object.assign(new Error('boom'), { status: 0 });
+    reportClientError(err);
+    expect(fetchSpy).toHaveBeenCalledOnce();
+  });
+
   it.each([
     'Failed to fetch',
     'NetworkError when attempting to fetch resource.',
