@@ -6,6 +6,7 @@ export const CARD_OPTION_DEFAULTS: Record<string, string> = {
   cherry: 'false',
   avocado: 'false',
   tags: 'true',
+  'section-tags': 'false',
   cloze: 'true',
   'cloze-from-toggle-content': 'false',
   'group-cloze-per-toggle': 'false',

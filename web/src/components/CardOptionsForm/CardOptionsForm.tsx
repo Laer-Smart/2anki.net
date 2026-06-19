@@ -119,7 +119,13 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
   },
   {
     label: 'Filtering',
-    keys: ['cherry', 'avocado', 'tags', 'disable-indented-bullets'],
+    keys: [
+      'cherry',
+      'avocado',
+      'tags',
+      'section-tags',
+      'disable-indented-bullets',
+    ],
   },
   {
     label: 'Links & formatting',

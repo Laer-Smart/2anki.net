@@ -11,6 +11,8 @@ export default class Note {
 
   tags: string[];
 
+  sectionTags: string[] = [];
+
   cloze = false;
 
   number = 0;

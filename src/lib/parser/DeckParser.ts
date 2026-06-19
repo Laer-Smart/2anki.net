@@ -54,6 +54,10 @@ import { NOTION_STYLE, getCodeThemeCss } from '../../templates/helper';
 import { highlightCode } from '../notion-render/highlightCode';
 import { transformDetailsTagToNotionToggleList } from './transformDetailsTagToNotionToggleList';
 import { findNotionToggleLists, isMCQ } from './findNotionToggleLists';
+import {
+  ancestorSectionTags,
+  collectAndStripSectionMarkers,
+} from './collectSectionTags';
 import { EmptyDeckError } from '../../usecases/jobs/EmptyDeckError';
 import { extractName } from '../extractDeckName';
 
@@ -600,6 +604,12 @@ export class DeckParser {
         card.back = replaceAll(card.back, `<del>${del.html()}</del>`, '');
         card.name = replaceAll(card.name, `<del>${del.html()}</del>`, '');
       });
+    }
+
+    for (const sectionTag of card.sectionTags) {
+      if (!card.tags.includes(sectionTag)) {
+        card.tags.push(sectionTag);
+      }
     }
 
     card.tags.push(...deckGlobalTags);
@@ -1302,11 +1312,19 @@ export class DeckParser {
     let mcqSkippedCount = 0;
     const pageId = dom('article').attr('id');
 
+    const sectionTagOwners =
+      this.settings.useSectionTags && this.settings.isCherry
+        ? collectAndStripSectionMarkers(dom)
+        : undefined;
+
     toggleList.forEach((t) => {
       // We want to perserve the parent's style, so getting the class
       const p = dom(t);
       const parentUL = p;
       const parentClass = p.attr('class') || '';
+      const sectionTags = sectionTagOwners
+        ? ancestorSectionTags(dom, t, sectionTagOwners)
+        : [];
 
       if (this.settings.toggleMode === 'open_toggle') {
         dom('details').attr('open', '');
@@ -1356,6 +1374,7 @@ export class DeckParser {
                   correctIndex
                 );
                 note.notionId = parentUL.attr('id');
+                note.sectionTags = sectionTags;
                 mcqCount++;
                 if (
                   (this.settings.isAvocado && this.noteHasAvocado(note)) ||
@@ -1397,6 +1416,7 @@ export class DeckParser {
               })();
               const note = new Note(front || '', backSide);
               note.notionId = parentUL.attr('id');
+              note.sectionTags = sectionTags;
               if (note.notionId && this.settings.addNotionLink) {
                 const link = this.getLink(pageId, note);
                 if (link !== null) {

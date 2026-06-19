@@ -49,6 +49,12 @@ const supportedOptions = (): CardOptionDetail[] => {
       defaultFor('tags')
     ),
     new CardOptionDetail(
+      'section-tags',
+      'Tag a whole section',
+      'Strikethrough text under a parent toggle tags every card nested under it. Works with Cherry-pick to tag a chapter at once.',
+      defaultFor('section-tags')
+    ),
+    new CardOptionDetail(
       'cloze',
       'Cloze deletion',
       'Create cloze cards from inline code and {{c1::}} syntax in your toggles.',
