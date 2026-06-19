@@ -206,25 +206,27 @@ function computeSnapshot(values: {
   return JSON.stringify({ ...values, checkboxValues: sortedCheckboxes });
 }
 
-interface GatedClozeToggleRowProps {
+interface GatedToggleRowProps {
   id: string;
   heading: string;
   label: string;
   helperText: string;
+  prerequisiteHelperText: string;
   checked: boolean;
-  clozeEnabled: boolean;
+  enabled: boolean;
   onChange: (checked: boolean) => void;
 }
 
-function GatedClozeToggleRow({
+function GatedToggleRow({
   id,
   heading,
   label,
   helperText,
+  prerequisiteHelperText,
   checked,
-  clozeEnabled,
+  enabled,
   onChange,
-}: Readonly<GatedClozeToggleRowProps>) {
+}: Readonly<GatedToggleRowProps>) {
   return (
     <div className={fieldStyles.optionGroup} id={id}>
       <h3 className={fieldStyles.groupHeading}>{heading}</h3>
@@ -234,7 +236,7 @@ function GatedClozeToggleRow({
             <input
               type="checkbox"
               role="switch"
-              disabled={!clozeEnabled}
+              disabled={!enabled}
               checked={checked}
               onChange={(e) => onChange(e.target.checked)}
             />
@@ -242,17 +244,18 @@ function GatedClozeToggleRow({
           </span>
           <span className={fieldStyles.toggleLabel}>{label}</span>
         </label>
-        {clozeEnabled ? (
+        {enabled ? (
           <p className={fieldStyles.sectionHint}>{helperText}</p>
         ) : (
-          <p className={fieldStyles.sectionHint}>
-            Turn on Cloze deletion cards first.
-          </p>
+          <p className={fieldStyles.sectionHint}>{prerequisiteHelperText}</p>
         )}
       </div>
     </div>
   );
 }
+
+const CLOZE_PREREQUISITE_HELP = 'Turn on Cloze deletion cards first.';
+const CHERRY_PREREQUISITE_HELP = 'Turn on Cherry-pick first.';
 
 export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
   function CardOptionsForm(
@@ -916,6 +919,11 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           const isPdfAiGroup = group.label === 'PDF & AI';
           const isCardTypesGroup = group.label === 'Card types';
           const isLinksFormattingGroup = group.label === 'Links & formatting';
+          const isFilteringGroup = group.label === 'Filtering';
+          const sectionTagsOption = optionsByKey['section-tags'];
+          const inlineOptions = groupOptions.filter(
+            (o: CardOption) => o.key !== 'section-tags'
+          );
 
           return (
             <React.Fragment key={group.label}>
@@ -925,7 +933,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               >
                 <h3 className={fieldStyles.groupHeading}>{group.label}</h3>
                 <div className={fieldStyles.groupOptions}>
-                  {groupOptions.map((o: CardOption) => (
+                  {inlineOptions.map((o: CardOption) => (
                     <LocalCheckbox
                       key={o.key}
                       defaultValue={checkboxValues[o.key] ?? false}
@@ -938,6 +946,20 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                   {isPdfAiGroup && userInstructionsDisclosure}
                 </div>
               </div>
+              {isFilteringGroup && sectionTagsOption && (
+                <GatedToggleRow
+                  id="section-tags"
+                  heading={sectionTagsOption.label}
+                  label={sectionTagsOption.label}
+                  helperText={sectionTagsOption.description}
+                  prerequisiteHelperText={CHERRY_PREREQUISITE_HELP}
+                  checked={checkboxValues['section-tags'] ?? false}
+                  enabled={checkboxValues['cherry'] ?? false}
+                  onChange={(checked) =>
+                    toggleCheckbox('section-tags', checked)
+                  }
+                />
+              )}
               {isLinksFormattingGroup && (
                 <div className={fieldStyles.optionGroup} id="code-blocks">
                   <h3 className={fieldStyles.groupHeading}>Code blocks</h3>
@@ -1228,26 +1250,28 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 </div>
               )}
               {isCardTypesGroup && (
-                <GatedClozeToggleRow
+                <GatedToggleRow
                   id="group-cloze-per-toggle"
                   heading="Group cloze blanks per toggle"
                   label="Group cloze blanks per toggle"
                   helperText="When one Notion toggle holds several :: blanks, put them all on a single card and reveal them together. Off by default — each :: makes its own card."
+                  prerequisiteHelperText={CLOZE_PREREQUISITE_HELP}
                   checked={checkboxValues['group-cloze-per-toggle'] ?? false}
-                  clozeEnabled={checkboxValues['cloze'] ?? true}
+                  enabled={checkboxValues['cloze'] ?? true}
                   onChange={(checked) =>
                     toggleCheckbox('group-cloze-per-toggle', checked)
                   }
                 />
               )}
               {isCardTypesGroup && (
-                <GatedClozeToggleRow
+                <GatedToggleRow
                   id="cloze-from-toggle-content"
                   heading="Inline code toggles become cloze"
                   label="Inline code toggles become cloze"
                   helperText="When a toggle's contents contain inline code, hide the code as a cloze and use the toggle header as the hint. Works only when Cloze deletion is on."
+                  prerequisiteHelperText={CLOZE_PREREQUISITE_HELP}
                   checked={checkboxValues['cloze-from-toggle-content'] ?? false}
-                  clozeEnabled={checkboxValues['cloze'] ?? true}
+                  enabled={checkboxValues['cloze'] ?? true}
                   onChange={(checked) =>
                     toggleCheckbox('cloze-from-toggle-content', checked)
                   }

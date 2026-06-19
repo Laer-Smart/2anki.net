@@ -480,6 +480,70 @@ describe('CardOptionsForm inline-code-toggles-become-cloze sub-option', () => {
   });
 });
 
+describe('CardOptionsForm section-tags toggle gated on cherry-pick', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockResetUserCardOptions.mockResolvedValue(undefined);
+    setUserLocalsPaying(false);
+    localStorage.clear();
+    mockGetSettingsCardOptions.mockResolvedValue([
+      new CardOptionModel(
+        'cherry',
+        'Only convert toggles with the 🍒 emoji',
+        'Cherry-pick which toggles become cards.',
+        false
+      ),
+      new CardOptionModel(
+        'section-tags',
+        'Tag a whole section',
+        'Strike through a line under a parent toggle to tag every card nested beneath it — tag a whole section at once. Requires Cherry-pick mode.',
+        false
+      ),
+    ]);
+  });
+
+  it('disables the section-tags toggle and shows the prerequisite hint when cherry is off', async () => {
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const toggle = await screen.findByRole('switch', {
+      name: 'Tag a whole section',
+    });
+    expect(toggle).toBeDisabled();
+    expect(screen.getByText('Turn on Cherry-pick first.')).toBeInTheDocument();
+  });
+
+  it('enables the section-tags toggle once cherry-pick is turned on', async () => {
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const cherry = await screen.findByRole('checkbox', {
+      name: 'Only convert toggles with the 🍒 emoji',
+    });
+    fireEvent.click(cherry);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('switch', { name: 'Tag a whole section' })
+      ).toBeEnabled();
+    });
+    expect(screen.queryByText('Turn on Cherry-pick first.')).toBeNull();
+  });
+
+  it('round-trips the section-tags value to localStorage when cherry is on', async () => {
+    localStorage.setItem('cherry', 'true');
+    renderForm(false, { onReset: vi.fn(), setError: vi.fn() });
+    const toggle = await screen.findByRole('switch', {
+      name: 'Tag a whole section',
+    });
+    expect(toggle).toBeEnabled();
+    expect(toggle).not.toBeChecked();
+
+    fireEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(localStorage.getItem('section-tags')).toBe('true');
+    });
+    expect(toggle).toBeChecked();
+  });
+});
+
 describe('CardOptionsForm ai-comprehensive toggle (paid-only)', () => {
   beforeEach(() => {
     vi.clearAllMocks();

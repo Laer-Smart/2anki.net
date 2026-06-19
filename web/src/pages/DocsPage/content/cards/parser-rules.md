@@ -71,7 +71,7 @@ You can combine these. If you turn on both `toggle` and `bulleted_list_item`, bo
 
 - **strikethrough** (default) — strikethrough text becomes a tag. Where you put it sets which cards get the tag:
   - inside a card's toggle → tags only that card
-  - a struck-through line under a parent toggle → tags every card nested under it (use this to tag a whole chapter at once). Turn on **Tag a whole section** alongside **Cherry-pick** for this scope
+  - a struck-through line under a parent toggle → tags every card nested under it (use this to tag a whole section at once). This scope needs both **Tag a whole section** and **Cherry-pick mode** turned on.
   - at the page level → tags every card on the page
 - **heading** — H1/H2/H3 headings become tags. Useful when your notes already have a heading hierarchy you want to keep as tags.
 
