@@ -99,6 +99,10 @@ log "current=$CURRENT (:$CURRENT_PORT) next=$NEXT (:$NEXT_PORT) sha=$GIT_SHA"
 
 cd "$SERVER_DIR"
 export GIT_SHA
+# RELEASE carries the TrunkVer when the deploy workflow set it; pm2 --update-env
+# forwards it to the app so resolveRelease() reports it. Unset on a manual run
+# is fine — resolveRelease() falls back to GIT_SHA.
+export RELEASE
 
 # Bring up the next color; pm2 keeps the current color serving on its port.
 run pm2 start "$ECOSYSTEM" --only "server-$NEXT" --update-env

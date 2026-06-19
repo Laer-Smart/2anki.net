@@ -1,6 +1,7 @@
 import fs from 'fs';
 
 import { resolvePath } from '../lib/constants';
+import { resolveRelease } from '../lib/release';
 
 const appInfo = JSON.parse(
   fs.readFileSync(resolvePath(__dirname, '../../package.json')).toString()
@@ -9,6 +10,7 @@ const appInfo = JSON.parse(
 export interface VersionInfo {
   version: string;
   sha: string;
+  release: string;
 }
 
 class VersionService {
@@ -16,6 +18,7 @@ class VersionService {
     return {
       version: appInfo.version,
       sha: process.env.GIT_SHA ?? 'unknown',
+      release: resolveRelease() ?? 'unknown',
     };
   }
 }

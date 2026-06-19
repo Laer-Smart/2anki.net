@@ -19,6 +19,8 @@ jobs:
         uses: appleboy/ssh-action@v1.2.5
         env:
           GIT_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
           ASSET_BASE_URL: ${{ secrets.ASSET_BASE_URL }}
           SPACES_ASSETS_ACCESS_KEY_ID: ${{ secrets.SPACES_ASSETS_ACCESS_KEY_ID }}
           SPACES_ASSETS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_ASSETS_SECRET_ACCESS_KEY }}
@@ -28,7 +30,7 @@ jobs:
           host: 2anki.net
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: GIT_SHA,ASSET_BASE_URL,SPACES_ASSETS_ACCESS_KEY_ID,SPACES_ASSETS_SECRET_ACCESS_KEY,SPACES_ASSETS_BUCKET,SPACES_ASSETS_REGION
+          envs: GIT_SHA,RUN_ID,RUN_ATTEMPT,ASSET_BASE_URL,SPACES_ASSETS_ACCESS_KEY_ID,SPACES_ASSETS_SECRET_ACCESS_KEY,SPACES_ASSETS_BUCKET,SPACES_ASSETS_REGION
           script: |
             set -e
             set -o pipefail
@@ -48,6 +50,15 @@ jobs:
             git -C ${SERVER_DIR} reset --hard origin/main
             git -C ${SERVER_DIR} clean -fd
 
+            # TrunkVer for this artifact: when (UTC build time) . what (deployed
+            # short sha) . where (this Actions run, the build log). Exported as
+            # RELEASE so resolveRelease() surfaces it on /api/version and every
+            # /ops/errors group. GIT_SHA is left untouched — the blue-green
+            # health check still verifies /api/version .sha == GIT_SHA.
+            TRUNKVER="$(date -u +%Y%m%d%H%M%S).0.0-g$(git -C ${SERVER_DIR} rev-parse --short HEAD)-${RUN_ID}-${RUN_ATTEMPT}"
+            export RELEASE="$TRUNKVER"
+            echo "TrunkVer: $RELEASE"
+
             pnpm --dir ${SERVER_DIR} install --frozen-lockfile
             pnpm --dir ${SERVER_DIR} exec puppeteer browsers install chrome
             pip install -r ${SERVER_DIR}/create_deck/requirements.txt
@@ -60,7 +71,7 @@ jobs:
             aws --version
 
             pnpm --dir ${SERVER_DIR} run build
-            ASSET_BASE_URL="$ASSET_BASE_URL" REACT_APP_RELEASE="$GIT_SHA" pnpm --filter 2anki-web -C ${SERVER_DIR} build
+            ASSET_BASE_URL="$ASSET_BASE_URL" REACT_APP_RELEASE="$RELEASE" pnpm --filter 2anki-web -C ${SERVER_DIR} build
 
             echo "Syncing web/build/assets/ to s3://${SPACES_ASSETS_BUCKET}/assets/..."
             AWS_ACCESS_KEY_ID="$SPACES_ASSETS_ACCESS_KEY_ID" \

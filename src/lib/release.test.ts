@@ -20,9 +20,14 @@ describe('normalizeRelease', () => {
     expect(normalizeRelease('  abc1234\n')).toBe('abc1234');
   });
 
-  it('caps non-sha values at 40 chars to fit the column', () => {
-    const long = 'x'.repeat(60);
-    expect(normalizeRelease(long)).toBe('x'.repeat(40));
+  it('caps non-sha values at 64 chars to fit the column', () => {
+    const long = 'x'.repeat(80);
+    expect(normalizeRelease(long)).toBe('x'.repeat(64));
+  });
+
+  it('keeps a full TrunkVer intact (timestamp.0.0-g<sha>-<buildref>)', () => {
+    const trunkver = '20260619125336.0.0-g4579478f93dc-20652898919-1';
+    expect(normalizeRelease(trunkver)).toBe(trunkver);
   });
 });
 

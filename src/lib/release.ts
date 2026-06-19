@@ -1,7 +1,9 @@
 import { execFileSync } from 'node:child_process';
 
 const SHORT_SHA_LENGTH = 7;
-const MAX_RELEASE_LENGTH = 40;
+// Wide enough for a full TrunkVer (timestamp.0.0-g<sha>-<buildref>); the
+// error_events.release column is varchar(64) to match.
+const MAX_RELEASE_LENGTH = 64;
 const FULL_SHA_PATTERN = /^[0-9a-f]{40}$/i;
 
 export function normalizeRelease(
