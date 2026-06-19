@@ -27,6 +27,18 @@ function isAbortError(error: unknown): boolean {
   );
 }
 
+/**
+ * Errors from api.ts carry a numeric `status` (set by taggedHttpError). A 4xx
+ * is a client fault — an expired preview (404), a duplicate signup (409), a
+ * rate limit (429) — not a bug to investigate. Recording these buries real
+ * crashes in /ops/errors. The mirror of the server-side entity.parse.failed
+ * skip. 5xx and status 0 (network failure shape) still report.
+ */
+function isExpectedClientFault(error: unknown): boolean {
+  const status = (error as { status?: unknown })?.status;
+  return typeof status === 'number' && status >= 400 && status < 500;
+}
+
 export function reportClientError(
   error: unknown,
   context?: Record<string, unknown>
@@ -34,6 +46,7 @@ export function reportClientError(
   if (error instanceof UserNotice) return;
   if (isAbortError(error)) return;
   if (isDomManipulationError(error)) return;
+  if (isExpectedClientFault(error)) return;
   try {
     if (navigator.onLine === false) return;
     const message = error instanceof Error ? error.message : String(error);
