@@ -29,6 +29,14 @@ import {
 } from '../lib/deckBacklog';
 import { useDeckMaturity } from '../lib/useDeckMaturity';
 import { AnkifyStatsDeck } from '../stats/types';
+import {
+  DeckSortKey,
+  isDeckSortKey,
+  readStoredDeckSort,
+  sortDecks,
+  writeStoredDeckSort,
+} from '../lib/deckSort';
+import { track } from '../../../lib/analytics/track';
 
 const formatRelativeTime = (iso: string | null | undefined): string | null => {
   if (iso == null || iso.length === 0) return null;
@@ -82,7 +90,7 @@ const formatScheduleTime = (
 
 const SUBSCRIPTIONS_KEY = ['ankify-subscriptions'];
 const CONFLICTS_KEY = ['ankify-conflicts'];
-const SEARCH_THRESHOLD = 10;
+const SEARCH_THRESHOLD = 8;
 const FLASH_DURATION_MS = 4_000;
 const EMPTY_DECKS: AnkifyStatsDeck[] = [];
 
@@ -247,6 +255,7 @@ export default function NotionSubscriptions({
     'decks' | 'find' | 'leeches' | 'review' | null
   >(null);
   const [search, setSearch] = useState('');
+  const [sortKey, setSortKey] = useState<DeckSortKey>(readStoredDeckSort);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
   const [deckLocationEditorId, setDeckLocationEditorId] = useState<
     number | null
@@ -496,15 +505,27 @@ export default function NotionSubscriptions({
   useEffect(() => {
     onTabChange?.(effectiveTab);
   }, [effectiveTab, onTabChange]);
-  const showSearch = subscriptions.length >= SEARCH_THRESHOLD;
+  const showControls = subscriptions.length >= SEARCH_THRESHOLD;
+  const trimmedSearch = search.trim();
   const filteredSubscriptions =
-    search.trim().length === 0
+    trimmedSearch.length === 0
       ? subscriptions
       : subscriptions.filter((sub) =>
           (sub.notion_page_title ?? '')
             .toLowerCase()
-            .includes(search.trim().toLowerCase())
+            .includes(trimmedSearch.toLowerCase())
         );
+  const sortedSubscriptions = sortDecks(filteredSubscriptions, sortKey);
+  const hasNoSearchMatch =
+    trimmedSearch.length > 0 && sortedSubscriptions.length === 0;
+
+  const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const next = event.target.value;
+    if (!isDeckSortKey(next)) return;
+    setSortKey(next);
+    writeStoredDeckSort(next);
+    track('ankify_decklist_sorted', { key: next });
+  };
 
   return (
     <section>
@@ -693,21 +714,65 @@ export default function NotionSubscriptions({
             aria-labelledby="ankify-tab-decks"
             className={styles.tabPanel}
           >
-            {showSearch && (
-              <div className={styles.searchAbove}>
-                <input
-                  type="search"
-                  placeholder="Search your decks"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                />
+            {showControls && (
+              <div className={styles.decksControls}>
+                <div className={styles.searchAbove}>
+                  <label
+                    htmlFor="ankify-deck-search"
+                    className={sharedStyles.srOnly}
+                  >
+                    Search your decks
+                  </label>
+                  <input
+                    id="ankify-deck-search"
+                    type="search"
+                    placeholder="Search your decks"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                  />
+                </div>
+                <div className={styles.decksSort}>
+                  <label
+                    htmlFor="ankify-deck-sort"
+                    className={sharedStyles.srOnly}
+                  >
+                    Sort decks
+                  </label>
+                  <select
+                    id="ankify-deck-sort"
+                    className={styles.decksSortSelect}
+                    value={sortKey}
+                    onChange={handleSortChange}
+                  >
+                    <option value="status">Status</option>
+                    <option value="last-synced">Last synced</option>
+                    <option value="name">Name</option>
+                  </select>
+                </div>
               </div>
             )}
             <p className={styles.decksHelper}>
               Checks Notion for changes every 5 minutes.
             </p>
+            {hasNoSearchMatch && (
+              <p className={styles.decksHelper}>
+                No decks match{' '}
+                <span className={styles.decksSearchQuery}>
+                  &ldquo;{trimmedSearch}&rdquo;
+                </span>
+                .{' '}
+                <button
+                  type="button"
+                  className={styles.inlineLinkButton}
+                  onClick={() => setSearch('')}
+                >
+                  Clear the search
+                </button>{' '}
+                to see all {subscriptions.length}.
+              </p>
+            )}
             <ul className={styles.decksList} ref={menuContainerRef}>
-              {filteredSubscriptions.map((sub) => {
+              {sortedSubscriptions.map((sub) => {
                 const displayTitle = sub.notion_page_title?.trim().length
                   ? sub.notion_page_title
                   : 'Untitled page';
