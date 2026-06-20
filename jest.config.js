@@ -8,6 +8,9 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleNameMapper: {
     '^puppeteer$': '<rootDir>/src/test/mocks/puppeteer.ts',
+    '^metascraper$': '<rootDir>/src/test/mocks/metascraper.ts',
+    '^metascraper-(description|image|logo-favicon|title|url)$':
+      '<rootDir>/src/test/mocks/metascraperPlugin.ts',
   },
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
