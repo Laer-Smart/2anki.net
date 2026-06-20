@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-20-ankify-existing-cards-refresh",
+  "date": "2026-06-20",
+  "type": "fix",
+  "title": "Synced Anki cards pick up styling and formatting improvements on the next sync, even if you haven't edited the Notion page"
+}

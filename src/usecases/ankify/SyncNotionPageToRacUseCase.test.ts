@@ -15,6 +15,7 @@ import { AnkifySyncLogsRepositoryInterface } from '../../data_layer/ankify/Ankif
 import { INotionRepository } from '../../data_layer/NotionRespository';
 import { AnkiConnectClient } from '../../services/ankify/AnkiConnectClient';
 import { WalkedNotionFlashcard } from '../../services/ankify/notionPageWalker';
+import { hashCardContent } from '../../lib/ankify/hashCardContent';
 
 jest.mock('../../services/ankify/notionPageWalker', () => ({
   walkNotionPageForFlashcards: jest.fn(),
@@ -1055,6 +1056,7 @@ describe('SyncNotionPageToRacUseCase', () => {
       source_type: 'notion_block' as const,
       anki_note_id: 900,
       deck_name: 'Notion Sync::Pharmacology',
+      content_hash: hashCardContent('Front text', 'Back text'),
       last_synced_at: new Date(2020, 0, 1),
     };
     repos.mappings.findBySourceId = jest.fn(
@@ -1358,6 +1360,7 @@ describe('SyncNotionPageToRacUseCase', () => {
       source_type: 'notion_block' as const,
       anki_note_id: 900,
       deck_name: 'Notion Sync::Histology',
+      content_hash: hashCardContent('Front text', 'Back text'),
       last_synced_at: new Date(2020, 0, 1),
     };
     repos.mappings.findBySourceId = jest.fn(
@@ -1874,6 +1877,7 @@ describe('SyncNotionPageToRacUseCase', () => {
       source_type: 'notion_block' as const,
       anki_note_id: 9999,
       deck_name: 'Notion Sync::Untitled',
+      content_hash: null,
       last_synced_at: new Date(Date.now() - 60_000),
     };
     repos.mappings.findBySourceId = jest.fn(
@@ -2259,6 +2263,7 @@ describe('SyncNotionPageToRacUseCase', () => {
       source_type: 'notion_block' as const,
       anki_note_id: 900,
       deck_name: 'Notion Sync::Pharmacology',
+      content_hash: hashCardContent('Front text', 'Back text'),
       last_synced_at: new Date(2020, 0, 1),
     };
 
@@ -2661,6 +2666,7 @@ describe('SyncNotionPageToRacUseCase', () => {
       source_type: 'notion_block' as const,
       anki_note_id: 900,
       deck_name: 'Notion Sync::Algebra',
+      content_hash: hashCardContent('Front text', 'Back text'),
       last_synced_at: new Date('2026-01-01T00:00:00Z'),
     });
 
@@ -2965,6 +2971,228 @@ describe('SyncNotionPageToRacUseCase', () => {
 
       expect(ac.notesModTime).not.toHaveBeenCalled();
       expect(result.created).toBe(1);
+    });
+  });
+
+  describe('content-hash refresh of existing cards', () => {
+    const reflectingStub = (actions: string[]) => {
+      const ac = makeAnkiConnectStub();
+      (ac.apiReflect as jest.Mock).mockResolvedValue(actions);
+      return ac;
+    };
+
+    const ankiNoteInfo = (noteId: number, mod: number) => ({
+      noteId,
+      modelName: 'Ankify Basic',
+      tags: [],
+      fields: {
+        Front: { value: 'Front text', order: 0 },
+        Back: { value: 'Back text', order: 1 },
+      },
+      cards: [noteId + 9000],
+      mod,
+    });
+
+    test('rewrites an unedited card whose rendered content no longer matches the stored hash', async () => {
+      const lastSyncedSeconds = Math.floor(
+        new Date('2026-01-01T00:00:00Z').getTime() / 1000
+      );
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [
+          sampleCard({
+            notion_block_id: 'block-1',
+            back: 'See <span style="color: red">this</span>',
+            notion_last_edited_at: new Date('2025-12-01T00:00:00Z'),
+          }),
+        ],
+        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: {} },
+      });
+      const repos = makeRepos();
+      repos.subscriptions = makeSubscriptionsRepo(
+        sampleSubscription({ notion_page_title: 'Algebra' })
+      );
+      repos.mappings.findBySourceId = jest.fn(
+        async (_clientId: number, sourceId: string) => ({
+          id: 5,
+          ankify_client_id: 1,
+          source_id: sourceId,
+          source_type: 'notion_block' as const,
+          anki_note_id: 900,
+          deck_name: 'Notion Sync::Algebra',
+          content_hash: hashCardContent('Front text', 'Back text'),
+          last_synced_at: new Date('2026-01-01T00:00:00Z'),
+        })
+      );
+      const ac = reflectingStub(['notesModTime', 'multi']);
+      (ac.notesModTime as jest.Mock).mockResolvedValue([
+        { noteId: 900, mod: lastSyncedSeconds - 10 },
+      ]);
+      (ac.notesInfo as jest.Mock).mockResolvedValue([
+        ankiNoteInfo(900, lastSyncedSeconds - 10),
+      ]);
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      const result = expectSyncResult(
+        await useCase.execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'polling',
+        })
+      );
+
+      expect(ac.updateNoteFields).toHaveBeenCalledWith(900, {
+        Front: 'Front text',
+        Back: 'See <span style="color: red">this</span>',
+      });
+      expect(ac.addNote).not.toHaveBeenCalled();
+      expect(ac.changeDeck).not.toHaveBeenCalled();
+      expect(repos.mappings.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source_id: 'block-1',
+          anki_note_id: 900,
+          content_hash: hashCardContent(
+            'Front text',
+            'See <span style="color: red">this</span>'
+          ),
+        })
+      );
+      expect(result.updated).toBe(1);
+      expect(result.unchanged).toBe(0);
+    });
+
+    test('rewrites an unedited card whose stored hash is null (installed base)', async () => {
+      const lastSyncedSeconds = Math.floor(
+        new Date('2026-01-01T00:00:00Z').getTime() / 1000
+      );
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [
+          sampleCard({
+            notion_block_id: 'block-1',
+            notion_last_edited_at: new Date('2025-12-01T00:00:00Z'),
+          }),
+        ],
+        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: {} },
+      });
+      const repos = makeRepos();
+      repos.subscriptions = makeSubscriptionsRepo(
+        sampleSubscription({ notion_page_title: 'Algebra' })
+      );
+      repos.mappings.findBySourceId = jest.fn(
+        async (_clientId: number, sourceId: string) => ({
+          id: 5,
+          ankify_client_id: 1,
+          source_id: sourceId,
+          source_type: 'notion_block' as const,
+          anki_note_id: 900,
+          deck_name: 'Notion Sync::Algebra',
+          content_hash: null,
+          last_synced_at: new Date('2026-01-01T00:00:00Z'),
+        })
+      );
+      const ac = reflectingStub(['notesModTime', 'multi']);
+      (ac.notesModTime as jest.Mock).mockResolvedValue([
+        { noteId: 900, mod: lastSyncedSeconds - 10 },
+      ]);
+      (ac.notesInfo as jest.Mock).mockResolvedValue([
+        {
+          ...ankiNoteInfo(900, lastSyncedSeconds - 10),
+          fields: {
+            Front: { value: 'Front text', order: 0 },
+            Back: { value: 'old plain back', order: 1 },
+          },
+        },
+      ]);
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      const result = expectSyncResult(
+        await useCase.execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'polling',
+        })
+      );
+
+      expect(ac.updateNoteFields).toHaveBeenCalledWith(900, {
+        Front: 'Front text',
+        Back: 'Back text',
+      });
+      expect(result.updated).toBe(1);
+    });
+
+    test('leaves a card untouched when both Notion and the rendered hash are unchanged', async () => {
+      const lastSyncedSeconds = Math.floor(
+        new Date('2026-01-01T00:00:00Z').getTime() / 1000
+      );
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [
+          sampleCard({
+            notion_block_id: 'block-1',
+            notion_last_edited_at: new Date('2025-12-01T00:00:00Z'),
+          }),
+        ],
+        diagnostic: { blocks_scanned: 1, blocks_matched: 1, pattern_hits: {} },
+      });
+      const repos = makeRepos();
+      repos.subscriptions = makeSubscriptionsRepo(
+        sampleSubscription({ notion_page_title: 'Algebra' })
+      );
+      repos.mappings.findBySourceId = jest.fn(
+        async (_clientId: number, sourceId: string) => ({
+          id: 5,
+          ankify_client_id: 1,
+          source_id: sourceId,
+          source_type: 'notion_block' as const,
+          anki_note_id: 900,
+          deck_name: 'Notion Sync::Algebra',
+          content_hash: hashCardContent('Front text', 'Back text'),
+          last_synced_at: new Date('2026-01-01T00:00:00Z'),
+        })
+      );
+      const ac = reflectingStub(['notesModTime', 'multi']);
+      (ac.notesModTime as jest.Mock).mockResolvedValue([
+        { noteId: 900, mod: lastSyncedSeconds - 10 },
+      ]);
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      const result = expectSyncResult(
+        await useCase.execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'polling',
+        })
+      );
+
+      expect(ac.notesInfo).not.toHaveBeenCalled();
+      expect(ac.updateNoteFields).not.toHaveBeenCalled();
+      expect(result.unchanged).toBe(1);
+      expect(result.updated).toBe(0);
     });
   });
 });
