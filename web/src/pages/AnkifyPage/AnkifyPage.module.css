@@ -1385,6 +1385,42 @@
   margin: 0 0 0.5rem;
 }
 
+.decksControls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 0.5rem;
+  flex-wrap: wrap;
+}
+
+.decksControls .searchAbove {
+  flex: 1 1 12rem;
+  margin: 0;
+}
+
+.decksControls .searchAbove input {
+  width: 100%;
+}
+
+.decksSort {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.decksSortSelect {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  padding: 0.375rem 0.5rem;
+}
+
+.decksSearchQuery {
+  font-weight: var(--font-medium);
+}
+
 .historyFooter {
   margin-top: 2rem;
   padding-top: 1.25rem;

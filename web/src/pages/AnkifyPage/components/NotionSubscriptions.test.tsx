@@ -1201,3 +1201,232 @@ describe('NotionSubscriptions onTabChange', () => {
     await waitFor(() => expect(onTabChange).toHaveBeenCalledWith('find'));
   });
 });
+
+const hexId = (n: number): string => n.toString(16).padStart(32, '0');
+
+const manyDecks = (specs: Array<Partial<Subscription>>): Subscription[] =>
+  specs.map((spec, index) =>
+    sampleSubscription({
+      id: index + 1,
+      notion_page_id: hexId(index + 1),
+      ...spec,
+    })
+  );
+
+const renderedTitleOrder = (): string[] =>
+  screen
+    .getAllByRole('listitem')
+    .map((li) => li.querySelector('a')?.textContent ?? '')
+    .filter((text) => text.length > 0);
+
+describe('NotionSubscriptions deck sort', () => {
+  beforeEach(() => {
+    globalThis.localStorage?.clear();
+    vi.clearAllMocks();
+  });
+
+  const eightHealthy = (): Subscription[] =>
+    manyDecks(
+      Array.from({ length: 8 }, (_, i) => ({
+        notion_page_title: `Deck ${i + 1}`,
+        last_synced_at: new Date(2026, 0, i + 1).toISOString(),
+      }))
+    );
+
+  test('does not show the control row under 8 decks', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () =>
+        manyDecks(
+          Array.from({ length: 7 }, (_, i) => ({
+            notion_page_title: `Deck ${i + 1}`,
+          }))
+        )
+      ),
+    });
+    renderSubs(backend);
+    await waitFor(() =>
+      expect(screen.getAllByRole('listitem').length).toBeGreaterThan(0)
+    );
+    expect(screen.queryByLabelText(/sort decks/i)).not.toBeInTheDocument();
+  });
+
+  test('shows the sort select at 8 decks with an accessible label', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => eightHealthy()),
+    });
+    renderSubs(backend);
+    await waitFor(() =>
+      expect(screen.getByLabelText(/sort decks/i)).toBeInTheDocument()
+    );
+    expect(screen.getByLabelText(/search your decks/i)).toBeInTheDocument();
+  });
+
+  test('default sort is Status — failed deck renders first with no interaction', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () =>
+        manyDecks([
+          { notion_page_title: 'Healthy A', last_error: null },
+          { notion_page_title: 'Healthy B', last_error: null },
+          { notion_page_title: 'Healthy C', last_error: null },
+          { notion_page_title: 'Healthy D', last_error: null },
+          { notion_page_title: 'Healthy E', last_error: null },
+          { notion_page_title: 'Healthy F', last_error: null },
+          { notion_page_title: 'Healthy G', last_error: null },
+          { notion_page_title: 'Broken deck', last_error: 'boom' },
+        ])
+      ),
+    });
+    renderSubs(backend);
+    await waitFor(() =>
+      expect(screen.getByLabelText(/sort decks/i)).toBeInTheDocument()
+    );
+    expect(
+      (screen.getByLabelText(/sort decks/i) as HTMLSelectElement).value
+    ).toBe('status');
+    expect(renderedTitleOrder()[0]).toBe('Broken deck');
+  });
+
+  test('switching to Name reorders the rendered rows A→Z', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () =>
+        manyDecks([
+          { notion_page_title: 'Zebra' },
+          { notion_page_title: 'Apple' },
+          { notion_page_title: 'Mango' },
+          { notion_page_title: 'Cherry' },
+          { notion_page_title: 'Banana' },
+          { notion_page_title: 'Date' },
+          { notion_page_title: 'Fig' },
+          { notion_page_title: 'Grape' },
+        ])
+      ),
+    });
+    renderSubs(backend);
+    await waitFor(() =>
+      expect(screen.getByLabelText(/sort decks/i)).toBeInTheDocument()
+    );
+    fireEvent.change(screen.getByLabelText(/sort decks/i), {
+      target: { value: 'name' },
+    });
+    await waitFor(() =>
+      expect(renderedTitleOrder()).toEqual([
+        'Apple',
+        'Banana',
+        'Cherry',
+        'Date',
+        'Fig',
+        'Grape',
+        'Mango',
+        'Zebra',
+      ])
+    );
+  });
+
+  test('sort applies after the search filter', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () =>
+        manyDecks([
+          { notion_page_title: 'Cardiology Zebra' },
+          { notion_page_title: 'Cardiology Apple' },
+          { notion_page_title: 'Neurology Mango' },
+          { notion_page_title: 'Cardiology Banana' },
+          { notion_page_title: 'Neurology Pear' },
+          { notion_page_title: 'Other Deck 1' },
+          { notion_page_title: 'Other Deck 2' },
+          { notion_page_title: 'Other Deck 3' },
+        ])
+      ),
+    });
+    renderSubs(backend);
+    await waitFor(() =>
+      expect(screen.getByLabelText(/sort decks/i)).toBeInTheDocument()
+    );
+    fireEvent.change(screen.getByLabelText(/sort decks/i), {
+      target: { value: 'name' },
+    });
+    fireEvent.change(screen.getByLabelText(/search your decks/i), {
+      target: { value: 'cardiology' },
+    });
+    await waitFor(() =>
+      expect(renderedTitleOrder()).toEqual([
+        'Cardiology Apple',
+        'Cardiology Banana',
+        'Cardiology Zebra',
+      ])
+    );
+  });
+
+  test('an empty search result shows the named empty state and clear action', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => eightHealthy()),
+    });
+    renderSubs(backend);
+    await waitFor(() =>
+      expect(screen.getByLabelText(/search your decks/i)).toBeInTheDocument()
+    );
+    fireEvent.change(screen.getByLabelText(/search your decks/i), {
+      target: { value: 'zzzznomatch' },
+    });
+    await waitFor(() =>
+      expect(screen.getByText(/no decks match/i)).toBeInTheDocument()
+    );
+    expect(screen.getByText('“zzzznomatch”')).toBeInTheDocument();
+    expect(screen.getByText(/to see all 8\./i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /clear the search/i }));
+    await waitFor(() =>
+      expect(screen.queryByText(/no decks match/i)).not.toBeInTheDocument()
+    );
+    expect(screen.getAllByRole('listitem').length).toBe(8);
+  });
+
+  test('fires ankify_decklist_sorted with the key on change, no titles', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => eightHealthy()),
+    });
+    renderSubs(backend);
+    await waitFor(() =>
+      expect(screen.getByLabelText(/sort decks/i)).toBeInTheDocument()
+    );
+    fireEvent.change(screen.getByLabelText(/sort decks/i), {
+      target: { value: 'last-synced' },
+    });
+    expect(track).toHaveBeenCalledWith('ankify_decklist_sorted', {
+      key: 'last-synced',
+    });
+  });
+
+  test('persists the chosen sort and reads it on the next mount', async () => {
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => eightHealthy()),
+    });
+    const first = renderSubs(backend);
+    await waitFor(() =>
+      expect(screen.getByLabelText(/sort decks/i)).toBeInTheDocument()
+    );
+    fireEvent.change(screen.getByLabelText(/sort decks/i), {
+      target: { value: 'name' },
+    });
+    expect(globalThis.localStorage?.getItem('ankify-deck-sort')).toBe('name');
+    first.unmount();
+
+    renderSubs(backend);
+    await waitFor(() =>
+      expect(
+        (screen.getByLabelText(/sort decks/i) as HTMLSelectElement).value
+      ).toBe('name')
+    );
+  });
+
+  test('an unrecognised stored value falls back to Status', async () => {
+    globalThis.localStorage?.setItem('ankify-deck-sort', 'bogus');
+    const backend = makeBackend({
+      listAnkifySubscriptions: vi.fn(async () => eightHealthy()),
+    });
+    renderSubs(backend);
+    await waitFor(() =>
+      expect(
+        (screen.getByLabelText(/sort decks/i) as HTMLSelectElement).value
+      ).toBe('status')
+    );
+  });
+});
