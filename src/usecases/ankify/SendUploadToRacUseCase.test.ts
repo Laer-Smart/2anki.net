@@ -125,6 +125,7 @@ const makeRepos = (
       source_type: input.source_type,
       anki_note_id: input.anki_note_id,
       deck_name: input.deck_name,
+      content_hash: input.content_hash ?? null,
       last_synced_at: new Date(),
     })),
     listByClient: jest.fn(),
@@ -236,6 +237,7 @@ describe('SendUploadToRacUseCase', () => {
       source_type: 'apkg_guid' as const,
       anki_note_id: 555,
       deck_name: 'Imported::Subdeck',
+      content_hash: null,
       last_synced_at: new Date(),
     };
     const { clients, mappings, uploads } = makeRepos({
@@ -270,6 +272,7 @@ describe('SendUploadToRacUseCase', () => {
       source_type: 'apkg_guid' as const,
       anki_note_id: 555,
       deck_name: 'Imported::Subdeck',
+      content_hash: null,
       last_synced_at: new Date(),
     };
     const { clients, mappings, uploads } = makeRepos({

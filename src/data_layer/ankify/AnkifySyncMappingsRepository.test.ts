@@ -65,3 +65,66 @@ describe('AnkifySyncMappingsRepository — bigint coercion', () => {
     expect(row).toBeNull();
   });
 });
+
+describe('AnkifySyncMappingsRepository — upsert carries content_hash', () => {
+  function buildUpsertKnex() {
+    const insert = jest.fn();
+    const onConflict = jest.fn();
+    const merge = jest.fn();
+    const returning = jest.fn().mockResolvedValue([
+      {
+        ...stringNoteIdRow,
+        content_hash: 'abc123',
+      },
+    ]);
+    insert.mockReturnValue({ onConflict });
+    onConflict.mockReturnValue({ merge });
+    merge.mockReturnValue({ returning });
+    const knex = jest.fn().mockReturnValue({ insert }) as unknown as {
+      fn: { now: () => unknown };
+    } & jest.Mock;
+    knex.fn = { now: () => 'NOW()' };
+    return { knex, insert, merge };
+  }
+
+  test('passes content_hash into both the insert and the merge', async () => {
+    const { knex, insert, merge } = buildUpsertKnex();
+    const repo = new AnkifySyncMappingsRepository(knex as never);
+
+    await repo.upsert({
+      ankify_client_id: 17,
+      source_id: 'block-1',
+      source_type: 'notion_block',
+      anki_note_id: 1778341400653,
+      deck_name: 'Notion Sync::Algebra',
+      content_hash: 'abc123',
+    });
+
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ content_hash: 'abc123' })
+    );
+    expect(merge).toHaveBeenCalledWith(
+      expect.objectContaining({ content_hash: 'abc123' })
+    );
+  });
+
+  test('defaults content_hash to null when omitted', async () => {
+    const { knex, insert, merge } = buildUpsertKnex();
+    const repo = new AnkifySyncMappingsRepository(knex as never);
+
+    await repo.upsert({
+      ankify_client_id: 17,
+      source_id: 'block-1',
+      source_type: 'notion_block',
+      anki_note_id: 1778341400653,
+      deck_name: 'Notion Sync::Algebra',
+    });
+
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({ content_hash: null })
+    );
+    expect(merge).toHaveBeenCalledWith(
+      expect.objectContaining({ content_hash: null })
+    );
+  });
+});

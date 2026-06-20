@@ -51,6 +51,7 @@ export interface AnkifySyncMapping {
   source_type: AnkifySyncMappingSourceType;
   anki_note_id: number;
   deck_name: string;
+  content_hash: string | null;
   last_synced_at: Date;
 }
 
@@ -60,6 +61,7 @@ export interface NewAnkifySyncMapping {
   source_type: AnkifySyncMappingSourceType;
   anki_note_id: number;
   deck_name: string;
+  content_hash?: string | null;
 }
 
 export interface AnkifyExportSchedule {

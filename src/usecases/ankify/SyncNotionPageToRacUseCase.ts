@@ -48,6 +48,7 @@ import { NoActiveAnkifyClientError } from './SendUploadToRacUseCase';
 import { NotionNotConnectedError } from './ExportReviewDataToNotionUseCase';
 import { isNotionDatabaseNotPageError } from '../../services/NotionService/helpers/isNotionDatabaseNotPageError';
 import { sanitizeDeckPath } from '../../lib/ankify/transforms/tags';
+import { hashCardContent } from '../../lib/ankify/hashCardContent';
 import {
   buildChildDeckName,
   buildDeckName,
@@ -568,7 +569,9 @@ export class SyncNotionPageToRacUseCase {
     const notionUnchanged =
       card.notion_last_edited_at.getTime() <= mapping.last_synced_at.getTime();
     const ankiUnchanged = ankiMod <= lastSyncedSeconds;
-    return notionUnchanged && ankiUnchanged;
+    const renderUnchanged =
+      mapping.content_hash === hashCardContent(card.front, card.back);
+    return notionUnchanged && ankiUnchanged && renderUnchanged;
   }
 
   private cardDeckName(
@@ -951,6 +954,7 @@ export class SyncNotionPageToRacUseCase {
           source_type: 'notion_block',
           anki_note_id: ankiNoteId,
           deck_name: deckName,
+          content_hash: hashCardContent(card.front, card.back),
         });
         result.created += 1;
         return;
@@ -1018,6 +1022,7 @@ export class SyncNotionPageToRacUseCase {
         source_type: existing.source_type,
         anki_note_id: ankiNoteId,
         deck_name: deckName,
+        content_hash: hashCardContent(card.front, card.back),
       });
       result.created += 1;
       return;
@@ -1029,8 +1034,10 @@ export class SyncNotionPageToRacUseCase {
     const lastSyncedSeconds = Math.floor(lastSyncedAt.getTime() / 1000);
     const { subscription, input } = args;
 
+    const renderHash = hashCardContent(card.front, card.back);
     const notionChanged =
       card.notion_last_edited_at.getTime() > lastSyncedAt.getTime();
+    const renderChanged = existing.content_hash !== renderHash;
     const ankiChanged = ankiMod != null && ankiMod > lastSyncedSeconds;
     const ankiContentDiffers =
       ankiFront !== card.front || ankiBack !== card.back;
@@ -1052,7 +1059,7 @@ export class SyncNotionPageToRacUseCase {
       return;
     }
 
-    if (notionChanged && ankiContentDiffers) {
+    if ((notionChanged || renderChanged) && ankiContentDiffers) {
       await ac.updateNoteFields(existing.anki_note_id, {
         [FRONT_FIELD_BASIC]: card.front,
         [BACK_FIELD_BASIC]: card.back,
@@ -1063,9 +1070,21 @@ export class SyncNotionPageToRacUseCase {
         source_type: existing.source_type,
         anki_note_id: existing.anki_note_id,
         deck_name: existing.deck_name,
+        content_hash: renderHash,
       });
       result.updated += 1;
       return;
+    }
+
+    if (renderChanged) {
+      await this.mappings.upsert({
+        ankify_client_id: client.id,
+        source_id: card.notion_block_id,
+        source_type: existing.source_type,
+        anki_note_id: existing.anki_note_id,
+        deck_name: existing.deck_name,
+        content_hash: renderHash,
+      });
     }
 
     result.unchanged += 1;

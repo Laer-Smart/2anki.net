@@ -45,12 +45,14 @@ export class AnkifySyncMappingsRepository implements AnkifySyncMappingsRepositor
         source_type: input.source_type,
         anki_note_id: input.anki_note_id,
         deck_name: input.deck_name,
+        content_hash: input.content_hash ?? null,
         last_synced_at: this.database.fn.now() as unknown as Date,
       })
       .onConflict(['ankify_client_id', 'source_id'])
       .merge({
         anki_note_id: input.anki_note_id,
         deck_name: input.deck_name,
+        content_hash: input.content_hash ?? null,
         last_synced_at: this.database.fn.now() as unknown as Date,
       })
       .returning('*');
