@@ -1,12 +1,7 @@
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
-import {
-  injectAdSenseScript,
-  removeAdSenseScript,
-} from '../AdSense/AdSenseScript';
 import { PageLayout } from '../Layout/PageLayout';
-import { isEmbeddedAppWebView } from './isEmbeddedAppWebView';
 import { SidebarFeatures, SidebarLocals } from './Sidebar';
 import { SidebarLayout } from './SidebarLayout';
 
@@ -36,20 +31,6 @@ export function AppShell({
   children,
 }: Readonly<AppShellProps>) {
   const { pathname } = useLocation();
-
-  useEffect(() => {
-    if (isLoggedIn == null) return;
-    const isPricingRoute = pathname === '/pricing';
-    const shouldShowAds =
-      !isLoggedIn &&
-      !isPricingRoute &&
-      !isEmbeddedAppWebView(navigator.userAgent);
-    if (shouldShowAds) {
-      injectAdSenseScript();
-    } else {
-      removeAdSenseScript();
-    }
-  }, [isLoggedIn, pathname]);
 
   const onLogOut = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     event.preventDefault();
