@@ -29,8 +29,6 @@ interface GetUserLocalsResponse {
     kiUI: boolean;
     ops?: boolean;
   };
-  hostedAnkiRequested?: boolean;
-  autoSyncCapReached?: boolean;
   autoSyncActive?: boolean;
   freePrintAvailable?: boolean | null;
 }
