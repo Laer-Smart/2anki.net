@@ -1,6 +1,3 @@
-export const MONTHLY_SUFFIX = '/ mo';
-export const AUTO_SYNC_PRICE = '$30';
-
 export interface UnlimitedPricing {
   monthlyCents: number;
   annualCents: number;

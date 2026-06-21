@@ -2,13 +2,13 @@ import { Fragment } from 'react';
 
 import styles from './ComparisonTable.module.css';
 
-const PLANS = ['Free', 'Day / Week pass', 'Unlimited', 'Auto Sync', 'Lifetime'];
+const PLANS = ['Free', 'Day / Week pass', 'Unlimited', 'Lifetime'];
 
 type Cell = boolean | string;
 
 interface Row {
   label: string;
-  values: [Cell, Cell, Cell, Cell, Cell];
+  values: [Cell, Cell, Cell, Cell];
 }
 
 interface Group {
@@ -22,23 +22,23 @@ const GROUPS: Group[] = [
     rows: [
       {
         label: 'Cards per month',
-        values: ['100', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+        values: ['100', 'Unlimited', 'Unlimited', 'Unlimited'],
       },
       {
         label: 'Conversions at once',
-        values: ['1', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+        values: ['1', 'Unlimited', 'Unlimited', 'Unlimited'],
       },
       {
         label: 'PDF pages per file',
-        values: ['100', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+        values: ['100', 'Unlimited', 'Unlimited', 'Unlimited'],
       },
       {
         label: 'Max upload size',
-        values: ['100 MB', '10 GB', '10 GB', '10 GB', '10 GB'],
+        values: ['100 MB', '10 GB', '10 GB', '10 GB'],
       },
       {
         label: 'Anki → Notion notes',
-        values: ['1,000', '5,000', '5,000', '5,000', '5,000'],
+        values: ['1,000', '5,000', '5,000', '5,000'],
       },
     ],
   },
@@ -47,19 +47,19 @@ const GROUPS: Group[] = [
     rows: [
       {
         label: 'AI flashcards from PDFs and docs',
-        values: [false, true, true, true, true],
+        values: [false, true, true, true],
       },
       {
         label: 'Photo to deck (Claude Vision)',
-        values: ['5 / mo', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+        values: ['5 / mo', 'Unlimited', 'Unlimited', 'Unlimited'],
       },
       {
         label: 'AI multiple choice (MCQ)',
-        values: [false, true, true, true, true],
+        values: [false, true, true, true],
       },
       {
         label: 'AI card-template drafting',
-        values: ['3', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+        values: ['3', 'Unlimited', 'Unlimited', 'Unlimited'],
       },
     ],
   },
@@ -68,21 +68,15 @@ const GROUPS: Group[] = [
     rows: [
       {
         label: 'Image occlusion',
-        values: [
-          '3 images',
-          'Unlimited',
-          'Unlimited',
-          'Unlimited',
-          'Unlimited',
-        ],
+        values: ['3 images', 'Unlimited', 'Unlimited', 'Unlimited'],
       },
       {
         label: 'Mind maps',
-        values: ['3', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+        values: ['3', 'Unlimited', 'Unlimited', 'Unlimited'],
       },
       {
         label: 'Prints to PDF',
-        values: ['1 / mo', 'Unlimited', 'Unlimited', 'Unlimited', 'Unlimited'],
+        values: ['1 / mo', 'Unlimited', 'Unlimited', 'Unlimited'],
       },
     ],
   },
@@ -91,17 +85,14 @@ const GROUPS: Group[] = [
     rows: [
       {
         label: 'Auto Sync from Notion',
-        values: [false, false, false, true, true],
+        values: [false, false, false, true],
       },
-      { label: 'No ads', values: [false, true, true, true, true] },
-      { label: 'Priority support', values: [false, false, true, true, true] },
+      { label: 'Priority support', values: [false, false, true, true] },
     ],
   },
   {
     name: 'Billing',
-    rows: [
-      { label: 'No subscription', values: [true, true, false, false, true] },
-    ],
+    rows: [{ label: 'No subscription', values: [true, true, false, true] }],
   },
 ];
 
@@ -157,7 +148,6 @@ export function ComparisonTable({
     '$0',
     '$4 / $9',
     `${unlimitedMonthlyPrice} / mo`,
-    '$30 / mo',
     'From $345',
   ];
 
