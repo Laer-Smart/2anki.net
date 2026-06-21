@@ -475,11 +475,7 @@ function AppContent({
                 <PricingPage
                   isLoggedIn={isLoggedInResolved}
                   email={data?.user?.email}
-                  hostedAnkiRequested={data?.hostedAnkiRequested === true}
-                  patreon={data?.user?.patreon ?? null}
                   signupCountry={data?.user?.signup_country ?? null}
-                  autoSyncCapReached={data?.autoSyncCapReached === true}
-                  autoSyncActive={data?.autoSyncActive === true}
                 />
               }
             />

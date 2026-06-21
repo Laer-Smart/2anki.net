@@ -12,16 +12,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import PricingPage from './PricingPage';
 
-const mockStartAutoSyncCheckout = vi.fn();
-const mockRequestHostedAnkiAccess = vi.fn();
 const mockStartPassCheckout = vi.fn();
 const mockStartUnlimitedCheckout = vi.fn();
 const mockGetCheckoutPrices = vi.fn();
 
 vi.mock('../../lib/backend/get2ankiApi', () => ({
   get2ankiApi: () => ({
-    requestHostedAnkiAccess: mockRequestHostedAnkiAccess,
-    startAutoSyncCheckout: mockStartAutoSyncCheckout,
     startPassCheckout: mockStartPassCheckout,
     startUnlimitedCheckout: mockStartUnlimitedCheckout,
     getCheckoutPrices: mockGetCheckoutPrices,
@@ -131,10 +127,17 @@ describe('PricingPage Unlimited benefits', () => {
 });
 
 describe('PricingPage layout', () => {
-  it('renders Unlimited and Auto Sync cards', () => {
+  it('renders the Unlimited card', () => {
     renderAt('/pricing');
     expect(screen.getAllByText('Unlimited').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Auto Sync').length).toBeGreaterThan(0);
+  });
+
+  it('does not sell Auto Sync as a standalone plan', () => {
+    renderAt('/pricing', { isLoggedIn: true });
+    expect(
+      screen.queryByRole('button', { name: 'Get Auto Sync' })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText('What is Auto Sync?')).not.toBeInTheDocument();
   });
 
   it('does not show the auto-sync upsell context banner', () => {
@@ -266,7 +269,7 @@ describe('PricingPage layout', () => {
     expect(
       screen.getByRole('heading', { name: 'Questions & answers' })
     ).toBeInTheDocument();
-    expect(screen.getByText('What is Auto Sync?')).toBeInTheDocument();
+    expect(screen.getByText('What is the Unlimited plan?')).toBeInTheDocument();
   });
 });
 
@@ -297,139 +300,6 @@ describe('PricingPage paywall telemetry', () => {
     renderAt('/pricing');
     expect((globalThis as AnalyticsGlobals).hj).not.toHaveBeenCalled();
     expect((globalThis as AnalyticsGlobals).gtag).not.toHaveBeenCalled();
-  });
-});
-
-describe('PricingPage Auto Sync card', () => {
-  it('shows Subscribe button for logged-in free user', () => {
-    renderAt('/pricing', { isLoggedIn: true });
-    expect(
-      screen.getByRole('button', { name: 'Get Auto Sync' })
-    ).toBeInTheDocument();
-  });
-
-  it('does not feature Auto Sync with the New — built for Notion badge', () => {
-    renderAt('/pricing');
-    expect(
-      screen.queryByText('New — built for Notion')
-    ).not.toBeInTheDocument();
-  });
-
-  it('redirects to login when logged-out user clicks Subscribe', () => {
-    const originalHref = globalThis.location.href;
-    Object.defineProperty(globalThis, 'location', {
-      writable: true,
-      value: { href: '' },
-    });
-
-    renderAt('/pricing', { isLoggedIn: false });
-    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
-    expect(globalThis.location.href).toBe('/login?redirect=/pricing');
-
-    Object.defineProperty(globalThis, 'location', {
-      writable: true,
-      value: { href: originalHref },
-    });
-  });
-
-  it('shows waitlist caption for waitlisted user', () => {
-    renderAt('/pricing', { isLoggedIn: true, hostedAnkiRequested: true });
-    expect(
-      screen.getByText('Waitlist is open — subscribe anytime.')
-    ).toBeInTheDocument();
-  });
-
-  it('shows Included in Lifetime plan caption for patreon user and hides price', () => {
-    renderAt('/pricing', { isLoggedIn: true, patreon: true });
-    expect(
-      screen.getByText('Included in your Lifetime plan')
-    ).toBeInTheDocument();
-  });
-
-  it('shows Join the waitlist when cap is reached', () => {
-    renderAt('/pricing', { isLoggedIn: true, autoSyncCapReached: true });
-    expect(
-      screen.getByRole('button', { name: 'Join the waitlist' })
-    ).toBeInTheDocument();
-  });
-
-  it('shows the capacity caption when cap is reached', () => {
-    renderAt('/pricing', { isLoggedIn: true, autoSyncCapReached: true });
-    expect(
-      screen.getByText("We're at capacity — we'll email you when a seat opens.")
-    ).toBeInTheDocument();
-  });
-
-  it('surfaces an inline error when checkout fails instead of redirecting', async () => {
-    mockStartAutoSyncCheckout.mockResolvedValue({ status: 'error' });
-    const originalHref = globalThis.location.href;
-    Object.defineProperty(globalThis, 'location', {
-      writable: true,
-      value: { href: originalHref },
-    });
-
-    renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          "Couldn't start checkout. Try again, or email support@2anki.net."
-        )
-      ).toBeInTheDocument();
-    });
-    expect(globalThis.location.href).toBe(originalHref);
-  });
-
-  it('redirects to /ankify/setup when the user is already subscribed', async () => {
-    mockStartAutoSyncCheckout.mockResolvedValue({
-      status: 'already_subscribed',
-    });
-    Object.defineProperty(globalThis, 'location', {
-      writable: true,
-      value: { href: '' },
-    });
-
-    renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
-
-    await waitFor(() => {
-      expect(globalThis.location.href).toBe('/ankify/setup');
-    });
-  });
-
-  it('shows Subscribed (disabled) when user already has Auto Sync', () => {
-    renderAt('/pricing', { isLoggedIn: true, autoSyncActive: true });
-    const btn = screen.getByRole('button', { name: 'Subscribed' });
-    expect(btn).toBeInTheDocument();
-    expect(btn).toBeDisabled();
-  });
-
-  it('calls startAutoSyncCheckout and redirects on url response', async () => {
-    mockStartAutoSyncCheckout.mockResolvedValue({
-      url: 'https://checkout.stripe.com/session',
-    });
-    Object.defineProperty(globalThis, 'location', {
-      writable: true,
-      value: { href: '' },
-    });
-
-    renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
-
-    await waitFor(() => {
-      expect(mockStartAutoSyncCheckout).toHaveBeenCalled();
-      expect(globalThis.location.href).toBe(
-        'https://checkout.stripe.com/session'
-      );
-    });
-  });
-
-  it('shows How sync works link', () => {
-    renderAt('/pricing', { isLoggedIn: true });
-    const link = screen.getByRole('link', { name: 'How sync works' });
-    expect(link).toBeInTheDocument();
-    expect(link).toHaveAttribute('href', '/documentation/sync/how-it-works');
   });
 });
 
@@ -466,30 +336,6 @@ describe('PricingPage internal event tracking', () => {
     expect(trackMock).toHaveBeenCalledWith('paywall_shown', {
       surface: 'pricing_page',
       variant: 'minimal',
-    });
-  });
-
-  it('tracks paywall_upgrade_clicked with plan=auto_sync when Subscribe is clicked', async () => {
-    const { track } = await import('../../lib/analytics/track');
-    const trackMock = vi.mocked(track);
-    trackMock.mockClear();
-    mockStartAutoSyncCheckout.mockResolvedValue({
-      url: 'https://checkout.stripe.com/session',
-    });
-    Object.defineProperty(globalThis, 'location', {
-      writable: true,
-      value: { href: '' },
-    });
-
-    renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
-
-    await waitFor(() => {
-      expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
-        surface: 'pricing_page',
-        plan: 'auto_sync',
-        variant: 'minimal',
-      });
     });
   });
 
@@ -564,60 +410,11 @@ describe('PricingPage internal event tracking', () => {
       });
     });
   });
-
-  it('fires paywall_upgrade_clicked exactly once for a logged-in Auto Sync click', async () => {
-    const { track } = await import('../../lib/analytics/track');
-    const trackMock = vi.mocked(track);
-    trackMock.mockClear();
-    mockStartAutoSyncCheckout.mockResolvedValue({
-      url: 'https://checkout.stripe.com/session',
-    });
-    Object.defineProperty(globalThis, 'location', {
-      writable: true,
-      value: { href: '' },
-    });
-
-    renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
-
-    await waitFor(() => {
-      expect(globalThis.location.href).toBe(
-        'https://checkout.stripe.com/session'
-      );
-    });
-    expect(
-      trackMock.mock.calls.filter(
-        ([event]) => event === 'paywall_upgrade_clicked'
-      )
-    ).toHaveLength(1);
-  });
 });
 
 describe('PricingPage anonymous upgrade-click tracking', () => {
   beforeEach(() => {
     mockUseCardUsage.mockReturnValue(null);
-  });
-
-  it('tracks paywall_upgrade_clicked then redirects to login for an anonymous Auto Sync click', async () => {
-    const { track } = await import('../../lib/analytics/track');
-    const trackMock = vi.mocked(track);
-    trackMock.mockClear();
-    mockStartAutoSyncCheckout.mockClear();
-    Object.defineProperty(globalThis, 'location', {
-      writable: true,
-      value: { href: '' },
-    });
-
-    renderAt('/pricing', { isLoggedIn: false });
-    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
-
-    expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
-      surface: 'pricing_page',
-      plan: 'auto_sync',
-      variant: 'minimal',
-    });
-    expect(globalThis.location.href).toBe('/login?redirect=/pricing');
-    expect(mockStartAutoSyncCheckout).not.toHaveBeenCalled();
   });
 
   it('tracks paywall_upgrade_clicked then redirects to login for an anonymous Day Pass click', async () => {
@@ -684,25 +481,6 @@ describe('PricingPage anonymous upgrade-click tracking', () => {
     });
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
     expect(mockStartUnlimitedCheckout).not.toHaveBeenCalled();
-  });
-
-  it('fires paywall_upgrade_clicked exactly once for an anonymous Auto Sync click', async () => {
-    const { track } = await import('../../lib/analytics/track');
-    const trackMock = vi.mocked(track);
-    trackMock.mockClear();
-    Object.defineProperty(globalThis, 'location', {
-      writable: true,
-      value: { href: '' },
-    });
-
-    renderAt('/pricing', { isLoggedIn: false });
-    fireEvent.click(screen.getByRole('button', { name: 'Get Auto Sync' }));
-
-    expect(
-      trackMock.mock.calls.filter(
-        ([event]) => event === 'paywall_upgrade_clicked'
-      )
-    ).toHaveLength(1);
   });
 });
 

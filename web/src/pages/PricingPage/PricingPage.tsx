@@ -8,7 +8,6 @@ import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
 import { usePricingOrderVariant } from '../../lib/hooks/usePricingOrderVariant';
 import { getVisibleText } from '../../lib/text/getVisibleText';
-import { AutoSyncCard } from './components/AutoSyncCard';
 import { ComparisonTable } from './components/ComparisonTable';
 import { FeatureGrid } from './components/FeatureGrid';
 import { PassCards } from './components/PassCards';
@@ -23,46 +22,18 @@ import { PRICING_FAQ } from './pricingFaq';
 interface PricingPageProps {
   isLoggedIn: boolean;
   email?: string;
-  hostedAnkiRequested?: boolean;
-  patreon?: boolean | null;
   signupCountry?: string | null;
-  autoSyncCapReached?: boolean;
-  autoSyncActive?: boolean;
 }
 
-type RequestState = 'idle' | 'pending' | 'sent' | 'error';
 type PassState = 'idle' | 'pending' | 'error';
-
-function autoSyncCaption(
-  patreon: boolean | null | undefined,
-  autoSyncActive: boolean,
-  hostedAnkiRequested: boolean
-): string | undefined {
-  if (patreon === true) {
-    return 'Included in your Lifetime plan';
-  }
-  if (autoSyncActive) {
-    return undefined;
-  }
-  if (hostedAnkiRequested) {
-    return 'Waitlist is open — subscribe anytime.';
-  }
-  return undefined;
-}
 
 export default function PricingPage({
   isLoggedIn,
   email: _email,
-  hostedAnkiRequested = false,
-  patreon,
   signupCountry,
-  autoSyncCapReached = false,
-  autoSyncActive = false,
 }: Readonly<PricingPageProps>) {
   const isUS = signupCountry === 'US';
   const lifetimeLink = getLifetimeLink();
-  const [waitlistState, setWaitlistState] = useState<RequestState>('idle');
-  const [subscribeError, setSubscribeError] = useState<string | null>(null);
   const [dayPassState, setDayPassState] = useState<PassState>('idle');
   const [weekPassState, setWeekPassState] = useState<PassState>('idle');
   const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('year');
@@ -83,7 +54,6 @@ export default function PricingPage({
       ? cardUsage.cards_limit - cardUsage.cards_used
       : null;
 
-  const isLifetime = patreon === true;
   const yearlyAvailable = pricing.annualCents > 0;
 
   useEffect(() => {
@@ -156,52 +126,6 @@ export default function PricingPage({
     });
   };
 
-  const handleWaitlistRequest = async () => {
-    if (!isLoggedIn) {
-      globalThis.location.href = '/login?redirect=/pricing';
-      return;
-    }
-    setWaitlistState('pending');
-    try {
-      await get2ankiApi().requestHostedAnkiAccess();
-      setWaitlistState('sent');
-    } catch {
-      setWaitlistState('error');
-    }
-  };
-
-  const handleAutoSyncSubscribe = async () => {
-    track('paywall_upgrade_clicked', {
-      surface: 'pricing_page',
-      plan: 'auto_sync',
-      variant: pricingOrder,
-    });
-    if (!isLoggedIn) {
-      globalThis.location.href = '/login?redirect=/pricing';
-      return;
-    }
-    setSubscribeError(null);
-    const result = await get2ankiApi().startAutoSyncCheckout(
-      pricingOrder,
-      'pricing_page'
-    );
-    if ('url' in result) {
-      globalThis.location.href = result.url;
-      return;
-    }
-    if (result.status === 'cap_reached') {
-      await handleWaitlistRequest();
-      return;
-    }
-    if (result.status === 'already_subscribed') {
-      globalThis.location.href = '/ankify/setup';
-      return;
-    }
-    setSubscribeError(
-      "Couldn't start checkout. Try again, or email support@2anki.net."
-    );
-  };
-
   const handlePassCheckout = async (kind: '24h' | '7d') => {
     track('paywall_upgrade_clicked', {
       surface: 'pricing_page',
@@ -258,23 +182,6 @@ export default function PricingPage({
     setUnlimitedError(true);
   };
 
-  const autoSyncCaptionText =
-    subscribeError ??
-    autoSyncCaption(patreon, autoSyncActive, hostedAnkiRequested);
-
-  const showCapReached = autoSyncCapReached && !isLifetime && !autoSyncActive;
-
-  function getWaitlistLabel(): string {
-    if (waitlistState === 'pending') {
-      return 'Joining…';
-    }
-    if (waitlistState === 'sent') {
-      return 'On the waitlist';
-    }
-    return 'Join the waitlist';
-  }
-  const waitlistLabel = getWaitlistLabel();
-
   const pricingFaqJsonLd = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -302,7 +209,7 @@ export default function PricingPage({
   );
 
   const monthlyPlans = (
-    <div className={styles.anchorGrid}>
+    <div className={styles.grid}>
       <UnlimitedCard
         isLoggedIn={isLoggedIn}
         billingCycle={billingCycle}
@@ -314,22 +221,6 @@ export default function PricingPage({
         annualCents={pricing.annualCents}
         error={unlimitedError}
       />
-
-      <div id="auto-sync">
-        <AutoSyncCard
-          showNewBadge={false}
-          isLifetime={isLifetime}
-          isActive={autoSyncActive}
-          capReached={showCapReached}
-          caption={autoSyncCaptionText}
-          waitlistLabel={waitlistLabel}
-          waitlistDisabled={
-            waitlistState === 'pending' || waitlistState === 'sent'
-          }
-          onSubscribe={handleAutoSyncSubscribe}
-          onWaitlist={handleWaitlistRequest}
-        />
-      </div>
     </div>
   );
 

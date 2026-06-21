@@ -21,11 +21,6 @@ export const PRICING_FAQ: PricingFaqItem[] = [
       'Unlimited removes the 100-card limit, adds PDF support, lets you run multiple conversions at once, and includes unlimited Anki to Notion imports. Pricing is on the cards above.',
   },
   {
-    question: 'What is Auto Sync?',
-    answer:
-      'Auto Sync is $30 per month. Connect your Notion workspace once and 2anki checks your pages every 5 minutes. Edits in Notion flow into your Anki decks automatically — no exports, no manual steps.',
-  },
-  {
     question: 'What about Lifetime?',
     answer:
       'Lifetime starts at $345, paid once. It includes all Unlimited features plus Auto Sync. Apply on this page; access is granted by review.',

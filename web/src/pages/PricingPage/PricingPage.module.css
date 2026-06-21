@@ -109,25 +109,6 @@
 }
 
 /* =====================================================================
-   ANCHOR GRID — two main offer cards (Unlimited + Auto Sync)
-   ===================================================================== */
-.anchorGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  align-items: stretch;
-  position: relative;
-  margin-bottom: 2.5rem;
-}
-
-@media (max-width: 900px) {
-  .anchorGrid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-}
-
-/* =====================================================================
    PASS GRID — Day Pass + Week Pass as full cards above the subscriptions
    ===================================================================== */
 .passGrid {
@@ -159,14 +140,13 @@
   text-align: center;
 }
 
-.sectionLabel + .anchorGrid,
 .sectionLabel + .passGrid,
 .sectionLabel + .grid {
   margin-top: 0;
 }
 
 .passGrid + .sectionLabel,
-.anchorGrid + .sectionLabel {
+.grid + .sectionLabel {
   margin-top: 1rem;
 }
 
