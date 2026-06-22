@@ -234,6 +234,22 @@ describe('renderNotionBlocks — recursion', () => {
     expect(out.html).toContain('<p>inside</p>');
     expect(out.html).toContain('class="callout"');
   });
+
+  it('nests callout children inside the callout div, not after it', async () => {
+    const fetch = fetcherFor({ co: [para('inside')] });
+    const block: NotionRenderableBlock = {
+      id: 'co',
+      type: 'callout',
+      has_children: true,
+      callout: { rich_text: [{ plain_text: 'note' }] },
+    };
+    const out = await renderNotionBlocks([block], fetch);
+    expect(out.html).toBe('<div class="callout">note<p>inside</p></div>');
+    const childOpen = out.html.indexOf('<p>inside</p>');
+    const divClose = out.html.lastIndexOf('</div>');
+    expect(childOpen).toBeLessThan(divClose);
+    expect(out.html.slice(divClose)).not.toContain('inside');
+  });
 });
 
 describe('renderNotionBlocks — media', () => {

@@ -4,11 +4,12 @@ import {
 } from '@notionhq/client/build/src/api-endpoints';
 import ReactDOMServer from 'react-dom/server';
 import BlockHandler from '../BlockHandler/BlockHandler';
+import getChildren from '../helpers/getChildren';
 import getPlainText from '../helpers/getPlainText';
 import { styleWithColors } from '../NotionColors';
 import HandleBlockAnnotations from './HandleBlockAnnotations';
 
-export const BlockCallout = (
+export const BlockCallout = async (
   block: CalloutBlockObjectResponse,
   handler: BlockHandler
 ) => {
@@ -20,7 +21,9 @@ export const BlockCallout = (
     return getPlainText(richText);
   }
 
-  return ReactDOMServer.renderToStaticMarkup(
+  const childrenHtml = await getChildren(block, handler);
+
+  const figureWithoutChildren = ReactDOMServer.renderToStaticMarkup(
     <figure
       id={block.id}
       className={`callout${styleWithColors(callout.color)}`}
@@ -41,5 +44,14 @@ export const BlockCallout = (
         })}
       </div>
     </figure>
+  );
+
+  if (!childrenHtml) {
+    return figureWithoutChildren;
+  }
+
+  return figureWithoutChildren.replace(
+    '</div></figure>',
+    `${childrenHtml}</div></figure>`
   );
 };

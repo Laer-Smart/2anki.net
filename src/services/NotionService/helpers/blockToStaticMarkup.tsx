@@ -125,7 +125,7 @@ export const blockToStaticMarkup = async (
       back += await BlockTodoList(c, response, handler);
       break;
     case 'callout':
-      back += BlockCallout(c, handler);
+      back += await BlockCallout(c, handler);
       break;
     case 'bulleted_list_item':
       back += await BlockBulletList(c, response, handler);

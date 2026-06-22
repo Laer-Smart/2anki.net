@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-22-callout-toggle-children",
+  "date": "2026-06-22",
+  "type": "fix",
+  "title": "Callouts inside toggles keep their lists and sub-content inside the callout box"
+}

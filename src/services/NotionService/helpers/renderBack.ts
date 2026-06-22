@@ -26,10 +26,15 @@ export const renderBack = async (
     }
     back += await blockToStaticMarkup(handler, c, response);
 
-    // Nesting applies to all not just toggles
+    // Nesting applies to all not just toggles.
+    // Callouts render their own children inside the figure, so the
+    // re-recursion here would otherwise append them flat after the box.
     if (
       handleChildren ||
-      (c.has_children && c.type !== 'toggle' && c.type !== 'bulleted_list_item')
+      (c.has_children &&
+        c.type !== 'toggle' &&
+        c.type !== 'bulleted_list_item' &&
+        c.type !== 'callout')
     ) {
       back += await handler.getBackSide(c);
     }
