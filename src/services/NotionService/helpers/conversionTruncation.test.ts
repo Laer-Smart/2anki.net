@@ -1,5 +1,5 @@
 import {
-  buildNotionTruncationPayload,
+  buildNotionConversionSignalPayload,
   hasRuleBasedSubDecks,
   isTruncatedBlockFetch,
 } from './conversionTruncation';
@@ -37,25 +37,50 @@ describe('hasRuleBasedSubDecks', () => {
   });
 });
 
-describe('buildNotionTruncationPayload', () => {
-  it('serializes a namespaced JSON payload', () => {
-    const payload = buildNotionTruncationPayload({
-      blocksConverted: 100,
-      subDeckRulesSkipped: true,
-    });
-    expect(JSON.parse(payload)).toEqual({
+describe('buildNotionConversionSignalPayload', () => {
+  it('returns undefined when there is neither truncation nor a dropped asset', () => {
+    expect(buildNotionConversionSignalPayload(undefined, 0)).toBeUndefined();
+  });
+
+  it('serializes a namespaced truncation payload', () => {
+    const payload = buildNotionConversionSignalPayload(
+      { blocksConverted: 100, subDeckRulesSkipped: true },
+      0
+    );
+    expect(JSON.parse(payload as string)).toEqual({
       code: 'notion_truncated',
       blocks_converted: 100,
       sub_deck_rules_skipped: true,
     });
   });
 
+  it('serializes a dropped-assets-only payload', () => {
+    const payload = buildNotionConversionSignalPayload(undefined, 3);
+    expect(JSON.parse(payload as string)).toEqual({
+      code: 'notion_assets_dropped',
+      dropped_assets: 3,
+    });
+  });
+
+  it('merges co-occurring truncation and dropped assets into one object', () => {
+    const payload = buildNotionConversionSignalPayload(
+      { blocksConverted: 100, subDeckRulesSkipped: false },
+      2
+    );
+    expect(JSON.parse(payload as string)).toEqual({
+      code: 'notion_truncated',
+      blocks_converted: 100,
+      sub_deck_rules_skipped: false,
+      dropped_assets: 2,
+    });
+  });
+
   it('does not collide with the apkg_import done payload shape', () => {
     const parsed = JSON.parse(
-      buildNotionTruncationPayload({
-        blocksConverted: 100,
-        subDeckRulesSkipped: false,
-      })
+      buildNotionConversionSignalPayload(
+        { blocksConverted: 100, subDeckRulesSkipped: false },
+        1
+      ) as string
     );
     expect(parsed.total_notes).toBeUndefined();
     expect(parsed.imported).toBeUndefined();

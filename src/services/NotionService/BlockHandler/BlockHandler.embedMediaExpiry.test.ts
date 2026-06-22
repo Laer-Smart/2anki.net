@@ -187,5 +187,24 @@ describe('BlockHandler media expiry recovery', () => {
     expect(api.getBlock).toHaveBeenCalledTimes(1);
     expect(mockedDownload).toHaveBeenCalledTimes(2);
     expect(addMediaSpy).not.toHaveBeenCalled();
+    expect(handler.droppedAssetCount).toBe(1);
+  });
+
+  test('does not count a dropped asset when the download recovers', async () => {
+    const recovered = Buffer.from('recovered-image-bytes');
+    mockedDownload.mockResolvedValueOnce(null).mockResolvedValueOnce(recovered);
+    const freshBlock = makeFileImageBlock(
+      'https://notion.s3/img-fresh.png'
+    ) as unknown as GetBlockResponse;
+    const api = {
+      getBlock: jest.fn(async () => freshBlock),
+    } as unknown as NotionAPIWrapper;
+    const handler = new BlockHandler(exporter, api, new CardOption({}));
+
+    await handler.embedImage(
+      makeFileImageBlock('https://notion.s3/img-expired.png')
+    );
+
+    expect(handler.droppedAssetCount).toBe(0);
   });
 });

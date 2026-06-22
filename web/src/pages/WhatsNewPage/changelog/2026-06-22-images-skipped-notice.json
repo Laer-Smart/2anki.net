@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-22-images-skipped-notice",
+  "date": "2026-06-22",
+  "type": "fix",
+  "title": "Converted decks now flag when an image couldn't be downloaded instead of shipping the gap silently"
+}

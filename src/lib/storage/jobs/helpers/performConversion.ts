@@ -201,7 +201,13 @@ export default async function performConversion(
     });
 
     const completeJob = new CompleteJobUseCase(jobRepository, usersRepository);
-    await completeJob.execute(id, owner, cardCount, bl.truncation);
+    await completeJob.execute(
+      id,
+      owner,
+      cardCount,
+      bl.truncation,
+      bl.droppedAssetCount
+    );
 
     const userId = Number.isFinite(Number(owner)) ? Number(owner) : null;
     track('conversion_succeeded', {

@@ -39,6 +39,8 @@ import {
 import { ConversionResult } from './components/ConversionResult/ConversionResult';
 import { TruncationNotice } from './components/TruncationNotice';
 import { parseTruncationPayload } from './helpers/parseTruncationPayload';
+import { ImageDropNotice } from './components/ImageDropNotice';
+import { parseDroppedAssetsPayload } from './helpers/parseDroppedAssetsPayload';
 import { parseMonthlyLimitPayload } from './components/ConversionResult/parseMonthlyLimitPayload';
 import styles from './DownloadsPage.module.css';
 import sharedStyles from '../../styles/shared.module.css';
@@ -512,6 +514,9 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                             expandedFailureJobId === row.job.id;
                           const isFailed = isFailedJob(row.job.status);
                           const truncation = parseTruncationPayload(row.job);
+                          const droppedAssets = parseDroppedAssetsPayload(
+                            row.job
+                          );
                           const toggleFailurePanel = () => {
                             setExpandedFailureJobId(
                               isExpanded ? null : row.job.id
@@ -576,6 +581,34 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                               className={sharedStyles.badge}
                                             >
                                               Partial
+                                            </span>
+                                            <span
+                                              className={`${styles.statusChevron} ${isExpanded ? styles.statusChevronExpanded : ''}`}
+                                            >
+                                              ▾
+                                            </span>
+                                          </button>
+                                        )}
+                                        {droppedAssets != null && (
+                                          <button
+                                            type="button"
+                                            className={styles.statusToggle}
+                                            onClick={toggleFailurePanel}
+                                            aria-label={
+                                              isExpanded
+                                                ? 'Collapse image note'
+                                                : 'Show image note'
+                                            }
+                                            aria-expanded={isExpanded}
+                                          >
+                                            <span
+                                              className={
+                                                sharedStyles.badgeWarning
+                                              }
+                                            >
+                                              {droppedAssets === 1
+                                                ? '1 image skipped'
+                                                : `${droppedAssets} images skipped`}
                                             </span>
                                             <span
                                               className={`${styles.statusChevron} ${isExpanded ? styles.statusChevronExpanded : ''}`}
@@ -677,6 +710,18 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                           truncation.subDeckRulesSkipped
                                         }
                                       />
+                                    </td>
+                                  </tr>
+                                )}
+                              {!isFailed &&
+                                isExpanded &&
+                                droppedAssets != null && (
+                                  <tr key={`job-${row.job.id}-imagedrop`}>
+                                    <td
+                                      colSpan={4}
+                                      className={styles.failurePanel}
+                                    >
+                                      <ImageDropNotice count={droppedAssets} />
                                     </td>
                                   </tr>
                                 )}
