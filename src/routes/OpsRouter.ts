@@ -32,12 +32,9 @@ import { NotionService } from '../services/NotionService/NotionService';
 import { getDatabase } from '../data_layer';
 import RequireOpsAccess from './middleware/RequireOpsAccess';
 import InactivityEmailRepository from '../data_layer/InactivityEmailRepository';
-import PriceLockInEmailRepository from '../data_layer/PriceLockInEmailRepository';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
-import { SendPriceLockInEmailsUseCase } from '../usecases/ops/SendPriceLockInEmailsUseCase';
 import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
 import { getDefaultEmailService } from '../services/EmailService/EmailService';
-import { getEventsSink } from '../services/events/eventsSinkInstance';
 import { UserVisibleErrorsRepository } from '../data_layer/UserVisibleErrorsRepository';
 import { MindmapRepository } from '../data_layer/MindmapRepository';
 import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
@@ -53,7 +50,6 @@ import EventsRepository from '../data_layer/EventsRepository';
 import { FeatureFlagsRepository } from '../data_layer/FeatureFlagsRepository';
 import { ListFeatureFlagsUseCase } from '../usecases/ops/ListFeatureFlagsUseCase';
 import { SetFeatureFlagUseCase } from '../usecases/ops/SetFeatureFlagUseCase';
-import { CreatePricingV2PricesUseCase } from '../usecases/ops/CreatePricingV2PricesUseCase';
 import { getStripe } from '../lib/integrations/stripe';
 import { OrphanedSubscriptionsRepository } from '../data_layer/OrphanedSubscriptionsRepository';
 import { SubscriptionRecoveryNotificationsRepository } from '../data_layer/SubscriptionRecoveryNotificationsRepository';
@@ -131,12 +127,6 @@ const OpsRouter = () => {
     new GetUploadFunnelUseCase(
       new UploadFunnelService({ eventsRepo: new EventsRepository(database) })
     ),
-    new SendPriceLockInEmailsUseCase(
-      new PriceLockInEmailRepository(database),
-      emailService,
-      getEventsSink()
-    ),
-    new CreatePricingV2PricesUseCase(getStripe()),
     new GetOrphanedSubscriptionsUseCase(
       new OrphanedSubscriptionsRepository(database)
     ),
@@ -304,41 +294,6 @@ const OpsRouter = () => {
 
   /**
    * @swagger
-   * /api/ops/send-price-lock-in-emails:
-   *   post:
-   *     summary: Send the one-time price lock-in email to free accounts
-   *     description: |
-   *       Finds free accounts (no active subscription, no active pass, not lifetime,
-   *       account older than 14 days, not opted out of marketing) and sends the
-   *       price lock-in commercial email. Suppressed recipients are skipped at send
-   *       time. Dedupes by recorded send so repeated invocations walk the full
-   *       segment without double-sending. Send is MANUAL — trigger only on the
-   *       agreed go. Pass { "dryRun": true } (the default) to count the segment
-   *       without sending; pass { "dryRun": false, "limit": 500 } to send a batch.
-   *       Do not put on a cron.
-   *     tags: [Ops]
-   *     requestBody:
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               dryRun: { type: boolean }
-   *               limit: { type: integer }
-   *     responses:
-   *       200:
-   *         description: Result with count, variant split, and dryRun flag
-   *       404:
-   *         description: Not the ops owner
-   */
-  router.post(
-    '/api/ops/send-price-lock-in-emails',
-    RequireOpsAccess,
-    (req, res) => controller.sendPriceLockInEmails(req, res)
-  );
-
-  /**
-   * @swagger
    * /api/ops/performance/metrics:
    *   get:
    *     summary: Job-duration percentiles, status breakdown, and signup-country counts
@@ -441,31 +396,6 @@ const OpsRouter = () => {
     '/api/ops/sync-stripe-subscriptions',
     RequireOpsAccess,
     (req, res) => controller.syncStripeSubscriptions(req, res)
-  );
-
-  /**
-   * @swagger
-   * /api/ops/create-pricing-v2-prices:
-   *   post:
-   *     summary: Create the v2 Stripe prices on the Unlimited product
-   *     description: |
-   *       Idempotently creates the $7.99/mo and $64/yr v2 prices on the existing
-   *       Unlimited product. Each price is looked up by its lookup_key first and
-   *       created only when absent — re-running is safe and never mutates, updates,
-   *       or deletes existing prices, products, or subscriptions. Uses the server's
-   *       configured Stripe key, so the live/test mode follows that key. Locked to
-   *       the ops owner — returns 404 for everyone else.
-   *     tags: [Ops]
-   *     responses:
-   *       200:
-   *         description: Per-key result (created or already_exists) with price IDs and livemode
-   *       404:
-   *         description: Not the ops owner
-   */
-  router.post(
-    '/api/ops/create-pricing-v2-prices',
-    RequireOpsAccess,
-    (req, res) => controller.createPricingV2Prices(req, res)
   );
 
   /**

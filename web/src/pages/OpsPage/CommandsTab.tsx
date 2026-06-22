@@ -4,14 +4,6 @@ import sharedStyles from '../../styles/shared.module.css';
 import styles from './OpsPage.module.css';
 import { syncStripeSubscriptions } from './syncStripeSubscriptions';
 import {
-  createPricingV2Prices,
-  CreatePricingV2PricesResponse,
-} from './createPricingV2Prices';
-import {
-  sendPriceLockInEmails,
-  SendPriceLockInEmailsResponse,
-} from './sendPriceLockInEmails';
-import {
   deleteInactiveUsers,
   DeleteInactiveUsersResponse,
 } from './deleteInactiveUsers';
@@ -29,29 +21,6 @@ function formatDeleteResult(result: DeleteInactiveUsersResponse): string {
     return `${result.count} account${result.count === 1 ? '' : 's'} would be deleted.`;
   }
   return `Deleted ${result.count} account${result.count === 1 ? '' : 's'}.`;
-}
-
-function formatLockInResult(result: SendPriceLockInEmailsResponse): string {
-  if (result.dryRun) {
-    return `${result.count} recipient${result.count === 1 ? '' : 's'} in segment, sends nothing.`;
-  }
-  if (result.skipped > 0) {
-    return `Sent ${result.count}, skipped ${result.skipped} deleted account${
-      result.skipped === 1 ? '' : 's'
-    }; click again for the next batch.`;
-  }
-  return `Sent ${result.count}; click again for the next batch.`;
-}
-
-function formatPricesResult(result: CreatePricingV2PricesResponse): string {
-  const mode = result.livemode ? 'live' : 'test';
-  const lines = result.prices.map((price) => {
-    const verb = price.status === 'created' ? 'created' : 'already exists';
-    const unit = price.interval === 'month' ? 'mo' : 'yr';
-    const amount = `$${(price.unitAmount / 100).toFixed(2)}/${unit}`;
-    return `${price.lookupKey} ${verb} — ${amount} (${price.priceId})`;
-  });
-  return `${mode} mode — ${lines.join('; ')}`;
 }
 
 function formatReconcileResult(
@@ -81,10 +50,6 @@ export default function CommandsTab() {
   const [message, setMessage] = useState('');
   const [syncStatus, setSyncStatus] = useState<Status>('idle');
   const [syncMessage, setSyncMessage] = useState('');
-  const [pricesStatus, setPricesStatus] = useState<Status>('idle');
-  const [pricesMessage, setPricesMessage] = useState('');
-  const [lockInStatus, setLockInStatus] = useState<Status>('idle');
-  const [lockInMessage, setLockInMessage] = useState('');
   const [deleteStatus, setDeleteStatus] = useState<Status>('idle');
   const [deleteMessage, setDeleteMessage] = useState('');
   const [orphanStatus, setOrphanStatus] = useState<Status>('idle');
@@ -119,36 +84,6 @@ export default function CommandsTab() {
     } catch (error) {
       setSyncStatus('error');
       setSyncMessage(error instanceof Error ? error.message : 'Unknown error');
-    }
-  };
-
-  const runCreatePrices = async () => {
-    setPricesStatus('loading');
-    setPricesMessage('');
-    try {
-      const result = await createPricingV2Prices();
-      setPricesStatus('success');
-      setPricesMessage(formatPricesResult(result));
-    } catch (error) {
-      setPricesStatus('error');
-      setPricesMessage(
-        error instanceof Error ? error.message : 'Unknown error'
-      );
-    }
-  };
-
-  const runLockIn = async (dryRun: boolean) => {
-    setLockInStatus('loading');
-    setLockInMessage('');
-    try {
-      const result = await sendPriceLockInEmails(dryRun);
-      setLockInStatus('success');
-      setLockInMessage(formatLockInResult(result));
-    } catch (error) {
-      setLockInStatus('error');
-      setLockInMessage(
-        error instanceof Error ? error.message : 'Unknown error'
-      );
     }
   };
 
@@ -275,72 +210,6 @@ export default function CommandsTab() {
       {syncStatus === 'error' && syncMessage && (
         <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
           {syncMessage}
-        </div>
-      )}
-
-      <section className={`${sharedStyles.surface} ${styles.card}`}>
-        <h2 className={styles.cardTitle}>Pricing v2 prices</h2>
-        <p className={styles.panelSubtitle}>
-          Adds the $7.99/mo and $64/yr prices for new members. Safe to run twice
-          — existing prices are skipped, nothing is changed or deleted.
-        </p>
-        <div className={styles.controls}>
-          <button
-            type="button"
-            className={sharedStyles.btnSmall}
-            onClick={runCreatePrices}
-            disabled={pricesStatus === 'loading'}
-          >
-            {pricesStatus === 'loading' ? 'Working…' : 'Create v2 prices'}
-          </button>
-        </div>
-      </section>
-
-      {pricesStatus === 'success' && pricesMessage && (
-        <div className={`${sharedStyles.alertSuccess} ${styles.banner}`}>
-          {pricesMessage}
-        </div>
-      )}
-      {pricesStatus === 'error' && pricesMessage && (
-        <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
-          {pricesMessage}
-        </div>
-      )}
-
-      <section className={`${sharedStyles.surface} ${styles.card}`}>
-        <h2 className={styles.cardTitle}>Price lock-in emails</h2>
-        <p className={styles.panelSubtitle}>
-          One-time price lock-in offer to free accounts older than 14 days.
-          Dry-run first; each send delivers up to 500.
-        </p>
-        <div className={styles.controls}>
-          <button
-            type="button"
-            className={sharedStyles.btnSmall}
-            onClick={() => runLockIn(true)}
-            disabled={lockInStatus === 'loading'}
-          >
-            {lockInStatus === 'loading' ? 'Working…' : 'Check segment'}
-          </button>
-          <button
-            type="button"
-            className={sharedStyles.btnSmall}
-            onClick={() => runLockIn(false)}
-            disabled={lockInStatus === 'loading'}
-          >
-            Send batch of 500
-          </button>
-        </div>
-      </section>
-
-      {lockInStatus === 'success' && lockInMessage && (
-        <div className={`${sharedStyles.alertSuccess} ${styles.banner}`}>
-          {lockInMessage}
-        </div>
-      )}
-      {lockInStatus === 'error' && lockInMessage && (
-        <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
-          {lockInMessage}
         </div>
       )}
 
