@@ -21,6 +21,7 @@ import {
 import { GetUploadFunnelUseCase } from '../usecases/ops/GetUploadFunnelUseCase';
 import { GetOrphanedSubscriptionsUseCase } from '../usecases/ops/GetOrphanedSubscriptionsUseCase';
 import { ReconcileOrphanedSubscriptionsUseCase } from '../usecases/ops/ReconcileOrphanedSubscriptionsUseCase';
+import { ArchiveLegacyPricesUseCase } from '../usecases/ops/ArchiveLegacyPricesUseCase';
 
 class OpsController {
   constructor(
@@ -41,7 +42,8 @@ class OpsController {
     private readonly setFeatureFlagUseCase?: SetFeatureFlagUseCase,
     private readonly getUploadFunnelUseCase?: GetUploadFunnelUseCase,
     private readonly getOrphanedSubscriptionsUseCase?: GetOrphanedSubscriptionsUseCase,
-    private readonly reconcileOrphanedSubscriptionsUseCase?: ReconcileOrphanedSubscriptionsUseCase
+    private readonly reconcileOrphanedSubscriptionsUseCase?: ReconcileOrphanedSubscriptionsUseCase,
+    private readonly archiveLegacyPricesUseCase?: ArchiveLegacyPricesUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -391,6 +393,31 @@ class OpsController {
       res
         .status(500)
         .json({ message: 'Failed to reconcile orphaned subscriptions' });
+    }
+  }
+
+  async archiveLegacyPrices(req: express.Request, res: express.Response) {
+    if (this.archiveLegacyPricesUseCase == null) {
+      res.status(500).json({ message: 'Archive legacy prices not configured' });
+      return;
+    }
+    try {
+      const dryRun = req.body?.dryRun !== false;
+      const result = await this.archiveLegacyPricesUseCase.execute(dryRun);
+      res.status(200).json({
+        livemode: result.livemode,
+        prices: result.prices.map((price) => ({
+          priceId: price.priceId,
+          lookupKey: price.lookupKey,
+          unitAmount: price.unitAmount,
+          interval: price.interval,
+          active: price.active,
+          action: price.action,
+        })),
+      });
+    } catch (error) {
+      console.error('[ops] archiveLegacyPrices failed', error);
+      res.status(500).json({ message: 'Failed to archive legacy prices' });
     }
   }
 }

@@ -55,6 +55,7 @@ import { OrphanedSubscriptionsRepository } from '../data_layer/OrphanedSubscript
 import { SubscriptionRecoveryNotificationsRepository } from '../data_layer/SubscriptionRecoveryNotificationsRepository';
 import { GetOrphanedSubscriptionsUseCase } from '../usecases/ops/GetOrphanedSubscriptionsUseCase';
 import { ReconcileOrphanedSubscriptionsUseCase } from '../usecases/ops/ReconcileOrphanedSubscriptionsUseCase';
+import { ArchiveLegacyPricesUseCase } from '../usecases/ops/ArchiveLegacyPricesUseCase';
 
 const OpsRouter = () => {
   const router = express.Router();
@@ -138,7 +139,8 @@ const OpsRouter = () => {
         const customer = await getStripe().customers.retrieve(customerId);
         return 'email' in customer ? (customer.email ?? null) : null;
       }
-    )
+    ),
+    new ArchiveLegacyPricesUseCase(getStripe())
   );
 
   /**
@@ -556,6 +558,41 @@ const OpsRouter = () => {
     '/api/ops/subscriptions/reconcile',
     RequireOpsAccess,
     (req, res) => controller.reconcileOrphanedSubscriptions(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/archive-legacy-prices:
+   *   post:
+   *     summary: Archive the two legacy Unlimited Stripe prices
+   *     description: |
+   *       Archives the legacy $6/mo and $60/yr Unlimited prices (the
+   *       UNLIMITED_MONTHLY_PRICE_ID and UNLIMITED_YEARLY_PRICE_ID env values)
+   *       now that the lock-in window closed 21 Jun 2026 and new checkouts
+   *       resolve the v2 prices. Touches only the two configured legacy price
+   *       ids — never any other price, never products or subscriptions. Sets
+   *       active=false; never deletes, never creates. Guarded against the v2
+   *       lookup_keys (v2_monthly, v2_annual): a configured id that resolves to
+   *       a v2 price is skipped, never archived. dryRun defaults to true — pass
+   *       { "dryRun": false } to write. Existing subscriptions keep renewing on
+   *       an archived price. Internal endpoint locked to the ops owner — returns
+   *       404 for everyone else.
+   *     tags: [Ops]
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               dryRun: { type: boolean }
+   *     responses:
+   *       200:
+   *         description: Per-price result with id, amount, interval, and action
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.post('/api/ops/archive-legacy-prices', RequireOpsAccess, (req, res) =>
+    controller.archiveLegacyPrices(req, res)
   );
 
   return router;
