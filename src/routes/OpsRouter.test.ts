@@ -13,6 +13,15 @@ jest.mock('../lib/integrations/stripe', () => ({
     prices: {
       list: jest.fn().mockResolvedValue({ data: [] }),
       create: jest.fn().mockResolvedValue({ id: 'price_new', livemode: false }),
+      retrieve: jest.fn().mockResolvedValue({
+        id: 'price_legacy_monthly',
+        lookup_key: 'legacy_monthly',
+        unit_amount: 600,
+        recurring: { interval: 'month' },
+        active: true,
+        livemode: false,
+      }),
+      update: jest.fn(),
     },
   })),
 }));
@@ -614,6 +623,58 @@ describe('OpsRouter /api/ops/subscriptions/reconcile', () => {
         emailed: 1,
         skippedRecentlyNotified: 0,
         skippedNoEmail: 0,
+      });
+    } finally {
+      await close();
+    }
+  });
+});
+
+describe('OpsRouter /api/ops/archive-legacy-prices', () => {
+  it('returns 404 for non-owner callers', async () => {
+    const { url, close } = await startServer(false);
+    try {
+      const response = await fetch(`${url}/api/ops/archive-legacy-prices`, {
+        method: 'POST',
+      });
+      expect(response.status).toBe(404);
+    } finally {
+      await close();
+    }
+  });
+
+  it('returns 200 with the per-price archive plan for the ops owner', async () => {
+    process.env.UNLIMITED_MONTHLY_PRICE_ID = 'price_legacy_monthly';
+    process.env.UNLIMITED_YEARLY_PRICE_ID = '';
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(`${url}/api/ops/archive-legacy-prices`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dryRun: true }),
+      });
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body).toEqual({
+        livemode: false,
+        prices: [
+          {
+            priceId: 'price_legacy_monthly',
+            lookupKey: 'legacy_monthly',
+            unitAmount: 600,
+            interval: 'month',
+            active: true,
+            action: 'would_archive',
+          },
+          {
+            priceId: '',
+            lookupKey: null,
+            unitAmount: null,
+            interval: null,
+            active: null,
+            action: 'skipped_missing_env',
+          },
+        ],
       });
     } finally {
       await close();
