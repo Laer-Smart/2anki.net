@@ -355,4 +355,119 @@ describe('blockToStaticMarkup', () => {
     expect(result).toContain('Pharmacokinetics');
     expect(result).not.toContain('unsupported');
   });
+
+  function makeCalloutWithChildren(): BlockObjectResponse {
+    return {
+      object: 'block',
+      id: 'callout-1',
+      type: 'callout',
+      callout: {
+        rich_text: [
+          {
+            type: 'text',
+            text: { content: 'Remember', link: null },
+            annotations: {
+              bold: false,
+              italic: false,
+              strikethrough: false,
+              underline: false,
+              code: false,
+              color: 'default',
+            },
+            plain_text: 'Remember',
+            href: null,
+          },
+        ],
+        icon: { type: 'emoji', emoji: '💡' },
+        color: 'default',
+      },
+      parent: { type: 'page_id', page_id: 'page-1' },
+      created_time: '2026-06-22T07:46:00.000Z',
+      last_edited_time: '2026-06-22T07:46:00.000Z',
+      created_by: { object: 'user', id: 'user-1' },
+      last_edited_by: { object: 'user', id: 'user-1' },
+      has_children: true,
+      archived: false,
+      in_trash: false,
+    } as unknown as BlockObjectResponse;
+  }
+
+  function makeBulletListItem(content: string): BlockObjectResponse {
+    return {
+      object: 'block',
+      id: `list-${content}`,
+      type: 'bulleted_list_item',
+      bulleted_list_item: {
+        rich_text: [
+          {
+            type: 'text',
+            text: { content, link: null },
+            annotations: {
+              bold: false,
+              italic: false,
+              strikethrough: false,
+              underline: false,
+              code: false,
+              color: 'default',
+            },
+            plain_text: content,
+            href: null,
+          },
+        ],
+        color: 'default',
+      },
+      parent: { type: 'block_id', block_id: 'callout-1' },
+      created_time: '2026-06-22T07:46:00.000Z',
+      last_edited_time: '2026-06-22T07:46:00.000Z',
+      created_by: { object: 'user', id: 'user-1' },
+      last_edited_by: { object: 'user', id: 'user-1' },
+      has_children: false,
+      archived: false,
+      in_trash: false,
+    } as unknown as BlockObjectResponse;
+  }
+
+  it('keeps a callout-nested list inside figure.callout instead of leaking it after the box', async () => {
+    const handler = makeHandler();
+    const callout = makeCalloutWithChildren();
+    const listItem = makeBulletListItem('child');
+
+    jest
+      .spyOn(handler.api, 'getBlocks')
+      .mockImplementation(async ({ id }: { id: string }) => {
+        if (id === 'callout-1') {
+          return {
+            object: 'list',
+            results: [listItem],
+            next_cursor: null,
+            has_more: false,
+            type: 'block',
+            block: {},
+          } as never;
+        }
+        return {
+          object: 'list',
+          results: [],
+          next_cursor: null,
+          has_more: false,
+          type: 'block',
+          block: {},
+        } as never;
+      });
+
+    const result = await blockToStaticMarkup(handler, callout);
+
+    expect(result).toContain('class="callout');
+    expect(result).toContain('child');
+
+    const figureClose = result.indexOf('</figure>');
+    const listOpen = result.indexOf('<ul');
+    expect(figureClose).toBeGreaterThan(-1);
+    expect(listOpen).toBeGreaterThan(-1);
+    expect(listOpen).toBeLessThan(figureClose);
+
+    const afterFigure = result.slice(figureClose + '</figure>'.length);
+    expect(afterFigure).not.toContain('<ul');
+    expect(afterFigure).not.toContain('child');
+  });
 });
