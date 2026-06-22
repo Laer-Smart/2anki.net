@@ -13,11 +13,6 @@ import {
   OrphanedSubscriptionsResponse,
   ReconcileOrphanedSubscriptionsResponse,
 } from './orphanedSubscriptions';
-import {
-  archiveLegacyPrices,
-  ArchiveLegacyPriceResult,
-  ArchiveLegacyPricesResponse,
-} from './archiveLegacyPrices';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
@@ -32,27 +27,6 @@ function formatReconcileResult(
   result: ReconcileOrphanedSubscriptionsResponse
 ): string {
   return `${result.found} found, ${result.emailed} emailed, ${result.skippedRecentlyNotified} skipped (notified in last 14 days), ${result.skippedNoEmail} skipped (no email).`;
-}
-
-const ARCHIVE_ACTION_LABELS: Record<
-  ArchiveLegacyPriceResult['action'],
-  string
-> = {
-  would_archive: 'would archive',
-  archived: 'archived',
-  already_archived: 'already archived',
-  skipped_missing_env: 'skipped (no price id configured)',
-  skipped_guard: 'skipped (v2 price — guarded)',
-};
-
-function formatArchivePrice(price: ArchiveLegacyPriceResult): string {
-  if (price.priceId === '') {
-    return ARCHIVE_ACTION_LABELS[price.action];
-  }
-  const amount =
-    price.unitAmount == null ? '—' : `$${(price.unitAmount / 100).toFixed(2)}`;
-  const interval = price.interval == null ? '' : `/${price.interval}`;
-  return `${price.priceId} — ${amount}${interval} — ${ARCHIVE_ACTION_LABELS[price.action]}`;
 }
 
 async function callInactivityWarnings(
@@ -82,11 +56,6 @@ export default function CommandsTab() {
   const [orphanMessage, setOrphanMessage] = useState('');
   const [orphans, setOrphans] = useState<
     OrphanedSubscriptionsResponse['orphans']
-  >([]);
-  const [archiveStatus, setArchiveStatus] = useState<Status>('idle');
-  const [archiveMessage, setArchiveMessage] = useState('');
-  const [archivePrices, setArchivePrices] = useState<
-    ArchiveLegacyPricesResponse['prices']
   >([]);
 
   const run = async (dryRun: boolean) => {
@@ -163,26 +132,6 @@ export default function CommandsTab() {
     } catch (error) {
       setOrphanStatus('error');
       setOrphanMessage(
-        error instanceof Error ? error.message : 'Unknown error'
-      );
-    }
-  };
-
-  const runArchiveLegacyPrices = async (dryRun: boolean) => {
-    setArchiveStatus('loading');
-    setArchiveMessage('');
-    try {
-      const result = await archiveLegacyPrices(dryRun);
-      setArchivePrices(result.prices);
-      setArchiveStatus('success');
-      setArchiveMessage(
-        dryRun
-          ? `Dry run — ${result.prices.length} legacy price${result.prices.length === 1 ? '' : 's'} checked.`
-          : `Done — ${result.prices.length} legacy price${result.prices.length === 1 ? '' : 's'} processed.`
-      );
-    } catch (error) {
-      setArchiveStatus('error');
-      setArchiveMessage(
         error instanceof Error ? error.message : 'Unknown error'
       );
     }
@@ -351,58 +300,6 @@ export default function CommandsTab() {
       {orphanStatus === 'error' && orphanMessage && (
         <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
           {orphanMessage}
-        </div>
-      )}
-
-      <section className={`${sharedStyles.surface} ${styles.card}`}>
-        <h2 className={styles.cardTitle}>Archive legacy prices</h2>
-        <p className={styles.panelSubtitle}>
-          Archives the legacy $6/mo and $60/yr Unlimited prices now that the
-          lock-in window closed. Existing subscriptions keep renewing on their
-          price — new checkouts already resolve the v2 prices. Touches only the
-          two configured legacy prices, never deletes, and skips any price that
-          resolves to a v2 lookup key. Check status first.
-        </p>
-        <div className={styles.controls}>
-          <button
-            type="button"
-            className={sharedStyles.btnSmall}
-            onClick={() => runArchiveLegacyPrices(true)}
-            disabled={archiveStatus === 'loading'}
-          >
-            {archiveStatus === 'loading' ? 'Working…' : 'Check status'}
-          </button>
-          <button
-            type="button"
-            className={sharedStyles.btnDanger}
-            onClick={() => runArchiveLegacyPrices(false)}
-            disabled={archiveStatus === 'loading'}
-          >
-            Archive prices
-          </button>
-        </div>
-        {archivePrices.length > 0 && (
-          <ul className={styles.panelSubtitle}>
-            {archivePrices.map((price, index) => (
-              <li
-                key={price.priceId === '' ? `missing-${index}` : price.priceId}
-                style={{ fontWeight: 500 }}
-              >
-                {formatArchivePrice(price)}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {archiveStatus === 'success' && archiveMessage && (
-        <div className={`${sharedStyles.alertSuccess} ${styles.banner}`}>
-          {archiveMessage}
-        </div>
-      )}
-      {archiveStatus === 'error' && archiveMessage && (
-        <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
-          {archiveMessage}
         </div>
       )}
     </>
