@@ -1,6 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs';
-import type { TransferListItem } from 'node:worker_threads';
+import type { Transferable } from 'node:worker_threads';
 import Piscina from 'piscina';
 import knex, { Knex } from 'knex';
 import {
@@ -74,7 +74,7 @@ export async function runConversion(
 
 export async function runUploadGeneration(
   task: UploadGenerationTask,
-  transferList?: TransferListItem[]
+  transferList?: Transferable[]
 ): Promise<UploadGenerationResult> {
   return getConversionPool().run(task, {
     name: UPLOAD_GENERATION_TASK,
