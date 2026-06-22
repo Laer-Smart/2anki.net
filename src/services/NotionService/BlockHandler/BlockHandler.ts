@@ -154,6 +154,8 @@ class BlockHandler {
 
   truncation?: ConversionTruncation;
 
+  droppedAssetCount = 0;
+
   settings: CardOption;
 
   settingsRepository?: ISettingsRepository;
@@ -228,6 +230,7 @@ class BlockHandler {
         getImageUrl(fresh as ImageBlockObjectResponse),
     });
     if (contents == null) {
+      this.droppedAssetCount += 1;
       return '';
     }
     this.exporter.addMedia(newName, contents);
@@ -250,6 +253,7 @@ class BlockHandler {
         getAudioUrl(fresh as AudioBlockObjectResponse),
     });
     if (contents == null) {
+      this.droppedAssetCount += 1;
       return '';
     }
     this.exporter.addMedia(newName, contents);
@@ -273,6 +277,7 @@ class BlockHandler {
         getFileUrl(fresh as FileBlockObjectResponse | PdfBlockObjectResponse),
     });
     if (contents == null) {
+      this.droppedAssetCount += 1;
       return '';
     }
     this.exporter.addMedia(newName, contents);

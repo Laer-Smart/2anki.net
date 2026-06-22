@@ -1,0 +1,23 @@
+import JobResponse from '../../../schemas/public/JobResponse';
+
+const NOTION_PAGE_JOB_TYPES = new Set(['page', 'database']);
+
+export function parseDroppedAssetsPayload(job: JobResponse): number | null {
+  if (job.status !== 'done') return null;
+  if (job.type == null || !NOTION_PAGE_JOB_TYPES.has(job.type)) return null;
+  if (job.job_reason_failure == null || job.job_reason_failure === '') {
+    return null;
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(job.job_reason_failure);
+  } catch {
+    return null;
+  }
+  if (parsed == null || typeof parsed !== 'object') return null;
+  const droppedAssets = Number(
+    (parsed as { dropped_assets?: unknown }).dropped_assets
+  );
+  if (!Number.isInteger(droppedAssets) || droppedAssets <= 0) return null;
+  return droppedAssets;
+}

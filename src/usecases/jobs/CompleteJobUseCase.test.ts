@@ -36,6 +36,29 @@ describe('CompleteJobUseCase', () => {
     expect(result).toEqual(updatedJob);
   });
 
+  it('persists a dropped-assets signal payload when images were dropped', async () => {
+    const jobRepository = {
+      findJobById: jest.fn().mockResolvedValue({
+        id: 1,
+        object_id: 'page-1',
+        owner: 'user-a',
+        status: 'started',
+      }),
+      updateJobStatus: jest.fn().mockResolvedValue({ status: 'done' }),
+      deleteJob: jest.fn(),
+    } as unknown as JobRepository;
+
+    const useCase = new CompleteJobUseCase(jobRepository);
+    await useCase.execute('page-1', 'user-a', 12, undefined, 3);
+
+    const payload = (jobRepository.updateJobStatus as jest.Mock).mock
+      .calls[0][3];
+    expect(JSON.parse(payload)).toEqual({
+      code: 'notion_assets_dropped',
+      dropped_assets: 3,
+    });
+  });
+
   it('increments the user card counter when usersRepository is provided', async () => {
     const jobRepository = {
       findJobById: jest.fn().mockResolvedValue({
