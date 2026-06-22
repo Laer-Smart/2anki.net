@@ -318,8 +318,8 @@ describe('OpsRouter /api/ops/sync-stripe-subscriptions', () => {
 });
 
 describe('OpsRouter /api/ops/create-pricing-v2-prices', () => {
-  it('returns 404 for non-owner callers', async () => {
-    const { url, close } = await startServer(false);
+  it('returns 404 for the ops owner because the route is retired', async () => {
+    const { url, close } = await startServer(true);
     try {
       const response = await fetch(`${url}/api/ops/create-pricing-v2-prices`, {
         method: 'POST',
@@ -329,34 +329,18 @@ describe('OpsRouter /api/ops/create-pricing-v2-prices', () => {
       await close();
     }
   });
+});
 
-  it('returns 200 with per-key results and livemode for the ops owner', async () => {
+describe('OpsRouter /api/ops/send-price-lock-in-emails', () => {
+  it('returns 404 for the ops owner because the route is retired', async () => {
     const { url, close } = await startServer(true);
     try {
-      const response = await fetch(`${url}/api/ops/create-pricing-v2-prices`, {
+      const response = await fetch(`${url}/api/ops/send-price-lock-in-emails`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dryRun: true }),
       });
-      expect(response.status).toBe(200);
-      const body = await response.json();
-      expect(body).toEqual({
-        livemode: false,
-        prices: [
-          {
-            lookupKey: 'v2_monthly',
-            status: 'created',
-            priceId: 'price_new',
-            unitAmount: 799,
-            interval: 'month',
-          },
-          {
-            lookupKey: 'v2_annual',
-            status: 'created',
-            priceId: 'price_new',
-            unitAmount: 6400,
-            interval: 'year',
-          },
-        ],
-      });
+      expect(response.status).toBe(404);
     } finally {
       await close();
     }
