@@ -8,17 +8,9 @@ The gate blocks merges when **Security Rating on New Code < A**. Security issues
 
 **Why it's required:** `/check` (tsc + oxlint + Jest + Vitest) does not run SonarCloud's rule engine. Cognitive complexity, nesting depth, redundant type assertions, and accessibility smells are invisible to local tooling — they surface only after the push, after CI runs, after the agent has already declared the work done. Catching them locally costs 30–90 seconds; catching them post-push costs another rebase + force-push + CI cycle.
 
-**One-time setup:**
+**Setup:** `brew install sonar-scanner` (or `npm i -g sonar-scanner`); token from https://sonarcloud.io/account/security → `SONAR_TOKEN` in your shell profile. The `sonarqube` MCP plugin (see `.claude/MCP_README.md`) runs the same rule engine in-loop and is the easier path if it's connected.
 
-```bash
-brew install sonar-scanner          # macOS
-# or
-npm install -g sonar-scanner        # any platform
-```
-
-Get a token from https://sonarcloud.io/account/security and stash it in your shell profile as `SONAR_TOKEN`.
-
-**Per-PR run (from repo root, before `gh pr ready` / before any push that flips a PR ready):**
+**Per-PR run** (repo root, before flipping a PR ready):
 
 ```bash
 pnpm test -- --coverage
@@ -26,9 +18,7 @@ pnpm --filter 2anki-web test -- --coverage
 sonar-scanner -Dsonar.host.url=https://sonarcloud.io
 ```
 
-The scanner reads `sonar-project.properties` for everything else. The report link appears in stdout — click it; resolve any new code smells **before** pushing. If `SONAR_TOKEN` is unset, the scanner posts results anonymously to the PR analysis once `sonar-project.properties` is configured for that — the link still appears.
-
-**If running it locally is impractical** (no token configured, no scanner installed, very small change): say so explicitly in the PR body so reviewers know to expect a Sonar bounce, rather than going silent and then re-pushing 30 minutes later. Don't pretend it was run.
+Scanner reads `sonar-project.properties`; the report link prints to stdout — resolve new smells **before** pushing. Unset `SONAR_TOKEN` still posts anonymously, link still appears. **If running it locally is impractical**, say so in the PR body — don't go silent and re-push 30 min later, and don't pretend it ran.
 
 ## What triggers a security issue
 

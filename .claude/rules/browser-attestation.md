@@ -62,12 +62,7 @@ A green run is the substance behind ticking `- [x] Golden path on localhost:3000
 
 ### Decision: warn, not block (for now)
 
-The spec is **not** wired into the merge gate as a hard requirement, and the hook stays **honor-system and fail-open** (see above). A flaky e2e that blocks every `web/src/` merge is worse than the honor-system gap it would close. The path to blocking:
-
-1. The spec runs green across N consecutive web PRs (run it by hand, or add it as a **non-required** CI job first).
-2. Once flakiness is ruled out, promote it: a required CI check, or teach `check-browser-attestation.py` to confirm a recorded pass rather than just the words.
-
-Until then it is an *available, trusted* run an engineer can point to — not a blocker. Do not change the hook's blocking behaviour or its fail-open property as part of adding the spec.
+The spec is **not** wired into the merge gate; the hook stays **honor-system and fail-open** — a flaky e2e blocking every `web/src/` merge is worse than the gap it closes. Promote it to a blocker only after it runs green across several web PRs (start as a non-required CI job): then make it a required check, or teach `check-browser-attestation.py` to confirm a recorded pass. Until then it's a trusted run an engineer can point to. Do not change the hook's blocking behaviour or fail-open property when adding the spec.
 
 ## Connection to CLAUDE.md
 
