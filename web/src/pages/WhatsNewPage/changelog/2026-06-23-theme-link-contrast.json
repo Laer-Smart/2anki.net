@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-23-theme-link-contrast",
+  "date": "2026-06-23",
+  "type": "fix",
+  "title": "Links in the purple and hot-pink themes are darker so they pass accessibility contrast"
+}

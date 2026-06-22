@@ -24,7 +24,7 @@ The DNA governs the whole `/ankify` surface, not just the deck list: the workspa
 
 ## Color tokens
 No new ramp. Source of truth = `web/src/styles/base.css` (`:root` + the 5 theme blocks: light, dark, gold, purple, pink). Accent = `--color-primary` (#3b82f6), used once per view. Status is the functional triad already defined: `--color-success` (running), `--color-warning` (starting), `--color-text-danger` (error). Tertiary text = the corrected `#838b99`-class value from PR #3341 (distinct from secondary).
-Contrast: inherited from base.css (audited per theme in #3341 — tertiary clears ≥3:1 on every theme background; accent/primary text clears AA).
+Contrast: inherited from base.css (audited per theme in #3341 — tertiary clears ≥3:1 on every theme background; accent/primary text clears AA). This is now machine-enforced: `web/scripts/designTokens.ts` + its colocated test fail the suite if any audited text/background pair drops below its AA floor on any of the 5 themes, and ratchet against new orphaned color tokens. Add a pair to `CONTRAST_PAIRS` when a new on-screen text/bg combination ships.
 
 ## Space, shape, depth
 - Spacing scale: existing `--space-*` (4/8/12/16/20/24/32px). Map ad-hoc rem in `AnkifyPage.module.css` onto it during implementation.
