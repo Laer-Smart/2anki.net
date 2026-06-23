@@ -4,6 +4,8 @@ import { getUploadLimits } from './getUploadLimits';
 import { getMaxUploadCount } from './getMaxUploadCount';
 import { isPaying } from '../isPaying';
 import { decodeMultipartFilename } from './decodeMultipartFilename';
+import { ensureUploadBytes } from '../../usecases/uploads/ensureUploadBytes';
+import { UploadedFile } from '../storage/types';
 
 type UploadHandler = (
   req: express.Request,
@@ -11,7 +13,13 @@ type UploadHandler = (
   callback: (error?: Error) => void
 ) => void;
 
-function withNormalizedFilenames(
+// Snapshot multer's disk-storage bytes the instant the upload finishes writing,
+// before any async hop (auth, settings lookup, the Piscina queue). Multer's
+// `dest` engine gives each file a `path` but no `buffer`; the conversion reads
+// the file later in a worker, and the temp file under UPLOAD_BASE can vanish in
+// the gap. Capturing here — while the file is provably on disk — populates the
+// worker's buffer fallback so the conversion survives the file being reaped.
+export function withNormalizedFilenames(
   handler: express.RequestHandler
 ): UploadHandler {
   return (req, res, callback) => {
@@ -20,14 +28,16 @@ function withNormalizedFilenames(
         callback(error);
         return;
       }
-      const files = req.files as Express.Multer.File[] | undefined;
+      const files = req.files as UploadedFile[] | undefined;
       if (files) {
         for (const file of files) {
           file.originalname = decodeMultipartFilename(file.originalname);
         }
+        ensureUploadBytes(files);
       }
       if (req.file) {
         req.file.originalname = decodeMultipartFilename(req.file.originalname);
+        ensureUploadBytes([req.file as UploadedFile]);
       }
       callback();
     });
