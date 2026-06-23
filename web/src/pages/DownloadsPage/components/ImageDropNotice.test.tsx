@@ -42,8 +42,14 @@ describe('ImageDropNotice', () => {
   it('uses file-oriented copy for the upload source', () => {
     render(<ImageDropNotice count={2} source="upload" />);
     expect(
-      screen.getByText(/links to them in your file most likely expired/)
+      screen.getByText(/links to them on other sites we couldn't reach/)
     ).toBeInTheDocument();
+    expect(screen.getByText(/aren't in this deck/)).toBeInTheDocument();
+  });
+
+  it('says "your decks" for a multi-deck batch upload', () => {
+    render(<ImageDropNotice count={3} source="upload" multipleDecks />);
+    expect(screen.getByText(/aren't in your decks/)).toBeInTheDocument();
   });
 
   it('fires the usage event with the upload source when rendered for an upload', () => {

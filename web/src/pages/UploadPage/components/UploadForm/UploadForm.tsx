@@ -954,7 +954,11 @@ function UploadForm({
         {warning && <p className={formStyles.warningInline}>{warning}</p>}
         {droppedImageCount > 0 && (
           <div className={formStyles.warningInline}>
-            <ImageDropNotice count={droppedImageCount} source="upload" />
+            <ImageDropNotice
+              count={droppedImageCount}
+              source="upload"
+              multipleDecks
+            />
           </div>
         )}
         <ul className={formStyles.deckList}>
