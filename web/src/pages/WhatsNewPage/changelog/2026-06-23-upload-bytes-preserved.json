@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-23-upload-bytes-preserved",
+  "date": "2026-06-23",
+  "type": "fix",
+  "title": "Uploaded files convert reliably even when the temporary copy is cleaned up early"
+}

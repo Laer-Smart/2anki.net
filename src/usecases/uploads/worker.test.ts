@@ -105,6 +105,19 @@ describe('getFileContents', () => {
     );
   });
 
+  it('falls back to the snapshot buffer when the disk file was reaped', () => {
+    // The receipt-time snapshot (GetUploadHandler) populates file.buffer while
+    // the disk path is still set. When the temp file is reaped before the
+    // worker runs, getFileContents must serve the captured bytes, not throw.
+    const snapshot = Buffer.from('snapshot bytes');
+    const file = makeFile({ path: '/tmp/upload-reaped', buffer: snapshot });
+    mockFs.existsSync = jest.fn().mockReturnValue(false);
+
+    const result = getFileContents(file);
+
+    expect(result).toEqual(snapshot);
+  });
+
   it('throws when neither path nor buffer is present', () => {
     const file = makeFile({ path: '', buffer: undefined as never });
 
