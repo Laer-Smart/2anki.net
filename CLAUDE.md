@@ -20,9 +20,9 @@ Every PR is checked against all three — does it make the experience simpler/fa
 - **Color**: reuse `web/src/styles/base.css` tokens (5 themes), one blue accent + the status triad — no new ramp
 - **Constraints**: React, WCAG AA, the 5-theme token system, product restraint (one signature move exempt)
 
-### Business baseline (as of 2026-06-10 — weekly-retro updates this block)
+### Business baseline (as of 2026-06-23 — weekly-retro updates this block)
 
-MRR $1,710 · 763 paying subs · ARPU $2.24 · 18.9%/mo churn (79% lifecycle, not price) · 34 new paid/wk trailing · ~19,580 registered. Read live at `/api/ops/business/metrics` (ops-gated) and Stripe; funnel events at `/api/ops/metrics`.
+MRR $1,823 · 759 paying subs · ARPU $2.40 · 18.2%/mo churn (79% lifecycle, not price) · 16 new paid/wk · 17,861 registered. Read live at `/api/ops/business/metrics` (ops-gated) and Stripe; funnel events at `/api/ops/metrics`.
 Pricing v2 shipped 2026-06-10: $7.99/mo + $64/yr for new members, legacy $6/$60 lock-in until 21 Jun, annual default. Scheduled reads: v2 funnel week of 15 Jun (targets: ≥70 new paid/wk, page→checkout ≥10%, checkout→paid ≥50%); minimal-layout CTR guardrail 24 Jun.
 
 ## Tech stack
