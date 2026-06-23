@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-23-upload-images-skipped",
+  "date": "2026-06-23",
+  "type": "fix",
+  "title": "Uploaded decks now flag when an image couldn't be included, like Notion conversions already do"
+}

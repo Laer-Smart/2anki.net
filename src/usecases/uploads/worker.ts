@@ -180,7 +180,8 @@ async function processFile(
           d.name,
           d.cardCount ?? 0,
           d.mcqCount ?? 0,
-          d.mcqSkippedCount ?? 0
+          d.mcqSkippedCount ?? 0,
+          d.droppedImageCount ?? 0
         )
       );
       if (d.warning) warnings.push(d.warning);

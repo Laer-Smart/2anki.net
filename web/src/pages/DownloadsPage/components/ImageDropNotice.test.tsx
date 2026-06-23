@@ -31,10 +31,26 @@ describe('ImageDropNotice', () => {
     ).toBeInTheDocument();
   });
 
-  it('fires the usage event with the dropped count on mount', () => {
+  it('fires the usage event with the dropped count and notion source on mount', () => {
     render(<ImageDropNotice count={3} />);
     expect(track).toHaveBeenCalledWith('image_drop_notice_shown', {
       dropped_count: 3,
+      source: 'notion',
+    });
+  });
+
+  it('uses file-oriented copy for the upload source', () => {
+    render(<ImageDropNotice count={2} source="upload" />);
+    expect(
+      screen.getByText(/links to them in your file most likely expired/)
+    ).toBeInTheDocument();
+  });
+
+  it('fires the usage event with the upload source when rendered for an upload', () => {
+    render(<ImageDropNotice count={1} source="upload" />);
+    expect(track).toHaveBeenCalledWith('image_drop_notice_shown', {
+      dropped_count: 1,
+      source: 'upload',
     });
   });
 });
