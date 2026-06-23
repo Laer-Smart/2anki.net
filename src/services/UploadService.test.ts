@@ -740,6 +740,58 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
     expect(capturedSend()).toBeNull();
   });
 
+  it('sets X-Dropped-Assets to the summed dropped-image count across packages on a single-deck sync upload', async () => {
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({
+            packages: [
+              {
+                name: 'deck',
+                cardCount: 12,
+                mcqCount: 0,
+                mcqSkippedCount: 0,
+                droppedImageCount: 2,
+              },
+            ],
+            warnings: [],
+          }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
+    const req = buildRequest();
+    const { res, capturedStatus } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(capturedStatus()).toBe(200);
+    expect(res.set).toHaveBeenCalledWith('X-Dropped-Assets', '2');
+  });
+
+  it('does not set X-Dropped-Assets when no images were dropped', async () => {
+    mockPackages([{ name: 'deck', cardCount: 12 }]);
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
+    const req = buildRequest();
+    const { res } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(res.set).not.toHaveBeenCalledWith(
+      'X-Dropped-Assets',
+      expect.anything()
+    );
+  });
+
   it('surfaces a skipped-locked-PDF note on X-Warning when a ZIP entry stays locked', async () => {
     const lockedWarning =
       '2 password-protected PDFs were skipped: Ch1.pdf, Ch2.pdf. Unlock each in Preview or Adobe Reader, save a copy, and upload them on their own.';
@@ -1329,6 +1381,84 @@ describe('UploadService.handleUpload — multi-deck batch', () => {
         props: expect.objectContaining({ source: 'upload' }),
       })
     );
+  });
+
+  it('includes droppedImageCount in the batch JSON when images were dropped across the batch', async () => {
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({
+            packages: [
+              {
+                name: 'Biology 101',
+                cardCount: 3,
+                mcqCount: 0,
+                mcqSkippedCount: 0,
+                droppedImageCount: 1,
+              },
+              {
+                name: 'Chemistry',
+                cardCount: 5,
+                mcqCount: 0,
+                mcqSkippedCount: 0,
+                droppedImageCount: 2,
+              },
+            ],
+            warnings: [],
+          }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
+    const req = buildRequest();
+    const { res, capturedJson } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    const body = capturedJson() as { droppedImageCount?: number };
+    expect(body.droppedImageCount).toBe(3);
+  });
+
+  it('omits droppedImageCount from the batch JSON when no images were dropped', async () => {
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({
+            packages: [
+              {
+                name: 'Biology 101',
+                cardCount: 3,
+                mcqCount: 0,
+                mcqSkippedCount: 0,
+              },
+              {
+                name: 'Chemistry',
+                cardCount: 5,
+                mcqCount: 0,
+                mcqSkippedCount: 0,
+              },
+            ],
+            warnings: [],
+          }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
+    const req = buildRequest();
+    const { res, capturedJson } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    const body = capturedJson() as { droppedImageCount?: number };
+    expect(body.droppedImageCount).toBeUndefined();
   });
 });
 

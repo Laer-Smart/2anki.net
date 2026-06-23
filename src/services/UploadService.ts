@@ -84,6 +84,7 @@ interface BatchUploadResponse {
   decks: BatchDeckResult[];
   bulkUrl: string;
   warning?: string;
+  droppedImageCount?: number;
 }
 
 const MARKDOWN_HEURISTIC_WARNING =
@@ -99,6 +100,10 @@ function resolveUploadWarning(warnings: string[] | undefined): string | null {
     return MARKDOWN_HEURISTIC_WARNING;
   }
   return null;
+}
+
+function sumDroppedImages(packages: { droppedImageCount?: number }[]): number {
+  return packages.reduce((sum, p) => sum + (p.droppedImageCount ?? 0), 0);
 }
 
 function hasSessionToken(req: express.Request): boolean {
@@ -636,6 +641,7 @@ class UploadService {
         (sum, p) => sum + (p.mcqSkippedCount ?? 0),
         0
       );
+      const totalDroppedImageCount = sumDroppedImages(packages);
       res.set('Content-Type', 'application/apkg');
       res.set('Content-Length', plen.toString());
       res.set('X-Card-Count', totalCards.toString());
@@ -647,6 +653,10 @@ class UploadService {
         'X-MCQ-Count',
         'X-MCQ-Skipped-Count',
       ];
+      if (totalDroppedImageCount > 0) {
+        res.set('X-Dropped-Assets', totalDroppedImageCount.toString());
+        exposedHeaders.push('X-Dropped-Assets');
+      }
       const warningText = resolveUploadWarning(warnings);
       if (warningText) {
         res.set('X-Warning', warningText);
@@ -687,12 +697,19 @@ class UploadService {
     }
     return res
       .status(200)
-      .json(await this.buildBatchResponse(ws, resolveUploadWarning(warnings)));
+      .json(
+        await this.buildBatchResponse(
+          ws,
+          resolveUploadWarning(warnings),
+          sumDroppedImages(packages)
+        )
+      );
   }
 
   private async buildBatchResponse(
     ws: Workspace,
-    warning: string | null = null
+    warning: string | null = null,
+    droppedImageCount = 0
   ): Promise<BatchUploadResponse> {
     const apkgFilenames = (await fs.promises.readdir(ws.location)).filter(
       (filename) => filename.endsWith('.apkg')
@@ -709,6 +726,7 @@ class UploadService {
       decks,
       bulkUrl: `/download/${ws.id}/bulk`,
       ...(warning ? { warning } : {}),
+      ...(droppedImageCount > 0 ? { droppedImageCount } : {}),
     };
   }
 

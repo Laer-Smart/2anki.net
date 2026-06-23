@@ -33,6 +33,7 @@ export interface ConversionSuccessHandlers {
   setCardCount: (value: number | null) => void;
   setMcqCount: (value: number) => void;
   setMcqSkippedCount: (value: number) => void;
+  setDroppedImageCount: (value: number) => void;
   setDownloadLink: (value: string | null) => void;
   setProgressWidth: (value: number) => void;
   setBatchResult: (value: BatchResult) => void;
@@ -57,6 +58,7 @@ export async function applyConversionSuccess(
     const body: unknown = await response.json();
     if (isBatchResult(body)) {
       handlers.setBatchResult(body);
+      handlers.setDroppedImageCount(body.droppedImageCount ?? 0);
       handlers.setProgressWidth(100);
       handlers.setZoneState('multiDeck');
       return;
@@ -72,6 +74,9 @@ export async function applyConversionSuccess(
   );
   handlers.setMcqSkippedCount(
     parseNonNegativeIntHeader(response.headers, 'X-MCQ-Skipped-Count')
+  );
+  handlers.setDroppedImageCount(
+    parseNonNegativeIntHeader(response.headers, 'X-Dropped-Assets')
   );
   const blob = await response.blob();
   handlers.setDownloadLink(globalThis.URL.createObjectURL(blob));

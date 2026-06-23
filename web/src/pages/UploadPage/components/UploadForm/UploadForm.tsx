@@ -15,6 +15,7 @@ import {
   type ConversionSuccessHandlers,
 } from './uploadResponse';
 import { getDownloadFileName } from '../../../DownloadsPage/helpers/getDownloadFileName';
+import { ImageDropNotice } from '../../../DownloadsPage/components/ImageDropNotice';
 import { getEmptyDeckChatPrompt } from '../../helpers/getEmptyDeckChatPrompt';
 import { useDrag } from './hooks/useDrag';
 import { useUploadFormState } from './hooks/useUploadFormState';
@@ -266,6 +267,8 @@ function UploadForm({
     setMcqCount,
     mcqSkippedCount,
     setMcqSkippedCount,
+    droppedImageCount,
+    setDroppedImageCount,
     mcqDrawerOpen,
     setMcqDrawerOpen,
     mcqShowAnswer,
@@ -341,6 +344,7 @@ function UploadForm({
     setCardCount,
     setMcqCount,
     setMcqSkippedCount,
+    setDroppedImageCount,
     setDownloadLink,
     setProgressWidth,
     setBatchResult,
@@ -892,6 +896,11 @@ function UploadForm({
       {warningMessage && (
         <p className={formStyles.warningInline}>{warningMessage}</p>
       )}
+      {droppedImageCount > 0 && (
+        <div className={formStyles.warningInline}>
+          <ImageDropNotice count={droppedImageCount} source="upload" />
+        </div>
+      )}
       {showFallback && (
         <button
           type="button"
@@ -943,6 +952,15 @@ function UploadForm({
           {deckCount} {deckCount === 1 ? 'deck' : 'decks'} ready
         </p>
         {warning && <p className={formStyles.warningInline}>{warning}</p>}
+        {droppedImageCount > 0 && (
+          <div className={formStyles.warningInline}>
+            <ImageDropNotice
+              count={droppedImageCount}
+              source="upload"
+              multipleDecks
+            />
+          </div>
+        )}
         <ul className={formStyles.deckList}>
           {decks.map((deck) => (
             <li key={deck.filename} className={formStyles.deckRow}>

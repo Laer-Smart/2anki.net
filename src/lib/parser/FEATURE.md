@@ -64,6 +64,8 @@ Two entry points when enabled: `DeckParser.extractCards()` classifies a Notion t
 
 **Count threading:** `DeckParser.extractCards()` returns `{ cards, mcqCount, mcqSkippedCount }`. These are stored on the `Deck` object and summed in `PrepareDeck`, then sent as `X-MCQ-Count` / `X-MCQ-Skipped-Count` response headers.
 
+**Dropped-image threading:** `DeckParser.droppedRemoteImageCount` increments once in `embedRemoteImage` whenever a remote `<img>` fetch returns null (attempted-and-failed only — a local/zip-recovered image or an external link never reaches that drop). `PrepareDeck`/`prepareDeckInfoOnly` carry it out as `droppedImageCount`, `getPackagesFromZip` and the upload worker put it on each `Package`, and `UploadService` sums it across packages — `X-Dropped-Assets` on a single-deck sync response, `droppedImageCount` on the batch JSON. The Upload page renders the shared `ImageDropNotice` (source `upload`) from that count, mirroring the Notion-path notice. Claude-branch conversions never run `embedRemoteImage`, so their count is 0.
+
 **Authoring guide:** `web/src/pages/DocsPage/content/cards/mcq.md` — user-facing guide rendered at `/documentation/cards/mcq`. Update both the body and the brief MCQ section in `card-types.md` when the detection contract changes.
 
 ## Block-decision classifier (`intent/`)

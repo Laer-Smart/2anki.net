@@ -119,6 +119,8 @@ export class DeckParser {
 
   usedHeuristic: boolean;
 
+  droppedRemoteImageCount: number;
+
   workspace: Workspace;
   customExporter: CustomExporter;
 
@@ -132,6 +134,7 @@ export class DeckParser {
     this.firstDeckName = input.name;
     this.noLimits = input.noLimits;
     this.usedHeuristic = false;
+    this.droppedRemoteImageCount = 0;
     this.payload = [];
     this.workspace = input.workspace ?? new Workspace(true, 'fs');
     this.customExporter = new CustomExporter(
@@ -674,7 +677,10 @@ export class DeckParser {
     } catch {
       console.warn(`Failed to fetch remote image ${url}`);
     }
-    if (bytes == null) return;
+    if (bytes == null) {
+      this.droppedRemoteImageCount++;
+      return;
+    }
 
     const newName = remoteImageFilename(url, bytes);
     this.customExporter.addMedia(newName, bytes);

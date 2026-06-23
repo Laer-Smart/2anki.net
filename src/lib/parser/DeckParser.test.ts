@@ -1705,6 +1705,14 @@ describe('remote image rehosting', () => {
     expect(card.media).toContain(localName);
   });
 
+  test('does not count a successfully embedded remote image as dropped', async () => {
+    const ws = new Workspace(true, 'fs');
+    const parser = buildRemoteImageParser();
+    await parser.writeDeckInfo(ws);
+
+    expect(parser.droppedRemoteImageCount).toBe(0);
+  });
+
   test('keeps the original URL when the download fails so the card is never worse', async () => {
     downloadMediaOrSkipMock.mockResolvedValueOnce(null);
     const ws = new Workspace(true, 'fs');
@@ -1716,6 +1724,15 @@ describe('remote image rehosting', () => {
       'prod-files-secure.s3.us-west-2.amazonaws.com/ws/file/diagram.png'
     );
     expect(card.media).toHaveLength(0);
+  });
+
+  test('counts a remote image that could not be downloaded as dropped', async () => {
+    downloadMediaOrSkipMock.mockResolvedValueOnce(null);
+    const ws = new Workspace(true, 'fs');
+    const parser = buildRemoteImageParser();
+    await parser.writeDeckInfo(ws);
+
+    expect(parser.droppedRemoteImageCount).toBe(1);
   });
 });
 

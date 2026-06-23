@@ -24,6 +24,7 @@ export interface BatchResult {
   decks: BatchDeck[];
   bulkUrl: string;
   warning?: string;
+  droppedImageCount?: number;
 }
 
 export interface LockedPdfInfo {
@@ -45,6 +46,7 @@ export function useUploadFormState(onReset: () => void) {
   const [cardCount, setCardCount] = useState<number | null>(null);
   const [mcqCount, setMcqCount] = useState<number>(0);
   const [mcqSkippedCount, setMcqSkippedCount] = useState<number>(0);
+  const [droppedImageCount, setDroppedImageCount] = useState<number>(0);
   const [mcqDrawerOpen, setMcqDrawerOpen] = useState(false);
   const [mcqShowAnswer, setMcqShowAnswer] = useState(false);
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
@@ -78,6 +80,7 @@ export function useUploadFormState(onReset: () => void) {
     setCardCount(null);
     setMcqCount(0);
     setMcqSkippedCount(0);
+    setDroppedImageCount(0);
     setMcqDrawerOpen(false);
     setMcqShowAnswer(false);
     setWarningMessage(null);
@@ -116,6 +119,8 @@ export function useUploadFormState(onReset: () => void) {
     setMcqCount,
     mcqSkippedCount,
     setMcqSkippedCount,
+    droppedImageCount,
+    setDroppedImageCount,
     mcqDrawerOpen,
     setMcqDrawerOpen,
     mcqShowAnswer,

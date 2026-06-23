@@ -68,6 +68,7 @@ interface PrepareDeckResult {
   mcqCount: number;
   mcqSkippedCount: number;
   warning?: string;
+  droppedImageCount: number;
 }
 
 async function convertFile(
@@ -440,6 +441,7 @@ export async function PrepareDeck(
       cardCount: claudeCardCount,
       mcqCount: 0,
       mcqSkippedCount: 0,
+      droppedImageCount: 0,
     };
   }
 
@@ -459,6 +461,7 @@ export async function PrepareDeck(
         mcqCount: 0,
         mcqSkippedCount: 0,
         warning: parser.usedHeuristic ? 'markdown-heuristic' : undefined,
+        droppedImageCount: parser.droppedRemoteImageCount,
       };
     }
   }
@@ -477,6 +480,7 @@ export async function PrepareDeck(
     mcqCount,
     mcqSkippedCount,
     warning: parser.usedHeuristic ? 'markdown-heuristic' : undefined,
+    droppedImageCount: parser.droppedRemoteImageCount,
   };
 }
 
@@ -490,6 +494,7 @@ export interface DeckInfoOnlyResult {
   mcqCount: number;
   mcqSkippedCount: number;
   warning?: string;
+  droppedImageCount: number;
   needsIndividualBuild: boolean;
 }
 
@@ -522,6 +527,7 @@ export async function prepareDeckInfoOnly(
         mcqCount: 0,
         mcqSkippedCount: 0,
         warning: parser.usedHeuristic ? 'markdown-heuristic' : undefined,
+        droppedImageCount: parser.droppedRemoteImageCount,
         needsIndividualBuild: true,
       };
     }
@@ -549,6 +555,7 @@ export async function prepareDeckInfoOnly(
     mcqCount,
     mcqSkippedCount,
     warning: parser.usedHeuristic ? 'markdown-heuristic' : undefined,
+    droppedImageCount: parser.droppedRemoteImageCount,
     needsIndividualBuild: false,
   };
 }

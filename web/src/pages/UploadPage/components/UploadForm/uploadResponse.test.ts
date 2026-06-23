@@ -16,6 +16,7 @@ function buildHandlers(): ConversionSuccessHandlers {
     setCardCount: vi.fn(),
     setMcqCount: vi.fn(),
     setMcqSkippedCount: vi.fn(),
+    setDroppedImageCount: vi.fn(),
     setDownloadLink: vi.fn(),
     setProgressWidth: vi.fn(),
     setBatchResult: vi.fn(),
@@ -23,11 +24,12 @@ function buildHandlers(): ConversionSuccessHandlers {
   };
 }
 
-function singleDeckResponse(): Response {
+function singleDeckResponse(headers: Record<string, string> = {}): Response {
   return {
     headers: new Headers({
       'Content-Type': 'application/octet-stream',
       'X-Card-Count': '5',
+      ...headers,
     }),
     blob: () => Promise.resolve(new Blob(['fake'])),
   } as unknown as Response;
@@ -86,5 +88,50 @@ describe('applyConversionSuccess', () => {
 
     expect(gtag).not.toHaveBeenCalledWith('event', 'conversion_success');
     expect(handlers.setZoneState).toHaveBeenCalledWith('multiDeck');
+  });
+
+  it('reads the dropped-image count from the X-Dropped-Assets header on a single deck', async () => {
+    const handlers = buildHandlers();
+
+    await applyConversionSuccess(
+      singleDeckResponse({ 'X-Dropped-Assets': '3' }),
+      handlers
+    );
+
+    expect(handlers.setDroppedImageCount).toHaveBeenCalledWith(3);
+  });
+
+  it('sets the dropped-image count to 0 when the X-Dropped-Assets header is absent', async () => {
+    const handlers = buildHandlers();
+
+    await applyConversionSuccess(singleDeckResponse(), handlers);
+
+    expect(handlers.setDroppedImageCount).toHaveBeenCalledWith(0);
+  });
+
+  it('reads droppedImageCount from the batch JSON body', async () => {
+    const handlers = buildHandlers();
+    const response = {
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+      json: () =>
+        Promise.resolve({
+          kind: 'batch',
+          workspaceId: 'ws-1',
+          deckCount: 1,
+          decks: [
+            {
+              name: 'A',
+              filename: 'A.apkg',
+              downloadUrl: '/download/ws-1/A.apkg',
+            },
+          ],
+          bulkUrl: '/download/ws-1/bulk',
+          droppedImageCount: 4,
+        }),
+    } as unknown as Response;
+
+    await applyConversionSuccess(response, handlers);
+
+    expect(handlers.setDroppedImageCount).toHaveBeenCalledWith(4);
   });
 });
