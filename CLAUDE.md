@@ -56,16 +56,21 @@ Pricing v2 shipped 2026-06-10: $7.99/mo + $64/yr for new members, legacy $6/$60 
 
 ## Rules (loaded from .claude/rules/)
 
+Always loaded — hot on most sessions:
+
 @.claude/rules/security.md
 @.claude/rules/testing.md
 @.claude/rules/code-quality.md
-@.claude/rules/email-templates.md
 @.claude/rules/dependencies.md
 @.claude/rules/sonar.md
-@.claude/rules/parallel-pr-coordination.md
 @.claude/rules/support-confidentiality.md
 @.claude/rules/browser-attestation.md
 @.claude/rules/first-time-fix.md
+
+Load on demand — read these when the task touches the named surface (kept out of standing context to save tokens):
+
+- `.claude/rules/email-templates.md` — read before editing any template under `src/services/EmailService/templates/`.
+- `.claude/rules/parallel-pr-coordination.md` — read before kicking off a multi-PR batch (more than two PRs in flight) or running `/spec-draft-pr` more than once in a row.
 
 ## Git
 
@@ -107,12 +112,12 @@ Pricing v2 shipped 2026-06-10: $7.99/mo + $64/yr for new members, legacy $6/$60 
 
 ## Gotchas
 
-- **Oxc binding still missing after the worktree install** (see "Run it" for the install itself)? Re-run `pnpm install --force` or `pnpm rebuild` — do **NOT** `npm pack` the native `.node` into `node_modules/oxfmt/dist/` by hand, and do **NOT** `pnpm add -w @oxfmt/...` (dirties `package.json`/lockfile you then revert). A 2026-06-15 incident burned ~10 calls hand-fetching the darwin-arm64 oxfmt binary; the fix is install up front, not MacGyver mid-session.
+- **Oxc binding still missing after the worktree install** (see "Run it" for the install itself)? Re-run `pnpm install --force` or `pnpm rebuild` — never hand-fetch the native `.node` or `pnpm add -w @oxfmt/...`. Full incident detail and the why lives in `.claude/rules/parallel-pr-coordination.md` (first table row) — don't duplicate it here.
 - **Can't run `oxfmt` locally? Format defensively, don't push and let CI bounce you.** `oxfmt --check` (the `static` CI job's Format step) fails the whole job — and because it scans `src web/src` tree-wide, a single mis-wrapped line costs a full rebase + force-push + CI cycle (~3–5 min). When the formatter won't run in your environment, match the existing file's conventions exactly before pushing: single blank line between top-level blocks (never two), and wrap any string/call argument that pushes a line past the project width onto its own line (oxfmt breaks `expect(x).toHaveAttribute(...)` and `{ message: '<long string>' }` this way). Two real 2026-06-15 bounces — a double blank line before a new `describe` and an over-width `503` JSON message — were both this shape.
 - **The local git `pre-push` hook must NOT run `npm run lint:fix`.** `.git/hooks/` is untracked (never cloned), so this is per-machine. A `lint:fix` line there whole-tree-autofixes on every push, dirtying unrelated files (`DeckParser.ts`, `extractApkg.ts`, `UploadService.ts` recurred all session) whose fixes aren't staged and never ship — pure pollution that forces a `git checkout --` dance before each rebase/commit. Lint/format are already enforced non-destructively by CI (`pnpm lint` + `format:check`) and the Claude pre-push hooks (`oxfmt --check` / `oxlint` on changed files). If a fresh clone or teammate re-adds the `lint:fix` line, strip it.
 - **Never edit `src/data_layer/public/`** — Kanel-generated; rerun `pnpm kanel` instead.
 - The Ankify feature is gated to users with `users.patreon = true` (lifetime) **or** an active `subscriptions` row whose `stripe_product_id` matches `AUTO_SYNC_PRODUCT_ID`. Use `hasAnkifyAccess` from `src/lib/ankify/access.ts` (single source of truth); don't reintroduce hard-coded emails.
-- Notion webhook receiver in `routes/AnkifyWebhookRouter.ts` is intentionally inactive; polling at 5 min carries the story today.
+- Notion webhook receiver in `routes/AnkifyWebhookRouter.ts` is mounted and fully implemented (HMAC-verified, access-gated, dispatches a `trigger: 'webhook'` sync) but unfed: Notion-side auto-registration is deferred, so no production webhooks reach it and polling at 5 min carries the story today. See `src/lib/ankify/FEATURE.md` for the secret/registration shape.
 - The prod box checks out this repo at `/home/alemayhu/src/github.com/2anki/2anki.net` (legacy name).
 - **Writing an email means creating a `.txt` file in the user's Downloads** — `/mnt/c/Users/alexa/Downloads/` on this WSL box (the Windows Downloads, where uploaded `.eml` files land) — not just printing the draft in chat. Use `reply-<name>.txt` for support replies. Offline Downloads files may carry reporter names/emails; commits, PRs, and issues may not (see `.claude/rules/support-confidentiality.md`).
 - **Rendering Notion-hosted file URLs in card output — never pass through the raw URL.** Notion's `file.url` (PDFs, images, audio, file blocks) is a signed S3 URL that expires roughly an hour after generation. A card that embeds the URL directly (`<embed src={url}>`, `<img src={url}>`, `<a href={url}>` as the only delivery) breaks the moment the signature lapses — users see a broken element on every platform. Always route Notion-hosted assets through `BlockHandler.embedImage` / `embedFile` / `embedAudioFile`, which download the bytes via `instrumentedAxios` and bundle them as Anki media (filename = SHA-512 hex digest, no path traversal, durable inside the `.apkg`). External URLs (the user pasted a real third-party URL into Notion — `type === 'external'`) don't expire and render fine as plain links. Discriminate on `block.<type>.type === 'file'` for the download path; `'external'` stays as a link. Heavy assets (PDFs in v1) can be gated behind an opt-in `CardOption` so users decide between `.apkg` bloat and a working file (see #3068 / `downloadPdfs`).
