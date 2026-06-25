@@ -77,6 +77,24 @@ describe('getUploadValidationError', () => {
     expect(error!.message).toContain('invalid');
   });
 
+  test('returns a Pages-specific error for an Apple Pages file', () => {
+    const error = getUploadValidationError([
+      makeFile({ originalname: 'Week 18 notes.pages', size: 183022 }),
+    ]);
+    expect(error).not.toBeNull();
+    expect(error!.message).toContain("We can't read Pages files");
+    expect(error!.message).toContain('Week 18 notes.pages');
+    expect(error!.message).toContain('.docx');
+  });
+
+  test('rejects an uppercase .PAGES file too', () => {
+    const error = getUploadValidationError([
+      makeFile({ originalname: 'NOTES.PAGES', size: 183022 }),
+    ]);
+    expect(error).not.toBeNull();
+    expect(error!.message).toContain("We can't read Pages files");
+  });
+
   test('returns null for .docx file', () => {
     const error = getUploadValidationError([
       makeFile({ originalname: 'exam questions.docx', size: 30264 }),

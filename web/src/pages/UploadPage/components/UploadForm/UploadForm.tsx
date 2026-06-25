@@ -1042,6 +1042,17 @@ function UploadForm({
         </p>
       );
     }
+    if (/\.txt$/i.test(currentFilename())) {
+      return (
+        <p className={formStyles.emptyBody}>
+          No cards in this file. For a text file, put one card per line as
+          question - answer or question = answer, separate the two with a tab,
+          or use a bullet list. See{' '}
+          <a href="/documentation/help/common-problems">common problems</a> for
+          the formats that work.
+        </p>
+      );
+    }
     return (
       <p className={formStyles.emptyBody}>
         No cards were found in this file. Most files need a toggle-list (Notion)

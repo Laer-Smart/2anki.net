@@ -93,3 +93,64 @@ describe('FallbackParser nested lists', () => {
     expect(innerOccurrences).toBe(1);
   });
 });
+
+describe('FallbackParser unstructured text (no tabs, no bullets)', () => {
+  it('creates cards from a .txt of "question - answer" pairs, one per line', () => {
+    const content = 'What is the capital of France? - Paris\nWhat is 2+2? - 4';
+    const parser = new FallbackParser([
+      { name: 'study.txt', contents: Buffer.from(content) },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks).toHaveLength(1);
+    expect(decks[0].cards).toHaveLength(2);
+    expect(decks[0].cards[0].name).toBe('What is the capital of France?');
+    expect(decks[0].cards[0].back).toBe('Paris');
+    expect(decks[0].cards[1].name).toBe('What is 2+2?');
+    expect(decks[0].cards[1].back).toBe('4');
+  });
+
+  it('creates cards from "question = answer" pairs', () => {
+    const content = 'H2O = Water\nNaCl = Salt';
+    const parser = new FallbackParser([
+      { name: 'chem.txt', contents: Buffer.from(content) },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks).toHaveLength(1);
+    expect(decks[0].cards).toHaveLength(2);
+    expect(decks[0].cards[0].name).toBe('H2O');
+    expect(decks[0].cards[0].back).toBe('Water');
+  });
+
+  it('produces an empty deck for a prose .txt with no card shape', () => {
+    const content =
+      'The mitochondria is the powerhouse of the cell.\nIt produces ATP through respiration.\nThis is just prose with no separators.';
+    const parser = new FallbackParser([
+      { name: 'notes.txt', contents: Buffer.from(content) },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks).toHaveLength(0);
+  });
+
+  it('keeps only the structured card when prose surrounds one pair', () => {
+    const content =
+      'Some introductory prose with no separator.\nWhat is the powerhouse of the cell? - Mitochondria\nMore trailing prose here.';
+    const parser = new FallbackParser([
+      { name: 'mixed.txt', contents: Buffer.from(content) },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks).toHaveLength(1);
+    expect(decks[0].cards).toHaveLength(1);
+    expect(decks[0].cards[0].name).toBe('What is the powerhouse of the cell?');
+    expect(decks[0].cards[0].back).toBe('Mitochondria');
+  });
+
+  it('produces an empty deck for a prose .md export with no bullets', () => {
+    const content =
+      '# My Notes\n\nThis is a paragraph of prose exported from Notion.\nIt has no toggles and no bullet points at all.';
+    const parser = new FallbackParser([
+      { name: 'My Notes.md', contents: Buffer.from(content) },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks).toHaveLength(0);
+  });
+});
