@@ -27,7 +27,7 @@ export function PaywallBanner({ inProgressJob }: PaywallBannerProps) {
     track('paywall_upgrade_clicked', { surface: 'downloads_banner' });
     setPending(true);
     const result = await get2ankiApi().startUnlimitedCheckout(
-      'month',
+      'year',
       undefined,
       'downloads_banner'
     );
