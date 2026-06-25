@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useDialog } from '../../lib/hooks/useDialog';
 import { track } from '../../lib/analytics/track';
 import sharedStyles from '../../styles/shared.module.css';
@@ -22,8 +22,6 @@ const THANKS_TITLE = "You're on the list";
 const THANKS_BODY =
   "Thanks. There's no teams product yet — we're still deciding whether to build it. If we do, you'll be among the first to try it.";
 const DONE_LABEL = 'Done';
-const ERR_PURPOSE_EMPTY = 'Tell us in a few words what these decks are for.';
-const ERR_TEAM_EMPTY = 'Pick how many people will use them.';
 const ERR_SUBMIT_FAILED =
   "Couldn't save that — check your connection and try again.";
 
@@ -43,13 +41,22 @@ export function ProducerCaptureModal({
   const fieldId = useId();
   const [purpose, setPurpose] = useState('');
   const [teamSize, setTeamSize] = useState('');
-  const [purposeTouched, setPurposeTouched] = useState(false);
-  const [teamSizeTouched, setTeamSizeTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitFailed, setSubmitFailed] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const capturedRef = useRef(false);
 
   const dialogRef = useDialog(isOpen, onClose);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setPurpose('');
+    setTeamSize('');
+    setSubmitting(false);
+    setSubmitFailed(false);
+    setSubmitted(false);
+    capturedRef.current = false;
+  }, [isOpen]);
 
   const trimmedPurpose = purpose.trim();
   const isValid = trimmedPurpose !== '' && teamSize !== '';
@@ -59,11 +66,14 @@ export function ProducerCaptureModal({
     setSubmitting(true);
     setSubmitFailed(false);
     try {
-      track('producer_intent_captured', {
-        source,
-        team_size: teamSize,
-        purpose: trimmedPurpose,
-      });
+      if (!capturedRef.current) {
+        track('producer_intent_captured', {
+          source,
+          team_size: teamSize,
+          purpose: trimmedPurpose,
+        });
+        capturedRef.current = true;
+      }
       await onSubmit?.();
       setSubmitted(true);
     } catch {
@@ -74,9 +84,6 @@ export function ProducerCaptureModal({
   };
 
   if (!isOpen) return null;
-
-  const purposeError = purposeTouched && trimmedPurpose === '';
-  const teamSizeError = teamSizeTouched && teamSize === '';
 
   return (
     <dialog
@@ -134,12 +141,7 @@ export function ProducerCaptureModal({
                   rows={3}
                   placeholder={PURPOSE_PLACEHOLDER}
                   onChange={(e) => setPurpose(e.target.value)}
-                  onBlur={() => setPurposeTouched(true)}
-                  aria-invalid={purposeError}
                 />
-                {purposeError && (
-                  <p className={styles.fieldError}>{ERR_PURPOSE_EMPTY}</p>
-                )}
               </div>
 
               <div className={styles.field}>
@@ -151,8 +153,6 @@ export function ProducerCaptureModal({
                   className={sharedStyles.select}
                   value={teamSize}
                   onChange={(e) => setTeamSize(e.target.value)}
-                  onBlur={() => setTeamSizeTouched(true)}
-                  aria-invalid={teamSizeError}
                 >
                   <option value="" disabled>
                     Choose one
@@ -163,9 +163,6 @@ export function ProducerCaptureModal({
                     </option>
                   ))}
                 </select>
-                {teamSizeError && (
-                  <p className={styles.fieldError}>{ERR_TEAM_EMPTY}</p>
-                )}
               </div>
 
               {submitFailed && (
@@ -177,7 +174,7 @@ export function ProducerCaptureModal({
             <div className={sharedStyles.modalFooter}>
               <button
                 type="button"
-                className={sharedStyles.btnSecondary}
+                className={sharedStyles.btnPrimary}
                 onClick={handleSubmit}
                 disabled={!isValid || submitting}
               >

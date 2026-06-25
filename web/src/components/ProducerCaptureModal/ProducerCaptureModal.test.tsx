@@ -76,6 +76,78 @@ describe('ProducerCaptureModal', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('resets to a fresh form when reopened after a successful submit', async () => {
+    const { rerender } = render(
+      <ProducerCaptureModal
+        isOpen
+        source="pricing_page"
+        onClose={vi.fn()}
+        onSubmit={() => Promise.resolve()}
+      />
+    );
+    fillForm();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Join the early-access list' })
+    );
+    expect(await screen.findByText("You're on the list")).toBeInTheDocument();
+
+    rerender(
+      <ProducerCaptureModal
+        isOpen={false}
+        source="pricing_page"
+        onClose={vi.fn()}
+        onSubmit={() => Promise.resolve()}
+      />
+    );
+    rerender(
+      <ProducerCaptureModal
+        isOpen
+        source="pricing_page"
+        onClose={vi.fn()}
+        onSubmit={() => Promise.resolve()}
+      />
+    );
+
+    expect(screen.queryByText("You're on the list")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Join the early-access list' })
+    ).toBeDisabled();
+    expect(screen.getByLabelText('What are you making decks for?')).toHaveValue(
+      ''
+    );
+  });
+
+  it('captures the event only once across a failed-then-retried submit', async () => {
+    let attempt = 0;
+    render(
+      <ProducerCaptureModal
+        isOpen
+        source="heavy_uploader_prompt"
+        onClose={vi.fn()}
+        onSubmit={() => {
+          attempt += 1;
+          return attempt === 1
+            ? Promise.reject(new Error('network'))
+            : Promise.resolve();
+        }}
+      />
+    );
+    fillForm();
+    const submit = () =>
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Join the early-access list' })
+      );
+    submit();
+    expect(
+      await screen.findByText(
+        "Couldn't save that — check your connection and try again."
+      )
+    ).toBeInTheDocument();
+    submit();
+    expect(await screen.findByText("You're on the list")).toBeInTheDocument();
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+  });
+
   it('keeps typed values and shows an inline error when submit fails', async () => {
     render(
       <ProducerCaptureModal
