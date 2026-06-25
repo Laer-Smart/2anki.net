@@ -16,6 +16,17 @@ import { Flashcard, isClozeFlashcard } from './PlainTextParser/types';
 import get16DigitRandomId from '../../../shared/helpers/get16DigitRandomId';
 import { getCardsFromCSV } from '@2anki/csv-to-apkg';
 
+function isStructuredFlashcard(card: Flashcard): boolean {
+  if (isClozeFlashcard(card)) {
+    return true;
+  }
+  return (
+    'back' in card &&
+    typeof card.back === 'string' &&
+    card.back.trim().length > 0
+  );
+}
+
 class FallbackParser {
   constructor(private readonly files: File[]) {}
 
@@ -78,7 +89,7 @@ class FallbackParser {
    * @returns array of bullet points or null if no bullet points found
    */
   getMarkdownBulletLists(markdown: string) {
-    const bulletListRegex = /[-*+][ \t]+.*/g;
+    const bulletListRegex = /^[ \t]*[-*+][ \t]+.*/gm;
     return markdown.match(bulletListRegex);
   }
 
@@ -170,14 +181,47 @@ class FallbackParser {
       };
     }
     const items = this.getMarkdownBulletLists(contents);
-    if (!items) {
+    if (items) {
+      const plainTextParser = new PlainTextParser();
+      const found = plainTextParser.parse(items.join('\n'));
+      return {
+        cards: this.mapCardsToNotes(found),
+        deckName: this.getTitleMarkdown(contents),
+      };
+    }
+    return this.parseUnstructuredText(contents, fileName);
+  }
+
+  /**
+   * Last resort for a .txt/.md file with no tabs and no bullet markers: parse
+   * one card per line so `question - answer` / `question = answer` pairs still
+   * become cards. Each line is fed to PlainTextParser as its own chunk (it
+   * otherwise only splits on blank lines), and only structured cards — a cloze
+   * or a non-empty back — are kept, so a file of plain prose stays an empty
+   * deck instead of producing one junk card.
+   */
+  private parseUnstructuredText(
+    contents: string,
+    fileName: string
+  ): { cards: Note[]; deckName: string } | null {
+    const lines = contents
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+    if (lines.length === 0) {
       return null;
     }
     const plainTextParser = new PlainTextParser();
-    const found = plainTextParser.parse(items.join('\n'));
+    const structured = plainTextParser
+      .parse(lines.join('\n\n'))
+      .filter(isStructuredFlashcard);
+    if (structured.length === 0) {
+      return null;
+    }
+    const title = this.getTitleMarkdown(contents);
     return {
-      cards: this.mapCardsToNotes(found),
-      deckName: this.getTitleMarkdown(contents),
+      cards: this.mapCardsToNotes(structured),
+      deckName: title === 'Default' ? fileName.replace(/\.[^/.]+$/, '') : title,
     };
   }
 

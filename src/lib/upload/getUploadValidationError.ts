@@ -1,5 +1,5 @@
 import { UploadedFile } from '../storage/types';
-import { isAnkiDeckFile } from '../storage/checks';
+import { isAnkiDeckFile, isPagesFile } from '../storage/checks';
 
 interface ValidationOptions {
   allowApkg?: boolean;
@@ -27,6 +27,12 @@ export function getUploadValidationError(
     if (isEmptyFile(file)) {
       return new Error(
         `"${file.originalname}" appears to be empty. Please re-export your file and try again.`
+      );
+    }
+
+    if (isPagesFile(file.originalname)) {
+      return new Error(
+        `We can't read Pages files. Open ${file.originalname} in Apple Pages, export it as PDF, Word (.docx), or HTML, then upload that.`
       );
     }
 

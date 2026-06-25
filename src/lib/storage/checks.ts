@@ -94,6 +94,11 @@ export const isAnkiDeckFile = (
 
 export const isXmlFile = (fileName: string) => /\.xml$/i.test(fileName);
 
+export const isPagesFile = (fileName: string | null | undefined): boolean => {
+  if (typeof fileName !== 'string') return false;
+  return /\.pages$/i.test(fileName);
+};
+
 const ANKI_APP_SNIFF_BYTES = 2048;
 
 export const isAnkiAppExportXml = (

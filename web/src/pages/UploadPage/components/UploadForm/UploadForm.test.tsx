@@ -876,6 +876,49 @@ describe('UploadForm analytics events', () => {
     });
   });
 
+  it('shows text-file-specific empty copy when a .txt yields 0 cards', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 200,
+        headers: new Headers({
+          'Content-Type': 'application/octet-stream',
+          'X-Card-Count': '0',
+        }),
+        blob: () => Promise.resolve(new Blob(['fake'])),
+      })
+    );
+
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
+    const fileInput = container.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    const file = new File(['just prose'], 'study notes.txt', {
+      type: 'text/plain',
+    });
+    Object.defineProperty(fileInput, 'files', {
+      value: [file],
+      configurable: true,
+    });
+
+    const form = container.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
+    });
+
+    await waitFor(() => {
+      const body = container.querySelector('[class*="emptyBody"]');
+      expect(body?.textContent).toContain('No cards in this file.');
+      expect(body?.textContent).toContain('question - answer');
+      expect(body?.textContent).toContain('separate the two with a tab');
+    });
+  });
+
   it('routes a 400 with code=empty_export into the emptyDeck info card', async () => {
     const jsonBody = {
       code: 'empty_export',
