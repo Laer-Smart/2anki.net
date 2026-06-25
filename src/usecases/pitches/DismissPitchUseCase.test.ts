@@ -54,6 +54,16 @@ describe('DismissPitchUseCase', () => {
     expect(repo.store).toHaveLength(2);
   });
 
+  it('saves a dismissal for the producer prompt placement', async () => {
+    const repo = makeInMemoryDismissalRepo();
+    const useCase = new DismissPitchUseCase(repo);
+    await useCase.execute('u1', 'producer_prompt');
+    expect(repo.store[0]).toMatchObject({
+      user_id: 'u1',
+      placement: 'producer_prompt',
+    });
+  });
+
   it('throws when placement value is invalid', async () => {
     const repo = makeInMemoryDismissalRepo();
     const useCase = new DismissPitchUseCase(repo);

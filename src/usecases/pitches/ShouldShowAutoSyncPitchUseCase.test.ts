@@ -74,7 +74,48 @@ describe('ShouldShowAutoSyncPitchUseCase', () => {
       objectId: 'notion-page-id',
       jobType: 'page',
     });
-    expect(result).toEqual({ convertSuccess: false, accountBanner: false });
+    expect(result).toEqual({
+      convertSuccess: false,
+      accountBanner: false,
+      producerPrompt: true,
+    });
+  });
+
+  it('shows the producer prompt even for ankify-access users when not dismissed', async () => {
+    const useCase = new ShouldShowAutoSyncPitchUseCase(
+      makeJobRepo([]),
+      makeDismissalRepo([]),
+      'prod-auto-sync-id'
+    );
+    const result = await useCase.execute({
+      user: makeUserWithAccess(),
+      subscriptions: [],
+      userId: 'u1',
+      objectId: 'notion-page-id',
+      jobType: 'page',
+    });
+    expect(result.producerPrompt).toBe(true);
+  });
+
+  it('hides the producer prompt once producer_prompt is dismissed', async () => {
+    const dismissal = {
+      user_id: 'u1',
+      placement: 'producer_prompt' as PitchPlacement,
+      dismissed_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    };
+    const useCase = new ShouldShowAutoSyncPitchUseCase(
+      makeJobRepo([]),
+      makeDismissalRepo([dismissal]),
+      'prod-auto-sync-id'
+    );
+    const result = await useCase.execute({
+      user: makeUserWithoutAccess(),
+      subscriptions: [],
+      userId: 'u1',
+      objectId: 'notion-page-id',
+      jobType: 'page',
+    });
+    expect(result.producerPrompt).toBe(false);
   });
 
   it('returns false for convertSuccess when no prior job exists', async () => {
