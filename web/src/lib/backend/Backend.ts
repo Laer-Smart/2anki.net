@@ -1199,6 +1199,20 @@ export class Backend {
       throw new Error('Failed to acknowledge message');
     }
   }
+
+  async getPitchEligibility(): Promise<PitchEligibility> {
+    return get(`${this.baseURL}pitches/auto-sync`, { redirect: false });
+  }
+
+  async dismissPitch(placement: string): Promise<void> {
+    await post(`${this.baseURL}pitches/dismiss`, { placement });
+  }
+}
+
+export interface PitchEligibility {
+  convertSuccess: boolean;
+  accountBanner: boolean;
+  producerPrompt: boolean;
 }
 
 export interface DropboxUpload {

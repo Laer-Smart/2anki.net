@@ -14,7 +14,9 @@ import { PassCards } from './components/PassCards';
 import { PricingCard } from './components/PricingCard';
 import { PricingFaq } from './components/PricingFaq';
 import { UnlimitedCard } from './components/UnlimitedCard';
+import { ProducerCaptureModal } from '../../components/ProducerCaptureModal/ProducerCaptureModal';
 import styles from './PricingPage.module.css';
+import sharedStyles from '../../styles/shared.module.css';
 import { getLifetimeLink } from './payment.links';
 import { formatMonthly, LEGACY_UNLIMITED_PRICING } from './pricing.constants';
 import { PRICING_FAQ } from './pricingFaq';
@@ -37,6 +39,7 @@ export default function PricingPage({
   const [dayPassState, setDayPassState] = useState<PassState>('idle');
   const [weekPassState, setWeekPassState] = useState<PassState>('idle');
   const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('year');
+  const [producerModalOpen, setProducerModalOpen] = useState(false);
   const [unlimitedPending, setUnlimitedPending] = useState(false);
   const [unlimitedError, setUnlimitedError] = useState(false);
   const [pricing, setPricing] = useState(LEGACY_UNLIMITED_PRICING);
@@ -324,9 +327,30 @@ export default function PricingPage({
 
       <PricingFaq />
 
+      <section className={styles.educators}>
+        <h2 className={styles.educatorsTitle}>For educators and teams</h2>
+        <p className={styles.educatorsBody}>
+          Making decks for a class, a tutoring group, or a course you sell?
+          We&apos;re exploring tools for people who make decks for others.
+        </p>
+        <button
+          type="button"
+          className={sharedStyles.btnSecondary}
+          onClick={() => setProducerModalOpen(true)}
+        >
+          Tell us what you need
+        </button>
+      </section>
+
       <p className={styles.philosophy}>
         Free works forever. Paid plans support 2anki.net.
       </p>
+
+      <ProducerCaptureModal
+        isOpen={producerModalOpen}
+        source="pricing_page"
+        onClose={() => setProducerModalOpen(false)}
+      />
     </div>
   );
 }

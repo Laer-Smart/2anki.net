@@ -213,6 +213,26 @@
   line-height: var(--leading-relaxed);
 }
 
+.educators {
+  margin: 2.5rem auto 0;
+  max-width: 540px;
+  text-align: center;
+}
+
+.educatorsTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.educatorsBody {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+  margin: 0 0 1rem;
+}
+
 /* =====================================================================
    CARD BASE
    ===================================================================== */

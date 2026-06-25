@@ -40,6 +40,7 @@ import { ConversionResult } from './components/ConversionResult/ConversionResult
 import { TruncationNotice } from './components/TruncationNotice';
 import { parseTruncationPayload } from './helpers/parseTruncationPayload';
 import { ImageDropNotice } from './components/ImageDropNotice';
+import { ProducerPrompt } from './components/ProducerPrompt';
 import { parseDroppedAssetsPayload } from './helpers/parseDroppedAssetsPayload';
 import { parseMonthlyLimitPayload } from './components/ConversionResult/parseMonthlyLimitPayload';
 import styles from './DownloadsPage.module.css';
@@ -939,6 +940,8 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
               )}
 
               {showDeckFeedback && <DeckFeedbackPrompt />}
+
+              <ProducerPrompt uploads={uploads ?? []} />
 
               <div
                 style={{
