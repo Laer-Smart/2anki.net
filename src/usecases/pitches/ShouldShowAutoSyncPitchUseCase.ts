@@ -9,6 +9,7 @@ const NOTION_JOB_TYPES = new Set(['page', 'database']);
 const MS_90_DAYS = 90 * 24 * 60 * 60 * 1000;
 const MS_30_DAYS = 30 * 24 * 60 * 60 * 1000;
 const MS_60_DAYS = 60 * 24 * 60 * 60 * 1000;
+const MS_100_YEARS = 100 * 365 * 24 * 60 * 60 * 1000;
 
 interface JobLookupPort {
   findPriorNotionJobByOwnerAndObjectId(
@@ -44,6 +45,7 @@ interface ExecuteParams {
 interface PitchResult {
   convertSuccess: boolean;
   accountBanner: boolean;
+  producerPrompt: boolean;
 }
 
 export class ShouldShowAutoSyncPitchUseCase {
@@ -56,8 +58,10 @@ export class ShouldShowAutoSyncPitchUseCase {
   async execute(params: ExecuteParams): Promise<PitchResult> {
     const { user, subscriptions, userId, objectId, jobType } = params;
 
+    const producerPrompt = await this.checkProducerPrompt(userId);
+
     if (hasAnkifyAccess(user, subscriptions, this.autoSyncProductId)) {
-      return { convertSuccess: false, accountBanner: false };
+      return { convertSuccess: false, accountBanner: false, producerPrompt };
     }
 
     const [convertSuccess, accountBanner] = await Promise.all([
@@ -65,7 +69,16 @@ export class ShouldShowAutoSyncPitchUseCase {
       this.checkAccountBanner(userId),
     ]);
 
-    return { convertSuccess, accountBanner };
+    return { convertSuccess, accountBanner, producerPrompt };
+  }
+
+  private async checkProducerPrompt(userId: string): Promise<boolean> {
+    const dismissed = await this.dismissalRepo.findActiveDismissal(
+      userId,
+      'producer_prompt',
+      MS_100_YEARS
+    );
+    return dismissed == null;
   }
 
   private async checkConvertSuccess(

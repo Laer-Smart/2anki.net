@@ -7,6 +7,7 @@ import type { PitchPlacement } from '../data_layer/PitchDismissalsRepository';
 const VALID_PLACEMENTS: PitchPlacement[] = [
   'convert_success',
   'account_banner',
+  'producer_prompt',
 ];
 
 export class PitchController {

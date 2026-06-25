@@ -1,6 +1,9 @@
 import { Knex } from 'knex';
 
-export type PitchPlacement = 'convert_success' | 'account_banner';
+export type PitchPlacement =
+  | 'convert_success'
+  | 'account_banner'
+  | 'producer_prompt';
 
 export interface PitchDismissal {
   id: number;

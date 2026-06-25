@@ -60,6 +60,30 @@ describe('TrackEventUseCase', () => {
     expect(call[0][0].props).toEqual({ source: 'notion' });
   });
 
+  it('keeps producer_intent_captured prop keys through ingestion', async () => {
+    const { repo } = makeFakeRepository();
+    const sink = new EventsSink(repo, { flushThreshold: 1 });
+    const useCase = new TrackEventUseCase(sink);
+    useCase.execute({
+      name: 'producer_intent_captured',
+      unknown: false,
+      userId: 42,
+      anonymousId: null,
+      props: {
+        source: 'pricing_page',
+        team_size: '2–10',
+        purpose: 'MCAT tutoring for a cohort of students',
+      },
+    });
+    await sink.flush();
+    const [call] = (repo.insertEvents as jest.Mock).mock.calls;
+    expect(call[0][0].props).toEqual({
+      source: 'pricing_page',
+      team_size: '2–10',
+      purpose: 'MCAT tutoring for a cohort of students',
+    });
+  });
+
   it('throws when props exceed 1KB', () => {
     const { repo } = makeFakeRepository();
     const sink = new EventsSink(repo);
