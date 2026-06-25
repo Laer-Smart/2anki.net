@@ -417,11 +417,14 @@ describe('PricingPage anonymous upgrade-click tracking', () => {
     mockUseCardUsage.mockReturnValue(null);
   });
 
-  it('tracks paywall_upgrade_clicked then redirects to login for an anonymous Day Pass click', async () => {
+  it('starts an anonymous Day Pass checkout without a login detour', async () => {
     const { track } = await import('../../lib/analytics/track');
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
     mockStartPassCheckout.mockClear();
+    mockStartPassCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.test/anon-day',
+    });
     Object.defineProperty(globalThis, 'location', {
       writable: true,
       value: { href: '' },
@@ -435,15 +438,26 @@ describe('PricingPage anonymous upgrade-click tracking', () => {
       plan: 'day_pass',
       variant: 'minimal',
     });
-    expect(globalThis.location.href).toBe('/login?redirect=/pricing');
-    expect(mockStartPassCheckout).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockStartPassCheckout).toHaveBeenCalledWith(
+        '24h',
+        'minimal',
+        'pricing_page'
+      );
+      expect(globalThis.location.href).toBe(
+        'https://checkout.stripe.test/anon-day'
+      );
+    });
   });
 
-  it('tracks paywall_upgrade_clicked then redirects to login for an anonymous Week Pass click', async () => {
+  it('starts an anonymous Week Pass checkout without a login detour', async () => {
     const { track } = await import('../../lib/analytics/track');
     const trackMock = vi.mocked(track);
     trackMock.mockClear();
     mockStartPassCheckout.mockClear();
+    mockStartPassCheckout.mockResolvedValue({
+      url: 'https://checkout.stripe.test/anon-week',
+    });
     Object.defineProperty(globalThis, 'location', {
       writable: true,
       value: { href: '' },
@@ -457,8 +471,16 @@ describe('PricingPage anonymous upgrade-click tracking', () => {
       plan: 'week_pass',
       variant: 'minimal',
     });
-    expect(globalThis.location.href).toBe('/login?redirect=/pricing');
-    expect(mockStartPassCheckout).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockStartPassCheckout).toHaveBeenCalledWith(
+        '7d',
+        'minimal',
+        'pricing_page'
+      );
+      expect(globalThis.location.href).toBe(
+        'https://checkout.stripe.test/anon-week'
+      );
+    });
   });
 
   it('tracks paywall_upgrade_clicked then redirects to login for an anonymous Unlimited click', async () => {

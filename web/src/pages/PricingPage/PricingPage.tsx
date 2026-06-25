@@ -132,10 +132,6 @@ export default function PricingPage({
       plan: kind === '24h' ? 'day_pass' : 'week_pass',
       variant: pricingOrder,
     });
-    if (!isLoggedIn) {
-      globalThis.location.href = '/login?redirect=/pricing';
-      return;
-    }
     if (kind === '24h') {
       setDayPassState('pending');
     } else {

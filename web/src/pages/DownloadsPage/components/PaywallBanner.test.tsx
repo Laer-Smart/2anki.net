@@ -207,7 +207,7 @@ describe('PaywallBanner', () => {
     });
 
     expect(startUnlimitedCheckout).toHaveBeenCalledWith(
-      'month',
+      'year',
       undefined,
       'downloads_banner'
     );
