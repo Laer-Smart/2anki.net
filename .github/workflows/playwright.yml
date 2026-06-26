@@ -39,7 +39,7 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -48,7 +48,7 @@ jobs:
         run: pnpm --filter 2anki-web exec playwright install --with-deps chromium
       - name: Cache dist
         id: dist-cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: web/build
           key: dist-${{ runner.os }}-${{ hashFiles('web/src/**', 'web/public/**', 'web/index.html', 'web/vite.config.*', 'web/tsconfig*', 'pnpm-lock.yaml') }}
