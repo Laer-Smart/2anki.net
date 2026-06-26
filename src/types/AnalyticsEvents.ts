@@ -85,6 +85,7 @@ export const KNOWN_EVENTS = new Set([
   'ankify_review_session_exited',
   'image_drop_notice_shown',
   'producer_intent_captured',
+  'producer_entry_viewed',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;
