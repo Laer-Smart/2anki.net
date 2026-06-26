@@ -15,6 +15,7 @@ import { PricingCard } from './components/PricingCard';
 import { PricingFaq } from './components/PricingFaq';
 import { UnlimitedCard } from './components/UnlimitedCard';
 import { ProducerCaptureModal } from '../../components/ProducerCaptureModal/ProducerCaptureModal';
+import { useInViewOnce } from '../../lib/hooks/useInViewOnce';
 import styles from './PricingPage.module.css';
 import sharedStyles from '../../styles/shared.module.css';
 import { getLifetimeLink } from './payment.links';
@@ -40,6 +41,9 @@ export default function PricingPage({
   const [weekPassState, setWeekPassState] = useState<PassState>('idle');
   const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('year');
   const [producerModalOpen, setProducerModalOpen] = useState(false);
+  const educatorsRef = useInViewOnce<HTMLElement>(() =>
+    track('producer_entry_viewed', { source: 'pricing_page' })
+  );
   const [unlimitedPending, setUnlimitedPending] = useState(false);
   const [unlimitedError, setUnlimitedError] = useState(false);
   const [pricing, setPricing] = useState(LEGACY_UNLIMITED_PRICING);
@@ -327,7 +331,7 @@ export default function PricingPage({
 
       <PricingFaq />
 
-      <section className={styles.educators}>
+      <section ref={educatorsRef} className={styles.educators}>
         <h2 className={styles.educatorsTitle}>For educators and teams</h2>
         <p className={styles.educatorsBody}>
           Making decks for a class, a tutoring group, or a course you sell?

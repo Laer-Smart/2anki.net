@@ -668,4 +668,18 @@ describe('PricingPage Unlimited billing toggle', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
   });
+
+  it('fires producer_entry_viewed once when the educators section is seen', async () => {
+    const { track } = await import('../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+    renderAt('/pricing');
+    await waitFor(() =>
+      expect(
+        trackMock.mock.calls.filter(
+          ([name]) => name === 'producer_entry_viewed'
+        )
+      ).toEqual([['producer_entry_viewed', { source: 'pricing_page' }]])
+    );
+  });
 });

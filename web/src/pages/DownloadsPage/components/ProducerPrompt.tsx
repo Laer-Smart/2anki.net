@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { ProducerCaptureModal } from '../../../components/ProducerCaptureModal/ProducerCaptureModal';
+import { track } from '../../../lib/analytics/track';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import UserUpload from '../../../lib/interfaces/UserUpload';
 import { isHeavyUploader } from '../helpers/producerUploadGate';
@@ -21,6 +22,14 @@ export function ProducerPrompt({
   const [eligible, setEligible] = useState<boolean | null>(null);
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const viewFiredRef = useRef(false);
+
+  useEffect(() => {
+    if (heavy && eligible === true && !viewFiredRef.current) {
+      viewFiredRef.current = true;
+      track('producer_entry_viewed', { source: 'heavy_uploader_prompt' });
+    }
+  }, [heavy, eligible]);
 
   useEffect(() => {
     if (!heavy) return;
