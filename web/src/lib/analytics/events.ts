@@ -12,6 +12,7 @@ export const KNOWN_EVENTS = new Set([
   'upload_empty_deck_chat_engaged',
   'paywall_shown',
   'paywall_upgrade_clicked',
+  'paywall_pass_clicked',
   'purchase',
   'photo_entry_point_viewed',
   'photo_entry_point_clicked',

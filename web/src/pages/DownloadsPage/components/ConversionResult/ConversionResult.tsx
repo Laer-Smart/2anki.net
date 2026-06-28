@@ -1,11 +1,25 @@
-import { type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
 import { Link } from 'react-router-dom';
 import { classifyUploadError } from '../../../../components/errors/helpers/getErrorMessage';
 import { parseAmbiguousColumnsPayload } from '../../../../lib/fieldMapping/types';
-import { getSubscribeLink } from '../../../PricingPage/payment.links';
+import {
+  getSubscribeLink,
+  PASS_PRICES,
+} from '../../../PricingPage/payment.links';
+import { get2ankiApi } from '../../../../lib/backend/get2ankiApi';
+import { track } from '../../../../lib/analytics/track';
+import { formatResetDate } from './formatResetDate';
 import type { UploadErrorBody } from '../../../../types/UploadErrorBody';
 import sharedStyles from '../../../../styles/shared.module.css';
 import styles from './ConversionResult.module.css';
+
+const PAYWALL_SURFACE = 'downloads-limit';
 
 type Source = 'notion' | 'upload' | 'dropbox' | 'drive';
 
@@ -25,6 +39,8 @@ interface PaywalledProps {
   variant: 'paywalled';
   title: string | null;
   limit: number;
+  cardsUsed: number;
+  resetOn?: string;
   email?: string;
 }
 
@@ -38,31 +54,102 @@ interface FailedProps {
 
 type ConversionResultProps = ProcessingProps | PaywalledProps | FailedProps;
 
+function buildPaywallHeadline(cardsUsed: number, limit: number): string {
+  if (cardsUsed >= limit) {
+    return `You've reached your ${limit} free cards this month`;
+  }
+  return `You've used ${cardsUsed} of your ${limit} free cards this month`;
+}
+
+function buildPaywallBody(resetDate: string | null): string {
+  if (resetDate == null) {
+    return "This conversion would go past your free limit, so it didn't finish. Get a pass to keep converting now.";
+  }
+  return `This conversion would go past your free limit, so it didn't finish. Your free cards refresh on ${resetDate}, or get a pass to keep converting now.`;
+}
+
 function PaywalledVariant({
   limit,
+  cardsUsed,
+  resetOn,
   email,
 }: Omit<PaywalledProps, 'variant' | 'title'>) {
-  const upgradeHref = `${getSubscribeLink(email)}&ref=downloads-paywall`;
+  const shownFiredRef = useRef(false);
+  const [pendingKind, setPendingKind] = useState<'24h' | '7d' | null>(null);
+  const upgradeHref = getSubscribeLink(email);
+  const resetDate = formatResetDate(resetOn);
+
+  useEffect(() => {
+    if (shownFiredRef.current) return;
+    shownFiredRef.current = true;
+    track('paywall_shown', { surface: PAYWALL_SURFACE });
+  }, []);
+
+  const handlePassClick = async (kind: '24h' | '7d') => {
+    track('paywall_pass_clicked', {
+      surface: PAYWALL_SURFACE,
+      plan: kind === '24h' ? 'day' : 'week',
+    });
+    setPendingKind(kind);
+    const result = await get2ankiApi().startPassCheckout(
+      kind,
+      undefined,
+      PAYWALL_SURFACE
+    );
+    if ('url' in result) {
+      globalThis.location.href = result.url;
+      return;
+    }
+    setPendingKind(null);
+  };
+
+  const handleUnlimitedClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (pendingKind != null) {
+      event.preventDefault();
+      return;
+    }
+    track('paywall_upgrade_clicked', {
+      surface: PAYWALL_SURFACE,
+      plan: 'unlimited',
+    });
+  };
 
   return (
     <div className={styles.paywalled}>
       <p className={styles.paywallHeadline}>
-        Your monthly limit: {limit} cards
+        {buildPaywallHeadline(cardsUsed, limit)}
       </p>
-      <p className={styles.paywallBody}>
-        This conversion didn&apos;t finish. Upgrade to keep converting — no cap,
-        no wait.
-      </p>
+      <p className={styles.paywallBody}>{buildPaywallBody(resetDate)}</p>
       <div className={styles.paywallActions}>
+        <button
+          type="button"
+          className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
+          onClick={() => handlePassClick('24h')}
+          disabled={pendingKind != null}
+        >
+          {pendingKind === '24h'
+            ? 'Opening checkout'
+            : `Get Day Pass — ${PASS_PRICES['24h']}`}
+        </button>
+        <button
+          type="button"
+          className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
+          onClick={() => handlePassClick('7d')}
+          disabled={pendingKind != null}
+        >
+          {pendingKind === '7d'
+            ? 'Opening checkout'
+            : `Get Week Pass — ${PASS_PRICES['7d']}`}
+        </button>
         <a
           href={upgradeHref}
-          className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
+          className={styles.seeAllPlans}
+          onClick={handleUnlimitedClick}
+          aria-disabled={pendingKind != null}
+          tabIndex={pendingKind == null ? undefined : -1}
         >
           Upgrade to Unlimited
         </a>
-        <Link to="/pricing" className={styles.seeAllPlans}>
-          See all plans
-        </Link>
       </div>
     </div>
   );
@@ -145,7 +232,14 @@ export function ConversionResult(props: Readonly<ConversionResultProps>) {
   }
 
   if (props.variant === 'paywalled') {
-    return <PaywalledVariant limit={props.limit} email={props.email} />;
+    return (
+      <PaywalledVariant
+        limit={props.limit}
+        cardsUsed={props.cardsUsed}
+        resetOn={props.resetOn}
+        email={props.email}
+      />
+    );
   }
 
   return (

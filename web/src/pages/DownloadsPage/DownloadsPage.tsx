@@ -181,23 +181,39 @@ export function renderJobStatusCell(j: JobResponse, onDownload?: () => void) {
   return <StepIndicator currentStep={step} substep={substep} compact />;
 }
 
+function getFailureToggleLabel(
+  isMonthlyLimit: boolean,
+  isExpanded: boolean
+): string {
+  if (isMonthlyLimit) {
+    return isExpanded
+      ? 'Collapse monthly limit details'
+      : 'Show monthly limit details';
+  }
+  return isExpanded ? 'Collapse failure reason' : 'Show failure reason';
+}
+
 function renderJobStatusWithToggle({
   job,
   isExpanded,
   onToggle,
 }: RenderJobStatusOptions) {
   if (isFailedJob(job.status)) {
+    const isMonthlyLimit =
+      parseMonthlyLimitPayload(job.job_reason_failure) != null;
     return (
       <button
         type="button"
         className={styles.statusToggle}
         onClick={onToggle}
-        aria-label={
-          isExpanded ? 'Collapse failure reason' : 'Show failure reason'
-        }
+        aria-label={getFailureToggleLabel(isMonthlyLimit, isExpanded)}
         aria-expanded={isExpanded}
       >
-        <StatusTag status={job.status as JobStatus} />
+        {isMonthlyLimit ? (
+          <span className={sharedStyles.badge}>Monthly limit reached</span>
+        ) : (
+          <StatusTag status={job.status as JobStatus} />
+        )}
         <span
           className={`${styles.statusChevron} ${isExpanded ? styles.statusChevronExpanded : ''}`}
         >
@@ -231,6 +247,8 @@ function renderFailurePanelContent(
         variant="paywalled"
         title={null}
         limit={monthlyLimit.limit}
+        cardsUsed={monthlyLimit.cards_used}
+        resetOn={monthlyLimit.reset_on}
         email={email}
       />
     );
@@ -303,6 +321,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
   const [expandedFailureJobId, setExpandedFailureJobId] = useState<
     number | string | null
   >(null);
+  const [limitPanelCollapsed, setLimitPanelCollapsed] = useState(false);
   const [mappingModalJob, setMappingModalJob] = useState<JobResponse | null>(
     null
   );
@@ -346,6 +365,17 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
       setExpandedFailureJobId(recentFailedJob.id);
     }
   }, [jobs]);
+
+  useEffect(() => {
+    if (limitPanelCollapsed) return;
+    const limitJob = jobs.find(
+      (j) =>
+        isFailedJob(j.status) &&
+        parseMonthlyLimitPayload(j.job_reason_failure) != null
+    );
+    if (limitJob == null) return;
+    setExpandedFailureJobId((current) => current ?? limitJob.id);
+  }, [jobs, limitPanelCollapsed]);
 
   const setFilter = (value: FilterValue) => {
     const params = new URLSearchParams(searchParams);
@@ -518,7 +548,15 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                           const droppedAssets = parseDroppedAssetsPayload(
                             row.job
                           );
+                          const isMonthlyLimitRow =
+                            isFailed &&
+                            parseMonthlyLimitPayload(
+                              row.job.job_reason_failure
+                            ) != null;
                           const toggleFailurePanel = () => {
+                            if (isMonthlyLimitRow && isExpanded) {
+                              setLimitPanelCollapsed(true);
+                            }
                             setExpandedFailureJobId(
                               isExpanded ? null : row.job.id
                             );
