@@ -621,6 +621,84 @@ describe('DownloadsPage failure reason panel', () => {
   });
 });
 
+describe('DownloadsPage monthly limit panel', () => {
+  const monthlyLimitReason = JSON.stringify({
+    code: 'monthly_limit',
+    cards_used: 56,
+    limit: 100,
+    reset_on: '2026-07-01T00:00:00.000Z',
+  });
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-19T12:00:00Z'));
+    (globalThis as AnalyticsGlobals).hj = vi.fn();
+    (globalThis as AnalyticsGlobals).gtag = vi.fn();
+    mockUploads = [];
+    mockDropboxUploads = [];
+    mockGoogleDriveUploads = [];
+    mockJobs = [
+      buildJob({
+        status: 'failed',
+        title: 'Big deck',
+        last_edited_time: new Date('2026-06-10T11:30:00Z'),
+        created_at: new Date('2026-06-10T11:30:00Z'),
+        job_reason_failure: monthlyLimitReason,
+      }),
+    ];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    delete (globalThis as AnalyticsGlobals).hj;
+    delete (globalThis as AnalyticsGlobals).gtag;
+  });
+
+  it('auto-expands the paywall panel inline on load without any click', () => {
+    renderAt('/downloads');
+    expect(
+      screen.getByText("You've used 56 of your 100 free cards this month")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/Your free cards refresh on 1 July 2026/)
+    ).toBeInTheDocument();
+  });
+
+  it('labels the collapsed chip neutrally instead of the red failed tag', () => {
+    renderAt('/downloads');
+    expect(screen.getByText('Monthly limit reached')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /monthly limit details/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Show failure reason/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('leads the panel with the Day Pass primary CTA', () => {
+    renderAt('/downloads');
+    expect(
+      screen.getByRole('button', { name: 'Get Day Pass — $4' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Get Week Pass — $9' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Upgrade to Unlimited' })
+    ).toBeInTheDocument();
+  });
+
+  it('stays collapsed after the user closes the panel', () => {
+    renderAt('/downloads');
+    fireEvent.click(
+      screen.getByRole('button', { name: /Collapse monthly limit details/i })
+    );
+    expect(
+      screen.queryByText("You've used 56 of your 100 free cards this month")
+    ).not.toBeInTheDocument();
+  });
+});
+
 describe('DownloadsPage notion_token_expired failure panel', () => {
   beforeEach(() => {
     vi.useFakeTimers();
