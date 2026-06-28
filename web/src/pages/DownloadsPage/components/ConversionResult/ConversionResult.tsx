@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
 import { Link } from 'react-router-dom';
 import { classifyUploadError } from '../../../../components/errors/helpers/getErrorMessage';
 import { parseAmbiguousColumnsPayload } from '../../../../lib/fieldMapping/types';
@@ -97,7 +103,11 @@ function PaywalledVariant({
     setPendingKind(null);
   };
 
-  const handleUnlimitedClick = () => {
+  const handleUnlimitedClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (pendingKind != null) {
+      event.preventDefault();
+      return;
+    }
     track('paywall_upgrade_clicked', {
       surface: PAYWALL_SURFACE,
       plan: 'unlimited',
@@ -118,7 +128,7 @@ function PaywalledVariant({
           disabled={pendingKind != null}
         >
           {pendingKind === '24h'
-            ? 'Redirecting…'
+            ? 'Opening checkout'
             : `Get Day Pass — ${PASS_PRICES['24h']}`}
         </button>
         <button
@@ -128,13 +138,15 @@ function PaywalledVariant({
           disabled={pendingKind != null}
         >
           {pendingKind === '7d'
-            ? 'Redirecting…'
+            ? 'Opening checkout'
             : `Get Week Pass — ${PASS_PRICES['7d']}`}
         </button>
         <a
           href={upgradeHref}
           className={styles.seeAllPlans}
           onClick={handleUnlimitedClick}
+          aria-disabled={pendingKind != null}
+          tabIndex={pendingKind == null ? undefined : -1}
         >
           Upgrade to Unlimited
         </a>
