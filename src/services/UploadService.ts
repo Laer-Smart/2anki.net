@@ -18,6 +18,7 @@ import { isLimitError } from '../lib/misc/isLimitError';
 import { handleUploadLimitError } from '../controllers/Upload/helpers/handleUploadLimitError';
 import { getUploadValidationError } from '../lib/upload/getUploadValidationError';
 import { EmptyDeckError } from '../usecases/jobs/EmptyDeckError';
+import { UploadFileUnavailableError } from '../usecases/uploads/UploadFileUnavailableError';
 import { isExpectedClientFault } from '../lib/misc/isExpectedClientFault';
 import {
   MARKDOWN_LIKELY_LOSSY_REASON,
@@ -456,6 +457,21 @@ class UploadService {
             'This export is too large to process in one go. Try splitting it into smaller pages, removing embedded images, or enabling Claude AI in settings to process it in chunks.',
         };
         return res.status(400).json(body);
+      } else if (err instanceof UploadFileUnavailableError) {
+        const owner = getOwner(res);
+        track('conversion_failed', {
+          userId: owner != null ? Number(owner) : null,
+          anonymousId: this.resolveAnonId(req),
+          props: {
+            source: this.resolveUploadSource(req),
+            reason: 'upload_incomplete',
+          },
+        });
+        return res.status(400).json({
+          code: 'upload_incomplete',
+          message:
+            'Your upload didn’t finish, so there was nothing to convert. Upload the file again.',
+        });
       } else if (err instanceof Error && isPdfPasswordSentinel(err.message)) {
         const filename = parsePdfPasswordSentinel(err.message) ?? 'your file';
         return res.status(400).json({

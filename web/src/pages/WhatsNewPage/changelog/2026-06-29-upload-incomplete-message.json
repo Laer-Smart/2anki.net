@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-29-upload-incomplete-message",
+  "date": "2026-06-29",
+  "type": "fix",
+  "title": "Uploads that don't finish now tell you to try again instead of showing a generic error"
+}
