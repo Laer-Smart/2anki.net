@@ -1,4 +1,9 @@
-import { APIErrorCode, APIResponseError } from '@notionhq/client';
+import {
+  APIErrorCode,
+  APIResponseError,
+  RequestTimeoutError,
+  UnknownHTTPResponseError,
+} from '@notionhq/client';
 
 export interface WithRetryOptions {
   maxAttempts?: number;
@@ -28,9 +33,19 @@ const RETRYABLE_NETWORK_CODES = new Set<string>([
   'UND_ERR_HEADERS_TIMEOUT',
 ]);
 
+// Transient HTTP statuses the Notion client surfaces as UnknownHTTPResponseError
+// (no known APIErrorCode) — gateway/upstream blips worth one more attempt.
+const RETRYABLE_HTTP_STATUSES = new Set<number>([429, 500, 502, 503, 504]);
+
 function isRetryable(error: unknown): boolean {
   if (error instanceof APIResponseError) {
     return RETRYABLE_NOTION_CODES.has(error.code);
+  }
+  if (RequestTimeoutError.isRequestTimeoutError(error)) {
+    return true;
+  }
+  if (UnknownHTTPResponseError.isUnknownHTTPResponseError(error)) {
+    return RETRYABLE_HTTP_STATUSES.has(error.status);
   }
   const code = (error as { code?: string })?.code;
   if (typeof code === 'string' && RETRYABLE_NETWORK_CODES.has(code)) {

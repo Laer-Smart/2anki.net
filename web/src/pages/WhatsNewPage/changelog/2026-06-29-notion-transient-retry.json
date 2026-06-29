@@ -1,0 +1,6 @@
+{
+  "id": "2026-06-29-notion-transient-retry",
+  "date": "2026-06-29",
+  "type": "fix",
+  "title": "Notion conversions recover from temporary Notion server errors instead of failing"
+}
