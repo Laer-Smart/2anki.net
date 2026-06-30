@@ -10,6 +10,7 @@ import CardOption from '../../lib/parser/Settings/CardOption';
 import Workspace from '../../lib/parser/WorkSpace';
 import { UploadedFile } from '../../lib/storage/types';
 import { EmptyDeckError } from '../jobs/EmptyDeckError';
+import { UploadFileUnavailableError } from './UploadFileUnavailableError';
 import { UploadGenerationTask } from './uploadGenerationTypes';
 
 const mockRunUploadGeneration = runUploadGeneration as jest.MockedFunction<
@@ -259,6 +260,49 @@ describe('GeneratePackagesUseCase', () => {
 
     expect(err).toBeInstanceOf(EmptyDeckError);
     expect((err as EmptyDeckError).sourceFormat).toBe('markdown');
+  });
+
+  it('rejects with UploadFileUnavailableError when an upload temp file is gone and has no buffer', async () => {
+    const useCase = new GeneratePackagesUseCase();
+    const file = makeFile('lecture.zip');
+    file.path = '/media/storage/uploads/does-not-exist-1234567890';
+    file.buffer = undefined as never;
+
+    const err = await useCase
+      .execute(false, [file], makeSettings(), makeWorkspace())
+      .catch((e: unknown) => e);
+
+    expect(err).toBeInstanceOf(UploadFileUnavailableError);
+    expect((err as UploadFileUnavailableError).filename).toBe('lecture.zip');
+  });
+
+  it('does not dispatch the conversion pool when an upload temp file is unavailable', async () => {
+    const useCase = new GeneratePackagesUseCase();
+    const file = makeFile('lecture.zip');
+    file.path = '/media/storage/uploads/does-not-exist-1234567890';
+    file.buffer = undefined as never;
+
+    await useCase
+      .execute(false, [file], makeSettings(), makeWorkspace())
+      .catch(() => undefined);
+
+    expect(mockRunUploadGeneration).not.toHaveBeenCalled();
+  });
+
+  it('still dispatches when the temp file is gone but a buffer fallback was captured', async () => {
+    mockRunUploadGeneration.mockResolvedValueOnce({
+      ok: true,
+      packages: [],
+      warnings: [],
+    });
+    const useCase = new GeneratePackagesUseCase();
+    const file = makeFile('lecture.zip');
+    file.path = '/media/storage/uploads/does-not-exist-1234567890';
+    file.buffer = Buffer.from('fallback bytes');
+
+    await useCase.execute(false, [file], makeSettings(), makeWorkspace());
+
+    expect(mockRunUploadGeneration).toHaveBeenCalledTimes(1);
   });
 
   it('preserves error name on the rejected Error for non-EmptyDeckError named errors', async () => {
