@@ -47,15 +47,6 @@ The trio is powered by Claude subagents in `.claude/agents/`. Use `/trio <task>`
 
 We'd love your help! See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get started, run the test gate, and submit a PR.
 
-## Supported by
-
-<p>This project is supported by:</p>
-<p>
-  <a href="https://www.digitalocean.com/?utm_medium=opensource&utm_source=2anki">
-    <img src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/SVG/DO_Logo_horizontal_blue.svg" width="201px" alt="DigitalOcean" />
-  </a>
-</p>
-
 ## License
 
 The code is licensed under the [MIT](./LICENSE) Copyright (c) 2020-2026, [Alexander Alemayhu](https://alemayhu.com). See [CREDITS.md](./CREDITS.md) for contributors.
