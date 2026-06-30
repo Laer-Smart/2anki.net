@@ -54,15 +54,19 @@ describe('Footer', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('attributes the DigitalOcean sponsorship with a link to digitalocean.com', () => {
+  it('does not show a DigitalOcean attribution', () => {
     render(<Footer />);
-    const sponsor = screen.getByRole('link', {
-      name: 'Supported by DigitalOcean',
-    });
-    expect(sponsor).toHaveAttribute(
+    expect(
+      screen.queryByRole('link', { name: 'Supported by DigitalOcean' })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByAltText('DigitalOcean')).not.toBeInTheDocument();
+  });
+
+  it('links to the GitHub repository', () => {
+    render(<Footer />);
+    expect(screen.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
       'href',
-      'https://www.digitalocean.com/?utm_medium=opensource&utm_source=2anki'
+      'https://github.com/2anki/server'
     );
-    expect(screen.getByAltText('DigitalOcean')).toBeInTheDocument();
   });
 });

@@ -36,20 +36,6 @@ function Footer() {
         </span>
         <div className={styles.bottomRight}>
           <a
-            href="https://www.digitalocean.com/?utm_medium=opensource&utm_source=2anki"
-            target="_blank"
-            rel="noreferrer"
-            className={styles.sponsor}
-            aria-label="Supported by DigitalOcean"
-          >
-            <span className={styles.sponsorLabel}>Supported by</span>
-            <img
-              src="https://opensource.nyc3.cdn.digitaloceanspaces.com/attribution/assets/SVG/DO_Logo_horizontal_blue.svg"
-              alt="DigitalOcean"
-              className={styles.sponsorLogo}
-            />
-          </a>
-          <a
             href="https://github.com/2anki/server"
             target="_blank"
             rel="noreferrer"
