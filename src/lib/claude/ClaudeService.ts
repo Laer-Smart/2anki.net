@@ -113,6 +113,35 @@ function causeCode(err: unknown): string | undefined {
   return undefined;
 }
 
+const MAX_CHUNK_API_ATTEMPTS = 2;
+const CHUNK_RETRY_BASE_DELAY_MS = 500;
+
+function sleepMs(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// A chunk request can drop mid-stream (the Anthropic SDK does not auto-retry a
+// stream that fails after it started) or hit a transient gateway/overload. These
+// are worth one more attempt; auth/validation/4xx errors are not.
+export function isTransientChunkError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const ctor = error.constructor?.name;
+  if (ctor === 'APIConnectionError' || ctor === 'APIConnectionTimeoutError') {
+    return true;
+  }
+  const status = (error as { status?: unknown }).status;
+  if (typeof status === 'number') {
+    return (
+      status === 408 ||
+      status === 409 ||
+      status === 429 ||
+      status === 529 ||
+      status >= 500
+    );
+  }
+  return false;
+}
+
 function deterministicId(input: string): number {
   const hex = createHash('sha1').update(input).digest('hex').slice(0, 13);
   return Number.parseInt(hex, 16) % 1e13;
@@ -594,8 +623,7 @@ async function generateDeckInfoFromChunk(
   });
 
   const tApi0 = Date.now();
-  let response: Message;
-  try {
+  const runStream = async (): Promise<Message> => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const stream = (client.messages as any).stream({
       model: 'claude-sonnet-4-5',
@@ -619,24 +647,40 @@ async function generateDeckInfoFromChunk(
       }
     });
 
-    response = (await stream.finalMessage()) as Message;
-  } catch (err) {
-    const elapsedMs = Date.now() - tApi0;
-    const error = err instanceof Error ? err : new Error(String(err));
-    const cause = 'cause' in error ? error.cause : undefined;
-    const rootCause =
-      cause instanceof Error && 'cause' in cause ? cause.cause : undefined;
-    console.error('[Claude] API request failed', {
-      elapsedMs,
-      chunkIndex,
-      totalChunks,
-      error: error.message,
-      cause: causeMessage(cause),
-      causeCode: causeCode(cause),
-      rootCause: causeMessage(rootCause),
-      rootCauseCode: causeCode(rootCause),
-    });
-    throw error;
+    return (await stream.finalMessage()) as Message;
+  };
+
+  let response: Message;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      response = await runStream();
+      break;
+    } catch (err) {
+      const elapsedMs = Date.now() - tApi0;
+      const error = err instanceof Error ? err : new Error(String(err));
+      const cause = 'cause' in error ? error.cause : undefined;
+      const rootCause =
+        cause instanceof Error && 'cause' in cause ? cause.cause : undefined;
+      const willRetry =
+        attempt < MAX_CHUNK_API_ATTEMPTS && isTransientChunkError(err);
+      console.error('[Claude] API request failed', {
+        elapsedMs,
+        chunkIndex,
+        totalChunks,
+        attempt,
+        willRetry,
+        error: error.message,
+        cause: causeMessage(cause),
+        causeCode: causeCode(cause),
+        rootCause: causeMessage(rootCause),
+        rootCauseCode: causeCode(rootCause),
+      });
+      if (!willRetry) {
+        throw error;
+      }
+      await sleepMs(CHUNK_RETRY_BASE_DELAY_MS * attempt);
+      onProgress?.(`claude:chunk:${chunkIndex + 1}:${totalChunks}`);
+    }
   }
   const apiMs = Date.now() - tApi0;
 

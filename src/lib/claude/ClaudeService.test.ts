@@ -580,6 +580,38 @@ describe('generateDeckInfo — image-only input', () => {
   });
 });
 
+describe('generateDeckInfo — transient chunk retry', () => {
+  const { APIConnectionError } = jest.requireActual('@anthropic-ai/sdk');
+  const textHtml =
+    '<html><body><h1>Cells</h1><p>The cell is the basic unit of life.</p></body></html>';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockStreamFn.mockReturnValue(mockStream);
+    mockStream.on.mockReturnThis();
+  });
+
+  it('re-issues the stream once when a chunk drops mid-flight, then succeeds', async () => {
+    mockStream.finalMessage
+      .mockRejectedValueOnce(
+        new APIConnectionError({ message: 'socket hang up' })
+      )
+      .mockResolvedValueOnce(fakeResponse());
+
+    const result = await generateDeckInfo(textHtml, []);
+
+    expect(result.length).toBeGreaterThan(0);
+    expect(mockStream.finalMessage).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not retry a non-transient error and surfaces it', async () => {
+    mockStream.finalMessage.mockRejectedValue(new Error('boom'));
+
+    await expect(generateDeckInfo(textHtml, [])).rejects.toThrow('boom');
+    expect(mockStream.finalMessage).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('SYSTEM_PROMPT — Anki math conventions', () => {
   it('specifies \\(...\\) for inline math', () => {
     expect(SYSTEM_PROMPT).toContain('\\(...\\)');
