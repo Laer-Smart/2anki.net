@@ -1,4 +1,9 @@
-import { APIErrorCode, APIResponseError } from '@notionhq/client';
+import {
+  APIErrorCode,
+  APIResponseError,
+  RequestTimeoutError,
+  UnknownHTTPResponseError,
+} from '@notionhq/client';
 import { withRetry } from './withRetry';
 
 function makeApiError(
@@ -13,6 +18,24 @@ function makeApiError(
   err.name = 'APIResponseError';
   err.headers = headers;
   return err as APIResponseError;
+}
+
+function makeUnknownHttpError(status: number): UnknownHTTPResponseError {
+  const err = new Error('unknown http') as any;
+  Object.setPrototypeOf(err, UnknownHTTPResponseError.prototype);
+  err.code = 'notionhq_client_response_error';
+  err.status = status;
+  err.name = 'UnknownHTTPResponseError';
+  err.headers = {};
+  return err as UnknownHTTPResponseError;
+}
+
+function makeRequestTimeoutError(): RequestTimeoutError {
+  const err = new Error('request to Notion API timed out') as any;
+  Object.setPrototypeOf(err, RequestTimeoutError.prototype);
+  err.code = 'notionhq_client_request_timeout';
+  err.name = 'RequestTimeoutError';
+  return err as RequestTimeoutError;
 }
 
 describe('withRetry', () => {
@@ -50,6 +73,42 @@ describe('withRetry', () => {
     const fn = jest
       .fn()
       .mockRejectedValueOnce(networkError)
+      .mockResolvedValueOnce('ok');
+    await withRetry(fn, { maxAttempts: 3, baseDelayMs: 1 });
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries on a 502 bad gateway (UnknownHTTPResponseError)', async () => {
+    const fn = jest
+      .fn()
+      .mockRejectedValueOnce(makeUnknownHttpError(502))
+      .mockResolvedValueOnce('ok');
+    await withRetry(fn, { maxAttempts: 3, baseDelayMs: 1 });
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries on a 504 gateway timeout (UnknownHTTPResponseError)', async () => {
+    const fn = jest
+      .fn()
+      .mockRejectedValueOnce(makeUnknownHttpError(504))
+      .mockResolvedValueOnce('ok');
+    await withRetry(fn, { maxAttempts: 3, baseDelayMs: 1 });
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it('does NOT retry a 4xx UnknownHTTPResponseError', async () => {
+    const err = makeUnknownHttpError(400);
+    const fn = jest.fn().mockRejectedValue(err);
+    await expect(
+      withRetry(fn, { maxAttempts: 3, baseDelayMs: 1 })
+    ).rejects.toBe(err);
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries on a Notion client RequestTimeoutError', async () => {
+    const fn = jest
+      .fn()
+      .mockRejectedValueOnce(makeRequestTimeoutError())
       .mockResolvedValueOnce('ok');
     await withRetry(fn, { maxAttempts: 3, baseDelayMs: 1 });
     expect(fn).toHaveBeenCalledTimes(2);
