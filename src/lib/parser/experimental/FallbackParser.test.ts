@@ -142,6 +142,44 @@ describe('FallbackParser CSV column mapping', () => {
     expect(decks[0].cards[0].name).toBe('Paris, France');
     expect(decks[0].cards[0].back).toBe('Capital of France');
   });
+
+  it('drops a generic Term/Definition header row', () => {
+    const csv = 'Term,Definition\nDog,Animal';
+    const parser = new FallbackParser([
+      { name: 'quizlet.csv', contents: Buffer.from(csv) },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks).toHaveLength(1);
+    expect(decks[0].cards).toHaveLength(1);
+    expect(decks[0].cards[0].name).toBe('Dog');
+    expect(decks[0].cards[0].back).toBe('Animal');
+  });
+});
+
+describe('FallbackParser CSV byte decoding', () => {
+  it('decodes a BOM-less UTF-8 CSV as UTF-8, not Windows-1252', () => {
+    const csv = 'café,drink\n日本語,Japanese';
+    const parser = new FallbackParser([
+      { name: 'unicode.csv', contents: Buffer.from(csv, 'utf8') },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks[0].cards[0].name).toBe('café');
+    expect(decks[0].cards[0].back).toBe('drink');
+    expect(decks[0].cards[1].name).toBe('日本語');
+    expect(decks[0].cards[1].back).toBe('Japanese');
+  });
+
+  it('keeps numeric, leading-zero, and date cells as their literal text', () => {
+    const csv = '007,agent\n1/2/2026,due date';
+    const parser = new FallbackParser([
+      { name: 'codes.csv', contents: Buffer.from(csv) },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks[0].cards[0].name).toBe('007');
+    expect(decks[0].cards[0].back).toBe('agent');
+    expect(decks[0].cards[1].name).toBe('1/2/2026');
+    expect(decks[0].cards[1].back).toBe('due date');
+  });
 });
 
 describe('FallbackParser nested lists', () => {
