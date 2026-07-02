@@ -119,7 +119,7 @@ export class DeckParser {
 
   usedHeuristic: boolean;
 
-  droppedRemoteImageCount: number;
+  droppedImageCount: number;
 
   workspace: Workspace;
   customExporter: CustomExporter;
@@ -134,7 +134,7 @@ export class DeckParser {
     this.firstDeckName = input.name;
     this.noLimits = input.noLimits;
     this.usedHeuristic = false;
-    this.droppedRemoteImageCount = 0;
+    this.droppedImageCount = 0;
     this.payload = [];
     this.workspace = input.workspace ?? new Workspace(true, 'fs');
     this.customExporter = new CustomExporter(
@@ -294,6 +294,8 @@ export class DeckParser {
         if (newName) {
           dom(elem).attr('src', newName);
           media.push(newName);
+        } else {
+          this.droppedImageCount++;
         }
         return;
       }
@@ -309,6 +311,8 @@ export class DeckParser {
         if (newName) {
           dom(elem).attr('src', newName);
           media.push(newName);
+        } else {
+          this.droppedImageCount++;
         }
       }
     });
@@ -640,6 +644,7 @@ export class DeckParser {
         card.media.push(newName);
       } else {
         dom(elem).attr('src', decodedPath.split('/').pop() ?? originalName);
+        this.droppedImageCount++;
       }
       return true;
     }
@@ -658,6 +663,8 @@ export class DeckParser {
       if (newName) {
         dom(elem).attr('src', newName);
         card.media.push(newName);
+      } else {
+        this.droppedImageCount++;
       }
       return true;
     }
@@ -678,7 +685,7 @@ export class DeckParser {
       console.warn(`Failed to fetch remote image ${url}`);
     }
     if (bytes == null) {
-      this.droppedRemoteImageCount++;
+      this.droppedImageCount++;
       return;
     }
 
