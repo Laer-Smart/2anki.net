@@ -19,6 +19,7 @@ export const CARD_OPTION_DEFAULTS: Record<string, string> = {
   'perserve-newlines': 'false',
   'process-pdfs': 'true',
   'pdf-extract-text': 'false',
+  'pdf-page-pairs': 'false',
   'download-pdfs': 'false',
   'page-emoji': 'first_emoji',
   'image-quiz-html-to-anki': 'false',
