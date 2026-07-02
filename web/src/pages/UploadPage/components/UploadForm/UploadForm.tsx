@@ -1257,6 +1257,11 @@ function UploadForm({
               </span>
             ))}
           </div>
+          <span className={formStyles.shapeHint}>
+            Name your columns front and back (or question and answer) so 2anki
+            maps them right — otherwise it uses the first column as the front
+            and the second as the back.
+          </span>
         </>
       )}
     </div>
