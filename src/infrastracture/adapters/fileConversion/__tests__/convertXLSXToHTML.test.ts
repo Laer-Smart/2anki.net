@@ -107,6 +107,17 @@ describe('convertXLSXToHTML header-name mapping', () => {
     expect(html).toContain('<p>4</p>');
   });
 
+  it('detects a term/definition header and maps by name', () => {
+    const buffer = buildXlsxBuffer([
+      ['term', 'definition'],
+      ['Dog', 'Animal'],
+    ]);
+    const html = convertXLSXToHTML(buffer, 'Vocab');
+    expect(html).toContain('<summary>Dog</summary>');
+    expect(html).toContain('<p>Animal</p>');
+    expect(html).not.toContain('<summary>term</summary>');
+  });
+
   it('falls back to positional mapping and drops a generic header row', () => {
     const buffer = buildXlsxBuffer([
       ['Term', 'Definition'],

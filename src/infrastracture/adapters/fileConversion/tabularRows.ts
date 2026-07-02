@@ -7,6 +7,7 @@ const HEADER_CELL_MAX_LENGTH = 40;
 const FIELD_HEADER_PAIRS: ReadonlyArray<readonly [string, string]> = [
   ['front', 'back'],
   ['question', 'answer'],
+  ['term', 'definition'],
 ];
 
 export interface FieldColumns {
@@ -38,10 +39,13 @@ export function cellText(cell: unknown): string {
 }
 
 export function rowsFromBuffer(buffer: Buffer): TabularRow[] {
-  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const workbook = XLSX.read(buffer, { type: 'buffer', codepage: 65001 });
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
-  return XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as TabularRow[];
+  return XLSX.utils.sheet_to_json(worksheet, {
+    header: 1,
+    raw: false,
+  }) as TabularRow[];
 }
 
 export function detectFieldColumns(row: TabularRow): FieldColumns | null {
