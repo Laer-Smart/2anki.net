@@ -84,16 +84,10 @@ const PAGE_LIKE_DECK_TYPES = new Set([
   'child_database',
 ]);
 
-function activeNonPageDeckTypes(
-  rules: ParserRules,
-  splitSectionsIntoDecks: boolean
-): Set<string> {
-  if (splitSectionsIntoDecks) {
-    return new Set(
-      rules.deckTypes().filter((type) => !PAGE_LIKE_DECK_TYPES.has(type))
-    );
-  }
-  return new Set();
+function activeNonPageDeckTypes(rules: ParserRules): Set<string> {
+  return new Set(
+    rules.deckTypes().filter((type) => !PAGE_LIKE_DECK_TYPES.has(type))
+  );
 }
 
 interface PlainTextItem {
@@ -681,10 +675,7 @@ class BlockHandler {
     }
 
     const currentDeckName = toText(getDeckName(parentName, title));
-    const nonPageDeckTypes = activeNonPageDeckTypes(
-      rules,
-      this.settings.splitSectionsIntoDecks
-    );
+    const nonPageDeckTypes = activeNonPageDeckTypes(rules);
 
     // Depth-first traversal: process current page, then children
     if (rules.permitsDeckAsPage() && page) {
