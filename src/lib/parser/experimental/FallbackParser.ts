@@ -14,7 +14,11 @@ import CardOption from '../Settings';
 import { PlainTextParser } from './PlainTextParser/PlainTextParser';
 import { Flashcard, isClozeFlashcard } from './PlainTextParser/types';
 import get16DigitRandomId from '../../../shared/helpers/get16DigitRandomId';
-import { getCardsFromCSV } from '@2anki/csv-to-apkg';
+import {
+  cellText,
+  detectFieldColumns,
+  rowsFromBuffer,
+} from '../../../infrastracture/adapters/fileConversion/tabularRows';
 
 function isStructuredFlashcard(card: Flashcard): boolean {
   if (isClozeFlashcard(card)) {
@@ -229,9 +233,25 @@ class FallbackParser {
     contents: Uint8Array,
     fileName: string
   ): { cards: Note[]; deckName: string; clean: boolean } {
-    const csv = new TextDecoder().decode(contents);
+    const rows = rowsFromBuffer(Buffer.from(contents));
+    const named = rows.length > 0 ? detectFieldColumns(rows[0]) : null;
+    const frontIndex = named?.frontIndex ?? 0;
+    const backIndex = named?.backIndex ?? 1;
+    const dataRows = named ? rows.slice(1) : rows;
+
+    const cards = dataRows
+      .map((row, index) => {
+        const note = new Note(
+          cellText(row[frontIndex]),
+          cellText(row[backIndex])
+        );
+        note.number = index;
+        return note;
+      })
+      .filter((note) => note.name.trim().length > 0);
+
     return {
-      cards: getCardsFromCSV(csv) as Note[],
+      cards,
       deckName: fileName ?? 'Default',
       clean: false,
     };

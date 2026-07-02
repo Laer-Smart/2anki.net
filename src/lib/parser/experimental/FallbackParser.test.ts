@@ -83,6 +83,67 @@ describe('FallbackParser tab-separated text', () => {
   });
 });
 
+describe('FallbackParser CSV column mapping', () => {
+  it('maps front and back by column name when the header order is reversed', () => {
+    const csv = 'back,front\nHello,Bonjour';
+    const parser = new FallbackParser([
+      { name: 'vocab.csv', contents: Buffer.from(csv) },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks).toHaveLength(1);
+    expect(decks[0].cards).toHaveLength(1);
+    expect(decks[0].cards[0].name).toBe('Bonjour');
+    expect(decks[0].cards[0].back).toBe('Hello');
+  });
+
+  it('detects a question/answer header and maps by name', () => {
+    const csv = 'question,answer\nWhat is 2+2?,4';
+    const parser = new FallbackParser([
+      { name: 'math.csv', contents: Buffer.from(csv) },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks).toHaveLength(1);
+    expect(decks[0].cards[0].name).toBe('What is 2+2?');
+    expect(decks[0].cards[0].back).toBe('4');
+  });
+
+  it('keeps the first row as a card when there is no recognizable header', () => {
+    const csv = 'Dog,Animal\nCat,Feline';
+    const parser = new FallbackParser([
+      { name: 'headerless.csv', contents: Buffer.from(csv) },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks).toHaveLength(1);
+    expect(decks[0].cards).toHaveLength(2);
+    expect(decks[0].cards[0].name).toBe('Dog');
+    expect(decks[0].cards[0].back).toBe('Animal');
+    expect(decks[0].cards[1].name).toBe('Cat');
+    expect(decks[0].cards[1].back).toBe('Feline');
+  });
+
+  it('maps column 0 to front and column 1 to back in the positional fallback', () => {
+    const csv = 'H2O,Water\nNaCl,Salt';
+    const parser = new FallbackParser([
+      { name: 'chem.csv', contents: Buffer.from(csv) },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks[0].cards[0].name).toBe('H2O');
+    expect(decks[0].cards[0].back).toBe('Water');
+    expect(decks[0].cards[1].name).toBe('NaCl');
+    expect(decks[0].cards[1].back).toBe('Salt');
+  });
+
+  it('keeps commas inside a quoted field intact', () => {
+    const csv = 'front,back\n"Paris, France",Capital of France';
+    const parser = new FallbackParser([
+      { name: 'geo.csv', contents: Buffer.from(csv) },
+    ]);
+    const decks = parser.run({} as any);
+    expect(decks[0].cards[0].name).toBe('Paris, France');
+    expect(decks[0].cards[0].back).toBe('Capital of France');
+  });
+});
+
 describe('FallbackParser nested lists', () => {
   it('does not double-count items in a nested list', () => {
     const parser = new FallbackParser([]);
