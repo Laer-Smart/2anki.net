@@ -1761,7 +1761,7 @@ describe('local and markdown images that cannot be resolved from the export', ()
     expect(downloadMediaOrSkipMock).not.toHaveBeenCalled();
   });
 
-  test('counts a markdown-heuristic local image missing from the export as dropped', () => {
+  test('counts a markdown-heuristic local image missing from the export as dropped', async () => {
     const md = `## What is the diagram\n\nAnswer ![diagram](missing.png)\n`;
     const ws = new Workspace(true, 'fs');
     const parser = new DeckParser({
@@ -1772,8 +1772,11 @@ describe('local and markdown images that cannot be resolved from the export', ()
       workspace: ws,
     });
 
-    const deck = parser.payload[0];
     expect(parser.usedHeuristic).toBe(true);
+
+    await parser.writeDeckInfo(ws);
+
+    const deck = parser.payload[0];
     expect(parser.droppedImageCount).toBe(1);
     const allMedia = deck.cards.flatMap((c) => c.media);
     expect(allMedia).toHaveLength(0);

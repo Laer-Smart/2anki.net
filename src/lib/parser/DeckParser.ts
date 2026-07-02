@@ -294,8 +294,6 @@ export class DeckParser {
         if (newName) {
           dom(elem).attr('src', newName);
           media.push(newName);
-        } else {
-          this.droppedImageCount++;
         }
         return;
       }
@@ -311,8 +309,6 @@ export class DeckParser {
         if (newName) {
           dom(elem).attr('src', newName);
           media.push(newName);
-        } else {
-          this.droppedImageCount++;
         }
       }
     });
