@@ -7,6 +7,8 @@ import {
 import { FallbackErrorPayload } from '../../lib/errorFallback';
 import { resolveClientIp } from '../../lib/rateLimit/ipHelpers';
 import { buildUnknownPythonErrorContext } from '../../lib/anki/scrubPythonRawOutput';
+import { isLimitError } from '../../lib/misc/isLimitError';
+import { isExpectedClientFault } from '../../lib/misc/isExpectedClientFault';
 
 function sha256(value: string): string {
   return crypto.createHash('sha256').update(value).digest('hex');
@@ -35,7 +37,11 @@ export const makeErrorCaptureMiddleware = (
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    if (isMalformedRequestBody(err)) {
+    if (
+      isMalformedRequestBody(err) ||
+      isLimitError(err) ||
+      isExpectedClientFault(err)
+    ) {
       next(err);
       return;
     }

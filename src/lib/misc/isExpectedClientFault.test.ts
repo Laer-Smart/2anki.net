@@ -18,6 +18,23 @@ describe('isExpectedClientFault', () => {
     expect(isExpectedClientFault(err)).toBe(true);
   });
 
+  it('returns true for a multer client-abort error', () => {
+    expect(isExpectedClientFault(new Error('Request aborted'))).toBe(true);
+  });
+
+  it('returns true for a raw-body aborted request', () => {
+    const err = Object.assign(new Error('request aborted'), {
+      code: 'ECONNABORTED',
+      type: 'request.aborted',
+    });
+    expect(isExpectedClientFault(err)).toBe(true);
+  });
+
+  it('returns true for a request socket reset', () => {
+    const err = Object.assign(new Error('aborted'), { code: 'ECONNRESET' });
+    expect(isExpectedClientFault(err)).toBe(true);
+  });
+
   it('returns false for an ordinary error', () => {
     expect(isExpectedClientFault(new Error('database exploded'))).toBe(false);
   });
