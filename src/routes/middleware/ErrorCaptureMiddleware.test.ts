@@ -245,6 +245,33 @@ describe('makeErrorCaptureMiddleware', () => {
     expect(next).toHaveBeenCalledWith(parseError);
   });
 
+  it('does not record a multer file-size limit error', async () => {
+    const repo = makeRepository();
+    const middleware = makeErrorCaptureMiddleware(repo);
+    const next = makeNext();
+    const limitError = Object.assign(new Error('File too large'), {
+      code: 'LIMIT_FILE_SIZE',
+      name: 'MulterError',
+    });
+
+    await middleware(limitError, makeReq('/api/apkg/pdf'), makeRes(), next);
+
+    expect(repo.inserts).toHaveLength(0);
+    expect(next).toHaveBeenCalledWith(limitError);
+  });
+
+  it('does not record a client-abort error', async () => {
+    const repo = makeRepository();
+    const middleware = makeErrorCaptureMiddleware(repo);
+    const next = makeNext();
+    const abortError = new Error('Request aborted');
+
+    await middleware(abortError, makeReq('/api/apkg/pdf'), makeRes(), next);
+
+    expect(repo.inserts).toHaveLength(0);
+    expect(next).toHaveBeenCalledWith(abortError);
+  });
+
   it('still records a genuine SyntaxError without the body-parser type tag', async () => {
     const repo = makeRepository();
     const middleware = makeErrorCaptureMiddleware(repo);
