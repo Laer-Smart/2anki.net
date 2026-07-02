@@ -1,4 +1,13 @@
+import { APIErrorCode, APIResponseError } from '@notionhq/client';
+
 import NotionAPIWrapper from './NotionAPIWrapper';
+
+function makeApiError(code: string, message: string): APIResponseError {
+  const err = new Error(message);
+  Object.setPrototypeOf(err, APIResponseError.prototype);
+  Object.assign(err, { code, name: 'APIResponseError' });
+  return err as unknown as APIResponseError;
+}
 
 const PAGE = (id: string, title: string) => ({
   object: 'page',
@@ -90,5 +99,81 @@ describe('NotionAPIWrapper.search', () => {
     await wrapper.search('Page');
 
     expect(search.mock.calls.length).toBeLessThanOrEqual(20);
+  });
+
+  test('returns the pages collected so far when a later cursor is invalidated', async () => {
+    const wrapper = new NotionAPIWrapper('test-token', '1');
+    let call = 0;
+    const search = jest.fn(async () => {
+      call += 1;
+      if (call === 1) {
+        return {
+          object: 'list',
+          type: 'page_or_database',
+          results: [PAGE('first', 'First page')],
+          has_more: true,
+          next_cursor: 'cursor-page-2',
+        };
+      }
+      throw makeApiError(
+        APIErrorCode.ValidationError,
+        'The start_cursor provided is invalid: 00000000-0000-0000-0000-000000000000'
+      );
+    });
+    (wrapper as unknown as { notion: { search: unknown } }).notion = {
+      search,
+    } as unknown as NotionAPIWrapper['notion' & keyof NotionAPIWrapper];
+
+    const result = await wrapper.search('First');
+
+    expect(search).toHaveBeenCalledTimes(2);
+    expect(result.results.map((r) => (r as { id: string }).id)).toEqual([
+      'first',
+    ]);
+  });
+
+  test('propagates a cursor validation error thrown on the first page', async () => {
+    const wrapper = new NotionAPIWrapper('test-token', '1');
+    const search = jest.fn(async () => {
+      throw makeApiError(
+        APIErrorCode.ValidationError,
+        'The start_cursor provided is invalid: 00000000-0000-0000-0000-000000000000'
+      );
+    });
+    (wrapper as unknown as { notion: { search: unknown } }).notion = {
+      search,
+    } as unknown as NotionAPIWrapper['notion' & keyof NotionAPIWrapper];
+
+    await expect(wrapper.search('First')).rejects.toMatchObject({
+      code: APIErrorCode.ValidationError,
+    });
+  });
+
+  test('propagates an unrelated validation error thrown mid-pagination', async () => {
+    const wrapper = new NotionAPIWrapper('test-token', '1');
+    let call = 0;
+    const search = jest.fn(async () => {
+      call += 1;
+      if (call === 1) {
+        return {
+          object: 'list',
+          type: 'page_or_database',
+          results: [PAGE('first', 'First page')],
+          has_more: true,
+          next_cursor: 'cursor-page-2',
+        };
+      }
+      throw makeApiError(
+        APIErrorCode.ValidationError,
+        'body.filter.value should be defined'
+      );
+    });
+    (wrapper as unknown as { notion: { search: unknown } }).notion = {
+      search,
+    } as unknown as NotionAPIWrapper['notion' & keyof NotionAPIWrapper];
+
+    await expect(wrapper.search('First')).rejects.toMatchObject({
+      code: APIErrorCode.ValidationError,
+    });
   });
 });

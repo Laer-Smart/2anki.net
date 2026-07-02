@@ -20,6 +20,7 @@ import renderIcon from './helpers/renderIcon';
 import getBlockIcon, { WithIcon } from './blocks/getBlockIcon';
 import { uniqueTimerLabel } from './helpers/uniqueTimerLabel';
 import { withRetry } from './helpers/withRetry';
+import { fetchPageOrStopOnCursorInvalidation } from './helpers/tolerateCursorInvalidation';
 import { collapseDataSourcesToDatabases } from './helpers/collapseDataSourcesToDatabases';
 import type { IBlocksCacheRepository } from '../../data_layer/BlocksCacheRepository';
 import { isValidNotionId } from './isValidNotionId';
@@ -116,17 +117,27 @@ class NotionAPIWrapper {
     );
     console.log('received', response.results.length, 'blocks');
 
+    let paginationTruncated = false;
     if (all && response.has_more && response.next_cursor) {
       while (true) {
-        const { results, next_cursor: nextCursor }: ListBlockChildrenResponse =
-          await withRetry(
-            () =>
-              this.notion.blocks.children.list({
-                block_id: id,
-                start_cursor: response.next_cursor!,
-              }),
-            { label: 'blocks.children.list:page' }
-          );
+        const nextPage = await fetchPageOrStopOnCursorInvalidation(
+          () =>
+            withRetry(
+              () =>
+                this.notion.blocks.children.list({
+                  block_id: id,
+                  start_cursor: response.next_cursor!,
+                }),
+              { label: 'blocks.children.list:page' }
+            ),
+          true,
+          'blocks.children.list'
+        );
+        if (nextPage == null) {
+          paginationTruncated = true;
+          break;
+        }
+        const { results, next_cursor: nextCursor } = nextPage;
         console.log('found more', results.length, 'blocks');
         response.results.push(...results);
         if (nextCursor) {
@@ -139,7 +150,7 @@ class NotionAPIWrapper {
     }
     if (!createdAt || !lastEditedAt) {
       console.log('not enough input block cache');
-    } else if (this.blocksCache) {
+    } else if (this.blocksCache && !paginationTruncated) {
       await this.blocksCache.save({
         id,
         owner: this.owner,
@@ -312,15 +323,24 @@ class NotionAPIWrapper {
     for (const dataSource of dataSources) {
       let cursor: string | null = null;
       do {
-        const response = await withRetry(
-          () =>
-            this.notion.dataSources.query({
-              data_source_id: dataSource.id,
-              page_size: DEFAULT_PAGE_SIZE_LIMIT,
-              ...(cursor ? { start_cursor: cursor } : {}),
-            }),
-          { label: 'dataSources.query' }
-        );
+        const response: QueryDataSourceResponse | null =
+          await fetchPageOrStopOnCursorInvalidation(
+            () =>
+              withRetry(
+                () =>
+                  this.notion.dataSources.query({
+                    data_source_id: dataSource.id,
+                    page_size: DEFAULT_PAGE_SIZE_LIMIT,
+                    ...(cursor ? { start_cursor: cursor } : {}),
+                  }),
+                { label: 'dataSources.query' }
+              ),
+            cursor != null,
+            'dataSources.query'
+          );
+        if (response == null) {
+          break;
+        }
         aggregated.results.push(...response.results);
         cursor = all && response.has_more ? response.next_cursor : null;
       } while (cursor);
@@ -355,20 +375,28 @@ class NotionAPIWrapper {
     }> = [];
     let cursor: string | undefined;
     for (let page = 0; page < maxPages; page++) {
-      const response: SearchResponse = await withRetry(
+      const response = await fetchPageOrStopOnCursorInvalidation(
         () =>
-          this.notion.search({
-            page_size: DEFAULT_PAGE_SIZE_LIMIT,
-            query,
-            filter: { value: 'page', property: 'object' },
-            sort: {
-              direction: 'descending',
-              timestamp: 'last_edited_time',
-            },
-            ...(cursor ? { start_cursor: cursor } : {}),
-          }),
-        { label: 'searchTopLevelPages' }
+          withRetry(
+            () =>
+              this.notion.search({
+                page_size: DEFAULT_PAGE_SIZE_LIMIT,
+                query,
+                filter: { value: 'page', property: 'object' },
+                sort: {
+                  direction: 'descending',
+                  timestamp: 'last_edited_time',
+                },
+                ...(cursor ? { start_cursor: cursor } : {}),
+              }),
+            { label: 'searchTopLevelPages' }
+          ),
+        cursor != null,
+        'searchTopLevelPages'
       );
+      if (response == null) {
+        break;
+      }
       for (const entry of response.results) {
         const e = entry as {
           id: string;
@@ -494,19 +522,27 @@ class NotionAPIWrapper {
 
     let cursor: string | undefined;
     for (let page = 0; page < SEARCH_MAX_PAGES; page++) {
-      const response: SearchResponse = await withRetry(
+      const response = await fetchPageOrStopOnCursorInvalidation(
         () =>
-          this.notion.search({
-            page_size: DEFAULT_PAGE_SIZE_LIMIT,
-            query,
-            sort: {
-              direction: 'descending',
-              timestamp: 'last_edited_time',
-            },
-            ...(cursor ? { start_cursor: cursor } : {}),
-          }),
-        { label: 'search' }
+          withRetry(
+            () =>
+              this.notion.search({
+                page_size: DEFAULT_PAGE_SIZE_LIMIT,
+                query,
+                sort: {
+                  direction: 'descending',
+                  timestamp: 'last_edited_time',
+                },
+                ...(cursor ? { start_cursor: cursor } : {}),
+              }),
+            { label: 'search' }
+          ),
+        cursor != null,
+        'search'
       );
+      if (response == null) {
+        break;
+      }
 
       aggregated.results.push(...response.results);
 
