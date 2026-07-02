@@ -105,13 +105,7 @@ const DEFAULT_USER_INSTRUCTIONS = `Some extra rules and explanations:
 const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
   {
     label: 'Content',
-    keys: [
-      'all',
-      'paragraph',
-      'max-one-toggle-per-card',
-      'perserve-newlines',
-      'split-sections-into-decks',
-    ],
+    keys: ['all', 'paragraph', 'max-one-toggle-per-card', 'perserve-newlines'],
   },
   {
     label: 'Card types',
@@ -160,6 +154,7 @@ const HIDDEN_KEYS = [
   'remove-mp3-links',
   'cloze-from-toggle-content',
   'group-cloze-per-toggle',
+  'split-sections-into-decks',
 ];
 const GROUPED_KEYS = new Set([
   ...OPTION_GROUPS.flatMap((g) => g.keys),
