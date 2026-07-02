@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-02-notion-search-pagination",
+  "date": "2026-07-02",
+  "type": "fix",
+  "title": "Searching your Notion workspace returns results even on large workspaces that span many pages"
+}
