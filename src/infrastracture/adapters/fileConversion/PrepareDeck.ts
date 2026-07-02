@@ -461,7 +461,7 @@ export async function PrepareDeck(
         mcqCount: 0,
         mcqSkippedCount: 0,
         warning: parser.usedHeuristic ? 'markdown-heuristic' : undefined,
-        droppedImageCount: parser.droppedRemoteImageCount,
+        droppedImageCount: parser.droppedImageCount,
       };
     }
   }
@@ -480,7 +480,7 @@ export async function PrepareDeck(
     mcqCount,
     mcqSkippedCount,
     warning: parser.usedHeuristic ? 'markdown-heuristic' : undefined,
-    droppedImageCount: parser.droppedRemoteImageCount,
+    droppedImageCount: parser.droppedImageCount,
   };
 }
 
@@ -527,7 +527,7 @@ export async function prepareDeckInfoOnly(
         mcqCount: 0,
         mcqSkippedCount: 0,
         warning: parser.usedHeuristic ? 'markdown-heuristic' : undefined,
-        droppedImageCount: parser.droppedRemoteImageCount,
+        droppedImageCount: parser.droppedImageCount,
         needsIndividualBuild: true,
       };
     }
@@ -555,7 +555,7 @@ export async function prepareDeckInfoOnly(
     mcqCount,
     mcqSkippedCount,
     warning: parser.usedHeuristic ? 'markdown-heuristic' : undefined,
-    droppedImageCount: parser.droppedRemoteImageCount,
+    droppedImageCount: parser.droppedImageCount,
     needsIndividualBuild: false,
   };
 }

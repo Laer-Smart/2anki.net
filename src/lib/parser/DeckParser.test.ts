@@ -1710,7 +1710,7 @@ describe('remote image rehosting', () => {
     const parser = buildRemoteImageParser();
     await parser.writeDeckInfo(ws);
 
-    expect(parser.droppedRemoteImageCount).toBe(0);
+    expect(parser.droppedImageCount).toBe(0);
   });
 
   test('keeps the original URL when the download fails so the card is never worse', async () => {
@@ -1732,7 +1732,54 @@ describe('remote image rehosting', () => {
     const parser = buildRemoteImageParser();
     await parser.writeDeckInfo(ws);
 
-    expect(parser.droppedRemoteImageCount).toBe(1);
+    expect(parser.droppedImageCount).toBe(1);
+  });
+});
+
+describe('local and markdown images that cannot be resolved from the export', () => {
+  test('counts a toggle-card local image missing from the export as dropped', async () => {
+    const html = `<html><head><title>Deck</title></head><body><article>
+<ul class="toggle"><li><details open="">
+  <summary>What is the diagram?</summary>
+  <div><img src="missing.png" /></div>
+</details></li></ul>
+</article></body></html>`;
+    const ws = new Workspace(true, 'fs');
+    const parser = new DeckParser({
+      name: 'Export-abc/deck.html',
+      settings: new CardOption({ cherry: 'false' }),
+      files: [{ name: 'Export-abc/deck.html', contents: html }],
+      noLimits: true,
+      workspace: ws,
+    });
+
+    await parser.writeDeckInfo(ws);
+
+    const card = parser.payload[0].cards[0];
+    expect(parser.droppedImageCount).toBe(1);
+    expect(card.media).toHaveLength(0);
+    expect(downloadMediaOrSkipMock).not.toHaveBeenCalled();
+  });
+
+  test('counts a markdown-heuristic local image missing from the export as dropped', async () => {
+    const md = `## What is the diagram\n\nAnswer ![diagram](missing.png)\n`;
+    const ws = new Workspace(true, 'fs');
+    const parser = new DeckParser({
+      name: 'notes.md',
+      settings: new CardOption({ cherry: 'false' }),
+      files: [{ name: 'notes.md', contents: md }],
+      noLimits: true,
+      workspace: ws,
+    });
+
+    expect(parser.usedHeuristic).toBe(true);
+
+    await parser.writeDeckInfo(ws);
+
+    const deck = parser.payload[0];
+    expect(parser.droppedImageCount).toBe(1);
+    const allMedia = deck.cards.flatMap((c) => c.media);
+    expect(allMedia).toHaveLength(0);
   });
 });
 
