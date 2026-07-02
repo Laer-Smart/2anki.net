@@ -64,8 +64,6 @@ const FORMATS = [
   '.brainstorms.json',
 ];
 
-const INVITE_LINK = 'https://2anki.net/';
-
 const REJECTED_FALLBACK =
   'The server rejected the upload. Try again or email support@2anki.net.';
 const NETWORK_FALLBACK =
@@ -356,7 +354,6 @@ function UploadForm({
   const isAuthenticated = userLocals?.user?.id != null;
   const [dayPassPending, setDayPassPending] = useState(false);
   const [dayPassError, setDayPassError] = useState<string | null>(null);
-  const [inviteCopied, setInviteCopied] = useState(false);
   const showSignInPrompt = userLocals != null && !isAuthenticated;
   const cardUsage = useCardUsage(isAuthenticated);
   const isUploadLocked =
@@ -850,14 +847,6 @@ function UploadForm({
     </div>
   );
 
-  const handleCopyInvite = () => {
-    navigator.clipboard.writeText(INVITE_LINK).then(() => {
-      setInviteCopied(true);
-      track('invite_link_copied');
-      setTimeout(() => setInviteCopied(false), 1500);
-    });
-  };
-
   const renderSuccessState = () => (
     <div className={formStyles.stateContent}>
       <CheckCircleIcon className={formStyles.iconSuccess} />
@@ -922,15 +911,6 @@ function UploadForm({
       >
         Make another deck
       </button>
-      {isAuthenticated && (
-        <button
-          type="button"
-          className={formStyles.fallbackLink}
-          onClick={handleCopyInvite}
-        >
-          {inviteCopied ? 'Link copied' : 'Copy invite link'}
-        </button>
-      )}
       <div className={formStyles.feedbackPrompt}>
         <p className={formStyles.feedbackLabel}>How was your experience?</p>
         <FeedbackWidget page="/upload" compact />
