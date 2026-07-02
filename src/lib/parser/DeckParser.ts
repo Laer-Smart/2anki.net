@@ -1123,6 +1123,7 @@ export class DeckParser {
     const dom = this.loadDOM(contents);
     const isNewFormat = this.hasNotionNewExportFormat(dom);
     this.normalizeNotionNewExportFormat(dom);
+    this.wrapBareToggleDetails(dom);
     this.applyCodeBlockContainer(dom);
     return { dom, isNewFormat };
   }
@@ -1133,6 +1134,17 @@ export class DeckParser {
       if (code.hasClass('hljs')) return;
       code.html(highlightCode(code.text()));
       code.addClass('hljs');
+    });
+  }
+
+  private wrapBareToggleDetails(dom: cheerio.CheerioAPI): void {
+    dom('details.toggle').each((_, el) => {
+      const $details = dom(el);
+      const $parent = $details.parent();
+      if ($parent.is('li') && $parent.parent().is('ul.toggle')) {
+        return;
+      }
+      $details.wrap('<ul class="toggle"><li></li></ul>');
     });
   }
 

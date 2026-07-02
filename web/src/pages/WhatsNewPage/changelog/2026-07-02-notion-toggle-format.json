@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-02-notion-toggle-format",
+  "date": "2026-07-02",
+  "type": "fix",
+  "title": "Notion pages using toggles convert correctly again after Notion's latest export change, including nested toggles"
+}
