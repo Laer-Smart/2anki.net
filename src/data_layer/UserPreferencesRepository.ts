@@ -44,6 +44,7 @@ export type CardOptions = Partial<{
   'perserve-newlines': string;
   'process-pdfs': string;
   'pdf-extract-text': string;
+  'pdf-page-pairs': string;
   'download-pdfs': string;
   'markdown-nested-bullet-points': string;
   'split-sections-into-decks': string;
@@ -119,6 +120,7 @@ export const ALLOWED_CARD_OPTION_KEYS = new Set([
   'perserve-newlines',
   'process-pdfs',
   'pdf-extract-text',
+  'pdf-page-pairs',
   'download-pdfs',
   'markdown-nested-bullet-points',
   'split-sections-into-decks',

@@ -348,6 +348,23 @@ describe('PrepareDeck — PDF text-vs-image gate', () => {
     expect(convertPdfTextToHtmlAuto).not.toHaveBeenCalled();
     expect(convertPDFToImages).not.toHaveBeenCalled();
   });
+
+  it('routes straight to page images when pdf-page-pairs is on, skipping detection', async () => {
+    expect(makeSettings({ 'pdf-page-pairs': 'true' }).pdfPagePairs).toBe(true);
+    await runPdf(makeSettings({ 'pdf-page-pairs': 'true' }));
+    expect(convertPDFToImages).toHaveBeenCalledTimes(1);
+    expect(convertPdfTextToHtmlAuto).not.toHaveBeenCalled();
+    expect(convertPdfTextToHtml).not.toHaveBeenCalled();
+  });
+
+  it('lets page-pairs win over pdf-extract-text when both are on', async () => {
+    await runPdf(
+      makeSettings({ 'pdf-page-pairs': 'true', 'pdf-extract-text': 'true' })
+    );
+    expect(convertPDFToImages).toHaveBeenCalledTimes(1);
+    expect(convertPdfTextToHtml).not.toHaveBeenCalled();
+    expect(convertPdfTextToHtmlAuto).not.toHaveBeenCalled();
+  });
 });
 
 describe('PrepareDeck — duplicate-name dedup', () => {

@@ -95,6 +95,8 @@ class CardOption {
 
   readonly pdfExtractText: boolean;
 
+  readonly pdfPagePairs: boolean;
+
   readonly downloadPdfs: boolean;
 
   readonly claudeAIFlashcards: boolean;
@@ -175,6 +177,7 @@ class CardOption {
     this.embedImages = input['embed-images'] !== 'false';
     this.processPDFs = input['process-pdfs'] !== 'false';
     this.pdfExtractText = input['pdf-extract-text'] === 'true';
+    this.pdfPagePairs = input['pdf-page-pairs'] === 'true';
     this.downloadPdfs = input['download-pdfs'] === 'true';
     this.claudeAIFlashcards = input['claude-ai-flashcards'] === 'true';
     this.aiComprehensive = input['ai-comprehensive'] === 'true';
