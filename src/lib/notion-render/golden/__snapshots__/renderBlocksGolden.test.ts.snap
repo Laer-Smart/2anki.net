@@ -17,7 +17,10 @@ exports[`produces a stable rendered page for a mixed Notion block tree 1`] = `
 <details><summary>Reveal answer</summary><p>ATP is the energy currency.</p></details>
 [sound:ankify-audio1.mp3]
 <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?" frameborder="0" allowfullscreen></iframe>
-<a href="https://example.com/source">https://example.com/source</a>",
+<a href="https://example.com/source">https://example.com/source</a>
+<table><thead><tr><th>Organelle</th><th>Role</th></tr></thead><tbody><tr><td>Mitochondria</td><td>ATP synthesis</td></tr></tbody></table>
+<p>Left column note.</p>
+<p>Right column note.</p>",
   "media": [
     {
       "block_id": "diagram1",

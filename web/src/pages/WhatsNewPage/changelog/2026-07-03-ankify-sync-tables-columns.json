@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-03-ankify-sync-tables-columns",
+  "date": "2026-07-03",
+  "type": "fix",
+  "title": "Notion tables and multi-column layouts now sync to your Anki cards"
+}

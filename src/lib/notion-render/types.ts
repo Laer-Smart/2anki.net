@@ -54,6 +54,10 @@ export interface NotionRenderableBlock {
   divider?: Record<string, never>;
   child_page?: { title?: string };
   child_database?: { title?: string };
+  table?: { has_column_header?: boolean; table_width?: number };
+  table_row?: { cells?: NotionRichTextItem[][] };
+  column_list?: Record<string, never>;
+  column?: Record<string, never>;
 }
 
 export type WalkedMediaKind = 'image' | 'video' | 'audio' | 'file';
