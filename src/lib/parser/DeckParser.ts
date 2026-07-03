@@ -1124,9 +1124,9 @@ export class DeckParser {
     isNewFormat: boolean;
   } {
     const dom = this.loadDOM(contents);
+    this.reshapeBareToggleDetails(dom);
     const isNewFormat = this.hasNotionNewExportFormat(dom);
     this.normalizeNotionNewExportFormat(dom);
-    this.wrapBareToggleDetails(dom);
     this.applyCodeBlockContainer(dom);
     return { dom, isNewFormat };
   }
@@ -1140,14 +1140,18 @@ export class DeckParser {
     });
   }
 
-  private wrapBareToggleDetails(dom: cheerio.CheerioAPI): void {
+  private reshapeBareToggleDetails(dom: cheerio.CheerioAPI): void {
     dom('details.toggle').each((_, el) => {
       const $details = dom(el);
-      const $parent = $details.parent();
-      if ($parent.is('li') && $parent.parent().is('ul.toggle')) {
-        return;
+      $details.removeClass('toggle');
+      const $body = $details.children('div.indented').first();
+      if ($body.length > 0) {
+        $body.removeClass('indented');
+        $body.attr('style', 'display:contents');
       }
-      $details.wrap('<ul class="toggle"><li></li></ul>');
+      $details.wrap(
+        '<div style="display:contents"><ul class="toggle"><li></li></ul></div>'
+      );
     });
   }
 
