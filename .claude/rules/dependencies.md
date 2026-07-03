@@ -17,6 +17,7 @@
 | Do not import a Notion / Stripe / Anthropic / SendGrid SDK without using the project's wrapper. | NotionAPIWrapper, StripeController helpers, the Claude lib, EmailService — wrappers exist so the SSRF guard, retries, and observability instrument every call. | — |
 | Do not add a runtime dep for a one-off devtime task. | Put it in `devDependencies` or write a script under `scripts/`. | — |
 | Do not silence `dependabot` PRs by closing them. | Triage: merge if green, comment with the reason if held. The dependabot workflows expect closure via merge or label. | — |
+| Do not assume a dep bump is CommonJS-safe. An ESM-only transitive package makes the CJS jest suite throw `Unexpected token 'export'` / `Cannot use import statement outside a module` and reddens every suite that imports it (often transitively). | Stub the top-level offending package via `moduleNameMapper` in `jest.config.js` to keep the whole ESM subtree out of the module graph — `transformIgnorePatterns` whitelisting is whack-a-mole (it only moves the failure to the next ESM leaf). Only valid when no test exercises the real package. Reproduce with a clean `pnpm install`; stale `node_modules` hides it. | — |
 
 ## Update rhythm
 
