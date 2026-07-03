@@ -163,4 +163,36 @@ describe('ObservabilityQueryService', () => {
       { service: 'claude', p50_ms: 380, p95_ms: 1200, p99_ms: 2100, count: 90 },
     ]);
   });
+
+  it('returns an empty unsupported_blocks array when no repo is wired', async () => {
+    const repo = new StubRepo();
+    const service = new ObservabilityQueryService(repo);
+    const result = await service.getMetrics('24h');
+    expect(result.unsupported_blocks).toEqual([]);
+  });
+
+  it('maps unsupported block rows into the typed response shape', async () => {
+    const repo = new StubRepo();
+    const unsupportedRepo = {
+      record: async () => undefined,
+      list: async () => [
+        {
+          block_type: 'html',
+          occurrences: 42,
+          first_seen: '2026-06-01T00:00:00.000Z',
+          last_seen: '2026-07-01T00:00:00.000Z',
+        },
+      ],
+    };
+    const service = new ObservabilityQueryService(repo, unsupportedRepo);
+    const result = await service.getMetrics('24h');
+    expect(result.unsupported_blocks).toEqual([
+      {
+        block_type: 'html',
+        occurrences: 42,
+        first_seen: '2026-06-01T00:00:00.000Z',
+        last_seen: '2026-07-01T00:00:00.000Z',
+      },
+    ]);
+  });
 });

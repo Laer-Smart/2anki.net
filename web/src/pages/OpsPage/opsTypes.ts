@@ -43,6 +43,13 @@ export interface OpsMetricsServiceLatencyPoint {
   count: number;
 }
 
+export interface OpsMetricsUnsupportedBlockPoint {
+  block_type: string;
+  occurrences: number;
+  first_seen: string;
+  last_seen: string;
+}
+
 export interface OpsMetricsResponse {
   window: OpsMetricsWindow;
   bucket_seconds: number;
@@ -53,6 +60,7 @@ export interface OpsMetricsResponse {
   outbound_latency_by_service: OpsMetricsServiceLatencyPoint[];
   error_rate_by_route: OpsMetricsRouteErrorPoint[];
   error_rate_by_service: OpsMetricsServiceErrorPoint[];
+  unsupported_blocks: OpsMetricsUnsupportedBlockPoint[];
 }
 
 export const OPS_METRICS_WINDOWS: readonly OpsMetricsWindow[] = [

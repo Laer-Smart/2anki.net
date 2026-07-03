@@ -44,6 +44,7 @@ import {
   notionDatabasePagesFetcherFactory,
   NotionDatabasePagesFetcherFactory,
 } from '../../services/ankify/notionDatabasePagesFetcher';
+import { IUnsupportedNotionBlockRepository } from '../../data_layer/UnsupportedNotionBlockRepository';
 import { NoActiveAnkifyClientError } from './SendUploadToRacUseCase';
 import { NotionNotConnectedError } from './ExportReviewDataToNotionUseCase';
 import { isNotionDatabaseNotPageError } from '../../services/NotionService/helpers/isNotionDatabaseNotPageError';
@@ -205,7 +206,8 @@ export class SyncNotionPageToRacUseCase {
     private readonly mediaFetcher: AnkifyMediaFetcher = guardedMediaFetcher,
     private readonly onTokenInvalid?: OnTokenInvalidFn,
     private readonly templateOverridesProvider?: AnkifyTemplateOverridesProvider,
-    private readonly databasePagesFetcher: NotionDatabasePagesFetcherFactory = notionDatabasePagesFetcherFactory
+    private readonly databasePagesFetcher: NotionDatabasePagesFetcherFactory = notionDatabasePagesFetcherFactory,
+    private readonly unsupportedBlockRepo?: IUnsupportedNotionBlockRepository
   ) {}
 
   private modelCache(clientId: number): Set<string> {
@@ -412,13 +414,15 @@ export class SyncNotionPageToRacUseCase {
   }): Promise<void> {
     const { input, token, client, subscription, result, ac } = args;
     const fetchChildren = this.notionFetcher(token);
-    const { cards, diagnostic } = await this.walkSource(
+    const walkResult = await this.walkSource(
       input.notionPageId,
       token,
       fetchChildren,
       subscription
     );
+    const { cards, diagnostic } = walkResult;
     result.diagnostic = diagnostic;
+    this.recordUnsupportedBlocks(walkResult.unsupportedTypes ?? []);
 
     if (cards.length === 0) {
       this.emitZeroCardsEvent(input, diagnostic);
@@ -1103,6 +1107,22 @@ export class SyncNotionPageToRacUseCase {
     } catch (syncError) {
       result.ankiWebSync = 'failed';
       result.ankiWebSyncError = (syncError as Error).message;
+    }
+  }
+
+  private recordUnsupportedBlocks(types: string[]): void {
+    if (this.unsupportedBlockRepo == null || types.length === 0) {
+      return;
+    }
+    try {
+      void this.unsupportedBlockRepo.record(types).catch((error) => {
+        console.error(
+          '[ankify-sync] failed to record unsupported blocks',
+          error
+        );
+      });
+    } catch (error) {
+      console.error('[ankify-sync] failed to record unsupported blocks', error);
     }
   }
 

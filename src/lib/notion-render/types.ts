@@ -73,6 +73,7 @@ export type NotionBlockChildrenFetcher = (
 export interface RenderedBlocks {
   html: string;
   media: WalkedNotionMediaRef[];
+  unsupportedTypes: string[];
 }
 
 export interface RenderOptions {

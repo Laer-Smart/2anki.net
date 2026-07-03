@@ -435,4 +435,34 @@ describe('renderNotionBlocks — media', () => {
     expect(out.html).toBe('');
     expect(out.media).toEqual([]);
   });
+
+  it('collects each unknown block type in unsupportedTypes', async () => {
+    const blocks: NotionRenderableBlock[] = [
+      { id: 'a', type: 'html' },
+      { id: 'b', type: 'html' },
+      { id: 'c', type: 'unsupported_widget' },
+    ];
+    const out = await renderNotionBlocks(blocks, noChildren);
+    expect(out.unsupportedTypes).toEqual([
+      'html',
+      'html',
+      'unsupported_widget',
+    ]);
+  });
+
+  it('renders known siblings around an unknown block without dropping them', async () => {
+    const blocks: NotionRenderableBlock[] = [
+      para('before'),
+      { id: 'x', type: 'html' },
+      para('after'),
+    ];
+    const out = await renderNotionBlocks(blocks, noChildren);
+    expect(out.html).toBe('<p>before</p>\n<p>after</p>');
+    expect(out.unsupportedTypes).toEqual(['html']);
+  });
+
+  it('returns an empty unsupportedTypes array when every block is known', async () => {
+    const out = await renderNotionBlocks([para('hello')], noChildren);
+    expect(out.unsupportedTypes).toEqual([]);
+  });
 });

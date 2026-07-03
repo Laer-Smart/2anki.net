@@ -25,6 +25,7 @@ import { notionBlockChildrenFetcherFactory } from '../services/ankify/notionBloc
 import { buildNotionPageMetaFetcher } from '../services/ankify/buildNotionPageMetaFetcher';
 import { makeAnkifyTemplateOverridesProvider } from '../services/ankify/templateOverrides';
 import SettingsRepository from './SettingsRepository';
+import { UnsupportedNotionBlockRepository } from './UnsupportedNotionBlockRepository';
 import NotionRepository from './NotionRespository';
 import NotionTopLevelPagesRepository from './NotionTopLevelPagesRepository';
 import BlocksCacheRepository from './BlocksCacheRepository';
@@ -201,7 +202,9 @@ export const setupDatabase = async (database: Knex) => {
             new UsersRepository(database),
             getDefaultEmailService()
           ).execute(owner),
-        makeAnkifyTemplateOverridesProvider(new SettingsRepository(database))
+        makeAnkifyTemplateOverridesProvider(new SettingsRepository(database)),
+        undefined,
+        new UnsupportedNotionBlockRepository(database)
       );
       const topLevelPagesRepo = new NotionTopLevelPagesRepository(database);
       const blocksCacheRepo = new BlocksCacheRepository(database);

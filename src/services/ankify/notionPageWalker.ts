@@ -43,6 +43,7 @@ export interface SyncDiagnostic {
 export interface WalkNotionPageResult {
   cards: WalkedNotionFlashcard[];
   diagnostic: SyncDiagnostic;
+  unsupportedTypes: string[];
 }
 
 export type NotionBlockChildrenFetcher = (
@@ -65,13 +66,21 @@ const MAX_DATABASE_PAGES = 250;
 const renderToggleBack = async (
   toggle: NotionToggleBlock,
   fetchChildren: NotionBlockChildrenFetcher
-): Promise<{ back: string; media: WalkedNotionMediaRef[] }> => {
+): Promise<{
+  back: string;
+  media: WalkedNotionMediaRef[];
+  unsupportedTypes: string[];
+}> => {
   if (!toggle.has_children) {
-    return { back: '', media: [] };
+    return { back: '', media: [], unsupportedTypes: [] };
   }
   const children = await fetchChildren(toggle.id);
   const rendered = await renderNotionBlocks(children, fetchChildren);
-  return { back: rendered.html, media: rendered.media };
+  return {
+    back: rendered.html,
+    media: rendered.media,
+    unsupportedTypes: rendered.unsupportedTypes,
+  };
 };
 
 const extractBlockHeading = (block: NotionTopLevelBlock): string | null => {
@@ -96,6 +105,7 @@ export const walkNotionPageForFlashcards = async (
   const cards: WalkedNotionFlashcard[] = [];
   const patternHits: Record<string, number> = {};
   const unmatchedSamples: string[] = [];
+  const unsupportedTypes: string[] = [];
 
   const limit = Math.min(topLevel.length, MAX_BLOCKS_SCANNED);
 
@@ -123,13 +133,14 @@ export const walkNotionPageForFlashcards = async (
       renderRichText(toggle.toggle.rich_text)
     );
     patternHits['toggle'] = (patternHits['toggle'] ?? 0) + 1;
-    const { back, media } = await renderToggleBack(toggle, fetchChildren);
+    const back = await renderToggleBack(toggle, fetchChildren);
+    unsupportedTypes.push(...back.unsupportedTypes);
     cards.push({
       notion_block_id: toggle.id,
       notion_last_edited_at: new Date(toggle.last_edited_time),
       front,
-      back,
-      media,
+      back: back.back,
+      media: back.media,
     });
   }
 
@@ -143,7 +154,7 @@ export const walkNotionPageForFlashcards = async (
     diagnostic.unmatched_samples = unmatchedSamples;
   }
 
-  return { cards, diagnostic };
+  return { cards, diagnostic, unsupportedTypes };
 };
 
 export const walkNotionDatabaseForFlashcards = async (
@@ -157,6 +168,7 @@ export const walkNotionDatabaseForFlashcards = async (
   const cards: WalkedNotionFlashcard[] = [];
   const patternHits: Record<string, number> = {};
   const unmatchedSamples: string[] = [];
+  const unsupportedTypes: string[] = [];
   let blocksScanned = 0;
 
   for (let i = 0; i < limit; i++) {
@@ -168,6 +180,7 @@ export const walkNotionDatabaseForFlashcards = async (
         notion_page_title: pages[i].title ?? null,
       });
     }
+    unsupportedTypes.push(...page.unsupportedTypes);
     blocksScanned += page.diagnostic.blocks_scanned;
     for (const [pattern, count] of Object.entries(
       page.diagnostic.pattern_hits
@@ -191,5 +204,5 @@ export const walkNotionDatabaseForFlashcards = async (
     diagnostic.unmatched_samples = unmatchedSamples;
   }
 
-  return { cards, diagnostic };
+  return { cards, diagnostic, unsupportedTypes };
 };

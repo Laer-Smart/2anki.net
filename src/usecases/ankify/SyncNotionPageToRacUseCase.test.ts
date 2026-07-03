@@ -3195,4 +3195,93 @@ describe('SyncNotionPageToRacUseCase', () => {
       expect(result.updated).toBe(0);
     });
   });
+
+  describe('unsupported block telemetry', () => {
+    const makeUnsupportedRepo = () => ({
+      record: jest.fn(async () => undefined),
+      list: jest.fn(async () => []),
+    });
+
+    beforeEach(() => {
+      (walkNotionPageForFlashcards as jest.Mock).mockReset();
+      (walkNotionPageForFlashcards as jest.Mock).mockResolvedValue({
+        cards: [sampleCard()],
+        diagnostic: {
+          blocks_scanned: 3,
+          blocks_matched: 1,
+          pattern_hits: { toggle: 1 },
+        },
+        unsupportedTypes: ['html', 'html', 'unsupported_widget'],
+      });
+    });
+
+    test('records the dropped block types once per conversion', async () => {
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+      const unsupportedRepo = makeUnsupportedRepo();
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => [],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        unsupportedRepo
+      );
+
+      await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'polling',
+      });
+
+      expect(unsupportedRepo.record).toHaveBeenCalledTimes(1);
+      expect(unsupportedRepo.record).toHaveBeenCalledWith([
+        'html',
+        'html',
+        'unsupported_widget',
+      ]);
+    });
+
+    test('a telemetry write failure does not fail the sync', async () => {
+      const repos = makeRepos();
+      const ac = makeAnkiConnectStub();
+      const unsupportedRepo = makeUnsupportedRepo();
+      unsupportedRepo.record.mockRejectedValue(new Error('db down'));
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => [],
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        unsupportedRepo
+      );
+
+      const result = expectSyncResult(
+        await useCase.execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'polling',
+        })
+      );
+
+      expect(result.created).toBe(1);
+      expect(result.errors).toEqual([]);
+    });
+  });
 });

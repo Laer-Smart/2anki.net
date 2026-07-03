@@ -26,6 +26,13 @@ jest.mock('../../../../usecases/users/CheckMonthlyCardLimitUseCase', () => {
 });
 jest.mock('../../../../services/events/track', () => ({ track: jest.fn() }));
 
+const mockRecordUnsupported = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../data_layer/UnsupportedNotionBlockRepository', () => ({
+  UnsupportedNotionBlockRepository: jest
+    .fn()
+    .mockImplementation(() => ({ record: mockRecordUnsupported })),
+}));
+
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -460,5 +467,84 @@ describe('performConversion — workspace cleanup', () => {
     await performConversion(mockDatabase, baseRequest);
 
     expect(fs.existsSync(ws.location)).toBe(false);
+  });
+
+  it('records the block handler unsupported block types after a successful conversion', async () => {
+    mockRecordUnsupported.mockClear();
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: { unsupportedBlockTypes: ['html', 'html'] },
+        rules: {},
+      }),
+    }));
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [1, 2, 3] }]),
+    }));
+    (CheckMonthlyCardLimitUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (BuildDeckForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest
+        .fn()
+        .mockResolvedValue({ size: 1, key: 'k', apkg: Buffer.from('') }),
+    }));
+    (NotifyUserUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (CompleteJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(mockRecordUnsupported).toHaveBeenCalledWith(['html', 'html']);
+    expect(track).toHaveBeenCalledWith(
+      'conversion_succeeded',
+      expect.objectContaining({
+        props: expect.objectContaining({ source: 'notion' }),
+      })
+    );
+  });
+
+  it('does not fail the conversion when the unsupported-block write rejects', async () => {
+    mockRecordUnsupported.mockRejectedValueOnce(new Error('db down'));
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: { unsupportedBlockTypes: ['html'] },
+        rules: {},
+      }),
+    }));
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [1, 2, 3] }]),
+    }));
+    (CheckMonthlyCardLimitUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (BuildDeckForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest
+        .fn()
+        .mockResolvedValue({ size: 1, key: 'k', apkg: Buffer.from('') }),
+    }));
+    (NotifyUserUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (CompleteJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(track).toHaveBeenCalledWith(
+      'conversion_succeeded',
+      expect.objectContaining({
+        props: expect.objectContaining({ source: 'notion' }),
+      })
+    );
   });
 });
