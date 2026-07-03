@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import Workspace from '../../../../lib/parser/WorkSpace';
-import { convertXLSXToHTML, looksLikeHeaderRow } from '../convertXLSXToHTML';
+import { convertXLSXToHTML } from '../convertXLSXToHTML';
+import { looksLikeHeaderRow } from '../tabularRows';
 import { join } from 'path';
 import * as XLSX from 'xlsx';
 
@@ -82,5 +83,50 @@ describe('convertXLSXToHTML header detection', () => {
     const html = convertXLSXToHTML(buffer, 'deck.html');
     expect(html).toContain('<summary>hola</summary>');
     expect(html).toContain('<summary>adiós</summary>');
+  });
+});
+
+describe('convertXLSXToHTML header-name mapping', () => {
+  it('maps front and back by column name when the header order is reversed', () => {
+    const buffer = buildXlsxBuffer([
+      ['back', 'front'],
+      ['Hello', 'Bonjour'],
+    ]);
+    const html = convertXLSXToHTML(buffer, 'Vocab');
+    expect(html).toContain('<summary>Bonjour</summary>');
+    expect(html).toContain('<p>Hello</p>');
+  });
+
+  it('detects a question/answer header and maps by name', () => {
+    const buffer = buildXlsxBuffer([
+      ['answer', 'question'],
+      ['4', 'What is 2+2?'],
+    ]);
+    const html = convertXLSXToHTML(buffer, 'Math');
+    expect(html).toContain('<summary>What is 2+2?</summary>');
+    expect(html).toContain('<p>4</p>');
+  });
+
+  it('detects a term/definition header and maps by name', () => {
+    const buffer = buildXlsxBuffer([
+      ['term', 'definition'],
+      ['Dog', 'Animal'],
+    ]);
+    const html = convertXLSXToHTML(buffer, 'Vocab');
+    expect(html).toContain('<summary>Dog</summary>');
+    expect(html).toContain('<p>Animal</p>');
+    expect(html).not.toContain('<summary>term</summary>');
+  });
+
+  it('falls back to positional mapping and drops a generic header row', () => {
+    const buffer = buildXlsxBuffer([
+      ['Term', 'Definition'],
+      ['Dog', 'Animal'],
+    ]);
+    const html = convertXLSXToHTML(buffer, 'Deck');
+    expect(html).toContain('<summary>Dog</summary>');
+    expect(html).toContain('<p>Animal</p>');
+    expect(html).not.toContain('<summary>Term</summary>');
+    expect(html).not.toContain('Definition');
   });
 });

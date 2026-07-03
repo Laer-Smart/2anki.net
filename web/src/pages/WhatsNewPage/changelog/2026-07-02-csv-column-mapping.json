@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-02-csv-column-mapping",
+  "date": "2026-07-02",
+  "type": "fix",
+  "title": "CSV and spreadsheet imports map columns by name — label them front and back or question and answer"
+}
