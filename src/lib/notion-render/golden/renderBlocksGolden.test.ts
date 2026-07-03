@@ -126,11 +126,45 @@ const kitchenSinkPage: NotionRenderableBlock[] = [
     id: 'bm1',
     bookmark: { url: 'https://example.com/source' },
   },
+  {
+    type: 'table',
+    id: 'table1',
+    has_children: true,
+    table: { has_column_header: true },
+  },
+  {
+    type: 'column_list',
+    id: 'collist1',
+    has_children: true,
+  },
 ];
 
 const childrenByParent = {
   callout1: [para('Cells were first observed by Hooke.')],
   toggle1: [para('ATP is the energy currency.')],
+  table1: [
+    {
+      type: 'table_row',
+      table_row: {
+        cells: [[{ plain_text: 'Organelle' }], [{ plain_text: 'Role' }]],
+      },
+    },
+    {
+      type: 'table_row',
+      table_row: {
+        cells: [
+          [{ plain_text: 'Mitochondria' }],
+          [{ plain_text: 'ATP synthesis' }],
+        ],
+      },
+    },
+  ],
+  collist1: [
+    { id: 'coll1', type: 'column', has_children: true },
+    { id: 'coll2', type: 'column', has_children: true },
+  ],
+  coll1: [para('Left column note.')],
+  coll2: [para('Right column note.')],
 };
 
 it('produces a stable rendered page for a mixed Notion block tree', async () => {

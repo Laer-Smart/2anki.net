@@ -308,6 +308,54 @@ const renderChildren = async (
   return await renderBlockList(children, ctx, depth + 1);
 };
 
+const renderTableRow = (
+  block: NotionRenderableBlock,
+  isHeader: boolean
+): string => {
+  const tag = isHeader ? 'th' : 'td';
+  const cells = (block.table_row?.cells ?? [])
+    .map((cell) => `<${tag}>${renderRichText(cell)}</${tag}>`)
+    .join('');
+  return `<tr>${cells}</tr>`;
+};
+
+const renderTable = async (
+  block: NotionRenderableBlock,
+  ctx: RenderContext,
+  depth: number
+): Promise<string> => {
+  if (block.has_children !== true || block.id == null) return '';
+  if (depth >= ctx.maxDepth) return '';
+  const children = await ctx.fetchChildren(block.id);
+  const rows = children.filter((child) => child.type === 'table_row');
+  if (rows.length === 0) return '';
+  if (block.table?.has_column_header === true) {
+    const [headerRow, ...bodyRows] = rows;
+    const thead = `<thead>${renderTableRow(headerRow, true)}</thead>`;
+    const body = bodyRows.map((r) => renderTableRow(r, false)).join('');
+    return `<table>${thead}<tbody>${body}</tbody></table>`;
+  }
+  const body = rows.map((r) => renderTableRow(r, false)).join('');
+  return `<table><tbody>${body}</tbody></table>`;
+};
+
+const renderColumnList = async (
+  block: NotionRenderableBlock,
+  ctx: RenderContext,
+  depth: number
+): Promise<string> => {
+  if (block.has_children !== true || block.id == null) return '';
+  if (depth >= ctx.maxDepth) return '';
+  const columns = await ctx.fetchChildren(block.id);
+  const parts: string[] = [];
+  for (const column of columns) {
+    if (column.type !== 'column') continue;
+    const inner = await renderChildren(column, ctx, depth + 1);
+    if (inner !== '') parts.push(inner);
+  }
+  return parts.join('\n');
+};
+
 const renderBlockList = async (
   blocks: NotionRenderableBlock[],
   ctx: RenderContext,
@@ -403,6 +451,17 @@ const renderBlockList = async (
       case 'child_page':
       case 'child_database':
         out.push(renderChildPageTitle(block));
+        break;
+      case 'table':
+        out.push(await renderTable(block, ctx, depth));
+        break;
+      case 'table_row':
+        break;
+      case 'column_list':
+        out.push(await renderColumnList(block, ctx, depth));
+        break;
+      case 'column':
+        out.push(await renderChildren(block, ctx, depth));
         break;
       default:
         ctx.unsupportedTypes.push(block.type);

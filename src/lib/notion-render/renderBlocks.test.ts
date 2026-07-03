@@ -466,3 +466,161 @@ describe('renderNotionBlocks — media', () => {
     expect(out.unsupportedTypes).toEqual([]);
   });
 });
+
+describe('renderNotionBlocks — tables', () => {
+  const row = (...cells: string[][]): NotionRenderableBlock => ({
+    type: 'table_row',
+    table_row: {
+      cells: cells.map((texts) => texts.map((t) => ({ plain_text: t }))),
+    },
+  });
+
+  it('renders a table with rows and cells as <td> (was dropped)', async () => {
+    const table: NotionRenderableBlock = {
+      id: 't1',
+      type: 'table',
+      has_children: true,
+      table: { has_column_header: false },
+    };
+    const fetch = fetcherFor({
+      t1: [row(['A1'], ['B1']), row(['A2'], ['B2'])],
+    });
+    const out = await renderNotionBlocks([table], fetch);
+    expect(out.html).toBe(
+      '<table><tbody>' +
+        '<tr><td>A1</td><td>B1</td></tr>' +
+        '<tr><td>A2</td><td>B2</td></tr>' +
+        '</tbody></table>'
+    );
+  });
+
+  it('renders the first row as <thead>/<th> when has_column_header is set', async () => {
+    const table: NotionRenderableBlock = {
+      id: 't2',
+      type: 'table',
+      has_children: true,
+      table: { has_column_header: true },
+    };
+    const fetch = fetcherFor({
+      t2: [row(['Term'], ['Definition']), row(['ATP'], ['energy'])],
+    });
+    const out = await renderNotionBlocks([table], fetch);
+    expect(out.html).toBe(
+      '<table>' +
+        '<thead><tr><th>Term</th><th>Definition</th></tr></thead>' +
+        '<tbody><tr><td>ATP</td><td>energy</td></tr></tbody>' +
+        '</table>'
+    );
+  });
+
+  it('renders known siblings around a table without dropping them', async () => {
+    const table: NotionRenderableBlock = {
+      id: 't3',
+      type: 'table',
+      has_children: true,
+      table: {},
+    };
+    const fetch = fetcherFor({ t3: [row(['x'])] });
+    const out = await renderNotionBlocks(
+      [para('before'), table, para('after')],
+      fetch
+    );
+    expect(out.html).toBe(
+      '<p>before</p>\n' +
+        '<table><tbody><tr><td>x</td></tr></tbody></table>\n' +
+        '<p>after</p>'
+    );
+  });
+});
+
+describe('renderNotionBlocks — columns', () => {
+  it('renders all columns content in a column_list (was dropped)', async () => {
+    const columnList: NotionRenderableBlock = {
+      id: 'cl1',
+      type: 'column_list',
+      has_children: true,
+    };
+    const fetch = fetcherFor({
+      cl1: [
+        { id: 'col1', type: 'column', has_children: true },
+        { id: 'col2', type: 'column', has_children: true },
+      ],
+      col1: [para('left one'), para('left two')],
+      col2: [para('right one')],
+    });
+    const out = await renderNotionBlocks([columnList], fetch);
+    expect(out.html).toContain('<p>left one</p>');
+    expect(out.html).toContain('<p>left two</p>');
+    expect(out.html).toContain('<p>right one</p>');
+  });
+
+  it('renders nested content (a toggle) inside a column', async () => {
+    const columnList: NotionRenderableBlock = {
+      id: 'cl2',
+      type: 'column_list',
+      has_children: true,
+    };
+    const fetch = fetcherFor({
+      cl2: [{ id: 'col', type: 'column', has_children: true }],
+      col: [
+        {
+          id: 'tog',
+          type: 'toggle',
+          has_children: true,
+          toggle: { rich_text: [{ plain_text: 'Q' }] },
+        },
+      ],
+      tog: [para('deep answer')],
+    });
+    const out = await renderNotionBlocks([columnList], fetch);
+    expect(out.html).toContain(
+      '<details><summary>Q</summary><p>deep answer</p></details>'
+    );
+  });
+
+  it('renders known siblings around a column_list without dropping them', async () => {
+    const columnList: NotionRenderableBlock = {
+      id: 'cl3',
+      type: 'column_list',
+      has_children: true,
+    };
+    const fetch = fetcherFor({
+      cl3: [{ id: 'colA', type: 'column', has_children: true }],
+      colA: [para('inside column')],
+    });
+    const out = await renderNotionBlocks(
+      [para('before'), columnList, para('after')],
+      fetch
+    );
+    expect(out.html).toBe('<p>before</p>\n<p>inside column</p>\n<p>after</p>');
+  });
+
+  it('collects media from an image inside a column subtree', async () => {
+    const columnList: NotionRenderableBlock = {
+      id: 'cl4',
+      type: 'column_list',
+      has_children: true,
+    };
+    const fetch = fetcherFor({
+      cl4: [{ id: 'colX', type: 'column', has_children: true }],
+      colX: [
+        {
+          id: 'imgcol',
+          type: 'image',
+          image: { type: 'external', external: { url: 'https://x/c.png' } },
+        },
+      ],
+    });
+    const out = await renderNotionBlocks([columnList], fetch);
+    expect(out.html).toContain('<img src="ankify-imgcol.png">');
+    expect(out.media).toEqual([
+      {
+        block_id: 'imgcol',
+        kind: 'image',
+        source: 'external',
+        url: 'https://x/c.png',
+        filename: 'ankify-imgcol.png',
+      },
+    ]);
+  });
+});
