@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-04-nested-toggle-backs",
+  "date": "2026-07-04",
+  "type": "fix",
+  "title": "Nested and cascading Notion toggles keep their answers on the card back, including deeply nested toggles"
+}

@@ -315,21 +315,6 @@ export class DeckParser {
     return { html: dom.html() ?? html, media };
   }
 
-  private preserveSummaryContent(html: string): string {
-    // Always remove summary tags, but preserve their content
-    return html.replace(/<summary[^>]*>(.*?)<\/summary>/g, '$1');
-  }
-
-  private removeToggleStructureTags(html: string): string {
-    return html
-      .replace(/<details[^>]*>/g, '')
-      .replace(/<\/details>/g, '')
-      .replace(/<ul[^/>][^>]*>/g, '')
-      .replace(/<\/ul>/g, '')
-      .replace(/<\/li>/g, '')
-      .replace(/<li[^>]*>/g, '');
-  }
-
   private cleanupEmptyElements(
     html: string,
     isNewFormat: boolean = false
@@ -1124,9 +1109,9 @@ export class DeckParser {
     isNewFormat: boolean;
   } {
     const dom = this.loadDOM(contents);
+    this.reshapeBareToggleDetails(dom);
     const isNewFormat = this.hasNotionNewExportFormat(dom);
     this.normalizeNotionNewExportFormat(dom);
-    this.wrapBareToggleDetails(dom);
     this.applyCodeBlockContainer(dom);
     return { dom, isNewFormat };
   }
@@ -1140,14 +1125,18 @@ export class DeckParser {
     });
   }
 
-  private wrapBareToggleDetails(dom: cheerio.CheerioAPI): void {
+  private reshapeBareToggleDetails(dom: cheerio.CheerioAPI): void {
     dom('details.toggle').each((_, el) => {
       const $details = dom(el);
-      const $parent = $details.parent();
-      if ($parent.is('li') && $parent.parent().is('ul.toggle')) {
-        return;
+      $details.removeClass('toggle');
+      const $body = $details.children('div.indented').first();
+      if ($body.length > 0) {
+        $body.removeClass('indented');
+        $body.attr('style', 'display:contents');
       }
-      $details.wrap('<ul class="toggle"><li></li></ul>');
+      $details.wrap(
+        '<div style="display:contents"><ul class="toggle"><li></li></ul></div>'
+      );
     });
   }
 
@@ -1231,17 +1220,6 @@ export class DeckParser {
     dom('[style*="display:contents"]').each((_, el) => {
       const $el = dom(el);
       $el.replaceWith($el.contents());
-    });
-  }
-
-  private removeEmptyDisplayContentsElements(
-    $container: cheerio.Cheerio<Element>,
-    dom: cheerio.CheerioAPI
-  ): void {
-    $container.find('div[style*="display:contents"]').each((_, divEl) => {
-      if (dom(divEl).is(':empty')) {
-        dom(divEl).remove();
-      }
     });
   }
 
