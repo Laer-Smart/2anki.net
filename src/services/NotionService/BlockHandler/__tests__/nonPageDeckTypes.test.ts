@@ -218,7 +218,7 @@ describe('findFlashcardsFromPage non-page deck types', () => {
     expect(rootDeck.cards.map((c) => c.name)).toEqual(['A toggle']);
   });
 
-  it('keeps two headings on one page as a single deck when the option is off', async () => {
+  it('splits two headings into separate decks from deck_is even when split-sections-into-decks is off', async () => {
     const firstCard = toggle('card-1', 'German question');
     const secondCard = toggle('card-2', 'Maths question');
     const germanHeading = heading('german', 'German');
@@ -238,7 +238,10 @@ describe('findFlashcardsFromPage non-page deck types', () => {
       parentName: '',
     });
 
-    expect(decks.map((d) => d.name)).toEqual(['Root page']);
+    const germanDeck = decks.find((d) => d.name.includes('German'));
+    const mathsDeck = decks.find((d) => d.name.includes('Maths'));
+    expect(germanDeck?.cards.map((c) => c.name)).toEqual(['German question']);
+    expect(mathsDeck?.cards.map((c) => c.name)).toEqual(['Maths question']);
   });
 
   it('splits two headings into separate top-level decks when the option is on', async () => {
