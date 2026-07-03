@@ -127,6 +127,12 @@ const supportedOptions = (): CardOptionDetail[] => {
       defaultFor('pdf-extract-text')
     ),
     new CardOptionDetail(
+      'pdf-page-pairs',
+      'Two pages make one card',
+      'For PDFs laid out front then back — page 1 is the card front, page 2 its back. 2anki turns every 2 pages into one image card.',
+      defaultFor('pdf-page-pairs')
+    ),
+    new CardOptionDetail(
       'download-pdfs',
       'Download PDFs as Anki media',
       'Off: PDFs appear as clickable links. On: PDFs are bundled into the .apkg, which makes the deck file much larger.',

@@ -111,6 +111,7 @@ const CLIENT_CARD_OPTION_KEYS = [
   'perserve-newlines',
   'process-pdfs',
   'pdf-extract-text',
+  'pdf-page-pairs',
   'download-pdfs',
   'markdown-nested-bullet-points',
   'split-sections-into-decks',

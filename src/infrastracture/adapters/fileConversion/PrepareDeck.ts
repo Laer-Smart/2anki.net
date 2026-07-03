@@ -182,6 +182,9 @@ async function convertFile(
   }
 
   if (isPDFFile(file.name) && input.settings.processPDFs !== false) {
+    if (input.settings.pdfPagePairs) {
+      return convertPdfByPagePairs(file, input, t0);
+    }
     if (input.settings.pdfExtractText) {
       return convertPdfByManualTextFlag(file, input, t0);
     }
@@ -207,6 +210,18 @@ async function convertPdfPagesToImagesFile(
       })
     ),
   };
+}
+
+async function convertPdfByPagePairs(
+  file: DeckParserInput['files'][number],
+  input: DeckParserInput,
+  t0: number
+) {
+  console.log('[PrepareDeck] convertFile pdf→images (page-pairs opt-in)', {
+    file: file.name,
+    durationMs: Date.now() - t0,
+  });
+  return convertPdfPagesToImagesFile(file, input);
 }
 
 async function convertPdfByManualTextFlag(
