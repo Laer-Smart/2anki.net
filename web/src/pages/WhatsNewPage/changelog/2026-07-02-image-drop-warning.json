@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-02-image-drop-warning",
+  "date": "2026-07-02",
+  "type": "fix",
+  "title": "Uploaded decks warn when an image couldn't be included — now covering Notion zip exports and Markdown files"
+}
