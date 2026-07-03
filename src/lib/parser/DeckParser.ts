@@ -315,21 +315,6 @@ export class DeckParser {
     return { html: dom.html() ?? html, media };
   }
 
-  private preserveSummaryContent(html: string): string {
-    // Always remove summary tags, but preserve their content
-    return html.replace(/<summary[^>]*>(.*?)<\/summary>/g, '$1');
-  }
-
-  private removeToggleStructureTags(html: string): string {
-    return html
-      .replace(/<details[^>]*>/g, '')
-      .replace(/<\/details>/g, '')
-      .replace(/<ul[^/>][^>]*>/g, '')
-      .replace(/<\/ul>/g, '')
-      .replace(/<\/li>/g, '')
-      .replace(/<li[^>]*>/g, '');
-  }
-
   private cleanupEmptyElements(
     html: string,
     isNewFormat: boolean = false
@@ -1235,17 +1220,6 @@ export class DeckParser {
     dom('[style*="display:contents"]').each((_, el) => {
       const $el = dom(el);
       $el.replaceWith($el.contents());
-    });
-  }
-
-  private removeEmptyDisplayContentsElements(
-    $container: cheerio.Cheerio<Element>,
-    dom: cheerio.CheerioAPI
-  ): void {
-    $container.find('div[style*="display:contents"]').each((_, divEl) => {
-      if (dom(divEl).is(':empty')) {
-        dom(divEl).remove();
-      }
     });
   }
 
