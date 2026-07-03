@@ -1,4 +1,5 @@
 import { IObservabilityRepository } from '../../data_layer/ObservabilityRepository';
+import { IUnsupportedNotionBlockRepository } from '../../data_layer/UnsupportedNotionBlockRepository';
 
 export type OpsMetricsWindow = '1h' | '24h' | '7d';
 
@@ -73,6 +74,13 @@ export interface OpsMetricsServiceLatencyPoint {
   count: number;
 }
 
+export interface OpsMetricsUnsupportedBlockPoint {
+  block_type: string;
+  occurrences: number;
+  first_seen: string;
+  last_seen: string;
+}
+
 export interface OpsMetricsResponse {
   window: OpsMetricsWindow;
   bucket_seconds: number;
@@ -83,6 +91,7 @@ export interface OpsMetricsResponse {
   outbound_latency_by_service: OpsMetricsServiceLatencyPoint[];
   error_rate_by_route: OpsMetricsRouteErrorPoint[];
   error_rate_by_service: OpsMetricsServiceErrorPoint[];
+  unsupported_blocks: OpsMetricsUnsupportedBlockPoint[];
 }
 
 export const isOpsMetricsWindow = (input: unknown): input is OpsMetricsWindow =>
@@ -90,7 +99,10 @@ export const isOpsMetricsWindow = (input: unknown): input is OpsMetricsWindow =>
   (OPS_METRICS_WINDOWS as readonly string[]).includes(input);
 
 export class ObservabilityQueryService {
-  constructor(private readonly repository: IObservabilityRepository) {}
+  constructor(
+    private readonly repository: IObservabilityRepository,
+    private readonly unsupportedBlockRepository?: IUnsupportedNotionBlockRepository
+  ) {}
 
   async getMetrics(window: OpsMetricsWindow): Promise<OpsMetricsResponse> {
     if (!isOpsMetricsWindow(window)) {
@@ -107,6 +119,7 @@ export class ObservabilityQueryService {
       outboundLatency,
       routeErrors,
       serviceErrors,
+      unsupportedBlocks,
     ] = await Promise.all([
       this.repository.aggregateInboundByStatusClass(fromTime, bucketSeconds),
       this.repository.topRoutesByLatency(fromTime, TOP_ROUTES_LIMIT),
@@ -117,6 +130,7 @@ export class ObservabilityQueryService {
       ),
       this.repository.errorRateByRoute(fromTime, TOP_ROUTES_ERROR_LIMIT),
       this.repository.errorRateByService(fromTime, TOP_SERVICES_ERROR_LIMIT),
+      this.unsupportedBlockRepository?.list() ?? Promise.resolve([]),
     ]);
 
     return {
@@ -157,6 +171,12 @@ export class ObservabilityQueryService {
         service: row.service,
         total: row.total,
         errors: row.errors,
+      })),
+      unsupported_blocks: unsupportedBlocks.map((row) => ({
+        block_type: row.block_type,
+        occurrences: row.occurrences,
+        first_seen: row.first_seen,
+        last_seen: row.last_seen,
       })),
     };
   }

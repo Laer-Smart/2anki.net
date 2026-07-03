@@ -169,6 +169,7 @@ export const blockToStaticMarkup = async (
       back += renderLinkPreview(c);
       break;
     default:
+      handler.recordUnsupportedBlockType(c.type);
       console.debug(`unsupported ${c.type}`);
   }
   return back;

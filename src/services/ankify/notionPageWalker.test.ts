@@ -58,6 +58,21 @@ describe('walkNotionPageForFlashcards', () => {
     ]);
   });
 
+  test('surfaces unsupported child block types from the toggle back', async () => {
+    const fetchChildren = jest.fn(async (blockId: string) => {
+      if (blockId === 'page-id') return [toggleBlock()];
+      return [paragraphChild('Known text.'), { id: 'weird-1', type: 'html' }];
+    });
+
+    const { cards, unsupportedTypes } = await walkNotionPageForFlashcards(
+      'page-id',
+      fetchChildren as never
+    );
+
+    expect(cards[0].back).toContain('Known text.');
+    expect(unsupportedTypes).toEqual(['html']);
+  });
+
   test('rewrites external-hosted image URLs to a local filename in the back HTML', async () => {
     const fetchChildren = jest.fn(async (blockId: string) => {
       if (blockId === 'page-id') {

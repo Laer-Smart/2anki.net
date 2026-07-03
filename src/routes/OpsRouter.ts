@@ -11,6 +11,7 @@ import { MindmapStorageMetricsService } from '../services/ops/MindmapStorageMetr
 import StorageHandler from '../lib/storage/StorageHandler';
 import { PopulateShowcaseUseCase } from '../usecases/ops/PopulateShowcaseUseCase';
 import { ObservabilityRepository } from '../data_layer/ObservabilityRepository';
+import { UnsupportedNotionBlockRepository } from '../data_layer/UnsupportedNotionBlockRepository';
 import { ObservabilityQueryService } from '../services/observability/ObservabilityQueryService';
 import { BusinessMetricsService } from '../services/ops/BusinessMetricsService';
 import { ConversionMetricsService } from '../services/ops/ConversionMetricsService';
@@ -60,7 +61,10 @@ const OpsRouter = () => {
   const router = express.Router();
   const database = getDatabase();
   const repo = new ObservabilityRepository(database);
-  const queryService = new ObservabilityQueryService(repo);
+  const queryService = new ObservabilityQueryService(
+    repo,
+    new UnsupportedNotionBlockRepository(database)
+  );
 
   const businessMetricsService = new BusinessMetricsService({
     cacheRepository: new BusinessMetricsCacheRepository(database),

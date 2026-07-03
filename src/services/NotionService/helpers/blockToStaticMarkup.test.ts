@@ -296,6 +296,9 @@ describe('blockToStaticMarkup', () => {
     expect(consoleDebugSpy).toHaveBeenCalledWith(
       'unsupported something_notion_added_later'
     );
+    expect(handler.unsupportedBlockTypes).toEqual([
+      'something_notion_added_later',
+    ]);
     consoleDebugSpy.mockRestore();
   });
 

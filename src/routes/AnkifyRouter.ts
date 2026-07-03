@@ -55,6 +55,7 @@ import TokenRepository from '../data_layer/TokenRepository';
 import UsersRepository from '../data_layer/UsersRepository';
 import { Client as NotionClient } from '@notionhq/client';
 import NotionRepository from '../data_layer/NotionRespository';
+import { UnsupportedNotionBlockRepository } from '../data_layer/UnsupportedNotionBlockRepository';
 import StorageHandler from '../lib/storage/StorageHandler';
 import { parseCollection } from '../services/ApkgPreviewService/parseCollection';
 import {
@@ -321,7 +322,9 @@ const AnkifyRouter = () => {
         new UsersRepository(db),
         getDefaultEmailService()
       ).execute(owner),
-    templateOverridesProvider
+    templateOverridesProvider,
+    undefined,
+    new UnsupportedNotionBlockRepository(db)
   );
 
   const controller = new AnkifyController(

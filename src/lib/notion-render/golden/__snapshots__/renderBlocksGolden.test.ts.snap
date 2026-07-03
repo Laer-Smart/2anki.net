@@ -40,5 +40,6 @@ exports[`produces a stable rendered page for a mixed Notion block tree 1`] = `
       "url": "https://youtu.be/dQw4w9WgXcQ",
     },
   ],
+  "unsupportedTypes": [],
 }
 `;

@@ -150,6 +150,8 @@ class BlockHandler {
 
   droppedAssetCount = 0;
 
+  unsupportedBlockTypes: string[] = [];
+
   settings: CardOption;
 
   settingsRepository?: ISettingsRepository;
@@ -335,6 +337,10 @@ class BlockHandler {
     return notionBaseLink
       ? `${notionBaseLink}#${id.replace(/-/g, '')}`
       : undefined;
+  }
+
+  recordUnsupportedBlockType(type: string): void {
+    this.unsupportedBlockTypes.push(type);
   }
 
   async getFlashcards(

@@ -18,6 +18,7 @@ import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import { MarkNotionTokenInvalidUseCase } from '../usecases/notion/MarkNotionTokenInvalidUseCase';
 import { makeAnkifyTemplateOverridesProvider } from '../services/ankify/templateOverrides';
 import SettingsRepository from '../data_layer/SettingsRepository';
+import { UnsupportedNotionBlockRepository } from '../data_layer/UnsupportedNotionBlockRepository';
 
 const AnkifyWebhookRouter = () => {
   const router = express.Router();
@@ -47,7 +48,9 @@ const AnkifyWebhookRouter = () => {
         usersRepo,
         getDefaultEmailService()
       ).execute(owner),
-    makeAnkifyTemplateOverridesProvider(new SettingsRepository(db))
+    makeAnkifyTemplateOverridesProvider(new SettingsRepository(db)),
+    undefined,
+    new UnsupportedNotionBlockRepository(db)
   );
 
   router.post(

@@ -16,6 +16,7 @@ import LatencyByRouteChart from './charts/LatencyByRouteChart';
 import OutboundByServiceChart from './charts/OutboundByServiceChart';
 import OutboundLatencyTable from './charts/OutboundLatencyTable';
 import ErrorRateChart from './charts/ErrorRateChart';
+import UnsupportedBlocksTable from './charts/UnsupportedBlocksTable';
 
 const WINDOW_LABEL: Record<OpsMetricsWindow, string> = {
   '1h': 'Last 1 hour',
@@ -40,7 +41,8 @@ const hasAnyData = (response: OpsMetricsResponse | undefined): boolean => {
     response.outbound_volume.length > 0 ||
     (response.outbound_latency_by_service?.length ?? 0) > 0 ||
     response.error_rate_by_route.length > 0 ||
-    response.error_rate_by_service.length > 0
+    response.error_rate_by_service.length > 0 ||
+    (response.unsupported_blocks?.length ?? 0) > 0
   );
 };
 
@@ -221,6 +223,35 @@ export default function EngineeringTab() {
               routes={visible?.error_rate_by_route ?? []}
               services={visible?.error_rate_by_service ?? []}
             />
+          </ChartPanel>
+        </div>
+      </section>
+
+      <section
+        className={styles.section}
+        aria-labelledby="ops-section-unsupported-blocks"
+      >
+        <header className={styles.sectionHeader}>
+          <h2
+            id="ops-section-unsupported-blocks"
+            className={styles.sectionTitle}
+          >
+            Unsupported Notion blocks
+          </h2>
+          <p className={styles.sectionHint}>
+            Block types dropped during conversion, all time
+          </p>
+        </header>
+        <div className={styles.grid}>
+          <ChartPanel
+            title="Dropped block types"
+            subtitle="Sorted by occurrences · all time"
+            isLoading={showInitialSkeleton}
+            isEmpty={(visible?.unsupported_blocks?.length ?? 0) === 0}
+            emptyText="No unsupported blocks seen"
+            autoHeight
+          >
+            <UnsupportedBlocksTable rows={visible?.unsupported_blocks ?? []} />
           </ChartPanel>
         </div>
       </section>

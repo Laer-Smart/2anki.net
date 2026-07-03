@@ -269,6 +269,7 @@ interface RenderContext {
   fetchChildren: NotionBlockChildrenFetcher;
   maxDepth: number;
   media: WalkedNotionMediaRef[];
+  unsupportedTypes: string[];
 }
 
 const renderToggle = async (
@@ -404,6 +405,7 @@ const renderBlockList = async (
         out.push(renderChildPageTitle(block));
         break;
       default:
+        ctx.unsupportedTypes.push(block.type);
         break;
     }
   }
@@ -423,7 +425,8 @@ export const renderNotionBlocks = async (
     fetchChildren,
     maxDepth: options.maxDepth ?? DEFAULT_MAX_DEPTH,
     media: [],
+    unsupportedTypes: [],
   };
   const html = await renderBlockList(blocks, ctx, 0);
-  return { html, media: ctx.media };
+  return { html, media: ctx.media, unsupportedTypes: ctx.unsupportedTypes };
 };

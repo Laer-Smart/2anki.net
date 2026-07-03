@@ -30,6 +30,7 @@ import { track } from '../../../../services/events/track';
 import NotionRepository from '../../../../data_layer/NotionRespository';
 import { getDefaultEmailService } from '../../../../services/EmailService/EmailService';
 import { MarkNotionTokenInvalidUseCase } from '../../../../usecases/notion/MarkNotionTokenInvalidUseCase';
+import { UnsupportedNotionBlockRepository } from '../../../../data_layer/UnsupportedNotionBlockRepository';
 
 type CardCountBucket = '<50' | '50-499' | '500+';
 type ConversionSource = 'notion' | 'upload' | 'google_drive';
@@ -61,6 +62,24 @@ interface ConversionRequest {
 
 function toAnonymousId(anonId?: string): string | null {
   return typeof anonId === 'string' && anonId.length > 0 ? anonId : null;
+}
+
+function recordUnsupportedBlocks(database: Knex, types: string[]): void {
+  if (types == null || types.length === 0) {
+    return;
+  }
+  try {
+    void new UnsupportedNotionBlockRepository(database)
+      .record(types)
+      .catch((error) => {
+        console.error(
+          '[conversion] failed to record unsupported blocks',
+          error
+        );
+      });
+  } catch (error) {
+    console.error('[conversion] failed to record unsupported blocks', error);
+  }
 }
 
 function trackConversionFailed(
@@ -208,6 +227,8 @@ export default async function performConversion(
       bl.truncation,
       bl.droppedAssetCount
     );
+
+    recordUnsupportedBlocks(database, bl.unsupportedBlockTypes);
 
     const userId = Number.isFinite(Number(owner)) ? Number(owner) : null;
     track('conversion_succeeded', {
