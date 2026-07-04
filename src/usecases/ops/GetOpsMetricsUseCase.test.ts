@@ -51,6 +51,8 @@ describe('GetOpsMetricsUseCase', () => {
       error_rate_by_route: [],
       error_rate_by_service: [],
       unsupported_blocks: [],
+      conversion_output: [],
+      parse_path_signatures: [],
     } as OpsMetricsResponse;
     const service = {
       getMetrics: jest.fn().mockResolvedValue(fakeResponse),

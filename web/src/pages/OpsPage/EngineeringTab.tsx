@@ -17,6 +17,8 @@ import OutboundByServiceChart from './charts/OutboundByServiceChart';
 import OutboundLatencyTable from './charts/OutboundLatencyTable';
 import ErrorRateChart from './charts/ErrorRateChart';
 import UnsupportedBlocksTable from './charts/UnsupportedBlocksTable';
+import ConversionOutputTable from './charts/ConversionOutputTable';
+import ParsePathSignaturesTable from './charts/ParsePathSignaturesTable';
 
 const WINDOW_LABEL: Record<OpsMetricsWindow, string> = {
   '1h': 'Last 1 hour',
@@ -42,7 +44,9 @@ const hasAnyData = (response: OpsMetricsResponse | undefined): boolean => {
     (response.outbound_latency_by_service?.length ?? 0) > 0 ||
     response.error_rate_by_route.length > 0 ||
     response.error_rate_by_service.length > 0 ||
-    (response.unsupported_blocks?.length ?? 0) > 0
+    (response.unsupported_blocks?.length ?? 0) > 0 ||
+    (response.conversion_output?.length ?? 0) > 0 ||
+    (response.parse_path_signatures?.length ?? 0) > 0
   );
 };
 
@@ -252,6 +256,63 @@ export default function EngineeringTab() {
             autoHeight
           >
             <UnsupportedBlocksTable rows={visible?.unsupported_blocks ?? []} />
+          </ChartPanel>
+        </div>
+      </section>
+
+      <section
+        className={styles.section}
+        aria-labelledby="ops-section-conversion-output"
+      >
+        <header className={styles.sectionHeader}>
+          <h2
+            id="ops-section-conversion-output"
+            className={styles.sectionTitle}
+          >
+            Conversion output
+          </h2>
+          <p className={styles.sectionHint}>
+            Cards produced vs. empty backs, by source
+          </p>
+        </header>
+        <div className={styles.grid}>
+          <ChartPanel
+            title="Empty backs by source"
+            subtitle="Empty backs are silently dropped · all time"
+            isLoading={showInitialSkeleton}
+            isEmpty={(visible?.conversion_output?.length ?? 0) === 0}
+            emptyText="No conversions recorded yet"
+            autoHeight
+          >
+            <ConversionOutputTable rows={visible?.conversion_output ?? []} />
+          </ChartPanel>
+        </div>
+      </section>
+
+      <section
+        className={styles.section}
+        aria-labelledby="ops-section-parse-path"
+      >
+        <header className={styles.sectionHeader}>
+          <h2 id="ops-section-parse-path" className={styles.sectionTitle}>
+            Parse-path signatures
+          </h2>
+          <p className={styles.sectionHint}>
+            How each conversion was recognized — watch for unclassified
+          </p>
+        </header>
+        <div className={styles.grid}>
+          <ChartPanel
+            title="Parse paths"
+            subtitle="Sorted by occurrences · all time"
+            isLoading={showInitialSkeleton}
+            isEmpty={(visible?.parse_path_signatures?.length ?? 0) === 0}
+            emptyText="No conversions recorded yet"
+            autoHeight
+          >
+            <ParsePathSignaturesTable
+              rows={visible?.parse_path_signatures ?? []}
+            />
           </ChartPanel>
         </div>
       </section>

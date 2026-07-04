@@ -12,6 +12,8 @@ import StorageHandler from '../lib/storage/StorageHandler';
 import { PopulateShowcaseUseCase } from '../usecases/ops/PopulateShowcaseUseCase';
 import { ObservabilityRepository } from '../data_layer/ObservabilityRepository';
 import { UnsupportedNotionBlockRepository } from '../data_layer/UnsupportedNotionBlockRepository';
+import { ConversionOutputStatsRepository } from '../data_layer/ConversionOutputStatsRepository';
+import { ParsePathSignatureRepository } from '../data_layer/ParsePathSignatureRepository';
 import { ObservabilityQueryService } from '../services/observability/ObservabilityQueryService';
 import { BusinessMetricsService } from '../services/ops/BusinessMetricsService';
 import { ConversionMetricsService } from '../services/ops/ConversionMetricsService';
@@ -63,7 +65,9 @@ const OpsRouter = () => {
   const repo = new ObservabilityRepository(database);
   const queryService = new ObservabilityQueryService(
     repo,
-    new UnsupportedNotionBlockRepository(database)
+    new UnsupportedNotionBlockRepository(database),
+    new ConversionOutputStatsRepository(database),
+    new ParsePathSignatureRepository(database)
   );
 
   const businessMetricsService = new BusinessMetricsService({

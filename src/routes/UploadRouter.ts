@@ -18,6 +18,8 @@ import { getDatabase } from '../data_layer';
 import UploadRepository from '../data_layer/UploadRespository';
 import UsersRepository from '../data_layer/UsersRepository';
 import SettingsRepository from '../data_layer/SettingsRepository';
+import { ConversionOutputStatsRepository } from '../data_layer/ConversionOutputStatsRepository';
+import { ParsePathSignatureRepository } from '../data_layer/ParsePathSignatureRepository';
 import NotionRepository from '../data_layer/NotionRespository';
 import BlocksCacheRepository from '../data_layer/BlocksCacheRepository';
 import NotionService from '../services/NotionService';
@@ -41,7 +43,9 @@ const UploadRouter = () => {
     new UploadRepository(database),
     jobRepository,
     new UsersRepository(database),
-    new SettingsRepository(database)
+    new SettingsRepository(database),
+    new ConversionOutputStatsRepository(database),
+    new ParsePathSignatureRepository(database)
   );
   const jobController = new JobController(
     jobService,

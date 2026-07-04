@@ -6,6 +6,8 @@ import { IUploadRepository } from '../data_layer/UploadRespository';
 import JobRepository from '../data_layer/JobRepository';
 import UsersRepository from '../data_layer/UsersRepository';
 import { ISettingsRepository } from '../data_layer/SettingsRepository';
+import { IConversionOutputStatsRepository } from '../data_layer/ConversionOutputStatsRepository';
+import { IParsePathSignatureRepository } from '../data_layer/ParsePathSignatureRepository';
 import ErrorHandler from '../routes/middleware/ErrorHandler';
 import CardOption from '../lib/parser/Settings';
 import Workspace from '../lib/parser/WorkSpace';
@@ -199,8 +201,45 @@ class UploadService {
     private readonly uploadRepository: IUploadRepository,
     private readonly jobRepository: JobRepository,
     private readonly usersRepository: UsersRepository,
-    private readonly settingsRepository?: ISettingsRepository
+    private readonly settingsRepository?: ISettingsRepository,
+    private readonly conversionOutputStatsRepository?: IConversionOutputStatsRepository,
+    private readonly parsePathSignatureRepository?: IParsePathSignatureRepository
   ) {}
+
+  private recordConversionOutput(
+    packages: {
+      cardCount?: number;
+      emptyBackCount?: number;
+      parsePath?: string;
+    }[]
+  ): void {
+    const cards = packages.reduce((sum, p) => sum + (p.cardCount ?? 0), 0);
+    const emptyBack = packages.reduce(
+      (sum, p) => sum + (p.emptyBackCount ?? 0),
+      0
+    );
+    this.conversionOutputStatsRepository
+      ?.record('upload', { decks: packages.length, cards, emptyBack })
+      .catch((error) =>
+        console.error(
+          '[UploadService] failed to record conversion output stats',
+          error
+        )
+      );
+    const parsePaths = packages
+      .map((p) => p.parsePath)
+      .filter((p): p is string => typeof p === 'string');
+    if (parsePaths.length > 0) {
+      this.parsePathSignatureRepository
+        ?.record(parsePaths)
+        .catch((error) =>
+          console.error(
+            '[UploadService] failed to record parse path signatures',
+            error
+          )
+        );
+    }
+  }
 
   async restartClaudeJob(req: express.Request, res: express.Response) {
     const owner = String(getOwner(res));
@@ -535,6 +574,7 @@ class UploadService {
       .then(async ({ packages }) => {
         const totalCards = packages.reduce((s, p) => s + (p.cardCount ?? 0), 0);
         if (totalCards > 0) {
+          this.recordConversionOutput(packages);
           await this.promoteClaudeJobToUpload(
             ws.id,
             ws.location,
@@ -622,6 +662,8 @@ class UploadService {
       });
       throw new EmptyDeckError();
     }
+
+    this.recordConversionOutput(packages);
 
     if (owner != null) {
       await new CheckMonthlyCardLimitUseCase(this.usersRepository).execute({
