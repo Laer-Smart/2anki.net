@@ -69,6 +69,8 @@ interface PrepareDeckResult {
   mcqSkippedCount: number;
   warning?: string;
   droppedImageCount: number;
+  emptyBackCount: number;
+  parsePath?: string;
 }
 
 async function convertFile(
@@ -457,6 +459,7 @@ export async function PrepareDeck(
       mcqCount: 0,
       mcqSkippedCount: 0,
       droppedImageCount: 0,
+      emptyBackCount: 0,
     };
   }
 
@@ -477,6 +480,7 @@ export async function PrepareDeck(
         mcqSkippedCount: 0,
         warning: parser.usedHeuristic ? 'markdown-heuristic' : undefined,
         droppedImageCount: parser.droppedImageCount,
+        emptyBackCount: parser.emptyBackCount,
       };
     }
   }
@@ -496,6 +500,8 @@ export async function PrepareDeck(
     mcqSkippedCount,
     warning: parser.usedHeuristic ? 'markdown-heuristic' : undefined,
     droppedImageCount: parser.droppedImageCount,
+    emptyBackCount: parser.emptyBackCount,
+    parsePath: parser.parsePathSignature(),
   };
 }
 
@@ -510,6 +516,8 @@ export interface DeckInfoOnlyResult {
   mcqSkippedCount: number;
   warning?: string;
   droppedImageCount: number;
+  emptyBackCount: number;
+  parsePath?: string;
   needsIndividualBuild: boolean;
 }
 
@@ -543,6 +551,7 @@ export async function prepareDeckInfoOnly(
         mcqSkippedCount: 0,
         warning: parser.usedHeuristic ? 'markdown-heuristic' : undefined,
         droppedImageCount: parser.droppedImageCount,
+        emptyBackCount: parser.emptyBackCount,
         needsIndividualBuild: true,
       };
     }
@@ -571,6 +580,8 @@ export async function prepareDeckInfoOnly(
     mcqSkippedCount,
     warning: parser.usedHeuristic ? 'markdown-heuristic' : undefined,
     droppedImageCount: parser.droppedImageCount,
+    emptyBackCount: parser.emptyBackCount,
+    parsePath: parser.parsePathSignature(),
     needsIndividualBuild: false,
   };
 }

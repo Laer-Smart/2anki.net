@@ -57,6 +57,12 @@ export const formatBucketLabel = (
 export const formatClock = (date: Date): string =>
   `${padTwo(date.getHours())}:${padTwo(date.getMinutes())}:${padTwo(date.getSeconds())}`;
 
+export const formatLastSeen = (iso: string): string => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return `${date.getUTCDate()} ${MONTH_SHORT[date.getUTCMonth()]} ${date.getUTCFullYear()}, ${padTwo(date.getUTCHours())}:${padTwo(date.getUTCMinutes())} UTC`;
+};
+
 export const formatCount = (n: number): string => {
   if (n < 10_000) return String(n);
   return n.toLocaleString('en', { useGrouping: true }).replaceAll(',', ' ');

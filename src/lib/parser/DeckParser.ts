@@ -6,6 +6,7 @@ import sanitizeTags from '../anki/sanitizeTags';
 import { File } from '../zip/zip';
 import Deck from './Deck';
 import Note from './Note';
+import { countEmptyBacks } from './countEmptyBacks';
 import CardOption from './Settings';
 import Workspace from './WorkSpace';
 import CustomExporter from './exporters/CustomExporter';
@@ -121,11 +122,19 @@ export class DeckParser {
 
   droppedImageCount: number;
 
+  emptyBackCount: number;
+
+  private sawUnclassifiedParse: boolean;
+
   workspace: Workspace;
   customExporter: CustomExporter;
 
   public get name() {
     return this.payload[0]?.name ?? this.firstDeckName;
+  }
+
+  parsePathSignature(): string {
+    return this.sawUnclassifiedParse ? 'unclassified' : 'recognized';
   }
 
   constructor(input: DeckParserInput) {
@@ -135,6 +144,8 @@ export class DeckParser {
     this.noLimits = input.noLimits;
     this.usedHeuristic = false;
     this.droppedImageCount = 0;
+    this.emptyBackCount = 0;
+    this.sawUnclassifiedParse = false;
     this.payload = [];
     this.workspace = input.workspace ?? new Workspace(true, 'fs');
     this.customExporter = new CustomExporter(
@@ -440,6 +451,7 @@ export class DeckParser {
       } else if (overlappingLineNotes.length > 0) {
         cards.push(...overlappingLineNotes);
       } else {
+        this.sawUnclassifiedParse = true;
         cards.push(
           ...[
             ...this.extractCardsFromLists(dom, disableIndentedBullets),
@@ -992,6 +1004,7 @@ export class DeckParser {
       throw new EmptyDeckError(markdownSourced ? 'markdown' : undefined);
     }
 
+    this.emptyBackCount = 0;
     for (const d of this.payload) {
       const deck = d;
       deck.id = get16DigitRandomId();
@@ -1039,7 +1052,13 @@ export class DeckParser {
         }
       }
       const kept = deck.cards.filter((card) => !replaced.has(card));
-      deck.cards = Deck.CleanCards(kept.concat(addThese));
+      const produced = kept.concat(addThese);
+      this.emptyBackCount += countEmptyBacks(
+        produced,
+        (card) => card.back,
+        (card) => card.name
+      );
+      deck.cards = Deck.CleanCards(produced);
     }
 
     this.payload[0].settings = this.settings;

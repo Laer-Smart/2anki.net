@@ -122,7 +122,9 @@ async function buildDeckBatch(
           result.cardCount,
           result.mcqCount,
           result.mcqSkippedCount,
-          result.droppedImageCount
+          result.droppedImageCount,
+          result.emptyBackCount ?? 0,
+          result.parsePath
         )
       );
       if (result.warning) warnings.push(result.warning);
@@ -179,7 +181,9 @@ async function buildStragglerDecks(
           outcome.cardCount ?? 0,
           outcome.mcqCount ?? 0,
           outcome.mcqSkippedCount ?? 0,
-          outcome.droppedImageCount ?? 0
+          outcome.droppedImageCount ?? 0,
+          outcome.emptyBackCount ?? 0,
+          outcome.parsePath
         )
       );
       if (outcome.warning) warnings.push(outcome.warning);
@@ -217,7 +221,9 @@ async function buildClaudeFlashcardDeck(
         deck.cardCount ?? 0,
         deck.mcqCount ?? 0,
         deck.mcqSkippedCount ?? 0,
-        deck.droppedImageCount ?? 0
+        deck.droppedImageCount ?? 0,
+        deck.emptyBackCount ?? 0,
+        deck.parsePath
       )
     );
     if (deck.warning) warnings.push(deck.warning);
@@ -264,7 +270,9 @@ async function buildAllInOneSlot(
           outcome.cardCount ?? 0,
           outcome.mcqCount ?? 0,
           outcome.mcqSkippedCount ?? 0,
-          outcome.droppedImageCount ?? 0
+          outcome.droppedImageCount ?? 0,
+          outcome.emptyBackCount ?? 0,
+          outcome.parsePath
         )
       );
       if (outcome.warning) warnings.push(outcome.warning);

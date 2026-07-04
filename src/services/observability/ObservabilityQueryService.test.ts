@@ -195,4 +195,65 @@ describe('ObservabilityQueryService', () => {
       },
     ]);
   });
+
+  it('defaults conversion_output and parse_path_signatures to empty when no repos are wired', async () => {
+    const repo = new StubRepo();
+    const service = new ObservabilityQueryService(repo);
+    const result = await service.getMetrics('24h');
+    expect(result.conversion_output).toEqual([]);
+    expect(result.parse_path_signatures).toEqual([]);
+  });
+
+  it('maps conversion output and parse-path rows into the typed response shape', async () => {
+    const repo = new StubRepo();
+    const conversionOutputRepo = {
+      record: async () => undefined,
+      list: async () => [
+        {
+          source: 'upload',
+          decks: 3,
+          cards: 120,
+          empty_back_cards: 7,
+          first_seen: '2026-06-01T00:00:00.000Z',
+          last_seen: '2026-07-01T00:00:00.000Z',
+        },
+      ],
+    };
+    const parsePathRepo = {
+      record: async () => undefined,
+      list: async () => [
+        {
+          parse_path: 'unclassified',
+          occurrences: 5,
+          first_seen: '2026-06-01T00:00:00.000Z',
+          last_seen: '2026-07-01T00:00:00.000Z',
+        },
+      ],
+    };
+    const service = new ObservabilityQueryService(
+      repo,
+      undefined,
+      conversionOutputRepo,
+      parsePathRepo
+    );
+    const result = await service.getMetrics('24h');
+    expect(result.conversion_output).toEqual([
+      {
+        source: 'upload',
+        decks: 3,
+        cards: 120,
+        empty_back_cards: 7,
+        first_seen: '2026-06-01T00:00:00.000Z',
+        last_seen: '2026-07-01T00:00:00.000Z',
+      },
+    ]);
+    expect(result.parse_path_signatures).toEqual([
+      {
+        parse_path: 'unclassified',
+        occurrences: 5,
+        first_seen: '2026-06-01T00:00:00.000Z',
+        last_seen: '2026-07-01T00:00:00.000Z',
+      },
+    ]);
+  });
 });

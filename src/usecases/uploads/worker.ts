@@ -181,7 +181,9 @@ async function processFile(
           d.cardCount ?? 0,
           d.mcqCount ?? 0,
           d.mcqSkippedCount ?? 0,
-          d.droppedImageCount ?? 0
+          d.droppedImageCount ?? 0,
+          d.emptyBackCount ?? 0,
+          d.parsePath
         )
       );
       if (d.warning) warnings.push(d.warning);

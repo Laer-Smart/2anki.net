@@ -19,6 +19,7 @@ import getUniqueFileName from '../../../lib/misc/getUniqueFileName';
 import Deck from '../../../lib/parser/Deck';
 import { detectNotionApiMCQ } from '../../../lib/parser/findNotionToggleLists';
 import Note from '../../../lib/parser/Note';
+import { countEmptyBacks } from '../../../lib/parser/countEmptyBacks';
 import ParserRules from '../../../lib/parser/ParserRules';
 import CardOption from '../../../lib/parser/Settings';
 import TagRegistry from '../../../lib/parser/TagRegistry';
@@ -149,6 +150,10 @@ class BlockHandler {
   truncation?: ConversionTruncation;
 
   droppedAssetCount = 0;
+
+  emptyBackCount = 0;
+
+  cardCount = 0;
 
   unsupportedBlockTypes: string[] = [];
 
@@ -529,6 +534,13 @@ class BlockHandler {
         c.tags = [...new Set(tags.concat(sanitizeTags(c.tags)))];
       });
     }
+
+    this.cardCount += cards.length;
+    this.emptyBackCount += countEmptyBacks(
+      cards,
+      (c) => c.back,
+      (c) => c.name
+    );
 
     return cards; // .filter((c) => !c.isValid());
   }

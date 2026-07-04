@@ -1,5 +1,7 @@
 import { IObservabilityRepository } from '../../data_layer/ObservabilityRepository';
 import { IUnsupportedNotionBlockRepository } from '../../data_layer/UnsupportedNotionBlockRepository';
+import { IConversionOutputStatsRepository } from '../../data_layer/ConversionOutputStatsRepository';
+import { IParsePathSignatureRepository } from '../../data_layer/ParsePathSignatureRepository';
 
 export type OpsMetricsWindow = '1h' | '24h' | '7d';
 
@@ -81,6 +83,22 @@ export interface OpsMetricsUnsupportedBlockPoint {
   last_seen: string;
 }
 
+export interface OpsMetricsConversionOutputPoint {
+  source: string;
+  decks: number;
+  cards: number;
+  empty_back_cards: number;
+  first_seen: string;
+  last_seen: string;
+}
+
+export interface OpsMetricsParsePathPoint {
+  parse_path: string;
+  occurrences: number;
+  first_seen: string;
+  last_seen: string;
+}
+
 export interface OpsMetricsResponse {
   window: OpsMetricsWindow;
   bucket_seconds: number;
@@ -92,6 +110,8 @@ export interface OpsMetricsResponse {
   error_rate_by_route: OpsMetricsRouteErrorPoint[];
   error_rate_by_service: OpsMetricsServiceErrorPoint[];
   unsupported_blocks: OpsMetricsUnsupportedBlockPoint[];
+  conversion_output: OpsMetricsConversionOutputPoint[];
+  parse_path_signatures: OpsMetricsParsePathPoint[];
 }
 
 export const isOpsMetricsWindow = (input: unknown): input is OpsMetricsWindow =>
@@ -101,7 +121,9 @@ export const isOpsMetricsWindow = (input: unknown): input is OpsMetricsWindow =>
 export class ObservabilityQueryService {
   constructor(
     private readonly repository: IObservabilityRepository,
-    private readonly unsupportedBlockRepository?: IUnsupportedNotionBlockRepository
+    private readonly unsupportedBlockRepository?: IUnsupportedNotionBlockRepository,
+    private readonly conversionOutputStatsRepository?: IConversionOutputStatsRepository,
+    private readonly parsePathSignatureRepository?: IParsePathSignatureRepository
   ) {}
 
   async getMetrics(window: OpsMetricsWindow): Promise<OpsMetricsResponse> {
@@ -120,6 +142,8 @@ export class ObservabilityQueryService {
       routeErrors,
       serviceErrors,
       unsupportedBlocks,
+      conversionOutput,
+      parsePathSignatures,
     ] = await Promise.all([
       this.repository.aggregateInboundByStatusClass(fromTime, bucketSeconds),
       this.repository.topRoutesByLatency(fromTime, TOP_ROUTES_LIMIT),
@@ -131,6 +155,8 @@ export class ObservabilityQueryService {
       this.repository.errorRateByRoute(fromTime, TOP_ROUTES_ERROR_LIMIT),
       this.repository.errorRateByService(fromTime, TOP_SERVICES_ERROR_LIMIT),
       this.unsupportedBlockRepository?.list() ?? Promise.resolve([]),
+      this.conversionOutputStatsRepository?.list() ?? Promise.resolve([]),
+      this.parsePathSignatureRepository?.list() ?? Promise.resolve([]),
     ]);
 
     return {
@@ -174,6 +200,20 @@ export class ObservabilityQueryService {
       })),
       unsupported_blocks: unsupportedBlocks.map((row) => ({
         block_type: row.block_type,
+        occurrences: row.occurrences,
+        first_seen: row.first_seen,
+        last_seen: row.last_seen,
+      })),
+      conversion_output: conversionOutput.map((row) => ({
+        source: row.source,
+        decks: row.decks,
+        cards: row.cards,
+        empty_back_cards: row.empty_back_cards,
+        first_seen: row.first_seen,
+        last_seen: row.last_seen,
+      })),
+      parse_path_signatures: parsePathSignatures.map((row) => ({
+        parse_path: row.parse_path,
         occurrences: row.occurrences,
         first_seen: row.first_seen,
         last_seen: row.last_seen,

@@ -50,6 +50,22 @@ export interface OpsMetricsUnsupportedBlockPoint {
   last_seen: string;
 }
 
+export interface OpsMetricsConversionOutputPoint {
+  source: string;
+  decks: number;
+  cards: number;
+  empty_back_cards: number;
+  first_seen: string;
+  last_seen: string;
+}
+
+export interface OpsMetricsParsePathPoint {
+  parse_path: string;
+  occurrences: number;
+  first_seen: string;
+  last_seen: string;
+}
+
 export interface OpsMetricsResponse {
   window: OpsMetricsWindow;
   bucket_seconds: number;
@@ -61,6 +77,8 @@ export interface OpsMetricsResponse {
   error_rate_by_route: OpsMetricsRouteErrorPoint[];
   error_rate_by_service: OpsMetricsServiceErrorPoint[];
   unsupported_blocks: OpsMetricsUnsupportedBlockPoint[];
+  conversion_output: OpsMetricsConversionOutputPoint[];
+  parse_path_signatures: OpsMetricsParsePathPoint[];
 }
 
 export const OPS_METRICS_WINDOWS: readonly OpsMetricsWindow[] = [

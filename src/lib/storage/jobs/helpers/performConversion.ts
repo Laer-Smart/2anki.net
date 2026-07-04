@@ -31,6 +31,7 @@ import NotionRepository from '../../../../data_layer/NotionRespository';
 import { getDefaultEmailService } from '../../../../services/EmailService/EmailService';
 import { MarkNotionTokenInvalidUseCase } from '../../../../usecases/notion/MarkNotionTokenInvalidUseCase';
 import { UnsupportedNotionBlockRepository } from '../../../../data_layer/UnsupportedNotionBlockRepository';
+import { ConversionOutputStatsRepository } from '../../../../data_layer/ConversionOutputStatsRepository';
 
 type CardCountBucket = '<50' | '50-499' | '500+';
 type ConversionSource = 'notion' | 'upload' | 'google_drive';
@@ -79,6 +80,27 @@ function recordUnsupportedBlocks(database: Knex, types: string[]): void {
       });
   } catch (error) {
     console.error('[conversion] failed to record unsupported blocks', error);
+  }
+}
+
+function recordConversionOutputStats(
+  database: Knex,
+  delta: { decks: number; cards: number; emptyBack: number }
+): void {
+  try {
+    void new ConversionOutputStatsRepository(database)
+      .record('convert', delta)
+      .catch((error) => {
+        console.error(
+          '[conversion] failed to record conversion output stats',
+          error
+        );
+      });
+  } catch (error) {
+    console.error(
+      '[conversion] failed to record conversion output stats',
+      error
+    );
   }
 }
 
@@ -229,6 +251,11 @@ export default async function performConversion(
     );
 
     recordUnsupportedBlocks(database, bl.unsupportedBlockTypes);
+    recordConversionOutputStats(database, {
+      decks: decks.length,
+      cards: bl.cardCount,
+      emptyBack: bl.emptyBackCount,
+    });
 
     const userId = Number.isFinite(Number(owner)) ? Number(owner) : null;
     track('conversion_succeeded', {
