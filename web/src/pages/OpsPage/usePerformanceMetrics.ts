@@ -12,7 +12,15 @@ const fetchPerformanceMetrics =
     if (!response.ok) {
       throw new Error(`${response.status} ${response.statusText}`);
     }
-    return response.json();
+    const body = await response.text();
+    if (body.trim() === '') {
+      throw new Error('empty response body');
+    }
+    try {
+      return JSON.parse(body) as PerformanceMetricsResponse;
+    } catch {
+      throw new Error('malformed response body');
+    }
   };
 
 export const usePerformanceMetrics = () => {
