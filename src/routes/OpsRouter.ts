@@ -24,6 +24,7 @@ import { CancellationFeedbackRepository } from '../data_layer/CancellationFeedba
 import { EmojiFeedbackRepository } from '../data_layer/EmojiFeedbackRepository';
 import { ReEngagementFeedbackRepository } from '../data_layer/ReEngagementFeedbackRepository';
 import UsersRepository from '../data_layer/UsersRepository';
+import { SubscriptionsSourceRepository } from '../data_layer/SubscriptionsSourceRepository';
 import SuppressionEventsRepository from '../data_layer/SuppressionEventsRepository';
 import { ShowcaseRepository } from '../data_layer/ShowcaseRepository';
 import DownloadRepository from '../data_layer/DownloadRepository';
@@ -77,6 +78,7 @@ const OpsRouter = () => {
     reengagementRepository: new ReEngagementFeedbackRepository(database),
     signupCountryRepository: new UsersRepository(database),
     signupCountsRepository: new UsersRepository(database),
+    subscriptionsRepository: new SubscriptionsSourceRepository(database),
   });
 
   const conversionMetricsService = new ConversionMetricsService(

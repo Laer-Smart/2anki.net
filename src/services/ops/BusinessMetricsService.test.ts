@@ -4,6 +4,7 @@ jest.mock('../../lib/integrations/stripe', () => ({
 
 import {
   BusinessMetricsService,
+  BusinessMetricsServiceDeps,
   BusinessMetricsResponse,
 } from './BusinessMetricsService';
 import { InMemoryBusinessMetricsCacheRepository } from '../../data_layer/BusinessMetricsCacheRepository';
@@ -12,6 +13,7 @@ import {
   InMemoryUserSignupCountsRepository,
   IUserSignupCountsRepository,
 } from '../../data_layer/UsersRepository';
+import { InMemorySubscriptionsSourceRepository } from '../../data_layer/SubscriptionsSourceRepository';
 
 interface FakeSubscriptionItem {
   price: {
@@ -91,18 +93,34 @@ interface FakeStripeOptions {
 }
 
 const buildFakeStripe = (options: FakeStripeOptions = {}) => {
-  const subscriptionsList = jest.fn(async () => ({
-    data: options.allSubs ?? [],
-    has_more: false,
-  }));
   const invoicesList = jest.fn(async () => ({
     data: options.invoices ?? [],
     has_more: false,
   }));
   return {
-    subscriptions: { list: subscriptionsList },
     invoices: { list: invoicesList },
   };
+};
+
+// Subscriptions now come from the local `subscriptions` table (via the
+// repository), not a live Stripe pagination — so the DB-backed money metrics
+// can never silently freeze on a Stripe timeout. Tests feed the same fixtures
+// through an in-memory source repository.
+const buildService = (
+  options: FakeStripeOptions = {},
+  extraDeps: Partial<BusinessMetricsServiceDeps> = {}
+) => {
+  const stripe = buildFakeStripe(options);
+  const subscriptionsRepository = new InMemorySubscriptionsSourceRepository(
+    (options.allSubs ?? []) as unknown[]
+  );
+  const listSpy = jest.spyOn(subscriptionsRepository, 'listPayloads');
+  const service = new BusinessMetricsService({
+    stripeFactory: () => stripe as never,
+    subscriptionsRepository,
+    ...extraDeps,
+  });
+  return { stripe, service, subscriptionsRepository, listSpy };
 };
 
 describe('BusinessMetricsService', () => {
@@ -117,7 +135,7 @@ describe('BusinessMetricsService', () => {
   });
 
   it('returns the full response shape on first call', async () => {
-    const stripe = buildFakeStripe({
+    const { service } = buildService({
       allSubs: [
         sub('sub_1', [monthly(2000)], { created: daysAgoEpoch(60) }),
         sub('sub_2', [monthly(2820)], { created: daysAgoEpoch(45) }),
@@ -168,10 +186,6 @@ describe('BusinessMetricsService', () => {
       ],
     });
 
-    const service = new BusinessMetricsService({
-      stripeFactory: () => stripe as never,
-    });
-
     const result: BusinessMetricsResponse = await service.getMetrics();
 
     expect(result.mrr_usd).toBeCloseTo(20 + 28.2 + 312 + 10 * 10, 5);
@@ -190,71 +204,62 @@ describe('BusinessMetricsService', () => {
   });
 
   it('serves cached values within 15 minutes', async () => {
-    const stripe = buildFakeStripe({
+    const { stripe, service, listSpy } = buildService({
       allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
-    });
-    const service = new BusinessMetricsService({
-      stripeFactory: () => stripe as never,
     });
 
     await service.getMetrics();
     jest.advanceTimersByTime(10 * 60 * 1000);
     const second = await service.getMetrics();
 
-    expect(stripe.subscriptions.list).toHaveBeenCalledTimes(1);
+    expect(listSpy).toHaveBeenCalledTimes(1);
     expect(stripe.invoices.list).toHaveBeenCalledTimes(1);
     expect(second.cache_age_seconds).toBe(10 * 60);
   });
 
   it('reuses a shared cache repository across service instances (survives restart)', async () => {
-    const stripe = buildFakeStripe({
-      allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
-    });
     const sharedCache = new InMemoryBusinessMetricsCacheRepository();
 
-    const first = new BusinessMetricsService({
-      stripeFactory: () => stripe as never,
-      cacheRepository: sharedCache,
-    });
+    const { service: first } = buildService(
+      {
+        allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
+      },
+      { cacheRepository: sharedCache }
+    );
     await first.getMetrics();
 
-    const second = new BusinessMetricsService({
-      stripeFactory: () => stripe as never,
-      cacheRepository: sharedCache,
-    });
+    const { service: second, listSpy: secondSpy } = buildService(
+      {
+        allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
+      },
+      { cacheRepository: sharedCache }
+    );
     const result = await second.getMetrics();
 
-    expect(stripe.subscriptions.list).toHaveBeenCalledTimes(1);
-    expect(stripe.invoices.list).toHaveBeenCalledTimes(1);
+    expect(secondSpy).not.toHaveBeenCalled();
     expect(result.mrr_usd).toBeCloseTo(10, 5);
     expect(result.cache_age_seconds).toBe(0);
   });
 
   it('refetches metrics after cache expires', async () => {
-    const stripe = buildFakeStripe({
+    const { stripe, service, listSpy } = buildService({
       allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
-    });
-    const service = new BusinessMetricsService({
-      stripeFactory: () => stripe as never,
     });
 
     await service.getMetrics();
     jest.advanceTimersByTime(16 * 60 * 1000);
     await service.getMetrics();
 
-    expect(stripe.subscriptions.list).toHaveBeenCalledTimes(2);
+    expect(listSpy).toHaveBeenCalledTimes(2);
     expect(stripe.invoices.list).toHaveBeenCalledTimes(2);
   });
 
   it('normalizes yearly and weekly subs into monthly MRR', async () => {
-    const stripe = buildFakeStripe({
+    const { service } = buildService({
       allSubs: [
         sub('sub_year', [yearly(120_00)], { created: daysAgoEpoch(60) }),
         sub('sub_week', [weekly(1000)], { created: daysAgoEpoch(60) }),
       ],
-    });
-    const service = new BusinessMetricsService({
-      stripeFactory: () => stripe as never,
     });
 
     const result = await service.getMetrics();
@@ -266,7 +271,7 @@ describe('BusinessMetricsService', () => {
   });
 
   it('excludes trialing subscriptions from MRR and active count', async () => {
-    const stripe = buildFakeStripe({
+    const { service } = buildService({
       allSubs: [
         sub('sub_active', [monthly(1500)], { created: daysAgoEpoch(60) }),
         sub('sub_trialing', [monthly(99_99)], {
@@ -275,9 +280,6 @@ describe('BusinessMetricsService', () => {
         }),
       ],
     });
-    const service = new BusinessMetricsService({
-      stripeFactory: () => stripe as never,
-    });
 
     const result = await service.getMetrics();
     expect(result.active_paying_subs).toBe(1);
@@ -285,15 +287,12 @@ describe('BusinessMetricsService', () => {
   });
 
   it('sums MRR across multiple items in one subscription', async () => {
-    const stripe = buildFakeStripe({
+    const { service } = buildService({
       allSubs: [
         sub('sub_multi', [monthly(1000, 2), monthly(500)], {
           created: daysAgoEpoch(60),
         }),
       ],
-    });
-    const service = new BusinessMetricsService({
-      stripeFactory: () => stripe as never,
     });
 
     const result = await service.getMetrics();
@@ -301,32 +300,23 @@ describe('BusinessMetricsService', () => {
     expect(result.active_paying_subs).toBe(1);
   });
 
-  it('shares one paginated walk between all sub-derived metrics', async () => {
-    const stripe = buildFakeStripe({
+  it('reads the subscriptions source once for all sub-derived metrics', async () => {
+    const { service, listSpy } = buildService({
       allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
-    });
-    const service = new BusinessMetricsService({
-      stripeFactory: () => stripe as never,
     });
 
     await service.getMetrics();
 
-    const listCalls = (stripe.subscriptions.list as jest.Mock).mock.calls;
-    expect(listCalls).toHaveLength(1);
-    const onlyArg = listCalls[0][0];
-    expect(onlyArg.status).toBe('all');
+    expect(listSpy).toHaveBeenCalledTimes(1);
   });
 
   it('returns null and reports the metric in errors on partial failure', async () => {
-    const stripe = buildFakeStripe({
+    const { stripe, service } = buildService({
       allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
     });
     (stripe.invoices.list as jest.Mock).mockRejectedValueOnce(
       new Error('stripe boom')
     );
-    const service = new BusinessMetricsService({
-      stripeFactory: () => stripe as never,
-    });
 
     const result = await service.getMetrics();
 
@@ -344,7 +334,7 @@ describe('BusinessMetricsService', () => {
   });
 
   it('counts only open invoices with attempts as failed payments', async () => {
-    const stripe = buildFakeStripe({
+    const { service } = buildService({
       invoices: [
         {
           id: 'inv_open_attempts',
@@ -372,9 +362,6 @@ describe('BusinessMetricsService', () => {
         },
       ],
     });
-    const service = new BusinessMetricsService({
-      stripeFactory: () => stripe as never,
-    });
 
     const result = await service.getMetrics();
     expect(result.failed_payments_7d).toBe(1);
@@ -384,7 +371,7 @@ describe('BusinessMetricsService', () => {
     it('mrr_timeseries reflects the active-on-day rule', async () => {
       const createdLongAgo = daysAgoEpoch(80);
       const canceledRecently = daysAgoEpoch(10);
-      const stripe = buildFakeStripe({
+      const { service } = buildService({
         allSubs: [
           sub('sub_long', [monthly(1000)], {
             created: createdLongAgo,
@@ -396,9 +383,6 @@ describe('BusinessMetricsService', () => {
             created: daysAgoEpoch(20),
           }),
         ],
-      });
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
       });
 
       const result = await service.getMetrics();
@@ -420,7 +404,7 @@ describe('BusinessMetricsService', () => {
     });
 
     it('active_subs_timeseries trajectory matches creates/cancels', async () => {
-      const stripe = buildFakeStripe({
+      const { service } = buildService({
         allSubs: [
           sub('sub_a', [monthly(1000)], {
             created: daysAgoEpoch(40),
@@ -432,9 +416,6 @@ describe('BusinessMetricsService', () => {
             created: daysAgoEpoch(20),
           }),
         ],
-      });
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
       });
 
       const result = await service.getMetrics();
@@ -455,7 +436,7 @@ describe('BusinessMetricsService', () => {
 
     it('conversions_vs_churn_weekly bins by ISO week', async () => {
       const oneWeek = 7 * SECONDS_PER_DAY;
-      const stripe = buildFakeStripe({
+      const { service } = buildService({
         allSubs: [
           sub('sub_w0_a', [monthly(500)], {
             created: daysAgoEpoch(2),
@@ -478,9 +459,6 @@ describe('BusinessMetricsService', () => {
           }),
         ],
       });
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
-      });
 
       const result = await service.getMetrics();
       const weekly = result.conversions_vs_churn_weekly!;
@@ -498,7 +476,7 @@ describe('BusinessMetricsService', () => {
     });
 
     it('failed_payments_weekly bins invoices by ISO week of created', async () => {
-      const stripe = buildFakeStripe({
+      const { service } = buildService({
         invoices: [
           {
             id: 'i1',
@@ -526,9 +504,6 @@ describe('BusinessMetricsService', () => {
           },
         ],
       });
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
-      });
 
       const result = await service.getMetrics();
       const weekly = result.failed_payments_weekly!;
@@ -538,7 +513,7 @@ describe('BusinessMetricsService', () => {
     });
 
     it('caches time-series — second call within 15 min does not refetch', async () => {
-      const stripe = buildFakeStripe({
+      const { stripe, service, listSpy } = buildService({
         allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
         invoices: [
           {
@@ -549,15 +524,12 @@ describe('BusinessMetricsService', () => {
           },
         ],
       });
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
-      });
 
       const first = await service.getMetrics();
       jest.advanceTimersByTime(10 * 60 * 1000);
       const second = await service.getMetrics();
 
-      expect(stripe.subscriptions.list).toHaveBeenCalledTimes(1);
+      expect(listSpy).toHaveBeenCalledTimes(1);
       expect(stripe.invoices.list).toHaveBeenCalledTimes(1);
       expect(second.mrr_timeseries).toEqual(first.mrr_timeseries);
       expect(second.failed_payments_weekly).toEqual(
@@ -566,24 +538,25 @@ describe('BusinessMetricsService', () => {
     });
   });
 
-  describe('source-data cache (stripe subs/invoices)', () => {
+  describe('source-data cache (subs/invoices)', () => {
     it('caches subs and invoices as source-data entries, not per-metric', async () => {
-      const stripe = buildFakeStripe({
-        allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
-        invoices: [
-          {
-            id: 'inv_1',
-            status: 'open',
-            attempt_count: 1,
-            created: daysAgoEpoch(1),
-          },
-        ],
-      });
       const cache = new InMemoryBusinessMetricsCacheRepository();
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
-        cacheRepository: cache,
-      });
+      const { service } = buildService(
+        {
+          allSubs: [
+            sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) }),
+          ],
+          invoices: [
+            {
+              id: 'inv_1',
+              status: 'open',
+              attempt_count: 1,
+              created: daysAgoEpoch(1),
+            },
+          ],
+        },
+        { cacheRepository: cache }
+      );
 
       await service.getMetrics();
 
@@ -592,21 +565,18 @@ describe('BusinessMetricsService', () => {
       expect(keys).toEqual(
         expect.arrayContaining(['_stripe_subs', '_stripe_invoices'])
       );
-      // None of the Stripe-derived per-metric keys should be cached anymore
+      // None of the source-derived per-metric keys should be cached anymore
       expect(keys).not.toContain('mrr_usd');
       expect(keys).not.toContain('failed_payments_7d');
     });
 
     it('serves stale cache immediately and refreshes in the background', async () => {
-      const stripe = buildFakeStripe({
+      const { service, listSpy } = buildService({
         allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
-      });
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
       });
 
       await service.getMetrics();
-      expect(stripe.subscriptions.list).toHaveBeenCalledTimes(1);
+      expect(listSpy).toHaveBeenCalledTimes(1);
 
       // Past TTL — second call should NOT block but should kick a background refresh
       jest.advanceTimersByTime(16 * 60 * 1000);
@@ -615,17 +585,14 @@ describe('BusinessMetricsService', () => {
       expect(second.mrr_usd).toBeCloseTo(10, 5);
       expect(second.cache_age_seconds).toBeGreaterThanOrEqual(16 * 60);
 
-      // The background refresh should have started (Stripe called a second time)
+      // The background refresh should have started (source read a second time)
       await service.waitForInflightRefresh();
-      expect(stripe.subscriptions.list).toHaveBeenCalledTimes(2);
+      expect(listSpy).toHaveBeenCalledTimes(2);
     });
 
-    it('single-flights concurrent refreshes (one Stripe pagination, not two)', async () => {
-      const stripe = buildFakeStripe({
+    it('single-flights concurrent refreshes (one source read, not two)', async () => {
+      const { stripe, service, listSpy } = buildService({
         allSubs: [sub('sub_1', [monthly(1000)], { created: daysAgoEpoch(60) })],
-      });
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
       });
 
       const [a, b] = await Promise.all([
@@ -633,28 +600,30 @@ describe('BusinessMetricsService', () => {
         service.getMetrics(),
       ]);
 
-      expect(stripe.subscriptions.list).toHaveBeenCalledTimes(1);
+      expect(listSpy).toHaveBeenCalledTimes(1);
       expect(stripe.invoices.list).toHaveBeenCalledTimes(1);
       expect(a.mrr_usd).toBe(b.mrr_usd);
     });
 
-    it('cold start with subs failing still returns invoice-derived metrics', async () => {
-      const stripe = buildFakeStripe({
-        invoices: [
-          {
-            id: 'inv_1',
-            status: 'open',
-            attempt_count: 1,
-            created: daysAgoEpoch(1),
-          },
-        ],
-      });
-      (stripe.subscriptions.list as jest.Mock).mockRejectedValueOnce(
-        new Error('subs boom')
+    it('cold start with the subscriptions source failing still returns invoice-derived metrics', async () => {
+      const subscriptionsRepository =
+        new InMemorySubscriptionsSourceRepository();
+      jest
+        .spyOn(subscriptionsRepository, 'listPayloads')
+        .mockRejectedValueOnce(new Error('subs boom'));
+      const { service } = buildService(
+        {
+          invoices: [
+            {
+              id: 'inv_1',
+              status: 'open',
+              attempt_count: 1,
+              created: daysAgoEpoch(1),
+            },
+          ],
+        },
+        { subscriptionsRepository }
       );
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
-      });
 
       const result = await service.getMetrics();
 
@@ -667,11 +636,44 @@ describe('BusinessMetricsService', () => {
         ])
       );
     });
+
+    it('ignores malformed subscription payloads instead of throwing', async () => {
+      const subscriptionsRepository = new InMemorySubscriptionsSourceRepository(
+        [
+          sub('sub_ok', [monthly(1000)], { created: daysAgoEpoch(60) }),
+          null,
+          'not json',
+          { id: 'missing_fields' },
+        ]
+      );
+      const { service } = buildService({}, { subscriptionsRepository });
+
+      const result = await service.getMetrics();
+
+      expect(result.mrr_usd).toBeCloseTo(10, 5);
+      expect(result.active_paying_subs).toBe(1);
+      expect(result.errors).toBeUndefined();
+    });
+
+    it('parses subscription payloads stored as JSON strings', async () => {
+      const subscriptionsRepository = new InMemorySubscriptionsSourceRepository(
+        [
+          JSON.stringify(
+            sub('sub_str', [monthly(2500)], { created: daysAgoEpoch(60) })
+          ),
+        ]
+      );
+      const { service } = buildService({}, { subscriptionsRepository });
+
+      const result = await service.getMetrics();
+
+      expect(result.mrr_usd).toBeCloseTo(25, 5);
+      expect(result.active_paying_subs).toBe(1);
+    });
   });
 
   describe('cancellation feedback', () => {
     it('returns top reasons (last 90 days) and recent comments from the repo', async () => {
-      const stripe = buildFakeStripe({});
       const cancellationRepo = new InMemoryCancellationFeedbackRepository();
       const inWindow = new Date(NOW_MS - 5 * SECONDS_PER_DAY * 1000);
       const tooOld = new Date(NOW_MS - 100 * SECONDS_PER_DAY * 1000);
@@ -698,10 +700,10 @@ describe('BusinessMetricsService', () => {
         created_at: tooOld,
       });
 
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
-        cancellationRepository: cancellationRepo,
-      });
+      const { service } = buildService(
+        {},
+        { cancellationRepository: cancellationRepo }
+      );
 
       const result = await service.getMetrics();
 
@@ -720,7 +722,6 @@ describe('BusinessMetricsService', () => {
     });
 
     it('caches cancellation metrics within the TTL', async () => {
-      const stripe = buildFakeStripe({});
       const cancellationRepo = new InMemoryCancellationFeedbackRepository();
       cancellationRepo.insert({
         reason: 'Too expensive',
@@ -729,10 +730,10 @@ describe('BusinessMetricsService', () => {
       const countSpy = jest.spyOn(cancellationRepo, 'countByReason');
       const commentsSpy = jest.spyOn(cancellationRepo, 'recentComments');
 
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
-        cancellationRepository: cancellationRepo,
-      });
+      const { service } = buildService(
+        {},
+        { cancellationRepository: cancellationRepo }
+      );
 
       await service.getMetrics();
       jest.advanceTimersByTime(10 * 60 * 1000);
@@ -743,17 +744,16 @@ describe('BusinessMetricsService', () => {
     });
 
     it('reports a per-metric error and returns null when the repo throws', async () => {
-      const stripe = buildFakeStripe({});
       const cancellationRepo: InMemoryCancellationFeedbackRepository =
         new InMemoryCancellationFeedbackRepository();
       jest
         .spyOn(cancellationRepo, 'countByReason')
         .mockRejectedValueOnce(new Error('db down'));
 
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
-        cancellationRepository: cancellationRepo,
-      });
+      const { service } = buildService(
+        {},
+        { cancellationRepository: cancellationRepo }
+      );
 
       const result = await service.getMetrics();
 
@@ -772,7 +772,6 @@ describe('BusinessMetricsService', () => {
 
   describe('signup counts', () => {
     it('returns total users plus 24h and 7d signup windows from the repo', async () => {
-      const stripe = buildFakeStripe({});
       const signupCountsRepo = new InMemoryUserSignupCountsRepository();
       signupCountsRepo.setTotalUsers(19389);
       signupCountsRepo.addSignup(
@@ -784,10 +783,10 @@ describe('BusinessMetricsService', () => {
         new Date(NOW_MS - 10 * SECONDS_PER_DAY * 1000)
       );
 
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
-        signupCountsRepository: signupCountsRepo,
-      });
+      const { service } = buildService(
+        {},
+        { signupCountsRepository: signupCountsRepo }
+      );
 
       const result = await service.getMetrics();
 
@@ -797,16 +796,15 @@ describe('BusinessMetricsService', () => {
     });
 
     it('caches signup counts within the TTL', async () => {
-      const stripe = buildFakeStripe({});
       const signupCountsRepo = new InMemoryUserSignupCountsRepository();
       signupCountsRepo.setTotalUsers(5);
       const totalSpy = jest.spyOn(signupCountsRepo, 'countTotalUsers');
       const sinceSpy = jest.spyOn(signupCountsRepo, 'countSignupsSince');
 
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
-        signupCountsRepository: signupCountsRepo,
-      });
+      const { service } = buildService(
+        {},
+        { signupCountsRepository: signupCountsRepo }
+      );
 
       await service.getMetrics();
       jest.advanceTimersByTime(10 * 60 * 1000);
@@ -817,17 +815,16 @@ describe('BusinessMetricsService', () => {
     });
 
     it('reports a per-metric error and nulls the windows when total count throws', async () => {
-      const stripe = buildFakeStripe({});
       const signupCountsRepo: IUserSignupCountsRepository =
         new InMemoryUserSignupCountsRepository();
       jest
         .spyOn(signupCountsRepo, 'countTotalUsers')
         .mockRejectedValueOnce(new Error('counts down'));
 
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
-        signupCountsRepository: signupCountsRepo,
-      });
+      const { service } = buildService(
+        {},
+        { signupCountsRepository: signupCountsRepo }
+      );
 
       const result = await service.getMetrics();
 
@@ -844,10 +841,7 @@ describe('BusinessMetricsService', () => {
     });
 
     it('omits the signup metrics when no counts repo is wired', async () => {
-      const stripe = buildFakeStripe({});
-      const service = new BusinessMetricsService({
-        stripeFactory: () => stripe as never,
-      });
+      const { service } = buildService({});
 
       const result = await service.getMetrics();
 
