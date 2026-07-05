@@ -31,6 +31,10 @@ import {
   IUserSignupCountsRepository,
   SignupCountryCount,
 } from '../../data_layer/UsersRepository';
+import {
+  ISubscriptionsSourceRepository,
+  InMemorySubscriptionsSourceRepository,
+} from '../../data_layer/SubscriptionsSourceRepository';
 
 export type BusinessMetricKey =
   | 'mrr_usd'
@@ -118,7 +122,7 @@ export const SIGNUP_COUNTRIES_LIMIT = 10;
 export const SIGNUPS_24H_LOOKBACK_DAYS = 1;
 export const SIGNUPS_7D_LOOKBACK_DAYS = 7;
 
-interface BusinessMetricsServiceDeps {
+export interface BusinessMetricsServiceDeps {
   stripeFactory?: () => Stripe;
   cacheTtlMs?: number;
   cacheRepository?: IBusinessMetricsCacheRepository;
@@ -127,6 +131,7 @@ interface BusinessMetricsServiceDeps {
   reengagementRepository?: IReEngagementFeedbackRepository;
   signupCountryRepository?: ISignupCountryRepository;
   signupCountsRepository?: IUserSignupCountsRepository;
+  subscriptionsRepository?: ISubscriptionsSourceRepository;
 }
 
 const SECONDS_PER_DAY = 24 * 60 * 60;
@@ -209,6 +214,8 @@ export class BusinessMetricsService {
 
   private readonly signupCountsRepository: IUserSignupCountsRepository | null;
 
+  private readonly subscriptionsRepository: ISubscriptionsSourceRepository;
+
   private inflightSourceRefresh: Promise<SourceRefreshResult> | null = null;
 
   constructor(deps: BusinessMetricsServiceDeps = {}) {
@@ -226,6 +233,9 @@ export class BusinessMetricsService {
       new InMemoryReEngagementFeedbackRepository();
     this.signupCountryRepository = deps.signupCountryRepository ?? null;
     this.signupCountsRepository = deps.signupCountsRepository ?? null;
+    this.subscriptionsRepository =
+      deps.subscriptionsRepository ??
+      new InMemorySubscriptionsSourceRepository();
   }
 
   async getMetrics(): Promise<BusinessMetricsResponse> {
@@ -649,22 +659,13 @@ export class BusinessMetricsService {
   }
 
   private async fetchAllSubs(): Promise<NormalizedSubscription[]> {
-    const stripe = this.stripeFactory();
+    const payloads = await this.subscriptionsRepository.listPayloads();
     const result: NormalizedSubscription[] = [];
-    let startingAfter: string | undefined;
-    let hasMore = true;
-    while (hasMore) {
-      const page: StripeTypes.ApiList<StripeTypes.Subscription> =
-        await stripe.subscriptions.list({
-          status: 'all',
-          limit: STRIPE_PAGE_LIMIT,
-          starting_after: startingAfter,
-        });
-      for (const sub of page.data) {
+    for (const payload of payloads) {
+      const sub = parseStripeSubscription(payload);
+      if (sub != null) {
         result.push(normalizeSubscription(sub));
       }
-      hasMore = page.has_more === true && page.data.length > 0;
-      startingAfter = hasMore ? page.data[page.data.length - 1].id : undefined;
     }
     return result;
   }
@@ -707,6 +708,35 @@ const computeCacheAgeSeconds = (
     if (t < oldest) oldest = t;
   }
   return Math.max(0, Math.floor((now.getTime() - oldest) / 1000));
+};
+
+const parseStripeSubscription = (
+  payload: unknown
+): StripeTypes.Subscription | null => {
+  let value: unknown = payload;
+  if (typeof value === 'string') {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+  if (value == null || typeof value !== 'object') {
+    return null;
+  }
+  const candidate = value as {
+    id?: unknown;
+    status?: unknown;
+    created?: unknown;
+  };
+  if (
+    typeof candidate.id !== 'string' ||
+    typeof candidate.status !== 'string' ||
+    typeof candidate.created !== 'number'
+  ) {
+    return null;
+  }
+  return value as StripeTypes.Subscription;
 };
 
 const normalizeSubscription = (
