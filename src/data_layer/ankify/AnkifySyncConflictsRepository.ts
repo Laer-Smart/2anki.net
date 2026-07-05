@@ -78,7 +78,7 @@ export class AnkifySyncConflictsRepository implements AnkifySyncConflictsReposit
       .where({ owner })
       .orderBy('created_at', 'desc');
     if (options.status != null) {
-      query.andWhere({ status: options.status });
+      query.andWhere('status', options.status);
     }
     const rows = await query;
     return rows.map(fromRow);

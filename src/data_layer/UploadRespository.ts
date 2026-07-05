@@ -77,7 +77,8 @@ class UploadRepository implements IUploadRepository {
     }
     const row = await this.database<Uploads>(this.table)
       .select('*')
-      .where({ id, owner })
+      .where('id', id)
+      .andWhere('owner', owner)
       .first();
     return row ?? null;
   }

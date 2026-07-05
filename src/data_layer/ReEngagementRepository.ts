@@ -65,7 +65,7 @@ export class ReEngagementRepository implements IReEngagementRepository {
   ): Promise<{ id: number; userId: number } | null> {
     const reEngagementRow = await this.database<EmailRow>(this.emailsTable)
       .select('id', 'user_id')
-      .where({ token })
+      .where('token', token)
       .first();
     if (reEngagementRow != null) {
       return { id: reEngagementRow.id, userId: reEngagementRow.user_id };
@@ -73,7 +73,7 @@ export class ReEngagementRepository implements IReEngagementRepository {
 
     const inactivityRow = await this.database<EmailRow>('inactivity_emails')
       .select('id', 'user_id')
-      .where({ token })
+      .where('token', token)
       .first();
     if (inactivityRow != null) {
       return { id: inactivityRow.id, userId: inactivityRow.user_id };
@@ -81,7 +81,7 @@ export class ReEngagementRepository implements IReEngagementRepository {
 
     const priceLockInRow = await this.database<EmailRow>('price_lock_in_emails')
       .select('id', 'user_id')
-      .where({ token })
+      .where('token', token)
       .first();
     if (priceLockInRow != null) {
       return { id: priceLockInRow.id, userId: priceLockInRow.user_id };

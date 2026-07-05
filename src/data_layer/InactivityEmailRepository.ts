@@ -143,7 +143,7 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
   ): Promise<{ id: number; userId: number } | null> {
     const row = await this.database<InactivityEmailRow>(this.table)
       .select('id', 'user_id')
-      .where({ token })
+      .where('token', token)
       .first();
     if (row == null) {
       return null;
