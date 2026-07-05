@@ -42,7 +42,7 @@ export class AnkifySyncLogsRepository implements AnkifySyncLogsRepositoryInterfa
       .orderBy('created_at', 'desc')
       .limit(limit);
     if (options.status != null) {
-      query.andWhere({ status: options.status });
+      query.andWhere('status', options.status);
     }
     return query;
   }
