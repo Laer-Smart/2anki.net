@@ -277,10 +277,21 @@ async function convertPdfByAutoDetection(
     throw new Error(buildPdfPasswordSentinel(file.name));
   }
 
-  if (autoResult.isTextShaped && autoResult.cardCount > 0) {
+  const cardsPerPage =
+    Math.round(
+      (autoResult.cardCount / Math.max(autoResult.pageCount, 1)) * 10
+    ) / 10;
+
+  if (
+    autoResult.isTextShaped &&
+    autoResult.cardCount > 0 &&
+    !autoResult.overSplit
+  ) {
     console.log('[PrepareDeck] convertFile pdf→text→html (auto)', {
       file: file.name,
       cardCount: autoResult.cardCount,
+      pageCount: autoResult.pageCount,
+      cardsPerPage,
       durationMs: Date.now() - t0,
     });
     return {
@@ -293,7 +304,10 @@ async function convertPdfByAutoDetection(
     file: file.name,
     isTextShaped: autoResult.isTextShaped,
     isDrmLocked: autoResult.isDrmLocked,
+    overSplit: autoResult.overSplit,
     cardCount: autoResult.cardCount,
+    pageCount: autoResult.pageCount,
+    cardsPerPage,
     durationMs: Date.now() - t0,
   });
   return convertPdfPagesToImagesFile(file, input);

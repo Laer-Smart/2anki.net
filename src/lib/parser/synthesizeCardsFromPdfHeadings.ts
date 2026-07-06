@@ -1,12 +1,36 @@
 import type { PdfCard, PdfPage } from './synthesizeCardsFromPdf';
 
 const HEADING_MAX_CHARS = 60;
+const SENTENCE_TAIL = /[.,;]$/;
+const LIST_MARKER = /^(?:[-*•●○◦▪‣·]|\d{1,3}[.)])\s/;
+const TERMINAL_PUNCTUATION = /[.!?:;]$/;
 
-function isHeadingLine(line: string, nextLine: string | undefined): boolean {
+function startsLowercase(line: string): boolean {
+  const first = line.charAt(0);
+  return first !== first.toUpperCase();
+}
+
+function isWrappedContinuation(previousLine: string | undefined): boolean {
+  return (
+    previousLine != null &&
+    previousLine.length >= HEADING_MAX_CHARS &&
+    !TERMINAL_PUNCTUATION.test(previousLine)
+  );
+}
+
+function isHeadingLine(
+  line: string,
+  nextLine: string | undefined,
+  previousLine: string | undefined
+): boolean {
   return (
     line.length < HEADING_MAX_CHARS &&
     nextLine != null &&
-    nextLine.length > line.length
+    nextLine.length > line.length &&
+    !SENTENCE_TAIL.test(line) &&
+    !LIST_MARKER.test(line) &&
+    !startsLowercase(line) &&
+    !isWrappedContinuation(previousLine)
   );
 }
 
@@ -31,7 +55,7 @@ export function synthesizeCardsFromPdfHeadings(
   };
 
   lines.forEach((line, index) => {
-    if (isHeadingLine(line, lines[index + 1])) {
+    if (isHeadingLine(line, lines[index + 1], lines[index - 1])) {
       flushCard();
       front = line;
       body = [];

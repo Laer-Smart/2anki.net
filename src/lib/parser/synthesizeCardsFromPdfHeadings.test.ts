@@ -138,4 +138,120 @@ describe('synthesizeCardsFromPdfHeadings', () => {
 
     expect(synthesizeCardsFromPdfHeadings(pages, 'NoHeadings')).toEqual([]);
   });
+
+  it('does not promote the wrapped tail of a bullet to a card front', () => {
+    const pages: PdfPage[] = [
+      {
+        text: [
+          'Contract remedies overview',
+          'Parties should always attempt to resolve their disagreements before disputes',
+          'arise.',
+          'The tribunal has broad discretion to order interim measures where truly',
+          'necessary.',
+        ].join('\n'),
+      },
+    ];
+
+    const cards = synthesizeCardsFromPdfHeadings(pages, 'Law');
+
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toBe('Contract remedies overview');
+    expect(cards[0].back).toContain('arise.');
+    expect(cards[0].back).toContain('necessary.');
+  });
+
+  it.each(['Cells rest.', 'Cells rest,', 'Cells rest;'])(
+    'does not treat a short line ending in sentence punctuation as a heading: %s',
+    (line) => {
+      const pages: PdfPage[] = [
+        {
+          text: [
+            line,
+            'The interphase period occupies most of the cell cycle timeline overall.',
+          ].join('\n'),
+        },
+      ];
+
+      expect(synthesizeCardsFromPdfHeadings(pages, 'Bio')).toEqual([]);
+    }
+  );
+
+  it('still treats a colon-ending short line as a heading', () => {
+    const pages: PdfPage[] = [
+      {
+        text: [
+          'Key enzymes:',
+          'Helicase unwinds the double helix ahead of the replication fork machinery.',
+        ].join('\n'),
+      },
+    ];
+
+    const cards = synthesizeCardsFromPdfHeadings(pages, 'Bio');
+
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toBe('Key enzymes:');
+  });
+
+  it.each([
+    '• Contract basics',
+    '- Contract basics',
+    '* Contract basics',
+    '1. Contract basics',
+    '2) Contract basics',
+  ])('does not treat a list-marker line as a heading: %s', (line) => {
+    const pages: PdfPage[] = [
+      {
+        text: [
+          line,
+          'Formation requires offer and acceptance plus consideration between parties.',
+        ].join('\n'),
+      },
+    ];
+
+    expect(synthesizeCardsFromPdfHeadings(pages, 'Law')).toEqual([]);
+  });
+
+  it('does not treat a lowercase-starting line as a heading', () => {
+    const pages: PdfPage[] = [
+      {
+        text: [
+          'arise when parties fail to agree on the terms',
+          'Litigation costs then escalate quickly beyond initial expectations for everyone.',
+        ].join('\n'),
+      },
+    ];
+
+    expect(synthesizeCardsFromPdfHeadings(pages, 'Law')).toEqual([]);
+  });
+
+  it('does not promote a continuation of a wrapped unpunctuated line to a card front', () => {
+    const pages: PdfPage[] = [
+      {
+        text: [
+          'Judges consider precedent alongside statutory interpretation and policy',
+          'General Deterrence',
+          'Fines and sanctions reduce socially harmful conduct through expected costs.',
+        ].join('\n'),
+      },
+    ];
+
+    expect(synthesizeCardsFromPdfHeadings(pages, 'Law')).toEqual([]);
+  });
+
+  it('treats a heading after a sentence-terminated line as a heading', () => {
+    const pages: PdfPage[] = [
+      {
+        text: [
+          'Most negligence claims settle well before any court date is scheduled.',
+          'General Deterrence',
+          'Fines and sanctions reduce socially harmful conduct through expected costs.',
+        ].join('\n'),
+      },
+    ];
+
+    const cards = synthesizeCardsFromPdfHeadings(pages, 'Law');
+
+    expect(cards).toHaveLength(1);
+    expect(cards[0].front).toBe('General Deterrence');
+  });
 });

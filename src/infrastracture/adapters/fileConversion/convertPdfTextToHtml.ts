@@ -38,7 +38,11 @@ export interface ConvertPdfTextToHtmlResult {
 
 export interface ConvertPdfTextToHtmlAutoResult extends ConvertPdfTextToHtmlResult {
   isTextShaped: boolean;
+  overSplit: boolean;
+  pageCount: number;
 }
+
+export const MAX_CARDS_PER_PAGE = 15;
 
 function renderCardsAsHtml(title: string, cards: PdfCard[]): string {
   const toggles = cards.map((c) => cardToToggle(c.front, c.back)).join('\n');
@@ -103,6 +107,8 @@ export async function convertPdfTextToHtmlAuto(
       isDrmLocked: false,
       needsCredential: true,
       isTextShaped: false,
+      overSplit: false,
+      pageCount: extraction.pageCount,
     };
   }
 
@@ -113,6 +119,8 @@ export async function convertPdfTextToHtmlAuto(
       isDrmLocked: true,
       needsCredential: false,
       isTextShaped: false,
+      overSplit: false,
+      pageCount: extraction.pageCount,
     };
   }
 
@@ -123,11 +131,15 @@ export async function convertPdfTextToHtmlAuto(
       isDrmLocked: false,
       needsCredential: false,
       isTextShaped: false,
+      overSplit: false,
+      pageCount: extraction.pageCount,
     };
   }
 
   const cards = synthesizeCardsFromPdfHeadings(extraction.pages, title);
-  const html = renderCardsAsHtml(title, cards);
+  const cardsPerPage = cards.length / Math.max(extraction.pageCount, 1);
+  const overSplit = cardsPerPage > MAX_CARDS_PER_PAGE;
+  const html = overSplit ? '' : renderCardsAsHtml(title, cards);
 
   return {
     html,
@@ -135,5 +147,7 @@ export async function convertPdfTextToHtmlAuto(
     isDrmLocked: false,
     needsCredential: false,
     isTextShaped: true,
+    overSplit,
+    pageCount: extraction.pageCount,
   };
 }
