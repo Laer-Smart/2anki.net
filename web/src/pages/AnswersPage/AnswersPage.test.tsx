@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import AnswersPage, { buildArticleJsonLd } from './AnswersPage';
+import AnswersPage, { buildArticleJsonLd, buildFaqJsonLd } from './AnswersPage';
 import { ANSWERS_PAGES } from './answersConfig';
 
 function renderAtSlug(slug: string) {
@@ -99,4 +99,42 @@ describe('AnswersPage', () => {
       expect(data['@type']).toBe('Article');
     }
   });
+
+  it('returns null FAQ JSON-LD for a page without faqs', () => {
+    const config = ANSWERS_PAGES.get('fsrs-explained')!;
+    expect(buildFaqJsonLd(config)).toBeNull();
+  });
+
+  it('builds FAQPage JSON-LD from faqs', () => {
+    const config = ANSWERS_PAGES.get('lecture-notes-to-anki')!;
+    const raw = buildFaqJsonLd(config);
+    const data = JSON.parse(raw!);
+
+    expect(data['@type']).toBe('FAQPage');
+    expect(data.mainEntity).toHaveLength(config.faqs!.length);
+    expect(data.mainEntity[0]).toMatchObject({
+      '@type': 'Question',
+      name: config.faqs![0].q,
+      acceptedAnswer: { '@type': 'Answer', text: config.faqs![0].a },
+    });
+  });
+
+  it('renders the FAQ block on a page with faqs', () => {
+    const config = ANSWERS_PAGES.get('word-to-anki')!;
+    renderAtSlug('word-to-anki');
+    for (const faq of config.faqs!) {
+      expect(screen.getByText(faq.q)).toBeInTheDocument();
+    }
+  });
+
+  it.each(['lecture-notes-to-anki', 'word-to-anki', 'image-occlusion-anki'])(
+    'renders the %s page',
+    (slug) => {
+      const config = ANSWERS_PAGES.get(slug)!;
+      renderAtSlug(slug);
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+        config.h1
+      );
+    }
+  );
 });
