@@ -5,6 +5,21 @@ import { AnswerFigure } from './AnswerFigures';
 import { AnswerConfig, ANSWERS_PAGES } from './answersConfig';
 import styles from './AnswersPage.module.css';
 
+export function buildFaqJsonLd(config: AnswerConfig): string | null {
+  if (config.faqs == null || config.faqs.length === 0) {
+    return null;
+  }
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: config.faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: { '@type': 'Answer', text: faq.a },
+    })),
+  });
+}
+
 export function buildArticleJsonLd(config: AnswerConfig): string {
   return JSON.stringify({
     '@context': 'https://schema.org',
@@ -31,6 +46,7 @@ function AnswersPage() {
   const canonical = `https://2anki.net/answers/${config.slug}`;
 
   const articleJsonLd = buildArticleJsonLd(config);
+  const faqJsonLd = buildFaqJsonLd(config);
 
   return (
     <div className={styles.page}>
@@ -43,6 +59,7 @@ function AnswersPage() {
         <meta property="og:url" content={canonical} />
         <meta property="og:type" content="article" />
         <script type="application/ld+json">{articleJsonLd}</script>
+        {faqJsonLd && <script type="application/ld+json">{faqJsonLd}</script>}
       </Helmet>
 
       <h1 className={styles.h1}>{config.h1}</h1>
@@ -60,6 +77,18 @@ function AnswersPage() {
           )}
         </div>
       ))}
+
+      {config.faqs && config.faqs.length > 0 && (
+        <div className={styles.section}>
+          <h2 className={styles.sectionHeading}>Frequently asked questions</h2>
+          {config.faqs.map((faq) => (
+            <div key={faq.q}>
+              <h3 className={styles.sectionHeading}>{faq.q}</h3>
+              <p className={styles.sectionBody}>{faq.a}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       <nav className={styles.related} aria-label="Related">
         <p className={styles.relatedHeading}>Related</p>

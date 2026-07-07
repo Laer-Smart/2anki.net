@@ -11,6 +11,11 @@ export interface AnswerSection {
   figure?: AnswerFigure;
 }
 
+export interface AnswerFaq {
+  q: string;
+  a: string;
+}
+
 export interface AnswerConfig {
   slug: string;
   title: string;
@@ -19,6 +24,7 @@ export interface AnswerConfig {
   intro: string;
   sections: AnswerSection[];
   relatedLinks: ReadonlyArray<{ label: string; href: string }>;
+  faqs?: AnswerFaq[];
 }
 
 const convertNotionToAnki: AnswerConfig = {
@@ -226,10 +232,196 @@ const fsrsExplained: AnswerConfig = {
   ],
 };
 
+const lectureNotesToAnki: AnswerConfig = {
+  slug: 'lecture-notes-to-anki',
+  title: 'How to turn lecture notes into Anki flashcards | 2anki',
+  description:
+    "Turn lecture notes into Anki cards, whatever form they're in — PDF slides, Word, Notion, Markdown, or a photo. Pick your source, upload, download a .apkg deck.",
+  h1: 'How to turn lecture notes into Anki flashcards',
+  intro:
+    'Your lecture notes are already somewhere — slide PDFs, a Word or Google doc, a Notion page, or a photo you took in class. 2anki reads each of those and gives you a .apkg deck you open in Anki. Pick the source that matches your notes and start reviewing the same day.',
+  sections: [
+    {
+      heading: 'Start from lecture slides (PDF or PowerPoint)',
+      body: 'Most lecture handouts are PDF or PowerPoint exports. Upload the file and 2anki reads its text into question-and-answer cards, with headings naming the deck and subdecks. Slides that are mostly images fall back to image cards so you still get a reviewable deck.',
+    },
+    {
+      heading:
+        'Start from typed notes (Word, Google Docs, Notion, or Markdown)',
+      body: 'If you type your notes, 2anki reads the structure directly. Word (.docx) and Google Docs exports keep headings, images, and formatting. Notion toggles become cards — heading on the front, body on the back. Markdown from Obsidian or a plain editor works the same way. Strikethrough text anywhere becomes a tag on every card in that deck.',
+    },
+    {
+      heading: 'Start from a photo of handwritten notes',
+      body: 'Took the photo in class? Upload it and 2anki turns the page into cards you can edit. Diagrams you want to quiz yourself on — anatomy, circuits, maps — go through image occlusion, where you mask the parts to recall.',
+    },
+    {
+      heading: 'Format your notes so they make good cards',
+      body: 'One idea per card beats a wall of text. Use headings to name decks, keep questions short, and let 2anki pair each prompt with its answer. You can edit every card in Anki afterward — nothing is locked down.',
+    },
+    {
+      heading: 'Free for your first 100 cards a month',
+      body: 'The free plan converts 100 cards a month, enough to build a deck for one course before you decide. Unlimited removes the cap for a full semester load. If you keep editing your notes in Notion, Auto Sync rebuilds the deck automatically.',
+    },
+  ],
+  faqs: [
+    {
+      q: "What's the fastest way to turn lecture notes into Anki cards?",
+      a: "Upload the file you already have. A slide PDF, a Word or Google doc, a Notion page, or a photo all convert to a .apkg deck in about a minute. You don't retype anything.",
+    },
+    {
+      q: 'My notes are in several formats. Do I need separate decks?',
+      a: 'No. Convert each source and Anki merges them, or point each conversion at the same deck name. Headings inside each file become subdecks so one course stays organized.',
+    },
+    {
+      q: 'Will my diagrams and images come across?',
+      a: 'Yes. Images embed directly in the card. For diagrams you want to actively recall, use image occlusion to mask and quiz the labeled parts.',
+    },
+    {
+      q: 'Is there a card limit?',
+      a: "The free plan converts 100 cards a month. Unlimited removes the cap, which matters once you're building decks for a full course load.",
+    },
+  ],
+  relatedLinks: [
+    { label: 'Convert a PDF to Anki', href: '/answers/pdf-to-anki?ref=ai' },
+    {
+      label: 'Convert a Word document to Anki',
+      href: '/answers/word-to-anki?ref=ai',
+    },
+    {
+      label: 'Make image occlusion cards',
+      href: '/answers/image-occlusion-anki?ref=ai',
+    },
+    {
+      label: 'Convert Notion to Anki',
+      href: '/answers/convert-notion-to-anki?ref=ai',
+    },
+    { label: 'Pricing', href: '/pricing?ref=ai' },
+  ],
+};
+
+const wordToAnki: AnswerConfig = {
+  slug: 'word-to-anki',
+  title: 'How to convert a Word document to Anki | 2anki',
+  description:
+    'Upload a Word (.docx) file and get an Anki deck. Headings name the deck, images embed, strikethrough becomes tags. No retyping, no add-on — download a .apkg.',
+  h1: 'How to convert a Word document to Anki',
+  intro:
+    "If your notes live in a Word document, you don't need to rebuild them as cards by hand. Upload the .docx file to 2anki and download a .apkg deck that opens in Anki. Headings, images, and formatting come across.",
+  sections: [
+    {
+      heading: 'What carries over from a .docx file',
+      body: "2anki reads the document's structure. Headings name the deck and subdecks. Images embed directly in the cards. Bold, italics, and lists keep their formatting. Strikethrough text becomes a tag applied to every card in that deck — a quick way to label a chapter or topic.",
+    },
+    {
+      heading: 'Format your document for clean cards',
+      body: 'Use headings for deck and section names. Put one question or term per line with its answer on the next. Short prompts make better cards than paragraphs. You can edit every card in Anki after import, so a rough first pass is fine.',
+    },
+    {
+      heading: 'Convert your document',
+      body: 'Go to 2anki.net, drag your .docx file onto the upload area, and click Convert. Download the .apkg file and open it in Anki with a double-click. Your cards appear as a new deck. The free plan covers your first 100 cards a month.',
+    },
+    {
+      heading: 'Coming from Google Docs',
+      body: 'Google Docs exports to Word format: File → Download → Microsoft Word (.docx). Upload that file the same way. Everything in this guide applies.',
+    },
+    {
+      heading: 'Tables and two-column notes',
+      body: 'A two-column table — term on the left, definition on the right — converts cleanly, with each row becoming a card. Keep your term-and-definition notes in a table and the whole document turns into a deck in one pass.',
+    },
+  ],
+  faqs: [
+    {
+      q: 'Does 2anki keep images from my Word document?',
+      a: "Yes. Images in the .docx file embed directly in the cards — you don't attach them separately.",
+    },
+    {
+      q: 'How does 2anki decide what becomes a card?',
+      a: 'Headings name the deck and subdecks. Term-and-answer lines and two-column tables become card fronts and backs. Strikethrough text becomes a tag.',
+    },
+    {
+      q: 'Can I convert a Google Doc?',
+      a: 'Download it as Word format first (File → Download → Microsoft Word), then upload the .docx file. It converts the same way.',
+    },
+    {
+      q: 'Do I need to install anything in Anki?',
+      a: 'No. 2anki produces a standard .apkg file. Double-click it in Anki and the deck imports — no add-on required.',
+    },
+  ],
+  relatedLinks: [
+    {
+      label: 'Turn lecture notes into Anki flashcards',
+      href: '/answers/lecture-notes-to-anki?ref=ai',
+    },
+    { label: 'Convert a PDF to Anki', href: '/answers/pdf-to-anki?ref=ai' },
+    { label: 'Pricing', href: '/pricing?ref=ai' },
+  ],
+};
+
+const imageOcclusionAnki: AnswerConfig = {
+  slug: 'image-occlusion-anki',
+  title: 'How to make image occlusion cards in Anki | 2anki',
+  description:
+    'Make image occlusion cards from any diagram. Upload an image, mask the labels you want to recall, and download an Anki deck. Rectangle, ellipse, and polygon tools.',
+  h1: 'How to make image occlusion cards in Anki',
+  intro:
+    "Image occlusion cards hide part of a diagram and ask you to recall what's underneath — the fastest way to memorize anatomy, structures, maps, and labeled figures. Upload an image to 2anki, mask the parts you want to test, and download an Anki deck.",
+  sections: [
+    {
+      heading: 'What image occlusion is good for',
+      body: 'Any labeled diagram where the labels are the point: anatomy plates, histology slides, biochemistry pathways, circuit diagrams, geography maps. You mask each label and Anki asks you to recall it, one region at a time, instead of staring at the whole figure.',
+    },
+    {
+      heading: 'Upload your image',
+      body: 'Open the image occlusion editor, drag in a diagram, or pull an image straight from a Notion page. Screenshots, textbook figures, and photos of a printed diagram all work.',
+    },
+    {
+      heading: 'Mask the parts you want to recall',
+      body: 'Draw over each label with the rectangle, ellipse, or polygon tool — polygon handles irregular shapes like an organ outline. Hide and show the masks as you work to check your coverage, and undo or duplicate a mask to move fast across a busy figure.',
+    },
+    {
+      heading: 'Download and study in Anki',
+      body: '2anki turns each masked region into its own card and packages the deck as a .apkg file. Open it in Anki with a double-click. Every masked region becomes a separate prompt, so one diagram can produce a dozen cards in a couple of minutes.',
+    },
+    {
+      heading: 'Occlusion for a whole course',
+      body: 'Diagram-heavy subjects are faster to review as occlusion cards than as text. Build them alongside your text cards from lecture slides and notes so one deck covers both the facts and the figures.',
+    },
+  ],
+  faqs: [
+    {
+      q: 'What image formats can I use?',
+      a: 'Standard image files — screenshots, textbook figures, or photos of a printed diagram. You can also import an image directly from a Notion page.',
+    },
+    {
+      q: 'Does each mask become its own card?',
+      a: 'Yes. Every region you mask becomes a separate card, so a single labeled diagram can produce many cards in one pass.',
+    },
+    {
+      q: 'Do I need the Anki image occlusion add-on?',
+      a: 'No. 2anki produces a standard .apkg deck that opens in Anki with a double-click — no add-on to install or configure.',
+    },
+    {
+      q: 'Can I mask irregular shapes?',
+      a: 'Yes. The polygon tool traces irregular outlines like an organ or a region on a map, alongside the rectangle and ellipse tools for simpler shapes.',
+    },
+  ],
+  relatedLinks: [
+    {
+      label: 'Turn lecture notes into Anki flashcards',
+      href: '/answers/lecture-notes-to-anki?ref=ai',
+    },
+    { label: 'Image occlusion editor', href: '/image-occlusion?ref=ai' },
+    { label: 'Pricing', href: '/pricing?ref=ai' },
+  ],
+};
+
 export const ANSWERS_PAGES: ReadonlyMap<string, AnswerConfig> = new Map([
   ['convert-notion-to-anki', convertNotionToAnki],
   ['notion-to-anki-sync', notionToAnkiSync],
   ['pdf-to-anki', pdfToAnki],
   ['quizlet-to-anki', quizletToAnki],
   ['fsrs-explained', fsrsExplained],
+  ['lecture-notes-to-anki', lectureNotesToAnki],
+  ['word-to-anki', wordToAnki],
+  ['image-occlusion-anki', imageOcclusionAnki],
 ]);
