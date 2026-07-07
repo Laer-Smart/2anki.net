@@ -13,7 +13,11 @@ import { sendIndex } from './IndexController/sendIndex';
 import { getRandomUUID } from '../shared/helpers/getRandomUUID';
 import SubscriptionService, {
   SubscriptionNotOwnedError,
+  AnnualPlanNotPausableError,
+  SubscriptionTooNewToPauseError,
+  InvalidPauseMonthsError,
 } from '../services/SubscriptionService';
+import { pausedResumesAt } from '../lib/subscriptions/isPaused';
 import { OPS_OWNER_EMAIL } from '../routes/middleware/RequireOpsAccess';
 import {
   MagicLinkRateLimitError,
@@ -579,6 +583,92 @@ class UsersController {
     }
   }
 
+  async pauseSubscription(req: express.Request, res: express.Response) {
+    const { owner } = res.locals;
+    if (!owner) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    const months = Number(req.body?.months);
+    if (![1, 2, 3].includes(months)) {
+      return res
+        .status(400)
+        .json({ message: 'Choose a pause length of 1, 2, or 3 months.' });
+    }
+
+    try {
+      const user = await this.userService.getUserById(owner);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const result = await SubscriptionService.pauseSubscription(
+        user.email,
+        months
+      );
+
+      return res.status(200).json({
+        message: 'Your subscription is paused. Resume any time.',
+        resumes_at: result.resumesAt,
+      });
+    } catch (error) {
+      if (error instanceof AnnualPlanNotPausableError) {
+        return res
+          .status(422)
+          .json({ message: 'Annual plans cannot be paused.' });
+      }
+      if (error instanceof SubscriptionTooNewToPauseError) {
+        return res.status(422).json({
+          message: 'Pausing is available after 30 days on a plan.',
+        });
+      }
+      if (error instanceof InvalidPauseMonthsError) {
+        return res
+          .status(400)
+          .json({ message: 'Choose a pause length of 1, 2, or 3 months.' });
+      }
+      if (error instanceof SubscriptionNotOwnedError) {
+        return res.status(422).json({
+          message: 'No active subscription found for this account.',
+        });
+      }
+      console.info('Pause subscription failed');
+      console.error(error);
+      return res.status(500).json({ message: 'Failed to pause subscription' });
+    }
+  }
+
+  async resumeSubscription(req: express.Request, res: express.Response) {
+    const { owner } = res.locals;
+    if (!owner) {
+      return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    try {
+      const user = await this.userService.getUserById(owner);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      await SubscriptionService.resumeSubscription(user.email);
+
+      track('subscription_pause_resumed', { userId: owner });
+
+      return res
+        .status(200)
+        .json({ message: 'Your subscription is active again.' });
+    } catch (error) {
+      if (error instanceof SubscriptionNotOwnedError) {
+        return res
+          .status(422)
+          .json({ message: 'No paused subscription found for this account.' });
+      }
+      console.info('Resume subscription failed');
+      console.error(error);
+      return res.status(500).json({ message: 'Failed to resume subscription' });
+    }
+  }
+
   async getSubscriptionStatus(req: express.Request, res: express.Response) {
     const { owner } = res.locals;
     if (!owner) {
@@ -601,10 +691,12 @@ class UsersController {
         return {
           id: sub.id,
           status: sub.status,
+          created: sub.created ?? null,
           cancel_at_period_end: sub.cancel_at_period_end === true,
           cancel_at: sub.cancel_at ?? null,
           canceled_at: sub.canceled_at ?? null,
           current_period_end: firstItem?.current_period_end ?? null,
+          paused_until: pausedResumesAt(sub),
           plan: price
             ? {
                 amount: price.unit_amount ?? null,

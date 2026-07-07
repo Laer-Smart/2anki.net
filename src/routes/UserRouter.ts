@@ -548,6 +548,66 @@ const UserRouter = () => {
 
   /**
    * @swagger
+   * /api/users/pause-subscription:
+   *   post:
+   *     summary: Pause a monthly subscription for 1-3 months
+   *     description: Pauses billing with Stripe pause_collection behavior void. Rejects annual plans and subscriptions younger than 30 days. Paid features are off while paused; the subscription auto-resumes on the resume date.
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               months:
+   *                 type: integer
+   *                 enum: [1, 2, 3]
+   *     responses:
+   *       200:
+   *         description: Subscription paused
+   *       400:
+   *         description: Invalid pause length
+   *       401:
+   *         description: Authentication required
+   *       422:
+   *         description: Plan not eligible for pausing
+   */
+  router.post(
+    '/api/users/pause-subscription',
+    RequireAuthentication,
+    (req, res) => controller.pauseSubscription(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/users/resume-subscription:
+   *   post:
+   *     summary: Resume a paused subscription immediately
+   *     description: Clears the Stripe pause_collection so billing and paid features resume right away.
+   *     tags: [Users]
+   *     security:
+   *       - bearerAuth: []
+   *       - cookieAuth: []
+   *     responses:
+   *       200:
+   *         description: Subscription resumed
+   *       401:
+   *         description: Authentication required
+   *       422:
+   *         description: No paused subscription found
+   */
+  router.post(
+    '/api/users/resume-subscription',
+    RequireAuthentication,
+    (req, res) => controller.resumeSubscription(req, res)
+  );
+
+  /**
+   * @swagger
    * /api/users/subscription-status:
    *   get:
    *     summary: Get live subscription status from Stripe

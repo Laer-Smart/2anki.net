@@ -32,6 +32,7 @@ interface FakeSubscription {
   created?: number;
   canceled_at?: number | null;
   ended_at?: number | null;
+  pause_collection?: { behavior: string; resumes_at: number } | null;
   items: { data: FakeSubscriptionItem[] };
 }
 
@@ -79,6 +80,7 @@ const sub = (
   created: overrides.created ?? daysAgoEpoch(120),
   canceled_at: overrides.canceled_at ?? null,
   ended_at: overrides.ended_at ?? null,
+  pause_collection: overrides.pause_collection ?? null,
   items: { data: items },
 });
 
@@ -201,6 +203,32 @@ describe('BusinessMetricsService', () => {
     expect(result.active_subs_timeseries).toHaveLength(90);
     expect(result.conversions_vs_churn_weekly).toHaveLength(12);
     expect(result.failed_payments_weekly).toHaveLength(12);
+  });
+
+  it('excludes paused subscriptions from active count, MRR, and churn', async () => {
+    const futureResume = daysAgoEpoch(-60);
+    const { service } = buildService({
+      allSubs: [
+        sub('sub_active', [monthly(2000)], { created: daysAgoEpoch(90) }),
+        sub('sub_paused', [monthly(2000)], {
+          created: daysAgoEpoch(90),
+          status: 'active',
+          pause_collection: { behavior: 'void', resumes_at: futureResume },
+        }),
+        sub('sub_churned', [monthly(2000)], {
+          created: daysAgoEpoch(90),
+          canceled_at: daysAgoEpoch(5),
+          ended_at: daysAgoEpoch(5),
+          status: 'canceled',
+        }),
+      ],
+    });
+
+    const result = await service.getMetrics();
+
+    expect(result.active_paying_subs).toBe(1);
+    expect(result.mrr_usd).toBeCloseTo(20, 5);
+    expect(result.churn_30d_pct).toBeCloseTo((1 / 1) * 100, 5);
   });
 
   it('serves cached values within 15 minutes', async () => {
