@@ -277,7 +277,7 @@ function PausedState({
         </button>
         <button
           type="button"
-          className={styles.textButton}
+          className={styles.secondaryButton}
           onClick={onCancel}
           disabled={isCancelling}
         >

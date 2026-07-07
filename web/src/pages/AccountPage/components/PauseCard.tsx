@@ -48,15 +48,15 @@ export function PauseCard({
       </p>
 
       <p className={styles.dangerTitle}>Pause for</p>
-      <div className={styles.buttonRow}>
+      <div className={styles.buttonRow} role="group" aria-label="Pause length">
         {PAUSE_LENGTHS.map((length) => (
           <button
             key={length}
             type="button"
             className={
               months === length
-                ? `${styles.secondaryButton} ${styles.secondaryButtonActive}`
-                : styles.secondaryButton
+                ? `${styles.pauseChip} ${styles.secondaryButtonActive}`
+                : styles.pauseChip
             }
             aria-pressed={months === length}
             onClick={() => setMonths(length)}
