@@ -43,6 +43,12 @@ Use this when you have a week to prep for an exam or a sprint to digitize a stac
 
 Day Pass and Week Pass do not include Auto Sync. If you need ongoing Notion → Anki sync, you need a Subscription with Auto Sync or a Lifetime plan.
 
+## Pausing a subscription
+
+Taking a break between terms? Pause a monthly subscription for 1, 2, or 3 months instead of cancelling. You won't be charged while it's paused, and it resumes on its own on the date shown. While paused, paid features are off and everything you've made stays saved. Resume early any time from your account page.
+
+Pausing is available on monthly plans after 30 days. Annual plans and passes can't be paused.
+
 ## Common mistakes
 
 - **Expecting the pass to renew.** Day and Week passes are one-time. When the window closes, you go back to Free. Buy another pass or move to a Subscription if you want continuous access.
