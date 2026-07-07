@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-06-pdf-heading-split",
+  "date": "2026-07-06",
+  "type": "fix",
+  "title": "PDF uploads split cards at real headings, not mid-sentence line breaks"
+}

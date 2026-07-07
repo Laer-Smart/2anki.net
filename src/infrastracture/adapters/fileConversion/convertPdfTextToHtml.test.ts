@@ -203,6 +203,8 @@ describe('convertPdfTextToHtmlAuto', () => {
       isDrmLocked: false,
       needsCredential: false,
       isTextShaped: false,
+      overSplit: false,
+      pageCount: 5,
     });
   });
 
@@ -241,6 +243,8 @@ describe('convertPdfTextToHtmlAuto', () => {
       isDrmLocked: true,
       needsCredential: false,
       isTextShaped: false,
+      overSplit: false,
+      pageCount: 5,
     });
   });
 
@@ -264,6 +268,8 @@ describe('convertPdfTextToHtmlAuto', () => {
       isDrmLocked: false,
       needsCredential: true,
       isTextShaped: false,
+      overSplit: false,
+      pageCount: 0,
     });
   });
 
@@ -317,5 +323,52 @@ describe('convertPdfTextToHtmlAuto', () => {
 
     expect(result.isTextShaped).toBe(true);
     expect(result.cardCount).toBe(0);
+  });
+
+  it('flags over-split output so the caller can fall back instead of shipping a card explosion', async () => {
+    const pairsPerPage = 16;
+    const pageText = Array.from({ length: pairsPerPage }, (_, i) =>
+      [
+        `Term ${i}`,
+        'A body line that is comfortably longer than the tiny heading above it.',
+      ].join('\n')
+    ).join('\n');
+    mockExtract.mockResolvedValue({
+      pages: [
+        { text: pageText, imagePaintCount: 0 },
+        { text: pageText, imagePaintCount: 0 },
+      ],
+      pageCount: 2,
+      avgCharsPerPage: pageText.length,
+      isDrmLocked: false,
+      needsCredential: false,
+    });
+
+    const result = await convertPdfTextToHtmlAuto(
+      Buffer.from('x'),
+      'dense.pdf'
+    );
+
+    expect(result.isTextShaped).toBe(true);
+    expect(result.overSplit).toBe(true);
+    expect(result.cardCount).toBe(pairsPerPage * 2);
+    expect(result.pageCount).toBe(2);
+    expect(result.html).toBe('');
+  });
+
+  it('reports overSplit false and the page count on a sane deck', async () => {
+    mockExtract.mockResolvedValue({
+      pages: textShapedPages(),
+      pageCount: 5,
+      avgCharsPerPage: 320,
+      isDrmLocked: false,
+      needsCredential: false,
+    });
+
+    const result = await convertPdfTextToHtmlAuto(Buffer.from('x'), 'bio.pdf');
+
+    expect(result.overSplit).toBe(false);
+    expect(result.pageCount).toBe(5);
+    expect(result.cardCount).toBe(5);
   });
 });
