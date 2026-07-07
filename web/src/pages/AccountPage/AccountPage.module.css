@@ -240,6 +240,13 @@
   border-color: var(--color-danger-border);
 }
 
+.secondaryButtonActive,
+.secondaryButtonActive:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
 .scheduledBadge {
   padding: 0.75rem 1rem;
   background: var(--color-warning-light);

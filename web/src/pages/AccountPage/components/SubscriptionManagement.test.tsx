@@ -21,8 +21,19 @@ vi.mock('../../../lib/backend/cancelSubscription', () => ({
   submitCancellationFeedback: vi.fn(),
 }));
 
+vi.mock('../../../lib/backend/pauseSubscription', () => ({
+  pauseSubscription: vi.fn(),
+  resumeSubscription: vi.fn(),
+}));
+
+vi.mock('../../../lib/analytics/track', () => ({
+  track: vi.fn(),
+}));
+
 import { useStripeSubscriptions } from '../../../lib/hooks/useStripeSubscriptions';
 import { cancelSubscriptionById } from '../../../lib/backend/cancelSubscription';
+import { resumeSubscription } from '../../../lib/backend/pauseSubscription';
+import { track } from '../../../lib/analytics/track';
 
 const mockUseStripeSubscriptions =
   useStripeSubscriptions as unknown as ReturnType<typeof vi.fn>;
@@ -42,16 +53,39 @@ function stubStripeActive(plan?: {
   const subscription = {
     id: 'sub_1',
     status: 'active',
+    created: Math.floor(Date.now() / 1000) - 120 * 24 * 60 * 60,
     cancel_at_period_end: false,
     current_period_end: 1893456000,
     cancel_at: null,
     canceled_at: null,
+    paused_until: null,
     plan: plan ?? { amount: 1000, currency: 'usd', interval: 'month' },
   };
   mockUseStripeSubscriptions.mockReturnValue({
     subscriptions: [subscription],
     activeSubscriptions: [subscription],
     view: { kind: 'active', subscription },
+    isLoading: false,
+    refetch: vi.fn().mockResolvedValue(undefined),
+  } as unknown as StripeSubscriptionsState);
+}
+
+function stubStripePaused() {
+  const subscription = {
+    id: 'sub_paused',
+    status: 'active',
+    created: Math.floor(Date.now() / 1000) - 120 * 24 * 60 * 60,
+    cancel_at_period_end: false,
+    current_period_end: 1893456000,
+    cancel_at: null,
+    canceled_at: null,
+    paused_until: 1900000000,
+    plan: { amount: 799, currency: 'usd', interval: 'month' },
+  };
+  mockUseStripeSubscriptions.mockReturnValue({
+    subscriptions: [subscription],
+    activeSubscriptions: [subscription],
+    view: { kind: 'paused', subscription },
     isLoading: false,
     refetch: vi.fn().mockResolvedValue(undefined),
   } as unknown as StripeSubscriptionsState);
@@ -73,6 +107,9 @@ function renderStripeManagement() {
 describe('SubscriptionManagement', () => {
   beforeEach(() => {
     mockUseStripeSubscriptions.mockReset();
+    vi.mocked(track).mockClear();
+    vi.mocked(resumeSubscription).mockReset();
+    vi.mocked(resumeSubscription).mockResolvedValue({ message: 'ok' });
   });
 
   it("shows Apple management copy and no Stripe controls for planSource 'apple'", () => {
@@ -88,7 +125,7 @@ describe('SubscriptionManagement', () => {
     expect(screen.getByText(/Billed through Apple/)).toBeTruthy();
     expect(screen.getByText(/Apple Account settings/)).toBeTruthy();
     expect(
-      screen.queryByRole('button', { name: 'Cancel at period end' })
+      screen.queryByRole('button', { name: 'Cancel subscription' })
     ).toBeNull();
     expect(screen.queryByLabelText('Subscription email')).toBeNull();
     expect(mockUseStripeSubscriptions).not.toHaveBeenCalled();
@@ -106,7 +143,7 @@ describe('SubscriptionManagement', () => {
 
     expect(screen.getByText(/Lifetime access/)).toBeTruthy();
     expect(
-      screen.queryByRole('button', { name: 'Cancel at period end' })
+      screen.queryByRole('button', { name: 'Cancel subscription' })
     ).toBeNull();
     expect(screen.queryByLabelText('Subscription email')).toBeNull();
     expect(mockUseStripeSubscriptions).not.toHaveBeenCalled();
@@ -127,7 +164,7 @@ describe('SubscriptionManagement', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Cancel at period end' })
+      screen.getByRole('button', { name: 'Cancel subscription' })
     ).toBeTruthy();
     expect(mockUseStripeSubscriptions).toHaveBeenCalledWith(true);
   });
@@ -147,7 +184,7 @@ describe('SubscriptionManagement', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Cancel at period end' })
+      screen.getByRole('button', { name: 'Cancel subscription' })
     ).toBeTruthy();
     expect(mockUseStripeSubscriptions).toHaveBeenCalledWith(true);
   });
@@ -281,5 +318,65 @@ describe('SubscriptionManagement', () => {
 
     expect(container).toBeEmptyDOMElement();
     expect(mockUseStripeSubscriptions).not.toHaveBeenCalled();
+  });
+
+  it('opens the confirm panel and reveals the pause card on a lifecycle reason', () => {
+    stubStripeActive();
+    renderStripeManagement();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Cancel subscription' })
+    );
+
+    expect(screen.getByText(/Why are you cancelling/)).toBeTruthy();
+    expect(screen.queryByText(/Pause instead — no charge/)).toBeNull();
+
+    fireEvent.click(screen.getByLabelText('I finished what I needed'));
+
+    expect(screen.getByText(/Pause instead — no charge/)).toBeTruthy();
+    expect(track).toHaveBeenCalledWith('subscription_pause_offered', {
+      reason: 'I finished what I needed',
+      tenure_days: expect.any(Number),
+    });
+    expect(
+      screen.getByRole('button', { name: 'Keep subscription' })
+    ).toBeTruthy();
+  });
+
+  it('does not reveal the pause card for annual plans', () => {
+    stubStripeActive({ amount: 6400, currency: 'usd', interval: 'year' });
+    renderStripeManagement();
+
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Cancel subscription' })[0]
+    );
+    fireEvent.click(screen.getByLabelText('I finished what I needed'));
+
+    expect(screen.queryByText(/Pause instead — no charge/)).toBeNull();
+  });
+
+  it('renders the paused state with a resume action', async () => {
+    stubStripePaused();
+    renderStripeManagement();
+
+    expect(screen.getByText(/Paused · Resumes/)).toBeTruthy();
+    expect(
+      screen.getByText(/While paused, paid features are off/)
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Resume now' }));
+
+    await waitFor(() => expect(resumeSubscription).toHaveBeenCalled());
+  });
+
+  it('fires the cancelled-during-pause event when cancelling from paused', () => {
+    stubStripePaused();
+    renderStripeManagement();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Cancel subscription' })
+    );
+
+    expect(track).toHaveBeenCalledWith('subscription_cancelled_during_pause');
   });
 });
