@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
+import { PassLadderCard } from '../../components/PassLadderCard/PassLadderCard';
 import { track } from '../../lib/analytics/track';
 import { storePassToken } from '../../lib/anonymousPass';
 import useQuery from '../../lib/hooks/useQuery';
@@ -59,6 +60,9 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
     }
   );
   const { data: userLocals } = useUserLocals();
+  const [returnedFromPass, setReturnedFromPass] = useState(
+    () => searchParams.get('from') === 'pass'
+  );
   const pageViewTracked = useRef(false);
   const signupTracked = useRef(false);
 
@@ -105,6 +109,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
 
   useEffect(() => {
     if (searchParams.get('from') === 'pass') {
+      setReturnedFromPass(true);
       const next = new URLSearchParams(searchParams);
       next.delete('from');
       const qs = next.toString();
@@ -156,6 +161,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
           <span> to convert</span>
         </div>
       )}
+      {returnedFromPass && <PassLadderCard />}
       <div className={styles.aiOffBadge} role="status">
         {aiBadgeState === 'on' && (
           <>

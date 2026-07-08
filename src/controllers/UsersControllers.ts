@@ -34,6 +34,9 @@ import { extractCountryFromRequest } from '../lib/http/extractCountryFromRequest
 import { RecordUserVisibleErrorUseCase } from '../usecases/observability/RecordUserVisibleErrorUseCase';
 import { track } from '../services/events/track';
 import { mapEntitlement } from './helpers/mapEntitlement';
+import { GetPassLadderOfferUseCase } from '../usecases/checkout/GetPassLadderOfferUseCase';
+import UserPassRepository from '../data_layer/UserPassRepository';
+import { PlanSource } from '../routes/middleware/configureUserLocal';
 
 class UsersController {
   constructor(
@@ -336,6 +339,17 @@ class UsersController {
       freePrintAvailable = prints_used < 1;
     }
 
+    let passLadder = null;
+    if (user?.owner != null) {
+      passLadder = await new GetPassLadderOfferUseCase(
+        new UserPassRepository(this.db)
+      ).execute(
+        user.owner,
+        (locals.planSource as PlanSource) ?? null,
+        new Date()
+      );
+    }
+
     const response = {
       user: {
         id: user?.id,
@@ -357,6 +371,7 @@ class UsersController {
       autoSyncCapReached,
       autoSyncActive,
       freePrintAvailable,
+      passLadder,
     };
 
     return res.json(response);
