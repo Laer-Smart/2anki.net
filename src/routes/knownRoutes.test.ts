@@ -20,7 +20,7 @@ describe('isKnownAppRoute', () => {
     '/ankify',
     '/ankify/setup',
     '/ops',
-    '/ops/pricing-ab',
+    '/ops/flags',
     '/documentation',
     '/documentation/start-here/connect-notion',
     '/security',

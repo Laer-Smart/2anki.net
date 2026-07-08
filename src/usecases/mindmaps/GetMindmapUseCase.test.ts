@@ -13,7 +13,6 @@ function makeRepo(map: Mindmaps | null): MindmapRepositoryInterface {
     update: jest.fn(),
     delete: jest.fn(),
     countByUserId: jest.fn(),
-    getMindmapImageStats: jest.fn(),
   };
 }
 

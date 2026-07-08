@@ -155,10 +155,6 @@ const ReturnRateTab = lazyWithRetry(
   () => import('./pages/OpsPage/ReturnRateTab'),
   './pages/OpsPage/ReturnRateTab'
 );
-const MindmapsTab = lazyWithRetry(
-  () => import('./pages/OpsPage/MindmapsTab'),
-  './pages/OpsPage/MindmapsTab'
-);
 const BusinessTab = lazyWithRetry(
   () => import('./pages/OpsPage/BusinessTab'),
   './pages/OpsPage/BusinessTab'
@@ -178,10 +174,6 @@ const ContactMessagesTab = lazyWithRetry(
 const CommandsTab = lazyWithRetry(
   () => import('./pages/OpsPage/CommandsTab'),
   './pages/OpsPage/CommandsTab'
-);
-const PricingAbFunnelTab = lazyWithRetry(
-  () => import('./pages/OpsPage/PricingAbFunnelTab'),
-  './pages/OpsPage/PricingAbFunnelTab'
 );
 const UploadFunnelTab = lazyWithRetry(
   () => import('./pages/OpsPage/UploadFunnelTab'),
@@ -530,7 +522,6 @@ function AppContent({
               <Route path="performance" element={<PerformanceTab />} />
               <Route path="conversions" element={<ConversionsTab />} />
               <Route path="return-rate" element={<ReturnRateTab />} />
-              <Route path="mindmaps" element={<MindmapsTab />} />
               <Route path="upload-funnel" element={<UploadFunnelTab />} />
               <Route path="business" element={<BusinessTab />} />
               <Route path="showcase" element={<ShowcaseTab />} />
@@ -538,7 +529,6 @@ function AppContent({
               <Route path="messages" element={<ContactMessagesTab />} />
               <Route path="commands" element={<CommandsTab />} />
               <Route path="flags" element={<FlagsTab />} />
-              <Route path="pricing-ab" element={<PricingAbFunnelTab />} />
             </Route>
             <Route path="/feedback" element={requireAuth(<FeedbackPage />)} />
             <Route path="/settings" element={requireAuth(<AccountPage />)} />

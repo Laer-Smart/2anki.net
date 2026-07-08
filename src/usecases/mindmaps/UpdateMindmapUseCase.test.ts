@@ -32,7 +32,6 @@ function makeRepo(
     update: jest.fn().mockResolvedValue(updatedMap),
     delete: jest.fn(),
     countByUserId: jest.fn(),
-    getMindmapImageStats: jest.fn(),
   };
 }
 

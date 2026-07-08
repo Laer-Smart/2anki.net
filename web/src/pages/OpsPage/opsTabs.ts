@@ -4,75 +4,99 @@ export interface OpsTab {
   match: (path: string) => boolean;
 }
 
-export const OPS_TABS: OpsTab[] = [
+export interface OpsTabGroup {
+  label: string;
+  tabs: OpsTab[];
+}
+
+const childRoute =
+  (prefix: string) =>
+  (path: string): boolean =>
+    path.startsWith(prefix);
+
+const engineeringIndex: OpsTab = {
+  to: '/ops',
+  label: 'Engineering',
+  match: (path) => path === '/ops' || path.startsWith('/ops?'),
+};
+
+export const OPS_TAB_GROUPS: OpsTabGroup[] = [
   {
-    to: '/ops',
-    label: 'Engineering',
-    match: (path) => path === '/ops' || path.startsWith('/ops?'),
+    label: 'Growth',
+    tabs: [
+      {
+        to: '/ops/conversions',
+        label: 'Conversions',
+        match: childRoute('/ops/conversions'),
+      },
+      {
+        to: '/ops/upload-funnel',
+        label: 'Upload funnel',
+        match: childRoute('/ops/upload-funnel'),
+      },
+      {
+        to: '/ops/return-rate',
+        label: 'Return rate',
+        match: childRoute('/ops/return-rate'),
+      },
+      {
+        to: '/ops/business',
+        label: 'Business',
+        match: childRoute('/ops/business'),
+      },
+    ],
   },
   {
-    to: '/ops/errors',
-    label: 'Errors',
-    match: (path) => path.startsWith('/ops/errors'),
+    label: 'System',
+    tabs: [
+      engineeringIndex,
+      {
+        to: '/ops/errors',
+        label: 'Errors',
+        match: childRoute('/ops/errors'),
+      },
+      {
+        to: '/ops/performance',
+        label: 'Performance',
+        match: childRoute('/ops/performance'),
+      },
+    ],
   },
   {
-    to: '/ops/performance',
-    label: 'Performance',
-    match: (path) => path.startsWith('/ops/performance'),
+    label: 'Voice',
+    tabs: [
+      {
+        to: '/ops/messages',
+        label: 'Messages',
+        match: childRoute('/ops/messages'),
+      },
+      {
+        to: '/ops/interviews',
+        label: 'Interviews',
+        match: childRoute('/ops/interviews'),
+      },
+      {
+        to: '/ops/showcase',
+        label: 'Showcase',
+        match: childRoute('/ops/showcase'),
+      },
+    ],
   },
   {
-    to: '/ops/conversions',
-    label: 'Conversions',
-    match: (path) => path.startsWith('/ops/conversions'),
-  },
-  {
-    to: '/ops/return-rate',
-    label: 'Return rate',
-    match: (path) => path.startsWith('/ops/return-rate'),
-  },
-  {
-    to: '/ops/mindmaps',
-    label: 'Mindmaps',
-    match: (path) => path.startsWith('/ops/mindmaps'),
-  },
-  {
-    to: '/ops/upload-funnel',
-    label: 'Upload funnel',
-    match: (path) => path.startsWith('/ops/upload-funnel'),
-  },
-  {
-    to: '/ops/business',
-    label: 'Business',
-    match: (path) => path.startsWith('/ops/business'),
-  },
-  {
-    to: '/ops/showcase',
-    label: 'Showcase',
-    match: (path) => path.startsWith('/ops/showcase'),
-  },
-  {
-    to: '/ops/interviews',
-    label: 'Interviews',
-    match: (path) => path.startsWith('/ops/interviews'),
-  },
-  {
-    to: '/ops/messages',
-    label: 'Messages',
-    match: (path) => path.startsWith('/ops/messages'),
-  },
-  {
-    to: '/ops/commands',
-    label: 'Commands',
-    match: (path) => path.startsWith('/ops/commands'),
-  },
-  {
-    to: '/ops/flags',
-    label: 'Flags',
-    match: (path) => path.startsWith('/ops/flags'),
-  },
-  {
-    to: '/ops/pricing-ab',
-    label: 'Pricing A/B',
-    match: (path) => path.startsWith('/ops/pricing-ab'),
+    label: 'Controls',
+    tabs: [
+      {
+        to: '/ops/commands',
+        label: 'Commands',
+        match: childRoute('/ops/commands'),
+      },
+      {
+        to: '/ops/flags',
+        label: 'Flags',
+        match: childRoute('/ops/flags'),
+      },
+    ],
   },
 ];
+
+export const OPS_TABS: OpsTab[] = OPS_TAB_GROUPS.flatMap((group) => group.tabs);

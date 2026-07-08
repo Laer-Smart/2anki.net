@@ -10,9 +10,7 @@ import { PopulateShowcaseUseCase } from '../usecases/ops/PopulateShowcaseUseCase
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
 import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
 import { IShowcaseRepository } from '../data_layer/ShowcaseRepository';
-import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
 import { SyncStripeSubscriptionsUseCase } from '../usecases/ops/SyncStripeSubscriptionsUseCase';
-import { GetPricingAbFunnelUseCase } from '../usecases/ops/GetPricingAbFunnelUseCase';
 import { ListFeatureFlagsUseCase } from '../usecases/ops/ListFeatureFlagsUseCase';
 import {
   FeatureFlagNotFoundError,
@@ -32,11 +30,9 @@ class OpsController {
     private readonly sendInactivityWarningsUseCase?: SendInactivityWarningsUseCase,
     private readonly getPerformanceMetricsUseCase?: GetPerformanceMetricsUseCase,
     private readonly getReturnRateMetricsUseCase?: GetReturnRateMetricsUseCase,
-    private readonly getMindmapImageStatsUseCase?: GetMindmapImageStatsUseCase,
     private readonly getMindmapStorageMetricsUseCase?: GetMindmapStorageMetricsUseCase,
     private readonly deleteInactiveUsersUseCase?: DeleteInactiveUsersUseCase,
     private readonly syncStripeSubscriptionsUseCase?: SyncStripeSubscriptionsUseCase,
-    private readonly getPricingAbFunnelUseCase?: GetPricingAbFunnelUseCase,
     private readonly listFeatureFlagsUseCase?: ListFeatureFlagsUseCase,
     private readonly setFeatureFlagUseCase?: SetFeatureFlagUseCase,
     private readonly getUploadFunnelUseCase?: GetUploadFunnelUseCase,
@@ -211,20 +207,6 @@ class OpsController {
     }
   }
 
-  async getMindmapImageStats(_req: express.Request, res: express.Response) {
-    if (this.getMindmapImageStatsUseCase == null) {
-      res.status(500).json({ message: 'Mindmap image stats not configured' });
-      return;
-    }
-    try {
-      const result = await this.getMindmapImageStatsUseCase.execute();
-      res.status(200).json(result);
-    } catch (error) {
-      console.error('[ops] getMindmapImageStats failed', error);
-      res.status(500).json({ message: 'Failed to load mindmap image stats' });
-    }
-  }
-
   async getMindmapStorageMetrics(_req: express.Request, res: express.Response) {
     if (this.getMindmapStorageMetricsUseCase == null) {
       res
@@ -240,22 +222,6 @@ class OpsController {
       res
         .status(500)
         .json({ message: 'Failed to load mindmap storage metrics' });
-    }
-  }
-
-  async getPricingAbFunnel(req: express.Request, res: express.Response) {
-    if (this.getPricingAbFunnelUseCase == null) {
-      res.status(500).json({ message: 'Pricing A/B funnel not configured' });
-      return;
-    }
-    try {
-      const window =
-        typeof req.query.window === 'string' ? req.query.window : undefined;
-      const result = await this.getPricingAbFunnelUseCase.execute(window);
-      res.status(200).json(result);
-    } catch (error) {
-      console.error('[ops] getPricingAbFunnel failed', error);
-      res.status(500).json({ message: 'Failed to load pricing A/B funnel' });
     }
   }
 
