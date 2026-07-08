@@ -14,6 +14,10 @@ import goodnotesCopy from '../src/pages/LandingPage/copy/goodnotes';
 import aiFlashcardGeneratorCopy from '../src/pages/LandingPage/copy/ai-flashcard-generator';
 import { CONVERT_LANDING_PAGES } from '../src/pages/ConvertLandingPage/convertLandingConfig';
 import { ANSWERS_PAGES } from '../src/pages/AnswersPage/answersConfig';
+import {
+  buildArticleJsonLd,
+  buildFaqJsonLd,
+} from '../src/pages/AnswersPage/answersJsonLd';
 import type { LandingCopy } from '../src/pages/LandingPage/types';
 
 const LANDING_COPIES: LandingCopy[] = [
@@ -308,7 +312,12 @@ export function emitAnswersPages(buildDir: string): string[] {
     const outDir = join(buildDir, slug);
     const outPath = join(outDir, 'index.html');
     mkdirSync(dirname(outPath), { recursive: true });
-    const html = rewriteRoot(rewriteHead(source, copy), copy);
+    let html = rewriteRoot(rewriteHead(source, copy), copy);
+    const jsonLdScripts = [buildArticleJsonLd(config), buildFaqJsonLd(config)]
+      .filter((jsonLd) => jsonLd != null)
+      .map((jsonLd) => `<script type="application/ld+json">${jsonLd}</script>`)
+      .join('\n  ');
+    html = html.replace(/<\/head>/, `  ${jsonLdScripts}\n</head>`);
     writeFileSync(outPath, html, 'utf8');
     emitted.push(outPath);
   }
