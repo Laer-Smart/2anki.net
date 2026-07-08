@@ -50,6 +50,17 @@ describe('AccessBanner', () => {
     expect(screen.getByText(/Convert as much as you want/)).toBeInTheDocument();
   });
 
+  it('formats the expiry date in English regardless of system locale', () => {
+    render(
+      <AccessBanner
+        passExpiresAt={new Date('2026-06-04T10:03:00Z').toISOString()}
+        passKind="7d"
+        now={new Date('2026-06-01T12:00:00Z')}
+      />
+    );
+    expect(screen.getByText(/expires Thu.* 4 Jun/)).toBeInTheDocument();
+  });
+
   it('renders active state for Week Pass with >= 2h remaining', () => {
     render(
       <AccessBanner

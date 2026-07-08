@@ -4,7 +4,7 @@ const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const TEN_MINUTES_MS = 10 * 60 * 1000;
 
 function formatExpiryDate(date: Date): string {
-  return date.toLocaleString(undefined, {
+  return date.toLocaleString('en-GB', {
     weekday: 'short',
     day: 'numeric',
     month: 'short',

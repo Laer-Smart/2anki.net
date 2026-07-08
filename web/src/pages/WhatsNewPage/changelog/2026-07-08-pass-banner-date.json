@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-08-pass-banner-date",
+  "date": "2026-07-08",
+  "type": "fix",
+  "title": "Pass banner shows its expiry date in English to match the rest of the page"
+}
