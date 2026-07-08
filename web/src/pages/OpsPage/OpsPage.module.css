@@ -178,6 +178,22 @@
   margin: 0;
 }
 
+.compositeSection {
+  margin-bottom: 2.5rem;
+}
+
+.compositeSection + .compositeSection {
+  border-top: 1px solid var(--color-border);
+  padding-top: 1.5rem;
+}
+
+.compositeHeading {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 1rem;
+}
+
 .panel {
   display: flex;
   flex-direction: column;

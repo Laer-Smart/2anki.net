@@ -115,10 +115,6 @@ const PreviewApkgPage = lazyWithRetry(
   () => import('./pages/PreviewApkgPage'),
   './pages/PreviewApkgPage'
 );
-const FlagsTab = lazyWithRetry(
-  () => import('./pages/OpsPage/FlagsTab'),
-  './pages/OpsPage/FlagsTab'
-);
 const AnkifyPage = lazyWithRetry(
   () => import('./pages/AnkifyPage'),
   './pages/AnkifyPage'
@@ -139,33 +135,25 @@ const TodayTab = lazyWithRetry(
   () => import('./pages/OpsPage/TodayTab'),
   './pages/OpsPage/TodayTab'
 );
-const EngineeringTab = lazyWithRetry(
-  () => import('./pages/OpsPage/EngineeringTab'),
-  './pages/OpsPage/EngineeringTab'
+const GrowthTab = lazyWithRetry(
+  () => import('./pages/OpsPage/GrowthTab'),
+  './pages/OpsPage/GrowthTab'
+);
+const SystemTab = lazyWithRetry(
+  () => import('./pages/OpsPage/SystemTab'),
+  './pages/OpsPage/SystemTab'
+);
+const ControlsTab = lazyWithRetry(
+  () => import('./pages/OpsPage/ControlsTab'),
+  './pages/OpsPage/ControlsTab'
 );
 const ErrorsTab = lazyWithRetry(
   () => import('./pages/OpsPage/ErrorsTab'),
   './pages/OpsPage/ErrorsTab'
 );
-const PerformanceTab = lazyWithRetry(
-  () => import('./pages/OpsPage/PerformanceTab'),
-  './pages/OpsPage/PerformanceTab'
-);
-const ConversionsTab = lazyWithRetry(
-  () => import('./pages/OpsPage/ConversionsTab'),
-  './pages/OpsPage/ConversionsTab'
-);
-const ReturnRateTab = lazyWithRetry(
-  () => import('./pages/OpsPage/ReturnRateTab'),
-  './pages/OpsPage/ReturnRateTab'
-);
 const BusinessTab = lazyWithRetry(
   () => import('./pages/OpsPage/BusinessTab'),
   './pages/OpsPage/BusinessTab'
-);
-const ShowcaseTab = lazyWithRetry(
-  () => import('./pages/OpsPage/ShowcaseTab'),
-  './pages/OpsPage/ShowcaseTab'
 );
 const InterviewsTab = lazyWithRetry(
   () => import('./pages/OpsPage/InterviewsTab'),
@@ -174,14 +162,6 @@ const InterviewsTab = lazyWithRetry(
 const ContactMessagesTab = lazyWithRetry(
   () => import('./pages/OpsPage/ContactMessagesTab'),
   './pages/OpsPage/ContactMessagesTab'
-);
-const CommandsTab = lazyWithRetry(
-  () => import('./pages/OpsPage/CommandsTab'),
-  './pages/OpsPage/CommandsTab'
-);
-const UploadFunnelTab = lazyWithRetry(
-  () => import('./pages/OpsPage/UploadFunnelTab'),
-  './pages/OpsPage/UploadFunnelTab'
 );
 const FeedbackPage = lazyWithRetry(
   () => import('./pages/FeedbackPage/FeedbackPage'),
@@ -521,19 +501,39 @@ function AppContent({
               element={requireAuth(<AnkifyHistoryPage />)}
             />
             <Route path="/ops" element={requireAuth(<OpsLayout />)}>
-              <Route index element={<EngineeringTab />} />
+              <Route index element={<SystemTab />} />
               <Route path="today" element={<TodayTab />} />
-              <Route path="errors" element={<ErrorsTab />} />
-              <Route path="performance" element={<PerformanceTab />} />
-              <Route path="conversions" element={<ConversionsTab />} />
-              <Route path="return-rate" element={<ReturnRateTab />} />
-              <Route path="upload-funnel" element={<UploadFunnelTab />} />
+              <Route path="growth" element={<GrowthTab />} />
               <Route path="business" element={<BusinessTab />} />
-              <Route path="showcase" element={<ShowcaseTab />} />
-              <Route path="interviews" element={<InterviewsTab />} />
+              <Route path="system" element={<SystemTab />} />
+              <Route path="errors" element={<ErrorsTab />} />
               <Route path="messages" element={<ContactMessagesTab />} />
-              <Route path="commands" element={<CommandsTab />} />
-              <Route path="flags" element={<FlagsTab />} />
+              <Route path="commands" element={<ControlsTab />} />
+              <Route path="interviews" element={<InterviewsTab />} />
+              <Route
+                path="conversions"
+                element={<Navigate to="/ops/growth" replace />}
+              />
+              <Route
+                path="upload-funnel"
+                element={<Navigate to="/ops/growth" replace />}
+              />
+              <Route
+                path="return-rate"
+                element={<Navigate to="/ops/growth" replace />}
+              />
+              <Route
+                path="performance"
+                element={<Navigate to="/ops/system" replace />}
+              />
+              <Route
+                path="flags"
+                element={<Navigate to="/ops/commands" replace />}
+              />
+              <Route
+                path="showcase"
+                element={<Navigate to="/ops/commands" replace />}
+              />
             </Route>
             <Route path="/feedback" element={requireAuth(<FeedbackPage />)} />
             <Route path="/settings" element={requireAuth(<AccountPage />)} />

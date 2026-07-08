@@ -256,44 +256,65 @@ describe('Sidebar Ops folder', () => {
       'aria-expanded',
       'true'
     );
-    expect(screen.getByRole('link', { name: 'Engineering' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'System' })).toHaveAttribute(
       'href',
-      '/ops'
+      '/ops/system'
     );
-    expect(screen.getByRole('link', { name: 'Flags' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Commands' })).toHaveAttribute(
       'href',
-      '/ops/flags'
+      '/ops/commands'
     );
   });
 
-  it('renders the ops tabs under their group headers', () => {
+  it('lists the seven consolidated rows and none of the retired ones', () => {
     renderSidebar({ ops: true, pathname: '/ops/errors' });
-    expect(screen.getByText('Growth')).toBeInTheDocument();
-    expect(screen.getByText('System')).toBeInTheDocument();
-    expect(screen.getByText('Voice')).toBeInTheDocument();
-    expect(screen.getByText('Controls')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('link', { name: 'Pricing A/B' })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('link', { name: 'Mindmaps' })
-    ).not.toBeInTheDocument();
+    for (const [label, href] of [
+      ['Today', '/ops/today'],
+      ['Growth', '/ops/growth'],
+      ['Business', '/ops/business'],
+      ['System', '/ops/system'],
+      ['Errors', '/ops/errors'],
+      ['Messages', '/ops/messages'],
+      ['Commands', '/ops/commands'],
+    ] as const) {
+      expect(screen.getByRole('link', { name: label })).toHaveAttribute(
+        'href',
+        href
+      );
+    }
+    for (const retired of [
+      'Engineering',
+      'Performance',
+      'Conversions',
+      'Upload funnel',
+      'Return rate',
+      'Flags',
+      'Showcase',
+      'Interviews',
+      'Pricing A/B',
+      'Mindmaps',
+    ]) {
+      expect(
+        screen.queryByRole('link', { name: retired })
+      ).not.toBeInTheDocument();
+    }
   });
 
-  it('marks exactly the current tab active, not the Engineering index', () => {
+  it('marks exactly the current row active', () => {
     renderSidebar({ ops: true, pathname: '/ops/errors' });
     expect(screen.getByRole('link', { name: 'Errors' })).toHaveAttribute(
       'aria-current',
       'page'
     );
-    expect(
-      screen.getByRole('link', { name: 'Engineering' })
-    ).not.toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'System' })).not.toHaveAttribute(
+      'aria-current',
+      'page'
+    );
   });
 
-  it('marks Engineering active only on the /ops index', () => {
+  it('marks System active on the /ops index', () => {
     renderSidebar({ ops: true, pathname: '/ops' });
-    expect(screen.getByRole('link', { name: 'Engineering' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'System' })).toHaveAttribute(
       'aria-current',
       'page'
     );
