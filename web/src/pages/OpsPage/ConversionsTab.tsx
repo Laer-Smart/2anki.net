@@ -7,6 +7,8 @@ import {
   formatPercentOneDecimal,
 } from './businessHelpers';
 import { ConversionMetricsResponse } from './conversionTypes';
+import { buildClaudePrompt } from './buildClaudePrompt';
+import CopyForClaudeButton from './CopyForClaudeButton';
 import ChartPanel from './charts/ChartPanel';
 import FailedConversionsWeeklyChart from './charts/FailedConversionsWeeklyChart';
 import FailureReasonsChart from './charts/FailureReasonsChart';
@@ -30,6 +32,15 @@ export default function ConversionsTab() {
 
   return (
     <>
+      <div className={styles.tabHeader}>
+        <CopyForClaudeButton
+          getText={() =>
+            visible == null ? '' : buildClaudePrompt('conversions', visible)
+          }
+          disabled={visible == null}
+        />
+      </div>
+
       {error != null && (
         <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
           /api/ops/conversion/metrics failed: {error.message}. Last good data

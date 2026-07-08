@@ -4,6 +4,8 @@ import sharedStyles from '../../styles/shared.module.css';
 import styles from './OpsPage.module.css';
 import ChartPanel from './charts/ChartPanel';
 import MetricCard from './MetricCard';
+import { buildClaudePrompt } from './buildClaudePrompt';
+import CopyForClaudeButton from './CopyForClaudeButton';
 import { formatCount, formatPercent } from './opsHelpers';
 import { useReturnRateMetrics } from './useReturnRateMetrics';
 import { ReturnRateBySourceType } from './returnRateTypes';
@@ -74,6 +76,12 @@ export default function ReturnRateTab() {
           >
             {refreshing ? 'Refreshing…' : 'Refresh'}
           </button>
+          <CopyForClaudeButton
+            getText={() =>
+              data == null ? '' : buildClaudePrompt('return-rate', data)
+            }
+            disabled={data == null}
+          />
         </div>
       </div>
 

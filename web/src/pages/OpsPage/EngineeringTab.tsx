@@ -9,6 +9,8 @@ import {
   OpsMetricsWindow,
 } from './opsTypes';
 import { formatBytes, formatClock, formatCount } from './opsHelpers';
+import { buildClaudePrompt } from './buildClaudePrompt';
+import CopyForClaudeButton from './CopyForClaudeButton';
 import { useOpsMetrics } from './useOpsMetrics';
 import { useMindmapStorage } from './useMindmapStorage';
 import { MindmapStorageMetricsResponse } from './mindmapOpsTypes';
@@ -140,6 +142,12 @@ export default function EngineeringTab() {
           >
             {refreshing ? 'Refreshing…' : 'Refresh'}
           </button>
+          <CopyForClaudeButton
+            getText={() =>
+              visible == null ? '' : buildClaudePrompt('engineering', visible)
+            }
+            disabled={visible == null}
+          />
         </div>
       </div>
 
