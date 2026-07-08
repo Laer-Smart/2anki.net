@@ -211,6 +211,24 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://2anki.net/answers/google-docs-to-anki/</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2anki.net/answers/handwritten-notes-to-anki/</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://2anki.net/answers/textbook-to-anki/</loc>
+    <lastmod>2026-07-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://2anki.net/answers/convert-notion-to-anki/</loc>
     <lastmod>2026-06-10</lastmod>
     <changefreq>monthly</changefreq>

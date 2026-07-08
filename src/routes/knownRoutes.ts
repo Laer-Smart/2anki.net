@@ -106,6 +106,9 @@ const ANSWERS_SLUGS = new Set<string>([
   'lecture-notes-to-anki',
   'word-to-anki',
   'image-occlusion-anki',
+  'google-docs-to-anki',
+  'handwritten-notes-to-anki',
+  'textbook-to-anki',
 ]);
 
 const PARAM_PREFIXES = [

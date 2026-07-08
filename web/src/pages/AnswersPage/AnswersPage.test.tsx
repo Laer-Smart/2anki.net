@@ -127,14 +127,18 @@ describe('AnswersPage', () => {
     }
   });
 
-  it.each(['lecture-notes-to-anki', 'word-to-anki', 'image-occlusion-anki'])(
-    'renders the %s page',
-    (slug) => {
-      const config = ANSWERS_PAGES.get(slug)!;
-      renderAtSlug(slug);
-      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
-        config.h1
-      );
-    }
-  );
+  it.each([
+    'lecture-notes-to-anki',
+    'word-to-anki',
+    'image-occlusion-anki',
+    'google-docs-to-anki',
+    'handwritten-notes-to-anki',
+    'textbook-to-anki',
+  ])('renders the %s page', (slug) => {
+    const config = ANSWERS_PAGES.get(slug)!;
+    renderAtSlug(slug);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      config.h1
+    );
+  });
 });
