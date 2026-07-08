@@ -10,8 +10,14 @@ export interface UserPass {
   stripe_payment_intent_id: string;
 }
 
+export interface PaidPassCounts {
+  dayPasses: number;
+  weekPasses: number;
+}
+
 export interface IUserPassRepository {
   findActive(userId: number, now: Date): Promise<UserPass | null>;
+  countPaidPassesSince(userId: number, since: Date): Promise<PaidPassCounts>;
   upsertWithExtension(
     userId: number,
     kind: PassKind,
@@ -60,6 +66,31 @@ export class UserPassRepository implements IUserPassRepository {
       .orderBy('expires_at', 'desc')
       .first();
     return row ? toUserPass(row) : null;
+  }
+
+  countPaidPassesQuery(userId: number, since: Date) {
+    return this.database(this.table)
+      .select('kind')
+      .count('* as count')
+      .where('user_id', userId)
+      .whereIn('kind', ['24h', '7d'])
+      .where('expires_at', '>', since)
+      .groupBy('kind');
+  }
+
+  async countPaidPassesSince(
+    userId: number,
+    since: Date
+  ): Promise<PaidPassCounts> {
+    const rows = (await this.countPaidPassesQuery(userId, since)) as Array<{
+      kind: string;
+      count: string | number;
+    }>;
+    const byKind = new Map(rows.map((r) => [r.kind, Number(r.count)]));
+    return {
+      dayPasses: byKind.get('24h') ?? 0,
+      weekPasses: byKind.get('7d') ?? 0,
+    };
   }
 
   async upsertWithExtension(
@@ -160,6 +191,22 @@ export class InMemoryUserPassRepository implements IUserPassRepository {
       .filter((r) => r.user_id === userId && r.expires_at > now)
       .sort((a, b) => b.expires_at.getTime() - a.expires_at.getTime());
     return active[0] ?? null;
+  }
+
+  async countPaidPassesSince(
+    userId: number,
+    since: Date
+  ): Promise<PaidPassCounts> {
+    const recent = this.rows.filter(
+      (r) =>
+        r.user_id === userId &&
+        (r.kind === '24h' || r.kind === '7d') &&
+        r.expires_at > since
+    );
+    return {
+      dayPasses: recent.filter((r) => r.kind === '24h').length,
+      weekPasses: recent.filter((r) => r.kind === '7d').length,
+    };
   }
 
   async upsertWithExtension(
