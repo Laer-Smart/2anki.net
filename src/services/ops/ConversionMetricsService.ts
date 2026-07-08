@@ -6,6 +6,8 @@ export type ConversionMetricKey =
   | 'paid_conversions_7d'
   | 'free_conversion_success_rate_7d'
   | 'paid_conversion_success_rate_7d'
+  | 'free_blocked_by_plan_7d'
+  | 'paid_blocked_by_plan_7d'
   | 'conversion_errors_7d_top_reasons'
   | 'failed_conversions_weekly'
   | 'time_to_first_deck_median_minutes_30d'
@@ -26,6 +28,8 @@ export interface ConversionMetricsResponse {
   paid_conversions_7d: number | null;
   free_conversion_success_rate_7d: number | null;
   paid_conversion_success_rate_7d: number | null;
+  free_blocked_by_plan_7d: number | null;
+  paid_blocked_by_plan_7d: number | null;
   conversion_errors_7d_top_reasons: ConversionErrorCount[] | null;
   failed_conversions_weekly: FailedConversionsWeekPoint[] | null;
   time_to_first_deck_median_minutes_30d: number | null;
@@ -60,6 +64,8 @@ export class ConversionMetricsService {
       paidConversions7d,
       freeSuccessRate7d,
       paidSuccessRate7d,
+      freeBlockedByPlan7d,
+      paidBlockedByPlan7d,
       topErrors7d,
       failedConversionsWeeklyRows,
       timeToFirstDeck30d,
@@ -69,6 +75,8 @@ export class ConversionMetricsService {
       this.repository.countPaidConversions7d(sevenDaysAgo),
       this.repository.computeFreeSuccessRate7d(sevenDaysAgo),
       this.repository.computePaidSuccessRate7d(sevenDaysAgo),
+      this.repository.countFreePlanBlocked7d(sevenDaysAgo),
+      this.repository.countPaidPlanBlocked7d(sevenDaysAgo),
       this.repository.topFailureReasons7d(sevenDaysAgo),
       this.repository.failedConversionsWeekly(earliestStart, weekEnd),
       this.eventsMetricsRepository.medianMinutesToFirstDeck(thirtyDaysAgo),
@@ -99,6 +107,14 @@ export class ConversionMetricsService {
       paid_conversion_success_rate_7d:
         paidSuccessRate7d.status === 'fulfilled'
           ? paidSuccessRate7d.value
+          : null,
+      free_blocked_by_plan_7d:
+        freeBlockedByPlan7d.status === 'fulfilled'
+          ? freeBlockedByPlan7d.value
+          : null,
+      paid_blocked_by_plan_7d:
+        paidBlockedByPlan7d.status === 'fulfilled'
+          ? paidBlockedByPlan7d.value
           : null,
       conversion_errors_7d_top_reasons:
         topErrors7d.status === 'fulfilled' ? topErrors7d.value : null,

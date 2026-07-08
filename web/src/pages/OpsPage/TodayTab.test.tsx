@@ -46,6 +46,8 @@ const healthyConversion = {
   paid_conversions_7d: 137,
   free_conversion_success_rate_7d: 96.4,
   paid_conversion_success_rate_7d: 97.2,
+  free_blocked_by_plan_7d: 40,
+  paid_blocked_by_plan_7d: 0,
   conversion_errors_7d_top_reasons: null,
   failed_conversions_weekly: null,
   time_to_first_deck_median_minutes_30d: 42,

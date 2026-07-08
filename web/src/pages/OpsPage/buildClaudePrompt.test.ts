@@ -52,6 +52,8 @@ function makeConversions(
     paid_conversions_7d: 137,
     free_conversion_success_rate_7d: 91.4,
     paid_conversion_success_rate_7d: 96.2,
+    free_blocked_by_plan_7d: 63,
+    paid_blocked_by_plan_7d: 0,
     conversion_errors_7d_top_reasons: [{ reason: 'Notion timeout', count: 12 }],
     failed_conversions_weekly: [{ week: '2026-06-01', count: 3 }],
     time_to_first_deck_median_minutes_30d: 42,
@@ -213,6 +215,7 @@ describe('buildClaudePrompt — conversions', () => {
     expect(prompt).toContain('## Conversion metrics — weekly review');
     expect(prompt).toContain('Free conversions 7d:            824');
     expect(prompt).toContain('Paid success rate 7d (%):       96.2');
+    expect(prompt).toContain('Free blocked by plan 7d:        63');
     expect(prompt).toContain('Notion timeout');
     expect(prompt).toContain(
       'find the biggest conversion leak and propose one fix'

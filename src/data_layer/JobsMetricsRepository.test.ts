@@ -146,6 +146,81 @@ describe('JobsMetricsRepository — counts cover the real Notion job types', () 
     expect(rate).toBeCloseTo((2 / 3) * 100, 5);
   });
 
+  it('excludes monthly-limit plan blocks from the free success-rate denominator', async () => {
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'sr-1',
+      type: 'page',
+      status: 'done',
+    });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'sr-2',
+      type: 'database',
+      status: 'done',
+    });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'sr-3',
+      type: 'page',
+      status: 'failed',
+      job_reason_failure: 'Notion timeout',
+    });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'sr-4',
+      type: 'page',
+      status: 'failed',
+      job_reason_failure: JSON.stringify({
+        code: 'monthly_limit',
+        cards_used: 105,
+        limit: 100,
+      }),
+    });
+
+    const rate = await repo.computeFreeSuccessRate7d(sevenDaysAgo);
+
+    expect(rate).toBeCloseTo((2 / 3) * 100, 5);
+  });
+
+  it('counts monthly-limit plan blocks per tier', async () => {
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'pb-1',
+      type: 'page',
+      status: 'failed',
+      job_reason_failure: JSON.stringify({
+        code: 'monthly_limit',
+        cards_used: 120,
+        limit: 100,
+      }),
+    });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'pb-2',
+      type: 'database',
+      status: 'failed',
+      job_reason_failure: JSON.stringify({
+        code: 'monthly_limit',
+        cards_used: 150,
+        limit: 100,
+      }),
+    });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'pb-3',
+      type: 'page',
+      status: 'failed',
+      job_reason_failure: 'Notion timeout',
+    });
+
+    const freeBlocked = await repo.countFreePlanBlocked7d(sevenDaysAgo);
+    const paidBlocked = await repo.countPaidPlanBlocked7d(sevenDaysAgo);
+
+    expect(freeBlocked).toBe(2);
+    expect(paidBlocked).toBe(0);
+  });
+
   it('returns null free success rate when there are no qualifying jobs', async () => {
     const rate = await repo.computeFreeSuccessRate7d(sevenDaysAgo);
 
@@ -258,5 +333,30 @@ describe('JobsMetricsRepository — tier join emits portable SQL on Postgres', (
     const sql = getSql();
     expect(sql).toContain('CAST(users.id AS TEXT) = "jobs"."owner"');
     expect(sql).toContain('users.stripe_customer_id IS NULL');
+  });
+
+  it('keeps plan-limit failures out of the success-rate denominator', async () => {
+    const getSql = captureCompiledSql(pg);
+    const repo = new JobsMetricsRepository(pg);
+    const sevenDaysAgo = new Date('2026-05-01T00:00:00.000Z');
+
+    await repo.computeFreeSuccessRate7d(sevenDaysAgo).catch(() => undefined);
+
+    const sql = getSql();
+    expect(sql).toContain('NOT LIKE');
+    expect(sql).toContain('"code":"monthly_limit"');
+  });
+
+  it('matches plan-limit failures on the durable reason code for the blocked count', async () => {
+    const getSql = captureCompiledSql(pg);
+    const repo = new JobsMetricsRepository(pg);
+    const sevenDaysAgo = new Date('2026-05-01T00:00:00.000Z');
+
+    await repo.countPaidPlanBlocked7d(sevenDaysAgo).catch(() => undefined);
+
+    const sql = getSql();
+    expect(sql).toContain('jobs.job_reason_failure LIKE');
+    expect(sql).toContain('"code":"monthly_limit"');
+    expect(sql).toContain('users.stripe_customer_id IS NOT NULL');
   });
 });

@@ -113,6 +113,8 @@ function buildConversionsPrompt(payload: ConversionMetricsResponse): string {
     `Paid conversions 7d:            ${numberOrDash(payload.paid_conversions_7d)}`,
     `Free success rate 7d (%):       ${numberOrDash(payload.free_conversion_success_rate_7d)}`,
     `Paid success rate 7d (%):       ${numberOrDash(payload.paid_conversion_success_rate_7d)}`,
+    `Free blocked by plan 7d:        ${numberOrDash(payload.free_blocked_by_plan_7d)}`,
+    `Paid blocked by plan 7d:        ${numberOrDash(payload.paid_blocked_by_plan_7d)}`,
     `Time to first deck 30d (min):   ${numberOrDash(payload.time_to_first_deck_median_minutes_30d)}`,
     `Upload → download rate 7d (%):  ${numberOrDash(payload.upload_to_download_rate_7d)}`,
     '',
