@@ -8,8 +8,11 @@ import {
   OpsMetricsResponse,
   OpsMetricsWindow,
 } from './opsTypes';
-import { formatClock } from './opsHelpers';
+import { formatBytes, formatClock, formatCount } from './opsHelpers';
 import { useOpsMetrics } from './useOpsMetrics';
+import { useMindmapStorage } from './useMindmapStorage';
+import { MindmapStorageMetricsResponse } from './mindmapOpsTypes';
+import MetricCard from './MetricCard';
 import ChartPanel from './charts/ChartPanel';
 import InboundVolumeChart from './charts/InboundVolumeChart';
 import LatencyByRouteChart from './charts/LatencyByRouteChart';
@@ -50,6 +53,17 @@ const hasAnyData = (response: OpsMetricsResponse | undefined): boolean => {
   );
 };
 
+const resolveStorageFootnote = (
+  error: Error | null,
+  data: MindmapStorageMetricsResponse | undefined
+): string | undefined => {
+  if (error != null) {
+    return `/api/ops/mindmap/storage failed: ${error.message}`;
+  }
+  if (data == null) return undefined;
+  return `${formatCount(data.total_objects)} objects`;
+};
+
 export default function EngineeringTab() {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryWindow = searchParams.get('window');
@@ -63,6 +77,7 @@ export default function EngineeringTab() {
   );
 
   const { data, error, isLoading, isFetching, refetch } = useOpsMetrics(window);
+  const mindmapStorage = useMindmapStorage();
 
   useEffect(() => {
     if (data != null) {
@@ -87,6 +102,15 @@ export default function EngineeringTab() {
     if (lastSuccessAt == null) return '—';
     return formatClock(lastSuccessAt);
   }, [lastSuccessAt]);
+
+  const storageValue =
+    mindmapStorage.data == null
+      ? '—'
+      : formatBytes(mindmapStorage.data.total_bytes);
+  const storageFootnote = resolveStorageFootnote(
+    mindmapStorage.error,
+    mindmapStorage.data
+  );
 
   return (
     <>
@@ -314,6 +338,24 @@ export default function EngineeringTab() {
               rows={visible?.parse_path_signatures ?? []}
             />
           </ChartPanel>
+        </div>
+      </section>
+
+      <section className={styles.section} aria-labelledby="ops-section-storage">
+        <header className={styles.sectionHeader}>
+          <h2 id="ops-section-storage" className={styles.sectionTitle}>
+            Storage
+          </h2>
+          <p className={styles.sectionHint}>
+            Mind map images on S3 · fetched once per visit
+          </p>
+        </header>
+        <div className={styles.grid}>
+          <MetricCard
+            title="Mindmap storage"
+            value={storageValue}
+            footnote={storageFootnote}
+          />
         </div>
       </section>
     </>

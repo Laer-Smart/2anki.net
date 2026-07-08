@@ -24,7 +24,6 @@ function makeRepo(maps: Mindmaps[], count: number): MindmapRepositoryInterface {
     update: jest.fn(),
     delete: jest.fn(),
     countByUserId: jest.fn().mockResolvedValue(count),
-    getMindmapImageStats: jest.fn(),
   };
 }
 

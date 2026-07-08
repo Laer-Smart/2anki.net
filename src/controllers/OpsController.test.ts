@@ -4,7 +4,6 @@ import OpsController from './OpsController';
 import { GetOpsMetricsUseCase } from '../usecases/ops/GetOpsMetricsUseCase';
 import { GetBusinessMetricsUseCase } from '../usecases/ops/GetBusinessMetricsUseCase';
 import { GetReturnRateMetricsUseCase } from '../usecases/ops/GetReturnRateMetricsUseCase';
-import { GetMindmapImageStatsUseCase } from '../usecases/mindmaps/GetMindmapImageStatsUseCase';
 import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
 
 const buildRes = () => {
@@ -187,90 +186,10 @@ describe('OpsController.getReturnRateMetrics', () => {
   });
 });
 
-describe('OpsController.getMindmapImageStats', () => {
-  it('returns 500 when the use case is not configured', async () => {
-    const opsUseCase = {} as unknown as GetOpsMetricsUseCase;
-    const controller = new OpsController(opsUseCase);
-    const req = {} as unknown as express.Request;
-    const res = buildRes();
-
-    await controller.getMindmapImageStats(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: expect.any(String) })
-    );
-  });
-
-  it('returns 200 with the use case result', async () => {
-    const fakeResult = {
-      total: 10,
-      with_images: 3,
-      ratio: 0.3,
-      as_of: '2026-05-25T00:00:00.000Z',
-    };
-    const opsUseCase = {} as unknown as GetOpsMetricsUseCase;
-    const imageStatsUseCase = {
-      execute: jest.fn().mockResolvedValue(fakeResult),
-    } as unknown as GetMindmapImageStatsUseCase;
-    const controller = new OpsController(
-      opsUseCase,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      imageStatsUseCase
-    );
-    const req = {} as unknown as express.Request;
-    const res = buildRes();
-
-    await controller.getMindmapImageStats(req, res);
-
-    expect(imageStatsUseCase.execute as jest.Mock).toHaveBeenCalledTimes(1);
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith(fakeResult);
-  });
-
-  it('responds 500 when the use case throws', async () => {
-    const opsUseCase = {} as unknown as GetOpsMetricsUseCase;
-    const imageStatsUseCase = {
-      execute: jest.fn().mockRejectedValue(new Error('db down')),
-    } as unknown as GetMindmapImageStatsUseCase;
-    const controller = new OpsController(
-      opsUseCase,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      imageStatsUseCase
-    );
-    const req = {} as unknown as express.Request;
-    const res = buildRes();
-    const errSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => undefined);
-
-    await controller.getMindmapImageStats(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: expect.any(String) })
-    );
-    errSpy.mockRestore();
-  });
-});
-
 describe('OpsController.deleteInactiveUsers', () => {
   const buildController = (useCase: DeleteInactiveUsersUseCase) =>
     new OpsController(
       {} as unknown as GetOpsMetricsUseCase,
-      undefined,
       undefined,
       undefined,
       undefined,

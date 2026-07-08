@@ -58,7 +58,6 @@ const OPS_ROUTES = new Set<string>([
   '/ops/messages',
   '/ops/commands',
   '/ops/flags',
-  '/ops/pricing-ab',
 ]);
 
 const LANDING_SLUGS = new Set<string>([

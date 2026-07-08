@@ -260,10 +260,24 @@ describe('Sidebar Ops folder', () => {
       'href',
       '/ops'
     );
-    expect(screen.getByRole('link', { name: 'Pricing A/B' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Flags' })).toHaveAttribute(
       'href',
-      '/ops/pricing-ab'
+      '/ops/flags'
     );
+  });
+
+  it('renders the ops tabs under their group headers', () => {
+    renderSidebar({ ops: true, pathname: '/ops/errors' });
+    expect(screen.getByText('Growth')).toBeInTheDocument();
+    expect(screen.getByText('System')).toBeInTheDocument();
+    expect(screen.getByText('Voice')).toBeInTheDocument();
+    expect(screen.getByText('Controls')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Pricing A/B' })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: 'Mindmaps' })
+    ).not.toBeInTheDocument();
   });
 
   it('marks exactly the current tab active, not the Engineering index', () => {

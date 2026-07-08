@@ -27,7 +27,7 @@ import UserCircleIcon from '../icons/UserCircleIcon';
 import SettingsIcon from '../icons/SettingsIcon';
 import WrenchIcon from '../icons/WrenchIcon';
 import ShareIcon from '../icons/ShareIcon';
-import { OPS_TABS } from '../../pages/OpsPage/opsTabs';
+import { OPS_TAB_GROUPS } from '../../pages/OpsPage/opsTabs';
 import { ThemeSwitcher } from '../ThemeSwitcher/ThemeSwitcher';
 import { ThemeToggle } from '../ThemeSwitcher/ThemeToggle';
 import styles from './AppShell.module.css';
@@ -181,16 +181,21 @@ function OpsSidebarFolder({
           aria-label="Ops"
           className={styles.sidebarFolderItems}
         >
-          {OPS_TABS.map((tab) => (
-            <SidebarRow
-              key={tab.to}
-              href={tab.to}
-              pathname={pathname}
-              matchPrefix={tab.to !== '/ops'}
-              onClick={onNavigate}
-            >
-              {tab.label}
-            </SidebarRow>
+          {OPS_TAB_GROUPS.map((group) => (
+            <div key={group.label} className={styles.sidebarFolderGroup}>
+              <p className={styles.sidebarFolderGroupLabel}>{group.label}</p>
+              {group.tabs.map((tab) => (
+                <SidebarRow
+                  key={tab.to}
+                  href={tab.to}
+                  pathname={pathname}
+                  matchPrefix={tab.to !== '/ops'}
+                  onClick={onNavigate}
+                >
+                  {tab.label}
+                </SidebarRow>
+              ))}
+            </div>
           ))}
         </div>
       )}
