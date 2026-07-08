@@ -309,10 +309,6 @@ const StatusPage = lazyWithRetry(
   () => import('./pages/StatusPage/StatusPage'),
   './pages/StatusPage/StatusPage'
 );
-const TransformPage = lazyWithRetry(
-  () => import('./pages/TransformPage'),
-  './pages/TransformPage'
-);
 const NativeAppPage = lazyWithRetry(
   () => import('./pages/NativeAppPage/NativeAppPage'),
   './pages/NativeAppPage/NativeAppPage'
@@ -436,7 +432,6 @@ function AppContent({
               element={requireAuth(<PhotoToFlashcardsPage />)}
             />
             <Route path="/mindmaps" element={requireAuth(<MindmapsPage />)} />
-            <Route path="/transform" element={requireAuth(<TransformPage />)} />
             <Route
               path="/mindmaps/:id"
               element={requireAuth(<MindmapsPage />)}

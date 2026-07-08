@@ -66,12 +66,8 @@ describe('ConvertLandingPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('cross-links pdf-to-anki to the AnKing enrichment and AI generator pages', () => {
+  it('cross-links pdf-to-anki to the AI generator page', () => {
     const links = CONVERT_LANDING_PAGES.get('pdf-to-anki')?.relatedLinks ?? [];
-    expect(links).toContainEqual({
-      label: 'Enrich an AnKing deck',
-      href: '/convert/enrich-anki-deck',
-    });
     expect(links).toContainEqual({
       label: 'AI flashcard generator',
       href: '/ai-flashcard-generator',
@@ -151,21 +147,7 @@ describe('ConvertLandingPage', () => {
   });
 
   it('covers all 16 supported input types', () => {
-    expect(CONVERT_LANDING_PAGES.size).toBe(16);
-  });
-
-  it('resolves /convert/enrich-anki-deck to the deck enrichment landing', () => {
-    const copy = CONVERT_LANDING_PAGES.get('enrich-anki-deck');
-    expect(copy?.pathname).toBe('/convert/enrich-anki-deck');
-    expect(copy?.h1).toBe('Make your AnKing deck work better for you');
-    expect(copy?.ctaHref).toBe('/transform');
-    expect(copy?.ctaLabel).toBe('Enrich my deck');
-  });
-
-  it('renders the enrich-deck CTA pointing at the transform upload page', () => {
-    renderAtSlug('enrich-anki-deck');
-    const cta = screen.getByRole('link', { name: 'Enrich my deck' });
-    expect(cta).toHaveAttribute('href', '/transform');
+    expect(CONVERT_LANDING_PAGES.size).toBe(15);
   });
 
   it('serves dedicated EPUB and Kindle highlight converter pages', () => {

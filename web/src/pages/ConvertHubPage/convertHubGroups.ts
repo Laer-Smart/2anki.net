@@ -103,12 +103,6 @@ const FILE_FORMATS: RawEntry[] = [
     blurb:
       'Upload an .apkg and download a spreadsheet of every card to edit or share.',
   },
-  {
-    slug: 'enrich-anki-deck',
-    anchor: 'Enrich an AnKing deck',
-    blurb:
-      'Drop an .apkg you study and get it back translated, clozed, or enriched with examples.',
-  },
 ];
 
 const LANGUAGE_TOOLS: RawEntry[] = [

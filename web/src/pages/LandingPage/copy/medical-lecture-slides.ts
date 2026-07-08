@@ -9,7 +9,6 @@ const medicalLectureSlidesCopy: LandingCopy = {
       href: '/nursing-flashcards',
     },
     { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
-    { label: 'Enrich an AnKing deck', href: '/convert/enrich-anki-deck' },
     { label: 'Browse every converter', href: '/convert' },
   ],
   pathname: '/anki-from-medical-lecture-slides',

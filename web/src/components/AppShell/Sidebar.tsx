@@ -21,7 +21,6 @@ import ChevronRightIcon from '../icons/ChevronRightIcon';
 import CommandLineIcon from '../icons/CommandLineIcon';
 import CreditCardIcon from '../icons/CreditCardIcon';
 import PrinterIcon from '../icons/PrinterIcon';
-import RefreshIcon from '../icons/RefreshIcon';
 import SparklesIcon from '../icons/SparklesIcon';
 import StarIcon from '../icons/StarIcon';
 import UserCircleIcon from '../icons/UserCircleIcon';
@@ -342,15 +341,6 @@ export function Sidebar({
               icon={ArrowLeftIcon}
             >
               Anki to Notion
-            </SidebarRow>
-            <SidebarRow
-              href="/transform"
-              pathname={pathname}
-              matchPrefix={false}
-              onClick={handleNavClick()}
-              icon={RefreshIcon}
-            >
-              Transform
             </SidebarRow>
             {showAnkify && (
               <SidebarRow

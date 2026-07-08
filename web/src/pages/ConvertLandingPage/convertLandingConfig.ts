@@ -44,7 +44,6 @@ const notionToAnki: LandingCopy = {
 
 const pdfToAnki: LandingCopy = {
   relatedLinks: [
-    { label: 'Enrich an AnKing deck', href: '/convert/enrich-anki-deck' },
     { label: 'AI flashcard generator', href: '/ai-flashcard-generator' },
     { label: 'Convert PowerPoint slides to Anki', href: '/powerpoint-to-anki' },
     { label: 'Convert an HTML file to Anki', href: '/convert/html-to-anki' },
@@ -211,7 +210,6 @@ const apkgToCsv: LandingCopy = {
     },
     { label: 'Convert Anki notes to Notion', href: '/anki-to-notion' },
     { label: 'Convert an HTML file to Anki', href: '/convert/html-to-anki' },
-    { label: 'Enrich an AnKing deck', href: '/convert/enrich-anki-deck' },
     { label: 'Browse every converter', href: '/convert' },
   ],
   pathname: '/convert/apkg-to-csv',
@@ -615,56 +613,6 @@ const kindleToAnki: LandingCopy = {
   ],
 };
 
-const enrichAnkiDeck: LandingCopy = {
-  relatedLinks: [
-    { label: 'Export an Anki deck to CSV', href: '/convert/apkg-to-csv' },
-    { label: 'Build a USMLE deck from your notes', href: '/usmle-anki' },
-    { label: 'See paid plans', href: '/pricing' },
-    { label: 'Browse every converter', href: '/convert' },
-  ],
-  pathname: '/convert/enrich-anki-deck',
-  title: 'Enrich an Anki deck — translate, cloze, and add examples | 2anki',
-  description:
-    'Drop an existing .apkg and get it back translated, clozed, or enriched with examples, hints, and images. Works on the AnKing deck and any deck you own. Paid plan, up to 250 notes per job.',
-  h1: 'Make your AnKing deck work better for you',
-  subhead:
-    'Drop an .apkg you already study and get it back translated, clozed, or enriched with examples, hints, and images. Your cards, rebuilt the way you learn — not a new deck to start over on.',
-  ctaLabel: 'Enrich my deck',
-  ctaHref: '/transform',
-  whatComesAcross: [
-    {
-      title: 'Translate the back into your language',
-      body: 'Pick a target language and we translate the answer field on every card, keeping the front as-is. Study a Step 1 deck in the language you think in, without rewriting a single card by hand.',
-    },
-    {
-      title: 'Turn fronts into cloze blanks',
-      body: 'We convert a basic front into a cloze deletion so you recall the key term instead of reading it. Good for a vocab deck or a fact-dense deck where recognition was hiding gaps in recall.',
-    },
-    {
-      title: 'Add examples, hints, and images',
-      body: 'Add a worked example or a one-line hint to the back, or attach a real photo or diagram pulled from a stock-photo or Wikimedia source. The original front and back stay intact — enrichment is appended, not swapped in.',
-    },
-  ],
-  faqs: [
-    {
-      q: 'Do you change my cards or replace them?',
-      a: 'We append. Translation writes to the answer field, cloze rewrites the front into a deletion, and examples, hints, and images are added to the back. The note type and your existing fields stay. You review the result in Anki and keep whatever you like.',
-    },
-    {
-      q: 'Does this work on the AnKing deck?',
-      a: 'Yes. Any .apkg you own works — the AnKing deck, a deck from AnkiWeb, or one you built yourself. We read the file you upload; there is no connection to AnkiWeb and nothing is shared back.',
-    },
-    {
-      q: 'Do you keep the originals?',
-      a: 'Your uploaded deck is never altered. You download a new .apkg with the transforms applied, so the deck you already study stays exactly as it is until you choose to import the enriched version.',
-    },
-    {
-      q: "What's the limit per job?",
-      a: 'Up to 250 notes per transform. For a larger deck, split it into subdecks of 250 or fewer and run each through — the enriched pieces import alongside each other in Anki.',
-    },
-  ],
-};
-
 export const CONVERT_LANDING_PAGES: ReadonlyMap<string, LandingCopy> = new Map([
   ['notion-to-anki', notionToAnki],
   ['pdf-to-anki', pdfToAnki],
@@ -681,5 +629,4 @@ export const CONVERT_LANDING_PAGES: ReadonlyMap<string, LandingCopy> = new Map([
   ['language-reactor-to-anki', languageReactorToAnki],
   ['epub-to-anki', epubToAnki],
   ['kindle-to-anki', kindleToAnki],
-  ['enrich-anki-deck', enrichAnkiDeck],
 ]);

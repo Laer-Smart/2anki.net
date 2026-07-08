@@ -26,7 +26,6 @@ const APP_ROUTES = new Set<string>([
   '/settings',
   '/settings/card-options',
   '/card-options',
-  '/transform',
   '/mindmaps',
   '/chat',
   '/photo-to-deck',

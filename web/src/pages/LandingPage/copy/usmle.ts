@@ -11,7 +11,6 @@ const usmleCopy: LandingCopy = {
       href: '/anki-from-medical-lecture-slides',
     },
     { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
-    { label: 'Enrich an AnKing deck', href: '/convert/enrich-anki-deck' },
     { label: 'Browse every converter', href: '/convert' },
   ],
   pathname: '/usmle-anki',
