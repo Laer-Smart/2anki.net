@@ -11,6 +11,8 @@ export interface IJobsMetricsRepository {
   countPaidConversions7d(sevenDaysAgo: Date): Promise<number>;
   computeFreeSuccessRate7d(sevenDaysAgo: Date): Promise<number | null>;
   computePaidSuccessRate7d(sevenDaysAgo: Date): Promise<number | null>;
+  countFreePlanBlocked7d(sevenDaysAgo: Date): Promise<number>;
+  countPaidPlanBlocked7d(sevenDaysAgo: Date): Promise<number>;
   topFailureReasons7d(sevenDaysAgo: Date): Promise<ConversionErrorCount[]>;
   failedConversionsWeekly(
     earliestStart: Date,
@@ -25,7 +27,9 @@ type ConversionTier = 'free' | 'paid';
 const PAID_CUSTOMER_FILTER =
   "users.stripe_customer_id IS NOT NULL AND users.stripe_customer_id != ''";
 const FREE_CUSTOMER_FILTER =
-  "users.stripe_customer_id IS NULL OR users.stripe_customer_id = ''";
+  "(users.stripe_customer_id IS NULL OR users.stripe_customer_id = '')";
+
+const PLAN_LIMIT_REASON_PATTERN = '%"code":"monthly_limit"%';
 
 export class JobsMetricsRepository implements IJobsMetricsRepository {
   constructor(private readonly database: Knex) {}
@@ -69,12 +73,31 @@ export class JobsMetricsRepository implements IJobsMetricsRepository {
           'COUNT(CASE WHEN jobs.status = ? THEN 1 END) as done',
           ['done']
         ),
-        this.database.raw('COUNT(*) as total')
+        this.database.raw(
+          'COUNT(CASE WHEN jobs.status = ? AND (jobs.job_reason_failure IS NULL OR jobs.job_reason_failure NOT LIKE ?) THEN 1 END) as technical',
+          ['failed', PLAN_LIMIT_REASON_PATTERN]
+        )
       )
       .first();
 
-    if (!result || Number(result.total) === 0) return null;
-    return (Number(result.done) / Number(result.total)) * 100;
+    const done = Number(result?.done ?? 0);
+    const technicalFailed = Number(result?.technical ?? 0);
+    const denominator = done + technicalFailed;
+    if (denominator === 0) return null;
+    return (done / denominator) * 100;
+  }
+
+  private async countPlanBlocked7d(
+    sevenDaysAgo: Date,
+    tier: ConversionTier
+  ): Promise<number> {
+    const result = await this.conversionsForTier(sevenDaysAgo, tier)
+      .where('jobs.status', 'failed')
+      .whereRaw('jobs.job_reason_failure LIKE ?', [PLAN_LIMIT_REASON_PATTERN])
+      .count('jobs.id as count')
+      .first();
+
+    return result?.count ? Number(result.count) : 0;
   }
 
   async countFreeConversions7d(sevenDaysAgo: Date): Promise<number> {
@@ -91,6 +114,14 @@ export class JobsMetricsRepository implements IJobsMetricsRepository {
 
   async computePaidSuccessRate7d(sevenDaysAgo: Date): Promise<number | null> {
     return this.computeSuccessRate7d(sevenDaysAgo, 'paid');
+  }
+
+  async countFreePlanBlocked7d(sevenDaysAgo: Date): Promise<number> {
+    return this.countPlanBlocked7d(sevenDaysAgo, 'free');
+  }
+
+  async countPaidPlanBlocked7d(sevenDaysAgo: Date): Promise<number> {
+    return this.countPlanBlocked7d(sevenDaysAgo, 'paid');
   }
 
   async topFailureReasons7d(

@@ -9,6 +9,8 @@ function makeFailingRepo(): IJobsMetricsRepository {
     countPaidConversions7d: jest.fn().mockRejectedValue(new Error('db down')),
     computeFreeSuccessRate7d: jest.fn().mockRejectedValue(new Error('db down')),
     computePaidSuccessRate7d: jest.fn().mockRejectedValue(new Error('db down')),
+    countFreePlanBlocked7d: jest.fn().mockRejectedValue(new Error('db down')),
+    countPaidPlanBlocked7d: jest.fn().mockRejectedValue(new Error('db down')),
     topFailureReasons7d: jest.fn().mockRejectedValue(new Error('db down')),
     failedConversionsWeekly: jest.fn().mockRejectedValue(new Error('db down')),
   };
@@ -22,6 +24,8 @@ function makeStubRepo(
     countPaidConversions7d: jest.fn().mockResolvedValue(0),
     computeFreeSuccessRate7d: jest.fn().mockResolvedValue(null),
     computePaidSuccessRate7d: jest.fn().mockResolvedValue(null),
+    countFreePlanBlocked7d: jest.fn().mockResolvedValue(0),
+    countPaidPlanBlocked7d: jest.fn().mockResolvedValue(0),
     topFailureReasons7d: jest.fn().mockResolvedValue([]),
     failedConversionsWeekly: jest.fn().mockResolvedValue([]),
     ...overrides,
@@ -57,6 +61,8 @@ describe('ConversionMetricsService — graceful failure', () => {
     expect(metrics.paid_conversions_7d).toBeNull();
     expect(metrics.free_conversion_success_rate_7d).toBeNull();
     expect(metrics.paid_conversion_success_rate_7d).toBeNull();
+    expect(metrics.free_blocked_by_plan_7d).toBeNull();
+    expect(metrics.paid_blocked_by_plan_7d).toBeNull();
     expect(metrics.conversion_errors_7d_top_reasons).toBeNull();
     expect(metrics.failed_conversions_weekly).toBeNull();
     expect(metrics.time_to_first_deck_median_minutes_30d).toBeNull();
@@ -98,6 +104,21 @@ describe('ConversionMetricsService — shape assembly', () => {
     const metrics = await service.getMetrics();
 
     expect(metrics.free_conversion_success_rate_7d).toBe(66.7);
+  });
+
+  it('passes through the plan-blocked counts per tier from the repository', async () => {
+    const service = new ConversionMetricsService(
+      makeStubRepo({
+        countFreePlanBlocked7d: jest.fn().mockResolvedValue(18),
+        countPaidPlanBlocked7d: jest.fn().mockResolvedValue(2),
+      }),
+      makeStubEventsRepo()
+    );
+
+    const metrics = await service.getMetrics();
+
+    expect(metrics.free_blocked_by_plan_7d).toBe(18);
+    expect(metrics.paid_blocked_by_plan_7d).toBe(2);
   });
 
   it('passes through top failure reasons from the repository', async () => {

@@ -27,6 +27,8 @@ const buildSampleMetrics = (
   paid_conversions_7d: 137,
   free_conversion_success_rate_7d: 91.4,
   paid_conversion_success_rate_7d: 96.2,
+  free_blocked_by_plan_7d: 63,
+  paid_blocked_by_plan_7d: 0,
   conversion_errors_7d_top_reasons: [
     { reason: 'Notion timeout', count: 12 },
     { reason: 'Parser crash', count: 5 },
@@ -70,6 +72,9 @@ describe('ConversionsTab', () => {
     expect(screen.getByText('Free success rate')).toBeInTheDocument();
     expect(screen.getByText('96.2%')).toBeInTheDocument();
     expect(screen.getByText('Paid success rate')).toBeInTheDocument();
+    expect(screen.getByText('63')).toBeInTheDocument();
+    expect(screen.getByText('Free blocked by plan')).toBeInTheDocument();
+    expect(screen.getByText('Paid blocked by plan')).toBeInTheDocument();
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
       '/api/ops/conversion/metrics',

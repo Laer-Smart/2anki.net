@@ -82,7 +82,7 @@ export default function ConversionsTab() {
             Success rate, last 7 days
           </h2>
           <p className={styles.sectionHint}>
-            done ÷ (done + failed) for `conversion` jobs
+            done ÷ (done + technical failures) — plan-limit blocks excluded
           </p>
         </header>
         <div className={styles.cardGrid}>
@@ -99,6 +99,22 @@ export default function ConversionsTab() {
               visible?.paid_conversion_success_rate_7d ?? null,
               formatPercentOneDecimal
             )}
+          />
+          <MetricCard
+            title="Free blocked by plan"
+            value={formatNumberOrDash(
+              visible?.free_blocked_by_plan_7d ?? null,
+              formatInteger
+            )}
+            footnote="Monthly-limit blocks, not conversion errors"
+          />
+          <MetricCard
+            title="Paid blocked by plan"
+            value={formatNumberOrDash(
+              visible?.paid_blocked_by_plan_7d ?? null,
+              formatInteger
+            )}
+            footnote="Monthly-limit blocks, not conversion errors"
           />
         </div>
       </section>

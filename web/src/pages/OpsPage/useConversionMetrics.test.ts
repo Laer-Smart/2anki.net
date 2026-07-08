@@ -28,6 +28,8 @@ describe('useConversionMetrics', () => {
       paid_conversions_7d: 2,
       free_conversion_success_rate_7d: 80,
       paid_conversion_success_rate_7d: 95,
+      free_blocked_by_plan_7d: 12,
+      paid_blocked_by_plan_7d: 0,
       conversion_errors_7d_top_reasons: [],
       failed_conversions_weekly: [],
       time_to_first_deck_median_minutes_30d: 42.5,
