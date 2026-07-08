@@ -155,17 +155,9 @@ const BusinessTab = lazyWithRetry(
   () => import('./pages/OpsPage/BusinessTab'),
   './pages/OpsPage/BusinessTab'
 );
-const InterviewsTab = lazyWithRetry(
-  () => import('./pages/OpsPage/InterviewsTab'),
-  './pages/OpsPage/InterviewsTab'
-);
 const ContactMessagesTab = lazyWithRetry(
   () => import('./pages/OpsPage/ContactMessagesTab'),
   './pages/OpsPage/ContactMessagesTab'
-);
-const FeedbackPage = lazyWithRetry(
-  () => import('./pages/FeedbackPage/FeedbackPage'),
-  './pages/FeedbackPage/FeedbackPage'
 );
 const NotionToAnki = lazyWithRetry(
   () => import('./pages/LandingPage/NotionToAnki'),
@@ -509,7 +501,6 @@ function AppContent({
               <Route path="errors" element={<ErrorsTab />} />
               <Route path="messages" element={<ContactMessagesTab />} />
               <Route path="commands" element={<ControlsTab />} />
-              <Route path="interviews" element={<InterviewsTab />} />
               <Route
                 path="conversions"
                 element={<Navigate to="/ops/growth" replace />}
@@ -535,7 +526,6 @@ function AppContent({
                 element={<Navigate to="/ops/commands" replace />}
               />
             </Route>
-            <Route path="/feedback" element={requireAuth(<FeedbackPage />)} />
             <Route path="/settings" element={requireAuth(<AccountPage />)} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/app" element={<NativeAppPage />} />
