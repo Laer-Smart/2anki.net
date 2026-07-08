@@ -1004,3 +1004,131 @@
 .cardMuted .cardValue {
   color: var(--color-text-secondary);
 }
+
+.todayLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.todaySection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.attentionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.attentionRow {
+  display: grid;
+  grid-template-columns: 3px 1fr auto auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem 0.75rem 0.75rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.attentionBar {
+  align-self: stretch;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--color-warning);
+}
+
+.attentionRow[data-severity='urgent'] .attentionBar {
+  background: var(--color-danger);
+}
+
+.attentionLabel {
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+}
+
+.attentionValue {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  text-align: right;
+}
+
+.attentionDelta {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+
+.voiceList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.voiceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.voiceLink {
+  color: var(--color-text-link);
+  text-decoration: none;
+}
+
+.voicePreview {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.voicePreview:hover,
+.voiceLink:hover {
+  text-decoration: underline;
+}
+
+.healthyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.healthyLine {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 0;
+}
+
+.healthyItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.healthyItemLabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.healthyItemValue {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}

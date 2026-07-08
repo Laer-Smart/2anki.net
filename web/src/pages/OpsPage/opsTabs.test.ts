@@ -45,4 +45,14 @@ describe('OPS_TABS', () => {
     expect(errors?.match('/ops/errors')).toBe(true);
     expect(errors?.match('/ops')).toBe(false);
   });
+
+  it('puts the Today home in the first group', () => {
+    expect(OPS_TAB_GROUPS[0].label).toBe('Today');
+    expect(OPS_TAB_GROUPS[0].tabs[0]).toMatchObject({
+      to: '/ops/today',
+      label: 'Today',
+    });
+    const index = OPS_TABS.find((tab) => tab.to === '/ops');
+    expect(index?.match('/ops/today')).toBe(false);
+  });
 });

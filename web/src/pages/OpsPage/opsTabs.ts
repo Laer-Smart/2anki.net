@@ -22,6 +22,16 @@ const engineeringIndex: OpsTab = {
 
 export const OPS_TAB_GROUPS: OpsTabGroup[] = [
   {
+    label: 'Today',
+    tabs: [
+      {
+        to: '/ops/today',
+        label: 'Today',
+        match: childRoute('/ops/today'),
+      },
+    ],
+  },
+  {
     label: 'Growth',
     tabs: [
       {
