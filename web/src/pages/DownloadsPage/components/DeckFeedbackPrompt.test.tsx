@@ -35,13 +35,6 @@ const freeUser = {
   },
 };
 
-const payingUser = {
-  data: {
-    locals: { patreon: false, subscriber: true },
-    user: { email: 'paying@example.com' },
-  },
-};
-
 beforeEach(() => {
   submitEmojiFeedback.mockReset();
   submitEmojiFeedback.mockResolvedValue(undefined);
@@ -159,99 +152,17 @@ describe('DeckFeedbackPrompt', () => {
   });
 });
 
-describe('DeckFeedbackPrompt — Day Pass offer after positive rating', () => {
-  it('shows the Day Pass offer to a free user after they confirm the deck worked', async () => {
-    render(<DeckFeedbackPrompt />);
-    fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
-    expect(await screen.findByText('Deck came out right.')).toBeInTheDocument();
-    expect(
-      screen.getByText('Keep going without the monthly limit — Day Pass, $4.')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Get Day Pass' })
-    ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'See all plans' })).toHaveAttribute(
-      'href',
-      '/pricing?source=deck_feedback'
-    );
-  });
-
-  it('does not show the Day Pass offer to paying users', async () => {
-    mockUseUserLocals.mockReturnValue(payingUser);
+describe('DeckFeedbackPrompt — no upsell after feedback', () => {
+  it('thanks a free user without a pass pitch after a positive rating', async () => {
     render(<DeckFeedbackPrompt />);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
     expect(await screen.findByText('Feedback received.')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Get Day Pass' })
     ).not.toBeInTheDocument();
-  });
-
-  it('does not show the offer after a negative rating', async () => {
-    render(<DeckFeedbackPrompt />);
-    fireEvent.click(screen.getByRole('button', { name: 'Something was off' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
-    expect(await screen.findByText('Feedback received.')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Get Day Pass' })
-    ).not.toBeInTheDocument();
-  });
-
-  it('fires paywall_shown with surface=deck_feedback_sent when the offer renders', async () => {
-    render(<DeckFeedbackPrompt />);
-    fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
-    await waitFor(() => {
-      expect(mockTrack).toHaveBeenCalledWith('paywall_shown', {
-        surface: 'deck_feedback_sent',
-      });
-    });
-  });
-
-  it('fires paywall_upgrade_clicked with plan=day_pass and redirects on Day Pass click', async () => {
-    startPassCheckout.mockResolvedValue({
-      url: 'https://checkout.stripe.com/day',
-    });
-    Object.defineProperty(globalThis, 'location', {
-      writable: true,
-      value: { href: '' },
-    });
-    render(<DeckFeedbackPrompt />);
-    fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
-    const cta = await screen.findByRole('button', { name: 'Get Day Pass' });
-    fireEvent.click(cta);
-    await waitFor(() => {
-      expect(mockTrack).toHaveBeenCalledWith('paywall_upgrade_clicked', {
-        surface: 'deck_feedback_sent',
-        plan: 'day_pass',
-      });
-      expect(startPassCheckout).toHaveBeenCalledWith(
-        '24h',
-        undefined,
-        'deck_feedback_sent'
-      );
-    });
-  });
-
-  it('shows Redirecting label and disables the button while Day Pass checkout is pending', async () => {
-    let resolveCheckout: (value: { status: 'error' }) => void = () => {};
-    startPassCheckout.mockReturnValue(
-      new Promise((resolve) => {
-        resolveCheckout = resolve;
-      })
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      'paywall_shown',
+      expect.objectContaining({ surface: 'deck_feedback_sent' })
     );
-    render(<DeckFeedbackPrompt />);
-    fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
-    const cta = await screen.findByRole('button', { name: 'Get Day Pass' });
-    fireEvent.click(cta);
-    await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: 'Redirecting…' })
-      ).toBeDisabled();
-    });
-    resolveCheckout({ status: 'error' });
-    await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: 'Get Day Pass' })
-      ).toBeInTheDocument();
-    });
   });
 });

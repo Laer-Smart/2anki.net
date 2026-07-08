@@ -1,9 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-import { track } from '../../../lib/analytics/track';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
-import { useUserLocals } from '../../../lib/hooks/useUserLocals';
-import { isPayingUser } from '../../../components/NavigationBar/helpers/getPlanLabel';
 import styles from './DeckFeedbackPrompt.module.css';
 
 const SUPPRESSED_UNTIL_KEY = '2anki_deck_feedback_suppressed_until';
@@ -12,7 +9,6 @@ const FEEDBACK_PAGE = 'downloads/deck_done';
 const POSITIVE_RATING = 5;
 const NEGATIVE_RATING = 1;
 const COMMENT_MAX = 2000;
-const UPSELL_SURFACE = 'deck_feedback_sent';
 
 type Stage =
   | { kind: 'prompt' }
@@ -46,18 +42,6 @@ export function DeckFeedbackPrompt() {
   const [stage, setStage] = useState<Stage>({ kind: 'prompt' });
   const [comment, setComment] = useState('');
   const [dismissed, setDismissed] = useState(false);
-  const [dayPassPending, setDayPassPending] = useState(false);
-  const { data: userLocals } = useUserLocals();
-
-  const paying = isPayingUser(userLocals?.locals);
-  const showOffer =
-    stage.kind === 'sent' && stage.rating === POSITIVE_RATING && !paying;
-
-  useEffect(() => {
-    if (showOffer) {
-      track('paywall_shown', { surface: UPSELL_SURFACE });
-    }
-  }, [showOffer]);
 
   if (dismissed) return null;
 
@@ -98,31 +82,6 @@ export function DeckFeedbackPrompt() {
 
   const handleSkipNegative = () => {
     void sendRating(NEGATIVE_RATING);
-  };
-
-  const handleDayPassClick = async () => {
-    track('paywall_upgrade_clicked', {
-      surface: UPSELL_SURFACE,
-      plan: 'day_pass',
-    });
-    setDayPassPending(true);
-    const result = await get2ankiApi().startPassCheckout(
-      '24h',
-      undefined,
-      UPSELL_SURFACE
-    );
-    if ('url' in result) {
-      globalThis.location.href = result.url;
-      return;
-    }
-    setDayPassPending(false);
-  };
-
-  const handleSeeAllPlans = () => {
-    track('paywall_upgrade_clicked', {
-      surface: UPSELL_SURFACE,
-      plan: 'pricing_page',
-    });
   };
 
   return (
@@ -193,33 +152,7 @@ export function DeckFeedbackPrompt() {
 
       {stage.kind === 'sending' && <p className={styles.status}>Sending</p>}
 
-      {showOffer && (
-        <>
-          <p className={styles.prompt}>Deck came out right.</p>
-          <p className={styles.offerBody}>
-            Keep going without the monthly limit — Day Pass, $4.
-          </p>
-          <div className={styles.actions}>
-            <button
-              type="button"
-              className={styles.primary}
-              onClick={handleDayPassClick}
-              disabled={dayPassPending}
-            >
-              {dayPassPending ? 'Redirecting…' : 'Get Day Pass'}
-            </button>
-            <a
-              className={styles.tertiary}
-              href="/pricing?source=deck_feedback"
-              onClick={handleSeeAllPlans}
-            >
-              See all plans
-            </a>
-          </div>
-        </>
-      )}
-
-      {stage.kind === 'sent' && !showOffer && (
+      {stage.kind === 'sent' && (
         <p className={styles.status}>Feedback received.</p>
       )}
 
