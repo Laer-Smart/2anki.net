@@ -48,6 +48,9 @@ const APP_ROUTES = new Set<string>([
 
 const OPS_ROUTES = new Set<string>([
   '/ops',
+  '/ops/today',
+  '/ops/growth',
+  '/ops/system',
   '/ops/errors',
   '/ops/performance',
   '/ops/conversions',
