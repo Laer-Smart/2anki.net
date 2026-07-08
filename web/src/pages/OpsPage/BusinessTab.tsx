@@ -9,6 +9,8 @@ import {
   formatUsd,
 } from './businessHelpers';
 import { BusinessMetricsResponse } from './businessTypes';
+import { buildClaudePrompt } from './buildClaudePrompt';
+import CopyForClaudeButton from './CopyForClaudeButton';
 import MetricCard, { formatNumberOrDash } from './MetricCard';
 import ActiveSubsTimeseriesChart from './charts/ActiveSubsTimeseriesChart';
 import CancellationCommentsList from './charts/CancellationCommentsList';
@@ -62,6 +64,15 @@ export default function BusinessTab() {
 
   return (
     <>
+      <div className={styles.tabHeader}>
+        <CopyForClaudeButton
+          getText={() =>
+            visible == null ? '' : buildClaudePrompt('business', visible)
+          }
+          disabled={visible == null}
+        />
+      </div>
+
       {error != null && (
         <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
           /api/ops/business/metrics failed: {error.message}. Last good data

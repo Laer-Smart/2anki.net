@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import sharedStyles from '../../styles/shared.module.css';
@@ -6,6 +6,7 @@ import styles from './OpsPage.module.css';
 import { ErrorGroup, ErrorSort, ErrorSource, ErrorStatus } from './errorsTypes';
 import { useErrorGroups } from './useErrorGroups';
 import { buildCopyArtifact } from './buildCopyArtifact';
+import CopyForClaudeButton from './CopyForClaudeButton';
 import { buildExportErrorsUrl } from './exportErrorsUrl';
 import { parseUserAgent } from './parseUserAgent';
 import { resolveErrorGroup, reopenErrorGroup } from './resolveErrorGroup';
@@ -59,43 +60,6 @@ function SourceDot({ source }: Readonly<{ source: string }>) {
         flexShrink: 0,
       }}
     />
-  );
-}
-
-interface CopyButtonProps {
-  group: ErrorGroup;
-}
-
-function CopyButton({ group }: Readonly<CopyButtonProps>) {
-  const [copied, setCopied] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleCopy = useCallback(() => {
-    const artifact = buildCopyArtifact(group);
-    navigator.clipboard
-      .writeText(artifact)
-      .then(() => {
-        setCopied(true);
-        if (timerRef.current != null) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => setCopied(false), 1500);
-      })
-      .catch(() => {});
-  }, [group]);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current != null) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  return (
-    <button
-      type="button"
-      className={sharedStyles.btnSmall}
-      onClick={handleCopy}
-    >
-      {copied ? 'Copied' : 'Copy for Claude Code'}
-    </button>
   );
 }
 
@@ -286,7 +250,7 @@ function DetailPanel({
           flexWrap: 'wrap',
         }}
       >
-        <CopyButton group={group} />
+        <CopyForClaudeButton getText={() => buildCopyArtifact(group)} />
         <button
           type="button"
           className={sharedStyles.btnSmall}

@@ -297,6 +297,31 @@ describe('BusinessTab', () => {
     await waitFor(() => expect(screen.queryByText(/refreshing/i)).toBeNull());
   });
 
+  test('Copy for Claude Code button is disabled while loading, enabled with data', async () => {
+    let resolveFetch!: (value: unknown) => void;
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockReturnValue(
+      new Promise((resolve) => {
+        resolveFetch = resolve;
+      })
+    );
+
+    renderTab();
+
+    const button = screen.getByRole('button', {
+      name: 'Copy for Claude Code',
+    });
+    expect(button).toBeDisabled();
+
+    resolveFetch({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => buildSampleMetrics(),
+    });
+
+    await waitFor(() => expect(button).toBeEnabled());
+  });
+
   test('renders no <pre> JSON dump anywhere', async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,

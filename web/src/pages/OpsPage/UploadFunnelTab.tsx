@@ -1,5 +1,7 @@
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './OpsPage.module.css';
+import { buildClaudePrompt } from './buildClaudePrompt';
+import CopyForClaudeButton from './CopyForClaudeButton';
 import { UPLOAD_FUNNEL_WINDOWS, useUploadFunnel } from './useUploadFunnel';
 import { UploadFunnelStages } from './uploadFunnelTypes';
 
@@ -117,6 +119,12 @@ export default function UploadFunnelTab() {
           >
             {loading ? 'Reading' : 'Refresh'}
           </button>
+          <CopyForClaudeButton
+            getText={() =>
+              data == null ? '' : buildClaudePrompt('upload-funnel', data)
+            }
+            disabled={data == null}
+          />
         </div>
         {data != null && (
           <p className={styles.refreshHint}>
