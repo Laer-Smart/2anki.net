@@ -28,7 +28,7 @@ export function PlanDetails({ subscriptionType }: PlanDetailsProps) {
       <p className={styles.planTier}>Free</p>
       <p className={styles.planMeta}>100 cards per month.</p>
       <a href="/pricing" className={styles.primaryButton}>
-        Upgrade
+        See plans
       </a>
     </section>
   );

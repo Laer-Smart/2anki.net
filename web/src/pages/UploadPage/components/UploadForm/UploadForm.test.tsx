@@ -1388,11 +1388,9 @@ describe('limit state', () => {
       screen.getByText("You've used all 100 cards this month")
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /Get a Day Pass/ })
+      screen.getByRole('button', { name: /Get Day Pass/ })
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'See upgrade options' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'See plans' })).toBeInTheDocument();
     const fileInput = container.querySelector(
       '#pakker'
     ) as HTMLInputElement | null;
@@ -1439,7 +1437,7 @@ describe('limit state', () => {
       'a[href*="/limit?ref=upload-limit-wall"]'
     );
     expect(upgradeLink).not.toBeNull();
-    expect(upgradeLink?.textContent).toContain('See upgrade options');
+    expect(upgradeLink?.textContent).toContain('See plans');
 
     const dayPassBtn = Array.from(container.querySelectorAll('button')).find(
       (b) => b.textContent?.includes('Day Pass')

@@ -79,7 +79,7 @@ describe('NotionLandingPage', () => {
 
   it('includes ?ref=notion-marketplace in the Day Pass CTA href', () => {
     renderPage();
-    const dayPassLink = screen.getByRole('link', { name: /get a day pass/i });
+    const dayPassLink = screen.getByRole('link', { name: /get day pass/i });
     expect(dayPassLink.getAttribute('href')).toContain(
       'ref=notion-marketplace'
     );

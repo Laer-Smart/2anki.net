@@ -1170,13 +1170,13 @@ function UploadForm({
                 onClick={handleDayPass}
                 disabled={dayPassPending}
               >
-                {dayPassPending ? 'Starting checkout' : 'Get a Day Pass — $4'}
+                {dayPassPending ? 'Starting checkout' : 'Get Day Pass — $4'}
               </button>
               <Link
                 to="/limit?ref=upload-limit-wall"
                 className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
               >
-                See upgrade options
+                See plans
               </Link>
             </>
           )}
@@ -1436,13 +1436,13 @@ function UploadForm({
             onClick={handleDayPass}
             disabled={dayPassPending}
           >
-            {dayPassPending ? 'Starting checkout' : 'Get a Day Pass — $4'}
+            {dayPassPending ? 'Starting checkout' : 'Get Day Pass — $4'}
           </button>
           <Link
             to="/limit?ref=upload-limit-wall"
             className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
           >
-            See upgrade options
+            See plans
           </Link>
         </div>
       </div>
