@@ -78,6 +78,7 @@ const jsonResponse = (body: unknown) => ({
 
 interface RouteOverrides {
   errorGroups?: unknown;
+  business?: unknown;
 }
 
 const installFetch = (overrides: RouteOverrides = {}) => {
@@ -89,7 +90,9 @@ const installFetch = (overrides: RouteOverrides = {}) => {
       );
     }
     if (url.includes('/api/ops/business/metrics')) {
-      return Promise.resolve(jsonResponse(healthyBusiness));
+      return Promise.resolve(
+        jsonResponse(overrides.business ?? healthyBusiness)
+      );
     }
     if (url.includes('/api/ops/conversion/metrics')) {
       return Promise.resolve(jsonResponse(healthyConversion));
@@ -170,6 +173,27 @@ describe('TodayTab', () => {
     expect(screen.getByText('7 occurrences')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Copy for Claude Code' })
+    ).toBeInTheDocument();
+  });
+
+  it('shows recent emoji feedback comments in the voice block', async () => {
+    installFetch({
+      business: {
+        ...healthyBusiness,
+        emoji_feedback_comments: [
+          {
+            rating: 2,
+            comment: 'The deck came out empty',
+            page: '/upload',
+            created_at: '2026-07-08T09:00:00Z',
+          },
+        ],
+      },
+    });
+    renderTab();
+
+    expect(
+      await screen.findByText(/The deck came out empty/)
     ).toBeInTheDocument();
   });
 });

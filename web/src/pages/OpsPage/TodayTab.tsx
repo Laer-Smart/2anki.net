@@ -10,7 +10,10 @@ import {
   formatPercentOneDecimal,
   formatUsd,
 } from './businessHelpers';
-import { CancellationCommentPoint } from './businessTypes';
+import {
+  EmojiFeedbackCommentPoint,
+  CancellationCommentPoint,
+} from './businessTypes';
 import styles from './OpsPage.module.css';
 import CopyForClaudeButton from './CopyForClaudeButton';
 import { TodaySignal, computeTodaySignals } from './todaySignals';
@@ -89,16 +92,27 @@ function useContactMessages() {
   return messages;
 }
 
+const EMOJI_BY_RATING: Record<number, string> = {
+  1: '\u{1F620}',
+  2: '\u{1F615}',
+  3: '\u{1F610}',
+  4: '\u{1F642}',
+  5: '\u{1F929}',
+};
+
 function VoiceOfUserBlock({
   messages,
   cancellations,
+  emojiComments,
 }: Readonly<{
   messages: ContactMessage[];
   cancellations: CancellationCommentPoint[];
+  emojiComments: EmojiFeedbackCommentPoint[];
 }>) {
   const unread = messages.filter((m) => !m.is_acknowledged);
   const recentMessages = unread.slice(0, MESSAGE_PREVIEW_MAX);
   const recentCancellations = cancellations.slice(0, MESSAGE_PREVIEW_MAX);
+  const recentEmoji = emojiComments.slice(0, MESSAGE_PREVIEW_MAX);
 
   return (
     <section className={styles.todaySection}>
@@ -121,6 +135,13 @@ function VoiceOfUserBlock({
           <li key={`${c.created_at}-${c.reason}`} className={styles.voiceRow}>
             <Link to="/ops/business" className={styles.voicePreview}>
               Cancelled — {c.reason}: {c.comment}
+            </Link>
+          </li>
+        ))}
+        {recentEmoji.map((e) => (
+          <li key={`${e.created_at}-${e.page}`} className={styles.voiceRow}>
+            <Link to="/ops/business" className={styles.voicePreview}>
+              {EMOJI_BY_RATING[e.rating] ?? e.rating} {e.comment} — {e.page}
             </Link>
           </li>
         ))}
@@ -237,6 +258,7 @@ export default function TodayTab() {
       <VoiceOfUserBlock
         messages={messages}
         cancellations={businessData?.cancellation_comments_recent ?? []}
+        emojiComments={businessData?.emoji_feedback_comments ?? []}
       />
       <HealthyStrip stats={healthyStats} />
     </div>
