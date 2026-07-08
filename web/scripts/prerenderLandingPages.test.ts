@@ -50,13 +50,13 @@ beforeEach(() => {
 describe('emitLandingPages', () => {
   it('writes one HTML file per landing path', () => {
     const files = emitLandingPages(buildDir);
-    expect(files).toHaveLength(28);
+    expect(files).toHaveLength(27);
     expect(files.some((p) => p.endsWith('notion-to-anki/index.html'))).toBe(
       true
     );
-    expect(
-      files.some((p) => p.endsWith('anki-for-japanese/index.html'))
-    ).toBe(true);
+    expect(files.some((p) => p.endsWith('anki-for-japanese/index.html'))).toBe(
+      true
+    );
     expect(files.some((p) => p.endsWith('quizlet-to-anki/index.html'))).toBe(
       true
     );
@@ -99,9 +99,6 @@ describe('emitLandingPages', () => {
     ).toBe(true);
     expect(
       files.some((p) => p.endsWith('convert/html-to-anki/index.html'))
-    ).toBe(true);
-    expect(
-      files.some((p) => p.endsWith('convert/enrich-anki-deck/index.html'))
     ).toBe(true);
     expect(
       files.some((p) => p.endsWith('convert/apkg-to-csv/index.html'))

@@ -190,11 +190,6 @@ describe('EventsController', () => {
     'upload_ai_free_badge_clicked',
     'upload_ai_turned_on',
     'upload_ai_turned_off',
-    'transform_apkg_submitted',
-    'transform_apkg_succeeded',
-    'transform_apkg_failed',
-    'transform_apkg_handoff_received',
-    'transform_apkg_over_cap',
   ])('records client event %s as known, not unknown', (eventName) => {
     const { controller, req, res, executeSpy } = buildMocks({ userId: 1 });
     req.body = { name: eventName };

@@ -1179,29 +1179,16 @@ function UploadForm({
     const isExistingApkg =
       localError != null && /already an Anki deck/i.test(localError.message);
     if (isExistingApkg) {
-      const rejectedFile = fileInputRef.current?.files?.[0];
       return (
         <div className={formStyles.stateContent}>
           <p className={formStyles.apkgRedirectHeading}>
             That&apos;s already an Anki deck
           </p>
           <p className={formStyles.apkgRedirectIntro}>
-            Pick what you want to do with it.
+            Print it as a PDF for offline study.
           </p>
           <div className={formStyles.apkgRedirectActions}>
-            <Link
-              to="/transform"
-              state={rejectedFile ? { file: rejectedFile } : undefined}
-              className={formStyles.apkgRedirectPrimary}
-            >
-              <span className={formStyles.apkgRedirectActionLabel}>
-                Transform this deck →
-              </span>
-              <span className={formStyles.apkgRedirectActionHint}>
-                Translate every card, add examples, cloze-ify, or add hints.
-              </span>
-            </Link>
-            <Link to="/print" className={formStyles.apkgRedirectSecondary}>
+            <Link to="/print" className={formStyles.apkgRedirectPrimary}>
               <span className={formStyles.apkgRedirectActionLabel}>
                 Print as PDF →
               </span>
