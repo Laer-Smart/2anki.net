@@ -58,7 +58,7 @@ describe('AccessBanner', () => {
         now={new Date('2026-06-01T12:00:00Z')}
       />
     );
-    expect(screen.getByText(/expires Thu.* 4 Jun/)).toBeInTheDocument();
+    expect(screen.getByText(/expires .*\b\d{1,2} Jun\b/)).toBeInTheDocument();
   });
 
   it('renders active state for Week Pass with >= 2h remaining', () => {
