@@ -11,6 +11,7 @@ import { IParsePathSignatureRepository } from '../data_layer/ParsePathSignatureR
 import ErrorHandler from '../routes/middleware/ErrorHandler';
 import CardOption from '../lib/parser/Settings';
 import Workspace from '../lib/parser/WorkSpace';
+import { logEmptyBackAttribution } from '../lib/parser/logEmptyBackAttribution';
 import StorageHandler from '../lib/storage/StorageHandler';
 import { UploadedFile } from '../lib/storage/types';
 import GeneratePackagesUseCase from '../usecases/uploads/GeneratePackagesUseCase';
@@ -575,6 +576,7 @@ class UploadService {
         const totalCards = packages.reduce((s, p) => s + (p.cardCount ?? 0), 0);
         if (totalCards > 0) {
           this.recordConversionOutput(packages);
+          logEmptyBackAttribution(packages, this.resolveUploadSource(req));
           await this.promoteClaudeJobToUpload(
             ws.id,
             ws.location,
@@ -664,6 +666,7 @@ class UploadService {
     }
 
     this.recordConversionOutput(packages);
+    logEmptyBackAttribution(packages, this.resolveUploadSource(req));
 
     if (owner != null) {
       await new CheckMonthlyCardLimitUseCase(this.usersRepository).execute({
