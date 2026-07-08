@@ -415,6 +415,195 @@ const imageOcclusionAnki: AnswerConfig = {
   ],
 };
 
+const googleDocsToAnki: AnswerConfig = {
+  slug: 'google-docs-to-anki',
+  title: 'How to convert Google Docs to Anki flashcards | 2anki',
+  description:
+    'Turn Google Docs notes into an Anki deck. Download your doc as Word (.docx) or Markdown, upload it to 2anki, and get a .apkg deck. Headings name decks, images embed.',
+  h1: 'How to convert Google Docs to Anki flashcards',
+  intro:
+    "Google Docs doesn't connect to 2anki directly, but you don't have to retype anything. Download your doc as Word (.docx) or Markdown, upload the file, and download a .apkg deck that opens in Anki. Headings, images, and formatting come across.",
+  sections: [
+    {
+      heading: 'Download your Google Doc',
+      body: 'In Google Docs, open File → Download and pick Microsoft Word (.docx) or Markdown (.md). Word keeps images and tables, so it is the better choice for a doc with diagrams or two-column notes. Markdown is lighter and works well for plain text-and-heading notes.',
+    },
+    {
+      heading: 'What carries over',
+      body: '2anki reads the document structure. Headings name the deck and subdecks. Images in a .docx file embed directly in the cards. Bold, italics, and lists keep their formatting. Strikethrough text becomes a tag applied to every card in that deck — a quick way to label a chapter or topic.',
+    },
+    {
+      heading: 'Format your doc for clean cards',
+      body: 'Use headings for deck and section names. Put one question or term per line with its answer on the next. A two-column table — term on the left, definition on the right — converts cleanly, one card per row. Short prompts make better cards than paragraphs, and you can edit every card in Anki afterward.',
+    },
+    {
+      heading: 'Convert your file',
+      body: 'Go to 2anki.net, drag your .docx or .md file onto the upload area, and click Convert. Download the .apkg file and open it in Anki with a double-click. Your cards appear as a new deck. The free plan covers your first 100 cards a month.',
+    },
+    {
+      heading: 'Markdown or Word — which export',
+      body: 'Both upload the same way. Choose Word if your doc has images, tables, or heavy formatting you want preserved. Choose Markdown if your notes are plain headings and text and you want the smallest, cleanest file. When in doubt, Word carries the most across.',
+    },
+  ],
+  faqs: [
+    {
+      q: 'Can I connect Google Docs to 2anki directly?',
+      a: 'No. Download the doc as Word (.docx) or Markdown first — File → Download in Google Docs — then upload the file. It converts the same way as any Word or Markdown upload.',
+    },
+    {
+      q: 'Do images from my Google Doc come across?',
+      a: 'Yes, when you export as Word (.docx). Images embed directly in the cards. For an image-heavy doc, use the Word export rather than Markdown.',
+    },
+    {
+      q: 'Will a two-column table become cards?',
+      a: 'Yes. A term-and-definition table converts one card per row. Export as Word to keep the table structure intact.',
+    },
+    {
+      q: 'Do I need to install anything in Anki?',
+      a: 'No. 2anki produces a standard .apkg file. Double-click it in Anki and the deck imports — no add-on required.',
+    },
+  ],
+  relatedLinks: [
+    {
+      label: 'Convert a Word document to Anki',
+      href: '/answers/word-to-anki?ref=ai',
+    },
+    {
+      label: 'Markdown to Anki converter',
+      href: '/convert/markdown-to-anki?ref=ai',
+    },
+    {
+      label: 'Turn lecture notes into Anki flashcards',
+      href: '/answers/lecture-notes-to-anki?ref=ai',
+    },
+    { label: 'Pricing', href: '/pricing?ref=ai' },
+  ],
+};
+
+const handwrittenNotesToAnki: AnswerConfig = {
+  slug: 'handwritten-notes-to-anki',
+  title: 'How to turn handwritten notes into Anki flashcards | 2anki',
+  description:
+    'Photograph your handwritten notes and turn them into Anki cards. 2anki reads the page with AI, drafts question-and-answer cards you review, and packages a .apkg deck.',
+  h1: 'How to turn handwritten notes into Anki flashcards',
+  intro:
+    'Handwritten notes are hard to review and impossible to search. Photograph a page, upload it to 2anki, and the photo-to-deck tool reads it with AI and drafts cards you review before download. You get a .apkg deck that opens in Anki.',
+  sections: [
+    {
+      heading: 'Take a clear photo',
+      body: 'Lay the page flat, light it evenly, and fill the frame with one page per photo. Legible handwriting reads best. Photos up to 10 MB work, in the usual formats — JPEG, PNG, WebP, GIF, or HEIC straight from an iPhone.',
+    },
+    {
+      heading: 'How photo-to-deck works',
+      body: 'Upload the photo on the photo-to-deck page. In generative mode, 2anki reads the page and drafts question-and-answer cards from what it finds. In verbatim mode, it keeps your text as written instead of rephrasing it. You pick roughly how many cards to aim for before converting.',
+    },
+    {
+      heading: 'Review every card before you study',
+      body: "AI drafts are a starting point, not the final deck. Every card is editable — fix a misread word, tighten a question, or drop a card you don't need. Reviewing the draft once is faster than typing the deck from scratch.",
+    },
+    {
+      heading: 'Diagrams and labeled figures',
+      body: 'For a hand-drawn diagram where the labels are the point — an anatomy sketch, a circuit, a labeled map — use image occlusion instead. You mask each label and Anki asks you to recall it one region at a time.',
+    },
+    {
+      heading: 'What it costs',
+      body: 'The free plan covers your first 100 cards a month, enough to turn a stack of notes into a starter deck. Unlimited removes the cap and adds the multiple-choice option for photo-to-deck cards.',
+    },
+  ],
+  faqs: [
+    {
+      q: 'Does 2anki read my handwriting?',
+      a: 'Yes. Photo-to-deck uses AI to read the page and draft cards. Clear, legible handwriting on a well-lit, flat page reads best.',
+    },
+    {
+      q: 'Can I fix mistakes in the cards?',
+      a: 'Yes. Every card is a draft you review before download, and all of them stay editable in Anki afterward. Correct any misread word and move on.',
+    },
+    {
+      q: 'What photo formats and sizes work?',
+      a: 'JPEG, PNG, WebP, GIF, and HEIC, up to 10 MB per photo. One page per photo gives the cleanest result.',
+    },
+    {
+      q: 'What about diagrams I want to memorize?',
+      a: 'Use image occlusion for labeled diagrams. You mask each label and recall it one at a time — better than a single front-and-back card for a busy figure.',
+    },
+  ],
+  relatedLinks: [
+    { label: 'Photo to flashcards', href: '/photo-to-deck?ref=ai' },
+    {
+      label: 'Make image occlusion cards',
+      href: '/answers/image-occlusion-anki?ref=ai',
+    },
+    {
+      label: 'Turn lecture notes into Anki flashcards',
+      href: '/answers/lecture-notes-to-anki?ref=ai',
+    },
+    { label: 'Pricing', href: '/pricing?ref=ai' },
+  ],
+};
+
+const textbookToAnki: AnswerConfig = {
+  slug: 'textbook-to-anki',
+  title: 'How to turn a textbook chapter into Anki flashcards | 2anki',
+  description:
+    'Turn textbook chapters into Anki decks. Upload a PDF and 2anki reads the text into cards, keeps figures, and can include the page image. Convert one chapter at a time.',
+  h1: 'How to turn a textbook chapter into Anki flashcards',
+  intro:
+    'A textbook chapter is a lot of material to card by hand. Upload the chapter as a PDF and 2anki reads its text into question-and-answer cards, keeps the figures, and gives you a .apkg deck. Convert one chapter at a time so each deck stays reviewable.',
+  sections: [
+    {
+      heading: 'Get the chapter as a PDF with a text layer',
+      body: 'The PDF needs a real text layer — most publisher e-textbooks and exported chapters have one. A scanned photocopy with no text layer will not produce text cards; run it through OCR in macOS Preview or Adobe Acrobat first, or use the page-image option below.',
+    },
+    {
+      heading: 'How cards are built',
+      body: 'Headings in the chapter name the deck and subdecks. Top-level bullets and term-and-answer lines become card fronts, with the next line or indent level as the back. Figures and diagrams come across as embedded images so a labeled plate still reads on the card.',
+    },
+    {
+      heading: 'Include the page image',
+      body: 'You can opt in to attach the source page image to its cards. That keeps the original layout and any figure the text layer misses within reach while you review — useful for dense, diagram-heavy chapters where the words alone lose context.',
+    },
+    {
+      heading: 'AI cards for prose-heavy chapters',
+      body: 'Some chapters are paragraphs, not bullet lists. On the Unlimited plan, AI can draft question-and-answer cards from that prose so you are not hand-writing every card. Review the drafts and edit any that need tightening before you study.',
+    },
+    {
+      heading: 'Convert one chapter at a time',
+      body: 'A whole textbook uploads fine, but big files make big decks that are slow to review and share. One chapter per conversion keeps each deck focused and easy to organize. The free plan covers 100 cards a month; Unlimited removes the cap for a full semester of chapters.',
+    },
+  ],
+  faqs: [
+    {
+      q: 'Can I upload a whole textbook at once?',
+      a: 'You can, but one chapter at a time is better. Large PDFs make large decks that are slow to review and share. Chapter-by-chapter keeps each deck focused.',
+    },
+    {
+      q: 'My textbook is a scan with no text layer. Will it work?',
+      a: 'Not for text cards — 2anki needs a real text layer. Run the scan through OCR first (macOS Preview or Adobe Acrobat), or use the page-image option to attach the page to each card.',
+    },
+    {
+      q: 'Do figures and diagrams come across?',
+      a: 'Yes. Figures embed as images in the cards. For labeled diagrams you want to actively recall, image occlusion masks each label one at a time.',
+    },
+    {
+      q: 'Can 2anki write cards from paragraphs, not just bullets?',
+      a: 'Yes, on the Unlimited plan. AI drafts question-and-answer cards from prose-heavy chapters, and you review and edit them before studying.',
+    },
+  ],
+  relatedLinks: [
+    { label: 'PDF to Anki converter', href: '/convert/pdf-to-anki?ref=ai' },
+    {
+      label: 'How to convert a PDF to Anki',
+      href: '/answers/pdf-to-anki?ref=ai',
+    },
+    {
+      label: 'Make image occlusion cards',
+      href: '/answers/image-occlusion-anki?ref=ai',
+    },
+    { label: 'Pricing — Unlimited plan', href: '/pricing?ref=ai' },
+  ],
+};
+
 export const ANSWERS_PAGES: ReadonlyMap<string, AnswerConfig> = new Map([
   ['convert-notion-to-anki', convertNotionToAnki],
   ['notion-to-anki-sync', notionToAnkiSync],
@@ -424,4 +613,7 @@ export const ANSWERS_PAGES: ReadonlyMap<string, AnswerConfig> = new Map([
   ['lecture-notes-to-anki', lectureNotesToAnki],
   ['word-to-anki', wordToAnki],
   ['image-occlusion-anki', imageOcclusionAnki],
+  ['google-docs-to-anki', googleDocsToAnki],
+  ['handwritten-notes-to-anki', handwrittenNotesToAnki],
+  ['textbook-to-anki', textbookToAnki],
 ]);
