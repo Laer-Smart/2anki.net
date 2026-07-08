@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { OPS_TABS, OPS_TAB_GROUPS } from './opsTabs';
 
 describe('OPS_TAB_GROUPS', () => {
-  it('groups the tabs into Growth, System, Voice, and Controls', () => {
+  it('groups the tabs into Today, Growth, System, Voice, and Controls', () => {
     expect(OPS_TAB_GROUPS.map((group) => group.label)).toEqual([
+      'Today',
       'Growth',
       'System',
       'Voice',
@@ -18,8 +19,8 @@ describe('OPS_TAB_GROUPS', () => {
 });
 
 describe('OPS_TABS', () => {
-  it('flattens every group into 12 tabs', () => {
-    expect(OPS_TABS).toHaveLength(12);
+  it('flattens every group into 13 tabs', () => {
+    expect(OPS_TABS).toHaveLength(13);
   });
 
   it('no longer lists the retired Mindmaps and Pricing A/B tabs', () => {
@@ -44,5 +45,15 @@ describe('OPS_TABS', () => {
     const errors = OPS_TABS.find((tab) => tab.to === '/ops/errors');
     expect(errors?.match('/ops/errors')).toBe(true);
     expect(errors?.match('/ops')).toBe(false);
+  });
+
+  it('puts the Today home in the first group', () => {
+    expect(OPS_TAB_GROUPS[0].label).toBe('Today');
+    expect(OPS_TAB_GROUPS[0].tabs[0]).toMatchObject({
+      to: '/ops/today',
+      label: 'Today',
+    });
+    const index = OPS_TABS.find((tab) => tab.to === '/ops');
+    expect(index?.match('/ops/today')).toBe(false);
   });
 });

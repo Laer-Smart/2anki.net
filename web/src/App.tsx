@@ -135,6 +135,10 @@ const OpsLayout = lazyWithRetry(
   () => import('./pages/OpsPage/OpsLayout'),
   './pages/OpsPage/OpsLayout'
 );
+const TodayTab = lazyWithRetry(
+  () => import('./pages/OpsPage/TodayTab'),
+  './pages/OpsPage/TodayTab'
+);
 const EngineeringTab = lazyWithRetry(
   () => import('./pages/OpsPage/EngineeringTab'),
   './pages/OpsPage/EngineeringTab'
@@ -518,6 +522,7 @@ function AppContent({
             />
             <Route path="/ops" element={requireAuth(<OpsLayout />)}>
               <Route index element={<EngineeringTab />} />
+              <Route path="today" element={<TodayTab />} />
               <Route path="errors" element={<ErrorsTab />} />
               <Route path="performance" element={<PerformanceTab />} />
               <Route path="conversions" element={<ConversionsTab />} />
