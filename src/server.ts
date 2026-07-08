@@ -27,7 +27,6 @@ import checksRouter from './routes/ChecksRouter';
 import versionRouter from './routes/VersionRouter';
 import appStoreLinksRouter from './routes/AppStoreLinksRouter';
 import uploadRouter from './routes/UploadRouter';
-import transformRouter from './routes/TransformRouter';
 import usersRouter from './routes/UserRouter';
 import notionRouter from './routes/NotionRouter';
 import rulesRouter from './routes/ParserRulesRouter';
@@ -169,7 +168,6 @@ const serve = async () => {
   app.use(versionRouter());
   app.use(appStoreLinksRouter());
   app.use(uploadRouter());
-  app.use(transformRouter());
   app.use(usersRouter());
   app.use(notionRouter());
   app.use(rulesRouter());
