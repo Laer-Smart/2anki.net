@@ -79,6 +79,18 @@
   box-shadow: var(--shadow-sm);
 }
 
+.primaryButton:disabled,
+.planButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.primaryButton:disabled:hover,
+.planButton:disabled:hover {
+  background: var(--color-primary);
+}
+
 .statusLine {
   font-size: var(--text-base);
   color: var(--color-text-primary);
@@ -238,6 +250,23 @@
   background: var(--color-bg-secondary);
   color: var(--color-danger);
   border-color: var(--color-danger-border);
+}
+
+.pauseChip {
+  composes: secondaryButton;
+}
+
+.pauseChip:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+.secondaryButtonActive,
+.secondaryButtonActive:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
 }
 
 .scheduledBadge {

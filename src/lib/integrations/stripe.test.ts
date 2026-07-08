@@ -18,6 +18,7 @@ const makeSubscription = (
     cancelAtPeriodEnd?: boolean;
     cancelAt?: number | null;
     userId?: string;
+    pauseCollection?: { behavior: string; resumes_at: number } | null;
   } = {}
 ): StripeTypes.Subscription =>
   ({
@@ -26,6 +27,7 @@ const makeSubscription = (
     cancel_at: options.cancelAt ?? null,
     customer: options.customer ?? 'cus_test123',
     metadata: options.userId != null ? { user_id: options.userId } : {},
+    pause_collection: options.pauseCollection ?? null,
     items: { data: [{ price: { product: productId } }] },
   }) as unknown as StripeTypes.Subscription;
 
@@ -84,6 +86,23 @@ describe('updateStoreSubscription', () => {
       db,
       makeCustomer('user@example.com'),
       makeSubscription('canceled', 'prod_auto_sync')
+    );
+
+    const row = await db('subscriptions')
+      .where({ email: 'user@example.com' })
+      .first();
+    expect(Boolean(row.active)).toBe(false);
+  });
+
+  test('marks active=false when the subscription is paused despite active status', async () => {
+    await db('users').insert({ email: 'user@example.com' });
+
+    await updateStoreSubscription(
+      db,
+      makeCustomer('user@example.com'),
+      makeSubscription('active', 'prod_auto_sync', {
+        pauseCollection: { behavior: 'void', resumes_at: 1893456000 },
+      })
     );
 
     const row = await db('subscriptions')

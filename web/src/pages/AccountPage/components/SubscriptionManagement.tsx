@@ -1,12 +1,28 @@
-import React, { ChangeEvent, useEffect } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 import { useEmailLinking } from '../hooks/useEmailLinking';
 import { useSubscriptionCancellation } from '../hooks/useSubscriptionCancellation';
 import { usePerSubscriptionCancellation } from '../hooks/usePerSubscriptionCancellation';
+import { usePauseSubscription } from '../hooks/usePauseSubscription';
 import { useStripeSubscriptions } from '../../../lib/hooks/useStripeSubscriptions';
 import { StripeSubscriptionSummary } from '../../../lib/backend/getSubscriptionStatus';
-import { CancellationFollowUp } from './CancellationFollowUp';
+import { track } from '../../../lib/analytics/track';
+import { CancelFlow } from './CancelFlow';
+import { CancellationReason } from './CancellationFollowUp';
 import styles from '../AccountPage.module.css';
 import sharedStyles from '../../../styles/shared.module.css';
+
+type CancellationReasonInput = CancellationReason | '';
+
+const SECONDS_PER_DAY = 24 * 60 * 60;
+const MIN_TENURE_DAYS_TO_PAUSE = 30;
+
+const tenureDaysOf = (sub: StripeSubscriptionSummary): number => {
+  if (sub.created == null) return 0;
+  return Math.floor((Date.now() / 1000 - sub.created) / SECONDS_PER_DAY);
+};
+
+const isAnnual = (sub: StripeSubscriptionSummary): boolean =>
+  sub.plan?.interval === 'year';
 
 interface User {
   email: string;
@@ -220,6 +236,59 @@ function LifetimeSubscriptionManagement() {
   );
 }
 
+function PausedState({
+  subscription,
+  planLabel,
+  isResuming,
+  isCancelling,
+  resumeError,
+  onResume,
+  onCancel,
+}: {
+  readonly subscription: StripeSubscriptionSummary;
+  readonly planLabel: string | null;
+  readonly isResuming: boolean;
+  readonly isCancelling: boolean;
+  readonly resumeError: string;
+  readonly onResume: () => void;
+  readonly onCancel: () => void;
+}) {
+  const resumeDate = formatDate(subscription.paused_until);
+  const planText = planLabel ?? 'your plan';
+
+  return (
+    <>
+      <p className={styles.scheduledBadge}>
+        Paused · Resumes <strong>{resumeDate}</strong>
+      </p>
+      <p className={styles.dangerNotice}>
+        You won't be charged while paused. Your subscription resumes on{' '}
+        {resumeDate} at {planText}. While paused, paid features are off and
+        everything you've made is saved.
+      </p>
+      <div className={styles.actions}>
+        <button
+          type="button"
+          className={styles.primaryButton}
+          onClick={onResume}
+          disabled={isResuming}
+        >
+          {isResuming ? 'Resuming…' : 'Resume now'}
+        </button>
+        <button
+          type="button"
+          className={styles.secondaryButton}
+          onClick={onCancel}
+          disabled={isCancelling}
+        >
+          {isCancelling ? 'Processing…' : 'Cancel subscription'}
+        </button>
+      </div>
+      {resumeError && <p className={styles.helpDanger}>{resumeError}</p>}
+    </>
+  );
+}
+
 export function SubscriptionManagement(props: SubscriptionManagementProps) {
   const { locals } = props;
 
@@ -262,13 +331,21 @@ function StripeSubscriptionManagement({
   const {
     cancelUserSubscription,
     submitFeedback,
-    dismissFollowUp,
-    showFollowUp,
     isCancelling,
-    isSubmittingFeedback,
     cancelError,
     cancelSuccess,
   } = useSubscriptionCancellation(refetchAll);
+
+  const {
+    pauseSubscriptionForMonths,
+    resumeSubscriptionNow,
+    isPausing,
+    isResuming,
+    pauseError,
+    resumeError,
+  } = usePauseSubscription(refetchAll);
+
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     if (locals?.subscriptionInfo?.linked_email) {
@@ -295,6 +372,33 @@ function StripeSubscriptionManagement({
   const { view, activeSubscriptions } = stripeStatus;
   const hasMultipleActive = activeSubscriptions.length > 1;
 
+  const activeSub = view.kind === 'active' ? view.subscription : null;
+  const pauseEligible =
+    activeSub != null &&
+    !isAnnual(activeSub) &&
+    tenureDaysOf(activeSub) >= MIN_TENURE_DAYS_TO_PAUSE &&
+    !hasMultipleActive;
+
+  const handleCancelFromFlow = (reason: CancellationReasonInput) => {
+    if (reason) {
+      submitFeedback(reason, '');
+    }
+    cancelUserSubscription('period_end', activeSub?.current_period_end);
+    setConfirming(false);
+  };
+
+  const handleKeep = (reason: CancellationReasonInput) => {
+    if (reason) {
+      submitFeedback(reason, '');
+    }
+    setConfirming(false);
+  };
+
+  const handleCancelDuringPause = () => {
+    track('subscription_cancelled_during_pause');
+    cancelUserSubscription('immediate');
+  };
+
   return (
     <section className={styles.section}>
       {hasMultipleActive && (
@@ -319,30 +423,44 @@ function StripeSubscriptionManagement({
                   Cancelling forfeits this legacy rate.
                 </p>
               )}
-              <div className={styles.actions}>
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  onClick={() =>
-                    cancelUserSubscription(
-                      'period_end',
-                      view.subscription.current_period_end
-                    )
-                  }
-                  disabled={isCancelling}
-                >
-                  {isCancelling ? 'Processing…' : 'Cancel at period end'}
-                </button>
-                <button
-                  type="button"
-                  className={styles.textButton}
-                  onClick={() => cancelUserSubscription('immediate')}
-                  disabled={isCancelling}
-                >
-                  or cancel now
-                </button>
-              </div>
+              {!confirming && (
+                <div className={styles.actions}>
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    onClick={() => setConfirming(true)}
+                    disabled={isCancelling}
+                  >
+                    Cancel subscription
+                  </button>
+                </div>
+              )}
+              {confirming && (
+                <CancelFlow
+                  planLabel={formatPlan(view.subscription)}
+                  tenureDays={tenureDaysOf(view.subscription)}
+                  pauseEligible={pauseEligible}
+                  isCancelling={isCancelling}
+                  isPausing={isPausing}
+                  pauseError={pauseError}
+                  onCancel={handleCancelFromFlow}
+                  onKeep={handleKeep}
+                  onPause={(months) => pauseSubscriptionForMonths(months)}
+                />
+              )}
             </>
+          )}
+
+          {view.kind === 'paused' && (
+            <PausedState
+              subscription={view.subscription}
+              planLabel={formatPlan(view.subscription)}
+              isResuming={isResuming}
+              isCancelling={isCancelling}
+              resumeError={resumeError}
+              onResume={resumeSubscriptionNow}
+              onCancel={handleCancelDuringPause}
+            />
           )}
 
           {view.kind === 'scheduled' && (
@@ -382,13 +500,6 @@ function StripeSubscriptionManagement({
           {cancelError && <p className={styles.helpDanger}>{cancelError}</p>}
           {cancelSuccess && (
             <p className={styles.helpSuccess}>{cancelSuccess}</p>
-          )}
-          {showFollowUp && (
-            <CancellationFollowUp
-              onSubmit={submitFeedback}
-              onSkip={dismissFollowUp}
-              isSubmitting={isSubmittingFeedback}
-            />
           )}
         </div>
       )}

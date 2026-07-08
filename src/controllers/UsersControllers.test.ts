@@ -19,15 +19,38 @@ jest.mock('../services/SubscriptionService', () => {
       this.name = 'SubscriptionNotOwnedError';
     }
   }
+  class AnnualPlanNotPausableError extends Error {
+    constructor() {
+      super('Annual plans cannot be paused');
+      this.name = 'AnnualPlanNotPausableError';
+    }
+  }
+  class SubscriptionTooNewToPauseError extends Error {
+    constructor() {
+      super('Subscription is too new to pause');
+      this.name = 'SubscriptionTooNewToPauseError';
+    }
+  }
+  class InvalidPauseMonthsError extends Error {
+    constructor() {
+      super('Pause length must be 1, 2, or 3 months');
+      this.name = 'InvalidPauseMonthsError';
+    }
+  }
   return {
     __esModule: true,
     SubscriptionNotOwnedError,
+    AnnualPlanNotPausableError,
+    SubscriptionTooNewToPauseError,
+    InvalidPauseMonthsError,
     default: {
       cancelUserSubscriptions: jest.fn(),
       cancelSubscriptionById: jest.fn(),
       findRecentStripeSubscriptions: jest.fn(),
       countActiveByProductId: jest.fn().mockResolvedValue(0),
       getUserActiveSubscriptions: jest.fn().mockResolvedValue([]),
+      pauseSubscription: jest.fn(),
+      resumeSubscription: jest.fn(),
     },
   };
 });
@@ -62,6 +85,7 @@ import UsersService, {
 import AuthenticationService from '../services/AuthenticationService';
 import SubscriptionService, {
   SubscriptionNotOwnedError,
+  AnnualPlanNotPausableError,
 } from '../services/SubscriptionService';
 import OauthIdentitiesRepository from '../data_layer/OauthIdentitiesRepository';
 import NotionRepository from '../data_layer/NotionRespository';
@@ -2715,6 +2739,159 @@ describe('UsersController.cancelSubscription', () => {
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(SubscriptionService.cancelUserSubscriptions).not.toHaveBeenCalled();
+  });
+});
+
+describe('UsersController.pauseSubscription', () => {
+  const buildPauseController = () => {
+    const userService = {
+      getUserById: jest
+        .fn()
+        .mockResolvedValue({ id: 1, email: 'sub@example.com' }),
+    } as unknown as UsersService;
+    const controller = new UsersController(
+      userService,
+      {} as AuthenticationService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    return { controller };
+  };
+
+  const buildResWithLocals = (owner: number | null = 1) => {
+    const json = jest.fn();
+    const status = jest.fn().mockReturnValue({ json });
+    return {
+      json,
+      status,
+      locals: { owner },
+    } as unknown as express.Response & {
+      json: jest.Mock;
+      status: jest.Mock;
+    };
+  };
+
+  beforeEach(() => {
+    (SubscriptionService.pauseSubscription as jest.Mock).mockReset();
+  });
+
+  it('pauses and returns the resume date', async () => {
+    (SubscriptionService.pauseSubscription as jest.Mock).mockResolvedValue({
+      subscriptionId: 'sub_1',
+      resumesAt: 1900000000,
+      tenureDays: 90,
+    });
+    const { controller } = buildPauseController();
+    const req = { body: { months: 2 } } as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.pauseSubscription(req, res);
+
+    expect(SubscriptionService.pauseSubscription).toHaveBeenCalledWith(
+      'sub@example.com',
+      2
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ resumes_at: 1900000000 })
+    );
+  });
+
+  it('returns 400 for an invalid pause length', async () => {
+    const { controller } = buildPauseController();
+    const req = { body: { months: 5 } } as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.pauseSubscription(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(SubscriptionService.pauseSubscription).not.toHaveBeenCalled();
+  });
+
+  it('maps an annual plan rejection to 422', async () => {
+    (SubscriptionService.pauseSubscription as jest.Mock).mockRejectedValue(
+      new AnnualPlanNotPausableError()
+    );
+    const { controller } = buildPauseController();
+    const req = { body: { months: 1 } } as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.pauseSubscription(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(422);
+  });
+
+  it('returns 401 without an authenticated owner', async () => {
+    const { controller } = buildPauseController();
+    const req = { body: { months: 1 } } as express.Request;
+    const res = buildResWithLocals(null);
+
+    await controller.pauseSubscription(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+});
+
+describe('UsersController.resumeSubscription', () => {
+  const buildResumeController = () => {
+    const userService = {
+      getUserById: jest
+        .fn()
+        .mockResolvedValue({ id: 1, email: 'sub@example.com' }),
+    } as unknown as UsersService;
+    const controller = new UsersController(
+      userService,
+      {} as AuthenticationService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    return { controller };
+  };
+
+  const buildResWithLocals = (owner: number | null = 1) => {
+    const json = jest.fn();
+    const status = jest.fn().mockReturnValue({ json });
+    return {
+      json,
+      status,
+      locals: { owner },
+    } as unknown as express.Response & {
+      json: jest.Mock;
+      status: jest.Mock;
+    };
+  };
+
+  beforeEach(() => {
+    (SubscriptionService.resumeSubscription as jest.Mock).mockReset();
+    trackMock.mockReset();
+  });
+
+  it('resumes and fires the resume event', async () => {
+    (SubscriptionService.resumeSubscription as jest.Mock).mockResolvedValue(
+      'sub_1'
+    );
+    const { controller } = buildResumeController();
+    const req = { body: {} } as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.resumeSubscription(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(trackMock).toHaveBeenCalledWith('subscription_pause_resumed', {
+      userId: 1,
+    });
+  });
+
+  it('returns 422 when no paused subscription is found', async () => {
+    (SubscriptionService.resumeSubscription as jest.Mock).mockRejectedValue(
+      new SubscriptionNotOwnedError()
+    );
+    const { controller } = buildResumeController();
+    const req = { body: {} } as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.resumeSubscription(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(422);
+    expect(trackMock).not.toHaveBeenCalled();
   });
 });
 

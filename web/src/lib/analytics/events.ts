@@ -69,6 +69,10 @@ export const KNOWN_EVENTS = new Set([
   'image_drop_notice_shown',
   'producer_intent_captured',
   'producer_entry_viewed',
+  'subscription_pause_offered',
+  'subscription_paused',
+  'subscription_pause_resumed',
+  'subscription_cancelled_during_pause',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;

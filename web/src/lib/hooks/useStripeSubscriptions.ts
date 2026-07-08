@@ -8,6 +8,7 @@ export type SubscriptionViewState =
   | { kind: 'none' }
   | { kind: 'active'; subscription: StripeSubscriptionSummary }
   | { kind: 'scheduled'; subscription: StripeSubscriptionSummary }
+  | { kind: 'paused'; subscription: StripeSubscriptionSummary }
   | { kind: 'cancelled'; subscription: StripeSubscriptionSummary };
 
 export interface StripeSubscriptionsState {
@@ -23,6 +24,9 @@ function deriveView(
 ): SubscriptionViewState {
   const active = subscriptions.find((sub) => sub.status === 'active');
   if (active) {
+    if (active.paused_until != null) {
+      return { kind: 'paused', subscription: active };
+    }
     return active.cancel_at_period_end
       ? { kind: 'scheduled', subscription: active }
       : { kind: 'active', subscription: active };

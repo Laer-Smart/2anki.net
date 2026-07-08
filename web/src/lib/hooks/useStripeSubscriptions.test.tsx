@@ -21,10 +21,12 @@ function buildWrapper() {
 const active = {
   id: 'sub_active',
   status: 'active',
+  created: 1_700_000_000,
   cancel_at_period_end: false,
   cancel_at: null,
   canceled_at: null,
   current_period_end: 1_800_000_000,
+  paused_until: null,
   plan: null,
 };
 
@@ -70,5 +72,17 @@ describe('useStripeSubscriptions', () => {
 
     await waitFor(() => expect(result.current.view.kind).toBe('active'));
     expect(result.current.activeSubscriptions).toHaveLength(1);
+  });
+
+  it('derives the paused view when pause_collection is set', async () => {
+    vi.mocked(getSubscriptionStatus).mockResolvedValue({
+      subscriptions: [{ ...active, paused_until: 1_900_000_000 }],
+    });
+
+    const { result } = renderHook(() => useStripeSubscriptions(true), {
+      wrapper: buildWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.view.kind).toBe('paused'));
   });
 });

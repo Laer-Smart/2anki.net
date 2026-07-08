@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
 import { Knex } from 'knex';
+import { isPaused } from '../subscriptions/isPaused';
 
 let stripeInstance: InstanceType<typeof Stripe> | null = null;
 
@@ -110,6 +111,9 @@ export const updateStoreSubscription = async (
     const periodEndDate = new Date((subscription.cancel_at ?? 0) * 1000);
     const currentDate = new Date();
     shouldRemainActive = currentDate < periodEndDate;
+  }
+  if (isPaused(subscription)) {
+    shouldRemainActive = false;
   }
 
   const stripeProductId = extractProductId(subscription);

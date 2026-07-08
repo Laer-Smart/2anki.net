@@ -2,6 +2,7 @@ import type { Stripe } from 'stripe';
 import type { Stripe as StripeTypes } from 'stripe/cjs/stripe.core';
 
 import { getStripe } from '../../lib/integrations/stripe';
+import { isPaused } from '../../lib/subscriptions/isPaused';
 import {
   BusinessCacheKey,
   BusinessMetricsCacheEntry,
@@ -153,6 +154,7 @@ interface NormalizedSubscription {
   createdMs: number;
   endedAtMs: number | null;
   monthlyCents: number;
+  paused: boolean;
 }
 
 interface NormalizedInvoice {
@@ -751,6 +753,7 @@ const normalizeSubscription = (
     createdMs: sub.created * 1000,
     endedAtMs: effectiveEnd != null ? effectiveEnd * 1000 : null,
     monthlyCents: monthlyCentsForSubscription(sub),
+    paused: isPaused(sub),
   };
 };
 
@@ -769,6 +772,7 @@ const isActiveNow = (status: string): boolean =>
 const isActiveToday = (sub: NormalizedSubscription, nowMs: number): boolean => {
   if (sub.createdMs > nowMs) return false;
   if (sub.endedAtMs != null && sub.endedAtMs <= nowMs) return false;
+  if (sub.paused) return false;
   return isActiveNow(sub.status);
 };
 

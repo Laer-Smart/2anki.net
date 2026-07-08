@@ -9,10 +9,12 @@ export interface StripePlanSummary {
 export interface StripeSubscriptionSummary {
   id: string;
   status: string;
+  created: number | null;
   cancel_at_period_end: boolean;
   cancel_at: number | null;
   canceled_at: number | null;
   current_period_end: number | null;
+  paused_until: number | null;
   plan: StripePlanSummary | null;
 }
 
