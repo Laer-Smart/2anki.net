@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { ContactMessage } from '../../lib/backend/Backend';
@@ -12,6 +12,7 @@ import {
 } from './businessHelpers';
 import { CancellationCommentPoint } from './businessTypes';
 import styles from './OpsPage.module.css';
+import CopyForClaudeButton from './CopyForClaudeButton';
 import { TodaySignal, computeTodaySignals } from './todaySignals';
 import { useBusinessMetrics } from './useBusinessMetrics';
 import { useConversionMetrics } from './useConversionMetrics';
@@ -42,38 +43,6 @@ const formatMs = (ms: number | null): string => {
   return `${(ms / 1000).toFixed(1)} s`;
 };
 
-function SignalCopyButton({ signal }: Readonly<{ signal: TodaySignal }>) {
-  const [copied, setCopied] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleCopy = useCallback(() => {
-    navigator.clipboard
-      .writeText(signal.copyText)
-      .then(() => {
-        setCopied(true);
-        if (timerRef.current != null) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => setCopied(false), 1500);
-      })
-      .catch(() => {});
-  }, [signal]);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current != null) clearTimeout(timerRef.current);
-    };
-  }, []);
-
-  return (
-    <button
-      type="button"
-      className={sharedStyles.btnSmall}
-      onClick={handleCopy}
-    >
-      {copied ? 'Copied' : 'Copy for Claude Code'}
-    </button>
-  );
-}
-
 function AttentionRow({ signal }: Readonly<{ signal: TodaySignal }>) {
   return (
     <li className={styles.attentionRow} data-severity={signal.severity}>
@@ -81,7 +50,7 @@ function AttentionRow({ signal }: Readonly<{ signal: TodaySignal }>) {
       <span className={styles.attentionLabel}>{signal.label}</span>
       <span className={styles.attentionValue}>{signal.value}</span>
       <span className={styles.attentionDelta}>{signal.delta}</span>
-      <SignalCopyButton signal={signal} />
+      <CopyForClaudeButton getText={() => signal.copyText} />
     </li>
   );
 }
