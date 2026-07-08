@@ -102,6 +102,9 @@ const ANSWERS_SLUGS = new Set<string>([
   'pdf-to-anki',
   'quizlet-to-anki',
   'fsrs-explained',
+  'lecture-notes-to-anki',
+  'word-to-anki',
+  'image-occlusion-anki',
 ]);
 
 const PARAM_PREFIXES = [
