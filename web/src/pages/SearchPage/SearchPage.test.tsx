@@ -61,7 +61,7 @@ describe('SearchPage over the monthly limit', () => {
       screen.getByText("You've used all 100 cards this month")
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /Get a Day Pass/ })
+      screen.getByRole('button', { name: /Get Day Pass/ })
     ).toBeInTheDocument();
     expect(screen.queryByTestId('search-container')).not.toBeInTheDocument();
   });

@@ -87,7 +87,7 @@ export function NotionLandingPage() {
             priceSuffix="— 24 hours"
             benefits={DAY_PASS_BENEFITS}
             link={DAY_PASS_HREF}
-            linkText="Get a Day Pass"
+            linkText="Get Day Pass"
             variant="outline"
             caption="Pay once — no subscription."
             onLinkClick={handleDayPassClick}

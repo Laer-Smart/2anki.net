@@ -100,13 +100,13 @@ export function SearchPage({ setError }: Readonly<SearchPageProps>) {
             onClick={handleDayPass}
             disabled={dayPassPending}
           >
-            {dayPassPending ? 'Starting checkout' : 'Get a Day Pass — $4'}
+            {dayPassPending ? 'Starting checkout' : 'Get Day Pass — $4'}
           </button>
           <Link
             to="/limit?ref=notion-limit-wall"
             className={searchStyles.limitLockSecondary}
           >
-            See upgrade options
+            See plans
           </Link>
         </div>
       </div>
