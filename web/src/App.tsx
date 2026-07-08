@@ -79,6 +79,11 @@ const AnkifyReviewPreviewPage = import.meta.env.DEV
       () => import('./pages/AnkifyReviewPreviewPage/AnkifyReviewPreviewPage')
     )
   : null;
+const UploadSuccessPreviewPage = import.meta.env.DEV
+  ? lazy(
+      () => import('./pages/UploadSuccessPreviewPage/UploadSuccessPreviewPage')
+    )
+  : null;
 const SuccessfulCheckoutPage = lazyWithRetry(
   () => import('./pages/SuccessfulCheckout/SuccessfulCheckout'),
   './pages/SuccessfulCheckout/SuccessfulCheckout'
@@ -477,6 +482,12 @@ function AppContent({
               <Route
                 path="/dev/ankify-review-preview"
                 element={<AnkifyReviewPreviewPage />}
+              />
+            )}
+            {UploadSuccessPreviewPage && (
+              <Route
+                path="/dev/upload-success-preview"
+                element={<UploadSuccessPreviewPage />}
               />
             )}
             <Route

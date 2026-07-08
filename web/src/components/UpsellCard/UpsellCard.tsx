@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { track } from '../../lib/analytics/track';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../NavigationBar/helpers/getPlanLabel';
-import {
-  getSubscribeLink,
-  PASS_PRICES,
-} from '../../pages/PricingPage/payment.links';
+import { PASS_PRICES } from '../../pages/PricingPage/payment.links';
 import styles from './UpsellCard.module.css';
 
 type Surface = 'downloads_upsell' | 'upload_success_upsell';
@@ -81,8 +79,6 @@ export function UpsellCard({
 
   if (suppress) return null;
 
-  const email = data?.user?.email;
-
   const handlePassClick = async (kind: '24h' | '7d') => {
     upgradeClickedRef.current = true;
     track('paywall_upgrade_clicked', {
@@ -102,9 +98,9 @@ export function UpsellCard({
     setPendingKind(null);
   };
 
-  const handleUnlimitedClick = () => {
+  const handleSeePlansClick = () => {
     upgradeClickedRef.current = true;
-    track('paywall_upgrade_clicked', { surface, plan: 'unlimited' });
+    track('paywall_upgrade_clicked', { surface, plan: 'see_plans' });
   };
 
   return (
@@ -122,29 +118,16 @@ export function UpsellCard({
           disabled={pendingKind != null}
         >
           {pendingKind === '24h'
-            ? 'Redirecting…'
+            ? 'Starting checkout'
             : `Get Day Pass — ${PASS_PRICES['24h']}`}
         </button>
-        <button
-          type="button"
+        <Link
           className={styles.secondary}
-          onClick={() => handlePassClick('7d')}
-          disabled={pendingKind != null}
+          to="/pricing"
+          onClick={handleSeePlansClick}
         >
-          {pendingKind === '7d'
-            ? 'Redirecting…'
-            : `Get Week Pass — ${PASS_PRICES['7d']}`}
-        </button>
-        <span className={styles.dot} aria-hidden="true">
-          ·
-        </span>
-        <a
-          className={styles.secondary}
-          href={getSubscribeLink(email)}
-          onClick={handleUnlimitedClick}
-        >
-          Unlimited
-        </a>
+          See plans
+        </Link>
       </div>
     </section>
   );
