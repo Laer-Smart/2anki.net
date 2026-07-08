@@ -11,7 +11,8 @@
 We're not replacing Anki or Notion — we're building a bridge between them. Drop in what you're studying, get a deck back.
 
 - Free to use, no technical skills required
-- Multi-format: Notion pages (via API or HTML export), Markdown, HTML, Excel (xlsx), zip bundles
+- Multi-format: Notion pages (via API or HTML export), PDF, Word (docx), PowerPoint, Markdown, HTML, CSV, Excel (xlsx), EPUB, Kindle clippings, Quizlet exports, and zip bundles
+- Image occlusion and photo-to-deck for diagrams and handwritten notes
 - Toggle lists become cards, cloze deletions work out of the box
 - Embeds, audio, images, code blocks, and LaTeX carried over
 - Self-hostable if you hit the free-tier quota
@@ -24,8 +25,8 @@ We're not replacing Anki or Notion — we're building a bridge between them. Dro
 ## Getting started
 
 ```bash
-git clone https://github.com/2anki/server.git
-cd server
+git clone https://github.com/Laer-Smart/2anki.net.git
+cd 2anki.net
 pnpm install
 touch .env
 pnpm dev
@@ -49,4 +50,4 @@ We'd love your help! See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to get sta
 
 ## License
 
-The code is licensed under the [MIT](./LICENSE) Copyright (c) 2020-2026, [Alexander Alemayhu](https://alemayhu.com). See [CREDITS.md](./CREDITS.md) for contributors.
+The code is licensed under the [MIT](./LICENSE.md) Copyright (c) 2020-2026, [Alexander Alemayhu](https://alemayhu.com). See [CREDITS.md](./CREDITS.md) for contributors.
