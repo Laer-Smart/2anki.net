@@ -16,6 +16,7 @@ import {
 } from './uploadResponse';
 import { getDownloadFileName } from '../../../DownloadsPage/helpers/getDownloadFileName';
 import { ImageDropNotice } from '../../../DownloadsPage/components/ImageDropNotice';
+import { OverSplitNotice } from './OverSplitNotice';
 import { getEmptyDeckChatPrompt } from '../../helpers/getEmptyDeckChatPrompt';
 import { useDrag } from './hooks/useDrag';
 import { useUploadFormState } from './hooks/useUploadFormState';
@@ -266,7 +267,9 @@ function UploadForm({
     mcqSkippedCount,
     setMcqSkippedCount,
     droppedImageCount,
+    overSplit,
     setDroppedImageCount,
+    setOverSplit,
     mcqDrawerOpen,
     setMcqDrawerOpen,
     mcqShowAnswer,
@@ -343,6 +346,7 @@ function UploadForm({
     setMcqCount,
     setMcqSkippedCount,
     setDroppedImageCount,
+    setOverSplit,
     setDownloadLink,
     setProgressWidth,
     setBatchResult,
@@ -888,6 +892,11 @@ function UploadForm({
       {droppedImageCount > 0 && (
         <div className={formStyles.warningInline}>
           <ImageDropNotice count={droppedImageCount} source="upload" />
+        </div>
+      )}
+      {overSplit && (
+        <div className={formStyles.warningInline}>
+          <OverSplitNotice cardCount={cardCount} />
         </div>
       )}
       {showFallback && (

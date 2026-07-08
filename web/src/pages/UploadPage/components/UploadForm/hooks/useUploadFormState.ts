@@ -47,6 +47,7 @@ export function useUploadFormState(onReset: () => void) {
   const [mcqCount, setMcqCount] = useState<number>(0);
   const [mcqSkippedCount, setMcqSkippedCount] = useState<number>(0);
   const [droppedImageCount, setDroppedImageCount] = useState<number>(0);
+  const [overSplit, setOverSplit] = useState(false);
   const [mcqDrawerOpen, setMcqDrawerOpen] = useState(false);
   const [mcqShowAnswer, setMcqShowAnswer] = useState(false);
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
@@ -81,6 +82,7 @@ export function useUploadFormState(onReset: () => void) {
     setMcqCount(0);
     setMcqSkippedCount(0);
     setDroppedImageCount(0);
+    setOverSplit(false);
     setMcqDrawerOpen(false);
     setMcqShowAnswer(false);
     setWarningMessage(null);
@@ -121,6 +123,8 @@ export function useUploadFormState(onReset: () => void) {
     setMcqSkippedCount,
     droppedImageCount,
     setDroppedImageCount,
+    overSplit,
+    setOverSplit,
     mcqDrawerOpen,
     setMcqDrawerOpen,
     mcqShowAnswer,

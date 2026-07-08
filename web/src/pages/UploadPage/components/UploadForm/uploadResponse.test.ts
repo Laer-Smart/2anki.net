@@ -17,6 +17,7 @@ function buildHandlers(): ConversionSuccessHandlers {
     setMcqCount: vi.fn(),
     setMcqSkippedCount: vi.fn(),
     setDroppedImageCount: vi.fn(),
+    setOverSplit: vi.fn(),
     setDownloadLink: vi.fn(),
     setProgressWidth: vi.fn(),
     setBatchResult: vi.fn(),
@@ -107,6 +108,25 @@ describe('applyConversionSuccess', () => {
     await applyConversionSuccess(singleDeckResponse(), handlers);
 
     expect(handlers.setDroppedImageCount).toHaveBeenCalledWith(0);
+  });
+
+  it('flags over-split output from the X-Over-Split header', async () => {
+    const handlers = buildHandlers();
+
+    await applyConversionSuccess(
+      singleDeckResponse({ 'X-Over-Split': '1' }),
+      handlers
+    );
+
+    expect(handlers.setOverSplit).toHaveBeenCalledWith(true);
+  });
+
+  it('reports overSplit false when the X-Over-Split header is absent', async () => {
+    const handlers = buildHandlers();
+
+    await applyConversionSuccess(singleDeckResponse(), handlers);
+
+    expect(handlers.setOverSplit).toHaveBeenCalledWith(false);
   });
 
   it('reads droppedImageCount from the batch JSON body', async () => {

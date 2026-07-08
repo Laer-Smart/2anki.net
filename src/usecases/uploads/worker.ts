@@ -18,6 +18,7 @@ import {
 } from '../../lib/storage/checks';
 import { getPackagesFromZip } from './getPackagesFromZip';
 import Workspace from '../../lib/parser/WorkSpace';
+import { detectOverSplit } from '../../lib/parser/detectOverSplit';
 import { isZipContentFileSupported } from './isZipContentFileSupported';
 import { convertMindmapFileToApkg } from './ConvertMindmapFileUseCase';
 import {
@@ -175,17 +176,19 @@ async function processFile(
     });
 
     if (d) {
-      packages.push(
-        new Package(
-          d.name,
-          d.cardCount ?? 0,
-          d.mcqCount ?? 0,
-          d.mcqSkippedCount ?? 0,
-          d.droppedImageCount ?? 0,
-          d.emptyBackCount ?? 0,
-          d.parsePath
-        )
+      const singleFilePackage = new Package(
+        d.name,
+        d.cardCount ?? 0,
+        d.mcqCount ?? 0,
+        d.mcqSkippedCount ?? 0,
+        d.droppedImageCount ?? 0,
+        d.emptyBackCount ?? 0,
+        d.parsePath
       );
+      singleFilePackage.overSplit = detectOverSplit(
+        (d.deck ?? []).flatMap((deck) => deck.cards.map((card) => card.name))
+      );
+      packages.push(singleFilePackage);
       if (d.warning) warnings.push(d.warning);
     }
   } else if (isCompressedFile(filename) || isCompressedFile(key)) {
