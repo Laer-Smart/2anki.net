@@ -239,19 +239,16 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
           </>
         )}
         {aiBadgeState === 'anon' && (
-          <>
-            <span className={styles.badgeWarning}>AI is off</span>
-            <span className={styles.aiOffBadgeBody}>
-              {' '}
-              <Link
-                to="/login?redirect=/card-options"
-                onClick={() => track('upload_ai_anon_badge_clicked')}
-              >
-                Sign in to turn it on
-              </Link>
-              <span>.</span>
-            </span>
-          </>
+          <span className={styles.aiOffBadgeBody}>
+            <span>Claude can write your cards — </span>
+            <Link
+              to="/login?redirect=/card-options"
+              onClick={() => track('upload_ai_anon_badge_clicked')}
+            >
+              sign in to turn on AI
+            </Link>
+            <span>.</span>
+          </span>
         )}
       </div>
       <UploadForm
