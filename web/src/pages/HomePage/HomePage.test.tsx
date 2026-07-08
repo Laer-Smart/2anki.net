@@ -47,11 +47,11 @@ describe('HomePage (anonymous)', () => {
     expect(screen.queryByText(/open source/i)).toBeNull();
   });
 
-  it('shows the AI-off badge inviting anon visitors to create an account', () => {
+  it('shows a quiet AI hint inviting anon visitors to create an account', () => {
     renderHome();
-    expect(screen.getByText('AI is off')).toBeInTheDocument();
+    expect(screen.queryByText('AI is off')).toBeNull();
     const link = screen.getByRole('link', {
-      name: /create an account to turn it on/i,
+      name: /create an account to turn on AI/i,
     });
     expect(link).toHaveAttribute('href', '/register?redirect=/card-options');
   });

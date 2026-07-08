@@ -205,22 +205,16 @@ export function HomePage({
           HTML, and CSV too.
         </p>
         <div className={styles.heroControls}>
-          <div
-            className={`${sharedStyles.aiOffBadge} ${styles.heroAiBadge}`}
-            role="status"
-          >
-            <span className={sharedStyles.badgeWarning}>AI is off</span>
-            <span className={sharedStyles.aiOffBadgeBody}>
-              {' '}
-              <Link
-                to="/register?redirect=/card-options"
-                onClick={() => track('home_ai_anon_badge_clicked')}
-              >
-                Create an account to turn it on
-              </Link>
-              .
-            </span>
-          </div>
+          <p className={`${sharedStyles.aiOffBadgeBody} ${styles.heroAiBadge}`}>
+            Claude can write your cards —{' '}
+            <Link
+              to="/register?redirect=/card-options"
+              onClick={() => track('home_ai_anon_badge_clicked')}
+            >
+              create an account to turn on AI
+            </Link>
+            .
+          </p>
           <Link
             to="/card-options"
             className={styles.cardOptionsLink}

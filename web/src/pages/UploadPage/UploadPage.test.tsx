@@ -150,7 +150,7 @@ describe('UploadPage doc/docx hint', () => {
 describe('UploadPage AI badge anon link', () => {
   it('links to /login?redirect=/card-options so user lands on card options after sign-in', () => {
     renderPage();
-    const link = screen.getByRole('link', { name: /sign in to turn it on/i });
+    const link = screen.getByRole('link', { name: /sign in to turn on AI/i });
     expect(link).toHaveAttribute('href', '/login?redirect=/card-options');
   });
 });
@@ -164,7 +164,7 @@ describe('UploadPage AI badge placement', () => {
     renderPage();
     const uploadForm = screen.getByTestId('upload-form-stub');
     const badge = screen
-      .getByRole('link', { name: /sign in to turn it on/i })
+      .getByRole('link', { name: /sign in to turn on AI/i })
       .closest('[role="status"]') as HTMLElement;
     expect(badge).toBeInTheDocument();
     expect(
@@ -421,7 +421,9 @@ describe('UploadPage AI badge survives browser translation', () => {
 
   it('renders no bare text nodes in the anon branch', () => {
     renderPage();
-    expect(collectUnwrappedTextNodes(badgeFor(/AI is off/))).toEqual([]);
+    expect(
+      collectUnwrappedTextNodes(badgeFor(/Claude can write your cards/))
+    ).toEqual([]);
   });
 
   it('renders no bare text nodes in the free branch', () => {
