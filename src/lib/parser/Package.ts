@@ -13,6 +13,8 @@ class Package {
 
   parsePath?: string;
 
+  overSplit = false;
+
   constructor(
     name: string,
     cardCount: number = 0,

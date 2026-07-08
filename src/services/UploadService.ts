@@ -715,6 +715,10 @@ class UploadService {
         res.set('X-Dropped-Assets', totalDroppedImageCount.toString());
         exposedHeaders.push('X-Dropped-Assets');
       }
+      if (packages.some((p) => p.overSplit)) {
+        res.set('X-Over-Split', '1');
+        exposedHeaders.push('X-Over-Split');
+      }
       const warningText = resolveUploadWarning(warnings);
       if (warningText) {
         res.set('X-Warning', warningText);
