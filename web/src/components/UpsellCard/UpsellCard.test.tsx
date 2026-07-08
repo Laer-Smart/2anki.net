@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 
 import { UpsellCard } from './UpsellCard';
 
@@ -9,7 +10,9 @@ function renderCard(ui: React.ReactElement) {
     defaultOptions: { queries: { retry: false } },
   });
   return render(
-    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>
   );
 }
 
@@ -62,16 +65,15 @@ describe('UpsellCard', () => {
     mockUseCardUsage.mockReturnValue(null);
   });
 
-  it('renders three CTAs with prices for free users', () => {
+  it('renders one pass CTA and a plans link for free users', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     renderCard(<UpsellCard surface="downloads_upsell" />);
     expect(
       screen.getByRole('button', { name: 'Get Day Pass — $4' })
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Get Week Pass — $9' })
-    ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Unlimited' })).toBeInTheDocument();
+    const plans = screen.getByRole('link', { name: 'See plans' });
+    expect(plans).toHaveAttribute('href', '/pricing');
+    expect(screen.queryByRole('button', { name: /Week Pass/ })).toBeNull();
   });
 
   it('renders nothing for paying users', () => {
@@ -156,43 +158,17 @@ describe('UpsellCard', () => {
     });
   });
 
-  it('fires paywall_upgrade_clicked with plan=week_pass when Week Pass is clicked', async () => {
-    mockUseUserLocals.mockReturnValue(freeUser);
-    mockStartPassCheckout.mockResolvedValue({
-      url: 'https://checkout.stripe.com/week',
-    });
-    Object.defineProperty(globalThis, 'location', {
-      writable: true,
-      value: { href: '' },
-    });
-
-    renderCard(<UpsellCard surface="upload_success_upsell" />);
-    fireEvent.click(screen.getByRole('button', { name: /Week Pass/ }));
-
-    await waitFor(() => {
-      expect(mockTrack).toHaveBeenCalledWith('paywall_upgrade_clicked', {
-        surface: 'upload_success_upsell',
-        plan: 'week_pass',
-      });
-      expect(mockStartPassCheckout).toHaveBeenCalledWith(
-        '7d',
-        undefined,
-        'upload_success_upsell'
-      );
-    });
-  });
-
-  it('fires paywall_upgrade_clicked with plan=unlimited when Unlimited is clicked', () => {
+  it('fires paywall_upgrade_clicked with plan=see_plans when See plans is clicked', () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     renderCard(<UpsellCard surface="downloads_upsell" />);
-    fireEvent.click(screen.getByRole('link', { name: 'Unlimited' }));
+    fireEvent.click(screen.getByRole('link', { name: 'See plans' }));
     expect(mockTrack).toHaveBeenCalledWith('paywall_upgrade_clicked', {
       surface: 'downloads_upsell',
-      plan: 'unlimited',
+      plan: 'see_plans',
     });
   });
 
-  it('shows Redirecting label and disables buttons while pass checkout is pending', async () => {
+  it('shows the starting-checkout label and disables the button while pass checkout is pending', async () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     let resolveCheckout: (value: { status: 'error' }) => void = () => {};
     mockStartPassCheckout.mockReturnValue(
@@ -206,7 +182,7 @@ describe('UpsellCard', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: 'Redirecting…' })
+        screen.getByRole('button', { name: 'Starting checkout' })
       ).toBeDisabled();
     });
 
@@ -218,7 +194,7 @@ describe('UpsellCard', () => {
     });
   });
 
-  it('clears the Redirecting label when the page is restored from the back-forward cache', async () => {
+  it('clears the starting-checkout label when the page is restored from the back-forward cache', async () => {
     mockUseUserLocals.mockReturnValue(freeUser);
     mockStartPassCheckout.mockReturnValue(new Promise(() => {}));
 
@@ -227,7 +203,7 @@ describe('UpsellCard', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: 'Redirecting…' })
+        screen.getByRole('button', { name: 'Starting checkout' })
       ).toBeDisabled();
     });
 
@@ -259,7 +235,7 @@ describe('UpsellCard', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: 'Redirecting…' })
+        screen.getByRole('button', { name: 'Starting checkout' })
       ).toBeDisabled();
     });
 

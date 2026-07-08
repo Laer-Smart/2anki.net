@@ -36,6 +36,10 @@ import { fireAnalyticsEvent } from '../../../../lib/analytics/fireAnalyticsEvent
 import { track } from '../../../../lib/analytics/track';
 import ChatPanel from '../../../../components/ChatPanel/ChatPanel';
 import { UpsellCard } from '../../../../components/UpsellCard';
+import { CreateAccountNotice } from '../../../../components/CreateAccountNotice/CreateAccountNotice';
+import { PassLadderCard } from '../../../../components/PassLadderCard/PassLadderCard';
+import { isPayingUser } from '../../../../components/NavigationBar/helpers/getPlanLabel';
+import { resolveSuccessOffer } from '../../../../lib/promo/resolveSuccessOffer';
 import formStyles from './UploadForm.module.css';
 import sharedStyles from '../../../../styles/shared.module.css';
 
@@ -48,6 +52,7 @@ import type {
 interface UploadFormProps {
   setErrorMessage: ErrorHandlerType;
   aiOn?: boolean;
+  passLadderShownOnPage?: boolean;
 }
 
 const FORMATS = [
@@ -240,6 +245,7 @@ function WarningIcon({ className }: Readonly<{ className?: string }>) {
 function UploadForm({
   setErrorMessage,
   aiOn = false,
+  passLadderShownOnPage = false,
 }: Readonly<UploadFormProps>) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const convertRef = useRef<HTMLButtonElement>(null);
@@ -851,6 +857,13 @@ function UploadForm({
     </div>
   );
 
+  const successOffer = resolveSuccessOffer({
+    anonymous: userLocals != null && userLocals.user?.email == null,
+    paying: isPayingUser(userLocals?.locals),
+    passLadder: userLocals?.passLadder,
+    passLadderShownOnPage,
+  });
+
   const renderSuccessState = () => (
     <div className={formStyles.stateContent}>
       <CheckCircleIcon className={formStyles.iconSuccess} />
@@ -908,7 +921,11 @@ function UploadForm({
           Didn't get the file? Download it here.
         </button>
       )}
-      <UpsellCard surface="upload_success_upsell" hideForAnonymous />
+      {successOffer === 'anon_signup' && <CreateAccountNotice />}
+      {successOffer === 'pass_ladder' && <PassLadderCard />}
+      {successOffer === 'upsell' && (
+        <UpsellCard surface="upload_success_upsell" hideForAnonymous />
+      )}
       <button
         type="button"
         className={sharedStyles.btnSecondary}

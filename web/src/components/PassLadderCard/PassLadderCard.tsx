@@ -7,10 +7,18 @@ import styles from './PassLadderCard.module.css';
 
 const SURFACE = 'pass_ladder_success';
 
-export function PassLadderCard() {
+interface PassLadderCardProps {
+  readonly offerOverride?: { passCount: number; spentUsd: number };
+  readonly emailOverride?: string;
+}
+
+export function PassLadderCard({
+  offerOverride,
+  emailOverride,
+}: PassLadderCardProps = {}) {
   const { data } = useUserLocals();
   const shownFiredRef = useRef(false);
-  const offer = data?.passLadder;
+  const offer = offerOverride ?? data?.passLadder;
 
   useEffect(() => {
     if (offer == null) return;
@@ -43,7 +51,7 @@ export function PassLadderCard() {
       </p>
       <a
         className={styles.cta}
-        href={getSubscribeLink(data?.user?.email)}
+        href={getSubscribeLink(emailOverride ?? data?.user?.email)}
         onClick={handleUnlimitedClick}
       >
         Get Unlimited — $7.99/mo

@@ -13,6 +13,8 @@ export const KNOWN_EVENTS = new Set([
   'paywall_shown',
   'paywall_upgrade_clicked',
   'paywall_pass_clicked',
+  'account_offer_shown',
+  'account_offer_clicked',
   'purchase',
   'photo_entry_point_viewed',
   'photo_entry_point_clicked',

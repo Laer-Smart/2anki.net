@@ -52,6 +52,8 @@ export const KNOWN_EVENTS = new Set([
   'ai_conversion_completed',
   'feature_flag_changed',
   'account_created',
+  'account_offer_shown',
+  'account_offer_clicked',
   'signup_completed',
   'upload_page_viewed',
   'onboarding_shown',
