@@ -24,7 +24,7 @@ describe('OpsLayout', () => {
   test('renders the Ops heading and the active section breadcrumb', () => {
     renderAt('/ops');
     expect(screen.getByRole('heading', { name: 'Ops' })).toBeInTheDocument();
-    const section = screen.getByText('Engineering');
+    const section = screen.getByText('System');
     expect(section).toHaveAttribute('aria-current', 'page');
     expect(screen.getByTestId('engineering')).toBeInTheDocument();
   });
@@ -35,7 +35,7 @@ describe('OpsLayout', () => {
       'aria-current',
       'page'
     );
-    expect(screen.queryByText('Engineering')).not.toBeInTheDocument();
+    expect(screen.queryByText('System')).not.toBeInTheDocument();
     expect(screen.getByTestId('business')).toBeInTheDocument();
   });
 

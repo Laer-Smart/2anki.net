@@ -1,32 +1,51 @@
 import { describe, expect, it } from 'vitest';
-import { OPS_TABS, OPS_TAB_GROUPS } from './opsTabs';
+import { OPS_TABS } from './opsTabs';
 
-describe('OPS_TAB_GROUPS', () => {
-  it('groups the tabs into Today, Growth, System, Voice, and Controls', () => {
-    expect(OPS_TAB_GROUPS.map((group) => group.label)).toEqual([
+describe('OPS_TABS', () => {
+  it('lists the seven consolidated rows in order', () => {
+    expect(OPS_TABS.map((tab) => tab.label)).toEqual([
       'Today',
       'Growth',
+      'Business',
       'System',
-      'Voice',
-      'Controls',
+      'Errors',
+      'Messages',
+      'Commands',
     ]);
   });
 
-  it('places Engineering first in the System group', () => {
-    const system = OPS_TAB_GROUPS.find((group) => group.label === 'System');
-    expect(system?.tabs[0]).toMatchObject({ to: '/ops', label: 'Engineering' });
+  it('points each row at its consolidated route', () => {
+    expect(OPS_TABS.map((tab) => tab.to)).toEqual([
+      '/ops/today',
+      '/ops/growth',
+      '/ops/business',
+      '/ops/system',
+      '/ops/errors',
+      '/ops/messages',
+      '/ops/commands',
+    ]);
   });
-});
 
-describe('OPS_TABS', () => {
-  it('flattens every group into 13 tabs', () => {
-    expect(OPS_TABS).toHaveLength(13);
+  it('does not list routes that now redirect', () => {
+    const paths = OPS_TABS.map((tab) => tab.to);
+    for (const redirected of [
+      '/ops/conversions',
+      '/ops/upload-funnel',
+      '/ops/return-rate',
+      '/ops/performance',
+      '/ops/flags',
+      '/ops/showcase',
+    ]) {
+      expect(paths).not.toContain(redirected);
+    }
   });
 
-  it('no longer lists the retired Mindmaps and Pricing A/B tabs', () => {
+  it('does not list the retired or unlisted rows', () => {
     const paths = OPS_TABS.map((tab) => tab.to);
     expect(paths).not.toContain('/ops/mindmaps');
     expect(paths).not.toContain('/ops/pricing-ab');
+    expect(paths).not.toContain('/ops/interviews');
+    expect(paths).not.toContain('/ops/engineering');
   });
 
   it('has a unique route for every tab', () => {
@@ -34,26 +53,19 @@ describe('OPS_TABS', () => {
     expect(new Set(paths).size).toBe(paths.length);
   });
 
-  it('matches the Engineering index only on /ops, not on child routes', () => {
-    const index = OPS_TABS.find((tab) => tab.to === '/ops');
-    expect(index?.match('/ops')).toBe(true);
-    expect(index?.match('/ops?window=24h')).toBe(true);
-    expect(index?.match('/ops/errors')).toBe(false);
+  it('matches the System row on /ops, /ops/system, and query strings, not other children', () => {
+    const system = OPS_TABS.find((tab) => tab.to === '/ops/system');
+    expect(system?.match('/ops')).toBe(true);
+    expect(system?.match('/ops/system')).toBe(true);
+    expect(system?.match('/ops?window=24h')).toBe(true);
+    expect(system?.match('/ops/errors')).toBe(false);
+    expect(system?.match('/ops/growth')).toBe(false);
   });
 
-  it('matches a child tab on its own route', () => {
-    const errors = OPS_TABS.find((tab) => tab.to === '/ops/errors');
-    expect(errors?.match('/ops/errors')).toBe(true);
-    expect(errors?.match('/ops')).toBe(false);
-  });
-
-  it('puts the Today home in the first group', () => {
-    expect(OPS_TAB_GROUPS[0].label).toBe('Today');
-    expect(OPS_TAB_GROUPS[0].tabs[0]).toMatchObject({
-      to: '/ops/today',
-      label: 'Today',
-    });
-    const index = OPS_TABS.find((tab) => tab.to === '/ops');
-    expect(index?.match('/ops/today')).toBe(false);
+  it('matches a child row only on its own route', () => {
+    const growth = OPS_TABS.find((tab) => tab.to === '/ops/growth');
+    expect(growth?.match('/ops/growth')).toBe(true);
+    expect(growth?.match('/ops')).toBe(false);
+    expect(growth?.match('/ops/today')).toBe(false);
   });
 });
