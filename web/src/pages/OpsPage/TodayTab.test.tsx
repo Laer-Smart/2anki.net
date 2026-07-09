@@ -21,6 +21,7 @@ const healthyBusiness = {
   churn_30d_pct: 18.2,
   failed_payments_7d: 3,
   new_paid_conversions_7d: 16,
+  pass_sales_7d: { day_passes: 4, week_passes: 1 },
   mrr_timeseries: null,
   active_subs_timeseries: null,
   conversions_vs_churn_weekly: null,
@@ -142,6 +143,15 @@ describe('TodayTab', () => {
       await screen.findByText('Nothing needs you today.')
     ).toBeInTheDocument();
     expect(screen.getByText('Healthy')).toBeInTheDocument();
+  });
+
+  test('shows day and week pass sales in the healthy strip', async () => {
+    installFetch();
+    renderTab();
+
+    expect(await screen.findByText('Day passes / wk')).toBeInTheDocument();
+    expect(screen.getByText('Week passes / wk')).toBeInTheDocument();
+    expect(screen.getByText('4')).toBeInTheDocument();
   });
 
   test('renders an attention row with a copy button when errors are unresolved', async () => {

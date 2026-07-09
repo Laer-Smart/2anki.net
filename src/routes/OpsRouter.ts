@@ -75,6 +75,7 @@ const OpsRouter = () => {
     signupCountryRepository: new UsersRepository(database),
     signupCountsRepository: new UsersRepository(database),
     subscriptionsRepository: new SubscriptionsSourceRepository(database),
+    passSalesRepository: new EventsMetricsRepository(database),
   });
 
   const conversionMetricsService = new ConversionMetricsService(

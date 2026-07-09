@@ -29,6 +29,7 @@ const buildSampleMetrics = (
   churn_30d_pct: 2.1,
   failed_payments_7d: 4,
   new_paid_conversions_7d: 11,
+  pass_sales_7d: null,
   mrr_timeseries: Array.from({ length: 90 }).map((_, i) => ({
     t: `2026-02-${String((i % 28) + 1).padStart(2, '0')}`,
     mrr_usd: 1000 + i * 10,
