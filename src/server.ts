@@ -65,7 +65,6 @@ import subscriptionClaimRouter from './routes/SubscriptionClaimRouter';
 import mindmapRouter from './routes/MindmapRouter';
 import pitchRouter from './routes/PitchRouter';
 import iapRouter from './routes/IapRouter';
-import userSurveyRouter from './routes/UserSurveyRouter';
 import wellKnownRouter from './routes/WellKnownRouter';
 import healthRouter from './routes/HealthRouter';
 import requestLoggingMiddleware from './routes/middleware/requestLoggingMiddleware';
