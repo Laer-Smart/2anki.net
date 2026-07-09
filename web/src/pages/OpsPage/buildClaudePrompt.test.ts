@@ -19,6 +19,7 @@ function makeBusiness(
     churn_30d_pct: 18.2,
     failed_payments_7d: 4,
     new_paid_conversions_7d: 16,
+    pass_sales_7d: null,
     mrr_timeseries: [{ t: '2026-06-01', mrr_usd: 1800 }],
     active_subs_timeseries: [{ t: '2026-06-01', active_paying_subs: 750 }],
     conversions_vs_churn_weekly: [

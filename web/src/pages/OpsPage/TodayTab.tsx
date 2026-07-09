@@ -242,6 +242,20 @@ export default function TodayTab() {
         formatInteger
       ),
     },
+    {
+      title: 'Day passes / wk',
+      value: formatNumberOrDash(
+        businessData?.pass_sales_7d?.day_passes ?? null,
+        formatInteger
+      ),
+    },
+    {
+      title: 'Week passes / wk',
+      value: formatNumberOrDash(
+        businessData?.pass_sales_7d?.week_passes ?? null,
+        formatInteger
+      ),
+    },
     { title: 'Job p95', value: formatMs(p95) },
     {
       title: 'Return rate 7d',

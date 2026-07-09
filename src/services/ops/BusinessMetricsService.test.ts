@@ -136,6 +136,28 @@ describe('BusinessMetricsService', () => {
     jest.useRealTimers();
   });
 
+  it('surfaces 7-day pass sales when a pass-sales repository is injected', async () => {
+    const passSalesSince = jest
+      .fn()
+      .mockResolvedValue({ day_passes: 5, week_passes: 2 });
+    const { service } = buildService(
+      {},
+      { passSalesRepository: { passSalesSince } }
+    );
+
+    const response = await service.getMetrics();
+
+    expect(response.pass_sales_7d).toEqual({ day_passes: 5, week_passes: 2 });
+    const since = passSalesSince.mock.calls[0][0] as Date;
+    expect(Date.now() - since.getTime()).toBe(7 * 24 * 60 * 60 * 1000);
+  });
+
+  it('returns null pass sales without a repository', async () => {
+    const { service } = buildService();
+    const response = await service.getMetrics();
+    expect(response.pass_sales_7d).toBeNull();
+  });
+
   it('returns the full response shape on first call', async () => {
     const { service } = buildService({
       allSubs: [

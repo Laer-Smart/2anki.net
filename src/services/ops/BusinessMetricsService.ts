@@ -36,6 +36,10 @@ import {
   ISubscriptionsSourceRepository,
   InMemorySubscriptionsSourceRepository,
 } from '../../data_layer/SubscriptionsSourceRepository';
+import type {
+  IPassSalesRepository,
+  PassSalesCounts,
+} from '../../data_layer/EventsMetricsRepository';
 
 export type BusinessMetricKey =
   | 'mrr_usd'
@@ -57,7 +61,8 @@ export type BusinessMetricKey =
   | 'signup_countries_90d'
   | 'total_users'
   | 'signups_24h'
-  | 'signups_7d';
+  | 'signups_7d'
+  | 'pass_sales_7d';
 
 export interface BusinessMetricError {
   metric: BusinessMetricKey;
@@ -92,6 +97,7 @@ export interface BusinessMetricsResponse {
   churn_30d_pct: number | null;
   failed_payments_7d: number | null;
   new_paid_conversions_7d: number | null;
+  pass_sales_7d: PassSalesCounts | null;
   mrr_timeseries: MrrTimeseriesPoint[] | null;
   active_subs_timeseries: ActiveSubsTimeseriesPoint[] | null;
   conversions_vs_churn_weekly: ConversionsChurnWeekPoint[] | null;
@@ -132,6 +138,7 @@ export interface BusinessMetricsServiceDeps {
   reengagementRepository?: IReEngagementFeedbackRepository;
   signupCountryRepository?: ISignupCountryRepository;
   signupCountsRepository?: IUserSignupCountsRepository;
+  passSalesRepository?: IPassSalesRepository;
   subscriptionsRepository?: ISubscriptionsSourceRepository;
 }
 
@@ -216,6 +223,8 @@ export class BusinessMetricsService {
 
   private readonly signupCountsRepository: IUserSignupCountsRepository | null;
 
+  private readonly passSalesRepository: IPassSalesRepository | null;
+
   private readonly subscriptionsRepository: ISubscriptionsSourceRepository;
 
   private inflightSourceRefresh: Promise<SourceRefreshResult> | null = null;
@@ -235,6 +244,7 @@ export class BusinessMetricsService {
       new InMemoryReEngagementFeedbackRepository();
     this.signupCountryRepository = deps.signupCountryRepository ?? null;
     this.signupCountsRepository = deps.signupCountsRepository ?? null;
+    this.passSalesRepository = deps.passSalesRepository ?? null;
     this.subscriptionsRepository =
       deps.subscriptionsRepository ??
       new InMemorySubscriptionsSourceRepository();
@@ -304,6 +314,9 @@ export class BusinessMetricsService {
       new_paid_conversions_7d: fromSubs((s) =>
         computeNewPaidConversions7d(s, now)
       ),
+      pass_sales_7d: dbValueByKey.has('pass_sales_7d')
+        ? (dbValueByKey.get('pass_sales_7d') as PassSalesCounts | null)
+        : null,
       mrr_timeseries: fromSubs((s) => computeMrrTimeseries(s, now)),
       active_subs_timeseries: fromSubs((s) =>
         computeActiveSubsTimeseries(s, now)
@@ -440,6 +453,16 @@ export class BusinessMetricsService {
           ),
       },
     ];
+
+    if (this.passSalesRepository != null) {
+      tasks.push({
+        key: 'pass_sales_7d',
+        fetch: () =>
+          this.passSalesRepository!.passSalesSince(
+            new Date(now.getTime() - 7 * SECONDS_PER_DAY * 1000)
+          ),
+      });
+    }
 
     if (this.signupCountryRepository != null) {
       tasks.push({

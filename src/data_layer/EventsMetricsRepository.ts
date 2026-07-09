@@ -5,6 +5,15 @@ export interface IEventsMetricsRepository {
   uploadToDownloadRate(since: Date): Promise<number | null>;
 }
 
+export interface PassSalesCounts {
+  day_passes: number;
+  week_passes: number;
+}
+
+export interface IPassSalesRepository {
+  passSalesSince(since: Date): Promise<PassSalesCounts>;
+}
+
 export interface MedianMinutesRow {
   median_minutes: number | string | null;
 }
@@ -28,8 +37,32 @@ export function mapUploadToDownloadRateRow(
   return (Number(row.downloaders) / Number(row.uploaders)) * 100;
 }
 
-export class EventsMetricsRepository implements IEventsMetricsRepository {
+export class EventsMetricsRepository
+  implements IEventsMetricsRepository, IPassSalesRepository
+{
   constructor(private readonly database: Knex) {}
+
+  buildPassSalesQuery(since: Date): Knex.QueryBuilder {
+    return this.database('events')
+      .select(this.database.raw("props->>'plan' as plan"))
+      .count('* as count')
+      .where('name', 'checkout_completed')
+      .where('created_at', '>=', since)
+      .whereRaw("props->>'plan' in ('24h', '7d')")
+      .groupBy('plan');
+  }
+
+  async passSalesSince(since: Date): Promise<PassSalesCounts> {
+    const rows = (await this.buildPassSalesQuery(since)) as Array<{
+      plan: string;
+      count: string | number;
+    }>;
+    const byPlan = new Map(rows.map((r) => [r.plan, Number(r.count)]));
+    return {
+      day_passes: byPlan.get('24h') ?? 0,
+      week_passes: byPlan.get('7d') ?? 0,
+    };
+  }
 
   buildMedianMinutesToFirstDeckQuery(cohortStart: Date): Knex.QueryBuilder {
     const accounts = this.database('events')
