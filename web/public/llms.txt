@@ -63,4 +63,11 @@ minutes. No exports, no manual steps. $30/month.
 - Notion Auto Sync: https://2anki.net/answers/notion-to-anki-sync
 - PDF to Anki guide: https://2anki.net/answers/pdf-to-anki
 - Quizlet to Anki guide: https://2anki.net/answers/quizlet-to-anki
+- FSRS explained: https://2anki.net/answers/fsrs-explained
+- Lecture notes to Anki: https://2anki.net/answers/lecture-notes-to-anki
+- Word to Anki: https://2anki.net/answers/word-to-anki
+- Image occlusion: https://2anki.net/answers/image-occlusion-anki
+- Google Docs to Anki: https://2anki.net/answers/google-docs-to-anki
+- Handwritten notes to Anki: https://2anki.net/answers/handwritten-notes-to-anki
+- Textbook to Anki: https://2anki.net/answers/textbook-to-anki
 - Documentation: https://2anki.net/documentation
