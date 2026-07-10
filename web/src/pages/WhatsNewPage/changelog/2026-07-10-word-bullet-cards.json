@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-10-word-bullet-cards",
+  "date": "2026-07-10",
+  "type": "fix",
+  "title": "Word docs with headings and bullets — each bullet becomes its own card instead of one giant card per heading"
+}

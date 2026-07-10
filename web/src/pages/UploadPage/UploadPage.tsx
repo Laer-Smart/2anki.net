@@ -268,9 +268,10 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
               <p className={pageStyles.stepTitle}>Drop or choose a file</p>
               <p className={pageStyles.stepBody}>
                 PDF, Word, Notion export, Markdown, HTML, Excel, CSV, or
-                PowerPoint. In Word docs, headings become card fronts and the
-                body text under each heading becomes the back. Images land on
-                the back, and strikethrough text on a card becomes an Anki tag.
+                PowerPoint. In Word docs, headings become card fronts; each
+                bullet under a heading becomes its own card, and other text
+                becomes the back. Images land on the back, and strikethrough
+                text on a card becomes an Anki tag.
               </p>
               <p className={pageStyles.stepBody}>
                 Coming from Notion?{' '}

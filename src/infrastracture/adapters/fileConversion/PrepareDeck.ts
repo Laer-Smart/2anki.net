@@ -108,7 +108,9 @@ async function convertFile(
     const result = {
       name: `${file.name}.html`,
       contents: Buffer.from(
-        await convertDocxToHTML(file.contents as Buffer, mediaSink)
+        await convertDocxToHTML(file.contents as Buffer, mediaSink, {
+          bulletFanOut: input.settings.overlappingCloze === 'off',
+        })
       ),
     };
     console.log('[PrepareDeck] convertFile docx', {
