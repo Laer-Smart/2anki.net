@@ -4,6 +4,7 @@ export function track(name: KnownEvent, props?: Record<string, unknown>): void {
   globalThis
     .fetch('/api/events/track', {
       method: 'POST',
+      keepalive: true,
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
