@@ -604,6 +604,209 @@ const textbookToAnki: AnswerConfig = {
   ],
 };
 
+const kindleHighlightsToAnki: AnswerConfig = {
+  slug: 'kindle-highlights-to-anki',
+  title: 'How to convert Kindle highlights to Anki flashcards | 2anki',
+  description:
+    'Turn your Kindle highlights into an Anki deck. Copy My Clippings.txt off your Kindle, upload it to 2anki, and download a .apkg — each highlight on its own card.',
+  h1: 'How to convert Kindle highlights to Anki flashcards',
+  intro:
+    'Every highlight you make on a Kindle is saved to a single file called My Clippings.txt. 2anki reads that file and turns each passage into a card, so the lines you marked while reading become a deck you review in Anki. You get a .apkg you open with a double-click.',
+  sections: [
+    {
+      heading: 'Find My Clippings.txt on your Kindle',
+      body: 'Connect your Kindle to your computer with a USB cable. Open the device in your file browser and go to the documents folder — My Clippings.txt sits there. That one file holds every highlight, note, and bookmark across all your books, so you only need to copy it once. Copy it to your computer.',
+    },
+    {
+      heading: 'Upload it and convert',
+      body: 'Go to 2anki.net, drag My Clippings.txt onto the upload area, and click Convert. Download the .apkg file and open it in Anki with a double-click. Your highlights appear as a new deck, ready to review.',
+    },
+    {
+      heading: 'What becomes a card',
+      body: 'Each highlight and each note you typed becomes one card — the passage on the front, the book title and author on the back so you remember where it came from. Bookmarks are skipped, since they mark a location rather than text. You review exactly what you chose to mark while reading.',
+    },
+    {
+      heading: 'Which Kindle languages are recognized',
+      body: 'The file uses language-specific markers to label each highlight and note, and 2anki reads them for Kindles set to English, German, Spanish, or French. A Kindle set to one of those four is picked up cleanly. A device set to another language may not be recognized — switch the Kindle language or email support@2anki.net if a file does not convert.',
+    },
+    {
+      heading: 'Highlights from a DRM-free ebook instead',
+      body: 'If you read the book as a DRM-free EPUB rather than on a Kindle, upload the .epub file directly. Each passage you highlighted becomes a card the same way, with the book title and author on the back. DRM-locked files cannot be opened — use a DRM-free copy.',
+    },
+  ],
+  faqs: [
+    {
+      q: 'Where do I find My Clippings.txt?',
+      a: 'Connect your Kindle by USB, open the device in your file browser, and go to the documents folder. My Clippings.txt is there — it holds every highlight and note across all your books in one file.',
+    },
+    {
+      q: 'Can I convert highlights from several books at once?',
+      a: 'Yes. My Clippings.txt spans every book on the device, so one upload turns all your recent highlights into a single deck. Split it into per-book subdecks inside Anki after import if you want.',
+    },
+    {
+      q: 'My Kindle is set to another language and nothing converts. Why?',
+      a: '2anki reads the highlight and note markers in English, German, Spanish, and French. A Kindle set to another language uses markers it does not recognize. Switch the device language, or email support@2anki.net with the file.',
+    },
+    {
+      q: 'Do I need an Anki add-on?',
+      a: 'No. 2anki produces a standard .apkg file. Double-click it in Anki and the deck imports — nothing to install.',
+    },
+  ],
+  relatedLinks: [
+    {
+      label: 'Kindle highlights to Anki converter',
+      href: '/convert/kindle-to-anki?ref=ai',
+    },
+    {
+      label: 'Convert EPUB highlights to Anki',
+      href: '/convert/epub-to-anki?ref=ai',
+    },
+    {
+      label: 'Turn a textbook chapter into Anki flashcards',
+      href: '/answers/textbook-to-anki?ref=ai',
+    },
+    { label: 'Pricing', href: '/pricing?ref=ai' },
+  ],
+};
+
+const languageAppToAnki: AnswerConfig = {
+  slug: 'language-app-to-anki',
+  title: 'How to move flashcards from a language app to Anki | 2anki',
+  description:
+    'Move your vocabulary from Language Reactor, Pleco, Lingvist, or another language app into Anki. Export a file, upload it to 2anki, and download a .apkg deck.',
+  h1: 'How to move your flashcards from a language app to Anki',
+  intro:
+    'Language apps are good at capturing vocabulary but weak at long-term review. Anki gives you a proper spaced repetition algorithm. Whichever app you started in, the path is the same: export a file, upload it to 2anki, and download a .apkg deck you study on any device. Here is how each common app fits that path.',
+  sections: [
+    {
+      heading: 'The pattern behind every language app',
+      body: 'Almost every language app can export your saved words as a file — usually a CSV, a tab-separated text file, or a zip. 2anki reads that file and builds a deck: the target word on the front, the translation and any context on the back. You do not retype anything. Export from your app, drag the file onto 2anki.net, click Convert, and open the .apkg in Anki.',
+    },
+    {
+      heading: 'Language Reactor — phrases with images and audio',
+      body: 'Language Reactor captures phrases from video with a screenshot and the sentence audio. Export the ZIP from the extension and upload it — the phrases become cards with the image and audio embedded, so each card keeps its screenshot and plays the original line. See the Language Reactor converter for the full export steps and a note on mobile thumbnails.',
+    },
+    {
+      heading: 'Pleco — Chinese vocabulary',
+      body: 'Pleco exports your flashcards as a userdict. Use the tab-separated .txt export, not the XML one — the XML carries Pleco-specific scheduling metadata that does not map to cards. Each row becomes a card with the hanzi on the front and pinyin plus the definition on the back. Tone marks and traditional or simplified characters are preserved. See the Pleco converter for the in-app export path.',
+    },
+    {
+      heading: 'Lingvist and other CSV apps',
+      body: 'Lingvist and most other apps offer a data download that includes a CSV of your vocabulary. Column A becomes the card front, column B becomes the back. Any app that gives you a two-column CSV — word and translation — converts the same way through the CSV path. Rename the file before uploading and the deck name matches.',
+    },
+    {
+      heading: 'What transfers and what stays behind',
+      body: 'Card content transfers — the words, translations, and context. Review history, streaks, and scheduling stay in the original app, because each app uses its own algorithm; Anki reschedules the imported cards from scratch with spaced repetition. The free plan converts 100 cards a month, enough to move one course of vocabulary; Unlimited removes the cap for a full library.',
+    },
+  ],
+  faqs: [
+    {
+      q: 'My app is not listed. Can I still move my cards?',
+      a: 'Probably. If the app exports a CSV or a tab-separated text file with your words and translations, upload it — 2anki reads it through the CSV path. Column A becomes the front, everything after A becomes the back.',
+    },
+    {
+      q: 'Will my images and audio come across?',
+      a: 'It depends on the export. Language Reactor bundles images and audio in its zip, so those come across embedded. Most CSV exports (Lingvist, Pleco text export, and similar) are text-only — the word and translation transfer, media stays in the app.',
+    },
+    {
+      q: 'Will my streak and review history transfer?',
+      a: 'No. Content transfers; progress does not. Every app schedules cards differently, so Anki starts the imported cards fresh with its own spaced repetition algorithm. Your words are preserved — the review clock restarts.',
+    },
+    {
+      q: 'Is there a limit on how many words I can move?',
+      a: 'The free plan converts 100 cards a month. Unlimited removes the cap, which matters when you are moving a whole vocabulary library rather than a single lesson.',
+    },
+  ],
+  relatedLinks: [
+    {
+      label: 'Move Language Reactor saves to Anki',
+      href: '/convert/language-reactor-to-anki?ref=ai',
+    },
+    {
+      label: 'Move Pleco flashcards to Anki',
+      href: '/convert/pleco-to-anki?ref=ai',
+    },
+    {
+      label: 'Move Lingvist flashcards to Anki',
+      href: '/convert/lingvist-to-anki?ref=ai',
+    },
+    {
+      label: 'Anki for Japanese — JLPT, kanji, vocab',
+      href: '/anki-for-japanese?ref=ai',
+    },
+    { label: 'Browse every converter', href: '/convert?ref=ai' },
+  ],
+};
+
+const obsidianToAnki: AnswerConfig = {
+  slug: 'obsidian-to-anki',
+  title: 'How to convert Obsidian notes to Anki flashcards | 2anki',
+  description:
+    'Turn your Obsidian notes into an Anki deck. Upload a Markdown (.md) file to 2anki and download a .apkg — bullets, Q/A pairs, headings, and code blocks come across.',
+  h1: 'How to convert Obsidian notes to Anki flashcards',
+  intro:
+    'Obsidian notes are plain Markdown files, which means they convert to Anki without a plugin. Upload a .md file to 2anki and download a .apkg deck that opens in Anki. Bullets, question-and-answer pairs, headings, and code blocks all come across.',
+  sections: [
+    {
+      heading: 'Locate the Markdown file in your vault',
+      body: 'An Obsidian vault is a folder of .md files on disk — each note is a plain Markdown file you can upload directly. Open your vault folder in your file browser and find the note you want to convert. No export step is needed; the .md file in the vault is the file you upload.',
+    },
+    {
+      heading: 'How Markdown becomes cards',
+      body: 'Top-level bullets become card fronts; a nested bullet underneath becomes the answer. The first heading in the file names the deck, and lower headings name subdecks. Keep one idea per bullet and the note turns into a clean set of cards in one pass.',
+    },
+    {
+      heading: 'Write question-and-answer pairs directly',
+      body: 'If you prefer explicit cards, write a line starting with "Q:" for the question and the next line starting with "A:" for the answer — 2anki detects the pattern automatically. You can mix Q/A cards and bullet-style cards in the same file, so a mixed note still converts in one upload.',
+    },
+    {
+      heading: 'Obsidian-specific syntax and LaTeX',
+      body: 'Standard formatting — bullets, headings, bold, italic, and triple-backtick code blocks — converts cleanly, with code blocks kept as text inside the card. Obsidian-specific syntax like block embeds and graph links is ignored rather than erroring, so it never breaks the conversion. LaTeX inside $...$ and $$...$$ renders if MathJax is enabled in your Anki card template.',
+    },
+    {
+      heading: 'Convert your note',
+      body: 'Go to 2anki.net, drag the .md file onto the upload area, and click Convert. Download the .apkg file and open it in Anki with a double-click. Your cards appear as a new deck. The free plan covers your first 100 cards a month; Unlimited removes the cap for a full vault.',
+    },
+  ],
+  faqs: [
+    {
+      q: 'Do I need an Obsidian plugin to make Anki cards?',
+      a: 'No. Obsidian notes are already plain Markdown files. Upload the .md file to 2anki and download a .apkg deck — nothing to install in Obsidian or Anki.',
+    },
+    {
+      q: 'How does 2anki decide what becomes a card?',
+      a: 'Top-level bullets become fronts and nested bullets become backs. Alternatively, write "Q:" and "A:" lines for explicit cards. The first heading names the deck; lower headings name subdecks.',
+    },
+    {
+      q: 'What happens to my [[wikilinks]] and block embeds?',
+      a: 'Obsidian-specific syntax like block embeds and graph links is ignored rather than converted — it does not break the upload. The text of the note converts normally around it.',
+    },
+    {
+      q: 'Will my LaTeX math render?',
+      a: 'LaTeX inside $...$ and $$...$$ renders if MathJax is enabled in your Anki card template. Code blocks come across as text inside the card.',
+    },
+  ],
+  relatedLinks: [
+    {
+      label: 'Markdown to Anki converter',
+      href: '/convert/markdown-to-anki?ref=ai',
+    },
+    {
+      label: 'Convert Google Docs to Anki',
+      href: '/answers/google-docs-to-anki?ref=ai',
+    },
+    {
+      label: 'Convert a Word document to Anki',
+      href: '/answers/word-to-anki?ref=ai',
+    },
+    {
+      label: 'How to convert a PDF to Anki',
+      href: '/answers/pdf-to-anki?ref=ai',
+    },
+    { label: 'Pricing', href: '/pricing?ref=ai' },
+  ],
+};
+
 export const ANSWERS_PAGES: ReadonlyMap<string, AnswerConfig> = new Map([
   ['convert-notion-to-anki', convertNotionToAnki],
   ['notion-to-anki-sync', notionToAnkiSync],
@@ -616,4 +819,7 @@ export const ANSWERS_PAGES: ReadonlyMap<string, AnswerConfig> = new Map([
   ['google-docs-to-anki', googleDocsToAnki],
   ['handwritten-notes-to-anki', handwrittenNotesToAnki],
   ['textbook-to-anki', textbookToAnki],
+  ['kindle-highlights-to-anki', kindleHighlightsToAnki],
+  ['language-app-to-anki', languageAppToAnki],
+  ['obsidian-to-anki', obsidianToAnki],
 ]);
