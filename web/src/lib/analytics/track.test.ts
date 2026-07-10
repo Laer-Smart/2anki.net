@@ -20,6 +20,7 @@ describe('track (web helper)', () => {
       '/api/events/track',
       expect.objectContaining({
         method: 'POST',
+        keepalive: true,
         credentials: 'include',
       })
     );
