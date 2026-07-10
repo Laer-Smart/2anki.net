@@ -206,3 +206,88 @@ describe('updateStoreSubscription', () => {
     expect(row.linked_email).toBe('account@example.com');
   });
 });
+
+describe('updateStoreSubscription linked_email resolution', () => {
+  let db: Knex;
+
+  beforeEach(async () => {
+    db = knexLib({
+      client: 'better-sqlite3',
+      connection: { filename: ':memory:' },
+      useNullAsDefault: true,
+    });
+    await db.schema.createTable('users', (t) => {
+      t.increments('id');
+      t.string('email');
+      t.string('stripe_customer_id');
+    });
+    await db.schema.createTable('subscriptions', (t) => {
+      t.increments('id');
+      t.string('email').unique();
+      t.boolean('active');
+      t.json('payload');
+      t.string('stripe_product_id');
+      t.string('linked_email');
+    });
+  });
+
+  afterEach(async () => {
+    await db.destroy();
+  });
+
+  test('resolves a manually reconciled sub through subscriptions.linked_email and backfills the customer id', async () => {
+    await db('users').insert({
+      email: 'account@example.com',
+      stripe_customer_id: null,
+    });
+    await db('subscriptions').insert({
+      email: 'old-stripe@example.com',
+      active: true,
+      payload: '{}',
+      stripe_product_id: 'prod_legacy',
+      linked_email: 'account@example.com',
+    });
+
+    const result = await updateStoreSubscription(
+      db,
+      makeCustomer('old-stripe@example.com', 'cus_legacy1'),
+      makeSubscription('active', 'prod_legacy', { customer: 'cus_legacy1' })
+    );
+
+    expect(result.status).toBe('linked');
+    const user = await db('users')
+      .where({ email: 'account@example.com' })
+      .first();
+    expect(user.stripe_customer_id).toBe('cus_legacy1');
+    const sub = await db('subscriptions')
+      .where({ email: 'old-stripe@example.com' })
+      .first();
+    expect(sub.linked_email).toBe('account@example.com');
+  });
+
+  test("does not borrow another subscription row's linked_email", async () => {
+    await db('users').insert({
+      email: 'other-account@example.com',
+      stripe_customer_id: null,
+    });
+    await db('subscriptions').insert({
+      email: 'someone-else@example.com',
+      active: true,
+      payload: '{}',
+      stripe_product_id: 'prod_legacy',
+      linked_email: 'other-account@example.com',
+    });
+
+    const result = await updateStoreSubscription(
+      db,
+      makeCustomer('stranger@example.com', 'cus_stranger'),
+      makeSubscription('active', 'prod_legacy', { customer: 'cus_stranger' })
+    );
+
+    expect(result.status).toBe('unlinked');
+    const user = await db('users')
+      .where({ email: 'other-account@example.com' })
+      .first();
+    expect(user.stripe_customer_id).toBeNull();
+  });
+});

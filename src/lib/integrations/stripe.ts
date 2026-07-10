@@ -92,6 +92,22 @@ export const resolveAccountForSubscription = async (
     if (byEmail != null) {
       return { id: byEmail.id, email: byEmail.email ?? null };
     }
+
+    const ownSubscriptionRow = await db('subscriptions')
+      .whereRaw('lower(trim(email)) = ?', [stripeEmail])
+      .whereNotNull('linked_email')
+      .select('linked_email')
+      .first();
+    const linkedEmail = normalizeEmail(ownSubscriptionRow?.linked_email);
+    if (linkedEmail != null) {
+      const byLinkedEmail = await db('users')
+        .whereRaw('lower(trim(email)) = ?', [linkedEmail])
+        .select('id', 'email')
+        .first();
+      if (byLinkedEmail != null) {
+        return { id: byLinkedEmail.id, email: byLinkedEmail.email ?? null };
+      }
+    }
   }
 
   return null;
