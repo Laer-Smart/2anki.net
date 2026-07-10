@@ -196,6 +196,24 @@ describe('TemplatesPage', () => {
     expect(screen.getByText('Back')).toBeInTheDocument();
   });
 
+  it('renders the modal preview iframes with the field content in srcDoc', async () => {
+    getDefaults.mockResolvedValue([sampleStarter]);
+    renderPage();
+
+    const name = await screen.findByRole('button', { name: 'Clean Basic' });
+    fireEvent.click(name);
+    await screen.findByRole('dialog');
+
+    const frontFrame = screen.getByTitle(
+      'Clean Basic front preview'
+    ) as HTMLIFrameElement;
+    const backFrame = screen.getByTitle(
+      'Clean Basic back preview'
+    ) as HTMLIFrameElement;
+    expect(frontFrame.srcdoc).toContain('Capital of France?');
+    expect(backFrame.srcdoc).toContain('Paris');
+  });
+
   it('opens a preview dialog when the Preview button is clicked', async () => {
     getDefaults.mockResolvedValue([sampleStarter]);
     renderPage();
