@@ -213,19 +213,24 @@ describe('PrepareDeck — HTML generation concurrency window', () => {
     });
 
     const flush = () => new Promise((r) => setImmediate(r));
-    const waitUntil = async (predicate: () => boolean) => {
-      for (let i = 0; i < 100 && !predicate(); i++) {
+    const waitUntil = async (predicate: () => boolean, label: string) => {
+      for (let i = 0; i < 2000; i++) {
+        if (predicate()) return;
         await flush();
       }
+      throw new Error(`waitUntil exhausted 2000 flushes waiting for ${label}`);
     };
 
-    await waitUntil(() => callOrder.length >= 3);
+    await waitUntil(() => callOrder.length >= 3, 'first 3 calls in flight');
 
     expect(inFlight).toBe(3);
 
     const resolveOrder = [2, 0, 1, 5, 3, 6, 4];
     for (const index of resolveOrder) {
-      await waitUntil(() => Boolean(resolvers[index]));
+      await waitUntil(
+        () => Boolean(resolvers[index]),
+        `resolver for page-${index}`
+      );
       resolvers[index](deckArrayFor(`page-${index}`));
       await flush();
     }
