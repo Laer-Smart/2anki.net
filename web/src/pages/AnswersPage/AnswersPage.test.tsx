@@ -134,6 +134,9 @@ describe('AnswersPage', () => {
     'google-docs-to-anki',
     'handwritten-notes-to-anki',
     'textbook-to-anki',
+    'kindle-highlights-to-anki',
+    'language-app-to-anki',
+    'obsidian-to-anki',
   ])('renders the %s page', (slug) => {
     const config = ANSWERS_PAGES.get(slug)!;
     renderAtSlug(slug);
