@@ -1,5 +1,6 @@
 import { schedulePauseResumeWarnings } from './schedulePauseResumeWarnings';
 import type { SendPauseResumeWarningsUseCase } from '../../../usecases/ops/SendPauseResumeWarningsUseCase';
+import type { EventsSink } from '../../../services/events/EventsSink';
 
 function makeUseCase(
   result = { count: 2 }
@@ -50,7 +51,7 @@ describe('schedulePauseResumeWarnings', () => {
       {
         intervalMs: 1000,
         lastRunAt,
-        eventsSink: { record } as unknown as import('../../../services/events/EventsSink').EventsSink,
+        eventsSink: { record } as unknown as EventsSink,
       }
     );
 
