@@ -12,6 +12,8 @@ const EMPTY: FirstTouchAttribution = {
   signupReferrer: null,
 };
 
+const PATH_PATTERN = /^\/[a-zA-Z0-9\-_/]{0,199}$/;
+
 function sanitizeLandingPath(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null;
@@ -19,7 +21,7 @@ function sanitizeLandingPath(value: unknown): string | null {
   if (value.length === 0 || value.length > PATH_MAX_LENGTH) {
     return null;
   }
-  if (!value.startsWith('/')) {
+  if (!PATH_PATTERN.test(value)) {
     return null;
   }
   return value;

@@ -39,6 +39,19 @@ describe('parseFirstTouch', () => {
     });
   });
 
+  it('rejects a landing path with markup, quotes, or control characters', () => {
+    for (const path of [
+      '/upload<script>',
+      '/a"b',
+      '/a\nb',
+      '/answers/pdf?x=1',
+      '/a b',
+    ]) {
+      const raw = JSON.stringify({ landingPath: path, referrer: null });
+      expect(parseFirstTouch(raw).signupOrigin).toBeNull();
+    }
+  });
+
   it('rejects a landing path that does not start with a slash', () => {
     const raw = JSON.stringify({ landingPath: 'pdf-to-anki' });
     expect(parseFirstTouch(raw).signupOrigin).toBeNull();
