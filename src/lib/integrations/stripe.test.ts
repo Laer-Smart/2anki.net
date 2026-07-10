@@ -265,7 +265,7 @@ describe('updateStoreSubscription linked_email resolution', () => {
     expect(sub.linked_email).toBe('account@example.com');
   });
 
-  test('does not borrow another subscription row\'s linked_email', async () => {
+  test("does not borrow another subscription row's linked_email", async () => {
     await db('users').insert({
       email: 'other-account@example.com',
       stripe_customer_id: null,
@@ -291,4 +291,3 @@ describe('updateStoreSubscription linked_email resolution', () => {
     expect(user.stripe_customer_id).toBeNull();
   });
 });
-
