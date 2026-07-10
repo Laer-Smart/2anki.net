@@ -186,6 +186,67 @@ describe('UsersController.register', () => {
     });
   });
 
+  it('emits signup_origin and signup_referrer from the first_touch cookie', async () => {
+    const register = jest.fn().mockResolvedValue([{ id: 1 }]);
+    const { controller } = buildController({ register });
+    const req = {
+      body: { email: 'jane.doe@example.com', password: SAMPLE_PW },
+      query: {},
+      cookies: {
+        anon_id: 'anon-abc-123',
+        first_touch: JSON.stringify({
+          landingPath: '/pdf-to-anki',
+          referrer: 'chatgpt.com',
+        }),
+      },
+    } as unknown as express.Request;
+    const res = buildRes();
+    const next = jest.fn();
+
+    await controller.register(req, res, next);
+
+    expect(trackMock).toHaveBeenCalledWith('account_created', {
+      userId: 1,
+      anonymousId: 'anon-abc-123',
+      props: {
+        signup_origin: '/pdf-to-anki',
+        signup_referrer: 'chatgpt.com',
+      },
+    });
+    expect(register).toHaveBeenCalledWith(
+      '',
+      'hashed',
+      'jane.doe@example.com',
+      '/pdf-to-anki'
+    );
+  });
+
+  it('prefers the first_touch cookie over the legacy source field', async () => {
+    const register = jest.fn().mockResolvedValue([{ id: 1 }]);
+    const { controller } = buildController({ register });
+    const req = {
+      body: {
+        email: 'jane.doe@example.com',
+        password: SAMPLE_PW,
+        source: '/notion-to-anki',
+      },
+      query: {},
+      cookies: {
+        first_touch: JSON.stringify({ landingPath: '/markdown-to-anki' }),
+      },
+    } as unknown as express.Request;
+    const res = buildRes();
+    const next = jest.fn();
+
+    await controller.register(req, res, next);
+
+    expect(trackMock).toHaveBeenCalledWith('account_created', {
+      userId: 1,
+      anonymousId: null,
+      props: { signup_origin: '/markdown-to-anki' },
+    });
+  });
+
   it('emits account_created with a null anonymous id when no anon_id cookie is present', async () => {
     const register = jest.fn().mockResolvedValue([{ id: 1 }]);
     const { controller } = buildController({ register });

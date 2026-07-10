@@ -7,6 +7,10 @@ import AuthenticationService, {
 import UsersService from '../services/UsersService';
 import { getRedirect } from './helpers/getRedirect';
 import { parseSignupOrigin } from './helpers/parseSignupOrigin';
+import {
+  parseFirstTouch,
+  FirstTouchAttribution,
+} from './helpers/parseFirstTouch';
 import { sessionCookieOptions } from '../shared/session';
 
 import { sendIndex } from './IndexController/sendIndex';
@@ -37,6 +41,25 @@ import { mapEntitlement } from './helpers/mapEntitlement';
 import { GetPassLadderOfferUseCase } from '../usecases/checkout/GetPassLadderOfferUseCase';
 import UserPassRepository from '../data_layer/UserPassRepository';
 import { PlanSource } from '../routes/middleware/configureUserLocal';
+
+function readFirstTouchCookie(req: express.Request): FirstTouchAttribution {
+  const cookies = req.cookies as Record<string, unknown> | undefined;
+  return parseFirstTouch(cookies?.first_touch);
+}
+
+function buildSignupProps(
+  signupOrigin: string | null,
+  signupReferrer: string | null
+): Record<string, string> {
+  const props: Record<string, string> = {};
+  if (signupOrigin != null) {
+    props.signup_origin = signupOrigin;
+  }
+  if (signupReferrer != null) {
+    props.signup_referrer = signupReferrer;
+  }
+  return props;
+}
 
 class UsersController {
   constructor(
@@ -207,7 +230,9 @@ class UsersController {
 
     const password = this.authService.getHashPassword(req.body.password);
     const { name, email } = req.body;
-    const signupOrigin = parseSignupOrigin(req.body.source);
+    const firstTouch = readFirstTouchCookie(req);
+    const signupOrigin =
+      firstTouch.signupOrigin ?? parseSignupOrigin(req.body.source);
     try {
       await this.userService.register(
         name ?? '',
@@ -223,7 +248,7 @@ class UsersController {
           userId: Number(newUser.id),
           anonymousId:
             typeof anonId === 'string' && anonId.length > 0 ? anonId : null,
-          props: signupOrigin == null ? {} : { signup_origin: signupOrigin },
+          props: buildSignupProps(signupOrigin, firstTouch.signupReferrer),
         });
         try {
           const country = extractCountryFromRequest(req);
@@ -828,7 +853,7 @@ class UsersController {
         name ?? email,
         hashedPassword,
         email,
-        'google'
+        readFirstTouchCookie(req).signupOrigin ?? 'google'
       );
       user = await this.userService.getUserFrom(email);
     }
@@ -941,7 +966,7 @@ class UsersController {
           name ?? email,
           hashedPassword,
           email,
-          'microsoft'
+          readFirstTouchCookie(req).signupOrigin ?? 'microsoft'
         );
         user = await this.userService.getUserFrom(email);
         isNewUser = true;
@@ -1170,7 +1195,7 @@ class UsersController {
           rawName ?? email,
           hashedPassword,
           email,
-          'apple'
+          readFirstTouchCookie(req).signupOrigin ?? 'apple'
         );
         user = await this.userService.getUserFrom(email);
         isNewUser = true;
@@ -1289,7 +1314,7 @@ class UsersController {
         name,
         hashedPassword,
         email,
-        'notion_oauth'
+        readFirstTouchCookie(req).signupOrigin ?? 'notion_oauth'
       );
       user = await this.userService.getUserFrom(email);
     }

@@ -20,6 +20,7 @@ import {
   isReloadingForFreshChunks,
   lazyWithRetry,
 } from './lib/chunkReload';
+import { captureFirstTouch } from './lib/firstTouch';
 import { useUserLocals } from './lib/hooks/useUserLocals';
 import isOfflineMode from './lib/isOfflineMode';
 import { reportClientError } from './lib/reportClientError';
@@ -659,6 +660,10 @@ function AppWithCookies() {
   const [showReloadOverlay, setShowReloadOverlay] = useState<boolean>(() =>
     isReloadingForFreshChunks()
   );
+
+  useEffect(() => {
+    captureFirstTouch();
+  }, []);
 
   useEffect(() => {
     if (!showReloadOverlay) {
