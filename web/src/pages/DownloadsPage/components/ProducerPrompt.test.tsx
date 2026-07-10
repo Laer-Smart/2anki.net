@@ -77,12 +77,15 @@ describe('ProducerPrompt', () => {
     trackMock.mockClear();
     render(<ProducerPrompt uploads={makeUploads(21)} />);
     await screen.findByText('Making decks for other people?');
+    await waitFor(() => {
+      expect(trackMock).toHaveBeenCalledWith('producer_entry_viewed', {
+        source: 'heavy_uploader_prompt',
+      });
+    });
     const viewed = trackMock.mock.calls.filter(
       ([name]) => name === 'producer_entry_viewed'
     );
-    expect(viewed).toEqual([
-      ['producer_entry_viewed', { source: 'heavy_uploader_prompt' }],
-    ]);
+    expect(viewed).toHaveLength(1);
   });
 
   it('does not fire producer_entry_viewed for an ineligible user', async () => {
