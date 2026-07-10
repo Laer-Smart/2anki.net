@@ -21,6 +21,8 @@ export default interface AnkifySyncMappings {
   deck_name: string;
 
   last_synced_at: Date | null;
+
+  content_hash: string | null;
 }
 
 /** Represents the initializer for the table public.ankify_sync_mappings */
@@ -40,6 +42,8 @@ export interface AnkifySyncMappingsInitializer {
 
   /** Default value: CURRENT_TIMESTAMP */
   last_synced_at?: Date | null;
+
+  content_hash?: string | null;
 }
 
 /** Represents the mutator for the table public.ankify_sync_mappings */
@@ -57,4 +61,6 @@ export interface AnkifySyncMappingsMutator {
   deck_name?: string;
 
   last_synced_at?: Date | null;
+
+  content_hash?: string | null;
 }

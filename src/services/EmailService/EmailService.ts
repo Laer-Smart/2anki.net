@@ -19,6 +19,7 @@ import {
   SUBSCRIPTION_CLAIM_CONFIRMATION_TEMPLATE,
   SUBSCRIPTION_RECOVERY_TEMPLATE,
   SUBSCRIPTION_SCHEDULED_CANCELLATION_TEMPLATE,
+  SUBSCRIPTION_RESUMING_SOON_TEMPLATE,
 } from './constants';
 import { isValidDeckName, addDeckNameSuffix } from '../../lib/anki/format';
 import { ClientResponse } from '@sendgrid/mail';
@@ -54,6 +55,11 @@ export interface IEmailService {
     email: string,
     name: string,
     cancelDate: Date
+  ): Promise<void>;
+  sendSubscriptionResumingSoonEmail(
+    email: string,
+    resumeDate: Date,
+    amount: string
   ): Promise<void>;
   sendHostedAnkiAccessRequestEmail(
     userId: string,
@@ -544,6 +550,46 @@ export class EmailService implements IEmailService {
     }
   }
 
+  async sendSubscriptionResumingSoonEmail(
+    email: string,
+    resumeDate: Date,
+    amount: string
+  ): Promise<void> {
+    const formattedDate = resumeDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    const markup = SUBSCRIPTION_RESUMING_SOON_TEMPLATE.replace(
+      /{{resumeDate}}/g,
+      formattedDate
+    ).replace(/{{amount}}/g, amount);
+
+    const $ = cheerio.load(markup);
+    const text = $('body').text().replace(/\s+/g, ' ').trim();
+
+    const msg = {
+      to: email,
+      from: this.defaultSender,
+      subject: `Your 2anki subscription resumes on ${formattedDate}`,
+      text,
+      html: markup,
+      replyTo: 'support@2anki.net',
+    };
+
+    try {
+      await this.deliver(msg);
+      console.log(`Successfully sent resume warning to ${emailHash(email)}`);
+    } catch (error) {
+      console.error(
+        `Failed to send resume warning to ${emailHash(email)}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
   async sendParserCanaryAlert(to: string, summary: string): Promise<void> {
     const msg = {
       to,
@@ -702,6 +748,20 @@ export class UnimplementedEmailService implements IEmailService {
       email,
       name,
       cancelDate
+    );
+    return Promise.resolve();
+  }
+
+  sendSubscriptionResumingSoonEmail(
+    email: string,
+    resumeDate: Date,
+    amount: string
+  ): Promise<void> {
+    console.info(
+      'sendSubscriptionResumingSoonEmail not handled',
+      email,
+      resumeDate,
+      amount
     );
     return Promise.resolve();
   }

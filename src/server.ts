@@ -81,6 +81,9 @@ import UploadRepository from './data_layer/UploadRespository';
 import { updateStripeSubscriptions } from './lib/storage/jobs/helpers/updateStripeSubscriptions';
 import { scheduleReEngagementEmails } from './lib/reengagement/jobs/scheduleReEngagementEmails';
 import { scheduleInactivityWarnings } from './lib/inactivity/jobs/scheduleInactivityWarnings';
+import { schedulePauseResumeWarnings } from './lib/subscriptions/jobs/schedulePauseResumeWarnings';
+import PauseResumeWarningRepository from './data_layer/PauseResumeWarningRepository';
+import { SendPauseResumeWarningsUseCase } from './usecases/ops/SendPauseResumeWarningsUseCase';
 import { scheduleInactiveUserDeletions } from './lib/inactivity/jobs/scheduleInactiveUserDeletions';
 import { EventsRepository } from './data_layer/EventsRepository';
 import { scheduleParserCanary } from './lib/parser/canary/scheduleParserCanary';
@@ -293,6 +296,18 @@ const serve = async () => {
     lastRunAt: () => eventsRepo.lastEventAt('email_batch_sent', 'inactivity'),
   }).catch((error) => {
     console.error('[inactivity-warnings] failed to schedule:', error);
+  });
+
+  const pauseResumeWarningRepo = new PauseResumeWarningRepository(database);
+  const sendPauseResumeWarningsUseCase = new SendPauseResumeWarningsUseCase(
+    pauseResumeWarningRepo,
+    emailService
+  );
+  schedulePauseResumeWarnings(sendPauseResumeWarningsUseCase, {
+    eventsSink,
+    lastRunAt: () => eventsRepo.lastEventAt('email_batch_sent', 'pause_resume'),
+  }).catch((error) => {
+    console.error('[pause-resume-warnings] failed to schedule:', error);
   });
 
   const deleteInactiveUsersUseCase = new DeleteInactiveUsersUseCase(

@@ -16,6 +16,7 @@ function makeEmailService(
     sendContactEmail: jest.fn(),
     sendSubscriptionCancelledEmail: jest.fn(),
     sendSubscriptionScheduledCancellationEmail: jest.fn(),
+    sendSubscriptionResumingSoonEmail: jest.fn().mockResolvedValue(undefined),
     sendHostedAnkiAccessRequestEmail: jest.fn(),
     sendMagicLinkEmail: jest.fn(),
     sendReEngagementEmail: jest.fn(),
