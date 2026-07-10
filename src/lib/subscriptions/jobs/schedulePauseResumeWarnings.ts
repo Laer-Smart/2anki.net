@@ -1,0 +1,42 @@
+import type { SendPauseResumeWarningsUseCase } from '../../../usecases/ops/SendPauseResumeWarningsUseCase';
+import type { EventsSink } from '../../../services/events/EventsSink';
+import { isOverdue, type LastRunAt } from '../../inactivity/jobs/lastRunAt';
+
+export const PAUSE_RESUME_WARNING_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+export const schedulePauseResumeWarnings = async (
+  useCase: SendPauseResumeWarningsUseCase,
+  options: {
+    intervalMs?: number;
+    eventsSink?: EventsSink;
+    lastRunAt?: LastRunAt;
+  } = {}
+): Promise<NodeJS.Timeout> => {
+  const intervalMs = options.intervalMs ?? PAUSE_RESUME_WARNING_INTERVAL_MS;
+
+  const tick = async () => {
+    try {
+      const result = await useCase.execute();
+      console.info(`[pause-resume-warnings] sent ${result.count} warning(s)`);
+      if (options.eventsSink != null) {
+        options.eventsSink.record({
+          name: 'email_batch_sent',
+          props: { campaign: 'pause_resume', count: result.count },
+        });
+      }
+    } catch (error) {
+      console.error('[pause-resume-warnings] daily job failed:', error);
+    }
+  };
+
+  if (options.lastRunAt != null) {
+    const lastRun = await options.lastRunAt();
+    if (isOverdue(lastRun, intervalMs, Date.now())) {
+      await tick();
+    }
+  }
+
+  const handle = setInterval(tick, intervalMs);
+  handle.unref();
+  return handle;
+};

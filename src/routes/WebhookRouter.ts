@@ -215,6 +215,22 @@ const WebhooksRouter = () => {
                 customerId
               );
             }
+
+            const previousPause = (
+              event.data.previous_attributes as {
+                pause_collection?: unknown;
+              } | null
+            )?.pause_collection;
+            const autoResumed =
+              previousPause != null &&
+              customerSubscriptionUpdated.pause_collection == null &&
+              customerSubscriptionUpdated.status === 'active';
+            if (autoResumed) {
+              track('subscription_pause_resumed', {
+                userId: updatedProvisionResult.resolvedUserId,
+                props: { trigger: 'stripe_auto_resume' },
+              });
+            }
           }
 
           {

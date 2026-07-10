@@ -40,6 +40,11 @@ export const SUBSCRIPTION_SCHEDULED_CANCELLATION_TEMPLATE = fs.readFileSync(
   'utf8'
 );
 
+export const SUBSCRIPTION_RESUMING_SOON_TEMPLATE = fs.readFileSync(
+  path.join(EMAIL_TEMPLATES_DIRECTORY, 'subscription-resuming-soon.html'),
+  'utf8'
+);
+
 export const MAGIC_LINK_TEMPLATE = fs.readFileSync(
   path.join(EMAIL_TEMPLATES_DIRECTORY, 'magic-link.html'),
   'utf8'
