@@ -26,7 +26,12 @@ async function buildDocxDeck(overlapping: string) {
       'overlapping-cloze': overlapping,
     }),
     files: [
-      { name: 'notes.docx.html', contents: preprocessDocxHTML(docxHTML) },
+      {
+        name: 'notes.docx.html',
+        contents: preprocessDocxHTML(docxHTML, {
+          bulletFanOut: overlapping === 'off',
+        }),
+      },
     ],
     noLimits: true,
     workspace,
@@ -49,10 +54,15 @@ test('docx heading+bullets fans into one cloze card per bullet with overlapping 
   );
 });
 
-test('docx heading+bullets stays one lumped card with overlapping cloze off', async () => {
+test('docx heading+bullets fans into one basic card per bullet with overlapping cloze off', async () => {
   const deck = await buildDocxDeck('off');
-  expect(deck.cards.length).toBe(1);
-  expect(deck.cards[0].name).toContain('Contract remedies');
+  expect(deck.cards.length).toBe(3);
+  expect(deck.cards[0].name).toContain('Contract remedies — 1/3');
   expect(deck.cards[0].back).toContain('Damages compensate the injured party');
-  expect(deck.cards[0].back).toContain('Rescission unwinds the contract');
+  expect(deck.cards[0].back).not.toContain('Specific performance');
+  expect(deck.cards[2].name).toContain('Contract remedies — 3/3');
+  expect(deck.cards[2].back).toContain('Rescission unwinds the contract');
+  for (const card of deck.cards) {
+    expect(countC1(card.name)).toBe(0);
+  }
 });

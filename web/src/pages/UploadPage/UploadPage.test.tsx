@@ -132,7 +132,7 @@ describe('UploadPage doc/docx hint', () => {
     renderPage();
     expect(
       screen.getByText(
-        /In Word docs, headings become card fronts and the body text under each heading becomes the back\./i
+        /In Word docs, headings become card fronts; each bullet under a heading becomes its own card/i
       )
     ).toBeInTheDocument();
   });

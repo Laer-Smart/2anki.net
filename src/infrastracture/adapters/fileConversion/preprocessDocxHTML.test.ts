@@ -160,3 +160,87 @@ describe('preprocessDocxHTML', () => {
     );
   });
 });
+
+describe('preprocessDocxHTML bullet fan-out', () => {
+  const sectionHTML =
+    '<h2>Contract remedies</h2>' +
+    '<ul>' +
+    '<li>Damages compensate the injured party</li>' +
+    '<li>Specific performance forces the promised act</li>' +
+    '<li>Rescission unwinds the contract</li>' +
+    '</ul>';
+
+  it('emits one toggle per bullet with a positional cue on the front', () => {
+    const result = preprocessDocxHTML(sectionHTML, { bulletFanOut: true });
+
+    expect(result).toContain('<summary>Contract remedies — 1/3</summary>');
+    expect(result).toContain('<summary>Contract remedies — 2/3</summary>');
+    expect(result).toContain('<summary>Contract remedies — 3/3</summary>');
+    expect(result).toContain(
+      '<details><summary>Contract remedies — 1/3</summary>Damages compensate the injured party</details>'
+    );
+    expect((result.match(/<details>/g) || []).length).toBe(3);
+  });
+
+  it('keeps non-list content under the heading as its own card', () => {
+    const input =
+      '<h2>Contract remedies</h2>' +
+      '<p>Remedies restore the injured party.</p>' +
+      '<ul><li>Damages</li><li>Rescission</li></ul>';
+
+    const result = preprocessDocxHTML(input, { bulletFanOut: true });
+
+    expect(result).toContain(
+      '<details><summary>Contract remedies</summary><p>Remedies restore the injured party.</p></details>'
+    );
+    expect(result).toContain('<summary>Contract remedies — 1/2</summary>');
+    expect(result).toContain('<summary>Contract remedies — 2/2</summary>');
+  });
+
+  it('keeps a single bullet without a positional cue', () => {
+    const input = '<h2>Rule</h2><ul><li>Only one point</li></ul>';
+
+    const result = preprocessDocxHTML(input, { bulletFanOut: true });
+
+    expect(result).toContain(
+      '<details><summary>Rule</summary>Only one point</details>'
+    );
+    expect(result).not.toContain('1/1');
+  });
+
+  it('preserves nested lists inside a bullet on that card back', () => {
+    const input =
+      '<h2>Topic</h2>' +
+      '<ul><li>Parent point<ul><li>child detail</li></ul></li><li>Second</li></ul>';
+
+    const result = preprocessDocxHTML(input, { bulletFanOut: true });
+
+    expect(result).toContain(
+      '<details><summary>Topic — 1/2</summary>Parent point<ul><li>child detail</li></ul></details>'
+    );
+  });
+
+  it('keeps the image-heading model with the cue after the image', () => {
+    const input =
+      '<h2><img src="figure.png" /></h2><ul><li>First</li><li>Second</li></ul>';
+
+    const result = preprocessDocxHTML(input, { bulletFanOut: true });
+
+    expect(result).toContain('<summary><img src="figure.png"> — 1/2</summary>');
+  });
+
+  it('leaves the lumped section shape unchanged without the flag', () => {
+    const result = preprocessDocxHTML(sectionHTML);
+
+    expect((result.match(/<details>/g) || []).length).toBe(1);
+    expect(result).toContain('<summary>Contract remedies</summary>');
+  });
+
+  it('does not touch the MCQ flashcard preprocessing path', () => {
+    const input = '<ul><li>Question?<br />A. wrong<br />*B. right</li></ul>';
+
+    const result = preprocessDocxHTML(input, { bulletFanOut: true });
+
+    expect(result).toContain('<strong>B. right</strong>');
+  });
+});

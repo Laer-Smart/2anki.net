@@ -1,6 +1,9 @@
 import mammoth from 'mammoth';
 
-import { preprocessDocxHTML } from './preprocessDocxHTML';
+import {
+  preprocessDocxHTML,
+  PreprocessDocxOptions,
+} from './preprocessDocxHTML';
 import { DocxImageMediaSink } from './docxImageMediaSink';
 
 const STRIKETHROUGH_TO_TAG_STYLE_MAP = ['strike => del'];
@@ -15,7 +18,8 @@ function buildImgElementConverter(mediaSink: DocxImageMediaSink) {
 
 export async function convertDocxToHTML(
   contents: Buffer,
-  mediaSink?: DocxImageMediaSink
+  mediaSink?: DocxImageMediaSink,
+  preprocessOptions: PreprocessDocxOptions = {}
 ): Promise<string> {
   let result;
   try {
@@ -31,7 +35,7 @@ export async function convertDocxToHTML(
     throw new Error(`docx_parse_failed: ${msg}`);
   }
   try {
-    return preprocessDocxHTML(result.value);
+    return preprocessDocxHTML(result.value, preprocessOptions);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     throw new Error(`docx_parse_failed: ${msg}`);
