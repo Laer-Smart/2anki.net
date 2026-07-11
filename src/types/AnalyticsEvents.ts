@@ -1,7 +1,9 @@
 export const KNOWN_EVENTS = new Set([
   'upload_started',
+  'conversion_started',
   'conversion_succeeded',
   'conversion_failed',
+  'upload_cancelled',
   'deck_downloaded',
   'upload_error_chat_shown',
   'upload_error_chat_engaged',

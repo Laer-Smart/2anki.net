@@ -485,6 +485,20 @@ function UploadForm({
     }
   }, [zoneState]);
 
+  const uploadCancelledFiredRef = useRef(false);
+  useEffect(() => {
+    if (zoneState !== 'converting') return;
+    const fireUploadCancelled = () => {
+      if (uploadCancelledFiredRef.current) return;
+      uploadCancelledFiredRef.current = true;
+      track('upload_cancelled', { stage: 'converting' });
+    };
+    globalThis.addEventListener('pagehide', fireUploadCancelled);
+    return () => {
+      globalThis.removeEventListener('pagehide', fireUploadCancelled);
+    };
+  }, [zoneState]);
+
   const handleDropboxFiles = async (files: DropboxFile[]) => {
     const first = files[0];
     setDropboxFilename(first?.name ?? null);
