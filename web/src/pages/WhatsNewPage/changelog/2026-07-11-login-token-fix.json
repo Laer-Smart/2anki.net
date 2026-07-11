@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-11-login-token-fix",
+  "date": "2026-07-11",
+  "type": "fix",
+  "title": "Signing in with email, Notion, or after email verification reliably keeps you logged in"
+}

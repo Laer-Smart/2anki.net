@@ -190,7 +190,7 @@ class UsersController {
         return res.status(401).json({ message: 'Wrong email or password.' });
       }
 
-      const token = await this.authService.newJWTToken(user);
+      const token = await this.authService.newJWTToken(user.id);
       if (token) {
         await this.authService.persistToken(token, user.id.toString());
         await this.userService.updateLastLoginAt(user.id.toString());
@@ -885,7 +885,7 @@ class UsersController {
 
     await this.userService.markEmailVerified(user.id.toString());
 
-    const token = await this.authService.newJWTToken(user);
+    const token = await this.authService.newJWTToken(user.id);
     if (!token) {
       console.info('Failed to create token');
       return res
@@ -1340,7 +1340,7 @@ class UsersController {
         .send('Unknown error. Please try again or register a new account.');
     }
 
-    const token = await this.authService.newJWTToken(user);
+    const token = await this.authService.newJWTToken(user.id);
     if (!token) {
       console.info('Failed to create token for Notion login');
       return res

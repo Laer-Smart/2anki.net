@@ -188,6 +188,11 @@ class AuthenticationService {
   }
 
   newJWTToken(userId: number): Promise<string> {
+    if (typeof userId !== 'number' || !Number.isFinite(userId)) {
+      return Promise.reject(
+        new Error('newJWTToken requires a numeric user id')
+      );
+    }
     return new Promise((resolve, reject) => {
       jwt.sign(
         { userId },

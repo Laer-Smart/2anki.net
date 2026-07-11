@@ -42,6 +42,26 @@ test('newJWTToken includes an expiration claim', async () => {
   expect(decoded.exp! - decoded.iat!).toBe(SESSION_MAX_AGE_MS / 1000);
 });
 
+test('newJWTToken payload carries only the numeric user id', async () => {
+  const service = createService();
+  const token = await service.newJWTToken(42);
+  const decoded = jwt.decode(token) as jwt.JwtPayload;
+
+  expect(decoded.userId).toBe(42);
+  expect(decoded).not.toHaveProperty('password');
+  expect(decoded).not.toHaveProperty('email');
+  // guards against a caller passing the whole user row (leaks the hash + PII
+  // and overflows the access_tokens btree index)
+  expect(Object.keys(decoded).sort()).toEqual(['exp', 'iat', 'userId']);
+});
+
+test('newJWTToken rejects a non-numeric user id', async () => {
+  const service = createService();
+  await expect(
+    service.newJWTToken({ id: 42, password: 'hash' } as unknown as number)
+  ).rejects.toThrow('numeric user id');
+});
+
 describe('isValidToken', () => {
   it('resolves true for a freshly signed token', async () => {
     const service = createService();
