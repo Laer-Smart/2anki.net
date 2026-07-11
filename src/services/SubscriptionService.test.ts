@@ -235,6 +235,12 @@ describe('SubscriptionService.cancelUserSubscriptions', () => {
       cancel_at_period_end: true,
       cancel_at: periodEndSeconds,
     });
+    stripe.subscriptions.cancel.mockResolvedValue({
+      ...activeSub,
+      status: 'canceled',
+      canceled_at: periodEndSeconds,
+      ended_at: periodEndSeconds,
+    });
   });
 
   it('schedules cancellation at period end by default', async () => {
@@ -257,14 +263,23 @@ describe('SubscriptionService.cancelUserSubscriptions', () => {
     expect(sendScheduledEmail).not.toHaveBeenCalled();
   });
 
-  it('deletes the local DB subscription rows on immediate cancel', async () => {
+  it('soft-deletes the local DB subscription row on immediate cancel so churn keeps it', async () => {
     const db = buildDbMock();
     (getDatabase as jest.Mock).mockReturnValue(db);
 
     await SubscriptionService.cancelUserSubscriptions(email, 'immediate');
 
-    expect(db.deleteSpy).toHaveBeenCalled();
-    expect(db.updateSpy).not.toHaveBeenCalled();
+    expect(db.deleteSpy).not.toHaveBeenCalled();
+    expect(db.updateSpy).toHaveBeenCalledTimes(1);
+    const updatePayload = db.updateSpy.mock.calls[0][0] as {
+      active: boolean;
+      payload: string;
+    };
+    expect(updatePayload.active).toBe(false);
+    expect(JSON.parse(updatePayload.payload).status).toBe('canceled');
+    expect(db.whereRawSpy).toHaveBeenCalledWith("payload->>'id' = ?", [
+      'sub_123',
+    ]);
   });
 
   it('does not touch the DB for period_end cancel', async () => {
@@ -412,9 +427,15 @@ describe('SubscriptionService.cancelSubscriptionById', () => {
     expect(stripe.subscriptions.update).not.toHaveBeenCalled();
   });
 
-  it('deletes only the targeted DB row scoped by the Stripe id on immediate cancel', async () => {
+  it('soft-deletes only the targeted DB row scoped by the Stripe id on immediate cancel', async () => {
     const db = buildDbMock();
     (getDatabase as jest.Mock).mockReturnValue(db);
+    stripe.subscriptions.cancel.mockResolvedValue({
+      id: 'sub_owned',
+      status: 'canceled',
+      canceled_at: 1800000000,
+      ended_at: 1800000000,
+    });
 
     await SubscriptionService.cancelSubscriptionById(
       email,
@@ -425,7 +446,14 @@ describe('SubscriptionService.cancelSubscriptionById', () => {
     expect(db.whereRawSpy).toHaveBeenCalledWith("payload->>'id' = ?", [
       'sub_owned',
     ]);
-    expect(db.deleteSpy).toHaveBeenCalledTimes(1);
+    expect(db.deleteSpy).not.toHaveBeenCalled();
+    expect(db.updateSpy).toHaveBeenCalledTimes(1);
+    const updatePayload = db.updateSpy.mock.calls[0][0] as {
+      active: boolean;
+      payload: string;
+    };
+    expect(updatePayload.active).toBe(false);
+    expect(JSON.parse(updatePayload.payload).status).toBe('canceled');
   });
 
   it('does not touch the DB for period_end cancel', async () => {

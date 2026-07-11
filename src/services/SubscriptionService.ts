@@ -7,6 +7,19 @@ import { isPaused } from '../lib/subscriptions/isPaused';
 
 export type CancelMode = 'immediate' | 'period_end';
 
+async function softDeleteLocalSubscription(
+  db: ReturnType<typeof getDatabase>,
+  stripeSubscriptionId: string,
+  canceledPayload: StripeTypes.Subscription
+): Promise<void> {
+  await db('subscriptions')
+    .whereRaw("payload->>'id' = ?", [stripeSubscriptionId])
+    .update({
+      active: false,
+      payload: JSON.stringify(canceledPayload),
+    });
+}
+
 export const VALID_PAUSE_MONTHS = [1, 2, 3] as const;
 export type PauseMonths = (typeof VALID_PAUSE_MONTHS)[number];
 const MIN_TENURE_DAYS_TO_PAUSE = 30;
@@ -141,10 +154,13 @@ export class SubscriptionService {
       `Found ${subs.length} active Stripe subscription(s) to process`
     );
 
+    const db = getDatabase();
+
     for (const sub of subs) {
       if (mode === 'immediate') {
         console.log(`Cancelling Stripe subscription ${sub.id} immediately`);
-        await stripe.subscriptions.cancel(sub.id);
+        const canceled = await stripe.subscriptions.cancel(sub.id);
+        await softDeleteLocalSubscription(db, sub.id, canceled);
         if (sendEmail) {
           await emailService.sendSubscriptionCancelledEmail(
             userEmail,
@@ -170,18 +186,6 @@ export class SubscriptionService {
       }
     }
 
-    if (mode === 'immediate' && subs.length > 0) {
-      const normalized = userEmail.toLowerCase();
-      const db = getDatabase();
-      await db('subscriptions')
-        .where(function () {
-          this.where({ email: normalized }).orWhere({
-            linked_email: normalized,
-          });
-        })
-        .delete();
-    }
-
     return subs.length;
   }
 
@@ -199,9 +203,8 @@ export class SubscriptionService {
     const stripe = getStripe();
 
     if (mode === 'immediate') {
-      await stripe.subscriptions.cancel(id);
-      const db = getDatabase();
-      await db('subscriptions').whereRaw("payload->>'id' = ?", [id]).delete();
+      const canceled = await stripe.subscriptions.cancel(id);
+      await softDeleteLocalSubscription(getDatabase(), id, canceled);
     } else {
       await stripe.subscriptions.update(id, { cancel_at_period_end: true });
     }
