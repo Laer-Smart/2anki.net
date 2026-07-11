@@ -1,4 +1,4 @@
-import { SyntheticEvent, useMemo, useState } from 'react';
+import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import TopMessage from '../TopMessage/TopMessage';
 import { ErrorHandlerType } from '../errors/helpers/getErrorMessage';
@@ -52,6 +52,13 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
       ),
     []
   );
+  const signupStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (signupStartedRef.current) return;
+    signupStartedRef.current = true;
+    track('signup_started', { method: 'email' });
+  }, []);
 
   const passwordTouched = password.length > 0;
   const passwordMeetsMinimum = password.length >= MIN_PASSWORD_LENGTH;
@@ -86,6 +93,7 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
           ? `/${redirect.replace(/^\//, '')}`
           : '/';
       } else {
+        track('signup_failed', { method: 'email' });
         const body = await res.json().catch(() => null);
         const backendMessage =
           typeof body?.message === 'string' ? body.message : null;
@@ -156,13 +164,23 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
           <WithGoogleLink
             variant="card"
             text={getVisibleText('navigation.register.google')}
+            onSelect={() => track('signup_started', { method: 'google' })}
           />
-          <WithNotionLink variant="card" text="Continue with Notion" />
+          <WithNotionLink
+            variant="card"
+            text="Continue with Notion"
+            onSelect={() => track('signup_started', { method: 'notion' })}
+          />
           <WithMicrosoftLink
             variant="card"
             text={getVisibleText('navigation.register.microsoft')}
+            onSelect={() => track('signup_started', { method: 'microsoft' })}
           />
-          <WithAppleLink variant="card" text="Sign in with Apple" />
+          <WithAppleLink
+            variant="card"
+            text="Sign in with Apple"
+            onSelect={() => track('signup_started', { method: 'apple' })}
+          />
         </div>
         <div className={styles.divider}>
           <span className={styles.dividerLabel}>or sign up with email</span>

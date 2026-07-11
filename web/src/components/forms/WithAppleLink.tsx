@@ -4,11 +4,13 @@ import styles from '../../styles/auth.module.css';
 interface WithAppleLinkProps {
   text: string;
   variant?: 'row' | 'card';
+  onSelect?: () => void;
 }
 
 export function WithAppleLink({
   text,
   variant = 'row',
+  onSelect,
 }: Readonly<WithAppleLinkProps>) {
   const isCard = variant === 'card';
   return (
@@ -16,6 +18,7 @@ export function WithAppleLink({
       href={getAppleSignInUrl()}
       className={isCard ? styles.appleCard : styles.appleButton}
       aria-label={isCard ? text : undefined}
+      onClick={onSelect}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

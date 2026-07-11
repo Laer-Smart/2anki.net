@@ -3,11 +3,13 @@ import styles from '../../styles/auth.module.css';
 interface WithNotionLinkProps {
   text: string;
   variant?: 'row' | 'card';
+  onSelect?: () => void;
 }
 
 export function WithNotionLink({
   text,
   variant = 'row',
+  onSelect,
 }: Readonly<WithNotionLinkProps>) {
   const isCard = variant === 'card';
   return (
@@ -15,6 +17,7 @@ export function WithNotionLink({
       href="/api/users/auth/notion/init"
       className={isCard ? styles.oauthCard : styles.notionButton}
       aria-label={isCard ? text : undefined}
+      onClick={onSelect}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
