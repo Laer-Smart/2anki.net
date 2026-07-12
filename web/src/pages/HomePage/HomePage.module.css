@@ -38,14 +38,16 @@
 
 .heroControls {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin: 1rem auto 0.75rem;
+  justify-content: center;
+  margin: 1rem auto 1.25rem;
+  max-width: 520px;
 }
 
 .heroAiBadge {
   margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
 }
 
 .cardOptionsLink {
