@@ -40,6 +40,7 @@ import { track } from '../services/events/track';
 import { mapEntitlement } from './helpers/mapEntitlement';
 import { GetPassLadderOfferUseCase } from '../usecases/checkout/GetPassLadderOfferUseCase';
 import UserPassRepository from '../data_layer/UserPassRepository';
+import { hasAnkifyAccess } from '../lib/ankify/access';
 import { PlanSource } from '../routes/middleware/configureUserLocal';
 
 function readFirstTouchCookie(req: express.Request): FirstTouchAttribution {
@@ -347,14 +348,7 @@ class UsersController {
     const userSubs = user?.email
       ? await SubscriptionService.getUserActiveSubscriptions(user.email)
       : [];
-    const autoSyncActive =
-      autoSyncProductId !== '' &&
-      userSubs.some(
-        (s) =>
-          s.active &&
-          (s as { stripe_product_id?: string | null }).stripe_product_id ===
-            autoSyncProductId
-      );
+    const autoSyncActive = hasAnkifyAccess(user, userSubs, autoSyncProductId);
 
     let freePrintAvailable: boolean | null = null;
     if (user?.owner != null) {
