@@ -15,6 +15,7 @@ import { PricingCard } from './components/PricingCard';
 import { PricingFaq } from './components/PricingFaq';
 import { UnlimitedCard } from './components/UnlimitedCard';
 import { ProducerCaptureModal } from '../../components/ProducerCaptureModal/ProducerCaptureModal';
+import { TrustNote } from '../../components/TrustNote/TrustNote';
 import { useInViewOnce } from '../../lib/hooks/useInViewOnce';
 import styles from './PricingPage.module.css';
 import sharedStyles from '../../styles/shared.module.css';
@@ -322,6 +323,8 @@ export default function PricingPage({
         <li>Cancel anytime — one click</li>
         <li>Your decks are yours — native .apkg, works in any Anki client</li>
       </ul>
+
+      <TrustNote compact />
 
       <FeatureGrid />
 

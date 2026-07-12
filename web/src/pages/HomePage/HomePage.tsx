@@ -15,6 +15,7 @@ import RectangleGroupIcon from '../../components/icons/RectangleGroupIcon';
 import ShareIcon from '../../components/icons/ShareIcon';
 import SwatchIcon from '../../components/icons/SwatchIcon';
 import { track } from '../../lib/analytics/track';
+import { TrustNote } from '../../components/TrustNote/TrustNote';
 import { ShowcaseSection } from './ShowcaseSection';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './HomePage.module.css';
@@ -316,6 +317,8 @@ export function HomePage({
           </button>
         </div>
       </section>
+
+      <TrustNote />
     </div>
   );
 }
