@@ -4,11 +4,13 @@ import styles from '../../styles/auth.module.css';
 interface WithGoogleLinkProps {
   text: string;
   variant?: 'row' | 'card';
+  onSelect?: () => void;
 }
 
 export function WithGoogleLink({
   text,
   variant = 'row',
+  onSelect,
 }: Readonly<WithGoogleLinkProps>) {
   const isCard = variant === 'card';
   return (
@@ -16,6 +18,7 @@ export function WithGoogleLink({
       href={getGoogleSignInUrl()}
       className={isCard ? styles.oauthCard : styles.googleButton}
       aria-label={isCard ? text : undefined}
+      onClick={onSelect}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

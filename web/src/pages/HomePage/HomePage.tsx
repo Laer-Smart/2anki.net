@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import UploadForm from '../UploadPage/components/UploadForm/UploadForm';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
@@ -185,9 +185,16 @@ export function HomePage({
     []
   );
   const [showAll, setShowAll] = useState(false);
+  const landingViewedRef = useRef(false);
 
   useEffect(() => {
     if (!isLoggedIn) track('home_ai_anon_badge_viewed');
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (isLoggedIn || landingViewedRef.current) return;
+    landingViewedRef.current = true;
+    track('landing_page_viewed');
   }, [isLoggedIn]);
 
   if (isLoggedIn) {

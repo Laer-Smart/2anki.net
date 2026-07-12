@@ -71,6 +71,72 @@ describe('RegisterForm', () => {
     ).toHaveLength(1);
   });
 
+  it('fires signup_started once with method email on mount', () => {
+    registerMock.mockResolvedValue({ status: 200 });
+
+    renderForm();
+
+    expect(
+      trackMock.mock.calls.filter(([name]) => name === 'signup_started')
+    ).toEqual([['signup_started', { method: 'email' }]]);
+  });
+
+  it.each([
+    ['Google', 'google'],
+    ['Notion', 'notion'],
+    ['Microsoft', 'microsoft'],
+    ['Apple', 'apple'],
+  ])(
+    'fires signup_started once with method %s when the OAuth button is clicked',
+    (label, method) => {
+      renderForm();
+      trackMock.mockClear();
+
+      const link = screen.getByText(label).closest('a');
+      expect(link).not.toBeNull();
+      fireEvent.click(link as HTMLElement);
+
+      expect(
+        trackMock.mock.calls.filter(([name]) => name === 'signup_started')
+      ).toEqual([['signup_started', { method }]]);
+    }
+  );
+
+  it('fires signup_failed with method email on a non-200 response', async () => {
+    registerMock.mockResolvedValue({
+      status: 400,
+      json: () =>
+        Promise.resolve({
+          message: 'Invalid user data. Required email and password!',
+        }),
+    });
+
+    renderForm();
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(trackMock).toHaveBeenCalledWith('signup_failed', {
+        method: 'email',
+      });
+    });
+  });
+
+  it('does not fire signup_failed on a successful registration', async () => {
+    registerMock.mockResolvedValue({ status: 200 });
+
+    renderForm();
+    fillAndSubmit();
+
+    await waitFor(() => {
+      expect(trackMock).toHaveBeenCalledWith('signup_completed', {
+        method: 'email',
+      });
+    });
+    expect(trackMock).not.toHaveBeenCalledWith('signup_failed', {
+      method: 'email',
+    });
+  });
+
   it('sets the signup dedup flag so the upload page does not re-fire', async () => {
     registerMock.mockResolvedValue({ status: 200 });
 

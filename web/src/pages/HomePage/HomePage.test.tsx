@@ -6,20 +6,41 @@ import { vi } from 'vitest';
 
 import { HomePage } from './HomePage';
 
-function renderHome() {
+const trackMock = vi.fn();
+vi.mock('../../lib/analytics/track', () => ({
+  track: (...args: unknown[]) => trackMock(...args),
+}));
+
+function renderHome(isLoggedIn = false) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter>
-        <HomePage setErrorMessage={vi.fn()} isLoggedIn={false} />
+        <HomePage setErrorMessage={vi.fn()} isLoggedIn={isLoggedIn} />
       </MemoryRouter>
     </QueryClientProvider>
   );
 }
 
 describe('HomePage (anonymous)', () => {
+  beforeEach(() => {
+    trackMock.mockClear();
+  });
+
+  it('fires landing_page_viewed once on mount', () => {
+    renderHome();
+    expect(
+      trackMock.mock.calls.filter(([name]) => name === 'landing_page_viewed')
+    ).toHaveLength(1);
+  });
+
+  it('does not fire landing_page_viewed for a logged-in visitor', () => {
+    renderHome(true);
+    expect(trackMock).not.toHaveBeenCalledWith('landing_page_viewed');
+  });
+
   it('renders the mascot as a brand mark', () => {
     renderHome();
     const mascot = document.querySelector('img[src*="mascot"]');

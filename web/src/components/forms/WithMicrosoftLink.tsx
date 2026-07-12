@@ -4,11 +4,13 @@ import styles from '../../styles/auth.module.css';
 interface WithMicrosoftLinkProps {
   text: string;
   variant?: 'row' | 'card';
+  onSelect?: () => void;
 }
 
 export function WithMicrosoftLink({
   text,
   variant = 'row',
+  onSelect,
 }: Readonly<WithMicrosoftLinkProps>) {
   const isCard = variant === 'card';
   return (
@@ -16,6 +18,7 @@ export function WithMicrosoftLink({
       href={getMicrosoftSignInUrl()}
       className={isCard ? styles.oauthCard : styles.microsoftButton}
       aria-label={isCard ? text : undefined}
+      onClick={onSelect}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
