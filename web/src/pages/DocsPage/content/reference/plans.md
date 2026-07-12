@@ -38,10 +38,10 @@ Use this when you have a week to prep for an exam or a sprint to digitize a stac
 | Cards per month                                     | 100     | unlimited | unlimited | unlimited       | unlimited      |
 | PDF support                                         | —       | ✓         | ✓         | ✓               | ✓              |
 | [AI flashcards](/documentation/cards/ai-flashcards) | —       | ✓         | ✓         | ✓               | ✓              |
-| [Auto Sync](/documentation/sync/how-it-works)       | —       | —         | —         | $30/mo add-on   | ✓              |
+| [Auto Sync](/documentation/sync/how-it-works)       | —       | —         | —         | by request      | ✓              |
 | Recurring charge                                    | —       | —         | —         | monthly         | —              |
 
-Day Pass and Week Pass do not include Auto Sync. If you need ongoing Notion → Anki sync, you need a Subscription with Auto Sync or a Lifetime plan.
+Day Pass and Week Pass do not include Auto Sync. Auto Sync isn't sold as a plan right now — it's included with Lifetime, and on any other plan you can email [support@2anki.net](mailto:support@2anki.net) to have it switched on so you can try it.
 
 ## Pausing a subscription
 
