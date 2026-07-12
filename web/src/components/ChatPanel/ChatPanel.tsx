@@ -570,7 +570,6 @@ export default function ChatPanel({
   onTemplateChange,
 }: ChatPanelProps) {
   const { data: userLocals, refetch: refetchUserLocals } = useUserLocals();
-  const isPatreon = userLocals?.user?.patreon === true;
   const hasConsented = userLocals?.user?.chat_consent_at != null;
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [userDismissedConsent, setUserDismissedConsent] = useState(false);
@@ -602,6 +601,7 @@ export default function ChatPanel({
   const [limitReached, setLimitReached] = useState(false);
   const [resetDate, setResetDate] = useState<string | null>(null);
   const [messagesUsedThisMonth, setMessagesUsedThisMonth] = useState(0);
+  const [monthlyLimit, setMonthlyLimit] = useState<number | null>(null);
   const [chips, setChips] = useState<AttachmentChip[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [userScrolledAway, setUserScrolledAway] = useState(false);
@@ -616,6 +616,7 @@ export default function ChatPanel({
       .then((data: ApiUsageResponse | undefined) => {
         if (data != null) {
           setMessagesUsedThisMonth(data.used);
+          setMonthlyLimit(data.limit);
           if (data.limit != null && data.used >= data.limit) {
             setLimitReached(true);
           }
@@ -668,7 +669,8 @@ export default function ChatPanel({
     return () => clearTimeout(handle);
   }, [inputValue, activeConversationId]);
 
-  const remainingMessages = FREE_MONTHLY_LIMIT - messagesUsedThisMonth;
+  const remainingMessages =
+    (monthlyLimit ?? FREE_MONTHLY_LIMIT) - messagesUsedThisMonth;
 
   const readyChips = chips.filter((c) => c.state === 'idle');
   const canSend =
@@ -1116,13 +1118,15 @@ export default function ChatPanel({
               {networkError != null && (
                 <p className={styles.networkError}>{networkError}</p>
               )}
-              {!isPatreon && !limitReached && messagesUsedThisMonth > 0 && (
-                <p className={styles.usageLine}>
-                  {remainingMessages === 1
-                    ? '1 message left this month — your next send uses it'
-                    : `${remainingMessages} of ${FREE_MONTHLY_LIMIT} messages left this month`}
-                </p>
-              )}
+              {monthlyLimit != null &&
+                !limitReached &&
+                messagesUsedThisMonth > 0 && (
+                  <p className={styles.usageLine}>
+                    {remainingMessages === 1
+                      ? '1 message left this month — your next send uses it'
+                      : `${remainingMessages} of ${monthlyLimit} messages left this month`}
+                  </p>
+                )}
             </div>
           </div>
         ) : (
@@ -1230,13 +1234,15 @@ export default function ChatPanel({
                 </div>
               )}
               <ComposerPill {...composerProps} />
-              {!isPatreon && !limitReached && messagesUsedThisMonth > 0 && (
-                <p className={styles.usageLine}>
-                  {remainingMessages === 1
-                    ? '1 message left this month — your next send uses it'
-                    : `${remainingMessages} of ${FREE_MONTHLY_LIMIT} messages left this month`}
-                </p>
-              )}
+              {monthlyLimit != null &&
+                !limitReached &&
+                messagesUsedThisMonth > 0 && (
+                  <p className={styles.usageLine}>
+                    {remainingMessages === 1
+                      ? '1 message left this month — your next send uses it'
+                      : `${remainingMessages} of ${monthlyLimit} messages left this month`}
+                  </p>
+                )}
               {networkError != null && (
                 <p className={styles.networkError}>{networkError}</p>
               )}
