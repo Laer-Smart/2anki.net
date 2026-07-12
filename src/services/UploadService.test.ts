@@ -611,6 +611,38 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
     return { ...built, redirectedTo: () => redirectedTo };
   }
 
+  it('emits conversion_started before the parser runs on the sync path', async () => {
+    mockPackages([{ name: 'deck', cardCount: 12 }]);
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
+    const req = buildRequest({
+      cookies: { anon_id: 'anon-sync-start' },
+    } as Partial<express.Request>);
+    const { res } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(trackMock).toHaveBeenCalledWith(
+      'conversion_started',
+      expect.objectContaining({
+        anonymousId: 'anon-sync-start',
+        props: expect.objectContaining({ source: 'upload', mode: 'sync' }),
+      })
+    );
+    const startOrder = trackMock.mock.calls.findIndex(
+      (call) => call[0] === 'conversion_started'
+    );
+    const successOrder = trackMock.mock.calls.findIndex(
+      (call) => call[0] === 'conversion_succeeded'
+    );
+    expect(startOrder).toBeGreaterThanOrEqual(0);
+    expect(startOrder).toBeLessThan(successOrder);
+  });
+
   it('redirects a logged-in free user over the monthly limit to /limit?kind=card_count and does not send the deck', async () => {
     mockPackages([{ name: 'deck', cardCount: 30 }]);
     const usersRepo = buildUsersRepo({
@@ -1080,6 +1112,13 @@ describe('UploadService.promoteClaudeJobToUpload — async fs reads', () => {
     await findCalled;
     await new Promise((r) => setImmediate(r));
 
+    expect(trackMock).toHaveBeenCalledWith(
+      'conversion_started',
+      expect.objectContaining({
+        userId: 42,
+        props: expect.objectContaining({ mode: 'async' }),
+      })
+    );
     expect(trackMock).toHaveBeenCalledWith(
       'conversion_succeeded',
       expect.objectContaining({

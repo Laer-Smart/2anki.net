@@ -556,6 +556,13 @@ class UploadService {
       files.length === 1 ? files[0].originalname : `${files.length} files`;
     await this.jobRepository.create(ws.id, owner, title, 'claude');
 
+    const ownerForEvent = Number(owner);
+    track('conversion_started', {
+      userId: Number.isFinite(ownerForEvent) ? ownerForEvent : null,
+      anonymousId: this.resolveAnonId(req),
+      props: { source: this.resolveUploadSource(req), mode: 'async' },
+    });
+
     const source = this.resolvePersistedSource(req);
     const useCase = new GeneratePackagesUseCase();
     const ownerNumeric = Number(owner);
@@ -643,6 +650,13 @@ class UploadService {
     ws: Workspace,
     paying: boolean
   ) {
+    const owner = getOwner(res);
+    track('conversion_started', {
+      userId: owner != null ? Number(owner) : null,
+      anonymousId: this.resolveAnonId(req),
+      props: { source: this.resolveUploadSource(req), mode: 'sync' },
+    });
+
     const useCase = new GeneratePackagesUseCase();
     const { packages, warnings } = await useCase.execute(
       paying,
@@ -652,7 +666,6 @@ class UploadService {
     );
 
     const totalCards = packages.reduce((s, p) => s + (p.cardCount ?? 0), 0);
-    const owner = getOwner(res);
     const authenticated = hasSessionToken(req);
 
     if (totalCards === 0) {

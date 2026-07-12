@@ -36,6 +36,7 @@ export const KNOWN_EVENTS = new Set([
   'pricing_left',
   'pricing_try_clicked',
   'upload_failed',
+  'upload_cancelled',
   'cancel_during_generating',
   'signup_completed',
   'upload_page_viewed',

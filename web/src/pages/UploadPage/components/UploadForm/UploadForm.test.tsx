@@ -274,6 +274,55 @@ describe('UploadForm analytics events', () => {
     process.env.REACT_APP_DROPBOX_APP_KEY = previousKey;
   });
 
+  it('fires upload_cancelled once on pagehide while a conversion is in flight', async () => {
+    const { track } = await import('../../../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() => new Promise(() => {}))
+    );
+
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
+    const form = container.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
+    });
+
+    await act(async () => {
+      globalThis.dispatchEvent(new Event('pagehide'));
+      globalThis.dispatchEvent(new Event('pagehide'));
+    });
+
+    const cancelledCalls = trackMock.mock.calls.filter(
+      ([name]) => name === 'upload_cancelled'
+    );
+    expect(cancelledCalls).toHaveLength(1);
+    expect(cancelledCalls[0][1]).toEqual({ stage: 'converting' });
+  });
+
+  it('does not fire upload_cancelled on pagehide when no conversion is in flight', async () => {
+    const { track } = await import('../../../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+
+    renderUploadForm(<UploadForm setErrorMessage={vi.fn()} />);
+
+    await act(async () => {
+      globalThis.dispatchEvent(new Event('pagehide'));
+    });
+
+    const cancelledCalls = trackMock.mock.calls.filter(
+      ([name]) => name === 'upload_cancelled'
+    );
+    expect(cancelledCalls).toHaveLength(0);
+  });
+
   it('does not fire conversion_success on a successful conversion with cards', async () => {
     const gtag = (globalThis as AnalyticsGlobals).gtag!;
 
