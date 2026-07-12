@@ -192,7 +192,9 @@ describe('StripeController', () => {
     it('returns hasActiveSubscription true when the user holds an active pass', async () => {
       const h = buildController();
       mockedExtractToken.mockReturnValue('abc');
-      h.authService.getUserFrom.mockResolvedValue(buildUser({ patreon: false }));
+      h.authService.getUserFrom.mockResolvedValue(
+        buildUser({ patreon: false })
+      );
       mockedGetActiveSubscriptions.mockResolvedValue([]);
       h.userPassRepository.findActive.mockResolvedValue({
         id: 1,
