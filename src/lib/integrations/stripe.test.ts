@@ -111,6 +111,68 @@ describe('updateStoreSubscription', () => {
     expect(Boolean(row.active)).toBe(false);
   });
 
+  test('keeps active=true during dunning when status is past_due', async () => {
+    await db('users').insert({ email: 'user@example.com' });
+
+    await updateStoreSubscription(
+      db,
+      makeCustomer('user@example.com'),
+      makeSubscription('past_due', 'prod_auto_sync')
+    );
+
+    const row = await db('subscriptions')
+      .where({ email: 'user@example.com' })
+      .first();
+    expect(Boolean(row.active)).toBe(true);
+  });
+
+  test('keeps active=true during dunning when status is unpaid', async () => {
+    await db('users').insert({ email: 'user@example.com' });
+
+    await updateStoreSubscription(
+      db,
+      makeCustomer('user@example.com'),
+      makeSubscription('unpaid', 'prod_auto_sync')
+    );
+
+    const row = await db('subscriptions')
+      .where({ email: 'user@example.com' })
+      .first();
+    expect(Boolean(row.active)).toBe(true);
+  });
+
+  test('marks active=false when a past_due subscription is also paused', async () => {
+    await db('users').insert({ email: 'user@example.com' });
+
+    await updateStoreSubscription(
+      db,
+      makeCustomer('user@example.com'),
+      makeSubscription('past_due', 'prod_auto_sync', {
+        pauseCollection: { behavior: 'void', resumes_at: 1893456000 },
+      })
+    );
+
+    const row = await db('subscriptions')
+      .where({ email: 'user@example.com' })
+      .first();
+    expect(Boolean(row.active)).toBe(false);
+  });
+
+  test('marks active=false for a never-paid incomplete subscription', async () => {
+    await db('users').insert({ email: 'user@example.com' });
+
+    await updateStoreSubscription(
+      db,
+      makeCustomer('user@example.com'),
+      makeSubscription('incomplete', 'prod_auto_sync')
+    );
+
+    const row = await db('subscriptions')
+      .where({ email: 'user@example.com' })
+      .first();
+    expect(Boolean(row.active)).toBe(false);
+  });
+
   test('links by metadata.user_id even when the Stripe email differs from the account', async () => {
     await db('users').insert({
       email: 'account@example.com',
