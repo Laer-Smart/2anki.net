@@ -802,6 +802,7 @@ const isActiveToday = (sub: NormalizedSubscription, nowMs: number): boolean => {
 const wasActiveOn = (sub: NormalizedSubscription, atMs: number): boolean => {
   if (sub.createdMs > atMs) return false;
   if (sub.endedAtMs != null && sub.endedAtMs <= atMs) return false;
+  if (sub.paused) return false;
   return isPayingHistorical(sub.status);
 };
 
