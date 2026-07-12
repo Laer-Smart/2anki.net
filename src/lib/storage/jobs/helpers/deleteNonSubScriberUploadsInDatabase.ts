@@ -13,6 +13,10 @@ export const deleteNonSubScriberUploadsInDatabase = async (
     LEFT JOIN subscriptions s ON u.email = s.email OR u.email = s.linked_email
     WHERE u.patreon = false AND (s.active IS NULL OR s.active = false)
       AND NOT EXISTS (
+        SELECT 1 FROM user_passes pass
+        WHERE pass.user_id = u.id AND pass.expires_at > now()
+      )
+      AND NOT EXISTS (
         SELECT 1 FROM deck_shares ds
         WHERE ds.upload_key = up.key AND ds.revoked_at IS NULL
       );
