@@ -222,6 +222,9 @@ export function HomePage({
             </Link>
             .
           </p>
+        </div>
+        <UploadForm setErrorMessage={setErrorMessage} />
+        <div className={styles.heroFooter}>
           <Link
             to="/card-options"
             className={styles.cardOptionsLink}
@@ -229,6 +232,7 @@ export function HomePage({
           >
             Card options
           </Link>
+          <span className={styles.footerDot} aria-hidden="true" />
           <Link
             to="/app"
             className={styles.cardOptionsLink}
@@ -237,7 +241,6 @@ export function HomePage({
             Also on iPhone, iPad &amp; Mac →
           </Link>
         </div>
-        <UploadForm setErrorMessage={setErrorMessage} />
       </section>
 
       <section className={styles.stepsSection}>
