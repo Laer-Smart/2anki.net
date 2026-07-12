@@ -57,6 +57,8 @@ export default interface Users {
   pdf_prints_this_month: number;
 
   prints_month_started_at: Date;
+
+  ankify_access: boolean;
 }
 
 /** Represents the initializer for the table public.users */
@@ -124,6 +126,9 @@ export interface UsersInitializer {
 
   /** Default value: CURRENT_TIMESTAMP */
   prints_month_started_at?: Date;
+
+  /** Default value: false */
+  ankify_access?: boolean;
 }
 
 /** Represents the mutator for the table public.users */
@@ -179,4 +184,6 @@ export interface UsersMutator {
   pdf_prints_this_month?: number;
 
   prints_month_started_at?: Date;
+
+  ankify_access?: boolean;
 }
