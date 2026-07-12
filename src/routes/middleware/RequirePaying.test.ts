@@ -24,7 +24,9 @@ function makeResponse(locals: Record<string, unknown>) {
       return this;
     },
   };
-  return res as unknown as express.Response & { redirectedTo: string | undefined };
+  return res as unknown as express.Response & {
+    redirectedTo: string | undefined;
+  };
 }
 
 describe('RequirePaying', () => {
