@@ -1,3 +1,4 @@
+import knex, { Knex } from 'knex';
 import { deleteNonSubScriberUploadsInDatabase } from './deleteNonSubScriberUploadsInDatabase';
 
 function makeDb(uploadsToDelete: { key: string }[] = []) {
@@ -59,5 +60,198 @@ describe('deleteNonSubScriberUploadsInDatabase', () => {
     expect(rawCall).toContain('user_passes');
     expect(rawCall).toContain('pass.user_id = u.id');
     expect(rawCall).toContain('pass.expires_at > now()');
+  });
+});
+
+// End-to-end guard for the Oct-2024 subscriber-data-deletion incident
+// (Documentation/post-mortems/2024-10-subscriber-data-deletion.md). This runs
+// the REAL raw cleanup query against a real database and asserts that no active
+// subscriber, linked-email subscriber, lifetime, pass holder, or shared upload
+// is ever swept — only genuine non-subscribers are. The mocked-db tests above
+// only inspect the query string; they never execute the SQL, so an incorrect
+// predicate would pass them and re-open the highest-revenue-impact regression in
+// the repo's history. This block executes it.
+describe('deleteNonSubScriberUploadsInDatabase — cleanup-vs-subscriber e2e', () => {
+  const FUTURE = '2099-01-01T00:00:00.000Z';
+  const PAST = '2000-01-01T00:00:00.000Z';
+
+  let db: Knex;
+
+  // The pg driver returns raw() results as { rows }, better-sqlite3 returns the
+  // array directly. Reshape only raw() so the unmodified production function —
+  // which reads query.rows — runs against sqlite exactly as it does in prod.
+  function withPgRawShape(real: Knex): Knex {
+    return new Proxy(real, {
+      apply: (target, _thisArg, args: unknown[]) =>
+        (target as unknown as (...a: unknown[]) => unknown)(...args),
+      get: (target, prop, receiver) => {
+        if (prop === 'raw') {
+          return async (...a: unknown[]) => {
+            const res = await (
+              target as unknown as {
+                raw: (...x: unknown[]) => Promise<unknown>;
+              }
+            ).raw(...a);
+            return Array.isArray(res) ? { rows: res } : res;
+          };
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+    }) as Knex;
+  }
+
+  async function seedUserWithUpload(
+    id: number,
+    email: string,
+    patreon: boolean,
+    uploadKey: string
+  ) {
+    await db('users').insert({ id, email, patreon });
+    await db('uploads').insert({ key: uploadKey, owner: id });
+  }
+
+  async function remainingUploadKeys(): Promise<string[]> {
+    const rows = await db('uploads').select('key').orderBy('key');
+    return rows.map((r) => r.key as string);
+  }
+
+  beforeEach(async () => {
+    db = knex({
+      client: 'better-sqlite3',
+      connection: { filename: ':memory:' },
+      useNullAsDefault: true,
+      pool: {
+        // The production query uses Postgres now(); register an equivalent SQL
+        // function so the exact raw query executes unchanged on sqlite. ISO-8601
+        // strings compare lexicographically, matching timestamp ordering.
+        afterCreate: (
+          conn: { function: (name: string, fn: () => string) => void },
+          done: (err: Error | null, conn: unknown) => void
+        ) => {
+          conn.function('now', () => new Date().toISOString());
+          done(null, conn);
+        },
+      },
+    });
+
+    await db.schema.createTable('users', (t) => {
+      t.integer('id').primary();
+      t.text('email').notNullable().unique();
+      t.boolean('patreon').notNullable().defaultTo(false);
+    });
+    await db.schema.createTable('uploads', (t) => {
+      t.text('key').primary();
+      t.integer('owner').notNullable();
+    });
+    await db.schema.createTable('subscriptions', (t) => {
+      t.increments('id').primary();
+      t.text('email').nullable();
+      t.text('linked_email').nullable();
+      t.boolean('active').nullable();
+    });
+    await db.schema.createTable('user_passes', (t) => {
+      t.increments('id').primary();
+      t.integer('user_id').notNullable();
+      t.text('expires_at').notNullable();
+    });
+    await db.schema.createTable('deck_shares', (t) => {
+      t.increments('id').primary();
+      t.text('upload_key').notNullable();
+      t.text('revoked_at').nullable();
+    });
+  });
+
+  afterEach(async () => {
+    await db.destroy();
+  });
+
+  it('deletes only genuine non-subscriber uploads and spares every paid signal', async () => {
+    // 1: free non-subscriber — the only one that should be swept
+    await seedUserWithUpload(1, 'free@example.com', false, 'free.apkg');
+    // 2: lifetime (patreon) — spared
+    await seedUserWithUpload(2, 'life@example.com', true, 'life.apkg');
+    // 3: active Stripe sub matched on subscriptions.email — spared
+    await seedUserWithUpload(3, 'stripe@example.com', false, 'stripe.apkg');
+    await db('subscriptions').insert({
+      email: 'stripe@example.com',
+      active: true,
+    });
+    // 4: active sub matched via linked_email — spared
+    await seedUserWithUpload(4, 'linked@example.com', false, 'linked.apkg');
+    await db('subscriptions').insert({
+      email: 'billing@example.com',
+      linked_email: 'linked@example.com',
+      active: true,
+    });
+    // 5: active pass holder — spared
+    await seedUserWithUpload(5, 'pass@example.com', false, 'pass.apkg');
+    await db('user_passes').insert({ user_id: 5, expires_at: FUTURE });
+    // 6: expired pass, no other signal — swept
+    await seedUserWithUpload(6, 'exp@example.com', false, 'expired.apkg');
+    await db('user_passes').insert({ user_id: 6, expires_at: PAST });
+    // 7: non-subscriber but upload pinned by an unrevoked share — spared
+    await seedUserWithUpload(7, 'shared@example.com', false, 'shared.apkg');
+    await db('deck_shares').insert({
+      upload_key: 'shared.apkg',
+      revoked_at: null,
+    });
+    // 8: cancelled subscriber (active = false) — swept
+    await seedUserWithUpload(
+      8,
+      'cancelled@example.com',
+      false,
+      'cancelled.apkg'
+    );
+    await db('subscriptions').insert({
+      email: 'cancelled@example.com',
+      active: false,
+    });
+
+    const deleted: string[] = [];
+    const storage = {
+      delete: jest.fn(async (key: string) => {
+        deleted.push(key);
+      }),
+    };
+
+    await deleteNonSubScriberUploadsInDatabase(
+      withPgRawShape(db),
+      storage as never
+    );
+
+    expect(deleted.sort()).toEqual(
+      ['cancelled.apkg', 'expired.apkg', 'free.apkg'].sort()
+    );
+    expect(await remainingUploadKeys()).toEqual(
+      [
+        'life.apkg',
+        'linked.apkg',
+        'pass.apkg',
+        'shared.apkg',
+        'stripe.apkg',
+      ].sort()
+    );
+  });
+
+  it('spares a subscriber even when a stale revoked share also exists', async () => {
+    await seedUserWithUpload(1, 'sub@example.com', false, 'sub.apkg');
+    await db('subscriptions').insert({
+      email: 'sub@example.com',
+      active: true,
+    });
+    await db('deck_shares').insert({
+      upload_key: 'sub.apkg',
+      revoked_at: PAST,
+    });
+
+    const storage = { delete: jest.fn() };
+
+    await deleteNonSubScriberUploadsInDatabase(
+      withPgRawShape(db),
+      storage as never
+    );
+
+    expect(storage.delete).not.toHaveBeenCalled();
+    expect(await remainingUploadKeys()).toEqual(['sub.apkg']);
   });
 });
