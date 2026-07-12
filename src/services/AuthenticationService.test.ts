@@ -1492,3 +1492,78 @@ describe('logOutEverywhere', () => {
     expect(deleted).toBe(1);
   });
 });
+
+describe('subscription lookups by linked_email', () => {
+  let database: Knex;
+  let service: AuthenticationService;
+
+  beforeEach(async () => {
+    database = knex({
+      client: 'better-sqlite3',
+      connection: { filename: ':memory:' },
+      useNullAsDefault: true,
+    });
+    await database.schema.createTable('subscriptions', (t) => {
+      t.increments('id').primary();
+      t.text('email').nullable();
+      t.text('linked_email').nullable();
+      t.boolean('active').notNullable().defaultTo(false);
+    });
+    service = new AuthenticationService(
+      new TokenRepository(database),
+      new UsersRepository(database)
+    );
+  });
+
+  afterEach(async () => {
+    await database.destroy();
+  });
+
+  it('getIsSubscriber returns true when an active row shares a linked_email with an older inactive one', async () => {
+    await database('subscriptions').insert([
+      {
+        email: 'gifter-old@example.com',
+        linked_email: 'recipient@example.com',
+        active: false,
+      },
+      {
+        email: 'gifter-new@example.com',
+        linked_email: 'recipient@example.com',
+        active: true,
+      },
+    ]);
+
+    const result = await service.getIsSubscriber(
+      database,
+      'recipient@example.com'
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('getSubscriptionInfo resolves the active linked row over an older inactive one', async () => {
+    await database('subscriptions').insert([
+      {
+        email: 'gifter-old@example.com',
+        linked_email: 'recipient@example.com',
+        active: false,
+      },
+      {
+        email: 'gifter-new@example.com',
+        linked_email: 'recipient@example.com',
+        active: true,
+      },
+    ]);
+
+    const result = await service.getSubscriptionInfo(
+      database,
+      'recipient@example.com'
+    );
+
+    expect(result).toEqual({
+      active: true,
+      email: 'gifter-new@example.com',
+      linked_email: 'recipient@example.com',
+    });
+  });
+});

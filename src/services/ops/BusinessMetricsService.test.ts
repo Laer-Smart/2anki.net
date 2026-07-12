@@ -484,6 +484,36 @@ describe('BusinessMetricsService', () => {
       expect(findDay(5)?.active_paying_subs).toBe(1);
     });
 
+    it('excludes a paused subscription from the today point of both series', async () => {
+      const { service } = buildService({
+        allSubs: [
+          sub('sub_active', [monthly(1000)], { created: daysAgoEpoch(90) }),
+          sub('sub_paused', [monthly(2000)], {
+            created: daysAgoEpoch(90),
+            status: 'active',
+            pause_collection: {
+              behavior: 'void',
+              resumes_at: daysAgoEpoch(-60),
+            },
+          }),
+        ],
+      });
+
+      const result = await service.getMetrics();
+      const target = new Date(NOW_MS);
+      target.setUTCHours(0, 0, 0, 0);
+      const todayIso = target.toISOString().slice(0, 10);
+      const mrrToday = result.mrr_timeseries!.find((p) => p.t === todayIso);
+      const activeToday = result.active_subs_timeseries!.find(
+        (p) => p.t === todayIso
+      );
+
+      expect(result.mrr_usd).toBeCloseTo(10, 5);
+      expect(result.active_paying_subs).toBe(1);
+      expect(mrrToday?.mrr_usd).toBeCloseTo(10, 5);
+      expect(activeToday?.active_paying_subs).toBe(1);
+    });
+
     it('conversions_vs_churn_weekly bins by ISO week', async () => {
       const oneWeek = 7 * SECONDS_PER_DAY;
       const { service } = buildService({

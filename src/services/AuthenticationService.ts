@@ -277,6 +277,7 @@ class AuthenticationService {
     const linkedEmail = await db('subscriptions')
       .select('active')
       .where({ linked_email: email.toLowerCase() })
+      .andWhere({ active: true })
       .first();
 
     if (linkedEmail?.active) {
@@ -295,6 +296,7 @@ class AuthenticationService {
     const linkedEmail = await db('subscriptions')
       .select(['active', 'email', 'linked_email'])
       .where({ linked_email: email.toLowerCase() })
+      .andWhere({ active: true })
       .first();
 
     if (linkedEmail?.active) {
