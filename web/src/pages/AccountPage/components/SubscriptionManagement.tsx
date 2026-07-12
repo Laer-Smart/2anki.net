@@ -290,9 +290,9 @@ function PausedState({
 }
 
 export function SubscriptionManagement(props: SubscriptionManagementProps) {
-  const { locals } = props;
+  const { locals, hasActivePlan } = props;
 
-  if (!locals?.subscriber) {
+  if (!hasActivePlan) {
     return null;
   }
 
@@ -310,7 +310,6 @@ export function SubscriptionManagement(props: SubscriptionManagementProps) {
 function StripeSubscriptionManagement({
   user,
   locals,
-  hasActivePlan,
   onRefetch,
 }: SubscriptionManagementProps) {
   const {
