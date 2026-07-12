@@ -30,8 +30,8 @@ Notion page  →  2anki sync   →  AnkiConnect (your Anki)
 
 A background job polls your subscribed pages, diffs them against what's already synced, and pushes only the changes to Anki. Reviews and scheduling state are preserved because card IDs are stable across runs.
 
-## Free vs paid
+## Getting Auto Sync access
 
-Auto Sync is a paid feature — $30/mo, or included with a Lifetime account. The conversion features that ship today — Connect Notion + download deck, plus file uploads — stay free.
+Auto Sync isn't sold as a standalone plan right now — not enough people were using it to keep it on the pricing page. It's included with a Lifetime account. On any other plan, email [support@2anki.net](mailto:support@2anki.net) and we'll switch it on for your account so you can try it. The conversion features that ship today — Connect Notion + download deck, plus file uploads — stay free.
 
 See the [pricing page](/pricing) for current plans, and [When sync gets stuck](/documentation/sync/troubleshooting) if a sync isn't running.
