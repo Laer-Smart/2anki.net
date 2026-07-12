@@ -2463,6 +2463,42 @@ describe('UsersController.getLocals', () => {
     expect(payload.user.email_verified).toBe(true);
   });
 
+  it('marks autoSyncActive true for a patreon lifetime user with no Auto Sync subscription', async () => {
+    (
+      SubscriptionService.getUserActiveSubscriptions as jest.Mock
+    ).mockResolvedValueOnce([]);
+    const mockUser = {
+      id: 42,
+      email: 'lifetime@example.com',
+      email_verified: true,
+      patreon: true,
+      ankify_welcome_seen: false,
+      hosted_anki_requested_at: null,
+      owner: 42,
+    };
+    const userService = {
+      getSubscriptionLinkedEmail: jest.fn().mockResolvedValue(null),
+    } as unknown as UsersService;
+    const authService = {
+      getUserFrom: jest.fn().mockResolvedValue(mockUser),
+    } as unknown as AuthenticationService;
+    const controller = new UsersController(
+      userService,
+      authService,
+      {} as ReturnType<typeof import('../data_layer').getDatabase>
+    );
+    const req = { cookies: { token: 'valid' } } as unknown as express.Request;
+    const res = {
+      locals: {},
+      json: jest.fn(),
+    } as unknown as express.Response & { json: jest.Mock };
+
+    await controller.getLocals(req, res);
+
+    const payload = res.json.mock.calls[0][0];
+    expect(payload.autoSyncActive).toBe(true);
+  });
+
   it('offers the pass ladder to a repeat pass buyer', async () => {
     mockCountPaidPassesSince.mockResolvedValueOnce({
       dayPasses: 2,

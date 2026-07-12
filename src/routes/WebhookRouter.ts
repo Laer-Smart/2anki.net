@@ -53,7 +53,8 @@ const WebhooksRouter = () => {
     authService,
     usersService,
     persistStripeSessionUseCase,
-    stripe
+    stripe,
+    new UserPassRepository(database)
   );
   const abandonedCheckoutRecoveryUseCase =
     new SendAbandonedCheckoutRecoveryOnExpiryUseCase(

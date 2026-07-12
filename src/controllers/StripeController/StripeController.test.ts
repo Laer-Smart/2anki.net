@@ -21,6 +21,7 @@ import type AuthenticationService from '../../services/AuthenticationService';
 import type { UserWithOwner } from '../../services/AuthenticationService';
 import type UsersService from '../../services/UsersService';
 import type { PersistStripeSessionUseCase } from '../../usecases/checkout/PersistStripeSessionUseCase';
+import type { IUserPassRepository } from '../../data_layer/UserPassRepository';
 import type Subscriptions from '../../data_layer/public/Subscriptions';
 import type { SubscriptionsId } from '../../data_layer/public/Subscriptions';
 import type { UsersId } from '../../data_layer/public/Users';
@@ -126,6 +127,7 @@ interface ControllerHarness {
   usersService: { updateSubScriptionEmailUsingPrimaryEmail: jest.Mock };
   persistStripeSessionUseCase: { execute: jest.Mock };
   stripe: StripeMock;
+  userPassRepository: { findActive: jest.Mock };
 }
 
 function buildController(): ControllerHarness {
@@ -141,11 +143,15 @@ function buildController(): ControllerHarness {
   const stripe: StripeMock = {
     checkout: { sessions: { retrieve: jest.fn() } },
   };
+  const userPassRepository = {
+    findActive: jest.fn().mockResolvedValue(null),
+  };
   const controller = new StripeController(
     authService as unknown as AuthenticationService,
     usersService as unknown as UsersService,
     persistStripeSessionUseCase as unknown as PersistStripeSessionUseCase,
-    stripe as unknown as Pick<StripeTypes, 'checkout'>
+    stripe as unknown as Pick<StripeTypes, 'checkout'>,
+    userPassRepository as unknown as IUserPassRepository
   );
   return {
     controller,
@@ -153,6 +159,7 @@ function buildController(): ControllerHarness {
     usersService,
     persistStripeSessionUseCase,
     stripe,
+    userPassRepository,
   };
 }
 
@@ -177,6 +184,31 @@ describe('StripeController', () => {
       expect(h.persistStripeSessionUseCase.execute).toHaveBeenCalledWith(
         'cs_test_123'
       );
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ hasActiveSubscription: true })
+      );
+    });
+
+    it('returns hasActiveSubscription true when the user holds an active pass', async () => {
+      const h = buildController();
+      mockedExtractToken.mockReturnValue('abc');
+      h.authService.getUserFrom.mockResolvedValue(
+        buildUser({ patreon: false })
+      );
+      mockedGetActiveSubscriptions.mockResolvedValue([]);
+      h.userPassRepository.findActive.mockResolvedValue({
+        id: 1,
+        user_id: 1,
+        kind: 'unlimited',
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        stripe_payment_intent_id: 'apple:tx_1',
+      });
+
+      const req = mockRequest();
+      const res = mockResponse();
+
+      await h.controller.checkSubscriptionStatus(req, res);
+
       expect(res.json).toHaveBeenCalledWith(
         expect.objectContaining({ hasActiveSubscription: true })
       );

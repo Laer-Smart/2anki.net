@@ -7,6 +7,7 @@ import type UsersService from '../../services/UsersService';
 import { extractTokenFromCookies } from './extractTokenFromCookies';
 import SubscriptionService from '../../services/SubscriptionService';
 import type { PersistStripeSessionUseCase } from '../../usecases/checkout/PersistStripeSessionUseCase';
+import type { IUserPassRepository } from '../../data_layer/UserPassRepository';
 
 type StripeClient = Pick<StripeTypes, 'checkout'>;
 
@@ -15,7 +16,8 @@ export class StripeController {
     private readonly authService: AuthenticationService,
     private readonly usersService: UsersService,
     private readonly persistStripeSessionUseCase: PersistStripeSessionUseCase,
-    private readonly stripe: StripeClient
+    private readonly stripe: StripeClient,
+    private readonly userPassRepository: IUserPassRepository
   ) {}
 
   async getSuccessfulCheckout(req: express.Request, res: express.Response) {
@@ -61,7 +63,15 @@ export class StripeController {
       const activeSubscriptions =
         await SubscriptionService.getUserActiveSubscriptions(user.email);
       let hasActiveSubscription =
-        activeSubscriptions.length > 0 || user.patreon;
+        activeSubscriptions.length > 0 || user.patreon === true;
+
+      if (!hasActiveSubscription) {
+        const activePass = await this.userPassRepository.findActive(
+          user.id,
+          new Date()
+        );
+        hasActiveSubscription = activePass != null;
+      }
 
       if (!hasActiveSubscription) {
         const sessionId = req.query.session_id as string;
