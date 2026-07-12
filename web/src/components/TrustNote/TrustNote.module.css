@@ -1,0 +1,12 @@
+.note {
+  margin: 2.5rem auto 0;
+  max-width: 540px;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  line-height: var(--leading-relaxed);
+}
+
+.name {
+  font-weight: var(--font-medium);
+}
