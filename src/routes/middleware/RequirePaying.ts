@@ -7,7 +7,7 @@ import { getDatabase } from '../../data_layer';
 import { configureUserLocal } from './configureUserLocal';
 import { isPaying } from '../../lib/isPaying';
 
-const RequirePaying = (
+const RequirePaying = async (
   req: express.Request,
   res: express.Response,
   next: NextFunction
@@ -17,7 +17,7 @@ const RequirePaying = (
     new TokenRepository(database),
     new UsersRepository(database)
   );
-  configureUserLocal(req, res, authService, database);
+  await configureUserLocal(req, res, authService, database);
 
   if (!isPaying(res.locals)) {
     return res.redirect('/pricing');
