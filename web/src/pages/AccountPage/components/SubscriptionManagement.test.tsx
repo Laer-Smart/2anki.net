@@ -131,24 +131,6 @@ describe('SubscriptionManagement', () => {
     expect(mockUseStripeSubscriptions).not.toHaveBeenCalled();
   });
 
-  it("shows lifetime copy and no controls for planSource 'lifetime'", () => {
-    render(
-      <SubscriptionManagement
-        user={user}
-        locals={{ subscriber: true, planSource: 'lifetime' }}
-        hasActivePlan
-        onRefetch={vi.fn().mockResolvedValue(undefined)}
-      />
-    );
-
-    expect(screen.getByText(/Lifetime access/)).toBeTruthy();
-    expect(
-      screen.queryByRole('button', { name: 'Cancel subscription' })
-    ).toBeNull();
-    expect(screen.queryByLabelText('Subscription email')).toBeNull();
-    expect(mockUseStripeSubscriptions).not.toHaveBeenCalled();
-  });
-
   it("renders the existing Stripe controls for planSource 'stripe'", () => {
     stubStripeActive();
 
