@@ -227,15 +227,6 @@ function AppleSubscriptionManagement() {
   );
 }
 
-function LifetimeSubscriptionManagement() {
-  return (
-    <section className={styles.section}>
-      <p className={styles.statusLine}>Lifetime access</p>
-      <p className={sharedStyles.smallDescription}>No renewal, no billing.</p>
-    </section>
-  );
-}
-
 function PausedState({
   subscription,
   planLabel,
@@ -300,17 +291,12 @@ export function SubscriptionManagement(props: SubscriptionManagementProps) {
     return <AppleSubscriptionManagement />;
   }
 
-  if (locals.planSource === 'lifetime') {
-    return <LifetimeSubscriptionManagement />;
-  }
-
   return <StripeSubscriptionManagement {...props} />;
 }
 
 function StripeSubscriptionManagement({
   user,
   locals,
-  hasActivePlan,
   onRefetch,
 }: SubscriptionManagementProps) {
   const {
