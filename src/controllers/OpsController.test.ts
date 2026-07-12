@@ -5,6 +5,7 @@ import { GetOpsMetricsUseCase } from '../usecases/ops/GetOpsMetricsUseCase';
 import { GetBusinessMetricsUseCase } from '../usecases/ops/GetBusinessMetricsUseCase';
 import { GetReturnRateMetricsUseCase } from '../usecases/ops/GetReturnRateMetricsUseCase';
 import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
+import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldUseCase';
 
 const buildRes = () => {
   const json = jest.fn();
@@ -177,6 +178,90 @@ describe('OpsController.getReturnRateMetrics', () => {
       .mockImplementation(() => undefined);
 
     await controller.getReturnRateMetrics(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.any(String) })
+    );
+    errSpy.mockRestore();
+  });
+});
+
+describe('OpsController.getLandingPageYield', () => {
+  const buildController = (useCase?: GetLandingPageYieldUseCase) =>
+    new OpsController(
+      {} as unknown as GetOpsMetricsUseCase,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      useCase
+    );
+
+  it('passes the window down and returns the payload', async () => {
+    const payload = {
+      pages: [
+        {
+          origin: '/pdf-to-anki',
+          signups: 200,
+          subscription_conversions: 30,
+          pass_conversions: 10,
+          paid_conversion_rate_pct: 18,
+        },
+      ],
+      since: '2026-06-01T00:00:00.000Z',
+      as_of: '2026-07-01T00:00:00.000Z',
+    };
+    const useCase = {
+      execute: jest.fn().mockResolvedValue(payload),
+    } as unknown as GetLandingPageYieldUseCase;
+    const controller = buildController(useCase);
+    const req = { query: { window: '60d' } } as unknown as express.Request;
+    const res = buildRes();
+
+    await controller.getLandingPageYield(req, res);
+
+    expect(useCase.execute as jest.Mock).toHaveBeenCalledWith('60d');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(payload);
+  });
+
+  it('responds 503 when the use case is not configured', async () => {
+    const controller = buildController(undefined);
+    const req = { query: {} } as unknown as express.Request;
+    const res = buildRes();
+
+    await controller.getLandingPageYield(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.any(String) })
+    );
+  });
+
+  it('responds 500 when the use case throws', async () => {
+    const useCase = {
+      execute: jest.fn().mockRejectedValue(new Error('db down')),
+    } as unknown as GetLandingPageYieldUseCase;
+    const controller = buildController(useCase);
+    const req = { query: {} } as unknown as express.Request;
+    const res = buildRes();
+    const errSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    await controller.getLandingPageYield(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(
