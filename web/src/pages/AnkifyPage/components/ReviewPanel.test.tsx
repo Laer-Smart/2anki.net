@@ -48,6 +48,30 @@ const statsWithDeck = (review: number): AnkifyStats => ({
   ],
 });
 
+const statsWithCounts = (counts: {
+  review: number;
+  learning: number;
+  new: number;
+}): AnkifyStats => ({
+  connected: true,
+  reviewedToday: 0,
+  reviewedThisYear: 0,
+  currentStreak: 0,
+  longestStreak: 0,
+  reviewsByDay: [],
+  decks: [
+    {
+      fullName: 'Notion Sync::Pharma',
+      name: 'Pharma',
+      depth: 1,
+      new: counts.new,
+      learning: counts.learning,
+      review: counts.review,
+      total: 120,
+    },
+  ],
+});
+
 const cardById: Record<number, ReviewQueueCard> = {
   9001: {
     cardId: 9001,
@@ -298,9 +322,13 @@ describe('ReviewPanel', () => {
     ).toBeInTheDocument();
   });
 
-  test('disables the Review button for a deck with no due cards', async () => {
+  test('disables the Review button for a deck with nothing to study', async () => {
     renderPanel(
-      makeBackend({ getAnkifyStats: vi.fn(async () => statsWithDeck(0)) })
+      makeBackend({
+        getAnkifyStats: vi.fn(async () =>
+          statsWithCounts({ review: 0, learning: 0, new: 0 })
+        ),
+      })
     );
 
     const reviewButton = await screen.findByRole('button', { name: 'Review' });
@@ -508,5 +536,31 @@ describe('ReviewPanel', () => {
     expect(
       await screen.findByText("Anki isn't connected.")
     ).toBeInTheDocument();
+  });
+
+  test('enables Review when a deck has due-learning cards but nothing review-due', async () => {
+    renderPanel(
+      makeBackend({
+        getAnkifyStats: vi.fn(async () =>
+          statsWithCounts({ review: 0, learning: 4, new: 4 })
+        ),
+      })
+    );
+
+    const reviewButton = await screen.findByRole('button', { name: 'Review' });
+    expect(reviewButton).not.toBeDisabled();
+  });
+
+  test('disables Review when a deck has only new cards (the due queue serves none)', async () => {
+    renderPanel(
+      makeBackend({
+        getAnkifyStats: vi.fn(async () =>
+          statsWithCounts({ review: 0, learning: 0, new: 3 })
+        ),
+      })
+    );
+
+    const reviewButton = await screen.findByRole('button', { name: 'Review' });
+    expect(reviewButton).toBeDisabled();
   });
 });

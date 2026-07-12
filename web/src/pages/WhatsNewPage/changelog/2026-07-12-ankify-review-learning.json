@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-12-ankify-review-learning",
+  "date": "2026-07-12",
+  "type": "fix",
+  "title": "Review a synced deck from Auto Sync when it has cards in learning, not only cards due"
+}

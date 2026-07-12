@@ -80,7 +80,8 @@ export function DeckPicker({
         .filter((node) => !hasCollapsedAncestor(node.deck.fullName, collapsed))
         .map((node) => {
           const due = node.aggregateDue;
-          const muted = due === 0;
+          const reviewable = due + node.aggregateLearning > 0;
+          const muted = !reviewable;
           const leaf =
             node.deck.name.length > 0 ? node.deck.name : 'Untitled deck';
           const isCollapsed = collapsed.has(node.deck.fullName);
