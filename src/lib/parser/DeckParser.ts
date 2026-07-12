@@ -1056,7 +1056,11 @@ export class DeckParser {
       this.emptyBackCount += countEmptyBacks(
         produced,
         (card) => card.back,
-        (card) => card.name
+        (card) => card.name,
+        (card) =>
+          !card.isValidMCQNote() &&
+          !card.isValidClozeNote() &&
+          !card.isValidInputNote()
       );
       deck.cards = Deck.CleanCards(produced);
     }

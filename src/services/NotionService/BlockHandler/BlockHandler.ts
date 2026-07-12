@@ -539,7 +539,9 @@ class BlockHandler {
     this.emptyBackCount += countEmptyBacks(
       cards,
       (c) => c.back,
-      (c) => c.name
+      (c) => c.name,
+      (c) =>
+        !c.isValidMCQNote() && !c.isValidClozeNote() && !c.isValidInputNote()
     );
 
     return cards; // .filter((c) => !c.isValid());

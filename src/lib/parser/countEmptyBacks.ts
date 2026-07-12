@@ -4,11 +4,16 @@ const isBlank = (value: string | null | undefined): boolean =>
 export function countEmptyBacks<T>(
   cards: readonly T[],
   getBack: (card: T) => string | null | undefined,
-  getFront: (card: T) => string | null | undefined
+  getFront: (card: T) => string | null | undefined,
+  isCountable: (card: T) => boolean = () => true
 ): number {
   let count = 0;
   for (const card of cards) {
-    if (isBlank(getBack(card)) && !isBlank(getFront(card))) {
+    if (
+      isCountable(card) &&
+      isBlank(getBack(card)) &&
+      !isBlank(getFront(card))
+    ) {
       count += 1;
     }
   }
