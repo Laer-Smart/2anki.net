@@ -113,17 +113,23 @@ export const resolveAccountForSubscription = async (
   return null;
 };
 
+const ACCESS_GRANTING_STATUSES = new Set<StripeTypes.Subscription['status']>([
+  'active',
+  'past_due',
+  'unpaid',
+]);
+
 export const updateStoreSubscription = async (
   db: Knex,
   customer: StripeTypes.Customer,
   subscription: StripeTypes.Subscription
 ): Promise<ProvisionResult> => {
   const stripeEmail = normalizeEmail(customer.email);
-  const isActive = subscription.status === 'active';
+  const grantsAccess = ACCESS_GRANTING_STATUSES.has(subscription.status);
   const isCancelScheduled = subscription.cancel_at_period_end === true;
 
-  let shouldRemainActive = isActive;
-  if (isActive && isCancelScheduled) {
+  let shouldRemainActive = grantsAccess;
+  if (grantsAccess && isCancelScheduled) {
     const periodEndDate = new Date((subscription.cancel_at ?? 0) * 1000);
     const currentDate = new Date();
     shouldRemainActive = currentDate < periodEndDate;
