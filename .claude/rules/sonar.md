@@ -2,6 +2,8 @@
 
 The gate blocks merges when **Security Rating on New Code < A**. Security issues are the only category that regularly causes failures — reliability and maintainability rarely flip. But maintainability code smells (cognitive complexity, function nesting, redundant assertions, non-native interactive elements) still land on every PR and have to be cleared one push at a time. Run Sonar locally to find them before they bounce off CI.
 
+**The PR gate is SonarCloud Automatic Analysis, which reads `.sonarcloud.properties` — NOT the `sonar-project.properties` the local `sonar-scanner` uses.** They are two different configs. An exclusion or rule waiver added only to `sonar-project.properties` silences the local scanner but does nothing to the merge gate; the finding still lands on the PR. When you add an exclusion, **mirror it into both files** or the gate won't honor it.
+
 ## Run Sonar locally before pushing — required for non-trivial code changes
 
 **When it's required:** any PR that adds or significantly modifies a function, component, controller, or use case. Skip only for pure dependency bumps, doc/changelog edits, test-only changes, or single-line typo fixes.

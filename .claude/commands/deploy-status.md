@@ -18,4 +18,6 @@ Then report concisely:
 - **Errors**: distinguish user-facing thrown errors (e.g. `getNoPackageError`) from actual crashes (`uncaught exception`, native binding failures, EADDRINUSE).
 - **Verdict**: one paragraph — "deploy healthy" / "watching X" / "broken, escalate".
 
+Normal-on-deploy noise — do NOT flag these as faults: the ~25s graceful-shutdown timeout log and `failed to kill - retrying in 100ms` → `process killed` on the old slot (blue-green hands off, the retiring process drains then exits `code [0] via signal [SIGINT]` — that exit-0 SIGINT is a clean handoff, not a crash), and the pm2 `This PM2 is not UP TO DATE / Upgrade to version X` banner (cosmetic self-nag). Many rapid flips in the log just mean several deploys landed in a row.
+
 Don't dump the full log. Surface specifics only when something is wrong.
