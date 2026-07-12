@@ -48,4 +48,16 @@ describe('deleteNonSubScriberUploadsInDatabase', () => {
     expect(rawCall).toContain('deck_shares');
     expect(rawCall).toContain('revoked_at IS NULL');
   });
+
+  it('exempts holders of an active user pass from upload deletion', async () => {
+    const { dbFn } = makeDb([]);
+    const storage = makeStorage();
+
+    await deleteNonSubScriberUploadsInDatabase(dbFn, storage as any);
+
+    const rawCall = (dbFn.raw as jest.Mock).mock.calls[0][0] as string;
+    expect(rawCall).toContain('user_passes');
+    expect(rawCall).toContain('pass.user_id = u.id');
+    expect(rawCall).toContain('pass.expires_at > now()');
+  });
 });

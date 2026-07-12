@@ -34,10 +34,8 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
 
   constructor(private readonly database: Knex) {}
 
-  async getUsersToNotify(
-    limit = 500
-  ): Promise<Array<{ id: number; name: string; email: string }>> {
-    const rows = await this.database<UserRow>('users')
+  buildUsersToNotifyQuery(limit: number) {
+    return this.database<UserRow>('users')
       .select('users.id', 'users.name', 'users.email')
       .where(function () {
         this.whereRaw(
@@ -56,6 +54,9 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
           .limit(1)
       )
       .whereNotExists(
+        this.buildActivePassExistsQuery('user_passes.user_id = users.id')
+      )
+      .whereNotExists(
         this.database(this.table)
           .whereRaw('inactivity_emails.user_id = users.id')
           .limit(1)
@@ -67,6 +68,12 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
           .limit(1)
       )
       .limit(limit);
+  }
+
+  async getUsersToNotify(
+    limit = 500
+  ): Promise<Array<{ id: number; name: string; email: string }>> {
+    const rows = await this.buildUsersToNotifyQuery(limit);
 
     return rows.map((row) => ({
       id: row.id,
@@ -75,10 +82,8 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
     }));
   }
 
-  async getUsersToDelete(
-    limit = 100
-  ): Promise<Array<{ id: number; email: string }>> {
-    const rows = await this.database<UserRow>(`${this.table} as ie`)
+  buildUsersToDeleteQuery(limit: number) {
+    return this.database<UserRow>(`${this.table} as ie`)
       .join('users as u', 'u.id', 'ie.user_id')
       .select('u.id', 'u.email')
       .whereRaw("ie.sent_at < now() - (? || ' days')::interval", [
@@ -98,8 +103,17 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
           )
           .limit(1)
       )
+      .whereNotExists(
+        this.buildActivePassExistsQuery('user_passes.user_id = u.id')
+      )
       .orderBy('ie.sent_at', 'asc')
       .limit(limit);
+  }
+
+  async getUsersToDelete(
+    limit = 100
+  ): Promise<Array<{ id: number; email: string }>> {
+    const rows = await this.buildUsersToDeleteQuery(limit);
 
     return rows.map((row) => ({ id: row.id, email: row.email }));
   }
@@ -123,8 +137,18 @@ export class InactivityEmailRepository implements IInactivityEmailRepository {
           )
           .limit(1)
       )
+      .whereNotExists(
+        this.buildActivePassExistsQuery('user_passes.user_id = u.id')
+      )
       .orderBy('u.id', 'asc')
       .limit(limit);
+  }
+
+  private buildActivePassExistsQuery(userCorrelation: string) {
+    return this.database('user_passes')
+      .whereRaw(userCorrelation)
+      .whereRaw('user_passes.expires_at > now()')
+      .limit(1);
   }
 
   async getDeadAddressCandidates(
