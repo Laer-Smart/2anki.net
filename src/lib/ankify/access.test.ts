@@ -41,6 +41,32 @@ describe('hasAnkifyAccess', () => {
     );
   });
 
+  test('returns true when ankify_access is granted, without patreon or a sub', () => {
+    expect(
+      hasAnkifyAccess(
+        { patreon: false, ankify_access: true },
+        [],
+        AUTO_SYNC_PRODUCT_ID
+      )
+    ).toBe(true);
+  });
+
+  test('returns false when ankify_access is false and there is no other access', () => {
+    expect(
+      hasAnkifyAccess(
+        { patreon: false, ankify_access: false },
+        [],
+        AUTO_SYNC_PRODUCT_ID
+      )
+    ).toBe(false);
+  });
+
+  test('treats a missing ankify_access field as no grant', () => {
+    expect(hasAnkifyAccess({ patreon: false }, [], AUTO_SYNC_PRODUCT_ID)).toBe(
+      false
+    );
+  });
+
   test('returns true when active Auto Sync subscription matches product ID', () => {
     const subs = [activeAutoSyncSub(AUTO_SYNC_PRODUCT_ID)];
     expect(
