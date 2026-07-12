@@ -1,6 +1,6 @@
 import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
 import { AnkiConnectFactory } from './GetAnkifyStatsUseCase';
-import { buildDueCardsQuery } from './reviewQueries';
+import { buildDueCardsQuery, buildNewCardsQuery } from './reviewQueries';
 
 export type GetReviewQueueResult =
   | { connected: true; cardIds: number[] }
@@ -32,7 +32,19 @@ export class GetReviewQueueUseCase {
 
     await ac.ping();
 
-    const cardIds = await ac.findCards(buildDueCardsQuery(input.deck));
+    // Due + learning cards first (is:due already excludes suspended/buried),
+    // then new cards capped at the deck's Anki daily new allotment. getDeckStats
+    // returns the same new_count Anki shows in its deck list — net of new cards
+    // already studied today and the deck's new/day option — so slicing to it
+    // matches Anki's study session and never bypasses the daily limit.
+    const [dueIds, newIds, deckStats] = await Promise.all([
+      ac.findCards(buildDueCardsQuery(input.deck)),
+      ac.findCards(buildNewCardsQuery(input.deck)),
+      ac.getDeckStats([input.deck]),
+    ]);
+
+    const newLimit = Object.values(deckStats)[0]?.new_count ?? 0;
+    const cardIds = [...dueIds, ...newIds.slice(0, Math.max(0, newLimit))];
     return { connected: true, cardIds };
   }
 }

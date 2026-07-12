@@ -20,18 +20,44 @@ const clientsRepo = (
     findActiveByOwner: jest.fn(async () => client),
   }) as unknown as AnkifyClientsRepositoryInterface;
 
+interface AnkiStub {
+  due?: number[];
+  fresh?: number[];
+  newCount?: number;
+}
+
+const factoryFor = (stub: AnkiStub) => {
+  const findCards = jest.fn(async (query: string) =>
+    query.includes('is:new') ? (stub.fresh ?? []) : (stub.due ?? [])
+  );
+  const getDeckStats = jest.fn(async () => ({
+    '1651445861967': {
+      deck_id: 1651445861967,
+      name: 'Deck',
+      new_count: stub.newCount ?? 0,
+      learn_count: 0,
+      review_count: 0,
+      total_in_deck: 0,
+    },
+  }));
+  const factory = jest.fn(
+    () =>
+      ({
+        ping: jest.fn(async () => 6),
+        findCards,
+        getDeckStats,
+      }) as unknown as AnkiConnectClient
+  );
+  return { factory, findCards, getDeckStats };
+};
+
 describe('GetReviewQueueUseCase', () => {
-  it('returns the due card ids for a deck the user never synced from Notion', async () => {
-    const findCards = jest.fn(async () => [9001, 9002]);
-    const cardsInfo = jest.fn();
-    const factory = jest.fn(
-      () =>
-        ({
-          ping: jest.fn(async () => 6),
-          findCards,
-          cardsInfo,
-        }) as unknown as AnkiConnectClient
-    );
+  it('serves due + learning cards first, then new cards up to the daily limit', async () => {
+    const { factory, findCards, getDeckStats } = factoryFor({
+      due: [9001, 9002],
+      fresh: [7001, 7002, 7003],
+      newCount: 2,
+    });
     const useCase = new GetReviewQueueUseCase(
       clientsRepo(activeClient),
       factory
@@ -40,8 +66,46 @@ describe('GetReviewQueueUseCase', () => {
     const result = await useCase.execute({ owner: 42, deck: 'My Own Deck' });
 
     expect(findCards).toHaveBeenCalledWith('deck:"My Own Deck" is:due');
-    expect(result).toEqual({ connected: true, cardIds: [9001, 9002] });
-    expect(cardsInfo).not.toHaveBeenCalled();
+    expect(findCards).toHaveBeenCalledWith(
+      'deck:"My Own Deck" is:new -is:suspended -is:buried'
+    );
+    expect(getDeckStats).toHaveBeenCalledWith(['My Own Deck']);
+    expect(result).toEqual({
+      connected: true,
+      cardIds: [9001, 9002, 7001, 7002],
+    });
+  });
+
+  it('serves no new cards when the daily new allotment is exhausted', async () => {
+    const { factory } = factoryFor({
+      due: [9001],
+      fresh: [7001, 7002],
+      newCount: 0,
+    });
+    const useCase = new GetReviewQueueUseCase(
+      clientsRepo(activeClient),
+      factory
+    );
+
+    const result = await useCase.execute({ owner: 42, deck: 'Deck' });
+
+    expect(result).toEqual({ connected: true, cardIds: [9001] });
+  });
+
+  it('serves a new-only deck when nothing is due', async () => {
+    const { factory } = factoryFor({
+      due: [],
+      fresh: [7001, 7002, 7003],
+      newCount: 5,
+    });
+    const useCase = new GetReviewQueueUseCase(
+      clientsRepo(activeClient),
+      factory
+    );
+
+    const result = await useCase.execute({ owner: 42, deck: 'Deck' });
+
+    expect(result).toEqual({ connected: true, cardIds: [7001, 7002, 7003] });
   });
 
   it('returns connected:false when no active client', async () => {
@@ -55,16 +119,8 @@ describe('GetReviewQueueUseCase', () => {
     expect(result).toEqual({ connected: false });
   });
 
-  it('returns an empty card id list when no cards are due', async () => {
-    const findCards = jest.fn(async () => []);
-    const factory = jest.fn(
-      () =>
-        ({
-          ping: jest.fn(async () => 6),
-          findCards,
-          cardsInfo: jest.fn(),
-        }) as unknown as AnkiConnectClient
-    );
+  it('returns an empty card id list when nothing is due or new', async () => {
+    const { factory } = factoryFor({ due: [], fresh: [], newCount: 0 });
     const useCase = new GetReviewQueueUseCase(
       clientsRepo(activeClient),
       factory
@@ -79,15 +135,7 @@ describe('GetReviewQueueUseCase', () => {
   });
 
   it('escapes quotes and backslashes in the deck name', async () => {
-    const findCards = jest.fn(async () => []);
-    const factory = jest.fn(
-      () =>
-        ({
-          ping: jest.fn(async () => 6),
-          findCards,
-          cardsInfo: jest.fn(),
-        }) as unknown as AnkiConnectClient
-    );
+    const { factory, findCards } = factoryFor({ newCount: 0 });
     const useCase = new GetReviewQueueUseCase(
       clientsRepo(activeClient),
       factory
@@ -96,5 +144,8 @@ describe('GetReviewQueueUseCase', () => {
     await useCase.execute({ owner: 42, deck: 'Week "18"\\x' });
 
     expect(findCards).toHaveBeenCalledWith('deck:"Week \\"18\\"\\\\x" is:due');
+    expect(findCards).toHaveBeenCalledWith(
+      'deck:"Week \\"18\\"\\\\x" is:new -is:suspended -is:buried'
+    );
   });
 });

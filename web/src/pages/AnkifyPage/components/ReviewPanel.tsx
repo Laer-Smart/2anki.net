@@ -80,7 +80,8 @@ export function DeckPicker({
         .filter((node) => !hasCollapsedAncestor(node.deck.fullName, collapsed))
         .map((node) => {
           const due = node.aggregateDue;
-          const reviewable = due + node.aggregateLearning > 0;
+          const reviewable =
+            due + node.aggregateLearning + node.aggregateNew > 0;
           const muted = !reviewable;
           const leaf =
             node.deck.name.length > 0 ? node.deck.name : 'Untitled deck';
@@ -551,7 +552,7 @@ export default function ReviewPanel({ backend }: Props) {
         return panel(
           <>
             <p className={styles.emptyLine}>
-              All caught up. No cards due across your decks right now.
+              Nothing to study in this deck right now — no due or new cards.
             </p>
             {backToDecks}
           </>
@@ -611,7 +612,7 @@ export default function ReviewPanel({ backend }: Props) {
   return panel(
     <>
       <p className={styles.decksHelper}>
-        Pick a deck to review its due cards without opening Anki.
+        Pick a deck to study its due and new cards without opening Anki.
       </p>
       <DeckPicker
         decks={stats.data.decks}

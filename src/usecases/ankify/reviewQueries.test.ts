@@ -1,4 +1,8 @@
-import { buildCardExistsQuery, buildDueCardsQuery } from './reviewQueries';
+import {
+  buildCardExistsQuery,
+  buildDueCardsQuery,
+  buildNewCardsQuery,
+} from './reviewQueries';
 
 describe('reviewQueries', () => {
   describe('buildDueCardsQuery', () => {
@@ -23,6 +27,20 @@ describe('reviewQueries', () => {
     it('preserves the :: hierarchy separator', () => {
       expect(buildDueCardsQuery('MS3::Pharma::Sub')).toBe(
         'deck:"MS3::Pharma::Sub" is:due'
+      );
+    });
+  });
+
+  describe('buildNewCardsQuery', () => {
+    it('scopes is:new to a single deck and excludes suspended and buried', () => {
+      expect(buildNewCardsQuery('Notion Sync::Pharma')).toBe(
+        'deck:"Notion Sync::Pharma" is:new -is:suspended -is:buried'
+      );
+    });
+
+    it('escapes quotes and backslashes in the deck name', () => {
+      expect(buildNewCardsQuery('Week "18"\\x')).toBe(
+        'deck:"Week \\"18\\"\\\\x" is:new -is:suspended -is:buried'
       );
     });
   });
