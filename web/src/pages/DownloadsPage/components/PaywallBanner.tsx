@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import JobResponse from '../../../schemas/public/JobResponse';
@@ -16,13 +16,22 @@ const SEE_ALL_PLANS_HREF = '/pricing?source=paywall-cancel';
 
 export function PaywallBanner({ inProgressJob }: PaywallBannerProps) {
   const [pending, setPending] = useState(false);
+  const upgradeClickedRef = useRef(false);
 
   useEffect(() => {
     firePaywallEvent('paywall_shown');
     track('paywall_shown', { surface: 'downloads_banner' });
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (upgradeClickedRef.current) return;
+      track('paywall_dismissed', { surface: 'downloads_banner' });
+    };
+  }, []);
+
   const handleUpgrade = async () => {
+    upgradeClickedRef.current = true;
     firePaywallEvent('paywall_clicked_upgrade');
     track('paywall_upgrade_clicked', { surface: 'downloads_banner' });
     setPending(true);

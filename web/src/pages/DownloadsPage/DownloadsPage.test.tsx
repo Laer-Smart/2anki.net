@@ -983,6 +983,82 @@ describe('DownloadsPage make another deck CTA', () => {
   });
 });
 
+describe('DownloadsPage view telemetry', () => {
+  let fetchCalls: { url: string; body: Record<string, unknown> }[] = [];
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-07-11T12:00:00Z'));
+    fetchCalls = [];
+    (globalThis as AnalyticsGlobals).hj = vi.fn();
+    (globalThis as AnalyticsGlobals).gtag = vi.fn();
+    globalThis.fetch = vi
+      .fn()
+      .mockImplementation((url: string, init?: RequestInit) => {
+        if (typeof url === 'string') {
+          try {
+            fetchCalls.push({
+              url,
+              body: JSON.parse((init?.body as string) ?? '{}'),
+            });
+          } catch {
+            /* ignore */
+          }
+        }
+        return Promise.resolve(new Response(null, { status: 200 }));
+      });
+    mockJobs = [buildJob({ status: 'done', download_key: 'deck.apkg' })];
+    mockUploads = [];
+    mockDropboxUploads = [];
+    mockGoogleDriveUploads = [];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    delete (globalThis as AnalyticsGlobals).hj;
+    delete (globalThis as AnalyticsGlobals).gtag;
+  });
+
+  const downloadsPageViewedCalls = () =>
+    fetchCalls.filter(
+      (c) =>
+        c.url === '/api/events/track' &&
+        c.body?.name === 'downloads_page_viewed'
+    );
+
+  it('fires downloads_page_viewed once on mount', () => {
+    renderAt('/downloads');
+    expect(downloadsPageViewedCalls()).toHaveLength(1);
+  });
+
+  it('fires downloads_page_viewed only once across a re-render', () => {
+    const { rerender } = render(
+      <QueryClientProvider
+        client={
+          new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        }
+      >
+        <MemoryRouter initialEntries={['/downloads']}>
+          <DownloadsPage setError={vi.fn()} />
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+    rerender(
+      <QueryClientProvider
+        client={
+          new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        }
+      >
+        <MemoryRouter initialEntries={['/downloads']}>
+          <DownloadsPage setError={vi.fn()} />
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+    expect(downloadsPageViewedCalls()).toHaveLength(1);
+  });
+});
+
 describe('DownloadsPage truncation notice', () => {
   const truncatedJob = (subDeckRulesSkipped: boolean) =>
     buildJob({

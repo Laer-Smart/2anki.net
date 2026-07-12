@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 
 import useUploads from './hooks/useUploads';
@@ -326,7 +332,14 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
     null
   );
   const [hasDownloaded, setHasDownloaded] = useState(false);
+  const pageViewTracked = useRef(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (pageViewTracked.current) return;
+    pageViewTracked.current = true;
+    track('downloads_page_viewed');
+  }, []);
 
   const rawFilter = searchParams.get('filter') ?? 'all';
   const activeFilter: FilterValue = VALID_FILTERS.has(rawFilter as FilterValue)

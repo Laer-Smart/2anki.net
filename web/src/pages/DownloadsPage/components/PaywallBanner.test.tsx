@@ -191,6 +191,55 @@ describe('PaywallBanner', () => {
     });
   });
 
+  it('fires paywall_dismissed on unmount when the user never clicked upgrade', async () => {
+    const { track } = await import('../../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+
+    const { unmount } = render(
+      <MemoryRouter>
+        <PaywallBanner inProgressJob={null} />
+      </MemoryRouter>
+    );
+
+    expect(trackMock).not.toHaveBeenCalledWith(
+      'paywall_dismissed',
+      expect.anything()
+    );
+
+    unmount();
+
+    expect(trackMock).toHaveBeenCalledWith('paywall_dismissed', {
+      surface: 'downloads_banner',
+    });
+  });
+
+  it('does not fire paywall_dismissed when the user clicked upgrade before unmount', async () => {
+    startUnlimitedCheckout.mockResolvedValue({
+      url: 'https://checkout.test/s',
+    });
+    const { track } = await import('../../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+
+    const { unmount } = render(
+      <MemoryRouter>
+        <PaywallBanner inProgressJob={null} />
+      </MemoryRouter>
+    );
+
+    await act(async () => {
+      fireEvent.click(getUpgradeButton());
+    });
+
+    trackMock.mockClear();
+    unmount();
+
+    expect(trackMock).not.toHaveBeenCalledWith(
+      'paywall_dismissed',
+      expect.anything()
+    );
+  });
+
   it('starts an Unlimited checkout and redirects to the returned Stripe url', async () => {
     startUnlimitedCheckout.mockResolvedValue({
       url: 'https://checkout.stripe.test/session-123',

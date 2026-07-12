@@ -39,6 +39,7 @@ export const KNOWN_EVENTS = new Set([
   'cancel_during_generating',
   'signup_completed',
   'upload_page_viewed',
+  'downloads_page_viewed',
   'onboarding_shown',
   'onboarding_skipped',
   'onboarding_completed',
