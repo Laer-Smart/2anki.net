@@ -1040,3 +1040,31 @@ describe('consumeSseEvents', () => {
     expect(received).toEqual([['token', '"split"']]);
   });
 });
+
+describe('ChatPanel — monthly usage counter', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+  });
+
+  it('shows the free counter when the usage endpoint returns a numeric limit', async () => {
+    mockGet.mockResolvedValue({ used: 18, limit: 20 });
+    renderChatPanel();
+
+    expect(
+      await screen.findByText('2 of 20 messages left this month')
+    ).toBeInTheDocument();
+  });
+
+  it('hides the counter for premium users (limit null), even with messages used', async () => {
+    mockGet.mockResolvedValue({ used: 18, limit: null });
+    renderChatPanel();
+
+    await waitFor(() => {
+      expect(get).toHaveBeenCalledWith('/api/chat/usage', { redirect: false });
+    });
+
+    expect(
+      screen.queryByText(/messages left this month/)
+    ).not.toBeInTheDocument();
+  });
+});
