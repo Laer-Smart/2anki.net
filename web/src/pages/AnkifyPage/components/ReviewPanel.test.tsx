@@ -210,7 +210,7 @@ describe('ReviewPanel', () => {
 
     expect(
       await screen.findByText(
-        'Pick a deck to review its due cards without opening Anki.'
+        'Pick a deck to study its due and new cards without opening Anki.'
       )
     ).toBeInTheDocument();
     expect(trackMock).toHaveBeenCalledWith(
@@ -234,7 +234,7 @@ describe('ReviewPanel', () => {
 
     expect(
       await screen.findByText(
-        'All caught up. No cards due across your decks right now.'
+        'Nothing to study in this deck right now — no due or new cards.'
       )
     ).toBeInTheDocument();
   });
@@ -252,14 +252,14 @@ describe('ReviewPanel', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
     await screen.findByText(
-      'All caught up. No cards due across your decks right now.'
+      'Nothing to study in this deck right now — no due or new cards.'
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Back to decks' }));
 
     expect(
       await screen.findByText(
-        'Pick a deck to review its due cards without opening Anki.'
+        'Pick a deck to study its due and new cards without opening Anki.'
       )
     ).toBeInTheDocument();
   });
@@ -333,6 +333,19 @@ describe('ReviewPanel', () => {
 
     const reviewButton = await screen.findByRole('button', { name: 'Review' });
     expect(reviewButton).toBeDisabled();
+  });
+
+  test('enables the Review button for a deck with only new cards', async () => {
+    renderPanel(
+      makeBackend({
+        getAnkifyStats: vi.fn(async () =>
+          statsWithCounts({ review: 0, learning: 0, new: 4 })
+        ),
+      })
+    );
+
+    const reviewButton = await screen.findByRole('button', { name: 'Review' });
+    expect(reviewButton).toBeEnabled();
   });
 
   test('sends the full deck path to the review queue for a subdeck', async () => {
@@ -549,18 +562,5 @@ describe('ReviewPanel', () => {
 
     const reviewButton = await screen.findByRole('button', { name: 'Review' });
     expect(reviewButton).not.toBeDisabled();
-  });
-
-  test('disables Review when a deck has only new cards (the due queue serves none)', async () => {
-    renderPanel(
-      makeBackend({
-        getAnkifyStats: vi.fn(async () =>
-          statsWithCounts({ review: 0, learning: 0, new: 3 })
-        ),
-      })
-    );
-
-    const reviewButton = await screen.findByRole('button', { name: 'Review' });
-    expect(reviewButton).toBeDisabled();
   });
 });
