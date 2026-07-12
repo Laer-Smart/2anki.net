@@ -45,6 +45,9 @@ import { EventsMetricsRepository } from '../data_layer/EventsMetricsRepository';
 import { SyncStripeSubscriptionsUseCase } from '../usecases/ops/SyncStripeSubscriptionsUseCase';
 import { GetUploadFunnelUseCase } from '../usecases/ops/GetUploadFunnelUseCase';
 import { UploadFunnelService } from '../services/ops/UploadFunnelService';
+import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldUseCase';
+import { LandingPageYieldService } from '../services/ops/LandingPageYieldService';
+import { LandingPageYieldRepository } from '../data_layer/LandingPageYieldRepository';
 import { updateStripeSubscriptions } from '../lib/storage/jobs/helpers/updateStripeSubscriptions';
 import EventsRepository from '../data_layer/EventsRepository';
 import { FeatureFlagsRepository } from '../data_layer/FeatureFlagsRepository';
@@ -141,6 +144,11 @@ const OpsRouter = () => {
         const customer = await getStripe().customers.retrieve(customerId);
         return 'email' in customer ? (customer.email ?? null) : null;
       }
+    ),
+    new GetLandingPageYieldUseCase(
+      new LandingPageYieldService({
+        repo: new LandingPageYieldRepository(database),
+      })
     )
   );
 
@@ -466,6 +474,37 @@ const OpsRouter = () => {
    */
   router.get('/api/ops/upload-funnel', RequireOpsAccess, (req, res) =>
     controller.getUploadFunnel(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/growth/landing-page-yield:
+   *   get:
+   *     summary: Signups and paid conversions per landing page
+   *     description: |
+   *       Groups users by signup_origin and reports, per page, the number of
+   *       signups in the window, how many became active subscribers, how many
+   *       bought a pass, and the deduplicated paid conversion rate. Defaults to
+   *       the last 30 days; pass ?window=7d|14d|30d|60d|90d.
+   *       Internal endpoint locked to the ops owner — returns 404 for everyone else.
+   *     tags: [Ops]
+   *     parameters:
+   *       - in: query
+   *         name: window
+   *         schema:
+   *           type: string
+   *           enum: ['7d', '14d', '30d', '60d', '90d']
+   *         description: Lookback window. Defaults to 30d.
+   *     responses:
+   *       200:
+   *         description: Landing page yield payload
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.get(
+    '/api/ops/growth/landing-page-yield',
+    RequireOpsAccess,
+    (req, res) => controller.getLandingPageYield(req, res)
   );
 
   /**

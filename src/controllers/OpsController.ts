@@ -19,6 +19,7 @@ import {
 import { GetUploadFunnelUseCase } from '../usecases/ops/GetUploadFunnelUseCase';
 import { GetOrphanedSubscriptionsUseCase } from '../usecases/ops/GetOrphanedSubscriptionsUseCase';
 import { ReconcileOrphanedSubscriptionsUseCase } from '../usecases/ops/ReconcileOrphanedSubscriptionsUseCase';
+import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldUseCase';
 
 class OpsController {
   constructor(
@@ -37,7 +38,8 @@ class OpsController {
     private readonly setFeatureFlagUseCase?: SetFeatureFlagUseCase,
     private readonly getUploadFunnelUseCase?: GetUploadFunnelUseCase,
     private readonly getOrphanedSubscriptionsUseCase?: GetOrphanedSubscriptionsUseCase,
-    private readonly reconcileOrphanedSubscriptionsUseCase?: ReconcileOrphanedSubscriptionsUseCase
+    private readonly reconcileOrphanedSubscriptionsUseCase?: ReconcileOrphanedSubscriptionsUseCase,
+    private readonly getLandingPageYieldUseCase?: GetLandingPageYieldUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -303,6 +305,22 @@ class OpsController {
     } catch (error) {
       console.error('[ops] getUploadFunnel failed', error);
       res.status(500).json({ message: 'Failed to load upload funnel' });
+    }
+  }
+
+  async getLandingPageYield(req: express.Request, res: express.Response) {
+    if (this.getLandingPageYieldUseCase == null) {
+      res.status(503).json({ message: 'Landing page yield not configured' });
+      return;
+    }
+    try {
+      const window =
+        typeof req.query.window === 'string' ? req.query.window : undefined;
+      const result = await this.getLandingPageYieldUseCase.execute(window);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('[ops] getLandingPageYield failed', error);
+      res.status(500).json({ message: 'Failed to load landing page yield' });
     }
   }
 
