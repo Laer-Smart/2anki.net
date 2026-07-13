@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-13-claude-cloze-answer",
+  "date": "2026-07-13",
+  "type": "fix",
+  "title": "AI conversions with cloze cards convert even when a card has no separate answer"
+}

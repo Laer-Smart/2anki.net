@@ -296,7 +296,7 @@ function expandCompactDeckInfo(
     },
     cards: d.cards.map((c) => {
       const { back: rewrittenBack, audioFilenames } = rewriteAudioAnchors(
-        stripPathsFromCardHtml(c.a)
+        stripPathsFromCardHtml(c.a ?? '')
       );
       const declaredMedia = (c.media ?? []).map((m) =>
         resolveMediaPath(m, availableMediaFiles)
@@ -736,7 +736,7 @@ async function generateDeckInfoFromChunk(
             (sum, d) =>
               sum +
               d.cards.reduce(
-                (s, c) => s + c.a.replace(/<[^>]*>/g, '').length,
+                (s, c) => s + (c.a ?? '').replace(/<[^>]*>/g, '').length,
                 0
               ),
             0
@@ -754,7 +754,7 @@ async function generateDeckInfoFromChunk(
             (sum, d) =>
               sum +
               d.cards.reduce(
-                (s, c) => s + c.a.replace(/<[^>]*>/g, '').length,
+                (s, c) => s + (c.a ?? '').replace(/<[^>]*>/g, '').length,
                 0
               ),
             0
@@ -895,7 +895,7 @@ function collectExistingFronts(decks: DeckInfo[]): string[] {
 function buildTopUpInstruction(existingFronts: string[]): string {
   const sample = existingFronts
     .slice(0, 80)
-    .map((f) => f.replace(/<[^>]*>/g, '').slice(0, 120));
+    .map((f) => (f ?? '').replace(/<[^>]*>/g, '').slice(0, 120));
   const list = sample.map((s) => `- ${s}`).join('\n');
   return `Extract MORE single-fact cards from the same content. Do NOT repeat any of these fronts:\n${list}\n\nReturn only net-new cards.`;
 }
