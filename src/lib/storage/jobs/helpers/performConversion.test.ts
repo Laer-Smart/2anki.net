@@ -33,6 +33,13 @@ jest.mock('../../../../data_layer/UnsupportedNotionBlockRepository', () => ({
     .mockImplementation(() => ({ record: mockRecordUnsupported })),
 }));
 
+const mockRecordOutputStats = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../data_layer/ConversionOutputStatsRepository', () => ({
+  ConversionOutputStatsRepository: jest
+    .fn()
+    .mockImplementation(() => ({ record: mockRecordOutputStats })),
+}));
+
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -540,6 +547,53 @@ describe('performConversion — workspace cleanup', () => {
 
     await performConversion(mockDatabase, baseRequest);
 
+    expect(track).toHaveBeenCalledWith(
+      'conversion_succeeded',
+      expect.objectContaining({
+        props: expect.objectContaining({ source: 'notion' }),
+      })
+    );
+  });
+
+  it('does not fail the conversion when the conversion-output-stats write rejects with a pool timeout', async () => {
+    mockRecordOutputStats.mockRejectedValueOnce(
+      new Error(
+        'Knex: Timeout acquiring a connection. The pool is probably full.'
+      )
+    );
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: { cardCount: 3, emptyBackCount: 0, unsupportedBlockTypes: [] },
+        rules: {},
+      }),
+    }));
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [1, 2, 3] }]),
+    }));
+    (CheckMonthlyCardLimitUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (BuildDeckForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest
+        .fn()
+        .mockResolvedValue({ size: 1, key: 'k', apkg: Buffer.from('') }),
+    }));
+    (NotifyUserUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (CompleteJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(mockRecordOutputStats).toHaveBeenCalledWith(
+      'convert',
+      expect.objectContaining({ cards: 3, emptyBack: 0 })
+    );
     expect(track).toHaveBeenCalledWith(
       'conversion_succeeded',
       expect.objectContaining({
