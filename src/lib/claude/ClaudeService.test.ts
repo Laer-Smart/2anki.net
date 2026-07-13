@@ -1295,3 +1295,51 @@ describe('generateDeckInfo — floor v1 (comprehensive CardOption)', () => {
     expect(mockStream.finalMessage.mock.calls.length).toBeLessThan(6 + 6 + 6);
   });
 });
+
+describe('generateDeckInfo — card with a missing answer field', () => {
+  const textHtml =
+    '<html><body><h1>Cells</h1><p>The cell is the basic unit of life.</p></body></html>';
+
+  function responseWith(cards: Array<Record<string, unknown>>) {
+    return {
+      content: [
+        { type: 'text', text: JSON.stringify([{ deck: 'Biology', cards }]) },
+      ],
+      stop_reason: 'end_turn',
+      usage: { input_tokens: 100, output_tokens: 50 },
+    };
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockStreamFn.mockReturnValue(mockStream);
+    mockStream.on.mockReturnThis();
+  });
+
+  it('converts a cloze card that omits the answer field instead of failing the chunk', async () => {
+    mockStream.finalMessage.mockResolvedValue(
+      responseWith([
+        { q: 'The {{c1::cell}} is the basic unit of life', cloze: true },
+      ])
+    );
+
+    const result = await generateDeckInfo(textHtml, []);
+
+    const cards = result.flatMap((deck) => deck.cards);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].cloze).toBe(true);
+    expect(cards[0].back).toBe('');
+  });
+
+  it('converts a basic card whose answer is undefined instead of throwing', async () => {
+    mockStream.finalMessage.mockResolvedValue(
+      responseWith([{ q: 'What is the basic unit of life?' }])
+    );
+
+    const result = await generateDeckInfo(textHtml, []);
+
+    const cards = result.flatMap((deck) => deck.cards);
+    expect(cards).toHaveLength(1);
+    expect(cards[0].back).toBe('');
+  });
+});

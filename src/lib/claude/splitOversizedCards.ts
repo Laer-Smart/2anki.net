@@ -54,7 +54,7 @@ function splitCard(card: CompactCard): CompactCard[] {
     return [card];
   }
 
-  const plain = stripHtmlTags(card.a);
+  const plain = stripHtmlTags(card.a ?? '');
   if (plain.length <= ANSWER_CEILING) {
     return [card];
   }
