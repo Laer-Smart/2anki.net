@@ -21,6 +21,7 @@ import { GetOrphanedSubscriptionsUseCase } from '../usecases/ops/GetOrphanedSubs
 import { ReconcileOrphanedSubscriptionsUseCase } from '../usecases/ops/ReconcileOrphanedSubscriptionsUseCase';
 import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldUseCase';
 import { GetCustomerSignalsUseCase } from '../usecases/ops/GetCustomerSignalsUseCase';
+import { GetPassUnlockMonitorUseCase } from '../usecases/ops/GetPassUnlockMonitorUseCase';
 
 class OpsController {
   constructor(
@@ -41,7 +42,8 @@ class OpsController {
     private readonly getOrphanedSubscriptionsUseCase?: GetOrphanedSubscriptionsUseCase,
     private readonly reconcileOrphanedSubscriptionsUseCase?: ReconcileOrphanedSubscriptionsUseCase,
     private readonly getLandingPageYieldUseCase?: GetLandingPageYieldUseCase,
-    private readonly getCustomerSignalsUseCase?: GetCustomerSignalsUseCase
+    private readonly getCustomerSignalsUseCase?: GetCustomerSignalsUseCase,
+    private readonly getPassUnlockMonitorUseCase?: GetPassUnlockMonitorUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -339,6 +341,22 @@ class OpsController {
     } catch (error) {
       console.error('[ops] getCustomerSignals failed', error);
       res.status(500).json({ message: 'Failed to load customer signals' });
+    }
+  }
+
+  async getPassUnlockMonitor(req: express.Request, res: express.Response) {
+    if (this.getPassUnlockMonitorUseCase == null) {
+      res.status(503).json({ message: 'Pass unlock monitor not configured' });
+      return;
+    }
+    try {
+      const window =
+        typeof req.query.window === 'string' ? req.query.window : undefined;
+      const result = await this.getPassUnlockMonitorUseCase.execute(window);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('[ops] getPassUnlockMonitor failed', error);
+      res.status(500).json({ message: 'Failed to load pass unlock monitor' });
     }
   }
 

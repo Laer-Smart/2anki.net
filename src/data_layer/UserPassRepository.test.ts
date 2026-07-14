@@ -62,6 +62,24 @@ describe('InMemoryUserPassRepository', () => {
     });
   });
 
+  describe('existsByPaymentIntentId', () => {
+    it('returns false when no pass matches the payment intent', async () => {
+      const exists = await repo.existsByPaymentIntentId('pi_absent');
+      expect(exists).toBe(false);
+    });
+
+    it('returns true when a pass matches the payment intent', async () => {
+      repo.seed({
+        user_id: 1,
+        kind: '24h',
+        expires_at: new Date(NOW.getTime() + DURATION_24H),
+        stripe_payment_intent_id: 'pi_present',
+      });
+      const exists = await repo.existsByPaymentIntentId('pi_present');
+      expect(exists).toBe(true);
+    });
+  });
+
   describe('upsertWithExtension', () => {
     it('inserts a fresh pass when no active pass exists', async () => {
       const pass = await repo.upsertWithExtension(
