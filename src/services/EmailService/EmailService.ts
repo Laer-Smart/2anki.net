@@ -11,6 +11,7 @@ import {
   INACTIVITY_WARNING_TEMPLATE,
   MAGIC_LINK_TEMPLATE,
   NOTION_RECONNECT_TEMPLATE,
+  PASS_WINBACK_TEMPLATE,
   PASSWORD_RESET_TEMPLATE,
   PRICE_LOCK_IN_TEMPLATE,
   RE_ENGAGEMENT_TEMPLATE,
@@ -84,6 +85,7 @@ export interface IEmailService {
     lastConversion?: { deckName: string } | null
   ): Promise<void>;
   sendAbandonedCheckoutRecoveryEmail(to: string, token: string): Promise<void>;
+  sendPassWinbackEmail(to: string, token: string): Promise<void>;
   sendParserCanaryAlert(to: string, summary: string): Promise<void>;
   sendNotionReconnectEmail(email: string): Promise<void>;
   sendSubscriptionClaimConfirmation(
@@ -451,6 +453,32 @@ export class EmailService implements IEmailService {
         `Failed to send abandoned-checkout recovery to ${to}:`,
         error
       );
+      throw error;
+    }
+  }
+
+  async sendPassWinbackEmail(to: string, token: string): Promise<void> {
+    const domain = process.env.DOMAIN ?? 'https://2anki.net';
+    const ctaUrl = `${domain}/r/email?t=${encodeURIComponent(token)}&c=pass_winback&to=/pricing`;
+    const unsubscribeUrl = `${domain}/unsubscribe?uid=${token}`;
+    const markup = PASS_WINBACK_TEMPLATE.replace('{{ctaUrl}}', ctaUrl).replace(
+      '{{unsubscribeUrl}}',
+      unsubscribeUrl
+    );
+    const $ = cheerio.load(markup);
+    const text = $('body').text().replace(/\s+/g, ' ').trim();
+    const msg = {
+      to,
+      from: this.defaultSender,
+      subject: 'Back for another exam? Pick up a 2anki pass',
+      text,
+      html: markup,
+      replyTo: 'support@2anki.net',
+    };
+    try {
+      await sgMail.send(msg);
+    } catch (error) {
+      console.error(`Failed to send pass win-back to ${to}:`, error);
       throw error;
     }
   }
@@ -886,6 +914,10 @@ export class UnimplementedEmailService implements IEmailService {
     token: string
   ): Promise<void> {
     console.info('sendAbandonedCheckoutRecoveryEmail not handled', to, token);
+  }
+
+  async sendPassWinbackEmail(to: string, token: string): Promise<void> {
+    console.info('sendPassWinbackEmail not handled', to, token);
   }
 
   async sendParserCanaryAlert(to: string, summary: string): Promise<void> {

@@ -42,6 +42,7 @@ function buildEmailService(
     sendReEngagementEmail: jest.fn(),
     sendInactivityWarningEmail: jest.fn(),
     sendAbandonedCheckoutRecoveryEmail: jest.fn(),
+    sendPassWinbackEmail: jest.fn(),
     sendParserCanaryAlert: jest.fn(),
     sendNotionReconnectEmail: jest.fn().mockResolvedValue(undefined),
     sendSubscriptionClaimConfirmation: jest.fn().mockResolvedValue(undefined),

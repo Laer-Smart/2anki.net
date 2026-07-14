@@ -65,6 +65,11 @@ export const ABANDONED_CHECKOUT_RECOVERY_TEMPLATE = fs.readFileSync(
   'utf8'
 );
 
+export const PASS_WINBACK_TEMPLATE = fs.readFileSync(
+  path.join(EMAIL_TEMPLATES_DIRECTORY, 'pass-winback.html'),
+  'utf8'
+);
+
 export const NOTION_RECONNECT_TEMPLATE = fs.readFileSync(
   path.join(EMAIL_TEMPLATES_DIRECTORY, 'notion-reconnect.html'),
   'utf8'
