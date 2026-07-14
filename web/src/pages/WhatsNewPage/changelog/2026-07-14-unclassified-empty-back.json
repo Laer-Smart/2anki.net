@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-14-unclassified-empty-back",
+  "date": "2026-07-14",
+  "type": "fix",
+  "title": "Uploads of plain lists and prose no longer convert to a deck of blank-back cards"
+}
