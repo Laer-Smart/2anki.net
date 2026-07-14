@@ -1178,6 +1178,19 @@ export class Backend {
     }
   }
 
+  async recordFeatureInterest(
+    featureKey: string,
+    comment?: string
+  ): Promise<void> {
+    const response = await post(`${this.baseURL}feature-interest`, {
+      feature_key: featureKey,
+      comment: comment ?? null,
+    });
+    if (!response.ok) {
+      throw new Error('Failed to record interest');
+    }
+  }
+
   async listContactMessages(): Promise<ContactMessage[]> {
     return get(`${this.baseURL}ops/contact-messages`);
   }

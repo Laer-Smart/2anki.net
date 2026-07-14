@@ -54,6 +54,7 @@ import opsErrorsRouter from './routes/OpsErrorsRouter';
 import contactMessagesRouter from './routes/ContactMessagesRouter';
 import showcaseRouter from './routes/ShowcaseRouter';
 import emojiFeedbackRouter from './routes/EmojiFeedbackRouter';
+import featureInterestRouter from './routes/FeatureInterestRouter';
 import reEngagementRouter from './routes/ReEngagementRouter';
 import emailRedirectRouter from './routes/EmailRedirectRouter';
 import imageOcclusionRouter from './routes/ImageOcclusionRouter';
@@ -183,6 +184,7 @@ const serve = async () => {
   app.use(opsErrorsRouter());
   app.use(contactMessagesRouter());
   app.use(emojiFeedbackRouter());
+  app.use(featureInterestRouter());
   app.use(reEngagementRouter());
   app.use(emailRedirectRouter());
   app.use(imageOcclusionRouter());
