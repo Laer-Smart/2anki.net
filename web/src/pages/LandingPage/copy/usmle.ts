@@ -10,6 +10,10 @@ const usmleCopy: LandingCopy = {
       label: 'Turn medical lecture slides into Anki cards',
       href: '/anki-from-medical-lecture-slides',
     },
+    {
+      label: 'Turn your First Aid notes into Step 1 cards',
+      href: '/step1-anki',
+    },
     { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
     { label: 'Browse every converter', href: '/convert' },
   ],

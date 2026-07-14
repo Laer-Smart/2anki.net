@@ -193,6 +193,18 @@ const NursingFlashcards = lazyWithRetry(
   () => import('./pages/LandingPage/NursingFlashcards'),
   './pages/LandingPage/NursingFlashcards'
 );
+const Step1Anki = lazyWithRetry(
+  () => import('./pages/LandingPage/Step1Anki'),
+  './pages/LandingPage/Step1Anki'
+);
+const NclexAnki = lazyWithRetry(
+  () => import('./pages/LandingPage/NclexAnki'),
+  './pages/LandingPage/NclexAnki'
+);
+const McatAnki = lazyWithRetry(
+  () => import('./pages/LandingPage/McatAnki'),
+  './pages/LandingPage/McatAnki'
+);
 const Japanese = lazyWithRetry(
   () => import('./pages/LandingPage/Japanese'),
   './pages/LandingPage/Japanese'
@@ -612,6 +624,18 @@ function AppContent({
             <Route
               path="/nursing-flashcards"
               element={<NursingFlashcards setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/step1-anki"
+              element={<Step1Anki setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/nclex-anki"
+              element={<NclexAnki setErrorMessage={setErrorMessage} />}
+            />
+            <Route
+              path="/mcat-anki"
+              element={<McatAnki setErrorMessage={setErrorMessage} />}
             />
             <Route
               path="/anki-for-japanese"
