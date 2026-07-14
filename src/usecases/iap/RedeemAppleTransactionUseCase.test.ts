@@ -6,8 +6,27 @@ import {
   type DecodedAppleTransaction,
   type IAppleStoreKitService,
 } from '../../services/AppleStoreKitService';
+jest.mock('../../services/events/eventsSinkInstance', () => {
+  const recorded: unknown[] = [];
+  return {
+    getEventsSink: () => ({
+      record: jest.fn((row: unknown) => recorded.push(row)),
+    }),
+    resetEventsSinkForTesting: jest.fn(),
+    __recorded: recorded,
+  };
+});
+
 import { RedeemAppleTransactionUseCase } from './RedeemAppleTransactionUseCase';
 import { IapRedeemError } from './IapRedeemError';
+
+function recordedEvents(): Array<Record<string, unknown>> {
+  return (
+    jest.requireMock('../../services/events/eventsSinkInstance') as {
+      __recorded: Array<Record<string, unknown>>;
+    }
+  ).__recorded;
+}
 
 const NOW = new Date('2026-06-01T00:00:00.000Z');
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -50,6 +69,10 @@ function build(service: IAppleStoreKitService) {
 describe('RedeemAppleTransactionUseCase', () => {
   beforeAll(() => {
     process.env.THE_HASHING_SECRET = 'test-hashing-secret';
+  });
+
+  beforeEach(() => {
+    recordedEvents().length = 0;
   });
 
   it.each([
@@ -191,6 +214,101 @@ describe('RedeemAppleTransactionUseCase', () => {
         productId: 'lifetime.forever',
       })
     ).rejects.toBeInstanceOf(IapRedeemError);
+  });
+
+  describe('native_app_activated telemetry', () => {
+    it('emits native_app_activated with attribution props on a consumable grant', async () => {
+      const { useCase } = build(
+        serviceReturning(
+          decoded({ productId: 'daypass.24h', transactionId: 't' })
+        )
+      );
+
+      await useCase.execute({
+        userId: USER_ID,
+        jws: 'signed',
+        productId: 'daypass.24h',
+      });
+
+      expect(recordedEvents()).toHaveLength(1);
+      expect(recordedEvents()[0]).toMatchObject({
+        name: 'native_app_activated',
+        user_id: USER_ID,
+        props: {
+          platform: 'apple',
+          product_kind: 'consumable',
+          pass_kind: '24h',
+          environment: 'Sandbox',
+        },
+      });
+    });
+
+    it('emits native_app_activated for a subscription grant', async () => {
+      const { useCase } = build(
+        serviceReturning(
+          decoded({
+            productId: 'unlimited.monthly',
+            transactionId: 'sub-1',
+            environment: 'Production',
+            expiresDateMs: new Date('2026-07-01T00:00:00.000Z').getTime(),
+          })
+        )
+      );
+
+      await useCase.execute({
+        userId: USER_ID,
+        jws: 'signed',
+        productId: 'unlimited.monthly',
+      });
+
+      expect(recordedEvents()[0]).toMatchObject({
+        name: 'native_app_activated',
+        props: {
+          product_kind: 'subscription',
+          pass_kind: 'unlimited',
+          environment: 'Production',
+        },
+      });
+    });
+
+    it('does not emit native_app_activated when verification fails', async () => {
+      const { useCase } = build(serviceThrowing(new AppleVerificationError()));
+
+      await expect(
+        useCase.execute({
+          userId: USER_ID,
+          jws: 'bad',
+          productId: 'daypass.24h',
+        })
+      ).rejects.toMatchObject({ status: 400 });
+
+      expect(recordedEvents()).toHaveLength(0);
+    });
+
+    it('does not emit native_app_activated for an already-credited transaction', async () => {
+      const { useCase, ledger } = build(
+        serviceReturning(decoded({ transactionId: 'dupe' }))
+      );
+      await ledger.record(
+        {
+          userId: USER_ID,
+          transactionId: 'dupe',
+          productId: 'daypass.24h',
+          environment: 'Sandbox',
+        },
+        NOW
+      );
+
+      await expect(
+        useCase.execute({
+          userId: USER_ID,
+          jws: 'signed',
+          productId: 'daypass.24h',
+        })
+      ).rejects.toMatchObject({ status: 409 });
+
+      expect(recordedEvents()).toHaveLength(0);
+    });
   });
 
   describe('unlimited.monthly subscription', () => {
