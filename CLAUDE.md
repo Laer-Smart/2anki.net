@@ -10,6 +10,11 @@ Revenue: grow MRR past $5K — ARPU and retention are the levers; user count fol
 Allocation: every week ships at least one acquisition-facing change — landing pages, SEO, onboarding, or signup/first-conversion friction — and it ships **before** any new product surface starts that week. Acquisition is the only lane that creates users; starve it and the 300K goal stalls no matter how much else moves. History note: 2026 ran 6% acquisition work and 2023-25 ran 0% across 36 months — both starved the only lane that makes users.
 Every PR is checked against all three — does it make the experience simpler/faster/more beautiful, does it move us toward scale, and does it (for user-facing changes) state which funnel or revenue metric it should move?
 
+## Memory & sensitive data
+
+- **Do not use the file-based memory system in this project.** The harness memory under `~/.claude/projects/.../memory/` is retired here. Persist durable facts in `CLAUDE.md`, `.claude/rules/*`, or the relevant `FEATURE.md` — anything worth remembering lives in the repo, versioned and reviewable, not in per-machine local memory. Do not write new memory files; if you find yourself wanting to, add a repo doc instead.
+- **Never store sensitive or live data.** Business metrics (MRR, ARPU, churn, sub counts), pricing, Stripe/prod settings, individual subscriber or reporter identifiers — retrieve these from production when needed (prod psql, Stripe dashboard/MCP, `/api/ops/*`, `/deploy-status`), never commit them to the repo or a local file. They go stale and they leak.
+
 ## Design Context
 - **Register**: product
 - **Surface(s)**: `/ankify` (sync control panel) — first adopter of the locked DNA; widen as other surfaces follow
@@ -74,6 +79,7 @@ Load on demand — read these when the task touches the named surface (kept out 
 
 - `.claude/rules/email-templates.md` — read before editing any template under `src/services/EmailService/templates/`.
 - `.claude/rules/parallel-pr-coordination.md` — read before kicking off a multi-PR batch (more than two PRs in flight) or running `/spec-draft-pr` more than once in a row.
+- `.claude/rules/local-dev.md` — read when running toolchain/migrations/checks locally on the maintainer's machine, working out of a git worktree, or diagnosing a pre-push/deploy-status oddity.
 
 ## Git
 
@@ -102,6 +108,8 @@ Load on demand — read these when the task touches the named surface (kept out 
 - For "wait until X" (long builds, CI, deploys baking on prod), use `ScheduleWakeup` (270s if cache-warm matters, 1200s+ for genuine waits). Never busy-poll with sleep.
 - After deploys to 2anki.net, run `/deploy-status` to confirm the box is healthy.
 - If you keep approving the same read-only Bash commands, suggest `/fewer-permission-prompts`.
+- **Report tight.** State each outcome in one line; skip the "what I did / what changed / what's next" recap unless asked for status — Alexander reads the diff and PR body, don't re-narrate them. The exception is confirming a risky/destructive step first — that's safety, not chatter.
+- **Every PR/issue/run mention gets a full clickable URL** (`https://github.com/2anki/server/pull/NNNN`), never a bare `#NNNN`. Reports are read in a terminal and clicked through.
 
 ## Process
 
@@ -112,6 +120,9 @@ Load on demand — read these when the task touches the named surface (kept out 
 - Outside-in testing. Mock only external dependencies (HTTP, third-party APIs, email) — never internal services.
 - A passing suite is not proof of correctness — review affected user flows for regressions before committing.
 - Before declaring a task done, strip scaffolding, debug logs, and temporary code added during implementation.
+- When the user asks to test a PR locally, get the branch checked out in the **main repo** (`gh pr checkout <n>`) and stop — the user starts `pnpm dev` from their own terminal. Don't launch a dev server yourself.
+- When triaging a support `.eml`, extract and Read every image attachment before any code investigation — screenshots disambiguate which product surface the user means (e.g. the one-shot converter vs Ankify are different code paths). Treat "see attached" as a blocking read, not decoration.
+- When writing an agent brief, keep dictated PR/commit text and agent-behavior rules (don't merge, halt conditions) in **separate** paragraphs — a subagent pastes anything adjacent to "the body should say X" into the public PR body verbatim. After any agent opens a PR, skim the body before handing it over.
 
 ## Gotchas
 
