@@ -39,6 +39,25 @@ function isExpectedClientFault(error: unknown): boolean {
   return typeof status === 'number' && status >= 400 && status < 500;
 }
 
+const TRANSIENT_GATEWAY_STATUSES = new Set([502, 503, 504]);
+
+/**
+ * A 502/503/504 on an idempotent GET is a proxy-layer blip, not an app fault.
+ * The blue-green deploy cutover drops connections for ~18s per handoff, and a
+ * background poll (the downloads page hits /api/upload/mine every ~10s) can
+ * catch that window and self-heal on the next poll. Recording it buries real
+ * crashes in /ops/errors. Scoped to GET so a gateway failure on a state-changing
+ * request still reports.
+ */
+function isTransientGatewayGetError(error: unknown): boolean {
+  const tagged = error as { status?: unknown; method?: unknown };
+  return (
+    tagged?.method === 'GET' &&
+    typeof tagged?.status === 'number' &&
+    TRANSIENT_GATEWAY_STATUSES.has(tagged.status)
+  );
+}
+
 export function reportClientError(
   error: unknown,
   context?: Record<string, unknown>
@@ -47,6 +66,7 @@ export function reportClientError(
   if (isAbortError(error)) return;
   if (isDomManipulationError(error)) return;
   if (isExpectedClientFault(error)) return;
+  if (isTransientGatewayGetError(error)) return;
   try {
     if (navigator.onLine === false) return;
     const message = error instanceof Error ? error.message : String(error);

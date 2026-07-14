@@ -165,6 +165,38 @@ describe('reportClientError', () => {
     expect(fetchSpy).toHaveBeenCalledOnce();
   });
 
+  it.each([502, 503, 504])(
+    'skips a transient gateway %s on an idempotent GET (deploy-window cutover)',
+    (status) => {
+      const err = Object.assign(
+        new Error(
+          `HTTP error! GET /api/upload/mine status: ${status}, message: Proxy Error`
+        ),
+        { status, method: 'GET' }
+      );
+      reportClientError(err);
+      expect(fetchSpy).not.toHaveBeenCalled();
+    }
+  );
+
+  it('still reports a gateway 502 on a non-GET request', () => {
+    const err = Object.assign(new Error('HTTP error! status: 502'), {
+      status: 502,
+      method: 'POST',
+    });
+    reportClientError(err);
+    expect(fetchSpy).toHaveBeenCalledOnce();
+  });
+
+  it('still reports a 500 app error on a GET', () => {
+    const err = Object.assign(
+      new Error('HTTP error! GET /api/upload/mine status: 500'),
+      { status: 500, method: 'GET' }
+    );
+    reportClientError(err);
+    expect(fetchSpy).toHaveBeenCalledOnce();
+  });
+
   it.each([
     'Failed to fetch',
     'NetworkError when attempting to fetch resource.',
