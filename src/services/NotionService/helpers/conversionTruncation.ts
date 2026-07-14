@@ -1,9 +1,15 @@
 export const NOTION_TRUNCATED_CODE = 'notion_truncated';
 export const NOTION_ASSETS_DROPPED_CODE = 'notion_assets_dropped';
+export const NOTION_COLUMNS_GUESSED_CODE = 'notion_columns_guessed';
 
 export interface ConversionTruncation {
   blocksConverted: number;
   subDeckRulesSkipped: boolean;
+}
+
+export interface GuessedColumnMapping {
+  frontField: string;
+  backField: string;
 }
 
 export function isTruncatedBlockFetch(
@@ -17,12 +23,26 @@ export function hasRuleBasedSubDecks(rules: { SUB_DECKS: string[] }): boolean {
   return rules.SUB_DECKS.some((type) => type !== 'child_page');
 }
 
+function pickSignalCode(
+  truncation: ConversionTruncation | undefined,
+  hasDroppedAssets: boolean
+): string {
+  if (truncation != null) {
+    return NOTION_TRUNCATED_CODE;
+  }
+  if (hasDroppedAssets) {
+    return NOTION_ASSETS_DROPPED_CODE;
+  }
+  return NOTION_COLUMNS_GUESSED_CODE;
+}
+
 export function buildNotionConversionSignalPayload(
   truncation: ConversionTruncation | undefined,
-  droppedAssetCount: number
+  droppedAssetCount: number,
+  guessedColumns?: GuessedColumnMapping
 ): string | undefined {
   const hasDroppedAssets = droppedAssetCount > 0;
-  if (truncation == null && !hasDroppedAssets) {
+  if (truncation == null && !hasDroppedAssets && guessedColumns == null) {
     return undefined;
   }
 
@@ -31,9 +51,10 @@ export function buildNotionConversionSignalPayload(
     blocks_converted?: number;
     sub_deck_rules_skipped?: boolean;
     dropped_assets?: number;
+    front_field?: string;
+    back_field?: string;
   } = {
-    code:
-      truncation != null ? NOTION_TRUNCATED_CODE : NOTION_ASSETS_DROPPED_CODE,
+    code: pickSignalCode(truncation, hasDroppedAssets),
   };
 
   if (truncation != null) {
@@ -43,6 +64,11 @@ export function buildNotionConversionSignalPayload(
 
   if (hasDroppedAssets) {
     payload.dropped_assets = droppedAssetCount;
+  }
+
+  if (guessedColumns != null) {
+    payload.front_field = guessedColumns.frontField;
+    payload.back_field = guessedColumns.backField;
   }
 
   return JSON.stringify(payload);

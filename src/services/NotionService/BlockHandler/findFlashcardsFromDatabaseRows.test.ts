@@ -143,11 +143,71 @@ describe('BlockHandler.findFlashcardsFromDatabaseRows', () => {
     expect(decks[0].cards.map((c) => c.name)).toEqual(['aller', 'parler']);
   });
 
-  it('throws a structured ambiguous-columns error when no canonical mapping is found', async () => {
+  it('degrades to first/second column and records a guess when no canonical mapping is found', async () => {
     const api = makeApi({
       rows: [
-        { properties: { Notes: titleProp('x'), Tags: richTextProp('y') } },
+        {
+          properties: {
+            Notes: titleProp('aller'),
+            Tags: richTextProp('to go'),
+          },
+        },
+        {
+          properties: {
+            Notes: titleProp('manger'),
+            Tags: richTextProp('to eat'),
+          },
+        },
       ],
+    });
+    const bl = makeHandler(api);
+
+    const decks = await bl.findFlashcards({
+      parentType: 'notion-database',
+      topLevelId: 'db-1',
+      rules: new ParserRules(),
+      decks: [],
+      parentName: '',
+    });
+
+    expect(decks).toHaveLength(1);
+    expect(decks[0].cards.map((c) => [c.name, c.back])).toEqual([
+      ['aller', 'to go'],
+      ['manger', 'to eat'],
+    ]);
+    expect(bl.guessedColumnMapping).toEqual({
+      frontField: 'Notes',
+      backField: 'Tags',
+    });
+  });
+
+  it('does not record a guess when the mapping is unambiguous', async () => {
+    const api = makeApi({
+      rows: [
+        {
+          properties: {
+            Term: titleProp('aller'),
+            Definition: richTextProp('to go'),
+          },
+        },
+      ],
+    });
+    const bl = makeHandler(api);
+
+    await bl.findFlashcards({
+      parentType: 'notion-database',
+      topLevelId: 'db-1',
+      rules: new ParserRules(),
+      decks: [],
+      parentName: '',
+    });
+
+    expect(bl.guessedColumnMapping).toBeUndefined();
+  });
+
+  it('still fails when the database has only one column to map', async () => {
+    const api = makeApi({
+      rows: [{ properties: { Notes: titleProp('x') } }],
     });
     const bl = makeHandler(api);
 
@@ -159,10 +219,7 @@ describe('BlockHandler.findFlashcardsFromDatabaseRows', () => {
         decks: [],
         parentName: '',
       })
-    ).rejects.toMatchObject({
-      code: 'NOTION_DATABASE_COLUMNS_AMBIGUOUS',
-      columns: ['Notes', 'Tags'],
-    });
+    ).rejects.toThrow(/Front or back column not found/);
   });
 
   it('honors explicit frontField/backField when provided, bypassing auto-infer', async () => {

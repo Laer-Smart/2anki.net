@@ -149,6 +149,8 @@ class BlockHandler {
 
   truncation?: ConversionTruncation;
 
+  guessedColumnMapping?: { frontField: string; backField: string };
+
   droppedAssetCount = 0;
 
   emptyBackCount = 0;
@@ -588,15 +590,15 @@ class BlockHandler {
     if (frontField == null || backField == null) {
       const inferred = inferColumnMapping(columnNames);
       if (inferred.ambiguous) {
-        const err = new Error(
-          `Map columns manually: pick a front column and a back column. Available: ${columnNames.join(', ')}`
-        ) as Error & { code?: string; columns?: string[] };
-        err.code = 'NOTION_DATABASE_COLUMNS_AMBIGUOUS';
-        err.columns = columnNames;
-        throw err;
+        frontField = columnNames[0];
+        backField = columnNames[1];
+        if (frontField != null && backField != null) {
+          this.guessedColumnMapping = { frontField, backField };
+        }
+      } else {
+        frontField = inferred.frontField ?? undefined;
+        backField = inferred.backField ?? undefined;
       }
-      frontField = inferred.frontField ?? undefined;
-      backField = inferred.backField ?? undefined;
     }
 
     if (

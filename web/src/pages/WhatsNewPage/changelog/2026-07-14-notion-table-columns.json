@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-14-notion-table-columns",
+  "date": "2026-07-14",
+  "type": "fix",
+  "title": "Notion tables convert with a best-guess front and back when the columns are unclear, instead of failing"
+}

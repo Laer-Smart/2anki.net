@@ -75,6 +75,18 @@ describe('buildNotionConversionSignalPayload', () => {
     });
   });
 
+  it('serializes a guessed-columns-only payload', () => {
+    const payload = buildNotionConversionSignalPayload(undefined, 0, {
+      frontField: 'Notes',
+      backField: 'Tags',
+    });
+    expect(JSON.parse(payload as string)).toEqual({
+      code: 'notion_columns_guessed',
+      front_field: 'Notes',
+      back_field: 'Tags',
+    });
+  });
+
   it('does not collide with the apkg_import done payload shape', () => {
     const parsed = JSON.parse(
       buildNotionConversionSignalPayload(
