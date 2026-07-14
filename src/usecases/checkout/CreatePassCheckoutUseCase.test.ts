@@ -104,6 +104,21 @@ describe('CreatePassCheckoutUseCase', () => {
     );
   });
 
+  it('enables Stripe invoice creation for Fiken bookkeeping', async () => {
+    mockStripeCreateSession.mockResolvedValue({
+      url: 'https://checkout.stripe.com/24h',
+    });
+
+    const uc = new CreatePassCheckoutUseCase(makeStripe(), 'price_24h', '24h');
+    await uc.execute({ userEmail: 'user@example.com', userId: 7 });
+
+    expect(mockStripeCreateSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        invoice_creation: { enabled: true },
+      })
+    );
+  });
+
   it('uses APP_URL env var for success and cancel URLs', async () => {
     process.env.APP_URL = 'https://staging.2anki.net';
     mockStripeCreateSession.mockResolvedValue({

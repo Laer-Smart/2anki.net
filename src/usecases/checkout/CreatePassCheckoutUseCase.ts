@@ -47,6 +47,7 @@ export class CreatePassCheckoutUseCase {
 
     const sessionParams: StripeTypes.Checkout.SessionCreateParams = {
       mode: 'payment',
+      invoice_creation: { enabled: true },
       line_items: [{ price: this.priceId, quantity: 1 }],
       success_url: successUrl,
       cancel_url: `${appUrl}/pricing`,
