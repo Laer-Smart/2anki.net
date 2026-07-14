@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-14-images-to-photo-deck",
+  "date": "2026-07-14",
+  "type": "feature",
+  "title": "Image-only uploads point you to Photo to Deck instead of returning an empty deck"
+}

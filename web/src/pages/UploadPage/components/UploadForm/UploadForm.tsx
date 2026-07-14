@@ -135,7 +135,10 @@ function toFriendlyThrownError(error: unknown): UploadErrorBody {
 
 function zoneStateForUploadError(
   message: UploadErrorBody
-): 'emptyDeck' | 'error' {
+): 'emptyDeck' | 'imageOnly' | 'error' {
+  if (message.code === 'image_only_no_text') {
+    return 'imageOnly';
+  }
   if (
     message.code === 'empty_export' ||
     message.code === 'markdown_likely_lossy'
@@ -486,6 +489,12 @@ function UploadForm({
     }
   }, [zoneState]);
 
+  useEffect(() => {
+    if (zoneState === 'imageOnly') {
+      track('image_only_photo_deck_shown');
+    }
+  }, [zoneState]);
+
   const uploadCancelledFiredRef = useRef(false);
   useEffect(() => {
     if (zoneState !== 'converting') return;
@@ -755,7 +764,9 @@ function UploadForm({
     zoneState === 'success' || zoneState === 'multiDeck'
       ? formStyles.dropZoneSuccess
       : '',
-    zoneState === 'emptyDeck' ? formStyles.dropZoneEmpty : '',
+    zoneState === 'emptyDeck' || zoneState === 'imageOnly'
+      ? formStyles.dropZoneEmpty
+      : '',
     zoneState === 'error' && !isExistingApkgReject
       ? formStyles.dropZoneError
       : '',
@@ -1461,6 +1472,33 @@ function UploadForm({
     );
   };
 
+  const renderImageOnlyState = () => (
+    <div className={formStyles.stateContent}>
+      <WarningIcon className={formStyles.iconWarning} />
+      <p className={formStyles.emptyTitle}>These look like images</p>
+      <p className={formStyles.emptyBody}>
+        No text to read, so there was nothing to turn into cards. Photo to Deck
+        reads images with AI and drafts cards you review before download.
+      </p>
+      <div className={formStyles.emptyActions}>
+        <Link
+          to="/photo-to-deck"
+          className={formStyles.actionButton}
+          onClick={() => track('image_only_photo_deck_clicked')}
+        >
+          Try Photo to Deck
+        </Link>
+        <button
+          type="button"
+          className={formStyles.resetLink}
+          onClick={resetForm}
+        >
+          Try a different file
+        </button>
+      </div>
+    </div>
+  );
+
   const renderZoneContent = () => {
     if (isUploadLocked && zoneState === 'idle') return renderLockedState();
     if (validation && zoneState === 'idle') return renderValidationState();
@@ -1468,6 +1506,7 @@ function UploadForm({
     if (zoneState === 'success') return renderSuccessState();
     if (zoneState === 'multiDeck') return renderMultiDeckState();
     if (zoneState === 'emptyDeck') return renderEmptyDeckState();
+    if (zoneState === 'imageOnly') return renderImageOnlyState();
     if (zoneState === 'limitReached' && limitInfo) return renderLimitState();
     if (zoneState === 'lockedPdf') return renderLockedPdfState();
     if (zoneState === 'error') return renderErrorState();
@@ -1492,6 +1531,9 @@ function UploadForm({
     }
     if (zoneState === 'emptyDeck') {
       return 'Conversion finished, but no cards were found.';
+    }
+    if (zoneState === 'imageOnly') {
+      return 'These look like images. Try Photo to Deck to turn them into cards.';
     }
     if (zoneState === 'error') return 'Conversion failed.';
     if (zoneState === 'limitReached') {
