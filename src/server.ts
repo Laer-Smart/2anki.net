@@ -87,6 +87,7 @@ import { SendPauseResumeWarningsUseCase } from './usecases/ops/SendPauseResumeWa
 import { scheduleInactiveUserDeletions } from './lib/inactivity/jobs/scheduleInactiveUserDeletions';
 import { EventsRepository } from './data_layer/EventsRepository';
 import { scheduleParserCanary } from './lib/parser/canary/scheduleParserCanary';
+import { scheduleExportDriftCanary } from './lib/parser/canary/scheduleExportDriftCanary';
 import { scheduleObservabilityCleanup } from './lib/observability/jobs/scheduleObservabilityCleanup';
 import { ObservabilityRepository } from './data_layer/ObservabilityRepository';
 import { getDefaultEmailService } from './services/EmailService/EmailService';
@@ -323,6 +324,8 @@ const serve = async () => {
   });
 
   scheduleParserCanary(emailService);
+
+  scheduleExportDriftCanary(emailService);
 
   scheduleObservabilityCleanup(new ObservabilityRepository(database));
 };
