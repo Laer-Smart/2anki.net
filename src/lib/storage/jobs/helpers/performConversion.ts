@@ -247,7 +247,8 @@ export default async function performConversion(
       owner,
       cardCount,
       bl.truncation,
-      bl.droppedAssetCount
+      bl.droppedAssetCount,
+      bl.guessedColumnMapping
     );
 
     recordUnsupportedBlocks(database, bl.unsupportedBlockTypes);

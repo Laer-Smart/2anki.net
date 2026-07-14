@@ -59,6 +59,33 @@ describe('CompleteJobUseCase', () => {
     });
   });
 
+  it('persists a guessed-columns signal payload when the mapping was inferred', async () => {
+    const jobRepository = {
+      findJobById: jest.fn().mockResolvedValue({
+        id: 1,
+        object_id: 'page-1',
+        owner: 'user-a',
+        status: 'started',
+      }),
+      updateJobStatus: jest.fn().mockResolvedValue({ status: 'done' }),
+      deleteJob: jest.fn(),
+    } as unknown as JobRepository;
+
+    const useCase = new CompleteJobUseCase(jobRepository);
+    await useCase.execute('page-1', 'user-a', 12, undefined, 0, {
+      frontField: 'Notes',
+      backField: 'Tags',
+    });
+
+    const payload = (jobRepository.updateJobStatus as jest.Mock).mock
+      .calls[0][3];
+    expect(JSON.parse(payload)).toEqual({
+      code: 'notion_columns_guessed',
+      front_field: 'Notes',
+      back_field: 'Tags',
+    });
+  });
+
   it('increments the user card counter when usersRepository is provided', async () => {
     const jobRepository = {
       findJobById: jest.fn().mockResolvedValue({

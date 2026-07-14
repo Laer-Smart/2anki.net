@@ -48,6 +48,8 @@ import { parseTruncationPayload } from './helpers/parseTruncationPayload';
 import { ImageDropNotice } from './components/ImageDropNotice';
 import { ProducerPrompt } from './components/ProducerPrompt';
 import { parseDroppedAssetsPayload } from './helpers/parseDroppedAssetsPayload';
+import { ColumnsGuessedNotice } from './components/ColumnsGuessedNotice';
+import { parseColumnsGuessedPayload } from './helpers/parseColumnsGuessedPayload';
 import { parseMonthlyLimitPayload } from './components/ConversionResult/parseMonthlyLimitPayload';
 import styles from './DownloadsPage.module.css';
 import sharedStyles from '../../styles/shared.module.css';
@@ -561,6 +563,9 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                           const droppedAssets = parseDroppedAssetsPayload(
                             row.job
                           );
+                          const guessedColumns = parseColumnsGuessedPayload(
+                            row.job
+                          );
                           const isMonthlyLimitRow =
                             isFailed &&
                             parseMonthlyLimitPayload(
@@ -774,6 +779,21 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                       className={styles.failurePanel}
                                     >
                                       <ImageDropNotice count={droppedAssets} />
+                                    </td>
+                                  </tr>
+                                )}
+                              {!isFailed &&
+                                isExpanded &&
+                                guessedColumns != null && (
+                                  <tr key={`job-${row.job.id}-columnsguess`}>
+                                    <td
+                                      colSpan={4}
+                                      className={styles.failurePanel}
+                                    >
+                                      <ColumnsGuessedNotice
+                                        frontField={guessedColumns.frontField}
+                                        backField={guessedColumns.backField}
+                                      />
                                     </td>
                                   </tr>
                                 )}

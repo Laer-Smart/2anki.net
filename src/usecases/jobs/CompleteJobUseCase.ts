@@ -4,6 +4,7 @@ import UsersRepository from '../../data_layer/UsersRepository';
 import {
   buildNotionConversionSignalPayload,
   ConversionTruncation,
+  GuessedColumnMapping,
 } from '../../services/NotionService/helpers/conversionTruncation';
 
 export class CompleteJobUseCase {
@@ -17,7 +18,8 @@ export class CompleteJobUseCase {
     owner: string,
     cardCount = 0,
     truncation?: ConversionTruncation,
-    droppedAssetCount = 0
+    droppedAssetCount = 0,
+    guessedColumns?: GuessedColumnMapping
   ): Promise<Jobs> {
     const job = await this.jobRepository.findJobById(jobId, owner);
 
@@ -33,7 +35,11 @@ export class CompleteJobUseCase {
       jobId,
       owner,
       'done',
-      buildNotionConversionSignalPayload(truncation, droppedAssetCount),
+      buildNotionConversionSignalPayload(
+        truncation,
+        droppedAssetCount,
+        guessedColumns
+      ),
       cardCount
     );
 
