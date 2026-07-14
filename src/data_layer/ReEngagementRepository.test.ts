@@ -188,6 +188,13 @@ describe('ReEngagementRepository.findByToken — abandoned checkout path', () =>
       }
     );
 
+    await database.schema.createTable('pass_winback_notifications', (t) => {
+      t.increments('id').primary();
+      t.integer('user_id').notNullable();
+      t.string('campaign').notNullable();
+      t.string('token').notNullable();
+    });
+
     repo = new ReEngagementRepository(database);
   });
 
@@ -239,6 +246,18 @@ describe('ReEngagementRepository.findByToken — abandoned checkout path', () =>
     const result = await repo.findByToken('price-lock-tok');
 
     expect(result).toEqual({ id: expect.any(Number), userId: 99 });
+  });
+
+  it('resolves a pass win-back token to its userId', async () => {
+    await database('pass_winback_notifications').insert({
+      user_id: 55,
+      campaign: 'winback-2026-fall',
+      token: 'winback-tok',
+    });
+
+    const result = await repo.findByToken('winback-tok');
+
+    expect(result).toEqual({ id: expect.any(Number), userId: 55 });
   });
 
   it('does not find abandoned checkout token when searching other tables', async () => {

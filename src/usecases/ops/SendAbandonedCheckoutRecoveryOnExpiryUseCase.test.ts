@@ -35,6 +35,7 @@ function makeEmailService(): jest.Mocked<IEmailService> {
     sendReEngagementEmail: jest.fn(),
     sendInactivityWarningEmail: jest.fn(),
     sendAbandonedCheckoutRecoveryEmail: jest.fn().mockResolvedValue(undefined),
+    sendPassWinbackEmail: jest.fn().mockResolvedValue(undefined),
     sendParserCanaryAlert: jest.fn().mockResolvedValue(undefined),
     sendNotionReconnectEmail: jest.fn().mockResolvedValue(undefined),
     sendSubscriptionClaimConfirmation: jest.fn().mockResolvedValue(undefined),

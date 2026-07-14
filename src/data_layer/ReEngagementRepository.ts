@@ -98,10 +98,20 @@ export class ReEngagementRepository implements IReEngagementRepository {
       )
       .where('abandoned_checkout_recovery_emails.token', token)
       .first<{ user_id: number }>();
-    if (abandonedRow == null) {
+    if (abandonedRow != null) {
+      return { id: abandonedRow.user_id, userId: abandonedRow.user_id };
+    }
+
+    const passWinbackRow = await this.database<EmailRow>(
+      'pass_winback_notifications'
+    )
+      .select('id', 'user_id')
+      .where('token', token)
+      .first();
+    if (passWinbackRow == null) {
       return null;
     }
-    return { id: abandonedRow.user_id, userId: abandonedRow.user_id };
+    return { id: passWinbackRow.id, userId: passWinbackRow.user_id };
   }
 
   async getUsersToEmail(): Promise<

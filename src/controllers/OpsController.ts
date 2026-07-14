@@ -8,6 +8,7 @@ import { GetReturnRateMetricsUseCase } from '../usecases/ops/GetReturnRateMetric
 import { GetMindmapStorageMetricsUseCase } from '../usecases/ops/GetMindmapStorageMetricsUseCase';
 import { PopulateShowcaseUseCase } from '../usecases/ops/PopulateShowcaseUseCase';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
+import { SendPassWinbackUseCase } from '../usecases/ops/SendPassWinbackUseCase';
 import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
 import { IShowcaseRepository } from '../data_layer/ShowcaseRepository';
 import { SyncStripeSubscriptionsUseCase } from '../usecases/ops/SyncStripeSubscriptionsUseCase';
@@ -43,7 +44,8 @@ class OpsController {
     private readonly reconcileOrphanedSubscriptionsUseCase?: ReconcileOrphanedSubscriptionsUseCase,
     private readonly getLandingPageYieldUseCase?: GetLandingPageYieldUseCase,
     private readonly getCustomerSignalsUseCase?: GetCustomerSignalsUseCase,
-    private readonly getPassUnlockMonitorUseCase?: GetPassUnlockMonitorUseCase
+    private readonly getPassUnlockMonitorUseCase?: GetPassUnlockMonitorUseCase,
+    private readonly sendPassWinbackUseCase?: SendPassWinbackUseCase
   ) {}
 
   async getMetrics(req: express.Request, res: express.Response) {
@@ -152,6 +154,30 @@ class OpsController {
     } catch (error) {
       console.error('[ops] sendInactivityWarnings failed', error);
       res.status(500).json({ message: 'Failed to run inactivity warnings' });
+    }
+  }
+
+  async sendPassWinback(req: express.Request, res: express.Response) {
+    if (this.sendPassWinbackUseCase == null) {
+      res.status(500).json({ message: 'Pass win-back not configured' });
+      return;
+    }
+    const campaign =
+      typeof req.query.campaign === 'string' ? req.query.campaign.trim() : '';
+    if (campaign.length === 0) {
+      res.status(400).json({ message: 'campaign is required' });
+      return;
+    }
+    try {
+      const dryRun = req.query.dryRun !== 'false';
+      const result = await this.sendPassWinbackUseCase.execute(
+        campaign,
+        dryRun
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('[ops] sendPassWinback failed', error);
+      res.status(500).json({ message: 'Failed to run pass win-back' });
     }
   }
 

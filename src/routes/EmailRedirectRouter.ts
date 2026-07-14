@@ -2,6 +2,7 @@ import express from 'express';
 
 import { getDatabase } from '../data_layer';
 import InactivityEmailRepository from '../data_layer/InactivityEmailRepository';
+import PassWinbackRepository from '../data_layer/PassWinbackRepository';
 import PriceLockInEmailRepository from '../data_layer/PriceLockInEmailRepository';
 import ReEngagementRepository from '../data_layer/ReEngagementRepository';
 import { getEventsSink } from '../services/events/eventsSinkInstance';
@@ -87,6 +88,14 @@ const EmailRedirectRouter = () => {
         }
       } else if (campaign === 'price_lock_in') {
         const result = await new PriceLockInEmailRepository(database)
+          .findByToken(token)
+          .catch(() => null);
+        if (result != null) {
+          userId = result.userId;
+          emailId = result.id;
+        }
+      } else if (campaign === 'pass_winback') {
+        const result = await new PassWinbackRepository(database)
           .findByToken(token)
           .catch(() => null);
         if (result != null) {
