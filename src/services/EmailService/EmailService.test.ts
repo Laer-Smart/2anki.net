@@ -123,3 +123,130 @@ describe('EmailService.sendAbandonedCheckoutRecoveryEmail', () => {
     expect(msg.html).not.toContain('{{unsubscribeUrl}}');
   });
 });
+
+describe('EmailService conversion emails name the deck and count', () => {
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.SENDGRID_API_KEY = 'test-key';
+    process.env.DOMAIN = 'https://2anki.net';
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  function lastMessage() {
+    const calls = send.mock.calls;
+    return calls[calls.length - 1][0] as {
+      to: string;
+      subject: string;
+      html: string;
+      text: string;
+    };
+  }
+
+  it('renders the deck name and card count in the attachment email', async () => {
+    const service = getDefaultEmailService();
+
+    await service.sendConversionEmail(
+      'learner@example.com',
+      'Organic Chemistry Ch. 4',
+      Buffer.from('apkg'),
+      34
+    );
+
+    const msg = lastMessage();
+    expect(msg.html).toContain('Organic Chemistry Ch. 4');
+    expect(msg.html).toContain('34 cards');
+    expect(msg.html).not.toContain('{{deckName}}');
+    expect(msg.html).not.toContain('{{cardCountSuffix}}');
+    expect(msg.text).toBe(
+      'Your deck is ready: Organic Chemistry Ch. 4 — 34 cards. It is attached to this email.'
+    );
+  });
+
+  it('renders the deck name, card count, and link in the link email', async () => {
+    const service = getDefaultEmailService();
+
+    await service.sendConversionLinkEmail(
+      'learner@example.com',
+      'Biochemistry',
+      'https://2anki.net/api/download/u/key-1',
+      1
+    );
+
+    const msg = lastMessage();
+    expect(msg.html).toContain('Biochemistry');
+    expect(msg.html).toContain('1 card');
+    expect(msg.html).toContain('https://2anki.net/api/download/u/key-1');
+    expect(msg.html).not.toContain('{{link}}');
+    expect(msg.text).toContain('Your deck is ready: Biochemistry — 1 card');
+  });
+
+  it('omits the count clause when card count is absent', async () => {
+    const service = getDefaultEmailService();
+
+    await service.sendConversionEmail(
+      'learner@example.com',
+      'History Notes',
+      Buffer.from('apkg')
+    );
+
+    const msg = lastMessage();
+    expect(msg.html).toContain('History Notes');
+    expect(msg.html).not.toContain('{{cardCountSuffix}}');
+    expect(msg.html).not.toContain('undefined');
+    expect(msg.html).not.toContain('History Notes —');
+    expect(msg.text).toBe(
+      'Your deck is ready: History Notes. It is attached to this email.'
+    );
+  });
+
+  it('falls back to Untitled deck for an empty name', async () => {
+    const service = getDefaultEmailService();
+
+    await service.sendConversionEmail(
+      'learner@example.com',
+      '   ',
+      Buffer.from('apkg'),
+      12
+    );
+
+    const msg = lastMessage();
+    expect(msg.html).toContain('Untitled deck');
+    expect(msg.text).toBe(
+      'Your deck is ready: Untitled deck — 12 cards. It is attached to this email.'
+    );
+  });
+
+  it('escapes HTML in the deck name', async () => {
+    const service = getDefaultEmailService();
+
+    await service.sendConversionEmail(
+      'learner@example.com',
+      '<script>alert(1)</script>',
+      Buffer.from('apkg'),
+      3
+    );
+
+    const msg = lastMessage();
+    expect(msg.html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+    expect(msg.html).not.toContain('<script>alert(1)</script>');
+  });
+
+  it('groups large card counts with a thin space', async () => {
+    const service = getDefaultEmailService();
+
+    await service.sendConversionEmail(
+      'learner@example.com',
+      'Big Deck',
+      Buffer.from('apkg'),
+      12450
+    );
+
+    const msg = lastMessage();
+    expect(msg.html).toContain('12 450 cards');
+  });
+});

@@ -9,13 +9,14 @@ export interface NotifyUserUseCaseInput {
   id: string;
   size: number;
   apkg: Buffer;
+  cardCount?: number;
 }
 
 export class NotifyUserUseCase {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async execute(input: NotifyUserUseCaseInput): Promise<void> {
-    const { owner, rules, key, id, size, apkg } = input;
+    const { owner, rules, key, id, size, apkg, cardCount } = input;
 
     console.debug('rules.email', rules.EMAIL_NOTIFICATION);
 
@@ -32,9 +33,9 @@ export class NotifyUserUseCase {
     const emailService = getDefaultEmailService();
     if (shouldEmailLargeFile) {
       const link = `${process.env.DOMAIN}/api/download/u/${key}`;
-      await emailService.sendConversionLinkEmail(email, id, link);
+      await emailService.sendConversionLinkEmail(email, id, link, cardCount);
     } else {
-      await emailService.sendConversionEmail(email, id, apkg);
+      await emailService.sendConversionEmail(email, id, apkg, cardCount);
     }
   }
 }

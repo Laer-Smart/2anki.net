@@ -43,12 +43,14 @@ describe('NotifyUserUseCase', () => {
       id: 'deck-1',
       size: 25,
       apkg: APKG,
+      cardCount: 120,
     });
 
     expect(sendConversionLinkEmail).toHaveBeenCalledWith(
       'a@example.com',
       'deck-1',
-      expect.stringContaining('/api/download/u/abc')
+      expect.stringContaining('/api/download/u/abc'),
+      120
     );
     expect(sendConversionEmail).not.toHaveBeenCalled();
   });
@@ -64,12 +66,14 @@ describe('NotifyUserUseCase', () => {
       id: 'deck-2',
       size: 5,
       apkg: APKG,
+      cardCount: 42,
     });
 
     expect(sendConversionEmail).toHaveBeenCalledWith(
       'b@example.com',
       'deck-2',
-      APKG
+      APKG,
+      42
     );
     expect(sendConversionLinkEmail).not.toHaveBeenCalled();
   });
