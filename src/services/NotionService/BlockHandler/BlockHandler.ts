@@ -157,7 +157,17 @@ class BlockHandler {
 
   cardCount = 0;
 
-  unsupportedBlockTypes: string[] = [];
+  unsupportedBlockTypeCounts: Map<string, number> = new Map();
+
+  get unsupportedBlockTypes(): string[] {
+    const types: string[] = [];
+    for (const [type, count] of this.unsupportedBlockTypeCounts) {
+      for (let occurrence = 0; occurrence < count; occurrence += 1) {
+        types.push(type);
+      }
+    }
+    return types;
+  }
 
   settings: CardOption;
 
@@ -347,7 +357,10 @@ class BlockHandler {
   }
 
   recordUnsupportedBlockType(type: string): void {
-    this.unsupportedBlockTypes.push(type);
+    this.unsupportedBlockTypeCounts.set(
+      type,
+      (this.unsupportedBlockTypeCounts.get(type) ?? 0) + 1
+    );
   }
 
   async getFlashcards(
