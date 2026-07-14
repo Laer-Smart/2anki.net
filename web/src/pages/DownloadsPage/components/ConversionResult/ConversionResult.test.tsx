@@ -169,6 +169,33 @@ describe('ConversionResult — paywalled variant', () => {
   });
 });
 
+describe('ConversionResult — success variant', () => {
+  it('renders the card count and the clean-cards confirmation for a finished deck', () => {
+    render(
+      <MemoryRouter>
+        <ConversionResult variant="success" count={34} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('34')).toBeInTheDocument();
+    expect(screen.getByText('cards')).toBeInTheDocument();
+    expect(
+      screen.getByText('No empty backs, no stray characters. Ready for Anki.')
+    ).toBeInTheDocument();
+  });
+
+  it('uses the singular noun for a one-card deck', () => {
+    render(
+      <MemoryRouter>
+        <ConversionResult variant="success" count={1} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getByText('card')).toBeInTheDocument();
+  });
+});
+
 describe('ConversionResult — failed variant', () => {
   it('renders the error message from classifyUploadError', () => {
     render(
