@@ -7,6 +7,7 @@ import { GetReturnRateMetricsUseCase } from '../usecases/ops/GetReturnRateMetric
 import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
 import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldUseCase';
 import { GetCustomerSignalsUseCase } from '../usecases/ops/GetCustomerSignalsUseCase';
+import { GetPassUnlockMonitorUseCase } from '../usecases/ops/GetPassUnlockMonitorUseCase';
 
 const buildRes = () => {
   const json = jest.fn();
@@ -347,6 +348,99 @@ describe('OpsController.getCustomerSignals', () => {
       .mockImplementation(() => undefined);
 
     await controller.getCustomerSignals(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.any(String) })
+    );
+    errSpy.mockRestore();
+  });
+});
+
+describe('OpsController.getPassUnlockMonitor', () => {
+  const buildController = (useCase?: GetPassUnlockMonitorUseCase) =>
+    new OpsController(
+      {} as unknown as GetOpsMetricsUseCase,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      useCase
+    );
+
+  it('passes the window down and returns the payload', async () => {
+    const payload = {
+      window_since: '2026-07-07T00:00:00.000Z',
+      as_of: '2026-07-14T00:00:00.000Z',
+      grace_minutes: 15,
+      checked: 3,
+      granted: 2,
+      missing: 1,
+      pending: 0,
+      missingPayments: [
+        {
+          sessionId: 'cs_1',
+          paymentIntentId: 'pi_1',
+          kind: '24h',
+          anonymous: false,
+          createdAt: '2026-07-10T00:00:00.000Z',
+          amountTotal: 199,
+          currency: 'usd',
+        },
+      ],
+    };
+    const useCase = {
+      execute: jest.fn().mockResolvedValue(payload),
+    } as unknown as GetPassUnlockMonitorUseCase;
+    const controller = buildController(useCase);
+    const req = { query: { window: '30d' } } as unknown as express.Request;
+    const res = buildRes();
+
+    await controller.getPassUnlockMonitor(req, res);
+
+    expect(useCase.execute as jest.Mock).toHaveBeenCalledWith('30d');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(payload);
+  });
+
+  it('responds 503 when the use case is not configured', async () => {
+    const controller = buildController(undefined);
+    const req = { query: {} } as unknown as express.Request;
+    const res = buildRes();
+
+    await controller.getPassUnlockMonitor(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.any(String) })
+    );
+  });
+
+  it('responds 500 when the use case throws', async () => {
+    const useCase = {
+      execute: jest.fn().mockRejectedValue(new Error('stripe down')),
+    } as unknown as GetPassUnlockMonitorUseCase;
+    const controller = buildController(useCase);
+    const req = { query: {} } as unknown as express.Request;
+    const res = buildRes();
+    const errSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    await controller.getPassUnlockMonitor(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(

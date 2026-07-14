@@ -68,6 +68,13 @@ export class UserPassRepository implements IUserPassRepository {
     return row ? toUserPass(row) : null;
   }
 
+  async existsByPaymentIntentId(paymentIntentId: string): Promise<boolean> {
+    const row = await this.database<UserPassRow>(this.table)
+      .where('stripe_payment_intent_id', paymentIntentId)
+      .first();
+    return row != null;
+  }
+
   countPaidPassesQuery(userId: number, since: Date) {
     return this.database(this.table)
       .select('kind')
@@ -191,6 +198,12 @@ export class InMemoryUserPassRepository implements IUserPassRepository {
       .filter((r) => r.user_id === userId && r.expires_at > now)
       .sort((a, b) => b.expires_at.getTime() - a.expires_at.getTime());
     return active[0] ?? null;
+  }
+
+  async existsByPaymentIntentId(paymentIntentId: string): Promise<boolean> {
+    return this.rows.some(
+      (r) => r.stripe_payment_intent_id === paymentIntentId
+    );
   }
 
   async countPaidPassesSince(

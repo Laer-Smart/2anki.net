@@ -50,6 +50,10 @@ import { LandingPageYieldService } from '../services/ops/LandingPageYieldService
 import { LandingPageYieldRepository } from '../data_layer/LandingPageYieldRepository';
 import { GetCustomerSignalsUseCase } from '../usecases/ops/GetCustomerSignalsUseCase';
 import { CustomerSignalsService } from '../services/ops/CustomerSignalsService';
+import { GetPassUnlockMonitorUseCase } from '../usecases/ops/GetPassUnlockMonitorUseCase';
+import { PassUnlockMonitorService } from '../services/ops/PassUnlockMonitorService';
+import UserPassRepository from '../data_layer/UserPassRepository';
+import AnonymousPassRepository from '../data_layer/AnonymousPassRepository';
 import { updateStripeSubscriptions } from '../lib/storage/jobs/helpers/updateStripeSubscriptions';
 import EventsRepository from '../data_layer/EventsRepository';
 import { FeatureFlagsRepository } from '../data_layer/FeatureFlagsRepository';
@@ -158,6 +162,12 @@ const OpsRouter = () => {
         emoji: new EmojiFeedbackRepository(database),
         failedConversion: new JobsMetricsRepository(database),
         emptyBack: new ConversionOutputStatsRepository(database),
+      })
+    ),
+    new GetPassUnlockMonitorUseCase(
+      new PassUnlockMonitorService({
+        userPasses: new UserPassRepository(database),
+        anonymousPasses: new AnonymousPassRepository(database),
       })
     )
   );
@@ -547,6 +557,38 @@ const OpsRouter = () => {
    */
   router.get('/api/ops/growth/customer-signals', RequireOpsAccess, (req, res) =>
     controller.getCustomerSignals(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/passes/unlock-monitor:
+   *   get:
+   *     summary: Completed pass payments reconciled against granted pass rows
+   *     description: |
+   *       Lists completed Day/Week pass checkout sessions from Stripe (the
+   *       source of truth) over a rolling window and asserts each has a matching
+   *       pass row — user_passes by payment intent, anonymous_passes by session
+   *       id. Sessions younger than the grace window are counted as pending, not
+   *       missing, so an in-flight webhook is not flagged. A missing row is a
+   *       paid-but-not-unlocked buyer. Defaults to the last 7 days; pass
+   *       ?window=1d|7d|14d|30d. Internal endpoint locked to the ops owner —
+   *       returns 404 for everyone else.
+   *     tags: [Ops]
+   *     parameters:
+   *       - in: query
+   *         name: window
+   *         schema:
+   *           type: string
+   *           enum: ['1d', '7d', '14d', '30d']
+   *         description: Lookback window. Defaults to 7d.
+   *     responses:
+   *       200:
+   *         description: Pass unlock reconciliation payload
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.get('/api/ops/passes/unlock-monitor', RequireOpsAccess, (req, res) =>
+    controller.getPassUnlockMonitor(req, res)
   );
 
   /**

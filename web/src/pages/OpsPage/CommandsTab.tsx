@@ -13,6 +13,7 @@ import {
   OrphanedSubscriptionsResponse,
   ReconcileOrphanedSubscriptionsResponse,
 } from './orphanedSubscriptions';
+import PassUnlockMonitorTab from './PassUnlockMonitorTab';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
@@ -302,6 +303,8 @@ export default function CommandsTab() {
           {orphanMessage}
         </div>
       )}
+
+      <PassUnlockMonitorTab />
     </>
   );
 }
