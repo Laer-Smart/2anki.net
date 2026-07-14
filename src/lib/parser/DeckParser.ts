@@ -7,6 +7,7 @@ import { File } from '../zip/zip';
 import Deck from './Deck';
 import Note from './Note';
 import { countEmptyBacks } from './countEmptyBacks';
+import { noteHasAnswerSide } from './noteHasAnswerSide';
 import CardOption from './Settings';
 import Workspace from './WorkSpace';
 import CustomExporter from './exporters/CustomExporter';
@@ -452,12 +453,11 @@ export class DeckParser {
         cards.push(...overlappingLineNotes);
       } else {
         this.sawUnclassifiedParse = true;
-        cards.push(
-          ...[
-            ...this.extractCardsFromLists(dom, disableIndentedBullets),
-            ...paragraphs,
-          ]
-        );
+        const unclassified = [
+          ...this.extractCardsFromLists(dom, disableIndentedBullets),
+          ...paragraphs,
+        ].filter((note) => this.unclassifiedCardSurvives(note));
+        cards.push(...unclassified);
       }
     } else if (this.settings.disableIndentedBulletPoints) {
       cards.push(
@@ -1459,6 +1459,10 @@ export class DeckParser {
       }
     });
     return { cards, mcqCount, mcqSkippedCount };
+  }
+
+  private unclassifiedCardSurvives(note: Note): boolean {
+    return this.settings.isCloze || noteHasAnswerSide(note);
   }
 
   private extractCardsFromParagraph(dom: cheerio.CheerioAPI) {
