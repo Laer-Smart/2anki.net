@@ -48,6 +48,8 @@ import { UploadFunnelService } from '../services/ops/UploadFunnelService';
 import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldUseCase';
 import { LandingPageYieldService } from '../services/ops/LandingPageYieldService';
 import { LandingPageYieldRepository } from '../data_layer/LandingPageYieldRepository';
+import { GetCustomerSignalsUseCase } from '../usecases/ops/GetCustomerSignalsUseCase';
+import { CustomerSignalsService } from '../services/ops/CustomerSignalsService';
 import { updateStripeSubscriptions } from '../lib/storage/jobs/helpers/updateStripeSubscriptions';
 import EventsRepository from '../data_layer/EventsRepository';
 import { FeatureFlagsRepository } from '../data_layer/FeatureFlagsRepository';
@@ -148,6 +150,14 @@ const OpsRouter = () => {
     new GetLandingPageYieldUseCase(
       new LandingPageYieldService({
         repo: new LandingPageYieldRepository(database),
+      })
+    ),
+    new GetCustomerSignalsUseCase(
+      new CustomerSignalsService({
+        cancellation: new CancellationFeedbackRepository(database),
+        emoji: new EmojiFeedbackRepository(database),
+        failedConversion: new JobsMetricsRepository(database),
+        emptyBack: new ConversionOutputStatsRepository(database),
       })
     )
   );
@@ -505,6 +515,38 @@ const OpsRouter = () => {
     '/api/ops/growth/landing-page-yield',
     RequireOpsAccess,
     (req, res) => controller.getLandingPageYield(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/growth/customer-signals:
+   *   get:
+   *     summary: First-party customer signal aggregated into one ranked list
+   *     description: |
+   *       Aggregates DB-resident customer signal — cancellation reasons and
+   *       comments, deck-ready emoji feedback comments, failed-conversion
+   *       reasons, and empty-back card counts — into a single list ranked by
+   *       volume. Each row carries a pain-killer / money-multiplier / unknown
+   *       bucket, and free-text sources return verbatim sample quotes. No user
+   *       identity is joined. Defaults to the last 30 days; pass
+   *       ?window=7d|14d|30d|60d|90d. Internal endpoint locked to the ops owner
+   *       — returns 404 for everyone else.
+   *     tags: [Ops]
+   *     parameters:
+   *       - in: query
+   *         name: window
+   *         schema:
+   *           type: string
+   *           enum: ['7d', '14d', '30d', '60d', '90d']
+   *         description: Lookback window. Defaults to 30d.
+   *     responses:
+   *       200:
+   *         description: Customer signals payload
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.get('/api/ops/growth/customer-signals', RequireOpsAccess, (req, res) =>
+    controller.getCustomerSignals(req, res)
   );
 
   /**
