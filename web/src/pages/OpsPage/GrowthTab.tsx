@@ -2,6 +2,7 @@ import ConversionsTab from './ConversionsTab';
 import ReturnRateTab from './ReturnRateTab';
 import UploadFunnelTab from './UploadFunnelTab';
 import LandingPageYieldTab from './LandingPageYieldTab';
+import CustomerSignalsTab from './CustomerSignalsTab';
 import styles from './OpsPage.module.css';
 
 export default function GrowthTab() {
@@ -35,6 +36,16 @@ export default function GrowthTab() {
           Landing page yield
         </h2>
         <LandingPageYieldTab />
+      </section>
+
+      <section
+        className={styles.compositeSection}
+        aria-labelledby="growth-customer-signals"
+      >
+        <h2 id="growth-customer-signals" className={styles.compositeHeading}>
+          Customer signals
+        </h2>
+        <CustomerSignalsTab />
       </section>
 
       <section

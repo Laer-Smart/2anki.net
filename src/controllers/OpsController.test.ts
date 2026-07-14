@@ -6,6 +6,7 @@ import { GetBusinessMetricsUseCase } from '../usecases/ops/GetBusinessMetricsUse
 import { GetReturnRateMetricsUseCase } from '../usecases/ops/GetReturnRateMetricsUseCase';
 import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersUseCase';
 import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldUseCase';
+import { GetCustomerSignalsUseCase } from '../usecases/ops/GetCustomerSignalsUseCase';
 
 const buildRes = () => {
   const json = jest.fn();
@@ -262,6 +263,90 @@ describe('OpsController.getLandingPageYield', () => {
       .mockImplementation(() => undefined);
 
     await controller.getLandingPageYield(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.any(String) })
+    );
+    errSpy.mockRestore();
+  });
+});
+
+describe('OpsController.getCustomerSignals', () => {
+  const buildController = (useCase?: GetCustomerSignalsUseCase) =>
+    new OpsController(
+      {} as unknown as GetOpsMetricsUseCase,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      useCase
+    );
+
+  it('passes the window down and returns the payload', async () => {
+    const payload = {
+      signals: [
+        {
+          source: 'failed_conversion',
+          label: 'Notion export unreadable',
+          count: 12,
+          bucket: 'pain-killer',
+        },
+      ],
+      since: '2026-06-01T00:00:00.000Z',
+      as_of: '2026-07-01T00:00:00.000Z',
+    };
+    const useCase = {
+      execute: jest.fn().mockResolvedValue(payload),
+    } as unknown as GetCustomerSignalsUseCase;
+    const controller = buildController(useCase);
+    const req = { query: { window: '7d' } } as unknown as express.Request;
+    const res = buildRes();
+
+    await controller.getCustomerSignals(req, res);
+
+    expect(useCase.execute as jest.Mock).toHaveBeenCalledWith('7d');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(payload);
+  });
+
+  it('responds 503 when the use case is not configured', async () => {
+    const controller = buildController(undefined);
+    const req = { query: {} } as unknown as express.Request;
+    const res = buildRes();
+
+    await controller.getCustomerSignals(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.any(String) })
+    );
+  });
+
+  it('responds 500 when the use case throws', async () => {
+    const useCase = {
+      execute: jest.fn().mockRejectedValue(new Error('db down')),
+    } as unknown as GetCustomerSignalsUseCase;
+    const controller = buildController(useCase);
+    const req = { query: {} } as unknown as express.Request;
+    const res = buildRes();
+    const errSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    await controller.getCustomerSignals(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith(
