@@ -13,6 +13,7 @@ import {
   type IAppleStoreKitService,
 } from '../../services/AppleStoreKitService';
 import hashToken from '../../lib/misc/hashToken';
+import { track } from '../../services/events/track';
 import { IapRedeemError } from './IapRedeemError';
 import { findAppleProduct, type SubscriptionProduct } from './products';
 
@@ -95,6 +96,16 @@ export class RedeemAppleTransactionUseCase {
       environment: decoded.environment,
       expires_at: pass.expires_at.toISOString(),
       transaction_id_hash: hashToken(decoded.transactionId),
+    });
+
+    track('native_app_activated', {
+      userId: input.userId,
+      props: {
+        platform: 'apple',
+        product_kind: product.kind,
+        pass_kind: product.passKind,
+        environment: decoded.environment,
+      },
     });
 
     return {
