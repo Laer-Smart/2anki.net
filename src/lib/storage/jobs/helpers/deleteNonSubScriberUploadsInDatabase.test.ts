@@ -1,16 +1,22 @@
 import knex, { Knex } from 'knex';
 import { deleteNonSubScriberUploadsInDatabase } from './deleteNonSubScriberUploadsInDatabase';
+import { IErrorEventRepository } from '../../../../data_layer/ErrorEventRepository';
 
 function makeDb(uploadsToDelete: { key: string }[] = []) {
   const deleteMock = jest.fn().mockReturnValue({
     where: jest.fn().mockResolvedValue(1),
+  });
+  const countMock = jest.fn().mockReturnValue({
+    first: jest.fn().mockResolvedValue({ count: uploadsToDelete.length }),
   });
   const db = {
     raw: jest.fn().mockResolvedValue({ rows: uploadsToDelete }),
     uploads: jest.fn(),
   } as unknown;
 
-  const dbFn = jest.fn().mockReturnValue({ delete: deleteMock });
+  const dbFn = jest
+    .fn()
+    .mockReturnValue({ delete: deleteMock, count: countMock });
   Object.assign(dbFn, db);
 
   return { dbFn: dbFn as any, deleteMock };
@@ -253,5 +259,75 @@ describe('deleteNonSubScriberUploadsInDatabase — cleanup-vs-subscriber e2e', (
 
     expect(storage.delete).not.toHaveBeenCalled();
     expect(await remainingUploadKeys()).toEqual(['sub.apkg']);
+  });
+
+  it('raises a deletion-volume alarm when a run sweeps an anomalous fraction of the uploads table', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+
+    for (let i = 1; i <= 130; i++) {
+      await seedUserWithUpload(
+        i,
+        `free-${i}@example.com`,
+        false,
+        `free-${i}.apkg`
+      );
+    }
+
+    const insert = jest.fn().mockResolvedValue(undefined);
+    const storage = { delete: jest.fn() };
+
+    await deleteNonSubScriberUploadsInDatabase(
+      withPgRawShape(db),
+      storage as never,
+      { insert } as unknown as IErrorEventRepository
+    );
+
+    expect(insert).toHaveBeenCalledTimes(1);
+    expect(insert.mock.calls[0][0].source).toBe('server');
+    expect(storage.delete).toHaveBeenCalledTimes(130);
+    expect(await remainingUploadKeys()).toEqual([]);
+
+    infoSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('does not raise an alarm for a normal-volume cleanup run', async () => {
+    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+
+    for (let i = 1; i <= 5; i++) {
+      await seedUserWithUpload(
+        i,
+        `free-${i}@example.com`,
+        false,
+        `free-${i}.apkg`
+      );
+    }
+    for (let i = 100; i < 225; i++) {
+      await seedUserWithUpload(
+        i,
+        `sub-${i}@example.com`,
+        false,
+        `sub-${i}.apkg`
+      );
+      await db('subscriptions').insert({
+        email: `sub-${i}@example.com`,
+        active: true,
+      });
+    }
+
+    const insert = jest.fn().mockResolvedValue(undefined);
+    const storage = { delete: jest.fn() };
+
+    await deleteNonSubScriberUploadsInDatabase(
+      withPgRawShape(db),
+      storage as never,
+      { insert } as unknown as IErrorEventRepository
+    );
+
+    expect(insert).not.toHaveBeenCalled();
+    expect(storage.delete).toHaveBeenCalledTimes(5);
+
+    infoSpy.mockRestore();
   });
 });

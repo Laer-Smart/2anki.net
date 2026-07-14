@@ -1,10 +1,19 @@
 import { Knex } from 'knex';
 import StorageHandler from '../../StorageHandler';
 import Uploads from '../../../../data_layer/public/Uploads';
+import {
+  ErrorEventRepository,
+  IErrorEventRepository,
+} from '../../../../data_layer/ErrorEventRepository';
+import {
+  assessDeletionVolume,
+  raiseDeletionVolumeAlarm,
+} from './deletionVolumeAlert';
 
 export const deleteNonSubScriberUploadsInDatabase = async (
   db: Knex,
-  storage: StorageHandler
+  storage: StorageHandler,
+  errorEvents: IErrorEventRepository = new ErrorEventRepository(db)
 ) => {
   const query = await db.raw(`
     SELECT up.key
@@ -26,7 +35,23 @@ export const deleteNonSubScriberUploadsInDatabase = async (
     return;
   }
 
-  for (const upload of nonSubScriberUploads.flat()) {
+  const candidates = nonSubScriberUploads.flat();
+
+  const totalRow = await db('uploads').count('key as count').first();
+  const tableTotal = Number(
+    (totalRow as { count?: string | number } | undefined)?.count ?? 0
+  );
+
+  const assessment = assessDeletionVolume(candidates.length, tableTotal);
+  if (assessment.anomalous) {
+    await raiseDeletionVolumeAlarm(
+      'deleteNonSubScriberUploadsInDatabase',
+      assessment,
+      errorEvents
+    );
+  }
+
+  for (const upload of candidates) {
     console.info(`Deleting non-subscriber upload ${upload.key}`);
     await storage.delete(upload.key);
     await db('uploads').delete().where('key', upload.key);
