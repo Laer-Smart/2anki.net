@@ -65,43 +65,46 @@ function toAnonymousId(anonId?: string): string | null {
   return typeof anonId === 'string' && anonId.length > 0 ? anonId : null;
 }
 
-function recordUnsupportedBlocks(database: Knex, types: string[]): void {
+async function recordUnsupportedBlocks(
+  database: Knex,
+  types: string[]
+): Promise<void> {
   if (types == null || types.length === 0) {
     return;
   }
   try {
-    void new UnsupportedNotionBlockRepository(database)
-      .record(types)
-      .catch((error) => {
-        console.error(
-          '[conversion] failed to record unsupported blocks',
-          error
-        );
-      });
+    await new UnsupportedNotionBlockRepository(database).record(types);
   } catch (error) {
     console.error('[conversion] failed to record unsupported blocks', error);
   }
 }
 
-function recordConversionOutputStats(
+async function recordConversionOutputStats(
   database: Knex,
   delta: { decks: number; cards: number; emptyBack: number }
-): void {
+): Promise<void> {
   try {
-    void new ConversionOutputStatsRepository(database)
-      .record('convert', delta)
-      .catch((error) => {
-        console.error(
-          '[conversion] failed to record conversion output stats',
-          error
-        );
-      });
+    await new ConversionOutputStatsRepository(database).record(
+      'convert',
+      delta
+    );
   } catch (error) {
     console.error(
       '[conversion] failed to record conversion output stats',
       error
     );
   }
+}
+
+async function recordConversionTelemetry(
+  database: Knex,
+  telemetry: {
+    unsupportedBlockTypes: string[];
+    stats: { decks: number; cards: number; emptyBack: number };
+  }
+): Promise<void> {
+  await recordUnsupportedBlocks(database, telemetry.unsupportedBlockTypes);
+  await recordConversionOutputStats(database, telemetry.stats);
 }
 
 function trackConversionFailed(
@@ -250,11 +253,13 @@ export default async function performConversion(
       bl.droppedAssetCount
     );
 
-    recordUnsupportedBlocks(database, bl.unsupportedBlockTypes);
-    recordConversionOutputStats(database, {
-      decks: decks.length,
-      cards: bl.cardCount,
-      emptyBack: bl.emptyBackCount,
+    void recordConversionTelemetry(database, {
+      unsupportedBlockTypes: bl.unsupportedBlockTypes,
+      stats: {
+        decks: decks.length,
+        cards: bl.cardCount,
+        emptyBack: bl.emptyBackCount,
+      },
     });
 
     const userId = Number.isFinite(Number(owner)) ? Number(owner) : null;

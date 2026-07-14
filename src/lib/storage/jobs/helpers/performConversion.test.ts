@@ -555,6 +555,61 @@ describe('performConversion — workspace cleanup', () => {
     );
   });
 
+  it('waits for the unsupported-block write before starting the output-stats write', async () => {
+    let releaseUnsupported: () => void = () => undefined;
+    const unsupportedGate = new Promise<void>((resolve) => {
+      releaseUnsupported = resolve;
+    });
+    mockRecordUnsupported.mockReturnValueOnce(unsupportedGate);
+    mockRecordOutputStats.mockClear();
+
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: {
+          cardCount: 3,
+          emptyBackCount: 0,
+          unsupportedBlockTypes: ['html'],
+        },
+        rules: {},
+      }),
+    }));
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [1, 2, 3] }]),
+    }));
+    (CheckMonthlyCardLimitUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (BuildDeckForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest
+        .fn()
+        .mockResolvedValue({ size: 1, key: 'k', apkg: Buffer.from('') }),
+    }));
+    (NotifyUserUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (CompleteJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+    await Promise.resolve();
+
+    expect(mockRecordUnsupported).toHaveBeenCalledWith(['html']);
+    expect(mockRecordOutputStats).not.toHaveBeenCalled();
+
+    releaseUnsupported();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockRecordOutputStats).toHaveBeenCalledWith(
+      'convert',
+      expect.objectContaining({ cards: 3, emptyBack: 0 })
+    );
+  });
+
   it('does not fail the conversion when the conversion-output-stats write rejects with a pool timeout', async () => {
     mockRecordOutputStats.mockRejectedValueOnce(
       new Error(
