@@ -303,12 +303,22 @@ describe('DownloadsPage source labels', () => {
     delete (globalThis as AnalyticsGlobals).gtag;
   });
 
-  it('shows "AI-generated from upload" label for claude jobs', () => {
+  it('shows "Written with Claude" label for claude jobs', () => {
     mockJobs = [
       buildJob({ type: 'claude', status: 'done', title: 'Claude deck' }),
     ];
     renderAt('/downloads');
-    expect(screen.getByText('AI-generated from upload')).toBeInTheDocument();
+    expect(screen.getByText('Written with Claude')).toBeInTheDocument();
+  });
+
+  it('leads the page subtitle with clean-deck output', () => {
+    mockJobs = [];
+    renderAt('/downloads');
+    expect(
+      screen.getByText(
+        /Clean decks — proper cloze, atomic cards, no empty backs/i
+      )
+    ).toBeInTheDocument();
   });
 
   it('shows "Notion" source label for notion jobs', () => {

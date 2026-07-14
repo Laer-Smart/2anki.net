@@ -16,6 +16,7 @@ import {
 } from './uploadResponse';
 import { getDownloadFileName } from '../../../DownloadsPage/helpers/getDownloadFileName';
 import { ImageDropNotice } from '../../../DownloadsPage/components/ImageDropNotice';
+import { ConversionResult } from '../../../DownloadsPage/components/ConversionResult/ConversionResult';
 import { OverSplitNotice } from './OverSplitNotice';
 import { getEmptyDeckChatPrompt } from '../../helpers/getEmptyDeckChatPrompt';
 import { useDrag } from './hooks/useDrag';
@@ -881,14 +882,11 @@ function UploadForm({
   const renderSuccessState = () => (
     <div className={formStyles.stateContent}>
       <CheckCircleIcon className={formStyles.iconSuccess} />
-      <p className={formStyles.successPrimary}>
-        Your deck is ready
-        {cardCount != null && (
-          <span className={formStyles.cardCount}>
-            &nbsp;&mdash; {cardCount} {cardCount === 1 ? 'card' : 'cards'}
-          </span>
-        )}
-      </p>
+      {cardCount == null ? (
+        <p className={formStyles.successPrimary}>Your deck is ready</p>
+      ) : (
+        <ConversionResult variant="success" count={cardCount} />
+      )}
       {mcqCount > 0 && (
         <>
           <button

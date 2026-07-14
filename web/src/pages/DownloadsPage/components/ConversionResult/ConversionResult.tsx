@@ -52,7 +52,16 @@ interface FailedProps {
   onMapColumns: () => void;
 }
 
-type ConversionResultProps = ProcessingProps | PaywalledProps | FailedProps;
+interface SuccessProps {
+  variant: 'success';
+  count: number;
+}
+
+type ConversionResultProps =
+  | ProcessingProps
+  | PaywalledProps
+  | FailedProps
+  | SuccessProps;
 
 function buildPaywallHeadline(cardsUsed: number, limit: number): string {
   if (cardsUsed >= limit) {
@@ -226,9 +235,28 @@ function FailedVariant({
   );
 }
 
+function SuccessVariant({ count }: Omit<SuccessProps, 'variant'>) {
+  const noun = count === 1 ? 'card' : 'cards';
+  return (
+    <div className={styles.success}>
+      <span className={styles.cardCount}>
+        <span className={styles.cardCountNumber}>{count}</span>
+        <span className={styles.cardCountLabel}>{noun}</span>
+      </span>
+      <span className={styles.helperText}>
+        No empty backs, no stray characters. Ready for Anki.
+      </span>
+    </div>
+  );
+}
+
 export function ConversionResult(props: Readonly<ConversionResultProps>) {
   if (props.variant === 'processing') {
     return <>{props.children}</>;
+  }
+
+  if (props.variant === 'success') {
+    return <SuccessVariant count={props.count} />;
   }
 
   if (props.variant === 'paywalled') {

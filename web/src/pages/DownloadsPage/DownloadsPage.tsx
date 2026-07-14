@@ -466,7 +466,8 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
       <div className={sharedStyles.pageHeader}>
         <h1 className={sharedStyles.title}>My decks</h1>
         <p className={sharedStyles.subtitle}>
-          Your converted decks, ready to download into Anki.
+          Clean decks — proper cloze, atomic cards, no empty backs. Download
+          straight into Anki.
         </p>
       </div>
 
@@ -598,7 +599,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                   <span className={sharedStyles.badge}>
                                     {row.source === 'upload' &&
                                     row.job.type === 'claude'
-                                      ? 'AI-generated from upload'
+                                      ? 'Written with Claude'
                                       : getSourceLabel(row.source)}
                                   </span>
                                 </td>

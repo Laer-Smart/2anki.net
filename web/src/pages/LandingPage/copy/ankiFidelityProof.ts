@@ -17,4 +17,8 @@ export const ankiFidelityProof: WhatComesAcrossItem[] = [
     title: 'Correct note types',
     body: 'Basic, Cloze, and front/back map to the right Anki note type so import is clean.',
   },
+  {
+    title: 'No junk in your cards',
+    body: 'No empty backs, no stray #, *, or $ characters left over from your notes.',
+  },
 ];

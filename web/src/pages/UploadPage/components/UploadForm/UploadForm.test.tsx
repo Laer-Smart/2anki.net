@@ -1165,8 +1165,8 @@ describe('UploadForm analytics events', () => {
 
     await waitFor(() => {
       expect(
-        container.querySelector('[class*="successPrimary"]')
-      ).not.toBeNull();
+        screen.getByText('No empty backs, no stray characters. Ready for Anki.')
+      ).toBeInTheDocument();
     });
 
     const calls = trackMock.mock.calls.filter(

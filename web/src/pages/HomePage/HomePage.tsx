@@ -47,7 +47,7 @@ const STEPS = [
   },
   {
     title: 'Convert',
-    body: '2anki builds your deck in seconds. Images, audio, code blocks, and cloze deletions all transfer.',
+    body: '2anki builds your deck in seconds — clean cloze, atomic cards, no empty backs. Images, audio, and code blocks come across too.',
     Icon: SparklesIcon,
   },
   {
@@ -97,7 +97,7 @@ const FEATURES = [
   {
     href: '/chat',
     label: 'Chat',
-    body: 'Ask AI to write cards from your notes.',
+    body: 'Turn your own notes into cards with AI.',
     Icon: ChatBubbleIcon,
   },
   {
@@ -214,12 +214,13 @@ export function HomePage({
         </p>
         <div className={styles.heroControls}>
           <p className={`${sharedStyles.aiOffBadgeBody} ${styles.heroAiBadge}`}>
-            Claude can write your cards —{' '}
+            Clean cards, ready to study — proper cloze, atomic front and back,
+            no empty backs. Prefer AI drafts?{' '}
             <Link
               to="/register?redirect=/card-options"
               onClick={() => track('home_ai_anon_badge_clicked')}
             >
-              create an account to turn on AI
+              Create an account
             </Link>
             .
           </p>
