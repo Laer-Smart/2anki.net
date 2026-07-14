@@ -22,6 +22,7 @@ import {
   SUBSCRIPTION_RESUMING_SOON_TEMPLATE,
 } from './constants';
 import { isValidDeckName, addDeckNameSuffix } from '../../lib/anki/format';
+import { escapeHtml } from '../../lib/notion-render/escape';
 import { ClientResponse } from '@sendgrid/mail';
 import { SUPPORT_EMAIL_ADDRESS } from '../../lib/constants';
 import { emailHash } from '../../lib/emailHash';
@@ -37,9 +38,15 @@ export interface IEmailService {
   sendConversionEmail(
     email: string,
     filename: string,
-    contents: Buffer
+    contents: Buffer,
+    cardCount?: number
   ): Promise<[ClientResponse, {}] | null> | void;
-  sendConversionLinkEmail(email: string, filename: string, link: string): void;
+  sendConversionLinkEmail(
+    email: string,
+    filename: string,
+    link: string,
+    cardCount?: number
+  ): void;
   sendContactEmail(
     name: string,
     email: string,
@@ -101,6 +108,38 @@ export const PRICE_LOCK_IN_SUBJECTS: Record<'a' | 'b', string> = {
 
 type SgMessage = Exclude<Parameters<typeof sgMail.send>[0], unknown[]>;
 type IsEmailSuppressed = (email: string) => Promise<boolean>;
+
+const THIN_SPACE = ' ';
+
+function formatCardCount(count: number): string {
+  const label = count === 1 ? 'card' : 'cards';
+  const grouped =
+    count >= 10000
+      ? String(count).replace(/\B(?=(\d{3})+(?!\d))/g, THIN_SPACE)
+      : String(count);
+  return `${grouped} ${label}`;
+}
+
+function resolveDeckName(filename: string): string {
+  const trimmed = filename.trim();
+  return trimmed === '' ? 'Untitled deck' : trimmed;
+}
+
+function renderDeckReadyMarkup(
+  template: string,
+  deckName: string,
+  cardCount?: number
+): string {
+  const suffix = cardCount == null ? '' : ` — ${formatCardCount(cardCount)}`;
+  return template
+    .replace('{{deckName}}', escapeHtml(deckName))
+    .replace('{{cardCountSuffix}}', suffix);
+}
+
+function deckReadyText(deckName: string, cardCount?: number): string {
+  const suffix = cardCount == null ? '' : ` — ${formatCardCount(cardCount)}`;
+  return `Your deck is ready: ${deckName}${suffix}`;
+}
 
 function firstRecipient(to: SgMessage['to']): string | null {
   if (typeof to === 'string') {
@@ -166,9 +205,11 @@ export class EmailService implements IEmailService {
   sendConversionEmail(
     email: string,
     filename: string,
-    contents: Buffer
+    contents: Buffer,
+    cardCount?: number
   ): Promise<[ClientResponse, {}] | null> {
-    const markup = CONVERT_TEMPLATE;
+    const deckName = resolveDeckName(filename);
+    const markup = renderDeckReadyMarkup(CONVERT_TEMPLATE, deckName, cardCount);
 
     let attachedFilename = filename;
     if (!isValidDeckName(filename)) {
@@ -178,7 +219,7 @@ export class EmailService implements IEmailService {
       to: email,
       from: DEFAULT_SENDER,
       subject: `2anki.net - Your «${filename}» deck is ready`,
-      text: 'Attached is your deck',
+      text: `${deckReadyText(deckName, cardCount)}. It is attached to this email.`,
       html: markup,
       replyTo: 'support@2anki.net',
       attachments: [
@@ -194,13 +235,23 @@ export class EmailService implements IEmailService {
     return this.deliver(msg);
   }
 
-  async sendConversionLinkEmail(email: string, filename: string, link: string) {
-    const markup = CONVERT_LINK_TEMPLATE.replace(/{{link}}/g, link);
+  async sendConversionLinkEmail(
+    email: string,
+    filename: string,
+    link: string,
+    cardCount?: number
+  ) {
+    const deckName = resolveDeckName(filename);
+    const markup = renderDeckReadyMarkup(
+      CONVERT_LINK_TEMPLATE,
+      deckName,
+      cardCount
+    ).replace(/{{link}}/g, link);
     const msg = {
       to: email,
       from: DEFAULT_SENDER,
       subject: `2anki.net - Your «${filename}» deck is ready`,
-      text: `Download your deck here: ${link}`,
+      text: `${deckReadyText(deckName, cardCount)}. Download it here: ${link}`,
       html: markup,
       replyTo: 'support@2anki.net',
     };
@@ -319,8 +370,8 @@ export class EmailService implements IEmailService {
     const msg = {
       to,
       from: this.defaultSender,
-      subject: 'Still figuring out 2anki? We can help.',
-      text: `Hi ${name},\n\nYou signed up for 2anki a few days ago but haven't converted anything yet.\n\nWhen you're ready, visit https://2anki.net\n\nTell us what happened: ${surveyUrl}\n\nThe 2anki Team`,
+      subject: 'Still making cards by hand?',
+      text: `Hi ${name},\n\nYou signed up for 2anki a few days ago but haven't made a deck yet. Typing out flashcards is the slow part — 2anki turns a Notion page or an uploaded file into an Anki deck in under a minute.\n\nPaste a Notion page URL or upload a file at https://2anki.net to try it.\n\nStuck on something? Reply to this email — Alexander reads every one.\n\nTell us what happened: ${surveyUrl}\n\nThe 2anki Team`,
       html: markup,
       replyTo: 'support@2anki.net',
     };
@@ -706,12 +757,34 @@ export class UnimplementedEmailService implements IEmailService {
     console.info('sendResetEmail not handled', email, token);
   }
 
-  sendConversionEmail(email: string, filename: string, contents: Buffer): void {
-    console.info('sendConversionEmail not handled', email, filename, contents);
+  sendConversionEmail(
+    email: string,
+    filename: string,
+    contents: Buffer,
+    cardCount?: number
+  ): void {
+    console.info(
+      'sendConversionEmail not handled',
+      email,
+      filename,
+      contents,
+      cardCount
+    );
   }
 
-  sendConversionLinkEmail(email: string, filename: string, link: string): void {
-    console.info('sendConversionLinkEmail not handled', email, filename, link);
+  sendConversionLinkEmail(
+    email: string,
+    filename: string,
+    link: string,
+    cardCount?: number
+  ): void {
+    console.info(
+      'sendConversionLinkEmail not handled',
+      email,
+      filename,
+      link,
+      cardCount
+    );
   }
 
   sendContactEmail(

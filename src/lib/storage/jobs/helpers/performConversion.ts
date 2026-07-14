@@ -242,6 +242,7 @@ export default async function performConversion(
       key,
       id,
       apkg,
+      cardCount,
     });
 
     const completeJob = new CompleteJobUseCase(jobRepository, usersRepository);
