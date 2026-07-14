@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './OpsPage.module.css';
 import { formatCount } from './opsHelpers';
@@ -9,6 +10,7 @@ import {
   CustomerSignalBucket,
   CustomerSignalRow,
   CustomerSignalSource,
+  CustomerSignalStream,
 } from './customerSignalsTypes';
 
 const SOURCE_LABELS: Record<CustomerSignalSource, string> = {
@@ -17,6 +19,7 @@ const SOURCE_LABELS: Record<CustomerSignalSource, string> = {
   emoji_feedback: 'Deck-ready feedback',
   failed_conversion: 'Failed conversion',
   empty_back: 'Empty-back cards',
+  behavioral_dropoff: 'Behavioral drop-off',
 };
 
 const BUCKET_LABELS: Record<CustomerSignalBucket, string> = {
@@ -24,6 +27,35 @@ const BUCKET_LABELS: Record<CustomerSignalBucket, string> = {
   'money-multiplier': 'Money multiplier',
   unknown: '—',
 };
+
+const STREAM_LABELS: Record<CustomerSignalStream, string> = {
+  said: 'Said',
+  behavioral: 'Behavioral',
+  revenue: 'Revenue',
+};
+
+type BucketFilter = 'all' | CustomerSignalBucket;
+type SortKey = 'convergence' | 'count';
+
+const BUCKET_FILTERS: { value: BucketFilter; label: string }[] = [
+  { value: 'all', label: 'All buckets' },
+  { value: 'pain-killer', label: 'Pain killer' },
+  { value: 'money-multiplier', label: 'Money multiplier' },
+  { value: 'unknown', label: 'Unclassified' },
+];
+
+function sortSignals(
+  signals: CustomerSignalRow[],
+  key: SortKey
+): CustomerSignalRow[] {
+  const compare =
+    key === 'count'
+      ? (a: CustomerSignalRow, b: CustomerSignalRow) =>
+          b.count - a.count || b.convergence - a.convergence
+      : (a: CustomerSignalRow, b: CustomerSignalRow) =>
+          b.convergence - a.convergence || b.count - a.count;
+  return [...signals].sort(compare);
+}
 
 function renderRows(signals: CustomerSignalRow[]) {
   if (signals.length === 0) {
@@ -39,6 +71,8 @@ function renderRows(signals: CustomerSignalRow[]) {
             <th>Source</th>
             <th>Signal</th>
             <th>Count</th>
+            <th>Convergence</th>
+            <th>Streams</th>
             <th>Bucket</th>
           </tr>
         </thead>
@@ -55,6 +89,8 @@ function renderRows(signals: CustomerSignalRow[]) {
                 )}
               </td>
               <td className={styles.numeric}>{formatCount(signal.count)}</td>
+              <td className={styles.numeric}>{signal.convergence}×</td>
+              <td>{STREAM_LABELS[signal.stream]}</td>
               <td>{BUCKET_LABELS[signal.bucket]}</td>
             </tr>
           ))}
@@ -67,16 +103,29 @@ function renderRows(signals: CustomerSignalRow[]) {
 export default function CustomerSignalsTab() {
   const { data, loading, error, window, setWindow, refresh } =
     useCustomerSignals();
+  const [bucketFilter, setBucketFilter] = useState<BucketFilter>('all');
+  const [sortKey, setSortKey] = useState<SortKey>('convergence');
 
   const signals = data?.signals ?? null;
+
+  const visibleSignals = useMemo(() => {
+    if (signals == null) return null;
+    const filtered =
+      bucketFilter === 'all'
+        ? signals
+        : signals.filter((signal) => signal.bucket === bucketFilter);
+    return sortSignals(filtered, sortKey);
+  }, [signals, bucketFilter, sortKey]);
 
   return (
     <>
       <p className={styles.panelTitle}>Customer signals</p>
       <p className={styles.panelSubtitle}>
-        First-party signal ranked by volume — cancellation reasons and comments,
-        deck-ready feedback, failed conversions, and empty-back cards. Counts
-        cover the rolling window; empty-back cards are all-time.
+        Evidence-ranked feature discovery. First-party voice — cancellation
+        reasons and comments, deck-ready feedback — plus revealed pain from
+        failed conversions, empty-back cards, and funnel drop-offs. Convergence
+        counts how many independent streams (said, behavioral, revenue)
+        corroborate the same pain; higher ranks first.
       </p>
 
       <div className={styles.tabHeader}>
@@ -102,6 +151,39 @@ export default function CustomerSignalsTab() {
                 {w}
               </option>
             ))}
+          </select>
+          <label
+            htmlFor="customer-signals-bucket"
+            className={styles.controlsLabel}
+          >
+            Bucket
+          </label>
+          <select
+            id="customer-signals-bucket"
+            className={`${sharedStyles.select} ${styles.windowSelect}`}
+            value={bucketFilter}
+            onChange={(e) => setBucketFilter(e.target.value as BucketFilter)}
+          >
+            {BUCKET_FILTERS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <label
+            htmlFor="customer-signals-sort"
+            className={styles.controlsLabel}
+          >
+            Sort
+          </label>
+          <select
+            id="customer-signals-sort"
+            className={`${sharedStyles.select} ${styles.windowSelect}`}
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as SortKey)}
+          >
+            <option value="convergence">Convergence</option>
+            <option value="count">Count</option>
           </select>
           <button
             type="button"
@@ -131,7 +213,7 @@ export default function CustomerSignalsTab() {
         </div>
       )}
 
-      {signals != null && renderRows(signals)}
+      {visibleSignals != null && renderRows(visibleSignals)}
 
       {loading && data == null && (
         <p className={styles.emptyHint}>Reading customer signals</p>

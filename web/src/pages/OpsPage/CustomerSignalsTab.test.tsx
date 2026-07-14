@@ -1,9 +1,18 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import CustomerSignalsTab from './CustomerSignalsTab';
-import { CustomerSignalsResponse } from './customerSignalsTypes';
+import {
+  CustomerSignalRow,
+  CustomerSignalsResponse,
+} from './customerSignalsTypes';
 
 const mockFetch = (payload: CustomerSignalsResponse) => {
   (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -13,6 +22,18 @@ const mockFetch = (payload: CustomerSignalsResponse) => {
     json: async () => payload,
   });
 };
+
+const response = (signals: CustomerSignalRow[]): CustomerSignalsResponse => ({
+  signals,
+  since: '2026-06-01T00:00:00.000Z',
+  as_of: '2026-06-30T00:00:00.000Z',
+});
+
+const dataRowLabels = () =>
+  screen
+    .getAllByRole('row')
+    .slice(1)
+    .map((row) => within(row).getAllByRole('cell')[1].textContent);
 
 describe('CustomerSignalsTab', () => {
   const originalFetch = globalThis.fetch;
@@ -26,51 +47,125 @@ describe('CustomerSignalsTab', () => {
     vi.restoreAllMocks();
   });
 
-  test('renders a ranked row per signal with source, count, and bucket', async () => {
-    mockFetch({
-      signals: [
+  test('renders convergence, stream, and bucket for each signal', async () => {
+    mockFetch(
+      response([
+        {
+          source: 'behavioral_dropoff',
+          label: 'Conversions that finished with 0 cards',
+          count: 12450,
+          bucket: 'pain-killer',
+          stream: 'behavioral',
+          convergence: 2,
+        },
+      ])
+    );
+
+    render(<CustomerSignalsTab />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Conversions that finished with 0 cards')
+      ).toBeInTheDocument()
+    );
+
+    const dataRow = screen.getAllByRole('row')[1];
+    const cells = within(dataRow).getAllByRole('cell');
+    expect(cells[0]).toHaveTextContent('Behavioral drop-off');
+    expect(cells[2]).toHaveTextContent('12 450');
+    expect(cells[3]).toHaveTextContent('2×');
+    expect(cells[4]).toHaveTextContent('Behavioral');
+    expect(cells[5]).toHaveTextContent('Pain killer');
+  });
+
+  test('filters the table to a single bucket', async () => {
+    mockFetch(
+      response([
+        {
+          source: 'behavioral_dropoff',
+          label: 'Signed up without starting an upload',
+          count: 80,
+          bucket: 'money-multiplier',
+          stream: 'behavioral',
+          convergence: 1,
+        },
         {
           source: 'failed_conversion',
           label: 'Notion export unreadable',
-          count: 12450,
+          count: 40,
           bucket: 'pain-killer',
+          stream: 'behavioral',
+          convergence: 1,
         },
-        {
-          source: 'cancel_reason',
-          label: 'finished what I needed',
-          count: 9,
-          bucket: 'unknown',
-        },
-      ],
-      since: '2026-06-01T00:00:00.000Z',
-      as_of: '2026-06-30T00:00:00.000Z',
-    });
+      ])
+    );
 
     render(<CustomerSignalsTab />);
 
     await waitFor(() =>
       expect(screen.getByText('Notion export unreadable')).toBeInTheDocument()
     );
-    expect(screen.getByText('Failed conversion')).toBeInTheDocument();
-    expect(screen.getByText('12 450')).toBeInTheDocument();
-    expect(screen.getByText('Pain killer')).toBeInTheDocument();
-    expect(screen.getByText('finished what I needed')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Bucket'), {
+      target: { value: 'money-multiplier' },
+    });
+
+    expect(
+      screen.getByText('Signed up without starting an upload')
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Notion export unreadable')).toBeNull();
+  });
+
+  test('re-sorts by raw count when the sort control changes', async () => {
+    mockFetch(
+      response([
+        {
+          source: 'cancel_reason',
+          label: 'converged pain',
+          count: 5,
+          bucket: 'unknown',
+          stream: 'revenue',
+          convergence: 3,
+        },
+        {
+          source: 'failed_conversion',
+          label: 'high volume',
+          count: 900,
+          bucket: 'pain-killer',
+          stream: 'behavioral',
+          convergence: 1,
+        },
+      ])
+    );
+
+    render(<CustomerSignalsTab />);
+
+    await waitFor(() =>
+      expect(screen.getByText('converged pain')).toBeInTheDocument()
+    );
+    expect(dataRowLabels()).toEqual(['converged pain', 'high volume']);
+
+    fireEvent.change(screen.getByLabelText('Sort'), {
+      target: { value: 'count' },
+    });
+
+    expect(dataRowLabels()).toEqual(['high volume', 'converged pain']);
   });
 
   test('shows the verbatim sample quote for free-text sources', async () => {
-    mockFetch({
-      signals: [
+    mockFetch(
+      response([
         {
           source: 'cancel_comment',
           label: 'too expensive',
           count: 1,
           bucket: 'unknown',
+          stream: 'said',
+          convergence: 2,
           sampleQuote: 'wish it were cheaper for students',
         },
-      ],
-      since: '2026-06-01T00:00:00.000Z',
-      as_of: '2026-06-30T00:00:00.000Z',
-    });
+      ])
+    );
 
     render(<CustomerSignalsTab />);
 
@@ -83,11 +178,7 @@ describe('CustomerSignalsTab', () => {
   });
 
   test('shows the empty state when there is no signal', async () => {
-    mockFetch({
-      signals: [],
-      since: '2026-06-01T00:00:00.000Z',
-      as_of: '2026-06-30T00:00:00.000Z',
-    });
+    mockFetch(response([]));
 
     render(<CustomerSignalsTab />);
 

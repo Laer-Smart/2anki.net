@@ -3,18 +3,23 @@ export type CustomerSignalSource =
   | 'cancel_comment'
   | 'emoji_feedback'
   | 'failed_conversion'
-  | 'empty_back';
+  | 'empty_back'
+  | 'behavioral_dropoff';
 
 export type CustomerSignalBucket =
   | 'pain-killer'
   | 'money-multiplier'
   | 'unknown';
 
+export type CustomerSignalStream = 'said' | 'behavioral' | 'revenue';
+
 export interface CustomerSignalRow {
   source: CustomerSignalSource;
   label: string;
   count: number;
   bucket: CustomerSignalBucket;
+  stream: CustomerSignalStream;
+  convergence: number;
   sampleQuote?: string;
 }
 
