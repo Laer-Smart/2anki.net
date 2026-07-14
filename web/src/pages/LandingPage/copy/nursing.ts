@@ -7,6 +7,10 @@ const nursingCopy: LandingCopy = {
       label: 'Turn medical lecture slides into Anki cards',
       href: '/anki-from-medical-lecture-slides',
     },
+    {
+      label: 'Make NCLEX Anki cards from your review notes',
+      href: '/nclex-anki',
+    },
     { label: 'Convert a PDF to Anki', href: '/pdf-to-anki' },
     { label: 'Browse every converter', href: '/convert' },
   ],
