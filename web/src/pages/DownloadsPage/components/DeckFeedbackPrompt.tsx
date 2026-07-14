@@ -12,7 +12,7 @@ const COMMENT_MAX = 2000;
 
 type Stage =
   | { kind: 'prompt' }
-  | { kind: 'follow-up' }
+  | { kind: 'follow-up'; rating: number }
   | { kind: 'sending' }
   | { kind: 'sent'; rating: number }
   | { kind: 'error'; retry: () => void };
@@ -69,19 +69,19 @@ export function DeckFeedbackPrompt() {
   };
 
   const handlePositive = () => {
-    void sendRating(POSITIVE_RATING);
+    setStage({ kind: 'follow-up', rating: POSITIVE_RATING });
   };
 
   const handleNegative = () => {
-    setStage({ kind: 'follow-up' });
+    setStage({ kind: 'follow-up', rating: NEGATIVE_RATING });
   };
 
-  const handleSendNegative = () => {
-    void sendRating(NEGATIVE_RATING, comment.slice(0, COMMENT_MAX));
+  const handleSend = (rating: number) => {
+    void sendRating(rating, comment.slice(0, COMMENT_MAX));
   };
 
-  const handleSkipNegative = () => {
-    void sendRating(NEGATIVE_RATING);
+  const handleSkip = (rating: number) => {
+    void sendRating(rating);
   };
 
   return (
@@ -120,12 +120,18 @@ export function DeckFeedbackPrompt() {
       {stage.kind === 'follow-up' && (
         <>
           <label className={styles.prompt} htmlFor="deck-feedback-comment">
-            What went wrong?
+            {stage.rating === POSITIVE_RATING
+              ? 'Glad it came out right. Anything that would make it better?'
+              : 'What went wrong?'}
           </label>
           <textarea
             id="deck-feedback-comment"
             className={styles.textarea}
-            placeholder="For example: images didn't come through, or cards were empty."
+            placeholder={
+              stage.rating === POSITIVE_RATING
+                ? 'For example: keep my headings, or add a tag to each card.'
+                : "For example: images didn't come through, or cards were empty."
+            }
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={2}
@@ -135,14 +141,14 @@ export function DeckFeedbackPrompt() {
             <button
               type="button"
               className={styles.primary}
-              onClick={handleSendNegative}
+              onClick={() => handleSend(stage.rating)}
             >
               Send
             </button>
             <button
               type="button"
               className={styles.secondary}
-              onClick={handleSkipNegative}
+              onClick={() => handleSkip(stage.rating)}
             >
               Skip
             </button>

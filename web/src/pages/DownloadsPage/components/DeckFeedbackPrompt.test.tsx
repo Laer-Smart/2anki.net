@@ -62,9 +62,42 @@ describe('DeckFeedbackPrompt', () => {
     ).toBeInTheDocument();
   });
 
-  it('posts rating 5 with page="downloads/deck_done" when user confirms the deck worked', async () => {
+  it('opens the idea textarea when the user confirms the deck worked', () => {
     render(<DeckFeedbackPrompt />);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
+    expect(
+      screen.getByLabelText(
+        'Glad it came out right. Anything that would make it better?'
+      )
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Skip' })).toBeInTheDocument();
+  });
+
+  it('posts rating 5 with the idea comment when the user fills the follow-up and sends', async () => {
+    render(<DeckFeedbackPrompt />);
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
+    fireEvent.change(
+      screen.getByLabelText(
+        'Glad it came out right. Anything that would make it better?'
+      ),
+      { target: { value: 'add a tag to each card' } }
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    await waitFor(() => {
+      expect(submitEmojiFeedback).toHaveBeenCalledWith(
+        5,
+        'downloads/deck_done',
+        'add a tag to each card'
+      );
+    });
+    expect(await screen.findByText('Feedback received.')).toBeInTheDocument();
+  });
+
+  it('posts rating 5 with no comment when the user skips the idea follow-up', async () => {
+    render(<DeckFeedbackPrompt />);
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
     await waitFor(() => {
       expect(submitEmojiFeedback).toHaveBeenCalledWith(
         5,
@@ -72,6 +105,7 @@ describe('DeckFeedbackPrompt', () => {
         undefined
       );
     });
+    expect(await screen.findByText('Feedback received.')).toBeInTheDocument();
   });
 
   it('opens the follow-up textarea when the user reports a problem', () => {
@@ -122,6 +156,7 @@ describe('DeckFeedbackPrompt', () => {
   it('writes the suppression timestamp on successful submit', async () => {
     render(<DeckFeedbackPrompt />);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
     await waitFor(() => {
       expect(isDeckFeedbackSuppressed()).toBe(true);
     });
@@ -131,6 +166,7 @@ describe('DeckFeedbackPrompt', () => {
     submitEmojiFeedback.mockRejectedValueOnce(new Error('network'));
     render(<DeckFeedbackPrompt />);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
     expect(await screen.findByText("Couldn't send that.")).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Try again' })
@@ -156,6 +192,7 @@ describe('DeckFeedbackPrompt — no upsell after feedback', () => {
   it('thanks a free user without a pass pitch after a positive rating', async () => {
     render(<DeckFeedbackPrompt />);
     fireEvent.click(screen.getByRole('button', { name: 'Yes, it worked' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Skip' }));
     expect(await screen.findByText('Feedback received.')).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'Get Day Pass' })
