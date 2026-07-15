@@ -244,29 +244,31 @@
   line-height: var(--leading-relaxed);
 }
 
-/* ---- Showcase (Mac) ---- */
-.showcase {
+/* ---- Screenshots gallery ---- */
+.phoneGallery {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  align-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1.25rem;
 }
 
-.showcase .sectionHeading {
-  text-align: left;
-  margin-bottom: 1rem;
+.ipadGallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
 }
 
-.showcaseBody {
-  margin: 0;
-  font-size: var(--text-lg);
-  color: var(--color-text-secondary);
-  line-height: var(--leading-relaxed);
-  max-width: 44ch;
+.ipadCard {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
-.showcaseArt {
-  min-width: 0;
+.ipadCard img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 /* ---- FAQ ---- */
@@ -346,199 +348,23 @@
   justify-content: center;
 }
 
-/* ====================================================================
-   Device mockups — pure CSS, theme-token driven. Placeholder art until
-   real App Store screenshots land (see AppStore/screenshots.md).
-   ==================================================================== */
-
-/* iPhone */
-.phone {
-  position: relative;
-  width: 248px;
-  padding: 12px;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: 38px;
-  box-shadow: var(--shadow-md);
-}
-
-.phoneNotch {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 88px;
-  height: 22px;
-  background: var(--color-bg-tertiary);
-  border-radius: 0 0 12px 12px;
-  z-index: 2;
-}
-
-.phoneScreen {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  padding: 1.25rem 0.875rem 1rem;
-  background: var(--color-bg-secondary);
-  border-radius: 28px;
-  min-height: 440px;
-}
-
-.mockHeader {
-  padding: 0.5rem 0.25rem;
-}
-
-.mockHeaderTitle {
-  font-size: var(--text-lg);
-  font-weight: var(--font-bold);
-  color: var(--color-text-primary);
-}
-
-.mockCard {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.875rem;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.mockCardSlim {
-  composes: mockCard;
-}
-
-.mockChip {
-  align-self: flex-start;
-  padding: 0.15rem 0.5rem;
-  font-size: 0.625rem;
-  font-weight: var(--font-medium);
-  color: var(--color-primary);
-  background: var(--color-primary-light);
-  border-radius: var(--radius-full);
-}
-
-.mockFront {
-  margin: 0;
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-text-primary);
-  line-height: var(--leading-normal);
-}
-
-.mockRule {
-  height: 1px;
-  background: var(--color-border);
-}
-
-.mockBack {
-  margin: 0;
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
-  line-height: var(--leading-normal);
-}
-
-.mockCta {
-  margin-top: auto;
-  padding: 0.625rem;
-  text-align: center;
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-bg-primary);
-  background: var(--color-primary);
-  border-radius: var(--radius-md);
-}
-
-/* Mac window */
-.mac {
+/* ---- Real screenshot frame ---- */
+.phoneFrame {
   width: 100%;
-  max-width: 560px;
+  max-width: 248px;
   margin: 0 auto;
+  padding: 8px;
   background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  border-radius: 34px;
   box-shadow: var(--shadow-md);
 }
 
-.macBar {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.625rem 0.875rem;
-  background: var(--color-bg-secondary);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.macDot {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: var(--color-bg-tertiary);
-}
-
-.macBarTitle {
-  margin-left: 0.5rem;
-  font-size: var(--text-xs);
-  font-weight: var(--font-medium);
-  color: var(--color-text-tertiary);
-}
-
-.macBody {
-  display: grid;
-  grid-template-columns: 150px 1fr;
-  min-height: 280px;
-}
-
-.macSidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.875rem 0.625rem;
-  background: var(--color-bg-secondary);
-  border-right: 1px solid var(--color-border);
-}
-
-.macNav,
-.macNavActive {
-  padding: 0.45rem 0.625rem;
-  font-size: var(--text-xs);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
-}
-
-.macNavActive {
-  font-weight: var(--font-semibold);
-  color: var(--color-primary);
-  background: var(--color-primary-light);
-}
-
-.macContent {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  padding: 1rem;
-}
-
-.macRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 0.875rem;
-  background: var(--color-bg-primary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-}
-
-.macRowName {
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-text-primary);
-}
-
-.macRowMeta {
-  font-size: var(--text-xs);
-  color: var(--color-text-tertiary);
+.phoneFrame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 26px;
 }
 
 /* ---- Responsive ---- */
@@ -554,10 +380,6 @@
   .stepsRow {
     grid-template-columns: repeat(3, 1fr);
   }
-
-  .showcase {
-    grid-template-columns: 0.9fr 1.1fr;
-  }
 }
 
 @media (max-width: 768px) {
@@ -572,17 +394,5 @@
 
   .body {
     max-width: 36ch;
-  }
-
-  .showcase .sectionHeading {
-    text-align: center;
-  }
-
-  .showcaseCopy {
-    text-align: center;
-  }
-
-  .showcaseBody {
-    margin: 0 auto;
   }
 }
