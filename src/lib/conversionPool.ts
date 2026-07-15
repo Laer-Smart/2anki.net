@@ -15,7 +15,10 @@ import BlocksCacheRepository from '../data_layer/BlocksCacheRepository';
 import JobRepository from '../data_layer/JobRepository';
 import { SetJobFailedUseCase } from '../usecases/jobs/SetJobFailedUseCase';
 import { NOTION_TOKEN_EXPIRED_REASON } from '../usecases/jobs/jobFailureReason';
-import { resolveConversionWorkers } from './pythonWorkerBudget';
+import {
+  resolveConversionWorkers,
+  resolveConversionWorkerRecycleTasks,
+} from './pythonWorkerBudget';
 
 export { resolveConversionWorkers } from './pythonWorkerBudget';
 
@@ -35,8 +38,32 @@ let pool: Piscina | null = null;
 
 export const POOL_CLOSE_TIMEOUT_MS = 80_000;
 
+// Piscina workers are a lifetime singleton, so each worker's V8 old-gen heap
+// ratchets up across conversions (large Notion decks hold image/PDF buffers and
+// rendered HTML) and never resets without a deploy — prod saw RSS climb 317MB →
+// 1.4GB over 20h on one process. Recycling the pool after a bounded number of
+// completed tasks drains the old workers and starts fresh ones, so the heap
+// resets periodically instead of only on restart. The old-gen cap stays at
+// 1024MB: lowering it risks OOMing the comprehensive/big-media path (which would
+// turn a slow leak into failed conversions), so recycling — not a smaller cap —
+// is the mechanism that bounds RSS.
+export const MAX_OLD_GENERATION_SIZE_MB = 1024;
+
+let completedTaskCount = 0;
+let recyclingPool = false;
+
+export function shouldRecyclePool(
+  completedTasks: number,
+  recycleThreshold: number,
+  isRecycling: boolean
+): boolean {
+  return !isRecycling && completedTasks >= recycleThreshold;
+}
+
 export function resetConversionPoolForTesting(): void {
   pool = null;
+  completedTaskCount = 0;
+  recyclingPool = false;
 }
 
 function workerEntry(): { filename: string; execArgv: string[] } {
@@ -56,7 +83,7 @@ export function initConversionPool(): Piscina {
     execArgv,
     maxThreads,
     minThreads: 1,
-    resourceLimits: { maxOldGenerationSizeMb: 1024 },
+    resourceLimits: { maxOldGenerationSizeMb: MAX_OLD_GENERATION_SIZE_MB },
     closeTimeout: POOL_CLOSE_TIMEOUT_MS,
   });
   return pool;
@@ -66,20 +93,64 @@ export function getConversionPool(): Piscina {
   return initConversionPool();
 }
 
+// Swap in a fresh pool and drain the retiring one in the background so heaps
+// reset without dropping in-flight conversions — close() waits for outstanding
+// tasks up to its budget. Guarded against re-entry so a burst of completions
+// past the threshold cannot start overlapping recycles.
+function recycleConversionPool(): void {
+  const retiring = pool;
+  if (recyclingPool || retiring == null) return;
+  recyclingPool = true;
+  completedTaskCount = 0;
+  pool = null;
+  initConversionPool();
+  void shutdownConversionPool({
+    handle: retiring,
+    timeoutMs: POOL_CLOSE_TIMEOUT_MS + 3_000,
+  })
+    .catch((error) => {
+      console.error('Conversion pool recycle drain failed:', error);
+    })
+    .finally(() => {
+      recyclingPool = false;
+    });
+}
+
+function noteTaskCompleted(): void {
+  completedTaskCount += 1;
+  if (
+    shouldRecyclePool(
+      completedTaskCount,
+      resolveConversionWorkerRecycleTasks(),
+      recyclingPool
+    )
+  ) {
+    recycleConversionPool();
+  }
+}
+
 export async function runConversion(
   request: ConversionWorkerRequest
 ): Promise<void> {
-  await getConversionPool().run(request);
+  try {
+    await getConversionPool().run(request);
+  } finally {
+    noteTaskCompleted();
+  }
 }
 
 export async function runUploadGeneration(
   task: UploadGenerationTask,
   transferList?: Transferable[]
 ): Promise<UploadGenerationResult> {
-  return getConversionPool().run(task, {
-    name: UPLOAD_GENERATION_TASK,
-    transferList: transferList as never, // piscina's TransferList type misinfers to StructuredSerializeOptions under lib.dom; the runtime expects an array
-  });
+  try {
+    return await getConversionPool().run(task, {
+      name: UPLOAD_GENERATION_TASK,
+      transferList: transferList as never, // piscina's TransferList type misinfers to StructuredSerializeOptions under lib.dom; the runtime expects an array
+    });
+  } finally {
+    noteTaskCompleted();
+  }
 }
 
 export async function shutdownConversionPool(
