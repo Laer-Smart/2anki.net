@@ -54,6 +54,7 @@ import { LandingPageYieldService } from '../services/ops/LandingPageYieldService
 import { LandingPageYieldRepository } from '../data_layer/LandingPageYieldRepository';
 import { GetCustomerSignalsUseCase } from '../usecases/ops/GetCustomerSignalsUseCase';
 import { CustomerSignalsService } from '../services/ops/CustomerSignalsService';
+import { BehavioralDropoffRepository } from '../data_layer/BehavioralDropoffRepository';
 import { GetPassUnlockMonitorUseCase } from '../usecases/ops/GetPassUnlockMonitorUseCase';
 import { PassUnlockMonitorService } from '../services/ops/PassUnlockMonitorService';
 import UserPassRepository from '../data_layer/UserPassRepository';
@@ -166,6 +167,7 @@ const OpsRouter = () => {
         emoji: new EmojiFeedbackRepository(database),
         failedConversion: new JobsMetricsRepository(database),
         emptyBack: new ConversionOutputStatsRepository(database),
+        behavioralDropoff: new BehavioralDropoffRepository(database),
       })
     ),
     new GetPassUnlockMonitorUseCase(
