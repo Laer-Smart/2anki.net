@@ -15,6 +15,7 @@ exports.up = (knex) =>
       .notNullable()
       .defaultTo(knex.fn.now());
     table.index(['feature_key']);
+    table.index(['user_id']);
   });
 
 exports.down = (knex) => knex.schema.dropTableIfExists('feature_interest');
