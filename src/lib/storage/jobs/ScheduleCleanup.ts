@@ -7,7 +7,9 @@ import deleteOldUploads, {
 import { runFileSystemCleanup } from './helpers/runFileSystemCleanup';
 
 export const ScheduleCleanup = (db: Knex) => {
-  setInterval(() => runFileSystemCleanup(db), MS_21);
+  setInterval(() => {
+    runFileSystemCleanup(db).catch(console.error);
+  }, MS_21);
 
   setInterval(
     () =>

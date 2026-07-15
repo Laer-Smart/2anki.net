@@ -79,6 +79,7 @@ import ReEngagementRepository from './data_layer/ReEngagementRepository';
 import InactivityEmailRepository from './data_layer/InactivityEmailRepository';
 import UploadRepository from './data_layer/UploadRespository';
 import { updateStripeSubscriptions } from './lib/storage/jobs/helpers/updateStripeSubscriptions';
+import { ScheduleCleanup } from './lib/storage/jobs/ScheduleCleanup';
 import { scheduleReEngagementEmails } from './lib/reengagement/jobs/scheduleReEngagementEmails';
 import { scheduleInactivityWarnings } from './lib/inactivity/jobs/scheduleInactivityWarnings';
 import { schedulePauseResumeWarnings } from './lib/subscriptions/jobs/schedulePauseResumeWarnings';
@@ -328,6 +329,12 @@ const serve = async () => {
   scheduleExportDriftCanary(emailService);
 
   scheduleObservabilityCleanup(new ObservabilityRepository(database));
+
+  try {
+    ScheduleCleanup(database);
+  } catch (error) {
+    console.error('[fs-cleanup] failed to schedule:', error);
+  }
 };
 
 serve().catch((error) => {

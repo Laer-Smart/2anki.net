@@ -16,8 +16,8 @@ jest.mock('piscina', () => {
     construct(options);
     return {
       run: (...args: unknown[]) => mockPoolRun(...args),
-      close: jest.fn(),
-      destroy: jest.fn(),
+      close: jest.fn().mockResolvedValue(undefined),
+      destroy: jest.fn().mockResolvedValue(undefined),
       queueSize: 0,
     };
   });
@@ -39,7 +39,10 @@ import {
   shutdownConversionPool,
   initConversionPool,
   resetConversionPoolForTesting,
+  shouldRecyclePool,
+  runConversion,
   POOL_CLOSE_TIMEOUT_MS,
+  MAX_OLD_GENERATION_SIZE_MB,
   ConversionWorkerRequest,
 } from './conversionPool';
 import { UploadGenerationTask } from '../usecases/uploads/uploadGenerationTypes';
@@ -289,5 +292,74 @@ describe('initConversionPool', () => {
 
   it('keeps the drain budget well above piscina default so large decks finish', () => {
     expect(POOL_CLOSE_TIMEOUT_MS).toBeGreaterThanOrEqual(60_000);
+  });
+
+  it('caps per-worker old-gen heap so V8 reclaims per-conversion buffers', () => {
+    initConversionPool();
+
+    expect(construct.mock.calls[0][0]).toMatchObject({
+      resourceLimits: { maxOldGenerationSizeMb: MAX_OLD_GENERATION_SIZE_MB },
+    });
+  });
+});
+
+describe('shouldRecyclePool', () => {
+  it.each([
+    [0, 50, false, false],
+    [49, 50, false, false],
+    [50, 50, false, true],
+    [75, 50, false, true],
+    [50, 50, true, false],
+  ])(
+    'completed=%p threshold=%p recycling=%p => %p',
+    (completed, threshold, recycling, expected) => {
+      expect(shouldRecyclePool(completed, threshold, recycling)).toBe(expected);
+    }
+  );
+});
+
+describe('conversion pool recycling', () => {
+  const construct = (Piscina as unknown as { construct: jest.Mock }).construct;
+  const previous = process.env.CONVERSION_WORKER_RECYCLE_TASKS;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    resetConversionPoolForTesting();
+    construct.mockClear();
+    (Piscina as unknown as jest.Mock).mockClear();
+    mockPoolRun.mockReset();
+    mockPoolRun.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+    resetConversionPoolForTesting();
+    if (previous === undefined) {
+      delete process.env.CONVERSION_WORKER_RECYCLE_TASKS;
+    } else {
+      process.env.CONVERSION_WORKER_RECYCLE_TASKS = previous;
+    }
+  });
+
+  it('recreates the pool after the recycle threshold of completed tasks', async () => {
+    process.env.CONVERSION_WORKER_RECYCLE_TASKS = '2';
+
+    await runConversion(baseRequest);
+    expect(construct).toHaveBeenCalledTimes(1);
+
+    await runConversion(baseRequest);
+    // Second completion hits the threshold: the pool is drained and a fresh one
+    // is constructed so worker heaps reset.
+    expect(construct).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not recycle before the threshold is reached', async () => {
+    process.env.CONVERSION_WORKER_RECYCLE_TASKS = '5';
+
+    await runConversion(baseRequest);
+    await runConversion(baseRequest);
+
+    expect(construct).toHaveBeenCalledTimes(1);
   });
 });
