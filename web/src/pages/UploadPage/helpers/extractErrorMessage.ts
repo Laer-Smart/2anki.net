@@ -16,6 +16,7 @@ function isValidCode(value: unknown): value is UploadErrorCode {
     value === 'corrupted_apkg' ||
     value === 'password_protected_pdf' ||
     value === 'empty_export' ||
+    value === 'image_only_no_text' ||
     value === 'unknown'
   );
 }

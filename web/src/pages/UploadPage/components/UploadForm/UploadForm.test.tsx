@@ -1005,6 +1005,80 @@ describe('UploadForm analytics events', () => {
     });
   });
 
+  it('routes a 400 with code=image_only_no_text into the Photo to Deck handoff', async () => {
+    const jsonBody = {
+      code: 'image_only_no_text',
+      message:
+        'These look like images — no text to read. Turn them into cards with Photo to Deck.',
+      filename: 'lecture-page.png',
+      photoToDeckUrl: '/photo-to-deck',
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 400,
+        clone: () => ({ json: () => Promise.resolve(jsonBody) }),
+        text: () => Promise.resolve(JSON.stringify(jsonBody)),
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+      })
+    );
+
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
+    const form = container.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
+    });
+
+    const cta = await screen.findByRole('link', { name: /Try Photo to Deck/i });
+    expect(cta).toHaveAttribute('href', '/photo-to-deck');
+    expect(container.querySelector('[class*="errorBody"]')).toBeNull();
+  });
+
+  it('fires image_only_photo_deck_clicked when the handoff CTA is clicked', async () => {
+    const { track } = await import('../../../../lib/analytics/track');
+    const trackMock = vi.mocked(track);
+    trackMock.mockClear();
+
+    const jsonBody = {
+      code: 'image_only_no_text',
+      message:
+        'These look like images — no text to read. Turn them into cards with Photo to Deck.',
+      filename: 'lecture-page.png',
+      photoToDeckUrl: '/photo-to-deck',
+    };
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        redirected: false,
+        status: 400,
+        clone: () => ({ json: () => Promise.resolve(jsonBody) }),
+        text: () => Promise.resolve(JSON.stringify(jsonBody)),
+        headers: new Headers({ 'Content-Type': 'application/json' }),
+      })
+    );
+
+    const { container } = renderUploadForm(
+      <UploadForm setErrorMessage={vi.fn()} />
+    );
+    const form = container.querySelector('form')!;
+    await act(async () => {
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true })
+      );
+    });
+
+    const cta = await screen.findByRole('link', { name: /Try Photo to Deck/i });
+    fireEvent.click(cta);
+
+    expect(trackMock).toHaveBeenCalledWith('image_only_photo_deck_shown');
+    expect(trackMock).toHaveBeenCalledWith('image_only_photo_deck_clicked');
+  });
+
   it('tracks upload_failed with reason=network when fetch throws a TypeError', async () => {
     const { track } = await import('../../../../lib/analytics/track');
     const trackMock = vi.mocked(track);

@@ -20,6 +20,7 @@ import { isPaying } from '../lib/isPaying';
 import { isLimitError } from '../lib/misc/isLimitError';
 import { handleUploadLimitError } from '../controllers/Upload/helpers/handleUploadLimitError';
 import { getUploadValidationError } from '../lib/upload/getUploadValidationError';
+import { isImageOnlyUpload } from '../lib/upload/isImageOnlyUpload';
 import { EmptyDeckError } from '../usecases/jobs/EmptyDeckError';
 import { UploadFileUnavailableError } from '../usecases/uploads/UploadFileUnavailableError';
 import { isExpectedClientFault } from '../lib/misc/isExpectedClientFault';
@@ -70,6 +71,16 @@ interface MarkdownLossyResponse {
   message: string;
   filename: string;
 }
+
+interface ImageOnlyResponse {
+  code: 'image_only_no_text';
+  message: string;
+  filename: string;
+  photoToDeckUrl: string;
+}
+
+const IMAGE_ONLY_NO_TEXT_MESSAGE =
+  'These look like images — no text to read. Turn them into cards with Photo to Deck.';
 
 interface DeckTooLargeResponse {
   message: string;
@@ -480,6 +491,21 @@ class UploadService {
             code: 'markdown_likely_lossy',
             message: MARKDOWN_LIKELY_LOSSY_REASON,
             filename,
+          };
+          return res.status(400).json(body);
+        }
+        if (isImageOnlyUpload(files)) {
+          const owner = getOwner(res);
+          track('image_only_no_text_shown', {
+            userId: owner != null ? Number(owner) : null,
+            anonymousId: this.resolveAnonId(req),
+            props: { source: this.resolveUploadSource(req) },
+          });
+          const body: ImageOnlyResponse = {
+            code: 'image_only_no_text',
+            message: IMAGE_ONLY_NO_TEXT_MESSAGE,
+            filename,
+            photoToDeckUrl: '/photo-to-deck',
           };
           return res.status(400).json(body);
         }

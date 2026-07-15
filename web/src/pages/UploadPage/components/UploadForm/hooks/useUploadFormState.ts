@@ -8,6 +8,7 @@ export type ZoneState =
   | 'success'
   | 'multiDeck'
   | 'emptyDeck'
+  | 'imageOnly'
   | 'limitReached'
   | 'error'
   | 'lockedPdf';

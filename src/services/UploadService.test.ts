@@ -361,6 +361,81 @@ describe('UploadService.handleUpload — error paths', () => {
     expect(body.docsLink).toBe('/documentation/help/common-problems');
   });
 
+  it('returns image_only_no_text with a Photo to Deck link when an image-only upload yields 0 cards', async () => {
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({ packages: [] }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
+    const req = buildRequest({
+      files: [
+        {
+          originalname: 'lecture-page.png',
+          mimetype: 'image/png',
+          size: 2048,
+          path: '/tmp/lecture-page.png',
+        } as unknown as Express.Multer.File,
+      ],
+      cookies: { anon_id: 'anon-image-only' },
+    } as Partial<express.Request>);
+    const { res, capturedStatus, capturedJson } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(capturedStatus()).toBe(400);
+    const body = capturedJson() as {
+      code: string;
+      message: string;
+      filename: string;
+      photoToDeckUrl: string;
+    };
+    expect(body.code).toBe('image_only_no_text');
+    expect(body.photoToDeckUrl).toBe('/photo-to-deck');
+    expect(body.filename).toBe('lecture-page.png');
+    expect(body.message).toMatch(/Photo to Deck/);
+    expect(trackMock).toHaveBeenCalledWith(
+      'image_only_no_text_shown',
+      expect.objectContaining({
+        anonymousId: 'anon-image-only',
+        props: expect.objectContaining({ source: 'upload' }),
+      })
+    );
+  });
+
+  it('keeps the plain empty_export state for a non-image file that yields 0 cards', async () => {
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({ packages: [] }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
+    const req = buildRequest();
+    const { res, capturedStatus, capturedJson } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(capturedStatus()).toBe(400);
+    const body = capturedJson() as { code: string };
+    expect(body.code).toBe('empty_export');
+    expect(trackMock).not.toHaveBeenCalledWith(
+      'image_only_no_text_shown',
+      expect.anything()
+    );
+  });
+
   it('EmptyDeckError response body contains no HTML tags', async () => {
     MockGeneratePackagesUseCase.mockImplementation(
       () =>
