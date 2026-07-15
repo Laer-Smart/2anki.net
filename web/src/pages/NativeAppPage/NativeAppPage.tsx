@@ -69,70 +69,54 @@ const FAQS = [
   },
 ];
 
-function PhoneMockup() {
-  return (
-    <div className={styles.phone} aria-hidden="true">
-      <div className={styles.phoneNotch} />
-      <div className={styles.phoneScreen}>
-        <div className={styles.mockHeader}>
-          <span className={styles.mockHeaderTitle}>Make flashcards</span>
-        </div>
-        <div className={styles.mockCard}>
-          <span className={styles.mockChip}>Basic</span>
-          <p className={styles.mockFront}>What is spaced repetition?</p>
-          <div className={styles.mockRule} />
-          <p className={styles.mockBack}>
-            Reviewing material at increasing intervals to fight forgetting.
-          </p>
-        </div>
-        <div className={styles.mockCardSlim}>
-          <span className={styles.mockChip}>Cloze</span>
-          <p className={styles.mockFront}>
-            The mitochondria is the {'{{c1::powerhouse}}'} of the cell.
-          </p>
-        </div>
-        <div className={styles.mockCta}>Export deck</div>
-      </div>
-    </div>
-  );
+interface Screenshot {
+  src: string;
+  alt: string;
 }
 
-function MacMockup() {
+const HERO_SHOT: Screenshot = {
+  src: '/app-screenshots/iphone-1.png',
+  alt: '2anki on iPhone — the Make flashcards home screen',
+};
+
+const IPHONE_SHOTS: Screenshot[] = [
+  {
+    src: '/app-screenshots/iphone-1.png',
+    alt: '2anki on iPhone — Make flashcards home screen with drag-and-drop file upload',
+  },
+  {
+    src: '/app-screenshots/iphone-2.png',
+    alt: '2anki on iPhone — AI chat prompts to build a deck from a topic or your notes',
+  },
+  {
+    src: '/app-screenshots/iphone-3.png',
+    alt: '2anki on iPhone — previewing generated cards before saving the .apkg',
+  },
+  {
+    src: '/app-screenshots/iphone-4.png',
+    alt: '2anki on iPhone — chat history of past decks',
+  },
+];
+
+const IPAD_SHOTS: Screenshot[] = [
+  {
+    src: '/app-screenshots/ipad-1.png',
+    alt: '2anki on iPad — Make flashcards with the full sidebar of conversion tools',
+  },
+  {
+    src: '/app-screenshots/ipad-2.png',
+    alt: '2anki on iPad — AI chat generating a European capitals deck',
+  },
+  {
+    src: '/app-screenshots/ipad-3.png',
+    alt: '2anki on iPad — AI chat prompt starters',
+  },
+];
+
+function PhoneFrame({ src, alt }: Screenshot) {
   return (
-    <div className={styles.mac} aria-hidden="true">
-      <div className={styles.macBar}>
-        <span className={styles.macDot} />
-        <span className={styles.macDot} />
-        <span className={styles.macDot} />
-        <span className={styles.macBarTitle}>My Decks</span>
-      </div>
-      <div className={styles.macBody}>
-        <div className={styles.macSidebar}>
-          <span className={styles.macNavActive}>Make flashcards</span>
-          <span className={styles.macNav}>My Decks</span>
-          <span className={styles.macNav}>Chat</span>
-          <span className={styles.macNav}>Notion</span>
-          <span className={styles.macNav}>Account</span>
-        </div>
-        <div className={styles.macContent}>
-          <div className={styles.macRow}>
-            <span className={styles.macRowName}>Biology — Chapter 4</span>
-            <span className={styles.macRowMeta}>128 cards</span>
-          </div>
-          <div className={styles.macRow}>
-            <span className={styles.macRowName}>Spanish verbs</span>
-            <span className={styles.macRowMeta}>64 cards</span>
-          </div>
-          <div className={styles.macRow}>
-            <span className={styles.macRowName}>Kindle — Atomic Habits</span>
-            <span className={styles.macRowMeta}>41 cards</span>
-          </div>
-          <div className={styles.macRow}>
-            <span className={styles.macRowName}>USMLE lecture slides</span>
-            <span className={styles.macRowMeta}>210 cards</span>
-          </div>
-        </div>
-      </div>
+    <div className={styles.phoneFrame}>
+      <img src={src} alt={alt} loading="lazy" />
     </div>
   );
 }
@@ -242,7 +226,7 @@ export default function NativeAppPage() {
           )}
         </div>
         <div className={styles.heroArt}>
-          <PhoneMockup />
+          <PhoneFrame {...HERO_SHOT} />
         </div>
       </section>
 
@@ -283,18 +267,19 @@ export default function NativeAppPage() {
         </div>
       </section>
 
-      <section className={styles.showcase}>
-        <div className={styles.showcaseCopy}>
-          <h2 className={styles.sectionHeading}>
-            Your whole deck library, on the desktop
-          </h2>
-          <p className={styles.showcaseBody}>
-            Draft on your phone, polish on your Mac. The same on-device engine,
-            the same decks, everywhere you study.
-          </p>
+      <section className={styles.screenshots}>
+        <h2 className={styles.sectionHeading}>See it on iPhone and iPad</h2>
+        <div className={styles.phoneGallery}>
+          {IPHONE_SHOTS.map((shot) => (
+            <PhoneFrame key={shot.src} {...shot} />
+          ))}
         </div>
-        <div className={styles.showcaseArt}>
-          <MacMockup />
+        <div className={styles.ipadGallery}>
+          {IPAD_SHOTS.map((shot) => (
+            <div key={shot.src} className={styles.ipadCard}>
+              <img src={shot.src} alt={shot.alt} loading="lazy" />
+            </div>
+          ))}
         </div>
       </section>
 

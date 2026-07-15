@@ -65,6 +65,21 @@ describe('NativeAppPage', () => {
     expect(screen.getByText('Is the app free?')).toBeInTheDocument();
   });
 
+  it('renders the real iPhone and iPad screenshots with descriptive alt text', () => {
+    renderPage();
+    const iphoneShot = screen.getByAltText(
+      '2anki on iPhone — Make flashcards home screen with drag-and-drop file upload'
+    );
+    expect(iphoneShot).toHaveAttribute('src', '/app-screenshots/iphone-1.png');
+    expect(iphoneShot).toHaveAttribute('loading', 'lazy');
+
+    const ipadShot = screen.getByAltText(
+      '2anki on iPad — Make flashcards with the full sidebar of conversion tools'
+    );
+    expect(ipadShot).toHaveAttribute('src', '/app-screenshots/ipad-1.png');
+    expect(ipadShot).toHaveAttribute('loading', 'lazy');
+  });
+
   it('tracks native_app_page_viewed once on mount', () => {
     renderPage();
     expect(callsFor('native_app_page_viewed')).toHaveLength(1);
