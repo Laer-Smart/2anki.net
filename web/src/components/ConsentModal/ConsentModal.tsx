@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { post } from '../../lib/backend/api';
 import sharedStyles from '../../styles/shared.module.css';
@@ -13,6 +14,7 @@ export default function ConsentModal({
   onAccept,
   onDismiss,
 }: Readonly<ConsentModalProps>) {
+  const { t } = useTranslation();
   const [pending, setPending] = useState(false);
   const [needsSignIn, setNeedsSignIn] = useState(false);
 
@@ -41,18 +43,15 @@ export default function ConsentModal({
       <div className={sharedStyles.modalCardNarrow}>
         <div className={sharedStyles.modalHeader}>
           <h2 id="consent-heading" className={sharedStyles.modalHeaderTitle}>
-            Chat sends your messages to Anthropic
+            {t('modals.consent.title')}
           </h2>
         </div>
         <div className={sharedStyles.modalBody}>
-          <p className={styles.body}>
-            Your messages and any files you attach go to Anthropic to generate
-            replies. They aren't used to train models. 20 messages a month on
-            the free plan.
-          </p>
+          <p className={styles.body}>{t('modals.consent.body')}</p>
           {needsSignIn && (
             <p className={styles.body}>
-              <Link to="/login">Sign in</Link> to chat.
+              <Link to="/login">{t('modals.consent.signIn')}</Link>
+              {t('modals.consent.toChat')}
             </p>
           )}
           <div className={styles.actions}>
@@ -62,7 +61,7 @@ export default function ConsentModal({
               onClick={handleAccept}
               disabled={pending}
             >
-              Start chatting
+              {t('modals.consent.start')}
             </button>
             <button
               type="button"
@@ -70,7 +69,7 @@ export default function ConsentModal({
               onClick={onDismiss}
               disabled={pending}
             >
-              Not now
+              {t('modals.consent.notNow')}
             </button>
           </div>
         </div>

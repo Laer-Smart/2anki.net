@@ -9,6 +9,7 @@ import React, {
   useState,
 } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../NavigationBar/helpers/getPlanLabel';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
@@ -61,9 +62,9 @@ const DEFAULT_MCQ_TTS_LANG = '';
 const DEFAULT_TTS_MANUAL_LANG = '';
 const DEFAULT_TTS_MANUAL_SIDE = 'front';
 const TTS_MANUAL_SIDE_OPTIONS = [
-  { label: 'Front', value: 'front' },
-  { label: 'Back', value: 'back' },
-  { label: 'Both', value: 'both' },
+  { labelKey: 'cardOptions.audio.sideFront', value: 'front' },
+  { labelKey: 'cardOptions.audio.sideBack', value: 'back' },
+  { labelKey: 'cardOptions.audio.sideBoth', value: 'both' },
 ] as const;
 const DEFAULT_CARD_SIZE = 'medium';
 const DEFAULT_OVERLAPPING_CLOZE = 'off';
@@ -102,17 +103,20 @@ const DEFAULT_USER_INSTRUCTIONS = `Some extra rules and explanations:
 - Do not make up any questions and use the questions in the document!
 - Create a ul for every question pair, not one ul for all of them with li!`;
 
-const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
+const OPTION_GROUPS: Array<{ id: string; labelKey: string; keys: string[] }> = [
   {
-    label: 'Content',
+    id: 'content',
+    labelKey: 'cardOptions.groups.content',
     keys: ['all', 'paragraph', 'max-one-toggle-per-card', 'perserve-newlines'],
   },
   {
-    label: 'Card types',
+    id: 'cardTypes',
+    labelKey: 'cardOptions.groups.cardTypes',
     keys: ['cloze', 'enable-input', 'basic-reversed', 'reversed'],
   },
   {
-    label: 'Filtering',
+    id: 'filtering',
+    labelKey: 'cardOptions.groups.filtering',
     keys: [
       'cherry',
       'avocado',
@@ -122,11 +126,13 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
     ],
   },
   {
-    label: 'Links & formatting',
+    id: 'linksFormatting',
+    labelKey: 'cardOptions.groups.linksFormatting',
     keys: ['add-notion-link', 'no-underline', 'markdown-nested-bullet-points'],
   },
   {
-    label: 'PDF & AI',
+    id: 'pdfAi',
+    labelKey: 'cardOptions.groups.pdfAi',
     keys: [
       'process-pdfs',
       'pdf-extract-text',
@@ -137,15 +143,18 @@ const OPTION_GROUPS: Array<{ label: string; keys: string[] }> = [
     ],
   },
   {
-    label: 'Media',
+    id: 'media',
+    labelKey: 'cardOptions.groups.media',
     keys: ['embed-images'],
   },
   {
-    label: 'Image quizzes',
+    id: 'imageQuizzes',
+    labelKey: 'cardOptions.groups.imageQuizzes',
     keys: ['image-quiz-html-to-anki'],
   },
   {
-    label: 'Debugging',
+    id: 'debugging',
+    labelKey: 'cardOptions.groups.debugging',
     keys: ['share-files-for-debugging'],
   },
 ];
@@ -250,9 +259,6 @@ function GatedToggleRow({
   );
 }
 
-const CLOZE_PREREQUISITE_HELP = 'Turn on Cloze deletion cards first.';
-const CHERRY_PREREQUISITE_HELP = 'Turn on Cherry-pick first.';
-
 export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
   function CardOptionsForm(
     {
@@ -266,6 +272,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
     }: Readonly<Props>,
     ref
   ) {
+    const { t } = useTranslation();
     const { isLoading, isError, options, loadingDefaultsError } =
       useSettingsCardsOptions(pageId);
     const { data: userLocals } = useUserLocals();
@@ -599,7 +606,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         try {
           await get2ankiApi().resetUserCardOptions();
         } catch {
-          setError(new Error("Couldn't reset card options. Try again."));
+          setError(new Error(t('cardOptions.resetError')));
           return;
         }
       }
@@ -734,7 +741,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
       <div className={fieldStyles.section}>
         <details>
           <summary className={fieldStyles.detailsSummary}>
-            User instructions for PDF conversion
+            {t('cardOptions.userInstructions.summary')}
           </summary>
           <textarea
             className={fieldStyles.instructionsTextarea}
@@ -748,7 +755,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               );
             }}
             rows={4}
-            placeholder="Instructions for PDF conversion..."
+            placeholder={t('cardOptions.userInstructions.placeholder')}
           />
         </details>
       </div>
@@ -768,7 +775,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
           <div className={fieldStyles.saveBar}>
             {showSaveError && (
               <span role="alert" className={fieldStyles.saveError}>
-                Couldn&apos;t save your defaults. Try again.
+                {t('cardOptions.saveBar.saveError')}
               </span>
             )}
             {showSavedStatus && (
@@ -777,7 +784,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 aria-live="polite"
                 className={fieldStyles.savedStatus}
               >
-                Defaults saved
+                {t('cardOptions.saveBar.saved')}
               </span>
             )}
             {showResetButton && (
@@ -787,7 +794,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 onClick={resetStore}
                 disabled={isSaving}
               >
-                Reset to defaults
+                {t('cardOptions.saveBar.reset')}
               </button>
             )}
             {showSaveButton && (
@@ -801,27 +808,31 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 {isSaving && (
                   <span className={sharedStyles.spinnerSmall} aria-hidden />
                 )}
-                {isSaving ? 'Saving' : 'Save defaults'}
+                {isSaving
+                  ? t('cardOptions.saveBar.saving')
+                  : t('cardOptions.saveBar.save')}
               </button>
             )}
           </div>
         )}
 
         <div className={fieldStyles.optionGroup}>
-          <h3 className={fieldStyles.groupHeading}>Deck &amp; structure</h3>
+          <h3 className={fieldStyles.groupHeading}>
+            {t('cardOptions.deck.structureHeading')}
+          </h3>
 
           <div className={fieldStyles.section}>
             <div className={fieldStyles.labelRow}>
               <label htmlFor="deck-name" className={fieldStyles.sectionLabel}>
-                Deck name
+                {t('cardOptions.deck.nameLabel')}
               </label>
-              <FieldHint text="Customize the deck name. Leave it empty if you use subpages." />
+              <FieldHint text={t('cardOptions.deck.nameHint')} />
             </div>
             <input
               id="deck-name"
               name="deck-name"
               className={fieldStyles.deckInput}
-              placeholder="Enter deck name (optional)"
+              placeholder={t('cardOptions.deck.namePlaceholder')}
               value={deckName}
               onChange={(e) => {
                 const newName = e.target.value;
@@ -833,15 +844,26 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
 
           <div className={fieldStyles.section}>
             <div className={fieldStyles.labelRow}>
-              <label className={fieldStyles.sectionLabel}>Page icon</label>
-              <FieldHint text="Whether to include the Notion page icon and where to place it." />
+              <label className={fieldStyles.sectionLabel}>
+                {t('cardOptions.deck.iconLabel')}
+              </label>
+              <FieldHint text={t('cardOptions.deck.iconHint')} />
             </div>
             <div className={fieldStyles.segmented}>
               {(
                 [
-                  { label: 'Icon first', value: 'first_emoji' },
-                  { label: 'Icon last', value: 'last_emoji' },
-                  { label: 'Disable', value: 'disable_emoji' },
+                  {
+                    label: t('cardOptions.deck.iconFirst'),
+                    value: 'first_emoji',
+                  },
+                  {
+                    label: t('cardOptions.deck.iconLast'),
+                    value: 'last_emoji',
+                  },
+                  {
+                    label: t('cardOptions.deck.iconDisable'),
+                    value: 'disable_emoji',
+                  },
                 ] as const
               ).map(({ label, value }) => (
                 <button
@@ -861,14 +883,22 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
 
           <div className={fieldStyles.section}>
             <div className={fieldStyles.labelRow}>
-              <label className={fieldStyles.sectionLabel}>Toggle mode</label>
-              <FieldHint text="Toggle header = card front; contents = card back. Nested toggles become their own cards. Open expands nested contents; Close keeps them collapsed for step-by-step review." />
+              <label className={fieldStyles.sectionLabel}>
+                {t('cardOptions.deck.toggleModeLabel')}
+              </label>
+              <FieldHint text={t('cardOptions.deck.toggleModeHint')} />
             </div>
             <div className={fieldStyles.segmented}>
               {(
                 [
-                  { label: 'Open nested toggles', value: 'open_toggle' },
-                  { label: 'Close nested toggles', value: 'close_toggle' },
+                  {
+                    label: t('cardOptions.deck.toggleOpen'),
+                    value: 'open_toggle',
+                  },
+                  {
+                    label: t('cardOptions.deck.toggleClose'),
+                    value: 'close_toggle',
+                  },
                 ] as const
               ).map(({ label, value }) => (
                 <button
@@ -889,7 +919,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
 
         {generalOptions.length > 0 && (
           <div className={fieldStyles.optionGroup}>
-            <h3 className={fieldStyles.groupHeading}>General</h3>
+            <h3 className={fieldStyles.groupHeading}>
+              {t('cardOptions.general')}
+            </h3>
             <div className={fieldStyles.groupOptions}>
               {generalOptions.map((o: CardOption) => (
                 <LocalCheckbox
@@ -912,22 +944,24 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
             .filter((o: CardOption) => isPaying || !PAID_ONLY_KEYS.has(o.key));
           if (groupOptions.length === 0) return null;
 
-          const isPdfAiGroup = group.label === 'PDF & AI';
-          const isCardTypesGroup = group.label === 'Card types';
-          const isLinksFormattingGroup = group.label === 'Links & formatting';
-          const isFilteringGroup = group.label === 'Filtering';
+          const isPdfAiGroup = group.id === 'pdfAi';
+          const isCardTypesGroup = group.id === 'cardTypes';
+          const isLinksFormattingGroup = group.id === 'linksFormatting';
+          const isFilteringGroup = group.id === 'filtering';
           const sectionTagsOption = optionsByKey['section-tags'];
           const inlineOptions = groupOptions.filter(
             (o: CardOption) => o.key !== 'section-tags'
           );
 
           return (
-            <React.Fragment key={group.label}>
+            <React.Fragment key={group.id}>
               <div
                 className={fieldStyles.optionGroup}
                 id={isPdfAiGroup ? 'pdf-ai' : undefined}
               >
-                <h3 className={fieldStyles.groupHeading}>{group.label}</h3>
+                <h3 className={fieldStyles.groupHeading}>
+                  {t(group.labelKey)}
+                </h3>
                 <div className={fieldStyles.groupOptions}>
                   {inlineOptions.map((o: CardOption) => (
                     <LocalCheckbox
@@ -948,7 +982,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                   heading={sectionTagsOption.label}
                   label={sectionTagsOption.label}
                   helperText={sectionTagsOption.description}
-                  prerequisiteHelperText={CHERRY_PREREQUISITE_HELP}
+                  prerequisiteHelperText={t('cardOptions.prereq.cherry')}
                   checked={checkboxValues['section-tags'] ?? false}
                   enabled={checkboxValues['cherry'] ?? false}
                   onChange={(checked) =>
@@ -958,10 +992,11 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               )}
               {isLinksFormattingGroup && (
                 <div className={fieldStyles.optionGroup} id="code-blocks">
-                  <h3 className={fieldStyles.groupHeading}>Code blocks</h3>
+                  <h3 className={fieldStyles.groupHeading}>
+                    {t('cardOptions.codeBlocks.heading')}
+                  </h3>
                   <p className={fieldStyles.groupIntro}>
-                    Code from your notes keeps its colors in Anki. Pick the
-                    look.
+                    {t('cardOptions.codeBlocks.intro')}
                   </p>
                   <div className={fieldStyles.section}>
                     <div className={fieldStyles.labelRow}>
@@ -969,9 +1004,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                         htmlFor="code-theme"
                         className={fieldStyles.sectionLabel}
                       >
-                        Code theme
+                        {t('cardOptions.codeBlocks.themeLabel')}
                       </label>
-                      <FieldHint text="Colors for code from your notes. Switches between light and dark to match your Anki theme." />
+                      <FieldHint text={t('cardOptions.codeBlocks.themeHint')} />
                     </div>
                     <select
                       id="code-theme"
@@ -998,17 +1033,28 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               {isCardTypesGroup && (
                 <div className={fieldStyles.optionGroup} id="card-size">
                   <div className={fieldStyles.groupHeader}>
-                    <h3 className={fieldStyles.groupHeading}>Card size</h3>
+                    <h3 className={fieldStyles.groupHeading}>
+                      {t('cardOptions.cardSize.heading')}
+                    </h3>
                     <div
                       className={fieldStyles.segmented}
                       role="group"
-                      aria-label="Card size"
+                      aria-label={t('cardOptions.cardSize.heading')}
                     >
                       {(
                         [
-                          { label: 'Short', value: 'short' },
-                          { label: 'Medium', value: 'medium' },
-                          { label: 'Detailed', value: 'detailed' },
+                          {
+                            label: t('cardOptions.cardSize.short'),
+                            value: 'short',
+                          },
+                          {
+                            label: t('cardOptions.cardSize.medium'),
+                            value: 'medium',
+                          },
+                          {
+                            label: t('cardOptions.cardSize.detailed'),
+                            value: 'detailed',
+                          },
                         ] as const
                       ).map(({ label, value }) => (
                         <button
@@ -1027,22 +1073,20 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                     </div>
                   </div>
                   <p className={fieldStyles.groupIntro}>
-                    AI conversion uses this to decide how much fits on each
-                    card.
+                    {t('cardOptions.cardSize.intro')}
                   </p>
                   <ul className={fieldStyles.bulletList}>
                     <li>
-                      <strong>Short</strong> — 1 fact per card, ~80 characters
-                      per answer. Best for vocabulary, dates, formulas.
+                      <strong>{t('cardOptions.cardSize.short')}</strong> —{' '}
+                      {t('cardOptions.cardSize.shortDesc')}
                     </li>
                     <li>
-                      <strong>Medium</strong> — 1–2 facts per card, ~160
-                      characters per answer. Good default for most notes.
+                      <strong>{t('cardOptions.cardSize.medium')}</strong> —{' '}
+                      {t('cardOptions.cardSize.mediumDesc')}
                     </li>
                     <li>
-                      <strong>Detailed</strong> — 3–4 facts per card, ~320
-                      characters per answer. Better for tightly grouped concepts
-                      you want to review together.
+                      <strong>{t('cardOptions.cardSize.detailed')}</strong> —{' '}
+                      {t('cardOptions.cardSize.detailedDesc')}
                     </li>
                   </ul>
                 </div>
@@ -1051,17 +1095,17 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 <div className={fieldStyles.optionGroup} id="mcq">
                   <div className={fieldStyles.groupHeader}>
                     <h3 className={fieldStyles.groupHeading}>
-                      Multiple choice questions (MCQ)
+                      {t('cardOptions.mcq.heading')}
                     </h3>
                     <div
                       className={fieldStyles.segmented}
                       role="group"
-                      aria-label="Enable multiple choice questions"
+                      aria-label={t('cardOptions.mcq.aria')}
                     >
                       {(
                         [
-                          { label: 'Off', value: false },
-                          { label: 'On', value: true },
+                          { label: t('cardOptions.mcq.off'), value: false },
+                          { label: t('cardOptions.mcq.on'), value: true },
                         ] as const
                       ).map(({ label, value }) => (
                         <button
@@ -1083,43 +1127,42 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                     </div>
                   </div>
                   <p className={fieldStyles.groupIntro}>
-                    Photo to deck and the AI chat generate MCQ when this is on.
-                    You can also write them yourself with the MCQ syntax — see
-                    the{' '}
+                    {t('cardOptions.mcq.introPrefix')}
                     <Link
                       to="/documentation/cards/mcq"
                       className={fieldStyles.groupIntroLink}
                     >
-                      docs
+                      {t('cardOptions.mcq.introDocs')}
                     </Link>
-                    .
+                    {t('cardOptions.mcq.introSuffix')}
                   </p>
 
                   {mcqEnabled && (
                     <>
                       <div className={fieldStyles.section}>
-                        <p className={fieldStyles.sectionLabel}>Read aloud</p>
+                        <p className={fieldStyles.sectionLabel}>
+                          {t('cardOptions.mcq.readAloud')}
+                        </p>
                         <p className={fieldStyles.sectionHint}>
-                          Pick a voice for each field. Anki will speak it on the
-                          card.
+                          {t('cardOptions.mcq.readAloudHint')}
                         </p>
 
                         {(
                           [
                             {
-                              label: 'Question',
+                              label: t('cardOptions.mcq.question'),
                               key: 'mcq-tts-question',
                               value: mcqTtsQuestion,
                               setter: setMcqTtsQuestion,
                             },
                             {
-                              label: 'Correct answer',
+                              label: t('cardOptions.mcq.correctAnswer'),
                               key: 'mcq-tts-correct-answer',
                               value: mcqTtsCorrectAnswer,
                               setter: setMcqTtsCorrectAnswer,
                             },
                             {
-                              label: 'Extra',
+                              label: t('cardOptions.mcq.extra'),
                               key: 'mcq-tts-extra',
                               value: mcqTtsExtra,
                               setter: setMcqTtsExtra,
@@ -1150,7 +1193,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                             >
                               {MCQ_TTS_LANGUAGE_OPTIONS.map((opt) => (
                                 <option key={opt.value} value={opt.value}>
-                                  {opt.label}
+                                  {opt.value === ''
+                                    ? t('cardOptions.tts.dontSpeak')
+                                    : opt.label}
                                 </option>
                               ))}
                             </select>
@@ -1158,15 +1203,14 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                         ))}
 
                         <p className={fieldStyles.sectionHint}>
-                          If your Anki device has no installed voice for the
-                          picked language, the audio stays silent.
+                          {t('cardOptions.mcq.noVoiceHint')}
                         </p>
                         <p className={fieldStyles.sectionHint}>
-                          Missing a language? Email{' '}
+                          {t('cardOptions.mcq.missingLangPrefix')}
                           <a href="mailto:support@2anki.net">
                             support@2anki.net
-                          </a>{' '}
-                          and we&apos;ll add it.
+                          </a>
+                          {t('cardOptions.mcq.missingLangSuffix')}
                         </p>
                       </div>
                     </>
@@ -1177,19 +1221,25 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 <div className={fieldStyles.optionGroup} id="overlapping-cloze">
                   <div className={fieldStyles.groupHeader}>
                     <h3 className={fieldStyles.groupHeading}>
-                      Overlapping cloze
+                      {t('cardOptions.overlappingCloze.heading')}
                     </h3>
                     <div
                       className={fieldStyles.segmented}
                       role="group"
-                      aria-label="Overlapping cloze"
+                      aria-label={t('cardOptions.overlappingCloze.heading')}
                     >
                       {(
                         [
-                          { label: 'Off', value: 'off' },
-                          { label: 'Show the whole list', value: 'show-all' },
                           {
-                            label: 'Show nearby lines only',
+                            label: t('cardOptions.overlappingCloze.off'),
+                            value: 'off',
+                          },
+                          {
+                            label: t('cardOptions.overlappingCloze.showAll'),
+                            value: 'show-all',
+                          },
+                          {
+                            label: t('cardOptions.overlappingCloze.windowed'),
                             value: 'windowed',
                           },
                         ] as const
@@ -1215,21 +1265,22 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                     </div>
                   </div>
                   <p className={fieldStyles.groupIntro}>
-                    Turn a list, poem, or quote into a set of cards that hide
-                    one line at a time. Best for ordered things you recite —
-                    steps, lyrics, or a passage you're learning by heart.
+                    {t('cardOptions.overlappingCloze.intro')}
                   </p>
                   {(checkboxValues['cloze'] ?? true) ? (
                     <>
                       <ul className={fieldStyles.bulletList}>
                         <li>
-                          <strong>Show the whole list</strong> — each card hides
-                          one item; the rest stays visible as context.
+                          <strong>
+                            {t('cardOptions.overlappingCloze.showAll')}
+                          </strong>{' '}
+                          — {t('cardOptions.overlappingCloze.showAllDesc')}
                         </li>
                         <li>
-                          <strong>Show nearby lines only</strong> — each card
-                          hides one item; only the lines just before and after
-                          stay visible.
+                          <strong>
+                            {t('cardOptions.overlappingCloze.windowed')}
+                          </strong>{' '}
+                          — {t('cardOptions.overlappingCloze.windowedDesc')}
                         </li>
                       </ul>
                       {overlappingCloze !== 'off' && (
@@ -1240,7 +1291,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                     </>
                   ) : (
                     <p className={fieldStyles.sectionHint}>
-                      Turn on Cloze deletion cards first.
+                      {t('cardOptions.prereq.cloze')}
                     </p>
                   )}
                 </div>
@@ -1248,10 +1299,10 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               {isCardTypesGroup && (
                 <GatedToggleRow
                   id="group-cloze-per-toggle"
-                  heading="Group cloze blanks per toggle"
-                  label="Group cloze blanks per toggle"
-                  helperText="When one Notion toggle holds several :: blanks, put them all on a single card and reveal them together. Off by default — each :: makes its own card."
-                  prerequisiteHelperText={CLOZE_PREREQUISITE_HELP}
+                  heading={t('cardOptions.gated.groupClozeHeading')}
+                  label={t('cardOptions.gated.groupClozeHeading')}
+                  helperText={t('cardOptions.gated.groupClozeHelp')}
+                  prerequisiteHelperText={t('cardOptions.prereq.cloze')}
                   checked={checkboxValues['group-cloze-per-toggle'] ?? false}
                   enabled={checkboxValues['cloze'] ?? true}
                   onChange={(checked) =>
@@ -1262,10 +1313,10 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               {isCardTypesGroup && (
                 <GatedToggleRow
                   id="cloze-from-toggle-content"
-                  heading="Inline code toggles become cloze"
-                  label="Inline code toggles become cloze"
-                  helperText="When a toggle's contents contain inline code, hide the code as a cloze and use the toggle header as the hint. Works only when Cloze deletion is on."
-                  prerequisiteHelperText={CLOZE_PREREQUISITE_HELP}
+                  heading={t('cardOptions.gated.inlineCodeHeading')}
+                  label={t('cardOptions.gated.inlineCodeHeading')}
+                  helperText={t('cardOptions.gated.inlineCodeHelp')}
+                  prerequisiteHelperText={t('cardOptions.prereq.cloze')}
                   checked={checkboxValues['cloze-from-toggle-content'] ?? false}
                   enabled={checkboxValues['cloze'] ?? true}
                   onChange={(checked) =>
@@ -1275,11 +1326,11 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               )}
               {isCardTypesGroup && (
                 <div className={fieldStyles.optionGroup} id="audio">
-                  <h3 className={fieldStyles.groupHeading}>Audio</h3>
+                  <h3 className={fieldStyles.groupHeading}>
+                    {t('cardOptions.audio.heading')}
+                  </h3>
                   <p className={fieldStyles.groupIntro}>
-                    Two settings, opposite effects. One adds Anki&apos;s
-                    built-in voice to your cards. The other hides raw MP3 URLs
-                    your source may carry.
+                    {t('cardOptions.audio.intro')}
                   </p>
 
                   <div className={fieldStyles.section}>
@@ -1304,24 +1355,20 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                         />
                       </span>
                       <span className={fieldStyles.toggleLabel}>
-                        Read cards aloud
+                        {t('cardOptions.audio.readAloud')}
                       </span>
                     </label>
                     <p className={fieldStyles.sectionHint}>
-                      Adds Anki&apos;s on-device voice to each card. Japanese,
-                      Korean, and Chinese are detected automatically; everything
-                      else reads in English. No audio file is added to your
-                      deck.
+                      {t('cardOptions.audio.readAloudHint')}
                     </p>
                   </div>
 
                   <div className={fieldStyles.section}>
                     <p className={fieldStyles.sectionLabel}>
-                      Pick a voice yourself
+                      {t('cardOptions.audio.pickVoice')}
                     </p>
                     <p className={fieldStyles.sectionHint}>
-                      Choose a language and which side Anki reads. A pick here
-                      takes precedence over the automatic detection above.
+                      {t('cardOptions.audio.pickVoiceHint')}
                     </p>
                     <div className={fieldStyles.section}>
                       <div className={fieldStyles.labelRow}>
@@ -1329,7 +1376,7 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                           htmlFor="tts-manual-lang"
                           className={fieldStyles.sectionLabel}
                         >
-                          Language
+                          {t('cardOptions.audio.language')}
                         </label>
                       </div>
                       <select
@@ -1354,36 +1401,39 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                     </div>
                     {ttsManualLang && (
                       <div className={fieldStyles.section}>
-                        <p className={fieldStyles.sectionLabel}>Read</p>
+                        <p className={fieldStyles.sectionLabel}>
+                          {t('cardOptions.audio.read')}
+                        </p>
                         <div
                           className={fieldStyles.segmented}
                           role="group"
-                          aria-label="Read aloud side"
+                          aria-label={t('cardOptions.audio.readAria')}
                         >
-                          {TTS_MANUAL_SIDE_OPTIONS.map(({ label, value }) => (
-                            <button
-                              key={value}
-                              type="button"
-                              className={`${fieldStyles.segment} ${ttsManualSide === value ? fieldStyles.segmentActive : ''}`}
-                              aria-pressed={ttsManualSide === value}
-                              onClick={() => {
-                                setTtsManualSide(value);
-                                saveValueInLocalStorage(
-                                  'tts-manual-side',
-                                  value,
-                                  pageId
-                                );
-                              }}
-                            >
-                              {label}
-                            </button>
-                          ))}
+                          {TTS_MANUAL_SIDE_OPTIONS.map(
+                            ({ labelKey, value }) => (
+                              <button
+                                key={value}
+                                type="button"
+                                className={`${fieldStyles.segment} ${ttsManualSide === value ? fieldStyles.segmentActive : ''}`}
+                                aria-pressed={ttsManualSide === value}
+                                onClick={() => {
+                                  setTtsManualSide(value);
+                                  saveValueInLocalStorage(
+                                    'tts-manual-side',
+                                    value,
+                                    pageId
+                                  );
+                                }}
+                              >
+                                {t(labelKey)}
+                              </button>
+                            )
+                          )}
                         </div>
                       </div>
                     )}
                     <p className={fieldStyles.sectionHint}>
-                      If your Anki device has no installed voice for the picked
-                      language, the audio stays silent.
+                      {t('cardOptions.audio.noVoiceHint')}
                     </p>
                   </div>
 
@@ -1410,13 +1460,11 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                           />
                         </span>
                         <span className={fieldStyles.toggleLabel}>
-                          Remove MP3 links from audio files
+                          {t('cardOptions.audio.removeMp3')}
                         </span>
                       </label>
                       <p className={fieldStyles.sectionHint}>
-                        Hides raw MP3 URLs that appear as visible text on cards.
-                        Embedded audio still plays — only the visible link is
-                        stripped.
+                        {t('cardOptions.audio.removeMp3Hint')}
                       </p>
                     </div>
                   )}
@@ -1427,22 +1475,25 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
         })}
 
         <div className={fieldStyles.optionGroup}>
-          <h3 className={fieldStyles.groupHeading}>Templates</h3>
+          <h3 className={fieldStyles.groupHeading}>
+            {t('cardOptions.templates.heading')}
+          </h3>
           <p className={fieldStyles.groupIntro}>
-            Pick the look of your generated cards and the names 2anki gives the
-            Anki note types it creates. Saved note types from{' '}
+            {t('cardOptions.templates.introPrefix')}
             <Link to="/templates" className={fieldStyles.groupIntroLink}>
-              Note types
-            </Link>{' '}
-            show up under <strong>My note types</strong>.
+              {t('cardOptions.templates.introLink')}
+            </Link>
+            {t('cardOptions.templates.introMiddle')}
+            <strong>{t('cardOptions.templates.introStrong')}</strong>
+            {t('cardOptions.templates.introSuffix')}
           </p>
           <div className={fieldStyles.section}>
             <TemplateSelect
               values={availableTemplates}
               value={template}
               name="template"
-              label="Card style"
-              hint="Pick the visual style applied during Notion → Anki conversion. Choose 'My note types' to use templates you saved in the Note types editor."
+              label={t('cardOptions.templates.cardStyleLabel')}
+              hint={t('cardOptions.templates.cardStyleHint')}
               pickedTemplate={(t) => {
                 setTemplate(t);
                 saveValueInLocalStorage('template', t, pageId);
@@ -1462,9 +1513,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               <div className={fieldStyles.section}>
                 <NoteTypePicker
                   name="basic_model_name"
-                  label="Basic note type"
-                  placeholder="Defaults to n2a-basic"
-                  hint="Which of your saved note types to use for Basic (front/back) cards in this conversion."
+                  label={t('cardOptions.templates.basicNoteType')}
+                  placeholder={t('cardOptions.templates.basicPlaceholder')}
+                  hint={t('cardOptions.templates.basicNoteHint')}
                   value={basicName}
                   options={availableNoteTypes.basic}
                   loading={noteTypesLoading}
@@ -1477,9 +1528,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               <div className={fieldStyles.section}>
                 <NoteTypePicker
                   name="cloze_model_name"
-                  label="Cloze note type"
-                  placeholder="Defaults to n2a-cloze"
-                  hint="Which of your saved note types to use for Cloze deletion cards in this conversion."
+                  label={t('cardOptions.templates.clozeNoteType')}
+                  placeholder={t('cardOptions.templates.clozePlaceholder')}
+                  hint={t('cardOptions.templates.clozeNoteHint')}
                   value={clozeName}
                   options={availableNoteTypes.cloze}
                   loading={noteTypesLoading}
@@ -1492,9 +1543,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
               <div className={fieldStyles.section}>
                 <NoteTypePicker
                   name="input_model_name"
-                  label="Input note type"
-                  placeholder="Defaults to n2a-input"
-                  hint="Which of your saved note types to use for Type-the-answer cards in this conversion."
+                  label={t('cardOptions.templates.inputNoteType')}
+                  placeholder={t('cardOptions.templates.inputPlaceholder')}
+                  hint={t('cardOptions.templates.inputNoteHint')}
                   value={inputName}
                   options={availableNoteTypes.input}
                   loading={noteTypesLoading}
@@ -1511,9 +1562,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 <TemplateName
                   name="basic_model_name"
                   value={basicName}
-                  placeholder="Defaults to n2a-basic"
-                  label="Basic template name"
-                  hint="Name 2anki will give the Basic note type in Anki. Leave blank to use n2a-basic."
+                  placeholder={t('cardOptions.templates.basicPlaceholder')}
+                  label={t('cardOptions.templates.basicTemplateName')}
+                  hint={t('cardOptions.templates.basicTemplateHint')}
                   pickedName={(name) => {
                     setBasicName(name);
                     saveValueInLocalStorage('basic_model_name', name, pageId);
@@ -1524,9 +1575,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 <TemplateName
                   name="cloze_model_name"
                   value={clozeName}
-                  placeholder="Defaults to n2a-cloze"
-                  label="Cloze template name"
-                  hint="Name 2anki will give the Cloze note type in Anki. Leave blank to use n2a-cloze."
+                  placeholder={t('cardOptions.templates.clozePlaceholder')}
+                  label={t('cardOptions.templates.clozeTemplateName')}
+                  hint={t('cardOptions.templates.clozeTemplateHint')}
                   pickedName={(name) => {
                     setClozeName(name);
                     saveValueInLocalStorage('cloze_model_name', name, pageId);
@@ -1537,9 +1588,9 @@ export const CardOptionsForm = forwardRef<CardOptionsFormHandle, Props>(
                 <TemplateName
                   name="input_model_name"
                   value={inputName}
-                  placeholder="Defaults to n2a-input"
-                  label="Input template name"
-                  hint="Name 2anki will give the Type-the-answer note type in Anki. Leave blank to use n2a-input."
+                  placeholder={t('cardOptions.templates.inputPlaceholder')}
+                  label={t('cardOptions.templates.inputTemplateName')}
+                  hint={t('cardOptions.templates.inputTemplateHint')}
                   pickedName={(name) => {
                     setInputName(name);
                     saveValueInLocalStorage('input_model_name', name, pageId);
