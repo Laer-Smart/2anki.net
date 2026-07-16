@@ -1,4 +1,5 @@
 import { SyntheticEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ErrorHandlerType } from '../../errors/helpers/getErrorMessage';
 import CheckYourEmail from '../../CheckYourEmail/CheckYourEmail';
@@ -11,6 +12,7 @@ interface ForgotPasswordProps {
 }
 
 function ForgotPasswordForm({ setError }: Readonly<ForgotPasswordProps>) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState(localStorage.getItem('email') || '');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -42,14 +44,14 @@ function ForgotPasswordForm({ setError }: Readonly<ForgotPasswordProps>) {
   return (
     <div className={styles.formPage}>
       <div className={styles.formCard}>
-        <h1 className={styles.formTitle}>Reset your password</h1>
+        <h1 className={styles.formTitle}>{t('auth.forgot.title')}</h1>
         <p className={sharedStyles.formDescription}>
-          Enter your email to receive a password reset link.
+          {t('auth.forgot.description')}
         </p>
         <form onSubmit={handleSubmit}>
           <div className={styles.field}>
             <label htmlFor="email">
-              <span>Email</span>
+              <span>{t('auth.common.email')}</span>
               <input
                 id="email"
                 name="email"
@@ -65,7 +67,7 @@ function ForgotPasswordForm({ setError }: Readonly<ForgotPasswordProps>) {
                 type="email"
                 autoComplete="email"
                 inputMode="email"
-                placeholder="Email address"
+                placeholder={t('auth.forgot.emailPlaceholder')}
                 required
               />
             </label>
@@ -76,13 +78,15 @@ function ForgotPasswordForm({ setError }: Readonly<ForgotPasswordProps>) {
               className={styles.submitButton}
               disabled={loading || email.length === 0}
             >
-              {loading ? 'Sending' : 'Send reset link'}
+              {loading
+                ? t('auth.forgot.sending')
+                : t('auth.forgot.sendResetLink')}
             </button>
           </div>
         </form>
         <p className={styles.footerText}>
           <a rel="noreferrer" href="/login">
-            Back to login
+            {t('auth.forgot.backToLogin')}
           </a>
         </p>
       </div>

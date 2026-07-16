@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import TopMessage from '../../components/TopMessage/TopMessage';
 import { firePaywallEvent } from '../../lib/analytics/firePaywallEvent';
@@ -7,7 +8,6 @@ import { track } from '../../lib/analytics/track';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
 import { usePricingOrderVariant } from '../../lib/hooks/usePricingOrderVariant';
-import { getVisibleText } from '../../lib/text/getVisibleText';
 import { ComparisonTable } from './components/ComparisonTable';
 import { FeatureGrid } from './components/FeatureGrid';
 import { PassCards } from './components/PassCards';
@@ -36,6 +36,7 @@ export default function PricingPage({
   email: _email,
   signupCountry,
 }: Readonly<PricingPageProps>) {
+  const { t } = useTranslation();
   const isUS = signupCountry === 'US';
   const lifetimeLink = getLifetimeLink();
   const [dayPassState, setDayPassState] = useState<PassState>('idle');
@@ -230,14 +231,14 @@ export default function PricingPage({
 
   const passesSection = (
     <>
-      <h2 className={styles.sectionLabel}>Pay once — no subscription</h2>
+      <h2 className={styles.sectionLabel}>{t('pricing.payOnceSection')}</h2>
       {passCards}
     </>
   );
 
   const monthlySection = (
     <>
-      <h2 className={styles.sectionLabel}>Monthly plans</h2>
+      <h2 className={styles.sectionLabel}>{t('pricing.monthlySection')}</h2>
       {monthlyPlans}
     </>
   );
@@ -251,21 +252,19 @@ export default function PricingPage({
         {!minimalHeader && (
           <p className={styles.kicker}>
             <span className={styles.kickerDot} aria-hidden="true" />
-            <span>Plans</span>
+            <span>{t('pricing.kicker')}</span>
           </p>
         )}
-        <h1 className={styles.title}>{getVisibleText('pricing.page.title')}</h1>
+        <h1 className={styles.title}>{t('pricing.title')}</h1>
         <TopMessage />
         {showContextBanner && (
           <div className={styles.contextBanner} role="status">
-            You're on the free plan — 100 cards per month.
+            {t('pricing.contextBanner')}
           </div>
         )}
         {!minimalHeader && (
           <p className={styles.intro}>
-            {isUS
-              ? 'Built for spaced repetition — MCAT, USMLE, bar exam, and language prep. Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start.'
-              : 'Turn Notion pages, PDFs, and photos into Anki decks with AI — no account needed to start. Sign up free for 100 cards per month, then pay once by the day or week.'}
+            {isUS ? t('pricing.introUS') : t('pricing.introDefault')}
           </p>
         )}
         {!isLoggedIn && (
@@ -274,13 +273,11 @@ export default function PricingPage({
             className={styles.tryFreeCta}
             onClick={handleTryFreeClick}
           >
-            Convert a deck free
+            {t('pricing.tryFree')}
           </a>
         )}
         {!minimalHeader && (
-          <p className={styles.socialProof}>
-            Trusted by 19,000+ learners worldwide
-          </p>
+          <p className={styles.socialProof}>{t('pricing.socialProof')}</p>
         )}
       </div>
 
@@ -296,32 +293,30 @@ export default function PricingPage({
         </>
       )}
 
-      <h2 className={styles.sectionLabel}>One-time payment</h2>
+      <h2 className={styles.sectionLabel}>{t('pricing.oneTimeSection')}</h2>
       <div className={styles.grid}>
         <PricingCard
-          badge="Pay once"
+          badge={t('pricing.lifetime.badge')}
           badgeMuted
-          price="From $345"
+          price={t('pricing.lifetime.price')}
           title="Lifetime"
           benefits={[
-            'All Unlimited features, paid once',
-            'Auto Sync included',
-            'No future price changes',
+            t('pricing.lifetime.benefit1'),
+            t('pricing.lifetime.benefit2'),
+            t('pricing.lifetime.benefit3'),
           ]}
           link={lifetimeLink}
-          linkText="Request Lifetime"
+          linkText={t('pricing.lifetime.request')}
           variant="outline"
-          caption="Reply within 24 hours."
+          caption={t('pricing.lifetime.caption')}
         />
       </div>
 
-      <p className={styles.pricesNote}>
-        Prices in USD. Your card is charged in your local currency at checkout.
-      </p>
+      <p className={styles.pricesNote}>{t('pricing.pricesNote')}</p>
 
       <ul className={styles.reassurance}>
-        <li>Cancel anytime — one click</li>
-        <li>Your decks are yours — native .apkg, works in any Anki client</li>
+        <li>{t('pricing.reassuranceCancel')}</li>
+        <li>{t('pricing.reassuranceOwn')}</li>
       </ul>
 
       <TrustNote compact />
@@ -335,23 +330,18 @@ export default function PricingPage({
       <PricingFaq />
 
       <section ref={educatorsRef} className={styles.educators}>
-        <h2 className={styles.educatorsTitle}>For educators and teams</h2>
-        <p className={styles.educatorsBody}>
-          Making decks for a class, a tutoring group, or a course you sell?
-          We&apos;re exploring tools for people who make decks for others.
-        </p>
+        <h2 className={styles.educatorsTitle}>{t('pricing.educatorsTitle')}</h2>
+        <p className={styles.educatorsBody}>{t('pricing.educatorsBody')}</p>
         <button
           type="button"
           className={sharedStyles.btnSecondary}
           onClick={() => setProducerModalOpen(true)}
         >
-          Tell us what you need
+          {t('pricing.educatorsButton')}
         </button>
       </section>
 
-      <p className={styles.philosophy}>
-        Free works forever. Paid plans support 2anki.net.
-      </p>
+      <p className={styles.philosophy}>{t('pricing.philosophy')}</p>
 
       <ProducerCaptureModal
         isOpen={producerModalOpen}

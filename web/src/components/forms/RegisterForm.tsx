@@ -1,4 +1,5 @@
 import { SyntheticEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import TopMessage from '../TopMessage/TopMessage';
 import { ErrorHandlerType } from '../errors/helpers/getErrorMessage';
@@ -24,11 +25,6 @@ interface Props {
 const MIN_PASSWORD_LENGTH = 8;
 const SIGNUP_FLAG_KEY = 'signup_completed_tracked';
 
-function submitLabel(loading: boolean): string {
-  if (loading) return 'Creating account…';
-  return 'Create account';
-}
-
 function isAccountExistsFailure(message: unknown): boolean {
   return typeof message === 'string' && message.includes('already exists');
 }
@@ -39,6 +35,7 @@ function loginHref(redirect?: string | null): string {
 }
 
 function RegisterForm({ setErrorMessage, redirect }: Props) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState(localStorage.getItem('email') || '');
   const [tos, setTos] = useState(false);
   const [password, setPassword] = useState('');
@@ -113,17 +110,12 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
           setLoading(false);
           return;
         }
-        setErrorMessage(
-          backendMessage ??
-            'Something went wrong on our end. Try again, or email support@2anki.net if it keeps happening.'
-        );
+        setErrorMessage(backendMessage ?? t('auth.register.errorGeneric'));
         setLoading(false);
       }
     } catch (error) {
       console.error('Register submit failed', error);
-      setErrorMessage(
-        "Couldn't create your account. If you already have one, log in instead."
-      );
+      setErrorMessage(t('auth.register.errorCreate'));
       setLoading(false);
     }
   };
@@ -135,12 +127,9 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
     return styles.helpMuted;
   })();
 
-  const passwordHelpText = (() => {
-    if (passwordMeetsMinimum) {
-      return 'Good';
-    }
-    return 'Use at least 8 characters.';
-  })();
+  const passwordHelpText = passwordMeetsMinimum
+    ? t('auth.common.passwordHelpGood')
+    : t('auth.common.passwordHelpMin');
 
   return (
     <div className={styles.formPage}>
@@ -148,18 +137,14 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
         <TopMessage />
         {accountExists && (
           <div className={styles.recovery} role="alert">
-            <p>
-              This email already has an account — log in or reset your password.
-            </p>
+            <p>{t('auth.register.accountExists')}</p>
             <div className={styles.recoveryActions}>
-              <Link to={loginHref(redirect)}>Log in</Link>
-              <Link to="/forgot">Reset password</Link>
+              <Link to={loginHref(redirect)}>{t('auth.register.logIn')}</Link>
+              <Link to="/forgot">{t('auth.register.resetPassword')}</Link>
             </div>
           </div>
         )}
-        <h1 className={styles.formTitle}>
-          {getVisibleText('navigation.register.title')}
-        </h1>
+        <h1 className={styles.formTitle}>{t('auth.register.title')}</h1>
         <div className={styles.oauthGrid}>
           <WithGoogleLink
             variant="card"
@@ -183,12 +168,14 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
           />
         </div>
         <div className={styles.divider}>
-          <span className={styles.dividerLabel}>or sign up with email</span>
+          <span className={styles.dividerLabel}>
+            {t('auth.register.orSignUpEmail')}
+          </span>
         </div>
         <form onSubmit={handleSubmit}>
           <div className={styles.field}>
             <label htmlFor="email">
-              <span>Email</span>
+              <span>{t('auth.common.email')}</span>
               <input
                 id="email"
                 min="3"
@@ -210,7 +197,7 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
           </div>
           <div className={styles.field}>
             <label htmlFor="password">
-              <span>Password</span>
+              <span>{t('auth.common.password')}</span>
               <input
                 id="password"
                 name="password"
@@ -221,7 +208,7 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
                 required
                 type="password"
                 autoComplete="new-password"
-                placeholder="Password"
+                placeholder={t('auth.common.password')}
                 aria-describedby="password-help"
               />
             </label>
@@ -240,21 +227,21 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
                 onChange={(event) => setTos(event.target.checked)}
               />
               <span>
-                I agree to the{' '}
+                {t('auth.register.tosPrefix')}
                 <a
                   rel="noreferrer"
                   target="_blank"
                   href="https://alemayhu.notion.site/Terms-of-services-931865161517453b99fb6495e400061d"
                 >
-                  terms of service
-                </a>{' '}
-                and have read the{' '}
+                  {t('auth.register.tosTerms')}
+                </a>
+                {t('auth.register.tosMiddle')}
                 <a
                   rel="noreferrer"
                   target="_blank"
                   href="https://alemayhu.notion.site/Privacy-38c6e8238ac04ea9b2485bf488909fd0"
                 >
-                  privacy policy
+                  {t('auth.register.tosPrivacy')}
                 </a>
                 .
               </span>
@@ -266,14 +253,16 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
               className={styles.submitButton}
               disabled={!isValid() || loading}
             >
-              {submitLabel(loading)}
+              {loading
+                ? t('auth.register.creating')
+                : t('auth.register.create')}
             </button>
           </div>
         </form>
         <p className={styles.footerText}>
-          {getVisibleText('navigation.login.question')}{' '}
+          {t('auth.register.loginQuestion')}{' '}
           <a rel="noreferrer" href="/login">
-            Log in
+            {t('auth.register.logIn')}
           </a>
         </p>
       </div>

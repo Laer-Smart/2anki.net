@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import ArrowLeftIcon from '../../../components/icons/ArrowLeftIcon';
 import ArrowRightIcon from '../../../components/icons/ArrowRightIcon';
@@ -16,92 +17,90 @@ import styles from './FeatureGrid.module.css';
 
 interface Feature {
   Icon: ComponentType<{ width?: number; height?: number }>;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
 }
 
 const FEATURES: Feature[] = [
   {
     Icon: ArrowRightIcon,
-    title: 'Notion → Anki',
-    description: 'Convert Notion pages and exports into decks',
+    titleKey: 'pricing.features.notionToAnkiTitle',
+    descriptionKey: 'pricing.features.notionToAnkiDesc',
   },
   {
     Icon: ArrowLeftIcon,
-    title: 'Anki → Notion',
-    description: 'Import .apkg decks back into Notion',
+    titleKey: 'pricing.features.ankiToNotionTitle',
+    descriptionKey: 'pricing.features.ankiToNotionDesc',
   },
   {
     Icon: ChatBubbleIcon,
-    title: 'AI chat',
-    description: 'Draft and refine cards with Claude',
+    titleKey: 'pricing.features.aiChatTitle',
+    descriptionKey: 'pricing.features.aiChatDesc',
   },
   {
     Icon: CameraIcon,
-    title: 'Photo to deck',
-    description: 'Snap a page or slide — AI turns it into cards',
+    titleKey: 'pricing.features.photoTitle',
+    descriptionKey: 'pricing.features.photoDesc',
   },
   {
     Icon: SparklesIcon,
-    title: 'Multiple choice',
-    description: 'Quiz-style cards with up to 7 options',
+    titleKey: 'pricing.features.mcqTitle',
+    descriptionKey: 'pricing.features.mcqDesc',
   },
   {
     Icon: RectangleGroupIcon,
-    title: 'Image occlusion',
-    description: 'Hide-and-reveal cards from any diagram',
+    titleKey: 'pricing.features.occlusionTitle',
+    descriptionKey: 'pricing.features.occlusionDesc',
   },
   {
     Icon: LayersIcon,
-    title: 'Mind maps',
-    description: 'Turn a page into a visual mind map',
+    titleKey: 'pricing.features.mindMapsTitle',
+    descriptionKey: 'pricing.features.mindMapsDesc',
   },
   {
     Icon: PencilIcon,
-    title: 'Custom note types',
-    description: 'Basic, Cloze, and your own card templates',
+    titleKey: 'pricing.features.noteTypesTitle',
+    descriptionKey: 'pricing.features.noteTypesDesc',
   },
   {
     Icon: PrinterIcon,
-    title: 'Print to PDF',
-    description: 'Study offline — print any deck',
+    titleKey: 'pricing.features.printTitle',
+    descriptionKey: 'pricing.features.printDesc',
   },
   {
     Icon: ShareIcon,
-    title: 'Deck sharing',
-    description: 'Share a deck with a link',
+    titleKey: 'pricing.features.shareTitle',
+    descriptionKey: 'pricing.features.shareDesc',
   },
   {
     Icon: ArrowUpTrayIcon,
-    title: 'Every file format',
-    description: 'PDF, Word, PowerPoint, EPUB, CSV, Markdown, and more',
+    titleKey: 'pricing.features.formatsTitle',
+    descriptionKey: 'pricing.features.formatsDesc',
   },
   {
     Icon: SwatchIcon,
-    title: 'Themes',
-    description: 'Light, dark, gold, and purple',
+    titleKey: 'pricing.features.themesTitle',
+    descriptionKey: 'pricing.features.themesDesc',
   },
 ];
 
 export function FeatureGrid() {
+  const { t } = useTranslation();
   return (
     <section className={styles.section} aria-labelledby="feature-grid-heading">
       <h2 id="feature-grid-heading" className={styles.heading}>
-        Everything 2anki does
+        {t('pricing.features.heading')}
       </h2>
-      <p className={styles.subheading}>
-        Every plan includes all of it, free included. Paid plans lift the
-        limits.
-      </p>
+      <p className={styles.subheading}>{t('pricing.features.subheading')}</p>
       <ul className={styles.grid}>
-        {FEATURES.map(({ Icon, title, description }) => (
-          <li key={title} className={styles.item}>
+        {FEATURES.map(({ Icon, titleKey, descriptionKey }) => (
+          <li key={titleKey} className={styles.item}>
             <span className={styles.iconWrap} aria-hidden="true">
               <Icon width={20} height={20} />
             </span>
             <div>
-              <p className={styles.itemTitle}>{title}</p>
-              <p className={styles.itemDescription}>{description}</p>
+              <p className={styles.itemTitle}>{t(titleKey)}</p>
+              <p className={styles.itemDescription}>{t(descriptionKey)}</p>
             </div>
           </li>
         ))}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import styles from '../PricingPage.module.css';
 import {
   annualSavingsPercent,
@@ -37,16 +38,16 @@ function CheckIcon() {
   );
 }
 
-const BENEFITS = [
-  'Unlimited flashcards',
-  'Native .apkg — works in any Anki client',
-  'AI flashcards, photo-to-deck, and chat',
-  'Run multiple conversions at once',
-  'PDFs and large Notion exports',
-  'Unlimited Anki → Notion imports',
-  'Print decks to PDF',
-  'No ads',
-  'Cancel anytime',
+const BENEFIT_KEYS = [
+  'pricing.unlimited.benefitUnlimited',
+  'pricing.unlimited.benefitApkg',
+  'pricing.unlimited.benefitAi',
+  'pricing.unlimited.benefitMultiple',
+  'pricing.unlimited.benefitPdf',
+  'pricing.unlimited.benefitImport',
+  'pricing.unlimited.benefitPrint',
+  'pricing.unlimited.benefitNoAds',
+  'pricing.unlimited.benefitCancel',
 ];
 
 export function UnlimitedCard({
@@ -59,6 +60,7 @@ export function UnlimitedCard({
   annualCents,
   error = false,
 }: Readonly<UnlimitedCardProps>) {
+  const { t } = useTranslation();
   const isYearly = billingCycle === 'year';
   const savings = annualSavingsPercent(monthlyCents, annualCents);
   const heroPrice = isYearly
@@ -68,35 +70,41 @@ export function UnlimitedCard({
   const monthlyTotal = formatMonthly(monthlyCents);
 
   const terms = isYearly
-    ? `${annualTotal}/year, renews yearly. Cancel anytime — keeps access through the year you paid for.`
-    : `${monthlyTotal}/month, renews monthly. Cancel anytime.`;
+    ? t('pricing.unlimited.termsYearly', { annualTotal })
+    : t('pricing.unlimited.termsMonthly', { monthlyTotal });
 
   function getButtonLabel(): string {
-    if (error) return 'Try again';
-    if (pending) return 'Starting checkout';
-    return 'Get Unlimited';
+    if (error) return t('pricing.unlimited.tryAgain');
+    if (pending) return t('pricing.unlimited.startingCheckout');
+    return t('pricing.unlimited.getUnlimited');
   }
 
   return (
     <div className={`${styles.card} ${styles.cardPro}`}>
-      <span className={styles.cardBadge}>Most popular</span>
+      <span className={styles.cardBadge}>
+        {t('pricing.unlimited.mostPopular')}
+      </span>
       <div className={styles.cardHeader}>
         <p className={styles.cardTitle}>Unlimited</p>
         <span className={styles.cardPriceLine}>
           <span className={styles.cardPrice}>{heroPrice}</span>
-          <span className={styles.cardPriceSuffix}>/ mo</span>
+          <span className={styles.cardPriceSuffix}>
+            {t('pricing.unlimited.perMonth')}
+          </span>
         </span>
         {isYearly ? (
           <p className={styles.yearlyHint}>
-            {annualTotal}/year billed yearly · save {savings}%
+            {t('pricing.unlimited.yearlyHint', { annualTotal, savings })}
           </p>
         ) : (
-          <p className={styles.yearlyHint}>billed monthly</p>
+          <p className={styles.yearlyHint}>
+            {t('pricing.unlimited.monthlyHint')}
+          </p>
         )}
         {yearlyAvailable && (
           <div
             role="radiogroup"
-            aria-label="Billing cycle"
+            aria-label={t('pricing.unlimited.billingCycle')}
             className={styles.billingToggle}
           >
             <button
@@ -110,7 +118,7 @@ export function UnlimitedCard({
               }
               onClick={() => onBillingCycleChange('year')}
             >
-              Yearly · save {savings}%
+              {t('pricing.unlimited.yearlyOption', { savings })}
             </button>
             <button
               type="button"
@@ -123,16 +131,16 @@ export function UnlimitedCard({
               }
               onClick={() => onBillingCycleChange('month')}
             >
-              Monthly
+              {t('pricing.unlimited.monthlyOption')}
             </button>
           </div>
         )}
       </div>
       <div className={styles.cardBody}>
-        {BENEFITS.map((benefit) => (
-          <p key={benefit} className={styles.benefit}>
+        {BENEFIT_KEYS.map((key) => (
+          <p key={key} className={styles.benefit}>
             <CheckIcon />
-            <span>{benefit}</span>
+            <span>{t(key)}</span>
           </p>
         ))}
       </div>
@@ -147,7 +155,7 @@ export function UnlimitedCard({
         </button>
         {error ? (
           <p className={styles.cardCaption}>
-            Couldn't start checkout. Try again, or email support@2anki.net.
+            {t('pricing.unlimited.checkoutError')}
           </p>
         ) : (
           <p className={styles.cardTerms}>{terms}</p>

@@ -1,4 +1,5 @@
 import { SyntheticEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ErrorHandlerType } from '../errors/helpers/getErrorMessage';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import styles from '../../styles/auth.module.css';
@@ -11,6 +12,7 @@ interface Props {
 const MIN_PASSWORD_LENGTH = 8;
 
 function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,8 +35,8 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
   })();
 
   const passwordHelpText = passwordMeetsMinimum
-    ? 'Good'
-    : 'Use at least 8 characters.';
+    ? t('auth.common.passwordHelpGood')
+    : t('auth.common.passwordHelpMin');
 
   const handleSubmit = async (event: SyntheticEvent) => {
     event.preventDefault();
@@ -47,9 +49,7 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
       if (res.status === 200) {
         globalThis.location.href = '/login';
       } else {
-        setResetError(
-          'Could not reset your password. The link may have expired — request a new one.'
-        );
+        setResetError(t('auth.newPassword.resetError'));
       }
       setLoading(false);
     } catch (error) {
@@ -61,14 +61,14 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
   return (
     <div className={styles.formPage}>
       <div className={styles.formCard}>
-        <h1 className={styles.formTitle}>Set a new password</h1>
+        <h1 className={styles.formTitle}>{t('auth.newPassword.title')}</h1>
         <p className={sharedStyles.formDescription}>
-          Choose a new password for your account.
+          {t('auth.newPassword.description')}
         </p>
         <form onSubmit={handleSubmit}>
           <div className={styles.field}>
             <label htmlFor="password">
-              <span>New password</span>
+              <span>{t('auth.newPassword.newLabel')}</span>
               <input
                 id="password"
                 min="8"
@@ -79,7 +79,7 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
                 }}
                 type="password"
                 autoComplete="new-password"
-                placeholder="New password"
+                placeholder={t('auth.newPassword.newPlaceholder')}
                 required
                 aria-describedby="password-help"
               />
@@ -90,7 +90,7 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
           </div>
           <div className={styles.field}>
             <label htmlFor="confirm_password">
-              <span>Confirm new password</span>
+              <span>{t('auth.newPassword.confirmLabel')}</span>
               <input
                 id="confirm_password"
                 min="8"
@@ -101,7 +101,7 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
                 }}
                 type="password"
                 autoComplete="new-password"
-                placeholder="Re-enter new password"
+                placeholder={t('auth.newPassword.confirmPlaceholder')}
                 required
                 aria-describedby={
                   showMismatch ? 'confirm-password-help' : undefined
@@ -114,7 +114,7 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
                 role="alert"
                 className={styles.helpDanger}
               >
-                Passwords don&apos;t match.
+                {t('auth.newPassword.mismatch')}
               </p>
             )}
           </div>
@@ -124,7 +124,9 @@ function NewPasswordForm({ setErrorMessage }: Readonly<Props>) {
               className={styles.submitButton}
               disabled={!isValid() || loading}
             >
-              {loading ? 'Saving' : 'Reset password'}
+              {loading
+                ? t('auth.newPassword.saving')
+                : t('auth.newPassword.resetPassword')}
             </button>
             {resetError && <p className={styles.helpDanger}>{resetError}</p>}
           </div>
