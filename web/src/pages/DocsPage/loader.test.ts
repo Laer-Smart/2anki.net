@@ -32,6 +32,30 @@ describe('loadDoc', () => {
   it('returns null for an unmapped slug', () => {
     expect(loadDoc('does/not/exist')).toBeNull();
   });
+
+  it('serves the German doc when language is de and a translation exists', () => {
+    const doc = loadDoc('start-here/what-is-2anki', 'de');
+    expect(doc).not.toBeNull();
+    expect(doc?.frontmatter.title).toBe('Was ist 2anki?');
+    expect(doc?.sourcePath).toBe(
+      'web/src/pages/DocsPage/content/de/start-here/what-is-2anki.md'
+    );
+  });
+
+  it('falls back to English when no German translation exists', () => {
+    const german = loadDoc('reference/glossary', 'de');
+    const english = loadDoc('reference/glossary');
+    expect(german).not.toBeNull();
+    expect(german).toEqual(english);
+    expect(german?.sourcePath).toBe(
+      'web/src/pages/DocsPage/content/reference/glossary.md'
+    );
+  });
+
+  it('resolves a redirect slug to the German translation of its target', () => {
+    const doc = loadDoc('guides/introduction', 'de');
+    expect(doc?.frontmatter.title).toBe('Was ist 2anki?');
+  });
 });
 
 describe('hasDoc', () => {

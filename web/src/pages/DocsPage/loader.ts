@@ -1,6 +1,15 @@
 import { redirects } from './sidebar';
 
-const modules = import.meta.glob('./content/**/*.{md,mdx}', {
+const modules = import.meta.glob(
+  ['./content/**/*.{md,mdx}', '!./content/de/**'],
+  {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  }
+) as Record<string, string>;
+
+const germanModules = import.meta.glob('./content/de/**/*.{md,mdx}', {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -103,8 +112,7 @@ function rewriteAssetPaths(body: string): string {
   return body.replaceAll(ASSET_PATH, '](/docs-assets/$1)');
 }
 
-function slugFromPath(path: string): string {
-  const prefix = './content/';
+function slugFromPath(path: string, prefix: string): string {
   const start = path.startsWith(prefix) ? prefix.length : 0;
   let end = path.length;
   if (path.endsWith('.mdx')) end -= 4;
@@ -114,25 +122,37 @@ function slugFromPath(path: string): string {
 
 const SOURCE_ROOT = 'web/src/pages/DocsPage/';
 
-const docs: Record<string, LoadedDoc> = {};
-for (const [path, raw] of Object.entries(modules)) {
-  const slug = slugFromPath(path);
-  const relPath = path.startsWith('./') ? path.slice(2) : path;
-  const sourcePath = `${SOURCE_ROOT}${relPath}`;
-  const parsed = parseFrontmatter(raw, sourcePath);
-  docs[slug] = {
-    frontmatter: parsed.frontmatter,
-    body: rewriteAssetPaths(parsed.body),
-    sourcePath,
-  };
+function buildDocs(
+  entries: Record<string, string>,
+  prefix: string
+): Record<string, LoadedDoc> {
+  const result: Record<string, LoadedDoc> = {};
+  for (const [path, raw] of Object.entries(entries)) {
+    const slug = slugFromPath(path, prefix);
+    const relPath = path.startsWith('./') ? path.slice(2) : path;
+    const sourcePath = `${SOURCE_ROOT}${relPath}`;
+    const parsed = parseFrontmatter(raw, sourcePath);
+    result[slug] = {
+      frontmatter: parsed.frontmatter,
+      body: rewriteAssetPaths(parsed.body),
+      sourcePath,
+    };
+  }
+  return result;
 }
+
+const docs = buildDocs(modules, './content/');
+const germanDocs = buildDocs(germanModules, './content/de/');
 
 export function resolveSlug(slug: string): string {
   return Object.hasOwn(redirects, slug) ? redirects[slug] : slug;
 }
 
-export function loadDoc(slug: string): LoadedDoc | null {
+export function loadDoc(slug: string, language?: string): LoadedDoc | null {
   const resolved = resolveSlug(slug);
+  if (language === 'de' && Object.hasOwn(germanDocs, resolved)) {
+    return germanDocs[resolved];
+  }
   return docs[resolved] ?? null;
 }
 
