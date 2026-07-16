@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import Markdown from 'react-markdown';
 import styles from './MindmapMarkdownModal.module.css';
 
@@ -7,14 +8,6 @@ interface MarkdownRow {
   rendered: string;
 }
 
-const ROWS: MarkdownRow[] = [
-  { syntax: '**bold**', rendered: '**Bold text**' },
-  { syntax: '*italic*', rendered: '*Italic text*' },
-  { syntax: '`code`', rendered: '`inline code`' },
-  { syntax: '# Heading', rendered: '# Heading' },
-  { syntax: '[text](url)', rendered: '[Link text](https://example.com)' },
-];
-
 interface MindmapMarkdownModalProps {
   onClose: () => void;
 }
@@ -22,6 +15,14 @@ interface MindmapMarkdownModalProps {
 export function MindmapMarkdownModal({
   onClose,
 }: Readonly<MindmapMarkdownModalProps>) {
+  const { t } = useTranslation('tools');
+  const rows: MarkdownRow[] = [
+    { syntax: '**bold**', rendered: t('mindmaps.demoBold') },
+    { syntax: '*italic*', rendered: t('mindmaps.demoItalic') },
+    { syntax: '`code`', rendered: t('mindmaps.demoCode') },
+    { syntax: '# Heading', rendered: t('mindmaps.demoHeading') },
+    { syntax: '[text](url)', rendered: t('mindmaps.demoLink') },
+  ];
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export function MindmapMarkdownModal({
     <div className={styles.backdrop}>
       <button
         type="button"
-        aria-label="Close dialog"
+        aria-label={t('mindmaps.closeDialog')}
         data-testid="markdown-modal-backdrop"
         className={styles.backdropButton}
         onClick={onClose}
@@ -54,12 +55,12 @@ export function MindmapMarkdownModal({
       >
         <div className={styles.header}>
           <h2 id="markdown-modal-title" className={styles.title}>
-            Markdown in node labels
+            {t('mindmaps.markdownTitle')}
           </h2>
           <button
             ref={closeBtnRef}
             type="button"
-            aria-label="Close"
+            aria-label={t('mindmaps.close')}
             onClick={onClose}
             className={styles.closeBtn}
           >
@@ -69,12 +70,12 @@ export function MindmapMarkdownModal({
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.th}>You type</th>
-              <th className={styles.th}>You get</th>
+              <th className={styles.th}>{t('mindmaps.youType')}</th>
+              <th className={styles.th}>{t('mindmaps.youGet')}</th>
             </tr>
           </thead>
           <tbody>
-            {ROWS.map((row) => (
+            {rows.map((row) => (
               <tr key={row.syntax}>
                 <td className={styles.tdCode}>
                   <code className={styles.syntaxCode}>{row.syntax}</code>

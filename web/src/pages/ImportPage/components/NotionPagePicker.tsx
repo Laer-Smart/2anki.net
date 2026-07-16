@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import NotionObject from '../../../lib/interfaces/NotionObject';
 import styles from '../ImportPage.module.css';
@@ -15,6 +16,7 @@ export default function NotionPagePicker({
   onPageSelected,
   disabled,
 }: Readonly<NotionPagePickerProps>) {
+  const { t } = useTranslation('tools');
   const [query, setQuery] = useState('');
   const [pages, setPages] = useState<NotionObject[]>([]);
   const [loading, setLoading] = useState(false);
@@ -52,7 +54,7 @@ export default function NotionPagePicker({
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Type to search your pages"
+          placeholder={t('import.searchPlaceholder')}
           disabled={disabled}
           className={styles.pagePickerInput}
         />
@@ -61,7 +63,7 @@ export default function NotionPagePicker({
           disabled={disabled || loading}
           className={sharedStyles.searchButton}
         >
-          Search
+          {t('import.searchButton')}
         </button>
       </form>
       <div className={styles.pagePickerList}>
@@ -71,7 +73,7 @@ export default function NotionPagePicker({
           </div>
         )}
         {!loading && searched && pages.length === 0 && (
-          <p className={styles.pagePickerEmpty}>No pages found</p>
+          <p className={styles.pagePickerEmpty}>{t('import.noPagesFound')}</p>
         )}
         {!loading &&
           pages.map((page) => (

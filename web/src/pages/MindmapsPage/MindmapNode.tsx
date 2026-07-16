@@ -6,6 +6,7 @@ import {
   Position,
 } from '@xyflow/react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Markdown from 'react-markdown';
 import ArrowUpTrayIcon from '../../components/icons/ArrowUpTrayIcon';
 import PencilIcon from '../../components/icons/PencilIcon';
@@ -36,13 +37,13 @@ export interface MindmapNodeData {
   [key: string]: unknown;
 }
 
-const COLOR_PRESETS: Array<{ name: string; value: string | null }> = [
-  { name: 'Default', value: null },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Green', value: '#10b981' },
-  { name: 'Amber', value: '#f59e0b' },
-  { name: 'Red', value: '#ef4444' },
-  { name: 'Purple', value: '#8b5cf6' },
+const COLOR_PRESETS: Array<{ labelKey: string; value: string | null }> = [
+  { labelKey: 'mindmaps.colorDefault', value: null },
+  { labelKey: 'mindmaps.colorBlue', value: '#3b82f6' },
+  { labelKey: 'mindmaps.colorGreen', value: '#10b981' },
+  { labelKey: 'mindmaps.colorAmber', value: '#f59e0b' },
+  { labelKey: 'mindmaps.colorRed', value: '#ef4444' },
+  { labelKey: 'mindmaps.colorPurple', value: '#8b5cf6' },
 ];
 
 const toolbarButtonStyle = {
@@ -85,6 +86,7 @@ function CenterIcon({
 }
 
 export function MindmapNode({ data, selected }: NodeProps) {
+  const { t } = useTranslation('tools');
   const nodeData = data as MindmapNodeData;
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -140,8 +142,8 @@ export function MindmapNode({ data, selected }: NodeProps) {
           <div style={{ display: 'flex', gap: '0.125rem' }}>
             <button
               type="button"
-              title="Rename"
-              aria-label="Rename"
+              title={t('mindmaps.rename')}
+              aria-label={t('mindmaps.rename')}
               onClick={() => nodeData.onStartRename?.()}
               style={toolbarButtonStyle}
             >
@@ -153,7 +155,7 @@ export function MindmapNode({ data, selected }: NodeProps) {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  aria-label="Replace image file"
+                  aria-label={t('mindmaps.replaceImageFile')}
                   style={{ display: 'none' }}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -163,8 +165,8 @@ export function MindmapNode({ data, selected }: NodeProps) {
                 />
                 <button
                   type="button"
-                  title="Replace image"
-                  aria-label="Replace image"
+                  title={t('mindmaps.replaceImage')}
+                  aria-label={t('mindmaps.replaceImage')}
                   onClick={() => fileInputRef.current?.click()}
                   style={toolbarButtonStyle}
                 >
@@ -174,8 +176,8 @@ export function MindmapNode({ data, selected }: NodeProps) {
             )}
             <button
               type="button"
-              title="Center on this node"
-              aria-label="Center on this node"
+              title={t('mindmaps.centerNode')}
+              aria-label={t('mindmaps.centerNode')}
               onClick={() => nodeData.onCenter?.()}
               style={toolbarButtonStyle}
             >
@@ -183,8 +185,8 @@ export function MindmapNode({ data, selected }: NodeProps) {
             </button>
             <button
               type="button"
-              title="Color"
-              aria-label="Color"
+              title={t('mindmaps.color')}
+              aria-label={t('mindmaps.color')}
               onClick={() => setColorPickerOpen((o) => !o)}
               style={toolbarButtonStyle}
             >
@@ -192,8 +194,8 @@ export function MindmapNode({ data, selected }: NodeProps) {
             </button>
             <button
               type="button"
-              title="Delete"
-              aria-label="Delete"
+              title={t('mindmaps.delete')}
+              aria-label={t('mindmaps.delete')}
               onClick={() => nodeData.onDelete?.()}
               style={{ ...toolbarButtonStyle, color: 'var(--color-danger)' }}
             >
@@ -206,10 +208,10 @@ export function MindmapNode({ data, selected }: NodeProps) {
             >
               {COLOR_PRESETS.map((c) => (
                 <button
-                  key={c.name}
+                  key={c.labelKey}
                   type="button"
-                  title={c.name}
-                  aria-label={c.name}
+                  title={t(c.labelKey)}
+                  aria-label={t(c.labelKey)}
                   onClick={() => {
                     nodeData.onSetColor?.(c.value);
                     setColorPickerOpen(false);
@@ -261,7 +263,7 @@ export function MindmapNode({ data, selected }: NodeProps) {
             color: 'var(--color-text-secondary)',
           }}
         >
-          Uploading…
+          {t('mindmaps.uploading')}
         </div>
       )}
       {nodeData.editing ? (
@@ -318,7 +320,7 @@ export function MindmapNode({ data, selected }: NodeProps) {
                 minHeight: '2rem',
               }}
             >
-              Image unavailable
+              {t('mindmaps.imageUnavailable')}
             </div>
           )}
           {nodeData.image != null &&

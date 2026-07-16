@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { MindmapLimitModal } from './MindmapLimitModal';
 import {
@@ -11,6 +12,7 @@ import styles from './MindmapList.module.css';
 import TrashIcon from '../../components/icons/TrashIcon';
 
 export function MindmapList() {
+  const { t } = useTranslation('tools');
   const navigate = useNavigate();
   const { data, isLoading } = useMindmapList();
   const createMindmap = useCreateMindmap();
@@ -32,7 +34,7 @@ export function MindmapList() {
       setShowLimitModal(true);
       return;
     }
-    const created = await createMindmap.mutateAsync('Untitled');
+    const created = await createMindmap.mutateAsync(t('mindmaps.untitled'));
     if (created?.id != null) {
       navigate(`/mindmaps/${created.id}`);
     }
@@ -51,7 +53,7 @@ export function MindmapList() {
             color: 'var(--color-text-secondary)',
           }}
         >
-          Reading your mind maps
+          {t('mindmaps.readingMaps')}
         </p>
       </div>
     );
@@ -70,17 +72,15 @@ export function MindmapList() {
         }}
       >
         <div>
-          <h1 className={shared.title}>Mind maps</h1>
-          <p className={shared.subtitle}>
-            Build a map, then download it as an Anki deck.
-          </p>
+          <h1 className={shared.title}>{t('mindmaps.title')}</h1>
+          <p className={shared.subtitle}>{t('mindmaps.subtitle')}</p>
         </div>
         <button
           type="button"
           onClick={handleNewMap}
           className={`${shared.btnPrimary} ${shared.btnInline}`}
         >
-          New map
+          {t('mindmaps.newMap')}
         </button>
       </div>
 
@@ -89,7 +89,7 @@ export function MindmapList() {
           className={shared.notificationInfo}
           style={{ marginBottom: '1rem' }}
         >
-          Your monthly limit: 3 mind maps. Upgrade for unlimited.
+          {t('mindmaps.monthlyLimit')}
         </div>
       )}
 
@@ -102,14 +102,14 @@ export function MindmapList() {
               fontSize: 'var(--text-sm)',
             }}
           >
-            No mind maps yet.
+            {t('mindmaps.noMapsYet')}
           </p>
           <button
             type="button"
             onClick={handleNewMap}
             className={`${shared.btnOutline} ${shared.btnInline}`}
           >
-            New map
+            {t('mindmaps.newMap')}
           </button>
         </div>
       )}
@@ -122,13 +122,16 @@ export function MindmapList() {
           className={styles.mapRow}
         >
           <span className={styles.mapTitle} title={map.title}>
-            {map.title.length === 0 ? 'Untitled' : map.title}
+            {map.title.length === 0 ? t('mindmaps.untitled') : map.title}
           </span>
           <span className={styles.mapActions}>
             <span
               role="button"
               tabIndex={0}
-              aria-label={`Delete ${map.title.length === 0 ? 'Untitled' : map.title}`}
+              aria-label={t('mindmaps.deleteAria', {
+                title:
+                  map.title.length === 0 ? t('mindmaps.untitled') : map.title,
+              })}
               onClick={(e) => {
                 e.stopPropagation();
                 deleteMindmap.mutate(map.id);

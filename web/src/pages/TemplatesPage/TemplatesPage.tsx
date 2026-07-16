@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import {
@@ -57,6 +58,7 @@ function NoteTypeCard({
   onPreview,
   onDelete,
 }: Readonly<NoteTypeCardProps>) {
+  const { t } = useTranslation('tools');
   const previewDoc = useMemo(
     () => buildPreviewDocument(starter.noteType, starter.previewData, 'front'),
     [starter]
@@ -67,7 +69,7 @@ function NoteTypeCard({
     <article className={styles.card}>
       <div className={styles.previewWrap}>
         <iframe
-          title={`${starter.name} preview`}
+          title={t('templates.previewTitle', { name: starter.name })}
           className={styles.previewFrame}
           sandbox="allow-scripts"
           srcDoc={previewDoc}
@@ -91,20 +93,22 @@ function NoteTypeCard({
             onClick={() => onDownload(starter)}
             disabled={busy}
             aria-label={
-              busy ? 'Preparing .apkg' : `Download ${starter.name} as .apkg`
+              busy
+                ? t('templates.preparingApkg')
+                : t('templates.downloadAsApkg', { name: starter.name })
             }
           >
             <DownloadIcon width={14} height={14} />
-            {busy ? 'Preparing…' : 'Download'}
+            {busy ? t('templates.preparing') : t('templates.download')}
           </button>
           <button
             type="button"
             className={styles.previewBtn}
             onClick={() => onPreview(starter)}
-            aria-label={`Preview ${starter.name}`}
+            aria-label={t('templates.previewAria', { name: starter.name })}
           >
             <EyeIcon width={14} height={14} />
-            Preview
+            {t('templates.preview')}
           </button>
           <div className={styles.secondaryActions}>
             <Link
@@ -112,10 +116,10 @@ function NoteTypeCard({
               className={styles.ghostIconBtn}
               aria-label={
                 ownedByUser
-                  ? `Edit ${starter.name}`
-                  : `Customize ${starter.name}`
+                  ? t('templates.editAria', { name: starter.name })
+                  : t('templates.customizeAria', { name: starter.name })
               }
-              title={ownedByUser ? 'Edit' : 'Customize'}
+              title={ownedByUser ? t('templates.edit') : t('templates.customize')}
             >
               <PencilIcon width={16} height={16} />
             </Link>
@@ -124,8 +128,8 @@ function NoteTypeCard({
                 type="button"
                 className={`${styles.ghostIconBtn} ${styles.ghostIconBtnDanger}`}
                 onClick={() => onDelete(starter)}
-                aria-label={`Delete ${starter.name}`}
-                title="Delete"
+                aria-label={t('templates.deleteAria', { name: starter.name })}
+                title={t('templates.delete')}
               >
                 <TrashIcon width={16} height={16} />
               </button>
@@ -143,6 +147,7 @@ interface PreviewModalProps {
 }
 
 function PreviewModal({ starter, onClose }: Readonly<PreviewModalProps>) {
+  const { t } = useTranslation('tools');
   const frontDoc = useMemo(
     () => buildPreviewDocument(starter.noteType, starter.previewData, 'front'),
     [starter]
@@ -171,17 +176,17 @@ function PreviewModal({ starter, onClose }: Readonly<PreviewModalProps>) {
             type="button"
             className={sharedStyles.modalClose}
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('templates.close')}
           >
             &times;
           </button>
         </div>
         <div className={styles.modalBody}>
           <div className={styles.modalSide}>
-            <span className={styles.sideLabel}>Front</span>
+            <span className={styles.sideLabel}>{t('templates.front')}</span>
             <div className={styles.modalFrameWrap}>
               <iframe
-                title={`${starter.name} front preview`}
+                title={t('templates.frontPreview', { name: starter.name })}
                 className={styles.modalFrame}
                 sandbox="allow-scripts"
                 srcDoc={frontDoc}
@@ -189,10 +194,10 @@ function PreviewModal({ starter, onClose }: Readonly<PreviewModalProps>) {
             </div>
           </div>
           <div className={styles.modalSide}>
-            <span className={styles.sideLabel}>Back</span>
+            <span className={styles.sideLabel}>{t('templates.back')}</span>
             <div className={styles.modalFrameWrap}>
               <iframe
-                title={`${starter.name} back preview`}
+                title={t('templates.backPreview', { name: starter.name })}
                 className={styles.modalFrame}
                 sandbox="allow-scripts"
                 srcDoc={backDoc}
@@ -206,6 +211,7 @@ function PreviewModal({ starter, onClose }: Readonly<PreviewModalProps>) {
 }
 
 export function TemplatesPage() {
+  const { t } = useTranslation('tools');
   const [starters, setStarters] = useState<NoteTypeStarter[] | null>(null);
   const [userIds, setUserIds] = useState<Set<string>>(new Set());
   const [officialIds, setOfficialIds] = useState<Set<string>>(new Set());
@@ -246,13 +252,13 @@ export function TemplatesPage() {
       .catch((error: unknown) => {
         if (cancelled) return;
         setLoadError(
-          error instanceof Error ? error.message : 'Could not load note types'
+          error instanceof Error ? error.message : t('templates.couldNotLoad')
         );
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   const ownedStarters = useMemo(
     () => (starters ?? []).filter((s) => userIds.has(s.id)),
@@ -273,70 +279,77 @@ export function TemplatesPage() {
     [starters, userIds, officialIds]
   );
 
-  const handleDelete = useCallback(async (starter: NoteTypeStarter) => {
-    if (
-      globalThis.window !== undefined &&
-      !globalThis.confirm(`Delete "${starter.name}"? This cannot be undone.`)
-    ) {
-      return;
-    }
-    try {
-      await deleteUserTemplate(starter.id);
-      setStarters((current) =>
-        (current ?? []).filter((s) => s.id !== starter.id)
-      );
-      setUserIds((current) => {
-        const next = new Set(current);
-        next.delete(starter.id);
-        return next;
-      });
-    } catch (error: unknown) {
-      setDownloadError(
-        error instanceof Error ? error.message : 'Could not delete template'
-      );
-    }
-  }, []);
+  const handleDelete = useCallback(
+    async (starter: NoteTypeStarter) => {
+      if (
+        globalThis.window !== undefined &&
+        !globalThis.confirm(
+          t('templates.deleteConfirm', { name: starter.name })
+        )
+      ) {
+        return;
+      }
+      try {
+        await deleteUserTemplate(starter.id);
+        setStarters((current) =>
+          (current ?? []).filter((s) => s.id !== starter.id)
+        );
+        setUserIds((current) => {
+          const next = new Set(current);
+          next.delete(starter.id);
+          return next;
+        });
+      } catch (error: unknown) {
+        setDownloadError(
+          error instanceof Error
+            ? error.message
+            : t('templates.couldNotDelete')
+        );
+      }
+    },
+    [t]
+  );
 
-  const handleDownload = useCallback(async (starter: NoteTypeStarter) => {
-    setDownloadError(null);
-    setBusyId(starter.id);
-    try {
-      await triggerDownload(starter);
-    } catch (error: unknown) {
-      setDownloadError(
-        error instanceof Error
-          ? error.message
-          : 'Could not generate .apkg — try again.'
-      );
-    } finally {
-      setBusyId(null);
-    }
-  }, []);
+  const handleDownload = useCallback(
+    async (starter: NoteTypeStarter) => {
+      setDownloadError(null);
+      setBusyId(starter.id);
+      try {
+        await triggerDownload(starter);
+      } catch (error: unknown) {
+        setDownloadError(
+          error instanceof Error
+            ? error.message
+            : t('templates.couldNotGenerate')
+        );
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [t]
+  );
 
   return (
     <div className={sharedStyles.page}>
       <Helmet>
-        <title>Note types — 2anki</title>
+        <title>{t('templates.pageTitle')} — 2anki</title>
       </Helmet>
       <header className={`${sharedStyles.pageHeader} ${styles.pageHeaderRow}`}>
         <div>
-          <h1 className={sharedStyles.title}>Note types</h1>
-          <p className={sharedStyles.subtitle}>
-            Starter Anki note types you can drop in or customize. Open the .apkg
-            in Anki to import.
-          </p>
+          <h1 className={sharedStyles.title}>{t('templates.heading')}</h1>
+          <p className={sharedStyles.subtitle}>{t('templates.subtitle')}</p>
         </div>
         <Link
           to="/templates/new"
           className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
         >
-          New note type
+          {t('templates.newNoteType')}
         </Link>
       </header>
 
       {loadError && (
         <div className={styles.error} role="alert">
-          Could not load note types. {loadError}
+          {t('templates.loadErrorPrefix')} {loadError}
         </div>
       )}
       {downloadError && (
@@ -347,16 +360,14 @@ export function TemplatesPage() {
 
       {starters?.length === 0 && !loadError && (
         <div className={styles.emptyCard}>
-          <p className={styles.emptyTitle}>No note types yet</p>
-          <p className={styles.emptyBody}>
-            Create your first note type to use custom card layouts in Anki.
-          </p>
+          <p className={styles.emptyTitle}>{t('templates.emptyTitle')}</p>
+          <p className={styles.emptyBody}>{t('templates.emptyBody')}</p>
           <div className={styles.emptyActions}>
             <Link
               to="/templates/new"
               className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
             >
-              New note type
+              {t('templates.newNoteType')}
             </Link>
           </div>
         </div>
@@ -368,7 +379,7 @@ export function TemplatesPage() {
           aria-labelledby="your-note-types-heading"
         >
           <h2 id="your-note-types-heading" className={styles.sectionHeading}>
-            Your note types
+            {t('templates.yourNoteTypes')}
           </h2>
           <div className={styles.grid}>
             {ownedStarters.map((starter) => (
@@ -391,7 +402,7 @@ export function TemplatesPage() {
           aria-labelledby="starter-note-types-heading"
         >
           <h2 id="starter-note-types-heading" className={styles.sectionHeading}>
-            Starter note types
+            {t('templates.starterNoteTypes')}
           </h2>
           <div className={styles.grid}>
             {defaultStarters.map((starter) => (
@@ -416,7 +427,7 @@ export function TemplatesPage() {
             id="official-note-types-heading"
             className={styles.sectionHeading}
           >
-            Official 2anki templates
+            {t('templates.officialTemplates')}
           </h2>
           <div className={styles.grid}>
             {officialStarters.map((starter) => (

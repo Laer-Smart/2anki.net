@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import styles from '../../styles/shared.module.css';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
 import PrintForm from './components/PrintForm';
 
 export function PrintPage() {
+  const { t } = useTranslation('tools');
   const { data } = useUserLocals();
   const paying = isPayingUser(data?.locals);
   const freePrintAvailable = data?.freePrintAvailable;
@@ -11,28 +13,23 @@ export function PrintPage() {
   let statusLine: string | null = null;
   if (!paying) {
     if (freePrintAvailable === false) {
-      statusLine = 'Your free PDF for this month has been used.';
+      statusLine = t('print.statusUsed');
     } else if (freePrintAvailable === true) {
-      statusLine = '1 free PDF this month. Subscribe for unlimited.';
+      statusLine = t('print.statusFree');
     }
   }
 
   return (
     <div className={styles.page}>
       <header className={styles.pageHeader}>
-        <h1 className={styles.title}>Print your flashcards</h1>
-        <p className={styles.subtitle}>
-          Drop an Anki deck (.apkg) here. We'll make a PDF you can print or
-          share.
-        </p>
+        <h1 className={styles.title}>{t('print.title')}</h1>
+        <p className={styles.subtitle}>{t('print.subtitle')}</p>
       </header>
       {statusLine != null && (
         <p className={styles.smallDescription}>{statusLine}</p>
       )}
       <PrintForm />
-      <p className={styles.smallDescription}>
-        All files uploaded here are automatically deleted after 2 hours.
-      </p>
+      <p className={styles.smallDescription}>{t('print.autoDelete')}</p>
     </div>
   );
 }

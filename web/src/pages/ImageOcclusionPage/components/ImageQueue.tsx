@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ImageEntry } from '../types';
 import styles from '../ImageOcclusionPage.module.css';
 import { Link } from 'react-router-dom';
@@ -28,6 +29,7 @@ export function ImageQueue({
   isNotionConnected,
   onImportFromNotion,
 }: Readonly<Props>) {
+  const { t } = useTranslation('tools');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const atLimit = !isPaying && entries.length >= FREE_TIER_LIMIT;
   const [isDragOver, setIsDragOver] = useState(false);
@@ -76,8 +78,11 @@ export function ImageQueue({
               aria-busy={entry.uploading || undefined}
               aria-label={
                 entry.uploading
-                  ? `Importing ${entry.imageName}`
-                  : `Select image ${i + 1}: ${entry.imageName}`
+                  ? t('occlusion.importingImage', { name: entry.imageName })
+                  : t('occlusion.selectImage', {
+                      index: i + 1,
+                      name: entry.imageName,
+                    })
               }
             >
               {entry.uploading ? (
@@ -91,8 +96,7 @@ export function ImageQueue({
               )}
               {entry.rects.length > 0 && !entry.uploading && (
                 <span className={styles.queueBadge}>
-                  {entry.rects.length}{' '}
-                  {entry.rects.length === 1 ? 'box' : 'boxes'}
+                  {t('occlusion.boxes', { count: entry.rects.length })}
                 </span>
               )}
             </button>
@@ -100,15 +104,15 @@ export function ImageQueue({
               type="text"
               value={entry.header}
               onChange={(e) => onHeaderChange(i, e.target.value)}
-              placeholder="Card title — shown above image on every card (optional)"
+              placeholder={t('occlusion.headerPlaceholder')}
               className={styles.headerInput}
-              aria-label={`Header for image ${i + 1}`}
+              aria-label={t('occlusion.headerAria', { index: i + 1 })}
             />
             <button
               type="button"
               className={styles.queueRemoveBtn}
               onClick={() => onRemove(entry.id)}
-              aria-label={`Remove image ${i + 1}`}
+              aria-label={t('occlusion.removeImage', { index: i + 1 })}
             >
               ×
             </button>
@@ -121,10 +125,10 @@ export function ImageQueue({
         className={styles.addBtn}
         onClick={() => !atLimit && fileInputRef.current?.click()}
         disabled={atLimit}
-        title={atLimit ? 'Upgrade to add more images' : undefined}
+        title={atLimit ? t('occlusion.upgradeToAddMoreImages') : undefined}
         aria-disabled={atLimit}
       >
-        + Upload images
+        {t('occlusion.uploadImages')}
       </button>
       {isNotionConnected && (
         <button
@@ -134,8 +138,8 @@ export function ImageQueue({
           disabled={atLimit}
           title={
             atLimit
-              ? 'Upgrade to add more images'
-              : 'Pick a page, pick the images'
+              ? t('occlusion.upgradeToAddMoreImages')
+              : t('occlusion.pickPagePickImages')
           }
           aria-disabled={atLimit}
         >
@@ -150,7 +154,7 @@ export function ImageQueue({
               opacity: 0.8,
             }}
           />
-          Import from Notion
+          {t('occlusion.importFromNotion')}
         </button>
       )}
       <input
@@ -165,16 +169,16 @@ export function ImageQueue({
         <div className={styles.upgradeNotice}>
           {atLimit ? (
             <>
-              <p>You&apos;ve added the 3 images on the free plan.</p>
+              <p>{t('occlusion.freePlanAdded')}</p>
               <Link to="/pricing" className={styles.upgradeLink}>
-                Upgrade to add more
+                {t('occlusion.upgradeToAddMore')}
               </Link>
             </>
           ) : (
             <>
-              {entries.length} of 3 images on the free plan{' '}
+              {t('occlusion.freePlanCount', { count: entries.length })}{' '}
               <Link to="/pricing" className={styles.upgradeLink}>
-                Upgrade for unlimited
+                {t('occlusion.upgradeForUnlimited')}
               </Link>
             </>
           )}

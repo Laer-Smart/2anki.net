@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
@@ -133,6 +134,7 @@ async function deleteDraft(id: string): Promise<void> {
 }
 
 export function ImageOcclusionPage() {
+  const { t } = useTranslation('tools');
   const { data } = useUserLocals();
   const isPaying = isPayingUser(data?.locals);
   const isLoggedIn = data?.locals != null;
@@ -140,7 +142,7 @@ export function ImageOcclusionPage() {
   const [hydrated, setHydrated] = useState(false);
   const [entries, setEntries] = useState<ImageEntry[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [deckName, setDeckName] = useState('My image deck');
+  const [deckName, setDeckName] = useState(() => t('occlusion.deckNamePlaceholder'));
   const [mode, setMode] = useState<Mode>('hide_all');
   const [draftId, setDraftId] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -363,14 +365,14 @@ export function ImageOcclusionPage() {
         setEntries((prev) =>
           prev.filter((e) => !placeholders.some((p) => p.id === e.id))
         );
-        setError('Your Notion connection needs a refresh.');
+        setError(t('occlusion.notionRefresh'));
         return;
       }
       if (!res.ok) {
         setEntries((prev) =>
           prev.filter((e) => !placeholders.some((p) => p.id === e.id))
         );
-        setError("We couldn't reach Notion just now.");
+        setError(t('occlusion.notionUnreachable'));
         return;
       }
 
@@ -401,17 +403,17 @@ export function ImageOcclusionPage() {
       setEntries((prev) =>
         prev.filter((e) => !placeholders.some((p) => p.id === e.id))
       );
-      setError("We couldn't reach Notion just now.");
+      setError(t('occlusion.notionUnreachable'));
     }
-  }, []);
+  }, [t]);
 
   const handleDownload = async () => {
     if (entries.length === 0) {
-      setError('Add at least one image first.');
+      setError(t('occlusion.addImageFirst'));
       return;
     }
     if (totalCards === 0) {
-      setError('Draw at least one mask on an image.');
+      setError(t('occlusion.drawMaskFirst'));
       return;
     }
     setError(null);
@@ -428,7 +430,8 @@ export function ImageOcclusionPage() {
           .json()
           .catch(() => ({ message: response.statusText }));
         throw new Error(
-          (body as { message?: string }).message ?? 'Download failed'
+          (body as { message?: string }).message ??
+            t('occlusion.downloadFailed')
         );
       }
       const blob = await response.blob();
@@ -441,7 +444,9 @@ export function ImageOcclusionPage() {
       if (isLoggedIn && draftId != null)
         await deleteDraft(draftId).catch(() => undefined);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Download failed');
+      setError(
+        err instanceof Error ? err.message : t('occlusion.downloadFailed')
+      );
     } finally {
       setIsDownloading(false);
     }
@@ -451,8 +456,8 @@ export function ImageOcclusionPage() {
     return (
       <div className={pageStyles.pageRoot}>
         <div className={pageStyles.pageChrome}>
-          <h1 className={pageStyles.pageTitle}>Image occlusion</h1>
-          <p className={pageStyles.pageSubtitle}>Restoring your session…</p>
+          <h1 className={pageStyles.pageTitle}>{t('occlusion.title')}</h1>
+          <p className={pageStyles.pageSubtitle}>{t('occlusion.restoring')}</p>
         </div>
       </div>
     );
@@ -462,11 +467,13 @@ export function ImageOcclusionPage() {
 
   let ctaLabel: string;
   if (isDownloading) {
-    ctaLabel = 'Making your deck…';
+    ctaLabel = t('occlusion.makingDeck');
   } else if (totalCards > 0) {
-    ctaLabel = `Download deck (${totalCards} ${totalCards === 1 ? 'card' : 'cards'})`;
+    ctaLabel = t('occlusion.downloadDeck', {
+      cards: t('occlusion.cardCount', { count: totalCards }),
+    });
   } else {
-    ctaLabel = 'Add an image to start';
+    ctaLabel = t('occlusion.addImageToStart');
   }
 
   return (
@@ -475,7 +482,7 @@ export function ImageOcclusionPage() {
         <div
           className={`${styles.notificationInfo} ${pageStyles.mobileBanner}`}
         >
-          Drawing is easier on a larger screen.{' '}
+          {t('occlusion.mobileBanner')}{' '}
           <button
             type="button"
             onClick={() => setMobileDismissed(true)}
@@ -487,15 +494,13 @@ export function ImageOcclusionPage() {
               padding: 0,
             }}
           >
-            Continue on this screen anyway
+            {t('occlusion.continueAnyway')}
           </button>
         </div>
       )}
       <div className={pageStyles.pageChrome}>
-        <h1 className={pageStyles.pageTitle}>Image occlusion</h1>
-        <p className={pageStyles.pageSubtitle}>
-          Draw boxes over areas to hide — each box becomes one flashcard.
-        </p>
+        <h1 className={pageStyles.pageTitle}>{t('occlusion.title')}</h1>
+        <p className={pageStyles.pageSubtitle}>{t('occlusion.subtitle')}</p>
       </div>
       <div
         className={`${pageStyles.pageLayout} ${drawerOpen ? pageStyles.pageLayoutDrawerOpen : ''}`}
@@ -510,7 +515,7 @@ export function ImageOcclusionPage() {
         <div className={pageStyles.leftPanel}>
           <div className={pageStyles.panelHeader}>
             <label className={pageStyles.deckNameLabel} htmlFor="io-deck-name">
-              Deck name
+              {t('occlusion.deckName')}
             </label>
             <input
               id="io-deck-name"
@@ -518,7 +523,7 @@ export function ImageOcclusionPage() {
               value={deckName}
               onChange={(e) => setDeckName(e.target.value)}
               className={pageStyles.deckNameInput}
-              placeholder="My image deck"
+              placeholder={t('occlusion.deckNamePlaceholder')}
             />
           </div>
           <ImageQueue
@@ -539,19 +544,19 @@ export function ImageOcclusionPage() {
                 className={`${pageStyles.modeBtn} ${mode === 'hide_all' ? pageStyles.modeActive : ''}`}
                 onClick={() => setMode('hide_all')}
               >
-                Hide all, reveal one
+                {t('occlusion.hideAllRevealOne')}
               </button>
               <button
                 type="button"
                 className={`${pageStyles.modeBtn} ${mode === 'hide_one' ? pageStyles.modeActive : ''}`}
                 onClick={() => setMode('hide_one')}
               >
-                Hide one at a time
+                {t('occlusion.hideOneAtATime')}
               </button>
             </div>
             {error != null && (
               <div className={styles.notificationDanger}>
-                {`We couldn't make your deck. ${error} Please try again.`}
+                {t('occlusion.errorWrapper', { error })}
               </div>
             )}
             <button
@@ -567,9 +572,11 @@ export function ImageOcclusionPage() {
         <div className={pageStyles.rightPanel}>
           {activeEntry == null ? (
             <div className={pageStyles.emptyCanvas}>
-              <p className={pageStyles.emptyCanvasTitle}>No image selected.</p>
+              <p className={pageStyles.emptyCanvasTitle}>
+                {t('occlusion.noImageSelected')}
+              </p>
               <p className={pageStyles.emptyCanvasHint}>
-                Upload an image from the panel on the left to start drawing.
+                {t('occlusion.uploadToStart')}
               </p>
             </div>
           ) : (

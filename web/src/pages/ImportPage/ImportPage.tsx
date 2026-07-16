@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import sharedStyles from '../../styles/shared.module.css';
@@ -29,27 +30,21 @@ function CompletedNotice({
   totalNotes,
   pageTitle,
 }: Readonly<CompletedNoticeProps>) {
+  const { t } = useTranslation('tools');
   if (truncated) {
-    return (
-      <>
-        Imported {imported} of {totalNotes} notes — import limit reached. See
-        the note at the top of your Notion page.
-      </>
-    );
+    return <>{t('import.completedTruncated', { imported, totalNotes })}</>;
   }
   return (
     <>
-      {imported} notes added
-      {pageTitle ? (
-        <> to &ldquo;{pageTitle}&rdquo;</>
-      ) : (
-        <> to your &ldquo;2anki Imports&rdquo; page</>
-      )}
+      {pageTitle
+        ? t('import.completedToPage', { imported, pageTitle })
+        : t('import.completedToDefault', { imported })}
     </>
   );
 }
 
 export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
+  const { t } = useTranslation('tools');
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
@@ -123,19 +118,16 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
     return (
       <div className={sharedStyles.page}>
         <div className={sharedStyles.pageHeader}>
-          <h1 className={sharedStyles.title}>Import to Notion</h1>
+          <h1 className={sharedStyles.title}>{t('import.title')}</h1>
           <p className={sharedStyles.subtitle}>
-            Connect Notion to import Anki decks into your workspace.
+            {t('import.connectSubtitle')}
           </p>
         </div>
         <div className={styles.connectCta}>
           <a href="/notion" className={sharedStyles.btnPrimary}>
-            Connect to Notion
+            {t('import.connectCta')}
           </a>
-          <p className={styles.connectPrivacy}>
-            2anki only creates pages where you choose. It does not read or
-            change your existing Notion content.
-          </p>
+          <p className={styles.connectPrivacy}>{t('import.connectPrivacy')}</p>
         </div>
       </div>
     );
@@ -145,7 +137,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
     return (
       <div className={sharedStyles.page}>
         <div className={sharedStyles.pageHeader}>
-          <h1 className={sharedStyles.title}>Import to Notion</h1>
+          <h1 className={sharedStyles.title}>{t('import.title')}</h1>
         </div>
         <div className={sharedStyles.notificationSuccess}>
           <CompletedNotice
@@ -163,7 +155,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
               rel="noopener noreferrer"
               className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
             >
-              Open in Notion
+              {t('import.openInNotion')}
             </a>
           )}
           <button
@@ -171,7 +163,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
             className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
             onClick={handleReset}
           >
-            Import another deck
+            {t('import.importAnother')}
           </button>
         </div>
       </div>
@@ -189,15 +181,18 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
     return (
       <div className={sharedStyles.page}>
         <div className={sharedStyles.pageHeader}>
-          <h1 className={sharedStyles.title}>Import to Notion</h1>
+          <h1 className={sharedStyles.title}>{t('import.title')}</h1>
         </div>
         <div className={sharedStyles.notificationDanger}>
           {isUpgradeError && job.errorMessage}
           {partialProgress &&
-            `Imported ${job.progress.imported} of ${job.progress.total_notes} notes before something went wrong. The notes already created are still in your Notion page.`}
+            t('import.partialProgress', {
+              imported: job.progress.imported,
+              totalNotes: job.progress.total_notes,
+            })}
           {!isUpgradeError &&
             !partialProgress &&
-            (job.errorMessage ?? 'Something went wrong.')}
+            (job.errorMessage ?? t('import.genericError'))}
         </div>
         <div className={styles.errorActions}>
           {isUpgradeError ? (
@@ -205,7 +200,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
               to="/pricing"
               className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
             >
-              View plans
+              {t('import.viewPlans')}
             </Link>
           ) : (
             <button
@@ -213,7 +208,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
               className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
               onClick={handleReset}
             >
-              Try again
+              {t('import.tryAgain')}
             </button>
           )}
           <button
@@ -221,7 +216,9 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
             className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
             onClick={handleReset}
           >
-            {isUpgradeError ? 'Try a smaller deck' : 'Start over'}
+            {isUpgradeError
+              ? t('import.trySmallerDeck')
+              : t('import.startOver')}
           </button>
         </div>
       </div>
@@ -245,23 +242,21 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
   return (
     <div className={styles.page}>
       <div className={sharedStyles.pageHeader}>
-        <h1 className={sharedStyles.title}>Import to Notion</h1>
-        <p className={sharedStyles.subtitle}>
-          Turn an Anki deck into Notion toggle pages.
-        </p>
+        <h1 className={sharedStyles.title}>{t('import.title')}</h1>
+        <p className={sharedStyles.subtitle}>{t('import.subtitle')}</p>
       </div>
 
       {!paying && (
         <div className={sharedStyles.notificationWarning}>
-          Free plan · up to 1 000 cards per import.{' '}
-          <Link to="/pricing">Upgrade for unlimited imports</Link>
+          {t('import.freePlanNotice')}{' '}
+          <Link to="/pricing">{t('import.upgradeUnlimitedImports')}</Link>
         </div>
       )}
 
       <div className={styles.stepCard}>
         <div className={styles.stepCardHeader}>
           <span className={styles.stepNumber}>1</span>
-          <p className={styles.stepTitle}>Choose your Anki deck</p>
+          <p className={styles.stepTitle}>{t('import.step1')}</p>
         </div>
         <ApkgDropZone
           file={file}
@@ -277,7 +272,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
       >
         <div className={styles.stepCardHeader}>
           <span className={styles.stepNumber}>2</span>
-          <p className={styles.stepTitle}>Pick a destination</p>
+          <p className={styles.stepTitle}>{t('import.step2')}</p>
         </div>
 
         <div className={styles.destinationGroup}>
@@ -288,17 +283,16 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
               disabled={file == null || isRunning}
               onClick={handleQuickImport}
             >
-              Quick import
+              {t('import.quickImport')}
             </button>
             <p className={styles.quickImportHelp}>
-              Creates a &ldquo;2anki Imports&rdquo; page in your Notion
-              workspace
+              {t('import.quickImportHelp')}
             </p>
           </div>
 
           <div className={styles.quickImportDivider}>
             <span className={styles.quickImportDividerText}>
-              or choose a page
+              {t('import.orChoosePage')}
             </span>
           </div>
 
@@ -309,8 +303,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
               disabled={file == null || isRunning}
             />
             <p className={styles.pagePickerHelp}>
-              Showing top-level pages shared with 2anki. Missing a page? Check
-              your Notion sharing settings.
+              {t('import.pagePickerHelp')}
             </p>
             <div className={styles.pagePickerActions}>
               <button
@@ -319,7 +312,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
                 disabled={file == null || selectedPageId == null || isRunning}
                 onClick={handleStartImport}
               >
-                Import to selected page
+                {t('import.importToSelected')}
               </button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { startTransition, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import NotionObject from '../../../lib/interfaces/NotionObject';
 import { BlockIcon } from '../../SearchPage/components/BlockIcon';
@@ -141,8 +142,7 @@ async function fetchBlocks(
         images.push({ blockId: block.id, imageUrl: url, caption });
       }
     } else if (block.type === 'child_page') {
-      const title =
-        (block as NotionChildPageBlock).child_page.title || 'Untitled page';
+      const title = (block as NotionChildPageBlock).child_page.title || '';
       childPages.push({ id: block.id, title });
     } else if (
       block.type !== 'child_database' &&
@@ -178,6 +178,7 @@ export function NotionImportDrawer({
   isPaying,
   currentCount,
 }: Readonly<Props>) {
+  const { t } = useTranslation('tools');
   const [sections, setSections] = useState<PageSection[]>([]);
   const [pagesLoading, setPagesLoading] = useState(false);
   const [pagesError, setPagesError] = useState<string | null>(null);
@@ -225,7 +226,7 @@ export function NotionImportDrawer({
               ...prev,
               {
                 id,
-                title,
+                title: title.trim().length > 0 ? title : t('occlusion.untitledPage'),
                 icon,
                 images: uniqueImages,
                 loading: false,
@@ -271,12 +272,7 @@ export function NotionImportDrawer({
         setPagesLoading(false);
         setTimeout(() => searchRef.current?.focus(), 50);
         for (const page of pages) {
-          crawlPage(
-            page.id,
-            page.title || 'Untitled page',
-            page.icon,
-            controller.signal
-          );
+          crawlPage(page.id, page.title || '', page.icon, controller.signal);
         }
       })
       .catch((err: Error) => {
@@ -336,23 +332,25 @@ export function NotionImportDrawer({
 
   const addLabel =
     selected.size === 0
-      ? 'Select images to add'
-      : `Add ${selected.size} ${selected.size === 1 ? 'image' : 'images'}`;
+      ? t('occlusion.selectImagesToAdd')
+      : t('occlusion.addImagesCount', { count: selected.size });
 
   return (
     <div
       className={styles.drawer}
       role="dialog"
       aria-modal="true"
-      aria-label="Import from Notion"
+      aria-label={t('occlusion.importFromNotion')}
     >
       <div className={styles.drawerHeader}>
-        <span className={styles.drawerTitle}>Import from Notion</span>
+        <span className={styles.drawerTitle}>
+          {t('occlusion.importFromNotion')}
+        </span>
         <button
           type="button"
           className={styles.drawerCloseBtn}
           onClick={onClose}
-          aria-label="Close"
+          aria-label={t('occlusion.close')}
         >
           ×
         </button>
@@ -361,7 +359,7 @@ export function NotionImportDrawer({
       <div className={styles.drawerBody}>
         {pagesError != null && (
           <div className={styles.drawerEmpty}>
-            <p>Couldn't reach Notion. Try again in a moment.</p>
+            <p>{t('occlusion.reachNotionError')}</p>
             <button
               type="button"
               className={styles.drawerRetryBtn}
@@ -372,7 +370,7 @@ export function NotionImportDrawer({
                 startCrawl(controller);
               }}
             >
-              Try again
+              {t('occlusion.tryAgain')}
             </button>
           </div>
         )}
@@ -384,14 +382,14 @@ export function NotionImportDrawer({
             <div className={styles.drawerEmpty}>
               {search.trim().length > 0 ? (
                 <p>
-                  No pages match "<strong>{search}</strong>".
+                  {t('occlusion.noPagesMatchPre')}
+                  <strong>{search}</strong>
+                  {t('occlusion.noPagesMatchPost')}
                 </p>
               ) : (
                 <>
-                  <p>No images found in your shared pages.</p>
-                  <p>
-                    Share a page with images in Notion, then come back here.
-                  </p>
+                  <p>{t('occlusion.noImagesFound')}</p>
+                  <p>{t('occlusion.sharePageHint')}</p>
                 </>
               )}
             </div>
@@ -408,17 +406,17 @@ export function NotionImportDrawer({
                   type="search"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search pages"
-                  aria-label="Search pages"
+                  placeholder={t('occlusion.searchPages')}
+                  aria-label={t('occlusion.searchPages')}
                 />
               </div>
             )}
 
             {atFreeTierCap && (
               <p className={styles.drawerFreeTierNote}>
-                Free plan: 3 images already added.{' '}
+                {t('occlusion.drawerFreeTier')}{' '}
                 <a href="/pricing" className={styles.drawerUpgradeLink}>
-                  Upgrade for unlimited
+                  {t('occlusion.upgradeForUnlimited')}
                 </a>
               </p>
             )}
@@ -459,8 +457,8 @@ export function NotionImportDrawer({
                     {section.error != null && (
                       <p className={styles.gallerySectionError}>
                         {section.error.isPermission
-                          ? 'Not shared with 2anki. Share this page from Notion.'
-                          : "Couldn't load images."}
+                          ? t('occlusion.notSharedError')
+                          : t('occlusion.couldntLoadImages')}
                       </p>
                     )}
 
@@ -486,7 +484,7 @@ export function NotionImportDrawer({
                             >
                               <img
                                 src={item.imageUrl}
-                                alt={item.caption || 'Notion image'}
+                                alt={item.caption || t('occlusion.notionImageAlt')}
                                 className={styles.galleryTileImg}
                                 loading="lazy"
                                 decoding="async"
@@ -514,8 +512,7 @@ export function NotionImportDrawer({
                           )
                         }
                       >
-                        Show {hiddenCount} more{' '}
-                        {hiddenCount === 1 ? 'image' : 'images'}
+                        {t('occlusion.showMore', { count: hiddenCount })}
                       </button>
                     )}
                   </div>
@@ -525,7 +522,7 @@ export function NotionImportDrawer({
               {stillLoading && (
                 <div
                   className={styles.gallerySection}
-                  aria-label="Loading more pages"
+                  aria-label={t('occlusion.loadingMorePages')}
                 >
                   <div
                     className={styles.gallerySectionHeaderSkeleton}
@@ -555,14 +552,14 @@ export function NotionImportDrawer({
           onClick={handleImport}
           disabled={selected.size === 0 || importing || atFreeTierCap}
         >
-          {importing ? 'Importing…' : addLabel}
+          {importing ? t('occlusion.importing') : addLabel}
         </button>
         <button
           type="button"
           className={styles.drawerCancelBtn}
           onClick={onClose}
         >
-          Cancel
+          {t('occlusion.cancel')}
         </button>
       </div>
     </div>
