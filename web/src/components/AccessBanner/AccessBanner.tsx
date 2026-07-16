@@ -1,10 +1,12 @@
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import styles from './AccessBanner.module.css';
 
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const TEN_MINUTES_MS = 10 * 60 * 1000;
 
-function formatExpiryDate(date: Date): string {
-  return date.toLocaleString('en-GB', {
+function formatExpiryDate(date: Date, locale: string): string {
+  return date.toLocaleString(locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
@@ -17,14 +19,14 @@ function roundToNearest10Min(ms: number): number {
   return Math.round(ms / TEN_MINUTES_MS) * TEN_MINUTES_MS;
 }
 
-function formatTimeRemaining(ms: number): string {
+function formatTimeRemaining(ms: number, t: TFunction): string {
   const rounded = roundToNearest10Min(ms);
   const minutes = Math.floor(rounded / 60000);
   if (minutes < 60) {
-    return `${minutes} minutes`;
+    return t('accessBanner.minutes', { count: minutes });
   }
   const hours = Math.round(minutes / 60);
-  return `about ${hours} hour${hours === 1 ? '' : 's'}`;
+  return t('accessBanner.aboutHours', { count: hours });
 }
 
 type PassKind = '24h' | '7d' | 'unlimited';
@@ -46,6 +48,8 @@ export function AccessBanner({
   passKind,
   now = new Date(),
 }: Readonly<AccessBannerProps>) {
+  const { t, i18n } = useTranslation('account');
+
   if (passExpiresAt == null || passKind == null) return null;
 
   const expiresAt = new Date(passExpiresAt);
@@ -54,13 +58,16 @@ export function AccessBanner({
   if (remainingMs <= 0) return null;
 
   const passLabel = PASS_LABELS[passKind];
+  const locale = i18n.language.startsWith('de') ? 'de-DE' : 'en-GB';
 
   if (remainingMs >= TWO_HOURS_MS) {
     return (
       <output className={styles.banner}>
         <span className={styles.message}>
-          {passLabel} active — expires {formatExpiryDate(expiresAt)}. Convert as
-          much as you want.
+          {t('accessBanner.active', {
+            passLabel,
+            date: formatExpiryDate(expiresAt, locale),
+          })}
         </span>
       </output>
     );
@@ -69,8 +76,10 @@ export function AccessBanner({
   return (
     <output className={styles.banner}>
       <span className={styles.warning}>
-        {passLabel} ends in {formatTimeRemaining(remainingMs)} — finish any
-        pending conversions.
+        {t('accessBanner.endsIn', {
+          passLabel,
+          time: formatTimeRemaining(remainingMs, t),
+        })}
       </span>
     </output>
   );

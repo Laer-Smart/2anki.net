@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import styles from '../../../styles/shared.module.css';
 
 interface LoggedInSuccessProps {
@@ -6,14 +7,15 @@ interface LoggedInSuccessProps {
 }
 
 export const LoggedInSuccess = ({ firstName }: LoggedInSuccessProps) => {
+  const { t } = useTranslation('account');
   const navigate = useNavigate();
   const subhead = firstName
-    ? `Thanks, ${firstName} — your subscription is active.`
-    : 'Your subscription is active.';
+    ? t('checkout.thanksActive', { firstName })
+    : t('checkout.subscriptionActive');
 
   return (
     <div className={`${styles.card} ${styles.textCenter}`}>
-      <h1 className={styles.title}>You're on Unlimited</h1>
+      <h1 className={styles.title}>{t('checkout.youreOnUnlimited')}</h1>
       <p className={styles.subtitle}>{subhead}</p>
       <div className={`${styles.flexColumn} ${styles.marginTopLg}`}>
         <button
@@ -21,13 +23,13 @@ export const LoggedInSuccess = ({ firstName }: LoggedInSuccessProps) => {
           className={`${styles.btnPrimary} ${styles.btnInline}`}
           onClick={() => navigate('/upload')}
         >
-          Make a deck
+          {t('checkout.makeDeck')}
         </button>
         <a
           href="/account"
           className={`${styles.btnSecondary} ${styles.marginTopSm}`}
         >
-          Go to account
+          {t('checkout.goToAccount')}
         </a>
       </div>
     </div>

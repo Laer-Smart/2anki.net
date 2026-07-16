@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { post } from '../../../lib/backend/api';
 import styles from '../AccountPage.module.css';
 import sharedStyles from '../../../styles/shared.module.css';
@@ -6,6 +7,7 @@ import sharedStyles from '../../../styles/shared.module.css';
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 export function ClaimSubscription() {
+  const { t } = useTranslation('account');
   const [expanded, setExpanded] = useState(false);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<Status>('idle');
@@ -23,9 +25,7 @@ export function ClaimSubscription() {
     } else {
       setStatus('error');
       const body = (await res.json().catch(() => ({}))) as { message?: string };
-      setErrorMessage(
-        body.message ?? 'Something went wrong. Try again in a moment.'
-      );
+      setErrorMessage(body.message ?? t('claimSubscription.error'));
     }
   };
 
@@ -43,14 +43,14 @@ export function ClaimSubscription() {
           padding: 0,
         }}
       >
-        Paid with a different email?
+        {t('claimSubscription.paidDifferentEmail')}
       </button>
 
       {expanded && (
         <div style={{ marginTop: '1rem' }}>
           {status === 'success' ? (
             <output style={{ margin: 0, display: 'block' }}>
-              Sent. Check that inbox for a confirmation link.
+              {t('claimSubscription.sent')}
             </output>
           ) : (
             <>
@@ -61,9 +61,7 @@ export function ClaimSubscription() {
                   color: 'var(--color-text-secondary)',
                 }}
               >
-                If you paid Stripe with another email address, enter it here.
-                We'll send a confirmation link to that address to attach the
-                subscription to this account.
+                {t('claimSubscription.description')}
               </p>
               <form
                 onSubmit={handleSubmit}
@@ -77,10 +75,10 @@ export function ClaimSubscription() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email you paid with"
+                  placeholder={t('claimSubscription.emailPlaceholder')}
                   required
                   disabled={status === 'loading'}
-                  aria-label="Email you paid with"
+                  aria-label={t('claimSubscription.emailLabel')}
                 />
                 {status === 'error' && (
                   <p
@@ -100,8 +98,8 @@ export function ClaimSubscription() {
                   disabled={status === 'loading' || !email}
                 >
                   {status === 'loading'
-                    ? 'Sending…'
-                    : 'Send confirmation email'}
+                    ? t('claimSubscription.sending')
+                    : t('claimSubscription.sendConfirmation')}
                 </button>
               </form>
             </>

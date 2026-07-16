@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './VerifyEmailNotice.module.css';
 
 const FLAG_KEY = 'email_verification_pending';
@@ -26,6 +27,7 @@ interface VerifyEmailNoticeProps {
 export function VerifyEmailNotice({
   emailVerified,
 }: Readonly<VerifyEmailNoticeProps>) {
+  const { t } = useTranslation('account');
   const [pending, setPending] = useState(() => readPending());
 
   useEffect(() => {
@@ -44,16 +46,14 @@ export function VerifyEmailNotice({
 
   return (
     <output className={styles.banner}>
-      <span className={styles.message}>
-        Check your inbox — confirm your email to secure your account.
-      </span>
+      <span className={styles.message}>{t('verifyEmail.message')}</span>
       <button
         type="button"
         className={styles.dismiss}
-        aria-label="Dismiss"
+        aria-label={t('verifyEmail.dismiss')}
         onClick={dismiss}
       >
-        Dismiss
+        {t('verifyEmail.dismiss')}
       </button>
     </output>
   );

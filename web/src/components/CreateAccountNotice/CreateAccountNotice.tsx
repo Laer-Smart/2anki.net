@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { track } from '../../lib/analytics/track';
 import styles from '../PassLadderCard/PassLadderCard.module.css';
@@ -7,6 +8,7 @@ import styles from '../PassLadderCard/PassLadderCard.module.css';
 const SURFACE = 'upload_success_signup';
 
 export function CreateAccountNotice() {
+  const { t } = useTranslation('account');
   const shownFiredRef = useRef(false);
 
   useEffect(() => {
@@ -16,18 +18,15 @@ export function CreateAccountNotice() {
   }, []);
 
   return (
-    <section className={styles.card} aria-label="Save your next decks">
-      <p className={styles.headline}>Keep your next decks</p>
-      <p className={styles.body}>
-        With a free account, every deck you convert is saved to your downloads
-        history — re-download any of them later.
-      </p>
+    <section className={styles.card} aria-label={t('createAccount.aria')}>
+      <p className={styles.headline}>{t('createAccount.headline')}</p>
+      <p className={styles.body}>{t('createAccount.body')}</p>
       <Link
         className={styles.cta}
         to="/register?redirect=/upload"
         onClick={() => track('account_offer_clicked', { surface: SURFACE })}
       >
-        Create a free account
+        {t('createAccount.cta')}
       </Link>
     </section>
   );

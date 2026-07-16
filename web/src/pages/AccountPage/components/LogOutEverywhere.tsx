@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import styles from '../AccountPage.module.css';
 
 export function LogOutEverywhere() {
+  const { t } = useTranslation('account');
   const [isConfirming, setIsConfirming] = useState(false);
   const [isWorking, setIsWorking] = useState(false);
 
@@ -13,10 +15,9 @@ export function LogOutEverywhere() {
 
   return (
     <section className={styles.section}>
-      <h4 className={styles.sessionsTitle}>Sessions</h4>
+      <h4 className={styles.sessionsTitle}>{t('logOutEverywhere.sessions')}</h4>
       <div className={styles.sessionsNotice}>
-        Lost a device? Log out everywhere to end every session, including this
-        one. Sign back in to continue.
+        {t('logOutEverywhere.notice')}
       </div>
       {isConfirming ? (
         <div className={styles.buttonRow}>
@@ -26,7 +27,7 @@ export function LogOutEverywhere() {
             onClick={revokeAll}
             disabled={isWorking}
           >
-            Confirm
+            {t('logOutEverywhere.confirm')}
           </button>
           <button
             type="button"
@@ -34,7 +35,7 @@ export function LogOutEverywhere() {
             onClick={() => setIsConfirming(false)}
             disabled={isWorking}
           >
-            Cancel
+            {t('logOutEverywhere.cancel')}
           </button>
         </div>
       ) : (
@@ -43,7 +44,7 @@ export function LogOutEverywhere() {
           className={styles.sessionsButton}
           onClick={() => setIsConfirming(true)}
         >
-          Log out everywhere
+          {t('logOutEverywhere.logOutEverywhere')}
         </button>
       )}
     </section>

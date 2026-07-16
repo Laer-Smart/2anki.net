@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import styles from '../AccountPage.module.css';
 
 interface PlanDetailsProps {
@@ -5,11 +6,13 @@ interface PlanDetailsProps {
 }
 
 export function PlanDetails({ subscriptionType }: PlanDetailsProps) {
+  const { t } = useTranslation('account');
+
   if (subscriptionType === 'lifetime') {
     return (
       <section className={styles.section}>
         <p className={styles.planTier}>Lifetime</p>
-        <p className={styles.planMeta}>All current and future features.</p>
+        <p className={styles.planMeta}>{t('planDetails.lifetimeMeta')}</p>
       </section>
     );
   }
@@ -17,18 +20,18 @@ export function PlanDetails({ subscriptionType }: PlanDetailsProps) {
   if (subscriptionType === 'subscriber') {
     return (
       <section className={styles.section}>
-        <p className={styles.planTier}>Premium</p>
-        <p className={styles.planMeta}>Unlimited cards, all formats.</p>
+        <p className={styles.planTier}>{t('subscription.premium')}</p>
+        <p className={styles.planMeta}>{t('planDetails.premiumMeta')}</p>
       </section>
     );
   }
 
   return (
     <section className={styles.section}>
-      <p className={styles.planTier}>Free</p>
-      <p className={styles.planMeta}>100 cards per month.</p>
+      <p className={styles.planTier}>{t('planDetails.free')}</p>
+      <p className={styles.planMeta}>{t('planDetails.freeMeta')}</p>
       <a href="/pricing" className={styles.primaryButton}>
-        See plans
+        {t('planDetails.seePlans')}
       </a>
     </section>
   );

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from '../AccountPage.module.css';
 import sharedStyles from '../../../styles/shared.module.css';
 import { PauseMonths } from '../../../lib/backend/pauseSubscription';
@@ -31,24 +32,23 @@ export function PauseCard({
   pauseError,
   onPause,
 }: PauseCardProps) {
+  const { t } = useTranslation('account');
   const [months, setMonths] = useState<PauseMonths | null>(null);
 
   const resumeDate = months == null ? null : addMonths(new Date(), months);
-  const planText = planLabel ?? 'your plan';
+  const planText = planLabel ?? t('pauseCard.yourPlan');
 
   return (
     <div className={`${styles.section} ${sharedStyles.marginTopLg}`}>
-      <p className={styles.dangerTitle}>
-        Pause instead — no charge while you're away
-      </p>
-      <p className={styles.dangerNotice}>
-        Taking a break between terms? Pause your subscription instead of
-        cancelling. You won't be charged while it's paused, and it resumes on
-        its own when you're ready. Everything you've made is saved.
-      </p>
+      <p className={styles.dangerTitle}>{t('pauseCard.pauseInstead')}</p>
+      <p className={styles.dangerNotice}>{t('pauseCard.notice')}</p>
 
-      <p className={styles.dangerTitle}>Pause for</p>
-      <div className={styles.buttonRow} role="group" aria-label="Pause length">
+      <p className={styles.dangerTitle}>{t('pauseCard.pauseFor')}</p>
+      <div
+        className={styles.buttonRow}
+        role="group"
+        aria-label={t('pauseCard.pauseLengthAria')}
+      >
         {PAUSE_LENGTHS.map((length) => (
           <button
             key={length}
@@ -61,15 +61,19 @@ export function PauseCard({
             aria-pressed={months === length}
             onClick={() => setMonths(length)}
           >
-            {length === 1 ? '1 month' : `${length} months`}
+            {length === 1
+              ? t('pauseCard.oneMonth')
+              : t('pauseCard.nMonths', { count: length })}
           </button>
         ))}
       </div>
 
       {resumeDate && (
         <p className={styles.planDetail}>
-          Resumes {formatDate(resumeDate)} at {planText}. Cancel anytime before
-          then.
+          {t('pauseCard.resumesLine', {
+            date: formatDate(resumeDate),
+            plan: planText,
+          })}
         </p>
       )}
 
@@ -80,7 +84,9 @@ export function PauseCard({
           disabled={months == null || isPausing}
           onClick={() => months != null && onPause(months)}
         >
-          {isPausing ? 'Pausing…' : 'Pause subscription'}
+          {isPausing
+            ? t('pauseCard.pausing')
+            : t('pauseCard.pauseSubscription')}
         </button>
       </div>
 

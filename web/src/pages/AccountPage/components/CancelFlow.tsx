@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CANCELLATION_REASONS,
   CancellationReason,
+  REASON_KEYS,
 } from './CancellationFollowUp';
 import { PauseCard } from './PauseCard';
 import { PauseMonths } from '../../../lib/backend/pauseSubscription';
@@ -39,6 +41,7 @@ export function CancelFlow({
   onKeep,
   onPause,
 }: CancelFlowProps) {
+  const { t } = useTranslation('account');
   const [reason, setReason] = useState<CancellationReason | ''>('');
   const offeredReasons = useRef<Set<CancellationReason>>(new Set());
 
@@ -70,7 +73,7 @@ export function CancelFlow({
 
   return (
     <div className={styles.dangerSection} role="group" aria-label="Cancel">
-      <p className={styles.dangerTitle}>Why are you cancelling? (optional)</p>
+      <p className={styles.dangerTitle}>{t('cancelFlow.whyCancelling')}</p>
       <div className={styles.reasonList}>
         {CANCELLATION_REASONS.map((r) => (
           <label key={r} className={styles.reasonOption}>
@@ -81,7 +84,7 @@ export function CancelFlow({
               checked={reason === r}
               onChange={() => setReason(r)}
             />
-            {r}
+            {t(REASON_KEYS[r])}
           </label>
         ))}
       </div>
@@ -102,7 +105,9 @@ export function CancelFlow({
           onClick={() => onCancel(reason)}
           disabled={isCancelling}
         >
-          {isCancelling ? 'Processing…' : 'Cancel subscription'}
+          {isCancelling
+            ? t('cancelFlow.processing')
+            : t('cancelFlow.cancelSubscription')}
         </button>
         <button
           type="button"
@@ -110,7 +115,7 @@ export function CancelFlow({
           onClick={() => onKeep(reason)}
           disabled={isCancelling}
         >
-          Keep subscription
+          {t('cancelFlow.keepSubscription')}
         </button>
       </div>
     </div>
