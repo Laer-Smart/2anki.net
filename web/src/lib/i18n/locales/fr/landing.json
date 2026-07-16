@@ -1,0 +1,224 @@
+{
+  "steps": {
+    "dropFile": {
+      "title": "Dépose ton fichier",
+      "body": "Export Notion, PDF, Word, Markdown, ou un export Quizlet."
+    },
+    "buildsDeck": {
+      "title": "2anki crée ton paquet",
+      "body": "Généralement quelques secondes. Les fichiers plus gros prennent une minute."
+    },
+    "openInAnki": {
+      "title": "Ouvre-le dans Anki",
+      "body": "Double-clique sur le fichier .apkg. Tes cartes sont prêtes à étudier."
+    }
+  },
+  "sections": {
+    "howItWorks": "Comment ça marche",
+    "supportedFormats": "Formats pris en charge",
+    "whatYouGet": "Ce que tu obtiens vraiment dans Anki",
+    "commonQuestions": "Questions fréquentes",
+    "related": "En rapport"
+  },
+  "hero": {
+    "freeQuota": "Gratuit · jusqu'à 1 000 cartes par import",
+    "orPrefix": "ou ",
+    "signUpFree": "inscris-toi gratuitement",
+    "tryUnlimited": "essaie Unlimited gratuitement pendant 1 heure"
+  },
+  "footer": {
+    "readyPrefix": "Prêt à essayer ? ",
+    "dropLink": "Dépose un fichier en haut de cette page."
+  },
+  "hub": {
+    "h1": "Convertis n'importe quoi en Anki",
+    "subhead": "Choisis ta source. Chaque convertisseur transforme tes notes, fichiers ou cartes en un paquet .apkg propre que tu étudies dans Anki.",
+    "groups": {
+      "note-apps": "Applis de notes",
+      "flashcard-apps": "Applis de cartes",
+      "files": "Fichiers",
+      "language-tools": "Outils de langue"
+    }
+  },
+  "answers": {
+    "faqHeading": "Questions fréquentes",
+    "convert-notion-to-anki": {
+      "h1": "Comment convertir Notion en cartes Anki",
+      "intro": "Notion stocke tes notes. Anki les transforme en système de révision. 2anki fait le pont — tu obtiens un paquet .apkg à partir de n'importe quelle page Notion en moins d'une minute."
+    },
+    "notion-to-anki-sync": {
+      "h1": "Synchronisation automatique Notion vers Anki",
+      "intro": "Auto Sync surveille tes pages Notion connectées et pousse les changements vers tes paquets Anki toutes les 5 minutes. Modifie une bascule dans Notion ; la carte se met à jour dans Anki avant ta prochaine session de révision."
+    },
+    "pdf-to-anki": {
+      "h1": "Comment convertir un PDF en cartes Anki",
+      "intro": "Téléverse un PDF sur 2anki et télécharge un paquet .apkg. Fonctionne avec les diapos de cours, les chapitres de manuels et tout PDF avec une couche de texte."
+    },
+    "quizlet-to-anki": {
+      "h1": "Comment passer de Quizlet à Anki",
+      "intro": "Quizlet stocke tes ensembles. Anki te donne un vrai algorithme de répétition espacée. 2anki convertit un export Quizlet en un paquet .apkg que tu peux ouvrir directement dans Anki."
+    },
+    "fsrs-explained": {
+      "h1": "FSRS dans Anki — ce que c'est et pourquoi ta prochaine révision semble erronée",
+      "intro": "FSRS est l'algorithme moderne de répétition espacée qu'Anki propose depuis la version 23.10 (novembre 2023). Il reste optionnel — SM-2 demeure la valeur par défaut — mais il est largement recommandé par la communauté et le manuel d'Anki le présente comme plus précis que SM-2. FSRS prédit combien de temps tu retiendras une carte et programme la prochaine révision au moment où ta probabilité de rappel descend à 90 %. Pour une carte à laquelle tu réponds facilement, ce moment peut être à un an ou plus — c'est la source de la question « pourquoi ma prochaine révision est-elle dans 17 mois » qui remplit r/Anki chaque semaine."
+    },
+    "lecture-notes-to-anki": {
+      "h1": "Comment transformer tes notes de cours en cartes Anki",
+      "intro": "Tes notes de cours sont déjà quelque part — des PDF de diapos, un document Word ou Google, une page Notion, ou une photo prise en cours. 2anki lit chacun d'eux et te donne un paquet .apkg que tu ouvres dans Anki. Choisis la source qui correspond à tes notes et commence à réviser le jour même."
+    },
+    "word-to-anki": {
+      "h1": "Comment convertir un document Word en Anki",
+      "intro": "Si tes notes sont dans un document Word, tu n'as pas besoin de les refaire en cartes à la main. Téléverse le fichier .docx sur 2anki et télécharge un paquet .apkg qui s'ouvre dans Anki. Les titres, les images et la mise en forme sont conservés."
+    },
+    "image-occlusion-anki": {
+      "h1": "Comment créer des cartes d'occlusion d'image dans Anki",
+      "intro": "Les cartes d'occlusion d'image cachent une partie d'un schéma et te demandent de retrouver ce qui se trouve dessous — la façon la plus rapide de mémoriser l'anatomie, les structures, les cartes et les figures légendées. Téléverse une image sur 2anki, masque les parties à tester, et télécharge un paquet Anki."
+    },
+    "google-docs-to-anki": {
+      "h1": "Comment convertir Google Docs en cartes Anki",
+      "intro": "Google Docs ne se connecte pas directement à 2anki, mais tu n'as rien à retaper. Télécharge ton document au format Word (.docx) ou Markdown, téléverse le fichier, et télécharge un paquet .apkg qui s'ouvre dans Anki. Les titres, les images et la mise en forme sont conservés."
+    },
+    "handwritten-notes-to-anki": {
+      "h1": "Comment transformer des notes manuscrites en cartes Anki",
+      "intro": "Les notes manuscrites sont difficiles à réviser et impossibles à rechercher. Photographie une page, téléverse-la sur 2anki, et l'outil photo vers paquet la lit avec l'IA et rédige des cartes que tu revois avant le téléchargement. Tu obtiens un paquet .apkg qui s'ouvre dans Anki."
+    },
+    "textbook-to-anki": {
+      "h1": "Comment transformer un chapitre de manuel en cartes Anki",
+      "intro": "Un chapitre de manuel, ça fait beaucoup de matière à mettre en cartes à la main. Téléverse le chapitre en PDF et 2anki lit son texte pour en faire des cartes question-réponse, conserve les figures et te donne un paquet .apkg. Convertis un chapitre à la fois pour que chaque paquet reste révisable."
+    },
+    "kindle-highlights-to-anki": {
+      "h1": "Comment convertir tes surlignages Kindle en cartes Anki",
+      "intro": "Chaque surlignage que tu fais sur un Kindle est enregistré dans un seul fichier appelé My Clippings.txt. 2anki lit ce fichier et transforme chaque passage en carte, pour que les lignes que tu as marquées en lisant deviennent un paquet que tu révises dans Anki. Tu obtiens un .apkg que tu ouvres d'un double-clic."
+    },
+    "language-app-to-anki": {
+      "h1": "Comment transférer tes cartes d'une appli de langue vers Anki",
+      "intro": "Les applis de langue sont bonnes pour capter du vocabulaire mais faibles pour la révision à long terme. Anki te donne un vrai algorithme de répétition espacée. Quelle que soit l'appli où tu as commencé, le chemin est le même : exporte un fichier, téléverse-le sur 2anki, et télécharge un paquet .apkg que tu étudies sur n'importe quel appareil. Voici comment chaque appli courante s'inscrit dans ce chemin."
+    },
+    "obsidian-to-anki": {
+      "h1": "Comment convertir des notes Obsidian en cartes Anki",
+      "intro": "Les notes Obsidian sont des fichiers Markdown simples, ce qui veut dire qu'elles se convertissent vers Anki sans extension. Téléverse un fichier .md sur 2anki et télécharge un paquet .apkg qui s'ouvre dans Anki. Puces, paires question-réponse, titres et blocs de code sont tous conservés."
+    }
+  },
+  "pages": {
+    "ai-flashcard-generator": {
+      "h1": "Transforme tes notes en cartes Anki",
+      "subhead": "De vraies notes en entrée, de vraies cartes en sortie. 2anki crée ton paquet à partir de ce que tu téléverses — il n'invente jamais de faits."
+    },
+    "anki-to-notion": {
+      "h1": "Importe des paquets Anki dans Notion en un clic.",
+      "subhead": "Téléverse un fichier .apkg. Obtiens chaque carte sous forme de bascule dans une page Notion que tu peux étudier, rechercher et modifier."
+    },
+    "goodnotes-to-anki": {
+      "h1": "Transforme GoodNotes en cartes Anki",
+      "subhead": "Exporte ton carnet en PDF, dépose-le ici, et télécharge un paquet Anki."
+    },
+    "anki-for-japanese": {
+      "h1": "Notion vers Anki pour le japonais et l'apprentissage des langues",
+      "subhead": "Dépose une page Notion de phrases minées ou de vocabulaire. Captures d'écran, audio et lectures sont conservés tels que tu les as écrits."
+    },
+    "markdown-to-anki": {
+      "h1": "Transforme des notes Markdown en cartes Anki",
+      "subhead": "Dépose un fichier .md et télécharge un paquet — puces et paires Q/R sont conservées."
+    },
+    "mcat-anki": {
+      "h1": "Transforme ta révision de contenu MCAT en cartes Anki que tu contrôles",
+      "subhead": "Dépose un PDF ou un export Notion de tes notes de révision — acides aminés, réactions de chimie organique, termes de psycho et socio. 2anki crée des cartes propres à partir de ta matière, pas d'une supposition."
+    },
+    "anki-from-medical-lecture-slides": {
+      "h1": "Transforme des diapos de cours en cartes Anki",
+      "subhead": "Téléverse un PDF de tes diapos — les titres deviennent des noms de paquets, les puces deviennent des cartes."
+    },
+    "nclex-anki": {
+      "h1": "Transforme tes notes de révision NCLEX en cartes Anki que tu contrôles",
+      "subhead": "Dépose un PDF ou un export Notion de tes notes Saunders, UWorld ou ATI — valeurs de labo, suffixes de médicaments, priorité et délégation. 2anki crée des cartes propres à partir de ta matière, pas d'une supposition."
+    },
+    "notion-to-anki": {
+      "h1": "Notion vers Anki — gratuit, sans extension requise",
+      "subhead": "Connecte Notion une fois, colle n'importe quel lien de page, obtiens un paquet .apkg. Aucun logiciel à installer."
+    },
+    "nursing-flashcards": {
+      "h1": "Cartes Anki à partir de diapos et notes de cours d'infirmerie",
+      "subhead": "Dépose un PDF ou un export Notion. 2anki extrait les termes, les médicaments et les procédures."
+    },
+    "pdf-to-anki": {
+      "h1": "Crée des cartes Anki à partir d'un PDF",
+      "subhead": "Dépose un PDF et nous en extrairons le texte que tu peux transformer en cartes."
+    },
+    "powerpoint-to-anki": {
+      "h1": "Crée des cartes Anki à partir d'un PowerPoint",
+      "subhead": "Dépose un .pptx et 2anki lit le texte de tes diapos et crée un paquet Anki que tu peux modifier."
+    },
+    "quizlet-to-anki": {
+      "h1": "Transfère ton ensemble Quizlet vers Anki",
+      "subhead": "Exporte depuis Quizlet, dépose le fichier ici, et télécharge un paquet Anki."
+    },
+    "step1-anki": {
+      "h1": "Transforme tes annotations First Aid et notes de cours en cartes Step 1 que tu contrôles",
+      "subhead": "Anki est la colonne vertébrale de la prépa Step 1. Téléverse tes pages First Aid annotées, tes plans Pathoma ou tes PDF de cours et obtiens des cartes propres et à haut rendement — créées à partir de ta matière, jamais inventées."
+    },
+    "usmle-anki": {
+      "h1": "Paquets USMLE Step 1 et Step 2 à partir de tes propres notes",
+      "subhead": "Téléverse des diapos de cours, des exports First Aid, ou n'importe quel PDF. Cartes à haut rendement, prêtes pour la répétition espacée."
+    },
+    "convert-notion-to-anki": {
+      "h1": "Notion vers Anki — transforme tes notes en cartes",
+      "subhead": "Connecte Notion une fois, colle n'importe quel lien de page, obtiens un paquet .apkg. Les bascules deviennent des cartes. Sans extension, sans copier-coller."
+    },
+    "convert-pdf-to-anki": {
+      "h1": "Convertir un PDF en Anki — cartes à partir de diapos de cours et chapitres de manuels",
+      "subhead": "Dépose un PDF de cours, un export de diapos ou un chapitre de manuel et télécharge un paquet .apkg. 2anki lit le texte pour en faire des cartes question-réponse, se rabat sur des cartes-images quand une page n'a pas de texte, et peut rédiger des cartes avec l'IA quand le PDF est dense."
+    },
+    "convert-markdown-to-anki": {
+      "h1": "Markdown vers Anki — convertis des fichiers .md et des notes Obsidian",
+      "subhead": "Dépose un fichier .md et télécharge un paquet — puces, paires Q/R et blocs de code sont tous conservés."
+    },
+    "convert-csv-to-anki": {
+      "h1": "CSV vers Anki — importe des tableurs comme paquets de cartes",
+      "subhead": "Dépose un fichier .csv et obtiens un paquet .apkg. La colonne A devient le recto, tout ce qui suit A est réuni dans le verso. Fonctionne aussi avec les exports Excel."
+    },
+    "convert-html-to-anki": {
+      "h1": "HTML vers Anki — transforme des pages web en paquets de cartes",
+      "subhead": "Dépose un fichier .html et télécharge un paquet .apkg. Titres, puces et tableaux sont tous conservés."
+    },
+    "convert-apkg-to-csv": {
+      "h1": "Paquet Anki vers CSV — exporte tes cartes vers un tableur",
+      "subhead": "Dépose un fichier .apkg et télécharge un CSV. Le recto, le verso et les étiquettes de chaque carte dans un tableur que tu peux modifier."
+    },
+    "convert-notion-tables-to-anki": {
+      "h1": "Tableaux Notion vers Anki — une ligne, une carte",
+      "subhead": "Colle une page Notion avec un tableau. La colonne 1 devient le recto, la colonne 2 devient le verso."
+    },
+    "convert-brainscape-to-anki": {
+      "h1": "Transfère tes cartes Brainscape vers Anki",
+      "subhead": "Exporte ton paquet Brainscape en CSV, dépose-le ici, obtiens un paquet .apkg qui s'ouvre proprement dans Anki."
+    },
+    "convert-lingvist-to-anki": {
+      "h1": "Transfère tes cartes Lingvist vers Anki",
+      "subhead": "Exporte ton vocabulaire Lingvist en CSV, dépose-le ici, et obtiens un paquet .apkg. Tes mots et traductions sont convertis en cartes basiques."
+    },
+    "convert-studystack-to-anki": {
+      "h1": "Transfère tes cartes StudyStack vers Anki",
+      "subhead": "Exporte ton StudyStack en CSV, dépose-le ici, et obtiens un paquet .apkg. Termes et définitions deviennent des cartes basiques prêtes à réviser dans Anki."
+    },
+    "convert-pleco-to-anki": {
+      "h1": "Transfère tes cartes Pleco vers Anki",
+      "subhead": "Exporte ton userdict Pleco en fichier .txt, dépose-le ici, et obtiens un paquet .apkg. Hanzi, pinyin et définitions sont convertis en cartes basiques."
+    },
+    "convert-zorbi-to-anki": {
+      "h1": "Transfère tes cartes Zorbi vers Anki",
+      "subhead": "Exporte ton paquet Zorbi en CSV, dépose-le ici, et obtiens un paquet .apkg. Questions et réponses deviennent des cartes Anki basiques."
+    },
+    "convert-language-reactor-to-anki": {
+      "h1": "Transfère tes sauvegardes Language Reactor vers Anki",
+      "subhead": "Dépose le zip d'export de Language Reactor — tes phrases enregistrées, images et audio sont convertis en un .apkg propre que tu peux étudier sur n'importe quel appareil."
+    },
+    "convert-epub-to-anki": {
+      "h1": "Surlignages EPUB vers Anki — des surlignages d'ebook aux cartes",
+      "subhead": "Dépose un .epub sans DRM et télécharge un .apkg. Chaque passage surligné devient une carte, avec le titre du livre et l'auteur au verso."
+    },
+    "convert-kindle-to-anki": {
+      "h1": "Surlignages Kindle vers Anki — de My Clippings.txt à un paquet",
+      "subhead": "Copie My Clippings.txt depuis ton Kindle, dépose-le ici, et télécharge un .apkg. Chaque passage surligné — et toute note que tu as tapée — devient une carte."
+    }
+  }
+}

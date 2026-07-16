@@ -33,7 +33,7 @@ describe('i18n language detection', () => {
 
   it('falls back to English for an unsupported browser language', async () => {
     localStorage.clear();
-    setNavigatorLanguage('fr-FR');
+    setNavigatorLanguage('ko-KR');
     expect(await detectLanguage()).toBe('en');
   });
 
