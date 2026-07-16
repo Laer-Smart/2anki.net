@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import sharedStyles from '../../../styles/shared.module.css';
 import styles from '../AnkifyPage.module.css';
@@ -58,6 +59,7 @@ export default function NotionDatabasePicker({
   onChange,
   onWantToCreate,
 }: Props) {
+  const { t } = useTranslation('ankify');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [advancedInput, setAdvancedInput] = useState('');
 
@@ -84,7 +86,9 @@ export default function NotionDatabasePicker({
 
   return (
     <div>
-      <label htmlFor="ankify-notion-database">Pick a different tracker</label>
+      <label htmlFor="ankify-notion-database">
+        {t('databasePicker.label')}
+      </label>
       <select
         id="ankify-notion-database"
         value={value}
@@ -97,15 +101,15 @@ export default function NotionDatabasePicker({
       >
         <option value="">
           {databases.isLoading
-            ? 'Loading your Notion databases…'
-            : 'Pick a database…'}
+            ? t('databasePicker.loading')
+            : t('databasePicker.pick')}
         </option>
         {databasesList.length > 0 && (
-          <optgroup label="Your Notion databases">
+          <optgroup label={t('databasePicker.optgroup')}>
             {databasesList.map((db) => (
               <option key={db.id} value={db.id}>
                 {db.title}
-                {db.has_review_shape ? ' · ready' : ''}
+                {db.has_review_shape ? t('databasePicker.ready') : ''}
               </option>
             ))}
           </optgroup>
@@ -115,15 +119,14 @@ export default function NotionDatabasePicker({
       {selected != null && !selected.has_review_shape && (
         <div className={styles.shapeWarning} role="alert">
           <p className={styles.shapeWarningText}>
-            This database is missing the Date or Reviews column 2anki needs.
-            Sending will fail until those columns exist.
+            {t('databasePicker.missingColumns')}
           </p>
           <button
             type="button"
             className={`${sharedStyles.btnPrimary} ${styles.inlineButton}`}
             onClick={onWantToCreate}
           >
-            Make a fresh tracker for me
+            {t('databasePicker.makeFresh')}
           </button>
         </div>
       )}
@@ -134,15 +137,15 @@ export default function NotionDatabasePicker({
           className={sharedStyles.helpDanger}
           style={{ marginTop: '0.4rem' }}
         >
-          Couldn't load your Notion databases:{' '}
-          {(databases.error as Error).message}
+          {t('databasePicker.loadError', {
+            error: (databases.error as Error).message,
+          })}
         </p>
       )}
 
       {value.length > 0 && selected == null && databases.isFetched && (
         <p className={styles.muted} style={{ marginTop: '0.4rem' }}>
-          Saved tracker isn't in your current Notion list. It still works — if
-          it doesn't, re-share the database with 2anki in Notion.
+          {t('databasePicker.savedNotInList')}
         </p>
       )}
 
@@ -155,24 +158,26 @@ export default function NotionDatabasePicker({
         style={{ marginTop: '0.6rem' }}
       >
         <summary className={styles.advancedSummary}>
-          Don't see your database? Paste an ID instead.
+          {t('databasePicker.advancedSummary')}
         </summary>
         <form onSubmit={handleAdvanced} className={styles.advancedBody}>
-          <label htmlFor="ankify-database-advanced">Notion database ID</label>
+          <label htmlFor="ankify-database-advanced">
+            {t('databasePicker.advancedLabel')}
+          </label>
           <div className={styles.advancedRow}>
             <input
               id="ankify-database-advanced"
               type="text"
               value={advancedInput}
               onChange={(event) => setAdvancedInput(event.target.value)}
-              placeholder="Paste from your Notion database URL"
+              placeholder={t('databasePicker.advancedPlaceholder')}
             />
             <button
               type="submit"
               className={`${sharedStyles.btnSecondary} ${styles.inlineButton}`}
               disabled={advancedInput.trim().length === 0}
             >
-              Use this database
+              {t('databasePicker.useDatabase')}
             </button>
           </div>
         </form>

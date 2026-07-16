@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 import TimeSeriesTooltipShell from '../../OpsPage/charts/TimeSeriesTooltipShell';
 import styles from './StudyStatsSection.module.css';
@@ -13,35 +15,37 @@ const BUCKET_CLASS = [
   styles.cell4,
 ];
 
-const MONTHS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
+const MONTH_KEYS = [
+  'jan',
+  'feb',
+  'mar',
+  'apr',
+  'may',
+  'jun',
+  'jul',
+  'aug',
+  'sep',
+  'oct',
+  'nov',
+  'dec',
 ];
+
+const monthName = (t: TFunction, monthIndex: number): string =>
+  t(`stats.months.${MONTH_KEYS[monthIndex]}`);
 
 const WEEKDAY_GUTTER = [
-  { row: 2, label: 'Mon' },
-  { row: 4, label: 'Wed' },
-  { row: 6, label: 'Fri' },
+  { row: 2, key: 'mon' },
+  { row: 4, key: 'wed' },
+  { row: 6, key: 'fri' },
 ];
 
-const formatCellLabel = (cell: HeatmapCell): string => {
+const formatCellLabel = (cell: HeatmapCell, t: TFunction): string => {
   const [year, month, day] = cell.date.split('-');
-  const when = `${Number(day)} ${MONTHS[Number(month) - 1]} ${year}`;
+  const when = `${Number(day)} ${monthName(t, Number(month) - 1)} ${year}`;
   if (cell.count === 0) {
-    return `No reviews on ${when}`;
+    return t('stats.noReviewsOn', { when });
   }
-  const unit = cell.count === 1 ? 'review' : 'reviews';
-  return `${cell.count} ${unit} on ${when}`;
+  return t('stats.reviewsOn', { count: cell.count, when });
 };
 
 interface MonthLabel {
@@ -49,7 +53,10 @@ interface MonthLabel {
   text: string;
 }
 
-const buildMonthLabels = (weeks: HeatmapCell[][]): MonthLabel[] => {
+const buildMonthLabels = (
+  weeks: HeatmapCell[][],
+  t: TFunction
+): MonthLabel[] => {
   const labels: MonthLabel[] = [];
   let lastMonth = '';
   weeks.forEach((week, index) => {
@@ -60,7 +67,10 @@ const buildMonthLabels = (weeks: HeatmapCell[][]): MonthLabel[] => {
     const month = firstOfMonth.date.slice(5, 7);
     if (month !== lastMonth) {
       lastMonth = month;
-      labels.push({ column: index + 1, text: MONTHS[Number(month) - 1] });
+      labels.push({
+        column: index + 1,
+        text: monthName(t, Number(month) - 1),
+      });
     }
   });
   return labels;
@@ -79,10 +89,14 @@ export default function ReviewStreakHeatmap({
   currentStreak,
   reviewsThisYear,
 }: Readonly<ReviewStreakHeatmapProps>) {
+  const { t } = useTranslation('ankify');
   const [hovered, setHovered] = useState<string | null>(null);
   const weeks = buildHeatmapWeeks(reviewsByDay, today);
-  const monthLabels = buildMonthLabels(weeks);
-  const summary = `Review activity over the past year: ${currentStreak}-day streak, ${reviewsThisYear} reviews this year`;
+  const monthLabels = buildMonthLabels(weeks, t);
+  const summary = t('stats.heatmapSummary', {
+    streak: currentStreak,
+    reviews: reviewsThisYear,
+  });
 
   return (
     <div className={styles.heatmap}>
@@ -101,11 +115,11 @@ export default function ReviewStreakHeatmap({
         <div className={styles.weekdayGutter} aria-hidden="true">
           {WEEKDAY_GUTTER.map((day) => (
             <span
-              key={day.label}
+              key={day.key}
               className={styles.weekdayLabel}
               style={{ gridRowStart: day.row }}
             >
-              {day.label}
+              {t(`stats.weekday.${day.key}`)}
             </span>
           ))}
         </div>
@@ -116,13 +130,13 @@ export default function ReviewStreakHeatmap({
                 <div
                   key={cell.date}
                   className={`${styles.cell} ${BUCKET_CLASS[cell.bucket]}`}
-                  title={formatCellLabel(cell)}
+                  title={formatCellLabel(cell, t)}
                   onMouseEnter={() => setHovered(cell.date)}
                   onMouseLeave={() => setHovered(null)}
                 >
                   {hovered === cell.date && (
                     <span className={styles.cellTooltip}>
-                      <TimeSeriesTooltipShell title={formatCellLabel(cell)}>
+                      <TimeSeriesTooltipShell title={formatCellLabel(cell, t)}>
                         {null}
                       </TimeSeriesTooltipShell>
                     </span>
@@ -134,7 +148,7 @@ export default function ReviewStreakHeatmap({
         </div>
       </div>
       <div className={styles.heatmapLegend}>
-        <span>Less</span>
+        <span>{t('stats.less')}</span>
         {[0, 1, 2, 3, 4].map((bucket) => (
           <span
             key={bucket}
@@ -142,7 +156,7 @@ export default function ReviewStreakHeatmap({
             aria-hidden="true"
           />
         ))}
-        <span>More</span>
+        <span>{t('stats.more')}</span>
       </div>
     </div>
   );

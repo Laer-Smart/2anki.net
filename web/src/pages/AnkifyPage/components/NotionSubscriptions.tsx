@@ -8,6 +8,8 @@ import {
 } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { formatDistanceToNow } from 'date-fns';
 
 import sharedStyles from '../../../styles/shared.module.css';
@@ -105,40 +107,45 @@ interface ZeroDiagnostic {
   unmatched_samples?: string[];
 }
 
-const buildSuccessFlash = (result: {
-  created: number;
-  updated: number;
-  conflicts: number;
-  diagnostic: ZeroDiagnostic | null | undefined;
-}): RowFlash => {
+const buildSuccessFlash = (
+  result: {
+    created: number;
+    updated: number;
+    conflicts: number;
+    diagnostic: ZeroDiagnostic | null | undefined;
+  },
+  t: TFunction
+): RowFlash => {
   if (result.conflicts > 0) {
     return {
       kind: 'conflict',
-      text: 'Needs a decision — see banner above',
+      text: t('subscriptions.flash.needsDecision'),
     };
   }
   if (result.created + result.updated === 0) {
     if (result.diagnostic != null && result.diagnostic.blocks_matched === 0) {
-      return { kind: 'success', text: 'No patterns found' };
+      return { kind: 'success', text: t('subscriptions.flash.noPatterns') };
     }
-    return { kind: 'success', text: 'Already up to date' };
+    return { kind: 'success', text: t('subscriptions.flash.upToDate') };
   }
-  const cardWord = result.created === 1 ? 'card' : 'cards';
   if (result.updated === 0) {
     return {
       kind: 'success',
-      text: `Updated · ${result.created} new ${cardWord}`,
+      text: t('subscriptions.flash.updatedNew', { count: result.created }),
     };
   }
   if (result.created === 0) {
     return {
       kind: 'success',
-      text: `Updated · ${result.updated} changed`,
+      text: t('subscriptions.flash.updatedChanged', { count: result.updated }),
     };
   }
   return {
     kind: 'success',
-    text: `Updated · ${result.created} new, ${result.updated} changed`,
+    text: t('subscriptions.flash.updatedBoth', {
+      created: result.created,
+      updated: result.updated,
+    }),
   };
 };
 
@@ -164,15 +171,18 @@ const errorFlashFor = (
   error: Error & {
     status?: number;
     retryAfterSeconds?: number;
-  }
+  },
+  t: TFunction
 ): RowFlash => {
   if (error.status === 429 && error.retryAfterSeconds != null) {
     return {
       kind: 'error',
-      text: `Try again in ${error.retryAfterSeconds}s`,
+      text: t('subscriptions.flash.retryIn', {
+        seconds: error.retryAfterSeconds,
+      }),
     };
   }
-  return { kind: 'error', text: "Couldn't update. Try again in a moment." };
+  return { kind: 'error', text: t('subscriptions.flash.updateFailed') };
 };
 
 const MIDDLE_TRUNCATE_LIMIT = 32;
@@ -195,8 +205,6 @@ const extractNotionId = (input: string): string => {
 
 const normalizeId = (id: string): string =>
   id.replaceAll('-', '').toLowerCase();
-
-const OFFLINE_ERROR = 'Anki client offline — will retry next tick';
 
 const isCalmOfflineError = (lastError: string | null | undefined): boolean =>
   lastError != null && lastError.startsWith('Anki client offline');
@@ -222,21 +230,26 @@ const dotClassFor = (status: DeckStatus): string => {
 
 const renderSecondLine = (
   lastError: string | null | undefined,
-  nextExportLabel: string | null
+  nextExportLabel: string | null,
+  t: TFunction
 ): ReactNode => {
   if (isCalmOfflineError(lastError)) {
-    return <p className={styles.decksItemError}>{OFFLINE_ERROR}</p>;
+    return (
+      <p className={styles.decksItemError}>{t('subscriptions.offlineError')}</p>
+    );
   }
   if (lastError != null) {
     return (
       <p className={styles.decksItemErrorDanger}>
-        Last check failed — we'll try again soon
+        {t('subscriptions.lastCheckFailed')}
       </p>
     );
   }
   if (nextExportLabel != null) {
     return (
-      <p className={styles.decksItemError}>Next export at {nextExportLabel}</p>
+      <p className={styles.decksItemError}>
+        {t('subscriptions.nextExport', { time: nextExportLabel })}
+      </p>
     );
   }
   return null;
@@ -247,6 +260,7 @@ export default function NotionSubscriptions({
   schedule,
   onTabChange,
 }: Props) {
+  const { t } = useTranslation('ankify');
   const api = backend ?? get2ankiApi();
   const queryClient = useQueryClient();
   const [advancedInput, setAdvancedInput] = useState('');
@@ -320,10 +334,13 @@ export default function NotionSubscriptions({
         const result = await api.refreshAnkifySubscription(id);
         showFlash(
           id,
-          buildSuccessFlash({
-            ...result,
-            diagnostic: result.diagnostic ?? null,
-          })
+          buildSuccessFlash(
+            {
+              ...result,
+              diagnostic: result.diagnostic ?? null,
+            },
+            t
+          )
         );
         setZeroBannerByRow((prev) => ({
           ...prev,
@@ -334,7 +351,7 @@ export default function NotionSubscriptions({
           queryClient.invalidateQueries({ queryKey: CONFLICTS_KEY });
         }
       } catch (error) {
-        showFlash(id, errorFlashFor(error as Error));
+        showFlash(id, errorFlashFor(error as Error, t));
       } finally {
         setRefreshingIds((prev) => {
           const next = new Set(prev);
@@ -343,7 +360,7 @@ export default function NotionSubscriptions({
         });
       }
     },
-    [api, queryClient, showFlash]
+    [api, queryClient, showFlash, t]
   );
 
   const subs = useQuery({
@@ -529,7 +546,11 @@ export default function NotionSubscriptions({
 
   return (
     <section>
-      <div role="tablist" aria-label="Decks" className={styles.tabBar}>
+      <div
+        role="tablist"
+        aria-label={t('subscriptions.tabsLabel')}
+        className={styles.tabBar}
+      >
         <button
           type="button"
           role="tab"
@@ -543,7 +564,7 @@ export default function NotionSubscriptions({
           }
           onClick={() => setActiveTab('decks')}
         >
-          Decks{' '}
+          {t('subscriptions.tabs.decks')}{' '}
           {subscriptions.length > 0 && (
             <span className={styles.tabCount}>{subscriptions.length}</span>
           )}
@@ -561,7 +582,7 @@ export default function NotionSubscriptions({
           }
           onClick={() => setActiveTab('find')}
         >
-          Find pages
+          {t('subscriptions.tabs.find')}
         </button>
         <button
           type="button"
@@ -576,7 +597,7 @@ export default function NotionSubscriptions({
           }
           onClick={() => setActiveTab('leeches')}
         >
-          Leeches{' '}
+          {t('subscriptions.tabs.leeches')}{' '}
           {leechCount > 0 && (
             <span className={styles.tabCount}>{leechCount}</span>
           )}
@@ -594,7 +615,7 @@ export default function NotionSubscriptions({
           }
           onClick={() => setActiveTab('review')}
         >
-          Review
+          {t('subscriptions.tabs.review')}
         </button>
       </div>
 
@@ -614,9 +635,9 @@ export default function NotionSubscriptions({
             onSelect={handlePick}
             busyId={subscribe.isPending ? pendingId : null}
             disabledIds={subscribedIds}
-            selectLabel="Make this a deck"
-            busyLabel="Working…"
-            subscribedLabel="Already a deck"
+            selectLabel={t('subscriptions.picker.select')}
+            busyLabel={t('subscriptions.picker.busy')}
+            subscribedLabel={t('subscriptions.picker.subscribed')}
           />
 
           {subscribe.isError &&
@@ -639,17 +660,20 @@ export default function NotionSubscriptions({
           {subscribe.isSuccess && (
             <>
               <p className={sharedStyles.helpSuccess}>
-                Done. {subscribe.data.created} new flashcard
-                {subscribe.data.created === 1 ? '' : 's'},{' '}
-                {subscribe.data.updated} updated
+                {t('subscriptions.successDone', {
+                  count: subscribe.data.created,
+                  updated: subscribe.data.updated,
+                })}
                 {subscribe.data.conflicts > 0
-                  ? `, ${subscribe.data.conflicts} need a decision`
+                  ? t('subscriptions.successConflicts', {
+                      count: subscribe.data.conflicts,
+                    })
                   : ''}
                 .
               </p>
               {subscribe.data.anki_web_sync === 'failed' && (
                 <p className={sharedStyles.helpDanger}>
-                  Couldn't reach AnkiWeb. Open Anki, sign in, then try again.
+                  {t('subscriptions.ankiWebFailed')}
                 </p>
               )}
             </>
@@ -657,13 +681,15 @@ export default function NotionSubscriptions({
 
           <details>
             <summary className={styles.advancedSummary}>
-              Can't find it? Paste a Notion link instead.
+              {t('subscriptions.advancedSummary')}
             </summary>
             <form
               onSubmit={handleAdvancedSubmit}
               className={styles.advancedBody}
             >
-              <label htmlFor="ankify-advanced-input">Notion page link</label>
+              <label htmlFor="ankify-advanced-input">
+                {t('subscriptions.advancedLabel')}
+              </label>
               <div className={styles.advancedRow}>
                 <input
                   id="ankify-advanced-input"
@@ -679,7 +705,7 @@ export default function NotionSubscriptions({
                     subscribe.isPending || advancedInput.trim().length === 0
                   }
                 >
-                  Make this a deck
+                  {t('subscriptions.advancedSubmit')}
                 </button>
               </div>
             </form>
@@ -696,15 +722,15 @@ export default function NotionSubscriptions({
             className={styles.tabPanel}
           >
             <p className={styles.emptyLine}>
-              No decks yet. Switch to{' '}
+              {t('subscriptions.emptyPrefix')}
               <button
                 type="button"
                 className={styles.inlineLinkButton}
                 onClick={() => setActiveTab('find')}
               >
-                Find pages
-              </button>{' '}
-              to add your first one.
+                {t('subscriptions.emptyLink')}
+              </button>
+              {t('subscriptions.emptySuffix')}
             </p>
           </div>
         ) : (
@@ -721,12 +747,12 @@ export default function NotionSubscriptions({
                     htmlFor="ankify-deck-search"
                     className={sharedStyles.srOnly}
                   >
-                    Search your decks
+                    {t('subscriptions.searchLabel')}
                   </label>
                   <input
                     id="ankify-deck-search"
                     type="search"
-                    placeholder="Search your decks"
+                    placeholder={t('subscriptions.searchLabel')}
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                   />
@@ -736,7 +762,7 @@ export default function NotionSubscriptions({
                     htmlFor="ankify-deck-sort"
                     className={sharedStyles.srOnly}
                   >
-                    Sort decks
+                    {t('subscriptions.sortLabel')}
                   </label>
                   <select
                     id="ankify-deck-sort"
@@ -744,19 +770,23 @@ export default function NotionSubscriptions({
                     value={sortKey}
                     onChange={handleSortChange}
                   >
-                    <option value="status">Status</option>
-                    <option value="last-synced">Last synced</option>
-                    <option value="name">Name</option>
+                    <option value="status">
+                      {t('subscriptions.sort.status')}
+                    </option>
+                    <option value="last-synced">
+                      {t('subscriptions.sort.lastSynced')}
+                    </option>
+                    <option value="name">{t('subscriptions.sort.name')}</option>
                   </select>
                 </div>
               </div>
             )}
             <p className={styles.decksHelper}>
-              Checks Notion for changes every 5 minutes.
+              {t('subscriptions.checkInterval')}
             </p>
             {hasNoSearchMatch && (
               <p className={styles.decksHelper}>
-                No decks match{' '}
+                {t('subscriptions.noMatchPrefix')}
                 <span className={styles.decksSearchQuery}>
                   &ldquo;{trimmedSearch}&rdquo;
                 </span>
@@ -766,16 +796,18 @@ export default function NotionSubscriptions({
                   className={styles.inlineLinkButton}
                   onClick={() => setSearch('')}
                 >
-                  Clear the search
-                </button>{' '}
-                to see all {subscriptions.length}.
+                  {t('subscriptions.clearSearch')}
+                </button>
+                {t('subscriptions.noMatchSuffix', {
+                  count: subscriptions.length,
+                })}
               </p>
             )}
             <ul className={styles.decksList} ref={menuContainerRef}>
               {sortedSubscriptions.map((sub) => {
                 const displayTitle = sub.notion_page_title?.trim().length
                   ? sub.notion_page_title
-                  : 'Untitled page';
+                  : t('subscriptions.untitledPage');
                 const isSubscribingThisRow =
                   subscribe.isPending &&
                   pendingId != null &&
@@ -796,7 +828,8 @@ export default function NotionSubscriptions({
                     : null;
                 const secondLine = renderSecondLine(
                   sub.last_error,
-                  nextExportLabel
+                  nextExportLabel,
+                  t
                 );
                 const relative = formatRelativeTime(sub.last_synced_at);
                 const isPreparingFirstSync =
@@ -807,17 +840,19 @@ export default function NotionSubscriptions({
                 if (isPreparingFirstSync) {
                   lastSyncedDisplay = (
                     <span className={styles.muted}>
-                      Preparing your first sync — usually under a minute.
+                      {t('subscriptions.preparingFirstSync')}
                     </span>
                   );
                 } else if (relative == null) {
                   lastSyncedDisplay = (
-                    <span className={styles.muted}>Not yet</span>
+                    <span className={styles.muted}>
+                      {t('subscriptions.notYet')}
+                    </span>
                   );
                 } else {
                   lastSyncedDisplay = (
                     <span title={sub.last_synced_at ?? undefined}>
-                      Last sync: {relative}
+                      {t('subscriptions.lastSync', { time: relative })}
                     </span>
                   );
                 }
@@ -878,7 +913,9 @@ export default function NotionSubscriptions({
                               className={styles.decksItemDeckPath}
                               title={sub.target_deck}
                             >
-                              In Anki: {truncateMiddle(sub.target_deck)}
+                              {t('subscriptions.inAnki', {
+                                deck: truncateMiddle(sub.target_deck),
+                              })}
                             </span>
                           )}
                         {backlogLabel != null && (
@@ -893,7 +930,9 @@ export default function NotionSubscriptions({
                         )}
                         {(() => {
                           if (isUpdatingThisRow)
-                            return <span>Updating now…</span>;
+                            return (
+                              <span>{t('subscriptions.updatingNow')}</span>
+                            );
                           if (flash != null) {
                             return (
                               <span
@@ -914,7 +953,9 @@ export default function NotionSubscriptions({
                         <button
                           type="button"
                           className={sharedStyles.btnIcon}
-                          aria-label={`Options for ${displayTitle}`}
+                          aria-label={t('subscriptions.options', {
+                            title: displayTitle,
+                          })}
                           aria-haspopup="menu"
                           aria-expanded={openMenuId === sub.id}
                           onClick={() =>
@@ -931,11 +972,13 @@ export default function NotionSubscriptions({
                               type="button"
                               role="menuitem"
                               className={styles.decksItemMenuItem}
-                              aria-label={`Update ${displayTitle} now`}
+                              aria-label={t('subscriptions.updateNowAria', {
+                                title: displayTitle,
+                              })}
                               onClick={() => handleRefresh(sub.id)}
                               disabled={isUpdatingThisRow}
                             >
-                              Update now
+                              {t('subscriptions.updateNow')}
                             </button>
                             {sub.notion_page_url != null &&
                               sub.notion_page_url.length > 0 && (
@@ -945,31 +988,43 @@ export default function NotionSubscriptions({
                                   href={sub.notion_page_url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  aria-label={`Open ${displayTitle} in Notion`}
+                                  aria-label={t(
+                                    'subscriptions.openInNotionAria',
+                                    {
+                                      title: displayTitle,
+                                    }
+                                  )}
                                   onClick={() => setOpenMenuId(null)}
                                 >
-                                  Open in Notion
+                                  {t('subscriptions.openInNotion')}
                                 </a>
                               )}
                             <Link
                               role="menuitem"
                               className={styles.decksItemMenuItem}
                               to={`/rules/${sub.notion_page_id}`}
-                              aria-label={`Edit settings for ${displayTitle}`}
+                              aria-label={t('subscriptions.editSettingsAria', {
+                                title: displayTitle,
+                              })}
                               onClick={() => setOpenMenuId(null)}
                             >
-                              Edit settings
+                              {t('subscriptions.editSettings')}
                             </Link>
                             <button
                               type="button"
                               role="menuitem"
                               className={styles.decksItemMenuItem}
-                              aria-label={`Set deck location for ${displayTitle}`}
+                              aria-label={t(
+                                'subscriptions.setDeckLocationAria',
+                                {
+                                  title: displayTitle,
+                                }
+                              )}
                               onClick={() =>
                                 openDeckLocationEditor(sub.id, sub.target_deck)
                               }
                             >
-                              Set deck location
+                              {t('subscriptions.setDeckLocation')}
                             </button>
                             <button
                               type="button"
@@ -981,7 +1036,7 @@ export default function NotionSubscriptions({
                               }}
                               disabled={unsubscribe.isPending}
                             >
-                              Stop
+                              {t('subscriptions.stop')}
                             </button>
                           </div>
                         )}
@@ -1000,7 +1055,7 @@ export default function NotionSubscriptions({
                           }}
                         >
                           <label htmlFor={`deck-location-${sub.id}`}>
-                            Anki deck location
+                            {t('subscriptions.deckLocationLabel')}
                           </label>
                           <input
                             id={`deck-location-${sub.id}`}
@@ -1012,8 +1067,7 @@ export default function NotionSubscriptions({
                             placeholder="Notion Sync::Small Bowel Cancer"
                           />
                           <p className={styles.deckLocationHelp}>
-                            Use :: to nest. New cards land here; cards you
-                            already moved stay put.
+                            {t('subscriptions.deckLocationHelp')}
                           </p>
                           <div className={styles.deckLocationActions}>
                             <button
@@ -1021,7 +1075,7 @@ export default function NotionSubscriptions({
                               className={sharedStyles.btnPrimary}
                               disabled={saveDeckLocation.isPending}
                             >
-                              Save location
+                              {t('subscriptions.saveLocation')}
                             </button>
                             <button
                               type="button"
@@ -1031,13 +1085,12 @@ export default function NotionSubscriptions({
                                 setDeckLocationInput('');
                               }}
                             >
-                              Cancel
+                              {t('subscriptions.cancel')}
                             </button>
                           </div>
                           {saveDeckLocation.isError && (
                             <p role="alert" className={sharedStyles.helpDanger}>
-                              Couldn't save the deck location. Try again in a
-                              moment.
+                              {t('subscriptions.saveLocationError')}
                             </p>
                           )}
                         </form>
@@ -1048,24 +1101,24 @@ export default function NotionSubscriptions({
                         <p className={styles.zeroBannerText}>
                           {zeroBanner.blocks_scanned > 0 ? (
                             <>
-                              We scanned{' '}
-                              <strong>{zeroBanner.blocks_scanned}</strong>{' '}
-                              blocks and didn't recognize any cards. Ankify
-                              looks for toggles, Q&A pairs, and bullets.{' '}
+                              {t('subscriptions.zeroScannedPrefix')}
+                              <strong>{zeroBanner.blocks_scanned}</strong>
+                              {t('subscriptions.zeroScannedSuffix')}
                             </>
                           ) : (
-                            <>We couldn't read any content from this page. </>
+                            <>{t('subscriptions.zeroNoContent')}</>
                           )}
                           <a href="/answers" className={styles.zeroBannerLink}>
-                            What Ankify looks for →
+                            {t('subscriptions.zeroLink')}
                           </a>
                         </p>
                         {zeroBanner.unmatched_samples != null &&
                           zeroBanner.unmatched_samples.length > 0 && (
                             <details className={styles.zeroBannerDetails}>
                               <summary className={styles.zeroBannerSummary}>
-                                What we saw on this page (first{' '}
-                                {zeroBanner.unmatched_samples.length})
+                                {t('subscriptions.zeroSamplesSummary', {
+                                  count: zeroBanner.unmatched_samples.length,
+                                })}
                               </summary>
                               <ul className={styles.zeroBannerSamples}>
                                 {zeroBanner.unmatched_samples.map((s) => (

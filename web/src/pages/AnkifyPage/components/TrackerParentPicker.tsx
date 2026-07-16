@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import sharedStyles from '../../../styles/shared.module.css';
 import styles from '../AnkifyPage.module.css';
@@ -23,6 +24,7 @@ export default function TrackerParentPicker({
   onConfirm,
   onCancel,
 }: Props) {
+  const { t } = useTranslation('ankify');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<NotionObject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,40 +84,42 @@ export default function TrackerParentPicker({
 
   return (
     <div className={styles.trackerStep}>
-      <p className={styles.trackerStepLabel}>Step 1 of 2</p>
-      <h4 className={styles.trackerStepTitle}>Where should we put it?</h4>
-      <p className={styles.trackerStepHint}>
-        We'll add a small Notion database under the page you pick. Only pages
-        you've shared with 2anki show up here.
-      </p>
+      <p className={styles.trackerStepLabel}>{t('trackerPicker.step')}</p>
+      <h4 className={styles.trackerStepTitle}>{t('trackerPicker.title')}</h4>
+      <p className={styles.trackerStepHint}>{t('trackerPicker.hint')}</p>
 
       <input
         type="search"
         className={styles.pickerSearchInput}
         value={query}
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search your Notion pages…"
-        aria-label="Search your Notion pages"
+        placeholder={t('trackerPicker.searchPlaceholder')}
+        aria-label={t('trackerPicker.searchLabel')}
       />
 
-      {loading && <p className={styles.pickerStatus}>Looking up your pages…</p>}
+      {loading && (
+        <p className={styles.pickerStatus}>{t('trackerPicker.looking')}</p>
+      )}
 
       {error != null && (
         <p role="alert" className={sharedStyles.helpDanger}>
-          Couldn't load your Notion pages. {error}
+          {t('trackerPicker.loadError', { error })}
         </p>
       )}
 
       {!loading && error == null && results.length === 0 && (
         <p className={styles.pickerStatus}>
           {query.trim().length > 0
-            ? `No pages match "${query}". Make sure the page is shared with 2anki in Notion.`
-            : 'No Notion pages here yet. In Notion, open a page and choose ··· → Connections → 2anki.'}
+            ? t('trackerPicker.noMatch', { query })
+            : t('trackerPicker.emptyList')}
         </p>
       )}
 
       {results.length > 0 && (
-        <ul className={styles.selectableList} aria-label="Notion pages">
+        <ul
+          className={styles.selectableList}
+          aria-label={t('trackerPicker.pagesLabel')}
+        >
           {results.map((page) => {
             const isSelected = page.id === selectedId;
             return (
@@ -155,7 +159,7 @@ export default function TrackerParentPicker({
           onClick={onCancel}
           disabled={busy}
         >
-          Cancel
+          {t('trackerPicker.cancel')}
         </button>
         <button
           type="button"
@@ -167,7 +171,7 @@ export default function TrackerParentPicker({
           }}
           disabled={selected == null || busy}
         >
-          {busy ? 'Creating…' : 'Use this page'}
+          {busy ? t('trackerPicker.creating') : t('trackerPicker.usePage')}
         </button>
       </div>
     </div>

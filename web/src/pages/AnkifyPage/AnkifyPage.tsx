@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './AnkifyPage.module.css';
@@ -40,6 +41,7 @@ interface AnkifyPageProps {
 }
 
 export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
+  const { t } = useTranslation('ankify');
   const api = backend ?? get2ankiApi();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -89,7 +91,7 @@ export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
   if (isLoading || !hasActiveClient || !signedInAcknowledged) {
     return (
       <main className={sharedStyles.page}>
-        <p className={styles.emptyLine}>Loading your workspace…</p>
+        <p className={styles.emptyLine}>{t('page.loadingWorkspace')}</p>
       </main>
     );
   }
@@ -111,28 +113,29 @@ export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
           className={`${sharedStyles.alertSuccess} ${styles.welcomeBanner}`}
         >
           <span>
-            You&apos;re synced. We added two note types in Anki, Ankify Basic
-            and Ankify Cloze, so your cards look right.
+            {t('page.welcomePrefix')}
+            <span>Ankify Basic and Ankify Cloze</span>
+            {t('page.welcomeSuffix')}
           </span>
           <button
             type="button"
             className={sharedStyles.btnSecondary}
             onClick={dismissWelcome}
           >
-            Got it
+            {t('page.gotIt')}
           </button>
         </div>
       )}
 
       {conflictCount > 0 && (
         <output className={styles.conflictsBanner}>
-          <span>{conflictCount} to resolve.</span>
+          <span>{t('page.conflictsToResolve', { count: conflictCount })}</span>
           <button
             type="button"
             className={styles.conflictsBannerLink}
             onClick={() => setConflictsOpen(true)}
           >
-            Review →
+            {t('page.reviewConflicts')}
           </button>
         </output>
       )}
@@ -155,27 +158,27 @@ export default function AnkifyPage({ backend }: Readonly<AnkifyPageProps>) {
             {hasTracker ? (
               <>
                 <Link to="/ankify/history" className={styles.historyFooterLink}>
-                  Study history →
+                  {t('page.studyHistory')}
                 </Link>
                 <span>
                   {trackerTitle.length > 0
                     ? trackerTitle
-                    : 'Anki review tracker'}
+                    : t('page.reviewTrackerFallback')}
                 </span>
                 {trackerUrl.length > 0 && (
                   <>
                     <span aria-hidden="true">·</span>
                     <a href={trackerUrl} target="_blank" rel="noreferrer">
-                      Open
+                      {t('page.open')}
                     </a>
                   </>
                 )}
               </>
             ) : (
               <>
-                <span>Study history goes to a Notion database.</span>
+                <span>{t('page.historyGoesTo')}</span>
                 <Link to="/ankify/history" className={styles.historyFooterLink}>
-                  Set it up →
+                  {t('page.setItUp')}
                 </Link>
               </>
             )}

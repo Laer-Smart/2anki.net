@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import sharedStyles from '../../../styles/shared.module.css';
 import styles from '../AnkifyPage.module.css';
@@ -13,10 +14,9 @@ interface Props {
 
 const CONFLICTS_KEY = ['ankify-conflicts'];
 const SUBSCRIPTIONS_KEY = ['ankify-subscriptions'];
-const ANKI_OFFLINE_MESSAGE =
-  "Anki isn't connected right now. Open Anki and try again.";
 
 export default function SyncConflicts({ backend, embedded = false }: Props) {
+  const { t } = useTranslation('ankify');
   const api = backend ?? get2ankiApi();
   const queryClient = useQueryClient();
   const [offlineConflictId, setOfflineConflictId] = useState<number | null>(
@@ -77,7 +77,9 @@ export default function SyncConflicts({ backend, embedded = false }: Props) {
             )}
             <div className={styles.conflictGrid}>
               <div className={styles.conflictPanel}>
-                <p className={styles.conflictSide}>Notion version</p>
+                <p className={styles.conflictSide}>
+                  {t('conflicts.notionVersion')}
+                </p>
                 <p className={styles.conflictFront}>
                   {conflict.notion_snapshot?.front ?? ''}
                 </p>
@@ -86,7 +88,9 @@ export default function SyncConflicts({ backend, embedded = false }: Props) {
                 </p>
               </div>
               <div className={styles.conflictPanel}>
-                <p className={styles.conflictSide}>Anki version</p>
+                <p className={styles.conflictSide}>
+                  {t('conflicts.ankiVersion')}
+                </p>
                 <p className={styles.conflictFront}>
                   {conflict.anki_snapshot?.front ?? ''}
                 </p>
@@ -107,7 +111,7 @@ export default function SyncConflicts({ backend, embedded = false }: Props) {
                 }
                 disabled={resolve.isPending}
               >
-                Keep the Notion one
+                {t('conflicts.keepNotion')}
               </button>
               <button
                 type="button"
@@ -120,7 +124,7 @@ export default function SyncConflicts({ backend, embedded = false }: Props) {
                 }
                 disabled={resolve.isPending}
               >
-                Keep the Anki one
+                {t('conflicts.keepAnki')}
               </button>
               <button
                 type="button"
@@ -133,7 +137,7 @@ export default function SyncConflicts({ backend, embedded = false }: Props) {
                 }
                 disabled={resolve.isPending}
               >
-                Decide later
+                {t('conflicts.decideLater')}
               </button>
               <button
                 type="button"
@@ -143,12 +147,12 @@ export default function SyncConflicts({ backend, embedded = false }: Props) {
                   openInAnki.isPending && openInAnki.variables === conflict.id
                 }
               >
-                Open in Anki
+                {t('conflicts.openInAnki')}
               </button>
             </div>
             {offlineConflictId === conflict.id && (
               <p className={styles.emptyLine} role="status">
-                {ANKI_OFFLINE_MESSAGE}
+                {t('conflicts.offlineMessage')}
               </p>
             )}
           </article>
@@ -167,16 +171,13 @@ export default function SyncConflicts({ backend, embedded = false }: Props) {
         <header className={sharedStyles.surfaceHeader}>
           <div className={sharedStyles.surfaceHeaderText}>
             <h2 className={sharedStyles.surfaceTitle}>
-              Which one do you want to keep?
+              {t('conflicts.heading')}
             </h2>
-            <p className={sharedStyles.surfaceLead}>
-              You changed this flashcard in Notion, and also in Anki. We can
-              only keep one.
-            </p>
+            <p className={sharedStyles.surfaceLead}>{t('conflicts.lead')}</p>
           </div>
           <div className={sharedStyles.surfaceActions}>
             <span className={sharedStyles.badgeWarning}>
-              {items.length} to resolve
+              {t('conflicts.toResolve', { count: items.length })}
             </span>
           </div>
         </header>

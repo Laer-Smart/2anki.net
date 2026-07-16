@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import styles from '../AnkifyPage.module.css';
 import { Backend } from '../../../lib/backend/Backend';
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function ConflictsModal({ open, onClose, backend }: Props) {
+  const { t } = useTranslation('ankify');
   const dialogRef = useRef<HTMLDialogElement | null>(null);
 
   useEffect(() => {
@@ -32,12 +34,12 @@ export default function ConflictsModal({ open, onClose, backend }: Props) {
     >
       <div className={styles.conflictsModalCard}>
         <div className={styles.conflictsModalHead}>
-          <h2 className={styles.workspaceTitle}>Conflicts to resolve</h2>
+          <h2 className={styles.workspaceTitle}>{t('conflicts.modalTitle')}</h2>
           <button
             type="button"
             className={styles.conflictsModalClose}
             onClick={onClose}
-            aria-label="Close conflicts dialog"
+            aria-label={t('conflicts.closeModal')}
           >
             ×
           </button>

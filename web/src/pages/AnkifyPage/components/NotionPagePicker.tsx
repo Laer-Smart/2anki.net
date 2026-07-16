@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import sharedStyles from '../../../styles/shared.module.css';
 import styles from '../AnkifyPage.module.css';
@@ -28,6 +29,7 @@ export default function NotionPagePicker({
   busyLabel,
   subscribedLabel,
 }: Props) {
+  const { t } = useTranslation('ankify');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<NotionObject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +63,7 @@ export default function NotionPagePicker({
 
   return (
     <div className={styles.pickerWrapper}>
-      <label htmlFor="ankify-page-picker">Search your Notion pages</label>
+      <label htmlFor="ankify-page-picker">{t('pagePicker.searchLabel')}</label>
       <input
         id="ankify-page-picker"
         type="search"
@@ -70,10 +72,12 @@ export default function NotionPagePicker({
         onChange={(event) => setQuery(event.target.value)}
       />
 
-      {loading && <p className={styles.pickerStatus}>Looking up your pages…</p>}
+      {loading && (
+        <p className={styles.pickerStatus}>{t('pagePicker.looking')}</p>
+      )}
       {error != null && (
         <p className={sharedStyles.helpDanger}>
-          Couldn't load your Notion pages. {error}
+          {t('pagePicker.loadError', { error })}
         </p>
       )}
 
@@ -84,15 +88,14 @@ export default function NotionPagePicker({
           if (query.trim().length > 0) {
             return (
               <p className={styles.pickerStatus}>
-                No pages match "{query}". Make sure the page is shared with
-                2anki.
+                {t('pagePicker.noMatch', { query })}
               </p>
             );
           }
           return (
             <p className={styles.pickerStatus}>
-              No pages yet. Share one with 2anki from your{' '}
-              <a href="/notion">Notion connections</a>.
+              {t('pagePicker.emptyPrefix')}
+              <a href="/notion">{t('pagePicker.emptyLink')}</a>.
             </p>
           );
         }
@@ -125,8 +128,12 @@ export default function NotionPagePicker({
                       target="_blank"
                       rel="noreferrer"
                       className={styles.pickerNotionLink}
-                      aria-label={`Open ${page.title} in Notion (new tab)`}
-                      title={`Open ${page.title} in Notion (new tab)`}
+                      aria-label={t('pagePicker.openInNotion', {
+                        title: page.title,
+                      })}
+                      title={t('pagePicker.openInNotion', {
+                        title: page.title,
+                      })}
                     >
                       <img
                         src="/icons/Notion_app_logo.png"
@@ -139,10 +146,12 @@ export default function NotionPagePicker({
                   <Link
                     to={`/rules/${page.id}`}
                     className={`${sharedStyles.btnSmall} ${styles.inlineButton}`}
-                    aria-label={`Set rules for ${page.title} before making a deck`}
-                    title="Set conversion rules before making a deck"
+                    aria-label={t('pagePicker.setRulesAria', {
+                      title: page.title,
+                    })}
+                    title={t('pagePicker.setRulesTitle')}
                   >
-                    Set rules
+                    {t('pagePicker.setRules')}
                   </Link>
                   <button
                     type="button"

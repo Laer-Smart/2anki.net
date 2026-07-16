@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import sharedStyles from '../../../styles/shared.module.css';
 import styles from '../AnkifyPage.module.css';
@@ -39,6 +40,7 @@ const writeLocal = (key: string, value: string) => {
 };
 
 export default function ReviewDataExport({ backend }: Props) {
+  const { t } = useTranslation('ankify');
   const api = backend ?? get2ankiApi();
   const queryClient = useQueryClient();
 
@@ -116,11 +118,9 @@ export default function ReviewDataExport({ backend }: Props) {
     /property|date|reviews|schema/i.test(line)
   );
 
-  const firstRunLead =
-    'We\'ll create a Notion database called "Anki review tracker" with three columns: Date, Reviews, Time spent (min). Two short steps.';
-  const heading = 'Where does your study history go?';
-  const lead =
-    "Each day's review count and time spent show up as a row in a Notion database you control.";
+  const firstRunLead = t('export.firstRunLead');
+  const heading = t('export.heading');
+  const lead = t('export.lead');
 
   const handlePickerChange = (id: string, picked?: NotionDatabaseOption) => {
     setDatabaseId(id);
@@ -141,21 +141,20 @@ export default function ReviewDataExport({ backend }: Props) {
           rel="noreferrer"
           className={styles.trackerSummaryLink}
         >
-          {trackerTitle.length > 0 ? trackerTitle : 'Your saved Notion tracker'}
+          {trackerTitle.length > 0 ? trackerTitle : t('export.savedTracker')}
         </a>
       );
     }
     if (trackerTitle.length > 0) {
       return trackerTitle;
     }
-    return 'Your saved Notion tracker';
+    return t('export.savedTracker');
   };
 
   const renderResultSummary = () => {
     if (!exportMutation.isSuccess || result == null) {
       return null;
     }
-    const dayWord = result.exported === 1 ? 'day' : 'days';
     return (
       <div className={styles.resultBlock}>
         <p
@@ -164,13 +163,13 @@ export default function ReviewDataExport({ backend }: Props) {
           }
         >
           {allFailed
-            ? `None of your ${result.totalDays} days could be updated.`
-            : `Updated Notion. ${result.exported} new ${dayWord}`}
+            ? t('export.allFailed', { count: result.totalDays })
+            : t('export.updatedDays', { count: result.exported })}
           {!allFailed && result.skipped > 0
-            ? `, skipped ${result.skipped}`
+            ? t('export.skipped', { count: result.skipped })
             : ''}
           {!allFailed && errorList.length > 0
-            ? `, ${errorList.length} couldn't update`
+            ? t('export.someFailed', { count: errorList.length })
             : ''}
           .
         </p>
@@ -178,22 +177,23 @@ export default function ReviewDataExport({ backend }: Props) {
         {allFailed && looksLikeMissingProperty && (
           <div className={styles.shapeWarning}>
             <p className={styles.shapeWarningText}>
-              This tracker is missing the Date or Reviews column. The fastest
-              fix is a fresh tracker — we'll make it.
+              {t('export.missingColumns')}
             </p>
             <button
               type="button"
               className={`${sharedStyles.btnPrimary} ${styles.inlineButton}`}
               onClick={startWizard}
             >
-              Make a fresh tracker
+              {t('export.makeFresh')}
             </button>
           </div>
         )}
 
         {errorList.length > 0 && (
           <div className={styles.errorListBlock}>
-            <p className={styles.errorListHeading}>What went wrong:</p>
+            <p className={styles.errorListHeading}>
+              {t('export.whatWentWrong')}
+            </p>
             <ul className={styles.errorList}>
               {visibleErrors.map((line) => (
                 <li key={line} className={styles.errorListItem}>
@@ -207,7 +207,7 @@ export default function ReviewDataExport({ backend }: Props) {
                 className={`${sharedStyles.btnSmall} ${styles.inlineButton}`}
                 onClick={() => setShowAllErrors(true)}
               >
-                Show all {errorList.length}
+                {t('export.showAll', { count: errorList.length })}
               </button>
             )}
           </div>
@@ -224,22 +224,23 @@ export default function ReviewDataExport({ backend }: Props) {
       return (
         <div className={styles.shapeWarning} role="alert">
           <p className={styles.shapeWarningText}>
-            This tracker is missing the Date or Reviews column. The fastest fix
-            is a fresh tracker — we'll make it.
+            {t('export.missingColumns')}
           </p>
           <button
             type="button"
             className={`${sharedStyles.btnPrimary} ${styles.inlineButton}`}
             onClick={startWizard}
           >
-            Make a fresh tracker
+            {t('export.makeFresh')}
           </button>
         </div>
       );
     }
     return (
       <p role="alert" className={sharedStyles.helpDanger}>
-        Couldn't update Notion. {(exportMutation.error as Error).message}
+        {t('export.updateError', {
+          error: (exportMutation.error as Error).message,
+        })}
       </p>
     );
   };
@@ -251,12 +252,12 @@ export default function ReviewDataExport({ backend }: Props) {
         className={`${sharedStyles.btnPrimary} ${styles.inlineButton}`}
         onClick={startWizard}
       >
-        Create my review tracker
+        {t('export.createTracker')}
       </button>
       <hr className={sharedStyles.surfaceDivider} />
       <details>
         <summary className={styles.advancedSummary}>
-          I already have one — pick from a list
+          {t('export.alreadyHaveOne')}
         </summary>
         <div className={styles.advancedBody}>
           <NotionDatabasePicker
@@ -274,7 +275,7 @@ export default function ReviewDataExport({ backend }: Props) {
     <div className={styles.trackerSummary}>
       <div className={styles.trackerSummaryHead}>
         <div>
-          <p className={styles.trackerSummaryLabel}>Sending to</p>
+          <p className={styles.trackerSummaryLabel}>{t('export.sendingTo')}</p>
           <p className={styles.trackerSummaryName}>
             {renderTrackerSummaryName()}
           </p>
@@ -284,7 +285,7 @@ export default function ReviewDataExport({ backend }: Props) {
           className={styles.btnLink}
           onClick={() => setShowChange((current) => !current)}
         >
-          {showChange ? 'Done' : 'Change'}
+          {showChange ? t('export.done') : t('export.change')}
         </button>
       </div>
 
@@ -304,7 +305,7 @@ export default function ReviewDataExport({ backend }: Props) {
             className={`${sharedStyles.btnSmall} ${styles.inlineButton}`}
             onClick={startWizard}
           >
-            Or make a fresh tracker
+            {t('export.orMakeFresh')}
           </button>
         </div>
       )}
@@ -319,14 +320,14 @@ export default function ReviewDataExport({ backend }: Props) {
         }}
       >
         <div className={styles.dateRangeField}>
-          <label htmlFor="ankify-date-range">Days back (optional)</label>
+          <label htmlFor="ankify-date-range">{t('export.daysBack')}</label>
           <input
             id="ankify-date-range"
             type="number"
             min={1}
             value={dateRangeDays}
             onChange={(event) => setDateRangeDays(event.target.value)}
-            placeholder="All time"
+            placeholder={t('export.allTime')}
           />
         </div>
         <button
@@ -334,13 +335,13 @@ export default function ReviewDataExport({ backend }: Props) {
           className={`${sharedStyles.btnPrimary} ${styles.inlineButton}`}
           disabled={exportMutation.isPending}
         >
-          {exportMutation.isPending ? 'Updating…' : 'Update Notion'}
+          {exportMutation.isPending
+            ? t('export.updating')
+            : t('export.updateNotion')}
         </button>
       </form>
 
-      <p className={styles.trustNote}>
-        We only add new days. Existing rows are never overwritten.
-      </p>
+      <p className={styles.trustNote}>{t('export.trustNote')}</p>
 
       {renderResultSummary()}
       {renderExportError()}
@@ -353,19 +354,16 @@ export default function ReviewDataExport({ backend }: Props) {
     }
     return (
       <div className={styles.trackerStep}>
-        <p className={styles.trackerStepLabel}>Step 2 of 2</p>
+        <p className={styles.trackerStepLabel}>{t('export.step2Label')}</p>
         <h4 className={styles.trackerStepTitle}>
-          Create the tracker under "{pendingParent.title}"?
+          {t('export.confirmTitle', { title: pendingParent.title })}
         </h4>
-        <p className={styles.trackerStepHint}>
-          We'll add a Notion database called "Anki review tracker" with three
-          columns: Date, Reviews, Time spent (min). Each day's count becomes one
-          row. Nothing else on your Notion page changes.
-        </p>
+        <p className={styles.trackerStepHint}>{t('export.confirmHint')}</p>
         {createTracker.isError && (
           <p role="alert" className={sharedStyles.helpDanger}>
-            Couldn't create the tracker.{' '}
-            {(createTracker.error as Error).message}
+            {t('export.createError', {
+              error: (createTracker.error as Error).message,
+            })}
           </p>
         )}
         <div className={styles.trackerStepActions}>
@@ -375,7 +373,7 @@ export default function ReviewDataExport({ backend }: Props) {
             onClick={() => setWizard('pickParent')}
             disabled={createTracker.isPending}
           >
-            Back
+            {t('export.back')}
           </button>
           <button
             type="button"
@@ -383,7 +381,9 @@ export default function ReviewDataExport({ backend }: Props) {
             onClick={() => createTracker.mutate(pendingParent.id)}
             disabled={createTracker.isPending}
           >
-            {createTracker.isPending ? 'Creating…' : 'Create my tracker'}
+            {createTracker.isPending
+              ? t('export.creating')
+              : t('export.createMyTracker')}
           </button>
         </div>
       </div>
