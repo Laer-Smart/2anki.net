@@ -13,9 +13,7 @@ function RecentSourceRow({ source }: Readonly<{ source: RecentSource }>) {
         <span data-hj-suppress className={styles.title} title={source.title}>
           {source.title}
         </span>
-        <span className={styles.timeAgo}>
-          {getDistance(source.updatedAt)} ago
-        </span>
+        <span className={styles.timeAgo}>{getDistance(source.updatedAt)}</span>
       </div>
       <Link
         to={source.convertUrl}

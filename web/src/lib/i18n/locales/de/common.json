@@ -293,6 +293,7 @@
     "emailVerified": "E-Mail bestätigt. Alles bereit.",
     "makeAnotherDeck": "Noch einen Stapel erstellen",
     "noMatch": "Kein Stapel passt zu diesem Filter.",
+    "updatedRelative": "Aktualisiert {{time}}",
     "filters": {
       "all": "Alle",
       "ready": "Fertig",
@@ -393,6 +394,179 @@
       "getDayPass": "Day Pass holen — {{price}}",
       "getWeekPass": "Week Pass holen — {{price}}",
       "upgradeUnlimited": "Auf Unlimited upgraden"
+    }
+  },
+  "modals": {
+    "consent": {
+      "title": "Der Chat sendet deine Nachrichten an Anthropic",
+      "body": "Deine Nachrichten und alle angehängten Dateien gehen an Anthropic, um Antworten zu generieren. Sie werden nicht zum Trainieren von Modellen verwendet. 20 Nachrichten pro Monat im kostenlosen Tarif.",
+      "signIn": "Anmelden",
+      "toChat": ", um zu chatten.",
+      "start": "Chat starten",
+      "notNow": "Nicht jetzt"
+    },
+    "columnMapping": {
+      "title": "Ordne deine Spalten zu",
+      "cancel": "Abbrechen",
+      "front": "Vorderseite",
+      "back": "Rückseite",
+      "differentColumns": "Vorder- und Rückseite müssen unterschiedliche Spalten sein.",
+      "convert": "Mit dieser Zuordnung konvertieren"
+    },
+    "producer": {
+      "title": "Sag uns, was du brauchst",
+      "lead": "Wir erproben Werkzeuge für Menschen, die Anki-Stapel für andere erstellen. Es gibt noch nichts zu kaufen — beantworte zwei Fragen und wir kommen zuerst auf dich zu, falls wir es bauen.",
+      "purposeLabel": "Wofür erstellst du Stapel?",
+      "purposePlaceholder": "z. B. MCAT-Nachhilfe, ein Spanischkurs, den ich verkaufe, meine Biologieklasse",
+      "teamLabel": "Wie viele Personen werden sie nutzen?",
+      "submit": "Auf die Early-Access-Liste",
+      "thanksTitle": "Du bist auf der Liste",
+      "thanksBody": "Danke. Es gibt noch kein Team-Produkt — wir entscheiden noch, ob wir es bauen. Falls ja, gehörst du zu den Ersten, die es ausprobieren.",
+      "done": "Fertig",
+      "errSubmit": "Das konnte nicht gespeichert werden — prüfe deine Verbindung und versuch es erneut.",
+      "close": "Schließen",
+      "chooseOne": "Wähle eine Option",
+      "teamJustMe": "Nur ich",
+      "team2to10": "2–10",
+      "team11to50": "11–50",
+      "teamMoreThan50": "Mehr als 50"
+    }
+  },
+  "cardOptions": {
+    "resetError": "Die Kartenoptionen konnten nicht zurückgesetzt werden. Versuch es erneut.",
+    "general": "Allgemein",
+    "prereq": {
+      "cloze": "Aktiviere zuerst Cloze-Lückenkarten.",
+      "cherry": "Aktiviere zuerst Cherry-Pick."
+    },
+    "saveBar": {
+      "saveError": "Deine Voreinstellungen konnten nicht gespeichert werden. Versuch es erneut.",
+      "saved": "Voreinstellungen gespeichert",
+      "reset": "Auf Voreinstellungen zurücksetzen",
+      "saving": "Wird gespeichert",
+      "save": "Voreinstellungen speichern"
+    },
+    "userInstructions": {
+      "summary": "Nutzeranweisungen für die PDF-Konvertierung",
+      "placeholder": "Anweisungen für die PDF-Konvertierung..."
+    },
+    "deck": {
+      "structureHeading": "Stapel & Struktur",
+      "nameLabel": "Stapelname",
+      "nameHint": "Passe den Stapelnamen an. Lass ihn leer, wenn du Unterseiten verwendest.",
+      "namePlaceholder": "Stapelnamen eingeben (optional)",
+      "iconLabel": "Seitensymbol",
+      "iconHint": "Ob das Notion-Seitensymbol enthalten sein soll und wo es platziert wird.",
+      "iconFirst": "Symbol zuerst",
+      "iconLast": "Symbol zuletzt",
+      "iconDisable": "Aus",
+      "toggleModeLabel": "Toggle-Modus",
+      "toggleModeHint": "Toggle-Überschrift = Kartenvorderseite; Inhalt = Kartenrückseite. Verschachtelte Toggles werden zu eigenen Karten. Offen klappt verschachtelte Inhalte auf; Geschlossen hält sie eingeklappt für schrittweises Wiederholen.",
+      "toggleOpen": "Verschachtelte Toggles öffnen",
+      "toggleClose": "Verschachtelte Toggles schließen"
+    },
+    "groups": {
+      "content": "Inhalt",
+      "cardTypes": "Kartentypen",
+      "filtering": "Filtern",
+      "linksFormatting": "Links & Formatierung",
+      "pdfAi": "PDF & KI",
+      "media": "Medien",
+      "imageQuizzes": "Bildquizze",
+      "debugging": "Fehlersuche"
+    },
+    "codeBlocks": {
+      "heading": "Codeblöcke",
+      "intro": "Code aus deinen Notizen behält seine Farben in Anki. Wähle den Look.",
+      "themeLabel": "Code-Design",
+      "themeHint": "Farben für Code aus deinen Notizen. Wechselt zwischen hell und dunkel passend zu deinem Anki-Design."
+    },
+    "cardSize": {
+      "heading": "Kartengröße",
+      "short": "Kurz",
+      "medium": "Mittel",
+      "detailed": "Ausführlich",
+      "intro": "Die KI-Konvertierung entscheidet damit, wie viel auf jede Karte passt.",
+      "shortDesc": "1 Fakt pro Karte, ~80 Zeichen pro Antwort. Am besten für Vokabeln, Daten, Formeln.",
+      "mediumDesc": "1–2 Fakten pro Karte, ~160 Zeichen pro Antwort. Gute Voreinstellung für die meisten Notizen.",
+      "detailedDesc": "3–4 Fakten pro Karte, ~320 Zeichen pro Antwort. Besser für eng zusammenhängende Konzepte, die du gemeinsam wiederholen willst."
+    },
+    "mcq": {
+      "heading": "Multiple-Choice-Fragen (MCQ)",
+      "aria": "Multiple-Choice-Fragen aktivieren",
+      "off": "Aus",
+      "on": "An",
+      "introPrefix": "Foto zu Stapel und der KI-Chat erzeugen MCQ, wenn dies aktiviert ist. Du kannst sie auch selbst mit der MCQ-Syntax schreiben — siehe die ",
+      "introDocs": "Doku",
+      "introSuffix": ".",
+      "readAloud": "Vorlesen",
+      "readAloudHint": "Wähle für jedes Feld eine Stimme. Anki spricht es auf der Karte.",
+      "question": "Frage",
+      "correctAnswer": "Richtige Antwort",
+      "extra": "Extra",
+      "noVoiceHint": "Wenn auf deinem Anki-Gerät keine Stimme für die gewählte Sprache installiert ist, bleibt der Ton stumm.",
+      "missingLangPrefix": "Fehlt eine Sprache? Schreib an ",
+      "missingLangSuffix": " und wir fügen sie hinzu."
+    },
+    "overlappingCloze": {
+      "heading": "Überlappendes Cloze",
+      "off": "Aus",
+      "showAll": "Ganze Liste zeigen",
+      "windowed": "Nur nahe Zeilen zeigen",
+      "intro": "Verwandle eine Liste, ein Gedicht oder ein Zitat in Karten, die eine Zeile nach der anderen verdecken. Am besten für geordnete Dinge, die du aufsagst — Schritte, Liedtexte oder eine Passage, die du auswendig lernst.",
+      "showAllDesc": "Jede Karte verdeckt ein Element; der Rest bleibt als Kontext sichtbar.",
+      "windowedDesc": "Jede Karte verdeckt ein Element; nur die Zeilen direkt davor und danach bleiben sichtbar."
+    },
+    "gated": {
+      "groupClozeHeading": "Cloze-Lücken pro Toggle gruppieren",
+      "groupClozeHelp": "Wenn ein Notion-Toggle mehrere ::-Lücken enthält, packe sie alle auf eine Karte und decke sie zusammen auf. Standardmäßig aus — jedes :: erzeugt eine eigene Karte.",
+      "inlineCodeHeading": "Inline-Code-Toggles werden zu Cloze",
+      "inlineCodeHelp": "Wenn der Inhalt eines Toggles Inline-Code enthält, verdecke den Code als Cloze und nutze die Toggle-Überschrift als Hinweis. Funktioniert nur, wenn Cloze-Löschung aktiv ist."
+    },
+    "audio": {
+      "heading": "Audio",
+      "intro": "Zwei Einstellungen, gegensätzliche Wirkung. Eine fügt deinen Karten Ankis eingebaute Stimme hinzu. Die andere verbirgt rohe MP3-URLs, die deine Quelle enthalten kann.",
+      "readAloud": "Karten vorlesen",
+      "readAloudHint": "Fügt jeder Karte Ankis Stimme auf dem Gerät hinzu. Japanisch, Koreanisch und Chinesisch werden automatisch erkannt; alles andere wird auf Englisch gelesen. Deinem Stapel wird keine Audiodatei hinzugefügt.",
+      "pickVoice": "Stimme selbst wählen",
+      "pickVoiceHint": "Wähle eine Sprache und welche Seite Anki liest. Eine Wahl hier hat Vorrang vor der automatischen Erkennung oben.",
+      "language": "Sprache",
+      "read": "Lesen",
+      "readAria": "Vorlese-Seite",
+      "sideFront": "Vorderseite",
+      "sideBack": "Rückseite",
+      "sideBoth": "Beide",
+      "noVoiceHint": "Wenn auf deinem Anki-Gerät keine Stimme für die gewählte Sprache installiert ist, bleibt der Ton stumm.",
+      "removeMp3": "MP3-Links aus Audiodateien entfernen",
+      "removeMp3Hint": "Verbirgt rohe MP3-URLs, die als sichtbarer Text auf Karten erscheinen. Eingebettetes Audio wird weiterhin abgespielt — nur der sichtbare Link wird entfernt."
+    },
+    "tts": {
+      "dontSpeak": "Nicht sprechen"
+    },
+    "templates": {
+      "heading": "Vorlagen",
+      "introPrefix": "Wähle den Look deiner erzeugten Karten und die Namen, die 2anki den erstellten Anki-Notiztypen gibt. Gespeicherte Notiztypen aus ",
+      "introLink": "Notiztypen",
+      "introMiddle": " erscheinen unter ",
+      "introStrong": "Meine Notiztypen",
+      "introSuffix": ".",
+      "cardStyleLabel": "Kartenstil",
+      "cardStyleHint": "Wähle den visuellen Stil, der bei der Notion → Anki-Konvertierung angewendet wird. Wähle 'Meine Notiztypen', um Vorlagen zu nutzen, die du im Notiztypen-Editor gespeichert hast.",
+      "basicNoteType": "Basic-Notiztyp",
+      "basicNoteHint": "Welchen deiner gespeicherten Notiztypen für Basic-Karten (Vorder-/Rückseite) in dieser Konvertierung verwendet werden soll.",
+      "clozeNoteType": "Cloze-Notiztyp",
+      "clozeNoteHint": "Welchen deiner gespeicherten Notiztypen für Cloze-Lückenkarten in dieser Konvertierung verwendet werden soll.",
+      "inputNoteType": "Input-Notiztyp",
+      "inputNoteHint": "Welchen deiner gespeicherten Notiztypen für Antwort-eingeben-Karten in dieser Konvertierung verwendet werden soll.",
+      "basicTemplateName": "Basic-Vorlagenname",
+      "basicTemplateHint": "Name, den 2anki dem Basic-Notiztyp in Anki gibt. Leer lassen, um n2a-basic zu verwenden.",
+      "clozeTemplateName": "Cloze-Vorlagenname",
+      "clozeTemplateHint": "Name, den 2anki dem Cloze-Notiztyp in Anki gibt. Leer lassen, um n2a-cloze zu verwenden.",
+      "inputTemplateName": "Input-Vorlagenname",
+      "inputTemplateHint": "Name, den 2anki dem Antwort-eingeben-Notiztyp in Anki gibt. Leer lassen, um n2a-input zu verwenden.",
+      "basicPlaceholder": "Standard: n2a-basic",
+      "clozePlaceholder": "Standard: n2a-cloze",
+      "inputPlaceholder": "Standard: n2a-input"
     }
   }
 }

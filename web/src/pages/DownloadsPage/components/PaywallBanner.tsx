@@ -84,13 +84,13 @@ export function PaywallBanner({ inProgressJob }: PaywallBannerProps) {
             </span>
             {'" to finish — started '}
             {startedDistance}
-            {' ago.'}
+            {'.'}
           </span>
         )}
         {inProgressJob != null && startedDistance != null && !hasTitle && (
           <span className={styles.secondary}>
             Or wait for your current conversion to finish — started{' '}
-            {startedDistance} ago.
+            {startedDistance}.
           </span>
         )}
         <Link className={styles.seeAllPlans} to={SEE_ALL_PLANS_HREF}>

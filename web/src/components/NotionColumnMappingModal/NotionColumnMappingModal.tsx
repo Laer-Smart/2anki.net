@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDialog } from '../../lib/hooks/useDialog';
 import type {
   AmbiguousColumnsPayload,
@@ -22,6 +23,7 @@ export function NotionColumnMappingModal({
   onSubmit,
   onCancel,
 }: Readonly<Props>) {
+  const { t } = useTranslation();
   const [frontField, setFrontField] = useState<string>(
     suggested.frontField ?? columns[0] ?? ''
   );
@@ -53,11 +55,11 @@ export function NotionColumnMappingModal({
             id="column-mapping-title"
             className={sharedStyles.modalHeaderTitle}
           >
-            Map your columns
+            {t('modals.columnMapping.title')}
           </span>
           <button
             type="button"
-            aria-label="Cancel"
+            aria-label={t('modals.columnMapping.cancel')}
             className={sharedStyles.modalClose}
             onClick={onCancel}
           >
@@ -69,7 +71,7 @@ export function NotionColumnMappingModal({
           <div className={styles.form}>
             <div className={styles.fieldRow}>
               <label htmlFor="column-mapping-front" className={styles.label}>
-                Front
+                {t('modals.columnMapping.front')}
               </label>
               <select
                 id="column-mapping-front"
@@ -87,7 +89,7 @@ export function NotionColumnMappingModal({
 
             <div className={styles.fieldRow}>
               <label htmlFor="column-mapping-back" className={styles.label}>
-                Back
+                {t('modals.columnMapping.back')}
               </label>
               <select
                 id="column-mapping-back"
@@ -105,7 +107,7 @@ export function NotionColumnMappingModal({
 
             {sameColumn && (
               <p className={styles.validationError} role="alert">
-                Front and back must be different columns.
+                {t('modals.columnMapping.differentColumns')}
               </p>
             )}
           </div>
@@ -117,7 +119,7 @@ export function NotionColumnMappingModal({
             className={sharedStyles.btnSecondary}
             onClick={onCancel}
           >
-            Cancel
+            {t('modals.columnMapping.cancel')}
           </button>
           <button
             type="button"
@@ -125,7 +127,7 @@ export function NotionColumnMappingModal({
             onClick={handleSubmit}
             disabled={sameColumn}
           >
-            Convert with this mapping
+            {t('modals.columnMapping.convert')}
           </button>
         </div>
       </div>

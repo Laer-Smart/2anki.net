@@ -284,9 +284,11 @@ function renderFailurePanelContent(
   );
 }
 
-function formatUpdatedLabel(lastFetchedAt: Date | null): string {
+function formatUpdatedLabel(lastFetchedAt: Date | null, t: TFunction): string {
   if (lastFetchedAt == null) return '';
-  return `Updated ${getDistance(lastFetchedAt)} ago`;
+  return t('downloads.updatedRelative', {
+    time: getDistance(lastFetchedAt),
+  });
 }
 
 function FilterChip({
@@ -616,7 +618,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                 <td>
                                   {row.job.created_at != null && (
                                     <span className={styles.timeAgo}>
-                                      {getDistance(row.job.created_at)} ago
+                                      {getDistance(row.job.created_at)}
                                     </span>
                                   )}
                                 </td>
@@ -882,7 +884,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                               <td>
                                 {u.created_at != null && (
                                   <span className={styles.timeAgo}>
-                                    {getDistance(u.created_at)} ago
+                                    {getDistance(u.created_at)}
                                   </span>
                                 )}
                               </td>
@@ -966,7 +968,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                               <td>
                                 {d.created_at != null && (
                                   <span className={styles.timeAgo}>
-                                    {getDistance(d.created_at)} ago
+                                    {getDistance(d.created_at)}
                                   </span>
                                 )}
                               </td>
@@ -1015,7 +1017,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                               <td>
                                 {g.last_converted_at != null && (
                                   <span className={styles.timeAgo}>
-                                    {getDistance(g.last_converted_at)} ago
+                                    {getDistance(g.last_converted_at)}
                                   </span>
                                 )}
                               </td>
@@ -1083,7 +1085,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                   color: 'var(--color-text-tertiary)',
                 }}
               >
-                {formatUpdatedLabel(lastFetchedAt)}
+                {formatUpdatedLabel(lastFetchedAt, t)}
               </div>
             </div>
           )}

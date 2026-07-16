@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDialog } from '../../lib/hooks/useDialog';
 import { track } from '../../lib/analytics/track';
 import sharedStyles from '../../styles/shared.module.css';
@@ -6,24 +7,14 @@ import styles from './ProducerCaptureModal.module.css';
 
 export type ProducerSource = 'pricing_page' | 'heavy_uploader_prompt';
 
-const TEAM_SIZES = ['Just me', '2–10', '11–50', 'More than 50'] as const;
+const TEAM_SIZES = [
+  { value: 'Just me', labelKey: 'modals.producer.teamJustMe' },
+  { value: '2–10', labelKey: 'modals.producer.team2to10' },
+  { value: '11–50', labelKey: 'modals.producer.team11to50' },
+  { value: 'More than 50', labelKey: 'modals.producer.teamMoreThan50' },
+] as const;
 
 const PURPOSE_MAX_LENGTH = 200;
-
-const FORM_TITLE = 'Tell us what you need';
-const FORM_LEAD =
-  "We're exploring tools for people who make Anki decks for others. There's nothing to buy yet — answer two questions and we'll come to you first if we build it.";
-const PURPOSE_LABEL = 'What are you making decks for?';
-const PURPOSE_PLACEHOLDER =
-  'e.g. MCAT tutoring, a Spanish course I sell, my biology class';
-const TEAM_LABEL = 'How many people will use them?';
-const SUBMIT_LABEL = 'Join the early-access list';
-const THANKS_TITLE = "You're on the list";
-const THANKS_BODY =
-  "Thanks. There's no teams product yet — we're still deciding whether to build it. If we do, you'll be among the first to try it.";
-const DONE_LABEL = 'Done';
-const ERR_SUBMIT_FAILED =
-  "Couldn't save that — check your connection and try again.";
 
 interface Props {
   isOpen: boolean;
@@ -38,6 +29,7 @@ export function ProducerCaptureModal({
   onClose,
   onSubmit,
 }: Readonly<Props>) {
+  const { t } = useTranslation();
   const fieldId = useId();
   const [purpose, setPurpose] = useState('');
   const [teamSize, setTeamSize] = useState('');
@@ -97,11 +89,13 @@ export function ProducerCaptureModal({
             id={`${fieldId}-title`}
             className={sharedStyles.modalHeaderTitle}
           >
-            {submitted ? THANKS_TITLE : FORM_TITLE}
+            {submitted
+              ? t('modals.producer.thanksTitle')
+              : t('modals.producer.title')}
           </span>
           <button
             type="button"
-            aria-label="Close"
+            aria-label={t('modals.producer.close')}
             className={sharedStyles.modalClose}
             onClick={onClose}
           >
@@ -112,7 +106,7 @@ export function ProducerCaptureModal({
         {submitted ? (
           <>
             <div className={sharedStyles.modalBody}>
-              <p className={styles.lead}>{THANKS_BODY}</p>
+              <p className={styles.lead}>{t('modals.producer.thanksBody')}</p>
             </div>
             <div className={sharedStyles.modalFooter}>
               <button
@@ -120,18 +114,18 @@ export function ProducerCaptureModal({
                 className={sharedStyles.btnSecondary}
                 onClick={onClose}
               >
-                {DONE_LABEL}
+                {t('modals.producer.done')}
               </button>
             </div>
           </>
         ) : (
           <>
             <div className={sharedStyles.modalBody}>
-              <p className={styles.lead}>{FORM_LEAD}</p>
+              <p className={styles.lead}>{t('modals.producer.lead')}</p>
 
               <div className={styles.field}>
                 <label htmlFor={`${fieldId}-purpose`} className={styles.label}>
-                  {PURPOSE_LABEL}
+                  {t('modals.producer.purposeLabel')}
                 </label>
                 <textarea
                   id={`${fieldId}-purpose`}
@@ -139,14 +133,14 @@ export function ProducerCaptureModal({
                   value={purpose}
                   maxLength={PURPOSE_MAX_LENGTH}
                   rows={3}
-                  placeholder={PURPOSE_PLACEHOLDER}
+                  placeholder={t('modals.producer.purposePlaceholder')}
                   onChange={(e) => setPurpose(e.target.value)}
                 />
               </div>
 
               <div className={styles.field}>
                 <label htmlFor={`${fieldId}-team`} className={styles.label}>
-                  {TEAM_LABEL}
+                  {t('modals.producer.teamLabel')}
                 </label>
                 <select
                   id={`${fieldId}-team`}
@@ -155,11 +149,11 @@ export function ProducerCaptureModal({
                   onChange={(e) => setTeamSize(e.target.value)}
                 >
                   <option value="" disabled>
-                    Choose one
+                    {t('modals.producer.chooseOne')}
                   </option>
                   {TEAM_SIZES.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
+                    <option key={size.value} value={size.value}>
+                      {t(size.labelKey)}
                     </option>
                   ))}
                 </select>
@@ -167,7 +161,7 @@ export function ProducerCaptureModal({
 
               {submitFailed && (
                 <p className={styles.fieldError} role="alert">
-                  {ERR_SUBMIT_FAILED}
+                  {t('modals.producer.errSubmit')}
                 </p>
               )}
             </div>
@@ -181,7 +175,7 @@ export function ProducerCaptureModal({
                 {submitting ? (
                   <span className={sharedStyles.spinnerSmall} aria-hidden />
                 ) : (
-                  SUBMIT_LABEL
+                  t('modals.producer.submit')
                 )}
               </button>
             </div>

@@ -293,6 +293,7 @@
     "emailVerified": "Email verified. You're all set.",
     "makeAnotherDeck": "Make another deck",
     "noMatch": "No decks match this filter.",
+    "updatedRelative": "Updated {{time}}",
     "filters": {
       "all": "All",
       "ready": "Ready",
@@ -393,6 +394,179 @@
       "getDayPass": "Get Day Pass — {{price}}",
       "getWeekPass": "Get Week Pass — {{price}}",
       "upgradeUnlimited": "Upgrade to Unlimited"
+    }
+  },
+  "modals": {
+    "consent": {
+      "title": "Chat sends your messages to Anthropic",
+      "body": "Your messages and any files you attach go to Anthropic to generate replies. They aren't used to train models. 20 messages a month on the free plan.",
+      "signIn": "Sign in",
+      "toChat": " to chat.",
+      "start": "Start chatting",
+      "notNow": "Not now"
+    },
+    "columnMapping": {
+      "title": "Map your columns",
+      "cancel": "Cancel",
+      "front": "Front",
+      "back": "Back",
+      "differentColumns": "Front and back must be different columns.",
+      "convert": "Convert with this mapping"
+    },
+    "producer": {
+      "title": "Tell us what you need",
+      "lead": "We're exploring tools for people who make Anki decks for others. There's nothing to buy yet — answer two questions and we'll come to you first if we build it.",
+      "purposeLabel": "What are you making decks for?",
+      "purposePlaceholder": "e.g. MCAT tutoring, a Spanish course I sell, my biology class",
+      "teamLabel": "How many people will use them?",
+      "submit": "Join the early-access list",
+      "thanksTitle": "You're on the list",
+      "thanksBody": "Thanks. There's no teams product yet — we're still deciding whether to build it. If we do, you'll be among the first to try it.",
+      "done": "Done",
+      "errSubmit": "Couldn't save that — check your connection and try again.",
+      "close": "Close",
+      "chooseOne": "Choose one",
+      "teamJustMe": "Just me",
+      "team2to10": "2–10",
+      "team11to50": "11–50",
+      "teamMoreThan50": "More than 50"
+    }
+  },
+  "cardOptions": {
+    "resetError": "Couldn't reset card options. Try again.",
+    "general": "General",
+    "prereq": {
+      "cloze": "Turn on Cloze deletion cards first.",
+      "cherry": "Turn on Cherry-pick first."
+    },
+    "saveBar": {
+      "saveError": "Couldn't save your defaults. Try again.",
+      "saved": "Defaults saved",
+      "reset": "Reset to defaults",
+      "saving": "Saving",
+      "save": "Save defaults"
+    },
+    "userInstructions": {
+      "summary": "User instructions for PDF conversion",
+      "placeholder": "Instructions for PDF conversion..."
+    },
+    "deck": {
+      "structureHeading": "Deck & structure",
+      "nameLabel": "Deck name",
+      "nameHint": "Customize the deck name. Leave it empty if you use subpages.",
+      "namePlaceholder": "Enter deck name (optional)",
+      "iconLabel": "Page icon",
+      "iconHint": "Whether to include the Notion page icon and where to place it.",
+      "iconFirst": "Icon first",
+      "iconLast": "Icon last",
+      "iconDisable": "Disable",
+      "toggleModeLabel": "Toggle mode",
+      "toggleModeHint": "Toggle header = card front; contents = card back. Nested toggles become their own cards. Open expands nested contents; Close keeps them collapsed for step-by-step review.",
+      "toggleOpen": "Open nested toggles",
+      "toggleClose": "Close nested toggles"
+    },
+    "groups": {
+      "content": "Content",
+      "cardTypes": "Card types",
+      "filtering": "Filtering",
+      "linksFormatting": "Links & formatting",
+      "pdfAi": "PDF & AI",
+      "media": "Media",
+      "imageQuizzes": "Image quizzes",
+      "debugging": "Debugging"
+    },
+    "codeBlocks": {
+      "heading": "Code blocks",
+      "intro": "Code from your notes keeps its colors in Anki. Pick the look.",
+      "themeLabel": "Code theme",
+      "themeHint": "Colors for code from your notes. Switches between light and dark to match your Anki theme."
+    },
+    "cardSize": {
+      "heading": "Card size",
+      "short": "Short",
+      "medium": "Medium",
+      "detailed": "Detailed",
+      "intro": "AI conversion uses this to decide how much fits on each card.",
+      "shortDesc": "1 fact per card, ~80 characters per answer. Best for vocabulary, dates, formulas.",
+      "mediumDesc": "1–2 facts per card, ~160 characters per answer. Good default for most notes.",
+      "detailedDesc": "3–4 facts per card, ~320 characters per answer. Better for tightly grouped concepts you want to review together."
+    },
+    "mcq": {
+      "heading": "Multiple choice questions (MCQ)",
+      "aria": "Enable multiple choice questions",
+      "off": "Off",
+      "on": "On",
+      "introPrefix": "Photo to deck and the AI chat generate MCQ when this is on. You can also write them yourself with the MCQ syntax — see the ",
+      "introDocs": "docs",
+      "introSuffix": ".",
+      "readAloud": "Read aloud",
+      "readAloudHint": "Pick a voice for each field. Anki will speak it on the card.",
+      "question": "Question",
+      "correctAnswer": "Correct answer",
+      "extra": "Extra",
+      "noVoiceHint": "If your Anki device has no installed voice for the picked language, the audio stays silent.",
+      "missingLangPrefix": "Missing a language? Email ",
+      "missingLangSuffix": " and we'll add it."
+    },
+    "overlappingCloze": {
+      "heading": "Overlapping cloze",
+      "off": "Off",
+      "showAll": "Show the whole list",
+      "windowed": "Show nearby lines only",
+      "intro": "Turn a list, poem, or quote into a set of cards that hide one line at a time. Best for ordered things you recite — steps, lyrics, or a passage you're learning by heart.",
+      "showAllDesc": "each card hides one item; the rest stays visible as context.",
+      "windowedDesc": "each card hides one item; only the lines just before and after stay visible."
+    },
+    "gated": {
+      "groupClozeHeading": "Group cloze blanks per toggle",
+      "groupClozeHelp": "When one Notion toggle holds several :: blanks, put them all on a single card and reveal them together. Off by default — each :: makes its own card.",
+      "inlineCodeHeading": "Inline code toggles become cloze",
+      "inlineCodeHelp": "When a toggle's contents contain inline code, hide the code as a cloze and use the toggle header as the hint. Works only when Cloze deletion is on."
+    },
+    "audio": {
+      "heading": "Audio",
+      "intro": "Two settings, opposite effects. One adds Anki's built-in voice to your cards. The other hides raw MP3 URLs your source may carry.",
+      "readAloud": "Read cards aloud",
+      "readAloudHint": "Adds Anki's on-device voice to each card. Japanese, Korean, and Chinese are detected automatically; everything else reads in English. No audio file is added to your deck.",
+      "pickVoice": "Pick a voice yourself",
+      "pickVoiceHint": "Choose a language and which side Anki reads. A pick here takes precedence over the automatic detection above.",
+      "language": "Language",
+      "read": "Read",
+      "readAria": "Read aloud side",
+      "sideFront": "Front",
+      "sideBack": "Back",
+      "sideBoth": "Both",
+      "noVoiceHint": "If your Anki device has no installed voice for the picked language, the audio stays silent.",
+      "removeMp3": "Remove MP3 links from audio files",
+      "removeMp3Hint": "Hides raw MP3 URLs that appear as visible text on cards. Embedded audio still plays — only the visible link is stripped."
+    },
+    "tts": {
+      "dontSpeak": "Don't speak"
+    },
+    "templates": {
+      "heading": "Templates",
+      "introPrefix": "Pick the look of your generated cards and the names 2anki gives the Anki note types it creates. Saved note types from ",
+      "introLink": "Note types",
+      "introMiddle": " show up under ",
+      "introStrong": "My note types",
+      "introSuffix": ".",
+      "cardStyleLabel": "Card style",
+      "cardStyleHint": "Pick the visual style applied during Notion → Anki conversion. Choose 'My note types' to use templates you saved in the Note types editor.",
+      "basicNoteType": "Basic note type",
+      "basicNoteHint": "Which of your saved note types to use for Basic (front/back) cards in this conversion.",
+      "clozeNoteType": "Cloze note type",
+      "clozeNoteHint": "Which of your saved note types to use for Cloze deletion cards in this conversion.",
+      "inputNoteType": "Input note type",
+      "inputNoteHint": "Which of your saved note types to use for Type-the-answer cards in this conversion.",
+      "basicTemplateName": "Basic template name",
+      "basicTemplateHint": "Name 2anki will give the Basic note type in Anki. Leave blank to use n2a-basic.",
+      "clozeTemplateName": "Cloze template name",
+      "clozeTemplateHint": "Name 2anki will give the Cloze note type in Anki. Leave blank to use n2a-cloze.",
+      "inputTemplateName": "Input template name",
+      "inputTemplateHint": "Name 2anki will give the Type-the-answer note type in Anki. Leave blank to use n2a-input.",
+      "basicPlaceholder": "Defaults to n2a-basic",
+      "clozePlaceholder": "Defaults to n2a-cloze",
+      "inputPlaceholder": "Defaults to n2a-input"
     }
   }
 }
