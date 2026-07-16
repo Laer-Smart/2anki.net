@@ -2,8 +2,34 @@ import i18n, { type InitOptions, type Resource } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
-export const SUPPORTED_LANGUAGES = ['en', 'de'] as const;
+export const SUPPORTED_LANGUAGES = [
+  'en',
+  'de',
+  'es',
+  'ja',
+  'fr',
+  'pt',
+  'ru',
+  'it',
+  'nl',
+  'pl',
+] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
+
+// Native language names (endonyms) shown in the picker. Endonyms are the same
+// regardless of the viewer's language, so they need no translation keys.
+export const LANGUAGE_ENDONYMS: Record<SupportedLanguage, string> = {
+  en: 'English',
+  de: 'Deutsch',
+  es: 'Español',
+  ja: '日本語',
+  fr: 'Français',
+  pt: 'Português',
+  ru: 'Русский',
+  it: 'Italiano',
+  nl: 'Nederlands',
+  pl: 'Polski',
+};
 
 export const LANGUAGE_STORAGE_KEY = '2anki-language';
 

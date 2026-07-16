@@ -1,7 +1,11 @@
 import { type ChangeEvent, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { track } from '../../lib/analytics/track';
-import { SUPPORTED_LANGUAGES, type SupportedLanguage } from '../../lib/i18n';
+import {
+  LANGUAGE_ENDONYMS,
+  SUPPORTED_LANGUAGES,
+  type SupportedLanguage,
+} from '../../lib/i18n';
 import { scheduleSync } from '../../lib/data_layer/userPreferencesSync';
 import styles from './LanguagePicker.module.css';
 
@@ -29,10 +33,11 @@ export function LanguagePicker({ variant = 'compact' }: LanguagePickerProps) {
     track('language_changed', { language: next });
   }
 
-  const options: { value: SupportedLanguage; label: string }[] = [
-    { value: 'en', label: t('language.english') },
-    { value: 'de', label: t('language.german') },
-  ];
+  const options: { value: SupportedLanguage; label: string }[] =
+    SUPPORTED_LANGUAGES.map((value) => ({
+      value,
+      label: LANGUAGE_ENDONYMS[value],
+    }));
 
   if (variant === 'labeled') {
     return (
