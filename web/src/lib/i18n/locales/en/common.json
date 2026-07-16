@@ -40,5 +40,24 @@
     "picker": "Language",
     "english": "English",
     "german": "Deutsch"
+  },
+  "home": {
+    "hero": {
+      "headline": "Flashcards that work in Anki",
+      "subtitle": "Drop a Notion page and get a deck you don't have to fix — proper cloze, atomic cards, the right note types. PDF, Quizlet, Markdown, HTML, and CSV too.",
+      "aiBadgeIntro": "Clean cards, ready to study — proper cloze, atomic front and back, no empty backs. Prefer AI drafts?",
+      "createAccount": "Create an account",
+      "cardOptions": "Card options",
+      "nativeApps": "Also on iPhone, iPad & Mac →"
+    }
+  },
+  "upload": {
+    "dropzone": {
+      "dropActive": "Drop it right here",
+      "dropIdle": "Drop your files here",
+      "or": "or",
+      "chooseFiles": "Choose files",
+      "csvHint": "Name your columns front and back (or question and answer) so 2anki maps them right — otherwise it uses the first column as the front and the second as the back."
+    }
   }
 }
