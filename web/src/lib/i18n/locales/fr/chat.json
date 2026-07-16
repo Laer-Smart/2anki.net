@@ -1,0 +1,102 @@
+{
+  "page": {
+    "prefilledPrompt": "J'ai essayé de convertir {{filename}} et je suis bloqué. Que puis-je faire ?",
+    "prefilledPromptFallback": "ce fichier",
+    "loadError": "Impossible de charger cette conversation.",
+    "renameError": "Impossible de renommer cette conversation.",
+    "deleteError": "Impossible de supprimer cette conversation.",
+    "pastChats": "Conversations passées",
+    "newChat": "Nouvelle conversation"
+  },
+  "sidebar": {
+    "newChat": "Nouvelle conversation",
+    "empty": "Aucune conversation pour l'instant. Commences-en une ci-dessous.",
+    "closeConversations": "Fermer les conversations",
+    "conversations": "Conversations",
+    "conversationTitle": "Titre de la conversation",
+    "optionsFor": "Options pour {{title}}",
+    "rename": "Renommer",
+    "delete": "Supprimer",
+    "justNow": "à l'instant"
+  },
+  "message": {
+    "showLess": "Voir moins",
+    "showFull": "Voir le message complet",
+    "userMessage": "Message de l'utilisateur"
+  },
+  "composer": {
+    "writingCards": "Rédaction de tes cartes",
+    "thinking": "Réflexion",
+    "dropToAttach": "Dépose pour joindre",
+    "dropHint": "PDF ou image, jusqu'à 10 MB chacun",
+    "uploading": "Téléversement",
+    "uploadFailed": "Échec du téléversement",
+    "retry": "Réessayer",
+    "remove": "Retirer {{name}}",
+    "attachFiles": "Joindre des fichiers",
+    "studyingPlaceholder": "Qu'est-ce que tu étudies ?",
+    "messageInput": "Saisie du message",
+    "sendMessage": "Envoyer le message",
+    "region": "Rédacteur de conversation avec zone de dépôt de fichiers",
+    "scrollToBottom": "Aller en bas"
+  },
+  "heading": {
+    "withFile": "Que veux-tu faire avec ce fichier ?",
+    "studying": "Qu'est-ce que tu étudies ?"
+  },
+  "usage": {
+    "messagesLeftOne": "1 message restant ce mois-ci — ton prochain envoi l'utilise",
+    "messagesLeft": "{{count}} messages restants sur {{limit}} ce mois-ci"
+  },
+  "limitPanel": {
+    "text": "Tu as utilisé tes {{count}} messages ce mois-ci. Réinitialisation le {{date}}.",
+    "seePlans": "Voir les offres"
+  },
+  "errors": {
+    "cantAttachOne": "Impossible de joindre {{name}}. Seuls les fichiers PDF et image fonctionnent ici.",
+    "cantAttachMany": "Impossible de joindre {{count}} fichiers. Seuls les fichiers PDF et image fonctionnent ici.",
+    "oversize": "{{name}} fait {{size}}. La limite par fichier est de 10 MB.",
+    "totalSize": "Cela fait {{size}} au total. Un message peut contenir jusqu'à 25 MB tous fichiers confondus.",
+    "send": "Impossible d'envoyer ce message. Réessaie.",
+    "conversationGone": "Cette conversation n'existe plus. Commences-en une nouvelle.",
+    "rebuild": "Impossible de reconstruire tes cartes. Réessaie.",
+    "addTags": "Impossible d'ajouter les étiquettes. Réessaie.",
+    "deckGenerate": "Impossible de générer le paquet. Réessaie."
+  },
+  "tags": {
+    "success_one": "Étiquettes ajoutées à {{count}} carte",
+    "success_other": "Étiquettes ajoutées à {{count}} cartes"
+  },
+  "cardPreview": {
+    "correctAnswer": "Bonne réponse",
+    "addTags": "Ajouter des étiquettes",
+    "downloadDeck": "Télécharger le paquet",
+    "nameThisDeck": "Nomme ce paquet",
+    "deckName": "Nom du paquet",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "saveAgain": "Enregistrer à nouveau",
+    "untitledDeck": "Paquet sans titre",
+    "savedAs": "Enregistré sous {{name}}.apkg",
+    "renameHint_one": "{{count}} carte. Enregistré sous {{filename}}.apkg dès que tu cliques sur Enregistrer.",
+    "renameHint_other": "{{count}} cartes. Enregistré sous {{filename}}.apkg dès que tu cliques sur Enregistrer.",
+    "front": "Recto",
+    "back": "Verso",
+    "tags": "Étiquettes",
+    "addingTags": "Ajout des étiquettes",
+    "showFewer": "Voir moins",
+    "showAll": "Voir les {{count}} cartes",
+    "card_one": "carte",
+    "card_other": "cartes"
+  },
+  "codeBlock": {
+    "copyCode": "Copier le code",
+    "copied": "Copié",
+    "copy": "Copier"
+  },
+  "templateSelector": {
+    "noteTypeAria": "Type de note : {{label}}",
+    "noteTypeLabel": "Type de note : {{label}}",
+    "listboxLabel": "Type de note"
+  }
+}

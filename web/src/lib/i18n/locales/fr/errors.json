@@ -1,0 +1,146 @@
+{
+  "messages": {
+    "notionUnauthorized": {
+      "title": "Ta connexion Notion a expiré",
+      "detail": "Reconnecte-toi à Notion pour continuer à convertir tes pages.",
+      "action": "Reconnecter Notion"
+    },
+    "network": {
+      "title": "Impossible de joindre 2anki.",
+      "detail": "Vérifie ta connexion et réessaie."
+    },
+    "serviceUnavailable": {
+      "title": "Le service est injoignable pour le moment.",
+      "detail": "C'est généralement temporaire — réessaie dans un instant."
+    },
+    "rateLimited": {
+      "title": "Trop de requêtes.",
+      "detail": "Réessaie dans une minute."
+    },
+    "sessionExpired": {
+      "title": "Session expirée.",
+      "detail": "Reconnecte-toi pour continuer.",
+      "action": "Se connecter"
+    },
+    "apkgGone": {
+      "title": "Ce paquet n'est plus disponible.",
+      "detail": "Les paquets téléversés sont supprimés au bout d'un moment. Convertis-le ou téléverse-le à nouveau pour l'afficher.",
+      "action": "Retour aux téléchargements"
+    },
+    "notionPageNotFound": {
+      "title": "Nous n'avons pas pu ouvrir cette page Notion.",
+      "detail": "Elle a peut-être été supprimée, ou elle n'est plus partagée avec 2anki. Partage-la à nouveau dans Notion, ou choisis une autre page.",
+      "action": "Choisir une page"
+    },
+    "monthlyLimit": {
+      "title": "Tu as atteint ta limite mensuelle.",
+      "detail": "Passe à une offre supérieure pour convertir plus de paquets ce mois-ci."
+    },
+    "fallback": {
+      "title": "Une erreur est survenue.",
+      "detail": "Réessaie. Si le problème persiste, écris à support@2anki.net."
+    },
+    "uploadFallback": {
+      "title": "Une erreur est survenue lors de la lecture de ce fichier.",
+      "detail": "Réessaie, ou envoie le fichier à support@2anki.net pour qu'on corrige l'analyseur."
+    }
+  },
+  "upload": {
+    "unsupported_format": {
+      "title": "Ce type de fichier n'est pas pris en charge.",
+      "detail": "Utilise .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, .csv ou .xml."
+    },
+    "too_large": {
+      "title": "Cet export est trop volumineux pour être converti d'un coup.",
+      "detail": "Découpe-le en sous-pages Notion plus petites et convertis-les séparément."
+    },
+    "password_protected_pdf": {
+      "title": "Ce PDF est protégé par mot de passe.",
+      "detail": "Retire le mot de passe dans ton lecteur PDF, enregistre une copie et téléverse-la."
+    },
+    "invalid_markup": {
+      "title": "Une partie de ce fichier a une mise en forme que nous n'avons pas pu lire.",
+      "detail": "Ouvre la source, retire ou simplifie le bloc qui a posé problème, et réessaie."
+    },
+    "malformed_notion": {
+      "title": "Cet export Notion n'a pas pu être analysé.",
+      "detail": "Ré-exporte la page depuis Notion et réessaie."
+    },
+    "corrupted_apkg": {
+      "title": "Ce fichier .apkg est endommagé.",
+      "detail": "Ré-exporte-le depuis Anki, ou envoie-le à support@2anki.net."
+    },
+    "empty_export": {
+      "title": "Cet export n'a aucun contenu que nous puissions transformer en cartes.",
+      "detail": "Vérifie que la page contient du texte ou des blocs à bascule, puis exporte à nouveau."
+    },
+    "markdown_likely_lossy": {
+      "title": "Les exports Markdown de Notion aplatissent les bascules — ré-exporte cette page en HTML et les bascules deviennent des cartes."
+    },
+    "claude_parse_failed": {
+      "title": "Une erreur est survenue lors de la création de tes cartes.",
+      "detail": "Réessaie — si le problème persiste, écris à support@2anki.net."
+    },
+    "parser_crash": {
+      "title": "Impossible de lire ce fichier.",
+      "detail": "Il est peut-être mal formé ou utilise une structure que nous ne reconnaissons pas encore. Essaie de ré-exporter depuis l'application source, ou envoie le fichier à support@2anki.net."
+    },
+    "worker_timeout": {
+      "title": "Cette conversion a dépassé le temps imparti.",
+      "detail": "Essaie de découper le fichier en morceaux plus petits, ou retire les très grandes images intégrées."
+    },
+    "notion_rate_limit": {
+      "title": "Notion nous limite en débit pour le moment.",
+      "detail": "Attends une minute et convertis à nouveau."
+    },
+    "notion_object_not_found": {
+      "title": "Nous n'avons pas pu ouvrir cette page Notion.",
+      "detail": "Partage-la avec l'intégration 2anki dans Notion, puis réessaie."
+    },
+    "apkg_too_large_for_anki": {
+      "title": "Ce paquet dépasse la limite de téléversement d'Anki.",
+      "detail": "Découpe-le en activant moins de pages, ou téléverse-le directement dans Anki pour ordinateur."
+    },
+    "zip_invalid": {
+      "title": "Impossible de lire ce zip.",
+      "detail": "Assure-toi que c'est l'export Markdown & CSV de Notion, pas l'export HTML."
+    }
+  },
+  "presenter": {
+    "tryAgain": "Réessayer",
+    "dismiss": "Ignorer"
+  },
+  "rootBoundary": {
+    "chunkTitle": "Cette page a été mise à jour pendant que tu l'avais ouverte",
+    "chunkSubtitle": "Recharge pour charger la dernière version. Si le rechargement ne suffit pas, réinitialise les données locales et recharge.",
+    "resetFailed": "Impossible de réinitialiser les données locales. Efface les données du site pour 2anki dans les réglages de ton navigateur, puis recharge.",
+    "genericTitle": "Une erreur est survenue au chargement de 2anki",
+    "genericSubtitle": "Essaie de recharger. Si ça ne suffit pas, réinitialise les données locales et recharge.",
+    "reload": "Recharger",
+    "resetLocalData": "Réinitialiser les données locales"
+  },
+  "domRecovery": {
+    "title": "Une erreur est survenue",
+    "subtitle": "Une extension de navigateur interfère peut-être avec cette page. Recharge pour recommencer.",
+    "reload": "Recharger"
+  },
+  "chunkOverlay": {
+    "updating": "Mise à jour vers la dernière version."
+  },
+  "notFound": {
+    "pageTitle": "Page introuvable — 2anki",
+    "title": "Page introuvable",
+    "description": "Cette page n'existe pas ou a peut-être été déplacée.",
+    "cta": "Aller à l'accueil"
+  },
+  "stepIndicator": {
+    "progress": "Progression de la conversion",
+    "uploaded": "Téléversé",
+    "parsing": "Analyse",
+    "generating": "Génération",
+    "packaging": "Empaquetage"
+  },
+  "skeleton": {
+    "loading": "Chargement"
+  }
+}
