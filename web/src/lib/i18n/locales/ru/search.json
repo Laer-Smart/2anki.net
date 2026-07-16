@@ -1,0 +1,58 @@
+{
+  "page": {
+    "titleConnected": "Notion",
+    "titleGetStarted": "Начало работы",
+    "subtitleConnected": "Найди страницу и преврати её в колоду Anki.",
+    "subtitleDisconnected": "Подключи рабочее пространство Notion или загрузи файлы, чтобы создавать колоды Anki.",
+    "switchWorkspace": "Сменить пространство"
+  },
+  "limit": {
+    "title": "Ты использовал все {{limit}} карт в этом месяце",
+    "body": "{{used}} / {{limit}} карт · обновятся {{resetsOn}}, когда вернутся твои бесплатные карты",
+    "startingCheckout": "Открываем оплату",
+    "getDayPass": "Купить Day Pass — $4",
+    "seePlans": "Посмотреть планы"
+  },
+  "connect": {
+    "title": "Подключи рабочее пространство Notion",
+    "body": "Ищи и конвертируй страницы напрямую. Мы читаем только те страницы, к которым ты открыл доступ 2anki.",
+    "connectButton": "Подключить к Notion",
+    "fallbackText": "Или загрузи файл, который ты экспортировал из Notion.",
+    "uploadFile": "Загрузить файл"
+  },
+  "searchBar": {
+    "label": "Искать в Notion",
+    "placeholder": "Искать в Notion"
+  },
+  "results": {
+    "scopeWorkspace": "в «{{workSpace}}»",
+    "scopeGeneric": "в твоём рабочем пространстве Notion",
+    "noMatch": "Нет страниц по запросу «{{query}}» {{scope}}",
+    "noneFound": "Страницы не найдены {{scope}}",
+    "emptyBodyPrefix": "Попробуй другой запрос или убедись, что страница открыта для интеграции 2anki — смотри ",
+    "sharingLink": "настройки доступа Notion",
+    "emptyBodySuffix": "."
+  },
+  "entry": {
+    "remaking": "Пересоздаём твою колоду — ",
+    "added": "Добавлено в твои загрузки — ",
+    "view": "посмотреть",
+    "paywallText": "Бесплатный план — одна конвертация за раз.",
+    "upgrade": "Обнови план",
+    "paywallSuffix": " или подожди.",
+    "conflict": "Эта страница уже конвертируется.",
+    "error": "Не удалось поставить страницу в очередь. Попробуй ещё раз.",
+    "inProgress": "В процессе",
+    "convertToAnki": "Конвертировать в Anki",
+    "convert": "Конвертировать",
+    "openInNotion": "Открыть {{title}} в Notion",
+    "preview": "Предпросмотр {{title}}",
+    "configureRules": "Настроить правила для {{title}}"
+  },
+  "flashcardType": {
+    "new": "Новая"
+  },
+  "icon": {
+    "alt": "иконка"
+  }
+}

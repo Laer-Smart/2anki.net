@@ -1,0 +1,152 @@
+{
+  "reasons": {
+    "finished": "Я закончил то, что было нужно",
+    "notEnough": "Пользуюсь этим недостаточно часто",
+    "tooExpensive": "Слишком дорого",
+    "foundAlternative": "Я нашёл альтернативу",
+    "technicalIssues": "Технические проблемы",
+    "other": "Другое"
+  },
+  "subscription": {
+    "premium": "Premium",
+    "unknownDate": "неизвестную дату",
+    "endsPrefix": "Заканчивается",
+    "endedPrefix": "Закончилась",
+    "renewsPrefix": "Продлевается",
+    "accessContinues": "Доступ сохраняется до этого момента.",
+    "cancelThisPlan": "Отменить этот план",
+    "cancelThisPlanNow": "Отменить этот план сейчас",
+    "cancelPlanNoticeWithLabel": "Отменяет план {{planLabel}} немедленно. С твоей карты не спишется оплата за {{planLabel}} {{date}}. Отменить это действие нельзя.",
+    "cancelPlanNotice": "Отменяет этот план немедленно. Отменить это действие нельзя.",
+    "processing": "Обработка…",
+    "keepIt": "Оставить",
+    "multipleActive": "Активных подписок: {{count}}. Скорее всего, с тебя списывают дважды — отмени ту, которую не хочешь оставлять.",
+    "billedThroughApple": "Оплата через Apple",
+    "appleManageNotice": "Управляй подпиской или отменяй её в настройках Apple Account: открой «Настройки» на iPhone или iPad, нажми на своё имя, затем «Подписки».",
+    "pausedResumesPrefix": "На паузе · Возобновится",
+    "pausedNotice": "Пока подписка на паузе, с тебя ничего не списывают. Она возобновится {{date}} по тарифу {{plan}}. На паузе платные функции отключены, а всё созданное сохраняется.",
+    "yourPlan": "твой план",
+    "resuming": "Возобновление…",
+    "resumeNow": "Возобновить сейчас",
+    "cancelSubscription": "Отменить подписку",
+    "legacyForfeit": "Отмена аннулирует этот прежний тариф.",
+    "cancelNowInstead": "Отменить прямо сейчас",
+    "previousPlan": "Предыдущий план: {{plan}}.",
+    "readingSubscription": "Загружаем твою подписку",
+    "linkedEmailHeading": "Привязанный e-mail 2anki.net",
+    "managedThroughStripe": "Твоя подписка управляется через аккаунт Stripe по адресу",
+    "youCan": "Ты можешь:",
+    "manageSubscription": "Управлять подпиской",
+    "updatePayment": "Обновить платёжные данные",
+    "cancelYourSubscription": "Отменить подписку",
+    "subscriptionEmail": "E-mail подписки",
+    "subscriptionEmailPlaceholder": "Введи e-mail подписки",
+    "emailLinked": "E-mail привязан.",
+    "linking": "Привязка…",
+    "linkEmail": "Привязать e-mail"
+  },
+  "cancelFlow": {
+    "whyCancelling": "Почему отменяешь? (необязательно)",
+    "processing": "Обработка…",
+    "cancelSubscription": "Отменить подписку",
+    "keepSubscription": "Оставить подписку"
+  },
+  "pauseCard": {
+    "pauseInstead": "Поставь на паузу — никаких списаний, пока тебя нет",
+    "notice": "Делаешь перерыв между семестрами? Поставь подписку на паузу вместо отмены. Пока она на паузе, с тебя ничего не спишут, а возобновится она сама, когда будешь готов. Всё созданное сохраняется.",
+    "pauseFor": "Пауза на",
+    "pauseLengthAria": "Длительность паузы",
+    "oneMonth": "1 месяц",
+    "nMonths": "{{count}} месяца",
+    "resumesLine": "Возобновится {{date}} по тарифу {{plan}}. Можно отменить в любой момент до этого.",
+    "yourPlan": "твой план",
+    "pausing": "Ставим на паузу…",
+    "pauseSubscription": "Поставить на паузу"
+  },
+  "cancellationFollowUp": {
+    "whyDidYouCancel": "Почему ты отменил? (необязательно)",
+    "tellMore": "Расскажи подробнее (необязательно)",
+    "skip": "Пропустить",
+    "sending": "Отправка…",
+    "sendFeedback": "Отправить отзыв"
+  },
+  "accountDeletion": {
+    "deleteAccount": "Удалить аккаунт",
+    "warning": "Все твои данные будут удалены навсегда. Отменить это нельзя.",
+    "deleteAccountQuestion": "Удалить аккаунт?",
+    "close": "закрыть",
+    "cancel": "Отмена"
+  },
+  "claimSubscription": {
+    "paidDifferentEmail": "Платил с другого e-mail?",
+    "sent": "Отправлено. Проверь тот почтовый ящик — там ссылка для подтверждения.",
+    "description": "Если ты платил в Stripe с другого адреса, введи его здесь. Мы отправим на него ссылку для подтверждения, чтобы привязать подписку к этому аккаунту.",
+    "emailPlaceholder": "E-mail, с которого ты платил",
+    "emailLabel": "E-mail, с которого ты платил",
+    "error": "Что-то пошло не так. Попробуй ещё раз через мгновение.",
+    "sending": "Отправка…",
+    "sendConfirmation": "Отправить письмо для подтверждения"
+  },
+  "logOutEverywhere": {
+    "sessions": "Сессии",
+    "notice": "Потерял устройство? Выйди на всех устройствах, чтобы завершить все сессии, включая эту. Войди снова, чтобы продолжить.",
+    "confirm": "Подтвердить",
+    "cancel": "Отмена",
+    "logOutEverywhere": "Выйти на всех устройствах"
+  },
+  "planDetails": {
+    "lifetimeMeta": "Все текущие и будущие функции.",
+    "premiumMeta": "Безлимит карт, все форматы.",
+    "free": "Бесплатно",
+    "freeMeta": "100 карт в месяц.",
+    "seePlans": "Посмотреть планы"
+  },
+  "checkout": {
+    "youreOnUnlimited": "У тебя Unlimited",
+    "thanksActive": "Спасибо, {{firstName}} — твоя подписка активна.",
+    "subscriptionActive": "Твоя подписка активна.",
+    "makeDeck": "Создать колоду",
+    "goToAccount": "Перейти в аккаунт",
+    "paymentConfirmed": "Твой платёж подтверждён",
+    "startUsingPrefix": "Чтобы начать пользоваться новыми функциями, войди или создай аккаунт с тем же ",
+    "sameEmailAddress": "e-mail адресом",
+    "startUsingSuffix": ", который ты использовал при оплате.",
+    "usedDifferentEmail": "Использовал другой e-mail для оплаты?",
+    "linkEmailsPrefix": "Ты можешь связать платёжный и учётный e-mail на ",
+    "settingsPage": "странице настроек",
+    "linkEmailsSuffix": " после входа.",
+    "troubleLoggingIn": "Не получается войти? Напиши ",
+    "existingUser": "Уже есть аккаунт",
+    "existingUserBody": "Войди с e-mail, привязанным к твоей оплате.",
+    "logIn": "Войти",
+    "newUser": "Новый пользователь",
+    "newUserBody": "Создай аккаунт с тем же e-mail, который использовал для оплаты.",
+    "signUp": "Зарегистрироваться",
+    "note": "Примечание:",
+    "timeoutBefore": " Мы всё ещё активируем твою подписку. Если ты уже вошёл, можешь открыть ",
+    "notionPage": "страницу Notion",
+    "timeoutAfter": " напрямую или обновить эту страницу, чтобы проверить снова.",
+    "processingPayment": "Обрабатываем твой платёж...",
+    "activatingSubscription": "Мы активируем твою подписку. Обычно это занимает всего несколько секунд.",
+    "autoRedirect": "Тебя автоматически перенаправит, как только подписка станет активной."
+  },
+  "verifyEmail": {
+    "message": "Проверь почту — подтверди e-mail, чтобы защитить аккаунт.",
+    "dismiss": "Скрыть"
+  },
+  "createAccount": {
+    "aria": "Сохрани свои следующие колоды",
+    "headline": "Сохрани свои следующие колоды",
+    "body": "С бесплатным аккаунтом каждая созданная колода сохраняется в истории загрузок — сможешь скачать любую из них позже.",
+    "cta": "Создать бесплатный аккаунт"
+  },
+  "accessBanner": {
+    "active": "{{passLabel}} активен — истекает {{date}}. Конвертируй сколько хочешь.",
+    "endsIn": "{{passLabel}} заканчивается через {{time}} — заверши все текущие конвертации.",
+    "minutes": "{{count}} мин",
+    "aboutHours_one": "около {{count}} часа",
+    "aboutHours_few": "около {{count}} часов",
+    "aboutHours_many": "около {{count}} часов",
+    "aboutHours_other": "около {{count}} часов"
+  }
+}

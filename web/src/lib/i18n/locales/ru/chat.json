@@ -1,0 +1,108 @@
+{
+  "page": {
+    "prefilledPrompt": "Я попытался конвертировать {{filename}} и застрял. Что можно сделать?",
+    "prefilledPromptFallback": "этот файл",
+    "loadError": "Не удалось загрузить этот разговор.",
+    "renameError": "Не удалось переименовать этот разговор.",
+    "deleteError": "Не удалось удалить этот разговор.",
+    "pastChats": "Прошлые чаты",
+    "newChat": "Новый чат"
+  },
+  "sidebar": {
+    "newChat": "Новый чат",
+    "empty": "Пока нет разговоров. Начни новый ниже.",
+    "closeConversations": "Закрыть разговоры",
+    "conversations": "Разговоры",
+    "conversationTitle": "Название разговора",
+    "optionsFor": "Опции для {{title}}",
+    "rename": "Переименовать",
+    "delete": "Удалить",
+    "justNow": "только что"
+  },
+  "message": {
+    "showLess": "Свернуть",
+    "showFull": "Показать полное сообщение",
+    "userMessage": "Сообщение пользователя"
+  },
+  "composer": {
+    "writingCards": "Пишем твои карты",
+    "thinking": "Думаю",
+    "dropToAttach": "Перетащи, чтобы прикрепить",
+    "dropHint": "PDF или изображение, до 10 MB каждое",
+    "uploading": "Загрузка",
+    "uploadFailed": "Не удалось загрузить",
+    "retry": "Повторить",
+    "remove": "Убрать {{name}}",
+    "attachFiles": "Прикрепить файлы",
+    "studyingPlaceholder": "Что ты изучаешь?",
+    "messageInput": "Поле сообщения",
+    "sendMessage": "Отправить сообщение",
+    "region": "Поле ввода чата с зоной перетаскивания файлов",
+    "scrollToBottom": "Прокрутить вниз"
+  },
+  "heading": {
+    "withFile": "Что ты хочешь сделать с этим файлом?",
+    "studying": "Что ты изучаешь?"
+  },
+  "usage": {
+    "messagesLeftOne": "Осталось 1 сообщение в этом месяце — следующая отправка его израсходует",
+    "messagesLeft": "Осталось {{count}} из {{limit}} сообщений в этом месяце"
+  },
+  "limitPanel": {
+    "text": "Ты израсходовал все {{count}} сообщений в этом месяце. Обновится {{date}}.",
+    "seePlans": "Посмотреть планы"
+  },
+  "errors": {
+    "cantAttachOne": "Нельзя прикрепить {{name}}. Здесь работают только PDF и изображения.",
+    "cantAttachMany": "Нельзя прикрепить файлов: {{count}}. Здесь работают только PDF и изображения.",
+    "oversize": "{{name}} весит {{size}}. Лимит на один файл — 10 MB.",
+    "totalSize": "Всего {{size}}. Одно сообщение может нести до 25 MB всех файлов.",
+    "send": "Не удалось отправить это сообщение. Попробуй ещё раз.",
+    "conversationGone": "Этот разговор пропал. Начни новый.",
+    "rebuild": "Не удалось пересобрать твои карты. Попробуй ещё раз.",
+    "addTags": "Не удалось добавить теги. Попробуй ещё раз.",
+    "deckGenerate": "Не удалось создать колоду. Попробуй ещё раз."
+  },
+  "tags": {
+    "success_one": "Теги добавлены к {{count}} карте",
+    "success_few": "Теги добавлены к {{count}} картам",
+    "success_many": "Теги добавлены к {{count}} картам",
+    "success_other": "Теги добавлены к {{count}} картам"
+  },
+  "cardPreview": {
+    "correctAnswer": "Правильный ответ",
+    "addTags": "Добавить теги",
+    "downloadDeck": "Скачать колоду",
+    "nameThisDeck": "Назови эту колоду",
+    "deckName": "Название колоды",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "saveAgain": "Сохранить снова",
+    "untitledDeck": "Колода без названия",
+    "savedAs": "Сохранено как {{name}}.apkg",
+    "renameHint_one": "{{count}} карта. Сохранится как {{filename}}.apkg, когда нажмёшь «Сохранить».",
+    "renameHint_few": "{{count}} карты. Сохранится как {{filename}}.apkg, когда нажмёшь «Сохранить».",
+    "renameHint_many": "{{count}} карт. Сохранится как {{filename}}.apkg, когда нажмёшь «Сохранить».",
+    "renameHint_other": "{{count}} карты. Сохранится как {{filename}}.apkg, когда нажмёшь «Сохранить».",
+    "front": "Лицо",
+    "back": "Оборот",
+    "tags": "Теги",
+    "addingTags": "Добавляем теги",
+    "showFewer": "Показать меньше",
+    "showAll": "Показать все {{count}} карт",
+    "card_one": "карта",
+    "card_few": "карты",
+    "card_many": "карт",
+    "card_other": "карты"
+  },
+  "codeBlock": {
+    "copyCode": "Скопировать код",
+    "copied": "Скопировано",
+    "copy": "Копировать"
+  },
+  "templateSelector": {
+    "noteTypeAria": "Тип заметки: {{label}}",
+    "noteTypeLabel": "Тип заметки: {{label}}",
+    "listboxLabel": "Тип заметки"
+  }
+}
