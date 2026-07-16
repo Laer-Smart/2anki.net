@@ -51,6 +51,18 @@ describe('resolveClientIp', () => {
     const req = makeReq({});
     expect(resolveClientIp(req)).toBe('unknown');
   });
+
+  it('tolerates a req with no headers property and falls back', () => {
+    const req = {
+      socket: { remoteAddress: '198.51.100.9' },
+    } as unknown as express.Request;
+    expect(resolveClientIp(req)).toBe('198.51.100.9');
+  });
+
+  it("returns 'unknown' for a req with neither headers nor socket", () => {
+    const req = {} as unknown as express.Request;
+    expect(resolveClientIp(req)).toBe('unknown');
+  });
 });
 
 describe('hashIp', () => {
