@@ -16,13 +16,24 @@ describe('LanguagePicker', () => {
     localStorage.clear();
   });
 
-  it('renders English and Deutsch options', () => {
+  it('renders every supported language by its native name', () => {
     render(<LanguagePicker />);
     const select = screen.getByRole('combobox', { name: 'Language' });
     const options = Array.from(select.querySelectorAll('option')).map(
       (option) => option.textContent
     );
-    expect(options).toEqual(['English', 'Deutsch']);
+    expect(options).toEqual([
+      'English',
+      'Deutsch',
+      'Español',
+      '日本語',
+      'Français',
+      'Português',
+      'Русский',
+      'Italiano',
+      'Nederlands',
+      'Polski',
+    ]);
   });
 
   it('changes the active language to German on selection', () => {
