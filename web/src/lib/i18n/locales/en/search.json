@@ -1,0 +1,58 @@
+{
+  "page": {
+    "titleConnected": "Notion",
+    "titleGetStarted": "Get started",
+    "subtitleConnected": "Find a page and convert it into an Anki deck.",
+    "subtitleDisconnected": "Connect your Notion workspace or upload files to create Anki decks.",
+    "switchWorkspace": "Switch workspace"
+  },
+  "limit": {
+    "title": "You've used all {{limit}} cards this month",
+    "body": "{{used}} / {{limit}} cards · resets {{resetsOn}}, when your free cards come back",
+    "startingCheckout": "Starting checkout",
+    "getDayPass": "Get Day Pass — $4",
+    "seePlans": "See plans"
+  },
+  "connect": {
+    "title": "Connect your Notion workspace",
+    "body": "Search and convert pages directly. We only read the pages you share with 2anki.",
+    "connectButton": "Connect to Notion",
+    "fallbackText": "Or upload a file you exported from Notion.",
+    "uploadFile": "Upload a file"
+  },
+  "searchBar": {
+    "label": "Search Notion",
+    "placeholder": "Search Notion"
+  },
+  "results": {
+    "scopeWorkspace": "in “{{workSpace}}”",
+    "scopeGeneric": "in your Notion workspace",
+    "noMatch": "No pages match “{{query}}” {{scope}}",
+    "noneFound": "No pages found {{scope}}",
+    "emptyBodyPrefix": "Try a different search term, or make sure the page is shared with the 2anki integration — see ",
+    "sharingLink": "Notion's sharing settings",
+    "emptyBodySuffix": "."
+  },
+  "entry": {
+    "remaking": "Re-making your deck — ",
+    "added": "Added to your downloads — ",
+    "view": "view",
+    "paywallText": "Free plan — one conversion at a time.",
+    "upgrade": "Upgrade",
+    "paywallSuffix": " or wait.",
+    "conflict": "Already converting this page.",
+    "error": "Couldn't queue this page. Try again.",
+    "inProgress": "In progress",
+    "convertToAnki": "Convert to Anki",
+    "convert": "Convert",
+    "openInNotion": "Open {{title}} in Notion",
+    "preview": "Preview {{title}}",
+    "configureRules": "Configure rules for {{title}}"
+  },
+  "flashcardType": {
+    "new": "New"
+  },
+  "icon": {
+    "alt": "icon"
+  }
+}

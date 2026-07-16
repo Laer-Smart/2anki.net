@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './CodeBlock.module.css';
 
 interface CodeBlockProps {
@@ -7,6 +8,7 @@ interface CodeBlockProps {
 }
 
 export default function CodeBlock({ language, code }: CodeBlockProps) {
+  const { t } = useTranslation('chat');
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
@@ -24,9 +26,9 @@ export default function CodeBlock({ language, code }: CodeBlockProps) {
           type="button"
           className={styles.copyBtn}
           onClick={handleCopy}
-          aria-label="Copy code"
+          aria-label={t('codeBlock.copyCode')}
         >
-          {copied ? 'Copied' : 'Copy'}
+          {copied ? t('codeBlock.copied') : t('codeBlock.copy')}
         </button>
       </div>
       <pre className={styles.pre}>

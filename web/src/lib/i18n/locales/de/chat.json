@@ -1,0 +1,102 @@
+{
+  "page": {
+    "prefilledPrompt": "Ich wollte {{filename}} konvertieren und komme nicht weiter. Was kann ich tun?",
+    "prefilledPromptFallback": "diese Datei",
+    "loadError": "Diese Unterhaltung konnte nicht geladen werden.",
+    "renameError": "Diese Unterhaltung konnte nicht umbenannt werden.",
+    "deleteError": "Diese Unterhaltung konnte nicht gelöscht werden.",
+    "pastChats": "Frühere Chats",
+    "newChat": "Neuer Chat"
+  },
+  "sidebar": {
+    "newChat": "Neuer Chat",
+    "empty": "Noch keine Unterhaltungen. Starte unten eine.",
+    "closeConversations": "Unterhaltungen schließen",
+    "conversations": "Unterhaltungen",
+    "conversationTitle": "Titel der Unterhaltung",
+    "optionsFor": "Optionen für {{title}}",
+    "rename": "Umbenennen",
+    "delete": "Löschen",
+    "justNow": "gerade eben"
+  },
+  "message": {
+    "showLess": "Weniger anzeigen",
+    "showFull": "Ganze Nachricht anzeigen",
+    "userMessage": "Nutzernachricht"
+  },
+  "composer": {
+    "writingCards": "Deine Karten werden geschrieben",
+    "thinking": "Denkt nach",
+    "dropToAttach": "Zum Anhängen loslassen",
+    "dropHint": "PDF oder Bild, je bis zu 10 MB",
+    "uploading": "Wird hochgeladen",
+    "uploadFailed": "Upload fehlgeschlagen",
+    "retry": "Erneut versuchen",
+    "remove": "{{name}} entfernen",
+    "attachFiles": "Dateien anhängen",
+    "studyingPlaceholder": "Was lernst du gerade?",
+    "messageInput": "Nachrichteneingabe",
+    "sendMessage": "Nachricht senden",
+    "region": "Chat-Editor mit Datei-Ablagebereich",
+    "scrollToBottom": "Nach unten scrollen"
+  },
+  "heading": {
+    "withFile": "Was möchtest du mit dieser Datei tun?",
+    "studying": "Was lernst du gerade?"
+  },
+  "usage": {
+    "messagesLeftOne": "1 Nachricht diesen Monat übrig — deine nächste Sendung verbraucht sie",
+    "messagesLeft": "{{count}} von {{limit}} Nachrichten diesen Monat übrig"
+  },
+  "limitPanel": {
+    "text": "Du hast diesen Monat alle {{count}} Nachrichten genutzt. Auffrischung am {{date}}.",
+    "seePlans": "Tarife ansehen"
+  },
+  "errors": {
+    "cantAttachOne": "{{name}} kann nicht angehängt werden. Hier funktionieren nur PDF- und Bilddateien.",
+    "cantAttachMany": "{{count}} Dateien können nicht angehängt werden. Hier funktionieren nur PDF- und Bilddateien.",
+    "oversize": "{{name}} ist {{size}}. Das Limit pro Datei liegt bei 10 MB.",
+    "totalSize": "Das sind insgesamt {{size}}. Eine Nachricht kann über alle Dateien hinweg bis zu 25 MB tragen.",
+    "send": "Diese Nachricht konnte nicht gesendet werden. Versuch es erneut.",
+    "conversationGone": "Diese Unterhaltung existiert nicht mehr. Starte eine neue.",
+    "rebuild": "Deine Karten konnten nicht neu erstellt werden. Versuch es erneut.",
+    "addTags": "Tags konnten nicht hinzugefügt werden. Versuch es erneut.",
+    "deckGenerate": "Der Stapel konnte nicht erstellt werden. Versuch es erneut."
+  },
+  "tags": {
+    "success_one": "Tags zu {{count}} Karte hinzugefügt",
+    "success_other": "Tags zu {{count}} Karten hinzugefügt"
+  },
+  "cardPreview": {
+    "correctAnswer": "Richtige Antwort",
+    "addTags": "Tags hinzufügen",
+    "downloadDeck": "Stapel herunterladen",
+    "nameThisDeck": "Diesen Stapel benennen",
+    "deckName": "Stapelname",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "saveAgain": "Erneut speichern",
+    "untitledDeck": "Unbenannter Stapel",
+    "savedAs": "Gespeichert als {{name}}.apkg",
+    "renameHint_one": "{{count}} Karte. Wird als {{filename}}.apkg gespeichert, sobald du auf Speichern klickst.",
+    "renameHint_other": "{{count}} Karten. Wird als {{filename}}.apkg gespeichert, sobald du auf Speichern klickst.",
+    "front": "Vorderseite",
+    "back": "Rückseite",
+    "tags": "Tags",
+    "addingTags": "Tags werden hinzugefügt",
+    "showFewer": "Weniger anzeigen",
+    "showAll": "Alle {{count}} Karten anzeigen",
+    "card_one": "Karte",
+    "card_other": "Karten"
+  },
+  "codeBlock": {
+    "copyCode": "Code kopieren",
+    "copied": "Kopiert",
+    "copy": "Kopieren"
+  },
+  "templateSelector": {
+    "noteTypeAria": "Notiztyp: {{label}}",
+    "noteTypeLabel": "Notiztyp: {{label}}",
+    "listboxLabel": "Notiztyp"
+  }
+}

@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ErrorHandlerType } from '../../../components/errors/helpers/getErrorMessage';
 import NotionObject from '../../../lib/interfaces/NotionObject';
 import SearchObjectEntry from './SearchObjectEntry';
@@ -26,6 +27,7 @@ function relevanceRank(title: string, query: string): number {
 export default function ListSearchResults(
   props: Readonly<ListSearchResultsProps>
 ): React.ReactNode {
+  const { t } = useTranslation('search');
   const {
     results,
     handleEmpty = true,
@@ -50,24 +52,25 @@ export default function ListSearchResults(
   const isEmpty = orderedResults.length < 1;
 
   if (isEmpty && handleEmpty) {
-    const scope = workSpace ? `in “${workSpace}”` : 'in your Notion workspace';
+    const scope = workSpace
+      ? t('results.scopeWorkspace', { workSpace })
+      : t('results.scopeGeneric');
     const headline = searchQuery
-      ? `No pages match “${searchQuery}” ${scope}`
-      : `No pages found ${scope}`;
+      ? t('results.noMatch', { query: searchQuery, scope })
+      : t('results.noneFound', { scope });
     return (
       <div className={styles.emptyState}>
         <p data-hj-suppress>{headline}</p>
         <p className={styles.secondaryText}>
-          Try a different search term, or make sure the page is shared with the
-          2anki integration — see{' '}
+          {t('results.emptyBodyPrefix')}
           <a
             target="_blank"
             rel="noreferrer"
             href="https://www.notion.so/help/guides/understanding-notions-sharing-settings"
           >
-            Notion&apos;s sharing settings
+            {t('results.sharingLink')}
           </a>
-          .
+          {t('results.emptyBodySuffix')}
         </p>
       </div>
     );

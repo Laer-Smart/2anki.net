@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import styles from '../../../styles/shared.module.css';
 
 interface FlashcardTypeProps {
@@ -15,6 +16,7 @@ export default function FlashcardType({
   active,
   isNew = false,
 }: Readonly<FlashcardTypeProps>) {
+  const { t } = useTranslation('search');
   return (
     <button
       type="button"
@@ -22,7 +24,9 @@ export default function FlashcardType({
       className={`${styles.chip} ${active ? styles.chipActive : ''}`}
     >
       {label ?? name}
-      {isNew ? <span className={styles.chipNewBadge}>New</span> : null}
+      {isNew ? (
+        <span className={styles.chipNewBadge}>{t('flashcardType.new')}</span>
+      ) : null}
     </button>
   );
 }
