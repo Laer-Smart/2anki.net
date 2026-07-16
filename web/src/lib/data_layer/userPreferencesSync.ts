@@ -1,3 +1,5 @@
+import i18n, { LANGUAGE_STORAGE_KEY } from '../i18n';
+
 export const CARD_OPTION_KEYS = [
   'deckName',
   'font-size',
@@ -91,12 +93,16 @@ export function scheduleSync(): void {
     if (!isAuthed()) return;
     const cardOptions = collectCardOptions();
     const theme = localStorage.getItem('2anki-theme');
+    const language = localStorage.getItem(LANGUAGE_STORAGE_KEY);
     const body: Record<string, unknown> = {};
     if (Object.keys(cardOptions).length > 0) {
       body.cardOptions = cardOptions;
     }
     if (theme != null) {
       body.theme = theme;
+    }
+    if (language != null) {
+      body.language = language;
     }
     if (Object.keys(body).length === 0) return;
     try {
@@ -132,6 +138,7 @@ export async function acknowledgeAnkiWeb(): Promise<void> {
 export interface ServerUserPreferences {
   cardOptions: Record<string, string> | null;
   theme: string | null;
+  language: string | null;
   ankiWebAcknowledgedAt: string | null;
 }
 
@@ -151,7 +158,8 @@ export async function hydrateFromServer(): Promise<void> {
   try {
     const res = await fetch(PREFERENCES_URL, { credentials: 'include' });
     if (!res.ok) return;
-    const { cardOptions, theme, ankiWebAcknowledgedAt } = await res.json();
+    const { cardOptions, theme, language, ankiWebAcknowledgedAt } =
+      await res.json();
     if (cardOptions != null && typeof cardOptions === 'object') {
       for (const [key, value] of Object.entries(cardOptions)) {
         if (typeof value === 'string') {
@@ -161,6 +169,10 @@ export async function hydrateFromServer(): Promise<void> {
     }
     if (typeof theme === 'string') {
       localStorage.setItem('2anki-theme', theme);
+    }
+    if (typeof language === 'string') {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+      i18n.changeLanguage(language);
     }
     if (typeof ankiWebAcknowledgedAt === 'string') {
       try {
@@ -176,12 +188,16 @@ export async function migrateToServer(): Promise<void> {
   if (!isAuthed()) return;
   const cardOptions = collectCardOptions();
   const theme = localStorage.getItem('2anki-theme');
+  const language = localStorage.getItem(LANGUAGE_STORAGE_KEY);
   const body: Record<string, unknown> = {};
   if (Object.keys(cardOptions).length > 0) {
     body.cardOptions = cardOptions;
   }
   if (theme != null) {
     body.theme = theme;
+  }
+  if (language != null) {
+    body.language = language;
   }
   try {
     if (localStorage.getItem(ANKI_WEB_ACK_KEY) === 'true') {

@@ -8,6 +8,7 @@ import {
   migrateToServer,
   scheduleSync,
 } from './userPreferencesSync';
+import i18n from '../i18n';
 
 const setCookie = (value: string) => {
   Object.defineProperty(document, 'cookie', {
@@ -117,6 +118,18 @@ describe('userPreferencesSync — authenticated user (token cookie present)', ()
       'field-mapping': '{"front":"Term"}',
     });
   });
+
+  it('scheduleSync includes the stored language in the PATCH body', async () => {
+    localStorage.setItem('2anki-language', 'de');
+
+    scheduleSync();
+    await flushDebounce();
+
+    const body = JSON.parse(
+      (fetchSpy.mock.calls[0][1] as { body: string }).body
+    );
+    expect(body.language).toBe('de');
+  });
 });
 
 describe('userPreferencesSync — hydrate (authenticated)', () => {
@@ -127,9 +140,10 @@ describe('userPreferencesSync — hydrate (authenticated)', () => {
     localStorage.clear();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     fetchSpy.mockRestore();
     localStorage.clear();
+    await i18n.changeLanguage('en');
   });
 
   it('writes boolean toggle keys from the server back to localStorage', async () => {
@@ -148,5 +162,24 @@ describe('userPreferencesSync — hydrate (authenticated)', () => {
 
     expect(localStorage.getItem('basic-reversed')).toBe('true');
     expect(localStorage.getItem('cherry')).toBe('true');
+  });
+
+  it('applies a server language to i18n and localStorage', async () => {
+    fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          cardOptions: null,
+          theme: null,
+          language: 'de',
+          ankiWebAcknowledgedAt: null,
+        }),
+        { status: 200 }
+      )
+    );
+
+    await hydrateFromServer();
+
+    expect(localStorage.getItem('2anki-language')).toBe('de');
+    expect(i18n.resolvedLanguage).toBe('de');
   });
 });

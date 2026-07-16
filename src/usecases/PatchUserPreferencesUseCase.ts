@@ -8,6 +8,7 @@ export interface PatchUserPreferencesInput {
   userId: number;
   cardOptions?: CardOptions;
   theme?: string;
+  language?: string;
   ankiWebAcknowledgedAt?: string;
 }
 
@@ -18,6 +19,7 @@ export class PatchUserPreferencesUseCase {
     return this.repo.patch(input.userId, {
       cardOptions: input.cardOptions,
       theme: input.theme,
+      language: input.language,
       ankiWebAcknowledgedAt: input.ankiWebAcknowledgedAt,
     });
   }

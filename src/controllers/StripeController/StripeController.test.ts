@@ -55,6 +55,7 @@ function buildUser(overrides: Partial<UserWithOwner> = {}): UserWithOwner {
     ankify_welcome_seen: false,
     card_options: null,
     theme: null,
+    language: null,
     anki_web_acknowledged_at: null,
     onboarded_at: null,
     email_verified: false,

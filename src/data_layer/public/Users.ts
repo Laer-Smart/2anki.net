@@ -59,6 +59,8 @@ export default interface Users {
   prints_month_started_at: Date;
 
   ankify_access: boolean;
+
+  language: string | null;
 }
 
 /** Represents the initializer for the table public.users */
@@ -129,6 +131,8 @@ export interface UsersInitializer {
 
   /** Default value: false */
   ankify_access?: boolean;
+
+  language?: string | null;
 }
 
 /** Represents the mutator for the table public.users */
@@ -186,4 +190,6 @@ export interface UsersMutator {
   prints_month_started_at?: Date;
 
   ankify_access?: boolean;
+
+  language?: string | null;
 }

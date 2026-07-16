@@ -14,9 +14,20 @@ function isValidTimestamp(value: unknown): value is string {
   return typeof value === 'string' && !Number.isNaN(Date.parse(value));
 }
 
+const LANGUAGE_PATTERN = /^[a-z]{2}(-[A-Z]{2})?$/;
+
+function isValidLanguage(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    value.length <= 8 &&
+    LANGUAGE_PATTERN.test(value)
+  );
+}
+
 interface PrefsBody {
   cardOptions?: unknown;
   theme?: unknown;
+  language?: unknown;
   ankiWebAcknowledgedAt?: unknown;
 }
 
@@ -27,6 +38,12 @@ function validatePrefsBody(body: PrefsBody, res: Response): boolean {
   }
   if (body.theme !== undefined && typeof body.theme !== 'string') {
     res.status(400).json({ message: 'theme must be a string.' });
+    return false;
+  }
+  if (body.language !== undefined && !isValidLanguage(body.language)) {
+    res.status(400).json({
+      message: 'language must be a short BCP-47 code such as en or de.',
+    });
     return false;
   }
   if (
@@ -63,28 +80,40 @@ export class UserPreferencesController {
   }
 
   async patch(req: Request, res: Response): Promise<void> {
-    const { cardOptions, theme, ankiWebAcknowledgedAt } = req.body;
-    if (!validatePrefsBody({ cardOptions, theme, ankiWebAcknowledgedAt }, res))
+    const { cardOptions, theme, language, ankiWebAcknowledgedAt } = req.body;
+    if (
+      !validatePrefsBody(
+        { cardOptions, theme, language, ankiWebAcknowledgedAt },
+        res
+      )
+    )
       return;
     const userId = res.locals.owner as number;
     const prefs = await this.patchUseCase.execute({
       userId,
       cardOptions,
       theme,
+      language,
       ankiWebAcknowledgedAt,
     });
     res.status(200).json(prefs);
   }
 
   async migrate(req: Request, res: Response): Promise<void> {
-    const { cardOptions, theme, ankiWebAcknowledgedAt } = req.body;
-    if (!validatePrefsBody({ cardOptions, theme, ankiWebAcknowledgedAt }, res))
+    const { cardOptions, theme, language, ankiWebAcknowledgedAt } = req.body;
+    if (
+      !validatePrefsBody(
+        { cardOptions, theme, language, ankiWebAcknowledgedAt },
+        res
+      )
+    )
       return;
     const userId = res.locals.owner as number;
     const prefs = await this.migrateUseCase.execute({
       userId,
       cardOptions,
       theme,
+      language,
       ankiWebAcknowledgedAt,
     });
     res.status(200).json(prefs);
