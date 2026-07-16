@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import styles from '../PricingPage.module.css';
 
@@ -66,6 +67,7 @@ export function PricingCard({
   learnMoreHref,
   className,
 }: Readonly<PricingCardProp>) {
+  const { t } = useTranslation();
   const baseCardClass = comingSoon ? styles.cardComingSoon : styles.card;
   const cardClass =
     className == null ? baseCardClass : `${baseCardClass} ${className}`;
@@ -135,7 +137,7 @@ export function PricingCard({
               target="_blank"
               rel="noopener noreferrer"
             >
-              How sync works
+              {t('pricing.card.howSyncWorks')}
             </a>
           )}
         </div>

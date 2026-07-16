@@ -1,14 +1,15 @@
+import { useTranslation } from 'react-i18next';
 import { PricingCard } from './PricingCard';
 import styles from '../PricingPage.module.css';
 
-const PASS_BENEFITS = [
-  'No subscription',
-  'Unlimited cards and conversions',
-  'AI flashcards & photo-to-deck',
-  'Every file format — PDF, Word, EPUB, and more',
-  'Native .apkg — works in any Anki client',
-  'Unlimited image occlusion',
-  'No ads',
+const PASS_BENEFIT_KEYS = [
+  'pricing.pass.noSubscription',
+  'pricing.pass.unlimitedCards',
+  'pricing.pass.aiPhoto',
+  'pricing.pass.everyFormat',
+  'pricing.pass.nativeApkg',
+  'pricing.pass.imageOcclusion',
+  'pricing.pass.noAds',
 ];
 
 interface PassCardsProps {
@@ -26,27 +27,41 @@ export function PassCards({
   weekPassPending,
   featureDayPass = true,
 }: Readonly<PassCardsProps>) {
+  const { t } = useTranslation();
+  const benefits = PASS_BENEFIT_KEYS.map((key) => t(key));
   return (
     <div className={styles.passGrid}>
       <PricingCard
         title="Day Pass"
-        badge={featureDayPass ? 'Most popular' : 'Pay once'}
+        badge={
+          featureDayPass
+            ? t('pricing.pass.mostPopular')
+            : t('pricing.pass.payOnce')
+        }
         badgeMuted={!featureDayPass}
         price="$4"
-        priceSuffix="— 24 hours"
-        benefits={PASS_BENEFITS}
+        priceSuffix={t('pricing.pass.day24')}
+        benefits={benefits}
         onAction={onDayPass}
-        actionLabel={dayPassPending ? 'Redirecting…' : 'Get Day Pass'}
+        actionLabel={
+          dayPassPending
+            ? t('pricing.pass.redirecting')
+            : t('pricing.pass.getDayPass')
+        }
         actionDisabled={dayPassPending}
         className={featureDayPass ? styles.cardPro : undefined}
       />
       <PricingCard
         title="Week Pass"
         price="$9"
-        priceSuffix="— 1 week"
-        benefits={PASS_BENEFITS}
+        priceSuffix={t('pricing.pass.week1')}
+        benefits={benefits}
         onAction={onWeekPass}
-        actionLabel={weekPassPending ? 'Redirecting…' : 'Get Week Pass'}
+        actionLabel={
+          weekPassPending
+            ? t('pricing.pass.redirecting')
+            : t('pricing.pass.getWeekPass')
+        }
         actionDisabled={weekPassPending}
       />
     </div>

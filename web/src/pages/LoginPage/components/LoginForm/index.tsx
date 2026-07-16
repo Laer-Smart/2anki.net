@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import TopMessage from '../../../../components/TopMessage/TopMessage';
 import CheckYourEmail from '../../../../components/CheckYourEmail/CheckYourEmail';
@@ -16,6 +17,7 @@ import loginStyles from './LoginForm.module.css';
 type LoginStep = 'email' | 'password' | 'check-email';
 
 function LoginForm() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<LoginStep>('email');
@@ -35,16 +37,12 @@ function LoginForm() {
       const response = await get2ankiApi().requestMagicLink(email, 'login');
       const body = await response.json().catch(() => ({}));
       if (body?.suppressed) {
-        setError(
-          "We can't email this address — it bounced or was unsubscribed earlier. Contact support@2anki.net to restore it, or use your password below."
-        );
+        setError(t('auth.login.magicLinkSuppressed'));
         return;
       }
       setStep('check-email');
     } catch {
-      setError(
-        "We couldn't send your sign-in link right now. Try again in a minute, or use your password below."
-      );
+      setError(t('auth.login.magicLinkError'));
     } finally {
       setMagicLinkLoading(false);
     }
@@ -72,13 +70,13 @@ function LoginForm() {
       <img src="/mascot/Notion 1.png" alt="" className={loginStyles.mascot} />
       <div className={styles.formCard}>
         <TopMessage />
-        <h1 className={styles.formTitle}>Log in to 2anki</h1>
-        <p className={loginStyles.subtitle}>Turn your notes into Anki cards.</p>
+        <h1 className={styles.formTitle}>{t('auth.login.title')}</h1>
+        <p className={loginStyles.subtitle}>{t('auth.login.subtitle')}</p>
         {isEmailStep ? (
           <>
             <div className={styles.field}>
               <label htmlFor="email">
-                <span>Email</span>
+                <span>{t('auth.common.email')}</span>
                 <input
                   id="email"
                   name="email"
@@ -98,7 +96,7 @@ function LoginForm() {
                 />
               </label>
               <p className={styles.helpMuted}>
-                We&apos;ll email you a sign-in link — no password needed.
+                {t('auth.login.magicLinkHelp')}
               </p>
             </div>
             <div className={styles.field}>
@@ -109,7 +107,9 @@ function LoginForm() {
                 onClick={handleSendMagicLink}
                 aria-describedby={error ? 'login-error' : undefined}
               >
-                {magicLinkLoading ? 'Sending' : 'Email me a sign-in link'}
+                {magicLinkLoading
+                  ? t('auth.login.sending')
+                  : t('auth.login.emailLink')}
               </button>
               {error && (
                 <p id="login-error" role="alert" className={styles.helpDanger}>
@@ -126,16 +126,18 @@ function LoginForm() {
                   setStep('password');
                 }}
               >
-                Use password instead
+                {t('auth.login.usePassword')}
               </a>
             </p>
             <p className={styles.footerText}>
               <a rel="noreferrer" href="/forgot">
-                Forgot your password?
+                {t('auth.login.forgotPassword')}
               </a>
             </p>
             <div className={styles.divider}>
-              <span className={styles.dividerLabel}>Or use a provider</span>
+              <span className={styles.dividerLabel}>
+                {t('auth.login.orUseProvider')}
+              </span>
             </div>
             <div className={styles.oauthGrid}>
               <WithGoogleLink
@@ -154,7 +156,7 @@ function LoginForm() {
           <form onSubmit={onSubmit}>
             <div className={styles.field}>
               <label htmlFor="email">
-                <span>Email</span>
+                <span>{t('auth.common.email')}</span>
                 <input
                   id="email"
                   name="email"
@@ -173,13 +175,13 @@ function LoginForm() {
                     setStep('email');
                   }}
                 >
-                  Change
+                  {t('auth.login.change')}
                 </a>
               </p>
             </div>
             <div className={styles.field}>
               <label htmlFor="password">
-                <span>Password</span>
+                <span>{t('auth.common.password')}</span>
                 <input
                   id="password"
                   name="password"
@@ -190,7 +192,7 @@ function LoginForm() {
                   required
                   type="password"
                   autoComplete="current-password"
-                  placeholder="Password"
+                  placeholder={t('auth.common.password')}
                   autoFocus
                 />
               </label>
@@ -202,7 +204,7 @@ function LoginForm() {
                 disabled={!isValidCredentials(email, password) || loading}
                 aria-describedby={error ? 'login-error' : undefined}
               >
-                {loading ? 'Logging in' : 'Log in'}
+                {loading ? t('auth.login.loggingIn') : t('auth.login.logIn')}
               </button>
               {error && (
                 <p id="login-error" role="alert" className={styles.helpDanger}>
@@ -212,7 +214,7 @@ function LoginForm() {
             </div>
             <p className={styles.footerText}>
               <a rel="noreferrer" href="/forgot">
-                Forgot your password?
+                {t('auth.login.forgotPassword')}
               </a>
             </p>
             <p className={styles.footerText}>
@@ -223,15 +225,17 @@ function LoginForm() {
                   handleSendMagicLink();
                 }}
               >
-                {magicLinkLoading ? 'Sending' : 'Send a login link instead'}
+                {magicLinkLoading
+                  ? t('auth.login.sending')
+                  : t('auth.login.sendLinkInstead')}
               </a>
             </p>
           </form>
         )}
         <p className={styles.footerText}>
-          {"Don't have an account?"}{' '}
+          {t('auth.login.noAccount')}{' '}
           <a rel="noreferrer" href={registerHref}>
-            {"Sign up — it's free"}
+            {t('auth.login.signUpFree')}
           </a>
         </p>
       </div>

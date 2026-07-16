@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from '../../styles/auth.module.css';
 import sharedStyles from '../../styles/shared.module.css';
 
 interface EmailProviderLink {
-  label: string;
+  labelKey: string;
   href: string;
 }
 
@@ -14,7 +15,10 @@ function getEmailProviderLinks(email: string): EmailProviderLink[] {
   const links: EmailProviderLink[] = [];
 
   if (domain === 'gmail.com') {
-    links.push({ label: 'Open Gmail', href: 'https://mail.google.com' });
+    links.push({
+      labelKey: 'auth.checkEmail.openGmail',
+      href: 'https://mail.google.com',
+    });
   }
   if (
     domain === 'outlook.com' ||
@@ -22,12 +26,15 @@ function getEmailProviderLinks(email: string): EmailProviderLink[] {
     domain === 'live.com'
   ) {
     links.push({
-      label: 'Open Outlook',
+      labelKey: 'auth.checkEmail.openOutlook',
       href: 'https://outlook.live.com',
     });
   }
   if (domain === 'yahoo.com') {
-    links.push({ label: 'Open Yahoo Mail', href: 'https://mail.yahoo.com' });
+    links.push({
+      labelKey: 'auth.checkEmail.openYahoo',
+      href: 'https://mail.yahoo.com',
+    });
   }
 
   return links;
@@ -46,12 +53,17 @@ function CheckYourEmail({
   purpose,
   onResend,
 }: Readonly<CheckYourEmailProps>) {
+  const { t } = useTranslation();
   const [resendState, setResendState] = useState<
     'idle' | 'sending' | 'sent' | 'error'
   >('idle');
   const isLogin = purpose === 'login';
-  const linkType = isLogin ? 'login link' : 'password reset link';
-  const actionText = isLogin ? 'log in' : 'reset your password';
+  const descBefore = isLogin
+    ? t('auth.checkEmail.loginDescBefore')
+    : t('auth.checkEmail.resetDescBefore');
+  const descAfter = isLogin
+    ? t('auth.checkEmail.loginDescAfter')
+    : t('auth.checkEmail.resetDescAfter');
   const providerLinks = getEmailProviderLinks(email);
 
   const handleResend = async () => {
@@ -68,12 +80,15 @@ function CheckYourEmail({
   return (
     <div className={styles.formPage}>
       <div className={styles.formCard}>
-        <h1 className={styles.formTitle}>Check your email</h1>
+        <h1 className={styles.formTitle}>{t('auth.checkEmail.title')}</h1>
         <p className={sharedStyles.formDescription}>
-          A {linkType} was sent to <strong>{email}</strong>. Click the link to{' '}
-          {actionText}. It expires in 15 minutes.
+          {descBefore}
+          <strong>{email}</strong>
+          {descAfter}
         </p>
-        <p className={styles.helpMuted}>Usually arrives within a minute.</p>
+        <p className={styles.helpMuted}>
+          {t('auth.checkEmail.usuallyArrives')}
+        </p>
         {providerLinks.length > 0 && (
           <div
             className={sharedStyles.flexRow}
@@ -87,13 +102,13 @@ function CheckYourEmail({
                 rel="noreferrer"
                 className={sharedStyles.btnSmall}
               >
-                {link.label}
+                {t(link.labelKey)}
               </a>
             ))}
           </div>
         )}
         <p className={styles.footerText}>
-          {"Didn't get it? Check your spam folder, or "}
+          {t('auth.checkEmail.didntGetIt')}
           <a
             href="#retry"
             onClick={(e) => {
@@ -101,14 +116,14 @@ function CheckYourEmail({
               onRetry();
             }}
           >
-            try again
+            {t('auth.checkEmail.tryAgain')}
           </a>
           .
         </p>
         {onResend != null && (
           <div className={styles.field}>
             {resendState === 'sent' ? (
-              <p className={styles.helpSuccess}>Sent!</p>
+              <p className={styles.helpSuccess}>{t('auth.checkEmail.sent')}</p>
             ) : (
               <button
                 type="button"
@@ -116,22 +131,22 @@ function CheckYourEmail({
                 onClick={handleResend}
                 disabled={resendState === 'sending'}
               >
-                {resendState === 'sending' ? 'Sending…' : 'Resend link'}
+                {resendState === 'sending'
+                  ? t('auth.checkEmail.sending')
+                  : t('auth.checkEmail.resend')}
               </button>
             )}
             {resendState === 'error' && (
               <p className={styles.helpDanger}>
-                {
-                  "Couldn't send another link right now. Check your inbox and spam, or email support@2anki.net."
-                }
+                {t('auth.checkEmail.resendError')}
               </p>
             )}
           </div>
         )}
         <p className={styles.helpMuted}>
-          {'Still nothing after checking spam? Email '}
+          {t('auth.checkEmail.stillNothingPrefix')}
           <a href="mailto:support@2anki.net">support@2anki.net</a>
-          {" — we'll get you in."}
+          {t('auth.checkEmail.stillNothingSuffix')}
         </p>
       </div>
     </div>
