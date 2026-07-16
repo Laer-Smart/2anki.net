@@ -1,0 +1,58 @@
+{
+  "page": {
+    "titleConnected": "Notion",
+    "titleGetStarted": "Começar",
+    "subtitleConnected": "Encontre uma página e converta em um baralho do Anki.",
+    "subtitleDisconnected": "Conecte seu workspace do Notion ou envie arquivos para criar baralhos do Anki.",
+    "switchWorkspace": "Trocar de workspace"
+  },
+  "limit": {
+    "title": "Você usou todos os {{limit}} cartões deste mês",
+    "body": "{{used}} / {{limit}} cartões · renova em {{resetsOn}}, quando seus cartões grátis voltam",
+    "startingCheckout": "Iniciando o checkout",
+    "getDayPass": "Obter Day Pass — $4",
+    "seePlans": "Ver planos"
+  },
+  "connect": {
+    "title": "Conecte seu workspace do Notion",
+    "body": "Busque e converta páginas diretamente. Só lemos as páginas que você compartilha com o 2anki.",
+    "connectButton": "Conectar ao Notion",
+    "fallbackText": "Ou envie um arquivo que você exportou do Notion.",
+    "uploadFile": "Enviar um arquivo"
+  },
+  "searchBar": {
+    "label": "Buscar no Notion",
+    "placeholder": "Buscar no Notion"
+  },
+  "results": {
+    "scopeWorkspace": "em “{{workSpace}}”",
+    "scopeGeneric": "no seu workspace do Notion",
+    "noMatch": "Nenhuma página corresponde a “{{query}}” {{scope}}",
+    "noneFound": "Nenhuma página encontrada {{scope}}",
+    "emptyBodyPrefix": "Tente outro termo de busca, ou confira se a página está compartilhada com a integração do 2anki — veja as ",
+    "sharingLink": "configurações de compartilhamento do Notion",
+    "emptyBodySuffix": "."
+  },
+  "entry": {
+    "remaking": "Refazendo seu baralho — ",
+    "added": "Adicionado aos seus downloads — ",
+    "view": "ver",
+    "paywallText": "Plano grátis — uma conversão por vez.",
+    "upgrade": "Fazer upgrade",
+    "paywallSuffix": " ou espere.",
+    "conflict": "Já convertendo esta página.",
+    "error": "Não foi possível enfileirar esta página. Tente de novo.",
+    "inProgress": "Em andamento",
+    "convertToAnki": "Converter para o Anki",
+    "convert": "Converter",
+    "openInNotion": "Abrir {{title}} no Notion",
+    "preview": "Prévia de {{title}}",
+    "configureRules": "Configurar regras para {{title}}"
+  },
+  "flashcardType": {
+    "new": "Novo"
+  },
+  "icon": {
+    "alt": "ícone"
+  }
+}
