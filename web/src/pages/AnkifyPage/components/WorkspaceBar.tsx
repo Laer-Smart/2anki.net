@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import styles from '../AnkifyPage.module.css';
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
@@ -48,6 +49,7 @@ export default function WorkspaceBar({
   showWorkspaceLink = false,
   title,
 }: Props) {
+  const { t } = useTranslation('ankify');
   const api = backend ?? get2ankiApi();
   const queryClient = useQueryClient();
   const location = useLocation();
@@ -223,17 +225,17 @@ export default function WorkspaceBar({
     statusDot = (
       <span className={styles.workspaceBarDotStarting} aria-hidden="true" />
     );
-    statusLabel = 'Starting…';
+    statusLabel = t('workspace.starting');
   } else if (ankiWebLinked) {
     statusDot = (
       <span className={styles.workspaceBarDotRunning} aria-hidden="true" />
     );
-    statusLabel = 'Anki running';
+    statusLabel = t('workspace.running');
   } else {
     statusDot = (
       <span className={styles.workspaceBarDotWarning} aria-hidden="true" />
     );
-    statusLabel = 'Almost there';
+    statusLabel = t('workspace.almostThere');
   }
 
   const openControl =
@@ -241,8 +243,8 @@ export default function WorkspaceBar({
       <button
         type="button"
         className={`${styles.workspaceBarIconButton} ${styles.workspaceBarIconPrimary}`}
-        aria-label="Open Anki"
-        title="Opening…"
+        aria-label={t('workspace.openAnki')}
+        title={t('workspace.opening')}
         disabled
       >
         <ExternalLinkIcon width={18} height={18} />
@@ -253,7 +255,7 @@ export default function WorkspaceBar({
         target="_blank"
         rel="noreferrer"
         className={`${styles.workspaceBarIconButton} ${styles.workspaceBarIconPrimary}`}
-        aria-label="Open Anki"
+        aria-label={t('workspace.openAnki')}
         title={sessionUrl}
       >
         <ExternalLinkIcon width={18} height={18} />
@@ -283,8 +285,8 @@ export default function WorkspaceBar({
         <button
           type="button"
           className={styles.workspaceBarIconButton}
-          aria-label="Sync to AnkiWeb"
-          title="Sync to AnkiWeb"
+          aria-label={t('workspace.syncToAnkiWeb')}
+          title={t('workspace.syncToAnkiWeb')}
           onClick={onSyncToAnkiWeb}
           disabled={syncToAnkiWeb.isPending || !containerReady}
         >
@@ -293,8 +295,8 @@ export default function WorkspaceBar({
         <button
           type="button"
           className={styles.workspaceBarIconButton}
-          aria-label="Restart Anki"
-          title="Restart Anki"
+          aria-label={t('workspace.restartAnki')}
+          title={t('workspace.restartAnki')}
           onClick={onRestart}
           disabled={respin.isPending}
         >
@@ -303,8 +305,8 @@ export default function WorkspaceBar({
         <button
           type="button"
           className={styles.workspaceBarIconButton}
-          aria-label="Shut down Anki"
-          title="Shut down Anki"
+          aria-label={t('workspace.shutDownAnki')}
+          title={t('workspace.shutDownAnki')}
           onClick={onShutDown}
         >
           <ArrowRightOnRectangleIcon width={18} height={18} />
@@ -316,8 +318,8 @@ export default function WorkspaceBar({
           className={styles.workspaceBarIconButton}
           aria-haspopup="menu"
           aria-expanded={menuOpen}
-          aria-label="More Anki session options"
-          title="More"
+          aria-label={t('workspace.moreOptions')}
+          title={t('workspace.more')}
           onClick={() => setMenuOpen((open) => !open)}
         >
           <DotsHorizontal width={18} height={18} />
@@ -328,30 +330,34 @@ export default function WorkspaceBar({
               type="button"
               role="menuitem"
               className={styles.workspaceBarMenuItem}
-              aria-label="Sync to AnkiWeb"
+              aria-label={t('workspace.syncToAnkiWeb')}
               onClick={onSyncToAnkiWeb}
               disabled={syncToAnkiWeb.isPending || !containerReady}
             >
-              {syncToAnkiWeb.isPending ? 'Syncing…' : 'Sync to AnkiWeb'}
+              {syncToAnkiWeb.isPending
+                ? t('workspace.syncing')
+                : t('workspace.syncToAnkiWeb')}
             </button>
             <button
               type="button"
               role="menuitem"
               className={styles.workspaceBarMenuItem}
-              aria-label="Restart Anki"
+              aria-label={t('workspace.restartAnki')}
               onClick={onRestart}
               disabled={respin.isPending}
             >
-              {respin.isPending ? 'Restarting…' : 'Restart Anki'}
+              {respin.isPending
+                ? t('workspace.restarting')
+                : t('workspace.restartAnki')}
             </button>
             <button
               type="button"
               role="menuitem"
               className={styles.workspaceBarMenuItem}
-              aria-label="Shut down Anki"
+              aria-label={t('workspace.shutDownAnki')}
               onClick={onShutDown}
             >
-              Shut down Anki
+              {t('workspace.shutDownAnki')}
             </button>
           </div>
         )}
@@ -366,9 +372,11 @@ export default function WorkspaceBar({
       aria-modal="true"
     >
       <div className={styles.workspaceBarConfirmCard}>
-        <p className={styles.workspaceBarConfirmTitle}>Shut your Anki down?</p>
+        <p className={styles.workspaceBarConfirmTitle}>
+          {t('workspace.confirmShutdownTitle')}
+        </p>
         <p className={styles.workspaceBarConfirmBody}>
-          Your collection stays safe in AnkiWeb.
+          {t('workspace.confirmShutdownBody')}
         </p>
         <div className={styles.workspaceBarConfirmActions}>
           <button
@@ -377,7 +385,7 @@ export default function WorkspaceBar({
             onClick={() => setConfirmShutdown(false)}
             disabled={stop.isPending}
           >
-            Cancel
+            {t('workspace.cancel')}
           </button>
           <button
             type="button"
@@ -389,7 +397,9 @@ export default function WorkspaceBar({
             }}
             disabled={stop.isPending}
           >
-            {stop.isPending ? 'Shutting down…' : 'Shut down'}
+            {stop.isPending
+              ? t('workspace.shuttingDown')
+              : t('workspace.shutDown')}
           </button>
         </div>
       </div>
@@ -403,11 +413,11 @@ export default function WorkspaceBar({
 
   let syncStatusText: string | null = null;
   if (syncToAnkiWeb.isPending) {
-    syncStatusText = 'Syncing to AnkiWeb…';
+    syncStatusText = t('workspace.syncingStatus');
   } else if (syncFlash === 'done') {
-    syncStatusText = 'Synced to AnkiWeb';
+    syncStatusText = t('workspace.syncedStatus');
   } else if (syncFlash === 'error') {
-    syncStatusText = "Couldn't reach AnkiWeb. Try again in a moment.";
+    syncStatusText = t('workspace.syncErrorStatus');
   }
 
   const status = (
@@ -421,9 +431,9 @@ export default function WorkspaceBar({
           </span>
           <span
             className={styles.workspaceBarProfile}
-            title={`Anki profile ${profileName}`}
+            title={t('workspace.profileTitle', { name: profileName })}
           >
-            Profile {profileName}
+            {t('workspace.profile', { name: profileName })}
           </span>
         </>
       )}
@@ -433,7 +443,7 @@ export default function WorkspaceBar({
             ·
           </span>
           <span className={styles.workspaceBarSession} title={sessionUrl}>
-            Session active
+            {t('workspace.sessionActive')}
           </span>
         </>
       )}
@@ -477,7 +487,7 @@ export default function WorkspaceBar({
     <div className={styles.workspaceBar}>
       {showWorkspaceLink && (
         <Link to="/ankify" className={styles.workspaceBarBackLink}>
-          ← Workspace
+          {t('workspace.backLink')}
         </Link>
       )}
       {status}

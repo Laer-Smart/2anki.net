@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './AnkifyPage.module.css';
@@ -49,6 +50,7 @@ interface Props {
 }
 
 export default function AnkifySetupPage({ backend }: Props) {
+  const { t } = useTranslation('ankify');
   const api = backend ?? get2ankiApi();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -228,11 +230,9 @@ export default function AnkifySetupPage({ backend }: Props) {
 
   const renderStartAnkiStep = () => (
     <section className={styles.setupActiveStep}>
-      <p className={styles.setupActiveStepLabel}>Step 1 of 2</p>
-      <h2 className={styles.setupActiveStepTitle}>Start Anki</h2>
-      <p className={styles.setupActiveStepHint}>
-        We'll start a private Anki for you. Takes a few seconds.
-      </p>
+      <p className={styles.setupActiveStepLabel}>{t('setup.step1')}</p>
+      <h2 className={styles.setupActiveStepTitle}>{t('setup.startAnki')}</h2>
+      <p className={styles.setupActiveStepHint}>{t('setup.startHint')}</p>
       {provision.isPending ? (
         <div
           className={styles.setupActiveStepActions}
@@ -241,7 +241,7 @@ export default function AnkifySetupPage({ backend }: Props) {
         >
           <Skeleton width="11rem" height="2.25rem" radius="0.4rem" />
           <p className={styles.setupActiveStepHint}>
-            Starting Anki — usually 5 to 15 seconds.
+            {t('setup.startingHint')}
           </p>
         </div>
       ) : (
@@ -252,7 +252,7 @@ export default function AnkifySetupPage({ backend }: Props) {
             onClick={() => provision.mutate()}
             disabled={provision.isPending}
           >
-            Start Anki
+            {t('setup.startAnki')}
           </button>
         </div>
       )}
@@ -261,8 +261,8 @@ export default function AnkifySetupPage({ backend }: Props) {
           const err = provision.error as Error & { status?: number };
           const body =
             err.status === 503
-              ? "Anki couldn't start — usually a temporary infra issue. Try again in a moment. If it keeps failing, email support@2anki.net."
-              : "Anki couldn't start. Try again, or email support@2anki.net.";
+              ? t('setup.startError503')
+              : t('setup.startError');
           return (
             <div className={styles.provisionErrorBlock} role="alert">
               <p className={styles.provisionErrorBody}>{body}</p>
@@ -274,17 +274,16 @@ export default function AnkifySetupPage({ backend }: Props) {
 
   const renderStartingStep = () => (
     <section className={styles.setupActiveStep}>
-      <p className={styles.setupActiveStepLabel}>Step 1 of 2</p>
-      <h2 className={styles.setupActiveStepTitle}>Start Anki</h2>
+      <p className={styles.setupActiveStepLabel}>{t('setup.step1')}</p>
+      <h2 className={styles.setupActiveStepTitle}>{t('setup.startAnki')}</h2>
       {startingTimedOut ? (
         <>
           <div className={styles.provisionErrorBlock} role="alert">
             <p className={styles.provisionErrorTitle}>
-              Anki is taking longer than expected.
+              {t('setup.takingLonger')}
             </p>
             <p className={styles.provisionErrorBody}>
-              Most retries succeed. If it keeps failing, email
-              support@2anki.net.
+              {t('setup.mostRetriesSucceed')}
             </p>
           </div>
           <div className={styles.setupActiveStepActions}>
@@ -294,7 +293,7 @@ export default function AnkifySetupPage({ backend }: Props) {
               onClick={() => respin.mutate()}
               disabled={respin.isPending}
             >
-              {respin.isPending ? 'Restarting…' : 'Try again'}
+              {respin.isPending ? t('setup.restarting') : t('setup.tryAgain')}
             </button>
           </div>
           {respin.error && (
@@ -303,7 +302,7 @@ export default function AnkifySetupPage({ backend }: Props) {
               role="alert"
               aria-live="polite"
             >
-              Anki couldn&apos;t restart. Try again, or email support@2anki.net.
+              {t('setup.restartError')}
             </p>
           )}
         </>
@@ -315,7 +314,7 @@ export default function AnkifySetupPage({ backend }: Props) {
         >
           <Skeleton width="11rem" height="2.25rem" radius="0.4rem" />
           <p className={styles.setupActiveStepHint}>
-            Starting Anki — usually 5 to 15 seconds.
+            {t('setup.startingHint')}
           </p>
         </div>
       )}
@@ -327,12 +326,14 @@ export default function AnkifySetupPage({ backend }: Props) {
     const sessionUrl = ankiUrlFor(client);
     return (
       <section className={styles.setupActiveStep}>
-        <p className={styles.setupActiveStepLabel}>Step 2 of 2</p>
-        <h2 className={styles.setupActiveStepTitle}>Sign in to AnkiWeb</h2>
+        <p className={styles.setupActiveStepLabel}>{t('setup.step2')}</p>
+        <h2 className={styles.setupActiveStepTitle}>
+          {t('setup.signInAnkiWeb')}
+        </h2>
         <p className={styles.setupActiveStepHint}>
-          Open Anki, click <strong>Sync</strong> in the toolbar, then enter your
-          AnkiWeb email and password. After that, we keep AnkiWeb up to date
-          whenever a Notion page changes.
+          {t('setup.signInHintBefore')}
+          <strong>Sync</strong>
+          {t('setup.signInHintAfter')}
         </p>
         <div className={styles.setupActiveStepActions}>
           {sessionUrl == null ? (
@@ -341,7 +342,7 @@ export default function AnkifySetupPage({ backend }: Props) {
               className={`${sharedStyles.btnSecondary} ${styles.inlineButton}`}
               disabled
             >
-              Opening…
+              {t('setup.opening')}
             </button>
           ) : (
             <a
@@ -350,7 +351,7 @@ export default function AnkifySetupPage({ backend }: Props) {
               rel="noreferrer"
               className={`${sharedStyles.btnSecondary} ${styles.inlineButton}`}
             >
-              Open Anki
+              {t('setup.openAnki')}
             </a>
           )}
           <button
@@ -359,7 +360,7 @@ export default function AnkifySetupPage({ backend }: Props) {
             onClick={() => verifySignIn.mutate()}
             disabled={verifySignIn.isPending}
           >
-            {verifySignIn.isPending ? 'Checking…' : "I've signed in"}
+            {verifySignIn.isPending ? t('setup.checking') : t('setup.signedIn')}
           </button>
         </div>
         {verifySignIn.isSuccess && verifyStatus !== 'linked' && (
@@ -368,12 +369,12 @@ export default function AnkifySetupPage({ backend }: Props) {
             className={`${sharedStyles.alertDanger} ${styles.signInAlert}`}
           >
             {verifyStatus === 'unreachable' ? (
-              "Can't reach Anki right now. Try again in a few seconds."
+              t('setup.cantReach')
             ) : (
               <>
-                We don't see you signed in to AnkiWeb yet. Open Anki, click{' '}
-                <strong>Sync</strong> in the toolbar, enter your AnkiWeb email
-                and password, then come back and try again.
+                {t('setup.notSignedInBefore')}
+                <strong>Sync</strong>
+                {t('setup.notSignedInAfter')}
               </>
             )}
           </div>
@@ -383,23 +384,23 @@ export default function AnkifySetupPage({ backend }: Props) {
             role="alert"
             className={`${sharedStyles.alertDanger} ${styles.signInAlert}`}
           >
-            Couldn&apos;t check your sign-in. Try again in a moment.
+            {t('setup.checkError')}
           </div>
         )}
         {!verifySignIn.isSuccess && !verifySignIn.isError && (
           <p className={styles.setupActiveStepHint} aria-live="polite">
-            We'll move on automatically once AnkiWeb is linked.
+            {t('setup.moveOnAuto')}
           </p>
         )}
         <p className={styles.setupActiveStepHint}>
-          Stuck?{' '}
+          {t('setup.stuck')}
           <button
             type="button"
             className={styles.btnLink}
             onClick={() => respin.mutate()}
             disabled={respin.isPending}
           >
-            {respin.isPending ? 'Restarting…' : 'Restart Anki'}
+            {respin.isPending ? t('setup.restarting') : t('setup.restartAnki')}
           </button>
         </p>
         {respin.error && (
@@ -407,7 +408,7 @@ export default function AnkifySetupPage({ backend }: Props) {
             role="alert"
             className={`${sharedStyles.alertDanger} ${styles.signInAlert}`}
           >
-            Couldn&apos;t restart Anki. Try again, or email support@2anki.net.
+            {t('setup.restartAnkiError')}
           </div>
         )}
       </section>
@@ -419,22 +420,22 @@ export default function AnkifySetupPage({ backend }: Props) {
 
   if (!hasActiveClient) {
     activeStep = renderStartAnkiStep();
-    nextPreview = <p>Sign in to AnkiWeb (next)</p>;
+    nextPreview = <p>{t('setup.signInNext')}</p>;
   } else if (containerReady) {
     activeStep = renderSignInStep(activeClient);
   } else {
     activeStep = renderStartingStep();
-    nextPreview = <p>Sign in to AnkiWeb (next)</p>;
+    nextPreview = <p>{t('setup.signInNext')}</p>;
   }
 
   return (
     <main className={styles.setupTakeover}>
       <header className={styles.setupTakeoverHeading}>
         <h1 className={styles.setupTakeoverTitle}>
-          Set up Anki in your browser.
+          {t('setup.takeoverTitle')}
         </h1>
         <p className={styles.setupTakeoverSubtitle}>
-          About a minute, two steps.
+          {t('setup.takeoverSubtitle')}
         </p>
       </header>
       {activeStep}

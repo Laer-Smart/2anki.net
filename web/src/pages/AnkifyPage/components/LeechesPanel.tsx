@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import sharedStyles from '../../../styles/shared.module.css';
 import styles from '../AnkifyPage.module.css';
@@ -50,6 +51,7 @@ interface RowFlash {
 }
 
 export default function LeechesPanel({ backend }: Props) {
+  const { t } = useTranslation('ankify');
   const api = backend ?? get2ankiApi();
   const queryClient = useQueryClient();
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -107,13 +109,16 @@ export default function LeechesPanel({ backend }: Props) {
     onSuccess: (_data, args) => {
       track('ankify_leech_action', { action: 'edit' });
       setEditorId(null);
-      showFlash(args.noteId, { kind: 'success', text: 'Saved' });
+      showFlash(args.noteId, {
+        kind: 'success',
+        text: t('leeches.flash.saved'),
+      });
       queryClient.invalidateQueries({ queryKey: LEECHES_KEY });
     },
     onError: (_err, args) => {
       showFlash(args.noteId, {
         kind: 'error',
-        text: "Couldn't save. Try again in a moment.",
+        text: t('leeches.flash.saveError'),
       });
     },
   });
@@ -123,13 +128,16 @@ export default function LeechesPanel({ backend }: Props) {
     onSuccess: (_data, noteId) => {
       track('ankify_leech_action', { action: 'delete' });
       setConfirmDeleteId(null);
-      showFlash(noteId, { kind: 'success', text: 'Card deleted' });
+      showFlash(noteId, {
+        kind: 'success',
+        text: t('leeches.flash.deleted'),
+      });
       queryClient.invalidateQueries({ queryKey: LEECHES_KEY });
     },
     onError: (_err, noteId) => {
       showFlash(noteId, {
         kind: 'error',
-        text: "Couldn't delete. Try again in a moment.",
+        text: t('leeches.flash.deleteError'),
       });
     },
   });
@@ -138,13 +146,16 @@ export default function LeechesPanel({ backend }: Props) {
     mutationFn: (noteId: number) => api.returnAnkifyLeechToReview(noteId),
     onSuccess: (_data, noteId) => {
       track('ankify_leech_action', { action: 'return_to_review' });
-      showFlash(noteId, { kind: 'success', text: 'Back in review' });
+      showFlash(noteId, {
+        kind: 'success',
+        text: t('leeches.flash.backInReview'),
+      });
       queryClient.invalidateQueries({ queryKey: LEECHES_KEY });
     },
     onError: (_err, noteId) => {
       showFlash(noteId, {
         kind: 'error',
-        text: "Couldn't update. Try again in a moment.",
+        text: t('leeches.flash.updateError'),
       });
     },
   });
@@ -164,13 +175,18 @@ export default function LeechesPanel({ backend }: Props) {
         const result = await api.openAnkifyDeckInAnki(deck);
         showFlash(noteId, {
           kind: result.opened ? 'success' : 'error',
-          text: result.opened ? 'Opened in Anki' : 'Open Anki and try again',
+          text: result.opened
+            ? t('leeches.flash.opened')
+            : t('leeches.flash.openError'),
         });
       } catch {
-        showFlash(noteId, { kind: 'error', text: 'Open Anki and try again' });
+        showFlash(noteId, {
+          kind: 'error',
+          text: t('leeches.flash.openError'),
+        });
       }
     },
-    [api, showFlash]
+    [api, showFlash, t]
   );
 
   useEffect(() => {
@@ -199,7 +215,7 @@ export default function LeechesPanel({ backend }: Props) {
         aria-labelledby="ankify-tab-leeches"
         className={styles.tabPanel}
       >
-        <p className={styles.emptyLine}>Reading your leeches</p>
+        <p className={styles.emptyLine}>{t('leeches.reading')}</p>
       </div>
     );
   }
@@ -212,16 +228,14 @@ export default function LeechesPanel({ backend }: Props) {
         aria-labelledby="ankify-tab-leeches"
         className={styles.tabPanel}
       >
-        <p className={styles.emptyLine}>
-          Anki isn&apos;t connected. Open Anki on your computer and try again.
-        </p>
+        <p className={styles.emptyLine}>{t('leeches.notConnected')}</p>
         <div className={styles.offlineActions}>
           <button
             type="button"
             className={sharedStyles.btnGhost}
             onClick={() => leeches.refetch()}
           >
-            Try again
+            {t('leeches.tryAgain')}
           </button>
         </div>
       </div>
@@ -238,9 +252,7 @@ export default function LeechesPanel({ backend }: Props) {
         aria-labelledby="ankify-tab-leeches"
         className={styles.tabPanel}
       >
-        <p className={styles.emptyLine}>
-          No leeches yet. Anki flags a card after you fail it 8 times in review.
-        </p>
+        <p className={styles.emptyLine}>{t('leeches.empty')}</p>
       </div>
     );
   }
@@ -252,17 +264,14 @@ export default function LeechesPanel({ backend }: Props) {
       aria-labelledby="ankify-tab-leeches"
       className={styles.tabPanel}
     >
-      <p className={styles.decksHelper}>
-        Cards you keep forgetting. Anki suspends a card after 8 lapses — fix it
-        or let it go.
-      </p>
+      <p className={styles.decksHelper}>{t('leeches.helper')}</p>
       <ul className={styles.decksList} ref={menuContainerRef}>
         {rows.map((leech) => {
           const front = previewText(leech);
           const back = backPreviewText(leech);
           const editable = isBasicFrontBack(leech);
           const flash = flashByRow[leech.noteId] ?? null;
-          const title = front.length > 0 ? front : 'Untitled card';
+          const title = front.length > 0 ? front : t('leeches.untitledCard');
           return (
             <Fragment key={leech.noteId}>
               <li className={styles.decksItem}>
@@ -289,7 +298,7 @@ export default function LeechesPanel({ backend }: Props) {
                   )}
                   <span
                     className={styles.leechLapses}
-                    title={`${leech.lapses} lapses`}
+                    title={t('leeches.lapses', { count: leech.lapses })}
                   >
                     ⌗{leech.lapses}
                   </span>
@@ -309,7 +318,7 @@ export default function LeechesPanel({ backend }: Props) {
                   <button
                     type="button"
                     className={sharedStyles.btnIcon}
-                    aria-label={`Options for ${title}`}
+                    aria-label={t('leeches.options', { title })}
                     aria-haspopup="menu"
                     aria-expanded={openMenuId === leech.noteId}
                     onClick={() =>
@@ -334,7 +343,7 @@ export default function LeechesPanel({ backend }: Props) {
                           }
                         }}
                       >
-                        Edit card
+                        {t('leeches.editCard')}
                       </button>
                       <button
                         type="button"
@@ -346,7 +355,7 @@ export default function LeechesPanel({ backend }: Props) {
                         }}
                         disabled={returnToReview.isPending}
                       >
-                        Return to review
+                        {t('leeches.returnToReview')}
                       </button>
                       <button
                         type="button"
@@ -358,7 +367,7 @@ export default function LeechesPanel({ backend }: Props) {
                           setConfirmDeleteId(leech.noteId);
                         }}
                       >
-                        Delete card
+                        {t('leeches.deleteCard')}
                       </button>
                     </div>
                   )}
@@ -379,7 +388,7 @@ export default function LeechesPanel({ backend }: Props) {
                       }}
                     >
                       <label htmlFor={`leech-front-${leech.noteId}`}>
-                        Front
+                        {t('leeches.front')}
                       </label>
                       <textarea
                         id={`leech-front-${leech.noteId}`}
@@ -387,7 +396,9 @@ export default function LeechesPanel({ backend }: Props) {
                         value={editFront}
                         onChange={(event) => setEditFront(event.target.value)}
                       />
-                      <label htmlFor={`leech-back-${leech.noteId}`}>Back</label>
+                      <label htmlFor={`leech-back-${leech.noteId}`}>
+                        {t('leeches.back')}
+                      </label>
                       <textarea
                         id={`leech-back-${leech.noteId}`}
                         className={styles.leechField}
@@ -395,7 +406,7 @@ export default function LeechesPanel({ backend }: Props) {
                         onChange={(event) => setEditBack(event.target.value)}
                       />
                       <p className={styles.deckLocationHelp}>
-                        Edits save straight to Anki.
+                        {t('leeches.editHelp')}
                       </p>
                       <div className={styles.deckLocationActions}>
                         <button
@@ -403,21 +414,20 @@ export default function LeechesPanel({ backend }: Props) {
                           className={sharedStyles.btnPrimary}
                           disabled={editLeech.isPending}
                         >
-                          Save card
+                          {t('leeches.saveCard')}
                         </button>
                         <button
                           type="button"
                           className={sharedStyles.btnGhost}
                           onClick={() => setEditorId(null)}
                         >
-                          Cancel
+                          {t('leeches.cancel')}
                         </button>
                       </div>
                     </form>
                   ) : (
                     <p className={styles.zeroBannerText}>
-                      This card has more fields than Front and Back. Open it in
-                      Anki to edit safely.
+                      {t('leeches.tooManyFields')}
                     </p>
                   )}
                 </li>
@@ -425,21 +435,21 @@ export default function LeechesPanel({ backend }: Props) {
               {confirmDeleteId === leech.noteId && (
                 <li className={styles.zeroBanner}>
                   <div className={styles.leechConfirm}>
-                    <span>Delete this card?</span>
+                    <span>{t('leeches.confirmDelete')}</span>
                     <button
                       type="button"
                       className={styles.leechConfirmDanger}
                       onClick={() => deleteLeech.mutate(leech.noteId)}
                       disabled={deleteLeech.isPending}
                     >
-                      Delete
+                      {t('leeches.delete')}
                     </button>
                     <button
                       type="button"
                       className={sharedStyles.btnGhost}
                       onClick={() => setConfirmDeleteId(null)}
                     >
-                      Cancel
+                      {t('leeches.cancel')}
                     </button>
                   </div>
                 </li>

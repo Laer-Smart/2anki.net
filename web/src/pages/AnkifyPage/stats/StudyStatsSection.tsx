@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import sharedStyles from '../../../styles/shared.module.css';
 import styles from './StudyStatsSection.module.css';
@@ -52,11 +53,12 @@ function SummaryLine({ stats }: Readonly<{ stats: SummaryStat[] }>) {
 }
 
 function SectionShell({ children }: Readonly<{ children: React.ReactNode }>) {
+  const { t } = useTranslation('ankify');
   return (
     <section className={`${sharedStyles.surface} ${styles.section}`}>
       <div className={sharedStyles.surfaceHeaderText}>
-        <h2 className={sharedStyles.surfaceTitle}>Your reviews</h2>
-        <p className={sharedStyles.surfaceLead}>Live from Anki.</p>
+        <h2 className={sharedStyles.surfaceTitle}>{t('stats.yourReviews')}</h2>
+        <p className={sharedStyles.surfaceLead}>{t('stats.liveFromAnki')}</p>
       </div>
       {children}
     </section>
@@ -64,12 +66,13 @@ function SectionShell({ children }: Readonly<{ children: React.ReactNode }>) {
 }
 
 function ConnectedStats({ stats }: Readonly<{ stats: AnkifyStatsConnected }>) {
+  const { t } = useTranslation('ankify');
   const today = todayDayKey();
   const hasReviews = stats.reviewsByDay.some((entry) => entry.count > 0);
   const summary: SummaryStat[] = [
-    { value: stats.currentStreak, label: 'day streak' },
-    { value: dailyAverage(stats), label: 'daily average' },
-    { value: stats.reviewedThisYear, label: 'reviews this year' },
+    { value: stats.currentStreak, label: t('stats.dayStreak') },
+    { value: dailyAverage(stats), label: t('stats.dailyAverage') },
+    { value: stats.reviewedThisYear, label: t('stats.reviewsThisYear') },
   ];
   return (
     <>
@@ -82,10 +85,7 @@ function ConnectedStats({ stats }: Readonly<{ stats: AnkifyStatsConnected }>) {
           reviewsThisYear={stats.reviewedThisYear}
         />
         {!hasReviews && (
-          <p className={styles.stateText}>
-            No reviews yet. Study a deck in Anki and your activity shows up
-            here.
-          </p>
+          <p className={styles.stateText}>{t('stats.noReviews')}</p>
         )}
       </div>
       <div className={sharedStyles.surfaceDivider} />
@@ -101,12 +101,13 @@ interface StudyStatsSectionProps {
 export default function StudyStatsSection({
   backend,
 }: Readonly<StudyStatsSectionProps>) {
+  const { t } = useTranslation('ankify');
   const { data, isLoading } = useAnkifyStats(backend);
 
   if (isLoading || data == null) {
     return (
       <SectionShell>
-        <p className={styles.stateText}>Reading your reviews from Anki</p>
+        <p className={styles.stateText}>{t('stats.reading')}</p>
       </SectionShell>
     );
   }
@@ -114,10 +115,7 @@ export default function StudyStatsSection({
   if (!data.connected) {
     return (
       <SectionShell>
-        <p className={styles.stateText}>
-          Anki isn&apos;t connected right now. Your stats will load when it
-          reconnects — usually within a few minutes.
-        </p>
+        <p className={styles.stateText}>{t('stats.notConnected')}</p>
       </SectionShell>
     );
   }

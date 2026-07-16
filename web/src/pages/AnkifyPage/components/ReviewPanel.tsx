@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
 
 import styles from '../AnkifyPage.module.css';
@@ -27,18 +28,28 @@ const EASE_BY_KEY: Record<string, number> = { '1': 1, '2': 2, '3': 3, '4': 4 };
 const GRADES = [
   {
     ease: 1,
-    label: 'Again',
+    labelKey: 'reviewer.grades.again',
     interval: '<1m',
     className: reviewStyles.gradeAgain,
   },
   {
     ease: 2,
-    label: 'Hard',
+    labelKey: 'reviewer.grades.hard',
     interval: '<6m',
     className: reviewStyles.gradeHard,
   },
-  { ease: 3, label: 'Good', interval: '1d', className: reviewStyles.gradeGood },
-  { ease: 4, label: 'Easy', interval: '4d', className: reviewStyles.gradeEasy },
+  {
+    ease: 3,
+    labelKey: 'reviewer.grades.good',
+    interval: '1d',
+    className: reviewStyles.gradeGood,
+  },
+  {
+    ease: 4,
+    labelKey: 'reviewer.grades.easy',
+    interval: '4d',
+    className: reviewStyles.gradeEasy,
+  },
 ];
 
 const MAX_INDENT_DEPTH = 4;
@@ -59,6 +70,7 @@ export function DeckPicker({
   readonly decks: AnkifyStatsDeck[];
   readonly onReview: (deckName: string) => void;
 }) {
+  const { t } = useTranslation('ankify');
   const tree = buildDeckTree(decks);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
@@ -113,7 +125,9 @@ export function DeckPicker({
                     className={reviewStyles.deckDisclosure}
                     aria-expanded={!isCollapsed}
                     aria-label={
-                      isCollapsed ? `Expand ${leaf}` : `Collapse ${leaf}`
+                      isCollapsed
+                        ? t('reviewer.expand', { name: leaf })
+                        : t('reviewer.collapse', { name: leaf })
                     }
                     onClick={() => toggle(node.deck.fullName)}
                   >
@@ -130,10 +144,12 @@ export function DeckPicker({
               <span className={reviewStyles.deckCounts}>
                 <span className={reviewStyles.deckDue}>
                   <span aria-hidden="true">▲</span>
-                  {due} due
+                  {t('reviewer.due', { count: due })}
                 </span>
-                <span>{node.aggregateLearning} learning</span>
-                <span>+{node.aggregateNew} new</span>
+                <span>
+                  {t('reviewer.learning', { count: node.aggregateLearning })}
+                </span>
+                <span>{t('reviewer.new', { count: node.aggregateNew })}</span>
               </span>
               <button
                 type="button"
@@ -141,7 +157,7 @@ export function DeckPicker({
                 disabled={muted}
                 onClick={() => onReview(node.deck.fullName)}
               >
-                Review
+                {t('reviewer.review')}
               </button>
             </li>
           );
@@ -158,6 +174,7 @@ function buildSrcDoc(css: string, body: string): string {
 }
 
 export function CardFrame({ srcDoc }: { readonly srcDoc: string }) {
+  const { t } = useTranslation('ankify');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [height, setHeight] = useState(MIN_CARD_FRAME_HEIGHT);
 
@@ -187,7 +204,7 @@ export function CardFrame({ srcDoc }: { readonly srcDoc: string }) {
   return (
     <iframe
       ref={iframeRef}
-      title="Card preview"
+      title={t('reviewer.cardPreview')}
       className={reviewStyles.cardFrame}
       sandbox="allow-scripts"
       allow="autoplay"
@@ -212,6 +229,7 @@ export function Reviewer({
   readonly onDone: (graded: number) => void;
   readonly onExit: () => void;
 }) {
+  const { t } = useTranslation('ankify');
   const queryClient = useQueryClient();
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
@@ -333,7 +351,7 @@ export function Reviewer({
         <button
           type="button"
           className={reviewStyles.exitButton}
-          aria-label="Back to decks"
+          aria-label={t('reviewer.backToDecks')}
           onClick={() => {
             track('ankify_review_session_exited', {
               deck: deckName,
@@ -342,7 +360,7 @@ export function Reviewer({
             onExit();
           }}
         >
-          ← Decks
+          {t('reviewer.decksNav')}
         </button>
         <p className={reviewStyles.progressLabel}>
           {index + 1} / {total}
@@ -354,7 +372,7 @@ export function Reviewer({
 
   if (card == null) {
     return reviewChrome(
-      <p className={styles.emptyLine}>Loading your cards.</p>
+      <p className={styles.emptyLine}>{t('reviewer.loadingCards')}</p>
     );
   }
 
@@ -378,7 +396,7 @@ export function Reviewer({
                 disabled={busy}
                 onClick={() => grade(g.ease)}
               >
-                {g.label}
+                {t(g.labelKey)}
                 <span className={reviewStyles.gradeInterval} aria-hidden="true">
                   <span className={reviewStyles.gradeShortcut}>{g.ease}</span>{' '}
                   {g.interval}
@@ -393,9 +411,9 @@ export function Reviewer({
           className={reviewStyles.showAnswer}
           onClick={reveal}
         >
-          Show answer
+          {t('reviewer.showAnswer')}
           <span className={reviewStyles.shortcutHint} aria-hidden="true">
-            Space
+            {t('reviewer.spaceHint')}
           </span>
         </button>
       )}
@@ -407,7 +425,7 @@ export function Reviewer({
             onClick={undo}
             disabled={busy}
           >
-            Undo last grade
+            {t('reviewer.undo')}
           </button>
         </div>
       )}
@@ -435,6 +453,7 @@ export function ReviewSummary({
   readonly graded: number;
   readonly onBack: () => void;
 }) {
+  const { t } = useTranslation('ankify');
   useEffect(() => {
     if (graded > 0) {
       fireConfetti();
@@ -444,7 +463,7 @@ export function ReviewSummary({
   return (
     <div className={reviewStyles.summary}>
       <p className={reviewStyles.summaryHeadline}>
-        {graded} card{graded === 1 ? '' : 's'}. Done.
+        {t('reviewer.summary', { count: graded })}
       </p>
       <div className={reviewStyles.summaryActions}>
         <button
@@ -452,7 +471,7 @@ export function ReviewSummary({
           className={sharedStyles.btnGhost}
           onClick={onBack}
         >
-          Back to decks
+          {t('reviewer.backToDecks')}
         </button>
       </div>
     </div>
@@ -465,6 +484,7 @@ type Stage =
   | { kind: 'summary'; deck: string; graded: number };
 
 export default function ReviewPanel({ backend }: Props) {
+  const { t } = useTranslation('ankify');
   const api = backend ?? get2ankiApi();
   const [stage, setStage] = useState<Stage>({ kind: 'picker' });
 
@@ -523,10 +543,10 @@ export default function ReviewPanel({ backend }: Props) {
       <button
         type="button"
         className={reviewStyles.exitButton}
-        aria-label="Back to decks"
+        aria-label={t('reviewer.backToDecks')}
         onClick={() => setStage({ kind: 'picker' })}
       >
-        ← Decks
+        {t('reviewer.decksNav')}
       </button>
     </div>
   );
@@ -538,22 +558,22 @@ export default function ReviewPanel({ backend }: Props) {
         className={sharedStyles.btnGhost}
         onClick={() => queue.refetch()}
       >
-        Try again
+        {t('reviewer.tryAgain')}
       </button>
     </div>
   );
 
   if (stage.kind === 'reviewing') {
     if (queue.isLoading) {
-      return panel(<p className={styles.emptyLine}>Loading your cards.</p>);
+      return panel(
+        <p className={styles.emptyLine}>{t('reviewer.loadingCards')}</p>
+      );
     }
     if (queue.data?.connected === true) {
       if (queue.data.cardIds.length === 0) {
         return panel(
           <>
-            <p className={styles.emptyLine}>
-              Nothing to study in this deck right now — no due or new cards.
-            </p>
+            <p className={styles.emptyLine}>{t('reviewer.nothingToStudy')}</p>
             {backToDecks}
           </>
         );
@@ -574,9 +594,7 @@ export default function ReviewPanel({ backend }: Props) {
     if (queue.data?.reason === 'error') {
       return panel(
         <>
-          <p className={styles.emptyLine}>
-            Something broke while loading this deck. Try again in a moment.
-          </p>
+          <p className={styles.emptyLine}>{t('reviewer.deckLoadError')}</p>
           {retry}
           {backToDecks}
         </>
@@ -584,9 +602,7 @@ export default function ReviewPanel({ backend }: Props) {
     }
     return panel(
       <>
-        <p className={styles.emptyLine}>
-          Anki isn&apos;t connected. Open Anki on your computer and try again.
-        </p>
+        <p className={styles.emptyLine}>{t('reviewer.notConnectedOpenAnki')}</p>
         {retry}
         {backToDecks}
       </>
@@ -594,26 +610,22 @@ export default function ReviewPanel({ backend }: Props) {
   }
 
   if (stats.isLoading) {
-    return panel(<p className={styles.emptyLine}>Loading your cards.</p>);
+    return panel(
+      <p className={styles.emptyLine}>{t('reviewer.loadingCards')}</p>
+    );
   }
   if (stats.data?.connected !== true) {
     return panel(
-      <p className={styles.emptyLine}>Anki isn&apos;t connected.</p>
+      <p className={styles.emptyLine}>{t('reviewer.notConnected')}</p>
     );
   }
   if (stats.data.decks.length === 0) {
-    return panel(
-      <p className={styles.emptyLine}>
-        No decks to review yet. Sync a Notion page to start building cards.
-      </p>
-    );
+    return panel(<p className={styles.emptyLine}>{t('reviewer.noDecks')}</p>);
   }
 
   return panel(
     <>
-      <p className={styles.decksHelper}>
-        Pick a deck to study its due and new cards without opening Anki.
-      </p>
+      <p className={styles.decksHelper}>{t('reviewer.pickDeck')}</p>
       <DeckPicker
         decks={stats.data.decks}
         onReview={(deck) => setStage({ kind: 'reviewing', deck })}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Bar,
   BarChart,
@@ -48,17 +49,21 @@ interface DeckRow {
 }
 
 function DeckTooltip({ active, payload }: TooltipContentProps) {
+  const { t } = useTranslation('ankify');
   if (!active || payload == null || payload.length === 0) return null;
   const row = payload[0].payload as DeckRow;
   return (
     <TimeSeriesTooltipShell title={row.fullName}>
-      <TimeSeriesTooltipRow label="New" value={row.new.toLocaleString()} />
       <TimeSeriesTooltipRow
-        label="Learning"
+        label={t('stats.new')}
+        value={row.new.toLocaleString()}
+      />
+      <TimeSeriesTooltipRow
+        label={t('stats.learning')}
         value={row.learning.toLocaleString()}
       />
       <TimeSeriesTooltipRow
-        label="Review"
+        label={t('stats.review')}
         value={row.review.toLocaleString()}
       />
     </TimeSeriesTooltipShell>
@@ -72,6 +77,7 @@ interface DeckBreakdownChartProps {
 export default function DeckBreakdownChart({
   decks,
 }: Readonly<DeckBreakdownChartProps>) {
+  const { t } = useTranslation('ankify');
   const [showAll, setShowAll] = useState(false);
 
   const rows: DeckRow[] = decks
@@ -93,28 +99,28 @@ export default function DeckBreakdownChart({
 
   return (
     <div className={styles.deckBlock}>
-      <p className={styles.deckLabel}>By deck</p>
+      <p className={styles.deckLabel}>{t('stats.byDeck')}</p>
       <div className={styles.legend}>
         <span className={styles.legendItem}>
           <span
             className={styles.legendSwatch}
             style={{ background: NEW_FILL }}
           />
-          New
+          {t('stats.new')}
         </span>
         <span className={styles.legendItem}>
           <span
             className={styles.legendSwatch}
             style={{ background: LEARNING_FILL }}
           />
-          Learning
+          {t('stats.learning')}
         </span>
         <span className={styles.legendItem}>
           <span
             className={styles.legendSwatch}
             style={{ background: REVIEW_FILL }}
           />
-          Review
+          {t('stats.review')}
         </span>
       </div>
       <div style={{ height: chartHeight }}>
@@ -152,7 +158,7 @@ export default function DeckBreakdownChart({
           className={styles.showAllButton}
           onClick={() => setShowAll(true)}
         >
-          Show all
+          {t('stats.showAll')}
         </button>
       )}
     </div>
