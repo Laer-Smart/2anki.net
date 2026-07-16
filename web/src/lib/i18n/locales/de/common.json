@@ -40,5 +40,24 @@
     "picker": "Sprache",
     "english": "English",
     "german": "Deutsch"
+  },
+  "home": {
+    "hero": {
+      "headline": "Karteikarten, die in Anki funktionieren",
+      "subtitle": "Wirf eine Notion-Seite rein und erhalte einen Stapel, den du nicht nachbessern musst — sauberes Cloze, atomare Karten, die richtigen Notiztypen. PDF, Quizlet, Markdown, HTML und CSV ebenfalls.",
+      "aiBadgeIntro": "Saubere Karten, bereit zum Lernen — sauberes Cloze, atomare Vorder- und Rückseite, keine leeren Rückseiten. Lieber KI-Entwürfe?",
+      "createAccount": "Konto erstellen",
+      "cardOptions": "Kartenoptionen",
+      "nativeApps": "Auch auf iPhone, iPad & Mac →"
+    }
+  },
+  "upload": {
+    "dropzone": {
+      "dropActive": "Lass sie genau hier los",
+      "dropIdle": "Zieh deine Dateien hierher",
+      "or": "oder",
+      "chooseFiles": "Dateien auswählen",
+      "csvHint": "Benenne deine Spalten front und back (oder question und answer), damit 2anki sie richtig zuordnet — sonst wird die erste Spalte als Vorderseite und die zweite als Rückseite verwendet."
+    }
   }
 }

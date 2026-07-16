@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, Navigate } from 'react-router-dom';
 import UploadForm from '../UploadPage/components/UploadForm/UploadForm';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
@@ -181,6 +182,7 @@ export function HomePage({
   isLoggedIn,
 }: Readonly<HomePageProps>) {
   useSettingsCardsOptions(null);
+  const { t } = useTranslation();
   const mascotSrc = useMemo(
     () => MASCOTS[Math.floor(Math.random() * MASCOTS.length)],
     []
@@ -206,21 +208,16 @@ export function HomePage({
     <div className={styles.page}>
       <section className={styles.hero}>
         <img src={mascotSrc} alt="" className={styles.mascot} />
-        <h1 className={styles.heroTitle}>Flashcards that work in Anki</h1>
-        <p className={styles.heroSubtitle}>
-          Drop a Notion page and get a deck you don&apos;t have to fix — proper
-          cloze, atomic cards, the right note types. PDF, Quizlet, Markdown,
-          HTML, and CSV too.
-        </p>
+        <h1 className={styles.heroTitle}>{t('home.hero.headline')}</h1>
+        <p className={styles.heroSubtitle}>{t('home.hero.subtitle')}</p>
         <div className={styles.heroControls}>
           <p className={`${sharedStyles.aiOffBadgeBody} ${styles.heroAiBadge}`}>
-            Clean cards, ready to study — proper cloze, atomic front and back,
-            no empty backs. Prefer AI drafts?{' '}
+            {t('home.hero.aiBadgeIntro')}{' '}
             <Link
               to="/register?redirect=/card-options"
               onClick={() => track('home_ai_anon_badge_clicked')}
             >
-              Create an account
+              {t('home.hero.createAccount')}
             </Link>
             .
           </p>
@@ -232,7 +229,7 @@ export function HomePage({
             className={styles.cardOptionsLink}
             onClick={() => track('home_card_options_link_clicked')}
           >
-            Card options
+            {t('home.hero.cardOptions')}
           </Link>
           <span className={styles.footerDot} aria-hidden="true" />
           <Link
@@ -240,7 +237,7 @@ export function HomePage({
             className={styles.cardOptionsLink}
             onClick={() => track('home_native_app_link_clicked')}
           >
-            Also on iPhone, iPad &amp; Mac →
+            {t('home.hero.nativeApps')}
           </Link>
         </div>
       </section>

@@ -1,4 +1,5 @@
 import { type SyntheticEvent, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -251,6 +252,7 @@ function UploadForm({
   aiOn = false,
   passLadderShownOnPage = false,
 }: Readonly<UploadFormProps>) {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const convertRef = useRef<HTMLButtonElement>(null);
   const downloadRef = useRef<HTMLAnchorElement>(null);
@@ -1280,12 +1282,16 @@ function UploadForm({
     <div className={formStyles.stateContent}>
       <UploadCloudIcon className={formStyles.icon} />
       <span className={formStyles.dropText}>
-        {dropHover ? 'Drop it right here' : 'Drop your files here'}
+        {dropHover
+          ? t('upload.dropzone.dropActive')
+          : t('upload.dropzone.dropIdle')}
       </span>
       {!dropHover && (
         <>
-          <span className={formStyles.dropHint}>or</span>
-          <span className={formStyles.chooseButton}>Choose files</span>
+          <span className={formStyles.dropHint}>{t('upload.dropzone.or')}</span>
+          <span className={formStyles.chooseButton}>
+            {t('upload.dropzone.chooseFiles')}
+          </span>
           <div className={formStyles.formatList}>
             {FORMATS.map((fmt) => (
               <span key={fmt} className={formStyles.formatPill}>
@@ -1294,9 +1300,7 @@ function UploadForm({
             ))}
           </div>
           <span className={formStyles.shapeHint}>
-            Name your columns front and back (or question and answer) so 2anki
-            maps them right — otherwise it uses the first column as the front
-            and the second as the back.
+            {t('upload.dropzone.csvHint')}
           </span>
         </>
       )}
