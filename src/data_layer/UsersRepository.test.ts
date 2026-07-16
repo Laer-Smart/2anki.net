@@ -81,6 +81,48 @@ describe('UsersRepository.getByEmail', () => {
   });
 });
 
+describe('UsersRepository.getLanguageByEmail', () => {
+  function buildLanguageKnex(row: { language: string | null } | undefined) {
+    const firstSpy = jest.fn().mockResolvedValue(row);
+    const selectSpy = jest.fn().mockReturnValue({ first: firstSpy });
+    const whereRawSpy = jest.fn().mockReturnValue({ select: selectSpy });
+    const knex = jest
+      .fn()
+      .mockReturnValue({ whereRaw: whereRawSpy }) as unknown as jest.Mock;
+    return { knex, whereRawSpy };
+  }
+
+  it('matches the email case-insensitively and returns the stored language', async () => {
+    const { knex, whereRawSpy } = buildLanguageKnex({ language: 'de' });
+    const repo = new UsersRepository(knex as any);
+
+    const language = await repo.getLanguageByEmail('  User@Example.COM  ');
+
+    expect(whereRawSpy).toHaveBeenCalledWith('LOWER(TRIM(email)) = LOWER(?)', [
+      'User@Example.COM',
+    ]);
+    expect(language).toBe('de');
+  });
+
+  it('returns null when no user row matches', async () => {
+    const { knex } = buildLanguageKnex(undefined);
+    const repo = new UsersRepository(knex as any);
+
+    const language = await repo.getLanguageByEmail('missing@example.com');
+
+    expect(language).toBeNull();
+  });
+
+  it('returns null when the matched user has no language set', async () => {
+    const { knex } = buildLanguageKnex({ language: null });
+    const repo = new UsersRepository(knex as any);
+
+    const language = await repo.getLanguageByEmail('user@example.com');
+
+    expect(language).toBeNull();
+  });
+});
+
 describe('UsersRepository.updatePatreonByEmail', () => {
   it('matches the user by email using TRIM + lowercase so Stripe casing differences still update', async () => {
     const knex = buildKnexMock();
