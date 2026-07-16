@@ -1,4 +1,6 @@
 import type express from 'express';
+import geoip from 'geoip-lite';
+import { resolveClientIp } from '../rateLimit/ipHelpers';
 
 const ISO_3166_ALPHA2 = /^[A-Z]{2}$/;
 
@@ -8,13 +10,20 @@ const readHeader = (req: express.Request, name: string): string | null => {
   return typeof value === 'string' ? value : null;
 };
 
-export function extractCountryFromRequest(req: express.Request): string | null {
-  const candidate =
-    readHeader(req, 'cloudfront-viewer-country') ??
-    readHeader(req, 'cf-ipcountry') ??
-    readHeader(req, 'x-vercel-ip-country');
+const normalizeCountry = (candidate: string | null): string | null => {
   if (candidate == null) return null;
   const upper = candidate.trim().toUpperCase();
-  if (!ISO_3166_ALPHA2.test(upper)) return null;
-  return upper;
+  return ISO_3166_ALPHA2.test(upper) ? upper : null;
+};
+
+export function extractCountryFromRequest(req: express.Request): string | null {
+  const fromHeader = normalizeCountry(
+    readHeader(req, 'cloudfront-viewer-country') ??
+      readHeader(req, 'cf-ipcountry') ??
+      readHeader(req, 'x-vercel-ip-country')
+  );
+  if (fromHeader != null) return fromHeader;
+
+  const geo = geoip.lookup(resolveClientIp(req));
+  return normalizeCountry(geo?.country ?? null);
 }
