@@ -1,0 +1,150 @@
+{
+  "reasons": {
+    "finished": "Terminé lo que necesitaba",
+    "notEnough": "No lo uso lo suficiente",
+    "tooExpensive": "Demasiado caro",
+    "foundAlternative": "Encontré una alternativa",
+    "technicalIssues": "Problemas técnicos",
+    "other": "Otro"
+  },
+  "subscription": {
+    "premium": "Premium",
+    "unknownDate": "una fecha desconocida",
+    "endsPrefix": "Finaliza",
+    "endedPrefix": "Finalizó",
+    "renewsPrefix": "Se renueva",
+    "accessContinues": "El acceso continúa hasta entonces.",
+    "cancelThisPlan": "Cancelar este plan",
+    "cancelThisPlanNow": "Cancelar este plan ahora",
+    "cancelPlanNoticeWithLabel": "Cancela el plan {{planLabel}} de inmediato. No se cobrará el {{planLabel}} que vence el {{date}}. Esto no se puede deshacer.",
+    "cancelPlanNotice": "Cancela este plan de inmediato. Esto no se puede deshacer.",
+    "processing": "Procesando…",
+    "keepIt": "Mantenerlo",
+    "multipleActive": "Tienes {{count}} suscripciones activas. Es probable que te estén cobrando dos veces — cancela la que no quieras conservar.",
+    "billedThroughApple": "Facturado a través de Apple",
+    "appleManageNotice": "Gestiona o cancela esta suscripción en los ajustes de tu cuenta de Apple: abre Ajustes en tu iPhone o iPad, toca tu nombre y luego Suscripciones.",
+    "pausedResumesPrefix": "En pausa · Se reanuda",
+    "pausedNotice": "No se te cobrará mientras esté en pausa. Tu suscripción se reanuda el {{date}} con {{plan}}. Mientras está en pausa, las funciones de pago se desactivan y todo lo que hayas creado queda guardado.",
+    "yourPlan": "tu plan",
+    "resuming": "Reanudando…",
+    "resumeNow": "Reanudar ahora",
+    "cancelSubscription": "Cancelar suscripción",
+    "legacyForfeit": "Al cancelar, renuncias a esta tarifa antigua.",
+    "cancelNowInstead": "Cancelar ahora en su lugar",
+    "previousPlan": "Plan anterior: {{plan}}.",
+    "readingSubscription": "Leyendo tu suscripción",
+    "linkedEmailHeading": "Correo de 2anki.net vinculado",
+    "managedThroughStripe": "Tu suscripción se gestiona a través de tu cuenta de Stripe en",
+    "youCan": "Puedes:",
+    "manageSubscription": "Gestionar tu suscripción",
+    "updatePayment": "Actualizar los datos de pago",
+    "cancelYourSubscription": "Cancelar tu suscripción",
+    "subscriptionEmail": "Correo de la suscripción",
+    "subscriptionEmailPlaceholder": "Introduce el correo de la suscripción",
+    "emailLinked": "Correo vinculado.",
+    "linking": "Vinculando…",
+    "linkEmail": "Vincular correo"
+  },
+  "cancelFlow": {
+    "whyCancelling": "¿Por qué cancelas? (opcional)",
+    "processing": "Procesando…",
+    "cancelSubscription": "Cancelar suscripción",
+    "keepSubscription": "Mantener suscripción"
+  },
+  "pauseCard": {
+    "pauseInstead": "Ponla en pausa — sin cargos mientras no estés",
+    "notice": "¿Te tomas un descanso entre cuatrimestres? Pon tu suscripción en pausa en lugar de cancelarla. No se te cobrará mientras esté en pausa, y se reanuda sola cuando estés listo. Todo lo que hayas creado queda guardado.",
+    "pauseFor": "Pausar durante",
+    "pauseLengthAria": "Duración de la pausa",
+    "oneMonth": "1 mes",
+    "nMonths": "{{count}} meses",
+    "resumesLine": "Se reanuda el {{date}} con {{plan}}. Cancela cuando quieras antes de esa fecha.",
+    "yourPlan": "tu plan",
+    "pausing": "Pausando…",
+    "pauseSubscription": "Pausar suscripción"
+  },
+  "cancellationFollowUp": {
+    "whyDidYouCancel": "¿Por qué cancelaste? (opcional)",
+    "tellMore": "Cuéntanos más (opcional)",
+    "skip": "Omitir",
+    "sending": "Enviando…",
+    "sendFeedback": "Enviar comentarios"
+  },
+  "accountDeletion": {
+    "deleteAccount": "Eliminar cuenta",
+    "warning": "Todos tus datos se eliminarán de forma permanente. Esto no se puede deshacer.",
+    "deleteAccountQuestion": "¿Eliminar la cuenta?",
+    "close": "cerrar",
+    "cancel": "Cancelar"
+  },
+  "claimSubscription": {
+    "paidDifferentEmail": "¿Pagaste con otro correo?",
+    "sent": "Enviado. Revisa esa bandeja de entrada para ver el enlace de confirmación.",
+    "description": "Si pagaste en Stripe con otra dirección de correo, introdúcela aquí. Enviaremos un enlace de confirmación a esa dirección para asociar la suscripción a esta cuenta.",
+    "emailPlaceholder": "Correo con el que pagaste",
+    "emailLabel": "Correo con el que pagaste",
+    "error": "Algo salió mal. Inténtalo de nuevo en un momento.",
+    "sending": "Enviando…",
+    "sendConfirmation": "Enviar correo de confirmación"
+  },
+  "logOutEverywhere": {
+    "sessions": "Sesiones",
+    "notice": "¿Perdiste un dispositivo? Cierra sesión en todas partes para terminar todas las sesiones, incluida esta. Vuelve a iniciar sesión para continuar.",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar",
+    "logOutEverywhere": "Cerrar sesión en todas partes"
+  },
+  "planDetails": {
+    "lifetimeMeta": "Todas las funciones actuales y futuras.",
+    "premiumMeta": "Tarjetas ilimitadas, todos los formatos.",
+    "free": "Free",
+    "freeMeta": "100 tarjetas al mes.",
+    "seePlans": "Ver planes"
+  },
+  "checkout": {
+    "youreOnUnlimited": "Tienes Unlimited",
+    "thanksActive": "Gracias, {{firstName}} — tu suscripción está activa.",
+    "subscriptionActive": "Tu suscripción está activa.",
+    "makeDeck": "Crear un mazo",
+    "goToAccount": "Ir a la cuenta",
+    "paymentConfirmed": "Tu pago se ha confirmado",
+    "startUsingPrefix": "Para empezar a usar tus nuevas funciones, inicia sesión o crea una cuenta con la ",
+    "sameEmailAddress": "misma dirección de correo",
+    "startUsingSuffix": " que usaste al pagar.",
+    "usedDifferentEmail": "¿Usaste otro correo para el pago?",
+    "linkEmailsPrefix": "Puedes vincular los correos de pago e inicio de sesión desde tu ",
+    "settingsPage": "página de ajustes",
+    "linkEmailsSuffix": " después de iniciar sesión.",
+    "troubleLoggingIn": "¿Problemas para iniciar sesión? Escribe a ",
+    "existingUser": "Usuario existente",
+    "existingUserBody": "Inicia sesión con la dirección de correo asociada a tu pago.",
+    "logIn": "Iniciar sesión",
+    "newUser": "Usuario nuevo",
+    "newUserBody": "Crea una cuenta con la misma dirección de correo que usaste para el pago.",
+    "signUp": "Registrarse",
+    "note": "Nota:",
+    "timeoutBefore": " Todavía estamos procesando la activación de tu suscripción. Si ya has iniciado sesión, puedes probar a visitar la ",
+    "notionPage": "página de Notion",
+    "timeoutAfter": " directamente, o recarga esta página para volver a comprobarlo.",
+    "processingPayment": "Procesando tu pago...",
+    "activatingSubscription": "Estamos activando tu suscripción. Suele tardar solo unos segundos.",
+    "autoRedirect": "Se te redirigirá automáticamente en cuanto tu suscripción esté activa."
+  },
+  "verifyEmail": {
+    "message": "Revisa tu bandeja de entrada — confirma tu correo para proteger tu cuenta.",
+    "dismiss": "Descartar"
+  },
+  "createAccount": {
+    "aria": "Guarda tus próximos mazos",
+    "headline": "Conserva tus próximos mazos",
+    "body": "Con una cuenta gratuita, cada mazo que conviertes se guarda en tu historial de descargas — vuelve a descargar cualquiera de ellos más tarde.",
+    "cta": "Crear una cuenta gratuita"
+  },
+  "accessBanner": {
+    "active": "{{passLabel}} activo — caduca el {{date}}. Convierte todo lo que quieras.",
+    "endsIn": "{{passLabel}} termina en {{time}} — finaliza las conversiones pendientes.",
+    "minutes": "{{count}} minutos",
+    "aboutHours_one": "aproximadamente {{count}} hora",
+    "aboutHours_other": "aproximadamente {{count}} horas"
+  }
+}
