@@ -1,63 +1,42 @@
+import { useTranslation } from 'react-i18next';
+
 import styles from '../../styles/shared.module.css';
 import pageStyles from './SecurityPage.module.css';
 
 export default function SecurityPage() {
+  const { t } = useTranslation('marketing');
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>Security</h1>
+      <h1 className={styles.title}>{t('security.title')}</h1>
 
       <section className={pageStyles.section}>
-        <h2>Report a vulnerability</h2>
-        <p>Email support@2anki.net with details of what you found.</p>
+        <h2>{t('security.reportTitle')}</h2>
+        <p>{t('security.reportBody')}</p>
       </section>
 
       <section className={pageStyles.section}>
-        <h2>What to include</h2>
-        <p>
-          A clear write-up of the issue, steps to reproduce it, what you were
-          able to access or affect, and how severe you think it is. A working
-          proof of concept is helpful but not required.
-        </p>
+        <h2>{t('security.includeTitle')}</h2>
+        <p>{t('security.includeBody')}</p>
       </section>
 
       <section className={pageStyles.section}>
-        <h2>Scope</h2>
-        <p>
-          In scope: 2anki.net and its subdomains, the API, authentication flows,
-          file upload and conversion, user data, and the 2anki/server GitHub
-          repository.
-        </p>
-        <p>
-          Out of scope: third-party services we integrate with (Notion, Stripe,
-          Anthropic, AnkiWeb), social engineering, physical attacks, denial of
-          service without a working amplification proof of concept, automated
-          scanner output without a reproducible exploit, missing security
-          headers or version disclosure without demonstrated impact, and
-          findings on forks or preview deploys.
-        </p>
+        <h2>{t('security.scopeTitle')}</h2>
+        <p>{t('security.scopeIn')}</p>
+        <p>{t('security.scopeOut')}</p>
       </section>
 
       <section className={pageStyles.section}>
-        <h2>Response time</h2>
-        <p>
-          We acknowledge reports within 5 business days. We aim to resolve
-          critical issues within 30 days. This is best-effort — 2anki is a small
-          team. If you have not heard back in a week, follow up at the same
-          address.
-        </p>
+        <h2>{t('security.responseTitle')}</h2>
+        <p>{t('security.responseBody')}</p>
       </section>
 
       <section className={pageStyles.section}>
-        <h2>Rewards</h2>
-        <p>
-          No monetary bounty. If you would like to be credited, say so in your
-          report and we will add your name to the acknowledgements below once
-          the issue is resolved.
-        </p>
+        <h2>{t('security.rewardsTitle')}</h2>
+        <p>{t('security.rewardsBody')}</p>
       </section>
 
       <section className={pageStyles.section}>
-        <h2>Acknowledgements</h2>
+        <h2>{t('security.ackTitle')}</h2>
         <ul>
           <li>
             <a
@@ -66,9 +45,8 @@ export default function SecurityPage() {
               rel="noopener noreferrer"
             >
               endscene665
-            </a>{' '}
-            — server-side request forgery in the Notion bookmark and media
-            fetch. Fixed May 2026.
+            </a>
+            {t('security.ackItem1')}
           </li>
         </ul>
       </section>

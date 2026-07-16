@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import styles from './FeatureDoor.module.css';
@@ -22,8 +23,10 @@ interface FeatureDoorProps {
 export function FeatureDoor({
   featureKey,
   title,
-  question = 'Would you use this?',
+  question,
 }: FeatureDoorProps) {
+  const { t } = useTranslation('marketing');
+  const questionText = question ?? t('featureDoor.defaultQuestion');
   const [stage, setStage] = useState<Stage>({ kind: 'prompt' });
   const [comment, setComment] = useState('');
   const [dismissed, setDismissed] = useState(false);
@@ -64,12 +67,15 @@ export function FeatureDoor({
     stage.kind === 'comment-sent';
 
   return (
-    <aside className={styles.card} aria-label={`Interest in ${title}`}>
+    <aside
+      className={styles.card}
+      aria-label={t('featureDoor.interestAria', { title })}
+    >
       <button
         type="button"
         className={styles.close}
         onClick={() => setDismissed(true)}
-        aria-label="Dismiss"
+        aria-label={t('featureDoor.dismiss')}
       >
         ×
       </button>
@@ -78,40 +84,38 @@ export function FeatureDoor({
 
       {stage.kind === 'prompt' && (
         <>
-          <p className={styles.question}>{question}</p>
+          <p className={styles.question}>{questionText}</p>
           <div className={styles.actions}>
             <button
               type="button"
               className={styles.primary}
               onClick={recordInterest}
             >
-              I&apos;d use this
+              {t('featureDoor.useThis')}
             </button>
           </div>
         </>
       )}
 
       {stage.kind === 'recording' && (
-        <p className={styles.status}>Recording your interest</p>
+        <p className={styles.status}>{t('featureDoor.recording')}</p>
       )}
 
       {confirmed && (
         <>
-          <p className={styles.status}>
-            Noted — we&apos;ll tell you if we build it.
-          </p>
+          <p className={styles.status}>{t('featureDoor.noted')}</p>
           {stage.kind === 'comment-sent' ? (
-            <p className={styles.status}>Thanks — added to the note.</p>
+            <p className={styles.status}>{t('featureDoor.thanksAdded')}</p>
           ) : (
             <>
               <label className={styles.question} htmlFor="feature-door-comment">
-                What would make it useful?
+                {t('featureDoor.whatUseful')}
               </label>
               <input
                 id="feature-door-comment"
                 type="text"
                 className={styles.input}
-                placeholder="One line is plenty."
+                placeholder={t('featureDoor.inputPlaceholder')}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 maxLength={COMMENT_MAX}
@@ -123,7 +127,7 @@ export function FeatureDoor({
                   onClick={sendComment}
                   disabled={stage.kind === 'sending-comment'}
                 >
-                  Send
+                  {t('featureDoor.send')}
                 </button>
               </div>
             </>
@@ -133,14 +137,14 @@ export function FeatureDoor({
 
       {stage.kind === 'error' && (
         <>
-          <p className={styles.status}>Couldn&apos;t save that.</p>
+          <p className={styles.status}>{t('featureDoor.errorSave')}</p>
           <div className={styles.actions}>
             <button
               type="button"
               className={styles.primary}
               onClick={stage.retry}
             >
-              Try again
+              {t('featureDoor.tryAgain')}
             </button>
           </div>
         </>
