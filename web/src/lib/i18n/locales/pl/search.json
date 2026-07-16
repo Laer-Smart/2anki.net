@@ -1,0 +1,58 @@
+{
+  "page": {
+    "titleConnected": "Notion",
+    "titleGetStarted": "Zacznij tutaj",
+    "subtitleConnected": "Znajdź stronę i przekonwertuj ją na talię Anki.",
+    "subtitleDisconnected": "Połącz przestrzeń roboczą Notion lub prześlij pliki, aby tworzyć talie Anki.",
+    "switchWorkspace": "Zmień przestrzeń roboczą"
+  },
+  "limit": {
+    "title": "Wykorzystałeś wszystkie {{limit}} kart w tym miesiącu",
+    "body": "{{used}} / {{limit}} kart · odnawia się {{resetsOn}}, gdy wrócą Twoje darmowe karty",
+    "startingCheckout": "Rozpoczynanie płatności",
+    "getDayPass": "Kup Day Pass — $4",
+    "seePlans": "Zobacz plany"
+  },
+  "connect": {
+    "title": "Połącz swoją przestrzeń roboczą Notion",
+    "body": "Wyszukuj i konwertuj strony bezpośrednio. Czytamy tylko strony, które udostępnisz 2anki.",
+    "connectButton": "Połącz z Notion",
+    "fallbackText": "Albo prześlij plik wyeksportowany z Notion.",
+    "uploadFile": "Prześlij plik"
+  },
+  "searchBar": {
+    "label": "Szukaj w Notion",
+    "placeholder": "Szukaj w Notion"
+  },
+  "results": {
+    "scopeWorkspace": "w „{{workSpace}}”",
+    "scopeGeneric": "w Twojej przestrzeni roboczej Notion",
+    "noMatch": "Żadna strona nie pasuje do „{{query}}” {{scope}}",
+    "noneFound": "Nie znaleziono stron {{scope}}",
+    "emptyBodyPrefix": "Spróbuj innego wyrażenia albo upewnij się, że strona jest udostępniona integracji 2anki — zobacz ",
+    "sharingLink": "ustawienia udostępniania Notion",
+    "emptyBodySuffix": "."
+  },
+  "entry": {
+    "remaking": "Ponowne tworzenie Twojej talii — ",
+    "added": "Dodano do pobranych — ",
+    "view": "zobacz",
+    "paywallText": "Plan darmowy — jedna konwersja naraz.",
+    "upgrade": "Ulepsz plan",
+    "paywallSuffix": " albo poczekaj.",
+    "conflict": "Ta strona jest już konwertowana.",
+    "error": "Nie udało się dodać tej strony do kolejki. Spróbuj ponownie.",
+    "inProgress": "W toku",
+    "convertToAnki": "Konwertuj na Anki",
+    "convert": "Konwertuj",
+    "openInNotion": "Otwórz {{title}} w Notion",
+    "preview": "Podgląd {{title}}",
+    "configureRules": "Skonfiguruj reguły dla {{title}}"
+  },
+  "flashcardType": {
+    "new": "Nowe"
+  },
+  "icon": {
+    "alt": "ikona"
+  }
+}

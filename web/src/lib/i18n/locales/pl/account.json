@@ -1,0 +1,152 @@
+{
+  "reasons": {
+    "finished": "Osiągnąłem to, czego potrzebowałem",
+    "notEnough": "Nie korzystam z tego wystarczająco często",
+    "tooExpensive": "Za drogo",
+    "foundAlternative": "Znalazłem alternatywę",
+    "technicalIssues": "Problemy techniczne",
+    "other": "Inny powód"
+  },
+  "subscription": {
+    "premium": "Premium",
+    "unknownDate": "nieznaną datę",
+    "endsPrefix": "Kończy się",
+    "endedPrefix": "Zakończono",
+    "renewsPrefix": "Odnawia się",
+    "accessContinues": "Dostęp trwa do tego czasu.",
+    "cancelThisPlan": "Anuluj ten plan",
+    "cancelThisPlanNow": "Anuluj ten plan teraz",
+    "cancelPlanNoticeWithLabel": "Anuluje plan {{planLabel}} od razu. Twoja karta nie zostanie obciążona za {{planLabel}} w dniu {{date}}. Tego nie można cofnąć.",
+    "cancelPlanNotice": "Anuluje ten plan od razu. Tego nie można cofnąć.",
+    "processing": "Przetwarzanie…",
+    "keepIt": "Zachowaj",
+    "multipleActive": "Masz {{count}} aktywne subskrypcje. Prawdopodobnie płacisz podwójnie — anuluj tę, której nie chcesz zachować.",
+    "billedThroughApple": "Rozliczane przez Apple",
+    "appleManageNotice": "Zarządzaj tą subskrypcją lub anuluj ją w ustawieniach konta Apple: otwórz Ustawienia na iPhonie lub iPadzie, dotknij swojego imienia, a potem Subskrypcje.",
+    "pausedResumesPrefix": "Wstrzymano · Wznowienie",
+    "pausedNotice": "Podczas wstrzymania nie zostaniesz obciążony. Twoja subskrypcja wznowi się {{date}} w planie {{plan}}. W czasie wstrzymania funkcje płatne są wyłączone, a wszystko, co utworzyłeś, jest zapisane.",
+    "yourPlan": "Twój plan",
+    "resuming": "Wznawianie…",
+    "resumeNow": "Wznów teraz",
+    "cancelSubscription": "Anuluj subskrypcję",
+    "legacyForfeit": "Anulowanie oznacza utratę tej starej stawki.",
+    "cancelNowInstead": "Anuluj teraz zamiast tego",
+    "previousPlan": "Poprzedni plan: {{plan}}.",
+    "readingSubscription": "Wczytywanie Twojej subskrypcji",
+    "linkedEmailHeading": "Powiązany e-mail 2anki.net",
+    "managedThroughStripe": "Twoja subskrypcja jest zarządzana przez Twoje konto Stripe pod adresem",
+    "youCan": "Możesz:",
+    "manageSubscription": "Zarządzaj subskrypcją",
+    "updatePayment": "Zaktualizuj dane płatności",
+    "cancelYourSubscription": "Anuluj subskrypcję",
+    "subscriptionEmail": "E-mail subskrypcji",
+    "subscriptionEmailPlaceholder": "Wpisz e-mail subskrypcji",
+    "emailLinked": "E-mail powiązany.",
+    "linking": "Wiązanie…",
+    "linkEmail": "Powiąż e-mail"
+  },
+  "cancelFlow": {
+    "whyCancelling": "Dlaczego anulujesz? (opcjonalnie)",
+    "processing": "Przetwarzanie…",
+    "cancelSubscription": "Anuluj subskrypcję",
+    "keepSubscription": "Zachowaj subskrypcję"
+  },
+  "pauseCard": {
+    "pauseInstead": "Wstrzymaj zamiast anulować — brak opłat, gdy Cię nie ma",
+    "notice": "Robisz przerwę między semestrami? Wstrzymaj subskrypcję, zamiast ją anulować. W czasie wstrzymania nie zostaniesz obciążony, a subskrypcja sama się wznowi, gdy będziesz gotowy. Wszystko, co utworzyłeś, jest zapisane.",
+    "pauseFor": "Wstrzymaj na",
+    "pauseLengthAria": "Długość wstrzymania",
+    "oneMonth": "1 miesiąc",
+    "nMonths": "{{count}} mies.",
+    "resumesLine": "Wznowienie {{date}} w planie {{plan}}. Możesz anulować w każdej chwili wcześniej.",
+    "yourPlan": "Twój plan",
+    "pausing": "Wstrzymywanie…",
+    "pauseSubscription": "Wstrzymaj subskrypcję"
+  },
+  "cancellationFollowUp": {
+    "whyDidYouCancel": "Dlaczego anulowałeś? (opcjonalnie)",
+    "tellMore": "Powiedz nam więcej (opcjonalnie)",
+    "skip": "Pomiń",
+    "sending": "Wysyłanie…",
+    "sendFeedback": "Wyślij opinię"
+  },
+  "accountDeletion": {
+    "deleteAccount": "Usuń konto",
+    "warning": "Wszystkie Twoje dane zostaną trwale usunięte. Tego nie można cofnąć.",
+    "deleteAccountQuestion": "Usunąć konto?",
+    "close": "zamknij",
+    "cancel": "Anuluj"
+  },
+  "claimSubscription": {
+    "paidDifferentEmail": "Płaciłeś z innego adresu e-mail?",
+    "sent": "Wysłano. Sprawdź tę skrzynkę, szukając linku potwierdzającego.",
+    "description": "Jeśli płaciłeś w Stripe innym adresem e-mail, wpisz go tutaj. Wyślemy na ten adres link potwierdzający, aby powiązać subskrypcję z tym kontem.",
+    "emailPlaceholder": "E-mail, którym płaciłeś",
+    "emailLabel": "E-mail, którym płaciłeś",
+    "error": "Coś poszło nie tak. Spróbuj ponownie za chwilę.",
+    "sending": "Wysyłanie…",
+    "sendConfirmation": "Wyślij e-mail potwierdzający"
+  },
+  "logOutEverywhere": {
+    "sessions": "Sesje",
+    "notice": "Zgubiłeś urządzenie? Wyloguj się wszędzie, aby zakończyć każdą sesję, w tym tę. Zaloguj się ponownie, aby kontynuować.",
+    "confirm": "Potwierdź",
+    "cancel": "Anuluj",
+    "logOutEverywhere": "Wyloguj się wszędzie"
+  },
+  "planDetails": {
+    "lifetimeMeta": "Wszystkie obecne i przyszłe funkcje.",
+    "premiumMeta": "Nieograniczone karty, wszystkie formaty.",
+    "free": "Darmowy",
+    "freeMeta": "100 cards per month.",
+    "seePlans": "Zobacz plany"
+  },
+  "checkout": {
+    "youreOnUnlimited": "Masz plan Unlimited",
+    "thanksActive": "Dzięki, {{firstName}} — Twoja subskrypcja jest aktywna.",
+    "subscriptionActive": "Twoja subskrypcja jest aktywna.",
+    "makeDeck": "Utwórz talię",
+    "goToAccount": "Przejdź do konta",
+    "paymentConfirmed": "Twoja płatność została potwierdzona",
+    "startUsingPrefix": "Aby zacząć korzystać z nowych funkcji, zaloguj się lub utwórz konto z ",
+    "sameEmailAddress": "tym samym adresem e-mail",
+    "startUsingSuffix": ", którego użyłeś przy płatności.",
+    "usedDifferentEmail": "Użyłeś innego e-maila do płatności?",
+    "linkEmailsPrefix": "Możesz powiązać e-mail płatności i logowania na swojej ",
+    "settingsPage": "stronie ustawień",
+    "linkEmailsSuffix": " po zalogowaniu.",
+    "troubleLoggingIn": "Masz problem z logowaniem? Napisz na ",
+    "existingUser": "Istniejący użytkownik",
+    "existingUserBody": "Zaloguj się adresem e-mail powiązanym z Twoją płatnością.",
+    "logIn": "Zaloguj się",
+    "newUser": "Nowy użytkownik",
+    "newUserBody": "Utwórz konto, używając tego samego adresu e-mail, którego użyłeś do płatności.",
+    "signUp": "Zarejestruj się",
+    "note": "Uwaga:",
+    "timeoutBefore": " Wciąż aktywujemy Twoją subskrypcję. Jeśli jesteś już zalogowany, możesz otworzyć ",
+    "notionPage": "stronę Notion",
+    "timeoutAfter": " bezpośrednio albo odświeżyć tę stronę, aby sprawdzić ponownie.",
+    "processingPayment": "Przetwarzanie Twojej płatności…",
+    "activatingSubscription": "Aktywujemy Twoją subskrypcję. Zwykle zajmuje to tylko kilka sekund.",
+    "autoRedirect": "Zostaniesz automatycznie przekierowany, gdy subskrypcja stanie się aktywna."
+  },
+  "verifyEmail": {
+    "message": "Sprawdź skrzynkę — potwierdź e-mail, aby zabezpieczyć konto.",
+    "dismiss": "Zamknij"
+  },
+  "createAccount": {
+    "aria": "Zapisz kolejne talie",
+    "headline": "Zachowaj kolejne talie",
+    "body": "Z darmowym kontem każda przekonwertowana talia trafia do historii pobrań — pobierzesz ją ponownie później.",
+    "cta": "Utwórz darmowe konto"
+  },
+  "accessBanner": {
+    "active": "{{passLabel}} aktywny — wygasa {{date}}. Konwertuj, ile chcesz.",
+    "endsIn": "{{passLabel}} kończy się za {{time}} — dokończ oczekujące konwersje.",
+    "minutes": "{{count}} min",
+    "aboutHours_one": "około {{count}} godziny",
+    "aboutHours_few": "około {{count}} godzin",
+    "aboutHours_many": "około {{count}} godzin",
+    "aboutHours_other": "około {{count}} godziny"
+  }
+}
