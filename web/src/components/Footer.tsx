@@ -1,33 +1,33 @@
-import { getVisibleText } from '../lib/text/getVisibleText';
+import { useTranslation } from 'react-i18next';
+
 import styles from './Footer.module.css';
 
 function Footer() {
+  const { t } = useTranslation('marketing');
   const currentYear = new Date().getFullYear();
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
         <div className={styles.brand}>
           <span className={styles.brandName}>2anki</span>
-          <p className={styles.brandTag}>
-            Turn what you study into Anki flashcards.
-          </p>
+          <p className={styles.brandTag}>{t('footer.brandTag')}</p>
         </div>
         <div className={styles.group}>
-          <span className={styles.groupTitle}>Product</span>
-          <a href="/about">{getVisibleText('navigation.legal.about')}</a>
-          <a href="/app">iOS and macOS app</a>
-          <a href="/documentation">{getVisibleText('navigation.docs')}</a>
-          <a href="/contact">{getVisibleText('navigation.contact')}</a>
+          <span className={styles.groupTitle}>{t('footer.product')}</span>
+          <a href="/about">{t('common:nav.about')}</a>
+          <a href="/app">{t('footer.iosApp')}</a>
+          <a href="/documentation">{t('common:nav.docs')}</a>
+          <a href="/contact">{t('common:nav.contact')}</a>
         </div>
         <div className={styles.group}>
-          <span className={styles.groupTitle}>Legal</span>
+          <span className={styles.groupTitle}>{t('footer.legal')}</span>
           <a href="/documentation/misc/terms-of-service">
-            {getVisibleText('navigation.legal.terms')}
+            {t('common:nav.terms')}
           </a>
           <a href="/documentation/misc/privacy-policy">
-            {getVisibleText('navigation.legal.privacy')}
+            {t('common:nav.privacy')}
           </a>
-          <a href="/security">Security</a>
+          <a href="/security">{t('footer.security')}</a>
         </div>
       </div>
       <div className={styles.bottom}>

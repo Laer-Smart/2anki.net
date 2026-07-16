@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { track } from '../../lib/analytics/track';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
@@ -16,22 +17,21 @@ interface UpsellCardProps {
   readonly hideForAnonymous?: boolean;
 }
 
-const HEADLINE: Record<Surface, string> = {
-  downloads_upsell: 'Converting more this month?',
-  upload_success_upsell: 'More pages to convert?',
+const HEADLINE_KEY: Record<Surface, string> = {
+  downloads_upsell: 'upsell.headlineDownloads',
+  upload_success_upsell: 'upsell.headlineUpload',
 };
 
-const BODY: Record<Surface, string> = {
-  downloads_upsell:
-    'A Day Pass lifts the 100-card limit for 24 hours — no subscription.',
-  upload_success_upsell:
-    'A pass lifts the 100-card monthly cap — for a day or a week, no subscription.',
+const BODY_KEY: Record<Surface, string> = {
+  downloads_upsell: 'upsell.bodyDownloads',
+  upload_success_upsell: 'upsell.bodyUpload',
 };
 
 export function UpsellCard({
   surface,
   hideForAnonymous = false,
 }: UpsellCardProps) {
+  const { t } = useTranslation('marketing');
   const { data } = useUserLocals();
   const [pendingKind, setPendingKind] = useState<'24h' | '7d' | null>(null);
   const upgradeClickedRef = useRef(false);
@@ -104,12 +104,9 @@ export function UpsellCard({
   };
 
   return (
-    <section
-      className={styles.card}
-      aria-label="Keep going without the monthly cap"
-    >
-      <p className={styles.headline}>{HEADLINE[surface]}</p>
-      <p className={styles.body}>{BODY[surface]}</p>
+    <section className={styles.card} aria-label={t('upsell.aria')}>
+      <p className={styles.headline}>{t(HEADLINE_KEY[surface])}</p>
+      <p className={styles.body}>{t(BODY_KEY[surface])}</p>
       <div className={styles.actions}>
         <button
           type="button"
@@ -118,15 +115,15 @@ export function UpsellCard({
           disabled={pendingKind != null}
         >
           {pendingKind === '24h'
-            ? 'Starting checkout'
-            : `Get Day Pass — ${PASS_PRICES['24h']}`}
+            ? t('upsell.startingCheckout')
+            : t('upsell.getDayPass', { price: PASS_PRICES['24h'] })}
         </button>
         <Link
           className={styles.secondary}
           to="/pricing"
           onClick={handleSeePlansClick}
         >
-          See plans
+          {t('upsell.seePlans')}
         </Link>
       </div>
     </section>

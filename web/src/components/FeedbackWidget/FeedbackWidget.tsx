@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
 import styles from './FeedbackWidget.module.css';
@@ -6,9 +7,9 @@ import styles from './FeedbackWidget.module.css';
 type WidgetStatus = 'idle' | 'sending' | 'sent' | 'error';
 
 const EMOJIS = [
-  { label: 'Enraged', emoji: '\u{1F621}', value: 1 },
-  { label: 'Skeptical', emoji: '\u{1F928}', value: 2 },
-  { label: 'Love it', emoji: '\u{1F60D}', value: 5 },
+  { labelKey: 'feedback.ratingEnraged', emoji: '\u{1F621}', value: 1 },
+  { labelKey: 'feedback.ratingSkeptical', emoji: '\u{1F928}', value: 2 },
+  { labelKey: 'feedback.ratingLove', emoji: '\u{1F60D}', value: 5 },
 ] as const;
 
 interface FeedbackWidgetProps {
@@ -22,6 +23,7 @@ export function FeedbackWidget({
   onSubmitted,
   compact = false,
 }: Readonly<FeedbackWidgetProps>) {
+  const { t } = useTranslation('marketing');
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [comment, setComment] = useState('');
   const [email, setEmail] = useState('');
@@ -51,20 +53,20 @@ export function FeedbackWidget({
         aria-live="polite"
         className={compact ? styles.inlineThank : styles.thankYou}
       >
-        Thanks — feedback received.
+        {t('feedback.thanks')}
       </div>
     );
   }
 
   return (
     <div className={compact ? styles.widgetCompact : styles.widget}>
-      {!compact && <p className={styles.prompt}>How's your experience?</p>}
+      {!compact && <p className={styles.prompt}>{t('feedback.prompt')}</p>}
       <div className={styles.emojiRow}>
         {EMOJIS.map((item) => (
           <button
             key={item.value}
             type="button"
-            aria-label={item.label}
+            aria-label={t(item.labelKey)}
             className={`${styles.emojiButton} ${selectedRating === item.value ? styles.emojiSelected : ''}`}
             onClick={() => setSelectedRating(item.value)}
           >
@@ -76,7 +78,7 @@ export function FeedbackWidget({
         <>
           <textarea
             className={styles.commentInput}
-            placeholder="Anything else? (optional)"
+            placeholder={t('feedback.commentPlaceholder')}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={2}
@@ -85,30 +87,28 @@ export function FeedbackWidget({
           <input
             type="email"
             className={styles.emailInput}
-            placeholder="Email (optional)"
-            aria-label="Email (optional)"
+            placeholder={t('feedback.emailPlaceholder')}
+            aria-label={t('feedback.emailPlaceholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             maxLength={254}
             autoComplete="email"
             data-hj-suppress
           />
-          <p className={styles.emailHint}>
-            Only used to follow up on this feedback.
-          </p>
+          <p className={styles.emailHint}>{t('feedback.emailHint')}</p>
           <button
             type="button"
             className={styles.submitButton}
             onClick={handleSubmit}
             disabled={status === 'sending'}
           >
-            {status === 'sending' ? 'Sending' : 'Send feedback'}
+            {status === 'sending' ? t('feedback.sending') : t('feedback.send')}
           </button>
         </>
       )}
       <div role="status" aria-live="polite">
         {status === 'error' && (
-          <p className={styles.errorText}>Something went wrong. Try again?</p>
+          <p className={styles.errorText}>{t('feedback.error')}</p>
         )}
       </div>
     </div>

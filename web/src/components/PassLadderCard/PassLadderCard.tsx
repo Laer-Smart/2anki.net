@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { track } from '../../lib/analytics/track';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
@@ -16,6 +17,7 @@ export function PassLadderCard({
   offerOverride,
   emailOverride,
 }: PassLadderCardProps = {}) {
+  const { t } = useTranslation('marketing');
   const { data } = useUserLocals();
   const shownFiredRef = useRef(false);
   const offer = offerOverride ?? data?.passLadder;
@@ -38,23 +40,20 @@ export function PassLadderCard({
   };
 
   return (
-    <section
-      className={styles.card}
-      aria-label="Unlimited costs less than your passes"
-    >
-      <p className={styles.headline}>
-        Spending more on passes than Unlimited costs?
-      </p>
+    <section className={styles.card} aria-label={t('passLadder.aria')}>
+      <p className={styles.headline}>{t('passLadder.headline')}</p>
       <p className={styles.body}>
-        You&apos;ve bought {offer.passCount} passes — ${offer.spentUsd}.
-        Unlimited is $7.99 a month — no 100-card cap, cancel anytime.
+        {t('passLadder.body', {
+          count: offer.passCount,
+          spent: offer.spentUsd,
+        })}
       </p>
       <a
         className={styles.cta}
         href={getSubscribeLink(emailOverride ?? data?.user?.email)}
         onClick={handleUnlimitedClick}
       >
-        Get Unlimited — $7.99/mo
+        {t('passLadder.cta')}
       </a>
     </section>
   );

@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import styles from './TrustNote.module.css';
 
 interface TrustNoteProps {
@@ -5,20 +7,16 @@ interface TrustNoteProps {
 }
 
 export function TrustNote({ compact = false }: Readonly<TrustNoteProps>) {
+  const { t } = useTranslation('marketing');
   if (compact) {
-    return (
-      <p className={styles.note}>
-        Independent and open source since 2020, built by its contributors —
-        funded by subscribers, not investors.
-      </p>
-    );
+    return <p className={styles.note}>{t('trustNote.compact')}</p>;
   }
 
   return (
     <p className={styles.note}>
-      Independent since 2020. Built by{' '}
-      <span className={styles.name}>Alexander Alemayhu</span> and its
-      contributors, and funded by the people who use it — not investors.
+      {t('trustNote.fullPrefix')}
+      <span className={styles.name}>Alexander Alemayhu</span>
+      {t('trustNote.fullSuffix')}
     </p>
   );
 }
