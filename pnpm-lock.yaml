@@ -353,6 +353,12 @@ importers:
       get-notion-object-title:
         specifier: ^0.2.9
         version: 0.2.9
+      i18next:
+        specifier: ^26.3.6
+        version: 26.3.6(typescript@6.0.3)
+      i18next-browser-languagedetector:
+        specifier: ^8.2.1
+        version: 8.2.1
       monaco-editor:
         specifier: ^0.55.1
         version: 0.55.1
@@ -371,6 +377,9 @@ importers:
       react-helmet-async:
         specifier: ^3.0.0
         version: 3.0.0(react@19.2.7)
+      react-i18next:
+        specifier: ^17.0.10
+        version: 17.0.10(i18next@26.3.6(typescript@6.0.3))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
       react-markdown:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.17)(react@19.2.7)
@@ -4368,6 +4377,9 @@ packages:
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
 
+  html-parse-stringify@3.0.1:
+    resolution: {integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==}
+
   html-to-text@10.0.0:
     resolution: {integrity: sha512-2OH59Gtprdczel+7Rxgpz9hGVJREaf8Lt1H4kZwWHpEn70VQKRuMNGsb2eDbwaTzrYzb0hheiOG1P7Dim0B4dQ==}
     engines: {node: '>=20.19.0'}
@@ -4413,6 +4425,17 @@ packages:
   human-signals@2.1.0:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
     engines: {node: '>=10.17.0'}
+
+  i18next-browser-languagedetector@8.2.1:
+    resolution: {integrity: sha512-bZg8+4bdmaOiApD7N7BPT9W8MLZG+nPTOFlLiJiT8uzKXFjhxw4v2ierCXOwB5sFDMtuA5G4kgYZ0AznZxQ/cw==}
+
+  i18next@26.3.6:
+    resolution: {integrity: sha512-Bu5Z2nAXgfVyM8xvW3jk9EKRIuX37PudsrBViThNFx7CR7aaYTpP01cxNB/E4c4UUzTDiAZRstEhsRfPOL/8xA==}
+    peerDependencies:
+      typescript: ^5 || ^6 || ^7
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   iconv-lite@0.6.3:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
@@ -6082,6 +6105,22 @@ packages:
     peerDependencies:
       react: ^16.6.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
+  react-i18next@17.0.10:
+    resolution: {integrity: sha512-XneHftyYA774MJkkccSkZ5oKrUpCnXIPmxio3wemqrVzCRLWiGXOMbIzObrer03fNDEnm8g8R5yYls4HcE+esg==}
+    peerDependencies:
+      i18next: '>= 26.2.0'
+      react: '>= 16.8.0'
+      react-dom: '*'
+      react-native: '*'
+      typescript: ^5 || ^6 || ^7
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+      typescript:
+        optional: true
+
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -7096,6 +7135,10 @@ packages:
         optional: true
       jsdom:
         optional: true
+
+  void-elements@3.1.0:
+    resolution: {integrity: sha512-Dhxzh5HZuiHQhbvTW9AMetFfBHDMYpo23Uo9btPXgdYP+3T5S+p+jgNy7spra+veYhBP2dCSgxR/i2Y02h5/6w==}
+    engines: {node: '>=0.10.0'}
 
   vscode-jsonrpc@8.2.0:
     resolution: {integrity: sha512-C+r0eKJUIfiDIfwJhria30+TYWPtuHJXHtI7J0YlOmKAo7ogxP20T0zxB7HZQIFhIyvoBPwWskjxrvAtfjyZfA==}
@@ -8653,7 +8696,7 @@ snapshots:
 
   '@radix-ui/primitive@1.0.0':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
 
   '@radix-ui/primitive@1.1.1': {}
 
@@ -8668,7 +8711,7 @@ snapshots:
 
   '@radix-ui/react-collection@1.0.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
       '@radix-ui/react-compose-refs': 1.0.0(react@19.2.7)
       '@radix-ui/react-context': 1.0.0(react@19.2.7)
       '@radix-ui/react-primitive': 1.0.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -8678,7 +8721,7 @@ snapshots:
 
   '@radix-ui/react-compose-refs@1.0.0(react@19.2.7)':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
       react: 19.2.7
 
   '@radix-ui/react-compose-refs@1.1.1(@types/react@19.2.17)(react@19.2.7)':
@@ -8689,7 +8732,7 @@ snapshots:
 
   '@radix-ui/react-context@1.0.0(react@19.2.7)':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
       react: 19.2.7
 
   '@radix-ui/react-context@1.1.1(@types/react@19.2.17)(react@19.2.7)':
@@ -8700,7 +8743,7 @@ snapshots:
 
   '@radix-ui/react-direction@1.0.0(react@19.2.7)':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
       react: 19.2.7
 
   '@radix-ui/react-dismissable-layer@1.1.5(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
@@ -8735,7 +8778,7 @@ snapshots:
 
   '@radix-ui/react-id@1.0.0(react@19.2.7)':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
       '@radix-ui/react-use-layout-effect': 1.0.0(react@19.2.7)
       react: 19.2.7
 
@@ -8799,7 +8842,7 @@ snapshots:
 
   '@radix-ui/react-presence@1.0.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
       '@radix-ui/react-compose-refs': 1.0.0(react@19.2.7)
       '@radix-ui/react-use-layout-effect': 1.0.0(react@19.2.7)
       react: 19.2.7
@@ -8817,7 +8860,7 @@ snapshots:
 
   '@radix-ui/react-primitive@1.0.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
       '@radix-ui/react-slot': 1.0.1(react@19.2.7)
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
@@ -8833,7 +8876,7 @@ snapshots:
 
   '@radix-ui/react-roving-focus@1.0.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
       '@radix-ui/primitive': 1.0.0
       '@radix-ui/react-collection': 1.0.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@radix-ui/react-compose-refs': 1.0.0(react@19.2.7)
@@ -8848,7 +8891,7 @@ snapshots:
 
   '@radix-ui/react-slot@1.0.1(react@19.2.7)':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
       '@radix-ui/react-compose-refs': 1.0.0(react@19.2.7)
       react: 19.2.7
 
@@ -8875,7 +8918,7 @@ snapshots:
 
   '@radix-ui/react-use-callback-ref@1.0.0(react@19.2.7)':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
       react: 19.2.7
 
   '@radix-ui/react-use-callback-ref@1.1.0(@types/react@19.2.17)(react@19.2.7)':
@@ -8886,7 +8929,7 @@ snapshots:
 
   '@radix-ui/react-use-controllable-state@1.0.0(react@19.2.7)':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
       '@radix-ui/react-use-callback-ref': 1.0.0(react@19.2.7)
       react: 19.2.7
 
@@ -8906,7 +8949,7 @@ snapshots:
 
   '@radix-ui/react-use-layout-effect@1.0.0(react@19.2.7)':
     dependencies:
-      '@babel/runtime': 7.29.2
+      '@babel/runtime': 7.29.7
       react: 19.2.7
 
   '@radix-ui/react-use-layout-effect@1.1.0(@types/react@19.2.17)(react@19.2.7)':
@@ -11416,6 +11459,10 @@ snapshots:
 
   html-escaper@2.0.2: {}
 
+  html-parse-stringify@3.0.1:
+    dependencies:
+      void-elements: 3.1.0
+
   html-to-text@10.0.0:
     dependencies:
       '@selderee/plugin-htmlparser2': 0.12.0(selderee@0.12.0)
@@ -11479,6 +11526,14 @@ snapshots:
   httpxy@0.5.5: {}
 
   human-signals@2.1.0: {}
+
+  i18next-browser-languagedetector@8.2.1:
+    dependencies:
+      '@babel/runtime': 7.29.7
+
+  i18next@26.3.6(typescript@6.0.3):
+    optionalDependencies:
+      typescript: 6.0.3
 
   iconv-lite@0.6.3:
     dependencies:
@@ -13532,6 +13587,17 @@ snapshots:
       react-fast-compare: 3.2.2
       shallowequal: 1.1.0
 
+  react-i18next@17.0.10(i18next@26.3.6(typescript@6.0.3))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3):
+    dependencies:
+      '@babel/runtime': 7.29.7
+      html-parse-stringify: 3.0.1
+      i18next: 26.3.6(typescript@6.0.3)
+      react: 19.2.7
+      use-sync-external-store: 1.6.0(react@19.2.7)
+    optionalDependencies:
+      react-dom: 19.2.7(react@19.2.7)
+      typescript: 6.0.3
+
   react-is@16.13.1: {}
 
   react-is@17.0.2: {}
@@ -14654,6 +14720,8 @@ snapshots:
       jsdom: 29.1.1
     transitivePeerDependencies:
       - msw
+
+  void-elements@3.1.0: {}
 
   vscode-jsonrpc@8.2.0: {}
 

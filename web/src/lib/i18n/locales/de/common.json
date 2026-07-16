@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "makeFlashcards": "Karteikarten erstellen",
+    "notionToAnki": "Notion zu Anki",
+    "noteTypes": "Notiztypen",
+    "print": "Stapel drucken",
+    "chat": "Chat",
+    "mindMaps": "Mindmaps",
+    "imageOcclusion": "Bildverdeckung",
+    "photoToDeck": "Foto zu Stapel",
+    "ankiToNotion": "Anki zu Notion",
+    "autoSync": "Auto-Sync",
+    "library": "Bibliothek",
+    "myDecks": "Meine Stapel",
+    "favorites": "Favoriten",
+    "settings": "Einstellungen",
+    "resources": "Ressourcen",
+    "docs": "Doku",
+    "pricing": "Preise",
+    "whatsNew": "Neuigkeiten",
+    "account": "Konto",
+    "logout": "Abmelden",
+    "login": "Anmelden",
+    "upload": "Karteikarten erstellen",
+    "documentation": "Dokumentation",
+    "contact": "Kontakt",
+    "privacy": "Datenschutz",
+    "terms": "Nutzungsbedingungen",
+    "about": "Über uns"
+  },
+  "account": {
+    "title": "Konto",
+    "subscribed": "Abonniert.",
+    "emailVerified": "E-Mail bestätigt.",
+    "dismiss": "Schließen"
+  },
+  "language": {
+    "label": "Sprache",
+    "description": "Wähle die Sprache für die App-Oberfläche.",
+    "picker": "Sprache",
+    "english": "English",
+    "german": "Deutsch"
+  }
+}

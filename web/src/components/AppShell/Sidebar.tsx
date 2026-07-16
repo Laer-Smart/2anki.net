@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../lib/hooks/useTheme';
 import { useCardUsage } from '../../lib/hooks/useCardUsage';
-import { getVisibleText } from '../../lib/text/getVisibleText';
 import {
   getPlanLabel,
   isPayingUser,
@@ -30,6 +30,7 @@ import ShareIcon from '../icons/ShareIcon';
 import { OPS_TABS } from '../../pages/OpsPage/opsTabs';
 import { ThemeSwitcher } from '../ThemeSwitcher/ThemeSwitcher';
 import { ThemeToggle } from '../ThemeSwitcher/ThemeToggle';
+import { LanguagePicker } from '../LanguagePicker/LanguagePicker';
 import styles from './AppShell.module.css';
 import { useSidebarCollapseState } from './useSidebarCollapseState';
 
@@ -216,6 +217,7 @@ export function Sidebar({
   drawerId,
 }: Readonly<SidebarProps>) {
   const { pathname } = useLocation();
+  const { t } = useTranslation();
   const theme = useTheme();
   const { collapsed, onToggleClick, onSidebarInteraction } =
     useSidebarCollapseState(pathname);
@@ -272,7 +274,7 @@ export function Sidebar({
               onClick={handleNavClick()}
               icon={ArrowUpTrayIcon}
             >
-              {getVisibleText('navigation.upload')}
+              {t('nav.makeFlashcards')}
             </SidebarRow>
             <SidebarRow
               href="/notion"
@@ -280,7 +282,7 @@ export function Sidebar({
               onClick={handleNavClick()}
               icon={ArrowRightIcon}
             >
-              Notion to Anki
+              {t('nav.notionToAnki')}
             </SidebarRow>
             <SidebarRow
               href="/templates"
@@ -289,7 +291,7 @@ export function Sidebar({
               onClick={handleNavClick()}
               icon={SwatchIcon}
             >
-              Note types
+              {t('nav.noteTypes')}
             </SidebarRow>
             <SidebarRow
               href="/print"
@@ -298,7 +300,7 @@ export function Sidebar({
               onClick={handleNavClick()}
               icon={PrinterIcon}
             >
-              {getVisibleText('navigation.print')}
+              {t('nav.print')}
             </SidebarRow>
             <SidebarRow
               href="/chat"
@@ -307,7 +309,7 @@ export function Sidebar({
               onClick={handleNavClick()}
               icon={ChatBubbleIcon}
             >
-              Chat
+              {t('nav.chat')}
             </SidebarRow>
             <SidebarRow
               href="/mindmaps"
@@ -315,7 +317,7 @@ export function Sidebar({
               onClick={handleNavClick()}
               icon={ShareIcon}
             >
-              Mind maps
+              {t('nav.mindMaps')}
             </SidebarRow>
             <SidebarRow
               href="/image-occlusion"
@@ -324,7 +326,7 @@ export function Sidebar({
               onClick={handleNavClick()}
               icon={RectangleGroupIcon}
             >
-              Image Occlusion
+              {t('nav.imageOcclusion')}
             </SidebarRow>
             <SidebarRow
               href="/photo-to-deck"
@@ -333,7 +335,7 @@ export function Sidebar({
               onClick={handleNavClick()}
               icon={CameraIcon}
             >
-              Photo to deck
+              {t('nav.photoToDeck')}
             </SidebarRow>
             <SidebarRow
               href="/import"
@@ -342,7 +344,7 @@ export function Sidebar({
               onClick={handleNavClick()}
               icon={ArrowLeftIcon}
             >
-              Anki to Notion
+              {t('nav.ankiToNotion')}
             </SidebarRow>
             {showAnkify && (
               <SidebarRow
@@ -351,19 +353,19 @@ export function Sidebar({
                 onClick={handleNavClick()}
                 icon={SparklesIcon}
               >
-                Auto Sync
+                {t('nav.autoSync')}
               </SidebarRow>
             )}
           </div>
           <div className={styles.sidebarGroup}>
-            <p className={styles.sidebarGroupLabel}>Library</p>
+            <p className={styles.sidebarGroupLabel}>{t('nav.library')}</p>
             <SidebarRow
               href="/downloads"
               pathname={pathname}
               onClick={handleNavClick()}
               icon={LayersIcon}
             >
-              {getVisibleText('navigation.myDecks')}
+              {t('nav.myDecks')}
             </SidebarRow>
             {showFavorites && (
               <SidebarRow
@@ -373,7 +375,7 @@ export function Sidebar({
                 onClick={handleNavClick()}
                 icon={StarIcon}
               >
-                Favorites
+                {t('nav.favorites')}
               </SidebarRow>
             )}
             <SidebarRow
@@ -383,18 +385,18 @@ export function Sidebar({
               onClick={handleNavClick()}
               icon={SettingsIcon}
             >
-              Settings
+              {t('nav.settings')}
             </SidebarRow>
           </div>
           <div className={styles.sidebarGroup}>
-            <p className={styles.sidebarGroupLabel}>Resources</p>
+            <p className={styles.sidebarGroupLabel}>{t('nav.resources')}</p>
             <SidebarRow
               href="/documentation"
               pathname={pathname}
               onClick={handleNavClick()}
               icon={BookOpenIcon}
             >
-              {getVisibleText('navigation.docs')}
+              {t('nav.docs')}
             </SidebarRow>
             {showPricing && (
               <SidebarRow
@@ -404,7 +406,7 @@ export function Sidebar({
                 onClick={handleNavClick()}
                 icon={CreditCardIcon}
               >
-                {getVisibleText('navigation.pricing')}
+                {t('nav.pricing')}
               </SidebarRow>
             )}
           </div>
@@ -432,13 +434,14 @@ export function Sidebar({
         </nav>
         <div className={styles.sidebarTheme}>
           {collapsed ? <ThemeToggle /> : <ThemeSwitcher />}
+          <LanguagePicker />
           {!collapsed && (
             <Link
               to="/whats-new"
               onClick={handleNavClick()}
               className={styles.whatsNewLink}
             >
-              What's new
+              {t('nav.whatsNew')}
             </Link>
           )}
         </div>
@@ -463,39 +466,37 @@ export function Sidebar({
             onClick={handleNavClick()}
             icon={UserCircleIcon}
           >
-            {getVisibleText('navigation.account')}
+            {t('nav.account')}
           </SidebarRow>
           <a
             className={styles.sidebarRow}
             href="/users/logout"
             onClick={handleNavClick(onLogOut)}
-            title={getVisibleText('navigation.logout')}
+            title={t('nav.logout')}
           >
             <ArrowRightOnRectangleIcon width={20} height={20} />
-            <span className={styles.sidebarRowLabel}>
-              {getVisibleText('navigation.logout')}
-            </span>
+            <span className={styles.sidebarRowLabel}>{t('nav.logout')}</span>
           </a>
         </div>
         <div className={styles.sidebarMore}>
           <div className={styles.sidebarMoreLinks}>
             <Link to="/contact" onClick={handleNavClick()}>
-              {getVisibleText('navigation.contact')}
+              {t('nav.contact')}
             </Link>
             <Link
               to="/documentation/misc/privacy-policy"
               onClick={handleNavClick()}
             >
-              {getVisibleText('navigation.legal.privacy')}
+              {t('nav.privacy')}
             </Link>
             <Link
               to="/documentation/misc/terms-of-service"
               onClick={handleNavClick()}
             >
-              {getVisibleText('navigation.legal.terms')}
+              {t('nav.terms')}
             </Link>
             <Link to="/about" onClick={handleNavClick()}>
-              {getVisibleText('navigation.legal.about')}
+              {t('nav.about')}
             </Link>
           </div>
         </div>

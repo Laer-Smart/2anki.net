@@ -8,6 +8,7 @@ import App from './App';
 import { SkeletonPage } from './components/Skeleton/Skeleton';
 import { RootErrorBoundary } from './components/RootErrorBoundary/RootErrorBoundary';
 import { initTheme } from './lib/theme';
+import { initI18n } from './lib/i18n';
 import { recoverFromChunkError } from './lib/chunkReload';
 import { reportClientError } from './lib/reportClientError';
 
@@ -27,6 +28,7 @@ window.addEventListener('vite:preloadError', (event) => {
 
 function main() {
   initTheme();
+  initI18n();
 
   const container = document.getElementById('root');
   const root = createRoot(container!);

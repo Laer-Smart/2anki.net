@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "makeFlashcards": "Make flashcards",
+    "notionToAnki": "Notion to Anki",
+    "noteTypes": "Note types",
+    "print": "Print Decks",
+    "chat": "Chat",
+    "mindMaps": "Mind maps",
+    "imageOcclusion": "Image Occlusion",
+    "photoToDeck": "Photo to deck",
+    "ankiToNotion": "Anki to Notion",
+    "autoSync": "Auto Sync",
+    "library": "Library",
+    "myDecks": "My Decks",
+    "favorites": "Favorites",
+    "settings": "Settings",
+    "resources": "Resources",
+    "docs": "Docs",
+    "pricing": "Pricing",
+    "whatsNew": "What's new",
+    "account": "Account",
+    "logout": "Log out",
+    "login": "Log in",
+    "upload": "Make flashcards",
+    "documentation": "Documentation",
+    "contact": "Contact",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "about": "About"
+  },
+  "account": {
+    "title": "Account",
+    "subscribed": "Subscribed.",
+    "emailVerified": "Email verified.",
+    "dismiss": "Dismiss"
+  },
+  "language": {
+    "label": "Language",
+    "description": "Choose the language for the app interface.",
+    "picker": "Language",
+    "english": "English",
+    "german": "Deutsch"
+  }
+}

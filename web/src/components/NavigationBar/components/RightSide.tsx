@@ -1,6 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import NavbarItem from '../NavbarItem';
-import { getVisibleText } from '../../../lib/text/getVisibleText';
 import { ThemeToggle } from '../../ThemeSwitcher/ThemeToggle';
+import { LanguagePicker } from '../../LanguagePicker/LanguagePicker';
 import styles from '../NavigationBar.module.css';
 
 interface RightSideProps {
@@ -9,25 +10,27 @@ interface RightSideProps {
 }
 
 export function RightSide({ path, isLoggedIn }: Readonly<RightSideProps>) {
+  const { t } = useTranslation();
   return (
     <div className={styles.navEnd}>
       <NavbarItem href="/upload" path={path}>
-        {getVisibleText('navigation.upload')}
+        {t('nav.upload')}
       </NavbarItem>
       <NavbarItem href="/print" path={path}>
-        {getVisibleText('navigation.print')}
+        {t('nav.print')}
       </NavbarItem>
       <NavbarItem href="/documentation" path={path}>
-        {getVisibleText('navigation.docs')}
+        {t('nav.docs')}
       </NavbarItem>
       {isLoggedIn && (
         <NavbarItem href="/pricing" path={path}>
-          {getVisibleText('navigation.pricing')}
+          {t('nav.pricing')}
         </NavbarItem>
       )}
       <NavbarItem href="/login#login" path={path}>
-        {getVisibleText('navigation.login')}
+        {t('nav.login')}
       </NavbarItem>
+      <LanguagePicker />
       <ThemeToggle />
     </div>
   );
