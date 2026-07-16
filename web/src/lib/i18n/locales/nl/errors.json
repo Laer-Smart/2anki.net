@@ -1,0 +1,146 @@
+{
+  "messages": {
+    "notionUnauthorized": {
+      "title": "Je Notion-verbinding is verlopen",
+      "detail": "Log opnieuw in bij Notion om je pagina's te blijven omzetten.",
+      "action": "Notion opnieuw verbinden"
+    },
+    "network": {
+      "title": "Kon 2anki niet bereiken.",
+      "detail": "Check je verbinding en probeer het opnieuw."
+    },
+    "serviceUnavailable": {
+      "title": "De service is nu onbereikbaar.",
+      "detail": "Dit is meestal tijdelijk — probeer het zo weer."
+    },
+    "rateLimited": {
+      "title": "Te veel verzoeken.",
+      "detail": "Probeer het over een minuut opnieuw."
+    },
+    "sessionExpired": {
+      "title": "Sessie verlopen.",
+      "detail": "Log opnieuw in om verder te gaan.",
+      "action": "Inloggen"
+    },
+    "apkgGone": {
+      "title": "Dit deck is niet meer beschikbaar.",
+      "detail": "Geüploade decks worden na een tijdje verwijderd. Converteer of upload het opnieuw om het te bekijken.",
+      "action": "Terug naar downloads"
+    },
+    "notionPageNotFound": {
+      "title": "We konden die Notion-pagina niet openen.",
+      "detail": "Hij is mogelijk verwijderd, of niet meer gedeeld met 2anki. Deel hem opnieuw in Notion, of kies een andere pagina.",
+      "action": "Kies een pagina"
+    },
+    "monthlyLimit": {
+      "title": "Je hebt je maandlimiet bereikt.",
+      "detail": "Upgrade je abonnement om deze maand meer decks om te zetten."
+    },
+    "fallback": {
+      "title": "Er is iets misgegaan.",
+      "detail": "Probeer het opnieuw. Als het probleem blijft, mail support@2anki.net."
+    },
+    "uploadFallback": {
+      "title": "Er ging iets mis bij het lezen van dit bestand.",
+      "detail": "Probeer het opnieuw, of stuur het bestand naar support@2anki.net zodat we de parser kunnen fixen."
+    }
+  },
+  "upload": {
+    "unsupported_format": {
+      "title": "Dit bestandstype wordt niet ondersteund.",
+      "detail": "Gebruik .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, .csv of .xml."
+    },
+    "too_large": {
+      "title": "Deze export is te groot om in één keer om te zetten.",
+      "detail": "Splits hem op in kleinere Notion-subpagina's en zet elke pagina afzonderlijk om."
+    },
+    "password_protected_pdf": {
+      "title": "Deze PDF is met een wachtwoord beveiligd.",
+      "detail": "Verwijder het wachtwoord in je PDF-lezer, sla een kopie op en upload die."
+    },
+    "invalid_markup": {
+      "title": "Een deel van dit bestand heeft opmaak die we niet konden lezen.",
+      "detail": "Open de bron, verwijder of vereenvoudig het blok dat kapot ging en probeer het opnieuw."
+    },
+    "malformed_notion": {
+      "title": "Deze Notion-export kon niet worden verwerkt.",
+      "detail": "Exporteer de pagina opnieuw uit Notion en probeer het opnieuw."
+    },
+    "corrupted_apkg": {
+      "title": "Dit .apkg-bestand is beschadigd.",
+      "detail": "Exporteer het opnieuw uit Anki, of stuur het naar support@2anki.net."
+    },
+    "empty_export": {
+      "title": "Deze export heeft geen inhoud die we in kaarten kunnen omzetten.",
+      "detail": "Controleer of de pagina tekst of toggle-blokken bevat en exporteer opnieuw."
+    },
+    "markdown_likely_lossy": {
+      "title": "Notion Markdown-exports maken toggles plat — exporteer deze pagina als HTML en de toggles worden flashcards."
+    },
+    "claude_parse_failed": {
+      "title": "Er ging iets mis bij het maken van je kaarten.",
+      "detail": "Probeer het opnieuw — als het blijft gebeuren, mail support@2anki.net."
+    },
+    "parser_crash": {
+      "title": "Kon dit bestand niet lezen.",
+      "detail": "Het is mogelijk beschadigd of gebruikt een structuur die we nog niet herkennen. Exporteer opnieuw uit de bron-app, of stuur het bestand naar support@2anki.net."
+    },
+    "worker_timeout": {
+      "title": "Deze conversie duurde langer dan het tijdsbudget.",
+      "detail": "Splits het bestand op in kleinere stukken, of verwijder heel grote ingebedde afbeeldingen."
+    },
+    "notion_rate_limit": {
+      "title": "Notion beperkt onze verzoeken op dit moment.",
+      "detail": "Wacht een minuut en converteer opnieuw."
+    },
+    "notion_object_not_found": {
+      "title": "We konden die Notion-pagina niet openen.",
+      "detail": "Deel hem met de 2anki-integratie in Notion en probeer het opnieuw."
+    },
+    "apkg_too_large_for_anki": {
+      "title": "Dit deck is groter dan Anki's uploadlimiet.",
+      "detail": "Splits het door minder pagina's te togglen, of upload rechtstreeks naar Anki desktop."
+    },
+    "zip_invalid": {
+      "title": "Kon deze zip niet lezen.",
+      "detail": "Zorg dat het de Markdown- & CSV-export uit Notion is, niet de HTML-export."
+    }
+  },
+  "presenter": {
+    "tryAgain": "Opnieuw proberen",
+    "dismiss": "Sluiten"
+  },
+  "rootBoundary": {
+    "chunkTitle": "Deze pagina is bijgewerkt terwijl je hem open had",
+    "chunkSubtitle": "Herlaad om de nieuwste versie te laden. Als herladen niet helpt, herstel lokale gegevens en herlaad.",
+    "resetFailed": "Kon lokale gegevens niet herstellen. Wis sitegegevens voor 2anki in je browserinstellingen en herlaad.",
+    "genericTitle": "Er ging iets mis bij het laden van 2anki",
+    "genericSubtitle": "Probeer te herladen. Als dat niet helpt, herstel lokale gegevens en herlaad.",
+    "reload": "Herladen",
+    "resetLocalData": "Lokale gegevens herstellen"
+  },
+  "domRecovery": {
+    "title": "Er is iets misgegaan",
+    "subtitle": "Een browserextensie stoort mogelijk deze pagina. Herlaad om opnieuw te beginnen.",
+    "reload": "Herladen"
+  },
+  "chunkOverlay": {
+    "updating": "Bijwerken naar de nieuwste versie."
+  },
+  "notFound": {
+    "pageTitle": "Pagina niet gevonden — 2anki",
+    "title": "Pagina niet gevonden",
+    "description": "Deze pagina bestaat niet of is mogelijk verplaatst.",
+    "cta": "Naar de homepage"
+  },
+  "stepIndicator": {
+    "progress": "Conversievoortgang",
+    "uploaded": "Geüpload",
+    "parsing": "Verwerken",
+    "generating": "Genereren",
+    "packaging": "Inpakken"
+  },
+  "skeleton": {
+    "loading": "Laden"
+  }
+}
