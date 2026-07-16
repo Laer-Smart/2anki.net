@@ -58,6 +58,43 @@
       "or": "or",
       "chooseFiles": "Choose files",
       "csvHint": "Name your columns front and back (or question and answer) so 2anki maps them right — otherwise it uses the first column as the front and the second as the back."
+    },
+    "form": {
+      "makingDeck": "Making your deck...",
+      "fetching": "Fetching {{filename}} from {{source}}",
+      "deckReady": "Your deck is ready",
+      "savedToDownloads": "{{deckName}} was saved to your downloads",
+      "makeAnother": "Make another deck",
+      "fallbackDownload": "Didn't get the file? Download it here.",
+      "feedbackLabel": "How was your experience?",
+      "multipleChoice": "{{count}} multiple choice",
+      "decksReady_one": "{{count}} deck ready",
+      "decksReady_other": "{{count}} decks ready",
+      "download": "Download",
+      "downloadAll": "Download all (zip)",
+      "linksExpire": "Links expire in 2 hours — download now.",
+      "makeMore": "Make more decks",
+      "noCardsTitle": "No cards found in this file",
+      "noCardsInFile": "No cards found in {{filename}}",
+      "noCardsBody": "No cards were found in this file. Most files need a toggle-list (Notion) or a question/answer pair to become cards.",
+      "seeCommonProblemsPrefix": "See ",
+      "commonProblems": "common problems",
+      "seeCommonProblemsSuffix": " for the formats that work.",
+      "downloadEmpty": "Download empty deck",
+      "tryDifferent": "Try a different file",
+      "imagesTitle": "These look like images",
+      "imagesBody": "No text to read, so there was nothing to turn into cards. Photo to Deck reads images with AI and drafts cards you review before download.",
+      "tryPhotoToDeck": "Try Photo to Deck",
+      "errorTitle": "Something went wrong",
+      "tryAgain": "Try again",
+      "changeSource": "← Change source",
+      "dropboxPrompt": "Pick a file from your Dropbox to convert it into a deck",
+      "chooseFromDropbox": "Choose from Dropbox",
+      "openingDropbox": "Opening Dropbox",
+      "drivePrompt": "Pick a Doc, Sheet, Slide, or file from your Google Drive.",
+      "driveHint": "Docs work best as a bulleted outline — top bullet asks, indented bullet answers.",
+      "chooseFromDrive": "Choose from Google Drive",
+      "openingDrive": "Opening Google Drive"
     }
   },
   "auth": {
@@ -248,6 +285,114 @@
       "formatsDesc": "PDF, Word, PowerPoint, EPUB, CSV, Markdown, and more",
       "themesTitle": "Themes",
       "themesDesc": "Light, dark, gold, and purple"
+    }
+  },
+  "downloads": {
+    "title": "My decks",
+    "subtitle": "Clean decks — proper cloze, atomic cards, no empty backs. Download straight into Anki.",
+    "emailVerified": "Email verified. You're all set.",
+    "makeAnotherDeck": "Make another deck",
+    "noMatch": "No decks match this filter.",
+    "filters": {
+      "all": "All",
+      "ready": "Ready",
+      "inProgress": "In progress",
+      "failed": "Failed",
+      "fromDropbox": "From Dropbox",
+      "fromDrive": "From Drive"
+    },
+    "columns": {
+      "name": "Name",
+      "source": "Source",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "source": {
+      "notion": "Notion",
+      "upload": "Upload",
+      "app": "From the app",
+      "dropbox": "Dropbox",
+      "drive": "Drive"
+    },
+    "badge": {
+      "writtenWithClaude": "Written with Claude",
+      "monthlyLimitReached": "Monthly limit reached",
+      "partial": "Partial",
+      "shared": "Shared",
+      "imageSkipped_one": "{{count}} image skipped",
+      "imageSkipped_other": "{{count}} images skipped"
+    },
+    "done": "Done",
+    "openInNotion": "Open in Notion",
+    "empty": {
+      "title": "No decks yet",
+      "body": "Paste a Notion link or upload a file to make your first deck.",
+      "makeDeck": "Make a deck",
+      "needHelp": "Need help?",
+      "uploadFile": "Upload a file"
+    },
+    "actions": {
+      "download": "Download",
+      "downloadNamed": "Download {{name}}",
+      "preview": "Preview",
+      "previewNamed": "Preview {{name}}",
+      "delete": "Delete",
+      "deleteNamed": "Delete {{name}}",
+      "cancel": "Cancel",
+      "cancelNamed": "Cancel {{name}}",
+      "remove": "Remove",
+      "removeNamed": "Remove {{name}}",
+      "restart": "Restart",
+      "restartJob": "Restart job"
+    },
+    "toggle": {
+      "collapseLimit": "Collapse monthly limit details",
+      "showLimit": "Show monthly limit details",
+      "collapseFailure": "Collapse failure reason",
+      "showFailure": "Show failure reason",
+      "collapseNote": "Collapse conversion note",
+      "showNote": "Show conversion note",
+      "collapseImageNote": "Collapse image note",
+      "showImageNote": "Show image note"
+    }
+  },
+  "status": {
+    "generating": "Generating flashcards ({{current}} / {{total}})",
+    "queued": "Queued",
+    "inProgress": "In Progress",
+    "done": "Done",
+    "interrupted": "Interrupted",
+    "stuck": "Stuck",
+    "failed": "Failed",
+    "cancelled": "Cancelled"
+  },
+  "settings": {
+    "openFullPage": "Open full page ↗",
+    "close": "close"
+  },
+  "conversionResult": {
+    "success": {
+      "card_one": "card",
+      "card_other": "cards",
+      "helper": "No empty backs, no stray characters. Ready for Anki."
+    },
+    "notionExpired": "Notion connection expired. Reconnect to keep converting pages.",
+    "reconnectNotion": "Reconnect Notion",
+    "emptyDeckTeaching": "2anki makes a card from every Notion toggle — the toggle title becomes the question, what's inside becomes the answer. Wrap your key terms in toggles, then convert again.",
+    "togglesDocs": "See how toggles become cards",
+    "ambiguousColumns": "This database has more than two columns. Pick which column should be the front and back of each card.",
+    "mapColumns": "Map columns",
+    "checkStatusPrefix": "Something looks off? ",
+    "checkStatus": "Check status.",
+    "paywall": {
+      "headlineReached": "You've reached your {{limit}} free cards this month",
+      "headlineUsed": "You've used {{cardsUsed}} of your {{limit}} free cards this month",
+      "bodyNoReset": "This conversion would go past your free limit, so it didn't finish. Get a pass to keep converting now.",
+      "bodyWithReset": "This conversion would go past your free limit, so it didn't finish. Your free cards refresh on {{resetDate}}, or get a pass to keep converting now.",
+      "openingCheckout": "Opening checkout",
+      "getDayPass": "Get Day Pass — {{price}}",
+      "getWeekPass": "Get Week Pass — {{price}}",
+      "upgradeUnlimited": "Upgrade to Unlimited"
     }
   }
 }

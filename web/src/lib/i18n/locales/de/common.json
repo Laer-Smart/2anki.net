@@ -58,6 +58,43 @@
       "or": "oder",
       "chooseFiles": "Dateien auswählen",
       "csvHint": "Benenne deine Spalten front und back (oder question und answer), damit 2anki sie richtig zuordnet — sonst wird die erste Spalte als Vorderseite und die zweite als Rückseite verwendet."
+    },
+    "form": {
+      "makingDeck": "Dein Stapel wird erstellt",
+      "fetching": "{{filename}} wird von {{source}} geladen",
+      "deckReady": "Dein Stapel ist fertig",
+      "savedToDownloads": "{{deckName}} wurde in deinen Downloads gespeichert",
+      "makeAnother": "Noch einen Stapel erstellen",
+      "fallbackDownload": "Datei nicht erhalten? Lade sie hier herunter.",
+      "feedbackLabel": "Wie war deine Erfahrung?",
+      "multipleChoice": "{{count}} Multiple Choice",
+      "decksReady_one": "{{count}} Stapel fertig",
+      "decksReady_other": "{{count}} Stapel fertig",
+      "download": "Herunterladen",
+      "downloadAll": "Alle herunterladen (zip)",
+      "linksExpire": "Links laufen in 2 Stunden ab — lade jetzt herunter.",
+      "makeMore": "Mehr Stapel erstellen",
+      "noCardsTitle": "Keine Karten in dieser Datei gefunden",
+      "noCardsInFile": "Keine Karten in {{filename}} gefunden",
+      "noCardsBody": "In dieser Datei wurden keine Karten gefunden. Die meisten Dateien brauchen eine Toggle-Liste (Notion) oder ein Frage-Antwort-Paar, um zu Karten zu werden.",
+      "seeCommonProblemsPrefix": "Siehe ",
+      "commonProblems": "häufige Probleme",
+      "seeCommonProblemsSuffix": " für die Formate, die funktionieren.",
+      "downloadEmpty": "Leeren Stapel herunterladen",
+      "tryDifferent": "Eine andere Datei versuchen",
+      "imagesTitle": "Das sehen nach Bildern aus",
+      "imagesBody": "Kein Text zum Lesen, also gab es nichts, woraus Karten werden konnten. Foto zu Stapel liest Bilder mit KI und entwirft Karten, die du vor dem Download prüfst.",
+      "tryPhotoToDeck": "Foto zu Stapel ausprobieren",
+      "errorTitle": "Etwas ist schiefgelaufen",
+      "tryAgain": "Erneut versuchen",
+      "changeSource": "← Quelle ändern",
+      "dropboxPrompt": "Wähle eine Datei aus deiner Dropbox, um sie in einen Stapel zu konvertieren",
+      "chooseFromDropbox": "Aus Dropbox wählen",
+      "openingDropbox": "Dropbox wird geöffnet",
+      "drivePrompt": "Wähle ein Doc, Sheet, Slide oder eine Datei aus deinem Google Drive.",
+      "driveHint": "Docs funktionieren am besten als Aufzählungsgliederung — der oberste Punkt fragt, der eingerückte Punkt antwortet.",
+      "chooseFromDrive": "Aus Google Drive wählen",
+      "openingDrive": "Google Drive wird geöffnet"
     }
   },
   "auth": {
@@ -248,6 +285,114 @@
       "formatsDesc": "PDF, Word, PowerPoint, EPUB, CSV, Markdown und mehr",
       "themesTitle": "Designs",
       "themesDesc": "Hell, dunkel, gold und lila"
+    }
+  },
+  "downloads": {
+    "title": "Meine Stapel",
+    "subtitle": "Saubere Stapel — sauberes Cloze, atomare Karten, keine leeren Rückseiten. Lade sie direkt in Anki.",
+    "emailVerified": "E-Mail bestätigt. Alles bereit.",
+    "makeAnotherDeck": "Noch einen Stapel erstellen",
+    "noMatch": "Kein Stapel passt zu diesem Filter.",
+    "filters": {
+      "all": "Alle",
+      "ready": "Fertig",
+      "inProgress": "In Arbeit",
+      "failed": "Fehlgeschlagen",
+      "fromDropbox": "Aus Dropbox",
+      "fromDrive": "Aus Drive"
+    },
+    "columns": {
+      "name": "Name",
+      "source": "Quelle",
+      "created": "Erstellt",
+      "actions": "Aktionen"
+    },
+    "source": {
+      "notion": "Notion",
+      "upload": "Hochgeladen",
+      "app": "Aus der App",
+      "dropbox": "Dropbox",
+      "drive": "Drive"
+    },
+    "badge": {
+      "writtenWithClaude": "Mit Claude geschrieben",
+      "monthlyLimitReached": "Monatslimit erreicht",
+      "partial": "Teilweise",
+      "shared": "Geteilt",
+      "imageSkipped_one": "{{count}} Bild übersprungen",
+      "imageSkipped_other": "{{count}} Bilder übersprungen"
+    },
+    "done": "Fertig",
+    "openInNotion": "In Notion öffnen",
+    "empty": {
+      "title": "Noch keine Stapel",
+      "body": "Füge einen Notion-Link ein oder lade eine Datei hoch, um deinen ersten Stapel zu erstellen.",
+      "makeDeck": "Stapel erstellen",
+      "needHelp": "Brauchst du Hilfe?",
+      "uploadFile": "Datei hochladen"
+    },
+    "actions": {
+      "download": "Herunterladen",
+      "downloadNamed": "{{name}} herunterladen",
+      "preview": "Vorschau",
+      "previewNamed": "Vorschau von {{name}}",
+      "delete": "Löschen",
+      "deleteNamed": "{{name}} löschen",
+      "cancel": "Abbrechen",
+      "cancelNamed": "{{name}} abbrechen",
+      "remove": "Entfernen",
+      "removeNamed": "{{name}} entfernen",
+      "restart": "Neu starten",
+      "restartJob": "Auftrag neu starten"
+    },
+    "toggle": {
+      "collapseLimit": "Monatslimit-Details einklappen",
+      "showLimit": "Monatslimit-Details anzeigen",
+      "collapseFailure": "Fehlergrund einklappen",
+      "showFailure": "Fehlergrund anzeigen",
+      "collapseNote": "Konvertierungshinweis einklappen",
+      "showNote": "Konvertierungshinweis anzeigen",
+      "collapseImageNote": "Bildhinweis einklappen",
+      "showImageNote": "Bildhinweis anzeigen"
+    }
+  },
+  "status": {
+    "generating": "Karteikarten werden erstellt ({{current}} / {{total}})",
+    "queued": "In Warteschlange",
+    "inProgress": "In Arbeit",
+    "done": "Fertig",
+    "interrupted": "Unterbrochen",
+    "stuck": "Hängt fest",
+    "failed": "Fehlgeschlagen",
+    "cancelled": "Abgebrochen"
+  },
+  "settings": {
+    "openFullPage": "Ganze Seite öffnen ↗",
+    "close": "schließen"
+  },
+  "conversionResult": {
+    "success": {
+      "card_one": "Karte",
+      "card_other": "Karten",
+      "helper": "Keine leeren Rückseiten, keine überflüssigen Zeichen. Bereit für Anki."
+    },
+    "notionExpired": "Notion-Verbindung abgelaufen. Verbinde neu, um weiter Seiten zu konvertieren.",
+    "reconnectNotion": "Notion neu verbinden",
+    "emptyDeckTeaching": "2anki erstellt aus jedem Notion-Toggle eine Karte — der Toggle-Titel wird zur Frage, der Inhalt zur Antwort. Verpacke deine Schlüsselbegriffe in Toggles und konvertiere erneut.",
+    "togglesDocs": "So werden Toggles zu Karten",
+    "ambiguousColumns": "Diese Datenbank hat mehr als zwei Spalten. Wähle, welche Spalte die Vorder- und welche die Rückseite jeder Karte sein soll.",
+    "mapColumns": "Spalten zuordnen",
+    "checkStatusPrefix": "Sieht etwas komisch aus? ",
+    "checkStatus": "Status prüfen.",
+    "paywall": {
+      "headlineReached": "Du hast deine {{limit}} kostenlosen Karten diesen Monat erreicht",
+      "headlineUsed": "Du hast {{cardsUsed}} von {{limit}} kostenlosen Karten diesen Monat genutzt",
+      "bodyNoReset": "Diese Konvertierung würde dein kostenloses Limit überschreiten und wurde deshalb nicht abgeschlossen. Hol dir einen Pass, um jetzt weiter zu konvertieren.",
+      "bodyWithReset": "Diese Konvertierung würde dein kostenloses Limit überschreiten und wurde deshalb nicht abgeschlossen. Deine kostenlosen Karten werden am {{resetDate}} aufgefrischt, oder hol dir einen Pass, um jetzt weiter zu konvertieren.",
+      "openingCheckout": "Checkout wird geöffnet",
+      "getDayPass": "Day Pass holen — {{price}}",
+      "getWeekPass": "Week Pass holen — {{price}}",
+      "upgradeUnlimited": "Auf Unlimited upgraden"
     }
   }
 }

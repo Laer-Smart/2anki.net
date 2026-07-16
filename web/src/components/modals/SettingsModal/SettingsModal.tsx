@@ -1,4 +1,5 @@
 import { SyntheticEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
 import { ErrorHandlerType } from '../../errors/helpers/getErrorMessage';
 import { getVisibleText } from '../../../lib/text/getVisibleText';
@@ -22,6 +23,7 @@ function SettingsModal({
   onClickClose,
   setError,
 }: Readonly<Props>) {
+  const { t } = useTranslation();
   const location = useLocation();
   const returnTo = `${location.pathname}${location.search}`;
 
@@ -49,11 +51,11 @@ function SettingsModal({
           </div>
           <div className={styles.headerActions}>
             <Link to={fullPageHref} className={styles.openFullPage}>
-              Open full page ↗
+              {t('settings.openFullPage')}
             </Link>
             <button
               type="button"
-              aria-label="close"
+              aria-label={t('settings.close')}
               onClick={onClickClose}
               className={sharedStyles.modalClose}
             >

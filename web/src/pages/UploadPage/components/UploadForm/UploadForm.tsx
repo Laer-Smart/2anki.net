@@ -841,8 +841,11 @@ function UploadForm({
         </div>
         <p className={formStyles.statusText}>
           {remoteFilename && remoteSource
-            ? `Fetching ${remoteFilename} from ${remoteSource}`
-            : 'Making your deck...'}
+            ? t('upload.form.fetching', {
+                filename: remoteFilename,
+                source: remoteSource,
+              })
+            : t('upload.form.makingDeck')}
         </p>
       </div>
     );
@@ -896,7 +899,9 @@ function UploadForm({
     <div className={formStyles.stateContent}>
       <CheckCircleIcon className={formStyles.iconSuccess} />
       {cardCount == null ? (
-        <p className={formStyles.successPrimary}>Your deck is ready</p>
+        <p className={formStyles.successPrimary}>
+          {t('upload.form.deckReady')}
+        </p>
       ) : (
         <ConversionResult variant="success" count={cardCount} />
       )}
@@ -908,7 +913,7 @@ function UploadForm({
             onClick={() => setMcqDrawerOpen((prev) => !prev)}
             aria-expanded={mcqDrawerOpen}
           >
-            {mcqCount} multiple choice
+            {t('upload.form.multipleChoice', { count: mcqCount })}
             {mcqSkippedCount > 0 && (
               <span
                 className={formStyles.mcqSkipped}
@@ -922,7 +927,7 @@ function UploadForm({
         </>
       )}
       <p className={formStyles.successSecondary} data-hj-suppress>
-        {deckName} was saved to your downloads
+        {t('upload.form.savedToDownloads', { deckName })}
       </p>
       {warningMessage && (
         <p className={formStyles.warningInline}>{warningMessage}</p>
@@ -943,7 +948,7 @@ function UploadForm({
           className={formStyles.fallbackLink}
           onClick={() => downloadRef.current?.click()}
         >
-          Didn't get the file? Download it here.
+          {t('upload.form.fallbackDownload')}
         </button>
       )}
       {successOffer === 'anon_signup' && <CreateAccountNotice />}
@@ -960,10 +965,12 @@ function UploadForm({
           resetForm();
         }}
       >
-        Make another deck
+        {t('upload.form.makeAnother')}
       </button>
       <div className={formStyles.feedbackPrompt}>
-        <p className={formStyles.feedbackLabel}>How was your experience?</p>
+        <p className={formStyles.feedbackLabel}>
+          {t('upload.form.feedbackLabel')}
+        </p>
         <FeedbackWidget page="/upload" compact />
       </div>
     </div>
@@ -980,7 +987,7 @@ function UploadForm({
       <div className={formStyles.stateContent}>
         <CheckCircleIcon className={formStyles.iconSuccess} />
         <p className={formStyles.successPrimary}>
-          {deckCount} {deckCount === 1 ? 'deck' : 'decks'} ready
+          {t('upload.form.decksReady', { count: deckCount })}
         </p>
         {warning && <p className={formStyles.warningInline}>{warning}</p>}
         {droppedImageCount > 0 && (
@@ -1006,10 +1013,12 @@ function UploadForm({
                 href={deck.downloadUrl}
                 download
                 className={formStyles.deckRowDownload}
-                aria-label={`Download ${deck.name}`}
+                aria-label={t('downloads.actions.downloadNamed', {
+                  name: deck.name,
+                })}
                 onClick={onDeckDownload}
               >
-                Download
+                {t('upload.form.download')}
               </a>
             </li>
           ))}
@@ -1020,17 +1029,17 @@ function UploadForm({
           className={formStyles.actionButton}
           onClick={onDeckDownload}
         >
-          Download all (zip)
+          {t('upload.form.downloadAll')}
         </a>
         <p className={formStyles.successSecondary}>
-          Links expire in 2 hours — download now.
+          {t('upload.form.linksExpire')}
         </p>
         <button
           type="button"
           className={formStyles.resetLink}
           onClick={resetForm}
         >
-          Make more decks
+          {t('upload.form.makeMore')}
         </button>
       </div>
     );
@@ -1086,10 +1095,12 @@ function UploadForm({
     }
     return (
       <p className={formStyles.emptyBody}>
-        No cards were found in this file. Most files need a toggle-list (Notion)
-        or a question/answer pair to become cards. See{' '}
-        <a href="/documentation/help/common-problems">common problems</a> for
-        the formats that work.
+        {t('upload.form.noCardsBody')}{' '}
+        {t('upload.form.seeCommonProblemsPrefix')}
+        <a href="/documentation/help/common-problems">
+          {t('upload.form.commonProblems')}
+        </a>
+        {t('upload.form.seeCommonProblemsSuffix')}
       </p>
     );
   };
@@ -1101,8 +1112,10 @@ function UploadForm({
     const isGoogleDriveFile =
       driveMimeType?.startsWith('application/vnd.google-apps.') ?? false;
     const emptyTitle = isGoogleDriveFile
-      ? `No cards found in ${driveFilename ?? 'your file'}`
-      : 'No cards found in this file';
+      ? t('upload.form.noCardsInFile', {
+          filename: driveFilename ?? 'your file',
+        })
+      : t('upload.form.noCardsTitle');
 
     return (
       <div className={formStyles.stateContent}>
@@ -1116,7 +1129,7 @@ function UploadForm({
               className={formStyles.emptyDownloadButton}
               onClick={() => downloadRef.current?.click()}
             >
-              Download empty deck
+              {t('upload.form.downloadEmpty')}
             </button>
           )}
           <button
@@ -1124,7 +1137,7 @@ function UploadForm({
             className={formStyles.resetLink}
             onClick={resetForm}
           >
-            Try a different file
+            {t('upload.form.tryDifferent')}
           </button>
         </div>
       </div>
@@ -1262,17 +1275,18 @@ function UploadForm({
     return (
       <div className={formStyles.stateContent}>
         <WarningIcon className={formStyles.iconError} />
-        <p className={formStyles.errorTitle}>Something went wrong</p>
+        <p className={formStyles.errorTitle}>{t('upload.form.errorTitle')}</p>
         <p className={formStyles.errorBody}>{errorText}</p>
         <p className={formStyles.statusLink}>
-          Something looks off? <Link to="/status">Check status.</Link>
+          {t('conversionResult.checkStatusPrefix')}
+          <Link to="/status">{t('conversionResult.checkStatus')}</Link>
         </p>
         <button
           type="button"
           className={formStyles.actionButton}
           onClick={resetForm}
         >
-          Try again
+          {t('upload.form.tryAgain')}
         </button>
       </div>
     );
@@ -1479,25 +1493,22 @@ function UploadForm({
   const renderImageOnlyState = () => (
     <div className={formStyles.stateContent}>
       <WarningIcon className={formStyles.iconWarning} />
-      <p className={formStyles.emptyTitle}>These look like images</p>
-      <p className={formStyles.emptyBody}>
-        No text to read, so there was nothing to turn into cards. Photo to Deck
-        reads images with AI and drafts cards you review before download.
-      </p>
+      <p className={formStyles.emptyTitle}>{t('upload.form.imagesTitle')}</p>
+      <p className={formStyles.emptyBody}>{t('upload.form.imagesBody')}</p>
       <div className={formStyles.emptyActions}>
         <Link
           to="/photo-to-deck"
           className={formStyles.actionButton}
           onClick={() => track('image_only_photo_deck_clicked')}
         >
-          Try Photo to Deck
+          {t('upload.form.tryPhotoToDeck')}
         </Link>
         <button
           type="button"
           className={formStyles.resetLink}
           onClick={resetForm}
         >
-          Try a different file
+          {t('upload.form.tryDifferent')}
         </button>
       </div>
     </div>
@@ -1688,11 +1699,11 @@ function UploadForm({
               aria-label="Change upload source"
               onClick={() => handleSourceChange('local')}
             >
-              ← Change source
+              {t('upload.form.changeSource')}
             </button>
             <DropboxIcon className={formStyles.dropboxIconLarge} />
             <span className={formStyles.dropText}>
-              Pick a file from your Dropbox to convert it into a deck
+              {t('upload.form.dropboxPrompt')}
             </span>
             <button
               type="button"
@@ -1701,7 +1712,9 @@ function UploadForm({
               disabled={dropboxPending}
               aria-label="Choose from Dropbox"
             >
-              {dropboxPending ? 'Opening Dropbox' : 'Choose from Dropbox'}
+              {dropboxPending
+                ? t('upload.form.openingDropbox')
+                : t('upload.form.chooseFromDropbox')}
             </button>
             <div className={formStyles.formatList}>
               {FORMATS.map((fmt) => (
@@ -1731,15 +1744,14 @@ function UploadForm({
               aria-label="Change upload source"
               onClick={() => handleSourceChange('local')}
             >
-              ← Change source
+              {t('upload.form.changeSource')}
             </button>
             <GoogleDriveIcon className={formStyles.dropboxIconLarge} />
             <span className={formStyles.dropText}>
-              Pick a Doc, Sheet, Slide, or file from your Google Drive.
+              {t('upload.form.drivePrompt')}
             </span>
             <span className={formStyles.shapeHint}>
-              Docs work best as a bulleted outline — top bullet asks, indented
-              bullet answers.
+              {t('upload.form.driveHint')}
             </span>
             <button
               type="button"
@@ -1749,8 +1761,8 @@ function UploadForm({
               aria-label="Choose from Google Drive"
             >
               {drivePending
-                ? 'Opening Google Drive'
-                : 'Choose from Google Drive'}
+                ? t('upload.form.openingDrive')
+                : t('upload.form.chooseFromDrive')}
             </button>
             <div className={formStyles.formatList}>
               {FORMATS.map((fmt) => (

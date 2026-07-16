@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import sharedStyles from '../../../styles/shared.module.css';
 import styles from './EmptyDownloadsSection.module.css';
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export function EmptyDownloadsSection({ isEmpty }: Readonly<Props>) {
+  const { t } = useTranslation();
   if (!isEmpty) {
     return null;
   }
@@ -14,7 +16,9 @@ export function EmptyDownloadsSection({ isEmpty }: Readonly<Props>) {
     <>
       <div className={sharedStyles.card}>
         <div className={sharedStyles.emptyState}>
-          <p className={sharedStyles.sectionTitle}>No decks yet</p>
+          <p className={sharedStyles.sectionTitle}>
+            {t('downloads.empty.title')}
+          </p>
           <p
             style={{
               fontSize: 'var(--text-sm)',
@@ -22,23 +26,23 @@ export function EmptyDownloadsSection({ isEmpty }: Readonly<Props>) {
               margin: '0.5rem 0 1.5rem',
             }}
           >
-            Paste a Notion link or upload a file to make your first deck.
+            {t('downloads.empty.body')}
           </p>
           <Link
             to="/notion"
             className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
           >
-            Make a deck
+            {t('downloads.empty.makeDeck')}
           </Link>
         </div>
       </div>
       <p className={styles.emptyHint}>
-        Need help?{' '}
+        {t('downloads.empty.needHelp')}{' '}
         <Link
           to="/"
           style={{ color: 'var(--color-primary)', textDecoration: 'none' }}
         >
-          Upload a file
+          {t('downloads.empty.uploadFile')}
         </Link>
       </p>
     </>
