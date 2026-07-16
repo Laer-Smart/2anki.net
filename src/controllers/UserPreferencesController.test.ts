@@ -25,6 +25,7 @@ describe('UserPreferencesController.get', () => {
     expect(res.json).toHaveBeenCalledWith({
       cardOptions: null,
       theme: null,
+      language: null,
       ankiWebAcknowledgedAt: null,
     });
   });
@@ -82,6 +83,50 @@ describe('UserPreferencesController.patch', () => {
   it('returns 400 when theme is not a string', async () => {
     const { controller, res } = buildMocks(1);
     const req = { body: { theme: 42 } } as unknown as Request;
+
+    await controller.patch(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it('updates language and round-trips it through get', async () => {
+    const { repo, controller, res } = buildMocks(20);
+    const req = { body: { language: 'de' } } as unknown as Request;
+
+    await controller.patch(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ language: 'de' })
+    );
+    const stored = await repo.get(20);
+    expect(stored.language).toBe('de');
+  });
+
+  it('accepts a BCP-47 region code for language', async () => {
+    const { controller, res } = buildMocks(21);
+    const req = { body: { language: 'en-US' } } as unknown as Request;
+
+    await controller.patch(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ language: 'en-US' })
+    );
+  });
+
+  it('returns 400 when language is not a valid code', async () => {
+    const { controller, res } = buildMocks(1);
+    const req = { body: { language: 'english' } } as unknown as Request;
+
+    await controller.patch(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it('returns 400 when language is not a string', async () => {
+    const { controller, res } = buildMocks(1);
+    const req = { body: { language: 42 } } as unknown as Request;
 
     await controller.patch(req, res);
 

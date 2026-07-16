@@ -2,6 +2,7 @@ import { type ChangeEvent, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { track } from '../../lib/analytics/track';
 import { SUPPORTED_LANGUAGES, type SupportedLanguage } from '../../lib/i18n';
+import { scheduleSync } from '../../lib/data_layer/userPreferencesSync';
 import styles from './LanguagePicker.module.css';
 
 interface LanguagePickerProps {
@@ -24,6 +25,7 @@ export function LanguagePicker({ variant = 'compact' }: LanguagePickerProps) {
       return;
     }
     i18n.changeLanguage(next);
+    scheduleSync();
     track('language_changed', { language: next });
   }
 

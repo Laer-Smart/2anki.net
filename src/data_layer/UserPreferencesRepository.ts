@@ -60,6 +60,7 @@ export type CardOptions = Partial<{
 export interface UserPreferences {
   cardOptions: CardOptions | null;
   theme: string | null;
+  language: string | null;
   ankiWebAcknowledgedAt: string | null;
 }
 
@@ -150,12 +151,13 @@ export class UserPreferencesRepository implements IUserPreferencesRepository {
 
   async get(userId: number): Promise<UserPreferences> {
     const row = await this.database('users')
-      .select('card_options', 'theme', 'anki_web_acknowledged_at')
+      .select('card_options', 'theme', 'language', 'anki_web_acknowledged_at')
       .where({ id: userId })
       .first();
     return {
       cardOptions: row?.card_options ?? null,
       theme: row?.theme ?? null,
+      language: row?.language ?? null,
       ankiWebAcknowledgedAt:
         row?.anki_web_acknowledged_at?.toISOString() ?? null,
     };
@@ -171,6 +173,9 @@ export class UserPreferencesRepository implements IUserPreferencesRepository {
     }
     if (prefs.theme != null) {
       update.theme = prefs.theme;
+    }
+    if (prefs.language != null) {
+      update.language = prefs.language;
     }
     if (prefs.ankiWebAcknowledgedAt != null) {
       update.anki_web_acknowledged_at = this.database.raw(
@@ -195,6 +200,9 @@ export class UserPreferencesRepository implements IUserPreferencesRepository {
     }
     if (prefs.theme != null && current.theme == null) {
       update.theme = prefs.theme;
+    }
+    if (prefs.language != null && current.language == null) {
+      update.language = prefs.language;
     }
     if (
       prefs.ankiWebAcknowledgedAt != null &&
@@ -229,6 +237,7 @@ export class InMemoryUserPreferencesRepository implements IUserPreferencesReposi
       this.store.get(userId) ?? {
         cardOptions: null,
         theme: null,
+        language: null,
         ankiWebAcknowledgedAt: null,
       }
     );
@@ -242,6 +251,7 @@ export class InMemoryUserPreferencesRepository implements IUserPreferencesReposi
     const next: UserPreferences = {
       cardOptions: prefs.cardOptions ?? current.cardOptions,
       theme: prefs.theme ?? current.theme,
+      language: prefs.language ?? current.language,
       ankiWebAcknowledgedAt:
         prefs.ankiWebAcknowledgedAt == null
           ? current.ankiWebAcknowledgedAt
@@ -259,6 +269,7 @@ export class InMemoryUserPreferencesRepository implements IUserPreferencesReposi
     const next: UserPreferences = {
       cardOptions: current.cardOptions ?? prefs.cardOptions ?? null,
       theme: current.theme ?? prefs.theme ?? null,
+      language: current.language ?? prefs.language ?? null,
       ankiWebAcknowledgedAt:
         current.ankiWebAcknowledgedAt ?? prefs.ankiWebAcknowledgedAt ?? null,
     };
