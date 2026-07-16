@@ -1,0 +1,146 @@
+{
+  "messages": {
+    "notionUnauthorized": {
+      "title": "Twoje połączenie z Notion wygasło",
+      "detail": "Zaloguj się ponownie do Notion, aby dalej konwertować strony.",
+      "action": "Połącz ponownie z Notion"
+    },
+    "network": {
+      "title": "Nie udało się połączyć z 2anki.",
+      "detail": "Sprawdź połączenie i spróbuj ponownie."
+    },
+    "serviceUnavailable": {
+      "title": "Usługa jest teraz niedostępna.",
+      "detail": "Zwykle to chwilowe — spróbuj ponownie za moment."
+    },
+    "rateLimited": {
+      "title": "Za dużo żądań.",
+      "detail": "Spróbuj ponownie za minutę."
+    },
+    "sessionExpired": {
+      "title": "Sesja wygasła.",
+      "detail": "Zaloguj się ponownie, aby kontynuować.",
+      "action": "Zaloguj się"
+    },
+    "apkgGone": {
+      "title": "Ta talia nie jest już dostępna.",
+      "detail": "Przesłane talie są usuwane po pewnym czasie. Przekonwertuj ją lub prześlij ponownie, aby zobaczyć podgląd.",
+      "action": "Wróć do pobranych"
+    },
+    "notionPageNotFound": {
+      "title": "Nie udało się otworzyć tej strony Notion.",
+      "detail": "Mogła zostać usunięta albo nie jest już udostępniona 2anki. Udostępnij ją ponownie w Notion albo wybierz inną stronę.",
+      "action": "Wybierz stronę"
+    },
+    "monthlyLimit": {
+      "title": "Osiągnąłeś miesięczny limit.",
+      "detail": "Ulepsz plan, aby konwertować więcej talii w tym miesiącu."
+    },
+    "fallback": {
+      "title": "Coś poszło nie tak.",
+      "detail": "Spróbuj ponownie. Jeśli problem się powtarza, napisz na support@2anki.net."
+    },
+    "uploadFallback": {
+      "title": "Coś się zepsuło przy odczycie tego pliku.",
+      "detail": "Spróbuj ponownie albo wyślij plik na support@2anki.net, żebyśmy mogli naprawić parser."
+    }
+  },
+  "upload": {
+    "unsupported_format": {
+      "title": "Ten typ pliku nie jest obsługiwany.",
+      "detail": "Użyj .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, .csv lub .xml."
+    },
+    "too_large": {
+      "title": "Ten eksport jest za duży, aby przekonwertować go za jednym razem.",
+      "detail": "Podziel go na mniejsze podstrony Notion i przekonwertuj każdą osobno."
+    },
+    "password_protected_pdf": {
+      "title": "Ten plik PDF jest chroniony hasłem.",
+      "detail": "Usuń hasło w czytniku PDF, zapisz kopię i prześlij ją."
+    },
+    "invalid_markup": {
+      "title": "Część tego pliku ma formatowanie, którego nie udało się odczytać.",
+      "detail": "Otwórz źródło, usuń lub uprość blok, który sprawił problem, i spróbuj ponownie."
+    },
+    "malformed_notion": {
+      "title": "Nie udało się przetworzyć tego eksportu Notion.",
+      "detail": "Wyeksportuj stronę ponownie z Notion i spróbuj jeszcze raz."
+    },
+    "corrupted_apkg": {
+      "title": "Ten plik .apkg jest uszkodzony.",
+      "detail": "Wyeksportuj go ponownie z Anki albo wyślij na support@2anki.net."
+    },
+    "empty_export": {
+      "title": "Ten eksport nie zawiera treści, którą można zamienić w karty.",
+      "detail": "Sprawdź, czy strona ma tekst lub bloki list rozwijanych, a potem wyeksportuj ponownie."
+    },
+    "markdown_likely_lossy": {
+      "title": "Eksporty Markdown z Notion spłaszczają listy rozwijane — wyeksportuj tę stronę jako HTML, a listy staną się fiszkami."
+    },
+    "claude_parse_failed": {
+      "title": "Coś poszło nie tak przy tworzeniu Twoich kart.",
+      "detail": "Spróbuj ponownie — jeśli to się powtarza, napisz na support@2anki.net."
+    },
+    "parser_crash": {
+      "title": "Nie udało się odczytać tego pliku.",
+      "detail": "Może być uszkodzony albo używać struktury, której jeszcze nie rozpoznajemy. Wyeksportuj go ponownie z aplikacji źródłowej albo wyślij na support@2anki.net."
+    },
+    "worker_timeout": {
+      "title": "Ta konwersja trwała dłużej niż przydzielony czas.",
+      "detail": "Spróbuj podzielić plik na mniejsze części albo usuń bardzo duże osadzone obrazy."
+    },
+    "notion_rate_limit": {
+      "title": "Notion teraz nas ogranicza.",
+      "detail": "Odczekaj minutę i przekonwertuj ponownie."
+    },
+    "notion_object_not_found": {
+      "title": "Nie udało się otworzyć tej strony Notion.",
+      "detail": "Udostępnij ją integracji 2anki w Notion, a potem spróbuj ponownie."
+    },
+    "apkg_too_large_for_anki": {
+      "title": "Ta talia przekracza limit przesyłania Anki.",
+      "detail": "Podziel ją, rozwijając mniej stron, albo prześlij bezpośrednio do Anki na komputerze."
+    },
+    "zip_invalid": {
+      "title": "Nie udało się odczytać tego pliku zip.",
+      "detail": "Upewnij się, że to eksport Markdown i CSV z Notion, a nie eksport HTML."
+    }
+  },
+  "presenter": {
+    "tryAgain": "Spróbuj ponownie",
+    "dismiss": "Zamknij"
+  },
+  "rootBoundary": {
+    "chunkTitle": "Ta strona została zaktualizowana, gdy była otwarta",
+    "chunkSubtitle": "Odśwież, aby wczytać najnowszą wersję. Jeśli odświeżenie nie pomoże, zresetuj dane lokalne i odśwież.",
+    "resetFailed": "Nie udało się zresetować danych lokalnych. Wyczyść dane witryny 2anki w ustawieniach przeglądarki i odśwież.",
+    "genericTitle": "Coś poszło nie tak przy wczytywaniu 2anki",
+    "genericSubtitle": "Spróbuj odświeżyć. Jeśli to nie pomoże, zresetuj dane lokalne i odśwież.",
+    "reload": "Odśwież",
+    "resetLocalData": "Zresetuj dane lokalne"
+  },
+  "domRecovery": {
+    "title": "Coś poszło nie tak",
+    "subtitle": "Rozszerzenie przeglądarki może zakłócać tę stronę. Odśwież, aby zacząć od nowa.",
+    "reload": "Odśwież"
+  },
+  "chunkOverlay": {
+    "updating": "Aktualizowanie do najnowszej wersji."
+  },
+  "notFound": {
+    "pageTitle": "Nie znaleziono strony — 2anki",
+    "title": "Nie znaleziono strony",
+    "description": "Ta strona nie istnieje albo mogła zostać przeniesiona.",
+    "cta": "Przejdź na stronę główną"
+  },
+  "stepIndicator": {
+    "progress": "Postęp konwersji",
+    "uploaded": "Przesłano",
+    "parsing": "Przetwarzanie",
+    "generating": "Generowanie",
+    "packaging": "Pakowanie"
+  },
+  "skeleton": {
+    "loading": "Wczytywanie"
+  }
+}

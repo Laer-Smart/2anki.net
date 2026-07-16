@@ -1,0 +1,108 @@
+{
+  "page": {
+    "prefilledPrompt": "Próbowałem przekonwertować {{filename}} i utknąłem. Co mogę zrobić?",
+    "prefilledPromptFallback": "ten plik",
+    "loadError": "Nie udało się wczytać tej rozmowy.",
+    "renameError": "Nie udało się zmienić nazwy tej rozmowy.",
+    "deleteError": "Nie udało się usunąć tej rozmowy.",
+    "pastChats": "Poprzednie rozmowy",
+    "newChat": "Nowa rozmowa"
+  },
+  "sidebar": {
+    "newChat": "Nowa rozmowa",
+    "empty": "Brak rozmów. Zacznij poniżej.",
+    "closeConversations": "Zamknij rozmowy",
+    "conversations": "Rozmowy",
+    "conversationTitle": "Tytuł rozmowy",
+    "optionsFor": "Opcje dla {{title}}",
+    "rename": "Zmień nazwę",
+    "delete": "Usuń",
+    "justNow": "przed chwilą"
+  },
+  "message": {
+    "showLess": "Pokaż mniej",
+    "showFull": "Pokaż całą wiadomość",
+    "userMessage": "Wiadomość użytkownika"
+  },
+  "composer": {
+    "writingCards": "Tworzenie Twoich kart",
+    "thinking": "Myślę",
+    "dropToAttach": "Upuść, aby załączyć",
+    "dropHint": "PDF lub obraz, do 10 MB każdy",
+    "uploading": "Przesyłanie",
+    "uploadFailed": "Przesyłanie nie powiodło się",
+    "retry": "Ponów",
+    "remove": "Usuń {{name}}",
+    "attachFiles": "Załącz pliki",
+    "studyingPlaceholder": "Czego się uczysz?",
+    "messageInput": "Pole wiadomości",
+    "sendMessage": "Wyślij wiadomość",
+    "region": "Edytor czatu ze strefą upuszczania plików",
+    "scrollToBottom": "Przewiń na dół"
+  },
+  "heading": {
+    "withFile": "Co chcesz zrobić z tym plikiem?",
+    "studying": "Czego się uczysz?"
+  },
+  "usage": {
+    "messagesLeftOne": "Została 1 wiadomość w tym miesiącu — kolejne wysłanie ją wykorzysta",
+    "messagesLeft": "Pozostało {{count}} z {{limit}} wiadomości w tym miesiącu"
+  },
+  "limitPanel": {
+    "text": "Wykorzystałeś wszystkie {{count}} wiadomości w tym miesiącu. Odnawia się {{date}}.",
+    "seePlans": "Zobacz plany"
+  },
+  "errors": {
+    "cantAttachOne": "Nie można załączyć {{name}}. Działają tu tylko pliki PDF i obrazy.",
+    "cantAttachMany": "Nie można załączyć {{count}} plików. Działają tu tylko pliki PDF i obrazy.",
+    "oversize": "{{name}} ma {{size}}. Limit na plik to 10 MB.",
+    "totalSize": "To razem {{size}}. Wiadomość może przenieść do 25 MB we wszystkich plikach.",
+    "send": "Nie udało się wysłać tej wiadomości. Spróbuj ponownie.",
+    "conversationGone": "Ta rozmowa zniknęła. Zacznij nową.",
+    "rebuild": "Nie udało się przebudować Twoich kart. Spróbuj ponownie.",
+    "addTags": "Nie udało się dodać tagów. Spróbuj ponownie.",
+    "deckGenerate": "Nie udało się wygenerować talii. Spróbuj ponownie."
+  },
+  "tags": {
+    "success_one": "Tagi dodane do {{count}} karty",
+    "success_few": "Tagi dodane do {{count}} kart",
+    "success_many": "Tagi dodane do {{count}} kart",
+    "success_other": "Tagi dodane do {{count}} karty"
+  },
+  "cardPreview": {
+    "correctAnswer": "Poprawna odpowiedź",
+    "addTags": "Dodaj tagi",
+    "downloadDeck": "Pobierz talię",
+    "nameThisDeck": "Nazwij tę talię",
+    "deckName": "Nazwa talii",
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "saveAgain": "Zapisz ponownie",
+    "untitledDeck": "Talia bez nazwy",
+    "savedAs": "Zapisano jako {{name}}.apkg",
+    "renameHint_one": "{{count}} karta. Zapisze się jako {{filename}}.apkg po kliknięciu Zapisz.",
+    "renameHint_few": "{{count}} karty. Zapiszą się jako {{filename}}.apkg po kliknięciu Zapisz.",
+    "renameHint_many": "{{count}} kart. Zapiszą się jako {{filename}}.apkg po kliknięciu Zapisz.",
+    "renameHint_other": "{{count}} karty. Zapiszą się jako {{filename}}.apkg po kliknięciu Zapisz.",
+    "front": "Przód",
+    "back": "Tył",
+    "tags": "Tagi",
+    "addingTags": "Dodawanie tagów",
+    "showFewer": "Pokaż mniej",
+    "showAll": "Pokaż wszystkie {{count}} karty",
+    "card_one": "karta",
+    "card_few": "karty",
+    "card_many": "kart",
+    "card_other": "karty"
+  },
+  "codeBlock": {
+    "copyCode": "Kopiuj kod",
+    "copied": "Skopiowano",
+    "copy": "Kopiuj"
+  },
+  "templateSelector": {
+    "noteTypeAria": "Typ notatki: {{label}}",
+    "noteTypeLabel": "Typ notatki: {{label}}",
+    "listboxLabel": "Typ notatki"
+  }
+}

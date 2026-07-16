@@ -1,0 +1,224 @@
+{
+  "steps": {
+    "dropFile": {
+      "title": "Upuść plik",
+      "body": "Eksport z Notion, PDF, Word, Markdown albo eksport z Quizlet."
+    },
+    "buildsDeck": {
+      "title": "2anki tworzy Twoją talię",
+      "body": "Zwykle kilka sekund. Większe pliki zajmują minutę."
+    },
+    "openInAnki": {
+      "title": "Otwórz ją w Anki",
+      "body": "Kliknij dwukrotnie plik .apkg. Twoje karty są gotowe do nauki."
+    }
+  },
+  "sections": {
+    "howItWorks": "Jak to działa",
+    "supportedFormats": "Obsługiwane formaty",
+    "whatYouGet": "Co faktycznie dostajesz w Anki",
+    "commonQuestions": "Częste pytania",
+    "related": "Powiązane"
+  },
+  "hero": {
+    "freeQuota": "Za darmo · do 1 000 kart na import",
+    "orPrefix": "albo ",
+    "signUpFree": "zarejestruj się za darmo",
+    "tryUnlimited": "wypróbuj Unlimited za darmo przez 1 godzinę"
+  },
+  "footer": {
+    "readyPrefix": "Gotowy, aby spróbować? ",
+    "dropLink": "Upuść plik na górze tej strony."
+  },
+  "hub": {
+    "h1": "Konwertuj cokolwiek na Anki",
+    "subhead": "Wybierz źródło. Każdy konwerter zamienia Twoje notatki, pliki lub fiszki w czystą talię .apkg, którą powtarzasz w Anki.",
+    "groups": {
+      "note-apps": "Aplikacje do notatek",
+      "flashcard-apps": "Aplikacje do fiszek",
+      "files": "Pliki",
+      "language-tools": "Narzędzia językowe"
+    }
+  },
+  "answers": {
+    "faqHeading": "Najczęściej zadawane pytania",
+    "convert-notion-to-anki": {
+      "h1": "Jak przekonwertować Notion na fiszki Anki",
+      "intro": "Notion przechowuje Twoje notatki. Anki zamienia je w system powtórek. 2anki wypełnia lukę — dostajesz talię .apkg z dowolnej strony Notion w niecałą minutę."
+    },
+    "notion-to-anki-sync": {
+      "h1": "Automatyczna synchronizacja Notion z Anki",
+      "intro": "Auto Sync obserwuje Twoje połączone strony Notion i przesyła zmiany do talii Anki co 5 minut. Zmień listę rozwijaną w Notion, a karta zaktualizuje się w Anki przed kolejną sesją powtórek."
+    },
+    "pdf-to-anki": {
+      "h1": "Jak przekonwertować plik PDF na fiszki Anki",
+      "intro": "Prześlij plik PDF do 2anki i pobierz talię .apkg. Działa ze slajdami z wykładów, rozdziałami podręczników i dowolnym plikiem PDF z warstwą tekstową."
+    },
+    "quizlet-to-anki": {
+      "h1": "Jak przejść z Quizlet do Anki",
+      "intro": "Quizlet przechowuje Twoje zestawy. Anki daje Ci porządny algorytm powtórek rozłożonych w czasie. 2anki konwertuje eksport z Quizlet w talię .apkg, którą otwierasz w Anki bezpośrednio."
+    },
+    "fsrs-explained": {
+      "h1": "FSRS w Anki — czym jest i dlaczego Twoja następna powtórka wygląda źle",
+      "intro": "FSRS to nowoczesny algorytm powtórek rozłożonych w czasie, który Anki dostarcza od wersji 23.10 (listopad 2023). Wciąż jest opcjonalny — SM-2 pozostaje domyślny — ale jest szeroko polecany w społeczności, a podręcznik Anki przedstawia go jako dokładniejszy niż SM-2. FSRS przewiduje, jak długo zapamiętasz kartę, i planuje kolejną powtórkę w chwili, gdy prawdopodobieństwo przypomnienia spada do 90%. Dla karty, którą odpowiadasz z łatwością, ten moment może być za rok lub później — stąd pytanie „dlaczego moja następna powtórka jest za 17 miesięcy”, które co tydzień zalewa r/Anki."
+    },
+    "lecture-notes-to-anki": {
+      "h1": "Jak zamienić notatki z wykładów w fiszki Anki",
+      "intro": "Twoje notatki z wykładów już gdzieś są — slajdy PDF, dokument Word lub Google, strona Notion albo zdjęcie zrobione na zajęciach. 2anki odczytuje każde z nich i daje Ci talię .apkg, którą otwierasz w Anki. Wybierz źródło pasujące do Twoich notatek i zacznij powtarzać jeszcze tego samego dnia."
+    },
+    "word-to-anki": {
+      "h1": "Jak przekonwertować dokument Word na Anki",
+      "intro": "Jeśli Twoje notatki są w dokumencie Word, nie musisz odbudowywać ich jako kart ręcznie. Prześlij plik .docx do 2anki i pobierz talię .apkg, która otwiera się w Anki. Nagłówki, obrazy i formatowanie przechodzą razem z nimi."
+    },
+    "image-occlusion-anki": {
+      "h1": "Jak tworzyć karty z zasłanianiem obrazu w Anki",
+      "intro": "Karty z zasłanianiem obrazu ukrywają część diagramu i proszą, byś przypomniał sobie, co jest pod spodem — najszybszy sposób na zapamiętanie anatomii, struktur, map i opisanych rysunków. Prześlij obraz do 2anki, zamaskuj części, które chcesz sprawdzić, i pobierz talię Anki."
+    },
+    "google-docs-to-anki": {
+      "h1": "Jak przekonwertować Google Docs na fiszki Anki",
+      "intro": "Google Docs nie łączy się z 2anki bezpośrednio, ale nie musisz niczego przepisywać. Pobierz dokument jako Word (.docx) lub Markdown, prześlij plik i pobierz talię .apkg, która otwiera się w Anki. Nagłówki, obrazy i formatowanie przechodzą razem z nimi."
+    },
+    "handwritten-notes-to-anki": {
+      "h1": "Jak zamienić odręczne notatki w fiszki Anki",
+      "intro": "Odręczne notatki trudno powtarzać i nie da się ich przeszukać. Sfotografuj stronę, prześlij ją do 2anki, a narzędzie zdjęcie na talię odczyta ją z pomocą AI i naszkicuje karty do przejrzenia przed pobraniem. Dostajesz talię .apkg, która otwiera się w Anki."
+    },
+    "textbook-to-anki": {
+      "h1": "Jak zamienić rozdział podręcznika w fiszki Anki",
+      "intro": "Rozdział podręcznika to sporo materiału do przerobienia na karty ręcznie. Prześlij rozdział jako plik PDF, a 2anki odczyta jego tekst w karty pytanie-odpowiedź, zachowa rysunki i da Ci talię .apkg. Konwertuj po jednym rozdziale naraz, żeby każda talia pozostała możliwa do powtarzania."
+    },
+    "kindle-highlights-to-anki": {
+      "h1": "Jak przekonwertować zaznaczenia z Kindle na fiszki Anki",
+      "intro": "Każde zaznaczenie na Kindle jest zapisywane w jednym pliku o nazwie My Clippings.txt. 2anki odczytuje ten plik i zamienia każdy fragment w kartę, więc wiersze, które zaznaczyłeś podczas czytania, stają się talią, którą powtarzasz w Anki. Dostajesz .apkg, który otwierasz podwójnym kliknięciem."
+    },
+    "language-app-to-anki": {
+      "h1": "Jak przenieść fiszki z aplikacji językowej do Anki",
+      "intro": "Aplikacje językowe dobrze wychwytują słownictwo, ale słabo radzą sobie z długoterminowymi powtórkami. Anki daje Ci porządny algorytm powtórek rozłożonych w czasie. Niezależnie od tego, w której aplikacji zacząłeś, droga jest ta sama: wyeksportuj plik, prześlij go do 2anki i pobierz talię .apkg, którą uczysz się na dowolnym urządzeniu. Oto jak każda popularna aplikacja pasuje do tej drogi."
+    },
+    "obsidian-to-anki": {
+      "h1": "Jak przekonwertować notatki Obsidian na fiszki Anki",
+      "intro": "Notatki Obsidian to zwykłe pliki Markdown, co oznacza, że konwertują się do Anki bez wtyczki. Prześlij plik .md do 2anki i pobierz talię .apkg, która otwiera się w Anki. Punkty, pary pytanie-odpowiedź, nagłówki i bloki kodu — wszystko przechodzi razem."
+    }
+  },
+  "pages": {
+    "ai-flashcard-generator": {
+      "h1": "Zamień notatki w karty Anki",
+      "subhead": "Prawdziwe notatki na wejściu, prawdziwe karty na wyjściu. 2anki tworzy talię z tego, co prześlesz — nigdy nie wymyśla faktów."
+    },
+    "anki-to-notion": {
+      "h1": "Zaimportuj talie Anki do Notion jednym kliknięciem.",
+      "subhead": "Prześlij plik .apkg. Odbierz każdą kartę jako listę rozwijaną na stronie Notion, którą możesz powtarzać, przeszukiwać i edytować."
+    },
+    "goodnotes-to-anki": {
+      "h1": "Zamień GoodNotes w fiszki Anki",
+      "subhead": "Wyeksportuj notatnik jako PDF, upuść go tutaj i pobierz talię Anki."
+    },
+    "anki-for-japanese": {
+      "h1": "Notion do Anki dla japońskiego i nauki języków",
+      "subhead": "Upuść stronę Notion z wykopanymi zdaniami lub słownictwem. Zrzuty ekranu, dźwięk i czytania przechodzą tak, jak je zapisałeś."
+    },
+    "markdown-to-anki": {
+      "h1": "Zamień notatki Markdown w karty Anki",
+      "subhead": "Upuść plik .md i pobierz talię — punkty i pary pytanie/odpowiedź przechodzą razem."
+    },
+    "mcat-anki": {
+      "h1": "Zamień powtórkę materiału do MCAT w karty Anki, które kontrolujesz",
+      "subhead": "Upuść PDF lub eksport Notion z notatkami powtórkowymi — aminokwasy, reakcje organiczne, terminy z psychologii i socjologii. 2anki tworzy czyste karty z Twojego materiału, a nie ze zgadywania."
+    },
+    "anki-from-medical-lecture-slides": {
+      "h1": "Zamień slajdy z wykładów w karty Anki",
+      "subhead": "Prześlij PDF ze slajdami — nagłówki stają się nazwami talii, punkty stają się kartami."
+    },
+    "nclex-anki": {
+      "h1": "Zamień notatki powtórkowe do NCLEX w karty Anki, które kontrolujesz",
+      "subhead": "Upuść PDF lub eksport Notion z notatkami z Saunders, UWorld lub ATI — wartości laboratoryjne, końcówki nazw leków, priorytety i delegowanie. 2anki tworzy czyste karty z Twojego materiału, a nie ze zgadywania."
+    },
+    "notion-to-anki": {
+      "h1": "Notion do Anki — za darmo, bez dodatku",
+      "subhead": "Połącz Notion raz, wklej dowolny link do strony, odbierz talię .apkg. Nic nie trzeba instalować."
+    },
+    "nursing-flashcards": {
+      "h1": "Fiszki Anki ze slajdów i notatek z wykładów pielęgniarskich",
+      "subhead": "Upuść PDF lub eksport Notion. 2anki wyłuska terminy, leki i procedury."
+    },
+    "pdf-to-anki": {
+      "h1": "Twórz fiszki Anki z pliku PDF",
+      "subhead": "Upuść PDF, a wyłuskamy tekst, który zamienisz w karty."
+    },
+    "powerpoint-to-anki": {
+      "h1": "Twórz fiszki Anki z prezentacji PowerPoint",
+      "subhead": "Upuść plik .pptx, a 2anki odczyta tekst z Twoich slajdów i zbuduje talię Anki, którą możesz edytować."
+    },
+    "quizlet-to-anki": {
+      "h1": "Przenieś swój zestaw Quizlet do Anki",
+      "subhead": "Wyeksportuj z Quizlet, upuść plik tutaj i pobierz talię Anki."
+    },
+    "step1-anki": {
+      "h1": "Zamień adnotacje z First Aid i notatki z wykładów w karty do Step 1, które kontrolujesz",
+      "subhead": "Anki to fundament przygotowań do Step 1. Prześlij opisane strony First Aid, konspekty Pathoma lub pliki PDF z wykładów i odbierz czyste, wartościowe karty — zbudowane z Twojego materiału, nigdy wymyślone."
+    },
+    "usmle-anki": {
+      "h1": "Talie do USMLE Step 1 i Step 2 z Twoich własnych notatek",
+      "subhead": "Prześlij slajdy z wykładów, eksporty First Aid lub dowolny plik PDF. Wartościowe karty, gotowe do powtórek rozłożonych w czasie."
+    },
+    "convert-notion-to-anki": {
+      "h1": "Notion do Anki — zamień notatki w fiszki",
+      "subhead": "Połącz Notion raz, wklej dowolny link do strony, odbierz talię .apkg. Listy rozwijane stają się kartami. Bez dodatku, bez kopiowania i wklejania."
+    },
+    "convert-pdf-to-anki": {
+      "h1": "Konwertuj PDF na Anki — fiszki ze slajdów z wykładów i rozdziałów podręczników",
+      "subhead": "Upuść PDF z wykładu, eksport slajdów lub rozdział podręcznika i pobierz talię .apkg. 2anki odczytuje tekst w karty pytanie-odpowiedź, przełącza się na karty obrazkowe, gdy strona nie ma tekstu, i potrafi napisać karty z pomocą AI, gdy PDF jest gęsty."
+    },
+    "convert-markdown-to-anki": {
+      "h1": "Markdown do Anki — konwertuj pliki .md i notatki Obsidian",
+      "subhead": "Upuść plik .md i pobierz talię — punkty, pary pytanie/odpowiedź i bloki kodu przechodzą razem."
+    },
+    "convert-csv-to-anki": {
+      "h1": "CSV do Anki — importuj arkusze jako talie fiszek",
+      "subhead": "Upuść plik .csv i odbierz talię .apkg. Kolumna A staje się przodem, wszystko po A łączy się w tył. Działa też z eksportami Excel."
+    },
+    "convert-html-to-anki": {
+      "h1": "HTML do Anki — zamień strony internetowe w talie fiszek",
+      "subhead": "Upuść plik .html i pobierz talię .apkg. Nagłówki, punkty i tabele przechodzą razem."
+    },
+    "convert-apkg-to-csv": {
+      "h1": "Talia Anki do CSV — wyeksportuj karty do arkusza",
+      "subhead": "Upuść plik .apkg i pobierz CSV. Przód, tył i tag każdej karty w jednym arkuszu, który możesz edytować."
+    },
+    "convert-notion-tables-to-anki": {
+      "h1": "Tabele Notion do Anki — jeden wiersz, jedna karta",
+      "subhead": "Wklej stronę Notion z tabelą. Kolumna 1 staje się przodem, kolumna 2 staje się tyłem."
+    },
+    "convert-brainscape-to-anki": {
+      "h1": "Przenieś swoje fiszki Brainscape do Anki",
+      "subhead": "Wyeksportuj talię Brainscape jako CSV, upuść ją tutaj i odbierz talię .apkg, która otwiera się czysto w Anki."
+    },
+    "convert-lingvist-to-anki": {
+      "h1": "Przenieś swoje fiszki Lingvist do Anki",
+      "subhead": "Wyeksportuj słownictwo Lingvist jako CSV, upuść je tutaj i odbierz talię .apkg. Twoje słowa i tłumaczenia przechodzą jako podstawowe karty."
+    },
+    "convert-studystack-to-anki": {
+      "h1": "Przenieś swoje fiszki StudyStack do Anki",
+      "subhead": "Wyeksportuj StudyStack jako CSV, upuść go tutaj i odbierz talię .apkg. Terminy i definicje stają się podstawowymi kartami gotowymi do powtórek w Anki."
+    },
+    "convert-pleco-to-anki": {
+      "h1": "Przenieś swoje fiszki Pleco do Anki",
+      "subhead": "Wyeksportuj słownik użytkownika Pleco jako plik .txt, upuść go tutaj i odbierz talię .apkg. Hanzi, pinyin i definicje przechodzą jako podstawowe karty."
+    },
+    "convert-zorbi-to-anki": {
+      "h1": "Przenieś swoje fiszki Zorbi do Anki",
+      "subhead": "Wyeksportuj talię Zorbi jako CSV, upuść ją tutaj i odbierz talię .apkg. Pytania i odpowiedzi stają się podstawowymi kartami Anki."
+    },
+    "convert-language-reactor-to-anki": {
+      "h1": "Przenieś swoje zapisy z Language Reactor do Anki",
+      "subhead": "Upuść eksport zip z Language Reactor — Twoje zapisane frazy, obrazy i dźwięk przechodzą jako czysty .apkg, który uczysz się na dowolnym urządzeniu."
+    },
+    "convert-epub-to-anki": {
+      "h1": "Zaznaczenia EPUB do Anki — od zaznaczeń w e-booku do kart",
+      "subhead": "Upuść plik .epub bez DRM i pobierz .apkg. Każdy zaznaczony fragment staje się kartą, z tytułem i autorem książki na tyle."
+    },
+    "convert-kindle-to-anki": {
+      "h1": "Zaznaczenia Kindle do Anki — od My Clippings.txt do talii",
+      "subhead": "Skopiuj My Clippings.txt ze swojego Kindle, upuść go tutaj i pobierz .apkg. Każdy zaznaczony fragment — i każda wpisana notatka — staje się kartą."
+    }
+  }
+}
