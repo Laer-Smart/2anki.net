@@ -1,0 +1,102 @@
+{
+  "page": {
+    "prefilledPrompt": "Ho provato a convertire {{filename}} e mi sono bloccato. Cosa posso fare?",
+    "prefilledPromptFallback": "questo file",
+    "loadError": "Non siamo riusciti a caricare questa conversazione.",
+    "renameError": "Non siamo riusciti a rinominare questa conversazione.",
+    "deleteError": "Non siamo riusciti a eliminare questa conversazione.",
+    "pastChats": "Chat precedenti",
+    "newChat": "Nuova chat"
+  },
+  "sidebar": {
+    "newChat": "Nuova chat",
+    "empty": "Ancora nessuna conversazione. Iniziane una qui sotto.",
+    "closeConversations": "Chiudi le conversazioni",
+    "conversations": "Conversazioni",
+    "conversationTitle": "Titolo della conversazione",
+    "optionsFor": "Opzioni per {{title}}",
+    "rename": "Rinomina",
+    "delete": "Elimina",
+    "justNow": "poco fa"
+  },
+  "message": {
+    "showLess": "Mostra meno",
+    "showFull": "Mostra il messaggio completo",
+    "userMessage": "Messaggio utente"
+  },
+  "composer": {
+    "writingCards": "Sto scrivendo le tue carte",
+    "thinking": "Sto pensando",
+    "dropToAttach": "Trascina per allegare",
+    "dropHint": "PDF o immagine, fino a 10 MB ciascuno",
+    "uploading": "Caricamento",
+    "uploadFailed": "Caricamento non riuscito",
+    "retry": "Riprova",
+    "remove": "Rimuovi {{name}}",
+    "attachFiles": "Allega file",
+    "studyingPlaceholder": "Cosa stai studiando?",
+    "messageInput": "Campo del messaggio",
+    "sendMessage": "Invia il messaggio",
+    "region": "Editor della chat con area di rilascio file",
+    "scrollToBottom": "Scorri in fondo"
+  },
+  "heading": {
+    "withFile": "Cosa vuoi fare con questo file?",
+    "studying": "Cosa stai studiando?"
+  },
+  "usage": {
+    "messagesLeftOne": "1 messaggio rimasto questo mese — il prossimo invio lo consuma",
+    "messagesLeft": "{{count}} di {{limit}} messaggi rimasti questo mese"
+  },
+  "limitPanel": {
+    "text": "Hai usato tutti i {{count}} messaggi di questo mese. Si rinnovano il {{date}}.",
+    "seePlans": "Vedi i piani"
+  },
+  "errors": {
+    "cantAttachOne": "Non è possibile allegare {{name}}. Qui funzionano solo file PDF e immagini.",
+    "cantAttachMany": "Non è possibile allegare {{count}} file. Qui funzionano solo file PDF e immagini.",
+    "oversize": "{{name}} è di {{size}}. Il limite per file è 10 MB.",
+    "totalSize": "In totale sono {{size}}. Un messaggio può contenere fino a 25 MB tra tutti i file.",
+    "send": "Non siamo riusciti a inviare questo messaggio. Riprova.",
+    "conversationGone": "Questa conversazione non c'è più. Iniziane una nuova.",
+    "rebuild": "Non siamo riusciti a ricreare le tue carte. Riprova.",
+    "addTags": "Non siamo riusciti ad aggiungere i tag. Riprova.",
+    "deckGenerate": "Non siamo riusciti a generare il mazzo. Riprova."
+  },
+  "tags": {
+    "success_one": "Tag aggiunti a {{count}} carta",
+    "success_other": "Tag aggiunti a {{count}} carte"
+  },
+  "cardPreview": {
+    "correctAnswer": "Risposta corretta",
+    "addTags": "Aggiungi tag",
+    "downloadDeck": "Scarica il mazzo",
+    "nameThisDeck": "Dai un nome a questo mazzo",
+    "deckName": "Nome del mazzo",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "saveAgain": "Salva di nuovo",
+    "untitledDeck": "Mazzo senza titolo",
+    "savedAs": "Salvato come {{name}}.apkg",
+    "renameHint_one": "{{count}} carta. Viene salvata come {{filename}}.apkg quando clicchi Salva.",
+    "renameHint_other": "{{count}} carte. Vengono salvate come {{filename}}.apkg quando clicchi Salva.",
+    "front": "Fronte",
+    "back": "Retro",
+    "tags": "Tag",
+    "addingTags": "Aggiunta dei tag",
+    "showFewer": "Mostra meno",
+    "showAll": "Mostra tutte le {{count}} carte",
+    "card_one": "carta",
+    "card_other": "carte"
+  },
+  "codeBlock": {
+    "copyCode": "Copia il codice",
+    "copied": "Copiato",
+    "copy": "Copia"
+  },
+  "templateSelector": {
+    "noteTypeAria": "Tipo di nota: {{label}}",
+    "noteTypeLabel": "Tipo di nota: {{label}}",
+    "listboxLabel": "Tipo di nota"
+  }
+}

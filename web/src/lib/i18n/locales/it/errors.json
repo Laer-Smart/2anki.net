@@ -1,0 +1,146 @@
+{
+  "messages": {
+    "notionUnauthorized": {
+      "title": "La tua connessione a Notion è scaduta",
+      "detail": "Accedi di nuovo a Notion per continuare a convertire le tue pagine.",
+      "action": "Riconnetti Notion"
+    },
+    "network": {
+      "title": "Non siamo riusciti a raggiungere 2anki.",
+      "detail": "Controlla la connessione e riprova."
+    },
+    "serviceUnavailable": {
+      "title": "Il servizio non è raggiungibile in questo momento.",
+      "detail": "Di solito è temporaneo — riprova tra un momento."
+    },
+    "rateLimited": {
+      "title": "Troppe richieste.",
+      "detail": "Riprova tra un minuto."
+    },
+    "sessionExpired": {
+      "title": "Sessione scaduta.",
+      "detail": "Accedi di nuovo per continuare.",
+      "action": "Accedi"
+    },
+    "apkgGone": {
+      "title": "Questo mazzo non è più disponibile.",
+      "detail": "I mazzi caricati vengono rimossi dopo un po'. Convertilo o caricalo di nuovo per vederne l'anteprima.",
+      "action": "Torna ai download"
+    },
+    "notionPageNotFound": {
+      "title": "Non siamo riusciti ad aprire quella pagina di Notion.",
+      "detail": "Potrebbe essere stata eliminata, oppure non è più condivisa con 2anki. Condividila di nuovo in Notion, oppure scegli un'altra pagina.",
+      "action": "Scegli una pagina"
+    },
+    "monthlyLimit": {
+      "title": "Hai raggiunto il limite mensile.",
+      "detail": "Fai l'upgrade del tuo piano per convertire più mazzi questo mese."
+    },
+    "fallback": {
+      "title": "Qualcosa è andato storto.",
+      "detail": "Riprova. Se il problema continua, scrivi a support@2anki.net."
+    },
+    "uploadFallback": {
+      "title": "Qualcosa si è rotto durante la lettura di questo file.",
+      "detail": "Riprova, oppure invia il file a support@2anki.net così sistemiamo il parser."
+    }
+  },
+  "upload": {
+    "unsupported_format": {
+      "title": "Questo tipo di file non è supportato.",
+      "detail": "Usa .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, .csv o .xml."
+    },
+    "too_large": {
+      "title": "Questo export è troppo grande per essere convertito in una volta sola.",
+      "detail": "Suddividilo in sottopagine di Notion più piccole e converti ciascuna separatamente."
+    },
+    "password_protected_pdf": {
+      "title": "Questo PDF è protetto da password.",
+      "detail": "Rimuovi la password nel tuo lettore PDF, salva una copia e carica quella."
+    },
+    "invalid_markup": {
+      "title": "Una parte di questo file ha una formattazione che non siamo riusciti a leggere.",
+      "detail": "Apri la sorgente, rimuovi o semplifica il blocco che ha creato problemi e riprova."
+    },
+    "malformed_notion": {
+      "title": "Non è stato possibile analizzare questo export di Notion.",
+      "detail": "Riesporta la pagina da Notion e riprova."
+    },
+    "corrupted_apkg": {
+      "title": "Questo file .apkg è danneggiato.",
+      "detail": "Riesportalo da Anki, oppure invialo a support@2anki.net."
+    },
+    "empty_export": {
+      "title": "Questo export non ha contenuti che possiamo trasformare in carte.",
+      "detail": "Controlla che la pagina abbia testo o blocchi toggle, poi esporta di nuovo."
+    },
+    "markdown_likely_lossy": {
+      "title": "Gli export in Markdown di Notion appiattiscono i toggle — riesporta questa pagina come HTML e i toggle diventano flashcard."
+    },
+    "claude_parse_failed": {
+      "title": "Qualcosa è andato storto durante la creazione delle tue carte.",
+      "detail": "Riprova — se continua a succedere, scrivi a support@2anki.net."
+    },
+    "parser_crash": {
+      "title": "Non siamo riusciti a leggere questo file.",
+      "detail": "Potrebbe essere malformato o usare una struttura che non riconosciamo ancora. Prova a riesportarlo dall'app di origine, oppure invia il file a support@2anki.net."
+    },
+    "worker_timeout": {
+      "title": "Questa conversione ha impiegato più del tempo previsto.",
+      "detail": "Prova a suddividere il file in parti più piccole, oppure rimuovi le immagini incorporate molto grandi."
+    },
+    "notion_rate_limit": {
+      "title": "Notion ci sta limitando le richieste in questo momento.",
+      "detail": "Aspetta un minuto e converti di nuovo."
+    },
+    "notion_object_not_found": {
+      "title": "Non siamo riusciti ad aprire quella pagina di Notion.",
+      "detail": "Condividila con l'integrazione 2anki in Notion, poi riprova."
+    },
+    "apkg_too_large_for_anki": {
+      "title": "Questo mazzo supera il limite di caricamento di Anki.",
+      "detail": "Suddividilo attivando meno pagine, oppure caricalo direttamente su Anki desktop."
+    },
+    "zip_invalid": {
+      "title": "Non siamo riusciti a leggere questo zip.",
+      "detail": "Assicurati che sia l'export Markdown e CSV di Notion, non l'export HTML."
+    }
+  },
+  "presenter": {
+    "tryAgain": "Riprova",
+    "dismiss": "Chiudi"
+  },
+  "rootBoundary": {
+    "chunkTitle": "Questa pagina è stata aggiornata mentre la tenevi aperta",
+    "chunkSubtitle": "Ricarica per caricare la versione più recente. Se ricaricare non aiuta, reimposta i dati locali e ricarica.",
+    "resetFailed": "Non siamo riusciti a reimpostare i dati locali. Cancella i dati del sito per 2anki nelle impostazioni del browser, poi ricarica.",
+    "genericTitle": "Qualcosa è andato storto nel caricamento di 2anki",
+    "genericSubtitle": "Prova a ricaricare. Se non aiuta, reimposta i dati locali e ricarica.",
+    "reload": "Ricarica",
+    "resetLocalData": "Reimposta i dati locali"
+  },
+  "domRecovery": {
+    "title": "Qualcosa è andato storto",
+    "subtitle": "Un'estensione del browser potrebbe interferire con questa pagina. Ricarica per ricominciare.",
+    "reload": "Ricarica"
+  },
+  "chunkOverlay": {
+    "updating": "Aggiornamento alla versione più recente."
+  },
+  "notFound": {
+    "pageTitle": "Pagina non trovata — 2anki",
+    "title": "Pagina non trovata",
+    "description": "Questa pagina non esiste o potrebbe essere stata spostata.",
+    "cta": "Vai alla homepage"
+  },
+  "stepIndicator": {
+    "progress": "Avanzamento della conversione",
+    "uploaded": "Caricato",
+    "parsing": "Analisi",
+    "generating": "Generazione",
+    "packaging": "Impacchettamento"
+  },
+  "skeleton": {
+    "loading": "Caricamento"
+  }
+}
