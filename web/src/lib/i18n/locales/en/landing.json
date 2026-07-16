@@ -1,0 +1,224 @@
+{
+  "steps": {
+    "dropFile": {
+      "title": "Drop your file",
+      "body": "Notion export, PDF, Word, Markdown, or a Quizlet export."
+    },
+    "buildsDeck": {
+      "title": "2anki builds your deck",
+      "body": "Usually a few seconds. Bigger files take a minute."
+    },
+    "openInAnki": {
+      "title": "Open it in Anki",
+      "body": "Double-click the .apkg file. Your cards are ready to study."
+    }
+  },
+  "sections": {
+    "howItWorks": "How it works",
+    "supportedFormats": "Supported formats",
+    "whatYouGet": "What you actually get in Anki",
+    "commonQuestions": "Common questions",
+    "related": "Related"
+  },
+  "hero": {
+    "freeQuota": "Free · up to 1 000 cards per import",
+    "orPrefix": "or ",
+    "signUpFree": "sign up free",
+    "tryUnlimited": "try Unlimited free for 1 hour"
+  },
+  "footer": {
+    "readyPrefix": "Ready to try it? ",
+    "dropLink": "Drop a file at the top of this page."
+  },
+  "hub": {
+    "h1": "Convert anything to Anki",
+    "subhead": "Pick your source. Every converter turns your notes, files, or flashcards into a clean .apkg deck you study in Anki.",
+    "groups": {
+      "note-apps": "Note apps",
+      "flashcard-apps": "Flashcard apps",
+      "files": "Files",
+      "language-tools": "Language tools"
+    }
+  },
+  "answers": {
+    "faqHeading": "Frequently asked questions",
+    "convert-notion-to-anki": {
+      "h1": "How to convert Notion to Anki flashcards",
+      "intro": "Notion stores your notes. Anki turns them into a review system. 2anki bridges the gap — you get a .apkg deck from any Notion page in under a minute."
+    },
+    "notion-to-anki-sync": {
+      "h1": "Notion to Anki automatic sync",
+      "intro": "Auto Sync watches your connected Notion pages and pushes changes to your Anki decks every 5 minutes. Edit a toggle in Notion; the card updates in Anki before your next review session."
+    },
+    "pdf-to-anki": {
+      "h1": "How to convert a PDF to Anki flashcards",
+      "intro": "Upload a PDF to 2anki and download a .apkg deck. Works with lecture slides, textbook chapters, and any PDF with a text layer."
+    },
+    "quizlet-to-anki": {
+      "h1": "How to move from Quizlet to Anki",
+      "intro": "Quizlet stores your sets. Anki gives you a proper spaced repetition algorithm. 2anki converts a Quizlet export into a .apkg deck you can open in Anki directly."
+    },
+    "fsrs-explained": {
+      "h1": "FSRS in Anki — what it is and why your next review looks wrong",
+      "intro": "FSRS is the modern spaced repetition algorithm Anki has shipped since version 23.10 (November 2023). It is still opt-in — SM-2 remains the default — but it is widely recommended in the community and the Anki manual presents it as more accurate than SM-2. FSRS predicts how long you will remember a card and schedules the next review at the point your recall probability drops to 90%. For a card you answer easily, that point can be a year or more away — which is the source of the \"why is my next review in 17 months\" question that fills r/Anki every week."
+    },
+    "lecture-notes-to-anki": {
+      "h1": "How to turn lecture notes into Anki flashcards",
+      "intro": "Your lecture notes are already somewhere — slide PDFs, a Word or Google doc, a Notion page, or a photo you took in class. 2anki reads each of those and gives you a .apkg deck you open in Anki. Pick the source that matches your notes and start reviewing the same day."
+    },
+    "word-to-anki": {
+      "h1": "How to convert a Word document to Anki",
+      "intro": "If your notes live in a Word document, you don't need to rebuild them as cards by hand. Upload the .docx file to 2anki and download a .apkg deck that opens in Anki. Headings, images, and formatting come across."
+    },
+    "image-occlusion-anki": {
+      "h1": "How to make image occlusion cards in Anki",
+      "intro": "Image occlusion cards hide part of a diagram and ask you to recall what's underneath — the fastest way to memorize anatomy, structures, maps, and labeled figures. Upload an image to 2anki, mask the parts you want to test, and download an Anki deck."
+    },
+    "google-docs-to-anki": {
+      "h1": "How to convert Google Docs to Anki flashcards",
+      "intro": "Google Docs doesn't connect to 2anki directly, but you don't have to retype anything. Download your doc as Word (.docx) or Markdown, upload the file, and download a .apkg deck that opens in Anki. Headings, images, and formatting come across."
+    },
+    "handwritten-notes-to-anki": {
+      "h1": "How to turn handwritten notes into Anki flashcards",
+      "intro": "Handwritten notes are hard to review and impossible to search. Photograph a page, upload it to 2anki, and the photo-to-deck tool reads it with AI and drafts cards you review before download. You get a .apkg deck that opens in Anki."
+    },
+    "textbook-to-anki": {
+      "h1": "How to turn a textbook chapter into Anki flashcards",
+      "intro": "A textbook chapter is a lot of material to card by hand. Upload the chapter as a PDF and 2anki reads its text into question-and-answer cards, keeps the figures, and gives you a .apkg deck. Convert one chapter at a time so each deck stays reviewable."
+    },
+    "kindle-highlights-to-anki": {
+      "h1": "How to convert Kindle highlights to Anki flashcards",
+      "intro": "Every highlight you make on a Kindle is saved to a single file called My Clippings.txt. 2anki reads that file and turns each passage into a card, so the lines you marked while reading become a deck you review in Anki. You get a .apkg you open with a double-click."
+    },
+    "language-app-to-anki": {
+      "h1": "How to move your flashcards from a language app to Anki",
+      "intro": "Language apps are good at capturing vocabulary but weak at long-term review. Anki gives you a proper spaced repetition algorithm. Whichever app you started in, the path is the same: export a file, upload it to 2anki, and download a .apkg deck you study on any device. Here is how each common app fits that path."
+    },
+    "obsidian-to-anki": {
+      "h1": "How to convert Obsidian notes to Anki flashcards",
+      "intro": "Obsidian notes are plain Markdown files, which means they convert to Anki without a plugin. Upload a .md file to 2anki and download a .apkg deck that opens in Anki. Bullets, question-and-answer pairs, headings, and code blocks all come across."
+    }
+  },
+  "pages": {
+    "ai-flashcard-generator": {
+      "h1": "Turn your notes into Anki cards",
+      "subhead": "Real notes in, real cards out. 2anki builds your deck from what you upload — it never invents facts."
+    },
+    "anki-to-notion": {
+      "h1": "Import Anki decks into Notion in one click.",
+      "subhead": "Upload an .apkg file. Get every card as a toggle in a Notion page you can study, search, and edit."
+    },
+    "goodnotes-to-anki": {
+      "h1": "Turn GoodNotes into Anki flashcards",
+      "subhead": "Export your notebook as PDF, drop it here, and download an Anki deck."
+    },
+    "anki-for-japanese": {
+      "h1": "Notion to Anki for Japanese and language learning",
+      "subhead": "Drop a Notion page of mined sentences or vocab. Screenshots, audio, and readings come across as you wrote them."
+    },
+    "markdown-to-anki": {
+      "h1": "Turn Markdown notes into Anki cards",
+      "subhead": "Drop a .md file and download a deck — bullets and Q/A pairs come across."
+    },
+    "mcat-anki": {
+      "h1": "Turn your MCAT content review into Anki cards you control",
+      "subhead": "Drop a PDF or Notion export of your content-review notes — amino acids, orgo reactions, psych and soc terms. 2anki builds clean cards from your material, not from a guess."
+    },
+    "anki-from-medical-lecture-slides": {
+      "h1": "Turn lecture slides into Anki cards",
+      "subhead": "Upload a PDF of your slides — headings become deck names, bullets become cards."
+    },
+    "nclex-anki": {
+      "h1": "Turn your NCLEX review notes into Anki cards you control",
+      "subhead": "Drop a PDF or Notion export of your Saunders, UWorld, or ATI notes — lab values, med suffixes, priority and delegation. 2anki builds clean cards from your material, not from a guess."
+    },
+    "notion-to-anki": {
+      "h1": "Notion to Anki — free, no add-on required",
+      "subhead": "Connect Notion once, paste any page link, get a .apkg deck. No software to install."
+    },
+    "nursing-flashcards": {
+      "h1": "Anki flashcards from nursing lecture slides and notes",
+      "subhead": "Drop a PDF or Notion export. 2anki pulls out the terms, medications, and procedures."
+    },
+    "pdf-to-anki": {
+      "h1": "Make Anki flashcards from a PDF",
+      "subhead": "Drop a PDF and we'll pull out the text you can turn into cards."
+    },
+    "powerpoint-to-anki": {
+      "h1": "Make Anki flashcards from a PowerPoint",
+      "subhead": "Drop a .pptx and 2anki reads the text on your slides and builds an Anki deck you can edit."
+    },
+    "quizlet-to-anki": {
+      "h1": "Move your Quizlet set to Anki",
+      "subhead": "Export from Quizlet, drop the file here, and download an Anki deck."
+    },
+    "step1-anki": {
+      "h1": "Turn your First Aid annotations and lecture notes into Step 1 cards you control",
+      "subhead": "Anki is the backbone of Step 1 prep. Upload your annotated First Aid pages, Pathoma outlines, or lecture PDFs and get clean, high-yield cards — built from your material, never invented."
+    },
+    "usmle-anki": {
+      "h1": "USMLE Step 1 and Step 2 decks from your own notes",
+      "subhead": "Upload lecture slides, First Aid exports, or any PDF. High-yield cards, spaced repetition-ready."
+    },
+    "convert-notion-to-anki": {
+      "h1": "Notion to Anki — turn your notes into flashcards",
+      "subhead": "Connect Notion once, paste any page link, get a .apkg deck. Toggles become cards. No add-on, no copy-pasting."
+    },
+    "convert-pdf-to-anki": {
+      "h1": "Convert PDF to Anki — flashcards from lecture slides and textbook chapters",
+      "subhead": "Drop a lecture PDF, slide export, or textbook chapter and download a .apkg deck. 2anki reads the text into question-and-answer cards, falls back to image cards when a page has no text, and can write cards with AI when the PDF is dense."
+    },
+    "convert-markdown-to-anki": {
+      "h1": "Markdown to Anki — convert .md files and Obsidian notes",
+      "subhead": "Drop a .md file and download a deck — bullets, Q/A pairs, and code blocks all come across."
+    },
+    "convert-csv-to-anki": {
+      "h1": "CSV to Anki — import spreadsheets as flashcard decks",
+      "subhead": "Drop a .csv file and get a .apkg deck. Column A becomes the front, everything after A joins into the back. Works with Excel exports too."
+    },
+    "convert-html-to-anki": {
+      "h1": "HTML to Anki — turn web pages into flashcard decks",
+      "subhead": "Drop an .html file and download a .apkg deck. Headings, bullets, and tables all come across."
+    },
+    "convert-apkg-to-csv": {
+      "h1": "Anki deck to CSV — export cards to a spreadsheet",
+      "subhead": "Drop an .apkg file and download a CSV. Every card front, back, and tag in one spreadsheet you can edit."
+    },
+    "convert-notion-tables-to-anki": {
+      "h1": "Notion tables to Anki — one row, one card",
+      "subhead": "Paste a Notion page with a table. Column 1 becomes the front, column 2 becomes the back."
+    },
+    "convert-brainscape-to-anki": {
+      "h1": "Move your Brainscape flashcards to Anki",
+      "subhead": "Export your Brainscape deck as CSV, drop it here, get a .apkg deck that opens clean in Anki."
+    },
+    "convert-lingvist-to-anki": {
+      "h1": "Move your Lingvist flashcards to Anki",
+      "subhead": "Export your Lingvist vocabulary as a CSV, drop it here, and get a .apkg deck. Your words and translations come across as basic cards."
+    },
+    "convert-studystack-to-anki": {
+      "h1": "Move your StudyStack flashcards to Anki",
+      "subhead": "Export your StudyStack as a CSV, drop it here, and get a .apkg deck. Terms and definitions become basic cards ready to review in Anki."
+    },
+    "convert-pleco-to-anki": {
+      "h1": "Move your Pleco flashcards to Anki",
+      "subhead": "Export your Pleco userdict as a .txt file, drop it here, and get a .apkg deck. Hanzi, pinyin, and definitions come across as basic cards."
+    },
+    "convert-zorbi-to-anki": {
+      "h1": "Move your Zorbi flashcards to Anki",
+      "subhead": "Export your Zorbi deck as a CSV, drop it here, and get a .apkg deck. Questions and answers become basic Anki cards."
+    },
+    "convert-language-reactor-to-anki": {
+      "h1": "Move your Language Reactor saves to Anki",
+      "subhead": "Drop the export zip from Language Reactor — your saved phrases, images, and audio come across as a clean .apkg you can study on any device."
+    },
+    "convert-epub-to-anki": {
+      "h1": "EPUB highlights to Anki — from ebook highlights to cards",
+      "subhead": "Drop a DRM-free .epub and download a .apkg. Each passage you highlighted becomes a card, with the book title and author on the back."
+    },
+    "convert-kindle-to-anki": {
+      "h1": "Kindle highlights to Anki — from My Clippings.txt to a deck",
+      "subhead": "Copy My Clippings.txt off your Kindle, drop it here, and download a .apkg. Each passage you highlighted — and any note you typed — becomes a card."
+    }
+  }
+}

@@ -1,6 +1,11 @@
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import styles from './ConvertHubPage.module.css';
 import { CONVERT_HUB_GROUPS } from './convertHubGroups';
+
+function groupKey(heading: string): string {
+  return heading.toLowerCase().replace(/\s+/g, '-');
+}
 
 const TITLE = 'Convert anything to Anki — every converter | 2anki';
 const DESCRIPTION =
@@ -10,6 +15,7 @@ const SUBHEAD =
   'Pick your source. Every converter turns your notes, files, or flashcards into a clean .apkg deck you study in Anki.';
 
 function ConvertHubPage() {
+  const { t } = useTranslation('landing');
   const canonical = 'https://2anki.net/convert';
 
   return (
@@ -27,13 +33,19 @@ function ConvertHubPage() {
       </Helmet>
 
       <header className={styles.hero}>
-        <h1 className={styles.h1}>{H1}</h1>
-        <p className={styles.subhead}>{SUBHEAD}</p>
+        <h1 className={styles.h1}>{t('hub.h1', { defaultValue: H1 })}</h1>
+        <p className={styles.subhead}>
+          {t('hub.subhead', { defaultValue: SUBHEAD })}
+        </p>
       </header>
 
       {CONVERT_HUB_GROUPS.map((group) => (
         <section key={group.heading} className={styles.group}>
-          <h2 className={styles.groupHeading}>{group.heading}</h2>
+          <h2 className={styles.groupHeading}>
+            {t(`hub.groups.${groupKey(group.heading)}`, {
+              defaultValue: group.heading,
+            })}
+          </h2>
           <ul className={styles.list}>
             {group.entries.map((entry) => (
               <li key={entry.slug} className={styles.item}>

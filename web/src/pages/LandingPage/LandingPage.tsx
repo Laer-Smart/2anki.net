@@ -1,5 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import UploadForm from '../UploadPage/components/UploadForm/UploadForm';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import { persistSignupOrigin } from '../../lib/signupOrigin';
@@ -13,22 +15,31 @@ interface LandingPageProps {
   heroSlot?: ReactNode;
 }
 
-const STEPS = [
-  {
+const STEP_KEYS = ['dropFile', 'buildsDeck', 'openInAnki'] as const;
+
+const STEP_FALLBACK: Record<
+  (typeof STEP_KEYS)[number],
+  { title: string; body: string }
+> = {
+  dropFile: {
     title: 'Drop your file',
     body: 'Notion export, PDF, Word, Markdown, or a Quizlet export.',
   },
-  {
+  buildsDeck: {
     title: '2anki builds your deck',
     body: 'Usually a few seconds. Bigger files take a minute.',
   },
-  {
+  openInAnki: {
     title: 'Open it in Anki',
     body: 'Double-click the .apkg file. Your cards are ready to study.',
   },
-];
+};
 
 const FORMATS = ['Notion', 'PDF', 'Markdown', 'HTML', 'CSV', 'Word', 'Quizlet'];
+
+function pageKeyFromPathname(pathname: string): string {
+  return pathname.replace(/^\//, '').replace(/\//g, '-');
+}
 
 interface HeroActionProps {
   heroSlot?: ReactNode;
@@ -36,6 +47,7 @@ interface HeroActionProps {
   ctaLabel?: string;
   setErrorMessage: ErrorHandlerType;
   registerHref: string;
+  t: TFunction<'landing'>;
 }
 
 function renderHeroAction({
@@ -44,6 +56,7 @@ function renderHeroAction({
   ctaLabel,
   setErrorMessage,
   registerHref,
+  t,
 }: Readonly<HeroActionProps>) {
   if (heroSlot != null) {
     return <div className={styles.uploadWrapper}>{heroSlot}</div>;
@@ -55,7 +68,9 @@ function renderHeroAction({
           {ctaLabel}
         </a>
         <p className={styles.secondaryLink}>
-          Free · up to 1 000 cards per import
+          {t('hero.freeQuota', {
+            defaultValue: 'Free · up to 1 000 cards per import',
+          })}
         </p>
       </div>
     );
@@ -66,9 +81,16 @@ function renderHeroAction({
         <UploadForm setErrorMessage={setErrorMessage} />
       </div>
       <p className={styles.secondaryLink}>
-        or <a href={registerHref}>sign up free</a>
+        {t('hero.orPrefix', { defaultValue: 'or ' })}
+        <a href={registerHref}>
+          {t('hero.signUpFree', { defaultValue: 'sign up free' })}
+        </a>
         {' — '}
-        <a href="/pricing">try Unlimited free for 1 hour</a>
+        <a href="/pricing">
+          {t('hero.tryUnlimited', {
+            defaultValue: 'try Unlimited free for 1 hour',
+          })}
+        </a>
       </p>
     </>
   );
@@ -79,12 +101,14 @@ function LandingPage({
   setErrorMessage,
   heroSlot,
 }: Readonly<LandingPageProps>) {
+  const { t } = useTranslation('landing');
   useEffect(() => {
     persistSignupOrigin(copy.pathname, globalThis.sessionStorage ?? null);
   }, [copy.pathname]);
 
   const canonical = `https://2anki.net${copy.pathname}`;
   const registerHref = `/register?source=${encodeURIComponent(copy.pathname)}`;
+  const pageKey = pageKeyFromPathname(copy.pathname);
 
   const faqJsonLd = JSON.stringify({
     '@context': 'https://schema.org',
@@ -116,27 +140,42 @@ function LandingPage({
 
       <section id="upload" className={styles.hero}>
         <div className={styles.heroInner}>
-          <h1 className={styles.heroTitle}>{copy.h1}</h1>
-          <p className={styles.heroSubhead}>{copy.subhead}</p>
+          <h1 className={styles.heroTitle}>
+            {t(`pages.${pageKey}.h1`, { defaultValue: copy.h1 })}
+          </h1>
+          <p className={styles.heroSubhead}>
+            {t(`pages.${pageKey}.subhead`, { defaultValue: copy.subhead })}
+          </p>
           {renderHeroAction({
             heroSlot,
             ctaHref: copy.ctaHref,
             ctaLabel: copy.ctaLabel,
             setErrorMessage,
             registerHref,
+            t,
           })}
         </div>
       </section>
 
       <section className={styles.stepsSection}>
         <div className={styles.stepsInner}>
-          <p className={styles.sectionLabel}>How it works</p>
+          <p className={styles.sectionLabel}>
+            {t('sections.howItWorks', { defaultValue: 'How it works' })}
+          </p>
           <div className={styles.stepsGrid}>
-            {STEPS.map((step, idx) => (
-              <div key={step.title} className={styles.step}>
+            {STEP_KEYS.map((key, idx) => (
+              <div key={key} className={styles.step}>
                 <span className={styles.stepNumber}>{idx + 1}</span>
-                <p className={styles.stepTitle}>{step.title}</p>
-                <p className={styles.stepBody}>{step.body}</p>
+                <p className={styles.stepTitle}>
+                  {t(`steps.${key}.title`, {
+                    defaultValue: STEP_FALLBACK[key].title,
+                  })}
+                </p>
+                <p className={styles.stepBody}>
+                  {t(`steps.${key}.body`, {
+                    defaultValue: STEP_FALLBACK[key].body,
+                  })}
+                </p>
               </div>
             ))}
           </div>
@@ -144,7 +183,11 @@ function LandingPage({
       </section>
 
       <section className={styles.section}>
-        <p className={styles.sectionLabel}>Supported formats</p>
+        <p className={styles.sectionLabel}>
+          {t('sections.supportedFormats', {
+            defaultValue: 'Supported formats',
+          })}
+        </p>
         <ul className={styles.formatsList}>
           {FORMATS.map((format) => (
             <li key={format} className={styles.formatTag}>
@@ -156,7 +199,11 @@ function LandingPage({
 
       {copy.whatComesAcross != null && (
         <section className={styles.section}>
-          <p className={styles.sectionLabel}>What you actually get in Anki</p>
+          <p className={styles.sectionLabel}>
+            {t('sections.whatYouGet', {
+              defaultValue: 'What you actually get in Anki',
+            })}
+          </p>
           <dl className={styles.stepsGrid}>
             {copy.whatComesAcross.map((item) => (
               <div key={item.title} className={styles.step}>
@@ -169,7 +216,9 @@ function LandingPage({
       )}
 
       <section className={styles.section}>
-        <p className={styles.sectionLabel}>Common questions</p>
+        <p className={styles.sectionLabel}>
+          {t('sections.commonQuestions', { defaultValue: 'Common questions' })}
+        </p>
         <div className={styles.faqList}>
           {copy.faqs.map((faq) => (
             <details key={faq.q} className={styles.faqItem}>
@@ -181,8 +230,13 @@ function LandingPage({
       </section>
 
       {copy.relatedLinks != null && copy.relatedLinks.length > 0 && (
-        <nav className={styles.related} aria-label="Related">
-          <p className={styles.relatedHeading}>Related</p>
+        <nav
+          className={styles.related}
+          aria-label={t('sections.related', { defaultValue: 'Related' })}
+        >
+          <p className={styles.relatedHeading}>
+            {t('sections.related', { defaultValue: 'Related' })}
+          </p>
           <ul className={styles.relatedList}>
             {copy.relatedLinks.map((link) => (
               <li key={link.href}>
@@ -197,9 +251,11 @@ function LandingPage({
 
       <section className={styles.footerCta}>
         <p className={styles.footerCtaText}>
-          Ready to try it?{' '}
+          {t('footer.readyPrefix', { defaultValue: 'Ready to try it? ' })}
           <a href="#upload" className={styles.footerCtaLink}>
-            Drop a file at the top of this page.
+            {t('footer.dropLink', {
+              defaultValue: 'Drop a file at the top of this page.',
+            })}
           </a>
         </p>
       </section>
