@@ -1,3 +1,4 @@
+import i18n from '../../../lib/i18n';
 import { stripHtmlTags } from '../../../lib/text/stripHtmlTags';
 import type { UploadErrorBody } from '../../../types/UploadErrorBody';
 
@@ -9,16 +10,28 @@ interface FriendlyError {
   actionLink?: { text: string; to: string };
 }
 
-const FALLBACK: FriendlyError = {
-  title: 'Something went wrong.',
-  detail: 'Try again. If the problem keeps happening, email support@2anki.net.',
-};
+function tr(key: string, fallback: string): string {
+  return i18n.t(`errors:${key}`, { defaultValue: fallback });
+}
 
-const UPLOAD_FALLBACK: FriendlyError = {
-  title: 'Something broke while reading this file.',
-  detail:
-    'Try again, or send the file to support@2anki.net so we can fix the parser.',
-};
+const FALLBACK = (): FriendlyError => ({
+  title: tr('messages.fallback.title', 'Something went wrong.'),
+  detail: tr(
+    'messages.fallback.detail',
+    'Try again. If the problem keeps happening, email support@2anki.net.'
+  ),
+});
+
+const UPLOAD_FALLBACK = (): FriendlyError => ({
+  title: tr(
+    'messages.uploadFallback.title',
+    'Something broke while reading this file.'
+  ),
+  detail: tr(
+    'messages.uploadFallback.detail',
+    'Try again, or send the file to support@2anki.net so we can fix the parser.'
+  ),
+});
 
 function toText(error: unknown): string {
   if (typeof error === 'string') return error;
@@ -30,11 +43,20 @@ function toText(error: unknown): string {
   return '';
 }
 
-const NOTION_UNAUTHORIZED: FriendlyError = {
-  title: 'Your Notion connection expired',
-  detail: 'Sign in to Notion again to keep converting your pages.',
-  actionLink: { text: 'Reconnect Notion', to: '/notion' },
-};
+const NOTION_UNAUTHORIZED = (): FriendlyError => ({
+  title: tr(
+    'messages.notionUnauthorized.title',
+    'Your Notion connection expired'
+  ),
+  detail: tr(
+    'messages.notionUnauthorized.detail',
+    'Sign in to Notion again to keep converting your pages.'
+  ),
+  actionLink: {
+    text: tr('messages.notionUnauthorized.action', 'Reconnect Notion'),
+    to: '/notion',
+  },
+});
 
 function httpMeta(error: unknown): { status?: number; url?: string } {
   if (error != null && typeof error === 'object') {
@@ -56,11 +78,11 @@ function isNotionUnauthorized(error: unknown): boolean {
 }
 
 export function classifyError(error: unknown): FriendlyError {
-  if (isNotionUnauthorized(error)) return NOTION_UNAUTHORIZED;
+  if (isNotionUnauthorized(error)) return NOTION_UNAUTHORIZED();
 
   const raw = toText(error);
 
-  if (!raw) return FALLBACK;
+  if (!raw) return FALLBACK();
 
   const lower = raw.toLowerCase();
 
@@ -71,8 +93,11 @@ export function classifyError(error: unknown): FriendlyError {
     lower.includes('load failed')
   ) {
     return {
-      title: "Couldn't reach 2anki.",
-      detail: 'Check your connection and try again.',
+      title: tr('messages.network.title', "Couldn't reach 2anki."),
+      detail: tr(
+        'messages.network.detail',
+        'Check your connection and try again.'
+      ),
     };
   }
 
@@ -84,15 +109,21 @@ export function classifyError(error: unknown): FriendlyError {
     lower.includes('service_unavailable')
   ) {
     return {
-      title: 'The service is unreachable right now.',
-      detail: 'This is usually temporary — try again in a moment.',
+      title: tr(
+        'messages.serviceUnavailable.title',
+        'The service is unreachable right now.'
+      ),
+      detail: tr(
+        'messages.serviceUnavailable.detail',
+        'This is usually temporary — try again in a moment.'
+      ),
     };
   }
 
   if (lower.includes('rate_limited') || lower.includes('429')) {
     return {
-      title: 'Too many requests.',
-      detail: 'Try again in a minute.',
+      title: tr('messages.rateLimited.title', 'Too many requests.'),
+      detail: tr('messages.rateLimited.detail', 'Try again in a minute.'),
     };
   }
 
@@ -102,9 +133,15 @@ export function classifyError(error: unknown): FriendlyError {
     lower.includes('authentication required')
   ) {
     return {
-      title: 'Session expired.',
-      detail: 'Sign in again to continue.',
-      actionLink: { text: 'Sign in', to: '/login' },
+      title: tr('messages.sessionExpired.title', 'Session expired.'),
+      detail: tr(
+        'messages.sessionExpired.detail',
+        'Sign in again to continue.'
+      ),
+      actionLink: {
+        text: tr('messages.sessionExpired.action', 'Sign in'),
+        to: '/login',
+      },
     };
   }
 
@@ -115,26 +152,45 @@ export function classifyError(error: unknown): FriendlyError {
     url?.startsWith('/api/apkg/')
   ) {
     return {
-      title: 'This deck is no longer available.',
-      detail:
-        'Uploaded decks are removed after a while. Convert or upload it again to preview it.',
-      actionLink: { text: 'Back to downloads', to: '/downloads' },
+      title: tr('messages.apkgGone.title', 'This deck is no longer available.'),
+      detail: tr(
+        'messages.apkgGone.detail',
+        'Uploaded decks are removed after a while. Convert or upload it again to preview it.'
+      ),
+      actionLink: {
+        text: tr('messages.apkgGone.action', 'Back to downloads'),
+        to: '/downloads',
+      },
     };
   }
 
   if (lower.includes('object_not_found') || lower.includes('404')) {
     return {
-      title: "We couldn't open that Notion page.",
-      detail:
-        "It may have been deleted, or it's no longer shared with 2anki. Share it again in Notion, or pick a different page.",
-      actionLink: { text: 'Choose a page', to: '/notion' },
+      title: tr(
+        'messages.notionPageNotFound.title',
+        "We couldn't open that Notion page."
+      ),
+      detail: tr(
+        'messages.notionPageNotFound.detail',
+        "It may have been deleted, or it's no longer shared with 2anki. Share it again in Notion, or pick a different page."
+      ),
+      actionLink: {
+        text: tr('messages.notionPageNotFound.action', 'Choose a page'),
+        to: '/notion',
+      },
     };
   }
 
   if (lower.includes('upload_limit') || lower.includes('upload limit')) {
     return {
-      title: "You've reached your monthly limit.",
-      detail: 'Upgrade your plan to convert more decks this month.',
+      title: tr(
+        'messages.monthlyLimit.title',
+        "You've reached your monthly limit."
+      ),
+      detail: tr(
+        'messages.monthlyLimit.detail',
+        'Upgrade your plan to convert more decks this month.'
+      ),
     };
   }
 
@@ -143,7 +199,7 @@ export function classifyError(error: unknown): FriendlyError {
     return { title: stripped };
   }
 
-  return FALLBACK;
+  return FALLBACK();
 }
 
 export const getErrorMessage = (error: unknown): string => {
@@ -153,7 +209,9 @@ export const getErrorMessage = (error: unknown): string => {
     : friendly.title;
 };
 
-const PER_CODE_COPY: Partial<Record<UploadErrorBody['code'], FriendlyError>> = {
+const UPLOAD_CODE_DEFAULTS: Partial<
+  Record<UploadErrorBody['code'], FriendlyError>
+> = {
   unsupported_format: {
     title: "This file type isn't supported.",
     detail: 'Use .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, .csv, or .xml.',
@@ -223,12 +281,25 @@ const PER_CODE_COPY: Partial<Record<UploadErrorBody['code'], FriendlyError>> = {
   },
 };
 
+function localizeUploadCode(
+  code: UploadErrorBody['code'],
+  defaults: FriendlyError
+): FriendlyError {
+  const localized: FriendlyError = {
+    title: tr(`upload.${code}.title`, defaults.title),
+  };
+  if (defaults.detail !== undefined) {
+    localized.detail = tr(`upload.${code}.detail`, defaults.detail);
+  }
+  return localized;
+}
+
 export function classifyUploadError(body: UploadErrorBody): FriendlyError {
-  const perCode = PER_CODE_COPY[body.code];
-  if (perCode) return perCode;
+  const defaults = UPLOAD_CODE_DEFAULTS[body.code];
+  if (defaults) return localizeUploadCode(body.code, defaults);
   const stripped = stripHtmlTags(body.message);
   if (stripped.length > 0 && stripped.length < 280) {
     return { title: stripped };
   }
-  return UPLOAD_FALLBACK;
+  return UPLOAD_FALLBACK();
 }

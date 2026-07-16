@@ -1,0 +1,146 @@
+{
+  "messages": {
+    "notionUnauthorized": {
+      "title": "Your Notion connection expired",
+      "detail": "Sign in to Notion again to keep converting your pages.",
+      "action": "Reconnect Notion"
+    },
+    "network": {
+      "title": "Couldn't reach 2anki.",
+      "detail": "Check your connection and try again."
+    },
+    "serviceUnavailable": {
+      "title": "The service is unreachable right now.",
+      "detail": "This is usually temporary — try again in a moment."
+    },
+    "rateLimited": {
+      "title": "Too many requests.",
+      "detail": "Try again in a minute."
+    },
+    "sessionExpired": {
+      "title": "Session expired.",
+      "detail": "Sign in again to continue.",
+      "action": "Sign in"
+    },
+    "apkgGone": {
+      "title": "This deck is no longer available.",
+      "detail": "Uploaded decks are removed after a while. Convert or upload it again to preview it.",
+      "action": "Back to downloads"
+    },
+    "notionPageNotFound": {
+      "title": "We couldn't open that Notion page.",
+      "detail": "It may have been deleted, or it's no longer shared with 2anki. Share it again in Notion, or pick a different page.",
+      "action": "Choose a page"
+    },
+    "monthlyLimit": {
+      "title": "You've reached your monthly limit.",
+      "detail": "Upgrade your plan to convert more decks this month."
+    },
+    "fallback": {
+      "title": "Something went wrong.",
+      "detail": "Try again. If the problem keeps happening, email support@2anki.net."
+    },
+    "uploadFallback": {
+      "title": "Something broke while reading this file.",
+      "detail": "Try again, or send the file to support@2anki.net so we can fix the parser."
+    }
+  },
+  "upload": {
+    "unsupported_format": {
+      "title": "This file type isn't supported.",
+      "detail": "Use .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, .csv, or .xml."
+    },
+    "too_large": {
+      "title": "This export is too large to convert in one go.",
+      "detail": "Split it into smaller Notion subpages and convert each one separately."
+    },
+    "password_protected_pdf": {
+      "title": "This PDF is password-protected.",
+      "detail": "Remove the password in your PDF reader, save a copy, and upload that."
+    },
+    "invalid_markup": {
+      "title": "Part of this file has formatting we couldn't read.",
+      "detail": "Open the source, remove or simplify the block that broke, and try again."
+    },
+    "malformed_notion": {
+      "title": "This Notion export couldn't be parsed.",
+      "detail": "Re-export the page from Notion and try again."
+    },
+    "corrupted_apkg": {
+      "title": "This .apkg file is damaged.",
+      "detail": "Re-export it from Anki, or send it to support@2anki.net."
+    },
+    "empty_export": {
+      "title": "This export has no content we can turn into cards.",
+      "detail": "Check the page has text or toggle blocks, then export again."
+    },
+    "markdown_likely_lossy": {
+      "title": "Notion Markdown exports flatten toggles — re-export this page as HTML and the toggles become flashcards."
+    },
+    "claude_parse_failed": {
+      "title": "Something went wrong while making your cards.",
+      "detail": "Try again — if it keeps happening, email support@2anki.net."
+    },
+    "parser_crash": {
+      "title": "Couldn't read this file.",
+      "detail": "It may be malformed or use a structure we don't recognise yet. Try re-exporting from the source app, or send the file to support@2anki.net."
+    },
+    "worker_timeout": {
+      "title": "This conversion took longer than the time budget.",
+      "detail": "Try splitting the file into smaller pieces, or remove very large embedded images."
+    },
+    "notion_rate_limit": {
+      "title": "Notion is rate-limiting us right now.",
+      "detail": "Wait a minute and convert again."
+    },
+    "notion_object_not_found": {
+      "title": "We couldn't open that Notion page.",
+      "detail": "Share it with the 2anki integration in Notion, then try again."
+    },
+    "apkg_too_large_for_anki": {
+      "title": "This deck is over Anki's upload limit.",
+      "detail": "Split it by toggling fewer pages, or upload directly to Anki desktop."
+    },
+    "zip_invalid": {
+      "title": "Couldn't read this zip.",
+      "detail": "Make sure it's the Markdown & CSV export from Notion, not the HTML export."
+    }
+  },
+  "presenter": {
+    "tryAgain": "Try again",
+    "dismiss": "Dismiss"
+  },
+  "rootBoundary": {
+    "chunkTitle": "This page was updated while you had it open",
+    "chunkSubtitle": "Reload to load the latest version. If reload doesn't help, reset local data and reload.",
+    "resetFailed": "Couldn't reset local data. Clear site data for 2anki in your browser settings, then reload.",
+    "genericTitle": "Something went wrong loading 2anki",
+    "genericSubtitle": "Try reloading. If that doesn't help, reset local data and reload.",
+    "reload": "Reload",
+    "resetLocalData": "Reset local data"
+  },
+  "domRecovery": {
+    "title": "Something went wrong",
+    "subtitle": "A browser extension may be interfering with this page. Reload to start over.",
+    "reload": "Reload"
+  },
+  "chunkOverlay": {
+    "updating": "Updating to the latest version."
+  },
+  "notFound": {
+    "pageTitle": "Page not found — 2anki",
+    "title": "Page not found",
+    "description": "This page doesn't exist or may have moved.",
+    "cta": "Go to homepage"
+  },
+  "stepIndicator": {
+    "progress": "Conversion progress",
+    "uploaded": "Uploaded",
+    "parsing": "Parsing",
+    "generating": "Generating",
+    "packaging": "Packaging"
+  },
+  "skeleton": {
+    "loading": "Loading"
+  }
+}

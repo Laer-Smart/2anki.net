@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { classifyError } from './helpers/getErrorMessage';
 import { useDismissed } from './helpers/useDismissed';
@@ -12,6 +13,7 @@ export function ErrorPresenter({
   error,
   onRetry,
 }: Readonly<ErrorPresenterProps>) {
+  const { t } = useTranslation('errors');
   const { dismissed, setDismissed } = useDismissed(error);
 
   if (!error || dismissed) {
@@ -47,7 +49,7 @@ export function ErrorPresenter({
               onRetry();
             }}
           >
-            Try again
+            {t('presenter.tryAgain')}
           </button>
         )}
         <button
@@ -55,7 +57,7 @@ export function ErrorPresenter({
           className={styles.btnSecondary}
           onClick={() => setDismissed(true)}
         >
-          Dismiss
+          {t('presenter.dismiss')}
         </button>
       </div>
     </article>

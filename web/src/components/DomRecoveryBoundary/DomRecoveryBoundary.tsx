@@ -1,7 +1,32 @@
 import React, { type ErrorInfo, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import styles from '../../styles/shared.module.css';
 import { isDomManipulationError } from '../../lib/isDomManipulationError';
+
+function DomRecoveryFallback({ onReload }: Readonly<{ onReload: () => void }>) {
+  const { t } = useTranslation('errors');
+  return (
+    <main className={styles.pageNarrow}>
+      <section className={styles.card} role="alert" aria-live="assertive">
+        <header className={styles.pageHeader}>
+          <h1 className={styles.title}>{t('domRecovery.title')}</h1>
+          <p className={styles.subtitle}>{t('domRecovery.subtitle')}</p>
+        </header>
+
+        <div className={styles.modalFooter}>
+          <button
+            type="button"
+            className={`${styles.btnPrimary} ${styles.btnInline}`}
+            onClick={onReload}
+          >
+            {t('domRecovery.reload')}
+          </button>
+        </div>
+      </section>
+    </main>
+  );
+}
 
 type DomRecoveryBoundaryProps = Readonly<{
   children: ReactNode;
@@ -56,29 +81,7 @@ export class DomRecoveryBoundary extends React.Component<
 
   render() {
     if (this.state.error) {
-      return (
-        <main className={styles.pageNarrow}>
-          <section className={styles.card} role="alert" aria-live="assertive">
-            <header className={styles.pageHeader}>
-              <h1 className={styles.title}>Something went wrong</h1>
-              <p className={styles.subtitle}>
-                A browser extension may be interfering with this page. Reload to
-                start over.
-              </p>
-            </header>
-
-            <div className={styles.modalFooter}>
-              <button
-                type="button"
-                className={`${styles.btnPrimary} ${styles.btnInline}`}
-                onClick={this.reloadPage}
-              >
-                Reload
-              </button>
-            </div>
-          </section>
-        </main>
-      );
+      return <DomRecoveryFallback onReload={this.reloadPage} />;
     }
 
     return (

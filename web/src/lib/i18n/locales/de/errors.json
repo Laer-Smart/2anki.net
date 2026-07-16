@@ -1,0 +1,146 @@
+{
+  "messages": {
+    "notionUnauthorized": {
+      "title": "Deine Notion-Verbindung ist abgelaufen",
+      "detail": "Melde dich erneut bei Notion an, um weiter Seiten zu konvertieren.",
+      "action": "Notion neu verbinden"
+    },
+    "network": {
+      "title": "2anki nicht erreichbar.",
+      "detail": "Prüfe deine Verbindung und versuch es erneut."
+    },
+    "serviceUnavailable": {
+      "title": "Der Dienst ist gerade nicht erreichbar.",
+      "detail": "Das ist meist vorübergehend — versuch es gleich noch einmal."
+    },
+    "rateLimited": {
+      "title": "Zu viele Anfragen.",
+      "detail": "Versuch es in einer Minute erneut."
+    },
+    "sessionExpired": {
+      "title": "Sitzung abgelaufen.",
+      "detail": "Melde dich erneut an, um fortzufahren.",
+      "action": "Anmelden"
+    },
+    "apkgGone": {
+      "title": "Dieser Stapel ist nicht mehr verfügbar.",
+      "detail": "Hochgeladene Stapel werden nach einer Weile entfernt. Konvertiere oder lade ihn erneut hoch, um eine Vorschau zu sehen.",
+      "action": "Zurück zu den Stapeln"
+    },
+    "notionPageNotFound": {
+      "title": "Wir konnten diese Notion-Seite nicht öffnen.",
+      "detail": "Sie wurde vielleicht gelöscht oder ist nicht mehr mit 2anki geteilt. Teile sie erneut in Notion oder wähle eine andere Seite.",
+      "action": "Seite auswählen"
+    },
+    "monthlyLimit": {
+      "title": "Du hast dein monatliches Limit erreicht.",
+      "detail": "Führe ein Upgrade durch, um diesen Monat mehr Stapel zu konvertieren."
+    },
+    "fallback": {
+      "title": "Etwas ist schiefgelaufen.",
+      "detail": "Versuch es erneut. Wenn das Problem bestehen bleibt, schreib an support@2anki.net."
+    },
+    "uploadFallback": {
+      "title": "Beim Lesen dieser Datei ist etwas schiefgelaufen.",
+      "detail": "Versuch es erneut oder sende die Datei an support@2anki.net, damit wir den Parser reparieren können."
+    }
+  },
+  "upload": {
+    "unsupported_format": {
+      "title": "Dieser Dateityp wird nicht unterstützt.",
+      "detail": "Verwende .zip, .html, .md, .pdf, .docx, .xlsx, .pptx, .csv oder .xml."
+    },
+    "too_large": {
+      "title": "Dieser Export ist zu groß, um ihn auf einmal zu konvertieren.",
+      "detail": "Teile ihn in kleinere Notion-Unterseiten auf und konvertiere jede einzeln."
+    },
+    "password_protected_pdf": {
+      "title": "Dieses PDF ist passwortgeschützt.",
+      "detail": "Entferne das Passwort in deinem PDF-Reader, speichere eine Kopie und lade diese hoch."
+    },
+    "invalid_markup": {
+      "title": "Ein Teil dieser Datei hat eine Formatierung, die wir nicht lesen konnten.",
+      "detail": "Öffne die Quelle, entferne oder vereinfache den fehlerhaften Block und versuch es erneut."
+    },
+    "malformed_notion": {
+      "title": "Dieser Notion-Export konnte nicht verarbeitet werden.",
+      "detail": "Exportiere die Seite erneut aus Notion und versuch es noch einmal."
+    },
+    "corrupted_apkg": {
+      "title": "Diese .apkg-Datei ist beschädigt.",
+      "detail": "Exportiere sie erneut aus Anki oder sende sie an support@2anki.net."
+    },
+    "empty_export": {
+      "title": "Dieser Export enthält keine Inhalte, aus denen wir Karten machen können.",
+      "detail": "Prüfe, ob die Seite Text oder Toggle-Blöcke enthält, und exportiere dann erneut."
+    },
+    "markdown_likely_lossy": {
+      "title": "Notion-Markdown-Exporte flachen Toggles ab — exportiere diese Seite erneut als HTML, dann werden die Toggles zu Karteikarten."
+    },
+    "claude_parse_failed": {
+      "title": "Beim Erstellen deiner Karten ist etwas schiefgelaufen.",
+      "detail": "Versuch es erneut — wenn es weiter passiert, schreib an support@2anki.net."
+    },
+    "parser_crash": {
+      "title": "Diese Datei konnte nicht gelesen werden.",
+      "detail": "Sie ist möglicherweise fehlerhaft oder nutzt eine Struktur, die wir noch nicht erkennen. Exportiere sie erneut aus der Quell-App oder sende die Datei an support@2anki.net."
+    },
+    "worker_timeout": {
+      "title": "Diese Konvertierung hat länger gedauert als das Zeitlimit erlaubt.",
+      "detail": "Teile die Datei in kleinere Teile auf oder entferne sehr große eingebettete Bilder."
+    },
+    "notion_rate_limit": {
+      "title": "Notion drosselt uns gerade.",
+      "detail": "Warte eine Minute und konvertiere erneut."
+    },
+    "notion_object_not_found": {
+      "title": "Wir konnten diese Notion-Seite nicht öffnen.",
+      "detail": "Teile sie in Notion mit der 2anki-Integration und versuch es dann erneut."
+    },
+    "apkg_too_large_for_anki": {
+      "title": "Dieser Stapel überschreitet Ankis Upload-Limit.",
+      "detail": "Teile ihn auf, indem du weniger Seiten einbeziehst, oder lade ihn direkt in Anki Desktop hoch."
+    },
+    "zip_invalid": {
+      "title": "Diese ZIP konnte nicht gelesen werden.",
+      "detail": "Stelle sicher, dass es der Markdown-&-CSV-Export aus Notion ist, nicht der HTML-Export."
+    }
+  },
+  "presenter": {
+    "tryAgain": "Erneut versuchen",
+    "dismiss": "Schließen"
+  },
+  "rootBoundary": {
+    "chunkTitle": "Diese Seite wurde aktualisiert, während du sie offen hattest",
+    "chunkSubtitle": "Lade neu, um die aktuelle Version zu laden. Wenn Neuladen nicht hilft, setze lokale Daten zurück und lade neu.",
+    "resetFailed": "Lokale Daten konnten nicht zurückgesetzt werden. Lösche die Website-Daten für 2anki in den Browsereinstellungen und lade dann neu.",
+    "genericTitle": "Beim Laden von 2anki ist etwas schiefgelaufen",
+    "genericSubtitle": "Versuch es mit Neuladen. Wenn das nicht hilft, setze lokale Daten zurück und lade neu.",
+    "reload": "Neu laden",
+    "resetLocalData": "Lokale Daten zurücksetzen"
+  },
+  "domRecovery": {
+    "title": "Etwas ist schiefgelaufen",
+    "subtitle": "Eine Browser-Erweiterung stört möglicherweise diese Seite. Lade neu, um von vorn zu beginnen.",
+    "reload": "Neu laden"
+  },
+  "chunkOverlay": {
+    "updating": "Aktualisierung auf die neueste Version."
+  },
+  "notFound": {
+    "pageTitle": "Seite nicht gefunden — 2anki",
+    "title": "Seite nicht gefunden",
+    "description": "Diese Seite existiert nicht oder wurde verschoben.",
+    "cta": "Zur Startseite"
+  },
+  "stepIndicator": {
+    "progress": "Konvertierungsfortschritt",
+    "uploaded": "Hochgeladen",
+    "parsing": "Wird gelesen",
+    "generating": "Wird erstellt",
+    "packaging": "Wird verpackt"
+  },
+  "skeleton": {
+    "loading": "Wird geladen"
+  }
+}
