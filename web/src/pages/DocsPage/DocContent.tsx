@@ -1,5 +1,6 @@
 import { AnchorHTMLAttributes, useEffect, useMemo } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ReactMarkdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -130,7 +131,8 @@ const rehypePlugins = [rehypeRaw, rehypeSlug];
 const EDIT_BASE = 'https://github.com/2anki/server/edit/main/';
 
 export function DocContent({ slug }: Readonly<DocContentProps>) {
-  const doc = loadDoc(slug);
+  const { i18n } = useTranslation();
+  const doc = loadDoc(slug, i18n.resolvedLanguage);
   const { hash } = useLocation();
   const resolvedSlug = resolveSlug(slug);
 
